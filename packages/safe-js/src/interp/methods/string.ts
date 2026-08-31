@@ -24,6 +24,7 @@ type StringMethodName =
   | "endsWith"
   | "includes"
   | "indexOf"
+  | "isWellFormed"
   | "lastIndexOf"
   | "localeCompare"
   | "match"
@@ -55,6 +56,7 @@ const stringMethodNames = new Set<StringMethodName>([
   "endsWith",
   "includes",
   "indexOf",
+  "isWellFormed",
   "lastIndexOf",
   "localeCompare",
   "match",
@@ -100,6 +102,7 @@ export function getStringMember(
     sandbox: true,
     name: `String#${property}`,
     ...(property === "localeCompare" ? { length: 1 } : {}),
+    ...(property === "isWellFormed" ? { length: 0 } : {}),
     call: (args, context) =>
       callStringMethod(
         value,
@@ -144,6 +147,22 @@ export function callStringMethod(
   ) => Promise<SandboxValue> = async (closure, closureArgs) => await closure.call(closureArgs),
   parent?: CompileScope
 ): SandboxValue | Promise<SandboxValue> {
+  if (methodName === "isWellFormed") {
+    for (let index = 0; index < value.length; index++) {
+      const codeUnit = value.charCodeAt(index);
+      if (codeUnit >= 0xd800 && codeUnit <= 0xdbff) {
+        const nextCodeUnit = value.charCodeAt(index + 1);
+        if (!(nextCodeUnit >= 0xdc00 && nextCodeUnit <= 0xdfff)) {
+          return false;
+        }
+        index++;
+      } else if (codeUnit >= 0xdc00 && codeUnit <= 0xdfff) {
+        return false;
+      }
+    }
+    return true;
+  }
+
   if (methodName === "replace" || methodName === "replaceAll") {
     return callReplaceLikeMethod(value, methodName, args, budget, callClosure);
   }

@@ -471,7 +471,7 @@
     "husky": "^9.1.7",
     "mcp-oauth": "*",
     "mcp-oauth-server": "*",
-    "memfs": "^4.56.10",
+    "memfs": "4.56.10",
     "opencode-poe-auth": "*",
     "poe-oauth": "*",
     "prettier": "^3.8.1",
@@ -501,7 +501,8 @@
     "vite": "6.4.3",
     "vitest": "^3.2.6",
     "@poe-code/safe-js": "*",
-    "virtual-bash": "*"
+    "virtual-bash": "*",
+    "poe-code": "file:."
   },
   "repository": {
     "type": "git",

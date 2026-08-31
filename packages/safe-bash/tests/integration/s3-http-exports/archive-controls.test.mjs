@@ -9,9 +9,37 @@ import { loadBoundaries } from "../../../scripts/integration-inputs.mjs";
 import { readRegularInput } from "../../../scripts/typecheck-integration-inputs.mjs";
 import { assertTypeOrigins, cleanEnvironment, digest, inspectCommittedCandidate, packagePrefix, readArchive, resolveTools } from "./committed-archive.mjs";
 import * as distChecks from "./committed-archive.mjs";
+import { assertSnapshotInputs, verifyCommittedExports } from "./verify.mjs";
 
 const authority = fileURLToPath(new URL("../../../", import.meta.url));
 const boundaries = loadBoundaries(authority);
+
+test("archive peer contract admits the exact current required peer without admitting runtime dependencies", () => {
+  const manifest = JSON.parse(readRegularInput(authority, "package.json", 300000));
+  assert.deepEqual(manifest.peerDependencies, { "poe-code": ">=13.0.0" });
+  distChecks.assertArchiveDependencyContract(manifest);
+  distChecks.assertArchiveDependencyContract({ ...manifest, peerDependenciesMeta: { "poe-code": { optional: false } } });
+});
+
+test("archive peer contract retains the explicit historical zero-peer profile", () => {
+  distChecks.assertArchiveDependencyContract({ dependencies: {}, devDependencies: { typescript: "5.9.2" } });
+  distChecks.assertArchiveDependencyContract({ peerDependencies: {}, peerDependenciesMeta: {} });
+});
+
+for (const [name, change] of [
+  ["other peer", manifest => { manifest.peerDependencies.other = "*"; }],
+  ["different range", manifest => { manifest.peerDependencies["poe-code"] = "^13.0.0"; }],
+  ["development range", manifest => { manifest.peerDependencies["poe-code"] = "*"; }],
+  ["optional canonical peer", manifest => { manifest.peerDependenciesMeta = { "poe-code": { optional: true } }; }],
+  ["unbound peer metadata", manifest => { manifest.peerDependenciesMeta = { other: { optional: false } }; }],
+  ["missing current peer", manifest => { delete manifest.peerDependencies; }],
+  ["empty current peer", manifest => { manifest.peerDependencies = {}; }],
+  ...["dependencies", "optionalDependencies", "bundledDependencies", "bundleDependencies"].map(key => [key, manifest => { manifest[key] = { other: "1.0.0" }; }]),
+]) test(`archive peer contract rejects ${name}`, () => {
+  const manifest = JSON.parse(readRegularInput(authority, "package.json", 300000));
+  change(manifest);
+  assert.throws(() => distChecks.assertArchiveDependencyContract(manifest));
+});
 
 function withCopyRoot(run) {
   const directory = realpathSync(mkdtempSync(join(tmpdir(), "safe-bash-copy-admission-")));
@@ -131,16 +159,17 @@ function syntheticDist(entries) {
   }
   const reads = [];
   const fileSystem = {
-    readdirSync(directory) {
+    readdirSync(directory, options) {
       if (directory === "/") return ["synthetic-package"];
       const local = relative("/synthetic-package", directory);
-      return [...records.keys()].filter(path => path !== "" && dirname(path) === (local || ".")).map(path => path.split("/").at(-1)).reverse();
+      const names = [...records.keys()].filter(path => path !== "" && dirname(path) === (local || ".")).map(path => path.split("/").at(-1)).reverse();
+      return options?.withFileTypes ? names.map(name => ({ name, ...fileSystem.lstatSync(join(directory, name)) })) : names;
     },
     lstatSync(filename) {
       if (filename === "/") return { isDirectory: () => true, isFile: () => false, size: 0 };
       const record = records.get(relative("/synthetic-package", filename));
       assert.ok(record, `unexpected synthetic metadata request: ${filename}`);
-      return { isDirectory: () => record.kind === "directory", isFile: () => record.kind === "file", size: record.size ?? record.bytes?.length ?? 0 };
+      return { isDirectory: () => record.kind === "directory", isFile: () => record.kind === "file", isSymbolicLink: () => record.kind === "symlink", size: record.size ?? record.bytes?.length ?? 0 };
     },
     readFileSync(filename) {
       reads.push(relative("/synthetic-package", filename));
@@ -149,6 +178,119 @@ function syntheticDist(entries) {
   };
   return { records, reads, fileSystem };
 }
+
+function peerSnapshot() {
+  const committed = new Map([["package.json", Buffer.from('{"name":"poe-code"}')], [`${packagePrefix}/package.json`, Buffer.from('{"name":"virtual-bash"}')]]);
+  const peerBytes = new Map([["package.json", committed.get("package.json")], ["packages/safe-fs/dist/index.d.ts", Buffer.from("export interface Canonical {}")], ["packages/safe-js/dist/safe-fs.js", Buffer.from('export { identity } from "./shared.js";')], ["packages/safe-js/dist/shared.js", Buffer.from("export const identity = {};")]]);
+  const peer = { files: [...peerBytes].map(([path, bytes]) => ({ path, sha256: digest(bytes) })) };
+  const entries = new Map(committed);
+  for (const [path, bytes] of peerBytes) {
+    entries.set(path, bytes);
+    entries.set(`${packagePrefix}/node_modules/poe-code/${path}`, bytes);
+  }
+  const fixture = syntheticDist([...entries].map(([path, bytes]) => [path, { kind: "file", bytes: Buffer.from(bytes) }]));
+  const check = () => assertSnapshotInputs("/synthetic-package", committed, { peer, fileSystem: fixture.fileSystem });
+  return { ...fixture, committed, peer, check };
+}
+
+test("peer snapshot accepts unchanged committed inputs without a peer", () => {
+  const committed = new Map([["package.json", Buffer.from("committed")]]);
+  const fixture = syntheticDist([["package.json", "committed"]]);
+  assertSnapshotInputs("/synthetic-package", committed, { fileSystem: fixture.fileSystem });
+  assert.deepEqual(fixture.reads, ["package.json"]);
+});
+
+test("peer snapshot accepts the exact authenticated union at both destinations without rebasing committed inputs", () => {
+  const fixture = peerSnapshot();
+  const original = [...fixture.committed].map(([path, bytes]) => [path, Buffer.from(bytes)]);
+  fixture.check();
+  assert.equal(fixture.reads.length, 9);
+  assert.deepEqual([...fixture.committed], original);
+});
+
+test("peer snapshot accepts an equal-byte committed overlap", () => {
+  const fixture = peerSnapshot();
+  const path = "packages/safe-js/dist/shared.js";
+  fixture.committed.set(path, Buffer.from(fixture.records.get(path).bytes));
+  fixture.check();
+  assert.equal(fixture.reads.length, 9);
+});
+
+test("peer snapshot does not admit staged files without the authenticated peer binding", () => {
+  const fixture = peerSnapshot();
+  assert.throws(() => assertSnapshotInputs("/synthetic-package", fixture.committed, { fileSystem: fixture.fileSystem }), /snapshot contains missing or new committed inputs/);
+  assert.deepEqual(fixture.reads, []);
+});
+
+test("peer snapshot does not rebaseline a later staged-peer mutation", () => {
+  const fixture = peerSnapshot();
+  fixture.check();
+  fixture.records.get(`${packagePrefix}/node_modules/poe-code/packages/safe-js/dist/shared.js`).bytes = Buffer.from("later mutation");
+  assert.throws(fixture.check, /snapshot input changed/);
+});
+
+test("peer snapshot retains only the existing root tools and Bash output exclusions", () => {
+  const fixture = peerSnapshot();
+  for (const directory of ["node_modules", `${packagePrefix}/dist`]) {
+    fixture.records.set(directory, { kind: "directory" });
+    fixture.records.set(`${directory}/output.js`, { kind: "file", bytes: Buffer.from("generated") });
+  }
+  fixture.check();
+  assert.equal(fixture.reads.length, 9);
+  assert.equal(fixture.reads.some(path => path.endsWith("/output.js")), false);
+  fixture.records.set(`${packagePrefix}/node_modules/unbound.js`, { kind: "file", bytes: Buffer.from("unbound") });
+  assert.throws(fixture.check, /snapshot contains missing or new committed inputs/);
+});
+
+test("peer snapshot retains the per-input size bound before reading a peer leaf", () => {
+  const fixture = peerSnapshot();
+  const path = "packages/safe-js/dist/shared.js";
+  fixture.records.get(path).size = 16 * 1024 * 1024 + 1;
+  assert.throws(fixture.check, /unadmitted type-input file or size/);
+  assert.equal(fixture.reads.includes(path), false);
+});
+
+test("peer snapshot rejects conflicting authority before payload reads", () => {
+  const fixture = peerSnapshot();
+  fixture.committed.set("packages/safe-js/dist/shared.js", Buffer.from("different committed bytes"));
+  assert.throws(fixture.check, /snapshot authority conflict/);
+  assert.deepEqual(fixture.reads, []);
+});
+
+for (const path of [`${packagePrefix}/package.json`, "packages/safe-js/dist/shared.js", `${packagePrefix}/node_modules/poe-code/packages/safe-js/dist/shared.js`]) test(`peer snapshot rejects changed bytes at ${path}`, () => {
+  const fixture = peerSnapshot();
+  fixture.records.get(path).bytes = Buffer.from("tampered");
+  assert.throws(fixture.check, /snapshot input changed/);
+});
+
+for (const path of ["packages/safe-js/dist/shared.js", `${packagePrefix}/node_modules/poe-code/packages/safe-js/dist/shared.js`]) test(`peer snapshot rejects missing member at ${path}`, () => {
+  const fixture = peerSnapshot();
+  fixture.records.delete(path);
+  assert.throws(fixture.check, /snapshot contains missing or new committed inputs/);
+  assert.deepEqual(fixture.reads, []);
+});
+
+for (const path of ["foreign.js", "packages/safe-js/dist/foreign.js", `${packagePrefix}/node_modules/poe-code/foreign.js`]) test(`peer snapshot rejects foreign addition at ${path}`, () => {
+  const fixture = peerSnapshot();
+  fixture.records.set(path, { kind: "file", bytes: Buffer.from("foreign") });
+  assert.throws(fixture.check, /snapshot contains missing or new committed inputs/);
+  assert.deepEqual(fixture.reads, []);
+});
+
+for (const path of ["packages/safe-js", "packages/safe-js/dist/shared.js", `${packagePrefix}/node_modules/poe-code`]) test(`peer snapshot rejects symlink at ${path} before payload reads`, () => {
+  const fixture = peerSnapshot();
+  fixture.records.get(path).kind = "symlink";
+  assert.throws(fixture.check, /snapshot input symlink/);
+  assert.deepEqual(fixture.reads, []);
+});
+
+for (const failure of [undefined, null, false, 0, ""]) test(`peer snapshot preserves read failure identity ${String(failure)}`, () => {
+  const fixture = peerSnapshot();
+  fixture.fileSystem.readFileSync = () => { throw failure; };
+  let caught = false;
+  try { fixture.check(); } catch (error) { caught = true; assert.equal(error, failure); }
+  assert.equal(caught, true);
+});
 
 test("dist continuity captures an immutable full-path ordered baseline bound to the selected archive", () => {
   const fixture = syntheticDist([["dist/z.js", "z"], ["dist/a/index.js", "a"], ["dist/a-b.js", "b"], ["dist/commands/yq/query.js", "query"]]);
@@ -323,7 +465,7 @@ test("maintained outer launcher rejects inherited startup settings before the ve
   } finally { rmSync(directory, { recursive: true, force: true }); }
 });
 
-async function withRepository(change, run) {
+async function withRepository(change, run, { localTypes = false } = {}) {
   const directory = mkdtempSync(join(tmpdir(), "safe-bash-archive-control-"));
   const repository = join(directory, "repository");
   const paths = [];
@@ -350,13 +492,15 @@ async function withRepository(change, run) {
   try {
     const manifest = JSON.parse(readRegularInput(authority, "package.json", 300000));
     manifest.exports = Object.fromEntries(Object.entries(manifest.exports).filter(([path]) => [".", "./fs/s3", "./fs/s3/http"].includes(path)));
-    const root = { name: "poe-code", version: "0.0.0-synthetic", private: true, workspaces: ["packages/*"], devDependencies: { "virtual-bash": "*" }, exports: Object.fromEntries(Object.entries(manifest.exports).map(([path, conditions]) => [path === "." ? "./safe-bash" : `./safe-bash${path.slice(1)}`, Object.fromEntries(Object.entries(conditions).map(([condition, target]) => [condition, `./${packagePrefix}/${target.slice(2)}`]))])) };
+    const root = { name: "poe-code", version: "0.0.0-synthetic", type: "module", private: true, workspaces: ["packages/*"], devDependencies: { "virtual-bash": "*", "poe-code": "file:." }, exports: Object.fromEntries(Object.entries(manifest.exports).map(([path, conditions]) => [path === "." ? "./safe-bash" : `./safe-bash${path.slice(1)}`, Object.fromEntries(Object.entries(conditions).map(([condition, target]) => [condition, `./${packagePrefix}/${target.slice(2)}`]))])) };
+    root.exports["./safe-fs"] = { types: "./packages/safe-fs/dist/index.d.ts", import: "./packages/safe-js/dist/safe-fs.js" };
     const marker = join(directory, "unexpected-lifecycle");
     root.scripts = Object.fromEntries(["prepare", "prepack", "postpack", "preinstall", "postinstall"].map(name => [name, `node -e ${JSON.stringify(`require("node:fs").writeFileSync(${JSON.stringify(marker)}, ${JSON.stringify(name)})`)}`]));
     const lock = { name: root.name, version: root.version, lockfileVersion: 3, packages: {
       "": { name: root.name, version: root.version, workspaces: root.workspaces, devDependencies: root.devDependencies },
-      [packagePrefix]: { name: manifest.name, version: manifest.version, devDependencies: manifest.devDependencies, engines: manifest.engines },
+      [packagePrefix]: { name: manifest.name, version: manifest.version, devDependencies: manifest.devDependencies, peerDependencies: structuredClone(manifest.peerDependencies), engines: manifest.engines },
       "node_modules/virtual-bash": { resolved: packagePrefix, link: true },
+      "node_modules/poe-code": { resolved: "", link: true },
     } };
     for (const identity of Object.values(resolveTools().identities)) lock.packages[relative(resolve(authority, "../.."), identity.root)] = { version: identity.version };
     for (const path of ["tsconfig.json", "tsconfig.build.json", "integration-boundaries.json", "scripts/integration-inputs.mjs", "scripts/typecheck-integration-inputs.mjs", "scripts/build.mjs", ...boundaries.fixtureDirectories.map(fixture => fixture.owner)]) {
@@ -366,24 +510,39 @@ async function withRepository(change, run) {
     put(`${packagePrefix}/README.md`, "Synthetic committed archive control, not a product qualification.\n");
     for (const path of boundaries.heldSourceFiles) put(`${packagePrefix}/${path}`, "SYNTHETIC_WITHHELD_SENTINEL\n");
     for (const path of boundaries.heldEvidenceDirectories) put(`${packagePrefix}/${path}/synthetic-held.ts`, "SYNTHETIC_WITHHELD_EVIDENCE_SENTINEL\n");
-    put(`${packagePrefix}/src/index.ts`, 'export { createS3HttpTransport } from "./fs/s3/http/index.js";\nexport type * from "./fs/s3/http/types.js";\nexport type { S3Transport } from "./fs/s3/index.js";\n');
-    put(`${packagePrefix}/src/fs/s3/index.ts`, 'export interface S3Transport { headObject(): void; getObject(): void; putObject(): void; copyObject(): void; deleteObject(): void; listObjectsV2(): void }\n');
-    put(`${packagePrefix}/src/fs/s3/http/types.ts`, `import type { ClientRequest, IncomingMessage, RequestOptions } from "node:http";
+    put(`${packagePrefix}/src/index.ts`, 'export * from "./fs/s3/http/index.js";\nexport { FsError, MemoryFileSystem } from "poe-code/safe-fs";\nexport type { S3Transport } from "./fs/s3/index.js";\n');
+    const transport = 'export interface S3Transport { headObject(): void; getObject(): void; putObject(): void; copyObject(): void; deleteObject(): void; listObjectsV2(): void }\n';
+    put(`${packagePrefix}/src/fs/s3/index.ts`, transport);
+    const types = `import type { ClientRequest, IncomingMessage, RequestOptions } from "node:http";
 export interface S3HttpCredentials { accessKeyId: string; secretAccessKey: string; sessionToken?: string }
 export type S3HttpCredentialProvider = (options: { readonly signal: AbortSignal }) => Promise<S3HttpCredentials>;
 export type S3HttpRequestFactory = (options: RequestOptions, response: (message: IncomingMessage) => void) => ClientRequest;
 export interface S3HttpTransportOptions { endpoint: string; region: string; credentials: S3HttpCredentials | S3HttpCredentialProvider; addressingStyle?: "path"; listUrlEncoding?: "percent"; clock?: () => Date; request?: S3HttpRequestFactory; allowInsecureHttp?: boolean; maxPutBytes?: number; maxGetBytes?: number; maxXmlBytes?: number; requestTimeoutMs?: number; enableCopy?: boolean; verifiedConditionalOperations?: { put: boolean; copy: boolean; delete: boolean } }
-`);
-    put(`${packagePrefix}/src/fs/s3/http/index.ts`, `import type { S3Transport } from "../index.js";
-import type { S3HttpTransportOptions } from "./types.js";
-export type * from "./types.js";
-export function createS3HttpTransport(options: S3HttpTransportOptions): S3Transport { void options; return { headObject() {}, getObject() {}, putObject() {}, copyObject() {}, deleteObject() {}, listObjectsV2() {} }; }
-`);
-    const fixture = { directory, repository, output: join(directory, "output"), manifest, root, lock, marker, put, paths, git, indexEntries: [] };
+`;
+    if (localTypes) put(`${packagePrefix}/src/fs/s3/http/types.ts`, types);
+    put(`${packagePrefix}/src/fs/s3/http/index.ts`, localTypes
+      ? 'export { createS3HttpTransport } from "poe-code/safe-fs";\nexport type * from "./types.js";\n'
+      : 'export { createS3HttpTransport } from "poe-code/safe-fs";\nexport type { S3HttpCredentials, S3HttpCredentialProvider, S3HttpRequestFactory, S3HttpTransportOptions } from "poe-code/safe-fs";\n');
+    const peerFiles = new Map([
+      ["packages/safe-fs/dist/index.d.ts", types + transport + "export declare function createS3HttpTransport(options: S3HttpTransportOptions): S3Transport;\nexport declare class FsError extends Error {}\nexport declare class MemoryFileSystem {}\n"],
+      ["packages/safe-js/dist/safe-fs.js", 'export { createS3HttpTransport, FsError, MemoryFileSystem } from "./shared.js";\n'],
+      ["packages/safe-js/dist/shared.js", "export class FsError extends Error {}\nexport class MemoryFileSystem {}\nexport function createS3HttpTransport(options) { void options; return { headObject() {}, getObject() {}, putObject() {}, copyObject() {}, deleteObject() {}, listObjectsV2() {} }; }\n"],
+    ]);
+    const fixture = { directory, repository, output: join(directory, "output"), manifest, root, lock, marker, put, paths, git, indexEntries: [], peerArtifact: join(directory, "peer.tgz") };
     change(fixture);
     put("package.json", JSON.stringify(root));
     put("package-lock.json", JSON.stringify(lock));
     put(`${packagePrefix}/package.json`, JSON.stringify(manifest));
+    const peerStaging = join(directory, "peer-staging");
+    for (const [path, bytes] of new Map([["package.json", JSON.stringify(root)], ...peerFiles])) {
+      mkdirSync(dirname(join(peerStaging, "package", path)), { recursive: true });
+      writeFileSync(join(peerStaging, "package", path), bytes, { flag: "wx" });
+      if (path !== "package.json") {
+        mkdirSync(dirname(join(repository, path)), { recursive: true });
+        writeFileSync(join(repository, path), bytes, { flag: "wx" });
+      }
+    }
+    resolveTools().tar.c({ cwd: peerStaging, file: fixture.peerArtifact, gzip: true, sync: true, portable: true, noPax: true }, ["package/package.json", ...[...peerFiles.keys()].map(path => `package/${path}`)]);
     git(["init", "--quiet", `--template=${join(directory, "template")}`]);
     const committed = fixture.stagedOnly ? paths.filter(path => !path.startsWith(`${packagePrefix}/`)) : paths;
     git(["add", "--", ...committed]);
@@ -539,7 +698,7 @@ test("pre-read archive refusal rejects file-kind and size before read or parser 
   }
 });
 
-test("synthetic committed package passes consumers with ancestor Git isolation and hostile inherited startup settings", { timeout: 180000 }, async () => {
+for (const [profile, localTypes] of [["packed-root", false], ["checkout-root", false], ["checkout-root", true]]) test(`synthetic committed package passes consumers with ancestor Git isolation and hostile inherited startup settings${localTypes ? " retaining legacy local declarations" : profile === "checkout-root" ? " using default checkout profile" : ""}`, { timeout: 180000 }, async () => {
   await withRepository(() => {}, async fixture => {
     fixture.git(["config", "--local", "core.hooksPath", join(fixture.directory, "owned-hooks")]);
     const before = readFileSync(join(fixture.repository, ".git/config"));
@@ -552,8 +711,8 @@ test("synthetic committed package passes consumers with ancestor Git isolation a
       GIT_DIR: join(fixture.directory, "nonexistent-git-dir"), GIT_WORK_TREE: join(fixture.directory, "nonexistent-work-tree"),
       GIT_CONFIG_COUNT: "1", GIT_CONFIG_KEY_0: "core.hooksPath", GIT_CONFIG_VALUE_0: join(fixture.directory, "untrusted-hooks") };
     const result = spawnSync(process.execPath, ["--input-type=module", "-e",
-      "Object.assign(process.env,JSON.parse(process.argv[1])); const {verifyCommittedExports}=await import(process.argv[2]); const report=await verifyCommittedExports({repository:process.cwd(),revision:'HEAD'}); process.stdout.write(JSON.stringify(report)); if(report.status!=='pass')process.exitCode=1;",
-      JSON.stringify(poison), new URL("./verify.mjs", import.meta.url).href], {
+      "Object.assign(process.env,JSON.parse(process.argv[1])); const {verifyCommittedExports}=await import(process.argv[2]); const report=await verifyCommittedExports({repository:process.cwd(),revision:'HEAD',peerArtifact:process.argv[3]}); process.stdout.write(JSON.stringify(report)); if(report.status!=='pass')process.exitCode=1;",
+      JSON.stringify(poison), new URL("./verify.mjs", import.meta.url).href, ...(profile === "packed-root" ? [fixture.peerArtifact] : [])], {
       cwd: fixture.repository, encoding: "utf8", timeout: 90000, maxBuffer: 16 * 1024 * 1024,
       env: { PATH: `${dirname(process.execPath)}:/usr/bin:/bin`, HOME: join(fixture.directory, "home"), TMPDIR: fixture.repository, LC_ALL: "C", LANG: "C", TZ: "UTC", TERM: "xterm-256color" },
     });
@@ -562,6 +721,15 @@ test("synthetic committed package passes consumers with ancestor Git isolation a
     const report = JSON.parse(result.stdout);
     assert.equal(report.status, "pass", JSON.stringify(report));
     assert.equal(report.qualification, "synthetic-committed-fixture-not-release-qualification");
+    assert.deepEqual(report.package.peerDependencies, { "poe-code": ">=13.0.0" });
+    assert.equal(report.peer.profile, profile);
+    assert.equal(report.peer.version, fixture.root.version);
+    assert.equal(report.peer.integrity, null);
+    assert.equal(report.peer.tarballSha256, profile === "packed-root" ? digest(readFileSync(fixture.peerArtifact)) : null);
+    assert.equal(report.peer.entries["poe-code/safe-fs"], "packages/safe-js/dist/safe-fs.js");
+    assert.equal(report.archivePaths.includes(`${packagePrefix}/src/fs/s3/http/types.ts`), localTypes);
+    assert.equal(report.package.files.includes("dist/fs/s3/http/types.d.ts"), localTypes);
+    assert.equal(report.typecheck.files.some(path => path.endsWith("/node_modules/virtual-bash/dist/fs/s3/http/types.d.ts")), localTypes);
     assert.equal(report.runtime.requests, 0);
     assert.equal(report.typecheck.sourceFallback, false);
     assert.deepEqual(report.typecheck.negativeDiagnosticCodes, [2322, 2345, 2741]);
@@ -581,12 +749,57 @@ test("synthetic committed package passes consumers with ancestor Git isolation a
     assert.ok(report.steps.every(step => step.cwd.startsWith(`${fixture.repository}/safe-bash-http-exports-`)), "the pack/build/install isolation control must run below the synthetic Git ancestor");
     assert.equal(existsSync(fixture.marker), false);
     assert.deepEqual(readFileSync(join(fixture.repository, ".git/config")), before);
+  }, { localTypes });
+});
+
+test("canonical public declarations cannot drop an exported HTTP type", { timeout: 180000 }, async () => {
+  await withRepository(fixture => {
+    fixture.put(`${packagePrefix}/src/fs/s3/http/index.ts`, 'export { createS3HttpTransport } from "poe-code/safe-fs";\nexport type { S3HttpCredentials, S3HttpCredentialProvider, S3HttpRequestFactory } from "poe-code/safe-fs";\n');
+  }, async fixture => {
+    const report = await verifyCommittedExports({ repository: fixture.repository });
+    assert.equal(report.status, "fail");
+    assert.equal(report.runtime.factoryIdentity, true);
+    assert.equal(report.runtime.requests, 0);
+    assert.match(report.error.message, /strict public TypeScript consumer/);
+    assert.match(report.error.message, /TS2305/);
+    assert.match(report.error.message, /S3HttpTransportOptions/);
+    assert.equal(report.steps.some(step => step.label === "strict invalid consumer controls"), false);
+    assert.equal(existsSync(fixture.marker), false);
+  });
+});
+
+for (const defect of ["missing declaration", "missing runtime", "root metadata drift", "explicit missing artifact"]) test(`default checkout peer refuses ${defect} before building or consuming`, async () => {
+  await withRepository(() => {}, async fixture => {
+    if (defect === "missing declaration") rmSync(join(fixture.repository, "packages/safe-fs/dist/index.d.ts"));
+    if (defect === "missing runtime") rmSync(join(fixture.repository, "packages/safe-js/dist/safe-fs.js"));
+    if (defect === "root metadata drift") writeFileSync(join(fixture.repository, "package.json"), JSON.stringify({ ...fixture.root, version: "0.0.0-drift" }));
+    const report = await verifyCommittedExports({ repository: fixture.repository, ...(defect === "explicit missing artifact" ? { peerArtifact: join(fixture.directory, "missing-peer.tgz") } : {}) });
+    assert.equal(report.status, "fail");
+    assert.match(report.error.message, defect === "root metadata drift" ? /committed root/ : /ENOENT/);
+    assert.deepEqual(report.steps, []);
+    assert.equal(existsSync(fixture.marker), false);
+  });
+});
+
+test("registry peer requires its explicit artifact instead of selecting checkout outputs", async () => {
+  await withRepository(fixture => {
+    delete fixture.manifest.poeCode.integration.peerProfile;
+    fixture.manifest.devDependencies["poe-code"] = "13.0.0";
+    fixture.lock.packages[packagePrefix].devDependencies["poe-code"] = "13.0.0";
+  }, async fixture => {
+    const report = await verifyCommittedExports({ repository: fixture.repository });
+    assert.equal(report.status, "fail");
+    assert.match(report.error.message, /requires an explicit/);
+    assert.deepEqual(report.steps, []);
+    assert.equal(existsSync(fixture.marker), false);
   });
 });
 
 for (const scenario of [
   { name: "copied bytes", anchor: '    copyRegularTree(join(snapshot, "dist"), join(packRoot, "dist"));', after: true, inject: 'writeFileSync(join(packRoot, "dist/fs/s3/index.js"), "export {};void 0;\\n");', blocked: "isolated lifecycle-free package archive" },
   { name: "packed membership", anchor: "    const packedFiles =", inject: 'packed.delete("package/dist/fs/s3/index.js");', blocked: "offline tarball install without lifecycles" },
+  { name: "packed public root declaration", anchor: "    const packedFiles =", inject: 'packed.delete("package/dist/index.d.ts");', blocked: "offline tarball install without lifecycles" },
+  { name: "packed public HTTP declaration", anchor: "    const packedFiles =", inject: 'packed.delete("package/dist/fs/s3/http/index.d.ts");', blocked: "offline tarball install without lifecycles" },
   { name: "installed membership", anchor: '    writeFileSync(join(consumer, "runtime.mjs"),', inject: 'writeFileSync(join(installedRoot, "dist/unbound.js"), "unbound");', blocked: "plain Node packed imports and guard controls" },
   { name: "post-runtime membership", anchor: "    const compilerOptions =", inject: 'writeFileSync(join(installedRoot, "dist/unbound.js"), "unbound");', blocked: "strict public TypeScript consumer" },
   { name: "post-types membership", anchor: "    report.typecheck =", inject: 'writeFileSync(join(installedRoot, "dist/unbound.js"), "unbound");', blocked: "strict invalid consumer controls" },
@@ -601,7 +814,7 @@ for (const scenario of [
       import { createHash } from "node:crypto";
       import fs from "node:fs";
       import { registerHooks, syncBuiltinESMExports } from "node:module";
-      const [verifier, expected, scenario] = JSON.parse(process.argv[1]);
+      const [verifier, expected, scenario, peerArtifact] = JSON.parse(process.argv[1]);
       let transformed = 0;
       let aliasedRoot;
       let rootAliasPayloadReads = 0;
@@ -625,7 +838,7 @@ for (const scenario of [
       } });
       try {
         const { verifyCommittedExports } = await import(verifier);
-        const report = await verifyCommittedExports({ repository: process.cwd(), revision: "HEAD" });
+        const report = await verifyCommittedExports({ repository: process.cwd(), revision: "HEAD", peerArtifact });
         assert.equal(transformed, 1);
         process.stdout.write(JSON.stringify({ ...report, rootAliasPayloadReads }));
       } finally {
@@ -635,7 +848,7 @@ for (const scenario of [
         syncBuiltinESMExports();
       }
     `;
-    const result = spawnSync(process.execPath, ["--input-type=module", "-e", code, JSON.stringify([verifier, verifierHash, scenario])], {
+    const result = spawnSync(process.execPath, ["--input-type=module", "-e", code, JSON.stringify([verifier, verifierHash, scenario, fixture.peerArtifact])], {
       cwd: fixture.repository, env: cleanEnvironment(fixture.output), encoding: "utf8", timeout: 90000, maxBuffer: 16 * 1024 * 1024,
     });
     assert.ifError(result.error);

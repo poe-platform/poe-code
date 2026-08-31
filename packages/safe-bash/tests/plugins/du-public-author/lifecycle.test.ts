@@ -169,8 +169,19 @@ test("DU standalone and aggregate replacement remain explicit with limit forward
   const shell = new Shell({ fs }).use(duCommands()).use(agentCommands({ replace: true, du: { limits: { maxEntries: 1 } } }));
   try {
     const result = await shell.exec("du -b /usage"); assert.equal(result.exitCode, 1); assert.match(result.stderr, /entry limit exceeded/u);
-    assert.equal(shell.commands.list().length, 80);
-    for (const name of ["html-to-markdown", "expr", "which", "timeout", "apply_patch", "git"]) assert.equal(shell.commands.has(name), true);
+    const expected = [
+      "true", "false", "echo", "pwd", "basename", "dirname", "printf", "mkdir", "touch",
+      "cp", "mv", "rm", "rmdir", "ln", "readlink", "realpath", "ls", "cat", "head", "tail",
+      "wc", "tee", "tr", "sort", "uniq", "cut", "grep", "test", "[", "env", "xargs", "find",
+      "sed", "awk", "jq", "rg", "base64", "base32", "xxd", "od", "sha256sum", "sha1sum",
+      "md5sum", "cksum", "gzip", "gunzip", "zcat", "diff", "patch", "chmod", "stat", "mktemp", "tar",
+      "paste", "comm", "join", "tac", "expand", "fold", "strings", "seq", "nl", "rev", "unexpand", "split",
+      "date", "sleep", "printenv", "tree", "file", "egrep", "fgrep", "column", "html-to-markdown", "du", "expr",
+      "which", "timeout", "apply_patch", "git",
+    ];
+    assert.equal(expected.length, 80); assert.equal(new Set(expected).size, 80);
+    assert.deepEqual(shell.commands.list().map(command => command.name).sort(), expected.sort());
+    assert.equal(shell.commands.has("html-to-markdown"), true); assert.equal(shell.commands.has("expr"), true);
     for (const name of ["curl", "safejs", "node", "npm", "npx"]) assert.equal(shell.commands.has(name), false);
   } finally { await shell.dispose(); }
 });

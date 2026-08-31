@@ -1,7 +1,8 @@
 import assert from "node:assert/strict";
 import { spawnSync } from "node:child_process";
-import { existsSync, lstatSync, mkdirSync, mkdtempSync, readdirSync, realpathSync, rmSync, writeFileSync } from "node:fs";
+import { existsSync, lstatSync, mkdirSync, mkdtempSync, readFileSync, readdirSync, realpathSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
+import { isBuiltin } from "node:module";
 import { dirname, join, relative, resolve } from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
 import { assertAdmittedInputPath, assertLiteralInputPath, readRegularInput } from "../../../scripts/typecheck-integration-inputs.mjs";
@@ -10,7 +11,78 @@ import { assertCanonicalRoot, assertDistContinuity, assertTypeOrigins, authority
 const fixtureRoot = dirname(fileURLToPath(import.meta.url));
 const actualRepository = resolve(authority, "../..");
 
-export async function verifyCommittedExports({ repository = actualRepository, revision = "HEAD", reportPath } = {}) {
+export function assertSnapshotInputs(snapshotRoot, committedFiles, { peer, fileSystem = { readdirSync, lstatSync, readFileSync } } = {}) {
+  const expected = new Map([...committedFiles].map(([path, bytes]) => [path, digest(bytes)]));
+  for (const { path, sha256 } of peer?.files ?? []) {
+    assertLiteralInputPath(path);
+    for (const destination of [path, `${packagePrefix}/node_modules/poe-code/${path}`]) {
+      if (expected.has(destination)) assert.equal(expected.get(destination), sha256, `snapshot authority conflict: ${destination}`);
+      expected.set(destination, sha256);
+    }
+  }
+  const paths = [];
+  const visit = local => {
+    for (const entry of fileSystem.readdirSync(join(snapshotRoot, local), { withFileTypes: true })) {
+      const path = local ? `${local}/${entry.name}` : entry.name;
+      if (path === "node_modules" || path === `${packagePrefix}/dist`) continue;
+      assertLiteralInputPath(path);
+      assert.ok(!entry.isSymbolicLink(), `snapshot input symlink: ${path}`);
+      if (entry.isDirectory()) visit(path);
+      else paths.push(path);
+    }
+  };
+  visit("");
+  assert.deepEqual(paths.sort(), [...expected.keys()].sort(), "snapshot contains missing or new committed inputs");
+  for (const [path, sha256] of expected) {
+    const bytes = readRegularInput(snapshotRoot, path, 16 * 1024 * 1024, fileSystem);
+    if (committedFiles.has(path)) assert.deepEqual(bytes, committedFiles.get(path), `snapshot input changed: ${path}`);
+    assert.equal(digest(bytes), sha256, `snapshot input changed: ${path}`);
+  }
+}
+
+function bindPackedConsumer(consumer, packedFiles, peer, declarations, ts) {
+  const binding = { files: {}, metadata: ["node_modules/virtual-bash/package.json", "node_modules/poe-code/package.json"], entries: {
+    "virtual-bash": "node_modules/virtual-bash/dist/index.js", "virtual-bash/fs/s3/http": "node_modules/virtual-bash/dist/fs/s3/http/index.js",
+    "poe-code/safe-fs": `node_modules/poe-code/${peer.entries["poe-code/safe-fs"]}`,
+  }, edges: {}, declarations: [], declarationEntries: {} };
+  for (const path of packedFiles) binding.files[`node_modules/virtual-bash/${path}`] = digest(readRegularInput(consumer, `node_modules/virtual-bash/${path}`, 32 * 1024 * 1024));
+  for (const { path, sha256 } of peer.files) binding.files[`node_modules/poe-code/${path}`] = sha256;
+  for (const [specifier, path] of declarations.publicEntries) binding.declarationEntries[specifier] = `node_modules/poe-code/${path}`;
+  binding.declarations = [...declarations.declarations.keys()].map(path => `node_modules/poe-code/${path}`);
+  const pending = Object.values(binding.entries);
+  while (pending.length) {
+    const local = pending.pop();
+    if (Object.hasOwn(binding.edges, local)) continue;
+    assert.ok(Object.keys(binding.edges).length < 1024, "Runtime closure exceeds member bound");
+    assert.ok(Object.hasOwn(binding.files, local), `Unbound runtime input: ${local}`);
+    const bytes = readRegularInput(consumer, local, 16 * 1024 * 1024);
+    assert.equal(digest(bytes), binding.files[local], `Runtime input drift: ${local}`);
+    const source = ts.createSourceFile(local, bytes.toString(), ts.ScriptTarget.Latest, true, ts.ScriptKind.JS);
+    assert.equal(source.parseDiagnostics.length, 0, `Invalid runtime syntax: ${local}`);
+    const imports = new Set();
+    const visit = node => {
+      if ((ts.isImportDeclaration(node) || ts.isExportDeclaration(node)) && node.moduleSpecifier && ts.isStringLiteral(node.moduleSpecifier)) imports.add(node.moduleSpecifier.text);
+      if (ts.isCallExpression(node) && (node.expression.kind === ts.SyntaxKind.ImportKeyword || ts.isIdentifier(node.expression) && node.expression.text === "require")) {
+        assert.ok(node.arguments.length === 1 && ts.isStringLiteral(node.arguments[0]), "Unbound dynamic runtime import");
+        imports.add(node.arguments[0].text);
+      }
+      ts.forEachChild(node, visit);
+    };
+    visit(source);
+    const edges = binding.edges[local] = {};
+    for (const specifier of imports) {
+      if (isBuiltin(specifier)) { edges[specifier] = specifier.startsWith("node:") ? specifier : `node:${specifier}`; continue; }
+      const target = specifier.startsWith(".") ? relative(consumer, resolve(consumer, dirname(local), specifier)) : binding.entries[specifier];
+      assert.equal(typeof target, "string", `Unbound runtime dependency: ${specifier}`);
+      assert.ok(Object.hasOwn(binding.files, target), `Runtime dependency outside authenticated packages: ${target}`);
+      if (local.startsWith("node_modules/poe-code/")) assert.ok(target.startsWith("node_modules/poe-code/"), "Canonical peer dependency escaped its package");
+      edges[specifier] = target; pending.push(target);
+    }
+  }
+  return binding;
+}
+
+export async function verifyCommittedExports({ repository = actualRepository, revision = "HEAD", reportPath, peerArtifact } = {}) {
   const tempRoot = realpathSync(mkdtempSync(join(tmpdir(), "safe-bash-http-exports-")));
   const steps = [];
   const report = {
@@ -22,6 +94,24 @@ export async function verifyCommittedExports({ repository = actualRepository, re
   try {
     const candidate = inspectCommittedCandidate(repository, revision, tempRoot);
     const { environment, manifest } = candidate;
+    const localTypeEntries = candidate.files.has(`${packagePrefix}/src/fs/s3/http/types.ts`) ? ["dist/fs/s3/http/types.d.ts"] : [];
+    let peer, peerDeclarations, peerApi;
+    if (manifest.peerDependencies?.["poe-code"]) {
+      const checkout = peerArtifact === undefined && manifest.poeCode?.integration?.peerProfile === "checkout-root";
+      assert.ok(checkout || typeof peerArtifact === "string", "Canonical-peer candidate requires an explicit published-peer artifact unless its manifest selects checkout-root");
+      const { createPeerBinding } = await import("../../../scripts/typecheck-consumers.mjs");
+      peerApi = await import("../../plugins/qualified-current-release/peer.mjs");
+      const peerAuthority = join(repository, packagePrefix);
+      assert.deepEqual(candidate.files.get(`${packagePrefix}/package.json`), readRegularInput(peerAuthority, "package.json", 300000), "Peer binding requires the selected committed package metadata");
+      assert.deepEqual(candidate.files.get("package-lock.json"), readRegularInput(repository, "package-lock.json", 16 * 1024 * 1024), "Peer binding requires the selected committed workspace lock");
+      if (manifest.poeCode?.integration?.peerProfile === "checkout-root") assert.deepEqual(candidate.files.get("package.json"), readRegularInput(repository, "package.json", 300000), "Peer binding requires the selected committed root metadata");
+      report.peerPrerequisite = checkout ? "Existing matching root npm run build outputs, including the canonical shared SafeJS bundle; no implicit build, registry fallback or published-version qualification" : "Explicit matching peer artifact and built declaration/runtime tooling";
+      peerDeclarations = createPeerBinding(peerAuthority, manifest);
+      peer = peerApi.bindPeerArtifact({ root: peerAuthority, artifact: peerArtifact, declarations: { peer: peerDeclarations }, checkout });
+      if (peer.profile === "packed-root" || peer.profile === "checkout-root") assert.equal(peer.metadataSha256, digest(candidate.files.get("package.json")), "Peer root metadata differs from the committed root");
+      report.peer = peer;
+      report.scope += checkout ? "; manifest-selected built checkout peer, not published peer-range satisfaction" : "; explicit canonical peer artifact, not published peer-range satisfaction for a development root";
+    }
     report.sourceCommit = candidate.sourceCommit;
     report.blobReads = candidate.blobReads;
     report.withheldPaths = candidate.withheldPaths;
@@ -65,27 +155,23 @@ export async function verifyCommittedExports({ repository = actualRepository, re
       mkdirSync(dirname(join(snapshotRoot, path)), { recursive: true });
       writeFileSync(join(snapshotRoot, path), bytes);
     }
-    const assertSnapshot = () => {
-      const paths = [];
-      const visit = local => {
-        for (const entry of readdirSync(join(snapshotRoot, local), { withFileTypes: true })) {
-          const path = local ? `${local}/${entry.name}` : entry.name;
-          if (path === "node_modules" || path === `${packagePrefix}/dist`) continue;
-          assertLiteralInputPath(path);
-          assert.ok(!entry.isSymbolicLink(), `snapshot input symlink: ${path}`);
-          if (entry.isDirectory()) visit(path);
-          else paths.push(path);
-        }
-      };
-      visit("");
-      assert.deepEqual(paths.sort(), archivePaths, "snapshot contains missing or new committed inputs");
-      for (const [path, bytes] of candidate.files) assert.deepEqual(readRegularInput(snapshotRoot, path, 16 * 1024 * 1024), bytes, `snapshot input changed: ${path}`);
+    const assertSnapshot = stagedPeer => {
+      assertSnapshotInputs(snapshotRoot, candidate.files, { peer: stagedPeer });
       assert.equal(digest(readRegularInput(tempRoot, "committed-source.tar", 128 * 1024 * 1024)), report.archive.sha256);
     };
     assertSnapshot();
     report.tools.copied = {};
     for (const [name, root] of Object.entries(tools.packages)) report.tools.copied[name] = copyRegularTree(root, join(snapshotRoot, "node_modules", name));
     const compiler = join(snapshotRoot, "node_modules/typescript/bin/tsc");
+    if (peer) {
+      peerApi.stagePeerArtifact(peer, snapshot);
+      for (const { path, sha256 } of peer.files) {
+        const bytes = readRegularInput(join(snapshot, "node_modules/poe-code"), path, 16 * 1024 * 1024);
+        assert.equal(digest(bytes), sha256);
+        if (candidate.files.has(path)) assert.deepEqual(bytes, candidate.files.get(path));
+        else { mkdirSync(dirname(join(snapshotRoot, path)), { recursive: true }); writeFileSync(join(snapshotRoot, path), bytes, { flag: "wx" }); }
+      }
+    }
     run("TypeScript version", process.execPath, [compiler, "--version"], snapshot);
     run("committed output guard", process.execPath, [join(snapshotRoot, "scripts/guard-package-dist.mjs")], snapshot);
     run("committed boundary owner authentication", process.execPath, ["--input-type=module", "-e", "const {loadBoundaries}=await import(process.argv[1]); loadBoundaries(process.cwd());", pathToFileURL(join(snapshot, "scripts/integration-inputs.mjs")).href], snapshot);
@@ -99,7 +185,7 @@ export async function verifyCommittedExports({ repository = actualRepository, re
       assertDistContinuity(baseline, files, distIdentity);
       report.distChecks.push(label);
     };
-    assertSnapshot();
+    assertSnapshot(peer);
     const packRoot = join(tempRoot, "package-to-pack");
     mkdirSync(packRoot);
     for (const path of ["package.json", "README.md"]) writeFileSync(join(packRoot, path), candidate.files.get(`${packagePrefix}/${path}`));
@@ -118,11 +204,16 @@ export async function verifyCommittedExports({ repository = actualRepository, re
     const packedFiles = [...packed.keys()].map(path => path.slice("package/".length)).sort();
     checkDist("packed", packedFiles.filter(path => path.startsWith("dist/")).map(path => ({ path, sha256: digest(packed.get(`package/${path}`)) })));
     checkDist("copied after pack", readDistInventory(packRoot));
-    for (const required of ["dist/index.js", "dist/index.d.ts", "dist/fs/s3/http/index.js", "dist/fs/s3/http/index.d.ts", "dist/fs/s3/http/types.d.ts"]) assert.ok(packedFiles.includes(required), `Missing packed ${required}`);
+    for (const required of ["dist/index.js", "dist/index.d.ts", "dist/fs/s3/http/index.js", "dist/fs/s3/http/index.d.ts", ...localTypeEntries]) assert.ok(packedFiles.includes(required), `Missing packed ${required}`);
     for (const path of packedFiles) assert.deepEqual(packed.get(`package/${path}`), readRegularInput(packRoot, path, 32 * 1024 * 1024), `packed file drift: ${path}`);
-    report.package = { name: manifest.name, version: manifest.version, fileCount: packedFiles.length, sha256: packedHash, runtimeDependencies: {}, exports: manifest.exports, files: packedFiles };
+    report.package = { name: manifest.name, version: manifest.version, fileCount: packedFiles.length, sha256: packedHash, runtimeDependencies: {}, peerDependencies: manifest.peerDependencies ?? {}, exports: manifest.exports, files: packedFiles };
     writeFileSync(join(consumer, "package.json"), JSON.stringify({ name: "s3-http-export-consumer", private: true, type: "module" }));
-    run("offline tarball install without lifecycles", process.execPath, [tools.npmCli, "install", "--prefix", consumer, "--workspaces=false", "--offline", "--ignore-scripts", "--omit=dev", "--no-package-lock", "--no-audit", "--no-fund", tarball], consumer);
+    run("offline tarball install without lifecycles", process.execPath, [tools.npmCli, "install", "--prefix", consumer, "--workspaces=false", "--offline", "--ignore-scripts", "--omit=dev", "--no-package-lock", "--no-audit", "--no-fund", ...(peer ? ["--legacy-peer-deps"] : []), tarball], consumer);
+    if (peer) {
+      peerApi.stagePeerArtifact(peer, consumer);
+      peerApi.assertPeerArtifact(peer, consumer);
+      report.peerInstallation = "explicit authenticated public closure after private-package install; npm peer resolution disabled, not a full root install graph qualification";
+    }
     const installedRoot = join(consumer, "node_modules/virtual-bash");
     assertCanonicalRoot(installedRoot);
     assert.equal(lstatSync(installedRoot).isSymbolicLink(), false);
@@ -134,7 +225,13 @@ export async function verifyCommittedExports({ repository = actualRepository, re
     }
     writeFileSync(join(consumer, "runtime.mjs"), readRegularInput(fixtureRoot, "fixtures/runtime.mjs", 100000));
     checkDist("before runtime", readDistInventory(installedRoot));
-    report.runtime = JSON.parse(run("plain Node packed imports and guard controls", process.execPath, [join(consumer, "runtime.mjs"), join(repository, packagePrefix, "src/fs/s3/http/index.ts")], consumer));
+    let bindingPath;
+    if (peer) {
+      const ts = (await import(pathToFileURL(join(tools.packages.typescript, "lib/typescript.js")).href)).default;
+      const binding = bindPackedConsumer(consumer, packedFiles, peer, peerDeclarations, ts);
+      bindingPath = join(consumer, "binding.json"); writeFileSync(bindingPath, JSON.stringify(binding)); report.peerRuntimeBinding = binding;
+    }
+    report.runtime = JSON.parse(run("plain Node packed imports and guard controls", process.execPath, [join(consumer, "runtime.mjs"), join(repository, packagePrefix, "src/fs/s3/http/index.ts"), ...(bindingPath ? [bindingPath] : [])], consumer));
     for (const name of ["@types/node", "undici-types"]) copyRegularTree(tools.packages[name], join(consumer, "node_modules", name));
     const compilerOptions = { target: "ES2023", module: "NodeNext", moduleResolution: "NodeNext", strict: true,
       noUncheckedIndexedAccess: true, exactOptionalPropertyTypes: true, verbatimModuleSyntax: true, skipLibCheck: false, noEmit: true, types: ["node"] };
@@ -145,14 +242,22 @@ export async function verifyCommittedExports({ repository = actualRepository, re
     checkDist("before strict types", readDistInventory(installedRoot));
     const typeFiles = run("strict public TypeScript consumer", process.execPath, [compiler, "-p", "tsconfig.consumer.json", "--listFiles", "--pretty", "false"], consumer).split("\n");
     assertTypeOrigins(typeFiles, consumer, installedRoot, join(snapshotRoot, "node_modules/typescript/lib"));
-    for (const entrypoint of ["dist/index.d.ts", "dist/fs/s3/http/index.d.ts", "dist/fs/s3/http/types.d.ts"]) assert.ok(typeFiles.includes(join(installedRoot, entrypoint)), `Types did not resolve ${entrypoint}`);
+    if (peer) {
+      peerApi.assertPeerDeclarationFiles(peer, typeFiles, consumer);
+      for (const entrypoint of peerDeclarations.publicEntries.values()) assert.ok(typeFiles.includes(join(consumer, "node_modules/poe-code", entrypoint)), `Types did not resolve canonical peer ${entrypoint}`);
+    }
+    for (const entrypoint of ["dist/index.d.ts", "dist/fs/s3/http/index.d.ts", ...localTypeEntries]) assert.ok(typeFiles.includes(join(installedRoot, entrypoint)), `Types did not resolve ${entrypoint}`);
     report.typecheck = { compilerOptions, files: typeFiles, rootAndSubpathTypes: 4, sourceFallback: false };
     checkDist("before invalid types", readDistInventory(installedRoot));
     const diagnostics = run("strict invalid consumer controls", process.execPath, [compiler, "-p", "tsconfig.invalid.json", "--pretty", "false"], consumer, 2);
     const diagnosticCodes = [...diagnostics.matchAll(/error TS(\d+):/gu)].map(match => Number(match[1])).sort();
     assert.deepEqual(diagnosticCodes, [2322, 2345, 2741]);
     report.typecheck.negativeDiagnosticCodes = diagnosticCodes;
-    assertSnapshot();
+    if (peer) {
+      peerApi.assertPeerArtifact(peer, consumer); peerApi.assertPeerArtifact(peer, snapshot);
+      for (const { path, sha256 } of peer.files) assert.equal(digest(readRegularInput(snapshotRoot, path, 16 * 1024 * 1024)), sha256, "Canonical build peer changed");
+    }
+    assertSnapshot(peer);
     for (const [label, root] of [["final built", snapshot], ["final copied", packRoot], ["final installed", installedRoot]]) checkDist(label, readDistInventory(root));
     assert.equal(digest(readRegularInput(tempRoot, "virtual-bash.tgz", 128 * 1024 * 1024)), packedHash);
     report.status = "pass";
@@ -168,7 +273,7 @@ export async function verifyCommittedExports({ repository = actualRepository, re
 }
 
 if (process.argv[1] && resolve(process.argv[1]) === fileURLToPath(import.meta.url)) {
-  const report = await verifyCommittedExports({ revision: process.argv[2] ?? "HEAD", reportPath: process.argv[3] ? resolve(process.argv[3]) : undefined });
+  const report = await verifyCommittedExports({ revision: process.argv[2] ?? "HEAD", reportPath: process.argv[3] ? resolve(process.argv[3]) : undefined, peerArtifact: process.argv[4] ? resolve(process.argv[4]) : undefined });
   process.stdout.write(`${JSON.stringify(report, null, 2)}\n`);
   if (report.status !== "pass") process.exitCode = 1;
 }

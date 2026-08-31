@@ -1,0 +1,300 @@
+{
+  "schema": 1,
+  "profiles": [
+    {
+      "id": "ubuntu-24.04-x64-gcc13.3-gnu-20260831",
+      "host": {
+        "platform": "linux",
+        "arch": "x64",
+        "distribution": "ubuntu",
+        "version": "24.04"
+      },
+      "qualification": "QUALIFIED",
+      "qualificationScope": "Authenticated upstream sources, genuine Linux execution and two independent byte-identical builds. Product compatibility and final CI remain separate gates.",
+      "compilerVersion": "13.3.0",
+      "buildPrefix": "/home/qualifier/native-prefix",
+      "sourceDateEpoch": "1743984000",
+      "provenance": {
+        "imageSha256": "d2ed9bebd51635f75b48ef0b27a58f03e27a32a2a6544c507d117d323eeac714",
+        "imageSigner": "D2EB44626FDDC30B513D5BB71A5D6C4C7DB87C81",
+        "compilerPackage": "13.3.0-6ubuntu2~24.04.1",
+        "libcPackage": "2.39-0ubuntu8.8",
+        "plan": "docs/plans/darwin-gnu-build-qualification.md",
+        "independentBuilds": 2,
+        "repeatedBinaryIdentity": true
+      },
+      "executables": [
+        {
+          "tool": "tar",
+          "version": "tar (GNU tar) 1.35",
+          "size": 495544,
+          "sha256": "e8ff809aa5ccc6f9c6b18a67f02bafabbced0e20cf451271d0b82574146e2f6c"
+        },
+        {
+          "tool": "diff",
+          "version": "diff (GNU diffutils) 3.12",
+          "size": 169440,
+          "sha256": "c95abd8ec2c5e751d8b716edeba577e2d25e9821de8e996357eba934a801d6ce"
+        },
+        {
+          "tool": "patch",
+          "version": "GNU patch 2.8",
+          "size": 197744,
+          "sha256": "80e5a4155f91bbcc82800308d9b25c335b75868ea44dcc492fd64d99057fe6de"
+        }
+      ],
+      "sources": [
+        {
+          "name": "tar-1.35",
+          "url": "https://ftp.gnu.org/gnu/tar/tar-1.35.tar.xz",
+          "size": 2317208,
+          "sha256": "4d62ff37342ec7aed748535323930c7cf94acf71c3591882b26a7ea50f3edc16",
+          "signer": "325F650C4C2B6AD58807327A3602B07F55D0C732",
+          "outputs": [
+            {
+              "tool": "tar",
+              "path": "src/tar"
+            }
+          ]
+        },
+        {
+          "name": "diffutils-3.12",
+          "url": "https://ftp.gnu.org/gnu/diffutils/diffutils-3.12.tar.xz",
+          "size": 1938800,
+          "sha256": "7c8b7f9fc8609141fdea9cece85249d308624391ff61dedaf528fcb337727dfd",
+          "signer": "155D3FC500C834486D1EEA677FD9FCCB000BEEEE",
+          "outputs": [
+            {
+              "tool": "diff",
+              "path": "src/diff"
+            }
+          ]
+        },
+        {
+          "name": "patch-2.8",
+          "url": "https://ftp.gnu.org/gnu/patch/patch-2.8.tar.xz",
+          "size": 907208,
+          "sha256": "f87cee69eec2b4fcbf60a396b030ad6aa3415f192aa5f7ee84cad5e11f7f5ae3",
+          "signer": "259B3792B3D6D319212CC4DCD5BF9FEB0313653A",
+          "outputs": [
+            {
+              "tool": "patch",
+              "path": "src/patch"
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "darwinBuildQualification": {
+    "id": "github-macos26-arm64-20260728.0273.1-build-observation",
+    "qualification": "IDENTITY_APPROVED_FOR_QUALIFICATION_ONLY",
+    "imageOS": "macos26",
+    "imageVersion": "20260728.0273.1",
+    "osVersion": "26.5.2",
+    "buildVersion": "25F84",
+    "kernel": "25.5.0",
+    "xcode": "Xcode 26.6\nBuild version 17F113",
+    "compiler": "/usr/bin/clang",
+    "compilerVersion": "Apple clang version 21.0.0 (clang-2100.1.1.101)\nTarget: arm64-apple-darwin25.5.0\nThread model: posix\nInstalledDir: /Applications/Xcode_26.6.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin",
+    "verifier": "/opt/homebrew/bin/gpgv",
+    "verifierVersion": "gpgv (GnuPG) 2.5.21",
+    "buildPrefix": "/native-qualification",
+    "sourceDateEpoch": "1743984000",
+    "provenance": {
+      "metadataRun": "33398563411",
+      "imageRepository": "actions/runner-images",
+      "imageTag": "macos-26-arm64/20260728.0273",
+      "imageCommit": "b40db0eab3fbc4c6113ce4afa67020b8c59fe0a4",
+      "historical": {
+        "osVersion": "26.4.1",
+        "buildVersion": "25E253",
+        "kernel": "25.4.0",
+        "apple": [
+          {
+            "path": "/usr/bin/diff",
+            "sha256": "214a0d91e39424b15e1e3540edf6b33ee3dd2bbccb0c6dd3a9571dae754edede"
+          },
+          {
+            "path": "/usr/bin/patch",
+            "sha256": "ca8aaa5fa4bd9dfaf4b3be251b18372f25f07483946e7d06b505e5a5fb0a6a84"
+          },
+          {
+            "path": "/usr/bin/bsdtar",
+            "sha256": "bdccb76a715fbebc4915a1a1b1de0e7050ad842ebb730c47935b3a22c13e3af9"
+          }
+        ]
+      }
+    },
+    "apple": [
+      {
+        "path": "/usr/bin/diff",
+        "size": 237472,
+        "sha256": "18b503efc5389ff18d85e0a4d88d068c43b56efc4647e4e8dc2717500b79c99e"
+      },
+      {
+        "path": "/usr/bin/patch",
+        "size": 220608,
+        "sha256": "256e7e3fb214fda4971309e27e685623be5238f1975364d887d277eb42e52404"
+      },
+      {
+        "path": "/usr/bin/bsdtar",
+        "size": 275184,
+        "sha256": "9ab7f0793033dc9dc4809d83d695118801bd687cbacda59a0cbbf151ba25dc2b"
+      }
+    ],
+    "keyring": {
+      "url": "https://ftp.gnu.org/gnu/gnu-keyring.gpg",
+      "size": 3687794,
+      "sha256": "b136fbe57ade4ee5270ca66c402cae7b50349fd07646b5b3de7962d58d4df608"
+    },
+    "sources": [
+      {
+        "name": "tar-1.35",
+        "url": "https://ftp.gnu.org/gnu/tar/tar-1.35.tar.xz",
+        "size": 2317208,
+        "sha256": "4d62ff37342ec7aed748535323930c7cf94acf71c3591882b26a7ea50f3edc16",
+        "signer": "325F650C4C2B6AD58807327A3602B07F55D0C732",
+        "outputs": [
+          {
+            "tool": "tar",
+            "path": "src/tar",
+            "version": "tar (GNU tar) 1.35"
+          }
+        ],
+        "signature": {
+          "url": "https://ftp.gnu.org/gnu/tar/tar-1.35.tar.xz.sig",
+          "size": 95,
+          "sha256": "c4932271b3c79e303cc0fa92b8345c04e236f35499a45b1c4e6793713c497298"
+        },
+        "builds": 1
+      },
+      {
+        "name": "diffutils-3.12",
+        "url": "https://ftp.gnu.org/gnu/diffutils/diffutils-3.12.tar.xz",
+        "size": 1938800,
+        "sha256": "7c8b7f9fc8609141fdea9cece85249d308624391ff61dedaf528fcb337727dfd",
+        "signer": "155D3FC500C834486D1EEA677FD9FCCB000BEEEE",
+        "outputs": [
+          {
+            "tool": "diff",
+            "path": "src/diff",
+            "version": "diff (GNU diffutils) 3.12"
+          }
+        ],
+        "signature": {
+          "url": "https://ftp.gnu.org/gnu/diffutils/diffutils-3.12.tar.xz.sig",
+          "size": 833,
+          "sha256": "ad05b321b2f23441275af68072123a5907b05ad989335a9f1f6e3781cb0846a6"
+        },
+        "builds": 1
+      },
+      {
+        "name": "patch-2.8",
+        "url": "https://ftp.gnu.org/gnu/patch/patch-2.8.tar.xz",
+        "size": 907208,
+        "sha256": "f87cee69eec2b4fcbf60a396b030ad6aa3415f192aa5f7ee84cad5e11f7f5ae3",
+        "signer": "259B3792B3D6D319212CC4DCD5BF9FEB0313653A",
+        "outputs": [
+          {
+            "tool": "patch",
+            "path": "src/patch",
+            "version": "GNU patch 2.8"
+          }
+        ],
+        "signature": {
+          "url": "https://ftp.gnu.org/gnu/patch/patch-2.8.tar.xz.sig",
+          "size": 833,
+          "sha256": "127652869a83b9fd0e32d54adac26c2bbb19fabcc553dfc72547fd509080b622"
+        },
+        "builds": 1
+      },
+      {
+        "url": "https://ftp.gnu.org/gnu/coreutils/coreutils-9.7.tar.xz",
+        "size": 6158960,
+        "sha256": "e8bb26ad0293f9b5a1fc43fb42ba970e312c66ce92c1b0b16713d7500db251bf",
+        "name": "coreutils-9.7",
+        "signer": "6C37DC12121A5006BC1DB804DF6FD971306037D9",
+        "signature": {
+          "url": "https://ftp.gnu.org/gnu/coreutils/coreutils-9.7.tar.xz.sig",
+          "size": 833,
+          "sha256": "5070e9428bd372a7fa1f66b395b81092bb40c98f9f56a2e2bc55c47fd387e901"
+        },
+        "builds": 2,
+        "coreutils": true,
+        "outputs": [
+          {
+            "tool": "od",
+            "path": "src/od",
+            "version": "od (GNU coreutils) 9.7"
+          },
+          {
+            "tool": "chmod",
+            "path": "src/chmod",
+            "version": "chmod (GNU coreutils) 9.7"
+          },
+          {
+            "tool": "stat",
+            "path": "src/stat",
+            "version": "stat (GNU coreutils) 9.7"
+          },
+          {
+            "tool": "mktemp",
+            "path": "src/mktemp",
+            "version": "mktemp (GNU coreutils) 9.7"
+          },
+          {
+            "tool": "expr",
+            "path": "src/expr",
+            "version": "expr (GNU coreutils) 9.7"
+          },
+          {
+            "tool": "paste",
+            "path": "src/paste",
+            "version": "paste (GNU coreutils) 9.7"
+          },
+          {
+            "tool": "comm",
+            "path": "src/comm",
+            "version": "comm (GNU coreutils) 9.7"
+          },
+          {
+            "tool": "join",
+            "path": "src/join",
+            "version": "join (GNU coreutils) 9.7"
+          },
+          {
+            "tool": "seq",
+            "path": "src/seq",
+            "version": "seq (GNU coreutils) 9.7"
+          },
+          {
+            "tool": "nl",
+            "path": "src/nl",
+            "version": "nl (GNU coreutils) 9.7"
+          },
+          {
+            "tool": "unexpand",
+            "path": "src/unexpand",
+            "version": "unexpand (GNU coreutils) 9.7"
+          },
+          {
+            "tool": "touch",
+            "path": "src/touch",
+            "version": "touch (GNU coreutils) 9.7"
+          },
+          {
+            "tool": "base32",
+            "path": "src/base32",
+            "version": "base32 (GNU coreutils) 9.7"
+          },
+          {
+            "tool": "base64",
+            "path": "src/base64",
+            "version": "base64 (GNU coreutils) 9.7"
+          }
+        ]
+      }
+    ]
+  }
+}

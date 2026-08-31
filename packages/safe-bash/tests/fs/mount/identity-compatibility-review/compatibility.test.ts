@@ -7,6 +7,7 @@ import { standardCommands } from "../../../../src/commands/index.js";
 import { FsError } from "../../../../src/contracts/errors.js";
 import type { FileSystem } from "../../../../src/contracts/filesystem.js";
 import { createMemoryFileSystem } from "../../../../src/fs/memory/index.js";
+import type { MemoryFileSystem } from "../../../../src/fs/memory/index.js";
 import { createMountFileSystem } from "../../../../src/fs/mount/index.js";
 import { createOverlayFileSystem } from "../../../../src/fs/overlay/index.js";
 import { createReadOnlyFileSystem } from "../../../../src/fs/readonly/index.js";
@@ -31,7 +32,7 @@ function opaque<Backend extends object>(backend: Backend): Backend {
   });
 }
 
-function remote(kind: RemoteKind, allowNonAtomicRename = false) {
+function remote(kind: RemoteKind, allowNonAtomicRename = false, independentMemory?: MemoryFileSystem) {
   if (kind === "s3") {
     const service = new MockS3Client({ buckets: ["compatibility"], now: () => new Date("2026-08-26T12:00:00Z") });
     const firstClient = opaque(service);
@@ -53,7 +54,8 @@ function remote(kind: RemoteKind, allowNonAtomicRename = false) {
   const secondClient = { fetch: (url: string, init: RequestInit) => service.fetch(url, init) };
   assert.notEqual(firstClient.fetch, secondClient.fetch);
   const make = (client: typeof firstClient) => new WebDavFileSystem({
-    baseUrl: "https://compatibility.invalid/dav/", fetch: client.fetch, timeoutMs: 3000,
+    baseUrl: "https://compatibility.invalid/dav/", fetch: client.fetch, requestStreamSupport: true, timeoutMs: 3000,
+    ...(independentMemory ? { compareEntry: service.compareDisjointMemory(independentMemory) } : {}),
   });
   return {
     left: make(firstClient), right: make(secondClient),
@@ -264,8 +266,8 @@ for (const kind of ["s3", "webdav"] as const) {
   for (const direction of ["to-remote", "from-remote"] as const) {
     for (const existing of [false, true]) {
       test(`REQUIRED memory ${direction} ${kind} copy, target ${existing ? "existing" : "missing"}`, async context => {
-        const remotePair = remote(kind);
         const memory = createMemoryFileSystem();
+        const remotePair = remote(kind, false, memory);
         const left = direction === "to-remote" ? memory : remotePair.left;
         const right = direction === "to-remote" ? remotePair.right : memory;
         await seed(left, right, existing);

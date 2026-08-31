@@ -8,7 +8,7 @@ import test from "node:test";
 import { Script } from "node:vm";
 import { createFsFromVolume, Volume } from "memfs";
 import { createLintInputGuard } from "../../../scripts/lint-input-guard.mjs";
-import { discoverTests, integrationExclusions, lintExclusions, lintInventoryPaths, loadBoundaries, readIntegrationLintInputs, validateBoundaries, validateImportRetirement, verifyLintInventory } from "./integration-inputs.mjs";
+import { discoverTests, integrationExclusions, lintExclusions, lintInventoryPaths, loadBoundaries, readIntegrationLintInputs, readTypecheckInventories, validateBoundaries, validateImportRetirement, verifyLintInventory } from "./integration-inputs.mjs";
 import { runTests } from "./test.mjs";
 import { assertAdmittedInputPath, assertLiteralInputPath, readIntegrationTypeInputs, readRegularInput } from "./typecheck-integration-inputs.mjs";
 
@@ -24,6 +24,47 @@ const boundary = {
   heldEvidenceDirectories: ["tests/commands/xan-author-20260828"],
   fixtureDirectories: [fixture],
 };
+
+function assertSource7Discovery(files) {
+  const removed = [
+    "tests/fs/memory/faithful-binding.test.ts",
+    "tests/fs/mount/comparison.test.ts",
+    "tests/fs/mount/identity-authority-review/authority.test.ts",
+    "tests/fs/mount/identity-authority-review/implementation/remote-comparison.test.ts",
+    "tests/fs/mount/identity-scope.test.ts",
+    "tests/fs/real/allocation-independent/boundary.test.ts",
+    "tests/fs/s3/faithful-decorators.test.ts",
+    "tests/fs/s3/http/unit/signature.test.ts",
+    "tests/fs/s3/late-authority.test.ts",
+    "tests/fs/webdav/operation-authority.test.ts",
+    "tests/fs/webdav/resource-id.test.ts",
+    "tests/fs/webdav/trusted-binding.test.ts",
+    "tests/fs/webdav/xml.test.ts",
+  ];
+  const added = [
+    "tests/fs/canonical-boundaries.test.ts",
+    "tests/fs/migration-permission-contract.test.ts",
+    "tests/fs/public-comparison.test.ts",
+    "tests/integration/qualified-current-release-repair/canonical-peer.test.ts",
+    "tests/integrations/safejs/canonical-filesystem.test.ts",
+    "tests/integrations/safejs/published-replay.test.ts",
+  ];
+  const integrationAdditions = ["tests/fs/conformance/provenance.test.ts"];
+  assert.equal(new Set(files).size, files.length);
+  for (const path of removed) assert.ok(!files.includes(path), `source7 removed test remains selected: ${path}`);
+  for (const path of added) assert.ok(files.includes(path), `source7 added test is missing: ${path}`);
+  for (const path of integrationAdditions) assert.ok(files.includes(path), `integration-authored test is missing: ${path}`);
+  const source7Files = files.filter(path => !integrationAdditions.includes(path));
+  const previous655 = [...source7Files.filter(path => !added.includes(path)), ...removed].sort();
+  assert.equal(previous655.length, 655);
+  const previous654 = previous655.filter(path => path !== "tests/commands/stream-format/seq-diagnostic-profile.test.ts");
+  assert.equal(previous654.length, 654);
+  const previous653 = previous654.filter(path => path !== "tests/commands/search/native-tool.test.ts");
+  assert.equal(previous653.length, 653);
+  assert.equal(createHash("sha256").update(JSON.stringify(previous653)).digest("hex"), "4034255d318de395fa9614c6b00950d3f6be0337ef47724e4e96acdf9e716957");
+  assert.equal(source7Files.length, 655 - removed.length + added.length);
+  assert.equal(files.length, source7Files.length + integrationAdditions.length);
+}
 
 function fileSystemFor(files) {
   return {
@@ -943,7 +984,7 @@ test("frozen lint inventory adds only its 1842 literal exclusions and preserves 
   for (const link of symlinks) assert.ok(!reads.includes(link.path));
   const { consumerGroups, currentConsumerPaths, currentSourceConsumerGroups, negativeGroups } = await import("../tests/plugins/qualified-current-release/consumers.mjs");
   const tests = discoverTests(root, boundaries);
-  assert.equal(tests.length, 655);
+  assertSource7Discovery(tests);
   assert.ok(tests.includes("tests/commands/stream-format/seq-diagnostic-profile.test.ts"));
   assert.ok(tests.includes("tests/commands/search/native-tool.test.ts"));
   assert.ok(tests.includes("tests/native-profile.test.ts"));
@@ -1247,7 +1288,17 @@ test("lint admission reads only classification metadata and retains current inpu
   const staged = JSON.parse(readFileSync(new URL("staged-types.json", directory)));
   const inventory = JSON.parse(readFileSync(new URL("inventory.json", directory)));
   const paths = lintInventoryPaths(captured, staged, inventory);
-  assert.equal(paths.length, 173);
+  const typeInputs = JSON.parse(readFileSync(new URL("../integration-type-inputs.json", import.meta.url)));
+  const source7Additions = typeInputs.cohorts.flatMap(cohort => cohort.entries).filter(entry => entry.path.endsWith(".mts")).map(entry => entry.path);
+  assert.equal(source7Additions.length, 13);
+  assert.equal(new Set(source7Additions).size, 13);
+  const previousInventory = { ...inventory, entries: inventory.entries.filter(entry => !source7Additions.includes(entry.path)) };
+  const previousPaths = lintInventoryPaths(captured, staged, previousInventory);
+  assert.equal(previousPaths.length, 173);
+  assert.equal(createHash("sha256").update(JSON.stringify(previousPaths)).digest("hex"), "0788349f778770ff6f85ec24a8de74b60251a15f26f5e0ac9f36510e44e6a4a1");
+  assert.deepEqual(paths.filter(path => !previousPaths.includes(path)).sort(), [...source7Additions].sort());
+  assert.deepEqual([...paths].sort(), [...previousPaths, ...source7Additions].sort());
+  assert.equal(paths.length, 173 + source7Additions.length);
   assert.ok(inventory.entries.filter(entry => entry.classification === "current").every(entry => !paths.includes(entry.path)));
   for (const path of ["tests/**", "../outside.ts", "tests/a/../escape.ts", "tests/unowned/capture.ts", null]) {
     assert.throws(() => lintInventoryPaths({ ...captured, entries: [{ ...captured.entries[0], path }] }, staged, inventory));
@@ -1381,14 +1432,9 @@ test("runner defaults to serial execution and preserves explicit concurrency ove
 test("default normal runner passes every discovered active file to serial Node execution", () => {
   const root = fileURLToPath(new URL("../", import.meta.url));
   const files = discoverTests(root, loadBoundaries(root));
-  assert.equal(files.length, 655);
+  assertSource7Discovery(files);
   assert.ok(files.includes("tests/commands/stream-format/seq-diagnostic-profile.test.ts"));
   assert.ok(files.includes("tests/commands/search/native-tool.test.ts"));
-  const previous654 = files.filter(path => path !== "tests/commands/stream-format/seq-diagnostic-profile.test.ts");
-  assert.equal(previous654.length, 654);
-  const previous = previous654.filter(path => path !== "tests/commands/search/native-tool.test.ts");
-  assert.equal(previous.length, 653);
-  assert.equal(createHash("sha256").update(JSON.stringify(previous)).digest("hex"), "4034255d318de395fa9614c6b00950d3f6be0337ef47724e4e96acdf9e716957");
   assert.ok(files.includes("tests/native-profile.test.ts"));
   assert.ok(files.includes("tests/commands/git/io-cleanup.test.ts"));
   assert.equal(runTests(root, [], (executable, args, options) => {
@@ -1522,6 +1568,74 @@ test("shared type reader rejects held and nonliteral paths before any filesystem
   assert.equal(accesses, 0);
 });
 
+test("source7 inventory admits exactly the already sealed thirteen-entry source delta", async () => {
+  const root = fileURLToPath(new URL("../", import.meta.url));
+  const boundaries = loadBoundaries(root);
+  const prefix = "tests/plugins/qualified-current-release/";
+  const files = new Map(["captured-types.json", "staged-types.json", "inventory.json"].map(name => ["/package/" + prefix + name, readRegularInput(root, prefix + name, 300000, fs, boundaries)]));
+  const reads = [];
+  const memory = fileSystemFor(files);
+  const { captured, staged, inventory } = readTypecheckInventories("/package", boundaries, {
+    ...memory,
+    readFileSync(path) { reads.push(path); return memory.readFileSync(path); },
+  });
+  const types = JSON.parse(readRegularInput(root, "integration-type-inputs.json", 100000, fs, boundaries));
+  const sealed = types.cohorts.flatMap(cohort => cohort.entries).filter(entry => entry.path.endsWith(".mts"));
+  assert.equal(sealed.length, 13);
+  assert.equal(new Set(sealed.map(entry => entry.path)).size, 13);
+  for (const entry of sealed) {
+    assertAdmittedInputPath(entry.path, boundaries);
+    const matches = inventory.entries.filter(member => member.path === entry.path);
+    assert.equal(matches.length, 1);
+    assert.equal(matches[0].classification, "frozen-evidence");
+    assert.equal(matches[0].sha256, entry.sha256);
+  }
+  assert.equal(inventory.entries.length, 213);
+  assert.equal(inventory.inventoriedCommit, "697ad092de111642aa376f74560da9927a0c9512");
+  assert.deepEqual(inventory.counts, { "frozen-evidence": 166, current: 36, declaration: 7, "frozen-oracle": 1, "negative-types": 3 });
+  const previous = structuredClone(inventory);
+  const additions = new Set(sealed.map(entry => entry.path));
+  previous.entries = previous.entries.filter(entry => !additions.has(entry.path));
+  previous.inventoriedCommit = "1ff82cb748c60145740dba354610ac7ed7a7f15f";
+  previous.counts["frozen-evidence"] = 153;
+  assert.equal(createHash("sha256").update(JSON.stringify(previous, null, 2) + "\n").digest("hex"), "7dbe62573f69670f697f978c5f91beb1b7003c582ad31728fda5ed4fa0bcd6e0");
+  assert.deepEqual([...new Set([...lintInventoryPaths(captured, staged, inventory), ...additions])].sort(), [...new Set([...lintInventoryPaths(captured, staged, previous), ...additions])].sort());
+  const { mergeStandaloneInventory } = await import("./typecheck-inputs.mjs");
+  const authenticated = sealed.map(entry => ({ ...entry, classification: "frozen-evidence" }));
+  assert.deepEqual(mergeStandaloneInventory(inventory, authenticated), inventory);
+  const mergedPrevious = mergeStandaloneInventory(previous, authenticated);
+  assert.equal(mergedPrevious.entries.length, 213);
+  assert.deepEqual(mergedPrevious.counts, inventory.counts);
+  assert.deepEqual(mergedPrevious.entries.map(entry => entry.path).sort(), inventory.entries.map(entry => entry.path).sort());
+  assert.deepEqual(reads, [...files.keys()]);
+});
+
+test("source7 standalone union preserves old and new inventory epochs without double counting", async () => {
+  const { mergeStandaloneInventory } = await import("./typecheck-inputs.mjs");
+  assert.equal(typeof mergeStandaloneInventory, "function");
+  const current = { path: "tests/current/consumer.mts", classification: "current", sha256: "1".repeat(64) };
+  const frozen = { path: "tests/sealed/consumer.mts", classification: "frozen-evidence", sha256: "2".repeat(64) };
+  const previous = { entries: [current], counts: { current: 1, "frozen-evidence": 0 } };
+  const next = { entries: [current, frozen], counts: { current: 1, "frozen-evidence": 1 } };
+  const original = structuredClone(next);
+  assert.deepEqual(mergeStandaloneInventory(previous, [frozen]), next);
+  assert.deepEqual(mergeStandaloneInventory(next, [frozen]), next);
+  assert.deepEqual(mergeStandaloneInventory(next, []), next);
+  assert.deepEqual(next, original);
+});
+
+test("source7 standalone union refuses duplicate and conflicting owner admissions", async () => {
+  const { mergeStandaloneInventory } = await import("./typecheck-inputs.mjs");
+  assert.equal(typeof mergeStandaloneInventory, "function");
+  const entry = { path: "tests/sealed/consumer.mts", classification: "frozen-evidence", sha256: "1".repeat(64) };
+  const inventory = { entries: [entry], counts: { "frozen-evidence": 1 } };
+  assert.throws(() => mergeStandaloneInventory({ ...inventory, entries: [entry, entry] }, [entry]), /duplicate/);
+  assert.throws(() => mergeStandaloneInventory(inventory, [entry, entry]), /duplicate/);
+  assert.throws(() => mergeStandaloneInventory(inventory, [{ ...entry, sha256: "2".repeat(64) }]), /binding/);
+  assert.throws(() => mergeStandaloneInventory({ ...inventory, entries: [{ ...entry, classification: "current" }] }, [entry]), /classification/);
+  assert.throws(() => mergeStandaloneInventory(inventory, [{ ...entry, classification: "current" }]), /frozen/);
+});
+
 test("legacy readers authenticate inventories before staged, captured or historical reads", async () => {
   const { verifyTypecheckInputs } = await import("./typecheck-inputs.mjs");
   const { verifyStagedTypeInputs } = await import("./typecheck-staged-inputs.mjs");
@@ -1623,7 +1737,7 @@ test("current integration type accounting retains exact frozen owners and every 
   assert.ok(classified.standaloneEntries.every(entry => entry.classification === "frozen-evidence"));
   assert.ok(classified.capturedPaths.every(path => !path.endsWith(".test.ts")));
   const tests = discoverTests(root, boundaries);
-  assert.equal(tests.length, 655);
+  assertSource7Discovery(tests);
   assert.ok(tests.includes("tests/commands/stream-format/seq-diagnostic-profile.test.ts"));
   assert.ok(tests.includes("tests/commands/search/native-tool.test.ts"));
   assert.ok(tests.includes("tests/native-profile.test.ts"));

@@ -3,11 +3,16 @@ import { copyFileSync, cpSync, existsSync, mkdirSync, readFileSync, renameSync, 
 import { join } from "node:path";
 import { environment, json, manifest, run, step } from "./harness.mjs";
 import { sha256 } from "./current-profile.mjs";
+import { bindPeerArtifact, stagePeerArtifact, assertPeerArtifact, assertPeerDeclarationFiles, assertConsumerDeclarationFiles } from "../qualified-current-release/peer.mjs";
+import { createBuiltPackageBinding, assertBuiltConsumerResolution } from "../../../scripts/typecheck-consumers.mjs";
 
-export function publicChecks(report) {
+export function publicChecks(report, { peerArtifact } = {}) {
   const { root, directory } = report;
   const compiler = join(root, "node_modules/typescript/bin/tsc");
   step(report, "isolated-build", process.execPath, [compiler, "-p", "tsconfig.build.json"]);
+  const declarationBinding = createBuiltPackageBinding(root);
+  const peer = bindPeerArtifact({ root, artifact: peerArtifact, declarations: declarationBinding });
+  json(join(directory, "packed-peer-artifact.json"), peer);
   report.builtFiles = manifest(root, "dist");
   json(join(directory, "built-files.json"), report.builtFiles);
   step(report, "current-registry", process.execPath, ["--import", "tsx", "--test", "tests/plugins/agent-commands.test.ts"]);
@@ -53,12 +58,17 @@ export function publicChecks(report) {
   step(report, "extract-pack", "/usr/bin/tar", ["-xzf", packs[0].artifact, "-C", modules]);
   renameSync(join(modules, "package"), join(modules, "virtual-bash"));
   json(join(initial, "package.json"), { name: "stream-five-offline-consumer", private: true, type: "module" });
+  stagePeerArtifact(peer, initial);
   for (const [source, target] of [["consumer.mjs", "consumer.mjs"], ["positive.ts.fixture", "positive.ts"], ["negative.ts.fixture", "negative.ts"]]) copyFileSync(join(root, "tests/plugins/stream-five-public", source), join(initial, target));
   renameSync(initial, moved);
   const options = { target: "ES2023", module: "NodeNext", moduleResolution: "NodeNext", strict: true, noUncheckedIndexedAccess: true, exactOptionalPropertyTypes: true, verbatimModuleSyntax: true, skipLibCheck: false, noEmit: true, types: ["node"], typeRoots: [join(root, "node_modules/@types")] };
   json(join(moved, "tsconfig.positive.json"), { compilerOptions: options, files: ["positive.ts"] });
   json(join(moved, "tsconfig.negative.json"), { compilerOptions: options, files: ["negative.ts"] });
-  step(report, "public-types-positive", process.execPath, [compiler, "-p", join(moved, "tsconfig.positive.json")], moved);
+  const positive = step(report, "public-types-positive", process.execPath, [compiler, "-p", join(moved, "tsconfig.positive.json"), "--traceResolution"], moved);
+  assertBuiltConsumerResolution(positive.stdout, moved, root, declarationBinding);
+  const listing = step(report, "public-types-resolution", process.execPath, [compiler, "-p", join(moved, "tsconfig.positive.json"), "--listFilesOnly"], moved);
+  assertConsumerDeclarationFiles(listing.stdout.trim().split("\n"), join(moved, "node_modules/virtual-bash"), declarationBinding);
+  assertPeerDeclarationFiles(peer, listing.stdout.trim().split("\n"), moved);
   const negative = stepNegative(report, compiler, moved);
   assert.equal((negative.stdout.match(/error TS\d+:/gu) ?? []).length, 7, "all seven invalid public configurations must fail");
   for (const line of [4, 5, 6, 7, 8, 9, 10]) assert.ok(negative.stdout.includes(`negative.ts(${line},`), `missing rejection on line ${line}`);
@@ -67,6 +77,7 @@ export function publicChecks(report) {
   json(join(directory, "source-fallback-denied.json"), denied);
   assert.equal(denied.status, 1);
   assert.match(denied.stderr, /ERR_ACCESS_DENIED/u);
+  assertPeerArtifact(peer, moved);
   assert.deepEqual(manifest(root, "dist"), report.builtFiles, "pack lifecycle changed the compiled output");
 }
 

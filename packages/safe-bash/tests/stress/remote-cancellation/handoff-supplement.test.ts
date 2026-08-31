@@ -2,7 +2,7 @@ import assert from "node:assert/strict";
 import { test, type TestContext } from "node:test";
 import { setImmediate as turn } from "node:timers/promises";
 import { FsError } from "../../../src/contracts/errors.js";
-import { WebDavFileSystem, type WebDavFetch } from "../../../src/fs/webdav/webdav.js";
+import { WebDavFileSystem, type WebDavFetch } from "../../../src/fs/webdav/index.js";
 import { MockDav } from "../../fs/webdav/mock.js";
 
 const baseUrl = "http://independent.invalid/dav/";

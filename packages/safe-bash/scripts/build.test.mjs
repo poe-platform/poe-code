@@ -5,6 +5,7 @@ import { createHash } from "node:crypto";
 import ts from "typescript";
 import { createFsFromVolume, Volume } from "memfs";
 import { buildPackage } from "./build.mjs";
+import { bindPeerArtifact, resolvePeerProfile, stagePeerArtifact, assertPeerArtifact } from "../tests/plugins/qualified-current-release/peer.mjs";
 
 const root = "/owned/package";
 const tools = { typescriptLib: "/owned/node_modules/typescript/lib", nodeTypes: "/owned/node_modules/@types/node", undiciTypes: "/owned/node_modules/undici-types" };
@@ -43,6 +44,563 @@ function noHeldReads(owned) {
   assert.equal(owned.metadata.filter(path => path.toLowerCase().includes("/held/")).length, 0);
   assert.equal(owned.descriptors.size, 0);
 }
+
+function afterInputRead(owned, path, action) {
+  const open = owned.fileSystem.openSync;
+  let selected, acted = false;
+  owned.fileSystem.openSync = (...args) => {
+    const descriptor = open(...args);
+    if (String(args[0]) === path) selected = descriptor;
+    return descriptor;
+  };
+  owned.fileSystem.readFileSync = descriptor => {
+    const bytes = owned.memory.readFileSync(descriptor);
+    if (descriptor === selected && !acted) { acted = true; action(); }
+    return bytes;
+  };
+}
+
+test("build directory index reuses large stable listings with fresh metadata", async () => {
+  const owned = fixture();
+  const listing = owned.fileSystem.readdirSync;
+  const neighbors = Array.from({ length: 6334 }, (_, index) => "ambient-" + index);
+  owned.fileSystem.readdirSync = (path, ...args) => {
+    const names = listing(path, ...args);
+    return path === "/owned" ? [...names, ...neighbors] : names;
+  };
+  assert.equal((await owned.run()).status, 0, owned.output.join(""));
+  assert.equal(owned.listings.filter(path => path === "/owned").length, 1);
+  assert.ok(owned.metadata.filter(path => path === "/owned").length > 20);
+  noHeldReads(owned);
+});
+
+test("build directory index is never shared across invocations", async () => {
+  const owned = fixture();
+  assert.equal((await owned.run()).status, 0, owned.output.join(""));
+  const listing = owned.fileSystem.readdirSync;
+  owned.fileSystem.readdirSync = (path, ...args) => path === "/owned" ? [...listing(path, ...args), "PACKAGE"] : listing(path, ...args);
+  await assert.rejects(owned.run(), /noncanonical compiler path spelling/);
+  noHeldReads(owned);
+});
+
+for (const field of ["dev", "ino", "mode", "nlink", "size", "mtimeMs", "ctimeMs"]) test(
+  `build directory index invalidates changed ${field} before using cached names`, async () => {
+    const owned = fixture();
+    const before = owned.memory.lstatSync("/owned");
+    const metadata = owned.fileSystem.lstatSync, listing = owned.fileSystem.readdirSync;
+    let changed = false;
+    owned.fileSystem.lstatSync = path => {
+      const stat = metadata(path);
+      if (path === "/owned") {
+        for (const key of ["dev", "ino", "mode", "nlink", "size", "mtimeMs", "ctimeMs"]) stat[key] = before[key];
+        if (changed) stat[field] += 1;
+      }
+      return stat;
+    };
+    owned.fileSystem.readdirSync = (path, ...args) => {
+      const names = listing(path, ...args);
+      return path === "/owned" && changed ? [...names, "PACKAGE"] : names;
+    };
+    afterInputRead(owned, root + "/integration-boundaries.json", () => { changed = true; });
+    await assert.rejects(owned.run(), /noncanonical compiler path spelling/);
+    assert.equal(owned.listings.filter(path => path === "/owned").length, 2);
+    noHeldReads(owned);
+  },
+);
+
+for (const fields of [["nlink"], ["size"], ["mtimeMs"], ["ctimeMs"], ["nlink", "size", "mtimeMs", "ctimeMs"]]) test(
+  `build directory index rebuilds outside ancestor membership after ${fields.join("/")} churn`, async () => {
+    const owned = fixture();
+    const before = owned.memory.lstatSync("/owned");
+    const metadata = owned.fileSystem.lstatSync, listing = owned.fileSystem.readdirSync;
+    let enumerations = 0;
+    owned.fileSystem.lstatSync = path => {
+      const stat = metadata(path);
+      if (path === "/owned") for (const key of ["dev", "ino", "mode", "nlink", "size", "mtimeMs", "ctimeMs"]) {
+        stat[key] = before[key] + (enumerations > 0 && fields.includes(key) ? 1 : 0);
+      }
+      return stat;
+    };
+    owned.fileSystem.readdirSync = (path, ...args) => {
+      const names = listing(path, ...args);
+      if (path === "/owned") {
+        enumerations += 1;
+        if (enumerations === 1) owned.memory.mkdirSync("/owned/ambient-new");
+      }
+      return names;
+    };
+    assert.equal((await owned.run()).status, 0, owned.output.join(""));
+    assert.equal(enumerations, 2);
+    assert.ok(owned.reads.includes(root + "/src/index.ts"));
+    noHeldReads(owned);
+  },
+);
+
+test("build directory index tolerates sustained outside churn with bounded uncached lookups", async () => {
+  const owned = fixture();
+  const before = owned.memory.lstatSync("/owned");
+  const metadata = owned.fileSystem.lstatSync, listing = owned.fileSystem.readdirSync;
+  let enumerations = 0, consumed = 0, traversals = 0, pending = false;
+  owned.fileSystem.lstatSync = path => {
+    const stat = metadata(path);
+    if (path === "/owned") { stat.nlink = before.nlink + enumerations; pending = true; }
+    if (pending && [root, "/owned/node_modules"].includes(path)) {
+      if (enumerations) {
+        assert.equal(enumerations - consumed, 3);
+        consumed = enumerations;
+        traversals += 1;
+      }
+      pending = false;
+    }
+    return stat;
+  };
+  owned.fileSystem.readdirSync = (path, ...args) => {
+    const names = listing(path, ...args);
+    if (path === "/owned") enumerations += 1;
+    return names;
+  };
+  assert.equal((await owned.run()).status, 0, owned.output.join(""));
+  assert.ok(traversals > 2);
+  assert.equal(enumerations, traversals * 3);
+  assert.ok(owned.reads.includes(root + "/src/index.ts"));
+  noHeldReads(owned);
+});
+
+for (const laterVersion of [2, 3]) test(`build directory fallback never caches unstable version ${laterVersion}`, async () => {
+  const owned = fixture();
+  const before = owned.memory.lstatSync("/owned");
+  const metadata = owned.fileSystem.lstatSync, listing = owned.fileSystem.readdirSync;
+  let enumerations = 0, changed = false;
+  afterInputRead(owned, root + "/integration-boundaries.json", () => { changed = true; });
+  owned.fileSystem.lstatSync = path => {
+    const stat = metadata(path);
+    if (path === "/owned") stat.nlink = before.nlink + (changed ? laterVersion : enumerations);
+    return stat;
+  };
+  owned.fileSystem.readdirSync = (path, ...args) => {
+    const names = listing(path, ...args);
+    if (path !== "/owned") return names;
+    enumerations += 1;
+    return changed ? [...names, "PACKAGE"] : names;
+  };
+  await assert.rejects(owned.run(), /noncanonical compiler path spelling/);
+  assert.equal(enumerations, 4);
+  assert.equal(owned.reads.length, 1);
+  noHeldReads(owned);
+});
+
+test("build directory fallback still caches a stable third observation", async () => {
+  const owned = fixture();
+  const before = owned.memory.lstatSync("/owned");
+  const metadata = owned.fileSystem.lstatSync, listing = owned.fileSystem.readdirSync;
+  let enumerations = 0;
+  owned.fileSystem.lstatSync = path => {
+    const stat = metadata(path);
+    if (path === "/owned") stat.nlink = before.nlink + Math.min(enumerations, 2);
+    return stat;
+  };
+  owned.fileSystem.readdirSync = (path, ...args) => {
+    const names = listing(path, ...args);
+    if (path === "/owned") enumerations += 1;
+    return names;
+  };
+  assert.equal((await owned.run()).status, 0, owned.output.join(""));
+  assert.equal(enumerations, 3);
+  noHeldReads(owned);
+});
+
+for (const defect of ["dev", "ino", "mode", "symlink", "special"]) test(
+  `build directory fallback refuses terminal outside ${defect} replacement`, async () => {
+    const owned = fixture();
+    const before = owned.memory.lstatSync("/owned");
+    const metadata = owned.fileSystem.lstatSync, listing = owned.fileSystem.readdirSync;
+    let enumerations = 0;
+    owned.fileSystem.lstatSync = path => {
+      const stat = metadata(path);
+      if (path === "/owned") {
+        stat.nlink = before.nlink + enumerations;
+        if (enumerations === 3) {
+          if (defect === "symlink") stat.isSymbolicLink = () => true;
+          else if (defect === "special") stat.isDirectory = () => false;
+          else stat[defect] += 1;
+        }
+      }
+      return stat;
+    };
+    owned.fileSystem.readdirSync = (path, ...args) => {
+      const names = listing(path, ...args);
+      if (path === "/owned") enumerations += 1;
+      return names;
+    };
+    await assert.rejects(owned.run(), /identity changed|nonlink directory/);
+    assert.equal(enumerations, 3);
+    assert.equal(owned.reads.length, 0);
+    noHeldReads(owned);
+  },
+);
+
+for (const defect of ["alias", "rename", "missing", "child-link", "child-special"]) test(
+  `build directory fallback rejects latest terminal ${defect}`, async () => {
+    const owned = fixture();
+    const before = owned.memory.lstatSync("/owned");
+    const metadata = owned.fileSystem.lstatSync, listing = owned.fileSystem.readdirSync;
+    let enumerations = 0;
+    owned.fileSystem.lstatSync = path => {
+      const stat = metadata(path);
+      if (path === "/owned") stat.nlink = before.nlink + enumerations;
+      if (path === root && enumerations === 3) {
+        if (defect === "child-link") stat.isSymbolicLink = () => true;
+        if (defect === "child-special") stat.isDirectory = () => false;
+      }
+      return stat;
+    };
+    owned.fileSystem.readdirSync = (path, ...args) => {
+      const names = listing(path, ...args);
+      if (path !== "/owned") return names;
+      enumerations += 1;
+      if (enumerations !== 3) return names;
+      if (defect === "alias") return [...names, "PACKAGE"];
+      if (defect === "rename") return names.map(name => name === "package" ? "PACKAGE" : name);
+      if (defect === "missing") return names.filter(name => name !== "package");
+      return names;
+    };
+    await assert.rejects(owned.run(), error => {
+      assert.doesNotMatch(error.message, /membership remained unstable/);
+      if (defect === "alias" || defect === "rename") assert.match(error.message, /noncanonical compiler path spelling/);
+      if (defect === "child-link") assert.match(error.message, /symlink/);
+      if (defect === "child-special") assert.match(error.message, /nonlink directory/);
+      if (defect === "missing") assert.ok(error instanceof SyntaxError);
+      return true;
+    });
+    assert.equal(enumerations, 3);
+    assert.equal(owned.reads.length, 0);
+    noHeldReads(owned);
+  },
+);
+
+for (const operation of ["readdir", "lstat"]) for (const failure of [0, new Error("owned terminal failure")]) test(
+  `build directory fallback preserves terminal ${operation} ${failure === 0 ? "falsey" : "I/O"} error and closes its input`, async () => {
+    const owned = fixture();
+    const before = owned.memory.lstatSync("/owned");
+    const metadata = owned.fileSystem.lstatSync, listing = owned.fileSystem.readdirSync;
+    let enumerations = 0, active = false;
+    afterInputRead(owned, root + "/integration-boundaries.json", () => { active = true; });
+    owned.fileSystem.lstatSync = path => {
+      if (path === "/owned" && active && enumerations === 3 && operation === "lstat") throw failure;
+      const stat = metadata(path);
+      if (path === "/owned") stat.nlink = before.nlink + (active ? enumerations + 1 : 0);
+      return stat;
+    };
+    owned.fileSystem.readdirSync = (path, ...args) => {
+      if (path === "/owned" && active && ++enumerations === 3 && operation === "readdir") throw failure;
+      return listing(path, ...args);
+    };
+    let caught = false;
+    try { await owned.run(); } catch (error) { caught = true; assert.equal(error, failure); }
+    assert.equal(caught, true);
+    assert.equal(enumerations, 3);
+    assert.equal(owned.reads.length, 1);
+    noHeldReads(owned);
+  },
+);
+
+for (const directory of [root, root + "/src", tools.typescriptLib]) for (const field of ["dev", "ino", "mode", "nlink", "size", "mtimeMs", "ctimeMs"]) test(
+  `build directory index keeps ${directory} ${field} strict during population`, async () => {
+    const owned = fixture();
+    const metadata = owned.fileSystem.lstatSync, listing = owned.fileSystem.readdirSync;
+    const population = directory === root + "/src" ? 2 : 1;
+    let enumerations = 0;
+    owned.fileSystem.lstatSync = path => {
+      const stat = metadata(path);
+      if (path === directory && enumerations >= population) stat[field] += 1;
+      return stat;
+    };
+    owned.fileSystem.readdirSync = (path, ...args) => {
+      const names = listing(path, ...args);
+      if (path === directory) enumerations += 1;
+      return names;
+    };
+    await assert.rejects(owned.run(), /identity changed/);
+    assert.equal(enumerations, population);
+    if (directory === root) assert.equal(owned.reads.length, 0);
+    if (directory === root + "/src") assert.ok(!owned.reads.includes(root + "/src/index.ts"));
+    if (directory === tools.typescriptLib) assert.ok(!owned.reads.includes(directory + "/lib.es2023.d.ts"));
+    noHeldReads(owned);
+  },
+);
+
+for (const defect of ["dev", "ino", "mode", "symlink", "special"]) test(
+  `build directory index refuses outside ${defect} replacement during rebuilding`, async () => {
+    const owned = fixture();
+    const before = owned.memory.lstatSync("/owned");
+    const metadata = owned.fileSystem.lstatSync, listing = owned.fileSystem.readdirSync;
+    let enumerations = 0;
+    owned.fileSystem.lstatSync = path => {
+      const stat = metadata(path);
+      if (path === "/owned") {
+        stat.nlink = before.nlink + Math.min(enumerations, 1);
+        if (enumerations === 2) {
+          if (defect === "symlink") stat.isSymbolicLink = () => true;
+          else if (defect === "special") stat.isDirectory = () => false;
+          else stat[defect] += 1;
+        }
+      }
+      return stat;
+    };
+    owned.fileSystem.readdirSync = (path, ...args) => {
+      const names = listing(path, ...args);
+      if (path === "/owned") enumerations += 1;
+      return names;
+    };
+    await assert.rejects(owned.run(), /identity changed|nonlink directory/);
+    assert.equal(enumerations, 2);
+    assert.equal(owned.reads.length, 0);
+    noHeldReads(owned);
+  },
+);
+
+for (const defect of ["alias", "rename", "child-link"]) test(
+  `build directory index rejects ${defect} from a rebuilt outside listing`, async () => {
+    const owned = fixture();
+    const before = owned.memory.lstatSync("/owned");
+    const metadata = owned.fileSystem.lstatSync, listing = owned.fileSystem.readdirSync;
+    let enumerations = 0;
+    owned.fileSystem.lstatSync = path => {
+      const stat = metadata(path);
+      if (path === "/owned") stat.nlink = before.nlink + Math.min(enumerations, 1);
+      if (path === root && enumerations === 2 && defect === "child-link") stat.isSymbolicLink = () => true;
+      return stat;
+    };
+    owned.fileSystem.readdirSync = (path, ...args) => {
+      const names = listing(path, ...args);
+      if (path !== "/owned") return names;
+      enumerations += 1;
+      if (enumerations === 2 && defect === "alias") return [...names, "PACKAGE"];
+      if (enumerations === 2 && defect === "rename") return names.map(name => name === "package" ? "PACKAGE" : name);
+      return names;
+    };
+    await assert.rejects(owned.run(), /noncanonical compiler path spelling|symlink/);
+    assert.equal(enumerations, 2);
+    assert.equal(owned.reads.length, 0);
+    noHeldReads(owned);
+  },
+);
+
+for (const failure of [0, new Error("owned rebuilding failure")]) test(
+  `build directory index propagates rebuilding ${failure === 0 ? "falsey" : "I/O"} errors without retry`, async () => {
+    const owned = fixture();
+    const before = owned.memory.lstatSync("/owned");
+    const metadata = owned.fileSystem.lstatSync, listing = owned.fileSystem.readdirSync;
+    let enumerations = 0;
+    owned.fileSystem.lstatSync = path => {
+      const stat = metadata(path);
+      if (path === "/owned") stat.nlink = before.nlink + Math.min(enumerations, 1);
+      return stat;
+    };
+    owned.fileSystem.readdirSync = (path, ...args) => {
+      if (path === "/owned" && ++enumerations === 2) throw failure;
+      return listing(path, ...args);
+    };
+    let caught = false;
+    try { await owned.run(); } catch (error) { caught = true; assert.equal(error, failure); }
+    assert.equal(caught, true);
+    assert.equal(enumerations, 2);
+    assert.equal(owned.reads.length, 0);
+    noHeldReads(owned);
+  },
+);
+
+test("build directory index refuses identity changes while listing", async () => {
+  const owned = fixture();
+  const metadata = owned.fileSystem.lstatSync, listing = owned.fileSystem.readdirSync;
+  let changed = false;
+  owned.fileSystem.lstatSync = path => {
+    const stat = metadata(path);
+    if (path === "/owned" && changed) stat.ino += 1;
+    return stat;
+  };
+  owned.fileSystem.readdirSync = (path, ...args) => {
+    const names = listing(path, ...args);
+    if (path === "/owned") changed = true;
+    return names;
+  };
+  await assert.rejects(owned.run(), /identity changed/);
+  assert.equal(owned.reads.length, 0);
+  noHeldReads(owned);
+});
+
+for (const kind of ["rename", "ancestor-link", "held-leaf-link", "special"]) test(
+  `build directory index retains fresh child admission after ${kind} replacement`, async () => {
+    const owned = fixture();
+    afterInputRead(owned, root + "/integration-boundaries.json", () => {
+      if (kind === "rename") owned.memory.renameSync(root, "/owned/PACKAGE");
+      if (kind === "ancestor-link") {
+        owned.memory.renameSync(root + "/src", root + "/source-target");
+        owned.memory.symlinkSync("source-target", root + "/src");
+      }
+      if (kind === "held-leaf-link") {
+        owned.memory.unlinkSync(root + "/src/index.ts");
+        owned.memory.symlinkSync("commands/held/index.ts", root + "/src/index.ts");
+      }
+      if (kind === "special") {
+        const metadata = owned.fileSystem.lstatSync;
+        owned.fileSystem.lstatSync = path => {
+          const stat = metadata(path);
+          if (path === root + "/src/index.ts") { stat.isFile = () => false; stat.isDirectory = () => false; }
+          return stat;
+        };
+      }
+    });
+    await assert.rejects(owned.run(), /noncanonical|ENOENT|symlink|regular/);
+    assert.ok(!owned.reads.includes(root + "/src/index.ts"));
+    noHeldReads(owned);
+  },
+);
+
+for (const limit of ["names", "characters"]) test(`build directory index falls back safely above its ${limit} bound`, async () => {
+  const owned = fixture();
+  const listing = owned.fileSystem.readdirSync;
+  const names = Array.from({ length: limit === "names" ? 32769 : 20000 }, (_, index) => (limit === "names" ? "extra-" : "extra-".repeat(10)) + index);
+  owned.fileSystem.readdirSync = (path, ...args) => path === "/owned" ? [...listing(path, ...args), ...names] : listing(path, ...args);
+  assert.equal((await owned.run()).status, 0, owned.output.join(""));
+  assert.ok(owned.listings.filter(path => path === "/owned").length > 1);
+  noHeldReads(owned);
+});
+
+for (const limit of ["names", "characters"]) test(`build directory index enforces its aggregate ${limit} bound`, async () => {
+  const owned = fixture();
+  const listing = owned.fileSystem.readdirSync;
+  const neighbors = Array.from({ length: limit === "names" ? 17000 : 6000 }, (_, index) => (limit === "names" ? "extra-" : "extra-".repeat(10)) + index);
+  let changed = false;
+  afterInputRead(owned, tools.typescriptLib + "/lib.es2023.d.ts", () => { changed = true; });
+  owned.fileSystem.readdirSync = (path, ...args) => {
+    const names = listing(path, ...args);
+    if (path === "/owned") return [...names, ...neighbors, ...(changed ? ["PACKAGE"] : [])];
+    return path === "/owned/node_modules" ? [...names, ...neighbors] : names;
+  };
+  await assert.rejects(owned.run(), /noncanonical compiler path spelling/);
+  assert.ok(owned.listings.filter(path => path === "/owned").length > 1);
+  noHeldReads(owned);
+});
+
+test("build directory index safely rereads evicted directories", async () => {
+  const sources = Object.fromEntries(Array.from({ length: 270 }, (_, index) => ["src/group" + String(index).padStart(3, "0") + "/entry.ts", "export const value = 1;\n"]));
+  const owned = fixture(sources);
+  const listing = owned.fileSystem.readdirSync;
+  let changed = false;
+  afterInputRead(owned, root + "/src/index.ts", () => { changed = true; });
+  owned.fileSystem.readdirSync = (path, ...args) => {
+    const names = listing(path, ...args);
+    return path === root + "/src/group000" && changed ? [...names, "ENTRY.ts"] : names;
+  };
+  await assert.rejects(owned.run(), /noncanonical compiler path spelling/);
+  assert.ok(owned.listings.filter(path => path === root + "/src/group000").length >= 2);
+  noHeldReads(owned);
+});
+
+test("build directory index does not reuse incomplete identities", async () => {
+  const owned = fixture();
+  const metadata = owned.fileSystem.lstatSync;
+  owned.fileSystem.lstatSync = path => {
+    const stat = metadata(path);
+    if (path === "/owned") stat.ctimeMs = undefined;
+    return stat;
+  };
+  assert.equal((await owned.run()).status, 0, owned.output.join(""));
+  assert.ok(owned.listings.filter(path => path === "/owned").length > 1);
+  noHeldReads(owned);
+});
+
+for (const reason of [0, Object.freeze({ cause: "listing denied" })]) test("build directory index preserves invalidation errors and descriptor cleanup", async () => {
+  const owned = fixture();
+  const metadata = owned.fileSystem.lstatSync, listing = owned.fileSystem.readdirSync;
+  let changed = false;
+  owned.fileSystem.lstatSync = path => {
+    const stat = metadata(path);
+    if (path === "/owned" && changed) stat.ino += 1;
+    return stat;
+  };
+  owned.fileSystem.readdirSync = (path, ...args) => {
+    if (path === "/owned" && changed) throw reason;
+    return listing(path, ...args);
+  };
+  afterInputRead(owned, root + "/integration-boundaries.json", () => { changed = true; });
+  let caught = false, failure;
+  try { await owned.run(); } catch (error) { caught = true; failure = error; }
+  assert.ok(caught);
+  assert.equal(failure, reason);
+  noHeldReads(owned);
+});
+
+test("guarded compiler resolves the public peer declaration without admitting peer source or runtime", async () => {
+  const owned = fixture({
+    "package.json": JSON.stringify({ name: "virtual-bash", type: "module", peerDependencies: { "poe-code": ">=13.0.0" }, devDependencies: { "poe-code": "13.0.0" } }),
+    "src/index.ts": 'export type { Canonical } from "poe-code/safe-fs";\n',
+    "node_modules/poe-code/package.json": JSON.stringify({ name: "poe-code", version: "13.0.0", type: "module", exports: { "./safe-fs": { types: "./packages/safe-fs/dist/index.d.ts", import: "./packages/safe-js/dist/safe-fs.js" } } }),
+    "node_modules/poe-code/packages/safe-fs/dist/index.d.ts": 'export interface Canonical { identity: "public"; }\n',
+    "node_modules/poe-code/packages/safe-fs/src/index.ts": 'UNADMITTED SOURCE',
+    "node_modules/poe-code/packages/safe-js/dist/safe-fs.js": 'UNEXECUTED RUNTIME',
+  });
+  const result = await owned.run();
+  assert.equal(result.status, 0, owned.output.join(""));
+  assert.ok(owned.reads.includes(root + "/node_modules/poe-code/packages/safe-fs/dist/index.d.ts"));
+  assert.ok(!owned.reads.some(path => path.includes("/safe-fs/src/") || path.endsWith("/safe-js/dist/safe-fs.js")));
+  noHeldReads(owned);
+});
+
+function checkoutPeerFixture() {
+  const checkout = "/checkout", packageRoot = checkout + "/packages/safe-bash";
+  const manifest = { name: "virtual-bash", private: true, peerDependencies: { "poe-code": ">=13.0.0" }, devDependencies: { "poe-code": "file:../.." }, poeCode: { integration: { peerProfile: "checkout-root" } } };
+  const peer = { name: "poe-code", version: "0.0.0-dev", type: "module", devDependencies: { "poe-code": "file:." }, exports: { "./safe-fs": { types: { default: "./packages/safe-fs/dist/index.d.ts" }, import: "./packages/safe-js/dist/safe-fs.js" } } };
+  const lock = { packages: { "packages/safe-bash": { devDependencies: { "poe-code": "file:../.." } }, "node_modules/poe-code": { resolved: "", link: true } } };
+  const declaration = "export interface Canonical {}\n";
+  const io = createFsFromVolume(Volume.fromJSON({
+    [packageRoot + "/package.json"]: JSON.stringify(manifest), [checkout + "/package.json"]: JSON.stringify(peer),
+    [checkout + "/package-lock.json"]: JSON.stringify(lock),
+    [checkout + "/packages/safe-fs/dist/index.d.ts"]: declaration,
+    [checkout + "/packages/safe-js/dist/safe-fs.js"]: 'export { identity } from "./shared.js";\n',
+    [checkout + "/packages/safe-js/dist/shared.js"]: 'export const identity = {};\n',
+  }));
+  const hash = bytes => createHash("sha256").update(bytes).digest("hex");
+  const declarations = { peer: { version: peer.version, integrity: null, metadataSha256: hash(JSON.stringify(peer)), declarations: new Map([["packages/safe-fs/dist/index.d.ts", hash(declaration)]]), publicEntries: new Map([["poe-code/safe-fs", "packages/safe-fs/dist/index.d.ts"]]) } };
+  return { checkout, root: packageRoot, io, manifest, peer, lock, declarations };
+}
+
+test("checkout peer preserves dev-root identity without claiming released peer-range satisfaction", () => {
+  const owned = checkoutPeerFixture();
+  const result = resolvePeerProfile(owned.root, owned.io);
+  assert.equal(result.profile, "checkout-root");
+  assert.equal(result.peer.version, "0.0.0-dev");
+  assert.equal(result.integrity, null);
+  assert.match(result.qualification, /not published peer-range satisfaction/);
+  assert.throws(() => bindPeerArtifact({ root: owned.root, io: owned.io, declarations: owned.declarations }), /explicit canonical peer artifact/);
+});
+
+for (const defect of ["registry-dev", "root-self", "raw-runtime", "lock-link", "fake-release"]) test(`checkout peer rejects ${defect} without registry fallback`, () => {
+  const owned = checkoutPeerFixture();
+  if (defect === "registry-dev") owned.manifest.devDependencies["poe-code"] = "13.0.0";
+  if (defect === "root-self") owned.peer.devDependencies["poe-code"] = "13.0.0";
+  if (defect === "raw-runtime") owned.peer.exports["./safe-fs"].import = "./packages/safe-fs/dist/index.js";
+  if (defect === "lock-link") owned.lock.packages["node_modules/poe-code"] = { version: "13.0.0" };
+  if (defect === "fake-release") delete owned.manifest.poeCode;
+  for (const [path, value] of [[owned.root + "/package.json", owned.manifest], [owned.checkout + "/package.json", owned.peer], [owned.checkout + "/package-lock.json", owned.lock]]) owned.io.writeFileSync(path, JSON.stringify(value));
+  assert.throws(() => resolvePeerProfile(owned.root, owned.io));
+});
+
+test("explicit checkout capture stages only the canonical public closure and detects later drift", () => {
+  const owned = checkoutPeerFixture();
+  const binding = bindPeerArtifact({ ...owned, checkout: true });
+  assert.equal(binding.profile, "checkout-root");
+  assert.equal(binding.tarballSha256, null);
+  assert.equal(binding.runtimeFiles, 2);
+  assert.equal(binding.declarationFiles, 1);
+  owned.io.mkdirSync("/consumer");
+  stagePeerArtifact(binding, "/consumer");
+  assertPeerArtifact(binding, "/consumer");
+  assert.equal(owned.io.existsSync("/consumer/node_modules/poe-code/packages/safe-fs/src"), false);
+  owned.io.writeFileSync("/consumer/node_modules/poe-code/packages/safe-js/dist/shared.js", "changed");
+  assert.throws(() => assertPeerArtifact(binding, "/consumer"), /changed/);
+});
 
 test("build emits admitted ESM, declarations and both maps while pruning held discovery", async () => {
   const owned = fixture();

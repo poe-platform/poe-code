@@ -12,7 +12,7 @@ const damaged = new TextEncoder().encode("contract violation damaged source");
 const baseUrl = "https://violation.example/dav/";
 
 for (const direction of ["to-remote", "from-remote"] as const) {
-  test(`NONCOMPLIANT characterization: Mock metadata with local content routing ${direction}`, async context => {
+  test(`public fail-closed: untrusted Mock metadata with local content routing ${direction}`, async context => {
     const memory = createMemoryFileSystem();
     await memory.writeFile("/source", original);
     const mock = new MockDav();
@@ -28,16 +28,16 @@ for (const direction of ["to-remote", "from-remote"] as const) {
       return mock.fetch(url, init);
     };
     const remote = new WebDavFileSystem({ baseUrl, fetch, overwritePolicy: "etag" });
-    assert.equal(await remote.compareEntry("/source", memory, "/source"), "distinct");
+    assert.equal(await remote.compareEntry("/source", memory, "/source"), "unknown");
     const mounted = createMountFileSystem({ root: createMemoryFileSystem(), mounts: { "/local": memory, "/remote": remote } });
     const paths = direction === "to-remote" ? ["/local/source", "/remote/source"] : ["/remote/source", "/local/source"];
     const failure = await mounted.copyFile(paths[0]!, paths[1]!).then(() => undefined, error => error);
-    if (direction === "to-remote") { assert.ok(failure instanceof FsError); assert.equal(failure.code, "EIO"); }
-    else assert.equal(failure, undefined);
-    assert.deepEqual(effects, [direction === "to-remote" ? "PUT" : "GET"]);
-    assert.deepEqual(await memory.readFile("/source"), damaged);
+    assert.ok(failure instanceof FsError);
+    assert.equal(failure.code, "ENOTSUP");
+    assert.deepEqual(effects, []);
+    assert.deepEqual(await memory.readFile("/source"), original);
     assert.deepEqual(mock.files.get("/source"), original);
-    context.diagnostic(JSON.stringify({ classification: "host binding violation, NOT compliant workflow success", direction, effects, source: [...await memory.readFile("/source")] }));
+    context.diagnostic(JSON.stringify({ classification: "untrusted protocol metadata refused before content effects", direction, effects, source: [...await memory.readFile("/source")] }));
   });
 }
 

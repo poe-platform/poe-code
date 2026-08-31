@@ -490,15 +490,28 @@ export function measureSandboxData(
       return;
     }
 
-    const entries = isSandboxArguments(value)
-      ? getSandboxArgumentEntries(value)
-      : Object.entries(Object.getOwnPropertyDescriptors(value))
-          .filter(([, descriptor]) => descriptor.enumerable)
-          .map(([key, descriptor]) => [key, "value" in descriptor ? descriptor.value : undefined]);
-    usage += entries.length;
-    for (const [key, entry] of entries) {
+    if (isSandboxArguments(value)) {
+      const entries = getSandboxArgumentEntries(value);
+      usage += entries.length;
+      for (const [key, entry] of entries) {
+        usage += key.length;
+        visit(entry);
+      }
+      return;
+    }
+
+    const descriptors = Object.getOwnPropertyDescriptors(value);
+    const keys = Object.keys(descriptors);
+    let entryCount = 0;
+    for (const key of keys) {
+      if (descriptors[key].enumerable) entryCount += 1;
+    }
+    usage += entryCount;
+    for (const key of keys) {
+      const descriptor = descriptors[key];
+      if (!descriptor.enumerable) continue;
       usage += key.length;
-      visit(entry);
+      visit("value" in descriptor ? descriptor.value : undefined);
     }
   };
 

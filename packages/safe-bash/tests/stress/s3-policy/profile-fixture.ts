@@ -3,7 +3,7 @@ import {
   createS3Transport, MockS3Client, S3FileSystem, S3ServiceError,
   type S3CopyInput, type S3DeleteInput, type S3PutInput,
 } from "../../../src/fs/s3/index.js";
-import type { S3StreamPutInput } from "../../../src/fs/s3/transport.js";
+import type { S3StreamPutInput } from "poe-code/safe-fs";
 
 export type Profile = "modern-copy" | "classic-put" | "stream-put";
 export type Mutation = { operation: "copy"; input: S3CopyInput }

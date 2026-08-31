@@ -3,7 +3,8 @@ import { createHash } from "node:crypto";
 import { mkdtemp, readFile, rm } from "node:fs/promises";
 import { createServer } from "node:http";
 import { tmpdir } from "node:os";
-import { join } from "node:path";
+import { dirname, join, resolve } from "node:path";
+import { fileURLToPath } from "node:url";
 import type { TestContext } from "node:test";
 import { FsError } from "../../../src/contracts/errors.js";
 import type { ErrnoCode } from "../../../src/contracts/errors.js";
@@ -133,12 +134,79 @@ export const adapters = [
 
 export const sourcePaths = [
   "src/contracts/filesystem.ts", "src/contracts/errors.ts", "src/contracts/io.ts", "src/contracts/path.ts",
-  "src/fs/memory/index.ts", "src/fs/real/index.ts", "src/fs/s3/filesystem.ts", "src/fs/s3/mock.ts",
-  "src/fs/s3/transport.ts", "src/fs/webdav/webdav.ts", "src/fs/webdav/xml.ts", "tests/fs/webdav/mock.ts",
+  "src/fs/memory/index.ts", "src/fs/real/index.ts", "src/fs/s3/index.ts", "src/fs/s3/http/index.ts",
+  "src/fs/webdav/index.ts", "src/integrations/safejs/filesystem.ts", "tests/fs/webdav/mock.ts",
 ] as const;
 
 export async function sourceState(): Promise<Record<string, string>> {
-  return Object.fromEntries(await Promise.all(sourcePaths.map(async (path) => [
+  const source = Object.fromEntries(await Promise.all(sourcePaths.map(async (path) => [
     path, createHash("sha256").update(await readFile(new URL(`../../../${path}`, import.meta.url))).digest("hex"),
   ])));
+  return { ...source, ...await canonicalPeerState(fileURLToPath(new URL("../../../", import.meta.url)), import.meta.resolve("poe-code/safe-fs")) };
+}
+
+export async function canonicalPeerState(
+  packageRoot: string,
+  moduleUrl: string,
+  read: (location: string | URL) => Promise<Uint8Array> = readFile,
+): Promise<Record<string, string>> {
+  let directory = dirname(fileURLToPath(moduleUrl));
+  for (;;) {
+    let metadata: { name?: string; version?: string; workspaces?: string[]; exports?: Record<string, { import?: string }> } | undefined;
+    let metadataBytes: Uint8Array | undefined;
+    try {
+      metadataBytes = await read(join(directory, "package.json"));
+      metadata = JSON.parse(new TextDecoder().decode(metadataBytes)) as typeof metadata;
+    } catch (error) {
+      if (!(error instanceof Error && "code" in error && error.code === "ENOENT")) throw error;
+    }
+    if (metadata?.name === "poe-code") {
+      const target = metadata.exports?.["./safe-fs"]?.import;
+      assert.equal(typeof target, "string", "canonical peer needs its public ESM export");
+      assert.equal(resolve(directory, target!), fileURLToPath(moduleUrl), "canonical peer must use its declared public export");
+      assert.equal(typeof metadata.version, "string", "canonical peer needs a version");
+      const canonical = {
+        "canonical:version": metadata.version!,
+        "canonical:module-url": moduleUrl,
+        "canonical:module-sha256": createHash("sha256").update(await read(new URL(moduleUrl))).digest("hex"),
+        "canonical:metadata-sha256": createHash("sha256").update(metadataBytes!).digest("hex"),
+      };
+      if (resolve(packageRoot) === join(directory, "packages/safe-bash")) {
+        assert.ok(metadata.workspaces?.includes("packages/*"), "canonical checkout must declare the Bash workspace");
+        assert.equal(target, "./packages/safe-js/dist/safe-fs.js", "canonical checkout must use the shared SafeJS bundle");
+        const workspaceBytes = await read(join(packageRoot, "package.json"));
+        const workspace = JSON.parse(new TextDecoder().decode(workspaceBytes));
+        assert.equal(workspace.name, "virtual-bash");
+        assert.equal(workspace.private, true);
+        const lockBytes = await read(join(directory, "package-lock.json"));
+        const lock = JSON.parse(new TextDecoder().decode(lockBytes));
+        assert.equal(lock.packages[""].name, metadata.name, "checkout lock must bind the root package");
+        assert.equal(lock.packages[""].version, metadata.version, "checkout lock must bind the current root version");
+        assert.equal(lock.packages["packages/safe-bash"].name, workspace.name, "checkout lock must bind the Bash workspace");
+        assert.equal(lock.packages["packages/safe-bash"].devDependencies["poe-code"], "file:../..", "checkout peer must be local, not a second registry graph");
+        return {
+          ...canonical,
+          "canonical:profile": "workspace-checkout",
+          "canonical:qualification": "local public checkout identity; not published peer-range qualification",
+          "canonical:workspace-metadata-sha256": createHash("sha256").update(workspaceBytes).digest("hex"),
+          "canonical:workspace-lock-sha256": createHash("sha256").update(lockBytes).digest("hex"),
+        };
+      }
+      const lock = JSON.parse(new TextDecoder().decode(await read(join(packageRoot, "package-lock.json")))) as {
+        packages: Record<string, { version?: string; integrity?: string }>;
+      };
+      const locked = lock.packages["node_modules/poe-code"];
+      assert.equal(metadata.version, locked?.version, "installed canonical peer differs from the lockfile");
+      assert.equal(typeof locked?.integrity, "string", "canonical peer needs registry integrity");
+      assert.match(locked!.integrity!, /^sha512-/u);
+      return {
+        ...canonical,
+        "canonical:profile": "installed-release",
+        "canonical:lock-integrity": locked!.integrity!,
+      };
+    }
+    const parent = dirname(directory);
+    assert.notEqual(parent, directory, "public canonical module has no installed package metadata");
+    directory = parent;
+  }
 }

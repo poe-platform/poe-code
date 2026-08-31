@@ -30,6 +30,18 @@ export function cleanEnvironment(directory) {
   };
 }
 
+export function assertArchiveDependencyContract(manifest) {
+  for (const key of ["dependencies", "optionalDependencies", "bundledDependencies", "bundleDependencies"]) assert.equal(Object.keys(manifest[key] ?? {}).length, 0, `runtime dependency: ${key}`);
+  if (Object.keys(manifest.peerDependencies ?? {}).length === 0) {
+    assert.equal(manifest.devDependencies?.["poe-code"], undefined, "canonical development peer requires its published peer contract");
+    assert.notEqual(manifest.poeCode?.integration?.peerProfile, "checkout-root", "checkout profile requires its published peer contract");
+    assert.deepEqual(manifest.peerDependenciesMeta ?? {}, {}, "unbound peer metadata");
+    return;
+  }
+  assert.deepEqual(manifest.peerDependencies, { "poe-code": ">=13.0.0" }, "unapproved canonical peer contract");
+  if (Object.keys(manifest.peerDependenciesMeta ?? {}).length) assert.deepEqual(manifest.peerDependenciesMeta, { "poe-code": { optional: false } }, "canonical peer must remain required");
+}
+
 export function inspectCommittedCandidate(repository, revision, directory, execute = spawnSync) {
   const boundaries = loadBoundaries(authority);
   const environment = cleanEnvironment(directory);
@@ -94,7 +106,7 @@ export function inspectCommittedCandidate(repository, revision, directory, execu
   assert.equal(manifest.type, "module");
   assert.equal(manifest.engines.node, ">=22");
   assert.deepEqual(manifest.files, ["dist"]);
-  for (const key of ["dependencies", "optionalDependencies", "peerDependencies", "bundledDependencies", "bundleDependencies"]) assert.equal(Object.keys(manifest[key] ?? {}).length, 0, `runtime dependency: ${key}`);
+  assertArchiveDependencyContract(manifest);
   for (const key of ["prepare", "prepublish", "prepublishOnly", "prepack", "postpack", "preinstall", "install", "postinstall", "prebuild", "postbuild"]) assert.ok(!Object.hasOwn(manifest.scripts, key), `unapproved package lifecycle: ${key}`);
   assert.equal(manifest.scripts.build, "node ../../scripts/guard-package-dist.mjs && node scripts/integration-inputs.mjs && node scripts/build.mjs", "unreviewed committed build command");
   assert.equal(rootManifest.name, "poe-code");
@@ -105,7 +117,7 @@ export function inspectCommittedCandidate(repository, revision, directory, execu
   }
   assert.equal(lock.lockfileVersion, 3, "workspace lock version");
   for (const [key, expected] of [["", rootManifest], [packagePrefix, manifest]]) {
-    for (const field of ["name", "version", "dependencies", "devDependencies", "optionalDependencies", "engines", ...(key === "" ? ["workspaces"] : [])]) {
+    for (const field of ["name", "version", "dependencies", "devDependencies", "optionalDependencies", "peerDependencies", "engines", ...(key === "" ? ["workspaces"] : [])]) {
       assert.deepEqual(lock.packages?.[key]?.[field], expected[field], `workspace lock drift: ${key || "root"} ${field}`);
     }
   }

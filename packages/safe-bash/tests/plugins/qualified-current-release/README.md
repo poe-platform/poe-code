@@ -8,18 +8,98 @@ release-readiness certificate. Run from the repository root with existing Node
 npm run verify:release:qualified -- \
   --source-commit COMMITTED_CANDIDATE \
   --native-assets-from "$PWD/tests/commands/metadata-stress/.oracle/coreutils-9.7" \
-  --archive-tar-from "$PWD/tests/commands/archive/.oracle/gnu-tar/1.35/bin/gtar"
+  --archive-tar-from "$PWD/tests/commands/archive/.oracle/gnu-tar/1.35/bin/gtar" \
+  --peer-tarball /absolute/path/poe-code-13.0.0.tgz
 ```
 
-`--check-only true` authenticates and stages prerequisites without running tests;
-it is not a release pass. Missing/wrong/unset required assets fail with exit78
+`--check-only true` authenticates and stages native prerequisites without running
+tests; it does not run peer closure admission and is not a release pass.
+Missing/wrong/unset required native assets fail with exit78
 before product tests. No ambient `GNU_TAR`, host reconstruction, download,
 rebuild, global install or changed lock/runtime dependency substitutes for setup.
 The separate diagnostic command `node scripts/verify-current-consumers.mjs
---source-commit COMMITTED_CANDIDATE` runs the build-first consumer phase only;
+--source-commit COMMITTED_CANDIDATE --peer-tarball /absolute/path/poe-code-13.0.0.tgz`
+runs the build-first consumer phase only;
 it cannot replace the mandatory qualified job.
 
 ## Exact candidate, unchanged tests
+
+### Canonical peer and current metadata source
+
+The maintained migration profile requires `poe-code >=13.0.0`, with development
+and lockfile version exactly `13.0.0`. `--peer-tarball` is an explicit existing
+registry artifact, not a download request or credential. There is no environment
+variable fallback. The shared `peer.mjs` helper verifies the exact registry URL,
+SHA-512 SRI, package metadata and the build tooling's selected bytes. It refuses
+an optional peer, other peers, a mismatched pin or artifact, symlinks and source
+fallback. This profile does not automatically qualify later package versions.
+
+Both current and moved packed consumers receive only the selected public Node
+runtime closure, its existing authenticated declaration closure, and the peer
+manifest. The actual 13.0.0 input selects four JavaScript files and 26 declaration
+files. No CLI dependency tree, blanket node_modules permission, private engine
+or filesystem implementation is copied. Transitive runtime imports are parsed
+with the existing TypeScript tool; unsupported foreign packages or unexported
+peer routes fail closed. The private conditional type mapping remains the
+published package's own mapping, not a rewritten declaration or ambient shim.
+
+Artifact admission reads at most 64 MiB compressed and inflates at most 128 MiB.
+This pinned npm artifact uses regular USTAR members; other member types are
+refused rather than extracted. Headers, checksums, safe unique paths, trailers,
+the 20,000-member bound and 16 MiB per-member bound are checked in memory before
+any consumer staging. Only selected authenticated bytes are written. The helper
+rechecks inputs before staging and the exact installed file set/bytes after
+moving, typing and runtime execution. Existing source-read permission denials,
+negative types, runtime counts and packed lifecycle controls remain mandatory.
+
+The real-commit wrapper supplies metadata verification with its authenticated
+snapshot source inventory, source digest and resolved commit. The explicit
+`committed-current-source` profile replaces only historical product source and
+root compiler/package input paths, verifies their complete current census and
+hashes on both lifetime boundaries, and retains all non-source historical inputs.
+It does not ignore arbitrary missing paths or reseal an old manifest. Calling
+the metadata runner without that profile retains its historical default. All
+318 metadata cases, 22 native rows, oracle hashes and fixture expectations stay
+unchanged; the pure profile selector does not independently attest Git provenance.
+The wrapper's real `git archive` is the provenance boundary.
+
+The new admission/profile unit tests use the declared dev-only
+`memfs@4.56.10` (Apache-2.0), with no host disk writes or network. It adds no
+runtime dependency. The existing unit/test tooling remains unchanged. See
+`docs/plans/canonical-peer-qualified-release.md` for the bounded change and
+the distinction between current qualified acceptance and historical failures.
+
+### Current generated stream catalog
+
+The current generated profile independently declares all 80 default command
+names and their order. It compares the complete factory and registered catalogs,
+then repeats the factory comparison after the historical-corpus replay. It does
+not derive expected names from the registry under test or merely raise a count.
+The original SHA-pinned harness remains unchanged; all 18 generated cases and
+their effects, limits, cancellation, collision and negative controls remain.
+
+Six new generator regression cases first fail against the earlier profile,
+then pass with exact-catalog admission and same-count substitution, duplicate,
+ordering, missing and extra-command refusals. A seventh case checks the sealed
+input, all 18 registrations and exact transformation replay. Together with the
+49 existing peer/profile and 24 adjacent controls, all 80 units pass. The two
+earlier real-commit catalog failures remain recorded separately. These unit
+results do not certify the later packed phase: acceptance still requires the
+complete wrapper against the actual new commit and its unchanged-input checks.
+
+The real implementation commit `ee3395114856c82acc584dc113f3ebf92991d1dc`
+passes that complete job: 25 current consumer groups, 20 configured emitted
+runtime programs, archive 11/11, metadata 318/318 with 22 native rows, stream
+18/18 and moved packed-consumer 21/21. Required negative type/source-fallback,
+repeat-pack, lifecycle and unchanged-input controls pass. The stream comparison
+remains 124/164 strict and 164/164 strengthened semantic, not universal strict
+native parity. Scoped peer13 ownership 339/339, extra affected 150/150, Git
+prerequisites 15/15, public types, S3 committed/WORKTREE and installed SDK/shell
+identity/recovery also pass. The wider FS cohort still has four protected
+historical failures (2,281/2,285 pass); the retained broad 136 failures/25
+cancellations and 33 unchanged source/test type diagnostics are not waived.
+Frozen measured evidence is in `/tmp/safe-bash-catalog-repair.2014Ee`; later
+commit acceptance must use its own receipt, not inherit this commit's result.
 
 ### DU staging-input typing
 

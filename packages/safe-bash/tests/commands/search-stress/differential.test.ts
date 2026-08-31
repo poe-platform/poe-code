@@ -1,5 +1,5 @@
 import test from "node:test";
-import { compare, native, virtual, type Probe } from "./harness.js";
+import { compare, native, virtualBatches, type Probe } from "./harness.js";
 
 const records = "zero\nfoo foo\nFOO\nfood\n\nother\nfoo!\nlast\n";
 const probes: Probe[] = [];
@@ -82,5 +82,5 @@ for (const stdin of ["🙂é", "🙂é\n", "foo", "foo\n"]) for (const options o
   name: `empty byte matches ${JSON.stringify(stdin)} ${options.join(" ")}`, args: [...options, "", "-"], stdin,
 });
 
-const actual = virtual(probes);
+const actual = virtualBatches(probes);
 for (const [index, probe] of probes.entries()) test(probe.name, () => compare(actual[index]!, native(probe), probe));

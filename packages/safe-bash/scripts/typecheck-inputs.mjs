@@ -11,6 +11,27 @@ import { assertAdmittedInputPath, isHeldInputPath, readIntegrationTypeInputs, re
 import { assertSafeOutputDirectory } from "../../../scripts/guard-package-dist.mjs";
 
 const sha256 = bytes => createHash("sha256").update(bytes).digest("hex");
+
+export function mergeStandaloneInventory(inventory, sealedEntries) {
+  const existing = new Map(inventory.entries.map(entry => [entry.path, entry]));
+  assert.equal(existing.size, inventory.entries.length, "duplicate standalone inventory entry");
+  assert.equal(new Set(sealedEntries.map(entry => entry.path)).size, sealedEntries.length, "duplicate sealed standalone entry");
+  const additions = [];
+  for (const entry of sealedEntries) {
+    assert.equal(entry.classification, "frozen-evidence", "standalone owner must bind frozen evidence");
+    const previous = existing.get(entry.path);
+    if (previous) {
+      assert.equal(previous.classification, entry.classification, `standalone classification conflict: ${entry.path}`);
+      assert.equal(previous.sha256, entry.sha256, `standalone binding conflict: ${entry.path}`);
+    } else additions.push(entry);
+  }
+  return {
+    ...inventory,
+    entries: [...inventory.entries, ...additions],
+    counts: { ...inventory.counts, "frozen-evidence": inventory.counts["frozen-evidence"] + additions.length },
+  };
+}
+
 export function verifyAdmittedStandaloneInventory(inventory, tracked, currentPaths, negativePaths, read, boundaries) {
   const paths = inventory.entries.map(entry => entry.path);
   assert.deepEqual(tracked.filter(path => path.endsWith(".mts")).sort(), [...paths].sort(), "standalone inventory changed; classify new paths explicitly before qualification");
@@ -53,11 +74,7 @@ export function verifyTypecheckInputs(root, fileSystem = fs) {
   }
   const tracked = execFileSync("git", ["ls-files", "-z"], { cwd: root, maxBuffer: 32 * 1024 * 1024 }).toString().split("\0").filter(Boolean);
   for (const entry of staged.entries) assert.ok(tracked.includes(entry.path) && tracked.includes(entry.owner.path), `staged input and owning manifest must be tracked: ${entry.path}`);
-  const inventory = {
-    ...originalInventory,
-    entries: [...originalInventory.entries, ...integrationTypes.standaloneEntries],
-    counts: { ...originalInventory.counts, "frozen-evidence": originalInventory.counts["frozen-evidence"] + integrationTypes.standaloneEntries.length },
-  };
+  const inventory = mergeStandaloneInventory(originalInventory, integrationTypes.standaloneEntries);
   const classified = new Set(inventory.entries.map(entry => entry.path));
   const unknown = tracked.filter(path => path.endsWith(".mts") && !classified.has(path));
   assert.equal(unknown.length, 0, `Unclassified current .mts inputs require an explicit existing-inventory route: ${unknown.join(", ")}`);

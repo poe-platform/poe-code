@@ -62,6 +62,13 @@ switch (process.argv[2]) {
   case "valid": break;
   case "missing-pr-binding": delete testStep(feature, featureCommand).env; break;
   case "missing-release-binding": delete testStep(stable, releaseCommand).env; break;
+  case "workspace-only-pr-build": testStep(feature, "npm run build").run = "npm run build:workspaces -- --workspace=virtual-bash"; break;
+  case "missing-pr-build": feature.steps.splice(feature.steps.indexOf(testStep(feature, "npm run build")), 1); break;
+  case "late-pr-build": {
+    const [build] = feature.steps.splice(feature.steps.indexOf(testStep(feature, "npm run build")), 1);
+    feature.steps.push(build);
+    break;
+  }
   case "wrong-pr-order":
   case "wrong-release-order": {
     const job = process.argv[2] === "wrong-pr-order" ? feature : stable;
@@ -103,8 +110,12 @@ for (const [name, task] of Object.entries(turbo.tasks)) {
 assert(pr.jobs["virtual-bash-node22"], "feature job is required");
 assert(!JSON.stringify(pr.jobs.test).includes(binding), "Node20 must not receive the binding");
 assert(pr.jobs.test.steps.some(step => step.run === "npm test -- --concurrency=4 --exclude-workspace=virtual-bash"));
+const rootBuilds = feature.steps.filter(step => step.run === "npm run build");
+assert.equal(rootBuilds.length, 1, "Node22 archive tests require the normal root public-peer build");
+assert.equal(rootBuilds[0].if, undefined);
+assert.equal(rootBuilds[0]["continue-on-error"], undefined);
 for (const [workflow, job, command, predecessor] of [
-  [pr, pr.jobs["virtual-bash-node22"], featureCommand, "npm run build:workspaces -- --workspace=virtual-bash"],
+  [pr, pr.jobs["virtual-bash-node22"], featureCommand, "npm run build"],
   [release, stable, releaseCommand, "npm run lint:packages"],
 ]) {
   assert.equal(workflow.env?.[binding], undefined);
@@ -352,9 +363,9 @@ run_guard_in_docker() {
   done
 }
 
-@test "dry-run native input controls reject provisioning after tests" {
+@test "dry-run native input controls require root build and provisioning before tests" {
   local scenario
-  for scenario in wrong-pr-order wrong-release-order; do
+  for scenario in wrong-pr-order wrong-release-order workspace-only-pr-build missing-pr-build late-pr-build; do
     run native_test_wiring_check "$scenario"
     [ "$status" -eq 1 ]
     [[ "$output" == *AssertionError* ]]

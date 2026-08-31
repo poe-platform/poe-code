@@ -1,7 +1,9 @@
+import { collectBytes, readBytes } from "poe-code/safe-fs";
+import type { ByteSource, CollectOptions } from "poe-code/safe-fs";
+export { collectBytes, readBytes, toByteSource } from "poe-code/safe-fs";
+export type { ByteSource, CollectOptions } from "poe-code/safe-fs";
 import { TransformStream } from "node:stream/web";
 import { FsError } from "./errors.js";
-
-export type ByteSource = AsyncIterable<Uint8Array>;
 
 export interface ByteSink {
   write(chunk: Uint8Array): Promise<void>;
@@ -20,11 +22,6 @@ export interface BytePipe {
 
 export interface BytePipeOptions {
   readonly highWaterMark?: number;
-  readonly signal?: AbortSignal;
-}
-
-export interface CollectOptions {
-  readonly maxBytes: number;
   readonly signal?: AbortSignal;
 }
 
@@ -123,16 +120,6 @@ export function createBytePipe(options: BytePipeOptions = {}): BytePipe {
   };
 }
 
-export function toByteSource(input: string | Uint8Array): ByteSource {
-  if (typeof input !== "string" && !(input instanceof Uint8Array)) {
-    throw new TypeError("Byte source input must be a string or Uint8Array");
-  }
-  const bytes = typeof input === "string" ? new TextEncoder().encode(input) : new Uint8Array(input);
-  return (async function* () {
-    if (bytes.byteLength > 0) yield bytes;
-  })();
-}
-
 export async function writeText(sink: ByteSink, text: string): Promise<void> {
   await sink.write(new TextEncoder().encode(text));
 }
@@ -148,30 +135,6 @@ export async function pipeBytes(source: ByteSource, sink: ByteSink, signal?: Abo
     await writeBytes(sink, chunk, signal);
   }
   signal?.throwIfAborted();
-}
-
-export async function collectBytes(source: ByteSource, options: CollectOptions): Promise<Uint8Array> {
-  if (!Number.isSafeInteger(options.maxBytes) || options.maxBytes < 0) {
-    throw new RangeError("maxBytes must be a nonnegative safe integer");
-  }
-  const chunks: Uint8Array[] = [];
-  let size = 0;
-  options.signal?.throwIfAborted();
-  for await (const chunk of readBytes(source, options.signal)) {
-    if (chunk.byteLength > options.maxBytes - size) {
-      throw new FsError("EFBIG", { syscall: "collectBytes", message: "output exceeds maxBytes" });
-    }
-    if (chunk.byteLength > 0) chunks.push(new Uint8Array(chunk));
-    size += chunk.byteLength;
-  }
-  options.signal?.throwIfAborted();
-  const result = new Uint8Array(size);
-  let offset = 0;
-  for (const chunk of chunks) {
-    result.set(chunk, offset);
-    offset += chunk.byteLength;
-  }
-  return result;
 }
 
 export async function collectText(source: ByteSource, options: CollectOptions): Promise<string> {
@@ -203,32 +166,4 @@ async function abortable<Result>(operation: () => PromiseLike<Result>, signal?: 
       reject(error);
     }
   });
-}
-
-export async function* readBytes(source: ByteSource, signal?: AbortSignal): AsyncGenerator<Uint8Array> {
-  signal?.throwIfAborted();
-  const iterator = source[Symbol.asyncIterator]();
-  let finished = false;
-  let failed = false;
-  try {
-    while (true) {
-      const result = await abortable(() => iterator.next(), signal);
-      if (result.done) {
-        finished = true;
-        return;
-      }
-      if (!(result.value instanceof Uint8Array)) throw new TypeError("Byte sources must yield Uint8Array chunks");
-      yield result.value;
-    }
-  } catch (error) {
-    failed = true;
-    throw error;
-  } finally {
-    if (!finished && iterator.return) {
-      const cleanup = Promise.resolve().then(() => iterator.return!());
-      if (signal?.aborted) void cleanup.catch(() => {});
-      else if (failed) await abortable(() => cleanup, signal).catch(() => {});
-      else await abortable(() => cleanup, signal);
-    }
-  }
 }

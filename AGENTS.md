@@ -45,6 +45,11 @@ Use `npm run lint:workflows`
 - Never use --no-verify on either push or commit. You should figure out the issue.
 - Relevant plans belongs to commits
 
+## Delivery
+
+- For the safe-bash migration, preserve original commit IDs and keep unrelated fixes in separate atomic commits. Push approved integration promptly to `origin/main` with normal hooks; do not hold that push for separate artifact or release qualification.
+- Report local commits, verified remote-main delivery, and successful releases separately. A local commit is not a completed push; a completed push is not a verified release.
+
 ## Release
 
 - Stable release: Push to `main` branch → publishes `poe-code@latest`

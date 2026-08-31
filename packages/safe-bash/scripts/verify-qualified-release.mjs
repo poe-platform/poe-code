@@ -13,7 +13,7 @@ import { currentConsumers } from "./verify-current-consumers.mjs";
 const args = process.argv.slice(2);
 const options = {};
 for (let index = 0; index < args.length; index += 2) {
-  assert.ok(["--source-commit", "--native-assets-from", "--archive-tar-from", "--check-only"].includes(args[index]), "usage: --source-commit COMMIT --native-assets-from COREUTILS_DIRECTORY --archive-tar-from ABSOLUTE_GNU_TAR [--check-only true]");
+  assert.ok(["--source-commit", "--native-assets-from", "--archive-tar-from", "--peer-tarball", "--check-only"].includes(args[index]), "usage: --source-commit COMMIT --native-assets-from COREUTILS_DIRECTORY --archive-tar-from ABSOLUTE_GNU_TAR --peer-tarball ARTIFACT [--check-only true]");
   assert.ok(args[index + 1] && !args[index + 1].startsWith("--"), "option needs a value");
   assert.equal(options[args[index]], undefined, "duplicate option");
   options[args[index]] = args[index + 1];
@@ -84,13 +84,15 @@ try {
       canonical.environment.TMPDIR = report.fixtureAuthority.TMPDIR;
       const nativeEnvironment = { ...environment, TMPDIR: report.fixtureAuthority.TMPDIR };
       if (!options["--check-only"]) {
-        try { currentConsumers(report); }
+        try { currentConsumers(report, { peerArtifact: options["--peer-tarball"] }); }
         catch (error) { if (error.exitCode === 78) throw error; report.currentConsumerFailure = error.stack; }
         const archive = step(report, "current-archive-tests", process.execPath, ["--unhandled-rejections=strict", "--import", "tsx", "--test", "--test-reporter=tap", "--test-concurrency=1", ...archiveTests], report.root, { env: nativeEnvironment });
         report.archive = { tests: archiveTests.map(path => ({ path, sha256: sha256(readFileSync(join(report.root, path))) })), counts: Object.fromEntries(["tests", "pass", "fail", "cancelled", "skipped", "todo"].map(name => [name, Number(archive.stdout.match(new RegExp(`^# ${name} (\\d+)$`, "m"))?.[1] ?? NaN)])) };
         assert.deepEqual(report.archive.counts, { tests: 11, pass: 11, fail: 0, cancelled: 0, skipped: 0, todo: 0 });
         json(join(report.directory, "current-archive-result.json"), report.archive);
-        const metadata = canonical.runRelease();
+        const sourceProfile = { kind: "committed-current-source", sourceCommit: report.sourceCommit, sources: report.sources, sourceTreeSha256: report.sourceTreeSha256 };
+        json(join(report.directory, "current-metadata-profile.json"), sourceProfile);
+        const metadata = canonical.runRelease({ sourceProfile });
         json(join(report.directory, "mandatory-metadata.json"), metadata);
         report.metadata = { exitCode: metadata.exitCode, counts: metadata.counts, nativeRowsPassed: metadata.nativeRows?.filter(row => row.passed).length, unchanged: metadata.unchanged };
         assert.equal(metadata.exitCode, 0, "mandatory native metadata/table verification failed");
@@ -115,7 +117,7 @@ try {
         json(join(report.directory, "current-stream-results.json"), results);
         json(join(report.directory, "current-stream-diagnostics-result.json"), diagnostics);
         report.stream = { summary: results.summary, diagnosticSummary: diagnostics.summary, originalHarnessSha256: profile.originalSha256, currentHarnessSha256: profile.currentSha256, frozenManifest };
-        publicChecks(report);
+        publicChecks(report, { peerArtifact: options["--peer-tarball"] });
         assert.equal(report.currentConsumerFailure, undefined, "mandatory current consumers failed; independent later phases do not waive this failure");
       }
       report.testsUnchanged = unchangedTests(report);

@@ -31,6 +31,65 @@ function compilerInputs(root, tools, fileSystem) {
   const metadataFiles = new Set(["package.json", "tsconfig.json", "tsconfig.build.json", "integration-boundaries.json"]);
   const ownerFiles = new Set();
   const toolRoots = Object.values(tools).map(path => resolve(path));
+  const peerMetadata = new Set();
+  const directoryIndexes = new Map();
+  const indexLimits = { directories: 256, names: 32768, characters: 1048576 };
+  let indexedNames = 0, indexedCharacters = 0;
+  const discardIndex = directory => {
+    const cached = directoryIndexes.get(directory);
+    if (!cached) return;
+    directoryIndexes.delete(directory);
+    indexedNames -= cached.count;
+    indexedCharacters -= cached.characters;
+  };
+  const directoryName = (directory, stat, component) => {
+    let identity = [stat.dev, stat.ino, stat.mode, stat.nlink, stat.size, stat.mtimeMs, stat.ctimeMs];
+    const cached = directoryIndexes.get(directory);
+    if (cached && identity.every((value, index) => value === cached.identity[index])) {
+      directoryIndexes.delete(directory);
+      directoryIndexes.set(directory, cached);
+      return cached.names.get(component.toLowerCase());
+    }
+    discardIndex(directory);
+    const outside = directory !== root && (directory === sep || below(directory, root)) && !toolRoots.some(toolRoot => below(toolRoot, directory));
+    let entries;
+    const uncachedName = () => {
+      const aliases = entries.filter(name => name.toLowerCase() === component.toLowerCase());
+      return aliases.length > 1 ? null : aliases[0];
+    };
+    for (let attempt = 0; ; attempt += 1) {
+      entries = fileSystem.readdirSync(directory);
+      const after = fileSystem.lstatSync(directory);
+      assert.ok(after.isDirectory() && !after.isSymbolicLink(), "compiler ancestor must be a nonlink directory: " + directory);
+      if (!outside) { sameIdentity(stat, after); break; }
+      for (const key of ["dev", "ino", "mode"]) assert.equal(after[key], stat[key], "compiler input identity changed: " + key);
+      const afterIdentity = [after.dev, after.ino, after.mode, after.nlink, after.size, after.mtimeMs, after.ctimeMs];
+      if (identity.every((value, index) => value === afterIdentity[index])) break;
+      if (attempt === 2) return uncachedName();
+      stat = after;
+      identity = afterIdentity;
+    }
+    const complete = identity.every((value, index) => index < 5 ? Number.isSafeInteger(value) : Number.isFinite(value));
+    if (!complete || entries.length > indexLimits.names) return uncachedName();
+    let characters = directory.length;
+    for (const name of entries) {
+      characters += name.length + name.toLowerCase().length;
+      if (characters > indexLimits.characters) return uncachedName();
+    }
+    if (characters > indexLimits.characters) return uncachedName();
+    while (directoryIndexes.size >= indexLimits.directories || indexedNames + entries.length > indexLimits.names || indexedCharacters + characters > indexLimits.characters) {
+      discardIndex(directoryIndexes.keys().next().value);
+    }
+    const names = new Map();
+    for (const name of entries) {
+      const folded = name.toLowerCase();
+      names.set(folded, names.has(folded) ? null : name);
+    }
+    directoryIndexes.set(directory, { identity, names, count: entries.length, characters });
+    indexedNames += entries.length;
+    indexedCharacters += characters;
+    return names.get(component.toLowerCase());
+  };
   const held = path => {
     const absolute = resolve(root, path);
     if (below(root.toLowerCase(), absolute.toLowerCase())) {
@@ -49,8 +108,9 @@ function compilerInputs(root, tools, fileSystem) {
     const local = relative(root, absolute).split(sep).join("/");
     if (local === "src" || local.startsWith("src/")) return "source";
     if (metadataFiles.has(local) || (loadingOwners && ownerFiles.has(local))) return "metadata";
+    if (peerMetadata.has(absolute)) return "metadata";
     if (toolRoots.some(directory => below(directory, absolute))) return "tool";
-    const admitted = [join(root, "src"), ...toolRoots, ...[...metadataFiles, ...ownerFiles].map(path => join(root, path))];
+    const admitted = [join(root, "src"), ...toolRoots, ...peerMetadata, ...[...metadataFiles, ...ownerFiles].map(path => join(root, path))];
     if (admitted.some(path => below(absolute, path))) return "ancestor";
     return undefined;
   };
@@ -60,10 +120,9 @@ function compilerInputs(root, tools, fileSystem) {
     let stat = fileSystem.lstatSync(current);
     for (const component of absolute.split(sep).filter(Boolean)) {
       assert.ok(stat.isDirectory() && !stat.isSymbolicLink(), "compiler ancestor must be a nonlink directory: " + current);
-      const entries = fileSystem.readdirSync(current);
-      const aliases = entries.filter(name => name.toLowerCase() === component.toLowerCase());
-      if (aliases.length === 0) return undefined;
-      assert.ok(aliases.length === 1 && aliases[0] === component, "noncanonical compiler path spelling: " + absolute);
+      const name = directoryName(current, stat, component);
+      if (name === undefined) return undefined;
+      assert.ok(name === component, "noncanonical compiler path spelling: " + absolute);
       current = join(current, component);
       stat = fileSystem.lstatSync(current);
       assert.ok(!stat.isSymbolicLink(), "compiler path must not be a symlink: " + current);
@@ -137,6 +196,25 @@ function compilerInputs(root, tools, fileSystem) {
   ownerFiles.clear();
   return {
     host,
+    admitPeer() {
+      const manifest = JSON.parse(read(join(root, "package.json")));
+      let peerPaths;
+      if (manifest.peerDependencies?.["poe-code"]) {
+        const checkout = manifest.poeCode?.integration?.peerProfile === "checkout-root";
+        if (checkout) assert.equal(manifest.devDependencies?.["poe-code"], "file:../..", "checkout peer must use the explicit local root");
+        const peerRoot = checkout ? resolve(root, "../..") : join(root, "node_modules/poe-code");
+        peerMetadata.add(join(peerRoot, "package.json"));
+        const peer = JSON.parse(read(join(peerRoot, "package.json")));
+        assert.equal(peer.name, "poe-code", "canonical public peer identity");
+        const exported = peer.exports?.["./safe-fs"];
+        const target = typeof exported?.types === "string" ? exported.types : exported?.types?.default;
+        assert.equal(target, "./packages/safe-fs/dist/index.d.ts", "canonical public SafeFS declaration entry");
+        if (checkout) assert.equal(exported.import, "./packages/safe-js/dist/safe-fs.js", "canonical public SafeFS must use the shared SafeJS runtime");
+        toolRoots.push(join(peerRoot, "packages/safe-fs/dist"));
+        peerPaths = { "poe-code/safe-fs": [resolve(peerRoot, target)] };
+      }
+      return peerPaths;
+    },
     admitSources(paths) {
       sourceNames = new Set(paths.map(path => resolve(root, path)));
       for (const path of sourceNames) {
@@ -202,6 +280,8 @@ export async function buildPackage({ root = packageRoot, args = [], fileSystem =
   const formatHost = { getCanonicalFileName: path => path, getCurrentDirectory: () => root, getNewLine: () => "\n" };
   const report = diagnostics => write((parsed.options.pretty ? ts.formatDiagnosticsWithColorAndContext : ts.formatDiagnostics)(diagnostics, formatHost));
   if (errors.length) { report(errors); return { status: 1, rootNames: parsed.fileNames, emittedFiles: [] }; }
+  const peerPaths = inputs.admitPeer();
+  if (peerPaths) parsed.options.paths = { ...parsed.options.paths, ...peerPaths };
   inputs.admitSources(parsed.fileNames);
   const emittedFiles = [];
   const host = {

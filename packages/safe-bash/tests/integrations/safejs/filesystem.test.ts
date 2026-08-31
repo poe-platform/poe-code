@@ -71,8 +71,10 @@ test("path operations remain virtual, including absolute paths and symlink targe
   assert.equal(await bridge.readlink("link"), "file");
   assert.deepEqual(await bridge.readlink("link", "buffer"), Buffer.from("file"));
   assert.equal(await bridge.realpath("link"), "/repo/file");
-  await assert.rejects(bridge.readFile("/etc/passwd", "utf8"), { code: "ENOENT" });
-  assert.equal(fs.calls.at(-1)?.paths[0], "/etc/passwd");
+  assert.equal(await bridge.readFile("/repo/file", "utf8"), "body");
+  const callsBeforeEscape = fs.calls.length;
+  await assert.rejects(bridge.readFile("/etc/passwd", "utf8"), { code: "EACCES" });
+  assert.equal(fs.calls.length, callsBeforeEscape);
   await assert.rejects(bridge.readFile("", "utf8"), { code: "ENOENT" });
   await assert.rejects(bridge.readFile("bad\0path", "utf8"), TypeError);
 });

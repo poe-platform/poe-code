@@ -6,21 +6,28 @@ import { createNodeFsBridge, makeSafeJsShellModule } from "../../../src/integrat
 
 test("memory bridge preserves symlink-before-parent resolution and trailing separators", async () => {
   const fs = new MemoryFileSystem();
-  await fs.mkdir("/outside/deep", { recursive: true });
-  await fs.mkdir("/inside");
-  await fs.writeFile("/outside/file", Buffer.from("outside"));
+  await fs.mkdir("/inside/target/deep", { recursive: true });
+  await fs.writeFile("/inside/target/file", Buffer.from("target"));
   await fs.writeFile("/inside/file", Buffer.from("inside"));
-  await fs.symlink("/outside/deep", "/inside/link");
+  await fs.symlink("/inside/target/deep", "/inside/link");
   const bridge = createNodeFsBridge(fs, { cwd: "/inside" });
-  assert.equal(await bridge.readFile("link/../file", "utf8"), "outside");
-  assert.equal(await bridge.readFile("/inside/link/../file", "utf8"), "outside");
+  assert.equal(await bridge.readFile("link/../file", "utf8"), "target");
+  assert.equal(await bridge.readFile("/inside/link/../file", "utf8"), "target");
   await assert.rejects(bridge.stat("file/"), { code: "ENOTDIR" });
   await assert.rejects(bridge.stat("missing/../file"), { code: "ENOENT" });
-  await fs.mkdir("/outside/tree/child", { recursive: true });
-  await fs.writeFile("/outside/tree/child/file", Buffer.from("nested"));
+  await fs.mkdir("/inside/target/tree/child", { recursive: true });
+  await fs.writeFile("/inside/target/tree/child/file", Buffer.from("nested"));
   assert.deepEqual(await bridge.readdir("link/../tree", { recursive: true }), ["child", "child/file"]);
-  await bridge.cp("link/../tree", "/copy", { recursive: true });
-  assert.equal(await bridge.readFile("/copy/child/file", "utf8"), "nested");
+  await bridge.cp("link/../tree", "/inside/copy", { recursive: true });
+  assert.equal(await bridge.readFile("/inside/copy/child/file", "utf8"), "nested");
+  await fs.mkdir("/outside/deep", { recursive: true });
+  await fs.writeFile("/outside/file", Buffer.from("outside"));
+  await fs.symlink("/outside/deep", "/inside/escape");
+  await assert.rejects(bridge.readFile("escape/../file", "utf8"), { code: "EACCES" });
+  await assert.rejects(bridge.readFile("/inside/escape/../file", "utf8"), { code: "EACCES" });
+  await assert.rejects(bridge.cp("escape/../file", "/inside/blocked"), { code: "EACCES" });
+  await assert.rejects(fs.lstat("/inside/blocked"), { code: "ENOENT" });
+  assert.equal(Buffer.from(await fs.readFile("/outside/file")).toString(), "outside");
 });
 
 test("memory metadata, hardlinks, and truncate operate through the bridge", async () => {

@@ -1,4 +1,5 @@
 import { posix } from "node:path";
+import { FsError, type ErrnoCode } from "../../../src/contracts/errors.js";
 import type {
   AppendFileOptions, CopyFileOptions, DirectoryEntry, FileStat, FileSystem,
   FsOptions, MkdirOptions, RemoveOptions, WriteFileOptions,
@@ -6,8 +7,8 @@ import type {
 
 type Entry = { type: "file" | "directory" | "symlink"; bytes: Uint8Array; mode: number; target?: string };
 
-function failure(code: string, path: string): Error {
-  return Object.assign(new Error(`${code}: ${path}`), { code, path });
+function failure(code: ErrnoCode, path: string): FsError {
+  return new FsError(code, { path });
 }
 
 export class StubFileSystem implements FileSystem {

@@ -42,6 +42,41 @@ for (const entry of [
   assert.deepEqual(captured, entry.expected);
 });
 
+test("timeout legacy invocation omits carrier metadata and snapshots argv before asynchronous work", async () => {
+  const args = ["0", "capture", "before"];
+  const stdin = toByteSource("");
+  const stdout = { async write() {} };
+  const stderr = { async write() {} };
+  const context: CommandContext = {
+    command: "timeout", args, cwd: "/work", env: {}, fs: await fixture(),
+    signal: new AbortController().signal, stdin, stdout, stderr,
+    async invoke(command, selected, options) {
+      await Promise.resolve();
+      assert.equal(command, "capture");
+      assert.deepEqual(selected, ["before"]);
+      assert.ok(Object.isFrozen(selected));
+      assert.deepEqual(options, { stdin, stdout, stderr });
+      return { exitCode: 7 };
+    },
+  };
+  const pending = createTimeoutCommand().execute(context);
+  args[2] = "after";
+  assert.deepEqual(await pending, { exitCode: 7 });
+});
+
+test("timeout rejects an explicitly stale carrier before child dispatch", async () => {
+  const argumentValues = createCommandArguments(["0", "capture", shellValueFromBytes(Uint8Array.of(255))]);
+  let calls = 0;
+  const context: CommandContext = {
+    command: "timeout", args: [...argumentValues.args], argumentValues, cwd: "/work", env: {}, fs: await fixture(),
+    signal: new AbortController().signal, stdin: toByteSource(""),
+    stdout: { async write() {} }, stderr: { async write() {} },
+    async invoke() { calls++; return { exitCode: 0 }; },
+  };
+  await assert.rejects(async () => createTimeoutCommand().execute(context), /argument identity does not match/);
+  assert.equal(calls, 0);
+});
+
 for (const entry of [
   { name: "NUL", bytes: [99, 97, 112, 116, 117, 114, 101, 32, 255, 0], diagnostic: /NUL is not supported/ },
   { name: "unknown escape", bytes: [99, 97, 112, 116, 117, 114, 101, 32, 255, 92, 120], diagnostic: /invalid sequence/ },

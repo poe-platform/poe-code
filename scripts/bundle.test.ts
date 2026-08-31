@@ -17,9 +17,13 @@ afterEach(() => {
   vi.resetModules();
 });
 
-it.each([false, true])(
-  "validates all isolated root bundle groups before saving canonical evidence (invalid external: %s)",
-  async (invalidExternal) => {
+it.each([
+  { external: "poe-code/safe-fs", invalidExternal: false },
+  { external: "node:nonexistent", invalidExternal: true },
+  { external: "node:sqlite", invalidExternal: false }
+])(
+  "validates all isolated root bundle groups before saving canonical evidence ($external)",
+  async ({ external, invalidExternal }) => {
     const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
     const fixture = canonicalBundleFixture();
     const volume = Volume.fromJSON({
@@ -73,7 +77,7 @@ it.each([false, true])(
             metafile.outputs[relative].entryPoint = input;
             if (!options.splitting)
               metafile.outputs[relative].imports.push({
-                path: invalidExternal ? "node:nonexistent" : "poe-code/safe-fs",
+                path: external,
                 external: true,
                 kind: "import-statement"
               });
@@ -109,7 +113,7 @@ it.each([false, true])(
       );
       expect(evidence.canonicalBundle.entryPoints).toContain("packages/safe-fs/src/index.ts");
       expect(evidence.outputs["packages/superintendent/dist/mcp.js"].imports[0].path).toBe(
-        "poe-code/safe-fs"
+        external
       );
       expect(volume.existsSync(path.join(root, "packages/safe-js/dist/safe-fs.js"))).toBe(true);
     }

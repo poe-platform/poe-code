@@ -2,6 +2,52 @@ import { describe, expect, it } from "vitest";
 import { findBundleIssues } from "./bundle-policy.js";
 import { canonicalBundleFixture } from "./fixtures.js";
 
+describe("version-independent builtins retain released FS profile restrictions", () => {
+  it.each([
+    "node:sqlite",
+    "node:sea",
+    "inspector/promises",
+    "node:inspector/promises",
+    "node:test",
+    "node:test/reporters",
+    "fs",
+    "fs/promises"
+  ])("accepts %s in Node FS runtime and declaration edges", (name) => {
+    const { manifest, metafile, packed, chunk } = canonicalBundleFixture();
+    metafile.canonicalBundle.metafile.outputs[chunk].imports.push({ path: name, external: true });
+    metafile.canonicalTypes["packages/safe-fs/dist/platform/node.d.ts"].push(name);
+    expect(findBundleIssues(manifest, new Set(), metafile, packed)).toEqual([]);
+  });
+
+  it.each(["node:sqlite", "node:sea", "node:test", "node:test/reporters", "fs", "fs/promises"])(
+    "still rejects %s in browser FS runtime and declaration edges",
+    (name) => {
+      const { manifest, metafile, packed } = canonicalBundleFixture();
+      metafile.browserCanonicalBundle.metafile.outputs[
+        "packages/safe-js/dist/browser/chunks/fs.js"
+      ].imports.push({ path: name, external: true });
+      metafile.canonicalTypes["packages/safe-fs/dist/platform/browser.d.ts"].push(name);
+      expect(findBundleIssues(manifest, new Set(), metafile, packed)).toEqual([
+        { external: "poe-code/safe-fs", reason: "external-canonical-dependency" },
+        { external: "poe-code/safe-fs", reason: "external-canonical-types" }
+      ]);
+    }
+  );
+
+  it.each(["node:nonexistent", "node:sqlite/extra", "node:node:fs", "sqlite", "fs/unknown"])(
+    "still rejects unknown or nonbuiltin %s in Node FS edges",
+    (name) => {
+      const { manifest, metafile, packed, chunk } = canonicalBundleFixture();
+      metafile.canonicalBundle.metafile.outputs[chunk].imports.push({ path: name, external: true });
+      metafile.canonicalTypes["packages/safe-fs/dist/platform/node.d.ts"].push(name);
+      expect(findBundleIssues(manifest, new Set(), metafile, packed)).toEqual([
+        { external: "poe-code/safe-fs", reason: "external-canonical-dependency" },
+        { external: "poe-code/safe-fs", reason: "external-canonical-types" }
+      ]);
+    }
+  );
+});
+
 describe("Node-only SafeJS browser boundary", () => {
   const routes = [
     "./safe-js", "./safe-js/core", "./safe-js/cli",

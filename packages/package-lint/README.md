@@ -57,6 +57,19 @@ AST. The scanner supports package-local finite paths through `node:fs`,
 arrays, and directory enumeration. Dynamic user/workspace inputs are ignored
 unless a package declares a finite asset explicitly.
 
+## Node Built-in Classification
+
+Bundle policy uses a checked catalogue of 140 module names captured from
+Node 24.14.0, rather than the build runtime's `module.isBuiltin()` result. This
+keeps a Node 18 cold build from rejecting `node:sqlite` as an unknown external.
+Unknown module names and invalid bare aliases for prefix-only built-ins remain
+errors; browser profiles still reject Node host modules.
+
+Classification does not import a module, provide a polyfill, or make newer
+Node APIs available on an older runtime. The catalogue is internal and adds no
+configuration options. Its provenance and reproduction steps are recorded in
+`docs/plans/node18-build-builtin-classification.md` at the repository root.
+
 ## Environment Variables
 
 No environment variables are read by package-lint.

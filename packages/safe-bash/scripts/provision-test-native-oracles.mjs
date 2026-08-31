@@ -17,20 +17,32 @@ const identity = (stat) =>
     stat.ctimeNs ?? stat.ctimeMs
   ].join(":");
 
-export function selectNativeProfile(profiles, host) {
+export const LOCAL_GNU_PROFILE = "local-macos26.4.1-arm64-gnu-20260831";
+
+export function selectNativeProfile(profiles, host, localProfile) {
+  if (localProfile !== undefined) {
+    assert.equal(localProfile, LOCAL_GNU_PROFILE, "unknown local GNU profile selector");
+    assert.deepEqual(host, { platform: "darwin", arch: "arm64", distribution: "macos", version: "26.4.1", release: "25.4.0" }, "local GNU profile requires the exact local host");
+  }
   const matching = profiles.filter((profile) =>
     ["platform", "arch", "distribution", "version", "release"].every((key) => profile.host[key] === host[key])
   );
   assert.equal(matching.length, 1, "exactly one qualified native host profile is required");
-  assert.equal(
-    matching[0].qualification,
-    "QUALIFIED",
-    "source authentication alone is not executable qualification"
-  );
+  if (localProfile !== undefined) {
+    assert.equal(matching[0].id, LOCAL_GNU_PROFILE, "local GNU profile identity mismatch");
+    assert.equal(matching[0].qualification, "IDENTITY_APPROVED_FOR_QUALIFICATION_ONLY", "local GNU approval is qualification-only");
+    assert.deepEqual(matching[0].executables.map(pin => pin.tool).sort(), ["diff", "patch"], "local GNU profile is restricted to diff/patch");
+  } else {
+    assert.equal(
+      matching[0].qualification,
+      "QUALIFIED",
+      "source authentication alone is not executable qualification"
+    );
+  }
   const profile = structuredClone(matching[0]);
   assert(
     (profile.host.platform === "linux" && profile.host.arch === "x64" && profile.host.distribution === "ubuntu" && profile.host.version === "24.04") ||
-    (profile.host.platform === "darwin" && profile.host.arch === "arm64" && profile.host.distribution === "macos" && profile.host.version === "26.5.2" && profile.host.release === "25.5.0"),
+    (profile.host.platform === "darwin" && profile.host.arch === "arm64" && profile.host.distribution === "macos" && profile.host.version === "26.5.2" && profile.host.release === "25.5.0") || localProfile === LOCAL_GNU_PROFILE,
     "unsupported native host"
   );
   assert(Array.isArray(profile.executables) && profile.executables.length > 0);
@@ -118,7 +130,7 @@ export function verifyNativeExecutable(pin, path, dependencies = {}) {
 
 export function stageNativeExecutables(options, dependencies = {}) {
   const fileSystem = dependencies.fileSystem ?? fs;
-  const profile = selectNativeProfile([options.profile], options.host);
+  const profile = selectNativeProfile([options.profile], options.host, options.localProfile);
   const { parent, name, inputs } = options;
   canonicalPath(fileSystem, parent);
   const parentStat = fileSystem.lstatSync(parent, { bigint: true });
@@ -163,7 +175,8 @@ export function stageNativeExecutables(options, dependencies = {}) {
       size: installed.size
     });
   }
-  const receipt = { profile: profile.id, host: structuredClone(options.host), root, outputs };
+  const receipt = { profile: profile.id, host: structuredClone(options.host), root, outputs,
+    ...(options.localProfile === undefined ? {} : { qualification: profile.qualification }) };
   fileSystem.writeFileSync(join(root, "receipt.json"), JSON.stringify(receipt, null, 2) + "\n", {
     flag: "wx",
     mode: 0o600
@@ -197,7 +210,7 @@ export function stageDarwinOutputs(options, dependencies = {}) {
   return { primary, secondary };
 }
 
-function executeBuildStep(command, args, options) {
+export function executeBuildStep(command, args, options) {
   return new Promise((resolveResult, reject) => {
     const available = fs.statfsSync(options.cwd);
     assert(
@@ -256,6 +269,7 @@ function executeBuildStep(command, args, options) {
       process.removeListener("SIGINT", interrupt);
       process.removeListener("SIGTERM", interrupt);
       const result = {
+        pid: child.pid,
         status,
         signal,
         stdout: Buffer.concat(stdout).toString(),

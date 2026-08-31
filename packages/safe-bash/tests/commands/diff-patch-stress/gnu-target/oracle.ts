@@ -1,5 +1,5 @@
 import assert from "node:assert/strict";
-import { spawnSync } from "node:child_process";
+import { spawnSync, type SpawnSyncOptionsWithStringEncoding } from "node:child_process";
 import { createHash } from "node:crypto";
 import { accessSync, constants, mkdtempSync, readFileSync, realpathSync, rmSync, statSync } from "node:fs";
 import { tmpdir } from "node:os";
@@ -51,8 +51,13 @@ export function oracleIdentity(tool: OracleTool, profile: OracleProfile = "gnu",
       const cache: typeof verified = qualifiedVerified.get(fileSystem) ?? new Map();
       const cached = cache.get(key);
       if (cached) return cached;
-      const admitted = verifyNativeExecutable(binding, canonical, options);
-      const identity = { path: admitted.path, realpath: canonical, version: admitted.version, dialect: profile === "gnu" ? "gnu" : tool === "patch" ? "apple-patch-2.0-12u11" : "bsd", sha256: admitted.sha256 };
+      let versionOutput = "";
+      const admitted = verifyNativeExecutable(binding, canonical, { ...options, run(executable, args, settings) {
+        const result = options.run ? options.run(executable, args, settings) : spawnSync(executable, args, settings as SpawnSyncOptionsWithStringEncoding);
+        versionOutput = result.stdout;
+        return result;
+      } });
+      const identity = { path: admitted.path, realpath: canonical, version: versionOutput.trim(), dialect: profile === "gnu" ? "gnu" : tool === "patch" ? "apple-patch-2.0-12u11" : "bsd", sha256: admitted.sha256 };
       cache.set(key, identity);
       qualifiedVerified.set(fileSystem, cache);
       return identity;

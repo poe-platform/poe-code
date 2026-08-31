@@ -3,6 +3,8 @@ import { spawnSync } from "node:child_process";
 import { mkdtemp, mkdir, writeFile, readFile, readdir, rm } from "node:fs/promises";
 import { dirname, join } from "node:path";
 import type { Files } from "./helpers.js";
+import { nativeGnuBinding } from "../../native-profile.js";
+import { oracleIdentity } from "../diff-patch-stress/gnu-target/oracle.js";
 
 export const gnuPatch = "/tmp/safe-bash-gnu-oracle.Yg2F0W/patch-2.8/src/patch";
 export const gnuDiff = "/tmp/safe-bash-gnu-oracle.Yg2F0W/diffutils-3.12/src/diff";
@@ -14,6 +16,8 @@ export async function nativeGNU(args: readonly string[], files: Files = {}, inpu
     assert(!arg.includes("\0") && !arg.startsWith("/") && !arg.split(/[=/]/u).includes(".."), "host argv must remain fixture-relative or use $ROOT");
     assert(!arg.includes("=/"), "absolute option paths must use $ROOT");
   }
+  const name = tool === gnuDiff ? "diff" : "patch";
+  const selected = nativeGnuBinding(name) ? oracleIdentity(name).path : tool;
   const boundary = await mkdtemp(join(process.cwd(), "tests/commands/diff-patch/patch-gnu-native-"));
   const root = join(boundary, "work");
   try {
@@ -24,7 +28,7 @@ export async function nativeGNU(args: readonly string[], files: Files = {}, inpu
       await mkdir(dirname(join(root, path)), { recursive: true });
       await writeFile(join(root, path), text);
     }
-    const result = spawnSync(tool, args.map(arg => arg.replaceAll("$ROOT", root)), {
+    const result = spawnSync(selected, args.map(arg => arg.replaceAll("$ROOT", root)), {
       cwd: root, input: input.replaceAll("$ROOT", root), encoding: "utf8", timeout: 3000,
       killSignal: "SIGKILL", maxBuffer: 1024 * 1024,
       env: { PATH: "/usr/bin:/bin", LC_ALL: "C", LANG: "C", HOME: root, TMPDIR: root },

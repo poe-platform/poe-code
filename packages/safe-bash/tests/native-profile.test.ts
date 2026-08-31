@@ -5,6 +5,30 @@ import { fileURLToPath } from "node:url";
 import { Volume, createFsFromVolume } from "memfs";
 import { matchNativeProfile, qualifyNativeProfile, nativeGnuBinding, nativeAppleBinding, type NativeProfile } from "./native-profile.js";
 
+test("explicit local GNU qualification changes only diff/patch and preserves legacy Apple and other tools", () => {
+  const localProfile = "local-macos26.4.1-arm64-gnu-20260831";
+  const profile = { id: localProfile, qualification: "IDENTITY_APPROVED_FOR_QUALIFICATION_ONLY",
+    host: { platform: "darwin", arch: "arm64", distribution: "macos", version: "26.4.1", release: "25.4.0" },
+    executables: ["diff", "patch"].map(tool => ({ tool, version: tool === "diff" ? "diff (GNU diffutils) 3.12" : "GNU patch 2.8", size: 10, sha256: "a".repeat(64) })) };
+  const fileSystem = createFsFromVolume(Volume.fromJSON({
+    "/owned/diff": "inert fixture", "/owned/patch": "inert fixture",
+    [fileURLToPath(new URL("../tmp/native-gnu/bin/diff", import.meta.url))]: "inert fixture",
+    [fileURLToPath(new URL("../tmp/native-gnu/bin/patch", import.meta.url))]: "inert fixture"
+  })) as unknown as typeof fs;
+  fileSystem.symlinkSync("/owned", "/alias");
+  const options = { platform: "darwin", arch: "arm64", release: "25.4.0", localProfile, profiles: [profile], fileSystem };
+  for (const tool of ["diff", "patch"] as const) {
+    assert.equal(nativeGnuBinding(tool, options)?.sha256, profile.executables[0]!.sha256);
+    assert.equal(nativeGnuBinding(tool, { ...options, path: `/owned/${tool}` })?.path, `/owned/${tool}`);
+    assert.equal(nativeGnuBinding(tool, { ...options, localProfile: undefined }), undefined);
+    for (const invalid of [{ localProfile: "other" }, { release: "25.5.0" }, { arch: "x64" }, { platform: "linux" }, { profiles: [] }, { profiles: [profile, profile] }, { build: 2 as const }, { path: "relative" }, { path: "/owned/../patch" }, { path: `/alias/${tool}` }]) {
+      assert.throws(() => nativeGnuBinding(tool, { ...options, ...invalid }));
+    }
+    assert.equal(nativeAppleBinding(tool, options), undefined);
+  }
+  for (const tool of ["tar", "stat", "chmod", "split"] as const) assert.equal(nativeGnuBinding(tool, options), undefined);
+});
+
 test("qualified Linux GNU bindings select staged executables and retained manifest pins", () => {
   const fileSystem = createFsFromVolume(Volume.fromJSON({ "/etc/os-release": 'ID=ubuntu\nVERSION_ID="24.04"\n' })) as unknown as typeof fs;
   const manifest = JSON.parse(fs.readFileSync(new URL("./native-gnu-profiles.json", import.meta.url), "utf8"));

@@ -239,6 +239,43 @@
       ]
     }
   ],
+  "localGnuQualification": {
+    "id": "local-macos26.4.1-arm64-gnu-20260831",
+    "qualification": "IDENTITY_APPROVED_FOR_QUALIFICATION_ONLY",
+    "qualificationScope": "Explicit local diff/patch comparison candidate only. Historical captures and every other host/tool remain unchanged. One source-authenticated build; no reproducibility or behavior pass is implied.",
+    "host": {
+      "platform": "darwin",
+      "arch": "arm64",
+      "distribution": "macos",
+      "version": "26.4.1",
+      "release": "25.4.0"
+    },
+    "provenance": {
+      "buildVersion": "25E253",
+      "buildReportSha256": "e08355a2f04df6fe985b37da36d8f98924af4d3de4b57322c1875ff50530390e",
+      "buildReport": "/private/tmp/lgq-ZFbSMA/evidence/build.json",
+      "compilerSha256": "7def90dd8829726686213a747fc5bff1583df933dae5edc55d755479e0bfe00a",
+      "linkerSha256": "5897b275efd93b201b6df5832dd541262b3f20f290859ba78f2200a6a66ef38b",
+      "makeSha256": "83284837495b77df7cb0febf564717918abe79f5dc5da1df9a603b2ac55998bb",
+      "sdkSettingsSha256": "f8d005f09381389167f9e0aeaa169bc9e7dff162ef22ca2fd8e98df7ff1acafe",
+      "diffutilsSourceSha256": "7c8b7f9fc8609141fdea9cece85249d308624391ff61dedaf528fcb337727dfd",
+      "patchSourceSha256": "f87cee69eec2b4fcbf60a396b030ad6aa3415f192aa5f7ee84cad5e11f7f5ae3"
+    },
+    "executables": [
+      {
+        "tool": "diff",
+        "version": "diff (GNU diffutils) 3.12",
+        "size": 294792,
+        "sha256": "f09892cf4082d4b40eaa7ca4ad0c9b4ff3b90fc9baa6dae067305ddc0942f469"
+      },
+      {
+        "tool": "patch",
+        "version": "GNU patch 2.8",
+        "size": 230280,
+        "sha256": "5b852c0cc6cb8d4e32fbc311575fab32834a57bb3c71771be5008b85d4c394a2"
+      }
+    ]
+  },
   "darwinBuildQualification": {
     "id": "github-macos26-arm64-20260728.0273.1-build-observation",
     "qualification": "IDENTITY_APPROVED_FOR_QUALIFICATION_ONLY",

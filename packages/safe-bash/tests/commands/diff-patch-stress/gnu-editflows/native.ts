@@ -5,6 +5,8 @@ import { lstat, mkdir, mkdtemp, readFile, readdir, realpath, rm, writeFile } fro
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 import type { Fixture } from "./fixtures.js";
+import { nativeGnuBinding } from "../../../native-profile.js";
+import { oracleIdentity } from "../gnu-target/oracle.js";
 
 export const binary = "/tmp/safe-bash-gnu-oracle.Yg2F0W/patch-2.8/src/patch";
 export const binarySha256 = "c060444da0e547de6f17594baf0b5015a04f5b3277131ca12b1da27c621aee00";
@@ -17,8 +19,10 @@ export interface Evidence { readonly version: string; readonly binary: string; r
 export function digest(bytes: string | Uint8Array): string { return createHash("sha256").update(bytes).digest("hex"); }
 
 export async function proof(): Promise<string> {
-  assert.equal(digest(await readFile(binary)), binarySha256, "GNU oracle binary hash changed; do not recapture silently");
-  const version = spawnSync(binary, ["--version"], { encoding: "utf8", shell: false, timeout: 3000, maxBuffer: 65_536, env: { LC_ALL: "C", LANG: "C", PATH: "/usr/bin:/bin" } });
+  const binding = nativeGnuBinding("patch");
+  const selected = binding ? oracleIdentity("patch").path : binary;
+  assert.equal(digest(await readFile(selected)), binding?.sha256 ?? binarySha256, "GNU oracle binary hash changed; do not recapture silently");
+  const version = spawnSync(selected, ["--version"], { encoding: "utf8", shell: false, timeout: 3000, maxBuffer: 65_536, env: { LC_ALL: "C", LANG: "C", PATH: "/usr/bin:/bin" } });
   assert.ifError(version.error);
   assert.equal(version.status, 0, "GNU oracle unavailable");
   assert.equal(version.stdout.split("\n")[0], "GNU patch 2.8");
@@ -31,6 +35,7 @@ export function safeRelative(path: string): void {
 }
 
 export async function native(fixture: Fixture): Promise<readonly Observation[]> {
+  const selected = nativeGnuBinding("patch") ? oracleIdentity("patch").path : binary;
   const root = await realpath(await mkdtemp(join(scope, ".native-")));
   const cwd = join(root, "work");
   try {
@@ -54,7 +59,7 @@ export async function native(fixture: Fixture): Promise<readonly Observation[]> 
       }
       for (const arg of step.args) assert(!arg.startsWith("/") && !arg.includes(".."), "host argv must remain inside fixture root");
       const args = ["--batch", ...step.args.map(arg => arg.replaceAll("@ROOT@", root))];
-      const result = spawnSync(binary, args, {
+      const result = spawnSync(selected, args, {
         cwd, input: step.input.replaceAll("@ROOT@", root), encoding: "utf8", shell: false, timeout: 3000, maxBuffer: 65_536,
         env: { PATH: "/usr/bin:/bin", LC_ALL: "C", LANG: "C", TZ: "UTC", HOME: root, TMPDIR: root, PATCH_GET: "0", VERSION_CONTROL: "simple" },
       });

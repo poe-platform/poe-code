@@ -36,6 +36,7 @@ export type RunInWorktreeInput<T> = {
   selectedModel?: string;
   worktree: WorktreeExecutionOptions;
   run: (context: WorktreeExecutionContext) => Promise<T>;
+  isSuccessful?: (value: T) => boolean;
   signal?: AbortSignal;
   spawnAgent?: SpawnAgent;
   deps?: WorktreeDeps;
@@ -110,6 +111,7 @@ export async function runInWorktree<T>(
   });
 
   let value: T;
+  let successful: boolean;
   try {
     value = await input.run({
       sourceCwd: input.cwd,
@@ -117,6 +119,7 @@ export async function runInWorktree<T>(
       worktree,
       signal: input.signal
     });
+    successful = !input.signal?.aborted && (input.isSuccessful?.(value) ?? true);
   } catch (error) {
     await handleFailedWorktreeRun({
       cwd: input.cwd,
@@ -129,6 +132,17 @@ export async function runInWorktree<T>(
       signal: input.signal
     });
     throw error;
+  }
+
+  if (!successful) {
+    await handleFailedWorktreeRun({
+      ...input,
+      worktree,
+      options,
+      deps,
+      preserveWorktree: true
+    });
+    return { value, worktree: { worktree: { ...worktree, status: "failed" } } };
   }
 
   const reconciliation = await reconcileWorktree({
@@ -170,6 +184,7 @@ async function handleFailedWorktreeRun(input: {
   selectedModel?: string;
   spawnAgent?: SpawnAgent;
   signal?: AbortSignal;
+  preserveWorktree?: boolean;
 }): Promise<void> {
   const worktreeHead = (await input.deps.exec("git rev-parse HEAD", {
     cwd: input.worktree.path
@@ -200,7 +215,7 @@ async function handleFailedWorktreeRun(input: {
     { fs: input.deps.fs }
   );
 
-  if (hasCommittedChanges || hasUncommittedChanges) {
+  if (input.preserveWorktree || input.signal?.aborted || hasCommittedChanges || hasUncommittedChanges) {
     return;
   }
 

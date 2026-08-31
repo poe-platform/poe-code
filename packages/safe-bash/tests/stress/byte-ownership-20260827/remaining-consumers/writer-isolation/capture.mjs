@@ -4,6 +4,8 @@ import { lstatSync, mkdtempSync, readFileSync, readdirSync, realpathSync, writeF
 import { tmpdir } from "node:os";
 import { isAbsolute, join, relative } from "node:path";
 import { fileURLToPath } from "node:url";
+import { validateBoundaries } from "../../../../../scripts/integration-inputs.mjs";
+import { isHeldInputPath } from "../../../../../scripts/typecheck-integration-inputs.mjs";
 
 if (process.argv.length !== 2) throw new Error("Capture accepts no paths or options; output is always a new OS-temp directory");
 const root = realpathSync(fileURLToPath(new URL("../../../../../", import.meta.url)));
@@ -18,16 +20,18 @@ if (contained(root, temporaryRoot)) {
 const fixtureDirectory = "tests/stress/byte-ownership-20260827/remaining-consumers/direct-curl";
 const harnessDirectory = "tests/stress/byte-ownership-20260827/remaining-consumers/writer-isolation";
 const sha256 = bytes => createHash("sha256").update(bytes).digest("hex");
+const boundaries = validateBoundaries(JSON.parse(readFileSync(join(root, "integration-boundaries.json"), "utf8")));
 const snapshot = () => {
   const files = {};
   const visit = path => {
+    if (isHeldInputPath(path, boundaries)) return;
     const stat = lstatSync(join(root, path));
     if (stat.isDirectory()) {
       for (const name of readdirSync(join(root, path)).sort()) visit(`${path}/${name}`);
     } else if (stat.isFile()) files[path] = sha256(readFileSync(join(root, path)));
     else throw new Error(`Refusing non-regular source or fixture: ${path}`);
   };
-  for (const path of ["src", "package.json", "package-lock.json", "tsconfig.json", fixtureDirectory, `${harnessDirectory}/capture.mjs`]) visit(path);
+  for (const path of ["src", "package.json", "package-lock.json", "tsconfig.json", "integration-boundaries.json", "scripts/integration-inputs.mjs", "scripts/typecheck-integration-inputs.mjs", fixtureDirectory, `${harnessDirectory}/capture.mjs`]) visit(path);
   return { files, sha256: sha256(JSON.stringify(files)) };
 };
 const before = snapshot();

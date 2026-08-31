@@ -49,17 +49,21 @@ function assertSource7Discovery(files) {
     "tests/integrations/safejs/canonical-filesystem.test.ts",
     "tests/integrations/safejs/published-replay.test.ts",
   ];
+  const integrationAdditions = ["tests/fs/conformance/provenance.test.ts"];
   assert.equal(new Set(files).size, files.length);
   for (const path of removed) assert.ok(!files.includes(path), `source7 removed test remains selected: ${path}`);
   for (const path of added) assert.ok(files.includes(path), `source7 added test is missing: ${path}`);
-  const previous655 = [...files.filter(path => !added.includes(path)), ...removed].sort();
+  for (const path of integrationAdditions) assert.ok(files.includes(path), `integration-authored test is missing: ${path}`);
+  const source7Files = files.filter(path => !integrationAdditions.includes(path));
+  const previous655 = [...source7Files.filter(path => !added.includes(path)), ...removed].sort();
   assert.equal(previous655.length, 655);
   const previous654 = previous655.filter(path => path !== "tests/commands/stream-format/seq-diagnostic-profile.test.ts");
   assert.equal(previous654.length, 654);
   const previous653 = previous654.filter(path => path !== "tests/commands/search/native-tool.test.ts");
   assert.equal(previous653.length, 653);
   assert.equal(createHash("sha256").update(JSON.stringify(previous653)).digest("hex"), "4034255d318de395fa9614c6b00950d3f6be0337ef47724e4e96acdf9e716957");
-  assert.equal(files.length, 655 - removed.length + added.length);
+  assert.equal(source7Files.length, 655 - removed.length + added.length);
+  assert.equal(files.length, source7Files.length + integrationAdditions.length);
 }
 
 function fileSystemFor(files) {

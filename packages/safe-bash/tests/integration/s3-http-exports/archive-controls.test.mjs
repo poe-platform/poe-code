@@ -9,6 +9,7 @@ import { loadBoundaries } from "../../../scripts/integration-inputs.mjs";
 import { readRegularInput } from "../../../scripts/typecheck-integration-inputs.mjs";
 import { assertTypeOrigins, cleanEnvironment, digest, inspectCommittedCandidate, packagePrefix, readArchive, resolveTools } from "./committed-archive.mjs";
 import * as distChecks from "./committed-archive.mjs";
+import { assertSnapshotInputs } from "./verify.mjs";
 
 const authority = fileURLToPath(new URL("../../../", import.meta.url));
 const boundaries = loadBoundaries(authority);
@@ -131,16 +132,17 @@ function syntheticDist(entries) {
   }
   const reads = [];
   const fileSystem = {
-    readdirSync(directory) {
+    readdirSync(directory, options) {
       if (directory === "/") return ["synthetic-package"];
       const local = relative("/synthetic-package", directory);
-      return [...records.keys()].filter(path => path !== "" && dirname(path) === (local || ".")).map(path => path.split("/").at(-1)).reverse();
+      const names = [...records.keys()].filter(path => path !== "" && dirname(path) === (local || ".")).map(path => path.split("/").at(-1)).reverse();
+      return options?.withFileTypes ? names.map(name => ({ name, ...fileSystem.lstatSync(join(directory, name)) })) : names;
     },
     lstatSync(filename) {
       if (filename === "/") return { isDirectory: () => true, isFile: () => false, size: 0 };
       const record = records.get(relative("/synthetic-package", filename));
       assert.ok(record, `unexpected synthetic metadata request: ${filename}`);
-      return { isDirectory: () => record.kind === "directory", isFile: () => record.kind === "file", size: record.size ?? record.bytes?.length ?? 0 };
+      return { isDirectory: () => record.kind === "directory", isFile: () => record.kind === "file", isSymbolicLink: () => record.kind === "symlink", size: record.size ?? record.bytes?.length ?? 0 };
     },
     readFileSync(filename) {
       reads.push(relative("/synthetic-package", filename));
@@ -149,6 +151,119 @@ function syntheticDist(entries) {
   };
   return { records, reads, fileSystem };
 }
+
+function peerSnapshot() {
+  const committed = new Map([["package.json", Buffer.from('{"name":"poe-code"}')], [`${packagePrefix}/package.json`, Buffer.from('{"name":"virtual-bash"}')]]);
+  const peerBytes = new Map([["package.json", committed.get("package.json")], ["packages/safe-fs/dist/index.d.ts", Buffer.from("export interface Canonical {}")], ["packages/safe-js/dist/safe-fs.js", Buffer.from('export { identity } from "./shared.js";')], ["packages/safe-js/dist/shared.js", Buffer.from("export const identity = {};")]]);
+  const peer = { files: [...peerBytes].map(([path, bytes]) => ({ path, sha256: digest(bytes) })) };
+  const entries = new Map(committed);
+  for (const [path, bytes] of peerBytes) {
+    entries.set(path, bytes);
+    entries.set(`${packagePrefix}/node_modules/poe-code/${path}`, bytes);
+  }
+  const fixture = syntheticDist([...entries].map(([path, bytes]) => [path, { kind: "file", bytes: Buffer.from(bytes) }]));
+  const check = () => assertSnapshotInputs("/synthetic-package", committed, { peer, fileSystem: fixture.fileSystem });
+  return { ...fixture, committed, peer, check };
+}
+
+test("peer snapshot accepts unchanged committed inputs without a peer", () => {
+  const committed = new Map([["package.json", Buffer.from("committed")]]);
+  const fixture = syntheticDist([["package.json", "committed"]]);
+  assertSnapshotInputs("/synthetic-package", committed, { fileSystem: fixture.fileSystem });
+  assert.deepEqual(fixture.reads, ["package.json"]);
+});
+
+test("peer snapshot accepts the exact authenticated union at both destinations without rebasing committed inputs", () => {
+  const fixture = peerSnapshot();
+  const original = [...fixture.committed].map(([path, bytes]) => [path, Buffer.from(bytes)]);
+  fixture.check();
+  assert.equal(fixture.reads.length, 9);
+  assert.deepEqual([...fixture.committed], original);
+});
+
+test("peer snapshot accepts an equal-byte committed overlap", () => {
+  const fixture = peerSnapshot();
+  const path = "packages/safe-js/dist/shared.js";
+  fixture.committed.set(path, Buffer.from(fixture.records.get(path).bytes));
+  fixture.check();
+  assert.equal(fixture.reads.length, 9);
+});
+
+test("peer snapshot does not admit staged files without the authenticated peer binding", () => {
+  const fixture = peerSnapshot();
+  assert.throws(() => assertSnapshotInputs("/synthetic-package", fixture.committed, { fileSystem: fixture.fileSystem }), /snapshot contains missing or new committed inputs/);
+  assert.deepEqual(fixture.reads, []);
+});
+
+test("peer snapshot does not rebaseline a later staged-peer mutation", () => {
+  const fixture = peerSnapshot();
+  fixture.check();
+  fixture.records.get(`${packagePrefix}/node_modules/poe-code/packages/safe-js/dist/shared.js`).bytes = Buffer.from("later mutation");
+  assert.throws(fixture.check, /snapshot input changed/);
+});
+
+test("peer snapshot retains only the existing root tools and Bash output exclusions", () => {
+  const fixture = peerSnapshot();
+  for (const directory of ["node_modules", `${packagePrefix}/dist`]) {
+    fixture.records.set(directory, { kind: "directory" });
+    fixture.records.set(`${directory}/output.js`, { kind: "file", bytes: Buffer.from("generated") });
+  }
+  fixture.check();
+  assert.equal(fixture.reads.length, 9);
+  assert.equal(fixture.reads.some(path => path.endsWith("/output.js")), false);
+  fixture.records.set(`${packagePrefix}/node_modules/unbound.js`, { kind: "file", bytes: Buffer.from("unbound") });
+  assert.throws(fixture.check, /snapshot contains missing or new committed inputs/);
+});
+
+test("peer snapshot retains the per-input size bound before reading a peer leaf", () => {
+  const fixture = peerSnapshot();
+  const path = "packages/safe-js/dist/shared.js";
+  fixture.records.get(path).size = 16 * 1024 * 1024 + 1;
+  assert.throws(fixture.check, /unadmitted type-input file or size/);
+  assert.equal(fixture.reads.includes(path), false);
+});
+
+test("peer snapshot rejects conflicting authority before payload reads", () => {
+  const fixture = peerSnapshot();
+  fixture.committed.set("packages/safe-js/dist/shared.js", Buffer.from("different committed bytes"));
+  assert.throws(fixture.check, /snapshot authority conflict/);
+  assert.deepEqual(fixture.reads, []);
+});
+
+for (const path of [`${packagePrefix}/package.json`, "packages/safe-js/dist/shared.js", `${packagePrefix}/node_modules/poe-code/packages/safe-js/dist/shared.js`]) test(`peer snapshot rejects changed bytes at ${path}`, () => {
+  const fixture = peerSnapshot();
+  fixture.records.get(path).bytes = Buffer.from("tampered");
+  assert.throws(fixture.check, /snapshot input changed/);
+});
+
+for (const path of ["packages/safe-js/dist/shared.js", `${packagePrefix}/node_modules/poe-code/packages/safe-js/dist/shared.js`]) test(`peer snapshot rejects missing member at ${path}`, () => {
+  const fixture = peerSnapshot();
+  fixture.records.delete(path);
+  assert.throws(fixture.check, /snapshot contains missing or new committed inputs/);
+  assert.deepEqual(fixture.reads, []);
+});
+
+for (const path of ["foreign.js", "packages/safe-js/dist/foreign.js", `${packagePrefix}/node_modules/poe-code/foreign.js`]) test(`peer snapshot rejects foreign addition at ${path}`, () => {
+  const fixture = peerSnapshot();
+  fixture.records.set(path, { kind: "file", bytes: Buffer.from("foreign") });
+  assert.throws(fixture.check, /snapshot contains missing or new committed inputs/);
+  assert.deepEqual(fixture.reads, []);
+});
+
+for (const path of ["packages/safe-js", "packages/safe-js/dist/shared.js", `${packagePrefix}/node_modules/poe-code`]) test(`peer snapshot rejects symlink at ${path} before payload reads`, () => {
+  const fixture = peerSnapshot();
+  fixture.records.get(path).kind = "symlink";
+  assert.throws(fixture.check, /snapshot input symlink/);
+  assert.deepEqual(fixture.reads, []);
+});
+
+for (const failure of [undefined, null, false, 0, ""]) test(`peer snapshot preserves read failure identity ${String(failure)}`, () => {
+  const fixture = peerSnapshot();
+  fixture.fileSystem.readFileSync = () => { throw failure; };
+  let caught = false;
+  try { fixture.check(); } catch (error) { caught = true; assert.equal(error, failure); }
+  assert.equal(caught, true);
+});
 
 test("dist continuity captures an immutable full-path ordered baseline bound to the selected archive", () => {
   const fixture = syntheticDist([["dist/z.js", "z"], ["dist/a/index.js", "a"], ["dist/a-b.js", "b"], ["dist/commands/yq/query.js", "query"]]);

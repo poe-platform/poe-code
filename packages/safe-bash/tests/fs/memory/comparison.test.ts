@@ -5,10 +5,10 @@ import { FsError } from "../../../src/contracts/errors.js";
 import type { FileSystem } from "../../../src/contracts/filesystem.js";
 import { MemoryFileSystem } from "../../../src/fs/memory/index.js";
 import { createMountFileSystem } from "../../../src/fs/mount/index.js";
-import { compareResolvedEntries, resolveEntryView } from "../../../src/fs/mount/comparison.js";
+
 import { createOverlayFileSystem } from "../../../src/fs/overlay/index.js";
 import { createReadOnlyFileSystem } from "../../../src/fs/readonly/index.js";
-import { createS3Transport, MockS3Client, S3FileSystem, S3ServiceError } from "../../../src/fs/s3/index.js";
+import { createS3Transport,MockS3Client,S3FileSystem,S3ServiceError } from "../../../src/fs/s3/index.js";
 import { WebDavFileSystem } from "../../../src/fs/webdav/index.js";
 import { Shell } from "../../../src/shell/index.js";
 import { MockDav } from "../webdav/mock.js";
@@ -17,16 +17,69 @@ const payload = new Uint8Array([0, 255, 128, 13, 10, 65]);
 const previous = new Uint8Array([4, 0, 253]);
 const sentinel = new Uint8Array([17, 18, 19]);
 const baseUrl = "https://qualified.invalid/dav/";
+
+test("public DAV protocol identity never grants unrelated Memory authority", async () => {
+  const mock = new MockDav();
+  const memory = new MemoryFileSystem();
+  const remote = new WebDavFileSystem({ baseUrl, fetch: mock.createFetch() });
+  await memory.writeFile("/source", payload);
+  await remote.writeFile("/target", previous);
+  const before = mock.requests.length;
+  assert.equal(await memory.compareEntry("/source", remote, "/target"), "unknown");
+  await assert.rejects(mounted(memory, remote).copyFile("/memory/source", "/remote/target"), { code: "ENOTSUP" });
+  assert.ok(mock.requests.slice(before).every(request => request.init.method === "PROPFIND"));
+  assert.deepEqual(await memory.readFile("/source"), payload);
+  assert.deepEqual(await remote.readFile("/target"), previous);
+});
+
+test("explicit DAV fixture comparison grants only its configured independent Memory store", async () => {
+  const mock = new MockDav();
+  const memory = new MemoryFileSystem();
+  const unrelated = new MemoryFileSystem();
+  const remote = new WebDavFileSystem({ baseUrl, fetch: mock.createFetch(), requestStreamSupport: true, compareEntry: mock.compareDisjointMemory(memory) });
+  await memory.writeFile("/source", payload);
+  await unrelated.writeFile("/source", sentinel);
+  await remote.writeFile("/target", previous);
+  assert.equal(await remote.compareEntry("/target", unrelated, "/source"), "unknown");
+  await mounted(memory, remote).copyFile("/memory/source", "/remote/target");
+  assert.deepEqual(await remote.readFile("/target"), payload);
+  assert.deepEqual(await memory.readFile("/source"), payload);
+  assert.deepEqual(await unrelated.readFile("/source"), sentinel);
+  await assert.rejects(mounted(memory, createReadOnlyFileSystem(remote)).copyFile("/memory/source", "/remote/target"), { code: "EROFS" });
+  const reason = new Error("explicit comparison cancelled");
+  await assert.rejects(remote.compareEntry("/target", memory, "/source", { signal: AbortSignal.abort(reason) }), error => error === reason);
+});
 type Kind = "s3" | "webdav";
 
-function qualified(kind: Kind) {
+test("explicit DAV grant preserves conflicting authority and exact cancellation before effects", async () => {
+  const mock = new MockDav();
+  const memory = new MemoryFileSystem();
+  const remote = new WebDavFileSystem({ baseUrl, fetch: mock.createFetch(), requestStreamSupport: true, compareEntry: mock.compareDisjointMemory(memory) });
+  await memory.writeFile("/source", payload);
+  await remote.writeFile("/target", previous);
+  const before = mock.requests.length;
+  let calls = 0;
+  memory.compareEntry = async () => { calls++; return "same"; };
+  await assert.rejects(mounted(memory, remote).copyFile("/memory/source", "/remote/target"), { code: "EIO" });
+  assert.equal(calls, 1);
+  assert.ok(mock.requests.slice(before).every(request => request.init.method === "PROPFIND"));
+  const reason = new FsError("ENOENT", { path: "/cancelled" });
+  const controller = new AbortController();
+  memory.compareEntry = async () => { controller.abort(reason); return "unknown"; };
+  await assert.rejects(mounted(memory, remote).copyFile("/memory/source", "/remote/target", { signal: controller.signal }), error => error === reason);
+  assert.deepEqual(await memory.readFile("/source"), payload);
+  assert.deepEqual(await remote.readFile("/target"), previous);
+});
+
+function qualified(kind: Kind, memory?: MemoryFileSystem) {
   if (kind === "s3") {
     const service = new MockS3Client({ buckets: ["bucket"] });
     const filesystem = new S3FileSystem({ bucket: "bucket", transport: createS3Transport(service, service.capabilities) });
     return { filesystem, operations: () => service.requests.map(request => request.operation) };
   }
   const service = new MockDav();
-  const filesystem = new WebDavFileSystem({ baseUrl, fetch: service.createFetch() });
+  const filesystem = new WebDavFileSystem({ baseUrl, fetch: service.createFetch(), requestStreamSupport: true,
+    ...(memory ? { compareEntry: service.compareDisjointMemory(memory) } : {}) });
   return { filesystem, operations: () => service.requests.map(request => request.init.method ?? "") };
 }
 
@@ -44,7 +97,7 @@ for (const kind of ["s3", "webdav"] as const) {
     for (const action of ["copyFile", "cp", "mv"] as const) {
       test(`qualified ${kind} existing-target ${action} ${direction}`, async () => {
         const memory = new MemoryFileSystem();
-        const { filesystem: remote, operations } = qualified(kind);
+        const { filesystem: remote, operations } = qualified(kind, memory);
         const source = direction === "to-remote" ? memory : remote;
         const target = direction === "to-remote" ? remote : memory;
         await source.writeFile("/source", payload);
@@ -80,7 +133,7 @@ for (const kind of ["s3", "webdav"] as const) {
 
   test(`qualified ${kind} resolves nested readonly source and overlay destination views`, async () => {
     const memory = new MemoryFileSystem();
-    const { filesystem: remote } = qualified(kind);
+    const { filesystem: remote } = qualified(kind, memory);
     await memory.writeFile("/source", payload);
     await remote.writeFile("/target", previous);
     const nested = createMountFileSystem({ root: new MemoryFileSystem(), mounts: { "/nested": createReadOnlyFileSystem(memory) } });
@@ -95,30 +148,12 @@ for (const kind of ["s3", "webdav"] as const) {
     assert.deepEqual(await memory.readFile("/source"), payload);
   });
 
-  test(`qualified ${kind} preserves faithful decorators but rejects copied or wrong-path Memory observations`, async () => {
-    const memory = new MemoryFileSystem();
-    const { filesystem: remote } = qualified(kind);
-    await memory.writeFile("/source", payload);
-    await remote.writeFile("/target", previous);
-    const own = await resolveEntryView(memory, "/source");
-    const peer = await resolveEntryView(remote, "/target");
-    assert.equal(await compareResolvedEntries({ ...own, stat: { ...own.stat } }, peer), "unknown");
-    assert.equal(await compareResolvedEntries({ ...own, path: "/different" }, peer), "unknown");
-    const original = memory.readFile;
-    memory.readFile = (path, options) => original.call(memory, path, options);
-    assert.equal(await memory.compareEntry("/source", remote, "/target"), "distinct");
-    assert.deepEqual(await remote.readFile("/target"), previous);
-    await mounted(memory, remote).copyFile("/memory/source", "/remote/target");
-    assert.deepEqual(await memory.readFile("/source"), payload);
-    assert.deepEqual(await remote.readFile("/target"), payload);
-    assert.deepEqual(await memory.readdir("/"), [{ name: "source", type: "file" }]);
-    assert.deepEqual(await remote.readdir("/"), [{ name: "target", type: "file" }]);
-  });
+
 
   test(`unchanged inherited Memory operation mapping remains qualified with ${kind}`, async () => {
     class InheritedMemory extends MemoryFileSystem {}
     const memory = new InheritedMemory();
-    const { filesystem: remote } = qualified(kind);
+    const { filesystem: remote } = qualified(kind, memory);
     await memory.writeFile("/source", payload);
     await remote.writeFile("/target", previous);
     assert.notEqual((await memory.stat("/source")).identityScope, undefined);

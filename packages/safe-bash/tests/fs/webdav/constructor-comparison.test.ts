@@ -3,7 +3,7 @@ import test from "node:test";
 import type { FileSystem, FsOptions } from "../../../src/contracts/filesystem.js";
 import { FsError } from "../../../src/contracts/errors.js";
 import { createMemoryFileSystem } from "../../../src/fs/memory/index.js";
-import { compareEntries } from "../../../src/fs/mount/comparison.js";
+import { compareEntries } from "../public-comparison.js";
 import { createMountFileSystem } from "../../../src/fs/mount/index.js";
 import { createReadOnlyFileSystem } from "../../../src/fs/readonly/index.js";
 import { WebDavFileSystem } from "../../../src/fs/webdav/index.js";

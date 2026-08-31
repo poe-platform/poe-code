@@ -184,7 +184,7 @@ test("in-flight cancellation rejects even if a backend ignores the signal", asyn
   await assert.rejects(pending, { name: "AbortError" });
 });
 
-test("per-call and host cancellation are combined; injection never selects ambient fs", async () => {
+test("completed calls release cancellation links; injection never selects ambient fs", async () => {
   const fs = new StubFileSystem({ "/file": "body" });
   const host = new AbortController();
   const call = new AbortController();
@@ -193,7 +193,36 @@ test("per-call and host cancellation are combined; injection never selects ambie
   const passed = fs.calls[0]?.signal;
   assert.ok(passed instanceof AbortSignal);
   call.abort();
-  assert.equal(passed.aborted, true);
-  const module = makeSafeJsFsModule((options) => options.fs, fs);
+  assert.equal(passed.aborted, false);
+  const module = makeSafeJsFsModule((options) => createNodeFsBridge(options.adapter, options), fs);
   assert.equal(await module.readFile("/file", "utf8"), "body");
 });
+
+for (const source of ["host", "call"] as const) {
+  test(`${source} cancellation reaches the adapter during an unfinished operation`, async () => {
+    const host = new AbortController();
+    const call = new AbortController();
+    const reason = new Error(`${source} cancellation`);
+    let captured: AbortSignal | undefined;
+    let entered!: () => void;
+    const admitted = new Promise<void>(resolve => { entered = resolve; });
+    class PendingFileSystem extends StubFileSystem {
+      override async readFile(_path: string, options?: { signal?: AbortSignal }): Promise<Uint8Array> {
+        captured = options?.signal;
+        entered();
+        return new Promise((_resolve, reject) => {
+          captured?.addEventListener("abort", () => reject(captured?.reason), { once: true });
+        });
+      }
+    }
+    const bridge = createNodeFsBridge(new PendingFileSystem(), { signal: host.signal });
+    const pending = bridge.readFile("/file", { signal: call.signal });
+    const rejection = assert.rejects(pending, { code: "ABORT_ERR" });
+    await admitted;
+    (source === "host" ? host : call).abort(reason);
+    await rejection;
+    assert.equal(captured?.aborted, true);
+    assert.equal(captured?.reason, reason);
+    assert.equal((source === "host" ? call : host).signal.aborted, false);
+  });
+}

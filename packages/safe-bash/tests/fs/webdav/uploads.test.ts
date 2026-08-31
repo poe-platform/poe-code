@@ -11,9 +11,57 @@ async function* source(data = payload): AsyncGenerator<Uint8Array> {
 }
 
 function fixture(mock = new MockDav(), maxResponseBytes = 64 * 1024) {
-  const fs = new WebDavFileSystem({ baseUrl: "https://example.test/dav/", fetch: mock.fetch, maxResponseBytes });
+  const fs = new WebDavFileSystem({ baseUrl: "https://example.test/dav/", fetch: mock.fetch, requestStreamSupport: true, maxResponseBytes });
   return { fs, mock };
 }
+
+test("maintained custom upload fixture consumes owned binary streams", async () => {
+  const { fs, mock } = fixture();
+  assert.equal(fs.capabilities.streamingWrite, true);
+  let returned = 0;
+  await fs.writeStream("/owned", (async function* () {
+    const chunk = new Uint8Array([0, 255]);
+    try {
+      yield chunk;
+      chunk[0] = 128;
+      yield chunk;
+    } finally {
+      returned++;
+    }
+  })());
+  assert.deepEqual(mock.files.get("/owned"), new Uint8Array([0, 255, 128, 255]));
+  assert.equal(returned, 1);
+  const put = mock.requests.find(request => request.init.method === "PUT");
+  assert.ok(put?.init.body instanceof ReadableStream);
+  assert.equal(put.init.body.locked, true);
+});
+
+test("undeclared faithful and coercing custom transports reject before source or I/O", async () => {
+  for (const coercing of [false, true]) {
+    const mock = new MockDav();
+    mock.files.set("/file", payload);
+    let requests = 0;
+    let acquired = 0;
+    const fs = new WebDavFileSystem({ baseUrl: "https://example.test/dav/", fetch: (url, init) => {
+      requests++;
+      if (coercing && init.method === "PUT") {
+        mock.files.set("/file", new TextEncoder().encode(String(init.body)));
+        return Promise.resolve(new Response(null, { status: 201 }));
+      }
+      return mock.fetch(url, init);
+    } });
+    const input: ByteSource = { [Symbol.asyncIterator]() {
+      acquired++;
+      return source()[Symbol.asyncIterator]();
+    } };
+    assert.equal(fs.capabilities.streamingWrite, true);
+    await assert.rejects(fs.writeStream("/file", input), { code: "ENOTSUP" });
+    await assert.rejects(fs.writeStream("/file", input, { signal: AbortSignal.abort() }), { code: "ECANCELED" });
+    assert.equal(acquired, 0);
+    assert.equal(requests, 0);
+    assert.deepEqual(mock.files.get("/file"), payload);
+  }
+});
 
 test("streamed PUT preserves bytes, append snapshots and exclusive creation", async () => {
   const { fs, mock } = fixture();
@@ -36,7 +84,7 @@ test("streamed append rejects version races without clobbering concurrent writes
   for (const existing of [true, false]) {
     const mock = new MockDav();
     if (existing) mock.files.set("/file", new Uint8Array([1]));
-    const fs = new WebDavFileSystem({ baseUrl: "https://example.test/dav/", fetch: async (url, init) => {
+    const fs = new WebDavFileSystem({ baseUrl: "https://example.test/dav/", requestStreamSupport: true, fetch: async (url, init) => {
       if (init.method === "PUT") mock.files.set("/file", new Uint8Array([99]));
       return mock.fetch(url, init);
     } });
@@ -53,7 +101,7 @@ test("uploads are pull driven and copy mutable producer buffers", async () => {
   const resume = new Promise<void>(resolve => { release = resolve; });
   const mock = new MockDav();
   const stored: Uint8Array[] = [];
-  const fs = new WebDavFileSystem({ baseUrl: "https://example.test/dav/", fetch: async (url, init) => {
+  const fs = new WebDavFileSystem({ baseUrl: "https://example.test/dav/", requestStreamSupport: true, fetch: async (url, init) => {
     if (init.method !== "PUT") return mock.fetch(url, init);
     assert.ok(init.body instanceof ReadableStream);
     assert.equal(init.duplex, "half");
@@ -107,7 +155,7 @@ test("upload deadline interrupts an uncooperative source without waiting for ite
   context.after(() => clearInterval(keepAlive));
   const mock = new MockDav();
   let returned = false;
-  const fs = new WebDavFileSystem({ baseUrl: "https://example.test/dav/", fetch: mock.fetch, timeoutMs: 30 });
+  const fs = new WebDavFileSystem({ baseUrl: "https://example.test/dav/", fetch: mock.fetch, requestStreamSupport: true, timeoutMs: 30 });
   const blocked: ByteSource = { [Symbol.asyncIterator]() { return {
     next() { return new Promise(() => {}); },
     return() { returned = true; return new Promise(() => {}); },
@@ -127,7 +175,7 @@ test("upload limits, invalid paths and permission failures are not silent succes
   await assert.rejects(fs.writeStream("/file", source(), { signal: AbortSignal.abort() }), { code: "ECANCELED" });
   for (const [status, code] of [[201, "EIO"], [403, "EACCES"], [423, "EBUSY"], [507, "ENOSPC"]] as const) {
     let reads = 0;
-    const early = new WebDavFileSystem({ baseUrl: "https://example.test/dav/", fetch: (url, init) =>
+    const early = new WebDavFileSystem({ baseUrl: "https://example.test/dav/", requestStreamSupport: true, fetch: (url, init) =>
       init.method === "PUT" ? Promise.resolve(new Response(null, { status })) : mock.fetch(url, init) });
     await assert.rejects(early.writeStream("/file", (async function* () { reads++; yield payload; })()), { code });
     assert.equal(reads, 0);

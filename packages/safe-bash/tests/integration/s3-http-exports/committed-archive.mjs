@@ -105,7 +105,7 @@ export function inspectCommittedCandidate(repository, revision, directory, execu
   }
   assert.equal(lock.lockfileVersion, 3, "workspace lock version");
   for (const [key, expected] of [["", rootManifest], [packagePrefix, manifest]]) {
-    for (const field of ["name", "version", "dependencies", "devDependencies", "optionalDependencies", "engines", ...(key === "" ? ["workspaces"] : [])]) {
+    for (const field of ["name", "version", "dependencies", "devDependencies", "optionalDependencies", "peerDependencies", "engines", ...(key === "" ? ["workspaces"] : [])]) {
       assert.deepEqual(lock.packages?.[key]?.[field], expected[field], `workspace lock drift: ${key || "root"} ${field}`);
     }
   }

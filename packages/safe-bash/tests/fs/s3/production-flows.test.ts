@@ -3,7 +3,7 @@ import test from "node:test";
 import { agentCommands, Shell, MockS3Client, S3FileSystem } from "../../../src/index.js";
 import { collectBytes, toByteSource } from "../../../src/contracts/io.js";
 import { isFsError } from "../../../src/contracts/errors.js";
-import { createS3Transport } from "../../../src/fs/s3/transport.js";
+import { createS3Transport } from "../../../src/fs/s3/index.js";
 
 const bytes = (value: string) => new TextEncoder().encode(value);
 

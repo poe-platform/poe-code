@@ -1,10 +1,10 @@
 {
   "schema": 1,
-  "inventoriedCommit": "1ff82cb748c60145740dba354610ac7ed7a7f15f",
+  "inventoriedCommit": "697ad092de111642aa376f74560da9927a0c9512",
   "scope": "Explicit census of all tracked .mts paths, with no prefix exclusion. Current consumers compile/run by explicit route; negative types use exact diagnostics; frozen inputs authenticate source/package evidence. New paths fail closed. Root typecheck still does not discover .mts. Typecheck workflow also consumes these existing routes without executing runtimes; two env-split declaration fixtures are explicitly added, preserving the historical177 census.",
   "historicalColdReview": "aac345a0: canonical470/470 and485/485; standalone omissions11/30 at respective frozen commits, not current denominator.",
   "counts": {
-    "frozen-evidence": 153,
+    "frozen-evidence": 166,
     "current": 36,
     "declaration": 7,
     "frozen-oracle": 1,
@@ -2075,6 +2075,110 @@
       "existingCoverage": "tests/commands/timeout-author-20260828/repair-f22-v1/validate-repair.mjs",
       "sha256": "7cc6c8830b7585db2291b549e743d613d8a3f9a10de7c2071deed4b894320200",
       "qualifiedCoverage": "strict current installed-candidate declarations; no runtime execution"
+    },
+    {
+      "path": "tests/compatibility/bash-ere-engine-author-20260829/consumer.mts",
+      "sha256": "ced5f2393ab9be8860b908f9f2637e0285acaf4f9a25f6c653bed271eba6409f",
+      "classification": "frozen-evidence",
+      "reason": "Sealed engine-only emitted-artifact type fixture; not public package qualification. Preserve captured bytes and original outcomes; not a current maintained public consumer.",
+      "existingCoverage": "tests/compatibility/bash-ere-engine-author-20260829/HANDOFF.md; authenticated owner seal tests/compatibility/bash-ere-engine-author-20260829/SEAL-v3.json",
+      "qualifiedCoverage": "Hash-authenticated historical inventory only. No current compile/runtime route, package-public qualification, failure rescoring or new source exclusion is implied."
+    },
+    {
+      "path": "tests/compatibility/bash-ere-engine-author-20260829/negative.mts",
+      "sha256": "443b8571d120fe9d83258fcf6bbe48cbe3d87e076fe09c5d2c0c708a1a4b4074",
+      "classification": "frozen-evidence",
+      "reason": "Sealed engine-only emitted-artifact type fixture; not public package qualification. Preserve captured bytes and original outcomes; not a current maintained public consumer.",
+      "existingCoverage": "tests/compatibility/bash-ere-engine-author-20260829/HANDOFF.md; authenticated owner seal tests/compatibility/bash-ere-engine-author-20260829/SEAL-v3.json",
+      "qualifiedCoverage": "Hash-authenticated historical inventory only. No current compile/runtime route, package-public qualification, failure rescoring or new source exclusion is implied."
+    },
+    {
+      "path": "tests/compatibility/bash-ere-engine-independent-20260829/r01-v1/closure/tests/compatibility/bash-ere-engine-author-20260829/consumer.mts",
+      "sha256": "ced5f2393ab9be8860b908f9f2637e0285acaf4f9a25f6c653bed271eba6409f",
+      "classification": "frozen-evidence",
+      "reason": "Frozen independent closure copy of author engine-only declaration fixture. Preserve captured bytes and original outcomes; not a current maintained public consumer.",
+      "existingCoverage": "tests/compatibility/bash-ere-engine-independent-20260829/r01-v1/HANDOFF.md; authenticated owner seal tests/compatibility/bash-ere-engine-independent-20260829/r01-v1/FINAL-PRESEAL.json",
+      "qualifiedCoverage": "Hash-authenticated historical inventory only. No current compile/runtime route, package-public qualification, failure rescoring or new source exclusion is implied."
+    },
+    {
+      "path": "tests/compatibility/bash-ere-engine-independent-20260829/r01-v1/closure/tests/compatibility/bash-ere-engine-author-20260829/negative.mts",
+      "sha256": "443b8571d120fe9d83258fcf6bbe48cbe3d87e076fe09c5d2c0c708a1a4b4074",
+      "classification": "frozen-evidence",
+      "reason": "Frozen independent closure copy of author engine-only declaration fixture. Preserve captured bytes and original outcomes; not a current maintained public consumer.",
+      "existingCoverage": "tests/compatibility/bash-ere-engine-independent-20260829/r01-v1/HANDOFF.md; authenticated owner seal tests/compatibility/bash-ere-engine-independent-20260829/r01-v1/FINAL-PRESEAL.json",
+      "qualifiedCoverage": "Hash-authenticated historical inventory only. No current compile/runtime route, package-public qualification, failure rescoring or new source exclusion is implied."
+    },
+    {
+      "path": "tests/compatibility/bash-ere-engine-independent-20260829/r01-v1/closure/tests/compatibility/bash-ere-engine-author-20260829/r01-v1/ACTUAL-01/work/physically-moved-app/consumer.mts",
+      "sha256": "ced5f2393ab9be8860b908f9f2637e0285acaf4f9a25f6c653bed271eba6409f",
+      "classification": "frozen-evidence",
+      "reason": "Retained physically moved engine-only work artifact. Preserve captured bytes and original outcomes; not a current maintained public consumer.",
+      "existingCoverage": "tests/compatibility/bash-ere-engine-independent-20260829/r01-v1/HANDOFF.md; authenticated owner seal tests/compatibility/bash-ere-engine-independent-20260829/r01-v1/FINAL-PRESEAL.json",
+      "qualifiedCoverage": "Hash-authenticated historical inventory only. No current compile/runtime route, package-public qualification, failure rescoring or new source exclusion is implied."
+    },
+    {
+      "path": "tests/compatibility/bash-ere-engine-independent-20260829/r01-v1/closure/tests/compatibility/bash-ere-engine-author-20260829/r01-v1/ACTUAL-01/work/physically-moved-app/negative.mts",
+      "sha256": "443b8571d120fe9d83258fcf6bbe48cbe3d87e076fe09c5d2c0c708a1a4b4074",
+      "classification": "frozen-evidence",
+      "reason": "Retained physically moved engine-only work artifact. Preserve captured bytes and original outcomes; not a current maintained public consumer.",
+      "existingCoverage": "tests/compatibility/bash-ere-engine-independent-20260829/r01-v1/HANDOFF.md; authenticated owner seal tests/compatibility/bash-ere-engine-independent-20260829/r01-v1/FINAL-PRESEAL.json",
+      "qualifiedCoverage": "Hash-authenticated historical inventory only. No current compile/runtime route, package-public qualification, failure rescoring or new source exclusion is implied."
+    },
+    {
+      "path": "tests/compatibility/bash-ere-runtime-integration-author-20260829/negative.mts",
+      "sha256": "2496b91b9dbfef0dc36cba1bbdf750104a2bc6f4b7a51df556ea8957e7f324ab",
+      "classification": "frozen-evidence",
+      "reason": "Original selected-source type preparation; preserves the parseShellAST fixture failure. Preserve captured bytes and original outcomes; not a current maintained public consumer.",
+      "existingCoverage": "tests/compatibility/bash-ere-runtime-integration-author-20260829/HANDOFF.md; authenticated owner seal tests/compatibility/bash-ere-runtime-integration-author-20260829/SEAL.json",
+      "qualifiedCoverage": "Hash-authenticated historical inventory only. No current compile/runtime route, package-public qualification, failure rescoring or new source exclusion is implied."
+    },
+    {
+      "path": "tests/compatibility/bash-ere-runtime-integration-author-20260829/positive.mts",
+      "sha256": "c2150324ac28304958eaa5c23f9e4ac072c34558107f2972469386309c9c341f",
+      "classification": "frozen-evidence",
+      "reason": "Original selected-source type preparation; preserves the parseShellAST fixture failure. Preserve captured bytes and original outcomes; not a current maintained public consumer.",
+      "existingCoverage": "tests/compatibility/bash-ere-runtime-integration-author-20260829/HANDOFF.md; authenticated owner seal tests/compatibility/bash-ere-runtime-integration-author-20260829/SEAL.json",
+      "qualifiedCoverage": "Hash-authenticated historical inventory only. No current compile/runtime route, package-public qualification, failure rescoring or new source exclusion is implied."
+    },
+    {
+      "path": "tests/compatibility/bash-ere-runtime-integration-author-20260829/rebind-v1/negative.mts",
+      "sha256": "2496b91b9dbfef0dc36cba1bbdf750104a2bc6f4b7a51df556ea8957e7f324ab",
+      "classification": "frozen-evidence",
+      "reason": "Sealed selected-source rebind, not HEAD; package producer HOLD. Preserve captured bytes and original outcomes; not a current maintained public consumer.",
+      "existingCoverage": "tests/compatibility/bash-ere-runtime-integration-author-20260829/rebind-v1/HANDOFF.md; authenticated owner seal tests/compatibility/bash-ere-runtime-integration-author-20260829/rebind-v1/SEAL.json",
+      "qualifiedCoverage": "Hash-authenticated historical inventory only. No current compile/runtime route, package-public qualification, failure rescoring or new source exclusion is implied."
+    },
+    {
+      "path": "tests/compatibility/bash-ere-runtime-integration-author-20260829/rebind-v1/positive.mts",
+      "sha256": "69a7108ee188c41969491e00d069ad0410a4712690e2828c6acdb55e899c013c",
+      "classification": "frozen-evidence",
+      "reason": "Sealed selected-source rebind, not HEAD; package producer HOLD. Preserve captured bytes and original outcomes; not a current maintained public consumer.",
+      "existingCoverage": "tests/compatibility/bash-ere-runtime-integration-author-20260829/rebind-v1/HANDOFF.md; authenticated owner seal tests/compatibility/bash-ere-runtime-integration-author-20260829/rebind-v1/SEAL.json",
+      "qualifiedCoverage": "Hash-authenticated historical inventory only. No current compile/runtime route, package-public qualification, failure rescoring or new source exclusion is implied."
+    },
+    {
+      "path": "tests/compatibility/bash-ere-runtime-integration-author-20260829/type-fixture-v2/positive-v2.mts",
+      "sha256": "60b0982ba0c3e880e7f45b02a4df9813353a1cefaa5f2ae7462a249a5bcea32f",
+      "classification": "frozen-evidence",
+      "reason": "Versioned corrected positive against retained historical TYPE-01 output. Preserve captured bytes and original outcomes; not a current maintained public consumer.",
+      "existingCoverage": "tests/compatibility/bash-ere-runtime-integration-author-20260829/type-fixture-v2/HANDOFF.md; authenticated owner seal tests/compatibility/bash-ere-runtime-integration-author-20260829/type-fixture-v2/SEAL-v2.json",
+      "qualifiedCoverage": "Hash-authenticated historical inventory only. No current compile/runtime route, package-public qualification, failure rescoring or new source exclusion is implied."
+    },
+    {
+      "path": "tests/compatibility/bash-ere-transport-author-20260829/consumer.mts",
+      "sha256": "ede294b9c236bb8dc4d331975d089e7d71343f660ee6db7eb47c9b8640118598",
+      "classification": "frozen-evidence",
+      "reason": "Sealed private transport emitted-artifact type fixture; source/type-only HOLD. Preserve captured bytes and original outcomes; not a current maintained public consumer.",
+      "existingCoverage": "tests/compatibility/bash-ere-transport-author-20260829/HANDOFF.md; authenticated owner seal tests/compatibility/bash-ere-transport-author-20260829/SEAL-v2.json",
+      "qualifiedCoverage": "Hash-authenticated historical inventory only. No current compile/runtime route, package-public qualification, failure rescoring or new source exclusion is implied."
+    },
+    {
+      "path": "tests/compatibility/bash-ere-transport-author-20260829/negative.mts",
+      "sha256": "d3747360160b83a01189c0658e0e22d5381a3e026554b75e9c962513cb60940e",
+      "classification": "frozen-evidence",
+      "reason": "Sealed private transport emitted-artifact type fixture; source/type-only HOLD. Preserve captured bytes and original outcomes; not a current maintained public consumer.",
+      "existingCoverage": "tests/compatibility/bash-ere-transport-author-20260829/HANDOFF.md; authenticated owner seal tests/compatibility/bash-ere-transport-author-20260829/SEAL-v2.json",
+      "qualifiedCoverage": "Hash-authenticated historical inventory only. No current compile/runtime route, package-public qualification, failure rescoring or new source exclusion is implied."
     }
   ],
   "inventoryFollowup": {

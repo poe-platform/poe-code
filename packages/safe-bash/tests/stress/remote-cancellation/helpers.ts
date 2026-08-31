@@ -6,7 +6,7 @@ import { setImmediate as turn } from "node:timers/promises";
 import { test } from "node:test";
 import { agentCommands, MockS3Client, S3FileSystem, Shell, ShellLimitError, WebDavFileSystem } from "../../../src/index.js";
 import type { ByteSource, FileSystem, ShellResult, S3Transport } from "../../../src/index.js";
-import type { S3StreamPutInput } from "../../../src/fs/s3/transport.js";
+import type { S3StreamPutInput } from "poe-code/safe-fs";
 import { MockDav } from "../../fs/webdav/mock.js";
 
 export const bytes = (value: string): Uint8Array => new TextEncoder().encode(value);
@@ -257,7 +257,7 @@ export async function httpFixture(trace: Trace, hook?: HttpHook, maxResponseByte
     assert.equal(server.listening, false);
     assert.deepEqual(failures, []);
   });
-  const fs = new WebDavFileSystem({ baseUrl: `http://127.0.0.1:${address.port}/dav/`, timeoutMs: 4000,
+  const fs = new WebDavFileSystem({ baseUrl: `http://127.0.0.1:${address.port}/dav/`, timeoutMs: 4000, requestStreamSupport: "native",
     ...(maxResponseBytes === undefined ? {} : { maxResponseBytes }),
     fetch: (url, init) => { trace.operation(`DAV.${init.method}:${new URL(url).pathname}`, init.signal); return fetch(url, init); },
   });

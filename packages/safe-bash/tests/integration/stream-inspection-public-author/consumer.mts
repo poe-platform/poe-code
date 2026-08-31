@@ -34,11 +34,19 @@ assert.ok(rootResolution.includes("/consumer/node_modules/virtual-bash/dist/inde
 assert.ok(subpathResolution.includes("/consumer/node_modules/virtual-bash/dist/commands/stream-inspection/index.js"), subpathResolution);
 
 const names = createAgentCommands(aggregateOptions).map(command => command.name);
-assert.equal(names.length, 76);
-assert.equal(new Set(names).size, 76);
-assert.equal(names.at(-1), "expr");
+const expectedNames = [
+  "true", "false", "echo", "pwd", "basename", "dirname", "printf", "mkdir", "touch", "cp", "mv", "rm", "rmdir", "ln", "readlink", "realpath",
+  "ls", "cat", "head", "tail", "wc", "tee", "tr", "sort", "uniq", "cut", "grep", "test", "[", "env", "xargs", "find", "sed", "awk", "jq", "rg",
+  "base64", "base32", "xxd", "od", "sha256sum", "sha1sum", "md5sum", "cksum", "gzip", "gunzip", "zcat", "diff", "patch", "chmod", "stat", "mktemp", "tar",
+  "paste", "comm", "join", "tac", "expand", "fold", "strings", "seq", "nl", "rev", "unexpand", "split", "date", "sleep", "printenv", "tree", "file",
+  "egrep", "fgrep", "column", "html-to-markdown", "du", "expr", "which", "timeout", "apply_patch", "git",
+];
+assert.deepEqual(names, expectedNames);
+assert.equal(names.length, expectedNames.length);
+assert.equal(new Set(names).size, expectedNames.length);
+assert.equal(names.at(75), "expr");
 assert.deepEqual(names.slice(56, 60), ["tac", "expand", "fold", "strings"]);
-assert.deepEqual(names.slice(60), ["seq", "nl", "rev", "unexpand", "split", "date", "sleep", "printenv", "tree", "file", "egrep", "fgrep", "column", "html-to-markdown", "du", "expr"]);
+assert.deepEqual(names.slice(60, 76), ["seq", "nl", "rev", "unexpand", "split", "date", "sleep", "printenv", "tree", "file", "egrep", "fgrep", "column", "html-to-markdown", "du", "expr"]);
 assert.equal(names.includes("curl"), false);
 assert.equal(names.includes("safejs"), false);
 const results: { mode: string; command: string; stdoutHex: string }[] = [];

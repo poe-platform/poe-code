@@ -2,6 +2,7 @@ import assert from "node:assert/strict";
 import { spawnSync } from "node:child_process";
 import { createHash } from "node:crypto";
 import { existsSync, readFileSync, readdirSync } from "node:fs";
+import * as filesystem from "node:fs";
 import { release } from "node:os";
 import { dirname, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
@@ -72,7 +73,41 @@ export function saveEvidence(name, value) {
   return path;
 }
 
-function manifest() {
+export function selectManifestPaths(historicalPaths, profile, { sourceRoot = root, io = filesystem } = {}) {
+  if (profile === undefined) return [...historicalPaths];
+  assert.equal(profile.kind, "committed-current-source", "Unknown metadata source profile");
+  assert.match(profile.sourceCommit, /^[a-f0-9]{40}$/u, "Metadata profile requires an actual resolved commit");
+  assert.ok(Array.isArray(profile.sources) && profile.sources.length > 0, "Current source inventory is required");
+  assert.equal(hash(JSON.stringify(profile.sources)), profile.sourceTreeSha256, "Current source inventory digest differs");
+  sourceRoot = io.realpathSync(sourceRoot);
+  const configurations = ["package.json", "package-lock.json", "tsconfig.json", "tsconfig.build.json"];
+  const current = [];
+  const regular = path => {
+    const filename = resolve(sourceRoot, path), stat = io.lstatSync(filename);
+    assert.ok(stat.isFile() && !stat.isSymbolicLink() && io.realpathSync(filename) === filename, `Metadata input must be a regular file: ${path}`);
+    return io.readFileSync(filename);
+  };
+  const walk = path => {
+    const directory = resolve(sourceRoot, path);
+    assert.ok(io.lstatSync(directory).isDirectory() && !io.lstatSync(directory).isSymbolicLink(), "Current source directory must not redirect");
+    for (const name of io.readdirSync(directory)) {
+      const child = `${path}/${name}`;
+      if (io.lstatSync(resolve(sourceRoot, child)).isDirectory()) walk(child);
+      else { regular(child); current.push(child); }
+    }
+  };
+  walk("src");
+  current.push(...configurations);
+  const declared = profile.sources.map(entry => entry.path);
+  assert.equal(new Set(declared).size, declared.length, "Duplicate current source inventory path");
+  assert.deepEqual([...declared].sort(), current.sort(), "Current source census differs from committed inventory");
+  for (const entry of profile.sources) assert.equal(hash(regular(entry.path)), entry.sha256, `Committed source bytes changed: ${entry.path}`);
+  const preserved = historicalPaths.filter(path => !path.startsWith("src/") && !configurations.includes(path));
+  for (const path of preserved) regular(path);
+  return [...new Set([...preserved, ...declared])];
+}
+
+function manifest(profile) {
   const git = spawnSync("git", ["rev-parse", "HEAD"], { cwd: root, env: environment, encoding: "utf8" });
   const status = spawnSync("git", ["status", "--short", "--untracked-files=no"], { cwd: root, env: environment, encoding: "utf8" });
   const source = [];
@@ -84,27 +119,27 @@ function manifest() {
     }
   };
   walk("src");
-  const paths = [...new Set([...original.files.map(entry => entry.path), ...source,
+  const paths = [...new Set([...selectManifestPaths(original.files.map(entry => entry.path), profile), ...source,
     "node_modules/tsx/package.json",
     "tests/commands/table-text-stress/cases.ts",
     "tests/commands/metadata-stress/canonical-env/runner.mjs",
     "tests/commands/metadata-stress/canonical-env/author-provenance.ts",
     "tests/commands/metadata-stress/canonical-env/author-snapshot.json",
   ])];
-  return { head: git.status === 0 ? git.stdout.trim() : null, trackedStatus: status.status === 0 ? status.stdout : null, files: Object.fromEntries(paths.map(path => [path, hash(readFileSync(resolve(root, path)))])) };
+  return { head: profile?.sourceCommit ?? (git.status === 0 ? git.stdout.trim() : null), profile: profile?.kind ?? "historical", trackedStatus: status.status === 0 ? status.stdout : null, files: Object.fromEntries(paths.map(path => [path, hash(readFileSync(resolve(root, path)))])) };
 }
 
-export function runRelease() {
+export function runRelease({ sourceProfile } = {}) {
   const setup = verifySetup();
   if (setup.status !== "setup-qualified") return { status: "setup-unavailable", exitCode: 78, executedTests: 0, setup };
-  const before = manifest();
+  const before = manifest(sourceProfile);
   const startedAt = new Date().toISOString();
   const argv = ["--import", "tsx", "--test", "--test-reporter=tap", "--test-concurrency=1", ...testPaths];
   const result = spawnSync(process.execPath, argv, { cwd: root, env: environment, timeout: 180_000, maxBuffer: 32 * 1024 * 1024 });
   const stdout = result.stdout?.toString() ?? "";
   const counts = Object.fromEntries(["tests", "pass", "fail", "cancelled", "skipped", "todo"].map(name => [name, Number(stdout.match(new RegExp(`^# ${name} (\\d+)$`, "m"))?.[1] ?? NaN)]));
   const nativeRows = original.failures.filter(row => row.classification === "native-prerequisite").map(row => ({ path: row.path, name: row.name, passed: stdout.split("\n").some(line => /^ok \d+ - /u.test(line) && line.replace(/^ok \d+ - /u, "") === row.name) }));
-  const after = manifest();
+  const after = manifest(sourceProfile);
   const unchanged = JSON.stringify(before.files) === JSON.stringify(after.files);
   const qualified = result.status === 0 && !result.error && !result.signal && counts.tests === 318 && counts.pass === 318 && counts.fail === 0 && counts.skipped === 0 && counts.cancelled === 0 && counts.todo === 0 && nativeRows.length === 22 && nativeRows.every(row => row.passed) && unchanged;
   return { status: qualified ? "qualified-scoped-pass" : "scoped-verification-failed", exitCode: qualified ? 0 : 1, startedAt, finishedAt: new Date().toISOString(), setup, before, after, unchanged, argv: [process.execPath, ...argv], counts, nativeRows, originalFailureCounts: original.originalCounts, result: { status: result.status, signal: result.signal, error: result.error?.message, stdout, stderr: result.stderr?.toString() } };

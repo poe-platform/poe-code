@@ -2,36 +2,11 @@ import assert from "node:assert/strict";
 import { randomBytes } from "node:crypto";
 import * as native from "node:fs/promises";
 import { join } from "node:path";
-import test, { type TestContext } from "node:test";
+import test,{ type TestContext } from "node:test";
 import { fileURLToPath } from "node:url";
 import { FsError } from "../../../src/contracts/index.js";
-import { nativeAllocatedBytes } from "../../../src/fs/real/allocation.js";
+
 import { createRealFileSystem } from "../../../src/fs/real/index.js";
-
-const largestBlocks = Math.floor(Number.MAX_SAFE_INTEGER / 512);
-const invalidBlocks: unknown[] = [
-  undefined, null, "1", 1n, {}, -1, -512, NaN, Infinity, -Infinity,
-  0.5, 1.5, Number.MAX_SAFE_INTEGER + 1, largestBlocks + 1, Number.MAX_SAFE_INTEGER,
-];
-
-for (const platform of ["darwin", "linux"]) {
-  test(`${platform}: validates block count and byte-product boundaries without coercion`, () => {
-    for (const blocks of [0, 1, 8, largestBlocks]) {
-      assert.equal(nativeAllocatedBytes(blocks, platform), Number(BigInt(blocks) * 512n));
-    }
-    for (const blocks of invalidBlocks) assert.equal(nativeAllocatedBytes(blocks, platform), undefined);
-    const hostile = { valueOf() { throw new Error("must not coerce native metadata"); } };
-    assert.equal(nativeAllocatedBytes(hostile, platform), undefined);
-  });
-}
-
-test("undocumented platforms omit allocation, including otherwise valid reported zero", () => {
-  for (const platform of ["win32", "freebsd", "openbsd", "aix", "sunos", "", "unknown"]) {
-    for (const blocks of [0, 1, largestBlocks, ...invalidBlocks]) {
-      assert.equal(nativeAllocatedBytes(blocks, platform), undefined);
-    }
-  }
-});
 
 async function fixture(context: TestContext) {
   const parent = fileURLToPath(new URL("./allocation-evidence/", import.meta.url));

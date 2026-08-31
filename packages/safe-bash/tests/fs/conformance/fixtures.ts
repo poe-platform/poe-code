@@ -3,7 +3,8 @@ import { createHash } from "node:crypto";
 import { mkdtemp, readFile, rm } from "node:fs/promises";
 import { createServer } from "node:http";
 import { tmpdir } from "node:os";
-import { join } from "node:path";
+import { dirname, join } from "node:path";
+import { fileURLToPath } from "node:url";
 import type { TestContext } from "node:test";
 import { FsError } from "../../../src/contracts/errors.js";
 import type { ErrnoCode } from "../../../src/contracts/errors.js";
@@ -133,12 +134,44 @@ export const adapters = [
 
 export const sourcePaths = [
   "src/contracts/filesystem.ts", "src/contracts/errors.ts", "src/contracts/io.ts", "src/contracts/path.ts",
-  "src/fs/memory/index.ts", "src/fs/real/index.ts", "src/fs/s3/filesystem.ts", "src/fs/s3/mock.ts",
-  "src/fs/s3/transport.ts", "src/fs/webdav/webdav.ts", "src/fs/webdav/xml.ts", "tests/fs/webdav/mock.ts",
+  "src/fs/memory/index.ts", "src/fs/real/index.ts", "src/fs/s3/index.ts", "src/fs/s3/http/index.ts",
+  "src/fs/webdav/index.ts", "src/integrations/safejs/filesystem.ts", "tests/fs/webdav/mock.ts",
 ] as const;
 
 export async function sourceState(): Promise<Record<string, string>> {
-  return Object.fromEntries(await Promise.all(sourcePaths.map(async (path) => [
+  const source = Object.fromEntries(await Promise.all(sourcePaths.map(async (path) => [
     path, createHash("sha256").update(await readFile(new URL(`../../../${path}`, import.meta.url))).digest("hex"),
   ])));
+  const moduleUrl = import.meta.resolve("poe-code/safe-fs");
+  let directory = dirname(fileURLToPath(moduleUrl));
+  for (;;) {
+    let metadata: { name?: string; version?: string } | undefined;
+    let metadataBytes: Uint8Array | undefined;
+    try {
+      metadataBytes = await readFile(join(directory, "package.json"));
+      metadata = JSON.parse(new TextDecoder().decode(metadataBytes)) as typeof metadata;
+    } catch (error) {
+      if (!(error instanceof Error && "code" in error && error.code === "ENOENT")) throw error;
+    }
+    if (metadata?.name === "poe-code") {
+      const lock = JSON.parse(await readFile(new URL("../../../package-lock.json", import.meta.url), "utf8")) as {
+        packages: Record<string, { version?: string; integrity?: string }>;
+      };
+      const locked = lock.packages["node_modules/poe-code"];
+      assert.equal(metadata.version, locked?.version, "installed canonical peer differs from the lockfile");
+      assert.equal(typeof locked?.integrity, "string", "canonical peer needs registry integrity");
+      assert.match(locked!.integrity!, /^sha512-/u);
+      return {
+        ...source,
+        "canonical:version": metadata.version!,
+        "canonical:lock-integrity": locked!.integrity!,
+        "canonical:module-url": moduleUrl,
+        "canonical:module-sha256": createHash("sha256").update(await readFile(new URL(moduleUrl))).digest("hex"),
+        "canonical:metadata-sha256": createHash("sha256").update(metadataBytes!).digest("hex"),
+      };
+    }
+    const parent = dirname(directory);
+    assert.notEqual(parent, directory, "public canonical module has no installed package metadata");
+    directory = parent;
+  }
 }

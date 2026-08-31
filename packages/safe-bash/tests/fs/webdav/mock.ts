@@ -1,6 +1,6 @@
 import { createHash, randomUUID } from "node:crypto";
-import type { WebDavFetch } from "../../../src/fs/webdav/index.js";
-import { registerOwnedResourceResponse } from "../../../src/fs/webdav/resource-id.js";
+import type { WebDavFetch, WebDavFileSystemOptions } from "../../../src/fs/webdav/index.js";
+import type { MemoryFileSystem } from "../../../src/fs/memory/index.js";
 
 function resourceMap() {
   const files = new Map<string, Uint8Array | null>();
@@ -63,6 +63,12 @@ export class MockDav {
   readonly files = this.resources.files.set("/", null);
   readonly requests: MockRequest[] = [];
   readonly locks = new Map<string, { token: string; expires: number }>();
+  compareDisjointMemory(memory: MemoryFileSystem): NonNullable<WebDavFileSystemOptions["compareEntry"]> {
+    return async (_path, peer, _peerPath, options = {}) => {
+      options.signal?.throwIfAborted();
+      return peer === memory ? "distinct" : "unknown";
+    };
+  }
   createFetch(): WebDavFetch {
     const fetch = this.fetch;
     return (url, init) => fetch(url, init);
@@ -141,9 +147,6 @@ export class MockDav {
           ? `<z:propstat><z:prop><z:resource-id><z:href>${this.resources.identity(name)!.identifier}</z:href></z:resource-id></z:prop><z:status>HTTP/1.1 200 OK</z:status></z:propstat>`
           : "", this.etag(name),
       ))));
-      registerOwnedResourceResponse(result, new Map(entries.map(([name]) => [name, {
-        storage: this.files, resource: this.resources.identity(name)!, identifier: this.resources.identity(name)!.identifier,
-      }])));
       return result;
     }
     if (method === "GET") {

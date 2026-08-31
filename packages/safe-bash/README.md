@@ -58,7 +58,43 @@ detail, E09/partial-family coverage, individual internal-loader exits and univer
 process/resource accounting remain qualified; no full Node/Bash or overall-winner
 claim follows. Original author/module failures remain preserved.
 
-TypeScript, ESM, Node.js 22 or newer; zero runtime dependencies. Development uses
+TypeScript, ESM, Node.js 22 or newer. Runtime filesystem contracts and adapters
+come from the required published `poe-code >=13.0.0` peer. The standalone release
+profile pins `poe-code@13.0.0`; this private monorepo checkout instead declares
+`poe-code: file:../..`, with the root's `file:.` development self-link and one root
+lockfile. A `0.0.0-dev` root does not satisfy the published peer range and is never
+reported as release 13 qualification. This is a runtime package requirement,
+not zero-dependency distribution. The nested historical standalone lock remains
+preserved evidence, not a second installation graph.
+
+Checkout tests use the root's public `poe-code/safe-fs` export: runtime identity
+comes from `packages/safe-js/dist/safe-fs.js`, while declarations come from SafeFS.
+The private SafeFS development edge orders declaration compilation only; it is
+not a substitute runtime import. Run the normal root build before runtime gates
+so the shared bundle exists; do not replace it with raw SafeFS JavaScript.
+The checkout capture profile binds this built public closure without claiming a
+packed or published result. A committed export gate requires an explicit
+`S3_HTTP_EXPORTS_PEER_ARTIFACT` root tarball matching the selected root metadata and
+built public closure. Its integrated private-package install bypasses peer-range
+resolution explicitly, not by changing the development version or satisfying
+`>=13`; the registry-release profile still requires the exact 13.0.0 artifact SRI.
+The existing filesystem subpaths are compatibility re-exports of
+`poe-code/safe-fs`, not independently bundled implementations. Shell and injected
+SafeJS hooks must resolve one installed canonical module graph. Independently
+bundled consumers must externalize that public route or share its emitted chunk.
+`makeSafeJsFsModule` now passes the original `{ adapter, cwd?, signal? }` to its
+explicitly injected factory. Use the public `makeFsModule` from the installed
+`poe-code/safe-js` peer, or a compatible host factory; legacy `{ fs }`-only factory
+stubs must migrate. This helper does not load or install a SafeJS engine.
+The legacy `poe-code/safejs` SDK route remains an identity-preserving alias.
+WebDAV request streaming in 13.0.0 fails with `ENOTSUP` before source access or
+I/O for undeclared custom fetch functions. Exact current-realm native fetch is
+probed automatically; a faithful native wrapper may explicitly declare
+`requestStreamSupport: "native"`, and a faithful custom streaming transport may
+declare `requestStreamSupport: true`. Neither declaration authenticates a
+wrapper or grants filesystem comparison authority. Do not opt in a transport
+that stringifies or otherwise corrupts streaming request bodies.
+Development uses
 TypeScript, `tsx`, and `node:test`. The package is currently private/unpublished;
 the repository directory is `safe-bash`, while the package name is `virtual-bash`.
 

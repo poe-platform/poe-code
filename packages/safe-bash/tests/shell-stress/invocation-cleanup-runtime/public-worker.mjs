@@ -1,8 +1,8 @@
 import assert from "node:assert/strict";
 import { createHash } from "node:crypto";
-import { readFileSync, realpathSync } from "node:fs";
-import { registerHooks, syncBuiltinESMExports } from "node:module";
-import { join, relative } from "node:path";
+import { lstatSync, readFileSync, realpathSync } from "node:fs";
+import { isBuiltin, registerHooks, syncBuiltinESMExports } from "node:module";
+import { join, relative, resolve } from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
 import workerThreads from "node:worker_threads";
 
@@ -34,12 +34,56 @@ assert.equal(publicEntry, join(snapshot, "dist/index.js"));
 
 function emitted(path) {
   const canonical = realpathSync(path);
+  assert.equal(canonical, resolve(path), `Runtime path traverses a symlink: ${path}`);
+  assert.ok(lstatSync(path).isFile(), `Runtime input is not regular: ${path}`);
   const relativePath = relative(snapshot, canonical);
-  assert.ok(relativePath.startsWith("dist/"), `Unexpected product import: ${canonical}`);
+  const peer = relativePath.startsWith("node_modules/poe-code/") && Object.hasOwn(manifest.requiredPeer.files, relativePath);
+  assert.ok(relativePath.startsWith("dist/") || peer, `Unexpected product import: ${canonical}`);
   const hash = digest(readFileSync(canonical));
-  assert.equal(hash, manifest.emittedHashes[relativePath], `Emitted identity: ${relativePath}`);
+  assert.equal(hash, peer ? manifest.requiredPeer.files[relativePath] : manifest.emittedHashes[relativePath], `Emitted identity: ${relativePath}`);
   return { path: relativePath, sha256: hash };
 }
+
+function runtimeResolution(specifier, context, nextResolve) {
+  const resolved = nextResolve(specifier, context);
+  if (isBuiltin(resolved.url)) return resolved;
+  assert.ok(resolved.url.startsWith("file:"), `Unsupported runtime protocol: ${resolved.url}`);
+  const target = emitted(fileURLToPath(resolved.url));
+  const parent = context.parentURL?.startsWith("file:") ? relative(snapshot, realpathSync(fileURLToPath(context.parentURL))) : undefined;
+  const fromPeer = parent?.startsWith("node_modules/poe-code/");
+  if (target.path.startsWith("node_modules/poe-code/")) {
+    if (fromPeer) {
+      emitted(join(snapshot, parent));
+      assert.equal(manifest.requiredPeer.edges[parent]?.[specifier], target.path, `Uncaptured peer runtime edge: ${specifier}`);
+    } else {
+      assert.ok(parent?.startsWith("dist/"), "Peer public import must originate in admitted shell output");
+      emitted(join(snapshot, parent));
+      assert.equal(manifest.requiredPeer.entries[specifier], target.path, `Unadmitted peer public route: ${specifier}`);
+    }
+  } else assert.ok(!fromPeer, "Peer runtime must not escape to shell output");
+  return resolved;
+}
+
+assert.equal(manifest.requiredPeer.name, "poe-code");
+assert.equal(manifest.requiredPeer.metadataPath, "node_modules/poe-code/package.json");
+const peerMetadataPath = join(snapshot, manifest.requiredPeer.metadataPath);
+assert.equal(realpathSync(peerMetadataPath), peerMetadataPath);
+assert.ok(lstatSync(peerMetadataPath).isFile());
+const peerMetadata = readFileSync(peerMetadataPath);
+assert.equal(digest(peerMetadata), manifest.requiredPeer.metadataSha256, "Required peer metadata changed");
+assert.equal(JSON.parse(peerMetadata).version, manifest.requiredPeer.version);
+if (manifest.requiredPeer.profile === "checkout-root") {
+  assert.equal(packageManifest.poeCode?.integration?.peerProfile, "checkout-root");
+  assert.equal(packageManifest.devDependencies["poe-code"], "file:../..");
+  assert.equal(manifest.requiredPeer.integrity, null);
+  assert.equal(manifest.rootInputs["package.json"], manifest.requiredPeer.metadataSha256);
+} else {
+  assert.equal(manifest.requiredPeer.profile, "registry-release");
+  assert.equal(manifest.requiredPeer.version, packageManifest.devDependencies["poe-code"]);
+}
+assert.equal(typeof packageManifest.peerDependencies["poe-code"], "string");
+assert.notEqual(packageManifest.peerDependenciesMeta?.["poe-code"]?.optional, true);
+for (const path of Object.keys(manifest.requiredPeer.files)) emitted(join(snapshot, path));
 
 workerThreads.Worker = class ObservedNativeWorker extends nativeWorker {
   constructor(filename, options) {
@@ -73,6 +117,7 @@ workerThreads.Worker = class ObservedNativeWorker extends nativeWorker {
 };
 syncBuiltinESMExports();
 const guard = registerHooks({
+  resolve: runtimeResolution,
   load(url, context, nextLoad) {
     if (url.startsWith("file:")) {
       const identity = emitted(fileURLToPath(url));
@@ -230,5 +275,5 @@ try {
   workerThreads.Worker = nativeWorker;
   syncBuiltinESMExports();
   process.off("unhandledRejection", rejected);
-  console.log(JSON.stringify({ scenario, passed, failure, runtimeCommit: manifest.runtimeCommit, callbackCommit: manifest.callbackCommit, sourcePinned, regexOverrides, publicEntry, imports: Object.fromEntries(imports), workers, boundaries, events, liveWorkers: workers.filter(worker => !worker.exited).length, unhandled }));
+  console.log(JSON.stringify({ scenario, passed, failure, runtimeCommit: manifest.runtimeCommit, callbackCommit: manifest.callbackCommit, sourcePinned, regexOverrides, publicEntry, requiredPeer: { version: manifest.requiredPeer.version, metadataSha256: manifest.requiredPeer.metadataSha256 }, imports: Object.fromEntries(imports), workers, boundaries, events, liveWorkers: workers.filter(worker => !worker.exited).length, unhandled }));
 }

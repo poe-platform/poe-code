@@ -16,6 +16,7 @@ test("S3 HTTP root/subpath exports work from a clean packed revision without sou
     const result = spawnSync(process.execPath, [
       fileURLToPath(new URL("./verify.mjs", import.meta.url)),
       process.env.S3_HTTP_EXPORTS_REVISION ?? "HEAD", reportPath,
+      ...(process.env.S3_HTTP_EXPORTS_PEER_ARTIFACT ? [process.env.S3_HTTP_EXPORTS_PEER_ARTIFACT] : []),
     ], { env: cleanEnvironment(directory), encoding: "utf8", timeout: 290_000, maxBuffer: 16 * 1024 * 1024 });
     assert.ifError(result.error);
     assert.equal(result.status, 0, result.stderr || result.stdout);

@@ -1,24 +1,24 @@
 import assert from "node:assert/strict";
-import { mkdtemp, rm } from "node:fs/promises";
+import { mkdtemp,rm } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import test from "node:test";
 import { setImmediate as nextTurn } from "node:timers/promises";
 import { standardCommands } from "../../../src/commands/index.js";
 import { FsError } from "../../../src/contracts/errors.js";
-import type { FileStat, FileSystem } from "../../../src/contracts/filesystem.js";
+import type { FileStat,FileSystem } from "../../../src/contracts/filesystem.js";
 import { createMemoryFileSystem } from "../../../src/fs/memory/index.js";
 import { createMountFileSystem } from "../../../src/fs/mount/index.js";
-import { compareEntries, resolveEntryView } from "../../../src/fs/mount/comparison.js";
 import { createReadOnlyFileSystem } from "../../../src/fs/readonly/index.js";
 import { createRealFileSystem } from "../../../src/fs/real/index.js";
-import { MockS3Client, S3FileSystem, createS3Transport, S3ServiceError } from "../../../src/fs/s3/index.js";
-import type { S3HeadOutput, S3Transport } from "../../../src/fs/s3/index.js";
-import { getOwnedS3Entry } from "../../../src/fs/s3/authority.js";
+import type { S3HeadOutput,S3Transport } from "../../../src/fs/s3/index.js";
+import { createS3Transport,MockS3Client,S3FileSystem,S3ServiceError } from "../../../src/fs/s3/index.js";
+import { compareEntries } from "../public-comparison.js";
+
 import { WebDavFileSystem } from "../../../src/fs/webdav/index.js";
-import { getOwnedWebDavEntry } from "../../../src/fs/webdav/resource-id.js";
+
 import { Shell } from "../../../src/shell/index.js";
-import { MockDav, multistatus, resource, xmlResponse } from "../webdav/mock.js";
+import { MockDav,multistatus,resource,xmlResponse } from "../webdav/mock.js";
 
 const sourceBytes = new Uint8Array([0, 255, 19, 65, 10, 128]);
 const targetBytes = new Uint8Array([79, 76, 68, 0]);
@@ -65,7 +65,7 @@ function s3(store = new MockS3Client({ buckets: ["bucket"] }), transport: S3Tran
 }
 
 function dav(store = new MockDav()) {
-  return { store, fs: new WebDavFileSystem({ baseUrl: "https://same.invalid/dav/", fetch: (url, init) => store.fetch(url, init), timeoutMs: 1000 }) };
+  return { store, fs: new WebDavFileSystem({ baseUrl: "https://same.invalid/dav/", fetch: (url, init) => store.fetch(url, init), requestStreamSupport: true, timeoutMs: 1000 }) };
 }
 
 function deferred<Value>() {
@@ -139,7 +139,7 @@ test("05 legitimate Real DAV overlap refuses unknown, then truthful existing com
     const real = await createRealFileSystem({ root: directory });
     await seed(real);
     const requests: string[] = [];
-    const remote = new WebDavFileSystem({ baseUrl: "http://127.0.0.1/dav/", timeoutMs: 1000, fetch: async (url, init) => {
+    const remote = new WebDavFileSystem({ baseUrl: "http://127.0.0.1/dav/", timeoutMs: 1000, requestStreamSupport: true, fetch: async (url, init) => {
       const path = decodeURIComponent(new URL(url).pathname.slice(4)).replace(/\/$/, "") || "/";
       const method = init.method ?? "GET";
       const settings = init.signal ? { signal: init.signal } : {};
@@ -178,59 +178,6 @@ test("05 legitimate Real DAV overlap refuses unknown, then truthful existing com
     assert.deepEqual(await contents(real), copied());
     observe("05 existing FileSystem method, not future constructor option", { requests, files: await contents(real) });
   } finally { await rm(directory, { recursive: true, force: true }); }
-});
-
-test("06 fresh S3 HEAD authority rejects cached response and FS path stat replay", options, async () => {
-  const store = new MockS3Client({ buckets: ["bucket"] });
-  let cached: S3HeadOutput | undefined;
-  let replay = false;
-  const transport = opaque(store, { headObject: async (input, settings) => {
-    if (replay && input.Key === "source") return cached!;
-    const output = await store.headObject(input, settings);
-    if (input.Key === "source") cached = output;
-    return output;
-  } });
-  const fs = s3(store, transport).fs;
-  await seed(fs);
-  const view = await resolveEntryView(fs, "/source");
-  assert.ok(getOwnedS3Entry(view));
-  assert.equal(getOwnedS3Entry({ ...view, filesystem: s3(store).fs }), undefined);
-  assert.equal(getOwnedS3Entry({ ...view, path: "/target" }), undefined);
-  assert.equal(getOwnedS3Entry({ ...view, stat: { ...view.stat } }), undefined);
-  replay = true;
-  assert.equal(getOwnedS3Entry(await resolveEntryView(fs, "/source")), undefined);
-  const memory = createMemoryFileSystem();
-  await seed(memory);
-  await failure(mounted(memory, fs).copyFile("/left/source", "/right/source"), "ENOTSUP");
-  replay = false;
-  assert.ok(getOwnedS3Entry(await resolveEntryView(fs, "/source")));
-  assert.deepEqual(await contents(fs), original());
-  assert.deepEqual(await contents(memory), original());
-  observe("06", { files: await contents(fs), replay: "unknown; restored fresh observation accepted" });
-});
-
-test("07 DAV response authority binds exact FS path stat and does not follow response clones", options, async () => {
-  const store = new MockDav();
-  let clone = false;
-  const fs = new WebDavFileSystem({ baseUrl: "https://same.invalid/dav/", fetch: async (url, init) => {
-    const response = await store.fetch(url, init);
-    return clone ? response.clone() : response;
-  } });
-  await seed(fs);
-  const view = await resolveEntryView(fs, "/source");
-  assert.ok(getOwnedWebDavEntry(view));
-  assert.equal(getOwnedWebDavEntry({ ...view, filesystem: dav(store).fs }), undefined);
-  assert.equal(getOwnedWebDavEntry({ ...view, path: "/target" }), undefined);
-  assert.equal(getOwnedWebDavEntry({ ...view, stat: { ...view.stat } }), undefined);
-  clone = true;
-  assert.equal(getOwnedWebDavEntry(await resolveEntryView(fs, "/source")), undefined);
-  const memory = createMemoryFileSystem();
-  await seed(memory);
-  await failure(mounted(memory, fs).copyFile("/left/source", "/right/target"), "ENOTSUP");
-  clone = false;
-  assert.deepEqual(await contents(fs), original());
-  assert.deepEqual(await contents(memory), original());
-  observe("07", { files: await contents(fs), clone: "no provider-owned cross-protocol authority" });
 });
 
 test("08 late metadata denial and buffered body failure propagate EACCES without target effects", options, async () => {

@@ -7,6 +7,8 @@ import { sha256 } from "../tests/plugins/stream-five-public/current-profile.mjs"
 import { consumerGroups, negativeGroups, ownerPath } from "../tests/plugins/qualified-current-release/consumers.mjs";
 import { validateRuntimeCoverage, validateRuntimeResults } from "../tests/plugins/qualified-current-release/runtime-coverage.mjs";
 import { finish, snapshot, unchangedTests } from "../tests/plugins/qualified-current-release/snapshot.mjs";
+import { bindPeerArtifact, stagePeerArtifact, assertPeerArtifact, assertPeerDeclarationFiles, assertConsumerDeclarationFiles } from "../tests/plugins/qualified-current-release/peer.mjs";
+import { createBuiltPackageBinding, assertBuiltConsumerResolution } from "./typecheck-consumers.mjs";
 
 export function probeConsumerPermission(report, executable = process.execPath) {
   const admission = { supported: false, refusalStatus: 78, probes: [] };
@@ -64,12 +66,15 @@ export function consumerPermissionArgs(admission, consumer, workers = false) {
   } catch (error) { throw Object.assign(new Error("Current consumer permission binding refused: " + error.message), { exitCode: 78 }); }
 }
 
-export function currentConsumers(report) {
+export function currentConsumers(report, { peerArtifact } = {}) {
   validateRuntimeCoverage(consumerGroups);
   const permission = probeConsumerPermission(report);
   const compiler = join(report.root, "node_modules/typescript/bin/tsc");
   assert.equal(existsSync(join(report.root, "dist")), false, "current consumer gate requires a cold isolated candidate");
   step(report, "current-consumers-build", process.execPath, [compiler, "-p", "tsconfig.build.json"]);
+  const declarationBinding = createBuiltPackageBinding(report.root);
+  const peer = bindPeerArtifact({ root: report.root, artifact: peerArtifact, declarations: declarationBinding });
+  json(join(report.directory, "current-peer-artifact.json"), peer);
   step(report, "historical-build-first-types", process.execPath, [compiler, "--noEmit", "-p", "tests/commands/table-text-stress/shared-stdin-review/tsconfig.consumer.json"]);
   const consumer = join(report.directory, "consumer");
   const installed = join(consumer, "node_modules/virtual-bash");
@@ -77,6 +82,7 @@ export function currentConsumers(report) {
   copyFileSync(join(report.root, "package.json"), join(installed, "package.json"));
   cpSync(join(report.root, "dist"), join(installed, "dist"), { recursive: true });
   json(join(consumer, "package.json"), { name: "qualified-current-consumers", type: "module", private: true });
+  stagePeerArtifact(peer, consumer);
   const built = manifest(report.root, "dist");
   assert.deepEqual(manifest(installed, "dist"), built);
   report.currentConsumers = { built, groups: [], scope: "Strict current public declarations and explicit emitted runtime; provider-only programs are compile-only, never service passes. Historical frozen evidence is inventoried, not rerun. No full lifecycle acceptance." };
@@ -107,12 +113,14 @@ export function currentConsumers(report) {
     const result = { ...group, inputs, compile: "pending", runtimeResults: [] };
     report.currentConsumers.groups.push(result);
     try {
-      step(report, `consumer-${group.name}-types`, process.execPath, [compiler, "-p", join(workspace, "tsconfig.json")], consumer);
+      const compiled = step(report, `consumer-${group.name}-types`, process.execPath, [compiler, "-p", join(workspace, "tsconfig.json"), "--traceResolution"], consumer);
+      assertBuiltConsumerResolution(compiled.stdout, group.localPackage ? workspace : consumer, report.root, declarationBinding);
       result.compile = "pass";
       const listing = step(report, `consumer-${group.name}-resolution`, process.execPath, [compiler, "-p", join(workspace, "tsconfig.json"), "--listFilesOnly"], consumer);
       const compilerFiles = listing.stdout.trim().split("\n");
-      assert.ok(compilerFiles.includes(join(groupInstalled, "dist/index.d.ts")));
+      assertConsumerDeclarationFiles(compilerFiles, groupInstalled, declarationBinding);
       assert.ok(!compilerFiles.some(path => path.startsWith(join(report.root, "src/")) || path.startsWith(join(report.root, "dist/"))), "consumer types used source/build fallback");
+      assertPeerDeclarationFiles(peer, compilerFiles, consumer);
       for (const runtime of group.runtime) {
         const usesNodeTest = group.nodeTests !== undefined || runtime.endsWith(".test.mjs") || ["s3-constructor", "webdav-loopback"].includes(group.name);
         const execution = step(report, `consumer-${group.name}-${runtime}`, permission.executable, [...consumerPermissionArgs(permission, consumer, true), ...usesNodeTest ? ["--test-reporter=tap"] : [], join(config.compilerOptions.outDir, runtime)], consumer, { env: environment });
@@ -128,6 +136,7 @@ export function currentConsumers(report) {
         result.runtimeResults.push({ runtime, status: execution.status, counts, scope: usesNodeTest ? "unchanged node:test assertions" : group.qualification });
       }
       assert.deepEqual(manifest(groupInstalled, "dist"), built);
+      assertPeerArtifact(peer, consumer);
     } catch (error) { if (error.exitCode === 78) throw error; result.error = error.stack; }
   }
   report.currentConsumers.negativeTypes = [];
@@ -159,6 +168,7 @@ export function currentConsumers(report) {
   assert.equal(denied.status, 1);
   assert.match(denied.stderr, /ERR_ACCESS_DENIED/u);
   assert.deepEqual(manifest(installed, "dist"), built);
+  assertPeerArtifact(peer, consumer);
   assert.equal(unchangedTests(report), true, "candidate test inputs changed");
   json(join(report.directory, "current-consumers.json"), report.currentConsumers);
   validateRuntimeResults(consumerGroups, report.currentConsumers.groups);
@@ -168,8 +178,12 @@ export function currentConsumers(report) {
 
 if (process.argv[1] && resolve(process.argv[1]) === fileURLToPath(import.meta.url)) {
   const args = process.argv.slice(2);
-  assert.ok(args.length === 0 || args.length === 2 && args[0] === "--source-commit", "usage: node scripts/verify-current-consumers.mjs [--source-commit COMMIT]");
-  const report = snapshot(args[1] ?? "HEAD");
-  try { currentConsumers(report); finish(report, 0); }
+  const options = {};
+  for (let index = 0; index < args.length; index += 2) {
+    assert.ok(["--source-commit", "--peer-tarball"].includes(args[index]) && args[index + 1] && !args[index + 1].startsWith("--") && options[args[index]] === undefined, "usage: node scripts/verify-current-consumers.mjs [--source-commit COMMIT] --peer-tarball ARTIFACT");
+    options[args[index]] = args[index + 1];
+  }
+  const report = snapshot(options["--source-commit"] ?? "HEAD");
+  try { currentConsumers(report, { peerArtifact: options["--peer-tarball"] }); finish(report, 0); }
   catch (error) { finish(report, error.exitCode === 78 ? 78 : 1, error); }
 }

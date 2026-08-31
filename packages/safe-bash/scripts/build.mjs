@@ -31,6 +31,7 @@ function compilerInputs(root, tools, fileSystem) {
   const metadataFiles = new Set(["package.json", "tsconfig.json", "tsconfig.build.json", "integration-boundaries.json"]);
   const ownerFiles = new Set();
   const toolRoots = Object.values(tools).map(path => resolve(path));
+  const peerMetadata = new Set();
   const held = path => {
     const absolute = resolve(root, path);
     if (below(root.toLowerCase(), absolute.toLowerCase())) {
@@ -49,8 +50,9 @@ function compilerInputs(root, tools, fileSystem) {
     const local = relative(root, absolute).split(sep).join("/");
     if (local === "src" || local.startsWith("src/")) return "source";
     if (metadataFiles.has(local) || (loadingOwners && ownerFiles.has(local))) return "metadata";
+    if (peerMetadata.has(absolute)) return "metadata";
     if (toolRoots.some(directory => below(directory, absolute))) return "tool";
-    const admitted = [join(root, "src"), ...toolRoots, ...[...metadataFiles, ...ownerFiles].map(path => join(root, path))];
+    const admitted = [join(root, "src"), ...toolRoots, ...peerMetadata, ...[...metadataFiles, ...ownerFiles].map(path => join(root, path))];
     if (admitted.some(path => below(absolute, path))) return "ancestor";
     return undefined;
   };
@@ -137,6 +139,25 @@ function compilerInputs(root, tools, fileSystem) {
   ownerFiles.clear();
   return {
     host,
+    admitPeer() {
+      const manifest = JSON.parse(read(join(root, "package.json")));
+      let peerPaths;
+      if (manifest.peerDependencies?.["poe-code"]) {
+        const checkout = manifest.poeCode?.integration?.peerProfile === "checkout-root";
+        if (checkout) assert.equal(manifest.devDependencies?.["poe-code"], "file:../..", "checkout peer must use the explicit local root");
+        const peerRoot = checkout ? resolve(root, "../..") : join(root, "node_modules/poe-code");
+        peerMetadata.add(join(peerRoot, "package.json"));
+        const peer = JSON.parse(read(join(peerRoot, "package.json")));
+        assert.equal(peer.name, "poe-code", "canonical public peer identity");
+        const exported = peer.exports?.["./safe-fs"];
+        const target = typeof exported?.types === "string" ? exported.types : exported?.types?.default;
+        assert.equal(target, "./packages/safe-fs/dist/index.d.ts", "canonical public SafeFS declaration entry");
+        if (checkout) assert.equal(exported.import, "./packages/safe-js/dist/safe-fs.js", "canonical public SafeFS must use the shared SafeJS runtime");
+        toolRoots.push(join(peerRoot, "packages/safe-fs/dist"));
+        peerPaths = { "poe-code/safe-fs": [resolve(peerRoot, target)] };
+      }
+      return peerPaths;
+    },
     admitSources(paths) {
       sourceNames = new Set(paths.map(path => resolve(root, path)));
       for (const path of sourceNames) {
@@ -202,6 +223,8 @@ export async function buildPackage({ root = packageRoot, args = [], fileSystem =
   const formatHost = { getCanonicalFileName: path => path, getCurrentDirectory: () => root, getNewLine: () => "\n" };
   const report = diagnostics => write((parsed.options.pretty ? ts.formatDiagnosticsWithColorAndContext : ts.formatDiagnostics)(diagnostics, formatHost));
   if (errors.length) { report(errors); return { status: 1, rootNames: parsed.fileNames, emittedFiles: [] }; }
+  const peerPaths = inputs.admitPeer();
+  if (peerPaths) parsed.options.paths = { ...parsed.options.paths, ...peerPaths };
   inputs.admitSources(parsed.fileNames);
   const emittedFiles = [];
   const host = {

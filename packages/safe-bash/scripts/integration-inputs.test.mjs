@@ -8,7 +8,7 @@ import test from "node:test";
 import { Script } from "node:vm";
 import { createFsFromVolume, Volume } from "memfs";
 import { createLintInputGuard } from "../../../scripts/lint-input-guard.mjs";
-import { discoverTests, integrationExclusions, lintExclusions, lintInventoryPaths, loadBoundaries, readIntegrationLintInputs, validateBoundaries, validateImportRetirement, verifyLintInventory } from "./integration-inputs.mjs";
+import { discoverTests, integrationExclusions, lintExclusions, lintInventoryPaths, loadBoundaries, readIntegrationLintInputs, readTypecheckInventories, validateBoundaries, validateImportRetirement, verifyLintInventory } from "./integration-inputs.mjs";
 import { runTests } from "./test.mjs";
 import { assertAdmittedInputPath, assertLiteralInputPath, readIntegrationTypeInputs, readRegularInput } from "./typecheck-integration-inputs.mjs";
 
@@ -1520,6 +1520,74 @@ test("shared type reader rejects held and nonliteral paths before any filesystem
     assert.throws(() => readRegularInput("/package", path, 100, fileSystem, boundary), /literal|held/);
   }
   assert.equal(accesses, 0);
+});
+
+test("source7 inventory admits exactly the already sealed thirteen-entry source delta", async () => {
+  const root = fileURLToPath(new URL("../", import.meta.url));
+  const boundaries = loadBoundaries(root);
+  const prefix = "tests/plugins/qualified-current-release/";
+  const files = new Map(["captured-types.json", "staged-types.json", "inventory.json"].map(name => ["/package/" + prefix + name, readRegularInput(root, prefix + name, 300000, fs, boundaries)]));
+  const reads = [];
+  const memory = fileSystemFor(files);
+  const { captured, staged, inventory } = readTypecheckInventories("/package", boundaries, {
+    ...memory,
+    readFileSync(path) { reads.push(path); return memory.readFileSync(path); },
+  });
+  const types = JSON.parse(readRegularInput(root, "integration-type-inputs.json", 100000, fs, boundaries));
+  const sealed = types.cohorts.flatMap(cohort => cohort.entries).filter(entry => entry.path.endsWith(".mts"));
+  assert.equal(sealed.length, 13);
+  assert.equal(new Set(sealed.map(entry => entry.path)).size, 13);
+  for (const entry of sealed) {
+    assertAdmittedInputPath(entry.path, boundaries);
+    const matches = inventory.entries.filter(member => member.path === entry.path);
+    assert.equal(matches.length, 1);
+    assert.equal(matches[0].classification, "frozen-evidence");
+    assert.equal(matches[0].sha256, entry.sha256);
+  }
+  assert.equal(inventory.entries.length, 213);
+  assert.equal(inventory.inventoriedCommit, "697ad092de111642aa376f74560da9927a0c9512");
+  assert.deepEqual(inventory.counts, { "frozen-evidence": 166, current: 36, declaration: 7, "frozen-oracle": 1, "negative-types": 3 });
+  const previous = structuredClone(inventory);
+  const additions = new Set(sealed.map(entry => entry.path));
+  previous.entries = previous.entries.filter(entry => !additions.has(entry.path));
+  previous.inventoriedCommit = "1ff82cb748c60145740dba354610ac7ed7a7f15f";
+  previous.counts["frozen-evidence"] = 153;
+  assert.equal(createHash("sha256").update(JSON.stringify(previous, null, 2) + "\n").digest("hex"), "7dbe62573f69670f697f978c5f91beb1b7003c582ad31728fda5ed4fa0bcd6e0");
+  assert.deepEqual([...new Set([...lintInventoryPaths(captured, staged, inventory), ...additions])].sort(), [...new Set([...lintInventoryPaths(captured, staged, previous), ...additions])].sort());
+  const { mergeStandaloneInventory } = await import("./typecheck-inputs.mjs");
+  const authenticated = sealed.map(entry => ({ ...entry, classification: "frozen-evidence" }));
+  assert.deepEqual(mergeStandaloneInventory(inventory, authenticated), inventory);
+  const mergedPrevious = mergeStandaloneInventory(previous, authenticated);
+  assert.equal(mergedPrevious.entries.length, 213);
+  assert.deepEqual(mergedPrevious.counts, inventory.counts);
+  assert.deepEqual(mergedPrevious.entries.map(entry => entry.path).sort(), inventory.entries.map(entry => entry.path).sort());
+  assert.deepEqual(reads, [...files.keys()]);
+});
+
+test("source7 standalone union preserves old and new inventory epochs without double counting", async () => {
+  const { mergeStandaloneInventory } = await import("./typecheck-inputs.mjs");
+  assert.equal(typeof mergeStandaloneInventory, "function");
+  const current = { path: "tests/current/consumer.mts", classification: "current", sha256: "1".repeat(64) };
+  const frozen = { path: "tests/sealed/consumer.mts", classification: "frozen-evidence", sha256: "2".repeat(64) };
+  const previous = { entries: [current], counts: { current: 1, "frozen-evidence": 0 } };
+  const next = { entries: [current, frozen], counts: { current: 1, "frozen-evidence": 1 } };
+  const original = structuredClone(next);
+  assert.deepEqual(mergeStandaloneInventory(previous, [frozen]), next);
+  assert.deepEqual(mergeStandaloneInventory(next, [frozen]), next);
+  assert.deepEqual(mergeStandaloneInventory(next, []), next);
+  assert.deepEqual(next, original);
+});
+
+test("source7 standalone union refuses duplicate and conflicting owner admissions", async () => {
+  const { mergeStandaloneInventory } = await import("./typecheck-inputs.mjs");
+  assert.equal(typeof mergeStandaloneInventory, "function");
+  const entry = { path: "tests/sealed/consumer.mts", classification: "frozen-evidence", sha256: "1".repeat(64) };
+  const inventory = { entries: [entry], counts: { "frozen-evidence": 1 } };
+  assert.throws(() => mergeStandaloneInventory({ ...inventory, entries: [entry, entry] }, [entry]), /duplicate/);
+  assert.throws(() => mergeStandaloneInventory(inventory, [entry, entry]), /duplicate/);
+  assert.throws(() => mergeStandaloneInventory(inventory, [{ ...entry, sha256: "2".repeat(64) }]), /binding/);
+  assert.throws(() => mergeStandaloneInventory({ ...inventory, entries: [{ ...entry, classification: "current" }] }, [entry]), /classification/);
+  assert.throws(() => mergeStandaloneInventory(inventory, [{ ...entry, classification: "current" }]), /frozen/);
 });
 
 test("legacy readers authenticate inventories before staged, captured or historical reads", async () => {

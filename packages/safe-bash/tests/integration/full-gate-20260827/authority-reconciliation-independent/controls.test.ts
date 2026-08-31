@@ -4,7 +4,7 @@ import { FsError } from "../../../../src/contracts/errors.js";
 import type { FileStat, FileSystem } from "../../../../src/contracts/filesystem.js";
 import { createMemoryFileSystem } from "../../../../src/fs/memory/index.js";
 import { createMountFileSystem } from "../../../../src/fs/mount/index.js";
-import { compareEntries } from "../../../../src/fs/mount/comparison.js";
+import { compareEntries } from "../../../fs/public-comparison.js";
 import { createReadOnlyFileSystem } from "../../../../src/fs/readonly/index.js";
 import { MockS3Client, S3FileSystem, createS3Transport } from "../../../../src/fs/s3/index.js";
 import type { S3HeadOutput } from "../../../../src/fs/s3/index.js";
@@ -22,7 +22,7 @@ function backend(kind: "memory" | "s3" | "webdav"): FileSystem {
   }
   const store = new MockDav();
   const fetch = store.createFetch();
-  return new WebDavFileSystem({ baseUrl: "https://independent.test/dav/", fetch: (...args) => fetch(...args) });
+  return new WebDavFileSystem({ baseUrl: "https://independent.test/dav/", fetch: (...args) => fetch(...args), requestStreamSupport: true });
 }
 function view(backing: FileSystem, omit: boolean, effects: string[]): FileSystem {
   const mapped = (path: string) => path === "/target" ? "/source" : path;

@@ -5,6 +5,7 @@ import { createHash } from "node:crypto";
 import ts from "typescript";
 import { createFsFromVolume, Volume } from "memfs";
 import { buildPackage } from "./build.mjs";
+import { bindPeerArtifact, resolvePeerProfile, stagePeerArtifact, assertPeerArtifact } from "../tests/plugins/qualified-current-release/peer.mjs";
 
 const root = "/owned/package";
 const tools = { typescriptLib: "/owned/node_modules/typescript/lib", nodeTypes: "/owned/node_modules/@types/node", undiciTypes: "/owned/node_modules/undici-types" };
@@ -43,6 +44,76 @@ function noHeldReads(owned) {
   assert.equal(owned.metadata.filter(path => path.toLowerCase().includes("/held/")).length, 0);
   assert.equal(owned.descriptors.size, 0);
 }
+
+test("guarded compiler resolves the public peer declaration without admitting peer source or runtime", async () => {
+  const owned = fixture({
+    "package.json": JSON.stringify({ name: "virtual-bash", type: "module", peerDependencies: { "poe-code": ">=13.0.0" }, devDependencies: { "poe-code": "13.0.0" } }),
+    "src/index.ts": 'export type { Canonical } from "poe-code/safe-fs";\n',
+    "node_modules/poe-code/package.json": JSON.stringify({ name: "poe-code", version: "13.0.0", type: "module", exports: { "./safe-fs": { types: "./packages/safe-fs/dist/index.d.ts", import: "./packages/safe-js/dist/safe-fs.js" } } }),
+    "node_modules/poe-code/packages/safe-fs/dist/index.d.ts": 'export interface Canonical { identity: "public"; }\n',
+    "node_modules/poe-code/packages/safe-fs/src/index.ts": 'UNADMITTED SOURCE',
+    "node_modules/poe-code/packages/safe-js/dist/safe-fs.js": 'UNEXECUTED RUNTIME',
+  });
+  const result = await owned.run();
+  assert.equal(result.status, 0, owned.output.join(""));
+  assert.ok(owned.reads.includes(root + "/node_modules/poe-code/packages/safe-fs/dist/index.d.ts"));
+  assert.ok(!owned.reads.some(path => path.includes("/safe-fs/src/") || path.endsWith("/safe-js/dist/safe-fs.js")));
+  noHeldReads(owned);
+});
+
+function checkoutPeerFixture() {
+  const checkout = "/checkout", packageRoot = checkout + "/packages/safe-bash";
+  const manifest = { name: "virtual-bash", private: true, peerDependencies: { "poe-code": ">=13.0.0" }, devDependencies: { "poe-code": "file:../.." }, poeCode: { integration: { peerProfile: "checkout-root" } } };
+  const peer = { name: "poe-code", version: "0.0.0-dev", type: "module", devDependencies: { "poe-code": "file:." }, exports: { "./safe-fs": { types: { default: "./packages/safe-fs/dist/index.d.ts" }, import: "./packages/safe-js/dist/safe-fs.js" } } };
+  const lock = { packages: { "packages/safe-bash": { devDependencies: { "poe-code": "file:../.." } }, "node_modules/poe-code": { resolved: "", link: true } } };
+  const declaration = "export interface Canonical {}\n";
+  const io = createFsFromVolume(Volume.fromJSON({
+    [packageRoot + "/package.json"]: JSON.stringify(manifest), [checkout + "/package.json"]: JSON.stringify(peer),
+    [checkout + "/package-lock.json"]: JSON.stringify(lock),
+    [checkout + "/packages/safe-fs/dist/index.d.ts"]: declaration,
+    [checkout + "/packages/safe-js/dist/safe-fs.js"]: 'export { identity } from "./shared.js";\n',
+    [checkout + "/packages/safe-js/dist/shared.js"]: 'export const identity = {};\n',
+  }));
+  const hash = bytes => createHash("sha256").update(bytes).digest("hex");
+  const declarations = { peer: { version: peer.version, integrity: null, metadataSha256: hash(JSON.stringify(peer)), declarations: new Map([["packages/safe-fs/dist/index.d.ts", hash(declaration)]]), publicEntries: new Map([["poe-code/safe-fs", "packages/safe-fs/dist/index.d.ts"]]) } };
+  return { checkout, root: packageRoot, io, manifest, peer, lock, declarations };
+}
+
+test("checkout peer preserves dev-root identity without claiming released peer-range satisfaction", () => {
+  const owned = checkoutPeerFixture();
+  const result = resolvePeerProfile(owned.root, owned.io);
+  assert.equal(result.profile, "checkout-root");
+  assert.equal(result.peer.version, "0.0.0-dev");
+  assert.equal(result.integrity, null);
+  assert.match(result.qualification, /not published peer-range satisfaction/);
+  assert.throws(() => bindPeerArtifact({ root: owned.root, io: owned.io, declarations: owned.declarations }), /explicit canonical peer artifact/);
+});
+
+for (const defect of ["registry-dev", "root-self", "raw-runtime", "lock-link", "fake-release"]) test(`checkout peer rejects ${defect} without registry fallback`, () => {
+  const owned = checkoutPeerFixture();
+  if (defect === "registry-dev") owned.manifest.devDependencies["poe-code"] = "13.0.0";
+  if (defect === "root-self") owned.peer.devDependencies["poe-code"] = "13.0.0";
+  if (defect === "raw-runtime") owned.peer.exports["./safe-fs"].import = "./packages/safe-fs/dist/index.js";
+  if (defect === "lock-link") owned.lock.packages["node_modules/poe-code"] = { version: "13.0.0" };
+  if (defect === "fake-release") delete owned.manifest.poeCode;
+  for (const [path, value] of [[owned.root + "/package.json", owned.manifest], [owned.checkout + "/package.json", owned.peer], [owned.checkout + "/package-lock.json", owned.lock]]) owned.io.writeFileSync(path, JSON.stringify(value));
+  assert.throws(() => resolvePeerProfile(owned.root, owned.io));
+});
+
+test("explicit checkout capture stages only the canonical public closure and detects later drift", () => {
+  const owned = checkoutPeerFixture();
+  const binding = bindPeerArtifact({ ...owned, checkout: true });
+  assert.equal(binding.profile, "checkout-root");
+  assert.equal(binding.tarballSha256, null);
+  assert.equal(binding.runtimeFiles, 2);
+  assert.equal(binding.declarationFiles, 1);
+  owned.io.mkdirSync("/consumer");
+  stagePeerArtifact(binding, "/consumer");
+  assertPeerArtifact(binding, "/consumer");
+  assert.equal(owned.io.existsSync("/consumer/node_modules/poe-code/packages/safe-fs/src"), false);
+  owned.io.writeFileSync("/consumer/node_modules/poe-code/packages/safe-js/dist/shared.js", "changed");
+  assert.throws(() => assertPeerArtifact(binding, "/consumer"), /changed/);
+});
 
 test("build emits admitted ESM, declarations and both maps while pruning held discovery", async () => {
   const owned = fixture();

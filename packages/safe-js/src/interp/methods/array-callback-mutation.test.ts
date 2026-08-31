@@ -300,7 +300,7 @@ describe("bounded sort comparator mutation", () => {
   });
 
   it("toSorted keeps its dense copied items while the comparator changes the source", async () => {
-    await expectNative(`
+    const source = `
       const values = [3, , 1, undefined];
       let changed = false;
       const sorted = values.toSorted((left, right) => {
@@ -308,7 +308,22 @@ describe("bounded sort comparator mutation", () => {
         return left - right;
       });
       return { values, sorted, keys: Object.keys(sorted), same: sorted === values, changed };
-    `);
+    `;
+    const expected = {
+      values: [3, 9],
+      sorted: [1, 3, undefined, undefined],
+      keys: ["0", "1", "2", "3"],
+      same: false,
+      changed: true
+    };
+    const result = await run(source);
+    expect(result.ok).toBe(true);
+    if (!result.ok) throw result.error;
+    expect(structuredClone(result.returnValue)).toStrictEqual(expected);
+    if (typeof Reflect.get(Array.prototype, "toSorted") === "function") {
+      const native = Function('"use strict";\n' + source)();
+      expect(structuredClone(result.returnValue)).toStrictEqual(native);
+    }
   });
 
   it("checks consistent stability and a finite mutating tie example without comparison traces", async () => {

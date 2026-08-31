@@ -16,50 +16,88 @@ import { callArrayMethod, type ArrayMethodOptions } from "./array.js";
 
 describe("LANG-01 independent nested readers", () => {
   it.each([
-    "alias.map(outer)",
-    "alias.reduce((total, value, index, array) => total.concat(outer(value, index, array)), [])",
-    "alias.toSorted((left, right) => { outer(left, 0, alias); return left - right; })"
-  ])("composes three levels through aliases: %s", async (expression) => {
-    const source = `
+    {
+      method: "map",
+      expression: "alias.map(outer)",
+      expectedResult: [
+        [6, 4, 5],
+        [5, 3, 4],
+        [7, 5, 6]
+      ]
+    },
+    {
+      method: "reduce",
+      expression:
+        "alias.reduce((total, value, index, array) => total.concat(outer(value, index, array)), [])",
+      expectedResult: [6, 4, 5, 5, 3, 4, 7, 5, 6]
+    },
+    {
+      method: "toSorted",
+      expression:
+        "alias.toSorted((left, right) => { outer(left, 0, alias); return left - right; })",
+      expectedResult: [1, 2, 3]
+    }
+  ])(
+    "composes three levels through aliases: $expression",
+    async ({ method, expression, expectedResult }) => {
+      const source = `
       const values = [3, 1, 2];
       const alias = values;
+      let nestedReaderCalled = false;
       function outer(value, index, array) {
         return array.filter(next => alias.every(last => {
-          const total = values.reduceRight((sum, current) => sum + current, 0);
+          const total = values.reduceRight((sum, current) => {
+            nestedReaderCalled = true;
+            return sum + current;
+          }, 0);
           return total >= last + next;
         })).map(next => value + next + index);
       }
       const result = ${expression};
       values.push(4);
-      return { result, values, same: alias === values };
+      return { result, values, same: alias === values, nestedReaderCalled };
     `;
-    const expected = Function('"use strict";\n' + source)();
-    const result = await run(source);
-    expect(result.ok).toBe(true);
-    if (!result.ok) throw result.error;
-    expect(structuredClone(result.returnValue)).toStrictEqual(expected);
-    const replay = await run(source, {
-      snapshot: restore(JSON.parse(serializeSafeJSSnapshot(result.snapshot)), { source })
-    });
-    expect(replay.ok).toBe(true);
-    if (!replay.ok) throw replay.error;
-    expect(structuredClone(replay.returnValue)).toStrictEqual(expected);
-  });
+      const expected = {
+        result: expectedResult,
+        values: [3, 1, 2, 4],
+        same: true,
+        nestedReaderCalled: true
+      };
+      const result = await run(source);
+      expect(result.ok).toBe(true);
+      if (!result.ok) throw result.error;
+      expect(structuredClone(result.returnValue)).toStrictEqual(expected);
+      if (typeof Reflect.get(Array.prototype, method) === "function") {
+        const native = Function('"use strict";\n' + source)();
+        expect(structuredClone(result.returnValue)).toStrictEqual(native);
+      }
+      const replay = await run(source, {
+        snapshot: restore(JSON.parse(serializeSafeJSSnapshot(result.snapshot)), { source })
+      });
+      expect(replay.ok).toBe(true);
+      if (!replay.ok) throw replay.error;
+      expect(structuredClone(replay.returnValue)).toStrictEqual(expected);
+    }
+  );
 
   it.each([
-    "alias.slice(1)",
-    "alias.concat([8])",
-    "alias.includes(2)",
-    "alias.indexOf(2)",
-    "alias.lastIndexOf(2)",
-    'alias.join(":")',
-    "alias.at(-1)",
-    "alias.flat()",
-    "alias.toReversed()",
-    "alias.toSpliced(1, 1, 8)",
-    "alias.with(1, 8)",
-    "alias.toSorted((left, right) => left - right)"
-  ])("allows nonmutating read combinations: %s", async (expression) => {
+    { method: "slice", expression: "alias.slice(1)", read: [1, 2] },
+    { method: "concat", expression: "alias.concat([8])", read: [3, 1, 2, 8] },
+    { method: "includes", expression: "alias.includes(2)", read: true },
+    { method: "indexOf", expression: "alias.indexOf(2)", read: 2 },
+    { method: "lastIndexOf", expression: "alias.lastIndexOf(2)", read: 2 },
+    { method: "join", expression: 'alias.join(":")', read: "3:1:2" },
+    { method: "at", expression: "alias.at(-1)", read: 2 },
+    { method: "flat", expression: "alias.flat()", read: [3, 1, 2] },
+    { method: "toReversed", expression: "alias.toReversed()", read: [2, 1, 3] },
+    { method: "toSpliced", expression: "alias.toSpliced(1, 1, 8)", read: [3, 8, 2] },
+    { method: "with", expression: "alias.with(1, 8)", read: [3, 8, 2] },
+    {
+      method: "toSorted",
+      expression: "alias.toSorted((left, right) => left - right)",
+      read: [1, 2, 3]
+    }
+  ])("allows nonmutating read combinations: $expression", async ({ method, expression, read }) => {
     const source = `
       const values = [3, 1, 2];
       const alias = values;
@@ -68,11 +106,34 @@ describe("LANG-01 independent nested readers", () => {
       }));
       return { result, values };
     `;
-    const expected = Function('"use strict";\n' + source)();
+    const expected = {
+      result: [
+        [
+          { value: 3, next: 3, read },
+          { value: 3, next: 1, read },
+          { value: 3, next: 2, read }
+        ],
+        [
+          { value: 1, next: 3, read },
+          { value: 1, next: 1, read },
+          { value: 1, next: 2, read }
+        ],
+        [
+          { value: 2, next: 3, read },
+          { value: 2, next: 1, read },
+          { value: 2, next: 2, read }
+        ]
+      ],
+      values: [3, 1, 2]
+    };
     const result = await run(source);
     expect(result.ok).toBe(true);
     if (!result.ok) throw result.error;
     expect(structuredClone(result.returnValue)).toStrictEqual(expected);
+    if (typeof Reflect.get(Array.prototype, method) === "function") {
+      const native = Function('"use strict";\n' + source)();
+      expect(structuredClone(result.returnValue)).toStrictEqual(native);
+    }
   });
 
   it.each(["[]", "[, 2, , 4]", "[undefined, 2]"])(
@@ -137,11 +198,19 @@ describe("LANG-01 independent nested readers", () => {
         const recovered = values.map(value => values.reduce((sum, next) => sum + next, value));
         return { values, trace, recovered };
       `;
-      const expected = Function('"use strict";\n' + source)();
+      const expected = {
+        values: [3, 1, 2, 4],
+        trace: ["nested"],
+        recovered: [13, 11, 12, 14]
+      };
       const result = await run(source);
       expect(result.ok).toBe(true);
       if (!result.ok) throw result.error;
       expect(structuredClone(result.returnValue)).toStrictEqual(expected);
+      if (typeof Reflect.get(Array.prototype, method) === "function") {
+        const native = Function('"use strict";\n' + source)();
+        expect(structuredClone(result.returnValue)).toStrictEqual(native);
+      }
     }
   );
 

@@ -1,3 +1,4 @@
+import { webcrypto as crypto } from "node:crypto";
 import { afterEach, describe, expect, it, vi } from "vitest";
 
 import { run } from "../run.js";
@@ -17,6 +18,25 @@ describe("makeTimeModule", () => {
 
     expect(time.now()).toBe(1_700_000_000_000);
     expect(time.uuid()).toBe("123e4567-e89b-42d3-a456-426614174000");
+  });
+
+  it("generates unseeded UUIDs without Math.random", () => {
+    const randomSpy = vi.spyOn(Math, "random");
+    const uuid = makeTimeModule().uuid();
+
+    expect(uuid).toMatch(/^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/);
+    expect(randomSpy).not.toHaveBeenCalled();
+  });
+
+  it("propagates host UUID failures without falling back to Math.random", () => {
+    const failure = new Error("Host UUID generation failed");
+    vi.spyOn(crypto, "randomUUID").mockImplementation(() => {
+      throw failure;
+    });
+    const randomSpy = vi.spyOn(Math, "random");
+
+    expect(() => makeTimeModule().uuid()).toThrow(failure);
+    expect(randomSpy).not.toHaveBeenCalled();
   });
 
   it("returns a number within 5ms of Date.now at call time by default", () => {

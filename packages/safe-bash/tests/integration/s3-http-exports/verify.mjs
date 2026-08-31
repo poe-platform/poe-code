@@ -94,6 +94,7 @@ export async function verifyCommittedExports({ repository = actualRepository, re
   try {
     const candidate = inspectCommittedCandidate(repository, revision, tempRoot);
     const { environment, manifest } = candidate;
+    const localTypeEntries = candidate.files.has(`${packagePrefix}/src/fs/s3/http/types.ts`) ? ["dist/fs/s3/http/types.d.ts"] : [];
     let peer, peerDeclarations, peerApi;
     if (manifest.peerDependencies?.["poe-code"]) {
       const checkout = peerArtifact === undefined && manifest.poeCode?.integration?.peerProfile === "checkout-root";
@@ -203,7 +204,7 @@ export async function verifyCommittedExports({ repository = actualRepository, re
     const packedFiles = [...packed.keys()].map(path => path.slice("package/".length)).sort();
     checkDist("packed", packedFiles.filter(path => path.startsWith("dist/")).map(path => ({ path, sha256: digest(packed.get(`package/${path}`)) })));
     checkDist("copied after pack", readDistInventory(packRoot));
-    for (const required of ["dist/index.js", "dist/index.d.ts", "dist/fs/s3/http/index.js", "dist/fs/s3/http/index.d.ts", "dist/fs/s3/http/types.d.ts"]) assert.ok(packedFiles.includes(required), `Missing packed ${required}`);
+    for (const required of ["dist/index.js", "dist/index.d.ts", "dist/fs/s3/http/index.js", "dist/fs/s3/http/index.d.ts", ...localTypeEntries]) assert.ok(packedFiles.includes(required), `Missing packed ${required}`);
     for (const path of packedFiles) assert.deepEqual(packed.get(`package/${path}`), readRegularInput(packRoot, path, 32 * 1024 * 1024), `packed file drift: ${path}`);
     report.package = { name: manifest.name, version: manifest.version, fileCount: packedFiles.length, sha256: packedHash, runtimeDependencies: {}, peerDependencies: manifest.peerDependencies ?? {}, exports: manifest.exports, files: packedFiles };
     writeFileSync(join(consumer, "package.json"), JSON.stringify({ name: "s3-http-export-consumer", private: true, type: "module" }));
@@ -241,8 +242,11 @@ export async function verifyCommittedExports({ repository = actualRepository, re
     checkDist("before strict types", readDistInventory(installedRoot));
     const typeFiles = run("strict public TypeScript consumer", process.execPath, [compiler, "-p", "tsconfig.consumer.json", "--listFiles", "--pretty", "false"], consumer).split("\n");
     assertTypeOrigins(typeFiles, consumer, installedRoot, join(snapshotRoot, "node_modules/typescript/lib"));
-    if (peer) peerApi.assertPeerDeclarationFiles(peer, typeFiles, consumer);
-    for (const entrypoint of ["dist/index.d.ts", "dist/fs/s3/http/index.d.ts", "dist/fs/s3/http/types.d.ts"]) assert.ok(typeFiles.includes(join(installedRoot, entrypoint)), `Types did not resolve ${entrypoint}`);
+    if (peer) {
+      peerApi.assertPeerDeclarationFiles(peer, typeFiles, consumer);
+      for (const entrypoint of peerDeclarations.publicEntries.values()) assert.ok(typeFiles.includes(join(consumer, "node_modules/poe-code", entrypoint)), `Types did not resolve canonical peer ${entrypoint}`);
+    }
+    for (const entrypoint of ["dist/index.d.ts", "dist/fs/s3/http/index.d.ts", ...localTypeEntries]) assert.ok(typeFiles.includes(join(installedRoot, entrypoint)), `Types did not resolve ${entrypoint}`);
     report.typecheck = { compilerOptions, files: typeFiles, rootAndSubpathTypes: 4, sourceFallback: false };
     checkDist("before invalid types", readDistInventory(installedRoot));
     const diagnostics = run("strict invalid consumer controls", process.execPath, [compiler, "-p", "tsconfig.invalid.json", "--pretty", "false"], consumer, 2);

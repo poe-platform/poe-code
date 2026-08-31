@@ -465,7 +465,7 @@ test("maintained outer launcher rejects inherited startup settings before the ve
   } finally { rmSync(directory, { recursive: true, force: true }); }
 });
 
-async function withRepository(change, run) {
+async function withRepository(change, run, { localTypes = false } = {}) {
   const directory = mkdtempSync(join(tmpdir(), "safe-bash-archive-control-"));
   const repository = join(directory, "repository");
   const paths = [];
@@ -510,7 +510,7 @@ async function withRepository(change, run) {
     put(`${packagePrefix}/README.md`, "Synthetic committed archive control, not a product qualification.\n");
     for (const path of boundaries.heldSourceFiles) put(`${packagePrefix}/${path}`, "SYNTHETIC_WITHHELD_SENTINEL\n");
     for (const path of boundaries.heldEvidenceDirectories) put(`${packagePrefix}/${path}/synthetic-held.ts`, "SYNTHETIC_WITHHELD_EVIDENCE_SENTINEL\n");
-    put(`${packagePrefix}/src/index.ts`, 'export { createS3HttpTransport } from "./fs/s3/http/index.js";\nexport { FsError, MemoryFileSystem } from "poe-code/safe-fs";\nexport type * from "./fs/s3/http/types.js";\nexport type { S3Transport } from "./fs/s3/index.js";\n');
+    put(`${packagePrefix}/src/index.ts`, 'export * from "./fs/s3/http/index.js";\nexport { FsError, MemoryFileSystem } from "poe-code/safe-fs";\nexport type { S3Transport } from "./fs/s3/index.js";\n');
     const transport = 'export interface S3Transport { headObject(): void; getObject(): void; putObject(): void; copyObject(): void; deleteObject(): void; listObjectsV2(): void }\n';
     put(`${packagePrefix}/src/fs/s3/index.ts`, transport);
     const types = `import type { ClientRequest, IncomingMessage, RequestOptions } from "node:http";
@@ -519,8 +519,10 @@ export type S3HttpCredentialProvider = (options: { readonly signal: AbortSignal 
 export type S3HttpRequestFactory = (options: RequestOptions, response: (message: IncomingMessage) => void) => ClientRequest;
 export interface S3HttpTransportOptions { endpoint: string; region: string; credentials: S3HttpCredentials | S3HttpCredentialProvider; addressingStyle?: "path"; listUrlEncoding?: "percent"; clock?: () => Date; request?: S3HttpRequestFactory; allowInsecureHttp?: boolean; maxPutBytes?: number; maxGetBytes?: number; maxXmlBytes?: number; requestTimeoutMs?: number; enableCopy?: boolean; verifiedConditionalOperations?: { put: boolean; copy: boolean; delete: boolean } }
 `;
-    put(`${packagePrefix}/src/fs/s3/http/types.ts`, types);
-    put(`${packagePrefix}/src/fs/s3/http/index.ts`, 'export { createS3HttpTransport } from "poe-code/safe-fs";\nexport type * from "./types.js";\n');
+    if (localTypes) put(`${packagePrefix}/src/fs/s3/http/types.ts`, types);
+    put(`${packagePrefix}/src/fs/s3/http/index.ts`, localTypes
+      ? 'export { createS3HttpTransport } from "poe-code/safe-fs";\nexport type * from "./types.js";\n'
+      : 'export { createS3HttpTransport } from "poe-code/safe-fs";\nexport type { S3HttpCredentials, S3HttpCredentialProvider, S3HttpRequestFactory, S3HttpTransportOptions } from "poe-code/safe-fs";\n');
     const peerFiles = new Map([
       ["packages/safe-fs/dist/index.d.ts", types + transport + "export declare function createS3HttpTransport(options: S3HttpTransportOptions): S3Transport;\nexport declare class FsError extends Error {}\nexport declare class MemoryFileSystem {}\n"],
       ["packages/safe-js/dist/safe-fs.js", 'export { createS3HttpTransport, FsError, MemoryFileSystem } from "./shared.js";\n'],
@@ -696,7 +698,7 @@ test("pre-read archive refusal rejects file-kind and size before read or parser 
   }
 });
 
-for (const profile of ["packed-root", "checkout-root"]) test(`synthetic committed package passes consumers with ancestor Git isolation and hostile inherited startup settings${profile === "checkout-root" ? " using default checkout profile" : ""}`, { timeout: 180000 }, async () => {
+for (const [profile, localTypes] of [["packed-root", false], ["checkout-root", false], ["checkout-root", true]]) test(`synthetic committed package passes consumers with ancestor Git isolation and hostile inherited startup settings${localTypes ? " retaining legacy local declarations" : profile === "checkout-root" ? " using default checkout profile" : ""}`, { timeout: 180000 }, async () => {
   await withRepository(() => {}, async fixture => {
     fixture.git(["config", "--local", "core.hooksPath", join(fixture.directory, "owned-hooks")]);
     const before = readFileSync(join(fixture.repository, ".git/config"));
@@ -725,6 +727,9 @@ for (const profile of ["packed-root", "checkout-root"]) test(`synthetic committe
     assert.equal(report.peer.integrity, null);
     assert.equal(report.peer.tarballSha256, profile === "packed-root" ? digest(readFileSync(fixture.peerArtifact)) : null);
     assert.equal(report.peer.entries["poe-code/safe-fs"], "packages/safe-js/dist/safe-fs.js");
+    assert.equal(report.archivePaths.includes(`${packagePrefix}/src/fs/s3/http/types.ts`), localTypes);
+    assert.equal(report.package.files.includes("dist/fs/s3/http/types.d.ts"), localTypes);
+    assert.equal(report.typecheck.files.some(path => path.endsWith("/node_modules/virtual-bash/dist/fs/s3/http/types.d.ts")), localTypes);
     assert.equal(report.runtime.requests, 0);
     assert.equal(report.typecheck.sourceFallback, false);
     assert.deepEqual(report.typecheck.negativeDiagnosticCodes, [2322, 2345, 2741]);
@@ -744,6 +749,22 @@ for (const profile of ["packed-root", "checkout-root"]) test(`synthetic committe
     assert.ok(report.steps.every(step => step.cwd.startsWith(`${fixture.repository}/safe-bash-http-exports-`)), "the pack/build/install isolation control must run below the synthetic Git ancestor");
     assert.equal(existsSync(fixture.marker), false);
     assert.deepEqual(readFileSync(join(fixture.repository, ".git/config")), before);
+  }, { localTypes });
+});
+
+test("canonical public declarations cannot drop an exported HTTP type", { timeout: 180000 }, async () => {
+  await withRepository(fixture => {
+    fixture.put(`${packagePrefix}/src/fs/s3/http/index.ts`, 'export { createS3HttpTransport } from "poe-code/safe-fs";\nexport type { S3HttpCredentials, S3HttpCredentialProvider, S3HttpRequestFactory } from "poe-code/safe-fs";\n');
+  }, async fixture => {
+    const report = await verifyCommittedExports({ repository: fixture.repository });
+    assert.equal(report.status, "fail");
+    assert.equal(report.runtime.factoryIdentity, true);
+    assert.equal(report.runtime.requests, 0);
+    assert.match(report.error.message, /strict public TypeScript consumer/);
+    assert.match(report.error.message, /TS2305/);
+    assert.match(report.error.message, /S3HttpTransportOptions/);
+    assert.equal(report.steps.some(step => step.label === "strict invalid consumer controls"), false);
+    assert.equal(existsSync(fixture.marker), false);
   });
 });
 
@@ -777,6 +798,8 @@ test("registry peer requires its explicit artifact instead of selecting checkout
 for (const scenario of [
   { name: "copied bytes", anchor: '    copyRegularTree(join(snapshot, "dist"), join(packRoot, "dist"));', after: true, inject: 'writeFileSync(join(packRoot, "dist/fs/s3/index.js"), "export {};void 0;\\n");', blocked: "isolated lifecycle-free package archive" },
   { name: "packed membership", anchor: "    const packedFiles =", inject: 'packed.delete("package/dist/fs/s3/index.js");', blocked: "offline tarball install without lifecycles" },
+  { name: "packed public root declaration", anchor: "    const packedFiles =", inject: 'packed.delete("package/dist/index.d.ts");', blocked: "offline tarball install without lifecycles" },
+  { name: "packed public HTTP declaration", anchor: "    const packedFiles =", inject: 'packed.delete("package/dist/fs/s3/http/index.d.ts");', blocked: "offline tarball install without lifecycles" },
   { name: "installed membership", anchor: '    writeFileSync(join(consumer, "runtime.mjs"),', inject: 'writeFileSync(join(installedRoot, "dist/unbound.js"), "unbound");', blocked: "plain Node packed imports and guard controls" },
   { name: "post-runtime membership", anchor: "    const compilerOptions =", inject: 'writeFileSync(join(installedRoot, "dist/unbound.js"), "unbound");', blocked: "strict public TypeScript consumer" },
   { name: "post-types membership", anchor: "    report.typecheck =", inject: 'writeFileSync(join(installedRoot, "dist/unbound.js"), "unbound");', blocked: "strict invalid consumer controls" },

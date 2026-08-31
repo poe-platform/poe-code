@@ -43,6 +43,7 @@ type StringMethodName =
   | "substring"
   | "toLowerCase"
   | "toUpperCase"
+  | "toWellFormed"
   | "trim"
   | "trimEnd"
   | "trimStart";
@@ -75,6 +76,7 @@ const stringMethodNames = new Set<StringMethodName>([
   "substring",
   "toLowerCase",
   "toUpperCase",
+  "toWellFormed",
   "trim",
   "trimEnd",
   "trimStart"
@@ -102,7 +104,7 @@ export function getStringMember(
     sandbox: true,
     name: `String#${property}`,
     ...(property === "localeCompare" ? { length: 1 } : {}),
-    ...(property === "isWellFormed" ? { length: 0 } : {}),
+    ...(property === "isWellFormed" || property === "toWellFormed" ? { length: 0 } : {}),
     call: (args, context) =>
       callStringMethod(
         value,
@@ -161,6 +163,27 @@ export function callStringMethod(
       }
     }
     return true;
+  }
+
+  if (methodName === "toWellFormed") {
+    budget.allocateString(value);
+    let result = "";
+    let spanStart = 0;
+    for (let index = 0; index < value.length; index++) {
+      const codeUnit = value.charCodeAt(index);
+      if (codeUnit >= 0xd800 && codeUnit <= 0xdbff) {
+        const nextCodeUnit = value.charCodeAt(index + 1);
+        if (nextCodeUnit >= 0xdc00 && nextCodeUnit <= 0xdfff) {
+          index++;
+          continue;
+        }
+      } else if (codeUnit < 0xdc00 || codeUnit > 0xdfff) {
+        continue;
+      }
+      result += value.slice(spanStart, index) + "\ufffd";
+      spanStart = index + 1;
+    }
+    return budget.allocateString(result + value.slice(spanStart));
   }
 
   if (methodName === "replace" || methodName === "replaceAll") {

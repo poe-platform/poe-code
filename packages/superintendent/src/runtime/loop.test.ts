@@ -635,7 +635,7 @@ describe("runLoop", () => {
     });
   });
 
-  it("fires the builder failure callback, restores the last valid document, and halts the round", async () => {
+  it("fires the builder failure callback, saves the last valid document, and halts the round", async () => {
     const docPath = "/repo/docs/plans/feature.md";
     const original = createDocument({ withInspectors: false });
     const { fs, rawFs } = createFs({ [docPath]: original });
@@ -666,10 +666,19 @@ describe("runLoop", () => {
     expect(runInspectorMock).not.toHaveBeenCalled();
     expect(runSuperintendentMock).not.toHaveBeenCalled();
     expect(runOwnerReviewMock).not.toHaveBeenCalled();
-    expect((await rawFs.readFile(docPath, "utf8")).toString()).toBe(original);
+    expect((await rawFs.readFile(docPath, "utf8")).toString()).toContain("- [x] Task 1");
+    const backups = (await rawFs.readdir(path.dirname(docPath))).filter((name) =>
+      String(name).endsWith(".bak")
+    );
+    expect(backups).toHaveLength(1);
+    expect(
+      (
+        await rawFs.readFile(path.join(path.dirname(docPath), String(backups[0])), "utf8")
+      ).toString()
+    ).toBe(original);
   });
 
-  it("fires the inspector failure callback, restores the last valid document, and keeps builder changes", async () => {
+  it("fires the inspector failure callback and saves builder changes without overwriting the live document", async () => {
     const docPath = "/repo/docs/plans/feature.md";
     const { fs, rawFs } = createFs({ [docPath]: createDocument() });
     const onInspectorFailed = vi.fn();
@@ -713,7 +722,16 @@ describe("runLoop", () => {
 
     const finalDoc = await readDoc(rawFs, docPath);
     expect(finalDoc.body).toContain("- [x] Task 1");
-    expect(finalDoc.body).toContain("- [ ] Task 2");
+    expect(finalDoc.body).toContain("- [x] Task 2");
+    const backups = (await rawFs.readdir(path.dirname(docPath))).filter((name) =>
+      String(name).endsWith(".bak")
+    );
+    expect(backups).toHaveLength(1);
+    const snapshot = (
+      await rawFs.readFile(path.join(path.dirname(docPath), String(backups[0])), "utf8")
+    ).toString();
+    expect(snapshot).toContain("- [x] Task 1");
+    expect(snapshot).toContain("- [ ] Task 2");
     expect(finalDoc.frontmatter.status).toEqual({
       state: "in_progress",
       round: 1,

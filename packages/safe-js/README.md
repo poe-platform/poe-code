@@ -271,12 +271,20 @@ SafeJS implements a subset of ECMAScript methods. Arrays include the common iter
 
 **Numeric literals.** Numeric separators between digits are supported, including `1_000`, `.1_25e+2`, and `0xFF_FF`. A decimal digit immediately after `?.` makes it a conditional followed by a leading-dot literal: `enabled?.5:0` means `enabled ? .5 : 0`, not optional chaining. Likewise, `enabled?.1_25e+2:0` yields `12.5` when `enabled` is truthy and `0` otherwise. Prefer the spaced form for readability.
 
-**String well-formedness.** `text.isWellFormed()` returns whether the string contains no unpaired UTF-16 surrogate code units. Empty strings, ordinary text, and valid surrogate pairs return `true`; lone high or low surrogates return `false`. It takes no arguments; extra arguments are evaluated normally but ignored by the method. It does not repair or normalize text, and `toWellFormed()` is not supported.
+**String well-formedness.** `text.isWellFormed()` returns whether the string contains no unpaired UTF-16 surrogate code units. Empty strings, ordinary text, and valid surrogate pairs return `true`; lone high or low surrogates return `false`. It takes no arguments; extra arguments are evaluated normally but ignored by the method. It does not repair or normalize text.
 
 This script returns `[true, true, false]`:
 
 ```js
 return ["hello".isWellFormed(), "\uD83D\uDE00".isWellFormed(), "\uD800".isWellFormed()];
+```
+
+For repair, `text.toWellFormed()` returns a string with each lone high or low surrogate replaced by U+FFFD (`"\uFFFD"`). Valid surrogate pairs and all other code units are preserved, as is the UTF-16 length. It does not normalize text. It takes no arguments; extra arguments are evaluated normally but ignored by the method.
+
+This script returns `["hello", "\uD83D\uDE00", "\uFFFD"]`:
+
+```js
+return ["hello".toWellFormed(), "\uD83D\uDE00".toWellFormed(), "\uD800".toWellFormed()];
 ```
 
 Map and Set `forEach` permit structural mutation (released in 12.0.6): appended entries are visited, pending deleted entries are skipped, delete/re-add visits at the new insertion position, and clear removes pending visits. Map value updates are visible when reached; nested same-receiver `forEach` calls have independent traversals. Callback return values, including promises, are ignored rather than awaited, and nonterminating worklists remain subject to configured budgets. This changes `forEach`, not the eager arrays returned by `keys`/`values`/`entries`, direct `for...of` behavior, or opaque host-iterator serialization.

@@ -1495,7 +1495,7 @@ describe("createSuperintendentSimulation", () => {
     expect(finalTaskBoard.tasks).toEqual([{ text: "Task 1", done: true }]);
   });
 
-  it("surfaces builder failure, halts the round, and keeps the document in the last valid state", async () => {
+  it("surfaces builder failure, halts the round, and saves the pre-round document for recovery", async () => {
     const initialDoc = createDoc({ tasks: [false] });
 
     const simulation = createSuperintendentSimulation({
@@ -1536,10 +1536,14 @@ describe("createSuperintendentSimulation", () => {
     const finalDoc = await error!.readDoc!();
     const finalTaskBoard = parseTaskBoard(finalDoc.body);
 
-    expect(await error!.readFile!(docPath)).toBe(initialDoc);
+    const backups = (await error!.fs!.readdir("/repo/.poe-code/superintendent")).filter((name) =>
+      name.endsWith(".bak")
+    );
+    expect(backups).toHaveLength(1);
+    expect(await error!.readFile!(`.poe-code/superintendent/${backups[0]}`)).toBe(initialDoc);
     expect(finalDoc.frontmatter.status).toEqual({
       state: "in_progress",
-      round: 0,
+      round: 1,
       review_turn: 0
     });
     expect(finalTaskBoard).toMatchObject({

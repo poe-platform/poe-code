@@ -81,7 +81,7 @@ export function inspectCommittedCandidate(repository, revision, directory, execu
     files.set(path, bytes);
     return bytes;
   };
-  const reviewed = ["tsconfig.json", "tsconfig.build.json", "integration-boundaries.json", "scripts/integration-inputs.mjs", "scripts/typecheck-integration-inputs.mjs"];
+  const reviewed = ["tsconfig.json", "tsconfig.build.json", "integration-boundaries.json", "scripts/integration-inputs.mjs", "scripts/typecheck-integration-inputs.mjs", "scripts/build.mjs"];
   assert.ok(tree.has("scripts/guard-package-dist.mjs"), "missing committed root output guard");
   assert.deepEqual(readBlob("scripts/guard-package-dist.mjs"), readRegularInput(resolve(authority, "../.."), "scripts/guard-package-dist.mjs", 300000), "committed guard differs from reviewed verifier authority");
   for (const path of reviewed) assert.deepEqual(readBlob(`${packagePrefix}/${path}`, 300000), readRegularInput(authority, path, 300000, undefined, boundaries), `committed build input differs from reviewed authority: ${path}`);
@@ -96,7 +96,7 @@ export function inspectCommittedCandidate(repository, revision, directory, execu
   assert.deepEqual(manifest.files, ["dist"]);
   for (const key of ["dependencies", "optionalDependencies", "peerDependencies", "bundledDependencies", "bundleDependencies"]) assert.equal(Object.keys(manifest[key] ?? {}).length, 0, `runtime dependency: ${key}`);
   for (const key of ["prepare", "prepublish", "prepublishOnly", "prepack", "postpack", "preinstall", "install", "postinstall", "prebuild", "postbuild"]) assert.ok(!Object.hasOwn(manifest.scripts, key), `unapproved package lifecycle: ${key}`);
-  assert.equal(manifest.scripts.build, "node ../../scripts/guard-package-dist.mjs && node scripts/integration-inputs.mjs && tsc -p tsconfig.build.json", "unreviewed committed build command");
+  assert.equal(manifest.scripts.build, "node ../../scripts/guard-package-dist.mjs && node scripts/integration-inputs.mjs && node scripts/build.mjs", "unreviewed committed build command");
   assert.equal(rootManifest.name, "poe-code");
   assert.ok(rootManifest.workspaces.includes("packages/*"), "workspace package prefix missing");
   for (const [path, conditions] of Object.entries(manifest.exports)) {

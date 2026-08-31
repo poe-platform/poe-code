@@ -181,7 +181,6 @@ describe("runMaestroTui", () => {
         "    terminal: true"
       ])
     });
-
     await runMaestroTui({ workflowPath: "/repo/WORKFLOW.md" });
 
     expect(openTaskListMock).toHaveBeenCalledWith({
@@ -216,7 +215,6 @@ describe("runMaestroTui", () => {
         "    terminal: true"
       ])
     });
-
     try {
       await runMaestroTui({ name: "bugs" });
 
@@ -243,7 +241,6 @@ describe("runMaestroTui", () => {
         "    terminal: true"
       ])
     });
-
     try {
       await runMaestroTui({ name: "default" });
 
@@ -255,7 +252,6 @@ describe("runMaestroTui", () => {
   });
 
   it("rejects both a workflow path and a workflow name", async () => {
-
     await expect(
       runMaestroTui({ workflowPath: "/repo/WORKFLOW.md", name: "bugs" })
     ).rejects.toThrow("Cannot specify both workflowPath and name for Maestro.");
@@ -277,7 +273,6 @@ describe("runMaestroTui", () => {
     vol.fromJSON({
       "/repo/WORKFLOW.md": workflowFrontmatter(["states:", "  planned:", "    prompt: Start."])
     });
-
     await expect(runMaestroTui({ workflowPath: "/repo/WORKFLOW.md" })).rejects.toThrow(
       "Maestro workflow is missing tasks config."
     );

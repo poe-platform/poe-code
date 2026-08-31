@@ -83,6 +83,73 @@ test("rg matching binding admits owned immutable identity, not behavioral qualif
   assert.equal(setup.calls.length, 1);
 });
 
+test("rg vendor profiles select exact bytes while retaining the original binding", async () => {
+  for (const vendorFirst of [false, true]) {
+    const setup = await admission();
+    const vendorBytes = Buffer.alloc(executable.length, 118);
+    const vendor = { ...setup.selected, id: "synthetic-vendor", executable: { ...setup.selected.executable, sha256: digest(vendorBytes) } };
+    const admit = (await tools()).createRgAdmitter({ ...setup.dependencies, profiles: () => vendorFirst ? [vendor, setup.selected] : [setup.selected, vendor] });
+    assert.equal(admit("/job/bin/rg").profileId, "synthetic-rg");
+    setup.fileSystem.writeFileSync("/job/bin/rg", vendorBytes);
+    assert.equal(admit("/job/bin/rg").profileId, "synthetic-vendor");
+    assert.equal(setup.calls.length, 2);
+  }
+});
+
+test("rg vendor profiles reject an unknown same-sized hash before execution", async () => {
+  const setup = await admission();
+  const vendor = { ...setup.selected, id: "synthetic-vendor", executable: { ...setup.selected.executable, sha256: digest(Buffer.alloc(executable.length, 118)) } };
+  setup.fileSystem.writeFileSync("/job/bin/rg", Buffer.alloc(executable.length, 119));
+  const admit = (await tools()).createRgAdmitter({ ...setup.dependencies, profiles: () => [setup.selected, vendor] });
+  assert.throws(() => admit("/job/bin/rg"), /SHA-256 mismatch/u);
+  assert.equal(setup.calls.length, 0);
+});
+
+test("rg vendor profiles refuse duplicate exact identities before execution", async () => {
+  const setup = await admission();
+  const admit = (await tools()).createRgAdmitter({ ...setup.dependencies, profiles: () => [setup.selected, { ...setup.selected, id: "duplicate" }] });
+  assert.throws(() => admit("/job/bin/rg"), /ambiguous/u);
+  assert.equal(setup.calls.length, 0);
+});
+
+test("rg vendor profile wrong version fails after exact hash admission", async () => {
+  const setup = await admission();
+  let executions = 0;
+  const other = { ...setup.selected, id: "other-vendor", executable: { ...setup.selected.executable, sha256: digest(Buffer.alloc(executable.length, 118)) } };
+  const admit = (await tools()).createRgAdmitter({ ...setup.dependencies, profiles: () => [other, setup.selected], version: () => {
+    executions++;
+    return { status: 0, signal: null, stdout: "ripgrep 15.2.1\n" };
+  } });
+  assert.throws(() => admit("/job/bin/rg"), /version mismatch/u);
+  assert.equal(executions, 1);
+});
+
+test("rg vendor profile cached admission still refuses subsequent byte tampering", async () => {
+  const setup = await admission();
+  const other = { ...setup.selected, id: "other-vendor", executable: { ...setup.selected.executable, sha256: digest(Buffer.alloc(executable.length, 118)) } };
+  const admit = (await tools()).createRgAdmitter({ ...setup.dependencies, profiles: () => [setup.selected, other] });
+  admit("/job/bin/rg");
+  setup.fileSystem.writeFileSync("/job/bin/rg", Buffer.alloc(executable.length, 119));
+  assert.throws(() => admit("/job/bin/rg"), /SHA-256 mismatch/u);
+  assert.equal(setup.calls.length, 1);
+});
+
+test("rg vendor metadata adds the exact official artifact without replacing historical profiles", async () => {
+  const profiles = (await tools()).loadRgProfiles();
+  assert.equal(profiles.length, 3);
+  const vendor = profiles.find(entry => entry.id === "ripgrep-15.2.0-darwin-arm64-codex-0.151.0")!;
+  assert.equal(vendor.executable.sha256, "345c4e819ed4a17806cec23fc0b54592731ccc265052d2bac6c400e2d24ba728");
+  assert.equal(vendor.executable.size, 4030432);
+  assert.equal(vendor.qualification.status, "PENDING_VENDOR_ARTIFACT_QUALIFICATION");
+  assert(profiles.some(entry => entry.executable.sha256 === "5d24e1af7efa7811e03df5555eeaa984bc8bd98ab42a5d49ecf30f163273e6c7"));
+  assert(profiles.some(entry => entry.executable.sha256 === "e62198eb19b136b88c330af83647b5a962cb99b6b1f066758568f12de1974849"));
+  const metadata = JSON.parse(readFileSync(new URL("./native-tool-profile.darwin-arm64-codex-0.151.0.json", import.meta.url), "utf8")) as { provenance: Record<string, unknown> };
+  assert.equal(metadata.provenance.packageVersion, "0.151.0-darwin-arm64");
+  assert.equal(metadata.provenance.archiveIntegrity, "sha512-g7YzpaCZGCw19R/gly3vRPjnLqaW7JcBAu2WQQ6e8PIlvBPmS/gMplIUURMgNO6gi8LsPzdlQtLqkwoeOOlIdg==");
+  assert.equal(metadata.provenance.member, "package/vendor/aarch64-apple-darwin/codex-path/rg");
+  assert.equal(metadata.provenance.reportedSourceCommit, "78c290807ce710180111df227df3b7a4fe845452");
+});
+
 test("rg required unset empty relative and missing bindings fail without fallback", async () => {
   const setup = await admission();
   for (const path of [undefined, "", "rg", "/missing/rg"]) assert.throws(() => setup.admit(path));

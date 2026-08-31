@@ -78,7 +78,7 @@ function boundedRegularBytes(fileSystem: typeof fs, path: string, size: number):
 }
 
 export function loadRgProfiles(): readonly RgProfile[] {
-  return ["./native-tool-profile.json", "./native-tool-profile.darwin-arm64.json"].map(name => {
+  return ["./native-tool-profile.json", "./native-tool-profile.darwin-arm64.json", "./native-tool-profile.darwin-arm64-codex-0.151.0.json"].map(name => {
     const path = fileURLToPath(new URL(name, import.meta.url));
     const size = Number(fs.lstatSync(path).size);
     assert(Number.isSafeInteger(size) && size > 0 && size <= 16384, "rg metadata exceeds bound");
@@ -101,22 +101,24 @@ export function createRgAdmitter(dependencies: AdmissionDependencies): (path: st
   return path => {
     const host = dependencies.host();
     const candidates = dependencies.profiles().filter(profile => profile.platform === host.platform && profile.arch === host.arch);
-    assert.equal(candidates.length, 1, `required rg profile missing or ambiguous for ${host.platform}/${host.arch}; generic comparisons cannot be skipped`);
-    const selected = candidates[0]!;
-    assert(!Object.hasOwn(selected, "release") && !Object.hasOwn(selected, "host"), "new rg host constraints require explicit review");
-    const profile = {
-      id: selected.id, version: selected.version, platform: selected.platform, arch: selected.arch,
-      size: selected.executable.size, sha256: selected.executable.sha256, mode: selected.executable.mode,
-      qualificationStatus: selected.qualification.status, versionPrefix: selected.qualification.expectedVersionPrefix,
-    };
-    for (const value of [profile.id, profile.version, profile.qualificationStatus, profile.versionPrefix]) assert(typeof value === "string" && value.length > 0 && !value.includes("\0"));
-    assert.equal(profile.version, "15.2.0");
-    assert.equal(profile.versionPrefix, "ripgrep 15.2.0");
-    assert.equal(profile.mode, "0755");
-    assert(Number.isSafeInteger(profile.size) && profile.size > 0 && profile.size <= 16 * 1024 * 1024);
-    assert.match(profile.sha256, /^[a-f0-9]{64}$/u);
-    const matching = matchNativeProfile({ id: profile.id, evidence: "explicit authenticated test-only rg binding metadata", host: { platform: profile.platform, arch: profile.arch } }, host);
-    assert.equal(matching.status, "MATCHING", "required generic rg host does not match; no unavailability waiver");
+    assert(candidates.length > 0, `required rg profile missing for ${host.platform}/${host.arch}; generic comparisons cannot be skipped`);
+    const profiles = candidates.map(selected => {
+      assert(!Object.hasOwn(selected, "release") && !Object.hasOwn(selected, "host"), "new rg host constraints require explicit review");
+      const profile = {
+        id: selected.id, version: selected.version, platform: selected.platform, arch: selected.arch,
+        size: selected.executable.size, sha256: selected.executable.sha256, mode: selected.executable.mode,
+        qualificationStatus: selected.qualification.status, versionPrefix: selected.qualification.expectedVersionPrefix,
+      };
+      for (const value of [profile.id, profile.version, profile.qualificationStatus, profile.versionPrefix]) assert(typeof value === "string" && value.length > 0 && !value.includes("\0"));
+      assert.equal(profile.version, "15.2.0");
+      assert.equal(profile.versionPrefix, "ripgrep 15.2.0");
+      assert.equal(profile.mode, "0755");
+      assert(Number.isSafeInteger(profile.size) && profile.size > 0 && profile.size <= 16 * 1024 * 1024);
+      assert.match(profile.sha256, /^[a-f0-9]{64}$/u);
+      const matching = matchNativeProfile({ id: profile.id, evidence: "explicit authenticated test-only rg binding metadata", host: { platform: profile.platform, arch: profile.arch } }, host);
+      assert.equal(matching.status, "MATCHING", "required generic rg host does not match; no unavailability waiver");
+      return profile;
+    });
     assert(typeof path === "string" && path.length > 0 && isAbsolute(path) && resolve(path) === path && !path.includes("\0"), "SAFE_BASH_TEST_RG must name a nonempty canonical absolute executable; no PATH fallback");
     const fileSystem = dependencies.fileSystem;
     assert(!path.includes(":") && basename(path) === "rg", "required rg path must preserve the literal rg basename without PATH delimiters");
@@ -130,10 +132,15 @@ export function createRgAdmitter(dependencies: AdmissionDependencies): (path: st
     assert(before.isFile() && !before.isSymbolicLink());
     assert.equal(fileSystem.realpathSync(path), path);
     assert.equal(before.mode & 0o7777n, 0o755n, "required rg executable mode mismatch");
-    assert.equal(before.size, BigInt(profile.size), "required rg executable size mismatch");
+    const sized = profiles.filter(profile => before.size === BigInt(profile.size));
+    assert(sized.length > 0, "required rg executable size mismatch");
+    const bytes = boundedRegularBytes(fileSystem, path, sized[0]!.size);
+    const sha256 = createHash("sha256").update(bytes).digest("hex");
+    const matchingProfiles = sized.filter(profile => profile.sha256 === sha256);
+    assert(matchingProfiles.length > 0, "required rg executable SHA-256 mismatch");
+    assert.equal(matchingProfiles.length, 1, "required rg executable profile identity is ambiguous");
+    const profile = matchingProfiles[0]!;
     const key = JSON.stringify([profile, path, fingerprint(before)]);
-    const bytes = boundedRegularBytes(fileSystem, path, profile.size);
-    assert.equal(createHash("sha256").update(bytes).digest("hex"), profile.sha256, "required rg executable SHA-256 mismatch");
     if (cached?.key === key) return cached.identity;
     const scratch = dependencies.scratchRoot?.() ?? directory;
     const result = dependencies.version(path, {

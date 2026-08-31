@@ -24,8 +24,8 @@
   },
   "scripts": {
     "build": "node ../../scripts/guard-package-dist.mjs && tsc && node scripts/copy-templates.mjs",
-    "test": "cd ../.. && vitest run $(rg --files packages/superintendent/src -g '*.test.ts' | sort | tr '\n' ' ')",
-    "test:unit": "cd ../.. && vitest run $(rg --files packages/superintendent/src -g '*.test.ts' | sort | tr '\n' ' ')"
+    "test": "cd ../.. && vitest run packages/superintendent/src/",
+    "test:unit": "cd ../.. && vitest run packages/superintendent/src/"
   },
   "files": [
     "dist"

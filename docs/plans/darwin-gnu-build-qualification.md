@@ -104,3 +104,23 @@ Automatic release `33398507670` failed its ordinary tests; schema
 unchanged at that checkpoint. Native caller rollout, timing-fixture repairs,
 camera optimization and od fixes are separate work; this build job does not
 claim those release failures resolved.
+
+## First hosted build and tar linkage correction
+
+Run `33406202546` used the reviewed hosted image and Apple identities. Source
+and signature authentication and tar configuration passed. Configuration
+identified working system iconv and `-liconv`, but tar's link failed on
+`_iconv` and `_iconv_open`. Preserve the failed 54-member artifact and its raw
+logs; no GNU executable was produced or admitted.
+
+The bounded correction adds `LIBS=-liconv` only to the Darwin tar 1.35
+configure arguments. Linux, diffutils, patch and both coreutils recipes keep
+their existing argument lists. Source/signature/version pins, compiler flags,
+conversion behavior and profile admission do not change. There is no upstream
+source patch or global library installation.
+
+The added argument regression first failed specifically on the absent
+`LIBS=-liconv` while the original 20 tests passed. It checks complete configure
+argument arrays for all four Darwin sources and the existing Linux build.
+Actual corrected hosted compilation and subsequent semantic calibration
+remain required; unit argument tests are not proof of successful linkage.

@@ -142,8 +142,8 @@ export function createSupervisor(options: SupervisorOptions): Supervisor {
       activeReadyController = new AbortController();
     }
 
-    const stdoutPump = pipeOutput(nextHandle.stdout, "stdout", logWriter.write, logSource);
-    const stderrPump = pipeOutput(nextHandle.stderr, "stderr", logWriter.write, logSource);
+    const stdoutPump = pipeOutput(nextHandle.stdout, "stdout", logWriter.write, logSource, reportError);
+    const stderrPump = pipeOutput(nextHandle.stderr, "stderr", logWriter.write, logSource, reportError);
     const outputSettled = Promise.all([stdoutPump, stderrPump]).then(() => undefined);
     const readiness = spec.readyCheck === undefined ? null : readyChecker(resolveReadyCheck(spec.readyCheck, spec), {
       onLog: logSource,
@@ -540,7 +540,8 @@ function pipeOutput(
   stream: NodeJS.ReadableStream | null,
   output: "stdout" | "stderr",
   write: (line: string, stream: "stdout" | "stderr") => Promise<void>,
-  logSource: SubscribableLog
+  logSource: SubscribableLog,
+  reportError: (error: unknown) => void
 ): Promise<void> {
   if (stream === null) {
     return Promise.resolve();
@@ -567,7 +568,7 @@ function pipeOutput(
           const line = normalizeLogLine(rawLine);
           logSource(line, output);
           await write(line, output);
-        });
+        }).catch(reportError);
       }
 
       if (remainder.length > 0) {
@@ -580,7 +581,7 @@ function pipeOutput(
         writes = writes.then(async () => {
           logSource(finalLine, output);
           await write(finalLine, output);
-        });
+        }).catch(reportError);
       }
 
       void writes.then(() => {

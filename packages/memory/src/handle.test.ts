@@ -1,4 +1,4 @@
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import { beforeAll, beforeEach, describe, expect, it, vi } from "vitest";
 import { vol } from "memfs";
 
 vi.mock("node:fs/promises", async () => {
@@ -7,6 +7,10 @@ vi.mock("node:fs/promises", async () => {
 });
 
 describe("openMemory", () => {
+  beforeAll(async () => {
+    await import("./handle.js");
+  });
+
   beforeEach(() => {
     vol.reset();
     vi.restoreAllMocks();
@@ -191,11 +195,9 @@ describe("openMemory", () => {
       source: { kind: "file", absPath: "/repo/docs/a.md" },
       reason: "capture docs"
     });
-    expect(audit.auditClaims).toHaveBeenCalledWith(
-      "/repo/.poe-code/memory",
-      "/repo",
-      { rejectUntagged: true }
-    );
+    expect(audit.auditClaims).toHaveBeenCalledWith("/repo/.poe-code/memory", "/repo", {
+      rejectUntagged: true
+    });
   });
 
   it("isolates writes and reads across two handles with different roots", async () => {

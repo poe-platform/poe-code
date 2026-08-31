@@ -121,6 +121,9 @@ export default defineConfig({
     alias: getPackageAliases()
   },
   test: {
+    ...(process.env.CI && process.env.CI !== "false" && process.env.CI !== "0"
+      ? { reporters: ["dot"], silent: "passed-only" as const }
+      : {}),
     globals: true,
     environment: "node",
     pool: "threads",

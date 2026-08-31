@@ -4,6 +4,7 @@ import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import { discoverTests, loadBoundaries } from "./integration-inputs.mjs";
+import { reporterArguments } from "./test-reporting.mjs";
 
 export function selectNativeTests(files, lane = "all", platform = process.platform) {
   assert(["all", "linux", "darwin"].includes(lane), "unknown native test lane");
@@ -32,5 +33,6 @@ export function runTests(root, args, spawn = spawnSync, fileSystem, lane = "all"
 }
 
 if (process.argv[1] && resolve(process.argv[1]) === fileURLToPath(import.meta.url)) {
-  process.exitCode = runTests(fileURLToPath(new URL("../", import.meta.url)), process.argv.slice(2), spawnSync, undefined, process.env.SAFE_BASH_NATIVE_LANE ?? "all");
+  const args = process.argv.slice(2);
+  process.exitCode = runTests(fileURLToPath(new URL("../", import.meta.url)), [...reporterArguments(args), ...args], spawnSync, undefined, process.env.SAFE_BASH_NATIVE_LANE ?? "all");
 }

@@ -128,7 +128,7 @@ export function createSupervisor(options: SupervisorOptions): Supervisor {
 
     let nextHandle: RunHandle;
     try {
-      nextHandle = runner.exec(createRunSpec(spec, workspace.cwd));
+      nextHandle = runner.exec(createRunSpec(spec, runner, workspace.cwd));
     } catch (error) {
       await cleanupWorkspace();
       throw error;
@@ -404,12 +404,20 @@ function createInitialState(spec: SupervisorOptions["spec"], runner: Runner): Pr
   };
 }
 
-function createRunSpec(spec: SupervisorOptions["spec"], cwdOverride?: string): RunSpec {
+function createRunSpec(spec: SupervisorOptions["spec"], runner: Runner, cwdOverride?: string): RunSpec {
+  let env = spec.env;
+  if (runner.name === "host" && env !== undefined) {
+    const inherited = Object.fromEntries(
+      Object.entries(process.env).filter((entry): entry is [string, string] => entry[1] !== undefined)
+    );
+    env = { ...inherited, ...env };
+  }
+
   return {
     command: spec.command,
     args: spec.args,
     cwd: cwdOverride ?? spec.cwd,
-    env: spec.env,
+    env,
     stderr: "pipe",
     stdout: "pipe"
   };

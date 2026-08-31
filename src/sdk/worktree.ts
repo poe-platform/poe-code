@@ -160,6 +160,7 @@ export async function runInWorktree<T>(
         ...(agentInput.resumeThreadId
           ? { resumeThreadId: agentInput.resumeThreadId }
           : {}),
+        ...(agentInput.signal ? { signal: agentInput.signal } : {}),
         worktree: false
       });
       return result;
@@ -321,6 +322,7 @@ export async function reconcileManagedWorktree(
         cwd: agentInput.sourceCwd,
         prompt: agentInput.prompt,
         ...(agentInput.resumeThreadId ? { resumeThreadId: agentInput.resumeThreadId } : {}),
+        ...(agentInput.signal ? { signal: agentInput.signal } : {}),
         worktree: false
       });
     }

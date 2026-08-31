@@ -17,6 +17,7 @@ on:
           - none
           - darwin-native-metadata
           - darwin-gnu-build
+          - linux-native-diagnostic
 concurrency:
   group: release-${{ github.ref }}
   cancel-in-progress: false
@@ -74,7 +75,7 @@ jobs:
           GH_TOKEN: ${{ steps.app_token.outputs.token }}
           HUSKY: "0"
         run: npx semantic-release
-    if: ${{ github.event_name != 'workflow_dispatch' || (inputs.qualification != 'darwin-native-metadata' && inputs.qualification != 'darwin-gnu-build') }}
+    if: ${{ github.event_name != 'workflow_dispatch' || (inputs.qualification != 'darwin-native-metadata' && inputs.qualification != 'darwin-gnu-build' && inputs.qualification != 'linux-native-diagnostic') }}
   darwin-native-metadata:
     if: ${{ github.event_name == 'workflow_dispatch' && inputs.qualification == 'darwin-native-metadata' }}
     runs-on: macos-26
@@ -266,3 +267,191 @@ jobs:
           include-hidden-files: false
           overwrite: false
           compression-level: 0
+
+  linux-native-diagnostic:
+    if: ${{ github.event_name == 'workflow_dispatch' && inputs.qualification == 'linux-native-diagnostic' }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.sha }}
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22.22.2
+      - name: Guard source and collect read-only Linux observations
+        id: diagnostic
+        shell: bash
+        run: |
+          set -euo pipefail
+          umask 077
+          [[ "$GITHUB_REPOSITORY" = "poe-platform/poe-code" && "$GITHUB_REF" = "refs/heads/main" && "$GITHUB_EVENT_NAME" = "workflow_dispatch" ]]
+          [[ "$(git rev-parse HEAD)" = "$GITHUB_SHA" ]]
+          root="${RUNNER_TEMP:?}/poe-native-diagnostic"
+          mkdir -m 700 "$root" "$root/evidence" "$root/home" "$root/tmp" "$root/npm-cache"
+          printf 'root=%s\n' "$root" >> "$GITHUB_OUTPUT"
+          node --input-type=module <<'METADATA'
+          import fs from 'node:fs';
+          import os from 'node:os';
+          import path from 'node:path';
+          import assert from 'node:assert/strict';
+          import { createHash } from 'node:crypto';
+          import { spawnSync } from 'node:child_process';
+          const root = path.join(process.env.RUNNER_TEMP, 'poe-native-diagnostic', 'evidence');
+          const execute = (command, args) => {
+            const result = spawnSync(command, args, { encoding: 'utf8', shell: false, timeout: 10000, killSignal: 'SIGKILL', maxBuffer: 1024 * 1024, env: { PATH: '/usr/bin:/bin', HOME: path.dirname(root) + '/home', LANG: 'C', LC_ALL: 'C' } });
+            return { command, args, status: result.status, signal: result.signal, error: result.error?.message, stdout: result.stdout, stderr: result.stderr };
+          };
+          const read = file => { try { return fs.readFileSync(file, 'utf8'); } catch (error) { return { unavailable: error.code }; } };
+          const sha = file => createHash('sha256').update(fs.readFileSync(file)).digest('hex');
+          assert.equal(process.platform, 'linux');
+          assert.equal(process.arch, 'x64');
+          assert(process.version.startsWith('v22.'));
+          const files = ['scripts/lint-eslint.test.ts', 'scripts/lint-input-guard.mjs', 'vitest.config.ts', 'package-lock.json'];
+          const source = Object.fromEntries(files.map(file => [file, sha(file)]));
+          assert.equal(source['scripts/lint-eslint.test.ts'], '534538808adb6641fb7ae821e97972c11fc5e55e52d376b4e4de191022e751d1');
+          assert.equal(source['scripts/lint-input-guard.mjs'], 'b8d773efdb987b08b93e81dc5d31bec1cebb443f7029715a0cb130734a5ca286');
+          fs.writeFileSync(path.join(root, 'source-before.json'), JSON.stringify(source, null, 2));
+          const observations = { purpose: 'DIAGNOSTIC_NOT_RELEASE_ACCEPTANCE', sha: process.env.GITHUB_SHA, node: process.version, arch: process.arch, parallelism: os.availableParallelism(), os: read('/etc/os-release'), cpuMax: read('/sys/fs/cgroup/cpu.max'), cpuStat: read('/sys/fs/cgroup/cpu.stat'), git: [] };
+          for (const [command, args] of [
+            ['/usr/bin/git', ['--version']], ['/usr/bin/git', ['--exec-path']],
+            ['/usr/bin/dpkg-query', ['-S', '/usr/bin/git']],
+            ['/usr/bin/dpkg-query', ['-W', '-f=${Package} ${Version} ${Architecture} ${Source}\n', 'git', 'git-man', 'ubuntu-keyring']],
+            ['/usr/bin/apt-cache', ['policy', 'git']], ['/usr/bin/apt-cache', ['show', 'git']],
+          ]) observations.git.push(execute(command, args));
+          try {
+            const canonical = fs.realpathSync('/usr/bin/git'), stat = fs.lstatSync('/usr/bin/git');
+            const execution = execute('/usr/bin/git', ['--exec-path']);
+            const execPath = execution.status === 0 ? execution.stdout.trim() : null;
+            const core = execPath ? fs.lstatSync(execPath) : null;
+            observations.gitIdentity = { path: '/usr/bin/git', canonical, regular: stat.isFile(), symlink: stat.isSymbolicLink(), size: stat.size, mode: stat.mode & 511, sha256: sha(canonical), execPath, canonicalExecPath: execPath ? fs.realpathSync(execPath) : null, execPathDirectory: core?.isDirectory(), execPathSymlink: core?.isSymbolicLink(), status: 'OBSERVATION_NOT_ADMISSION' };
+          } catch (error) { observations.gitIdentity = { unavailable: error.code }; }
+          const authorities = [
+            '/var/lib/apt/lists/archive.ubuntu.com_ubuntu_dists_noble_InRelease',
+            '/var/lib/apt/lists/archive.ubuntu.com_ubuntu_dists_noble-updates_InRelease',
+            '/var/lib/apt/lists/security.ubuntu.com_ubuntu_dists_noble-security_InRelease',
+          ];
+          observations.distributionSignatures = authorities.map(file => {
+            if (!fs.existsSync(file)) return { file, unavailable: true };
+            const stat = fs.lstatSync(file); assert(stat.isFile() && !stat.isSymbolicLink() && stat.size <= 1024 * 1024);
+            fs.copyFileSync(file, path.join(root, path.basename(file)));
+            const signature = execute('/usr/bin/gpgv', ['--status-fd', '1', '--keyring', '/usr/share/keyrings/ubuntu-archive-keyring.gpg', file]);
+            const prefix = file.slice(0, -'InRelease'.length) + 'main_binary-amd64_Packages';
+            const indexPath = [prefix, prefix + '.lz4'].find(candidate => fs.existsSync(candidate));
+            if (!indexPath) return { signature, indexUnavailable: true };
+            const indexStat = fs.lstatSync(indexPath);
+            assert(indexStat.isFile() && !indexStat.isSymbolicLink() && indexStat.size <= 16 * 1024 * 1024);
+            const result = spawnSync('/usr/lib/apt/apt-helper', ['cat-file', indexPath], { shell: false, timeout: 10000, killSignal: 'SIGKILL', maxBuffer: 16 * 1024 * 1024, env: { PATH: '/usr/bin:/bin', LANG: 'C', LC_ALL: 'C' } });
+            if (result.error || result.status !== 0 || result.signal !== null) return { signature, indexError: result.error?.message, status: result.status, signal: result.signal };
+            const section = fs.readFileSync(file, 'utf8').split('SHA256:\n')[1];
+            const entry = section?.split('\n').find(line => line.trim().endsWith(' main/binary-amd64/Packages'))?.trim().split(' ').filter(Boolean);
+            const indexSha256 = createHash('sha256').update(result.stdout).digest('hex');
+            const signedIndexMatches = signature.status === 0 && signature.stdout.includes('[GNUPG:] VALIDSIG F6ECB3762474EDA9D21B7022871920D1991BC93C ') && entry?.[0] === indexSha256 && Number(entry?.[1]) === result.stdout.length;
+            const records = result.stdout.toString().split('\n\n').filter(record => record.startsWith('Package: git\n'));
+            fs.writeFileSync(path.join(root, path.basename(prefix)), result.stdout);
+            return { signature, indexPath, indexSha256, indexSize: result.stdout.length, signedIndexMatches, records, status: 'DISTRIBUTION_RECORD_ONLY_NOT_INSTALLED_BINARY_ADMISSION' };
+          });
+          fs.writeFileSync(path.join(root, 'context-before.json'), JSON.stringify(observations, null, 2));
+          console.log(JSON.stringify({ sha: observations.sha, node: observations.node, git: observations.gitIdentity, scope: observations.purpose }));
+          METADATA
+      - name: Install the unchanged locked dependency graph
+        env:
+          HOME: ${{ runner.temp }}/poe-native-diagnostic/home
+          TMPDIR: ${{ runner.temp }}/poe-native-diagnostic/tmp
+          NPM_CONFIG_PREFIX: ${{ github.workspace }}
+          NPM_CONFIG_CACHE: ${{ runner.temp }}/poe-native-diagnostic/npm-cache
+        run: npm clean-install --prefix "$GITHUB_WORKSPACE"
+      - name: Profile the two unchanged configured fixture bodies
+        shell: bash
+        env:
+          HOME: ${{ runner.temp }}/poe-native-diagnostic/home
+          TMPDIR: ${{ runner.temp }}/poe-native-diagnostic/tmp
+        run: |
+          set -euo pipefail
+          umask 077
+          root="${RUNNER_TEMP:?}/poe-native-diagnostic"
+          titles=(
+            'captures the actual metadata cap in inventory phase and clears a fresh initialization'
+            'completes an owned mixed traversal under the authorized eight-million metadata cap'
+          )
+          index=0
+          failed=0
+          for title in "${titles[@]}"; do
+            index=$((index + 1))
+            output="$root/evidence/case-$index"
+            mkdir -m 700 "$output"
+            printf '%s\n' "$title" > "$output/title.txt"
+            set +e
+            timeout --signal=TERM --kill-after=10s 300s node --cpu-prof --cpu-prof-dir="$output" \
+              node_modules/vitest/vitest.mjs run scripts/lint-eslint.test.ts -t "$title" \
+              --reporter=json --outputFile="$output/result.json" > "$output/stdout.log" 2> "$output/stderr.log"
+            code=$?
+            set -e
+            printf '%s\n' "$code" > "$output/exit-code.txt"
+            if [[ "$code" -ne 0 ]]; then failed=1; fi
+            printf 'Diagnostic case %s exit %s; not an ordinary release gate\n' "$index" "$code"
+          done
+          printf '%s\n' "$failed" > "$root/evidence/selected-tests-failed.txt"
+          exit "$failed"
+      - name: Seal source conservation and actual worker profiles
+        if: ${{ always() }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          node --input-type=module <<'SEAL'
+          import fs from 'node:fs';
+          import path from 'node:path';
+          import assert from 'node:assert/strict';
+          import { createHash } from 'node:crypto';
+          const root = path.join(process.env.RUNNER_TEMP, 'poe-native-diagnostic', 'evidence');
+          const hash = bytes => createHash('sha256').update(bytes).digest('hex');
+          const before = JSON.parse(fs.readFileSync(path.join(root, 'source-before.json'), 'utf8'));
+          const after = Object.fromEntries(Object.keys(before).map(file => [file, hash(fs.readFileSync(file))]));
+          const sourceUnchanged = Object.keys(before).every(file => before[file] === after[file]);
+          const resource = {};
+          for (const file of ['/sys/fs/cgroup/cpu.max', '/sys/fs/cgroup/cpu.stat']) {
+            try { resource[file] = fs.readFileSync(file, 'utf8'); } catch (error) { resource[file] = { unavailable: error.code }; }
+          }
+          fs.writeFileSync(path.join(root, 'source-after.json'), JSON.stringify(after, null, 2));
+          fs.writeFileSync(path.join(root, 'context-after.json'), JSON.stringify(resource, null, 2));
+          let size = 0;
+          const files = [], frames = [];
+          function visit(directory) {
+            for (const name of fs.readdirSync(directory)) {
+              const file = path.join(directory, name), stat = fs.lstatSync(file);
+              assert(!stat.isSymbolicLink(), 'artifact symlink refused');
+              if (stat.isDirectory()) { visit(file); continue; }
+              assert(stat.isFile() && stat.size <= 32 * 1024 * 1024);
+              assert(['.json', '.log', '.txt', '.cpuprofile'].includes(path.extname(name)) || name.endsWith('_InRelease') || name.endsWith('_Packages'));
+              size += stat.size; assert(size <= 127 * 1024 * 1024 && files.length < 127);
+              const bytes = fs.readFileSync(file);
+              files.push({ path: path.relative(root, file), size: stat.size, sha256: hash(bytes) });
+              if (name.endsWith('.cpuprofile')) {
+                const profile = JSON.parse(bytes.toString());
+                const matches = profile.nodes.filter(node => ['scripts/lint-eslint.test.ts', 'scripts/lint-input-guard.mjs'].some(suffix => node.callFrame.url.endsWith(suffix)));
+                frames.push({ path: path.relative(root, file), matchingFrames: matches.map(node => node.callFrame), samples: profile.samples?.length ?? 0 });
+              }
+            }
+          }
+          visit(root);
+          const manifest = JSON.stringify({ sha: process.env.GITHUB_SHA, size, files, frames, sourceUnchanged, scope: 'SELECTED_DIAGNOSTIC_NOT_RELEASE_GATE' }, null, 2);
+          assert(Buffer.byteLength(manifest) <= 1024 * 1024);
+          fs.writeFileSync(path.join(root, 'manifest.json'), manifest);
+          fs.appendFileSync(process.env.GITHUB_OUTPUT, 'bounded=true\n');
+          assert(sourceUnchanged, 'diagnostic source changed');
+          assert(frames.some(profile => profile.matchingFrames.some(frame => frame.url.endsWith('scripts/lint-input-guard.mjs'))), 'no actual guard worker profile; coordinator profile is insufficient');
+          assert(frames.some(profile => profile.matchingFrames.some(frame => frame.url.endsWith('scripts/lint-eslint.test.ts'))), 'no actual test worker profile');
+          SEAL
+        id: seal
+      - name: Retain bounded diagnostic evidence
+        if: ${{ always() && steps.seal.outputs.bounded == 'true' }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: linux-native-diagnostic-${{ github.run_id }}
+          path: ${{ runner.temp }}/poe-native-diagnostic/evidence
+          if-no-files-found: error
+          retention-days: 14
+          include-hidden-files: false

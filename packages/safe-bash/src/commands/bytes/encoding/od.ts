@@ -94,7 +94,7 @@ export function createOdCommand(): CommandDefinition {
     let offset = skip;
     let previous: Uint8Array | undefined;
     let suppressed = false;
-    const address = (): string => radix === "n" ? "" : offset.toString(radix === "o" ? 8 : radix === "x" ? 16 : 10).padStart(7, "0");
+    const address = (): string => radix === "n" ? "" : offset.toString(radix === "o" ? 8 : radix === "x" ? 16 : 10).padStart(radix === "x" ? 6 : 7, "0");
     for await (const row of rows(range(sources(context, parsed.operands), skip, count), width)) {
       const same = previous?.length === row.length && row.every((byte, index) => previous![index] === byte);
       if (!parsed.flags.has("v") && same) {

@@ -1,6 +1,7 @@
 import fs from "node:fs";
 import { createHash } from "node:crypto";
-import { dirname } from "node:path";
+import { tmpdir } from "node:os";
+import { dirname, join } from "node:path";
 import { createFsFromVolume, Volume } from "memfs";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { ESLint } from "eslint";
@@ -18,7 +19,7 @@ const root = "/lint-owned";
 const digest = (bytes: string | Buffer) => createHash("sha256").update(bytes).digest("hex");
 const boundaries = { heldSourceFiles: ["src/commands/xan/index.ts"], heldEvidenceDirectories: ["tests/held-capture"] };
 
-function model(extra: Record<string, string> = {}) {
+function model(extra: Record<string, string> = {}, observation: "all" | "opens" = "all") {
   const packet = structuredClone(receiptData);
   const files: Record<string, string> = { ...extra };
   const inventory: { records: unknown[] } = { records: [] };
@@ -59,7 +60,8 @@ function model(extra: Record<string, string> = {}) {
   for (const method of ["lstatSync", "realpathSync", "readdirSync", "readlinkSync", "openSync"] as const) {
     const original = memory[method].bind(memory) as (...args: any[]) => any;
     (fileSystem as any)[method] = (...args: any[]) => {
-      operations.push({ method, path: String(args[0]) });
+      const path = String(args[0]);
+      if (observation === "all" || method === "openSync") operations.push({ method, path });
       const result = original(...args);
       if (method === "lstatSync" && result.isSymbolicLink() && symlinkSizes.has(String(args[0]))) result.size = symlinkSizes.get(String(args[0]));
       return result;
@@ -100,6 +102,132 @@ async function referenceFiles(state: ReturnType<typeof model>, config: unknown[]
 
 afterEach(() => vi.restoreAllMocks());
 
+describe("fixture operation observation retention", () => {
+  it("retains full observations and symlink correction by default", () => {
+    const state = model({ "src/member.js": "export {};" });
+    const absolute = root + "/src/member.js";
+    const link = state.packet.records.find((record) => record.kind === "symlink")!;
+    const linkPath = root + "/" + link.path;
+    expect(state.fileSystem.lstatSync(absolute)).toEqual(state.memory.lstatSync(absolute));
+    expect(state.fileSystem.realpathSync(absolute)).toBe(absolute);
+    expect(state.fileSystem.readdirSync(root + "/src")).toContain("member.js");
+    expect(state.fileSystem.readlinkSync(linkPath)).toBe(link.target);
+    expect(state.fileSystem.lstatSync(linkPath).size).toBe(Buffer.byteLength(link.target!));
+    const descriptor = state.fileSystem.openSync(absolute, fs.constants.O_RDONLY);
+    state.fileSystem.closeSync(descriptor);
+    expect(state.operations).toEqual([
+      { method: "lstatSync", path: absolute },
+      { method: "realpathSync", path: absolute },
+      { method: "readdirSync", path: root + "/src" },
+      { method: "readlinkSync", path: linkPath },
+      { method: "lstatSync", path: linkPath },
+      { method: "openSync", path: absolute }
+    ]);
+  });
+
+  it.each(["all", "opens"] as const)(
+    "retains ordered attempted opens including errors with %s observations",
+    (observation) => {
+      const state = model({ "src/member.js": "export {};" }, observation);
+      const absolute = root + "/src/member.js";
+      const missing = root + "/src/missing.js";
+      state.fileSystem.lstatSync(absolute);
+      const first = state.fileSystem.openSync(absolute, fs.constants.O_RDONLY);
+      state.fileSystem.closeSync(first);
+      expect(() => state.fileSystem.openSync(missing, fs.constants.O_RDONLY)).toThrow("ENOENT");
+      const second = state.fileSystem.openSync(absolute, fs.constants.O_RDONLY);
+      state.fileSystem.closeSync(second);
+      const opens = [
+        { method: "openSync", path: absolute },
+        { method: "openSync", path: missing },
+        { method: "openSync", path: absolute }
+      ];
+      expect(state.operations.filter((operation) => operation.method === "openSync")).toEqual(
+        opens
+      );
+      expect(state.operations).toEqual(
+        observation === "all" ? [{ method: "lstatSync", path: absolute }, ...opens] : opens
+      );
+    }
+  );
+
+  it.each(["all", "opens"] as const)(
+    "evaluates observation spelling before forwarding the original invalid argument with %s observations",
+    (observation) => {
+      const state = model({}, observation);
+      const effects: string[] = [];
+      const argument = {
+        toString() {
+          expect(state.operations).toEqual([]);
+          effects.push("string");
+          return root;
+        }
+      };
+      expect(() => state.fileSystem.lstatSync(argument as unknown as string)).toThrow(TypeError);
+      expect(effects).toEqual(["string"]);
+      expect(state.operations).toEqual(
+        observation === "all" ? [{ method: "lstatSync", path: root }] : []
+      );
+    }
+  );
+
+  it("preserves actual guard call order, results and counters with open-only observations", async () => {
+    const runs = [];
+    for (const observation of ["all", "opens"] as const) {
+      const state = model({ "src/member.js": "export const value = 1;" }, observation);
+      const fileSystem = state.fileSystem as typeof state.fileSystem & Pick<Volume, "fstatSync">;
+      const calls: { method: string; arguments: unknown[] }[] = [];
+      const descriptors = new Map<number, string>();
+      for (const method of [
+        "lstatSync",
+        "realpathSync",
+        "readdirSync",
+        "readlinkSync",
+        "openSync",
+        "fstatSync",
+        "readSync",
+        "closeSync"
+      ] as const) {
+        const original = fileSystem[method].bind(fileSystem) as (...args: any[]) => any;
+        vi.spyOn(fileSystem, method).mockImplementation(((...args: any[]) => {
+          const observed = [...args];
+          if (typeof args[0] === "number") {
+            expect(descriptors.has(args[0])).toBe(true);
+            observed[0] = { openedPath: descriptors.get(args[0]) };
+          }
+          calls.push({ method, arguments: observed });
+          const result = original(...args);
+          if (method === "openSync") {
+            expect(descriptors.has(result)).toBe(false);
+            descriptors.set(result, args[0]);
+          }
+          if (method === "closeSync") descriptors.delete(args[0]);
+          return result;
+        }) as any);
+      }
+      const result = await lintRoot({
+        guard: state.guard,
+        config: state.config,
+        receiptBinding: state.binding
+      });
+      expect(result).toMatchObject({ complete: true, exitCode: 0 });
+      expect(descriptors.size).toBe(0);
+      runs.push({ state, calls, result });
+    }
+    expect(runs[1].calls).toEqual(runs[0].calls);
+    expect(runs[1].result.results).toEqual(runs[0].result.results);
+    expect(runs[1].result.scope).toEqual(runs[0].result.scope);
+    expect(runs[1].result.counters).toEqual(runs[0].result.counters);
+    expect(runs[1].state.operations.every((operation) => operation.method === "openSync")).toBe(
+      true
+    );
+    expect(runs[1].state.operations).toEqual(
+      runs[0].state.operations.filter((operation) => operation.method === "openSync")
+    );
+    expect(receiptPayloads(runs[1].state)).toEqual(receiptPayloads(runs[0].state));
+  });
+});
+
 describe("fixed guarded root lint arguments", () => {
   it("preserves defaults and bounded output forwarding", () => {
     expect(parseLintArguments([])).toEqual({ format: "stylish", maxWarnings: -1 });
@@ -124,30 +252,30 @@ describe("fixed guarded root lint arguments", () => {
 
 
 describe("outside-checkout ancestor policy", () => {
-  function owned(kind: string, operation: (state: any) => void) {
-    const base = kind === "real" ? fs : createFsFromVolume(new Volume());
-    const temporary = kind === "real" ? fs.mkdtempSync("/private/tmp/lint-ancestor-policy-") : "/lint-policy-owned";
-    const outside = temporary + "/outside";
-    const checkout = outside + "/checkout";
-    const tree = checkout + "/tree";
-    base.mkdirSync(tree, { recursive: true });
-    base.writeFileSync(tree + "/member.js", "export {};\n");
-    const operations: { method: string; path: string }[] = [];
-    const hooks: { listed?: (absolute: string) => void; stat?: (absolute: string, stat: any) => any } = {};
-    const fileSystem: any = { ...base, constants: fs.constants };
-    for (const method of ["lstatSync", "readdirSync", "realpathSync", "openSync"] as const) {
-      fileSystem[method] = (...args: any[]) => {
-        operations.push({ method, path: String(args[0]) });
-        const value = (base[method] as any)(...args);
-        if (method === "readdirSync") hooks.listed?.(String(args[0]));
-        return method === "lstatSync" && hooks.stat ? hooks.stat(String(args[0]), value) : value;
-      };
-    }
-    const guard = createLintInputGuard({ root: checkout, boundaries, fileSystem });
+  function owned(kind: string, operation: (state: any) => void, host: { fileSystem: any; temporaryRoot: string } = { fileSystem: fs, temporaryRoot: tmpdir() }) {
+    const base = kind === "real" ? host.fileSystem : createFsFromVolume(new Volume());
+    const temporary = kind === "real" ? base.mkdtempSync(join(base.realpathSync(host.temporaryRoot), "lint-ancestor-policy-")) : "/lint-policy-owned";
     try {
+      const outside = temporary + "/outside";
+      const checkout = outside + "/checkout";
+      const tree = checkout + "/tree";
+      base.mkdirSync(tree, { recursive: true });
+      base.writeFileSync(tree + "/member.js", "export {};\n");
+      const operations: { method: string; path: string }[] = [];
+      const hooks: { listed?: (absolute: string) => void; stat?: (absolute: string, stat: any) => any } = {};
+      const fileSystem: any = { ...base, constants: fs.constants };
+      for (const method of ["lstatSync", "readdirSync", "realpathSync", "openSync"] as const) {
+        fileSystem[method] = (...args: any[]) => {
+          operations.push({ method, path: String(args[0]) });
+          const value = (base[method] as any)(...args);
+          if (method === "readdirSync") hooks.listed?.(String(args[0]));
+          return method === "lstatSync" && hooks.stat ? hooks.stat(String(args[0]), value) : value;
+        };
+      }
+      const guard = createLintInputGuard({ root: checkout, boundaries, fileSystem });
       operation({ base, temporary, outside, checkout, tree, operations, hooks, fileSystem, guard });
     } finally {
-      if (kind === "real") fs.rmSync(temporary, { recursive: true, force: true });
+      if (kind === "real") base.rmSync(temporary, { recursive: true, force: true });
     }
   }
 
@@ -170,6 +298,42 @@ describe("outside-checkout ancestor policy", () => {
       return error;
     }
   }
+
+  it("creates and cleans the real-fixture shape without a Darwin temporary namespace", () => {
+    const volume = Volume.fromJSON({ "/tmp/retained": "untouched" });
+    const memory = createFsFromVolume(volume);
+    owned("real", state => {
+      expect(state.temporary.startsWith("/tmp/lint-ancestor-policy-")).toBe(true);
+      expect(state.guard.read("tree/member.js").toString()).toBe("export {};\n");
+      expect(state.guard.snapshot()).toMatchObject({ opens: 1, closes: 1, failed: false });
+    }, { fileSystem: memory, temporaryRoot: "/tmp" });
+    expect(volume.readdirSync("/tmp")).toEqual(["retained"]);
+    expect(volume.existsSync("/private")).toBe(false);
+  });
+
+  it("canonicalizes a temporary-directory alias before literal fixture admission", () => {
+    const volume = Volume.fromJSON({ "/canonical/tmp/retained": "untouched" });
+    volume.symlinkSync("/canonical/tmp", "/tmp");
+    const memory = createFsFromVolume(volume);
+    owned("real", state => {
+      expect(state.temporary.startsWith("/canonical/tmp/lint-ancestor-policy-")).toBe(true);
+      expect(state.guard.read("tree/member.js").toString()).toBe("export {};\n");
+      expect(state.operations.some((entry: any) => entry.path.startsWith("/tmp/"))).toBe(false);
+    }, { fileSystem: memory, temporaryRoot: "/tmp" });
+    expect(volume.readlinkSync("/tmp")).toBe("/canonical/tmp");
+    expect(volume.readdirSync("/canonical/tmp")).toEqual(["retained"]);
+  });
+
+  it("cleans the allocated real-fixture directory when setup fails before admission", () => {
+    const volume = Volume.fromJSON({ "/private/tmp/retained": "untouched" });
+    const memory = createFsFromVolume(volume);
+    const primary = new Error("fixture setup failed");
+    const callback = vi.fn();
+    vi.spyOn(memory, "mkdirSync").mockImplementationOnce(() => { throw primary; });
+    expect(() => owned("real", callback, { fileSystem: memory, temporaryRoot: "/private/tmp" })).toThrow(primary);
+    expect(callback).not.toHaveBeenCalled();
+    expect(volume.readdirSync("/private/tmp")).toEqual(["retained"]);
+  });
 
   it.each(["memory", "real"])("accepts external sibling namespace churn on %s without accepting internal mutation", kind => owned(kind, state => {
     const before = state.base.lstatSync(state.tree + "/member.js");
@@ -1059,8 +1223,8 @@ describe("initialization failure diagnostics", () => {
 
 
 describe("guarded configuration bootstrap ordering", () => {
-  function bootstrapModel() {
-    const state = model({ "package.json": "{}", "eslint.config.js": "export default [];", "src/ordinary.js": "export {};" });
+  function bootstrapModel(observation: "all" | "opens" = "all") {
+    const state = model({ "package.json": "{}", "eslint.config.js": "export default [];", "src/ordinary.js": "export {};" }, observation);
     const policy = { version: 1, ...boundaries, heldEvidenceDirectories: ["tests/owned/held-capture"], fixtureDirectories: [] };
     const text = JSON.stringify(policy);
     const binding = { path: "packages/safe-bash/integration-boundaries.json", bytes: Buffer.byteLength(text), sha256: digest(text) };
@@ -1078,7 +1242,7 @@ describe("guarded configuration bootstrap ordering", () => {
     return { ...state, policy, policyBinding: binding, calls, options };
   }
   it("captures the actual metadata cap in inventory phase and clears a fresh initialization", async () => {
-    const state = bootstrapModel();
+    const state = bootstrapModel("opens");
     const options = { ...state.options, lintExclusions(_root: string, _boundaries: unknown, fileSystem: any) {
       for (let attempt = 0; attempt < 8000001; attempt++) fileSystem.lstatSync(root + "/src/ordinary.js");
       return { files: [], directories: [] };
@@ -1516,7 +1680,7 @@ describe("owned directory operation and exact root receipt", () => {
     for (let group = 0; group < 64; group++) {
       for (let member = 0; member < 256; member++) files[parents + "/group-" + group + "/member-" + member + (member % 16 === 0 ? ".mjs" : ".data")] = member % 16 === 0 ? "export const value = 1;" : "owned noncode";
     }
-    const state = model(files);
+    const state = model(files, "opens");
     const result = await lintRoot({ guard: state.guard, config: state.config, receiptBinding: state.binding });
     expect(result.complete).toBe(true);
     expect(result.scope.linted).toBe(1029);

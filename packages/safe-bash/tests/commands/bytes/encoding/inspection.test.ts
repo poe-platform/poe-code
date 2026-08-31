@@ -58,7 +58,7 @@ test("xxd: unsupported flags/output operands preserve every VFS file", async () 
 test("od: byte formats, addresses, escapes and stable little endian", async () => {
   assert.equal((await run("od", ["-An", "-tx1"], Uint8Array.of(0, 15, 255))).stdout, " 00 0f ff\n");
   assert.equal((await run("od", ["-Ad", "-tu1"], Uint8Array.of(0, 15, 255))).stdout, "0000000   0  15 255\n0000003\n");
-  assert.equal((await run("od", ["-Ax", "-b"], Uint8Array.of(0, 15, 255))).stdout, "0000000 000 017 377\n0000003\n");
+  assert.equal((await run("od", ["-Ax", "-b"], Uint8Array.of(0, 15, 255))).stdout, "000000 000 017 377\n000003\n");
   assert.equal((await run("od", ["-An", "-td1"], Uint8Array.of(0, 127, 128, 255))).stdout, "    0  127 -128   -1\n");
   assert.equal((await run("od", ["-An", "-c"], Uint8Array.of(0, 9, 10, 65, 255))).stdout, "  \\0  \\t  \\n   A 377\n");
   assert.equal((await run("od", [], Uint8Array.of(1, 2, 3))).stdout, "0000000 001001 000003\n0000003\n");
@@ -153,3 +153,84 @@ test("options: valid scalar repeats retain the last value", async () => {
   const odArgs = ["-Ad", "-An", "--endian=big", "--endian=little", "-w2", "-w4", "-j1", "-j2", "-N1", "-N2", "-tx2"];
   assert.deepEqual((await run("od", odArgs, allBytes)).bytes, (await run("od", ["-An", "-w4", "-j2", "-N2", "-tx2"], allBytes)).bytes);
 });
+
+for (const { name, args, input, expected } of [
+  {
+    name: "hexadecimal initial and final addresses",
+    args: ["-Ax", "-tx1"],
+    input: Uint8Array.of(1, 2),
+    expected: "000000 01 02\n000002\n"
+  },
+  {
+    name: "hexadecimal nonzero skip",
+    args: ["-Ax", "-tx1", "-j10", "-N2"],
+    input: allBytes,
+    expected: "00000a 0a 0b\n00000c\n"
+  },
+  {
+    name: "hexadecimal multiline partial row",
+    args: ["-Ax", "-tx1", "-w2"],
+    input: Uint8Array.of(1, 2, 3),
+    expected: "000000 01 02\n000002 03\n000003\n"
+  },
+  {
+    name: "hexadecimal multiple-format continuation alignment",
+    args: ["-Ax", "-tx1u1", "-w2"],
+    input: Uint8Array.of(15, 16, 17),
+    expected: "000000 0f 10\n        15  16\n000002 11\n        17\n000003\n"
+  },
+  {
+    name: "hexadecimal duplicate suppression and resumed row",
+    args: ["-Ax", "-tx1", "-w2"],
+    input: Uint8Array.of(1, 2, 1, 2, 1, 2, 3, 4),
+    expected: "000000 01 02\n*\n000006 03 04\n000008\n"
+  },
+  {
+    name: "hexadecimal final address after suppressed rows",
+    args: ["-Ax", "-tx1", "-w2"],
+    input: new Uint8Array(6),
+    expected: "000000 00 00\n*\n000006\n"
+  },
+  {
+    name: "hexadecimal verbose duplicate rows",
+    args: ["-Ax", "-tx1", "-w2", "-v"],
+    input: new Uint8Array(4),
+    expected: "000000 00 00\n000002 00 00\n000004\n"
+  },
+  {
+    name: "hexadecimal address with zero requested bytes",
+    args: ["-Ax", "-N0"],
+    input: "abc",
+    expected: "000000\n"
+  },
+  {
+    name: "decimal retains seven digits and decimal offsets",
+    args: ["-Ad", "-tx1", "-j10", "-N2"],
+    input: allBytes,
+    expected: "0000010 0a 0b\n0000012\n"
+  },
+  {
+    name: "octal retains seven digits and octal offsets",
+    args: ["-Ao", "-tx1", "-j10", "-N2"],
+    input: allBytes,
+    expected: "0000012 0a 0b\n0000014\n"
+  },
+  {
+    name: "default octal retains seven digits",
+    args: ["-tx1", "-w2"],
+    input: Uint8Array.of(1, 2, 3),
+    expected: "0000000 01 02\n0000002 03\n0000003\n"
+  },
+  {
+    name: "no address retains multiple-format rows without a final offset",
+    args: ["-An", "-tx1u1", "-w2"],
+    input: Uint8Array.of(15, 16, 17),
+    expected: " 0f 10\n  15  16\n 11\n  17\n"
+  }
+])
+  test(`od: address width - ${name}`, async () => {
+    const result = await run("od", args, input);
+    assert.equal(result.exitCode, 0);
+    assert.equal(result.stderr, "");
+    assert.equal(result.stdout, expected);
+  });

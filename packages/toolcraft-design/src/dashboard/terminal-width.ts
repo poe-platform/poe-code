@@ -1,7 +1,14 @@
 const graphemeSegmenter = new Intl.Segmenter(undefined, { granularity: "grapheme" });
 
 export function graphemes(value: string): string[] {
-  return Array.from(graphemeSegmenter.segment(value), ({ segment }) => segment);
+  for (let index = 0; index < value.length; index += 1) {
+    const code = value.charCodeAt(index);
+    if (code < 0x20 || code > 0x7e) {
+      return Array.from(graphemeSegmenter.segment(value), ({ segment }) => segment);
+    }
+  }
+
+  return value.split("");
 }
 
 export function displayWidth(value: string, startColumn = 0): number {

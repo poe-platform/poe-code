@@ -230,6 +230,12 @@ test("authenticated source build uses private paths, fixed compiler and no insta
   assert.equal(configure.options.env.TMPDIR, "/owned/build-proof/tmp");
   assert.equal(configure.options.env.PATH, "/usr/bin:/bin");
   assert(configure.args.includes("--prefix=/home/qualifier/native-prefix"));
+  assert.deepEqual(configure.args, [
+    "--prefix=/home/qualifier/native-prefix",
+    "--disable-nls",
+    "CC=/usr/bin/gcc",
+    "CFLAGS=-O2 -g0 -ffile-prefix-map=" + configure.options.cwd + "=."
+  ]);
   assert.equal(value.fileSystem.existsSync("/home/qualifier/native-prefix"), false);
   assert.equal(receipt.root, "/owned/build-proof/installed");
 });
@@ -363,13 +369,13 @@ function darwinFixture() {
           ? profile.verifierVersion + "\n"
           : `[GNUPG:] VALIDSIG ${profile.sources[0].signer} 2026 fixture\n`;
     if (command === "/usr/bin/bsdtar" && args[0] === "-xJf")
-      fileSystem.mkdirSync(join(args[args.indexOf("-C") + 1], "coreutils-9.7/src"), {
+      fileSystem.mkdirSync(join(args[args.indexOf("-C") + 1], profile.sources[0].name, "src"), {
         recursive: true
       });
     if (command === "./configure")
       for (const name of ["config.log", "config.status"])
         fileSystem.writeFileSync(join(options.cwd, name), "fixture configuration");
-    if (command === "/usr/bin/make" && args.includes("src/stat"))
+    if (command === "/usr/bin/make" && (args.includes("src/stat") || !profile.sources[0].coreutils))
       fileSystem.writeFileSync(join(options.cwd, "src/stat"), executable, { mode: 0o755 });
     if (command.endsWith("/src/stat")) stdout = "stat (GNU coreutils) 9.7\n";
     return { status: 0, signal: null, stdout, stderr: "" };
@@ -435,6 +441,30 @@ test("Darwin builds independent coreutils trees, authenticates signatures and ne
     )
   );
   assert(receipt.members.some((member) => member.path.endsWith(".tar.xz.sig")));
+});
+
+test("Darwin tar alone links system iconv without changing other configure arguments", async () => {
+  for (const name of ["tar-1.35", "diffutils-3.12", "patch-2.8", "coreutils-9.7"]) {
+    const value = darwinFixture();
+    const source = value.profile.sources[0];
+    source.name = name;
+    source.coreutils = name === "coreutils-9.7";
+    source.builds = source.coreutils ? 2 : 1;
+    const receipt = await native.qualifyDarwinBuild(value.options, value);
+    assert.equal(receipt.status, "BUILT_OBSERVATIONS_UNREVIEWED");
+    const configureCalls = value.calls.filter((call) => call.command === "./configure");
+    assert.equal(configureCalls.length, source.builds);
+    for (const call of configureCalls) {
+      assert.deepEqual(call.args, [
+        "--prefix=/native-qualification",
+        "--disable-nls",
+        "CC=/usr/bin/clang",
+        "CFLAGS=-O2 -g0 -ffile-prefix-map=" + call.options.cwd + "=.",
+        ...(source.coreutils ? ["--without-gmp"] : []),
+        ...(name === "tar-1.35" ? ["LIBS=-liconv"] : [])
+      ]);
+    }
+  }
 });
 
 test("Darwin bad source, signature, compiler and checkout stop before any configure", async () => {

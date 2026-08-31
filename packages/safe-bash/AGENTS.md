@@ -20,12 +20,16 @@
 ## Exact requirements and scope
 
 - Build an extensible virtual Bash companion to poe-code packages/safejs,
-  inspired by just-bash, with Express-like plugins; memory, real, S3-compatible
+  with Express-like plugins; memory, real, S3-compatible
   (including a mock), WebDAV and further filesystems; many agent-used tools;
   full piping, stdin and shell support. A scaffold or passing subset is not completion.
-- User: **"IT MUST BE BETTER than just-bash, much better"**. Require broad,
-  reproducible head-to-head evidence; never redefine superiority as a small
-  passing subset, command-name count or selected performance win.
+- The user originated this idea independently and discovered other projects later.
+  Do not add external inspiration attributions, competitor names or comparisons
+  to maintained user-facing copy. Preserve historical evidence unchanged.
+- Keep the README usage-first and compact: verified public imports, virtual-file
+  and script examples, tool support, explicit opt-ins and honest limits. Verify
+  published availability before recommending an install; no guessed APIs, full
+  parity claims, host-isolation claims or leading internal audit/status ledgers.
 - User: **"Make sure that on the surface nobody is going to notice that it's not a real bash"**.
   Treat this as semantic compatibility, not cosmetic identity: verify quoting,
   expansions, pipelines, exit statuses and output bytes with differential tests.

@@ -55,7 +55,7 @@ for (const [expression, expected] of [
   });
 }
 
-test("KNOWN UPSTREAM LIMITATION: raw ordinary env loses __proto__; command dictionary preserves it", { skip: localSkip }, async context => {
+test("actual current engine: live signal preserves literal environment property names", { skip: localSkip }, async context => {
   assert(localRoot);
   const module = await import(pathToFileURL(join(localRoot, "src/run.ts")).href) as {
     run(source: string, options: { modules: object; signal?: AbortSignal }): Promise<{ ok: boolean; returnValue?: unknown }>;
@@ -67,12 +67,12 @@ test("KNOWN UPSTREAM LIMITATION: raw ordinary env loses __proto__; command dicti
   assert.deepEqual(control.returnValue, ["literal", "ctor", "proto"]);
   const signalled = await module.run(source, { modules: { command: { env } }, signal: new AbortController().signal });
   assert.equal(signalled.ok, true);
-  assert.deepEqual(signalled.returnValue, [undefined, "ctor", "proto"]);
+  assert.deepEqual(signalled.returnValue, ["literal", "ctor", "proto"]);
   const result = await execute(["-p", "-e", source], { runtime: await localRuntime() }, "", { env });
   assert.equal(result.exitCode, 0, result.stderr);
   assert.deepEqual(JSON.parse(result.stdout.toString()), ["literal", "ctor", "proto"]);
   assert.equal(Object.getOwnPropertyDescriptor(env, "__proto__")?.value, "literal");
-  context.diagnostic('Raw signalled ordinary records still lose __proto__; the command copies environment entries into a prototype-free data dictionary and preserves the literal value.');
+  context.diagnostic('Raw ordinary records preserve __proto__ with and without a live signal; the command prototype-free environment dictionary also preserves the literal value.');
 });
 
 test("KNOWN UPSTREAM LIMITATION: raw pre-aborted pure run succeeds; plugin rejects before runner", { skip: localSkip }, async () => {

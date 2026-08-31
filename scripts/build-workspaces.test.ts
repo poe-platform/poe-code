@@ -1,4 +1,4 @@
-import { spawn, type SpawnOptions } from "node:child_process";
+import { execFileSync, spawn, type SpawnOptions } from "node:child_process";
 import { EventEmitter } from "node:events";
 import fs from "node:fs";
 import { tmpdir } from "node:os";
@@ -849,6 +849,70 @@ describe("finite unit real four-group cleanup", () => {
 });
 
 describe("finite unit input and environment boundaries", () => {
+  it("clears Git's repository-local hook environment without changing the parent or private configuration", async () => {
+    const owned = unitFixture(), mock = mockExecution();
+    try {
+      const names = execFileSync("git", ["rev-parse", "--local-env-vars"], {
+        cwd: owned.root, env: { PATH: process.env.PATH, GIT_CONFIG_NOSYSTEM: "1", GIT_CONFIG_GLOBAL: "/dev/null" },
+        encoding: "utf8", timeout: 5000, maxBuffer: 65536
+      }).trim().split("\n");
+      const retained = { GIT_CONFIG_GLOBAL: "/owned/private.gitconfig", GIT_CONFIG_SYSTEM: "/owned/system.gitconfig", GIT_CONFIG_NOSYSTEM: "1", GIT_SSH_COMMAND: "owned-ssh", GIT_TERMINAL_PROMPT: "0", GIT_OPTIONAL_LOCKS: "0", HOME: owned.root };
+      const environment = Object.freeze({ ...mock.environment, ...retained, ...Object.fromEntries(names.map(name => [name, `owned-hook-${name}`])) });
+      await workspaceRunner.testWorkspaces(owned.root, { ...mock, environment });
+      expect(mock.start).toHaveBeenCalledTimes(5);
+      for (const call of mock.start.mock.calls) {
+        for (const name of names) expect(call[2].env).not.toHaveProperty(name);
+        expect(call[2].env).toMatchObject(retained);
+      }
+      for (const name of names) expect(environment[name as keyof typeof environment]).toBe(`owned-hook-${name}`);
+    } finally { owned.remove(); }
+  });
+
+  it("leaves the ordinary build caller's Git environment unchanged", async () => {
+    const owned = fixture(), mock = mockExecution();
+    const environment = Object.freeze({ ...mock.environment, GIT_DIR: "/owned/parent.git", GIT_CONFIG_GLOBAL: "/owned/private.gitconfig" });
+    try {
+      await buildWorkspaces(owned.root, { ...mock, environment });
+      for (const call of mock.start.mock.calls) expect(call[2].env).toMatchObject(environment);
+    } finally { owned.remove(); }
+  });
+
+  it("fails before any unit-mode child when Git cannot supply its local environment contract", async () => {
+    const owned = unitFixture(), mock = mockExecution();
+    try {
+      await expect(workspaceRunner.testWorkspaces(owned.root, { ...mock, environment: { ...mock.environment, PATH: owned.root } })).rejects.toMatchObject({ code: "ENOENT" });
+      expect(mock.start).not.toHaveBeenCalled();
+    } finally { owned.remove(); }
+  });
+
+  it("keeps foreign fixture configuration and branch creation out of an owned detached hook repository", async () => {
+    const owned = unitFixture(), mock = mockExecution();
+    try {
+      const decoy = path.join(owned.root, "decoy"), foreign = path.join(owned.root, "foreign");
+      fs.mkdirSync(decoy); fs.mkdirSync(foreign);
+      const environment = { PATH: process.env.PATH, HOME: owned.root, GIT_CONFIG_NOSYSTEM: "1", GIT_CONFIG_GLOBAL: "/dev/null", GIT_TERMINAL_PROMPT: "0" };
+      const git = (cwd: string, args: string[], env: NodeJS.ProcessEnv = environment) => execFileSync("git", ["-c", "core.hooksPath=/dev/null", "-c", "commit.gpgsign=false", ...args], { cwd, env, encoding: "utf8", timeout: 5000, maxBuffer: 1048576, stdio: ["ignore", "pipe", "pipe"] });
+      git(decoy, ["init", "--initial-branch=main"]);
+      git(decoy, ["config", "user.name", "Owned Decoy"]);
+      git(decoy, ["config", "user.email", "decoy@example.invalid"]);
+      git(decoy, ["commit", "--allow-empty", "-m", "owned"]);
+      git(decoy, ["checkout", "--detach"]);
+      const config = fs.readFileSync(path.join(decoy, ".git/config"));
+      const head = fs.readFileSync(path.join(decoy, ".git/HEAD"));
+      const parent = Object.freeze({ ...mock.environment, ...environment, GIT_DIR: path.join(decoy, ".git"), GIT_WORK_TREE: decoy, GIT_INDEX_FILE: path.join(decoy, ".git/index") });
+      await workspaceRunner.testWorkspaces(owned.root, { ...mock, environment: parent });
+      const childEnvironment = mock.start.mock.calls.find(call => call[1][4] === "test:unit")![2].env;
+      git(foreign, ["init"], childEnvironment);
+      git(foreign, ["config", "user.name", "Owned Fixture"], childEnvironment);
+      git(foreign, ["branch", "-M", "main"], childEnvironment);
+      expect(git(foreign, ["config", "--local", "user.name"], childEnvironment).trim()).toBe("Owned Fixture");
+      expect(git(foreign, ["symbolic-ref", "HEAD"], childEnvironment).trim()).toBe("refs/heads/main");
+      expect(fs.readFileSync(path.join(decoy, ".git/config"))).toEqual(config);
+      expect(fs.readFileSync(path.join(decoy, ".git/HEAD"))).toEqual(head);
+      expect(parent.GIT_DIR).toBe(path.join(decoy, ".git"));
+    } finally { owned.remove(); }
+  });
+
   it("does not open source payloads while planning the metadata-only graph", () => {
     const owned = unitFixture(), opened: string[] = [];
     try {

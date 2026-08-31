@@ -1,5 +1,5 @@
 import assert from "node:assert/strict";
-import { spawn as spawnChild } from "node:child_process";
+import { execFileSync, spawn as spawnChild } from "node:child_process";
 import { EventEmitter } from "node:events";
 import fs from "node:fs";
 import path from "node:path";
@@ -383,8 +383,16 @@ export async function testWorkspaces(rootDirectory, options = {}) {
   const { environment = process.env, spawn = spawnChild, host = process, fileSystem = fs, excludeWorkspace, concurrency = 1, testArguments = [] } = options;
   validateEnvironment(environment);
   const plan = createWorkspaceTestPlan(rootDirectory, { fileSystem, excludeWorkspace, concurrency, testArguments });
-  const builds = await executeStages({ ...plan, stages: plan.buildStages }, { environment, spawn, host, unitMode: true });
-  const tests = await executeStages({ ...plan, stages: plan.testStages }, { environment, spawn, host, unitMode: true, concurrency, testArguments });
+  const childEnvironment = { ...environment };
+  const localGitVariables = execFileSync("git", ["rev-parse", "--local-env-vars"], {
+    cwd: plan.root,
+    env: { PATH: environment.PATH, GIT_CONFIG_NOSYSTEM: "1", GIT_CONFIG_GLOBAL: "/dev/null" },
+    encoding: "utf8", timeout: 10000, maxBuffer: 65536
+  }).trim().split("\n");
+  assert.ok(localGitVariables.every(name => name.startsWith("GIT_") && [...name].every(character => "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789_".includes(character))), "Invalid Git local environment names");
+  for (const name of localGitVariables) delete childEnvironment[name];
+  const builds = await executeStages({ ...plan, stages: plan.buildStages }, { environment: childEnvironment, spawn, host, unitMode: true });
+  const tests = await executeStages({ ...plan, stages: plan.testStages }, { environment: childEnvironment, spawn, host, unitMode: true, concurrency, testArguments });
   return { workspaces: plan.workspaces.length, builds, tests, concurrency, cache: "UNCACHED", excluded: excludeWorkspace ? [excludeWorkspace] : [], noTest: plan.noTest, noBuild: plan.buildNoBuild, manifestless: plan.manifestless };
 }
 

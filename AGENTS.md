@@ -71,6 +71,7 @@ A provider may define an optional `spawn(context, options)` conversation functio
 - Use `npm test` for root and every declared workspace unit task, including required build dependencies and native npm pre/event/post scripts. Root-only `npm run test:unit` is not a normal pre-push or CI substitute.
 - Keep execution uncached and derive task membership/dependency closure from maintained declarations; do not replace them with fixed task counts or a root-plus-Bash shortcut.
 - In unit mode, keep caller-supplied `SAFE_BASH_TEST_RG`, `SAFEJS_LOCAL_ROOT`, `S3_HTTP_EXPORTS_REVISION` and `FULL_GATE_ROOT` scoped to the actual virtual-bash workspace unit task. Do not synthesize optional profiles or count unavailable cases as passes.
+- Before unit-mode children run, clear repository-local hook variables using `git rev-parse --local-env-vars`; leave the parent environment and global/private Git configuration unchanged so fixture Git commands use their own working directories.
 
 ### Unit Testing - speed is crucial
 

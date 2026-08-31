@@ -148,6 +148,37 @@ jobs:
             codeSignature: execute("/usr/bin/codesign", ["--display", "--verbose=4", executable]),
             codeSignatureVerification: execute("/usr/bin/codesign", ["--verify", "--strict", "--verbose=2", executable])
           }));
+          const gitResolution = execute("/usr/bin/xcrun", ["--find", "git"]);
+          assert(!gitResolution.error && !gitResolution.signal && gitResolution.status === 0);
+          const gitPath = gitResolution.stdout.trim();
+          assert(gitPath.startsWith("/") && !gitPath.includes("\n") && !gitPath.includes("\r"));
+          const gitEntry = lstatSync(gitPath);
+          assert(gitEntry.isFile() && !gitEntry.isSymbolicLink() && (gitEntry.mode & 0o111) !== 0);
+          const gitIdentity = executableIdentity(gitPath,
+            "10f9c1df894525ae4c7454258febab6d3d25071062b42cb48dbb1842cdffd2a9");
+          const gitExecPath = execute(gitIdentity.canonicalPath, ["--exec-path"]);
+          assert(!gitExecPath.error && !gitExecPath.signal && gitExecPath.status === 0);
+          const gitCorePath = gitExecPath.stdout.trim();
+          assert(gitCorePath.startsWith("/") && !gitCorePath.includes("\n") && !gitCorePath.includes("\r"));
+          const gitCoreCanonicalPath = realpathSync(gitCorePath);
+          const gitCoreEntry = lstatSync(gitCorePath);
+          const gitCore = statSync(gitCoreCanonicalPath);
+          assert(gitCore.isDirectory());
+          const git = {
+            status: "OBSERVED_UNREVIEWED",
+            resolution: gitResolution,
+            ...gitIdentity,
+            regularFile: true,
+            execPath: gitExecPath,
+            gitCore: {
+              path: gitCorePath, canonicalPath: gitCoreCanonicalPath,
+              symbolicLink: gitCoreEntry.isSymbolicLink(), directory: true,
+              mode: gitCore.mode, size: gitCore.size
+            },
+            codeSignature: execute("/usr/bin/codesign", ["--display", "--verbose=4", gitIdentity.canonicalPath]),
+            codeSignatureVerification: execute("/usr/bin/codesign", ["--verify", "--strict", "--verbose=2", gitIdentity.canonicalPath])
+          };
+          assert.equal(createHash("sha256").update(readFileSync(gitIdentity.canonicalPath)).digest("hex"), gitIdentity.sha256);
           const gnu = ["gtar", "gdiff", "gpatch", "gexpr", "gstat", "gtouch"].map(name => {
             const located = spawnSync("/bin/bash", ["--noprofile", "--norc", "-c", 'command -v "$1"', "native-metadata", name], {
               encoding: "utf8", shell: false, timeout: 3000, killSignal: "SIGKILL", maxBuffer: 4096,
@@ -177,7 +208,7 @@ jobs:
               xcode: execute("/usr/bin/xcodebuild", ["-version"]),
               clang: execute("/usr/bin/xcrun", ["clang", "--version"])
             },
-            apple, gnu
+            apple, git, gnu
           };
           const output = JSON.stringify(metadata, null, 2);
           assert(Buffer.byteLength(output) <= 524288, "Metadata output bound exceeded");
@@ -185,6 +216,7 @@ jobs:
           console.log(output);
           console.log("DARWIN_NATIVE_METADATA_END");
           const required = [metadata.actual.swVers, metadata.actual.xcode, metadata.actual.clang,
+            git.resolution, git.file, git.version, git.execPath, git.codeSignature, git.codeSignatureVerification,
             ...apple.flatMap(item => [item.file, item.version, item.codeSignature, item.codeSignatureVerification])];
           if (required.some(result => result.error || result.signal || result.status !== 0)) process.exitCode = 1;
           DARWIN_NATIVE_METADATA

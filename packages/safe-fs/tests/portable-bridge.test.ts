@@ -160,14 +160,16 @@ describe("shared bridge and native oracle", () => {
     await expect(bridge.readFile("/file", "utf8")).rejects.toBe(failure);
   });
 
-  it.each([false, true])("retains cwd resolution without inventing root confinement (node=%s)", async node => {
+  it.each([false, true])("confines cwd resolution and link creation (node=%s)", async node => {
     const adapter = new MemoryFileSystem();
     await adapter.mkdir("/cwd");
     const bridge = node ? createNodeFsBridge(adapter, { cwd: "/cwd" }) : createFsBridge(adapter, { codec: nativeCodec, cwd: "/cwd" });
-    await bridge.writeFile("../outside", "allowed by raw bridge");
-    expect(Buffer.from(await adapter.readFile("/outside")).toString()).toBe("allowed by raw bridge");
-    await bridge.symlink("../outside", "link");
-    expect(await bridge.readlink("link")).toBe("../outside");
+    await expect(bridge.writeFile("../outside", "denied")).rejects.toMatchObject({ code: "EACCES" });
+    await expect(adapter.readFile("/outside")).rejects.toMatchObject({ code: "ENOENT" });
+    await expect(bridge.symlink("../outside", "escape")).rejects.toMatchObject({ code: "EACCES" });
+    await bridge.writeFile("file", "inside");
+    await bridge.symlink("file", "link");
+    expect(await bridge.readlink("link")).toBe("file");
     await expect(bridge.cp("/cwd", "/cwd/nested", { recursive: true })).rejects.toMatchObject({ code: "EINVAL" });
     await expect(bridge.readFile("bad\0path", "utf8")).rejects.toBeInstanceOf(TypeError);
     await expect(bridge.readFile("", "utf8")).rejects.toMatchObject({ code: "ENOENT" });

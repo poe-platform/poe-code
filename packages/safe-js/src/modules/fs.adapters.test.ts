@@ -7,7 +7,9 @@ import {
   createOverlayFileSystem,
   createReadOnlyFileSystem,
   type FileSystem,
-  FsError
+  FsError,
+  MemoryFileSystem,
+  MountFileSystem
 } from "@poe-code/safe-fs";
 import { vol } from "memfs";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
@@ -473,7 +475,7 @@ describe("adapter cwd and host signal", () => {
     ).resolves.toBe("root default");
   });
 
-  it("uses virtual cwd for relative paths without turning it into confinement", async () => {
+  it("confines unrooted adapter paths to virtual cwd without outside effects", async () => {
     const adapter = createMemoryFileSystem();
     await adapter.mkdir("/work");
     await adapter.writeFile("/work/input", Buffer.from("cwd"));
@@ -481,13 +483,19 @@ describe("adapter cwd and host signal", () => {
     const options = { adapter, cwd: "/work" };
     const fs = makeFsModule(options);
     await expect(fs.readFile("input", "utf8")).resolves.toBe("cwd");
-    await expect(fs.readFile("/outside", "utf8")).resolves.toBe("absolute");
+    const read = vi.spyOn(adapter, "readFile");
+    const write = vi.spyOn(adapter, "writeFile");
+    await expect(fs.readFile("/outside", "utf8")).rejects.toMatchObject({ code: "EACCES" });
+    await expect(fs.writeFile("../outside", "denied")).rejects.toMatchObject({ code: "EACCES" });
+    expect(read).not.toHaveBeenCalled();
+    expect(write).not.toHaveBeenCalled();
+    expect(Buffer.from(await adapter.readFile("/outside")).toString()).toBe("absolute");
     await fs.writeFile("output", "relative write");
     expect(Buffer.from(await adapter.readFile("/work/output")).toString()).toBe("relative write");
     expect(vol.toJSON()).toEqual({});
   });
 
-  it("keeps shared-bridge symlink-before-parent semantics without root", async () => {
+  it("denies unrooted symlink-before-parent escapes without backing data effects", async () => {
     const adapter = createMemoryFileSystem();
     await adapter.mkdir("/work");
     await adapter.mkdir("/other/deep", { recursive: true });
@@ -495,7 +503,14 @@ describe("adapter cwd and host signal", () => {
     await adapter.writeFile("/other/input", Buffer.from("followed"));
     await adapter.symlink("/other/deep", "/work/link");
     const options = { adapter, cwd: "/work" };
-    await expect(makeFsModule(options).readFile("link/../input", "utf8")).resolves.toBe("followed");
+    const read = vi.spyOn(adapter, "readFile");
+    const write = vi.spyOn(adapter, "writeFile");
+    const fs = makeFsModule(options);
+    await expect(fs.readFile("link/../input", "utf8")).rejects.toMatchObject({ code: "EACCES" });
+    await expect(fs.writeFile("link/../input", "denied")).rejects.toMatchObject({ code: "EACCES" });
+    expect(read).not.toHaveBeenCalled();
+    expect(write).not.toHaveBeenCalled();
+    expect(Buffer.from(await adapter.readFile("/other/input")).toString()).toBe("followed");
   });
 
   it("uses adapter cwd through an explicitly registered guest module", async () => {
@@ -829,4 +844,413 @@ describe("adapter cwd and host signal", () => {
       expect.arrayContaining(add.mock.calls.map((call) => call[1]))
     );
   });
+});
+
+it("preserves legacy Node-shaped recursive mkdir and absolute symlink behavior", async () => {
+  const fs = makeFsModule({ root: "/legacy/new" });
+  await fs.mkdir("nested", { recursive: true });
+  expect(vol.existsSync("/legacy/new/nested")).toBe(true);
+  await fs.writeFile("input", "legacy");
+  await fs.symlink("/legacy/new/input", "absolute");
+  expect(await fs.readlink("absolute")).toBe("/legacy/new/input");
+  expect(await fs.readFile("absolute", "utf8")).toBe("legacy");
+});
+
+type TestedFsModule = ReturnType<typeof makeFsModule>;
+
+const rootedOperations: readonly {
+  operation: Exclude<keyof TestedFsModule, "constants">;
+  operand: string;
+  inside: string;
+  call(fs: TestedFsModule, path: string): Promise<unknown>;
+}[] = [
+  { operation: "access", operand: "path", inside: "input", call: (fs, path) => fs.access(path) },
+  {
+    operation: "appendFile",
+    operand: "path",
+    inside: "input",
+    call: (fs, path) => fs.appendFile(path, "added")
+  },
+  {
+    operation: "chmod",
+    operand: "path",
+    inside: "input",
+    call: (fs, path) => fs.chmod(path, 0o600)
+  },
+  {
+    operation: "copyFile",
+    operand: "source",
+    inside: "input",
+    call: (fs, path) => fs.copyFile(path, "/project/output")
+  },
+  {
+    operation: "copyFile",
+    operand: "destination",
+    inside: "output",
+    call: (fs, path) => fs.copyFile("/project/input", path)
+  },
+  {
+    operation: "cp",
+    operand: "source",
+    inside: "input",
+    call: (fs, path) => fs.cp(path, "/project/output")
+  },
+  {
+    operation: "cp",
+    operand: "destination",
+    inside: "output",
+    call: (fs, path) => fs.cp("/project/input", path)
+  },
+  {
+    operation: "link",
+    operand: "source",
+    inside: "input",
+    call: (fs, path) => fs.link(path, "/project/hardlink")
+  },
+  {
+    operation: "link",
+    operand: "destination",
+    inside: "hardlink",
+    call: (fs, path) => fs.link("/project/input", path)
+  },
+  { operation: "lstat", operand: "path", inside: "input", call: (fs, path) => fs.lstat(path) },
+  { operation: "mkdir", operand: "path", inside: "new", call: (fs, path) => fs.mkdir(path) },
+  {
+    operation: "mkdtemp",
+    operand: "prefix",
+    inside: "prefix-",
+    call: (fs, path) => fs.mkdtemp(path)
+  },
+  {
+    operation: "readFile",
+    operand: "path",
+    inside: "input",
+    call: (fs, path) => fs.readFile(path, "utf8")
+  },
+  { operation: "readdir", operand: "path", inside: "empty", call: (fs, path) => fs.readdir(path) },
+  { operation: "readlink", operand: "path", inside: "link", call: (fs, path) => fs.readlink(path) },
+  {
+    operation: "realpath",
+    operand: "path",
+    inside: "input",
+    call: (fs, path) => fs.realpath(path)
+  },
+  {
+    operation: "rename",
+    operand: "source",
+    inside: "input",
+    call: (fs, path) => fs.rename(path, "/project/output")
+  },
+  {
+    operation: "rename",
+    operand: "destination",
+    inside: "output",
+    call: (fs, path) => fs.rename("/project/input", path)
+  },
+  { operation: "rm", operand: "path", inside: "input", call: (fs, path) => fs.rm(path) },
+  { operation: "rmdir", operand: "path", inside: "empty", call: (fs, path) => fs.rmdir(path) },
+  { operation: "stat", operand: "path", inside: "input", call: (fs, path) => fs.stat(path) },
+  {
+    operation: "symlink",
+    operand: "target",
+    inside: "input",
+    call: (fs, path) => fs.symlink(path, "/project/new-link")
+  },
+  {
+    operation: "symlink",
+    operand: "link",
+    inside: "new-link",
+    call: (fs, path) => fs.symlink("input", path)
+  },
+  {
+    operation: "truncate",
+    operand: "path",
+    inside: "input",
+    call: (fs, path) => fs.truncate(path, 1)
+  },
+  {
+    operation: "utimes",
+    operand: "path",
+    inside: "input",
+    call: (fs, path) => fs.utimes(path, 1, 2)
+  },
+  {
+    operation: "writeFile",
+    operand: "path",
+    inside: "input",
+    call: (fs, path) => fs.writeFile(path, "changed")
+  }
+];
+
+describe("explicit adapter root confinement", () => {
+  const facade = "Node";
+  const createModule = makeFsModule;
+
+  it(`${facade} resolves a new relative symlink against its actual destination parent`, async () => {
+    const adapter = new MemoryFileSystem();
+    await adapter.mkdir("/work/deep", { recursive: true });
+    await adapter.mkdir("/outside/deep", { recursive: true });
+    const fs = createModule({ adapter, root: "/work", cwd: "/work" });
+    await fs.symlink("..", "deep/up");
+    const symlink = vi.spyOn(adapter, "symlink");
+    await expect(fs.symlink("../../outside/deep", "deep/up/sub")).rejects.toMatchObject({
+      code: "EACCES"
+    });
+    expect(symlink).not.toHaveBeenCalled();
+    await expect(adapter.lstat("/work/sub")).rejects.toMatchObject({ code: "ENOENT" });
+    expect(await adapter.readdir("/outside")).toMatchObject([{ name: "deep" }]);
+  });
+
+  it.each(["writeFile", "copyFile"] as const)(
+    `${facade} %s refuses an existing dangling link without collapsing symlink-before-parent traversal`,
+    async (operation) => {
+      const adapter = new MemoryFileSystem();
+      await adapter.mkdir("/work/deep", { recursive: true });
+      await adapter.mkdir("/outside/deep", { recursive: true });
+      await adapter.writeFile("/work/input", new TextEncoder().encode("ESCAPED"));
+      await adapter.symlink("..", "/work/deep/up");
+      await adapter.symlink("../../outside/deep", "/work/deep/up/sub");
+      await adapter.symlink("sub/../new", "/work/link");
+      const write = vi.spyOn(adapter, "writeFile");
+      const copy = vi.spyOn(adapter, "copyFile");
+      const fs = createModule({ adapter, root: "/work", cwd: "/work" });
+      await expect(
+        operation === "writeFile" ? fs.writeFile("link", "ESCAPED") : fs.copyFile("input", "link")
+      ).rejects.toMatchObject({ code: "EACCES" });
+      expect(write).not.toHaveBeenCalled();
+      expect(copy).not.toHaveBeenCalled();
+      await expect(adapter.lstat("/outside/new")).rejects.toMatchObject({ code: "ENOENT" });
+      await expect(adapter.lstat("/work/new")).rejects.toMatchObject({ code: "ENOENT" });
+    }
+  );
+
+  it(`${facade} preserves contained dangling-link traversal and destination-parent aliases`, async () => {
+    const adapter = new MemoryFileSystem();
+    await adapter.mkdir("/work/deep/sub", { recursive: true });
+    await adapter.writeFile("/work/input", new TextEncoder().encode("inside"));
+    await adapter.symlink("deep/sub", "/work/sub");
+    await adapter.symlink("sub/../new", "/work/link");
+    const fs = createModule({ adapter, root: "/work", cwd: "/work" });
+    await fs.writeFile("link", "contained");
+    expect(new TextDecoder().decode(await adapter.readFile("/work/deep/new"))).toBe("contained");
+    await expect(adapter.lstat("/work/new")).rejects.toMatchObject({ code: "ENOENT" });
+    await fs.symlink("..", "deep/up");
+    await fs.symlink("input", "deep/up/relative");
+    expect(await adapter.readlink("/work/relative")).toBe("input");
+    expect(await fs.readFile("relative", "utf8")).toBe("inside");
+  });
+
+  it(`${facade} rejects a root-equal mkdtemp prefix before generating an outside sibling`, async () => {
+    const adapter = new MemoryFileSystem();
+    await adapter.mkdir("/work");
+    const mkdir = vi.spyOn(adapter, "mkdir");
+    const fs = createModule({ adapter, root: "/work", cwd: "/work" });
+    await expect(fs.mkdtemp("/work")).rejects.toMatchObject({ code: "EACCES" });
+    expect(mkdir).not.toHaveBeenCalled();
+    expect((await adapter.readdir("/")).map((entry) => entry.name)).toEqual(["work"]);
+  });
+
+  it.each(["/work/", "/work/.", "./", "tmp-"])(
+    `${facade} preserves mkdtemp prefix semantics for %s and contains the actual allocation`,
+    async (prefix) => {
+      const adapter = new MemoryFileSystem();
+      await adapter.mkdir("/work");
+      const mkdir = vi.spyOn(adapter, "mkdir");
+      const fs = createModule({ adapter, root: "/work", cwd: "/work" });
+      const created = await fs.mkdtemp(prefix);
+      expect(created.startsWith("/work/")).toBe(true);
+      if (prefix === "/work/.") expect(created.startsWith("/work/.")).toBe(true);
+      if (prefix === "tmp-") expect(created.startsWith("/work/tmp-")).toBe(true);
+      expect(mkdir).toHaveBeenCalledTimes(1);
+      expect(mkdir.mock.calls[0]?.[0]).toBe(created);
+      expect((await adapter.stat(created)).type).toBe("directory");
+      expect((await adapter.readdir("/")).map((entry) => entry.name)).toEqual(["work"]);
+    }
+  );
+
+  it(`${facade} explicit root cannot recursively create a missing outside ancestor`, async () => {
+    const adapter = new MemoryFileSystem();
+    const mkdir = vi.spyOn(adapter, "mkdir");
+    const fs = createModule({ adapter, root: "/new/root", cwd: "/new/root" });
+    await expect(fs.mkdir("nested", { recursive: true })).rejects.toMatchObject({ code: "EACCES" });
+    expect(mkdir).not.toHaveBeenCalled();
+    expect(await adapter.readdir("/")).toEqual([]);
+  });
+
+  it(`${facade} creates a missing root beneath an existing parent and recursively creates only contained directories`, async () => {
+    const adapter = new MemoryFileSystem();
+    await adapter.mkdir("/new");
+    const fs = createModule({ adapter, root: "/new/root", cwd: "/new/root" });
+    expect(await fs.mkdir("nested", { recursive: true })).toBe("/new/root");
+    expect((await adapter.stat("/new/root/nested")).type).toBe("directory");
+    expect(await fs.mkdir("nested/deep/inside", { recursive: true })).toBe("/new/root/nested/deep");
+    expect((await adapter.stat("/new/root/nested/deep/inside")).type).toBe("directory");
+    expect((await adapter.readdir("/")).map((entry) => entry.name)).toEqual(["new"]);
+  });
+
+  it(`${facade} refuses recursive mkdir when canonical parent inspection is unsupported`, async () => {
+    const adapter = new MemoryFileSystem();
+    await adapter.mkdir("/project/work", { recursive: true });
+    const original = adapter.realpath.bind(adapter);
+    const failure = new FsError("ENOTSUP", { syscall: "realpath", path: "/" });
+    const realpath = vi.spyOn(adapter, "realpath").mockImplementation(async (path, options) => {
+      if (path === "/") throw failure;
+      return original(path, options);
+    });
+    const mkdir = vi.spyOn(adapter, "mkdir");
+    const fs = createModule({ adapter, root: "/project", cwd: "/project/work" });
+    await expect(fs.mkdir("new/deep", { recursive: true })).rejects.toBe(failure);
+    expect(realpath).toHaveBeenCalledWith("/", expect.any(Object));
+    expect(mkdir).not.toHaveBeenCalled();
+    await expect(adapter.stat("/project/work/new")).rejects.toMatchObject({ code: "ENOENT" });
+  });
+
+  it.each(["/project", "/"])(
+    `${facade} adapter root %s refuses absolute link creation but preserves relative and existing targets`,
+    async (root) => {
+      const adapter = new MemoryFileSystem();
+      await adapter.mkdir("/project/work", { recursive: true });
+      await adapter.mkdir("/outside");
+      await adapter.writeFile("/project/input", new TextEncoder().encode("inside"));
+      await adapter.symlink("/project/input", "/project/existing-absolute");
+      const symlink = vi.spyOn(adapter, "symlink");
+      const fs = createModule({ adapter, root, cwd: "/project/work" });
+      for (const target of ["/project/input", "/project/missing"]) {
+        await expect(fs.symlink(target, "absolute")).rejects.toMatchObject({ code: "ENOTSUP" });
+      }
+      if (root !== "/") {
+        await expect(fs.symlink("/outside/input", "outside-target")).rejects.toMatchObject({
+          code: "EACCES"
+        });
+        await expect(fs.symlink("/project/input", "/outside/link")).rejects.toMatchObject({
+          code: "EACCES"
+        });
+      }
+      expect(symlink).not.toHaveBeenCalled();
+      await fs.symlink("../input", "relative");
+      expect(await adapter.readlink("/project/work/relative")).toBe("../input");
+      expect(await fs.readFile("relative", "utf8")).toBe("inside");
+      expect(await fs.readFile("/project/existing-absolute", "utf8")).toBe("inside");
+      const unrooted = createModule({ adapter });
+      await unrooted.symlink("/project/input", "/project/default-absolute");
+      expect(await unrooted.readlink("/project/default-absolute")).toBe("/project/input");
+      expect(await unrooted.readFile("/project/default-absolute", "utf8")).toBe("inside");
+    }
+  );
+
+  it.each(["/project/input", "/outside/input"])(
+    `${facade} cancellation precedes absolute target rejection for %s`,
+    async (target) => {
+      const adapter = new MemoryFileSystem();
+      await adapter.mkdir("/project");
+      const controller = new AbortController();
+      controller.abort({ target });
+      const symlink = vi.spyOn(adapter, "symlink");
+      const realpath = vi.spyOn(adapter, "realpath");
+      const fs = createModule({ adapter, root: "/project", signal: controller.signal });
+      await expect(fs.symlink(target, "new-link")).rejects.toMatchObject({ code: "ABORT_ERR" });
+      expect(symlink).not.toHaveBeenCalled();
+      expect(realpath).not.toHaveBeenCalled();
+    }
+  );
+
+  it(`${facade} explicit root refuses mount-local absolute creation and accepts checked relative migration`, async () => {
+    const backend = new MemoryFileSystem();
+    await backend.mkdir("/work");
+    await backend.mkdir("/mnt/work", { recursive: true });
+    await backend.writeFile("/work/input", new TextEncoder().encode("inside"));
+    await backend.writeFile("/mnt/work/input", new TextEncoder().encode("outside"));
+    const adapter = new MountFileSystem({
+      root: new MemoryFileSystem(),
+      mounts: { "/mnt": backend }
+    });
+    const symlink = vi.spyOn(backend, "symlink");
+    const fs = createModule({ adapter, root: "/mnt/work", cwd: "/mnt/work" });
+    await expect(fs.symlink("/mnt/work/input", "absolute")).rejects.toMatchObject({
+      code: "ENOTSUP"
+    });
+    expect(symlink).not.toHaveBeenCalled();
+    await expect(backend.lstat("/work/absolute")).rejects.toMatchObject({ code: "ENOENT" });
+    await fs.symlink("input", "relative");
+    expect(await fs.readlink("relative")).toBe("input");
+    expect(await fs.readFile("relative", "utf8")).toBe("inside");
+    expect(new TextDecoder().decode(await backend.readFile("/mnt/work/input"))).toBe("outside");
+  });
+
+  it.each(rootedOperations)(
+    `${facade} explicit root guards $operation $operand independently of cwd`,
+    async ({ operation, operand, inside, call }) => {
+      const adapter = new MemoryFileSystem();
+      await adapter.mkdir("/project/work", { recursive: true });
+      await adapter.mkdir("/project/empty");
+      await adapter.mkdir("/outside");
+      await adapter.mkdir("/project-sibling");
+      await adapter.writeFile("/project/input", new TextEncoder().encode("inside"));
+      await adapter.writeFile("/outside/input", new TextEncoder().encode("outside"));
+      await adapter.writeFile("/project-sibling/input", new TextEncoder().encode("sibling"));
+      await adapter.symlink("input", "/project/link");
+      await adapter.symlink("/outside/input", "/project/escape");
+      await adapter.symlink("/outside/missing", "/project/dangling");
+      const writes = [
+        "writeFile",
+        "mkdir",
+        "rm",
+        "rmdir",
+        "rename",
+        "copyFile",
+        "symlink",
+        "link",
+        "chmod",
+        "utimes",
+        "truncate"
+      ] as const;
+      const effects = writes.map((name) => vi.spyOn(adapter, name));
+      const read = vi.spyOn(adapter, "readFile");
+      const readdir = vi.spyOn(adapter, "readdir");
+      const fs = createModule({ adapter, root: "/project", cwd: "/project/work" });
+      expect(new Set(rootedOperations.map((entry) => entry.operation)).size).toBe(21);
+      expect(readHostOperationPolicy(fs[operation])).toBe(
+        ["access", "lstat", "readFile", "readdir", "readlink", "realpath", "stat"].includes(
+          operation
+        )
+          ? "re-issue"
+          : "read-side-effect"
+      );
+      for (const outside of [
+        "/outside/input",
+        "../../outside/input",
+        "/project-sibling/input",
+        "/project/escape",
+        "/project/dangling"
+      ]) {
+        const absoluteTarget =
+          operation === "symlink" && operand === "target" && outside.startsWith("/project/");
+        await expect(call(fs, outside)).rejects.toMatchObject({
+          code: absoluteTarget ? "ENOTSUP" : "EACCES"
+        });
+      }
+      for (const effect of effects) expect(effect).not.toHaveBeenCalled();
+      expect(read).not.toHaveBeenCalled();
+      expect(readdir).not.toHaveBeenCalled();
+      expect(new TextDecoder().decode(await adapter.readFile("/outside/input"))).toBe("outside");
+      expect(new TextDecoder().decode(await adapter.readFile("/project-sibling/input"))).toBe(
+        "sibling"
+      );
+      await call(
+        fs,
+        operation === "symlink" && operand === "target" ? inside : `/project/${inside}`
+      );
+    }
+  );
+});
+
+it("confines rooted Node-shaped mkdtemp names while preserving native prefix separators", async () => {
+  vol.mkdirSync("/work");
+  const fs = makeFsModule({ root: "/work" });
+  await expect(fs.mkdtemp("/work")).rejects.toMatchObject({ code: "EACCES" });
+  expect(vol.readdirSync("/")).toEqual(["work"]);
+  const created = await fs.mkdtemp("/work/");
+  expect(created.startsWith("/work/")).toBe(true);
+  expect(vol.statSync(created).isDirectory()).toBe(true);
+  expect(vol.readdirSync("/")).toEqual(["work"]);
 });

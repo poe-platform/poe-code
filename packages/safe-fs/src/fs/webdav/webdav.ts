@@ -1,5 +1,6 @@
 import { FsError, isErrnoCode, isFsError } from "../../contracts/errors.js";
 import { composeAbortSignals } from "../../contracts/abort.js";
+import type { AbortSignalScope } from "../../contracts/abort.js";
 import type { PlatformComparisonCallback } from "#safe-fs-platform";
 import type { ErrnoCode } from "../../contracts/errors.js";
 import { readBytes } from "../../contracts/io.js";
@@ -69,6 +70,23 @@ function positive(value: number, name: string, zero = false): number {
     throw new FsError("EINVAL", { message: `${name} must be a ${zero ? "nonnegative" : "positive"} safe integer` });
   }
   return value;
+}
+
+function createRequestTimeout(timeoutMs: number): AbortSignalScope {
+  const controller = new AbortController();
+  const timer = setTimeout(() => {
+    controller.abort(new DOMException("The operation was aborted due to timeout", "TimeoutError"));
+  }, timeoutMs);
+  if (typeof timer === "object" && timer !== null) {
+    const handle: { unref?(): unknown } = timer;
+    handle.unref?.();
+  }
+  return {
+    signal: controller.signal,
+    dispose() {
+      clearTimeout(timer);
+    }
+  };
 }
 
 function nativeRequestStreamsSupported(url: string): boolean {
@@ -326,74 +344,79 @@ export class WebDavFileSystem implements FileSystem {
     consume: (response: Response, signal: AbortSignal) => AsyncIterable<T>, collection = false,
     received?: (response: Response, late: boolean) => void): AsyncGenerator<T> {
     if (options.signal?.aborted) fail("ECANCELED", method, path);
-    const timeout = AbortSignal.timeout(this.timeoutMs);
-    const headers = new Headers(this.headers);
-    for (const [name, value] of new Headers(init.headers)) headers.set(name, value);
-    headers.set("Cache-Control", "no-cache");
-    const signalScope = options.signal ? composeAbortSignals([timeout, options.signal]) : undefined;
-    const signal = signalScope?.signal ?? timeout;
-    let response: Response | undefined;
-    const receive = (value: Response, late: boolean): void => {
-      if (value.redirected || value.type === "opaqueredirect") fail("ENOTSUP", method, path, "transport followed or hid a redirect");
-      if (value.url && this.hrefPath(value.url) !== path) fail("EACCES", method, path, "transport changed the requested resource");
-      received?.(value, late);
-    };
+    const deadline = createRequestTimeout(this.timeoutMs);
+    const timeout = deadline.signal;
     try {
-      let url = this.url(path, collection);
-      for (let attempt = 0; ; attempt++) {
-        signal.throwIfAborted();
-        response = await new Promise<Response>((resolve, reject) => {
-          let abandoned = false;
-          const abort = (): void => {
-            abandoned = true;
-            signal.removeEventListener("abort", abort);
-            reject(signal.reason);
-          };
-          signal.addEventListener("abort", abort, { once: true });
-          try {
-            Promise.resolve(this.transport(url, {
-              ...init, method, headers, redirect: "manual", credentials: "omit", signal,
-            })).then((value) => {
+      const headers = new Headers(this.headers);
+      for (const [name, value] of new Headers(init.headers)) headers.set(name, value);
+      headers.set("Cache-Control", "no-cache");
+      const signalScope = options.signal ? composeAbortSignals([timeout, options.signal]) : undefined;
+      const signal = signalScope?.signal ?? timeout;
+      let response: Response | undefined;
+      const receive = (value: Response, late: boolean): void => {
+        if (value.redirected || value.type === "opaqueredirect") fail("ENOTSUP", method, path, "transport followed or hid a redirect");
+        if (value.url && this.hrefPath(value.url) !== path) fail("EACCES", method, path, "transport changed the requested resource");
+        received?.(value, late);
+      };
+      try {
+        let url = this.url(path, collection);
+        for (let attempt = 0; ; attempt++) {
+          signal.throwIfAborted();
+          response = await new Promise<Response>((resolve, reject) => {
+            let abandoned = false;
+            const abort = (): void => {
+              abandoned = true;
               signal.removeEventListener("abort", abort);
-              if (!abandoned) resolve(value);
-              else {
-                try { receive(value, true); }
-                catch (ignoredError) { void ignoredError; }
-                finally {
-                  if (value.body && !value.body.locked) void value.body.cancel(signal.reason).catch(() => {});
+              reject(signal.reason);
+            };
+            signal.addEventListener("abort", abort, { once: true });
+            try {
+              Promise.resolve(this.transport(url, {
+                ...init, method, headers, redirect: "manual", credentials: "omit", signal,
+              })).then((value) => {
+                signal.removeEventListener("abort", abort);
+                if (!abandoned) resolve(value);
+                else {
+                  try { receive(value, true); }
+                  catch (ignoredError) { void ignoredError; }
+                  finally {
+                    if (value.body && !value.body.locked) void value.body.cancel(signal.reason).catch(() => {});
+                  }
                 }
-              }
-            }, (error: unknown) => {
+              }, (error: unknown) => {
+                signal.removeEventListener("abort", abort);
+                reject(error);
+              }).catch(reject);
+            } catch (error) {
               signal.removeEventListener("abort", abort);
               reject(error);
-            }).catch(reject);
-          } catch (error) {
-            signal.removeEventListener("abort", abort);
-            reject(error);
-          }
-        });
-        receive(response, false);
-        signal.throwIfAborted();
-        const location = response.headers.get("Location");
-        if (attempt === 0 && method === "PROPFIND" && !url.endsWith("/")
-          && [301, 302, 307, 308].includes(response.status) && location !== null
-          && this.hrefPath(location) === path && new URL(location, this.base).href === `${url}/`) {
-          await response.body?.cancel();
+            }
+          });
+          receive(response, false);
           signal.throwIfAborted();
-          url += "/";
-          continue;
+          const location = response.headers.get("Location");
+          if (attempt === 0 && method === "PROPFIND" && !url.endsWith("/")
+            && [301, 302, 307, 308].includes(response.status) && location !== null
+            && this.hrefPath(location) === path && new URL(location, this.base).href === `${url}/`) {
+            await response.body?.cancel();
+            signal.throwIfAborted();
+            url += "/";
+            continue;
+          }
+          yield* consume(response, signal);
+          return;
         }
-        yield* consume(response, signal);
-        return;
+      } catch (cause) {
+        if (options.signal?.aborted) throw new FsError("ECANCELED", { syscall: method, path, cause });
+        if (timeout.aborted) throw new FsError("ETIMEDOUT", { syscall: method, path, cause });
+        if (isFsError(cause)) throw cause;
+        throw new FsError("EIO", { syscall: method, path, message: "WebDAV transport or response failure", cause });
+      } finally {
+        signalScope?.dispose();
+        if (response?.body && !response.body.locked) void response.body.cancel().catch(() => {});
       }
-    } catch (cause) {
-      if (options.signal?.aborted) throw new FsError("ECANCELED", { syscall: method, path, cause });
-      if (timeout.aborted) throw new FsError("ETIMEDOUT", { syscall: method, path, cause });
-      if (isFsError(cause)) throw cause;
-      throw new FsError("EIO", { syscall: method, path, message: "WebDAV transport or response failure", cause });
     } finally {
-      signalScope?.dispose();
-      if (response?.body && !response.body.locked) void response.body.cancel().catch(() => {});
+      deadline.dispose();
     }
   }
 
@@ -750,51 +773,56 @@ export class WebDavFileSystem implements FileSystem {
       fail("ENOTSUP", "writeStream", path, "transport does not declare supported request streams");
     }
     const { normalized, headers, prefix } = await this.prepareWrite(path, options);
-    const timeout = AbortSignal.timeout(this.timeoutMs);
-    const controller = new AbortController();
-    const signalScope = composeAbortSignals([timeout, controller.signal, ...(options.signal ? [options.signal] : [])]);
-    const signal = signalScope.signal;
-    const limit = this.maxResponseBytes;
-    const chunks = (async function* () {
-      let size = prefix.byteLength;
-      if (prefix.byteLength) yield prefix;
-      for await (const chunk of readBytes(source, signal)) {
-        size += chunk.byteLength;
-        if (size > limit) fail("EFBIG", "writeStream", path, "upload exceeds byte limit");
-        yield new Uint8Array(chunk);
-      }
-    })();
-    let finished = false;
-    let uploadError: unknown;
-    let body: ReadableStream<Uint8Array> | undefined;
+    const deadline = createRequestTimeout(this.timeoutMs);
+    const timeout = deadline.signal;
     try {
-      body = new ReadableStream<Uint8Array>({
-        async pull(destination) {
-          try {
-            const result = await chunks.next();
-            if (result.done) { finished = true; destination.close(); }
-            else destination.enqueue(result.value);
-          } catch (cause) { uploadError = cause; destination.error(cause); }
-        },
-        cancel(reason) { controller.abort(reason); void chunks.return(undefined).catch(() => {}); },
-      }, { highWaterMark: 0 });
+      const controller = new AbortController();
+      const signalScope = composeAbortSignals([timeout, controller.signal, ...(options.signal ? [options.signal] : [])]);
+      const signal = signalScope.signal;
+      const limit = this.maxResponseBytes;
+      const chunks = (async function* () {
+        let size = prefix.byteLength;
+        if (prefix.byteLength) yield prefix;
+        for await (const chunk of readBytes(source, signal)) {
+          size += chunk.byteLength;
+          if (size > limit) fail("EFBIG", "writeStream", path, "upload exceeds byte limit");
+          yield new Uint8Array(chunk);
+        }
+      })();
+      let finished = false;
+      let uploadError: unknown;
+      let body: ReadableStream<Uint8Array> | undefined;
       try {
-        const request: RequestInit & { duplex: "half" } = { headers, body, duplex: "half" };
-        await this.mutation("PUT", normalized, options, request);
-        if (uploadError !== undefined) throw uploadError;
-        if (!finished) fail("EIO", "writeStream", path, "server responded before consuming the upload");
-      } catch (cause) {
-        if (options.signal?.aborted) throw new FsError("ECANCELED", { syscall: "writeStream", path, cause });
-        if (timeout.aborted) throw new FsError("ETIMEDOUT", { syscall: "writeStream", path, cause });
-        if (isFsError(uploadError)) throw uploadError;
-        if (isFsError(cause)) throw cause;
-        throw new FsError("EIO", { syscall: "writeStream", path, cause });
+        body = new ReadableStream<Uint8Array>({
+          async pull(destination) {
+            try {
+              const result = await chunks.next();
+              if (result.done) { finished = true; destination.close(); }
+              else destination.enqueue(result.value);
+            } catch (cause) { uploadError = cause; destination.error(cause); }
+          },
+          cancel(reason) { controller.abort(reason); void chunks.return(undefined).catch(() => {}); },
+        }, { highWaterMark: 0 });
+        try {
+          const request: RequestInit & { duplex: "half" } = { headers, body, duplex: "half" };
+          await this.mutation("PUT", normalized, options, request);
+          if (uploadError !== undefined) throw uploadError;
+          if (!finished) fail("EIO", "writeStream", path, "server responded before consuming the upload");
+        } catch (cause) {
+          if (options.signal?.aborted) throw new FsError("ECANCELED", { syscall: "writeStream", path, cause });
+          if (timeout.aborted) throw new FsError("ETIMEDOUT", { syscall: "writeStream", path, cause });
+          if (isFsError(uploadError)) throw uploadError;
+          if (isFsError(cause)) throw cause;
+          throw new FsError("EIO", { syscall: "writeStream", path, cause });
+        }
+      } finally {
+        controller.abort();
+        signalScope.dispose();
+        if (body && !body.locked) void body.cancel().catch(() => {});
+        void chunks.return(undefined).catch(() => {});
       }
     } finally {
-      controller.abort();
-      signalScope.dispose();
-      if (body && !body.locked) void body.cancel().catch(() => {});
-      void chunks.return(undefined).catch(() => {});
+      deadline.dispose();
     }
   }
 
@@ -851,45 +879,50 @@ export class WebDavFileSystem implements FileSystem {
   }
 
   private async atomicRmdir(normalized: string, path: string, options: FsOptions): Promise<void> {
-    const timeout = AbortSignal.timeout(this.timeoutMs);
-    const signalScope = options.signal ? composeAbortSignals([timeout, options.signal]) : undefined;
-    const signal = signalScope?.signal ?? timeout;
+    const deadline = createRequestTimeout(this.timeoutMs);
+    const timeout = deadline.signal;
     try {
-      signal.throwIfAborted();
-      const receipt = await new Promise<WebDavAtomicEmptyDirectoryResult>((resolve, reject) => {
-        const abort = (): void => {
-          signal.removeEventListener("abort", abort);
-          reject(signal.reason);
-        };
-        signal.addEventListener("abort", abort, { once: true });
-        try {
-          Promise.resolve(this.atomicEmptyDirectory!.removeEmptyDirectory(Object.freeze({
-            operation: "atomic-empty-rmdir/v1", namespaceUrl: this.base.href, path: normalized, signal,
-          }))).then((result) => {
+      const signalScope = options.signal ? composeAbortSignals([timeout, options.signal]) : undefined;
+      const signal = signalScope?.signal ?? timeout;
+      try {
+        signal.throwIfAborted();
+        const receipt = await new Promise<WebDavAtomicEmptyDirectoryResult>((resolve, reject) => {
+          const abort = (): void => {
             signal.removeEventListener("abort", abort);
-            resolve(result);
-          }, (error: unknown) => {
+            reject(signal.reason);
+          };
+          signal.addEventListener("abort", abort, { once: true });
+          try {
+            Promise.resolve(this.atomicEmptyDirectory!.removeEmptyDirectory(Object.freeze({
+              operation: "atomic-empty-rmdir/v1", namespaceUrl: this.base.href, path: normalized, signal,
+            }))).then((result) => {
+              signal.removeEventListener("abort", abort);
+              resolve(result);
+            }, (error: unknown) => {
+              signal.removeEventListener("abort", abort);
+              reject(error);
+            });
+          } catch (error) {
             signal.removeEventListener("abort", abort);
             reject(error);
-          });
-        } catch (error) {
-          signal.removeEventListener("abort", abort);
-          reject(error);
+          }
+        });
+        signal.throwIfAborted();
+        if (!receipt || receipt.operation !== "atomic-empty-rmdir/v1" || receipt.namespaceUrl !== this.base.href
+          || receipt.path !== normalized || receipt.outcome !== "removed") {
+          fail("EIO", "rmdir", path, "atomic empty-directory receipt mismatch; removal outcome is uncertain");
         }
-      });
-      signal.throwIfAborted();
-      if (!receipt || receipt.operation !== "atomic-empty-rmdir/v1" || receipt.namespaceUrl !== this.base.href
-        || receipt.path !== normalized || receipt.outcome !== "removed") {
-        fail("EIO", "rmdir", path, "atomic empty-directory receipt mismatch; removal outcome is uncertain");
+      } catch (cause) {
+        if (options.signal?.aborted) throw new FsError("ECANCELED", { syscall: "rmdir", path, cause });
+        if (timeout.aborted) throw new FsError("ETIMEDOUT", { syscall: "rmdir", path, cause });
+        if (isFsError(cause)) throw cause;
+        const code = cause && typeof cause === "object" && "code" in cause && isErrnoCode(cause.code) ? cause.code : "EIO";
+        throw new FsError(code, { syscall: "rmdir", path, cause });
+      } finally {
+        signalScope?.dispose();
       }
-    } catch (cause) {
-      if (options.signal?.aborted) throw new FsError("ECANCELED", { syscall: "rmdir", path, cause });
-      if (timeout.aborted) throw new FsError("ETIMEDOUT", { syscall: "rmdir", path, cause });
-      if (isFsError(cause)) throw cause;
-      const code = cause && typeof cause === "object" && "code" in cause && isErrnoCode(cause.code) ? cause.code : "EIO";
-      throw new FsError(code, { syscall: "rmdir", path, cause });
     } finally {
-      signalScope?.dispose();
+      deadline.dispose();
     }
   }
 

@@ -1,6 +1,6 @@
 import { constants as nodeFsConstants, type Dirent, type PathLike, type Stats } from "node:fs";
 import * as nodeFsPromises from "node:fs/promises";
-import { dirname, isAbsolute, resolve } from "node:path";
+import { dirname, isAbsolute, resolve, sep } from "node:path";
 import { inspect } from "node:util";
 import * as nodeUtil from "node:util";
 import {
@@ -374,7 +374,10 @@ export function makeFsModule(options: FsModuleOptions = {}): FsModule {
   const implementation =
     options.adapter === undefined
       ? (options.fs ?? nodeFsPromises)
-      : createNodeFsBridge(options.adapter, { cwd: options.cwd, signal: options.signal });
+      : createNodeFsBridge(options.adapter, {
+          cwd: options.root === undefined ? options.cwd : undefined,
+          signal: options.signal
+        });
   const fs =
     options.root === undefined
       ? implementation
@@ -564,15 +567,29 @@ async function resolvePathArguments(
     // against the link's own directory, so only the link path is rewritten while
     // the target is checked as the link's directory would see it.
     const linkPath = readPath(base, args[1]);
+    const targetPath = readPath(dirname(linkPath), args[0]);
     resolved[1] = linkPath;
-    await assertInsideRoot(
-      fs,
-      canonicalRoot,
-      name,
-      [readPath(dirname(linkPath), args[0]), linkPath],
-      adapter,
-      signal
-    );
+    if (adapter !== undefined && typeof args[0] === "string" && isAbsolute(args[0])) {
+      signal?.throwIfAborted();
+      if (!isPathWithin(canonicalRoot, targetPath) || !isPathWithin(canonicalRoot, linkPath)) {
+        throw createAccessDeniedError(name, targetPath, linkPath);
+      }
+      throw new FsError("ENOTSUP", {
+        syscall: FS_SYSCALLS[name],
+        path: targetPath,
+        dest: linkPath,
+        message:
+          "absolute symlink targets cannot be confined before creation; use a relative target"
+      });
+    }
+    const parent = await invoke(fs, "realpath", [dirname(linkPath)]);
+    const checkedTarget = isAbsolute(args[0] as string)
+      ? (args[0] as string)
+      : `${parent as string}${sep}${args[0] as string}`;
+    await assertInsideRoot(fs, canonicalRoot, name, [checkedTarget, linkPath], adapter, signal, [
+      targetPath,
+      linkPath
+    ]);
     return resolved;
   }
 
@@ -583,6 +600,26 @@ async function resolvePathArguments(
   });
 
   await assertInsideRoot(fs, canonicalRoot, name, paths, adapter, signal);
+  if (name === "mkdtemp") {
+    const prefix = args[0] as string;
+    const absolutePrefix = isAbsolute(prefix) ? prefix : `${base}${sep}${prefix}`;
+    const parent = absolutePrefix.endsWith(sep) ? absolutePrefix : dirname(absolutePrefix);
+    await assertInsideRoot(fs, canonicalRoot, name, [parent], adapter, signal, paths);
+    resolved[0] = absolutePrefix;
+  }
+  if (adapter !== undefined && name === "mkdir") {
+    const options = args[1];
+    if (isObjectLike(options) && (options as { recursive?: unknown }).recursive === true) {
+      signal?.throwIfAborted();
+      try {
+        await invoke(fs, "realpath", [dirname(canonicalRoot)]);
+      } catch (error) {
+        signal?.throwIfAborted();
+        if (getOwnErrorCode(error) !== "ENOENT") throw error;
+        throw createAccessDeniedError(name, paths[0]!);
+      }
+    }
+  }
   return resolved;
 }
 
@@ -594,11 +631,12 @@ async function assertInsideRoot(
   name: FsOperationName,
   paths: readonly string[],
   adapter?: FileSystem,
-  signal?: AbortSignal
+  signal?: AbortSignal,
+  reportedPaths: readonly string[] = paths
 ): Promise<void> {
   for (const path of paths) {
     if (await escapesRoot(fs, canonicalRoot, path, adapter, signal)) {
-      throw createAccessDeniedError(name, paths[0], paths[1]);
+      throw createAccessDeniedError(name, reportedPaths[0]!, reportedPaths[1]);
     }
   }
 }

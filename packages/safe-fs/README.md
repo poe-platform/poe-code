@@ -486,12 +486,71 @@ not Node Buffer/file-URL path conversion. Its public types are `FsBridge`,
 | Field | Meaning/default |
 | --- | --- |
 | `codec` | Required trusted object with `isEncoding(name)`, `encode(text, name)` and `decode(bytes, name)`; no default codec |
-| `cwd` | Absolute virtual path, default `/`; no NUL, not a host working directory |
+| `cwd` | Absolute virtual confinement boundary and relative-path base, default `/`; no NUL, not a host working directory |
 | `signal` | Optional borrowed cancellation signal, composed with operation signals; never aborted by the bridge |
 
-There is no bridge `root` option. `cwd` resolves relative paths; it does not
-confine absolute paths or parent traversal. Adapter scope and runtime confinement
-are separate. The Node bridge's operation and option restrictions below also
+There is no separate bridge `root` option: **`cwd` is the confinement boundary**.
+Its spelling is normalized at construction. With `cwd: "/work"`, `file` and
+`/work/file` address the same entry. Absolute paths retain their backing virtual
+meaning; `/file` is **not** remapped to `/work/file` and is denied. `/outside`,
+`/work-sibling`, and parent traversal that crosses `/work` are denied with
+`EACCES` before any adapter I/O, even if a later component would return inside.
+Both operands of copy, rename and link operations are preflighted. `sub/../file`
+is allowed when its actual traversal stays inside. Omitting `cwd`, or using `/`,
+grants the adapter's whole virtual namespace, not the host machine's root.
+
+Virtual paths use `/` separators. A backslash is an ordinary filename character:
+`..\\file` does not mean `../file`. On the supported POSIX real-filesystem backend
+it remains a literal backslash in the host filename. That backend rejects
+non-POSIX hosts; this bridge does not add Windows drive/UNC path support. Node
+file URLs are converted first, then checked in the same virtual namespace.
+
+For a restricted boundary, the shared bridge inspects existing path components
+with `lstat`, resolves symbolic links through `readlink` before subsequent `..`,
+and checks canonical paths with `realpath`. The original operand (or its existing
+parent for creation/final-link operations) must canonically agree with the
+inspected traversal. A mount-relative absolute link target cannot substitute a
+different backing location, even if an apparent global-path decoy exists.
+Existing symlink ancestors of `cwd`,
+including a symlink `cwd` itself, are refused rather than silently rebasing the
+boundary. Missing ancestors outside `cwd` are not created: `/new/root` cannot
+recursively create `/new`. A missing boundary itself may be created only beneath
+an existing, canonically verified parent. Link targets must remain inside;
+traversal is limited to 40 links. Creating a link with a contained missing target
+is permitted, but following an existing dangling link rejects if its original
+canonical location cannot be verified. Missing or failing inspection
+capabilities fail closed, not by bypassing confinement. A capability flag alone
+does not waive inspection. A missing component followed by `..` is rejected with
+`ENOENT` rather than normalized past an uninspected subtree. Validated operation
+paths retain their spelling so terminal `.`/`..` and trailing-slash semantics
+are still enforced by the adapter. Final-link `lstat`, `readlink`, removal and rename
+operate on the contained link itself, without reading its outside target.
+Creating a link to a lexically outside target is denied with `EACCES`. Under a
+restricted `cwd`, creating any absolute symlink target is refused with `ENOTSUP`
+after cancellation and lexical path checks. The adapter may interpret an absolute
+stored target within a mounted backend rather than the bridge namespace, and the
+contract has no side-effect-free preview of a not-yet-created link. Use a relative
+target instead: for a link `/work/sub/link` pointing to `/work/file`, supply
+`../file`. The bridge checks that resolution and stores the relative text unchanged;
+it does not rewrite targets or create probe links. Existing absolute links remain
+readable only when their actual canonical resolution is verified inside the
+boundary. Default whole-namespace bridges (`cwd: "/"`, including omission) retain
+their existing absolute-target behavior. This refusal is an observable adapter
+bridge restriction, not a change to ordinary absolute file paths.
+
+Read-only, mounted and overlay
+adapters use this same algorithm; there are no backend-name branches.
+
+Confinement relies on the adapter honoring its virtual-path and metadata
+contracts. **It is not a race-proof operating-system sandbox:** the filesystem
+interface supplies path-based checks and operations, not atomic directory-handle
+confinement. An external actor able to replace host ancestors between checks and
+use can race them, as with the RealFileSystem boundary described above. Do not
+use a concurrently hostile host tree as a security boundary. Existing hard-link
+aliases inside the allowed namespace remain the adapter's authority; the bridge
+does not promise inode isolation from aliases elsewhere.
+
+The Node bridge's operation and option restrictions below also
 apply to this bridge. The codec decides which encodings are supported; unsupported
 requested encodings reject before adapter I/O. Filename conversion also needs
 UTF-8 support. `isEncoding` returns a boolean, `encode` returns bytes, and `decode`
@@ -543,9 +602,14 @@ temporary-name generation.
 
 `createNodeFsBridge(filesystem, { cwd?, signal? })` exposes `NodeFsImplementation`,
 a Node-promises-shaped subset. `cwd` defaults to `/` and must be an absolute
-virtual path. It is path resolution context, **not confinement**: absolute paths
-and parent traversal can address other locations in the backing virtual namespace.
-`signal` applies to operations and combines with per-read/write cancellation.
+virtual path. It is both the relative-path base and the confinement boundary,
+with the same absolute-path, parent-traversal, symlink and adapter limitations
+specified for the portable bridge above. Node Buffer and file-URL paths undergo
+the same checks after conversion. `signal` applies to operations and combines
+with per-read/write cancellation. Already-aborted borrowed signals retain
+`AbortError` / `ABORT_ERR` priority over confinement checks; borrowed controllers
+are never aborted. Cancellation during inspection is checked again before the
+data operation, and composed listeners are disposed.
 
 Methods: `access`, `appendFile`, `chmod`, `copyFile`, `cp`, `link`, `lstat`,
 `mkdir`, `mkdtemp`, `readFile`, `readdir`, `readlink`, `realpath`, `rename`, `rm`,

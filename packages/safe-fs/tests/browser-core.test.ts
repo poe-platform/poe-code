@@ -23,7 +23,7 @@ describe("browser-selected actual filesystem graph", () => {
     expect(Object.keys(output.metafile!.inputs).some(input => input.endsWith("platform/node.ts"))).toBe(false);
     const context = createContext({
       AbortController, AbortSignal, Headers, Response, Request, URL, TextEncoder, TextDecoder,
-      ReadableStream, Uint8Array, crypto: webcrypto
+      ReadableStream, Uint8Array, crypto: webcrypto, setTimeout, clearTimeout, DOMException
     });
     runInContext(output.outputFiles[0]!.text, context);
     const checks = await runInContext("safeFsBrowserChecks.runBrowserChecks()", context) as string[];

@@ -16,4 +16,10 @@ it("bundles and executes the actual portable bridge without Node globals", async
   const checks = await runInContext("bridgeChecks.runBrowserBridgeChecks()", context) as string[];
   expect(checks).toContain("all 21 bridge operations");
   expect(checks).toContain("comparison preserves original cancellation reason");
+  expect(checks).toContain("outside content survives confinement denials");
+  expect(checks).toContain("virtual backslash is a filename character");
+  expect(checks).toContain("mounted canonical operand disagreement denied");
+  expect(checks).toContain("missing boundary refusal has no ancestor effects");
+  expect(checks).toContain("confined absolute link creation is unsupported");
+  expect(checks).toContain("relative target migration preserves stored text and destination");
 });

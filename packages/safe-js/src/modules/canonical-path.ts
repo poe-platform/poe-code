@@ -74,7 +74,7 @@ export async function resolveCanonicalPath(
         // node resolves a relative target against the link's own directory. Any
         // segments already collected still hang off whatever the target resolves to,
         // so they stay on the list.
-        current = isAbsolute(target) ? resolve(target) : resolve(dirname(current), target);
+        current = isAbsolute(target) ? target : `${dirname(current)}${sep}${target}`;
         continue;
       }
 

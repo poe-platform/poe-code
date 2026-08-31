@@ -2,6 +2,7 @@ import type { FileSystem, FsOptions } from "../contracts/filesystem.js";
 import { composeAbortSignals } from "../contracts/abort.js";
 import { bridgeDirent, bridgeStats } from "./stats.js";
 import { booleanValue, checkSignal, onlyKeys, record, withSignal } from "./values.js";
+import { assertBridgePath, checkedBridgePath } from "./confinement.js";
 import type {
   BridgePrimitives, BufferEncodingOption, FsBridgeCodec, FsBridgeDirent, FsBridgeEncoding,
   FsBridgeFileSystem, FsBridgeStats, MakeDirectoryOptions, Mode, ObjectEncodingOptions, StatOptions
@@ -77,7 +78,7 @@ export class FileSystemBridge<Binary extends Uint8Array> {
       decode: codec.decode.bind(codec)
     });
     this.#fs = fs;
-    this.#cwd = cwd;
+    this.#cwd = primitives.paths.resolve("/", cwd);
     this.#signal = options.signal;
   }
 
@@ -97,10 +98,18 @@ export class FileSystemBridge<Binary extends Uint8Array> {
     const path = this.#primitives.pathValue === undefined ? value : this.#primitives.pathValue(value);
     if (typeof path !== "string" || path.includes("\0")) throw new TypeError("Expected a path without NUL bytes; file handles are unsupported");
     if (path.length === 0) throw fsError("ENOENT", "path", path);
-    return this.#primitives.paths.isAbsolute(path) ? path : childPath(this.#cwd, path);
+    checkSignal(this.#signal);
+    const absolute = this.#primitives.paths.isAbsolute(path) ? path : childPath(this.#cwd, path);
+    assertBridgePath(this.#cwd, absolute);
+    return absolute;
   }
 
-  async #call<Value>(operation: (options: FsOptions) => Promise<Value>, signal?: unknown): Promise<Value> {
+  async #call<Value>(
+    paths: readonly unknown[],
+    operation: (options: FsOptions, resolved: readonly string[]) => Promise<Value>,
+    signal?: unknown,
+    noFollow: readonly number[] = []
+  ): Promise<Value> {
     if (signal !== undefined && !(signal instanceof AbortSignal)) throw new TypeError("Invalid AbortSignal");
     const signalScope = signal !== undefined && this.#signal !== undefined && signal !== this.#signal
       ? composeAbortSignals([signal, this.#signal]) : undefined;
@@ -108,7 +117,17 @@ export class FileSystemBridge<Binary extends Uint8Array> {
     try {
       checkSignal(combined);
       const options = combined === undefined ? {} : { signal: combined };
-      return await withSignal(combined, () => operation(options));
+      return await withSignal(combined, async () => {
+        const absolute = paths.map((path) => this.#path(path));
+        const resolved = [...absolute];
+        if (this.#cwd !== "/") {
+          for (let index = 0; index < absolute.length; index++) {
+            resolved[index] = await checkedBridgePath(this.#fs, this.#cwd, absolute[index]!, options, !noFollow.includes(index));
+          }
+        }
+        checkSignal(combined);
+        return operation(options, resolved);
+      });
     } finally {
       signalScope?.dispose();
     }
@@ -122,7 +141,7 @@ export class FileSystemBridge<Binary extends Uint8Array> {
     if (options.flag !== undefined && options.flag !== "r") unsupported("readFile flag");
     if (options.encoding === "buffer") throw new TypeError("Invalid read encoding");
     const codec = this.#encoding(options.encoding, "buffer");
-    const bytes = await this.#call((signal) => this.#fs.readFile(this.#path(path), signal), options.signal);
+    const bytes = await this.#call([path], (signal, resolved) => this.#fs.readFile(resolved[0]!, signal), options.signal);
     const buffer = this.#primitives.copyBytes(bytes);
     return codec === "buffer" ? buffer : this.#codec.decode(buffer, codec);
   }
@@ -139,7 +158,7 @@ export class FileSystemBridge<Binary extends Uint8Array> {
     if (typeof data === "string") bytes = this.#primitives.copyBytes(this.#codec.encode(data, codec));
     else if (ArrayBuffer.isView(data)) bytes = this.#primitives.copyBytes(new Uint8Array(data.buffer, data.byteOffset, data.byteLength));
     else throw new TypeError("writeFile accepts a string or ArrayBuffer view; streams and file handles are unsupported");
-    await this.#call((signal) => this.#fs.writeFile(this.#path(path), bytes, { ...signal, flag, mode }), options.signal);
+    await this.#call([path], (signal, resolved) => this.#fs.writeFile(resolved[0]!, bytes, { ...signal, flag, mode }), options.signal);
   }
 
   async writeFile(path: unknown, data: unknown, options?: unknown): Promise<void> {
@@ -156,7 +175,7 @@ export class FileSystemBridge<Binary extends Uint8Array> {
   async stat(path: unknown, value?: unknown): Promise<FsBridgeStats> {
     const options = optionsRecord(value, ["bigint"]);
     if (booleanValue(options.bigint)) unsupported("stat bigint");
-    return bridgeStats(await this.#call((signal) => this.#fs.stat(this.#path(path), signal)));
+    return bridgeStats(await this.#call([path], (signal, resolved) => this.#fs.stat(resolved[0]!, signal)));
   }
 
   lstat(path: unknown, options?: StatOptions & { bigint?: false | undefined }): Promise<FsBridgeStats>;
@@ -165,7 +184,7 @@ export class FileSystemBridge<Binary extends Uint8Array> {
   async lstat(path: unknown, value?: unknown): Promise<FsBridgeStats> {
     const options = optionsRecord(value, ["bigint"]);
     if (booleanValue(options.bigint)) unsupported("lstat bigint");
-    return bridgeStats(await this.#call((signal) => this.#fs.lstat(this.#path(path), signal)));
+    return bridgeStats(await this.#call([path], (signal, resolved) => this.#fs.lstat(resolved[0]!, signal), undefined, [0]));
   }
 
   readdir(path: unknown, options?: FsBridgeEncoding | (ObjectEncodingOptions & { withFileTypes?: false | undefined; recursive?: boolean | undefined }) | null): Promise<string[]>;
@@ -183,7 +202,7 @@ export class FileSystemBridge<Binary extends Uint8Array> {
     while (pending.length > 0) {
       const directory = pending.shift();
       if (directory === undefined) break;
-      for (const entry of await this.#call((signal) => this.#fs.readdir(directory, signal))) {
+      for (const entry of await this.#call([directory], (signal, resolved) => this.#fs.readdir(resolved[0]!, signal))) {
         if (entry.name === "" || entry.name === "." || entry.name === ".." || entry.name.includes("/") || entry.name.includes("\0")) {
           throw new TypeError("Invalid directory entry from filesystem");
         }
@@ -215,24 +234,25 @@ export class FileSystemBridge<Binary extends Uint8Array> {
       let candidate = target;
       while (true) {
         try {
-          await this.#call((signal) => this.#fs.stat(candidate, signal));
+          await this.#call([candidate], (signal, resolved) => this.#fs.stat(resolved[0]!, signal));
           break;
         } catch (error) {
           if (!hasCode(error, "ENOENT")) throw error;
           firstCreated = candidate;
+          if (candidate === this.#cwd) break;
           const parent = this.#primitives.paths.dirname(candidate);
           if (parent === candidate) break;
           candidate = parent;
         }
       }
     }
-    await this.#call((signal) => this.#fs.mkdir(target, { ...signal, mode, recursive }));
+    await this.#call([target], (signal, resolved) => this.#fs.mkdir(resolved[0]!, { ...signal, mode, recursive }));
     return firstCreated;
   }
 
   async access(path: unknown, mode = 0): Promise<void> {
     if (!Number.isInteger(mode) || mode < 0 || mode > 7) throw new TypeError("Invalid access mode");
-    await this.#call((signal) => this.#fs.access(this.#path(path), mode, signal));
+    await this.#call([path], (signal, resolved) => this.#fs.access(resolved[0]!, mode, signal));
   }
 
   async rm(path: unknown, value?: unknown): Promise<void> {
@@ -241,7 +261,7 @@ export class FileSystemBridge<Binary extends Uint8Array> {
     if (options.retryDelay !== undefined) unsupported("rm retryDelay");
     const recursive = booleanValue(options.recursive);
     const force = booleanValue(options.force);
-    await this.#call((signal) => this.#fs.rm(this.#path(path), { ...signal, recursive, force }));
+    await this.#call([path], (signal, resolved) => this.#fs.rm(resolved[0]!, { ...signal, recursive, force }), undefined, [0]);
   }
 
   async rmdir(path: unknown, value?: unknown): Promise<void> {
@@ -254,17 +274,17 @@ export class FileSystemBridge<Binary extends Uint8Array> {
       if (options.retryDelay !== undefined) unsupported("rmdir retryDelay");
       const method = this.#fs.rmdir;
       if (method === undefined) unsupported("atomic rmdir");
-      await this.#call((signal) => method.call(this.#fs, this.#path(path), signal));
+      await this.#call([path], (signal, resolved) => method.call(this.#fs, resolved[0]!, signal), undefined, [0]);
     } else await this.rm(path, options);
   }
 
   async rename(source: unknown, destination: unknown): Promise<void> {
-    await this.#call((signal) => this.#fs.rename(this.#path(source), this.#path(destination), signal));
+    await this.#call([source, destination], (signal, resolved) => this.#fs.rename(resolved[0]!, resolved[1]!, signal), undefined, [0, 1]);
   }
 
   async copyFile(source: unknown, destination: unknown, mode = 0): Promise<void> {
     if (mode !== 0 && mode !== 1) unsupported("copyFile mode");
-    await this.#call((signal) => this.#fs.copyFile(this.#path(source), this.#path(destination), { ...signal, exclusive: mode === 1 }));
+    await this.#call([source, destination], (signal, resolved) => this.#fs.copyFile(resolved[0]!, resolved[1]!, { ...signal, exclusive: mode === 1 }));
   }
 
   async cp(source: unknown, destination: unknown, value?: unknown): Promise<void> {
@@ -277,7 +297,7 @@ export class FileSystemBridge<Binary extends Uint8Array> {
     const from = this.#path(source);
     const to = this.#path(destination);
     const canonicalFrom = await this.realpath(from);
-    let ancestor = this.#primitives.paths.dirname(to);
+    let ancestor = to === this.#cwd ? to : this.#primitives.paths.dirname(to);
     let canonicalAncestor: string;
     while (true) {
       try {
@@ -327,7 +347,7 @@ export class FileSystemBridge<Binary extends Uint8Array> {
     const codec = this.#encoding(optionsRecord(value, ["encoding"]).encoding, "utf8", true);
     const method = this.#fs.readlink;
     if (method === undefined) unsupported("readlink");
-    const target = await this.#call((signal) => method.call(this.#fs, this.#path(path), signal));
+    const target = await this.#call([path], (signal, resolved) => method.call(this.#fs, resolved[0]!, signal), undefined, [0]);
     return codec === "buffer" ? this.#textBytes(target) : this.#codec.decode(this.#textBytes(target), codec);
   }
 
@@ -336,7 +356,8 @@ export class FileSystemBridge<Binary extends Uint8Array> {
   realpath(path: unknown, options?: ObjectEncodingOptions | BufferEncodingOption | string | null): Promise<string | Binary>;
   async realpath(path: unknown, value?: unknown): Promise<string | Binary> {
     const codec = this.#encoding(optionsRecord(value, ["encoding"]).encoding, "utf8", true);
-    const target = await this.#call((signal) => this.#fs.realpath(this.#path(path), signal));
+    const target = await this.#call([path], (signal, resolved) => this.#fs.realpath(resolved[0]!, signal));
+    assertBridgePath(this.#cwd, target);
     return codec === "buffer" ? this.#textBytes(target) : this.#codec.decode(this.#textBytes(target), codec);
   }
 
@@ -362,22 +383,28 @@ export class FileSystemBridge<Binary extends Uint8Array> {
     if (type !== undefined && type !== null && type !== "file" && type !== "dir") unsupported("symlink type");
     const linkTarget = this.#primitives.pathValue === undefined ? target : this.#primitives.pathValue(target);
     if (typeof linkTarget !== "string" || linkTarget.includes("\0")) throw new TypeError("Invalid symlink target");
+    const destination = this.#path(path);
+    const absoluteTarget = this.#path(this.#primitives.paths.isAbsolute(linkTarget)
+      ? linkTarget : childPath(this.#primitives.paths.dirname(destination), linkTarget));
+    if (this.#cwd !== "/" && this.#primitives.paths.isAbsolute(linkTarget)) {
+      throw fsError("ENOTSUP", "symlink", destination);
+    }
     const method = this.#fs.symlink;
     if (method === undefined) unsupported("symlink");
-    await this.#call((signal) => method.call(this.#fs, linkTarget, this.#path(path), signal));
+    await this.#call([destination, absoluteTarget], (signal, resolved) => method.call(this.#fs, linkTarget, resolved[0]!, signal), undefined, [0]);
   }
 
   async link(existing: unknown, path: unknown): Promise<void> {
     const method = this.#fs.link;
     if (method === undefined) unsupported("link");
-    await this.#call((signal) => method.call(this.#fs, this.#path(existing), this.#path(path), signal));
+    await this.#call([existing, path], (signal, resolved) => method.call(this.#fs, resolved[0]!, resolved[1]!, signal), undefined, [1]);
   }
 
   async chmod(path: unknown, value: unknown): Promise<void> {
     const mode = modeValue(value, 0);
     const method = this.#fs.chmod;
     if (method === undefined) unsupported("chmod");
-    await this.#call((signal) => method.call(this.#fs, this.#path(path), mode, signal));
+    await this.#call([path], (signal, resolved) => method.call(this.#fs, resolved[0]!, mode, signal));
   }
 
   async utimes(path: unknown, atime: unknown, mtime: unknown): Promise<void> {
@@ -385,13 +412,13 @@ export class FileSystemBridge<Binary extends Uint8Array> {
     const modificationTime = timeValue(mtime);
     const method = this.#fs.utimes;
     if (method === undefined) unsupported("utimes");
-    await this.#call((signal) => method.call(this.#fs, this.#path(path), accessTime, modificationTime, signal));
+    await this.#call([path], (signal, resolved) => method.call(this.#fs, resolved[0]!, accessTime, modificationTime, signal));
   }
 
   async truncate(path: unknown, length = 0): Promise<void> {
     if (!Number.isInteger(length)) throw new TypeError("Invalid truncate length");
     const method = this.#fs.truncate;
     if (method === undefined) unsupported("truncate");
-    await this.#call((signal) => method.call(this.#fs, this.#path(path), Math.max(0, length), signal));
+    await this.#call([path], (signal, resolved) => method.call(this.#fs, resolved[0]!, Math.max(0, length), signal));
   }
 }

@@ -207,8 +207,12 @@ export async function runLoop(
             )
           );
         } catch (error) {
-          await restoreDocument(options.fs, options.docPath, roundSnapshot);
-          const normalizedError = toError(error);
+          const normalizedError = await preserveFailedRoleDocument(
+            options.fs,
+            options.docPath,
+            roundSnapshot,
+            error
+          );
           options.callbacks.onBuilderFailed?.(normalizedError);
           throw normalizedError;
         }
@@ -250,8 +254,12 @@ export async function runLoop(
               )
             );
           } catch (error) {
-            await restoreDocument(options.fs, options.docPath, inspectorSnapshot);
-            const normalizedError = toError(error);
+            const normalizedError = await preserveFailedRoleDocument(
+              options.fs,
+              options.docPath,
+              inspectorSnapshot,
+              error
+            );
             options.callbacks.onInspectorFailed?.(name, normalizedError);
             throw normalizedError;
           }
@@ -367,8 +375,7 @@ export async function runLoop(
           )
         );
       } catch (error) {
-        await restoreDocument(options.fs, options.docPath, ownerSnapshot);
-        throw toError(error);
+        throw await preserveFailedRoleDocument(options.fs, options.docPath, ownerSnapshot, error);
       }
       options.callbacks.onOwnerComplete?.(ownerResult);
 
@@ -517,12 +524,26 @@ async function writeLoopState(
   await writeDocumentContent(fs, docPath, updatedContent);
 }
 
-async function restoreDocument(
+async function preserveFailedRoleDocument(
   fs: SuperintendentFileSystem,
   docPath: string,
-  content: string
-): Promise<void> {
-  await writeDocumentContent(fs, docPath, content);
+  content: string,
+  error: unknown
+): Promise<Error> {
+  const failure = toError(error);
+  const recoveryPath = `${docPath}.recovery-${randomUUID()}.bak`;
+  try {
+    await fs.writeFile(recoveryPath, content, { encoding: "utf8", flag: "wx" });
+  } catch (recoveryError) {
+    return new Error(
+      `${failure.message}\nDocument was not rolled back.\nCould not save the pre-role snapshot:\n${recoveryPath}\nSnapshot error: ${toError(recoveryError).message}`,
+      { cause: failure }
+    );
+  }
+  return new Error(
+    `${failure.message}\nDocument was not rolled back.\nPre-role snapshot saved to:\n${recoveryPath}\nCompare it with the current document before resuming.`,
+    { cause: failure }
+  );
 }
 
 async function writeDocumentContent(
@@ -649,8 +670,7 @@ async function executeSuperintendent(
     options.callbacks.onSuperintendentComplete?.(result);
     return result;
   } catch (error) {
-    await restoreDocument(options.fs, options.docPath, snapshot);
-    throw toError(error);
+    throw await preserveFailedRoleDocument(options.fs, options.docPath, snapshot, error);
   }
 }
 

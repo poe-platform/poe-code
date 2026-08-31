@@ -1134,7 +1134,11 @@ function isExpressionEndingPunctuator(value: string): boolean {
 }
 
 function matchPunctuator(source: string, index: number): string | undefined {
-  return PUNCTUATORS.find((punctuator) => source.startsWith(punctuator, index));
+  return PUNCTUATORS.find(
+    (punctuator) =>
+      source.startsWith(punctuator, index) &&
+      (punctuator !== "?." || !isDecimalDigit(source[index + 2] ?? ""))
+  );
 }
 
 function shouldRejectRegexLiteral(

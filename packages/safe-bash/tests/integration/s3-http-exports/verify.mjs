@@ -96,15 +96,20 @@ export async function verifyCommittedExports({ repository = actualRepository, re
     const { environment, manifest } = candidate;
     let peer, peerDeclarations, peerApi;
     if (manifest.peerDependencies?.["poe-code"]) {
-      assert.equal(typeof peerArtifact, "string", "Canonical-peer candidate requires an explicit packed-root or published-peer artifact; no checkout fallback");
+      const checkout = peerArtifact === undefined && manifest.poeCode?.integration?.peerProfile === "checkout-root";
+      assert.ok(checkout || typeof peerArtifact === "string", "Canonical-peer candidate requires an explicit published-peer artifact unless its manifest selects checkout-root");
       const { createPeerBinding } = await import("../../../scripts/typecheck-consumers.mjs");
       peerApi = await import("../../plugins/qualified-current-release/peer.mjs");
-      assert.deepEqual(candidate.files.get(`${packagePrefix}/package.json`), readRegularInput(authority, "package.json", 300000), "Peer binding requires the selected committed package metadata");
-      peerDeclarations = createPeerBinding(authority, manifest);
-      peer = peerApi.bindPeerArtifact({ root: authority, artifact: peerArtifact, declarations: { peer: peerDeclarations } });
-      if (peer.profile === "packed-root") assert.equal(peer.metadataSha256, digest(candidate.files.get("package.json")), "Packed root metadata differs from the committed root");
+      const peerAuthority = join(repository, packagePrefix);
+      assert.deepEqual(candidate.files.get(`${packagePrefix}/package.json`), readRegularInput(peerAuthority, "package.json", 300000), "Peer binding requires the selected committed package metadata");
+      assert.deepEqual(candidate.files.get("package-lock.json"), readRegularInput(repository, "package-lock.json", 16 * 1024 * 1024), "Peer binding requires the selected committed workspace lock");
+      if (manifest.poeCode?.integration?.peerProfile === "checkout-root") assert.deepEqual(candidate.files.get("package.json"), readRegularInput(repository, "package.json", 300000), "Peer binding requires the selected committed root metadata");
+      report.peerPrerequisite = checkout ? "Existing matching root npm run build outputs, including the canonical shared SafeJS bundle; no implicit build, registry fallback or published-version qualification" : "Explicit matching peer artifact and built declaration/runtime tooling";
+      peerDeclarations = createPeerBinding(peerAuthority, manifest);
+      peer = peerApi.bindPeerArtifact({ root: peerAuthority, artifact: peerArtifact, declarations: { peer: peerDeclarations }, checkout });
+      if (peer.profile === "packed-root" || peer.profile === "checkout-root") assert.equal(peer.metadataSha256, digest(candidate.files.get("package.json")), "Peer root metadata differs from the committed root");
       report.peer = peer;
-      report.scope += "; explicit canonical peer artifact, not published peer-range satisfaction for a development root";
+      report.scope += checkout ? "; manifest-selected built checkout peer, not published peer-range satisfaction" : "; explicit canonical peer artifact, not published peer-range satisfaction for a development root";
     }
     report.sourceCommit = candidate.sourceCommit;
     report.blobReads = candidate.blobReads;
@@ -200,7 +205,7 @@ export async function verifyCommittedExports({ repository = actualRepository, re
     checkDist("copied after pack", readDistInventory(packRoot));
     for (const required of ["dist/index.js", "dist/index.d.ts", "dist/fs/s3/http/index.js", "dist/fs/s3/http/index.d.ts", "dist/fs/s3/http/types.d.ts"]) assert.ok(packedFiles.includes(required), `Missing packed ${required}`);
     for (const path of packedFiles) assert.deepEqual(packed.get(`package/${path}`), readRegularInput(packRoot, path, 32 * 1024 * 1024), `packed file drift: ${path}`);
-    report.package = { name: manifest.name, version: manifest.version, fileCount: packedFiles.length, sha256: packedHash, runtimeDependencies: {}, exports: manifest.exports, files: packedFiles };
+    report.package = { name: manifest.name, version: manifest.version, fileCount: packedFiles.length, sha256: packedHash, runtimeDependencies: {}, peerDependencies: manifest.peerDependencies ?? {}, exports: manifest.exports, files: packedFiles };
     writeFileSync(join(consumer, "package.json"), JSON.stringify({ name: "s3-http-export-consumer", private: true, type: "module" }));
     run("offline tarball install without lifecycles", process.execPath, [tools.npmCli, "install", "--prefix", consumer, "--workspaces=false", "--offline", "--ignore-scripts", "--omit=dev", "--no-package-lock", "--no-audit", "--no-fund", ...(peer ? ["--legacy-peer-deps"] : []), tarball], consumer);
     if (peer) {
@@ -218,13 +223,13 @@ export async function verifyCommittedExports({ repository = actualRepository, re
       assert.deepEqual(readRegularInput(installedRoot, path, 32 * 1024 * 1024), packed.get(`package/${path}`), `installed file drift: ${path}`);
     }
     writeFileSync(join(consumer, "runtime.mjs"), readRegularInput(fixtureRoot, "fixtures/runtime.mjs", 100000));
+    checkDist("before runtime", readDistInventory(installedRoot));
     let bindingPath;
     if (peer) {
       const ts = (await import(pathToFileURL(join(tools.packages.typescript, "lib/typescript.js")).href)).default;
       const binding = bindPackedConsumer(consumer, packedFiles, peer, peerDeclarations, ts);
       bindingPath = join(consumer, "binding.json"); writeFileSync(bindingPath, JSON.stringify(binding)); report.peerRuntimeBinding = binding;
     }
-    checkDist("before runtime", readDistInventory(installedRoot));
     report.runtime = JSON.parse(run("plain Node packed imports and guard controls", process.execPath, [join(consumer, "runtime.mjs"), join(repository, packagePrefix, "src/fs/s3/http/index.ts"), ...(bindingPath ? [bindingPath] : [])], consumer));
     for (const name of ["@types/node", "undici-types"]) copyRegularTree(tools.packages[name], join(consumer, "node_modules", name));
     const compilerOptions = { target: "ES2023", module: "NodeNext", moduleResolution: "NodeNext", strict: true,

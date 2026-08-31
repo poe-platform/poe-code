@@ -93,6 +93,14 @@ subsets. Trusted host JavaScript, plugins, and providers are **not sandboxed**;
 limits and cooperative cancellation do not provide host isolation or total-memory
 guarantees. Enabling real storage or networking intentionally grants capabilities.
 
+## Test output
+
+With `CI=true`, successful tests use concise progress and summaries; failures
+retain names, stacks, diagnostics, stdout and stderr. Local defaults are unchanged.
+For verbose package output use `CI=false npm run test:unit`; select Node's
+reporter with `npm test -- --test-reporter=spec` (or `tap`). For root Vitest,
+run `npm run test:unit -- --reporter=verbose --silent=false` from the repository root.
+
 ## Availability
 
 **August 31, 2026:** npm `poe-code@13.0.10` does not yet export this API.

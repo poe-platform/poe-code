@@ -17,6 +17,7 @@ const mathMethods = {
   exp: Math.exp,
   expm1: Math.expm1,
   floor: Math.floor,
+  f16round,
   fround: Math.fround,
   hypot: Math.hypot,
   imul: Math.imul,
@@ -36,6 +37,32 @@ const mathMethods = {
   tanh: Math.tanh,
   trunc: Math.trunc
 } satisfies Record<string, (...args: number[]) => number>;
+
+function f16round(value: number): number {
+  const number = +value;
+  if (!Number.isFinite(number) || number === 0) {
+    return number;
+  }
+
+  const magnitude = Math.abs(number);
+  if (magnitude >= 65520) {
+    return number < 0 ? -Infinity : Infinity;
+  }
+
+  let quantum = 2 ** -24;
+  let boundary = 2 ** -13;
+  for (let exponent = -13; exponent <= 15 && magnitude >= boundary; exponent += 1) {
+    quantum *= 2;
+    boundary *= 2;
+  }
+
+  const scaled = magnitude / quantum;
+  const lower = Math.floor(scaled);
+  const remainder = scaled - lower;
+  const rounded =
+    (remainder > 0.5 || (remainder === 0.5 && lower % 2 !== 0) ? lower + 1 : lower) * quantum;
+  return number < 0 ? -rounded : rounded;
+}
 
 export type SeededRandom = {
   next: () => number;

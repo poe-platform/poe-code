@@ -212,14 +212,26 @@ describe("callback argument positions and replay", () => {
       const source = `
       const source = [5, 2, -1, 0];
       let correctThis = true;
+      let comparatorCalled = false;
       const result = source.${method}(function (left, right) {
+        comparatorCalled = true;
         correctThis = correctThis && this === undefined;
         return left - right;
       }, { wrong: true });
-      return { result, correctThis, source };
+      return { result, correctThis, comparatorCalled, source };
     `;
-      const expected = Function('"use strict";\n' + source)();
-      await expect(run(source)).resolves.toMatchObject({ ok: true, returnValue: expected });
+      const expected = {
+        result: [-1, 0, 2, 5],
+        correctThis: true,
+        comparatorCalled: true,
+        source: method === "sort" ? [-1, 0, 2, 5] : [5, 2, -1, 0]
+      };
+      const actual = await run(source);
+      expect(actual).toMatchObject({ ok: true, returnValue: expected });
+      if (typeof Reflect.get(Array.prototype, method) === "function") {
+        const native = Function('"use strict";\n' + source)();
+        expect(actual).toMatchObject({ ok: true, returnValue: native });
+      }
     }
   );
 

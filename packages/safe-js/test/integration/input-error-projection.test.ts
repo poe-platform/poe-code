@@ -31,9 +31,16 @@ const pending = new Map();
 let saved;
 let model = input.model;
 let leftReceiptBefore;
-const finish = result => { process.stdout.write(serialize({ ...result, calls, hostTrace, acknowledgements, requests, proofs, saved, model,
+const finish = async result => {
+  const output = serialize({ ...result, calls, hostTrace, acknowledgements, requests, proofs, saved, model,
+  outputPadding: input.outputPadding,
   leftReceiptUnchanged: leftReceiptBefore === undefined || leftReceiptBefore.equals(serialize(model.receipts.left)),
-  apiMode: input.apiMode, publicRuntimeURL })); process.exit(0); };
+  apiMode: input.apiMode, publicRuntimeURL });
+  await new Promise((resolve, reject) => {
+    process.stdout.write(output, error => error ? reject(error) : resolve());
+  });
+  process.exit(0);
+};
 const timer = setTimeout(() => finish({ status: 'timeout', pending: [...pending.keys()] }), 3000);
 function deferred() {
   let resolve, reject;
@@ -128,7 +135,7 @@ try {
     model.capturedReasonGraph = completed.replay.calls.find(call => call.id === rightRecord.id).outcome.data;
     model.capturedReason = capturedReason;
     model.receiptSnapshot = completed;
-    finish({ status: result.ok ? 'ok' : 'failed', value: result.returnValue, nativeValue,
+    await finish({ status: result.ok ? 'ok' : 'failed', value: result.returnValue, nativeValue,
       nativeReasonIsOriginal: nativeRepeatedReason === actualError,
       nativeReasonStack: nativeRepeatedReason.stack,
       rawReturnNullPrototype: Object.getPrototypeOf(result.returnValue) === null,
@@ -215,9 +222,9 @@ try {
     entry.acceptedOutcome = record.outcome;
     entry.encodedOutcome = completed.replay.calls.find(call => call.id === entry.proof.callId).outcome.data;
   }
-  finish({ status: result.ok ? 'ok' : 'failed', value: result.returnValue,
+  await finish({ status: result.ok ? 'ok' : 'failed', value: result.returnValue,
     completed, pending: [...pending.keys()] });
-} catch (error) { finish({ status: 'error', error,
+} catch (error) { await finish({ status: 'error', error,
   errorProperties: Object.fromEntries(Object.getOwnPropertyNames(error).map(key => [key, error[key]])) }); }
 finally { clearTimeout(timer); }
 `;
@@ -226,7 +233,8 @@ async function observe(
   mode: string,
   projection?: string,
   snapshot?: unknown,
-  leftDomain = "modeled"
+  leftDomain = "modeled",
+  outputPadding?: string
 ) {
   const observation = await new Promise<Observation>((accept, reject) => {
     const child = spawn(process.execPath, ["--input-type=module", "-e", childProgram], {
@@ -261,6 +269,7 @@ async function observe(
         mode,
         projection,
         leftDomain,
+        outputPadding,
         snapshot,
         model: captured?.model,
         apiMode
@@ -365,6 +374,25 @@ beforeAll(async () => {
 });
 
 describe("O12 exact modeled Error proof projection", () => {
+  it("flushes the complete serialized observation beyond the pipe buffer", async () => {
+    const outputPadding = "0123456789abcdef".repeat(65_536);
+    const observation = await observe(
+      "restore",
+      "complete",
+      captured.completed,
+      "modeled",
+      outputPadding
+    );
+
+    expect(observation.status).toBe("ok");
+    expect(observation.outputPadding).toBe(outputPadding);
+    expect(observation.value).toEqual(profile.expected);
+    expect(observation.model.actualError).toBeInstanceOf(Error);
+    expect(observation.model.reason).toBe(observation.model.reasonAgain);
+    expect(observation.calls).toEqual([]);
+    expect(observation.requests).toEqual([]);
+  });
+
   it("captures the unchanged original profile with complete native values and provenance", () => {
     expect(captured.status).toBe("ok");
     expect(captured.nativeReasonIsOriginal).toBe(true);

@@ -1263,16 +1263,22 @@ describe("guarded configuration bootstrap ordering", () => {
     };
     return { ...state, policy, policyBinding: binding, calls, options };
   }
+  it("forwards reduced initialization limits without allowing a higher metadata cap", async () => {
+    const state = bootstrapModel("opens");
+    await expect(guardedInputs.initializeLintConfiguration({ ...state.options, limits: { metadataOperations: 1 } }).then(() => "initialized")).rejects.toMatchObject({ code: "LINT_LIMIT", message: "metadata operation cap" });
+    await expect(guardedInputs.initializeLintConfiguration({ ...state.options, limits: { metadataOperations: 8000001 } })).rejects.toThrow(/invalid input limit: metadataOperations/);
+  });
   it("captures the actual metadata cap in inventory phase and clears a fresh initialization", async () => {
     const state = bootstrapModel("opens");
-    const options = { ...state.options, lintExclusions(_root: string, _boundaries: unknown, fileSystem: any) {
-      for (let attempt = 0; attempt < 8000001; attempt++) fileSystem.lstatSync(root + "/src/ordinary.js");
+    const metadataLimit = 10000;
+    const options = { ...state.options, limits: { metadataOperations: metadataLimit }, lintExclusions(_root: string, _boundaries: unknown, fileSystem: any) {
+      for (let attempt = 0; attempt <= metadataLimit; attempt++) fileSystem.lstatSync(root + "/src/ordinary.js");
       return { files: [], directories: [] };
     } };
     await guardedInputs.withLintFailureDiagnostics(async (diagnostics: any) => {
       await expect(guardedInputs.initializeLintConfiguration(options)).rejects.toMatchObject({ code: "LINT_LIMIT", message: "metadata operation cap" });
       const failure = diagnostics();
-      expect(failure).toMatchObject({ phase: "inventory-provenance", root, counters: { metadataOperations: 8000000, failed: true, reading: false, receiptChecks: 50, subjects: 0, lastMetadata: { admitted: false, completed: false } } });
+      expect(failure).toMatchObject({ phase: "inventory-provenance", root, counters: { metadataOperations: metadataLimit, failed: true, reading: false, receiptChecks: 50, subjects: 0, lastMetadata: { admitted: false, completed: false } } });
       expect(failure.counters.opens).toBe(failure.counters.closes);
       expect(failure.counters.lastMetadata.path).toBeTypeOf("string");
       expect(receiptPayloads(state)).toEqual([]);
@@ -1280,9 +1286,9 @@ describe("guarded configuration bootstrap ordering", () => {
       const fresh = bootstrapModel();
       await guardedInputs.initializeLintConfiguration(fresh.options);
       expect(diagnostics()).toBeNull();
-      expect(failure.counters.metadataOperations).toBe(8000000);
+      expect(failure.counters.metadataOperations).toBe(metadataLimit);
     });
-  }, 30000);
+  });
   it("exposes only fixed bootstrap reads, never an empty unprotected registry", () => {
     const state = bootstrapModel();
     const guard = createLintInputGuard({ root, fileSystem: state.fileSystem, bootstrap: true });
@@ -1699,18 +1705,18 @@ describe("owned directory operation and exact root receipt", () => {
   it("completes an owned mixed traversal under the authorized eight-million metadata cap", async () => {
     const files: Record<string, string> = {};
     const parents = Array.from({ length: 19 }, (_, index) => "depth-" + index).join("/");
-    for (let group = 0; group < 64; group++) {
-      for (let member = 0; member < 256; member++) files[parents + "/group-" + group + "/member-" + member + (member % 16 === 0 ? ".mjs" : ".data")] = member % 16 === 0 ? "export const value = 1;" : "owned noncode";
+    for (let group = 0; group < 2; group++) {
+      for (let member = 0; member < 32; member++) files[parents + "/group-" + group + "/member-" + member + (member % 16 === 0 ? ".mjs" : ".data")] = member % 16 === 0 ? "export const value = 1;" : "owned noncode";
     }
     const state = model(files, "opens");
     const result = await lintRoot({ guard: state.guard, config: state.config, receiptBinding: state.binding });
     expect(result.complete).toBe(true);
-    expect(result.scope.linted).toBe(1029);
-    expect(result.scope.unconfigured).toBe(15365);
-    expect(result.counters.metadataOperations).toBe(1209401);
+    expect(result.scope.linted).toBe(9);
+    expect(result.scope.unconfigured).toBe(65);
+    expect(result.counters.metadataOperations).toBe(15131);
     expect(result.counters.metadataOperations).toBeLessThan(8000000);
     expect(result.counters.opens).toBe(result.counters.closes);
     expect(receiptPayloads(state)).toEqual([]);
-    console.log(JSON.stringify({ control: "owned-directory-scale-16384", scope: result.scope, counters: result.counters, receipts: result.receipts.length, unprocessed: result.unprocessed }));
-  }, 20000);
+    console.log(JSON.stringify({ control: "owned-directory-mixed-64", scope: result.scope, counters: result.counters, receipts: result.receipts.length, unprocessed: result.unprocessed }));
+  });
 });

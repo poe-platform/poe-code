@@ -9,10 +9,44 @@ import { Script } from "node:vm";
 import { createFsFromVolume, Volume } from "memfs";
 import { createLintInputGuard } from "../../../scripts/lint-input-guard.mjs";
 import { discoverTests, integrationExclusions, lintExclusions, lintInventoryPaths, loadBoundaries, readIntegrationLintInputs, readTypecheckInventories, validateBoundaries, validateImportRetirement, verifyLintInventory } from "./integration-inputs.mjs";
-import { runTests } from "./test.mjs";
+import { runTests, selectNativeTests } from "./test.mjs";
 import { assertAdmittedInputPath, assertLiteralInputPath, readIntegrationTypeInputs, readRegularInput } from "./typecheck-integration-inputs.mjs";
 
 const owner = "fixture producer";
+
+test("native lanes partition the complete discovery without losing or duplicating files", () => {
+  const root = fileURLToPath(new URL("../", import.meta.url));
+  const files = discoverTests(root, loadBoundaries(root));
+  const linux = selectNativeTests(files, "linux", "linux");
+  const darwin = selectNativeTests(files, "darwin", "darwin");
+  assert(linux.length > 0 && darwin.length > 0);
+  assert.deepEqual([...linux, ...darwin].sort(), [...files].sort());
+  assert.equal(new Set([...linux, ...darwin]).size, files.length);
+  assert(darwin.includes("tests/commands/archive-stress/pax-independent/controls.test.ts"));
+  assert(darwin.includes("tests/commands/expr/regex-native.test.ts"));
+  assert(darwin.includes("tests/commands/metadata-stress/stat-human-native.test.ts"));
+  for (const file of [
+    "stream-format-author-stress/native-streams.test.ts",
+    "stream-format-author-stress/seq-format.test.ts",
+    "stream-format/nl.test.ts", "stream-format/seq.test.ts", "stream-format/unexpand.test.ts", "stream-format/seq-diagnostic.test.ts", "stream-format/rev.test.ts",
+    "table-text-stress/corpus.test.ts", "table-text-stress/shared-stdin-fix/acceptance216.test.ts",
+    "metadata/stat.test.ts",
+    "split/native.test.ts", "split/native-errors.test.ts", "split/stress.test.ts",
+    "split/edge.test.ts", "split/dangling-native.test.ts", "split/native-capture.test.ts",
+  ]) assert(darwin.includes(`tests/commands/${file}`), `native obligation must run on Darwin: ${file}`);
+  assert(linux.includes("tests/commands/diff-patch-stress/gnu-target/oracle-binding.test.ts"));
+  assert.deepEqual(selectNativeTests(files, "all", "darwin"), files);
+});
+
+test("native lanes reject wrong hosts, missing required cases, duplicate discovery and unknown lanes", () => {
+  const root = fileURLToPath(new URL("../", import.meta.url));
+  const files = discoverTests(root, loadBoundaries(root));
+  assert.throws(() => selectNativeTests(files, "linux", "darwin"));
+  assert.throws(() => selectNativeTests(files, "darwin", "linux"));
+  assert.throws(() => selectNativeTests(files, "portable-only", "linux"));
+  assert.throws(() => selectNativeTests(files.filter(file => !file.endsWith("pax-independent/controls.test.ts")), "linux", "linux"));
+  assert.throws(() => selectNativeTests([...files, files[0]], "darwin", "darwin"));
+});
 const fixture = {
   path: "tests/review/run/source",
   owner: "tests/review/produce.mjs",
@@ -54,6 +88,12 @@ function assertSource7Discovery(files) {
     "tests/contracts/value.test.ts",
     "tests/shell/value-state.test.ts",
     "tests/shell/byte-values.test.ts",
+    "tests/commands/diff-patch-stress/gnu-target/oracle-binding.test.ts",
+    "tests/commands/diff-patch-stress/editflows/git-profile.test.ts",
+    "tests/commands/metadata-stress/native-binding.test.ts",
+    "tests/commands/stream-format/native-binding.test.ts",
+    "tests/commands/table-text-stress/native-binding.test.ts",
+    "tests/commands/split/native-binding.test.ts",
   ];
   assert.equal(new Set(files).size, files.length);
   for (const path of removed) assert.ok(!files.includes(path), `source7 removed test remains selected: ${path}`);

@@ -4,16 +4,15 @@ import { createHash } from "node:crypto";
 import { spawnSync } from "node:child_process";
 import * as native from "node:fs/promises";
 import { join } from "node:path";
-import { fileURLToPath } from "node:url";
 import { chunks, files, run } from "./helpers.js";
 import { captureNativeReport, createNativeScratch } from "./native-capture.js";
-
-const executable = fileURLToPath(new URL("../metadata-stress/.oracle/coreutils-9.7/src/split", import.meta.url));
+import { nativeSplitBinding } from "./native-binding.js";
 
 test("GNU boundary stress: complete effects under large chunks and reused windows", async context => {
+  const { path: executable, sha256: pin } = nativeSplitBinding("gnu");
   let binary: Uint8Array;
   try { binary = await native.readFile(executable); } catch { context.skip("pinned GNU9.7 oracle unavailable"); return; }
-  assert.equal(createHash("sha256").update(binary).digest("hex"), "cf5851c4e6566983ce69940b766c0b5eb0cd26ebf2bb45eefe215b2d5c62f958");
+  assert.equal(createHash("sha256").update(binary).digest("hex"), pin);
   const records = Buffer.concat([Buffer.alloc(65535, 0xff), Buffer.from("\n"), Buffer.alloc(65537, 0), Buffer.from("\nlast\nunterminated")]);
   const binaryPattern = Buffer.alloc(16387);
   let seed = 1729;

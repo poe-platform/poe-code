@@ -85,23 +85,47 @@ describe.each(readMethods)("nested read-only %s", (outerMethod) => {
 });
 
 describe.each(["sort", "toSorted"])("%s comparator read-only composition", (method) => {
-  it.each(readMethods)(
-    "allows %s without comparing implementation-specific comparator counts",
-    async (innerMethod) => {
+  it.each([
+    { innerMethod: "map", nested: [3, 1, 2] },
+    { innerMethod: "filter", nested: [3, 1, 2] },
+    { innerMethod: "find", nested: 3 },
+    { innerMethod: "findIndex", nested: 0 },
+    { innerMethod: "findLast", nested: 2 },
+    { innerMethod: "findLastIndex", nested: 2 },
+    { innerMethod: "some", nested: true },
+    { innerMethod: "every", nested: true },
+    { innerMethod: "reduce", nested: 6 },
+    { innerMethod: "reduceRight", nested: 6 },
+    { innerMethod: "forEach", nested: undefined },
+    { innerMethod: "flatMap", nested: [3, 1, 2] }
+  ])(
+    "allows $innerMethod without comparing implementation-specific comparator counts",
+    async ({ innerMethod, nested }) => {
       const source = `
       const values = [3, 1, 2];
       let nested;
-      function inspect(value) { return value; }
+      let inspectCalled = false;
+      function inspect(value) { inspectCalled = true; return value; }
       const sorted = values.${method}((left, right) => {
         nested = ${readCall(innerMethod, "values", "inspect")};
         return left - right;
       });
-      return { sorted, values, nested };
+      return { sorted, values, nested, inspectCalled };
     `;
-      const expected = Function('"use strict";\n' + source)();
+      const expected = {
+        sorted: [1, 2, 3],
+        values: method === "sort" ? [1, 2, 3] : [3, 1, 2],
+        nested,
+        inspectCalled: true
+      };
       const result = await run(source);
       expect(result.ok).toBe(true);
-      if (result.ok) expect(structuredClone(result.returnValue)).toStrictEqual(expected);
+      if (!result.ok) throw result.error;
+      expect(structuredClone(result.returnValue)).toStrictEqual(expected);
+      if (typeof Reflect.get(Array.prototype, method) === "function") {
+        const native = Function('"use strict";\n' + source)();
+        expect(structuredClone(result.returnValue)).toStrictEqual(native);
+      }
     }
   );
 });

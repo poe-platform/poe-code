@@ -261,7 +261,7 @@ Embed SafeJS in your own product when you want to let users (or models) write sm
 These are pre-bound in every script — you don't need to import them.
 
 - **`Promise`** — constructor and static `all`, `race`, `allSettled`, `any`, `resolve`, `reject`; sandbox promises expose `then`, `catch`, and `finally`
-- **`Math`** — numeric methods including `abs`, `acos`, `acosh`, `asin`, `asinh`, `atan`, `atan2`, `atanh`, `ceil`, `cbrt`, `clz32`, `cos`, `cosh`, `exp`, `expm1`, `floor`, `fround`, `hypot`, `imul`, `log`, `log1p`, `log10`, `log2`, `max`, `min`, `pow`, `round`, `sign`, `sin`, `sinh`, `sqrt`, `tan`, `tanh`, `trunc`, plus standard constants and `random`
+- **`Math`** — numeric methods including `abs`, `acos`, `acosh`, `asin`, `asinh`, `atan`, `atan2`, `atanh`, `ceil`, `cbrt`, `clz32`, `cos`, `cosh`, `exp`, `expm1`, `floor`, `f16round`, `fround`, `hypot`, `imul`, `log`, `log1p`, `log10`, `log2`, `max`, `min`, `pow`, `round`, `sign`, `sin`, `sinh`, `sqrt`, `tan`, `tanh`, `trunc`, plus standard constants and `random`
 - **`Object`** — `keys`, `values`, `entries`, `hasOwn`, `is`, `fromEntries`, `assign`, `freeze`, `isFrozen`
 - **`Array`** — callable/constructable array factory plus `isArray`, `from`, `of`
 - **`Float32Array`** — binary32 indexed storage, `set`, `slice`, and `subarray`; see [released value support](#released-value-support)
@@ -281,6 +281,14 @@ SafeJS implements a subset of ECMAScript methods. Arrays include the common iter
 
 **Numeric literals.** Numeric separators between digits are supported, including `1_000`, `.1_25e+2`, and `0xFF_FF`. A decimal digit immediately after `?.` makes it a conditional followed by a leading-dot literal: `enabled?.5:0` means `enabled ? .5 : 0`, not optional chaining. Likewise, `enabled?.1_25e+2:0` yields `12.5` when `enabled` is truthy and `0` otherwise. Prefer the spaced form for readability.
 
+**Half-precision rounding.** `Math.f16round(value)` rounds directly to binary16 precision using nearest, ties-to-even rounding and returns an ordinary Number. It preserves `NaN`, infinities, and signed zero, supports subnormals, and overflows to signed infinity. It does not require a host-native `Math.f16round` or use an intermediate binary32 conversion.
+
+This script returns `[1.3369140625, 1, Infinity]`:
+
+```js
+return [Math.f16round(1.337), Math.f16round(1 + 2 ** -11), Math.f16round(65520)];
+```
+
 **String well-formedness.** `text.isWellFormed()` returns whether the string contains no unpaired UTF-16 surrogate code units. Empty strings, ordinary text, and valid surrogate pairs return `true`; lone high or low surrogates return `false`. It takes no arguments; extra arguments are evaluated normally but ignored by the method. It does not repair or normalize text.
 
 This script returns `[true, true, false]`:
@@ -296,6 +304,8 @@ This script returns `["hello", "\uD83D\uDE00", "\uFFFD"]`:
 ```js
 return ["hello".toWellFormed(), "\uD83D\uDE00".toWellFormed(), "\uD800".toWellFormed()];
 ```
+
+**Array copying.** `array.with(index, value)` returns a fresh shallow copy with one element replaced, leaving the source unchanged. Negative indices count from the end: `[10, 20, 30].with(-1, 99)` returns `[10, 20, 99]`. Out-of-range indices throw `RangeError`; index validation and the array-length budget check precede copying. The copy reads own indexed elements, skips reading the replaced slot, and fills missing slots with `undefined`. Nested references remain shared; named metadata is not copied. Host iterators and inherited indexed properties are not used. Copy traversal observes the existing step/deadline budgets.
 
 Map and Set `forEach` permit structural mutation (released in 12.0.6): appended entries are visited, pending deleted entries are skipped, delete/re-add visits at the new insertion position, and clear removes pending visits. Map value updates are visible when reached; nested same-receiver `forEach` calls have independent traversals. Callback return values, including promises, are ignored rather than awaited, and nonterminating worklists remain subject to configured budgets. This changes `forEach`, not the eager arrays returned by `keys`/`values`/`entries`, direct `for...of` behavior, or opaque host-iterator serialization.
 

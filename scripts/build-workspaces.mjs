@@ -252,7 +252,7 @@ export function createWorkspaceTestPlan(rootDirectory, options = {}) {
 function taskEnvironment(environment, stage, unitMode) {
   const selected = { ...environment };
   if (unitMode && !(stage.path !== null && stage.name === "virtual-bash" && stage.event === "test:unit")) {
-    for (const name of ["SAFE_BASH_TEST_RG", "SAFEJS_LOCAL_ROOT", "S3_HTTP_EXPORTS_REVISION", "FULL_GATE_ROOT"]) delete selected[name];
+    for (const name of ["SAFE_BASH_TEST_RG", "SAFE_BASH_NATIVE_LANE", "SAFEJS_LOCAL_ROOT", "S3_HTTP_EXPORTS_REVISION", "FULL_GATE_ROOT"]) delete selected[name];
   }
   return selected;
 }

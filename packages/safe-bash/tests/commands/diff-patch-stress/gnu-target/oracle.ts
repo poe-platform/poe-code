@@ -4,6 +4,8 @@ import { createHash } from "node:crypto";
 import { accessSync, constants, mkdtempSync, readFileSync, realpathSync, rmSync, statSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { isAbsolute, join, sep } from "node:path";
+import * as fs from "node:fs";
+import { nativeGnuBinding, nativeAppleBinding, verifyNativeExecutable, type NativeGnuOptions } from "../../../native-profile.js";
 
 export function withNativeScratch<Value>(operation: (temporary: string) => Value): Value {
   const base = realpathSync(tmpdir());
@@ -31,10 +33,31 @@ export const pins = {
 } as const;
 
 const verified = new Map<string, { path: string; realpath: string; version: string; dialect: string; sha256: string }>();
+const qualifiedVerified = new WeakMap<object, typeof verified>();
 
-export function oracleIdentity(tool: OracleTool, profile: OracleProfile = "gnu") {
+export function oracleIdentity(tool: OracleTool, profile: OracleProfile = "gnu", options: NativeGnuOptions = {}) {
   const pin = pins[profile][tool];
   const variable = `${profile === "gnu" ? "DIFF_PATCH_NATIVE" : "DIFF_PATCH_APPLE"}_${tool.toUpperCase()}`;
+  {
+    const override = options.path ?? process.env[variable];
+    const bindingOptions = { ...options, ...(override === undefined ? {} : { path: override }) };
+    const binding = profile === "gnu" ? nativeGnuBinding(tool, bindingOptions) : nativeAppleBinding(tool, bindingOptions);
+    if (binding) {
+      const fileSystem = options.fileSystem ?? fs;
+      const canonical = fileSystem.realpathSync(binding.path);
+      assert.equal(canonical, binding.path, "linked GNU native executable refused");
+      const stat = fileSystem.lstatSync(canonical, { bigint: true });
+      const key = [profile, tool, canonical, binding.sha256, binding.version, binding.size, stat.dev, stat.ino, stat.mode, stat.size, stat.mtimeNs, stat.ctimeNs].join(":");
+      const cache: typeof verified = qualifiedVerified.get(fileSystem) ?? new Map();
+      const cached = cache.get(key);
+      if (cached) return cached;
+      const admitted = verifyNativeExecutable(binding, canonical, options);
+      const identity = { path: admitted.path, realpath: canonical, version: admitted.version, dialect: profile === "gnu" ? "gnu" : tool === "patch" ? "apple-patch-2.0-12u11" : "bsd", sha256: admitted.sha256 };
+      cache.set(key, identity);
+      qualifiedVerified.set(fileSystem, cache);
+      return identity;
+    }
+  }
   const path = process.env[variable] ?? pin.path;
   assert(isAbsolute(path), `${variable} must be a nonempty absolute executable path; no fallback is permitted`);
   const canonical = realpathSync(path);

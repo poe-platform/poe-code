@@ -3,20 +3,16 @@ import { test } from "node:test";
 import { createHash } from "node:crypto";
 import { spawnSync } from "node:child_process";
 import * as native from "node:fs/promises";
-import { fileURLToPath } from "node:url";
 import { join } from "node:path";
 import { fixtures } from "./cases.js";
 import { chunks, files, run } from "./helpers.js";
 import { createMemoryFileSystem } from "../../../src/fs/memory/index.js";
 import { captureNativeReport, createNativeScratch } from "./native-capture.js";
+import { nativeSplitBinding } from "./native-binding.js";
 
-const gnu = fileURLToPath(new URL("../metadata-stress/.oracle/coreutils-9.7/src/split", import.meta.url));
-const profiles = [
-  { name: "gnu9.7-darwin", executable: gnu, hash: "cf5851c4e6566983ce69940b766c0b5eb0cd26ebf2bb45eefe215b2d5c62f958" },
-  { name: "apple-bsd", executable: "/usr/bin/split", hash: "7c2d5f3c73e849d664bad3a2f4c67c5154b0f03f59f2fa779d49e33dc7983f91" },
-] as const;
-
-for (const profile of profiles) test(`native ${profile.name}: exact status/stdout/stderr/file bytes`, async context => {
+for (const name of ["gnu9.7-darwin", "apple-bsd"] as const) test(`native ${name}: exact status/stdout/stderr/file bytes`, async context => {
+  const binding = nativeSplitBinding(name === "apple-bsd" ? "apple" : "gnu");
+  const profile = { name, executable: binding.path, hash: binding.sha256 };
   let binary: Uint8Array;
   try { binary = await native.readFile(profile.executable); }
   catch { context.skip(`oracle unavailable: ${profile.executable}`); return; }

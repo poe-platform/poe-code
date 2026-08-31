@@ -665,11 +665,11 @@ export function createLintSelection(root, config) {
   });
 }
 
-export async function initializeLintConfiguration({ root, fileSystem = fs, buildConfig, boundaryBinding = BOUNDARY_POLICY, receiptBinding = BOUNDARY_RECEIPTS, loadBoundaries: boundaryLoader = loadBoundaries, lintExclusions: inputLoader = lintExclusions }) {
+export async function initializeLintConfiguration({ root, fileSystem = fs, buildConfig, boundaryBinding = BOUNDARY_POLICY, receiptBinding = BOUNDARY_RECEIPTS, loadBoundaries: boundaryLoader = loadBoundaries, lintExclusions: inputLoader = lintExclusions, limits }) {
   const context = failureContexts.getStore();
   if (context) context.failure = null;
   assert.equal(typeof buildConfig, 'function', 'configuration factory required');
-  const guard = createLintInputGuard({ root, fileSystem, bootstrap: true });
+  const guard = createLintInputGuard({ root, fileSystem, bootstrap: true, limits });
   let phase = 'boundary-policy';
   try {
     const policy = guard.loadPolicy(boundaryBinding);

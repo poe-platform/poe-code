@@ -7,6 +7,7 @@ import test from "node:test";
 import { gzipSync, gunzipSync } from "node:zlib";
 import { encodeEntry } from "../../../src/commands/archive/format.js";
 import { DEFAULT_ARCHIVE_LIMITS } from "../../../src/commands/archive/internal.js";
+import { nativeGnuBinding, nativeAppleBinding, verifyNativeExecutable } from "../../native-profile.js";
 
 const target = `cross-${"x".repeat(116)}.bin`;
 const payload = Buffer.from("independent long-link target\n");
@@ -82,7 +83,10 @@ const consumers = [
 ];
 
 if (process.env.ARCHIVE_LONG_LINK_NATIVE === "1") {
-  for (const consumer of consumers) test(`${consumer.name}: plain AND gzip extract an exact symlink, never an empty regular file`, async context => {
+  for (const historical of consumers) test(`${historical.name}: plain AND gzip extract an exact symlink, never an empty regular file`, async context => {
+    const binding = historical.name === "GNU 1.35" ? nativeGnuBinding("tar") : nativeAppleBinding("bsdtar");
+    if (binding) verifyNativeExecutable(binding, binding.path);
+    const consumer = binding ? { ...historical, binary: binding.path, sha256: binding.sha256 } : historical;
     assert.equal(hash(await readFile(consumer.binary)), consumer.sha256);
     const environment = { PATH: "/usr/bin:/bin", LC_ALL: "C", TZ: "UTC" };
     const run = (args: string[]) => {

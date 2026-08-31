@@ -727,7 +727,7 @@ describe("finite unit task planning", () => {
 describe("finite unit execution and ownership", () => {
   it("builds before tests, retains npm lifecycles, exact arguments and feature-only profiles", async () => {
     const owned = unitFixture(), mock = mockExecution();
-    const environment = { ...mock.environment, TERM: "xterm-256color", SAFE_BASH_TEST_RG: "/owned/rg", SAFEJS_LOCAL_ROOT: "/owned/safe-js", S3_HTTP_EXPORTS_REVISION: "owned-revision", FULL_GATE_ROOT: "/owned/full-gate" };
+    const environment = { ...mock.environment, TERM: "xterm-256color", SAFE_BASH_TEST_RG: "/owned/rg", SAFE_BASH_NATIVE_LANE: "linux", SAFEJS_LOCAL_ROOT: "/owned/safe-js", S3_HTTP_EXPORTS_REVISION: "owned-revision", FULL_GATE_ROOT: "/owned/full-gate" };
     try {
       const result = await workspaceRunner.testWorkspaces(owned.root, { ...mock, environment, testArguments: ["--reporter=tap", "a b"] });
       expect(result).toMatchObject({ builds: 2, tests: 3, concurrency: 1, cache: "UNCACHED" });
@@ -740,7 +740,7 @@ describe("finite unit execution and ownership", () => {
         if (call[1][4] === "test:unit") expect(call[1].slice(-3)).toEqual(["--", "--reporter=tap", "a b"]);
         else expect(call[1]).not.toContain("--reporter=tap");
         const feature = call[1][4] === "test:unit" && call[1].includes("--workspace=packages/bash");
-        for (const name of ["SAFE_BASH_TEST_RG", "SAFEJS_LOCAL_ROOT", "S3_HTTP_EXPORTS_REVISION", "FULL_GATE_ROOT"]) expect(call[2].env?.[name]).toBe(feature ? environment[name as keyof typeof environment] : undefined);
+        for (const name of ["SAFE_BASH_TEST_RG", "SAFE_BASH_NATIVE_LANE", "SAFEJS_LOCAL_ROOT", "S3_HTTP_EXPORTS_REVISION", "FULL_GATE_ROOT"]) expect(call[2].env?.[name]).toBe(feature ? environment[name as keyof typeof environment] : undefined);
       }
       expect(mock.host.listenerCount("SIGTERM")).toBe(0);
     } finally { owned.remove(); }

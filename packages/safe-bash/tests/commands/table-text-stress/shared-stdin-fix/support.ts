@@ -8,7 +8,7 @@ import { dirname, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import type { TableCase } from "../../table-text/cases.js";
 import { runTable } from "../../table-text/helpers.js";
-import { product, type Row } from "../support.js";
+import { nativePath, product, type Row } from "../support.js";
 
 export const directory = dirname(fileURLToPath(import.meta.url));
 export const root = resolve(directory, "../../../..");
@@ -50,9 +50,11 @@ export async function verifyOracle(): Promise<void> {
   const parent = await mkdtemp(`${tmpdir()}/safe-bash-table-version-`);
   try {
     assert.equal(sha(await readFile(`${oracle}.tar.xz`)), "e8bb26ad0293f9b5a1fc43fb42ba970e312c66ce92c1b0b16713d7500db251bf");
-    for (const [path, digest] of Object.entries(pins)) assert.equal(sha(await readFile(`${oracle}/${path}`)), digest, path);
-    for (const command of ["comm", "paste", "join"]) {
-      const result = spawnSync(`${oracle}/src/${command}`, ["--version"], { cwd: parent, env: { LC_ALL: "C", PATH: "/usr/bin:/bin" }, encoding: "utf8", timeout: 5000 });
+    for (const path of ["src/comm.c", "doc/coreutils.texi"]) assert.equal(sha(await readFile(`${oracle}/${path}`)), pins[path], path);
+    for (const command of ["comm", "paste", "join"] as const) {
+      const binary = nativePath(command);
+      if (binary === `${oracle}/src/${command}`) assert.equal(sha(await readFile(binary)), pins[`src/${command}`], command);
+      const result = spawnSync(binary, ["--version"], { cwd: parent, env: { LC_ALL: "C", PATH: "/usr/bin:/bin" }, encoding: "utf8", timeout: 5000 });
       assert.equal(result.status, 0);
       assert.equal(result.stdout.split("\n")[0], `${command} (GNU coreutils) 9.7`);
     }
@@ -74,7 +76,7 @@ export async function native(fixture: TableCase): Promise<Row> {
         assert.notEqual(name, "sentinel");
         await writeFile(`${cwd}/${name}`, Buffer.from(hex, "hex"));
       }
-      const result = spawnSync(`${oracle}/src/${fixture.command}`, fixture.args, { argv0: `${authorArgv0Directory}/${fixture.command}`, cwd, input: Buffer.from(fixture.stdinHex, "hex"), env: { LC_ALL: "C", PATH: "/usr/bin:/bin" }, timeout: 5000, maxBuffer: 16 * 1024 * 1024 });
+      const result = spawnSync(nativePath(fixture.command), fixture.args, { argv0: `${authorArgv0Directory}/${fixture.command}`, cwd, input: Buffer.from(fixture.stdinHex, "hex"), env: { LC_ALL: "C", PATH: "/usr/bin:/bin" }, timeout: 5000, maxBuffer: 16 * 1024 * 1024 });
       assert.equal(result.error, undefined, fixture.name);
       assert.equal(result.signal, null, fixture.name);
       assert.notEqual(result.status, null);

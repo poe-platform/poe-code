@@ -7,12 +7,14 @@ import test from "node:test";
 import { native } from "../formats/helpers.js";
 import { assertNativeCapture, calibration, calibrationSha256 } from "./calibration.js";
 import { oracleIdentity, oraclePath, pins } from "./oracle.js";
+import { nativeGnuBinding } from "../../../native-profile.js";
 
 test("binding: exact selected GNU versions and executable hashes", () => {
   for (const tool of ["diff", "patch"] as const) {
     const identity = oracleIdentity(tool);
-    assert.equal(identity.sha256, pins.gnu[tool].sha256);
-    assert.equal(identity.version.split("\n")[0], pins.gnu[tool].version);
+    const expected = nativeGnuBinding(tool) ?? pins.gnu[tool];
+    assert.equal(identity.sha256, expected.sha256);
+    assert.equal(identity.version.split("\n")[0], expected.version);
     assert.equal(identity.dialect, "gnu");
   }
 });
@@ -26,7 +28,7 @@ for (const value of ["", "patch", "/missing/gnu/patch", "/usr/bin/patch", pins.g
     assert.ifError(result.error);
     assert.equal(result.signal, null);
     assert.equal(result.status, 1);
-    assert.match(result.stderr, /absolute executable path|ENOENT|SHA-256 mismatch/u);
+    assert.match(result.stderr, /absolute executable path|ENOENT|SHA-256 mismatch|native executable size mismatch/u);
   });
 }
 

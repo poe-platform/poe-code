@@ -4,7 +4,7 @@ import * as host from "node:fs/promises";
 import { join } from "node:path";
 import { MemoryFileSystem } from "../../../src/fs/memory/index.js";
 import { createRealFileSystem } from "../../../src/fs/real/index.js";
-import { namespace, oracle, oracleRoot, run, sha256 } from "./helpers.js";
+import { namespace, oracle, oracleIdentity, run, sha256 } from "./helpers.js";
 
 test("GNU stat exact millisecond epoch values do not lose a millisecond in scaling", async context => {
   const root = await namespace(context);
@@ -31,7 +31,8 @@ test("GNU stat exact millisecond epoch values do not lose a millisecond in scali
 });
 
 test("GNU 9.7 negative fractions retain runtime rounding for the existing nine timestamp rows", async context => {
-  assert.equal(await sha256(join(oracleRoot, "src/stat")), "9bfc67687cc527eb69aa7a877c1551c22db6ea46ff910ad055015958924e1fea");
+  const identity = oracleIdentity("stat");
+  assert.equal(await sha256(identity.path), identity.sha256);
   const root = await namespace(context);
   const sentinel = Uint8Array.of(83, 65, 70, 69, 0, 255);
   await host.writeFile(join(root, "sentinel"), sentinel);
@@ -75,7 +76,8 @@ test("GNU 9.7 negative fractions retain runtime rounding for the existing nine t
 });
 
 test("GNU 9.7 narrow widths retain trailing bytes for the existing sixteen timestamp rows", async context => {
-  assert.equal(await sha256(join(oracleRoot, "src/stat")), "9bfc67687cc527eb69aa7a877c1551c22db6ea46ff910ad055015958924e1fea");
+  const identity = oracleIdentity("stat");
+  assert.equal(await sha256(identity.path), identity.sha256);
   const root = await namespace(context);
   const sentinel = Uint8Array.of(83, 65, 70, 69, 0, 255);
   await host.writeFile(join(root, "sentinel"), sentinel);

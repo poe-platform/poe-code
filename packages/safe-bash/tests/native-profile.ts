@@ -1,4 +1,86 @@
 import { release } from "node:os";
+import assert from "node:assert/strict";
+import * as fs from "node:fs";
+import { isAbsolute, resolve } from "node:path";
+import { fileURLToPath } from "node:url";
+
+interface NativeExecutablePin {
+  readonly tool: string;
+  readonly version: string;
+  readonly size: number;
+  readonly sha256: string;
+  readonly versionProbe?: Readonly<{ status: number; stdout: string; stderr: string }>;
+}
+
+export interface NativeGnuOptions {
+  readonly platform?: string;
+  readonly arch?: string;
+  readonly release?: string;
+  readonly build?: 1 | 2;
+  readonly path?: string;
+  readonly profiles?: readonly unknown[];
+  readonly fileSystem?: typeof fs;
+  readonly run?: (executable: string, args: readonly string[], options: unknown) => {
+    status: number | null;
+    signal: string | null;
+    stdout: string;
+    stderr: string;
+    error?: Error;
+  };
+}
+
+const nativeProvisioner: {
+  selectNativeProfile(profiles: readonly unknown[], host: { platform: string; arch: string; distribution: string; version: string; release?: string }): { executables: NativeExecutablePin[]; apple?: (NativeExecutablePin & { path: string })[] };
+  verifyNativeExecutable(pin: NativeExecutablePin, path: string, dependencies?: NativeGnuOptions): Omit<NativeExecutablePin, "tool"> & { path: string; bytes: Uint8Array };
+} = await import(new URL("../scripts/provision-test-native-oracles.mjs", import.meta.url).href);
+
+export const verifyNativeExecutable = nativeProvisioner.verifyNativeExecutable;
+
+function executableProfile(options: NativeGnuOptions) {
+  const platform = options.platform ?? process.platform;
+  const arch = options.arch ?? process.arch;
+  let host;
+  if (platform === "darwin") {
+    const kernel = options.release ?? release();
+    assert.equal(arch, "arm64", "Darwin native caller requires arm64");
+    if (kernel === "25.4.0") return undefined;
+    assert.equal(kernel, "25.5.0", "Darwin native caller requires a qualified kernel");
+    host = { platform, arch, distribution: "macos", version: "26.5.2", release: kernel };
+  } else {
+    assert.equal(platform, "linux", "GNU native caller requires a qualified host profile");
+    const fields = (options.fileSystem ?? fs).readFileSync("/etc/os-release", "utf8").split("\n");
+    assert.deepEqual(fields.filter(field => field.startsWith("ID=")), ["ID=ubuntu"], "GNU native caller requires Ubuntu");
+    assert.deepEqual(fields.filter(field => field.startsWith("VERSION_ID=")), ['VERSION_ID="24.04"'], "GNU native caller requires Ubuntu 24.04");
+    host = { platform, arch, distribution: "ubuntu", version: "24.04" };
+  }
+  const manifest = options.profiles === undefined
+    ? JSON.parse(fs.readFileSync(new URL("./native-gnu-profiles.json", import.meta.url), "utf8")) as { schema: number; profiles: unknown[] }
+    : { schema: 1, profiles: options.profiles };
+  assert.equal(manifest.schema, 1);
+  return nativeProvisioner.selectNativeProfile(manifest.profiles, host);
+}
+
+export function nativeGnuBinding(tool: "tar" | "diff" | "patch" | "expr" | "stat" | "touch" | "chmod" | "mktemp" | "nl" | "seq" | "unexpand" | "paste" | "comm" | "join" | "split", options: NativeGnuOptions = {}): (NativeExecutablePin & { path: string }) | undefined {
+  const profile = executableProfile(options);
+  if (!profile) return undefined;
+  assert(options.build === undefined || options.build === 1 || (options.build === 2 && tool === "stat" && (options.platform ?? process.platform) === "darwin"), "only Darwin stat has a qualified independent second build");
+  const pin = profile.executables.find(entry => entry.tool === tool);
+  assert(pin, `qualified GNU profile does not provide ${tool}`);
+  const path = options.path ?? fileURLToPath(new URL(`../tmp/native-gnu${options.build === 2 ? "-second" : ""}/bin/${tool}`, import.meta.url));
+  assert(isAbsolute(path) && resolve(path) === path, "GNU native executable must be a nonempty absolute executable path, normalized; no fallback is permitted");
+  return { ...pin, path };
+}
+
+export function nativeAppleBinding(tool: "diff" | "patch" | "bsdtar" | "split", options: NativeGnuOptions = {}): (NativeExecutablePin & { path: string }) | undefined {
+  assert.equal(options.platform ?? process.platform, "darwin", "Apple native caller requires Darwin");
+  const profile = executableProfile(options);
+  if (!profile) return undefined;
+  const pin = profile.apple?.find(entry => entry.tool === tool);
+  assert(pin, `qualified Apple profile does not provide ${tool}`);
+  const path = options.path ?? pin.path;
+  assert(isAbsolute(path) && resolve(path) === path, "Apple native executable must be a nonempty absolute executable path, normalized; no fallback is permitted");
+  return { ...pin, path };
+}
 
 export interface NativeHost {
   readonly platform: string;

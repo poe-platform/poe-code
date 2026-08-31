@@ -7,9 +7,8 @@ import { setTimeout } from "node:timers/promises";
 import { MemoryFileSystem } from "../../../../src/fs/memory/index.js";
 import { createRealFileSystem } from "../../../../src/fs/real/index.js";
 import { FsError } from "../../../../src/contracts/index.js";
-import { namespace, oracle, oracleRoot, run, sha256 } from "../helpers.js";
+import { namespace, oracle, oracleIdentity, run, sha256 } from "../helpers.js";
 
-const oracleSha256 = "3b7a9b5819dd93eff18b25dfbbac1c1d17e2ccd419368da90b366653b1b1cbd2";
 const sentinel = Uint8Array.of(0, 255, 10);
 
 async function requireDarwinProfile() {
@@ -24,8 +23,9 @@ async function requireDarwinProfile() {
   assert.equal(process.getgid(), process.getegid(), "Darwin9.7/Node22 profile prerequisite: real/effective gid mismatch");
   assert.notEqual(process.getgid(), 0, "Darwin9.7/Node22 profile prerequisite: caller must not belong to group0");
   assert.equal(process.getgroups().includes(0), false, "Darwin9.7/Node22 profile prerequisite: caller must not belong to group0");
-  assert.equal(await sha256(join(oracleRoot, "src/chmod")), oracleSha256,
-    "Darwin9.7/Node22 profile prerequisite: original GNU9.7 binary required");
+  const identity = oracleIdentity("chmod");
+  assert.equal(await sha256(identity.path), identity.sha256,
+    "Darwin9.7/Node22 profile prerequisite: selected authenticated GNU9.7 binary required");
   return { uid: process.getuid(), groups: process.getgroups() };
 }
 
@@ -54,7 +54,8 @@ async function nativeProfile(context: TestContext): Promise<string> {
 }
 
 function profileOracle(args: readonly string[], cwd: string, umask: number) {
-  const result = spawnSync("/bin/bash", ["-c", 'umask "$1"; shift; exec "$@"', "metadata-oracle", umask.toString(8), join(oracleRoot, "src/chmod"), ...args], {
+  const identity = oracleIdentity("chmod");
+  const result = spawnSync("/bin/bash", ["-c", 'umask "$1"; shift; exec "$@"', "metadata-oracle", umask.toString(8), identity.path, ...args], {
     cwd, env: { PATH: "/usr/bin:/bin", LC_ALL: "C", TZ: "UTC", TMPDIR: cwd }, timeout: 3000,
   });
   assert.ifError(result.error);

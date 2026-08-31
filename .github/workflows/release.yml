@@ -340,7 +340,7 @@ jobs:
           mkdir -m 700 "$job_root/home" "$job_root/tmp" "$job_root/sources"
           printf 'NATIVE_JOB_ROOT=%s\nHOME=%s\nTMPDIR=%s\nnpm_config_cache=%s\n' "$job_root" "$job_root/home" "$job_root/tmp" "$job_root/cache" >> "$GITHUB_ENV"
       - run: npm clean-install
-      - run: npm run build:workspaces -- --workspace=virtual-bash
+      - run: npm run build
       - name: Provision reviewed Darwin native prerequisites
         shell: bash
         run: |-

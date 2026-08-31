@@ -183,3 +183,71 @@ node --import tsx --input-type=module -e 'import { oracleIdentity } from "./pack
 
 Publisher still owns independent review, normal commit/push, and full package
 and hosted Release gates. This focused qualification is not a full-release pass.
+
+## Required Bash recovery, 2026-08-31
+
+The next normal push at `a43a8142603a9d3d5ec31c6fb7ffe7d469884885`
+exposed a genuinely required Bash executable, not capture-only data:
+`tests/shell-stress/diagnostic-profiles/compatibility.test.ts` failed all89
+cases when `/tmp/safe-bash-gnu-bash-5.3.Ua5t02/install/bin/bash` was absent.
+Bounded task-cache and explicit oracle lookups found no original executable.
+Its historical SHA-256 and all frozen captures remain unchanged.
+
+The authenticated Bash5.3 archive is exactly11355854bytes, SHA-256
+`0d5cd86965f869a26cf64f4b71be7b96f90a3ba8b3d74e27e8e9d9d5550f31ba`.
+Its95-byte detached signature is
+`bd32023612c9554182393b10d9db909fc5e35e2f07b38e327ff65e500288a9ad`;
+the existing pinned GNU keyring verifies signer
+`7C0135FB088AAF6C66C650B9BB5869F064EA74AB`. Two independent local
+Darwin25.4 source trees use the existing deterministic configure recipe:
+`--prefix=/native-qualification --disable-nls CC=/usr/bin/clang`,
+`CFLAGS=-O2 -g0 -ffile-prefix-map=<build-tree>=.`,
+`SOURCE_DATE_EPOCH=1743984000`, then `/usr/bin/make -j2`.
+Actual compiler, linker, SDK, OS and verifier identities are recorded and
+rechecked against the preceding independently reviewed local toolchain.
+
+Both real Bash5.3.0(1) outputs are1188024bytes, SHA-256
+`bfa389cd1d6cb5dbd03805612b6fe464ade9b22a343b897df09044ff90456528`.
+The64-member closed evidence is under
+`packages/safe-bash/tmp/native-bash-qualification-20260831/evidence`.
+Receipt SHA-256 is
+`6234bac65f72ade41c36cef6ae86feb9cb2a43d11985a5a330d84a433d4f2ccb`;
+manifest SHA-256 is
+`a5e19ded418df5f19c9f87d75920ba925a8b81b57e819691c019a5c9cd5626a2`.
+Producer observations remain unreviewed records; separate verification is
+`out/math-array-validation/native-bash-artifact-review.json`.
+The original build process had loaded the pre-gzip sealing implementation;
+its completed outputs were subsequently sealed with the tested gzip extension.
+No build failure, source substitution or binary change was hidden by resealing.
+
+Only the local profile gains Bash; prior records/recipes are structurally
+unchanged after removing the explicit additive Bash entries. Existing staging
+installs authenticated copies under `packages/safe-bash/tmp/native-gnu/bin`.
+Bash uses `nativeGnuBinding("bash")` at that stable path, with no new environment
+variable; diff/patch keep their previously documented explicit overrides.
+All other GNU/Apple tools retain the local legacy fallback. Euler owns the
+separate caller adapter and its tests; historical identity assertions remain
+separate from the selected current executable identity.
+
+Validation: actual89/89 compatibility tests pass with zero skips, including
+full version tail, original lifecycle, source bindings and frozen semantics.
+The167-test core/caller/selector run passes with zero skips; scoped package
+TypeScript and whitespace checks pass. Discovery remains complete and disjoint:
+656files =619Linux +37Darwin. Logs and final evidence are
+`out/math-array-validation/native-bash-actual-89.log`,
+`native-bash-core-green.log`, and `native-bash-final-review.json` in that directory.
+
+The same compatibility file is now an obligation of the existing required
+Darwin lane. Existing hosted qualification records two independent Bash builds
+from the same authenticated gzip source; staging verifies both against the
+eventually reviewed hosted pin. No hosted Bash identity is inferred from local
+bytes or admitted yet. Publisher must dispatch the existing Darwin qualification
+after the recipe reaches remote main, review its actual receipt, and add the
+exact hosted record before publication can pass. Same-SHA checkouts, publication
+dependencies, exit statuses and workflow behavior are unchanged.
+
+Fresh authenticated Bash preflight, from the publisher repository root:
+
+```sh
+node --import tsx --input-type=module -e 'import { resolveCurrentProfile } from "./packages/safe-bash/tests/shell-stress/diagnostic-profiles/profile.ts"; console.log(JSON.stringify(resolveCurrentProfile()));'
+```

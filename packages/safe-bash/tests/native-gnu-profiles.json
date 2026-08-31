@@ -257,7 +257,17 @@
         "manifest": "tmp/native-local-diff-patch-qualification-20260831/evidence/manifest.json",
         "manifestSha256": "301662f064dc9e2663993a3497e9027127145dcc36574c4255944c26f3d862b2",
         "independentBuildsPerTool": 2,
-        "plan": "docs/plans/safe-bash-required-native-lanes.md"
+        "plan": "docs/plans/safe-bash-required-native-lanes.md",
+        "bashRecovery": {
+          "sourceSha": "a43a8142603a9d3d5ec31c6fb7ffe7d469884885",
+          "sourceState": "Local Bash qualification with uncommitted core changes; not hosted evidence",
+          "receipt": "tmp/native-bash-qualification-20260831/evidence/receipt.json",
+          "receiptSha256": "6234bac65f72ade41c36cef6ae86feb9cb2a43d11985a5a330d84a433d4f2ccb",
+          "manifest": "tmp/native-bash-qualification-20260831/evidence/manifest.json",
+          "manifestSha256": "a5e19ded418df5f19c9f87d75920ba925a8b81b57e819691c019a5c9cd5626a2",
+          "independentBuilds": 2,
+          "qualificationScope": "Reviewed signed-source Bash 5.3 identities on local Darwin 25.4 only; the required diagnostic semantic cohort is validated separately. Existing diff/patch records and all legacy tool fallbacks are unchanged."
+        }
       },
       "executables": [
         {
@@ -271,6 +281,12 @@
           "version": "GNU patch 2.8",
           "size": 194312,
           "sha256": "f9e0dc02b9aa6589a7b31f9258c33b22511261ae69fdab5c5ca8848971f440bd"
+        },
+        {
+          "tool": "bash",
+          "version": "GNU bash, version 5.3.0(1)-release (aarch64-apple-darwin25.4.0)",
+          "size": 1188024,
+          "sha256": "bfa389cd1d6cb5dbd03805612b6fe464ade9b22a343b897df09044ff90456528"
         }
       ]
     }
@@ -488,6 +504,26 @@
             "version": "split (GNU coreutils) 9.7"
           }
         ]
+      },
+      {
+        "name": "bash-5.3",
+        "url": "https://ftp.gnu.org/gnu/bash/bash-5.3.tar.gz",
+        "size": 11355854,
+        "sha256": "0d5cd86965f869a26cf64f4b71be7b96f90a3ba8b3d74e27e8e9d9d5550f31ba",
+        "signer": "7C0135FB088AAF6C66C650B9BB5869F064EA74AB",
+        "signature": {
+          "url": "https://ftp.gnu.org/gnu/bash/bash-5.3.tar.gz.sig",
+          "size": 95,
+          "sha256": "bd32023612c9554182393b10d9db909fc5e35e2f07b38e327ff65e500288a9ad"
+        },
+        "builds": 2,
+        "outputs": [
+          {
+            "tool": "bash",
+            "path": "bash",
+            "version": "GNU bash, version 5.3.0(1)-release (aarch64-apple-darwin25.5.0)"
+          }
+        ]
       }
     ],
     "appleObservations": [
@@ -530,6 +566,7 @@
     "tests/commands/split/stress.test.ts",
     "tests/commands/split/edge.test.ts",
     "tests/commands/split/dangling-native.test.ts",
-    "tests/commands/split/native-capture.test.ts"
+    "tests/commands/split/native-capture.test.ts",
+    "tests/shell-stress/diagnostic-profiles/compatibility.test.ts"
   ]
 }

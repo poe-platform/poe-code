@@ -60,8 +60,9 @@ function executableProfile(options: NativeGnuOptions, localRecovery = false) {
   return nativeProvisioner.selectNativeProfile(manifest.profiles, host);
 }
 
-export function nativeGnuBinding(tool: "tar" | "diff" | "patch" | "expr" | "stat" | "touch" | "chmod" | "mktemp" | "nl" | "seq" | "unexpand" | "paste" | "comm" | "join" | "split", options: NativeGnuOptions = {}): (NativeExecutablePin & { path: string }) | undefined {
-  const localRecovery = (tool === "diff" || tool === "patch") && options.path === fileURLToPath(new URL(`../tmp/native-local-diff-patch/bin/${tool}`, import.meta.url));
+export function nativeGnuBinding(tool: "tar" | "diff" | "patch" | "expr" | "stat" | "touch" | "chmod" | "mktemp" | "nl" | "seq" | "unexpand" | "paste" | "comm" | "join" | "split" | "bash", options: NativeGnuOptions = {}): (NativeExecutablePin & { path: string }) | undefined {
+  const localRecovery = tool === "bash" || ((tool === "diff" || tool === "patch") && options.path === fileURLToPath(new URL(`../tmp/native-local-diff-patch/bin/${tool}`, import.meta.url)));
+  if (tool === "bash" && (options.platform ?? process.platform) === "darwin" && (options.release ?? release()) === "25.4.0") assert(options.path === undefined || options.path === fileURLToPath(new URL("../tmp/native-gnu/bin/bash", import.meta.url)), "local Bash recovery requires its stable staged path");
   const profile = executableProfile(options, localRecovery);
   if (!profile) return undefined;
   assert(options.build === undefined || options.build === 1 || (options.build === 2 && tool === "stat" && (options.platform ?? process.platform) === "darwin"), "only Darwin stat has a qualified independent second build");

@@ -55,6 +55,30 @@ test("committed local recovery binds only the independently rebuilt diff and pat
   }
 });
 
+test("local Bash recovery uses its required stable path without qualifying unrelated legacy tools", () => {
+  const host = { platform: "darwin", arch: "arm64", distribution: "macos", version: "26.4.1", release: "25.4.0" };
+  const executables = ["diff", "patch", "bash"].map(tool => ({ tool, version: `fixture ${tool}`, size: 32, sha256: "a".repeat(64) }));
+  const options = { ...host, profiles: [{ id: "local-bash-fixture", host, qualification: "QUALIFIED", executables }] };
+  const path = fileURLToPath(new URL("../tmp/native-gnu/bin/bash", import.meta.url));
+  assert.deepEqual(nativeGnuBinding("bash", options), { ...executables[2], path });
+  assert.deepEqual(nativeGnuBinding("bash", { ...options, path }), { ...executables[2], path });
+  assert.throws(() => nativeGnuBinding("bash", { ...options, path: "/unreviewed/bash" }));
+  assert.throws(() => nativeGnuBinding("bash", { ...options, build: 2 }));
+  assert.throws(() => nativeGnuBinding("bash", { ...options, profiles: [] }));
+  for (const tool of ["tar", "expr", "stat", "touch", "chmod", "mktemp", "nl", "seq", "unexpand", "paste", "comm", "join", "split"] as const) {
+    assert.equal(nativeGnuBinding(tool, options), undefined);
+  }
+  for (const tool of ["diff", "patch", "bsdtar", "split"] as const) assert.equal(nativeAppleBinding(tool, options), undefined);
+});
+
+test("committed local Bash identity requires the independently reproduced Darwin 25.4 executable", () => {
+  assert.deepEqual(nativeGnuBinding("bash", { platform: "darwin", arch: "arm64", release: "25.4.0" }), {
+    tool: "bash", version: "GNU bash, version 5.3.0(1)-release (aarch64-apple-darwin25.4.0)",
+    size: 1188024, sha256: "bfa389cd1d6cb5dbd03805612b6fe464ade9b22a343b897df09044ff90456528",
+    path: fileURLToPath(new URL("../tmp/native-gnu/bin/bash", import.meta.url)),
+  });
+});
+
 test("reviewed Darwin bindings retain separate stat builds and exact Apple identities", () => {
   const options = { platform: "darwin", arch: "arm64", release: "25.5.0", fileSystem: createFsFromVolume(new Volume()) as unknown as typeof fs };
   const manifest = JSON.parse(fs.readFileSync(new URL("./native-gnu-profiles.json", import.meta.url), "utf8"));

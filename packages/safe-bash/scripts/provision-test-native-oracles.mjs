@@ -35,7 +35,7 @@ export function selectNativeProfile(profiles, host) {
     "unsupported native host"
   );
   assert(Array.isArray(profile.executables) && profile.executables.length > 0);
-  if (localRecovery) assert.deepEqual(profile.executables.map(pin => pin.tool).sort(), ["diff", "patch"], "local recovery is restricted to GNU diff and patch");
+  if (localRecovery) assert.deepEqual(profile.executables.filter(pin => pin.tool !== "bash").map(pin => pin.tool).sort(), ["diff", "patch"], "local recovery is restricted to GNU diff, patch and optional qualified Bash");
   const tools = new Set();
   for (const pin of profile.executables) {
     assert(typeof pin.tool === "string" && pin.tool.length > 0);
@@ -181,7 +181,7 @@ export function stageDarwinOutputs(options, dependencies = {}) {
   const inputs = {};
   let independent;
   for (const pin of profile.executables) {
-    for (const build of pin.tool === "stat" ? [1, 2] : [1]) {
+    for (const build of pin.tool === "stat" || pin.tool === "bash" ? [1, 2] : [1]) {
       const matches = receipt.outputs.filter(output => output.tool === pin.tool && output.build === build);
       assert.equal(matches.length, 1, "exactly one output per independent build required");
       const output = matches[0];
@@ -190,7 +190,7 @@ export function stageDarwinOutputs(options, dependencies = {}) {
       const path = join(receipt.root, "evidence", output.member);
       verifyNativeExecutable(pin, path, dependencies);
       if (build === 1) inputs[pin.tool] = path;
-      else independent = { pin, path };
+      else if (pin.tool === "stat") independent = { pin, path };
     }
   }
   assert(independent, "independent stat build required");
@@ -479,7 +479,7 @@ export function sealDarwinEvidence(root, members, dependencies = {}) {
         (parts.length === 2 &&
           ((parts[0] === "logs" && (member.endsWith(".log") || member.endsWith(".json"))) ||
             (parts[0] === "sources" &&
-              (member.endsWith(".tar.xz") || member.endsWith(".tar.xz.sig"))) ||
+              (member.endsWith(".tar.xz") || member.endsWith(".tar.xz.sig") || member.endsWith(".tar.gz") || member.endsWith(".tar.gz.sig"))) ||
             parts[0] === "bin")),
       "unapproved artifact category"
     );
@@ -653,8 +653,8 @@ export async function qualifyDarwinBuild(options, dependencies = {}) {
           ) &&
           !source.name.startsWith(".")
       );
-      assert.equal(source.builds, source.coreutils ? 2 : 1, "independent build count mismatch");
-      const archiveMember = "sources/" + source.name + ".tar.xz";
+      assert.equal(source.builds, source.coreutils || source.name === "bash-5.3" ? 2 : 1, "independent build count mismatch");
+      const archiveMember = "sources/" + source.name + (source.url.endsWith(".tar.gz") ? ".tar.gz" : ".tar.xz");
       write(archiveMember, await fetchVerified(source, dependencies));
       write(archiveMember + ".sig", await fetchVerified(source.signature, dependencies));
       const archive = join(evidence, archiveMember);
@@ -676,7 +676,7 @@ export async function qualifyDarwinBuild(options, dependencies = {}) {
       for (let build = 1; build <= source.builds; build++) {
         const extraction = join(root, "work", source.name + "-" + build);
         fileSystem.mkdirSync(extraction, { mode: 0o700 });
-        await step("/usr/bin/bsdtar", ["-xJf", archive, "-C", extraction]);
+        await step("/usr/bin/bsdtar", ["-xf", archive, "-C", extraction]);
         const work = join(extraction, source.name);
         canonicalPath(fileSystem, work);
         const configure = [

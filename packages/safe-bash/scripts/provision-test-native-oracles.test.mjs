@@ -416,6 +416,44 @@ test("Darwin observation refuses host, image, event and checkout identity drift"
   assert.throws(() => selectNativeProfile([profile], host));
 });
 
+test("required Darwin release lane accepts only the explicit job and normal release events", () => {
+  const { profile, context } = darwinFixture();
+  for (const event of ["push", "workflow_dispatch"]) {
+    const current = { ...context, event, job: "native-darwin" };
+    assert.doesNotThrow(() => native.assertDarwinContext(profile, current, true));
+    assert.throws(() => native.assertDarwinContext(profile, { ...current, job: "release-stable" }, true));
+  }
+  assert.throws(() => native.assertDarwinContext(profile, { ...context, event: "pull_request", job: "native-darwin" }, true));
+  assert.throws(() => native.assertDarwinContext(profile, { ...context, event: "push" }));
+});
+
+test("reviewed Darwin staging retains real separate first and second stat build inputs", async () => {
+  const value = darwinFixture();
+  const receipt = await native.qualifyDarwinBuild(value.options, value);
+  const profile = { id: "test-only-reviewed-darwin", qualification: "QUALIFIED", host: { platform: "darwin", arch: "arm64", distribution: "macos", version: "26.5.2", release: "25.5.0" },
+    executables: receipt.outputs.filter(output => output.build === 1).map(({ tool, version, size, sha256 }) => ({ tool, version, size, sha256 })) };
+  const paths = [];
+  const run = (path) => { paths.push(path); return { status: 0, signal: null, stdout: profile.executables[0].version + "\n", stderr: "" }; };
+  const staged = native.stageDarwinOutputs({ receipt, profile, host: profile.host, parent: "/owned", name: "native-gnu" }, { fileSystem: value.fileSystem, run });
+  assert.equal(staged.primary.outputs[0].path, "/owned/native-gnu/bin/stat");
+  assert.equal(staged.secondary.outputs[0].path, "/owned/native-gnu-second/bin/stat");
+  assert(paths.includes(receipt.root + "/evidence/bin/stat-1"));
+  assert(paths.includes(receipt.root + "/evidence/bin/stat-2"));
+  assert.throws(() => native.stageDarwinOutputs({ receipt: { ...receipt, outputs: receipt.outputs.filter(output => output.build === 1) }, profile, host: profile.host, parent: "/owned", name: "missing" }, { fileSystem: value.fileSystem, run }));
+  assert.throws(() => native.stageDarwinOutputs({ receipt: { ...receipt, status: "FAILED_NOT_QUALIFIED" }, profile, host: profile.host, parent: "/owned", name: "failed" }, { fileSystem: value.fileSystem, run }));
+  const changed = structuredClone(receipt);
+  changed.outputs[1].sha256 = "0".repeat(64);
+  assert.throws(() => native.stageDarwinOutputs({ receipt: changed, profile, host: profile.host, parent: "/owned", name: "changed" }, { fileSystem: value.fileSystem, run }));
+  const replaced = structuredClone(receipt);
+  replaced.outputs[1].member = replaced.outputs[0].member;
+  assert.throws(() => native.stageDarwinOutputs({ receipt: replaced, profile, host: profile.host, parent: "/owned", name: "replaced" }, { fileSystem: value.fileSystem, run }));
+});
+
+test("required Darwin staging is an explicit CLI mode", () => {
+  assert.deepEqual(parseNativeArguments(["--stage-darwin", "--parent", "/owned", "--destination", "/workspace/tmp/native-gnu"]), { stageDarwin: true, parent: "/owned", destination: "/workspace/tmp/native-gnu" });
+  assert.throws(() => parseNativeArguments(["--stage-darwin", "--qualify-darwin-build", "--parent", "/owned", "--destination", "/owned/build"]));
+});
+
 test("Darwin builds independent coreutils trees, authenticates signatures and never admits observations", async () => {
   const value = darwinFixture();
   const receipt = await native.qualifyDarwinBuild(value.options, value);

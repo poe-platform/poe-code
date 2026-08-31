@@ -25,6 +25,43 @@ const boundary = {
   fixtureDirectories: [fixture],
 };
 
+function assertSource7Discovery(files) {
+  const removed = [
+    "tests/fs/memory/faithful-binding.test.ts",
+    "tests/fs/mount/comparison.test.ts",
+    "tests/fs/mount/identity-authority-review/authority.test.ts",
+    "tests/fs/mount/identity-authority-review/implementation/remote-comparison.test.ts",
+    "tests/fs/mount/identity-scope.test.ts",
+    "tests/fs/real/allocation-independent/boundary.test.ts",
+    "tests/fs/s3/faithful-decorators.test.ts",
+    "tests/fs/s3/http/unit/signature.test.ts",
+    "tests/fs/s3/late-authority.test.ts",
+    "tests/fs/webdav/operation-authority.test.ts",
+    "tests/fs/webdav/resource-id.test.ts",
+    "tests/fs/webdav/trusted-binding.test.ts",
+    "tests/fs/webdav/xml.test.ts",
+  ];
+  const added = [
+    "tests/fs/canonical-boundaries.test.ts",
+    "tests/fs/migration-permission-contract.test.ts",
+    "tests/fs/public-comparison.test.ts",
+    "tests/integration/qualified-current-release-repair/canonical-peer.test.ts",
+    "tests/integrations/safejs/canonical-filesystem.test.ts",
+    "tests/integrations/safejs/published-replay.test.ts",
+  ];
+  assert.equal(new Set(files).size, files.length);
+  for (const path of removed) assert.ok(!files.includes(path), `source7 removed test remains selected: ${path}`);
+  for (const path of added) assert.ok(files.includes(path), `source7 added test is missing: ${path}`);
+  const previous655 = [...files.filter(path => !added.includes(path)), ...removed].sort();
+  assert.equal(previous655.length, 655);
+  const previous654 = previous655.filter(path => path !== "tests/commands/stream-format/seq-diagnostic-profile.test.ts");
+  assert.equal(previous654.length, 654);
+  const previous653 = previous654.filter(path => path !== "tests/commands/search/native-tool.test.ts");
+  assert.equal(previous653.length, 653);
+  assert.equal(createHash("sha256").update(JSON.stringify(previous653)).digest("hex"), "4034255d318de395fa9614c6b00950d3f6be0337ef47724e4e96acdf9e716957");
+  assert.equal(files.length, 655 - removed.length + added.length);
+}
+
 function fileSystemFor(files) {
   return {
     readdirSync(path) { return [...new Set([...files.keys()].filter(file => file.startsWith(path + "/")).map(file => file.slice(path.length + 1).split("/")[0]))]; },
@@ -943,7 +980,7 @@ test("frozen lint inventory adds only its 1842 literal exclusions and preserves 
   for (const link of symlinks) assert.ok(!reads.includes(link.path));
   const { consumerGroups, currentConsumerPaths, currentSourceConsumerGroups, negativeGroups } = await import("../tests/plugins/qualified-current-release/consumers.mjs");
   const tests = discoverTests(root, boundaries);
-  assert.equal(tests.length, 655);
+  assertSource7Discovery(tests);
   assert.ok(tests.includes("tests/commands/stream-format/seq-diagnostic-profile.test.ts"));
   assert.ok(tests.includes("tests/commands/search/native-tool.test.ts"));
   assert.ok(tests.includes("tests/native-profile.test.ts"));
@@ -1247,7 +1284,17 @@ test("lint admission reads only classification metadata and retains current inpu
   const staged = JSON.parse(readFileSync(new URL("staged-types.json", directory)));
   const inventory = JSON.parse(readFileSync(new URL("inventory.json", directory)));
   const paths = lintInventoryPaths(captured, staged, inventory);
-  assert.equal(paths.length, 173);
+  const typeInputs = JSON.parse(readFileSync(new URL("../integration-type-inputs.json", import.meta.url)));
+  const source7Additions = typeInputs.cohorts.flatMap(cohort => cohort.entries).filter(entry => entry.path.endsWith(".mts")).map(entry => entry.path);
+  assert.equal(source7Additions.length, 13);
+  assert.equal(new Set(source7Additions).size, 13);
+  const previousInventory = { ...inventory, entries: inventory.entries.filter(entry => !source7Additions.includes(entry.path)) };
+  const previousPaths = lintInventoryPaths(captured, staged, previousInventory);
+  assert.equal(previousPaths.length, 173);
+  assert.equal(createHash("sha256").update(JSON.stringify(previousPaths)).digest("hex"), "0788349f778770ff6f85ec24a8de74b60251a15f26f5e0ac9f36510e44e6a4a1");
+  assert.deepEqual(paths.filter(path => !previousPaths.includes(path)).sort(), [...source7Additions].sort());
+  assert.deepEqual([...paths].sort(), [...previousPaths, ...source7Additions].sort());
+  assert.equal(paths.length, 173 + source7Additions.length);
   assert.ok(inventory.entries.filter(entry => entry.classification === "current").every(entry => !paths.includes(entry.path)));
   for (const path of ["tests/**", "../outside.ts", "tests/a/../escape.ts", "tests/unowned/capture.ts", null]) {
     assert.throws(() => lintInventoryPaths({ ...captured, entries: [{ ...captured.entries[0], path }] }, staged, inventory));
@@ -1381,14 +1428,9 @@ test("runner defaults to serial execution and preserves explicit concurrency ove
 test("default normal runner passes every discovered active file to serial Node execution", () => {
   const root = fileURLToPath(new URL("../", import.meta.url));
   const files = discoverTests(root, loadBoundaries(root));
-  assert.equal(files.length, 655);
+  assertSource7Discovery(files);
   assert.ok(files.includes("tests/commands/stream-format/seq-diagnostic-profile.test.ts"));
   assert.ok(files.includes("tests/commands/search/native-tool.test.ts"));
-  const previous654 = files.filter(path => path !== "tests/commands/stream-format/seq-diagnostic-profile.test.ts");
-  assert.equal(previous654.length, 654);
-  const previous = previous654.filter(path => path !== "tests/commands/search/native-tool.test.ts");
-  assert.equal(previous.length, 653);
-  assert.equal(createHash("sha256").update(JSON.stringify(previous)).digest("hex"), "4034255d318de395fa9614c6b00950d3f6be0337ef47724e4e96acdf9e716957");
   assert.ok(files.includes("tests/native-profile.test.ts"));
   assert.ok(files.includes("tests/commands/git/io-cleanup.test.ts"));
   assert.equal(runTests(root, [], (executable, args, options) => {
@@ -1691,7 +1733,7 @@ test("current integration type accounting retains exact frozen owners and every 
   assert.ok(classified.standaloneEntries.every(entry => entry.classification === "frozen-evidence"));
   assert.ok(classified.capturedPaths.every(path => !path.endsWith(".test.ts")));
   const tests = discoverTests(root, boundaries);
-  assert.equal(tests.length, 655);
+  assertSource7Discovery(tests);
   assert.ok(tests.includes("tests/commands/stream-format/seq-diagnostic-profile.test.ts"));
   assert.ok(tests.includes("tests/commands/search/native-tool.test.ts"));
   assert.ok(tests.includes("tests/native-profile.test.ts"));

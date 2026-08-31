@@ -108,6 +108,161 @@ for (const field of ["dev", "ino", "mode", "nlink", "size", "mtimeMs", "ctimeMs"
   },
 );
 
+for (const fields of [["nlink"], ["size"], ["mtimeMs"], ["ctimeMs"], ["nlink", "size", "mtimeMs", "ctimeMs"]]) test(
+  `build directory index rebuilds outside ancestor membership after ${fields.join("/")} churn`, async () => {
+    const owned = fixture();
+    const before = owned.memory.lstatSync("/owned");
+    const metadata = owned.fileSystem.lstatSync, listing = owned.fileSystem.readdirSync;
+    let enumerations = 0;
+    owned.fileSystem.lstatSync = path => {
+      const stat = metadata(path);
+      if (path === "/owned") for (const key of ["dev", "ino", "mode", "nlink", "size", "mtimeMs", "ctimeMs"]) {
+        stat[key] = before[key] + (enumerations > 0 && fields.includes(key) ? 1 : 0);
+      }
+      return stat;
+    };
+    owned.fileSystem.readdirSync = (path, ...args) => {
+      const names = listing(path, ...args);
+      if (path === "/owned") {
+        enumerations += 1;
+        if (enumerations === 1) owned.memory.mkdirSync("/owned/ambient-new");
+      }
+      return names;
+    };
+    assert.equal((await owned.run()).status, 0, owned.output.join(""));
+    assert.equal(enumerations, 2);
+    assert.ok(owned.reads.includes(root + "/src/index.ts"));
+    noHeldReads(owned);
+  },
+);
+
+test("build directory index bounds repeatedly unstable outside listings before payload reads", async () => {
+  const owned = fixture();
+  const before = owned.memory.lstatSync("/owned");
+  const metadata = owned.fileSystem.lstatSync, listing = owned.fileSystem.readdirSync;
+  let enumerations = 0;
+  owned.fileSystem.lstatSync = path => {
+    const stat = metadata(path);
+    if (path === "/owned") stat.nlink = before.nlink + enumerations;
+    return stat;
+  };
+  owned.fileSystem.readdirSync = (path, ...args) => {
+    const names = listing(path, ...args);
+    if (path === "/owned") enumerations += 1;
+    return names;
+  };
+  await assert.rejects(owned.run(), /compiler ancestor membership remained unstable/);
+  assert.equal(enumerations, 3);
+  assert.equal(owned.reads.length, 0);
+  noHeldReads(owned);
+});
+
+for (const directory of [root, root + "/src", tools.typescriptLib]) for (const field of ["dev", "ino", "mode", "nlink", "size", "mtimeMs", "ctimeMs"]) test(
+  `build directory index keeps ${directory} ${field} strict during population`, async () => {
+    const owned = fixture();
+    const metadata = owned.fileSystem.lstatSync, listing = owned.fileSystem.readdirSync;
+    const population = directory === root + "/src" ? 2 : 1;
+    let enumerations = 0;
+    owned.fileSystem.lstatSync = path => {
+      const stat = metadata(path);
+      if (path === directory && enumerations >= population) stat[field] += 1;
+      return stat;
+    };
+    owned.fileSystem.readdirSync = (path, ...args) => {
+      const names = listing(path, ...args);
+      if (path === directory) enumerations += 1;
+      return names;
+    };
+    await assert.rejects(owned.run(), /identity changed/);
+    assert.equal(enumerations, population);
+    if (directory === root) assert.equal(owned.reads.length, 0);
+    if (directory === root + "/src") assert.ok(!owned.reads.includes(root + "/src/index.ts"));
+    if (directory === tools.typescriptLib) assert.ok(!owned.reads.includes(directory + "/lib.es2023.d.ts"));
+    noHeldReads(owned);
+  },
+);
+
+for (const defect of ["dev", "ino", "mode", "symlink", "special"]) test(
+  `build directory index refuses outside ${defect} replacement during rebuilding`, async () => {
+    const owned = fixture();
+    const before = owned.memory.lstatSync("/owned");
+    const metadata = owned.fileSystem.lstatSync, listing = owned.fileSystem.readdirSync;
+    let enumerations = 0;
+    owned.fileSystem.lstatSync = path => {
+      const stat = metadata(path);
+      if (path === "/owned") {
+        stat.nlink = before.nlink + Math.min(enumerations, 1);
+        if (enumerations === 2) {
+          if (defect === "symlink") stat.isSymbolicLink = () => true;
+          else if (defect === "special") stat.isDirectory = () => false;
+          else stat[defect] += 1;
+        }
+      }
+      return stat;
+    };
+    owned.fileSystem.readdirSync = (path, ...args) => {
+      const names = listing(path, ...args);
+      if (path === "/owned") enumerations += 1;
+      return names;
+    };
+    await assert.rejects(owned.run(), /identity changed|nonlink directory/);
+    assert.equal(enumerations, 2);
+    assert.equal(owned.reads.length, 0);
+    noHeldReads(owned);
+  },
+);
+
+for (const defect of ["alias", "rename", "child-link"]) test(
+  `build directory index rejects ${defect} from a rebuilt outside listing`, async () => {
+    const owned = fixture();
+    const before = owned.memory.lstatSync("/owned");
+    const metadata = owned.fileSystem.lstatSync, listing = owned.fileSystem.readdirSync;
+    let enumerations = 0;
+    owned.fileSystem.lstatSync = path => {
+      const stat = metadata(path);
+      if (path === "/owned") stat.nlink = before.nlink + Math.min(enumerations, 1);
+      if (path === root && enumerations === 2 && defect === "child-link") stat.isSymbolicLink = () => true;
+      return stat;
+    };
+    owned.fileSystem.readdirSync = (path, ...args) => {
+      const names = listing(path, ...args);
+      if (path !== "/owned") return names;
+      enumerations += 1;
+      if (enumerations === 2 && defect === "alias") return [...names, "PACKAGE"];
+      if (enumerations === 2 && defect === "rename") return names.map(name => name === "package" ? "PACKAGE" : name);
+      return names;
+    };
+    await assert.rejects(owned.run(), /noncanonical compiler path spelling|symlink/);
+    assert.equal(enumerations, 2);
+    assert.equal(owned.reads.length, 0);
+    noHeldReads(owned);
+  },
+);
+
+for (const failure of [0, new Error("owned rebuilding failure")]) test(
+  `build directory index propagates rebuilding ${failure === 0 ? "falsey" : "I/O"} errors without retry`, async () => {
+    const owned = fixture();
+    const before = owned.memory.lstatSync("/owned");
+    const metadata = owned.fileSystem.lstatSync, listing = owned.fileSystem.readdirSync;
+    let enumerations = 0;
+    owned.fileSystem.lstatSync = path => {
+      const stat = metadata(path);
+      if (path === "/owned") stat.nlink = before.nlink + Math.min(enumerations, 1);
+      return stat;
+    };
+    owned.fileSystem.readdirSync = (path, ...args) => {
+      if (path === "/owned" && ++enumerations === 2) throw failure;
+      return listing(path, ...args);
+    };
+    let caught = false;
+    try { await owned.run(); } catch (error) { caught = true; assert.equal(error, failure); }
+    assert.equal(caught, true);
+    assert.equal(enumerations, 2);
+    assert.equal(owned.reads.length, 0);
+    noHeldReads(owned);
+  },
+);
+
 test("build directory index refuses identity changes while listing", async () => {
   const owned = fixture();
   const metadata = owned.fileSystem.lstatSync, listing = owned.fileSystem.readdirSync;

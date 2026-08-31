@@ -43,19 +43,29 @@ function compilerInputs(root, tools, fileSystem) {
     indexedCharacters -= cached.characters;
   };
   const directoryName = (directory, stat, component) => {
-    const identity = [stat.dev, stat.ino, stat.mode, stat.nlink, stat.size, stat.mtimeMs, stat.ctimeMs];
-    const complete = identity.every((value, index) => index < 5 ? Number.isSafeInteger(value) : Number.isFinite(value));
+    let identity = [stat.dev, stat.ino, stat.mode, stat.nlink, stat.size, stat.mtimeMs, stat.ctimeMs];
     const cached = directoryIndexes.get(directory);
-    if (complete && cached && identity.every((value, index) => value === cached.identity[index])) {
+    if (cached && identity.every((value, index) => value === cached.identity[index])) {
       directoryIndexes.delete(directory);
       directoryIndexes.set(directory, cached);
       return cached.names.get(component.toLowerCase());
     }
     discardIndex(directory);
-    const entries = fileSystem.readdirSync(directory);
-    const after = fileSystem.lstatSync(directory);
-    assert.ok(after.isDirectory() && !after.isSymbolicLink(), "compiler ancestor must be a nonlink directory: " + directory);
-    sameIdentity(stat, after);
+    const outside = directory !== root && (directory === sep || below(directory, root)) && !toolRoots.some(toolRoot => below(toolRoot, directory));
+    let entries;
+    for (let attempt = 0; ; attempt += 1) {
+      entries = fileSystem.readdirSync(directory);
+      const after = fileSystem.lstatSync(directory);
+      assert.ok(after.isDirectory() && !after.isSymbolicLink(), "compiler ancestor must be a nonlink directory: " + directory);
+      if (!outside) { sameIdentity(stat, after); break; }
+      for (const key of ["dev", "ino", "mode"]) assert.equal(after[key], stat[key], "compiler input identity changed: " + key);
+      const afterIdentity = [after.dev, after.ino, after.mode, after.nlink, after.size, after.mtimeMs, after.ctimeMs];
+      if (identity.every((value, index) => value === afterIdentity[index])) break;
+      assert.ok(attempt < 2, "compiler ancestor membership remained unstable: " + directory);
+      stat = after;
+      identity = afterIdentity;
+    }
+    const complete = identity.every((value, index) => index < 5 ? Number.isSafeInteger(value) : Number.isFinite(value));
     const uncachedName = () => {
       const aliases = entries.filter(name => name.toLowerCase() === component.toLowerCase());
       return aliases.length > 1 ? null : aliases[0];

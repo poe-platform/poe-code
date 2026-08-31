@@ -41,6 +41,11 @@ export const COREUTILS_GZIP_INPUT = Object.freeze({
   format: "gzip",
 });
 
+export const GNU_BUILD_SOURCES = Object.freeze([
+  Object.freeze({ prefix: "diffutils-3.12", binary: "diff", versionLine: "diff (GNU diffutils) 3.12", sha256: "7c8b7f9fc8609141fdea9cece85249d308624391ff61dedaf528fcb337727dfd" }),
+  Object.freeze({ prefix: "patch-2.8", binary: "patch", versionLine: "GNU patch 2.8", sha256: "f87cee69eec2b4fcbf60a396b030ad6aa3415f192aa5f7ee84cad5e11f7f5ae3" }),
+]);
+
 function pin(input, maximum = MAX_DOWNLOAD) {
   assert(Number.isSafeInteger(input.size) && input.size > 0 && input.size <= maximum, "invalid bounded size pin");
   assert(typeof input.sha256 === "string" && shaPattern.test(input.sha256), "invalid SHA-256 pin");
@@ -175,6 +180,318 @@ export function extractTarMembers(bytes, members, prefix) {
   assert(terminated, "missing tar terminator");
   assert.equal(found.size, wanted.size, "missing required tar member");
   return members.map(member => found.get(member.path));
+}
+
+export function extractGnuSourceTree(bytes, prefix) {
+  assert(Buffer.isBuffer(bytes) && bytes.length >= 1024 && bytes.length <= MAX_INFLATED && bytes.length % 512 === 0, "GNU source tar size/alignment");
+  relativePath(prefix);
+  const entries = [];
+  const seen = new Map();
+  const requiredDirectories = new Set();
+  let offset = 0;
+  while (offset + 512 <= bytes.length) {
+    const header = bytes.subarray(offset, offset + 512);
+    if (header.every(value => value === 0)) {
+      assert(offset + 1024 <= bytes.length && bytes.subarray(offset).every(value => value === 0), "GNU source tar terminator/trailing data");
+      assert(entries.some(entry => entry.kind === "file"), "empty GNU source tree");
+      return entries;
+    }
+    assert.equal(octal(header.subarray(148, 156)), header.reduce((sum, value, index) => sum + (index >= 148 && index < 156 ? 32 : value), 0), "GNU source tar checksum");
+    const magic = tarText(header.subarray(257, 263)).trim();
+    const version = header.subarray(263, 265).toString("ascii");
+    assert((magic === "ustar" && ["00", " \0"].includes(version)) || (magic === "" && header.subarray(257).every(value => value === 0)), "unsupported GNU source tar format");
+    const type = header[156];
+    assert([0, 48, 53].includes(type), "GNU source links/extensions/special files forbidden");
+    const name = tarText(header.subarray(0, 100));
+    const ancestor = magic === "ustar" && version === "00" ? tarText(header.subarray(345, 500)) : "";
+    const raw = ancestor ? `${ancestor}/${name}` : name;
+    const path = relativePath(type === 53 && raw.endsWith("/") ? raw.slice(0, -1) : raw);
+    assert(path.length <= 4096 && path.split("/").length <= 64, "GNU source path bound");
+    assert(path === prefix || path.startsWith(`${prefix}/`), "GNU source outside prefix");
+    assert(path !== prefix || type === 53, "GNU source prefix must be a directory");
+    assert(!seen.has(path), "duplicate GNU source entry");
+    assert(type === 53 || !requiredDirectories.has(path), "GNU source file shadows directory");
+    for (let parent = dirname(path); parent !== "."; parent = dirname(parent)) {
+      assert(seen.get(parent) !== "file", "GNU source file ancestor");
+      requiredDirectories.add(parent);
+    }
+    const size = octal(header.subarray(124, 136));
+    const archiveMode = octal(header.subarray(100, 108));
+    assert(archiveMode <= 0o777, "GNU source privileged mode");
+    assert(size <= MAX_MEMBER, "GNU source member bound");
+    if (type === 53) assert.equal(size, 0, "GNU source directory payload");
+    const start = offset + 512;
+    const next = start + Math.ceil(size / 512) * 512;
+    assert(next <= bytes.length, "truncated GNU source member");
+    const kind = type === 53 ? "directory" : "file";
+    seen.set(path, kind);
+    assert(seen.size <= 8192, "GNU source entry-count bound");
+    entries.push({ path, kind, archiveMode, mode: type === 53 || (archiveMode & 0o111) !== 0 ? 0o700 : 0o600, bytes: Buffer.from(bytes.subarray(start, start + size)) });
+    offset = next;
+  }
+  throw new Error("missing GNU source tar terminator");
+}
+
+async function readBuildFile(fileSystem, path, uid, expected = {}, content = false, owned = false) {
+  assert(typeof path === "string" && isAbsolute(path) && resolve(path) === path && !path.includes("\0"), "canonical GNU build input path required");
+  assert.equal(await fileSystem.realpath(path), path, "aliased GNU build input");
+  await trustedAncestors(fileSystem, path, uid);
+  const before = await fileSystem.lstat(path);
+  assert(before.isFile() && !before.isSymbolicLink(), "regular GNU build input required");
+  assert(before.uid === uid || before.uid === 0, "GNU build input owner");
+  if (owned) assert(before.uid === uid && before.nlink === 1, "GNU build output must be owned and singly linked");
+  assert.equal(before.mode & 0o7022, 0, "unsafe GNU build input mode");
+  assert(Number.isSafeInteger(before.size) && (before.size > 0 || (before.size === 0 && expected.size === 0)) && before.size <= (content ? MAX_DOWNLOAD : MAX_INFLATED), "GNU build input size bound");
+  if (expected.size !== undefined) assert.equal(before.size, expected.size, "GNU build input size mismatch");
+  const identity = stat => [stat.dev, stat.ino, stat.size, stat.mode, stat.uid, stat.nlink, stat.mtimeMs, stat.ctimeMs];
+  const handle = await fileSystem.open(path, constants.O_RDONLY | constants.O_NOFOLLOW);
+  const hash = createHash("sha256");
+  const chunks = [];
+  let failed = false, failure;
+  try {
+    assert.deepEqual(identity(await handle.stat()), identity(before), "GNU build input replaced before read");
+    const buffer = Buffer.alloc(Math.min(before.size, 65536));
+    let offset = 0;
+    while (offset < before.size) {
+      const { bytesRead } = await handle.read(buffer, 0, Math.min(buffer.length, before.size - offset), offset);
+      assert(bytesRead > 0, "GNU build input truncated");
+      hash.update(buffer.subarray(0, bytesRead));
+      if (content) chunks.push(Buffer.from(buffer.subarray(0, bytesRead)));
+      offset += bytesRead;
+    }
+    assert.deepEqual(identity(await handle.stat()), identity(before), "GNU build input changed during read");
+    assert.deepEqual(identity(await fileSystem.lstat(path)), identity(before), "GNU build input replaced after read");
+    assert.equal(await fileSystem.realpath(path), path, "GNU build input aliased after read");
+  } catch (error) { failed = true; failure = error; }
+  try { await handle.close(); }
+  catch (error) { if (failed) throw new AggregateError([failure, error], "GNU input read and close failed"); throw error; }
+  if (failed) throw failure;
+  const sha256 = hash.digest("hex");
+  if (expected.sha256 !== undefined) assert.equal(sha256, expected.sha256, "GNU build input SHA-256 mismatch");
+  return { path, size: before.size, mode: before.mode & 0o7777, sha256, ...(content ? { bytes: Buffer.concat(chunks) } : {}) };
+}
+
+function superviseGnuBuild(command, args, options, dependencies, limits, state, input = Buffer.alloc(0), maxStdout = limits.outputBytes) {
+  return new Promise((accept, reject) => {
+    let child;
+    try { child = dependencies.spawn(command, args, { ...options, shell: false, detached: true, stdio: ["pipe", "pipe", "pipe"] }); }
+    catch (error) { reject(error); return; }
+    const stdout = [], stderr = [];
+    let stdoutBytes = 0, stderrBytes = 0;
+    let failed = false, failure, closed = false, settled = false, cleaning = false, deadline, poll;
+    const remember = error => { if (!failed) { failed = true; failure = error; } };
+    const alive = () => {
+      if (!Number.isSafeInteger(child.pid) || child.pid <= 0) return false;
+      try { dependencies.killGroup(child.pid, 0); return true; }
+      catch (error) { if (error.code === "ESRCH") return false; throw error; }
+    };
+    const settle = () => {
+      settled = true;
+      clearTimeout(timer); clearTimeout(poll);
+      if (failed) reject(failure);
+      else accept({ stdout: Buffer.concat(stdout, stdoutBytes), stderr: Buffer.concat(stderr, stderrBytes) });
+    };
+    const check = () => {
+      if (settled) return;
+      let present = true;
+      try { present = alive(); } catch (error) { remember(error); }
+      if (closed && !present) { settle(); return; }
+      if (Date.now() >= deadline) {
+        state.unsettled = true;
+        remember(new Error(`GNU build process group did not settle: ${command}`));
+        settle();
+      } else poll = setTimeout(check, 5);
+    };
+    const cleanup = () => {
+      if (cleaning || settled) return;
+      cleaning = true;
+      clearTimeout(timer);
+      deadline = Date.now() + limits.cleanupTimeoutMs;
+      if (Number.isSafeInteger(child.pid) && child.pid > 0) {
+        try { if (alive()) dependencies.killGroup(child.pid, "SIGKILL"); }
+        catch (error) { if (error.code !== "ESRCH") remember(error); }
+      }
+      check();
+    };
+    const fail = error => { if (!settled) { remember(error); cleanup(); } };
+    const timer = setTimeout(() => fail(new Error(`GNU build step timeout: ${command}`)), limits.stepTimeoutMs);
+    child.on("error", fail);
+    for (const stream of [child.stdin, child.stdout, child.stderr]) stream.on("error", fail);
+    child.stdout.on("data", chunk => {
+      if (failed || settled) return;
+      stdoutBytes += chunk.length;
+      if (stdoutBytes > maxStdout) fail(new Error("GNU build stdout bound"));
+      else stdout.push(Buffer.from(chunk));
+    });
+    child.stderr.on("data", chunk => {
+      if (failed || settled) return;
+      stderrBytes += chunk.length;
+      if (stderrBytes > Math.min(limits.outputBytes, 65536)) fail(new Error("GNU build stderr bound"));
+      else stderr.push(Buffer.from(chunk));
+    });
+    child.on("close", (code, signal) => {
+      if (settled) return;
+      closed = true;
+      if (code !== 0 || signal) remember(new Error(`GNU build step failed: ${command}; exit=${code}; signal=${signal}; ${Buffer.concat(stderr).subarray(0, 4096)}`));
+      try { if (alive()) remember(new Error(`GNU build descendant survived command: ${command}`)); }
+      catch (error) { remember(error); }
+      if (!cleaning) cleanup();
+    });
+    try { child.stdin.end(input); } catch (error) { fail(error); }
+  });
+}
+
+export async function provisionGnuBuild(options, dependencies = {}) {
+  assert.deepEqual(Object.keys(options).sort(), ["parent", "sourceRoot", "toolchain"], "explicit GNU build inputs only");
+  const { parent, sourceRoot } = options;
+  const toolchain = structuredClone(options.toolchain);
+  assert.deepEqual(Object.keys(toolchain).sort(), ["host", "id", "provenance", "searchPath", "tools"], "explicit reviewed toolchain binding required");
+  for (const name of ["id", "provenance"]) assert(typeof toolchain[name] === "string" && toolchain[name].trim().length > 0 && toolchain[name].length <= 4096, "toolchain provenance required");
+  const host = { ...(dependencies.host ?? { platform: process.platform, arch: process.arch, release: release(), node: process.version }) };
+  assert.equal(host.platform, "linux", "GNU source build requires Linux");
+  assert.equal(host.arch, "x64", "GNU source build requires Linux x64");
+  for (const name of ["release", "node"]) assert(typeof host[name] === "string" && host[name].length > 0, "GNU build host identity required");
+  assert.deepEqual(toolchain.host, host, "GNU build toolchain host mismatch");
+  assert(Array.isArray(toolchain.searchPath) && toolchain.searchPath.length > 0 && toolchain.searchPath.length <= 8, "bounded toolchain search path required");
+  assert.deepEqual(Object.keys(toolchain.tools).sort(), ["cc", "make", "shell", "xz"], "explicit compiler, make, shell and xz required");
+  for (const [name, tool] of Object.entries(toolchain.tools)) {
+    assert.deepEqual(Object.keys(tool).sort(), name === "shell" ? ["path", "sha256", "size"] : ["path", "sha256", "size", "version"], "unsupported tool binding fields");
+    pin(tool, MAX_INFLATED);
+    assert(typeof tool.path === "string" && [...tool.path].every(character => "/ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789_.+-".includes(character)), "tool path must be literal shell-safe characters");
+    if (name !== "shell") assert(typeof tool.version === "string" && tool.version.length > 0 && !tool.version.includes("\n"), "exact tool version line required");
+  }
+  if (dependencies.host || dependencies.sources) assert(dependencies.fileSystem && dependencies.spawn && dependencies.killGroup, "fixture host/source overrides require injected execution");
+  const sources = (dependencies.sources ?? GNU_BUILD_SOURCES).map(({ prefix, binary, versionLine, sha256 }) => ({ prefix, binary, versionLine, sha256 }));
+  assert.deepEqual(sources.map(({ prefix, binary, versionLine }) => ({ prefix, binary, versionLine })), GNU_BUILD_SOURCES.map(({ prefix, binary, versionLine }) => ({ prefix, binary, versionLine })), "GNU build release identities are fixed");
+  for (const source of sources) assert(shaPattern.test(source.sha256), "GNU source SHA-256 required");
+  const limits = { stepTimeoutMs: 240000, cleanupTimeoutMs: 5000, outputBytes: MAX_DOWNLOAD, ...dependencies.limits };
+  for (const [name, maximum] of [["stepTimeoutMs", 240000], ["cleanupTimeoutMs", 5000], ["outputBytes", MAX_DOWNLOAD]]) assert(Number.isSafeInteger(limits[name]) && limits[name] > 0 && limits[name] <= maximum, "GNU build limit out of bounds");
+  const fileSystem = dependencies.fileSystem ?? fs;
+  const uid = dependencies.uid ?? process.getuid();
+  const execution = { spawn: dependencies.spawn ?? spawn, killGroup: dependencies.killGroup ?? ((pid, signal) => process.kill(-pid, signal)) };
+  const packageRoot = fileURLToPath(new URL("../", import.meta.url));
+  assert(typeof parent === "string" && !`${resolve(parent)}/`.startsWith(packageRoot), "GNU build destination must be outside package");
+  const parentIdentity = await directory(fileSystem, parent, uid);
+  const ancestors = await trustedAncestors(fileSystem, parent, uid);
+  const sourceIdentity = await directory(fileSystem, sourceRoot, uid);
+  const sourceAncestors = await trustedAncestors(fileSystem, sourceRoot, uid);
+  const searchIdentities = new Map();
+  for (const path of toolchain.searchPath) {
+    assert(typeof path === "string" && isAbsolute(path) && resolve(path) === path && !path.includes(":") && !path.includes("\0"), "canonical tool search directory required");
+    await trustedAncestors(fileSystem, join(path, "tool"), uid);
+    assert.equal(await fileSystem.realpath(path), path, "aliased tool search directory");
+    const stat = await fileSystem.lstat(path);
+    assert.equal(stat.mode & 0o022, 0, `writable tool search directory: ${path}`);
+    searchIdentities.set(path, stat);
+  }
+  const sourceInputs = [];
+  for (const source of sources) sourceInputs.push({ ...source, ...await readBuildFile(fileSystem, join(sourceRoot, `${source.prefix}.tar.xz`), uid, source, true) });
+  const toolInputs = {};
+  for (const [name, tool] of Object.entries(toolchain.tools)) {
+    toolInputs[name] = await readBuildFile(fileSystem, tool.path, uid, tool);
+    assert.notEqual(toolInputs[name].mode & 0o111, 0, "GNU tool must be executable");
+  }
+  const root = await fileSystem.mkdtemp(join(parent, "safe-bash-gnu-build-"));
+  assert(dirname(root) === parent && root.startsWith(join(parent, "safe-bash-gnu-build-")), "GNU build root outside owned parent");
+  const rootIdentity = await fileSystem.lstat(root);
+  assert(rootIdentity.isDirectory() && !rootIdentity.isSymbolicLink() && rootIdentity.uid === uid, "unsafe GNU build root");
+  const directories = new Map([[root, rootIdentity]]);
+  const processState = { unsettled: false };
+  const commands = [];
+  async function guard() {
+    for (const [path, identity] of await trustedAncestors(fileSystem, parent, uid)) sameIdentity(identity, ancestors.get(path), path);
+    for (const [path, identity] of await trustedAncestors(fileSystem, sourceRoot, uid)) sameIdentity(identity, sourceAncestors.get(path), path);
+    sameIdentity(await directory(fileSystem, parent, uid), parentIdentity, parent);
+    sameIdentity(await directory(fileSystem, sourceRoot, uid), sourceIdentity, sourceRoot);
+    for (const path of [root, join(root, "home"), join(root, "tmp")]) if (directories.has(path)) sameIdentity(await directory(fileSystem, path, uid), directories.get(path), path);
+  }
+  async function ensureDirectory(path) {
+    if (path !== root) await ensureDirectory(dirname(path));
+    if (!directories.has(path)) {
+      await fileSystem.mkdir(path, { mode: 0o700 });
+      directories.set(path, await directory(fileSystem, path, uid));
+    }
+    sameIdentity(await directory(fileSystem, path, uid), directories.get(path), path);
+  }
+  async function verifyTools() {
+    for (const [path, identity] of searchIdentities) {
+      await trustedAncestors(fileSystem, join(path, "tool"), uid);
+      assert.equal(await fileSystem.realpath(path), path);
+      const stat = await fileSystem.lstat(path);
+      assert.equal(stat.mode & 0o022, 0, `writable tool search directory: ${path}`);
+      sameIdentity(stat, identity, path);
+    }
+    for (const [name, tool] of Object.entries(toolInputs)) assert.deepEqual(await readBuildFile(fileSystem, tool.path, uid, tool), tool, `GNU tool changed: ${name}`);
+  }
+  const environment = { PATH: toolchain.searchPath.join(":"), HOME: join(root, "home"), TMPDIR: join(root, "tmp"), LANG: "C", LC_ALL: "C", TZ: "UTC", CC: toolchain.tools.cc.path, CONFIG_SHELL: toolchain.tools.shell.path, SHELL: toolchain.tools.shell.path, MAKE: toolchain.tools.make.path, CFLAGS: "-O2 -g0", CPPFLAGS: "", LDFLAGS: "" };
+  const definition = { id: "gnu-diff-patch-linux-x64-source-v1", sources, configure: ["./configure", "--disable-nls", "--prefix=@ROOT@/unused-install-prefix"], make: ["-j2"], sourceModes: { directory: "0700", executable: "0700", regular: "0600" }, environment, limits };
+  async function run(command, args, cwd, input, maxStdout) {
+    await guard();
+    await ensureDirectory(cwd);
+    await verifyTools();
+    const result = await superviseGnuBuild(command, args, { cwd, env: { ...environment } }, execution, limits, processState, input, maxStdout);
+    await guard();
+    commands.push({ command, args: [...args], cwd, exitCode: 0, signal: null, processGroupSettled: true, stdout: { size: result.stdout.length, sha256: digest(result.stdout) }, stderr: { size: result.stderr.length, sha256: digest(result.stderr) } });
+    return result;
+  }
+  try {
+    await fileSystem.chmod(root, 0o700);
+    sameIdentity(await directory(fileSystem, root, uid), rootIdentity, root);
+    await guard();
+    await ensureDirectory(join(root, "home")); await ensureDirectory(join(root, "tmp"));
+    for (const name of ["xz", "make", "cc"]) {
+      const tool = toolchain.tools[name];
+      const result = await run(tool.path, ["--version"], root, undefined, 65536);
+      assert.equal(result.stdout.toString("utf8").split("\n")[0], tool.version, "GNU toolchain version mismatch");
+    }
+    const outputs = [];
+    for (const source of sourceInputs) {
+      const expanded = await run(toolchain.tools.xz.path, ["--decompress", "--stdout", "--memlimit-decompress=128MiB"], root, source.bytes, MAX_INFLATED);
+      assert.equal(expanded.stderr.length, 0, "GNU source decompressor stderr");
+      const entries = extractGnuSourceTree(expanded.stdout, source.prefix);
+      for (const entry of entries) {
+        await guard();
+        const target = join(root, entry.path);
+        if (entry.kind === "directory") { await ensureDirectory(target); continue; }
+        await ensureDirectory(dirname(target));
+        const handle = await fileSystem.open(target, constants.O_WRONLY | constants.O_CREAT | constants.O_EXCL | constants.O_NOFOLLOW, entry.mode);
+        let failed = false, failure;
+        try {
+          const opened = await handle.stat();
+          assert(opened.isFile() && opened.uid === uid && opened.nlink === 1, "unsafe GNU source output");
+          await handle.writeFile(entry.bytes);
+          await handle.chmod(entry.mode);
+          sameIdentity(await fileSystem.lstat(target), opened, target);
+        } catch (error) { failed = true; failure = error; }
+        try { await handle.close(); }
+        catch (error) { if (failed) throw new AggregateError([failure, error], "GNU source write and close failed"); throw error; }
+        if (failed) throw failure;
+        await readBuildFile(fileSystem, target, uid, { size: entry.bytes.length, sha256: digest(entry.bytes) }, false, true);
+      }
+      const cwd = join(root, source.prefix);
+      await run(toolchain.tools.shell.path, ["./configure", "--disable-nls", `--prefix=${join(root, "unused-install-prefix")}`], cwd);
+      await run(toolchain.tools.make.path, ["-j2"], cwd);
+      const output = await readBuildFile(fileSystem, join(cwd, "src", source.binary), uid, {}, false, true);
+      assert.notEqual(output.mode & 0o111, 0, "GNU build output must be executable");
+      const version = await run(output.path, ["--version"], cwd, undefined, 65536);
+      assert.equal(version.stdout.toString("utf8").split("\n")[0], source.versionLine, "GNU output version mismatch");
+      outputs.push({ ...output, version: version.stdout.toString("utf8").trim() });
+    }
+    await guard(); await verifyTools();
+    for (const source of sourceInputs) await readBuildFile(fileSystem, source.path, uid, source);
+    for (const output of outputs) {
+      const identity = { ...output };
+      delete identity.version;
+      assert.deepEqual(await readBuildFile(fileSystem, identity.path, uid, identity, false, true), identity, "GNU build output changed after version");
+    }
+    await guard();
+    return { schema: 1, status: "GNU_SOURCE_BUILD_COMPLETED_NOT_QUALIFIED", receiptAuthority: "trusted-caller-supervised-build; not standalone authorization", reproducibility: "NOT_ESTABLISHED", behavioralQualification: "NOT_RUN", root, host, toolchain: { ...toolchain, observedTools: toolInputs }, recipe: { definition, sha256: digest(Buffer.from(JSON.stringify(definition))) }, sources: sourceInputs.map(source => { const receiptSource = { ...source }; delete receiptSource.bytes; return receiptSource; }), commands, outputs };
+  } catch (error) {
+    if (processState.unsettled) throw new AggregateError([error], `GNU build process settlement unproved; retained ${root}; no receipt issued`);
+    try { await guard(); await fileSystem.rm(root, { recursive: true, force: false }); }
+    catch (cleanupError) { throw new AggregateError([error, cleanupError], `GNU build cleanup refused or failed for ${root}; no receipt issued`); }
+    throw error;
+  }
 }
 
 function sameIdentity(actual, expected, name) {
@@ -556,7 +873,34 @@ export function parseProvisionArguments(args) {
   return { parent, sourceMode, xz, includeLinuxRg: values.has("--include-linux-rg"), stageMetadata: values.has("--stage-metadata") };
 }
 
-export async function main(args) {
+export function parseGnuBuildArguments(args) {
+  assert.equal(args[0], "--build-gnu", "explicit --build-gnu operation required");
+  const names = ["--parent", "--sources", "--toolchain", "--toolchain-size", "--toolchain-sha256"];
+  const values = new Map();
+  for (let index = 1; index < args.length; index += 2) {
+    const flag = args[index];
+    assert(names.includes(flag) && !values.has(flag), "unknown/duplicate GNU build argument");
+    const value = args[index + 1];
+    assert(typeof value === "string" && value.length > 0 && !value.startsWith("--"), "missing GNU build argument");
+    values.set(flag, value);
+  }
+  assert.equal(values.size, names.length, "all GNU build arguments are required");
+  for (const name of ["--parent", "--sources", "--toolchain"]) {
+    const path = values.get(name);
+    assert(isAbsolute(path) && resolve(path) === path && !path.includes("\0"), "canonical absolute GNU build argument required");
+  }
+  const toolchainInput = { path: values.get("--toolchain"), size: Number(values.get("--toolchain-size")), sha256: values.get("--toolchain-sha256") };
+  pin(toolchainInput, 65536);
+  return { parent: values.get("--parent"), sourceRoot: values.get("--sources"), toolchainInput };
+}
+
+export async function main(args, dependencies = {}) {
+  if (args[0] === "--build-gnu") {
+    const { parent, sourceRoot, toolchainInput } = parseGnuBuildArguments(args);
+    const descriptor = await readBuildFile(dependencies.fileSystem ?? fs, toolchainInput.path, dependencies.uid ?? process.getuid(), toolchainInput, true);
+    const result = await provisionGnuBuild({ parent, sourceRoot, toolchain: JSON.parse(descriptor.bytes.toString("utf8")) }, dependencies);
+    return { ...result, toolchainInput };
+  }
   const options = parseProvisionArguments(args);
   const inputs = [COREUTILS_INPUT];
   if (options.includeLinuxRg) {

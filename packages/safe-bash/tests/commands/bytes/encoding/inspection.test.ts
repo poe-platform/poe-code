@@ -58,11 +58,90 @@ test("xxd: unsupported flags/output operands preserve every VFS file", async () 
 test("od: byte formats, addresses, escapes and stable little endian", async () => {
   assert.equal((await run("od", ["-An", "-tx1"], Uint8Array.of(0, 15, 255))).stdout, " 00 0f ff\n");
   assert.equal((await run("od", ["-Ad", "-tu1"], Uint8Array.of(0, 15, 255))).stdout, "0000000   0  15 255\n0000003\n");
-  assert.equal((await run("od", ["-Ax", "-b"], Uint8Array.of(0, 15, 255))).stdout, "0000000 000 017 377\n0000003\n");
+  assert.equal((await run("od", ["-Ax", "-b"], Uint8Array.of(0, 15, 255))).stdout, "000000 000 017 377\n000003\n");
   assert.equal((await run("od", ["-An", "-td1"], Uint8Array.of(0, 127, 128, 255))).stdout, "    0  127 -128   -1\n");
   assert.equal((await run("od", ["-An", "-c"], Uint8Array.of(0, 9, 10, 65, 255))).stdout, "  \\0  \\t  \\n   A 377\n");
   assert.equal((await run("od", [], Uint8Array.of(1, 2, 3))).stdout, "0000000 001001 000003\n0000003\n");
   assert.equal((await run("od", ["-An", "-tx2", "--endian=big"], Uint8Array.of(1, 2, 3))).stdout, " 0102 0300\n");
+});
+
+test("od: GNU 9.4 Linux release 33395024288 hexadecimal address regression", async () => {
+  const expected = Buffer.from([
+    "000000 0100 0302 0504 0706 0908 0b0a 0d0c 0f0e",
+    "000010 1110 1312 1514 1716 1918 1b1a 1d1c 1f1e",
+    "000020 2120 2322 2524 2726 2928 2b2a 2d2c 2f2e",
+    "000030 3130 3332 3534 3736 3938 3b3a 3d3c 3f3e",
+    "000040 4140 4342 4544 4746 4948 4b4a 4d4c 4f4e",
+    "000050 5150 5352 5554 5756 5958 5b5a 5d5c 5f5e",
+    "000060 6160 6362 6564 6766 6968 6b6a 6d6c 6f6e",
+    "000070 7170 7372 7574 7776 7978 7b7a 7d7c 7f7e",
+    "000080 8180 8382 8584 8786 8988 8b8a 8d8c 8f8e",
+    "000090 9190 9392 9594 9796 9998 9b9a 9d9c 9f9e",
+    "0000a0 a1a0 a3a2 a5a4 a7a6 a9a8 abaa adac afae",
+    "0000b0 b1b0 b3b2 b5b4 b7b6 b9b8 bbba bdbc bfbe",
+    "0000c0 c1c0 c3c2 c5c4 c7c6 c9c8 cbca cdcc cfce",
+    "0000d0 d1d0 d3d2 d5d4 d7d6 d9d8 dbda dddc dfde",
+    "0000e0 e1e0 e3e2 e5e4 e7e6 e9e8 ebea edec efee",
+    "0000f0 f1f0 f3f2 f5f4 f7f6 f9f8 fbfa fdfc fffe",
+    "000100",
+    "",
+  ].join("\n"));
+  for (const width of [1, 3, 17, 256]) {
+    const actual = await run("od", ["-Ax", "-tx2"], sliced(allBytes, width));
+    assert.equal(actual.exitCode, 0, actual.stderr);
+    assert.deepEqual(actual.bytes, expected, `input chunks of ${width} bytes`);
+  }
+});
+
+for (const [radix, zero, first, second, terminal] of [
+  ["default", "0000000", "0000017", "0000021", "0000023"],
+  ["o", "0000000", "0000017", "0000021", "0000023"],
+  ["d", "0000000", "0000015", "0000017", "0000019"],
+  ["x", "000000", "00000f", "000011", "000013"],
+  ["n", "", "", "", ""],
+] as const) test(`od: ${radix} address width, skipped rows and empty input`, async () => {
+  const args = radix === "default" ? [] : [`-A${radix}`];
+  const empty = await run("od", args);
+  assert.equal(empty.exitCode, 0, empty.stderr);
+  assert.equal(empty.stdout, zero ? `${zero}\n` : "");
+  const zeroCount = await run("od", [...args, "-N0"], { [Symbol.asyncIterator]() { throw new Error("zero count must not read"); } });
+  assert.equal(zeroCount.exitCode, 0, zeroCount.stderr);
+  assert.equal(zeroCount.stdout, empty.stdout);
+  const skipped = await run("od", [...args, "-tx1", "-j15", "-N4", "-w2"], sliced(allBytes, 3));
+  assert.equal(skipped.exitCode, 0, skipped.stderr);
+  assert.equal(skipped.stdout, `${first} 0f 10\n${second} 11 12\n${terminal ? `${terminal}\n` : ""}`);
+  const multiple = await run("od", [...args, "-to1", "-tu1", "-j15", "-N2", "-w2"], allBytes);
+  assert.equal(multiple.exitCode, 0, multiple.stderr);
+  assert.equal(multiple.stdout, `${first} 017 020\n${" ".repeat(first.length)}  15  16\n${second ? `${second}\n` : ""}`);
+});
+
+test("od: hexadecimal addresses preserve duplicate suppression and file continuity", async () => {
+  const fs = new MemoryFileSystem();
+  await fs.writeFile("/first", Uint8Array.of(1, 2, 1));
+  await fs.writeFile("/second", Uint8Array.of(2, 3, 4));
+  for (const [flags, expected] of [
+    [[], "000000 01 02\n*\n000006 03 04\n000008\n"],
+    [["-v"], "000000 01 02\n000002 01 02\n000004 01 02\n000006 03 04\n000008\n"],
+  ] as const) {
+    const actual = await run("od", ["-Ax", "-tx1", "-w2", ...flags, "first", "-", "second"], sliced(Uint8Array.of(2, 1)), { fs });
+    assert.equal(actual.exitCode, 0, actual.stderr);
+    assert.equal(actual.stdout, expected);
+  }
+});
+
+for (const [radix, skip, first, second, terminal] of [
+  ["o", 0x1fffff, "7777777", "10000000", "10000001"],
+  ["d", 9999999, "9999999", "10000000", "10000001"],
+  ["x", 0xffffff, "ffffff", "1000000", "1000001"],
+] as const) test(`od: ${radix} addresses grow beyond their minimum width`, async () => {
+  const input = { async *[Symbol.asyncIterator]() {
+    const chunk = new Uint8Array(8192);
+    for (let remaining = skip; remaining > 0; remaining -= chunk.length) yield chunk.subarray(0, Math.min(remaining, chunk.length));
+    yield Uint8Array.of(1, 2);
+  } };
+  const actual = await run("od", [`-A${radix}`, "-tx1", "-w1", `-j${skip}`, "-N2"], input);
+  assert.equal(actual.exitCode, 0, actual.stderr);
+  assert.equal(actual.stdout, `${first} 01\n${second} 02\n${terminal}\n`);
 });
 
 test("od: concatenate files, skip/count and suppress duplicates", async () => {

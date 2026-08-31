@@ -49,7 +49,12 @@ function assertSource7Discovery(files) {
     "tests/integrations/safejs/canonical-filesystem.test.ts",
     "tests/integrations/safejs/published-replay.test.ts",
   ];
-  const integrationAdditions = ["tests/fs/conformance/provenance.test.ts"];
+  const integrationAdditions = [
+    "tests/fs/conformance/provenance.test.ts",
+    "tests/contracts/value.test.ts",
+    "tests/shell/value-state.test.ts",
+    "tests/shell/byte-values.test.ts",
+  ];
   assert.equal(new Set(files).size, files.length);
   for (const path of removed) assert.ok(!files.includes(path), `source7 removed test remains selected: ${path}`);
   for (const path of added) assert.ok(files.includes(path), `source7 added test is missing: ${path}`);

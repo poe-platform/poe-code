@@ -3,8 +3,10 @@ import type { InvocationScope } from "../cleanup.js";
 import { ArrayFailure, ArrayLedger, ArrayOwner } from "./ledger.js";
 import type { Admission, Tickets } from "./ledger.js";
 import { BindingStore, textToken } from "./bindings.js";
+import { ValueArena, ValueStore } from "../value-state.js";
 
 interface Session {
+  readonly values: ValueArena;
   readonly ledger: ArrayLedger;
   readonly internal: ArrayLedger;
   readonly scope: InvocationScope;
@@ -17,16 +19,18 @@ const monitors = new WeakMap<State, StateMonitor>();
 const overlayNext = Symbol("array overlay parent");
 type OverlayMap = Map<string, { superseded?: boolean }> & { [overlayNext]?: OverlayMap };
 
-export function trackState(state: State, budget: { readonly limits: { readonly maxExpansionBytes: number; readonly maxExpansionFields: number; readonly maxCommands?: number } }, scope: InvocationScope): State {
+export function trackState(state: State, budget: { readonly values?: ValueArena; readonly limits: { readonly maxExpansionBytes: number; readonly maxExpansionFields: number; readonly maxCommands?: number } }, scope: InvocationScope): State {
   const existing = monitors.get(state);
   if (existing) return existing.proxy;
   let session = sessions.get(budget);
   if (!session) {
     while (scope.parent) scope = scope.parent;
     const ledger = new ArrayLedger(budget.limits.maxExpansionBytes, budget.limits.maxExpansionFields);
-    session = { ledger, internal: ledger.internal(budget.limits.maxCommands ?? 10_000), scope, owner: undefined, guestOwner: undefined };
+    const values = budget.values ?? new ValueArena(budget.limits.maxExpansionBytes, budget.limits.maxExpansionFields, () => scope.assertOpen());
+    session = { values, ledger, internal: ledger.internal(budget.limits.maxCommands ?? 10_000), scope, owner: undefined, guestOwner: undefined };
     const registered = session;
     scope.register(async () => { await registered.scope.drainWork(); await registered.owner?.close(); });
+    scope.register(() => values.close());
     sessions.set(budget, session);
   }
   return new StateMonitor(state, session).proxy;
@@ -49,6 +53,8 @@ export function requireArrays(state: State): BindingStore {
 
 export class StateMonitor {
   readonly proxy: State;
+  readonly values: ValueStore;
+  readonly positionals: ValueStore;
   store: BindingStore | undefined;
   epoch = 0;
   #publication = false;
@@ -59,10 +65,27 @@ export class StateMonitor {
   #restorations: Restoration | undefined;
   #overlays: OverlayMap | undefined;
 
-  constructor(readonly raw: State, readonly session: Session) {
+  constructor(readonly raw: State, readonly session: Session, source?: StateMonitor) {
+    this.values = source ? source.values.clone() : new ValueStore(session.values);
+    try { this.positionals = source ? source.positionals.clone() : new ValueStore(session.values); }
+    catch (error) { this.values.close(); throw error; }
     this.proxy = this.wrap(raw, "state") as State;
     monitors.set(raw, this);
     monitors.set(this.proxy, this);
+    session.scope.register(() => this.closeValues());
+  }
+
+  closeValues(): void { this.values.close(); this.positionals.close(); }
+
+  private changedValue(target: object, field: string, key: PropertyKey): void {
+    if (field === "state") {
+      if (key === "variables") this.values.invalidate();
+      if (key === "positional") this.positionals.invalidate();
+    } else if (field === "variables" && (this.raw.variables === target || this.raw.variables === this.#wrapped.get(target))) {
+      this.values.invalidate(String(key));
+    } else if (field === "positional" && (this.raw.positional === target || this.raw.positional === this.#wrapped.get(target))) {
+      this.positionals.invalidate();
+    }
   }
 
   internalOwner(): ArrayOwner {
@@ -229,6 +252,7 @@ export class StateMonitor {
           const name = named ? String(key) : undefined;
           const tickets = monitor.mutation(name);
           const result = Reflect.set(target, key, entry);
+          if (result) monitor.changedValue(target, field, key);
           monitor.finish(tickets, name);
           return result;
         },
@@ -236,6 +260,15 @@ export class StateMonitor {
           const name = named ? String(key) : undefined;
           const tickets = monitor.mutation(name);
           const result = Reflect.deleteProperty(target, key);
+          if (result) monitor.changedValue(target, field, key);
+          monitor.finish(tickets, name);
+          return result;
+        },
+        defineProperty(target, key, descriptor) {
+          const name = named ? String(key) : undefined;
+          const tickets = monitor.mutation(name);
+          const result = Reflect.defineProperty(target, key, descriptor);
+          if (result) monitor.changedValue(target, field, key);
           monitor.finish(tickets, name);
           return result;
         },
@@ -274,7 +307,7 @@ export class Restoration {
 export async function snapshotState(state: State, clone: () => State, signal: AbortSignal, prepare?: (destination: State, owner: ArrayOwner) => Promise<void>): Promise<State> {
   const monitor = stateMonitor(state);
   if (!monitor) return clone();
-  if (!monitor.store && !monitor.session.ledger.active) return new StateMonitor(clone(), monitor.session).proxy;
+  if (!monitor.store && !monitor.session.ledger.active) return new StateMonitor(clone(), monitor.session, monitor).proxy;
   const store = monitor.store ?? monitor.activate();
   const internal = store.owner.ledger === monitor.session.internal;
   const epoch = monitor.epoch;
@@ -312,7 +345,7 @@ export async function snapshotState(state: State, clone: () => State, signal: Ab
     }
     }
     check();
-    result = new StateMonitor(clone(), monitor.session);
+    result = new StateMonitor(clone(), monitor.session, monitor);
     const destination = result.activate(internal);
     for (const [name, entry] of store.bindings) {
       check();
@@ -327,6 +360,7 @@ export async function snapshotState(state: State, clone: () => State, signal: Ab
     if (prepare) { await prepare(result.proxy, owner); check(); }
     return result.proxy;
   } catch (error) {
+    result?.closeValues();
     if (result?.store) for (const [name] of result.store.bindings) await result.store.remove(name, { generation: 0, version: 0, epoch: 0 });
     await owner.close();
     throw error;

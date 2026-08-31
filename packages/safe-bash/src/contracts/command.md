@@ -149,3 +149,64 @@ repeated/overlapping finally and dispose, caller reason identity, early pipe clo
 nested admission after closing, and concurrent sibling/other-Shell lease isolation.
 Five custom pre-first-read requirements are separate; this hook introduces no
 beginOutput, probe reads, implicit pipe activation or budget reset.
+# Owned byte arguments
+
+`CommandContext.args` remains a readonly string vector. `CommandInvoker` keeps its
+existing command/string-argv/options signature. Optional `argumentValues` on both
+the context and invocation options carries lossless values; its `args` must be
+the exact same array object as the associated argv, not merely equal strings.
+
+`createCommandArguments(values, allocation?)` accepts `readonly ShellValue[]` from
+`contracts/value`. It snapshots and freezes its own value and text vectors.
+`getCommandArguments(context)` authenticates supplied carriers and rejects stale
+argv identity. With no carrier it snapshots the legacy string arguments. There
+is no mapping from decoded strings back to bytes: FF, FE and literal UTF-8 U+FFFD
+can have equal text projections without sharing byte identity.
+
+The carrier exposes `args`, trusted immutable `values`, `bytes(index)`,
+`slice(start?, end?)`, `select(indices)`, `concat(...others)`,
+`withValues(values)` and `join(separator?)`. Byte access returns a new owned copy;
+out-of-range access returns undefined. Selection rejects invalid indices.
+Slices and selections share immutable values, never mutable byte storage.
+`withValues` accepts shared values or Uint8Array inputs, copying raw inputs via
+the shared value primitive. It is an explicit reconstruction, not an inference
+from matching text. Replacing argv in a copied context must also replace the
+carrier and use its exact `args` vector.
+
+An optional ValueAllocation is checked before observing caller array type or
+length, then reserves the carrier/vector structure before snapshot/projection.
+The snapshot captures the vector after metadata admission; same-extent
+replacement during that reservation is permitted. Array extent changes during
+admission reject before publication. The admitted operand snapshot is complete before
+any nested byte-copy reservations; later callbacks cannot replace selected
+operands by mutating the caller's vector. This is not an atomic snapshot of
+arbitrary host getters or concurrently mutated byte storage. The exact new
+carrier is committed. Failed construction releases its newly allocated raw
+operands in reverse acquisition order and then its metadata reservation; it
+does not release borrowed shared values or retry a primitive's completed release.
+Primary and cleanup failures retain their identities, including falsey reasons.
+Join admits temporary parts storage before filling it and releases scratch on
+success or failure. A failed join also rolls back any newly created output.
+Byte copies, reconstruction and joining retain the allocation authority.
+The runtime owns underlying shared-value retention and successful reservation
+lifetimes. Moving arguments to a child owner uses
+`createCommandArguments(selected.values, childAllocation)`, without decoding or
+copying their immutable byte payloads. Existing-owner derivation is not an
+implicit lifetime transfer. Closed owners may reject subsequent allocations.
+
+Middleware which forwards the same context preserves the carrier. Plugins may
+use bytes/values and the generic reconstruction helpers, including when invoking
+another command. A plugin which reads or rebuilds only string argv intentionally
+uses the compatibility text view; it is not thereby a lossless byte consumer.
+String-only plugins and other legacy text interfaces are not universally
+qualified for binary data by this additive API.
+
+The basic command byte path preserves printf format literals, %s and %b data,
+optional -- indexing, repeated formats, missing fields, byte precision and byte
+padding. Echo joins raw operands and retains its distinct octal-escape grammar.
+Other textual printf conversions keep their existing text semantics; this is
+not an assertion of complete printf/native parity. Direct execution, env command
+operands (including split-string token generation), xargs fixed/replaced argv,
+find -exec and timeout transport explicit carriers rather than recover values
+by text equality. Existing string environment/path interfaces and xargs' strict
+UTF-8 stdin parser remain separate boundaries, not newly certified binary APIs.

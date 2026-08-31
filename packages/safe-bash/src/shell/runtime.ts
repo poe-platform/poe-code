@@ -4,6 +4,12 @@ import {
 import type {
   ByteSink, ByteSource, CommandContext, CommandInvoker, CommandRegistry, CommandResult, FileSystem, Middleware,
 } from "../contracts/index.js";
+import { concatShellValues, shellValueByteLength, shellValueBytes, shellValueFromBytes, shellValueText } from "../contracts/value.js";
+import type { ShellValue } from "../contracts/value.js";
+import { createCommandArguments, getCommandArguments } from "../contracts/command.js";
+import type { CommandArguments } from "../contracts/command.js";
+import { ValueArena } from "./value-state.js";
+import type { HeldValue, ValueScope } from "./value-state.js";
 import type { Command, HereDocument, Pipeline, Redirect, Script, Word, WordPart } from "./parser.js";
 import { HereDocumentSyntaxError, hereDocumentWords, parseShellInputUnit, parseShellUnit } from "./parser.js";
 import { ShellLimitError, ShellSyntaxError } from "./types.js";
@@ -54,7 +60,7 @@ export const defaultLimits: Required<ShellLimits> = {
 
 const shellBuiltinNames = new Set([
   ":", "true", "false", "pwd", "cd", "set", "shift", "export", "local", "unset", "read",
-  "exit", "return", "break", "continue", "command", "type", "readonly", "echo", "printf", "test", "[", ".", "source", "eval", "getopts", "let", "pushd", "dirs", "popd", "shopt",
+  "exit", "return", "break", "continue", "command", "builtin", "type", "readonly", "echo", "printf", "test", "[", ".", "source", "eval", "getopts", "let", "pushd", "dirs", "popd", "shopt",
 ]);
 
 const implementedBuiltins = new Set([...shellBuiltinNames].filter(name => !["echo", "printf", "test", "["].includes(name)));
@@ -79,6 +85,7 @@ export function resolveLimits(...limits: (ShellLimits | undefined)[]): Required<
 const budgetedSinks = new WeakMap<ByteSink, { budget: Budget; write: ByteSink["write"] }>();
 
 export class Budget {
+  readonly values: ValueArena;
   commands = 0;
   iterations = 0;
   bytes = 0;
@@ -88,6 +95,7 @@ export class Budget {
 
   constructor(readonly limits: Required<ShellLimits>, signal?: AbortSignal) {
     this.signal = signal ? AbortSignal.any([signal, this.controller.signal]) : this.controller.signal;
+    this.values = new ValueArena(limits.maxExpansionBytes, limits.maxExpansionFields, () => this.signal.throwIfAborted(), limit => this.fail(limit));
   }
 
   fail(limit: keyof ShellLimits): never {
@@ -156,9 +164,24 @@ export async function interruptible<Value>(promise: Promise<Value>, signal: Abor
 export class Capture implements ByteSink {
   readonly chunks: Uint8Array[] = [];
   length = 0;
+  #tail: Uint8Array | undefined;
+  #tailLength = 0;
 
   async write(chunk: Uint8Array): Promise<void> {
-    this.chunks.push(new Uint8Array(chunk));
+    if (!chunk.byteLength) return;
+    let offset = 0;
+    while (offset < chunk.byteLength) {
+      if (!this.#tail || this.#tailLength === this.#tail.byteLength) {
+        this.#tail = new Uint8Array(Math.max(4096, Math.min(64 * 1024, chunk.byteLength - offset)));
+        this.#tailLength = 0;
+        this.chunks.push(this.#tail.subarray(0, 0));
+      }
+      const size = Math.min(chunk.byteLength - offset, this.#tail.byteLength - this.#tailLength);
+      this.#tail.set(chunk.subarray(offset, offset + size), this.#tailLength);
+      this.#tailLength += size;
+      offset += size;
+      this.chunks[this.chunks.length - 1] = this.#tail.subarray(0, this.#tailLength);
+    }
     this.length += chunk.byteLength;
   }
 
@@ -180,6 +203,7 @@ interface GetoptsBinding {
 
 interface SavedVariable {
   value: string | undefined;
+  heldValue?: HeldValue;
   exported: boolean;
   readOnly?: boolean;
   getopts?: GetoptsBinding;
@@ -197,6 +221,8 @@ interface TypedSavedVariable {
 }
 
 const typedSavedVariables = new WeakMap<SavedVariable, TypedSavedVariable>();
+const valueScope = Symbol("shell value allocation scope");
+const invokedValues = new WeakMap<WordPart, ShellValue>();
 
 export interface State {
   cwd: string;
@@ -224,11 +250,12 @@ export interface State {
   errexit?: boolean;
   nounset?: boolean;
   isolated?: boolean;
-  redirectAssignments?: ReadonlyMap<string, string>;
+  redirectAssignments?: ReadonlyMap<string, ShellValue>;
 }
 
 interface IO {
   readonly [invocationScope]: InvocationScope;
+  readonly [valueScope]?: ValueScope;
   readonly execution?: { readonly ignoreErrexit: boolean };
   readonly stdin: ByteSource;
   readonly stdinIsDefault?: boolean;
@@ -328,7 +355,7 @@ function signalSink(sink: ByteSink, signal: AbortSignal): ByteSink {
 }
 
 async function cloneState(state: State, signal: AbortSignal): Promise<State> {
-  return snapshotState(state, () => ({
+  const destination = await snapshotState(state, () => ({
     ...state,
     variables: Object.assign(Object.create(null) as Record<string, string>, state.variables),
     exported: new Set(state.exported), functions: new Map(state.functions), positional: [...state.positional],
@@ -362,6 +389,12 @@ async function cloneState(state: State, signal: AbortSignal): Promise<State> {
       }
     }
   });
+  try {
+    for (const frame of destination.locals) for (const saved of frame.values()) {
+      if (saved.heldValue) saved.heldValue = stateMonitor(destination)!.values.scope.hold(saved.heldValue.value);
+    }
+    return destination;
+  } catch (error) { stateMonitor(destination)?.closeValues(); throw error; }
 }
 
 function cloneGetoptsBinding(state: State): GetoptsBinding {
@@ -369,10 +402,29 @@ function cloneGetoptsBinding(state: State): GetoptsBinding {
 }
 
 function saveVariable(state: State, name: string): SavedVariable {
-  return { value: state.variables[name], exported: state.exported.has(name), readOnly: state.readonlyVariables?.has(name) ?? false, ...(name === "OPTIND" ? { getopts: cloneGetoptsBinding(state) } : {}) };
+  const monitor = stateMonitor(state);
+  const value = monitor?.values.get(name, state.variables[name] ?? "");
+  const heldValue = value !== undefined && typeof value !== "string" ? monitor!.values.scope.hold(value) : undefined;
+  return { value: state.variables[name], ...(heldValue ? { heldValue } : {}), exported: state.exported.has(name), readOnly: state.readonlyVariables?.has(name) ?? false, ...(name === "OPTIND" ? { getopts: cloneGetoptsBinding(state) } : {}) };
+}
+
+function publishVariable(state: State, name: string, value: ShellValue): void {
+  const text = shellValueText(value);
+  const store = stateMonitor(state)?.values;
+  if (store) store.publish(name, value, () => { state.variables[name] = text; return true; });
+  else state.variables[name] = text;
 }
 
 async function restoreVariable(state: State, name: string, saved: SavedVariable): Promise<void> {
+  try {
+  const restoreScalar = (): void => {
+    const store = stateMonitor(state)?.values;
+    if (saved.value === undefined) delete state.variables[name];
+    else if (saved.heldValue && store) {
+      store.restoreHeld(name, saved.heldValue, () => { state.variables[name] = saved.value!; });
+      delete saved.heldValue;
+    } else publishVariable(state, name, saved.value);
+  };
   const typed = typedSavedVariables.get(saved);
   if (typed) {
     typedSavedVariables.delete(saved);
@@ -384,8 +436,7 @@ async function restoreVariable(state: State, name: string, saved: SavedVariable)
         released = store.publish(name, typed.binding, typed.tickets, typed.prepared, true);
       } else {
         released = store.remove(name, typed.tickets);
-        if (saved.value === undefined) delete state.variables[name];
-        else state.variables[name] = saved.value;
+        restoreScalar();
       }
       if (saved.exported) state.exported.add(name);
       else state.exported.delete(name);
@@ -400,8 +451,7 @@ async function restoreVariable(state: State, name: string, saved: SavedVariable)
     await typed.owner.close();
     return;
   }
-  if (saved.value === undefined) delete state.variables[name];
-  else state.variables[name] = saved.value;
+  restoreScalar();
   if (saved.exported) state.exported.add(name);
   else state.exported.delete(name);
   if (name === "OPTIND" && saved.getopts) {
@@ -409,6 +459,7 @@ async function restoreVariable(state: State, name: string, saved: SavedVariable)
     if (!saved.readOnly) state.readonlyVariables?.delete(name);
     else { state.readonlyVariables ??= new Set(); state.readonlyVariables.add(name); }
   }
+  } finally { saved.heldValue?.release(); delete saved.heldValue; }
 }
 
 function localDeclarationOptions(args: readonly string[], signal: AbortSignal): { readonly indexed: boolean; readonly offset: number; readonly error: string | undefined } {
@@ -1199,14 +1250,14 @@ export class Runtime {
     return writeText(io.stderr, `${io.scriptName ?? "shell"}: line ${io.diagnosticLine ?? 1}: ${text}\n`);
   }
 
-  writeVariable(state: State, name: string, value: string, origin: "assignment" | "arithmetic" | "getopts" = "assignment"): void {
+  writeVariable(state: State, name: string, value: ShellValue, origin: "assignment" | "arithmetic" | "getopts" = "assignment"): void {
     if (arrayStore(state)?.get(name)) throw new ArrayFailure(origin === "arithmetic" ? "indexed arithmetic is unsupported" : "indexed write requires prepared publication");
     if (state.readonlyVariables?.has(name)) throw new Error(`${name}: readonly variable`);
     if (name === "OPTIND" && state.getopts?.integer && origin !== "arithmetic") {
-      try { value = String(evaluateArithmetic(prepareArithmetic(value || "0"), this.arithmeticVariables(state))); }
+      try { value = String(evaluateArithmetic(prepareArithmetic(shellValueText(value) || "0"), this.arithmeticVariables(state))); }
       catch (error) { this.rethrowArithmeticControl(error); throw new ExpansionFailure(message(error)); }
     }
-    state.variables[name] = value;
+    publishVariable(state, name, value);
     if (name === "OPTIND" && origin !== "getopts") this.syncGetopts(state);
   }
 
@@ -1257,9 +1308,9 @@ export class Runtime {
     if (state.nounset && value === undefined) throw new NounsetFailure(`${name}: unbound variable`, io.diagnosticLine ?? line);
   }
 
-  async assignVariable(state: State, name: string, value: string, origin: "assignment" | "getopts" = "assignment"): Promise<void> {
+  async assignVariable(state: State, name: string, value: ShellValue, origin: "assignment" | "getopts" = "assignment"): Promise<void> {
     if (!arrayStore(state)?.get(name)) { this.writeVariable(state, name, value, origin); return; }
-    await this.arrayZero(state, name, async () => value);
+    await this.arrayZero(state, name, async () => shellValueText(value));
   }
 
   async prepareVariable(state: State, name: string, saved: SavedVariable, scalarLegacy = false): Promise<void> {
@@ -1311,6 +1362,8 @@ export class Runtime {
   }
 
   async discardVariable(saved: SavedVariable): Promise<void> {
+    saved.heldValue?.release();
+    delete saved.heldValue;
     const typed = typedSavedVariables.get(saved);
     if (!typed) return;
     typedSavedVariables.delete(saved);
@@ -1633,7 +1686,7 @@ export class Runtime {
                 ...(incoming ? { stdinIsDefault: false } : {}),
                 stdout: pipeOutput ? this.budget.sink(pipeOutput, signal) : signalSink(io.stdout, signal),
                 stderr: signalSink(io.stderr, signal),
-              }), signal);
+              }).finally(() => stateMonitor(child)?.closeValues()), signal);
             } catch (error) {
               if (!(error instanceof PipelineClosed)) throw error;
               exitCode = 141;
@@ -1737,6 +1790,8 @@ export class Runtime {
     this.signal.throwIfAborted();
     const inputs = new Set<ShellInput>();
     const outputs = new Set<() => void>();
+    const allocation = this.budget.values.scope();
+    originalIO = { ...originalIO, [valueScope]: allocation };
     let io = originalIO;
     let diagnosticFailure: NounsetDiagnosticFailure | undefined;
     try {
@@ -1804,7 +1859,8 @@ export class Runtime {
         const child = await cloneState(state, this.signal);
         child.isolated = true;
         child.loopDepth = 0;
-        return await this.run(command.body, child, io);
+        try { return await this.run(command.body, child, io); }
+        finally { stateMonitor(child)?.closeValues(); }
       }
       if (command.kind === "group") return await this.script(command.body, state, io);
       if (command.kind === "if") {
@@ -1838,7 +1894,7 @@ export class Runtime {
       state.loopDepth++;
       try {
         if (command.kind === "for") {
-          const values = command.words ? await this.words(command.words, state, io) : state.positional;
+          const values = command.words ? await this.valueWords(command.words, state, io) : this.positionalValues(state);
           for (const value of values) {
             this.budget.loop();
             await this.assignVariable(state, command.name, value);
@@ -1908,7 +1964,7 @@ export class Runtime {
         const failures = results.filter(result => result.status === "rejected").map(result => result.reason);
         if (diagnosticFailure) io[invocationScope].failures.push(...failures);
         else throwCleanupFailures(failures);
-      });
+      }).finally(() => allocation.close());
     }
   }
 
@@ -2118,7 +2174,8 @@ export class Runtime {
       declarationIndex++;
       if (commandWords[declarationIndex]?.plain === "--") declarationIndex++;
     }
-    const words = await this.words(commandWords, state, originalIO, ["export", "local", "readonly"].includes(commandWords[declarationIndex]?.plain ?? ""));
+    const wordValues = await this.valueWords(commandWords, state, originalIO, ["export", "local", "readonly"].includes(commandWords[declarationIndex]?.plain ?? ""));
+    const words = wordValues.map(shellValueText);
     const special = state.profile === "sh" && specialBuiltinNames.has(words[0] ?? "");
     const inlineInput = command.redirects.some((redirect) => redirect.document || redirect.operator === "<<<");
     const functionCommand = words.length > 0 && state.functions.has(words[0]!);
@@ -2140,8 +2197,8 @@ export class Runtime {
           }, assignment.append);
           continue;
         }
-        let value = (await this.word(assignment.value, state, io, false)).join("");
-        if (assignment.append) value = (state.variables[assignment.name] ?? "") + value;
+        let value = concatShellValues(await this.valueWord(assignment.value, state, io, false), io[valueScope]);
+        if (assignment.append) value = concatShellValues([stateMonitor(state)?.values.get(assignment.name, state.variables[assignment.name] ?? "") ?? state.variables[assignment.name] ?? "", value], io[valueScope]);
         if (state.readonlyVariables?.has(assignment.name)) {
           await this.diagnostic(io, `${assignment.name}: readonly variable`);
           if (state.profile === "sh" || !words.length) throw new Flow("exit", state.profile === "sh" && (special || !words.length) ? 127 : 1);
@@ -2162,11 +2219,11 @@ export class Runtime {
       if (inlineInput && functionCommand && previous.size) {
         const redirectState = await cloneState(state, this.signal);
         const variables = redirectState.variables;
-        const redirectAssignments = new Map<string, string>();
+        const redirectAssignments = new Map<string, ShellValue>();
         for (const [name, saved] of previous) {
-          redirectAssignments.set(name, state.variables[name]!);
+          redirectAssignments.set(name, stateMonitor(state)!.values.get(name, state.variables[name]!));
           if (saved.value === undefined) delete variables[name];
-          else variables[name] = saved.value;
+          else publishVariable(redirectState, name, saved.heldValue?.value ?? saved.value);
         }
         redirectState.redirectAssignments = redirectAssignments;
         const savedIndex = previous.get("OPTIND");
@@ -2198,15 +2255,20 @@ export class Runtime {
           }
           state.substitutionStatus = redirectState.substitutionStatus;
           for (const [name, value] of Object.entries(variables)) {
-            if (!previous.has(name)) state.variables[name] = value;
+            if (!previous.has(name)) publishVariable(state, name, stateMonitor(redirectState)!.values.get(name, value));
           }
           for (const [name, saved] of previous) {
             saved.value = variables[name];
+            const value = stateMonitor(redirectState)!.values.get(name, saved.value ?? "");
+            const held = typeof value === "string" ? undefined : stateMonitor(state)!.values.scope.hold(value);
+            saved.heldValue?.release();
+            if (held) saved.heldValue = held;
+            else delete saved.heldValue;
             if (name === "OPTIND") saved.getopts = cloneGetoptsBinding(redirectState);
           }
           if (!previous.has("OPTIND")) state.getopts = cloneGetoptsBinding(redirectState);
           }
-          } finally { try { await copyOwner?.close(); } finally { holding?.release(); } }
+          } finally { try { await copyOwner?.close(); } finally { holding?.release(); stateMonitor(redirectState)?.closeValues(); } }
         }
       } else io = await this.redirect(command.redirects, state, io, inputs, outputs, isolatedInlineInput, !words.length || shellBuiltinNames.has(words[0]!) || functionCommand, fileShortcut, command.line ?? 1);
       if (!inlineInput) await assign();
@@ -2216,7 +2278,7 @@ export class Runtime {
         await pipeBytes(input, io.stdout, this.signal);
         return 0;
       }
-      return words.length ? await this.dispatch(words[0]!, words.slice(1), state, io, previous) : state.substitutionStatus;
+      return words.length ? await this.dispatch(words[0]!, words.slice(1), state, io, previous, false, wordValues.slice(1)) : state.substitutionStatus;
     } catch (error) {
       if (error instanceof Flow) throw error;
       this.signal.throwIfAborted();
@@ -2233,11 +2295,12 @@ export class Runtime {
           else await restoreVariable(state, key, saved);
         });
         await originalIO[invocationScope].cleanup(() => stateMonitor(state)?.closeOverlay(previous));
-      }
+      } else for (const saved of previous.values()) saved.heldValue?.release();
+      if (isolatedInlineInput) stateMonitor(state)?.closeValues();
     }
   }
 
-  async dispatch(name: string, args: readonly string[], state: State, io: IO, assignments: Map<string, SavedVariable>, bypassFunctions = false): Promise<number> {
+  async dispatch(name: string, args: readonly string[], state: State, io: IO, assignments: Map<string, SavedVariable>, bypassFunctions = false, values: readonly ShellValue[] = args): Promise<number> {
     const scope = io[invocationScope].child();
     const runtime = new Runtime(
       this.fs, this.commands, this.middleware, this.budget,
@@ -2245,12 +2308,15 @@ export class Runtime {
       this.cancellation, this.cancellationState, this.cancellationOwner,
       this.cancellationDepth, this.cancellationMaxDepth, this.outcomeFrame,
     );
-    try { return await runtime.dispatchScoped(name, args, state, { ...io, [invocationScope]: scope }, assignments, bypassFunctions); }
+    try { return await runtime.dispatchScoped(name, values, state, { ...io, [invocationScope]: scope }, assignments, bypassFunctions); }
     finally { await scope.close(); }
   }
 
-  private async dispatchScoped(name: string, args: readonly string[], state: State, io: IO, assignments: Map<string, SavedVariable>, bypassFunctions: boolean): Promise<number> {
+  private async dispatchScoped(name: string, values: readonly ShellValue[], state: State, io: IO, assignments: Map<string, SavedVariable>, bypassFunctions: boolean): Promise<number> {
     const { [invocationScope]: scope, ...publicIO } = io;
+    const allocation = this.budget.values.scope();
+    scope.register(() => allocation.close());
+    const argumentValues = this.admitArguments(values, allocation);
     let builtinFailure: { error: unknown; diagnostic: string } | undefined;
     const env = Object.create(null) as Record<string, string>;
     for (const key of state.exported) {
@@ -2260,7 +2326,7 @@ export class Runtime {
     const initialEnv = { ...env };
     const runtimeFrame: RuntimeOutcomeFrame = {};
     const context: ShellCommandContext = {
-      ...publicIO, command: name, args, env, cwd: state.cwd, fs: this.fs, signal: this.commandSignal,
+      ...publicIO, command: name, args: argumentValues.args, argumentValues, env, cwd: state.cwd, fs: this.fs, signal: this.commandSignal,
       registerCleanup: (cleanup) => scope.register(cleanup),
       invoke: (name, args, options) => {
         const invocation = this.invoke(name, args, options, context, state, scope);
@@ -2278,8 +2344,10 @@ export class Runtime {
       return this.observeRuntimeReturn(raw, runtimeFrame, () => downstream);
     });
     const execute = composeMiddleware(middleware, (forwarded) => scope.run(async () => {
-      const context = { ...forwarded, [invocationScope]: scope };
       scope.assertOpen();
+      const forwardedValues = getCommandArguments(forwarded);
+      const admitted = forwardedValues === argumentValues ? argumentValues : this.admitArguments(forwardedValues.values, allocation);
+      const context = { ...forwarded, args: admitted.args, argumentValues: admitted, [invocationScope]: scope };
       const previous = new Map<string, SavedVariable & { overlay: string | undefined }>();
       const cwd = state.cwd;
       const directoryStackCwdPublication = state.directoryStackCwdPublication;
@@ -2351,6 +2419,7 @@ export class Runtime {
         if (body) {
           if (state.depth >= this.budget.limits.maxSubstitutionDepth) this.budget.fail("maxSubstitutionDepth");
           const positional = state.positional;
+          const savedPositionals = stateMonitor(state)!.positionals.clone();
           const positionalSetVersion = state.positionalSetVersion ?? 0;
           const frameOwner = guestArrays(state)?.owner;
           frameOwner?.reserve({ metadata: 256 + context.args.length * 32, allocatedSlots: context.args.length + 1, work: context.args.length + 16 });
@@ -2366,7 +2435,7 @@ export class Runtime {
             const preparedLocals = frameOwner ? monitor!.prepareCollection(locals, "locals") : locals;
             const preparedArguments = frameOwner ? monitor!.prepareCollection(argumentsCopy, "positional") : argumentsCopy;
             const entry = () => {
-              state.positional = preparedArguments;
+              this.replacePositionals(state, context.argumentValues.values, () => { state.positional = preparedArguments; });
               state.functionDepth++;
               state.depth++;
               stack.push(preparedLocals);
@@ -2376,14 +2445,15 @@ export class Runtime {
               monitor!.publish(tickets, undefined, entry);
               tickets.release();
             } else entry();
-          } catch (error) { getoptsRestoration?.close(); functionRestoration?.close(); throw error; }
+          } catch (error) { savedPositionals.close(); getoptsRestoration?.close(); functionRestoration?.close(); throw error; }
           try { return { exitCode: await this.command(body, state, { ...io, ...context, scriptName: body.sourceName ?? io.scriptName ?? "shell" }) }; }
           catch (error) {
             if (error instanceof Flow && error.kind === "return") return { exitCode: error.status };
             throw error;
           } finally {
             const restoreControls = () => {
-              state.positional = positional;
+              stateMonitor(state)!.positionals.restore(savedPositionals, () => { state.positional = positional; });
+              savedPositionals.close();
               state.positionalSetVersion = positionalSetVersion;
               state.functionDepth--;
               state.depth--;
@@ -2411,7 +2481,7 @@ export class Runtime {
           }
         }
         if (selected?.kind === "builtin") {
-          if (context.command === "command" || context.command === "type") return { exitCode: await this.discoveryBuiltin(context, state, io, assignments) };
+          if (context.command === "command" || context.command === "builtin" || context.command === "type") return { exitCode: await this.discoveryBuiltin(context, state, io, assignments) };
           const special = state.profile === "sh" && !bypassFunctions && specialBuiltinNames.has(context.command);
           if (special) assignments.clear();
           if (context.command === "." || context.command === "source") return { exitCode: await this.sourceBuiltin(context, state, { ...io, ...context }, special) };
@@ -2481,14 +2551,16 @@ export class Runtime {
   async discoveryBuiltin(context: CommandContext, state: State, io: IO, assignments: Map<string, SavedVariable>): Promise<number> {
     const args = [...context.args];
     const command = context.command === "command";
+    const builtin = context.command === "builtin";
     let mode: "describe" | "name" | "kind" | "path" = "describe";
-    let discover = !command;
+    let discover = !command && !builtin;
     let all = false;
     let skipFunctions = false;
     let forcePath = false;
     while (args[0]?.startsWith("-") && args[0] !== "-") {
       const option = args.shift()!;
       if (option === "--") break;
+      if (builtin) { await this.diagnostic({ ...io, ...context }, `builtin: ${option}: invalid option`); return 2; }
       for (const flag of option.slice(1)) {
         if (command && (flag === "v" || flag === "V")) { discover = true; mode = flag === "v" ? "name" : "describe"; }
         else if (!command && flag === "a") all = true;
@@ -2507,12 +2579,16 @@ export class Runtime {
     if (!discover) {
       const target = args.shift();
       if (target === undefined) return 0;
+      if (builtin && !shellBuiltinNames.has(target)) {
+        await this.diagnostic({ ...io, ...context }, `builtin: ${target}: not a shell builtin`);
+        return 1;
+      }
       this.budget.tick();
       if (state.depth >= this.budget.limits.maxSubstitutionDepth) this.budget.fail("maxSubstitutionDepth");
       const restoration = stateMonitor(state)?.restoration(true);
       try { state.depth++; }
       catch (error) { restoration?.close(); throw error; }
-      try { return await this.dispatch(target, args, state, { ...io, ...context }, assignments, true); }
+      try { return await this.dispatch(target, args, state, { ...io, ...context }, assignments, true, getCommandArguments(context).values.slice(context.args.length - args.length)); }
       finally {
         const restore = () => { state.depth--; };
         if (restoration) restoration.apply(restore);
@@ -3118,6 +3194,9 @@ export class Runtime {
 
   private async invokeScoped(name: string, args: readonly string[], options: ShellInvokeOptions, context: ShellCommandContext, state: State, scope: InvocationScope): Promise<{ exitCode: number }> {
     this.signal.throwIfAborted();
+    const allocation = this.budget.values.scope();
+    scope.register(() => allocation.close());
+    const carrier = this.admitArguments(getCommandArguments({ args, ...(options.argumentValues ? { argumentValues: options.argumentValues } : {}) }).values, allocation);
     const child = await cloneState(state, this.signal);
     child.cwd = resolvePath(context.cwd, options.cwd ?? ".");
     const env = options.replaceEnv ? { ...options.env } : { ...context.env, ...options.env, PWD: child.cwd };
@@ -3148,10 +3227,14 @@ export class Runtime {
     };
     const command: Command = {
       kind: "simple", redirects: [],
-      words: [name, ...args].map((value) => ({ offset: 0, parts: [{ kind: "text", value, quoted: true }] })),
+      words: [name, ...carrier.values].map((value) => {
+        const part: WordPart = { kind: "text", value: shellValueText(value), quoted: true };
+        if (typeof value !== "string") invokedValues.set(part, value);
+        return { offset: 0, parts: [part] };
+      }),
     };
     try { return { exitCode: await this.runCommandIsolated(command, child, io) }; }
-    finally { await input?.close(); }
+    finally { stateMonitor(child)?.closeValues(); await input?.close(); }
   }
 
   private async setOptions(context: CommandContext & IO, state: State): Promise<number> {
@@ -3194,7 +3277,7 @@ export class Runtime {
       }
       index++;
     }
-    if (positionals) { state.positional = args.slice(index); state.positionalSetVersion = (state.positionalSetVersion ?? 0) + 1; }
+    if (positionals) { this.replacePositionals(state, getCommandArguments(context).values.slice(index)); state.positionalSetVersion = (state.positionalSetVersion ?? 0) + 1; }
     return 0;
   }
 
@@ -3576,7 +3659,7 @@ export class Runtime {
         positionals = true;
         break;
       }
-      if (positionals) { state.positional = args.slice(index); state.positionalSetVersion = (state.positionalSetVersion ?? 0) + 1; }
+      if (positionals) { this.replacePositionals(state, getCommandArguments(context).values.slice(index)); state.positionalSetVersion = (state.positionalSetVersion ?? 0) + 1; }
       if (args.length) return 0;
       await writeText(stderr, "set: supported forms are +/- e/u clusters, -- arguments and terminal o with pipefail, errexit or nounset\n");
       return 2;
@@ -3584,7 +3667,7 @@ export class Runtime {
     if (command === "shift") {
       const count = args[0] === undefined ? 1 : Number(args[0]);
       if (args.length > 1 || !Number.isSafeInteger(count) || count < 0 || count > state.positional.length) return 1;
-      state.positional = state.positional.slice(count);
+      this.replacePositionals(state, this.positionalValues(state).slice(count));
       return 0;
     }
     if (command === "export" || command === "local" || command === "readonly") {
@@ -3619,7 +3702,10 @@ export class Runtime {
         const prefix = state.profile === "sh" ? command : command === "readonly" ? "declare -r" : "declare -x";
         for (const name of [...names].sort()) await writeText(stdout, `${prefix} ${name}=${JSON.stringify(state.variables[name] ?? "")}\n`);
       }
-      for (const arg of declarationArgs) {
+      const declarationValues = getCommandArguments(context).values;
+      const declarationOffset = args.length - declarationArgs.length;
+      for (let declarationIndex = 0; declarationIndex < declarationArgs.length; declarationIndex++) {
+        const arg = declarationArgs[declarationIndex]!;
         const match = /^([a-zA-Z_][a-zA-Z_0-9]*)(?:=(.*))?$/su.exec(arg);
         if (!match) { await this.diagnostic(context, `${command}: \`${arg}': not a valid identifier`); status = 1; continue; }
         const name = match[1]!;
@@ -3766,10 +3852,16 @@ export class Runtime {
           assignments.delete(name);
           continue;
         }
-        if (match[2] !== undefined) this.writeVariable(state, name, match[2]);
+        if (match[2] !== undefined) {
+          const original = declarationValues[declarationOffset + declarationIndex]!;
+          const value = typeof original === "string" ? match[2] : shellValueFromBytes(shellValueBytes(original, context[valueScope]).subarray(name.length + 1), context[valueScope]);
+          this.writeVariable(state, name, value);
+        }
         else if (command === "local" && name === "OPTIND") this.syncGetopts(state);
         if (command === "export") state.exported.add(name);
         if (command === "readonly") { state.readonlyVariables ??= new Set(); state.readonlyVariables.add(name); }
+        const previous = assignments.get(name);
+        if (previous && locals?.get(name) !== previous) previous.heldValue?.release();
         assignments.delete(name);
       }
       return status;
@@ -3898,15 +3990,23 @@ export class Runtime {
   }
 
   async words(words: readonly Word[], state: State, io: IO, declaration = false): Promise<string[]> {
-    const fields: string[] = [];
+    return (await this.valueWords(words, state, io, declaration)).map(shellValueText);
+  }
+
+  private async valueWords(words: readonly Word[], state: State, io: IO, declaration = false): Promise<ShellValue[]> {
+    const fields: ShellValue[] = [];
     for (const word of words) {
-      fields.push(...await this.word(word, state, io, !(declaration && this.assignment(word))));
+      fields.push(...await this.valueWord(word, state, io, !(declaration && this.assignment(word))));
       if (fields.length > this.budget.limits.maxExpansionFields) this.budget.fail("maxExpansionFields");
     }
     return fields;
   }
 
   async part(part: Exclude<WordPart, { kind: "text" }>, state: State, io: IO, hereString = false): Promise<string> {
+    return shellValueText(await this.valuePart(part, state, io, hereString));
+  }
+
+  private async valuePart(part: Exclude<WordPart, { kind: "text" }>, state: State, io: IO, hereString = false): Promise<ShellValue> {
     const binding = part.kind === "variable" ? arrayStore(state)?.get(part.name) : undefined;
     const holding = binding ? requireArrays(state).owner.hold() : undefined;
     const selector = getArraySelector(part);
@@ -3915,12 +4015,12 @@ export class Runtime {
     token?.retain();
     try {
       const value = await this.partValue(part, state, io, hereString);
-      if (binding) await textToken(requireArrays(state).owner, value, this.signal);
+      if (binding) await textToken(requireArrays(state).owner, shellValueText(value), this.signal);
       return value;
     } finally { token?.release(); holding?.release(); }
   }
 
-  private async partValue(part: Exclude<WordPart, { kind: "text" }>, state: State, io: IO, hereString: boolean): Promise<string> {
+  private async partValue(part: Exclude<WordPart, { kind: "text" }>, state: State, io: IO, hereString: boolean): Promise<ShellValue> {
     if (part.kind === "failed-substitution") {
       if (state.depth >= this.budget.limits.maxSubstitutionDepth) this.budget.fail("maxSubstitutionDepth");
       await writeText(io.stderr, part.diagnostic);
@@ -3960,11 +4060,20 @@ export class Runtime {
       for (const [command, line] of part.script.printedLines ?? []) substitutionDiagnosticLines.set(command,
         part.sourceLine === undefined ? warningLine + (command.line ?? part.line) - part.line : warningLine + line - 1);
       const captureIO = { ...isolateIO(io), substitutionDiagnosticLines, diagnosticOffset: (io.diagnosticLine ?? part.line) - (part.sourceLine ?? part.line), stdout: this.budget.sink(capture, this.signal) };
-      state.substitutionStatus = fileShortcut ? await this.runCommandIsolated(command, child, captureIO, true) : await this.run(part.script, child, captureIO);
+      try { state.substitutionStatus = fileShortcut ? await this.runCommandIsolated(command, child, captureIO, true) : await this.run(part.script, child, captureIO); }
+      finally { stateMonitor(child)?.closeValues(); }
       state.status = state.substitutionStatus;
       const bytes = capture.bytes();
       if (bytes.includes(0)) await writeText(io.stderr, `${io.scriptName ?? "shell"}: line ${warningLine}: warning: command substitution: ignored null byte in input\n`);
-      return new TextDecoder().decode(bytes.includes(0) ? bytes.filter((byte) => byte !== 0) : bytes).replace(/\n+$/u, "");
+      let length = 0;
+      for (const byte of bytes) if (byte !== 0) bytes[length++] = byte;
+      while (length && bytes[length - 1] === 10) length--;
+      const sanitized = bytes.subarray(0, length);
+      try { return new TextDecoder("utf-8", { fatal: true, ignoreBOM: true }).decode(sanitized); }
+      catch (error) {
+        if (!(error instanceof TypeError) || (error as NodeJS.ErrnoException).code !== "ERR_ENCODING_INVALID_ENCODED_DATA") throw error;
+        return shellValueFromBytes(sanitized, io[valueScope]);
+      }
     }
     const selector = getArraySelector(part);
     if (selector) {
@@ -3988,6 +4097,16 @@ export class Runtime {
       : /^0+$/u.test(part.name) ? state.arg0 ?? "virtual-bash"
       : /^\d+$/u.test(part.name) ? state.positional[Number(part.name) - 1]
       : this.variable(state, part.name);
+    let retained: ShellValue | undefined = value;
+    if (!part.length && value !== undefined) {
+      if (/^[a-zA-Z_][a-zA-Z_0-9]*$/u.test(part.name) && !arrayStore(state)?.get(part.name)) retained = stateMonitor(state)?.values.get(part.name, value) ?? value;
+      else if (/^[1-9][0-9]*$/u.test(part.name)) retained = stateMonitor(state)?.positionals.get(String(Number(part.name) - 1), value) ?? value;
+      else if (part.name === "@" || part.name === "*") {
+        const separator = hereString && (part.name === "@" || !part.quoted) ? " " : Array.from(state.variables.IFS ?? " ")[0] ?? "";
+        const values = this.positionalValues(state);
+        retained = concatShellValues(values.flatMap((entry, index) => index ? [separator, entry] : [entry]), io[valueScope]);
+      }
+    }
     if (part.substring) {
       this.requireParameter(value, part.name, state, io, part.line);
       return this.substring(part, value, state, io);
@@ -4010,16 +4129,17 @@ export class Runtime {
           value = alternate;
           return part.length ? String(Array.from(value).length) : value;
         }
-        alternate = (await this.word(part.alternate!, state, io, false, false, hereString)).join("");
+        retained = concatShellValues(await this.valueWord(part.alternate!, state, io, false, false, hereString), io[valueScope]);
+        alternate = shellValueText(retained);
         if (operator === "?") throw new ParameterExpansionFailure(`${part.name}: ${alternate || (part.operator.startsWith(":") ? "parameter null or not set" : "parameter not set")}`, io.diagnosticLine ?? part.line);
         if (operator === "=") {
           if (!/^[a-zA-Z_][a-zA-Z_0-9]*$/u.test(part.name)) throw new Error("Cannot assign special parameter");
-          this.writeVariable(state, part.name, alternate);
+          this.writeVariable(state, part.name, retained);
         }
         value = alternate;
-      } else if (operator === "+") value = "";
+      } else if (operator === "+") { value = ""; retained = ""; }
     } else this.requireParameter(value, part.name, state, io, part.line);
-    return part.length ? String(Array.from(value ?? "").length) : value ?? "";
+    return part.length ? String(Array.from(value ?? "").length) : retained ?? "";
   }
 
   async substring(part: Extract<WordPart, { kind: "variable" }>, value: string | undefined, state: State, io: IO): Promise<string> {
@@ -4159,23 +4279,34 @@ export class Runtime {
   }
 
   async word(word: Word, state: State, io: IO, split = true, pattern = false, hereString = false, conditionalPattern = false, regexAppend?: (text: string, literal: boolean) => void): Promise<string[]> {
+    return (await this.valueWord(word, state, io, split, pattern, hereString, conditionalPattern, regexAppend)).map(shellValueText);
+  }
+
+  private async valueWord(word: Word, state: State, io: IO, split = true, pattern = false, hereString = false, conditionalPattern = false, regexAppend?: (text: string, literal: boolean) => void): Promise<ShellValue[]> {
     const arrayOwned = word.parts.some(part => part.kind === "variable" && (getArraySelector(part) !== undefined || arrayStore(state)?.get(part.name) !== undefined));
     const owner = arrayOwned ? requireArrays(state).owner : undefined;
     const holding = owner?.hold();
     try {
     if (owner) await this.prepareArrayObservers(state, owner);
     owner?.reserve({ metadata: 128 + word.parts.length * 32, allocatedSlots: word.parts.length + 1, work: word.parts.length + 5 });
-    const fields: { value: string; pattern: string; present: boolean }[] = [{ value: "", pattern: "", present: false }];
+    const fields: { value: string; fragments: ShellValue[]; bytes: boolean; pattern: string; present: boolean }[] = [{ value: "", fragments: [], bytes: false, pattern: "", present: false }];
     let expansionBytes = 0;
-    const append = (value: string, glob: boolean, present: boolean) => {
-      const size = Buffer.byteLength(value);
+    const append = (value: ShellValue, glob: boolean, present: boolean) => {
+      const text = shellValueText(value);
+      const size = shellValueByteLength(value);
       if (size > this.budget.limits.maxExpansionBytes - expansionBytes) this.budget.fail("maxExpansionBytes");
       expansionBytes += size;
-      regexAppend?.(value, !glob);
+      regexAppend?.(text, !glob);
       const field = fields.at(-1)!;
-      if (owner) owner.reserve({ payload: exactSum(Buffer.byteLength(field.value) + size, Buffer.byteLength(field.pattern) + (glob ? size : size * 2)), metadata: 64, work: value.length + 8 });
-      field.value += value;
-      field.pattern += glob ? value : value.replace(conditionalPattern ? /[\\*?[\]\-^()|+!@]/gu : /[\\*?[\]\-^]/gu, "\\$&");
+      if (owner) owner.reserve({ payload: exactSum(Buffer.byteLength(field.value) + size, Buffer.byteLength(field.pattern) + (glob ? size : size * 2)), metadata: 64, work: text.length + 8 });
+      if (typeof value !== "string" || field.bytes) {
+        io[valueScope]?.reserve(32 * (field.bytes ? 1 : field.fragments.length + 1), field.bytes ? 1 : field.fragments.length + 1);
+        if (typeof value !== "string") io[valueScope]?.hold(value);
+        field.bytes = true;
+      }
+      field.fragments.push(value);
+      field.value += text;
+      field.pattern += glob ? text : text.replace(conditionalPattern ? /[\\*?[\]\-^()|+!@]/gu : /[\\*?[\]\-^]/gu, "\\$&");
       field.present ||= present;
     };
     const parts = word.parts.map((part) => ({ part, splitText: false }));
@@ -4198,7 +4329,7 @@ export class Runtime {
         for (let position = 0; position < members.length; position++) {
           if (position > 0) {
             owner?.reserve({ metadata: 32, allocatedSlots: 1, work: 3 });
-            fields.push({ value: "", pattern: "", present: false });
+            fields.push({ value: "", fragments: [], bytes: false, pattern: "", present: false });
           }
           const value = members[position]!;
           if (part.quoted || state.variables.IFS === "") append(value, !part.quoted, part.quoted || value.length > 0);
@@ -4210,58 +4341,64 @@ export class Runtime {
                 if (!/[ \t\n]/u.test(character)) {
                   fields.at(-1)!.present = true;
                   owner?.reserve({ metadata: 32, allocatedSlots: 1, work: 3 });
-                  fields.push({ value: "", pattern: "", present: false });
+                  fields.push({ value: "", fragments: [], bytes: false, pattern: "", present: false });
                 } else if (fields.at(-1)!.present) boundary = true;
               } else {
-                if (boundary) { owner?.reserve({ metadata: 32, allocatedSlots: 1, work: 3 }); fields.push({ value: "", pattern: "", present: false }); }
+                if (boundary) { owner?.reserve({ metadata: 32, allocatedSlots: 1, work: 3 }); fields.push({ value: "", fragments: [], bytes: false, pattern: "", present: false }); }
                 boundary = false;
                 append(character, true, true);
               }
               await owner!.ledger.checkpoint(this.signal);
             }
-            if (boundary) { owner?.reserve({ metadata: 32, allocatedSlots: 1, work: 3 }); fields.push({ value: "", pattern: "", present: false }); }
+            if (boundary) { owner?.reserve({ metadata: 32, allocatedSlots: 1, work: 3 }); fields.push({ value: "", fragments: [], bytes: false, pattern: "", present: false }); }
           }
         }
       } else if (part.kind === "text" && !splitText) {
-        let value = part.value;
-        if (index === 0 && !part.quoted && /^~(?:\/|$)/u.test(value)) value = (state.variables.HOME ?? "~") + value.slice(1);
-        append(value, !part.quoted, quotedPresence || value.length > 0);
+        let value: ShellValue = invokedValues.get(part) ?? part.byteValue ?? part.value;
+        if (typeof value === "string" && index === 0 && !part.quoted && /^~(?:\/|$)/u.test(value)) value = (state.variables.HOME ?? "~") + value.slice(1);
+        append(value, !part.quoted, quotedPresence || shellValueByteLength(value) > 0);
       } else if (part.kind === "variable" && part.name === "@" && part.quoted && !part.operator && split) {
         for (let position = 0; position < state.positional.length; position++) {
-          if (position > 0) fields.push({ value: "", pattern: "", present: false });
-          append(state.positional[position]!, false, true);
+          if (position > 0) fields.push({ value: "", fragments: [], bytes: false, pattern: "", present: false });
+          append(stateMonitor(state)?.positionals.get(String(position), state.positional[position]!) ?? state.positional[position]!, false, true);
         }
         if (state.positional.length === 0 && word.parts.every((entry) => (entry.kind === "text" && entry.value === "") || entry === part)) fields[0]!.present = false;
       } else {
-        const value = part.kind === "text" ? part.value : await this.part(part, state, io, hereString);
-        if (part.quoted || !split || state.variables.IFS === "") append(value, !part.quoted, quotedPresence || !split || value.length > 0);
+        const value = part.kind === "text" ? part.byteValue ?? part.value : await this.valuePart(part, state, io, hereString);
+        if (part.quoted || !split || state.variables.IFS === "") append(value, !part.quoted, quotedPresence || !split || shellValueByteLength(value) > 0);
         else {
           const separators = state.variables.IFS ?? " \t\n";
           let boundary = false;
-          for (const character of value) {
-            if (separators.includes(character)) {
-              if (!/[ \t\n]/u.test(character)) {
+          const pieces = this.splitValue(value, separators, io);
+          for (const character of pieces) {
+            const text = shellValueText(character);
+            if (typeof character === "string" && separators.includes(character)) {
+              if (!/[ \t\n]/u.test(text)) {
                 fields.at(-1)!.present = true;
-                fields.push({ value: "", pattern: "", present: false });
+                fields.push({ value: "", fragments: [], bytes: false, pattern: "", present: false });
               } else if (fields.at(-1)!.present) boundary = true;
             } else {
-              if (boundary) fields.push({ value: "", pattern: "", present: false });
+              if (boundary) fields.push({ value: "", fragments: [], bytes: false, pattern: "", present: false });
               boundary = false;
               append(character, true, true);
             }
           }
-          if (boundary) fields.push({ value: "", pattern: "", present: false });
+          if (boundary) fields.push({ value: "", fragments: [], bytes: false, pattern: "", present: false });
         }
       }
       if (fields.length > this.budget.limits.maxExpansionFields) this.budget.fail("maxExpansionFields");
       if (owner) await owner.ledger.checkpoint(this.signal);
     }
-    const result: string[] = [];
+    const result: ShellValue[] = [];
     let resultBytes = 0;
     for (const field of fields) {
       if (!field.present && split) continue;
-      for (const value of split ? await this.glob(field.value, field.pattern, state) : [pattern ? field.pattern : field.value]) {
-        const size = Buffer.byteLength(value);
+      const assembled = concatShellValues(field.fragments, io[valueScope]);
+      const projection = shellValueText(assembled);
+      const expanded = split ? await this.glob(projection, field.pattern, state) : [pattern ? field.pattern : projection];
+      for (const text of expanded) {
+        const value = !pattern && expanded.length === 1 && text === projection ? assembled : text;
+        const size = shellValueByteLength(value);
         if (size > this.budget.limits.maxExpansionBytes - resultBytes) this.budget.fail("maxExpansionBytes");
         resultBytes += size;
         owner?.reserve({ metadata: 32, allocatedSlots: 1, work: 3 });
@@ -4271,6 +4408,41 @@ export class Runtime {
     }
     return result;
     } finally { holding?.release(); }
+  }
+
+  private *splitValue(value: ShellValue, separators: string, io: IO): Generator<ShellValue> {
+    if (typeof value === "string" || Array.from(separators).some(character => character.charCodeAt(0) > 127)) {
+      yield* shellValueText(value);
+      return;
+    }
+    const bytes = shellValueBytes(value, io[valueScope]);
+    let start = 0;
+    for (let index = 0; index < bytes.length; index++) {
+      const byte = bytes[index]!;
+      if (byte > 127 || !separators.includes(String.fromCharCode(byte))) continue;
+      if (start < index) yield shellValueFromBytes(bytes.subarray(start, index), io[valueScope]);
+      yield String.fromCharCode(byte);
+      start = index + 1;
+    }
+    if (start < bytes.length) yield start === 0 ? value : shellValueFromBytes(bytes.subarray(start), io[valueScope]);
+  }
+
+  private positionalValues(state: State): ShellValue[] {
+    return state.positional.map((text, index) => stateMonitor(state)?.positionals.get(String(index), text) ?? text);
+  }
+
+  private replacePositionals(state: State, values: readonly ShellValue[], action?: () => void): void {
+    const publish = action ?? (() => { state.positional = values.map(shellValueText); });
+    const store = stateMonitor(state)?.positionals;
+    if (store) store.replace(values.map((value, index) => [String(index), value] as const), publish);
+    else publish();
+  }
+
+  private admitArguments(values: readonly ShellValue[], allocation: ValueScope): CommandArguments {
+    if (!values.some(value => typeof value !== "string")) return createCommandArguments(values);
+    if (values.length > this.budget.limits.maxExpansionFields) this.budget.fail("maxExpansionFields");
+    for (const value of values) if (typeof value !== "string") allocation.hold(value);
+    return createCommandArguments(values, allocation);
   }
 
   async arrayMembers(name: string, state: State): Promise<string[]> {

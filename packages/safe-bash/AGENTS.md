@@ -88,6 +88,12 @@
   finalizing the producer; Buffer.slice/subarray are views, not copies. Completed
   awaited transient writes need not copy indiscriminately. This tested producer-
   reuse contract does not promise arbitrary concurrent mutation safety or leases.
+- Preserve raw byte-value identity independently of lossy decoded text; never
+  reconstruct byte provenance by matching display strings or merge distinct
+  byte sequences because they decode to the same replacement text.
+- Shell-state values and argv must retain owned immutable bytes for their full
+  consumption lifetimes, not mutable caller/producer aliases. Admit byte budgets
+  before allocation/copy or argv materialization, and enforce copy and argv bounds.
 - Middleware must await/return next(). Preserve shared budgets and explicitly
   propagate signals into host work. Cancellation cannot undo completed effects
   or forcibly stop uncooperative host work; observe late rejections.
@@ -230,6 +236,10 @@
 
 ## Validation and commits
 
+- Register integration-authored tests by exact literal path in
+  scripts/integration-inputs.test.mjs, preserving historical membership and seals.
+  Keep tests/contracts/value.test.ts, tests/shell/value-state.test.ts and
+  tests/shell/byte-values.test.ts registered; no count-only or exclusion workaround.
 - User: **"keep pushing and making new releases"**. Release incremental,
   validated milestones without waiting for full parity; preserve required gates
   and root-coordinated Git/release ownership.

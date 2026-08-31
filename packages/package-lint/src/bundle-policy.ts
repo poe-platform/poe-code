@@ -1,4 +1,4 @@
-import { isBuiltin } from "node:module";
+import { publicationNodeBuiltins } from "./node-builtins.js";
 import path from "node:path";
 import type ts from "typescript";
 
@@ -177,7 +177,7 @@ export function findBundleIssues(
     ...Object.keys(manifest.optionalDependencies ?? {})
   ]);
   for (const specifier of [...imports].sort()) {
-    if (isBuiltin(specifier)) continue;
+    if (publicationNodeBuiltins.has(specifier)) continue;
     if (routes.has(specifier) && manifest.name === "poe-code") continue;
     const dependency = packageName(specifier);
     const reason = !dependency
@@ -336,7 +336,11 @@ export function findBundleIssues(
       if (output.cssBundle) pending.push(output.cssBundle);
       for (const dependency of output.imports ?? []) {
         if (dependency.external) {
-          if (profile === "browser" || !dependency.path || !isBuiltin(dependency.path))
+          if (
+            profile === "browser" ||
+            !dependency.path ||
+            !publicationNodeBuiltins.has(dependency.path)
+          )
             fail("external-canonical-dependency");
         } else if (dependency.path) pending.push(dependency.path);
         else fail("missing-canonical-edge");
@@ -366,7 +370,7 @@ export function findBundleIssues(
       }
       for (const edge of edges) {
         if (edge === "#safe-fs-platform") typeQueue.push(settings.types);
-        else if (isBuiltin(edge)) {
+        else if (publicationNodeBuiltins.has(edge)) {
           if (profile === "browser") fail("external-canonical-types");
         } else if (
           edge.startsWith(".") &&

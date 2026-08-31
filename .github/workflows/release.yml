@@ -9,13 +9,14 @@ on:
   workflow_dispatch:
     inputs:
       qualification:
-        description: Optional read-only native identity collection; none runs the normal release
+        description: Explicit native qualification; none runs the normal release
         type: choice
         required: true
         default: none
         options:
           - none
           - darwin-native-metadata
+          - darwin-gnu-build
 concurrency:
   group: release-${{ github.ref }}
   cancel-in-progress: false
@@ -73,7 +74,7 @@ jobs:
           GH_TOKEN: ${{ steps.app_token.outputs.token }}
           HUSKY: "0"
         run: npx semantic-release
-    if: ${{ github.event_name != 'workflow_dispatch' || inputs.qualification != 'darwin-native-metadata' }}
+    if: ${{ github.event_name != 'workflow_dispatch' || (inputs.qualification != 'darwin-native-metadata' && inputs.qualification != 'darwin-gnu-build') }}
   darwin-native-metadata:
     if: ${{ github.event_name == 'workflow_dispatch' && inputs.qualification == 'darwin-native-metadata' }}
     runs-on: macos-26
@@ -187,3 +188,49 @@ jobs:
             ...apple.flatMap(item => [item.file, item.version, item.codeSignature, item.codeSignatureVerification])];
           if (required.some(result => result.error || result.signal || result.status !== 0)) process.exitCode = 1;
           DARWIN_NATIVE_METADATA
+  darwin-gnu-build:
+    if: ${{ github.event_name == 'workflow_dispatch' && inputs.qualification == 'darwin-gnu-build' }}
+    runs-on: macos-26
+    timeout-minutes: 60
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.sha }}
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22.22.2
+      - name: Build authenticated GNU observations without admission
+        id: native_build
+        shell: bash
+        run: |
+          set -euo pipefail
+          umask 077
+          node_bin="$(command -v node)"
+          [[ "$RUNNER_TEMP" = /* && "$node_bin" = /* ]]
+          job_root="$(mktemp -d "${RUNNER_TEMP:?}/darwin-gnu.XXXXXX")"
+          chmod 700 "$job_root"
+          printf 'archive=%s\n' "$job_root/build/native-darwin-evidence.tar" >> "$GITHUB_OUTPUT"
+          env -i PATH="$(dirname "$node_bin"):/usr/bin:/bin:/usr/sbin:/sbin" \
+            HOME="$job_root" TMPDIR="$job_root" LC_ALL=C LANG=C TZ=UTC \
+            RUNNER_TEMP="$RUNNER_TEMP" GITHUB_SHA="$GITHUB_SHA" GITHUB_RUN_ID="$GITHUB_RUN_ID" \
+            GITHUB_REPOSITORY="$GITHUB_REPOSITORY" GITHUB_REF="$GITHUB_REF" \
+            GITHUB_EVENT_NAME="$GITHUB_EVENT_NAME" GITHUB_OUTPUT="$GITHUB_OUTPUT" RUNNER_ENVIRONMENT="$RUNNER_ENVIRONMENT" \
+            RUNNER_OS="$RUNNER_OS" RUNNER_ARCH="$RUNNER_ARCH" ImageOS="$ImageOS" ImageVersion="$ImageVersion" \
+            "$node_bin" packages/safe-bash/scripts/provision-test-native-oracles.mjs \
+            --qualify-darwin-build --parent "$job_root" --destination "$job_root/build"
+      - name: Retain bounded qualification evidence
+        if: ${{ always() && !cancelled() && steps.native_build.outputs.sealed == 'true' }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: darwin-gnu-${{ github.sha }}-${{ github.run_id }}
+          path: |-
+            ${{ steps.native_build.outputs.archive }}
+            ${{ steps.native_build.outputs.archive }}.sha256
+          retention-days: 14
+          if-no-files-found: error
+          include-hidden-files: false
+          overwrite: false
+          compression-level: 0

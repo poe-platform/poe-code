@@ -60,7 +60,48 @@ export async function runBrowserBridgeChecks(): Promise<string[]> {
   const confined = createFsBridge(new MountFileSystem({ root: new MemoryFileSystem(), mounts: { "/first": first, "/second": second } }), { codec });
   try { await confined.mkdir("/first/escape/created", { recursive: true }); throw new Error("expected mount refusal"); }
   catch (error) { check("mount confinement is retained by bridge", error instanceof DirectFsError && error.code === "EACCES"); }
+  const cwdBridge = createFsBridge(adapter, { codec, cwd: "/work" });
+  await adapter.writeFile("/outside/secret", new TextEncoder().encode("outside"));
+  await adapter.symlink("/outside", "/work/escape");
+  for (const path of ["/outside/secret", "../outside/secret", "/work-sibling/secret", "escape/secret", "escape/../secret"]) {
+    try { await cwdBridge.readFile(path); throw new Error("expected confined read refusal"); }
+    catch (error) { check(`cwd denies ${path}`, error instanceof DirectFsError && error.code === "EACCES"); }
+  }
+  for (const operation of [() => cwdBridge.copyFile("file", "escape/secret"), () => cwdBridge.rename("file", "../outside/secret"), () => cwdBridge.symlink("/outside/secret", "new-link")]) {
+    try { await operation(); throw new Error("expected confined mutation refusal"); }
+    catch (error) { check("cwd denies mutation operand", error instanceof DirectFsError && error.code === "EACCES"); }
+  }
+  check("outside content survives confinement denials", new TextDecoder().decode(await adapter.readFile("/outside/secret")) === "outside");
+  check("contained link metadata remains readable", (await cwdBridge.lstat("escape")).isSymbolicLink() && await cwdBridge.readlink("escape") === "/outside");
+  await cwdBridge.writeFile("..\\literal", "literal");
+  check("virtual backslash is a filename character", await cwdBridge.readFile("..\\literal", "utf8") === "literal");
+  await cwdBridge.writeFile("created", "bounded");
+  check("absolute and relative contained paths agree", await cwdBridge.readFile("/work/created", "utf8") === "bounded");
   check("mount refusal has no effects", (await second.readdir("/")).length === 0);
+  const mountBackend = new MemoryFileSystem();
+  await mountBackend.mkdir("/work");
+  await mountBackend.mkdir("/mnt/work", { recursive: true });
+  await mountBackend.writeFile("/work/file", new TextEncoder().encode("decoy"));
+  await mountBackend.writeFile("/mnt/work/file", new TextEncoder().encode("outside"));
+  await mountBackend.symlink("/mnt/work/file", "/work/link");
+  await mountBackend.symlink("/mnt/work", "/work/dir");
+  const mountedCwd = createFsBridge(new MountFileSystem({ root: new MemoryFileSystem(), mounts: { "/mnt": mountBackend } }), { codec, cwd: "/mnt/work" });
+  for (const operation of [() => mountedCwd.readFile("link"), () => mountedCwd.writeFile("link", "denied"), () => mountedCwd.copyFile("file", "dir/file"), () => mountedCwd.rename("file", "dir/new")]) {
+    try { await operation(); throw new Error("expected canonical original-operand refusal"); }
+    catch (error) { check("mounted canonical operand disagreement denied", error instanceof DirectFsError && error.code === "EACCES"); }
+  }
+  check("mounted original and outside contents survive", new TextDecoder().decode(await mountBackend.readFile("/work/file")) === "decoy" && new TextDecoder().decode(await mountBackend.readFile("/mnt/work/file")) === "outside");
+  check("mounted missing destination is not created", (await mountBackend.readdir("/mnt/work")).length === 1);
+  try { await mountedCwd.symlink("/mnt/work/file", "new-absolute"); throw new Error("expected absolute target refusal"); }
+  catch (error) { check("confined absolute link creation is unsupported", error instanceof Error && "code" in error && error.code === "ENOTSUP"); }
+  check("absolute link refusal has no creation effect", !(await mountBackend.readdir("/work")).some(entry => entry.name === "new-absolute"));
+  await mountedCwd.symlink("file", "relative");
+  check("relative target migration preserves stored text and destination", await mountedCwd.readlink("relative") === "file" && await mountedCwd.readFile("relative", "utf8") === "decoy");
+  const empty = new MemoryFileSystem();
+  const missingBoundary = createFsBridge(empty, { codec, cwd: "/new/root" });
+  try { await missingBoundary.mkdir("nested", { recursive: true }); throw new Error("expected outside ancestor refusal"); }
+  catch (error) { check("missing outside ancestor creation denied", error instanceof DirectFsError && error.code === "EACCES"); }
+  check("missing boundary refusal has no ancestor effects", (await empty.readdir("/")).length === 0);
   await Promise.all(Array.from({ length: 4 }, async (_value, index) => {
     await mountedBridge.writeFile(`data/concurrent-${index}`, String(index));
     check(`concurrent bridge write ${index}`, await mountedBridge.readFile(`data/concurrent-${index}`, "utf8") === String(index));

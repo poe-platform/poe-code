@@ -139,7 +139,18 @@ Node bridge/path helpers, S3/transports and B's configuration registry/helpers
 stay Node-only. `createFsBridge(adapter, {codec, cwd?, signal?})` requires an
 explicit trusted codec and returns owned Uint8Array results; the Node bridge
 retains genuine Buffer behavior through the shared 21-operation implementation.
-Virtual `cwd` defaults to `/` and is not confinement. Signals are borrowed,
+Virtual `cwd` defaults to `/` and is the bridge confinement boundary as well as
+the relative-path base. Absolute paths preserve backing virtual meaning and
+must lie within that boundary; parent traversal cannot leave and re-enter it.
+Restricted bridges inspect symlinks component-by-component and reconcile the
+original operand or existing parent with the adapter's actual canonical result.
+Missing ancestors outside the boundary cannot be created. Absolute symlink
+creation is refused with `ENOTSUP` under confinement after cancellation and
+lexical boundary checks; use a checked relative target without rewriting its
+stored text. Whole-namespace defaults retain their absolute-target behavior,
+and existing absolute links require actual canonical verification before use.
+Missing or unsupported metadata fails closed. The path-based adapter
+contract does not supply race-proof host directory-handle confinement. Signals are borrowed,
 composed and never aborted by the library. C adds no environment variables or
 codec dependency; safe-fs has zero external runtime dependencies, but installing
 the parent poe-code distribution is not a zero-dependency installation.
@@ -248,8 +259,11 @@ establish a completed rename, browser port, or release.
   `makeFsModule({adapter, root?, cwd?, signal?})`. Simultaneous `fs` and `adapter`
   reject, as do `cwd`/`signal` without an adapter. Node-backed defaults and
   host-relative roots remain unchanged. Adapter `cwd` must be absolute virtual;
-  it defaults to the adapter root when rooted, otherwise `/`, and remains
-  independent of confinement. Relative roots start at virtual `/`. JSON config
+  it defaults to the adapter root when rooted, otherwise `/`. With explicit
+  `root`, cwd remains an independent relative-path base beneath the existing
+  root wrapper; without root, cwd itself confines the bridge. Adapter-backed
+  explicit roots also refuse absolute symlink creation and recursive mkdir that
+  would create a missing outside ancestor. Relative roots start at virtual `/`. JSON config
   permits optional absolute virtual `cwd`; a host signal is SDK-only, not JSON.
   Adapter aliases require authoritative
   comparison, not the Node bridge's synthesized `dev`/`ino` fields. SafeJS owns

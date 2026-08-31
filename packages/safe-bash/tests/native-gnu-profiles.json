@@ -101,7 +101,14 @@
         "sourceSha": "e537758e579b1dac2b3ed9c765d456cdef3b6d84",
         "artifactId": 9767591666,
         "artifactSha256": "2e46f5542b4f8e10ecdf1246a3cfc06973b55333ed492100abd5548208e9f94b",
-        "plan": "docs/plans/safe-bash-required-native-lanes.md"
+        "plan": "docs/plans/safe-bash-required-native-lanes.md",
+        "splitQualification": {
+          "runId": "33441925913",
+          "sourceSha": "e91ecba8bdd56c4dd9285a3bc64336ce479aec84",
+          "artifactId": 9777161068,
+          "artifactSha256": "e45dc7eca42d669953a879b061d5d98234a17048b1c245b1610d7732e24b0812",
+          "artifactZipSha256": "53c72338dadff27f26707424b6869192ac2fde4ff8f1079db3a59efef2a3b9da"
+        }
       },
       "executables": [
         {
@@ -187,6 +194,12 @@
           "version": "join (GNU coreutils) 9.7",
           "size": 95144,
           "sha256": "2cdf1d67d1b0eca72b1c4dd9b00af124676f193f3da29a631c77885e5c7138d9"
+        },
+        {
+          "tool": "split",
+          "version": "split (GNU coreutils) 9.7",
+          "size": 98104,
+          "sha256": "431baf88042ddf120074d3ab58172d27af404d3fa88e45c39747cde1a8b4557a"
         }
       ],
       "apple": [
@@ -210,6 +223,18 @@
           "sha256": "9ab7f0793033dc9dc4809d83d695118801bd687cbacda59a0cbbf151ba25dc2b",
           "tool": "bsdtar",
           "version": "bsdtar 3.5.3 - libarchive 3.7.4 zlib/1.2.12 liblzma/5.4.3 bz2lib/1.0.8 "
+        },
+        {
+          "tool": "split",
+          "path": "/usr/bin/split",
+          "version": "Apple split (no --version support)",
+          "size": 134768,
+          "sha256": "3b18ccdd81d67e0f287b5bdd1ecf23a2bff0525ba488ada79b41f653ee1a34f0",
+          "versionProbe": {
+            "status": 64,
+            "stdout": "",
+            "stderr": "/usr/bin/split: illegal option -- -\nusage: split [-cd] [-l line_count] [-a suffix_length] [file [prefix]]\n       split [-cd] -b byte_count[K|k|M|m|G|g] [-a suffix_length] [file [prefix]]\n       split [-cd] -n chunk_count [-a suffix_length] [file [prefix]]\n       split [-cd] -p pattern [-a suffix_length] [file [prefix]]\n"
+          }
         }
       ]
     }

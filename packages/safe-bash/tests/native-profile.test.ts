@@ -73,6 +73,38 @@ test("qualified Darwin stream and table tools bind to reviewed staged executable
   }
 });
 
+test("qualified Darwin split bindings require reviewed hosted GNU and Apple records", () => {
+  const options = { platform: "darwin", arch: "arm64", release: "25.5.0", fileSystem: createFsFromVolume(new Volume()) as unknown as typeof fs };
+  const manifest = JSON.parse(fs.readFileSync(new URL("./native-gnu-profiles.json", import.meta.url), "utf8"));
+  const profile = manifest.profiles.find((entry: { host: { platform: string } }) => entry.host.platform === "darwin");
+  const gnu = nativeGnuBinding("split", options)!;
+  const apple = nativeAppleBinding("split", options)!;
+  assert.deepEqual(gnu, { ...profile.executables.find((entry: { tool: string }) => entry.tool === "split"), path: fileURLToPath(new URL("../tmp/native-gnu/bin/split", import.meta.url)) });
+  assert.deepEqual(apple, profile.apple.find((entry: { tool: string }) => entry.tool === "split"));
+  assert.equal(gnu.version, "split (GNU coreutils) 9.7");
+  assert.equal(gnu.size, 98104);
+  assert.equal(gnu.sha256, "431baf88042ddf120074d3ab58172d27af404d3fa88e45c39747cde1a8b4557a");
+  assert.equal(apple.path, "/usr/bin/split");
+  assert.equal(apple.version, "Apple split (no --version support)");
+  assert.equal(apple.size, 134768);
+  assert.equal(apple.sha256, "3b18ccdd81d67e0f287b5bdd1ecf23a2bff0525ba488ada79b41f653ee1a34f0");
+  assert.deepEqual(apple.versionProbe, {
+    status: 64,
+    stdout: "",
+    stderr: "/usr/bin/split: illegal option -- -\nusage: split [-cd] [-l line_count] [-a suffix_length] [file [prefix]]\n       split [-cd] -b byte_count[K|k|M|m|G|g] [-a suffix_length] [file [prefix]]\n       split [-cd] -n chunk_count [-a suffix_length] [file [prefix]]\n       split [-cd] -p pattern [-a suffix_length] [file [prefix]]\n"
+  });
+  assert.deepEqual(profile.provenance.splitQualification, {
+    runId: "33441925913",
+    sourceSha: "e91ecba8bdd56c4dd9285a3bc64336ce479aec84",
+    artifactId: 9777161068,
+    artifactSha256: "e45dc7eca42d669953a879b061d5d98234a17048b1c245b1610d7732e24b0812",
+    artifactZipSha256: "53c72338dadff27f26707424b6869192ac2fde4ff8f1079db3a59efef2a3b9da"
+  });
+  assert.equal(nativeGnuBinding("split", { ...options, release: "25.4.0" }), undefined);
+  assert.equal(nativeAppleBinding("split", { ...options, release: "25.4.0" }), undefined);
+  assert.throws(() => nativeGnuBinding("split", { ...options, build: 2 }));
+});
+
 test("split bindings require explicit reviewed GNU and Apple pins and preserve the legacy host", () => {
   const host = { platform: "darwin", arch: "arm64", distribution: "macos", version: "26.5.2", release: "25.5.0" };
   const pin = { tool: "split", version: "split (GNU coreutils) 9.7", size: 32, sha256: "a".repeat(64) };

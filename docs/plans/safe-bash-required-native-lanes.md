@@ -86,6 +86,32 @@ native version output. Ordinary GNU and other Apple version checks are unchanged
 No local hash is substituted for a hosted pin. Do not count local restoration
 or GNU stream qualification as closing this remaining hosted prerequisite.
 
+## Hosted split admission
+
+The existing qualification run 33441925913 succeeded at source
+`e91ecba8bdd56c4dd9285a3bc64336ce479aec84`. Artifact 9777161068 has ZIP SHA-256
+`53c72338dadff27f26707424b6869192ac2fde4ff8f1079db3a59efef2a3b9da`;
+its `native-darwin-evidence.tar` has SHA-256
+`e45dc7eca42d669953a879b061d5d98234a17048b1c245b1610d7732e24b0812`.
+The closed 260-member seal, source signatures, exact checkout, Node 22.22.2,
+macOS 26.5.2 / Darwin 25.5.0 arm64, image 20260728.0273.1, Xcode 26.6
+17F113, clang 21.0.0, and GnuPG verifier 2.5.21 match the existing recipe.
+
+GNU coreutils 9.7 split was built in two distinct source/build directories.
+Both regular executable artifacts are 98,104 bytes with identical SHA-256
+`431baf88042ddf120074d3ab58172d27af404d3fa88e45c39747cde1a8b4557a`.
+The source-bound Apple `/usr/bin/split` observation is 134,768 bytes, SHA-256
+`3b18ccdd81d67e0f287b5bdd1ecf23a2bff0525ba488ada79b41f653ee1a34f0`;
+strict codesign verification succeeds with Apple signing authority and
+`com.apple.split` identity. Its exact exit-64, empty-stdout diagnostic transcript
+is retained in the admitted record. All 14 previously admitted GNU identities
+match this run; their original pins and provenance remain unchanged.
+
+These two records close the missing hosted split identity prerequisite only.
+The follow-up normal Release must still pass the required same-SHA Darwin
+semantic cohort and Linux complement before publication. No local legacy pin,
+semantic assertion, selection inventory, workflow, or optional gate is changed.
+
 The first integrated push exposed three census regressions (336 runner tests
 passed): the final metadata binding test was not listed as an integration
 addition. Register that exact path while retaining the historical 655/654/653

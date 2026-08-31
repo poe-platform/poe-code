@@ -51,8 +51,8 @@ jobs:
         with:
           node-version: 22
       - run: npm ci
-      - name: Build virtual-bash and its dependencies serially
-        run: npm run build:workspaces -- --workspace=virtual-bash
+      - name: Build root public peer and workspace dependencies
+        run: npm run build
       - name: Provision virtual-bash native test inputs
         id: virtual_bash_inputs
         shell: bash

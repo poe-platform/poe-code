@@ -2334,6 +2334,7 @@ export class Runtime {
         return invocation;
       },
     };
+    if (argumentValues.values.every(value => typeof value === "string")) Reflect.deleteProperty(context, "argumentValues");
     const middleware = this.middleware.map<Middleware>((handler) => (context, next) => {
       scope.assertOpen();
       let downstream: Promise<CommandResult> | undefined;
@@ -2827,6 +2828,9 @@ export class Runtime {
     );
     let input: ShellInput | undefined;
     try {
+      const allocation = this.budget.values.scope();
+      scope.register(() => allocation.close());
+      const argumentValues = this.admitArguments(getCommandArguments(incoming).values, allocation);
       scope.register(async () => {
         try { await input?.close(); }
         catch (error) { if (!this.signal.aborted || error !== this.signal.reason) throw error; }
@@ -2834,7 +2838,8 @@ export class Runtime {
       if (replacementInput !== undefined) input = new ShellInput(replacementInput, this.budget, this.signal);
       const invocationOverride: { current: CommandInvoker | undefined } = { current: undefined };
       const context: ShellCommandContext = {
-        ...incoming, env: Object.assign(Object.create(null) as Record<string, string>, incoming.env),
+        ...incoming, args: argumentValues.args, argumentValues,
+        env: Object.assign(Object.create(null) as Record<string, string>, incoming.env),
         stdin: input ?? incoming.stdin,
         stdout: this.budget.sink(incoming.stdout, runtime.signal), stderr: this.budget.sink(incoming.stderr, runtime.signal),
         signal: this.commandSignal, registerCleanup: cleanup => scope.register(cleanup),
@@ -2844,6 +2849,7 @@ export class Runtime {
           return invocation;
         },
       };
+      if (argumentValues.values.every(value => typeof value === "string")) Reflect.deleteProperty(context, "argumentValues");
       const child = await runtime.shebangState(context, state);
       const childIO = { ...io, ...context, [invocationScope]: scope };
       invocationOverride.current = prepare?.(runtime, context, child, childIO);
@@ -2859,9 +2865,12 @@ export class Runtime {
       });
       const execute = composeMiddleware(middleware, async () => {
         scope.assertOpen();
-        const forwarded = await runtime.shebangState(context, child);
-        context.cwd = forwarded.cwd;
-        const raw = terminal(runtime, context, forwarded, { ...childIO, ...context });
+        const forwardedValues = getCommandArguments(context);
+        const admitted = forwardedValues === argumentValues ? argumentValues : runtime.admitArguments(forwardedValues.values, allocation);
+        const selected = { ...context, args: admitted.args, argumentValues: admitted };
+        const forwarded = await runtime.shebangState(selected, child);
+        selected.cwd = forwarded.cwd;
+        const raw = terminal(runtime, selected, forwarded, { ...childIO, ...selected });
         return await runtime.observeRuntimeReturn(raw, runtimeFrame);
       });
       try {
@@ -2908,8 +2917,9 @@ export class Runtime {
       child.locals = [];
     }
     const stdinIsDefault = options.stdin === undefined ? context.stdinIsDefault : options.stdinIsDefault ?? false;
+    const argumentValues = getCommandArguments({ args, ...(options.argumentValues ? { argumentValues: options.argumentValues } : {}) });
     const selected: CommandContext = {
-      ...context, command, args, cwd: child.cwd,
+      ...context, command, args: argumentValues.args, argumentValues, cwd: child.cwd,
       env: options.replaceEnv ? { ...options.env } : { ...context.env, ...options.env, PWD: child.cwd },
       stdin: options.stdin ?? context.stdin,
       stdout: options.stdout ?? context.stdout, stderr: options.stderr ?? context.stderr,
@@ -2923,7 +2933,7 @@ export class Runtime {
         }
         return { exitCode: await runtime.interpreter(forwarded, state, childIO, loadedSource) };
       }
-      if (direct) return { exitCode: await runtime.scriptFile(forwarded, state, childIO, command, args, true) };
+      if (direct) return { exitCode: await runtime.scriptFile(forwarded, state, childIO, command, forwarded.args, true) };
       if (definition) return definition.execute(forwarded);
       await writeText(forwarded.stderr, `env: ${command}: command not found\n`);
       return { exitCode: 127 };
@@ -2934,8 +2944,12 @@ export class Runtime {
   private async envShebang(context: CommandContext, state: State, io: IO, optionalArgument: string | undefined, target: string, args: readonly string[], loadedSource: { path: string; source: string }): Promise<number> {
     const definition = Runtime.envShebangCommand;
     if (!definition) throw new CommandFailure(`${target}: env interpreter is unavailable`, 126);
+    const allocation = this.budget.values.scope();
+    io[invocationScope].register(() => allocation.close());
+    const incoming = getCommandArguments({ args, ...(context.argumentValues ? { argumentValues: context.argumentValues } : {}) });
+    const argumentValues = this.admitArguments([...(optionalArgument === undefined ? [] : [optionalArgument]), target, ...incoming.values], allocation);
     return this.shebangStage({
-      ...context, command: "env", args: [...(optionalArgument === undefined ? [] : [optionalArgument]), target, ...args],
+      ...context, command: "env", args: argumentValues.args, argumentValues,
     }, state, io, async (runtime, forwarded) => {
       let failed = false;
       let failure: unknown;

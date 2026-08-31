@@ -237,6 +237,46 @@ test("generic byte-aware command receives scalar values independently of printf"
   assert.deepEqual(result.stdoutBytes, Uint8Array.of(65, 255, 66));
 });
 
+for (const header of ["#!/usr/bin/env capture", "#!/usr/bin/env -S capture fixed"]) {
+  test(`env shebang rebinding retains literal and raw arguments: ${header}`, async () => {
+    const { shell, fs, commands } = fixture();
+    let calls = 0;
+    commands.register({ name: "capture", async execute(context) {
+      calls++;
+      const arguments_ = getCommandArguments(context);
+      assert.deepEqual(arguments_.args.slice(0, -2), header.includes("-S") ? ["fixed", "/program"] : ["/program"]);
+      await context.stdout.write(arguments_.bytes(arguments_.args.length - 2)!);
+      await context.stdout.write(arguments_.bytes(arguments_.args.length - 1)!);
+      return { exitCode: 0 };
+    } });
+    await fs.writeFile("/program", new TextEncoder().encode(`${header}\n`), { mode: 0o755 });
+    try {
+      const result = await shell.exec("/program $'\\xff' $'\\xfe'");
+      assert.equal(result.exitCode, 0, result.stderr);
+      assert.equal(result.stderr, "");
+      assert.deepEqual(result.stdoutBytes, Uint8Array.of(255, 254));
+      assert.equal(calls, 1);
+    } finally { await shell.dispose(); }
+  });
+}
+
+test("env shebang stages reject stale middleware argv before target effects", async () => {
+  const { shell, fs, commands } = fixture();
+  let calls = 0;
+  commands.register({ name: "capture", execute() { calls++; return { exitCode: 0 }; } });
+  shell.use((context, next) => {
+    if (context.command === "capture") Object.defineProperty(context, "args", { value: [...context.args] });
+    return next();
+  });
+  await fs.writeFile("/program", new TextEncoder().encode("#!/usr/bin/env capture\n"), { mode: 0o755 });
+  try {
+    const result = await shell.exec("/program $'\\xff'");
+    assert.notEqual(result.exitCode, 0);
+    assert.match(result.stderr, /identity does not match/u);
+    assert.equal(calls, 0);
+  } finally { await shell.dispose(); }
+});
+
 test("byte-aware invocation preserves explicit owned values and literal argv", async () => {
   const { shell, commands } = fixture();
   commands.register({ name: "retain", async execute(context) {
@@ -265,6 +305,55 @@ test("same-text replacement argv cannot inherit a stale byte carrier", async () 
   assert.match(result.stderr, /identity does not match/u);
   assert.equal(executed, 0);
 });
+
+test("legacy text-only middleware can replace argv without acquiring byte provenance", async () => {
+  const { shell, commands } = fixture();
+  let executed = 0;
+  commands.register({ name: "observe", async execute(context) {
+    executed++;
+    assert.deepEqual(context.args, ["�", "é"]);
+    const arguments_ = getCommandArguments(context);
+    await context.stdout.write(arguments_.bytes(0)!);
+    await context.stdout.write(arguments_.bytes(1)!);
+    return { exitCode: 0 };
+  } });
+  shell.use((context, next) => {
+    if (context.command === "observe") {
+      assert.equal(context.argumentValues, undefined);
+      Object.assign(context, { args: ["�", "é"] });
+    }
+    return next();
+  });
+  try {
+    const result = await shell.exec("observe plain");
+    assert.equal(result.exitCode, 0, result.stderr);
+    assert.equal(result.stderr, "");
+    assert.deepEqual(result.stdoutBytes, new TextEncoder().encode("�é"));
+    assert.equal(executed, 1);
+  } finally { await shell.dispose(); }
+});
+
+for (const reason of [false, 0, null]) {
+  test(`text-only argv replacement reaches cancellation and retains ${String(reason)}`, async () => {
+    const { shell, commands } = fixture();
+    const controller = new AbortController();
+    let executed = 0;
+    commands.register({ name: "cancel", execute(context) {
+      executed++;
+      assert.deepEqual(context.args, ["replacement"]);
+      controller.abort(reason);
+      return { exitCode: 0 };
+    } });
+    shell.use((context, next) => {
+      if (context.command === "cancel") Object.assign(context, { args: ["replacement"] });
+      return next();
+    });
+    try {
+      await assert.rejects(shell.exec("cancel original", { signal: controller.signal }), error => error === reason);
+      assert.equal(executed, 1);
+    } finally { await shell.dispose(); }
+  });
+}
 
 test("replacement byte carriers are budget-admitted before their command runs", async () => {
   const { shell, commands } = fixture();

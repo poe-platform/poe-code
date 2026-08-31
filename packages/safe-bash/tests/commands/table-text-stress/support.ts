@@ -9,12 +9,19 @@ import { Shell } from "../../../src/shell/index.js";
 import { standardCommands } from "../../../src/commands/index.js";
 import { createMemoryFileSystem } from "../../../src/fs/memory/index.js";
 import { tableTextCommands } from "../../../src/commands/table-text/index.js";
+import { nativeGnuBinding, verifyNativeExecutable, type NativeGnuOptions } from "../../native-profile.js";
 
 export const directory = resolve("tests/commands/table-text-stress");
 export const oracle = resolve("tests/commands/metadata-stress/.oracle/coreutils-9.7");
 export const hash = (bytes: string | Uint8Array): string => createHash("sha256").update(bytes).digest("hex");
 export interface Fixture { name: string; command: "paste" | "comm" | "join"; args: string[]; files: Record<string, string>; stdinHex: string }
 export interface Row { exitCode: number; stdoutHex: string; stderrHex: string; files: Record<string, string> }
+export function nativePath(command: Fixture["command"], options: NativeGnuOptions = {}): string {
+  const binding = nativeGnuBinding(command, options);
+  if (!binding) return `${oracle}/src/${command}`;
+  verifyNativeExecutable(binding, binding.path, options);
+  return binding.path;
+}
 export function save(name: string, data: unknown): void {
   assert.equal(existsSync(`${directory}/${name}`), false, `evidence is immutable: ${name}`);
   const text = `${JSON.stringify(data, null, 2)}\n`;
@@ -42,9 +49,9 @@ export async function verifyOracle(): Promise<void> {
   const frozen: { identities: Record<string, { version: string; sha256: string }>; archiveSha256: string; manualSha256: string } = JSON.parse(await readFile(`${directory}/first-discrepancy.json`, "utf8"));
   assert.equal(hash(await readFile(`${oracle}.tar.xz`)), frozen.archiveSha256);
   assert.equal(hash(await readFile(`${oracle}/doc/coreutils.texi`)), frozen.manualSha256);
-  for (const command of ["paste", "comm", "join"]) {
-    const binary = `${oracle}/src/${command}`;
-    assert.equal(hash(await readFile(binary)), frozen.identities[command]!.sha256);
+  for (const command of ["paste", "comm", "join"] as const) {
+    const binary = nativePath(command);
+    if (binary === `${oracle}/src/${command}`) assert.equal(hash(await readFile(binary)), frozen.identities[command]!.sha256);
     const result = spawnSync(binary, ["--version"], { encoding: "utf8", timeout: 5000, env: { LC_ALL: "C" } });
     assert.equal(result.status, 0);
     assert.equal(result.stdout.split("\n")[0], `${command} (GNU coreutils) 9.7`);
@@ -55,7 +62,7 @@ export async function native(fixture: Fixture): Promise<Row> {
   try {
     await writeFile(`${cwd}/sentinel`, "independent-table-text-owned");
     for (const [name, hex] of Object.entries(fixture.files)) await writeFile(`${cwd}/${name}`, Buffer.from(hex, "hex"));
-    const result = spawnSync(`${oracle}/src/${fixture.command}`, fixture.args, { cwd, input: Buffer.from(fixture.stdinHex, "hex"), env: { LC_ALL: "C", PATH: "/usr/bin:/bin" }, timeout: 5000, maxBuffer: 16 * 1024 * 1024 });
+    const result = spawnSync(nativePath(fixture.command), fixture.args, { cwd, input: Buffer.from(fixture.stdinHex, "hex"), env: { LC_ALL: "C", PATH: "/usr/bin:/bin" }, timeout: 5000, maxBuffer: 16 * 1024 * 1024 });
     assert.equal(result.error, undefined);
     assert.equal(result.signal, null);
     assert.notEqual(result.status, null);

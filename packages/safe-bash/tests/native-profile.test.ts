@@ -59,6 +59,33 @@ test("GNU binding refuses unknown hosts and absent or malformed Ubuntu identity"
   }
 });
 
+test("qualified Darwin stream and table tools bind to reviewed staged executable pins", () => {
+  const options = { platform: "darwin", arch: "arm64", release: "25.5.0", fileSystem: createFsFromVolume(new Volume()) as unknown as typeof fs };
+  const manifest = JSON.parse(fs.readFileSync(new URL("./native-gnu-profiles.json", import.meta.url), "utf8"));
+  const profile = manifest.profiles.find((entry: { host: { platform: string } }) => entry.host.platform === "darwin");
+  assert.equal(profile.provenance.runId, "33416850321");
+  for (const tool of ["nl", "seq", "unexpand", "paste", "comm", "join"] as const) {
+    const pin = profile.executables.find((entry: { tool: string }) => entry.tool === tool);
+    assert(pin, `reviewed ${tool} executable required`);
+    assert.deepEqual(nativeGnuBinding(tool, options), { ...pin, path: fileURLToPath(new URL(`../tmp/native-gnu/bin/${tool}`, import.meta.url)) });
+    assert.equal(nativeGnuBinding(tool, { ...options, release: "25.4.0" }), undefined);
+    assert.throws(() => nativeGnuBinding(tool, { ...options, build: 2 }));
+  }
+});
+
+test("split bindings require explicit reviewed GNU and Apple pins and preserve the legacy host", () => {
+  const host = { platform: "darwin", arch: "arm64", distribution: "macos", version: "26.5.2", release: "25.5.0" };
+  const pin = { tool: "split", version: "split (GNU coreutils) 9.7", size: 32, sha256: "a".repeat(64) };
+  const apple = { ...pin, path: "/usr/bin/split", version: "Apple split (no --version support)", versionProbe: { status: 64, stdout: "", stderr: "usage: split fixture\n" } };
+  const options = { ...host, profiles: [{ id: "unit-split-only", host, qualification: "QUALIFIED", executables: [pin], apple: [apple] }] };
+  assert.deepEqual(nativeGnuBinding("split", options), { ...pin, path: fileURLToPath(new URL("../tmp/native-gnu/bin/split", import.meta.url)) });
+  assert.deepEqual(nativeAppleBinding("split", options), apple);
+  for (const binding of [nativeGnuBinding, nativeAppleBinding]) {
+    assert.equal(binding("split", { ...options, release: "25.4.0" }), undefined);
+    assert.throws(() => binding("split", { ...options, profiles: [] }));
+  }
+});
+
 const profile: NativeProfile = { id: "historical-darwin", evidence: "tests/captured/profile.json", host: { platform: "darwin", arch: "arm64" } };
 const matching = { platform: "darwin", arch: "arm64", release: "25.4.0" };
 

@@ -3,7 +3,6 @@ import { test } from "node:test";
 import { spawnSync } from "node:child_process";
 import { createHash } from "node:crypto";
 import * as native from "node:fs/promises";
-import { fileURLToPath } from "node:url";
 import { join } from "node:path";
 import { platform, release, arch } from "node:os";
 import type { FileSystem } from "../../../src/contracts/index.js";
@@ -11,9 +10,8 @@ import { createMemoryFileSystem } from "../../../src/fs/memory/index.js";
 import { createRealFileSystem } from "../../../src/fs/real/index.js";
 import { run } from "./helpers.js";
 import { captureNativeReport, createNativeScratch } from "./native-capture.js";
+import { nativeSplitBinding } from "./native-binding.js";
 
-const executable = fileURLToPath(new URL("../metadata-stress/.oracle/coreutils-9.7/src/split", import.meta.url));
-const pin = "cf5851c4e6566983ce69940b766c0b5eb0cd26ebf2bb45eefe215b2d5c62f958";
 interface Fixture {
   readonly id: string;
   readonly links: readonly (readonly [string, string])[];
@@ -71,14 +69,16 @@ async function nativeSnapshot(root: string, path = ""): Promise<Record<string, u
 }
 
 test("dangling output links: pinned GNU effects on MemoryFS and rooted RealFS; Apple separate", async context => {
+  const { path: executable, sha256: pin } = nativeSplitBinding("gnu");
   let binary: Uint8Array;
   try { binary = await native.readFile(executable); } catch { context.skip("pinned GNU9.7 unavailable"); return; }
   assert.equal(createHash("sha256").update(binary).digest("hex"), pin);
   const report: unknown[] = [];
   const failures: string[] = [];
-  const apple = platform() === "darwin" ? "/usr/bin/split" : undefined;
+  const appleBinding = platform() === "darwin" ? nativeSplitBinding("apple") : undefined;
+  const apple = appleBinding?.path;
   const appleHash = apple ? createHash("sha256").update(await native.readFile(apple)).digest("hex") : undefined;
-  if (apple) assert.equal(appleHash, "7c2d5f3c73e849d664bad3a2f4c67c5154b0f03f59f2fa779d49e33dc7983f91");
+  if (apple) assert.equal(appleHash, appleBinding!.sha256);
   for (const fixture of fixtures) {
     const args = ["-b3", "input", fixture.prefix ?? "x"];
     const profiles: Record<string, { status: number | null; stdout: string; stderr: string; entries: Record<string, unknown> }> = {};

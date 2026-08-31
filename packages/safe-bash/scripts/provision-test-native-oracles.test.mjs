@@ -454,6 +454,78 @@ test("required Darwin staging is an explicit CLI mode", () => {
   assert.throws(() => parseNativeArguments(["--stage-darwin", "--qualify-darwin-build", "--parent", "/owned", "--destination", "/owned/build"]));
 });
 
+test("Darwin staging admits every required stream and table executable through existing membership checks", () => {
+  const fileSystem = createFsFromVolume(new Volume());
+  fileSystem.mkdirSync("/owned/evidence/bin", { recursive: true });
+  fileSystem.mkdirSync("/destination", { mode: 0o700 });
+  const tools = ["nl", "seq", "unexpand", "paste", "comm", "join", "split", "stat"];
+  const executables = tools.map(tool => ({ tool, version: `${tool} (GNU coreutils) 9.7`, size: executable.length, sha256: digest(executable) }));
+  const outputs = executables.flatMap(pin => (pin.tool === "stat" ? [1, 2] : [1]).map(build => {
+    const member = `bin/${pin.tool}-${build}`;
+    fileSystem.writeFileSync(`/owned/evidence/${member}`, executable, { mode: 0o755 });
+    return { ...pin, member, build };
+  }));
+  const host = { platform: "darwin", arch: "arm64", distribution: "macos", version: "26.5.2", release: "25.5.0" };
+  const profile = { id: "unit-stream-table-only", qualification: "QUALIFIED", host, executables };
+  const receipt = { root: "/owned", status: "BUILT_OBSERVATIONS_UNREVIEWED", outputs };
+  const run = path => {
+    const tool = path.split("/").at(-1).split("-")[0];
+    return { status: 0, signal: null, stdout: `${tool} (GNU coreutils) 9.7\n`, stderr: "" };
+  };
+  const options = { receipt, profile, host, parent: "/destination", name: "native-gnu" };
+  const staged = native.stageDarwinOutputs(options, { fileSystem, run });
+  assert.deepEqual(staged.primary.outputs.map(output => output.tool), tools);
+  assert.equal(staged.secondary.outputs[0].path, "/destination/native-gnu-second/bin/stat");
+  fileSystem.unlinkSync("/owned/evidence/bin/comm-1");
+  assert.throws(() => native.stageDarwinOutputs({ ...options, name: "missing-comm" }, { fileSystem, run }));
+  assert(!fileSystem.existsSync("/destination/missing-comm"));
+});
+
+test("Apple split exact usage probe does not weaken ordinary executable version admission", () => {
+  const value = fixture();
+  const probe = { status: 64, stdout: "", stderr: "split: illegal option -- -\nusage: split fixture\n" };
+  const pin = { ...value.pin, tool: "split", version: "Apple split (no --version support)", versionProbe: probe };
+  const run = () => ({ ...probe, signal: null });
+  assert.equal(verifyNativeExecutable(pin, "/owned/build/diff", { fileSystem: value.fileSystem, run }).sha256, pin.sha256);
+  for (const change of [{ status: 0 }, { stderr: "different usage\n" }, { stdout: "unexpected" }, { signal: "SIGKILL" }])
+    assert.throws(() => verifyNativeExecutable(pin, "/owned/build/diff", { fileSystem: value.fileSystem, run: () => ({ ...run(), ...change }) }));
+  assert.throws(() => verifyNativeExecutable({ ...pin, tool: "diff" }, "/owned/build/diff", { fileSystem: value.fileSystem, run }));
+  assert.throws(() => verifyNativeExecutable({ ...pin, version: "split (GNU coreutils) 9.7" }, "/owned/build/diff", { fileSystem: value.fileSystem, run }));
+  assert.throws(() => verifyNativeExecutable({ ...pin, versionProbe: { ...probe, status: 0 } }, "/owned/build/diff", { fileSystem: value.fileSystem, run }));
+  value.fileSystem.writeFileSync("/owned/build/diff", Buffer.alloc(executable.length));
+  assert.throws(() => verifyNativeExecutable(pin, "/owned/build/diff", { fileSystem: value.fileSystem, run }));
+});
+
+test("existing Darwin qualification records signed Apple split observations without admission", async () => {
+  const value = darwinFixture();
+  value.profile.appleObservations = ["/usr/bin/split"];
+  value.fileSystem.mkdirSync("/usr/bin", { recursive: true });
+  value.fileSystem.writeFileSync("/usr/bin/split", executable, { mode: 0o755 });
+  const probe = { status: 64, stdout: "", stderr: "/usr/bin/split: illegal option -- -\nusage: split fixture\n", signal: null };
+  const execute = async (command, args, options) => command === "/usr/bin/split" ? probe : value.execute(command, args, options);
+  const receipt = await native.qualifyDarwinBuild(value.options, { ...value, execute });
+  assert.equal(receipt.status, "BUILT_OBSERVATIONS_UNREVIEWED");
+  assert.deepEqual(receipt.appleObservations, [{ tool: "split", path: "/usr/bin/split", version: "Apple split (no --version support)", size: executable.length, sha256: digest(executable), versionProbe: { status: 64, stdout: "", stderr: probe.stderr } }]);
+  assert(value.calls.some(call => call.command === "/usr/bin/codesign" && call.args.includes("--verify") && call.args.includes("/usr/bin/split")));
+  assert(receipt.members.some(member => member.path === "logs/apple-split-version.json"));
+});
+
+test("Apple split observation rejects signature, process and byte-identity failures", async () => {
+  for (const defect of ["signature", "status", "signal", "stdout", "stderr", "bytes"]) {
+    const value = darwinFixture();
+    value.profile.appleObservations = ["/usr/bin/split"];
+    value.fileSystem.mkdirSync("/usr/bin", { recursive: true });
+    value.fileSystem.writeFileSync("/usr/bin/split", executable, { mode: 0o755 });
+    const execute = async (command, args, options) => {
+      if (command === "/usr/bin/codesign" && defect === "signature") return { status: 1, signal: null, stdout: "", stderr: "invalid signature" };
+      if (command !== "/usr/bin/split") return value.execute(command, args, options);
+      if (defect === "bytes") value.fileSystem.writeFileSync(command, Buffer.alloc(executable.length));
+      return { status: defect === "status" ? 0 : 64, signal: defect === "signal" ? "SIGKILL" : null, stdout: defect === "stdout" ? "unexpected" : "", stderr: defect === "stderr" ? "not usage" : "usage: split fixture\n" };
+    };
+    await assert.rejects(native.qualifyDarwinBuild(value.options, { ...value, execute }), defect);
+  }
+});
+
 test("Darwin builds independent coreutils trees, authenticates signatures and never admits observations", async () => {
   const value = darwinFixture();
   const receipt = await native.qualifyDarwinBuild(value.options, value);

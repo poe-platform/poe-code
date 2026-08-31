@@ -93,8 +93,19 @@ export function verifyNativeExecutable(pin, path, dependencies = {}) {
   });
   assert.ifError(result.error);
   assert.equal(result.signal, null, "native version process terminated by signal");
-  assert.equal(result.status, 0, result.stderr);
-  assert.equal(result.stdout.split("\n")[0], pin.version, "native version mismatch");
+  if (pin.versionProbe) {
+    assert.equal(pin.tool, "split", "diagnostic version probe is only valid for Apple split");
+    assert.equal(pin.version, "Apple split (no --version support)");
+    assert.equal(pin.versionProbe.status, 64);
+    assert.equal(pin.versionProbe.stdout, "");
+    assert(typeof pin.versionProbe.stderr === "string" && pin.versionProbe.stderr.includes("usage: split") && Buffer.byteLength(pin.versionProbe.stderr) <= 4096);
+    assert.equal(result.status, pin.versionProbe.status, "Apple split diagnostic status mismatch");
+    assert.equal(result.stdout, pin.versionProbe.stdout, "Apple split diagnostic stdout mismatch");
+    assert.equal(result.stderr, pin.versionProbe.stderr, "Apple split diagnostic stderr mismatch");
+  } else {
+    assert.equal(result.status, 0, result.stderr);
+    assert.equal(result.stdout.split("\n")[0], pin.version, "native version mismatch");
+  }
   canonicalPath(fileSystem, path);
   assert.equal(identity(fileSystem.lstatSync(path, { bigint: true })), identity(before));
   assert.equal(
@@ -605,6 +616,27 @@ export async function qualifyDarwinBuild(options, dependencies = {}) {
         pin.sha256,
         "Apple bytes changed during verification"
       );
+    }
+    if (profile.appleObservations !== undefined) {
+      assert.deepEqual(profile.appleObservations, ["/usr/bin/split"], "only the pending split observation is admitted");
+      const path = profile.appleObservations[0];
+      canonicalPath(fileSystem, path);
+      const before = fileSystem.lstatSync(path, { bigint: true });
+      assert(before.isFile() && before.size > 0n && before.size <= 16n * 1024n ** 2n && (before.mode & 0o111n) !== 0n);
+      const sha256 = digest(fileSystem.readFileSync(path));
+      await step("/usr/bin/codesign", ["--verify", "--strict", "--verbose=2", path]);
+      await step("/usr/bin/codesign", ["--display", "--verbose=4", path]);
+      const result = await execute(path, ["--version"], { cwd: root, env });
+      write("logs/apple-split-version.json", JSON.stringify({ path, status: result.status, signal: result.signal, stdout: result.stdout, stderr: result.stderr, error: result.error?.message }, null, 2) + "\n");
+      assert.ifError(result.error);
+      assert.equal(result.signal, null);
+      assert.equal(result.status, 64, "Apple split must retain its observed unsupported-version status");
+      assert.equal(result.stdout, "");
+      assert(typeof result.stderr === "string" && result.stderr.includes("usage: split") && Buffer.byteLength(result.stderr) <= 4096);
+      canonicalPath(fileSystem, path);
+      assert.equal(identity(fileSystem.lstatSync(path, { bigint: true })), identity(before));
+      assert.equal(digest(fileSystem.readFileSync(path)), sha256, "Apple split changed during observation");
+      receipt.appleObservations = [{ tool: "split", path, version: "Apple split (no --version support)", size: Number(before.size), sha256, versionProbe: { status: result.status, stdout: result.stdout, stderr: result.stderr } }];
     }
     const keyring = join(root, "gnu-keyring.gpg");
     fileSystem.writeFileSync(keyring, await fetchVerified(profile.keyring, dependencies), {

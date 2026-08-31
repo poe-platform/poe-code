@@ -25,6 +25,15 @@ test("native lanes partition the complete discovery without losing or duplicatin
   assert(darwin.includes("tests/commands/archive-stress/pax-independent/controls.test.ts"));
   assert(darwin.includes("tests/commands/expr/regex-native.test.ts"));
   assert(darwin.includes("tests/commands/metadata-stress/stat-human-native.test.ts"));
+  for (const file of [
+    "stream-format-author-stress/native-streams.test.ts",
+    "stream-format-author-stress/seq-format.test.ts",
+    "stream-format/nl.test.ts", "stream-format/seq.test.ts", "stream-format/unexpand.test.ts", "stream-format/seq-diagnostic.test.ts", "stream-format/rev.test.ts",
+    "table-text-stress/corpus.test.ts", "table-text-stress/shared-stdin-fix/acceptance216.test.ts",
+    "metadata/stat.test.ts",
+    "split/native.test.ts", "split/native-errors.test.ts", "split/stress.test.ts",
+    "split/edge.test.ts", "split/dangling-native.test.ts", "split/native-capture.test.ts",
+  ]) assert(darwin.includes(`tests/commands/${file}`), `native obligation must run on Darwin: ${file}`);
   assert(linux.includes("tests/commands/diff-patch-stress/gnu-target/oracle-binding.test.ts"));
   assert.deepEqual(selectNativeTests(files, "all", "darwin"), files);
 });
@@ -79,6 +88,9 @@ function assertSource7Discovery(files) {
     "tests/commands/diff-patch-stress/gnu-target/oracle-binding.test.ts",
     "tests/commands/diff-patch-stress/editflows/git-profile.test.ts",
     "tests/commands/metadata-stress/native-binding.test.ts",
+    "tests/commands/stream-format/native-binding.test.ts",
+    "tests/commands/table-text-stress/native-binding.test.ts",
+    "tests/commands/split/native-binding.test.ts",
   ];
   assert.equal(new Set(files).size, files.length);
   for (const path of removed) assert.ok(!files.includes(path), `source7 removed test remains selected: ${path}`);

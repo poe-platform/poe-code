@@ -151,6 +151,42 @@
           "version": "touch (GNU coreutils) 9.7",
           "size": 114120,
           "sha256": "9ea830993dd8987fe2c2ee468d52bcc9ae7bde7cbb3c24d7076f774c2b0fe3d7"
+        },
+        {
+          "tool": "nl",
+          "version": "nl (GNU coreutils) 9.7",
+          "size": 149584,
+          "sha256": "5cbde5e1c238e1d522e51ec684f033b5b41d8b604301b09de4972911552e4298"
+        },
+        {
+          "tool": "seq",
+          "version": "seq (GNU coreutils) 9.7",
+          "size": 110224,
+          "sha256": "3e63edb6693147b7e0f0dc9c1b2a8d342a798f94ac2169221a041011502499b8"
+        },
+        {
+          "tool": "unexpand",
+          "version": "unexpand (GNU coreutils) 9.7",
+          "size": 77032,
+          "sha256": "d960f9f868ca0c0a624eb472f583c5fe517d031110ccfe67e8925cdfe0fe1fd4"
+        },
+        {
+          "tool": "paste",
+          "version": "paste (GNU coreutils) 9.7",
+          "size": 75688,
+          "sha256": "22cdbce5c2c5c144acfe07a68e15da83deba335fefa12a555a932f5daf0e372c"
+        },
+        {
+          "tool": "comm",
+          "version": "comm (GNU coreutils) 9.7",
+          "size": 76856,
+          "sha256": "5a8d776eb45e90958ebe699a71d42ff22bd18c694d6e62aaee0be1592f5c079f"
+        },
+        {
+          "tool": "join",
+          "version": "join (GNU coreutils) 9.7",
+          "size": 95144,
+          "sha256": "2cdf1d67d1b0eca72b1c4dd9b00af124676f193f3da29a631c77885e5c7138d9"
         }
       ],
       "apple": [
@@ -384,9 +420,17 @@
             "tool": "base64",
             "path": "src/base64",
             "version": "base64 (GNU coreutils) 9.7"
+          },
+          {
+            "tool": "split",
+            "path": "src/split",
+            "version": "split (GNU coreutils) 9.7"
           }
         ]
       }
+    ],
+    "appleObservations": [
+      "/usr/bin/split"
     ]
   },
   "darwinTestFiles": [
@@ -409,6 +453,22 @@
     "tests/commands/metadata-stress/stat-effects.test.ts",
     "tests/commands/metadata-stress/stat-flags.test.ts",
     "tests/commands/metadata-stress/stat-human-native.test.ts",
-    "tests/commands/metadata-stress/stat-precision.test.ts"
+    "tests/commands/metadata-stress/stat-precision.test.ts",
+    "tests/commands/stream-format-author-stress/native-streams.test.ts",
+    "tests/commands/stream-format-author-stress/seq-format.test.ts",
+    "tests/commands/stream-format/nl.test.ts",
+    "tests/commands/stream-format/seq.test.ts",
+    "tests/commands/stream-format/unexpand.test.ts",
+    "tests/commands/stream-format/seq-diagnostic.test.ts",
+    "tests/commands/stream-format/rev.test.ts",
+    "tests/commands/table-text-stress/corpus.test.ts",
+    "tests/commands/table-text-stress/shared-stdin-fix/acceptance216.test.ts",
+    "tests/commands/metadata/stat.test.ts",
+    "tests/commands/split/native.test.ts",
+    "tests/commands/split/native-errors.test.ts",
+    "tests/commands/split/stress.test.ts",
+    "tests/commands/split/edge.test.ts",
+    "tests/commands/split/dangling-native.test.ts",
+    "tests/commands/split/native-capture.test.ts"
   ]
 }

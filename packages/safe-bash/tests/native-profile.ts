@@ -9,6 +9,7 @@ interface NativeExecutablePin {
   readonly version: string;
   readonly size: number;
   readonly sha256: string;
+  readonly versionProbe?: Readonly<{ status: number; stdout: string; stderr: string }>;
 }
 
 export interface NativeGnuOptions {
@@ -59,7 +60,7 @@ function executableProfile(options: NativeGnuOptions) {
   return nativeProvisioner.selectNativeProfile(manifest.profiles, host);
 }
 
-export function nativeGnuBinding(tool: "tar" | "diff" | "patch" | "expr" | "stat" | "touch" | "chmod" | "mktemp", options: NativeGnuOptions = {}): (NativeExecutablePin & { path: string }) | undefined {
+export function nativeGnuBinding(tool: "tar" | "diff" | "patch" | "expr" | "stat" | "touch" | "chmod" | "mktemp" | "nl" | "seq" | "unexpand" | "paste" | "comm" | "join" | "split", options: NativeGnuOptions = {}): (NativeExecutablePin & { path: string }) | undefined {
   const profile = executableProfile(options);
   if (!profile) return undefined;
   assert(options.build === undefined || options.build === 1 || (options.build === 2 && tool === "stat" && (options.platform ?? process.platform) === "darwin"), "only Darwin stat has a qualified independent second build");
@@ -70,7 +71,7 @@ export function nativeGnuBinding(tool: "tar" | "diff" | "patch" | "expr" | "stat
   return { ...pin, path };
 }
 
-export function nativeAppleBinding(tool: "diff" | "patch" | "bsdtar", options: NativeGnuOptions = {}): (NativeExecutablePin & { path: string }) | undefined {
+export function nativeAppleBinding(tool: "diff" | "patch" | "bsdtar" | "split", options: NativeGnuOptions = {}): (NativeExecutablePin & { path: string }) | undefined {
   assert.equal(options.platform ?? process.platform, "darwin", "Apple native caller requires Darwin");
   const profile = executableProfile(options);
   if (!profile) return undefined;

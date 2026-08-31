@@ -622,6 +622,7 @@ export async function qualifyDarwinBuild(options, dependencies = {}) {
           "CFLAGS=-O2 -g0 -ffile-prefix-map=" + work + "=."
         ];
         if (source.coreutils) configure.push("--without-gmp");
+        if (source.name === "tar-1.35") configure.push("LIBS=-liconv");
         await step("./configure", configure, work);
         if (source.coreutils) {
           fileSystem.writeFileSync(

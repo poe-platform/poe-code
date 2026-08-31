@@ -1,6 +1,7 @@
 import fs from "node:fs";
+import os from "node:os";
 import { createHash } from "node:crypto";
-import { dirname } from "node:path";
+import { dirname, join } from "node:path";
 import { createFsFromVolume, Volume } from "memfs";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { ESLint } from "eslint";
@@ -126,7 +127,7 @@ describe("fixed guarded root lint arguments", () => {
 describe("outside-checkout ancestor policy", () => {
   function owned(kind: string, operation: (state: any) => void) {
     const base = kind === "real" ? fs : createFsFromVolume(new Volume());
-    const temporary = kind === "real" ? fs.mkdtempSync("/private/tmp/lint-ancestor-policy-") : "/lint-policy-owned";
+    const temporary = kind === "real" ? fs.mkdtempSync(join(fs.realpathSync(os.tmpdir()), "lint-ancestor-policy-")) : "/lint-policy-owned";
     const outside = temporary + "/outside";
     const checkout = outside + "/checkout";
     const tree = checkout + "/tree";
@@ -160,6 +161,28 @@ describe("outside-checkout ancestor policy", () => {
       }
     };
   }
+
+  it.each([
+    ["Linux", "/owned-linux-tmp", "/owned-linux-tmp"],
+    ["macOS alias", "/tmp", "/private/tmp"],
+  ])("canonicalizes the %s OS temporary root before allocating the owned fixture", (_profile, temporaryRoot, canonicalRoot) => {
+    vi.spyOn(os, "tmpdir").mockReturnValue(temporaryRoot);
+    const canonicalize = vi.spyOn(fs, "realpathSync").mockReturnValue(canonicalRoot);
+    const failure = new Error("owned allocation refused");
+    const allocate = vi.spyOn(fs, "mkdtempSync").mockImplementation(() => { throw failure; });
+    expect(() => owned("real", () => {})).toThrow(failure);
+    expect(canonicalize).toHaveBeenCalledExactlyOnceWith(temporaryRoot);
+    expect(allocate).toHaveBeenCalledExactlyOnceWith(`${canonicalRoot}/lint-ancestor-policy-`);
+  });
+
+  it("does not allocate a fixture when the OS temporary root cannot be canonicalized", () => {
+    vi.spyOn(os, "tmpdir").mockReturnValue("/missing-owned-tmp");
+    const failure = new Error("temporary root unavailable");
+    vi.spyOn(fs, "realpathSync").mockImplementation(() => { throw failure; });
+    const allocate = vi.spyOn(fs, "mkdtempSync").mockImplementation(() => { throw new Error("unexpected allocation"); });
+    expect(() => owned("real", () => {})).toThrow(failure);
+    expect(allocate).not.toHaveBeenCalled();
+  });
 
   function refusal(operation: () => any) {
     try {

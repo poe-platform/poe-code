@@ -229,6 +229,7 @@
   ],
   "scripts": {
     "build": "node scripts/build-workspaces.mjs && npm run codegen:plan-schemas && npm run codegen:harness-schemas && tsc -p tsconfig.build.json && node scripts/generate-bin-wrappers.mjs && node scripts/bundle.mjs",
+    "build:workspaces": "node scripts/build-workspaces.mjs",
     "build:deps": "node scripts/list-workspace-deps.mjs",
     "codegen:python-types": "tsx scripts/generate-agent-spawn-py-types.ts",
     "codegen:check:python-types": "tsx scripts/generate-agent-spawn-py-types.ts --check",
@@ -237,7 +238,7 @@
     "dev": "tsx --import ./scripts/register-template-loader.mjs src/index.ts",
     "start": "node dist/bin.cjs",
     "dev:bundle": "npm run build && node dist/bin.cjs",
-    "test": "turbo run test:unit --concurrency=1 --",
+    "test": "node scripts/build-workspaces.mjs --test-unit",
     "test:unit": "vitest run",
     "test:postinstall-lifecycle": "vitest run --config vitest.postinstall.config.ts",
     "typecheck": "npm run lint:types",

@@ -36,7 +36,7 @@ jobs:
         run: |
           echo "virtual-bash requires Node >=22; Node20 does not meet its test-discovery prerequisite."
           echo "Its complete test:unit suite runs in the separate virtual-bash-node22 job; no tests are waived."
-      - run: npx turbo run test:unit --filter='!virtual-bash' --concurrency=4 --force
+      - run: npm test -- --concurrency=4 --exclude-workspace=virtual-bash
       - run: npm run smoke
   virtual-bash-node22:
     name: virtual-bash (Node22)
@@ -52,7 +52,7 @@ jobs:
           node-version: 22
       - run: npm ci
       - name: Build virtual-bash and its dependencies serially
-        run: npx turbo run build --filter=virtual-bash --concurrency=1 --force
+        run: npm run build:workspaces -- --workspace=virtual-bash
       - name: Provision virtual-bash native test inputs
         id: virtual_bash_inputs
         shell: bash

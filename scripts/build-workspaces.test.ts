@@ -5,6 +5,7 @@ import { tmpdir } from "node:os";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { describe, expect, it, vi } from "vitest";
+import * as workspaceRunner from "./build-workspaces.mjs";
 import { buildWorkspaces, createWorkspaceBuildPlan, matchesWorkspaceRange, readManifest } from "./build-workspaces.mjs";
 
 type Manifest = Record<string, unknown>;
@@ -569,4 +570,306 @@ describe("owned real npm lifecycle route", () => {
       }
     } finally { owned.remove(); }
   }, 25000);
+});
+
+function unitFixture() {
+  const owned = fixture({
+    alpha: { name: "alpha", scripts: { "test:unit": "node unit.cjs" } },
+    bash: { name: "virtual-bash", scripts: { build: "node build.cjs", "test:unit": "node unit.cjs" }, dependencies: { middle: "*" } },
+    middle: { name: "middle", dependencies: { beta: "*" } },
+    beta: { name: "beta", scripts: { build: "node build.cjs" } },
+    unused: { name: "unused" }
+  });
+  writeJson(path.join(owned.root, "package.json"), { name: "owned-root", private: true, workspaces: ["packages/*"], scripts: { "test:unit": "node root-unit.cjs" } });
+  writeJson(path.join(owned.root, "turbo.json"), { tasks: { build: { dependsOn: ["^build"] }, "virtual-bash#test:unit": { dependsOn: ["build"], outputs: [], cache: false, passThroughEnv: ["SAFE_BASH_TEST_RG"] } } });
+  return owned;
+}
+
+describe("finite unit task planning", () => {
+  it("retains root and every declared unit task plus buildless prerequisite closure", () => {
+    const owned = unitFixture();
+    try {
+      const plan = workspaceRunner.createWorkspaceTestPlan(owned.root);
+      expect(plan.testStages.map(task => task.id)).toEqual(["//#test:unit", "alpha#test:unit", "virtual-bash#test:unit"]);
+      expect(plan.buildStages.map((task: { name: string }) => task.name)).toEqual(["beta", "virtual-bash"]);
+      expect(plan.noTest.map((task: { name: string }) => task.name)).toEqual(["beta", "middle", "unused"]);
+      owned.write("python", { name: "python", scripts: { "test:unit": "python3 -m unittest discover -s tests -t ." } });
+      expect(workspaceRunner.createWorkspaceTestPlan(owned.root).testStages.map(task => task.name)).toContain("python");
+    } finally { owned.remove(); }
+  });
+
+  it("excludes only the named Bash unit task and retains another task's required Bash build", () => {
+    const owned = unitFixture();
+    try {
+      owned.write("alpha", { name: "alpha", scripts: { "test:unit": "node unit.cjs" }, dependencies: { "virtual-bash": "*" } });
+      writeJson(path.join(owned.root, "turbo.json"), { tasks: { build: { dependsOn: ["^build"] }, "alpha#test:unit": { dependsOn: ["^build"] }, "virtual-bash#test:unit": { dependsOn: ["build"] } } });
+      const plan = workspaceRunner.createWorkspaceTestPlan(owned.root, { excludeWorkspace: "virtual-bash" });
+      expect(plan.testStages.map(task => task.name)).toEqual(["owned-root", "alpha"]);
+      expect(plan.buildStages.map((task: { name: string }) => task.name)).toEqual(["beta", "virtual-bash"]);
+    } finally { owned.remove(); }
+  });
+
+  for (const kind of ["empty-unit", "invalid-pre", "unknown-override", "unknown-edge", "root-build", "environment", "rg-leak", "unknown-exclusion", "invalid-concurrency"]) {
+    it('rejects unit ' + kind + ' before any build or test spawn', async () => {
+      const owned = unitFixture(), mock = mockExecution();
+      const options: Record<string, unknown> = {};
+      try {
+        if (kind === "empty-unit") owned.write("alpha", { name: "alpha", scripts: { "test:unit": "" } });
+        if (kind === "invalid-pre") owned.write("alpha", { name: "alpha", scripts: { "test:unit": "node unit.cjs", "pretest:unit": 1 } });
+        if (kind === "unknown-override") writeJson(path.join(owned.root, "turbo.json"), { tasks: { build: { dependsOn: ["^build"] }, "missing#test:unit": {} } });
+        if (kind === "unknown-edge") writeJson(path.join(owned.root, "turbo.json"), { tasks: { build: { dependsOn: ["^build"] }, "alpha#test:unit": { dependsOn: ["lint"] } } });
+        if (kind === "root-build") writeJson(path.join(owned.root, "turbo.json"), { tasks: { build: { dependsOn: ["^build"] }, "//#test:unit": { dependsOn: ["build"] } } });
+        if (kind === "environment") writeJson(path.join(owned.root, "turbo.json"), { tasks: { build: { dependsOn: ["^build"] }, "alpha#test:unit": { env: ["ANYTHING"] } } });
+        if (kind === "rg-leak") writeJson(path.join(owned.root, "turbo.json"), { tasks: { build: { dependsOn: ["^build"] }, "alpha#test:unit": { passThroughEnv: ["SAFE_BASH_TEST_RG"] } } });
+        if (kind === "unknown-exclusion") options.excludeWorkspace = "alpha";
+        if (kind === "invalid-concurrency") options.concurrency = 0;
+        await expect(workspaceRunner.testWorkspaces(owned.root, { ...mock, spawn: mock.spawn, ...options })).rejects.toBeDefined();
+        expect(mock.start).not.toHaveBeenCalled();
+      } finally { owned.remove(); }
+    });
+  }
+
+  it("uses only the selected build closure without root suffix or unrelated builds", async () => {
+    const owned = unitFixture(), mock = mockExecution();
+    try {
+      owned.write("unrelated", { name: "unrelated", scripts: { build: "node build.cjs" } });
+      await workspaceRunner.buildWorkspaces(owned.root, { ...mock, workspace: "virtual-bash" });
+      expect(mock.start.mock.calls.map(call => call[1][5])).toEqual(["--workspace=packages/beta", "--workspace=packages/bash"]);
+      expect(mock.start.mock.calls.every(call => call[1][4] === "build")).toBe(true);
+    } finally { owned.remove(); }
+  });
+
+  for (const args of [["--workspace=*"], ["--test-unit", "--concurrency=0"], ["--test-unit", "--exclude-workspace=alpha"], ["--test-unit", "--concurrency=1", "--concurrency=4"], ["--workspace=virtual-bash", "extra"]]) {
+    it('rejects invalid finite runner arguments ' + JSON.stringify(args), () => {
+      expect(() => workspaceRunner.parseWorkspaceArguments(args)).toThrow();
+    });
+  }
+
+  it("preserves child argument forwarding and reserves finite mode options", () => {
+    expect(workspaceRunner.parseWorkspaceArguments([])).toEqual({ mode: "build" });
+    expect(workspaceRunner.parseWorkspaceArguments(["--test-unit", "--concurrency=4", "--exclude-workspace=virtual-bash", "--", "--reporter=tap", "name with spaces"]))
+      .toEqual({ mode: "test-unit", concurrency: 4, excludeWorkspace: "virtual-bash", testArguments: ["--reporter=tap", "name with spaces"] });
+    const forwarded = workspaceRunner.parseWorkspaceArguments(["--test-unit", "--reporter=json"]);
+    if (!("testArguments" in forwarded)) throw new Error("Expected unit argument result");
+    expect(forwarded.testArguments).toEqual(["--reporter=json"]);
+  });
+});
+
+describe("finite unit execution and ownership", () => {
+  it("builds before tests, retains npm lifecycles, exact arguments and feature-only profiles", async () => {
+    const owned = unitFixture(), mock = mockExecution();
+    const environment = { ...mock.environment, TERM: "xterm-256color", SAFE_BASH_TEST_RG: "/owned/rg", SAFEJS_LOCAL_ROOT: "/owned/safe-js", S3_HTTP_EXPORTS_REVISION: "owned-revision", FULL_GATE_ROOT: "/owned/full-gate" };
+    try {
+      const result = await workspaceRunner.testWorkspaces(owned.root, { ...mock, environment, testArguments: ["--reporter=tap", "a b"] });
+      expect(result).toMatchObject({ builds: 2, tests: 3, concurrency: 1, cache: "UNCACHED" });
+      expect(mock.start.mock.calls.map(call => call[1][4])).toEqual(["build", "build", "test:unit", "test:unit", "test:unit"]);
+      expect(mock.start.mock.calls[2][1]).toContain("--workspaces=false");
+      for (const call of mock.start.mock.calls) {
+        expect(call[2].env?.TERM).toBe("xterm-256color");
+        expect(call[2].env?.CUSTOM).toBe("preserved");
+        expect(call[1]).toContain("--if-present=false");
+        if (call[1][4] === "test:unit") expect(call[1].slice(-3)).toEqual(["--", "--reporter=tap", "a b"]);
+        else expect(call[1]).not.toContain("--reporter=tap");
+        const feature = call[1][4] === "test:unit" && call[1].includes("--workspace=packages/bash");
+        for (const name of ["SAFE_BASH_TEST_RG", "SAFEJS_LOCAL_ROOT", "S3_HTTP_EXPORTS_REVISION", "FULL_GATE_ROOT"]) expect(call[2].env?.[name]).toBe(feature ? environment[name as keyof typeof environment] : undefined);
+      }
+      expect(mock.host.listenerCount("SIGTERM")).toBe(0);
+    } finally { owned.remove(); }
+  });
+
+  for (const concurrency of [1, 4]) it('limits unit concurrency to ' + concurrency, async () => {
+    const owned = unitFixture(), host = mockHost();
+    let active = 0, maximum = 0, launched = 0;
+    try {
+      for (const name of ["charlie", "delta", "echo"]) owned.write(name, { name, scripts: { "test:unit": "node unit.cjs" } });
+      const start = () => {
+        const child = Object.assign(new EventEmitter(), { pid: 10000 + launched++ });
+        active++; maximum = Math.max(maximum, active);
+        setImmediate(() => { active--; child.emit("close", 0, null); });
+        return child as unknown as ReturnType<typeof spawn>;
+      };
+      await workspaceRunner.testWorkspaces(owned.root, { host, spawn: start as typeof spawn, environment: { npm_execpath: "/owned/npm-cli.js" }, concurrency });
+      expect(maximum).toBe(concurrency);
+      expect(active).toBe(0);
+    } finally { owned.remove(); }
+  });
+
+  for (const [index, primary] of primaryValues.entries()) it('joins every occupied unit slot after falsey primary ' + index, async () => {
+    const owned = unitFixture(), host = mockHost();
+    const children: Array<EventEmitter & { pid: number }> = [];
+    let settled = false;
+    try {
+      writeJson(path.join(owned.root, "turbo.json"), { tasks: { build: { dependsOn: ["^build"] } } });
+      for (const name of ["charlie", "delta", "echo", "foxtrot"]) owned.write(name, { name, scripts: { "test:unit": "node unit.cjs" } });
+      const start = () => { const child = Object.assign(new EventEmitter(), { pid: 11000 + children.length }); children.push(child); return child as unknown as ReturnType<typeof spawn>; };
+      const running = workspaceRunner.testWorkspaces(owned.root, { host, spawn: start as typeof spawn, environment: { npm_execpath: "/owned/npm-cli.js" }, concurrency: 4 });
+      const observed = running.then(() => ({ failed: false, error: undefined }), error => ({ failed: true, error })).finally(() => { settled = true; });
+      await vi.waitFor(() => expect(children).toHaveLength(4));
+      children[1].emit("error", primary);
+      await Promise.resolve();
+      expect(settled).toBe(false);
+      expect(children).toHaveLength(4);
+      for (const child of children) expect(host.kill).toHaveBeenCalledWith(-child.pid, "SIGTERM");
+      children[0].emit("close", null, "SIGTERM"); children[1].emit("close", -2, null); children[2].emit("close", null, "SIGTERM");
+      await Promise.resolve(); expect(settled).toBe(false);
+      children[3].emit("close", null, "SIGTERM");
+      const result = await observed;
+      expect(result.failed).toBe(true); expect(Object.is(result.error, primary)).toBe(true);
+      expect(children).toHaveLength(4);
+      expect(host.listenerCount("SIGTERM")).toBe(0);
+    } finally { owned.remove(); }
+  });
+
+  it("escalates STOP for all four slots and joins before settlement", async () => {
+    const owned = unitFixture(), host = mockHost(), children: Array<EventEmitter & { pid: number }> = [];
+    try {
+      writeJson(path.join(owned.root, "turbo.json"), { tasks: { build: { dependsOn: ["^build"] } } });
+      owned.write("charlie", { name: "charlie", scripts: { "test:unit": "node unit.cjs" } });
+      host.kill = vi.fn((pid: number, signal?: number | string) => { if (signal === 0) throw Object.assign(new Error("absent"), { code: "ESRCH" }); if (signal === "SIGKILL") children.find(child => child.pid === -pid)!.emit("close", null, signal); return true; }) as typeof host.kill;
+      vi.useFakeTimers();
+      const start = () => { const child = Object.assign(new EventEmitter(), { pid: 12000 + children.length }); children.push(child); return child as unknown as ReturnType<typeof spawn>; };
+      const running = workspaceRunner.testWorkspaces(owned.root, { host, spawn: start as typeof spawn, environment: { npm_execpath: "/owned/npm-cli.js" }, concurrency: 4 });
+      const observed = running.catch(error => error);
+      await vi.advanceTimersByTimeAsync(0);
+      expect(children).toHaveLength(4); host.emit("SIGTERM");
+      await vi.advanceTimersByTimeAsync(2000);
+      expect((await observed).message).toContain("interrupted");
+      for (const child of children) expect(host.kill).toHaveBeenCalledWith(-child.pid, "SIGKILL");
+      expect(vi.getTimerCount()).toBe(0); expect(host.listenerCount("SIGTERM")).toBe(0);
+    } finally { vi.useRealTimers(); owned.remove(); }
+  });
+});
+
+describe("finite unit owned npm lifecycle", () => {
+  for (const failedEvent of ["none", "prebuild", "postbuild", "pretest:unit", "posttest:unit"]) it(failedEvent, async () => {
+    const step = "node ../../step.cjs", owned = fixture({
+      bash: { name: "virtual-bash", scripts: { prebuild: step, build: step, postbuild: step, "pretest:unit": step, "test:unit": step, "posttest:unit": step } }
+    });
+    try {
+      fs.mkdirSync(path.join(owned.root, "scripts")); fs.copyFileSync(runnerFilename, path.join(owned.root, "scripts/build-workspaces.mjs"));
+      writeJson(path.join(owned.root, "package.json"), { name: "owned-root", private: true, workspaces: ["packages/*"], scripts: { pretest: "node step.cjs", test: "node scripts/build-workspaces.mjs --test-unit", posttest: "node step.cjs", "pretest:unit": "node step.cjs", "test:unit": "node step.cjs", "posttest:unit": "node step.cjs" } });
+      writeJson(path.join(owned.root, "turbo.json"), { tasks: { build: { dependsOn: ["^build"] }, "virtual-bash#test:unit": { dependsOn: ["build"] } } });
+      fs.writeFileSync(path.join(owned.root, "step.cjs"), 'const fs=require("node:fs");const event=process.env.npm_lifecycle_event;fs.appendFileSync(process.env.BUILD_EVENTS,JSON.stringify({name:process.env.npm_package_name,event})+"\\n");if(process.env.npm_package_name==="virtual-bash"&&event===' + JSON.stringify(failedEvent) + ')process.exit(7);');
+      const result = await ownedNpm(owned.root, "test");
+      expect(fs.existsSync(path.join(owned.root, "events.jsonl")), result.output).toBe(true);
+      const events = fs.readFileSync(path.join(owned.root, "events.jsonl"), "utf8").trim().split("\n").map(line => JSON.parse(line));
+      const all = ["owned-root:pretest", "virtual-bash:prebuild", "virtual-bash:build", "virtual-bash:postbuild", "owned-root:pretest:unit", "owned-root:test:unit", "owned-root:posttest:unit", "virtual-bash:pretest:unit", "virtual-bash:test:unit", "virtual-bash:posttest:unit", "owned-root:posttest"];
+      expect(result.signal).toBeNull();
+      expect(result.code, result.output).toBe(failedEvent === "none" ? 0 : 7);
+      const stop = failedEvent === "none" ? all.length : all.indexOf("virtual-bash:" + failedEvent) + 1;
+      expect(events.map(event => event.name + ":" + event.event)).toEqual(all.slice(0, stop));
+    } finally { owned.remove(); }
+  }, 25000);
+});
+
+describe("finite unit late failure and cleanup ordering", () => {
+  for (const [index, primary] of primaryValues.entries()) it('retains the original primary through late STOP ' + index, async () => {
+    const owned = unitFixture(), host = mockHost(), children: Array<EventEmitter & { pid: number }> = [];
+    try {
+      writeJson(path.join(owned.root, "turbo.json"), { tasks: { build: { dependsOn: ["^build"] } } });
+      const start = () => { const child = Object.assign(new EventEmitter(), { pid: 13000 + children.length }); children.push(child); return child as unknown as ReturnType<typeof spawn>; };
+      const running = workspaceRunner.testWorkspaces(owned.root, { host, spawn: start as typeof spawn, environment: { npm_execpath: "/owned/npm-cli.js" }, concurrency: 4 });
+      const observed = running.then(() => ({ failed: false, error: undefined }), error => ({ failed: true, error }));
+      await vi.waitFor(() => expect(children).toHaveLength(3));
+      children[1].emit("error", primary); host.emit("SIGTERM");
+      for (const child of children) child.emit("close", null, "SIGTERM");
+      const result = await observed;
+      expect(result.failed).toBe(true); expect(Object.is(result.error, primary)).toBe(true);
+    } finally { owned.remove(); }
+  });
+
+  it("keeps primary then per-slot cleanup errors and still attempts all groups", async () => {
+    const owned = unitFixture(), host = mockHost(), children: Array<EventEmitter & { pid: number }> = [];
+    const primary = false, cleanup = [undefined, null, new Error("third group")];
+    try {
+      writeJson(path.join(owned.root, "turbo.json"), { tasks: { build: { dependsOn: ["^build"] } } });
+      const start = () => { const child = Object.assign(new EventEmitter(), { pid: 14000 + children.length }); children.push(child); return child as unknown as ReturnType<typeof spawn>; };
+      host.kill = vi.fn((pid: number, signal?: string | number) => { if (signal === 0) throw Object.assign(new Error("absent"), { code: "ESRCH" }); if (signal === "SIGTERM") throw cleanup[-pid - 14000]; return true; }) as typeof host.kill;
+      const running = workspaceRunner.testWorkspaces(owned.root, { host, spawn: start as typeof spawn, environment: { npm_execpath: "/owned/npm-cli.js" }, concurrency: 4 });
+      const observed = running.catch(error => error);
+      await vi.waitFor(() => expect(children).toHaveLength(3));
+      children[1].emit("error", primary);
+      for (const child of children) child.emit("close", null, "SIGTERM");
+      const caught = await observed;
+      expect(caught).toBeInstanceOf(AggregateError);
+      expect(caught.errors).toEqual([primary, cleanup[0], cleanup[1], cleanup[2]]);
+      for (const child of children) expect(host.kill).toHaveBeenCalledWith(-child.pid, "SIGTERM");
+    } finally { owned.remove(); }
+  });
+
+  it("stops queued units when a later slot fails while an earlier slot remains open", async () => {
+    const owned = unitFixture(), host = mockHost(), children: Array<EventEmitter & { pid: number }> = [];
+    try {
+      writeJson(path.join(owned.root, "turbo.json"), { tasks: { build: { dependsOn: ["^build"] } } });
+      for (const name of ["charlie", "delta", "echo"]) owned.write(name, { name, scripts: { "test:unit": "node unit.cjs" } });
+      const start = () => { const child = Object.assign(new EventEmitter(), { pid: 15000 + children.length }); children.push(child); return child as unknown as ReturnType<typeof spawn>; };
+      const running = workspaceRunner.testWorkspaces(owned.root, { host, spawn: start as typeof spawn, environment: { npm_execpath: "/owned/npm-cli.js" }, concurrency: 4 });
+      const observed = running.catch(error => error);
+      await vi.waitFor(() => expect(children).toHaveLength(4));
+      children[3].emit("close", 9, null); children[1].emit("close", 0, null); children[2].emit("close", 0, null);
+      await Promise.resolve(); expect(children).toHaveLength(4);
+      children[0].emit("close", null, "SIGTERM");
+      expect((await observed).exitCode).toBe(9); expect(children).toHaveLength(4);
+    } finally { owned.remove(); }
+  });
+});
+
+describe("finite unit real four-group cleanup", () => {
+  for (const trigger of ["primary", "STOP"]) it(trigger, async () => {
+    const owned = unitFixture(), host = mockHost(), children: ReturnType<typeof spawn>[] = [];
+    const ready: Promise<void>[] = [], closed: Promise<void>[] = [], closeCounts: number[] = [];
+    host.kill = process.kill.bind(process);
+    try {
+      writeJson(path.join(owned.root, "turbo.json"), { tasks: { build: { dependsOn: ["^build"] } } });
+      for (const name of ["charlie", "delta", "echo"]) owned.write(name, { name, scripts: { "test:unit": "node unit.cjs" } });
+      const start = () => {
+        const child = spawn(process.execPath, ["-e", 'process.send("ready");setInterval(()=>{},1000);'], { cwd: owned.root, env: { PATH: path.dirname(process.execPath) + ":/usr/bin:/bin", HOME: owned.root }, detached: true, stdio: ["ignore", "ignore", "ignore", "ipc"] });
+        const index = children.length; children.push(child); closeCounts.push(0);
+        ready.push(new Promise(resolve => child.once("message", () => resolve())));
+        closed.push(new Promise(resolve => child.once("close", () => { closeCounts[index]++; resolve(); })));
+        return child;
+      };
+      const running = workspaceRunner.testWorkspaces(owned.root, { host, spawn: start as typeof spawn, environment: { npm_execpath: "/owned/npm-cli.js" }, concurrency: 4 });
+      const observed = running.then(() => ({ failed: false, error: undefined }), error => ({ failed: true, error }));
+      await vi.waitFor(() => expect(children).toHaveLength(4)); await Promise.all(ready);
+      if (trigger === "primary") children[1].emit("error", false); else host.emit("SIGTERM");
+      const result = await observed;
+      expect(result.failed).toBe(true);
+      if (trigger === "primary") expect(Object.is(result.error, false)).toBe(true);
+      else expect(String(result.error)).toContain("interrupted");
+      expect(closeCounts).toEqual([1, 1, 1, 1]); expect(children).toHaveLength(4);
+      for (const child of children) expect(() => process.kill(-child.pid!, 0)).toThrow();
+      expect(host.listenerCount("SIGTERM")).toBe(0);
+    } finally {
+      const signal = (value: NodeJS.Signals) => { for (const child of children) { try { process.kill(-child.pid!, value); } catch (error) { if ((error as NodeJS.ErrnoException).code !== "ESRCH") throw error; } } };
+      signal("SIGTERM"); const escalation = setTimeout(() => signal("SIGKILL"), 2000);
+      await Promise.all(closed); clearTimeout(escalation); owned.remove();
+    }
+  }, 15000);
+});
+
+describe("finite unit input and environment boundaries", () => {
+  it("does not open source payloads while planning the metadata-only graph", () => {
+    const owned = unitFixture(), opened: string[] = [];
+    try {
+      fs.mkdirSync(path.join(owned.root, "packages/bash/src/commands/xan"), { recursive: true });
+      fs.writeFileSync(path.join(owned.root, "packages/bash/src/commands/xan/index.ts"), "OWNED SYNTHETIC PAYLOAD MUST NOT OPEN");
+      const fileSystem = { ...fs, openSync: (...args: Parameters<typeof fs.openSync>) => { opened.push(String(args[0])); return fs.openSync(...args); } };
+      workspaceRunner.createWorkspaceTestPlan(owned.root, { fileSystem });
+      expect(opened.every(filename => ["package.json", "turbo.json"].includes(path.basename(filename)))).toBe(true);
+      expect(opened.some(filename => filename.endsWith("package.json"))).toBe(true);
+    } finally { owned.remove(); }
+  });
+
+  it("does not give the root unit task a feature profile through a matching root name", async () => {
+    const owned = unitFixture(), mock = mockExecution();
+    try {
+      writeJson(path.join(owned.root, "package.json"), { name: "virtual-bash", private: true, workspaces: ["packages/*"], scripts: { "test:unit": "node owned.cjs" } });
+      await workspaceRunner.testWorkspaces(owned.root, { ...mock, environment: { ...mock.environment, SAFE_BASH_TEST_RG: "/owned/rg" } });
+      const rootCall = mock.start.mock.calls.find(call => call[1].includes("--workspaces=false"))!;
+      expect(rootCall[2].env?.SAFE_BASH_TEST_RG).toBeUndefined();
+      const featureCall = mock.start.mock.calls.find(call => call[1][4] === "test:unit" && call[1].includes("--workspace=packages/bash"))!;
+      expect(featureCall[2].env?.SAFE_BASH_TEST_RG).toBe("/owned/rg");
+    } finally { owned.remove(); }
+  });
 });

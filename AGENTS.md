@@ -65,6 +65,13 @@ A provider may define an optional `spawn(context, options)` conversation functio
 
 ## Testing
 
+### Maintained build and test routes
+
+- Use `npm run build` for the normal workspace build and root suffix stages; use `npm run build:workspaces -- --workspace=<exact-name>` only for an explicitly selected workspace build closure.
+- Use `npm test` for root and every declared workspace unit task, including required build dependencies and native npm pre/event/post scripts. Root-only `npm run test:unit` is not a normal pre-push or CI substitute.
+- Keep execution uncached and derive task membership/dependency closure from maintained declarations; do not replace them with fixed task counts or a root-plus-Bash shortcut.
+- In unit mode, keep caller-supplied `SAFE_BASH_TEST_RG`, `SAFEJS_LOCAL_ROOT`, `S3_HTTP_EXPORTS_REVISION` and `FULL_GATE_ROOT` scoped to the actual virtual-bash workspace unit task. Do not synthesize optional profiles or count unavailable cases as passes.
+
 ### Unit Testing - speed is crucial
 
 Any tests that takes longer shouldn't exist. Either mock slow dependencies or rewrite/remove the test.

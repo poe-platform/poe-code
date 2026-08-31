@@ -53,7 +53,7 @@ const taskId = "virtual-bash#test:unit";
 const provisionId = "virtual_bash_inputs";
 const expression = "${{ steps.virtual_bash_inputs.outputs.rg }}";
 const featureCommand = "npm run test:unit --workspace virtual-bash -- --test-concurrency=1";
-const releaseCommand = "npx turbo run test:unit --concurrency=4 --force";
+const releaseCommand = "npm test -- --concurrency=4";
 const feature = pr.jobs["virtual-bash-node22"];
 const stable = release.jobs["release-stable"];
 const testStep = (job, command) => job.steps.find(step => step.run === command);
@@ -102,9 +102,9 @@ for (const [name, task] of Object.entries(turbo.tasks)) {
 }
 assert(pr.jobs["virtual-bash-node22"], "feature job is required");
 assert(!JSON.stringify(pr.jobs.test).includes(binding), "Node20 must not receive the binding");
-assert(pr.jobs.test.steps.some(step => step.run === "npx turbo run test:unit --filter='!virtual-bash' --concurrency=4 --force"));
+assert(pr.jobs.test.steps.some(step => step.run === "npm test -- --concurrency=4 --exclude-workspace=virtual-bash"));
 for (const [workflow, job, command, predecessor] of [
-  [pr, pr.jobs["virtual-bash-node22"], featureCommand, "npx turbo run build --filter=virtual-bash --concurrency=1 --force"],
+  [pr, pr.jobs["virtual-bash-node22"], featureCommand, "npm run build:workspaces -- --workspace=virtual-bash"],
   [release, stable, releaseCommand, "npm run lint:packages"],
 ]) {
   assert.equal(workflow.env?.[binding], undefined);

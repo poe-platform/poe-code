@@ -167,7 +167,7 @@ export function createWorkspaceBuildPlan(rootDirectory, fileSystem = fs) {
     assert.ok(workspace);
     return workspace;
   }).filter(workspace => workspace.build !== null);
-  return { root, workspaces, edges, layers, stages, manifestless, noBuild: workspaces.filter(workspace => workspace.build === null).map(workspace => ({ name: workspace.name, path: workspace.path, status: "NO_DECLARED_BUILD_NOT_A_PASS" })) };
+  return { root, rootManifest, configuration, workspaces, edges, layers, stages, manifestless, noBuild: workspaces.filter(workspace => workspace.build === null).map(workspace => ({ name: workspace.name, path: workspace.path, status: "NO_DECLARED_BUILD_NOT_A_PASS" })) };
 }
 
 function taskError(message, exitCode = 1) {
@@ -176,99 +176,252 @@ function taskError(message, exitCode = 1) {
   return error;
 }
 
-export async function buildWorkspaces(rootDirectory, { environment = process.env, spawn = spawnChild, host = process, fileSystem = fs } = {}) {
-  assert.ok(environment.npm_execpath && path.isAbsolute(environment.npm_execpath), "Run this entrypoint through npm run build");
+function validateEnvironment(environment) {
+  assert.ok(environment.npm_execpath && path.isAbsolute(environment.npm_execpath), "Run this entrypoint through npm run build or npm test");
   for (const [name, value] of Object.entries(environment)) {
     if (["npm_config_ignore_scripts", "npm_config_if_present", "npm_config_include_workspace_root"].includes(name.toLowerCase())) {
-      assert.ok(value === undefined || value === "false", `Unsupported lifecycle or workspace option: ${name}`);
+      assert.ok(value === undefined || value === "false", 'Unsupported lifecycle or workspace option: ' + name);
     }
   }
-  assert.equal(host.platform === "win32", false, "Workspace process-group cleanup currently supports POSIX hosts");
+}
+
+function selectBuildStages(plan, roots) {
+  const names = new Set(plan.workspaces.map(workspace => workspace.name));
+  const selected = new Set();
+  const visit = name => {
+    assert.ok(names.has(name), 'Unknown literal workspace: ' + name);
+    if (selected.has(name)) return;
+    selected.add(name);
+    for (const edge of plan.edges) if (edge.from === name) visit(edge.to);
+  };
+  for (const name of roots) visit(name);
+  return { stages: plan.stages.filter(stage => selected.has(stage.name)), noBuild: plan.noBuild.filter(stage => selected.has(stage.name)) };
+}
+
+export function createWorkspaceTestPlan(rootDirectory, options = {}) {
+  const { fileSystem = fs, excludeWorkspace, concurrency = 1, testArguments = [] } = options;
+  assert.ok(concurrency === 1 || concurrency === 4, "Unit concurrency must be 1 or 4");
+  assert.ok(excludeWorkspace === undefined || excludeWorkspace === "virtual-bash", "Only the Node20 virtual-bash exclusion is supported");
+  assert.ok(Array.isArray(testArguments) && testArguments.every(value => typeof value === "string" && !value.includes("\0")), "Invalid test arguments");
   const plan = createWorkspaceBuildPlan(rootDirectory, fileSystem);
-  const failures = [], registered = [];
-  let active, interrupted, forceTimer;
+  const names = new Set(plan.workspaces.map(workspace => workspace.name));
+  if (excludeWorkspace) assert.ok(names.has(excludeWorkspace), "Excluded workspace is missing");
+  const tasks = plan.configuration.tasks;
+  for (const [name, task] of Object.entries(tasks)) {
+    if (name !== "test:unit" && !name.endsWith("#test:unit")) continue;
+    assert.ok(name === "test:unit" || name === "//#test:unit" || names.has(name.slice(0, -10)), 'Unknown unit task override: ' + name);
+    assert.ok(task && typeof task === "object" && !Array.isArray(task));
+    assert.ok(Object.keys(task).every(key => ["dependsOn", "inputs", "outputs", "cache", "passThroughEnv"].includes(key)), 'Unsupported unit task configuration: ' + name);
+    for (const field of ["dependsOn", "inputs", "outputs", "passThroughEnv"]) {
+      if (task[field] !== undefined) assert.ok(Array.isArray(task[field]) && task[field].every(value => typeof value === "string"), 'Invalid unit ' + field);
+    }
+    if (task.dependsOn !== undefined) {
+      assert.ok(task.dependsOn.every(value => value === "build" || value === "^build"), 'Unsupported unit dependencies: ' + name);
+      assert.equal(new Set(task.dependsOn).size, task.dependsOn.length, "Duplicate unit dependencies");
+    }
+    if (task.cache !== undefined) assert.equal(typeof task.cache, "boolean");
+    if (task.passThroughEnv?.length) {
+      assert.equal(name, "virtual-bash#test:unit", "Feature environment must remain scoped to virtual-bash");
+      assert.deepEqual(task.passThroughEnv, ["SAFE_BASH_TEST_RG"]);
+    }
+  }
+  const candidates = [{ name: plan.rootManifest.name, path: null, manifest: plan.rootManifest }, ...plan.workspaces];
+  const testStages = [], noTest = [], buildRoots = new Set();
+  for (const workspace of candidates) {
+    const scripts = workspace.manifest.scripts ?? {};
+    assert.ok(scripts && typeof scripts === "object" && !Array.isArray(scripts));
+    for (const event of ["pretest:unit", "test:unit", "posttest:unit"]) {
+      if (scripts[event] !== undefined) assert.ok(typeof scripts[event] === "string" && scripts[event].trim().length > 0, 'Invalid ' + event + ': ' + workspace.name);
+    }
+    if (workspace.path === null) assert.ok(scripts["test:unit"], "Root test:unit is required");
+    if (!scripts["test:unit"]) { noTest.push({ name: workspace.name, path: workspace.path, status: "NO_DECLARED_TEST_NOT_A_PASS" }); continue; }
+    const id = workspace.path === null ? "//#test:unit" : workspace.name + "#test:unit";
+    const settings = { ...tasks["test:unit"], ...tasks[id] };
+    if (workspace.path === null) assert.ok(!settings.dependsOn?.length, "Root test build dependencies are unsupported");
+    if (workspace.name === excludeWorkspace && workspace.path !== null) continue;
+    testStages.push({ id, name: workspace.name, path: workspace.path, event: "test:unit" });
+    for (const dependency of settings.dependsOn ?? []) {
+      if (dependency === "build") buildRoots.add(workspace.name);
+      else for (const edge of plan.edges) if (edge.from === workspace.name) buildRoots.add(edge.to);
+    }
+  }
+  const selected = selectBuildStages(plan, buildRoots);
+  return { ...plan, buildStages: selected.stages, buildNoBuild: selected.noBuild, testStages, noTest, concurrency, testArguments, excludeWorkspace };
+}
+
+function taskEnvironment(environment, stage, unitMode) {
+  const selected = { ...environment };
+  if (unitMode && !(stage.path !== null && stage.name === "virtual-bash" && stage.event === "test:unit")) {
+    for (const name of ["SAFE_BASH_TEST_RG", "SAFEJS_LOCAL_ROOT", "S3_HTTP_EXPORTS_REVISION", "FULL_GATE_ROOT"]) delete selected[name];
+  }
+  return selected;
+}
+
+async function executeStages(plan, { environment, spawn, host, concurrency = 1, unitMode = false, testArguments = [] }) {
+  assert.equal(host.platform === "win32", false, "Workspace process-group cleanup currently supports POSIX hosts");
+  const active = new Set(), registered = [], failures = [];
+  const remember = (context, error) => { context?.errors.push(error); failures.push(error); };
+  let interrupted, failed = false, next = 0, completed = 0;
   const signal = (pid, value) => {
     try { host.kill(-pid, value); } catch (error) { if (error?.code !== "ESRCH") throw error; }
   };
+  const terminate = (context, value) => {
+    if (!context.child?.pid || context.stopped) return;
+    context.stopped = true;
+    context.forceTimer = setTimeout(() => {
+      try { signal(context.child.pid, "SIGKILL"); } catch (error) { remember(context, error); }
+    }, 2000);
+    try { signal(context.child.pid, value); } catch (error) { remember(context, error); }
+  };
+  const failure = () => {
+    failed = true;
+    if (unitMode) for (const owned of active) terminate(owned, "SIGTERM");
+  };
   const stop = value => {
-    interrupted ??= value;
-    if (active?.pid) {
-      try { signal(active.pid, value); } catch (error) { failures.push(error); }
-      forceTimer ??= setTimeout(() => { try { if (active?.pid) signal(active.pid, "SIGKILL"); } catch (error) { failures.push(error); } }, 2000);
+    if (!interrupted) {
+      interrupted = value;
+      if (!failed) failures.push(taskError('Build or unit execution interrupted by ' + value));
+      failed = true;
     }
+    for (const context of active) terminate(context, value);
   };
   const handlers = new Map(["SIGINT", "SIGTERM"].map(value => [value, () => stop(value)]));
-  let completed = 0;
-  try {
-    for (const [value, handler] of handlers) { registered.push(value); host.on(value, handler); }
-    for (const workspace of plan.stages) {
-      if (interrupted) throw taskError(`Build interrupted by ${interrupted}`);
-      const args = [environment.npm_execpath, "--prefix", plan.root, "run", "build", `--workspace=${workspace.path}`, "--include-workspace-root=false", "--if-present=false"];
-      const childFailures = [];
-      let resolveClose;
-      const closed = new Promise(resolve => { resolveClose = resolve; });
-      active = spawn(host.execPath, args, { cwd: plan.root, env: { ...environment }, stdio: "inherit", detached: true });
-      const started = active;
-      const onError = error => childFailures.push(error);
-      const onClose = (code, receivedSignal) => resolveClose({ code, signal: receivedSignal });
-      const observers = [["close", onClose], ["error", onError]];
+  const run = async stage => {
+    const context = { stage, child: undefined, stopped: false, errors: [], forceTimer: undefined };
+    active.add(context);
+    const event = stage.event ?? "build";
+    const selection = stage.path === null ? ["--workspaces=false"] : ['--workspace=' + stage.path, "--include-workspace-root=false"];
+    const args = [environment.npm_execpath, "--prefix", plan.root, "run", event, ...selection, "--if-present=false"];
+    if (event === "test:unit" && testArguments.length) args.push("--", ...testArguments);
+    let resolveClose;
+    const closed = new Promise(resolve => { resolveClose = resolve; });
+    const onError = error => { remember(context, error); failure(); };
+    const onClose = (code, receivedSignal) => {
+      if (!context.errors.length && !context.stopped && (code !== 0 || receivedSignal)) {
+        remember(context, taskError('Workspace ' + event + ' failed: ' + stage.name + ' (' + (receivedSignal ?? code) + ')', code > 0 ? code : 1));
+        failure();
+      }
+      resolveClose({ code, signal: receivedSignal });
+    };
+    const observers = [["close", onClose], ["error", onError]];
+    try {
       try {
-        for (const [event, observer] of observers) started.once(event, observer);
+        context.child = spawn(host.execPath, args, { cwd: plan.root, env: taskEnvironment(environment, { ...stage, event }, unitMode), stdio: "inherit", detached: true });
       } catch (error) {
-        childFailures.push(error);
-        for (const [event, observer] of observers) {
-          EventEmitter.prototype.removeListener.call(started, event, observer);
-          EventEmitter.prototype.on.call(started, event, observer);
+        remember(context, error); failure(); return;
+      }
+      const started = context.child;
+      try {
+        for (const [eventName, observer] of observers) started.once(eventName, observer);
+      } catch (error) {
+        remember(context, error);
+        for (const [eventName, observer] of observers) {
+          EventEmitter.prototype.removeListener.call(started, eventName, observer);
+          EventEmitter.prototype.on.call(started, eventName, observer);
         }
-        if (started.pid) {
-          try { signal(started.pid, "SIGTERM"); } catch (error) { childFailures.push(error); }
-          forceTimer ??= setTimeout(() => { try { signal(started.pid, "SIGKILL"); } catch (error) { childFailures.push(error); } }, 2000);
-        }
+        failure();
+        terminate(context, "SIGTERM");
       }
-      const result = await closed;
-      clearTimeout(forceTimer); forceTimer = undefined;
-      for (const [event, observer] of observers) {
-        try { EventEmitter.prototype.removeListener.call(started, event, observer); } catch (error) { childFailures.push(error); }
+      if (interrupted || (failed && unitMode)) terminate(context, "SIGTERM");
+      await closed;
+      clearTimeout(context.forceTimer);
+      context.forceTimer = undefined;
+      for (const [eventName, observer] of observers) {
+        try { EventEmitter.prototype.removeListener.call(started, eventName, observer); } catch (error) { remember(context, error); failure(); }
       }
-      if (!childFailures.length) {
-        if (interrupted) childFailures.push(taskError(`Build interrupted by ${interrupted}`));
-        else if (result.code !== 0 || result.signal) childFailures.push(taskError(`Workspace build failed: ${workspace.name} (${result.signal ?? result.code})`, result.code > 0 ? result.code : 1));
-      }
-      if (active.pid) {
+      if (started.pid) {
         const exists = () => {
-          try { host.kill(-active.pid, 0); return true; } catch (error) { if (error?.code === "ESRCH") return false; throw error; }
+          try { host.kill(-started.pid, 0); return true; } catch (error) { if (error?.code === "ESRCH") return false; throw error; }
         };
         try {
           for (const value of ["SIGTERM", "SIGKILL"]) {
             if (!exists()) break;
-            signal(active.pid, value);
+            signal(started.pid, value);
             for (let attempt = 0; attempt < 40 && exists(); attempt++) await new Promise(resolve => setTimeout(resolve, 25));
           }
           assert.ok(!exists(), "Workspace process group did not exit");
-        } catch (error) { childFailures.push(error); }
+        } catch (error) { remember(context, error); failure(); }
       }
-      active = undefined;
-      throwFailures(childFailures, "Workspace execution and cleanup failed");
-      completed++;
-      if (failures.length) break;
+      if (!context.errors.length && !context.stopped) completed++;
+    } finally {
+      clearTimeout(context.forceTimer);
+      active.delete(context);
     }
-  } catch (error) {
-    failures.unshift(error);
-  }
-  clearTimeout(forceTimer);
+  };
+  const work = async () => {
+    while (!failed && next < plan.stages.length) {
+      const stage = plan.stages[next++];
+      await run(stage);
+    }
+  };
+  try {
+    for (const [value, handler] of handlers) { registered.push(value); host.on(value, handler); }
+    const workers = Array.from({ length: concurrency }, () => work().catch(error => {
+      failures.push(error); failed = true;
+      for (const context of active) terminate(context, "SIGTERM");
+    }));
+    await Promise.all(workers);
+  } catch (error) { failures.push(error); failed = true; }
   for (const value of registered.reverse()) {
     try { host.off(value, handlers.get(value)); } catch (error) { failures.push(error); }
   }
-  throwFailures(failures, "Workspace build and cleanup failed");
-  if (interrupted) throw taskError(`Build interrupted by ${interrupted}`);
-  assert.equal(completed, plan.stages.length, "Incomplete workspace build");
-  return { workspaces: plan.workspaces.length, builds: completed, edges: plan.edges.length, layers: plan.layers.length, noBuild: plan.noBuild, manifestless: plan.manifestless };
+  throwFailures(failures, "Workspace execution and cleanup failed");
+  assert.equal(completed, plan.stages.length, "Incomplete workspace execution");
+  return completed;
+}
+
+export async function buildWorkspaces(rootDirectory, options = {}) {
+  const { environment = process.env, spawn = spawnChild, host = process, fileSystem = fs, workspace } = options;
+  validateEnvironment(environment);
+  const plan = createWorkspaceBuildPlan(rootDirectory, fileSystem);
+  const selected = workspace === undefined ? plan : { ...plan, ...selectBuildStages(plan, [workspace]) };
+  const completed = await executeStages(selected, { environment, spawn, host });
+  return { workspaces: plan.workspaces.length, builds: completed, edges: plan.edges.length, layers: plan.layers.length, noBuild: selected.noBuild, manifestless: plan.manifestless };
+}
+
+export async function testWorkspaces(rootDirectory, options = {}) {
+  const { environment = process.env, spawn = spawnChild, host = process, fileSystem = fs, excludeWorkspace, concurrency = 1, testArguments = [] } = options;
+  validateEnvironment(environment);
+  const plan = createWorkspaceTestPlan(rootDirectory, { fileSystem, excludeWorkspace, concurrency, testArguments });
+  const builds = await executeStages({ ...plan, stages: plan.buildStages }, { environment, spawn, host, unitMode: true });
+  const tests = await executeStages({ ...plan, stages: plan.testStages }, { environment, spawn, host, unitMode: true, concurrency, testArguments });
+  return { workspaces: plan.workspaces.length, builds, tests, concurrency, cache: "UNCACHED", excluded: excludeWorkspace ? [excludeWorkspace] : [], noTest: plan.noTest, noBuild: plan.buildNoBuild, manifestless: plan.manifestless };
+}
+
+export function parseWorkspaceArguments(args) {
+  if (!args.length) return { mode: "build" };
+  if (args[0] !== "--test-unit") {
+    assert.equal(args.length, 1, "Build accepts only one literal workspace selector");
+    assert.ok(args[0].startsWith("--workspace="), "Unsupported build argument");
+    const workspace = args[0].slice(12);
+    assert.ok(workspace && !["*", "?", "[", "]", "{", "}", "\\", "\0", ".."].some(value => workspace.includes(value)), "Invalid literal workspace selector");
+    return { mode: "build", workspace };
+  }
+  const result = { mode: "test-unit", concurrency: 1, excludeWorkspace: undefined, testArguments: [] };
+  const seen = new Set();
+  for (let index = 1; index < args.length; index++) {
+    const argument = args[index];
+    if (argument === "--") { result.testArguments.push(...args.slice(index + 1)); break; }
+    const equals = argument.indexOf("=");
+    const name = equals < 0 ? argument : argument.slice(0, equals);
+    if (name === "--concurrency" || name === "--exclude-workspace") {
+      assert.ok(!seen.has(name), "Duplicate runner option"); seen.add(name);
+      const value = equals < 0 ? undefined : argument.slice(equals + 1);
+      if (name === "--concurrency") { assert.ok(value === "1" || value === "4", "Unit concurrency must be 1 or 4"); result.concurrency = Number(value); }
+      else { assert.equal(value, "virtual-bash", "Only the Node20 virtual-bash exclusion is supported"); result.excludeWorkspace = value; }
+    } else {
+      assert.ok(!["--workspace", "--test-unit"].includes(name), "Unsupported unit runner option");
+      result.testArguments.push(...args.slice(index)); break;
+    }
+  }
+  return result;
 }
 
 if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.meta.url)) {
   try {
-    assert.equal(process.argv.length, 2, "This entrypoint accepts no task filters or options");
-    console.log(JSON.stringify(await buildWorkspaces(fileURLToPath(new URL("../", import.meta.url)))));
+    const options = parseWorkspaceArguments(process.argv.slice(2));
+    const root = fileURLToPath(new URL("../", import.meta.url));
+    console.log(JSON.stringify(await (options.mode === "test-unit" ? testWorkspaces(root, options) : buildWorkspaces(root, options))));
   } catch (error) {
     console.error(error);
     process.exitCode = Number.isInteger(error?.exitCode) && error.exitCode > 0 ? error.exitCode : 1;

@@ -2,6 +2,7 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import { fs, vol } from "memfs";
 import type { ExplorerConfig } from "toolcraft-design";
 import type { OpenTaskListOptions, Task, TaskList } from "@poe-code/task-list";
+import { runMaestroTui } from "./run.js";
 
 const { editFileMock, openTaskListMock, runExplorerMock } = vi.hoisted(() => ({
   editFileMock: vi.fn(),
@@ -91,7 +92,6 @@ describe("runMaestroTui", () => {
     const initialTask = task();
     const tasks = taskList([initialTask]);
     const variables = { EDITOR: "code", EMPTY: undefined };
-    const { runMaestroTui } = await import("./run.js");
 
     await runMaestroTui({ taskList: tasks, variables });
 
@@ -113,7 +113,6 @@ describe("runMaestroTui", () => {
     const second = task({ id: "second", qualifiedId: "tasks/second", name: "Second" });
     const tasks = taskList([]);
     vi.mocked(tasks.allTasks).mockResolvedValueOnce([first]).mockResolvedValueOnce([second]);
-    const { runMaestroTui } = await import("./run.js");
 
     await runMaestroTui({ taskList: tasks, variables: {} });
 
@@ -136,7 +135,6 @@ describe("runMaestroTui", () => {
     process.env.EDITOR = "test-editor";
     const sourceTask = task({ sourcePath: "/repo/tasks/ship.md" });
     const tasks = taskList([sourceTask]);
-    const { runMaestroTui } = await import("./run.js");
 
     try {
       await runMaestroTui({ taskList: tasks });
@@ -183,8 +181,6 @@ describe("runMaestroTui", () => {
         "    terminal: true"
       ])
     });
-    const { runMaestroTui } = await import("./run.js");
-
     await runMaestroTui({ workflowPath: "/repo/WORKFLOW.md" });
 
     expect(openTaskListMock).toHaveBeenCalledWith({
@@ -219,8 +215,6 @@ describe("runMaestroTui", () => {
         "    terminal: true"
       ])
     });
-    const { runMaestroTui } = await import("./run.js");
-
     try {
       await runMaestroTui({ name: "bugs" });
 
@@ -247,8 +241,6 @@ describe("runMaestroTui", () => {
         "    terminal: true"
       ])
     });
-    const { runMaestroTui } = await import("./run.js");
-
     try {
       await runMaestroTui({ name: "default" });
 
@@ -260,8 +252,6 @@ describe("runMaestroTui", () => {
   });
 
   it("rejects both a workflow path and a workflow name", async () => {
-    const { runMaestroTui } = await import("./run.js");
-
     await expect(
       runMaestroTui({ workflowPath: "/repo/WORKFLOW.md", name: "bugs" })
     ).rejects.toThrow("Cannot specify both workflowPath and name for Maestro.");
@@ -269,7 +259,6 @@ describe("runMaestroTui", () => {
 
   it("reports a missing named workflow file", async () => {
     const cwd = vi.spyOn(process, "cwd").mockReturnValue("/repo");
-    const { runMaestroTui } = await import("./run.js");
 
     try {
       await expect(runMaestroTui({ name: "bugs" })).rejects.toThrow(
@@ -284,8 +273,6 @@ describe("runMaestroTui", () => {
     vol.fromJSON({
       "/repo/WORKFLOW.md": workflowFrontmatter(["states:", "  planned:", "    prompt: Start."])
     });
-    const { runMaestroTui } = await import("./run.js");
-
     await expect(runMaestroTui({ workflowPath: "/repo/WORKFLOW.md" })).rejects.toThrow(
       "Maestro workflow is missing tasks config."
     );

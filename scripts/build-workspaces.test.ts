@@ -1,9 +1,10 @@
-import { execFileSync, spawn, type SpawnOptions } from "node:child_process";
+import { execFileSync, spawn, spawnSync, type SpawnOptions } from "node:child_process";
 import { EventEmitter } from "node:events";
 import fs from "node:fs";
 import { tmpdir } from "node:os";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
+import fastGlob from "fast-glob";
 import { describe, expect, it, vi } from "vitest";
 import * as workspaceRunner from "./build-workspaces.mjs";
 import { buildWorkspaces, createWorkspaceBuildPlan, matchesWorkspaceRange, readManifest } from "./build-workspaces.mjs";
@@ -12,6 +13,74 @@ type Manifest = Record<string, unknown>;
 type Fixture = { root: string; write: (name: string, manifest: Manifest) => void; remove: () => void };
 const runnerFilename = fileURLToPath(new URL("./build-workspaces.mjs", import.meta.url));
 const primaryValues = [undefined, null, false, 0, -0, "", NaN, new Error("primary")];
+
+describe("maintained literal workspace test selectors", () => {
+  const root = path.dirname(path.dirname(runnerFilename));
+
+  function captureArguments(
+    workspace: string,
+    event: "test" | "test:unit",
+    enumeration: "unavailable" | "empty" | "nonempty"
+  ) {
+    const directory = path.join(root, "packages", workspace);
+    const manifest = JSON.parse(fs.readFileSync(path.join(directory, "package.json"), "utf8"));
+    const result = spawnSync(
+      "/bin/sh",
+      [
+        "-c",
+        [
+          'sort() { /usr/bin/sort "$@"; }',
+          'tr() { /usr/bin/tr "$@"; }',
+          'vitest() { printf "%s\\000" "$@"; }',
+          enumeration === "empty"
+            ? "rg() { return 0; }"
+            : enumeration === "nonempty"
+              ? `rg() { printf '%s\\n' 'packages/${workspace}/src/current.test.ts' 'packages/${workspace}/src/future/nested.test.ts'; }`
+              : "",
+          manifest.scripts[event]
+        ].join("\n")
+      ],
+      { cwd: directory, env: { ...process.env, PATH: "" }, encoding: "utf8", timeout: 5000 }
+    );
+    expect(result.error).toBeUndefined();
+    expect(result.status).toBe(0);
+    expect(result.signal).toBeNull();
+    return { arguments: result.stdout.split("\0").slice(0, -1), stderr: result.stderr };
+  }
+
+  for (const workspace of ["superintendent", "terminal-pilot"]) {
+    for (const event of ["test", "test:unit"] as const) {
+      for (const enumeration of ["unavailable", "empty", "nonempty"] as const) {
+        it(`${workspace} ${event} keeps its directory filter when rg is ${enumeration}`, () => {
+          expect(captureArguments(workspace, event, enumeration)).toEqual({
+            arguments: ["run", `packages/${workspace}/src/`],
+            stderr: ""
+          });
+        });
+      }
+    }
+
+    it(`${workspace} retains current and future nested src paths without enumerating filenames in argv`, () => {
+      const { arguments: capturedArguments } = captureArguments(workspace, "test:unit", "empty");
+      const selector = capturedArguments[1];
+      expect(selector).toBe(`packages/${workspace}/src/`);
+      const current = fastGlob.sync(`packages/${workspace}/src/**/*.test.ts`, { cwd: root });
+      expect(current.length).toBeGreaterThan(0);
+      for (const filename of [
+        ...current,
+        `packages/${workspace}/src/future/deep/new.test.ts`,
+        `packages/${workspace}/src/future/deep/new.spec.ts`
+      ]) {
+        expect(filename.startsWith(selector!)).toBe(true);
+        expect(capturedArguments).not.toContain(filename);
+      }
+      expect(`packages/${workspace}/src-sibling/other.test.ts`.startsWith(selector!)).toBe(false);
+      expect("packages/terminal-pilot/scripts/build-assets.test.ts".startsWith(selector!)).toBe(
+        false
+      );
+    });
+  }
+});
 
 function writeJson(filename: string, value: unknown): void {
   fs.writeFileSync(filename, `${JSON.stringify(value, null, 2)}\n`);

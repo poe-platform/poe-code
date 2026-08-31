@@ -7,6 +7,7 @@ import { join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { digest, epochSeconds, longName, pattern, paxSample } from "./fixtures.js";
 import { absent, fixture, source, success, tar } from "./helpers.js";
+import { nativeGnuBinding, nativeAppleBinding, verifyNativeExecutable } from "../../native-profile.js";
 
 const directory = fileURLToPath(new URL("./", import.meta.url));
 const crossName = `cross-${"name".repeat(29)}.bin`;
@@ -25,6 +26,12 @@ interface Observation {
 }
 
 async function oracle(family: "GNU" | "BSD") {
+  if (process.env.SAFE_BASH_NATIVE_LANE === "darwin") {
+    const binding = family === "GNU" ? nativeGnuBinding("tar") : nativeAppleBinding("bsdtar");
+    assert(binding, "required Darwin lane must use reviewed native executables");
+    const admitted = verifyNativeExecutable(binding, binding.path);
+    return { executable: admitted.path, version: admitted.version, executableSha256: admitted.sha256 };
+  }
   const candidates = family === "GNU"
     ? [fileURLToPath(new URL("../archive/.oracle/gnu-tar/1.35/bin/gtar", import.meta.url)), "/opt/homebrew/bin/gtar", "/usr/local/bin/gtar", "/usr/bin/tar"]
     : ["/usr/bin/tar", "/usr/bin/bsdtar", "/opt/homebrew/bin/bsdtar"];
@@ -42,6 +49,7 @@ async function oracle(family: "GNU" | "BSD") {
 async function nativeCase(context: TestContext, family: "GNU" | "BSD", direction: string, body: (temporary: string, run: (args: readonly string[], text?: boolean) => Buffer, artifacts: Record<string, string>) => Promise<void>) {
   const selected = await oracle(family);
   if (!selected) {
+    assert.notEqual(process.env.SAFE_BASH_NATIVE_LANE, "darwin", `${family} executable required by Darwin lane`);
     const reason = `${family} tar executable unavailable; deterministic A01-A15 still run`;
     if (process.env.ARCHIVE_ACCEPTANCE_EVIDENCE) await writeFile(join(process.env.ARCHIVE_ACCEPTANCE_EVIDENCE, `native-${family}-${direction}.json`), `${JSON.stringify({ family, direction, skipped: reason }, null, 2)}\n`);
     context.skip(reason);

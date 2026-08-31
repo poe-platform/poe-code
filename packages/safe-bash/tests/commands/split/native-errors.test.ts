@@ -3,13 +3,12 @@ import { test } from "node:test";
 import { spawnSync } from "node:child_process";
 import { createHash } from "node:crypto";
 import * as native from "node:fs/promises";
-import { fileURLToPath } from "node:url";
 import { join } from "node:path";
 import { createMemoryFileSystem } from "../../../src/fs/memory/index.js";
 import { run, files } from "./helpers.js";
 import { captureNativeReport, createNativeScratch } from "./native-capture.js";
+import { nativeSplitBinding } from "./native-binding.js";
 
-const executable = fileURLToPath(new URL("../metadata-stress/.oracle/coreutils-9.7/src/split", import.meta.url));
 const scenarios = [
   { id: "zero-lines", args: ["-l0"], input: "abc", nativeMessage: /invalid number of lines/, virtualMessage: /invalid number of lines/ },
   { id: "zero-bytes", args: ["-b0"], input: "abc", nativeMessage: /invalid number of bytes/, virtualMessage: /invalid number of bytes/ },
@@ -23,9 +22,10 @@ const scenarios = [
 ] as const;
 
 test("GNU errors: exact status/effects, separately asserted diagnostic profiles", async context => {
+  const { path: executable, sha256: pin } = nativeSplitBinding("gnu");
   let binary: Uint8Array;
   try { binary = await native.readFile(executable); } catch { context.skip("pinned GNU9.7 oracle unavailable"); return; }
-  assert.equal(createHash("sha256").update(binary).digest("hex"), "cf5851c4e6566983ce69940b766c0b5eb0cd26ebf2bb45eefe215b2d5c62f958");
+  assert.equal(createHash("sha256").update(binary).digest("hex"), pin);
   const report: unknown[] = [];
   let failure = false;
   for (const specimen of scenarios) {
@@ -57,9 +57,11 @@ test("GNU errors: exact status/effects, separately asserted diagnostic profiles"
 });
 
 test("explicit GNU versus Apple naming/profile differences remain visible", async context => {
-  try { await native.access(executable); await native.access("/usr/bin/split"); } catch { context.skip("both native profiles required"); return; }
-  assert.equal(createHash("sha256").update(await native.readFile(executable)).digest("hex"), "cf5851c4e6566983ce69940b766c0b5eb0cd26ebf2bb45eefe215b2d5c62f958");
-  assert.equal(createHash("sha256").update(await native.readFile("/usr/bin/split")).digest("hex"), "7c2d5f3c73e849d664bad3a2f4c67c5154b0f03f59f2fa779d49e33dc7983f91");
+  const gnu = nativeSplitBinding("gnu");
+  const apple = nativeSplitBinding("apple");
+  try { await native.access(gnu.path); await native.access(apple.path); } catch { context.skip("both native profiles required"); return; }
+  assert.equal(createHash("sha256").update(await native.readFile(gnu.path)).digest("hex"), gnu.sha256);
+  assert.equal(createHash("sha256").update(await native.readFile(apple.path)).digest("hex"), apple.sha256);
   const report: unknown[] = [];
   for (const scenario of [
     { id: "alphabet-auto", args: ["-b1"], input: "z".repeat(677), appleStatus: 65, appleFiles: 676, appleDiagnostic: /^split: too many files\n$/u, gnuFiles: 677 },
@@ -68,7 +70,7 @@ test("explicit GNU versus Apple naming/profile differences remain visible", asyn
     { id: "invalid-zero", args: ["-l0"], input: "abc", appleStatus: 64, appleFiles: 0, appleDiagnostic: /^split: 0: line count is too small\n$/u, gnuFiles: 0 },
   ]) {
     const outputs: Record<string, unknown> = {};
-    for (const [name, tool] of [["gnu", executable], ["apple", "/usr/bin/split"]] as const) {
+    for (const [name, tool] of [["gnu", gnu.path], ["apple", apple.path]] as const) {
       const temp = await createNativeScratch(context);
       const result = spawnSync(tool, scenario.args, { cwd: temp, input: scenario.input, env: { LC_ALL: "C", PATH: "/usr/bin:/bin" }, timeout: 10000 });
       const names = (await native.readdir(temp)).sort();

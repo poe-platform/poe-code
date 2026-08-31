@@ -3,7 +3,7 @@ import { createHash } from "node:crypto";
 import * as fs from "node:fs";
 import { spawnSync } from "node:child_process";
 import { fileURLToPath } from "node:url";
-import { currentNativeHost, qualifyNativeProfile, type NativeHost } from "../../native-profile.js";
+import { currentNativeHost, matchNativeProfile, nativeGnuBinding, qualifyNativeProfile, verifyNativeExecutable, type NativeHost } from "../../native-profile.js";
 
 export const seqDiagnosticFormats: readonly string[] = Object.freeze([
   "%f %f", "%g %e", "", "literal", "%%", "%%f", "%", "%%%", "%s", "%%%s", "%f %", "%f %s", "%f %% %g", "%f %%%", "%f %%", "%%%f%%",
@@ -19,6 +19,12 @@ const historicalProfile = Object.freeze({
   evidence: "tests/commands/stream-format/evidence/seq-diagnostic-initial.json; seq-diagnostic.test.ts original qualifier",
   host: Object.freeze({ platform: "darwin", arch: "arm64", release: "25.4.0" }),
 });
+const reviewedProfile = Object.freeze({
+  id: "seq-diagnostic-gnu9.7-darwin-arm64-25.5.0",
+  evidence: "tests/native-gnu-profiles.json",
+  host: Object.freeze({ platform: "darwin", arch: "arm64", release: "25.5.0" }),
+});
+type SeqBinding = NonNullable<ReturnType<typeof nativeGnuBinding>>;
 
 interface Observation { readonly exitCode: number; readonly stdoutHex: string; readonly stderr: string }
 interface Fixture { readonly args: readonly string[]; readonly native: Observation; readonly source: Observation }
@@ -29,6 +35,7 @@ interface Dependencies {
   readonly host: () => NativeHost;
   readonly digest: (bytes: Uint8Array) => string;
   readonly spawn: (path: string, args: readonly string[], options: NativeOptions) => NativeResult;
+  readonly profiles?: readonly unknown[];
 }
 
 export function createSeqDiagnosticOracle(overrides: Partial<Dependencies> = {}) {
@@ -92,9 +99,11 @@ export function createSeqDiagnosticOracle(overrides: Partial<Dependencies> = {})
     }));
   }
 
-  function invoke(args: readonly string[]): Readonly<{ observation: Observation; stderrBytes: Buffer }> {
-    readPinned(seqDiagnosticOraclePath, 16 * 1024 * 1024, seqDiagnosticOracleHash, true);
-    const result = spawn(seqDiagnosticOraclePath, [...args], { env: { LC_ALL: "C" }, input: "", shell: false, timeout: 5000, maxBuffer: 16 * 1024 * 1024 });
+  function invoke(args: readonly string[], binding?: SeqBinding): Readonly<{ observation: Observation; stderrBytes: Buffer }> {
+    const path = binding?.path ?? seqDiagnosticOraclePath;
+    const hash = binding?.sha256 ?? seqDiagnosticOracleHash;
+    readPinned(path, 16 * 1024 * 1024, hash, true);
+    const result = spawn(path, [...args], { env: { LC_ALL: "C" }, input: "", shell: false, timeout: 5000, maxBuffer: 16 * 1024 * 1024 });
     if (result.error !== undefined && result.error !== null) throw result.error;
     assert.equal(result.signal, null, "seq diagnostic native signal");
     assert(result.status !== null && Number.isInteger(result.status) && result.status >= 0 && result.status <= 255, "seq diagnostic native exit status");
@@ -102,24 +111,46 @@ export function createSeqDiagnosticOracle(overrides: Partial<Dependencies> = {})
     assert(result.stdout.byteLength <= 16 * 1024 * 1024 && result.stderr.byteLength <= 16 * 1024 * 1024);
     const stderrBytes = Buffer.from(result.stderr);
     const captured = Object.freeze({ observation: Object.freeze({ exitCode: result.status, stdoutHex: Buffer.from(result.stdout).toString("hex"), stderr: stderrBytes.toString() }), stderrBytes });
-    readPinned(seqDiagnosticOraclePath, 16 * 1024 * 1024, seqDiagnosticOracleHash, true);
+    readPinned(path, 16 * 1024 * 1024, hash, true);
     return captured;
   }
 
-  function admit() {
-    const version = invoke(["--version"]).observation;
+  function admit(binding?: SeqBinding) {
+    if (binding) verifyNativeExecutable(binding, binding.path, {
+      fileSystem,
+      run: (path, args, options) => {
+        const result = spawn(path, args, options as NativeOptions);
+        if (result.error !== undefined && result.error !== null) throw result.error;
+        return { status: result.status, signal: result.signal, stdout: Buffer.from(result.stdout).toString(), stderr: Buffer.from(result.stderr).toString() };
+      },
+    });
+    const version = invoke(["--version"], binding).observation;
     assert.equal(version.exitCode, 0, "seq diagnostic version exit status");
     assert.match(Buffer.from(version.stdoutHex, "hex").toString(), /^seq \(GNU coreutils\) 9\.7\n/u);
-    return Object.freeze({ path: seqDiagnosticOraclePath, sha256: seqDiagnosticOracleHash });
+    return Object.freeze({ path: binding?.path ?? seqDiagnosticOraclePath, sha256: binding?.sha256 ?? seqDiagnosticOracleHash });
+  }
+
+  function qualify<Identity extends object>(admission: (binding?: SeqBinding) => Identity) {
+    const actual = host();
+    const reviewed = matchNativeProfile(reviewedProfile, actual).status === "MATCHING";
+    return qualifyNativeProfile(reviewed ? reviewedProfile : historicalProfile, actual, () => {
+      if (!reviewed) return admission();
+      const binding = nativeGnuBinding("seq", {
+        ...reviewedProfile.host,
+        ...(overrides.profiles === undefined ? {} : { profiles: overrides.profiles }),
+      });
+      assert(binding, "reviewed seq binding required");
+      return admission(binding);
+    });
   }
 
   return Object.freeze({
     fixtures,
-    qualify: () => qualifyNativeProfile(historicalProfile, host(), admit),
+    qualify: () => qualify(admit),
     native: async (args: readonly string[]) => {
       assert(args.length === 3 && args[0] === "-f" && seqDiagnosticFormats.includes(args[1]!) && args[2] === "3", "seq diagnostic native row arguments");
       const ownedArgs = [...args];
-      return qualifyNativeProfile(historicalProfile, host(), () => Object.freeze({ ...admit(), ...invoke(ownedArgs) }));
+      return qualify(binding => Object.freeze({ ...admit(binding), ...invoke(ownedArgs, binding) }));
     },
   });
 }

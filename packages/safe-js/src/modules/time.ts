@@ -1,3 +1,5 @@
+import { webcrypto as crypto } from "node:crypto";
+
 import { createSeededRandom } from "../interp/globals/math.js";
 
 export type TimeModuleOptions = {

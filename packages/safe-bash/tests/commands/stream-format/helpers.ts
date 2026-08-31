@@ -2,6 +2,7 @@ import assert from "node:assert/strict";
 import { spawnSync } from "node:child_process";
 import { Shell, agentCommands, createMemoryFileSystem } from "../../../src/index.js";
 import { type StreamFormatCommandsOptions } from "../../../src/commands/stream-format/index.js";
+import { nativeGnuBinding, verifyNativeExecutable, type NativeGnuOptions } from "../../native-profile.js";
 
 export function shell(options: StreamFormatCommandsOptions = {}, env: Record<string, string> = { LC_ALL: "C" }): Shell {
   const { replace, ...streamFormat } = options;
@@ -12,8 +13,17 @@ export const quote = (text: string): string => `'${text.replaceAll("'", "'\\''")
 export const nativeRoot = "tests/commands/metadata-stress/.oracle/coreutils-9.7/src/";
 export interface NativeCase { readonly args: readonly string[]; readonly input?: string | Uint8Array; readonly locale?: string; readonly failure?: boolean }
 
+export function nativePath(name: string, options: NativeGnuOptions = {}): string {
+  if (name === "rev") return "/usr/bin/rev";
+  assert(name === "unexpand" || name === "nl" || name === "seq", "unrecognized native stream command");
+  const binding = nativeGnuBinding(name, options);
+  if (!binding) return nativeRoot + name;
+  verifyNativeExecutable(binding, binding.path, options);
+  return binding.path;
+}
+
 export function native(name: string, fixture: NativeCase): { exitCode: number | null; stdout: Buffer; stderr: Buffer } {
-  const result = spawnSync(name === "rev" ? "/usr/bin/rev" : nativeRoot + name, [...fixture.args], {
+  const result = spawnSync(nativePath(name), [...fixture.args], {
     input: fixture.input ?? "", env: fixture.locale === "" ? {} : { LC_ALL: fixture.locale ?? "C" }, timeout: 5000, maxBuffer: 16 * 1024 * 1024,
   });
   assert.ifError(result.error);

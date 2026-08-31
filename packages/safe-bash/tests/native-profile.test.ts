@@ -1,6 +1,90 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { matchNativeProfile, qualifyNativeProfile, type NativeProfile } from "./native-profile.js";
+import * as fs from "node:fs";
+import { fileURLToPath } from "node:url";
+import { Volume, createFsFromVolume } from "memfs";
+import { matchNativeProfile, qualifyNativeProfile, nativeGnuBinding, nativeAppleBinding, type NativeProfile } from "./native-profile.js";
+
+test("qualified Linux GNU bindings select staged executables and retained manifest pins", () => {
+  const fileSystem = createFsFromVolume(Volume.fromJSON({ "/etc/os-release": 'ID=ubuntu\nVERSION_ID="24.04"\n' })) as unknown as typeof fs;
+  const manifest = JSON.parse(fs.readFileSync(new URL("./native-gnu-profiles.json", import.meta.url), "utf8"));
+  for (const tool of ["tar", "diff", "patch"] as const) {
+    const actual = nativeGnuBinding(tool, { platform: "linux", arch: "x64", fileSystem });
+    const pin = manifest.profiles[0].executables.find((entry: { tool: string }) => entry.tool === tool);
+    assert.deepEqual(actual, { ...pin, path: fileURLToPath(new URL(`../tmp/native-gnu/bin/${tool}`, import.meta.url)) });
+    assert.equal(nativeGnuBinding(tool, { platform: "linux", arch: "x64", fileSystem, path: `/owned/${tool}` })?.path, `/owned/${tool}`);
+  }
+});
+
+test("GNU binding preserves Darwin callers without reading Linux metadata", () => {
+  const fileSystem = createFsFromVolume(new Volume()) as unknown as typeof fs;
+  assert.equal(nativeGnuBinding("tar", { platform: "darwin", arch: "arm64", release: "25.4.0", fileSystem }), undefined);
+});
+
+test("reviewed Darwin bindings retain separate stat builds and exact Apple identities", () => {
+  const options = { platform: "darwin", arch: "arm64", release: "25.5.0", fileSystem: createFsFromVolume(new Volume()) as unknown as typeof fs };
+  const manifest = JSON.parse(fs.readFileSync(new URL("./native-gnu-profiles.json", import.meta.url), "utf8"));
+  const profile = manifest.profiles.find((entry: { host: { platform: string } }) => entry.host.platform === "darwin");
+  for (const tool of ["tar", "diff", "patch", "expr", "stat", "touch", "chmod", "mktemp"] as const) {
+    const pin = profile.executables.find((entry: { tool: string }) => entry.tool === tool);
+    assert.deepEqual(nativeGnuBinding(tool, options), { ...pin, path: fileURLToPath(new URL(`../tmp/native-gnu/bin/${tool}`, import.meta.url)) });
+  }
+  const first = nativeGnuBinding("stat", options)!;
+  const second = nativeGnuBinding("stat", { ...options, build: 2 })!;
+  assert.equal(second.sha256, first.sha256);
+  assert.equal(second.path, fileURLToPath(new URL("../tmp/native-gnu-second/bin/stat", import.meta.url)));
+  assert.notEqual(second.path, first.path);
+  assert.throws(() => nativeGnuBinding("tar", { ...options, build: 2 }));
+  for (const tool of ["diff", "patch", "bsdtar"] as const) {
+    const pin = profile.apple.find((entry: { tool: string }) => entry.tool === tool);
+    assert.deepEqual(nativeAppleBinding(tool, options), pin);
+  }
+  assert.equal(nativeAppleBinding("diff", { ...options, release: "25.4.0" }), undefined);
+  for (const invalid of [{ release: "25.6.0" }, { arch: "x64" }, { profiles: [] }, { profiles: [profile, profile] }]) {
+    assert.throws(() => nativeGnuBinding("stat", { ...options, ...invalid }));
+    assert.throws(() => nativeAppleBinding("diff", { ...options, ...invalid }));
+  }
+});
+
+test("GNU binding refuses unknown hosts and absent or malformed Ubuntu identity", () => {
+  for (const contents of [undefined, 'ID=debian\nVERSION_ID="24.04"\n', 'ID=ubuntu\nVERSION_ID="22.04"\n', 'ID=ubuntu\nVERSION_ID="24.04"\nVERSION_ID="22.04"\n']) {
+    const fileSystem = createFsFromVolume(Volume.fromJSON(contents === undefined ? {} : { "/etc/os-release": contents })) as unknown as typeof fs;
+    assert.throws(() => nativeGnuBinding("tar", { platform: "linux", arch: "x64", fileSystem }));
+  }
+  const fileSystem = createFsFromVolume(Volume.fromJSON({ "/etc/os-release": 'ID=ubuntu\nVERSION_ID="24.04"\n' })) as unknown as typeof fs;
+  assert.throws(() => nativeGnuBinding("tar", { platform: "linux", arch: "arm64", fileSystem }));
+  assert.throws(() => nativeGnuBinding("tar", { platform: "win32", arch: "x64", fileSystem }));
+  for (const path of ["", "relative/tar", "/owned/../tar"]) {
+    assert.throws(() => nativeGnuBinding("tar", { platform: "linux", arch: "x64", fileSystem, path }));
+  }
+});
+
+test("qualified Darwin stream and table tools bind to reviewed staged executable pins", () => {
+  const options = { platform: "darwin", arch: "arm64", release: "25.5.0", fileSystem: createFsFromVolume(new Volume()) as unknown as typeof fs };
+  const manifest = JSON.parse(fs.readFileSync(new URL("./native-gnu-profiles.json", import.meta.url), "utf8"));
+  const profile = manifest.profiles.find((entry: { host: { platform: string } }) => entry.host.platform === "darwin");
+  assert.equal(profile.provenance.runId, "33416850321");
+  for (const tool of ["nl", "seq", "unexpand", "paste", "comm", "join"] as const) {
+    const pin = profile.executables.find((entry: { tool: string }) => entry.tool === tool);
+    assert(pin, `reviewed ${tool} executable required`);
+    assert.deepEqual(nativeGnuBinding(tool, options), { ...pin, path: fileURLToPath(new URL(`../tmp/native-gnu/bin/${tool}`, import.meta.url)) });
+    assert.equal(nativeGnuBinding(tool, { ...options, release: "25.4.0" }), undefined);
+    assert.throws(() => nativeGnuBinding(tool, { ...options, build: 2 }));
+  }
+});
+
+test("split bindings require explicit reviewed GNU and Apple pins and preserve the legacy host", () => {
+  const host = { platform: "darwin", arch: "arm64", distribution: "macos", version: "26.5.2", release: "25.5.0" };
+  const pin = { tool: "split", version: "split (GNU coreutils) 9.7", size: 32, sha256: "a".repeat(64) };
+  const apple = { ...pin, path: "/usr/bin/split", version: "Apple split (no --version support)", versionProbe: { status: 64, stdout: "", stderr: "usage: split fixture\n" } };
+  const options = { ...host, profiles: [{ id: "unit-split-only", host, qualification: "QUALIFIED", executables: [pin], apple: [apple] }] };
+  assert.deepEqual(nativeGnuBinding("split", options), { ...pin, path: fileURLToPath(new URL("../tmp/native-gnu/bin/split", import.meta.url)) });
+  assert.deepEqual(nativeAppleBinding("split", options), apple);
+  for (const binding of [nativeGnuBinding, nativeAppleBinding]) {
+    assert.equal(binding("split", { ...options, release: "25.4.0" }), undefined);
+    assert.throws(() => binding("split", { ...options, profiles: [] }));
+  }
+});
 
 const profile: NativeProfile = { id: "historical-darwin", evidence: "tests/captured/profile.json", host: { platform: "darwin", arch: "arm64" } };
 const matching = { platform: "darwin", arch: "arm64", release: "25.4.0" };

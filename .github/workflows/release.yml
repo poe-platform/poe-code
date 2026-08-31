@@ -28,11 +28,11 @@ permissions:
   id-token: write
 jobs:
   release-stable:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@v4
         with:
-          ref: main
+          ref: ${{ github.sha }}
           fetch-depth: 0
           persist-credentials: false
       - uses: actions/setup-node@v4
@@ -51,6 +51,46 @@ jobs:
           node_bin="$(command -v node)"
           [[ "$RUNNER_TEMP" = /* && "$node_bin" = /* ]]
           node_dir="$(dirname "$node_bin")"
+          "$node_bin" --input-type=module <<'LINUX_GIT_IDENTITY'
+          import assert from "node:assert/strict";
+          import { spawnSync } from "node:child_process";
+          import { createHash } from "node:crypto";
+          import { lstatSync, readFileSync, realpathSync, statSync } from "node:fs";
+          import { arch, platform, release } from "node:os";
+          assert.equal(platform(), "linux");
+          function execute(args) {
+            const result = spawnSync("/usr/bin/git", args, {
+              encoding: "utf8", shell: false, timeout: 5000, maxBuffer: 65536,
+              env: { PATH: "/usr/bin:/bin", LC_ALL: "C", LANG: "C" }
+            });
+            assert.ifError(result.error);
+            assert.equal(result.signal, null);
+            assert.equal(result.status, 0, result.stderr);
+            return result.stdout.trim();
+          }
+          const path = "/usr/bin/git";
+          const canonicalPath = realpathSync(path);
+          const before = statSync(canonicalPath, { bigint: true });
+          assert(before.isFile() && before.size > 0n && before.size <= 33554432n);
+          const sha256 = createHash("sha256").update(readFileSync(canonicalPath)).digest("hex");
+          const after = statSync(canonicalPath, { bigint: true });
+          for (const field of ["dev", "ino", "mode", "size", "mtimeNs", "ctimeNs"])
+            assert.equal(after[field], before[field], "Git changed during observation");
+          const gitCorePath = execute(["--exec-path"]);
+          assert(gitCorePath.startsWith("/") && !gitCorePath.includes("\n") && !gitCorePath.includes("\r"));
+          const gitCoreCanonicalPath = realpathSync(gitCorePath);
+          assert(statSync(gitCoreCanonicalPath).isDirectory());
+          console.log("LINUX_GIT_IDENTITY " + JSON.stringify({
+            status: "OBSERVED_UNREVIEWED", sourceSha: execute(["rev-parse", "HEAD"]),
+            triggeringSha: process.env.GITHUB_SHA, runId: process.env.GITHUB_RUN_ID,
+            imageOS: process.env.ImageOS, imageVersion: process.env.ImageVersion,
+            host: { platform: platform(), arch: arch(), release: release() },
+            path, canonicalPath, regularFile: true, symbolicLink: lstatSync(path).isSymbolicLink(),
+            size: Number(before.size), mode: Number(before.mode), sha256, version: execute(["--version"]),
+            gitCore: { path: gitCorePath, canonicalPath: gitCoreCanonicalPath,
+              symbolicLink: lstatSync(gitCorePath).isSymbolicLink(), directory: true }
+          }));
+          LINUX_GIT_IDENTITY
           job_root="$(mktemp -d "${RUNNER_TEMP:?}/virtual-bash-inputs.XXXXXX")"
           mkdir -m 700 "$job_root/home" "$job_root/tmp" "$job_root/sources"
           env -i PATH="$node_dir:/usr/bin:/bin" HOME="$job_root/home" TMPDIR="$job_root/tmp" LC_ALL=C LANG=C TZ=UTC \
@@ -58,10 +98,14 @@ jobs:
             --parent "$job_root/sources" --source-mode gzip --stage-metadata
           env -i PATH="$node_dir:/usr/bin:/bin" HOME="$job_root/home" TMPDIR="$job_root/tmp" LC_ALL=C LANG=C TZ=UTC \
             "$node_bin" packages/safe-bash/scripts/provision-test-rg.mjs --destination "$job_root/rg"
+          env -i PATH="$node_dir:/usr/bin:/bin" HOME="$job_root/home" TMPDIR="$job_root/tmp" LC_ALL=C LANG=C TZ=UTC \
+            "$node_bin" packages/safe-bash/scripts/provision-test-native-oracles.mjs \
+            --parent "$job_root" --destination "$GITHUB_WORKSPACE/packages/safe-bash/tmp/native-gnu"
           printf 'rg=%s\n' "$job_root/rg/bin/rg" >> "$GITHUB_OUTPUT"
       - run: npm test -- --concurrency=4
         env:
           SAFE_BASH_TEST_RG: ${{ steps.virtual_bash_inputs.outputs.rg }}
+          SAFE_BASH_NATIVE_LANE: linux
       - run: npm run smoke
       - name: Generate GitHub App token
         id: app_token
@@ -76,6 +120,8 @@ jobs:
           HUSKY: "0"
         run: npx semantic-release
     if: ${{ github.event_name != 'workflow_dispatch' || (inputs.qualification != 'darwin-native-metadata' && inputs.qualification != 'darwin-gnu-build' && inputs.qualification != 'linux-native-diagnostic') }}
+    needs:
+      - native-darwin
   darwin-native-metadata:
     if: ${{ github.event_name == 'workflow_dispatch' && inputs.qualification == 'darwin-native-metadata' }}
     runs-on: macos-26
@@ -267,6 +313,56 @@ jobs:
           include-hidden-files: false
           overwrite: false
           compression-level: 0
+  native-darwin:
+    if: ${{ github.event_name != 'workflow_dispatch' || (inputs.qualification != 'darwin-native-metadata' && inputs.qualification != 'darwin-gnu-build' && inputs.qualification != 'linux-native-diagnostic') }}
+    runs-on: macos-26
+    timeout-minutes: 60
+    permissions:
+      contents: read
+    env:
+      SKIP_SYNC_SKILLS: "1"
+      TSX_DISABLE_CACHE: "1"
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.sha }}
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22.22.2
+      - name: Isolate native lane lifecycle
+        shell: bash
+        run: |-
+          set -euo pipefail
+          umask 077
+          job_root="$(mktemp -d "${RUNNER_TEMP:?}/native-darwin.XXXXXX")"
+          job_root="$(cd "$job_root" && pwd -P)"
+          mkdir -m 700 "$job_root/home" "$job_root/tmp" "$job_root/sources"
+          printf 'NATIVE_JOB_ROOT=%s\nHOME=%s\nTMPDIR=%s\nnpm_config_cache=%s\n' "$job_root" "$job_root/home" "$job_root/tmp" "$job_root/cache" >> "$GITHUB_ENV"
+      - run: npm clean-install
+      - run: npm run build:workspaces -- --workspace=virtual-bash
+      - name: Provision reviewed Darwin native prerequisites
+        shell: bash
+        run: |-
+          set -euo pipefail
+          umask 077
+          node_bin="$(command -v node)"
+          env -i PATH="$(dirname "$node_bin"):/usr/bin:/bin" HOME="$HOME" TMPDIR="$TMPDIR" LC_ALL=C LANG=C TZ=UTC \
+            "$node_bin" packages/safe-bash/scripts/provision-test-inputs.mjs \
+            --parent "$NATIVE_JOB_ROOT/sources" --source-mode gzip --stage-metadata
+          env -i PATH="$(dirname "$node_bin"):/usr/bin:/bin:/usr/sbin:/sbin" \
+            HOME="$HOME" TMPDIR="$TMPDIR" LC_ALL=C LANG=C TZ=UTC \
+            RUNNER_TEMP="$RUNNER_TEMP" GITHUB_SHA="$GITHUB_SHA" GITHUB_RUN_ID="$GITHUB_RUN_ID" \
+            GITHUB_REPOSITORY="$GITHUB_REPOSITORY" GITHUB_REF="$GITHUB_REF" GITHUB_JOB="$GITHUB_JOB" \
+            GITHUB_EVENT_NAME="$GITHUB_EVENT_NAME" RUNNER_ENVIRONMENT="$RUNNER_ENVIRONMENT" \
+            RUNNER_OS="$RUNNER_OS" RUNNER_ARCH="$RUNNER_ARCH" ImageOS="$ImageOS" ImageVersion="$ImageVersion" \
+            "$node_bin" packages/safe-bash/scripts/provision-test-native-oracles.mjs \
+            --stage-darwin --parent "$NATIVE_JOB_ROOT" --destination "$GITHUB_WORKSPACE/packages/safe-bash/tmp/native-gnu"
+      - name: Run required Darwin native semantic cohort
+        run: npm run test:unit --workspace=virtual-bash
+        env:
+          SAFE_BASH_NATIVE_LANE: darwin
+          ARCHIVE_LONG_LINK_NATIVE: "1"
 
   linux-native-diagnostic:
     if: ${{ github.event_name == 'workflow_dispatch' && inputs.qualification == 'linux-native-diagnostic' }}

@@ -84,6 +84,134 @@
           ]
         }
       ]
+    },
+    {
+      "id": "github-macos26-arm64-20260728.0273.1-native-release",
+      "host": {
+        "platform": "darwin",
+        "arch": "arm64",
+        "distribution": "macos",
+        "version": "26.5.2",
+        "release": "25.5.0"
+      },
+      "qualification": "QUALIFIED",
+      "qualificationScope": "Reviewed authenticated executable identities from successful hosted qualification. Unchanged native semantic cohorts remain required before publication.",
+      "provenance": {
+        "runId": "33416850321",
+        "sourceSha": "e537758e579b1dac2b3ed9c765d456cdef3b6d84",
+        "artifactId": 9767591666,
+        "artifactSha256": "2e46f5542b4f8e10ecdf1246a3cfc06973b55333ed492100abd5548208e9f94b",
+        "plan": "docs/plans/safe-bash-required-native-lanes.md"
+      },
+      "executables": [
+        {
+          "tool": "tar",
+          "version": "tar (GNU tar) 1.35",
+          "size": 503200,
+          "sha256": "6e8e92a1410b78a91521bff4922610c1ec9f6c330e13d3b4dc9ef86407223c29"
+        },
+        {
+          "tool": "diff",
+          "version": "diff (GNU diffutils) 3.12",
+          "size": 247416,
+          "sha256": "db41e94dab136447ec244e48c3ce2f889928bc844d6ca5772d815d06328474b0"
+        },
+        {
+          "tool": "patch",
+          "version": "GNU patch 2.8",
+          "size": 194312,
+          "sha256": "f9e0dc02b9aa6589a7b31f9258c33b22511261ae69fdab5c5ca8848971f440bd"
+        },
+        {
+          "tool": "chmod",
+          "version": "chmod (GNU coreutils) 9.7",
+          "size": 96232,
+          "sha256": "3159e497606fc8df876b2a3d41c47775a68ae5e0e18472e4eb206f1464c21a87"
+        },
+        {
+          "tool": "stat",
+          "version": "stat (GNU coreutils) 9.7",
+          "size": 149816,
+          "sha256": "cde7c959f3a4ef0bfda09b4c509ecd68a6de35115b9bd6708884a167bd97ac32"
+        },
+        {
+          "tool": "mktemp",
+          "version": "mktemp (GNU coreutils) 9.7",
+          "size": 76264,
+          "sha256": "0c3a2bb8675abded165a200141f29a3fe189e201e2a3668368a8a7af7c617c55"
+        },
+        {
+          "tool": "expr",
+          "version": "expr (GNU coreutils) 9.7",
+          "size": 228232,
+          "sha256": "a6cb5738efc6f064f029ce999deecc22f015d96db21471342748582837051407"
+        },
+        {
+          "tool": "touch",
+          "version": "touch (GNU coreutils) 9.7",
+          "size": 114120,
+          "sha256": "9ea830993dd8987fe2c2ee468d52bcc9ae7bde7cbb3c24d7076f774c2b0fe3d7"
+        },
+        {
+          "tool": "nl",
+          "version": "nl (GNU coreutils) 9.7",
+          "size": 149584,
+          "sha256": "5cbde5e1c238e1d522e51ec684f033b5b41d8b604301b09de4972911552e4298"
+        },
+        {
+          "tool": "seq",
+          "version": "seq (GNU coreutils) 9.7",
+          "size": 110224,
+          "sha256": "3e63edb6693147b7e0f0dc9c1b2a8d342a798f94ac2169221a041011502499b8"
+        },
+        {
+          "tool": "unexpand",
+          "version": "unexpand (GNU coreutils) 9.7",
+          "size": 77032,
+          "sha256": "d960f9f868ca0c0a624eb472f583c5fe517d031110ccfe67e8925cdfe0fe1fd4"
+        },
+        {
+          "tool": "paste",
+          "version": "paste (GNU coreutils) 9.7",
+          "size": 75688,
+          "sha256": "22cdbce5c2c5c144acfe07a68e15da83deba335fefa12a555a932f5daf0e372c"
+        },
+        {
+          "tool": "comm",
+          "version": "comm (GNU coreutils) 9.7",
+          "size": 76856,
+          "sha256": "5a8d776eb45e90958ebe699a71d42ff22bd18c694d6e62aaee0be1592f5c079f"
+        },
+        {
+          "tool": "join",
+          "version": "join (GNU coreutils) 9.7",
+          "size": 95144,
+          "sha256": "2cdf1d67d1b0eca72b1c4dd9b00af124676f193f3da29a631c77885e5c7138d9"
+        }
+      ],
+      "apple": [
+        {
+          "path": "/usr/bin/diff",
+          "size": 237472,
+          "sha256": "18b503efc5389ff18d85e0a4d88d068c43b56efc4647e4e8dc2717500b79c99e",
+          "tool": "diff",
+          "version": "Apple diff (based on FreeBSD diff)"
+        },
+        {
+          "path": "/usr/bin/patch",
+          "size": 220608,
+          "sha256": "256e7e3fb214fda4971309e27e685623be5238f1975364d887d277eb42e52404",
+          "tool": "patch",
+          "version": "patch 2.0-12u11-Apple"
+        },
+        {
+          "path": "/usr/bin/bsdtar",
+          "size": 275184,
+          "sha256": "9ab7f0793033dc9dc4809d83d695118801bd687cbacda59a0cbbf151ba25dc2b",
+          "tool": "bsdtar",
+          "version": "bsdtar 3.5.3 - libarchive 3.7.4 zlib/1.2.12 liblzma/5.4.3 bz2lib/1.0.8 "
+        }
+      ]
     }
   ],
   "darwinBuildQualification": {
@@ -292,9 +420,55 @@
             "tool": "base64",
             "path": "src/base64",
             "version": "base64 (GNU coreutils) 9.7"
+          },
+          {
+            "tool": "split",
+            "path": "src/split",
+            "version": "split (GNU coreutils) 9.7"
           }
         ]
       }
+    ],
+    "appleObservations": [
+      "/usr/bin/split"
     ]
-  }
+  },
+  "darwinTestFiles": [
+    "tests/commands/archive-stress/long-link-regression.test.ts",
+    "tests/commands/archive-stress/native.test.ts",
+    "tests/commands/archive-stress/pax-independent/controls.test.ts",
+    "tests/commands/archive-stress/pax-native.test.ts",
+    "tests/commands/diff-patch-stress/formats/regressions.test.ts",
+    "tests/commands/diff-patch-stress/formats/whitespace.test.ts",
+    "tests/commands/diff-patch-stress/gnu-target/calibration.test.ts",
+    "tests/commands/expr/native.test.ts",
+    "tests/commands/expr/regex-native.test.ts",
+    "tests/commands/metadata-stress/chmod-controls.test.ts",
+    "tests/commands/metadata-stress/epoch-regression.test.ts",
+    "tests/commands/metadata-stress/mktemp-controls.test.ts",
+    "tests/commands/metadata-stress/native-differential.test.ts",
+    "tests/commands/metadata-stress/permission-profile/darwin-profile.test.ts",
+    "tests/commands/metadata-stress/permission-profile/qualification.test.ts",
+    "tests/commands/metadata-stress/provenance.test.ts",
+    "tests/commands/metadata-stress/stat-effects.test.ts",
+    "tests/commands/metadata-stress/stat-flags.test.ts",
+    "tests/commands/metadata-stress/stat-human-native.test.ts",
+    "tests/commands/metadata-stress/stat-precision.test.ts",
+    "tests/commands/stream-format-author-stress/native-streams.test.ts",
+    "tests/commands/stream-format-author-stress/seq-format.test.ts",
+    "tests/commands/stream-format/nl.test.ts",
+    "tests/commands/stream-format/seq.test.ts",
+    "tests/commands/stream-format/unexpand.test.ts",
+    "tests/commands/stream-format/seq-diagnostic.test.ts",
+    "tests/commands/stream-format/rev.test.ts",
+    "tests/commands/table-text-stress/corpus.test.ts",
+    "tests/commands/table-text-stress/shared-stdin-fix/acceptance216.test.ts",
+    "tests/commands/metadata/stat.test.ts",
+    "tests/commands/split/native.test.ts",
+    "tests/commands/split/native-errors.test.ts",
+    "tests/commands/split/stress.test.ts",
+    "tests/commands/split/edge.test.ts",
+    "tests/commands/split/dangling-native.test.ts",
+    "tests/commands/split/native-capture.test.ts"
+  ]
 }

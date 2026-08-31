@@ -8,6 +8,7 @@ import { join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { digest, longName, pattern, paxSample } from "./fixtures.js";
 import { fixture, source, success, tar } from "./helpers.js";
+import { nativeGnuBinding, nativeAppleBinding, verifyNativeExecutable } from "../../native-profile.js";
 
 const environment = { PATH: "/usr/bin:/bin", LC_ALL: "C", TZ: "UTC" };
 const profiles = {
@@ -16,9 +17,11 @@ const profiles = {
 };
 
 async function withOracle(context: TestContext, family: keyof typeof profiles, label: string, body: (temporary: string, run: (args: string[]) => Promise<Buffer>, retain: (name: string, bytes: Uint8Array) => Promise<void>) => Promise<void>): Promise<void> {
-  const profile = profiles[family];
+  const binding = family === "GNU" ? nativeGnuBinding("tar") : nativeAppleBinding("bsdtar");
+  if (binding) verifyNativeExecutable(binding, binding.path);
+  const profile = binding ? { ...profiles[family], executable: binding.path, sha256: binding.sha256 } : profiles[family];
   try { await access(profile.executable, constants.X_OK); }
-  catch { context.skip(`${family} pinned local executable unavailable; deterministic PAX cases still run`); return; }
+  catch (error) { if (process.env.SAFE_BASH_NATIVE_LANE === "darwin") throw error; context.skip(`${family} pinned local executable unavailable; deterministic PAX cases still run`); return; }
   assert.equal(digest(await readFile(profile.executable)), profile.sha256);
   const temporary = await mkdtemp(join(tmpdir(), "safe-bash-pax-native-"));
   const observations: unknown[] = [];
@@ -76,8 +79,10 @@ async function withOracle(context: TestContext, family: keyof typeof profiles, l
 for (const [index, family] of (["GNU", "BSD"] as const).entries()) {
   test(`P${10 + index} ${family} default and PAX plain/gzip raw-member crossread both directions without metadata filters`, { timeout: 60000 }, async context => {
     if (family === "BSD") {
-      try { await access(profiles.GNU.executable, constants.X_OK); }
-      catch { context.skip("GNU raw-member oracle unavailable for the BSD AppleDouble presentation control"); return; }
+      const gnu = nativeGnuBinding("tar");
+      if (gnu) verifyNativeExecutable(gnu, gnu.path);
+      try { await access(gnu?.path ?? profiles.GNU.executable, constants.X_OK); }
+      catch (error) { if (process.env.SAFE_BASH_NATIVE_LANE === "darwin") throw error; context.skip("GNU raw-member oracle unavailable for the BSD AppleDouble presentation control"); return; }
     }
     await withOracle(context, family, "crossread", async (temporary, run, retain) => {
       const filename = `long-${"abcd".repeat(28)}`;

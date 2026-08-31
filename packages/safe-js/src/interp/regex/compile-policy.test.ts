@@ -134,6 +134,16 @@ describe("compile checkpoint hash compatibility", () => {
       }
     });
     const captureBytes = JSON.stringify(capture);
+    const expectedCompleted: SafeJSSnapshot = {
+      ...capture.completed,
+      bindings: {
+        ...capture.completed.bindings,
+        Math: {
+          ...capture.completed.bindings.Math,
+          f16round: { kind: "fn", name: "f16round" }
+        }
+      }
+    };
     for (const kind of ["pending", "completed"] as const) {
       const snapshot: SafeJSSnapshot = capture[kind];
       const before = JSON.stringify(snapshot);
@@ -176,7 +186,7 @@ describe("compile checkpoint hash compatibility", () => {
         "promiseReplay",
         "initialInputs"
       ]) {
-        expect(serialized[field], `${kind}/${field}`).toStrictEqual(completed[field]);
+        expect(serialized[field], `${kind}/${field}`).toStrictEqual(expectedCompleted[field]);
       }
       expect(waitCalls).toHaveBeenCalledTimes(kind === "pending" ? 1 : 0);
       expect(provider).not.toHaveBeenCalled();

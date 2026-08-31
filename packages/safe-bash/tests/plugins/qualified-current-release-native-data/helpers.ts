@@ -13,7 +13,7 @@ const require = createRequire(import.meta.url);
 export function createCopy() {
   const directory = mkdtempSync(join(owned, ".scratch-"));
   const boundaries = JSON.parse(readFileSync(join(root, "integration-boundaries.json"), "utf8")) as { fixtureDirectories: { owner: string }[] };
-  for (const path of ["tsconfig.json", "package.json", "integration-boundaries.json", "integration-type-inputs.json", "scripts/integration-inputs.mjs", "scripts/typecheck-integration-inputs.mjs", "scripts/test.mjs", ...boundaries.fixtureDirectories.map(fixture => fixture.owner)]) {
+  for (const path of ["tsconfig.json", "package.json", "integration-boundaries.json", "integration-type-inputs.json", "scripts/integration-inputs.mjs", "scripts/typecheck-integration-inputs.mjs", "scripts/test.mjs", "scripts/test-reporting.mjs", ...boundaries.fixtureDirectories.map(fixture => fixture.owner)]) {
     mkdirSync(dirname(join(directory, path)), { recursive: true });
     copyFileSync(join(root, path), join(directory, path));
   }

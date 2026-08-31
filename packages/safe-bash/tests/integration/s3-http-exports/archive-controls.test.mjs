@@ -466,7 +466,7 @@ test("maintained outer launcher rejects inherited startup settings before the ve
 });
 
 async function withRepository(change, run, { localTypes = false } = {}) {
-  const directory = mkdtempSync(join(tmpdir(), "safe-bash-archive-control-"));
+  const directory = realpathSync(mkdtempSync(join(tmpdir(), "safe-bash-archive-control-")));
   const repository = join(directory, "repository");
   const paths = [];
   const put = (path, bytes) => {

@@ -11,6 +11,7 @@ import { createTarCommand, type ArchiveCommandsOptions } from "../../../../src/c
 import { createMemoryFileSystem } from "../../../../src/fs/memory/index.js";
 import type { ByteSource, FileSystem } from "../../../../src/contracts/index.js";
 import { archive, extended, fileData, member, opaque, record } from "./fixtures.js";
+import { nativeGnuBinding, nativeAppleBinding, verifyNativeExecutable } from "../../../native-profile.js";
 
 async function filesystem(): Promise<FileSystem> {
   const fs = createMemoryFileSystem();
@@ -153,9 +154,13 @@ test("I05 fixed local nanoseconds and global precedence have separate virtual an
   assert.equal(virtual.exitCode, 0, virtual.stderr);
   assert.equal((await fs.stat("/output/first")).mtimeMs, 1700123401125);
   assert.equal((await fs.stat("/output/following")).mtimeMs, 1700123400000);
+  const gnu = nativeGnuBinding("tar");
+  if (gnu) verifyNativeExecutable(gnu, gnu.path);
+  const apple = nativeAppleBinding("bsdtar");
+  if (apple) verifyNativeExecutable(apple, apple.path);
   const profiles = [
-    { family: "GNU", path: fileURLToPath(new URL("../../archive/.oracle/gnu-tar/1.35/bin/gtar", import.meta.url)), hash: "49a0bd353ad67347674d00a7b3eeb171da58728f7e4577c9b320d8ab1e7bba66", following: 1700123400000000000n },
-    { family: "BSD", path: "/usr/bin/bsdtar", hash: "bdccb76a715fbebc4915a1a1b1de0e7050ad842ebb730c47935b3a22c13e3af9", following: 1700123456000000000n },
+    { family: "GNU", path: gnu?.path ?? fileURLToPath(new URL("../../archive/.oracle/gnu-tar/1.35/bin/gtar", import.meta.url)), hash: gnu?.sha256 ?? "49a0bd353ad67347674d00a7b3eeb171da58728f7e4577c9b320d8ab1e7bba66", following: 1700123400000000000n },
+    { family: "BSD", path: apple?.path ?? "/usr/bin/bsdtar", hash: apple?.sha256 ?? "bdccb76a715fbebc4915a1a1b1de0e7050ad842ebb730c47935b3a22c13e3af9", following: 1700123456000000000n },
   ];
   for (const profile of profiles) {
     assert.equal(createHash("sha256").update(await readFile(profile.path)).digest("hex"), profile.hash, "native profile binary drift");

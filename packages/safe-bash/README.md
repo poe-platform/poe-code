@@ -939,6 +939,12 @@ npm test
 SAFEJS_LOCAL_ROOT=/path/to/poe-code/packages/safejs npm test
 ```
 
+With `CI=true`, successful tests use concise progress/summaries; failures retain
+names, stacks, diagnostics and stdout/stderr. Local defaults are unchanged.
+For verbose package output use `CI=false npm run test:unit`; select Node's
+reporter with `npm test -- --test-reporter=spec` (or `tap`). For root Vitest,
+run `npm run test:unit -- --reporter=verbose --silent=false` from the repository root.
+
 `typecheck:all` builds production ESM/declarations once, then checks current
 source/tests and the maintained strict built-package consumer routes. It does
 not execute their runtime programs. `npm run typecheck` reuses an existing

@@ -19,7 +19,7 @@ const identity = (stat) =>
 
 export function selectNativeProfile(profiles, host) {
   const matching = profiles.filter((profile) =>
-    ["platform", "arch", "distribution", "version"].every((key) => profile.host[key] === host[key])
+    ["platform", "arch", "distribution", "version", "release"].every((key) => profile.host[key] === host[key])
   );
   assert.equal(matching.length, 1, "exactly one qualified native host profile is required");
   assert.equal(
@@ -28,10 +28,11 @@ export function selectNativeProfile(profiles, host) {
     "source authentication alone is not executable qualification"
   );
   const profile = structuredClone(matching[0]);
-  assert.equal(profile.host.platform, "linux");
-  assert.equal(profile.host.arch, "x64");
-  assert.equal(profile.host.distribution, "ubuntu");
-  assert.equal(profile.host.version, "24.04");
+  assert(
+    (profile.host.platform === "linux" && profile.host.arch === "x64" && profile.host.distribution === "ubuntu" && profile.host.version === "24.04") ||
+    (profile.host.platform === "darwin" && profile.host.arch === "arm64" && profile.host.distribution === "macos" && profile.host.version === "26.5.2" && profile.host.release === "25.5.0"),
+    "unsupported native host"
+  );
   assert(Array.isArray(profile.executables) && profile.executables.length > 0);
   const tools = new Set();
   for (const pin of profile.executables) {
@@ -92,8 +93,19 @@ export function verifyNativeExecutable(pin, path, dependencies = {}) {
   });
   assert.ifError(result.error);
   assert.equal(result.signal, null, "native version process terminated by signal");
-  assert.equal(result.status, 0, result.stderr);
-  assert.equal(result.stdout.split("\n")[0], pin.version, "native version mismatch");
+  if (pin.versionProbe) {
+    assert.equal(pin.tool, "split", "diagnostic version probe is only valid for Apple split");
+    assert.equal(pin.version, "Apple split (no --version support)");
+    assert.equal(pin.versionProbe.status, 64);
+    assert.equal(pin.versionProbe.stdout, "");
+    assert(typeof pin.versionProbe.stderr === "string" && pin.versionProbe.stderr.includes("usage: split") && Buffer.byteLength(pin.versionProbe.stderr) <= 4096);
+    assert.equal(result.status, pin.versionProbe.status, "Apple split diagnostic status mismatch");
+    assert.equal(result.stdout, pin.versionProbe.stdout, "Apple split diagnostic stdout mismatch");
+    assert.equal(result.stderr, pin.versionProbe.stderr, "Apple split diagnostic stderr mismatch");
+  } else {
+    assert.equal(result.status, 0, result.stderr);
+    assert.equal(result.stdout.split("\n")[0], pin.version, "native version mismatch");
+  }
   canonicalPath(fileSystem, path);
   assert.equal(identity(fileSystem.lstatSync(path, { bigint: true })), identity(before));
   assert.equal(
@@ -157,6 +169,32 @@ export function stageNativeExecutables(options, dependencies = {}) {
     mode: 0o600
   });
   return receipt;
+}
+
+export function stageDarwinOutputs(options, dependencies = {}) {
+  const { receipt, host, parent, name } = options;
+  const profile = selectNativeProfile([options.profile], host);
+  assert.equal(host.platform, "darwin");
+  assert.equal(receipt.status, "BUILT_OBSERVATIONS_UNREVIEWED", "successful authenticated build required");
+  const inputs = {};
+  let independent;
+  for (const pin of profile.executables) {
+    for (const build of pin.tool === "stat" ? [1, 2] : [1]) {
+      const matches = receipt.outputs.filter(output => output.tool === pin.tool && output.build === build);
+      assert.equal(matches.length, 1, "exactly one output per independent build required");
+      const output = matches[0];
+      assert.equal(output.member, `bin/${pin.tool}-${build}`, "independent build member mismatch");
+      for (const field of ["version", "size", "sha256"]) assert.equal(output[field], pin[field], `reviewed ${pin.tool} ${field} mismatch`);
+      const path = join(receipt.root, "evidence", output.member);
+      verifyNativeExecutable(pin, path, dependencies);
+      if (build === 1) inputs[pin.tool] = path;
+      else independent = { pin, path };
+    }
+  }
+  assert(independent, "independent stat build required");
+  const primary = stageNativeExecutables({ profile, host, parent, name, inputs }, dependencies);
+  const secondary = stageNativeExecutables({ profile: { ...profile, executables: [independent.pin] }, host, parent, name: name + "-second", inputs: { stat: independent.path } }, dependencies);
+  return { primary, secondary };
 }
 
 function executeBuildStep(command, args, options) {
@@ -367,20 +405,23 @@ export async function buildNativeOracles(options, dependencies = {}) {
   }
 }
 
-export function assertDarwinContext(profile, context) {
+export function assertDarwinContext(profile, context, releaseLane = false) {
   assert.equal(profile.qualification, "IDENTITY_APPROVED_FOR_QUALIFICATION_ONLY");
   const expected = {
     platform: "darwin",
     arch: "arm64",
     repository: "poe-platform/poe-code",
     ref: "refs/heads/main",
-    event: "workflow_dispatch",
     runner: "github-hosted",
     runnerOS: "macOS",
     runnerArch: "ARM64",
     imageOS: profile.imageOS,
     imageVersion: profile.imageVersion
   };
+  if (releaseLane) {
+    assert.equal(context.job, "native-darwin", "required native release job expected");
+    assert(["push", "workflow_dispatch"].includes(context.event), "unsupported native release event");
+  } else assert.equal(context.event, "workflow_dispatch", "Unexpected Darwin event");
   for (const [key, value] of Object.entries(expected))
     assert.equal(context[key], value, `Unexpected Darwin ${key}`);
   assert.equal(context.node.split(".")[0], "22", "Darwin qualification requires Node22");
@@ -467,7 +508,7 @@ export async function qualifyDarwinBuild(options, dependencies = {}) {
   const fileSystem = dependencies.fileSystem ?? fs;
   const execute = dependencies.execute ?? executeBuildStep;
   const { profile, context } = options;
-  assertDarwinContext(profile, context);
+  assertDarwinContext(profile, context, options.releaseLane);
   canonicalPath(fileSystem, options.parent);
   canonicalPath(fileSystem, options.checkout);
   assert.equal(
@@ -575,6 +616,27 @@ export async function qualifyDarwinBuild(options, dependencies = {}) {
         pin.sha256,
         "Apple bytes changed during verification"
       );
+    }
+    if (profile.appleObservations !== undefined) {
+      assert.deepEqual(profile.appleObservations, ["/usr/bin/split"], "only the pending split observation is admitted");
+      const path = profile.appleObservations[0];
+      canonicalPath(fileSystem, path);
+      const before = fileSystem.lstatSync(path, { bigint: true });
+      assert(before.isFile() && before.size > 0n && before.size <= 16n * 1024n ** 2n && (before.mode & 0o111n) !== 0n);
+      const sha256 = digest(fileSystem.readFileSync(path));
+      await step("/usr/bin/codesign", ["--verify", "--strict", "--verbose=2", path]);
+      await step("/usr/bin/codesign", ["--display", "--verbose=4", path]);
+      const result = await execute(path, ["--version"], { cwd: root, env });
+      write("logs/apple-split-version.json", JSON.stringify({ path, status: result.status, signal: result.signal, stdout: result.stdout, stderr: result.stderr, error: result.error?.message }, null, 2) + "\n");
+      assert.ifError(result.error);
+      assert.equal(result.signal, null);
+      assert.equal(result.status, 64, "Apple split must retain its observed unsupported-version status");
+      assert.equal(result.stdout, "");
+      assert(typeof result.stderr === "string" && result.stderr.includes("usage: split") && Buffer.byteLength(result.stderr) <= 4096);
+      canonicalPath(fileSystem, path);
+      assert.equal(identity(fileSystem.lstatSync(path, { bigint: true })), identity(before));
+      assert.equal(digest(fileSystem.readFileSync(path)), sha256, "Apple split changed during observation");
+      receipt.appleObservations = [{ tool: "split", path, version: "Apple split (no --version support)", size: Number(before.size), sha256, versionProbe: { status: result.status, stdout: result.stdout, stderr: result.stderr } }];
     }
     const keyring = join(root, "gnu-keyring.gpg");
     fileSystem.writeFileSync(keyring, await fetchVerified(profile.keyring, dependencies), {
@@ -714,8 +776,8 @@ export async function qualifyDarwinBuild(options, dependencies = {}) {
 
 export function parseNativeArguments(args) {
   const result = {};
-  if (args[0] === "--qualify-darwin-build") {
-    result.qualification = true;
+  if (args[0] === "--qualify-darwin-build" || args[0] === "--stage-darwin") {
+    result[args[0] === "--stage-darwin" ? "stageDarwin" : "qualification"] = true;
     args = args.slice(1);
   }
   for (let index = 0; index < args.length; index += 2) {
@@ -739,7 +801,7 @@ export function parseNativeArguments(args) {
 
 export async function main(args) {
   const options = parseNativeArguments(args);
-  if (options.qualification) {
+  if (options.qualification || options.stageDarwin) {
     const context = {
       platform: process.platform,
       arch: process.arch,
@@ -749,6 +811,7 @@ export async function main(args) {
       repository: process.env.GITHUB_REPOSITORY,
       ref: process.env.GITHUB_REF,
       event: process.env.GITHUB_EVENT_NAME,
+      job: process.env.GITHUB_JOB,
       runner: process.env.RUNNER_ENVIRONMENT,
       runnerOS: process.env.RUNNER_OS,
       runnerArch: process.env.RUNNER_ARCH,
@@ -759,13 +822,29 @@ export async function main(args) {
       fs.readFileSync(new URL("../tests/native-gnu-profiles.json", import.meta.url), "utf8")
     );
     const profile = manifest.darwinBuildQualification;
-    assertDarwinContext(profile, context);
+    assertDarwinContext(profile, context, options.stageDarwin);
     const runnerTemp = fs.realpathSync(process.env.RUNNER_TEMP);
     assert.equal(
       dirname(options.parent),
       runnerTemp,
       "build parent must be directly inside RUNNER_TEMP"
     );
+    if (options.stageDarwin) {
+      const packageRoot = fileURLToPath(new URL("../", import.meta.url));
+      assert.equal(options.destination, join(packageRoot, "tmp", "native-gnu"));
+      canonicalPath(fs, packageRoot.slice(0, -1));
+      const destinationParent = dirname(options.destination);
+      if (!fs.existsSync(destinationParent)) fs.mkdirSync(destinationParent, { mode: 0o700 });
+      canonicalPath(fs, destinationParent);
+      assert.equal(fs.lstatSync(destinationParent).mode & 0o777, 0o700);
+      assert(!fs.existsSync(options.destination) && !fs.existsSync(options.destination + "-second"), "native destination already exists");
+      const host = { platform: context.platform, arch: context.arch, distribution: "macos", version: profile.osVersion, release: profile.kernel };
+      const reviewed = selectNativeProfile(manifest.profiles, host);
+      const receipt = await qualifyDarwinBuild({ parent: options.parent, name: "build", checkout: process.cwd(), profile, context, releaseLane: true });
+      const staged = stageDarwinOutputs({ receipt, profile: reviewed, host, parent: destinationParent, name: "native-gnu" });
+      console.log(JSON.stringify(staged, null, 2));
+      return staged;
+    }
     assert.equal(options.destination, join(options.parent, "build"));
     let failure;
     try {

@@ -7,11 +7,12 @@ import { dirname, join } from "node:path";
 import { test } from "node:test";
 import { fileURLToPath } from "node:url";
 import { captureNativeReport, createNativeCapture, createNativeScratch } from "./native-capture.js";
+import { nativeSplitBinding } from "./native-binding.js";
 
 const root = fileURLToPath(new URL("../../../", import.meta.url));
 const suite = "tests/commands/split";
 const canonical = ["native.test.ts", "native-errors.test.ts", "edge.test.ts", "stress.test.ts", "dangling-native.test.ts"];
-const sources = [...canonical, "native-capture.ts", "cases.ts", "helpers.ts"];
+const sources = [...canonical, "native-binding.ts", "native-capture.ts", "cases.ts", "helpers.ts"];
 const sha256 = (bytes: Uint8Array) => createHash("sha256").update(bytes).digest("hex");
 
 async function environment(values: Record<string, string | undefined>, action: () => Promise<void>) {
@@ -137,10 +138,8 @@ test("native capture refuses overwrites, output symlinks, and replaced destinati
 
 for (const failed of [false, true]) for (const capture of [false, true]) {
   test(`actual native harness ${failed ? "injected mismatch" : "success"}, capture ${capture ? "on" : "off"}, preserves repository evidence`, { timeout: 120_000 }, async context => {
-    for (const [executable, hash] of [
-      [join(root, "tests/commands/metadata-stress/.oracle/coreutils-9.7/src/split"), "cf5851c4e6566983ce69940b766c0b5eb0cd26ebf2bb45eefe215b2d5c62f958"],
-      ["/usr/bin/split", "7c2d5f3c73e849d664bad3a2f4c67c5154b0f03f59f2fa779d49e33dc7983f91"],
-    ] as const) {
+    for (const kind of ["gnu", "apple"] as const) {
+      const { path: executable, sha256: hash } = nativeSplitBinding(kind);
       let binary: Uint8Array;
       try { binary = await native.readFile(executable); }
       catch { context.skip(`oracle unavailable: ${executable}`); return; }
@@ -159,6 +158,7 @@ for (const failed of [false, true]) for (const capture of [false, true]) {
         for (const name of ["src", "node_modules"]) await native.symlink(join(root, name), join(sandbox, name), "dir");
         await native.copyFile(join(root, "package.json"), join(sandbox, "package.json"));
         await native.symlink(join(root, "tests/commands/metadata-stress"), join(sandbox, "tests/commands/metadata-stress"), "dir");
+        await native.symlink(join(root, "tests/native-profile.ts"), join(sandbox, "tests/native-profile.ts"), "file");
         for (const name of sources) await native.copyFile(join(root, suite, name), join(sandbox, suite, name));
         await native.cp(join(root, suite, "evidence"), join(sandbox, suite, "evidence"), { recursive: true });
         const mutations = [

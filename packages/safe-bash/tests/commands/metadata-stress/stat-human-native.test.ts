@@ -5,16 +5,7 @@ import * as host from "node:fs/promises";
 import { join } from "node:path";
 import { MemoryFileSystem } from "../../../src/fs/memory/index.js";
 import { createRealFileSystem } from "../../../src/fs/real/index.js";
-import { namespace, oracleRoot, run, sha256 } from "./helpers.js";
-
-const metadataStat = join(oracleRoot, "src/stat");
-const benchmarkStat = "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-byte-gnu.0SnJMX/coreutils-9.7/src/stat";
-const nativeTouch = join(oracleRoot, "src/touch");
-const identities = [
-  { label: "metadata-stat", path: metadataStat, hash: "9bfc67687cc527eb69aa7a877c1551c22db6ea46ff910ad055015958924e1fea", version: "stat (GNU coreutils) 9.7" },
-  { label: "benchmark-stat", path: benchmarkStat, hash: "bf6f8514f2a220a3c3743154e0530baeec864b9d1f20315cd9cb5832d28c9860", version: "stat (GNU coreutils) 9.7" },
-  { label: "metadata-touch", path: nativeTouch, hash: "47fc9af399d94e27bc94c19eba754502b38dfb80fbad3d09c5f6b237698dbf68", version: "touch (GNU coreutils) 9.7" },
-];
+import { namespace, oracleIdentity, run, sha256 } from "./helpers.js";
 
 function execute(path: string, args: readonly string[], cwd: string) {
   const result = spawnSync(path, args, { cwd, env: { PATH: "/usr/bin:/bin", LC_ALL: "C", TZ: "UTC" }, timeout: 3000 });
@@ -36,6 +27,15 @@ function exactMilliseconds(nanoseconds: bigint): string {
 }
 
 test("GNU 9.7 human timestamps: distinct pinned builds, measured native nanoseconds and numeric-capacity gaps", async context => {
+  const identities = [
+    { label: "metadata-stat", ...oracleIdentity("stat") },
+    { label: "benchmark-stat", ...oracleIdentity("stat", { build: 2 }) },
+    { label: "metadata-touch", ...oracleIdentity("touch") },
+  ];
+  const metadataStat = identities[0]!.path;
+  const benchmarkStat = identities[1]!.path;
+  const nativeTouch = identities[2]!.path;
+  assert.notEqual(metadataStat, benchmarkStat, "stat builds must use distinct staged paths");
   const root = await namespace(context);
   await host.mkdir(join(root, "work"));
   const work = join(root, "work");
@@ -46,7 +46,7 @@ test("GNU 9.7 human timestamps: distinct pinned builds, measured native nanoseco
   const binaryRecords = [];
   for (const identity of identities) {
     const hash = await sha256(identity.path);
-    assert.equal(hash, identity.hash, identity.label);
+    assert.equal(hash, identity.sha256, identity.label);
     const version = execute(identity.path, ["--version"], root);
     assert.equal(version.exitCode, 0, version.stderr);
     assert.equal(version.stdout.split("\n")[0], identity.version);

@@ -3,6 +3,7 @@ import test from "node:test";
 import { AsyncLocalStorage } from "node:async_hooks";
 import { createHash } from "node:crypto";
 import { readFileSync } from "node:fs";
+import { fileURLToPath } from "node:url";
 import { createFsFromVolume, Volume } from "memfs";
 import ts from "typescript";
 
@@ -168,6 +169,32 @@ test("seq diagnostic matching projection retains all portable and live assertion
   assert.equal(input.calls.filter(call => call.args[0] === "--version").length, 17);
   assert.equal(input.calls.filter(call => call.args[0] !== "--version").length, 16);
   assert.equal(input.state.disposed, 16);
+});
+
+test("seq diagnostic reviewed Darwin profile retains every captured and live assertion", async () => {
+  const input = await setup({ ...matchingHost, release: "25.5.0" });
+  const path = fileURLToPath(new URL("../../../tmp/native-gnu/bin/seq", import.meta.url));
+  input.fileSystem.mkdirSync(fileURLToPath(new URL("../../../tmp/native-gnu/bin", import.meta.url)), { recursive: true });
+  input.fileSystem.writeFileSync(path, toolBytes, { mode: 0o755 });
+  const pin = { tool: "seq", version: "seq (GNU coreutils) 9.7", size: toolBytes.length, sha256: digest(toolBytes) };
+  const oracle = input.module.createSeqDiagnosticOracle({
+    ...input.dependencies, digest,
+    profiles: [{ id: "in-memory-reviewed-seq", qualification: "QUALIFIED", host: {
+      platform: "darwin", arch: "arm64", distribution: "macos", version: "26.5.2", release: "25.5.0",
+    }, executables: [pin] }],
+  });
+  const admitted = await oracle.qualify();
+  assert.equal(admitted.status, "ADMITTED");
+  if (admitted.status !== "ADMITTED") assert.fail("selected reviewed seq must be admitted");
+  assert.equal(admitted.identity.path, path);
+  assert.equal(admitted.identity.sha256, pin.sha256);
+  const result = await (await projection(input, oracle)).run();
+  assert(result.nodes.every(node => !node.failed && !node.skipped));
+  assert(result.children.every(node => !node.failed && !node.skipped));
+  assert.deepEqual(result.assertions, { portable: 56, native: 64 });
+  assert(input.calls.every(call => call.path === path));
+  input.fileSystem.writeFileSync(path, Buffer.alloc(toolBytes.length));
+  await assert.rejects(oracle.qualify(), /SHA-256/u);
 });
 
 test("seq diagnostic missing or wrong matching tool fails every native unit without hiding portable assertions", async () => {

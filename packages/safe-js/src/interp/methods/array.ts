@@ -354,15 +354,26 @@ async function callArrayMethodUnlocked(
       return budgetProducedValue(result, options.budget);
     }
     case "with": {
-      const result = Array.from(value) as SandboxArray;
+      const length = value.length;
       const index = toIntegerOrInfinity(args[0]);
-      const actualIndex = index < 0 ? result.length + index : index;
+      const actualIndex = index < 0 ? length + index : index;
 
-      if (actualIndex < 0 || actualIndex >= result.length) {
+      if (actualIndex < 0 || actualIndex >= length) {
         throw new RangeError("Invalid index");
       }
 
-      result[actualIndex] = args[1];
+      options.budget.allocateArrayLength(length);
+      const result: SandboxArray = [];
+      for (let position = 0; position < length; position += 1) {
+        options.budget.visitNode();
+        result[position] =
+          position === actualIndex
+            ? args[1]
+            : Object.hasOwn(value, position)
+              ? value[position]
+              : undefined;
+      }
+
       return budgetProducedValue(result, options.budget);
     }
     case "push": {

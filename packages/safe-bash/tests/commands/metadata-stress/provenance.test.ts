@@ -2,7 +2,7 @@ import assert from "node:assert/strict";
 import test from "node:test";
 import { readFile } from "node:fs/promises";
 import { join } from "node:path";
-import { namespace, oracle, oracleRoot, sha256, suiteRoot } from "./helpers.js";
+import { namespace, oracle, oracleIdentity, oracleRoot, sha256, suiteRoot } from "./helpers.js";
 import { authenticateCapturedAuthors, authorSnapshotSha256, type AuthorSnapshot } from "./canonical-env/author-provenance.js";
 
 const oracleEvidenceBytes = await readFile(new URL("./oracle-evidence.json", import.meta.url));
@@ -30,11 +30,13 @@ test("GNU native source identities are complete SHA256 hashes matching the pinne
   }
 });
 
-test("GNU oracle binaries/archive match the independently captured exact identities", async context => {
+test("GNU oracle binaries match selected identities and archive retains its captured identity", async context => {
   assert.equal(await sha256(join(oracleRoot, "../coreutils-9.7.tar.xz")), evidence.archiveSha256);
   const root = await namespace(context);
   for (const command of ["chmod", "stat", "mktemp"] as const) {
-    assert.equal(await sha256(join(oracleRoot, "src", command)), evidence.binaries[command]);
+    const identity = oracleIdentity(command);
+    assert.equal(await sha256(identity.path), identity.sha256);
+    if (identity.path === join(oracleRoot, "src", command)) assert.equal(identity.sha256, evidence.binaries[command]);
     const version = oracle(command, ["--version"], root);
     assert.equal(version.exitCode, 0, version.stderr);
     assert.equal(version.stdout.toString().split("\n")[0], `${command} (GNU coreutils) 9.7`);

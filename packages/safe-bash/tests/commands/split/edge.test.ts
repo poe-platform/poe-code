@@ -3,18 +3,17 @@ import { test } from "node:test";
 import { spawnSync } from "node:child_process";
 import { createHash } from "node:crypto";
 import * as native from "node:fs/promises";
-import { fileURLToPath } from "node:url";
 import { join } from "node:path";
 import { createMemoryFileSystem } from "../../../src/fs/memory/index.js";
 import { files, run } from "./helpers.js";
 import { captureNativeReport, createNativeScratch } from "./native-capture.js";
-
-const executable = fileURLToPath(new URL("../metadata-stress/.oracle/coreutils-9.7/src/split", import.meta.url));
+import { nativeSplitBinding } from "./native-binding.js";
 
 test("GNU size spellings and empty-input output-directory controls", async context => {
+  const { path: executable, sha256: pin } = nativeSplitBinding("gnu");
   let binary: Uint8Array;
   try { binary = await native.readFile(executable); } catch { context.skip("pinned GNU oracle unavailable"); return; }
-  assert.equal(createHash("sha256").update(binary).digest("hex"), "cf5851c4e6566983ce69940b766c0b5eb0cd26ebf2bb45eefe215b2d5c62f958");
+  assert.equal(createHash("sha256").update(binary).digest("hex"), pin);
   const evidence: unknown[] = [];
   let failed = false;
   for (const size of ["1g", "1t", "1p", "1e", "1z", "1y", "1r", "1q", "1B", "1mB", "1miB", "+K", " K", "K", " +2", "0K"]) {

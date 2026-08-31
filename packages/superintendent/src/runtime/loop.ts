@@ -2,12 +2,10 @@ import path from "node:path";
 import * as fsPromises from "node:fs/promises";
 import { randomUUID } from "node:crypto";
 import { makeRunLogFileName, resolveWorkflowPath } from "@poe-code/agent-harness-tools";
-import {
-  resolveSuperintendentDoc,
-  type SuperintendentDoc
-} from "../document/parse.js";
+import { resolveSuperintendentDoc, type SuperintendentDoc } from "../document/parse.js";
 import { parseTaskBoard } from "../document/tasks.js";
 import { updateStatus } from "../document/write.js";
+import { withDocumentStatusLock } from "../document/status-lock.js";
 import { createLoopState, type LoopState } from "../state/machine.js";
 import { withAutonomousAgentRunner, type McpSpawnConfig } from "./agent-runner.js";
 import { runBuilder, type BuilderResult } from "./run-builder.js";
@@ -155,6 +153,12 @@ type TemplateLoopContext = {
   ownerLogPath?: string;
 };
 
+class DocumentCompleted extends Error {
+  constructor(readonly state: LoopState) {
+    super("Superintendent document was completed while the loop was active.");
+  }
+}
+
 export async function runLoop(
   docPath: string,
   callbacks?: LoopCallbacks
@@ -173,7 +177,7 @@ export async function runLoop(
     };
 
     while (true) {
-      const stopReason = readLoopStopReason(options, state);
+      const stopReason = await readLoopStopReason(options, state);
 
       if (stopReason) {
         return finishLoop(options.callbacks, state, stopReason);
@@ -183,8 +187,8 @@ export async function runLoop(
         const roundStartState = { ...state };
         const roundSnapshot = await readDocumentContent(options.fs, options.docPath);
         state = beginRound(state);
-        emitStateChange(options.callbacks, state);
         await writeLoopState(options.fs, options.docPath, state);
+        emitStateChange(options.callbacks, state);
 
         options.callbacks.onBuilderStart?.();
 
@@ -226,7 +230,7 @@ export async function runLoop(
         };
         await writeLoopState(options.fs, options.docPath, state);
 
-        const stopReason = readInterruptionReason(options, state);
+        const stopReason = await readInterruptionReason(options, state);
 
         if (stopReason) {
           if (stopReason === "aborted") {
@@ -280,7 +284,7 @@ export async function runLoop(
           };
           await writeLoopState(options.fs, options.docPath, state);
 
-          const stopReason = readInterruptionReason(options, state);
+          const stopReason = await readInterruptionReason(options, state);
 
           if (stopReason) {
             if (stopReason === "aborted") {
@@ -309,17 +313,19 @@ export async function runLoop(
             state: "review",
             reviewTurn: 0
           };
-          emitStateChange(options.callbacks, state);
         }
 
         await writeLoopState(options.fs, options.docPath, state);
+        if (superintendentResult.transition?.action === "request_review") {
+          emitStateChange(options.callbacks, state);
+        }
 
         if (state.state === "in_progress") {
           options.callbacks.onRoundComplete?.(state.round);
         }
 
         {
-          const stopReason = readLoopStopReason(options, state);
+          const stopReason = await readLoopStopReason(options, state);
 
           if (stopReason) {
             if (stopReason === "aborted" && state.state === "in_progress") {
@@ -353,7 +359,7 @@ export async function runLoop(
         await writeLoopState(options.fs, options.docPath, state);
 
         {
-          const stopReason = readInterruptionReason(options, state);
+          const stopReason = await readInterruptionReason(options, state);
 
           if (stopReason) {
             return finishLoop(options.callbacks, state, stopReason);
@@ -380,7 +386,7 @@ export async function runLoop(
       options.callbacks.onOwnerComplete?.(ownerResult);
 
       {
-        const stopReason = readInterruptionReason(options, state);
+        const stopReason = await readInterruptionReason(options, state);
 
         if (stopReason) {
           return finishLoop(options.callbacks, state, stopReason);
@@ -408,21 +414,25 @@ export async function runLoop(
         );
       }
 
-      emitStateChange(options.callbacks, state);
       await writeLoopState(options.fs, options.docPath, state);
+      emitStateChange(options.callbacks, state);
 
       if (state.state !== "review") {
         options.callbacks.onRoundComplete?.(state.round);
       }
 
       {
-        const stopReason = readLoopStopReason(options, state);
+        const stopReason = await readLoopStopReason(options, state);
 
         if (stopReason) {
           return finishLoop(options.callbacks, state, stopReason);
         }
       }
     }
+  }).catch((error: unknown) => {
+    if (!(error instanceof DocumentCompleted)) throw error;
+    emitStateChange(options.callbacks, error.state);
+    return finishLoop(options.callbacks, error.state, "completed");
   });
 }
 
@@ -515,13 +525,19 @@ async function writeLoopState(
   docPath: string,
   state: LoopState
 ): Promise<void> {
-  const content = await fs.readFile(docPath, "utf8");
-  const updatedContent = updateStatus(docPath, content, {
-    state: state.state,
-    round: state.round,
-    review_turn: state.reviewTurn
+  await withDocumentStatusLock(docPath, fs, async () => {
+    const content = await fs.readFile(docPath, "utf8");
+    const { document } = await resolveSuperintendentDoc(docPath, content, fs);
+    if (document.frontmatter.status.state === "completed") {
+      throw new DocumentCompleted(createLoopState(document));
+    }
+    const updatedContent = updateStatus(docPath, content, {
+      state: state.state,
+      round: state.round,
+      review_turn: state.reviewTurn
+    });
+    await writeDocumentContent(fs, docPath, updatedContent);
   });
-  await writeDocumentContent(fs, docPath, updatedContent);
 }
 
 async function preserveFailedRoleDocument(
@@ -530,6 +546,7 @@ async function preserveFailedRoleDocument(
   content: string,
   error: unknown
 ): Promise<Error> {
+  if (error instanceof DocumentCompleted) throw error;
   const failure = toError(error);
   const recoveryPath = `${docPath}.recovery-${randomUUID()}.bak`;
   try {
@@ -674,13 +691,46 @@ async function executeSuperintendent(
   }
 }
 
-function runRole<T>(
+async function runRole<T>(
   options: LoopRuntime,
   role: "builder" | "inspector" | "superintendent" | "owner",
   name: string | undefined,
   run: () => Promise<T>
 ): Promise<T> {
-  return options.callbacks.runRole?.(role, name, run) ?? run();
+  const start = async () => {
+    const { pending } = await withDocumentStatusLock(options.docPath, options.fs, async () => {
+      await assertDocumentActive(options);
+      return {
+        pending: run().then(
+          (value) => ({ value }),
+          (error: unknown) => ({ error })
+        )
+      };
+    });
+    const outcome = await pending;
+    if ("error" in outcome) throw outcome.error;
+    return outcome.value;
+  };
+  try {
+    await assertDocumentActive(options);
+    const result = await (options.callbacks.runRole?.(role, name, start) ?? start());
+    await assertDocumentActive(options);
+    return result;
+  } catch (error) {
+    try {
+      await assertDocumentActive(options);
+    } catch (completionError) {
+      if (completionError instanceof DocumentCompleted) throw completionError;
+    }
+    throw error;
+  }
+}
+
+async function assertDocumentActive(options: Pick<LoopRuntime, "fs" | "docPath">): Promise<void> {
+  const document = await readDocument(options.fs, options.docPath);
+  if (document.frontmatter.status.state === "completed") {
+    throw new DocumentCompleted(createLoopState(document));
+  }
 }
 
 function buildRoleOptions(
@@ -702,13 +752,15 @@ function emitStateChange(callbacks: LoopCallbacks, state: LoopState): void {
   callbacks.onStateChange?.({ ...state });
 }
 
-function readLoopStopReason(
-  options: Pick<LoopRuntime, "callbacks" | "signal">,
+async function readLoopStopReason(
+  options: Pick<LoopRuntime, "callbacks" | "signal" | "fs" | "docPath">,
   state: LoopState
-): SuperintendentStopReason | undefined {
+): Promise<SuperintendentStopReason | undefined> {
   if (state.state === "completed") {
     return "completed";
   }
+
+  await assertDocumentActive(options);
 
   if (state.state === "in_progress" && state.round >= state.maxRounds) {
     return "max_rounds";
@@ -717,10 +769,11 @@ function readLoopStopReason(
   return readInterruptionReason(options, state);
 }
 
-function readInterruptionReason(
-  options: Pick<LoopRuntime, "callbacks" | "signal">,
+async function readInterruptionReason(
+  options: Pick<LoopRuntime, "callbacks" | "signal" | "fs" | "docPath">,
   _state: LoopState
-): SuperintendentStopReason | undefined {
+): Promise<SuperintendentStopReason | undefined> {
+  await assertDocumentActive(options);
   if (options.signal?.aborted) {
     return "aborted";
   }

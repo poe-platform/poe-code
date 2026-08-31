@@ -7,6 +7,16 @@ on:
     branches:
       - main
   workflow_dispatch:
+    inputs:
+      qualification:
+        description: Explicit native qualification; none runs the normal release
+        type: choice
+        required: true
+        default: none
+        options:
+          - none
+          - darwin-native-metadata
+          - darwin-gnu-build
 concurrency:
   group: release-${{ github.ref }}
   cancel-in-progress: false
@@ -64,3 +74,163 @@ jobs:
           GH_TOKEN: ${{ steps.app_token.outputs.token }}
           HUSKY: "0"
         run: npx semantic-release
+    if: ${{ github.event_name != 'workflow_dispatch' || (inputs.qualification != 'darwin-native-metadata' && inputs.qualification != 'darwin-gnu-build') }}
+  darwin-native-metadata:
+    if: ${{ github.event_name == 'workflow_dispatch' && inputs.qualification == 'darwin-native-metadata' }}
+    runs-on: macos-26
+    timeout-minutes: 10
+    permissions: {}
+    steps:
+      - name: Collect unreviewed hosted Darwin native identities
+        shell: bash
+        run: |
+          node --input-type=module <<'DARWIN_NATIVE_METADATA'
+          import assert from "node:assert/strict";
+          import { spawnSync } from "node:child_process";
+          import { createHash } from "node:crypto";
+          import { lstatSync, readFileSync, realpathSync, statSync } from "node:fs";
+          import { arch, platform, release } from "node:os";
+
+          for (const [name, expected] of Object.entries({
+            GITHUB_REPOSITORY: "poe-platform/poe-code",
+            GITHUB_REF: "refs/heads/main",
+            GITHUB_EVENT_NAME: "workflow_dispatch",
+            RUNNER_ENVIRONMENT: "github-hosted",
+            RUNNER_OS: "macOS",
+            RUNNER_ARCH: "ARM64"
+          })) assert.equal(process.env[name], expected, `Unexpected ${name}`);
+          assert.equal(platform(), "darwin");
+          assert.equal(arch(), "arm64");
+
+          function execute(executable, args) {
+            const result = spawnSync(executable, args, {
+              encoding: "utf8",
+              shell: false,
+              timeout: 5000,
+              killSignal: "SIGKILL",
+              maxBuffer: 65536,
+              env: { PATH: "/usr/bin:/bin:/usr/sbin:/sbin", LANG: "C", LC_ALL: "C" }
+            });
+            return {
+              executable, args, status: result.status, signal: result.signal,
+              error: result.error?.message ?? null,
+              stdout: result.stdout ?? "", stderr: result.stderr ?? ""
+            };
+          }
+
+          function executableIdentity(executable, historicalSha256 = null) {
+            const canonicalPath = realpathSync(executable);
+            const entry = lstatSync(executable);
+            const before = statSync(canonicalPath, { bigint: true });
+            assert(before.isFile() && before.size > 0n && before.size <= 33554432n);
+            const sha256 = createHash("sha256").update(readFileSync(canonicalPath)).digest("hex");
+            const after = statSync(canonicalPath, { bigint: true });
+            for (const field of ["dev", "ino", "mode", "size", "mtimeNs", "ctimeNs"])
+              assert.equal(after[field], before[field], `Changed executable ${canonicalPath}`);
+            return {
+              path: executable, canonicalPath, symbolicLink: entry.isSymbolicLink(),
+              size: Number(before.size), mode: Number(before.mode), sha256,
+              historicalSha256,
+              comparison: historicalSha256 === null ? "NO_HISTORICAL_PIN" :
+                sha256 === historicalSha256 ? "MATCHES_HISTORICAL_PIN" : "DIFFERS_FROM_HISTORICAL_PIN",
+              file: execute("/usr/bin/file", [canonicalPath]),
+              version: execute(canonicalPath, ["--version"])
+            };
+          }
+
+          const applePins = [
+            ["/usr/bin/diff", "214a0d91e39424b15e1e3540edf6b33ee3dd2bbccb0c6dd3a9571dae754edede"],
+            ["/usr/bin/patch", "ca8aaa5fa4bd9dfaf4b3be251b18372f25f07483946e7d06b505e5a5fb0a6a84"],
+            ["/usr/bin/bsdtar", "bdccb76a715fbebc4915a1a1b1de0e7050ad842ebb730c47935b3a22c13e3af9"]
+          ];
+          const apple = applePins.map(([executable, historicalSha256]) => ({
+            ...executableIdentity(executable, historicalSha256),
+            codeSignature: execute("/usr/bin/codesign", ["--display", "--verbose=4", executable]),
+            codeSignatureVerification: execute("/usr/bin/codesign", ["--verify", "--strict", "--verbose=2", executable])
+          }));
+          const gnu = ["gtar", "gdiff", "gpatch", "gexpr", "gstat", "gtouch"].map(name => {
+            const located = spawnSync("/bin/bash", ["--noprofile", "--norc", "-c", 'command -v "$1"', "native-metadata", name], {
+              encoding: "utf8", shell: false, timeout: 3000, killSignal: "SIGKILL", maxBuffer: 4096,
+              env: { PATH: process.env.PATH, LANG: "C", LC_ALL: "C" }
+            });
+            if (located.error || located.signal) throw located.error ?? new Error(`Lookup terminated: ${name}`);
+            if (located.status !== 0) return { name, status: "ABSENT_NOT_QUALIFIED" };
+            const executable = located.stdout.trim();
+            assert(executable.startsWith("/") && !executable.includes("\n"));
+            return { name, status: "OBSERVED_UNREVIEWED", ...executableIdentity(executable) };
+          });
+          const metadata = {
+            status: "UNREVIEWED_PROFILE",
+            meaning: "Read-only identity observations; no calibration, admission, product or release clearance",
+            sourceSha: process.env.GITHUB_SHA,
+            workflowRef: process.env.GITHUB_WORKFLOW_REF,
+            runId: process.env.GITHUB_RUN_ID,
+            imageOS: process.env.ImageOS ?? null,
+            imageVersion: process.env.ImageVersion ?? null,
+            officialImageReference: "actions/runner-images@abac76dc78cf571e72be5c0296c061ee7ae594fb",
+            officialReferenceIsAssignedImageProof: false,
+            historicalProfile: { osVersion: "26.4.1", buildVersion: "25E253", kernel: "25.4.0" },
+            actual: {
+              platform: platform(), architecture: arch(), kernel: release(), node: process.version,
+              nodeExecutable: process.execPath,
+              swVers: execute("/usr/bin/sw_vers", []),
+              xcode: execute("/usr/bin/xcodebuild", ["-version"]),
+              clang: execute("/usr/bin/xcrun", ["clang", "--version"])
+            },
+            apple, gnu
+          };
+          const output = JSON.stringify(metadata, null, 2);
+          assert(Buffer.byteLength(output) <= 524288, "Metadata output bound exceeded");
+          console.log("DARWIN_NATIVE_METADATA_BEGIN");
+          console.log(output);
+          console.log("DARWIN_NATIVE_METADATA_END");
+          const required = [metadata.actual.swVers, metadata.actual.xcode, metadata.actual.clang,
+            ...apple.flatMap(item => [item.file, item.version, item.codeSignature, item.codeSignatureVerification])];
+          if (required.some(result => result.error || result.signal || result.status !== 0)) process.exitCode = 1;
+          DARWIN_NATIVE_METADATA
+  darwin-gnu-build:
+    if: ${{ github.event_name == 'workflow_dispatch' && inputs.qualification == 'darwin-gnu-build' }}
+    runs-on: macos-26
+    timeout-minutes: 60
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.sha }}
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22.22.2
+      - name: Build authenticated GNU observations without admission
+        id: native_build
+        shell: bash
+        run: |
+          set -euo pipefail
+          umask 077
+          node_bin="$(command -v node)"
+          [[ "$RUNNER_TEMP" = /* && "$node_bin" = /* ]]
+          job_root="$(mktemp -d "${RUNNER_TEMP:?}/darwin-gnu.XXXXXX")"
+          chmod 700 "$job_root"
+          printf 'archive=%s\n' "$job_root/build/native-darwin-evidence.tar" >> "$GITHUB_OUTPUT"
+          env -i PATH="$(dirname "$node_bin"):/usr/bin:/bin:/usr/sbin:/sbin" \
+            HOME="$job_root" TMPDIR="$job_root" LC_ALL=C LANG=C TZ=UTC \
+            RUNNER_TEMP="$RUNNER_TEMP" GITHUB_SHA="$GITHUB_SHA" GITHUB_RUN_ID="$GITHUB_RUN_ID" \
+            GITHUB_REPOSITORY="$GITHUB_REPOSITORY" GITHUB_REF="$GITHUB_REF" \
+            GITHUB_EVENT_NAME="$GITHUB_EVENT_NAME" GITHUB_OUTPUT="$GITHUB_OUTPUT" RUNNER_ENVIRONMENT="$RUNNER_ENVIRONMENT" \
+            RUNNER_OS="$RUNNER_OS" RUNNER_ARCH="$RUNNER_ARCH" ImageOS="$ImageOS" ImageVersion="$ImageVersion" \
+            "$node_bin" packages/safe-bash/scripts/provision-test-native-oracles.mjs \
+            --qualify-darwin-build --parent "$job_root" --destination "$job_root/build"
+      - name: Retain bounded qualification evidence
+        if: ${{ always() && !cancelled() && steps.native_build.outputs.sealed == 'true' }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: darwin-gnu-${{ github.sha }}-${{ github.run_id }}
+          path: |-
+            ${{ steps.native_build.outputs.archive }}
+            ${{ steps.native_build.outputs.archive }}.sha256
+          retention-days: 14
+          if-no-files-found: error
+          include-hidden-files: false
+          overwrite: false
+          compression-level: 0

@@ -1272,3 +1272,35 @@ is40 contract-derived acceptances:38 style and two intent, not40 directly suppre
 raw diagnostics and not all style. These are separate from the1217 archived-not-
 fixed diagnostics. Neither decision establishes an integrated or release gate pass;
 uncovered semantic findings remain blocking.
+
+## Native build qualification infrastructure
+
+`scripts/provision-test-native-oracles.mjs` is test infrastructure, not a shell
+command or a runtime dependency. It never installs tools globally. Its explicit
+`--parent <absolute-private-directory>` and `--destination <absolute-path>`
+options reject omitted, repeated and unknown arguments. The Linux mode accepts
+only the fixed Ubuntu 24.04/x64/GCC 13.3 profile and installs verified copies into
+this workspace's private `tmp/native-gnu` destination. Caller/CI rollout remains
+separate; adding the provisioner does not enable a native fallback in the shell.
+
+The additional `--qualify-darwin-build` mode is an observation-only, trusted-main
+GitHub-hosted job. Dispatch the existing Release workflow with
+`qualification=darwin-gnu-build`. It requires the reviewed macOS image and Apple
+identities, Node 22, an exact resolved checkout, and a mode-0700 parent directly
+under `RUNNER_TEMP`; its destination is `<parent>/build`. It authenticates fixed
+GNU sources and signatures and builds coreutils twice independently. New output
+hashes remain unreviewed observations, not automatically admitted profiles.
+
+This mode validates `GITHUB_REPOSITORY`, `GITHUB_REF`, `GITHUB_EVENT_NAME`,
+`GITHUB_SHA`, `GITHUB_RUN_ID`, `RUNNER_ENVIRONMENT`, `RUNNER_OS`, `RUNNER_ARCH`,
+`ImageOS`, and `ImageVersion`. `RUNNER_TEMP` bounds private storage and
+`GITHUB_OUTPUT` receives the sealed-artifact status. The workflow supplies a
+private `HOME`/`TMPDIR` and explicit `PATH`; build children receive only private
+paths, C locale, UTC, and the manifest's `SOURCE_DATE_EPOCH`. No ambient secret
+environment is retained. Bounded source/signature/build-log/selected-binary
+evidence is retained for 14 days, excluding keys and private homes.
+
+See `docs/plans/darwin-gnu-build-qualification.md` for authentication, output
+bounds and the still-required genuine Darwin calibration gates. Historical
+Apple records and native assertion bodies are unchanged; this qualification
+mode alone does not establish release readiness.

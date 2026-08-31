@@ -53,6 +53,10 @@ function compilerInputs(root, tools, fileSystem) {
     discardIndex(directory);
     const outside = directory !== root && (directory === sep || below(directory, root)) && !toolRoots.some(toolRoot => below(toolRoot, directory));
     let entries;
+    const uncachedName = () => {
+      const aliases = entries.filter(name => name.toLowerCase() === component.toLowerCase());
+      return aliases.length > 1 ? null : aliases[0];
+    };
     for (let attempt = 0; ; attempt += 1) {
       entries = fileSystem.readdirSync(directory);
       const after = fileSystem.lstatSync(directory);
@@ -61,15 +65,11 @@ function compilerInputs(root, tools, fileSystem) {
       for (const key of ["dev", "ino", "mode"]) assert.equal(after[key], stat[key], "compiler input identity changed: " + key);
       const afterIdentity = [after.dev, after.ino, after.mode, after.nlink, after.size, after.mtimeMs, after.ctimeMs];
       if (identity.every((value, index) => value === afterIdentity[index])) break;
-      assert.ok(attempt < 2, "compiler ancestor membership remained unstable: " + directory);
+      if (attempt === 2) return uncachedName();
       stat = after;
       identity = afterIdentity;
     }
     const complete = identity.every((value, index) => index < 5 ? Number.isSafeInteger(value) : Number.isFinite(value));
-    const uncachedName = () => {
-      const aliases = entries.filter(name => name.toLowerCase() === component.toLowerCase());
-      return aliases.length > 1 ? null : aliases[0];
-    };
     if (!complete || entries.length > indexLimits.names) return uncachedName();
     let characters = directory.length;
     for (const name of entries) {

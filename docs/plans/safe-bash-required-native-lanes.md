@@ -42,3 +42,9 @@ The next normal hosted Release must execute the selected native assertions and
 the Linux complement at the same SHA before publication. Publisher owns the
 normal commit/push and hosted-run monitoring; local source validation alone does
 not establish release success.
+
+The first integrated push exposed three census regressions (336 runner tests
+passed): the final metadata binding test was not listed as an integration
+addition. Register that exact path while retaining the historical 655/654/653
+counts, historical membership hash, and complete current discovery assertions.
+The repaired complete runner suite passes 339/339 with zero skips.

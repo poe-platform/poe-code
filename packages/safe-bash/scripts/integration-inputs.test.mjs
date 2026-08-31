@@ -78,6 +78,7 @@ function assertSource7Discovery(files) {
     "tests/fs/conformance/provenance.test.ts",
     "tests/commands/diff-patch-stress/gnu-target/oracle-binding.test.ts",
     "tests/commands/diff-patch-stress/editflows/git-profile.test.ts",
+    "tests/commands/metadata-stress/native-binding.test.ts",
   ];
   assert.equal(new Set(files).size, files.length);
   for (const path of removed) assert.ok(!files.includes(path), `source7 removed test remains selected: ${path}`);

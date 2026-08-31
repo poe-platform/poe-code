@@ -1,0 +1,9 @@
+{
+  "type": "module",
+  "imports": {
+    "#safe-fs-platform": {
+      "browser": "./platform/browser.js",
+      "default": "./platform/node.js"
+    }
+  }
+}

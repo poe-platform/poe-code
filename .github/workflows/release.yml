@@ -48,7 +48,7 @@ jobs:
           env -i PATH="$node_dir:/usr/bin:/bin" HOME="$job_root/home" TMPDIR="$job_root/tmp" LC_ALL=C LANG=C TZ=UTC \
             "$node_bin" packages/safe-bash/scripts/provision-test-rg.mjs --destination "$job_root/rg"
           printf 'rg=%s\n' "$job_root/rg/bin/rg" >> "$GITHUB_OUTPUT"
-      - run: npm test -- --concurrency=4
+      - run: npm test -- --concurrency=1
         env:
           SAFE_BASH_TEST_RG: ${{ steps.virtual_bash_inputs.outputs.rg }}
       - run: npm run smoke

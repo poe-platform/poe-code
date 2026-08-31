@@ -1,5 +1,7 @@
 import assert from "node:assert/strict";
+import { join } from "node:path";
 import test from "node:test";
+import { fileURLToPath, pathToFileURL } from "node:url";
 import * as canonical from "poe-code/safe-fs";
 import * as portable from "poe-code/safe-fs/core";
 import * as node from "poe-code/safe-fs/node";
@@ -32,9 +34,14 @@ test("compatibility paths expose the installed canonical constructors and neutra
   assert.equal(createNodeFsBridge, canonical.createNodeFsBridge);
 });
 
-test("the filesystem public route resolves to the installed published package", () => {
-  assert.ok(import.meta.resolve("poe-code/safe-fs").includes("/node_modules/poe-code/"));
-  assert.ok(import.meta.resolve("poe-code/safejs").includes("/node_modules/poe-code/"));
+test("the filesystem public route resolves to the authenticated checkout or published peer", async context => {
+  const { resolvePeerProfile } = await import(new URL("../../plugins/qualified-current-release/peer.mjs", import.meta.url).href);
+  const profile = resolvePeerProfile(fileURLToPath(new URL("../../../", import.meta.url)));
+  assert.ok(profile.profile === "checkout-root" || profile.profile === "registry-release");
+  for (const route of ["safe-fs", "safe-js", "safejs"]) {
+    assert.equal(import.meta.resolve(`poe-code/${route}`), pathToFileURL(join(profile.directory, profile.peer.exports[`./${route}`].import)).href);
+  }
+  context.diagnostic(JSON.stringify({ profile: profile.profile, version: profile.peer.version, qualification: profile.qualification }));
   assert.equal(import.meta.resolve("poe-code/safe-js"), import.meta.resolve("poe-code/safejs"));
   assert.equal(import.meta.resolve("poe-code/safe-js/core"), import.meta.resolve("poe-code/safejs/core"));
   assert.equal(sdk, legacy);

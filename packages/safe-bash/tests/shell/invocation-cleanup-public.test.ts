@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import { spawnSync } from "node:child_process";
-import { readFile } from "node:fs/promises";
+import { lstat, readFile, unlink, writeFile } from "node:fs/promises";
 import { after, before, test } from "node:test";
 import { fileURLToPath, pathToFileURL } from "node:url";
 import { preparePublicSnapshot, type CommittedInputs } from "../shell-stress/invocation-cleanup-runtime/migration/binding.js";
@@ -89,10 +89,11 @@ for (const attack of ["metadata-bytes", "runtime-bytes", "missing-runtime", "pri
     const edges = Object.entries(peer.edges[entry]!);
     assert.ok(edges.length > 0);
     const fileUrl = (local: string) => pathToFileURL(`${snapshot}/${local}`).href;
+    const privateRoute = "node_modules/poe-code/packages/safe-js/dist/index.js";
     const configuration = attack === "metadata-bytes" ? { read: `${snapshot}/${peer.metadataPath}`, expected: "Required peer metadata changed" }
       : attack === "runtime-bytes" ? { read: `${snapshot}/${entry}`, expected: "Emitted identity" }
       : attack === "missing-runtime" ? { read: `${snapshot}/${entry}`, missing: true, expected: "injected missing runtime" }
-      : attack === "private-package-route" ? { specifier: "poe-code/safe-fs", redirect: fileUrl("node_modules/poe-code/packages/safe-js/dist/index.js"), expected: "Unexpected product import" }
+      : attack === "private-package-route" ? { specifier: "poe-code/safe-fs", redirect: fileUrl(privateRoute), expected: `Unexpected product import: ${snapshot}/${privateRoute}` }
       : attack === "redirected-public-entry" ? { specifier: "poe-code/safe-fs", redirect: fileUrl(edges[0]![1]), expected: "Unadmitted peer public route" }
       : { specifier: edges[0]![0], parent: fileUrl(entry), redirect: fileUrl(entry), expected: "Uncaptured peer runtime edge" };
     const preload = `
@@ -129,9 +130,19 @@ for (const attack of ["metadata-bytes", "runtime-bytes", "missing-runtime", "pri
         process.stderr.write("TAMPER_NATIVE_WORKERS " + workers + "\\n");
       });
     `;
-    const result = spawnSync(process.execPath, ["--unhandled-rejections=strict", "--import", `data:text/javascript,${encodeURIComponent(preload)}`, probe, manifestPath, "grep:normal"], {
-      cwd: snapshot, encoding: "utf8", timeout: 10000, killSignal: "SIGKILL", maxBuffer: 2 * 1024 * 1024,
-    });
+    if (attack === "private-package-route") {
+      assert.equal(Object.hasOwn(peer.files, privateRoute), false);
+      await assert.rejects(lstat(`${snapshot}/${privateRoute}`), { code: "ENOENT" });
+      await writeFile(`${snapshot}/${privateRoute}`, 'throw new Error("UNADMITTED_PRIVATE_WRAPPER_EXECUTED");\n', { flag: "wx" });
+    }
+    let result;
+    try {
+      result = spawnSync(process.execPath, ["--unhandled-rejections=strict", "--import", `data:text/javascript,${encodeURIComponent(preload)}`, probe, manifestPath, "grep:normal"], {
+        cwd: snapshot, encoding: "utf8", timeout: 10000, killSignal: "SIGKILL", maxBuffer: 2 * 1024 * 1024,
+      });
+    } finally {
+      if (attack === "private-package-route") await unlink(`${snapshot}/${privateRoute}`);
+    }
     context.diagnostic(JSON.stringify({ attack, status: result.status, signal: result.signal, stdout: result.stdout, stderr: result.stderr }));
     await binding.verify();
     assert.equal(result.error, undefined);
@@ -139,5 +150,14 @@ for (const attack of ["metadata-bytes", "runtime-bytes", "missing-runtime", "pri
     assert.equal(result.status, 1);
     assert.ok((result.stdout + result.stderr).includes(configuration.expected));
     assert.ok(result.stderr.includes("TAMPER_NATIVE_WORKERS 0\n"));
+    if (attack === "private-package-route") {
+      const refusal = JSON.parse(result.stdout) as { passed: boolean; sourcePinned: boolean; failure: { name: string; message: string } };
+      assert.equal(refusal.passed, false);
+      assert.equal(refusal.sourcePinned, false);
+      assert.equal(refusal.failure.name, "AssertionError");
+      assert.equal(refusal.failure.message, configuration.expected);
+      assert.ok(!(result.stdout + result.stderr).includes("UNADMITTED_PRIVATE_WRAPPER_EXECUTED"));
+      await assert.rejects(lstat(`${snapshot}/${privateRoute}`), { code: "ENOENT" });
+    }
   });
 }

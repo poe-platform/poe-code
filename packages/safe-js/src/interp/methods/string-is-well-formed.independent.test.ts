@@ -149,7 +149,7 @@ describe("independent String#isWellFormed verification", () => {
     }
   });
 
-  it("matches the README example and leaves toWellFormed unsupported", async () => {
+  it("matches the README example alongside the toWellFormed companion", async () => {
     await expect(
       run(
         String.raw`return ["hello".isWellFormed(), "\uD83D\uDE00".isWellFormed(), "\uD800".isWellFormed()];`,
@@ -158,7 +158,7 @@ describe("independent String#isWellFormed verification", () => {
     ).resolves.toMatchObject({ ok: true, returnValue: [true, true, false] });
     await expect(run('return typeof "".toWellFormed;', { modules: {} })).resolves.toMatchObject({
       ok: true,
-      returnValue: "undefined"
+      returnValue: "function"
     });
   });
 });

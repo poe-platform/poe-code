@@ -5,9 +5,11 @@ import { lstat, mkdir, mkdtemp, readFile, readdir, realpath, rm, writeFile } fro
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 import type { Fixture } from "./fixtures.js";
+import { oracleIdentity } from "../gnu-target/oracle.js";
 
-export const binary = "/tmp/safe-bash-gnu-oracle.Yg2F0W/patch-2.8/src/patch";
-export const binarySha256 = "c060444da0e547de6f17594baf0b5015a04f5b3277131ca12b1da27c621aee00";
+const identity = oracleIdentity("patch");
+export const binary = identity.path;
+export const binarySha256 = identity.sha256;
 export const scope = fileURLToPath(new URL(".", import.meta.url));
 export type Entry = { readonly kind: "directory" } | { readonly kind: "file"; readonly hex: string } | { readonly kind: "symlink"; readonly target: string };
 export type Namespace = Record<string, Entry>;

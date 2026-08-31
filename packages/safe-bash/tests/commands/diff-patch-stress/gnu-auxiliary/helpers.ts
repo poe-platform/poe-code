@@ -7,7 +7,8 @@ import { fileURLToPath } from "node:url";
 import { toByteSource } from "../../../../src/contracts/index.js";
 import { createDiffPatchCommands } from "../../../../src/commands/diff-patch/index.js";
 import { MemoryFileSystem } from "../../../../src/fs/memory/index.js";
-import { oracleIdentity, withNativeScratch } from "../gnu-target/oracle.js";
+import { oracleIdentity, pins, withNativeScratch } from "../gnu-target/oracle.js";
+import { nativeGnuBinding } from "../../../native-profile.js";
 import { replacement, type Fixture } from "./fixtures.js";
 import { collectSourceInputs } from "../../../source-census.js";
 
@@ -66,7 +67,9 @@ async function virtualSnapshot(fs: MemoryFileSystem, identity = false): Promise<
 
 export async function probe(fixture: Fixture, atomic = false) {
   const identity = oracleIdentity("patch");
-  assert.equal(identity.sha256, "c060444da0e547de6f17594baf0b5015a04f5b3277131ca12b1da27c621aee00");
+  const path = process.env.DIFF_PATCH_NATIVE_PATCH;
+  const expected = nativeGnuBinding("patch", path === undefined ? {} : { path }) ?? pins.gnu.patch;
+  assert.equal(identity.sha256, expected.sha256);
   const root = await mkdtemp(join(directory, ".native-"));
   const fs = new MemoryFileSystem();
   const expand = (value: string, destination: string) => value.replaceAll("{root}", destination);

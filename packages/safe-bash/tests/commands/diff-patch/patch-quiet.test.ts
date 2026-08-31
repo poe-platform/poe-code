@@ -3,7 +3,8 @@ import test from "node:test";
 import { setTimeout as delay } from "node:timers/promises";
 import { FsError, type ByteSource, type FileSystem } from "../../../src/contracts/index.js";
 import { contents, filesystem, native, replacement, run, type Files } from "./helpers.js";
-import { oracleIdentity } from "../diff-patch-stress/gnu-target/oracle.js";
+import { oracleIdentity, pins } from "../diff-patch-stress/gnu-target/oracle.js";
+import { nativeGnuBinding } from "../../native-profile.js";
 
 const parent = "tests/commands/diff-patch";
 const twoHunks = replacement + "@@ -3 +3 @@\n-tail\n+TAIL\n";
@@ -27,7 +28,9 @@ async function namespace(fs: FileSystem) {
 
 test("quiet native controls use the frozen GNU patch 2.8 executable", context => {
   const identity = oracleIdentity("patch");
-  assert.equal(identity.sha256, "c060444da0e547de6f17594baf0b5015a04f5b3277131ca12b1da27c621aee00");
+  const path = process.env.DIFF_PATCH_NATIVE_PATCH;
+  const expected = nativeGnuBinding("patch", path === undefined ? {} : { path }) ?? pins.gnu.patch;
+  assert.equal(identity.sha256, expected.sha256);
   assert.match(identity.version, /^GNU patch 2\.8\n/u);
   context.diagnostic(JSON.stringify(identity));
 });

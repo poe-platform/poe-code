@@ -21,6 +21,40 @@ test("GNU binding preserves Darwin callers without reading Linux metadata", () =
   assert.equal(nativeGnuBinding("tar", { platform: "darwin", arch: "arm64", release: "25.4.0", fileSystem }), undefined);
 });
 
+test("local recovery requires explicit stable diff or patch paths and preserves legacy defaults", () => {
+  const host = { platform: "darwin", arch: "arm64", distribution: "macos", version: "26.4.1", release: "25.4.0" };
+  const executables = ["diff", "patch"].map(tool => ({ tool, version: `fixture ${tool}`, size: 32, sha256: "a".repeat(64) }));
+  const options = { ...host, profiles: [{ id: "local-recovery-fixture", host, qualification: "QUALIFIED", executables }] };
+  for (const tool of ["diff", "patch"] as const) {
+    const path = fileURLToPath(new URL(`../tmp/native-local-diff-patch/bin/${tool}`, import.meta.url));
+    assert.deepEqual(nativeGnuBinding(tool, { ...options, path }), { ...executables.find(pin => pin.tool === tool), path });
+    assert.equal(nativeGnuBinding(tool, options), undefined);
+    assert.equal(nativeGnuBinding(tool, { ...options, path: `/legacy/${tool}` }), undefined);
+    assert.throws(() => nativeGnuBinding(tool, { ...options, path, profiles: [] }));
+    assert.throws(() => nativeGnuBinding(tool, { ...options, path, build: 2 }));
+    assert.throws(() => nativeGnuBinding(tool, { ...options, path, arch: "x64" }));
+    assert.equal(nativeAppleBinding(tool, { ...options, path }), undefined);
+  }
+  for (const tool of ["tar", "expr", "stat", "touch", "chmod", "mktemp", "nl", "seq", "unexpand", "paste", "comm", "join", "split"] as const) {
+    assert.equal(nativeGnuBinding(tool, { ...options, path: fileURLToPath(new URL(`../tmp/native-local-diff-patch/bin/${tool}`, import.meta.url)) }), undefined);
+  }
+  for (const tool of ["bsdtar", "split"] as const) {
+    assert.equal(nativeAppleBinding(tool, { ...options, path: fileURLToPath(new URL(`../tmp/native-local-diff-patch/bin/${tool}`, import.meta.url)) }), undefined);
+  }
+});
+
+test("committed local recovery binds only the independently rebuilt diff and patch identities", () => {
+  const options = { platform: "darwin", arch: "arm64", release: "25.4.0" };
+  for (const [tool, version, size, sha256] of [
+    ["diff", "diff (GNU diffutils) 3.12", 247416, "db41e94dab136447ec244e48c3ce2f889928bc844d6ca5772d815d06328474b0"],
+    ["patch", "GNU patch 2.8", 194312, "f9e0dc02b9aa6589a7b31f9258c33b22511261ae69fdab5c5ca8848971f440bd"]
+  ] as const) {
+    const path = fileURLToPath(new URL(`../tmp/native-local-diff-patch/bin/${tool}`, import.meta.url));
+    assert.deepEqual(nativeGnuBinding(tool, { ...options, path }), { tool, version, size, sha256, path });
+    assert.equal(nativeGnuBinding(tool, options), undefined);
+  }
+});
+
 test("reviewed Darwin bindings retain separate stat builds and exact Apple identities", () => {
   const options = { platform: "darwin", arch: "arm64", release: "25.5.0", fileSystem: createFsFromVolume(new Volume()) as unknown as typeof fs };
   const manifest = JSON.parse(fs.readFileSync(new URL("./native-gnu-profiles.json", import.meta.url), "utf8"));

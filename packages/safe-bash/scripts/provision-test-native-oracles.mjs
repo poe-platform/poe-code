@@ -28,12 +28,14 @@ export function selectNativeProfile(profiles, host) {
     "source authentication alone is not executable qualification"
   );
   const profile = structuredClone(matching[0]);
+  const localRecovery = profile.host.platform === "darwin" && profile.host.arch === "arm64" && profile.host.distribution === "macos" && profile.host.version === "26.4.1" && profile.host.release === "25.4.0";
   assert(
     (profile.host.platform === "linux" && profile.host.arch === "x64" && profile.host.distribution === "ubuntu" && profile.host.version === "24.04") ||
-    (profile.host.platform === "darwin" && profile.host.arch === "arm64" && profile.host.distribution === "macos" && profile.host.version === "26.5.2" && profile.host.release === "25.5.0"),
+    (profile.host.platform === "darwin" && profile.host.arch === "arm64" && profile.host.distribution === "macos" && profile.host.version === "26.5.2" && profile.host.release === "25.5.0") || localRecovery,
     "unsupported native host"
   );
   assert(Array.isArray(profile.executables) && profile.executables.length > 0);
+  if (localRecovery) assert.deepEqual(profile.executables.map(pin => pin.tool).sort(), ["diff", "patch"], "local recovery is restricted to GNU diff and patch");
   const tools = new Set();
   for (const pin of profile.executables) {
     assert(typeof pin.tool === "string" && pin.tool.length > 0);

@@ -12,7 +12,8 @@ import { nativeGnuBinding } from "../../../native-profile.js";
 test("binding: exact selected GNU versions and executable hashes", () => {
   for (const tool of ["diff", "patch"] as const) {
     const identity = oracleIdentity(tool);
-    const expected = nativeGnuBinding(tool) ?? pins.gnu[tool];
+    const path = process.env[`DIFF_PATCH_NATIVE_${tool.toUpperCase()}`];
+    const expected = nativeGnuBinding(tool, path === undefined ? {} : { path }) ?? pins.gnu[tool];
     assert.equal(identity.sha256, expected.sha256);
     assert.equal(identity.version.split("\n")[0], expected.version);
     assert.equal(identity.dialect, "gnu");

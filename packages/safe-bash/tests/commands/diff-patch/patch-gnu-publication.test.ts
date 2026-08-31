@@ -5,8 +5,9 @@ import test from "node:test";
 import { isFsError, type FileSystem } from "../../../src/contracts/index.js";
 import { contents, filesystem, replacement, run, type Files } from "./helpers.js";
 import { gnuPatch, nativeGNU } from "./patch-gnu-native.js";
+import { pins } from "../diff-patch-stress/gnu-target/oracle.js";
+import { nativeGnuBinding } from "../../native-profile.js";
 
-const binaryHash = "c060444da0e547de6f17594baf0b5015a04f5b3277131ca12b1da27c621aee00";
 const twoHunks = replacement + "@@ -3 +3 @@ function\n-tail\n+TAIL\n";
 const normal = "Index: target\n1c1\n< old\n---\n> new\n3c3\n< tail\n---\n> TAIL\n";
 const context = "*** target\t2020-01-01 00:00:00 +0000\n--- target\t2021-01-01 00:00:00 +0000\n*************** function\n*** 1 ****\n! old\n--- 1 ----\n! new\n*************** later\n*** 3 ****\n! tail\n--- 3 ----\n! TAIL\n";
@@ -29,7 +30,9 @@ async function namespace(fs: FileSystem) {
 }
 
 test("publication oracle is exactly the pinned GNU patch 2.8 binary", async () => {
-  assert.equal(createHash("sha256").update(await readFile(gnuPatch)).digest("hex"), binaryHash);
+  const path = process.env.DIFF_PATCH_NATIVE_PATCH;
+  const expected = nativeGnuBinding("patch", path === undefined ? {} : { path }) ?? pins.gnu.patch;
+  assert.equal(createHash("sha256").update(await readFile(gnuPatch)).digest("hex"), expected.sha256);
   assert.match((await nativeGNU(["--version"])).stdout, /^GNU patch 2\.8\n/u);
 });
 

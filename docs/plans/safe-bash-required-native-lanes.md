@@ -124,3 +124,62 @@ skips, and zero failures across all 655 active TypeScript files. The earlier
 disk-exhaustion run remains recorded; its four exact failing cases passed with
 zero skips after generated-only cleanup, before the complete successful rerun.
 No assertion, test limit, hook, or optional-profile policy changed for this retry.
+
+## Explicit local diff/patch recovery
+
+The follow-up at `cb89faa6a5971f037202ae2f60fe2f3b86bed59a` found the historical
+temporary GNU diff/patch directory missing. The original source/compiler recipe
+rebuilt both versions but did not reproduce their frozen executable hashes.
+Those outputs remain unreviewed; the original `f13ef516...` diff and
+`c060444d...` patch pins and historical captures are unchanged.
+
+Root authorized separate local qualification, not a hosted-binary substitution.
+On macOS 26.4.1 build 25E253 / Darwin 25.4.0 arm64, two independent source trees
+per tool used the existing signed-source Darwin recipe: fixed
+`--prefix=/native-qualification`, `--disable-nls`, `/usr/bin/clang`,
+`CFLAGS=-O2 -g0 -ffile-prefix-map=<independent-work>=.`, `make -j2`, and the
+existing `SOURCE_DATE_EPOCH=1743984000`. No install command ran. Source archives,
+detached signatures, keyring hashes, and signer fingerprints match the existing
+manifest. The receipt retains actual compiler/linker/verifier hashes, Xcode 26.6
+17F113, clang 21.0.0, SDK 26.5 build 25F70, and GnuPG verifier 2.5.21.
+
+Each independently built pair is byte-identical: diff 3.12 is 247,416 bytes,
+SHA-256 `db41e94dab136447ec244e48c3ce2f889928bc844d6ca5772d815d06328474b0`;
+patch 2.8 is 194,312 bytes, SHA-256
+`f9e0dc02b9aa6589a7b31f9258c33b22511261ae69fdab5c5ca8848971f440bd`.
+These happen to match hosted output bytes, but all four qualification outputs
+were compiled locally and verified separately. The 101-member evidence seal is
+under `packages/safe-bash/tmp/native-local-diff-patch-qualification-20260831/evidence`:
+receipt SHA-256 `3eb3c0301a1c94bf654a2959e360047f977de46ef86197b863dd77999f027c15`,
+manifest SHA-256 `301662f064dc9e2663993a3497e9027127145dcc36574c4255944c26f3d862b2`.
+The immutable producer receipt remains `BUILT_OBSERVATIONS_UNREVIEWED`; the
+separate completed review is `out/math-array-validation/native-local-recovery-review.json`.
+
+The additive local profile contains exactly diff and patch. Only explicit
+overrides naming the stable publisher-owned paths below select it. Absent or
+other overrides retain legacy authentication; all other GNU tools and all Apple
+tools retain their Darwin 25.4 fallback. Hosted profiles and recipes are unchanged.
+The existing provisioner stages exact verified copies; no new configuration API,
+host lane, optional gate, or qualification framework is introduced.
+
+The first complete 75-file cohort exposed 109 stale identity assumptions, with
+3,743 passes and zero skips. Direct native callers now use the selected admitted
+identity; historical capture metadata still checks the original pins, and full
+native version-banner comparisons remain intact. After focused TDD controls,
+all 75 active diff/patch files pass: 3,853 tests, zero failures and zero skips.
+The successful log SHA-256 is
+`a5f712081e2a0d28affd1b4d3406dcec1554bef815ebae248fb260e9a420ab53`;
+its source/selection receipt SHA-256 is
+`7b1d5b1275c0fbd5e614d5b41bb8c37783ad5577022bcefd721ab06a45928dce`.
+
+From the publisher repository root, retain these existing overrides for normal
+hooks and re-run the fresh-process identity preflight before every full retry:
+
+```sh
+export DIFF_PATCH_NATIVE_DIFF="$PWD/packages/safe-bash/tmp/native-local-diff-patch/bin/diff"
+export DIFF_PATCH_NATIVE_PATCH="$PWD/packages/safe-bash/tmp/native-local-diff-patch/bin/patch"
+node --import tsx --input-type=module -e 'import { oracleIdentity } from "./packages/safe-bash/tests/commands/diff-patch-stress/gnu-target/oracle.ts"; for (const tool of ["diff", "patch"]) console.log(JSON.stringify({ tool, ...oracleIdentity(tool) }));'
+```
+
+Publisher still owns independent review, normal commit/push, and full package
+and hosted Release gates. This focused qualification is not a full-release pass.

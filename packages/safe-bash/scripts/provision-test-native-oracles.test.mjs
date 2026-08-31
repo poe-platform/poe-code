@@ -68,6 +68,19 @@ test("exact regular executable bytes precede bounded genuine version execution",
   assert.equal(calls[0].options.killSignal, "SIGKILL");
 });
 
+test("local Darwin recovery qualification is restricted to the exact diff and patch pair", () => {
+  const { pin } = fixture();
+  const host = { platform: "darwin", arch: "arm64", distribution: "macos", version: "26.4.1", release: "25.4.0" };
+  const profile = { id: "local-recovery-fixture", host, qualification: "QUALIFIED", executables: [pin, { ...pin, tool: "patch", version: "GNU patch 2.8" }] };
+  assert.deepEqual(selectNativeProfile([profile], host), profile);
+  for (const executables of [[pin], [...profile.executables, { ...pin, tool: "tar" }], [{ ...pin, tool: "stat" }, profile.executables[1]]]) {
+    assert.throws(() => selectNativeProfile([{ ...profile, executables }], host));
+  }
+  assert.throws(() => selectNativeProfile([{ ...profile, qualification: "BUILT_OBSERVATIONS_UNREVIEWED" }], host));
+  assert.throws(() => selectNativeProfile([profile, profile], host));
+  assert.throws(() => selectNativeProfile([{ ...profile, host: { ...host, version: "26.5.2" } }], { ...host, version: "26.5.2" }));
+});
+
 test("wrong digest and truncated bytes refuse execution", () => {
   for (const bytes of [Buffer.alloc(executable.length, 65), executable.subarray(0, -1)]) {
     const { fileSystem, pin, calls, run } = fixture();

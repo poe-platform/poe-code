@@ -32,6 +32,54 @@ function compilerInputs(root, tools, fileSystem) {
   const ownerFiles = new Set();
   const toolRoots = Object.values(tools).map(path => resolve(path));
   const peerMetadata = new Set();
+  const directoryIndexes = new Map();
+  const indexLimits = { directories: 256, names: 32768, characters: 1048576 };
+  let indexedNames = 0, indexedCharacters = 0;
+  const discardIndex = directory => {
+    const cached = directoryIndexes.get(directory);
+    if (!cached) return;
+    directoryIndexes.delete(directory);
+    indexedNames -= cached.count;
+    indexedCharacters -= cached.characters;
+  };
+  const directoryName = (directory, stat, component) => {
+    const identity = [stat.dev, stat.ino, stat.mode, stat.nlink, stat.size, stat.mtimeMs, stat.ctimeMs];
+    const complete = identity.every((value, index) => index < 5 ? Number.isSafeInteger(value) : Number.isFinite(value));
+    const cached = directoryIndexes.get(directory);
+    if (complete && cached && identity.every((value, index) => value === cached.identity[index])) {
+      directoryIndexes.delete(directory);
+      directoryIndexes.set(directory, cached);
+      return cached.names.get(component.toLowerCase());
+    }
+    discardIndex(directory);
+    const entries = fileSystem.readdirSync(directory);
+    const after = fileSystem.lstatSync(directory);
+    assert.ok(after.isDirectory() && !after.isSymbolicLink(), "compiler ancestor must be a nonlink directory: " + directory);
+    sameIdentity(stat, after);
+    const uncachedName = () => {
+      const aliases = entries.filter(name => name.toLowerCase() === component.toLowerCase());
+      return aliases.length > 1 ? null : aliases[0];
+    };
+    if (!complete || entries.length > indexLimits.names) return uncachedName();
+    let characters = directory.length;
+    for (const name of entries) {
+      characters += name.length + name.toLowerCase().length;
+      if (characters > indexLimits.characters) return uncachedName();
+    }
+    if (characters > indexLimits.characters) return uncachedName();
+    while (directoryIndexes.size >= indexLimits.directories || indexedNames + entries.length > indexLimits.names || indexedCharacters + characters > indexLimits.characters) {
+      discardIndex(directoryIndexes.keys().next().value);
+    }
+    const names = new Map();
+    for (const name of entries) {
+      const folded = name.toLowerCase();
+      names.set(folded, names.has(folded) ? null : name);
+    }
+    directoryIndexes.set(directory, { identity, names, count: entries.length, characters });
+    indexedNames += entries.length;
+    indexedCharacters += characters;
+    return names.get(component.toLowerCase());
+  };
   const held = path => {
     const absolute = resolve(root, path);
     if (below(root.toLowerCase(), absolute.toLowerCase())) {
@@ -62,10 +110,9 @@ function compilerInputs(root, tools, fileSystem) {
     let stat = fileSystem.lstatSync(current);
     for (const component of absolute.split(sep).filter(Boolean)) {
       assert.ok(stat.isDirectory() && !stat.isSymbolicLink(), "compiler ancestor must be a nonlink directory: " + current);
-      const entries = fileSystem.readdirSync(current);
-      const aliases = entries.filter(name => name.toLowerCase() === component.toLowerCase());
-      if (aliases.length === 0) return undefined;
-      assert.ok(aliases.length === 1 && aliases[0] === component, "noncanonical compiler path spelling: " + absolute);
+      const name = directoryName(current, stat, component);
+      if (name === undefined) return undefined;
+      assert.ok(name === component, "noncanonical compiler path spelling: " + absolute);
       current = join(current, component);
       stat = fileSystem.lstatSync(current);
       assert.ok(!stat.isSymbolicLink(), "compiler path must not be a symlink: " + current);

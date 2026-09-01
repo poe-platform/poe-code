@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 import type { FileSystem } from "../../../src/contracts/index.js";
-import { oracleIdentity } from "../diff-patch-stress/gnu-target/oracle.js";
+import { oracleIdentity, pins } from "../diff-patch-stress/gnu-target/oracle.js";
 import { nativeGnuBinding } from "../../native-profile.js";
 import { contents, native, replacement, run, type Files } from "./helpers.js";
 
@@ -103,7 +103,9 @@ async function check(fixture: Fixture) {
 test("reject orientation oracle is the pinned GNU patch 2.8 executable", () => {
   const identity = oracleIdentity("patch");
   assert.equal(identity.version.split("\n")[0], "GNU patch 2.8");
-  assert.equal(identity.sha256, nativeGnuBinding("patch")?.sha256 ?? "c060444da0e547de6f17594baf0b5015a04f5b3277131ca12b1da27c621aee00");
+  const path = process.env.DIFF_PATCH_NATIVE_PATCH;
+  const expected = nativeGnuBinding("patch", path === undefined ? {} : { path }) ?? pins.gnu.patch;
+  assert.equal(identity.sha256, expected.sha256);
 });
 
 for (const format of ["unified", "context"] as const) for (const creation of [false, true]) {

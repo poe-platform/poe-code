@@ -37,7 +37,7 @@ const nativeProvisioner: {
 
 export const verifyNativeExecutable = nativeProvisioner.verifyNativeExecutable;
 
-function executableProfile(options: NativeGnuOptions, localProfile?: string) {
+function executableProfile(options: NativeGnuOptions, localRecovery = false, localProfile?: string) {
   const platform = options.platform ?? process.platform;
   const arch = options.arch ?? process.arch;
   let host;
@@ -46,9 +46,9 @@ function executableProfile(options: NativeGnuOptions, localProfile?: string) {
   } else if (platform === "darwin") {
     const kernel = options.release ?? release();
     assert.equal(arch, "arm64", "Darwin native caller requires arm64");
-    if (kernel === "25.4.0") return undefined;
-    assert.equal(kernel, "25.5.0", "Darwin native caller requires a qualified kernel");
-    host = { platform, arch, distribution: "macos", version: "26.5.2", release: kernel };
+    if (kernel === "25.4.0" && !localRecovery) return undefined;
+    assert(kernel === "25.5.0" || (localRecovery && kernel === "25.4.0"), "Darwin native caller requires a qualified kernel");
+    host = { platform, arch, distribution: "macos", version: kernel === "25.4.0" ? "26.4.1" : "26.5.2", release: kernel };
   } else {
     assert.equal(platform, "linux", "GNU native caller requires a qualified host profile");
     const fields = (options.fileSystem ?? fs).readFileSync("/etc/os-release", "utf8").split("\n");
@@ -64,9 +64,13 @@ function executableProfile(options: NativeGnuOptions, localProfile?: string) {
   return nativeProvisioner.selectNativeProfile(profiles, host, localProfile);
 }
 
-export function nativeGnuBinding(tool: "tar" | "diff" | "patch" | "expr" | "stat" | "touch" | "chmod" | "mktemp" | "nl" | "seq" | "unexpand" | "paste" | "comm" | "join" | "split", options: NativeGnuOptions = {}): (NativeExecutablePin & { path: string }) | undefined {
-  const localProfile = options.localProfile ?? (options.platform === undefined ? process.env.SAFE_BASH_LOCAL_GNU_PROFILE : undefined);
-  const profile = executableProfile(options, tool === "diff" || tool === "patch" ? localProfile : undefined);
+export function nativeGnuBinding(tool: "tar" | "diff" | "patch" | "expr" | "stat" | "touch" | "chmod" | "mktemp" | "nl" | "seq" | "unexpand" | "paste" | "comm" | "join" | "split" | "bash", options: NativeGnuOptions = {}): (NativeExecutablePin & { path: string }) | undefined {
+  const localProfile = tool === "diff" || tool === "patch"
+    ? options.localProfile ?? (options.platform === undefined ? process.env.SAFE_BASH_LOCAL_GNU_PROFILE : undefined)
+    : undefined;
+  const localRecovery = tool === "bash" || ((tool === "diff" || tool === "patch") && options.path === fileURLToPath(new URL(`../tmp/native-local-diff-patch/bin/${tool}`, import.meta.url)));
+  if (tool === "bash" && (options.platform ?? process.platform) === "darwin" && (options.release ?? release()) === "25.4.0") assert(options.path === undefined || options.path === fileURLToPath(new URL("../tmp/native-gnu/bin/bash", import.meta.url)), "local Bash recovery requires its stable staged path");
+  const profile = executableProfile(options, localRecovery, localProfile);
   if (!profile) return undefined;
   assert(options.build === undefined || options.build === 1 || (options.build === 2 && tool === "stat" && (options.platform ?? process.platform) === "darwin"), "only Darwin stat has a qualified independent second build");
   const pin = profile.executables.find(entry => entry.tool === tool);

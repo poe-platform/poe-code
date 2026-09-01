@@ -52,8 +52,8 @@ export function oracleIdentity(tool: OracleTool, profile: OracleProfile = "gnu",
       const cached = cache.get(key);
       if (cached) return cached;
       let versionOutput = "";
-      const admitted = verifyNativeExecutable(binding, canonical, { ...options, run(executable, args, settings) {
-        const result = options.run ? options.run(executable, args, settings) : spawnSync(executable, args, settings as SpawnSyncOptionsWithStringEncoding);
+      const admitted = verifyNativeExecutable(binding, canonical, { ...options, run: (executable, args, settings) => {
+        const result = options.run ? options.run(executable, args, settings) : spawnSync(executable, [...args], settings as SpawnSyncOptionsWithStringEncoding);
         versionOutput = result.stdout;
         return result;
       } });

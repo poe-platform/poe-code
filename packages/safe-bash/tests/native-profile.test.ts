@@ -45,6 +45,64 @@ test("GNU binding preserves Darwin callers without reading Linux metadata", () =
   assert.equal(nativeGnuBinding("tar", { platform: "darwin", arch: "arm64", release: "25.4.0", fileSystem }), undefined);
 });
 
+test("local recovery requires explicit stable diff or patch paths and preserves legacy defaults", () => {
+  const host = { platform: "darwin", arch: "arm64", distribution: "macos", version: "26.4.1", release: "25.4.0" };
+  const executables = ["diff", "patch"].map(tool => ({ tool, version: `fixture ${tool}`, size: 32, sha256: "a".repeat(64) }));
+  const options = { ...host, profiles: [{ id: "local-recovery-fixture", host, qualification: "QUALIFIED", executables }] };
+  for (const tool of ["diff", "patch"] as const) {
+    const path = fileURLToPath(new URL(`../tmp/native-local-diff-patch/bin/${tool}`, import.meta.url));
+    assert.deepEqual(nativeGnuBinding(tool, { ...options, path }), { ...executables.find(pin => pin.tool === tool), path });
+    assert.equal(nativeGnuBinding(tool, options), undefined);
+    assert.equal(nativeGnuBinding(tool, { ...options, path: `/legacy/${tool}` }), undefined);
+    assert.throws(() => nativeGnuBinding(tool, { ...options, path, profiles: [] }));
+    assert.throws(() => nativeGnuBinding(tool, { ...options, path, build: 2 }));
+    assert.throws(() => nativeGnuBinding(tool, { ...options, path, arch: "x64" }));
+    assert.equal(nativeAppleBinding(tool, { ...options, path }), undefined);
+  }
+  for (const tool of ["tar", "expr", "stat", "touch", "chmod", "mktemp", "nl", "seq", "unexpand", "paste", "comm", "join", "split"] as const) {
+    assert.equal(nativeGnuBinding(tool, { ...options, path: fileURLToPath(new URL(`../tmp/native-local-diff-patch/bin/${tool}`, import.meta.url)) }), undefined);
+  }
+  for (const tool of ["bsdtar", "split"] as const) {
+    assert.equal(nativeAppleBinding(tool, { ...options, path: fileURLToPath(new URL(`../tmp/native-local-diff-patch/bin/${tool}`, import.meta.url)) }), undefined);
+  }
+});
+
+test("committed local recovery binds only the independently rebuilt diff and patch identities", () => {
+  const options = { platform: "darwin", arch: "arm64", release: "25.4.0" };
+  for (const [tool, version, size, sha256] of [
+    ["diff", "diff (GNU diffutils) 3.12", 247416, "db41e94dab136447ec244e48c3ce2f889928bc844d6ca5772d815d06328474b0"],
+    ["patch", "GNU patch 2.8", 194312, "f9e0dc02b9aa6589a7b31f9258c33b22511261ae69fdab5c5ca8848971f440bd"]
+  ] as const) {
+    const path = fileURLToPath(new URL(`../tmp/native-local-diff-patch/bin/${tool}`, import.meta.url));
+    assert.deepEqual(nativeGnuBinding(tool, { ...options, path }), { tool, version, size, sha256, path });
+    assert.equal(nativeGnuBinding(tool, options), undefined);
+  }
+});
+
+test("local Bash recovery uses its required stable path without qualifying unrelated legacy tools", () => {
+  const host = { platform: "darwin", arch: "arm64", distribution: "macos", version: "26.4.1", release: "25.4.0" };
+  const executables = ["diff", "patch", "bash"].map(tool => ({ tool, version: `fixture ${tool}`, size: 32, sha256: "a".repeat(64) }));
+  const options = { ...host, profiles: [{ id: "local-bash-fixture", host, qualification: "QUALIFIED", executables }] };
+  const path = fileURLToPath(new URL("../tmp/native-gnu/bin/bash", import.meta.url));
+  assert.deepEqual(nativeGnuBinding("bash", options), { ...executables[2], path });
+  assert.deepEqual(nativeGnuBinding("bash", { ...options, path }), { ...executables[2], path });
+  assert.throws(() => nativeGnuBinding("bash", { ...options, path: "/unreviewed/bash" }));
+  assert.throws(() => nativeGnuBinding("bash", { ...options, build: 2 }));
+  assert.throws(() => nativeGnuBinding("bash", { ...options, profiles: [] }));
+  for (const tool of ["tar", "expr", "stat", "touch", "chmod", "mktemp", "nl", "seq", "unexpand", "paste", "comm", "join", "split"] as const) {
+    assert.equal(nativeGnuBinding(tool, options), undefined);
+  }
+  for (const tool of ["diff", "patch", "bsdtar", "split"] as const) assert.equal(nativeAppleBinding(tool, options), undefined);
+});
+
+test("committed local Bash identity requires the independently reproduced Darwin 25.4 executable", () => {
+  assert.deepEqual(nativeGnuBinding("bash", { platform: "darwin", arch: "arm64", release: "25.4.0" }), {
+    tool: "bash", version: "GNU bash, version 5.3.0(1)-release (aarch64-apple-darwin25.4.0)",
+    size: 1188024, sha256: "bfa389cd1d6cb5dbd03805612b6fe464ade9b22a343b897df09044ff90456528",
+    path: fileURLToPath(new URL("../tmp/native-gnu/bin/bash", import.meta.url)),
+  });
+});
+
 test("reviewed Darwin bindings retain separate stat builds and exact Apple identities", () => {
   const options = { platform: "darwin", arch: "arm64", release: "25.5.0", fileSystem: createFsFromVolume(new Volume()) as unknown as typeof fs };
   const manifest = JSON.parse(fs.readFileSync(new URL("./native-gnu-profiles.json", import.meta.url), "utf8"));
@@ -97,6 +155,38 @@ test("qualified Darwin stream and table tools bind to reviewed staged executable
   }
 });
 
+test("qualified Darwin split bindings require reviewed hosted GNU and Apple records", () => {
+  const options = { platform: "darwin", arch: "arm64", release: "25.5.0", fileSystem: createFsFromVolume(new Volume()) as unknown as typeof fs };
+  const manifest = JSON.parse(fs.readFileSync(new URL("./native-gnu-profiles.json", import.meta.url), "utf8"));
+  const profile = manifest.profiles.find((entry: { host: { platform: string } }) => entry.host.platform === "darwin");
+  const gnu = nativeGnuBinding("split", options)!;
+  const apple = nativeAppleBinding("split", options)!;
+  assert.deepEqual(gnu, { ...profile.executables.find((entry: { tool: string }) => entry.tool === "split"), path: fileURLToPath(new URL("../tmp/native-gnu/bin/split", import.meta.url)) });
+  assert.deepEqual(apple, profile.apple.find((entry: { tool: string }) => entry.tool === "split"));
+  assert.equal(gnu.version, "split (GNU coreutils) 9.7");
+  assert.equal(gnu.size, 98104);
+  assert.equal(gnu.sha256, "431baf88042ddf120074d3ab58172d27af404d3fa88e45c39747cde1a8b4557a");
+  assert.equal(apple.path, "/usr/bin/split");
+  assert.equal(apple.version, "Apple split (no --version support)");
+  assert.equal(apple.size, 134768);
+  assert.equal(apple.sha256, "3b18ccdd81d67e0f287b5bdd1ecf23a2bff0525ba488ada79b41f653ee1a34f0");
+  assert.deepEqual(apple.versionProbe, {
+    status: 64,
+    stdout: "",
+    stderr: "/usr/bin/split: illegal option -- -\nusage: split [-cd] [-l line_count] [-a suffix_length] [file [prefix]]\n       split [-cd] -b byte_count[K|k|M|m|G|g] [-a suffix_length] [file [prefix]]\n       split [-cd] -n chunk_count [-a suffix_length] [file [prefix]]\n       split [-cd] -p pattern [-a suffix_length] [file [prefix]]\n"
+  });
+  assert.deepEqual(profile.provenance.splitQualification, {
+    runId: "33441925913",
+    sourceSha: "e91ecba8bdd56c4dd9285a3bc64336ce479aec84",
+    artifactId: 9777161068,
+    artifactSha256: "e45dc7eca42d669953a879b061d5d98234a17048b1c245b1610d7732e24b0812",
+    artifactZipSha256: "53c72338dadff27f26707424b6869192ac2fde4ff8f1079db3a59efef2a3b9da"
+  });
+  assert.equal(nativeGnuBinding("split", { ...options, release: "25.4.0" }), undefined);
+  assert.equal(nativeAppleBinding("split", { ...options, release: "25.4.0" }), undefined);
+  assert.throws(() => nativeGnuBinding("split", { ...options, build: 2 }));
+});
+
 test("split bindings require explicit reviewed GNU and Apple pins and preserve the legacy host", () => {
   const host = { platform: "darwin", arch: "arm64", distribution: "macos", version: "26.5.2", release: "25.5.0" };
   const pin = { tool: "split", version: "split (GNU coreutils) 9.7", size: 32, sha256: "a".repeat(64) };
@@ -118,7 +208,7 @@ test("hosted GNU split binds the repeated e91 qualification identity", () => {
     path: fileURLToPath(new URL("../tmp/native-gnu/bin/split", import.meta.url)),
   });
   const manifest = JSON.parse(fs.readFileSync(new URL("./native-gnu-profiles.json", import.meta.url), "utf8"));
-  const observed = manifest.profiles.find((entry: { host: { platform: string } }) => entry.host.platform === "darwin").provenance.split;
+  const observed = manifest.profiles.find((entry: { host: { platform: string } }) => entry.host.platform === "darwin").provenance.splitQualification;
   assert.equal(observed.runId, "33441925913");
   assert.equal(observed.sourceSha, "e91ecba8bdd56c4dd9285a3bc64336ce479aec84");
   assert.equal(observed.artifactId, 9777161068);

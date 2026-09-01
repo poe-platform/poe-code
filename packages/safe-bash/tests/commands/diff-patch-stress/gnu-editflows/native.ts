@@ -5,11 +5,11 @@ import { lstat, mkdir, mkdtemp, readFile, readdir, realpath, rm, writeFile } fro
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 import type { Fixture } from "./fixtures.js";
-import { nativeGnuBinding } from "../../../native-profile.js";
 import { oracleIdentity } from "../gnu-target/oracle.js";
 
-export const binary = "/tmp/safe-bash-gnu-oracle.Yg2F0W/patch-2.8/src/patch";
-export const binarySha256 = "c060444da0e547de6f17594baf0b5015a04f5b3277131ca12b1da27c621aee00";
+const identity = oracleIdentity("patch");
+export const binary = identity.path;
+export const binarySha256 = identity.sha256;
 export const scope = fileURLToPath(new URL(".", import.meta.url));
 export type Entry = { readonly kind: "directory" } | { readonly kind: "file"; readonly hex: string } | { readonly kind: "symlink"; readonly target: string };
 export type Namespace = Record<string, Entry>;
@@ -19,9 +19,9 @@ export interface Evidence { readonly version: string; readonly binary: string; r
 export function digest(bytes: string | Uint8Array): string { return createHash("sha256").update(bytes).digest("hex"); }
 
 export async function proof(): Promise<string> {
-  const binding = nativeGnuBinding("patch");
-  const selected = binding ? oracleIdentity("patch").path : binary;
-  assert.equal(digest(await readFile(selected)), binding?.sha256 ?? binarySha256, "GNU oracle binary hash changed; do not recapture silently");
+  const currentIdentity = oracleIdentity("patch");
+  const selected = currentIdentity.path;
+  assert.equal(digest(await readFile(selected)), currentIdentity.sha256, "GNU oracle binary hash changed; do not recapture silently");
   const version = spawnSync(selected, ["--version"], { encoding: "utf8", shell: false, timeout: 3000, maxBuffer: 65_536, env: { LC_ALL: "C", LANG: "C", PATH: "/usr/bin:/bin" } });
   assert.ifError(version.error);
   assert.equal(version.status, 0, "GNU oracle unavailable");
@@ -35,7 +35,7 @@ export function safeRelative(path: string): void {
 }
 
 export async function native(fixture: Fixture): Promise<readonly Observation[]> {
-  const selected = nativeGnuBinding("patch") ? oracleIdentity("patch").path : binary;
+  const selected = oracleIdentity("patch").path;
   const root = await realpath(await mkdtemp(join(scope, ".native-")));
   const cwd = join(root, "work");
   try {

@@ -25,6 +25,8 @@ test("native lanes partition the complete discovery without losing or duplicatin
   assert(darwin.includes("tests/commands/archive-stress/pax-independent/controls.test.ts"));
   assert(darwin.includes("tests/commands/expr/regex-native.test.ts"));
   assert(darwin.includes("tests/commands/metadata-stress/stat-human-native.test.ts"));
+  assert(darwin.includes("tests/shell-stress/diagnostic-profiles/compatibility.test.ts"));
+  assert(!linux.includes("tests/shell-stress/diagnostic-profiles/compatibility.test.ts"));
   for (const file of [
     "stream-format-author-stress/native-streams.test.ts",
     "stream-format-author-stress/seq-format.test.ts",
@@ -94,6 +96,7 @@ function assertSource7Discovery(files) {
     "tests/commands/stream-format/native-binding.test.ts",
     "tests/commands/table-text-stress/native-binding.test.ts",
     "tests/commands/split/native-binding.test.ts",
+    "tests/shell-stress/diagnostic-profiles/profile.test.ts",
   ];
   assert.equal(new Set(files).size, files.length);
   for (const path of removed) assert.ok(!files.includes(path), `source7 removed test remains selected: ${path}`);

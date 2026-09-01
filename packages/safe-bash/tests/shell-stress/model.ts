@@ -25,3 +25,15 @@ export interface ChildRequest {
   readonly fixture?: StressCase;
   readonly probe?: string;
 }
+
+export const maxBatchCases = 8;
+
+export interface BatchRequest {
+  readonly kind: "batch";
+  readonly fixtures: readonly StressCase[];
+}
+
+export type ScriptOutcome = { readonly name: string } & (
+  | { readonly status: "fulfilled"; readonly observation: Observation }
+  | { readonly status: "rejected"; readonly error: string }
+);

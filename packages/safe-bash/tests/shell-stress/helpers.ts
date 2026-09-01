@@ -5,7 +5,8 @@ import { readFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { fileURLToPath } from "node:url";
-import type { ChildRequest, Observation, StressCase } from "./model.js";
+import { maxBatchCases } from "./model.js";
+import type { BatchRequest, ChildRequest, Observation, ScriptOutcome, StressCase } from "./model.js";
 import { isolatedSpawn } from "./process.js";
 import { collectSourceInputs } from "../source-census.js";
 
@@ -43,19 +44,40 @@ function checkChild(result: { error?: Error | undefined; signal: NodeJS.Signals 
   assert.notEqual(result.status, null, `${label}: no exit status`);
 }
 
-export async function runVirtual(request: ChildRequest): Promise<Observation | { passed: string }> {
-  const before = sourceEvidence();
-  const result = await isolatedSpawn(process.execPath, ["--unhandled-rejections=strict", "--import", "tsx", fileURLToPath(new URL("./virtual-child.ts", import.meta.url))], {
+async function executeVirtual(request: ChildRequest | BatchRequest, dependencies = { sourceEvidence, isolatedSpawn }) {
+  const before = dependencies.sourceEvidence();
+  const result = await dependencies.isolatedSpawn(process.execPath, ["--unhandled-rejections=strict", "--import", "tsx", fileURLToPath(new URL("./virtual-child.ts", import.meta.url))], {
     cwd: root, env: environment(tmpdir()), input: JSON.stringify(request),
     timeout: hardDeadlineMs, maxBuffer,
   });
-  const after = sourceEvidence();
-  const context = `${request.fixture?.name ?? request.probe}; source ${before.revision} ${before.aggregate} @ ${before.time}; after ${after.aggregate} @ ${after.time}`;
+  const after = dependencies.sourceEvidence();
+  const name = request.kind === "batch" ? request.fixtures.map(fixture => fixture.name).join(", ") : request.fixture?.name ?? request.probe;
+  const context = `${name}; source ${before.revision} ${before.aggregate} @ ${before.time}; after ${after.aggregate} @ ${after.time}`;
   checkChild(result, context);
   assert.equal(result.status, 0, `${context}\n${result.stderr}\n${result.stdout}`);
   assert.equal(result.stderr.toString(), "", `${context}: unexpected child stderr`);
   assert.equal(after.aggregate, before.aggregate, `${context}: source changed during execution; rerun instead of attributing this result`);
-  return JSON.parse(result.stdout.toString()) as Observation | { passed: string };
+  return { value: JSON.parse(result.stdout.toString()) as unknown, before, after };
+}
+
+export async function runVirtual(request: ChildRequest): Promise<Observation | { passed: string }> {
+  const { value } = await executeVirtual(request);
+  assert.ok(value && typeof value === "object" && ("exitCode" in value || "passed" in value));
+  return value as Observation | { passed: string };
+}
+
+export async function runVirtualBatch(fixtures: readonly StressCase[], dependencies = { sourceEvidence, isolatedSpawn }) {
+  assert.ok(fixtures.length > 0 && fixtures.length <= maxBatchCases, `Virtual batch requires 1..${maxBatchCases} cases`);
+  const { value, before, after } = await executeVirtual({ kind: "batch", fixtures }, dependencies);
+  assert.ok(Array.isArray(value), "Virtual batch must return an outcome array");
+  assert.equal(value.length, fixtures.length, "Virtual batch must return every case outcome");
+  for (const [index, outcome] of value.entries()) {
+    assert.equal(outcome.name, fixtures[index]!.name, "Virtual batch case order/name mismatch");
+    assert.ok(outcome.status === "fulfilled" || outcome.status === "rejected", "Invalid virtual batch outcome");
+    if (outcome.status === "fulfilled") assert.ok(outcome.observation && "exitCode" in outcome.observation, `Missing observation: ${outcome.name}`);
+    else assert.equal(typeof outcome.error, "string", `Missing failure: ${outcome.name}`);
+  }
+  return { outcomes: value as ScriptOutcome[], before, after };
 }
 
 export async function runVirtualScript(fixture: StressCase): Promise<Observation> {

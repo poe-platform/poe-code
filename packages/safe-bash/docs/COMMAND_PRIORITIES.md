@@ -8,8 +8,9 @@ and historical expectations are unchanged.
 
 ## Current compatibility snapshot — August 29, 2026 UTC
 
-**Goal, not a completed guarantee:** useful Bash-like common workflows are the
-user's target. The project does not yet promise indistinguishability from Bash,
+**Goal, not a completed guarantee:** full Bash parity is the user's target.
+Common-workflow coverage is only a current subset of that goal.
+The project does not yet promise indistinguishability from Bash,
 full GNU Bash5 compatibility, full Git/Node behavior, or a general security
 sandbox. Finite accepted profiles below are not a whole-product green gate.
 The active code is in `/Users/kjopek/Workspace/safe-bash`.
@@ -42,7 +43,6 @@ ambient host authority or native fallback. See the existing
 | Final1070 three-layout smoke | Attempt `dd8db75a` refused **before install or workflow dispatch** because the harness expected npm descriptor kind `symlink` but received the authenticated kind `link`. **All24 workflows remain UNRUN.** This is a harness mismatch, not a product/npm failure. Invalid administrative UTC strings remain preserved; the sealed bootstrap's separate `Date.now` check is not a repair of those strings. [Consumed-attempt evidence](../tests/integration/final-smoke-preparation-20260829/runnable-r5/consumed-attempt-v1/HANDOFF.md). |
 | Source-built functional follow-up | **8/8 author-observed SOURCE-built passes** (`8fc9f4fc`, preseal `fa1a81af`): C01/C02/C07/C12/C13/C14/R17/R16, including functional R17 `local -a`. Registered Shell disposal completed; child26984 exited/closed0 with both stream endpoints ended. One functional loader admission, zero observed guest/Regex Worker attempts, and source/helper postguards passed. These direct public ESM-target observations are **not bare-package resolution or installed/moved proof**; qualified **SOURCE-only independent DATA acceptance** `f37d832bf544a5b5169a4e43a3ef8c2f41e92a9d` is recorded in the [exact receipt](../tests/integration/final-smoke-independent-20260829/source-closeout-v1/RESULT.json). No npm/install ran: the npm descriptor adapter has four PURE checks and a source-only future-callsite correction, not executed npm proof. New Node-formatted UTC observations do not repair historical invalid UTC strings. Original `dd8db75a` STOP/all24 UNRUN remain unchanged. [Actual eight-row handoff](../tests/integration/final-smoke-preparation-20260829/source-closeout-v1/ACTUAL-HANDOFF.md). |
 | Default build configuration | `f9c0828c` excludes exactly16 unaccepted production paths; the resulting267 source roots match the supported projection. One normal-config `--noEmit` compiler invocation exited0. The frozen archive is unchanged: **no default npm emitter run is claimed**. All16 files and all40 excluded tracked extras remain preserved; **XAN stays on absolute HOLD**, with no held-content reads authorized here. [Alignment evidence](../tests/compatibility/default-build-alignment-20260829/REPORT.md). |
-| Comparison | The comparator is paused. No current overall “better than just-bash” result is established; historical scoped measurements remain scoped. |
 
 Known restrictions remain those of the existing contracts, not newly invented
 compatibility promises: the accepted Unit3 profile refuses reached ERE/extglob,
@@ -57,7 +57,7 @@ This August 29, 2026 UTC documentation/coordination snapshot records the latest
 ROOT-reported statuses, not a new test run or independent remeasurement. Accepted
 producer DATA, B2's incomplete independent audit and pending runtime follow-ups
 remain distinct. **There is no full coherent three-layout acceptance.** No
-performance, overall superiority, full Bash/Git, or sandbox claim follows.
+performance, full Bash/Git, or sandbox claim follows.
 Original failures,
 source-only/mixed proofs, native-profile differences and resource qualifications
 remain intact. README (including the selected PUBLIC309 README), product source
@@ -223,7 +223,7 @@ I03-v2 continuation and four RegexWorker exits in the first cohort; individual
 internal-Worker exits remain unobserved, with only known hosting-process retirement.
 
 This is bounded VFS object/index/pack parsing, not a native fallback, full Git/Bash
-compatibility, live-HEAD acceptance, hard RSS/performance or comparison superiority.
+compatibility, live-HEAD acceptance, or hard RSS/performance guarantee.
 Later `|&`/`&>` changes and product Node are not accepted here. Node remains
 pending; npm/npx are excluded, curl stays opt-in, zero runtime dependencies remain.
 Exact scope, layout reconstruction and preserved history:
@@ -283,7 +283,7 @@ not a newly authenticated full commit identifier. These statuses supersede the
 older checkpoint below without rewriting its observations. No arrays, Git,
 apply_patch, Node, YQ or XAN support is added by this workflow proof. The existing
 78-default, TypeScript, zero-runtime-dependency and opt-in-curl status is unchanged;
-no fresh type gate, overall just-bash victory or global-release claim follows.
+no fresh type gate or global-release claim follows.
 
 ## Historical module-candidate checkpoint — 2026-08-28
 
@@ -413,7 +413,7 @@ registration and selected composition workflows, not all options of these tools.
 
 The old R3 fixed76 result **19425 passes /132 failures /7 skips,6/14 phases,
 integrity/cleanup false** remains unchanged. This audit neither deducts failures
-nor certifies current HEAD. No new just-bash release/version/comparison claim.
+nor certifies current HEAD.
 
 ## Original next-work recommendations — historical audit
 
@@ -454,4 +454,4 @@ records subsequent module/design scopes; it does not authorize further implement
    Do not rename `safejs` to `node` or silently drop this user priority.
 
 These are bounded recommendations, not an approved implementation, fresh benchmark
-or assertion that a small subset fulfills the requested product or superiority goal.
+or assertion that a small subset fulfills the requested product scope.

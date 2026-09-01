@@ -1,8 +1,42 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { CommandRegistry, toByteSource, type CommandInvoker, type CommandInvokeOptions } from "../../src/contracts/index.js";
+import { CommandRegistry, createCommandArguments, getCommandArguments, toByteSource, type CommandContext, type CommandInvoker, type CommandInvokeOptions } from "../../src/contracts/index.js";
+import { shellValueFromBytes } from "../../src/contracts/value.js";
+import { directExecutor } from "../../src/commands/execution.js";
 import { Shell, type ShellCommandContext, type ShellInvokeOptions } from "../../src/shell/index.js";
 import { createMemoryFileSystem } from "../../src/fs/memory/index.js";
+
+test("shared invocation options carry exact owned arguments without changing legacy calls", async () => {
+  const argumentValues = createCommandArguments([shellValueFromBytes(Uint8Array.of(255))]);
+  const observed: number[][] = [];
+  const invoke: CommandInvoker = async (_command, args, options = {}) => {
+    const selected = getCommandArguments({ args, ...(options.argumentValues ? { argumentValues: options.argumentValues } : {}) });
+    observed.push(Array.from(selected.bytes(0)!));
+    return { exitCode: 0 };
+  };
+  await invoke("capture", argumentValues.args, { argumentValues });
+  await invoke("capture", ["plain"]);
+  assert.deepEqual(observed, [[255], [112, 108, 97, 105, 110]]);
+  await assert.rejects(invoke("capture", [...argumentValues.args], { argumentValues }), /argument.*identity/i);
+});
+
+test("direct invocation snapshots legacy argv before asynchronous dispatch", async () => {
+  const args = ["before"];
+  const context: CommandContext = {
+    command: "capture", args, cwd: "/", env: {}, fs: createMemoryFileSystem(), signal: new AbortController().signal,
+    stdin: toByteSource(""), stdout: { async write() {} }, stderr: { async write() {} },
+    async invoke(_command, selectedArgs, options = {}) {
+      await Promise.resolve();
+      assert.deepEqual(selectedArgs, ["before"]);
+      assert.ok(Object.isFrozen(selectedArgs));
+      assert.equal(getCommandArguments({ args: selectedArgs, argumentValues: options.argumentValues! }).args, selectedArgs);
+      return { exitCode: 0 };
+    },
+  };
+  const pending = directExecutor(() => { throw new Error("fallback must not execute"); })(context);
+  args[0] = "after";
+  assert.deepEqual(await pending, { exitCode: 0 });
+});
 
 test("shared invocation types structurally match the existing shell hook", () => {
   const shared: CommandInvokeOptions = { cwd: "/", env: { KEY: "value" }, stdin: toByteSource(""), stdinIsDefault: false };

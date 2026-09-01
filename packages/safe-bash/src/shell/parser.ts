@@ -5,9 +5,11 @@ import { arraySelector, compoundEntry, compoundHead, elementAssignment, getArray
 import type { ArrayEntry, ArraySelector } from "./arrays/syntax.js";
 import { conditionalBinary, conditionalUnary } from "./conditional.js";
 import type { ConditionalExpression } from "./conditional.js";
+import { shellValueFromBytes, shellValueText } from "../contracts/value.js";
+import type { ByteShellValue, ShellValue } from "../contracts/value.js";
 
 export type WordPart =
-  | { kind: "text"; value: string; quoted: boolean }
+  | { kind: "text"; value: string; quoted: boolean; byteValue?: ByteShellValue }
   | { kind: "arithmetic"; expression: ArithmeticProgram; source: string; line: number; quoted: boolean }
   | { kind: "variable"; name: string; quoted: boolean; line?: number; length?: boolean; operator?: string; alternate?: Word; replacement?: Word; substring?: { offset: Word; length?: Word; source: string } }
   | { kind: "failed-substitution"; diagnostic: string; quoted: boolean }
@@ -293,14 +295,15 @@ class Lexer {
     let regexClass = "";
     const conditionalPattern = terminator === undefined ? this.conditionalPattern : undefined;
     let plain = true;
-    const text = (value: string, quoted: boolean, synthetic = false) => {
-      if (conditionalPattern === "regex" && regexBracket && quoted && value.length) { regexBracketFirst = false; regexBracketNegation = false; }
+    const text = (value: ShellValue, quoted: boolean, synthetic = false) => {
+      const projection = shellValueText(value);
+      if (conditionalPattern === "regex" && regexBracket && quoted && projection.length) { regexBracketFirst = false; regexBracketNegation = false; }
       const previous = parts.at(-1);
-      if (previous?.kind === "text" && previous.quoted === quoted) {
+      if (previous?.kind === "text" && previous.quoted === quoted && !previous.byteValue && typeof value === "string") {
         previous.value += value;
         if (!synthetic) setQuoteMarker(previous, false);
       } else {
-        const part: WordPart = { kind: "text", value, quoted };
+        const part: WordPart = { kind: "text", value: projection, quoted, ...(typeof value === "string" ? {} : { byteValue: value }) };
         setQuoteMarker(part, synthetic);
         parts.push(part);
       }
@@ -385,7 +388,7 @@ class Lexer {
     return { parts, offset, ...(unprinted === this.unprintedWords ? { printedNewlines } : {}), ...(plain ? { plain: parts.map((part) => part.kind === "text" ? part.value : "").join("") } : {}) };
   }
 
-  ansiWord(): string {
+  ansiWord(): ShellValue {
     const quoteLine = this.lineAt(this.position);
     this.position += 2;
     const bytes: number[] = [];
@@ -396,7 +399,12 @@ class Lexer {
       this.position += character.length;
       if (character === "'") {
         const nul = bytes.indexOf(0);
-        return new TextDecoder().decode(Uint8Array.from(nul < 0 ? bytes : bytes.slice(0, nul)));
+        const raw = Uint8Array.from(nul < 0 ? bytes : bytes.slice(0, nul));
+        try { return new TextDecoder("utf-8", { fatal: true, ignoreBOM: true }).decode(raw); }
+        catch (error) {
+          if (!(error instanceof TypeError) || !("code" in error) || error.code !== "ERR_ENCODING_INVALID_ENCODED_DATA") throw error;
+          return shellValueFromBytes(raw);
+        }
       }
       if (character !== "\\") { bytes.push(...encoder.encode(character)); continue; }
       const escape = this.source[this.position++];

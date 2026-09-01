@@ -1,4 +1,6 @@
-import { UsageError, type ParsedOptions } from "./internal.js";
+import { createCommandArguments, getCommandArguments, type CommandArguments } from "../contracts/command.js";
+import { type ShellValue } from "../contracts/value.js";
+import { decoder, encoder, UsageError, type ParsedOptions } from "./internal.js";
 
 export class EnvSplitError extends Error {}
 
@@ -11,12 +13,12 @@ class SplitWork {
 
   constructor(private readonly signal: AbortSignal) {}
 
-  account(text: string): void {
+  account(text: string | Uint8Array): void {
     this.signal.throwIfAborted();
     if (text.length > 131072 - this.bytes) throw new EnvSplitError("split-string byte limit exceeded (131072)");
-    this.bytes += Buffer.byteLength(text);
+    this.bytes += typeof text === "string" ? Buffer.byteLength(text) : text.byteLength;
     if (this.bytes > 131072) throw new EnvSplitError("split-string byte limit exceeded (131072)");
-    if (text.includes("\0")) throw new EnvSplitError("NUL is not supported in -S strings");
+    if (typeof text === "string" ? text.includes("\0") : text.includes(0)) throw new EnvSplitError("NUL is not supported in -S strings");
   }
 
   argument(): void {
@@ -124,15 +126,85 @@ async function splitString(source: string, environment: Readonly<Record<string, 
   return result;
 }
 
+async function splitBytes(source: Uint8Array, environment: Readonly<Record<string, string>>, work: SplitWork): Promise<Uint8Array[]> {
+  work.expansion();
+  work.account(source);
+  const result: Uint8Array[] = [];
+  let pending: number[] = [];
+  let active = false;
+  let quote = 0;
+  const start = () => { if (!active) { work.argument(); active = true; } };
+  const append = (bytes: Uint8Array) => {
+    work.account(bytes);
+    start();
+    for (const byte of bytes) pending.push(byte);
+  };
+  const finish = () => {
+    if (active) result.push(Uint8Array.from(pending));
+    pending = [];
+    active = false;
+  };
+  const nameStart = (byte: number | undefined): boolean => byte !== undefined && (byte >= 65 && byte <= 90 || byte >= 97 && byte <= 122 || byte === 95);
+  for (let index = 0; index < source.length;) {
+    if (work.tick()) await work.pause();
+    const character = source[index]!;
+    if ((character === 39 || character === 34) && (!quote || character === quote)) { start(); quote = quote ? 0 : character; index++; continue; }
+    if (!quote && [32, 9, 10, 13, 11, 12].includes(character)) { finish(); index++; continue; }
+    if (character === 35 && !active) break;
+    if (character === 92 && (quote !== 39 || source[index + 1] === 92 || source[index + 1] === 39)) {
+      const escaped = source[index + 1];
+      if (escaped === undefined) throw new EnvSplitError("invalid backslash at end of string in -S");
+      index += 2;
+      if (escaped === 99) {
+        if (quote === 34) throw new EnvSplitError("'\\c' must not appear in double-quoted -S string");
+        break;
+      }
+      if (escaped === 95) { if (quote === 34) append(Uint8Array.of(32)); else finish(); continue; }
+      const controls: Readonly<Record<number, number>> = { 102: 12, 110: 10, 114: 13, 116: 9, 118: 11 };
+      if (Object.hasOwn(controls, escaped)) append(Uint8Array.of(controls[escaped]!));
+      else if ([34, 35, 36, 39, 92].includes(escaped)) append(Uint8Array.of(escaped));
+      else throw new EnvSplitError(`invalid sequence '\\${String.fromCharCode(escaped)}' in -S`);
+      continue;
+    }
+    if (character === 36 && quote !== 39) {
+      let end = index + 2;
+      if (source[index + 1] !== 123 || !nameStart(source[end])) throw new EnvSplitError(`only \${VARNAME} expansion is supported, error at: ${decoder.decode(source.subarray(index))}`);
+      while (nameStart(source[end]) || source[end] !== undefined && source[end]! >= 48 && source[end]! <= 57) {
+        if (work.tick()) await work.pause();
+        end++;
+      }
+      if (source[end] !== 125) throw new EnvSplitError(`only \${VARNAME} expansion is supported, error at: ${decoder.decode(source.subarray(index))}`);
+      const name = decoder.decode(source.subarray(index + 2, end));
+      if (Object.hasOwn(environment, name)) {
+        const text = environment[name]!;
+        append(encoder.encode(text));
+        if (work.tick(text.length)) await work.pause();
+      }
+      index = end + 1;
+      continue;
+    }
+    append(source.subarray(index, index + 1));
+    index++;
+  }
+  if (quote) throw new EnvSplitError("no terminating quote in -S string");
+  finish();
+  return result;
+}
+
 export async function parseEnvOptions(
-  args: readonly string[], environment: Readonly<Record<string, string>>, signal: AbortSignal,
-): Promise<ParsedOptions> {
+  args: readonly string[], environment: Readonly<Record<string, string>>, signal: AbortSignal, argumentValues?: CommandArguments,
+): Promise<ParsedOptions & { readonly operandValues?: CommandArguments }> {
   const work = new SplitWork(signal);
-  const frames: { args: readonly string[]; offset: number }[] = [{ args, offset: 0 }];
+  const incoming = argumentValues === undefined ? createCommandArguments(args) : getCommandArguments({ args, argumentValues });
+  const frames: { arguments: CommandArguments; offset: number }[] = [{ arguments: incoming, offset: 0 }];
+  let currentValue: ShellValue = "";
   const next = (): string | undefined => {
     while (frames.length) {
       const frame = frames.at(-1)!;
-      if (frame.offset < frame.args.length) return frame.args[frame.offset++];
+      if (frame.offset < frame.arguments.args.length) {
+        currentValue = frame.arguments.values[frame.offset]!;
+        return frame.arguments.args[frame.offset++];
+      }
       frames.pop();
     }
     return undefined;
@@ -140,13 +212,14 @@ export async function parseEnvOptions(
   const flags = new Set<string>();
   const values = new Map<string, string[]>();
   const operands: string[] = [];
+  const operandValues: ShellValue[] = [];
   const longOptions = new Map([
     ["ignore-environment", "i"], ["unset", "u"], ["null", "0"], ["chdir", "C"], ["split-string", "S"],
   ]);
-  const accept = async (key: string, content?: string) => {
+  const accept = async (key: string, content?: string, source: ShellValue = content ?? "") => {
     if (key === "S") {
-      const expanded = await splitString(content!, environment, work);
-      frames.push({ args: expanded, offset: 0 });
+      const expanded = typeof source === "string" ? await splitString(source, environment, work) : await splitBytes(incoming.withValues([source]).bytes(0)!, environment, work);
+      frames.push({ arguments: incoming.withValues(expanded), offset: 0 });
     } else {
       flags.add(key);
       if (content !== undefined) {
@@ -159,9 +232,11 @@ export async function parseEnvOptions(
   for (;;) {
     const argument = next();
     if (argument === undefined) break;
+    const argumentValue = currentValue;
+    const remainder = (offset: number): ShellValue => typeof argumentValue === "string" ? argumentValue.slice(offset) : incoming.withValues([incoming.withValues([argumentValue]).bytes(0)!.subarray(offset)]).values[0]!;
     if (work.tick(argument.length + 1)) await work.pause();
     if (argument === "--") break;
-    if (argument === "-" || !argument.startsWith("-")) { operands.push(argument); break; }
+    if (argument === "-" || !argument.startsWith("-")) { operands.push(argument); operandValues.push(argumentValue); break; }
     if (argument.startsWith("--")) {
       const equals = argument.indexOf("=");
       const name = argument.slice(2, equals < 0 ? undefined : equals);
@@ -171,7 +246,7 @@ export async function parseEnvOptions(
       if (!required && equals >= 0) throw new UsageError(`option '--${name}' does not take an argument`);
       const content = required ? equals < 0 ? next() : argument.slice(equals + 1) : undefined;
       if (required && content === undefined) throw new UsageError(`option '--${name}' requires an argument`);
-      await accept(key, content);
+      await accept(key, content, key === "S" ? equals < 0 ? currentValue : remainder(equals + 1) : content);
       continue;
     }
     for (let index = 1; index < argument.length; index++) {
@@ -179,9 +254,10 @@ export async function parseEnvOptions(
       const key = argument[index]!;
       if (key !== "i" && key !== "u" && key !== "0" && key !== "C" && key !== "S") throw new UsageError(`invalid option -- '${key}'`);
       const required = key === "u" || key === "C" || key === "S";
-      const content = required ? argument.slice(index + 1) || next() : undefined;
+      const attached = argument.slice(index + 1);
+      const content = required ? attached || next() : undefined;
       if (required && content === undefined) throw new UsageError(`option requires an argument -- '${key}'`);
-      await accept(key, content);
+      await accept(key, content, key === "S" ? attached ? remainder(index + 1) : currentValue : content);
       if (required) break;
     }
   }
@@ -190,8 +266,9 @@ export async function parseEnvOptions(
     if (argument === undefined) break;
     if (work.tick()) await work.pause();
     operands.push(argument);
+    operandValues.push(currentValue);
   }
-  if (operands[0] === "-") { flags.add("i"); operands.shift(); }
+  if (operands[0] === "-") { flags.add("i"); operands.shift(); operandValues.shift(); }
   signal.throwIfAborted();
-  return { flags, values, operands };
+  return { flags, values, operands, ...(argumentValues === undefined ? {} : { operandValues: incoming.withValues(operandValues) }) };
 }

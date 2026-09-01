@@ -16,6 +16,51 @@ const digest = (bytes) => createHash("sha256").update(bytes).digest("hex");
 const executable = Buffer.from("fixture executable; never executed by a real process\n");
 const host = { platform: "linux", arch: "x64", distribution: "ubuntu", version: "24.04" };
 
+function localFixture() {
+  const value = fixture();
+  const localHost = { platform: "darwin", arch: "arm64", distribution: "macos", version: "26.4.1", release: "25.4.0" };
+  const profile = { ...value.profile, id: "local-macos26.4.1-arm64-gnu-20260831", host: localHost,
+    qualification: "IDENTITY_APPROVED_FOR_QUALIFICATION_ONLY",
+    executables: [value.pin, { ...value.pin, tool: "patch", version: "GNU patch 2.8" }] };
+  value.fileSystem.writeFileSync("/owned/build/patch", executable, { mode: 0o755 });
+  return { ...value, profile, localHost, localProfile: profile.id };
+}
+
+test("local GNU observation requires the literal opt-in, exact host and only diff/patch", () => {
+  const { profile, localHost, localProfile } = localFixture();
+  assert.deepEqual(selectNativeProfile([profile], localHost, localProfile), profile);
+  assert.throws(() => selectNativeProfile([profile], localHost));
+  for (const selector of ["", "other", profile.id + " "]) assert.throws(() => selectNativeProfile([profile], localHost, selector));
+  for (const other of [{ ...localHost, release: "25.5.0" }, { ...localHost, version: "26.5.2" }, { ...localHost, arch: "x64" }, host]) {
+    assert.throws(() => selectNativeProfile([{ ...profile, host: other }], other, localProfile));
+  }
+  for (const changed of [
+    { ...profile, id: "self-described" },
+    { ...profile, qualification: "BUILT_OBSERVATIONS_UNREVIEWED" },
+    { ...profile, executables: [profile.executables[0]] },
+    { ...profile, executables: [...profile.executables, { ...profile.executables[0], tool: "tar" }] }
+  ]) assert.throws(() => selectNativeProfile([changed], localHost, localProfile));
+  assert.throws(() => selectNativeProfile([profile, profile], localHost, localProfile));
+});
+
+test("local staging retains qualification-only status and refuses tamper before execution", () => {
+  const value = localFixture();
+  const calls = [];
+  const run = (path) => { calls.push(path); return { status: 0, signal: null, stdout: (path.endsWith("/patch") ? "GNU patch 2.8" : value.pin.version) + "\n", stderr: "" }; };
+  const options = { parent: "/owned", name: "candidate", profile: value.profile, host: value.localHost, localProfile: value.localProfile,
+    inputs: { diff: "/owned/build/diff", patch: "/owned/build/patch" } };
+  const receipt = stageNativeExecutables(options, { ...value, run });
+  assert.equal(receipt.qualification, "IDENTITY_APPROVED_FOR_QUALIFICATION_ONLY");
+  assert.equal(receipt.outputs.length, 2);
+  assert.equal(calls.length, 4);
+  assert.throws(() => stageNativeExecutables(options, { ...value, run }), /already exists/u);
+  value.fileSystem.writeFileSync("/owned/build/diff", Buffer.alloc(executable.length));
+  const before = calls.length;
+  assert.throws(() => stageNativeExecutables({ ...options, name: "tampered" }, { ...value, run }), /SHA-256/u);
+  assert.equal(calls.length, before);
+  assert.equal(value.fileSystem.existsSync("/owned/tampered/receipt.json"), false);
+});
+
 function fixture() {
   const fileSystem = createFsFromVolume(Volume.fromJSON({ "/owned/build/diff": executable }));
   fileSystem.chmodSync("/owned", 0o700);

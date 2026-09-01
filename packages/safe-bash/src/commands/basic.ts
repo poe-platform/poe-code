@@ -1,22 +1,24 @@
-import { basename, dirname, writeBytes, type CommandDefinition } from "../contracts/index.js";
-import { define, encoder, escapeBytes, options, output, requireOperands, UsageError, value } from "./internal.js";
+import { basename, dirname, getCommandArguments, writeBytes, type CommandDefinition } from "../contracts/index.js";
+import { decoder, define, encoder, escapeBytes, options, output, requireOperands, UsageError, value } from "./internal.js";
 
 export function basicCommands(): CommandDefinition[] {
   return [
     define("true", () => ({ exitCode: 0 })),
     define("false", () => ({ exitCode: 1 })),
     define("echo", async (context) => {
+      const arguments_ = getCommandArguments(context);
       let newline = true;
       let escapes = false;
       let offset = 0;
-      while (/^-[neE]+$/u.test(context.args[offset] ?? "")) {
-        for (const flag of context.args[offset]!.slice(1)) {
+      while (/^-[neE]+$/u.test(arguments_.args[offset] ?? "")) {
+        for (const flag of arguments_.args[offset]!.slice(1)) {
           if (flag === "n") newline = false;
           else escapes = flag === "e";
         }
         offset++;
       }
-      const text = context.args.slice(offset).join(" ");
+      const joined = arguments_.slice(offset).join(" ");
+      const text = typeof joined === "string" ? joined : arguments_.withValues([joined]).bytes(0)!;
       if (escapes) {
         const escaped = escapeBytes(text, true);
         await output(context, escaped.bytes);
@@ -50,28 +52,36 @@ export function basicCommands(): CommandDefinition[] {
       return { exitCode: 0 };
     }),
     define("printf", async (context) => {
-      const args = context.args[0] === "--" ? context.args.slice(1) : context.args;
+      const incoming = getCommandArguments(context);
+      const arguments_ = incoming.args[0] === "--" ? incoming.slice(1) : incoming;
+      const args = arguments_.args;
       requireOperands(args);
       const format = args[0]!;
-      if (format.startsWith("-") && context.args[0] !== "--") throw new UsageError(`invalid option '${format}'`);
+      if (format.startsWith("-") && incoming.args[0] !== "--") throw new UsageError(`invalid option '${format}'`);
+      const rawFormat = typeof arguments_.values[0] === "string" ? undefined : arguments_.bytes(0)!;
+      const formatLength = rawFormat?.length ?? format.length;
       let argument = 1;
       let exitCode = 0;
       let stopped = false;
       do {
         const before = argument;
-        for (let offset = 0; offset < format.length && !stopped;) {
-          if (format[offset] !== "%") {
-            const end = format.indexOf("%", offset);
-            const literal = format.slice(offset, end < 0 ? format.length : end);
+        for (let offset = 0; offset < formatLength && !stopped;) {
+          if (rawFormat ? rawFormat[offset] !== 37 : format[offset] !== "%") {
+            const end = rawFormat ? rawFormat.indexOf(37, offset) : format.indexOf("%", offset);
+            const limit = end < 0 ? formatLength : end;
+            const literal = rawFormat ? rawFormat.subarray(offset, limit) : format.slice(offset, limit);
             const escaped = escapeBytes(literal);
             await output(context, escaped.bytes);
             stopped = escaped.stop;
             offset += literal.length;
             continue;
           }
-          if (format[offset + 1] === "%") { await output(context, "%"); offset += 2; continue; }
-          const match = /^%([-+ #0]*)(\d+)?(?:\.(\d+))?([sbqcdiouxXfFeEgG])/u.exec(format.slice(offset));
-          if (!match) throw new UsageError(`invalid format near '${format.slice(offset)}'`);
+          if (rawFormat ? rawFormat[offset + 1] === 37 : format[offset + 1] === "%") { await output(context, "%"); offset += 2; continue; }
+          let tokenEnd = offset + 1;
+          if (rawFormat) while (tokenEnd < rawFormat.length && (rawFormat[tokenEnd]! >= 48 && rawFormat[tokenEnd]! <= 57 || [32, 35, 43, 45, 46].includes(rawFormat[tokenEnd]!))) tokenEnd++;
+          const fragment = rawFormat ? decoder.decode(rawFormat.subarray(offset, tokenEnd + 1)) : format.slice(offset);
+          const match = /^%([-+ #0]*)(\d+)?(?:\.(\d+))?([sbqcdiouxXfFeEgG])/u.exec(fragment);
+          if (!match) throw new UsageError(`invalid format near '${fragment}'`);
           offset += match[0].length;
           const flags = match[1]!;
           const width = Number(match[2] ?? 0);
@@ -79,10 +89,13 @@ export function basicCommands(): CommandDefinition[] {
           if (width > 1_000_000 || (precision ?? 0) > 1000) throw new UsageError("format width or precision is too large");
           const specifier = match[4]!;
           if (/[fFeEgG]/u.test(specifier) && (precision ?? 0) > 100) throw new UsageError("floating-point precision is too large");
-          const supplied = args[argument++] ?? "";
+          const suppliedIndex = argument++;
+          const supplied = args[suppliedIndex] ?? "";
           let text: string;
           if (specifier === "b" || specifier === "s") {
-            const escaped = specifier === "b" ? escapeBytes(supplied, true) : { bytes: encoder.encode(supplied), stop: false };
+            const suppliedValue = arguments_.values[suppliedIndex] ?? "";
+            const raw = specifier === "b" && typeof suppliedValue === "string" ? suppliedValue : arguments_.bytes(suppliedIndex) ?? new Uint8Array();
+            const escaped = specifier === "b" ? escapeBytes(raw, true, true) : { bytes: raw as Uint8Array, stop: false };
             const bytes = escaped.bytes.subarray(0, precision);
             const padding = " ".repeat(Math.max(0, width - bytes.length));
             if (!flags.includes("-")) await output(context, padding);

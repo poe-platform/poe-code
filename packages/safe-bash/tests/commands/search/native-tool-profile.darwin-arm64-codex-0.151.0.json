@@ -1,0 +1,37 @@
+{
+  "schema": 1,
+  "id": "ripgrep-15.2.0-darwin-arm64-codex-0.151.0",
+  "version": "15.2.0",
+  "platform": "darwin",
+  "arch": "arm64",
+  "executable": {
+    "size": 4030432,
+    "sha256": "345c4e819ed4a17806cec23fc0b54592731ccc265052d2bac6c400e2d24ba728",
+    "mode": "0755"
+  },
+  "provenance": {
+    "package": "@openai/codex",
+    "packageVersion": "0.151.0-darwin-arm64",
+    "registryMetadataURL": "https://registry.npmjs.org/@openai%2fcodex/0.151.0-darwin-arm64",
+    "registryMetadataSHA256": "b3f4d17df0ac2acf2bf34d27d105861c604f157484abd53ca3b9ef358bdc61ff",
+    "registryAttestationURL": "https://registry.npmjs.org/-/npm/v1/attestations/@openai%2fcodex@0.151.0-darwin-arm64",
+    "registryAttestationSHA256": "9a277e1e94189cc895c5136f3b1de6720604eba1bb442e786e3cd99d62468392",
+    "reportedSourceRepository": "https://github.com/openai/codex",
+    "reportedSourceRef": "refs/tags/rust-v0.151.0",
+    "reportedSourceCommit": "78c290807ce710180111df227df3b7a4fe845452",
+    "attestationVerification": "HTTPS registry metadata subject SHA512 matched the authenticated archive; DSSE signatures were not independently verified",
+    "archiveURL": "https://registry.npmjs.org/@openai/codex/-/codex-0.151.0-darwin-arm64.tgz",
+    "archiveIntegrity": "sha512-g7YzpaCZGCw19R/gly3vRPjnLqaW7JcBAu2WQQ6e8PIlvBPmS/gMplIUURMgNO6gi8LsPzdlQtLqkwoeOOlIdg==",
+    "archiveSize": 120938684,
+    "member": "package/vendor/aarch64-apple-darwin/codex-path/rg",
+    "authenticatedDate": "2026-08-31",
+    "authentication": "Full official registry tarball SHA512 authenticated before bounded named-member extraction; exact executable SHA256 and size authenticated before private execution",
+    "observedVersion": "ripgrep 15.2.0 (rev e89fff89ac)",
+    "sourceBuildClaim": "Official vendor artifact identity, not an independent rebuild or source-to-binary reproducibility claim"
+  },
+  "qualification": {
+    "status": "PENDING_VENDOR_ARTIFACT_QUALIFICATION",
+    "expectedVersionPrefix": "ripgrep 15.2.0",
+    "meaning": "Exact vendor binding admission is separate from behavioral qualification; historical Darwin and Linux profiles remain unchanged"
+  }
+}

@@ -53,7 +53,7 @@ const taskId = "virtual-bash#test:unit";
 const provisionId = "virtual_bash_inputs";
 const expression = "${{ steps.virtual_bash_inputs.outputs.rg }}";
 const featureCommand = "npm run test:unit --workspace virtual-bash -- --test-concurrency=1";
-const releaseCommand = "npm test -- --concurrency=4";
+const releaseCommand = "npm test -- --concurrency=1";
 const feature = pr.jobs["virtual-bash-node22"];
 const stable = release.jobs["release-stable"];
 const testStep = (job, command) => job.steps.find(step => step.run === command);
@@ -62,6 +62,9 @@ switch (process.argv[2]) {
   case "valid": break;
   case "missing-pr-binding": delete testStep(feature, featureCommand).env; break;
   case "missing-release-binding": delete testStep(stable, releaseCommand).env; break;
+  case "parallel-release-tests": testStep(stable, releaseCommand).run = "npm test -- --concurrency=4"; break;
+  case "root-only-release-tests": testStep(stable, releaseCommand).run = "npm run test:unit"; break;
+  case "excluded-release-tests": testStep(stable, releaseCommand).run = "npm test -- --concurrency=1 --exclude-workspace=virtual-bash"; break;
   case "workspace-only-pr-build": testStep(feature, "npm run build").run = "npm run build:workspaces -- --workspace=virtual-bash"; break;
   case "missing-pr-build": feature.steps.splice(feature.steps.indexOf(testStep(feature, "npm run build")), 1); break;
   case "late-pr-build": {
@@ -363,9 +366,9 @@ run_guard_in_docker() {
   done
 }
 
-@test "dry-run native input controls require root build and provisioning before tests" {
+@test "dry-run native input controls require root build, provisioning, and complete serial release tests" {
   local scenario
-  for scenario in wrong-pr-order wrong-release-order workspace-only-pr-build missing-pr-build late-pr-build; do
+  for scenario in wrong-pr-order wrong-release-order workspace-only-pr-build missing-pr-build late-pr-build parallel-release-tests root-only-release-tests excluded-release-tests; do
     run native_test_wiring_check "$scenario"
     [ "$status" -eq 1 ]
     [[ "$output" == *AssertionError* ]]

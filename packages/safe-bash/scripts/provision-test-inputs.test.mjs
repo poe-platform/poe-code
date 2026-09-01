@@ -19,7 +19,7 @@ function archive(entries = [{ name: members[0].path, bytes: payload }]) {
     const bytes = entry.bytes ?? Buffer.alloc(0);
     const header = Buffer.alloc(512);
     header.write(entry.name, 0, 100);
-    header.write("0000644\0", 100);
+    header.write(`${(entry.mode ?? 0o644).toString(8).padStart(7, "0")}\0`, 100);
     header.write("0000000\0", 108);
     header.write("0000000\0", 116);
     header.write(`${bytes.length.toString(8).padStart(11, "0")}\0`, 124);
@@ -65,6 +65,460 @@ test("coreutils input is exactly the historical archive plus six source members"
   assert.equal(COREUTILS_INPUT.sha256, "e8bb26ad0293f9b5a1fc43fb42ba970e312c66ce92c1b0b16713d7500db251bf");
   assert.equal(COREUTILS_INPUT.members.length, 6);
   assert.deepEqual(COREUTILS_INPUT.members.map(member => member.path), ["src/chmod.c", "src/stat.c", "src/mktemp.c", "lib/modechange.c", "src/comm.c", "doc/coreutils.texi"].map(name => `coreutils-9.7/${name}`));
+});
+
+async function gnuBuildFixture() {
+  const state = await prepare(fixture());
+  const { fileSystem } = state;
+  await fileSystem.mkdir("/sources", { mode: 0o700 });
+  await fileSystem.mkdir("/tools", { mode: 0o755 });
+  const host = { platform: "linux", arch: "x64", release: "fixture-kernel", node: process.version };
+  const toolchain = { id: "reviewed-fixture-toolchain", host, provenance: "fixture image and library closure", searchPath: ["/tools"], tools: {} };
+  for (const name of ["xz", "shell", "make", "cc"]) {
+    const bytes = Buffer.from(`fixture tool ${name}`);
+    const path = `/tools/${name}`;
+    await fileSystem.writeFile(path, bytes, { mode: 0o755 });
+    toolchain.tools[name] = { path, size: bytes.length, sha256: sha256(bytes), ...(name === "shell" ? {} : { version: `fixture ${name} 1` }) };
+  }
+  const sources = [
+    { name: "diffutils", version: "3.12", binary: "diff", versionLine: "diff (GNU diffutils) 3.12" },
+    { name: "patch", version: "2.8", binary: "patch", versionLine: "GNU patch 2.8" },
+  ].map(source => {
+    const prefix = `${source.name}-${source.version}`;
+    const bytes = archive([
+      { name: `${prefix}/`, type: "5" },
+      { name: `${prefix}/configure`, bytes: Buffer.from("fixture configure"), mode: 0o755 },
+      { name: `${prefix}/src/input.c`, bytes: payload },
+    ]);
+    return { ...source, prefix, sha256: sha256(bytes), bytes };
+  });
+  for (const source of sources) await fileSystem.writeFile(`/sources/${source.prefix}.tar.xz`, source.bytes, { mode: 0o600 });
+  const launches = [];
+  const groups = new Map();
+  const signals = [];
+  let nextPid = 100;
+  const controls = { async beforeStep() {}, async afterStep() {} };
+  const dependencies = {
+    fileSystem, uid: process.getuid(), host, sources,
+    limits: { stepTimeoutMs: 1000, cleanupTimeoutMs: 100, outputBytes: 65536 },
+    killGroup(pid, signal) {
+      const group = groups.get(pid);
+      if (!group) throw Object.assign(new Error("absent group"), { code: "ESRCH" });
+      if (signal === 0) return;
+      signals.push([pid, signal]);
+      queueMicrotask(() => group.finish(null, signal));
+    },
+    spawn(command, args, options) {
+      const child = Object.assign(new EventEmitter(), { pid: nextPid++, stdin: new PassThrough(), stdout: new PassThrough(), stderr: new PassThrough() });
+      const call = { command, args, options, child, finish(code = 0, signal = null) {
+        groups.delete(child.pid);
+        child.stdout.end(); child.stderr.end();
+        child.emit("close", code, signal);
+      } };
+      groups.set(child.pid, call);
+      launches.push(call);
+      const input = [];
+      child.stdin.on("data", chunk => input.push(Buffer.from(chunk)));
+      queueMicrotask(async () => {
+        try {
+          if (await controls.beforeStep(call) === false) return;
+          if (args[0] === "--version") {
+            const tool = Object.values(toolchain.tools).find(item => item.path === command);
+            const source = sources.find(item => command.endsWith(`/src/${item.binary}`));
+            child.stdout.write(`${tool?.version ?? source.versionLine}\n`);
+          } else if (command === toolchain.tools.xz.path) {
+            child.stdout.write(Buffer.concat(input));
+          } else if (command === toolchain.tools.make.path) {
+            const source = sources.find(item => options.cwd.endsWith(`/${item.prefix}`));
+            await fileSystem.writeFile(`${options.cwd}/src/${source.binary}`, `fixture built ${source.binary}`, { mode: 0o700 });
+          }
+          if (await controls.afterStep(call) !== false) call.finish();
+        } catch (error) { child.emit("error", error); call.finish(1); }
+      });
+      return child;
+    },
+  };
+  return { ...state, host, toolchain, sources, launches, groups, signals, controls, dependencies, options: { parent: "/job", sourceRoot: "/sources", toolchain } };
+}
+
+test("GNU build keeps fixed source pins and the source-only recipe separate", () => {
+  assert.deepEqual(sourceBootstrap.GNU_BUILD_SOURCES.map(source => [source.prefix, source.sha256]), [
+    ["diffutils-3.12", "7c8b7f9fc8609141fdea9cece85249d308624391ff61dedaf528fcb337727dfd"],
+    ["patch-2.8", "f87cee69eec2b4fcbf60a396b030ad6aa3415f192aa5f7ee84cad5e11f7f5ae3"],
+  ]);
+  assert.equal(COREUTILS_INPUT.members.length, 6);
+});
+
+test("GNU full-tree extraction retains all regular members and executable intent", () => {
+  const entries = sourceBootstrap.extractGnuSourceTree(archive([
+    { name: "source/", type: "5" },
+    { name: "source/configure", bytes: payload, mode: 0o755 },
+    { name: "source/sub/input.c", bytes: Buffer.alloc(0) },
+  ]), "source");
+  assert.deepEqual(entries.map(entry => [entry.path, entry.mode]), [["source", 0o700], ["source/configure", 0o700], ["source/sub/input.c", 0o600]]);
+  assert.deepEqual(entries[1].bytes, payload);
+});
+
+test("GNU full-tree extraction rejects unsafe or ambiguous trees", async context => {
+  for (const [name, entries] of [
+    ["traversal", [{ name: "source/../outside" }]],
+    ["outside", [{ name: "outside/file" }]],
+    ["symlink", [{ name: "source/link", type: "2" }]],
+    ["hardlink", [{ name: "source/link", type: "1" }]],
+    ["extension", [{ name: "source/pax", type: "x" }]],
+    ["directory payload", [{ name: "source/dir", type: "5", bytes: payload }]],
+    ["duplicate", [{ name: "source/file" }, { name: "source/file" }]],
+    ["file ancestor", [{ name: "source/file" }, { name: "source/file/child" }]],
+    ["late file ancestor", [{ name: "source/file/child" }, { name: "source/file" }]],
+    ["privileged mode", [{ name: "source/file", mode: 0o4755 }]],
+  ]) await context.test(name, () => assert.throws(() => sourceBootstrap.extractGnuSourceTree(archive(entries), "source")));
+});
+
+test("GNU producer binds observed outputs to supervised sources, recipe and toolchain without native parity claims", async () => {
+  const state = await gnuBuildFixture();
+  const result = await sourceBootstrap.provisionGnuBuild(state.options, state.dependencies);
+  assert.equal(result.status, "GNU_SOURCE_BUILD_COMPLETED_NOT_QUALIFIED");
+  assert.equal(result.reproducibility, "NOT_ESTABLISHED");
+  assert.equal(result.behavioralQualification, "NOT_RUN");
+  assert.equal(result.receiptAuthority, "trusted-caller-supervised-build; not standalone authorization");
+  assert.equal(result.sources.length, 2);
+  assert.equal(result.outputs.length, 2);
+  assert.equal(result.commands.length, 11);
+  assert.deepEqual(result.host, state.host);
+  assert.equal(result.toolchain.id, state.toolchain.id);
+  assert.equal(result.recipe.sha256, sha256(JSON.stringify(result.recipe.definition)));
+  assert.equal(state.groups.size, 0);
+  for (const output of result.outputs) assert.equal(output.sha256, sha256(await state.fileSystem.readFile(output.path)));
+  for (const call of state.launches) {
+    assert.equal(call.options.detached, true);
+    assert.equal(call.options.shell, false);
+    assert.equal(call.options.env.CC, "/tools/cc");
+    assert.equal(call.options.env.LC_ALL, "C");
+    assert.equal(call.options.env.PATH, "/tools");
+    assert(call.options.env.HOME.startsWith(`${result.root}/`));
+  }
+  assert.deepEqual((await state.fileSystem.readdir(result.root)).sort(), ["diffutils-3.12", "home", "patch-2.8", "tmp"]);
+});
+
+test("GNU producer rejects host, source and toolchain drift before any child launch", async context => {
+  for (const kind of ["host", "source", "tool", "tool mode", "toolchain host"]) await context.test(kind, async () => {
+    const state = await gnuBuildFixture();
+    if (kind === "host") state.dependencies.host = { ...state.host, platform: "darwin" };
+    if (kind === "source") await state.fileSystem.writeFile("/sources/patch-2.8.tar.xz", "bad source");
+    if (kind === "tool") state.options.toolchain.tools.cc.sha256 = "0".repeat(64);
+    if (kind === "tool mode") await state.fileSystem.chmod("/tools/cc", 0o777);
+    if (kind === "toolchain host") state.options.toolchain = { ...state.toolchain, host: { ...state.host, release: "different" } };
+    await assert.rejects(sourceBootstrap.provisionGnuBuild(state.options, state.dependencies));
+    assert.equal(state.launches.length, 0);
+    assert.deepEqual(await state.fileSystem.readdir("/job"), []);
+  });
+});
+
+test("GNU producer kills and settles failed process groups before removing its destination", async context => {
+  for (const kind of ["exit", "timeout", "overflow"]) await context.test(kind, async () => {
+    const state = await gnuBuildFixture();
+    state.dependencies.limits.stepTimeoutMs = 15;
+    state.controls.beforeStep = call => {
+      if (call.command !== "/tools/make" || call.args[0] !== "-j2") return;
+      if (kind === "exit") call.finish(2);
+      if (kind === "overflow") call.child.stderr.write(Buffer.alloc(65537));
+      return false;
+    };
+    await assert.rejects(sourceBootstrap.provisionGnuBuild(state.options, state.dependencies));
+    assert.equal(state.groups.size, 0);
+    if (kind !== "exit") assert(state.signals.some(([, signal]) => signal === "SIGKILL"));
+    assert.deepEqual(await state.fileSystem.readdir("/job"), []);
+  });
+});
+
+async function gnuBuildCliFixture() {
+  const state = await gnuBuildFixture();
+  const bytes = Buffer.from(JSON.stringify(state.toolchain));
+  await state.fileSystem.writeFile("/sources/toolchain.json", bytes, { mode: 0o600 });
+  return { ...state, args: ["--build-gnu", "--parent", "/job", "--sources", "/sources", "--toolchain", "/sources/toolchain.json", "--toolchain-size", String(bytes.length), "--toolchain-sha256", sha256(bytes)] };
+}
+
+test("GNU CLI requires explicit pinned toolchain input and never enters default downloading", async () => {
+  const state = await gnuBuildCliFixture();
+  state.dependencies.fetch = () => assert.fail("GNU CLI must not download");
+  const result = await main(state.args, state.dependencies);
+  assert.equal(result.status, "GNU_SOURCE_BUILD_COMPLETED_NOT_QUALIFIED");
+  assert.equal(result.toolchain.tools.cc.version, "fixture cc 1");
+  assert.equal(result.commands.length, 11);
+  assert.equal(state.groups.size, 0);
+});
+
+test("GNU CLI rejects malformed flags and unauthenticated toolchain JSON before spawning", async context => {
+  for (const kind of ["missing", "duplicate", "metadata flag", "relative", "large descriptor", "descriptor hash", "descriptor symlink", "receipt JSON"]) await context.test(kind, async () => {
+    const state = await gnuBuildCliFixture();
+    if (kind === "missing") state.args.splice(3, 2);
+    if (kind === "duplicate") state.args.push("--parent", "/other");
+    if (kind === "metadata flag") state.args.push("--stage-metadata");
+    if (kind === "relative") state.args[6] = "toolchain.json";
+    if (kind === "large descriptor") state.args[8] = "65537";
+    if (kind === "descriptor hash") state.args[10] = "0".repeat(64);
+    if (kind === "descriptor symlink") {
+      await state.fileSystem.rename("/sources/toolchain.json", "/sources/actual.json");
+      await state.fileSystem.symlink("/sources/actual.json", "/sources/toolchain.json");
+    }
+    if (kind === "receipt JSON") {
+      const bytes = Buffer.from(JSON.stringify({ status: "GNU_SOURCE_BUILD_COMPLETED_NOT_QUALIFIED", outputs: [], sha256: "0".repeat(64) }));
+      await state.fileSystem.writeFile("/sources/toolchain.json", bytes);
+      state.args[8] = String(bytes.length); state.args[10] = sha256(bytes);
+    }
+    state.dependencies.fetch = () => assert.fail("GNU CLI must not download");
+    await assert.rejects(main(state.args, state.dependencies));
+    assert.equal(state.launches.length, 0);
+    assert.deepEqual(await state.fileSystem.readdir("/job"), []);
+  });
+});
+
+test("GNU producer rejects malformed authority, unsafe roots and extractor aliases before launch", async context => {
+  for (const kind of ["receipt option", "recipe override", "extractor alias", "search alias", "search writable", "parent alias", "source alias", "source writable", "tool shell syntax", "wrong version"]) await context.test(kind, async () => {
+    const state = await gnuBuildFixture();
+    if (kind === "receipt option") state.options.receipt = { status: "accepted" };
+    if (kind === "recipe override") state.toolchain.configure = ["unreviewed"];
+    if (kind === "extractor alias") {
+      await state.fileSystem.rename("/tools/xz", "/tools/actual-xz");
+      await state.fileSystem.symlink("/tools/actual-xz", "/tools/xz");
+    }
+    if (kind === "search alias") { await state.fileSystem.symlink("/tools", "/tool-alias"); state.toolchain.searchPath = ["/tool-alias"]; }
+    if (kind === "search writable") await state.fileSystem.chmod("/tools", 0o777);
+    if (kind === "parent alias") { await state.fileSystem.symlink("/job", "/job-alias"); state.options.parent = "/job-alias"; }
+    if (kind === "source alias") { await state.fileSystem.symlink("/sources", "/source-alias"); state.options.sourceRoot = "/source-alias"; }
+    if (kind === "source writable") await state.fileSystem.chmod("/sources", 0o777);
+    if (kind === "tool shell syntax") {
+      await state.fileSystem.rename("/tools/cc", "/tools/cc;unreviewed");
+      state.toolchain.tools.cc.path = "/tools/cc;unreviewed";
+    }
+    if (kind === "wrong version") state.controls.beforeStep = call => {
+      if (call.command === "/tools/xz" && call.args[0] === "--version") {
+        call.child.stdout.write("unreviewed xz\n"); call.finish(); return false;
+      }
+    };
+    await assert.rejects(sourceBootstrap.provisionGnuBuild(state.options, state.dependencies));
+    assert.equal(state.launches.length, kind === "wrong version" ? 1 : 0);
+    assert.equal(state.groups.size, 0);
+    assert.deepEqual(await state.fileSystem.readdir("/job"), []);
+  });
+});
+
+test("GNU producer rejects an initially root-owned sticky writable PATH directory before launch", async () => {
+  const state = await gnuBuildFixture();
+  await state.fileSystem.mkdir("/public", { mode: 0o1777 });
+  await state.fileSystem.chown("/public", 0, 0);
+  state.toolchain.searchPath.unshift("/public");
+  await assert.rejects(sourceBootstrap.provisionGnuBuild(state.options, state.dependencies), /writable tool search directory/u);
+  assert.equal(state.launches.length, 0);
+  assert.equal(state.groups.size, 0);
+  assert.deepEqual(await state.fileSystem.readdir("/job"), []);
+});
+
+test("GNU producer rejects a root-owned PATH directory becoming sticky writable after the first step", async () => {
+  const state = await gnuBuildFixture();
+  await state.fileSystem.chown("/tools", 0, 0);
+  state.controls.afterStep = async call => {
+    if (call.command === "/tools/xz" && call.args[0] === "--version") await state.fileSystem.chmod("/tools", 0o1777);
+  };
+  await assert.rejects(sourceBootstrap.provisionGnuBuild(state.options, state.dependencies), /writable tool search directory/u);
+  assert.equal(state.launches.length, 1);
+  assert.equal(state.launches[0].command, "/tools/xz");
+  assert.deepEqual(state.launches[0].args, ["--version"]);
+  assert.equal(state.groups.size, 0);
+  assert.deepEqual(await state.fileSystem.readdir("/job"), []);
+});
+
+test("GNU producer revalidates tools and owns executable outputs without accepting aliases or hardlinks", async context => {
+  for (const kind of ["tool drift", "nonexecutable", "output symlink", "output hardlink", "output version", "late output drift"]) await context.test(kind, async () => {
+    const state = await gnuBuildFixture();
+    state.controls.afterStep = async call => {
+      if (call.command !== "/tools/make" || call.args[0] !== "-j2") return;
+      const output = `${call.options.cwd}/src/${call.options.cwd.endsWith("diffutils-3.12") ? "diff" : "patch"}`;
+      if (kind === "tool drift") await state.fileSystem.writeFile("/tools/cc", "changed tool");
+      if (kind === "nonexecutable") await state.fileSystem.chmod(output, 0o600);
+      if (kind === "output symlink") { await state.fileSystem.rename(output, `${output}-actual`); await state.fileSystem.symlink(`${output}-actual`, output); }
+      if (kind === "output hardlink") await state.fileSystem.link(output, `${output}-alias`);
+      if (kind === "late output drift" && call.options.cwd.endsWith("patch-2.8")) await state.fileSystem.writeFile(`${call.options.cwd.slice(0, -"patch-2.8".length)}diffutils-3.12/src/diff`, "replaced earlier output");
+    };
+    if (kind === "output version") state.controls.beforeStep = call => {
+      if (call.command.endsWith("/src/diff")) { call.child.stdout.write("diff unreviewed\n"); call.finish(); return false; }
+    };
+    await assert.rejects(sourceBootstrap.provisionGnuBuild(state.options, state.dependencies));
+    assert.equal(state.groups.size, 0);
+    assert.deepEqual(await state.fileSystem.readdir("/job"), []);
+  });
+});
+
+test("GNU producer refuses a receipt when an extracted source write is corrupted", async () => {
+  const state = await gnuBuildFixture();
+  const open = state.fileSystem.open.bind(state.fileSystem);
+  state.fileSystem.open = async (path, flags, mode) => {
+    const handle = await open(path, flags, mode);
+    if ((flags & constants.O_WRONLY) && path.endsWith("/configure")) {
+      const writeFile = handle.writeFile.bind(handle);
+      handle.writeFile = bytes => writeFile(Buffer.alloc(bytes.length, 0));
+    }
+    return handle;
+  };
+  await assert.rejects(sourceBootstrap.provisionGnuBuild(state.options, state.dependencies), /SHA-256/u);
+  assert(!state.launches.some(call => call.command === "/tools/shell"));
+  assert.deepEqual(await state.fileSystem.readdir("/job"), []);
+});
+
+test("GNU producer rejects surviving descendants and joins cleanup even after a successful leader", async () => {
+  const state = await gnuBuildFixture();
+  state.controls.beforeStep = call => {
+    if (call.command !== "/tools/make" || call.args[0] !== "-j2") return;
+    call.child.stdout.end(); call.child.stderr.end(); call.child.emit("close", 0, null);
+    return false;
+  };
+  await assert.rejects(sourceBootstrap.provisionGnuBuild(state.options, state.dependencies), /descendant survived/u);
+  assert.equal(state.groups.size, 0);
+  assert(state.signals.some(([, signal]) => signal === "SIGKILL"));
+  assert.deepEqual(await state.fileSystem.readdir("/job"), []);
+});
+
+test("GNU producer retains unjoined roots and never issues a receipt after kill refusal", async () => {
+  const state = await gnuBuildFixture();
+  state.dependencies.limits.stepTimeoutMs = 10;
+  state.dependencies.limits.cleanupTimeoutMs = 15;
+  state.controls.beforeStep = call => call.command === "/tools/make" && call.args[0] === "-j2" ? false : undefined;
+  const killGroup = state.dependencies.killGroup;
+  state.dependencies.killGroup = (pid, signal) => {
+    if (signal !== 0) throw Object.assign(new Error("kill refused"), { code: "EPERM" });
+    return killGroup(pid, signal);
+  };
+  try {
+    await assert.rejects(sourceBootstrap.provisionGnuBuild(state.options, state.dependencies), /settlement unproved.*no receipt issued/u);
+    const roots = await state.fileSystem.readdir("/job");
+    assert.equal(roots.length, 1);
+    assert(!(await state.fileSystem.readdir(`/job/${roots[0]}`)).some(name => name.includes("receipt") || name.endsWith(".json")));
+  } finally { for (const group of state.groups.values()) group.finish(null, "SIGKILL"); }
+  assert.equal(state.groups.size, 0);
+});
+
+test("GNU producer refuses cleanup of a replaced root and preserves the replacement", async () => {
+  const state = await gnuBuildFixture();
+  let replacement;
+  state.controls.afterStep = async call => {
+    if (call.command !== "/tools/make" || call.args[0] !== "-j2") return;
+    replacement = call.options.env.HOME.slice(0, -"/home".length);
+    await state.fileSystem.rename(replacement, `${replacement}-original`);
+    await state.fileSystem.mkdir(replacement, { mode: 0o700 });
+    await state.fileSystem.writeFile(`${replacement}/sentinel`, "foreign replacement");
+  };
+  await assert.rejects(sourceBootstrap.provisionGnuBuild(state.options, state.dependencies), /cleanup refused.*no receipt issued/u);
+  assert.equal(await state.fileSystem.readFile(`${replacement}/sentinel`, "utf8"), "foreign replacement");
+  assert.equal(state.groups.size, 0);
+});
+
+test("GNU source tree rejects checksum, truncation, trailing data and non-UTF8 paths", async context => {
+  const valid = archive([{ name: "source/file", bytes: payload }]);
+  const checksum = Buffer.from(valid); checksum[0] ^= 1;
+  const trailing = Buffer.from(valid); trailing[trailing.length - 1] = 1;
+  const invalidName = archive([{ name: "source/file", bytes: payload }]);
+  invalidName[7] = 255; invalidName.fill(32, 148, 156);
+  const sum = invalidName.subarray(0, 512).reduce((total, value) => total + value, 0);
+  invalidName.write(`${sum.toString(8).padStart(6, "0")}\0 `, 148);
+  for (const bytes of [checksum, trailing, invalidName, valid.subarray(0, 1024), valid.subarray(0, 513)]) {
+    await context.test(`refuse ${sha256(bytes)}`, () => assert.throws(() => sourceBootstrap.extractGnuSourceTree(bytes, "source")));
+  }
+});
+
+test("GNU producer observes empty source files without accepting empty executables", async () => {
+  const state = await gnuBuildFixture();
+  const source = state.sources[0];
+  source.bytes = archive([{ name: `${source.prefix}/configure`, bytes: payload, mode: 0o755 }, { name: `${source.prefix}/src/empty`, bytes: Buffer.alloc(0) }]);
+  source.sha256 = sha256(source.bytes);
+  await state.fileSystem.writeFile(`/sources/${source.prefix}.tar.xz`, source.bytes);
+  const result = await sourceBootstrap.provisionGnuBuild(state.options, state.dependencies);
+  assert.equal((await state.fileSystem.stat(`${result.root}/${source.prefix}/src/empty`)).size, 0);
+  const failed = await gnuBuildFixture();
+  failed.controls.afterStep = async call => {
+    if (call.command === "/tools/make" && call.args[0] === "-j2") await failed.fileSystem.writeFile(`${call.options.cwd}/src/diff`, Buffer.alloc(0));
+  };
+  await assert.rejects(sourceBootstrap.provisionGnuBuild(failed.options, failed.dependencies), /size bound/u);
+  assert.deepEqual(await failed.fileSystem.readdir("/job"), []);
+});
+
+test("GNU producer snapshots caller bindings before awaiting input admission", async () => {
+  const state = await gnuBuildFixture();
+  const lstat = state.fileSystem.lstat.bind(state.fileSystem);
+  let changed = false;
+  state.fileSystem.lstat = async path => {
+    if (!changed) {
+      changed = true;
+      state.options.parent = "/changed";
+      state.options.sourceRoot = "/changed";
+      state.toolchain.id = "changed-after-admission";
+      state.toolchain.tools.cc.sha256 = "0".repeat(64);
+    }
+    return lstat(path);
+  };
+  const result = await sourceBootstrap.provisionGnuBuild(state.options, state.dependencies);
+  assert(result.root.startsWith("/job/"));
+  assert.equal(result.toolchain.id, "reviewed-fixture-toolchain");
+  assert.notEqual(result.toolchain.tools.cc.sha256, "0".repeat(64));
+});
+
+test("GNU producer settles launch, stream and signal failures without issuing a receipt", async context => {
+  for (const kind of ["launch", "stream", "signal", "stdout bound"]) await context.test(kind, async () => {
+    const state = await gnuBuildFixture();
+    const launch = state.dependencies.spawn;
+    if (kind === "launch") state.dependencies.spawn = () => { throw new Error("injected launch failure"); };
+    state.controls.beforeStep = call => {
+      if (call.command !== "/tools/make" || call.args[0] !== "-j2") return;
+      if (kind === "stream") call.child.stdout.emit("error", new Error("injected stream failure"));
+      if (kind === "signal") call.finish(null, "SIGTERM");
+      if (kind === "stdout bound") call.child.stdout.write(Buffer.alloc(65537));
+      return false;
+    };
+    await assert.rejects(sourceBootstrap.provisionGnuBuild(state.options, state.dependencies));
+    assert.equal(state.groups.size, 0);
+    assert.deepEqual(await state.fileSystem.readdir("/job"), []);
+    state.dependencies.spawn = launch;
+  });
+});
+
+test("GNU producer closes failed source writers and preserves combined failure identities", async () => {
+  const state = await gnuBuildFixture();
+  const open = state.fileSystem.open.bind(state.fileSystem);
+  const closing = new Error("source close failed");
+  let closed = false;
+  state.fileSystem.open = async (path, flags, mode) => {
+    const handle = await open(path, flags, mode);
+    if ((flags & constants.O_WRONLY) && path.endsWith("/configure")) {
+      handle.writeFile = async () => { throw undefined; };
+      const close = handle.close.bind(handle);
+      handle.close = async () => { await close(); closed = true; throw closing; };
+    }
+    return handle;
+  };
+  await assert.rejects(sourceBootstrap.provisionGnuBuild(state.options, state.dependencies), error => {
+    assert(error instanceof AggregateError);
+    assert.deepEqual(error.errors, [undefined, closing]);
+    return true;
+  });
+  assert.equal(closed, true);
+  assert.deepEqual(await state.fileSystem.readdir("/job"), []);
+});
+
+test("GNU producer pins its root before chmod and refuses to remove a replacement", async () => {
+  const state = await gnuBuildFixture();
+  const chmod = state.fileSystem.chmod.bind(state.fileSystem);
+  let replacement;
+  state.fileSystem.chmod = async (path, mode) => {
+    if (!replacement && path.startsWith("/job/safe-bash-gnu-build-")) {
+      replacement = path;
+      await state.fileSystem.rename(path, `${path}-original`);
+      await state.fileSystem.mkdir(path, { mode: 0o700 });
+      await state.fileSystem.writeFile(`${path}/sentinel`, "foreign root");
+    }
+    return chmod(path, mode);
+  };
+  await assert.rejects(sourceBootstrap.provisionGnuBuild(state.options, state.dependencies), /cleanup refused.*no receipt issued/u);
+  assert.equal(await state.fileSystem.readFile(`${replacement}/sentinel`, "utf8"), "foreign root");
+  assert.equal(state.launches.length, 0);
 });
 
 test("fetch authenticates exact size and hash with no ambient credentials", async () => {

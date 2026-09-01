@@ -1,7 +1,173 @@
 import type { FileSystem } from "./filesystem.js";
 import type { ByteSink, ByteSource } from "./io.js";
+import { concatShellValues, shellValueBytes, shellValueFromBytes, shellValueText, type ShellValue, type ValueAllocation, type ValueReservation } from "./value.js";
+
+export interface CommandArguments {
+  readonly args: readonly string[];
+  readonly values: readonly ShellValue[];
+  bytes(index: number): Uint8Array | undefined;
+  slice(start?: number, end?: number): CommandArguments;
+  select(indices: readonly number[]): CommandArguments;
+  concat(...others: readonly CommandArguments[]): CommandArguments;
+  withValues(values: readonly (ShellValue | Uint8Array)[]): CommandArguments;
+  join(separator?: ShellValue): ShellValue;
+}
+
+const argumentCarriers = new WeakSet<CommandArguments>();
+
+function argumentAllocation(allocation?: ValueAllocation) {
+  const reservations: ValueReservation[] = [];
+  const tracked: ValueAllocation | undefined = allocation && {
+    assertOpen() { allocation.assertOpen(); },
+    reserve(bytes, slots) {
+      const reservation = allocation.reserve(bytes, slots);
+      let released = false;
+      const owned: ValueReservation = {
+        commit(value) { reservation.commit(value); },
+        release() {
+          if (released) return;
+          released = true;
+          reservation.release();
+        },
+      };
+      reservations.push(owned);
+      return owned;
+    },
+  };
+  return {
+    allocation: tracked,
+    rollback(error: unknown): never {
+      const failures: unknown[] = [error];
+      for (let index = reservations.length - 1; index >= 0; index--) {
+        try { reservations[index]!.release(); }
+        catch (cleanup) { failures.push(cleanup); }
+      }
+      if (failures.length > 1) throw new AggregateError(failures, "Command argument allocation and release failed");
+      throw error;
+    },
+  };
+}
+
+function ownedCommandArguments(
+  size: number | (() => number), valueAt: (index: number) => ShellValue | Uint8Array, allocation?: ValueAllocation,
+  extent?: () => number,
+): CommandArguments {
+  allocation?.assertOpen();
+  const length = typeof size === "number" ? size : size();
+  const bytes = 128 + length * 40;
+  const slots = length * 4 + 1;
+  if (!Number.isSafeInteger(length) || length < 0 || !Number.isSafeInteger(bytes) || !Number.isSafeInteger(slots)) {
+    throw new RangeError("Command argument allocation is too large");
+  }
+  const transaction = argumentAllocation(allocation);
+  const reservation = transaction.allocation?.reserve(bytes, slots);
+  try {
+    if (extent && extent() !== length) throw new TypeError("Command argument extent changed during admission");
+    const snapshot: (ShellValue | Uint8Array)[] = [];
+    for (let index = 0; index < length; index++) snapshot.push(valueAt(index));
+    if (extent && extent() !== length) throw new TypeError("Command argument extent changed during admission");
+    const values: ShellValue[] = [];
+    const args: string[] = [];
+    for (const incoming of snapshot) {
+      const value = incoming instanceof Uint8Array ? shellValueFromBytes(incoming, transaction.allocation) : incoming;
+      args.push(shellValueText(value));
+      values.push(value);
+    }
+    Object.freeze(values);
+    Object.freeze(args);
+    const carrier: CommandArguments = Object.freeze({
+      args, values,
+      bytes(index: number) {
+        return Number.isInteger(index) && index >= 0 && index < length ? shellValueBytes(values[index]!, allocation) : undefined;
+      },
+      slice(start = 0, end = length) {
+        const offset = (index: number): number => {
+          const integral = Math.trunc(index) || 0;
+          return integral < 0 ? Math.max(0, length + integral) : Math.min(length, integral);
+        };
+        const first = offset(start);
+        return ownedCommandArguments(Math.max(0, offset(end) - first), index => values[first + index]!, allocation);
+      },
+      select(indices: readonly number[]) {
+        return ownedCommandArguments(() => {
+          if (!Array.isArray(indices)) throw new TypeError("Command argument selection must be an array");
+          return indices.length;
+        }, index => {
+          const selected = indices[index]!;
+          if (!Number.isInteger(selected) || selected < 0 || selected >= length) throw new RangeError("Command argument index is out of range");
+          return values[selected]!;
+        }, allocation, () => indices.length);
+      },
+      concat(...others: readonly CommandArguments[]) {
+        let total = length;
+        for (const other of others) {
+          if (!argumentCarriers.has(other)) throw new TypeError("Expected owned command arguments");
+          total += other.values.length;
+        }
+        return ownedCommandArguments(total, index => {
+          if (index < length) return values[index]!;
+          let offset = index - length;
+          for (const other of others) {
+            if (offset < other.values.length) return other.values[offset]!;
+            offset -= other.values.length;
+          }
+          throw new RangeError("Command argument index is out of range");
+        }, allocation);
+      },
+      withValues(incoming: readonly (ShellValue | Uint8Array)[]) {
+        return ownedCommandArguments(() => {
+          if (!Array.isArray(incoming)) throw new TypeError("Command arguments must be an array");
+          return incoming.length;
+        }, index => incoming[index]!, allocation, () => incoming.length);
+      },
+      join(separator: ShellValue = "") {
+        allocation?.assertOpen();
+        const count = Math.max(0, length * 2 - 1);
+        const bytes = 128 + count * 16;
+        if (!Number.isSafeInteger(bytes) || !Number.isSafeInteger(count + 1)) throw new RangeError("Command argument join allocation is too large");
+        const transaction = argumentAllocation(allocation);
+        const scratch = transaction.allocation?.reserve(bytes, count + 1);
+        try {
+          const parts: ShellValue[] = [];
+          for (let index = 0; index < length; index++) {
+            if (index) parts.push(separator);
+            parts.push(values[index]!);
+          }
+          Object.freeze(parts);
+          scratch?.commit(parts);
+          const result = concatShellValues(parts, transaction.allocation);
+          scratch?.release();
+          return result;
+        } catch (error) {
+          return transaction.rollback(error);
+        }
+      },
+    });
+    reservation?.commit(carrier);
+    argumentCarriers.add(carrier);
+    return carrier;
+  } catch (error) {
+    return transaction.rollback(error);
+  }
+}
+
+export function createCommandArguments(values: readonly ShellValue[], allocation?: ValueAllocation): CommandArguments {
+  return ownedCommandArguments(() => {
+    if (!Array.isArray(values)) throw new TypeError("Command arguments must be an array");
+    return values.length;
+  }, index => values[index]!, allocation, () => values.length);
+}
+
+export function getCommandArguments(context: Pick<CommandContext, "args" | "argumentValues">): CommandArguments {
+  const carrier = context.argumentValues;
+  if (carrier === undefined) return createCommandArguments(context.args);
+  if (!argumentCarriers.has(carrier)) throw new TypeError("Expected owned command arguments");
+  if (carrier.args !== context.args) throw new TypeError("Command argument identity does not match its carrier");
+  return carrier;
+}
 
 export interface CommandInvokeOptions {
+  readonly argumentValues?: CommandArguments;
   readonly signal?: AbortSignal | undefined;
   readonly stdin?: ByteSource;
   readonly stdinIsDefault?: boolean;
@@ -23,6 +189,7 @@ export type InvocationCleanup = () => void | Promise<void>;
 export interface CommandContext {
   readonly command: string;
   readonly args: readonly string[];
+  readonly argumentValues?: CommandArguments;
   readonly stdin: ByteSource;
   readonly stdinIsDefault?: boolean;
   readonly stdout: ByteSink;

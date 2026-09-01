@@ -17,7 +17,7 @@ export interface ParsedOptions {
 
 export function options(
   args: readonly string[], short: string, long: Readonly<Record<string, string>> = {},
-  stopAtOperand = false,
+  stopAtOperand = false, onOperand?: (index: number) => void,
 ): ParsedOptions {
   const flags = new Set<string>();
   const values = new Map<string, string[]>();
@@ -33,6 +33,7 @@ export function options(
     const argument = args[index]!;
     if (ended || argument === "-" || !argument.startsWith("-")) {
       operands.push(argument);
+      onOperand?.(index);
       if (stopAtOperand) ended = true;
       continue;
     }
@@ -189,23 +190,79 @@ export async function* lines(source: ByteSource, separator = 10): AsyncGenerator
 
 export function emptyInput(): ByteSource { return toByteSource(""); }
 
-export function escapeBytes(text: string, zeroOctal = false): { bytes: Uint8Array; stop: boolean } {
+export function replaceArgument(source: string | Uint8Array, pattern: string, replacement: string): string | Uint8Array {
+  if (typeof source === "string") return source.split(pattern).join(replacement);
+  const needle = encoder.encode(pattern);
+  if (!needle.length) throw new UsageError("replacement string cannot be empty");
+  const substituted = encoder.encode(replacement);
   const chunks: Uint8Array[] = [];
-  const control: Record<string, number> = { a: 7, b: 8, e: 27, E: 27, f: 12, n: 10, r: 13, t: 9, v: 11, "\\": 92 };
-  for (let index = 0; index < text.length;) {
-    if (text[index] !== "\\" || index + 1 === text.length) {
-      const character = String.fromCodePoint(text.codePointAt(index)!);
-      chunks.push(encoder.encode(character)); index += character.length; continue;
-    }
-    const next = text[index + 1]!;
-    if (next === "c") return { bytes: concatenate(chunks), stop: true };
-    if (control[next] !== undefined) { chunks.push(Uint8Array.of(control[next])); index += 2; continue; }
-    const rest = text.slice(index + 1);
-    const octal = zeroOctal ? /^0([0-7]{0,3})/u.exec(rest) : /^([0-7]{1,3})/u.exec(rest);
-    if (octal) { chunks.push(Uint8Array.of(parseInt(octal[1] || "0", 8) & 255)); index += 1 + octal[0].length; continue; }
-    const hexadecimal = /^x([0-9a-fA-F]{1,2})/u.exec(rest);
-    if (hexadecimal) { chunks.push(Uint8Array.of(parseInt(hexadecimal[1]!, 16))); index += 1 + hexadecimal[0].length; continue; }
-    chunks.push(encoder.encode(`\\${next}`)); index += 2;
+  let start = 0;
+  for (let offset = 0; offset <= source.length - needle.length;) {
+    if (needle.every((byte, index) => source[offset + index] === byte)) {
+      chunks.push(source.subarray(start, offset), substituted);
+      offset += needle.length;
+      start = offset;
+    } else offset++;
   }
-  return { bytes: concatenate(chunks), stop: false };
+  chunks.push(source.subarray(start));
+  return concatenate(chunks);
+}
+
+export function escapeBytes(text: string | Uint8Array, zeroOctal = false, bareOctal = false): { bytes: Uint8Array; stop: boolean } {
+  if (typeof text === "string") {
+    const chunks: Uint8Array[] = [];
+    const control: Record<string, number> = { a: 7, b: 8, e: 27, E: 27, f: 12, n: 10, r: 13, t: 9, v: 11, "\\": 92 };
+    for (let index = 0; index < text.length;) {
+      if (text[index] !== "\\" || index + 1 === text.length) {
+        const character = String.fromCodePoint(text.codePointAt(index)!);
+        chunks.push(encoder.encode(character)); index += character.length; continue;
+      }
+      const next = text[index + 1]!;
+      if (next === "c") return { bytes: concatenate(chunks), stop: true };
+      if (control[next] !== undefined) { chunks.push(Uint8Array.of(control[next])); index += 2; continue; }
+      const rest = text.slice(index + 1);
+      const octal = zeroOctal ? (bareOctal ? /^(?:0([0-7]{0,3})|([1-7][0-7]{0,2}))/u : /^0([0-7]{0,3})/u).exec(rest) : /^([0-7]{1,3})/u.exec(rest);
+      if (octal) { chunks.push(Uint8Array.of(parseInt(octal[1] || octal[2] || "0", 8) & 255)); index += 1 + octal[0].length; continue; }
+      const hexadecimal = /^x([0-9a-fA-F]{1,2})/u.exec(rest);
+      if (hexadecimal) { chunks.push(Uint8Array.of(parseInt(hexadecimal[1]!, 16))); index += 1 + hexadecimal[0].length; continue; }
+      chunks.push(encoder.encode(`\\${next}`)); index += 2;
+    }
+    return { bytes: concatenate(chunks), stop: false };
+  }
+  const source = text;
+  const bytes = new Uint8Array(source.length);
+  const control: Record<number, number> = { 97: 7, 98: 8, 101: 27, 69: 27, 102: 12, 110: 10, 114: 13, 116: 9, 118: 11, 92: 92 };
+  let size = 0;
+  for (let index = 0; index < source.length;) {
+    if (source[index] !== 92 || index + 1 === source.length) { bytes[size++] = source[index++]!; continue; }
+    const next = source[index + 1]!;
+    if (next === 99) return { bytes: bytes.subarray(0, size), stop: true };
+    if (control[next] !== undefined) { bytes[size++] = control[next]; index += 2; continue; }
+    if (zeroOctal ? next === 48 || bareOctal && next >= 49 && next <= 55 : next >= 48 && next <= 55) {
+      let offset = index + (zeroOctal && next === 48 ? 2 : 1);
+      const end = Math.min(source.length, offset + 3);
+      let value = 0;
+      while (offset < end && source[offset]! >= 48 && source[offset]! <= 55) value = value * 8 + source[offset++]! - 48;
+      bytes[size++] = value & 255;
+      index = offset;
+      continue;
+    }
+    if (next === 120) {
+      let offset = index + 2;
+      const end = Math.min(source.length, offset + 2);
+      let value = 0;
+      while (offset < end) {
+        const digit = source[offset]!;
+        const number = digit >= 48 && digit <= 57 ? digit - 48 : digit >= 65 && digit <= 70 ? digit - 55 : digit >= 97 && digit <= 102 ? digit - 87 : -1;
+        if (number < 0) break;
+        value = value * 16 + number;
+        offset++;
+      }
+      if (offset > index + 2) { bytes[size++] = value; index = offset; continue; }
+    }
+    bytes[size++] = 92;
+    bytes[size++] = next;
+    index += 2;
+  }
+  return { bytes: bytes.subarray(0, size), stop: false };
 }

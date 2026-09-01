@@ -87,6 +87,9 @@ function assertSource7Discovery(files) {
   ];
   const integrationAdditions = [
     "tests/fs/conformance/provenance.test.ts",
+    "tests/contracts/value.test.ts",
+    "tests/shell/value-state.test.ts",
+    "tests/shell/byte-values.test.ts",
     "tests/commands/diff-patch-stress/gnu-target/oracle-binding.test.ts",
     "tests/commands/diff-patch-stress/editflows/git-profile.test.ts",
     "tests/commands/metadata-stress/native-binding.test.ts",

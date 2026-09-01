@@ -19,8 +19,10 @@ export interface Evidence { readonly version: string; readonly binary: string; r
 export function digest(bytes: string | Uint8Array): string { return createHash("sha256").update(bytes).digest("hex"); }
 
 export async function proof(): Promise<string> {
-  assert.equal(digest(await readFile(binary)), binarySha256, "GNU oracle binary hash changed; do not recapture silently");
-  const version = spawnSync(binary, ["--version"], { encoding: "utf8", shell: false, timeout: 3000, maxBuffer: 65_536, env: { LC_ALL: "C", LANG: "C", PATH: "/usr/bin:/bin" } });
+  const currentIdentity = oracleIdentity("patch");
+  const selected = currentIdentity.path;
+  assert.equal(digest(await readFile(selected)), currentIdentity.sha256, "GNU oracle binary hash changed; do not recapture silently");
+  const version = spawnSync(selected, ["--version"], { encoding: "utf8", shell: false, timeout: 3000, maxBuffer: 65_536, env: { LC_ALL: "C", LANG: "C", PATH: "/usr/bin:/bin" } });
   assert.ifError(version.error);
   assert.equal(version.status, 0, "GNU oracle unavailable");
   assert.equal(version.stdout.split("\n")[0], "GNU patch 2.8");
@@ -33,6 +35,7 @@ export function safeRelative(path: string): void {
 }
 
 export async function native(fixture: Fixture): Promise<readonly Observation[]> {
+  const selected = oracleIdentity("patch").path;
   const root = await realpath(await mkdtemp(join(scope, ".native-")));
   const cwd = join(root, "work");
   try {
@@ -56,7 +59,7 @@ export async function native(fixture: Fixture): Promise<readonly Observation[]> 
       }
       for (const arg of step.args) assert(!arg.startsWith("/") && !arg.includes(".."), "host argv must remain inside fixture root");
       const args = ["--batch", ...step.args.map(arg => arg.replaceAll("@ROOT@", root))];
-      const result = spawnSync(binary, args, {
+      const result = spawnSync(selected, args, {
         cwd, input: step.input.replaceAll("@ROOT@", root), encoding: "utf8", shell: false, timeout: 3000, maxBuffer: 65_536,
         env: { PATH: "/usr/bin:/bin", LC_ALL: "C", LANG: "C", TZ: "UTC", HOME: root, TMPDIR: root, PATCH_GET: "0", VERSION_CONTROL: "simple" },
       });

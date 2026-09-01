@@ -47,4 +47,4 @@ jobs:
           GITHUB_TOKEN: ${{ steps.app_token.outputs.token }}
           GH_TOKEN: ${{ steps.app_token.outputs.token }}
           HUSKY: "0"
-        run: npx semantic-release
+        run: npx --yes semantic-release@25.0.9

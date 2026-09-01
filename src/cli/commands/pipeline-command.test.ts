@@ -2624,6 +2624,37 @@ describe("pipeline validate command", () => {
     expect(output).toContain("Do the work.");
   });
 
+  it.each(["direct", "variable", "document"])("--preview preserves literal source text through %s references", async (referenceKind) => {
+    const fs = createMemFs();
+    const content = "Literal $$ $& $` $' {{file 'second.txt'}}";
+    const include = "{{file 'source.txt'}}";
+    const key = referenceKind === "document" ? "context_doc" : "context";
+    const reference = referenceKind === "direct" ? include : `{{${key}}}`;
+    await fs.writeFile("/repo/source.txt", content, { encoding: "utf8" });
+    await fs.writeFile("/repo/second.txt", "UNWANTED RECURSION", { encoding: "utf8" });
+    await fs.writeFile("/repo/context.md", include, { encoding: "utf8" });
+    await fs.writeFile("/repo/plan.md", pipelinePlanYaml([
+      "vars:",
+      `  ${key}: ${JSON.stringify(referenceKind === "document" ? "context.md" : include)}`,
+      "setup:", `  prompt: ${JSON.stringify(reference)}`,
+      "teardown:", `  prompt: ${JSON.stringify(reference)}`,
+      "tasks:", "  - id: review", "    title: Review",
+      `    prompt: ${JSON.stringify(reference)}`, "    status: open", ""
+    ]), { encoding: "utf8" });
+    const logs: string[] = [];
+    const container = createCliContainer({
+      fs, prompts: vi.fn().mockResolvedValue({}), env: { cwd, homeDir },
+      logger: (message) => logs.push(message)
+    });
+    const program = createBaseProgram();
+    registerPipelineCommand(program, container);
+    await program.parseAsync(["node", "cli", "pipeline", "validate", "--preview", "plan.md"]);
+    const output = stripVTControlCharacters(logs.join("\n"));
+    expect(output.split(content)).toHaveLength(4);
+    expect(output).not.toContain("UNWANTED RECURSION");
+    await expect(fs.readFile("/repo/source.txt", "utf8")).resolves.toBe(content);
+  });
+
   it("--preview renders each step for a stepped task", async () => {
     const fs = createMemFs();
     await fs.mkdir("/repo/.poe-code/pipeline/plans", { recursive: true });

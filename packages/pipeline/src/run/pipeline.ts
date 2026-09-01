@@ -298,7 +298,8 @@ async function runResolvedPipeline(
   const initialVars = await resolvePipelineVars(
     initialPlan.vars ?? {},
     options.cwd,
-    fs.readFile.bind(fs)
+    fs.readFile.bind(fs),
+    { deferFileIncludes: true }
   );
   validateResolvedPromptVars({
     plan: initialPlan,
@@ -367,7 +368,8 @@ async function runResolvedPipeline(
       const planVars = await resolvePipelineVars(
         plan.vars ?? {},
         options.cwd,
-        fs.readFile.bind(fs)
+        fs.readFile.bind(fs),
+        { deferFileIncludes: true }
       );
       const resolvedTeardown =
         plan.teardown === null ? undefined : (plan.teardown ?? stepsConfig.teardown);

@@ -1331,7 +1331,8 @@ export function registerPipelineCommand(program: Command, container: CliContaine
         const resolvedVars = await resolvePipelineVars(
           plan.vars ?? {},
           container.env.cwd,
-          readFile
+          readFile,
+          { deferFileIncludes: true }
         );
         const resolvedSetup = plan.setup === null ? undefined : (plan.setup ?? steps.setup);
         const resolvedTeardown =

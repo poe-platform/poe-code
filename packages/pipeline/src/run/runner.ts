@@ -50,7 +50,8 @@ export async function resolveFileIncludes(
   if (matches.length === 0) {
     return template;
   }
-  let result = template;
+  const parts: string[] = [];
+  let offset = 0;
   for (const match of matches) {
     const absolutePath = path.resolve(cwd, match[1]);
     const relativePath = path.relative(cwd, absolutePath);
@@ -62,9 +63,11 @@ export async function resolveFileIncludes(
       throw new Error(`Pipeline file include resolves outside the project root: ${match[1]}`);
     }
     const content = await readFile(absolutePath, "utf8");
-    result = result.replace(match[0], content);
+    parts.push(template.slice(offset, match.index), content);
+    offset = match.index + match[0].length;
   }
-  return result;
+  parts.push(template.slice(offset));
+  return parts.join("");
 }
 
 export function buildExecutionPrompt(input: {

@@ -49,16 +49,17 @@ async function resolveDocVarFromPath(options: {
 export async function resolvePipelineVars(
   vars: Record<string, string>,
   cwd: string,
-  readFile: (filePath: string, encoding: BufferEncoding) => Promise<string>
+  readFile: (filePath: string, encoding: BufferEncoding) => Promise<string>,
+  options: { deferFileIncludes?: boolean } = {}
 ): Promise<Record<string, string>> {
   const resolved: Record<string, string> = {};
   for (const [key, value] of Object.entries(vars)) {
     if (key.endsWith("_doc") && looksLikeDocPath(value)) {
       const docContent = await resolveDocVarFromPath({ key, value, cwd, readFile });
-      defineRecordEntry(resolved, key, await resolveFileIncludes(docContent, cwd, readFile));
+      defineRecordEntry(resolved, key, options.deferFileIncludes ? docContent : await resolveFileIncludes(docContent, cwd, readFile));
       continue;
     }
-    defineRecordEntry(resolved, key, await resolveFileIncludes(value, cwd, readFile));
+    defineRecordEntry(resolved, key, options.deferFileIncludes ? value : await resolveFileIncludes(value, cwd, readFile));
   }
   return resolved;
 }

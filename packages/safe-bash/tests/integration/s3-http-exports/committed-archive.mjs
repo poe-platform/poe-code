@@ -42,15 +42,82 @@ export function assertArchiveDependencyContract(manifest) {
   if (Object.keys(manifest.peerDependenciesMeta ?? {}).length) assert.deepEqual(manifest.peerDependenciesMeta, { "poe-code": { optional: false } }, "canonical peer must remain required");
 }
 
+export function readCommittedBlobs(entries, hashAlgorithm, git, { bootstrapCount = entries.length, validateBootstrap } = {}) {
+  assert.ok(entries.length > 0 && entries.length <= 10000, "committed batch entry budget");
+  assert.ok(Number.isSafeInteger(bootstrapCount) && bootstrapCount > 0 && bootstrapCount <= entries.length, "committed bootstrap entry budget");
+  assert.ok(hashAlgorithm === "sha1" || hashAlgorithm === "sha256", "committed batch hash algorithm");
+  const objects = entries.map(({ path, oid, maximum }) => {
+    assert.match(oid, hashAlgorithm === "sha1" ? /^[a-f0-9]{40}$/u : /^[a-f0-9]{64}$/u);
+    assert.ok(Number.isSafeInteger(maximum) && maximum >= 0 && maximum <= 16 * 1024 * 1024, "committed batch input budget");
+    return { path, oid, maximum };
+  });
+  assert.equal(new Set(objects.map(object => object.path)).size, objects.length, "committed batch duplicate path");
+  const metadata = git(["cat-file", "--batch-check=%(objectname) %(objecttype) %(objectsize)"], {
+    input: Buffer.from(objects.map(object => `${object.oid}\n`).join("")), maxBuffer: objects.length * 128,
+  });
+  assert.ok(Buffer.isBuffer(metadata) && metadata.length <= objects.length * 128, "committed batch metadata budget");
+  let offset = 0;
+  let totalBytes = 0;
+  for (const object of objects) {
+    const end = metadata.indexOf(10, offset);
+    assert.ok(end >= offset && end - offset < 128, "committed batch metadata framing");
+    const line = metadata.toString("utf8", offset, end);
+    const prefix = `${object.oid} blob `;
+    assert.ok(line.startsWith(prefix), "committed batch metadata order, OID or type");
+    const decimal = line.slice(prefix.length);
+    const size = Number(decimal);
+    assert.ok(Number.isSafeInteger(size) && size >= 0 && String(size) === decimal, "committed batch metadata size");
+    assert.ok(size <= object.maximum, `committed blob size: ${object.path}`);
+    totalBytes += size;
+    assert.ok(totalBytes <= 128 * 1024 * 1024, "committed source archive byte budget");
+    object.size = size;
+    offset = end + 1;
+  }
+  assert.equal(offset, metadata.length, "committed batch metadata trailing records");
+  const files = new Map();
+  for (let start = 0; start < objects.length;) {
+    let end = start;
+    let payloadBytes = 0;
+    const limit = start < bootstrapCount ? bootstrapCount : objects.length;
+    while (end < limit && payloadBytes + objects[end].size <= 16 * 1024 * 1024) {
+      payloadBytes += objects[end].size;
+      end += 1;
+    }
+    const batch = objects.slice(start, end);
+    const framedBytes = batch.reduce((total, object) => total + Buffer.byteLength(`${object.oid} blob ${object.size}\n`) + object.size + 1, 0);
+    const output = git(["cat-file", "--batch"], {
+      input: Buffer.from(batch.map(object => `${object.oid}\n`).join("")), maxBuffer: framedBytes,
+    });
+    assert.ok(Buffer.isBuffer(output) && output.length === framedBytes, "committed batch body length");
+    offset = 0;
+    for (const object of batch) {
+      const header = Buffer.from(`${object.oid} blob ${object.size}\n`);
+      assert.deepEqual(output.subarray(offset, offset + header.length), header, "committed batch body order, OID, type or size");
+      offset += header.length;
+      const bytes = Buffer.from(output.subarray(offset, offset + object.size));
+      offset += object.size;
+      assert.equal(output[offset++], 10, "committed batch body terminator");
+      const oid = createHash(hashAlgorithm).update(`blob ${object.size}\0`).update(bytes).digest("hex");
+      assert.equal(oid, object.oid, `committed blob identity: ${object.path}`);
+      files.set(object.path, bytes);
+    }
+    assert.equal(offset, output.length, "committed batch body trailing records");
+    start = end;
+    if (end === bootstrapCount) validateBootstrap?.(files);
+  }
+  return files;
+}
+
 export function inspectCommittedCandidate(repository, revision, directory, execute = spawnSync) {
   const boundaries = loadBoundaries(authority);
   const environment = cleanEnvironment(directory);
-  const git = args => {
+  const git = (args, { input, maxBuffer = 32 * 1024 * 1024 } = {}) => {
     const result = execute("/usr/bin/git", ["--no-replace-objects", "-c", "core.hooksPath=/dev/null", ...args], {
-      cwd: repository, env: environment, timeout: 30000, maxBuffer: 32 * 1024 * 1024,
+      cwd: repository, env: environment, timeout: 30000, input, maxBuffer,
     });
     assert.ifError(result.error);
     assert.equal(result.status, 0, result.stderr?.toString());
+    assert.ok(Buffer.isBuffer(result.stdout) && result.stdout.length <= maxBuffer, "committed Git output budget");
     return result.stdout;
   };
   const sourceCommit = git(["rev-parse", "--verify", "--end-of-options", `${revision}^{commit}`]).toString().trim();
@@ -63,16 +130,16 @@ export function inspectCommittedCandidate(repository, revision, directory, execu
   for (const record of treeBytes.subarray(0, -1).toString("utf8").split("\0")) {
     const separator = record.indexOf("\t");
     assert.ok(separator > 0, "malformed committed tree record");
-    const [mode, type, oid] = record.slice(0, separator).split(" ");
+    const fields = record.slice(0, separator).split(" ");
+    assert.equal(fields.length, 3, "malformed committed tree header");
+    const [mode, type, oid] = fields;
     const path = record.slice(separator + 1);
     assert.ok(!tree.has(path), "duplicate committed tree path");
     tree.set(path, { mode, type, oid });
   }
   assert.ok(tree.has(`${packagePrefix}/package.json`), "actual commit lacks integrated package prefix packages/safe-bash; staging or source-parent commits do not qualify");
-  const files = new Map();
-  const blobReads = [];
-  let admittedBytes = 0;
-  const readBlob = (path, maximum = 16 * 1024 * 1024) => {
+  const admitted = new Map();
+  const admit = (path, maximum = 16 * 1024 * 1024) => {
     assertLiteralInputPath(path);
     if (path.startsWith(`${packagePrefix}/`)) assertAdmittedInputPath(path.slice(packagePrefix.length + 1), boundaries);
     else assert.ok(["package.json", "package-lock.json", "scripts/guard-package-dist.mjs"].includes(path), `unadmitted root archive path: ${path}`);
@@ -80,49 +147,18 @@ export function inspectCommittedCandidate(repository, revision, directory, execu
     assert.ok(entry, `missing committed input: ${path}`);
     assert.ok(entry.type === "blob" && ["100644", "100755"].includes(entry.mode), `not a regular committed input: ${path}`);
     assert.match(entry.oid, hashAlgorithm === "sha1" ? /^[a-f0-9]{40}$/u : /^[a-f0-9]{64}$/u);
-    if (files.has(path)) return files.get(path);
-    const size = Number(git(["cat-file", "-s", entry.oid]).toString().trim());
-    assert.ok(Number.isSafeInteger(size) && size >= 0 && size <= maximum, `committed blob size: ${path}`);
-    admittedBytes += size;
-    assert.ok(admittedBytes <= 128 * 1024 * 1024, "committed source archive byte budget");
-    blobReads.push(path);
-    const bytes = git(["cat-file", "blob", entry.oid]);
-    assert.equal(bytes.length, size);
-    const oid = createHash(hashAlgorithm).update(`blob ${size}\0`).update(bytes).digest("hex");
-    assert.equal(oid, entry.oid, `committed blob identity: ${path}`);
-    files.set(path, bytes);
-    return bytes;
+    if (!admitted.has(path)) admitted.set(path, { path, oid: entry.oid, maximum });
   };
   const reviewed = ["tsconfig.json", "tsconfig.build.json", "integration-boundaries.json", "scripts/integration-inputs.mjs", "scripts/typecheck-integration-inputs.mjs", "scripts/build.mjs"];
   assert.ok(tree.has("scripts/guard-package-dist.mjs"), "missing committed root output guard");
-  assert.deepEqual(readBlob("scripts/guard-package-dist.mjs"), readRegularInput(resolve(authority, "../.."), "scripts/guard-package-dist.mjs", 300000), "committed guard differs from reviewed verifier authority");
-  for (const path of reviewed) assert.deepEqual(readBlob(`${packagePrefix}/${path}`, 300000), readRegularInput(authority, path, 300000, undefined, boundaries), `committed build input differs from reviewed authority: ${path}`);
-  for (const fixture of boundaries.fixtureDirectories) assert.equal(digest(readBlob(`${packagePrefix}/${fixture.owner}`, 300000)), fixture.sha256, `committed fixture owner changed: ${fixture.owner}`);
-  const manifest = JSON.parse(readBlob(`${packagePrefix}/package.json`, 300000));
-  const rootManifest = JSON.parse(readBlob("package.json", 300000));
-  const lock = JSON.parse(readBlob("package-lock.json"));
-  assert.equal(manifest.name, "virtual-bash");
-  assert.equal(manifest.private, true);
-  assert.equal(manifest.type, "module");
-  assert.equal(manifest.engines.node, ">=22");
-  assert.deepEqual(manifest.files, ["dist"]);
-  assertArchiveDependencyContract(manifest);
-  for (const key of ["prepare", "prepublish", "prepublishOnly", "prepack", "postpack", "preinstall", "install", "postinstall", "prebuild", "postbuild"]) assert.ok(!Object.hasOwn(manifest.scripts, key), `unapproved package lifecycle: ${key}`);
-  assert.equal(manifest.scripts.build, "node ../../scripts/guard-package-dist.mjs && node scripts/integration-inputs.mjs && node scripts/build.mjs", "unreviewed committed build command");
-  assert.equal(rootManifest.name, "poe-code");
-  assert.ok(rootManifest.workspaces.includes("packages/*"), "workspace package prefix missing");
-  for (const [path, conditions] of Object.entries(manifest.exports)) {
-    const name = path === "." ? "./safe-bash" : `./safe-bash${path.slice(1)}`;
-    assert.deepEqual(rootManifest.exports[name], Object.fromEntries(Object.entries(conditions).map(([condition, target]) => [condition, `./${packagePrefix}/${target.slice(2)}`])), `root export mismatch: ${name}`);
-  }
-  assert.equal(lock.lockfileVersion, 3, "workspace lock version");
-  for (const [key, expected] of [["", rootManifest], [packagePrefix, manifest]]) {
-    for (const field of ["name", "version", "dependencies", "devDependencies", "optionalDependencies", "peerDependencies", "engines", ...(key === "" ? ["workspaces"] : [])]) {
-      assert.deepEqual(lock.packages?.[key]?.[field], expected[field], `workspace lock drift: ${key || "root"} ${field}`);
-    }
-  }
-  assert.deepEqual(lock.packages["node_modules/virtual-bash"], { resolved: packagePrefix, link: true }, "workspace lock link drift");
-  readBlob(`${packagePrefix}/README.md`);
+  admit("scripts/guard-package-dist.mjs");
+  for (const path of reviewed) admit(`${packagePrefix}/${path}`, 300000);
+  for (const fixture of boundaries.fixtureDirectories) admit(`${packagePrefix}/${fixture.owner}`, 300000);
+  admit(`${packagePrefix}/package.json`, 300000);
+  admit("package.json", 300000);
+  admit("package-lock.json");
+  admit(`${packagePrefix}/README.md`);
+  const bootstrapCount = admitted.size;
   const withheldPaths = [];
   const heldCode = [];
   const folded = new Set();
@@ -140,10 +176,44 @@ export function inspectCommittedCandidate(repository, revision, directory, execu
       else if ([".ts", ".tsx", ".mts", ".cts", ".js", ".mjs", ".cjs"].some(extension => local.endsWith(extension))) heldCode.push(local);
       continue;
     }
-    readBlob(path);
+    admit(path);
   }
-  assert.ok(files.has(`${packagePrefix}/src/index.ts`), "missing committed source entrypoint");
+  assert.ok(admitted.has(`${packagePrefix}/src/index.ts`), "missing committed source entrypoint");
   assert.deepEqual(heldCode.sort(), boundaries.heldSourceFiles.filter(path => path.endsWith(".ts")).sort(), "committed held source metadata inventory changed");
+  let manifest, rootManifest, lock;
+  const files = readCommittedBlobs([...admitted.values()], hashAlgorithm, git, {
+    bootstrapCount,
+    validateBootstrap(bootstrap) {
+      assert.deepEqual(bootstrap.get("scripts/guard-package-dist.mjs"), readRegularInput(resolve(authority, "../.."), "scripts/guard-package-dist.mjs", 300000), "committed guard differs from reviewed verifier authority");
+      for (const path of reviewed) assert.deepEqual(bootstrap.get(`${packagePrefix}/${path}`), readRegularInput(authority, path, 300000, undefined, boundaries), `committed build input differs from reviewed authority: ${path}`);
+      for (const fixture of boundaries.fixtureDirectories) assert.equal(digest(bootstrap.get(`${packagePrefix}/${fixture.owner}`)), fixture.sha256, `committed fixture owner changed: ${fixture.owner}`);
+      manifest = JSON.parse(bootstrap.get(`${packagePrefix}/package.json`));
+      rootManifest = JSON.parse(bootstrap.get("package.json"));
+      lock = JSON.parse(bootstrap.get("package-lock.json"));
+      assert.equal(manifest.name, "virtual-bash");
+      assert.equal(manifest.private, true);
+      assert.equal(manifest.type, "module");
+      assert.equal(manifest.engines.node, ">=22");
+      assert.deepEqual(manifest.files, ["dist"]);
+      assertArchiveDependencyContract(manifest);
+      for (const key of ["prepare", "prepublish", "prepublishOnly", "prepack", "postpack", "preinstall", "install", "postinstall", "prebuild", "postbuild"]) assert.ok(!Object.hasOwn(manifest.scripts, key), `unapproved package lifecycle: ${key}`);
+      assert.equal(manifest.scripts.build, "node ../../scripts/guard-package-dist.mjs && node scripts/integration-inputs.mjs && node scripts/build.mjs", "unreviewed committed build command");
+      assert.equal(rootManifest.name, "poe-code");
+      assert.ok(rootManifest.workspaces.includes("packages/*"), "workspace package prefix missing");
+      for (const [path, conditions] of Object.entries(manifest.exports)) {
+        const name = path === "." ? "./safe-bash" : `./safe-bash${path.slice(1)}`;
+        assert.deepEqual(rootManifest.exports[name], Object.fromEntries(Object.entries(conditions).map(([condition, target]) => [condition, `./${packagePrefix}/${target.slice(2)}`])), `root export mismatch: ${name}`);
+      }
+      assert.equal(lock.lockfileVersion, 3, "workspace lock version");
+      for (const [key, expected] of [["", rootManifest], [packagePrefix, manifest]]) {
+        for (const field of ["name", "version", "dependencies", "devDependencies", "optionalDependencies", "peerDependencies", "engines", ...(key === "" ? ["workspaces"] : [])]) {
+          assert.deepEqual(lock.packages?.[key]?.[field], expected[field], `workspace lock drift: ${key || "root"} ${field}`);
+        }
+      }
+      assert.deepEqual(lock.packages["node_modules/virtual-bash"], { resolved: packagePrefix, link: true }, "workspace lock link drift");
+    },
+  });
+  const blobReads = [...files.keys()];
   return { sourceCommit, files, blobReads, withheldPaths, manifest, rootManifest, lock, boundaries, environment };
 }
 

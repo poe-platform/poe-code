@@ -1,5 +1,6 @@
 import assert from "node:assert/strict";
 import { spawnSync } from "node:child_process";
+import { createHash } from "node:crypto";
 import { existsSync, linkSync, lstatSync, mkdirSync, mkdtempSync, readFileSync, readdirSync, realpathSync, rmSync, symlinkSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { dirname, join, relative, resolve } from "node:path";
@@ -13,6 +14,149 @@ import { assertSnapshotInputs, verifyCommittedExports } from "./verify.mjs";
 
 const authority = fileURLToPath(new URL("../../../", import.meta.url));
 const boundaries = loadBoundaries(authority);
+
+function batchFixture(contents = [Buffer.from("first"), Buffer.from("later")], algorithm = "sha1") {
+  const entries = contents.map((bytes, index) => ({ path: `src/tab\tλ-${index}.ts`, oid: createHash(algorithm).update(`blob ${bytes.length}\0`).update(bytes).digest("hex"), maximum: 16 * 1024 * 1024 }));
+  const objects = new Map(entries.map((entry, index) => [entry.oid, contents[index]]));
+  const calls = [];
+  const responses = [];
+  const git = (args, options) => {
+    const ids = options.input.toString().split("\n");
+    assert.equal(ids.pop(), "");
+    assert.ok(ids.every(oid => objects.has(oid)));
+    calls.push({ args, ...options, ids });
+    const output = Buffer.concat(ids.flatMap(oid => {
+      const bytes = objects.get(oid);
+      const header = Buffer.from(`${oid} blob ${bytes.length}\n`);
+      return args[1].startsWith("--batch-check") ? [header] : [header, bytes, Buffer.from("\n")];
+    }));
+    assert.ok(output.length <= options.maxBuffer);
+    responses.push(output);
+    return output;
+  };
+  return { entries, contents, algorithm, calls, responses, git };
+}
+
+for (const algorithm of ["sha1", "sha256"]) test(`committed batches authenticate ordered binary ${algorithm} bodies with owned bytes`, () => {
+  const fixture = batchFixture([Buffer.from([0, 10, 255, 13]), Buffer.from("header-like\nbytes\0")], algorithm);
+  const files = distChecks.readCommittedBlobs(fixture.entries, algorithm, fixture.git);
+  assert.equal(fixture.calls.length, 2);
+  assert.ok(fixture.calls[0].args[1].startsWith("--batch-check"));
+  assert.equal(fixture.calls[1].args[1], "--batch");
+  assert.deepEqual([...files.keys()], fixture.entries.map(entry => entry.path));
+  for (const response of fixture.responses) response.fill(0);
+  for (const [index, entry] of fixture.entries.entries()) assert.deepEqual(files.get(entry.path), fixture.contents[index]);
+});
+
+test("committed batches reject invalid request identities and bounds before invoking Git", () => {
+  const fixture = batchFixture();
+  const neverGit = () => assert.fail("invalid request reached Git");
+  for (const oid of ["HEAD", "a".repeat(39), "a".repeat(64), "A".repeat(40), "a".repeat(40) + "\nHEAD", "a".repeat(40) + "\0"]) {
+    assert.throws(() => distChecks.readCommittedBlobs([{ ...fixture.entries[0], oid }], "sha1", neverGit), /match/);
+  }
+  for (const maximum of [-1, 0.5, Infinity, 16 * 1024 * 1024 + 1]) {
+    assert.throws(() => distChecks.readCommittedBlobs([{ ...fixture.entries[0], maximum }], "sha1", neverGit), /input budget/);
+  }
+  for (const bootstrapCount of [0, -1, 0.5, 3, Infinity]) {
+    assert.throws(() => distChecks.readCommittedBlobs(fixture.entries, "sha1", neverGit, { bootstrapCount }), /bootstrap entry budget/);
+  }
+  assert.throws(() => distChecks.readCommittedBlobs([], "sha1", neverGit), /entry budget/);
+  assert.throws(() => distChecks.readCommittedBlobs(fixture.entries, "md5", neverGit), /hash algorithm/);
+  assert.throws(() => distChecks.readCommittedBlobs([fixture.entries[0], fixture.entries[0]], "sha1", neverGit), /duplicate path/);
+});
+
+test("committed batches retain empty and repeated objects as independently owned path bytes", () => {
+  const fixture = batchFixture([Buffer.alloc(0), Buffer.from("same"), Buffer.from("same")]);
+  const files = distChecks.readCommittedBlobs(fixture.entries, fixture.algorithm, fixture.git, { bootstrapCount: 2 });
+  assert.deepEqual(fixture.calls.map(call => call.ids.length), [3, 2, 1]);
+  assert.equal(files.get(fixture.entries[0].path).length, 0);
+  files.get(fixture.entries[1].path).fill(0);
+  assert.deepEqual(files.get(fixture.entries[2].path), Buffer.from("same"));
+});
+
+for (const [name, transform] of [
+  ["wrong oid", lines => { lines[0] = "0".repeat(40) + lines[0].slice(40); }],
+  ["wrong type", lines => { lines[0] = lines[0].replace(" blob ", " tree "); }],
+  ["reordered records", lines => { [lines[0], lines[1]] = [lines[1], lines[0]]; }],
+  ["duplicate record", lines => { lines[1] = lines[0]; }],
+  ["missing object", lines => { lines[0] = lines[0].slice(0, 40) + " missing"; }],
+  ["missing record", lines => { lines.splice(1, 1); }],
+  ["unterminated record", lines => { lines.pop(); }],
+  ["extra record", lines => { lines.splice(2, 0, lines[0]); }],
+  ...["01", "-1", "+1", "1e1", "1.0", " 1", "9007199254740993"].map(size => [`noncanonical size ${size}`, lines => { lines[0] = lines[0].slice(0, lines[0].lastIndexOf(" ") + 1) + size; }]),
+]) test(`committed batch metadata rejects ${name} before any body request`, () => {
+  const fixture = batchFixture();
+  assert.throws(() => distChecks.readCommittedBlobs(fixture.entries, fixture.algorithm, (args, options) => {
+    assert.ok(args[1].startsWith("--batch-check"), "metadata refusal must precede every body request");
+    const lines = fixture.git(args, options).toString().split("\n");
+    transform(lines);
+    return Buffer.from(lines.join("\n"));
+  }), /committed batch/);
+  assert.equal(fixture.calls.length, 1);
+});
+
+for (const budget of ["per-input", "aggregate", "count"]) test(`committed batches enforce ${budget} budgets before any body request`, () => {
+  const fixture = batchFixture();
+  const entries = budget === "count" ? Array.from({ length: 10001 }, () => fixture.entries[0])
+    : budget === "aggregate" ? Array.from({ length: 9 }, (_, index) => ({ ...fixture.entries[0], path: `src/${index}.ts` })) : fixture.entries;
+  let requests = 0;
+  assert.throws(() => distChecks.readCommittedBlobs(entries, fixture.algorithm, args => {
+    requests += 1;
+    assert.ok(args[1].startsWith("--batch-check"), "all size budgets must precede body requests");
+    return Buffer.from(entries.map((entry, index) => `${entry.oid} blob ${budget === "aggregate" ? 16 * 1024 * 1024 : index === entries.length - 1 ? entry.maximum + 1 : 5}\n`).join(""));
+  }, { bootstrapCount: 1, validateBootstrap() { assert.fail("all budgets must precede bootstrap validation"); } }), /committed.*budget|committed blob size/);
+  assert.equal(requests, budget === "count" ? 0 : 1);
+});
+
+for (const [name, transform] of [
+  ["wrong oid", bytes => { bytes[0] = bytes[0] === 48 ? 49 : 48; return bytes; }],
+  ["wrong type", bytes => Buffer.from(bytes.toString().replace(" blob ", " tree "))],
+  ["changed size", bytes => Buffer.from(bytes.toString().replace(" blob 5\n", " blob 6\n"))],
+  ["changed payload", bytes => { bytes[bytes.indexOf(10) + 1] ^= 1; return bytes; }],
+  ["truncated frame", bytes => bytes.subarray(0, -1)],
+  ["invalid terminator", bytes => { bytes[bytes.length - 1] = 0; return bytes; }],
+  ["trailing bytes", bytes => Buffer.concat([bytes, Buffer.from("extra")])],
+  ["reordered frames", bytes => { const split = bytes.indexOf(10) + 7; return Buffer.concat([bytes.subarray(split), bytes.subarray(0, split)]); }],
+]) test(`committed batch bodies reject ${name}`, () => {
+  const fixture = batchFixture();
+  assert.throws(() => distChecks.readCommittedBlobs(fixture.entries, fixture.algorithm, (args, options) => {
+    const bytes = fixture.git(args, options);
+    return args[1] === "--batch" ? transform(bytes) : bytes;
+  }), /committed batch|committed blob identity/);
+  assert.equal(fixture.calls.length, 2);
+});
+
+test("committed body batches remain serial and bounded after complete metadata admission", () => {
+  const fixture = batchFixture([Buffer.alloc(8 * 1024 * 1024, 1), Buffer.alloc(8 * 1024 * 1024, 2), Buffer.from("last")]);
+  const files = distChecks.readCommittedBlobs(fixture.entries, fixture.algorithm, fixture.git);
+  assert.deepEqual(fixture.calls.map(call => call.ids.length), [3, 2, 1]);
+  assert.ok(fixture.calls[0].args[1].startsWith("--batch-check"));
+  for (const call of fixture.calls.slice(1)) {
+    assert.equal(call.args[1], "--batch");
+    assert.ok(call.maxBuffer <= 16 * 1024 * 1024 + call.ids.length * 128);
+  }
+  for (const [index, entry] of fixture.entries.entries()) assert.deepEqual(files.get(entry.path), fixture.contents[index]);
+});
+
+test("committed batches validate bootstrap authority before requesting source bodies", () => {
+  for (const refuse of [false, true]) {
+    const fixture = batchFixture();
+    let validations = 0;
+    const run = () => distChecks.readCommittedBlobs(fixture.entries, fixture.algorithm, fixture.git, {
+      bootstrapCount: 1,
+      validateBootstrap(files) {
+        validations += 1;
+        assert.deepEqual([...files.keys()], [fixture.entries[0].path]);
+        assert.deepEqual(fixture.calls.map(call => call.ids.length), [2, 1]);
+        if (refuse) throw new Error("untrusted bootstrap");
+      },
+    });
+    if (refuse) assert.throws(run, /untrusted bootstrap/);
+    else assert.equal(run().size, 2);
+    assert.equal(validations, 1);
+    assert.equal(fixture.calls.length, refuse ? 2 : 3);
+  }
+});
 
 test("archive peer contract admits the exact current required peer without admitting runtime dependencies", () => {
   const manifest = JSON.parse(readRegularInput(authority, "package.json", 300000));
@@ -556,6 +700,62 @@ export interface S3HttpTransportOptions { endpoint: string; region: string; cred
   } finally { rmSync(directory, { recursive: true, force: true }); }
 }
 
+function requestedBodies(args, options) {
+  const position = args.indexOf("cat-file");
+  if (position < 0) return [];
+  const mode = args[position + 1];
+  if (mode === "-s" || mode.startsWith("--batch-check")) return [];
+  if (mode === "blob") return [args[position + 2]];
+  assert.equal(mode, "--batch", "unmonitored Git body request mode");
+  const ids = options.input.toString().split("\n");
+  assert.equal(ids.pop(), "");
+  for (const oid of ids) assert.match(oid, /^(?:[a-f0-9]{40}|[a-f0-9]{64})$/u);
+  return ids;
+}
+
+for (const defect of ["guard", "manifest"]) test(`committed bootstrap rejects bad ${defect} before requesting product source bodies`, async () => {
+  await withRepository(fixture => {
+    if (defect === "guard") fixture.put("scripts/guard-package-dist.mjs", "throw new Error('untrusted guard');\n");
+    else fixture.manifest.files = ["src"];
+  }, fixture => {
+    const sourceOids = new Set(fixture.git(["ls-tree", "-r", "--format=%(objectname)", "HEAD", "--", `${packagePrefix}/src`]).split("\n"));
+    const reads = [];
+    const execute = (command, args, options) => {
+      reads.push(...requestedBodies(args, options));
+      return spawnSync(command, args, options);
+    };
+    assert.throws(() => inspectCommittedCandidate(fixture.repository, "HEAD", fixture.output, execute), defect === "guard" ? /committed guard differs/ : /dist/);
+    assert.ok(reads.length > 0, "bootstrap refusal must authenticate committed inputs");
+    assert.deepEqual(reads.filter(oid => sourceOids.has(oid)), [], "untrusted bootstrap must not request product source bodies");
+    assert.equal(existsSync(fixture.marker), false);
+  });
+});
+
+test("committed admission batches exact object IDs while retaining raw admitted path and payload bytes", async context => {
+  const path = `${packagePrefix}/src/tab\tλ.ts`;
+  const payload = Buffer.from([0, 10, 255, 13]);
+  await withRepository(fixture => fixture.put(path, payload), fixture => {
+    const calls = [];
+    const execute = (command, args, options) => {
+      if (args.includes("cat-file")) calls.push({ args, options });
+      return spawnSync(command, args, options);
+    };
+    const candidate = inspectCommittedCandidate(fixture.repository, "HEAD", fixture.output, execute);
+    assert.deepEqual(candidate.files.get(path), payload);
+    assert.ok(candidate.blobReads.includes(path));
+    assert.ok(calls[0].args.some(arg => arg.startsWith("--batch-check")));
+    assert.equal(calls.filter(call => call.args.some(arg => arg.startsWith("--batch-check"))).length, 1);
+    const bodies = calls.slice(1).flatMap(call => requestedBodies(call.args, call.options));
+    assert.equal(bodies.length, candidate.files.size);
+    for (const call of calls) {
+      assert.ok(call.args.includes("--no-replace-objects"));
+      assert.equal(call.options.input.toString().includes(path), false);
+      assert.equal(call.args.includes("-s") || call.args.includes("blob"), false);
+    }
+    context.diagnostic(JSON.stringify({ files: candidate.files.size, catFileProcesses: calls.length, rawPath: path }));
+  });
+});
+
 test("committed archive rejects a missing package prefix even when integration files are staged", async () => {
   await withRepository(fixture => { fixture.stagedOnly = true; }, fixture => {
     assert.throws(() => inspectCommittedCandidate(fixture.repository, "HEAD", fixture.output), /integrated package prefix/);
@@ -594,10 +794,9 @@ for (const defect of ["missing", "drift", "symlink", "legacy-command"]) test(`co
     if (defect === "symlink") { assert.ok(entry.startsWith("120000 blob ")); assert.ok(forbidden); }
     let admittedBlobReads = 0;
     const execute = (command, args, options) => {
-      const position = args.indexOf("cat-file");
-      if (position >= 0 && args[position + 1] === "blob") {
+      for (const oid of requestedBodies(args, options)) {
         admittedBlobReads += 1;
-        assert.notEqual(args[position + 2], forbidden, "nonregular compiler body must not be read");
+        assert.notEqual(oid, forbidden, "nonregular compiler body must not be read");
       }
       return spawnSync(command, args, options);
     };
@@ -606,7 +805,8 @@ for (const defect of ["missing", "drift", "symlink", "legacy-command"]) test(`co
         : defect === "symlink" ? /not a regular committed input: packages\/safe-bash\/scripts\/build.mjs/
           : /unreviewed committed build command/;
     assert.throws(() => inspectCommittedCandidate(fixture.repository, "HEAD", fixture.output, execute), expected);
-    assert.ok(admittedBlobReads > 0);
+    if (defect === "missing" || defect === "symlink") assert.equal(admittedBlobReads, 0);
+    else assert.ok(admittedBlobReads > 0);
     assert.equal(existsSync(fixture.marker), false);
     context.diagnostic(JSON.stringify({ defect, admittedBlobReads, forbiddenCompilerBodyReads: 0, candidateExecution: false }));
   });
@@ -665,9 +865,7 @@ test("pre-read committed admission never requests held blobs or nonregular input
     assert.ok(forbidden.size >= 2);
     const readOids = [];
     const execute = (command, args, options) => {
-      const position = args.indexOf("cat-file");
-      if (position >= 0 && args[position + 1] === "blob") {
-        const oid = args[position + 2];
+      for (const oid of requestedBodies(args, options)) {
         readOids.push(oid);
         assert.ok(!forbidden.has(oid), `forbidden synthetic blob read attempted: ${oid}`);
       }
@@ -678,7 +876,8 @@ test("pre-read committed admission never requests held blobs or nonregular input
       assert.ok(candidate.files.has(`${packagePrefix}/src/index.ts`));
       assert.ok(candidate.withheldPaths.length >= 13);
     } else assert.throws(() => inspectCommittedCandidate(fixture.repository, "HEAD", fixture.output, execute), defect === "held-alias" ? /case alias/ : /regular committed/);
-    assert.ok(readOids.length > 0 || defect === "guard-symlink", "positive admitted blob-read control was not exercised");
+    if (defect === "none") assert.ok(readOids.length > 0, "positive admitted blob-read control was not exercised");
+    else assert.equal(readOids.length, 0, "structural refusal must precede every body request");
     context.diagnostic(JSON.stringify({ defect, admittedBlobReads: readOids.length, forbiddenObjectIdentities: forbidden.size, forbiddenReads: 0 }));
   });
 });

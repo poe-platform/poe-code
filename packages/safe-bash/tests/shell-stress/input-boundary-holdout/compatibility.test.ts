@@ -2,7 +2,8 @@ import assert from "node:assert/strict";
 import { createHash } from "node:crypto";
 import { readFileSync } from "node:fs";
 import { test } from "node:test";
-import { runVirtualScript, sourceEvidence } from "../helpers.js";
+import { runVirtualBatch } from "../helpers.js";
+import { maxBatchCases } from "../model.js";
 import type { Observation, StressCase } from "../model.js";
 import { comparable } from "../targeted-holdout/frozen.js";
 
@@ -27,16 +28,24 @@ for (const row of references.cases) {
   assert.ok(Number.isInteger(row.expected.exitCode));
 }
 
-for (const row of references.cases) {
-  test("frozen GNU5.3 input boundary: " + row.fixture.name, { timeout: 8000 }, async context => {
-    const before = sourceEvidence();
+for (let offset = 0; offset < references.cases.length; offset += maxBatchCases) {
+  const batch = references.cases.slice(offset, offset + maxBatchCases);
+  test(`frozen GNU5.3 input boundary batch ${offset / maxBatchCases + 1}`, { timeout: 8000 }, async context => {
     const testHashBefore = sha256(readFileSync(new URL(import.meta.url)));
-    const actual = await runVirtualScript({ ...row.fixture, env: { LANG: "C", LC_ALL: "C" } });
-    const after = sourceEvidence();
-    context.diagnostic(JSON.stringify({ sourceBefore: before.aggregate, sourceAfter: after.aggregate, nativeReferenceSha256: referenceSha256, scriptSha256: row.scriptSha256 }));
-    assert.equal(after.aggregate, before.aggregate, "Source snapshot invalidated; rerun rather than attribute this result");
-    assert.equal(sha256(readFileSync(new URL(import.meta.url))), testHashBefore, "Test source changed during execution");
-    assert.equal(sha256(readFileSync(referencePath)), referenceSha256, "Frozen reference changed during execution");
-    assert.deepEqual(comparable(actual), comparable(row.expected), JSON.stringify({ script: row.fixture.script, stdin: row.fixture.stdin ?? "", env: { LANG: "C", LC_ALL: "C" }, rawExpected: row.expected, rawActual: actual, source: before.aggregate }, null, 2));
+    const execution = await runVirtualBatch(batch.map(row => ({ ...row.fixture, env: { LANG: "C", LC_ALL: "C" } }))).then(result => ({ result }), (error: unknown) => ({ error }));
+    for (const [index, row] of batch.entries()) {
+      await context.test("frozen GNU5.3 input boundary: " + row.fixture.name, { timeout: 8000 }, child => {
+        if ("error" in execution) throw execution.error;
+        const { before, after } = execution.result;
+        const outcome = execution.result.outcomes[index]!;
+        assert.ok(outcome.status === "fulfilled", JSON.stringify(outcome));
+        const actual = outcome.observation;
+        child.diagnostic(JSON.stringify({ sourceScope: "batch", sourceBefore: before.aggregate, sourceAfter: after.aggregate, nativeReferenceSha256: referenceSha256, scriptSha256: row.scriptSha256 }));
+        assert.equal(after.aggregate, before.aggregate, "Source snapshot invalidated; rerun rather than attribute this result");
+        assert.equal(sha256(readFileSync(new URL(import.meta.url))), testHashBefore, "Test source changed during execution");
+        assert.equal(sha256(readFileSync(referencePath)), referenceSha256, "Frozen reference changed during execution");
+        assert.deepEqual(comparable(actual), comparable(row.expected), JSON.stringify({ script: row.fixture.script, stdin: row.fixture.stdin ?? "", env: { LANG: "C", LC_ALL: "C" }, rawExpected: row.expected, rawActual: actual, source: before.aggregate }, null, 2));
+      });
+    }
   });
 }

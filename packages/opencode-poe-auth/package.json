@@ -17,7 +17,7 @@
   "scripts": {
     "build": "node ../../scripts/guard-package-dist.mjs && tsc",
     "test": "vitest run --config vitest.config.ts",
-    "test:unit": "vitest run --config vitest.config.ts"
+    "test:unit": "cd ../.. && vitest run packages/opencode-poe-auth/src"
   },
   "keywords": [
     "opencode",

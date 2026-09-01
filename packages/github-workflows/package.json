@@ -15,8 +15,8 @@
     "build": "tsx scripts/generate-gh-workflows.ts && tsc && tsx scripts/build-assets.ts",
     "generate:gh-workflows": "tsx scripts/generate-gh-workflows.ts",
     "lint:mcp-sdk-deps": "cd ../.. && tsx packages/github-workflows/scripts/assert-mcp-sdk-dev-deps.ts",
-    "test": "cd ../.. && vitest run packages/github-workflows/src/frontmatter.test.ts packages/github-workflows/src/discover.test.ts packages/github-workflows/src/prompts/prompts.test.ts packages/github-workflows/src/commands.test.ts packages/github-workflows/src/exec/check-user-allow.test.ts packages/github-workflows/src/exec/require-comment-prefix.test.ts packages/github-workflows/src/exec/trufflehog-pr-scan.test.ts packages/github-workflows/src/setup-agent.test.ts packages/github-workflows/src/variables.test.ts packages/github-workflows/src/build-assets.test.ts packages/github-workflows/src/sdk-dependency-audit.test.ts",
-    "test:unit": "cd ../.. && vitest run packages/github-workflows/src/frontmatter.test.ts packages/github-workflows/src/discover.test.ts packages/github-workflows/src/prompts/prompts.test.ts packages/github-workflows/src/commands.test.ts packages/github-workflows/src/exec/check-user-allow.test.ts packages/github-workflows/src/exec/require-comment-prefix.test.ts packages/github-workflows/src/exec/trufflehog-pr-scan.test.ts packages/github-workflows/src/setup-agent.test.ts packages/github-workflows/src/variables.test.ts packages/github-workflows/src/build-assets.test.ts packages/github-workflows/src/sdk-dependency-audit.test.ts",
+    "test": "cd ../.. && vitest run packages/github-workflows/src",
+    "test:unit": "cd ../.. && vitest run packages/github-workflows/src",
     "lint": "cd ../.. && eslint packages/github-workflows/src --ext ts && tsc -p packages/github-workflows/tsconfig.json --noEmit"
   },
   "files": [

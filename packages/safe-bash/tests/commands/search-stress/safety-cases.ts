@@ -97,12 +97,21 @@ test("cancellation wins a racing stdout EPIPE", async () => {
 
 test("metadata-selected stdin yields during endless empty chunks", async () => {
   const controller = new AbortController(); const reason = new Error("cancel empty chunks");
+  const fs = new MemoryFileSystem();
+  await fs.writeFile("/patterns", Buffer.from("foo\n"));
+  const readFile = fs.readFile.bind(fs);
+  fs.readFile = async (path, options) => { await delay(50); return readFile(path, options); };
   let closed = false;
-  const stdin = (async function* () { try { while (true) yield new Uint8Array(); } finally { closed = true; } })();
-  const timer = setTimeout(() => controller.abort(reason), 30);
+  let timer: ReturnType<typeof setTimeout> | undefined;
+  const stdin = (async function* () {
+    try {
+      timer = setTimeout(() => controller.abort(reason), 30);
+      while (true) yield new Uint8Array();
+    } finally { closed = true; }
+  })();
   try {
     await assert.rejects(Promise.resolve(createSearchCommands()[0]!.execute({
-      command: "rg", args: ["foo"], cwd: "/", env: {}, fs: new MemoryFileSystem(), signal: controller.signal, stdin, stdinIsDefault: false,
+      command: "rg", args: ["-f", "/patterns"], cwd: "/", env: {}, fs, signal: controller.signal, stdin, stdinIsDefault: false,
       stdout: { async write() { assert.fail("empty stdout"); } }, stderr: { async write() { assert.fail("empty stderr"); } },
     })), error => error === reason);
     assert.equal(closed, true);

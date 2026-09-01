@@ -5,7 +5,7 @@ import { dirname, join } from "node:path";
 import test from "node:test";
 import { fileURLToPath } from "node:url";
 import { FsError } from "../../../src/contracts/index.js";
-import type { FileSystem } from "../../../src/contracts/index.js";
+import type { FileStat, FileSystem } from "../../../src/contracts/index.js";
 import { MemoryFileSystem } from "../../../src/fs/memory/index.js";
 import { createMountFileSystem } from "../../../src/fs/mount/index.js";
 import { OverlayFileSystem } from "../../../src/fs/overlay/index.js";
@@ -216,7 +216,17 @@ test("Real allocation survives read-only, mount and overlay views and follows ac
   await native.symlink("dense", join(lowerRoot, "link"));
   const lower = await createRealFileSystem({ root: lowerRoot });
   const upper = await createRealFileSystem({ root: upperRoot });
-  const overlay = new OverlayFileSystem({ upper, lower: createReadOnlyFileSystem(lower) });
+  let upperSnapshot: FileStat | undefined;
+  const overlay = new OverlayFileSystem({
+    upper: wrapped(upper, {
+      async lstat(path, options) {
+        const stat = await upper.lstat(path, options);
+        if (path === "/sparse") upperSnapshot = { ...stat };
+        return stat;
+      },
+    }),
+    lower: createReadOnlyFileSystem(lower),
+  });
   const views = [
     { name: "read-only", filesystem: createReadOnlyFileSystem(lower), prefix: "" },
     { name: "mount", filesystem: createMountFileSystem({ root: new MemoryFileSystem(), mounts: { "/data": lower } }), prefix: "/data" },
@@ -251,9 +261,12 @@ test("Real allocation survives read-only, mount and overlay views and follows ac
   await overlay.chmod("/sparse", 0o600);
   const upperBefore = await native.stat(join(upperRoot, "sparse"), { bigint: true });
   for (const method of ["stat", "lstat"] as const) {
-    const expected = await upper[method]("/sparse");
-    assert.deepEqual(await overlay[method]("/sparse"), expected);
-    assert.deepEqual(await views[3]!.filesystem[method]("/data/sparse"), expected);
+    for (const view of [views[2]!, views[3]!]) {
+      upperSnapshot = undefined;
+      const result = await view.filesystem[method](`${view.prefix}/sparse`);
+      assert.ok(upperSnapshot, `${view.name} ${method} must observe the upper metadata`);
+      assert.deepEqual(result, upperSnapshot);
+    }
   }
   const upperAfter = await native.stat(join(upperRoot, "sparse"), { bigint: true });
   const lowerAfter = await native.stat(join(lowerRoot, "sparse"), { bigint: true });

@@ -482,6 +482,39 @@ describe("pipeline run command", () => {
     );
   });
 
+  it.each(["failed", "cancelled", "completed", "max_runs", "nothing_to_run"] as const)(
+    "classifies a %s sequence outcome before worktree reconciliation",
+    async (stopReason) => {
+      const fs = createMemFs({ "/repo/plan-a.md": "tasks: []\n", "/repo/plan-b.md": "tasks: []\n" });
+      const container = createCliContainer({
+        fs,
+        prompts: vi.fn().mockResolvedValue({}),
+        env: { cwd, homeDir },
+        logger: () => {}
+      });
+      const result = {
+        stopReason: "completed" as const,
+        planPath: "plan-a.md",
+        runsCompleted: 1,
+        totalDurationMs: 1,
+        metrics: { totalInputTokens: 0, totalOutputTokens: 0, totalCachedTokens: 0, tasksCompleted: 1, tasksFailed: 0, stepsCompleted: 1 }
+      };
+      vi.mocked(sdkRunPipeline).mockResolvedValueOnce(result).mockResolvedValueOnce({ ...result, stopReason });
+      const program = createBaseProgram();
+      registerPipelineCommand(program, container);
+
+      await program.parseAsync([
+        "node", "cli", "--yes", "pipeline", "run", "--plans", "plan-a.md", "plan-b.md", "--agent", "codex", "--worktree"
+      ]);
+
+      expect(sdkRunPipeline).toHaveBeenCalledTimes(2);
+      const input = runWithOptionalWorktreeMock.mock.calls[0]![0];
+      const output = await runWithOptionalWorktreeMock.mock.results[0]!.value;
+      expect(input.isSuccessful).toBeTypeOf("function");
+      expect(input.isSuccessful(output.value)).toBe(stopReason !== "failed" && stopReason !== "cancelled");
+    }
+  );
+
   it("dry-runs an explicit plan without selecting an agent or invoking the SDK", async () => {
     const logs: string[] = [];
     const planContent = [

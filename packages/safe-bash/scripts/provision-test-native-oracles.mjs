@@ -288,6 +288,12 @@ export async function buildNativeOracles(options, dependencies = {}) {
   const fileSystem = dependencies.fileSystem ?? fs;
   const execute = dependencies.execute ?? executeBuildStep;
   const profile = selectNativeProfile([options.profile], options.host);
+  if (options.observation !== undefined) {
+    assert.equal(options.observation, "linux-patch-2.8", "unknown native observation mode");
+    assert.deepEqual(options.host, { platform: "linux", arch: "x64", distribution: "ubuntu", version: "24.04" });
+    assert.deepEqual(profile.executables.map(pin => [pin.tool, pin.version]), [["patch", "GNU patch 2.8"]]);
+    assert.deepEqual(profile.sources.map(source => [source.name, source.outputs]), [["patch-2.8", [{ tool: "patch", path: "src/patch" }]]]);
+  }
   canonicalPath(fileSystem, options.parent);
   const parentStat = fileSystem.lstatSync(options.parent, { bigint: true });
   assert(
@@ -407,6 +413,15 @@ export async function buildNativeOracles(options, dependencies = {}) {
         inputs[output.tool] = join(work, output.path);
       }
     }
+    if (options.observation === "linux-patch-2.8") {
+      const path = inputs.patch;
+      canonicalPath(fileSystem, path);
+      const stat = fileSystem.lstatSync(path);
+      assert(stat.isFile() && stat.size > 0 && stat.size <= 16 * 1024 ** 2);
+      const pin = { tool: "patch", version: "GNU patch 2.8", size: stat.size, sha256: digest(fileSystem.readFileSync(path)) };
+      const verified = verifyNativeExecutable(pin, path, dependencies);
+      return { status: "BUILT_OBSERVATIONS_UNREVIEWED", root, outputs: [{ ...pin, path: verified.path }] };
+    }
     return stageNativeExecutables(
       { profile, host: options.host, parent: root, name: "installed", inputs },
       dependencies
@@ -419,6 +434,107 @@ export async function buildNativeOracles(options, dependencies = {}) {
     );
     throw error;
   }
+}
+
+export async function qualifyLinuxPatch(options, dependencies = {}) {
+  const fileSystem = dependencies.fileSystem ?? fs;
+  const execute = dependencies.execute ?? executeBuildStep;
+  const { context, manifest } = options;
+  for (const [key, value] of Object.entries({ platform: "linux", arch: "x64", repository: "poe-platform/poe-code", ref: "refs/heads/main", event: "workflow_dispatch", runner: "github-hosted", runnerOS: "Linux", runnerArch: "X64" })) assert.equal(context[key], value, `unexpected Linux qualification ${key}`);
+  assert.equal(context.node.split(".")[0], "22");
+  assert(context.sha.length === 40 && [...context.sha].every(character => "0123456789abcdef".includes(character)));
+  assert(context.runId.length > 0 && [...context.runId].every(character => "0123456789".includes(character)));
+  assert(typeof context.imageOS === "string" && context.imageOS.length > 0 && typeof context.imageVersion === "string" && context.imageVersion.length > 0);
+  const release = fileSystem.readFileSync("/etc/os-release", "utf8");
+  assert(release.split("\n").includes("ID=ubuntu") && release.split("\n").includes('VERSION_ID="24.04"'));
+  const host = { platform: "linux", arch: "x64", distribution: "ubuntu", version: "24.04" };
+  assert.equal(manifest.schema, 1);
+  const original = selectNativeProfile(manifest.profiles, host);
+  const profile = { ...original, executables: original.executables.filter(pin => pin.tool === "patch"), sources: original.sources.filter(source => source.name === "patch-2.8") };
+  assert.equal(profile.sources.length, 1);
+  const authentication = manifest.darwinBuildQualification;
+  const source = authentication.sources.find(source => source.name === "patch-2.8");
+  assert(source?.signature, "existing signed patch source required");
+  for (const field of ["url", "size", "sha256", "signer"]) assert.equal(profile.sources[0][field], source[field], "Linux and signed source identity mismatch");
+  canonicalPath(fileSystem, options.parent);
+  canonicalPath(fileSystem, options.checkout);
+  assert.equal(fileSystem.lstatSync(options.parent).mode & 0o777, 0o700);
+  const root = join(options.parent, "qualification");
+  fileSystem.mkdirSync(root, { mode: 0o700 });
+  const evidence = join(root, "evidence");
+  for (const directory of [evidence, join(evidence, "logs"), join(evidence, "sources"), join(evidence, "bin"), join(root, "home"), join(root, "tmp")]) fileSystem.mkdirSync(directory, { mode: 0o700 });
+  const env = { PATH: "/usr/bin:/bin", HOME: join(root, "home"), TMPDIR: join(root, "tmp"), LC_ALL: "C", LANG: "C", TZ: "UTC", SOURCE_DATE_EPOCH: profile.sourceDateEpoch };
+  const members = [];
+  const write = (member, bytes, mode = 0o600) => { fileSystem.writeFileSync(join(evidence, member), bytes, { flag: "wx", mode }); members.push(member); };
+  let sequence = 0;
+  const step = async (command, args, cwd = root) => {
+    const result = await execute(command, args, { cwd, env });
+    const prefix = `logs/context-${String(++sequence).padStart(2, "0")}`;
+    write(prefix + ".stdout.log", result.stdout ?? "");
+    write(prefix + ".stderr.log", result.stderr ?? "");
+    write(prefix + ".json", JSON.stringify({ command, args, cwd, env, status: result.status, signal: result.signal, error: result.error?.message }, null, 2) + "\n");
+    assert.ifError(result.error);
+    assert.equal(result.signal, null);
+    assert.equal(result.status, 0, "Linux qualification step failed: " + prefix);
+    return result.stdout.trim();
+  };
+  const receipt = { status: "FAILED_NOT_QUALIFIED", context, host, originalProfile: original, source, keyring: authentication.keyring, outputs: [] };
+  let failure;
+  try {
+    assert.equal(await step("/usr/bin/git", ["rev-parse", "HEAD"], options.checkout), context.sha);
+    write("logs/os-release.log", release);
+    await step("/usr/bin/uname", ["-a"]);
+    await step("/usr/bin/gcc", ["--version"]);
+    await step("/usr/bin/ld", ["--version"]);
+    await step("/usr/bin/gpgv", ["--version"]);
+    await step("/usr/bin/dpkg-query", ["-W", "-f=${binary:Package}\t${Version}\n"]);
+    const backend = await step("/usr/bin/gcc", ["-print-prog-name=cc1"]);
+    assert(isAbsolute(backend) && !backend.includes("\n"));
+    const tools = ["/usr/bin/gcc", backend, "/usr/bin/ld", "/usr/bin/as", "/usr/bin/make", "/usr/bin/tar", "/usr/bin/gpgv"];
+    receipt.toolchain = tools.map(path => {
+      const canonical = fileSystem.realpathSync(path);
+      const stat = fileSystem.lstatSync(canonical);
+      assert(stat.isFile() && (stat.mode & 0o111) !== 0);
+      return { path, canonical, size: stat.size, sha256: digest(fileSystem.readFileSync(canonical)) };
+    });
+    const keyring = join(root, "gnu-keyring.gpg");
+    fileSystem.writeFileSync(keyring, await fetchVerified(authentication.keyring, dependencies), { flag: "wx", mode: 0o600 });
+    const archive = await fetchVerified(source, dependencies);
+    write("sources/patch-2.8.tar.xz", archive);
+    write("sources/patch-2.8.tar.xz.sig", await fetchVerified(source.signature, dependencies));
+    const signed = await step("/usr/bin/gpgv", ["--homedir", env.HOME, "--keyring", keyring, "--status-fd", "1", join(evidence, "sources/patch-2.8.tar.xz.sig"), join(evidence, "sources/patch-2.8.tar.xz")]);
+    assert.deepEqual(signed.split("\n").filter(line => line.startsWith("[GNUPG:] VALIDSIG ")).map(line => line.split(" ")[2]), [source.signer]);
+    for (const build of [1, 2]) {
+      const buildRoot = join(root, "build-" + build);
+      let observed;
+      try {
+        observed = await buildNativeOracles({ profile, host, parent: root, name: "build-" + build, observation: "linux-patch-2.8" }, { ...dependencies, fetch: async url => { assert.equal(String(url), source.url); return new Response(archive); } });
+      } finally {
+        const logs = join(buildRoot, "logs");
+        if (fileSystem.existsSync(logs)) for (const name of fileSystem.readdirSync(logs)) write(`logs/build-${build}-${name}`, fileSystem.readFileSync(join(logs, name)));
+        for (const name of ["config.log", "config.status"]) {
+          const path = join(buildRoot, "sources/patch-2.8", name);
+          if (fileSystem.existsSync(path)) write(`logs/build-${build}-${name}.log`, fileSystem.readFileSync(path));
+        }
+      }
+      assert.equal(observed.status, "BUILT_OBSERVATIONS_UNREVIEWED");
+      const { path, ...pin } = observed.outputs[0];
+      const verified = verifyNativeExecutable(pin, path, dependencies);
+      const member = `bin/patch-${build}`;
+      write(member, verified.bytes, 0o755);
+      receipt.outputs.push({ ...pin, build, member });
+    }
+    assert.equal(receipt.outputs[0].sha256, receipt.outputs[1].sha256, "independent Linux patch builds differ");
+    for (const tool of receipt.toolchain) {
+      assert.equal(fileSystem.realpathSync(tool.path), tool.canonical);
+      assert.equal(digest(fileSystem.readFileSync(tool.canonical)), tool.sha256, "Linux toolchain changed during build");
+    }
+    receipt.status = "BUILT_OBSERVATIONS_UNREVIEWED";
+  } catch (error) { failure = error; receipt.error = String(error); }
+  write("receipt.json", JSON.stringify(receipt, null, 2) + "\n");
+  sealDarwinEvidence(evidence, members, dependencies);
+  if (failure) throw failure;
+  return { ...receipt, root };
 }
 
 export function assertDarwinContext(profile, context, releaseLane = false) {
@@ -792,8 +908,8 @@ export async function qualifyDarwinBuild(options, dependencies = {}) {
 
 export function parseNativeArguments(args) {
   const result = {};
-  if (args[0] === "--qualify-darwin-build" || args[0] === "--stage-darwin") {
-    result[args[0] === "--stage-darwin" ? "stageDarwin" : "qualification"] = true;
+  if (args[0] === "--qualify-darwin-build" || args[0] === "--stage-darwin" || args[0] === "--qualify-linux-patch") {
+    result[args[0] === "--qualify-linux-patch" ? "linuxQualification" : args[0] === "--stage-darwin" ? "stageDarwin" : "qualification"] = true;
     args = args.slice(1);
   }
   for (let index = 0; index < args.length; index += 2) {
@@ -817,6 +933,15 @@ export function parseNativeArguments(args) {
 
 export async function main(args) {
   const options = parseNativeArguments(args);
+  if (options.linuxQualification) {
+    assert.equal(options.destination, join(options.parent, "qualification"));
+    assert.equal(dirname(options.parent), fs.realpathSync(process.env.RUNNER_TEMP));
+    const manifest = JSON.parse(fs.readFileSync(new URL("../tests/native-gnu-profiles.json", import.meta.url), "utf8"));
+    const context = { platform: process.platform, arch: process.arch, node: process.versions.node, sha: process.env.GITHUB_SHA, runId: process.env.GITHUB_RUN_ID, repository: process.env.GITHUB_REPOSITORY, ref: process.env.GITHUB_REF, event: process.env.GITHUB_EVENT_NAME, runner: process.env.RUNNER_ENVIRONMENT, runnerOS: process.env.RUNNER_OS, runnerArch: process.env.RUNNER_ARCH, imageOS: process.env.ImageOS, imageVersion: process.env.ImageVersion };
+    const receipt = await qualifyLinuxPatch({ parent: options.parent, checkout: process.cwd(), manifest, context });
+    console.log(JSON.stringify(receipt, null, 2));
+    return receipt;
+  }
   if (options.qualification || options.stageDarwin) {
     const context = {
       platform: process.platform,

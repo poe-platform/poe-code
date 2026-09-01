@@ -37,7 +37,11 @@ export async function reconcileWorktree(
 ): Promise<WorktreeReconciliationSummary> {
   const entry = await findWorktree(options.registryFile, options.name, options.deps);
   const sourceCwd = entry.sourceCwd ?? options.cwd;
-  await assertCleanDestination(sourceCwd, options.deps);
+  const recovering = (entry.status === "conflicted" || entry.status === "cleanup_failed") &&
+    entry.reconciliation !== undefined;
+  if (!recovering) {
+    await assertCleanDestination(sourceCwd, options.deps);
+  }
 
   await updateEntry(options, entry.name, (worktree) => ({
     ...worktree,
@@ -46,17 +50,18 @@ export async function reconcileWorktree(
 
   const inspected = await inspectWorktree(entry, sourceCwd, options.deps);
   let summary = createInitialSummary(entry, inspected);
-  const result = await options.reconciliationAgent({
+  const result = await invokeReconciliationAgent(options, {
     phase: "reconcile",
     sourceCwd,
     worktree: entry,
-    prompt: buildReconciliationPrompt(entry, inspected),
+    prompt: buildReconciliationPrompt(entry, inspected, recovering),
+    ...(recovering && summary.threadId ? { resumeThreadId: summary.threadId } : {}),
     summary,
     signal: options.signal
   });
   summary = {
     ...summary,
-    threadId: result.threadId,
+    threadId: result.threadId ?? summary.threadId,
     ...(summary.committed === "present" ? { committed: "merged_by_agent" as const } : {}),
     ...(summary.uncommitted === "present" ? { uncommitted: "applied_by_agent" as const } : {})
   };
@@ -98,7 +103,7 @@ export async function reconcileWorktree(
   }
 
   const cleanupPrompt = buildCleanupNudgePrompt(entry);
-  await options.reconciliationAgent({
+  await invokeReconciliationAgent(options, {
     phase: "cleanup-nudge",
     sourceCwd,
     worktree: entry,
@@ -128,6 +133,32 @@ export async function reconcileWorktree(
   };
   await persistSummary(options, entry.name, "done", nudgedSummary);
   return nudgedSummary;
+}
+
+async function invokeReconciliationAgent(
+  options: ReconcileWorktreeOptions,
+  input: Parameters<WorktreeReconciliationAgent>[0]
+): Promise<Awaited<ReturnType<WorktreeReconciliationAgent>>> {
+  try {
+    return await options.reconciliationAgent(input);
+  } catch (agentError) {
+    const failedSummary: WorktreeReconciliationSummary = {
+      ...input.summary,
+      ...(input.phase === "reconcile" ? {
+        committed: input.summary.committed === "none" ? "none" : "failed",
+        uncommitted: input.summary.uncommitted === "none" ? "none" : "failed"
+      } : {}),
+      cleanup: "failed"
+    };
+    try {
+      await persistSummary(options, input.worktree.name,
+        input.phase === "reconcile" ? "conflicted" : "cleanup_failed", failedSummary);
+    } catch (recordingError) {
+      throw new AggregateError([agentError, recordingError],
+        "Worktree reconciliation agent failed and its recovery state could not be recorded.");
+    }
+    throw agentError;
+  }
 }
 
 async function findWorktree(
@@ -190,12 +221,18 @@ function createInitialSummary(
 
 function buildReconciliationPrompt(
   worktree: Worktree,
-  inspected: InspectedWorktree
+  inspected: InspectedWorktree,
+  recovering: boolean
 ): string {
   const committed = inspected.worktreeHead === inspected.baseHead ? "none" : "present";
   const uncommitted = formatPorcelainSummary(inspected.statusPorcelain);
   return [
     "Reconcile and clean up this poe-code managed worktree.",
+    ...(recovering ? [
+      "Resume the previous failed reconciliation; the destination may contain partial changes or unresolved conflicts.",
+      "Preserve existing destination changes and user conflict resolutions; do not reset or discard them to obtain a clean checkout.",
+      "Complete an in-progress merge before starting another."
+    ] : []),
     "",
     `Source checkout: ${inspected.sourceCwd}`,
     `Worktree path: ${worktree.path}`,

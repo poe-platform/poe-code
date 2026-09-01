@@ -18,6 +18,7 @@ vi.mock("node:fs/promises", async () => {
     readdir: rawFs.readdir.bind(rawFs),
     realpath: rawFs.realpath.bind(rawFs),
     rename: rawFs.rename.bind(rawFs),
+    unlink: rawFs.unlink.bind(rawFs),
     lstat: async (filePath: string) => {
       const stat = await rawFs.lstat(filePath);
       return { isSymbolicLink: () => stat.isSymbolicLink() };

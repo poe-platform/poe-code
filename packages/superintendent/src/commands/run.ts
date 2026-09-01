@@ -742,6 +742,8 @@ export async function runSuperintendentCommand(
     },
     onLoopComplete: (result) => {
       session.state = stripStopReason(result);
+      session.activeStage = undefined;
+      session.currentAction = undefined;
       if (result.stopReason === "completed") {
         appendEvent("success", "Loop completed");
       } else if (result.stopReason === "stopped") {

@@ -17,6 +17,7 @@ on:
           - none
           - darwin-native-metadata
           - darwin-gnu-build
+          - linux-gnu-build
           - linux-native-diagnostic
 concurrency:
   group: release-${{ github.ref }}
@@ -134,7 +135,7 @@ jobs:
           GH_TOKEN: ${{ steps.app_token.outputs.token }}
           HUSKY: "0"
         run: npx semantic-release
-    if: ${{ github.event_name != 'workflow_dispatch' || (inputs.qualification != 'darwin-native-metadata' && inputs.qualification != 'darwin-gnu-build' && inputs.qualification != 'linux-native-diagnostic') }}
+    if: ${{ github.event_name != 'workflow_dispatch' || (inputs.qualification != 'darwin-native-metadata' && inputs.qualification != 'darwin-gnu-build' && inputs.qualification != 'linux-gnu-build' && inputs.qualification != 'linux-native-diagnostic') }}
     needs:
       - native-darwin
   darwin-native-metadata:
@@ -328,8 +329,64 @@ jobs:
           include-hidden-files: false
           overwrite: false
           compression-level: 0
+  linux-gnu-build:
+    if: ${{ github.event_name == 'workflow_dispatch' && inputs.qualification == 'linux-gnu-build' }}
+    runs-on: ubuntu-24.04
+    timeout-minutes: 60
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.sha }}
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22.22.2
+      - name: Build authenticated Linux GNU observations without admission
+        id: native_build
+        shell: bash
+        run: |
+          set -euo pipefail
+          umask 077
+          node_bin="$(command -v node)"
+          [[ "$RUNNER_TEMP" = /* && "$node_bin" = /* ]]
+          job_root="$(mktemp -d "${RUNNER_TEMP:?}/linux-gnu.XXXXXX")"
+          chmod 700 "$job_root"
+          archive="$job_root/qualification/native-linux-evidence.tar"
+          printf 'archive=%s\n' "$archive" >> "$GITHUB_OUTPUT"
+          qualification_status=0
+          env -i PATH="$(dirname "$node_bin"):/usr/bin:/bin:/usr/sbin:/sbin" \
+            HOME="$job_root" TMPDIR="$job_root" LC_ALL=C LANG=C TZ=UTC \
+            RUNNER_TEMP="$RUNNER_TEMP" GITHUB_SHA="$GITHUB_SHA" GITHUB_RUN_ID="$GITHUB_RUN_ID" \
+            GITHUB_REPOSITORY="$GITHUB_REPOSITORY" GITHUB_REF="$GITHUB_REF" GITHUB_JOB="$GITHUB_JOB" \
+            GITHUB_EVENT_NAME="$GITHUB_EVENT_NAME" GITHUB_OUTPUT="$GITHUB_OUTPUT" RUNNER_ENVIRONMENT="$RUNNER_ENVIRONMENT" \
+            RUNNER_OS="$RUNNER_OS" RUNNER_ARCH="$RUNNER_ARCH" ImageOS="$ImageOS" ImageVersion="$ImageVersion" \
+            "$node_bin" packages/safe-bash/scripts/provision-test-native-oracles.mjs \
+            --qualify-linux-patch --parent "$job_root" --destination "$job_root/qualification" || qualification_status=$?
+          evidence="$job_root/qualification/evidence"
+          if [[ -f "$evidence/manifest.json" && ! -L "$evidence/manifest.json" ]]; then
+            /usr/bin/tar -cf "$archive" -C "$evidence" .
+            [[ "$(stat -c %s "$archive")" -le 135266304 ]]
+            (cd "$job_root/qualification" && sha256sum native-linux-evidence.tar > native-linux-evidence.tar.sha256)
+            printf 'sealed=true\n' >> "$GITHUB_OUTPUT"
+          fi
+          exit "$qualification_status"
+      - name: Retain bounded Linux qualification evidence
+        if: ${{ always() && !cancelled() && steps.native_build.outputs.sealed == 'true' }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: linux-gnu-${{ github.sha }}-${{ github.run_id }}
+          path: |-
+            ${{ steps.native_build.outputs.archive }}
+            ${{ steps.native_build.outputs.archive }}.sha256
+          retention-days: 14
+          if-no-files-found: error
+          include-hidden-files: false
+          overwrite: false
+          compression-level: 0
   native-darwin:
-    if: ${{ github.event_name != 'workflow_dispatch' || (inputs.qualification != 'darwin-native-metadata' && inputs.qualification != 'darwin-gnu-build' && inputs.qualification != 'linux-native-diagnostic') }}
+    if: ${{ github.event_name != 'workflow_dispatch' || (inputs.qualification != 'darwin-native-metadata' && inputs.qualification != 'darwin-gnu-build' && inputs.qualification != 'linux-gnu-build' && inputs.qualification != 'linux-native-diagnostic') }}
     runs-on: macos-26
     timeout-minutes: 60
     permissions:

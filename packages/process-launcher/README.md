@@ -25,4 +25,4 @@ Options are passed by the caller:
 
 ## Environment Variables
 
-This package does not read public environment variables directly. Caller-provided `env` values are passed to child processes.
+Caller-provided `env` values are passed to child processes.

@@ -274,12 +274,12 @@ function buildFixture() {
     if (command === "/usr/bin/gcc")
       return { status: 0, signal: null, stdout: "13.3.0\n", stderr: "" };
     if (command === "/usr/bin/tar")
-      value.fileSystem.mkdirSync("/owned/build-proof/sources/diffutils-3.12/src", {
+      value.fileSystem.mkdirSync(join(args[args.indexOf("-C") + 1], value.profile.sources[0].name, "src"), {
         recursive: true
       });
     if (command === "/usr/bin/make")
       value.fileSystem.writeFileSync(
-        "/owned/build-proof/sources/diffutils-3.12/src/diff",
+        join(options.cwd, value.profile.sources[0].outputs[0].path),
         executable,
         { mode: 0o755 }
       );
@@ -313,6 +313,89 @@ test("authenticated source build uses private paths, fixed compiler and no insta
   ]);
   assert.equal(value.fileSystem.existsSync("/home/qualifier/native-prefix"), false);
   assert.equal(receipt.root, "/owned/build-proof/installed");
+});
+
+test("Linux patch observation retains different candidate bytes without staging or changing legacy pins", async () => {
+  const value = buildFixture();
+  value.pin.tool = "patch";
+  value.pin.version = "GNU patch 2.8";
+  value.pin.sha256 = "0".repeat(64);
+  Object.assign(value.profile.sources[0], { name: "patch-2.8", outputs: [{ tool: "patch", path: "src/patch" }] });
+  const receipt = await buildNativeOracles({ profile: value.profile, host, parent: "/owned", name: "candidate", observation: "linux-patch-2.8" }, value);
+  assert.equal(receipt.status, "BUILT_OBSERVATIONS_UNREVIEWED");
+  assert.equal(receipt.outputs[0].sha256, digest(executable));
+  assert.equal(value.pin.sha256, "0".repeat(64));
+  assert.equal(value.fileSystem.existsSync("/owned/candidate/installed"), false);
+  assert.equal(value.calls.length, 1);
+  assert.deepEqual(value.calls[0].args, ["--version"]);
+});
+
+test("Linux patch observation cannot relax other tool or host admission", async () => {
+  for (const change of [{}, { observation: true }, { host: { ...host, arch: "arm64" } }]) {
+    const value = buildFixture();
+    await assert.rejects(buildNativeOracles({ profile: value.profile, host, parent: "/owned", name: "candidate", observation: "linux-patch-2.8", ...change }, value));
+    assert.equal(value.steps.length, 0);
+  }
+});
+
+test("Linux patch qualification is an explicit non-staging CLI mode", () => {
+  assert.deepEqual(parseNativeArguments(["--qualify-linux-patch", "--parent", "/owned", "--destination", "/owned/qualification"]), { linuxQualification: true, parent: "/owned", destination: "/owned/qualification" });
+  assert.throws(() => parseNativeArguments(["--qualify-linux-patch", "--stage-darwin", "--parent", "/owned", "--destination", "/owned/qualification"]));
+});
+
+function linuxPatchFixture() {
+  const value = buildFixture();
+  Object.assign(value.pin, { tool: "patch", version: "GNU patch 2.8" });
+  Object.assign(value.profile.sources[0], { name: "patch-2.8", signer: "A".repeat(40), outputs: [{ tool: "patch", path: "src/patch" }] });
+  const keyring = Buffer.from("fixture public keyring");
+  const signature = Buffer.from("fixture signature");
+  const pin = (bytes, suffix) => ({ url: `https://ftp.gnu.org/gnu/${suffix}`, size: bytes.length, sha256: digest(bytes) });
+  const manifest = { schema: 1, profiles: [value.profile], darwinBuildQualification: { keyring: pin(keyring, "gnu-keyring.gpg"), sources: [{ ...value.profile.sources[0], signature: pin(signature, "patch-2.8.tar.xz.sig") }] } };
+  for (const path of ["/usr/bin/gcc", "/usr/bin/ld", "/usr/bin/as", "/usr/bin/make", "/usr/bin/tar", "/usr/bin/gpgv", "/usr/lib/gcc/cc1", "/owned/checkout/file", "/etc/os-release"]) {
+    value.fileSystem.mkdirSync(join(path, ".."), { recursive: true });
+    value.fileSystem.writeFileSync(path, path === "/etc/os-release" ? 'ID=ubuntu\nVERSION_ID="24.04"\n' : executable, { mode: 0o755 });
+  }
+  const context = { platform: "linux", arch: "x64", node: "22.23.2", sha: "a".repeat(40), runId: "123", repository: "poe-platform/poe-code", ref: "refs/heads/main", event: "workflow_dispatch", runner: "github-hosted", runnerOS: "Linux", runnerArch: "X64", imageOS: "ubuntu24", imageVersion: "fixture" };
+  const execute = async (command, args, options) => {
+    if (command === "/usr/bin/git") return { status: 0, signal: null, stdout: context.sha + "\n", stderr: "" };
+    if (command === "/usr/bin/gcc" && args[0] === "-print-prog-name=cc1") return { status: 0, signal: null, stdout: "/usr/lib/gcc/cc1\n", stderr: "" };
+    if (command === "/usr/bin/gpgv" && args.includes("--status-fd")) return { status: 0, signal: null, stdout: `[GNUPG:] VALIDSIG ${value.profile.sources[0].signer} fixture\n`, stderr: "" };
+    const result = await value.execute(command, args, options);
+    if (command === "./configure") for (const name of ["config.log", "config.status"]) value.fileSystem.writeFileSync(join(options.cwd, name), "fixture config evidence");
+    return result;
+  };
+  return { ...value, execute, fetch: async url => new Response(String(url).endsWith(".gpg") ? keyring : String(url).endsWith(".sig") ? signature : value.source), options: { parent: "/owned", checkout: "/owned/checkout", manifest, context } };
+}
+
+test("Linux patch qualifier seals two authenticated observations without changing or installing pins", async () => {
+  const value = linuxPatchFixture();
+  const baseline = structuredClone(value.options.manifest);
+  const receipt = await native.qualifyLinuxPatch(value.options, value);
+  assert.equal(receipt.status, "BUILT_OBSERVATIONS_UNREVIEWED");
+  assert.deepEqual(receipt.outputs.map(output => [output.tool, output.build]), [["patch", 1], ["patch", 2]]);
+  assert.equal(receipt.outputs[0].sha256, receipt.outputs[1].sha256);
+  assert.deepEqual(value.options.manifest, baseline);
+  assert.equal(value.fileSystem.existsSync("/owned/qualification/build-1/installed"), false);
+  const seal = JSON.parse(value.fileSystem.readFileSync("/owned/qualification/evidence/manifest.json", "utf8"));
+  for (const path of ["sources/patch-2.8.tar.xz", "sources/patch-2.8.tar.xz.sig", "bin/patch-1", "bin/patch-2", "logs/build-1-config.log.log", "logs/build-2-config.status.log"]) assert(seal.members.some(member => member.path === path), path);
+});
+
+test("Linux patch qualification refuses source, signature, context and independent-build drift", async () => {
+  for (const defect of ["context", "source", "signer", "second-build"]) {
+    const value = linuxPatchFixture();
+    if (defect === "context") value.options.context.runner = "self-hosted";
+    if (defect === "source") value.options.manifest.darwinBuildQualification.sources[0].sha256 = "0".repeat(64);
+    const execute = value.execute;
+    value.execute = async (command, args, options) => {
+      const result = await execute(command, args, options);
+      if (defect === "signer" && command === "/usr/bin/gpgv" && args.includes("--status-fd")) result.stdout = `[GNUPG:] VALIDSIG ${"B".repeat(40)} fixture\n`;
+      if (defect === "second-build" && command === "/usr/bin/make" && options.cwd.includes("build-2")) value.fileSystem.writeFileSync(join(options.cwd, "src/patch"), Buffer.alloc(executable.length, 65));
+      return result;
+    };
+    const expected = { context: "unexpected Linux qualification runner", source: "Linux and signed source identity mismatch", signer: "Expected values to be strictly deep-equal", "second-build": "independent Linux patch builds differ" };
+    await assert.rejects(native.qualifyLinuxPatch(value.options, value), error => error.message.includes(expected[defect]), defect);
+    assert.equal(value.fileSystem.existsSync("/owned/qualification/build-1/installed"), false);
+  }
 });
 
 test("wrong authenticated source bytes stop before extraction and preserve build evidence", async () => {

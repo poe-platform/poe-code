@@ -3,6 +3,7 @@ import { parseDocument, isMap, isSeq, type YAMLMap, type YAMLSeq } from "yaml";
 import { hasOwnErrorCode } from "../error-codes.js";
 import type { PipelineFileSystem, PipelineStatus } from "../types.js";
 import { pipelineDocumentSchemaId } from "./parser.js";
+import { withPlanLock } from "./lock.js";
 
 type WritableFs = Pick<PipelineFileSystem, "readFile" | "writeFile" | "lstat" | "rename" | "unlink">;
 type WritableDocument = MarkdownPlanDocument | YamlPlanDocument;
@@ -203,7 +204,20 @@ export async function writeTaskStatus(options: {
   taskId: string;
   status: PipelineStatus;
   stepName?: string;
+  signal?: AbortSignal;
 }): Promise<void> {
+  await withPlanLock({
+    fs: options.fs,
+    planPath: options.planPath,
+    kind: "status",
+    signal: options.signal,
+    operation: () => persistTaskStatus(options)
+  });
+}
+
+async function persistTaskStatus(
+  options: Parameters<typeof writeTaskStatus>[0]
+): Promise<void> {
   if ((await options.fs.lstat(options.planPath)).isSymbolicLink()) {
     throw new Error(`Refusing to write task status through symbolic link: ${options.planPath}`);
   }

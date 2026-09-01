@@ -1,4 +1,6 @@
 import path from "node:path";
+import { createHash } from "node:crypto";
+import { tmpdir } from "node:os";
 import * as fsPromises from "node:fs/promises";
 import { loadResolvedSteps } from "../config/loader.js";
 import {
@@ -9,6 +11,7 @@ import {
 import { resolveAbsolutePlanPath, resolvePlanPath } from "../plan/discovery.js";
 import { parsePlan } from "../plan/parser.js";
 import { writeTaskStatus } from "../plan/writer.js";
+import { withPlanLock } from "../plan/lock.js";
 import { buildExecutionPrompt, resolveFileIncludes, selectNextExecution } from "./runner.js";
 import { interpolatePipelineVars } from "../vars/interpolate.js";
 import { resolvePipelineVars } from "../vars/resolve.js";
@@ -29,6 +32,7 @@ import type {
 import { assertNotAborted } from "../utils.js";
 
 type ArchivePlanFs = NonNullable<Parameters<typeof archivePlanShared>[0]["fs"]>;
+type ResolvedPipelineRunOptions = PipelineRunOptions & Required<Pick<PipelineRunOptions, "fs" | "plan" | "runAgent">>;
 
 function createDefaultFs(): PipelineFileSystem {
   const fs = {
@@ -150,6 +154,27 @@ export async function runPipeline(options: PipelineRunOptions): Promise<Pipeline
   }
 
   const absolutePlanPath = resolveAbsolutePlanPath(planPath, cwd, homeDir);
+  const canonicalPlanPath = fs.realpath ? await fs.realpath(absolutePlanPath) : path.resolve(absolutePlanPath);
+  const lockDirectory = path.join(tmpdir(), "poe-code-pipeline");
+  await fs.mkdir(lockDirectory, { recursive: true });
+  const planIdentity = createHash("sha256").update(canonicalPlanPath).digest("hex");
+  return withPlanLock({
+    fs,
+    planPath: absolutePlanPath,
+    lockPath: path.join(lockDirectory, `${planIdentity}.lock`),
+    kind: "run",
+    signal: options.signal,
+    operation: () => runResolvedPipeline({ ...options, fs, plan: planPath, runAgent }, metrics)
+  });
+}
+
+async function runResolvedPipeline(
+  options: ResolvedPipelineRunOptions,
+  metrics: PipelineMetrics
+): Promise<PipelineRunResult> {
+  const { fs, cwd, homeDir, runAgent, plan: planPath } = options;
+  const configuredPlanDirectory = options.planDirectory;
+  const absolutePlanPath = resolveAbsolutePlanPath(planPath, cwd, homeDir);
   const runLogDir =
     options.logDir ??
     await ensureSafeRunLogDir({
@@ -222,8 +247,7 @@ export async function runPipeline(options: PipelineRunOptions): Promise<Pipeline
     try {
       const rawPrompt = interpolatePipelineVars(phaseDef.prompt, vars, phase);
       const phasePrompt = await resolveFileIncludes(rawPrompt, options.cwd, fs.readFile.bind(fs));
-      // runAgent is validated non-null at the top of runPipeline; TypeScript cannot narrow across closures
-      result = await runAgent!({
+      result = await runAgent({
         agent: phaseDef.agent ?? options.agent,
         prompt: phasePrompt,
         cwd: options.cwd,
@@ -509,6 +533,7 @@ export async function runPipeline(options: PipelineRunOptions): Promise<Pipeline
         fs,
         planPath: absolutePlanPath,
         taskId: selection.task.id,
+        ...(options.signal ? { signal: options.signal } : {}),
         ...(selection.stepName ? { stepName: selection.stepName } : {}),
         status: success ? "done" : "failed"
       });

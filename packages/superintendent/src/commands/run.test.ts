@@ -1184,6 +1184,47 @@ describe("superintendent run command", () => {
     });
   });
 
+  it("clears the active role when manual completion ends the loop", async () => {
+    const fs = createFs({ "/repo/docs/plans/plan.md": createDoc("claude-code") });
+    const dashboardMock = createDashboardMock();
+    const runLoopMock = vi.fn(async (options: RunLoopOptions) => {
+      options.callbacks?.onBuilderStart?.();
+      const completed = {
+        state: "completed" as const,
+        round: 1,
+        reviewTurn: 0,
+        maxRounds: 100,
+        maxReviewTurns: 5,
+        stopReason: "completed" as const
+      };
+      options.callbacks?.onLoopComplete?.(completed);
+      return completed;
+    });
+    const { runSuperintendentCommand } = await import("./run.js");
+    await runSuperintendentCommand({
+      cwd: "/repo",
+      homeDir: "/home/test",
+      docPath: "/repo/docs/plans/plan.md",
+      interactive: true,
+      useDashboard: true,
+      fs,
+      createDashboard: () => dashboardMock.dashboard,
+      runLoop: runLoopMock,
+      now: () => 0,
+      setInterval: (() => 0) as typeof global.setInterval,
+      clearInterval: vi.fn(),
+      openInEditor: vi.fn(),
+      env: {}
+    });
+    expect(dashboardMock.updateStats).toHaveBeenLastCalledWith(
+      expect.objectContaining({
+        status: "done",
+        currentAction: "state=completed · round=1"
+      })
+    );
+    expect(dashboardMock.destroy).toHaveBeenCalledTimes(1);
+  });
+
   it("runs integration superintendent callbacks after dashboard callbacks", async () => {
     const fs = createFs({
       "/repo/docs/plans/plan.md": createDoc("claude-code")

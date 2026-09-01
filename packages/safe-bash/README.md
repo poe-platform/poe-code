@@ -101,6 +101,23 @@ For verbose package output use `CI=false npm run test:unit`; select Node's
 reporter with `npm test -- --test-reporter=spec` (or `tap`). For root Vitest,
 run `npm run test:unit -- --reporter=verbose --silent=false` from the repository root.
 
+### Native patch build observations
+
+On GitHub-hosted Ubuntu 24.04/x64 with Node 22, the developer-only
+`--qualify-linux-patch` mode authenticates GNU patch 2.8 sources and records two
+independent builds. From the repository root, using a private directory created
+directly under `RUNNER_TEMP` and the normal workflow-dispatch identity variables:
+
+```sh
+node packages/safe-bash/scripts/provision-test-native-oracles.mjs \
+  --qualify-linux-patch --parent "$job_root" --destination "$job_root/qualification"
+```
+
+Retain `$job_root/qualification/evidence/**` for review, including source/signature,
+toolchain, configuration and binary records. This produces observations only:
+it does not install candidates, admit pins or publish. Reviewed identities still
+require the normal Release Linux semantic gate before publication.
+
 ## Availability
 
 **August 31, 2026:** npm `poe-code@13.0.10` does not yet export this API.

@@ -154,7 +154,7 @@ describe("superintendent complete command", () => {
     const updated = parseSuperintendentDoc(targetPath, updatedContent);
 
     expect(result.ok).toBe(true);
-    expect(result.fsChanges.filter((change) => change.op === "writeFile")).toHaveLength(1);
+    expect(result.fsChanges.filter((change) => change.op === "writeFile")).toHaveLength(2);
     expect(updated.frontmatter.status).toEqual({
       state: "completed",
       round: 2,
@@ -316,6 +316,10 @@ describe("superintendent complete command", () => {
     let temporaryPath: string | undefined;
     const fs = createVolumeFs(volume, {
       async writeFile(filePath, content, options) {
+        if (!filePath.endsWith(".tmp")) {
+          await rawFs.writeFile(filePath, content, options);
+          return;
+        }
         temporaryPath = filePath;
         await rawFs.writeFile(filePath, content.slice(0, 12), options);
         throw new Error("disk full");

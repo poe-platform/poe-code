@@ -238,11 +238,63 @@ export function resolveTools() {
 }
 
 export function copyRegularTree(source, destination, fileSystem = { lstatSync, readdirSync, readFileSync, mkdirSync, writeFileSync }) {
-  assertCanonicalRoot(source, fileSystem);
   const inventory = [];
   const pending = [];
   const folded = new Set();
   const identity = stat => [stat.dev, stat.ino, stat.mode, stat.nlink, stat.size, stat.mtimeMs, stat.ctimeMs];
+  const directoryIndexes = new Map();
+  const indexLimits = { directories: 256, names: 32768, characters: 1048576 };
+  let indexedNames = 0, indexedCharacters = 0;
+  const discardIndex = directory => {
+    const cached = directoryIndexes.get(directory);
+    if (!cached) return;
+    directoryIndexes.delete(directory);
+    indexedNames -= cached.names.length;
+    indexedCharacters -= cached.characters;
+  };
+  const inputs = fileSystem;
+  fileSystem = Object.create(inputs);
+  Object.defineProperty(fileSystem, "readdirSync", { value: directory => {
+    let stat = inputs.lstatSync(directory);
+    assert.ok(stat.isDirectory() && !stat.isSymbolicLink(), `copy ancestor must be a nonlink regular directory: ${directory}`);
+    let signature = identity(stat);
+    const cached = directoryIndexes.get(directory);
+    if (cached && signature.every((value, index) => Object.is(value, cached.identity[index]))) return cached.names;
+    discardIndex(directory);
+    const outside = directory !== source && (directory === "/" || source.startsWith(directory + "/"));
+    let names;
+    for (let attempt = 0; ; attempt += 1) {
+      names = inputs.readdirSync(directory);
+      const after = inputs.lstatSync(directory);
+      assert.ok(after.isDirectory() && !after.isSymbolicLink(), `copy ancestor must be a nonlink regular directory: ${directory}`);
+      if (!outside) {
+        assert.deepEqual(identity(after), signature, `copy directory identity changed: ${directory}`);
+        break;
+      }
+      for (const field of ["dev", "ino", "mode"]) assert.equal(after[field], stat[field], `copy directory identity changed: ${directory}`);
+      const afterIdentity = identity(after);
+      if (signature.every((value, index) => Object.is(value, afterIdentity[index]))) break;
+      if (attempt === 2) return names;
+      stat = after;
+      signature = afterIdentity;
+    }
+    const complete = signature.every((value, index) => index < 5 ? Number.isSafeInteger(value) : Number.isFinite(value));
+    if (!complete || names.length > indexLimits.names || directory.length > indexLimits.characters) return names;
+    let characters = directory.length;
+    for (const name of names) {
+      characters += name.length;
+      if (characters > indexLimits.characters) return names;
+    }
+    while (directoryIndexes.size >= indexLimits.directories || indexedNames + names.length > indexLimits.names || indexedCharacters + characters > indexLimits.characters) {
+      discardIndex(directoryIndexes.keys().next().value);
+    }
+    const ownedNames = names.slice();
+    directoryIndexes.set(directory, { identity: signature, names: ownedNames, characters });
+    indexedNames += names.length;
+    indexedCharacters += characters;
+    return ownedNames;
+  } });
+  assertCanonicalRoot(source, fileSystem);
   const visit = local => {
     assertCanonicalRoot(join(source, local), fileSystem);
     for (const name of fileSystem.readdirSync(join(source, local))) {

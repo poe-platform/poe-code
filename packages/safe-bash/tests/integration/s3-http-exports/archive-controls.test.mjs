@@ -6,6 +6,7 @@ import { tmpdir } from "node:os";
 import { dirname, join, relative, resolve } from "node:path";
 import test from "node:test";
 import { fileURLToPath } from "node:url";
+import { createFsFromVolume, Volume } from "memfs";
 import { loadBoundaries } from "../../../scripts/integration-inputs.mjs";
 import { readRegularInput } from "../../../scripts/typecheck-integration-inputs.mjs";
 import { assertTypeOrigins, cleanEnvironment, digest, inspectCommittedCandidate, packagePrefix, readArchive, resolveTools } from "./committed-archive.mjs";
@@ -183,6 +184,263 @@ for (const [name, change] of [
   const manifest = JSON.parse(readRegularInput(authority, "package.json", 300000));
   change(manifest);
   assert.throws(() => distChecks.assertArchiveDependencyContract(manifest));
+});
+
+function memoryCopyFixture(extra = {}) {
+  const source = "/owned/source";
+  const destination = "/copied";
+  const memory = createFsFromVolume(Volume.fromJSON({
+    [`${source}/first.ts`]: "first",
+    [`${source}/second.ts`]: "second",
+    ...extra,
+  }));
+  memory.mkdirSync(destination);
+  memory.mkdirSync("/another-copy");
+  const reads = [], writes = [], observations = [];
+  const listings = new Map();
+  const fileSystem = {
+    mkdirSync: memory.mkdirSync.bind(memory),
+    lstatSync(path) {
+      observations.push(path);
+      const stat = memory.lstatSync(path);
+      const directory = stat.isDirectory(), regular = stat.isFile(), symlink = stat.isSymbolicLink();
+      return Object.assign(stat, { isDirectory: () => directory, isFile: () => regular, isSymbolicLink: () => symlink });
+    },
+    readdirSync(path) { listings.set(path, (listings.get(path) ?? 0) + 1); return memory.readdirSync(path); },
+    readFileSync(path) { reads.push(path); return memory.readFileSync(path); },
+    writeFileSync(path, bytes) { writes.push(path); memory.writeFileSync(path, bytes); },
+  };
+  return { source, destination, memory, reads, writes, observations, listings, fileSystem };
+}
+
+test("copy directory index reuses names while admitting and reading every payload freshly", () => {
+  const fixture = memoryCopyFixture(Object.fromEntries(Array.from({ length: 32 }, (_, index) => [`/owned/source/extra-${index}.ts`, `${index}`])));
+  const inventory = distChecks.copyRegularTree(fixture.source, fixture.destination, fixture.fileSystem);
+  assert.equal(inventory.length, 34);
+  assert.equal(fixture.reads.length, 34);
+  assert.equal(fixture.writes.length, 34);
+  for (const directory of ["/", "/owned", fixture.source]) {
+    assert.equal(fixture.listings.get(directory), 1, directory);
+    assert.ok(fixture.observations.filter(path => path === directory).length >= 34, directory);
+  }
+  for (const entry of inventory) assert.equal(digest(fixture.memory.readFileSync(join(fixture.destination, entry.path))), entry.sha256);
+});
+
+test("copy directory index accepts frozen filesystem capabilities without changing the caller", () => {
+  const fixture = memoryCopyFixture();
+  const inputs = Object.freeze(fixture.fileSystem);
+  const descriptors = Object.getOwnPropertyDescriptors(inputs);
+  assert.equal(distChecks.copyRegularTree(fixture.source, fixture.destination, inputs).length, 2);
+  assert.deepEqual(Object.getOwnPropertyDescriptors(inputs), descriptors);
+  assert.equal(fixture.reads.length, 2);
+  assert.equal(fixture.writes.length, 2);
+});
+
+for (const field of ["dev", "ino", "mode", "nlink", "size", "mtimeMs", "ctimeMs"]) test(`copy directory index invalidates changed ${field} before reuse`, () => {
+  const fixture = memoryCopyFixture();
+  const metadata = fixture.fileSystem.lstatSync;
+  fixture.fileSystem.lstatSync = path => {
+    const stat = metadata(path);
+    if (path === "/owned" && fixture.reads.length) stat[field] += 1;
+    return stat;
+  };
+  assert.equal(distChecks.copyRegularTree(fixture.source, fixture.destination, fixture.fileSystem).length, 2);
+  assert.equal(fixture.listings.get("/owned"), 2);
+  assert.equal(fixture.reads.length, 2);
+});
+
+for (const field of ["dev", "ino", "mode", "nlink", "size", "mtimeMs", "ctimeMs"]) test(`copy directory index rejects source ${field} drift during listing before payload reads`, () => {
+  const fixture = memoryCopyFixture();
+  const metadata = fixture.fileSystem.lstatSync;
+  fixture.fileSystem.lstatSync = path => {
+    const stat = metadata(path);
+    if (path === fixture.source && fixture.listings.has(path)) stat[field] += 1;
+    return stat;
+  };
+  assert.throws(() => distChecks.copyRegularTree(fixture.source, fixture.destination, fixture.fileSystem), /directory identity changed/);
+  assert.deepEqual(fixture.reads, []);
+  assert.deepEqual(fixture.writes, []);
+});
+
+for (const field of ["dev", "ino", "mode"]) test(`copy directory index rejects outside ${field} replacement during listing`, () => {
+  const fixture = memoryCopyFixture();
+  const metadata = fixture.fileSystem.lstatSync;
+  fixture.fileSystem.lstatSync = path => {
+    const stat = metadata(path);
+    if (path === "/owned" && fixture.listings.has(path)) stat[field] += 1;
+    return stat;
+  };
+  assert.throws(() => distChecks.copyRegularTree(fixture.source, fixture.destination, fixture.fileSystem), /directory identity changed/);
+  assert.deepEqual(fixture.reads, []);
+});
+
+for (const defect of ["rename", "ancestor-link", "leaf-link", "special"]) test(`copy directory index preserves fresh ${defect} rejection after a payload read`, () => {
+  const fixture = memoryCopyFixture();
+  const read = fixture.fileSystem.readFileSync;
+  fixture.fileSystem.readFileSync = path => {
+    const bytes = read(path);
+    if (fixture.reads.length !== 1) return bytes;
+    if (defect === "rename") fixture.memory.renameSync(fixture.source, "/owned/SOURCE");
+    if (defect === "ancestor-link") {
+      fixture.memory.renameSync("/owned", "/replaced");
+      fixture.memory.symlinkSync("/replaced", "/owned");
+    }
+    if (defect === "leaf-link") {
+      fixture.memory.unlinkSync(`${fixture.source}/second.ts`);
+      fixture.memory.symlinkSync("first.ts", `${fixture.source}/second.ts`);
+    }
+    if (defect === "special") {
+      const metadata = fixture.fileSystem.lstatSync;
+      fixture.fileSystem.lstatSync = filename => {
+        const stat = metadata(filename);
+        if (filename === `${fixture.source}/second.ts`) { stat.mode += 1; stat.isFile = () => false; }
+        return stat;
+      };
+    }
+    return bytes;
+  };
+  assert.throws(() => distChecks.copyRegularTree(fixture.source, fixture.destination, fixture.fileSystem));
+  assert.equal(fixture.reads.length, 1);
+  assert.ok(fixture.writes.length <= 1);
+});
+
+test("copy directory index refreshes extra outside names without reusing membership", () => {
+  const fixture = memoryCopyFixture();
+  const metadata = fixture.fileSystem.lstatSync, listing = fixture.fileSystem.readdirSync;
+  let observedExtra = false;
+  fixture.fileSystem.lstatSync = path => {
+    const stat = metadata(path);
+    if (path === "/owned" && fixture.reads.length) stat.size += 1;
+    return stat;
+  };
+  fixture.fileSystem.readdirSync = path => {
+    const names = listing(path);
+    if (path === "/owned" && fixture.reads.length) { observedExtra = true; return [...names, "unrelated"]; }
+    return names;
+  };
+  assert.equal(distChecks.copyRegularTree(fixture.source, fixture.destination, fixture.fileSystem).length, 2);
+  assert.equal(observedExtra, true);
+  assert.equal(fixture.listings.get("/owned"), 2);
+});
+
+test("copy directory index rejects canonical spelling drift from an invalidated listing", () => {
+  const fixture = memoryCopyFixture();
+  const metadata = fixture.fileSystem.lstatSync, listing = fixture.fileSystem.readdirSync;
+  fixture.fileSystem.lstatSync = path => {
+    const stat = metadata(path);
+    if (path === "/owned" && fixture.reads.length) stat.mtimeMs += 1;
+    return stat;
+  };
+  fixture.fileSystem.readdirSync = path => {
+    const names = listing(path);
+    return path === "/owned" && fixture.reads.length ? names.map(name => name === "source" ? "SOURCE" : name) : names;
+  };
+  assert.throws(() => distChecks.copyRegularTree(fixture.source, fixture.destination, fixture.fileSystem), /spelling/);
+  assert.equal(fixture.reads.length, 1);
+});
+
+for (const field of ["nlink", "size", "mtimeMs", "ctimeMs"]) for (const defect of ["none", "canonical alias", "child-link"]) test(`copy directory index bounds unrelated ancestor ${field} churn and retains ${defect} admission`, () => {
+  const fixture = memoryCopyFixture();
+  const metadata = fixture.fileSystem.lstatSync, listing = fixture.fileSystem.readdirSync;
+  fixture.fileSystem.lstatSync = path => {
+    const stat = metadata(path);
+    if (path === "/owned") stat[field] += fixture.listings.get(path) ?? 0;
+    if (path === fixture.source && fixture.listings.get("/owned") === 3 && defect === "child-link") stat.isDirectory = () => false;
+    return stat;
+  };
+  fixture.fileSystem.readdirSync = path => {
+    const names = listing(path);
+    return path === "/owned" && fixture.listings.get(path) === 3 && defect === "canonical alias" ? ["SOURCE"] : names;
+  };
+  if (defect === "none") {
+    assert.equal(distChecks.copyRegularTree(fixture.source, fixture.destination, fixture.fileSystem).length, 2);
+    assert.equal(fixture.listings.get("/owned") % 3, 0);
+  } else {
+    assert.throws(() => distChecks.copyRegularTree(fixture.source, fixture.destination, fixture.fileSystem), /spelling|regular directory/);
+    assert.equal(fixture.listings.get("/owned"), 3);
+    assert.deepEqual(fixture.reads, []);
+  }
+});
+
+test("copy directory index is invocation-local and never reuses source bytes or receipts", () => {
+  const fixture = memoryCopyFixture();
+  const before = distChecks.copyRegularTree(fixture.source, fixture.destination, fixture.fileSystem);
+  fixture.memory.writeFileSync(`${fixture.source}/first.ts`, "other");
+  fixture.memory.writeFileSync(`${fixture.source}/new.ts`, "new");
+  const after = distChecks.copyRegularTree(fixture.source, "/another-copy", fixture.fileSystem);
+  assert.deepEqual(after.map(entry => entry.path), ["first.ts", "new.ts", "second.ts"]);
+  assert.equal(fixture.listings.get("/"), 2);
+  assert.equal(fixture.reads.length, 5);
+  assert.equal(fixture.writes.length, 5);
+  assert.equal(before[0].sha256, digest("first"));
+  assert.equal(after[0].sha256, digest("other"));
+  assert.equal(fixture.memory.readFileSync(`${fixture.destination}/first.ts`, "utf8"), "first");
+});
+
+test("copy directory index never caches incomplete identity fields", () => {
+  for (const field of ["dev", "ino", "mode", "nlink", "size", "mtimeMs", "ctimeMs"]) for (const value of [undefined, NaN, Infinity]) {
+    const fixture = memoryCopyFixture();
+    const metadata = fixture.fileSystem.lstatSync;
+    fixture.fileSystem.lstatSync = path => {
+      const stat = metadata(path);
+      if (path === "/owned") stat[field] = value;
+      return stat;
+    };
+    assert.equal(distChecks.copyRegularTree(fixture.source, fixture.destination, fixture.fileSystem).length, 2);
+    assert.ok(fixture.listings.get("/owned") > 2, field);
+  }
+});
+
+for (const limit of ["names", "characters", "aggregate names", "aggregate characters"]) test(`copy directory index bounds ${limit} without skipping admission`, () => {
+  const fixture = memoryCopyFixture();
+  const listing = fixture.fileSystem.readdirSync;
+  const aggregate = limit.startsWith("aggregate");
+  const padding = limit.endsWith("names") ? Array.from({ length: aggregate ? 17000 : 32769 }, (_, index) => `sibling-${index}`) : ["s".repeat(aggregate ? 530000 : 1048577)];
+  fixture.fileSystem.readdirSync = path => {
+    const names = listing(path);
+    return path === "/owned" || aggregate && path === "/" ? [...names, ...padding] : names;
+  };
+  assert.equal(distChecks.copyRegularTree(fixture.source, fixture.destination, fixture.fileSystem).length, 2);
+  assert.ok(fixture.listings.get("/owned") > 2);
+  assert.equal(fixture.reads.length, 2);
+});
+
+test("copy directory index rereads directories evicted by its entry bound", () => {
+  const fixture = memoryCopyFixture(Object.fromEntries(Array.from({ length: 257 }, (_, index) => [`/owned/source/branch-${String(index).padStart(3, "0")}/input.ts`, "owned"])));
+  const inventory = distChecks.copyRegularTree(fixture.source, fixture.destination, fixture.fileSystem);
+  assert.equal(inventory.length, 259);
+  assert.equal(fixture.reads.length, 259);
+  assert.equal(fixture.writes.length, 259);
+  assert.ok(fixture.listings.get(`${fixture.source}/branch-000`) > 1);
+});
+
+test("copy directory index does not retain oversized empty directory spelling", () => {
+  const fixture = memoryCopyFixture();
+  const source = `/owned/${"s".repeat(1048577)}`;
+  fixture.memory.mkdirSync(source);
+  assert.deepEqual(distChecks.copyRegularTree(source, fixture.destination, fixture.fileSystem), []);
+  assert.deepEqual(fixture.reads, []);
+  assert.deepEqual(fixture.writes, []);
+});
+
+for (const operation of ["lstatSync", "readdirSync"]) for (const failure of [0, new Error("owned invalidation error")]) test(`copy directory index propagates ${operation} ${failure === 0 ? "falsey" : "I/O"} invalidation failure`, () => {
+  const fixture = memoryCopyFixture();
+  const metadata = fixture.fileSystem.lstatSync, original = fixture.fileSystem[operation];
+  fixture.fileSystem.lstatSync = path => {
+    const stat = metadata(path);
+    if (path === "/owned" && fixture.reads.length) stat.ctimeMs += 1;
+    return stat;
+  };
+  const wrapped = fixture.fileSystem[operation];
+  fixture.fileSystem[operation] = path => {
+    if (path === "/owned" && fixture.reads.length) throw failure;
+    return (operation === "lstatSync" ? wrapped : original)(path);
+  };
+  let caught = false;
+  try { distChecks.copyRegularTree(fixture.source, fixture.destination, fixture.fileSystem); }
+  catch (error) { caught = true; assert.equal(error, failure); }
+  assert.equal(caught, true);
+  assert.equal(fixture.reads.length, 1);
 });
 
 function withCopyRoot(run) {

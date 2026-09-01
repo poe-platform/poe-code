@@ -22,8 +22,13 @@ independent. No public SDK option, daemon protocol, or process state schema chan
 
 ## Failure handling
 
-Store a unique token and caller PID in an exclusive-create file beside the managed
-process directory. Only its owner releases it; both operation and release errors
+Store a unique token and caller PID in an exclusive-create file in
+`<state-parent>/.process-operations/<state-directory-name>/<managed-name>`.
+This private sibling metadata directory keeps reservations out of the managed
+name namespace and does not lengthen valid filesystem name components. It uses
+the same filesystem and directory spelling semantics as the state directory;
+the caller needs write access to this auxiliary directory as well as its state
+directory. Only its owner releases it; both operation and release errors
 remain observable. Release after success and ordinary failures, including failures
 before daemon spawning. Never steal a reservation based on age or a PID probe:
 an abruptly terminated caller may have left a daemon that has not yet registered.
@@ -37,6 +42,7 @@ Use deterministic memfs barriers with independent filesystem views and fake
 process groups, not wall-clock sleeps or real background workers. Establish the
 overlap regression before implementation, then verify single-worker ownership,
 stop-by-name cleanup, simultaneous acquisition, failed-start cleanup, retry,
-independent names, and overlapping lifecycle operations. Run existing launcher
+independent names, and overlapping lifecycle operations. Also preserve names that
+resemble metadata files and names at the filesystem component limit. Run existing launcher
 and SDK/CLI regressions, the maintained full build and normal commit/push hooks.
 Verify published artifact behavior separately from committed and pushed status.

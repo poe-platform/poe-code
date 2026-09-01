@@ -271,7 +271,11 @@ async function withManagedProcessOperation<Result>(
   const fs = options.fs ?? defaultFs();
   await assertProcessDirectorySafe(fs, options.baseDir, options.id);
   await fs.mkdir(options.baseDir, { recursive: true });
-  const lockPath = path.join(options.baseDir, `.operation-${options.id}.lock`);
+  const baseDir = path.resolve(options.baseDir);
+  const operationsDir = path.join(path.dirname(baseDir), ".process-operations", path.basename(baseDir));
+  await assertPathHasNoSymbolicLinks(fs, operationsDir);
+  await fs.mkdir(operationsDir, { recursive: true });
+  const lockPath = path.join(operationsDir, options.id);
   const owner = `${JSON.stringify({ token: randomUUID(), pid: process.pid })}\n`;
 
   try {

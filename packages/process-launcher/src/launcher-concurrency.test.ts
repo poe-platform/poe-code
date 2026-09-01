@@ -1,3 +1,4 @@
+import path from "node:path";
 import { Volume, createFsFromVolume } from "memfs";
 import { describe, expect, it, vi } from "vitest";
 import {
@@ -67,6 +68,30 @@ function createFixture(baseDir = "/launch", volume = new Volume()) {
 }
 
 describe("managed process lifecycle ownership", () => {
+  it.each([".operation-worker.lock", ".process-operations"])("does not reserve an existing valid managed name: %s", async (id) => {
+    const fixture = createFixture();
+    fixture.release.resolve();
+    await fixture.start({ spec: { ...fixture.spec, id } });
+    await stopManagedProcess({ ...fixture.common, id });
+    await expect(fixture.start()).resolves.toMatchObject({ daemonPid: 102, spec: fixture.spec });
+  });
+
+  it("does not lengthen a valid managed-name filesystem component", async () => {
+    const fixture = createFixture();
+    fixture.release.resolve();
+    const fs: LauncherFileSystem = {
+      ...fixture.common.fs,
+      async writeFile(filePath, content, options) {
+        if (Buffer.byteLength(path.basename(filePath)) > 255) {
+          throw Object.assign(new Error("filename too long"), { code: "ENAMETOOLONG" });
+        }
+        await fixture.common.fs.writeFile(filePath, content, options);
+      }
+    };
+    const spec = { ...fixture.spec, id: "worker".padEnd(255, "x") };
+    await expect(fixture.start({ fs, spec })).resolves.toMatchObject({ daemonPid: 101, spec });
+  });
+
   it("keeps contention and manual recovery guidance on separate readable lines", async () => {
     const fixture = createFixture();
     const first = fixture.start();
@@ -77,7 +102,7 @@ describe("managed process lifecycle ownership", () => {
       const lines = (error as Error).message.split("\n");
       expect(lines[0]).toBe('Managed process "worker" has another operation in progress.');
       expect(lines).toContain("Retry after it finishes.");
-      expect(lines.at(-1)).toBe("/launch/.operation-worker.lock");
+      expect(lines.at(-1)).toBe("/.process-operations/launch/worker");
     } finally {
       fixture.release.resolve();
       await first;
@@ -325,20 +350,20 @@ describe("managed process lifecycle ownership", () => {
     const fs: LauncherFileSystem = {
       ...fixture.common.fs,
       async rm(filePath, options) {
-        if (filePath.endsWith(".lock")) throw releaseFailure;
+        if (filePath === "/.process-operations/launch/worker") throw releaseFailure;
         await fixture.common.fs.rm(filePath, options);
       }
     };
     await expect(fixture.start({ fs, spawnDaemon: async () => { throw spawnFailure; } })).rejects.toMatchObject({
       errors: [spawnFailure, releaseFailure]
     });
-    await expect(fixture.start()).rejects.toThrow("/launch/.operation-worker.lock");
+    await expect(fixture.start()).rejects.toThrow("/.process-operations/launch/worker");
     expect(fixture.spawnDaemon).not.toHaveBeenCalled();
   });
 
   it("does not delete a reservation whose owner token changed before release", async () => {
     const fixture = createFixture();
-    const lockPath = "/launch/.operation-worker.lock";
+    const lockPath = "/.process-operations/launch/worker";
     const replacement = JSON.stringify({ token: "replacement", pid: 123 });
     await expect(fixture.start({
       spawnDaemon: async () => {

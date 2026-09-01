@@ -1,4 +1,5 @@
 export type PipelineStatus = "open" | "done" | "failed";
+export type PipelineFinalizationStatus = "pending" | "teardown_completed" | "completed";
 export const PIPELINE_STEP_MODES = ["yolo", "auto", "edit", "read"] as const;
 export type StepMode = (typeof PIPELINE_STEP_MODES)[number];
 
@@ -51,6 +52,7 @@ export interface PipelineTask {
 }
 
 export interface PipelinePlan {
+  finalization?: PipelineFinalizationStatus;
   extends?: string;
   stepOverrides?: StepDefinitionOverrides;
   tasks: PipelineTask[];

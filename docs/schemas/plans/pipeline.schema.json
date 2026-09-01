@@ -13,6 +13,15 @@
       "default": "default",
       "minLength": 1
     },
+    "finalization": {
+      "description": "Durable finalization progress for resuming teardown and archiving.",
+      "type": "string",
+      "enum": [
+        "pending",
+        "teardown_completed",
+        "completed"
+      ]
+    },
     "kind": {
       "type": "string",
       "const": "pipeline"

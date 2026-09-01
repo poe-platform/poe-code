@@ -83,6 +83,54 @@ test("failures retain full names, stack, assertion diff and both streams", async
   for (const message of ["outer suite > inner suite > fails deliberately", "failing.test.mjs:12:3", "AssertionError", "actual value", "expected value", "test-reporting.test.mjs", "stdout before failure", "stderr before failure", "stdout after failure", "stderr after failure", "fail 1"]) assert(output.includes(message), message);
 });
 
+test("passing file diagnostics stay quiet while unattributed warnings survive", async () => {
+  const file = resolve("passing.test.mjs");
+  const warning = "Error: Test generated asynchronous activity after the test ended";
+  const output = await report([
+    event("pass", { file, nesting: 0, name: "passing assertion", details: { duration_ms: 1 } }),
+    event("diagnostic", { file: "passing.test.mjs", nesting: 0, level: "info", message: '{"source":"verbose fixture dump"}' }),
+    event("diagnostic", { file, nesting: 1, level: "info", message: "nested fixture diagnostic" }),
+    event("summary", { file, success: true }),
+    event("diagnostic", { nesting: 0, level: "info", message: warning }),
+  ]);
+  assert(!output.includes("verbose fixture dump"));
+  assert(!output.includes("nested fixture diagnostic"));
+  assert(output.includes(warning));
+});
+
+test("failed file diagnostics retain their full content and stream order", async () => {
+  const file = resolve("failing.test.mjs");
+  const messages = ["stdout before diagnostic", '{"source":"complete failure fixture"}\nsecond diagnostic line', "stderr after diagnostic", "diagnostic after failure"];
+  const output = await report([
+    event("stdout", { file, message: `${messages[0]}\n` }),
+    event("diagnostic", { file: "failing.test.mjs", nesting: 0, level: "info", message: messages[1] }),
+    event("stderr", { file, message: `${messages[2]}\n` }),
+    event("fail", { file, nesting: 0, name: "failing assertion", details: { duration_ms: 1, error: new Error("failure") } }),
+    event("diagnostic", { file, nesting: 0, level: "info", message: messages[3] }),
+    event("summary", { file, success: false }),
+  ]);
+  let previous = -1;
+  for (const message of messages) {
+    const position = output.indexOf(message);
+    assert(position > previous, message);
+    assert.equal(output.lastIndexOf(message), position, message);
+    previous = position;
+  }
+});
+
+test("failed file summaries retain diagnostics even without an assertion failure", async () => {
+  const warning = 'Error: Test "probe" generated asynchronous activity after the test ended. This activity created the error "Error: late activity warning" and would have caused the test to fail, but instead triggered an uncaughtException event.';
+  const output = await report([
+    event("diagnostic", { file: "passing.test.mjs", nesting: 0, message: "passing file dump" }),
+    event("pass", { file: "failing.test.mjs", nesting: 0, name: "probe", details: { duration_ms: 1 } }),
+    event("diagnostic", { file: "failing.test.mjs", nesting: 0, level: "info", message: warning }),
+    event("summary", { file: resolve("passing.test.mjs"), success: true }),
+    event("summary", { file: resolve("failing.test.mjs"), success: false }),
+  ]);
+  assert(!output.includes("passing file dump"));
+  assert(output.includes(warning));
+});
+
 test("concurrent file output is retained only for failures", async () => {
   const output = await report([
     event("stdout", { file: "passing.test.mjs", message: "quiet passing fixture\n" }),
@@ -100,8 +148,9 @@ test("unattributed diagnostics and unfinished file output are never lost", async
     event("diagnostic", { nesting: 0, level: "error", message: "uncaught exception" }),
     event("stdout", { file: "crashed.test.mjs", message: "output before crash\n" }),
     event("stderr", { file: "crashed.test.mjs", message: "crash detail\n" }),
+    event("diagnostic", { file: "crashed.test.mjs", nesting: 0, message: "unfinished file diagnostic" }),
   ]);
-  for (const message of ["runner error", "uncaught exception", "output before crash", "crash detail"]) assert(output.includes(message));
+  for (const message of ["runner error", "uncaught exception", "output before crash", "crash detail", "unfinished file diagnostic"]) assert(output.includes(message));
 });
 
 test("large successful runs emit periodic file progress, not individual test names", async () => {

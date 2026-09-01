@@ -32,7 +32,7 @@ export default async function* conciseReporter(events) {
         }
       } else if (type === "test:pass") {
         if (state) state.names.length = data.nesting;
-      } else if (type === "test:stdout" || type === "test:stderr") {
+      } else if (type === "test:stdout" || type === "test:stderr" || type === "test:diagnostic") {
         if (!state || state.failed) yield event;
         else state.output.push(event);
       } else if (type === "test:fail") {

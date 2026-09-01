@@ -37,6 +37,9 @@ describe("PlaygroundSession", () => {
     expect(result.stdout).toContain("64 KiB");
     expect(result.stdout).toContain("cooperative");
     expect(result.stdout).toContain("not installed");
+    expect(result.stdout).toContain("All 79 agent commands");
+    expect(result.stdout).toContain("Web Workers");
+    expect(result.stdout).not.toContain("grep, rg, sed, awk, jq, and [[ =~ ]] are unavailable");
     expect(await session.complete("hel")).toContain("help");
     const builtins = result.stdout.split("Shell builtins:\n")[1]!.split("\n")[0]!.split(" ");
     for (const builtin of builtins) {

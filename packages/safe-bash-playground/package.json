@@ -10,6 +10,7 @@
     "test:unit": "cd ../.. && vitest run packages/safe-bash-playground"
   },
   "devDependencies": {
+    "@jspm/core": "2.1.0",
     "safe-bash-engine": "npm:poe-code@14.0.4"
   }
 }

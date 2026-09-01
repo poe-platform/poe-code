@@ -21,9 +21,5 @@ declare module "virtual:safe-bash-kernel" {
   export class Shell extends NativeShell {
     exec(source: string, options?: ShellExecOptions): Promise<ShellResult>;
   }
-  export function basicCommands(): CommandDefinition[];
-  export function filesystemCommands(): CommandDefinition[];
-  export function predicateCommands(): CommandDefinition[];
-  export function streamCommands(): CommandDefinition[];
-  export function textCommands(): CommandDefinition[];
+  export function createAgentCommands(): CommandDefinition[];
 }

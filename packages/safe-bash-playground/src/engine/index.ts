@@ -1,10 +1,4 @@
-import {
-  basicCommands,
-  filesystemCommands,
-  predicateCommands,
-  streamCommands,
-  textCommands
-} from "virtual:safe-bash-kernel";
+import { createAgentCommands } from "virtual:safe-bash-kernel";
 import type { ShellLimits, VirtualShellPlugin } from "safe-bash-engine/safe-bash";
 
 export {
@@ -35,20 +29,14 @@ export const browserLimits: Readonly<ShellLimits> = Object.freeze({
   pipeHighWaterMark: 16 * 1024
 });
 
-const commands = [
-  ...basicCommands(),
-  ...filesystemCommands(),
-  ...predicateCommands(),
-  ...streamCommands(),
-  ...textCommands()
-];
+const commands = createAgentCommands();
 export const supportedCommands: readonly string[] = Object.freeze(
   commands.map((command) => command.name).sort()
 );
 
 export function browserCommands(): VirtualShellPlugin {
   return {
-    name: "browser-posix-subset",
+    name: "browser-agent-commands",
     setup(host) {
       for (const command of commands) {
         if (host.commands.has(command.name))

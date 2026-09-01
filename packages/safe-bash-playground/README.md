@@ -70,21 +70,15 @@ and function definitions do not persist across separate submissions.
 This is the real Safe Bash interpreter, not native Bash or a host terminal.
 It supports shell pipelines, redirection, variables, functions, loops, command
 substitution, and shell scripts. Alongside shell builtins such as `cd` and `sh`,
-`supportedCommands` exports these 28 registered browser commands:
-
-```text
-[ basename cat cp cut dirname echo false head ln ls mkdir mv printf pwd
-readlink realpath rm rmdir sort tail tee test touch tr true uniq wc
-```
+`supportedCommands` exports 79 registered browser commands.
 
 The playground also registers `help`, which prints its current command list,
 examples, and limits and works in pipelines. `clear` is a UI-only action when
 entered alone, not a shell pipeline command.
 
 There is no host-filesystem access, OS process spawning, or network-command
-support. `curl`, `node`, `python`, `safejs`, `grep`, `rg`, `sed`, `awk`, and `jq`
-are unavailable; the worker-backed `[[ ... =~ ... ]]` regular-expression
-operation is also unavailable. Brace sequences such as `{1..10}` stay literal
+support. `curl`, `node`, `python`, and `safejs`
+are unavailable. Brace sequences such as `{1..10}` stay literal
 rather than expanding. Python and JavaScript samples are editable source, not
 executable runtimes. This subset is not fully Bash-compatible.
 

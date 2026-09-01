@@ -1,8 +1,21 @@
 import { describe, expect, it } from "vitest";
 import { limitCommandBuffers } from "./buffer-limit-adapter.mjs";
 import { instrumentRootState } from "./root-state-adapter.mjs";
+import { selectBrowserWorker } from "./worker-source-adapter.mjs";
 
 describe("pinned browser source adapters", () => {
+  it("replaces the worker URL without changing ownership options", () => {
+    const adapted = selectBrowserWorker(
+      'new Worker(new URL("./worker.js", import.meta.url), { workerData: { version: 1 } });',
+      "regex"
+    );
+    expect(adapted).toContain('new Worker("regex", { workerData: { version: 1 } })');
+    expect(adapted).not.toContain("import.meta.url");
+    expect(() => selectBrowserWorker("new Worker(source)", "regex")).toThrow("constructor changed");
+    expect(() => selectBrowserWorker("export const other = 1;", "regex")).toThrow(
+      "structure changed"
+    );
+  });
   it("refuses a missing or changed command buffer binding", () => {
     expect(() => limitCommandBuffers("export const other = 32 * 1024 * 1024;")).toThrow(
       "structure changed"

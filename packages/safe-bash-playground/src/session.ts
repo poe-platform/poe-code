@@ -265,7 +265,8 @@ Cwd and files persist between commands; variables and functions do not.
 Uploads are saved under /home/uploads. Reload/Reset discards the workspace.
 Download anything you want to keep. Tab completes commands and paths.
 Python, Node.js, TypeScript, Rust, Go, C, Ruby, and Java runtimes are not installed.
-Network/OS commands and grep, rg, sed, awk, jq, and [[ =~ ]] are unavailable.
+All ${commands.length} agent commands are available, including grep, rg, sed, awk, jq, and find.
+Regex searches and [[ =~ ]] run in Web Workers. Network/OS commands remain unavailable.
 `)
       );
       return { exitCode: 0 };

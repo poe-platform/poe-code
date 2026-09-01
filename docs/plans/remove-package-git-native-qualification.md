@@ -102,3 +102,11 @@ history and its plan additions. Its executable changes only extend the explicitl
 retired native prerequisite framework, so no binaries, profiles or launcher-only
 tests are reinstated. Retained executable source is identical to the fully tested
 local commit. Normal hooks still run on the final merge before another push.
+
+Before the next push hook began, main advanced again to
+3a434d0c5f6d3bf24fb9356dc13152364f6d6ed7. Its 42-path delta is retained, including
+pipeline concurrency, worktree recovery/cancellation, process-launcher behavior,
+superintendent completion and the single-observation allocation fixture. Only the
+new edits to the already retired native-profile test remain removed. This later
+merge has real upstream executable changes and requires its own normal hooks;
+the earlier full-green result does not certify those added changes.

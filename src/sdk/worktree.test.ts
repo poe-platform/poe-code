@@ -180,6 +180,116 @@ describe("runInWorktree", () => {
     });
   });
 
+  it.each([
+    { worktreeHead: "abc123", worktreeStatus: "", committed: "none", uncommitted: "none" },
+    { worktreeHead: "def456", worktreeStatus: "", committed: "present", uncommitted: "none" },
+    { worktreeHead: "abc123", worktreeStatus: " M src/file.ts\0", committed: "none", uncommitted: "present" }
+  ])("preserves a rejected resolved outcome with $committed commits and $uncommitted edits", async (changes) => {
+    const value = { stopReason: "failed" };
+    const spawnAgent = vi.fn().mockResolvedValue(spawnResult());
+    const isSuccessful = vi.fn(() => false);
+    const result = await runInWorktree({
+      cwd: "/repo",
+      selectedAgent: "codex",
+      worktree: true,
+      spawnAgent,
+      deps: createFailureDeps({ ...changes, worktreeList: "worktree /repo/.poe-code/worktrees/wt\n" }),
+      run: async () => value,
+      isSuccessful
+    });
+
+    expect(result.value).toBe(value);
+    expect(result.worktree.worktree.path).toBe("/repo/.poe-code/worktrees/wt");
+    expect(result.worktree.worktree.status).toBe("failed");
+    expect(result.worktree.reconciliation).toBeUndefined();
+    expect(isSuccessful).toHaveBeenCalledExactlyOnceWith(value);
+    expect(worktreeMocks.reconcileWorktree).not.toHaveBeenCalled();
+    expect(spawnAgent).not.toHaveBeenCalled();
+    expect(await worktreeMocks.updateWorktreeEntry.mock.results[0]!.value).toMatchObject({
+      status: "failed",
+      reconciliation: {
+        committed: changes.committed,
+        uncommitted: changes.uncommitted,
+        removed: false,
+        cleanup: "not_needed"
+      }
+    });
+  });
+
+  it.each([false, 0, "", null, undefined])("uses the explicit success classifier for %j", async (value) => {
+    const isSuccessful = vi.fn(() => true);
+    const result = await runInWorktree({
+      cwd: "/repo",
+      selectedAgent: "codex",
+      worktree: true,
+      run: async () => value,
+      isSuccessful
+    });
+
+    expect(result.value).toBe(value);
+    expect(isSuccessful).toHaveBeenCalledExactlyOnceWith(value);
+    expect(worktreeMocks.reconcileWorktree).toHaveBeenCalledTimes(1);
+  });
+
+  it("does not reconcile a resolved callback after cancellation", async () => {
+    const controller = new AbortController();
+    const spawnAgent = vi.fn().mockResolvedValue(spawnResult());
+    const value = { stopReason: "completed" };
+    const result = await runInWorktree({
+      cwd: "/repo",
+      selectedAgent: "codex",
+      worktree: true,
+      signal: controller.signal,
+      spawnAgent,
+      deps: createFailureDeps({ worktreeHead: "abc123", worktreeStatus: "", worktreeList: "" }),
+      run: async () => {
+        controller.abort();
+        return value;
+      },
+      isSuccessful: () => true
+    });
+
+    expect(result.value).toBe(value);
+    expect(worktreeMocks.reconcileWorktree).not.toHaveBeenCalled();
+    expect(spawnAgent).not.toHaveBeenCalled();
+    expect(await worktreeMocks.updateWorktreeEntry.mock.results[0]!.value).toMatchObject({ status: "failed" });
+  });
+
+  it("does not infer a generic callback outcome from its object shape", async () => {
+    const value = { stopReason: "failed" };
+    const result = await runInWorktree({
+      cwd: "/repo",
+      selectedAgent: "codex",
+      worktree: true,
+      run: async () => value
+    });
+
+    expect(result.value).toBe(value);
+    expect(worktreeMocks.reconcileWorktree).toHaveBeenCalledTimes(1);
+  });
+
+  it("preserves an empty worktree and the original thrown cancellation", async () => {
+    const controller = new AbortController();
+    const failure = Object.assign(new Error("Fixture cancellation"), { name: "AbortError" });
+    const spawnAgent = vi.fn().mockResolvedValue(spawnResult());
+    await expect(runInWorktree({
+      cwd: "/repo",
+      selectedAgent: "codex",
+      worktree: true,
+      signal: controller.signal,
+      spawnAgent,
+      deps: createFailureDeps({ worktreeHead: "abc123", worktreeStatus: "", worktreeList: "" }),
+      run: async () => {
+        controller.abort();
+        throw failure;
+      }
+    })).rejects.toBe(failure);
+
+    expect(worktreeMocks.reconcileWorktree).not.toHaveBeenCalled();
+    expect(spawnAgent).not.toHaveBeenCalled();
+    expect(await worktreeMocks.updateWorktreeEntry.mock.results[0]!.value).toMatchObject({ status: "failed" });
+  });
+
   it("marks failed worktrees without reconciling when the callback fails", async () => {
     const spawnAgent = vi.fn().mockResolvedValue(spawnResult({ threadId: "cleanup-thread" }));
     const deps = createFailureDeps({
@@ -288,6 +398,25 @@ describe("reconcileManagedWorktree", () => {
 });
 
 describe("runWithOptionalWorktree", () => {
+  it("does not classify or mutate a direct execution", async () => {
+    vi.clearAllMocks();
+    const value = { stopReason: "failed" };
+    const isSuccessful = vi.fn(() => false);
+    const result = await runWithOptionalWorktree({
+      cwd: "/repo",
+      selectedAgent: "codex",
+      worktree: false,
+      run: async () => value,
+      isSuccessful
+    });
+
+    expect(result).toEqual({ value });
+    expect(result.value).toBe(value);
+    expect(isSuccessful).not.toHaveBeenCalled();
+    expect(worktreeMocks.createWorktree).not.toHaveBeenCalled();
+    expect(worktreeMocks.updateWorktreeEntry).not.toHaveBeenCalled();
+  });
+
   it("runs directly when worktree mode is disabled", async () => {
     const run = vi.fn().mockResolvedValue("direct");
 

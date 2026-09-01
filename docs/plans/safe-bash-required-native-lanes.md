@@ -307,3 +307,13 @@ five-file focused run passed21/21 with zero skips afterward, including the six
 affected native cases. Scoped TypeScript and whitespace checks pass. Evidence:
 `out/math-array-validation/native-launch-red.log`, `native-launch-green.log`
 and `native-launch-types.log`. Hosted semantics still gate publication.
+
+A second independent review verified the same artifact: exactly 45129633 ZIP
+bytes, 295 sealed members, all 35 executable outputs, and 16 matching independent
+GNU pairs. No downloaded executable ran locally. The artifact does not record
+independent hosted compiler/linker/SDK executable-byte hashes; version/image
+provenance is not a fully byte-pinned toolchain. No local identity substitutes
+for hosted evidence. Both independent admission regressions reproduced the
+missing-Bash failure before their additions. Their integration retains the
+upstream exact pin/provenance checks, local-versus-hosted and required-lane
+assertions, plus explicit profile-ID and missing-record rejection checks.

@@ -2,15 +2,18 @@ import { randomUUID } from "node:crypto";
 import { S, UserError, defineCommand } from "toolcraft";
 import { hasOwnErrorCode } from "../error-codes.js";
 import { setStatusReason, transitionState } from "../document/write.js";
+import { withDocumentStatusLock } from "../document/status-lock.js";
 
 const completeParams = S.Object({
   path: S.String({ description: "Path to the superintendent markdown document" }),
   reason: S.Optional(S.String({ description: "Why the loop was force-completed" })),
-  dryRun: S.Optional(S.Boolean({
-    description: "Preview completion without writing changes",
-    scope: ["cli", "sdk"],
-    global: true
-  }))
+  dryRun: S.Optional(
+    S.Boolean({
+      description: "Preview completion without writing changes",
+      scope: ["cli", "sdk"],
+      global: true
+    })
+  )
 });
 
 export const completeCommand = defineCommand({
@@ -22,22 +25,27 @@ export const completeCommand = defineCommand({
   handler: async ({ params, fs }) => {
     const stat = await lstatDocument(params.path, fs);
     if (stat.isSymbolicLink()) {
-      throw new UserError(`Refusing to complete superintendent document through symbolic link: ${params.path}`);
+      throw new UserError(
+        `Refusing to complete superintendent document through symbolic link: ${params.path}`
+      );
     }
-    const content = await readDocument(params.path, fs);
-    const completedContent = transitionState(params.path, content, "completed");
-    const updatedContent = setStatusReason(params.path, completedContent, params.reason);
+    const complete = async () => {
+      const content = await readDocument(params.path, fs);
+      const completedContent = transitionState(params.path, content, "completed");
+      const updatedContent = setStatusReason(params.path, completedContent, params.reason);
 
-    if (params.dryRun !== true) {
-      await writeDocumentAtomically(params.path, updatedContent, fs);
-    }
+      if (params.dryRun !== true) {
+        await writeDocumentAtomically(params.path, updatedContent, fs);
+      }
 
-    return {
-      path: params.path,
-      state: "completed" as const,
-      reason: params.reason,
-      ...(params.dryRun === true ? { dryRun: true as const } : {})
+      return {
+        path: params.path,
+        state: "completed" as const,
+        reason: params.reason,
+        ...(params.dryRun === true ? { dryRun: true as const } : {})
+      };
     };
+    return params.dryRun === true ? complete() : withDocumentStatusLock(params.path, fs, complete);
   },
   render: {
     rich: (result, { logger }) => {

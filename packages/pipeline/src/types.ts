@@ -85,6 +85,7 @@ export interface PipelineFileSystem {
   rmdir(path: string): Promise<void>;
   rename(oldPath: string, newPath: string): Promise<void>;
   unlink(path: string): Promise<void>;
+  realpath?(path: string): Promise<string>;
 }
 
 export interface AgentRunInput {

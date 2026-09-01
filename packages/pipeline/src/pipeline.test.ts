@@ -2188,7 +2188,7 @@ describe("writeTaskStatus", () => {
     const fs = createFs({ "/repo/plan.yaml": initial });
     let temporaryPath: string | undefined;
     const writeFile = vi.fn(fs.writeFile.bind(fs)).mockImplementation(async (filePath, data, options) => {
-      if (filePath !== "/repo/plan.yaml") {
+      if (filePath.startsWith("/repo/plan.yaml.") && filePath.endsWith(".tmp")) {
         temporaryPath = String(filePath);
         await fs.writeFile(filePath, "partial\n", options);
         throw new Error("status write failed");

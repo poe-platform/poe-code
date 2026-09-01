@@ -996,10 +996,11 @@ export function registerPipelineCommand(program: Command, container: CliContaine
         return;
       }
 
-      const sequence = await runWithOptionalWorktree({
+      const sequence = await runWithOptionalWorktree<string>({
         cwd: container.env.cwd,
         selectedAgent: agent,
         worktree: pickWorktreeOptions(options as Record<string, unknown>),
+        isSuccessful: (outcome) => outcome !== "failed" && outcome !== "cancelled",
         run: async ({ worktreeCwd }) => {
           let ranWork = false;
           for (const [index, planPath] of planPaths.entries()) {
@@ -1082,14 +1083,14 @@ export function registerPipelineCommand(program: Command, container: CliContaine
                 `Pipeline failed at ${result.lastTaskId}${result.lastStepName ? ` (${result.lastStepName})` : ""}.`
               );
               resources.logger.resolved("Run summary", summary);
-              return "stopped";
+              return "failed";
             }
 
             if (result.stopReason === "cancelled") {
               process.exitCode = 130;
               resources.logger.warn("Pipeline run cancelled.");
               resources.logger.resolved("Run summary", summary);
-              return "stopped";
+              return "cancelled";
             }
 
             if (result.stopReason === "nothing_to_run") {

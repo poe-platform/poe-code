@@ -1,0 +1,76 @@
+name: Release scoped safe packages
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - "packages/safe-js/**"
+      - "packages/safe-bash/**"
+      - "packages/safe-fs/**"
+      - "scripts/package-safe*"
+      - "scripts/fixtures/safe-packages-*"
+      - "scripts/bundle*.mjs"
+      - "package.json"
+      - "package-lock.json"
+      - ".github/workflows/release-safe.yml"
+concurrency:
+  group: release-safe
+  cancel-in-progress: false
+permissions:
+  contents: read
+  id-token: write
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.sha }}
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - uses: oven-sh/setup-bun@v2
+      - name: Install dependencies and trusted-publishing npm
+        run: |
+          npm ci
+          npm install --global npm@^11.5.1
+          node --version
+          npm --version
+          bun --revision
+      - name: Compute the next shared version
+        id: version
+        shell: bash
+        run: |
+          set -euo pipefail
+          JS=$(npm view @poe-platform/safe-js version)
+          BASH_VERSION_REMOTE=$(npm view @poe-platform/safe-bash version)
+          NEXT=$(node --input-type=module -e 'import semver from "semver"; const versions = process.argv.slice(1); if (!versions.every(version => semver.valid(version))) throw new Error("Invalid registry version"); console.log(semver.inc(versions.sort(semver.rcompare)[0], "patch"));' "$JS" "$BASH_VERSION_REMOTE")
+          echo "next=$NEXT" >> "$GITHUB_OUTPUT"
+      - run: npm run build
+      - run: npx vitest run scripts/package-safe.test.ts
+      - run: npm run lint:packages
+      - name: Prepare scoped artifacts
+        env:
+          VERSION: ${{ steps.version.outputs.next }}
+        run: node scripts/package-safe.mjs --out-dir "$RUNNER_TEMP/safe-npm" --version "$VERSION"
+      - name: Verify installed tarballs
+        shell: bash
+        run: |
+          set -euo pipefail
+          CONSUMER=$(mktemp -d)
+          npm pack "$RUNNER_TEMP/safe-npm/safe-js" --ignore-scripts --pack-destination "$CONSUMER"
+          npm pack "$RUNNER_TEMP/safe-npm/safe-bash" --ignore-scripts --pack-destination "$CONSUMER"
+          cp scripts/fixtures/safe-packages-* "$CONSUMER/"
+          cd "$CONSUMER"
+          npm init --yes
+          npm install --ignore-scripts --no-audit --no-fund ./*.tgz
+          node safe-packages-smoke.mjs
+          bun safe-packages-smoke.mjs
+          "$GITHUB_WORKSPACE/node_modules/.bin/tsc" --noEmit --module NodeNext --moduleResolution NodeNext --target ES2022 safe-packages-types.mts
+          "$GITHUB_WORKSPACE/node_modules/.bin/esbuild" safe-packages-browser.mjs --bundle --platform=browser --format=esm --outfile=browser.mjs
+          node browser.mjs
+      - name: Publish SafeJS with provenance
+        run: npm publish "$RUNNER_TEMP/safe-npm/safe-js" --provenance --access public
+      - name: Publish Safe Bash with provenance
+        run: npm publish "$RUNNER_TEMP/safe-npm/safe-bash" --provenance --access public

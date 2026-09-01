@@ -15,6 +15,21 @@ GitHub.
 
 ## Workspace Packages
 
+### Scoped Safe Libraries
+
+`@poe-platform/safe-js` and `@poe-platform/safe-bash` are published together by
+`release-safe.yml`. Their private workspace names remain unchanged. Run
+`npm run build`, then `node scripts/package-safe.mjs --out-dir <empty-directory> --version <version>`
+to prepare standalone artifacts. Safe Bash depends on the matching SafeJS
+version; both use the filesystem exported by `@poe-platform/safe-js/fs`.
+
+For the initial publish, use the generated `safe-js` and `safe-bash` directories
+with the terminal-pilot procedure below. Configure both trusted publishers with
+workflow filename `release-safe.yml`, then dispatch that workflow to verify a
+subsequent publication with provenance. No npm token is used by that workflow.
+
+### Other Workspaces
+
 Workspace packages use dedicated release workflows, for example
 `release-toolcraft.yml`, `release-tokenfill.yml`, and `release-terminal-png.yml`.
 

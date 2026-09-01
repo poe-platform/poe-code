@@ -4,11 +4,14 @@ Run shell scripts and command-line tools in your application against an explicit
 
 ## Quickstart
 
-Import from `poe-code/safe-bash` in a Node.js 22+ ESM application. Use a
-`poe-code` version that includes this entry point; no separate package is needed.
+Install in a Node.js 22+ ESM application:
+
+```sh
+npm install @poe-platform/safe-bash
+```
 
 ```ts
-import { Shell, agentCommands, createMemoryFileSystem } from "poe-code/safe-bash";
+import { Shell, agentCommands, createMemoryFileSystem } from "@poe-platform/safe-bash";
 
 const fs = createMemoryFileSystem();
 const encoder = new TextEncoder();
@@ -39,15 +42,15 @@ filesystem changes persist in the supplied `fs`.
 
 ## Browsers and Workers
 
-Use `poe-code/safe-bash/browser` for a portable Shell with an explicit command
+Use `@poe-platform/safe-bash/browser` for a portable Shell with an explicit command
 subset. Bundle as ESM with `platform: "browser"` and
 `conditions: ["workerd", "worker", "browser"]`; the `browser` condition selects
 the canonical portable filesystem. No `nodejs_compat` flag or Node globals are
-required. The regular `poe-code/safe-bash` entry remains the Node API.
+required. The regular `@poe-platform/safe-bash` entry remains the Node API.
 
 ```ts
-import { Shell, browserCommands } from "poe-code/safe-bash/browser";
-import { createMemoryFileSystem } from "poe-code/safe-fs/core";
+import { Shell, browserCommands } from "@poe-platform/safe-bash/browser";
+import { createMemoryFileSystem } from "@poe-platform/safe-js/fs/core";
 
 const fs = createMemoryFileSystem();
 const shell = new Shell({ fs, limits: { maxCommands: 100, maxOutputBytes: 65536 } })
@@ -68,7 +71,7 @@ try {
 
 Shell builtins, virtual scripts, pipelines, budgets, cancellation, and disposal
 remain available. Inject a canonical filesystem or compose memory/read-only/mount
-adapters from `poe-code/safe-fs/core`; filesystem and error identity are shared.
+adapters from `@poe-platform/safe-js/fs/core`; filesystem and error identity are shared.
 The core's portable `posixPath` exposes `basename`, `dirname`, `extname`, `join`,
 and `isAbsolute`. Node-only adapters and command packs are not included;
 `[[ … =~ … ]]` explicitly returns status 2. Use the Node entry for regex-worker
@@ -130,8 +133,8 @@ Plug SafeJS into `node`; nothing starts a native Node.js subprocess or loads a
 runtime automatically. The same runtime object can also power `safeJsCommands`.
 
 ```ts
-import { Shell, agentCommands, createMemoryFileSystem, nodeCommands } from "poe-code/safe-bash";
-import { Budget, run, makeFsModule, declareHostOperation } from "poe-code/safe-js";
+import { Shell, agentCommands, createMemoryFileSystem, nodeCommands } from "@poe-platform/safe-bash";
+import { Budget, run, makeFsModule, declareHostOperation } from "@poe-platform/safe-js";
 
 const fs = createMemoryFileSystem();
 await fs.writeFile("/transform.js", new TextEncoder().encode(`
@@ -181,7 +184,7 @@ adds `file-bytes`, which reports a virtual file's size without reading its conte
 import {
   Shell, agentCommands, createMemoryFileSystem, resolvePath, writeText,
   type CommandDefinition,
-} from "poe-code/safe-bash";
+} from "@poe-platform/safe-bash";
 
 const fileBytes: CommandDefinition = {
   name: "file-bytes",

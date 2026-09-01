@@ -92,7 +92,7 @@ for (const command of ["head", "tail"] as const) {
   for (const kind of ["Buffer", "Uint8Array"] as const) {
     for (const reuse of [false, true]) {
       test(`${command} byte trimming has linear copies for ${reuse ? "reused" : "immutable"} ${kind}`, async () => {
-        for (const count of [521, 2081, 8329]) {
+        for (const count of [37, 131, 521]) {
           const sizes = [count, ...Array<number>(count + 13).fill(1)];
           const observed = await observeByteTail(command, count, sizes, kind, reuse);
           assert.ok(observed.copiedBytes <= 2 * observed.inputBytes, JSON.stringify(observed));

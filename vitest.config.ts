@@ -122,9 +122,7 @@ export default defineConfig({
   },
   test: {
     silent: "passed-only",
-    ...(process.env.CI && process.env.CI !== "false" && process.env.CI !== "0"
-      ? { reporters: ["dot"], silent: "passed-only" as const }
-      : {}),
+    reporters: ["dot"],
     globals: true,
     environment: "node",
     pool: "threads",

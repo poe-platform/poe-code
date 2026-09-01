@@ -4,14 +4,13 @@ import { compose } from "node:stream";
 import { spec } from "node:test/reporters";
 import { fileURLToPath } from "node:url";
 
-export function reporterArguments(args, environment = process.env) {
-  if (!environment.CI || environment.CI === "false" || environment.CI === "0") return [];
-  if (args.some(argument => argument === "--test-reporter" || argument.startsWith("--test-reporter="))) return [];
+export function reporterArguments(args) {
+  if (args.some(argument => argument === "--test-reporter" || argument.startsWith("--test-reporter=") || argument === "--test-reporter-destination" || argument.startsWith("--test-reporter-destination="))) return [];
   return [`--test-reporter=${import.meta.url}`];
 }
 
-export function runNodeTests(args, spawn = spawnSync, environment = process.env) {
-  const result = spawn(process.execPath, ["--test", ...reporterArguments(args, environment), ...args], { stdio: "inherit" });
+export function runNodeTests(args, spawn = spawnSync) {
+  const result = spawn(process.execPath, ["--test", ...reporterArguments(args), ...args], { stdio: "inherit" });
   if (result.error) throw result.error;
   return result.status ?? 1;
 }

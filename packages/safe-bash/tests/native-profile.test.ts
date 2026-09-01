@@ -127,6 +127,11 @@ test("hosted Bash uses the reviewed independent Darwin 25.5 builds without repla
     manifestSha256: "f64bc8cb49d4632a81a491f3b9e6b1a3c39b6cb516fdcb709f2e68763a402013",
     independentBuilds: 2,
   });
+  assert.equal(profile.id, "github-macos26-arm64-20260728.0273.1-native-release");
+  assert.throws(() => nativeGnuBinding("bash", {
+    ...options,
+    profiles: [{ ...profile, executables: profile.executables.filter((entry: { tool: string }) => entry.tool !== "bash") }],
+  }), { message: "qualified GNU profile does not provide bash" });
   assert(manifest.darwinTestFiles.includes("tests/shell-stress/diagnostic-profiles/compatibility.test.ts"));
 });
 

@@ -25,6 +25,7 @@ export async function runRalph(options: RalphRunOptions): Promise<RalphRunResult
       selectedAgent: resolveWorktreeAgent(options.agent),
       worktree: options.worktree,
       signal: options.signal,
+      isSuccessful: ({ stopReason }) => stopReason === "completed" || stopReason === "max_iterations",
       run: async ({ worktreeCwd }) =>
         await runRalphDirect({
           ...options,

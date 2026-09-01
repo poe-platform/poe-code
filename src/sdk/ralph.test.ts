@@ -125,6 +125,21 @@ describe("SDK ralph", () => {
     );
   });
 
+  it.each(["completed", "max_iterations", "failed", "cancelled"] as const)(
+    "classifies %s without changing the returned workflow result",
+    async (stopReason) => {
+      const value = { stopReason, docPath: "docs/loop.md", iterationsCompleted: 1, totalDurationMs: 1 };
+      runWorkspaceRalphMock.mockResolvedValueOnce(value);
+      const result = await runRalph({
+        cwd: "/repo", homeDir: "/home/test", docPath: "docs/loop.md", agent: "codex", worktree: true
+      });
+
+      expect(result).toBe(value);
+      const input = runWithOptionalWorktreeMock.mock.calls[0]![0];
+      expect(input.isSuccessful(value)).toBe(stopReason === "completed" || stopReason === "max_iterations");
+    }
+  );
+
   it("wires the default autonomous runner when no runAgent is provided", async () => {
     const expectedResult = {
       stopReason: "max_iterations" as const,

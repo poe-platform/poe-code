@@ -131,12 +131,14 @@ async function runWithRetry<T>(
 
 export async function runPipeline(options: PipelineRunOptions): Promise<PipelineRunResult> {
   if (isWorktreeEnabled(options.worktree)) {
-    const wrapped = await runWithOptionalWorktree({
+    const wrapped = await runWithOptionalWorktree<PipelineRunResult>({
       cwd: options.cwd,
       selectedAgent: options.agent,
       ...(options.model ? { selectedModel: options.model } : {}),
       worktree: options.worktree,
       signal: options.signal,
+      isSuccessful: ({ stopReason }) =>
+        stopReason === "completed" || stopReason === "max_runs" || stopReason === "nothing_to_run",
       run: async ({ worktreeCwd }) =>
         await runPipelineDirect({
           ...options,

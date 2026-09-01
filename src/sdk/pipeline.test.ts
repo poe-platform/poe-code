@@ -177,6 +177,20 @@ describe("SDK pipeline", () => {
     );
   });
 
+  it.each(["completed", "max_runs", "nothing_to_run", "failed", "cancelled"] as const)(
+    "classifies %s without changing the returned workflow result",
+    async (stopReason) => {
+      seedFs({ "/repo/.poe-code/worktrees/pipeline/feature.md": initializedPlan() });
+      const value = { ...workspaceResult, stopReason };
+      workspaceRunPipelineMock.mockResolvedValueOnce(value);
+      const result = await runPipeline({ agent: "codex", cwd, homeDir, plan: "feature.md", worktree: true });
+
+      expect(result).toBe(value);
+      const input = runWithOptionalWorktreeMock.mock.calls[0]![0];
+      expect(input.isSuccessful(value)).toBe(stopReason !== "failed" && stopReason !== "cancelled");
+    }
+  );
+
   it("uses an injected filesystem for explicit plan initialization preflight", async () => {
     seedFs({});
     const injectedFs = createFsFromVolume(

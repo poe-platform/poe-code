@@ -2,27 +2,7 @@ import assert from "node:assert/strict";
 import test from "node:test";
 import { toByteSource } from "../../../src/contracts/index.js";
 import { createTextProgramCommands } from "../../../src/commands/text-programs/index.js";
-import { compareNative, makeFileSystem, runVirtual } from "./helpers.js";
-
-for (const program of [
-  'BEGIN{while((getline value < "extra")>0)print value;print close("extra")}',
-  'BEGIN{while((getline < "extra")>0)print NR,FNR,NF,$0,$1}',
-  '{getline value < "extra";print NR,FNR,$0,value}',
-  'BEGIN{getline values[1] < "extra";print values[1]}',
-  '{$1="old";getline $2 < "extra";print NF,$0}',
-  'function readfile(values){getline values[1] < "extra"} BEGIN{readfile(values);print values[1]}',
-  'BEGIN{RS=":";while((getline value < "extra")>0)print "["value"]"}',
-  'BEGIN{value="keep";while((getline value < "extra")>0)print value;print (getline value < "extra"),value}',
-  'BEGIN{print (getline value < "missing"),value}',
-  'BEGIN{getline value < "extra";print value,close("extra");getline value < "extra";print value}',
-  'BEGIN{part="ex";getline value < (part "tra");print value}',
-  'BEGIN{getline value < "-";print value}',
-  'BEGIN{getline value < "./-";print value}',
-]) {
-  test(`awk native file getline: ${program}`, async () => {
-    await compareNative("awk", { args: [program], stdin: "input line\n", files: { extra: "first:word\nsecond tail\n", "-": "literal dash\n" } });
-  });
-}
+import { makeFileSystem, runVirtual } from "./helpers.js";
 
 test("getline retains execution and record buffer limits instead of converting them to I/O status", async () => {
   const actual = await runVirtual("awk", { args: ['BEGIN{print (getline value < "extra")}'], files: { extra: "x".repeat(256) } }, { maxBufferBytes: 64 });

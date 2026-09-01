@@ -99,7 +99,6 @@ export type {
   SandboxDirent,
   SandboxStats
 } from "./modules/fs.js";
-export { makeGitModule } from "./modules/git.js";
 export { makeHarnessModule } from "./modules/harness.js";
 export { makeLogModule } from "./modules/log.js";
 export { makeMetricModule } from "./modules/metric.js";

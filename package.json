@@ -139,10 +139,6 @@
       "types": "./packages/safe-bash/dist/commands/timeout/index.d.ts",
       "import": "./packages/safe-bash/dist/commands/timeout/index.js"
     },
-    "./safe-bash/commands/git": {
-      "types": "./packages/safe-bash/dist/commands/git/index.d.ts",
-      "import": "./packages/safe-bash/dist/commands/git/index.js"
-    },
     "./safe-bash/commands/apply-patch": {
       "types": "./packages/safe-bash/dist/commands/apply-patch/index.d.ts",
       "import": "./packages/safe-bash/dist/commands/apply-patch/index.js"
@@ -294,7 +290,10 @@
     "record:fs-conformance": "tsx scripts/record-fs-conformance.ts",
     "sync:json-schema-test-suite": "node scripts/sync-json-schema-test-suite.mjs",
     "sync:uri-template-test": "node scripts/sync-uri-template-test.mjs",
-    "postinstall": "node scripts/postinstall-sync-skills.mjs"
+    "postinstall": "node scripts/postinstall-sync-skills.mjs",
+    "test:workspaces": "node scripts/build-workspaces.mjs --test-unit",
+    "test:stress:lint": "vitest run --config vitest.lint-stress.config.ts",
+    "posttest": "npm run test:stress:lint"
   },
   "bin": {
     "poe": "dist/bin.cjs",

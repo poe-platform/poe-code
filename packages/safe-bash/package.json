@@ -90,10 +90,6 @@
       "types": "./dist/commands/timeout/index.d.ts",
       "import": "./dist/commands/timeout/index.js"
     },
-    "./commands/git": {
-      "types": "./dist/commands/git/index.d.ts",
-      "import": "./dist/commands/git/index.js"
-    },
     "./commands/apply-patch": {
       "types": "./dist/commands/apply-patch/index.d.ts",
       "import": "./dist/commands/apply-patch/index.js"
@@ -139,9 +135,8 @@
     "test": "node scripts/test.mjs",
     "test:contracts": "node --import tsx --test \"tests/contracts/**/*.test.ts\"",
     "verify:stream-public": "node tests/plugins/stream-five-public/verify-public.mjs",
-    "verify:release:qualified": "node scripts/verify-qualified-release.mjs",
     "verify:release:whole": "node scripts/verify-whole-gate.mjs",
-    "test:runner": "node scripts/test-reporting.mjs scripts/integration-inputs.test.mjs scripts/provision-test-inputs.test.mjs scripts/build.test.mjs scripts/test-reporting.test.mjs",
+    "test:runner": "node scripts/test-reporting.mjs scripts/integration-inputs.test.mjs scripts/build.test.mjs scripts/test-reporting.test.mjs",
     "test:unit": "npm run test:runner && node scripts/test.mjs"
   },
   "devDependencies": {

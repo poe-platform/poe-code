@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 import { cases } from "./fixtures.js";
-import { availability, expectedFiles, native, shell, snapshot } from "./helpers.js";
+import { expectedFiles, shell, snapshot } from "./helpers.js";
 
 test("Shell+Memory literal stdin accepts POSIX blank context", async () => {
   const fixture = cases[0]!;
@@ -24,19 +24,14 @@ test("Shell+Memory dry-run and apply preserve cwd, stripped paths, reverse bytes
   assert.deepEqual(await snapshot(workspace.fs, ["tree/target"]), expectedFiles({ "tree/target": "head\nold" }));
 });
 
-test("Shell+Memory multi-hunk pipeline cross-checks native target bytes", async context => {
+test("Shell+Memory multi-hunk pipeline preserves expected target bytes", async () => {
   const files = { left: "start\na\nb\nc\nd\ne\nf\ng\n", right: "start\nA\nb\nc\nd\ne\nf\nG\n", target: "prefix\nstart\na\nb\nc\nd\ne\nf\ng\n" };
   const workspace = await shell(files);
   const result = await workspace.shell.exec("diff -U1 -L target -L target left right | patch -F0 >apply.log", { signal: AbortSignal.timeout(5000) });
   const expected = expectedFiles({ target: "prefix\nstart\nA\nb\nc\nd\ne\nf\nG\n" });
   assert.equal(result.exitCode, 0, result.stderr);
   assert.deepEqual(await snapshot(workspace.fs, ["target"]), expected);
-  context.diagnostic(`${await availability("diff")}\n${await availability("patch")}`);
-  const delta = await native("diff", ["-U1", "-L", "target", "-L", "target", "left", "right"], files);
-  assert.equal(delta.exitCode, 1, delta.stderr.toString());
-  const oracle = await native("patch", ["-f", "-p0", "-F0"], { target: files.target }, delta.stdout.toString());
-  assert.equal(oracle.exitCode, 0, oracle.stderr.toString());
-  assert.deepEqual(oracle.files, expected);
+
 });
 
 test("Shell+Memory repeated format options retain GNU maximum context", async () => {

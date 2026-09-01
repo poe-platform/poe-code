@@ -1,4 +1,4 @@
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 
 import * as api from "./index.js";
 import { dump } from "./dump.js";
@@ -20,7 +20,6 @@ import { makeEnvModule } from "./modules/env.js";
 import { makeFailModule } from "./modules/fail.js";
 import { makeFsModule } from "./modules/fs.js";
 import { parseFsConfig, resolveFsConfig } from "./modules/fs-config.js";
-import { makeGitModule } from "./modules/git.js";
 import { makeHarnessModule } from "./modules/harness.js";
 import { makeLogModule } from "./modules/log.js";
 import { makeMetricModule } from "./modules/metric.js";
@@ -41,6 +40,14 @@ import {
 } from "./snapshot/policy.js";
 
 describe("@poe-code/safe-js public exports", () => {
+  it("removes Git from the public SDK", () => {
+    expect(api).not.toHaveProperty("makeGitModule");
+  });
+
+  it("removes Git module implementation without a compatibility shim", async () => {
+    await expect(vi.importActual("./modules/git.js")).rejects.toThrow();
+  });
+
   it("re-exports the public entrypoints", () => {
     expect(api.Budget).toBe(Budget);
     expect(api.SandboxError).toBe(SandboxError);
@@ -72,7 +79,6 @@ describe("@poe-code/safe-js public exports", () => {
     expect(api.makeFsModule).toBe(makeFsModule);
     expect(api.parseFsConfig).toBe(parseFsConfig);
     expect(api.resolveFsConfig).toBe(resolveFsConfig);
-    expect(api.makeGitModule).toBe(makeGitModule);
     expect(api.makeHarnessModule).toBe(makeHarnessModule);
     expect(api.makeLogModule).toBe(makeLogModule);
     expect(api.makeMetricModule).toBe(makeMetricModule);
@@ -103,7 +109,6 @@ describe("@poe-code/safe-js public exports", () => {
       "makeEnvModule",
       "makeFailModule",
       "makeFsModule",
-      "makeGitModule",
       "makeHarnessModule",
       "makeLogModule",
       "makeMcpModule",

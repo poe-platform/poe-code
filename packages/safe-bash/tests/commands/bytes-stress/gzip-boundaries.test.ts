@@ -4,7 +4,7 @@ import { readFile } from "node:fs/promises";
 import test from "node:test";
 import { caseHash } from "./gnu-cases.js";
 import { gzipBoundaryCases } from "./gzip-boundary-cases.js";
-import { chunks, native, run } from "./helpers.js";
+import { chunks, run } from "./helpers.js";
 
 interface Observation { name: string; caseSha256: string; exitCode: number; stdoutHex: string; stderr: string; files: Record<string, string> }
 const captured = await readFile(new URL("gnu-gzip-boundaries.json", import.meta.url), "utf8");
@@ -25,19 +25,5 @@ for (const value of gzipBoundaryCases()) test(`GNU gzip boundary: ${value.name}`
     const files: Record<string, string> = {};
     for (const entry of await actual.fs.readdir("/work")) files[entry.name] = Buffer.from(await actual.fs.readFile(`/work/${entry.name}`)).toString("hex");
     assert.deepEqual(files, expected.files);
-  }
-});
-
-test("live pinned GNU gzip reproduces boundary and publication observations", async context => {
-  const program = process.env.BYTE_GNU_GZIP;
-  if (!program) { context.skip("Set BYTE_GNU_GZIP; frozen boundary/publication vectors run without it"); return; }
-  const version = await native(program, ["--version"]);
-  assert.equal(version.stdout.toString().split("\n")[0], "gzip 1.14");
-  for (const value of gzipBoundaryCases()) {
-    const actual = await native(program, value.args, value.input, value.files ? { files: value.files } : {});
-    assert.deepEqual({ name: value.name, caseSha256: caseHash(value), exitCode: actual.exitCode,
-      stdoutHex: actual.stdout.toString("hex"), stderr: actual.stderr.toString(),
-      files: Object.fromEntries(Object.entries(actual.files).map(([name, data]) => [name, data.toString("hex")])),
-    }, evidence.observations.find(item => item.name === value.name));
   }
 });

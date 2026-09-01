@@ -1,10 +1,16 @@
 import assert from "node:assert/strict";
-import { gnuPolicyCases, recordedDialectCase } from "../tests/commands/text-programs-stress/oracle-policy.js";
+import { readFileSync } from "node:fs";
+import type { TextCase } from "../tests/commands/text-programs-stress/cases.js";
+import type { Comparison } from "../tests/commands/text-programs-stress/model.js";
 import type { BenchmarkCase } from "./model.js";
 
 export function dialectFixtures(): BenchmarkCase[] {
-  return gnuPolicyCases.map(name => {
-    const recorded = recordedDialectCase(name);
+  const evidence = JSON.parse(readFileSync(new URL("../tests/commands/text-programs-stress/dialect-evidence.json", import.meta.url), "utf8")) as {
+    results: { fixture: TextCase; gnu: Comparison }[];
+  };
+  return ["sed-regex-70", "sed-inplace-quit-per-file"].map(name => {
+    const recorded = evidence.results.find(record => record.fixture.name === name);
+    assert.ok(recorded, "Missing captured dialect fixture");
     const native = recorded.gnu.native;
     assert.equal(native.status, "completed");
     if (native.status !== "completed") throw new Error("Missing independent GNU result");

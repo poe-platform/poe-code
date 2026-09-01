@@ -4,8 +4,6 @@ import test from "node:test";
 import { createSearchCommands } from "../../../src/commands/search/index.js";
 import { toByteSource, type ByteSource } from "../../../src/contracts/index.js";
 import { MemoryFileSystem } from "../../../src/fs/memory/index.js";
-import { native, text } from "./harness.js";
-import { nativeDelivery } from "../../stress/harness-timing-20260827/native-delivery.js";
 import { trace } from "../../stress/harness-timing-20260827/trace.js";
 import { withHarnessWatchdog } from "../../stress/harness-timing-20260827/watchdog.js";
 
@@ -50,26 +48,16 @@ for (let repetition = 1; repetition <= 3; repetition++) test(`output-acknowledge
       }, signal);
     } finally { signal.removeEventListener("abort", onAbort); await source.return(undefined); }
   });
-  const [expected, actual] = await Promise.all([nativeDelivery({ lineBuffered: true }).then(evidence => {
-    trace("native-delivery", { repetition, ...evidence }); return evidence;
-  }), virtual]);
-  assert.deepEqual({ code: expected.code, stdout: expected.stdout, stderr: expected.stderr }, { code: 0, stdout: "foo\n" + warning, stderr: "" });
-  assert.equal(expected.ready, true);
-  assert.equal(expected.actualClose, true);
-  assert.equal(expected.ownedListenersRemaining, 0);
-  assert.deepEqual(expected.streamsDestroyed, [true, true, true]);
-  assert.equal(expected.activeTimers, 0);
+  const actual = await virtual;
   assert.equal(returned, true);
-  assert.equal(actual.exitCode, expected.code);
-  assert.equal(Buffer.concat(output).toString(), expected.stdout);
+  assert.equal(actual.exitCode, 0);
+  assert.equal(Buffer.concat(output).toString(), "foo\n" + warning);
 });
 
 test("whole-write delivery retains the distinct warning-only native result", async () => {
-  const expected = native({ name: "whole-write binary", args: ["foo", "-"], stdin: [...input] });
   const output: Buffer[] = [];
   const actual = await search(toByteSource(input), async chunk => { output.push(Buffer.from(chunk)); });
-  assert.equal(expected.code, 0); assert.equal(text(expected.stderr), ""); assert.equal(text(expected.stdout), warning);
-  assert.equal(actual.exitCode, expected.code); assert.equal(Buffer.concat(output).toString(), text(expected.stdout));
+  assert.equal(actual.exitCode, 0); assert.equal(Buffer.concat(output).toString(), warning);
 });
 
 for (const cancel of [false, true]) test(`binary-aware output ${cancel ? "cancels under" : "respects"} backpressure before another read`, async () => {

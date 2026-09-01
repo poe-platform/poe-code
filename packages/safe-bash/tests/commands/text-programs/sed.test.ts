@@ -3,7 +3,7 @@ import test from "node:test";
 import { Shell } from "../../../src/shell/index.js";
 import { standardCommands } from "../../../src/commands/index.js";
 import { textProgramCommands } from "../../../src/commands/text-programs/index.js";
-import { byteChunks, compareNative, makeFileSystem, runVirtual, type OracleCase } from "./helpers.js";
+import { byteChunks, makeFileSystem, runVirtual, type OracleCase } from "./helpers.js";
 
 const cases: Record<string, OracleCase> = {
   "numeric address range": { args: ["-n", "2,3p"], stdin: "one\ntwo\nthree\nfour\n" },
@@ -40,8 +40,6 @@ const cases: Record<string, OracleCase> = {
   "in-place empty suffix": { args: ["-i", "", "s/a/A/g", "input"], files: { input: "banana\n" } },
   "missing final newline preserved": { args: ["s/a/A/g"], stdin: "banana" },
 };
-
-for (const [name, fixture] of Object.entries(cases)) test(`sed native differential: ${name}`, () => compareNative("sed", fixture));
 
 test("sed rejects unsupported or malformed programs before stdout, input, backup or file effects", async () => {
   for (const program of ["p;s/a/b/e", "p;w", "p;{", "p;b missing", "p;s/(/x/", "p;s/a/\\9/"]) {

@@ -203,15 +203,15 @@ describe("crash and resume integration", () => {
   it("reads a recorded effect without invoking the effectful host call again", async () => {
     const commit = createHostStub("read-side-effect", ["commit-1"]);
     const recordedEffects = new Map<string, RuntimeSnapshotValue>();
-    recordedEffects.set("git-commit-1", await commit.operation());
+    recordedEffects.set("effects-commit-1", await commit.operation());
     const snapshot = createPendingHostCallSnapshot({
-      callId: "git-commit-1",
-      moduleId: "git",
+      callId: "effects-commit-1",
+      moduleId: "effects",
       operation: "commit",
       sideEffectTag: {
         kind: "host-call-side-effect",
-        callId: "git-commit-1",
-        moduleId: "git",
+        callId: "effects-commit-1",
+        moduleId: "effects",
         operation: "commit"
       }
     });

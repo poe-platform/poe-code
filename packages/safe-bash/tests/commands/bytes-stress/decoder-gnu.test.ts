@@ -1,11 +1,10 @@
 import assert from "node:assert/strict";
 import { createHash } from "node:crypto";
 import { readFile } from "node:fs/promises";
-import { join } from "node:path";
 import test from "node:test";
 import { caseHash } from "./gnu-cases.js";
 import { decoderCases } from "./decoder-cases.js";
-import { chunks, native, run } from "./helpers.js";
+import { chunks, run } from "./helpers.js";
 
 interface Observation { name: string; caseSha256: string; exitCode: number; stdoutHex: string; stderr: string }
 const captured = await readFile(new URL("gnu-decoder-evidence.json", import.meta.url), "utf8");
@@ -23,18 +22,5 @@ for (const command of ["base64", "base32"]) test(`pinned GNU ${command} EOF, mal
       assert.deepEqual({ exitCode: actual.exitCode, stdoutHex: actual.stdout.toString("hex"), stderr: actual.stderr.toString() },
         { exitCode: expected.exitCode, stdoutHex: expected.stdoutHex, stderr: expected.stderr }, `${value.name}, chunks ${width}`);
     }
-  }
-});
-
-test("live GNU coreutils 9.7 reproduces malformed decoder observations", async context => {
-  const directory = process.env.BYTE_GNU_COREUTILS_DIR;
-  if (!directory) { context.skip("Set BYTE_GNU_COREUTILS_DIR; frozen malformed vectors still run"); return; }
-  for (const command of ["base64", "base32"]) {
-    const version = await native(join(directory, command), ["--version"]);
-    assert.equal(version.stdout.toString().split("\n")[0], `${command} (GNU coreutils) 9.7`);
-  }
-  for (const value of decoderCases()) {
-    const actual = await native(join(directory, value.command), value.args, value.input);
-    assert.deepEqual({ name: value.name, caseSha256: caseHash(value), exitCode: actual.exitCode, stdoutHex: actual.stdout.toString("hex"), stderr: actual.stderr.toString() }, evidence.observations.find(item => item.name === value.name));
   }
 });

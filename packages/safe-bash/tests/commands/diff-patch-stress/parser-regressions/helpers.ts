@@ -1,18 +1,12 @@
-import assert from "node:assert/strict";
-import { spawn } from "node:child_process";
+
 import { createHash } from "node:crypto";
-import { mkdtemp, readFile, readdir, rm, writeFile } from "node:fs/promises";
-import { join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { toByteSource, type ByteSource, type FileSystem } from "../../../../src/contracts/index.js";
 import { createDiffPatchCommands } from "../../../../src/commands/diff-patch/index.js";
 import { MemoryFileSystem } from "../../../../src/fs/memory/index.js";
 import type { ParserCase } from "./fixtures.js";
-import { oraclePath } from "../gnu-target/oracle.js";
 
 export const owned = fileURLToPath(new URL("./", import.meta.url));
-export const patchBinary = oraclePath("patch");
-export const diffBinary = oraclePath("diff");
 export const sha256 = (bytes: Uint8Array | string) => createHash("sha256").update(bytes).digest("hex");
 
 export async function product(fixture: ParserCase) {
@@ -101,61 +95,4 @@ export function productIssues(fixture: ParserCase, result: Awaited<ReturnType<ty
   }
   if (result.other !== "old\n") issues.push(`unrelated/later target was changed: ${JSON.stringify(result.other)}`);
   return issues;
-}
-
-export async function executeNative(binary: string, args: readonly string[], cwd: string, input = "") {
-  assert(binary === patchBinary || binary === diffBinary);
-  return new Promise<{ exitCode: number; stdout: string; stderr: string }>((resolve, reject) => {
-    const child = spawn(binary, [...args], {
-      cwd, shell: false, stdio: ["pipe", "pipe", "pipe"],
-      env: { LC_ALL: "C", LANG: "C", TZ: "UTC", PATH: "/usr/bin:/bin", HOME: cwd, TMPDIR: cwd },
-    });
-    const stdout: Buffer[] = [];
-    const stderr: Buffer[] = [];
-    let bytes = 0;
-    let failure: Error | undefined;
-    const stop = (error: Error) => { failure = error; child.kill("SIGKILL"); };
-    const timeout = setTimeout(() => stop(new Error("GNU oracle exceeded 3000 ms")), 3000);
-    for (const [stream, chunks] of [[child.stdout, stdout], [child.stderr, stderr]] as const) {
-      stream.on("data", (chunk: Buffer) => {
-        bytes += chunk.length;
-        if (bytes > 256 * 1024) stop(new Error("GNU oracle exceeded 256 KiB output"));
-        else chunks.push(chunk);
-      });
-    }
-    child.once("error", error => { clearTimeout(timeout); reject(error); });
-    child.once("close", code => {
-      clearTimeout(timeout);
-      if (failure) reject(failure);
-      else resolve({ exitCode: code ?? 2, stdout: Buffer.concat(stdout).toString(), stderr: Buffer.concat(stderr).toString() });
-    });
-    child.stdin.on("error", (error: NodeJS.ErrnoException) => { if (error.code !== "EPIPE") stop(error); });
-    child.stdin.end(input);
-  });
-}
-
-export async function nativePatch(before: string, patch: string) {
-  const directory = await mkdtemp(join(owned, ".native-"));
-  try {
-    await writeFile(join(directory, "target"), before);
-    await writeFile(join(directory, "other"), "old\n");
-    const result = await executeNative(patchBinary, ["--batch", "--forward", "--fuzz=0", "--no-backup-if-mismatch", "--reject-file=reject", "--", "target"], directory, patch);
-    const entries = await readdir(directory);
-    const target = entries.includes("target") ? await readFile(join(directory, "target"), "utf8") : undefined;
-    const other = await readFile(join(directory, "other"), "utf8");
-    return { ...result, target, other, entries };
-  } finally {
-    await rm(directory, { recursive: true, force: true });
-  }
-}
-
-export async function nativeDiff(before: string, after: string, args: readonly string[]) {
-  const directory = await mkdtemp(join(owned, ".native-"));
-  try {
-    await writeFile(join(directory, "before"), before);
-    await writeFile(join(directory, "after"), after);
-    return await executeNative(diffBinary, [...args, "--label=target", "--label=target", "--", "before", "after"], directory);
-  } finally {
-    await rm(directory, { recursive: true, force: true });
-  }
 }

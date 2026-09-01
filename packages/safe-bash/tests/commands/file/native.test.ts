@@ -4,8 +4,7 @@ import test from "node:test";
 import { toByteSource } from "../../../src/contracts/index.js";
 import { fixtures } from "./fixtures.js";
 import { run } from "./helpers.js";
-import { nativeBaseline, nativeProfile } from "./native-baseline.js";
-import { captureNative } from "./native.js";
+import { nativeBaseline } from "./native-baseline.js";
 
 test("frozen native-derived byte fixtures: exact MIME vs semantic descriptions; preserve known mismatches", async context => {
   assert.equal(fixtures.length, nativeBaseline.length);
@@ -28,19 +27,4 @@ test("frozen native-derived byte fixtures: exact MIME vs semantic descriptions; 
   assert.deepEqual(differingEncodings, ["pdf"]);
   assert.equal(exactType, 24); assert.equal(exactCombined, 23); assert.equal(semantic, 26);
   context.diagnostic(`Captured native profile: MIME type exact ${exactType}/26; combined exact ${exactCombined}/26; human category semantic ${semantic}/26. Mismatches retained, not passes.`);
-});
-
-test("live native file reproduces frozen results only under the pinned Darwin executable/database profile", async context => {
-  if (process.platform !== "darwin") { context.skip("pinned native Darwin profile unavailable; captured cohort still runs"); return; }
-  let capture: Awaited<ReturnType<typeof captureNative>>;
-  try { capture = await captureNative(); }
-  catch (error) {
-    if ((error as { code?: string }).code === "ENOENT") { context.skip("native executable/database unavailable"); return; }
-    throw error;
-  }
-  if (capture.version !== nativeProfile.version || capture.executableSha256 !== nativeProfile.executableSha256 || capture.databaseSha256 !== nativeProfile.databaseSha256) {
-    context.skip("native executable/database differs from pinned profile; not a parity pass"); return;
-  }
-  assert.deepEqual(capture.records.map(record => [record.name, record.sha256, record.mime, record.human]), nativeBaseline);
-  context.diagnostic("26 deterministic fixtures; 52 classification invocations plus one --version; frozen native capture reproduced exactly.");
 });

@@ -127,10 +127,7 @@
         "!src/commands/xan/design-evidence/**"
       ],
       "outputs": [],
-      "cache": false,
-      "passThroughEnv": [
-        "SAFE_BASH_TEST_RG"
-      ]
+      "cache": false
     }
   }
 }

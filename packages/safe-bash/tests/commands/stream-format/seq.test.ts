@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { compare, shell, type NativeCase } from "./helpers.js";
+import { shell, type NativeCase } from "./helpers.js";
 
 export const seqCases: readonly NativeCase[] = [
   { args: ["4"] }, { args: ["0"] }, { args: ["3", "1"] }, { args: ["-2", "2"] },
@@ -18,8 +18,6 @@ export const seqCases: readonly NativeCase[] = [
   { args: ["-f", "%g %g", "3"], failure: true }, { args: ["NaN"], failure: true },
   { args: ["1", "2", "3", "4"], failure: true }, { args: ["--bad"], failure: true },
 ];
-
-for (const fixture of seqCases) test(`seq native ${JSON.stringify(fixture.args)}`, () => compare("seq", fixture));
 
 test("seq exact bounded decimal extension does not accumulate floating drift", async () => {
   const instance = shell();

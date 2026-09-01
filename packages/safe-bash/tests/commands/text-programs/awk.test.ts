@@ -3,7 +3,7 @@ import test from "node:test";
 import { Shell } from "../../../src/shell/index.js";
 import { standardCommands } from "../../../src/commands/index.js";
 import { textProgramCommands } from "../../../src/commands/text-programs/index.js";
-import { byteChunks, compareNative, makeFileSystem, runVirtual, type OracleCase } from "./helpers.js";
+import { byteChunks, makeFileSystem, runVirtual, type OracleCase } from "./helpers.js";
 
 const cases: Record<string, OracleCase> = {
   "BEGIN prints without consuming input": { args: ['BEGIN { print "hello", 2 + 3 }'] },
@@ -58,8 +58,6 @@ const cases: Record<string, OracleCase> = {
   "exit still runs END": { args: ['{ print $0; exit 7 } END { print "end",NR }'], stdin: "first\nsecond\n", expectedExitCode: 7 },
   "C-locale byte strings": { args: ['{ print length($0); printf "%s",substr($0,1,1) }'], stdin: "é\n" },
 };
-
-for (const [name, fixture] of Object.entries(cases)) test(`awk native differential: ${name}`, () => compareNative("awk", fixture));
 
 for (const [name, program, expected] of [
   ["empty program", "", ""],

@@ -441,7 +441,7 @@ export class MountFileSystem implements FileSystem {
       const reader = origin.mount.backend;
       const writer = target.mount.backend;
       const writeOptions: WriteFileOptions = {
-        ...options, flag: options.exclusive || !target.stat ? "wx" : "w",
+        ...(options.signal ? { signal: options.signal } : {}), flag: options.exclusive || !target.stat ? "wx" : "w",
         ...(writer.capabilities.permissions === true ? { mode: origin.stat!.mode & 0o7777 } : {}),
       };
       if (reader.readStream && reader.capabilities.streamingRead !== false

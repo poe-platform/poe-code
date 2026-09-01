@@ -6,6 +6,91 @@ import { bufferLimit, input } from "../../src/commands/internal.js";
 import { collectBytes, toByteSource, type CommandContext } from "../../src/contracts/index.js";
 import { Shell, ShellLimitError } from "../../src/shell/index.js";
 
+for (const streaming of [false, true]) {
+  for (const size of [65_537, 65_538]) {
+    test(`redirected input has an independent bound: streaming=${streaming}, size=${size}`, async () => {
+      const fs: FileSystem = new MemoryFileSystem();
+      if (!streaming) Object.defineProperty(fs, "readStream", { value: undefined });
+      await fs.writeFile("/large", new Uint8Array(size));
+      const shell = new Shell({ fs, limits: { maxInputBytes: 65_537, maxOutputBytes: 65_536 } }).use(standardCommands());
+      try {
+        const result = await shell.exec("wc -c < /large");
+        if (size === 65_537) {
+          assert.equal(result.exitCode, 0, result.stderr);
+          assert.equal(result.stdout.trim(), "65537");
+          await assert.rejects(shell.exec("cat < /large"), error => error instanceof ShellLimitError && error.limit === "maxOutputBytes");
+        } else {
+          assert.notEqual(result.exitCode, 0);
+          assert.match(result.stderr, /EFBIG|file too large/i);
+        }
+      } finally { await shell.dispose(); }
+    });
+  }
+
+  test(`redirected input preserves cancellation: streaming=${streaming}`, async () => {
+    const fs: FileSystem = new MemoryFileSystem();
+    await fs.writeFile("/input", new Uint8Array([1]));
+    const controller = new AbortController();
+    const reason = new Error("cancel redirected read");
+    let closed = false;
+    if (streaming) {
+      fs.readStream = () => (async function* () {
+        try { controller.abort(reason); yield new Uint8Array([1]); }
+        finally { closed = true; }
+      })();
+    } else {
+      Object.defineProperty(fs, "readStream", { value: undefined });
+      fs.readFile = async (_path, options) => {
+        assert.equal(options?.maxBytes, 100);
+        assert.ok(options?.signal);
+        controller.abort(reason);
+        return new Uint8Array([1]);
+      };
+    }
+    const shell = new Shell({ fs, limits: { maxInputBytes: 100 } }).use(standardCommands());
+    try {
+      await assert.rejects(shell.exec("wc -c < /input", { signal: controller.signal }), error => error === reason);
+      if (streaming) assert.equal(closed, true);
+    } finally { await shell.dispose(); }
+  });
+}
+
+test("redirected input rejects oversized adapter results and counts stream chunks cumulatively", async () => {
+  for (const streaming of [false, true]) {
+    const fs: FileSystem = new MemoryFileSystem();
+    await fs.writeFile("/input", new Uint8Array([1]));
+    let closed = false;
+    if (streaming) {
+      fs.readStream = () => (async function* () {
+        try { yield new Uint8Array(3); yield new Uint8Array(3); }
+        finally { closed = true; }
+      })();
+    } else {
+      Object.defineProperty(fs, "readStream", { value: undefined });
+      fs.readFile = async () => new Uint8Array(6);
+    }
+    const shell = new Shell({ fs, limits: { maxInputBytes: 5 } }).use(standardCommands());
+    try {
+      const result = await shell.exec("wc -c < /input");
+      assert.notEqual(result.exitCode, 0);
+      assert.match(result.stderr, /EFBIG|file too large/i);
+      if (streaming) assert.equal(closed, true);
+    } finally { await shell.dispose(); }
+  }
+});
+
+test("redirected input honors disabled streaming and execution-specific input limits", async () => {
+  const fs = await bufferedBackend();
+  fs.readStream = () => { throw new Error("disabled readStream"); };
+  const shell = new Shell({ fs, limits: { maxInputBytes: 1 } }).use(standardCommands());
+  try {
+    const result = await shell.exec("wc -c < /note", { limits: { maxInputBytes: 9 } });
+    assert.equal(result.exitCode, 0, result.stderr);
+    assert.equal(result.stdout.trim(), "9");
+    assert.equal((await shell.exec("wc -c < /note")).exitCode, 1);
+  } finally { await shell.dispose(); }
+});
+
 async function bufferedBackend(readOnly = false): Promise<FileSystem> {
   const memory = new MemoryFileSystem();
   await memory.writeFile("/note", new TextEncoder().encode("buffered\n"));

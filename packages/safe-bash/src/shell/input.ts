@@ -1,5 +1,32 @@
-import type { ByteSource } from "../contracts/index.js";
+import { FsError, toByteSource } from "../contracts/index.js";
+import type { ByteSource, FileSystem } from "../contracts/index.js";
 import { Budget, interruptible } from "./runtime.js";
+
+export async function fileInput(fs: FileSystem, path: string, maxBytes: number, signal: AbortSignal): Promise<ByteSource> {
+  if (!fs.readStream || fs.capabilities.streamingRead === false) {
+    const bytes = await interruptible(fs.readFile(path, { signal, maxBytes }), signal);
+    signal.throwIfAborted();
+    if (bytes.byteLength > maxBytes) throw new FsError("EFBIG", { syscall: "readFile", path });
+    return toByteSource(bytes);
+  }
+  const iterator = fs.readStream(path, { signal })[Symbol.asyncIterator]();
+  let size = 0;
+  return {
+    [Symbol.asyncIterator]: () => ({
+      async next() {
+        signal.throwIfAborted();
+        const result = await interruptible(Promise.resolve(iterator.next()), signal);
+        if (!result.done) {
+          if (!(result.value instanceof Uint8Array)) throw new TypeError("Shell stdin must yield Uint8Array");
+          if (result.value.byteLength > maxBytes - size) throw new FsError("EFBIG", { syscall: "readFile", path });
+          size += result.value.byteLength;
+        }
+        return result;
+      },
+      ...(iterator.return ? { return: iterator.return.bind(iterator) } : {}),
+    }),
+  };
+}
 
 class InputCursor {
   readonly #iterator: AsyncIterator<Uint8Array>;

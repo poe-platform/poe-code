@@ -42,12 +42,61 @@ for (const length of [0, 1, 17, 65535, 65536, 131073]) test(`gzip stored-DEFLATE
 
 test("concatenated empty, text and binary gzip members decode in order", async () => {
   const inputs = [Buffer.from("first\n"), Buffer.alloc(0), bytes(65537), Buffer.from("last\0bytes")];
-  const archive = Buffer.concat(inputs.map((input, index) => storedMember(input, index % 2 === 0)));
+  const members = inputs.map((input, index) => storedMember(input, index % 2 === 0));
+  const archive = Buffer.concat(members);
+  const protectedOffsets = new Set<number>();
+  let memberStart = 0;
+  for (const [index, member] of members.entries()) {
+    const length = inputs[index]!.length;
+    const blockCount = Math.max(1, Math.ceil(length / 65535));
+    const headerEnd = memberStart + member.length - length - 5 * blockCount - 8;
+    const ranges: [number, number][] = [[memberStart, headerEnd], [memberStart + member.length - 8, memberStart + member.length]];
+    for (let block = 0; block < blockCount; block++) {
+      const blockStart = headerEnd + block * (65535 + 5);
+      ranges.push([blockStart, blockStart + 5]);
+    }
+    for (const [start, end] of ranges) {
+      for (let offset = Math.floor(start / 3) * 3; offset < end; offset += 3) protectedOffsets.add(offset);
+    }
+    memberStart += member.length;
+  }
+  const assertProtectedFragments = (fragments: readonly Uint8Array[]): void => {
+    assert.deepEqual(Buffer.concat(fragments), archive);
+    const byOffset = new Map<number, Uint8Array>();
+    let offset = 0;
+    for (const fragment of fragments) { byOffset.set(offset, fragment); offset += fragment.length; }
+    for (const protectedOffset of protectedOffsets) {
+      const fragment = byOffset.get(protectedOffset);
+      const expected = archive.subarray(protectedOffset, protectedOffset + 3);
+      assert.equal(fragment?.length, expected.length, `three-byte header/trailer/member/block fragment at ${protectedOffset}`);
+      assert.deepEqual(fragment, expected);
+    }
+  };
+  async function* fragmented(source: Uint8Array) {
+    const middleEnd = Math.floor((source.length - 192) / 3) * 3;
+    yield* chunks(source.subarray(0, 192), 3);
+    yield* chunks(source.subarray(192, middleEnd), 384);
+    yield* chunks(source.subarray(middleEnd), 3);
+  }
+  const fragments: Uint8Array[] = [];
+  for await (const fragment of fragmented(archive)) fragments.push(fragment);
+  assertProtectedFragments(fragments);
+  assert.throws(() => assertProtectedFragments([archive]), { code: "ERR_ASSERTION" });
+  assert.equal(fragments.length, 300, "coalesce only interior payload, not protected boundary fragments");
   for (const name of ["gzip", "gunzip", "zcat"]) {
-    const actual = await run(name, name === "gzip" ? ["-dc"] : ["-c"], chunks(archive, 3));
+    const actual = await run(name, name === "gzip" ? ["-dc"] : ["-c"], fragmented(archive));
     assert.equal(actual.exitCode, 0);
     assert.deepEqual(actual.stdout, Buffer.concat(inputs));
   }
+  const corrupted = Buffer.from(archive);
+  const thirdTrailer = members[0]!.length + members[1]!.length + members[2]!.length - 8;
+  corrupted[thirdTrailer] = corrupted[thirdTrailer]! ^ 1;
+  for (const name of ["gzip", "gunzip", "zcat"]) {
+    const rejected = await run(name, name === "gzip" ? ["-dc"] : ["-c"], fragmented(corrupted));
+    assert.equal(rejected.exitCode, 1);
+    assert.match(rejected.stderr.toString(), /incorrect data check \(CRC\)/u);
+  }
+  assert.deepEqual(archive, Buffer.concat(members));
 });
 
 test("truncation at every structural boundary is detected", async () => {

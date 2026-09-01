@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 import { createTextProgramCommands } from "../../../src/commands/text-programs/index.js";
-import { makeFileSystem, compareNative } from "./helpers.js";
+import { makeFileSystem } from "./helpers.js";
 
 test("sed prints and quits before requesting a second producer chunk", async () => {
   let pulls = 0;
@@ -21,10 +21,4 @@ test("sed prints and quits before requesting a second producer chunk", async () 
   assert.equal(Buffer.concat(stdout).toString(), "first\n");
   assert.equal(pulls, 1);
   assert.equal(returned, true);
-});
-
-test("sed last addresses retain correct lazy lookahead across n and N", async () => {
-  for (const program of ["$p", "N;$p", "n;$p", "1,$p", "/first/,$c\\\nchanged"]) {
-    await compareNative("sed", { args: ["-n", program], stdin: "first\nsecond\nthird\n" });
-  }
 });

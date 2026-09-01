@@ -4,7 +4,6 @@ import { createHash } from "node:crypto";
 import test from "node:test";
 import { nativeCases, appleDifferenceCases } from "./cases.js";
 import { runFixture } from "./helpers.js";
-import { captureAll } from "./oracle.js";
 
 interface Observation { id: string; command: string; fixtureSha256: string; status: number; signal: string | null; stdoutHex: string; stderrHex: string; oracle: string }
 interface Evidence { observations: Observation[]; appleDifferences: Observation[] }
@@ -35,10 +34,4 @@ test("Apple differences remain explicit, not accepted GNU expectations", async (
     assert.equal(result.stdout, wanted[index]);
     assert.notEqual(result.stdoutHex, native.stdoutHex);
   }
-});
-
-test("live exact pinned native observations", { skip: process.env.STREAM_NATIVE_LIVE !== "1" ? "set STREAM_NATIVE_LIVE=1; frozen author native captures still checked" : false }, () => {
-  const fresh = captureAll();
-  assert.deepEqual(fresh.observations, evidence.observations);
-  assert.deepEqual(fresh.appleDifferences, evidence.appleDifferences);
 });

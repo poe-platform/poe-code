@@ -3,7 +3,6 @@ import { readFileSync } from "node:fs";
 import { createHash } from "node:crypto";
 import test from "node:test";
 import { gnuStringsCases } from "./gnu-strings-cases.js";
-import { captureGnuStrings } from "./gnu-strings-oracle.js";
 import { runFixture } from "./helpers.js";
 
 interface Observation { id: string; command: string; fixtureSha256: string; status: number; signal: string | null; stdoutHex: string; stderrHex: string }
@@ -28,7 +27,3 @@ for (const specimen of gnuStringsCases) {
     assert.equal(result.stdoutHex, native.stdoutHex);
   });
 }
-
-test("live pinned GNU2.44 strings observations", { skip: process.env.STREAM_NATIVE_LIVE !== "1" ? "set STREAM_NATIVE_LIVE=1; frozen GNU strings captures still checked" : false }, () => {
-  assert.deepEqual(captureGnuStrings().observations, evidence.observations);
-});

@@ -2,7 +2,7 @@ import assert from "node:assert/strict";
 import { readFile } from "node:fs/promises";
 import test from "node:test";
 import { cases } from "./cases.js";
-import { hash, native, product, verifyOracle, type Fixture, type Row } from "./support.js";
+import { hash, product, type Fixture, type Row } from "./support.js";
 
 const corpus: { fixture: Fixture; inputSha256: string; oracle: Row }[] = JSON.parse(await readFile(new URL("frozen-corpus.json", import.meta.url), "utf8"));
 assert.equal(corpus.length, 71);
@@ -24,7 +24,3 @@ for (const [index, entry] of corpus.entries()) {
     }
   });
 }
-test("independent live GNU rechecks all 71 frozen rows exactly", async () => {
-  await verifyOracle();
-  for (const entry of corpus) assert.deepEqual(await native(entry.fixture), entry.oracle, entry.fixture.name);
-});

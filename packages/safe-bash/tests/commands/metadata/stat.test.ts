@@ -1,11 +1,6 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import * as native from "node:fs/promises";
-import { spawnSync } from "node:child_process";
-import { tmpdir } from "node:os";
-import { join } from "node:path";
 import { MemoryFileSystem } from "../../../src/fs/memory/index.js";
-import { createRealFileSystem } from "../../../src/fs/real/index.js";
 import type { FileStat, FileSystem } from "../../../src/contracts/index.js";
 import { runMetadata } from "./helpers.js";
 
@@ -83,16 +78,12 @@ test("stat limits, invalid options and cancellation have nonzero/abort outcomes"
   await assert.rejects(runMetadata("stat", ["file"], fs, {}, controller.signal), error => error === reason);
 });
 
-test("stat common numeric metadata agrees with native stat and fs on real VFS", async context => {
-  const root = await native.mkdtemp(join(tmpdir(), "safe-bash-stat-"));
-  context.after(() => native.rm(root, { recursive: true, force: true }));
-  await native.mkdir(join(root, "work"));
-  await native.writeFile(join(root, "work", "file"), Uint8Array.of(0, 1, 255));
-  const oracle = spawnSync("/usr/bin/stat", ["-f", "%z:%N", "file"], { cwd: join(root, "work"), encoding: "utf8", timeout: 2000 });
-  assert.equal(oracle.status, 0, oracle.stderr);
-  const fs = await createRealFileSystem({ root });
-  assert.equal((await runMetadata("stat", ["-c", "%s:%n", "file"], fs)).stdout, oracle.stdout);
-  const stat = await native.stat(join(root, "work", "file"));
+test("stat formats supplied numeric metadata on memory VFS", async () => {
+  const fs = new MemoryFileSystem();
+  await fs.mkdir("/work");
+  await fs.writeFile("/work/file", Uint8Array.of(0, 1, 255));
+  assert.equal((await runMetadata("stat", ["-c", "%s:%n", "file"], fs)).stdout, "3:file\n");
+  const stat = await fs.stat("/work/file");
   const result = await runMetadata("stat", ["-c", "%i:%h:%u:%g:%d", "file"], fs);
   assert.equal(result.stdout, `${stat.ino}:${stat.nlink}:${stat.uid}:${stat.gid}:${stat.dev}\n`);
 });

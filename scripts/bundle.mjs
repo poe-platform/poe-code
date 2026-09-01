@@ -380,6 +380,14 @@ await Promise.all([
     path.join(rootDir, "packages", "agent-skill-config", "src", "templates", "terminal-pilot.md"),
     path.join(skillTemplateDir, "terminal-pilot.md")
   ),
+  copyFile(
+    path.join(rootDir, "packages", "experiment-loop", "src", "config", "default-instructions.md"),
+    path.join(distDir, "default-instructions.md")
+  ),
+  copyFile(
+    path.join(rootDir, "packages", "experiment-loop", "src", "config", "default-run.yaml"),
+    path.join(distDir, "default-run.yaml")
+  ),
   // tokenfill resolves its built-in corpus via import.meta.url, so after
   // bundling the directory must sit next to dist/index.js.
   cp(path.join(rootDir, "packages", "tokenfill", "src", "corpus"), path.join(distDir, "corpus"), {

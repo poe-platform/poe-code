@@ -4,19 +4,18 @@ import { readFile } from "node:fs/promises";
 import ts from "typescript";
 import { FsError, type FileSystem, type MkdirOptions, type WriteFileOptions } from "../../../src/contracts/index.js";
 import { MemoryFileSystem } from "../../../src/fs/memory/index.js";
-import { namespace, oracle, run, snapshot } from "./helpers.js";
+import { run, snapshot } from "./helpers.js";
 
-test("GNU mktemp template grammar and quiet diagnostics: 24 controls", async context => {
-  const root = await namespace(context);
+test("mktemp template grammar and quiet diagnostics: 24 controls", async () => {
   const fs = new MemoryFileSystem();
   await fs.mkdir("/work");
   const templates = ["X", "XX", "XXX", "XXXX", "start.XXXX", "start.XXX.ext", "prefixXXXmoreXXXtail", "XXXX.XX", "XXX/foo", "folder/file.XXX", "./file.XXX", "--suffix=X"];
   for (const template of templates) for (const quiet of [false, true]) {
     const args = [...quiet ? ["-q"] : [], "-u", "--", template];
-    const native = oracle("mktemp", args, root);
     const actual = await run("mktemp", args, fs);
-    assert.equal(actual.exitCode, native.exitCode, JSON.stringify({ args, native: native.stderr, actual: actual.stderr }));
-    assert.equal(Boolean(actual.stderr), Boolean(native.stderr), JSON.stringify(args));
+    const valid = !["X", "XX", "XXXX.XX", "XXX/foo", "--suffix=X"].includes(template);
+    assert.equal(actual.exitCode, valid ? 0 : 1, JSON.stringify({ args, actual: actual.stderr }));
+    assert.equal(Boolean(actual.stderr), !valid, JSON.stringify(args));
     if (actual.exitCode === 0) {
       assert.equal(actual.stdout.at(-1), 10);
       assert.ok(actual.stdout.length > 3);

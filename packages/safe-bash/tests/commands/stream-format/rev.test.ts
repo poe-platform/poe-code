@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { compare, shell, type NativeCase } from "./helpers.js";
+import { shell, type NativeCase } from "./helpers.js";
 
 export const revCases: readonly NativeCase[] = [
   { args: [], input: "abc\n\nlast" }, { args: [], input: "" },
@@ -17,7 +17,6 @@ export const revCases: readonly NativeCase[] = [
   { args: [], input: Buffer.from([195, 169, 255, 10]), locale: "en_US.UTF-8", failure: true },
   { args: ["--"], input: "ab" }, { args: ["-x"], failure: true }, { args: ["-"], failure: true },
 ];
-for (const fixture of revCases) test(`rev Apple native ${JSON.stringify(fixture)}`, () => compare("rev", fixture));
 
 test("rev guest locale precedence, no ambient host fallback", async () => {
   for (const env of [{ LANG: "en_US.UTF-8", LC_CTYPE: "C" }, { LANG: "C", LC_CTYPE: "en_US.UTF-8", LC_ALL: "C" }, {}]) {

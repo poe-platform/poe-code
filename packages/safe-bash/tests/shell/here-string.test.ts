@@ -1,7 +1,6 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
 import { ShellLimitError } from "../../src/shell/index.js";
-import { runBash, runVirtualScript } from "../shell-stress/helpers.js";
 import { setup } from "./helpers.js";
 
 const cases: [string, string][] = [
@@ -39,13 +38,6 @@ const cases: [string, string][] = [
   ["read receives an empty terminal line", "read -r VALUE <<<''; printf '%s:<%s>' \"$?\" \"$VALUE\""],
   ["operator continuation", "cat <\\\n<<'word'"],
 ];
-
-for (const [name, script] of cases) {
-  test(`here-string Bash differential: ${name}`, async () => {
-    const fixture = { name, script };
-    assert.deepEqual(await runVirtualScript(fixture), await runBash(fixture));
-  });
-}
 
 for (const [source, expected] of [
   ["VALUE='  a  b *\n'; pass <<<$VALUE", "  a  b *\n\n"],

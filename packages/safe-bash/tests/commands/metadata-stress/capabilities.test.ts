@@ -2,7 +2,6 @@ import assert from "node:assert/strict";
 import test from "node:test";
 import { FsError, type FileSystem } from "../../../src/contracts/index.js";
 import { MemoryFileSystem } from "../../../src/fs/memory/index.js";
-import { createRealFileSystem } from "../../../src/fs/real/index.js";
 import { MountFileSystem } from "../../../src/fs/mount/index.js";
 import { OverlayFileSystem } from "../../../src/fs/overlay/index.js";
 import { ReadOnlyFileSystem } from "../../../src/fs/readonly/index.js";
@@ -10,17 +9,16 @@ import { MockS3Client, S3FileSystem } from "../../../src/fs/s3/index.js";
 import { WebDavFileSystem } from "../../../src/fs/webdav/index.js";
 import { MockDav } from "../../fs/webdav/mock.js";
 import { Shell, metadataCommands, standardCommands } from "../../../src/index.js";
-import { namespace, run, snapshot } from "./helpers.js";
+import { run, snapshot } from "./helpers.js";
 
-for (const backend of ["memory", "real", "mount", "overlay", "s3", "webdav", "readonly"] as const) test(`metadata actual ${backend} capabilities and shell workflow`, async context => {
+for (const backend of ["memory", "mount", "overlay", "s3", "webdav", "readonly"] as const) test(`metadata actual ${backend} capabilities and shell workflow`, async () => {
   const backing = new MemoryFileSystem();
   await backing.mkdir("/work", { mode: 0o755 });
   await backing.writeFile("/work/file", Uint8Array.of(0, 255, 10), { mode: 0o640 });
   const original = await snapshot(backing);
   let fs: FileSystem;
   const upper = new MemoryFileSystem();
-  if (backend === "real") fs = await createRealFileSystem({ root: await namespace(context) });
-  else if (backend === "mount") fs = new MountFileSystem({ root: new MemoryFileSystem(), mounts: { "/work": new MemoryFileSystem() } });
+  if (backend === "mount") fs = new MountFileSystem({ root: new MemoryFileSystem(), mounts: { "/work": new MemoryFileSystem() } });
   else if (backend === "overlay") fs = new OverlayFileSystem({ lower: new ReadOnlyFileSystem(backing), upper });
   else if (backend === "readonly") fs = new ReadOnlyFileSystem(backing);
   else if (backend === "s3") fs = new S3FileSystem({ bucket: "metadata", transport: new MockS3Client({ buckets: ["metadata"] }) });

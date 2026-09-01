@@ -1,5 +1,7 @@
 import { describe, expect, it } from "vitest";
 
+import experimentExample from "../examples/experiment.md";
+
 import { createBrokenPipeSink, createSink } from "../test/sinks.js";
 import { runExampleFile } from "./example-runner.js";
 
@@ -31,6 +33,52 @@ async function withObjectPrototypeProperties<T>(
 }
 
 describe("runExampleFile", () => {
+  it.each([
+    ["script", experimentExample],
+    ["fallback", experimentExample.slice(0, experimentExample.indexOf("```js"))]
+  ])("retains experiment metrics and attempt selection in the %s path", async (_kind, source) => {
+    const stdout = createSink();
+    const stderr = createSink();
+    const exitCode = await runExampleFile("/repo/experiment.md", {
+      readFile: async () => source,
+      stdout,
+      stderr
+    });
+    expect(exitCode).toBe(0);
+    expect(stderr.output()).toBe("");
+    const entries = stdout
+      .output()
+      .trim()
+      .split("\n")
+      .map((line) => JSON.parse(line));
+    expect(entries.slice(0, 3)).toMatchObject([
+      { type: "event", name: "attempt.discarded", payload: { attempt: 1, score: 9 } },
+      { type: "event", name: "attempt.kept", payload: { attempt: 2, score: 12 } },
+      { type: "event", name: "attempt.kept", payload: { attempt: 3, score: 13 } }
+    ]);
+    expect(entries[3]).toEqual({
+      ok: true,
+      returnValue: { kind: "experiment", kept: 2, baseline: 10 }
+    });
+    expect(entries).toHaveLength(4);
+  });
+
+  it("removes Git from the example registry", async () => {
+    const stdout = createSink();
+    const stderr = createSink();
+    const exitCode = await runExampleFile("/repo/example.md", {
+      readFile: async () =>
+        ["```js", 'import { checkpoint } from "git";', "return typeof checkpoint;", "```"].join(
+          "\n"
+        ),
+      stdout,
+      stderr
+    });
+    expect(exitCode).toBe(1);
+    expect(stderr.output()).toContain("Unknown module 'git'.");
+    expect(stdout.output()).toBe("");
+  });
+
   it("prints own messages from thrown non-Error values", async () => {
     const stderr = createSink();
 

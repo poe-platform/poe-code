@@ -1,5 +1,4 @@
 import { createServer, type IncomingMessage, type ServerResponse } from "node:http";
-import { spawn } from "node:child_process";
 import { collectBytes, toByteSource, type ByteSink, type ByteSource, type CommandContext, type FileSystem } from "../../../src/contracts/index.js";
 import { MemoryFileSystem } from "../../../src/fs/memory/index.js";
 import { createCurlCommand, type NetworkCommandsOptions } from "../../../src/commands/network/index.js";
@@ -91,18 +90,4 @@ export async function server(extra?: (request: IncomingMessage, response: Server
     await Promise.allSettled(pending);
   };
   return state;
-}
-
-export async function nativeCurl(args: readonly string[], stdin: Uint8Array = new Uint8Array(), cwd?: string) {
-  return new Promise<{ exitCode: number; stdout: Buffer; stderr: Buffer }>((resolve, reject) => {
-    const child = spawn("/usr/bin/curl", ["-q", "--noproxy", "*", "--max-time", "4", ...args], {
-      ...(cwd ? { cwd } : {}), env: { PATH: "/usr/bin:/bin", LANG: "C", LC_ALL: "C" },
-      stdio: ["pipe", "pipe", "pipe"],
-    });
-    const stdout: Buffer[] = []; const stderr: Buffer[] = [];
-    child.stdout.on("data", chunk => stdout.push(chunk)); child.stderr.on("data", chunk => stderr.push(chunk));
-    child.on("error", reject); child.stdin.on("error", () => {});
-    child.on("close", code => resolve({ exitCode: code ?? 255, stdout: Buffer.concat(stdout), stderr: Buffer.concat(stderr) }));
-    child.stdin.end(stdin);
-  });
 }

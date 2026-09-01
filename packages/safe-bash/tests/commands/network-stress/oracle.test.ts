@@ -1,9 +1,8 @@
 import assert from "node:assert/strict";
-import { readdir } from "node:fs/promises";
 import { test } from "node:test";
 import { loadEvidence } from "./evidence.js";
 import { createLab } from "./lab.js";
-import { assertNative, owned, profile, runNative, stable } from "./native.js";
+import { assertNative } from "./native.js";
 import { binary, contractRows, rows } from "./rows.js";
 import { loopbackTransport } from "./transport.js";
 
@@ -59,16 +58,11 @@ test("frozen provenance, denominator, byte vectors, and independent invariants",
   assert(find("header-crlf-injection").traces[0]?.headers.some(([name]) => name === "x-injected"));
 });
 
-test("native binary, version, flags and clean environment match frozen profile", async () => {
-  assert.deepEqual(await profile(), evidence.nativeProfile);
-});
-
 test("fixture authorization rejects external, userinfo, wrong ports and protocols", async () => {
   const lab = await createLab();
   try {
     for (const origin of Object.values(lab.origins)) assert(lab.allow(`${origin}/echo`));
     for (const url of ["https://example.com/", "http://127.0.0.1:1/", "file:///etc/passwd", "ftp://127.0.0.1/", lab.origins.A.replace("http://", "http://user:pass@"), "not-a-url"]) assert(!lab.allow(url));
-    await assert.rejects(runNative({ id: "untrusted", args: ["https://example.com/"] }), /closed, audited/);
   } finally { await lab.close(); }
 });
 
@@ -111,18 +105,4 @@ test("injected transport disposes stalled response before server completion", { 
     await response.dispose();
     await lab.waitForIdle();
   } finally { await injected.close(); await lab.close(); }
-});
-
-test("native replay: 58 rows; no virtual execution", { timeout: 75000 }, async (context) => {
-  for (const row of rows) {
-    await context.test(row.id, { timeout: 7000 }, async () => {
-      const actual = await runNative(row);
-      const expected = evidence.observations.find((entry) => entry.id === row.id);
-      assert(expected);
-      assertNative(row, actual);
-      if (row.mode === "head") assertPipeDiagnostic(actual.code, actual.stderr);
-      assert.deepEqual(stable(actual), stable(expected));
-    });
-  }
-  assert.deepEqual((await readdir(owned)).filter((name) => name.startsWith(".native-")), [], "Temporary roots remain");
 });

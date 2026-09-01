@@ -2,7 +2,7 @@ import assert from "node:assert/strict";
 import test from "node:test";
 import { CommandRegistry, toByteSource, type ByteSource, type CommandContext } from "../../../src/contracts/index.js";
 import { createSearchCommands, searchCommands, type SearchOptions } from "../../../src/commands/search/index.js";
-import { makeFileSystem, native, virtual } from "./helpers.js";
+import { makeFileSystem, virtual } from "./helpers.js";
 
 test("plugin installs rg and rejects collisions without replacement", () => {
   assert.deepEqual(createSearchCommands().map(command => command.name), ["rg"]);
@@ -22,13 +22,6 @@ test("invalid options and regexes fail before stdin consumption or stdout", asyn
     assert.equal(result.stdout.length, 0);
     assert(result.stderr.length > 0);
     assert.equal(consumed, false);
-  }
-});
-
-test("native invalid syntax also returns two without output", async () => {
-  for (const args of [["[", "-"], ["x\ny", "-"], ["-nA1m1", "x", "-"]]) {
-    const expected = await native({ args, stdin: "x\n" });
-    assert.equal(expected.code, 2); assert.equal(expected.stdout.length, 0); assert(expected.stderr.length > 0);
   }
 });
 

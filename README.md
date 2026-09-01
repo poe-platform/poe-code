@@ -263,6 +263,26 @@ console.log(identity.name, identity.handle);
 
 Uses `POE_API_KEY` or the stored credential and honors `POE_BASE_URL`. Throws an API error when Poe rejects the credential.
 
+## Testing
+
+Builds and tests do not install or require GNU/native oracle utilities. Existing
+captured responses remain plain regression fixtures; live tool qualification
+and provisioning have been removed. SafeJS's Git module and SafeBash's Git
+commands are no longer supported. Repository Git, worktrees and release tooling
+remain unchanged.
+
+Run `npm test` for workspace/unit tests followed by the required lint stress
+tests. A failing unit stage fails the command before stress testing begins.
+`npm run test:workspaces -- --concurrency=4` runs only the workspace/unit stage;
+it is not the complete test gate.
+
+`npm run test:stress:lint` runs the two full-scale lint-input guard cases
+sequentially, with a 180-second budget per case. These are explicit stress-test
+budgets, not evidence that the former 30/20-second unit deadlines passed. Release
+CI requires this exclusive stress step, bounded to seven minutes, after workspace
+tests and before smoke testing or publication. See the
+[stress separation plan](docs/plans/lint-stress-separation.md).
+
 ## Research Preview
 
 These features are available but subject to breaking changes.

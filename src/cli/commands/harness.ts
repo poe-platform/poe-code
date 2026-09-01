@@ -20,7 +20,6 @@ import {
   makeFsModule,
   parseFsConfig,
   resolveFsConfig,
-  makeGitModule,
   makeHarnessModule,
   makeLogModule,
   makeMetricModule,
@@ -1116,7 +1115,6 @@ function createHarnessModules(
     }
   );
   const fail = makeFailModule().default;
-  const git = makeGitModule(meta.dirname);
   const harness = makeHarnessModule(frontmatter, harnessMeta);
   const log = makeLogModule();
   const metric = makeMetricModule(async (scriptName) => {
@@ -1151,7 +1149,6 @@ function createHarnessModules(
             )
           )
         }),
-    git: toModuleExports(git),
     harness: toModuleExports(harness),
     log: toModuleExports(log),
     metric: toModuleExports(metric)

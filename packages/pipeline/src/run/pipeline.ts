@@ -10,7 +10,7 @@ import {
 } from "@poe-code/agent-harness-tools";
 import { resolveAbsolutePlanPath, resolvePlanPath } from "../plan/discovery.js";
 import { parsePlan } from "../plan/parser.js";
-import { writeTaskStatus } from "../plan/writer.js";
+import { writeFinalizationStatus, writeTaskStatus } from "../plan/writer.js";
 import { withPlanLock } from "../plan/lock.js";
 import { buildExecutionPrompt, resolveFileIncludes, selectNextExecution } from "./runner.js";
 import { interpolatePipelineVars } from "../vars/interpolate.js";
@@ -173,7 +173,6 @@ async function runResolvedPipeline(
   metrics: PipelineMetrics
 ): Promise<PipelineRunResult> {
   const { fs, cwd, homeDir, runAgent, plan: planPath } = options;
-  const configuredPlanDirectory = options.planDirectory;
   const absolutePlanPath = resolveAbsolutePlanPath(planPath, cwd, homeDir);
   const runLogDir =
     options.logDir ??
@@ -299,7 +298,8 @@ async function runResolvedPipeline(
   const initialVars = await resolvePipelineVars(
     initialPlan.vars ?? {},
     options.cwd,
-    fs.readFile.bind(fs)
+    fs.readFile.bind(fs),
+    { deferFileIncludes: true }
   );
   validateResolvedPromptVars({
     plan: initialPlan,
@@ -310,7 +310,10 @@ async function runResolvedPipeline(
     ...(initialResolvedTeardown ? { teardown: initialResolvedTeardown } : {})
   });
 
-  if (selectNextExecution(initialPlan, options.task).kind === "completed") {
+  const initialSelectionComplete = selectNextExecution(initialPlan, options.task).kind === "completed";
+  const initialFinalizationPending = initialPlan.tasks.every((task) => isTaskDone(task.status)) &&
+    (initialPlan.finalization === "pending" || initialPlan.finalization === "teardown_completed");
+  if (initialSelectionComplete && !initialFinalizationPending) {
     return {
       stopReason: "nothing_to_run",
       planPath,
@@ -320,7 +323,7 @@ async function runResolvedPipeline(
     };
   }
 
-  if (resolvedSetup) {
+  if (resolvedSetup && !initialSelectionComplete) {
     const { success, cancelled } = await runPhase(
       resolvedSetup,
       "setup",
@@ -339,7 +342,7 @@ async function runResolvedPipeline(
     }
   }
 
-  while (runsCompleted < maxRuns) {
+  while (true) {
     assertNotAborted(options.signal);
     {
       let stepsConfig: ResolvedStepsConfig;
@@ -365,7 +368,8 @@ async function runResolvedPipeline(
       const planVars = await resolvePipelineVars(
         plan.vars ?? {},
         options.cwd,
-        fs.readFile.bind(fs)
+        fs.readFile.bind(fs),
+        { deferFileIncludes: true }
       );
       const resolvedTeardown =
         plan.teardown === null ? undefined : (plan.teardown ?? stepsConfig.teardown);
@@ -379,12 +383,16 @@ async function runResolvedPipeline(
       const selection = selectNextExecution(plan, options.task);
 
       if (selection.kind === "completed") {
-        if (runsCompleted > 0) {
-          if (resolvedTeardown) {
+        const fullPlanComplete = plan.tasks.every((task) => isTaskDone(task.status));
+        const shouldFinalize = fullPlanComplete && (
+          runsCompleted > 0 || plan.finalization === "pending" || plan.finalization === "teardown_completed"
+        );
+        if (shouldFinalize) {
+          if (resolvedTeardown && plan.finalization !== "teardown_completed") {
             const { success, cancelled } = await runPhase(
               resolvedTeardown,
               "teardown",
-              initialTotalTasks,
+              totalTasks,
               planVars,
               plan.mcp
             );
@@ -398,19 +406,53 @@ async function runResolvedPipeline(
               };
             }
           }
+          const acknowledged = await writeFinalizationStatus({
+            fs,
+            planPath: absolutePlanPath,
+            status: "teardown_completed",
+            signal: options.signal
+          });
+          if (!acknowledged) {
+            lastGoodPlan = undefined;
+            lastGoodStepsConfig = undefined;
+            continue;
+          }
           if (options.archive !== false) {
             const id = planIdFromArchivePath(absolutePlanPath);
             await archivePlanShared({
               cwd,
               homeDir,
-              planDirectory: configuredPlanDirectory ?? "docs/plans",
+              planDirectory: path.dirname(absolutePlanPath),
               id,
+              metadataPatch: { finalization: "completed" },
               fs: fs as unknown as ArchivePlanFs
             });
+          } else {
+            const completed = await writeFinalizationStatus({
+              fs,
+              planPath: absolutePlanPath,
+              status: "completed",
+              signal: options.signal
+            });
+            if (!completed) {
+              lastGoodPlan = undefined;
+              lastGoodStepsConfig = undefined;
+              continue;
+            }
           }
         }
         return {
-          stopReason: runsCompleted === 0 ? "nothing_to_run" : "completed",
+          stopReason: runsCompleted === 0 && !shouldFinalize ? "nothing_to_run" : "completed",
+          planPath,
+          runsCompleted,
+          totalDurationMs: Date.now() - pipelineStartTime,
+          metrics
+        };
+      }
+
+      if (!(runsCompleted < maxRuns)) {
+        return {
+          stopReason: "max_runs",
           planPath,
           runsCompleted,
           totalDurationMs: Date.now() - pipelineStartTime,
@@ -535,10 +577,12 @@ async function runResolvedPipeline(
         taskId: selection.task.id,
         ...(options.signal ? { signal: options.signal } : {}),
         ...(selection.stepName ? { stepName: selection.stepName } : {}),
-        status: success ? "done" : "failed"
+        status: success ? "done" : "failed",
+        finalization: "pending"
       });
 
       if (lastGoodPlan) {
+        lastGoodPlan.finalization = "pending";
         const cachedTask = lastGoodPlan.tasks.find((t) => t.id === selection.task.id);
         if (cachedTask) {
           const newStatus = success ? "done" : "failed";
@@ -573,12 +617,4 @@ async function runResolvedPipeline(
       }
     }
   }
-
-  return {
-    stopReason: "max_runs",
-    planPath,
-    runsCompleted,
-    totalDurationMs: Date.now() - pipelineStartTime,
-    metrics
-  };
 }

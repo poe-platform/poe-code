@@ -20,6 +20,7 @@ export interface RealFileSystemOptions {
 interface ResolutionOptions extends FsOptions {
   readonly followFinal?: boolean;
   readonly missing?: "final";
+  readonly deferTrailingSeparator?: boolean;
   readonly createDirectories?: { readonly mode: number };
   readonly checkTarget?: boolean;
 }
@@ -205,7 +206,12 @@ export class RealFileSystem implements FileSystem {
         }
         continue;
       }
-      if (pending.length > 0 && !stats.isDirectory() && !options.checkTarget) throw new FsError("ENOTDIR");
+      if (pending.length > 0 && !stats.isDirectory() && !options.checkTarget) {
+        if (options.deferTrailingSeparator && stats.isFile() && pending.every((part) => part.name === "")) {
+          return `${candidate}/`;
+        }
+        throw new FsError("ENOTDIR");
+      }
       if (!options.checkTarget) fileType(stats);
       current = candidate;
     }
@@ -298,7 +304,7 @@ export class RealFileSystem implements FileSystem {
       if (options.mode !== undefined) integer(options.mode);
       const target = await this.path(path, {
         ...options,
-        missing: "final", followFinal: !!options.recursive,
+        missing: "final", followFinal: !!options.recursive, deferTrailingSeparator: true,
         ...(options.recursive ? { createDirectories: { mode: options.mode ?? 0o777 } } : {}),
       });
       options.signal?.throwIfAborted();
@@ -349,15 +355,19 @@ export class RealFileSystem implements FileSystem {
   async copyFile(source: string, destination: string, options: CopyFileOptions = {}): Promise<void> {
     return this.operation("copyFile", source, options, async () => {
       const from = await this.path(source, options);
-      const to = await this.path(destination, { ...options, missing: "final", followFinal: !options.exclusive });
-      const origin = await native.stat(from, { bigint: true });
-      let target;
-      try { target = await native.lstat(to, { bigint: true }); }
-      catch (error) { if (nativeError(error).code !== "ENOENT") throw error; }
-      if (target && options.exclusive) throw new FsError("EEXIST");
-      if (target && origin.isFile() && origin.dev === target.dev && origin.ino === target.ino) throw new FsError("EINVAL");
+      const to = await this.path(destination, { ...options, missing: "final", followFinal: !options.exclusive, deferTrailingSeparator: true });
+      let flags = options.exclusive ? constants.COPYFILE_EXCL : 0;
+      if (!to.endsWith("/")) {
+        const origin = await native.stat(from, { bigint: true });
+        let target;
+        try { target = await native.lstat(to, { bigint: true }); }
+        catch (error) { if (nativeError(error).code !== "ENOENT") throw error; }
+        if (target && options.exclusive) throw new FsError("EEXIST");
+        if (target && origin.isFile() && origin.dev === target.dev && origin.ino === target.ino) throw new FsError("EINVAL");
+        if (!target) flags |= constants.COPYFILE_EXCL;
+      }
       options.signal?.throwIfAborted();
-      await native.copyFile(from, to, options.exclusive || !target ? constants.COPYFILE_EXCL : 0);
+      await native.copyFile(from, to, flags);
     }, destination);
   }
 
@@ -504,7 +514,7 @@ export class RealFileSystem implements FileSystem {
       if (!["w", "wx", "a", "ax"].includes(flag)) throw new FsError("EINVAL");
       if (options.mode !== undefined) integer(options.mode);
       const exclusive = flag.endsWith("x");
-      const destination = await this.path(path, { ...options, missing: "final", followFinal: !exclusive });
+      const destination = await this.path(path, { ...options, missing: "final", followFinal: !exclusive, deferTrailingSeparator: true });
       const flags = constants.O_WRONLY | constants.O_CREAT | constants.O_NOFOLLOW | constants.O_NONBLOCK
         | (flag.startsWith("a") ? constants.O_APPEND : constants.O_TRUNC)
         | (exclusive ? constants.O_EXCL : 0);

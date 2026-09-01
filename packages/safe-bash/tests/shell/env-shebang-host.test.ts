@@ -1,8 +1,7 @@
 import assert from "node:assert/strict";
 import { spawnSync, type SpawnSyncReturns } from "node:child_process";
-import { createHash } from "node:crypto";
-import { cp, mkdir, mkdtemp, readFile, rm, writeFile } from "node:fs/promises";
-import { dirname, join } from "node:path";
+import { cp, mkdir, mkdtemp, rm } from "node:fs/promises";
+import { join } from "node:path";
 import { test } from "node:test";
 import { setTimeout as delay } from "node:timers/promises";
 import { fileURLToPath } from "node:url";
@@ -208,62 +207,4 @@ if (process.argv[2]?.startsWith("guarded:")) {
     } finally { await rm(scratch, { recursive: true, force: true }); }
   });
 
-  for (const profileIndex of [0, 1]) test(`env shebang native pinned ${profileIndex === 0 ? "GNU9.7/GNU5.3 on Darwin" : "Apple env/Bash3.2 on Darwin"}`, { timeout: 10000 }, async context => {
-    const pins = JSON.parse(await readFile(join(root, "tests/shell-stress/env-split-author/native-frozen.json"), "utf8")) as {
-      envProfiles: { name: string; binary: string; sha256: string }[];
-      bashProfiles: { name: string; binary: string; sha256: string }[];
-    };
-    const environment = pins.envProfiles[profileIndex]!;
-    const bash = pins.bashProfiles[profileIndex]!;
-    for (const binary of [environment, bash]) {
-      let bytes: Buffer;
-      try { bytes = await readFile(binary.binary); }
-      catch (error) {
-        if ((error as NodeJS.ErrnoException).code !== "ENOENT") throw error;
-        context.skip(`Pinned oracle unavailable: ${binary.name}`);
-        return;
-      }
-      assert.equal(createHash("sha256").update(bytes).digest("hex"), binary.sha256, binary.name);
-    }
-    const env = { PATH: dirname(bash.binary), LC_ALL: "C", OLD: "old value" };
-    const fs = setup();
-    const source = 'printf "<%s><%s><%s><%s>" "$0" "$#" "$2" "$3"';
-    const optional = `-S bash -c '${source}' fixed`;
-    fs.commands.register({ name: "printf", async execute(command) {
-      await command.stdout.write(Buffer.from(command.args.slice(1).map(value => `<${value}>`).join("")));
-      return { exitCode: 0 };
-    } });
-    try {
-      await fs.fs.writeFile("/program", Buffer.from(`#!/usr/bin/env ${optional}\nfalse`), { mode: 0o755 });
-      const virtual = await fs.shell.exec("/program '' 'a b'");
-      assert.equal(virtual.exitCode, 0, virtual.stderr);
-      assert.equal(virtual.stdout, "<fixed><3><><a b>");
-      const native = spawnSync(environment.binary, [optional, "/program", "", "a b"], { env, timeout: 2000, killSignal: "SIGKILL", maxBuffer: 256 * 1024 });
-      settled(native);
-      assert.equal(native.status, virtual.exitCode);
-      assert.deepEqual(native.stdout, Buffer.from(virtual.stdoutBytes));
-      assert.deepEqual(native.stderr, Buffer.from(virtual.stderrBytes));
-      const packed = spawnSync(environment.binary, ["bash -e", "/program"], { env, timeout: 2000, killSignal: "SIGKILL", maxBuffer: 256 * 1024 });
-      settled(packed);
-      assert.equal(packed.status, 127);
-      assert.equal(packed.stdout.length, 0);
-      assert.notEqual(packed.stderr.length, 0);
-      context.diagnostic(`${environment.name}/${bash.name}: single-optional protocol; not kernel execution or Linux deployment evidence`);
-    } finally { await fs.shell.dispose(); }
-
-    if (profileIndex === 1 && process.platform === "darwin") {
-      await mkdir(author, { recursive: true });
-      const scratch = await mkdtemp(join(author, ".native-"));
-      try {
-        const script = join(scratch, "program");
-        await writeFile(script, "#!/usr/bin/env bash -e\nprintf before; false; printf BAD\n", { mode: 0o755 });
-        const native = spawnSync(script, [], { env, timeout: 2000, killSignal: "SIGKILL", maxBuffer: 256 * 1024 });
-        settled(native);
-        assert.equal(native.status, 1);
-        assert.equal(native.stdout.toString(), "before");
-        assert.equal(native.stderr.length, 0);
-        context.diagnostic("Darwin kernel packed non-S divergence retained separately: native 1/before versus virtual 127/empty");
-      } finally { await rm(scratch, { recursive: true, force: true }); }
-    }
-  });
 }

@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { contents, filesystem, native, replacement, run } from "./helpers.js";
+import { contents, filesystem, replacement, run } from "./helpers.js";
 
 const create = (name: string) => `--- /dev/null\n+++ ${name}\n@@ -0,0 +1 @@\n+old\n`;
 const remove = (name: string) => `--- ${name}\n+++ /dev/null\n@@ -1 +0,0 @@\n-old\n`;
@@ -144,20 +144,4 @@ test("followup namespace preview shares the invocation input budget", async () =
   assert.equal(result.exitCode, 2, result.stderr);
   assert.match(result.stderr, /EFBIG.*maxBytes/u);
   assert.deepEqual(await snapshot(fs), before);
-});
-
-for (const [label, initial, input, args] of [
-  ["create then replace", {}, create("a") + replace("a", "unused-long-name"), []],
-  ["delete then reselect", { a: "old\n", "unused-long-name": "old\n" }, remove("a") + replace("a", "unused-long-name"), []],
-  ["failed deletion retains candidate with rejects discarded", { a: "wrong\n", "unused-long-name": "old\n" }, remove("a") + replace("a", "unused-long-name"), ["-r", "-"]],
-  ["reverse creation removes candidate", { a: "old\n", "unused-long-name": "old\n" }, create("a") + replace("a", "unused-long-name"), []],
-  ["empty result under -E removes candidate", { a: "old\n", "unused-long-name": "old\n" }, remove("a").replace("+++ /dev/null", "+++ a") + replace("a", "unused-long-name"), ["-E"]],
-] as const) test(`followup current namespace matches GNU: ${label}`, async () => {
-  const files = { ...initial };
-  const expected = await native("patch", ["--batch", "-p0", ...args], files, input);
-  const actual = await run("patch", ["--batch", "-p0", ...args], { files, input });
-  assert.equal(actual.exitCode, expected.exitCode, actual.stderr);
-  const paths = (await actual.fs.readdir("/work")).map(entry => entry.name).sort();
-  assert.deepEqual(paths, Object.keys(expected.files).sort());
-  for (const path of paths) assert.equal(await contents(actual.fs, path), expected.files[path], path);
 });

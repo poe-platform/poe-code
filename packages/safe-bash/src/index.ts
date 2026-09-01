@@ -28,7 +28,6 @@ export * from "./commands/expr/index.js";
 export * from "./commands/which/index.js";
 export * from "./commands/timeout/index.js";
 export * from "./commands/apply-patch/index.js";
-export * from "./commands/git/index.js";
 export * from "./fs/memory/index.js";
 export * from "./fs/real/index.js";
 export * from "./fs/s3/index.js";

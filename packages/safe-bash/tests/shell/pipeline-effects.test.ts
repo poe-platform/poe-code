@@ -1,27 +1,7 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
 import { writeText } from "../../src/contracts/index.js";
-import { bashResult } from "./bash-bugfix-helpers.js";
 import { setup } from "./helpers.js";
-
-for (const source of [
-  "{ :; : >after; } | :",
-  "{ :; : >after; } | : | :",
-  "printf abc >out | true",
-  "set -o pipefail; { true; false; } | true",
-]) {
-  test(`pipeline completion preserves independent producer effects: ${source}`, { timeout: 3000 }, async () => {
-    const expected = bashResult(source);
-    const { shell, fs, commands } = setup({ limits: { pipeHighWaterMark: 1 } });
-    commands.register({ name: "printf", async execute({ args, stdout }) {
-      await stdout.write(new TextEncoder().encode(args[0]));
-      return { exitCode: 0 };
-    } });
-    const actual = await shell.exec(source, { signal: AbortSignal.timeout(2000) });
-    const files = Object.fromEntries(await Promise.all((await fs.readdir("/")).map(async (entry) => [entry.name, new TextDecoder().decode(await fs.readFile(`/${entry.name}`))])));
-    assert.deepEqual({ stdout: actual.stdout, stderr: actual.stderr, exitCode: actual.exitCode, files }, expected);
-  });
-}
 
 test("downstream exit does not interrupt an upstream asynchronous effect", { timeout: 3000 }, async () => {
   const { shell, commands, fs } = setup();

@@ -1,12 +1,7 @@
 import assert from "node:assert/strict";
-import { spawnSync } from "node:child_process";
-import { createHash } from "node:crypto";
-import { mkdtemp, readFile, rm, symlink, truncate } from "node:fs/promises";
-import { join } from "node:path";
-import { fileURLToPath } from "node:url";
+import { readFile } from "node:fs/promises";
 import test from "node:test";
 import { createMemoryFileSystem } from "../../../src/fs/memory/index.js";
-import { createRealFileSystem } from "../../../src/fs/real/index.js";
 import { seed, shellRun } from "./helpers.js";
 
 interface NativeCase { name: string; args: string[]; env: Record<string, string>; status: number; stdout: string; stderr: string }
@@ -49,32 +44,3 @@ for (const item of profile.results) {
     }
   });
 }
-
-test("live pinned GNU 9.7 versus rooted Real allocation, hardlinks and sparse files", async context => {
-  const oracle = fileURLToPath(new URL("../metadata-stress/.oracle/coreutils-9.7/src/du", import.meta.url));
-  let bytes: Uint8Array;
-  try { bytes = await readFile(oracle); }
-  catch { context.skip("read-only pinned GNU du binary unavailable; no BSD substitution"); return; }
-  assert.equal(createHash("sha256").update(bytes).digest("hex"), profile.binarySha256);
-  const root = await mkdtemp(fileURLToPath(new URL(".native-oracle-", import.meta.url)));
-  context.after(() => rm(root, { recursive: true, force: true }));
-  const real = await createRealFileSystem({ root }); await seed(real);
-  await real.link!("/tree/a", "/alias");
-  await real.writeFile("/sparse", new Uint8Array()); await truncate(join(root, "sparse"), 1048576);
-  await symlink("tree", join(root, "link")); await symlink("absent", join(root, "broken"));
-  const cases = [
-    ["tree"], ["-s", "tree"], ["-sc", "tree"], ["-sB1", "tree"], ["-sh", "tree"],
-    ["-sk", "tree"], ["-sm", "tree"], ["-sBKB", "tree"], ["-a", "tree"], ["-ad1", "tree"],
-    ["-b", "tree"], ["-bc", "tree/a", "alias"], ["-blc", "tree/a", "alias"],
-    ["-B1", "sparse"], ["-b", "sparse"], ["-bc", "link", "broken"], ["-c", "link", "broken"], ["-b", "link/"],
-  ];
-  for (const args of cases) {
-    const native = spawnSync(oracle, args, { cwd: root, env: { PATH: "/usr/bin:/bin", LC_ALL: "C" }, encoding: "utf8", timeout: 10000 });
-    assert.equal(native.status, 0, native.stderr);
-    const result = await shellRun(real, args);
-    assert.equal(result.exitCode, native.status, result.stderr);
-    assert.equal(result.stderr, native.stderr);
-    assert.deepEqual(result.stdout.trimEnd().split("\n").sort(), native.stdout.trimEnd().split("\n").sort(), args.join(" "));
-  }
-  assert.equal(createHash("sha256").update(await readFile(oracle)).digest("hex"), profile.binarySha256);
-});

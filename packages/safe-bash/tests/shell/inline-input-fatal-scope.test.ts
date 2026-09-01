@@ -1,8 +1,6 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
-import { bashVersion, runBash, runVirtualScript } from "../shell-stress/helpers.js";
-
-const legacyReference = bashVersion().includes("version 3.2.");
+import { runVirtualScript } from "../shell-stress/helpers.js";
 
 for (const expansion of ["${VALUE:?stop}", "$((1/0))"]) {
   for (const operator of ["heredoc", "here-string"]) {
@@ -20,13 +18,11 @@ for (const expansion of ["${VALUE:?stop}", "$((1/0))"]) {
           name: `${operator} failure scope: ${name}`,
           script: `func() { printf ran >executed; }; ${command} 2>errors ${redirect}status=$?; printf after >marker; exit "$status"`,
         };
-        const expected = await runBash(fixture);
         const actual = await runVirtualScript(fixture);
         const fatal = expansion.startsWith("${") && !isolated;
         const files = fatal ? ["errors"] : ["errors", "marker"];
-        assert.equal(expected.exitCode, expansion.startsWith("${") && legacyReference ? 127 : 1);
         assert.equal(actual.exitCode, expansion.startsWith("${") ? 127 : 1);
-        for (const observation of [expected, actual]) {
+        for (const observation of [actual]) {
           assert.equal(observation.stdout, "");
           assert.equal(observation.stderr, "");
           assert.deepEqual(Object.keys(observation.files).sort(), files);
@@ -50,11 +46,9 @@ for (const operator of ["heredoc", "here-string"]) {
     test(`${operator} parameter failure aborts only its ${name} environment`, async () => {
       const body = `printf ran 2>errors ${redirect}printf bad >inner;`;
       const fixture = { name: `${operator} nested fatal ${name}`, script: `${wrap(body)} status=$?; printf after >outer; exit "$status"` };
-      const expected = await runBash(fixture);
       const actual = await runVirtualScript(fixture);
-      assert.equal(expected.exitCode, name === "subshell" && legacyReference ? 127 : status);
       assert.equal(actual.exitCode, status);
-      for (const observation of [expected, actual]) {
+      for (const observation of [actual]) {
         assert.equal(observation.stdout, stdout);
         assert.equal(observation.stderr, "");
         assert.deepEqual(Object.keys(observation.files).sort(), ["errors", "outer"]);

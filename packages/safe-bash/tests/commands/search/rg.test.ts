@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { differential, jsonEvents, virtual, type Fixture } from "./helpers.js";
+import { jsonEvents, virtual, type Fixture } from "./helpers.js";
 
 const files = { "alpha.txt": "first\nneedle needle\nthird\nneedle\nlast", "beta.txt": "none\n", "sub/code.ts": "const needle = 1;\n", "sub/code.js": "needle();\n" };
 const cases: Record<string, Fixture> = {
@@ -91,8 +91,6 @@ const cases: Record<string, Fixture> = {
   "JSON Unicode byte submatches": { args: ["--json", "😀", "-"], stdin: "é😀😀\n" },
   "JSON overridden by filename mode": { args: ["--json", "-l", "needle", "alpha.txt"], files },
 };
-
-for (const [name, fixture] of Object.entries(cases)) test(`rg native differential: ${name}`, () => differential(fixture));
 
 test("deterministic virtual results do not depend on native rg availability", async () => {
   const result = await virtual({ args: ["-n", "-g", "*.ts", "TODO", "."], files: { "src/a.ts": "x\n// TODO: implement\n", "src/b.js": "TODO\n", "src/.ignore": "*.js\n" } });

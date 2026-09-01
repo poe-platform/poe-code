@@ -7,6 +7,7 @@ export type {
   ExecutionSelection,
   PipelineConfig,
   PipelineFileSystem,
+  PipelineFinalizationStatus,
   PipelineMetrics,
   PipelinePlan,
   PipelineRunOptions,

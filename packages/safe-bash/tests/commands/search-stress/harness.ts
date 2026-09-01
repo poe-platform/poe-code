@@ -1,10 +1,8 @@
 import assert from "node:assert/strict";
 import { spawnSync } from "node:child_process";
-import { mkdtempSync, mkdirSync, rmSync, symlinkSync, writeFileSync } from "node:fs";
-import { dirname, join, resolve, sep } from "node:path";
+import { join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import type { SearchOptions } from "../../../src/commands/search/index.js";
-import { nativeRgEnvironment, requireNativeRg } from "../search/native-tool.js";
 
 export interface Probe {
   name: string;
@@ -60,34 +58,6 @@ export function virtualBatches(probes: Probe[], run: typeof bounded = bounded): 
     outcomes.push(...result);
   }
   return outcomes;
-}
-
-export function native(probe: Probe): Outcome {
-  const identity = requireNativeRg();
-  const root = mkdtempSync(join(directory, ".native-"));
-  const pathFor = (name: string) => {
-    const path = resolve(root, name);
-    assert(path.startsWith(root + sep));
-    return path;
-  };
-  try {
-    mkdirSync(join(root, ".git"));
-    for (const [name, value] of Object.entries(probe.files ?? {})) {
-      const path = pathFor(name);
-      mkdirSync(dirname(path), { recursive: true });
-      writeFileSync(path, bytes(value));
-    }
-    for (const [name, target] of Object.entries(probe.links ?? {})) {
-      const path = pathFor(name);
-      const destination = resolve(dirname(path), target);
-      assert(destination === root || destination.startsWith(root + sep));
-      mkdirSync(dirname(path), { recursive: true });
-      symlinkSync(target, path);
-    }
-    const env = nativeRgEnvironment(root, identity.path);
-    if (probe.script !== undefined) return bounded("/bin/bash", ["--noprofile", "--norc", "-c", `rg() { command "$SAFE_BASH_TEST_RG" --no-config --no-ignore-global --sort=path "$@"; }; ${probe.script}`], bytes(probe.stdin), root, 3000, env);
-    return bounded(identity.path, ["--no-config", "--no-ignore-parent", "--no-ignore-global", "--sort=path", ...probe.args], bytes(probe.stdin), root, 3000, env);
-  } finally { rmSync(root, { recursive: true, force: true }); }
 }
 
 export function compare(actual: Outcome, expected: Outcome, probe: Probe): void {

@@ -230,6 +230,11 @@ export const pipelineDocumentSchema: JsonSchema = {
     },
     setup: nullableStepDefinitionSchema,
     teardown: nullableStepDefinitionSchema,
+    finalization: {
+      type: "string",
+      enum: ["pending", "teardown_completed", "completed"],
+      description: "Durable finalization progress for resuming teardown and archiving."
+    },
     mcp: {
       type: "object",
       additionalProperties: mcpServerSchema
@@ -620,6 +625,16 @@ export function parsePlan(
   const mcpValue = getOwnEntry(document, "mcp");
   const mcp = mcpValue !== undefined ? parseMcpConfig(mcpValue) : undefined;
 
+  const finalization = getOwnEntry(document, "finalization");
+  if (
+    finalization !== undefined &&
+    finalization !== "pending" &&
+    finalization !== "teardown_completed" &&
+    finalization !== "completed"
+  ) {
+    throw new Error('Invalid plan YAML: "finalization" must be "pending", "teardown_completed", or "completed".');
+  }
+
   let vars: Record<string, string> | undefined;
   const varsValue = getOwnEntry(document, "vars");
   if (varsValue !== undefined) {
@@ -639,6 +654,7 @@ export function parsePlan(
     extends: extendsName,
     ...(stepOverrides !== undefined ? { stepOverrides } : {}),
     tasks,
+    ...(finalization !== undefined ? { finalization } : {}),
     ...(vars !== undefined ? { vars } : {}),
     ...(setup !== undefined ? { setup } : {}),
     ...(teardown !== undefined ? { teardown } : {}),

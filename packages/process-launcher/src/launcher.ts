@@ -108,8 +108,16 @@ const TEMP_WRITE_MAX_ATTEMPTS = 3;
 export async function startManagedProcess(options: StartManagedProcessOptions): Promise<ManagedProcessRecord> {
   assertOptionalFiniteDuration(options.startupTimeoutMs, "startup timeout");
   assertOptionalFiniteDuration(options.pollIntervalMs, "poll interval");
-  const fs = options.fs ?? defaultFs();
   const spec = normalizeSpec(options.spec);
+  return await withManagedProcessOperation({ ...options, id: spec.id }, async (fs) =>
+    await startReservedProcess({ ...options, fs, spec })
+  );
+}
+
+async function startReservedProcess(
+  options: StartManagedProcessOptions & { fs: LauncherFileSystem }
+): Promise<ManagedProcessRecord> {
+  const { fs, spec } = options;
   const existing = await readManagedProcess({
     baseDir: options.baseDir,
     fs,
@@ -159,7 +167,15 @@ export async function startManagedProcess(options: StartManagedProcessOptions): 
 export async function stopManagedProcess(options: StopManagedProcessOptions): Promise<ManagedProcessRecord | null> {
   assertOptionalFiniteDuration(options.stopTimeoutMs, "stop timeout");
   assertOptionalFiniteDuration(options.pollIntervalMs, "poll interval");
-  const fs = options.fs ?? defaultFs();
+  return await withManagedProcessOperation(options, async (fs) =>
+    await stopReservedProcess({ ...options, fs })
+  );
+}
+
+async function stopReservedProcess(
+  options: StopManagedProcessOptions & { fs: LauncherFileSystem }
+): Promise<ManagedProcessRecord | null> {
+  const { fs } = options;
   const record = await readManagedProcess({
     baseDir: options.baseDir,
     fs,
@@ -219,40 +235,84 @@ export async function stopManagedProcess(options: StopManagedProcessOptions): Pr
 export async function restartManagedProcess(
   options: RestartManagedProcessOptions
 ): Promise<ManagedProcessRecord> {
-  const fs = options.fs ?? defaultFs();
-  const record = await readManagedProcess({
-    baseDir: options.baseDir,
-    fs,
-    id: options.id,
-    isPidRunning: options.isPidRunning
-  });
+  assertOptionalFiniteDuration(options.startupTimeoutMs, "startup timeout");
+  assertOptionalFiniteDuration(options.stopTimeoutMs, "stop timeout");
+  assertOptionalFiniteDuration(options.pollIntervalMs, "poll interval");
+  return await withManagedProcessOperation(options, async (fs) => {
+    const record = await readManagedProcess({
+      baseDir: options.baseDir,
+      fs,
+      id: options.id,
+      isPidRunning: options.isPidRunning
+    });
 
-  if (record.spec === null) {
-    throw await managedProcessNotFound(fs, options.baseDir, options.id);
+    if (record.spec === null) {
+      throw await managedProcessNotFound(fs, options.baseDir, options.id);
+    }
+
+    await stopReservedProcess({
+      ...options,
+      force: false,
+      fs
+    });
+
+    return await startReservedProcess({
+      ...options,
+      fs,
+      spec: normalizeSpec(record.spec)
+    });
+  });
+}
+
+async function withManagedProcessOperation<Result>(
+  options: { baseDir: string; id: string; fs?: LauncherFileSystem },
+  operation: (fs: LauncherFileSystem) => Promise<Result>
+): Promise<Result> {
+  const fs = options.fs ?? defaultFs();
+  await assertProcessDirectorySafe(fs, options.baseDir, options.id);
+  await fs.mkdir(options.baseDir, { recursive: true });
+  const baseDir = path.resolve(options.baseDir);
+  const operationsDir = path.join(path.dirname(baseDir), ".process-operations", path.basename(baseDir));
+  await assertPathHasNoSymbolicLinks(fs, operationsDir);
+  await fs.mkdir(operationsDir, { recursive: true });
+  const lockPath = path.join(operationsDir, options.id);
+  const owner = `${JSON.stringify({ token: randomUUID(), pid: process.pid })}\n`;
+
+  try {
+    await fs.writeFile(lockPath, owner, { encoding: "utf8", flag: "wx" });
+  } catch (error) {
+    if (hasOwnErrorCode(error, "EEXIST")) {
+      throw new UserError(
+        `Managed process "${options.id}" has another operation in progress.\n` +
+        "Retry after it finishes.\n" +
+        "If the caller exited unexpectedly, confirm that all operations on this name have stopped,\n" +
+        `then remove this reservation file:\n${lockPath}`
+      );
+    }
+    throw error;
   }
 
-  await stopManagedProcess({
-    baseDir: options.baseDir,
-    force: false,
-    fs,
-    id: options.id,
-    isPidRunning: options.isPidRunning,
-    pollIntervalMs: options.pollIntervalMs,
-    signalProcess: options.signalProcess,
-    stopRuntimeArtifacts: options.stopRuntimeArtifacts,
-    stopTimeoutMs: options.stopTimeoutMs
-  });
+  let outcome: { result: Result } | { error: unknown };
+  try {
+    outcome = { result: await operation(fs) };
+  } catch (error) {
+    outcome = { error };
+  }
 
-  return await startManagedProcess({
-    baseDir: options.baseDir,
-    fs,
-    isPidRunning: options.isPidRunning,
-    pollIntervalMs: options.pollIntervalMs,
-    signalProcess: options.signalProcess,
-    spawnDaemon: options.spawnDaemon,
-    spec: record.spec,
-    startupTimeoutMs: options.startupTimeoutMs
-  });
+  try {
+    if (await fs.readFile(lockPath, "utf8") !== owner) {
+      throw new UserError(`Managed process operation ownership changed before release: ${lockPath}`);
+    }
+    await fs.rm(lockPath);
+  } catch (releaseError) {
+    if ("error" in outcome) {
+      throw new AggregateError([outcome.error, releaseError], "Managed process operation and ownership release failed");
+    }
+    throw releaseError;
+  }
+
+  if ("error" in outcome) throw outcome.error;
+  return outcome.result;
 }
 
 async function describeStartFailure(
@@ -562,24 +622,25 @@ function getFileId(stat: { dev?: number; ino?: number }): string | null {
 }
 
 export async function removeManagedProcess(options: RemoveManagedProcessOptions): Promise<void> {
-  const fs = options.fs ?? defaultFs();
-  const record = await readManagedProcess({
-    baseDir: options.baseDir,
-    fs,
-    id: options.id,
-    isPidRunning: options.isPidRunning
+  await withManagedProcessOperation(options, async (fs) => {
+    const record = await readManagedProcess({
+      baseDir: options.baseDir,
+      fs,
+      id: options.id,
+      isPidRunning: options.isPidRunning
+    });
+
+    if (isActiveRecord(record)) {
+      throw new Error(`Managed process "${options.id}" must be stopped before removal.`);
+    }
+
+    const stateStore = createStateStore(options.baseDir, fs);
+    await stateStore.remove(options.id);
+
+    if (record.spec !== null && options.removeRuntimeArtifacts) {
+      await options.removeRuntimeArtifacts({ record });
+    }
   });
-
-  if (isActiveRecord(record)) {
-    throw new Error(`Managed process "${options.id}" must be stopped before removal.`);
-  }
-
-  const stateStore = createStateStore(options.baseDir, fs);
-  await stateStore.remove(options.id);
-
-  if (record.spec !== null && options.removeRuntimeArtifacts) {
-    await options.removeRuntimeArtifacts({ record });
-  }
 }
 
 export async function runManagedProcess(options: RunManagedProcessOptions): Promise<void> {

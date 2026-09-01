@@ -323,7 +323,7 @@ describe("filesystem access at the sandbox boundary", () => {
 
     expect(exitCode).toBe(1);
     expect(stderr.output()).toContain(
-      "Unknown module 'fs'. Available modules: agent, fail, git, log, metric."
+      "Unknown module 'fs'. Available modules: agent, fail, log, metric."
     );
     expect(stdout.output()).toBe("");
   });

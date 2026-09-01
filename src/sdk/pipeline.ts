@@ -18,6 +18,7 @@ export type {
   AgentRunInput,
   AgentRunResult,
   PipelineConfig,
+  PipelineFinalizationStatus,
   PipelineMetrics,
   PipelinePlan,
   PipelineStatus,

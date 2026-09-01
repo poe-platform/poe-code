@@ -23,11 +23,9 @@ import { createExprCommands, type ExprCommandsOptions } from "../commands/expr/i
 import { createWhichCommands, type WhichCommandsOptions } from "../commands/which/index.js";
 import { createTimeoutCommands, type TimeoutCommandsOptions } from "../commands/timeout/index.js";
 import { createApplyPatchCommands, type ApplyPatchCommandsOptions } from "../commands/apply-patch/index.js";
-import { createGitCommands, type GitCommandsOptions } from "../commands/git/index.js";
 import type { RegexExecutionOptions } from "../commands/regex-execution/protocol.js";
 
 export interface AgentCommandsOptions {
-  readonly git?: Omit<GitCommandsOptions, "replace">;
   readonly applyPatch?: Omit<ApplyPatchCommandsOptions, "replace">;
   readonly timeout?: Omit<TimeoutCommandsOptions, "replace">;
   readonly which?: Omit<WhichCommandsOptions, "replace">;
@@ -96,7 +94,6 @@ export function createAgentCommands(options: AgentCommandsOptions = {}): readonl
       maxTimerMilliseconds: timeoutOptions.maxTimerMilliseconds,
     }),
     ...createApplyPatchCommands(applyPatchLimits === undefined ? {} : { limits: applyPatchLimits }),
-    ...createGitCommands({ ...options.git, replace: false }),
   );
   return new CommandRegistry(commands).list();
 }

@@ -1,13 +1,9 @@
 import assert from "node:assert/strict";
-import { createHash } from "node:crypto";
-import { readFile } from "node:fs/promises";
 import test from "node:test";
 import { isFsError, type FileSystem } from "../../../src/contracts/index.js";
 import { contents, filesystem, replacement, run, type Files } from "./helpers.js";
-import { gnuPatch, nativeGNU } from "./patch-gnu-native.js";
-import { pins } from "../diff-patch-stress/gnu-target/oracle.js";
-import { nativeGnuBinding } from "../../native-profile.js";
 
+const binaryHash = "c060444da0e547de6f17594baf0b5015a04f5b3277131ca12b1da27c621aee00";
 const twoHunks = replacement + "@@ -3 +3 @@ function\n-tail\n+TAIL\n";
 const normal = "Index: target\n1c1\n< old\n---\n> new\n3c3\n< tail\n---\n> TAIL\n";
 const context = "*** target\t2020-01-01 00:00:00 +0000\n--- target\t2021-01-01 00:00:00 +0000\n*************** function\n*** 1 ****\n! old\n--- 1 ----\n! new\n*************** later\n*** 3 ****\n! tail\n--- 3 ----\n! TAIL\n";
@@ -28,13 +24,6 @@ async function namespace(fs: FileSystem) {
   catch (error) { if (!isFsError(error, "ENOENT")) throw error; rootExists = false; }
   return { files, directories: directories.sort(), rootExists };
 }
-
-test("publication oracle is exactly the pinned GNU patch 2.8 binary", async () => {
-  const path = process.env.DIFF_PATCH_NATIVE_PATCH;
-  const expected = nativeGnuBinding("patch", path === undefined ? {} : { path }) ?? pins.gnu.patch;
-  assert.equal(createHash("sha256").update(await readFile(gnuPatch)).digest("hex"), expected.sha256);
-  assert.match((await nativeGNU(["--version"])).stdout, /^GNU patch 2\.8\n/u);
-});
 
 interface Fixture { readonly name: string; readonly files: Files; readonly input: string; readonly args?: readonly string[] }
 const fixtures: readonly Fixture[] = [
@@ -87,43 +76,9 @@ const fixtures: readonly Fixture[] = [
   { name: "creation makes missing parents", files: {}, input: "--- /dev/null\n+++ tree/deep/target\n@@ -0,0 +1 @@\n+new\n", args: ["-p0"] },
 ];
 
-for (const fixture of fixtures) test(`GNU publication: ${fixture.name}`, async () => {
-  const args = ["--batch", ...fixture.args ?? []];
-  const native = await nativeGNU(args, fixture.files, fixture.input);
-  const actual = await run("patch", args, { files: fixture.files, input: fixture.input });
-  assert.deepEqual({ exitCode: actual.exitCode, ...await namespace(actual.fs) },
-    { exitCode: native.exitCode, files: native.files, directories: native.directories, rootExists: native.rootExists },
-    `${fixture.name}\nproduct: ${actual.stdout}${actual.stderr}\nnative: ${native.stdout}${native.stderr}`);
-});
-
-for (const fixture of fixtures.filter(fixture => /coordinates|overlapping/u.test(fixture.name))) {
-  test(`--atomic retains GNU coordinates and preflights conflicts: ${fixture.name}`, async () => {
-    const native = await nativeGNU(["--batch"], fixture.files, fixture.input);
-    const fs = await filesystem(fixture.files);
-    const before = await namespace(fs);
-    const result = await run("patch", ["--atomic", "--batch"], { fs, input: fixture.input });
-    assert.equal(result.exitCode, native.exitCode);
-    assert.deepEqual((await namespace(fs)).files, native.exitCode ? before.files : native.files);
-  });
-}
-
 test("noninteractive default explicitly chooses batch reversal, not force", async () => {
-  const expected = await nativeGNU(["--batch"], { target: "new\n" }, replacement);
   const actual = await run("patch", [], { files: { target: "new\n" }, input: replacement });
-  assert.equal(actual.exitCode, expected.exitCode);
-  assert.deepEqual((await namespace(actual.fs)).files, expected.files);
   assert.match(actual.stdout, /Assuming -R/u);
-});
-
-test("reject replacement resets across invocations", async () => {
-  const fs = await filesystem({ target: "wrong\n", "target.rej": "stale\n" });
-  for (const input of [replacement, replacement.replace("-old", "-absent")]) {
-    const initial = (await namespace(fs)).files;
-    const expected = await nativeGNU(["--batch"], initial, input);
-    const actual = await run("patch", ["--batch"], { fs, input });
-    assert.equal(actual.exitCode, expected.exitCode);
-    assert.deepEqual((await namespace(fs)).files, expected.files);
-  }
 });
 
 for (const input of [twoHunks, replacement + replacement.replaceAll("target", "missing"), replacement + "--- missing\n+++ missing\n@@ -1 +1 @@\n-old\n"]) {

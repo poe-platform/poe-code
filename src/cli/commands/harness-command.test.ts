@@ -1497,6 +1497,23 @@ describe("harness command", () => {
     expect(harnessMocks.runHarnessPairMock).not.toHaveBeenCalled();
   });
 
+  it("removes Git from harness injection while retaining other default modules", async () => {
+    let modules: SafeJSModuleRecord | undefined;
+    harnessMocks.runHarnessPairMock.mockImplementation(async (_mdPath, options) => {
+      modules = options.modulesFor(
+        { kind: "test", version: 1 },
+        { kind: "test", version: 1, filename: "/repo/harness.md", dirname: "/repo", body: "" }
+      );
+      return { ok: true, returnValue: "done" };
+    });
+    await runHarnessCommand(["harness", "run", "harness.md"]);
+    expect(modules).toBeDefined();
+    expect(Object.keys(modules!).sort()).toEqual(["agent", "fail", "harness", "log", "metric"]);
+    await expect(
+      runSafeJS('import * as git from "git"; return git;', { modules: modules! })
+    ).rejects.toThrow("Unknown module 'git'.");
+  });
+
   it("registers no fs module by default, so an fs import fails as an unknown module", async () => {
     let modules: SafeJSModuleRecord | undefined;
     harnessMocks.runHarnessPairMock.mockImplementation(async (_mdPath, options) => {
@@ -1518,7 +1535,7 @@ describe("harness command", () => {
         modules: modules!
       })
     ).rejects.toThrow(
-      "Unknown module 'fs'. Available modules: agent, fail, git, harness, log, metric."
+      "Unknown module 'fs'. Available modules: agent, fail, harness, log, metric."
     );
   });
 

@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { bounded, compare, native, text, virtual, virtualBatches, type Outcome, type Probe } from "./harness.js";
+import { bounded, text, virtual, virtualBatches, type Outcome, type Probe } from "./harness.js";
 
 const probes: Probe[] = [
   { name: "directory negation does not rescue excluded children", args: ["--files", "."], files: { ".ignore": "*\n!src/\n", "src/a.txt": "foo\n" } },
@@ -13,7 +13,6 @@ const probes: Probe[] = [
   { name: "summary JSON member order after timing-only normalization", args: ["-a", "-F", "--json", "�", "-"], stdin: [255, 10] },
 ];
 const actual = virtual(probes);
-for (const [index, probe] of probes.entries()) test(`review ${probe.name}`, () => compare(actual[index]!, native(probe), probe));
 
 test("back-to-back virtual chunks retain prior output, not a whole-write oracle", () => {
   const result = virtual([{ name: "fragmented binary", args: ["foo", "-"], stdin: "foo\n\0\nno\n", chunkSize: 1 }])[0]!;

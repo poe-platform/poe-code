@@ -317,3 +317,36 @@ for hosted evidence. Both independent admission regressions reproduced the
 missing-Bash failure before their additions. Their integration retains the
 upstream exact pin/provenance checks, local-versus-hosted and required-lane
 assertions, plus explicit profile-ID and missing-record rejection checks.
+
+## Linux native provisioning failure evidence (not qualification)
+
+Historical proposal, superseded before hosted execution: upstream commit
+94cf8b10d removes the native qualification machinery and Release provisioning
+steps. Integration preserves that removal and does not restore this collector.
+The description below records the earlier proposal, not the current workflow.
+
+The normal Linux release lane retains bounded observations when the GNU native
+provisioner fails, including the patch 2.8 hash-drift case. Its provisioning
+command, expected pins, failing exit and all normal gates remain unchanged.
+Collection runs only after that command is reached and its step fails, excluding
+cancellation; it neither retries the build nor executes the retained patch.
+
+The allowlist is native-build logs 01 through 10 (command JSON, stdout, stderr),
+failure.json, patch 2.8 config.log/config.status and the raw src/patch binary.
+The patch source archive is hashed, not uploaded. Missing files are recorded.
+Only regular, canonical, singly linked owned build files are copied; no source,
+job-root, home or workspace tree is uploaded. The raw patch copy is non-executable.
+Fixed, bounded system probes record checkout SHA, GCC/ld observations and selected
+compiler/libc/binutils/header package versions. GCC and ld canonical executable
+byte hashes, runner image, kernel, architecture, recipe hash and the expected
+profile are observations, not substitutes for admission. Probe failures remain
+explicit; compiler subprograms, libraries and headers are not fully byte-pinned.
+
+The collector reuses the maintained sealDarwinEvidence member/hash sealer without
+invoking Darwin qualification. Payload limits are 48 members, 16 MiB per member
+and 63 MiB total, plus at most 1 MiB for the manifest. Only the sealed owned
+directory is uploaded as linux-native-failure-SHA-RUN-ATTEMPT for 14 days.
+Receipts are FAILED_NATIVE_PROVISIONING_NOT_QUALIFIED and manifests are
+SEALED_NOT_ADMITTED. This is failure retention, not two independent builds,
+signed-source requalification, a new pin or a release claim. The existing
+linux-native-diagnostic fixture-profile workflow is unchanged.

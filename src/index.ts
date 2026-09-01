@@ -171,6 +171,7 @@ export type {
 } from "./sdk/process-launcher.js";
 export type {
   PipelineRunOptions,
+  PipelineFinalizationStatus,
   PipelineRunResult,
   PipelineInitRunOptions,
   PipelineInitRunResult,

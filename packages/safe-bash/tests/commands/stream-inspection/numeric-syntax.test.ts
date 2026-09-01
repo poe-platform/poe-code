@@ -8,7 +8,6 @@ import { ShellLimitError } from "../../../src/shell/types.js";
 import { standardCommands } from "../../../src/commands/index.js";
 import { streamInspectionCommands } from "../../../src/commands/stream-inspection/index.js";
 import { numericSyntaxCases } from "./numeric-syntax-cases.js";
-import { captureNumericSyntax } from "./numeric-syntax-oracle.js";
 import { runFixture } from "./helpers.js";
 
 interface Observation { id: string; fixtureSha256: string; status: number; signal: string | null; stdoutHex: string; stderrHex: string }
@@ -32,10 +31,6 @@ for (const specimen of numericSyntaxCases) {
     }
   });
 }
-
-test("live pinned numeric syntax controls", { skip: process.env.STREAM_NATIVE_LIVE !== "1" ? "set STREAM_NATIVE_LIVE=1; frozen controls still checked" : false }, () => {
-  assert.deepEqual(captureNumericSyntax().observations, evidence.native.observations);
-});
 
 for (const specimen of numericSyntaxCases.filter(candidate => candidate.id.startsWith("reported-"))) {
   test(`${specimen.id}: cancellation identity before input and during output`, async () => {

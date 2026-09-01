@@ -29,7 +29,6 @@ import {
   type BrokenPipeState,
   type OutputStream
 } from "./output-stream.js";
-import type { CallerInjectedBinding } from "./interp/host-bridge.js";
 import type { ModuleExports, ModuleRegistry } from "./modules/registry.js";
 import { parseModule } from "./parse/parser.js";
 import { restore, type SafeJSSnapshot } from "./restore.js";
@@ -643,8 +642,6 @@ function createRuntime(
   }
 
   const state = {
-    checkpointCount: 0,
-    commitCount: 0,
     metricCalls: new Map<string, number>(),
     spawnCount: 0
   };
@@ -660,22 +657,6 @@ function createRuntime(
       durationMs: 25 * state.spawnCount
     };
   });
-  const git = {
-    async checkpoint() {
-      state.checkpointCount += 1;
-      return {
-        head: `head-${state.checkpointCount}`,
-        stashRef: `savepoint-${state.checkpointCount}`
-      };
-    },
-    async commit() {
-      state.commitCount += 1;
-      return `commit-${state.commitCount}`;
-    },
-    async revert() {
-      return undefined;
-    }
-  };
   const log = makeLogModule((entry) => {
     const normalized = normalizeLogEntry(entry);
     const stream = normalized.type === "error" ? options.stderr : options.stdout;
@@ -689,13 +670,6 @@ function createRuntime(
       fail: toModuleExports(new Map([["default", makeFailModule().default]])),
       // The one module here that is not a stub, so it is registered only when asked for.
       ...(options.fs === undefined ? {} : { fs: toModuleExports(makeFsModule(options.fs)) }),
-      git: toModuleExports(
-        new Map<string, CallerInjectedBinding>([
-          ["checkpoint", git.checkpoint],
-          ["commit", git.commit],
-          ["revert", git.revert]
-        ])
-      ),
       harness: toModuleExports(harness),
       log: toModuleExports(log),
       metric: toModuleExports(metric)
@@ -796,8 +770,8 @@ function createUsage(): string {
     "",
     "Options:",
     "  --fix                 apply lint fixes before running",
-    "  --fs                  register the fs module: a real filesystem, unlike the agent,",
-    "                        git, and metric stubs this runner bundles",
+    "  --fs                  register the fs module: a real filesystem, unlike the agent",
+    "                        and metric stubs this runner bundles",
     "  --fs-root <path>      directory --fs confines the script to (default: the script's",
     "                        directory)",
     "  --fs-config <path>    configure shared filesystem access from JSON (Node only)",

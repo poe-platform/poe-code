@@ -1,12 +1,7 @@
 import assert from "node:assert/strict";
-import { spawnSync } from "node:child_process";
-import { mkdtemp, readFile, rm, writeFile } from "node:fs/promises";
-import { fileURLToPath } from "node:url";
-import { join } from "node:path";
 import { toByteSource, type FileSystem } from "../../../../src/contracts/index.js";
 import { MemoryFileSystem } from "../../../../src/fs/memory/index.js";
 import { createDiffPatchCommands, type DiffPatchOptions } from "../../../../src/commands/diff-patch/index.js";
-import { oracleIdentity, oraclePath } from "../compatibility/oracle.js";
 
 export const BASE_SEED = 0x6d2b79f5;
 export const CASE_COUNT = 512;
@@ -148,37 +143,4 @@ export async function run(tool: "diff" | "patch", args: readonly string[], files
     const result = await command.execute({ command: tool, args, cwd: "/work", env: {}, fs: filesystem, stdin: toByteSource(input), stdout: capture(stdout), stderr: capture(stderr), signal: controller.signal });
     return { ...result, stdout: Buffer.concat(stdout).toString("utf8"), stderr: Buffer.concat(stderr).toString("utf8") };
   } finally { clearTimeout(timer); }
-}
-
-export async function nativeDirectory<Result>(operation: (root: string) => Promise<Result>): Promise<Result> {
-  const root = await mkdtemp(fileURLToPath(new URL("./.native-", import.meta.url)));
-  try { return await operation(root); }
-  finally { await rm(root, { recursive: true, force: true }); }
-}
-
-export function native(root: string, tool: "diff" | "patch", args: readonly string[], input = "") {
-  const result = spawnSync(oraclePath(tool), [...args], {
-    cwd: root, input, encoding: "utf8", timeout: 2000, killSignal: "SIGKILL", maxBuffer: OUTPUT_CAP,
-    env: { PATH: "/usr/bin:/bin", HOME: root, TMPDIR: root, LC_ALL: "C", LANG: "C", TZ: "UTC" },
-  });
-  if (result.error) throw result.error;
-  assert.equal(result.signal, null, `native ${tool} killed: ${result.signal}`);
-  assert.notEqual(result.status, null);
-  return { exitCode: result.status!, stdout: result.stdout, stderr: result.stderr };
-}
-
-export async function nativeIdentity() {
-  return { diff: oracleIdentity("diff"), patch: oracleIdentity("patch") };
-}
-
-export async function nativePatch(root: string, before: string, input: string, reverse = false): Promise<string> {
-  const result = await nativePatchResult(root, before, input, reverse);
-  assert.equal(result.exitCode, 0, JSON.stringify(result));
-  return result.target;
-}
-
-export async function nativePatchResult(root: string, before: string, input: string, reverse = false) {
-  await writeFile(join(root, "target"), before);
-  const result = native(root, "patch", ["-f", "-F0", "-p0", ...(reverse ? ["-R"] : []), "target"], input);
-  return { ...result, target: await readFile(join(root, "target"), "utf8") };
 }

@@ -1,11 +1,6 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import * as native from "node:fs/promises";
-import { spawnSync } from "node:child_process";
-import { tmpdir } from "node:os";
-import { join } from "node:path";
 import { MemoryFileSystem } from "../../../src/fs/memory/index.js";
-import { createRealFileSystem } from "../../../src/fs/real/index.js";
 import { runMetadata } from "./helpers.js";
 
 const cases = [
@@ -16,44 +11,11 @@ const cases = [
   [0o644, "+x", 0o755], [0o666, "-w", 0o466], [0o644, "u=rw+x", 0o744],
 ] as const;
 
-function nativeChmodOptions(root: string) {
-  return {
-    cwd: join(root, "work"),
-    env: { PATH: "/usr/bin:/bin", HOME: root, TMPDIR: root, LC_ALL: "C", LANG: "C", TZ: "UTC" },
-    encoding: "utf8" as const,
-    timeout: 2000,
-  };
-}
-
-test("chmod oracle options use owned paths and an explicit clean environment", () => {
-  const parent = process.env;
-  try {
-    process.env = { ...parent, PATH: "/untrusted", HOME: "/unowned", TMPDIR: "/unowned", BASH_ENV: "/startup", ENV: "/startup", SHELLOPTS: "xtrace", BASHOPTS: "extdebug", NODE_OPTIONS: "--import=/loader", "BASH_FUNC_chmod%%": "() { false; }" };
-    const options = nativeChmodOptions("/owned/oracle");
-    assert.deepEqual(options, {
-      cwd: "/owned/oracle/work",
-      env: { PATH: "/usr/bin:/bin", HOME: "/owned/oracle", TMPDIR: "/owned/oracle", LC_ALL: "C", LANG: "C", TZ: "UTC" },
-      encoding: "utf8",
-      timeout: 2000,
-    });
-    assert.equal(process.env.BASH_ENV, "/startup", "oracle setup must not modify the parent environment");
-  } finally {
-    process.env = parent;
-  }
-});
-
-for (const [initial, mode, expected, bsdExpected] of cases) {
-  test(`chmod GNU mode ${initial.toString(8)} ${mode}; ${bsdExpected === undefined ? "shared" : "distinct"} BSD observation`, async context => {
-    const root = await native.mkdtemp(join(tmpdir(), "safe-bash-chmod-"));
-    context.after(() => native.rm(root, { recursive: true, force: true }));
-    await native.mkdir(join(root, "work"));
-    await native.writeFile(join(root, "work", "file"), "payload");
-    await native.chmod(join(root, "work", "file"), initial);
-    const oracle = spawnSync("/bin/bash", ["--noprofile", "--norc", "-c", "umask 022; /bin/chmod -- \"$1\" file", "oracle", mode], nativeChmodOptions(root));
-    assert.equal(oracle.status, 0, oracle.stderr);
-    assert.equal((await native.stat(join(root, "work", "file"))).mode & 0o7777, bsdExpected ?? expected);
-    const fs = await createRealFileSystem({ root });
-    await fs.chmod("/work/file", initial);
+for (const [initial, mode, expected] of cases) {
+  test(`chmod mode ${initial.toString(8)} ${mode}`, async () => {
+    const fs = new MemoryFileSystem();
+    await fs.mkdir("/work");
+    await fs.writeFile("/work/file", Buffer.from("payload"), { mode: initial });
     const result = await runMetadata("chmod", ["--", mode, "file"], fs);
     assert.equal(result.exitCode, 0, result.stderr);
     assert.equal((await fs.stat("/work/file")).mode & 0o7777, expected);

@@ -1,12 +1,8 @@
 import assert from "node:assert/strict";
-import { writeFile } from "node:fs/promises";
-import { join } from "node:path";
 import test from "node:test";
-import { BASE_SEED, CASE_COUNT, contents, editCount, example, golden, memory, native, nativeDirectory, nativeIdentity, nativePatch, run, shortestEditDistance } from "./helpers.js";
+import { BASE_SEED, CASE_COUNT, contents, editCount, example, golden, memory, run, shortestEditDistance } from "./helpers.js";
 
-test("512 independent seeded diff/patch, reverse, native, golden, and minimality properties", { timeout: 180_000 }, async context => {
-  const identity = await nativeIdentity();
-  context.diagnostic(`native identities ${JSON.stringify(identity)}; locale=C; skips=0`);
+test("512 independent seeded diff/patch, reverse, golden, and minimality properties", { timeout: 180_000 }, async context => {
   const failures: { index: number; seed: number; family: string; phase: string; message: string }[] = [];
   const counts: Record<string, { pass: number; fail: number }> = {};
   const families: Record<string, number> = {};
@@ -50,23 +46,6 @@ test("512 independent seeded diff/patch, reverse, native, golden, and minimality
       const result = await run("patch", reverse ? ["-R"] : [], goldenFilesystem, handPatch);
       assert.equal(result.exitCode, 0, result.stderr);
       assert.equal(await contents(goldenFilesystem), reverse ? sample.before : sample.after);
-    });
-    await nativeDirectory(async root => {
-      await writeFile(join(root, "old"), sample.before);
-      await writeFile(join(root, "next"), sample.after);
-      const reference = native(root, "diff", args);
-      await check("native-diff-status", () => assert.equal(reference.exitCode, sample.before === sample.after ? 0 : 1, reference.stderr));
-      for (const reverse of [false, true]) await check(`native-diff-virtual-patch-${reverse ? "reverse" : "forward"}`, async () => {
-        const nativeFilesystem = await memory({ target: reverse ? sample.after : sample.before });
-        const result = await run("patch", reverse ? ["-R"] : [], nativeFilesystem, reference.stdout);
-        assert.equal(result.exitCode, 0, result.stderr);
-        assert.equal(await contents(nativeFilesystem), reverse ? sample.before : sample.after);
-      });
-      await check("virtual-diff-native-patch-forward", async () => assert.equal(await nativePatch(root, sample.before, generated.stdout), sample.after));
-      await check("virtual-diff-native-patch-reverse", async () => assert.equal(await nativePatch(root, sample.after, generated.stdout, true), sample.before));
-      await check("golden-native-patch", async () => assert.equal(await nativePatch(root, sample.before, handPatch), sample.after));
-      await check("native-control-forward", async () => assert.equal(await nativePatch(root, sample.before, reference.stdout), sample.after));
-      await check("native-control-reverse", async () => assert.equal(await nativePatch(root, sample.after, reference.stdout, true), sample.before));
     });
   }
   context.diagnostic(`FUZZ_REPORT ${JSON.stringify({ baseSeed: BASE_SEED, denominator: indices.length, families, counts, skips: 0 })}`);

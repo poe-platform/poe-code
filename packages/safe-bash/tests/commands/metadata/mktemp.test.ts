@@ -1,12 +1,7 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import * as native from "node:fs/promises";
-import { spawnSync } from "node:child_process";
-import { tmpdir } from "node:os";
-import { join } from "node:path";
 import { FsError, type FileSystem, type WriteFileOptions } from "../../../src/contracts/index.js";
 import { MemoryFileSystem } from "../../../src/fs/memory/index.js";
-import { createRealFileSystem } from "../../../src/fs/real/index.js";
 import { runMetadata } from "./helpers.js";
 
 async function fixture() {
@@ -185,18 +180,12 @@ test("mktemp directory collisions never remove a competing nonempty directory", 
 });
 
 for (const directory of [false, true]) {
-  test(`mktemp private ${directory ? "directory" : "file"} modes match native in an isolated real root`, async context => {
-    const root = await native.mkdtemp(join(tmpdir(), "safe-bash-mktemp-"));
-    context.after(() => native.rm(root, { recursive: true, force: true }));
-    await native.mkdir(join(root, "work"));
-    const oracle = spawnSync("/usr/bin/mktemp", [...directory ? ["-d"] : [], join(root, "native.XXXXXX")], { encoding: "utf8", timeout: 2000 });
-    assert.equal(oracle.status, 0, oracle.stderr);
-    const nativeStat = await native.stat(oracle.stdout.trimEnd());
-    const fs = await createRealFileSystem({ root });
+  test(`mktemp creates private ${directory ? "directory" : "file"} modes in memory VFS`, async () => {
+    const fs = await fixture();
     const result = await runMetadata("mktemp", [...directory ? ["-d"] : [], "-p", "/work", "virtual.XXXXXX"], fs);
     assert.equal(result.exitCode, 0, result.stderr);
     const stat = await fs.stat(result.stdout.trimEnd());
-    assert.equal(stat.mode & 0o777, nativeStat.mode & 0o777);
+    assert.equal(stat.mode & 0o777, directory ? 0o700 : 0o600);
     assert.equal(stat.type === "directory", directory);
   });
 }

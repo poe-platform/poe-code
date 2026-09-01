@@ -14,9 +14,9 @@ test("current registry is frozen60 plus twenty independently declared delivered 
   assert.equal(baseline60.length, 60);
   assert.equal(new Set(baseline60).size, 60);
   assert.deepEqual(baseline60.slice(-4), ["tac", "expand", "fold", "strings"]);
-  const expected = [...baseline60, ...approved, "date", "sleep", "printenv", "tree", "file", "egrep", "fgrep", "column", "html-to-markdown", "du", "expr", "which", "timeout", "apply_patch", "git"];
-  assert.equal(expected.length, 80);
-  assert.equal(new Set(expected).size, 80);
+  const expected = [...baseline60, ...approved, "date", "sleep", "printenv", "tree", "file", "egrep", "fgrep", "column", "html-to-markdown", "du", "expr", "which", "timeout", "apply_patch"];
+  assert.equal(expected.length, 79);
+  assert.equal(new Set(expected).size, 79);
   assert.deepEqual(createAgentCommands().map(command => command.name), expected);
   const target = host();
   await agentCommands().setup(target);
@@ -32,7 +32,7 @@ for (const name of approved) test(`${name} aggregate collision is atomic and rep
   assert.throws(() => agentCommands().setup(target), new RegExp(`already registered: ${name}`, "u"));
   assert.deepEqual(target.commands.list(), [original, custom]);
   await agentCommands({ replace: true }).setup(target);
-  assert.equal(target.commands.list().length, 81);
+  assert.equal(target.commands.list().length, 80);
   assert.equal(target.commands.get("custom"), before[1]);
   assert.notEqual(target.commands.get(name), before[0]);
 });

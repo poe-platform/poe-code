@@ -45,7 +45,7 @@ Output: `Hello, reader!\nAda\nGrace\n`. The script, input, and generated
 ## Tool card
 
 `Shell` handles script syntax, variables, loops, functions, and redirections.
-**`agentCommands()` adds these 80 tools**, not networking or JavaScript execution:
+**`agentCommands()` adds these 79 tools**, not networking or JavaScript execution:
 
 | Default bundle | Commands |
 | --- | --- |
@@ -57,11 +57,11 @@ Output: `Hello, reader!\nAda\nGrace\n`. The script, input, and generated
 | Bytes/checksums | `base64`, `base32`, `xxd`, `od`, `md5sum`, `sha1sum`, `sha256sum`, `cksum` |
 | Archives | `gzip`, `gunzip`, `zcat`, `tar` |
 | Script helpers | `echo`, `printf`, `true`, `false`, `test`, `[`, `env`, `printenv`, `xargs`, `expr`, `date`, `sleep`, `timeout` |
-| Changes/review | `diff`, `patch`, `apply_patch`, `git` |
+| Changes/review | `diff`, `patch`, `apply_patch` |
 
-**Restricted:** `git` is read-only VFS access, not clone/fetch/commit;
-`which` searches virtual paths; `timeout` cancels cooperatively.
-**Not included:** `npm`, `npx`, or fallback to host executables.
+**Restricted:** `which` searches virtual paths; `timeout` cancels cooperatively.
+**Not included:** Git commands, `npm`, `npx`, or fallback to host executables.
+Repository Git operations used to develop poe-code are unaffected.
 
 ### Opt-in tools
 
@@ -88,10 +88,17 @@ Output: `Hello, reader!\nAda\nGrace\n`. The script, input, and generated
   Host/remote access requires explicit configuration.
   [Filesystem guide](../safe-fs/README.md).
 
-This is **not full Bash, Node, Git, or utility parity**. Commands support bounded
+This is **not full Bash, Node, or utility parity**. Commands support bounded
 subsets. Trusted host JavaScript, plugins, and providers are **not sandboxed**;
 limits and cooperative cancellation do not provide host isolation or total-memory
 guarantees. Enabling real storage or networking intentionally grants capabilities.
+
+## Testing
+
+Build and test with the workspace JavaScript/TypeScript dependencies; no GNU
+binaries, native tool profiles, provisioning scripts or calibration lanes are
+required. Existing captured output fixtures remain plain regression data. Pure
+live-native comparisons are retired, not reported as passing compatibility tests.
 
 ## Test output
 
@@ -100,23 +107,6 @@ retain names, stacks, diagnostics, stdout and stderr. Local defaults are unchang
 For verbose package output use `CI=false npm run test:unit`; select Node's
 reporter with `npm test -- --test-reporter=spec` (or `tap`). For root Vitest,
 run `npm run test:unit -- --reporter=verbose --silent=false` from the repository root.
-
-### Native patch build observations
-
-On GitHub-hosted Ubuntu 24.04/x64 with Node 22, the developer-only
-`--qualify-linux-patch` mode authenticates GNU patch 2.8 sources and records two
-independent builds. From the repository root, using a private directory created
-directly under `RUNNER_TEMP` and the normal workflow-dispatch identity variables:
-
-```sh
-node packages/safe-bash/scripts/provision-test-native-oracles.mjs \
-  --qualify-linux-patch --parent "$job_root" --destination "$job_root/qualification"
-```
-
-Retain `$job_root/qualification/evidence/**` for review, including source/signature,
-toolchain, configuration and binary records. This produces observations only:
-it does not install candidates, admit pins or publish. Reviewed identities still
-require the normal Release Linux semantic gate before publication.
 
 ## Availability
 

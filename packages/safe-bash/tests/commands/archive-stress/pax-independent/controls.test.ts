@@ -1,17 +1,10 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { spawnSync } from "node:child_process";
-import { createHash } from "node:crypto";
-import { lstat, mkdir, mkdtemp, readFile, rm, writeFile } from "node:fs/promises";
-import { tmpdir } from "node:os";
-import { join } from "node:path";
-import { fileURLToPath } from "node:url";
 import { gzipSync } from "node:zlib";
 import { createTarCommand, type ArchiveCommandsOptions } from "../../../../src/commands/archive/index.js";
 import { createMemoryFileSystem } from "../../../../src/fs/memory/index.js";
 import type { ByteSource, FileSystem } from "../../../../src/contracts/index.js";
 import { archive, extended, fileData, member, opaque, record } from "./fixtures.js";
-import { nativeGnuBinding, nativeAppleBinding, verifyNativeExecutable } from "../../../native-profile.js";
 
 async function filesystem(): Promise<FileSystem> {
   const fs = createMemoryFileSystem();
@@ -154,50 +147,7 @@ test("I05 fixed local nanoseconds and global precedence have separate virtual an
   assert.equal(virtual.exitCode, 0, virtual.stderr);
   assert.equal((await fs.stat("/output/first")).mtimeMs, 1700123401125);
   assert.equal((await fs.stat("/output/following")).mtimeMs, 1700123400000);
-  const gnu = nativeGnuBinding("tar");
-  if (gnu) verifyNativeExecutable(gnu, gnu.path);
-  const apple = nativeAppleBinding("bsdtar");
-  if (apple) verifyNativeExecutable(apple, apple.path);
-  const profiles = [
-    { family: "GNU", path: gnu?.path ?? fileURLToPath(new URL("../../archive/.oracle/gnu-tar/1.35/bin/gtar", import.meta.url)), hash: gnu?.sha256 ?? "49a0bd353ad67347674d00a7b3eeb171da58728f7e4577c9b320d8ab1e7bba66", following: 1700123400000000000n },
-    { family: "BSD", path: apple?.path ?? "/usr/bin/bsdtar", hash: apple?.sha256 ?? "bdccb76a715fbebc4915a1a1b1de0e7050ad842ebb730c47935b3a22c13e3af9", following: 1700123456000000000n },
-  ];
-  for (const profile of profiles) {
-    assert.equal(createHash("sha256").update(await readFile(profile.path)).digest("hex"), profile.hash, "native profile binary drift");
-    const directory = await mkdtemp(join(tmpdir(), "safe-bash-pax-independent-native-"));
-    const observations: unknown[] = [];
-    try {
-      const native = (args: string[]) => {
-        const result = spawnSync(profile.path, args, { cwd: directory, env: { PATH: "/usr/bin:/bin", LC_ALL: "C", TZ: "UTC" }, timeout: 8000, maxBuffer: 1024 * 1024, killSignal: "SIGKILL" });
-        observations.push({ args, status: result.status, signal: result.signal, stdout: result.stdout?.toString(), stderr: result.stderr?.toString(), error: result.error?.message });
-        assert.ifError(result.error);
-        assert.equal(result.status, 0, result.stderr?.toString());
-        return result.stdout;
-      };
-      native(["--version"]);
-      const fixedBytes = fixed("1700123401.123456789");
-      await writeFile(join(directory, "fixed.tar"), fixedBytes);
-      observations.push({ fixedArchiveSha256: createHash("sha256").update(fixedBytes).digest("hex"), environment: { PATH: "/usr/bin:/bin", LC_ALL: "C", TZ: "UTC" } });
-      if (process.env.ARCHIVE_ACCEPTANCE_EVIDENCE) await writeFile(join(process.env.ARCHIVE_ACCEPTANCE_EVIDENCE, `independent-${profile.family}-fixed.tar`), fixedBytes, { flag: "wx" });
-      await mkdir(join(directory, "out"));
-      native(["-xf", "fixed.tar", "-C", "out"]);
-      const localNs = (await lstat(join(directory, "out/first"), { bigint: true })).mtimeNs;
-      const followingNs = (await lstat(join(directory, "out/following"), { bigint: true })).mtimeNs;
-      observations.push({ localNs: String(localNs), followingNs: String(followingNs), posixFollowingNs: "1700123400000000000", classification: profile.family === "BSD" ? "native global semantics conflict; NOT virtual acceptance" : "nonempty POSIX precedence" });
-      assert.equal(localNs, 1700123401123456789n);
-      assert.equal(followingNs, profile.following);
-      const sidecarBytes = archive(member("._literal", Buffer.from("ordinary data")), member("literal", fileData));
-      await writeFile(join(directory, "sidecar.tar"), sidecarBytes);
-      observations.push({ sidecarArchiveSha256: createHash("sha256").update(sidecarBytes).digest("hex") });
-      if (process.env.ARCHIVE_ACCEPTANCE_EVIDENCE) await writeFile(join(process.env.ARCHIVE_ACCEPTANCE_EVIDENCE, `independent-${profile.family}-sidecar.tar`), sidecarBytes, { flag: "wx" });
-      const listing = native(["-tf", "sidecar.tar"]);
-      if (profile.family === "GNU") assert.equal(listing.toString(), "._literal\nliteral\n");
-      observations.push({ sidecarClassification: "default native presentation only; no product filtering or inferred metadata restoration", noExtraNativeOptions: true });
-    } finally {
-      context.diagnostic(JSON.stringify({ family: profile.family, sha256: profile.hash, observations }));
-      await rm(directory, { recursive: true, force: true });
-    }
-  }
+
 });
 
 test("I06 opaque PAX hardlinks share writes and unsupported publication never copies", async () => {

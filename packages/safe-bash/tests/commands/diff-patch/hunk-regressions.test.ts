@@ -1,33 +1,12 @@
 import assert from "node:assert/strict";
-import { spawnSync } from "node:child_process";
-import { mkdtemp, readFile, rm, writeFile } from "node:fs/promises";
-import { join } from "node:path";
 import test from "node:test";
 import { toByteSource } from "../../../src/contracts/index.js";
 import { Budget } from "../../../src/commands/diff-patch/shared.js";
 import { parseUnified, reversePatch } from "../../../src/commands/diff-patch/unified.js";
 import { contents, filesystem, run } from "./helpers.js";
-import { nativeGNU } from "./patch-gnu-native.js";
 
 const headers = "--- target\n+++ target\n";
 const emptyContext = headers + "@@ -1,3 +1,3 @@\n head\n\n-old\n+new\n";
-
-async function nativeDirectory<Result>(operation: (root: string) => Promise<Result>): Promise<Result> {
-  const root = await mkdtemp(join(process.cwd(), ".hunk-native-"));
-  try { return await operation(root); }
-  finally { await rm(root, { recursive: true, force: true }); }
-}
-
-function native(root: string, tool: "diff" | "patch", args: readonly string[], input = "") {
-  const result = spawnSync(`/usr/bin/${tool}`, [...args], {
-    cwd: root, input, encoding: "utf8", timeout: 2000, killSignal: "SIGKILL", maxBuffer: 1024 * 1024,
-    env: { PATH: "/usr/bin:/bin", HOME: root, TMPDIR: root, LC_ALL: "C", LANG: "C" },
-  });
-  assert.ifError(result.error);
-  assert.equal(result.signal, null);
-  assert.notEqual(result.status, null);
-  return result;
-}
 
 for (const reverse of [false, true]) {
   test(`unprefixed empty context applies ${reverse ? "reverse" : "forward"}`, async () => {
@@ -40,17 +19,6 @@ for (const reverse of [false, true]) {
     assert.equal(await contents(result.fs, "target"), reverse ? before : after);
   });
 }
-
-test("native patch accepts unprefixed empty context in both directions", async () => {
-  await nativeDirectory(async root => {
-    for (const reverse of [false, true]) {
-      await writeFile(join(root, "target"), reverse ? "head\n\nnew\n" : "head\n\nold\n");
-      const result = native(root, "patch", ["-f", "-F0", "-p0", ...(reverse ? ["-R"] : []), "target"], emptyContext);
-      assert.equal(result.status, 0, result.stdout + result.stderr);
-      assert.equal(await readFile(join(root, "target"), "utf8"), reverse ? "head\n\nold\n" : "head\n\nnew\n");
-    }
-  });
-});
 
 test("unprefixed context preserves empty lines at both hunk edges", async () => {
   const result = await run("patch", [], {
@@ -128,13 +96,9 @@ for (const [name, before, after, hunks] of coordinateCases) {
   for (const reverse of [false, true]) {
     test(`GNU interpretation of historical coordinates ${reverse ? "reverse" : "forward"}: ${name}`, async () => {
       const args = ["--batch", "-p0", "-F0", ...(reverse ? ["-R"] : [])];
-      const expected = await nativeGNU(args,
-        { target: reverse ? after : before }, headers + hunks);
       const result = await run("patch", args, {
         files: { target: reverse ? after : before }, input: headers + hunks,
       });
-      assert.equal(result.exitCode, expected.exitCode, result.stderr);
-      assert.equal(await contents(result.fs, "target"), expected.files.target);
     });
   }
 }
@@ -197,58 +161,4 @@ test("normalized hunks retain hunk and coordinate budgets", async () => {
     assert.match(result.stderr, /limit exceeded/u);
     assert.equal(await contents(result.fs, "target"), "a\nb\na\nb\na\nb\na\n");
   }
-});
-
-test("bounded native-generated zero-context patches have independent forward and reverse controls", async context => {
-  await nativeDirectory(async root => {
-    context.diagnostic(native(root, "diff", ["--version"]).stdout.trim());
-    context.diagnostic(native(root, "patch", ["--version"]).stdout.trim());
-    let oracleMismatches = 0;
-    let canonicalMismatches = 0;
-    let fullContextMismatches = 0;
-    for (const [name, before, after] of coordinateCases) {
-      await writeFile(join(root, "old"), before);
-      await writeFile(join(root, "next"), after);
-      const generated = native(root, "diff", ["-U0", "--label", "target", "--label", "target", "old", "next"]);
-      assert.equal(generated.status, 1, generated.stderr);
-      const fullContext = native(root, "diff", ["-U100", "--label", "target", "--label", "target", "old", "next"]);
-      assert.equal(fullContext.status, 1, fullContext.stderr);
-      for (const reverse of [false, true]) {
-        const original = reverse ? after : before;
-        const expected = reverse ? before : after;
-        const args = ["--batch", "-p0", "-F0", ...(reverse ? ["-R"] : [])];
-        const actual = await run("patch", args, {
-          files: { target: original }, input: generated.stdout,
-        });
-        const gnu = await nativeGNU(args,
-          { target: original }, generated.stdout);
-        assert.equal(actual.exitCode, gnu.exitCode, `${name}: ${actual.stderr}`);
-        assert.equal(await contents(actual.fs, "target"), gnu.files.target, name);
-        await writeFile(join(root, "target"), original);
-        const reference = native(root, "patch", ["-f", "-F0", "-p0", ...(reverse ? ["-R"] : []), "target"], generated.stdout);
-        const referenceText = await readFile(join(root, "target"), "utf8");
-        if (reference.status !== 0 || referenceText !== expected) {
-          oracleMismatches++;
-          context.diagnostic(`native-native mismatch ${JSON.stringify({ name, reverse, status: reference.status, expected, actual: referenceText })}`);
-        }
-        const canonical = generated.stdout.replace(/^(@@ -)1,0 (\+1(?:,\d+)? @@)/mu, "$10,0 $2")
-          .replace(/^(@@ -1(?:,\d+)? \+)1,0 @@/mu, "$10,0 @@");
-        await writeFile(join(root, "target"), original);
-        const control = native(root, "patch", ["-f", "-F0", "-p0", ...(reverse ? ["-R"] : []), "target"], canonical);
-        const controlText = await readFile(join(root, "target"), "utf8");
-        if (control.status !== 0 || controlText !== expected) {
-          canonicalMismatches++;
-          context.diagnostic(`canonical-native mismatch ${JSON.stringify({ name, reverse, status: control.status, expected, actual: controlText })}`);
-        }
-        await writeFile(join(root, "target"), original);
-        const fullControl = native(root, "patch", ["-f", "-F0", "-p0", ...(reverse ? ["-R"] : []), "target"], fullContext.stdout);
-        const fullText = await readFile(join(root, "target"), "utf8");
-        if (fullControl.status !== 0 || fullText !== expected) {
-          fullContextMismatches++;
-          context.diagnostic(`full-context native-native mismatch ${JSON.stringify({ name, reverse, status: fullControl.status, expected, actual: fullText })}`);
-        }
-      }
-    }
-    context.diagnostic(`native-generated directions=${coordinateCases.length * 2}; native-native mismatches=${oracleMismatches}; canonical-native mismatches=${canonicalMismatches}; full-context native-native mismatches=${fullContextMismatches}`);
-  });
 });

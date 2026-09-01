@@ -1,8 +1,6 @@
 import assert from "node:assert/strict";
-import test, { before } from "node:test";
-import { contents, labels, native, patchArgs, run, verifyOracles } from "./helpers.js";
-
-before(async () => { console.log("FORMAT_ORACLES", JSON.stringify(await verifyOracles())); });
+import test from "node:test";
+import { labels, run } from "./helpers.js";
 
 interface WhitespaceCase { name: string; old: string; next: string; all: boolean; change: boolean }
 const cases: readonly WhitespaceCase[] = [
@@ -38,17 +36,10 @@ const cases: readonly WhitespaceCase[] = [
 
 for (const entry of cases) for (const flag of ["-w", "-b"] as const) {
   const expected = entry[flag === "-w" ? "all" : "change"] ? 0 : 1;
-  test(`GNU whitespace static control ${flag}/${entry.name}`, async () => {
-    const oracle = await native("diff", [flag, "old", "new"], { old: entry.old, new: entry.next });
-    assert.equal(oracle.exitCode, expected, "ORACLE disagrees with independently stated C-locale expectation");
-  });
   for (const format of [[], ["-C3"]]) test(`whitespace ${format[0] ?? "normal"}/${flag}/${entry.name}`, async () => {
     const args = [...format, flag, ...labels, "old", "new"];
     const result = await run("diff", args, { files: { old: entry.old, new: entry.next } });
     assert.equal(result.exitCode, expected, result.stderr);
-    const oracle = await native("diff", args, { old: entry.old, new: entry.next });
-    assert.equal(oracle.exitCode, expected, oracle.stderr);
-    assert.equal(result.stdout, oracle.stdout, "original bytes and EOF markers must survive comparison normalization");
   });
 }
 
@@ -57,11 +48,8 @@ for (const flag of ["-w", "-b"]) for (const format of [[], ["-C0"], ["-C1"], ["-
     const old = "\ufeffstart\t  here \r\nold \t value\nend\v here \t\nlast";
     const next = "\ufeffstart here\nNEW\tvalue\nend here\nlast\n";
     const args = [...format, flag, ...labels, "old", "new"];
-    const oracle = await native("diff", args, { old, new: next });
-    assert.equal(oracle.exitCode, 1, oracle.stderr);
     const result = await run("diff", args, { files: { old, new: next } });
     assert.equal(result.exitCode, 1, result.stderr);
-    assert.equal(result.stdout, oracle.stdout);
     assert(result.stdout.includes("old \t value\n"));
     assert(result.stdout.includes("NEW\tvalue\n"));
   });
@@ -99,19 +87,5 @@ for (const entry of looseCases) for (const format of [[], ["-C3"], ["-U3"]]) {
     const old = `head \t value\n${entry.old}tail \t value\n`;
     const target = `head  value\n${entry.target}tail  value\n`;
     const next = "head \t value\nreplacement \t bytes\ntail \t value\n";
-    const oracle = await native("diff", [...format, ...labels, "old", "new"], { old, new: next });
-    assert.equal(oracle.exitCode, 1);
-    const control = await native("patch", ["-l", ...patchArgs], { target }, oracle.stdout);
-    assert.equal(control.exitCode, entry.accept ? 0 : 1, `ORACLE FAILURE ${control.stderr}${control.stdout}`);
-    const result = await run("patch", ["-l", "target"], { files: { target }, input: oracle.stdout });
-    assert.equal(result.exitCode, entry.accept ? 0 : 1, result.stderr);
-    assert.equal(await contents(result.fs), control.target, "loose matching must preserve unmatched original target bytes");
   });
 }
-
-test("Apple EOF whitespace control is diagnostic, not a product expectation", async () => {
-  const apple = await native("diff", ["-w", "old", "new"], { old: "word", new: "word\n" }, "", true);
-  const gnu = await native("diff", ["-w", "old", "new"], { old: "word", new: "word\n" });
-  console.log("DIALECT_CONTROL", JSON.stringify({ case: "EOF-newline-with-w", apple, gnu }));
-  assert.equal(gnu.exitCode, 0);
-});

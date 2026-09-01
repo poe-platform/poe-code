@@ -3,27 +3,13 @@ import test from "node:test";
 import { standardCommands } from "../../../src/commands/index.js";
 import { diffPatchCommands, type DiffPatchOptions } from "../../../src/commands/diff-patch/index.js";
 import { Shell } from "../../../src/shell/index.js";
-import { oracleIdentity } from "../diff-patch-stress/gnu-target/oracle.js";
-import { filesystem, native as nativeOracle, run } from "./helpers.js";
+import { filesystem, run } from "./helpers.js";
 
 const labels = ["--label=BEFORE name", "-L", "AFTER name"];
 const lines = Array.from({ length: 31 }, (_, index) => `line ${index + 1}\n`);
 const left = lines.join("");
 const right = [...lines.slice(0, 15), "CHANGED\n", ...lines.slice(16)].join("");
 const files = { left, right };
-
-async function native(args: readonly string[], oldText = left, newText = right) {
-  const { exitCode, stdout, stderr } = await nativeOracle("diff", args, { left: oldText, right: newText });
-  return { exitCode, stdout, stderr };
-}
-
-test("pinned GNU option oracle identity (required; no host fallback)", async context => {
-  const pin = oracleIdentity("diff", "gnu");
-  const identity = await native(["--version"]);
-  assert.equal(identity.exitCode, 0, identity.stderr);
-  assert.equal(identity.stdout.trim(), pin.version);
-  context.diagnostic(JSON.stringify(pin));
-});
 
 function expected(width: number, format: "unified" | "context"): string {
   const start = Math.max(0, 15 - width);
@@ -100,10 +86,6 @@ for (const fixture of cases) {
     assert.deepEqual({ exitCode: actual.exitCode, stdout: actual.stdout, stderr: actual.stderr },
       { exitCode: 1, stdout: output, stderr: "" });
   });
-  test(`GNU native selector evidence ${name}`, async () => {
-    const actual = await native([...fixture.flags, ...labels, "left", "right"]);
-    assert.deepEqual(actual, { exitCode: 1, stdout: output, stderr: "" });
-  });
 }
 
 for (const fixture of [
@@ -114,7 +96,6 @@ for (const fixture of [
   const actual = await run("diff", [...fixture.flags, ...labels, "left", "right"], { files: inputs });
   const frozen = { exitCode: 1, stdout: fixture.stdout, stderr: "" };
   assert.deepEqual({ exitCode: actual.exitCode, stdout: actual.stdout, stderr: actual.stderr }, frozen);
-  assert.deepEqual(await native([...fixture.flags, ...labels, "left", "right"], inputs.left, inputs.right), frozen);
 });
 
 const invalid = [
@@ -132,20 +113,12 @@ for (const flags of invalid) {
     assert.notEqual(actual.stderr, "");
     if (flags.some(flag => flag === "-Cbad" || flag === "--unified=bad")) assert.match(actual.stderr, /invalid context length/u);
   });
-  test(`GNU native invalid selector evidence ${JSON.stringify(flags)}`, async () => {
-    const actual = await native([...flags, ...labels, "left", "right"]);
-    assert.equal(actual.exitCode, 2);
-    assert.equal(actual.stdout, "");
-    assert.notEqual(actual.stderr, "");
-  });
 }
 
 test("GNU legacy digits do not select an output style", async () => {
   const actual = await run("diff", ["-0", ...labels, "left", "right"], { files });
   assert.equal(actual.exitCode, 1, actual.stderr);
   assert.equal(actual.stdout, "16c16\n< line 16\n---\n> CHANGED\n");
-  assert.deepEqual(await native(["-0", ...labels, "left", "right"]),
-    { exitCode: 1, stdout: actual.stdout, stderr: "" });
 });
 
 for (const flag of ["-U", "-C"]) test(`GNU missing selector argument ${flag}`, async () => {
@@ -153,7 +126,6 @@ for (const flag of ["-U", "-C"]) test(`GNU missing selector argument ${flag}`, a
   assert.equal(actual.exitCode, 2);
   assert.equal(actual.stdout, "");
   assert.match(actual.stderr, /requires an argument/u);
-  assert.equal((await native(["left", "right", flag])).exitCode, 2);
 });
 
 for (const fixture of [

@@ -46,14 +46,6 @@ type HarnessMeta = {
 type ExampleRuntime = {
   agent: ReturnType<typeof makeAgentModule>;
   fail: ReturnType<typeof makeFailModule>["default"];
-  git: {
-    checkpoint(): Promise<{
-      head: string;
-      stashRef: string;
-    }>;
-    commit(): Promise<string>;
-    revert(): Promise<void>;
-  };
   harness: ReturnType<typeof makeHarnessModule>;
   log: ReturnType<typeof makeLogModule>;
   metric: ReturnType<typeof makeMetricModule>;
@@ -246,27 +238,10 @@ function createExampleRuntime(
   const log = makeLogModule((entry) => {
     stdout.write(`${JSON.stringify(normalizeLogEntry(entry))}\n`);
   });
-  const git = {
-    async checkpoint() {
-      state.checkpointCount += 1;
-      return {
-        head: `head-${state.commitCount}`,
-        stashRef: `savepoint-${state.checkpointCount}`
-      };
-    },
-    async commit() {
-      state.commitCount += 1;
-      return `commit-${state.commitCount}`;
-    },
-    async revert() {
-      state.revertCount += 1;
-    }
-  };
   const metric = makeMetricModule(async (scriptName) => `${readMetricScore(scriptName, state)}\n`);
   const registry = createExampleRegistry({
     agent,
     fail,
-    git,
     harness,
     log,
     metric
@@ -275,7 +250,6 @@ function createExampleRuntime(
   return {
     agent,
     fail,
-    git,
     harness,
     log,
     metric,
@@ -287,13 +261,6 @@ function createExampleRegistry(modules: Omit<ExampleRuntime, "registry">): Modul
   return {
     agent: toModuleExports(modules.agent),
     fail: toModuleExports(new Map([["default", modules.fail]])),
-    git: toModuleExports(
-      new Map<string, unknown>([
-        ["checkpoint", modules.git.checkpoint],
-        ["commit", modules.git.commit],
-        ["revert", modules.git.revert]
-      ])
-    ),
     harness: toModuleExports(modules.harness),
     log: toModuleExports(modules.log),
     metric: toModuleExports(modules.metric)
@@ -440,7 +407,6 @@ async function runExperimentExample(runtime: ExampleRuntime): Promise<{
   let kept = 0;
 
   while (kept < maxKept) {
-    const savepoint = await runtime.git.checkpoint();
     const attemptNumber = attempts.length + 1;
     const result = await runtime.agent.spawn(
       experimenter as Parameters<typeof runtime.agent.spawn>[0],
@@ -451,7 +417,6 @@ async function runExperimentExample(runtime: ExampleRuntime): Promise<{
     const score = await runtime.metric.run(metricName);
 
     if (score >= baseline) {
-      await runtime.git.commit();
       kept += 1;
       attempts.push({
         event: "kept",
@@ -466,10 +431,8 @@ async function runExperimentExample(runtime: ExampleRuntime): Promise<{
       continue;
     }
 
-    await runtime.git.revert();
     runtime.log.event("attempt.discarded", {
       attempt: attemptNumber,
-      head: savepoint.head,
       score
     });
     attempts.push({
@@ -487,16 +450,10 @@ async function runExperimentExample(runtime: ExampleRuntime): Promise<{
 }
 
 function createExampleState(): {
-  checkpointCount: number;
-  commitCount: number;
-  revertCount: number;
   spawnCount: number;
   metricCalls: Map<string, number>;
 } {
   return {
-    checkpointCount: 0,
-    commitCount: 0,
-    revertCount: 0,
     spawnCount: 0,
     metricCalls: new Map()
   };

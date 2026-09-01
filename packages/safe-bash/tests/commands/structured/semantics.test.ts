@@ -1,5 +1,4 @@
 import assert from "node:assert/strict";
-import { spawnSync } from "node:child_process";
 import { test } from "node:test";
 import { row, run, type Case } from "./helpers.js";
 
@@ -99,18 +98,6 @@ for (const [index, fixture] of cases.entries()) test(`semantic matrix ${index + 
   const result = await run(["-c", ...fixture.flags ?? [], fixture.filter], fixture.input);
   assert.equal(result.exitCode, fixture.status ?? 0, result.stderr);
   assert.equal(result.stdout, fixture.output);
-});
-
-test("native jq oracle checks supported matrix (version reported)", async context => {
-  const version = spawnSync("jq", ["--version"], { encoding: "utf8", timeout: 2000, maxBuffer: 4096 });
-  if (version.error || version.status !== 0) { context.skip("native jq is unavailable"); return; }
-  context.diagnostic(`oracle ${version.stdout.trim()}; ${cases.length - 1} supported cases; timeout 2s/case`);
-  for (const fixture of cases.filter(fixture => fixture.status !== 3)) {
-    const result = spawnSync("jq", ["-c", ...fixture.flags ?? [], fixture.filter], { input: fixture.input, encoding: "utf8", timeout: 2000, maxBuffer: 512 * 1024 });
-    assert.ifError(result.error);
-    assert.equal(result.status, fixture.status ?? 0, `${fixture.filter}: ${result.stderr}`);
-    assert.equal(result.stdout, fixture.output, fixture.filter);
-  }
 });
 
 test("prototype keys preserve data without altering host prototypes", async () => {

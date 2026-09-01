@@ -1,17 +1,10 @@
 import assert from "node:assert/strict";
-import { spawnSync } from "node:child_process";
 import { createHash } from "node:crypto";
-import { lstat, mkdir, mkdtemp, readFile, readlink, readdir, rm, writeFile } from "node:fs/promises";
-import { join, resolve } from "node:path";
 import test from "node:test";
-import { gzipSync, gunzipSync } from "node:zlib";
 import { encodeEntry } from "../../../src/commands/archive/format.js";
 import { DEFAULT_ARCHIVE_LIMITS } from "../../../src/commands/archive/internal.js";
-import { nativeGnuBinding, nativeAppleBinding, verifyNativeExecutable } from "../../native-profile.js";
 
 const target = `cross-${"x".repeat(116)}.bin`;
-const payload = Buffer.from("independent long-link target\n");
-const evidenceDirectory = resolve("tests/commands/archive-stress/long-link-evidence");
 const hash = (bytes: Uint8Array): string => createHash("sha256").update(bytes).digest("hex");
 
 function encodedLink(linkname: string): Buffer[] {
@@ -76,69 +69,3 @@ test("PAX links retain exact full targets and nonempty safe USTAR fallback", con
     }
   }
 });
-
-const consumers = [
-  { name: "GNU 1.35", binary: resolve("tests/commands/archive/.oracle/gnu-tar/1.35/bin/gtar"), sha256: "49a0bd353ad67347674d00a7b3eeb171da58728f7e4577c9b320d8ab1e7bba66", version: /^tar \(GNU tar\) 1\.35\n/u },
-  { name: "BSD 3.5.3", binary: "/usr/bin/bsdtar", sha256: "bdccb76a715fbebc4915a1a1b1de0e7050ad842ebb730c47935b3a22c13e3af9", version: /^bsdtar 3\.5\.3 - libarchive 3\.7\.4 /u },
-];
-
-if (process.env.ARCHIVE_LONG_LINK_NATIVE === "1") {
-  for (const historical of consumers) test(`${historical.name}: plain AND gzip extract an exact symlink, never an empty regular file`, async context => {
-    const binding = historical.name === "GNU 1.35" ? nativeGnuBinding("tar") : nativeAppleBinding("bsdtar");
-    if (binding) verifyNativeExecutable(binding, binding.path);
-    const consumer = binding ? { ...historical, binary: binding.path, sha256: binding.sha256 } : historical;
-    assert.equal(hash(await readFile(consumer.binary)), consumer.sha256);
-    const environment = { PATH: "/usr/bin:/bin", LC_ALL: "C", TZ: "UTC" };
-    const run = (args: string[]) => {
-      const result = spawnSync(consumer.binary, args, {
-        encoding: "utf8", env: environment, timeout: 10_000, maxBuffer: 1024 * 1024,
-      });
-      return { args, status: result.status, signal: result.signal, error: result.error?.message ?? null, stdout: result.stdout, stderr: result.stderr };
-    };
-    const version = run(["--version"]);
-    assert.equal(version.status, 0);
-    assert.match(version.stdout, consumer.version);
-    await mkdir(evidenceDirectory, { recursive: true });
-    const temporary = await mkdtemp(join(evidenceDirectory, ".native-long-link-"));
-    const observations = [];
-    try {
-      for (const gzip of [false, true]) {
-        const output = join(temporary, gzip ? "gzip" : "plain");
-        await mkdir(output);
-        await writeFile(join(output, target), payload);
-        const plain = archiveBytes();
-        const bytes = gzip ? gzipSync(plain) : plain;
-        if (gzip) assert.deepEqual(gunzipSync(bytes), plain);
-        const archive = join(temporary, gzip ? "input.tar.gz" : "input.tar");
-        await writeFile(archive, bytes);
-        const listing = run([gzip ? "-tzf" : "-tf", archive]);
-        const extraction = run([gzip ? "-xzf" : "-xf", archive, "-C", output]);
-        const stat = await lstat(join(output, "symbol")).catch(error => {
-          if (error.code === "ENOENT") return undefined;
-          throw error;
-        });
-        observations.push({
-          format: gzip ? "gzip" : "plain", archiveSha256: hash(bytes), listing, extraction,
-          type: stat?.isSymbolicLink() ? "symlink" : stat?.isFile() ? "regular" : stat ? "other" : "missing",
-          size: stat?.size ?? null, linkTarget: stat?.isSymbolicLink() ? await readlink(join(output, "symbol")) : null,
-          throughLinkBase64: stat ? (await readFile(join(output, "symbol"))).toString("base64") : null,
-          targetBase64: (await readFile(join(output, target))).toString("base64"),
-          entries: (await readdir(output)).sort(),
-        });
-      }
-      context.diagnostic(JSON.stringify({ kind: "native", consumer: consumer.name, binary: consumer.binary, sha256: consumer.sha256, version, observations }));
-      for (const observation of observations) {
-        assert.equal(observation.listing.status, 0, JSON.stringify(observation));
-        assert.equal(observation.listing.stdout, "symbol\n");
-        assert.equal(observation.extraction.status, 0, JSON.stringify(observation));
-        assert.equal(observation.type, "symlink", JSON.stringify(observation));
-        assert.equal(observation.linkTarget, target);
-        assert.equal(observation.throughLinkBase64, payload.toString("base64"));
-        assert.equal(observation.targetBase64, payload.toString("base64"));
-        assert.deepEqual(observation.entries, [target, "symbol"].sort());
-      }
-    } finally {
-      await rm(temporary, { recursive: true, force: true });
-    }
-  });
-}

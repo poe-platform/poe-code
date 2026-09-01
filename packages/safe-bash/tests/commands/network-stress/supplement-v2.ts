@@ -1,19 +1,15 @@
 import { validateSourceRevision } from "./source-gate.js";
 import assert from "node:assert/strict";
-import { spawn } from "node:child_process";
 import { createHash } from "node:crypto";
-import { mkdtemp, readFile, readdir, rm, writeFile } from "node:fs/promises";
-import { resolve } from "node:path";
+import { readFile } from "node:fs/promises";
 import { setTimeout as delay } from "node:timers/promises";
 import type { FileSystem, ByteSource } from "../../../src/contracts/index.js";
 import type { HttpTransport, NetworkCommandsOptions } from "../../../src/commands/network/types.js";
-import { certificatePath, canonicalTrace, supplementaryLab } from "./supplement-lab.js";
+import { canonicalTrace, supplementaryLab } from "./supplement-lab.js";
 import { payload, supplementaryRows, type SupplementRow } from "./supplement-rows.js";
-import { profile } from "./native.js";
 
 const owned = "tests/commands/network-stress";
-const mode = process.argv[2];
-assert(mode === "native" || mode === "product");
+
 type Lab = Awaited<ReturnType<typeof supplementaryLab>>;
 type Api = typeof import("../../../src/index.js");
 type RecordValue = Record<string, unknown>;
@@ -38,40 +34,6 @@ async function fileSnapshot(fs: FileSystem) {
     files[entry.name] = Buffer.from(await fs.readFile(`/work/${entry.name}`, { maxBytes: 1024 * 1024 })).toString("base64");
   }
   return files;
-}
-async function native(row: SupplementRow, lab: Lab): Promise<RecordValue> {
-  const root = await mkdtemp(resolve(owned, ".supp-native-"));
-  let child: ReturnType<typeof spawn> | undefined;
-  let completed: Promise<{ code: number | null; signal: NodeJS.Signals | null }> | undefined;
-  let timer: ReturnType<typeof setTimeout> | undefined;
-  const stdout: Buffer[] = [];
-  const stderr: Buffer[] = [];
-  try {
-    await writeFile(`${root}/binary.bin`, payload);
-    const argv = ["-q", "--silent", "--show-error", "--globoff", "--http1.1", "--noproxy", "*", "--proxy", "", "--proto", "=http,https", "--proto-redir", "=http,https", "--connect-timeout", "1", "--max-time", "3", "--max-redirs", "5", ...(row.trust ? ["--cacert", resolve(certificatePath)] : []), ...row.args.map(lab.expand)];
-    assert(argv.every((argument) => !argument.includes("\0")));
-    child = spawn("/usr/bin/curl", argv, { shell: false, cwd: root, env: { PATH: "/usr/bin:/bin", HOME: root, CURL_HOME: root, XDG_CONFIG_HOME: root, LC_ALL: "C", LANG: "C", NO_PROXY: "*", no_proxy: "*" }, stdio: ["pipe", "pipe", "pipe"] });
-    completed = new Promise((resolveChild, reject) => { child!.once("error", reject); child!.once("close", (code, signal) => resolveChild({ code, signal })); });
-    let size = 0;
-    for (const [stream, chunks] of [[child.stdout, stdout], [child.stderr, stderr]] as const) {
-      stream!.on("data", (chunk: Buffer) => { size += chunk.length; if (size > 2 * 1024 * 1024) child!.kill("SIGKILL"); else chunks.push(chunk); });
-    }
-    child.stdin!.on("error", () => {});
-    child.stdin!.end(row.input ? payload : undefined);
-    timer = setTimeout(() => child!.kill("SIGKILL"), 6000);
-    const exit = await completed;
-    assert.equal(exit.signal, null, "Native child killed rather than settled");
-    assert(size <= 2 * 1024 * 1024);
-    const files: Record<string, string> = {};
-    for (const name of await readdir(root)) files[name] = (await readFile(`${root}/${name}`)).toString("base64");
-    await lab.idle();
-    return { id: row.id, kind: row.kind, argv: argv.map(lab.normalize), ...exit, stdout: Buffer.concat(stdout).toString("base64"), stderr: lab.normalize(Buffer.concat(stderr).toString()).replaceAll(root, "{ROOT}"), files, traces: lab.traces.map(canonicalTrace), wireTraces: lab.traces };
-  } finally {
-    clearTimeout(timer);
-    if (child && child.exitCode === null) child.kill("SIGKILL");
-    if (completed) await bounded(completed);
-    await rm(root, { recursive: true, force: true });
-  }
 }
 
 async function product(api: Api, row: SupplementRow, lab: Lab, expected: RecordValue | undefined, report: RecordValue) {
@@ -254,39 +216,34 @@ async function product(api: Api, row: SupplementRow, lab: Lab, expected: RecordV
     await bounded(shell.dispose());
   }
 }
-
-let api: Api | undefined;
 let expectedRows: RecordValue[] = [];
-if (mode === "product") {
+
   const frozen = JSON.parse(await readFile(`${owned}/supplement-native.json`, "utf8")) as { records: RecordValue[]; before: { hashes: Record<string, string> }; exit: { code: number }; networkStable: boolean };
   assert.equal(frozen.exit.code, 0);
   assert(frozen.networkStable);
-  for (const path of ["supplement.ts", "supplement-rows.ts", "supplement-lab.ts"]) {
+  for (const path of ["supplement-rows.ts", "supplement-lab.ts"]) {
     const source = `${owned}/${path}`;
     assert.equal(createHash("sha256").update(await readFile(source)).digest("hex"), frozen.before.hashes[source], "Supplement source changed since native freeze");
   }
   expectedRows = frozen.records.filter((record) => typeof record.id === "string");
   assert.equal(process.env.CURL_VERIFY_AFTER_HANDOFF, "deab14d9f4b3b6f0d73f96587c74a9de23091300");
   await validateSourceRevision();
-  api = await import("../../../src/index.js");
+  const api = await import("../../../src/index.js");
   const subpath = await import("../../../src/commands/network/index.js");
   assert.equal(api.networkCommands, subpath.networkCommands);
   assert.equal(api.curlCommands, api.networkCommands);
   const manifest = JSON.parse(await readFile("package.json", "utf8")) as { exports: Record<string, unknown>; dependencies?: unknown };
   assert(manifest.exports["./commands/network"]);
   assert.deepEqual(manifest.dependencies ?? {}, {});
-} else {
-  process.stdout.write(`${JSON.stringify({ nativeProfile: await profile(), source: "Official curl manual https://curl.se/docs/manpage.html; installed oracle controls expected bytes, not live-manual version assumptions", nativeRows: 13, productRows: 18, strictNativeParity: 8, securityContracts: 5, lifecycleContracts: 5 })}\n`);
-}
+
 for (const row of supplementaryRows) {
-  if (mode === "native" && row.kind === "lifecycle") continue;
+
   const lab = await supplementaryLab();
   const started = Date.now();
-  let report: RecordValue = { id: row.id, kind: row.kind };
+  const report: RecordValue = { id: row.id, kind: row.kind };
   const errors: string[] = [];
   try {
-    if (mode === "native") report = await native(row, lab);
-    else await product(api!, row, lab, expectedRows.find((entry) => entry.id === row.id), report);
+    await product(api!, row, lab, expectedRows.find((entry) => entry.id === row.id), report);
   } catch (error) { errors.push(error instanceof Error ? error.stack ?? error.message : String(error)); }
   finally { try { await bounded(lab.close()); } catch (error) { errors.push(`cleanup: ${String(error)}`); } }
   report.elapsedMs = Date.now() - started;
@@ -296,5 +253,5 @@ for (const row of supplementaryRows) {
   process.stdout.write(`${JSON.stringify(report)}\n`);
 }
 const failed = records.filter((record) => record.status === "failed").length;
-process.stdout.write(`${JSON.stringify({ mode, total: records.length, passed: records.length - failed, failed, pending: mode === "native" ? 18 : 0, productExecutions: mode === "native" ? 0 : records.length })}\n`);
+process.stdout.write(`${JSON.stringify({ mode: "product", total: records.length, passed: records.length - failed, failed, pending: 0, productExecutions: records.length })}\n`);
 process.exitCode = failed ? 1 : 0;

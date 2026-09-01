@@ -9,45 +9,14 @@ import { Script } from "node:vm";
 import { createFsFromVolume, Volume } from "memfs";
 import { createLintInputGuard } from "../../../scripts/lint-input-guard.mjs";
 import { discoverTests, integrationExclusions, lintExclusions, lintInventoryPaths, loadBoundaries, readIntegrationLintInputs, readTypecheckInventories, validateBoundaries, validateImportRetirement, verifyLintInventory } from "./integration-inputs.mjs";
-import { runTests, selectNativeTests } from "./test.mjs";
+import { runTests } from "./test.mjs";
 import { assertAdmittedInputPath, assertLiteralInputPath, readIntegrationTypeInputs, readRegularInput } from "./typecheck-integration-inputs.mjs";
 
 const owner = "fixture producer";
 
-test("native lanes partition the complete discovery without losing or duplicating files", () => {
-  const root = fileURLToPath(new URL("../", import.meta.url));
-  const files = discoverTests(root, loadBoundaries(root));
-  const linux = selectNativeTests(files, "linux", "linux");
-  const darwin = selectNativeTests(files, "darwin", "darwin");
-  assert(linux.length > 0 && darwin.length > 0);
-  assert.deepEqual([...linux, ...darwin].sort(), [...files].sort());
-  assert.equal(new Set([...linux, ...darwin]).size, files.length);
-  assert(darwin.includes("tests/commands/archive-stress/pax-independent/controls.test.ts"));
-  assert(darwin.includes("tests/commands/expr/regex-native.test.ts"));
-  assert(darwin.includes("tests/commands/metadata-stress/stat-human-native.test.ts"));
-  assert(darwin.includes("tests/shell-stress/diagnostic-profiles/compatibility.test.ts"));
-  assert(!linux.includes("tests/shell-stress/diagnostic-profiles/compatibility.test.ts"));
-  for (const file of [
-    "stream-format-author-stress/native-streams.test.ts",
-    "stream-format-author-stress/seq-format.test.ts",
-    "stream-format/nl.test.ts", "stream-format/seq.test.ts", "stream-format/unexpand.test.ts", "stream-format/seq-diagnostic.test.ts", "stream-format/rev.test.ts",
-    "table-text-stress/corpus.test.ts", "table-text-stress/shared-stdin-fix/acceptance216.test.ts",
-    "metadata/stat.test.ts",
-    "split/native.test.ts", "split/native-errors.test.ts", "split/stress.test.ts",
-    "split/edge.test.ts", "split/dangling-native.test.ts", "split/native-capture.test.ts",
-  ]) assert(darwin.includes(`tests/commands/${file}`), `native obligation must run on Darwin: ${file}`);
-  assert(linux.includes("tests/commands/diff-patch-stress/gnu-target/oracle-binding.test.ts"));
-  assert.deepEqual(selectNativeTests(files, "all", "darwin"), files);
-});
-
-test("native lanes reject wrong hosts, missing required cases, duplicate discovery and unknown lanes", () => {
-  const root = fileURLToPath(new URL("../", import.meta.url));
-  const files = discoverTests(root, loadBoundaries(root));
-  assert.throws(() => selectNativeTests(files, "linux", "darwin"));
-  assert.throws(() => selectNativeTests(files, "darwin", "linux"));
-  assert.throws(() => selectNativeTests(files, "portable-only", "linux"));
-  assert.throws(() => selectNativeTests(files.filter(file => !file.endsWith("pax-independent/controls.test.ts")), "linux", "linux"));
-  assert.throws(() => selectNativeTests([...files, files[0]], "darwin", "darwin"));
+test("runner exposes no native qualification selector", async () => {
+  const runner = await import("./test.mjs");
+  assert.equal(Object.hasOwn(runner, "selectNativeTests"), false);
 });
 const fixture = {
   path: "tests/review/run/source",
@@ -85,34 +54,17 @@ function assertSource7Discovery(files) {
     "tests/integrations/safejs/canonical-filesystem.test.ts",
     "tests/integrations/safejs/published-replay.test.ts",
   ];
-  const integrationAdditions = [
-    "tests/fs/conformance/provenance.test.ts",
+  for (const path of [
     "tests/contracts/value.test.ts",
     "tests/shell/value-state.test.ts",
     "tests/shell/byte-values.test.ts",
-    "tests/commands/diff-patch-stress/gnu-target/oracle-binding.test.ts",
-    "tests/commands/diff-patch-stress/editflows/git-profile.test.ts",
-    "tests/commands/metadata-stress/native-binding.test.ts",
-    "tests/commands/metadata-stress/native-launch.test.ts",
-    "tests/commands/stream-format/native-binding.test.ts",
-    "tests/commands/table-text-stress/native-binding.test.ts",
-    "tests/commands/split/native-binding.test.ts",
-    "tests/shell-stress/diagnostic-profiles/profile.test.ts",
-  ];
+  ]) assert.ok(files.includes(path), "retained byte-value test is missing: " + path);
   assert.equal(new Set(files).size, files.length);
-  for (const path of removed) assert.ok(!files.includes(path), `source7 removed test remains selected: ${path}`);
-  for (const path of added) assert.ok(files.includes(path), `source7 added test is missing: ${path}`);
-  for (const path of integrationAdditions) assert.ok(files.includes(path), `integration-authored test is missing: ${path}`);
-  const source7Files = files.filter(path => !integrationAdditions.includes(path));
-  const previous655 = [...source7Files.filter(path => !added.includes(path)), ...removed].sort();
-  assert.equal(previous655.length, 655);
-  const previous654 = previous655.filter(path => path !== "tests/commands/stream-format/seq-diagnostic-profile.test.ts");
-  assert.equal(previous654.length, 654);
-  const previous653 = previous654.filter(path => path !== "tests/commands/search/native-tool.test.ts");
-  assert.equal(previous653.length, 653);
-  assert.equal(createHash("sha256").update(JSON.stringify(previous653)).digest("hex"), "4034255d318de395fa9614c6b00950d3f6be0337ef47724e4e96acdf9e716957");
-  assert.equal(source7Files.length, 655 - removed.length + added.length);
-  assert.equal(files.length, source7Files.length + integrationAdditions.length);
+  for (const path of removed) assert.ok(!files.includes(path), "removed filesystem test remains selected: " + path);
+  for (const path of added) assert.ok(files.includes(path), "retained filesystem test is missing: " + path);
+  assert.ok(files.includes("tests/fs/conformance/provenance.test.ts"));
+  assert.ok(files.includes("tests/plugins/git-removal.test.ts"));
+  assert.ok(!files.includes("tests/commands/git/io-cleanup.test.ts"));
 }
 
 function fileSystemFor(files) {
@@ -937,7 +889,7 @@ test("frozen lint inventory adds only its 1842 literal exclusions and preserves 
   }
   for (const path of [
     "scripts/verify-whole-gate.mjs", "scripts/verify-qualified-release.mjs", "scripts/verify-current-consumers.mjs",
-    "scripts/typecheck.mjs", "scripts/typecheck-inputs.mjs", "scripts/typecheck-consumers.mjs", "scripts/provision-test-inputs.mjs",
+    "scripts/typecheck.mjs", "scripts/typecheck-inputs.mjs", "scripts/typecheck-consumers.mjs",
     "tests/plugins/qualified-current-release/consumers.mjs", "tests/plugins/qualified-current-release/runtime-coverage.mjs",
     "tests/plugins/qualified-current-release/prerequisites.mjs", "tests/plugins/qualified-current-release/snapshot.mjs",
     "tests/plugins/stream-five-public/verify-public.mjs", "tests/plugins/stream-five-public/harness.mjs", "tests/plugins/stream-five-public/public-checks.mjs",
@@ -1034,10 +986,7 @@ test("frozen lint inventory adds only its 1842 literal exclusions and preserves 
   const { consumerGroups, currentConsumerPaths, currentSourceConsumerGroups, negativeGroups } = await import("../tests/plugins/qualified-current-release/consumers.mjs");
   const tests = discoverTests(root, boundaries);
   assertSource7Discovery(tests);
-  assert.ok(tests.includes("tests/commands/stream-format/seq-diagnostic-profile.test.ts"));
-  assert.ok(tests.includes("tests/commands/search/native-tool.test.ts"));
-  assert.ok(tests.includes("tests/native-profile.test.ts"));
-  assert.ok(tests.includes("tests/commands/git/io-cleanup.test.ts"));
+  assert.ok(tests.includes("tests/plugins/git-removal.test.ts"));
   assert.equal(currentConsumerPaths().length, 36);
   assert.equal(negativeGroups.length, 3);
   const protectedPaths = [
@@ -1482,10 +1431,7 @@ test("default normal runner passes every discovered active file to serial Node e
   const root = fileURLToPath(new URL("../", import.meta.url));
   const files = discoverTests(root, loadBoundaries(root));
   assertSource7Discovery(files);
-  assert.ok(files.includes("tests/commands/stream-format/seq-diagnostic-profile.test.ts"));
-  assert.ok(files.includes("tests/commands/search/native-tool.test.ts"));
-  assert.ok(files.includes("tests/native-profile.test.ts"));
-  assert.ok(files.includes("tests/commands/git/io-cleanup.test.ts"));
+  assert.ok(files.includes("tests/plugins/git-removal.test.ts"));
   assert.equal(runTests(root, [], (executable, args, options) => {
     assert.equal(executable, process.execPath);
     assert.deepEqual(args, ["--import", "tsx", "--test", "--test-concurrency=1", ...files]);
@@ -1787,10 +1733,7 @@ test("current integration type accounting retains exact frozen owners and every 
   assert.ok(classified.capturedPaths.every(path => !path.endsWith(".test.ts")));
   const tests = discoverTests(root, boundaries);
   assertSource7Discovery(tests);
-  assert.ok(tests.includes("tests/commands/stream-format/seq-diagnostic-profile.test.ts"));
-  assert.ok(tests.includes("tests/commands/search/native-tool.test.ts"));
-  assert.ok(tests.includes("tests/native-profile.test.ts"));
-  assert.ok(tests.includes("tests/commands/git/io-cleanup.test.ts"));
+  assert.ok(tests.includes("tests/plugins/git-removal.test.ts"));
 });
 
 let importRetirementTestInputs;

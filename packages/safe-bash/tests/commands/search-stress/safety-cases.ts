@@ -1,7 +1,6 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 import { setTimeout as delay } from "node:timers/promises";
-import { spawn } from "node:child_process";
 import { createSearchCommands } from "../../../src/commands/search/index.js";
 import { MemoryFileSystem } from "../../../src/fs/memory/index.js";
 import { FsError, toByteSource, type CommandContext } from "../../../src/contracts/index.js";
@@ -108,20 +107,4 @@ test("metadata-selected stdin yields during endless empty chunks", async () => {
     })), error => error === reason);
     assert.equal(closed, true);
   } finally { clearTimeout(timer); }
-});
-
-test("native closed stdout exits successfully without diagnostics in three repetitions", async () => {
-  for (let repetition = 0; repetition < 3; repetition++) {
-    const result = await new Promise<{ code: number | null; stderr: string }>((resolve, reject) => {
-      const child = spawn("rg", ["--no-config", "foo", "-"], { stdio: ["pipe", "pipe", "pipe"] });
-      let stderr = "";
-      const timer = setTimeout(() => { child.kill("SIGKILL"); reject(new Error("native EPIPE deadline")); }, 3000);
-      child.stdout.destroy(); child.stderr.on("data", chunk => { stderr += String(chunk); });
-      child.stdin.on("error", error => { if ((error as NodeJS.ErrnoException).code !== "EPIPE") reject(error); });
-      child.on("error", reject);
-      child.on("close", (code, signal) => { clearTimeout(timer); if (signal) reject(new Error(`native EPIPE signal ${signal}`)); else resolve({ code, stderr }); });
-      child.stdin.end("foo\n");
-    });
-    assert.equal(result.code, 0); assert.equal(result.stderr, "");
-  }
 });

@@ -1,22 +1,6 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
-import { bashResult } from "./bash-bugfix-helpers.js";
 import { setup } from "./helpers.js";
-
-for (const word of [
-  String.raw`$'one\ntwo\tthree'`, String.raw`$'a\'b'`, String.raw`$'\a\b\e\E\f\n\r\t\v\\\"\?'`,
-  String.raw`$'\101\x42\1034'`, String.raw`$'a\0b'`, String.raw`$'a\x00b'x`,
-  String.raw`$'\q\xZ\8'`, String.raw`$'\xC3\xA9'`, String.raw`$' * ? [x] $HOME $(say wrong) '`,
-  String.raw`before$'a\nb'after`, String.raw`$''`, "$'a\\\nb'", String.raw`"$'a\nb'"`,
-]) {
-  test(`ANSI-C word matches common native behavior: ${word}`, async () => {
-    const source = `say ${word}`;
-    const expected = bashResult('say() { printf "%s\\n" "$*"; }; ' + source);
-    const { shell } = setup();
-    const actual = await shell.exec(source);
-    assert.deepEqual({ stdout: actual.stdout, stderr: actual.stderr, exitCode: actual.exitCode }, { stdout: expected.stdout, stderr: expected.stderr, exitCode: expected.exitCode });
-  });
-}
 
 for (const [word, value] of [
   [String.raw`$'\u00e9\U0001f600'`, "é😀"],

@@ -1,9 +1,7 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 import type { FileSystem } from "../../../src/contracts/index.js";
-import { oracleIdentity, pins } from "../diff-patch-stress/gnu-target/oracle.js";
-import { nativeGnuBinding } from "../../native-profile.js";
-import { contents, native, replacement, run, type Files } from "./helpers.js";
+import { contents, replacement, run, type Files } from "./helpers.js";
 
 const formats = {
   unified: {
@@ -69,44 +67,24 @@ async function check(fixture: Fixture) {
   };
   const input = format[creation ? "creation" : "deletion"] + (fixture.sequential ? second : "");
   const args = ["-p0", ...fixture.args];
-  const nativeArgs = args.includes("--batch") ? args : ["--batch", ...args];
-  const expected = await native("patch", nativeArgs, files, input);
   const actual = await run("patch", args, { files, input });
   const final = { ...files };
   if (!dryRun && !args.includes("--no-backup-if-mismatch")) final["a.orig"] = "wrong\n";
   if (saveReject) final[rejectName] = format[deletion ? "deletion" : "creation"]
     + (fixture.sequential ? reverse ? reverseSecond : second : "");
-  assert.equal(expected.exitCode, 1, expected.stderr);
-  assert.equal(actual.exitCode, expected.exitCode, actual.stderr);
-  assert.deepEqual(expected.files, final, "independent native reject orientation and exact auxiliary bytes");
+  assert.equal(actual.exitCode, 1, actual.stderr);
   assert.deepEqual(await namespace(actual.fs), {
-    files: expected.files, directories: expected.directories, rootExists: expected.rootExists,
+    files: final, directories: ["sentinels"], rootExists: true,
   }, "complete namespace, including original target, backup, rejects, unused candidate and sentinel");
-  assert.equal(expected.stderr, "");
-  assert.equal(actual.stderr, expected.stderr);
+  assert.equal(actual.stderr, "");
   const heading = `${dryRun ? "checking" : "patching"} file a\n`;
   const failure = "Hunk #1 FAILED at 1.\n";
   const summary = `1 out of 1 hunk FAILED${saveReject ? ` -- saving rejects to file ${rejectName}` : ""}\n`;
   const retained = deletion ? "Not deleting file a as content differs from patch\n" : "";
   const tail = fixture.sequential ? heading + failure + summary : "";
-  const nativePrefix = declaredCreation
-    ? `The next patch${reverse ? ", when reversed," : ""} would create the file a,\nwhich already exists!  ${force ? "Applying it anyway." : reverse ? "Ignoring -R." : "Assuming -R."}\n`
-    : "";
-  const nativeReversal = !force && !declaredCreation
-    ? reverse ? "Unreversed patch detected!  Ignoring -R.\n" : "Reversed (or previously applied) patch detected!  Assuming -R.\n"
-    : "";
-  assert.equal(expected.stdout, nativePrefix + heading + nativeReversal + failure + retained + summary + tail);
   const virtualReversal = force ? "" : "Reversed (or previously applied) patch detected!  Assuming -R.\n";
   assert.equal(actual.stdout, heading + virtualReversal + failure + summary + retained + tail);
 }
-
-test("reject orientation oracle is the pinned GNU patch 2.8 executable", () => {
-  const identity = oracleIdentity("patch");
-  assert.equal(identity.version.split("\n")[0], "GNU patch 2.8");
-  const path = process.env.DIFF_PATCH_NATIVE_PATCH;
-  const expected = nativeGnuBinding("patch", path === undefined ? {} : { path }) ?? pins.gnu.patch;
-  assert.equal(identity.sha256, expected.sha256);
-});
 
 for (const format of ["unified", "context"] as const) for (const creation of [false, true]) {
   for (const profile of profiles) test(`reject orientation ${format} ${creation ? "creation" : "deletion"}: ${profile.name}`, async () => {

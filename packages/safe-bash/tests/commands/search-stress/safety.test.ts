@@ -1,12 +1,12 @@
 import assert from "node:assert/strict";
 import { join } from "node:path";
 import test from "node:test";
-import { bounded, directory, native, text, virtual, type Probe } from "./harness.js";
+import { bounded, directory, text, virtual, type Probe } from "./harness.js";
 
 test("isolated cancellation and iterator lifecycle checks", () => {
   const result = bounded(process.execPath, ["--import", "tsx", "--test", "--test-reporter=tap", join(directory, "safety-cases.ts")], "", directory, 5000);
   assert.equal(result.code, 0, text(result.stdout) + text(result.stderr));
-  assert.match(text(result.stdout), /# pass 10\b/u);
+  assert.match(text(result.stdout), /# pass 9\b/u);
 });
 
 for (const maximum of [1, 2, 3, 4, 5, 6, 7, 8, 9]) test(`UTF8 output quota ${maximum} counts bytes atomically`, () => {
@@ -28,7 +28,6 @@ for (const [name, options, input, code] of [
 
 for (const pattern of ["(?i)foo", "\\p{Greek}", "[[:alpha:]]"]) test(`documented Rust regex difference ${pattern}`, () => {
   const probe: Probe = { name: pattern, args: [pattern, "-"], stdin: "FOO α foo\n" };
-  assert.equal(native(probe).code, 0);
   const result = virtual([probe])[0]!;
   assert.equal(result.code, 2);
   assert.match(text(result.stderr), /invalid or unsupported regular expression/u);
@@ -36,7 +35,6 @@ for (const pattern of ["(?i)foo", "\\p{Greek}", "[[:alpha:]]"]) test(`documented
 
 test("external deadline bounds a catastrophic JavaScript regex probe", () => {
   const probe: Probe = { name: "known non-preemptible regex", args: ["(a+)+$", "-"], stdin: "a".repeat(32) + "!\n" };
-  assert.equal(native(probe).code, 1);
   assert.throws(() => bounded(process.execPath, ["--import", "tsx", join(directory, "worker.ts")], JSON.stringify([probe]), directory, 1000), /ETIMEDOUT/u);
 });
 

@@ -11,6 +11,7 @@ vi.mock("node:fs/promises", async () => {
 
 const { fs } = await import("memfs");
 const { Budget } = await import("../../src/interp/budget.js");
+const { declareHostOperation } = await import("../../src/interp/host-bridge.js");
 const { isSandboxPromise } = await import("../../src/interp/values.js");
 const { makeAgentModule } = await import("../../src/modules/agent.js");
 const { makeHarnessModule } = await import("../../src/modules/harness.js");
@@ -52,7 +53,7 @@ describe("snapshot roundtrip integration", () => {
 
 const source = [
   'import * as agent from "agent";',
-  'import * as git from "git";',
+  'import * as effects from "effects";',
   'import * as harness from "harness";',
   "",
   "return async (task) => ({",
@@ -63,7 +64,7 @@ const source = [
   "  review: await agent.spawn(harness.agents.reviewer, {",
   '    prompt: "review:".concat(task.id)',
   "  }),",
-  "  commitId: await git.commit({",
+  "  commitId: await effects.commit({",
   '    message: "commit:".concat(task.id),',
   '    files: ["tasks/".concat(task.id).concat(".txt")]',
   "  })",
@@ -148,7 +149,7 @@ async function expectSnapshotRoundtrip(input: {
     pendingPromises: [],
     moduleBindings: {
       agent: "agent",
-      git: "git",
+      effects: "effects",
       harness: "harness"
     }
   });
@@ -264,8 +265,8 @@ function createModules(frontmatter: {
 
   return {
     agent,
-    git: {
-      async commit(input: { message: string; files: string[] }) {
+    effects: {
+      commit: declareHostOperation(async (input: { message: string; files: string[] }) => {
         const commits = await readJsonFile<string[]>("/side-effects/commits.json", []);
         commits.push(input.message);
         await writeJsonFile("/side-effects/commits.json", commits);
@@ -275,7 +276,7 @@ function createModules(frontmatter: {
         await fs.promises.mkdir(dirname(targetPath), { recursive: true });
         await fs.promises.writeFile(targetPath, `commit:${commitNumber}:${input.message}`);
         return `commit-${commitNumber}`;
-      }
+      }, "read-side-effect")
     },
     harness
   };

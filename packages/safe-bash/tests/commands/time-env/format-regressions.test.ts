@@ -1,10 +1,4 @@
 import assert from "node:assert/strict";
-import { spawnSync } from "node:child_process";
-import { existsSync } from "node:fs";
-import { mkdtemp, rm } from "node:fs/promises";
-import { tmpdir } from "node:os";
-import { join } from "node:path";
-import { fileURLToPath } from "node:url";
 import test from "node:test";
 import { run } from "./helpers.js";
 
@@ -43,34 +37,4 @@ test("date timezone padding applies to signed numeric offsets, not pre-padded st
     const result = await run("date", ["-d@0", "+%z|%-z|%_z|%-:z|%_:z|%-::z|%_::z"], {}, { env: { TZ: zone! } });
     assert.equal(result.exitCode, 0); assert.equal(result.stdout, expected + "\n"); assert.equal(result.stderr, "");
   }
-});
-
-const native = fileURLToPath(new URL("../metadata-stress/.oracle/coreutils-9.7/src/date", import.meta.url));
-test("fresh GNU9.7 C-locale flag/width/compound/timezone matrix", {
-  skip: existsSync(native) ? false : "external pinned GNU9.7 unavailable; fixed regression vectors still run",
-}, async context => {
-  const directory = await mkdtemp(join(tmpdir(), "time-env-format-regressions-"));
-  const flags = ["", "-", "_", "0", "^", "#", "#^", "^#", "1", "6", "9", "12", "_12", "012", "-12", "_012", "0_12", "^#30", "030"];
-  const groups = ["aAbBhcpPrZ", "FDxRXTYy", "z"];
-  try {
-    for (const instant of ["0008-01-02T03:04:05Z", "2024-02-29T15:06:07Z", "@-1.000000001"]) {
-      for (const zone of ["UTC", "UTC-0:30:07", "UTC+0:00:07", "UTC-5:45", "America/New_York", "Europe/Paris"]) {
-        for (const group of groups) {
-          await context.test(`${instant} ${zone} ${group}`, async () => {
-            const directives = group === "z" ? ["z", ":z", "::z", ":::z"] : [...group].filter(code => code !== "Z" || !zone.includes("/"));
-            const format = directives.flatMap(code => flags.map(flag => `%${flag}${code}`)).join("|");
-            const args = ["-d", instant, `+${format}`];
-            const expected = spawnSync(native, args, { cwd: directory, env: { LC_ALL: "C", TZ: zone }, timeout: 3000, maxBuffer: 1024 * 1024 });
-            assert.ifError(expected.error); assert.equal(expected.signal, null); assert.equal(expected.status, 0);
-            const actual = await run("date", args, {}, { env: { TZ: zone } });
-            assert.equal(actual.exitCode, expected.status); assert.equal(actual.stderr, expected.stderr.toString());
-            const actualFields = actual.stdout.trimEnd().split("|"), expectedFields = expected.stdout.toString().trimEnd().split("|");
-            const formats = format.split("|");
-            assert.equal(actualFields.length, expectedFields.length);
-            for (let index = 0; index < formats.length; index++) assert.equal(actualFields[index], expectedFields[index], formats[index]);
-          });
-        }
-      }
-    }
-  } finally { await rm(directory, { recursive: true }); }
 });

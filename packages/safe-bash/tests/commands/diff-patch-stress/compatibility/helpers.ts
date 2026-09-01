@@ -1,19 +1,14 @@
 import assert from "node:assert/strict";
-import { execFile } from "node:child_process";
-import { mkdir, mkdtemp, readFile, rm, writeFile } from "node:fs/promises";
-import { dirname, join } from "node:path";
-import { fileURLToPath } from "node:url";
+import { dirname } from "node:path";
 import { toByteSource } from "../../../../src/contracts/index.js";
 import { createDiffPatchCommands, diffPatchCommands } from "../../../../src/commands/diff-patch/index.js";
 import { MemoryFileSystem } from "../../../../src/fs/memory/index.js";
 import { Shell } from "../../../../src/shell/index.js";
-import { oracleIdentity, oraclePath } from "./oracle.js";
 
 export type Files = Readonly<Record<string, string>>;
 export type Snapshot = Record<string, Buffer | null>;
 export type Tool = "diff" | "patch";
 export interface Result { exitCode: number; stdout: Buffer; stderr: Buffer }
-const directory = dirname(fileURLToPath(import.meta.url));
 
 function safeRelative(path: string): void {
   assert(path && !path.startsWith("/") && !path.includes("\\") && !path.split("/").some(part => part === ".." || part === ""));
@@ -65,42 +60,4 @@ export async function virtual(tool: Tool, args: readonly string[], files: Files,
 export async function shell(files: Files) {
   const fs = await memory(files);
   return { fs, shell: new Shell({ fs, cwd: "/work", env: { LANG: "C", LC_ALL: "C" } }).use(diffPatchCommands()) };
-}
-
-export async function native(tool: Tool, args: readonly string[], files: Files = {}, input = "", paths: readonly string[] = Object.keys(files)) {
-  const root = await mkdtemp(join(directory, ".oracle-"));
-  try {
-    for (const [path, text] of Object.entries(files)) {
-      safeRelative(path);
-      await mkdir(dirname(join(root, path)), { recursive: true });
-      await writeFile(join(root, path), text);
-    }
-    const result = await new Promise<Result>((resolve, reject) => {
-      const child = execFile(oraclePath(tool), [...args], {
-        cwd: root, timeout: 3000, killSignal: "SIGKILL", maxBuffer: 1024 * 1024, encoding: "buffer",
-        env: { PATH: "/usr/bin:/bin", HOME: root, TMPDIR: root, LANG: "C", LC_ALL: "C", TZ: "UTC" },
-      }, (error, stdout, stderr) => {
-        if (error && (typeof error.code !== "number" || error.killed || error.signal)) reject(error);
-        else resolve({ exitCode: error?.code as number | undefined ?? 0, stdout, stderr });
-      });
-      child.stdin?.on("error", error => {
-        if ((error as NodeJS.ErrnoException).code !== "EPIPE") { child.kill("SIGKILL"); reject(error); }
-      });
-      child.stdin?.end(input);
-    });
-    const final: Snapshot = {};
-    for (const path of paths) {
-      safeRelative(path);
-      try { final[path] = await readFile(join(root, path)); }
-      catch (error) {
-        if ((error as NodeJS.ErrnoException).code !== "ENOENT") throw error;
-        final[path] = null;
-      }
-    }
-    return { ...result, files: final };
-  } finally { await rm(root, { recursive: true, force: true }); }
-}
-
-export async function availability(tool: Tool): Promise<string> {
-  return JSON.stringify(oracleIdentity(tool));
 }

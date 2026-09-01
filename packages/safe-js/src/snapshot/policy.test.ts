@@ -4,6 +4,7 @@ import {
   createPendingHostCallSideEffectTag,
   HostOperationResumePolicyError,
   registerPendingHostCallPolicy,
+  readRegisteredPendingHostCallPolicy,
   resolvePendingHostCallIssuePolicy,
   resolvePendingHostCallResumePolicy,
   pendingHostCallResumeIdentityMatches,
@@ -11,6 +12,26 @@ import {
 } from "./policy.js";
 
 describe("snapshot pending host-call policy", () => {
+  it.each([
+    "checkpoint",
+    "commit",
+    "diff",
+    "head",
+    "revert",
+    "worktreeCreate",
+    "worktreeList",
+    "worktreeRemove"
+  ])("removes Git default replay policy for %s", (operation) => {
+    expect(readRegisteredPendingHostCallPolicy("git", operation)).toBeUndefined();
+    expect(() =>
+      resolvePendingHostCallResumePolicy({
+        id: "removed-git-operation",
+        moduleId: "git",
+        operation
+      })
+    ).toThrow(HostOperationResumePolicyError);
+  });
+
   it("matches every external resume identity field", () => {
     const identity = {
       argumentDigest: "args",
@@ -34,26 +55,31 @@ describe("snapshot pending host-call policy", () => {
   it("returns the read-side-effect decision for a known read-on-resume operation", () => {
     expect(
       resolvePendingHostCallIssuePolicy({
-        id: "git-commit-1",
-        moduleId: "git",
-        operation: "commit"
+        id: "agent-commit-1",
+        moduleId: "agent",
+        operation: "spawn"
       })
     ).toEqual({
       kind: "read-side-effect",
       sideEffectTag: {
         kind: "host-call-side-effect",
-        callId: "git-commit-1",
-        moduleId: "git",
-        operation: "commit"
+        callId: "agent-commit-1",
+        moduleId: "agent",
+        operation: "spawn"
       }
     });
   });
 
   it("returns the re-issue decision for a known idempotent operation", () => {
+    registerPendingHostCallPolicy({
+      moduleId: "policy-reader",
+      operation: "head",
+      policy: "re-issue"
+    });
     expect(
       resolvePendingHostCallIssuePolicy({
-        id: "git-head-1",
-        moduleId: "git",
+        id: "agent-head-1",
+        moduleId: "policy-reader",
         operation: "head"
       })
     ).toEqual({
@@ -102,7 +128,7 @@ describe("snapshot pending host-call policy", () => {
       resolvePendingHostCallIssuePolicy({
         id: "blank-module-1",
         moduleId: "   ",
-        operation: "commit"
+        operation: "spawn"
       })
     ).toEqual({
       kind: "re-issue"
@@ -111,7 +137,7 @@ describe("snapshot pending host-call policy", () => {
     expect(
       resolvePendingHostCallIssuePolicy({
         id: "blank-operation-1",
-        moduleId: "git",
+        moduleId: "agent",
         operation: "   "
       })
     ).toEqual({
@@ -122,17 +148,17 @@ describe("snapshot pending host-call policy", () => {
   it("matches module ids and operations case-sensitively", () => {
     expect(() =>
       resolvePendingHostCallIssuePolicy({
-        id: "git-capital-commit-1",
-        moduleId: "git",
-        operation: "Commit"
+        id: "agent-capital-commit-1",
+        moduleId: "agent",
+        operation: "Spawn"
       })
     ).toThrowError(HostOperationResumePolicyError);
 
     expect(
       resolvePendingHostCallIssuePolicy({
-        id: "git-lowercase-commit-1",
-        moduleId: "git",
-        operation: "commit"
+        id: "agent-lowercase-commit-1",
+        moduleId: "agent",
+        operation: "spawn"
       }).kind
     ).toBe("read-side-effect");
   });
@@ -185,10 +211,15 @@ describe("snapshot pending host-call policy", () => {
   });
 
   it("resolves registered re-issue operations", () => {
+    registerPendingHostCallPolicy({
+      moduleId: "policy-reader",
+      operation: "head",
+      policy: "re-issue"
+    });
     expect(
       resolvePendingHostCallResumePolicy({
-        id: "git-1",
-        moduleId: "git",
+        id: "agent-1",
+        moduleId: "policy-reader",
         operation: "head"
       })
     ).toEqual({
@@ -199,109 +230,69 @@ describe("snapshot pending host-call policy", () => {
   it("treats opted-out operations as read-side-effect even when descriptors need trimming", () => {
     expect(
       resolvePendingHostCallIssuePolicy({
-        id: "git-checkpoint-1",
-        moduleId: " git ",
-        operation: " checkpoint "
+        id: "agent-checkpoint-1",
+        moduleId: " agent ",
+        operation: " spawn "
       })
     ).toEqual({
       kind: "read-side-effect",
       sideEffectTag: {
         kind: "host-call-side-effect",
-        callId: "git-checkpoint-1",
-        moduleId: "git",
-        operation: "checkpoint"
+        callId: "agent-checkpoint-1",
+        moduleId: "agent",
+        operation: "spawn"
       }
     });
 
     expect(
       resolvePendingHostCallIssuePolicy({
-        id: "git-revert-1",
-        moduleId: "git",
-        operation: "revert"
+        id: "agent-revert-1",
+        moduleId: "agent",
+        operation: "spawn"
       })
     ).toEqual({
       kind: "read-side-effect",
       sideEffectTag: {
         kind: "host-call-side-effect",
-        callId: "git-revert-1",
-        moduleId: "git",
-        operation: "revert"
+        callId: "agent-revert-1",
+        moduleId: "agent",
+        operation: "spawn"
       }
     });
   });
 
-  it("tags git commit calls at issue time so resume reads the side effect", () => {
+  it("tags agent calls at issue time so resume reads the side effect", () => {
     const tagged = tagPendingHostCallAtIssue({
-      id: "git-commit-1",
-      moduleId: "git",
-      operation: "commit",
+      id: "agent-commit-1",
+      moduleId: "agent",
+      operation: "spawn",
       args: {
         message: "save progress"
       }
     });
 
     expect(tagged).toEqual({
-      id: "git-commit-1",
-      moduleId: "git",
-      operation: "commit",
+      id: "agent-commit-1",
+      moduleId: "agent",
+      operation: "spawn",
       args: {
         message: "save progress"
       },
       sideEffectTag: {
         kind: "host-call-side-effect",
-        callId: "git-commit-1",
-        moduleId: "git",
-        operation: "commit"
+        callId: "agent-commit-1",
+        moduleId: "agent",
+        operation: "spawn"
       }
     });
     expect(resolvePendingHostCallResumePolicy(tagged)).toEqual({
       kind: "read-side-effect",
       sideEffectTag: {
         kind: "host-call-side-effect",
-        callId: "git-commit-1",
-        moduleId: "git",
-        operation: "commit"
+        callId: "agent-commit-1",
+        moduleId: "agent",
+        operation: "spawn"
       }
-    });
-  });
-
-  it("tags git worktree mutations at issue time", () => {
-    expect(
-      tagPendingHostCallAtIssue({
-        id: "git-worktree-create-1",
-        moduleId: "git",
-        operation: "worktreeCreate"
-      }).sideEffectTag
-    ).toEqual({
-      kind: "host-call-side-effect",
-      callId: "git-worktree-create-1",
-      moduleId: "git",
-      operation: "worktreeCreate"
-    });
-
-    expect(
-      tagPendingHostCallAtIssue({
-        id: "git-worktree-remove-1",
-        moduleId: "git",
-        operation: "worktreeRemove"
-      }).sideEffectTag
-    ).toEqual({
-      kind: "host-call-side-effect",
-      callId: "git-worktree-remove-1",
-      moduleId: "git",
-      operation: "worktreeRemove"
-    });
-
-    expect(
-      tagPendingHostCallAtIssue({
-        id: "git-worktree-list-1",
-        moduleId: "git",
-        operation: "worktreeList"
-      })
-    ).toEqual({
-      id: "git-worktree-list-1",
-      moduleId: "git",
-      operation: "worktreeList"
     });
   });
 
@@ -384,14 +375,14 @@ describe("snapshot pending host-call policy", () => {
   it("rejects malformed persisted side-effect tags", () => {
     expect(() =>
       resolvePendingHostCallResumePolicy({
-        id: "git-commit-1",
-        moduleId: "git",
-        operation: "commit",
+        id: "agent-spawn-1",
+        moduleId: "agent",
+        operation: "spawn",
         sideEffectTag: {
           kind: "host-call-side-effect",
           callId: "   ",
-          moduleId: "git",
-          operation: "commit"
+          moduleId: "agent",
+          operation: "spawn"
         }
       })
     ).toThrowError("Pending host call side-effect tag callId must be a non-empty string.");

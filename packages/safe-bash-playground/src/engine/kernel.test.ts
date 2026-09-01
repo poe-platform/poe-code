@@ -111,6 +111,7 @@ describe("real safe-bash browser kernel", () => {
       )
     ).toBe(false);
     expect(inputs.some((path) => path.includes("/commands/network/"))).toBe(false);
+    expect(inputs.some((path) => path.endsWith("/nodelibs/browser/vm.js") || path.endsWith("/nodelibs/browser/crypto.js"))).toBe(false);
     expect(inputs.some((path) => path.endsWith("/safe-bash/dist/shell/runtime.js"))).toBe(true);
   });
 
@@ -284,9 +285,11 @@ describe("real safe-bash browser kernel", () => {
     });
     expect(assets.map((asset) => asset.fileName)).toEqual([
       "safe-bash-engine.LICENSE.txt",
-      "browser-platform.LICENSE.txt"
+      "browser-platform.LICENSE.txt",
+      "browser-hashes.LICENSE.txt"
     ]);
     expect(assets[1]!.source).toContain("Apache License");
+    expect(assets[2]!.source).toContain("MIT");
   });
 
   it("reports the final root cwd exactly once when exit skips later commands", async () => {

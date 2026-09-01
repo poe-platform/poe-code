@@ -139,7 +139,8 @@ export async function buildBrowserEngine(options = {}) {
     code: result.outputFiles[0].text,
     inputs: [...inputs],
     license: await readFile(resolve(engineRoot, "LICENSE"), "utf8"),
-    platformLicense: await readFile(resolve(polyfillsRoot, "LICENSE"), "utf8")
+    platformLicense: await readFile(resolve(polyfillsRoot, "LICENSE"), "utf8"),
+    hashesLicense: await readFile(resolve(dirname(require.resolve("@noble/hashes/sha2.js")), "LICENSE"), "utf8")
   };
 }
 
@@ -176,6 +177,11 @@ export function safeBashBrowserPlugin() {
           type: "asset",
           fileName: "browser-platform.LICENSE.txt",
           source: result.platformLicense
+        });
+        this.emitFile({
+          type: "asset",
+          fileName: "browser-hashes.LICENSE.txt",
+          source: result.hashesLicense
         });
       }
     }

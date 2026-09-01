@@ -43,7 +43,7 @@ for (const path of ["./helpers.ts", "./permission-profile/darwin-profile.test.ts
       assert(ts.isStringLiteral(property.initializer) || ts.isIdentifier(property.initializer));
       return [property.name.text, property.initializer.text];
     });
-    assert.deepEqual(entries, [["PATH", "/usr/bin:/bin"], ["LC_ALL", "C"], ["TZ", "UTC"], ["TMPDIR", "cwd"], ...path === "./helpers.ts" ? [["...", "env"]] : []]);
+    assert.deepEqual(entries, [["PATH", "/usr/bin:/bin"], ["LC_ALL", "C"], ["TZ", "UTC"], ["HOME", "cwd"], ["TMPDIR", "cwd"], ...path === "./helpers.ts" ? [["...", "env"]] : []]);
   });
 }
 

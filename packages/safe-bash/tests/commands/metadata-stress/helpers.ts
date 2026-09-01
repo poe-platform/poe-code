@@ -49,7 +49,7 @@ export function oracle(command: "chmod" | "stat" | "mktemp", args: readonly stri
   assert.ok(cwd.startsWith(join(suiteRoot, ".native-")));
   const identity = oracleIdentity(command);
   const result = spawnSync("/bin/bash", ["--noprofile", "--norc", "-c", 'umask "$1"; shift; exec "$@"', "metadata-oracle", umask.toString(8), identity.path, ...args], {
-    cwd, env: { PATH: "/usr/bin:/bin", LC_ALL: "C", TZ: "UTC", TMPDIR: cwd, ...env }, timeout: 3000,
+    cwd, env: { PATH: "/usr/bin:/bin", LC_ALL: "C", TZ: "UTC", HOME: cwd, TMPDIR: cwd, ...env }, timeout: 3000,
   });
   assert.ifError(result.error);
   assert.equal(result.signal, null);

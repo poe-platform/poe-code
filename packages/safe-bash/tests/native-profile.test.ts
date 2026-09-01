@@ -103,20 +103,31 @@ test("committed local Bash identity requires the independently reproduced Darwin
   });
 });
 
-test("hosted Bash binds the repeated 9fad qualification identity", () => {
+test("hosted Bash uses the reviewed independent Darwin 25.5 builds without replacing local recovery", () => {
   const options = { platform: "darwin", arch: "arm64", release: "25.5.0" };
-  assert.deepEqual(nativeGnuBinding("bash", options), {
+  const actual = nativeGnuBinding("bash", options);
+  assert.deepEqual(actual, {
     tool: "bash", version: "GNU bash, version 5.3.0(1)-release (aarch64-apple-darwin25.5.0)",
     size: 1188024, sha256: "b09a33ce63bb32597085640b783748f257e09229eac73c60760c8c9378539361",
     path: fileURLToPath(new URL("../tmp/native-gnu/bin/bash", import.meta.url)),
   });
+  const local = nativeGnuBinding("bash", { ...options, release: "25.4.0" });
+  assert.equal(local?.sha256, "bfa389cd1d6cb5dbd03805612b6fe464ade9b22a343b897df09044ff90456528");
+  assert.notEqual(actual.sha256, local?.sha256);
+  assert.throws(() => nativeGnuBinding("bash", { ...options, arch: "x64" }));
+  assert.throws(() => nativeGnuBinding("bash", { ...options, build: 2 }));
   const manifest = JSON.parse(fs.readFileSync(new URL("./native-gnu-profiles.json", import.meta.url), "utf8"));
-  const observed = manifest.profiles.find((entry: { host: { release?: string } }) => entry.host.release === "25.5.0").provenance.bashQualification;
-  assert.deepEqual(observed, {
-    runId: "33453452779", sourceSha: "9fad33b3ad39f5908bd95e7ac5882ec3a763451c", artifactId: 9781107646,
+  const profile = manifest.profiles.find((entry: { host: { release?: string } }) => entry.host.release === "25.5.0");
+  assert.deepEqual(profile.provenance.bashQualification, {
+    runId: "33453452779", jobId: "99690962215", sourceSha: "9fad33b3ad39f5908bd95e7ac5882ec3a763451c",
+    artifactId: 9781107646,
     artifactSha256: "f5c15dd37c0d97ee42f94ad3f75255dd0c71741cb33864a9cc95aff3112581e1",
     artifactZipSha256: "457d42538df66777107fc0f76dda5d8ebe955a778825ec5f73e2740f021bf6ec",
+    receiptSha256: "59f387ca036dbb8f8314d0ba212e94494b0032696933fc66bfc5f0d0694862be",
+    manifestSha256: "f64bc8cb49d4632a81a491f3b9e6b1a3c39b6cb516fdcb709f2e68763a402013",
+    independentBuilds: 2,
   });
+  assert(manifest.darwinTestFiles.includes("tests/shell-stress/diagnostic-profiles/compatibility.test.ts"));
 });
 
 test("hosted Bash refuses unreviewed profiles, wrong hosts and version-only executable admission", () => {

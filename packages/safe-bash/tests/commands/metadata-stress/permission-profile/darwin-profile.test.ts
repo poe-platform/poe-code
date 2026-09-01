@@ -56,7 +56,7 @@ async function nativeProfile(context: TestContext): Promise<string> {
 function profileOracle(args: readonly string[], cwd: string, umask: number) {
   const identity = oracleIdentity("chmod");
   const result = spawnSync("/bin/bash", ["--noprofile", "--norc", "-c", 'umask "$1"; shift; exec "$@"', "metadata-oracle", umask.toString(8), identity.path, ...args], {
-    cwd, env: { PATH: "/usr/bin:/bin", LC_ALL: "C", TZ: "UTC", TMPDIR: cwd }, timeout: 3000,
+    cwd, env: { PATH: "/usr/bin:/bin", LC_ALL: "C", TZ: "UTC", HOME: cwd, TMPDIR: cwd }, timeout: 3000,
   });
   assert.ifError(result.error);
   assert.equal(result.signal, null);

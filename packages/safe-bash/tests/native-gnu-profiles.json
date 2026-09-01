@@ -111,10 +111,14 @@
         },
         "bashQualification": {
           "runId": "33453452779",
+          "jobId": "99690962215",
           "sourceSha": "9fad33b3ad39f5908bd95e7ac5882ec3a763451c",
           "artifactId": 9781107646,
           "artifactSha256": "f5c15dd37c0d97ee42f94ad3f75255dd0c71741cb33864a9cc95aff3112581e1",
-          "artifactZipSha256": "457d42538df66777107fc0f76dda5d8ebe955a778825ec5f73e2740f021bf6ec"
+          "artifactZipSha256": "457d42538df66777107fc0f76dda5d8ebe955a778825ec5f73e2740f021bf6ec",
+          "receiptSha256": "59f387ca036dbb8f8314d0ba212e94494b0032696933fc66bfc5f0d0694862be",
+          "manifestSha256": "f64bc8cb49d4632a81a491f3b9e6b1a3c39b6cb516fdcb709f2e68763a402013",
+          "independentBuilds": 2
         }
       },
       "executables": [

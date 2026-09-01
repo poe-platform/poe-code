@@ -13,16 +13,33 @@ function event(type, data = {}) {
   return { type: `test:${type}`, data };
 }
 
-test("reporting preserves local defaults and explicit Node reporters", () => {
-  for (const environment of [{}, { CI: "" }, { CI: "false" }, { CI: "0" }]) {
-    assert.deepEqual(reporterArguments([], environment), []);
-  }
+test("reporting defaults to concise without requiring CI", () => {
+  assert.deepEqual(reporterArguments([]), [`--test-reporter=${new URL("./test-reporting.mjs", import.meta.url).href}`]);
+  assert.deepEqual(reporterArguments(["--test-name-pattern=example"]), reporterArguments([]));
+});
+
+test("reporting preserves explicit Node reporters", () => {
   for (const args of [["--test-reporter=tap"], ["--test-reporter", "spec"], ["--test-reporter=dot", "--test-reporter=junit"]]) {
-    assert.deepEqual(reporterArguments(args, { CI: "true" }), []);
+    assert.deepEqual(reporterArguments(args), []);
   }
-  for (const CI of ["true", "1"]) {
-    const args = reporterArguments(["--test-name-pattern=example"], { CI });
-    assert.deepEqual(args, [`--test-reporter=${new URL("./test-reporting.mjs", import.meta.url).href}`]);
+});
+
+test("explicit reporter destinations preserve Node selection and argument order", () => {
+  for (const overrides of [
+    ["--test-reporter-destination=stdout"],
+    ["--test-reporter-destination", "stderr"],
+    ["--test-reporter=tap", "--test-reporter-destination=stdout"],
+    ["--test-reporter", "spec", "--test-reporter-destination", "stderr"],
+    ["--test-reporter=spec", "--test-reporter=junit", "--test-reporter-destination=stdout", "--test-reporter-destination", "report.xml"],
+  ]) {
+    const args = Object.freeze([...overrides, "example.test.mjs"]);
+    assert.deepEqual(reporterArguments(args), []);
+    assert.equal(runNodeTests(args, (executable, forwarded, options) => {
+      assert.equal(executable, process.execPath);
+      assert.deepEqual(forwarded, ["--test", ...args]);
+      assert.deepEqual(options, { stdio: "inherit" });
+      return { status: 0 };
+    }), 0);
   }
 });
 
@@ -34,18 +51,18 @@ test("Node launch preserves all arguments, inherited streams and exact exit stat
       assert.deepEqual(forwarded, ["--test", ...args]);
       assert.deepEqual(options, { stdio: "inherit" });
       return { status };
-    }, { CI: "true" }), status);
+    }), status);
   }
-  assert.equal(runNodeTests([], () => ({ status: null, signal: "SIGTERM" }), {}), 1);
+  assert.equal(runNodeTests([], () => ({ status: null, signal: "SIGTERM" })), 1);
   const failure = new Error("spawn unavailable");
-  assert.throws(() => runNodeTests([], () => ({ error: failure }), {}), error => error === failure);
+  assert.throws(() => runNodeTests([], () => ({ error: failure })), error => error === failure);
 });
 
-test("CI launch defaults to concise without changing test selection", () => {
+test("launch defaults to concise without changing test selection", () => {
   assert.equal(runNodeTests(["first.test.mjs", "second.test.mjs"], (executable, args) => {
-    assert.deepEqual(args, ["--test", ...reporterArguments([], { CI: "1" }), "first.test.mjs", "second.test.mjs"]);
+    assert.deepEqual(args, ["--test", `--test-reporter=${new URL("./test-reporting.mjs", import.meta.url).href}`, "first.test.mjs", "second.test.mjs"]);
     return { status: 0 };
-  }, { CI: "1" }), 0);
+  }), 0);
 });
 
 test("successful assertions and fixture streams are quiet while counts survive", async () => {

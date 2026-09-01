@@ -13,7 +13,7 @@ import {
   parseExperimentFrontmatterData,
   type ExperimentFrontmatter
 } from "../frontmatter/frontmatter.js";
-import { createDefaultGit } from "../git/git.js";
+import { createDefaultGit, createExperimentCommitCommand } from "../git/git.js";
 import { baselineFromEntry, ExperimentJournal } from "../journal/journal.js";
 import { evaluateChain } from "../evaluator/evaluator.js";
 import { loadInstructions, loadRunConfig } from "../config/loader.js";
@@ -272,6 +272,7 @@ function buildPrompt(options: {
   baseline: Record<string, number> | null;
   docPath: string;
   docName: string;
+  commitCommand: string;
 }): string {
   const vars = {
     body: options.body.trim(),
@@ -280,7 +281,8 @@ function buildPrompt(options: {
     experiment_index: String(options.experimentIndex),
     baseline: options.baseline ? JSON.stringify(options.baseline) : "",
     doc_path: options.docPath,
-    doc_name: options.docName
+    doc_name: options.docName,
+    commit_command: options.commitCommand
   };
 
   const context = interpolate(options.runConfig.prompt, vars).trim();
@@ -359,7 +361,6 @@ export async function runExperimentLoop(
 ): Promise<ExperimentRunResult> {
   const fs = options.fs ?? createDefaultFs();
   const exec = options.exec ?? createDefaultExec(options.homeDir);
-  const git = options.git ?? createDefaultGit(exec);
   const runAgent = options.runAgent;
 
   if (!runAgent) {
@@ -367,6 +368,9 @@ export async function runExperimentLoop(
   }
 
   const absoluteDocPath = resolveWorkflowPath(options.docPath, options.cwd, options.homeDir);
+  const journalPath = resolveJournalPath(absoluteDocPath);
+  const managedPaths = [absoluteDocPath, journalPath];
+  const git = options.git ?? createDefaultGit(exec, managedPaths);
   const runLogDir = await ensureSafeRunLogDir({
     planPath: absoluteDocPath,
     runner: "experiment",
@@ -416,7 +420,7 @@ export async function runExperimentLoop(
   try {
     assertNotAborted(options.signal);
 
-    const journal = new ExperimentJournal(resolveJournalPath(absoluteDocPath), fs);
+    const journal = new ExperimentJournal(journalPath, fs);
     await journal.init();
     const [runConfig, instructions] = await Promise.all([
       loadRunConfig({ cwd: options.cwd, homeDir: options.homeDir, fs }),
@@ -518,7 +522,12 @@ export async function runExperimentLoop(
         experimentIndex,
         baseline,
         docPath: options.docPath,
-        docName: path.basename(absoluteDocPath, path.extname(absoluteDocPath))
+        docName: path.basename(absoluteDocPath, path.extname(absoluteDocPath)),
+        commitCommand: createExperimentCommitCommand(
+          options.cwd,
+          managedPaths,
+          `experiment-loop: ${path.basename(absoluteDocPath, path.extname(absoluteDocPath))} #${experimentIndex}`
+        )
       });
 
       const currentSpecifier = agents[(experimentIndex - 1) % agents.length]!;

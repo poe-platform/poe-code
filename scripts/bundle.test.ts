@@ -25,9 +25,16 @@ it.each([
   "validates all isolated root bundle groups before saving canonical evidence ($external)",
   async ({ external, invalidExternal }) => {
     const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
+    const experimentAssets = {
+      "default-instructions.md": "- Commit: `{{commit_command}}`\n",
+      "default-run.yaml": "prompt: '{{body}}'\n"
+    };
     const fixture = canonicalBundleFixture();
     const volume = Volume.fromJSON({
       [path.join(root, "package.json")]: JSON.stringify(fixture.manifest),
+      ...Object.fromEntries(Object.entries(experimentAssets).map(([name, content]) => [
+        path.join(root, "packages/experiment-loop/src/config", name), content
+      ])),
       ...Object.fromEntries(
         Object.entries(fixture.metafile.canonicalTypes).map(([filename, imports]) => [
           path.join(root, filename),
@@ -95,7 +102,11 @@ it.each([
     vi.doMock("node:fs/promises", () => ({
       ...files,
       cp: vi.fn(async () => {}),
-      copyFile: vi.fn(async () => {})
+      copyFile: vi.fn(async (source: string, destination: string) => {
+        if (path.dirname(source) === path.join(root, "packages/experiment-loop/src/config")) {
+          await files.copyFile(source, destination);
+        }
+      })
     }));
     vi.doMock("esbuild", () => ({ build }));
     vi.doMock("./bundle-assets.mjs", () => ({ resolveGithubWorkflowAssetCopies: () => [] }));
@@ -108,6 +119,9 @@ it.each([
       expect(volume.existsSync(path.join(root, "dist/metafile.json"))).toBe(false);
     } else {
       await import("./bundle.mjs");
+      for (const [name, content] of Object.entries(experimentAssets)) {
+        expect(await files.readFile(path.join(root, "dist", name), "utf8")).toBe(content);
+      }
       const evidence = JSON.parse(
         volume.readFileSync(path.join(root, "dist/metafile.json"), "utf8") as string
       );

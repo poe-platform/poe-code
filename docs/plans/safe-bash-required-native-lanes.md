@@ -252,43 +252,68 @@ Fresh authenticated Bash preflight, from the publisher repository root:
 node --import tsx --input-type=module -e 'import { resolveCurrentProfile } from "./packages/safe-bash/tests/shell-stress/diagnostic-profiles/profile.ts"; console.log(JSON.stringify(resolveCurrentProfile()));'
 ```
 
-## Reviewed hosted Bash admission
+## Hosted Bash admission, 2026-09-01 UTC
 
-Normal Release run 33453431739 at source
-`9fad33b3ad39f5908bd95e7ac5882ec3a763451c` failed because the qualified GNU
-profile did not provide Bash. Diagnostic run 33453452779 at that same source
-completed `darwin-gnu-build`; `native-darwin` and `release-stable` were skipped.
-Artifact 9781107646 is exactly 45129633 bytes, ZIP SHA-256
-`457d42538df66777107fc0f76dda5d8ebe955a778825ec5f73e2740f021bf6ec`.
-Its `native-darwin-evidence.tar` SHA-256 is
-`f5c15dd37c0d97ee42f94ad3f75255dd0c71741cb33864a9cc95aff3112581e1`;
-receipt SHA-256 is
+The already-dispatched qualification `33453452779` completed successfully in
+job `99690962215` at exact pushed source
+`9fad33b3ad39f5908bd95e7ac5882ec3a763451c`. No duplicate dispatch or workflow
+change was needed. Artifact `9781107646` is
+`darwin-gnu-9fad33b3ad39f5908bd95e7ac5882ec3a763451c-33453452779`.
+Its GitHub ZIP digest is
+`457d42538df66777107fc0f76dda5d8ebe955a778825ec5f73e2740f021bf6ec`;
+the enclosed tar digest is
+`f5c15dd37c0d97ee42f94ad3f75255dd0c71741cb33864a9cc95aff3112581e1`.
+Both were verified, along with exact ZIP membership and all295 sealed members.
+
+The receipt SHA-256 is
 `59f387ca036dbb8f8314d0ba212e94494b0032696933fc66bfc5f0d0694862be`;
-manifest SHA-256 is
+the evidence manifest SHA-256 is
 `f64bc8cb49d4632a81a491f3b9e6b1a3c39b6cb516fdcb709f2e68763a402013`.
+All five source archives/signatures match the submitted manifest; detached
+signatures were independently reverified with the existing pinned keyring.
+The recorded actual host/toolchain matches macOS26.5.2 build25F84,
+Darwin25.5.0 arm64, image `20260728.0273.1`, Xcode26.6/17F113,
+Apple clang21.0.0, gpgv2.5.21 and Node22.22.2. Distinct Bash configure/build
+trees use the submitted deterministic recipe and each records its genuine
+bounded `--version` result. Both Bash outputs are1188024bytes, SHA-256
+`b09a33ce63bb32597085640b783748f257e09229eac73c60760c8c9378539361`,
+version `GNU bash, version 5.3.0(1)-release (aarch64-apple-darwin25.5.0)`.
+Every previously admitted hosted executable still matches its existing pin.
 
-Independent artifact review reproduced the 295-member manifest through maintained
-sealing tooling, checked all 35 outputs, and reverified all five source signatures
-against the pinned GNU keyring. Both actual `bin/bash-1` and `bin/bash-2` are
-1188024 bytes, SHA-256
-`b09a33ce63bb32597085640b783748f257e09229eac73c60760c8c9378539361`, with version
-`GNU bash, version 5.3.0(1)-release (aarch64-apple-darwin25.5.0)`.
-Their separate source trees use the authenticated Bash 5.3 gzip source and unchanged
-configure/make recipe recorded above. No downloaded executable ran during review.
+Only that hosted Bash executable and additive `bashQualification` provenance
+are admitted. Removing those two additions reproduces the entire prior
+manifest structurally, including local recovery, Apple/GNU pins, source
+recipes and required test selection. No hosted binary was installed over
+the separately qualified local executable. Producer receipt/seal statuses
+remain immutable observations; the separate review is
+`out/math-array-validation/hosted-bash-33453452779/review.json`.
 
-Hosted transcripts match macOS 26.5.2 build 25F84, Darwin 25.5.0 arm64, image
-20260728.0273.1, Xcode 26.6 build 17F113 and Apple clang 21.0.0. The artifact does
-not record independent hosted compiler/linker/SDK executable-byte hashes;
-version/image provenance is not a fully byte-pinned toolchain. No local toolchain
-or Bash identity substitutes for hosted evidence.
+The regression fails before admission and then passes with the actual hosted
+record:86/86 focused profile/provisioner/caller tests, zero failures or skips;
+scoped TypeScript and whitespace checks pass. Evidence transcripts are
+`admission-red.log` and `admission-green.log` in that same review directory.
+This qualifies executable identity only. The actual hosted89-test semantic
+cohort remains mandatory in the normal required Darwin Release lane after
+publisher's follow-up push; qualification dispatch does not publish.
 
-Only the existing hosted profile gains this Bash pin and additive
-`provenance.bashQualification`. All prior profiles, recipes, identities, frozen
-captures and assertions remain unchanged. Existing staging already verifies both
-Bash builds against the selected pin. Producer receipt/manifest statuses remain
-unreviewed/not-admitted records; separate review does not rewrite them.
-The new exact hosted binding regression requires this pin and provenance and
-rejects a missing Bash record without fallback. Root captured the expected missing
-Bash failure before admission. Identity review and diagnostic success are not a
-Release pass: the normal same-SHA required Darwin semantics and Linux complement
-must still succeed before publication.
+The completed stable Release33453431739 had348 runner passes and748 Darwin
+cohort passes with95 failures:89 pending hosted Bash binding failures and six
+metadata cases whose native stderr included `Error: $HOME must be set to run brew.`
+Both metadata umask launchers now use `--noprofile --norc` and the owned fixture
+cwd as HOME. Pinned executables, argv, umask, timeouts, error/signal checks and
+exact native diagnostics remain unchanged. Independent review approved both
+launch-site changes. Two local mocked regressions failed before the fix; the
+five-file focused run passed21/21 with zero skips afterward, including the six
+affected native cases. Scoped TypeScript and whitespace checks pass. Evidence:
+`out/math-array-validation/native-launch-red.log`, `native-launch-green.log`
+and `native-launch-types.log`. Hosted semantics still gate publication.
+
+A second independent review verified the same artifact: exactly 45129633 ZIP
+bytes, 295 sealed members, all 35 executable outputs, and 16 matching independent
+GNU pairs. No downloaded executable ran locally. The artifact does not record
+independent hosted compiler/linker/SDK executable-byte hashes; version/image
+provenance is not a fully byte-pinned toolchain. No local identity substitutes
+for hosted evidence. Both independent admission regressions reproduced the
+missing-Bash failure before their additions. Their integration retains the
+upstream exact pin/provenance checks, local-versus-hosted and required-lane
+assertions, plus explicit profile-ID and missing-record rejection checks.

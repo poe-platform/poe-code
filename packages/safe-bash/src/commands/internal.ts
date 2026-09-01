@@ -137,8 +137,30 @@ export async function* input(context: CommandContext, name = "-"): ByteSource {
     yield* readBytes(context.stdin, context.signal);
   } else {
     const path = pathOf(context, name);
-    if (context.fs.readStream) yield* readBytes(context.fs.readStream(path, { signal: context.signal }), context.signal);
-    else yield await context.fs.readFile(path, { signal: context.signal });
+    if (context.fs.readStream && context.fs.capabilities.streamingRead !== false) {
+      let emitted = false;
+      let reading = true;
+      try {
+        for await (const chunk of readBytes(context.fs.readStream(path, { signal: context.signal }), context.signal)) {
+          reading = false;
+          if (chunk.byteLength) emitted = true;
+          yield chunk;
+          reading = true;
+        }
+        return;
+      } catch (error) {
+        context.signal.throwIfAborted();
+        if (!reading || emitted || !(error instanceof FsError) || error.code !== "ENOTSUP") throw error;
+      }
+    }
+    yield* readBytes({
+      async *[Symbol.asyncIterator]() {
+        const bytes = await context.fs.readFile(path, { signal: context.signal, maxBytes: bufferLimit });
+        context.signal.throwIfAborted();
+        if (bytes.byteLength > bufferLimit) throw new FsError("EFBIG", { syscall: "readFile", path });
+        yield bytes;
+      },
+    }, context.signal);
   }
 }
 

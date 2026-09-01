@@ -93,6 +93,7 @@ function assertSource7Discovery(files) {
   ];
   for (const path of [
     "tests/commands/node-safejs.test.ts",
+    "tests/commands/input.test.ts",
     "tests/contracts/value.test.ts",
     "tests/shell/value-state.test.ts",
     "tests/shell/byte-values.test.ts",

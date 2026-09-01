@@ -251,3 +251,59 @@ Fresh authenticated Bash preflight, from the publisher repository root:
 ```sh
 node --import tsx --input-type=module -e 'import { resolveCurrentProfile } from "./packages/safe-bash/tests/shell-stress/diagnostic-profiles/profile.ts"; console.log(JSON.stringify(resolveCurrentProfile()));'
 ```
+
+## Hosted Bash admission, 2026-09-01 UTC
+
+The already-dispatched qualification `33453452779` completed successfully in
+job `99690962215` at exact pushed source
+`9fad33b3ad39f5908bd95e7ac5882ec3a763451c`. No duplicate dispatch or workflow
+change was needed. Artifact `9781107646` is
+`darwin-gnu-9fad33b3ad39f5908bd95e7ac5882ec3a763451c-33453452779`.
+Its GitHub ZIP digest is
+`457d42538df66777107fc0f76dda5d8ebe955a778825ec5f73e2740f021bf6ec`;
+the enclosed tar digest is
+`f5c15dd37c0d97ee42f94ad3f75255dd0c71741cb33864a9cc95aff3112581e1`.
+Both were verified, along with exact ZIP membership and all295 sealed members.
+
+The receipt SHA-256 is
+`59f387ca036dbb8f8314d0ba212e94494b0032696933fc66bfc5f0d0694862be`;
+the evidence manifest SHA-256 is
+`f64bc8cb49d4632a81a491f3b9e6b1a3c39b6cb516fdcb709f2e68763a402013`.
+All five source archives/signatures match the submitted manifest; detached
+signatures were independently reverified with the existing pinned keyring.
+The recorded actual host/toolchain matches macOS26.5.2 build25F84,
+Darwin25.5.0 arm64, image `20260728.0273.1`, Xcode26.6/17F113,
+Apple clang21.0.0, gpgv2.5.21 and Node22.22.2. Distinct Bash configure/build
+trees use the submitted deterministic recipe and each records its genuine
+bounded `--version` result. Both Bash outputs are1188024bytes, SHA-256
+`b09a33ce63bb32597085640b783748f257e09229eac73c60760c8c9378539361`,
+version `GNU bash, version 5.3.0(1)-release (aarch64-apple-darwin25.5.0)`.
+Every previously admitted hosted executable still matches its existing pin.
+
+Only that hosted Bash executable and additive `bashQualification` provenance
+are admitted. Removing those two additions reproduces the entire prior
+manifest structurally, including local recovery, Apple/GNU pins, source
+recipes and required test selection. No hosted binary was installed over
+the separately qualified local executable. Producer receipt/seal statuses
+remain immutable observations; the separate review is
+`out/math-array-validation/hosted-bash-33453452779/review.json`.
+
+The regression fails before admission and then passes with the actual hosted
+record:86/86 focused profile/provisioner/caller tests, zero failures or skips;
+scoped TypeScript and whitespace checks pass. Evidence transcripts are
+`admission-red.log` and `admission-green.log` in that same review directory.
+This qualifies executable identity only. The actual hosted89-test semantic
+cohort remains mandatory in the normal required Darwin Release lane after
+publisher's follow-up push; qualification dispatch does not publish.
+
+The completed stable Release33453431739 had348 runner passes and748 Darwin
+cohort passes with95 failures:89 pending hosted Bash binding failures and six
+metadata cases whose native stderr included `Error: $HOME must be set to run brew.`
+Both metadata umask launchers now use `--noprofile --norc` and the owned fixture
+cwd as HOME. Pinned executables, argv, umask, timeouts, error/signal checks and
+exact native diagnostics remain unchanged. Independent review approved both
+launch-site changes. Two local mocked regressions failed before the fix; the
+five-file focused run passed21/21 with zero skips afterward, including the six
+affected native cases. Scoped TypeScript and whitespace checks pass. Evidence:
+`out/math-array-validation/native-launch-red.log`, `native-launch-green.log`
+and `native-launch-types.log`. Hosted semantics still gate publication.

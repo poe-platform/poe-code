@@ -2606,7 +2606,10 @@ export class HttpTransport implements McpTransport {
 
       const parsed = parseJsonRpcMessage(line);
       const post = this.sendPost(line);
-      if (parsed.type === "request" && parsed.message.method === "initialize") {
+      if (
+        (parsed.type === "request" && parsed.message.method === "initialize") ||
+        (parsed.type === "notification" && parsed.message.method === "notifications/initialized")
+      ) {
         await post;
       } else {
         void post.catch((error) => {

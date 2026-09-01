@@ -10,9 +10,11 @@ Cancellation remains best effort; it cannot undo work already executed remotely.
 
 ## Implementation
 
-Keep the initialization response-header barrier so subsequent requests retain
-the negotiated session. Dispatch later POSTs independently with owned rejection
-handlers. Preserve JSON/SSE forwarding, session expiry, and transport-wide close
+Keep the initialization response-header barrier and wait for the initialized
+notification to be accepted before sending requests, so subsequent requests retain
+the negotiated session and cannot overtake server startup. Dispatch later POSTs
+independently with owned rejection handlers. Preserve JSON/SSE forwarding,
+session expiry, and transport-wide close
 behavior. Ignore late responses after disposal and prevent prepared requests from
 starting after disposal. Do not change public APIs or authentication behavior.
 
@@ -42,3 +44,17 @@ starting after disposal. Do not change public APIs or authentication behavior.
   polyfills or exclusions within their selected suites.
 - This change has no visual CLI surface. Release verification is handed off and
   does not block subsequent commits or pushes.
+
+## Startup-order correction
+
+The full local push gate catches requests overtaking `notifications/initialized`
+with the actual HTTP server. Stop that failing push without bypassing hooks,
+extend the controlled startup regression (one failure before correction), and
+retain both startup barriers. Verify the actual HTTP server compatibility suite
+in addition to the client suites before committing and retrying the normal push.
+The first commit remains intact; no release workflow is involved.
+
+The corrected source passes all 723 client/server tests on Node 20/22/24 and all
+231 focused transport/client tests on Node 18/20/22/24. The maintained selected
+workspace build passes again, and its unmodified built public API passes all 21
+lifecycle cases on each of those four Node versions.

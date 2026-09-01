@@ -255,8 +255,9 @@ it("closes all concurrent fetches and ignores session headers arriving after clo
   }
 });
 
-it("waits for initialization headers before dispatching the next message", async () => {
+it("waits for both initialization messages before dispatching requests", async () => {
   const initialized = deferred<Response>();
+  const notified = deferred<Response>();
   const headers: Headers[] = [];
   const transport = new HttpTransport({
     url: "https://mcp.invalid/initialize",
@@ -265,16 +266,21 @@ it("waits for initialization headers before dispatching the next message", async
         return new Response(null, { status: 405 });
       }
       headers.push(new Headers(init.headers));
-      return headers.length === 1 ? initialized.promise : new Response(null, { status: 202 });
+      if (headers.length === 1) {
+        return initialized.promise;
+      }
+      return headers.length === 2 ? notified.promise : new Response(null, { status: 202 });
     },
   });
   cleanups.push(async () => {
     initialized.resolve(new Response(null, { status: 202 }));
+    notified.resolve(new Response(null, { status: 202 }));
     transport.dispose();
     await transport.closed;
   });
   transport.writable.write('{"jsonrpc":"2.0","id":1,"method":"initialize"}\n');
   transport.writable.write('{"jsonrpc":"2.0","method":"notifications/initialized"}\n');
+  transport.writable.write('{"jsonrpc":"2.0","id":2,"method":"ping"}\n');
   await settleStreams();
   expect(headers).toHaveLength(1);
   initialized.resolve(new Response(null, {
@@ -284,6 +290,10 @@ it("waits for initialization headers before dispatching the next message", async
   await settleStreams();
   expect(headers).toHaveLength(2);
   expect(headers[1]?.get("Mcp-Session-Id")).toBe("initialized-session");
+  notified.resolve(new Response(null, { status: 202 }));
+  await settleStreams();
+  expect(headers).toHaveLength(3);
+  expect(headers[2]?.get("Mcp-Session-Id")).toBe("initialized-session");
 });
 
 it("does not dispatch a prepared request after disposal", async () => {

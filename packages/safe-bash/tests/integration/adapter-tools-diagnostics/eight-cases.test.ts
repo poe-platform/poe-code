@@ -46,7 +46,7 @@ const rows: { id: string; backend: AdapterName; source: string; flag?: "w" | "a"
 ];
 
 for (const row of rows) {
-  test(row.id, { timeout: 20000 }, async context => {
+  test(row.id, { timeout: 20000 }, async () => {
     const evidence: Record<string, unknown> = { id: row.id, source: row.source,
       revision: process.env.DIAGNOSTIC_REVISION ?? "worktree", nativeCalls: 0 };
     const failures: string[] = [];
@@ -148,7 +148,7 @@ for (const row of rows) {
     } catch (error) { failures.push(`fixture/execution: ${String(error)}`); }
     evidence.failures = failures;
     evidence.status = failures.length ? "FAIL" : "PASS";
-    context.diagnostic(`EVIDENCE ${Buffer.from(JSON.stringify(evidence)).toString("base64")}`);
+    console.log(`EVIDENCE ${Buffer.from(JSON.stringify(evidence)).toString("base64")}`);
     assert.deepEqual(failures, []);
   });
 }

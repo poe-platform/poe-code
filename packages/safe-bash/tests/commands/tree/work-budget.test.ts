@@ -33,7 +33,7 @@ function measureRows(operation: () => void): { rows: number; bytes: number } {
 const emptyAlternatives = "|".repeat(15);
 const names = Array.from({ length: 32 }, (_unused, index) => String(index).padStart(32, "x"));
 
-test("TREE-WORK-001: empty alternatives charge cumulatively without per-name DP rows", context => {
+test("TREE-WORK-001: empty alternatives charge cumulatively without per-name DP rows", () => {
   const compilation = budget();
   const pattern = parse(["-P", emptyAlternatives], compilation).include[0]!;
   const matching = budget();
@@ -41,7 +41,7 @@ test("TREE-WORK-001: empty alternatives charge cumulatively without per-name DP 
   const allocated = measureRows(() => {
     for (const name of encodedNames) assert.equal(matches(pattern, name, matching), false);
   });
-  context.diagnostic(JSON.stringify({ entries: names.length, alternatives: pattern.length, nameBytes: 32,
+  console.log(JSON.stringify({ entries: names.length, alternatives: pattern.length, nameBytes: 32,
     compilationSteps: compilation.requested, matchingSteps: matching.requested,
     measuredRowAllocations: allocated.rows, measuredRowBytes: allocated.bytes,
     originalInitializationFormulaBytes: 32 * 16 * 33 }));
@@ -85,7 +85,7 @@ test("empty alternatives preserve empty-name, union, wildcard and literal matchi
   }
 });
 
-test("initial and transition rows charge before allocation, with separate transition work", context => {
+test("initial and transition rows charge before allocation, with separate transition work", () => {
   const pattern = parse(["-P", "a"], budget()).include[0]!;
   const name = new TextEncoder().encode(names[0]!);
   const full = budget();
@@ -98,7 +98,7 @@ test("initial and transition rows charge before allocation, with separate transi
     assert.equal(limited.requested, requested);
     assert.deepEqual(admitted, { rows: expectedRows, bytes: expectedBytes });
   }
-  context.diagnostic(JSON.stringify({ nameBytes: name.length, admittedSteps: full.requested,
+  console.log(JSON.stringify({ nameBytes: name.length, admittedSteps: full.requested,
     measuredRowAllocations: allocated.rows, measuredRowBytes: allocated.bytes }));
 });
 

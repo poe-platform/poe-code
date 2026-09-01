@@ -31,11 +31,11 @@ function archiveBytes(): Buffer {
   return Buffer.concat([...encodedLink(target), Buffer.alloc(1024)]);
 }
 
-test("PAX links retain exact full targets and nonempty safe USTAR fallback", context => {
+test("PAX links retain exact full targets and nonempty safe USTAR fallback", () => {
   assert.equal(Buffer.byteLength(target), 126);
   const original = archiveBytes();
   const parts = encodedLink(target);
-  context.diagnostic(JSON.stringify({
+  console.log(JSON.stringify({
     kind: "raw-archive", archiveSha256: hash(original), archiveBase64: original.toString("base64"),
     extensionOffset: 0, payloadOffset: 512, linkHeaderOffset: 1024,
     paxPayloadBase64: parts[1]!.toString("base64"),

@@ -59,7 +59,7 @@ export class Trace {
 }
 
 export function audit(name: string, run: (trace: Trace) => Promise<void>): void {
-  test(name, { timeout: 8000 }, async context => {
+  test(name, { timeout: 8000 }, async () => {
     const trace = new Trace();
     const started = performance.now();
     let verdict = "PASS";
@@ -72,7 +72,7 @@ export function audit(name: string, run: (trace: Trace) => Promise<void>): void 
         catch (error) { verdict = "FAIL"; trace.event(`cleanup.failure:${String(error)}`); failures.push(error); }
       }
       await turn();
-      context.diagnostic(JSON.stringify({ name, verdict, durationMs: Math.round(performance.now() - started), pipelines: trace.pipelineCount, events: trace.events }));
+      console.log(JSON.stringify({ name, verdict, durationMs: Math.round(performance.now() - started), pipelines: trace.pipelineCount, events: trace.events }));
     }
     if (failures.length === 1) throw failures[0];
     if (failures.length > 1) throw new AggregateError(failures, "audit assertion and cleanup failures");

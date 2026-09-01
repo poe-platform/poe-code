@@ -820,7 +820,7 @@ for (const spelling of ["Owned", "owned"]) test(`dist root case-insensitive mode
   }
 });
 
-test("maintained outer launcher rejects inherited startup settings before the verifier starts", context => {
+test("maintained outer launcher rejects inherited startup settings before the verifier starts", () => {
   const directory = mkdtempSync(join(tmpdir(), "safe-bash-outer-launch-control-"));
   try {
     const environment = cleanEnvironment(directory);
@@ -848,7 +848,7 @@ test("maintained outer launcher rejects inherited startup settings before the ve
       if (result.pid) {
         try { process.kill(-result.pid, "SIGKILL"); } catch (error) { if (error.code !== "ESRCH") throw error; }
       }
-      context.diagnostic(JSON.stringify({ mode, launcherSha256: digest(launcher), status: result.status, startupRan: existsSync(startupMarker), verifierRan: existsSync(verifierMarker) }));
+      console.log(JSON.stringify({ mode, launcherSha256: digest(launcher), status: result.status, startupRan: existsSync(startupMarker), verifierRan: existsSync(verifierMarker) }));
       assert.ifError(result.error);
       assert.equal(result.status, 0, result.stderr || result.stdout);
       assert.equal(existsSync(startupMarker), false, "outer child must not execute inherited Node preload");
@@ -989,7 +989,7 @@ for (const defect of ["guard", "manifest"]) test(`committed bootstrap rejects ba
   });
 });
 
-test("committed admission batches exact object IDs while retaining raw admitted path and payload bytes", async context => {
+test("committed admission batches exact object IDs while retaining raw admitted path and payload bytes", async () => {
   const path = `${packagePrefix}/src/tab\tλ.ts`;
   const payload = Buffer.from([0, 10, 255, 13]);
   await withRepository(fixture => fixture.put(path, payload), fixture => {
@@ -1010,7 +1010,7 @@ test("committed admission batches exact object IDs while retaining raw admitted 
       assert.equal(call.options.input.toString().includes(path), false);
       assert.equal(call.args.includes("-s") || call.args.includes("blob"), false);
     }
-    context.diagnostic(JSON.stringify({ files: candidate.files.size, catFileProcesses: calls.length, rawPath: path }));
+    console.log(JSON.stringify({ files: candidate.files.size, catFileProcesses: calls.length, rawPath: path }));
   });
 });
 
@@ -1031,7 +1031,7 @@ test("committed archive requires the committed output guard and matching workspa
   });
 });
 
-for (const defect of ["missing", "drift", "symlink", "legacy-command"]) test(`committed guarded build rejects ${defect} before execution`, async context => {
+for (const defect of ["missing", "drift", "symlink", "legacy-command"]) test(`committed guarded build rejects ${defect} before execution`, async () => {
   const entrypoint = `${packagePrefix}/scripts/build.mjs`;
   await withRepository(fixture => {
     if (defect === "missing") {
@@ -1066,11 +1066,11 @@ for (const defect of ["missing", "drift", "symlink", "legacy-command"]) test(`co
     if (defect === "missing" || defect === "symlink") assert.equal(admittedBlobReads, 0);
     else assert.ok(admittedBlobReads > 0);
     assert.equal(existsSync(fixture.marker), false);
-    context.diagnostic(JSON.stringify({ defect, admittedBlobReads, forbiddenCompilerBodyReads: 0, candidateExecution: false }));
+    console.log(JSON.stringify({ defect, admittedBlobReads, forbiddenCompilerBodyReads: 0, candidateExecution: false }));
   });
 });
 
-test("committed build script drift and held path aliases fail before candidate execution", async context => {
+test("committed build script drift and held path aliases fail before candidate execution", async () => {
   for (const defect of ["script", "held-alias", "held-neighbor"]) await withRepository(fixture => {
     if (defect === "script") fixture.put(`${packagePrefix}/scripts/integration-inputs.mjs`, "throw new Error('must not execute');\n");
     else if (defect === "held-alias") fixture.indexEntries.push({ path: `${packagePrefix}/src/commands/XAN/extra.ts`, bytes: "SYNTHETIC_WITHHELD_SENTINEL\n" });
@@ -1082,7 +1082,7 @@ test("committed build script drift and held path aliases fail before candidate e
       const records = tree.subarray(0, -1).toString("utf8").split("\0");
       const alias = records.find(record => record.slice(record.indexOf("\t") + 1) === `${packagePrefix}/src/commands/XAN/extra.ts`);
       assert.ok(alias, "synthetic committed tree must contain the exact case-alias bytes");
-      context.diagnostic(JSON.stringify({ defect, treeBytes: tree.length, alias }));
+      console.log(JSON.stringify({ defect, treeBytes: tree.length, alias }));
     }
     assert.throws(() => inspectCommittedCandidate(fixture.repository, "HEAD", fixture.output), defect === "script" ? /differs from reviewed authority/ : defect === "held-alias" ? /case alias/ : /held source metadata inventory/, defect);
   });
@@ -1102,7 +1102,7 @@ test("committed archive refuses source symlinks and package prepare lifecycles b
   });
 });
 
-test("pre-read committed admission never requests held blobs or nonregular input bodies", async context => {
+test("pre-read committed admission never requests held blobs or nonregular input bodies", async () => {
   for (const defect of ["none", "source-symlink", "guard-symlink", "held-alias"]) await withRepository(fixture => {
     if (defect === "held-alias") fixture.indexEntries.push({ path: `${packagePrefix}/src/commands/XAN/extra.ts`, bytes: "SYNTHETIC_WITHHELD_SENTINEL\n" });
     if (defect.endsWith("symlink")) {
@@ -1136,7 +1136,7 @@ test("pre-read committed admission never requests held blobs or nonregular input
     } else assert.throws(() => inspectCommittedCandidate(fixture.repository, "HEAD", fixture.output, execute), defect === "held-alias" ? /case alias/ : /regular committed/);
     if (defect === "none") assert.ok(readOids.length > 0, "positive admitted blob-read control was not exercised");
     else assert.equal(readOids.length, 0, "structural refusal must precede every body request");
-    context.diagnostic(JSON.stringify({ defect, admittedBlobReads: readOids.length, forbiddenObjectIdentities: forbidden.size, forbiddenReads: 0 }));
+    console.log(JSON.stringify({ defect, admittedBlobReads: readOids.length, forbiddenObjectIdentities: forbidden.size, forbiddenReads: 0 }));
   });
 });
 
@@ -1262,7 +1262,7 @@ for (const scenario of [
   { name: "post-types membership", anchor: "    report.typecheck =", inject: 'writeFileSync(join(installedRoot, "dist/unbound.js"), "unbound");', blocked: "strict invalid consumer controls" },
   { name: "installed parent before initial reads", anchor: "    const installedRoot =", rootAlias: true, inject: 'const aliasFs = await import("node:fs"); aliasFs.renameSync(join(consumer, "node_modules"), join(consumer, "installed-alias-target")); aliasFs.symlinkSync("installed-alias-target", join(consumer, "node_modules"), "dir"); process.emit("archive-root-alias", join(consumer, "node_modules/virtual-bash"));', blocked: "plain Node packed imports and guard controls" },
   { name: "installed parent before runtime", anchor: '    writeFileSync(join(consumer, "runtime.mjs"),', rootAlias: true, inject: 'const aliasFs = await import("node:fs"); aliasFs.renameSync(join(consumer, "node_modules"), join(consumer, "installed-alias-target")); aliasFs.symlinkSync("installed-alias-target", join(consumer, "node_modules"), "dir"); process.emit("archive-root-alias", installedRoot);', blocked: "plain Node packed imports and guard controls" },
-]) test(`actual committed verifier refuses ${scenario.name} drift before the next consumer`, { timeout: 180000 }, async context => {
+]) test(`actual committed verifier refuses ${scenario.name} drift before the next consumer`, { timeout: 180000 }, async () => {
   await withRepository(() => {}, async fixture => {
     const verifier = new URL("./verify.mjs", import.meta.url).href;
     const verifierHash = digest(readRegularInput(authority, "tests/integration/s3-http-exports/verify.mjs", 300000));
@@ -1311,7 +1311,7 @@ for (const scenario of [
     assert.ifError(result.error);
     assert.equal(result.status, 0, result.stderr || result.stdout);
     const report = JSON.parse(result.stdout);
-    context.diagnostic(JSON.stringify({ scenario: scenario.name, verifierHash, status: report.status, error: report.error, rootAliasPayloadReads: report.rootAliasPayloadReads, steps: report.steps.map(step => step.label) }));
+    console.log(JSON.stringify({ scenario: scenario.name, verifierHash, status: report.status, error: report.error, rootAliasPayloadReads: report.rootAliasPayloadReads, steps: report.steps.map(step => step.label) }));
     assert.equal(report.status, "fail", JSON.stringify(report));
     if (scenario.rootAlias) {
       assert.equal(report.rootAliasPayloadReads, 0);

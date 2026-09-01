@@ -93,3 +93,12 @@ all immutable manifests, 23 captured snapshots and 140 other current comparisons
 only the source seals for the deleted live oracle and the live-oracle body removed
 from semantics.test.ts are retired. No captured evidence bytes are changed.
 These failed hook results are preserved, not relabeled as passing.
+
+All normal hooks subsequently passed on 93760982212711fb3e7c46d1d6fe805819275310:
+28,909 root cases, 18,124 SafeBash cases, all other declared workspace tasks and
+both mandatory lint-stress cases. Git then rejected the push because main had
+advanced to f83c88a31b91f89193c0caf71d215b3911e49313. The merge preserves that
+history and its plan additions. Its executable changes only extend the explicitly
+retired native prerequisite framework, so no binaries, profiles or launcher-only
+tests are reinstated. Retained executable source is identical to the fully tested
+local commit. Normal hooks still run on the final merge before another push.

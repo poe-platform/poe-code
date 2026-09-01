@@ -15,6 +15,37 @@ const repairReceipts = {
   test: { filename: "lint-repair-receipt-20260830.json", bytes: 33365, sha256: "64a2ec2546adf12115a718e2d9156fea80fc261126a5c29605ac08257af0d20f" },
   helper: { filename: "helper-spelling-receipt-20260830.json", bytes: 10533, sha256: "4ce64460b4a4d1707de38931124b2da85bc4f37f0a799e0181f1366a6589731c" },
 };
+const unusedBindingMigration = {
+  path: "tests/commands/structured/helpers.ts",
+  before: { bytes: 2041, sha256: "58f64bcaaedc766a7b13a77195a93dd0886770ea20f6b9c57fbe032d642950b2" },
+  after: { bytes: 2053, sha256: "867a73c52c69532d424141133b2d4201293f43deae19df7303b7be98e9871536" },
+  substitutions: [
+    { offset: 1350, before: "_stdoutBytes", after: "ignoredStdoutBytes" },
+    { offset: 1383, before: "_stderrBytes", after: "ignoredStderrBytes" },
+  ],
+};
+
+function assertUnusedBindingMigration(path: string, expected: string, current: Buffer) {
+  assert.equal(path, unusedBindingMigration.path, "exact unused-binding migration path");
+  assert.equal(expected, unusedBindingMigration.before.sha256, "original unused-binding sealed digest");
+  assert.equal(current.length, unusedBindingMigration.after.bytes, "reviewed unused-binding source size");
+  assert.equal(digest(current), unusedBindingMigration.after.sha256, "reviewed unused-binding source digest");
+  const chunks: Buffer[] = [];
+  let previous = 0;
+  for (const substitution of unusedBindingMigration.substitutions) {
+    const after = Buffer.from(substitution.after);
+    const end = substitution.offset + after.length;
+    assert.ok(substitution.offset >= previous && end <= current.length, "ordered exact binding offsets");
+    assert.deepEqual(current.subarray(substitution.offset, end), after, "exact reviewed binding spelling");
+    chunks.push(current.subarray(previous, substitution.offset), Buffer.from(substitution.before));
+    previous = end;
+  }
+  chunks.push(current.subarray(previous));
+  const original = Buffer.concat(chunks);
+  assert.equal(original.length, unusedBindingMigration.before.bytes, "original unused-binding source size");
+  assert.equal(digest(original), expected, "only the two exact reviewed binding substitutions");
+  return original;
+}
 
 function assertSpellingMigration(migration: SpellingMigration, expected: string, current: Buffer, receiptBytes: Buffer) {
   const approved = spellingMigrations.find(entry => entry.path === migration.path);
@@ -87,9 +118,15 @@ test("frozen historical evidence and retained non-native canonical seals remain 
     helper: readFileSync(new URL("./helper-spelling-receipt-20260830.json", import.meta.url)),
   };
   const compared = new Set<string>(), migrated = new Set<string>();
+  const bindingMigrated = new Set<string>();
   function assertCurrent(path: string, expected: string, snapshot?: Buffer) {
     assert.ok(!compared.has(path), "duplicate current comparison");
-    const current = readFileSync(path);
+    let current = readFileSync(path);
+    if (path === unusedBindingMigration.path) {
+      current = assertUnusedBindingMigration(path, expected, current);
+      if (snapshot) assert.deepEqual(current, snapshot, "unchanged historical helper snapshot");
+      bindingMigrated.add(path);
+    }
     const repair = spellingMigrations.find(entry => entry.path === path);
     if (repair) {
       const original = assertSpellingMigration(repair, expected, current, receipts[repair.receipt]);
@@ -115,7 +152,8 @@ test("frozen historical evidence and retained non-native canonical seals remain 
   assert.deepEqual([...migrated].sort(), spellingMigrations.map(entry => entry.path).sort(), "only the four approved migrations");
   assert.equal(compared.size - migrated.size, 136, "unchanged retained current comparisons");
   assert.equal(snapshots.size, 23, "all original historical snapshots");
-  context.diagnostic(JSON.stringify({ liveComparisons: compared.size, unchangedComparisons: compared.size - migrated.size, spellingMigrations: migrated.size, historicalSnapshots: snapshots.size }));
+  assert.deepEqual([...bindingMigrated], [unusedBindingMigration.path], "only the reviewed unused-binding helper migration");
+  context.diagnostic(JSON.stringify({ liveComparisons: compared.size, unchangedComparisons: compared.size - migrated.size, spellingMigrations: migrated.size, historicalSnapshots: snapshots.size, unusedBindingMigrations: bindingMigrated.size, byteUnchangedComparisons: compared.size - migrated.size - bindingMigrated.size }));
 });
 
 type MigrationControl = { migration: SpellingMigration; expected: string; current: Buffer; receipt: Buffer };
@@ -154,4 +192,46 @@ for (const migration of spellingMigrations.slice(0, 2)) test("reviewed spelling 
   snapshot[0] ^= 1;
   const restored = assertSpellingMigration(migration, original.afterSha256, readFileSync(migration.path), readFileSync(new URL("./" + repairReceipts[migration.receipt].filename, import.meta.url)));
   assert.throws(() => assert.deepEqual(restored, snapshot), { code: "ERR_ASSERTION" });
+});
+
+type UnusedBindingControl = { path: string; expected: string; current: Buffer };
+const unusedBindingControls: Array<[string, ((input: UnusedBindingControl) => void) | null]> = [
+  ["reconstructs the unchanged sealed snapshot", null],
+  ["rejects a different source path", input => { input.path = "tests/commands/structured/cli.test.ts"; }],
+  ["rejects same-size body drift", input => {
+    input.current = Buffer.from(input.current.toString("utf8").replace("return result;", "return source;"));
+    assert.equal(input.current.length, unusedBindingMigration.after.bytes);
+  }],
+  ["rejects incorrect same-size binding substitution", input => {
+    input.current = Buffer.from(input.current.toString("utf8").replace("ignoredStdoutBytes", "ignoredStderrBytes"));
+    assert.equal(input.current.length, unusedBindingMigration.after.bytes);
+  }],
+  ["rejects extra source bytes", input => { input.current = Buffer.concat([input.current, Buffer.from("\n")]); }],
+  ["rejects a wrong original digest", input => { input.expected = "0".repeat(64); }],
+  ["rejects the unreviewed original spelling", input => {
+    input.current = Buffer.from(input.current.toString("utf8").replace("ignoredStdoutBytes", "_stdoutBytes").replace("ignoredStderrBytes", "_stderrBytes"));
+  }],
+];
+
+for (const [name, mutate] of unusedBindingControls) test("reviewed unused-binding migration " + name, () => {
+  const predecessor = JSON.parse(readFileSync(new URL("../jq-grammar-canonical-plan/patch-manifest-v3.json", import.meta.url), "utf8")) as {
+    files: Array<{ path: string; afterSha256: string; afterSnapshot: string }>;
+  };
+  const original = predecessor.files.find(entry => entry.path === unusedBindingMigration.path)!;
+  const input: UnusedBindingControl = {
+    path: unusedBindingMigration.path,
+    expected: original.afterSha256,
+    current: readFileSync(unusedBindingMigration.path),
+  };
+  if (mutate) {
+    mutate(input);
+    assert.throws(() => assertUnusedBindingMigration(input.path, input.expected, input.current), { code: "ERR_ASSERTION" });
+  } else {
+    const restored = assertUnusedBindingMigration(input.path, input.expected, input.current);
+    const snapshot = readFileSync(original.afterSnapshot);
+    assert.equal(digest(snapshot), unusedBindingMigration.before.sha256);
+    assert.deepEqual(restored, snapshot, "unchanged historical helper snapshot");
+    snapshot[0] ^= 1;
+    assert.throws(() => assert.deepEqual(restored, snapshot), { code: "ERR_ASSERTION" });
+  }
 });

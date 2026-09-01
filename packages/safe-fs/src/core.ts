@@ -4,6 +4,7 @@ export * from "./contracts/io.js";
 export {
   assertPathWithin, isPathWithin, normalizePath, relativePath, resolvePath, validatePath
 } from "./contracts/virtual-path.js";
+export { basename, dirname, extname, isAbsolutePath, joinPath, posixPath } from "./contracts/portable-path.js";
 export * from "./fs/memory/index.js";
 export * from "./fs/readonly/index.js";
 export * from "./fs/mount/index.js";

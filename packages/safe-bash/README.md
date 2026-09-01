@@ -37,6 +37,43 @@ Output: `Hello, reader!\nAda\nGrace\n`. The script, input, and generated
 Each `exec()` starts fresh shell variables, functions, and working-directory state;
 filesystem changes persist in the supplied `fs`.
 
+## Browsers and Workers
+
+Use `poe-code/safe-bash/browser` for a portable Shell with an explicit command
+subset. Bundle as ESM with `platform: "browser"` and
+`conditions: ["workerd", "worker", "browser"]`; the `browser` condition selects
+the canonical portable filesystem. No `nodejs_compat` flag or Node globals are
+required. The regular `poe-code/safe-bash` entry remains the Node API.
+
+```ts
+import { Shell, browserCommands } from "poe-code/safe-bash/browser";
+import { createMemoryFileSystem } from "poe-code/safe-fs/core";
+
+const fs = createMemoryFileSystem();
+const shell = new Shell({ fs, limits: { maxCommands: 100, maxOutputBytes: 65536 } })
+  .use(browserCommands());
+try {
+  const result = await shell.exec("printf 'hello\\n' > /note; cat /note");
+  console.log(result.stdout);
+} finally {
+  await shell.dispose();
+}
+```
+
+`browserCommands({ replace?: boolean })` registers **28 commands**: `true`, `false`,
+`echo`, `printf`, `pwd`, `basename`, `dirname`, `mkdir`, `touch`, `cp`, `mv`, `rm`,
+`rmdir`, `ln`, `readlink`, `realpath`, `ls`, `test`, `[`, `cat`, `head`, `tail`, `wc`,
+`tee`, `tr`, `sort`, `uniq`, and `cut`. Replacement defaults to `false`.
+`createBrowserCommands()` returns the same definitions for custom registration.
+
+Shell builtins, virtual scripts, pipelines, budgets, cancellation, and disposal
+remain available. Inject a canonical filesystem or compose memory/read-only/mount
+adapters from `poe-code/safe-fs/core`; filesystem and error identity are shared.
+The core's portable `posixPath` exposes `basename`, `dirname`, `extname`, `join`,
+and `isAbsolute`. Node-only adapters and command packs are not included;
+`[[ … =~ … ]]` explicitly returns status 2. Use the Node entry for regex-worker
+commands such as `grep`, `sed`, and `rg`.
+
 ## Supported features and commands
 
 ### Shell syntax

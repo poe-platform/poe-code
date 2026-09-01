@@ -7,6 +7,7 @@ import { resolveGithubWorkflowAssetCopies } from "./bundle-assets.mjs";
 import { assertSafeBundleOutputs, assertSafeOutputDirectory } from "./guard-package-dist.mjs";
 import { resolveBundleGraph, resolveConsumerGraph } from "./bundle-graph.mjs";
 import { resolveCanonicalFsBuilds } from "./bundle-fs.mjs";
+import { resolveBrowserShellBuild } from "./bundle-safe-bash.mjs";
 import {
   canonicalFs,
   collectCanonicalDeclarations,
@@ -219,6 +220,15 @@ for (const [profile, options] of Object.entries(fsBuildOptions)) {
   fsBuilds[profile] = result;
 }
 await setBinExecutable(path.join(rootDir, "packages/safe-js"));
+
+const browserShellOptions = resolveBrowserShellBuild(rootDir);
+const browserShell = await esbuild.build(browserShellOptions);
+await publishBundleOutputs(browserShell, {
+  outdir: path.dirname(browserShellOptions.outfile),
+  entryPoints: browserShellOptions.entryPoints,
+  workingDirectory: rootDir
+});
+consumerBuilds.push(browserShell);
 
 // Bundle memory into a single esm file so consumers of poe-code/memory
 // don't need @poe-code/* workspace deps at runtime.

@@ -186,6 +186,7 @@ describe("standalone package publish metadata", () => {
       "./memory",
       "./safe-bash",
       "./safe-bash-mcp",
+      "./safe-bash/browser",
       "./safe-bash/commands/apply-patch",
       "./safe-bash/commands/archive",
       "./safe-bash/commands/column",

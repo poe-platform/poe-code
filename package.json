@@ -222,6 +222,10 @@
     "./safe-bash-mcp": {
       "types": "./packages/safe-bash-mcp/dist/index.d.ts",
       "import": "./packages/safe-bash-mcp/dist/index.js"
+    },
+    "./safe-bash/browser": {
+      "types": "./packages/safe-bash/dist/browser.d.ts",
+      "import": "./packages/safe-bash/dist/browser.js"
     }
   },
   "workspaces": [
@@ -509,7 +513,8 @@
     "virtual-bash": "*",
     "poe-code": "file:.",
     "safe-bash-mcp": "*",
-    "safe-bash-playground": "*"
+    "safe-bash-playground": "*",
+    "buffer": "6.0.3"
   },
   "repository": {
     "type": "git",

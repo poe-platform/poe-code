@@ -45,7 +45,7 @@ it.each([
       ),
       [path.join(root, "src/providers/proof.ts")]: "export {};"
     });
-    for (const name of ["safe-fs", "safe-js", "memory", "agent-mcp-config", "agent-skill-config"]) {
+    for (const name of ["safe-fs", "safe-js", "safe-bash", "memory", "agent-mcp-config", "agent-skill-config"]) {
       volume.mkdirSync(path.join(root, "packages", name, "dist"), { recursive: true });
       volume.writeFileSync(
         path.join(root, "packages", name, "package.json"),
@@ -133,7 +133,11 @@ it.each([
     }
     for (const [options] of build.mock.calls) {
       if (options.splitting) continue;
-      expect(options.alias!["@poe-code/safe-fs"]).toBe("poe-code/safe-fs");
+      if (options.platform === "browser") {
+        expect(options.alias!["poe-code/safe-fs"]).toBe("poe-code/safe-fs/core");
+      } else {
+        expect(options.alias!["@poe-code/safe-fs"]).toBe("poe-code/safe-fs");
+      }
       expect(options.metafile).toBe(true);
     }
   }

@@ -1054,6 +1054,11 @@ describe("skill command", () => {
 // ─── test command (isolated) ─────────────────────────────────────────────────
 
 describe("test command (isolated)", () => {
+  beforeEach(() => {
+    const stdout = vi.spyOn(process.stdout, "write").mockReturnValue(true);
+    onTestFinished(() => stdout.mockRestore());
+  });
+
   function createBaseProgram(): Command {
     const program = new Command();
     program.exitOverride();
@@ -1184,6 +1189,11 @@ function createTestContainer(logs: string[] = []) {
 }
 
 describe("test command", () => {
+  beforeEach(() => {
+    const stdout = vi.spyOn(process.stdout, "write").mockReturnValue(true);
+    onTestFinished(() => stdout.mockRestore());
+  });
+
   function createBaseProgram(): Command {
     const program = new Command();
     program.exitOverride();

@@ -1,7 +1,7 @@
 import { createHash } from "node:crypto";
 import { createServer, type IncomingMessage, type Server } from "node:http";
 import { join } from "node:path";
-import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, onTestFinished, vi } from "vitest";
 import { vol } from "memfs";
 import { installInMemoryHttp, nodeFetch } from "tiny-http-mcp-server/test-support";
 
@@ -1462,6 +1462,8 @@ describe("startProxyServer playback mode with onMiss warn", () => {
   const closeHandles: Array<() => Promise<void>> = [];
 
   beforeEach(() => {
+    const stderr = vi.spyOn(process.stderr, "write").mockReturnValue(true);
+    onTestFinished(() => stderr.mockRestore());
     vol.reset();
     vol.mkdirSync("/tmp", { recursive: true });
     closeHandles.length = 0;
@@ -1504,6 +1506,9 @@ describe("startProxyServer playback mode with onMiss warn", () => {
     await expect(response.json()).resolves.toMatchObject({
       choices: [{ message: { content: "Echo: warn on miss" } }]
     });
+    expect(process.stderr.write).toHaveBeenCalledWith(
+      expect.stringContaining("[proxy] snapshot miss:")
+    );
   });
 
   it("does not save snapshot on miss", async () => {

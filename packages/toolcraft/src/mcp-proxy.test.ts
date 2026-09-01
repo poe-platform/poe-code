@@ -282,6 +282,7 @@ describe("resolveMcpProxies", () => {
     vol.reset();
     vi.clearAllMocks();
     vi.restoreAllMocks();
+    vi.spyOn(process.stderr, "write").mockImplementation(() => true);
     setProjectRoot();
     loggerState.info.length = 0;
     transportState.stdio.length = 0;
@@ -293,6 +294,7 @@ describe("resolveMcpProxies", () => {
 
   afterEach(() => {
     process.env.TOOLCRAFT_MCP_REFRESH = originalRefresh;
+    vi.restoreAllMocks();
   });
 
   it("loads proxy tools from cache and populates group children", async () => {

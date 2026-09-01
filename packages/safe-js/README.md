@@ -1,526 +1,206 @@
-# @poe-code/safe-js
+# SafeJS
 
-Installed consumers use `poe-code/safe-js`, `poe-code/safe-js/core`, and
-`poe-code/safe-js/cli`; the canonical binary is `poe-safe-js`. The legacy
-`poe-code/safejs` routes (including `/core` and `/cli`) and `poe-safejs` remain
-compatibility aliases targeting exactly the same artifacts, runtime, and registries.
-The private workspace is `@poe-code/safe-js` in `packages/safe-js`; the old private
-workspace name is not retained. File extensions and snapshot protocols are unchanged.
+Run a JavaScript subset with explicit host capabilities, execution budgets, and resumable checkpoints.
 
-**Run agent orchestration as code, not as a state machine.**
+## Quickstart
 
-SafeJS is a tiny, deterministic JavaScript-subset interpreter. You write the orchestration as a regular `async/await` script; the runtime sandboxes it, snapshots it on every yield, and only lets it touch the host through modules you register.
+Install the public package (Node.js 18.18+ and ESM):
 
-It is the engine behind Poe Code's pipelines, experiment loops, and superintendent runs.
+```sh
+npm install poe-code
+```
 
-## Verified filesystem integration
-
-Adapter injection through `makeFsModule` and shared `poe-code/safe-fs`
-integration shipped in `poe-code@12.0.5` and was reverified in `13.0.0`.
-The canonical `poe-code/safe-js` route and `poe-safe-js` binary shipped in `12.0.8`;
-the legacy public spellings remain aliases to the same artifacts.
-Both `poe-safe-js` and `poe-code harness run` support `--fs-config <path>` for
-explicit memory or host-directory configuration. The scoped workspace names
-`@poe-code/safe-js` and `@poe-code/safe-fs` are private, not public npm imports.
-
-Installed public runtime, TypeScript consumer and CLI checks passed on Node
-18.18.2, 18.20.8, 20.19.2, 20.20.0, 22.22.2 and 24.14.0. These public routes target
-Node.js. Under the `browser` condition, the canonical `poe-code/safe-js`,
-`poe-code/safe-js/core`, `poe-code/safe-js/cli` and all three legacy `safejs`
-aliases explicitly deny runtime imports and expose empty
-declarations; their Node exports remain available. Release C adds a portable
-filesystem-only graph at `poe-code/safe-fs` and `poe-code/safe-fs/core`, not a
-browser SafeJS SDK/runtime. The published C filesystem artifact separately
-passed 102 page/worker checks across Chromium, Firefox and Playwright WebKit;
-that proof does not cover browser SafeJS execution, unreleased guest codecs or
-WebDAV request-stream transport acceptance. The published `13.0.0` WebDAV
-transport proof separately passes 390 browser assertions and 50 native Node HTTP
-controls. Native Firefox/WebKit streams safely reject, rather than gaining
-streaming support; Chromium HTTP/2 succeeds in the exercised deployment.
-Full browser SDK/runtime support, safe-bash migration and removal of its legacy
-adapter copies remain pending. Canonical rename publication is recorded in
-`docs/plans/safe-js-rename.md`, not attributed to the earlier C release.
-
-`13.0.0` retains the named host-call policy fix from `12.0.9` and typed error
-identity fix from `12.0.10`, with their installed public regressions reverified.
-For programmatically injected WebDAV adapters, custom or bound Fetch now requires
-`requestStreamSupport: "native"` for faithful native delegation, `true` for a
-trusted stream-preserving custom transport, or `false` to disable streaming.
-Exact current-realm Fetch is probed automatically; unknown transports fail before
-source acquisition or DAV I/O. Byte writes are unchanged. This adapter option
-adds no SDK global, CLI flag, environment variable or built-in JSON adapter.
-See the [foundation migration contract](../safe-fs/README.md#breaking-change-declare-custom-request-stream-support).
-
-## Host-operation recovery policies
-
-From the public Node SDK `poe-code/safe-js`, use
-`declareHostOperation(callback, "read-side-effect")` to attach a policy to that
-function, or `registerPendingHostCallPolicy({ moduleId, operation, policy })` to
-set the default for its exact journaled name. At each call, an explicit function
-declaration wins, then the named registry, then `"re-issue"`. Ordinary caller
-bindings use `moduleId: "<bindings>"`. Named registration must happen before the
-call is issued; it is not merely a restore-time setting.
-
-The existing registry is process-local to the loaded SDK implementation. Names
-are case-sensitive, registration trims its required nonblank names, and later
-registration of the same pair replaces its default. Module normalization also
-registers explicitly declared exports. Shared function aliases keep their first
-wrapper's journal identity; a named default export uses the function's name when
-available. Prefer a direct declaration for a shared function rather than
-conflicting alias registrations.
-
-Captured policies do not change when the registry changes. Replay validates the
-original call identity, including policy, and fails closed on a mismatch before
-calling a replacement or reconciliation provider. Recorded outcomes are reused;
-pending `read-side-effect` calls require genuine external reconciliation, while
-pending `re-issue` calls may execute again. This is not an exactly-once guarantee
-for external effects. See [checkpoint replay](CHECKPOINT_REPLAY.md#host-operation-policy-selection)
-for proof requirements and the native error-identity trust boundary.
-Restored invocation mismatches reject with `HostCallResumabilityError` and
-`action: "reset"`; pending effects without valid recovery proof reject with
-`action: "external-reconciliation"`. Genuine native engine errors retain their
-class and identity, while engine-shaped guest objects, copied properties and
-prototype impostors remain ordinary errors. Guest catch/finally handlers cannot
-convert a genuine engine failure into successful recovery. Fatal host failures
-are not recorded as ordinary rejected outcomes for later guest replay.
-There are no new configuration fields, environment variables or CLI flags; CLI
-and SDK hosts use the same bridge and declared built-in module policies.
-
-## Why use it
-
-- **Orchestration as code.** Multi-agent shapes — pipeline, experiment, superintendent, custom — run as a JavaScript subset. No DSL, no JSON state machine, no per-step LLM round trip.
-- **Deterministic & sandboxed.** No `eval`, no `Function` constructor, no `class`, no dynamic import, no `globalThis`, and no filesystem, process, subprocess, or network access unless you register a module for it. Imports are limited to modules you register. Budgets cap steps, depth, deadlines, string, array, and collection sizes.
-- **Crash-safe long runs.** Every `await` yields a snapshot. The scheduler writes them atomically to disk on an interval. A run can be resumed against the original source — the source hash is verified before restore.
-- **File-based plans.** A `.safejs` file, legacy `.ajs` file, or markdown file with YAML frontmatter and a `js` fenced block is the unit of work. Frontmatter holds the plan; the script walks it.
-- **MCP code mode.** Connect to an MCP server once, then call tools imperatively from the script — no LLM in the loop for the orchestration layer.
-
-## Sandbox by design
-
-SafeJS runs untrusted-by-default code. Nothing reaches the host by default — no filesystem, `exec`, `process`, or network primitives — and there is no escape hatch: no `eval`, no `Function`, no dynamic `import()`, no `globalThis`. A script can only touch the host through modules the caller registers in `run({ modules })`.
-
-When you need subprocess or HTTP capability, build a host module with the _exact_ surface you want to expose (the specific commands or URLs) and register it explicitly. The bundled modules (`agent`, `harness`, `log`, `metric`, `mcp`, `env`, `time`, `fail`) follow that rule; treat them as the model for anything you add. The same advice holds for the filesystem: when a harness only needs a few paths, a purpose-built module naming them is narrower — and better — than the `fs` module below.
-
-### The optional `fs` module
-
-`makeFsModule({ root, fs })` is bundled but never registered for you. It exists only once an embedder puts it in the registry; `poe-code harness run --fs` and `poe-safe-js --fs` are the flags that do that.
-
-Its surface is `node:fs/promises`, not a poe-shaped subset of it: `access`, `appendFile`, `chmod`, `copyFile`, `cp`, `link`, `lstat`, `mkdir`, `mkdtemp`, `readFile`, `readdir`, `readlink`, `realpath`, `rename`, `rm`, `rmdir`, `stat`, `symlink`, `truncate`, `utimes`, `writeFile`, plus `constants` (`F_OK`, `R_OK`, `W_OK`, `X_OK`, `COPYFILE_EXCL`).
-
-**Compliance rule for the Node-backed module.** Calls delegated to `node:fs/promises` preserve its results and error metadata (`name`, `message`, `code`, `errno`, `syscall`, `path`, and `dest`), subject to the supported-result and capability restrictions below. Native argument validation that SafeJS delegates remains runtime-dependent: for example, a fractional `access` mode can be rejected with `RangeError`/`ERR_OUT_OF_RANGE` or accepted by the host Node version. Differential conformance tests cover delegated behavior; SafeJS-owned validation follows the stable contract below rather than claiming exact native parity across Node versions.
-
-**Stable path-validation errors (Node >=18.18).** For filesystem operation path arguments, except for the explicitly refused Buffer/URL forms below, invalid types raise `TypeError` with `code: "ERR_INVALID_ARG_TYPE"`; NUL-bearing strings raise `TypeError` with `code: "ERR_INVALID_ARG_VALUE"`. Diagnostics name the offending argument and describe the received value before path normalization, confinement probes, or filesystem I/O. These SafeJS-owned Node-style diagnostics are stable, not copies of each Node version's wording, and apply with or without a root and with shared adapters. In particular, a NUL-bearing `mkdtemp` prefix always receives the coded `ERR_INVALID_ARG_VALUE` rejection; SafeJS does not reproduce Node 18.18.2's uncoded native TypeError for that input. This normalization does not translate backend errors or narrow Node >=18.18 support.
-
-Shared adapter mode is not a claim of exact native-node conformance: the supplied adapter and bridge determine supported operations and errors, and unsupported operations do not fall back to the host filesystem.
-
-**Deviations that throw.** Each names the unsupported capability rather than coercing, ignoring, or approximating it:
-
-- Buffer results. The sandbox has no `Buffer`/`Uint8Array`, so a call whose node answer would be one (no encoding, `encoding: "buffer"`, `encoding: null`) is refused. Every string encoding node supports is supported.
-- `bigint: true` on `stat`/`lstat`.
-- `Buffer` and `URL` path arguments, both of which node accepts. An integer path is **not** a deviation: `fs/promises` has no descriptor path form, so node blames its argument type like any other non-string and the module says the same thing.
-- The `signal` option — cancelling a run is the host's to request via `run({ signal })`, not the script's.
-- `FileHandle`/`open`, streams, `watch`, `opendir`, and the callback/sync APIs: not exported.
-- `Date` stat fields — the `*Ms` numbers are exposed instead.
-- Any option node declares that the module cannot honour, and any option node does not declare at all. A silently ignored option is a worse deviation than a refused one.
-
-**Deviations that diverge.** Neither announces itself the way the refusals above do:
-
-- `error.stack` is sandbox-shaped rather than a node stack. The bridge rewrites the frames to the script's own, so node's frames are neither available to a script nor meaningful to one that ran none of them; node's text survives only in the `name: message` header the stack is still headed by. Reading a property is not a call there is anything to refuse.
-- Given both a bad path and another bad argument, SafeJS blames the path where node may blame the other. The module validates paths itself — `root` rewrites them before node sees them — so `readFile(42, "utf9")` reports the encoding in node and the path here. Each error is still node's own, shaped as node shapes it; only which of two invalid arguments is reported can differ.
-
-**`root` confinement.** Without `root` or `adapter`, the module delegates to `node:fs/promises` (or the injected `fs`) without path confinement. Node-backed relative roots and paths retain their host-working-directory semantics. With a root and no explicit adapter `cwd`, relative paths resolve against `root`. Every resulting path — including the second path of `rename`, `copyFile`, `cp`, `link`, and `symlink`, and the `mkdtemp` prefix — must satisfy confinement. Escapes via `..`, absolute paths, symlink targets, or hardlinks reject with a node-shaped `EACCES` carrying the matching `errno`, the attempted `syscall`, `path`, and `dest`, so a script branches on `error.code` exactly as it would against real node. node's own errnos survive the check: a symlink loop inside root still surfaces `ELOOP`. `cp`'s `dereference: true` is refused under a root — `cp` is the one call that reads a whole tree, a link nested inside it is never canonicalized, and node would copy an escaping target inside root under a name every later check reads as contained.
-
-With `adapter` and an explicit `root`, `root` remains the module's public confinement boundary, including its existing canonical adapter-identity checks. Optional absolute virtual `cwd` supplies only the relative-path base in this mode: `/project/work` permits `../input` inside root `/project`, and absolute paths anywhere inside that root remain valid. The rooted wrapper resolves and checks every operand before dispatching to an internal whole-virtual-namespace bridge. This does not relax the standalone `createNodeFsBridge` or portable bridge contract: their own configured `cwd` still confines every operation.
-
-Without an explicit `root`, adapter `cwd` is both the relative-path base and confinement boundary. With `cwd: "/work"`, `input` and `/work/input` agree; `/outside`, `../outside`, sibling-prefix paths and escaping symlinks reject rather than being remapped. When `cwd` is omitted, rooted calls retain their canonical-root-relative default and unrooted calls use the adapter's whole virtual `/` namespace. No adapter virtual path is a host working directory, and path-based confinement does not provide race-proof OS isolation against a concurrently hostile host filesystem.
-
-The adapter-only SDK options are `cwd?: string` and `signal?: AbortSignal`. `cwd` must be absolute and NUL-free. With an explicit `root`, `cwd` need not itself be inside that root, but relative paths resolving outside still reject; an absolute in-root path remains valid. Without `root`, `cwd` itself establishes the boundary. A caller may supply a borrowed host signal with `makeFsModule({ ...await resolveFsConfig(config), signal })`; it is not automatically linked to a run signal and has no JSON representation. Both options require `adapter`; they do not change the legacy Node-shaped `fs` mode. Cancellation cannot undo host effects already admitted.
-
-Adapter-backed recursive `mkdir` cannot create a missing ancestor outside its boundary: root `/new/root` cannot create `/new`. A missing root itself may be created beneath an existing, canonically verified parent; unsupported canonical inspection refuses the operation without mutation. Contained recursive creation remains supported. This guard does not change the legacy Node-shaped `fs` mode.
-
-Rooted `mkdtemp` preserves the prefix text and trailing separator, and checks the parent of the generated directory before any allocation. With root `/work`, prefix `/work` is refused because its suffix would create a sibling, while `/work/` creates a directory inside the root. This security correction also applies to rooted Node-shaped `fs`; unrooted Node behavior is unchanged. Relative symlink targets are checked against the actual destination parent and stored unchanged; dangling-link checks preserve symlink-before-`..` traversal rather than collapsing the target text first.
-
-With an adapter and an explicit `root` (including `/`), or an unrooted adapter with restricted `cwd`, creating an absolute symlink target is refused with `ENOTSUP`. Cancellation and ordinary lexical boundary checks come first, so a lexically outside target or link path still receives `EACCES`. This is an observable restriction: mounted adapters can interpret absolute stored targets in a backend-local namespace that cannot be previewed before creation. Migrate to a relative target, for example `symlink("../input", "link")` from cwd `/project/work` under root `/project`; the text is stored unchanged and its resolution is checked. No target rewriting, provider exceptions or probe links are used. Existing absolute links are followed only after actual canonical containment checks. An unrooted whole-namespace adapter module and legacy Node-shaped `fs` mode retain their existing absolute-target behavior. Ordinary absolute file paths inside the configured boundary remain supported.
-
-**`readdir` order** is filesystem-dependent, exactly as in node: node does not sort, and neither does this. Compare names as a set.
-
-**Resume policies** are declared per operation. Reads (`access`, `lstat`, `readFile`, `readdir`, `readlink`, `realpath`, `stat`) re-issue after a restore; every operation that mutates the filesystem is `read-side-effect` and is not blindly re-applied.
-
-**Platforms.** darwin and linux. `makeFsModule` throws on win32 rather than half-supporting it: node answers a different code there, a path carries a drive letter confinement has no rule for, and a symlink needs a privilege a script cannot hold — so an embedder is told at startup rather than by the first call that lands.
-
-**Refreshing the node-truth fixture.** `npm run record:fs-conformance` drives the shared case table against real `node:fs/promises` under `os.tmpdir()`, cleans up after itself, and writes the entry for the platform it ran on, leaving every other platform's recording untouched. Run it on each platform the suite runs on, since node's fs errors are the platform's. The suite fails — rather than quietly proving nothing — when the running platform has no recording, or when a recording is missing a case the table defines, so adding a case forces a re-record. Never hand-edit the fixture.
-
-## Scripts are JavaScript
-
-A `.safejs` body reads like a small JS program. No DSL, no decorators, no custom syntax — capabilities are imports, options are object literals, control flow is plain `if`/`for`/`try`. Anything that would need a non-JS shape — version pins, runtime config, metadata, schedules — belongs in the markdown frontmatter or the caller's options, not in the script body.
-
-The default linter accepts runtime-supported `var`, `switch`, `this`, sandbox constructor calls, and top-level `await` inside control-flow blocks. Both `poe-code harness run` and `poe-safe-js` lint before execution; host-escape forms such as `eval` and `Function` remain disallowed.
-
-## At a glance
+Save this as `example.mjs`, then run `node example.mjs`:
 
 ```js
-import { spawn } from "agent";
-import { agents, tasks } from "harness";
-import { event } from "log";
+import { Budget, run } from "poe-code/safe-js";
 
-for (const task of tasks) {
-  event("task.started", { id: task.id });
-  const build = await spawn(agents.builder, { prompt: task.prompt });
-  const review = await spawn(agents.reviewer, { prompt: build.summary });
-  event("task.completed", { id: task.id, review: review.summary });
-}
+const result = await run("return prices.map(price => price * 2);", {
+  bindings: { prices: [3, 5, 8] },
+  budget: new Budget({ maxSteps: 10_000, maxCallDepth: 100 })
+});
+
+if (!result.ok) throw result.error;
+console.log(result.returnValue);
+// [6, 10, 16]
 ```
 
-That snippet runs inside the sandbox. `agent`, `harness`, and `log` are host modules registered by the caller; everything else is plain JavaScript.
+`run()` takes source text, not a file path. Success returns `ok`, `returnValue`, `snapshot`, and `stats`. Handle both an `ok: false` result and a rejected promise: parsing, budget exhaustion, cancellation, and some execution failures can reject. Top-level `await` in this example lets rejections reach Node.
 
-## Use cases
+`poe-code/safe-js/core` exposes `run`, `lint`, `Budget`, and replayable-random helpers. Legacy `poe-code/safejs` routes remain compatibility aliases; no separate package is needed.
 
-### 1. Multi-agent orchestrator
+## Supported features
 
-You have several agent personas (builder, reviewer, judge, owner, …) and want to run them in a specific shape. Write the shape as a script.
+- **JavaScript control flow:** functions and closures, async/await, loops, destructuring, spread, templates, exceptions, and synchronous generators.
+- **Data processing:** arrays, objects, strings, numbers, JSON, Math, Map, Set, Float32Array, promises, and a bounded regular-expression subset. These are selected APIs, not complete ECMAScript implementations.
+- **Explicit capabilities:** named, default, and namespace imports resolve against host-supplied modules. Optional helpers cover agents, MCP tools, files, environment reads, time, logging, and metrics.
+- **Execution controls:** step, call-depth, string, array, and retained-data budgets; an absolute deadline; host cancellation; console and telemetry sinks.
+- **Checkpoints:** capture execution state, restore compatible source, and reconcile pending host operations. Changed programs can use explicit continuation migration.
+- **Authoring tools:** lint diagnostics and fixes, source-positioned errors, Markdown harnesses, and paired Markdown/script files. `run()` does not lint automatically; harness runners do.
 
-See:
+Scripts have no ambient `process`, `require`, `fetch`, or filesystem access. Host functions still execute with the host's privileges. Register only the capabilities the script needs; this is not OS or process isolation.
 
-- `examples/pipeline.md` — sequential builder → reviewer over a list of tasks
-- `examples/superintendent.md` — builder + parallel inspectors + judge + owner, with rounds
-- `examples/experiment.md` — attempt → measure → select successful results (no repository rollback)
+## Add a host capability
 
-Run any of them with the bundled CLI:
-
-```bash
-npx --package poe-code poe-safe-js examples/pipeline.md
-```
-
-`poe-safe-js` is a zero-cost local runner for markdown harness files. It
-reads all executable fenced blocks in order, lints them against the example module registry,
-then runs it with stub host modules: `agent.spawn` returns a canned successful
-summary, `metric` is a deterministic fake, and logs are printed as
-JSONL. If a markdown file has no `js` block, the CLI keeps backwards-compatible
-demo mode and dispatches `kind: pipeline`, `superintendent`, or `experiment`
-frontmatter to the bundled shapes. Use `runHarness()` for raw `.safejs` or legacy `.ajs` files.
-
-`--fs` registers the [`fs` module](#the-optional-fs-module) — a real filesystem, unlike the
-stubs above — confined to `--fs-root <path>`, which defaults to the script's directory.
-`--fs-root` without `--fs` is a usage error.
-
-Both this CLI and `poe-code harness run` also accept `--fs-config <path>` for explicit
-Node filesystem configuration. The JSON file contains `{ "adapter": { "type": "memory", "options": {} } }`
-or, for an existing machine directory, `{ "adapter": { "type": "real", "options": { "root": "/srv/project" } }, "root": "/work", "cwd": "/work/src" }`.
-The real adapter's `options.root` is an absolute host directory; the outer `root`
-is optional, absolute virtual confinement. With that outer `root`, optional `cwd`
-is a separate absolute virtual relative-path base. Without the outer `root`,
-an explicit `cwd` also confines access; omitting both grants the adapter's whole
-virtual namespace, still subject to the backend's own boundary.
-Omitting `cwd` preserves the module's rooted default rather than injecting `/`.
-The config-file path resolves against invocation cwd, but configured roots and
-virtual `cwd` are not host-cwd-relative or remapped into a worktree. `signal` is
-not a config-file option. `--fs-config` cannot be repeated or
-combined with `--fs` or `--fs-root`. Execution validates configuration shape, virtual
-roots, virtual `cwd`, and adapter option syntax before construction or script/snapshot I/O, except
-for reading the config itself. Real directory existence/access checks necessarily
-run during construction. A harness dry run previews the parsed configuration without
-constructing or checking the backend.
-
-Use `poe-code harness run` when you want the same lint-and-run flow against real
-configured agents and host integrations.
-
-### 2. MCP code mode
-
-Letting an LLM call MCP tools turn-by-turn is expensive, slow, and non-deterministic. With SafeJS, the LLM produces (or you author) a script that calls MCP tools directly:
+Expose a small module rather than an entire application client:
 
 ```js
-import { client, server } from "mcp";
-
-const fs = await client(server("files"));
-const tools = await fs.tools();
-const result = await fs.tool("read_file", { path: "/tmp/work/notes.md" });
-```
-
-The host grants named stdio or HTTP servers through `makeMcpModule({ servers, requestTimeoutMs?, closeTimeoutMs?, maxToolPages?, signal?, fetch?, spawn? })` or either CLI's `--mcp-config <path>`. Connections are lazy and cleaned up per run; see [`MCP.md`](MCP.md) for configuration, environment policy, methods, and replay.
-
-### 3. Sandboxed user scripting
-
-Embed SafeJS in your own product when you want to let users (or models) write small programs against a fixed set of capabilities you control. The sandbox guarantees they cannot reach outside the modules you registered, can't allocate unbounded memory, and can't run forever.
-
-## Spec — index card
-
-| Aspect                         | Detail                                                                                                                                                                                                                                                                                                                                                                                                                                          |
-| ------------------------------ | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| **Source unit**                | one module body; `import` from registered modules only                                                                                                                                                                                                                                                                                                                                                                                          |
-| **Linter-approved syntax**     | `const`, `let`, `var`, arrays, objects, destructuring, rest/spread, ordinary and async functions, synchronous generators, arrows, top-level `await` including nested control flow, `if`/`else`, `switch`, `this`, loops, labels, `break`, `continue`, `try`/`catch`/`finally`, `throw`, `return`, expressions, assignments and updates, template literals, optional chaining, nullish coalescing, regex literals, and sandbox constructor calls |
-| **Disallowed syntax**          | `class`, async generators, `with`, `eval`, `Function`, dynamic import, `import.meta` assignment, BigInt literals, legacy octal forms, and HTML-style comments                                                                                                                                                                                                                                                                                   |
-| **Lint extras**                | host calls should be awaited or intentionally returned; large literals and unreachable code are reported                                                                                                                                                                                                                                                                                                                                        |
-| **Built-in globals**           | `console`, `JSON`, `Error`, `TypeError`, `RangeError`, `ReferenceError`, `SyntaxError`, `AggregateError`, `Math`, `Object`, `Array`, `Float32Array`, `String`, `Number`, `Boolean`, `Map`, `Set`, `RegExp`, `Promise`, `structuredClone`, `parseInt`, `parseFloat`, `isNaN`, `isFinite`, `Infinity`, `NaN`                                                                                                                                      |
-| **Determinism**                | `Math.random()` is resumable by default; `randomSeed` selects a reproducible sequence, and snapshots retain RNG state. Harness runs also provide replayable `time.now()` / `time.uuid()` through the `time` module.                                                                                                                                                                                                                             |
-| **Snapshots**                  | written at most every `snapshotIntervalMs` (default 30 s) to `snapshotPath`; resumed via `restore()` if `sourceHash` matches                                                                                                                                                                                                                                                                                                                    |
-| **Budgets**                    | `maxSteps`, `deadline`, `maxCallDepth`, `stringLength`, `arrayLength`, and collection entry limits                                                                                                                                                                                                                                                                                                                                              |
-| **Cancellation**               | `AbortSignal`, observed at every host call and yield point                                                                                                                                                                                                                                                                                                                                                                                      |
-| **Unsupported language edges** | prototype chains and binary `in` are unsupported; synchronous source generators can be reconstructed by replay, not opaque host iterators/native frames; regex flags are `g/i/m/s`, not `u/y`; backreferences, lookaround, named groups, and Unicode property escapes are unsupported                                                                                                                                                           |
-
-## Supported globals
-
-These are pre-bound in every script — you don't need to import them.
-
-- **`Promise`** — constructor and static `all`, `race`, `allSettled`, `any`, `resolve`, `reject`; sandbox promises expose `then`, `catch`, and `finally`
-- **`Math`** — numeric methods including `abs`, `acos`, `acosh`, `asin`, `asinh`, `atan`, `atan2`, `atanh`, `ceil`, `cbrt`, `clz32`, `cos`, `cosh`, `exp`, `expm1`, `floor`, `f16round`, `fround`, `hypot`, `imul`, `log`, `log1p`, `log10`, `log2`, `max`, `min`, `pow`, `round`, `sign`, `sin`, `sinh`, `sqrt`, `tan`, `tanh`, `trunc`, plus standard constants and `random`
-- **`Object`** — `keys`, `values`, `entries`, `hasOwn`, `is`, `fromEntries`, `assign`, `freeze`, `isFrozen`
-- **`Array`** — callable/constructable array factory plus `isArray`, `from`, `of`
-- **`Float32Array`** — binary32 indexed storage, `set`, `slice`, and `subarray`; see [released value support](#released-value-support)
-- **`String`** — explicit value coercion with supported ordinary-object defaults and own guest conversion hooks, plus `raw`, `fromCharCode`, `fromCodePoint`; see [released value support](#released-value-support)
-- **`Number`** — value coercion plus `isFinite`, `isNaN`, `isInteger`, `isSafeInteger`, `parseInt`, `parseFloat`, and standard numeric constants
-- **`Boolean`** — value coercion
-- **`Map`, `Set`** — sandbox collection constructors and methods (`get`/`set`/`has`/`delete`/`clear`/`forEach`/`keys`/`values`/`entries`, as applicable).
-- **`RegExp`** — callable or constructable regex factory; literals and flags `g`, `i`, `m`, `s` are supported, but flags `u` and `y` are not
-- **`Error`, `TypeError`, `RangeError`, `ReferenceError`, `SyntaxError`, `AggregateError`** — callable and constructable factories
-- **`JSON`** — `parse`, `stringify` (replacer must be `null`/`undefined`; indent must be number/string/undefined)
-- **`console`** — `log`, `error` (routed to the `sink` you pass to `run()`)
-- **Miscellaneous** — `structuredClone`, `parseInt`, `parseFloat`, `isNaN`, `isFinite`, `Infinity`, `NaN`
-
-What is **not** available as a global: `Date`, `WeakMap`, `WeakSet`, `Symbol`, `BigInt`, `Reflect`, `Proxy`, `globalThis`, `setTimeout`, `setInterval`, `fetch`, `URL`, and other browser or Node globals. Expose a host module if you need any of them.
-
-SafeJS implements a subset of ECMAScript methods. Arrays include the common iteration, search, copy, and mutation methods; strings include regex-aware `match`, `matchAll`, `search`, `split`, `replace`, and `replaceAll`; numbers include `toString`, `toFixed`, `toExponential`, and `toPrecision`; functions expose `call`, `apply`, and `bind`. See `src/interp/methods/` for the implemented methods.
-
-**Numeric literals.** Numeric separators between digits are supported, including `1_000`, `.1_25e+2`, and `0xFF_FF`. A decimal digit immediately after `?.` makes it a conditional followed by a leading-dot literal: `enabled?.5:0` means `enabled ? .5 : 0`, not optional chaining. Likewise, `enabled?.1_25e+2:0` yields `12.5` when `enabled` is truthy and `0` otherwise. Prefer the spaced form for readability.
-
-**Half-precision rounding.** `Math.f16round(value)` rounds directly to binary16 precision using nearest, ties-to-even rounding and returns an ordinary Number. It preserves `NaN`, infinities, and signed zero, supports subnormals, and overflows to signed infinity. It does not require a host-native `Math.f16round` or use an intermediate binary32 conversion.
-
-This script returns `[1.3369140625, 1, Infinity]`:
-
-```js
-return [Math.f16round(1.337), Math.f16round(1 + 2 ** -11), Math.f16round(65520)];
-```
-
-**String well-formedness.** `text.isWellFormed()` returns whether the string contains no unpaired UTF-16 surrogate code units. Empty strings, ordinary text, and valid surrogate pairs return `true`; lone high or low surrogates return `false`. It takes no arguments; extra arguments are evaluated normally but ignored by the method. It does not repair or normalize text.
-
-This script returns `[true, true, false]`:
-
-```js
-return ["hello".isWellFormed(), "\uD83D\uDE00".isWellFormed(), "\uD800".isWellFormed()];
-```
-
-For repair, `text.toWellFormed()` returns a string with each lone high or low surrogate replaced by U+FFFD (`"\uFFFD"`). Valid surrogate pairs and all other code units are preserved, as is the UTF-16 length. It does not normalize text. It takes no arguments; extra arguments are evaluated normally but ignored by the method.
-
-This script returns `["hello", "\uD83D\uDE00", "\uFFFD"]`:
-
-```js
-return ["hello".toWellFormed(), "\uD83D\uDE00".toWellFormed(), "\uD800".toWellFormed()];
-```
-
-**Array copying.** `array.with(index, value)` returns a fresh shallow copy with one element replaced, leaving the source unchanged. Negative indices count from the end: `[10, 20, 30].with(-1, 99)` returns `[10, 20, 99]`. Out-of-range indices throw `RangeError`; index validation and the array-length budget check precede copying. The copy reads own indexed elements, skips reading the replaced slot, and fills missing slots with `undefined`. Nested references remain shared; named metadata is not copied. Host iterators and inherited indexed properties are not used. Copy traversal observes the existing step/deadline budgets.
-
-Map and Set `forEach` permit structural mutation (released in 12.0.6): appended entries are visited, pending deleted entries are skipped, delete/re-add visits at the new insertion position, and clear removes pending visits. Map value updates are visible when reached; nested same-receiver `forEach` calls have independent traversals. Callback return values, including promises, are ignored rather than awaited, and nonterminating worklists remain subject to configured budgets. This changes `forEach`, not the eager arrays returned by `keys`/`values`/`entries`, direct `for...of` behavior, or opaque host-iterator serialization.
-
-Array callbacks can structurally mutate their receiver in `map`, `filter`, `forEach`, `flatMap`, `some`, `every`, `find`, `findIndex`, `findLast`, `findLastIndex`, `reduce`, `reduceRight` and `sort`. The twelve methods other than `sort` follow their initial-range and hole-visitation rules while reading subsequent values and membership live. Existing execution/data budgets and independent running-state and snapshot protections remain. Guest-comparator `sort` collects its initial sortable values before comparator calls, then applies writeback and deletion within the initial range. Its bounded deterministic ordering has stable ties for a consistent comparator; comparator side-effect call sequences need not match a native engine's sort.
-
-Completed-run checkpoint replay does not imply arbitrary mid-callback or comparator suspension. Completed effects and pending operations have different recovery rules; pending operations can require re-issue under their recorded policy. This support is not a claim of whole native/sandbox physical graph or prototype equality.
-
-Source-function own-property assignments such as `configured.option = 3` are unsupported and throw `TypeError`. Function arity and captured callable property data are separate contracts: host callback adapters preserve the source signature's `length` in the tested direct-argument and array-property paths, including default, rest, and bound signatures. This does not enable property writes or imply full native function reflection; see [checkpoint callback contracts](CHECKPOINT_REPLAY.md#external-reconciliation).
-
-### Released value support
-
-**Float32Array (12.0.4).** Construction requires `new` and accepts a length, an ordinary array of primitive numeric-coercible elements, or an admitted Float32Array to copy. Indexed stores round to binary32: `new Float32Array([0.1])[0]` is `0.10000000149011612`. Values expose fixed storage length, byte dimensions and `BYTES_PER_ELEMENT` (4), with `set`, `slice`, `subarray`, `for...of` and spread. A subarray shares storage; slices and constructor copies have independent contents and do not copy named metadata. Existing array-length/data-size budgets apply. This does not expose the full TypedArray family, guest ArrayBuffer/backing-buffer access, general iterable construction or numeric object-coercion hooks; the optional `fs` restrictions are unchanged.
-
-Supported typed graph copies and replay preserve tested bytes, offsets, shared views and named data within the copied graph, not identity with the original host objects or universal native prototypes. New typed checkpoint tags retain `jobs-v7`, but older readers can reject them with `unknownTag`; cross-version/endian portability is not guaranteed. Raw shallow views, serialized artifacts and canonical replay remain distinct, including real outer legacy projection changes; see [raw views and serialized checkpoints](CHECKPOINT_REPLAY.md#raw-views-and-serialized-checkpoints).
-
-**String comparison (12.0.2).** `text.localeCompare(other, locales?, options?)` supports locale data and supported own data options such as `numeric` and `sensitivity`. The host validates locale identifiers and projected option values; inherited option properties are ignored and option accessors are rejected. For example, `"10".localeCompare("2", "en", { numeric: true }) > 0` is true. Compare signs, not a required magnitude of `-1` or `1`. Ordering depends on host locale/ICU, even with an explicit locale, and replay evaluates the comparison again. This does not expose guest `Intl`, arbitrary source coercion hooks in these arguments, generic native prototype receiver behavior or cross-host deterministic ordering. Extracted string methods retain their captured receiver. Both public `run()` failure channels still apply.
-
-**Explicit String conversion.** Ordinary objects have a default string representation: `String({ value: 1 })` returns `"[object Object]"`. Supported own guest `toString` hooks run before `valueOf`. Ordinary unbound function hooks receive the converted object as `this`; arrow hooks retain lexical `this`, including when bound, and bound ordinary functions use their bound receiver. A nonprimitive result falls through to the next hook, and a thrown error propagates. For example, `String({ toString() { return "custom"; } })` returns `"custom"`. Missing hooks use the represented value's defaults; if neither conversion attempt produces a primitive, conversion throws `TypeError`.
-
-Arrays and admitted Float32Arrays use comma-joined elements by default. Supported branded Errors retain default name/message formatting: `String(new TypeError("example failure"))` returns `"TypeError: example failure"`; Error-shaped plain records are not inferred to be Errors. Opaque host functions are not invoked as conversion hooks, and accessor-based hooks are rejected. This feature adds no conversion-hook calls to passive copying, digesting or checkpointing; replay can still reevaluate an explicit source `String(...)` call. Implicit object coercion in binary addition, symbol/prototype conversion hooks, boxed String construction and own-property writes on source-callable values are separate, unsupported surfaces—not enabled by explicit conversion.
-
-## Built-in host modules
-
-Registered by the caller via the factory functions exported from the package. None of them are auto-installed — you choose which to wire up per run.
-
-| Import    | Factory                                  | What it gives the script                                                                                                                                |
-| --------- | ---------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `agent`   | `makeAgentModule(spawnAgent)`            | `spawn(definition, { prompt, mode, model, mcp, cwd, timeoutMs, check })` — returns nonzero results unless `check: true`; checked errors retain `result` |
-| `harness` | `makeHarnessModule(frontmatter, meta)`   | `tasks`, `agents`, `meta` (kind, version, filepath, frontmatter), `applyConstraints(prompt)`                                                            |
-| `log`     | `makeLogModule(sink?)`                   | `info`, `error`, `event` (JSONL by default)                                                                                                             |
-| `metric`  | `makeMetricModule(npmRunner)`            | `run(name)` — runs an npm script and parses its last numeric line                                                                                       |
-| `mcp`     | `makeMcpModule({ servers, ...options })` | Named stdio/HTTP clients: `tools()`, `tool(name, args)`, `toolBatch(calls)`, `close()`; custom connectors remain supported                              |
-| `env`     | `makeEnvModule(allowListOrOptions)`      | `get(name)` — explicit grants; denied reads throw, granted missing values return `undefined`                                                            |
-| `fs`      | `makeFsModule({ root?, fs? })`           | `node:fs/promises`, optionally confined to `root` — see [the optional `fs` module](#the-optional-fs-module)                                             |
-| `time`    | `makeTimeModule({ now?, random? })`      | `now`, `uuid`                                                                                                                                           |
-| `fail`    | `makeFailModule()`                       | `default(message)` — throws `HarnessFailure`                                                                                                            |
-
-## Quick start
-
-```ts
-import { lint, run } from "poe-code/safe-js";
+import { Budget, lint, run } from "poe-code/safe-js";
 
 const source = `
-  import { greet } from "custom";
-
-  const user = { profile: { name: "Ada" }, tags: ["admin", "builder"] };
-  const { profile: { name }, tags: [primaryTag] } = user;
-  const greeting = await greet(name);
-
-  return \`\${greeting} [\${primaryTag ?? "user"}] \${user.profile?.name}\`;
+  import { lookup } from "catalog";
+  const item = await lookup("pencil");
+  return item.price;
 `;
 
-const modules = {
-  custom: { greet: async (name) => `hello ${name}` }
-};
+const diagnostics = lint(source, { modules: { catalog: ["lookup"] } });
+if (diagnostics.some(diagnostic => diagnostic.severity === "error")) {
+  throw new Error(JSON.stringify(diagnostics));
+}
 
-const errors = lint(source, { modules: { custom: ["greet"] } }).filter(
-  (d) => d.severity === "error"
-);
-if (errors.length > 0) throw new Error(errors.map((d) => d.message).join("\n"));
-
-const result = await run(source, { modules });
-if (!result.ok) throw result.error;
-console.log(result.returnValue); // "hello Ada [admin] Ada"
-```
-
-That prints `"hello Ada [admin] Ada"`.
-
-## Harness files
-
-`runHarness(filepath, options)` loads a script from disk, lints it, then runs it.
-
-- `.safejs` and legacy `.ajs` files: the entire file is the script. Frontmatter is `{}`. The `harness` module is auto-excluded since there's nothing for it to surface.
-- `.md` files: YAML frontmatter is parsed; executable fenced blocks form one script in document order. If there is no executable fenced block, the entire markdown body is treated as script source.
-
-```ts
-import { makeHarnessModule, runHarness } from "poe-code/safe-js";
-
-const result = await runHarness("docs/plans/example.md", {
-  modulesFor: (frontmatter, meta) => ({
-    harness: makeHarnessModule(frontmatter, meta),
-    custom: { greet: (name) => `hello ${name}` }
-  }),
-  snapshotPath: ".cache/example.snapshot.json"
+const result = await run(source, {
+  modules: {
+    catalog: {
+      lookup: async name => {
+        if (name !== "pencil") throw new Error("Unknown item");
+        return { price: 2 };
+      }
+    }
+  },
+  budget: new Budget({ maxSteps: 10_000, maxCallDepth: 100 })
 });
+
+if (!result.ok) throw result.error;
+console.log(result.returnValue);
+// 2
 ```
 
-## API
+The lint registry describes exports; the runtime registry supplies their values. Both accept records or Maps. Module names are host-defined identifiers, not file paths or npm packages. Validate arguments and enforce permissions inside each host operation. Adding a function does not make its effects safe to replay.
 
-### `parse(source, filename?)`
+## Options
 
-Parses a single top-level expression or statement and returns an AST with source spans. Throws on parse errors or disallowed syntax.
+### Execution
 
-### `lint(source, options?)`
+`run(source, options?)` accepts:
 
-Returns diagnostics for the SafeJS subset and registered modules.
+| Option | Purpose / default |
+| --- | --- |
+| `bindings` | Global input values and host functions; none by default. |
+| `modules` | Module names mapped to export records or Maps; none by default. |
+| `budget` | A `Budget` instance. Without one, only the default call-depth limit of 1,000 is configured. |
+| `signal` | Host `AbortSignal` for cancellation. |
+| `filename` | Diagnostic filename; defaults to `<input>`. |
+| `entryPointArgs` | Arguments for invoking the default-exported function. Omit for top-level execution only. |
+| `importMeta` | Host-supplied fields exposed through `import.meta`. |
+| `sink` | Console destination with `log(...args)` and `error(...args)`; defaults to the host console. |
+| `otelSink` | Telemetry with `startSpan` and `recordException`; spans implement `setAttribute`, `addEvent`, and `end`. Optional; `noopOtelSink` is available. |
+| `randomSeed`, `random` | Seed for built-in `Math.random`, or a custom `{ next, seed, snapshot }` generator. `random` takes precedence. |
+| `clock` | Clock-state provider with `snapshot()` returning `{ next }` or `undefined`; not a replacement for host time. |
+| `snapshot` | Previously captured state to resume. |
+| `snapshotPath`, `snapshotBackend` | Checkpoint output file or custom backend (`read`, `write`, `remove`); backend takes precedence. Neither automatically loads state into `snapshot`. |
+| `snapshotIntervalMs` | Periodic checkpoint interval when persistence is configured: 30,000 ms; `0` disables periodic writes. Capture happens at interpreter yield points. |
+| `hostCallResumeProvider` | Reconciles pending external operations on restore; returns a matching `HostCallResumeProof`. |
 
-- `filename?` — used in diagnostics, defaults to `<input>`
-- `modules?` — registered module metadata used to validate `import` statements
+`new Budget(options?)` accepts optional limits. A custom budget replaces the default, so include `maxCallDepth` if you want that guard.
 
-Diagnostics cover parse errors, unknown modules and exports, import cycles, unknown identifiers, async-safety violations, subset-specific method restrictions, and warnings for unused bindings.
+| Option | Limit |
+| --- | --- |
+| `maxSteps` | Interpreter work counter. |
+| `deadline` | Absolute epoch milliseconds or a `Date`, not a duration. |
+| `maxCallDepth` | Nested interpreter calls. |
+| `stringLength`, `arrayLength` | Individual string and array lengths. |
+| `dataSize` | Retained sandbox data units, not bytes of process memory. |
 
-### Lint vs. runtime
+There are no runtime environment variables to set. `makeEnvModule({ allow, values? })` grants reads of names in `allow`; `values` supplies an explicit string map instead of reading the host's `process.env`. Disallowed reads throw `EnvAccessError`; allowed but unset names return `undefined`. Agent and MCP integrations may require their own credentials.
 
-Lint validates names and imports before runtime. By default it knows the built-in
-globals listed above, but it does not inspect `run({ bindings })` or host module
-objects. Pass `modules` when the script imports host modules, and pass
-`allowedGlobals` for any extra names you provide through `bindings`.
+<details>
+<summary>Linting, parsing, and value conversion</summary>
 
-The harness CLI mirrors its stub runtime by calling `lint(source, {
-allowedExportNames: ["schema"], filename, modules })`, where `modules` is derived
-from the example registry. `runHarness()` derives the same `modules` metadata from
-`modulesFor(frontmatter, meta)`. External editors or CI checks should use the
-same `filename`, `modules`, `allowedExportNames`, and any extra `allowedGlobals`
-as the runner they are mirroring.
+`lint(source, options?)` returns diagnostics with severity, code, message, filename, line, column, span, and optional fix/hint. With `fix: true`, it returns `{ diagnostics, fixed, fixes }` instead.
 
-### `run(source, options?)`
+| Option | Purpose |
+| --- | --- |
+| `filename`, `allowedGlobals` | Diagnostic filename and additional permitted global names. |
+| `modules` | Export-name lists, or `{ exports, filename?, source? }` descriptions. Typed `exports` map names to type strings or `{ type?, async? }`; source descriptions enable import-cycle checks. |
+| `allowedExportNames` | Permitted named exports. |
+| `defaultExport` | Expected entry point: `{ parameters?: string[], required?: boolean }`. |
+| `frontmatterFields` | Fields to check for unused harness configuration. |
+| `largeLiteralThreshold` | Threshold for large-literal diagnostics. |
+| `fix`, `fixRanges` | Apply available fixes, optionally restricted to source ranges. |
 
-Executes a script module. A fulfilled call returns one of these shapes:
+`parse(source, filename?)` parses a single statement/expression; `parseModule(source, filename?)` parses a module. `formatInterpreterError(error, { source?, filename?, hostCallName?, maxMessageLength? })` formats an error; `(source, diagnostic)` is also supported.
 
-- `{ ok: true, returnValue?, snapshot, stats }` on success
-- `{ ok: false, error, snapshot, stats }` for a returned interpreter diagnostic
+`deepCopyToSandbox(value)` and `deepCopyFromSandbox(value, { wrapClosure? })` convert supported values. `wrapClosure` lets the host choose how to represent an exported sandbox function. Not every native JavaScript object is convertible.
 
-The `run()` promise can also reject, including for application throws and API failures. Handle both channels: catch rejection around `await run(...)` and check `result.ok` when it fulfills. Source shape can affect the failure channel; lint acceptance does not establish runtime support. A guest return value such as `{ ok: false }` is application data and can appear inside an API result with `ok: true`; inspect `returnValue` separately.
+</details>
 
-Options: `bindings`, `budget`, `modules`, `randomSeed`, `signal`, `snapshot` (prior snapshot), `snapshotIntervalMs`, `snapshotPath`, `sink`.
+<details>
+<summary>Optional host modules</summary>
 
-### `dump(resultOrPromise, { mode?, onFailure? })`
+Factories return exports to register in `modules`; calling a factory alone does not grant access.
 
-Serializes a snapshot to formatted JSON. Accepts a completed `RunResult` or the original `run()` promise. The default `mode: "capture"` requests the next yield and rejects capture while an injected host call is active. An external caller can use `mode: "replay"` to capture the latest yielded replay checkpoint during a pending host call; it does not serialize the live host operation. After rejection, `{ onFailure: "checkpoint" }` requests current replay state without changing the failure. See [external checkpoint rules](CHECKPOINT_REPLAY.md#external-checkpoints-during-host-waits) and [RECOVERY.md](RECOVERY.md).
+| Factory | Configuration and capabilities |
+| --- | --- |
+| `makeAgentModule(spawnAgent, options?)` | Inject the agent runner. Options: `defaultRetry`, `onEvent`, `otelSink`. Exposes `spawn`, `spawn.retry`, and `spawn.parallel`; call options follow this table. |
+| `makeMcpModule(options)` | Required `servers` map: stdio `{ command, args?, cwd?, env? }` or HTTP `{ url, headers? }`. Options: `requestTimeoutMs` (30,000), `closeTimeoutMs` (1,000), `maxToolPages` (100), `signal`, and injected `fetch`/`spawn`. Named clients expose `tools`, `tool`, `toolBatch`, and `close`; close managed clients when finished. A custom connector function is also accepted. |
+| `makeFsModule(options?)` | Node-backed `{ root?, fs? }`, or shared-filesystem `{ adapter, root?, cwd?, signal? }`; do not combine `fs` and `adapter`. Node access without `root` is unconfined. With an adapter, `root` confines access and `cwd` selects the virtual relative-path base; without `root`, explicit `cwd` also confines access. Omitting both uses virtual `/`. Read text with `readFile(path, "utf8")`; see the [module methods](src/modules/fs.ts) and [filesystem package](../safe-fs/README.md). |
+| `makeEnvModule(namesOrOptions)` | Allowed-name array or `{ allow, values? }`; exposes `get(name)`. `parseEnvConfig(json)` accepts the object form. |
+| `makeTimeModule(options?)` | `now`, `random`, `seed`, `signal`; exposes `now`, `random`, `sleep`, `uuid`. Defaults to host time/randomness; `seed` makes the random generator deterministic, and explicit `random` takes precedence. |
+| `makeLogModule(sink)` | Sends timestamped `info`, `error`, and `event` entries to your callback. |
+| `makeMetricModule(npmRunner)` | Runs `metric:<name>` through your callback; reads the final nonempty stdout line as a finite numeric score. |
+| `makeHarnessModule(frontmatter, meta)` | `meta` is `{ kind, version, filepath }`. Exposes `tasks`, `agents`, `meta`, and `applyConstraints`; prompt constraints come from frontmatter `principles` and `constraints`. |
+| `makeFailModule()` | Exposes a default function that throws a harness failure. No options. |
 
-### `restore(snapshot, { source })`
+**Agent calls.** A definition is a name or `{ agent, prompt?, model?, mode?, cwd?, mcp? }`. `spawn(definition, options)` requires `prompt` and accepts `check` (default `false`), `label`, `model`, `mode`, `cwd`, `mcp`, `otelSink`, `timeoutMs`, and `signal`. Modes are `read`, `edit`, `auto`, and `yolo`, subject to provider support. `mcp` maps server names to `{ command, args?, env?, timeout? }`.
 
-Validates a stored snapshot against the current source via `sourceHash`. Returns it unchanged on match, throws on mismatch. For changed source or supported older execution semantics, use the explicit `inspectSnapshotMigration()` / `migrateSnapshot()` continuation workflow in [MIGRATION.md](MIGRATION.md).
+`spawn.retry(definition, options, retryOptions)` and `defaultRetry` use `{ maxAttempts, backoffMs, isErrorRetryable?, isRetryable? }`. `spawn.parallel(calls, options?)` accepts definition/options tuples or spawn-handle factories; options are `check`, `maxConcurrent`, `failFast`, and `signal`. Usage helpers are `createSpawnUsageAccumulator()` and `runWithSpawnUsageAccumulator(accumulator, operation)`.
 
-New runs use `jobs-v7`. Genuine `jobs-v6` snapshots retain v6 execution semantics on restore and later dumps; this compatibility does not retroactively repair historically broken raw-Promise v6 captures. Never rewrite version markers to force replay. See [execution compatibility](CHECKPOINT_REPLAY.md#execution-compatibility).
+**Config files.** `parseMcpConfig(json, directory)` accepts `servers` and the three numeric MCP limits, resolving stdio paths against `directory`. `parseFsConfig(json)` accepts `{ adapter: { type, options }, root?, cwd? }`; `resolveFsConfig(config, { registry? })` constructs the adapter for `makeFsModule`. Built-in types are `memory` and `real`; `real` requires an absolute host `options.root`. Outer `root`/`cwd` are absolute virtual paths. Custom registry descriptors supply `validateOptions` and `create`. Signals and injected functions are SDK options, not JSON fields.
 
-Raw `SnapshotBackend.write(snapshot)` inputs have shallow bindings: nested references can change after capture while copied primitives need not. Use public `dump`/`restore` artifacts for portable replay. Already serialized bytes cannot be changed by later source mutations, but a subsequent dump can differ, including in outer legacy projections. Tested canonical replay graphs and native observations remain intact despite real legacy function-marker alias/name loss; this is not universal whole-dump stability. See [raw views and serialized checkpoints](CHECKPOINT_REPLAY.md#raw-views-and-serialized-checkpoints).
+</details>
 
-### `runHarness(filepath, options)`
+<details>
+<summary>Checkpoints and recovery</summary>
 
-Loads, lints, and runs a harness file.
+- `dump(resultOrRunningPromise, { mode?, onFailure? })` returns checkpoint JSON. `mode` is `capture` or `replay`; `onFailure` is `throw` or `checkpoint`.
+- `restore(snapshot, { source })` validates state for compatible source; pass it as `run`'s `snapshot` option. It does not run the program.
+- `new FileSnapshotBackend(path, { writeMaxAttempts?, writeRetryDelayMs? })` defaults to 3 write attempts and a 100 ms retry delay.
+- `createReplayableRandom({ seed?, snapshot? })` supplies `next`, `seed`, `snapshot`, and `restore` for reproducible random sequences.
+- `declareHostOperation(fn, policy, { onReplay? })` declares `re-issue` or `read-side-effect` recovery policy. `registerPendingHostCallPolicy({ moduleId, operation, policy })` registers it by name. Only mark operations re-issuable when repeating them is acceptable; a declaration does not implement deduplication or external recovery.
+- `inspectSnapshotMigration(snapshot, { source })` inspects outstanding work. `migrateSnapshot(snapshot, { source, targetSource, state, reconciliation })` creates a continuation checkpoint. Reconciliation supplies `checkpointDigest`, `quiescent`, and `calls`; each call has `callId` and disposition `not-performed`, `fulfilled` with `value`, or `rejected` with `reason`.
+- `migrateSnapshotFile(options)` accepts `snapshotPath`, `sourcePath`, `targetSourcePath`, `planPath`, `outputPath`, `inspect`, `dryRun`, and `cwd`. Inspect mode needs the checkpoint and original source; migration also needs the target, plan, and new output path. See [continuation migration](MIGRATION.md) before changing a checkpointed program.
 
-- `modulesFor(frontmatter, meta)` — returns the module registry for that file
-- `signal?`, `snapshotPath?`
+</details>
 
-`LintError` is thrown before execution if lint reports errors.
+<details>
+<summary>Harness files and command line</summary>
 
-## Adding a custom module
+`runHarness(filepath, options)` reads `.safejs`, `.ajs`, or Markdown executable blocks. Required `modulesFor(frontmatter, { filepath, kind, version })` supplies capabilities. Optional fields: `budget`, `otelSink`, `signal`, `snapshotBackend`, `snapshotIntervalMs`, `snapshotPath`.
 
-1. Build a host object exposing the values or async functions the script should see.
-2. Register it under a name in `run({ modules })`.
-3. Mirror the same name and exported names in `lint({ modules })` if you lint separately.
-4. For explicit boundary copying, use `deepCopyToSandbox` / `deepCopyFromSandbox`.
+`runHarnessPair(filepath, options)` uses the same options for a Markdown/`.ajs` pair. The script exports a default arrow function accepting `frontmatter`; Markdown body and metadata are available through `import.meta`. Loader helpers are `splitFrontmatter(markdown)`, `extractBlock(markdown, startLine?)`, and `findExportedConstInitializer(module, name)`.
 
-`deepCopyFromSandbox` preserves repeated references to the same admitted sandbox regex as one native `RegExp` within that copy; equal-but-distinct regexes and separate copy calls remain distinct. This per-copy identity contract does not imply whole native graph or prototype equality.
+The bundled runner is `npx poe-safe-js <script.md|script.safejs|script.ajs>` (`poe-safejs` is an alias). It lints before execution and uses **stub agents and metrics**, not real agent runs. Try the [pipeline](examples/pipeline.md), [superintendent](examples/superintendent.md), or [experiment](examples/experiment.md) shapes; use your own host modules or `poe-code harness run` for real integrations.
 
-For external recovery of a pending host call, match the genuine `hostCallResumeProvider` request and supply its real outcome and required callback disposition. Convert a reconstructed source-function callback result with that active invocation's `context.toSandboxValue`, after awaiting the appropriate `context.replayed` result. The generic copier rejects native functions; the context converter is not a general function importer and rejects adapters from another invocation. Conversion does not invoke the returned source function or replace callback identity/order evidence. See [external reconciliation](CHECKPOINT_REPLAY.md#external-reconciliation).
+| Flag | Purpose |
+| --- | --- |
+| `--fix` | Write available lint fixes before running. |
+| `--fs`, `--fs-root <path>` | Enable real filesystem access, rooted at the script directory by default. `--fs-root` requires `--fs`. |
+| `--fs-config <path>` | Filesystem JSON config; cannot be repeated or combined with `--fs`/`--fs-root`. |
+| `--env-config <path>`, `--mcp-config <path>` | Explicit environment/MCP JSON grants. These integrations are real, not stubs. |
+| `--snapshot <path>`, `--restore <path>` | Save state or load a checkpoint; interrupt capture is best-effort. |
+| `--max-steps <n>`, `--data-size <n>` | Interpreter budget limits. |
+| `-h`, `--help` | Usage and exit codes. |
 
-The runtime accepts plain objects or `Map`s at both levels:
+`migrate` takes a checkpoint path plus `--from`, and either `--inspect` or `--to`, `--plan`, `--output`, with optional `--dry-run`.
 
-```ts
-const modules = new Map([["custom", new Map([["hello", (name: string) => `hello ${name}`]])]]);
-```
+For embedding, `runCli(argv, options?)` comes from `poe-code/safe-js/cli`. Options: `cwd`, `env`, `mcp`, `modulesFor`, `process`, `readFile`, `stat`, `stdout`, `stderr`, `writeFile`. Its `modulesFor` callback also receives `{ stdout, stderr }`. Do not combine SDK `env`/`mcp` options with their config-file flags.
 
-For lint, an export list is enough when cycle diagnostics are not needed:
+</details>
 
-```ts
-const lintModules = { custom: ["hello"] };
-```
+## Meaningful limitations
 
-Source-backed modules (used to detect cross-module cycles) take a richer shape:
-
-```ts
-const lintModules = {
-  custom: { exports: ["hello"], filename: "/repo/custom.ajs", source: "…" }
-};
-```
-
-`AS-IMPORT-CYCLE` only runs against source-backed modules. External tooling that
-wants cycle diagnostics must pass each module with `filename` and `source`; a
-bare export-list registry such as `{ custom: ["hello"] }` remains valid for
-import/export validation, but cycle detection is a no-op because the linter has
-no module bodies to inspect.
-
-## Gotchas
-
-- **Ordinary restore is source- and execution-pinned.** Formatting-only changes can remain compatible; structural or execution-semantics changes require an explicit continuation migration. Inspect the old checkpoint, reconcile outstanding operations, select application state, and create a new checkpoint with `migrateSnapshot()` or `harness migrate`; see [MIGRATION.md](MIGRATION.md). No old frames or effects execute during migration.
-- **Budgets remain host-controlled.** Exhaustion throws fatal `SandboxError`; the host can explicitly capture a current failure checkpoint and resume with a larger budget. Replay work is charged again, unsupported state can prevent recovery, and pending effects require reconciliation; see [RECOVERY.md](RECOVERY.md).
-- **Regex compilation has its own checks.** Pattern/flag preflight and owned syntax-tree depth, work and allocation checks cover literals before VM entry, `RegExp` construction, implicit clones, reconstruction/replay and native export. Fixed compiler ceilings and lower existing `Budget` limits apply; exhaustion throws fatal `SandboxError`. Physical recompilation consumes allowances even when logical replay counters are unchanged, so equal tight budgets need not accept both the original execution and reconstruction. There are no new public options, environment variables or CLI flags. These checks add no native matching fallback and are not a universal native-CPU, resource or security guarantee.
-- **Compilation ownership limits reuse.** An idle `Budget` supports sequential reuse. Standalone interpretation does not reset its spent allowances; `run()` retains its existing per-run reset. Independent overlapping use of the same Budget, or reset while it is active, rejects with `SandboxError` code `reentry`. A new restriction applies to exported host-callable wrappers: once their Budget generation is reset or reused by a new run, invoking an old wrapper also rejects with `reentry`.
-- **Raw regex cursor compatibility is incomplete.** Guest `lastIndex` assignment currently applies `Number(value)` rather than retaining the raw value. Raw string preservation and object-cursor identity/coercion ordering, including frozen cases, remain open gaps; the conditional-write `search` repair does not resolve them or establish full native cursor parity.
-- **Old captures cannot recover lost data.** A Map capture that already split shared callable identities lacks the information needed to reconstruct the original alias. Preserve the artifact and reconcile application state before an authorized reset or migration; current replay is not a retroactive repair. See [collection identity](CHECKPOINT_REPLAY.md#collection-identity-and-older-captures).
-- **Old argument digests may require reset.** In tested plain/nested-object cases, current host argument digest construction does not call source `toJSON`; old captures whose digest depended on that call refuse with reset required before host re-issue or proof-provider execution. The tested old named-array control still replays. This is not a rule for every old capture or a universal non-invocation guarantee. Reconcile prior effects before restarting; see [argument digests](CHECKPOINT_REPLAY.md#argument-digests-and-source-tojson).
-
-## What's intentionally limited
-
-- No user-defined classes or prototype chains.
-- No async generators. Synchronous source generators can be reconstructed from source and replay history, including a suspended source loop; opaque host iterators and native generator frames are not serialized. Checkpoint timing and host recovery still apply; see [synchronous source generators](CHECKPOINT_REPLAY.md#synchronous-source-generators).
-- Regex support covers common literals, `RegExp`, and string methods with flags `g`, `i`, `m`, and `s`. Other flags, including `u` and `y`, are rejected. Backreferences, lookaround, named groups, and Unicode property escapes are separate unsupported syntax.
-- Binary `in` is unsupported even when lint accepts it. For an own-property check, use `Object.hasOwn(object, key)`; it does not implement prototype-chain membership. Handle both `run()` failure channels described above.
-- No network or process modules in the box. Build them as host modules with the surface you want to expose. The bundled `fs` module is off until registered, and a narrower module is preferable when a harness only needs a few paths.
-- No multi-file imports — a script is a single module body. Compose by registering more modules.
-
-## Environment Variables
-
-This package does not read package-level environment variables. `makeEnvModule(allowList)` grants exact named reads from `process.env`; `{ allow, values }` supplies explicit values without ambient fallback. Both CLIs register it only with `--env-config`. Denied reads throw `ENV_ACCESS_DENIED`; granted missing values return `undefined`. See [ENV.md](./ENV.md) for configuration, CLI/SDK parity, and secret-bearing checkpoint handling. `parse`, `lint`, `run`, `dump`, `restore`, `runHarness`, and `makeFsModule` do not read environment variables on their own.
-
-## Configuration
-
-This package does not read package-level config files. Runner options come through the call sites:
-
-- `lint({ filename, modules, fix, fixRanges })`
-- `run({ bindings, budget, modules, randomSeed, signal, snapshot, snapshotIntervalMs, snapshotPath, sink })`
-- `runHarness({ modulesFor, signal, snapshotPath })`
-- `makeFsModule({ root, fs, adapter, cwd, signal })` — an explicit `root` confines every path argument, while adapter-only `cwd` independently selects the absolute virtual relative-path base. Without `root`, adapter `cwd` also becomes the confinement boundary; omitting both uses virtual `/`. `fs` injects a Node-shaped implementation, defaulting to `node:fs/promises`; alternatively, `adapter` supplies a shared `FileSystem` instance from the public `poe-code/safe-fs` entry (the `@poe-code/safe-fs` workspace is private). Supplying both rejects. Omitted `cwd` retains rooted defaults. Relative adapter roots remain anchored at `/`, not at `cwd`. The optional host `signal` is supplied directly to this SDK factory, never through JSON. Node-backed paths and roots keep their host-working-directory semantics and remain unconfined when `root` is omitted. Registering the returned module under a name in `run({ modules })` is what gives a script a filesystem at all.
-
-`poe-safe-js` exposes the Node-backed module through `--fs` and `--fs-root <path>`; `poe-code harness run` exposes the same pair, rooted at the harness directory by default. These flags retain their existing host-path behavior, including legacy worktree mapping. Both CLIs use the shared SDK helpers for `--fs-config`: `parseFsConfig(json)` validates the JSON envelope, virtual root, and virtual `cwd` without I/O; `resolveFsConfig(config, { registry? })` validates adapter options and constructs the adapter, preserving omitted `root` and `cwd` rather than adding defaults. Register `makeFsModule(await resolveFsConfig(config))` in an SDK module registry for the same access. The initial Node registry contains `memory` and `real`. An optional caller `ReadonlyMap` adds named descriptors with synchronous, I/O-free `validateOptions(options)` and an existing `FileSystemFactory`-compatible `create(options)` binding; duplicate built-in names reject. Wrapper and remote adapters can use these bindings without CLI backend branches, but are not additional built-in JSON adapters in this slice. No credentials or executable modules are loaded implicitly. These helpers configure Node filesystem access; neither virtual confinement nor backend capability flags establish an OS sandbox or grant browser access to a machine directory. A custom CLI `modulesFor` registry may add other modules, but cannot replace an explicitly configured `fs` module.
+- **Not a full JavaScript engine.** No user-defined classes/prototype chains, async generators, dynamic imports, or automatic multi-file/npm resolution. No browser build, DOM, general Node API, `eval`, or `Function` constructor. Built-in coverage is selective; lint success is not a runtime compatibility guarantee.
+- **Some familiar syntax differs.** Binary `in` is unsupported; use `Object.hasOwn(object, key)` for own-property checks. Regex supports `g`, `i`, `m`, and `s`, but not lookaround, backreferences, named groups, Unicode property escapes, or other flags. Compilation and matching have fixed limits in addition to configured budgets.
+- **Budgets are not hard resource isolation.** Limits govern interpreter work, not arbitrary host functions or total process memory. Deadlines are checked cooperatively; cancellation cannot forcibly stop a blocking host call or undo its effects. Add host-operation timeouts and external isolation where required.
+- **Recovery is not exactly-once delivery.** Replay can repeat work and consumes budget again. Pending side effects need external reconciliation; opaque host handles and native iterator frames are not portable checkpoint state. Keep compatible source for ordinary restore or explicitly migrate. Checkpoints can contain input data and host results: store them as sensitive data.
+- **Filesystem access is a grant, not an OS sandbox.** The helper is a subset of `node:fs/promises`, with text-oriented results and no file handles, streams, or Buffer API. Root checks do not isolate the process from concurrent filesystem changes. Prefer narrow host operations when a script only needs a few files.

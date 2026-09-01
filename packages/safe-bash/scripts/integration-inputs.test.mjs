@@ -92,6 +92,7 @@ function assertSource7Discovery(files) {
     "tests/integrations/safejs/published-replay.test.ts",
   ];
   for (const path of [
+    "tests/commands/node-safejs.test.ts",
     "tests/contracts/value.test.ts",
     "tests/shell/value-state.test.ts",
     "tests/shell/byte-values.test.ts",
@@ -1479,7 +1480,7 @@ test("published root mirrors only declared subpaths and keeps the feature isolat
     key === "." ? "./safe-bash" : `./safe-bash${key.slice(1)}`,
     Object.fromEntries(Object.entries(conditions).map(([condition, target]) => [condition, `./packages/safe-bash${target.slice(1)}`])),
   ]));
-  assert.deepEqual(Object.fromEntries(Object.entries(root.exports).filter(([key]) => key.startsWith("./safe-bash"))), expected);
+  assert.deepEqual(Object.fromEntries(Object.entries(root.exports).filter(([key]) => key === "./safe-bash" || key.startsWith("./safe-bash/"))), expected);
   assert.equal(root.exports["./safe-bash/*"], undefined);
   assert.equal(root.engines.node, ">=18.18");
   assert.equal(source.engines.node, ">=22");

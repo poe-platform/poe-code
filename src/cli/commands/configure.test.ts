@@ -48,6 +48,7 @@ function createContainer(
 function createBaseProgram(): Command {
   const program = new Command();
   program.exitOverride();
+  program.configureOutput({ writeErr: vi.fn() });
   program.name("poe-code").option("-y, --yes").option("--dry-run");
   return program;
 }

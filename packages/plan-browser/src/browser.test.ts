@@ -1,4 +1,4 @@
-import { afterEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { Volume, createFsFromVolume } from "memfs";
 import { resolveConfigPath, resolveProjectConfigPath } from "@poe-code/poe-code-config";
 import type { ActionContext, Row } from "toolcraft-design";
@@ -85,6 +85,10 @@ function restoreStdinTTY(): void {
 
   Object.defineProperty(process.stdin, "isTTY", stdinTTYDescriptor);
 }
+
+beforeEach(() => {
+  vi.spyOn(process.stdout, "write").mockImplementation(() => true);
+});
 
 afterEach(() => {
   restoreStdinTTY();

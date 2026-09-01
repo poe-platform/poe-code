@@ -1,6 +1,6 @@
 import { createHash } from "node:crypto";
 import { fileURLToPath } from "node:url";
-import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, onTestFinished, vi } from "vitest";
 import { vol } from "memfs";
 import { S } from "toolcraft-schema";
 import {
@@ -616,6 +616,8 @@ describe("runCLI", () => {
   });
 
   it("accepts explicit argv without mutating process argv", async () => {
+    const stdout = vi.spyOn(process.stdout, "write").mockReturnValue(true);
+    onTestFinished(() => stdout.mockRestore());
     const handler = vi.fn(async (ctx: { params: { name: string } }) => ctx.params.name);
     const deploy = defineCommand({
       name: "deploy",

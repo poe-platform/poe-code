@@ -389,6 +389,7 @@ describe("mcp proxy integration", () => {
     process.argv = [...originalArgv];
     process.exitCode = undefined;
     delete process.env.TOOLCRAFT_MCP_REFRESH;
+    vi.spyOn(process.stderr, "write").mockImplementation(() => true);
   });
 
   afterEach(async () => {

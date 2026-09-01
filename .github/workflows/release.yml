@@ -19,12 +19,12 @@ jobs:
   release-stable:
     runs-on: ubuntu-24.04
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7.0.1
         with:
           ref: ${{ github.sha }}
           fetch-depth: 0
           persist-credentials: false
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v7.0.0
         with:
           node-version: 22
       - run: npm clean-install
@@ -38,7 +38,7 @@ jobs:
       - run: npm run smoke
       - name: Generate GitHub App token
         id: app_token
-        uses: actions/create-github-app-token@v1
+        uses: actions/create-github-app-token@v3.0.0
         with:
           app-id: ${{ secrets.POE_CODE_AGENT_APP_ID }}
           private-key: ${{ secrets.POE_CODE_AGENT_PRIVATE_KEY }}

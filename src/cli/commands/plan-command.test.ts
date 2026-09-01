@@ -897,6 +897,7 @@ describe("plan command", () => {
   });
 
   it("previews archiving a plan without moving its file", async () => {
+    const stdout = vi.spyOn(process.stdout, "write").mockReturnValue(true);
     const fs = createMemFs({
       "/repo/docs/plans/plan-a.md": "# Plan"
     });
@@ -921,9 +922,11 @@ describe("plan command", () => {
 
     await expect(fs.readFile("/repo/docs/plans/plan-a.md", "utf8")).resolves.toBe("# Plan");
     await expect(fs.readFile("/repo/docs/plans/archive/plan-a.md", "utf8")).rejects.toThrow();
+    expect(stdout).toHaveBeenCalledWith("Would archive docs/plans/plan-a.md\n");
   });
 
   it("previews deleting a plan without removing its file", async () => {
+    const stdout = vi.spyOn(process.stdout, "write").mockReturnValue(true);
     const fs = createMemFs({
       "/repo/docs/plans/plan-a.md": "# Plan"
     });
@@ -947,6 +950,7 @@ describe("plan command", () => {
     ]);
 
     await expect(fs.readFile("/repo/docs/plans/plan-a.md", "utf8")).resolves.toBe("# Plan");
+    expect(stdout).toHaveBeenCalledWith("Would delete docs/plans/plan-a.md\n");
   });
 
   it("does not archive a plan when confirmation is declined", async () => {

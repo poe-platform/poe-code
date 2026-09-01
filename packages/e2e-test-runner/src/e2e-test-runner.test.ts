@@ -1247,8 +1247,14 @@ describe('parseProxyConfigFromArgs', () => {
 
 describe('runProxyCli', () => {
   it('returns success for --help', async () => {
-    const exitCode = await runProxyCli(['--help']);
-    expect(exitCode).toBe(0);
+    const stdout = vi.spyOn(process.stdout, 'write').mockReturnValue(true);
+    try {
+      const exitCode = await runProxyCli(['--help']);
+      expect(exitCode).toBe(0);
+      expect(stdout).toHaveBeenCalled();
+    } finally {
+      stdout.mockRestore();
+    }
   });
 
   it('starts proxy server with parsed config from flags', async () => {

@@ -15,16 +15,26 @@ function existsFor(paths: string[]): (target: string) => boolean {
 }
 
 describe("postinstall skill sync planner", () => {
-  it("skips during CI without touching the filesystem", () => {
+  it.each(["1", "true"])("skips during CI=%s without touching the filesystem", (ci) => {
     const exists = vi.fn(() => {
       throw new Error("exists should not be called");
     });
 
-    expect(createPostinstallSkillSyncPlan({ env: { CI: "1" }, exists })).toEqual({
+    expect(createPostinstallSkillSyncPlan({ env: { CI: ci }, exists })).toEqual({
       action: "skip",
       reason: "ci"
     });
     expect(exists).not.toHaveBeenCalled();
+  });
+
+  it.each([undefined, "", "0", "false"])("syncs when CI=%s is disabled", (ci) => {
+    expect(
+      createPostinstallSkillSyncPlan({
+        env: { CI: ci },
+        exists: existsFor([syncScript, tsxCli]),
+        root: repoRoot
+      }).action
+    ).toBe("spawn");
   });
 
   it("skips when skill sync is explicitly disabled", () => {

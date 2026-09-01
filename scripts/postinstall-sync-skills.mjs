@@ -13,7 +13,7 @@ export function createPostinstallSkillSyncPlan(options = {}) {
   const platform = options.platform ?? process.platform;
   const repoRoot = options.root ?? root;
 
-  if (env.CI === "1") {
+  if (env.CI && env.CI !== "0" && env.CI !== "false") {
     return { action: "skip", reason: "ci" };
   }
   if (env.SKIP_SYNC_SKILLS === "1") {

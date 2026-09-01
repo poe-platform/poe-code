@@ -274,7 +274,8 @@ describe("real safe-bash browser kernel", () => {
     const plugin = safeBashBrowserPlugin();
     const watched: string[] = [];
     const id = plugin.resolveId("virtual:safe-bash-kernel");
-    await plugin.load.call({ addWatchFile: (path: string) => watched.push(path) }, id);
+    const entry = await plugin.load.call({ addWatchFile: (path: string) => watched.push(path) }, id);
+    expect(entry.length).toBeLessThan(4096);
     expect(watched.some((path) => path.endsWith("/engine/platform.ts"))).toBe(true);
     expect(watched.some((path) => path.endsWith("/engine/path.ts"))).toBe(true);
     expect(watched.some((path) => path.endsWith("/engine/worker-context.mjs"))).toBe(true);

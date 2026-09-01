@@ -23,7 +23,7 @@ for (const profile of evidence.profiles) {
     const expected = frozen.rows[index]!.observation;
     rows.push({ cohort, fixture, expected, native, actual, nativeStable: isDeepStrictEqual(native, expected), pass: isDeepStrictEqual(actual, expected) });
   }
-  const resourceArgs = ["--unhandled-rejections=strict", "--import", "tsx", "--test", "--test-concurrency=1", fileURLToPath(new URL("../../../tests/shell-stress/diagnostic-profiles/resources.test.ts", import.meta.url))];
+  const resourceArgs = ["--unhandled-rejections=strict", "--import", "tsx", "--test", "--test-concurrency=1", fileURLToPath(new URL("./resources.ts", import.meta.url))];
   const resource = await isolatedSpawn(process.execPath, resourceArgs, {
     cwd: root, env: { ...process.env, VIRTUAL_BASH_DIAGNOSTIC_PROFILE: profile.name }, timeout: 120000, maxBuffer: 4 * 1024 * 1024,
   });

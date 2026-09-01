@@ -185,6 +185,7 @@ describe("standalone package publish metadata", () => {
       "./credentials",
       "./memory",
       "./safe-bash",
+      "./safe-bash-mcp",
       "./safe-bash/commands/apply-patch",
       "./safe-bash/commands/archive",
       "./safe-bash/commands/column",
@@ -239,6 +240,7 @@ describe("standalone package publish metadata", () => {
       "poe",
       "poe-agent",
       "poe-code",
+      "poe-safe-bash-mcp",
       "poe-safe-js",
       "poe-safejs",
       "poe-superintendent-mcp"

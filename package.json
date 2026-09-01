@@ -507,7 +507,8 @@
     "vitest": "^3.2.6",
     "@poe-code/safe-js": "*",
     "virtual-bash": "*",
-    "poe-code": "file:."
+    "poe-code": "file:.",
+    "safe-bash-mcp": "*"
   },
   "repository": {
     "type": "git",

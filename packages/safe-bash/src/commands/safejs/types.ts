@@ -15,6 +15,7 @@ export interface SafeJsBudgetOptions {
 }
 
 export interface SafeJsRunOptions<Budget> {
+  readonly bindings?: SafeJsModule;
   readonly budget: Budget;
   readonly filename: string;
   readonly modules: Record<string, SafeJsModule>;

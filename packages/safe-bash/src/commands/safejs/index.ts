@@ -3,13 +3,24 @@ import { makeSafeJsFsModule } from "../../integrations/safejs/index.js";
 import { record, withSignal } from "../../integrations/safejs/values.js";
 import { pathOf, UsageError } from "../internal.js";
 import { GuestInput, GuestOutput } from "./io.js";
-import { commandLimits, defaultSafeJsLimits, invocation } from "./options.js";
+import { commandLimits, defaultSafeJsLimits, invocation, type Invocation } from "./options.js";
 import { SafeJsCommandLimitError, type SafeJsCommandsOptions, type SafeJsModule, type SafeJsRuntime } from "./types.js";
 
 export { defaultSafeJsLimits, SafeJsCommandLimitError };
 export type { SafeJsBudgetOptions, SafeJsCommandLimits, SafeJsCommandsOptions, SafeJsHostFunction, SafeJsHostValue, SafeJsModule, SafeJsRunOptions, SafeJsRunResult, SafeJsRuntime } from "./types.js";
 
 const help = "Usage: safejs [-p|--print] [-e SOURCE [--] ARG... | FILE ARG... | - ARG...]\nNo source operand reads SafeJS source from stdin. Inline/file source leaves stdin for guest data.\n-p prints the returned string or JSON value followed by LF; this is not Node.js.\nGuest modules: fs, stdio, command. A host-injected SafeJS runtime is required.\n";
+
+export interface SafeJsCommandDialect {
+  readonly name: string;
+  readonly description: string;
+  readonly help: string;
+  readonly invocation: (args: readonly string[]) => Invocation;
+  readonly prepare?: (source: string, selected: Invocation, modules: Record<string, SafeJsModule>) => {
+    readonly source: string;
+    readonly bindings: SafeJsModule;
+  };
+}
 
 function errorInfo(error: unknown): { name: string; code: string; message: string } {
   if (typeof error === "string") return { name: "Error", code: "", message: error };
@@ -28,24 +39,26 @@ function validateRuntime<Budget>(runtime: SafeJsRuntime<Budget> | undefined): vo
   }
 }
 
-export function createSafeJsCommands<Budget = unknown>(options: SafeJsCommandsOptions<Budget> = {}): readonly CommandDefinition[] {
+export function createSafeJsCommands<Budget = unknown>(options: SafeJsCommandsOptions<Budget> = {}, dialect: SafeJsCommandDialect = {
+  name: "safejs", description: "Execute an injected SafeJS interpreter against the virtual filesystem", help, invocation,
+}): readonly CommandDefinition[] {
   const limits = commandLimits(options.limits);
   const runtime = options.runtime;
   validateRuntime(runtime);
-  return [{ name: "safejs", description: "Execute an injected SafeJS interpreter against the virtual filesystem", async execute(context) {
+  return [{ name: dialect.name, description: dialect.description, async execute(context) {
     const deadline = Date.now() + limits.timeoutMs;
     const diagnose = async (message: string): Promise<void> => {
       const diagnostic = new AbortController();
       const timer = setTimeout(() => diagnostic.abort(), Math.max(1, Math.min(limits.timeoutMs, deadline - Date.now())));
-      try { await writeBytes(context.stderr, Buffer.from(`safejs: ${message.slice(0, 4096)}\n`), AbortSignal.any([context.signal, diagnostic.signal])); }
+      try { await writeBytes(context.stderr, Buffer.from(`${dialect.name}: ${message.slice(0, 4096)}\n`), AbortSignal.any([context.signal, diagnostic.signal])); }
       catch (error) { context.signal.throwIfAborted(); if (!diagnostic.signal.aborted) throw error; }
       finally { clearTimeout(timer); }
     };
     let parsed;
-    try { parsed = invocation(context.args); }
+    try { parsed = dialect.invocation(context.args); }
     catch (error) { await diagnose(errorInfo(error).message); return { exitCode: 2 }; }
     context.signal.throwIfAborted();
-    if (parsed.help) { await writeBytes(context.stdout, Buffer.from(help), context.signal); return { exitCode: 0 }; }
+    if (parsed.help) { await writeBytes(context.stdout, Buffer.from(dialect.help), context.signal); return { exitCode: 0 }; }
     if (!runtime) { await diagnose("runtime not installed; inject run, createBudget, makeFsModule and declareHostOperation"); return { exitCode: 127 }; }
     const controller = new AbortController();
     const signal = AbortSignal.any([context.signal, controller.signal]);
@@ -100,8 +113,10 @@ export function createSafeJsCommands<Budget = unknown>(options: SafeJsCommandsOp
       };
       const budget = runtime.createBudget({ maxSteps: limits.maxSteps, deadline,
         maxCallDepth: limits.maxCallDepth, stringLength: limits.stringLength, arrayLength: limits.arrayLength, dataSize: limits.dataSize });
-      const result = record(await withSignal(signal, () => runtime.run(source, {
-        budget, filename, modules: { fs: makeSafeJsFsModule(runtime.makeFsModule, context.fs, { cwd: context.cwd, signal }), stdio, command }, signal,
+      const modules = { fs: makeSafeJsFsModule(runtime.makeFsModule, context.fs, { cwd: context.cwd, signal }), stdio, command };
+      const prepared = dialect.prepare?.(source, { ...parsed, file: filename }, modules);
+      const result = record(await withSignal(signal, () => runtime.run(prepared?.source ?? source, {
+        budget, filename, modules, signal, ...(prepared ? { bindings: prepared.bindings } : {}),
         sink: { log: (...args) => output.console(args, false), error: (...args) => output.console(args, true) },
       })), "SafeJS run result");
       signal.throwIfAborted();

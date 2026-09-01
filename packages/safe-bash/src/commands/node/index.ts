@@ -6,34 +6,34 @@ import { invocation } from "./cli.js";
 import { NodeHost } from "./host.js";
 import { NodeOwner } from "./lifecycle.js";
 import { buildNodeProgram } from "./program.js";
-import { NODE_PROFILE, NodeProfileError, NodeUsageError, nodeLimits, type NodeCommandOptions, type NodeCompletion, type NodeGrants, type NodeHostServices, type NodeReason, type NodeRuntimeProvider, type NodeSourceRequest } from "./types.js";
+import { createSafeJsNodeCommand } from "./safejs.js";
+import type { NodeSafeJsCommandOptions } from "./types.js";
+import { NODE_PROFILE, NodeProfileError, NodeUsageError, nodeLimits, type NodeCommandOptions, type NodeCompletion, type NodeHostServices, type NodeReason, type NodeRuntimeProvider, type NodeSourceRequest } from "./types.js";
 import { environment, grants, record, text } from "./values.js";
 
 export { NODE_PROFILE, NodeProfileError, NodeUsageError, nodeLimits } from "./types.js";
-export type { NodeCommandOptions, NodeCompletion, NodeGrants, NodeGuestError, NodeHostRequest, NodeHostResponse, NodeHostServices, NodeObservation, NodeReason, NodeRetirement, NodeRuntimeProvider, NodeSelector, NodeSession, NodeSourceRequest } from "./types.js";
+export type { NodeCommandOptions, NodeProviderCommandOptions, NodeSafeJsCommandOptions, NodeCompletion, NodeGrants, NodeGuestError, NodeHostRequest, NodeHostResponse, NodeHostServices, NodeObservation, NodeReason, NodeRetirement, NodeRuntimeProvider, NodeSelector, NodeSession, NodeSourceRequest } from "./types.js";
 export { createNodeWorkerProvider } from "./worker-provider.js";
 export { NODE_ENGINE_ABI } from "./worker-types.js";
 export type { NodeBridge, NodeEngineAdapter, NodeEngineInput, NodeEngineResult, NodeWorkerEvent, NodeWorkerProviderOptions } from "./worker-types.js";
 
-export interface NodeCommandsOptions extends NodeCommandOptions {
+export type NodeCommandsOptions<Budget = unknown> = NodeCommandOptions<Budget> & {
   readonly replace?: boolean;
 }
 
-function commandConfiguration(options: NodeCommandsOptions): { readonly definitions: readonly CommandDefinition[]; readonly replace: boolean } {
-  const settings = record(options, ["provider"], ["grants", "replace"]);
+function commandConfiguration<Budget>(options: NodeCommandsOptions<Budget>): { readonly definitions: readonly CommandDefinition[]; readonly replace: boolean } {
+  const settings = record(options, [], ["provider", "grants", "runtime", "limits", "replace"]);
   if (Object.hasOwn(settings, "replace") && typeof settings.replace !== "boolean") throw new TypeError("node replace must be boolean");
-  const definition = createNodeCommand({
-    provider: settings.provider as NodeRuntimeProvider,
-    ...(Object.hasOwn(settings, "grants") ? { grants: settings.grants as NodeGrants } : {}),
-  });
-  return { definitions: Object.freeze([definition]), replace: settings.replace === true };
+  const { replace, ...commandOptions } = settings;
+  const definition = createNodeCommand(commandOptions as unknown as NodeCommandOptions<Budget>);
+  return { definitions: Object.freeze([definition]), replace: replace === true };
 }
 
-export function createNodeCommands(options: NodeCommandsOptions): readonly CommandDefinition[] {
+export function createNodeCommands<Budget = unknown>(options: NodeCommandsOptions<Budget>): readonly CommandDefinition[] {
   return commandConfiguration(options).definitions;
 }
 
-export function nodeCommands(options: NodeCommandsOptions): VirtualShellPlugin {
+export function nodeCommands<Budget = unknown>(options: NodeCommandsOptions<Budget>): VirtualShellPlugin {
   const { definitions, replace } = commandConfiguration(options);
   return {
     name: "node-commands",
@@ -50,7 +50,13 @@ function providerValue(value: unknown): NodeRuntimeProvider {
   if (provider.profile !== NODE_PROFILE || typeof provider.prepare !== "function" || text(provider.identity, nodeLimits.metadataBytes, "provider identity").length === 0) throw new TypeError("node requires an explicit qualifying provider");
   return Object.freeze(provider) as unknown as NodeRuntimeProvider;
 }
-export function createNodeCommand(options: NodeCommandOptions): CommandDefinition {
+export function createNodeCommand<Budget = unknown>(options: NodeCommandOptions<Budget>): CommandDefinition {
+  const selected = record(options, [], ["provider", "grants", "runtime", "limits"]);
+  if (Object.hasOwn(selected, "runtime")) {
+    const settings = record(selected, ["runtime"], ["limits"]);
+    if (settings.runtime === undefined || settings.runtime === null) throw new TypeError("node requires an injected SafeJS runtime");
+    return createSafeJsNodeCommand(settings as unknown as NodeSafeJsCommandOptions<Budget>);
+  }
   const settings = record(options, ["provider"], ["grants"]);
   const provider = providerValue(settings.provider);
   const allowed = grants(Object.hasOwn(settings, "grants") ? settings.grants : {});

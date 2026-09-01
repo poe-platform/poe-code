@@ -1,4 +1,5 @@
 import type { CommandDefinition } from "../../contracts/command.js";
+import type { SafeJsCommandLimits, SafeJsRuntime } from "../safejs/types.js";
 
 export const NODE_PROFILE = "NP1-CJS-WRQ-L-SYNC-1" as const;
 export const nodeLimits = Object.freeze({ sourceBytes: 262144, contextBytes: 65536, pathBytes: 1024, metadataBytes: 8192, errorBytes: 1024, operations: 128, frames: 4096, wakes: 8192, operationBytes: 1048576, readBytes: 4194304, writeBytes: 4194304, outputBytes: 1048576, jsonBytes: 1048576, jsonEntries: 32, memoryBytes: 16777216, diagnosticReserve: 1048576, sabBytes: 197056, admissionMs: 5000, steps: 100000, callDepth: 128, oldGenerationMiB: 32, youngGenerationMiB: 8, codeMiB: 8, stackMiB: 4 });
@@ -87,7 +88,19 @@ export interface NodeRuntimeProvider {
   readonly identity: string;
   readonly prepare: (request: NodeSourceRequest, services: NodeHostServices) => NodeSession;
 }
-export interface NodeCommandOptions { readonly provider: NodeRuntimeProvider; readonly grants?: NodeGrants; }
+export interface NodeProviderCommandOptions {
+  readonly provider: NodeRuntimeProvider;
+  readonly grants?: NodeGrants;
+  readonly runtime?: never;
+  readonly limits?: never;
+}
+export interface NodeSafeJsCommandOptions<Budget = unknown> {
+  readonly runtime: SafeJsRuntime<Budget>;
+  readonly limits?: Partial<SafeJsCommandLimits>;
+  readonly provider?: never;
+  readonly grants?: never;
+}
+export type NodeCommandOptions<Budget = unknown> = NodeProviderCommandOptions | NodeSafeJsCommandOptions<Budget>;
 export type NodeCommandFactory = (options: NodeCommandOptions) => CommandDefinition;
 
 export class NodeProfileError extends Error {

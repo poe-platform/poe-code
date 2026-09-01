@@ -1,19 +1,11 @@
 # safe-bash
 
-Run shell scripts and familiar command-line tools inside TypeScript applications,
-using a filesystem you choose rather than a host shell.
-
-| Task | API |
-| --- | --- |
-| Run scripts or pipelines | `shell.exec(...)` |
-| Get text or bytes | `stdout` / `stderr`, `stdoutBytes` / `stderrBytes`, `exitCode` |
-| Add tools or storage | Plugins and an explicit filesystem |
+Run shell scripts and command-line tools in your application against an explicit filesystem, without launching a host shell.
 
 ## Quickstart
 
-Requires **Node.js 22+**, ESM, and a built checkout; see availability below.
-In an already provisioned checkout, run `npm run build`, save this as
-`example.mts` inside the repository, then run `node --import tsx example.mts`.
+Import from `poe-code/safe-bash` in a Node.js 22+ ESM application. Use a
+`poe-code` version that includes this entry point; no separate package is needed.
 
 ```ts
 import { Shell, agentCommands, createMemoryFileSystem } from "poe-code/safe-bash";
@@ -32,22 +24,44 @@ cat names.sorted.txt
 const shell = new Shell({ fs, cwd: "/work" }).use(agentCommands());
 try {
   const result = await shell.exec("sh run.sh reader");
-  console.log(result.stdout);
   if (result.exitCode !== 0) throw new Error(result.stderr);
+  process.stdout.write(result.stdout);
 } finally {
   await shell.dispose();
 }
 ```
 
 Output: `Hello, reader!\nAda\nGrace\n`. The script, input, and generated
-`names.sorted.txt` stay in memory. `sh` launches no host process.
+`names.sorted.txt` stay in memory. Results contain `exitCode`, `stdout`, `stderr`,
+`stdoutBytes`, and `stderrBytes`; use the byte fields for binary output.
+Each `exec()` starts fresh shell variables, functions, and working-directory state;
+filesystem changes persist in the supplied `fs`.
 
-## Tool card
+## Supported features and commands
 
-`Shell` handles script syntax, variables, loops, functions, and redirections.
-**`agentCommands()` adds these 79 tools**, not networking or JavaScript execution:
+### Shell syntax
 
-| Default bundle | Commands |
+- Quoting and escapes, variables and positional arguments, parameter expansion,
+  `$(command)` and backtick substitution, arithmetic expansion, and pathname globs.
+- Pipelines (`|`, `|&`), lists (`;`, `&&`, `||`, `!`), file redirection (`<`, `>`,
+  `>>`), descriptor redirection such as `2>&1`, here-documents, and here-strings.
+- `if`/`elif`/`else`, `case`, `for name in …`, `while`, `until`, functions,
+  groups `{ …; }`, subshells `( … )`, `[[ … ]]`, `(( … ))`, and indexed arrays.
+- Virtual script files through `sh`, `bash`, or executable paths; `source`/`.`
+  runs a script in the current shell. `set -e`, `set -u`, and `set -o pipefail`
+  control failures; `shopt -s dotglob` includes dotfiles in globs.
+
+Shell builtins beyond the tools below: `:`, `cd`, `pushd`, `popd`, `dirs`, `set`,
+`shift`, `export`, `local`, `readonly`, `unset`, `read`, `getopts`, `let`, `shopt`,
+`exit`, `return`, `break`, `continue`, `command`, `builtin`, `type`, `.`, `source`,
+`eval`. `pwd`, `true`, and `false` also work without a command bundle.
+
+### Command bundle
+
+`agentCommands()` registers all **79 commands** below. They operate on the supplied
+filesystem and byte streams, not host executables.
+
+| Purpose | Commands |
 | --- | --- |
 | Browse | `pwd`, `ls`, `tree`, `find`, `du`, `file`, `basename`, `dirname`, `realpath`, `readlink`, `which` |
 | Files | `mkdir`, `touch`, `cp`, `mv`, `rm`, `rmdir`, `ln`, `chmod`, `stat`, `mktemp` |
@@ -59,57 +73,190 @@ Output: `Hello, reader!\nAda\nGrace\n`. The script, input, and generated
 | Script helpers | `echo`, `printf`, `true`, `false`, `test`, `[`, `env`, `printenv`, `xargs`, `expr`, `date`, `sleep`, `timeout` |
 | Changes/review | `diff`, `patch`, `apply_patch` |
 
-**Restricted:** `which` searches virtual paths; `timeout` cancels cooperatively.
-**Not included:** Git commands, `npm`, `npx`, or fallback to host executables.
-Repository Git operations used to develop poe-code are unaffected.
+### Opt-in commands and storage
 
-### Opt-in tools
+These plugins are separate from `agentCommands()`; pass them to `shell.use(...)`.
 
-- **curl:** `networkCommands()` requires `authorize`; optional `transport` supports
-  mocks. Without it, requests use real HTTP(S). Authorization runs on every hop;
-  URL allowlisting is not DNS pinning.
-  [Policy and limits](src/commands/network/README.md#host-contract).
-- **node:** `nodeCommands()` requires a trusted provider/engine adapter; no engine
-  loads implicitly.
-  [Restricted Node profile](src/commands/node/README.md).
-- **safejs:** `safeJsCommands()` requires injected runtime hooks, separately from
-  Node.
-  [Runtime options](src/commands/safejs/types.ts).
+| Command | Plugin and configuration |
+| --- | --- |
+| `curl` | `networkCommands({ authorize, transport?, limits?, replace? })`: required authorization on every request, redirect, and retry. The default transport makes real HTTP(S) requests; inject `transport` for mocks. [Options and limits](src/commands/network/types.ts). |
+| `node` | `nodeCommands({ runtime, limits?, replace? })`: runs JavaScript with an injected SafeJS runtime, virtual files, and shell streams. [Usage and supported subset](src/commands/node/README.md). |
+| `safejs` | `safeJsCommands({ runtime, limits?, replace? })`: inject `run`, `createBudget`, `makeFsModule`, and `declareHostOperation` to execute programs. [Runtime contract](src/commands/safejs/types.ts). |
 
-## Settings and boundaries
+Storage can be in memory, a rooted host directory, S3-compatible storage, or WebDAV,
+with read-only wrappers, mounts, and overlays. Choose and configure it explicitly;
+see the [filesystem guide](../safe-fs/README.md).
 
-- Supply `fs`, `cwd`, `env`, and `limits` to `Shell`; `exec` also accepts `stdin`,
-  output sinks, and `signal`. Host environment variables are not inherited.
-  Use byte result fields for binary output.
-  [All shell options](src/shell/types.ts).
-- Always dispose in `finally`. Command-family limits are separate budgets, not
-  one total-memory cap. [Bundle configuration](src/plugins/index.ts).
-- Memory, rooted host, S3-compatible, WebDAV, mounts, and overlays are available.
-  Host/remote access requires explicit configuration.
-  [Filesystem guide](../safe-fs/README.md).
+### Run JavaScript with SafeJS
 
-This is **not full Bash, Node, or utility parity**. Commands support bounded
-subsets. Trusted host JavaScript, plugins, and providers are **not sandboxed**;
-limits and cooperative cancellation do not provide host isolation or total-memory
-guarantees. Enabling real storage or networking intentionally grants capabilities.
+Plug SafeJS into `node`; nothing starts a native Node.js subprocess or loads a
+runtime automatically. The same runtime object can also power `safeJsCommands`.
 
-## Testing
+```ts
+import { Shell, agentCommands, createMemoryFileSystem, nodeCommands } from "poe-code/safe-bash";
+import { Budget, run, makeFsModule, declareHostOperation } from "poe-code/safe-js";
 
-Build and test with the workspace JavaScript/TypeScript dependencies; no GNU
-binaries, native tool profiles, provisioning scripts or calibration lanes are
-required. Existing captured output fixtures remain plain regression data. Pure
-live-native comparisons are retired, not reported as passing compatibility tests.
+const fs = createMemoryFileSystem();
+await fs.writeFile("/transform.js", new TextEncoder().encode(`
+  import { writeFile } from "fs";
+  const text = await process.stdin.readText();
+  await writeFile("/result.txt", text.toUpperCase());
+  console.log(process.argv[2]);
+`));
 
-## Test output
+const shell = new Shell({ fs }).use(agentCommands()).use(nodeCommands({
+  runtime: {
+    run, makeFsModule, declareHostOperation,
+    createBudget: options => new Budget(options),
+  },
+}));
 
-With `CI=true`, successful tests use concise progress and summaries; failures
-retain names, stacks, diagnostics, stdout and stderr. Local defaults are unchanged.
-For verbose package output use `CI=false npm run test:unit`; select Node's
-reporter with `npm test -- --test-reporter=spec` (or `tap`). For root Vitest,
-run `npm run test:unit -- --reporter=verbose --silent=false` from the repository root.
+try {
+  const result = await shell.exec("printf 'hello\\n' | node /transform.js done; cat /result.txt; node -p '1 + 2'");
+  console.log(result.stdout);
+} finally {
+  await shell.dispose();
+}
+```
 
-## Availability
+Output: `done\nHELLO\n3\n`.
 
-**August 31, 2026:** npm `poe-code@13.0.10` does not yet export this API.
-Use a built monorepo checkout with the public `poe-code/safe-bash` import;
-the private `virtual-bash` workspace is not a standalone package to install.
+`node -e SOURCE` evaluates a program; `node -p EXPRESSION` prints an expression.
+`node FILE`, `node -`, and bare `node` accept virtual-file or stdin source.
+Programs get `console`, virtual `process.argv`, `process.env`, `process.cwd()`,
+`process.exitCode`, and shell streams. Await `process.stdout.write(text)` and
+`process.stderr.write(text)`; read input with `process.stdin.readText()` or
+`readBytes(size?)`. These are bounded async helpers, not native Node streams.
+
+Import async filesystem functions from `"fs"`, or use
+`const fs = require("node:fs/promises")`. SafeJS imports use bare module names:
+`import … from "node:fs/promises"` is not supported. There is no synchronous fs,
+package/local-module loading, `process.exit()`, or native module fallback.
+Pass `limits` for source/input/output bytes, timeout, and interpreter budgets;
+see [defaults and configuration](src/commands/node/README.md#configuration).
+
+## Add a command
+
+A `CommandDefinition` has a name and an `execute(context)` handler. This example
+adds `file-bytes`, which reports a virtual file's size without reading its contents:
+
+```ts
+import {
+  Shell, agentCommands, createMemoryFileSystem, resolvePath, writeText,
+  type CommandDefinition,
+} from "poe-code/safe-bash";
+
+const fileBytes: CommandDefinition = {
+  name: "file-bytes",
+  async execute({ args, cwd, fs, stdout, stderr, signal }) {
+    if (args.length !== 1) {
+      await writeText(stderr, "Usage: file-bytes FILE\n");
+      return { exitCode: 2 };
+    }
+    const stat = await fs.stat(resolvePath(cwd, args[0]!), { signal });
+    await writeText(stdout, `${stat.size}\n`);
+    return { exitCode: 0 };
+  },
+};
+
+const shell = new Shell({ fs: createMemoryFileSystem() }).use(agentCommands());
+shell.use({
+  name: "file-tools",
+  setup(host) { host.commands.register(fileBytes); },
+});
+try {
+  const result = await shell.exec("printf 'hello\\n' > message.txt; file-bytes message.txt | cat");
+  if (result.exitCode !== 0) throw new Error(result.stderr);
+  process.stdout.write(result.stdout);
+} finally {
+  await shell.dispose();
+}
+```
+
+Output: `6\n`. For a single command, use `shell.register(fileBytes)` instead of a
+plugin. Duplicate names fail unless registration explicitly sets `{ replace: true }`.
+Handlers receive `args`, `stdin`, `stdout`, `stderr`, `cwd`, `env`, `fs`, and `signal`;
+return `{ exitCode }` with an integer from 0–255, await writes, and pass the signal to I/O.
+Use `context.invoke` to call another command with literal arguments rather than
+interpolating shell source. [Command contract](src/contracts/command.md).
+
+`shell.use(middleware)` wraps command dispatch for logging or policy checks;
+middleware must await or return `next()`. Plugins can also register filesystem
+factories and provide a `dispose()` hook. [Plugin contract](src/contracts/plugin.ts).
+For SafeJS host integration, `makeSafeJsShellModule` exposes shell execution and
+`makeSafeJsFsModule` adapts the filesystem through injected runtime hooks.
+[Integration contracts](src/integrations/safejs/index.ts).
+
+## Options
+
+### Shell and execution
+
+| `new Shell(...)` option | Behavior |
+| --- | --- |
+| `fs` | Required filesystem; no implicit host access. |
+| `cwd` | Initial virtual directory; defaults to `/`. |
+| `env` | Initial exported variables; defaults to an empty map, with `PWD` set from `cwd`. No host environment inheritance. |
+| `commands` | Existing `CommandRegistry`; defaults to an empty registry. |
+| `limits` | Resource limits listed below. |
+
+`exec(source, options)` can override `fs`, `cwd`, and `limits`, and merge `env` for
+one execution. `stdin` accepts a string, `Uint8Array`, or async byte source;
+`stdout`/`stderr` accept byte sinks. Results still buffer output when sinks are
+provided. Pass an `AbortSignal` as `signal` to cancel. [Option types](src/shell/types.ts).
+
+| Limit | Default |
+| --- | --- |
+| `maxOutputBytes` | 16 MiB |
+| `maxCommands`, `maxLoopIterations` | 10,000 each |
+| `maxSubstitutionDepth` | 64 |
+| `maxSourceBytes` | 1 MiB |
+| `maxExpansionFields` | 10,000 |
+| `maxExpansionBytes` | 16 MiB |
+| `pipeHighWaterMark` | 64 KiB |
+
+Always call `dispose()` when finished. Shell failures normally produce an exit
+code and stderr; limit violations, cancellation, and host failures can reject `exec()`.
+
+### Command configuration
+
+`agentCommands()` accepts `replace` (default `false`), an `execute` fallback for
+nested command dispatch, and `regex` worker limits. Per-family options are
+`text`, `structured`, `search`, `diffPatch`, `metadata`, `archive`, `tableText`,
+`streamInspection`, `streamFormat`, `split`, `timeEnv`, `tree`, `file`, `column`,
+`htmlToMarkdown`, `du`, `expr`, `which`, `timeout`, and `applyPatch`.
+Use the [typed options and linked family interfaces](src/plugins/index.ts) for
+their individual limits and hooks, including clocks and schedulers. Family budgets
+are separate from shell limits; `replace` applies across the entire bundle.
+
+### Environment variables
+
+There are no package-specific runtime environment switches. Supply these through
+`env` or set/export them inside a script; they refer to the virtual environment:
+
+| Variables | Effect |
+| --- | --- |
+| `HOME`, `CDPATH`, `PWD`, `OLDPWD` | Home expansion, directory search, current and previous directory. The shell maintains `PWD`/`OLDPWD` on directory changes. |
+| `PATH` | Virtual script lookup and `which`; never a host executable search. |
+| `IFS` | Field splitting and `read`; defaults to space, tab, and newline. |
+| `LC_ALL`, `LC_CTYPE`, `LC_COLLATE`, `LANG` | Character and collation behavior where supported; locale support varies by command. |
+| `TMPDIR` | `mktemp` directory; defaults to `/tmp`, which must exist in the VFS. |
+| `TZ` | `date` timezone; otherwise `timeEnv.defaultTimeZone` (default `UTC`). |
+| `QUOTING_STYLE` | `stat` filename quoting: `literal`, `shell-always`, or `shell-escape-always`. |
+
+`getopts` starts with `OPTIND=1` and `OPTERR=1`, updates `OPTIND`/`OPTARG`, and
+honors changes made in the script. `PIPESTATUS` exposes pipeline stage statuses.
+`curl` does not read proxy variables, host credentials, `.curlrc`, or `.netrc`.
+
+## Limitations
+
+- This is a Bash-like interpreter, not full Bash or POSIX certification. No
+  background jobs/job control, `trap`, `exec`, process substitution, brace expansion,
+  associative arrays, or C-style `for ((…))` loops. `shopt` supports only `dotglob`.
+- Utilities implement subsets of their native counterparts' flags and behavior.
+  There is no `git`, `npm`, `npx`, or fallback to installed host programs.
+  The opt-in `node` command is not a general Node.js runtime.
+- Plugins, filesystem adapters, and runtime providers are trusted host JavaScript,
+  not sandboxed code. Real storage and network plugins grant real access; URL
+  allowlisting alone does not pin DNS or prevent access to private addresses.
+- Cancellation is cooperative, including `timeout`; it cannot undo completed
+  effects or stop uncooperative host work. Limits do not bound total process memory.

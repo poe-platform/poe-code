@@ -1,6 +1,96 @@
-# Restricted, explicitly provided virtual Node module
+# Node with pluggable SafeJS
 
-This module has an explicit opt-in root/exact commands/node public integration candidate; public acceptance requires separate review. It is not registered by the default80 command set, a bundled Node runtime or a full Node.js compatibility claim. createNodeCommand, createNodeCommands and nodeCommands require an explicit trusted qualifying NodeRuntimeProvider. nodeCommands registers only node; replace:true deliberately permits an existing node definition to be replaced. createNodeWorkerProvider is the optional static reference owner: its entry/identity options supply a host-authorized adapter, never an inferred engine path or automatic dependency. URL syntax and identity matching do not authenticate source bytes or confer host authorization. Exported provider/engine protocols are trusted-host contracts, not guest capabilities. The guest does not receive that entry, native Worker/SAB/ports, host filesystem or native process objects.
+`nodeCommands({ runtime })` registers `node` using an injected SafeJS interpreter.
+It shares the shell's virtual filesystem, stdin, stdout, stderr, cwd, exported
+environment, and cancellation signal. No engine is loaded implicitly and no
+native subprocess is started.
+
+```ts
+import { Shell, createMemoryFileSystem, nodeCommands } from "poe-code/safe-bash";
+import { Budget, run, makeFsModule, declareHostOperation } from "poe-code/safe-js";
+
+const shell = new Shell({ fs: createMemoryFileSystem() }).use(nodeCommands({
+  runtime: {
+    run, makeFsModule, declareHostOperation,
+    createBudget: options => new Budget(options),
+  },
+}));
+try {
+  const result = await shell.exec("node -p '1 + 2'");
+  console.log(result.stdout);
+} finally {
+  await shell.dispose();
+}
+```
+
+## Programs and I/O
+
+- `node -e SOURCE` / `--eval` evaluates JavaScript; `node -p EXPRESSION` /
+  `--print` prints the expression, including `undefined`. Objects print as JSON,
+  not Node's inspection format. Console formatting uses SafeJS, not Node format strings.
+- `node FILE` reads a virtual file, including `.js` files. `node -` and bare
+  `node` read source from stdin once, leaving no guest input. File and inline
+  programs retain stdin for data. `--` ends command-option parsing.
+- `process.argv` starts with `/virtual/bin/node`, then the absolute filename or
+  `-` for file/stdin programs, then supplied arguments. Eval/print omit a filename.
+- `process.cwd()` and `process.env` expose virtual state, never host state.
+  Environment edits remain local to one invocation. Set `process.exitCode` to an
+  integer from 0–255; it is applied when the program finishes normally.
+- `process.stdin.readText()` and `readBytes(size?)` read bounded input;
+  `process.stdout.write(text)` and `process.stderr.write(text)` are async writes.
+  Await I/O; these helpers do not implement Node's event-driven stream API.
+- Async VFS access supports `import { readFile, writeFile } from "fs"`,
+  `import fs from "fs"`, and `require("fs/promises")` or
+  `require("node:fs/promises")`. `require` only resolves those two explicit names.
+  The `stdio` and `command` SafeJS modules remain accessible.
+
+SafeJS syntax and runtime semantics apply, with top-level `await` and bare-name
+imports. `--input-type=module` is accepted; CommonJS input mode, synchronous fs,
+native modules, package/local-module loading, `process.exit`, and the native Node
+event loop are not supplied. In particular, `node:` and slash-containing *import*
+specifiers are rejected by SafeJS; use the bare `fs` import or the allowlisted
+`require` forms instead. Runtime hooks and filesystem adapters are trusted host code.
+
+## Configuration
+
+`nodeCommands({ runtime, limits?, replace? })` is opt-in and separate from
+`agentCommands()`. `replace` defaults to `false`; duplicates fail unless set to
+`true`. `createNodeCommand({ runtime, limits? })` returns one command definition;
+`createNodeCommands({ runtime, limits?, replace? })` returns an array for custom
+registries. All three execute the same runner.
+
+The `SafeJsRuntime<Budget>` contract requires `run`, `createBudget`, `makeFsModule`,
+and `declareHostOperation`. `run` receives injected `bindings` for the virtual
+process and allowlisted require function, guest modules, a fresh budget, signal,
+filename, and console sink. Use SafeJS's public factories as shown, or provide an
+implementation that honors that contract. There are no runtime environment switches.
+
+| `limits` option | Default |
+| --- | --- |
+| `maxSourceBytes` | 1 MiB of supplied source |
+| `maxInputBytes`, `maxOutputBytes` | 8 MiB each; output combines stdout/stderr |
+| `timeoutMs` | 5,000 |
+| `maxSteps` | 100,000 |
+| `maxCallDepth` | 128 |
+| `stringLength` | 1 MiB |
+| `arrayLength` | 100,000 |
+| `dataSize` | 16 MiB |
+
+Invalid options and parse failures return status 2; guest failures return 1;
+command/interpreter limits return 124. Successful programs return their virtual
+exit code, initially 0. Parent cancellation follows the shell's rejection contract.
+Shell limits still apply independently. Cancellation is cooperative and cannot
+undo completed effects or stop uncooperative host work; budgets do not bound RSS.
+
+## Explicit worker provider
+
+The separate `nodeCommands({ provider, grants?, replace? })` API remains available
+for hosts supplying a `NodeRuntimeProvider` for the restricted synchronous profile
+below. Do not combine `provider`/`grants` with `runtime`/`limits`.
+`createNodeWorkerProvider` accepts an explicitly authorized static engine adapter;
+it never discovers or loads SafeJS automatically. Entry URLs and identity strings
+are configuration, not byte authentication or host authorization. Guest code does
+not receive native Worker/SAB/ports, host filesystem, or native process objects.
 
 The profile is NP1-CJS-WRQ-L-SYNC-1: -e/--eval, primitive -p/--print, .cjs entry and noninteractive stdin source; finite process argv/env and synchronous text fs/JSON/POSIX path facades. .js, ESM/TLA, npm/npx, package search, local JavaScript require, buffers, asynchronous fs, process.exit, Promise constructor and native eval/Function/subprocess fallback are refused. Promise.race([]) is the qualified pending-job idiom, not proof that every guest job settles.
 
@@ -15,5 +105,3 @@ Status0/1/2 means clean entry return / guest failure / private profile failure o
 The fixed16MiB command-owned logical ledger includes a1MiB diagnostic reserve. The reference transport uses a197056-byte SAB;5s is admission-only, not a whole invocation or cleanup bound. V8 old32/young8/code8/stack4MiB limits are separate from the logical ledger and not RSS. Source256KiB bounds the combined trusted facade and interpreted user program, not every raw256KiB input. Separate operation/read/write/output quotas can make individual maxima unreachable together. Providers must honor their declared VFS/source bounds; these checks do not promise preallocation control over arbitrary host providers or all native guest allocations.
 
 The reference owner closes admission at the actual entry-return marker after required output, wakes blocked sync transport on cancellation and confirms Worker exit. This lifetime-retirement profile can abandon guest continuations; it is not all-jobs-settled semantics. Node-local services and errors do not add fields to shared ShellLimits, Budget or AST contracts. No shared budget is reset.
-
-Author contracts and immutable histories are in tests/commands/node-author-20260829. ROOT qualified-accepted module a2f3983 through independent evidence1a15f7a5 with its resource, coverage and diagnostic qualifications retained. Public integration is a separate candidate under tests/integration/node-public-author-20260829; no public/default/provider acceptance is implied by module acceptance or this documentation.

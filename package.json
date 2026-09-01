@@ -218,6 +218,10 @@
       },
       "browser": null,
       "import": "./packages/safe-js/dist/cli.js"
+    },
+    "./safe-bash-mcp": {
+      "types": "./packages/safe-bash-mcp/dist/index.d.ts",
+      "import": "./packages/safe-bash-mcp/dist/index.js"
     }
   },
   "workspaces": [
@@ -301,7 +305,8 @@
     "poe-agent": "dist/bin/poe-agent.js",
     "poe-superintendent-mcp": "packages/superintendent/dist/mcp.js",
     "poe-safejs": "packages/safe-js/dist/cli.js",
-    "poe-safe-js": "packages/safe-js/dist/cli.js"
+    "poe-safe-js": "packages/safe-js/dist/cli.js",
+    "poe-safe-bash-mcp": "packages/safe-bash-mcp/dist/cli.js"
   },
   "files": [
     "LICENSE",
@@ -373,7 +378,8 @@
     "packages/toolcraft-schema/dist",
     "packages/workspace-resolver/dist",
     "packages/worktree/dist",
-    "packages/safe-fs/dist/**/*.d.ts"
+    "packages/safe-fs/dist/**/*.d.ts",
+    "packages/safe-bash-mcp/dist"
   ],
   "engines": {
     "node": ">=18.18"

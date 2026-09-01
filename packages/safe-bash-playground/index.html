@@ -1,0 +1,418 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="theme-color" content="#f5f3eb" />
+    <meta
+      name="description"
+      content="An in-browser playground for safe-bash. Explore a small shell, work with virtual files, and make yourself at home."
+    />
+    <title>safe-bash — Make yourself at ~/home.</title>
+    <link
+      rel="icon"
+      href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='6' fill='%23d5f75b'/%3E%3Cpath d='m8 10 6 6-6 6m10 0h6' fill='none' stroke='%23272a25' stroke-width='2.5'/%3E%3C/svg%3E"
+    />
+    <link rel="stylesheet" href="/src/styles.css" />
+    <script type="module" src="/src/main.ts"></script>
+  </head>
+  <body>
+    <a class="skip-link" href="#terminal-input">Skip to terminal</a>
+    <svg class="icon-definitions" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+      <defs>
+        <symbol id="icon-shell" viewBox="0 0 24 24"><path d="m5 6 6 6-6 6m9 0h5" /></symbol>
+        <symbol id="icon-arrow" viewBox="0 0 24 24"><path d="M6 18 18 6M6 6h12v12" /></symbol>
+        <symbol id="icon-upload" viewBox="0 0 24 24">
+          <path d="M12 16V4m-5 5 5-5 5 5M4 15v5h16v-5" />
+        </symbol>
+        <symbol id="icon-file" viewBox="0 0 24 24">
+          <path d="M14 3H5v18h14V8l-5-5Zm0 0v5h5" />
+        </symbol>
+        <symbol id="icon-plus" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14" /></symbol>
+        <symbol id="icon-search" viewBox="0 0 24 24">
+          <circle cx="10.5" cy="10.5" r="6.5" />
+          <path d="m16 16 5 5" />
+        </symbol>
+        <symbol id="icon-folder" viewBox="0 0 24 24"><path d="M3 6h7l2 3h9v11H3V6Z" /></symbol>
+        <symbol id="icon-chevron" viewBox="0 0 24 24"><path d="m9 5 7 7-7 7" /></symbol>
+        <symbol id="icon-reset" viewBox="0 0 24 24">
+          <path d="M4 10a8 8 0 1 1 1 8M4 4v6h6" />
+        </symbol>
+        <symbol id="icon-close" viewBox="0 0 24 24"><path d="m6 6 12 12M6 18 18 6" /></symbol>
+        <symbol id="icon-panel" viewBox="0 0 24 24">
+          <rect x="3" y="4" width="18" height="16" rx="1" />
+          <path d="M9 4v16" />
+        </symbol>
+        <symbol id="icon-download" viewBox="0 0 24 24">
+          <path d="M12 4v12m-5-5 5 5 5-5M4 16v4h16v-4" />
+        </symbol>
+        <symbol id="icon-trash" viewBox="0 0 24 24">
+          <path d="M3 6h18M9 6V3h6v3M6 6l1 15h10l1-15M10 10v7m4-7v7" />
+        </symbol>
+        <symbol id="icon-check" viewBox="0 0 24 24"><path d="m5 12 4 4L19 6" /></symbol>
+      </defs>
+    </svg>
+
+    <div class="page-shell">
+      <header class="site-header">
+        <a class="wordmark" href="./" aria-label="safe-bash playground home">
+          <span class="brand-mark"
+            ><svg class="icon" aria-hidden="true"><use href="#icon-shell" /></svg
+          ></span>
+          <span>safe-bash<span class="wordmark-period">.</span></span
+          ><span class="wordmark-kind">/ playground</span>
+        </a>
+        <nav class="header-links" aria-label="Project">
+          <a
+            class="github-link"
+            href="https://github.com/poe-platform/poe-code/tree/main/packages/safe-bash"
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            GitHub<svg class="icon" aria-hidden="true"><use href="#icon-arrow" /></svg
+            ><span class="sr-only"> (opens in a new tab)</span>
+          </a>
+        </nav>
+      </header>
+
+      <main>
+        <section class="introduction" aria-labelledby="page-title">
+          <div class="intro-heading">
+            <p class="eyebrow">A little shell. A lot of possibility.</p>
+            <h1 id="page-title">
+              Make yourself<br />
+              at <span class="home-path">~/home<span class="heading-period">.</span></span>
+            </h1>
+          </div>
+          <div class="intro-copy">
+            <p>
+              A familiar shell.<br />
+              A sandbox for your agents.
+            </p>
+            <p class="intro-detail">In your browser or on your server.</p>
+            <a class="start-link" href="#terminal-input"
+              >The prompt is yours <span aria-hidden="true">↘</span></a
+            >
+          </div>
+        </section>
+
+        <section class="playground" aria-label="Interactive shell playground">
+          <div class="workstation-caption">
+            <div class="caption-label"><span class="caption-number">01 /</span> YOUR WORKSPACE</div>
+            <span class="caption-note">A little room to experiment.</span>
+          </div>
+
+          <div class="workstation">
+            <aside class="explorer" id="explorer" aria-labelledby="explorer-title">
+              <div class="panel-toolbar explorer-toolbar">
+                <h2 id="explorer-title">Files</h2>
+                <div class="toolbar-actions">
+                  <input
+                    id="upload-input"
+                    class="sr-only"
+                    type="file"
+                    multiple
+                    tabindex="-1"
+                    aria-label="Upload files to the sandbox"
+                  />
+                  <button
+                    id="upload-button"
+                    class="icon-button"
+                    type="button"
+                    title="Upload files"
+                    aria-label="Upload files"
+                  >
+                    <svg class="icon" aria-hidden="true"><use href="#icon-upload" /></svg>
+                  </button>
+                  <button
+                    id="new-file-button"
+                    class="icon-button"
+                    type="button"
+                    title="New file"
+                    aria-label="Create a new file"
+                  >
+                    <svg class="icon" aria-hidden="true"><use href="#icon-plus" /></svg>
+                  </button>
+                </div>
+              </div>
+              <div class="file-search-wrap">
+                <svg class="icon" aria-hidden="true"><use href="#icon-search" /></svg>
+                <label class="sr-only" for="file-search">Search files</label>
+                <input
+                  id="file-search"
+                  type="search"
+                  placeholder="Find a file…"
+                  autocomplete="off"
+                  spellcheck="false"
+                />
+              </div>
+              <div class="workspace-root">
+                <div class="tree-root">
+                  <svg class="icon" aria-hidden="true"><use href="#icon-folder" /></svg
+                  ><span id="workspace-root" data-dynamic="root-path">~/home</span
+                  ><span class="root-label">ROOT</span>
+                </div>
+                <div class="explorer-counts">
+                  <span><span id="file-count" data-dynamic="file-count">—</span> files</span
+                  ><span aria-hidden="true">·</span
+                  ><span><span id="folder-count" data-dynamic="folder-count">—</span> folders</span>
+                </div>
+              </div>
+              <div class="file-tree-scroll">
+                <ul
+                  id="file-tree"
+                  class="file-tree"
+                  aria-label="Sandbox files"
+                  aria-busy="true"
+                  data-dynamic="file-tree"
+                >
+                  <li class="tree-empty" data-placeholder="loading">
+                    Your workspace is taking shape.<span
+                      >Files will appear here when the shell is ready.</span
+                    >
+                  </li>
+                </ul>
+              </div>
+              <template id="file-entry-template">
+                <li>
+                  <button type="button" class="tree-item" data-path="">
+                    <svg class="icon" aria-hidden="true"><use href="#icon-file" /></svg
+                    ><span class="file-name" data-file-name></span
+                    ><span class="file-type" data-file-type></span>
+                  </button>
+                </li>
+              </template>
+              <template id="folder-entry-template">
+                <li>
+                  <details open data-path="">
+                    <summary>
+                      <svg class="icon chevron" aria-hidden="true"><use href="#icon-chevron" /></svg
+                      ><svg class="icon" aria-hidden="true"><use href="#icon-folder" /></svg
+                      ><span class="file-name" data-file-name></span
+                      ><span class="folder-count" data-child-count></span>
+                    </summary>
+                    <ul></ul>
+                  </details>
+                </li>
+              </template>
+              <button
+                id="upload-dropzone"
+                class="upload-dropzone"
+                type="button"
+                aria-label="Upload files, or drop files here"
+              >
+                <svg class="icon" aria-hidden="true"><use href="#icon-upload" /></svg
+                ><span>Drop something in<small>or click to upload a file</small></span
+                ><span class="drop-plus" aria-hidden="true">+</span>
+              </button>
+              <div class="explorer-bottom">
+                <span><span class="status-dot" aria-hidden="true"></span>In-memory filesystem</span
+                ><span id="memory-usage" data-dynamic="memory-usage">—</span>
+              </div>
+            </aside>
+
+            <section class="terminal" aria-labelledby="terminal-title">
+              <div class="panel-toolbar terminal-toolbar">
+                <div class="terminal-toolbar-title">
+                  <button
+                    id="explorer-toggle"
+                    class="icon-button"
+                    type="button"
+                    aria-controls="explorer"
+                    aria-expanded="true"
+                    title="Toggle file explorer"
+                    aria-label="Toggle file explorer"
+                  >
+                    <svg class="icon" aria-hidden="true"><use href="#icon-panel" /></svg>
+                  </button>
+                  <h2 id="terminal-title">Terminal</h2>
+                  <span class="terminal-session">safe-bash</span>
+                </div>
+                <div class="toolbar-actions">
+                  <button
+                    id="preview-toggle"
+                    class="icon-button"
+                    type="button"
+                    aria-controls="preview"
+                    aria-expanded="false"
+                    title="Toggle editor"
+                    aria-label="Toggle editor"
+                  >
+                    <svg class="icon" aria-hidden="true"><use href="#icon-file" /></svg>
+                  </button>
+                  <button
+                    id="clear-button"
+                    class="text-button"
+                    type="button"
+                    title="Clear terminal output"
+                  >
+                    Clear
+                  </button>
+                  <span class="toolbar-divider" aria-hidden="true"></span>
+                  <button
+                    id="reset-button"
+                    class="icon-button"
+                    type="button"
+                    title="Reset sandbox"
+                    aria-label="Reset sandbox"
+                  >
+                    <svg class="icon" aria-hidden="true"><use href="#icon-reset" /></svg>
+                  </button>
+                </div>
+              </div>
+
+              <div
+                id="terminal-scroll"
+                class="terminal-scroll"
+                tabindex="0"
+                role="region"
+                aria-label="Terminal history"
+              >
+                <div class="terminal-welcome" id="terminal-welcome">
+                  <div class="terminal-brand" aria-label="safe-bash">
+                    <span class="terminal-brand-prompt" aria-hidden="true">&gt;_</span
+                    ><span>safe-bash<span class="terminal-brand-period">.</span></span>
+                  </div>
+                  <p class="welcome-title">Welcome home.</p>
+                  <p class="welcome-copy">
+                    A fresh shell, a blank canvas.<br />Start small. See where it takes you.
+                  </p>
+                  <div class="command-hints" aria-label="Try a command">
+                    <button class="command-hint" type="button" data-command="ls">
+                      <code>ls</code><span>Look around <span aria-hidden="true">↗</span></span>
+                    </button>
+                    <button class="command-hint" type="button" data-command="cat examples/hello.py">
+                      <code>cat examples/hello.py</code
+                      ><span>Open an example <span aria-hidden="true">↗</span></span>
+                    </button>
+                    <button class="command-hint" type="button" data-command="help">
+                      <code>help</code
+                      ><span>Find your bearings <span aria-hidden="true">↗</span></span>
+                    </button>
+                  </div>
+                </div>
+                <div
+                  id="terminal-output"
+                  class="terminal-output"
+                  role="log"
+                  aria-live="polite"
+                  aria-relevant="additions text"
+                  aria-label="Command output"
+                  data-dynamic="terminal-output"
+                ></div>
+                <form id="terminal-form" class="terminal-form" autocomplete="off">
+                  <label class="prompt-label" for="terminal-input"
+                    ><span id="cwd" data-dynamic="cwd">~/home</span
+                    ><span class="prompt-arrow" aria-hidden="true">❯</span
+                    ><span class="sr-only">Shell command</span></label
+                  >
+                  <input
+                    id="terminal-input"
+                    name="command"
+                    type="text"
+                    aria-label="Shell command"
+                    aria-describedby="terminal-help"
+                    placeholder="Type a command…"
+                    autocomplete="off"
+                    autocapitalize="off"
+                    spellcheck="false"
+                    enterkeyhint="send"
+                  />
+                  <button
+                    class="run-button"
+                    type="submit"
+                    title="Run command"
+                    aria-label="Run command"
+                  >
+                    <span aria-hidden="true">↵</span>
+                  </button>
+                </form>
+                <p id="terminal-help" class="terminal-help">
+                  Enter to run <span aria-hidden="true">·</span> <code>help</code> for available
+                  commands
+                </p>
+              </div>
+              <div class="terminal-bottom">
+                <span><span class="status-dot" aria-hidden="true"></span>In-browser sandbox</span
+                ><span>Make something small.</span>
+              </div>
+            </section>
+
+            <section id="preview" class="preview" aria-labelledby="preview-name" hidden>
+              <div class="panel-toolbar preview-toolbar">
+                <h2 id="preview-name" data-dynamic="preview-name">File editor</h2>
+                <button
+                  id="close-preview-button"
+                  class="icon-button"
+                  type="button"
+                  title="Close editor"
+                  aria-label="Close editor"
+                >
+                  <svg class="icon" aria-hidden="true"><use href="#icon-close" /></svg>
+                </button>
+              </div>
+              <label class="sr-only" for="editor">File contents</label>
+              <textarea
+                id="editor"
+                data-dynamic="file-content"
+                spellcheck="false"
+                autocapitalize="off"
+                autocomplete="off"
+                placeholder="Select a file to make it your own."
+                aria-describedby="editor-help"
+              ></textarea>
+              <p id="editor-help" class="editor-help">
+                Edits stay in the sandbox. Download to keep a copy.
+              </p>
+              <div class="editor-actions">
+                <button id="save-file-button" class="save-button" type="button">
+                  Save file<svg class="icon" aria-hidden="true"><use href="#icon-check" /></svg>
+                </button>
+                <div class="toolbar-actions">
+                  <button
+                    id="download-file-button"
+                    class="icon-button"
+                    type="button"
+                    title="Download file"
+                    aria-label="Download file"
+                  >
+                    <svg class="icon" aria-hidden="true"><use href="#icon-download" /></svg>
+                  </button>
+                  <button
+                    id="delete-file-button"
+                    class="icon-button danger-button"
+                    type="button"
+                    title="Delete file"
+                    aria-label="Delete file"
+                  >
+                    <svg class="icon" aria-hidden="true"><use href="#icon-trash" /></svg>
+                  </button>
+                </div>
+              </div>
+            </section>
+          </div>
+
+          <div class="workspace-status">
+            <p id="status-message" role="status" aria-live="polite" data-dynamic="status">
+              Initializing sandbox…
+            </p>
+          </div>
+        </section>
+      </main>
+
+      <footer class="site-footer">
+        <p>A space to try things<span class="footer-period">.</span></p>
+        <ul class="privacy-notes" aria-label="Playground features">
+          <li>Local memory</li>
+          <li>No installs</li>
+          <li>No account</li>
+        </ul>
+      </footer>
+    </div>
+    <noscript
+      ><p class="noscript-notice">
+        This playground needs JavaScript to run its in-browser shell.
+      </p></noscript
+    >
+  </body>
+</html>

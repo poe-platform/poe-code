@@ -76,3 +76,22 @@ release qualification. On September 1, 2026, Node v22.22.2:
 
 No product sources or historical evidence files were edited. Full gates and
 published-artifact verification remain with root.
+
+## Concurrent upstream integration
+
+After the focused repair commits as `cd0d1896b`, upstream independently lands
+`0eb0c61fd` for the same mismatch. Preserve its implementation, assertions,
+negative controls and plan unchanged when resolving the merge. Retain only four
+additional controls from this repair: partial stdout/stderr renames, changed
+destructuring property names, and using a discarded binding. Do not retain a
+second implementation or duplicate upstream's existing negative controls.
+
+The preceding 54/100 counts describe the independently tested local repair,
+not the integrated candidate. Revalidate the resulting upstream implementation
+with these additional controls, then run normal commit/push hooks and monitor
+the actual containing release. Historical manifests and snapshots stay intact.
+
+The integrated candidate passes all 93 selected cases: 47 evidence checks and
+46 helper-consumer checks, with zero failures or skips. All 140 comparisons and
+23 original snapshots remain checked. The four added cases change no runtime
+or upstream migration behavior.

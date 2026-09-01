@@ -68,6 +68,19 @@ test("exact regular executable bytes precede bounded genuine version execution",
   assert.equal(calls[0].options.killSignal, "SIGKILL");
 });
 
+test("local Darwin recovery qualification is restricted to the exact diff and patch pair", () => {
+  const { pin } = fixture();
+  const host = { platform: "darwin", arch: "arm64", distribution: "macos", version: "26.4.1", release: "25.4.0" };
+  const profile = { id: "local-recovery-fixture", host, qualification: "QUALIFIED", executables: [pin, { ...pin, tool: "patch", version: "GNU patch 2.8" }] };
+  assert.deepEqual(selectNativeProfile([profile], host), profile);
+  for (const executables of [[pin], [...profile.executables, { ...pin, tool: "tar" }], [{ ...pin, tool: "stat" }, profile.executables[1]]]) {
+    assert.throws(() => selectNativeProfile([{ ...profile, executables }], host));
+  }
+  assert.throws(() => selectNativeProfile([{ ...profile, qualification: "BUILT_OBSERVATIONS_UNREVIEWED" }], host));
+  assert.throws(() => selectNativeProfile([profile, profile], host));
+  assert.throws(() => selectNativeProfile([{ ...profile, host: { ...host, version: "26.5.2" } }], { ...host, version: "26.5.2" }));
+});
+
 test("wrong digest and truncated bytes refuse execution", () => {
   for (const bytes of [Buffer.alloc(executable.length, 65), executable.subarray(0, -1)]) {
     const { fileSystem, pin, calls, run } = fixture();
@@ -75,6 +88,23 @@ test("wrong digest and truncated bytes refuse execution", () => {
     assert.throws(() => verifyNativeExecutable(pin, "/owned/build/diff", { fileSystem, run }));
     assert.equal(calls.length, 0);
   }
+});
+
+test("local recovery additionally admits reviewed Bash without accepting other tools or partial pairs", () => {
+  const { pin } = fixture();
+  const host = { platform: "darwin", arch: "arm64", distribution: "macos", version: "26.4.1", release: "25.4.0" };
+  const executables = [pin, { ...pin, tool: "patch" }, { ...pin, tool: "bash" }];
+  const profile = { id: "local-bash-fixture", host, qualification: "QUALIFIED", executables };
+  assert.deepEqual(selectNativeProfile([profile], host), profile);
+  for (const invalid of [[executables[2]], [pin, executables[2]], [...executables, { ...pin, tool: "tar" }]]) {
+    assert.throws(() => selectNativeProfile([{ ...profile, executables: invalid }], host));
+  }
+});
+
+test("Darwin evidence accepts authenticated gzip Bash sources and retains closed membership", () => {
+  const fileSystem = createFsFromVolume(Volume.fromJSON({ "/owned/evidence/sources/bash-5.3.tar.gz": "archive", "/owned/evidence/sources/bash-5.3.tar.gz.sig": "signature" }));
+  const members = ["sources/bash-5.3.tar.gz", "sources/bash-5.3.tar.gz.sig"];
+  assert.equal(native.sealDarwinEvidence("/owned/evidence", members, { fileSystem }).length, 2);
 });
 
 test("missing, relative, non-executable and linked paths refuse execution", () => {
@@ -368,7 +398,7 @@ function darwinFixture() {
         args[0] === "--version"
           ? profile.verifierVersion + "\n"
           : `[GNUPG:] VALIDSIG ${profile.sources[0].signer} 2026 fixture\n`;
-    if (command === "/usr/bin/bsdtar" && args[0] === "-xJf")
+    if (command === "/usr/bin/bsdtar" && args[0] === "-xf")
       fileSystem.mkdirSync(join(args[args.indexOf("-C") + 1], profile.sources[0].name, "src"), {
         recursive: true
       });
@@ -452,6 +482,33 @@ test("reviewed Darwin staging retains real separate first and second stat build 
 test("required Darwin staging is an explicit CLI mode", () => {
   assert.deepEqual(parseNativeArguments(["--stage-darwin", "--parent", "/owned", "--destination", "/workspace/tmp/native-gnu"]), { stageDarwin: true, parent: "/owned", destination: "/workspace/tmp/native-gnu" });
   assert.throws(() => parseNativeArguments(["--stage-darwin", "--qualify-darwin-build", "--parent", "/owned", "--destination", "/owned/build"]));
+});
+
+test("required Darwin staging verifies both Bash builds and preserves the separate stat output", async () => {
+  const value = darwinFixture();
+  const receipt = await native.qualifyDarwinBuild(value.options, value);
+  const stat = receipt.outputs[0];
+  const bash = { tool: "bash", version: "GNU bash, version 5.3.0(1)-release (aarch64-apple-darwin25.5.0)", size: executable.length, sha256: digest(executable) };
+  for (const build of [1, 2]) {
+    const member = `bin/bash-${build}`;
+    value.fileSystem.writeFileSync(join(receipt.root, "evidence", member), executable, { mode: 0o755 });
+    receipt.outputs.push({ ...bash, build, member });
+  }
+  const host = { platform: "darwin", arch: "arm64", distribution: "macos", version: "26.5.2", release: "25.5.0" };
+  const profile = { id: "fixture-bash-and-stat", qualification: "QUALIFIED", host, executables: [stat, bash] };
+  const paths = [];
+  const run = path => { paths.push(path); return { status: 0, signal: null, stdout: (path.includes("bash") ? bash.version : stat.version) + "\n", stderr: "" }; };
+  const options = { receipt, profile, host, parent: "/owned", name: "staged" };
+  const missing = { ...receipt, outputs: receipt.outputs.filter(output => !(output.tool === "bash" && output.build === 2)) };
+  assert.throws(() => native.stageDarwinOutputs({ ...options, receipt: missing }, { fileSystem: value.fileSystem, run }));
+  assert(!value.fileSystem.existsSync("/owned/staged"));
+  const changed = structuredClone(receipt);
+  changed.outputs.find(output => output.tool === "bash" && output.build === 2).sha256 = "0".repeat(64);
+  assert.throws(() => native.stageDarwinOutputs({ ...options, receipt: changed }, { fileSystem: value.fileSystem, run }));
+  const staged = native.stageDarwinOutputs(options, { fileSystem: value.fileSystem, run });
+  assert(paths.includes(join(receipt.root, "evidence/bin/bash-2")));
+  assert.equal(staged.primary.outputs.find(output => output.tool === "bash").path, "/owned/staged/bin/bash");
+  assert.deepEqual(staged.secondary.outputs.map(output => output.tool), ["stat"]);
 });
 
 test("Darwin staging admits every required stream and table executable through existing membership checks", () => {
@@ -551,6 +608,33 @@ test("Darwin builds independent coreutils trees, authenticates signatures and ne
     )
   );
   assert(receipt.members.some((member) => member.path.endsWith(".tar.xz.sig")));
+});
+
+test("Darwin Bash qualification authenticates gzip sources and records two independent builds", async () => {
+  const value = darwinFixture();
+  const source = value.profile.sources[0];
+  source.name = "bash-5.3";
+  source.url = "https://ftp.gnu.org/gnu/bash/bash-5.3.tar.gz";
+  source.signature.url = source.url + ".sig";
+  source.coreutils = false;
+  source.outputs = [{ tool: "bash", path: "bash", version: "GNU bash, version 5.3.0(1)-release (aarch64-apple-darwin25.5.0)" }];
+  const execute = async (command, args, options) => {
+    if (command === "/usr/bin/bsdtar" && args[0] === "-xf") value.fileSystem.mkdirSync(join(args[args.indexOf("-C") + 1], source.name), { recursive: true });
+    if (command === "/usr/bin/make") {
+      value.calls.push({ command, args, options });
+      value.fileSystem.writeFileSync(join(options.cwd, "bash"), executable, { mode: 0o755 });
+      return { status: 0, signal: null, stdout: "", stderr: "" };
+    }
+    if (command.endsWith("/bash")) return { status: 0, signal: null, stdout: source.outputs[0].version + "\n", stderr: "" };
+    return value.execute(command, args, options);
+  };
+  const receipt = await native.qualifyDarwinBuild(value.options, { ...value, execute });
+  assert.deepEqual(receipt.outputs.map(output => [output.tool, output.build]), [["bash", 1], ["bash", 2]]);
+  const extracts = value.calls.filter(call => call.command === "/usr/bin/bsdtar");
+  assert.equal(extracts.length, 2);
+  assert(extracts.every(call => call.args[0] === "-xf" && call.args[1].endsWith("bash-5.3.tar.gz")));
+  assert(receipt.members.some(member => member.path === "sources/bash-5.3.tar.gz.sig"));
+  assert.equal(new Set(value.calls.filter(call => call.command === "./configure").map(call => call.options.cwd)).size, 2);
 });
 
 test("Darwin tar alone links system iconv without changing other configure arguments", async () => {

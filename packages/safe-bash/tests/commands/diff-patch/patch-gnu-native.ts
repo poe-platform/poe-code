@@ -3,9 +3,10 @@ import { spawnSync } from "node:child_process";
 import { mkdtemp, mkdir, writeFile, readFile, readdir, rm } from "node:fs/promises";
 import { dirname, join } from "node:path";
 import type { Files } from "./helpers.js";
+import { oraclePath } from "../diff-patch-stress/gnu-target/oracle.js";
 
-export const gnuPatch = "/tmp/safe-bash-gnu-oracle.Yg2F0W/patch-2.8/src/patch";
-export const gnuDiff = "/tmp/safe-bash-gnu-oracle.Yg2F0W/diffutils-3.12/src/diff";
+export const gnuPatch = oraclePath("patch");
+export const gnuDiff = oraclePath("diff");
 
 export async function nativeGNU(args: readonly string[], files: Files = {}, input = "", tool = gnuPatch) {
   assert(tool === gnuPatch || tool === gnuDiff);

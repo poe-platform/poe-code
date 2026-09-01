@@ -1,4 +1,4 @@
-import { basename, FsError, getCommandArguments, type CommandContext, type CommandDefinition, type CommandHandler, type FileStat } from "../contracts/index.js";
+import { basename, FsError, getCommandArguments, type CommandDefinition, type CommandHandler, type FileStat } from "../contracts/index.js";
 import { codeOf, define, diagnostic, integer, output, pathOf, replaceArgument, UsageError } from "./internal.js";
 
 interface Entry { path: string; display: string; stat: FileStat; depth: number; prune: boolean }

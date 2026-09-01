@@ -144,7 +144,7 @@ test("opaque forwarders of negotiating product methods return unknown without re
   const leaf = opaque(store, { lstat: async (path, options) => {
     metadata++;
     const stat = await store.lstat(path, options);
-    const { identityScope: _scope, dev: _device, ino: _inode, ...unknown } = stat;
+    const { identityScope: ignoredScope, dev: ignoredDevice, ino: ignoredInode, ...unknown } = stat;
     return unknown;
   } });
   const first = createReadOnlyFileSystem(leaf);

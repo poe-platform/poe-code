@@ -45,7 +45,7 @@ test("stat missing fields fail rather than becoming zero; mutation capability do
   const fs: FileSystem = new Proxy(backing, { get(target, property) {
     if (property === "capabilities") return { ...target.capabilities, permissions: false };
     if (property === "lstat") return async (path: string) => {
-      const { ino: _ino, uid: _uid, birthtimeMs: _birthtimeMs, ...stat } = await target.lstat(path);
+      const { ino: ignoredIno, uid: ignoredUid, birthtimeMs: ignoredBirthtimeMs, ...stat } = await target.lstat(path);
       return stat satisfies FileStat;
     };
     const member: unknown = Reflect.get(target, property, target);

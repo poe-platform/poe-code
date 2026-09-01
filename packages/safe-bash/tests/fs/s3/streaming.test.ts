@@ -29,7 +29,7 @@ async function setup(overrides: Partial<S3Transport> = {}) {
 test("stream discovery requires both negotiated capability and a streaming method", async () => {
   const { client } = await setup();
   const capable = createS3Transport(client, client.capabilities);
-  const { getObjectStream: _read, putObjectStream: _write, ...buffered } = capable;
+  const { getObjectStream: ignoredRead, putObjectStream: ignoredWrite, ...buffered } = capable;
   const fs = new S3FileSystem({ bucket: "bucket", transport: buffered });
   assert.equal(fs.readStream, undefined);
   assert.equal(fs.writeStream, undefined);

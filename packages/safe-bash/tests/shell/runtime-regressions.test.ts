@@ -72,7 +72,7 @@ test("redirected input resources close after partial, zero and failed consumptio
     fs.readStream = () => ({ [Symbol.asyncIterator]() {
       return { async next() { return { value: new Uint8Array([1]), done: false }; }, async return() { returned++; return { value: undefined, done: true }; } };
     } });
-    commands.register({ name: "first", async execute({ stdin }) { for await (const _chunk of stdin) break; return { exitCode: 0 }; } });
+    commands.register({ name: "first", async execute({ stdin }) { for await (const ignoredChunk of stdin) break; return { exitCode: 0 }; } });
     await shell.exec(script);
     assert.equal(returned, 1, script);
   }

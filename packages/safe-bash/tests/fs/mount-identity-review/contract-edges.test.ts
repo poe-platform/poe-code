@@ -279,7 +279,7 @@ test("unknown same-mount identity cannot delegate to an arbitrary destructive co
   await backend.link("/file", "/target");
   const events: Event[] = [];
   const decorated = trace(backend, "generic", events, { metadata(stat) {
-    const { identityScope: omitted, ...rest } = stat;
+    const { identityScope: ignoredOmitted, ...rest } = stat;
     return rest;
   } });
   const unsafe = new Proxy(decorated, {

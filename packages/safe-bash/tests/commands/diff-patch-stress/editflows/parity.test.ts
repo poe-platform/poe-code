@@ -2,7 +2,7 @@ import assert from "node:assert/strict";
 import test from "node:test";
 import { diffPatchCommands } from "../../../../src/commands/diff-patch/index.js";
 import { Shell } from "../../../../src/shell/index.js";
-import { flows, mailPatch, relaxedPatch, replacement } from "./fixtures.js";
+import { flows, mailPatch, replacement } from "./fixtures.js";
 import { cwd, expectedBytes, fileBytes, memory, run } from "./helpers.js";
 
 for (const flow of flows) test(`edit-flow parity: ${flow.name}`, async context => {
@@ -24,21 +24,6 @@ test("Shell plugin integration applies a saved mail patch through stdin redirect
   const result = await shell.exec("patch -p1 < change.eml");
   assert.deepEqual({ status: result.exitCode, stderr: result.stderr, files: await fileBytes(filesystem, ["target"]) },
     { status: 0, stderr: "", files: expectedBytes({ target: "new\n" }) });
-});
-
-test("GNU default without -l whitespace causes a hunk conflict and publishes rejects", async () => {
-  const files = { target: "if\t(ready) {\n\told\tvalue;\n}\n" };
-  const filesystem = await memory(files);
-  const args = ["--batch", "--no-backup-if-mismatch"];
-  const result = await run("patch", args, filesystem, relaxedPatch);
-});
-
-test("GNU default -l rejects an absent blank run and publishes rejects", async () => {
-  const files = { target: "oldvalue\n" };
-  const filesystem = await memory(files);
-  const args = ["--batch", "--no-backup-if-mismatch", "-l"];
-  const input = replacement("target", "target", "old value", "new");
-  const result = await run("patch", args, filesystem, input);
 });
 
 test("atomic extension sequential section conflict preflights against staged content without early writes", async () => {

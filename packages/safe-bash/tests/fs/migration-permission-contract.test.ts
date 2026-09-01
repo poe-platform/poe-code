@@ -18,7 +18,7 @@ function fixture() {
 }
 
 function rejectingOpaque(backend: FileSystem, calls: { path: string; mode: number | undefined }[]): FileSystem {
-  const { permissions: _permissions, ...capabilities } = backend.capabilities;
+  const { permissions: ignoredPermissions, ...capabilities } = backend.capabilities;
   return new Proxy(backend, { get(target, key) {
     if (key === "capabilities") return capabilities;
     if (key === "access") return async (path: string, mode?: number, options?: Parameters<FileSystem["access"]>[2]) => {

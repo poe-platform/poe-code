@@ -6,32 +6,7 @@ import { runVirtualScript } from "../shell-stress/helpers.js";
 import { isolatedSpawn } from "../shell-stress/process.js";
 import { setup } from "./helpers.js";
 
-const cases = [
-  ["quoted dollar and backslash", 'VALUE=hi; cat <<"E\\$OF"\n$VALUE \\n\nE$OF\n'],
-  ["single quoted slash delimiter", "VALUE=hi; cat <<'E\\OF'\n$VALUE\nE\\OF\n"],
-  ["empty delimiter", "VALUE=hi; cat <<''\n$VALUE\n\nprintf done"],
-  ["unquoted continuation before tab strip", "cat <<-EOF\n\tone\\\n\t two\n\tEOF\n"],
-  ["quoted continuation before tab strip", "cat <<-'EOF'\n\tone\\\n\t two\n\tEOF\n"],
-  ["literal command shaped delimiter", "VALUE=hi; cat <<$(printf 'EOF')\n$VALUE\n$(printf EOF)\n"],
-  ["literal parameter shaped delimiter", "VALUE=hi; cat <<${x:-'EOF'}\n$VALUE\n${x:-EOF}\n"],
-  ["FIFO documents before comment", "cat <<A 3<<B # comment\none\nA\ntwo\nB\n"],
-  ["heredoc inside case clause", "case x in x) cat <<EOF\n$(printf yes)\nEOF\n;; esac"],
-  ["quoted document inside substitution", "value=$(cat <<'EOF'\nhi\nEOF\n); printf '<%s>' \"$value\""],
-  ["document inside backticks", "value=`cat <<EOF\nhi\nEOF\n`; printf '<%s>' \"$value\""],
-  ["FIFO across pipeline", "cat <<A | cat <<B\none\nA\ntwo\nB\n"],
-  ["FIFO across statements", "cat <<A; cat <<B\none\nA\ntwo\nB\n"],
-  ["delimiter without final newline", "cat <<EOF\nhi\nEOF"],
-  ["empty body without final newline", "cat <<EOF\nEOF"],
-  ["protected delimiter text", "cat <<EOF\n\\EOF\nEOF\n"],
-  ["paired backslash before newline", "cat <<EOF\na\\\\\nEOF\n"],
-  ["escaped command substitution has no effects", "cat <<EOF\n\\$(printf bad >marker)\nEOF\n"],
-  ["space then tab survives stripping", 'cat <<-"EOF"\n \tspace\n\tEOF\n'],
-  ["here-string early read retains descriptor cursor", "{ read -r first <&3; cat <&4; printf '<%s>' \"$first\"; } 3<<<'one\ntwo' 4<&3"],
-  ["redirected pipe retains upstream file effects", "printf upstream >out | cat <<EOF\ndownstream\nEOF\ncat out"],
-  ["loop condition consumes shared document", "while read -r word; do printf '<%s>' \"$word\"; done <<EOF\none\ntwo\nEOF\n"],
-] as const;
-
-test("case syntax inside a document substitution is parsed structurally", async (context) => {
+test("case syntax inside a document substitution is parsed structurally", async () => {
   const fixture = { name: "case inside heredoc expansion", script: "cat <<EOF\n$(case x in x) printf yes;; esac)\nEOF\n" };
   const actual = await runVirtualScript(fixture);
   assert.equal(actual.exitCode, 0);

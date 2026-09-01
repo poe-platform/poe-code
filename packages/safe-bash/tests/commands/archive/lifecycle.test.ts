@@ -61,7 +61,7 @@ test("blocked extractor writer backpressures input and receives cancellation", a
     for (let offset = 0; offset < bytes.length; offset += 1024) { produced++; yield bytes.subarray(offset, offset + 1024); }
   } finally { closed.resolve(); } } };
   const adapter = wrapped(fs, { async writeStream(_path, content, options) {
-    for await (const _chunk of content) { entered.resolve(); await pause(options!.signal!); }
+    for await (const ignoredChunk of content) { entered.resolve(); await pause(options!.signal!); }
   } });
   const reason = new Error("cancel extraction write");
   const checked = assert.rejects(direct(["xf", "-", "-C", "/out"], adapter, { stdin: input, signal: controller.signal }), error => error === reason);

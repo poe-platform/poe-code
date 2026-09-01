@@ -5,6 +5,6 @@ export function options(work: Partial<GetoptsWork> = {}, reportErrors = true): G
 }
 
 export function view(result: GetoptsScanResult): Omit<GetoptsScanResult, "state"> {
-  const { state: _state, ...rest } = result;
+  const { state: ignoredState, ...rest } = result;
   return rest;
 }

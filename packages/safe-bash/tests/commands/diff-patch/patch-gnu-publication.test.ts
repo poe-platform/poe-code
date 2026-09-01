@@ -1,12 +1,9 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 import { isFsError, type FileSystem } from "../../../src/contracts/index.js";
-import { contents, filesystem, replacement, run, type Files } from "./helpers.js";
+import { contents, filesystem, replacement, run } from "./helpers.js";
 
-const binaryHash = "c060444da0e547de6f17594baf0b5015a04f5b3277131ca12b1da27c621aee00";
 const twoHunks = replacement + "@@ -3 +3 @@ function\n-tail\n+TAIL\n";
-const normal = "Index: target\n1c1\n< old\n---\n> new\n3c3\n< tail\n---\n> TAIL\n";
-const context = "*** target\t2020-01-01 00:00:00 +0000\n--- target\t2021-01-01 00:00:00 +0000\n*************** function\n*** 1 ****\n! old\n--- 1 ----\n! new\n*************** later\n*** 3 ****\n! tail\n--- 3 ----\n! TAIL\n";
 
 async function namespace(fs: FileSystem) {
   const files: Record<string, string> = {};
@@ -24,57 +21,6 @@ async function namespace(fs: FileSystem) {
   catch (error) { if (!isFsError(error, "ENOENT")) throw error; rootExists = false; }
   return { files, directories: directories.sort(), rootExists };
 }
-
-interface Fixture { readonly name: string; readonly files: Files; readonly input: string; readonly args?: readonly string[] }
-const fixtures: readonly Fixture[] = [
-  { name: "unified partial succeeds then rejects", files: { target: "old\nkeep\nwrong\n" }, input: twoHunks },
-  { name: "unified partial rejects then succeeds", files: { target: "wrong\nkeep\ntail\n" }, input: twoHunks },
-  { name: "context partial retains timestamps and section labels", files: { target: "old\nkeep\nwrong\n" }, input: context },
-  { name: "normal partial uses Index and context reject format", files: { target: "old\nkeep\nwrong\n" }, input: normal, args: ["-n"] },
-  { name: "normal explicit target accepts bare diff preamble", files: { target: "wrong\n" }, input: "diff old new\n1c1\n< old\n---\n> new\n", args: ["target"] },
-  { name: "bare diff preamble does not supply normal target", files: { target: "old\n" }, input: "diff target target\n1c1\n< old\n---\n> new\n" },
-  { name: "explicit -n skips unlocated normal target", files: { target: "old\n" }, input: "diff target target\n1c1\n< old\n---\n> new\n", args: ["-n"] },
-  { name: "unlocated normal section does not stop later indexed section", files: { target: "old\n" }, input: "1c1\n< old\n---\n> new\nIndex: target\n1c1\n< old\n---\n> new\n" },
-  { name: "normal Index is stripped in rejects", files: { target: "wrong\n" }, input: normal.replace("Index: target", "Index: deep/target"), args: ["-p1", "-n"] },
-  { name: "header names take precedence over Index", files: { target: "wrong\n", index: "old\n" }, input: `Index: index\n${replacement}` },
-  { name: "existing reject is replaced", files: { target: "wrong\n", "target.rej": "stale\n" }, input: replacement },
-  { name: "rejects append during one invocation", files: { target: "wrong\n", "target.rej": "stale\n" }, input: replacement + replacement.replace("-old", "-absent") },
-  { name: "explicit reject file", files: { target: "wrong\n", rejects: "stale\n" }, input: replacement, args: ["-r", "rejects"] },
-  { name: "long explicit reject file", files: { target: "wrong\n" }, input: replacement, args: ["--reject-file=rejects"] },
-  { name: "discard rejects still creates mismatch backup", files: { target: "wrong\n" }, input: replacement, args: ["-r", "-"] },
-  { name: "reject parent is not implicitly created", files: { target: "wrong\n" }, input: replacement, args: ["-r", "missing/rejects"] },
-  { name: "no backup if mismatch", files: { target: "wrong\n", "target.orig": "retain\n" }, input: replacement, args: ["--no-backup-if-mismatch"] },
-  { name: "default backup replaces existing orig", files: { target: "wrong\n", "target.orig": "stale\n" }, input: replacement },
-  { name: "existing numbered backups select next version", files: { target: "wrong\n", "target.~1~": "one\n", "target.~4~": "four\n" }, input: replacement },
-  { name: "clean first section suppresses later mismatch backup", files: { target: "old\n" }, input: replacement + replacement.replace("-old", "-absent").replace("+new", "+last") },
-  { name: "clean target can coexist with later orig target", files: { target: "old\n", "target.orig": "old\n" }, input: replacement + replacement.replaceAll("target", "target.orig") },
-  { name: "offset match produces orig backup", files: { target: "prefix\nold\n" }, input: replacement },
-  { name: "default fuzz two produces orig backup", files: { target: "head\nold\ntail\n" }, input: "--- target\n+++ target\n@@ -1,3 +1,3 @@\n other\n-old\n+new\n end\n" },
-  { name: "explicit fuzz zero rejects without narrowing default", files: { target: "head\nold\ntail\n" }, input: "--- target\n+++ target\n@@ -1,3 +1,3 @@\n other\n-old\n+new\n end\n", args: ["-F0"] },
-  { name: "batch reverses previously applied patch", files: { target: "new\n" }, input: replacement },
-  { name: "force does not reverse", files: { target: "new\n" }, input: replacement, args: ["--force"] },
-  { name: "batch does not cancel force", files: { target: "new\n" }, input: replacement, args: ["-ft"] },
-  { name: "last grouped format selector chooses unified", files: { target: "old\n" }, input: replacement, args: ["-cu"] },
-  { name: "last grouped format selector rejects unified as context", files: { target: "old\n" }, input: replacement, args: ["-uc"] },
-  { name: "last long format selector chooses unified", files: { target: "old\n" }, input: replacement, args: ["--normal", "--unified"] },
-  { name: "reverse keeps section order", files: { target: "last\n" }, input: replacement + replacement.replace("-old", "-new").replace("+new", "+last"), args: ["-R"] },
-  { name: "default dry-run reads unmodified filesystem", files: { target: "old\n" }, input: replacement + replacement.replace("-old", "-new").replace("+new", "+last"), args: ["--dry-run"] },
-  { name: "dry-run leaves existing backup and reject", files: { target: "wrong\n", "target.orig": "backup\n", "target.rej": "reject\n" }, input: replacement, args: ["--dry-run"] },
-  { name: "later missing target continues to third", files: { first: "old\n", third: "old\n" }, input: ["first", "second", "third"].map(name => replacement.replaceAll("target", name)).join("") },
-  { name: "later malformed section retains completed prefix", files: { first: "old\n", second: "old\n" }, input: replacement.replaceAll("target", "first") + replacement.replaceAll("target", "second").replace("+new\n", "") },
-  { name: "failed overlap permits a later matching hunk", files: { target: "old\nkeep\ntail\n" }, input: replacement + "@@ -3 +3 @@\n-absent\n+no\n@@ -3 +3 @@\n-tail\n+TAIL\n" },
-  { name: "subsequent zero-range insertion has GNU coordinates", files: { target: "a\nb\nc\n" }, input: "--- target\n+++ target\n@@ -1 +1 @@\n-a\n+A\n@@ -1,0 +1 @@\n+new\n" },
-  { name: "overlapping old range is a hunk conflict", files: { target: "a\nb\nc\n" }, input: "--- target\n+++ target\n@@ -1,2 +1,0 @@\n-a\n-b\n@@ -2 +1 @@\n-b\n+B\n" },
-  { name: "overlapping new range is a hunk conflict", files: { target: "a\nb\nc\n" }, input: "--- target\n+++ target\n@@ -1,0 +1,2 @@\n+A\n+B\n@@ -1 +2 @@\n-a\n+C\n" },
-  { name: "repeated old coordinates are a hunk conflict", files: { target: "old\n" }, input: replacement + "@@ -1 +1 @@\n-old\n+again\n" },
-  { name: "reject coordinates track successful insertion", files: { target: "old\nkeep\nwrong\n" }, input: twoHunks.replace("@@ -1 +1 @@", "@@ -1 +1,2 @@").replace("+new\n", "+new\n+extra\n").replace("@@ -3 +3 @@", "@@ -3 +4 @@") },
-  { name: "incomplete reject lines reproduce GNU bytes", files: { target: "wrong\n" }, input: replacement.replace("-old\n", "-old\n\\ No newline at end of file\n").replace("+new\n", "+new\n\\ No newline at end of file\n") },
-  { name: "creation over nonempty file assumes reversal", files: { target: "wrong\n" }, input: "--- /dev/null\n+++ target\n@@ -0,0 +1 @@\n+new\n" },
-  { name: "creation over nonempty file force retains forward reject", files: { target: "wrong\n" }, input: "--- /dev/null\n+++ target\n@@ -0,0 +1 @@\n+new\n", args: ["-f"] },
-  { name: "deletion of missing target assumes creation", files: {}, input: "--- target\n+++ /dev/null\n@@ -1 +0,0 @@\n-old\n" },
-  { name: "incomplete deletion publishes successful removal", files: { target: "old\nretained\n" }, input: "--- target\n+++ /dev/null\n@@ -1 +0,0 @@\n-old\n" },
-  { name: "creation makes missing parents", files: {}, input: "--- /dev/null\n+++ tree/deep/target\n@@ -0,0 +1 @@\n+new\n", args: ["-p0"] },
-];
 
 test("noninteractive default explicitly chooses batch reversal, not force", async () => {
   const actual = await run("patch", [], { files: { target: "new\n" }, input: replacement });

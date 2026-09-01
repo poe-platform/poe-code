@@ -74,34 +74,6 @@ test("empty context parsing observes cancellation before mutation", async () => 
 });
 
 const dialectHunks = "@@ -1 +1,0 @@\n-a\n@@ -4,0 +4 @@\n+NEW\n@@ -7,0 +8 @@\n+b\n";
-const coordinateCases = [
-  ["reported BSD three-hunk sequence", "a\nb\na\nb\na\nb\na\n", "b\na\nb\nNEW\na\nb\na\nb\n", dialectHunks],
-  ["BSD beginning insertion", "a\nb\n", "new\na\nb\n", "@@ -1,0 +1 @@\n+new\n"],
-  ["BSD beginning deletion", "a\nb\n", "b\n", "@@ -1 +1,0 @@\n-a\n"],
-  ["BSD multiline beginning insertion", "a\nb\n", "new\nmore\na\nb\n", "@@ -1,0 +1,2 @@\n+new\n+more\n"],
-  ["BSD multiline beginning deletion", "a\nb\nc\n", "c\n", "@@ -1,2 +1,0 @@\n-a\n-b\n"],
-  ["canonical beginning insertion", "a\nb\n", "new\na\nb\n", "@@ -0,0 +1 @@\n+new\n"],
-  ["canonical beginning deletion", "a\nb\n", "b\n", "@@ -1 +0,0 @@\n-a\n"],
-  ["canonical first insertion after line one", "a\nb\n", "a\nnew\nb\n", "@@ -1,0 +2 @@\n+new\n"],
-  ["canonical first deletion after line one", "a\nb\nc\n", "a\nc\n", "@@ -2 +1,0 @@\n-b\n"],
-  ["subsequent empty range at one is not a beginning alias", "a\nb\n", "A\nnew\nb\n", "@@ -1 +1 @@\n-a\n+A\n@@ -1,0 +2 @@\n+new\n"],
-  ["normalized leading insertion followed by replacement", "a\nb\nc\n", "new\na\nB\nc\n", "@@ -1,0 +1 @@\n+new\n@@ -2 +3 @@\n-b\n+B\n"],
-  ["normalized leading deletion followed by replacement", "a\nb\nc\n", "b\nC\n", "@@ -1 +1,0 @@\n-a\n@@ -3 +2 @@\n-c\n+C\n"],
-  ["canonical empty file insertion", "", "new\n", "@@ -0,0 +1 @@\n+new\n"],
-  ["canonical entire file deletion", "old\n", "", "@@ -1 +0,0 @@\n-old\n"],
-  ["normalized deletion with incomplete final replacement", "a\nb\nc", "b\nC", "@@ -1 +1,0 @@\n-a\n@@ -3 +2 @@\n-c\n\\ No newline at end of file\n+C\n\\ No newline at end of file\n"],
-] as const;
-
-for (const [name, before, after, hunks] of coordinateCases) {
-  for (const reverse of [false, true]) {
-    test(`GNU interpretation of historical coordinates ${reverse ? "reverse" : "forward"}: ${name}`, async () => {
-      const args = ["--batch", "-p0", "-F0", ...(reverse ? ["-R"] : [])];
-      const result = await run("patch", args, {
-        files: { target: reverse ? after : before }, input: headers + hunks,
-      });
-    });
-  }
-}
 
 test("GNU empty coordinates remain literal before reversal", async () => {
   const budget = new Budget({

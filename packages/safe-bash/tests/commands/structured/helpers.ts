@@ -17,7 +17,7 @@ export async function runWithBytes(args: readonly string[], input: string | Uint
   return { ...result, stdout: stdoutBytes.toString(), stderr: stderrBytes.toString(), context, stdoutBytes, stderrBytes };
 }
 export async function run(...args: Parameters<typeof runWithBytes>) {
-  const { stdoutBytes: _stdoutBytes, stderrBytes: _stderrBytes, ...result } = await runWithBytes(...args);
+  const { stdoutBytes: ignoredStdoutBytes, stderrBytes: ignoredStderrBytes, ...result } = await runWithBytes(...args);
   return result;
 }
 

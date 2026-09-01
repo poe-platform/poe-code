@@ -212,7 +212,7 @@ export class Interpreter {
       else if (isNumber(input)) yield Math.abs(numberValue(input));
       else if (typeof input === "string") {
         let length = 0;
-        for (const _ of input) length++;
+        for (const ignoredEntry of input) length++;
         yield length;
       }
       else if (Array.isArray(input)) yield input.length;

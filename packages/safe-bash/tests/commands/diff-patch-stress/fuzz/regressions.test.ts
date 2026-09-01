@@ -11,7 +11,7 @@ for (const reverse of [false, true]) test(`GAP-01 GNU literal-coordinate product
   assert.equal(await contents(filesystem), reverse ? "b\na\n" : "b\n");
 });
 
-test("GAP-01 canonical GNU zero-context deletion applies and reverses", { timeout: 5000 }, async context => {
+test("GAP-01 canonical GNU zero-context deletion applies and reverses", { timeout: 5000 }, async () => {
   const input = "--- target\n+++ target\n@@ -1 +0,0 @@\n-a\n";
 for (const reverse of [false, true]) {
       const filesystem = await memory({ target: reverse ? "b\n" : "a\nb\n" });

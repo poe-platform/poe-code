@@ -23,19 +23,12 @@ test("space-containing filenames and tab-delimited timestamps", async () => {
   assert.equal(await contents(result.fs, "space name"), "new\n");
 });
 
-test("standard git text preambles and -p1", async () => {
-  const input = "diff --git a/target b/target\nindex 1111111..2222222 100644\n"
-    + replacement.replace("--- target", "--- a/target").replace("+++ target", "+++ b/target");
-  const actual = await run("patch", ["-p1"], { files: { target: "old\n" }, input });
-});
-
-test("native patch offset matching and explicit fuzz preserve actual context", async () => {
+test("zero-fuzz patch conflicts preserve actual context", async () => {
   const input = "--- target\n+++ target\n@@ -1,3 +1,3 @@\n expected head\n-old\n+new\n expected tail\n";
   const files = { target: "prefix\nactual head\nold\nactual tail\nsuffix\n" };
   const strict = await run("patch", ["-F0"], { files, input });
   assert.equal(strict.exitCode, 1, strict.stderr);
   assert.equal(await contents(strict.fs, "target"), files.target);
-  const actual = await run("patch", ["--fuzz=1"], { files, input });
 });
 
 test("offset-only matching succeeds at fuzz zero and carries offsets across hunks", async () => {

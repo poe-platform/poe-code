@@ -217,7 +217,7 @@ test("unknown identity fails closed but truthful comparison enables overwrite", 
     await fs.writeFile("/input", Buffer.from("abcdef"));
     await fs.writeFile("/xaa", Buffer.from("OLD"));
     const opaque = (stat: FileStat): FileStat => {
-      const { identityScope, dev, ino, ...rest } = stat;
+      const { identityScope: ignoredIdentityScope, dev: ignoredDev, ino: ignoredIno, ...rest } = stat;
       return rest;
     };
     const target = wrapped(fs, {

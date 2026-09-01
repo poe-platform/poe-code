@@ -2,7 +2,7 @@ import assert from "node:assert/strict";
 import { setTimeout as sleep } from "node:timers/promises";
 import { test } from "node:test";
 import { FsError, toByteSource, type ByteSource } from "../../../src/contracts/index.js";
-import { createCurlCommand, type HttpResponse, type HttpTransport } from "../../../src/commands/network/index.js";
+import { createCurlCommand, type HttpResponse } from "../../../src/commands/network/index.js";
 import { fixture, run, server } from "./helpers.js";
 
 function response(body: ByteSource = toByteSource("ok")): HttpResponse {

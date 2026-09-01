@@ -174,7 +174,7 @@ test("opaque existing symlink identity stays unsupported, while absent targets n
   await fs.writeFile("/target", Buffer.from("OLD"));
   await fs.symlink("target", "/xaa");
   const opaque = (stat: FileStat): FileStat => {
-    const { identityScope, dev, ino, ...rest } = stat;
+    const { identityScope: ignoredIdentityScope, dev: ignoredDev, ino: ignoredIno, ...rest } = stat;
     return rest;
   };
   const observed = without(wrapped(fs, {

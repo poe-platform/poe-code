@@ -17,7 +17,7 @@ export function wrapped(filesystem: FileSystem, overrides: Partial<FileSystem>):
 
 export function opaque(filesystem: FileSystem, overrides: Partial<FileSystem> = {}): FileSystem {
   const strip = (stat: FileStat): FileStat => {
-    const { identityScope: _scope, dev: _device, ino: _inode, ...remaining } = stat;
+    const { identityScope: ignoredScope, dev: ignoredDevice, ino: ignoredInode, ...remaining } = stat;
     return remaining;
   };
   return wrapped(filesystem, {

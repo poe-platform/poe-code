@@ -1,7 +1,7 @@
 import { chmod, mkdir, mkdtemp, readFile, rm, symlink } from "node:fs/promises";
 import { dirname, resolve } from "node:path";
 import { cases } from "../invocation-modes/cases.js";
-import { boundedProcess, fixtureBytes, head, inputBytes, owned, quote, sanitizedEnv, sha256 } from "../invocation-modes/harness.js";
+import { boundedProcess, fixtureBytes, inputBytes, owned, quote, sanitizedEnv, sha256 } from "../invocation-modes/harness.js";
 import { writeFile } from "node:fs/promises";
 
 import { tmpdir } from "node:os";

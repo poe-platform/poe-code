@@ -36,7 +36,7 @@ export function immutable(backend: FileSystem): { lower: FileSystem; mutations: 
 }
 
 export async function snapshot(backend: FileSystem, path = "/"): Promise<unknown> {
-  const { atimeMs: _readSideEffect, ...stat } = await backend.lstat(path);
+  const { atimeMs: ignoredReadSideEffect, ...stat } = await backend.lstat(path);
   if (stat.type === "file") return { stat, bytes: [...await backend.readFile(path)] };
   if (stat.type === "symlink") return { stat, target: await backend.readlink!(path) };
   const children: Record<string, unknown> = {};

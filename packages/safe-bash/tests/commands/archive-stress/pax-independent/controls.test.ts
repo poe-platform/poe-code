@@ -136,7 +136,7 @@ test("I04 discarded values still consume PAX, member, archive and effective-size
   await rejected(archive(member("metadata", metadata, "x")), {}, [], /orphan/i);
 });
 
-test("I05 fixed local nanoseconds and global precedence have separate virtual and native profile assertions", { timeout: 60000 }, async context => {
+test("I05 fixed local nanoseconds and global precedence have separate virtual and native profile assertions", { timeout: 60000 }, async () => {
   const fixed = (local: string) => archive(
     member("global", record("mtime", "1700123400"), "g"),
     member("local", Buffer.concat([record("SCHILY.xattr.user.note", opaque), record("mtime", local)]), "x"),

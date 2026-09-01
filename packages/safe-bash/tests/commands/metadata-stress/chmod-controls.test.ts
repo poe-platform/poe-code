@@ -13,7 +13,7 @@ test("chmod verbose/changes/reference/error controls preserve bytes and aliases"
     await fs.link("/work/file", "/work/alias");
   }
   for (const args of [["-v", "600", "file"], ["-c", "600", "file"], ["--verbose", "600", "file"], ["--changes", "--reference=ref-link", "file"], ["-f", "644", "missing", "file"]]) {
-    const actual = await run("chmod", args, memory);
+    await run("chmod", args, memory);
     assert.equal((await memory.stat("/work/alias")).mode, (await memory.stat("/work/file")).mode);
     assert.deepEqual(await memory.readFile("/work/alias"), Uint8Array.of(0, 255, 13));
     assert.equal(await memory.readlink("/work/ref-link"), "reference");

@@ -68,7 +68,7 @@ test("missing permission capability preserves traversal support and actual denia
   const service = seed();
   const before = structuredClone(service.files);
   const backend = remote(service);
-  const { permissions: _permissions, ...unknownCapabilities } = backend.capabilities;
+  const { permissions: ignoredPermissions, ...unknownCapabilities } = backend.capabilities;
   let deny = false;
   const cause = new FsError("EACCES", { path: "/", syscall: "access" });
   const unknown = wrapped(backend, { capabilities: unknownCapabilities, async access(path, mode, options) {
@@ -229,7 +229,7 @@ for (const operation of ["symlink-copy", "hidden-mount-removal"] as const) {
     assert.equal(inner.capabilities.permissions, false);
     const outerRoot = createMemoryFileSystem();
     const view = operation === "symlink-copy" ? createReadOnlyFileSystem(inner) : inner;
-    const { symlinks: _symlinks, ...unknownLinkCapabilities } = view.capabilities;
+    const { symlinks: ignoredSymlinks, ...unknownLinkCapabilities } = view.capabilities;
     let linkReads = 0;
     const opaqueView = wrapped(view, operation === "symlink-copy" ? {
       capabilities: unknownLinkCapabilities,

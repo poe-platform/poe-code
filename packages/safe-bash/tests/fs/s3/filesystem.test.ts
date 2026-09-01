@@ -208,7 +208,7 @@ test("implicit directory existence follows empty truncated pages", async () => {
         return { Contents: [], IsTruncated: true, NextContinuationToken: "empty-first-page" };
       }
       if (input.ContinuationToken === "empty-first-page") {
-        const { ContinuationToken: _token, ...rest } = input;
+        const { ContinuationToken: ignoredToken, ...rest } = input;
         return client.listObjectsV2(rest, options);
       }
       return client.listObjectsV2(input, options);

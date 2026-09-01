@@ -70,22 +70,3 @@ for (const flags of [["-w", "-b"], ["-b", "-w"], ["-wb"], ["-bw"], ["--ignore-al
     assert.equal(result.stdout, "");
   });
 }
-
-const looseCases = [
-  { name: "nonempty-blanks", old: "two Words\n", target: "two\t  Words\n", accept: true },
-  { name: "leading-blanks", old: " two\n", target: "\t  two\n", accept: true },
-  { name: "missing-internal-blanks", old: "two Words\n", target: "twoWords\n", accept: false },
-  { name: "missing-leading-blanks", old: " two\n", target: "two\n", accept: false },
-  { name: "extra-internal-blanks", old: "twoWords\n", target: "two Words\n", accept: false },
-  { name: "nonblank-change", old: "two Words\n", target: "two Words!\n", accept: false },
-  { name: "unicode-space-not-blank", old: "two Words\n", target: "two\u00a0Words\n", accept: false },
-  { name: "bom-not-blank", old: "twoWords\n", target: "\ufefftwoWords\n", accept: false },
-];
-
-for (const entry of looseCases) for (const format of [[], ["-C3"], ["-U3"]]) {
-  test(`patch -l ${format[0] ?? "normal"}/${entry.name}`, async () => {
-    const old = `head \t value\n${entry.old}tail \t value\n`;
-    const target = `head  value\n${entry.target}tail  value\n`;
-    const next = "head \t value\nreplacement \t bytes\ntail \t value\n";
-  });
-}

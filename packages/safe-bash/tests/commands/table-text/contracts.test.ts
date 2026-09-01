@@ -3,7 +3,7 @@ import test from "node:test";
 import { FsError, type ByteSource, type FileSystem } from "../../../src/contracts/index.js";
 import { createMemoryFileSystem } from "../../../src/fs/memory/index.js";
 import { createTableTextCommands } from "../../../src/commands/table-text/index.js";
-import { fixture, runTable, toByteSource } from "./helpers.js";
+import { fixture, runTable } from "./helpers.js";
 
 function deferred() {
   let resolve!: () => void;

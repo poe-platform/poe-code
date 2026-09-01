@@ -27,7 +27,7 @@ function backend(kind: "memory" | "s3" | "webdav"): FileSystem {
 function view(backing: FileSystem, omit: boolean, effects: string[]): FileSystem {
   const mapped = (path: string) => path === "/target" ? "/source" : path;
   const strip = (stat: FileStat): FileStat => {
-    const { identityScope: _scope, dev: _dev, ino: _ino, ...rest } = stat;
+    const { identityScope: ignoredScope, dev: ignoredDev, ino: ignoredIno, ...rest } = stat;
     return rest;
   };
   const overrides: Partial<Omit<FileSystem, "compareEntry">> = {

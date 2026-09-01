@@ -3,8 +3,6 @@ import { test } from "node:test";
 import { ShellLimitError } from "../../src/shell/index.js";
 import { setup } from "./helpers.js";
 
-const prelude = 'say() { printf "%s\\n" "$*"; }; err() { printf "%s\\n" "$*" >&2; }; ';
-
 for (const [source, stdout] of [
   ['case x in x) say A ;& y) say B ;; esac', 'A\nB\n'],
   ['case x in x) say A ;;& y) say B ;; x) say C ;; esac', 'A\nC\n'],

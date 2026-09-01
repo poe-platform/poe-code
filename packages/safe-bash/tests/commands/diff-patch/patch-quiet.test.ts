@@ -50,7 +50,7 @@ for (const fixture of fixtures) {
 }
 
 for (const quiet of [false, true]) {
-  test(`${quiet ? "quiet retains" : "default matches GNU"} deletion-conflict diagnostic`, async context => {
+  test(`${quiet ? "quiet retains" : "default matches GNU"} deletion-conflict diagnostic`, async () => {
     const files = { target: "old\nextra\n" };
     const input = "--- target\n+++ /dev/null\n@@ -1 +0,0 @@\n-old\n";
     const args = ["-t", "-p0", ...(quiet ? ["-s"] : [])];
@@ -72,7 +72,7 @@ for (const args of [["--quiet"], ["--silent"], ["-stp0"], ["-sRp0"]]) {
 }
 
 for (const input of ["--- target\n+++ target\n@@ -1 +1 @@\n?bad\n", replacement + "--- second\n+++ second\n@@ -1 +1 @@\n?bad\n"]) {
-  test(`quiet retains malformed diagnostics and committed prefix (${input.length} bytes)`, async context => {
+  test(`quiet retains malformed diagnostics and committed prefix (${input.length} bytes)`, async () => {
     const files = { target: "old\n", second: "old\n" };
     const regular = await run("patch", ["-p0"], { files, input });
     const quiet = await run("patch", ["-s", "-p0"], { files, input });

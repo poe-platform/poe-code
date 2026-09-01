@@ -3,42 +3,6 @@ import { test } from "node:test";
 import { ShellLimitError } from "../../src/shell/index.js";
 import { setup } from "./helpers.js";
 
-const cases: [string, string][] = [
-  ["literal scalar", "cat <<<word"],
-  ["empty scalar", "cat <<<''"],
-  ["unset scalar", "cat <<<\"$MISSING\""],
-  ["quoted whitespace and punctuation", "cat <<< '  ; | () # * ? [x] \\  '"],
-  ["mixed quote removal", "cat <<<a' b '\"c\"\\ d"],
-  ["one added newline even if already present", "cat <<< 'one\ntwo\n'"],
-  ["quoted parameter expansion", "VALUE='  a  *  b '; cat <<<\"$VALUE\""],
-  ["arithmetic and substitution", "cat <<<\"$((2+3)):$(printf 'text\\n\\n'):`printf more`\""],
-  ["parameter assignment", "cat <<<${VALUE:=first}; printf '<%s>' \"$VALUE\""],
-  ["quoted positional at uses spaces", "set -- a b; IFS=:; cat <<<\"$@\""],
-  ["quoted positional star uses IFS", "set -- a b; IFS=:; cat <<<\"$*\""],
-  ["empty quoted positional at", "set --; cat <<<\"$@\""],
-  ["quoted empty positional arguments", "set -- a '' b; IFS=; cat <<<\"$@\"; cat <<<\"$*\""],
-  ["parameter alternate positional at", "set -- a b; IFS=:; cat <<<\"${MISSING:-$@}\""],
-  ["unquoted positional arguments", "set -- a b; IFS=:; cat <<<$@; cat <<<$*"],
-  ["tilde expansion", "HOME=/virtual/home; cat <<<~; cat <<<~/file; cat <<<'~'"],
-  ["literal glob patterns", "printf file >entry; cat <<< '*'"],
-  ["brace-like text is literal", "cat <<< a{b,c}d"],
-  ["descriptor aliases share offsets", "{ read -r first <&3; cat <&4; printf '%s\\n' \"$first\"; } 3<<<'first\nsecond' 4<&3"],
-  ["command substitution sees prior input descriptor", "cat 3<<<'shared' <<<\"$(cat <&3)\""],
-  ["substitution consumes shared inherited input", "{ cat <<<\"$(read -r first <&3; printf '%s' \"$first\")\"; cat <&3; } 3<<<'first\nsecond'"],
-  ["last redirection wins but all expand", "cat <<<${VALUE:=first} <<<$VALUE"],
-  ["file input overrides scalar", "printf file >input; cat <<<word <input"],
-  ["scalar overrides file input", "printf file >input; cat <input <<<word"],
-  ["scalar overrides pipeline input", "printf unused | cat <<<word"],
-  ["heredoc then here-string", "cat <<EOF <<<string\ndocument\nEOF\n"],
-  ["here-string then heredoc", "cat <<<string <<EOF\ndocument\nEOF\n"],
-  ["function gets fresh scalar", "func() { cat; } <<<\"$VALUE\"; VALUE=one; func; VALUE=two; func"],
-  ["loop gets fresh scalar", "for VALUE in one two; do cat <<<\"$VALUE\"; done"],
-  ["while reads a shared scalar", "while read -r VALUE; do printf '%s\\n' \"$VALUE\"; done <<<'one\ntwo'"],
-  ["skipped expansions have no effects", "false && cat <<<\"$(printf bad >marker)\"; if false; then cat <<<${VALUE:=bad}; fi; printf '<%s>' \"$VALUE\""],
-  ["read receives an empty terminal line", "read -r VALUE <<<''; printf '%s:<%s>' \"$?\" \"$VALUE\""],
-  ["operator continuation", "cat <\\\n<<'word'"],
-];
-
 for (const [source, expected] of [
   ["VALUE='  a  b *\n'; pass <<<$VALUE", "  a  b *\n\n"],
   ["IFS=:; VALUE='a::b'; pass <<<$VALUE", "a::b\n"],

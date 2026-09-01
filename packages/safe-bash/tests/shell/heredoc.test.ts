@@ -4,56 +4,7 @@ import { ShellLimitError } from "../../src/shell/index.js";
 import { runVirtualScript } from "../shell-stress/helpers.js";
 import { setup } from "./helpers.js";
 
-const cases: [string, string][] = [
-  ["literal punctuation and whitespace", "cat <<EOF\n  # ' \" ; | & () <> * ? [x] ~\n\nEOF\n"],
-  ["empty body", "cat <<EOF\nEOF\nprintf after"],
-  ["quoted delimiter", "VALUE=expanded; cat <<'EOF'\n$VALUE $(printf bad) `printf bad` $((1+2)) \\\nEOF\n"],
-  ["mixed delimiter quoting", "VALUE=expanded; cat <<E\"O\"'F'\n$VALUE\nEOF\n"],
-  ["escaped delimiter", "VALUE=expanded; cat <<E\\OF\n$VALUE\nEOF\n"],
-  ["empty delimiter", "cat <<''\ntext\n\nprintf after"],
-  ["delimiter parameter is literal", "cat <<$VALUE\ntext\n$VALUE\n"],
-  ["quoted command-shaped delimiter", "cat <<\"$(printf E)\"\n$VALUE\n$(printf E)\n"],
-  ["command-shaped delimiter is not executed", "cat <<$(printf E)\ntext\n$(printf E)\n"],
-  ["scalar expansions", "VALUE='a  b *'; cat <<EOF\n$VALUE ${MISSING:-fallback} $((2+3)) $(printf 'one\\n\\n') `printf two`\nEOF\n"],
-  ["body quotes remain literal", "VALUE=ok; cat <<EOF\n'$VALUE' \"$VALUE\" $'text' ${MISSING:-\"word\"}\nEOF\n"],
-  ["body escapes", "VALUE=ok; cat <<EOF\n\\$VALUE \\`printf bad\\` \\\\ \\q \\\"\none\\\ntwo\nEOF\n"],
-  ["continuation forms delimiter", "cat <<EOF\nEO\\\nF\nprintf after"],
-  ["strip only leading tabs", "cat <<-EOF\n\t\tfirst\n \tsecond\n\tthird\n\tEOF\n"],
-  ["strip tabs after continuation assembly", "cat <<-EOF\n\tone\\\n\ttwo\nEOF\n"],
-  ["quoted tab stripping", "cat <<-'EOF'\n\t$VALUE\\\n\tEOF\n"],
-  ["FIFO documents on one command", "cat <<ONE <<TWO\nfirst\nONE\nsecond\nTWO\n"],
-  ["FIFO across semicolon", "cat <<ONE; cat <<TWO\nfirst\nONE\nsecond\nTWO\n"],
-  ["FIFO across pipeline", "cat <<ONE | cat <<TWO\nfirst\nONE\nsecond\nTWO\n"],
-  ["pipeline continuation newline", "cat <<ONE |\nfirst\nONE\ncat\n"],
-  ["and-or continuation newline", "cat <<ONE &&\nfirst\nONE\nprintf after\n"],
-  ["escaped grammatical newline", "cat <<EO\\\nF \\\n>out\ntext\nEOF\ncat out"],
-  ["skipped branches consume but do not expand", "false && cat <<ONE; if false; then cat <<TWO\n$(printf bad >marker)\nONE\n${VALUE:=bad} $(printf bad >marker)\nTWO\nfi; printf '<%s>' \"$VALUE\""],
-  ["redirections expand left to right", "cat <<ONE <<TWO\n${VALUE:=first}\nONE\n$VALUE\nTWO\n"],
-  ["overridden documents still expand", "cat <<ONE <<TWO\n$(printf first >marker)\nONE\nsecond\nTWO\n"],
-  ["descriptor duplicates share read offset", "{ read -r first <&3; cat <&4; printf '%s\\n' \"$first\"; } 3<<EOF 4<&3\nfirst\nsecond\nEOF\n"],
-  ["subshell inherits document offset", "{ (read -r first <&3); cat <&3; } 3<<EOF\nfirst\nsecond\nEOF\n"],
-  ["input file overrides document", "printf file >input; cat <<EOF <input\ndocument\nEOF\n"],
-  ["document overrides input file", "printf file >input; cat <input <<EOF\ndocument\nEOF\n"],
-  ["compound pipeline input override", "printf unused | { cat; } <<EOF\ndocument\nEOF\n"],
-  ["function invocation gets fresh expanded input", "func() { cat; } <<EOF\n$VALUE\nEOF\nVALUE=one; func; VALUE=two; func"],
-  ["loop command gets fresh input", "for VALUE in one two; do cat <<EOF\n$VALUE\nEOF\ndone"],
-  ["loop redirect shares input across iterations", "while read -r VALUE; do printf '%s\\n' \"$VALUE\"; done <<EOF\none\ntwo\nEOF\n"],
-  ["case branch documents", "case x in x) cat <<EOF\ncase\nEOF\n;; esac"],
-  ["document inside substitution", "printf '<%s>' \"$(cat <<EOF\ntext\nEOF\n)\""],
-  ["substitution in document contains document", "cat <<OUTER\n$(cat <<INNER\ntext\nINNER\n)\nOUTER\n"],
-  ["delimiter comment and tabs", "cat <<EOF\t # comment\ntext\nEOF\n"],
-  ["literal backtick delimiter disables expansion", "cat <<`printf E`\n$VALUE\n`printf E`\n"],
-  ["literal parameter-shaped delimiter", "cat <<${VALUE:-EOF}\ntext\n${VALUE:-EOF}\n"],
-  ["quoted body ignores malformed expansions", "cat <<'EOF'\n${bad $(true |) $((1 + ))\nEOF\n"],
-  ["closing one descriptor preserves its duplicate", "{ cat <&4; } 3<<EOF 4<&3 3<&-\ntext\nEOF\n"],
-  ["quoted delimiter containing tabs matches before stripping", "cat <<-'\tEOF'\n\ttext\n\tEOF\n"],
-  ["empty quote disables expansion", "cat <<EOF''\n$VALUE $(printf bad)\nEOF\n"],
-  ["delimiter line has no terminal newline", "cat <<EOF\ntext\nEOF"],
-  ["command-shaped delimiter keeps literal brace", "cat <<$(printf {)\ntext\n$(printf {)\n"],
-  ["parameter-shaped delimiter keeps literal parenthesis", "cat <<${VALUE:-(}\ntext\n${VALUE:-(}\n"],
-];
-
-test("nested heredoc punctuation is literal, not Bash 3.2 parser syntax", async (context) => {
+test("nested heredoc punctuation is literal, not Bash 3.2 parser syntax", async () => {
   const fixture = { name: "nested punctuation", script: "printf '<%s>' \"$(cat <<'EOF'\n) ; \"\nEOF\n)\"" };
   const actual = await runVirtualScript(fixture);
   assert.equal(actual.stdout, '<) ; ">');

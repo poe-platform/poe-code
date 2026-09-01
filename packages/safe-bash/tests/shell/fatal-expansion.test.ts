@@ -38,6 +38,6 @@ for (const expansion of ['"${missing:?stop}"', '"$((1/0))"']) {
 test("arithmetic command errors remain nonfatal command failures", async () => {
   const source = "((1/0)); status=$?; : >after; exit \"$status\"";
   const { shell, fs } = setup();
-  const actual = await shell.exec(source);
+  await shell.exec(source);
   assert.deepEqual((await fs.readdir("/")).map((entry) => entry.name), ["after"]);
 });

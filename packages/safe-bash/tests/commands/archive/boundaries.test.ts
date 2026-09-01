@@ -71,7 +71,7 @@ test("unknown hardlink identity and unsupported hardlink publication are not con
   await fs.writeFile("/work/file", binary); await fs.link!("/work/file", "/work/hard");
   const unknown = wrapped(fs, { async lstat(path, options) {
     const stat = await fs.lstat(path, options);
-    const { identityScope: _scope, ...rest } = stat; return rest;
+    const { identityScope: ignoredScope, ...rest } = stat; return rest;
   } });
   const created = await direct(["cf", "archive", "file", "hard"], unknown);
   assert.equal(created.exitCode, 2, created.stderr);
@@ -89,9 +89,9 @@ test("unknown backing identity cannot justify replacing an existing archive or n
   await fs.writeFile("/work/input", archive(member("file", binary)));
   await fs.writeFile("/out/file", Buffer.from("preserve"));
   const unknown = wrapped(fs, { async lstat(path, options) {
-    const { identityScope: _scope, ...stat } = await fs.lstat(path, options); return stat;
+    const { identityScope: ignoredScope, ...stat } = await fs.lstat(path, options); return stat;
   }, async stat(path, options) {
-    const { identityScope: _scope, ...stat } = await fs.stat(path, options); return stat;
+    const { identityScope: ignoredScope, ...stat } = await fs.stat(path, options); return stat;
   } });
   const created = await direct(["cf", "existing", "file"], unknown);
   assert.equal(created.exitCode, 2, created.stderr);

@@ -518,7 +518,7 @@ test("copy-up refuses unknown link counts from a hardlink-capable backend", asyn
   const backing = new MemoryFileSystem();
   await backing.writeFile("/file", encode("value"));
   const lower = wrapped(immutable(backing).lower, { lstat: async (path, options) => {
-    const { nlink: _omitted, ...stat } = await backing.lstat(path, options);
+    const { nlink: ignoredOmitted, ...stat } = await backing.lstat(path, options);
     return stat;
   } });
   const upper = new MemoryFileSystem();

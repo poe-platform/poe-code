@@ -56,7 +56,7 @@ test("malformed and oversized directory listings never escape the virtual tree",
 
 test("safe depth remains enforced with --max-depth=0 and unknown identity", async () => {
   const base = createMemoryFileSystem(); await seed(base);
-  const fs = metadata(base, stat => { const { identityScope: _scope, dev: _dev, ino: _ino, ...rest } = stat; return rest; });
+  const fs = metadata(base, stat => { const { identityScope: ignoredScope, dev: ignoredDev, ino: ignoredIno, ...rest } = stat; return rest; });
   const result = await run(["-bd0", "tree"], { limits: { maxDepth: 1 } }, { fs });
   assert.equal(result.exitCode, 1); assert.equal(result.stdout, "");
   assert.match(result.stderr, /depth limit/u);

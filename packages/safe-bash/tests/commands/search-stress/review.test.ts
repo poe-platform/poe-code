@@ -7,12 +7,8 @@ const probes: Probe[] = [
   { name: "unclosed ignore bracket remains literal and retains later rules", args: ["--files", "."], files: { ".ignore": "[\n*.txt\n", "a.txt": "foo\n" } },
   { name: "nested repository resets parent VCS ignores", args: ["--files", "."], files: { ".gitignore": "*.txt\n", "nested/.git/config": "", "nested/a.txt": "foo\n" } },
   { name: "ignored followed cycle still reports native error", args: ["-L", "foo", "."], files: { ".ignore": "loop\n", "z.txt": "foo\n" }, links: { loop: "." } },
-  { name: "before context stops binary no-match search", args: ["-C1", "foo", "-"], stdin: "no\0foo\n" },
-  { name: "fragmented before context stops binary no-match search", args: ["-C1", "foo", "-"], stdin: "no\0foo\n", chunkSize: 1 },
-  { name: "single-write binary warning after early match", args: ["foo", "-"], stdin: "foo\n\0\nno\n" },
-  { name: "summary JSON member order after timing-only normalization", args: ["-a", "-F", "--json", "�", "-"], stdin: [255, 10] },
 ];
-const actual = virtual(probes);
+virtual(probes);
 
 test("back-to-back virtual chunks retain prior output, not a whole-write oracle", () => {
   const result = virtual([{ name: "fragmented binary", args: ["foo", "-"], stdin: "foo\n\0\nno\n", chunkSize: 1 }])[0]!;

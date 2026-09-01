@@ -78,7 +78,7 @@ export class Reader {
     }
   }
   async discard(size: number): Promise<void> {
-    for await (const _chunk of this.body(size)) this.signal.throwIfAborted();
+    for await (const ignoredChunk of this.body(size)) this.signal.throwIfAborted();
   }
   async padding(size: number): Promise<void> { await this.discard((512 - size % 512) % 512); }
   async finish(): Promise<void> {

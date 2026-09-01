@@ -1,5 +1,5 @@
 import { JqLimitError, objectKeys, wellFormed, type Json } from "../structured/limits.js";
-import { Decimal, isNumber, numberText } from "../structured/numbers.js";
+import { Decimal, numberText } from "../structured/numbers.js";
 import type { YqOwnedWork } from "../structured/query-core.js";
 import { YqValueFailure } from "../structured/query-core.js";
 

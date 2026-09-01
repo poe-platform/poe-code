@@ -323,7 +323,7 @@ test("whitespace cancellation interrupts normalization without output", async ()
   assert.equal(writes, 0);
 });
 
-test("whitespace context preserves per-side incomplete-line markers and native parity", async context => {
+test("whitespace context preserves per-side incomplete-line markers and native parity", async () => {
   const files = { old: "old\nx y", new: "new\nxy\n" };
   const args = ["-wc", "-L", "OLD", "-L", "NEW", "old", "new"];
   const expected = `*** OLD\n--- NEW\n***************\n*** 1,2 ****\n! old\n  x y${marker}--- 1,2 ----\n! new\n  xy\n`;

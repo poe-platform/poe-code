@@ -206,7 +206,7 @@ for (const streaming of [false, true]) {
   });
 
   test(`${label} PUT supports absent conditionalCopy advertisement without upgrading it`, settings, async () => {
-    const { conditionalCopy: _copy, ...withoutCopy } = capabilities;
+    const { conditionalCopy: ignoredCopy, ...withoutCopy } = capabilities;
     const setup = await fixture({ source: "original" }, withoutCopy);
     await setup.fs.rename("/source", "/target");
     assert.equal(setup.transport.capabilities?.conditionalCopy, undefined);
@@ -306,13 +306,13 @@ for (const streaming of [false, true]) {
     if (streaming) {
       const get = setup.transport.getObjectStream!;
       setup.transport.getObjectStream = async (input, options) => {
-        const { ETag: _etag, ...output } = await get(input, options);
+        const { ETag: ignoredEtag, ...output } = await get(input, options);
         return output;
       };
     } else {
       const get = setup.transport.getObject;
       setup.transport.getObject = async (input, options) => {
-        const { ETag: _etag, ...output } = await get(input, options);
+        const { ETag: ignoredEtag, ...output } = await get(input, options);
         return output;
       };
     }

@@ -1,5 +1,4 @@
 import {
-  BOUNDARY_RECEIPTS,
   bootstrapModel,
   boundaries,
   createLintInputGuard,

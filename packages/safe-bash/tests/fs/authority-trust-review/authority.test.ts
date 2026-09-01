@@ -281,7 +281,7 @@ test("11 conflicting or invalid authorities fail EIO before content, known alias
   const memory = createMemoryFileSystem();
   await seed(memory);
   const strip = (stat: FileStat): FileStat => {
-    const { identityScope, dev, ino, ...remaining } = stat;
+    const { identityScope: ignoredIdentityScope, dev: ignoredDev, ino: ignoredIno, ...remaining } = stat;
     return remaining;
   };
   let reads = 0;

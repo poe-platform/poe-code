@@ -2,8 +2,6 @@ import assert from "node:assert/strict";
 import { test } from "node:test";
 import { setup } from "./helpers.js";
 
-const prelude = 'say() { printf "%s\\n" "$*"; }; pass() { cat; }; ';
-
 test("moves close their source and reject closed descriptors", async () => {
   for (const source of [": 3>out 4>&3- 5>&3", ": 3<input 4<&3- 5<&3", ": 4>&3-"]) {
     const { shell, fs } = setup();

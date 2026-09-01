@@ -20,7 +20,7 @@ test("public readonly comparison preserves cancellation and errors without callb
   class Authority extends MemoryFileSystem {
     override async compareEntry(): Promise<never> { calls++; throw reason; }
     override async lstat(...args: Parameters<MemoryFileSystem["lstat"]>) {
-      const { identityScope: _scope, ...stat } = await super.lstat(...args);
+      const { identityScope: ignoredScope, ...stat } = await super.lstat(...args);
       return stat;
     }
   }

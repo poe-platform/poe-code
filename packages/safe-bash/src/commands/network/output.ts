@@ -22,7 +22,7 @@ export async function writeOutput(context: CommandContext, path: string | undefi
   if (path === undefined || path === "-") {
     for await (const chunk of readBytes(source, signal)) {
       try { await writeBytes(context.stdout, chunk, signal); }
-      catch (error) { signal.throwIfAborted(); throw new CurlError(23, "Failed writing output"); }
+      catch { signal.throwIfAborted(); throw new CurlError(23, "Failed writing output"); }
     }
     return;
   }

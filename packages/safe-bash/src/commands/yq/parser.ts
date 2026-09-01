@@ -41,7 +41,6 @@ interface BlockScalarPart {
 }
 
 const integerPattern = /^(?:[+-]?[0-9]+|0o[0-7]+|0x[0-9a-fA-F]+)$/u;
-const decimalPattern = /^[+-]?(?:(?:[0-9]+(?:\.[0-9]*)?|\.[0-9]+)(?:[eE][+-]?[0-9]+)?)$/u;
 const floatPattern = /^[+-]?(?:(?:[0-9]+(?:\.[0-9]*)?|\.[0-9]+)(?:[eE][+-]?[0-9]+)?|\.(?:inf|Inf|INF|nan|NaN|NAN))$/u;
 
 function syntax(line?: number, column?: number): YqError {

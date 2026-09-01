@@ -167,7 +167,7 @@ test("separate native roots and files remain copyable", async (context) => {
 
 function unknownIdentity(backend: FileSystem): FileSystem {
   function omitCoordinates(stat: FileStat): FileStat {
-    const { dev, ino, ...rest } = stat;
+    const { dev: ignoredDev, ino: ignoredIno, ...rest } = stat;
     return rest;
   }
   return wrapped(backend, {

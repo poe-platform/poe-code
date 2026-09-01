@@ -2,8 +2,6 @@ import assert from "node:assert/strict";
 import { test } from "node:test";
 import { setup } from "./helpers.js";
 
-const prelude = 'say() { printf "%s\\n" "$*"; }; err() { printf "%s\\n" "$*" >&2; }; pass() { cat; }; ';
-
 test("literal command invocation preserves inherited descriptors", async () => {
   const { shell, fs, commands } = setup();
   commands.register({ name: "delegate", async execute(context) {

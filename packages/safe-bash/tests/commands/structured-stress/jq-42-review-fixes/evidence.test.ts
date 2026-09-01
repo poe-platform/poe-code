@@ -15,6 +15,42 @@ const repairReceipts = {
   test: { filename: "lint-repair-receipt-20260830.json", bytes: 33365, sha256: "64a2ec2546adf12115a718e2d9156fea80fc261126a5c29605ac08257af0d20f" },
   helper: { filename: "helper-spelling-receipt-20260830.json", bytes: 10533, sha256: "4ce64460b4a4d1707de38931124b2da85bc4f37f0a799e0181f1366a6589731c" },
 };
+type BindingRenameMigration = {
+  path: string;
+  before: { bytes: number; sha256: string };
+  after: { bytes: number; sha256: string };
+  replacements: readonly { offset: number; before: string; after: string }[];
+};
+const bindingRenameMigration: BindingRenameMigration = {
+  path: "tests/commands/structured/helpers.ts",
+  before: { bytes: 2041, sha256: "58f64bcaaedc766a7b13a77195a93dd0886770ea20f6b9c57fbe032d642950b2" },
+  after: { bytes: 2053, sha256: "867a73c52c69532d424141133b2d4201293f43deae19df7303b7be98e9871536" },
+  replacements: [
+    { offset: 1350, before: "_stdoutBytes", after: "ignoredStdoutBytes" },
+    { offset: 1383, before: "_stderrBytes", after: "ignoredStderrBytes" },
+  ],
+};
+
+function assertBindingRename(migration: BindingRenameMigration, expected: string, current: Buffer, snapshot: Buffer) {
+  assert.deepEqual(migration, bindingRenameMigration, "exact binding rename path, images and replacements");
+  assert.equal(expected, migration.before.sha256, "original binding rename expected digest");
+  assert.equal(current.length, migration.after.bytes, "reviewed binding rename source size");
+  assert.equal(digest(current), migration.after.sha256, "reviewed binding rename source digest");
+  const chunks: Buffer[] = [];
+  let previous = 0;
+  for (const replacement of migration.replacements) {
+    const after = Buffer.from(replacement.after);
+    assert.ok(replacement.offset >= previous && replacement.offset + after.length <= current.length, "ordered exact binding rename offset");
+    assert.deepEqual(current.subarray(replacement.offset, replacement.offset + after.length), after, "exact current binding spelling");
+    chunks.push(current.subarray(previous, replacement.offset), Buffer.from(replacement.before));
+    previous = replacement.offset + after.length;
+  }
+  chunks.push(current.subarray(previous));
+  const original = Buffer.concat(chunks);
+  assert.equal(original.length, migration.before.bytes, "original binding rename source size");
+  assert.equal(digest(original), expected, "only the two exact reviewed binding renames");
+  assert.deepEqual(original, snapshot, "unchanged binding rename historical snapshot");
+}
 
 function assertSpellingMigration(migration: SpellingMigration, expected: string, current: Buffer, receiptBytes: Buffer) {
   const approved = spellingMigrations.find(entry => entry.path === migration.path);
@@ -86,7 +122,7 @@ test("frozen historical evidence and retained non-native canonical seals remain 
     test: readFileSync(new URL("./lint-repair-receipt-20260830.json", import.meta.url)),
     helper: readFileSync(new URL("./helper-spelling-receipt-20260830.json", import.meta.url)),
   };
-  const compared = new Set<string>(), migrated = new Set<string>();
+  const compared = new Set<string>(), migrated = new Set<string>(), renamed = new Set<string>();
   function assertCurrent(path: string, expected: string, snapshot?: Buffer) {
     assert.ok(!compared.has(path), "duplicate current comparison");
     const current = readFileSync(path);
@@ -95,6 +131,10 @@ test("frozen historical evidence and retained non-native canonical seals remain 
       const original = assertSpellingMigration(repair, expected, current, receipts[repair.receipt]);
       if (snapshot) assert.deepEqual(original, snapshot, "unchanged historical snapshot");
       migrated.add(path);
+    } else if (path === bindingRenameMigration.path) {
+      assert.ok(snapshot, "binding rename retains its historical snapshot");
+      assertBindingRename(bindingRenameMigration, expected, current, snapshot);
+      renamed.add(path);
     } else {
       assert.equal(digest(current), expected, path);
     }
@@ -113,9 +153,49 @@ test("frozen historical evidence and retained non-native canonical seals remain 
   }
   assert.equal(compared.size, 140, "current comparisons after two native source-seal retirements");
   assert.deepEqual([...migrated].sort(), spellingMigrations.map(entry => entry.path).sort(), "only the four approved migrations");
-  assert.equal(compared.size - migrated.size, 136, "unchanged retained current comparisons");
+  assert.deepEqual([...renamed], [bindingRenameMigration.path], "only the approved helper binding rename");
+  assert.equal(compared.size - migrated.size - renamed.size, 135, "unchanged retained current comparisons");
   assert.equal(snapshots.size, 23, "all original historical snapshots");
-  context.diagnostic(JSON.stringify({ liveComparisons: compared.size, unchangedComparisons: compared.size - migrated.size, spellingMigrations: migrated.size, historicalSnapshots: snapshots.size }));
+  context.diagnostic(JSON.stringify({ liveComparisons: compared.size, unchangedComparisons: compared.size - migrated.size - renamed.size, spellingMigrations: migrated.size, bindingRenameMigrations: renamed.size, historicalSnapshots: snapshots.size }));
+});
+
+type BindingRenameControl = { migration: BindingRenameMigration; expected: string; current: Buffer; snapshot: Buffer };
+const bindingRenameControls: Array<[string, ((input: BindingRenameControl) => void) | null]> = [
+  ["accepts only the exact reviewed image and reconstructs the historical snapshot", null],
+  ["rejects another path", input => { input.migration.path = "tests/commands/structured/cli.test.ts"; }],
+  ["rejects altered offsets", input => { input.migration.replacements = input.migration.replacements.map(entry => ({ ...entry, offset: entry.offset + 1 })); }],
+  ["rejects reversed replacements", input => { input.migration.replacements = [...input.migration.replacements].reverse(); }],
+  ["rejects a missing replacement", input => { input.migration.replacements = input.migration.replacements.slice(0, 1); }],
+  ["rejects a different original spelling", input => { input.migration.replacements = input.migration.replacements.map(entry => ({ ...entry, before: "_otherBytes" })); }],
+  ["rejects a different current spelling", input => { input.migration.replacements = input.migration.replacements.map(entry => ({ ...entry, after: "ignoredOtherBytes" })); }],
+  ["rejects a changed historical expected digest", input => { input.expected = "0".repeat(64); }],
+  ["rejects a changed historical image binding", input => { input.migration.before.sha256 = "0".repeat(64); }],
+  ["rejects a changed current image binding", input => { input.migration.after.sha256 = "0".repeat(64); }],
+  ["rejects additional same-size source edits", input => { input.current[0] ^= 1; }],
+  ["rejects extra source bytes", input => { input.current = Buffer.concat([input.current, Buffer.from("\n")]); }],
+  ["rejects renaming only stdout", input => { input.current = Buffer.from(input.current.toString("utf8").replace("ignoredStderrBytes", "_stderrBytes")); }],
+  ["rejects renaming only stderr", input => { input.current = Buffer.from(input.current.toString("utf8").replace("ignoredStdoutBytes", "_stdoutBytes")); }],
+  ["rejects changed destructuring property names", input => { input.current = Buffer.from(input.current.toString("utf8").replace("stdoutBytes: ignoredStdoutBytes", "stderrBytes: ignoredStdoutBytes")); }],
+  ["rejects use of the ignored binding", input => { input.current = Buffer.from(input.current.toString("utf8").replace("return result;", "return ignoredStdoutBytes;")); }],
+  ["rejects historical snapshot mutation", input => { input.snapshot[0] ^= 1; }],
+  ["rejects the predecessor as the current image", input => { input.current = Buffer.from(input.snapshot); }],
+];
+
+for (const [name, mutate] of bindingRenameControls) test("reviewed helper binding rename " + name, () => {
+  const predecessor = JSON.parse(readFileSync(new URL("../jq-grammar-canonical-plan/patch-manifest-v3.json", import.meta.url), "utf8")) as { files: Array<{ path: string; afterSha256: string; afterSnapshot: string }> };
+  const original = predecessor.files.find(entry => entry.path === bindingRenameMigration.path)!;
+  const input: BindingRenameControl = {
+    migration: structuredClone(bindingRenameMigration),
+    expected: original.afterSha256,
+    current: readFileSync(bindingRenameMigration.path),
+    snapshot: readFileSync(original.afterSnapshot),
+  };
+  if (mutate) {
+    mutate(input);
+    assert.throws(() => assertBindingRename(input.migration, input.expected, input.current, input.snapshot), { code: "ERR_ASSERTION" });
+  } else {
+    assert.doesNotThrow(() => assertBindingRename(input.migration, input.expected, input.current, input.snapshot));
+  }
 });
 
 type MigrationControl = { migration: SpellingMigration; expected: string; current: Buffer; receipt: Buffer };

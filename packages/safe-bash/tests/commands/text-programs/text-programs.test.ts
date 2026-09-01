@@ -1,0 +1,10 @@
+import "./awk.cases.js";
+import "./cancellation.cases.js";
+import "./capture-regressions.cases.js";
+import "./file-commands.cases.js";
+import "./getline.cases.js";
+import "./list-command.cases.js";
+import "./lookahead-regressions.cases.js";
+import "./oracle-validity.cases.js";
+import "./quit-regressions.cases.js";
+import "./sed.cases.js";

@@ -1,17 +1,33 @@
 import { describe, expect, it } from "vitest";
 import { compileConfigSchemaFromSourceTexts } from "./schema-compiler.js";
+import * as core from "../core.js";
+import * as config from "../index.js";
+import * as publicConfig from "../../../../src/config.js";
 
 const root = "/repo";
 
 describe("compileConfigSchemaFromSourceTexts", () => {
-  it("collects exported static scopes reachable from entrypoints and emits a JSON Schema document", () => {
+  it("preserves the root API alongside the compiler-free runtime entrypoint", () => {
+    expect(Object.keys(config).sort()).toEqual([
+      ...Object.keys(core),
+      "compileConfigSchemaFromEntrypoints",
+      "compileConfigSchemaFromSourceTexts"
+    ].sort());
+    for (const [name, value] of Object.entries(core)) {
+      expect(config[name as keyof typeof core]).toBe(value);
+    }
+    expect(config.compileConfigSchemaFromSourceTexts).toBe(compileConfigSchemaFromSourceTexts);
+    expect(publicConfig).toEqual(config);
+  });
+
+  it.each(["@poe-code/poe-code-config", "@poe-code/poe-code-config/core"])("collects reachable static scopes from %s and emits a JSON Schema document", (moduleName) => {
     const document = compileConfigSchemaFromSourceTexts({
       entrypoints: [`${root}/packages/pipeline/src/index.ts`],
       files: {
         [`${root}/packages/pipeline/src/index.ts`]:
           'export { pipelineConfigScope } from "./poe-code-config.js";\n',
         [`${root}/packages/pipeline/src/poe-code-config.ts`]: `
-          import { defineScope } from "@poe-code/poe-code-config";
+          import { defineScope } from "${moduleName}";
 
           export const pipelineConfigScope = defineScope("pipeline", {
             plan_directory: {

@@ -5,7 +5,7 @@ import {
   resolveConfiguredMemoryRoot,
   startMemoryMcpServer
 } from "@poe-code/memory";
-import { mcpWritesAllowed } from "@poe-code/poe-code-config";
+import { mcpWritesAllowed } from "@poe-code/poe-code-config/core";
 import type { CliContainer } from "../container.js";
 
 export function registerMemoryMcpCommand(program: Command, container: CliContainer): void {

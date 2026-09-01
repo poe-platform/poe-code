@@ -26,7 +26,7 @@ import {
   createConfigStore,
   resolveConfigPath,
   resolveProjectConfigPath
-} from "@poe-code/poe-code-config";
+} from "@poe-code/poe-code-config/core";
 import {
   createAgentSessionStore,
   type ChatMessage,

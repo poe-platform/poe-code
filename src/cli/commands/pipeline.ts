@@ -28,7 +28,7 @@ import {
   readMergedDocumentReadonly,
   resolveScope,
   type ConfigDocument
-} from "@poe-code/poe-code-config";
+} from "@poe-code/poe-code-config/core";
 import { loadIntegrations, type Integrations } from "@poe-code/braintrust";
 import type { CliContainer } from "../container.js";
 import { pipelineConfigScope, planConfigScope } from "../../services/config.js";

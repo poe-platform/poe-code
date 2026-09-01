@@ -280,7 +280,8 @@ function getDefineScopeImportNames(sourceFile: SourceFile): Set<string> {
   const names = new Set<string>();
 
   for (const declaration of sourceFile.getImportDeclarations()) {
-    if (declaration.getModuleSpecifierValue() !== "@poe-code/poe-code-config") {
+    const moduleName = declaration.getModuleSpecifierValue();
+    if (moduleName !== "@poe-code/poe-code-config" && moduleName !== "@poe-code/poe-code-config/core") {
       continue;
     }
 

@@ -4,7 +4,7 @@ import { parseAgentSpecifier } from "@poe-code/agent-defs";
 import { formatPlanReadinessLabel } from "@poe-code/agent-harness-tools";
 import { spawn, SPAWN_MODES, type SpawnOptions, type SpawnResult } from "@poe-code/agent-spawn";
 import { discoverAllPlans } from "@poe-code/plan-browser";
-import { readMergedDocumentReadonly, resolveScope } from "@poe-code/poe-code-config";
+import { readMergedDocumentReadonly, resolveScope } from "@poe-code/poe-code-config/core";
 import { cancel, intro, isCancel, multiselect, outro, select, withSpinner } from "toolcraft-design";
 import type { CliContainer } from "../container.js";
 import {

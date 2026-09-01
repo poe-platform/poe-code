@@ -1,7 +1,7 @@
 import os from "node:os";
 import path from "node:path";
 import { SPAWN_MODES, type SpawnMode } from "@poe-code/agent-spawn/types";
-import { resolveScope } from "@poe-code/poe-code-config";
+import { resolveScope } from "@poe-code/poe-code-config/core";
 import type { OpenTaskListOptions } from "@poe-code/task-list";
 import { validateStateDefinitions } from "./validate.js";
 

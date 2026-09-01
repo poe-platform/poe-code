@@ -15,7 +15,7 @@ import {
   type JobListFilter,
   type ResolvedConfig,
   type StateManager
-} from "@poe-code/poe-code-config";
+} from "@poe-code/poe-code-config/core";
 import { selectExecutionEnv, type OpenSpec } from "./execution-env.js";
 
 export type RuntimeOverrideOptions = {

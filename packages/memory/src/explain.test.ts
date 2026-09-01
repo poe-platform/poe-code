@@ -20,7 +20,7 @@ vi.mock("@poe-code/agent-spawn", () => {
 
 const resolveAgent = vi.fn();
 
-vi.mock("@poe-code/poe-code-config", () => ({
+vi.mock("@poe-code/poe-code-config/core", () => ({
   resolveAgent
 }));
 

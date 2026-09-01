@@ -1,4 +1,4 @@
-import { defineScope } from "@poe-code/poe-code-config";
+import { defineScope } from "@poe-code/poe-code-config/core";
 import { isAbsolute } from "node:path";
 
 export interface CodeReviewHumanGateConfig extends Record<string, unknown> {

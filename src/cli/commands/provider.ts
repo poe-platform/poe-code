@@ -2,7 +2,7 @@ import type { Command } from "commander";
 import type { CliContainer } from "../container.js";
 import { ValidationError } from "../errors.js";
 import { allAgents, type ApiShapeId } from "@poe-code/agent-defs";
-import { saveProviderShapeBaseUrls } from "@poe-code/poe-code-config";
+import { saveProviderShapeBaseUrls } from "@poe-code/poe-code-config/core";
 import {
   apiKeyFlagDescription,
   createExecutionResources,

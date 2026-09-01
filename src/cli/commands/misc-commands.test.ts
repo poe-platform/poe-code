@@ -3,7 +3,7 @@ import { Volume, createFsFromVolume } from "memfs";
 import { Command, CommanderError } from "commander";
 import { stripVTControlCharacters } from "node:util";
 import { createProgram } from "../program.js";
-import { resolveConfigPath, resolveProjectConfigPath } from "@poe-code/poe-code-config";
+import { resolveConfigPath, resolveProjectConfigPath } from "@poe-code/poe-code-config/core";
 import { createCliContainer } from "../container.js";
 import { registerUtilsCommand } from "./utils.js";
 import { SilentError, ValidationError } from "../errors.js";

@@ -2,11 +2,11 @@ import * as fs from "node:fs/promises";
 import path from "node:path";
 import { countTokens } from "tokenfill";
 import { spawn } from "@poe-code/agent-spawn";
-import { resolveAgent } from "@poe-code/poe-code-config";
+import { resolveAgent } from "@poe-code/poe-code-config/core";
 import { MEMORY_AGENT_JSON_CONTRACT, parseMemoryAgentResponse } from "./agent-response.js";
 import { listPages } from "./pages.js";
 import { MEMORY_INDEX_RELPATH } from "./paths.js";
-import type { MemoryConfigOptions } from "@poe-code/poe-code-config";
+import type { MemoryConfigOptions } from "@poe-code/poe-code-config/core";
 import type { MemoryPage, MemoryRoot, QueryOptions, QueryResult } from "./types.js";
 
 /**

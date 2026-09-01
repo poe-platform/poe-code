@@ -1,5 +1,5 @@
 import { createMockFs } from "@poe-code/config-mutations/testing";
-import { createConfigStore } from "@poe-code/poe-code-config";
+import { createConfigStore } from "@poe-code/poe-code-config/core";
 import { describe, expect, it } from "vitest";
 import { codeReviewConfigScope, parseCodeReviewConfigDocument } from "./config-scope.js";
 import { loadCodeReviewConfig, resolveCodeReviewRunOptions } from "./config.js";

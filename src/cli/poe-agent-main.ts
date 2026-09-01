@@ -7,7 +7,7 @@ import { log } from "toolcraft-design";
 import {
   resolveConfigPath,
   resolveProjectConfigPath
-} from "@poe-code/poe-code-config";
+} from "@poe-code/poe-code-config/core";
 import type { FileSystem } from "../utils/file-system.js";
 import { FEEDBACK_URL } from "./constants.js";
 import { ValidationError } from "./errors.js";

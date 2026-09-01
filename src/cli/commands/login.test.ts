@@ -3,7 +3,7 @@ import { executeLogin, registerLoginCommand } from "./login.js";
 import { createCliContainer } from "../container.js";
 import { createHomeFs, createTestProgram } from "../../../tests/test-helpers.js";
 import { saveConfiguredService } from "../../services/config.js";
-import { resolveConfigPath } from "@poe-code/poe-code-config";
+import { resolveConfigPath } from "@poe-code/poe-code-config/core";
 import type { FileSystem } from "../../utils/file-system.js";
 import { parseToml } from "@poe-code/config-mutations/testing";
 

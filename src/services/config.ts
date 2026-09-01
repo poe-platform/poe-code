@@ -10,12 +10,12 @@ import {
   unconfigureService,
   writeDocument,
   writeScope
-} from "@poe-code/poe-code-config";
+} from "@poe-code/poe-code-config/core";
 import type {
   ConfiguredServiceMetadata,
   SaveConfiguredServiceOptions,
   UnconfigureServiceOptions
-} from "@poe-code/poe-code-config";
+} from "@poe-code/poe-code-config/core";
 import { parseNullablePluginConfigEntries, type PluginConfigEntry } from "@poe-code/poe-agent";
 import { superintendentConfigScope } from "@poe-code/superintendent";
 import { codeReviewConfigScope } from "agent-code-review";

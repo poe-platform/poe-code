@@ -2,7 +2,7 @@ import path from "node:path";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { Command } from "commander";
 import { Volume, createFsFromVolume } from "memfs";
-import { resolveProjectConfigPath } from "@poe-code/poe-code-config";
+import { resolveProjectConfigPath } from "@poe-code/poe-code-config/core";
 import {
   registerExecutionEnvFactory,
   type ExecutionEnvFactory,

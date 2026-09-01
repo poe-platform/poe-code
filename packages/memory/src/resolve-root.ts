@@ -1,6 +1,6 @@
 import path from "node:path";
 import type { FileSystem } from "@poe-code/config-mutations";
-import { readMergedDocumentReadonly } from "@poe-code/poe-code-config";
+import { readMergedDocumentReadonly } from "@poe-code/poe-code-config/core";
 import { resolveMemoryRoot } from "./paths.js";
 import type { MemoryRoot } from "./types.js";
 

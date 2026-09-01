@@ -2,7 +2,7 @@ import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 import { Volume, createFsFromVolume } from "memfs";
 import { isUserError } from "@poe-code/user-error";
 import path from "node:path";
-import { resolveConfigPath } from "@poe-code/poe-code-config";
+import { resolveConfigPath } from "@poe-code/poe-code-config/core";
 import { Readable } from "node:stream";
 import { Command } from "commander";
 import { resetOutputFormatCache } from "toolcraft-design";

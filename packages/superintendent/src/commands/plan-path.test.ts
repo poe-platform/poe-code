@@ -7,7 +7,7 @@ const { readMergedDocumentMock, readMergedDocumentReadonlyMock } = vi.hoisted(()
   readMergedDocumentReadonlyMock: vi.fn(async () => ({ plan: { plan_directory: "docs/plans" } }))
 }));
 
-vi.mock("@poe-code/poe-code-config", () => ({
+vi.mock("@poe-code/poe-code-config/core", () => ({
   planConfigScope: { schema: {} },
   readMergedDocument: readMergedDocumentMock,
   readMergedDocumentReadonly: readMergedDocumentReadonlyMock,

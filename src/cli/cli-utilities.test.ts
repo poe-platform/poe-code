@@ -12,7 +12,7 @@ import { listIsolatedServiceIds } from "./commands/shared.js";
 import type { FileSystem } from "../utils/file-system.js";
 import { createHomeFs } from "../../tests/test-helpers.js";
 import { createProviderStub } from "../../tests/provider-stub.js";
-import { resolveConfigPath, resolveProjectConfigPath } from "@poe-code/poe-code-config";
+import { resolveConfigPath, resolveProjectConfigPath } from "@poe-code/poe-code-config/core";
 import { createCliEnvironment, resolveSpawnLogDir } from "./environment.js";
 import type { ProviderService } from "./service-registry.js";
 

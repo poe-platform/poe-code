@@ -1,5 +1,5 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import type { JobEntry, StateManager } from "@poe-code/poe-code-config";
+import type { JobEntry, StateManager } from "@poe-code/poe-code-config/core";
 import type { JobHandle, LogChunk } from "@poe-code/process-runner";
 import { resolveJob, streamJobLog, waitForGracefulStop } from "./shared.js";
 import { ValidationError } from "../../../errors.js";

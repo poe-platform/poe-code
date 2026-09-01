@@ -1,6 +1,6 @@
 import type { AdapterType } from "./adapters/index.js";
 import type { RuntimeOverrideOptions } from "@poe-code/agent-harness-tools";
-import type { StateManager } from "@poe-code/poe-code-config";
+import type { StateManager } from "@poe-code/poe-code-config/core";
 import type { AcpMiddleware } from "./acp/middleware.js";
 import type { SpawnEnvironment } from "./environment.js";
 

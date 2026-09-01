@@ -9,7 +9,7 @@ import {
   resolveEditTarget,
   type ConfigDocument,
   type EditTargetOptions
-} from "@poe-code/poe-code-config";
+} from "@poe-code/poe-code-config/core";
 import { getTheme, renderTable, text } from "toolcraft-design";
 import type { CliContainer } from "../container.js";
 import { ValidationError } from "../errors.js";

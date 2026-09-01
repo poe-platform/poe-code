@@ -58,7 +58,7 @@ import {
   resolveProjectConfigPath,
   resolveScope,
   type ConfigDocument
-} from "@poe-code/poe-code-config";
+} from "@poe-code/poe-code-config/core";
 import { loadIntegrations, type Integrations } from "@poe-code/braintrust";
 import { superintendentConfigScope } from "../config-scope.js";
 import { resolveSuperintendentDoc } from "../document/parse.js";

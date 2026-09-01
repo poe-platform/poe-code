@@ -1,5 +1,5 @@
 import path from "node:path";
-import { deepMergeDocuments, readDocument, writeScope } from "@poe-code/poe-code-config";
+import { deepMergeDocuments, readDocument, writeScope } from "@poe-code/poe-code-config/core";
 import { pathExists } from "@poe-code/config-mutations";
 import { cancel as dsCancel, isCancel, select as dsSelect } from "toolcraft-design";
 import { OperationCancelledError } from "../../errors.js";

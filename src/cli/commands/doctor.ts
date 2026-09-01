@@ -1,7 +1,7 @@
 import type { Command } from "commander";
 import { getTheme, renderTable, withSpinner } from "toolcraft-design";
 import { POE_PROVIDER_ID } from "@poe-code/providers";
-import type { ConfiguredServiceMetadata } from "@poe-code/poe-code-config";
+import type { ConfiguredServiceMetadata } from "@poe-code/poe-code-config/core";
 import type { CliContainer } from "../container.js";
 import {
   createExecutionResources,

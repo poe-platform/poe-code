@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { Volume, createFsFromVolume } from "memfs";
-import { resolveConfigPath, resolveProjectConfigPath } from "@poe-code/poe-code-config";
+import { resolveConfigPath, resolveProjectConfigPath } from "@poe-code/poe-code-config/core";
 import { discoverAllPlans } from "./discovery.js";
 import type { DiscoveryFs } from "./types.js";
 

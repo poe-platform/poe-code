@@ -7,7 +7,7 @@ import {
   type RuntimeConfig,
   type StateFileSystem,
   type StateManager
-} from "@poe-code/poe-code-config";
+} from "@poe-code/poe-code-config/core";
 import {
   hostExecutionEnvFactory,
   type RunHandle,

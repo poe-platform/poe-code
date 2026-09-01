@@ -83,3 +83,13 @@ one stale root export-list assertion: it still expected the removed public Git
 command route. The root unit result was 28,908 passed, one failed and 43 skipped.
 Only that obsolete expected export is removed; all other metadata assertions
 remain. The failed hook is retained, and normal hooks must pass before delivery.
+
+The next normal hook passed all 28,909 root cases, then SafeBash completed with
+18,098 passes, nine failures and 64 skips. Six metadata consumers still referenced
+retired native helpers; their bounded follow-up preserves deterministic cases and
+small captured expectations without native execution. Two registry checks now
+expect 79 commands after Git removal. The historical JQ evidence check retains
+all immutable manifests, 23 captured snapshots and 140 other current comparisons;
+only the source seals for the deleted live oracle and the live-oracle body removed
+from semantics.test.ts are retired. No captured evidence bytes are changed.
+These failed hook results are preserved, not relabeled as passing.

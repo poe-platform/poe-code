@@ -1,8 +1,8 @@
 import assert from "node:assert/strict";
 import test from "node:test";
+import { createHash } from "node:crypto";
 import { readFile } from "node:fs/promises";
 import { join } from "node:path";
-import { namespace, oracle, oracleIdentity, oracleRoot, sha256, suiteRoot } from "./helpers.js";
 import { authenticateCapturedAuthors, authorSnapshotSha256, type AuthorSnapshot } from "./canonical-env/author-provenance.js";
 
 const oracleEvidenceBytes = await readFile(new URL("./oracle-evidence.json", import.meta.url));
@@ -23,34 +23,14 @@ function hashes(value: unknown): Record<string, string> {
 
 const evidence = { binaries: hashes(parsed.binaries), authorFilesSha256: hashes(parsed.authorFilesSha256), archiveSha256: parsed.archiveSha256, nativeSources: hashes(parsed.nativeSources) };
 
-test("GNU native source identities are complete SHA256 hashes matching the pinned source", async () => {
-  for (const [name, expected] of Object.entries(evidence.nativeSources)) {
-    assert.match(expected, /^[0-9a-f]{64}$/u, name);
-    assert.equal(await sha256(join(oracleRoot, name)), expected, name);
-  }
-});
-
-test("GNU oracle binaries match selected identities and archive retains its captured identity", async context => {
-  assert.equal(await sha256(join(oracleRoot, "../coreutils-9.7.tar.xz")), evidence.archiveSha256);
-  const root = await namespace(context);
-  for (const command of ["chmod", "stat", "mktemp"] as const) {
-    const identity = oracleIdentity(command);
-    assert.equal(await sha256(identity.path), identity.sha256);
-    if (identity.path === join(oracleRoot, "src", command)) assert.equal(identity.sha256, evidence.binaries[command]);
-    const version = oracle(command, ["--version"], root);
-    assert.equal(version.exitCode, 0, version.stderr);
-    assert.equal(version.stdout.toString().split("\n")[0], `${command} (GNU coreutils) 9.7`);
-  }
-});
-
 test("all seven captured author artifacts authenticate immutable handoff source and oracle", async context => {
-  const snapshotPath = join(suiteRoot, "canonical-env/author-snapshot.json");
-  assert.equal(await sha256(snapshotPath), authorSnapshotSha256, "immutable snapshot identity");
-  const snapshot: AuthorSnapshot = JSON.parse(await readFile(snapshotPath, "utf8"));
+  const snapshotBytes = await readFile(new URL("./canonical-env/author-snapshot.json", import.meta.url));
+  assert.equal(createHash("sha256").update(snapshotBytes).digest("hex"), authorSnapshotSha256, "immutable snapshot identity");
+  const snapshot: AuthorSnapshot = JSON.parse(snapshotBytes.toString("utf8"));
   authenticateCapturedAuthors(snapshot, oracleEvidenceBytes);
   const current = [];
   for (const [name, capturedSha256] of Object.entries(evidence.authorFilesSha256)) {
-    const currentSha256 = await sha256(join(suiteRoot, "../metadata", name));
+    const currentSha256 = createHash("sha256").update(await readFile(new URL(join("../metadata", name), import.meta.url))).digest("hex");
     current.push({ name, capturedSha256, currentSha256, unchangedSinceCapture: currentSha256 === capturedSha256 });
   }
   context.diagnostic(JSON.stringify({ capturedCommit: snapshot.commit, authenticatedArtifacts: current.length, currentAuthorState: current, note: "Current author edits are reported, not mistaken for corruption of immutable captured source." }));

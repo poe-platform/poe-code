@@ -390,7 +390,8 @@ export async function buildNativeOracles(options, dependencies = {}) {
           "--prefix=" + profile.buildPrefix,
           "--disable-nls",
           "CC=/usr/bin/gcc",
-          "CFLAGS=-O2 -g0 -ffile-prefix-map=" + work + "=."
+          "CFLAGS=-O2 -g0 -ffile-prefix-map=" + work + "=.",
+          ...(source.name === "patch-2.8" ? ["ac_cv_path_ED=ed"] : [])
         ],
         work
       );

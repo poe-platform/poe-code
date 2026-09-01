@@ -253,19 +253,22 @@ test("missing or unexpected source members cannot produce a partial staged succe
   }
 });
 
-function buildFixture() {
+function buildFixture(tool = "diff") {
   const value = fixture();
+  const sourceName = tool === "patch" ? "patch-2.8" : "diffutils-3.12";
+  value.pin.tool = tool;
+  if (tool === "patch") value.pin.version = "GNU patch 2.8";
   const source = Buffer.from("in-memory authenticated archive fixture");
   value.profile.compilerVersion = "13.3.0";
   value.profile.buildPrefix = "/home/qualifier/native-prefix";
   value.profile.sourceDateEpoch = "1743984000";
   value.profile.sources = [
     {
-      name: "diffutils-3.12",
-      url: "https://ftp.gnu.org/gnu/diffutils/diffutils-3.12.tar.xz",
+      name: sourceName,
+      url: "https://ftp.gnu.org/gnu/" + (tool === "patch" ? "patch" : "diffutils") + "/" + sourceName + ".tar.xz",
       size: source.length,
       sha256: digest(source),
-      outputs: [{ tool: "diff", path: "src/diff" }]
+      outputs: [{ tool, path: "src/" + tool }]
     }
   ];
   const steps = [];
@@ -274,12 +277,12 @@ function buildFixture() {
     if (command === "/usr/bin/gcc")
       return { status: 0, signal: null, stdout: "13.3.0\n", stderr: "" };
     if (command === "/usr/bin/tar")
-      value.fileSystem.mkdirSync("/owned/build-proof/sources/diffutils-3.12/src", {
+      value.fileSystem.mkdirSync(join("/owned/build-proof/sources", sourceName, "src"), {
         recursive: true
       });
     if (command === "/usr/bin/make")
       value.fileSystem.writeFileSync(
-        "/owned/build-proof/sources/diffutils-3.12/src/diff",
+        join("/owned/build-proof/sources", sourceName, "src", tool),
         executable,
         { mode: 0o755 }
       );
@@ -313,6 +316,48 @@ test("authenticated source build uses private paths, fixed compiler and no insta
   ]);
   assert.equal(value.fileSystem.existsSync("/home/qualifier/native-prefix"), false);
   assert.equal(receipt.root, "/owned/build-proof/installed");
+});
+
+test("Linux patch pins the qualified editor in configure arguments", async () => {
+  const value = buildFixture("patch");
+  const receipt = await buildNativeOracles(
+    { profile: value.profile, host, parent: "/owned", name: "build-proof" },
+    value
+  );
+  const configure = value.steps[2];
+  assert.equal(configure.command, "./configure");
+  assert.deepEqual(configure.args, [
+    "--prefix=/home/qualifier/native-prefix",
+    "--disable-nls",
+    "CC=/usr/bin/gcc",
+    "CFLAGS=-O2 -g0 -ffile-prefix-map=" + configure.options.cwd + "=.",
+    "ac_cv_path_ED=ed"
+  ]);
+  assert.equal(configure.options.env.PATH, "/usr/bin:/bin");
+  assert.equal(Object.hasOwn(configure.options.env, "ED"), false);
+  assert.equal(receipt.outputs[0].sha256, value.pin.sha256);
+  assert.equal(receipt.outputs[0].tool, "patch");
+});
+
+test("Linux patch editor pin does not admit changed executable bytes", async () => {
+  const value = buildFixture("patch");
+  const execute = value.execute;
+  value.execute = async (command, args, options) => {
+    const result = await execute(command, args, options);
+    if (command === "/usr/bin/make")
+      value.fileSystem.writeFileSync(join(options.cwd, "src/patch"), Buffer.alloc(executable.length));
+    return result;
+  };
+  await assert.rejects(
+    buildNativeOracles(
+      { profile: value.profile, host, parent: "/owned", name: "build-proof" },
+      value
+    ),
+    /native executable SHA-256 mismatch/u
+  );
+  assert.equal(value.calls.length, 0);
+  assert.equal(value.fileSystem.existsSync("/owned/build-proof/installed"), false);
+  assert.equal(value.fileSystem.existsSync("/owned/build-proof/failure.json"), true);
 });
 
 test("wrong authenticated source bytes stop before extraction and preserve build evidence", async () => {

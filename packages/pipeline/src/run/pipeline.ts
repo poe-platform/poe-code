@@ -173,7 +173,6 @@ async function runResolvedPipeline(
   metrics: PipelineMetrics
 ): Promise<PipelineRunResult> {
   const { fs, cwd, homeDir, runAgent, plan: planPath } = options;
-  const configuredPlanDirectory = options.planDirectory;
   const absolutePlanPath = resolveAbsolutePlanPath(planPath, cwd, homeDir);
   const runLogDir =
     options.logDir ??
@@ -403,7 +402,7 @@ async function runResolvedPipeline(
             await archivePlanShared({
               cwd,
               homeDir,
-              planDirectory: configuredPlanDirectory ?? "docs/plans",
+              planDirectory: path.dirname(absolutePlanPath),
               id,
               fs: fs as unknown as ArchivePlanFs
             });

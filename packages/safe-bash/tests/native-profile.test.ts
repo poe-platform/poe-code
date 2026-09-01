@@ -3,7 +3,7 @@ import test from "node:test";
 import * as fs from "node:fs";
 import { fileURLToPath } from "node:url";
 import { Volume, createFsFromVolume } from "memfs";
-import { matchNativeProfile, qualifyNativeProfile, nativeGnuBinding, nativeAppleBinding, type NativeProfile } from "./native-profile.js";
+import { matchNativeProfile, qualifyNativeProfile, nativeGnuBinding, nativeAppleBinding, verifyNativeExecutable, type NativeProfile } from "./native-profile.js";
 
 test("explicit local GNU qualification changes only diff/patch and preserves legacy Apple and other tools", () => {
   const localProfile = "local-macos26.4.1-arm64-gnu-20260831";
@@ -101,6 +101,48 @@ test("committed local Bash identity requires the independently reproduced Darwin
     size: 1188024, sha256: "bfa389cd1d6cb5dbd03805612b6fe464ade9b22a343b897df09044ff90456528",
     path: fileURLToPath(new URL("../tmp/native-gnu/bin/bash", import.meta.url)),
   });
+});
+
+test("hosted Bash binds the repeated 9fad qualification identity", () => {
+  const options = { platform: "darwin", arch: "arm64", release: "25.5.0" };
+  assert.deepEqual(nativeGnuBinding("bash", options), {
+    tool: "bash", version: "GNU bash, version 5.3.0(1)-release (aarch64-apple-darwin25.5.0)",
+    size: 1188024, sha256: "b09a33ce63bb32597085640b783748f257e09229eac73c60760c8c9378539361",
+    path: fileURLToPath(new URL("../tmp/native-gnu/bin/bash", import.meta.url)),
+  });
+  const manifest = JSON.parse(fs.readFileSync(new URL("./native-gnu-profiles.json", import.meta.url), "utf8"));
+  const observed = manifest.profiles.find((entry: { host: { release?: string } }) => entry.host.release === "25.5.0").provenance.bashQualification;
+  assert.deepEqual(observed, {
+    runId: "33453452779", sourceSha: "9fad33b3ad39f5908bd95e7ac5882ec3a763451c", artifactId: 9781107646,
+    artifactSha256: "f5c15dd37c0d97ee42f94ad3f75255dd0c71741cb33864a9cc95aff3112581e1",
+    artifactZipSha256: "457d42538df66777107fc0f76dda5d8ebe955a778825ec5f73e2740f021bf6ec",
+  });
+});
+
+test("hosted Bash refuses unreviewed profiles, wrong hosts and version-only executable admission", () => {
+  const options = { platform: "darwin", arch: "arm64", release: "25.5.0" };
+  const pin = nativeGnuBinding("bash", options)!;
+  const manifest = JSON.parse(fs.readFileSync(new URL("./native-gnu-profiles.json", import.meta.url), "utf8"));
+  const hosted = manifest.profiles.find((entry: { host: { release?: string } }) => entry.host.release === "25.5.0");
+  for (const profiles of [
+    [], [hosted, hosted], [{ ...hosted, qualification: "BUILT_OBSERVATIONS_UNREVIEWED" }],
+    [{ ...hosted, executables: hosted.executables.filter((entry: { tool: string }) => entry.tool !== "bash") }],
+    [{ ...hosted, executables: [{ tool: "bash", version: pin.version }] }],
+  ]) assert.throws(() => nativeGnuBinding("bash", { ...options, profiles }));
+  for (const invalid of [{ arch: "x64" }, { release: "25.6.0" }, { build: 2 as const }]) {
+    assert.throws(() => nativeGnuBinding("bash", { ...options, ...invalid }));
+  }
+  const fileSystem = createFsFromVolume(Volume.fromJSON({ "/owned/bash": Buffer.alloc(pin.size) })) as unknown as typeof fs;
+  fileSystem.chmodSync("/owned/bash", 0o755);
+  let nativeCalls = 0;
+  assert.throws(() => verifyNativeExecutable(pin, "/owned/bash", {
+    fileSystem,
+    run: () => {
+      nativeCalls += 1;
+      return { status: 0, signal: null, stdout: pin.version + "\n", stderr: "" };
+    },
+  }), error => error instanceof assert.AssertionError && error.message.startsWith("native executable SHA-256 mismatch"));
+  assert.equal(nativeCalls, 0);
 });
 
 test("reviewed Darwin bindings retain separate stat builds and exact Apple identities", () => {

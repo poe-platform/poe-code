@@ -90,6 +90,7 @@ function assertSource7Discovery(files) {
     "tests/commands/diff-patch-stress/gnu-target/oracle-binding.test.ts",
     "tests/commands/diff-patch-stress/editflows/git-profile.test.ts",
     "tests/commands/metadata-stress/native-binding.test.ts",
+    "tests/commands/metadata-stress/native-launch.test.ts",
     "tests/commands/stream-format/native-binding.test.ts",
     "tests/commands/table-text-stress/native-binding.test.ts",
     "tests/commands/split/native-binding.test.ts",

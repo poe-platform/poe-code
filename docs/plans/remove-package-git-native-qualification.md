@@ -77,3 +77,9 @@ deterministic tests, compact README and additional temporary-directory tests.
 Its now-serial CI workspace setting is retained before required lint stress.
 New native executable bindings are removed under the same explicit user decision.
 No old runtime file or long README is overlaid onto the newer implementation.
+
+The first normal push hook on this successor passed package lint but stopped on
+one stale root export-list assertion: it still expected the removed public Git
+command route. The root unit result was 28,908 passed, one failed and 43 skipped.
+Only that obsolete expected export is removed; all other metadata assertions
+remain. The failed hook is retained, and normal hooks must pass before delivery.

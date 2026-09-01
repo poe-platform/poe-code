@@ -2,6 +2,7 @@ import assert from "node:assert/strict";
 import { test } from "node:test";
 import { Shell, MemoryFileSystem, ReadOnlyFileSystem, CommandRegistry, standardCommands, ShellLimitError, FsError } from "../../../../src/index.js";
 import type { ShellOptions, ShellExecOptions } from "../../../../src/index.js";
+import { Runtime } from "../../../../src/shell/runtime.js";
 
 async function fixture(options: Partial<ShellOptions> = {}) {
   const fs = new MemoryFileSystem();
@@ -205,10 +206,19 @@ test("shared output and command budgets remain authoritative", async () => {
   assert.equal((await run("pushd /a", { limits: { maxCommands: 1 } })).exitCode, 0);
 });
 
-test("4096 remembered entries inclusive, next insertion before missing OLDPWD", async () => {
-  const setup = Array.from({ length: 4096 }, () => "pushd -n '' >/dev/null").join(";");
-  const result = await run(`${setup}; dirs +4096; unset OLDPWD; pushd -; printf '%s' "$?"`, { limits: { maxCommands: 20_000, maxOutputBytes: 32 * 1024 * 1024 } });
-  assert.equal(result.stdout, "\n1");
+test("4096 remembered entries inclusive, next insertion before missing OLDPWD", async context => {
+  const builtin = Runtime.prototype.builtin;
+  context.mock.method(Runtime.prototype, "builtin", async function (this: Runtime, ...args: Parameters<Runtime["builtin"]>) {
+    const status = await builtin.apply(this, args);
+    const state = args[1];
+    assert.equal(status, 0);
+    assert.deepEqual(state.directoryStack, { entries: [""], bytes: 0 });
+    state.directoryStack = { entries: Array<string>(4095).fill(""), bytes: 0 };
+    return status;
+  }, { times: 1 });
+  const result = await run("pushd -n '' >/dev/null; pushd -n '' >/dev/null; printf '%s:' \"$?\"; dirs +4096; unset OLDPWD; pushd -; printf '%s' \"$?\"");
+  assert.equal(result.stdout, "0:\n1");
+  assert.equal(result.exitCode, 0);
   assert.match(result.stderr, /pushd: directory stack exceeds 4096 entries/);
   assert.doesNotMatch(result.stderr, /OLDPWD not set/);
 });

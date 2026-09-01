@@ -10,6 +10,7 @@ import { textPrompt } from "./text.js";
 import { createPromptHarness, tick, type PromptHarness } from "./test-helpers.js";
 
 function createLifecycleHarness() {
+  vi.stubEnv("TERM", "xterm-256color");
   const harness = createPromptHarness();
   const controller = new AbortController();
   onTestFinished(() => controller.abort());
@@ -126,6 +127,21 @@ describe.each([
     await tick();
 
     expect(settled).toHaveBeenCalledExactlyOnceWith(typed);
+    expectCleanup(harness, signal);
+  });
+
+  it("cancels Ctrl+D with a nonempty buffer on a dumb terminal", async () => {
+    const harness = createLifecycleHarness();
+    vi.stubEnv("TERM", "dumb");
+    const { input, output, signal } = harness;
+    const settled = vi.fn();
+    void prompt({ message: "Value?", options, input, output, signal }).then(settled);
+
+    await tick();
+    input.write("abc\x04");
+    await tick();
+
+    expect(settled).toHaveBeenCalledExactlyOnceWith(CANCEL);
     expectCleanup(harness, signal);
   });
 

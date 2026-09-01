@@ -48,7 +48,7 @@ export async function namespace(context: TestContext): Promise<string> {
 export function oracle(command: "chmod" | "stat" | "mktemp", args: readonly string[], cwd: string, umask = 0o022, env: Record<string, string> = {}) {
   assert.ok(cwd.startsWith(join(suiteRoot, ".native-")));
   const identity = oracleIdentity(command);
-  const result = spawnSync("/bin/bash", ["-c", 'umask "$1"; shift; exec "$@"', "metadata-oracle", umask.toString(8), identity.path, ...args], {
+  const result = spawnSync("/bin/bash", ["--noprofile", "--norc", "-c", 'umask "$1"; shift; exec "$@"', "metadata-oracle", umask.toString(8), identity.path, ...args], {
     cwd, env: { PATH: "/usr/bin:/bin", LC_ALL: "C", TZ: "UTC", TMPDIR: cwd, ...env }, timeout: 3000,
   });
   assert.ifError(result.error);

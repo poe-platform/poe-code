@@ -4,7 +4,48 @@ import * as fs from "node:fs";
 import test from "node:test";
 import { fileURLToPath } from "node:url";
 import { createFsFromVolume, Volume } from "memfs";
+import ts from "typescript";
 import { oracleIdentity, oracleRoot } from "./helpers.js";
+
+for (const path of ["./helpers.ts", "./permission-profile/darwin-profile.test.ts"]) {
+  test(`metadata oracle wrapper inhibits startup files without inheriting host environment: ${path}`, () => {
+    const source = ts.createSourceFile(path, fs.readFileSync(new URL(path, import.meta.url), "utf8"), ts.ScriptTarget.Latest, true, ts.ScriptKind.TS);
+    const calls: ts.CallExpression[] = [];
+    const visit = (node: ts.Node): void => {
+      if (ts.isCallExpression(node) && ts.isIdentifier(node.expression) && node.expression.text === "spawnSync") calls.push(node);
+      ts.forEachChild(node, visit);
+    };
+    visit(source);
+    assert.equal(calls.length, 1);
+    const call = calls[0]!;
+    const program = call.arguments[0];
+    assert(program && ts.isStringLiteral(program));
+    assert.equal(program.text, "/bin/bash");
+    const args = call.arguments[1];
+    assert(args && ts.isArrayLiteralExpression(args));
+    assert.deepEqual(args.elements.slice(0, 3).map(element => {
+      assert(ts.isStringLiteral(element));
+      return element.text;
+    }), ["--noprofile", "--norc", "-c"]);
+    const script = args.elements[3];
+    assert(script && ts.isStringLiteral(script));
+    assert.equal(script.text, 'umask "$1"; shift; exec "$@"');
+    const options = call.arguments[2];
+    assert(options && ts.isObjectLiteralExpression(options));
+    const environment = options.properties.find(property => ts.isPropertyAssignment(property) && ts.isIdentifier(property.name) && property.name.text === "env");
+    assert(environment && ts.isPropertyAssignment(environment) && ts.isObjectLiteralExpression(environment.initializer));
+    const entries = environment.initializer.properties.map(property => {
+      if (ts.isSpreadAssignment(property)) {
+        assert(ts.isIdentifier(property.expression));
+        return ["...", property.expression.text];
+      }
+      assert(ts.isPropertyAssignment(property) && ts.isIdentifier(property.name));
+      assert(ts.isStringLiteral(property.initializer) || ts.isIdentifier(property.initializer));
+      return [property.name.text, property.initializer.text];
+    });
+    assert.deepEqual(entries, [["PATH", "/usr/bin:/bin"], ["LC_ALL", "C"], ["TZ", "UTC"], ["TMPDIR", "cwd"], ...path === "./helpers.ts" ? [["...", "env"]] : []]);
+  });
+}
 
 function fixture(tool: "chmod" | "stat" | "mktemp" | "touch" | "expr") {
   const path = fileURLToPath(new URL(`../../../tmp/native-gnu/bin/${tool}`, import.meta.url));

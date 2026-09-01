@@ -685,6 +685,31 @@ describe("selection and immutable metadata leaves", () => {
     expect(JSON.parse(stdout.write.mock.calls[0][0])).toHaveLength(result.results.length);
     expect(stderr.write).toHaveBeenCalledWith(expect.stringContaining('"complete":true'));
   });
+  it("summarizes clean stylish runs without losing the explicit JSON audit", async () => {
+    const state = model();
+    const result = await lintRoot({ guard: state.guard, config: state.config, receiptBinding: state.binding });
+    const stderr = { write: vi.fn() };
+    await printLintResult(result, { format: "stylish", maxWarnings: -1 }, { write: vi.fn() }, stderr);
+    const summary = JSON.parse(stderr.write.mock.calls[0][0]);
+    expect(summary).toMatchObject({ complete: true, exitCode: 0, errorCount: 0, warningCount: 0, scope: result.scope, receiptCount: result.receipts.length, directoryCount: result.directoryPins.length });
+    expect(summary).not.toHaveProperty("receipts");
+    expect(summary).not.toHaveProperty("directoryPins");
+    expect(stderr.write.mock.calls[0][0].length).toBeLessThan(1024);
+    stderr.write.mockClear();
+    await printLintResult(result, { format: "json", maxWarnings: -1 }, { write: vi.fn() }, stderr);
+    expect(JSON.parse(stderr.write.mock.calls[0][0])).toMatchObject({ receipts: result.receipts, directoryPins: result.directoryPins, counters: result.counters, unprocessed: result.unprocessed });
+  });
+  it("preserves full stylish audit details for warnings and incomplete runs", async () => {
+    for (const files of [{ "src/warning.js": "const unused = 1;" }, {}]) {
+      const state = model(files);
+      const guard = Object.keys(files).length ? state.guard : createLintInputGuard({ root, boundaries, fileSystem: state.fileSystem, limits: { metadataOperations: 2 } });
+      const result = await lintRoot({ guard, config: state.config, receiptBinding: state.binding });
+      expect(result.warningCount > 0 || !result.complete).toBe(true);
+      const stderr = { write: vi.fn() };
+      await printLintResult(result, { format: "stylish", maxWarnings: -1 }, { write: vi.fn() }, stderr);
+      expect(JSON.parse(stderr.write.mock.calls[0][0])).toMatchObject({ receipts: result.receipts, directoryPins: result.directoryPins, counters: result.counters, unprocessed: result.unprocessed });
+    }
+  });
 });
 
 describe("guard refusal and policy regression controls", () => {

@@ -42,6 +42,20 @@ async function withObjectPrototypeProperties<T>(
 }
 
 describe("SafeJS CLI", () => {
+  it("removes Git from the default CLI registry", async () => {
+    const stdout = createSink();
+    const stderr = createSink();
+    const exitCode = await runCli(["script.ajs"], {
+      readFile: async () => 'import { checkpoint } from "git"; return typeof checkpoint;',
+      stat: async () => ({ isFile: () => true }),
+      stdout,
+      stderr
+    });
+    expect(exitCode).toBe(1);
+    expect(stderr.output()).toContain("Unknown module 'git'.");
+    expect(stdout.output()).toBe("");
+  });
+
   it("inspects and migrates checkpoints without executing the target", async () => {
     const { dump, run } = await import("./index.js");
     const execution = run("return 1;");

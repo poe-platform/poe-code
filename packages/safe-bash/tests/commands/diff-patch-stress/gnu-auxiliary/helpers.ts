@@ -1,5 +1,4 @@
 import assert from "node:assert/strict";
-import { spawnSync } from "node:child_process";
 import { createHash } from "node:crypto";
 import { lstat, mkdir, mkdtemp, readFile, readdir, readlink, rm, symlink, link, writeFile } from "node:fs/promises";
 import { dirname, join, relative } from "node:path";
@@ -7,8 +6,6 @@ import { fileURLToPath } from "node:url";
 import { toByteSource } from "../../../../src/contracts/index.js";
 import { createDiffPatchCommands } from "../../../../src/commands/diff-patch/index.js";
 import { MemoryFileSystem } from "../../../../src/fs/memory/index.js";
-import { oracleIdentity, pins, withNativeScratch } from "../gnu-target/oracle.js";
-import { nativeGnuBinding } from "../../../native-profile.js";
 import { replacement, type Fixture } from "./fixtures.js";
 import { collectSourceInputs } from "../../../source-census.js";
 
@@ -29,8 +26,6 @@ export async function sourceHashes(): Promise<Record<string, string>> {
   for (const [path, bytes] of [...captured.files, ...captured.admissionInputs]) {
     result[path] = createHash("sha256").update(bytes).digest("hex");
   }
-  const oracle = fileURLToPath(new URL("../gnu-target/oracle.ts", import.meta.url));
-  result[relative(process.cwd(), oracle)] = createHash("sha256").update(await readFile(oracle)).digest("hex");
   return result;
 }
 
@@ -66,10 +61,6 @@ async function virtualSnapshot(fs: MemoryFileSystem, identity = false): Promise<
 }
 
 export async function probe(fixture: Fixture, atomic = false) {
-  const identity = oracleIdentity("patch");
-  const path = process.env.DIFF_PATCH_NATIVE_PATCH;
-  const expected = nativeGnuBinding("patch", path === undefined ? {} : { path }) ?? pins.gnu.patch;
-  assert.equal(identity.sha256, expected.sha256);
   const root = await mkdtemp(join(directory, ".native-"));
   const fs = new MemoryFileSystem();
   const expand = (value: string, destination: string) => value.replaceAll("{root}", destination);
@@ -97,15 +88,6 @@ export async function probe(fixture: Fixture, atomic = false) {
     const virtualBefore = await virtualSnapshot(fs);
     const virtualIdentityBefore = await virtualSnapshot(fs, true);
     const input = fixture.input ?? replacement();
-    const nativeArgs = ["--batch", ...(fixture.args ?? []).map(arg => expand(arg, root))];
-    const result = withNativeScratch(temporary => spawnSync(identity.realpath, nativeArgs, {
-      cwd: join(root, "work"), input: expand(input, root), encoding: "utf8", shell: false,
-      timeout: 3000, killSignal: "SIGKILL", maxBuffer: 262_144,
-      env: { PATH: "/usr/bin:/bin", LANG: "C", LC_ALL: "C", TZ: "UTC", PATCH_GET: "0", TMPDIR: temporary },
-    }));
-    assert.ifError(result.error);
-    assert.equal(result.signal, null);
-    const nativeAfter = await nativeSnapshot(root);
     const stdout: Uint8Array[] = [];
     const stderr: Uint8Array[] = [];
     const command = createDiffPatchCommands().find(item => item.name === "patch");
@@ -117,11 +99,10 @@ export async function probe(fixture: Fixture, atomic = false) {
       stdout: { async write(chunk) { stdout.push(chunk.slice()); } },
       stderr: { async write(chunk) { stderr.push(chunk.slice()); } },
     });
-    assert.deepEqual(await nativeSnapshot(root), nativeAfter, "VFS invocation must not mutate the host fixture");
+    assert.deepEqual(await nativeSnapshot(root), nativeBefore, "VFS invocation must not mutate the host fixture");
     assert.equal(await readFile(join(root, "sentinel"), "utf8"), sentinel, "ancestor sentinel must survive");
     return {
       name: fixture.name, policy: fixture.policy ?? false, atomic, input,
-      native: { args: nativeArgs.map(arg => arg.replaceAll(root, "{root}")), exitCode: result.status, stdout: result.stdout.replaceAll(root, "{root}"), stderr: result.stderr.replaceAll(root, "{root}"), before: nativeBefore, after: nativeAfter },
       virtual: { args: virtualArgs.map(arg => arg.replaceAll(root, "{host-root}")), exitCode: virtualResult.exitCode, stdout: Buffer.concat(stdout).toString(), stderr: Buffer.concat(stderr).toString(), before: virtualBefore, after: await virtualSnapshot(fs), identityBefore: virtualIdentityBefore, identityAfter: await virtualSnapshot(fs, true) },
     };
   } finally {
@@ -134,15 +115,12 @@ export async function probe(fixture: Fixture, atomic = false) {
 export type Observation = Awaited<ReturnType<typeof probe>>;
 
 export function verify(fixture: Fixture, observation: Observation): void {
-  const { native, virtual } = observation;
+  const { virtual } = observation;
   if (fixture.policy) {
     assert.notEqual(virtual.exitCode, 0, "required safety rejection");
     assert.deepEqual(virtual.identityAfter, virtual.identityBefore, "safety refusal preserves complete VFS namespace, bytes, and identity");
   } else {
-    assert.equal(native.exitCode, fixture.nativeStatus ?? 0, `unexpected pinned native result: ${native.stderr}`);
-    if ((fixture.args ?? []).includes("--dry-run")) assert.deepEqual(native.after, native.before, "GNU dry-run changes no namespace entries");
-    assert.equal(virtual.exitCode, native.exitCode, `GNU=${native.exitCode}, VFS=${virtual.exitCode}: ${virtual.stderr}`);
-    assert.deepEqual(virtual.after, native.after, "complete resulting namespace must match pinned GNU");
+    assert.equal(virtual.exitCode, fixture.nativeStatus ?? 0, virtual.stderr);
     if ((fixture.args ?? []).includes("--dry-run")) assert.deepEqual(virtual.identityAfter, virtual.identityBefore);
   }
 }

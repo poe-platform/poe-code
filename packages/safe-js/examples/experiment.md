@@ -15,13 +15,12 @@ maxKept: 2
 
 # Experiment loop
 
-This example exercises checkpoint, metric evaluation, and selective keep/revert
-behavior in a single markdown harness file.
+This example evaluates metrics and selects successful attempts in a single markdown
+harness file. Attempt selection does not commit or roll back repository changes.
 
 ```js
 import { spawn } from "agent";
 import { agents, meta } from "harness";
-import { checkpoint, commit, revert } from "git";
 import { event } from "log";
 import { run as runMetric } from "metric";
 
@@ -42,7 +41,6 @@ const runLoop = async (kept, attempts) => {
     };
   }
 
-  const savepoint = await checkpoint();
   const attemptNumber = attempts.length + 1;
   const result = await spawn(agents.experimenter, {
     check: true,
@@ -51,10 +49,6 @@ const runLoop = async (kept, attempts) => {
   const score = await runMetric(metricName);
 
   if (score >= baseline) {
-    await commit({
-      message: `experiment ${attemptNumber}: kept (${score})`,
-      files: ["package.json"]
-    });
     event("attempt.kept", {
       attempt: attemptNumber,
       score,
@@ -66,7 +60,6 @@ const runLoop = async (kept, attempts) => {
     );
   }
 
-  await revert(savepoint);
   event("attempt.discarded", {
     attempt: attemptNumber,
     score

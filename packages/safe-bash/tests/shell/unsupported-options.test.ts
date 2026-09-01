@@ -1,12 +1,8 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
-import { bashResult } from "./bash-bugfix-helpers.js";
 import { setup } from "./helpers.js";
 
 test("native-backed errexit forms stop before subsequent commands and file effects", async () => {
-  const reference = bashResult("set -e; false; printf bad >after");
-  assert.equal(reference.exitCode, 1);
-  assert.deepEqual(reference.files, {});
   for (const source of [
     "set -e; false; say bad >after",
     "set -o errexit; false; say bad >after",

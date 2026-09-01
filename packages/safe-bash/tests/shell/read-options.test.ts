@@ -1,44 +1,11 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
-import { bashResult } from "./bash-bugfix-helpers.js";
 import { setup } from "./helpers.js";
-
-for (const fixture of [
-  { read: "IFS= read -r -n 2 value", stdin: "abcdef\n" },
-  { read: "IFS= read -rn2 value", stdin: "abcdef\n" },
-  { read: "IFS= read -n 4 value", stdin: "ab\nrest" },
-  { read: "IFS= read -n 4 value", stdin: "ab" },
-  { read: "IFS= read -n 4 value", stdin: "" },
-  { read: "IFS= read -d : value", stdin: "ab:cd:ef\n" },
-  { read: "IFS= read -d : -n 2 value", stdin: "ab:cd" },
-  { read: "IFS= read -n 8 -d : value", stdin: "ab:cd" },
-  { read: "IFS= read -d xyz value", stdin: "abxyz" },
-  { read: "IFS= read -d '' value", stdin: "ab\0cd" },
-  { read: "IFS= read -n 2 value", stdin: "a\\ b\n" },
-  { read: "IFS= read -n 2 value", stdin: "a\\\nbc\n" },
-  { read: "IFS= read -d : value", stdin: "a\\:b:tail" },
-  { read: "IFS= read -rd: value", stdin: "a\\:b:tail" },
-  { read: "IFS=: read -n 4 value second", stdin: "a:b:tail" },
-  { read: "read -n 5 value second", stdin: " a b tail" },
-  { read: "read -n 3", stdin: " a tail" },
-  { read: "read -n 3 value", stdin: "a\\" },
-]) {
-  test(`read options preserve remaining bytes: ${JSON.stringify(fixture)}`, async () => {
-    const source = `${fixture.read}; status=$?; say "<$value>|<$second>|<$REPLY>:$status"; pass`;
-    const expected = bashResult('say() { printf "%s\\n" "$*"; }; pass() { cat; }; ' + source, { stdin: fixture.stdin });
-    const { shell } = setup();
-    const actual = await shell.exec(source, { stdin: fixture.stdin });
-    assert.deepEqual({ stdout: actual.stdout, stderr: actual.stderr, exitCode: actual.exitCode }, { stdout: expected.stdout, stderr: expected.stderr, exitCode: expected.exitCode });
-  });
-}
 
 test("read count uses Unicode characters across input chunks", async () => {
   const { shell } = setup();
   const stdin = { async *[Symbol.asyncIterator]() { for (const byte of new TextEncoder().encode("é😀z")) yield Uint8Array.of(byte); } };
   assert.equal((await shell.exec('IFS= read -rn2 value; args "$value" "$?"; pass', { stdin })).stdout, '["é😀","0"]z');
-  const reference = bashResult('IFS= read -rn2 value; printf "<%s>:%s" "$value" "$?"; cat', { stdin: "é😀z", locale: "en_US.UTF-8" });
-  assert.equal(reference.stdout, "<é>:0😀z");
-  assert.equal(reference.stderr, "");
 });
 
 test("read rejects unsupported and invalid options without consuming input", async () => {

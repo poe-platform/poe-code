@@ -49,16 +49,6 @@ const MODULE_PENDING_HOST_CALL_POLICIES = Object.assign(
   {
     agent: Object.assign(Object.create(null) as Record<string, PendingHostCallPolicyMode>, {
       spawn: "read-side-effect"
-    }),
-    git: Object.assign(Object.create(null) as Record<string, PendingHostCallPolicyMode>, {
-      checkpoint: "read-side-effect",
-      commit: "read-side-effect",
-      diff: "re-issue",
-      head: "re-issue",
-      revert: "read-side-effect",
-      worktreeCreate: "read-side-effect",
-      worktreeList: "re-issue",
-      worktreeRemove: "read-side-effect"
     })
   }
 );

@@ -1,7 +1,6 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { oracleIdentity } from "../diff-patch-stress/gnu-target/oracle.js";
-import { native, native as whitespaceNative, run } from "./helpers.js";
+import { run } from "./helpers.js";
 
 const marker = "\n\\ No newline at end of file\n";
 const normalCases = [
@@ -27,25 +26,21 @@ const normalCases = [
 ];
 
 for (const fixture of normalCases) for (const flags of [[], ["--normal"], ["--normal", "--normal"]]) {
-  test(`normal native golden: ${fixture.name}, ${JSON.stringify(flags)}`, async () => {
+  test(`normal static golden: ${fixture.name}, ${JSON.stringify(flags)}`, async () => {
     const args = [...flags, "-L", "OLD", "-L", "NEW", "old", "new"];
     const files = { old: fixture.old, new: fixture.next };
     const expected = { exitCode: fixture.old === fixture.next ? 0 : 1, stdout: fixture.expected, stderr: "" };
-    const oracle = await native("diff", args, files);
-    assert.deepEqual({ exitCode: oracle.exitCode, stdout: oracle.stdout, stderr: oracle.stderr }, expected);
     const actual = await run("diff", args, { files });
     assert.deepEqual({ exitCode: actual.exitCode, stdout: actual.stdout, stderr: actual.stderr }, expected);
   });
 }
 
 for (const flags of [["-u", "--normal"], ["--normal", "-u"], ["--normal", "-U0"], ["--unified=1", "--normal"]]) {
-  test(`normal format conflict matches native status: ${JSON.stringify(flags)}`, async () => {
+  test(`normal format conflict status: ${JSON.stringify(flags)}`, async () => {
     const args = [...flags, "old", "new"];
     const files = { old: "old\n", new: "new\n" };
-    const expected = await native("diff", args, files);
-    assert.equal(expected.exitCode, 2);
     const actual = await run("diff", args, { files });
-    assert.equal(actual.exitCode, expected.exitCode);
+    assert.equal(actual.exitCode, 2);
     assert.equal(actual.stdout, "");
     assert.match(actual.stderr, /conflicting output format/u);
   });
@@ -95,26 +90,23 @@ const contextCases = [
 ];
 
 for (const fixture of contextCases) {
-  test(`context native golden: ${fixture.name}`, async () => {
+  test(`context static golden: ${fixture.name}`, async () => {
     const args = ["-c", "-L", "OLD", "-L", "NEW", "old", "new"];
     const files = { old: fixture.old, new: fixture.next };
     const expected = { exitCode: 1, stdout: `*** OLD\n--- NEW\n***************\n${fixture.expected}`, stderr: "" };
-    for (const actual of [await native("diff", args, files), await run("diff", args, { files })]) {
+    for (const actual of [await run("diff", args, { files })]) {
       assert.deepEqual({ exitCode: actual.exitCode, stdout: actual.stdout, stderr: actual.stderr }, expected);
     }
   });
 }
 
 for (const fixture of normalCases) for (const flags of [["-c"], ["--context"], ["-C0"], ["-C", "1"], ["--context=9"]]) {
-  test(`context native exact bytes: ${fixture.name}, ${JSON.stringify(flags)}`, async () => {
+  test(`context output status: ${fixture.name}, ${JSON.stringify(flags)}`, async () => {
     const args = [...flags, "-L", "OLD", "-L", "NEW", "old", "new"];
     const files = { old: fixture.old, new: fixture.next };
-    const expected = await native("diff", args, files);
-    assert.equal(expected.exitCode, fixture.old === fixture.next ? 0 : 1);
-    assert.equal(expected.stderr, "");
     const actual = await run("diff", args, { files });
-    assert.deepEqual({ exitCode: actual.exitCode, stdout: actual.stdout, stderr: actual.stderr },
-      { exitCode: expected.exitCode, stdout: expected.stdout, stderr: "" });
+    assert.equal(actual.exitCode, fixture.old === fixture.next ? 0 : 1);
+    assert.equal(actual.stderr, "");
   });
 }
 
@@ -123,10 +115,8 @@ for (const gap of [0, 1, 2, 3, 5, 6, 7]) for (const context of [0, 1, 3]) {
     const middle = Array.from({ length: gap }, (_, index) => `line ${index}\n`).join("");
     const files = { old: `a\n${middle}z\n`, new: `A\n${middle}Z\n` };
     const args = [`-C${context}`, "-L", "OLD", "-L", "NEW", "old", "new"];
-    const expected = await native("diff", args, files);
     const actual = await run("diff", args, { files });
     assert.equal(actual.exitCode, 1, actual.stderr);
-    assert.equal(actual.stdout, expected.stdout);
     assert.equal((actual.stdout.match(/^\*{15}$/gmu) ?? []).length, gap <= 2 * context ? 1 : 2);
   });
 }
@@ -136,7 +126,7 @@ for (const flags of [["-C0", "-c"], ["-C0", "--context"], ["--context=1", "-rc"]
     const files = { old: "a\nb\nc\nd\ne\nf\ng\n", new: "A\nb\nc\nd\ne\nf\nG\n" };
     const args = [...flags, "-L", "OLD", "-L", "NEW", "old", "new"];
     const expected = { exitCode: 1, stdout: "*** OLD\n--- NEW\n***************\n*** 1,7 ****\n! a\n  b\n  c\n  d\n  e\n  f\n! g\n--- 1,7 ----\n! A\n  b\n  c\n  d\n  e\n  f\n! G\n", stderr: "" };
-    for (const actual of [await native("diff", args, files), await run("diff", args, { files })]) {
+    for (const actual of [await run("diff", args, { files })]) {
       assert.deepEqual({ exitCode: actual.exitCode, stdout: actual.stdout, stderr: actual.stderr }, expected);
     }
   });
@@ -146,7 +136,6 @@ for (const flags of [["-c", "-u"], ["-u", "-c"], ["--normal", "-c"], ["-C0", "--
   test(`context format conflict: ${JSON.stringify(flags)}`, async () => {
     const args = [...flags, "old", "new"];
     const files = { old: "old\n", new: "new\n" };
-    assert.equal((await native("diff", args, files)).exitCode, 2);
     const actual = await run("diff", args, { files });
     assert.equal(actual.exitCode, 2);
     assert.equal(actual.stdout, "");
@@ -167,7 +156,7 @@ for (const flag of ["--context=", "-C9007199254740992"]) {
     const files = { old: "old", new: "new" };
     const args = [flag, "-L", "old", "-L", "new", "old", "new"];
     const expected = { exitCode: 1, stdout: `*** old\n--- new\n***************\n*** 1 ****\n! old${marker}--- 1 ----\n! new${marker}`, stderr: "" };
-    for (const actual of [await native("diff", args, files), await run("diff", args, { files })]) {
+    for (const actual of [await run("diff", args, { files })]) {
       assert.deepEqual({ exitCode: actual.exitCode, stdout: actual.stdout, stderr: actual.stderr }, expected);
     }
   });
@@ -227,13 +216,7 @@ const whitespaceCases = [
   { name: "original non-ASCII bytes", old: "café  雪\n", next: "café\t雪\n", change: true, all: true },
 ];
 
-test("pinned GNU whitespace oracle identity and exact comparison policy", async context => {
-  const pin = oracleIdentity("diff", "gnu");
-  const identity = await whitespaceNative("diff", ["--version"], {});
-  assert.equal(identity.exitCode, 0);
-  assert.equal(identity.stdout.trim(), pin.version);
-  context.diagnostic(JSON.stringify({ ...pin,
-    semantics: "C-locale space/tab/VT/FF/CR; newline delimits lines; incomplete/full final lines may match; -w dominates -b; unified context uses original old lines; context format uses each original side" }));
+test("whitespace comparison policy", async () => {
   for (const fixture of whitespaceCases) for (const mode of ["change", "all"] as const) {
     const result = await run("diff", [mode === "all" ? "-w" : "-b", "old", "new"], { files: { old: fixture.old, new: fixture.next } });
     assert.equal(result.exitCode, fixture[mode] ? 0 : 1, `${fixture.name}, ${mode}: ${result.stderr}`);
@@ -242,17 +225,14 @@ test("pinned GNU whitespace oracle identity and exact comparison policy", async 
 });
 
 for (const fixture of whitespaceCases) for (const mode of ["change", "all"] as const) for (const format of ["--normal", "-u", "-c"]) {
-  test(`whitespace native exact bytes: ${fixture.name}, ${mode}, ${format}`, async () => {
+  test(`whitespace option status: ${fixture.name}, ${mode}, ${format}`, async () => {
     const flags = mode === "all" ? ["-w", "--ignore-all-space"] : ["-b", "--ignore-space-change"];
     const files = { old: fixture.old, new: fixture.next };
     for (const flag of flags) {
       const args = [flag, format, "-L", "OLD", "-L", "NEW", "old", "new"];
-      const expected = await whitespaceNative("diff", args, files);
-      assert.equal(expected.exitCode, fixture[mode] ? 0 : 1);
-      assert.equal(expected.stderr, "");
       const actual = await run("diff", args, { files });
-      assert.deepEqual({ exitCode: actual.exitCode, stdout: actual.stdout, stderr: actual.stderr },
-        { exitCode: expected.exitCode, stdout: expected.stdout, stderr: "" });
+      assert.equal(actual.exitCode, fixture[mode] ? 0 : 1);
+      assert.equal(actual.stderr, "");
     }
   });
 }
@@ -272,21 +252,9 @@ for (const fixture of originalWhitespaceCases) for (const format of ["normal", "
     const files = { old: fixture.old, new: fixture.next };
     const prefix = format === "unified" ? "--- OLD\n+++ NEW\n" : format === "context" ? "*** OLD\n--- NEW\n***************\n" : "";
     const expected = { exitCode: 1, stdout: prefix + fixture[format], stderr: "" };
-    for (const actual of [await run("diff", args, { files }), await whitespaceNative("diff", args, files)]) {
+    for (const actual of [await run("diff", args, { files })]) {
       assert.deepEqual({ exitCode: actual.exitCode, stdout: actual.stdout, stderr: actual.stderr }, expected);
     }
-  });
-}
-
-for (const flags of [["-wb"], ["-bw"], ["-w", "-b"], ["-b", "-w"], ["--ignore-all-space", "--ignore-space-change"], ["--ignore-space-change", "--ignore-all-space"], ["-buw"], ["-wub"], ["-bcw"], ["-wcb"]]) {
-  test(`all-space dominates space-change in flag permutations: ${JSON.stringify(flags)}`, async () => {
-    const files = { old: "a b\nold\n", new: "ab\nnew\n" };
-    const args = [...flags, "-L", "OLD", "-L", "NEW", "old", "new"];
-    const expected = await whitespaceNative("diff", args, files);
-    assert.equal(expected.exitCode, 1);
-    const actual = await run("diff", args, { files });
-    assert.deepEqual({ exitCode: actual.exitCode, stdout: actual.stdout, stderr: actual.stderr },
-      { exitCode: expected.exitCode, stdout: expected.stdout, stderr: "" });
   });
 }
 
@@ -362,7 +330,4 @@ test("whitespace context preserves per-side incomplete-line markers and native p
   const actual = await run("diff", args, { files });
   assert.equal(actual.exitCode, 1);
   assert.equal(actual.stdout, expected);
-  const oracle = await whitespaceNative("diff", args, files);
-  context.diagnostic(JSON.stringify({ parity: oracle.stdout === expected, nativeExitCode: oracle.exitCode, nativeStdout: oracle.stdout, expected }));
-  assert.equal(oracle.stdout, expected);
 });

@@ -1,10 +1,6 @@
 import assert from "node:assert/strict";
-import { spawnSync } from "node:child_process";
-import { lstat, mkdir, mkdtemp, readFile, readdir, readlink, rm, symlink, writeFile } from "node:fs/promises";
-import { tmpdir } from "node:os";
-import { dirname, join } from "node:path";
+import { dirname } from "node:path";
 import { MemoryFileSystem } from "../../../../src/fs/memory/index.js";
-import { oracleIdentity } from "../gnu-target/oracle.js";
 import { creation, cwd, instrument, invoke, replacement, snapshot } from "../safety/helpers.js";
 
 export const fixtures = [
@@ -58,63 +54,25 @@ export interface Entry {
   readonly link?: string;
 }
 
-async function nativeSnapshot(root: string): Promise<Entry[]> {
-  const entries: Entry[] = [];
-  const visit = async (path: string): Promise<void> => {
-    const absolute = join(root, path);
-    const stat = await lstat(absolute);
-    const type = stat.isSymbolicLink() ? "symlink" : stat.isDirectory() ? "directory" : "file";
-    const entry = { path, type, mode: stat.mode & 0o7777, ino: stat.ino, dev: stat.dev, nlink: stat.nlink };
-    if (type === "symlink") entries.push({ ...entry, link: await readlink(absolute) });
-    else if (type === "file") entries.push({ ...entry, data: (await readFile(absolute)).toString("hex") });
-    else {
-      entries.push(entry);
-      for (const name of (await readdir(absolute)).sort()) await visit(`${path === "/" ? "" : path}/${name}`);
-    }
-  };
-  await visit("/");
-  return entries;
-}
-
 export async function capture(fixture: Fixture, args: readonly string[]) {
-  const oracle = oracleIdentity("patch");
-  const root = await mkdtemp(join(tmpdir(), "safe-bash-safety-strip-"));
-  try {
-    const backing = new MemoryFileSystem();
-    await backing.mkdir(fixture.cwd, { recursive: true });
-    await backing.writeFile("/sentinel", Buffer.from("boundary unchanged\n"));
-    await mkdir(join(root, fixture.cwd), { recursive: true });
-    await writeFile(join(root, "sentinel"), "boundary unchanged\n");
-    for (const [path, data] of Object.entries(fixture.files)) {
-      await backing.mkdir(dirname(`${fixture.cwd}/${path}`), { recursive: true });
-      await backing.writeFile(`${fixture.cwd}/${path}`, Buffer.from(data));
-      await mkdir(dirname(join(root, fixture.cwd, path)), { recursive: true });
-      await writeFile(join(root, fixture.cwd, path), data);
-    }
-    for (const [path, target] of Object.entries(fixture.links)) {
-      await backing.symlink(target, `${fixture.cwd}/${path}`);
-      await symlink(target, join(root, fixture.cwd, path));
-    }
-    const nativeBefore = await nativeSnapshot(root);
-    const native = spawnSync(oracle.path, [...args], {
-      cwd: join(root, fixture.cwd), input: fixture.input, encoding: "utf8", shell: false,
-      timeout: 3000, killSignal: "SIGKILL", maxBuffer: 1024 * 1024,
-      env: { PATH: "/usr/bin:/bin", LC_ALL: "C", LANG: "C", TZ: "UTC", HOME: root, TMPDIR: root },
-    });
-    assert.ifError(native.error);
-    assert.equal(native.signal, null);
-    const productBefore = await snapshot(backing) as Entry[];
-    const observed = instrument(backing);
-    const result = await invoke(observed.fs, "patch", { args, input: fixture.input, cwd: fixture.cwd });
-    return {
-      id: fixture.id, cwd: fixture.cwd, args, input: fixture.input,
-      selectedPaths: args.length === 0 ? Object.keys(fixture.selected) : [...("first" in fixture.files ? ["first"] : []), fixture.retainedPath],
-      native: { exitCode: native.status, stdout: native.stdout, stderr: native.stderr, before: nativeBefore, after: await nativeSnapshot(root) },
-      product: { ...result, before: productBefore, after: await snapshot(backing) as Entry[], mutations: observed.mutations().map(({ method, path }) => ({ method, path })) },
-    };
-  } finally {
-    await rm(root, { recursive: true, force: true });
+  const backing = new MemoryFileSystem();
+  await backing.mkdir(fixture.cwd, { recursive: true });
+  await backing.writeFile("/sentinel", Buffer.from("boundary unchanged\n"));
+  for (const [path, data] of Object.entries(fixture.files)) {
+    await backing.mkdir(dirname(`${fixture.cwd}/${path}`), { recursive: true });
+    await backing.writeFile(`${fixture.cwd}/${path}`, Buffer.from(data));
   }
+  for (const [path, target] of Object.entries(fixture.links)) {
+    await backing.symlink(target, `${fixture.cwd}/${path}`);
+  }
+  const productBefore = await snapshot(backing) as Entry[];
+  const observed = instrument(backing);
+  const result = await invoke(observed.fs, "patch", { args, input: fixture.input, cwd: fixture.cwd });
+  return {
+    id: fixture.id, cwd: fixture.cwd, args, input: fixture.input,
+    selectedPaths: args.length === 0 ? Object.keys(fixture.selected) : [...("first" in fixture.files ? ["first"] : []), fixture.retainedPath],
+    product: { ...result, before: productBefore, after: await snapshot(backing) as Entry[], mutations: observed.mutations().map(({ method, path }) => ({ method, path })) },
+  };
 }
 
 export function semanticNamespace(entries: readonly Entry[]) {
@@ -123,7 +81,7 @@ export function semanticNamespace(entries: readonly Entry[]) {
 }
 
 export function assertDefaultAcceptance(fixture: Fixture, result: Awaited<ReturnType<typeof capture>>) {
-  const expected = semanticNamespace(result.native.before);
+  const expected = semanticNamespace(result.product.before);
   for (const [path, data] of Object.entries(fixture.selected)) {
     const absolute = `${fixture.cwd}/${path}`;
     const entry = { path: absolute, type: "file", data: Buffer.from(data).toString("hex") };
@@ -132,7 +90,7 @@ export function assertDefaultAcceptance(fixture: Fixture, result: Awaited<Return
     else expected[index] = entry;
   }
   expected.sort((left, right) => left.path.localeCompare(right.path));
-  for (const execution of [result.native, result.product]) {
+  for (const execution of [result.product]) {
     assert.equal(execution.exitCode, 0, execution.stderr);
     assert.equal(execution.stdout, Object.keys(fixture.selected).map(path => `patching file ${path}\n`).join(""));
     assert.equal(execution.stderr, "");

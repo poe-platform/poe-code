@@ -20,6 +20,7 @@ import { interpret } from "../interp/interpreter.js";
 import { parseModule, type Module, type ParseResult } from "../parse/parser.js";
 import { hashSource } from "../parse/hash.js";
 import { restore } from "./restore.js";
+import { registerPendingHostCallPolicy } from "./policy.js";
 import { serialize } from "./serialize.js";
 import { createSandboxRegex, isSandboxRegex } from "../interp/values.js";
 import { SnapshotValidationError } from "./validation.js";
@@ -248,14 +249,14 @@ describe("snapshot restore", () => {
       "mismatched host call tag",
       (snapshot: any) =>
         snapshot.pendingPromises.push({
-          id: "git-commit-1",
-          moduleId: "git",
-          operation: "commit",
+          id: "agent-spawn-1",
+          moduleId: "agent",
+          operation: "spawn",
           sideEffectTag: {
             kind: "host-call-side-effect",
             callId: "different",
-            moduleId: "git",
-            operation: "commit"
+            moduleId: "agent",
+            operation: "spawn"
           }
         }),
       "$.pendingPromises[0].sideEffectTag.callId"
@@ -1412,6 +1413,11 @@ describe("snapshot restore", () => {
   });
 
   it("annotates pending host calls with the resume policy", () => {
+    registerPendingHostCallPolicy({
+      moduleId: "restore-reader",
+      operation: "head",
+      policy: "re-issue"
+    });
     const source = "await task()";
     const awaitNodeId = getNodeIdByType(parseModule(source), "AwaitExpression");
 
@@ -1428,19 +1434,19 @@ describe("snapshot restore", () => {
         callStack: [],
         pendingPromises: [
           {
-            id: "git-commit-1",
-            moduleId: "git",
-            operation: "commit",
+            id: "agent-spawn-1",
+            moduleId: "agent",
+            operation: "spawn",
             sideEffectTag: {
               kind: "host-call-side-effect",
-              callId: "git-commit-1",
-              moduleId: "git",
-              operation: "commit"
+              callId: "agent-spawn-1",
+              moduleId: "agent",
+              operation: "spawn"
             }
           },
           {
-            id: "git-head-1",
-            moduleId: "git",
+            id: "reader-head-1",
+            moduleId: "restore-reader",
             operation: "head"
           }
         ],
@@ -1457,9 +1463,9 @@ describe("snapshot restore", () => {
         kind: "read-side-effect",
         sideEffectTag: {
           kind: "host-call-side-effect",
-          callId: "git-commit-1",
-          moduleId: "git",
-          operation: "commit"
+          callId: "agent-spawn-1",
+          moduleId: "agent",
+          operation: "spawn"
         }
       },
       {

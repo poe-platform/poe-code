@@ -650,11 +650,18 @@ function unitFixture() {
     unused: { name: "unused" }
   });
   writeJson(path.join(owned.root, "package.json"), { name: "owned-root", private: true, workspaces: ["packages/*"], scripts: { "test:unit": "node root-unit.cjs" } });
-  writeJson(path.join(owned.root, "turbo.json"), { tasks: { build: { dependsOn: ["^build"] }, "virtual-bash#test:unit": { dependsOn: ["build"], outputs: [], cache: false, passThroughEnv: ["SAFE_BASH_TEST_RG"] } } });
+  writeJson(path.join(owned.root, "turbo.json"), { tasks: { build: { dependsOn: ["^build"] }, "virtual-bash#test:unit": { dependsOn: ["build"], outputs: [], cache: false } } });
   return owned;
 }
 
 describe("finite unit task planning", () => {
+  it("rejects obsolete native-tool environment configuration", () => {
+    const owned = unitFixture();
+    try {
+      writeJson(path.join(owned.root, "turbo.json"), { tasks: { build: { dependsOn: ["^build"] }, "virtual-bash#test:unit": { passThroughEnv: ["SAFE_BASH_TEST_RG"] } } });
+      expect(() => workspaceRunner.createWorkspaceTestPlan(owned.root)).toThrow("Unsupported unit task configuration");
+    } finally { owned.remove(); }
+  });
   it("retains root and every declared unit task plus buildless prerequisite closure", () => {
     const owned = unitFixture();
     try {
@@ -727,7 +734,7 @@ describe("finite unit task planning", () => {
 describe("finite unit execution and ownership", () => {
   it("builds before tests, retains npm lifecycles, exact arguments and feature-only profiles", async () => {
     const owned = unitFixture(), mock = mockExecution();
-    const environment = { ...mock.environment, TERM: "xterm-256color", SAFE_BASH_TEST_RG: "/owned/rg", SAFE_BASH_NATIVE_LANE: "linux", SAFEJS_LOCAL_ROOT: "/owned/safe-js", S3_HTTP_EXPORTS_REVISION: "owned-revision", FULL_GATE_ROOT: "/owned/full-gate" };
+    const environment = { ...mock.environment, TERM: "xterm-256color", SAFEJS_LOCAL_ROOT: "/owned/safe-js", S3_HTTP_EXPORTS_REVISION: "owned-revision", FULL_GATE_ROOT: "/owned/full-gate" };
     try {
       const result = await workspaceRunner.testWorkspaces(owned.root, { ...mock, environment, testArguments: ["--reporter=tap", "a b"] });
       expect(result).toMatchObject({ builds: 2, tests: 3, concurrency: 1, cache: "UNCACHED" });
@@ -740,7 +747,7 @@ describe("finite unit execution and ownership", () => {
         if (call[1][4] === "test:unit") expect(call[1].slice(-3)).toEqual(["--", "--reporter=tap", "a b"]);
         else expect(call[1]).not.toContain("--reporter=tap");
         const feature = call[1][4] === "test:unit" && call[1].includes("--workspace=packages/bash");
-        for (const name of ["SAFE_BASH_TEST_RG", "SAFE_BASH_NATIVE_LANE", "SAFEJS_LOCAL_ROOT", "S3_HTTP_EXPORTS_REVISION", "FULL_GATE_ROOT"]) expect(call[2].env?.[name]).toBe(feature ? environment[name as keyof typeof environment] : undefined);
+        for (const name of ["SAFEJS_LOCAL_ROOT", "S3_HTTP_EXPORTS_REVISION", "FULL_GATE_ROOT"]) expect(call[2].env?.[name]).toBe(feature ? environment[name as keyof typeof environment] : undefined);
       }
       expect(mock.host.listenerCount("SIGTERM")).toBe(0);
     } finally { owned.remove(); }
@@ -998,11 +1005,11 @@ describe("finite unit input and environment boundaries", () => {
     const owned = unitFixture(), mock = mockExecution();
     try {
       writeJson(path.join(owned.root, "package.json"), { name: "virtual-bash", private: true, workspaces: ["packages/*"], scripts: { "test:unit": "node owned.cjs" } });
-      await workspaceRunner.testWorkspaces(owned.root, { ...mock, environment: { ...mock.environment, SAFE_BASH_TEST_RG: "/owned/rg" } });
+      await workspaceRunner.testWorkspaces(owned.root, { ...mock, environment: { ...mock.environment, SAFEJS_LOCAL_ROOT: "/owned/safe-js" } });
       const rootCall = mock.start.mock.calls.find(call => call[1].includes("--workspaces=false"))!;
-      expect(rootCall[2].env?.SAFE_BASH_TEST_RG).toBeUndefined();
+      expect(rootCall[2].env?.SAFEJS_LOCAL_ROOT).toBeUndefined();
       const featureCall = mock.start.mock.calls.find(call => call[1][4] === "test:unit" && call[1].includes("--workspace=packages/bash"))!;
-      expect(featureCall[2].env?.SAFE_BASH_TEST_RG).toBe("/owned/rg");
+      expect(featureCall[2].env?.SAFEJS_LOCAL_ROOT).toBe("/owned/safe-js");
     } finally { owned.remove(); }
   });
 });

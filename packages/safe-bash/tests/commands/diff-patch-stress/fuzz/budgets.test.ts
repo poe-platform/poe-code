@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import { performance } from "node:perf_hooks";
 import test from "node:test";
-import { contents, memory, nativeDirectory, nativePatchResult, run } from "./helpers.js";
+import { contents, memory, run } from "./helpers.js";
 
 test("adversarial repeated-line unmatched rectangle rejects before oversized LCS allocation", { timeout: 5000 }, async context => {
   const before = `old-start\n${"same\n".repeat(2100)}old-end\n`;
@@ -52,11 +52,6 @@ test("adversarial repetitive patch anchors terminate within an explicit work bud
 test("legacy asymmetric budget input is a GNU boundary rejection, not an expensive search", { timeout: 5000 }, async () => {
   const before = "same\n".repeat(1500);
   const input = `--- target\n+++ target\n@@ -1,81 +1,81 @@\n${" same\n".repeat(80)}-absent\n+present\n`;
-  await nativeDirectory(async root => {
-    const reference = await nativePatchResult(root, before, input);
-    assert.equal(reference.exitCode, 1);
-    assert.equal(reference.target, before);
-  });
   const filesystem = await memory({ target: before });
   const result = await run("patch", ["-F0"], filesystem, input, { maxWork: 10_000 });
   assert.equal(result.exitCode, 1, result.stderr);

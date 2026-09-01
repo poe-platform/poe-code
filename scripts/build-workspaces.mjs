@@ -211,8 +211,8 @@ export function createWorkspaceTestPlan(rootDirectory, options = {}) {
     if (name !== "test:unit" && !name.endsWith("#test:unit")) continue;
     assert.ok(name === "test:unit" || name === "//#test:unit" || names.has(name.slice(0, -10)), 'Unknown unit task override: ' + name);
     assert.ok(task && typeof task === "object" && !Array.isArray(task));
-    assert.ok(Object.keys(task).every(key => ["dependsOn", "inputs", "outputs", "cache", "passThroughEnv"].includes(key)), 'Unsupported unit task configuration: ' + name);
-    for (const field of ["dependsOn", "inputs", "outputs", "passThroughEnv"]) {
+    assert.ok(Object.keys(task).every(key => ["dependsOn", "inputs", "outputs", "cache"].includes(key)), 'Unsupported unit task configuration: ' + name);
+    for (const field of ["dependsOn", "inputs", "outputs"]) {
       if (task[field] !== undefined) assert.ok(Array.isArray(task[field]) && task[field].every(value => typeof value === "string"), 'Invalid unit ' + field);
     }
     if (task.dependsOn !== undefined) {
@@ -220,10 +220,6 @@ export function createWorkspaceTestPlan(rootDirectory, options = {}) {
       assert.equal(new Set(task.dependsOn).size, task.dependsOn.length, "Duplicate unit dependencies");
     }
     if (task.cache !== undefined) assert.equal(typeof task.cache, "boolean");
-    if (task.passThroughEnv?.length) {
-      assert.equal(name, "virtual-bash#test:unit", "Feature environment must remain scoped to virtual-bash");
-      assert.deepEqual(task.passThroughEnv, ["SAFE_BASH_TEST_RG"]);
-    }
   }
   const candidates = [{ name: plan.rootManifest.name, path: null, manifest: plan.rootManifest }, ...plan.workspaces];
   const testStages = [], noTest = [], buildRoots = new Set();
@@ -252,7 +248,7 @@ export function createWorkspaceTestPlan(rootDirectory, options = {}) {
 function taskEnvironment(environment, stage, unitMode) {
   const selected = { ...environment };
   if (unitMode && !(stage.path !== null && stage.name === "virtual-bash" && stage.event === "test:unit")) {
-    for (const name of ["SAFE_BASH_TEST_RG", "SAFE_BASH_NATIVE_LANE", "SAFEJS_LOCAL_ROOT", "S3_HTTP_EXPORTS_REVISION", "FULL_GATE_ROOT"]) delete selected[name];
+    for (const name of ["SAFEJS_LOCAL_ROOT", "S3_HTTP_EXPORTS_REVISION", "FULL_GATE_ROOT"]) delete selected[name];
   }
   return selected;
 }

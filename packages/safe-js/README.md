@@ -98,7 +98,7 @@ and SDK hosts use the same bridge and declared built-in module policies.
 
 SafeJS runs untrusted-by-default code. Nothing reaches the host by default — no filesystem, `exec`, `process`, or network primitives — and there is no escape hatch: no `eval`, no `Function`, no dynamic `import()`, no `globalThis`. A script can only touch the host through modules the caller registers in `run({ modules })`.
 
-When you need subprocess or HTTP capability, build a host module with the _exact_ surface you want to expose (the specific commands or URLs) and register it explicitly. The bundled modules (`agent`, `git`, `harness`, `log`, `metric`, `mcp`, `env`, `time`, `fail`) follow that rule; treat them as the model for anything you add. The same advice holds for the filesystem: when a harness only needs a few paths, a purpose-built module naming them is narrower — and better — than the `fs` module below.
+When you need subprocess or HTTP capability, build a host module with the _exact_ surface you want to expose (the specific commands or URLs) and register it explicitly. The bundled modules (`agent`, `harness`, `log`, `metric`, `mcp`, `env`, `time`, `fail`) follow that rule; treat them as the model for anything you add. The same advice holds for the filesystem: when a harness only needs a few paths, a purpose-built module naming them is narrower — and better — than the `fs` module below.
 
 ### The optional `fs` module
 
@@ -182,7 +182,7 @@ See:
 
 - `examples/pipeline.md` — sequential builder → reviewer over a list of tasks
 - `examples/superintendent.md` — builder + parallel inspectors + judge + owner, with rounds
-- `examples/experiment.md` — checkpoint → attempt → measure → keep-or-revert loop
+- `examples/experiment.md` — attempt → measure → select successful results (no repository rollback)
 
 Run any of them with the bundled CLI:
 
@@ -193,7 +193,7 @@ npx --package poe-code poe-safe-js examples/pipeline.md
 `poe-safe-js` is a zero-cost local runner for markdown harness files. It
 reads all executable fenced blocks in order, lints them against the example module registry,
 then runs it with stub host modules: `agent.spawn` returns a canned successful
-summary, `git` and `metric` are deterministic fakes, and logs are printed as
+summary, `metric` is a deterministic fake, and logs are printed as
 JSONL. If a markdown file has no `js` block, the CLI keeps backwards-compatible
 demo mode and dispatches `kind: pipeline`, `superintendent`, or `experiment`
 frontmatter to the bundled shapes. Use `runHarness()` for raw `.safejs` or legacy `.ajs` files.
@@ -334,7 +334,6 @@ Registered by the caller via the factory functions exported from the package. No
 | Import    | Factory                                  | What it gives the script                                                                                                                                |
 | --------- | ---------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `agent`   | `makeAgentModule(spawnAgent)`            | `spawn(definition, { prompt, mode, model, mcp, cwd, timeoutMs, check })` — returns nonzero results unless `check: true`; checked errors retain `result` |
-| `git`     | `makeGitModule(cwd)`                     | `head`, `checkpoint`, `commit`, `revert`, `diff`                                                                                                        |
 | `harness` | `makeHarnessModule(frontmatter, meta)`   | `tasks`, `agents`, `meta` (kind, version, filepath, frontmatter), `applyConstraints(prompt)`                                                            |
 | `log`     | `makeLogModule(sink?)`                   | `info`, `error`, `event` (JSONL by default)                                                                                                             |
 | `metric`  | `makeMetricModule(npmRunner)`            | `run(name)` — runs an npm script and parses its last numeric line                                                                                       |

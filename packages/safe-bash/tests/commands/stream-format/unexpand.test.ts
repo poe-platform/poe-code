@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { compare, shell, type NativeCase } from "./helpers.js";
+import { shell, type NativeCase } from "./helpers.js";
 
 const blanks = "        a        b\n1234567  X\n1234567 X\n1234567 \tX\n\t  \t\n";
 export const unexpandCases: readonly NativeCase[] = [
@@ -19,7 +19,6 @@ export const unexpandCases: readonly NativeCase[] = [
   { args: ["-t4,4"], failure: true }, { args: ["-t4,+2,/3"], failure: true },
   { args: ["-txyz"], failure: true }, { args: ["--bad"], failure: true },
 ];
-for (const fixture of unexpandCases) test(`unexpand native ${JSON.stringify(fixture.args)} ${JSON.stringify(fixture.input)}`, () => compare("unexpand", fixture));
 
 test("unexpand continuous file columns and repeated stdin", async () => {
   const instance = shell();

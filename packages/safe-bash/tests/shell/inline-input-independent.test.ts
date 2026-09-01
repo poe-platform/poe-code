@@ -2,7 +2,7 @@ import assert from "node:assert/strict";
 import { test } from "node:test";
 import { fileURLToPath } from "node:url";
 import { ShellLimitError } from "../../src/shell/index.js";
-import { bashVersion, runBash, runVirtualScript } from "../shell-stress/helpers.js";
+import { runVirtualScript } from "../shell-stress/helpers.js";
 import { isolatedSpawn } from "../shell-stress/process.js";
 import { setup } from "./helpers.js";
 
@@ -31,13 +31,6 @@ const cases = [
   ["loop condition consumes shared document", "while read -r word; do printf '<%s>' \"$word\"; done <<EOF\none\ntwo\nEOF\n"],
 ] as const;
 
-for (const [name, script] of cases) {
-  test(`independent inline-input differential: ${name}`, async () => {
-    const fixture = { name, script };
-    assert.deepEqual(await runVirtualScript(fixture), await runBash(fixture));
-  });
-}
-
 test("case syntax inside a document substitution is parsed structurally", async (context) => {
   const fixture = { name: "case inside heredoc expansion", script: "cat <<EOF\n$(case x in x) printf yes;; esac)\nEOF\n" };
   const actual = await runVirtualScript(fixture);
@@ -45,14 +38,7 @@ test("case syntax inside a document substitution is parsed structurally", async 
   assert.equal(actual.stdout, "yes\n");
   assert.equal(actual.stderr, "");
   assert.deepEqual(actual.files, {});
-  const reference = await runBash(fixture);
-  if (bashVersion().includes("version 3.2.")) {
-    assert.equal(reference.exitCode, 0);
-    assert.equal(reference.stdout, " printf yes;; esac)\n");
-    assert.match(reference.stderr, /syntax error/u);
-    assert.deepEqual(reference.files, {});
-    context.diagnostic("Bash 3.2 misparses the unparenthesized case pattern inside this document substitution; not treated as desired syntax.");
-  } else assert.deepEqual(actual, reference);
+
 });
 
 test("independent inline source bytes reject before acquiring input", async () => {

@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { availability, expectedFiles, native, snapshot, virtual } from "./helpers.js";
+import { expectedFiles, snapshot, virtual } from "./helpers.js";
 
 const contextPatch = "*** target\n--- target\n***************\n*** 1,3 ****\n  head\n! old\n  tail\n--- 1,3 ----\n  head\n! new\n  tail\n";
 const gapCases = [
@@ -23,15 +23,5 @@ for (const fixture of gapCases) {
     const actual = await virtual(fixture.tool, fixture.args, fixture.files, fixture.input);
     assert.deepEqual({ status: actual.exitCode, files: await snapshot(actual.fs, Object.keys(fixture.expected)), output: fixture.output === undefined ? undefined : actual.stdout.toString() },
       { status: fixture.status, files: expectedFiles(fixture.expected), output: fixture.output }, actual.stderr.toString());
-  });
-  test(`native ${fixture.name}`, async context => {
-    const version = await availability(fixture.tool);
-    const args = fixture.tool === "patch" ? ["-f", "-F0", "-p0", ...fixture.args] : fixture.args;
-    const oracle = await native(fixture.tool, args, fixture.files, fixture.input, Object.keys(fixture.expected));
-    assert.deepEqual({ status: oracle.exitCode, files: oracle.files, output: fixture.output === undefined ? undefined : oracle.stdout.toString() },
-      { status: fixture.status, files: expectedFiles(fixture.expected), output: fixture.output }, `${version}\n${oracle.stdout}\n${oracle.stderr}`);
-    const actual = await virtual(fixture.tool, fixture.args, fixture.files, fixture.input);
-    assert.deepEqual({ status: actual.exitCode, files: await snapshot(actual.fs, Object.keys(fixture.expected)), output: fixture.output === undefined ? undefined : actual.stdout.toString() },
-      { status: oracle.exitCode, files: oracle.files, output: fixture.output }, actual.stderr.toString());
   });
 }

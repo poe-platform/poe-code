@@ -1,15 +1,9 @@
-import assert from "node:assert/strict";
-import { createHash } from "node:crypto";
-import { execFileSync } from "node:child_process";
-import { mkdtemp, readFile, rm } from "node:fs/promises";
+
 import { fileURLToPath } from "node:url";
-import { join } from "node:path";
 import { Shell, agentCommands, createMemoryFileSystem, type ByteSource, type CommandContext, type FileSystem } from "../../../src/index.js";
 import { createTarCommand, type ArchiveCommandsOptions } from "../../../src/commands/archive/index.js";
 
 export const directory = fileURLToPath(new URL("./", import.meta.url));
-export const oracle = join(directory, ".oracle/gnu-tar/1.35/bin/gtar");
-export const oracleHash = "49a0bd353ad67347674d00a7b3eeb171da58728f7e4577c9b320d8ab1e7bba66";
 export const binary = Uint8Array.from({ length: 2051 }, (_, index) => index % 256);
 
 export async function fixture(options: Omit<ArchiveCommandsOptions, "replace"> = {}, fs: FileSystem = createMemoryFileSystem()) {
@@ -34,16 +28,6 @@ export async function direct(args: readonly string[], fs: FileSystem, overrides:
   };
   const result = await createTarCommand(options).execute(context);
   return { ...result, stdoutBytes: Buffer.concat(stdout), stdout: Buffer.concat(stdout).toString(), stderr: Buffer.concat(stderr).toString() };
-}
-
-export async function withNative(callback: (temporary: string, run: (args: readonly string[]) => Buffer) => Promise<void>): Promise<void> {
-  assert.equal(createHash("sha256").update(await readFile(oracle)).digest("hex"), oracleHash, "Run prepare-oracle.mjs; never substitute Apple tar");
-  const temporary = await mkdtemp(join(directory, ".native-test-"));
-  const run = (args: readonly string[]) => execFileSync(oracle, [...args], {
-    cwd: temporary, env: { PATH: "/usr/bin:/bin", LC_ALL: "C", COPYFILE_DISABLE: "1" }, timeout: 10_000, maxBuffer: 16 * 1024 * 1024,
-  });
-  try { await callback(temporary, run); }
-  finally { await rm(temporary, { recursive: true, force: true }); }
 }
 
 export function header(name: string, payload: Uint8Array = new Uint8Array(), type = "0", target = ""): Buffer {

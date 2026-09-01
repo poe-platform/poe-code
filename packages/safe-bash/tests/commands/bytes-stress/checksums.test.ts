@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { chunks, native, nativePrograms, run } from "./helpers.js";
+import { chunks, run } from "./helpers.js";
 
 const known = {
   sha256sum: "ba7816bf8f01cfea414140de5dae2223b00361a396177a9cb410ff61f20015ad",
@@ -23,8 +23,6 @@ for (const name of ["sha256sum", "sha1sum", "md5sum"] as const) {
     }
     const zero = await run(name, ["-z", "--", ...names], "", fixture);
     assert.equal(zero.stdout.toString(), names.map(filename => `${known[name]}  ${filename}\0`).join(""));
-    const expectedZero = await native(nativePrograms[name], ["-z", "--", ...names], "", fixture);
-    assert.equal(expectedZero.exitCode, 0); assert.deepEqual(zero.stdout, expectedZero.stdout);
   });
 
   test(`${name}: strict and reporting matrix uses fixed manifests, not generated values`, async () => {
@@ -52,22 +50,6 @@ for (const name of ["sha256sum", "sha1sum", "md5sum"] as const) {
   });
 }
 
-for (const [name, algorithm] of [["sha256sum", "256"], ["sha1sum", "1"]] as const) test(`${name}: installed Perl shasum independently checks manifest statuses`, { skip: !nativePrograms.shasum }, async () => {
-  const fixture = { files: { data: "abc", "space name": "abc" } };
-  const good = `${known[name]}  data\n${known[name]}  space name\n`;
-  for (const [manifest, flags] of [
-    [good, []], [good, ["--quiet"]], [good, ["--status"]], [good + "invalid\n", ["--strict"]],
-    [good + "invalid\n", ["--warn"]], [good.replaceAll(known[name], "0".repeat(known[name].length)), ["--quiet"]],
-    [`${known[name]}  missing\n`, ["--ignore-missing"]], [good + `${known[name]}  missing\n`, ["--ignore-missing"]],
-  ] as const) {
-    const expected = await native(nativePrograms.shasum, ["-a", algorithm, "-c", ...flags], manifest, fixture);
-    const actual = await run(name, ["-c", ...flags], chunks(Buffer.from(manifest), 2), fixture);
-    assert.equal(actual.exitCode, expected.exitCode, `${flags}: ${actual.stderr}`);
-    assert.deepEqual(actual.stdout, expected.stdout);
-    assert.equal(actual.stderr.length > 0, expected.stderr.length > 0);
-  }
-});
-
 test("checksum manifests reject malformed filename escapes and embedded NUL bytes", async () => {
   for (const suffix of ["bad\\x", "bad\\", "bad\0name"]) {
     const line = `\\${known.sha256sum}  ${suffix}\n`;
@@ -77,7 +59,7 @@ test("checksum manifests reject malformed filename escapes and embedded NUL byte
   }
 });
 
-test("cksum independent bit-at-a-time polynomial and length folding", { skip: !nativePrograms.cksum }, async () => {
+test("cksum independent bit-at-a-time polynomial and length folding", async () => {
   const checksum = (data: Uint8Array) => {
     let crc = 0;
     const byte = (value: number) => {
@@ -92,7 +74,6 @@ test("cksum independent bit-at-a-time polynomial and length folding", { skip: !n
     const input = Uint8Array.from({ length }, (_, offset) => (offset * 53 + Math.floor(offset / 251)) & 255);
     const expected = `${checksum(input)} ${length}\n`;
     const actual = await run("cksum", [], chunks(input, 31));
-    const installed = await native(nativePrograms.cksum, [], input);
-    assert.equal(actual.stdout.toString(), expected); assert.equal(installed.stdout.toString(), expected);
+    assert.equal(actual.stdout.toString(), expected);
   }
 });

@@ -320,6 +320,11 @@ assertions, plus explicit profile-ID and missing-record rejection checks.
 
 ## Linux native provisioning failure evidence (not qualification)
 
+Historical proposal, superseded before hosted execution: upstream commit
+94cf8b10d removes the native qualification machinery and Release provisioning
+steps. Integration preserves that removal and does not restore this collector.
+The description below records the earlier proposal, not the current workflow.
+
 The normal Linux release lane retains bounded observations when the GNU native
 provisioner fails, including the patch 2.8 hash-drift case. Its provisioning
 command, expected pins, failing exit and all normal gates remain unchanged.

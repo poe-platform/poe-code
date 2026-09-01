@@ -1,11 +1,9 @@
 import assert from "node:assert/strict";
-import { readFile, readdir, writeFile } from "node:fs/promises";
-import { join } from "node:path";
 import test from "node:test";
 import { diffPatchCommands } from "../../../../src/commands/diff-patch/index.js";
 import { Shell } from "../../../../src/shell/index.js";
 import { snapshot } from "../safety/helpers.js";
-import { contents, example, golden, memory, native, nativeDirectory, nativeIdentity, nativePatch, random, run } from "./helpers.js";
+import { contents, example, golden, memory, random, run } from "./helpers.js";
 
 test("64 seeded handwritten adjacent/separated hunks retain displaced anchors and reverse", { timeout: 30_000 }, async context => {
   let passed = 0;
@@ -24,10 +22,6 @@ test("64 seeded handwritten adjacent/separated hunks retain displaced anchors an
       assert.equal(result.exitCode, 0, `seed=${seed}, reverse=${reverse}: ${result.stderr}`);
       assert.equal(await contents(filesystem), prefix + (reverse ? before : after), `seed=${seed}`);
     }
-    await nativeDirectory(async root => {
-      assert.equal(await nativePatch(root, prefix + before, input), prefix + after, `seed=${seed}`);
-      assert.equal(await nativePatch(root, prefix + after, input, true), prefix + before, `seed=${seed}`);
-    });
     passed++;
   }
   context.diagnostic(`HANDWRITTEN_REPORT ${JSON.stringify({ baseSeed: 0x17ab0123, denominator: 64, pass: passed, fail: 0, skips: 0 })}`);
@@ -38,9 +32,7 @@ test("all six file-section orderings apply coding-agent create/edit/delete flows
   const edited = golden("export const enabled = false;\n", "export const enabled = true;\n", "config.ts");
   const created = "--- /dev/null\n+++ added.ts\n@@ -0,0 +1 @@\n+export const added = 1;\n";
   const removed = "--- stale.ts\n+++ /dev/null\n@@ -1 +0,0 @@\n-export const stale = 1;\n";
-  const failures: string[] = [];
   let virtualPass = 0;
-  let nativePass = 0;
   for (const order of orders) {
     const input = order.map(index => [edited, created, removed][index]!).join("");
     const filesystem = await memory({ "config.ts": "export const enabled = false;\n", "stale.ts": "export const stale = 1;\n" });
@@ -55,20 +47,9 @@ test("all six file-section orderings apply coding-agent create/edit/delete flows
     assert.equal(await contents(filesystem, "stale.ts"), "export const stale = 1;\n");
     await assert.rejects(contents(filesystem, "added.ts"), { code: "ENOENT" });
     virtualPass++;
-    await nativeDirectory(async root => {
-      await writeFile(join(root, "config.ts"), "export const enabled = false;\n");
-      await writeFile(join(root, "stale.ts"), "export const stale = 1;\n");
-      const forward = native(root, "patch", ["-f", "-F0", "-p0", "-E"], input);
-      assert.equal(forward.exitCode, 0, JSON.stringify(forward));
-      assert.equal(await readFile(join(root, "added.ts"), "utf8"), "export const added = 1;\n");
-      const backward = native(root, "patch", ["-f", "-F0", "-p0", "-E", "-R"], input);
-      if (backward.exitCode !== 0) failures.push(`order=${order.join(",")}: ${JSON.stringify(backward)}`);
-      else nativePass++;
-      assert.equal(await readFile(join(root, "config.ts"), "utf8"), "export const enabled = false;\n");
-    });
   }
-  context.diagnostic(`ORDER_REPORT ${JSON.stringify({ denominator: 6, virtualPass, nativePass, nativeFail: failures.length, skips: 0 })}`);
-  assert.equal(failures.length, 0, failures.join("\n"));
+  context.diagnostic(`ORDER_REPORT ${JSON.stringify({ denominator: 6, virtualPass, skips: 0 })}`);
+  assert.equal(virtualPass, 6);
 });
 
 const malformed: Readonly<Record<string, string>> = {
@@ -115,14 +96,6 @@ test("atomic extension repeated backward hunk is a conflict without publication"
 
 for (const atomic of [false, true]) test(`${atomic ? "atomic extension" : "GNU default"} advisory new coordinate in second hunk remains applicable`, async () => {
   const input = golden("keep\n", "changed\n", "first") + "--- target\n+++ target\n@@ -1 +1 @@\n-old\n+new\n@@ -3 +4 @@\n-tail\n+end\n";
-  await nativeDirectory(async root => {
-    await writeFile(join(root, "first"), "keep\n");
-    await writeFile(join(root, "target"), "old\nmiddle\ntail\n");
-    const reference = native(root, "patch", ["--batch", "--fuzz=0", "--no-backup-if-mismatch", "-p0"], input);
-    assert.equal(reference.exitCode, 0, reference.stderr);
-    assert.equal(await readFile(join(root, "first"), "utf8"), "changed\n");
-    assert.equal(await readFile(join(root, "target"), "utf8"), "new\nmiddle\nend\n");
-  });
   const filesystem = await memory({ first: "keep\n", target: "old\nmiddle\ntail\n" });
   const result = await run("patch", [...(atomic ? ["--atomic"] : []), "-F0", "-p0"], filesystem, input);
   assert.equal(result.exitCode, 0, result.stderr);
@@ -151,37 +124,23 @@ test("12 actual Shell plugin seeded pipeline/redirection/dry-run/reverse flows",
   context.diagnostic("SHELL_REPORT denominator=12 pass=12 fail=0 skips=0");
 });
 
-test("record native identities without assuming GNU is installed", { timeout: 5000 }, async context => {
-  context.diagnostic(JSON.stringify(await nativeIdentity()));
-});
-
 for (const atomic of [false, true]) test(`${atomic ? "atomic extension" : "GNU default"} repeated hunk cannot bypass its first misordered match for a later duplicate`, async () => {
   const initial = "old\nmiddle\nold\n";
   const input = golden("keep\n", "changed\n", "first") + "--- target\n+++ target\n@@ -1 +1 @@\n-old\n+new\n@@ -1 +1 @@\n-old\n+other\n";
   const filesystem = await memory({ first: "keep\n", target: initial });
   const before = await snapshot(filesystem);
-  await nativeDirectory(async root => {
-    await writeFile(join(root, "first"), "keep\n");
-    await writeFile(join(root, "target"), initial);
-    const reference = native(root, "patch", ["--batch"], input);
-    assert.equal(reference.exitCode, 1, reference.stderr);
-    assert.equal(reference.stdout, "patching file first\npatching file target\nmisordered hunks! output would be garbled\nHunk #2 FAILED at 1.\n1 out of 2 hunks FAILED -- saving rejects to file target.rej\n");
-    assert.equal(reference.stderr, "");
-    const expected = { first: "changed\n", target: "new\nmiddle\nold\n", "target.orig": initial,
+const expected = { first: "changed\n", target: "new\nmiddle\nold\n", "target.orig": initial,
       "target.rej": "--- target\n+++ target\n@@ -1 +1 @@\n-old\n+other\n" };
-    assert.deepEqual((await readdir(root)).sort(), Object.keys(expected).sort());
-    for (const [name, bytes] of Object.entries(expected)) assert.equal(await readFile(join(root, name), "utf8"), bytes);
-    const result = await run("patch", atomic ? ["--atomic"] : [], filesystem, input);
-    assert.equal(result.exitCode, 1, result.stderr);
-    if (atomic) {
+const result = await run("patch", atomic ? ["--atomic"] : [], filesystem, input);
+assert.equal(result.exitCode, 1, result.stderr);
+if (atomic) {
       assert.equal(result.stdout, "");
       assert.equal(result.stderr, "patch: hunk 2 does not match target\n");
       assert.deepEqual(await snapshot(filesystem), before);
     } else {
-      assert.equal(result.stdout, reference.stdout);
-      assert.equal(result.stderr, reference.stderr);
+      assert.equal(result.stdout, "patching file first\npatching file target\nmisordered hunks! output would be garbled\nHunk #2 FAILED at 1.\n1 out of 2 hunks FAILED -- saving rejects to file target.rej\n");
+      assert.equal(result.stderr, "");
       assert.deepEqual((await filesystem.readdir("/work")).map(entry => entry.name).sort(), Object.keys(expected).sort());
       for (const [name, bytes] of Object.entries(expected)) assert.equal(await contents(filesystem, name), bytes);
     }
-  });
 });

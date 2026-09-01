@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
 import { ShellLimitError } from "../../src/shell/index.js";
-import { bashVersion, runBash, runVirtualScript } from "../shell-stress/helpers.js";
+import { runVirtualScript } from "../shell-stress/helpers.js";
 import { setup } from "./helpers.js";
 
 const cases: [string, string][] = [
@@ -53,13 +53,6 @@ const cases: [string, string][] = [
   ["parameter-shaped delimiter keeps literal parenthesis", "cat <<${VALUE:-(}\ntext\n${VALUE:-(}\n"],
 ];
 
-for (const [name, script] of cases) {
-  test(`heredoc Bash differential: ${name}`, async () => {
-    const fixture = { name, script };
-    assert.deepEqual(await runVirtualScript(fixture), await runBash(fixture));
-  });
-}
-
 test("nested heredoc punctuation is literal, not Bash 3.2 parser syntax", async (context) => {
   const fixture = { name: "nested punctuation", script: "printf '<%s>' \"$(cat <<'EOF'\n) ; \"\nEOF\n)\"" };
   const actual = await runVirtualScript(fixture);
@@ -67,7 +60,6 @@ test("nested heredoc punctuation is literal, not Bash 3.2 parser syntax", async 
   assert.equal(actual.stderr, "");
   assert.equal(actual.exitCode, 0);
   assert.deepEqual(actual.files, {});
-  context.diagnostic(JSON.stringify({ installedBash: await runBash(fixture) }));
 });
 
 for (const [source, status, stdout = "", files = []] of [
@@ -140,17 +132,11 @@ test("closed heredoc descriptor rejects without destroying a live duplicate", as
 for (const expansion of ["${VALUE:?stop}", "$((1/0))"]) {
   test(`heredoc expansion failure is a redirection failure: ${expansion}`, async () => {
     const source = `cat 2>errors <<EOF\n${expansion}\nEOF\nstatus=$?; printf after >marker; exit "$status"`;
-    const expected = await runBash({ name: "heredoc expansion failure", script: source });
     const actual = await runVirtualScript({ name: "heredoc expansion failure", script: source });
-    assert.equal(expected.exitCode, expansion.startsWith("${") && bashVersion().includes("version 3.2.") ? 127 : 1);
     assert.equal(actual.exitCode, expansion.startsWith("${") ? 127 : 1);
-    assert.equal(expected.stdout, "");
-    assert.equal(expected.stderr, "");
-    assert.deepEqual(Object.keys(expected.files).sort(), ["errors", "marker"]);
     assert.equal(actual.stdout, "");
     assert.equal(actual.stderr, "");
     assert.deepEqual(Object.keys(actual.files).sort(), ["errors", "marker"]);
-    assert.deepEqual(actual.files.marker, expected.files.marker);
     const errorFile = actual.files.errors!;
     assert.ok(errorFile.type === "file");
     assert.match(Buffer.from(errorFile.base64, "base64").toString(), /VALUE: stop|division by 0/u);

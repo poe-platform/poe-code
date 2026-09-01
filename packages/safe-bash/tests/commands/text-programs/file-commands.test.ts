@@ -1,23 +1,6 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { compareNative, runVirtual } from "./helpers.js";
-
-for (const [name, args, stdin, files] of [
-  ["read after automatic output", ["1r extra"], "a\nb\n", { extra: "extra\n" }],
-  ["read queues at cycle end", ["1r extra\np"], "a\nb\n", { extra: "raw" }],
-  ["read flushes after delete", ["r extra\nd"], "a\n", { extra: "extra\n" }],
-  ["read and append retain order", ["r extra\na\\\nappend\nr missing"], "a\n", { extra: "extra\n" }],
-  ["read is observed after write", ["r output\nw output"], "a\nb\n", { output: "old\n" }],
-  ["write selected records", ["-n", "2,3w output"], "a\nb\nc\nd\n", { output: "old\n" }],
-  ["write precreates without input", ["-n", "2w output"], "", { output: "old\n" }],
-  ["write across multiple files", ["-n", "w output", "first", "last"], "", { first: "a\n", last: "b\n" }],
-  ["substitution conditional write", ["s/a/A/w output"], "a\nb\n", {}],
-  ["write filename with spaces", ["w output name"], "abc", {}],
-] as const) {
-  test(`sed file command: ${name}`, async () => {
-    await compareNative("sed", { args: [...args], stdin, files });
-  });
-}
+import { runVirtual } from "./helpers.js";
 
 test("file command syntax failure preserves input and existing output", async () => {
   const actual = await runVirtual("sed", { args: ["w output\n?"], stdin: "input\n", files: { output: "keep\n" } });

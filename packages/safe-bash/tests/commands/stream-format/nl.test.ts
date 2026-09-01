@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { compare, shell, type NativeCase } from "./helpers.js";
+import { shell, type NativeCase } from "./helpers.js";
 
 const pages = "head\n\\:\\:\\:\nH\n\n\\:\\:\nA\n\nB\n\\:\nF\n\\:\\:\nC\n";
 export const nlCases: readonly NativeCase[] = [
@@ -23,7 +23,6 @@ export const nlCases: readonly NativeCase[] = [
   { args: ["-bp["], failure: true }, { args: ["--bad"], failure: true },
   { args: ["-l-1"], failure: true },
 ];
-for (const fixture of nlCases) test(`nl native ${JSON.stringify(fixture.args)} ${JSON.stringify(fixture.input)}`, () => compare("nl", fixture));
 
 test("nl bounded matcher consumes the invocation's shared step budget", async () => {
   const instance = shell({ limits: { maxSteps: 1000 } });

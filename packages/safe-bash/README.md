@@ -45,7 +45,7 @@ Output: `Hello, reader!\nAda\nGrace\n`. The script, input, and generated
 ## Tool card
 
 `Shell` handles script syntax, variables, loops, functions, and redirections.
-**`agentCommands()` adds these 80 tools**, not networking or JavaScript execution:
+**`agentCommands()` adds these 79 tools**, not networking or JavaScript execution:
 
 | Default bundle | Commands |
 | --- | --- |
@@ -57,11 +57,11 @@ Output: `Hello, reader!\nAda\nGrace\n`. The script, input, and generated
 | Bytes/checksums | `base64`, `base32`, `xxd`, `od`, `md5sum`, `sha1sum`, `sha256sum`, `cksum` |
 | Archives | `gzip`, `gunzip`, `zcat`, `tar` |
 | Script helpers | `echo`, `printf`, `true`, `false`, `test`, `[`, `env`, `printenv`, `xargs`, `expr`, `date`, `sleep`, `timeout` |
-| Changes/review | `diff`, `patch`, `apply_patch`, `git` |
+| Changes/review | `diff`, `patch`, `apply_patch` |
 
-**Restricted:** `git` is read-only VFS access, not clone/fetch/commit;
-`which` searches virtual paths; `timeout` cancels cooperatively.
-**Not included:** `npm`, `npx`, or fallback to host executables.
+**Restricted:** `which` searches virtual paths; `timeout` cancels cooperatively.
+**Not included:** Git commands, `npm`, `npx`, or fallback to host executables.
+Repository Git operations used to develop poe-code are unaffected.
 
 ### Opt-in tools
 
@@ -88,10 +88,17 @@ Output: `Hello, reader!\nAda\nGrace\n`. The script, input, and generated
   Host/remote access requires explicit configuration.
   [Filesystem guide](../safe-fs/README.md).
 
-This is **not full Bash, Node, Git, or utility parity**. Commands support bounded
+This is **not full Bash, Node, or utility parity**. Commands support bounded
 subsets. Trusted host JavaScript, plugins, and providers are **not sandboxed**;
 limits and cooperative cancellation do not provide host isolation or total-memory
 guarantees. Enabling real storage or networking intentionally grants capabilities.
+
+## Testing
+
+Build and test with the workspace JavaScript/TypeScript dependencies; no GNU
+binaries, native tool profiles, provisioning scripts or calibration lanes are
+required. Existing captured output fixtures remain plain regression data. Pure
+live-native comparisons are retired, not reported as passing compatibility tests.
 
 ## Test output
 

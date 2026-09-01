@@ -50,7 +50,7 @@ required. The regular `@poe-platform/safe-bash` entry remains the Node API.
 
 ```ts
 import { Shell, browserCommands } from "@poe-platform/safe-bash/browser";
-import { createMemoryFileSystem } from "@poe-platform/safe-js/fs/core";
+import { createMemoryFileSystem } from "@poe-platform/safe-fs/core";
 
 const fs = createMemoryFileSystem();
 const shell = new Shell({ fs, limits: { maxCommands: 100, maxOutputBytes: 65536 } })
@@ -71,7 +71,9 @@ try {
 
 Shell builtins, virtual scripts, pipelines, budgets, cancellation, and disposal
 remain available. Inject a canonical filesystem or compose memory/read-only/mount
-adapters from `@poe-platform/safe-js/fs/core`; filesystem and error identity are shared.
+adapters from `@poe-platform/safe-fs/core`; matching scoped packages share filesystem
+and error identity. Legacy `poe-code` imports use a separate runtime; see the
+[filesystem migration boundary](../safe-fs/README.md#entry-points-and-shared-identity).
 The core's portable `posixPath` exposes `basename`, `dirname`, `extname`, `join`,
 and `isAbsolute`. Node-only adapters and command packs are not included;
 `[[ … =~ … ]]` explicitly returns status 2. Use the Node entry for regex-worker

@@ -44,7 +44,7 @@ export default async function* conciseReporter(events) {
           yield { ...event, data: { ...data, name } };
         } else yield event;
       } else if (type === "test:summary" && file) {
-        if (!data.success) yield* state.output;
+        yield* data.success ? state.output.filter(item => item.type === "test:diagnostic") : state.output;
         files.delete(file);
         completed++;
         if (completed % 100 === 0) {

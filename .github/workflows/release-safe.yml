@@ -44,8 +44,9 @@ jobs:
         run: |
           set -euo pipefail
           JS=$(npm view @poe-platform/safe-js version)
+          FS=$(npm view @poe-platform/safe-fs version)
           BASH_VERSION_REMOTE=$(npm view @poe-platform/safe-bash version)
-          NEXT=$(node --input-type=module -e 'import semver from "semver"; const versions = process.argv.slice(1); if (!versions.every(version => semver.valid(version))) throw new Error("Invalid registry version"); console.log(semver.inc(versions.sort(semver.rcompare)[0], "patch"));' "$JS" "$BASH_VERSION_REMOTE")
+          NEXT=$(node --input-type=module -e 'import semver from "semver"; const versions = process.argv.slice(1); if (!versions.every(version => semver.valid(version))) throw new Error("Invalid registry version"); console.log(semver.inc(versions.sort(semver.rcompare)[0], "patch"));' "$FS" "$JS" "$BASH_VERSION_REMOTE")
           echo "next=$NEXT" >> "$GITHUB_OUTPUT"
       - run: npm run build
       - run: npx vitest run scripts/package-safe.test.ts
@@ -59,6 +60,7 @@ jobs:
         run: |
           set -euo pipefail
           CONSUMER=$(mktemp -d)
+          npm pack "$RUNNER_TEMP/safe-npm/safe-fs" --ignore-scripts --pack-destination "$CONSUMER"
           npm pack "$RUNNER_TEMP/safe-npm/safe-js" --ignore-scripts --pack-destination "$CONSUMER"
           npm pack "$RUNNER_TEMP/safe-npm/safe-bash" --ignore-scripts --pack-destination "$CONSUMER"
           cp scripts/fixtures/safe-packages-* "$CONSUMER/"
@@ -70,6 +72,17 @@ jobs:
           "$GITHUB_WORKSPACE/node_modules/.bin/tsc" --noEmit --module NodeNext --moduleResolution NodeNext --target ES2022 safe-packages-types.mts
           "$GITHUB_WORKSPACE/node_modules/.bin/esbuild" safe-packages-browser.mjs --bundle --platform=browser --format=esm --outfile=browser.mjs
           node browser.mjs
+          npm install --ignore-scripts --no-audit --no-fund poe-code@14.0.4
+          node safe-packages-legacy.mjs
+          FS_ONLY=$(mktemp -d)
+          cp "$GITHUB_WORKSPACE/scripts/fixtures/safe-packages-fs-only.mjs" "$FS_ONLY/"
+          cd "$FS_ONLY"
+          npm init --yes
+          npm install --ignore-scripts --no-audit --no-fund "$CONSUMER"/poe-platform-safe-fs-*.tgz
+          node safe-packages-fs-only.mjs
+          bun safe-packages-fs-only.mjs
+      - name: Publish SafeFS with provenance
+        run: npm publish "$RUNNER_TEMP/safe-npm/safe-fs" --provenance --access public
       - name: Publish SafeJS with provenance
         run: npm publish "$RUNNER_TEMP/safe-npm/safe-js" --provenance --access public
       - name: Publish Safe Bash with provenance

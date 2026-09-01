@@ -17,14 +17,16 @@ GitHub.
 
 ### Scoped Safe Libraries
 
-`@poe-platform/safe-js` and `@poe-platform/safe-bash` are published together by
+`@poe-platform/safe-fs`, `@poe-platform/safe-js`, and `@poe-platform/safe-bash` are published in dependency order by
 `release-safe.yml`. Their private workspace names remain unchanged. Run
 `npm run build`, then `node scripts/package-safe.mjs --out-dir <empty-directory> --version <version>`
-to prepare standalone artifacts. Safe Bash depends on the matching SafeJS
-version; both use the filesystem exported by `@poe-platform/safe-js/fs`.
+to prepare standalone artifacts. SafeFS owns its runtime and declarations;
+both other packages depend on the matching SafeFS version. SafeJS filesystem
+subpaths remain compatibility re-exports. The private workspace manifests are
+not the publish manifests; publish only the generated artifacts.
 
-For the initial publish, use the generated `safe-js` and `safe-bash` directories
-with the terminal-pilot procedure below. Configure both trusted publishers with
+For a new package's initial publish, use its generated directory
+with the terminal-pilot procedure below. Configure all three trusted publishers with
 workflow filename `release-safe.yml`, then dispatch that workflow to verify a
 subsequent publication with provenance. No npm token is used by that workflow.
 

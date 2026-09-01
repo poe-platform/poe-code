@@ -140,6 +140,10 @@ export async function printLintResult(result, options, stdout, stderr) {
     if (text) stdout.write(text + '\n');
   }
   if (result.tooManyWarnings && result.errorCount === 0) stderr.write('ESLint found too many warnings (maximum: ' + options.maxWarnings + ').\n');
+  if (options.format === 'stylish' && result.complete && result.exitCode === 0 && result.warningCount === 0) {
+    stderr.write(JSON.stringify({ complete: result.complete, exitCode: result.exitCode, errorCount: result.errorCount, warningCount: result.warningCount, scope: result.scope, receiptCount: result.receipts.length, directoryCount: result.directoryPins.length }) + '\n');
+    return;
+  }
   stderr.write(JSON.stringify({ complete: result.complete, exitCode: result.exitCode, errorCount: result.errorCount, warningCount: result.warningCount, scope: result.scope, counters: result.counters, bootstrapCounters: result.bootstrapCounters, receipts: result.receipts, gaps: result.gaps, failure: result.failure, directoryPins: result.directoryPins, unprocessed: result.unprocessed }) + '\n');
 }
 

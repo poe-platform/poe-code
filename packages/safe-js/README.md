@@ -27,7 +27,7 @@ console.log(result.returnValue);
 
 `run()` takes source text, not a file path. Success returns `ok`, `returnValue`, `snapshot`, and `stats`. Handle both an `ok: false` result and a rejected promise: parsing, budget exhaustion, cancellation, and some execution failures can reject. Top-level `await` in this example lets rejections reach Node.
 
-`@poe-platform/safe-js/core` exposes `run`, `lint`, `Budget`, and replayable-random helpers. The shared filesystem is available from `@poe-platform/safe-js/fs`, with a browser-safe `fs/core` entry. Existing `poe-code/safe-js` imports remain available through the CLI package.
+`@poe-platform/safe-js/core` exposes `run`, `lint`, `Budget`, and replayable-random helpers. The shared filesystem lives in `@poe-platform/safe-fs`, with a portable `/core` entry. Existing `@poe-platform/safe-js/fs`, `/fs/core`, and `/fs/node` imports re-export it. Legacy `poe-code/safe-js` imports remain available through the CLI package but use a separate runtime; keep factories and errors within one import family.
 
 ## Supported features
 

@@ -243,6 +243,7 @@ provided. Pass an `AbortSignal` as `signal` to cancel. [Option types](src/shell/
 
 | Limit | Default |
 | --- | --- |
+| `maxInputBytes` | 32 MiB per redirected input (`<`), independent of output; applies to buffered and streaming reads. |
 | `maxOutputBytes` | 16 MiB |
 | `maxCommands`, `maxLoopIterations` | 10,000 each |
 | `maxSubstitutionDepth` | 64 |

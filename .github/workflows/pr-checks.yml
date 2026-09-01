@@ -55,3 +55,36 @@ jobs:
         run: npm run build
       - name: Run the complete virtual-bash unit suite serially
         run: npm run test:unit --workspace virtual-bash -- --test-concurrency=1
+  bun-public-imports:
+    name: Packed public APIs (Bun 1.3.11 and Node22)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.ref != '' && inputs.ref || github.ref }}
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: 1.3.11
+      - name: Record exact runtime versions
+        run: |-
+          node --version
+          bun --version
+          bun --revision
+      - run: npm ci
+      - run: npm run build
+      - name: Install packed artifact and test direct imports
+        run: |-
+          set -euo pipefail
+          artifact="$(mktemp -d)"
+          npm pack --ignore-scripts --pack-destination "$artifact"
+          mkdir "$artifact/consumer"
+          cp packages/safe-fs/tests/packed-runtime-smoke.mjs "$artifact/consumer/smoke.mjs"
+          cd "$artifact/consumer"
+          npm init --yes
+          npm install --ignore-scripts --no-audit --no-fund "$artifact"/*.tgz
+          node smoke.mjs
+          bun smoke.mjs

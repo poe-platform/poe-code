@@ -18,6 +18,7 @@ export interface ShellCommandContext extends CommandContext {
 }
 
 export interface ShellLimits {
+  readonly maxInputBytes?: number;
   readonly maxOutputBytes?: number;
   readonly maxCommands?: number;
   readonly maxLoopIterations?: number;

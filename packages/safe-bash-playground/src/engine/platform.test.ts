@@ -1,4 +1,4 @@
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 import {
   Buffer as BrowserBuffer,
   clearImmediate,
@@ -9,9 +9,48 @@ import {
 import { basename, dirname, extname, joinPath } from "./path.js";
 import { isAscii, isUtf8, types } from "./browser-builtins.mjs";
 import { setImmediate as pause } from "./browser-timer-promises.mjs";
-import { randomInt } from "./browser-crypto.mjs";
+import { createHash as nativeHash } from "node:crypto";
+import { createHash, randomBytes, randomInt, randomUUID } from "./browser-crypto.mjs";
 
 describe("browser byte platform", () => {
+  it("matches all checksum algorithms with incremental binary and encoded inputs", () => {
+    const bytes = Uint8Array.from({ length: 65537 }, (_, index) => index % 251);
+    for (const algorithm of ["md5", "sha1", "sha224", "sha256", "sha384", "sha512"]) {
+      const expected = nativeHash(algorithm).update(bytes).update("é").digest("hex");
+      const actual = createHash(algorithm.toUpperCase());
+      expect(actual.update(bytes.subarray(0, 32768))).toBe(actual);
+      actual.update(bytes.subarray(32768)).update("c3a9", "hex");
+      expect(actual.digest("hex")).toBe(expected);
+      expect(createHash(algorithm).digest().toString("hex")).toBe(nativeHash(algorithm).digest("hex"));
+      expect(() => actual.update("later")).toThrow();
+      expect(() => actual.digest()).toThrow();
+    }
+    expect(() => createHash("not-a-hash")).toThrow();
+  });
+
+  it("generates bounded random bytes and version-four UUIDs", () => {
+    const getRandomValues = vi.fn((bytes: Uint8Array) => bytes.fill(90));
+    vi.stubGlobal("crypto", { getRandomValues });
+    try {
+      const bytes = randomBytes(65537);
+      expect(bytes).toBeInstanceOf(Uint8Array);
+      expect(bytes.length).toBe(65537);
+      expect(bytes.every((byte: number) => byte === 90)).toBe(true);
+      expect(bytes.subarray(0, 16).toString("hex")).toBe("5a".repeat(16));
+      expect(getRandomValues.mock.calls.map(([chunk]) => chunk.length)).toEqual([65536, 1]);
+      expect(randomBytes(0).length).toBe(0);
+      for (const length of [-1, 0.5, NaN, Infinity]) expect(() => randomBytes(length)).toThrow();
+      expect(getRandomValues).toHaveBeenCalledTimes(2);
+      const uuid = randomUUID();
+      expect(uuid.split("-").map((part: string) => part.length)).toEqual([8, 4, 4, 4, 12]);
+      expect(uuid[14]).toBe("4");
+      expect("89ab".includes(uuid[19])).toBe(true);
+      expect(getRandomValues).toHaveBeenCalledTimes(3);
+    } finally {
+      vi.unstubAllGlobals();
+    }
+  });
+
   it("validates byte encodings and rejects non-cloneable transport values", () => {
     expect(isUtf8(new Uint8Array([0xf0, 0x9f, 0x98, 0x80]))).toBe(true);
     expect(isUtf8(new Uint8Array([0xc0, 0xaf]))).toBe(false);

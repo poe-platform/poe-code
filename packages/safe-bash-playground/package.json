@@ -11,6 +11,7 @@
   },
   "devDependencies": {
     "@jspm/core": "2.1.0",
+    "@noble/hashes": "2.4.0",
     "safe-bash-engine": "npm:poe-code@14.0.4"
   }
 }

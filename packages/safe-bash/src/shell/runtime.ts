@@ -14,7 +14,7 @@ import type { Command, HereDocument, Pipeline, Redirect, Script, Word, WordPart 
 import { HereDocumentSyntaxError, hereDocumentWords, parseShellInputUnit, parseShellUnit } from "./parser.js";
 import { ShellLimitError, ShellSyntaxError } from "./types.js";
 import type { ShellCommandContext, ShellInvokeOptions, ShellLimits } from "./types.js";
-import { ShellInput } from "./input.js";
+import { fileInput, ShellInput } from "./input.js";
 import { evaluateArithmetic, prepareArithmetic } from "./arithmetic.js";
 import { evaluatePositionalArithmetic } from "./arithmetic-parameters.js";
 import { compilePattern, matchesPattern } from "./pattern.js";
@@ -48,6 +48,7 @@ import { EreProfileLimitError, EreUnsupportedError } from "../commands/regex-exe
 import type { EreFragment } from "../commands/regex-execution/ere/types.js";
 
 export const defaultLimits: Required<ShellLimits> = {
+  maxInputBytes: 32 * 1024 * 1024,
   maxOutputBytes: 16 * 1024 * 1024,
   maxCommands: 10_000,
   maxLoopIterations: 10_000,
@@ -2084,9 +2085,8 @@ export class Runtime {
           await interruptible(this.fs.access(path, 4, options), this.signal);
           const stat = await interruptible(this.fs.stat(path, options), this.signal);
           if (stat.type === "directory" && !fileShortcut) throw new Error(`${target}: Is a directory`);
-          const source = stat.type === "directory" ? toByteSource("") : this.fs.readStream
-            ? this.fs.readStream(path, options)
-            : toByteSource(await interruptible(this.fs.readFile(path, { ...options, maxBytes: this.budget.limits.maxOutputBytes }), this.signal));
+          const source = stat.type === "directory" ? toByteSource("")
+            : await fileInput(this.fs, path, this.budget.limits.maxInputBytes, this.signal);
           const input = new ShellInput(source, this.budget, this.signal);
           inputs.add(input);
           descriptors.set(redirect.descriptor, { input, stdinIsDefault: false });

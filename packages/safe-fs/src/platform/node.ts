@@ -1,12 +1,15 @@
 import { AsyncLocalStorage } from "node:async_hooks";
 import { randomUUID } from "node:crypto";
-import { getSystemErrorMap } from "node:util";
+import * as util from "node:util";
+import { constants } from "node:os";
 import type { FsOptions } from "../contracts/filesystem.js";
 
 export type PlatformErrno = number;
 export type PlatformComparisonCallback<Callback> = Callback;
 
-const systemErrnos = new Map([...getSystemErrorMap()].map(([errno, [name]]) => [name, errno]));
+const systemErrnos = typeof util.getSystemErrorMap === "function"
+  ? new Map([...util.getSystemErrorMap()].map(([errno, [name]]) => [name, errno]))
+  : new Map(Object.entries(constants.errno).map(([name, errno]) => [name, -Math.abs(errno)]));
 const negotiating = new AsyncLocalStorage<boolean>();
 
 export const platform = Object.freeze({

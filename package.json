@@ -402,7 +402,7 @@
     "openai": "^6.34.0",
     "parse-duration": "^2.1.5",
     "semver": "^7.7.4",
-    "shell-quote": "^1.9.0",
+    "shell-quote": "^1.10.0",
     "simple-git": "^3.36.0",
     "smol-toml": "^1.6.0",
     "tiktoken": "^1.0.22",
@@ -508,7 +508,8 @@
     "@poe-code/safe-js": "*",
     "virtual-bash": "*",
     "poe-code": "file:.",
-    "safe-bash-mcp": "*"
+    "safe-bash-mcp": "*",
+    "safe-bash-playground": "*"
   },
   "repository": {
     "type": "git",

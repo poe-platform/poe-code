@@ -30,6 +30,7 @@ jobs:
       - run: npm clean-install
       - run: npm run build
       - run: npm run build:site --workspace toolcraft-landing-page
+      - run: npm run build:site --workspace packages/safe-bash-playground
       - name: Stage Pages artifact
         run: |
           rm -rf "$RUNNER_TEMP/pages"
@@ -37,6 +38,8 @@ jobs:
           cp -R docs/schemas/. "$RUNNER_TEMP/pages/schemas"
           mkdir -p "$RUNNER_TEMP/pages/toolcraft-landing-page"
           cp -R packages/toolcraft-landing-page/dist-site/. "$RUNNER_TEMP/pages/toolcraft-landing-page"
+          mkdir -p "$RUNNER_TEMP/pages/safe-bash"
+          cp -R packages/safe-bash-playground/dist/site/. "$RUNNER_TEMP/pages/safe-bash"
           touch "$RUNNER_TEMP/pages/.nojekyll"
       - uses: actions/upload-pages-artifact@v3
         with:

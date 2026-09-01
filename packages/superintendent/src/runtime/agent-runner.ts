@@ -1,4 +1,5 @@
 import "@poe-code/agent-spawn/register-factories";
+import { AsyncLocalStorage } from "node:async_hooks";
 import { mkdirSync, openSync, writeSync, closeSync } from "node:fs";
 import path from "node:path";
 import {
@@ -47,22 +48,17 @@ type AutonomousRunner = (
   options: Omit<AutonomousInput, "agent">
 ) => Promise<AutonomousOutput>;
 
-let injectedRunner: AutonomousRunner | undefined;
+const runnerContext = new AsyncLocalStorage<AutonomousRunner>();
 
 export async function withAutonomousAgentRunner<T>(
   runner: AutonomousRunner,
   operation: () => Promise<T>
 ): Promise<T> {
-  const previous = injectedRunner;
-  injectedRunner = runner;
-  try {
-    return await operation();
-  } finally {
-    injectedRunner = previous;
-  }
+  return runnerContext.run(runner, operation);
 }
 
 export async function runAutonomousAgent(input: AutonomousInput): Promise<AutonomousOutput> {
+  const injectedRunner = runnerContext.getStore();
   if (injectedRunner) {
     return injectedRunner(input.agent, {
       cwd: input.cwd,

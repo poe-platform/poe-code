@@ -13,8 +13,8 @@
   },
   "scripts": {
     "build": "node ../../scripts/guard-package-dist.mjs && tsc",
-    "test": "cd ../.. && vitest run --config vitest.config.ts packages/workspace-resolver/src/**/*.test.ts",
-    "test:unit": "cd ../.. && vitest run --config vitest.config.ts packages/workspace-resolver/src/**/*.test.ts"
+    "test": "cd ../.. && vitest run --config vitest.config.ts packages/workspace-resolver/src/",
+    "test:unit": "cd ../.. && vitest run --config vitest.config.ts packages/workspace-resolver/src/"
   },
   "files": [
     "dist"

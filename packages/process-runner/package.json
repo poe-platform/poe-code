@@ -22,8 +22,8 @@
   },
   "scripts": {
     "build": "node ../../scripts/guard-package-dist.mjs && tsc",
-    "test": "cd ../.. && vitest run --config vitest.config.ts packages/process-runner/src/**/*.test.ts",
-    "test:unit": "cd ../.. && vitest run --config vitest.config.ts packages/process-runner/src/**/*.test.ts",
+    "test": "cd ../.. && vitest run --config vitest.config.ts packages/process-runner/src/",
+    "test:unit": "cd ../.. && vitest run --config vitest.config.ts packages/process-runner/src/",
     "lint": "cd ../.. && eslint packages/process-runner/src --ext ts && tsc -p packages/process-runner/tsconfig.json --noEmit"
   },
   "files": [

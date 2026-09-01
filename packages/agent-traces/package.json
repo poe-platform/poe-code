@@ -13,8 +13,8 @@
   },
   "scripts": {
     "build": "node ../../scripts/guard-package-dist.mjs && tsc",
-    "test": "cd ../.. && vitest run packages/agent-traces/src/*.test.ts packages/agent-traces/src/**/*.test.ts",
-    "test:unit": "cd ../.. && vitest run packages/agent-traces/src/*.test.ts packages/agent-traces/src/**/*.test.ts"
+    "test": "cd ../.. && vitest run packages/agent-traces/src/",
+    "test:unit": "cd ../.. && vitest run packages/agent-traces/src/"
   },
   "files": [
     "dist"

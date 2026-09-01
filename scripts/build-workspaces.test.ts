@@ -48,6 +48,20 @@ describe("maintained literal workspace test selectors", () => {
     return { arguments: result.stdout.split("\0").slice(0, -1), stderr: result.stderr };
   }
 
+  it("uses owned directories rather than shell-expanded wildcard file lists", () => {
+    for (const workspace of ["agent-gaslight", "agent-spawn", "agent-trace-viewer", "agent-traces", "markdown-reader", "process-launcher", "process-runner", "workspace-resolver"]) {
+      for (const event of ["test", "test:unit"] as const) {
+        const captured = captureArguments(workspace, event, "unavailable");
+        expect(captured.arguments.filter(argument => argument.startsWith("packages/")), `${workspace}:${event}`)
+          .toEqual([`packages/${workspace}/src/`]);
+        expect(captured.stderr).toBe("");
+        if (workspace === "markdown-reader" && event === "test") {
+          expect(captured.arguments).toContain("--coverage.thresholds.lines=90");
+        }
+      }
+    }
+  });
+
   for (const workspace of ["superintendent", "terminal-pilot"]) {
     for (const event of ["test", "test:unit"] as const) {
       for (const enumeration of ["unavailable", "empty", "nonempty"] as const) {

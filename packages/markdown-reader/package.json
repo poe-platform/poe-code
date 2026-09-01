@@ -13,8 +13,8 @@
   },
   "scripts": {
     "build": "node ../../scripts/guard-package-dist.mjs && tsc",
-    "test": "cd ../.. && vitest run packages/markdown-reader/src/*.test.ts packages/markdown-reader/src/**/*.test.ts --coverage.enabled --coverage.provider=v8 --coverage.reporter=text-summary --coverage.include='packages/markdown-reader/src/core/*.ts' --coverage.exclude='packages/markdown-reader/src/core/*.test.ts' --coverage.thresholds.lines=90",
-    "test:unit": "cd ../.. && vitest run packages/markdown-reader/src/*.test.ts packages/markdown-reader/src/**/*.test.ts"
+    "test": "cd ../.. && vitest run packages/markdown-reader/src/ --coverage.enabled --coverage.provider=v8 --coverage.reporter=text-summary --coverage.include='packages/markdown-reader/src/core/*.ts' --coverage.exclude='packages/markdown-reader/src/core/*.test.ts' --coverage.thresholds.lines=90",
+    "test:unit": "cd ../.. && vitest run packages/markdown-reader/src/"
   },
   "files": [
     "dist"

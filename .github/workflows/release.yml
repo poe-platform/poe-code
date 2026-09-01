@@ -92,6 +92,7 @@ jobs:
           }));
           LINUX_GIT_IDENTITY
           job_root="$(mktemp -d "${RUNNER_TEMP:?}/virtual-bash-inputs.XXXXXX")"
+          printf 'root=%s\n' "$job_root" >> "$GITHUB_OUTPUT"
           mkdir -m 700 "$job_root/home" "$job_root/tmp" "$job_root/sources"
           env -i PATH="$node_dir:/usr/bin:/bin" HOME="$job_root/home" TMPDIR="$job_root/tmp" LC_ALL=C LANG=C TZ=UTC \
             "$node_bin" packages/safe-bash/scripts/provision-test-inputs.mjs \
@@ -102,6 +103,20 @@ jobs:
             "$node_bin" packages/safe-bash/scripts/provision-test-native-oracles.mjs \
             --parent "$job_root" --destination "$GITHUB_WORKSPACE/packages/safe-bash/tmp/native-gnu"
           printf 'rg=%s\n' "$job_root/rg/bin/rg" >> "$GITHUB_OUTPUT"
+      - name: Retain failed Linux native build inputs
+        if: ${{ failure() && steps.virtual_bash_inputs.outcome == 'failure' && steps.virtual_bash_inputs.outputs.root != '' }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: linux-native-build-failure-${{ github.run_id }}
+          retention-days: 7
+          if-no-files-found: error
+          path: |
+            ${{ steps.virtual_bash_inputs.outputs.root }}/native-build/failure.json
+            ${{ steps.virtual_bash_inputs.outputs.root }}/native-build/logs/*.json
+            ${{ steps.virtual_bash_inputs.outputs.root }}/native-build/logs/*.log
+            ${{ steps.virtual_bash_inputs.outputs.root }}/native-build/sources/patch-2.8/config.log
+            ${{ steps.virtual_bash_inputs.outputs.root }}/native-build/sources/patch-2.8/config.status
+            ${{ steps.virtual_bash_inputs.outputs.root }}/native-build/sources/patch-2.8/src/patch
       - run: npm test -- --concurrency=1
         env:
           SAFE_BASH_TEST_RG: ${{ steps.virtual_bash_inputs.outputs.rg }}

@@ -4,7 +4,7 @@ import {
   type JobEntry,
   type JobStatus,
   type StateManager
-} from "@poe-code/poe-code-config";
+} from "@poe-code/poe-code-config/core";
 import {
   selectExecutionEnvFactory,
   type ExecutionEnvType,

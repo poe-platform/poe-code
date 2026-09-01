@@ -1,4 +1,4 @@
-import { createStateManager, type TemplateBackend } from "@poe-code/poe-code-config";
+import { createStateManager, type TemplateBackend } from "@poe-code/poe-code-config/core";
 import type { Command } from "commander";
 import type { CliContainer } from "../../../container.js";
 import { createExecutionResources, resolveCommandFlags } from "../../shared.js";

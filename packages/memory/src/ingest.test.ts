@@ -28,7 +28,7 @@ const { resolveAgent, configuredTimeout, cacheEnabled } = vi.hoisted(() => ({
   cacheEnabled: vi.fn()
 }));
 
-vi.mock("@poe-code/poe-code-config", () => ({
+vi.mock("@poe-code/poe-code-config/core", () => ({
   resolveAgent,
   configuredTimeout,
   cacheEnabled

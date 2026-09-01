@@ -5,7 +5,7 @@ import { createHomeFs, createTestProgram } from "../../../tests/test-helpers.js"
 import { createExecutionResources, buildProviderContext, type CommandFlags } from "./shared.js";
 import type { FileSystem } from "../../utils/file-system.js";
 import { createProviderStub } from "../../../tests/provider-stub.js";
-import { resolveServicesConfigPath } from "@poe-code/poe-code-config";
+import { resolveServicesConfigPath } from "@poe-code/poe-code-config/core";
 
 const cwd = "/repo";
 const homeDir = "/home/test";

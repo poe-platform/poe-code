@@ -2,7 +2,7 @@ import { beforeEach, describe, expect, it, vi, afterEach } from "vitest";
 import type { ExperimentRunOptions } from "@poe-code/experiment-loop";
 import { Volume, createFsFromVolume } from "memfs";
 import path from "node:path";
-import { resolveConfigPath } from "@poe-code/poe-code-config";
+import { resolveConfigPath } from "@poe-code/poe-code-config/core";
 import { createCliContainer, type CliDependencies } from "../cli/container.js";
 import type { FileSystem } from "../utils/file-system.js";
 import type {

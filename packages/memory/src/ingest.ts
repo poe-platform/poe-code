@@ -1,14 +1,14 @@
 import * as fs from "node:fs/promises";
 import path from "node:path";
 import { spawn } from "@poe-code/agent-spawn";
-import { cacheEnabled, configuredTimeout, resolveAgent } from "@poe-code/poe-code-config";
+import { cacheEnabled, configuredTimeout, resolveAgent } from "@poe-code/poe-code-config/core";
 import { UserError } from "@poe-code/user-error";
 import { computeIngestKey, readCacheEntry, writeCacheEntry } from "./cache.js";
 import { hasOwnErrorCode } from "./errors.js";
 import { MEMORY_INDEX_RELPATH } from "./paths.js";
 import { reconcile, snapshot } from "./reconcile.js";
 import { computeTokenStats } from "./tokens.js";
-import type { MemoryConfigOptions } from "@poe-code/poe-code-config";
+import type { MemoryConfigOptions } from "@poe-code/poe-code-config/core";
 import type { IngestOptions, IngestResult, MemoryRoot } from "./types.js";
 
 export const INGEST_PROMPT_VERSION = "v1";

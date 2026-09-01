@@ -6,7 +6,7 @@ import {
   defineScope,
   resolveConfigPath,
   resolveProjectConfigPath
-} from "@poe-code/poe-code-config";
+} from "@poe-code/poe-code-config/core";
 import {
   type CodeReviewHumanGateConfig,
   codeReviewConfigScope,

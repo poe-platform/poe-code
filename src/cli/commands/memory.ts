@@ -5,7 +5,7 @@ import parseDuration from "parse-duration";
 import { Option, type Command } from "commander";
 import { listAgentsWithCapability } from "@poe-code/agent-defs";
 import { confirmOrCancel, getTheme, renderTable } from "toolcraft-design";
-import { DEFAULT_QUERY_BUDGET_TOKENS, defaultQueryBudget } from "@poe-code/poe-code-config";
+import { DEFAULT_QUERY_BUDGET_TOKENS, defaultQueryBudget } from "@poe-code/poe-code-config/core";
 import {
   cacheStatus,
   clearCache,

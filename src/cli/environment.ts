@@ -3,7 +3,7 @@ import {
   resolveConfigPath,
   resolveProjectConfigPath,
   resolveServicesConfigPath
-} from "@poe-code/poe-code-config";
+} from "@poe-code/poe-code-config/core";
 
 export interface CliEnvironmentInit {
   cwd: string;

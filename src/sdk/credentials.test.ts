@@ -2,6 +2,10 @@ import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
 
 const createSecretStoreMock = vi.hoisted(() => vi.fn());
 
+vi.mock("ts-morph", () => {
+  throw new Error("Runtime credentials must not load the schema compiler");
+});
+
 describe("getPoeApiKey", () => {
   let originalEnv: NodeJS.ProcessEnv;
   const store = {

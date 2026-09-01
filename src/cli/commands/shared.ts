@@ -7,7 +7,7 @@ import {
   readMergedDocument,
   readMergedDocumentReadonly,
   type ConfigDocument
-} from "@poe-code/poe-code-config";
+} from "@poe-code/poe-code-config/core";
 import type { CliContainer } from "../container.js";
 import type { ProviderService, ProviderContext, ProviderIsolatedEnv } from "../service-registry.js";
 import { createLoggingCommandRunner, type CommandContext } from "../context.js";

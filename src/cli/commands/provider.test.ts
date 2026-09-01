@@ -5,7 +5,7 @@ import { createHomeFs, createTestProgram } from "../../../tests/test-helpers.js"
 import { registerProviderCommand } from "./provider.js";
 import { executeConfigure } from "./configure.js";
 import type { FileSystem } from "../../utils/file-system.js";
-import { resolveServicesConfigPath } from "@poe-code/poe-code-config";
+import { resolveServicesConfigPath } from "@poe-code/poe-code-config/core";
 import type { AuthProvider } from "@poe-code/providers";
 import type { PromptFn } from "../types.js";
 import { storeTestApiKey } from "../../../tests/test-helpers.js";

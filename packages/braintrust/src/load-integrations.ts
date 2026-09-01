@@ -1,4 +1,4 @@
-import type { ConfigDocument } from "@poe-code/poe-code-config";
+import type { ConfigDocument } from "@poe-code/poe-code-config/core";
 
 import { bootstrap, type Integrations } from "./index.js";
 

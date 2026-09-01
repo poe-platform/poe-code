@@ -1,7 +1,7 @@
 import { describe, expect, it, vi } from "vitest";
 import { Volume, createFsFromVolume } from "memfs";
 import { allAgents } from "@poe-code/agent-defs";
-import { resolveConfigPath, resolveProjectConfigPath } from "@poe-code/poe-code-config";
+import { resolveConfigPath, resolveProjectConfigPath } from "@poe-code/poe-code-config/core";
 import { createCliContainer } from "../container.js";
 import type { FileSystem } from "../../utils/file-system.js";
 import { ValidationError } from "../errors.js";

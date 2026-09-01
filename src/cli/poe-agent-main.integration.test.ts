@@ -1,7 +1,7 @@
 import path from "node:path";
 import { createFsFromVolume, Volume } from "memfs";
 import { describe, expect, it, vi } from "vitest";
-import { resolveConfigPath, resolveProjectConfigPath } from "@poe-code/poe-code-config";
+import { resolveConfigPath, resolveProjectConfigPath } from "@poe-code/poe-code-config/core";
 import { createPoeAgentProgram, normalizePoeAgentArgv } from "./poe-agent-main.js";
 
 vi.mock("@poe-code/agent-spawn", async (importOriginal) => {

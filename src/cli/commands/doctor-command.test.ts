@@ -1,6 +1,6 @@
 import { describe, it, expect, beforeEach, afterEach, onTestFinished, vi } from "vitest";
 import { Volume, createFsFromVolume } from "memfs";
-import { resolveConfigPath } from "@poe-code/poe-code-config";
+import { resolveConfigPath } from "@poe-code/poe-code-config/core";
 import { createProgram } from "../program.js";
 import { saveConfiguredService } from "../../services/config.js";
 import { storeTestApiKey } from "../../../tests/test-helpers.js";

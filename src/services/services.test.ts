@@ -1,7 +1,7 @@
 import { describe, it, expect, beforeEach, vi } from "vitest";
 import { Volume, createFsFromVolume } from "memfs";
 import path from "node:path";
-import { resolveConfigPath } from "@poe-code/poe-code-config";
+import { resolveConfigPath } from "@poe-code/poe-code-config/core";
 import type { FileSystem } from "../utils/file-system.js";
 import {
   coreConfigScope,

@@ -6,7 +6,7 @@ import {
   planConfigScope,
   readMergedDocumentReadonly,
   resolveScope
-} from "@poe-code/poe-code-config";
+} from "@poe-code/poe-code-config/core";
 import { hasOwnErrorCode } from "./error-codes.js";
 import { readPlanMetadata, readSavedForLaterMetadata, splitFrontmatter } from "./format.js";
 import type { DiscoveryFs, PlanEntry, PlanKind, PlanReadiness } from "./types.js";

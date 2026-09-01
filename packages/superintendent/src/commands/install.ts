@@ -8,7 +8,7 @@ import {
   resolveConfigPath,
   resolveProjectConfigPath,
   resolveScope
-} from "@poe-code/poe-code-config";
+} from "@poe-code/poe-code-config/core";
 import {
   installSkill,
   resolveAgentSupport,

@@ -1,6 +1,6 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { Volume, createFsFromVolume } from "memfs";
-import { resolveConfigPath, resolveProjectConfigPath } from "@poe-code/poe-code-config";
+import { resolveConfigPath, resolveProjectConfigPath } from "@poe-code/poe-code-config/core";
 import type { ActionContext, Row } from "toolcraft-design";
 import { buildPlanExplorerConfig } from "./explorer-config.js";
 import { runPlanBrowser } from "./browser.js";

@@ -7,7 +7,7 @@ import {
   readMergedDocumentReadonly,
   runtimeConfigScope,
   resolveScope
-} from "@poe-code/poe-code-config";
+} from "@poe-code/poe-code-config/core";
 import { pathExists } from "@poe-code/config-mutations";
 import { buildDockerRuntimeTemplate } from "@poe-code/process-runner";
 import type { CliContainer } from "../../container.js";

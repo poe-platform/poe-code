@@ -1,8 +1,8 @@
-import type { RunnerScope, RuntimeConfig } from "@poe-code/poe-code-config";
+import type { RunnerScope, RuntimeConfig } from "@poe-code/poe-code-config/core";
 import type { RunHandle, Runner, RunSpec } from "@poe-code/process-runner";
-import type { StateManager } from "@poe-code/poe-code-config";
+import type { StateManager } from "@poe-code/poe-code-config/core";
 
-export type { RuntimeConfig } from "@poe-code/poe-code-config";
+export type { RuntimeConfig } from "@poe-code/poe-code-config/core";
 export type { RunHandle, RunSpec } from "@poe-code/process-runner";
 
 export type ExecutionEnvType = "host" | "docker";

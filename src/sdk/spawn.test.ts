@@ -1,6 +1,6 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 import { Volume, createFsFromVolume } from "memfs";
-import { resolveConfigPath } from "@poe-code/poe-code-config";
+import { resolveConfigPath } from "@poe-code/poe-code-config/core";
 import { cloudflareProvider } from "@poe-code/providers";
 import type { FileSystem } from "../utils/file-system.js";
 

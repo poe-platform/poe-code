@@ -2,7 +2,7 @@ import { describe, it, expect, vi, beforeEach, afterEach, onTestFinished } from 
 import { Volume, createFsFromVolume } from "memfs";
 import { parse as parseYaml } from "yaml";
 import { Command } from "commander";
-import { resolveConfigPath } from "@poe-code/poe-code-config";
+import { resolveConfigPath } from "@poe-code/poe-code-config/core";
 import { saveConfiguredService } from "../../services/config.js";
 import { executeConfigure, resolveServiceArgument } from "./configure.js";
 import { registerInstallCommand } from "./install.js";

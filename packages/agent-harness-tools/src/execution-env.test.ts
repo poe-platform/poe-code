@@ -1,7 +1,7 @@
 import { promises as fs } from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
-import type { RuntimeConfig } from "@poe-code/poe-code-config";
+import type { RuntimeConfig } from "@poe-code/poe-code-config/core";
 import { describe, expect, it, vi } from "vitest";
 import type { ExecutionEnvFactory } from "./execution-env.js";
 

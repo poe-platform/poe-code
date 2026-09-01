@@ -1,6 +1,6 @@
 import { getTheme, renderTable, text, type TableColumn } from "toolcraft-design";
 import type { Command } from "commander";
-import type { JobEntry } from "@poe-code/poe-code-config";
+import type { JobEntry } from "@poe-code/poe-code-config/core";
 import type { CliContainer } from "../../../container.js";
 import { createExecutionResources, resolveCommandFlags } from "../../shared.js";
 import {

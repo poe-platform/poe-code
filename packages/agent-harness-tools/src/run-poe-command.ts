@@ -1,5 +1,5 @@
 import { randomBytes } from "node:crypto";
-import type { StateManager } from "@poe-code/poe-code-config";
+import type { StateManager } from "@poe-code/poe-code-config/core";
 import type { RunHandle } from "@poe-code/process-runner";
 import type { Readable } from "node:stream";
 import { hasOwnErrorCode } from "./error-codes.js";

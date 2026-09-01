@@ -28,7 +28,7 @@ import {
   readMergedDocument,
   readMergedDocumentReadonly,
   resolveScope
-} from "@poe-code/poe-code-config";
+} from "@poe-code/poe-code-config/core";
 import type { CliContainer } from "../container.js";
 import { ralphConfigScope, planConfigScope } from "../../services/config.js";
 import { ValidationError } from "../errors.js";

@@ -251,3 +251,44 @@ Fresh authenticated Bash preflight, from the publisher repository root:
 ```sh
 node --import tsx --input-type=module -e 'import { resolveCurrentProfile } from "./packages/safe-bash/tests/shell-stress/diagnostic-profiles/profile.ts"; console.log(JSON.stringify(resolveCurrentProfile()));'
 ```
+
+## Reviewed hosted Bash admission
+
+Normal Release run 33453431739 at source
+`9fad33b3ad39f5908bd95e7ac5882ec3a763451c` failed because the qualified GNU
+profile did not provide Bash. Diagnostic run 33453452779 at that same source
+completed `darwin-gnu-build`; `native-darwin` and `release-stable` were skipped.
+Artifact 9781107646 is exactly 45129633 bytes, ZIP SHA-256
+`457d42538df66777107fc0f76dda5d8ebe955a778825ec5f73e2740f021bf6ec`.
+Its `native-darwin-evidence.tar` SHA-256 is
+`f5c15dd37c0d97ee42f94ad3f75255dd0c71741cb33864a9cc95aff3112581e1`;
+receipt SHA-256 is
+`59f387ca036dbb8f8314d0ba212e94494b0032696933fc66bfc5f0d0694862be`;
+manifest SHA-256 is
+`f64bc8cb49d4632a81a491f3b9e6b1a3c39b6cb516fdcb709f2e68763a402013`.
+
+Independent artifact review reproduced the 295-member manifest through maintained
+sealing tooling, checked all 35 outputs, and reverified all five source signatures
+against the pinned GNU keyring. Both actual `bin/bash-1` and `bin/bash-2` are
+1188024 bytes, SHA-256
+`b09a33ce63bb32597085640b783748f257e09229eac73c60760c8c9378539361`, with version
+`GNU bash, version 5.3.0(1)-release (aarch64-apple-darwin25.5.0)`.
+Their separate source trees use the authenticated Bash 5.3 gzip source and unchanged
+configure/make recipe recorded above. No downloaded executable ran during review.
+
+Hosted transcripts match macOS 26.5.2 build 25F84, Darwin 25.5.0 arm64, image
+20260728.0273.1, Xcode 26.6 build 17F113 and Apple clang 21.0.0. The artifact does
+not record independent hosted compiler/linker/SDK executable-byte hashes;
+version/image provenance is not a fully byte-pinned toolchain. No local toolchain
+or Bash identity substitutes for hosted evidence.
+
+Only the existing hosted profile gains this Bash pin and additive
+`provenance.bashQualification`. All prior profiles, recipes, identities, frozen
+captures and assertions remain unchanged. Existing staging already verifies both
+Bash builds against the selected pin. Producer receipt/manifest statuses remain
+unreviewed/not-admitted records; separate review does not rewrite them.
+The new exact hosted binding regression requires this pin and provenance and
+rejects a missing Bash record without fallback. Root captured the expected missing
+Bash failure before admission. Identity review and diagnostic success are not a
+Release pass: the normal same-SHA required Darwin semantics and Linux complement
+must still succeed before publication.

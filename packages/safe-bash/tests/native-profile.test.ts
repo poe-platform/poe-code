@@ -5,6 +5,30 @@ import { fileURLToPath } from "node:url";
 import { Volume, createFsFromVolume } from "memfs";
 import { matchNativeProfile, qualifyNativeProfile, nativeGnuBinding, nativeAppleBinding, type NativeProfile } from "./native-profile.js";
 
+test("explicit local GNU qualification changes only diff/patch and preserves legacy Apple and other tools", () => {
+  const localProfile = "local-macos26.4.1-arm64-gnu-20260831";
+  const profile = { id: localProfile, qualification: "IDENTITY_APPROVED_FOR_QUALIFICATION_ONLY",
+    host: { platform: "darwin", arch: "arm64", distribution: "macos", version: "26.4.1", release: "25.4.0" },
+    executables: ["diff", "patch"].map(tool => ({ tool, version: tool === "diff" ? "diff (GNU diffutils) 3.12" : "GNU patch 2.8", size: 10, sha256: "a".repeat(64) })) };
+  const fileSystem = createFsFromVolume(Volume.fromJSON({
+    "/owned/diff": "inert fixture", "/owned/patch": "inert fixture",
+    [fileURLToPath(new URL("../tmp/native-gnu/bin/diff", import.meta.url))]: "inert fixture",
+    [fileURLToPath(new URL("../tmp/native-gnu/bin/patch", import.meta.url))]: "inert fixture"
+  })) as unknown as typeof fs;
+  fileSystem.symlinkSync("/owned", "/alias");
+  const options = { platform: "darwin", arch: "arm64", release: "25.4.0", localProfile, profiles: [profile], fileSystem };
+  for (const tool of ["diff", "patch"] as const) {
+    assert.equal(nativeGnuBinding(tool, options)?.sha256, profile.executables[0]!.sha256);
+    assert.equal(nativeGnuBinding(tool, { ...options, path: `/owned/${tool}` })?.path, `/owned/${tool}`);
+    assert.equal(nativeGnuBinding(tool, { ...options, localProfile: undefined }), undefined);
+    for (const invalid of [{ localProfile: "other" }, { release: "25.5.0" }, { arch: "x64" }, { platform: "linux" }, { profiles: [] }, { profiles: [profile, profile] }, { build: 2 as const }, { path: "relative" }, { path: "/owned/../patch" }, { path: `/alias/${tool}` }]) {
+      assert.throws(() => nativeGnuBinding(tool, { ...options, ...invalid }));
+    }
+    assert.equal(nativeAppleBinding(tool, options), undefined);
+  }
+  for (const tool of ["tar", "stat", "chmod", "split"] as const) assert.equal(nativeGnuBinding(tool, options), undefined);
+});
+
 test("qualified Linux GNU bindings select staged executables and retained manifest pins", () => {
   const fileSystem = createFsFromVolume(Volume.fromJSON({ "/etc/os-release": 'ID=ubuntu\nVERSION_ID="24.04"\n' })) as unknown as typeof fs;
   const manifest = JSON.parse(fs.readFileSync(new URL("./native-gnu-profiles.json", import.meta.url), "utf8"));
@@ -174,6 +198,41 @@ test("split bindings require explicit reviewed GNU and Apple pins and preserve t
     assert.equal(binding("split", { ...options, release: "25.4.0" }), undefined);
     assert.throws(() => binding("split", { ...options, profiles: [] }));
   }
+});
+
+test("hosted GNU split binds the repeated e91 qualification identity", () => {
+  const options = { platform: "darwin", arch: "arm64", release: "25.5.0" };
+  assert.deepEqual(nativeGnuBinding("split", options), {
+    tool: "split", version: "split (GNU coreutils) 9.7", size: 98104,
+    sha256: "431baf88042ddf120074d3ab58172d27af404d3fa88e45c39747cde1a8b4557a",
+    path: fileURLToPath(new URL("../tmp/native-gnu/bin/split", import.meta.url)),
+  });
+  const manifest = JSON.parse(fs.readFileSync(new URL("./native-gnu-profiles.json", import.meta.url), "utf8"));
+  const observed = manifest.profiles.find((entry: { host: { platform: string } }) => entry.host.platform === "darwin").provenance.splitQualification;
+  assert.equal(observed.runId, "33441925913");
+  assert.equal(observed.sourceSha, "e91ecba8bdd56c4dd9285a3bc64336ce479aec84");
+  assert.equal(observed.artifactId, 9777161068);
+  assert.equal(observed.artifactSha256, "e45dc7eca42d669953a879b061d5d98234a17048b1c245b1610d7732e24b0812");
+  assert.throws(() => nativeGnuBinding("split", { ...options, build: 2 }));
+  assert.equal(nativeGnuBinding("split", { ...options, release: "25.4.0" }), undefined);
+});
+
+test("hosted Apple split retains the exact unsupported-version calibration", () => {
+  const options = { platform: "darwin", arch: "arm64", release: "25.5.0" };
+  assert.deepEqual(nativeAppleBinding("split", options), {
+    tool: "split", path: "/usr/bin/split", version: "Apple split (no --version support)", size: 134768,
+    sha256: "3b18ccdd81d67e0f287b5bdd1ecf23a2bff0525ba488ada79b41f653ee1a34f0",
+    versionProbe: {
+      status: 64, stdout: "",
+      stderr: "/usr/bin/split: illegal option -- -\n"
+        + "usage: split [-cd] [-l line_count] [-a suffix_length] [file [prefix]]\n"
+        + "       split [-cd] -b byte_count[K|k|M|m|G|g] [-a suffix_length] [file [prefix]]\n"
+        + "       split [-cd] -n chunk_count [-a suffix_length] [file [prefix]]\n"
+        + "       split [-cd] -p pattern [-a suffix_length] [file [prefix]]\n",
+    },
+  });
+  assert.equal(nativeAppleBinding("split", { ...options, release: "25.4.0" }), undefined);
+  assert.throws(() => nativeAppleBinding("split", { ...options, release: "25.6.0" }));
 });
 
 const profile: NativeProfile = { id: "historical-darwin", evidence: "tests/captured/profile.json", host: { platform: "darwin", arch: "arm64" } };

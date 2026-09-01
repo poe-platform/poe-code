@@ -1,5 +1,5 @@
-import { basename, FsError, type CommandContext, type CommandDefinition, type CommandHandler, type FileStat } from "../contracts/index.js";
-import { codeOf, define, diagnostic, integer, output, pathOf, UsageError } from "./internal.js";
+import { basename, FsError, getCommandArguments, type CommandContext, type CommandDefinition, type CommandHandler, type FileStat } from "../contracts/index.js";
+import { codeOf, define, diagnostic, integer, output, pathOf, replaceArgument, UsageError } from "./internal.js";
 
 interface Entry { path: string; display: string; stat: FileStat; depth: number; prune: boolean }
 type Expression = (entry: Entry) => Promise<boolean>;
@@ -23,11 +23,13 @@ function glob(pattern: string, ignoreCase: boolean): RegExp {
 
 export function findCommands(execute: CommandHandler): CommandDefinition[] {
   return [define("find", async context => {
-    const args = [...context.args];
+    const argumentValues = getCommandArguments(context);
+    const args = [...argumentValues.args];
+    const values = [...argumentValues.values];
     let follow = false;
-    while (args[0] === "-P" || args[0] === "-L") follow = args.shift() === "-L";
+    while (args[0] === "-P" || args[0] === "-L") { follow = args.shift() === "-L"; values.shift(); }
     const roots: string[] = [];
-    while (args.length && !args[0]!.startsWith("-") && !["!", "("].includes(args[0]!)) roots.push(args.shift()!);
+    while (args.length && !args[0]!.startsWith("-") && !["!", "("].includes(args[0]!)) { roots.push(args.shift()!); values.shift(); }
     if (!roots.length) roots.push(".");
     let maxDepth = Infinity;
     let minDepth = 0;
@@ -42,7 +44,8 @@ export function findCommands(execute: CommandHandler): CommandDefinition[] {
         const number = integer(args[index + 1]!);
         if (args[index] === "-maxdepth") maxDepth = number; else minDepth = number;
         args.splice(index, 2);
-      } else if (args[index] === "-depth") { depthFirst = true; args.splice(index, 1); }
+        values.splice(index, 2);
+      } else if (args[index] === "-depth") { depthFirst = true; args.splice(index, 1); values.splice(index, 1); }
       else index++;
     }
     let offset = 0;
@@ -86,19 +89,23 @@ export function findCommands(execute: CommandHandler): CommandDefinition[] {
       if (token === "-exec") {
         explicitAction = true;
         const command: string[] = [];
+        const start = offset;
         while (args[offset] !== undefined && args[offset] !== ";" && args[offset] !== "+") command.push(args[offset++]!);
+        const commandArguments = argumentValues.withValues(values.slice(start, offset));
         const terminator = args[offset++];
         if (!command.length || terminator === undefined) throw new UsageError("-exec requires a command terminated by ';' or '+'");
         if (terminator === ";") return async entry => {
-          const invocation = command.map(argument => argument.replaceAll("{}", entry.display));
-          return (await execute({ ...context, command: invocation[0]!, args: invocation.slice(1), env: { ...context.env } })).exitCode === 0;
+          const invocation = commandArguments.withValues(commandArguments.values.map((argument, index) => replaceArgument(typeof argument === "string" ? argument : commandArguments.bytes(index)!, "{}", entry.display)));
+          const childArguments = invocation.slice(1);
+          return (await execute({ ...context, command: invocation.args[0]!, args: childArguments.args, argumentValues: childArguments, env: { ...context.env } })).exitCode === 0;
         };
         if (command.at(-1) !== "{}" || command.slice(0, -1).some(argument => argument.includes("{}"))) throw new UsageError("batched -exec requires exactly one final '{}' argument");
         const pending: string[] = [];
         let bytes = 0;
         const flush = async () => {
           if (!pending.length) return;
-          const result = await execute({ ...context, command: command[0]!, args: [...command.slice(1, -1), ...pending], env: { ...context.env } });
+          const childArguments = commandArguments.withValues([...commandArguments.values.slice(1, -1), ...pending]);
+          const result = await execute({ ...context, command: command[0]!, args: childArguments.args, argumentValues: childArguments, env: { ...context.env } });
           if (result.exitCode !== 0) exitCode = 1;
           pending.length = 0; bytes = 0;
         };

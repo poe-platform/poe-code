@@ -102,7 +102,7 @@ jobs:
             "$node_bin" packages/safe-bash/scripts/provision-test-native-oracles.mjs \
             --parent "$job_root" --destination "$GITHUB_WORKSPACE/packages/safe-bash/tmp/native-gnu"
           printf 'rg=%s\n' "$job_root/rg/bin/rg" >> "$GITHUB_OUTPUT"
-      - run: npm test -- --concurrency=4
+      - run: npm test -- --concurrency=1
         env:
           SAFE_BASH_TEST_RG: ${{ steps.virtual_bash_inputs.outputs.rg }}
           SAFE_BASH_NATIVE_LANE: linux

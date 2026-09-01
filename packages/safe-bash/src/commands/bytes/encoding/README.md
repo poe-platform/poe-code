@@ -151,8 +151,10 @@ order. Aliases append types in order: `-b=o1`, `-c=c`, `-d=u2`, `-o=o2`,
 
 Characters use ASCII printable bytes, the escapes `\0`, `\a`, `\b`, `\t`,
 `\n`, `\v`, `\f`, `\r`, or three-digit octal. There is no locale/multibyte
-interpretation. Addresses are padded to at least seven digits and begin at the
-skip count. A final address is printed unless `-An`, including for empty input.
+interpretation. Address formatting targets GNU `od`: at least six digits for
+hexadecimal and seven for octal or decimal, growing without truncation for larger
+offsets. Addresses begin at the skip count; formatting is independent of the host.
+A final address is printed unless `-An`, including for empty input.
 Consecutive identical raw rows collapse to one `*` line unless `-v` is set.
 
 Width, skip, and count accept the same unsigned numeric bases as `xxd`. Skip
@@ -246,6 +248,11 @@ when its version probe succeeds, and otherwise try `/usr/bin/od`. They skip
 missing executables and report the identity used. A successful GNU `od` version
 probe enables exact-byte comparison instead of BSD normalization. Installed
 comparator versions are not pinned by this utility group.
+
+The current BSD comparison retains whitespace/signed-field normalization and,
+for `-Ax` only, additionally removes one leading zero from seven-digit hexadecimal
+address tokens. GNU comparisons remain byte-exact. This accommodates BSD's
+seven-digit minimum without changing product output or the historical evidence.
 
 These are author checks, not the separately assigned independent verification,
 full-shell acceptance, a just-bash comparison, or proof of product superiority.

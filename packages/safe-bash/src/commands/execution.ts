@@ -1,16 +1,19 @@
-import { FsError, readBytes, writeBytes, type ByteSource, type CommandDefinition, type CommandHandler } from "../contracts/index.js";
-import { define, emptyInput, encoder, escapeBytes, integer, options, output, pathOf, UsageError, value } from "./internal.js";
+import { FsError, getCommandArguments, readBytes, writeBytes, type ByteSource, type CommandDefinition, type CommandHandler } from "../contracts/index.js";
+import { shellValueByteLength } from "../contracts/value.js";
+import { define, emptyInput, encoder, escapeBytes, integer, options, output, pathOf, replaceArgument, UsageError, value } from "./internal.js";
 import { EnvSplitError, parseEnvOptions } from "./env-split.js";
 
 export function directExecutor(fallback: CommandHandler): CommandHandler {
   return async context => {
     context.signal.throwIfAborted();
+    const argumentValues = getCommandArguments(context);
     const invoke = context.invoke;
-    if (invoke) return invoke(context.command, context.args, {
+    if (invoke) return invoke(context.command, argumentValues.args, {
+      argumentValues,
       stdin: context.stdin, cwd: context.cwd, env: context.env, stdout: context.stdout, stderr: context.stderr,
       ...(context.stdinIsDefault === undefined ? {} : { stdinIsDefault: context.stdinIsDefault }),
     });
-    return fallback(context);
+    return fallback({ ...context, args: argumentValues.args, argumentValues });
   };
 }
 
@@ -48,8 +51,9 @@ async function* argumentsFrom(source: ByteSource, signal: AbortSignal, delimiter
 export function executionCommands(execute: CommandHandler): CommandDefinition[] {
   return [
     define("env", async context => {
-      let parsed: ReturnType<typeof options>;
-      try { parsed = await parseEnvOptions(context.args, context.env, context.signal); }
+      const argumentValues = getCommandArguments(context);
+      let parsed: Awaited<ReturnType<typeof parseEnvOptions>>;
+      try { parsed = await parseEnvOptions(argumentValues.args, context.env, context.signal, argumentValues); }
       catch (error) {
         context.signal.throwIfAborted();
         if (!(error instanceof EnvSplitError)) throw error;
@@ -81,18 +85,22 @@ export function executionCommands(execute: CommandHandler): CommandDefinition[] 
         cwd = await context.fs.realpath(cwd, { signal: context.signal });
       }
       if (offset < parsed.operands.length) {
+        const childArguments = parsed.operandValues!.slice(offset + 1);
         const childEnv: Record<string, string> = Object.assign(Object.create(null) as Record<string, string>, Object.fromEntries(names.map(name => [name, env[name]!])));
-        if (context.invoke) return context.invoke(parsed.operands[offset]!, parsed.operands.slice(offset + 1), {
+        if (context.invoke) return context.invoke(parsed.operands[offset]!, childArguments.args, {
+          argumentValues: childArguments,
           env: childEnv, replaceEnv: true, cwd, stdin: context.stdin, stdout: context.stdout, stderr: context.stderr,
           ...(context.stdinIsDefault === undefined ? {} : { stdinIsDefault: context.stdinIsDefault }),
         });
-        return execute({ ...context, command: parsed.operands[offset]!, args: parsed.operands.slice(offset + 1), env: childEnv, cwd });
+        return execute({ ...context, command: parsed.operands[offset]!, args: childArguments.args, argumentValues: childArguments, env: childEnv, cwd });
       }
       for (const name of names) await output(context, `${name}=${env[name]}${parsed.flags.has("0") ? "\0" : "\n"}`);
       return { exitCode: 0 };
     }),
     define("xargs", async context => {
-      const parsed = options(context.args, "0rn:s:I:d:tP:xE:", { null: "0", "no-run-if-empty": "r", "max-args": "n", "max-chars": "s", replace: "I", delimiter: "d", verbose: "t", "max-procs": "P", exit: "x", eof: "E" }, true);
+      const argumentValues = getCommandArguments(context);
+      const operandIndices: number[] = [];
+      const parsed = options(argumentValues.args, "0rn:s:I:d:tP:xE:", { null: "0", "no-run-if-empty": "r", "max-args": "n", "max-chars": "s", replace: "I", delimiter: "d", verbose: "t", "max-procs": "P", exit: "x", eof: "E" }, true, index => { operandIndices.push(index); });
       if (integer(value(parsed, "P") ?? "1") !== 1) throw new UsageError("only sequential execution (-P 1) is supported");
       const replacement = value(parsed, "I");
       if (replacement === "") throw new UsageError("replacement string cannot be empty");
@@ -108,8 +116,8 @@ export function executionCommands(execute: CommandHandler): CommandDefinition[] 
         delimiter = String.fromCharCode(bytes[0]!);
       }
       const command = parsed.operands[0] ?? "echo";
-      const initial = parsed.operands.slice(1);
-      const baseBytes = encoder.encode(command).length + 1 + initial.reduce((sum, argument) => sum + encoder.encode(argument).length + 1, 0);
+      const initial = argumentValues.select(operandIndices).slice(1);
+      const baseBytes = encoder.encode(command).length + 1 + initial.values.reduce((sum, argument) => sum + shellValueByteLength(argument) + 1, 0);
       if (baseBytes >= maxBytes) throw new UsageError("initial arguments exceed command size limit");
       let batch: string[] = [];
       let bytes = baseBytes;
@@ -117,11 +125,12 @@ export function executionCommands(execute: CommandHandler): CommandDefinition[] 
       let status = 0;
       let stop = false;
       const dispatch = async () => {
-        const args = replacement === undefined ? [...initial, ...batch] : initial.map(argument => argument.split(replacement).join(batch[0] ?? ""));
-        const size = encoder.encode(command).length + 1 + args.reduce((sum, argument) => sum + encoder.encode(argument).length + 1, 0);
+        const childArguments = initial.withValues(replacement === undefined ? [...initial.values, ...batch] : initial.values.map((argument, index) => replaceArgument(typeof argument === "string" ? argument : initial.bytes(index)!, replacement, batch[0] ?? "")));
+        const args = childArguments.args;
+        const size = encoder.encode(command).length + 1 + childArguments.values.reduce((sum, argument) => sum + shellValueByteLength(argument) + 1, 0);
         if (size > maxBytes) throw new UsageError("expanded arguments exceed command size limit");
         if (parsed.flags.has("t")) await writeBytes(context.stderr, encoder.encode([command, ...args].map(argument => /^[A-Za-z0-9_./-]+$/u.test(argument) ? argument : `'${argument.replaceAll("'", "'\\''")}'`).join(" ") + "\n"), context.signal);
-        const result = await execute({ ...context, command, args, stdin: emptyInput(), stdinIsDefault: true, env: { ...context.env } });
+        const result = await execute({ ...context, command, args, argumentValues: childArguments, stdin: emptyInput(), stdinIsDefault: true, env: { ...context.env } });
         executed = true;
         if (result.exitCode === 255) { status = 124; stop = true; }
         else if (result.exitCode === 126 || result.exitCode === 127) { status = result.exitCode; stop = true; }

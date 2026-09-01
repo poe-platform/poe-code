@@ -1,7 +1,127 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { collectBytes, type CommandContext } from "../../src/contracts/index.js";
+import { collectBytes, createCommandArguments, getCommandArguments, toByteSource, type CommandContext, type CommandInvoker } from "../../src/contracts/index.js";
+import { shellValueFromBytes } from "../../src/contracts/value.js";
+import { createStandardCommands } from "../../src/commands/index.js";
+import { createTimeoutCommand } from "../../src/commands/timeout/index.js";
+import { options as commandOptions } from "../../src/commands/internal.js";
 import { chunks, fixture, run } from "./helpers.js";
+
+for (const entry of [
+  { name: "env direct fallback", command: "env", values: ["-i", "capture", [255], [254]], stdin: "", invoke: false, expected: [[[255], [254]]] },
+  { name: "env invoke adapter", command: "env", values: ["--", "capture", [255], [254]], stdin: "", invoke: true, expected: [[[255], [254]]] },
+  { name: "env split string", command: "env", values: ["-S", [99, 97, 112, 116, 117, 114, 101, 32, 255, 32, 254]], stdin: "", invoke: true, expected: [[[255], [254]]] },
+  { name: "env split quoted empty and opaque spaces", command: "env", values: ["-S", [99, 97, 112, 116, 117, 114, 101, 32, 39, 39, 32, 34, 255, 32, 254, 34]], stdin: "", invoke: true, expected: [[[], [255, 32, 254]]] },
+  { name: "env attached split string", command: "env", values: [[45, 83, 99, 97, 112, 116, 117, 114, 101, 32, 255]], stdin: "", invoke: true, expected: [[[255]]] },
+  { name: "env long attached split string", command: "env", values: [[45, 45, 115, 112, 108, 105, 116, 45, 115, 116, 114, 105, 110, 103, 61, 99, 97, 112, 116, 117, 114, 101, 32, 255]], stdin: "", invoke: true, expected: [[[255]]] },
+  { name: "env nested split frames", command: "env", values: ["-S", [45, 83, 32, 39, 99, 97, 112, 116, 117, 114, 101, 32, 255, 39]], stdin: "", invoke: true, expected: [[[255]]] },
+  { name: "env unquoted split separator", command: "env", values: ["-S", [99, 97, 112, 116, 117, 114, 101, 32, 255, 92, 95, 254]], stdin: "", invoke: true, expected: [[[255], [254]]] },
+  { name: "xargs batching", command: "xargs", values: ["-n", "1", "capture", [255]], stdin: "one two", invoke: true, expected: [[[255], [111, 110, 101]], [[255], [116, 119, 111]]] },
+  { name: "xargs literal replacement", command: "xargs", values: ["-I", "{}", "capture", [255, 123, 125, 254]], stdin: "A", invoke: false, expected: [[[255, 65, 254]]] },
+  { name: "find semicolon replacement", command: "find", values: [".", "-type", "f", "-exec", "capture", [255, 123, 125, 254], ";"], stdin: "", invoke: false, expected: [[[255, 46, 47, 102, 105, 108, 101, 254]]] },
+  { name: "find batched arguments", command: "find", values: [".", "-type", "f", "-exec", "capture", [255], "{}", "+"], stdin: "", invoke: true, expected: [[[255], [46, 47, 102, 105, 108, 101]]] },
+  { name: "timeout zero deadline", command: "timeout", values: ["--", "0", "capture", [255], [254]], stdin: "", invoke: true, expected: [[[255], [254]]] },
+]) test(`command forwarding preserves byte operands: ${entry.name}`, async () => {
+  const argumentValues = createCommandArguments(entry.values.map(value => typeof value === "string" ? value : shellValueFromBytes(Uint8Array.from(value))));
+  const captured: number[][][] = [];
+  const execute = (context: CommandContext) => {
+    const selected = getCommandArguments(context);
+    captured.push(selected.args.map((_value, index) => Array.from(selected.bytes(index)!)));
+    return { exitCode: 0 };
+  };
+  const errors: Uint8Array[] = [];
+  const context: CommandContext = {
+    command: entry.command, args: argumentValues.args, argumentValues, cwd: "/work", env: {}, fs: await fixture({ file: "data" }),
+    signal: new AbortController().signal, stdin: toByteSource(entry.stdin), stdout: { async write() {} }, stderr: { async write(bytes) { errors.push(bytes.slice()); } },
+  };
+  const invoke: CommandInvoker = async (command, args, options = {}) => execute({ ...context, command, args, argumentValues: options.argumentValues! });
+  const incoming = entry.invoke ? { ...context, invoke } : context;
+  const definition = entry.command === "timeout" ? createTimeoutCommand() : createStandardCommands({ execute }).find(command => command.name === entry.command)!;
+  const result = await definition.execute(incoming);
+  assert.equal(result.exitCode, 0, Buffer.concat(errors).toString());
+  assert.deepEqual(captured, entry.expected);
+});
+
+test("timeout legacy invocation omits carrier metadata and snapshots argv before asynchronous work", async () => {
+  const args = ["0", "capture", "before"];
+  const stdin = toByteSource("");
+  const stdout = { async write() {} };
+  const stderr = { async write() {} };
+  const context: CommandContext = {
+    command: "timeout", args, cwd: "/work", env: {}, fs: await fixture(),
+    signal: new AbortController().signal, stdin, stdout, stderr,
+    async invoke(command, selected, options) {
+      await Promise.resolve();
+      assert.equal(command, "capture");
+      assert.deepEqual(selected, ["before"]);
+      assert.ok(Object.isFrozen(selected));
+      assert.deepEqual(options, { stdin, stdout, stderr });
+      return { exitCode: 7 };
+    },
+  };
+  const pending = createTimeoutCommand().execute(context);
+  args[2] = "after";
+  assert.deepEqual(await pending, { exitCode: 7 });
+});
+
+test("timeout rejects an explicitly stale carrier before child dispatch", async () => {
+  const argumentValues = createCommandArguments(["0", "capture", shellValueFromBytes(Uint8Array.of(255))]);
+  let calls = 0;
+  const context: CommandContext = {
+    command: "timeout", args: [...argumentValues.args], argumentValues, cwd: "/work", env: {}, fs: await fixture(),
+    signal: new AbortController().signal, stdin: toByteSource(""),
+    stdout: { async write() {} }, stderr: { async write() {} },
+    async invoke() { calls++; return { exitCode: 0 }; },
+  };
+  await assert.rejects(async () => createTimeoutCommand().execute(context), /argument identity does not match/);
+  assert.equal(calls, 0);
+});
+
+for (const entry of [
+  { name: "NUL", bytes: [99, 97, 112, 116, 117, 114, 101, 32, 255, 0], diagnostic: /NUL is not supported/ },
+  { name: "unknown escape", bytes: [99, 97, 112, 116, 117, 114, 101, 32, 255, 92, 120], diagnostic: /invalid sequence/ },
+  { name: "unterminated quote", bytes: [99, 97, 112, 116, 117, 114, 101, 32, 34, 255], diagnostic: /no terminating quote/ },
+]) test(`byte env split refuses ${entry.name} before dispatch`, async () => {
+  const argumentValues = createCommandArguments(["-S", shellValueFromBytes(Uint8Array.from(entry.bytes))]);
+  const errors: Uint8Array[] = [];
+  let invoked = false;
+  const definition = createStandardCommands({ execute() { invoked = true; return { exitCode: 0 }; } }).find(command => command.name === "env")!;
+  const result = await definition.execute({ command: "env", args: argumentValues.args, argumentValues, cwd: "/work", env: {}, fs: await fixture(), signal: new AbortController().signal, stdin: toByteSource(""), stdout: { async write() {} }, stderr: { async write(bytes) { errors.push(bytes.slice()); } } });
+  assert.equal(result.exitCode, 125);
+  assert.equal(invoked, false);
+  assert.match(Buffer.concat(errors).toString(), entry.diagnostic);
+});
+
+const operandCases: readonly {
+  name: string; args: readonly string[]; short: string;
+  long: Readonly<Record<string, string>>; stop: boolean; indices: readonly number[];
+}[] = [
+  { name: "separate option values and identical operands", args: ["-n", "2", "child", "same", "same"], short: "n:", long: {}, stop: true, indices: [2, 3, 4] },
+  { name: "attached option and delimiter", args: ["-n2", "--", "-same", ""], short: "n:", long: {}, stop: false, indices: [2, 3] },
+  { name: "long equals option and delimiter after operand", args: ["--count=2", "same", "--", "same"], short: "n:", long: { count: "n" }, stop: false, indices: [1, 3] },
+  { name: "stop at first operand preserves remaining tokens", args: ["first", "-n", "2", "--", "last"], short: "n:", long: {}, stop: true, indices: [0, 1, 2, 3, 4] },
+  { name: "clustered option argument", args: ["-abvalue", "same", "same"], short: "ab:", long: {}, stop: false, indices: [1, 2] },
+];
+
+for (const entry of operandCases) test(`option parsing reports literal operand indices: ${entry.name}`, () => {
+  const observed: number[] = [];
+  const parsed = commandOptions(entry.args, entry.short, entry.long, entry.stop, index => { observed.push(index); });
+  assert.deepEqual(observed, entry.indices);
+  assert.deepEqual(parsed.operands, entry.indices.map(index => entry.args[index]));
+  assert.deepEqual(parsed, commandOptions(entry.args, entry.short, entry.long, entry.stop));
+});
+
+for (const reason of [false, 0, undefined, new Error("operand observer failure")]) test(
+  `option parsing preserves operand observer failure identity: ${String(reason)}`, () => {
+    let caught = false;
+    let calls = 0;
+    try {
+      commandOptions(["first", "second"], "", {}, false, () => { calls++; throw reason; });
+    } catch (error) { caught = true; assert.equal(error, reason); }
+    assert.equal(caught, true);
+    assert.equal(calls, 1);
+  },
+);
 
 test("env lists, clears, unsets and sets literal variables without mutating its parent", async () => {
   const env = { FIRST: "one", SECOND: "two" };

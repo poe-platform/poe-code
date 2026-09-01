@@ -1,4 +1,4 @@
-import { writeBytes, type CommandContext, type CommandDefinition, type CommandInvoker, type VirtualShellPlugin } from "../../contracts/index.js";
+import { getCommandArguments, writeBytes, type CommandContext, type CommandDefinition, type CommandInvoker, type VirtualShellPlugin } from "../../contracts/index.js";
 import { parseDuration } from "./duration.js";
 import { createDeadline, defaultSchedulerBinding, type SchedulerBinding } from "./scheduler.js";
 
@@ -114,9 +114,10 @@ function definition(configuration: Settings): CommandDefinition {
     name: "timeout",
     description: "Run a virtual command with a cooperative time limit",
     async execute(context: CommandContext) {
+      const originalArgs = context.args;
       let offset = 0;
-      while (offset < context.args.length) {
-        const token = context.args[offset]!;
+      while (offset < originalArgs.length) {
+        const token = originalArgs[offset]!;
         if (token === "--") {
           offset++;
           break;
@@ -127,17 +128,21 @@ function definition(configuration: Settings): CommandDefinition {
         const record = unsupported(token);
         return status(context, record ?? records.invalidOption, 125);
       }
-      const durationToken = context.args[offset];
+      const durationToken = originalArgs[offset];
       if (durationToken === undefined) return status(context, records.missingDuration, 125);
       const parsed = parseDuration(durationToken);
       if (parsed.kind === "invalid") return status(context, records.invalidDuration, 125);
       if (parsed.kind === "overflow") return status(context, records.durationOverflow, 125);
-      const command = context.args[offset + 1];
+      const command = originalArgs[offset + 1];
       if (command === undefined) return status(context, records.missingCommand, 125);
       const selected = childInvoker(context, configuration.invoke);
       if (selected === undefined) return status(context, records.invokeUnavailable, 125);
-      const args = context.args.slice(offset + 2);
+      const suppliedValues = "argumentValues" in context ? context.argumentValues : undefined;
+      const argumentValues = suppliedValues === undefined ? undefined
+        : getCommandArguments({ args: originalArgs, argumentValues: suppliedValues }).slice(offset + 2);
+      const args = argumentValues?.args ?? Object.freeze(originalArgs.slice(offset + 2));
       const streams = {
+        ...(argumentValues === undefined ? {} : { argumentValues }),
         stdin: context.stdin,
         ...(context.stdinIsDefault === undefined ? {} : { stdinIsDefault: context.stdinIsDefault }),
         stdout: context.stdout,

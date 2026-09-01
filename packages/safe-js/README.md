@@ -7,13 +7,13 @@ Run a JavaScript subset with explicit host capabilities, execution budgets, and 
 Install the public package (Node.js 18.18+ and ESM):
 
 ```sh
-npm install poe-code
+npm install @poe-platform/safe-js
 ```
 
 Save this as `example.mjs`, then run `node example.mjs`:
 
 ```js
-import { Budget, run } from "poe-code/safe-js";
+import { Budget, run } from "@poe-platform/safe-js";
 
 const result = await run("return prices.map(price => price * 2);", {
   bindings: { prices: [3, 5, 8] },
@@ -27,7 +27,7 @@ console.log(result.returnValue);
 
 `run()` takes source text, not a file path. Success returns `ok`, `returnValue`, `snapshot`, and `stats`. Handle both an `ok: false` result and a rejected promise: parsing, budget exhaustion, cancellation, and some execution failures can reject. Top-level `await` in this example lets rejections reach Node.
 
-`poe-code/safe-js/core` exposes `run`, `lint`, `Budget`, and replayable-random helpers. Legacy `poe-code/safejs` routes remain compatibility aliases; no separate package is needed.
+`@poe-platform/safe-js/core` exposes `run`, `lint`, `Budget`, and replayable-random helpers. The shared filesystem is available from `@poe-platform/safe-js/fs`, with a browser-safe `fs/core` entry. Existing `poe-code/safe-js` imports remain available through the CLI package.
 
 ## Supported features
 
@@ -45,7 +45,7 @@ Scripts have no ambient `process`, `require`, `fetch`, or filesystem access. Hos
 Expose a small module rather than an entire application client:
 
 ```js
-import { Budget, lint, run } from "poe-code/safe-js";
+import { Budget, lint, run } from "@poe-platform/safe-js";
 
 const source = `
   import { lookup } from "catalog";
@@ -193,7 +193,7 @@ The bundled runner is `npx poe-safe-js <script.md|script.safejs|script.ajs>` (`p
 
 `migrate` takes a checkpoint path plus `--from`, and either `--inspect` or `--to`, `--plan`, `--output`, with optional `--dry-run`.
 
-For embedding, `runCli(argv, options?)` comes from `poe-code/safe-js/cli`. Options: `cwd`, `env`, `mcp`, `modulesFor`, `process`, `readFile`, `stat`, `stdout`, `stderr`, `writeFile`. Its `modulesFor` callback also receives `{ stdout, stderr }`. Do not combine SDK `env`/`mcp` options with their config-file flags.
+For embedding, `runCli(argv, options?)` comes from `@poe-platform/safe-js/cli`. Options: `cwd`, `env`, `mcp`, `modulesFor`, `process`, `readFile`, `stat`, `stdout`, `stderr`, `writeFile`. Its `modulesFor` callback also receives `{ stdout, stderr }`. Do not combine SDK `env`/`mcp` options with their config-file flags.
 
 </details>
 

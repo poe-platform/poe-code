@@ -28,14 +28,14 @@ jobs:
         with:
           node-version: 22
       - run: npm clean-install
-      - run: npm run build
+      - name: Build and smoke-test packed CLI
+        run: npm run smoke
       - run: npm audit signatures
       - run: npm run lint:packages
       - run: npm run test:workspaces -- --concurrency=1
       - name: Run required lint stress tests
         run: npm run test:stress:lint
         timeout-minutes: 7
-      - run: npm run smoke
       - name: Generate GitHub App token
         id: app_token
         uses: actions/create-github-app-token@v3.0.0
@@ -47,4 +47,4 @@ jobs:
           GITHUB_TOKEN: ${{ steps.app_token.outputs.token }}
           GH_TOKEN: ${{ steps.app_token.outputs.token }}
           HUSKY: "0"
-        run: npx semantic-release
+        run: npx --yes semantic-release@25.0.9

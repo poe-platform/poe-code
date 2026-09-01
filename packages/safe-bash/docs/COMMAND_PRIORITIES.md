@@ -6,18 +6,27 @@ below. This documentation update performs no new product, native-oracle, compile
 build, private-engine or gate execution. Product source, exports, dependencies
 and historical expectations are unchanged.
 
+## Current Git exclusion — September 1, 2026
+
+The user deliberately excluded SafeBash Git command support and the SafeJS Git
+module. They are not supported or active roadmap items; separate future work
+requires a new request. Repository Git operations, hooks, history and unrelated
+Git utilities remain. Original usage statistics below are historical, not an
+implementation mandate. Removed implementation-only acceptance records remain
+in Git history.
+
 ## Current compatibility snapshot — August 29, 2026 UTC
 
 **Goal, not a completed guarantee:** full Bash parity is the user's target.
 Common-workflow coverage is only a current subset of that goal.
 The project does not yet promise indistinguishability from Bash,
-full GNU Bash5 compatibility, full Git/Node behavior, or a general security
+full GNU Bash5 compatibility, full Node behavior, or a general security
 sandbox. Finite accepted profiles below are not a whole-product green gate.
 The active code is in `/Users/kjopek/Workspace/safe-bash`.
 
 The package manifest uses TypeScript build tooling and declares no runtime
 dependencies. npm/npx are excluded **product commands**, not excluded development
-tools. Requested priorities remain sed, rg, git, printf, nl, cat, node, head,
+tools. Requested priorities remain sed, rg, printf, nl, cat, node, head,
 apply_patch, echo, find, tail and ls, plus the separately requested curl. Their
 presence is not a claim of complete native flags or semantics; the dated command
 profiles later in this document retain their limits.
@@ -28,7 +37,7 @@ and refusals matter: this is not universal POSIX or cross-backend transactional
 equivalence. Curl stays explicit opt-in. Node stays explicit opt-in with a
 trusted provider and restricted profile; there is no implied bundled engine,
 ambient host authority or native fallback. See the existing
-[Node](../src/commands/node/README.md), [Git](../src/commands/git/README.md),
+[Node](../src/commands/node/README.md),
 [S3](../src/fs/s3/README.md) and [WebDAV](../src/fs/webdav/README.md) profiles.
 
 | Workstream | Current, scope-qualified status |
@@ -48,7 +57,6 @@ Known restrictions remain those of the existing contracts, not newly invented
 compatibility promises: the accepted Unit3 profile refuses reached ERE/extglob,
 aggregate `-v` and other documented unsupported predicates; later ERE work must
 earn its own integrated acceptance. The rg profile is not Rust-regex/PCRE2 parity;
-Git explicitly refuses unsupported repository formats/external gitdir bindings.
 Node's restricted provider/Worker profile is not full Node or universal
 all-jobs-settled/RSS proof. See the detailed profile sections below rather than
 assuming one command name means all Bash/GNU forms work.
@@ -57,7 +65,7 @@ This August 29, 2026 UTC documentation/coordination snapshot records the latest
 ROOT-reported statuses, not a new test run or independent remeasurement. Accepted
 producer DATA, B2's incomplete independent audit and pending runtime follow-ups
 remain distinct. **There is no full coherent three-layout acceptance.** No
-performance, full Bash/Git, or sandbox claim follows.
+performance, full Bash, or sandbox claim follows.
 Original failures,
 source-only/mixed proofs, native-profile differences and resource qualifications
 remain intact. README (including the selected PUBLIC309 README), product source
@@ -95,7 +103,7 @@ unseparated input is retained in `COMMAND_PRIORITIES.json`.
 | --- | ---: | ---: | --- |
 | sed | 332184 | 24.60% | Retained |
 | rg | 147000 | 10.89% | Retained |
-| git | 117897 | 8.73% | Retained |
+| git | 117897 | 8.73% | Historical usage; now excluded |
 | printf | 107073 | 7.93% | Retained |
 | npm | 72000 | 5.33% | Excluded by “without the npm stuff” |
 | nl | 59262 | 4.39% | Retained |
@@ -195,40 +203,6 @@ No native/GNU-byte/full-Bash/strict-mode/Node/global-HEAD acceptance; inherited
 SOURCEONLY/MIXED, loader/Worker and AST metadata limits remain. See the exact
 [ROOT acceptance](../tests/compatibility/bash-redirection-independent-20260829/root-acceptance/ROOT-ACCEPTANCE.md).
 
-## ROOT-qualified Git public80 — 2026-08-29
-
-ROOT accepts exactly `c83f352f057c64917f219eb938f54aa42cdab829`, full950 SHA256
-`4671ed60875c87f8cc32b735fde5d9b57301f427ecd5a376ad1123afb951e156`: accepted
-public79 `7fde32264d757ef856acf3ae92c8581b4a294341` plus **only git** as default80.
-The read-only M1A+M1B module comes from `fca6f81d2d96db2bbceabf3247cd57ffe240bde6`;
-root and `virtual-bash/commands/git` factories/options/types and replacement
-policy are qualified. All 24 numeric caps stay fixed; discoveryBoundary and
-replacement are the finite options, not arbitrary public limit overrides.
-
-Different-review evidence `5fabc790` supplies 336 retained passes and 11 novel
-passes per layout; `caf6ba94287842fe8a63ae3226a1a9349406d46d` supplies exactly
-three I03-v2 passes, one per layout. All 12 novel properties are accepted through
-two cohorts and a versioned fixture, **not one all-green run**. Six type groups,
-83 maintained cases, 21 moved-consumer cases and nine loaded controls remain
-separate. Original three I03 failures/exit one and author three obsolete-export
-failures are preserved; baseline79 acceptance `bd772916` still retains its
-worker-denied 79/83 and is not rescored.
-
-Inherited M1B module acceptance `db8b818db983f32c9522ebe4c9589ca8766a5454` covers
-274 finite versioned identities (208 stock,32 mechanical,10 types,24 loaded), not
-universal native/resource coverage. S02/H09/private-writer SOURCE qualifications,
-old bare-OID/deadline failures, format/resource limits and six unrun native
-workflows remain. Public review observes 32 loader admissions plus three in the
-I03-v2 continuation and four RegexWorker exits in the first cohort; individual
-internal-Worker exits remain unobserved, with only known hosting-process retirement.
-
-This is bounded VFS object/index/pack parsing, not a native fallback, full Git/Bash
-compatibility, live-HEAD acceptance, or hard RSS/performance guarantee.
-Later `|&`/`&>` changes and product Node are not accepted here. Node remains
-pending; npm/npx are excluded, curl stays opt-in, zero runtime dependencies remain.
-Exact scope, layout reconstruction and preserved history:
-`tests/integration/git-public-independent-20260829/root-acceptance/ROOT-ACCEPTANCE.md`.
-
 ## Apply-patch public integration candidate
 
 ROOT-qualified module acceptance is now bound to
@@ -244,7 +218,7 @@ plus arrays composition, now with bounded public acceptance `bd772916`. Root and
 `virtual-bash/commands/apply-patch` provide the three factories/plugin and typed
 limits; aggregate `applyPatch` forwards limits with top-level replacement authority.
 This is bounded literal UTF-8 VFS patching, not a host subprocess or generic native
-patch compatibility. The frozen Git80 composition is qualified separately above; Node
+patch compatibility. Node
 provider/contract remains unqualified. No YQ/XAN/npm/npx commands are added, and
 curl remains optional. The original user table and historical audit below are
 unchanged. Evidence: `tests/integration/apply-patch-public-20260829/`.
@@ -274,16 +248,9 @@ reuse. RUN01 remains closed with its original balances/UNKNOWN unchanged. See
 the [exact ROOT acceptance and closure record](../tests/integration/priority-command-workflows-20260828/npm-pin-rebinding-v2/p16-trace-repair-v4/actual-run02-v1/ROOT-ACCEPTANCE-AND-CLOSURE.md)
 for both balance tables, immutable bindings and remaining observation limits.
 
-Current status, as supplied by ROOT: Git M1A module
-`9885390fb11454fa194a3e60fdbef198dbfdf633` has qualified acceptance but is not
-public/default-integrated. Git M1B `fca6f81d2d96db2bbceabf3247cd57ffe240bde6`
-and ROOT-reported apply_patch candidate `753` await independent review; the
-Node scaffold/provider remain pending. Candidate `753` is ROOT's supplied label,
-not a newly authenticated full commit identifier. These statuses supersede the
-older checkpoint below without rewriting its observations. No arrays, Git,
-apply_patch, Node, YQ or XAN support is added by this workflow proof. The existing
-78-default, TypeScript, zero-runtime-dependency and opt-in-curl status is unchanged;
-no fresh type gate or global-release claim follows.
+The unrelated apply_patch and Node checkpoint observations remain historical;
+Git module implementation and acceptance details have been removed from this
+maintained document following the current exclusion decision.
 
 ## Historical module-candidate checkpoint — 2026-08-28
 
@@ -293,10 +260,8 @@ The accepted aggregate remains78; no root/default integration occurred here.
 
 | Priority | Current qualification | Evidence / implementation location |
 | --- | --- | --- |
-| git | M1A module candidate9885390f under Dirac independent review; NOT accepted/default/public-wired. Genuine loose-object/index reader; any packed storage still refuses. | `src/commands/git/index.ts:19`; `tests/commands/git-author-20260828/HANDOFF.md:1`. Author full898-member pack SHA25668541722217fb3f88f7317750c8f1a66042ea090f2c769564b9afc14372dfe68; no fresh execution in this update. |
 | apply_patch | ROOT-reported module candidate58be882 under independent review; NOT accepted/default/public-wired. This identifier is recorded as supplied, not a new stored-commit/package authentication. | `src/commands/apply-patch/index.ts:7` defines createApplyPatchCommand; factories/plugin at13/17. Distinct from diff/patch and the agent's native editing tool. |
 | node | CommonJS contract/provider remain unqualified; no accepted product Node runtime/default integration. | SafeJS and development Node remain separate capabilities, not Node compatibility evidence. |
-| Git M1B | Design/data63d811bf under Sagan independent review; NO implementation GO or packed-readiness acceptance. | `tests/commands/git-pack-design-20260828/HANDOFF.md:1`; bounded pack/index/delta DATA and pending D1–D3 decisions, no product/native executions. |
 
 Curl remains explicit opt-in. The ARRAY acceptance recorded in PROJECT_LEDGER
 is on selected DOTGLOB77, not coherent78-plus-arrays or a current HEAD gate.
@@ -315,7 +280,7 @@ Core factories are `src/commands/index.ts:19` and `src/commands/index.ts:31`.
 | --- | --- | --- |
 | sed | Default | `src/commands/text-programs/sed.ts:347`; `createTextProgramCommands` / `textProgramCommands` at `src/commands/text-programs/index.ts:8` |
 | rg | Default | `src/commands/search/rg.ts:120`; `createSearchCommands` / `searchCommands` at `src/commands/search/index.ts:7` |
-| git | **Missing** | No bundled registry command, builtin or product factory found. Host Git and repository evidence tooling are not a product implementation. |
+| git | **Excluded** | Historical audit found no implementation; the later user decision excludes Git rather than scheduling it. |
 | printf | Default | `src/commands/basic.ts:52`, through `standardCommands` / `agentCommands` |
 | nl | Default | `src/commands/stream-format/nl.ts:29`; `createStreamFormatCommands` / `streamFormatCommands` at `src/commands/stream-format/index.ts:9` |
 | cat | Default | `src/commands/streams.ts:191`, through core/aggregate |
@@ -329,7 +294,7 @@ Core factories are `src/commands/index.ts:19` and `src/commands/index.ts:31`.
 | curl | **Opt-in** | `src/commands/network/curl.ts:73`; `networkCommands` / `curlCommands`, `createNetworkCommands` / `createCurlCommands`, `createCurlCommand` at `src/commands/network/index.ts:9` |
 
 Public imports use `virtual-bash` or the existing `virtual-bash/commands/...`
-family subpaths. There is no invented `virtual-bash/commands/git`, `/node` or
+family subpaths. The original audit found no `/node` or
 `/apply_patch` implementation. The root barrel is `src/index.ts:1`; metadata is
 `package.json:1`. Runtime/optional/peer dependencies are absent. The existing
 development dependencies are `@types/node`, `tsx` and TypeScript; Node >=22 is
@@ -409,7 +374,7 @@ registration and selected composition workflows, not all options of these tools.
 | printf/echo/find/ls/core composition | `tests/commands/independent-arguments.test.ts:1`, `tests/commands/independent-filesystem.test.ts:1`, `tests/commands/pipelines.test.ts:1` and coherent78 public acceptance | A fresh passing run, per-command exhaustive independent parity, or arbitrary remote-provider behavior |
 | nl | `tests/commands/stream-format/nl.test.ts:1` frozen/native and bounded-work cases; coherent78 registry evidence | A separately located exhaustive independent nl suite or fresh native availability |
 | curl | `tests/commands/network-stress/README.md:3`, linked handoff/retry/lifecycle reports and PROJECT_LEDGER scoped214 plus built5 checkpoint; subsequent byte/retry/zero-host-cap fixes have separate proofs | Original57/60 rescored, all curl flags, arbitrary services, DNS confinement or all host cleanup |
-| git/node/apply_patch | No product dispatch implementation found in command factories, root aggregation or shell builtin dispatch | Development Git/Node/apply_patch usage is not a product test or compatibility substitute |
+| node/apply_patch | No product dispatch implementation found in command factories, root aggregation or shell builtin dispatch | Development Node/apply_patch usage is not a product test or compatibility substitute |
 
 The old R3 fixed76 result **19425 passes /132 failures /7 skips,6/14 phases,
 integrity/cleanup false** remains unchanged. This audit neither deducts failures
@@ -420,34 +385,19 @@ nor certifies current HEAD.
 These were recommendations at the original snapshot. The later checkpoint above
 records subsequent module/design scopes; it does not authorize further implementation.
 
-1. **Highest-frequency absent command: genuine read-only VFS `git`.** Start with
-   a declared repository-reader profile: `rev-parse --show-toplevel/--git-dir/
-   --is-inside-work-tree` and `ls-files [-z]` backed by actual repository/index
-   data, not canned output. A bounded first author scope is
-   `src/commands/git/**` and `tests/commands/git/**`; root registration stays
-   separate until different-agent review. Parse/validate real index/object/ref
-   formats, bytes, checksums and limits; explicitly reject unsupported formats,
-   extensions or external gitdir bindings. Do not report an unsupported repository
-   as clean/empty. `status --porcelain=v1 -z` and working-tree/index `diff` are
-   high-value follow-ups only with the necessary index/object support, including
-   an honest packed-object decision. No native Git, hooks, config execution,
-   credential helper, shell, remote network or implicit host filesystem. Existing
-   VFS read/stat/readdir/realpath/identity and command byte/signal/budget APIs are
-   prerequisites; development Git may later be an explicitly admitted oracle,
-   never the implementation. No full Git/write/clone/submodule parity is promised.
-2. **Highest-frequency existing tools: focused sed/rg workflow audit and gaps.**
+1. **Highest-frequency existing tools: focused sed/rg workflow audit and gaps.**
    Separately freeze realistic address/backreference/in-place/byte fixtures for
    sed and empty-pipe/ignore/JSON/type-filter workflows for rg. Consider sed `-z`
    and selected long flags, and rg type filters, only under an explicit dialect
    and bounded algorithm design. Do not replace existing hard failures with
    easier recipes or claim these are measured subcommand frequencies.
-3. **Small next missing editing surface: VFS `apply_patch`.** Define its actual
+2. **Small next missing editing surface: VFS `apply_patch`.** Define its actual
    add/update/delete/move marker grammar, exact context matching, newline/byte
    policy, traversal/alias refusal and failure publication contract before writing
    `src/commands/apply-patch/**`. Reuse FS contracts, not a call to host patch or an
    alias that pretends existing `patch` accepts this different protocol. Multi-file
    atomicity cannot be assumed across every backend.
-4. **Keep Node explicit, with a separate compatibility decision.** A constrained
+3. **Keep Node explicit, with a separate compatibility decision.** A constrained
    guest script interpreter could be useful, but is not full Node. Specify intended
    `node -e`/script/module APIs and trusted capabilities before choosing an execution
    design consistent with no eval/native fallback and zero runtime dependencies.

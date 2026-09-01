@@ -1,5 +1,0 @@
-{"start": 1787967164.342506, "pid": 52203, "role": "SOURCE_DATA_ONLY"}
-{"read": "tests/integration/git-public-20260829/HANDOFF.md", "sha256": "84198037a5f41755d3e385ec7c2450d90487a41ec95ae20c83a71f32482c74dc", "bytes": 8955}
-{"read": "src/commands/regex-execution/client.ts", "sha256": "5d086314898c38390753a07ef1c37001890ac2b47f3d0e05e221048b9db42ebc", "bytes": 15319}
-{"read": "src/commands/regex-execution/worker.ts", "sha256": "a442bb67cda6aff313cf3909cbfb0d3d8c12ebc420437d5fd9d7bd51fc6c9da6", "bytes": 1930}
-{"terminal": "natural", "productImports": 0}

@@ -1,1 +1,0 @@
-{"args":["ls-tree","-rz","--full-tree","c90ad78b9ed27f83ed5ba8dd0ca1a548e0e1629f","--","tests/commands/git-pack-independent-20260828/m1b-fca6f81d-review/decoder-v3/fixtures.mjs"],"status":0,"signal":null,"error":null,"elapsedMs":505.36212500000005}

@@ -1,1 +1,0 @@
-{"args":["ls-tree","-rz","--full-tree","dcdaa7c12d5b3924d3f605014dd701fc60e7be84","--","tests/commands/git-pack-independent-20260828/m1b-fca6f81d-review/capture-mode-v4/DATA-SEAL.json","tests/commands/git-pack-independent-20260828/m1b-fca6f81d-review/capture-mode-v4/check-mode-data.mjs"],"status":0,"signal":null,"error":null,"elapsedMs":783.4512910000001}

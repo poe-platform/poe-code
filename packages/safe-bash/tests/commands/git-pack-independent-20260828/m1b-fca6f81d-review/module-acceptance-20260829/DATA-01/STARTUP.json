@@ -1,7 +1,0 @@
-{
-  "role": "SOURCE_DATA_RECONCILIATION_ONLY",
-  "candidateLoads": 0,
-  "compilerLoads": 0,
-  "nativeOracleRuns": 0,
-  "oldArchiveWrites": 0
-}

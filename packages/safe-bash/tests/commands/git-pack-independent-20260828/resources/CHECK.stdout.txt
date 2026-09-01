@@ -1,1 +1,0 @@
-OK: /Users/kjopek/Workspace/safe-bash/tests/commands/git-pack-independent-20260828/resources/REVIEW.md (0 warning(s))

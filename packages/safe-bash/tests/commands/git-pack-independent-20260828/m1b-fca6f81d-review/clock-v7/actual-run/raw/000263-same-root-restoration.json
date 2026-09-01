@@ -1,1 +1,0 @@
-{"batch":"S01-restored-S","physicalRoot":"/private/tmp/git-m1b-fca-independent-20260829-clock7-cca4001dd09743a1/mutants/S-L-S01","target":"dist/commands/git/pack.js","mode":420,"bytes":14326,"sha256":"8517ec58e2c8b8704908e9fa9347ea60dd9382422a53b4716eeb226726e39656","knownPriorMutantRetirement":true,"newWorkerRequired":true}

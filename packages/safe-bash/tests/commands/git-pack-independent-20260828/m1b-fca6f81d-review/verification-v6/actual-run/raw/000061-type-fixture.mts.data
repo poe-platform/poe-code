@@ -1,6 +1,0 @@
-import { createGitCommand, createGitCommands, gitCommands } from "/private/tmp/git-m1b-fca-independent-20260829-verification6-48db9e1c1db7eff4/moved-package/dist/commands/git/index.js";
-import type { CommandDefinition, VirtualShellPlugin } from "/private/tmp/git-m1b-fca-independent-20260829-verification6-48db9e1c1db7eff4/moved-package/dist/contracts/index.js";
-const command: CommandDefinition = createGitCommand({ discoveryBoundary: "/repo" });
-const commands: readonly CommandDefinition[] = createGitCommands({ replace: false });
-const plugin: VirtualShellPlugin = gitCommands({ replace: true, discoveryBoundary: "/" });
-void [command, commands, plugin];

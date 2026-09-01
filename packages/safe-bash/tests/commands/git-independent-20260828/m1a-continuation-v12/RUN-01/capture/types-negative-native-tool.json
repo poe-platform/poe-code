@@ -1,9 +1,0 @@
-{
-  "pid": 46756,
-  "ppid": 46590,
-  "entry": "/Users/kjopek/Workspace/safe-bash/node_modules/typescript/lib/tsc.js",
-  "entrySha256": "2cffde0b8c6760dfb0b5b0382bbb7e00ba6a8b2d981b9205b256a700a481d983",
-  "nestedProcessAttempts": 0,
-  "networkAttempts": 0,
-  "exitCode": 2
-}

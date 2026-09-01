@@ -1,8 +1,0 @@
-{"startNs": 1787967921439493000, "pid": 55518, "grant": "preparation-v3-only", "seconds": 2400, "processCeiling": 64, "peak": 2, "processSlotsReserved": 4, "runtimeAuthorized": false}
-{"enrollBeforeSpawn": true, "command": ["/usr/bin/git", "-c", "gc.auto=0", "-c", "maintenance.auto=false", "-c", "core.hooksPath=/dev/null", "ls-tree", "-rz", "bd772916c26dc87c54bafdaa784d18f058efa275", "--", "tests/integration/apply-patch-public-independent-20260829"]}
-{"pid": 55533}
-{"closed": true, "returncode": 0}
-{"enrollBeforeSpawn": true, "command": ["/usr/bin/git", "-c", "gc.auto=0", "-c", "maintenance.auto=false", "-c", "core.hooksPath=/dev/null", "ls-tree", "-rz", "4ade014242d6b6ceac254c41f53b46ca00102fbe", "--", "tests/integration/git-public-20260829"]}
-{"pid": 55534}
-{"closed": true, "returncode": 0}
-{"terminal": "natural", "knownProcessSlots": 4, "childrenNatural": 2}

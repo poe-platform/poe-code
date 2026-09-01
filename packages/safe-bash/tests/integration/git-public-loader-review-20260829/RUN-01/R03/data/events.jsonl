@@ -1,5 +1,0 @@
-{"kind":"bootstrap","isMainThread":true,"permitted":true}
-{"kind":"consumer-start","caseId":"P09"}
-{"kind":"application-create","id":1,"threadId":1,"entry":"/Users/kjopek/Workspace/safe-bash/tests/integration/git-public-loader-review-20260829/RUN-01/R03/source/application.mjs"}
-{"kind":"application-exit","id":1,"code":1,"live":0}
-{"kind":"before-exit","created":1,"live":0}

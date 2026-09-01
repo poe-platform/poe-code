@@ -9,11 +9,11 @@
     "authority": "USER_PROVIDED_NOT_INDEPENDENTLY_VERIFIED",
     "rawTable": "sed33218424.60%;rg14700010.89%;git1178978.73%;printf1070737.93%;npm720005.33%;nl592624.39%;cat573314.25%;node424603.15%;head395582.93%;apply_patch344472.55%;echo308122.28%;find260851.93%;tail255401.89%;ls215851.60%;npx205141.52%",
     "exactExclusion": "without the npm stuff",
-    "interpretation": "Exclude npm/npx PRODUCT commands only; retain product node and curl and npm/Node/TypeScript development/oracle tooling",
+    "interpretation": "Exclude npm/npx PRODUCT commands only; retain product node and curl and npm/Node/TypeScript development/oracle tooling; the later user decision additionally excludes the Git product command and SafeJS Git module",
     "rows": [
       { "command": "sed", "count": 332184, "share": "24.60%", "productPriority": true },
       { "command": "rg", "count": 147000, "share": "10.89%", "productPriority": true },
-      { "command": "git", "count": 117897, "share": "8.73%", "productPriority": true },
+      { "command": "git", "count": 117897, "share": "8.73%", "productPriority": false,"qualification": "Historical usage statistic; Git is excluded by the later user decision" },
       { "command": "printf", "count": 107073, "share": "7.93%", "productPriority": true },
       { "command": "npm", "count": 72000, "share": "5.33%", "productPriority": false },
       { "command": "nl", "count": 59262, "share": "4.39%", "productPriority": true },
@@ -35,7 +35,7 @@
     "rows": [
       { "command": "sed", "status": "default", "source": "src/commands/text-programs/sed.ts:347", "family": "textProgramCommands" },
       { "command": "rg", "status": "default", "source": "src/commands/search/rg.ts:120", "family": "searchCommands" },
-      { "command": "git", "status": "missing", "source": null, "qualification": "Host development Git is not a product command" },
+      { "command": "git", "status": "excluded", "source": null, "qualification": "Original audit found no implementation; the later user decision excludes Git rather than scheduling implementation" },
       { "command": "printf", "status": "default", "source": "src/commands/basic.ts:52", "family": "standardCommands" },
       { "command": "nl", "status": "default", "source": "src/commands/stream-format/nl.ts:29", "family": "streamFormatCommands" },
       { "command": "cat", "status": "default", "source": "src/commands/streams.ts:191", "family": "standardCommands" },
@@ -48,7 +48,7 @@
       { "command": "ls", "status": "default", "source": "src/commands/filesystem.ts:309", "family": "standardCommands" },
       { "command": "curl", "status": "opt-in", "source": "src/commands/network/curl.ts:73", "family": "networkCommands", "qualification": "Explicit authorization; VFS byte I/O; not ambient network or DNS confinement" }
     ],
-    "counts": { "requestedDefault": 10, "requestedMissing": 3, "separateOptIn": 1 },
+    "counts": { "requestedDefault": 10, "requestedMissing": 2, "separateOptIn": 1,"requestedExcluded": 1 },
     "noNewRuntimeExecution": true,
     "detailReport": "docs/COMMAND_PRIORITIES.md"
   },
@@ -93,9 +93,6 @@
   },
   "nextWork": {
     "status": "PROPOSAL_NOT_IMPLEMENTATION_AUTHORIZATION",
-    "highestFrequencyMissing": "git",
-    "firstScope": "Read-only VFS repository/index reader; real rev-parse and ls-files semantics with explicit unsupported-format refusals; status/diff follow only with necessary object/index support",
-    "possibleOwnedPaths": ["src/commands/git/**", "tests/commands/git/**"],
     "otherPriorities": ["sed/rg targeted workflow and option gaps", "distinct VFS apply_patch protocol", "explicit Node compatibility design without substituting SafeJS"],
     "restrictions": ["zero runtime dependencies", "TypeScript", "no host subprocess/eval/native fallback", "no implicit host paths or credentials", "different-agent verification before public acceptance"]
   },
@@ -108,5 +105,5 @@
     "integrity": false,
     "cleanup": false,
     "rescored": false
-  }
+  },"currentDecision": {"date":"2026-09-01","authority":"USER_REQUEST","git":"Excluded: remove SafeBash Git command support and the SafeJS Git module. Separate future work only if requested; repository Git operations, hooks, history and unrelated Git utilities remain.","historicalStatistics":"Original user-provided counts and the dated source audit remain historical, not an active Git roadmap."}
 }

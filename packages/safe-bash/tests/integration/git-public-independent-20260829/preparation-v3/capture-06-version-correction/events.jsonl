@@ -1,3 +1,0 @@
-{"startNs": 1787968117184871000, "pid": 57853, "slots": 19, "tool": "/Users/kjopek/.codex/tmp/arg0/codex-arg0wITElD/apply_patch", "sha256": "a14f9a907c12c8812878b70e6b7d65f81c39ed795513e46a55817d7428c0ca6b", "reason": "v1 incorrectly treated changed-tree witnesses as complete unchanged subtree inventory; r2 verifies unchanged full input rows against accepted baseline plus complete root-difference recursion and changed-path lookup", "oldSha256": "f94e3bd25ec4b28fa23eec349c4eca9faaef656609490b7042c25ba29822443f", "newSha256": "6b9fd5cc7038069930435bfeded817cc3b9f9297eeedd9d63e63a875d66d39db", "enrollBeforeSpawn": true}
-{"pid": 57866}
-{"closed": true, "code": 0}

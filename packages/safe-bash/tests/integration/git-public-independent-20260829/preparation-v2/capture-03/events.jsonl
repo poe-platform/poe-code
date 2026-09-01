@@ -1,4 +1,0 @@
-{"pid": 53698, "start": 1787967550309413000, "slots": 6}
-{"read": "tests/integration/git-public-20260829/SOURCE.json", "sha256": "14a2a6a50d7748b677c4cc1261d6f69a411c1c21926c7acd884c86f2077e9450", "bytes": 220097}
-{"read": "tests/integration/git-public-20260829/run.mjs", "sha256": "8bd1cbd8f1e108b231fc399692b92ada9ea0c6846217a680edb9908cdf4492d4", "bytes": 29986}
-{"terminal": "natural"}

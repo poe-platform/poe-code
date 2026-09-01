@@ -1,4 +1,0 @@
-Traceback (most recent call last):
-  File "<stdin>", line 208, in <module>
-  File "<stdin>", line 183, in swap
-AssertionError: ('anchor', "seal.developmentGit.path, ['cat-file', '--batch']", 0)

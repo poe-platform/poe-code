@@ -1,3 +1,0 @@
-{"role": "fresh-preparation-only", "startedNs": 1787967477589800000, "pid": 53431, "processSlotsReserved": 2, "plan": 32, "reserve": 16, "ceiling": 48, "seconds": 2400, "actualReviewSuspended": true}
-{"instructionContextOnly": "/Users/kjopek/Workspace/safe-bash/AGENTS.md", "bytes": 15220, "sha256": "c03d7670b056a5345fdfcee3f1528e24d8f860c351c798ddc466185ba3a5e99d"}
-{"terminal": "natural", "productExecutions": 0, "elapsedMs": 0}

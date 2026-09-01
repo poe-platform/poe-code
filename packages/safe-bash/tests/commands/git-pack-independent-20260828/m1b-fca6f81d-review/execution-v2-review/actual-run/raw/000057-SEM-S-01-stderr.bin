@@ -1,8 +1,0 @@
-(node:75773) ExperimentalWarning: `--experimental-loader` may be removed in the future; instead use `register()`:
---import 'data:text/javascript,import { register } from "node:module"; import { pathToFileURL } from "node:url"; register("/private/tmp/git-m1b-fca-independent-20260828-1e1c790b5f2ff78c/harness/runner/loader.mjs", pathToFileURL("./"));'
-(Use `node --trace-warnings ...` to show where the warning was created)
-{"role":"M1B_ACTUAL_MODULE_LOAD","path":"/private/tmp/git-m1b-fca-independent-20260828-1e1c790b5f2ff78c/harness/runner/worker.mjs","sha256":"5f40db4561554a4b7753bb2d32738f27119e4731ff667f034492099bac53a272"}
-{"role":"M1B_ACTUAL_MODULE_LOAD","path":"/private/tmp/git-m1b-fca-independent-20260828-1e1c790b5f2ff78c/harness/runner/tool-fence.mjs","sha256":"d58c3b36f40e474a2da408c1754d56a8f9b5251d22dcdeb678ae1fe64f60536c"}
-{"role":"M1B_ACTUAL_MODULE_LOAD","path":"/private/tmp/git-m1b-fca-independent-20260828-1e1c790b5f2ff78c/harness/runner/primitives.mjs","sha256":"129b839da2d92ee55c617d40d4e59ad2cba2b3302d6578990f74c360809598e5"}
-{"role":"M1B_ACTUAL_MODULE_LOAD","path":"/private/tmp/git-m1b-fca-independent-20260828-1e1c790b5f2ff78c/harness/semantic/semantic.mjs","sha256":"0f8e4b79ec3cf233b9b31a166f83feef264384a62039417ef2f0e049f899da7f"}
-{"role":"M1B_ACTUAL_MODULE_LOAD","path":"/private/tmp/git-m1b-fca-independent-20260828-1e1c790b5f2ff78c/harness/semantic/fixtures.mjs","sha256":"4595e425d2c562069d1c4529ad7af9a0c48af11017cc8ce4aa75707a95a65145"}

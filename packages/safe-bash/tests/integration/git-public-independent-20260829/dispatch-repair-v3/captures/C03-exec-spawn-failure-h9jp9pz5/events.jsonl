@@ -1,3 +1,0 @@
-{"captureInitializedBeforeLookup": true, "pid": 22778}
-{"execReplacementIntent": ["/opt/homebrew/Cellar/python@3.14/3.14.7/Frameworks/Python.framework/Versions/3.14/bin/python3.14", "-I", "unused"], "environment": {}, "pidUnchangedOnSuccess": 22778}
-{"primaryPresent": true, "cleanupPresent": false, "childAttempts": 0, "children": [], "execAttempted": true, "closed": false, "primary": "EXEC_SENTINEL", "primaryType": "OSError"}

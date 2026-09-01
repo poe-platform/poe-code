@@ -1,1 +1,0 @@
-throw Error('OWNED_WORKER_SENTINEL');

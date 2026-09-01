@@ -5,6 +5,22 @@ import { join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import { assertAdmittedInputPath, assertLiteralInputPath, readIntegrationTypeInputs, readRegularInput } from "./typecheck-integration-inputs.mjs";
 
+const removedGitFixtureDirectories = [
+  "tests/commands/git-author-20260828",
+  "tests/commands/git-design-20260828",
+  "tests/commands/git-independent-20260828",
+  "tests/commands/git-pack-author-20260828",
+  "tests/commands/git-pack-design-20260828",
+  "tests/commands/git-pack-independent-20260828",
+  "tests/integration/git-public-20260829",
+  "tests/integration/git-public-independent-20260829",
+  "tests/integration/git-public-loader-review-20260829"
+];
+
+function isRemovedGitFixturePath(path) {
+  return removedGitFixtureDirectories.some(directory => path === directory || path.startsWith(directory + "/"));
+}
+
 const importRetirementId = "import-697ad-verification-tools-retired-789";
 const importRetirementOwner = Object.freeze(
 {
@@ -14,12 +30,12 @@ const importRetirementOwner = Object.freeze(
 }
 );
 const importRetirementPathsSha256 = "2a412d0308a001e305a92fec4b040790805bcdcf496c2e0acf53bb2fda59af48";
+const retainedImportRetirementPathsSha256 = "9dbb986a822aae58f2657a3d457f8708ff42b4a0b75811caa673a4b81fe47553";
 const importRetirementHeaderSha256 = "f1922f25c5ff4334b44740d9061c2c20ee07361eaef809b25c1303c4d68a45ee";
 const importRetirementProvenanceOwners = [
   "tests/comparison/breadth-continuation-20260828/executor-v7/test-worker.mjs",
   "tests/compatibility/bash-conditional-author-20260829/run-v5.mjs",
   "tests/integration/full-gate-20260827/unified76-driver-independent/tool-routes-v10/seal-v2.mjs",
-  "tests/integration/git-public-independent-20260829/internal-loader-repair-v1/controls-v2.mjs",
   "tests/stress/regex-execution/production-review/freeze.mjs"
 ];
 
@@ -91,16 +107,6 @@ const successorProofs = [
     "member": "tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/l02-repair-v1/host-doubles.mjs",
     "sizeField": "size",
     "historical": true
-  },
-  {
-    "id": "candidate7-05-failed-attempt-capture",
-    "role": "immutable-harness-capture",
-    "owner": "tests/integration/git-public-independent-20260829/internal-loader-repair-v1/CONTROL-SEAL.json",
-    "selector": "/files/4",
-    "pathBase": "tests/integration/git-public-independent-20260829/internal-loader-repair-v1",
-    "member": "tests/integration/git-public-independent-20260829/internal-loader-repair-v1/consumer.mjs",
-    "sizeField": "bytes",
-    "historical": false
   },
   {
     "id": "candidate7-06-failed-attempt-capture",
@@ -236,16 +242,18 @@ export function validateImportRetirement(record, receipt, boundaries) {
   const paths = Object.keys(files);
   assert.equal(paths.length, 789, "retirement requires exactly789 paths");
   assert.equal(createHash("sha256").update(JSON.stringify(paths)).digest("hex"), importRetirementPathsSha256, "retirement literal set changed");
-  assert.deepEqual(record.members.map(member => member.path), paths, "retirement inventory and receipt paths differ");
+  const retainedPaths = paths.filter(path => !isRemovedGitFixturePath(path));
+  assert.deepEqual(record.members.map(member => member.path), retainedPaths, "retirement inventory and retained receipt paths differ");
+  const retainedMembers = new Map(record.members.map(member => [member.path, member]));
   const eligibility = new Set();
   const current = new Set();
-  for (const [index, path] of paths.entries()) {
+  for (const path of paths) {
     assertAdmittedInputPath(path, boundaries);
     const row = files[path];
     keys(row, ["parentTree", "mode", "blobOid", "bytes", "sha256", "purpose", "eligibilityPointer", "currentProof"]);
     for (const oid of [row.parentTree, row.blobOid]) assert.ok(typeof oid === "string" && oid.length === 40 && [...oid].every(character => "0123456789abcdef".includes(character)), "invalid retirement Git tuple");
     assert.equal(row.mode, "100644", "retirement member must retain its regular Git mode");
-    assert.deepEqual({ path, bytes: row.bytes, sha256: row.sha256 }, record.members[index], "retirement member binding changed");
+    if (retainedMembers.has(path)) assert.deepEqual({ path, bytes: row.bytes, sha256: row.sha256 }, retainedMembers.get(path), "retirement member binding changed");
     assert.ok(typeof row.purpose === "string" && row.purpose.length > 0 && row.purpose.length <= 8192, "affirmative retirement purpose required");
     assert.ok(typeof row.eligibilityPointer === "string", "retirement eligibility selector required");
     const position = Number(row.eligibilityPointer.slice(9));
@@ -338,8 +346,8 @@ export function verifyLintInventory(root, inventory, boundaries, fileSystem = fs
       assert.equal(record.proof.relation, "root-named-import-origin-retirement-v1", "retirement relation changed");
       assert.ok(record.codeDirectory === undefined && record.symlinks === undefined, "retirement cannot exclude directories or symlinks");
       const paths = record.members.map(member => member.path);
-      assert.equal(paths.length, 789, "retirement requires exactly789 paths");
-      assert.equal(createHash("sha256").update(JSON.stringify(paths)).digest("hex"), importRetirementPathsSha256, "retirement literal set changed");
+      assert.equal(paths.length, 752, "retirement requires exactly752 retained paths");
+      assert.equal(createHash("sha256").update(JSON.stringify(paths)).digest("hex"), retainedImportRetirementPathsSha256, "retirement literal set changed");
       for (const path of paths) retirementPaths.add(path);
       retirement = record;
     } else if (record.role === "archived-operational-tooling" || record.id === "launcher-v3-retired-operational-tooling" || record.proof.owner === archivedLauncherBase + "/DRIVER.json" || record.members.some(member => archivedLauncherFiles.some(name => member.path === archivedLauncherBase + "/" + name))) {
@@ -583,7 +591,7 @@ export function verifyLintInventory(root, inventory, boundaries, fileSystem = fs
 
 export function readIntegrationLintInputs(root, boundaries, fileSystem = fs) {
   const path = "integration-lint-inventory.json";
-  const expectedBytes = 546230;
+  const expectedBytes = 535875;
   const bytes = readRegularInput(root, path, expectedBytes, {
     ...fileSystem,
     lstatSync(filename) {
@@ -593,7 +601,7 @@ export function readIntegrationLintInputs(root, boundaries, fileSystem = fs) {
     },
   }, boundaries);
   assert.equal(bytes.length, expectedBytes, "unapproved lint inventory size");
-  assert.equal(createHash("sha256").update(bytes).digest("hex"), "dc8d3d98eeb65c8d0f601d86bd16d446079e52f8580b968da8526b29317271f6", "unapproved integration lint inventory");
+  assert.equal(createHash("sha256").update(bytes).digest("hex"), "c67f5004c29e0974e166fc007e794e1ae35083a017a1c96b6e60cb79b59c6689", "unapproved integration lint inventory");
   return verifyLintInventory(root, JSON.parse(bytes), boundaries, fileSystem);
 }
 

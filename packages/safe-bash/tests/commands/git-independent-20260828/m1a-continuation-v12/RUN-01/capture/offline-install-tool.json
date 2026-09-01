@@ -1,9 +1,0 @@
-{
-  "pid": 46649,
-  "ppid": 46590,
-  "entry": "/Users/kjopek/.nvm/versions/node/v22.22.2/lib/node_modules/npm/bin/npm-cli.js",
-  "entrySha256": "8e5f6f3429f8cdbe693cdc29904e9d5a7b127a494bd15c804bd54c7403bfcbe7",
-  "nestedProcessAttempts": 0,
-  "networkAttempts": 0,
-  "exitCode": 0
-}

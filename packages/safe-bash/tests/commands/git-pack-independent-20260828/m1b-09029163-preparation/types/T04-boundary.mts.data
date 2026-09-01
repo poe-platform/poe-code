@@ -1,2 +1,0 @@
-import { createGitCommands } from "__GIT_ENTRY__";
-createGitCommands({ discoveryBoundary: 1 });

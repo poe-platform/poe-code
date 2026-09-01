@@ -67,16 +67,6 @@
     "tests/integration/apply-patch-public-independent-20260829/RUN-APPLY-PUBLIC-INDEPENDENT-01/apps/physically moved/canonical",
     "tests/integration/expr-public-independent-20260827/component-execution-v3/work/run-001/build",
     "tests/integration/expr-public-independent-20260827/component-execution-v4/work/run-001/build",
-    "tests/commands/git-independent-20260828/m1a-continuation-v11/types/positive.ts",
-    "tests/commands/git-independent-20260828/m1a-continuation-v11/types/negative-limits.ts",
-    "tests/commands/git-independent-20260828/m1a-continuation-v11/types/negative-native.ts",
-    "tests/commands/git-independent-20260828/m1a-continuation-v11/types/negative-boundary.ts",
-    "tests/commands/git-independent-20260828/m1a-continuation-v11/types/negative-public-root.ts",
-    "tests/commands/git-independent-20260828/m1a-continuation-v12/types/positive.ts",
-    "tests/commands/git-independent-20260828/m1a-continuation-v12/types/negative-limits.ts",
-    "tests/commands/git-independent-20260828/m1a-continuation-v12/types/negative-native.ts",
-    "tests/commands/git-independent-20260828/m1a-continuation-v12/types/negative-boundary.ts",
-    "tests/commands/git-independent-20260828/m1a-continuation-v12/types/negative-public-root.ts",
     "tests/shell/pipestatus-author-20260829/types.ts",
     "tests/shell/pipestatus-author-20260829/corrected-v2/host-protocols.ts"
   ]

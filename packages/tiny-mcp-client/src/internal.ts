@@ -2581,6 +2581,10 @@ export class HttpTransport implements McpTransport {
   }
 
   private async fetchWithAbort(input: string | URL, init: RequestInit): Promise<Response> {
+    if (this.disposed) {
+      throw new Error("HTTP transport disposed");
+    }
+
     const abortController = new AbortController();
     this.inFlightFetchAbortControllers.add(abortController);
 
@@ -2600,26 +2604,47 @@ export class HttpTransport implements McpTransport {
         continue;
       }
 
-      const hasSessionId = this.sessionId !== undefined;
-      const response = await this.fetchWithOAuthRetry({
-        method: "POST",
-        createHeaders: () => this.createPostHeaders(),
-        body: line,
-      });
-
-      if (hasSessionId && response.status === 404) {
-        this.sessionId = undefined;
-        this.dispose(new Error("HTTP transport session expired (404 response)"));
-        return;
+      const parsed = parseJsonRpcMessage(line);
+      const post = this.sendPost(line);
+      if (parsed.type === "request" && parsed.message.method === "initialize") {
+        await post;
+      } else {
+        void post.catch((error) => {
+          this.dispose(error instanceof Error ? error : new Error(String(error)));
+        });
       }
-
-      await this.throwForPostHttpError(response);
-      this.captureSessionId(response);
-      this.maybeOpenGetSseStream();
-      void this.forwardResponseMessages(response).catch((error) => {
-        this.dispose(error instanceof Error ? error : new Error(String(error)));
-      });
     }
+  }
+
+  private async sendPost(line: string): Promise<void> {
+    const hasSessionId = this.sessionId !== undefined;
+    const response = await this.fetchWithOAuthRetry({
+      method: "POST",
+      createHeaders: () => this.createPostHeaders(),
+      body: line,
+    });
+
+    if (this.disposed) {
+      await response.body?.cancel();
+      return;
+    }
+
+    if (hasSessionId && response.status === 404) {
+      this.sessionId = undefined;
+      this.dispose(new Error("HTTP transport session expired (404 response)"));
+      return;
+    }
+
+    await this.throwForPostHttpError(response);
+    if (this.disposed) {
+      await response.body?.cancel();
+      return;
+    }
+    this.captureSessionId(response);
+    this.maybeOpenGetSseStream();
+    void this.forwardResponseMessages(response).catch((error) => {
+      this.dispose(error instanceof Error ? error : new Error(String(error)));
+    });
   }
 
   private async createPostHeaders(): Promise<Headers> {

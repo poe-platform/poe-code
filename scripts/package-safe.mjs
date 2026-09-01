@@ -5,6 +5,8 @@ import { fileURLToPath } from "node:url";
 import { parseArgs } from "node:util";
 import semver from "semver";
 import ts from "typescript";
+import { build } from "esbuild";
+import { resolveBundleGraph } from "./bundle-graph.mjs";
 
 export function rewriteModuleSpecifiers(filename, text, rewrite) {
   const source = ts.createSourceFile(filename, text, ts.ScriptTarget.Latest, true);
@@ -38,13 +40,13 @@ function artifactPath(rootDir, filename) {
 }
 
 function publicSpecifier(specifier) {
-  for (const [from, to] of [["poe-code/safe-fs", "@poe-platform/safe-js/fs"], ["poe-code/safe-js", "@poe-platform/safe-js"], ["poe-code/safejs", "@poe-platform/safe-js"]]) {
+  for (const [from, to] of [["poe-code/safe-fs", "@poe-platform/safe-fs"], ["@poe-code/safe-fs", "@poe-platform/safe-fs"], ["@poe-platform/safe-js/fs", "@poe-platform/safe-fs"], ["poe-code/safe-js", "@poe-platform/safe-js"], ["poe-code/safejs", "@poe-platform/safe-js"]]) {
     if (specifier === from || specifier.startsWith(from + "/")) return to + specifier.slice(from.length);
   }
   return specifier;
 }
 
-export async function packageSafeLibraries({ rootDir, outDir, version, files = fs }) {
+export async function packageSafeLibraries({ rootDir, outDir, version, files = fs, bundle = build }) {
   if (!semver.valid(version)) throw new Error("A valid explicit package version is required");
   if (path.resolve(outDir) === path.resolve(rootDir) || path.resolve(outDir).startsWith(path.join(rootDir, "packages") + path.sep)) throw new Error("Output must not overwrite workspace packages");
   const readJson = async filename => JSON.parse(await files.readFile(filename, "utf8"));
@@ -55,15 +57,18 @@ export async function packageSafeLibraries({ rootDir, outDir, version, files = f
   const root = await readJson(path.join(rootDir, "package.json"));
   const ranges = { ...root.devDependencies, ...root.optionalDependencies, ...root.dependencies };
   const privateNames = new Set();
+  const workspaces = [];
   for (const entry of await files.readdir(path.join(rootDir, "packages"), { withFileTypes: true })) {
     const manifest = path.join(rootDir, "packages", entry.name, "package.json");
     if (!entry.isDirectory() || !await exists(manifest)) continue;
     const pkg = await readJson(manifest);
+    workspaces.push({ dir: entry.name, pkg });
     if (pkg.private) privateNames.add(pkg.name);
     for (const [name, range] of Object.entries(pkg.dependencies ?? {})) ranges[name] ??= range;
   }
   const results = [];
-  for (const name of ["safe-js", "safe-bash"]) {
+  const fsManifest = workspaces.find(workspace => workspace.dir === "safe-fs").pkg;
+  for (const name of ["safe-fs", "safe-js", "safe-bash"]) {
     const packageDir = path.join(rootDir, "packages", name);
     const source = await readJson(path.join(packageDir, "package.json"));
     const directory = path.join(outDir, name);
@@ -72,6 +77,14 @@ export async function packageSafeLibraries({ rootDir, outDir, version, files = f
     const pending = [];
     const copied = new Set();
     const dependencies = {};
+    const bundled = new Map();
+    if (name === "safe-js") {
+      const graph = await resolveBundleGraph(rootDir, workspaces, files);
+      const alias = Object.fromEntries(Object.entries(graph.alias).map(([specifier, target]) => [specifier, publicSpecifier(specifier) !== specifier ? publicSpecifier(specifier) : target]));
+      const entryPoints = Object.fromEntries(Object.entries(source.exports).map(([key, target]) => [key === "." ? "index" : key.slice(2), path.join(packageDir, "src", target.import.slice("./dist/".length, -3) + ".ts")]));
+      const result = await bundle({ absWorkingDir: rootDir, entryPoints, alias, external: [...graph.external, "@poe-platform/safe-fs"], bundle: true, splitting: true, platform: "node", target: "node18.18", format: "esm", outdir: path.join(packageDir, "dist"), chunkNames: "chunks/[name]-[hash]", sourcemap: true, write: false });
+      for (const output of result.outputFiles) bundled.set(output.path, output.contents);
+    }
     const enqueueExport = value => {
       if (typeof value === "string" && value.startsWith("./")) {
         const absolute = path.resolve(rootDir, value);
@@ -82,20 +95,34 @@ export async function packageSafeLibraries({ rootDir, outDir, version, files = f
       return value;
     };
     const exports = {};
+    const workspaceTarget = value => typeof value === "string" ? value.replace("./dist/", `./packages/${name}/dist/`) : value && typeof value === "object" ? Object.fromEntries(Object.entries(value).map(([key, item]) => [key, workspaceTarget(item)])) : value;
     if (name === "safe-js") {
       for (const [key, value] of Object.entries(root.exports)) {
         if (key === "./safe-js" || key.startsWith("./safe-js/")) exports[key === "./safe-js" ? "." : "." + key.slice("./safe-js".length)] = enqueueExport(value);
-        if (key === "./safe-fs" || key.startsWith("./safe-fs/")) exports["./fs" + key.slice("./safe-fs".length)] = enqueueExport(value);
       }
+      for (const suffix of ["", "/core", "/node"]) {
+        const target = "./dist/compat/fs" + suffix.replace("/", "-");
+        const contents = `export * from ${JSON.stringify("@poe-platform/safe-fs" + suffix)};\n`;
+        await files.mkdir(path.join(directory, "dist/compat"), { recursive: true });
+        for (const extension of [".js", ".d.ts"]) await files.writeFile(path.join(directory, target + extension), contents);
+        exports["./fs" + suffix] = { types: target + ".d.ts", ...(suffix === "/node" ? { browser: null } : {}), import: target + ".js" };
+      }
+      dependencies["@poe-platform/safe-fs"] = version;
     } else {
-      const workspaceTarget = value => typeof value === "string" ? value.replace("./dist/", "./packages/safe-bash/dist/") : value && typeof value === "object" ? Object.fromEntries(Object.entries(value).map(([key, item]) => [key, workspaceTarget(item)])) : value;
-      for (const [key, value] of Object.entries(source.exports)) exports[key] = enqueueExport(workspaceTarget(value));
-      if (root.exports["./safe-bash/browser"]) exports["./browser"] = enqueueExport(root.exports["./safe-bash/browser"]);
+      for (const [key, value] of Object.entries(source.exports)) {
+        let target = value;
+        if (name === "safe-fs") {
+          if (key === "." || key === "./contracts") target = { types: { browser: "./dist/core.d.ts", default: value.types }, browser: "./dist/core.js", import: value.import };
+          if (["./node", "./fs/real", "./fs/s3", "./fs/s3/http"].includes(key)) target = { types: { browser: "./dist/node-unavailable.d.ts", default: key === "./node" ? "./dist/node-host.d.ts" : value.types }, browser: null, import: key === "./node" ? "./dist/node-host.js" : value.import };
+        }
+        exports[key] = enqueueExport(workspaceTarget(target));
+      }
+      if (name === "safe-bash" && root.exports["./safe-bash/browser"]) exports["./browser"] = enqueueExport(root.exports["./safe-bash/browser"]);
       const walk = async directory => {
         for (const entry of await files.readdir(directory, { withFileTypes: true })) {
           const filename = path.join(directory, entry.name);
           if (entry.isDirectory()) await walk(filename);
-          else if (!entry.name.endsWith(".map")) pending.push(filename);
+          else if (!entry.name.endsWith(".map") && !(name === "safe-fs" && entry.name === "package.json")) pending.push(filename);
         }
       };
       await walk(path.join(packageDir, "dist"));
@@ -103,7 +130,7 @@ export async function packageSafeLibraries({ rootDir, outDir, version, files = f
     const addDependency = specifier => {
       const dependency = specifier.startsWith("@") ? specifier.split("/").slice(0, 2).join("/") : specifier.split("/")[0];
       if (dependency === `@poe-platform/${name}`) return;
-      if (dependency === "@poe-platform/safe-js") { dependencies[dependency] = version; return; }
+      if (dependency === "@poe-platform/safe-js" || dependency === "@poe-platform/safe-fs") { dependencies[dependency] = version; return; }
       if (dependency === "poe-code" || privateNames.has(dependency)) throw new Error(`Private or CLI dependency leaked: ${specifier}`);
       const range = ranges[dependency];
       if (!range || range === "*" || range.startsWith("workspace:")) throw new Error(`Missing publishable dependency range: ${specifier}`);
@@ -113,9 +140,9 @@ export async function packageSafeLibraries({ rootDir, outDir, version, files = f
       const filename = pending.pop();
       if (copied.has(filename)) continue;
       copied.add(filename);
-      if (await exists(filename + ".map")) pending.push(filename + ".map");
+      if (bundled.has(filename + ".map") || await exists(filename + ".map")) pending.push(filename + ".map");
       const destination = path.join(directory, artifactPath(rootDir, filename));
-      let contents = await files.readFile(filename);
+      let contents = bundled.has(filename) ? Buffer.from(bundled.get(filename)) : await files.readFile(filename);
       if (filename.endsWith(".js") || filename.endsWith(".mjs") || filename.endsWith(".ts")) {
         const declaration = filename.endsWith(".d.ts") || filename.endsWith(".d.mts");
         contents = rewriteModuleSpecifiers(filename, contents.toString(), specifier => {
@@ -124,7 +151,8 @@ export async function packageSafeLibraries({ rootDir, outDir, version, files = f
             return specifier;
           }
           if (specifier === "#safe-fs-platform") {
-            for (const profile of ["node", "browser"]) pending.push(path.join(rootDir, "packages/safe-fs/dist/platform", profile + ".d.ts"));
+            if (name !== "safe-fs") throw new Error("Filesystem implementation leaked into " + name);
+            for (const profile of ["node", "browser"]) pending.push(path.join(rootDir, "packages/safe-fs/dist/platform", profile + (declaration ? ".d.ts" : ".js")));
             return specifier;
           }
           const publicName = publicSpecifier(specifier);
@@ -134,6 +162,13 @@ export async function packageSafeLibraries({ rootDir, outDir, version, files = f
             return publicName;
           }
           let target = path.resolve(path.dirname(filename), publicName);
+          if (name !== "safe-fs" && target.startsWith(path.join(rootDir, "packages/safe-fs/dist") + path.sep)) {
+            const runtime = target.endsWith(".d.ts") ? target.slice(0, -5) + ".js" : target;
+            const route = Object.entries(fsManifest.exports).find(([, value]) => path.resolve(rootDir, "packages/safe-fs", value.import) === runtime);
+            if (!route) throw new Error(`Unexported canonical filesystem reference: ${specifier}`);
+            addDependency("@poe-platform/safe-fs");
+            return "@poe-platform/safe-fs" + (route[0] === "." ? "" : route[0].slice(1));
+          }
           if (declaration && target.endsWith(".js")) target = target.slice(0, -3) + ".d.ts";
           pending.push(target);
           let relative = path.relative(path.dirname(destination), path.join(directory, artifactPath(rootDir, target))).split(path.sep).join("/");
@@ -145,14 +180,14 @@ export async function packageSafeLibraries({ rootDir, outDir, version, files = f
       await files.writeFile(destination, contents);
     }
     const manifest = {
-      name: `@poe-platform/${name}`, version, description: source.description ?? "Budgeted JavaScript interpreter with explicit host capabilities and resumable execution",
+      name: `@poe-platform/${name}`, version, description: source.description ?? (name === "safe-fs" ? "Composable filesystem with a portable core and explicit Node adapters" : "Budgeted JavaScript interpreter with explicit host capabilities and resumable execution"),
       type: "module", license: root.license, engines: source.engines ?? { node: ">=18.18" },
       files: ["dist"], exports,
       repository: { type: "git", url: "git+https://github.com/poe-platform/poe-code.git", directory: `packages/${name}` },
       publishConfig: { access: "public" }, dependencies,
     };
+    if (name === "safe-fs") manifest.imports = { "#safe-fs-platform": { types: { browser: "./dist/safe-fs/platform/browser.d.ts", default: "./dist/safe-fs/platform/node.d.ts" }, browser: "./dist/safe-fs/platform/browser.js", default: "./dist/safe-fs/platform/node.js" } };
     if (name === "safe-js") {
-      manifest.imports = { "#safe-fs-platform": { types: { browser: "./dist/safe-fs/platform/browser.d.ts", default: "./dist/safe-fs/platform/node.d.ts" }, default: null } };
       if (source.bin) manifest.bin = Object.fromEntries(Object.entries(source.bin).map(([command, target]) => [command, "./" + artifactPath(rootDir, path.resolve(packageDir, target))]));
     }
     await files.mkdir(directory, { recursive: true });

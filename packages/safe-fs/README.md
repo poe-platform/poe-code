@@ -4,10 +4,14 @@ An asynchronous filesystem interface for memory, rooted host directories, S3, an
 
 ## Quickstart
 
-Import from `poe-code/safe-fs`; it is included in `poe-code`, with no separate package needed. These examples use TypeScript in a Node ESM application.
+Install the standalone package; it does not depend on SafeJS, Safe Bash, or the `poe-code` CLI. These examples use TypeScript in a Node ESM application.
+
+```sh
+npm install @poe-platform/safe-fs
+```
 
 ```ts
-import { createMemoryFileSystem, createNodeFsBridge } from "poe-code/safe-fs";
+import { createMemoryFileSystem, createNodeFsBridge } from "@poe-platform/safe-fs";
 
 const storage = createMemoryFileSystem();
 await storage.mkdir("/work");
@@ -22,6 +26,33 @@ console.log(await fs.readFile("note.txt", "utf8"));
 Output: `hello`, then `hello world`. Nothing touches the host filesystem. Raw adapters exchange `Uint8Array` values; the Node bridge adds strings, encodings, `Buffer` results, and stat predicates. Its `cwd` is both the relative-path base and the confinement boundary.
 
 For host storage, use `await createRealFileSystem({ root: "/absolute/existing/directory" })` instead. The root must already exist; virtual `/` maps to that directory. Read the safety boundary below before exposing it to untrusted code.
+
+## Entry points and shared identity
+
+| Import | Use |
+| --- | --- |
+| `@poe-platform/safe-fs` | Full Node API; selects the portable core under the `browser` condition. |
+| `@poe-platform/safe-fs/core` | Memory, mounts, overlays, read-only, WebDAV, portable bridges, types, and errors. Bundle with the `browser` condition for browsers and Workers. |
+| `@poe-platform/safe-fs/node` | Host filesystem, Node bridge, S3, and configuration helpers; unavailable in browsers. |
+| `@poe-platform/safe-fs/fs/*` | Individual adapters: `memory`, `readonly`, `mount`, `overlay`, `webdav`, `real`, `s3`, and `s3/http`. The last three are Node-only. |
+
+```ts
+import { createMemoryFileSystem, FsError, type FileSystem } from "@poe-platform/safe-fs/core";
+
+const fs: FileSystem = createMemoryFileSystem();
+```
+
+Matching scoped SafeJS and Safe Bash releases use this package's types and runtime.
+Existing `@poe-platform/safe-js/fs`, `/fs/core`, and `/fs/node` imports remain
+re-exports, so `FsError` identity is shared; do not copy its implementation or the
+`FileSystem` declaration. `FileSystem` is an interface, not a runtime class.
+
+Legacy `poe-code/safe-fs` imports still use the CLI's bundled runtime. Keep an
+application's factories, shell, and errors in one import family. At a host-owned
+legacy adapter boundary, normalize foreign filesystem failures with `toFsError`
+from the receiving runtime; it retains the code, operation paths, and original
+cause. Preserve cancellation/control exceptions separately. Cross-family
+`instanceof FsError` is not supported without normalization.
 
 ## Supported operations
 
@@ -47,7 +78,7 @@ All required methods must exist, but a backend may reject an operation with `FsE
 | `createMountFileSystem({ root, mounts })` | Routing absolute virtual mount paths to different filesystems |
 | `createOverlayFileSystem({ upper, lower })` | Reading through to a lower layer and writing changes to an upper layer |
 
-`createNodeFsBridge` offers a promises-shaped subset, including recursive `cp` and `mkdtemp`. The portable `createFsBridge` from `poe-code/safe-fs/core` instead requires a caller-supplied text codec and returns `Uint8Array` values.
+`createNodeFsBridge` offers a promises-shaped subset, including recursive `cp` and `mkdtemp`. The portable `createFsBridge` from `@poe-platform/safe-fs/core` instead requires a caller-supplied text codec and returns `Uint8Array` values.
 
 ## Write an adapter
 
@@ -61,7 +92,7 @@ import {
   createNodeFileSystemAdapterRegistry, readConfigRecord, validatePath,
   type FileStat, type FileSystem, type FileSystemAdapterDescriptor,
   type FsOptions,
-} from "poe-code/safe-fs";
+} from "@poe-platform/safe-fs";
 
 const catalogAdapter = {
   validateOptions(options) {

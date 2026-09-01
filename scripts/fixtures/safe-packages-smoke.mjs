@@ -1,9 +1,15 @@
 import assert from "node:assert/strict";
 import { Budget, run } from "@poe-platform/safe-js";
-import { FsError, createMemoryFileSystem } from "@poe-platform/safe-js/fs";
+import { FsError, createMemoryFileSystem } from "@poe-platform/safe-fs";
+import { FsError as CompatibilityFsError } from "@poe-platform/safe-js/fs";
+import { FsError as CoreFsError } from "@poe-platform/safe-js/fs/core";
+import { FsError as NodeFsError } from "@poe-platform/safe-js/fs/node";
 import { Shell, standardCommands, FsError as ShellFsError, createMountFileSystem } from "@poe-platform/safe-bash";
 
 assert.equal(FsError, ShellFsError);
+assert.equal(FsError, CompatibilityFsError);
+assert.equal(FsError, CoreFsError);
+assert.equal(FsError, NodeFsError);
 const result = await run("return values.map(value => value * 2);", {
   bindings: { values: [2, 3] }, budget: new Budget({ maxSteps: 1000 }),
 });

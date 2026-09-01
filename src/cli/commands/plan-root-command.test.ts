@@ -1,4 +1,4 @@
-import { afterEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { Command } from "commander";
 import { stripVTControlCharacters } from "node:util";
 import { Volume, createFsFromVolume } from "memfs";
@@ -55,6 +55,10 @@ function withMockedStdin<T>(run: () => Promise<T>, isTTY: boolean): Promise<T> {
 }
 
 describe("plan root and browse commands", () => {
+  beforeEach(() => {
+    vi.spyOn(process.stdout, "write").mockReturnValue(true);
+  });
+
   afterEach(() => {
     vi.restoreAllMocks();
     vi.clearAllMocks();

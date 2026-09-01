@@ -2,7 +2,7 @@ import { cp, mkdtemp, readFile, realpath, rm, stat } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
-import { afterEach, expect } from "vitest";
+import { afterEach, beforeEach, expect, vi } from "vitest";
 import type { EvalRunResult } from "../types.js";
 import type { AcpEvent } from "@poe-code/agent-spawn";
 
@@ -11,7 +11,12 @@ const fixtureRoot = fileURLToPath(new URL("../__fixtures__", import.meta.url));
 const tempRoots: string[] = [];
 
 export function registerRunIntegrationCleanup(): void {
+  beforeEach(() => {
+    vi.spyOn(process.stdout, "write").mockImplementation(() => true);
+    vi.spyOn(process.stderr, "write").mockImplementation(() => true);
+  });
   afterEach(async () => {
+    vi.restoreAllMocks();
     await Promise.all(tempRoots.map((root) => rm(root, { recursive: true, force: true })));
     tempRoots.length = 0;
   });

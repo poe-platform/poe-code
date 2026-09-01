@@ -3511,6 +3511,7 @@ describe("tiny-http-mcp-server CLI", () => {
       {
         createServer,
         loadOAuthVerifier,
+        stdout: createCapturedOutput().io.stdout,
         waitForShutdown: async (shutdown) => {
           await shutdown();
         }
@@ -3572,6 +3573,7 @@ describe("tiny-http-mcp-server CLI", () => {
             throw new Error("not used in this test");
           })
         }),
+        stdout: createCapturedOutput().io.stdout,
         waitForShutdown: async (shutdown) => {
           await shutdown();
         }
@@ -3683,6 +3685,7 @@ describe("tiny-http-mcp-server CLI", () => {
       {
         createServer,
         loadOAuthVerifier,
+        stdout: createCapturedOutput().io.stdout,
         waitForShutdown: async (shutdown) => {
           await shutdown();
         }
@@ -3738,6 +3741,7 @@ describe("tiny-http-mcp-server CLI", () => {
       ],
       {
         createServer,
+        stdout: createCapturedOutput().io.stdout,
         waitForShutdown: async (shutdown) => {
           await shutdown();
         }

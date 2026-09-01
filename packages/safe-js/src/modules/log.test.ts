@@ -1,4 +1,5 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
+import { EventEmitter } from "node:events";
 
 import { makeLogModule } from "./log.js";
 
@@ -129,11 +130,13 @@ describe("makeLogModule", () => {
 
   it("ignores default sink stdout EPIPE writes", () => {
     const stdoutWrite = vi
-      .spyOn(process.stdout, "write")
+      .fn()
       .mockImplementationOnce(() => true)
       .mockImplementation(() => {
         throw Object.assign(new Error("write EPIPE"), { code: "EPIPE" });
       });
+    const stdout = Object.assign(new EventEmitter(), { write: stdoutWrite });
+    vi.spyOn(process, "stdout", "get").mockReturnValue(stdout as typeof process.stdout);
     const log = makeLogModule();
 
     expect(() => {
@@ -142,6 +145,20 @@ describe("makeLogModule", () => {
       log.info("third");
     }).not.toThrow();
     expect(stdoutWrite).toHaveBeenCalledTimes(2);
+  });
+
+  it("shares one broken-pipe listener across default sinks", () => {
+    const stdout = Object.assign(new EventEmitter(), { write: vi.fn() });
+    vi.spyOn(process, "stdout", "get").mockReturnValue(stdout as typeof process.stdout);
+    const logs = Array.from({ length: 20 }, () => makeLogModule());
+
+    expect(stdout.listenerCount("error")).toBe(1);
+    logs[0]!.info("before closing");
+    stdout.emit("error", Object.assign(new Error("write EPIPE"), { code: "EPIPE" }));
+    for (const log of logs) log.info("after closing");
+    makeLogModule().info("created after closing");
+    expect(stdout.write).toHaveBeenCalledTimes(1);
+    expect(stdout.listenerCount("error")).toBe(1);
   });
 
   it("serializes default-sink records that JSON.stringify cannot handle directly", () => {

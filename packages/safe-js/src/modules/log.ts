@@ -19,6 +19,8 @@ export type LogModuleEntry =
 
 export type LogModuleSink = (entry: LogModuleEntry) => void;
 
+const stdoutSinks = new WeakMap<NodeJS.WriteStream, LogModuleSink>();
+
 export function makeLogModule(sink: LogModuleSink = createJsonlStdoutSink()): {
   info: (...args: unknown[]) => void;
   error: (...args: unknown[]) => void;
@@ -55,13 +57,19 @@ export function makeLogModule(sink: LogModuleSink = createJsonlStdoutSink()): {
 }
 
 function createJsonlStdoutSink(): LogModuleSink {
-  const brokenPipe = createBrokenPipeState();
-  const stdout = createSafeOutputStream(process.stdout, brokenPipe);
-  addBrokenPipeListener(process.stdout, brokenPipe);
+  const stream = process.stdout;
+  const existing = stdoutSinks.get(stream);
+  if (existing) return existing;
 
-  return (entry) => {
+  const brokenPipe = createBrokenPipeState();
+  const stdout = createSafeOutputStream(stream, brokenPipe);
+  addBrokenPipeListener(stream, brokenPipe);
+
+  const sink: LogModuleSink = (entry) => {
     stdout.write(`${JSON.stringify(toJsonValue(entry, new WeakSet()))}\n`);
   };
+  stdoutSinks.set(stream, sink);
+  return sink;
 }
 
 function readNonEmptyString(value: unknown, label: string): string {

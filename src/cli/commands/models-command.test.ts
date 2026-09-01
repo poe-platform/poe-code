@@ -115,8 +115,13 @@ async function runModels(options: {
     logger: (message) => options.logs.push(message)
   });
   vi.spyOn(program, "optsWithGlobals").mockReturnValue({ yes: false, dryRun: false } as any);
-  await program.parseAsync(["node", "cli", "models", ...(options.args ?? [])]);
-  return options.logs.join("\n");
+  const stdout = vi.spyOn(process.stdout, "write").mockImplementation(() => true);
+  try {
+    await program.parseAsync(["node", "cli", "models", ...(options.args ?? [])]);
+    return options.logs.join("\n");
+  } finally {
+    stdout.mockRestore();
+  }
 }
 
 async function runModelsWithStdout(options: {

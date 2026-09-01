@@ -517,7 +517,7 @@
   "overrides": {
     "eslint-visitor-keys": "4.2.1",
     "esbuild": "0.28.1",
-    "glob": "10.5.0",
+    "glob": "13.0.6",
     "ini": "5.0.0",
     "toml": "3.0.0",
     "vite": "6.4.3"

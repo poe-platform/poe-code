@@ -1,5 +1,5 @@
 import path from "node:path";
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 import { build } from "esbuild";
 
 describe("Toolcraft CLI bundling", () => {
@@ -39,9 +39,14 @@ describe("Toolcraft CLI bundling", () => {
 
     const output = result.outputFiles[0];
     expect(output).toBeDefined();
-    await expect(
-      import(`data:text/javascript;base64,${Buffer.from(output?.contents ?? []).toString("base64")}`)
-    ).resolves.toBeDefined();
+    const stdout = vi.spyOn(process.stdout, "write").mockReturnValue(true);
+    try {
+      await expect(
+        import(`data:text/javascript;base64,${Buffer.from(output?.contents ?? []).toString("base64")}`)
+      ).resolves.toBeDefined();
+    } finally {
+      stdout.mockRestore();
+    }
   });
 
   it("keeps Streamable HTTP code out of stdio MCP bundles", async () => {

@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
+import { describe, it, expect, beforeEach, afterEach, onTestFinished, vi } from "vitest";
 import { Volume, createFsFromVolume } from "memfs";
 import { resolveConfigPath } from "@poe-code/poe-code-config";
 import { createProgram } from "../program.js";
@@ -109,6 +109,8 @@ describe("doctor command", () => {
   let originalExitCode: number | string | undefined;
 
   beforeEach(() => {
+    const stdout = vi.spyOn(process.stdout, "write").mockReturnValue(true);
+    onTestFinished(() => stdout.mockRestore());
     originalPoeApiKey = process.env.POE_API_KEY;
     delete process.env.POE_API_KEY;
     originalExitCode = process.exitCode;

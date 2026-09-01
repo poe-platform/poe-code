@@ -1,4 +1,5 @@
-import { describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { setTimeout as scheduleTimeout } from "node:timers";
 import { Volume, createFsFromVolume } from "memfs";
 import { gistFilenameForBundlePath } from "../bundle.js";
 import { uploadBundle } from "./upload.js";
@@ -9,6 +10,14 @@ import { hashFiles, sha256 } from "../hash.js";
 import { InMemoryGistClient } from "../fixtures/in-memory-gist-client.js";
 import { createDummyAgentConfigFixture, dummyCwd, dummyHome, fixedDate } from "../fixtures/dummy-config.js";
 import type { AgentStashContext, AgentStashFileSystem, GistRecord, GistWriteInput } from "../types.js";
+
+beforeEach(() => {
+  vi.spyOn(globalThis, "setTimeout").mockImplementation((callback, _delay, ...args) =>
+    scheduleTimeout(callback, 0, ...args)
+  );
+});
+
+afterEach(() => vi.restoreAllMocks());
 
 vi.mock("../gist-client.js", async (importOriginal) => {
   const actual = await importOriginal<typeof import("../gist-client.js")>();

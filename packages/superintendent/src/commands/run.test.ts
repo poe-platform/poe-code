@@ -392,6 +392,7 @@ describe("superintendent run command", () => {
     const cancelled = Symbol("cancelled");
     const selectPrompt = vi.fn(async () => cancelled);
     const runLoopMock = vi.fn();
+    const stdout = vi.spyOn(process.stdout, "write").mockImplementation(() => true);
     vi.resetModules();
     vi.doMock("toolcraft-design", async () => {
       const actual = await vi.importActual<typeof import("toolcraft-design")>("toolcraft-design");
@@ -422,6 +423,7 @@ describe("superintendent run command", () => {
 
       expect(runLoopMock).not.toHaveBeenCalled();
     } finally {
+      stdout.mockRestore();
       vi.doUnmock("toolcraft-design");
       vi.resetModules();
     }

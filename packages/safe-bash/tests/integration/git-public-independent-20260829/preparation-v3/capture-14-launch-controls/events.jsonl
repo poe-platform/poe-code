@@ -1,3 +1,0 @@
-{"pid": 69399, "startNs": 1787969127160561000, "slots": 42, "tool": "/Users/kjopek/.codex/tmp/arg0/codex-arg0wITElD/apply_patch", "sha256": "a14f9a907c12c8812878b70e6b7d65f81c39ed795513e46a55817d7428c0ca6b", "enrollBeforeSpawn": true, "files": {"launch.py": "a82150809bf05fae113d0feba1fe0f1409b197758eedcbca92be9442c510665d", "whole-adapter-controls.mjs": "04d9513d019b1c4961b6c9f9af3c682d1b871fa365ebf926bc86e582569e6e7e", "CONTROL-DATA.json": "34bac374b8b3c2b2b47f74063455eb3fc3414fe5bd187eb0a50c22ff2756fdab"}}
-{"pid": 69409}
-{"closed": true, "code": 0}

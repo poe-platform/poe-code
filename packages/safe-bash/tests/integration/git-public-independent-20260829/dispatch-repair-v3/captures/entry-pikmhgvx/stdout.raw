@@ -1,6 +1,0 @@
-{"id": "C01-missing-reference", "pass": true}
-{"id": "C02-preauth-throw", "pass": true}
-{"id": "C03-exec-spawn-failure", "pass": true}
-{"id": "C04-falsy-primary-cleanup", "pass": true}
-{"id": "C05-normal-tiny-child", "pass": true}
-{"id": "C06-capture-closure", "pass": true}

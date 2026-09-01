@@ -1,6 +1,0 @@
-(node:26230) SecurityWarning: The flag --allow-worker must be used with extreme caution. It could invalidate the permission model.
-(Use `node --trace-warnings ...` to show where the warning was created)
-(node:26230) ExperimentalWarning: `--experimental-loader` may be removed in the future; instead use `register()`:
---import 'data:text/javascript,import { register } from "node:module"; import { pathToFileURL } from "node:url"; register("/Users/kjopek/Workspace/safe-bash/tests/integration/git-public-independent-20260829/actual-v2/scratch/work-x0BAYP/harness/loader.mjs", pathToFileURL("./"));'
-(node:26230) SecurityWarning: The flag --allow-worker must be used with extreme caution. It could invalidate the permission model.
-(Use `node --trace-warnings ...` to show where the warning was created)

@@ -2,8 +2,8 @@
   "version": 2,
   "inventory": {
     "path": "packages/safe-bash/integration-lint-inventory.json",
-    "bytes": 546230,
-    "sha256": "dc8d3d98eeb65c8d0f601d86bd16d446079e52f8580b968da8526b29317271f6"
+    "bytes": 535875,
+    "sha256": "c67f5004c29e0974e166fc007e794e1ae35083a017a1c96b6e60cb79b59c6689"
   },
   "records": [
     {

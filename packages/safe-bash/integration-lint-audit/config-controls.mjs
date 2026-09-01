@@ -25,9 +25,9 @@ const readRegular = (filename, limit) => {
   return guard.read(filename.slice(repositoryRoot.length + 1), 'configuration', limit);
 };
 const inventoryPath = join(repositoryRoot, 'packages/safe-bash/integration-lint-inventory.json');
-const inventoryBytes = readRegular(inventoryPath, 546230);
-assert.equal(inventoryBytes.length, 546230);
-assert.equal(digest(inventoryBytes), 'dc8d3d98eeb65c8d0f601d86bd16d446079e52f8580b968da8526b29317271f6');
+const inventoryBytes = readRegular(inventoryPath, 535875);
+assert.equal(inventoryBytes.length, 535875);
+assert.equal(digest(inventoryBytes), 'c67f5004c29e0974e166fc007e794e1ae35083a017a1c96b6e60cb79b59c6689');
 const inventory = JSON.parse(inventoryBytes);
 const inventoryCounts = {
   records: inventory.records.length,
@@ -38,7 +38,7 @@ const inventoryCounts = {
   controlledRecords: inventory.records.filter(record => record.role === 'controlled-executable-fixture').length,
   controlledMembers: inventory.records.filter(record => record.role === 'controlled-executable-fixture').reduce((total, record) => total + record.members.length, 0),
 };
-assert.deepEqual(inventoryCounts, { records: 71, owners: 107, regularMembers: 1840, symlinks: 2, paths: 1842, controlledRecords: 8, controlledMembers: 22 });
+assert.deepEqual(inventoryCounts, { records: 70, owners: 103, regularMembers: 1802, symlinks: 2, paths: 1804, controlledRecords: 8, controlledMembers: 22 });
 const controls = [
   {
     "name": "intentional regex class characters",
@@ -1939,7 +1939,7 @@ const protectedImportStyleResults = await checkProtectedImportStyle({
 const heldBoundaryResults = await checkHeldBoundaryGlobalIgnore(compatibilityModule.default);
 
 assert.ok(readRegular(configPath, 300000).equals(configBytes), 'ESLint configuration changed during controls');
-assert.ok(readRegular(inventoryPath, 546230).equals(inventoryBytes), 'Frozen inventory changed during controls');
+assert.ok(readRegular(inventoryPath, 535875).equals(inventoryBytes), 'Frozen inventory changed during controls');
 for (const binding of wiringBindings) assert.ok(guard.read(binding.path, 'configuration').equals(binding.bytes), 'Guarded wiring changed during controls: ' + binding.path);
 const policyMarkers = [
   ["ecmaVersion: 'latest'", 'Package-only modern JavaScript syntax'],

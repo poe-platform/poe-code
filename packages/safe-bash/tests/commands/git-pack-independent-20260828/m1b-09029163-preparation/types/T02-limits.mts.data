@@ -1,2 +1,0 @@
-import { createGitCommand } from "__GIT_ENTRY__";
-createGitCommand({ limits: {} });

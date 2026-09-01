@@ -1,9 +1,0 @@
-{"kind": "outer-owner", "pid": 51392, "sourceDataOnly": true}
-{"kind": "source-read", "path": "tests/integration/apply-patch-public-independent-20260829/ROOT-ACCEPTANCE.md", "sha256": "25ff1e2c644e546f7f1912ad70454f398b240e33ad4408d9895d4894616467fb", "bytes": 3176}
-{"kind": "source-read", "path": "tests/integration/apply-patch-public-independent-20260829/SOURCE-COMMON-REGEX.md", "sha256": "de45702ef933e7214ee677ac3fb90127047579f27c43cc06e4c79320e422c257", "bytes": 3187}
-{"kind": "source-read", "path": "tests/integration/apply-patch-public-independent-20260829/WORKER-PROFILE-GAP.md", "sha256": "fbca94362bcac3b27555c72ae056a74b66b63af3410e4e70d637d641df697e41", "bytes": 3128}
-{"kind": "source-read", "path": "src/commands/regex-execution/client.ts", "sha256": "5d086314898c38390753a07ef1c37001890ac2b47f3d0e05e221048b9db42ebc", "bytes": 15319}
-{"kind": "source-read", "path": "src/commands/regex-execution/worker.ts", "sha256": "a442bb67cda6aff313cf3909cbfb0d3d8c12ebc420437d5fd9d7bd51fc6c9da6", "bytes": 1930}
-{"kind": "source-read", "path": "src/commands/regex-execution/protocol.ts", "sha256": "3610a50b436e083b2633e08c841978999b5fa61759fcaea224aeec97230c8bc1", "bytes": 10890}
-{"kind": "source-read", "path": "src/commands/regex-execution/client.ts", "sha256": "5d086314898c38390753a07ef1c37001890ac2b47f3d0e05e221048b9db42ebc", "bytes": 15319}
-{"kind": "terminal", "cumulativeKnownOSProcesses": 12, "newRuntimeExecutions": 0, "captureTotalBytes": 549031, "elapsedMsFromFirst": 124298.669}

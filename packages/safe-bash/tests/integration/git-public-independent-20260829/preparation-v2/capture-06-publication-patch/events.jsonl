@@ -1,3 +1,0 @@
-{"start": 1787967796713713000, "pid": 54971, "cumulativeReservedSlots": 16, "tool": "/Users/kjopek/.codex/tmp/arg0/codex-arg0wITElD/apply_patch", "realpath": "/Users/kjopek/.nvm/versions/node/v22.22.2/lib/node_modules/@openai/codex/node_modules/@openai/codex-darwin-arm64/vendor/aarch64-apple-darwin/bin/codex", "sha256": "a14f9a907c12c8812878b70e6b7d65f81c39ed795513e46a55817d7428c0ca6b", "enrollBeforeSpawn": true}
-{"childPid": 54988}
-{"closed": true, "code": 0}

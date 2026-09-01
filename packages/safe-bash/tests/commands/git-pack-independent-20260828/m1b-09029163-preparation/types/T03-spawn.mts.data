@@ -1,2 +1,0 @@
-import { gitCommands } from "__GIT_ENTRY__";
-gitCommands({ spawn: () => undefined });

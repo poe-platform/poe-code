@@ -13,6 +13,43 @@ import { runTests } from "./test.mjs";
 import { assertAdmittedInputPath, assertLiteralInputPath, readIntegrationTypeInputs, readRegularInput } from "./typecheck-integration-inputs.mjs";
 
 const owner = "fixture producer";
+const removedGitFixtureRoots = [
+  "tests/commands/git-author-20260828",
+  "tests/commands/git-design-20260828",
+  "tests/commands/git-independent-20260828",
+  "tests/commands/git-pack-author-20260828",
+  "tests/commands/git-pack-design-20260828",
+  "tests/commands/git-pack-independent-20260828",
+  "tests/integration/git-public-20260829",
+  "tests/integration/git-public-independent-20260829",
+  "tests/integration/git-public-loader-review-20260829",
+];
+
+test("Git fixture cleanup removes obsolete roots without opening payloads", () => {
+  const root = fileURLToPath(new URL("../", import.meta.url));
+  const boundaries = loadBoundaries(root);
+  for (const path of removedGitFixtureRoots) {
+    assertAdmittedInputPath(path, boundaries);
+    assert.equal(fs.lstatSync(root + path, { throwIfNoEntry: false }), undefined, path);
+  }
+});
+
+test("Git fixture cleanup retains historical identities but removes their live admissions", () => {
+  const root = fileURLToPath(new URL("../", import.meta.url));
+  const boundaries = loadBoundaries(root);
+  const inventory = JSON.parse(readRegularInput(root, "integration-lint-inventory.json", 1048576, fs, boundaries));
+  const receiptBytes = readRegularInput(root, "integration-lint-audit/import-697ad-verification-retirement.json", 524288, fs, boundaries);
+  assert.equal(createHash("sha256").update(receiptBytes).digest("hex"), "9f73d12df64ba05609d58e8e591828d246bf0eab2276167f43caf5f46fa5aa49");
+  const paths = Object.keys(JSON.parse(receiptBytes).files);
+  const isRemoved = path => removedGitFixtureRoots.some(root => path === root || path.startsWith(root + "/"));
+  assert.equal(paths.length, 789);
+  assert.equal(paths.filter(isRemoved).length, 37);
+  const retirement = inventory.records.find(record => record.id === "import-697ad-verification-tools-retired-789");
+  assert.deepEqual(retirement.members.map(member => member.path), paths.filter(path => !isRemoved(path)));
+  assert.ok(inventory.records.every(record => [...record.owners, ...record.members].every(entry => !isRemoved(entry.path))));
+  const typeInputs = JSON.parse(readRegularInput(root, "integration-type-inputs.json", 100000, fs, boundaries));
+  assert.ok(typeInputs.cohorts.every(cohort => !isRemoved(cohort.owner.path) && cohort.entries.every(entry => !isRemoved(entry.path))));
+});
 
 test("runner exposes no native qualification selector", async () => {
   const runner = await import("./test.mjs");
@@ -141,23 +178,6 @@ const successorSubjects = [
     "member": "tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/l02-repair-v1/host-doubles.mjs"
   },
   {
-    "id": "candidate7-05-failed-attempt-capture",
-    "role": "immutable-harness-capture",
-    "owners": [
-      "tests/integration/git-public-independent-20260829/internal-loader-repair-v1/CONTROL-SEAL.json",
-      "tests/integration/git-public-independent-20260829/internal-loader-repair-v1/REPORT.md",
-      "tests/integration/git-public-independent-20260829/internal-loader-repair-v1/consumer-v2.mjs",
-      "tests/integration/git-public-independent-20260829/internal-loader-repair-v1/controls-v2.mjs"
-    ],
-    "proof": {
-      "owner": "tests/integration/git-public-independent-20260829/internal-loader-repair-v1/CONTROL-SEAL.json",
-      "selector": "/files/4",
-      "pathBase": "tests/integration/git-public-independent-20260829/internal-loader-repair-v1",
-      "relation": "Immutable failed-attempt harness capture with a positively identified corrected successor and retained selector/validator. Original FAILED status is preserved; this is not a passing test or a passive-data relabeling of the current driver. "
-    },
-    "member": "tests/integration/git-public-independent-20260829/internal-loader-repair-v1/consumer.mjs"
-  },
-  {
     "id": "candidate7-06-failed-attempt-capture",
     "role": "immutable-harness-capture",
     "owners": [
@@ -234,13 +254,13 @@ function successorFixture(index = 0) {
   }
   const prefix = "/Users/kjopek/Workspace/safe-bash/";
   let selected;
-  if (index === 5) {
+  if (index === 4) {
     selected = record.members[0].sha256;
     saveOwner(subject.proof.owner, { source: { [subject.member]: selected } });
     saveOwner(subject.owners[7], { sourceHashes: { [subject.member]: selected } });
   } else {
     const [collection, offset] = subject.proof.selector.slice(1).split("/");
-    const historical = index === 1 || index === 4;
+    const historical = index === 1 || index === 3;
     selected = { path: historical ? prefix + subject.member : subject.proof.pathBase === "." ? subject.member : posix.basename(subject.member), [historical ? "size" : "bytes"]: record.members[0].bytes, sha256: record.members[0].sha256 };
     if (historical) selected.mode = 420;
     const rows = Array.from({ length: Number(offset) + 1 }, () => null);
@@ -255,7 +275,7 @@ function successorFixture(index = 0) {
     const seal = { productResultSha256: rawBinding.sha256, rows: [null, { ...bind(subject.owners[4]), path: "FINAL-RESULT.json", mode: 384 }, null, { ...bind(subject.owners[3]), path: "FINAL-PRESEAL.json", mode: 384 }] };
     saveOwner(subject.owners[5], seal);
   }
-  if (index === 4) {
+  if (index === 3) {
     files.set("/package/" + subject.owners[6], Buffer.from("positive matcher"));
     Object.assign(record.owners[6], bind(subject.owners[6]));
     const historicalRow = path => ({ path: prefix + path, size: bind(path).bytes, sha256: bind(path).sha256, mode: 420 });
@@ -283,8 +303,8 @@ function successorFixture(index = 0) {
   return { files, reads, fileSystem, record, inventory: { version: 1, records: [record] }, manifests, saveOwner, refreshRefusal, selected, subject };
 }
 
-test("six-record successors admit only literal subjects and preserve retained owners and live neighbors", () => {
-  for (let index = 0; index < 6; index++) {
+test("five-record successors admit only literal subjects and preserve retained owners and live neighbors", () => {
+  for (let index = 0; index < 5; index++) {
     const fixture = successorFixture(index);
     const result = verifyLintInventory("/package", fixture.inventory, boundary, fixture.fileSystem);
     assert.deepEqual(result.files, [fixture.subject.member]);
@@ -294,7 +314,7 @@ test("six-record successors admit only literal subjects and preserve retained ow
   }
 });
 
-test("six-record successor schema rejects retargeting roles selectors and directories before reads", () => {
+test("five-record successor schema rejects retargeting roles selectors and directories before reads", () => {
   const mutations = [
     record => { record.id = "candidate7-03-unapproved"; },
     record => { record.role = "immutable-source-capture"; },
@@ -309,7 +329,7 @@ test("six-record successor schema rejects retargeting roles selectors and direct
     record => { record.symlinks = []; },
     record => { record.proof.unknown = true; },
   ];
-  for (let index = 0; index < 6; index++) for (const mutate of mutations) {
+  for (let index = 0; index < 5; index++) for (const mutate of mutations) {
     const fixture = successorFixture(index);
     mutate(fixture.record);
     assert.throws(() => verifyLintInventory("/package", fixture.inventory, boundary, fixture.fileSystem));
@@ -317,7 +337,7 @@ test("six-record successor schema rejects retargeting roles selectors and direct
   }
 });
 
-test("six-record successors reject contradictory owner rows before any subject read", () => {
+test("five-record successors reject contradictory owner rows before any subject read", () => {
   const mutations = [
     row => { row.path = "tests/review/live.mjs"; },
     row => { row.path = "file://" + row.path; },
@@ -326,15 +346,15 @@ test("six-record successors reject contradictory owner rows before any subject r
     row => { row[Object.hasOwn(row, "size") ? "size" : "bytes"]++; },
     row => { row[Object.hasOwn(row, "size") ? "bytes" : "size"] = 1; },
   ];
-  for (let index = 0; index < 5; index++) for (const mutate of mutations) {
+  for (let index = 0; index < 4; index++) for (const mutate of mutations) {
     const fixture = successorFixture(index);
     mutate(fixture.selected);
     fixture.saveOwner(fixture.subject.proof.owner, fixture.manifests.get(fixture.subject.proof.owner));
-    if (index === 4) fixture.refreshRefusal();
+    if (index === 3) fixture.refreshRefusal();
     assert.throws(() => verifyLintInventory("/package", fixture.inventory, boundary, fixture.fileSystem));
     assert.ok(!fixture.reads.includes("/package/" + fixture.subject.member));
   }
-  for (let index = 0; index < 5; index++) for (const mutation of ["missing", "wrong-type", "duplicate"]) {
+  for (let index = 0; index < 4; index++) for (const mutation of ["missing", "wrong-type", "duplicate"]) {
     const fixture = successorFixture(index);
     const manifest = fixture.manifests.get(fixture.subject.proof.owner);
     const [collection, offset] = fixture.subject.proof.selector.slice(1).split("/");
@@ -342,13 +362,13 @@ test("six-record successors reject contradictory owner rows before any subject r
     if (mutation === "wrong-type") manifest[collection] = { [offset]: fixture.selected };
     if (mutation === "duplicate") manifest[collection].push({ ...fixture.selected });
     fixture.saveOwner(fixture.subject.proof.owner, manifest);
-    if (index === 4) fixture.refreshRefusal();
+    if (index === 3) fixture.refreshRefusal();
     assert.throws(() => verifyLintInventory("/package", fixture.inventory, boundary, fixture.fileSystem));
     assert.ok(!fixture.reads.includes("/package/" + fixture.subject.member));
   }
 });
 
-test("six-record prototype requires canonical own source maps not predecessor or diagnostic roles", () => {
+test("five-record prototype requires canonical own source maps not predecessor or diagnostic roles", () => {
   const mutations = [
     fixture => { fixture.record.proof.selector = fixture.record.proof.selector.replace("~1", "/"); },
     fixture => { fixture.record.proof.owner = fixture.subject.owners[8]; },
@@ -360,14 +380,14 @@ test("six-record prototype requires canonical own source maps not predecessor or
     fixture => { fixture.saveOwner(fixture.subject.owners[7], { sourceHashes: { [fixture.subject.member]: "0".repeat(64) } }); },
   ];
   for (const mutate of mutations) {
-    const fixture = successorFixture(5);
+    const fixture = successorFixture(4);
     mutate(fixture);
     assert.throws(() => verifyLintInventory("/package", fixture.inventory, boundary, fixture.fileSystem));
     assert.ok(!fixture.reads.includes("/package/" + fixture.subject.member));
   }
 });
 
-test("six-record refusal requires the same positive binding raw result and restored rows", () => {
+test("five-record refusal requires the same positive binding raw result and restored rows", () => {
   const mutations = [
     raw => { raw.emittedBindings[5].sha256 = "0".repeat(64); },
     raw => { raw.finalCensus[6].path += "/other"; },
@@ -381,7 +401,7 @@ test("six-record refusal requires the same positive binding raw result and resto
     raw => { raw.rows[25].role = "unrelated"; },
   ];
   for (const mutate of mutations) {
-    const fixture = successorFixture(4);
+    const fixture = successorFixture(3);
     const raw = fixture.manifests.get(fixture.subject.proof.owner);
     mutate(raw);
     fixture.saveOwner(fixture.subject.proof.owner, raw);
@@ -396,7 +416,7 @@ test("six-record refusal requires the same positive binding raw result and resto
     [5, manifest => { manifest.productResultSha256 = "0".repeat(64); }],
     [5, manifest => { manifest.rows[1].sha256 = "0".repeat(64); }],
   ]) {
-    const fixture = successorFixture(4);
+    const fixture = successorFixture(3);
     const owner = fixture.subject.owners[ownerIndex];
     const manifest = fixture.manifests.get(owner);
     mutate(manifest);
@@ -406,7 +426,7 @@ test("six-record refusal requires the same positive binding raw result and resto
   }
 });
 
-test("six-record successors refuse held aliases ancestors and invalid literals before content reads", () => {
+test("five-record successors refuse held aliases ancestors and invalid literals before content reads", () => {
   const crossRecord = successorFixture();
   const provenance = lintFixture();
   provenance.inventory.records[0].owners.push({ ...crossRecord.record.members[0] });
@@ -415,7 +435,7 @@ test("six-record successors refuse held aliases ancestors and invalid literals b
   assert.throws(() => verifyLintInventory("/package", crossRecord.inventory, boundary, crossRecord.fileSystem));
   assert.deepEqual(crossRecord.reads, []);
   for (const path of ["tests/commands/xan-author-20260828/input.mjs", "tests/commands/XAN-author-20260828/input.mjs", "tests/commands", "tests/review/../input.mjs", "tests/review/*.mjs", "tests/review/@(live|data).mjs"]) {
-    for (let index = 0; index < 6; index++) for (const target of ["owner", "member"]) {
+    for (let index = 0; index < 5; index++) for (const target of ["owner", "member"]) {
       const fixture = successorFixture(index);
       if (target === "owner") { fixture.record.owners[0].path = path; fixture.record.proof.owner = path; }
       else fixture.record.members[0].path = path;
@@ -425,8 +445,8 @@ test("six-record successors refuse held aliases ancestors and invalid literals b
   }
 });
 
-test("six-record successors reject metadata aliases symlinks special files and oversize before payload reads", () => {
-  for (let index = 0; index < 6; index++) for (const target of ["owner", "member"]) for (const kind of ["alias", "symlink", "ancestor", "special", "oversize"]) {
+test("five-record successors reject metadata aliases symlinks special files and oversize before payload reads", () => {
+  for (let index = 0; index < 5; index++) for (const target of ["owner", "member"]) for (const kind of ["alias", "symlink", "ancestor", "special", "oversize"]) {
     const fixture = successorFixture(index);
     const selected = "/package/" + (target === "owner" ? fixture.subject.proof.owner : fixture.subject.member);
     const parent = posix.dirname(selected);
@@ -446,8 +466,8 @@ test("six-record successors reject metadata aliases symlinks special files and o
   }
 });
 
-test("six-record successors reject separate owner and member hash or size drift", () => {
-  for (let index = 0; index < 6; index++) for (const target of ["owner", "member"]) for (const resize of [false, true]) {
+test("five-record successors reject separate owner and member hash or size drift", () => {
+  for (let index = 0; index < 5; index++) for (const target of ["owner", "member"]) for (const resize of [false, true]) {
     const fixture = successorFixture(index);
     const selected = "/package/" + (target === "owner" ? fixture.subject.proof.owner : fixture.subject.member);
     const previous = fixture.files.get(selected);
@@ -841,9 +861,9 @@ test("lint inventory permits independently sealed historical provenance, not sel
 
 test("frozen lint inventory authenticates exact size and SHA before any owner or member reads", () => {
   const root = fileURLToPath(new URL("../", import.meta.url));
-  const approved = readRegularInput(root, "integration-lint-inventory.json", 546230, fs, loadBoundaries(root));
-  assert.equal(approved.length, 546230);
-  assert.equal(createHash("sha256").update(approved).digest("hex"), "dc8d3d98eeb65c8d0f601d86bd16d446079e52f8580b968da8526b29317271f6");
+  const approved = readRegularInput(root, "integration-lint-inventory.json", 535875, fs, loadBoundaries(root));
+  assert.equal(approved.length, 535875);
+  assert.equal(createHash("sha256").update(approved).digest("hex"), "c67f5004c29e0974e166fc007e794e1ae35083a017a1c96b6e60cb79b59c6689");
   for (const resize of [false, true]) {
     const changed = Buffer.concat([approved, Buffer.alloc(Number(resize))]);
     changed[0] = 32;
@@ -858,7 +878,7 @@ test("frozen lint inventory authenticates exact size and SHA before any owner or
   }
 });
 
-test("frozen lint inventory adds only its 1842 literal exclusions and preserves current tests and consumers", async () => {
+test("frozen lint inventory adds only its 1804 literal exclusions and preserves current tests and consumers", async () => {
   const root = fileURLToPath(new URL("../", import.meta.url));
   const boundaries = loadBoundaries(root);
   const reads = [];
@@ -871,14 +891,14 @@ test("frozen lint inventory adds only its 1842 literal exclusions and preserves 
       return fs.readFileSync(path);
     },
   });
-  assert.equal(input.records.length, 71);
-  assert.equal(createHash("sha256").update(JSON.stringify(input.records.slice(0, 70))).digest("hex"), "3f4e00523c6b5ae660823bca7a31ccd35360c0dbc3610a6df8c2a219c215de11");
-  assert.equal(createHash("sha256").update(JSON.stringify(input.records.slice(0, 69))).digest("hex"), "fa0ae1c6b51b06a67d2a62548806c3520fc49efecabe23dea53c60237ef53be2");
+  assert.equal(input.records.length, 70);
+  assert.equal(createHash("sha256").update(JSON.stringify(input.records.slice(0, 69))).digest("hex"), "461159ff69833865729890157e3cb7dcc978478f5f211725ce1be2fffe8ec9f5");
+  assert.equal(createHash("sha256").update(JSON.stringify(input.records.slice(0, 68))).digest("hex"), "fa6b3e9e830c0d72706e72179ce067efbb158ebd0076c5bcb21e457fed96a45c");
   assert.equal(createHash("sha256").update(JSON.stringify(input.records.slice(0, 63))).digest("hex"), "8dfa6ec503dcb28e11e4c8fd9d176a60e08213981ffb4992ef42eaaf95809cdf");
-  assert.deepEqual(input.records.slice(63, 69).map(record => ({ id: record.id, role: record.role, path: record.members[0].path })), successorSubjects.map(subject => ({ id: subject.id, role: subject.role, path: subject.member })));
-  assert.ok(input.records.slice(63, 69).every(record => record.members.length === 1 && record.codeDirectory === undefined && record.symlinks === undefined));
+  assert.deepEqual(input.records.slice(63, 68).map(record => ({ id: record.id, role: record.role, path: record.members[0].path })), successorSubjects.map(subject => ({ id: subject.id, role: subject.role, path: subject.member })));
+  assert.ok(input.records.slice(63, 68).every(record => record.members.length === 1 && record.codeDirectory === undefined && record.symlinks === undefined));
   const archivalBase = "tests/integration/full-gate-20260827/unified76-driver/launcher-v3";
-  const archival = input.records[69];
+  const archival = input.records[68];
   assert.equal(archival.id, "launcher-v3-retired-operational-tooling");
   assert.equal(archival.role, "archived-operational-tooling");
   assert.deepEqual(archival.members.map(member => member.path), archivedLauncherNames.map(name => archivalBase + "/" + name));
@@ -900,7 +920,6 @@ test("frozen lint inventory adds only its 1842 literal exclusions and preserves 
     "tests/comparison/breadth-continuation-20260828/executor-v7/test-worker.mjs",
     "tests/compatibility/bash-conditional-author-20260829/run-v5.mjs",
     "tests/integration/full-gate-20260827/unified76-driver-independent/tool-routes-v10/seal-v2.mjs",
-    "tests/integration/git-public-independent-20260829/internal-loader-repair-v1/controls-v2.mjs",
     "tests/stress/regex-execution/production-review/freeze.mjs"
   ];
   for (const subject of successorSubjects) for (const owner of subject.owners) assert.equal(input.files.includes(owner), retiredProvenance.includes(owner), `exact named historical provenance transition: ${owner}`);
@@ -974,14 +993,14 @@ test("frozen lint inventory adds only its 1842 literal exclusions and preserves 
     "tests/comparison/breadth-continuation-20260828/executor-v7/test-worker.mjs"
   ];
   for (const path of retained) assert.equal(input.files.includes(path), retiredPreviousControls.includes(path), `only the exact named retirement may change prior admission: ${path}`);
-  assert.equal(input.records.flatMap(record => record.members).length, 1840);
-  assert.equal(new Set(input.records.flatMap(record => record.owners.map(owner => owner.path))).size, 107);
+  assert.equal(input.records.flatMap(record => record.members).length, 1802);
+  assert.equal(new Set(input.records.flatMap(record => record.owners.map(owner => owner.path))).size, 103);
   assert.equal(input.records.filter(record => record.codeDirectory !== undefined).length, 23);
   const symlinks = input.records.flatMap(record => record.symlinks ?? []);
   assert.equal(symlinks.length, 2);
-  assert.equal(input.files.length, 1842);
-  assert.equal(new Set(input.files).size, 1842);
-  assert.equal(reads.length, 1 + 107 + 1840);
+  assert.equal(input.files.length, 1804);
+  assert.equal(new Set(input.files).size, 1804);
+  assert.equal(reads.length, 1 + 103 + 1802);
   for (const link of symlinks) assert.ok(!reads.includes(link.path));
   const { consumerGroups, currentConsumerPaths, currentSourceConsumerGroups, negativeGroups } = await import("../tests/plugins/qualified-current-release/consumers.mjs");
   const tests = discoverTests(root, boundaries);
@@ -1727,8 +1746,8 @@ test("current integration type accounting retains exact frozen owners and every 
   const boundaries = loadBoundaries(root);
   const classified = readIntegrationTypeInputs(root, boundaries);
   assert.equal(classified.standaloneEntries.length, 13);
-  assert.equal(classified.capturedPaths.length, 12);
-  assert.equal(classified.cohorts.length, 11);
+  assert.equal(classified.capturedPaths.length, 2);
+  assert.equal(classified.cohorts.length, 9);
   assert.ok(classified.standaloneEntries.every(entry => entry.classification === "frozen-evidence"));
   assert.ok(classified.capturedPaths.every(path => !path.endsWith(".test.ts")));
   const tests = discoverTests(root, boundaries);
@@ -1757,7 +1776,7 @@ function importRetirementFixture(changeReceipt) {
   const bind = path => ({ path, bytes: files.get("/package/" + path).length, sha256: createHash("sha256").update(files.get("/package/" + path)).digest("hex") });
   if (changeReceipt) changeReceipt(receipt);
   files.set("/package/" + ownerPath, Buffer.from(JSON.stringify(receipt)));
-  const record = { id: receipt.id, role: "archived-operational-tooling", owners: [bind(ownerPath)], proof: { owner: ownerPath, selector: "/files", pathBase: ".", relation: "root-named-import-origin-retirement-v1" }, members: Object.keys(receipt.files).map(bind) };
+  const record = { id: receipt.id, role: "archived-operational-tooling", owners: [bind(ownerPath)], proof: { owner: ownerPath, selector: "/files", pathBase: ".", relation: "root-named-import-origin-retirement-v1" }, members: Object.keys(receipt.files).filter(path => !removedGitFixtureRoots.some(root => path === root || path.startsWith(root + "/"))).map(bind) };
   const reads = [];
   const metadata = [];
   const enumerations = [];
@@ -1786,15 +1805,17 @@ function importRetirementFixture(changeReceipt) {
 }
 
 
-test("import-origin retirement admits exactly789 synthetic subjects without execution or outward exclusions", () => {
+test("import-origin retirement preserves 789 historical identities and admits only 752 retained synthetic subjects without execution or outward exclusions", () => {
   const fixture = importRetirementFixture();
   fixture.files.set("/package/tests/review/current-negative-validator.mjs", Buffer.from("must remain active"));
   const result = fixture.verify("/package", fixture.inventory, boundary, fixture.fileSystem);
   assert.deepEqual([...result.files], fixture.record.members.map(member => member.path));
-  assert.equal(result.files.length, 789);
+  assert.equal(Object.keys(fixture.receipt.files).length, 789);
+  assert.equal(result.files.length, 752);
   assert.equal(new Set(fixture.record.members.map(member => member.sha256)).size, 1);
   assert.equal(fixture.reads[0], "/package/" + fixture.ownerPath);
-  assert.equal(fixture.reads.length, 790);
+  assert.equal(fixture.reads.length, 753);
+  assert.ok(fixture.reads.every(path => !removedGitFixtureRoots.some(root => path.startsWith("/package/" + root + "/"))));
   assert.ok(!result.files.includes("tests/review/current-negative-validator.mjs"));
   for (const path of fixture.receipt.preservation.protectedPaths) assert.ok(!result.files.includes(path));
 });
@@ -1895,9 +1916,9 @@ test("import-origin retirement denies replacement kinds and ancestor aliases bef
   }
 });
 
-test("import-origin retirement preserves only the five independently bound historical provenance overlaps", () => {
+test("import-origin retirement preserves only the four retained independently bound provenance overlaps", () => {
   const fixture = importRetirementFixture();
-  for (const [index, path] of fixture.receipt.preservation.retainedInventoryOwners.entries()) {
+  for (const [index, path] of fixture.receipt.preservation.retainedInventoryOwners.filter(path => fixture.record.members.some(member => member.path === path)).entries()) {
     const member = fixture.record.members.find(member => member.path === path);
     const capturedPath = "tests/review/captured-" + index + ".mjs";
     const bytes = Buffer.from("historical captured fixture");
@@ -1906,7 +1927,7 @@ test("import-origin retirement preserves only the five independently bound histo
   }
   fixture.inventory.records.reverse();
   const result = fixture.verify("/package", fixture.inventory, boundary, fixture.fileSystem);
-  assert.equal(result.files.length, 794);
+  assert.equal(result.files.length, 756);
   assert.equal(fixture.reads[0], "/package/" + fixture.ownerPath);
   const changed = structuredClone(fixture.inventory);
   changed.records.find(record => record.id === "synthetic-old-owner-0").owners[0].sha256 = "0".repeat(64);
@@ -1926,29 +1947,29 @@ test("import-origin retirement preserves only the five independently bound histo
 
 test("import-origin retirement preserves pinned inventory and root receipt data without member reads", () => {
   const root = fileURLToPath(new URL("../", import.meta.url));
-  const inventoryBytes = readRegularInput(root, "integration-lint-inventory.json", 546230, fs, boundary);
-  assert.equal(inventoryBytes.length, 546230);
-  assert.equal(createHash("sha256").update(inventoryBytes).digest("hex"), "dc8d3d98eeb65c8d0f601d86bd16d446079e52f8580b968da8526b29317271f6");
+  const inventoryBytes = readRegularInput(root, "integration-lint-inventory.json", 535875, fs, boundary);
+  assert.equal(inventoryBytes.length, 535875);
+  assert.equal(createHash("sha256").update(inventoryBytes).digest("hex"), "c67f5004c29e0974e166fc007e794e1ae35083a017a1c96b6e60cb79b59c6689");
   const inventory = JSON.parse(inventoryBytes);
-  assert.equal(inventory.records.length, 71);
-  assert.equal(createHash("sha256").update(JSON.stringify(inventory.records.slice(0, 70))).digest("hex"), "3f4e00523c6b5ae660823bca7a31ccd35360c0dbc3610a6df8c2a219c215de11");
+  assert.equal(inventory.records.length, 70);
+  assert.equal(createHash("sha256").update(JSON.stringify(inventory.records.slice(0, 69))).digest("hex"), "461159ff69833865729890157e3cb7dcc978478f5f211725ce1be2fffe8ec9f5");
   const receiptBytes = readRegularInput(root, "integration-lint-audit/import-697ad-verification-retirement.json", 524288, fs, boundary);
   assert.equal(receiptBytes.length, 500695);
   assert.equal(createHash("sha256").update(receiptBytes).digest("hex"), "9f73d12df64ba05609d58e8e591828d246bf0eab2276167f43caf5f46fa5aa49");
   const receipt = JSON.parse(receiptBytes);
-  const record = inventory.records[70];
+  const record = inventory.records[69];
   validateImportRetirement(record, receipt, boundary);
   assert.deepEqual(record.owners, [{ path: "integration-lint-audit/import-697ad-verification-retirement.json", bytes: receiptBytes.length, sha256: createHash("sha256").update(receiptBytes).digest("hex") }]);
-  assert.equal(inventory.records.flatMap(record => record.members).length, 1840);
-  assert.equal(new Set(inventory.records.flatMap(record => record.owners.map(owner => owner.path))).size, 107);
+  assert.equal(inventory.records.flatMap(record => record.members).length, 1802);
+  assert.equal(new Set(inventory.records.flatMap(record => record.owners.map(owner => owner.path))).size, 103);
   assert.equal(inventory.records.flatMap(record => record.symlinks ?? []).length, 2);
   const paths = inventory.records.flatMap(record => [...record.members.map(member => member.path), ...(record.symlinks ?? []).map(link => link.path)]);
-  assert.equal(new Set(paths).size, 1842);
+  assert.equal(new Set(paths).size, 1804);
   for (const path of receipt.preservation.protectedPaths) assert.ok(!paths.includes(path));
   assert.equal(receipt.preservation.protectedPaths.length, 25);
-  for (const path of receipt.preservation.retainedInventoryOwners) {
+  for (const path of receipt.preservation.retainedInventoryOwners.filter(path => record.members.some(member => member.path === path))) {
     const member = record.members.find(member => member.path === path);
-    const predecessors = inventory.records.slice(0, 70).flatMap(record => record.owners).filter(owner => owner.path === path);
+    const predecessors = inventory.records.slice(0, 69).flatMap(record => record.owners).filter(owner => owner.path === path);
     assert.ok(predecessors.length > 0);
     for (const predecessor of predecessors) assert.deepEqual(predecessor, member);
   }
@@ -2005,10 +2026,12 @@ const importRetirementOwnerAssociations = [
   }
 ];
 
-function importRetirementSevenOwnerFixture(changeReceipt) {
+const currentImportRetirementOwnerAssociations = importRetirementOwnerAssociations.filter(association => !removedGitFixtureRoots.some(root => association.owner.startsWith(root + "/")));
+
+function importRetirementCurrentOwnerFixture(changeReceipt) {
   const fixture = importRetirementFixture(changeReceipt);
-  const records = structuredClone(importRetirementTestInputs.inventory.records.filter(record => importRetirementOwnerAssociations.some(association => association.recordId === record.id)));
-  assert.equal(records.length, 7);
+  const records = structuredClone(importRetirementTestInputs.inventory.records.filter(record => currentImportRetirementOwnerAssociations.some(association => association.recordId === record.id)));
+  assert.equal(records.length, 6);
   const bind = path => ({ path, bytes: fixture.files.get("/package/" + path).length, sha256: createHash("sha256").update(fixture.files.get("/package/" + path)).digest("hex") });
   for (const record of records) for (const entry of [...record.owners, ...record.members]) {
     if (!fixture.files.has("/package/" + entry.path)) fixture.files.set("/package/" + entry.path, Buffer.from(entry.path.endsWith(".json") ? "{}" : "throw new Error('inert R2 verification fixture must never execute');"));
@@ -2027,7 +2050,7 @@ function importRetirementSevenOwnerFixture(changeReceipt) {
   }
   fixture.inventory.records = [...records, fixture.record];
   const associations = records.flatMap(record => record.owners.filter(owner => fixture.receipt.preservation.retainedInventoryOwners.includes(owner.path)).map(owner => ({ recordId: record.id, owner: owner.path, proofOwner: record.proof.owner, selector: record.proof.selector })));
-  assert.deepEqual(associations, importRetirementOwnerAssociations);
+  assert.deepEqual(associations, currentImportRetirementOwnerAssociations);
   return fixture;
 }
 
@@ -2093,13 +2116,13 @@ test("import-origin R2 records the exact five-owner dual role and seven current 
   assert.deepEqual(decision.associations, importRetirementOwnerAssociations);
 });
 
-test("import-origin R2 authenticates each of five owners twice after receipt validation across seven uses", () => {
-  const fixture = importRetirementSevenOwnerFixture();
+test("import-origin R2 authenticates each of four retained owners twice after receipt validation across six uses", () => {
+  const fixture = importRetirementCurrentOwnerFixture();
   const owned = guardedRetirementFixture(fixture);
   const result = owned.run();
-  assert.equal(result.files.length, 1230);
-  const paths = fixture.receipt.preservation.retainedInventoryOwners;
-  const ownerOrder = [...new Set(importRetirementOwnerAssociations.map(association => association.owner))];
+  assert.equal(result.files.length, 1192);
+  const paths = fixture.receipt.preservation.retainedInventoryOwners.filter(path => fixture.record.members.some(member => member.path === path));
+  const ownerOrder = [...new Set(currentImportRetirementOwnerAssociations.map(association => association.owner))];
   const memberOrder = fixture.record.members.filter(member => paths.includes(member.path)).map(member => member.path);
   const authenticated = fixture.events.filter(event => event.type === "authenticated" && paths.includes(event.path));
   assert.deepEqual(authenticated.map(event => event.path), [...ownerOrder, ...memberOrder]);
@@ -2112,7 +2135,7 @@ test("import-origin R2 authenticates each of five owners twice after receipt val
     assert.equal(owned.closed.filter(entry => entry.path === path).length, 2, path);
     assert.ok(fixture.events.findIndex(event => event.type === "opened" && event.path === path) > validated, path);
   }
-  assert.equal(importRetirementOwnerAssociations.filter(association => association.owner === "tests/stress/regex-execution/production-review/freeze.mjs").length, 3);
+  assert.equal(currentImportRetirementOwnerAssociations.filter(association => association.owner === "tests/stress/regex-execution/production-review/freeze.mjs").length, 3);
   assert.equal(owned.opened.filter(entry => entry.path === "tests/stress/regex-execution/production-review/freeze.mjs").length, 2);
   assert.equal(owned.descriptors.size, 0);
   assert.equal(owned.guard.snapshot().opens, owned.guard.snapshot().closes);
@@ -2120,7 +2143,7 @@ test("import-origin R2 authenticates each of five owners twice after receipt val
 
 test("import-origin R2 invalid receipt admits zero payloads for each current provenance owner", () => {
   for (const invalidHeader of [false, true]) {
-    const fixture = importRetirementSevenOwnerFixture(invalidHeader ? receipt => { receipt.decision.gateWaiver = true; } : undefined);
+    const fixture = importRetirementCurrentOwnerFixture(invalidHeader ? receipt => { receipt.decision.gateWaiver = true; } : undefined);
     if (!invalidHeader) {
       const bytes = Buffer.from(fixture.files.get("/package/" + fixture.ownerPath));
       bytes[0] ^= 1;
@@ -2140,9 +2163,9 @@ test("import-origin R2 invalid receipt admits zero payloads for each current pro
   }
 });
 
-for (const path of [...new Set(importRetirementOwnerAssociations.map(association => association.owner))]) {
+for (const path of [...new Set(currentImportRetirementOwnerAssociations.map(association => association.owner))]) {
   test("import-origin R2 partial owner failure closes and stops at " + path, () => {
-    const fixture = importRetirementSevenOwnerFixture();
+    const fixture = importRetirementCurrentOwnerFixture();
     const reason = Object.freeze({ owner: path });
     const owned = guardedRetirementFixture(fixture, { path, kind: "read", reason });
     let returned = false;
@@ -2153,7 +2176,7 @@ for (const path of [...new Set(importRetirementOwnerAssociations.map(association
     assert.equal(failure, reason);
     assert.equal(owned.opened.at(-1).path, path);
     assert.equal(owned.opened.at(-1).reads, 2);
-    assert.deepEqual(owned.opened.filter(entry => fixture.receipt.preservation.retainedInventoryOwners.includes(entry.path)).map(entry => entry.path), [...new Set(importRetirementOwnerAssociations.map(association => association.owner))].slice(0, [...new Set(importRetirementOwnerAssociations.map(association => association.owner))].indexOf(path) + 1));
+    assert.deepEqual(owned.opened.filter(entry => fixture.receipt.preservation.retainedInventoryOwners.includes(entry.path)).map(entry => entry.path), [...new Set(currentImportRetirementOwnerAssociations.map(association => association.owner))].slice(0, [...new Set(currentImportRetirementOwnerAssociations.map(association => association.owner))].indexOf(path) + 1));
     assert.equal(fixture.events.filter(event => event.type === "authenticated" && event.path === path).length, 0);
     assert.equal(owned.descriptors.size, 0);
     assert.equal(owned.guard.snapshot().opens, owned.guard.snapshot().closes);
@@ -2167,8 +2190,8 @@ for (const path of [...new Set(importRetirementOwnerAssociations.map(association
 test("import-origin R2 actual guard preserves falsey read and cleanup identities without omission", () => {
   const reasons = [undefined, null, false, 0, "", NaN];
   for (const reason of reasons) for (const kind of ["read", "close", "combined"]) {
-    const fixture = importRetirementSevenOwnerFixture();
-    const path = importRetirementOwnerAssociations[0].owner;
+    const fixture = importRetirementCurrentOwnerFixture();
+    const path = currentImportRetirementOwnerAssociations[0].owner;
     const closeReason = Object.freeze({ cleanup: reason });
     const owned = guardedRetirementFixture(fixture, { path, kind, reason, closeReason });
     let caught = false;
@@ -2192,8 +2215,8 @@ test("import-origin R2 actual guard preserves falsey read and cleanup identities
 });
 
 test("import-origin R2 missing payload and same-hash unlisted owner do not inherit provenance admission", () => {
-  for (const path of [...new Set(importRetirementOwnerAssociations.map(association => association.owner))]) {
-    const fixture = importRetirementSevenOwnerFixture();
+  for (const path of [...new Set(currentImportRetirementOwnerAssociations.map(association => association.owner))]) {
+    const fixture = importRetirementCurrentOwnerFixture();
     fixture.files.delete("/package/" + path);
     const owned = guardedRetirementFixture(fixture);
     assert.throws(() => owned.run());
@@ -2201,10 +2224,10 @@ test("import-origin R2 missing payload and same-hash unlisted owner do not inher
     assert.equal(owned.descriptors.size, 0);
     assert.equal(owned.guard.snapshot().opens, owned.guard.snapshot().closes);
   }
-  const fixture = importRetirementSevenOwnerFixture();
+  const fixture = importRetirementCurrentOwnerFixture();
   const replacement = fixture.record.members.find(member => !fixture.receipt.preservation.retainedInventoryOwners.includes(member.path));
   const record = fixture.inventory.records[0];
-  const previous = record.owners.find(owner => owner.path === importRetirementOwnerAssociations[0].owner);
+  const previous = record.owners.find(owner => owner.path === currentImportRetirementOwnerAssociations[0].owner);
   assert.equal(replacement.sha256, previous.sha256);
   Object.assign(previous, replacement);
   const owned = guardedRetirementFixture(fixture);
@@ -2217,10 +2240,10 @@ test("import-origin R2 operational inventory pin rejects missing swapped and rel
   const approved = importRetirementTestInputs.inventory;
   const ownerPaths = fixture.receipt.preservation.retainedInventoryOwners;
   for (const mutate of [
-    inventory => { inventory.records = inventory.records.filter(record => record.id !== importRetirementOwnerAssociations[0].recordId); },
-    inventory => { const record = inventory.records.find(record => record.id === importRetirementOwnerAssociations[0].recordId); record.owners = record.owners.filter(owner => owner.path !== importRetirementOwnerAssociations[0].owner); },
-    inventory => { const record = inventory.records.find(record => record.id === importRetirementOwnerAssociations[0].recordId); record.owners.find(owner => owner.path === importRetirementOwnerAssociations[0].owner).path = ownerPaths.find(path => path !== importRetirementOwnerAssociations[0].owner); },
-    inventory => { const record = inventory.records.find(record => record.id === importRetirementOwnerAssociations[0].recordId); record.owners.find(owner => owner.path === importRetirementOwnerAssociations[0].owner).path += ".same-hash-other-path"; },
+    inventory => { inventory.records = inventory.records.filter(record => record.id !== currentImportRetirementOwnerAssociations[0].recordId); },
+    inventory => { const record = inventory.records.find(record => record.id === currentImportRetirementOwnerAssociations[0].recordId); record.owners = record.owners.filter(owner => owner.path !== currentImportRetirementOwnerAssociations[0].owner); },
+    inventory => { const record = inventory.records.find(record => record.id === currentImportRetirementOwnerAssociations[0].recordId); record.owners.find(owner => owner.path === currentImportRetirementOwnerAssociations[0].owner).path = ownerPaths.find(path => path !== currentImportRetirementOwnerAssociations[0].owner); },
+    inventory => { const record = inventory.records.find(record => record.id === currentImportRetirementOwnerAssociations[0].recordId); record.owners.find(owner => owner.path === currentImportRetirementOwnerAssociations[0].owner).path += ".same-hash-other-path"; },
   ]) {
     const changed = structuredClone(approved);
     mutate(changed);

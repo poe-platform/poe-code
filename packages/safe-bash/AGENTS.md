@@ -45,11 +45,14 @@
   with authorization at every redirect hop, credential protections, cancellation,
   byte streaming and VFS I/O. Do not auto-enable network capability in agentCommands.
 - Prioritize the user-provided command table in docs/COMMAND_PRIORITIES.md:
-  sed, rg, git, printf, nl, cat, node, head, apply_patch, echo, find, tail, ls;
+  sed, rg, printf, nl, cat, node, head, apply_patch, echo, find, tail, ls;
   retain the separate curl requirement. User: **"without the npm stuff"** excludes
   npm/npx product commands, not npm/Node/TypeScript development or oracle tooling.
   Node remains a requested product command; neither host tooling nor the optional
-  SafeJS interpreter establishes product Git/Node/apply_patch compatibility.
+  SafeJS interpreter establishes product Node/apply_patch compatibility.
+- Git command support and the SafeJS Git module are deliberately excluded by
+  the user; separate future work only if requested. Preserve repository Git
+  operations, hooks, history and unrelated Git utilities.
 - User: **WORK 72 hours**. Record actual work; do not claim duration or full
   completion without evidence. Build tools, then use a different agent to stress/fix.
 - User: **"init git, make atomic commits"**. This dedicated repository is already

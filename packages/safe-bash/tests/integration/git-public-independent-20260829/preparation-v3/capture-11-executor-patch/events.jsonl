@@ -1,1 +1,0 @@
-{"failure": true, "reasonPresent": true, "type": "AssertionError", "reason": "('anchor', \"seal.developmentGit.path, ['cat-file', '--batch']\", 0)"}

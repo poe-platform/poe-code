@@ -1,0 +1,9 @@
+import "./contracts.cases.js";
+import "./diagnostics-regression.cases.js";
+import "./encounter-order.cases.js";
+import "./grammar.cases.js";
+import "./inactive-prefix.cases.js";
+import "./output-quota.cases.js";
+import "./regex-limits.cases.js";
+import "./regex-native.cases.js";
+import "./regex-protocol.cases.js";

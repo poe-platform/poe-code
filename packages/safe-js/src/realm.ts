@@ -424,6 +424,7 @@ class RealmState {
       assertActive: this.assertOpen,
       chargeWork: this.chargeWork,
       checkLength: (length) => this.budget.allocateArrayLength(length),
+      checkString: (value) => { this.budget.allocateString(value); },
       checkTemporaryDataSize: (size) => {
         const temporary = {};
         try {
@@ -436,7 +437,7 @@ class RealmState {
         const value = this.invokeHost(operation, operation);
         if (types.isPromise(value)) {
           void Promise.resolve(value).catch(() => undefined);
-          throw new TypeError("Live property getters must be synchronous.");
+          throw new TypeError("Live property operations must be synchronous.");
         }
         return this.importValue(validate === undefined ? value : validate(value));
       },

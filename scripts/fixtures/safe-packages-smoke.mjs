@@ -5,6 +5,7 @@ import "./safe-packages-date.mjs";
 import "./safe-packages-object.mjs";
 import "./safe-packages-indexed.mjs";
 import "./safe-packages-named.mjs";
+import "./safe-packages-named-mutations.mjs";
 import "./safe-packages-callback-phases.mjs";
 import "./safe-packages-curl-output.mjs";
 import { Budget, run } from "@poe-platform/safe-js";

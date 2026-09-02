@@ -241,7 +241,7 @@ const collection = context.createHostObject({ indexed: {
 
 Saved collections observe current host contents. Index reads, `Object.keys`/`values`/`entries`, `Object.hasOwn`, `in`, `for...in`, `for...of`, array/object spread and `Array.from` use the live view. Enumerable keys include current indices and fixed members, but not `length`. `Array.from` preserves element identity and interleaves mapping with reads. Noncanonical and out-of-range indices never call `get`; fixed members cannot reuse `length` or canonical index names. Enumeration and traversal consume execution budgets, without eagerly allocating virtual properties.
 
-For changing named properties, add `named` to the same definition:
+For a live set of named properties, add `named` to the same definition:
 
 ```js
 const named = {
@@ -258,13 +258,36 @@ const attributesObject = context.createHostObject({ named });
 | --- | --- |
 | `keys()` | Synchronous dense own-data array of distinct strings. Proxies, accessors, sparse arrays and reserved `constructor`/`prototype`/`__proto__` names reject. |
 | `get(name)` | Synchronous value provider, called only for a currently present name. Existing host conversion and identity rules apply. |
+| `set(name, value)` | Optional synchronous setter, including new names. Receives the normally converted host value; assignment returns the original guest RHS. Omit to keep named writes disabled. |
+| `delete(name)` | Optional synchronous deleter returning a boolean. Absent names return `true` without calling it; existing names return its result. Omit to keep deletion disabled. |
 | `maxKeys` | Required positive integer, at most 65,536. |
 | `maxKeyCodeUnits` | Required positive aggregate key-length cap, at most 1,048,576 UTF-16 code units. Execution, array, string and data budgets also apply. |
 | `enumerable` | Defaults to `true`. Set `false` to keep names readable and visible to `in`/`Object.hasOwn`, but omit them from keys/values/entries, object spread and `for...in`. |
 
 Fixed properties/methods take precedence over names. With `indexed`, numeric indices and `length` remain indexed members. Enumeration deduplicates collisions; names removed by an earlier getter are skipped. Named-only objects are not iterable—combine `named` with `indexed` when you need numeric collection access and `for...of`.
 
-Named properties, indexed members and indexed `length` are read-only. Live objects reject deletion, freezing, native prototype access, property-descriptor manipulation and portable serialization. Realm state is not a checkpoint: snapshot/replay and live-capability error-data conversion are rejected. Extensions are trusted native code; grants are a registration contract, not OS isolation. Native work still needs host timeouts and external process supervision for hard limits. No DOM, timers or browser engine are bundled.
+To opt into dynamic writes and deletion, supply the hooks explicitly:
+
+```js
+const storage = context.createHostObject({
+  named: {
+    keys: () => [...values.keys()],
+    get: name => values.get(name),
+    set: (name, value) => { values.set(name, value); },
+    delete: name => values.delete(name),
+    maxKeys: 256,
+    maxKeyCodeUnits: 8192
+  }
+});
+```
+
+Guest code can now use `storage.theme = "dark"` and `delete storage.theme`.
+
+Both hooks must be synchronous; async/generator functions and proxies reject, and promises returned by ordinary functions are rejected and observed. Fixed members still use only their declared setters. Named hooks cannot overwrite or delete fixed members, indexed slots (including out-of-range indices), indexed `length`, or reserved prototype names. Saved objects remain live across native changes and are revoked on realm close.
+
+SafeJS validates current keys and prospective new-key count/UTF-16/data limits before calling a mutator, then validates keys again afterward. Work, conversion and cancellation budgets still apply. Providers must enforce atomic storage quotas themselves: a post-write failure cannot roll back native side effects. Values are normally copied or passed as explicit realm-owned capabilities, not retained as arbitrary guest objects. Browser Storage coercion, persistence, origin policy and events belong in the consumer.
+
+Named properties are read-only unless opted in; indexed members and indexed `length` remain read-only. Live objects reject other deletion, freezing, native prototype access, property-descriptor manipulation and portable serialization. Realm state is not a checkpoint: snapshot/replay and live-capability error-data conversion are rejected. Extensions are trusted native code; grants are a registration contract, not OS isolation. Native work still needs host timeouts and external process supervision for hard limits. No DOM, timers or browser engine are bundled.
 
 For one-shot use, `run(source, { extensions, grants, ... })` accepts the same realm options plus `filename`, returns data only, and closes resources before settling. Run-only features such as snapshots, `entryPointArgs`, `importMeta`, custom random generators and telemetry are rejected in this mode rather than silently ignored.
 

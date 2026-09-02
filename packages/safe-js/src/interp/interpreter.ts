@@ -1,5 +1,5 @@
 import { promiseReplayContext } from "./promise-replay.js";
-import { getHostObjectKeys, getHostObjectMember, hasHostObjectMember, isGuestHostObject, setHostObjectMember } from "./host-capabilities.js";
+import { deleteHostObjectMember, getHostObjectKeys, getHostObjectMember, hasHostObjectMember, isGuestHostObject, setHostObjectMember } from "./host-capabilities.js";
 import { sandboxString } from "./string-coercion.js";
 import { assertPromiseExecutionAllowed } from "./promise-tracker.js";
 import { SandboxJobQueue, runAsyncPrefix, suspendJob } from "./jobs.js";
@@ -2341,12 +2341,12 @@ async function evaluateDeleteExpression(
     throw new TypeError("Unary operator 'delete' requires a sandbox object property.");
   }
 
-  deleteSandboxProperty(member.object, member.property);
+  const deleted = deleteSandboxProperty(member.object, member.property);
 
   return {
     kind: "normal",
     hasValue: true,
-    value: true
+    value: deleted
   };
 }
 
@@ -3483,13 +3483,13 @@ export function setSandboxProperty(
 function deleteSandboxProperty(
   target: SandboxArray | SandboxObject,
   property: string | number
-): void {
-  if (isGuestHostObject(target)) throw new TypeError("Live host properties cannot be deleted.");
+): boolean {
+  if (isGuestHostObject(target)) return deleteHostObjectMember(target, String(property));
   if (isGuestClosure(target)) target = materializeFunctionProperties(target);
   if (Array.isArray(target)) {
     assertCollectionMutable(target);
   }
-  delete (target as unknown as Record<string, SandboxValue>)[String(property)];
+  return delete (target as unknown as Record<string, SandboxValue>)[String(property)];
 }
 
 function getClosureMemberValue(

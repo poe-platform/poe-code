@@ -25,6 +25,8 @@ export type HostObjectDefinition = {
 export type HostObjectNamedDefinition = {
   keys(): readonly string[];
   get(name: string): unknown;
+  set?(name: string, value: unknown): void;
+  delete?(name: string): boolean;
   maxKeys: number;
   maxKeyCodeUnits: number;
   enumerable?: boolean;
@@ -34,6 +36,7 @@ export type HostObjectController = {
   assertActive(): void;
   chargeWork(units?: number): void;
   checkLength(length: number): void;
+  checkString(value: string): void;
   checkTemporaryDataSize(size: number): void;
   read(operation: () => unknown, validate?: (value: unknown) => unknown): SandboxValue;
   write(operation: (value: unknown) => void, value: SandboxValue): void;
@@ -122,12 +125,19 @@ export function createLiveHostObject(
     const data = readDataRecord(input.named, "Named host capability");
     if (
       Object.keys(data).some(
-        (key) => !["keys", "get", "maxKeys", "maxKeyCodeUnits", "enumerable"].includes(key)
+        (key) => !["keys", "get", "set", "delete", "maxKeys", "maxKeyCodeUnits", "enumerable"].includes(key)
       )
     )
       throw new TypeError("Unknown named host capability field.");
-    if (typeof data.keys !== "function" || typeof data.get !== "function")
-      throw new TypeError("Named keys and get must be synchronous functions.");
+    for (const name of ["keys", "get", "set", "delete"]) {
+      const operation = data[name];
+      if (operation === undefined && (name === "set" || name === "delete")) continue;
+      if (
+        typeof operation !== "function" || types.isProxy(operation) ||
+        types.isAsyncFunction(operation) || types.isGeneratorFunction(operation)
+      )
+        throw new TypeError(`Named ${name} must be a synchronous non-generator function, not a proxy.`);
+    }
     if (
       typeof data.maxKeys !== "number" ||
       !Number.isInteger(data.maxKeys) ||
@@ -149,6 +159,8 @@ export function createLiveHostObject(
     named = {
       keys: data.keys as () => readonly string[],
       get: data.get as (name: string) => unknown,
+      set: data.set as HostObjectNamedDefinition["set"],
+      delete: data.delete as HostObjectNamedDefinition["delete"],
       maxKeys: data.maxKeys,
       maxKeyCodeUnits: data.maxKeyCodeUnits,
       enumerable: data.enumerable as boolean | undefined
@@ -291,8 +303,29 @@ export function setHostObjectMember(value: SandboxObject, key: string, entry: Sa
   state.controller.assertActive();
   state.controller.chargeWork();
   const property = state.properties.get(key);
-  if (property?.set === undefined) throw new TypeError(`Host property '${key}' is not writable.`);
-  state.controller.write(property.set, entry);
+  if (property !== undefined) {
+    if (property.set === undefined) throw new TypeError(`Host property '${key}' is not writable.`);
+    state.controller.write(property.set, entry);
+    return;
+  }
+  if (state.named?.set === undefined) throw new TypeError(`Host property '${key}' is not writable.`);
+  namedMutationKeys(state, key, true);
+  state.controller.write((value) => state.named!.set!(key, value), entry);
+  namedKeys(state);
+}
+
+export function deleteHostObjectMember(value: SandboxObject, key: string): boolean {
+  const state = guestObjects.get(value)!;
+  state.controller.assertActive();
+  state.controller.chargeWork();
+  if (state.named?.delete === undefined) throw new TypeError("Live host properties cannot be deleted.");
+  if (!namedMutationKeys(state, key, false).includes(key)) return true;
+  const deleted = state.controller.read(() => state.named!.delete!(key), (result) => {
+    if (typeof result !== "boolean") throw new TypeError("Named delete must return a boolean.");
+    return result;
+  });
+  namedKeys(state);
+  return deleted as boolean;
 }
 
 export function getHostObjectKeys(value: SandboxObject): string[] {
@@ -392,6 +425,32 @@ function canonicalIndex(key: string): number | undefined {
   return Number.isInteger(index) && index >= 0 && index < 0xffffffff && String(index) === key
     ? index
     : undefined;
+}
+
+function namedMutationKeys(state: HostObjectState, key: string, create: boolean): string[] {
+  state.controller.chargeWork(key.length);
+  state.controller.checkString(key);
+  if (
+    ["constructor", "prototype", "__proto__"].includes(key) ||
+    state.properties.has(key) || state.methods.has(key) ||
+    (state.indexed !== undefined && (key === "length" || canonicalIndex(key) !== undefined))
+  )
+    throw new TypeError(`Host member '${key}' is protected from named mutation.`);
+  const named = state.named!;
+  if (key.length > named.maxKeyCodeUnits)
+    throw new RangeError("Named key exceeds maximum UTF-16 code units.");
+  const keys = namedKeys(state);
+  if (create && !keys.includes(key)) {
+    const length = keys.length + 1;
+    if (length > named.maxKeys) throw new RangeError("Named keys exceed maxKeys.");
+    state.controller.checkLength(length);
+    let units = key.length;
+    for (const existing of keys) units += existing.length;
+    if (units > named.maxKeyCodeUnits)
+      throw new RangeError("Named keys exceed maximum UTF-16 code units.");
+    state.controller.checkTemporaryDataSize(1 + length + units);
+  }
+  return keys;
 }
 
 function namedKeys(state: HostObjectState): string[] {

@@ -19,7 +19,8 @@ const extension = defineExtension({
     void start;
     const node: HostObject = context.createHostObject({ properties: { value: { get: () => 7 } } });
     const indexed: HostObjectIndexedDefinition & CoreIndexed = { length: () => 1, get: () => node, maxLength: 8 };
-    const named: HostObjectNamedDefinition & CoreNamed = { keys: () => ["node"], get: () => node, maxKeys: 8, maxKeyCodeUnits: 128, enumerable: false };
+    const values = new Map<string, unknown>([["node", node]]);
+    const named: HostObjectNamedDefinition & CoreNamed = { keys: () => [...values.keys()], get: name => values.get(name), set: (name, value) => { values.set(name, value); }, delete: name => values.delete(name), maxKeys: 8, maxKeyCodeUnits: 128, enumerable: false };
     const nodes = context.createHostObject({ indexed, named });
     const discard = context.retainGuestArguments((reference: GuestReference) => context.releaseGuestReference(reference), 0);
     return { globals: { node, discard, nodes } };

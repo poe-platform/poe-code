@@ -43,6 +43,15 @@ const sections: Section[] = [
 ];
 
 describe("resolveSection", () => {
+  it("rejects empty and whitespace-only section ids", () => {
+    for (const id of ["", " \t\n"]) {
+      expect(() => resolveSection(sections, id)).toThrowError(UserError);
+      expect(() => resolveSection(sections, id)).toThrowError(
+        "invalid section: expected a non-empty section id"
+      );
+    }
+  });
+
   it("resolves by number and by title on the same section", () => {
     const byNumber = resolveSection(sections, "1");
     const byTitle = resolveSection(sections, "  Overview  ");

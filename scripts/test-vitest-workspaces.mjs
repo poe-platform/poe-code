@@ -39,22 +39,27 @@ export async function runSharedVitest(root, phases) {
   process.env.VITEST = "true";
   process.env.NODE_ENV ??= "test";
   try {
-    const { createVitest } = await import("vitest/node");
-    const { DefaultReporter } = await import("vitest/reporters");
+    const { createVitest, DefaultReporter } = await import("vitest/node");
     class WorkspaceReporter extends DefaultReporter {
       phasesRemaining = 0;
+      runStarted = false;
       constructor() {
         super({ summary: false });
+      }
+      onTestRunStart(specifications) {
+        if (this.runStarted) return;
+        this.runStarted = true;
+        super.onTestRunStart(specifications);
       }
       printTestModule(module) {
         if (module.state() === "failed") super.printTestModule(module);
       }
-      onFinished(files, errors = []) {
+      onTestRunEnd(modules, errors = [], reason) {
         this.phasesRemaining--;
         const snapshots = this.ctx.snapshot.summary;
         const snapshotNotice = ["added", "unmatched", "updated", "filesRemoved", "unchecked"].some(key => snapshots[key]) || snapshots.filesRemovedList?.length;
-        if (this.phasesRemaining === 0 || errors.length || snapshotNotice || files.some(file => file.result?.state === "fail")) {
-          super.onFinished(this.ctx.state.getFiles(), errors);
+        if (this.phasesRemaining === 0 || errors.length || snapshotNotice || reason !== "passed" || modules.some(module => module.state() === "failed")) {
+          super.onTestRunEnd(this.ctx.state.getTestModules(), errors, reason);
         }
       }
     }
@@ -94,7 +99,7 @@ export async function runSharedVitest(root, phases) {
       groups.push({ phase, specifications: selected });
     }
     reporter.phasesRemaining = groups.filter(group => group.specifications.length).length;
-    await context.init();
+    await context.standalone();
     for (const group of groups) {
       if (!group.specifications.length) {
         console.log(`Unit workspace ${group.phase.name}: no test files (explicitly allowed)`);

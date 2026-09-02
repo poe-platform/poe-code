@@ -458,6 +458,7 @@ describe("mcp proxy integration", () => {
 
     const { github, root } = createProxyRoot(harness);
     const stderrWrite = vi.spyOn(process.stderr, "write").mockImplementation(() => true);
+    stderrWrite.mockClear();
 
     await resolveMcpProxies(root);
 

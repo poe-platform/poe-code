@@ -293,7 +293,7 @@ describe.each(["native environment", "AbortSignal.any unavailable"])("%s", (prof
       requestStreamSupport: true
     });
     const caller = new AbortController();
-    vi.spyOn(globalThis, "ReadableStream").mockImplementation(() => {
+    vi.spyOn(globalThis, "ReadableStream").mockImplementation(function () {
       throw failure;
     });
     await expect(

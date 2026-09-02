@@ -184,8 +184,8 @@ export function inspectCommittedCandidate(repository, revision, directory, execu
   const files = readCommittedBlobs([...admitted.values()], hashAlgorithm, git, {
     bootstrapCount,
     validateBootstrap(bootstrap) {
-      assert.deepEqual(bootstrap.get("scripts/guard-package-dist.mjs"), readRegularInput(resolve(authority, "../.."), "scripts/guard-package-dist.mjs", 300000), "committed guard differs from reviewed verifier authority");
-      for (const path of reviewed) assert.deepEqual(bootstrap.get(`${packagePrefix}/${path}`), readRegularInput(authority, path, 300000, undefined, boundaries), `committed build input differs from reviewed authority: ${path}`);
+      assert.ok(bootstrap.get("scripts/guard-package-dist.mjs").equals(readRegularInput(resolve(authority, "../.."), "scripts/guard-package-dist.mjs", 300000)), "committed guard differs from reviewed verifier authority");
+      for (const path of reviewed) assert.ok(bootstrap.get(`${packagePrefix}/${path}`).equals(readRegularInput(authority, path, 300000, undefined, boundaries)), `committed build input differs from reviewed authority: ${path}`);
       for (const fixture of boundaries.fixtureDirectories) assert.equal(digest(bootstrap.get(`${packagePrefix}/${fixture.owner}`)), fixture.sha256, `committed fixture owner changed: ${fixture.owner}`);
       manifest = JSON.parse(bootstrap.get(`${packagePrefix}/package.json`));
       rootManifest = JSON.parse(bootstrap.get("package.json"));

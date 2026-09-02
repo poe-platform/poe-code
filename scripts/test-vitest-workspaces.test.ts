@@ -2,12 +2,18 @@ import { createFsFromVolume, Volume } from "memfs";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { runSharedVitest, sharedVitestStages } from "./test-vitest-workspaces.mjs";
 
-const mocks = vi.hoisted(() => ({ createVitest: vi.fn(), reportFinished: vi.fn() }));
+const mocks = vi.hoisted(() => ({ createVitest: vi.fn(), reportFinished: vi.fn(), reportModule: vi.fn(), reporterOptions: vi.fn() }));
 vi.mock("vitest/node", () => ({ createVitest: mocks.createVitest }));
 vi.mock("vitest/reporters", () => ({
-  DotReporter: class {
+  DefaultReporter: class {
+    constructor(options: unknown) {
+      mocks.reporterOptions(options);
+    }
     onFinished(files: unknown, errors: unknown) {
       mocks.reportFinished(files, errors);
+    }
+    printTestModule(module: unknown) {
+      mocks.reportModule(module);
     }
   }
 }));
@@ -156,6 +162,8 @@ describe("sequential shared Vitest execution", () => {
   beforeEach(() => {
     mocks.createVitest.mockReset();
     mocks.reportFinished.mockReset();
+    mocks.reportModule.mockReset();
+    mocks.reporterOptions.mockReset();
   });
 
   it("discovers actual root ownership and runs every workspace phase without changing workers", async () => {
@@ -273,6 +281,35 @@ describe("sequential shared Vitest execution", () => {
     reporter.phasesRemaining = 3;
     reporter.onFinished([{ result: { state: "fail" } }], []);
     expect(mocks.reportFinished).toHaveBeenCalledTimes(2);
+  });
+
+  it("omits per-case progress and successful module output while retaining failed modules", async () => {
+    contexts();
+    await runSharedVitest("/repo", phases);
+    const reporter = mocks.createVitest.mock.calls[1][1].reporters[0];
+    expect(mocks.reporterOptions).toHaveBeenCalledWith({ summary: false });
+    for (const state of ["passed", "skipped", "pending", "queued"]) {
+      reporter.printTestModule({ state: () => state });
+    }
+    expect(mocks.reportModule).not.toHaveBeenCalled();
+    const failed = { state: () => "failed" };
+    reporter.printTestModule(failed);
+    expect(mocks.reportModule).toHaveBeenCalledExactlyOnceWith(failed);
+  });
+
+  it("identifies each nonempty phase before execution instead of printing individual progress dots", async () => {
+    const { execution } = contexts();
+    const output = vi.spyOn(console, "log").mockImplementation(() => undefined);
+    try {
+      execution.runTestSpecifications.mockImplementation(async () => {
+        expect(output).toHaveBeenLastCalledWith(`Unit workspace ${phases[execution.runTestSpecifications.mock.calls.length - 1]!.name}: running 1 files`);
+        return { testModules: [{ ok: () => true }], unhandledErrors: [] };
+      });
+      await runSharedVitest("/repo", phases);
+      expect(output).toHaveBeenCalledTimes(3);
+    } finally {
+      output.mockRestore();
+    }
   });
 
   it("reports snapshot notices before the next phase clears their state", async () => {

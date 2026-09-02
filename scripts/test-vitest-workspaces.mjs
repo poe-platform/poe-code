@@ -40,9 +40,15 @@ export async function runSharedVitest(root, phases) {
   process.env.NODE_ENV ??= "test";
   try {
     const { createVitest } = await import("vitest/node");
-    const { DotReporter } = await import("vitest/reporters");
-    class WorkspaceReporter extends DotReporter {
+    const { DefaultReporter } = await import("vitest/reporters");
+    class WorkspaceReporter extends DefaultReporter {
       phasesRemaining = 0;
+      constructor() {
+        super({ summary: false });
+      }
+      printTestModule(module) {
+        if (module.state() === "failed") super.printTestModule(module);
+      }
       onFinished(files, errors = []) {
         this.phasesRemaining--;
         const snapshots = this.ctx.snapshot.summary;
@@ -94,6 +100,7 @@ export async function runSharedVitest(root, phases) {
         console.log(`Unit workspace ${group.phase.name}: no test files (explicitly allowed)`);
         continue;
       }
+      console.log(`Unit workspace ${group.phase.name}: running ${group.specifications.length} files`);
       const result = await context.runTestSpecifications(group.specifications, false);
       if (result.unhandledErrors.length || result.testModules.some(module => !module.ok()) || process.exitCode) {
         throw new Error(`Unit tests failed in workspace: ${group.phase.name}`);

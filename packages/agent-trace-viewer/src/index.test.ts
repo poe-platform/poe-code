@@ -127,7 +127,7 @@ describe("listTraces", () => {
       }),
       createReader({
         id: "poe-code",
-        discover: vi.fn(async () => [{ source: "poe-code", id: "ok" }])
+        discover: vi.fn<TraceReader["discover"]>(async () => [{ source: "poe-code", id: "ok" }])
       })
     );
 
@@ -276,7 +276,11 @@ describe("loadTrace", () => {
     expect(mocks.countTokens.mock.calls.length).toBeGreaterThan(callsAfterFirst);
   });
 
-  it("defers exact counting: returns an estimate, then caches exact counts in the background", async () => {
+  it("defers exact counting: returns an estimate, then caches exact counts in the background", async ({ onTestFinished }) => {
+    vi.useFakeTimers({ toFake: ["setTimeout", "clearTimeout"] });
+    onTestFinished(() => {
+      vi.useRealTimers();
+    });
     const volumeFs = createFsFromVolume(Volume.fromJSON({ "/traces/one.jsonl": "contents" }))
       .promises as unknown as AgentTraceFileSystem;
     mocks.traceReaders.push(
@@ -305,13 +309,18 @@ describe("loadTrace", () => {
       onExactBreakdown: resolveExact
     });
     expect(deferred.breakdown.source).toBe("estimated");
+    expect(mocks.countTokens).toHaveBeenCalledExactlyOnceWith("count me");
+    expect(vi.getTimerCount()).toBe(1);
 
+    await vi.runOnlyPendingTimersAsync();
     await exactDone;
-    const second = await loadTrace(reference, { fs: volumeFs, cacheDir: "/cache" });
+    expect(mocks.countTokens).toHaveBeenCalledTimes(2);
     const callsBeforeSecond = mocks.countTokens.mock.calls.length;
+    const second = await loadTrace(reference, { fs: volumeFs, cacheDir: "/cache" });
 
     expect(second.breakdown.source).toBe("exact");
     expect(mocks.countTokens.mock.calls.length).toBe(callsBeforeSecond);
+    expect(vi.getTimerCount()).toBe(0);
   });
 
   it("does not cache a breakdown computed from an aborted load", async () => {
@@ -501,7 +510,11 @@ describe("loadSubagentSummaries", () => {
 
   it("returns an empty summary list when there are no children", async () => {
     await expect(
-      loadSubagentSummaries(createTrace({ turns: [{ role: "human", text: "parent" }] }), { fs })
+      loadSubagentSummaries({
+        ...createTrace({ turns: [{ role: "human", text: "parent" }] }),
+        context: { tokens: 6, window: 200000, percent: 0, source: "estimated" },
+        breakdown: { measuredTokens: 6, categories: [], source: "exact" }
+      }, { fs })
     ).resolves.toEqual([]);
   });
 });

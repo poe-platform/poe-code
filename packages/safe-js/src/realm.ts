@@ -21,11 +21,15 @@ import {
 } from "./interp/host-bridge.js";
 import {
   createLiveHostObject,
+  createGuestReference,
   exportHostCapability,
+  readGuestReference,
   readGuestCallback,
   registerGuestCallback,
   revokeGuestCallback,
   revokeHostObject,
+  revokeGuestReference,
+  type GuestReference,
   type HostObjectDefinition,
   type HostObject
 } from "./interp/host-capabilities.js";
@@ -60,6 +64,7 @@ export type RealmLimits = {
   extensions?: number;
   hostObjects?: number;
   callbacks?: number;
+  guestReferences?: number;
   cleanups?: number;
   nestedEvaluations?: number;
 };
@@ -84,6 +89,7 @@ export type SafeJSRealm = {
   evaluate(source: string, options?: { filename?: string }): Promise<RealmResult>;
   invokeCallback(callback: unknown, options?: CallbackOptions): Promise<unknown>;
   releaseCallback(callback: unknown): void;
+  releaseGuestReference(reference: unknown): void;
   close(): Promise<void>;
 };
 
@@ -112,6 +118,11 @@ class RealmState {
   readonly pendingCallbacks = new Set<{ closure: SandboxClosure; promise?: Promise<unknown> }>();
   readonly callbackCache = new WeakMap<SandboxClosure, Callback>();
   readonly hostObjects = new Set<HostObject>();
+  readonly guestReferences = new Map<GuestReference, [SandboxValue]>();
+  readonly retainedOperations = new WeakMap<
+    HostOperation,
+    { from: number; extension: SafeJSExtension }
+  >();
   readonly nestedOperations = new WeakMap<HostOperation, SafeJSExtension>();
   readonly convertedModules = new Map<string, Record<string, SandboxValue>>();
   readonly nativeConversions = { seen: new WeakMap<object, SandboxValue>() };
@@ -132,6 +143,7 @@ class RealmState {
       extensions: 32,
       hostObjects: 1024,
       callbacks: 1024,
+      guestReferences: 1024,
       cleanups: 1024,
       nestedEvaluations: 16
     };
@@ -174,6 +186,7 @@ class RealmState {
       owner: this,
       assertActive: this.assertOpen,
       wrapCallback: this.wrapCallback,
+      captureArguments: this.captureArguments,
       invoke: this.invokeHost,
       awaitResult: (operation) => this.nestedOperations.has(operation)
     };
@@ -213,7 +226,7 @@ class RealmState {
       }
       options.signal?.addEventListener("abort", this.abort, { once: true });
       if (options.signal?.aborted) this.abort();
-      this.budget.setRetainedValues(this, this.retainedCallbacks);
+      this.budget.setRetainedValues(this, this.retainedRoots);
       this.tracker.onFatalRejection((error) => this.poison(error));
     } catch (error) {
       this.compilation.dispose();
@@ -229,10 +242,58 @@ class RealmState {
     realm: this.bridge
   });
 
-  retainedCallbacks = (): SandboxClosure[] => [
+  retainedRoots = (): SandboxValue[] => [
     ...this.callbacks.values(),
-    ...Array.from(this.pendingCallbacks, (pending) => pending.closure)
+    ...Array.from(this.pendingCallbacks, (pending) => pending.closure),
+    ...this.guestReferences.values()
   ];
+
+  captureArguments: RealmBridge["captureArguments"] = (operation, args, copy) => {
+    const from = this.retainedOperations.get(operation)?.from ?? args.length;
+    const values = copy(args.slice(0, from));
+    const captured: GuestReference[] = [];
+    const rollback = () => {
+      for (const reference of captured) {
+        revokeGuestReference(reference, this);
+        this.guestReferences.delete(reference);
+      }
+    };
+    try {
+      for (const value of args.slice(from)) {
+        this.checkCollection(
+          this.guestReferences.size + 1,
+          this.limits.guestReferences,
+          "guest reference"
+        );
+        const root: [SandboxValue] = [value];
+        const reference = createGuestReference(root, this, this.assertOpen);
+        this.guestReferences.set(reference, root);
+        captured.push(reference);
+        values.push(reference);
+      }
+      if (captured.length > 0)
+        this.budget.reconcileDataUsage(
+          measureSandboxData([...(this.scope?.retainedValues() ?? []), ...this.retainedRoots()])
+        );
+      return { args: values, rollback };
+    } catch (error) {
+      rollback();
+      if (error instanceof SandboxError) this.poison(error);
+      throw error;
+    }
+  };
+
+  releaseGuestReference = (reference: unknown): void => {
+    readGuestReference(reference, this);
+    revokeGuestReference(reference as GuestReference, this);
+    this.guestReferences.delete(reference as GuestReference);
+    if (this.active === undefined)
+      reconcileCompiledValues(
+        this.budget,
+        [...(this.scope?.retainedValues() ?? []), ...this.retainedRoots()],
+        this.compilation
+      );
+  };
 
   assertOpen = (): void => {
     if (this.failure !== undefined) throw this.failure.reason;
@@ -413,7 +474,7 @@ class RealmState {
     });
     try {
       this.budget.reconcileDataUsage(
-        measureSandboxData([...(this.scope?.retainedValues() ?? []), ...this.retainedCallbacks()])
+        measureSandboxData([...(this.scope?.retainedValues() ?? []), ...this.retainedRoots()])
       );
     } catch (error) {
       this.poison(error);
@@ -429,7 +490,7 @@ class RealmState {
     if (this.active === undefined)
       reconcileCompiledValues(
         this.budget,
-        [...(this.scope?.retainedValues() ?? []), ...this.retainedCallbacks()],
+        [...(this.scope?.retainedValues() ?? []), ...this.retainedRoots()],
         this.compilation
       );
   };
@@ -486,7 +547,7 @@ class RealmState {
       if (!this.closed && this.active === undefined)
         reconcileCompiledValues(
           this.budget,
-          [...(this.scope?.retainedValues() ?? []), ...this.retainedCallbacks()],
+          [...(this.scope?.retainedValues() ?? []), ...this.retainedRoots()],
           this.compilation
         );
     }
@@ -504,6 +565,29 @@ class RealmState {
         createHostObject: this.createHostObject,
         invokeCallback: this.invokeCallback,
         releaseCallback: this.releaseCallback,
+        releaseGuestReference: this.releaseGuestReference,
+        retainGuestArguments: <Operation extends HostOperation>(
+          operation: Operation,
+          from: number
+        ): Operation => {
+          this.assertOpen();
+          if (!extension.manifest.capabilities?.includes("guest:retain"))
+            throw new TypeError("Retaining arguments requires the guest:retain grant.");
+          if (typeof operation !== "function")
+            throw new TypeError("Retained operation must be a function.");
+          if (!Number.isSafeInteger(from) || from < 0)
+            throw new TypeError("Argument index must be a non-negative safe integer.");
+          if (this.scope !== undefined)
+            throw new TypeError("Retained operations must be registered during setup.");
+          const previous = this.retainedOperations.get(operation);
+          if (
+            previous !== undefined &&
+            (previous.extension !== extension || previous.from !== from)
+          )
+            throw new TypeError("Conflicting retained operation declaration.");
+          this.retainedOperations.set(operation, { extension, from });
+          return operation;
+        },
         nestedOperation: <Operation extends HostOperation>(operation: Operation): Operation => {
           this.assertOpen();
           if (!extension.manifest.capabilities?.includes("source:nested"))
@@ -683,7 +767,7 @@ class RealmState {
       if (!this.closed)
         reconcileCompiledValues(
           this.budget,
-          [...(this.scope?.retainedValues() ?? []), ...this.retainedCallbacks()],
+          [...(this.scope?.retainedValues() ?? []), ...this.retainedRoots()],
           this.compilation
         );
       return result;
@@ -719,6 +803,8 @@ class RealmState {
     this.callbacks.clear();
     for (const object of this.hostObjects) revokeHostObject(object, this);
     this.hostObjects.clear();
+    for (const reference of this.guestReferences.keys()) revokeGuestReference(reference, this);
+    this.guestReferences.clear();
     this.budget.setRetainedValues(this, undefined);
     this.disposal = (async () => {
       const errors: unknown[] = [];
@@ -782,6 +868,7 @@ export function createRealm(options: RealmOptions = {}): SafeJSRealm {
     evaluate: state.evaluate,
     invokeCallback: state.invokeCallback,
     releaseCallback: state.releaseCallback,
+    releaseGuestReference: state.releaseGuestReference,
     close: state.close
   });
 }

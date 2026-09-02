@@ -23,6 +23,11 @@ export type ExtensionContext = {
   createHostObject(definition: HostObjectDefinition): HostObject;
   invokeCallback(callback: unknown, options?: CallbackOptions): Promise<unknown>;
   releaseCallback(callback: unknown): void;
+  retainGuestArguments<Operation extends HostOperation>(
+    operation: Operation,
+    from: number
+  ): Operation;
+  releaseGuestReference(reference: unknown): void;
   nestedOperation<Operation extends HostOperation>(operation: Operation): Operation;
   evaluateNested(source: string): Promise<void>;
 };

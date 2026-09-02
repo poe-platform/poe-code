@@ -72,6 +72,7 @@ export type RealmBridge = {
   wrapCallback(closure: SandboxClosure): (...args: readonly unknown[]) => Promise<unknown>;
   invoke(operation: CallerInjectedFunction, call: () => unknown): unknown;
   awaitResult(operation: CallerInjectedFunction): boolean;
+  captureArguments(operation: CallerInjectedFunction, args: readonly SandboxValue[], copy: (values: readonly SandboxValue[]) => unknown[]): { args: unknown[]; rollback(): void };
 };
 
 export type HostBridgeOptions = {
@@ -185,7 +186,7 @@ function wrapCallerInjectedFunction(
           seen: new WeakMap(),
           restored: []
         };
-        const hostArgs = deepCopyFromSandbox([...args], {
+        const copyArguments = (values: readonly SandboxValue[]) => deepCopyFromSandbox([...values], {
           compilation,
           unwrapHostObject: options.realm === undefined ? undefined : object => exportHostCapability(object, options.realm!.owner),
           wrapClosure: (closure) =>
@@ -197,6 +198,8 @@ function wrapCallerInjectedFunction(
               callbacks
             )
         }) as unknown[];
+        const captured = options.realm?.captureArguments(callable, args, copyArguments);
+        const hostArgs = captured?.args ?? copyArguments(args);
 
         const hostCalls = options.hostCalls;
         const operation = options.operation ?? bindingName;
@@ -207,7 +210,13 @@ function wrapCallerInjectedFunction(
           "re-issue";
         if (hostCalls === undefined) {
           if (options.realm !== undefined) {
-            const result = options.realm.invoke(callable, () => Reflect.apply(callable, undefined, hostArgs));
+            let result: unknown;
+            try {
+              result = options.realm.invoke(callable, () => Reflect.apply(callable, undefined, hostArgs));
+            } catch (error) {
+              captured!.rollback();
+              throw error;
+            }
             if (options.realm.awaitResult(callable)) {
               return Promise.resolve(result).then(value => copyHostResultToSandbox(value, stackFrames, options));
             }

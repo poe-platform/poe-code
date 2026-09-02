@@ -1,5 +1,6 @@
 import assert from "node:assert/strict";
 import "./safe-packages-realms.mjs";
+import "./safe-packages-retained.mjs";
 import { Budget, run } from "@poe-platform/safe-js";
 import { FsError, createMemoryFileSystem, createReadOnlyFileSystem } from "@poe-platform/safe-fs";
 import { FsError as CompatibilityFsError } from "@poe-platform/safe-js/fs";

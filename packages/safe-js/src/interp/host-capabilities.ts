@@ -2,9 +2,13 @@ import { readDataRecord, type HostOperation } from "../extensions.js";
 import type { SandboxClosure, SandboxObject, SandboxValue } from "./values.js";
 
 declare const hostObjectBrand: unique symbol;
+declare const guestReferenceBrand: unique symbol;
 declare const sandboxHostObjectBrand: unique symbol;
 type SandboxHostObject = SandboxObject & { readonly [sandboxHostObjectBrand]: true };
 export type HostObject = Readonly<Record<string, never>> & { readonly [hostObjectBrand]: true };
+export type GuestReference = Readonly<Record<string, never>> & {
+  readonly [guestReferenceBrand]: true;
+};
 export type HostObjectDefinition = {
   properties?: Record<string, { get?: () => unknown; set?: (value: unknown) => void }>;
   methods?: Record<string, HostOperation>;
@@ -28,6 +32,38 @@ type GuestCallbackState = { owner: object; closure?: SandboxClosure; assertActiv
 const hostObjects = new WeakMap<object, HostObjectState>();
 const guestObjects = new WeakMap<object, HostObjectState>();
 const guestCallbacks = new WeakMap<object, GuestCallbackState>();
+const guestReferences = new WeakMap<
+  object,
+  { owner: object; root?: [SandboxValue]; assertActive(): void }
+>();
+
+export function createGuestReference(
+  root: [SandboxValue],
+  owner: object,
+  assertActive: () => void
+): GuestReference {
+  const reference = Object.freeze(Object.create(null)) as GuestReference;
+  guestReferences.set(reference, { root, owner, assertActive });
+  return reference;
+}
+
+export function readGuestReference(reference: unknown, owner: object): SandboxValue {
+  const state =
+    typeof reference === "object" && reference !== null
+      ? guestReferences.get(reference)
+      : undefined;
+  if (state === undefined || state.owner !== owner)
+    throw new TypeError("Foreign or invalid guest reference.");
+  state.assertActive();
+  if (state.root === undefined) throw new TypeError("Guest reference is revoked.");
+  return state.root[0];
+}
+
+export function revokeGuestReference(reference: GuestReference, owner: object): void {
+  const state = guestReferences.get(reference);
+  if (state === undefined || state.owner !== owner) throw new TypeError("Foreign guest reference.");
+  state.root = undefined;
+}
 
 export function createLiveHostObject(
   definition: HostObjectDefinition,
@@ -82,11 +118,15 @@ export function isGuestHostObject(value: unknown): value is SandboxHostObject {
 export function isLiveCapability(value: unknown): boolean {
   return (
     ((typeof value === "object" && value !== null) || typeof value === "function") &&
-    (hostObjects.has(value) || guestObjects.has(value) || guestCallbacks.has(value))
+    (hostObjects.has(value) ||
+      guestObjects.has(value) ||
+      guestCallbacks.has(value) ||
+      guestReferences.has(value))
   );
 }
 
 export function importHostCapability(value: object, owner: object): SandboxValue {
+  if (guestReferences.has(value)) return readGuestReference(value, owner);
   const object = hostObjects.get(value);
   if (object !== undefined) {
     if (object.controller.owner !== owner) throw new TypeError("Foreign realm host capability.");

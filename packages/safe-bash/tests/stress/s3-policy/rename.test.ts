@@ -117,33 +117,33 @@ test("explicit atomic-policy opt-out rejects before host effects", settings, asy
 });
 
 for (const capabilities of [{}, { conditionalCopy: true }, { conditionalDelete: true }, { conditionalCopy: false, conditionalDelete: true }]) {
-  test(`minimum mutation capabilities preflight ${JSON.stringify(capabilities)}`, settings, async context => {
+  test(`minimum mutation capabilities preflight ${JSON.stringify(capabilities)}`, settings, async () => {
     const setup = await fixture({ source: "original", target: "keep" }, capabilities);
     const error = await outcome(setup.fs.rename("/source", "/target"));
-    context.diagnostic(JSON.stringify({ resolved: error === undefined, code: error instanceof FsError ? error.code : null, calls: setup.calls, state: await setup.state() }));
+    console.log(JSON.stringify({ resolved: error === undefined, code: error instanceof FsError ? error.code : null, calls: setup.calls, state: await setup.state() }));
     assert.deepEqual(await setup.state(), { source: "original", target: "keep" }, "missing negotiated guards must not mutate either key");
     assert.equal(setup.calls.length, 0);
     assert.ok(isFsError(error, "ENOTSUP"));
   });
 }
 
-test("no destination guard capability must not clobber concurrent create", settings, async context => {
+test("no destination guard capability must not clobber concurrent create", settings, async () => {
   const setup = await fixture({ source: "original" }, { conditionalDelete: true });
   setup.before(async operation => { if (operation === "copy") await setup.put("target", "concurrent writer"); });
   const error = await outcome(setup.fs.rename("/source", "/target"));
-  context.diagnostic(JSON.stringify({ resolved: error === undefined, calls: setup.calls, state: await setup.state() }));
+  console.log(JSON.stringify({ resolved: error === undefined, calls: setup.calls, state: await setup.state() }));
   assert.deepEqual(await setup.state(), { source: "original" }, "reject capability before invoking even the copy hook");
   assert.ok(isFsError(error, "ENOTSUP"));
   assert.equal(setup.calls.length, 0);
 });
 
 for (const existing of [false, true]) {
-  test(`destination ${existing ? "replacement" : "creation"} race retains both current writers`, settings, async context => {
+  test(`destination ${existing ? "replacement" : "creation"} race retains both current writers`, settings, async () => {
     const initial: Record<string, string> = { source: "original", ...(existing ? { target: "old" } : {}) };
     const setup = await fixture(initial);
     setup.before(async operation => { if (operation === "copy") await setup.put("target", "concurrent writer"); });
     const error = await outcome(setup.fs.rename("/source", "/target"));
-    context.diagnostic(JSON.stringify({ resolved: error === undefined, state: await setup.state() }));
+    console.log(JSON.stringify({ resolved: error === undefined, state: await setup.state() }));
     partial(error, "copy", "EAGAIN", [], []);
     assert.deepEqual(await setup.state(), { source: "original", target: "concurrent writer" });
     assert.equal(setup.calls.filter(call => call.operation === "delete").length, 0);
@@ -277,11 +277,11 @@ for (const stage of ["copy", "delete"] as const) {
   });
 }
 
-test("concurrent destination child blocks its copy without deleting any source keys", settings, async context => {
+test("concurrent destination child blocks its copy without deleting any source keys", settings, async () => {
   const setup = await fixture(directory);
   setup.before(async (operation, key) => { if (operation === "copy" && key === "target/alpha") await setup.put(key, "new destination child"); });
   const error = await outcome(setup.fs.rename("/source", "/target"));
-  context.diagnostic(JSON.stringify({ resolved: error === undefined, state: await setup.state() }));
+  console.log(JSON.stringify({ resolved: error === undefined, state: await setup.state() }));
   partial(error, "copy", "EAGAIN", ["target/"], []);
   assert.deepEqual(await setup.state(), { ...directory, "target/": "", "target/alpha": "new destination child" });
 });

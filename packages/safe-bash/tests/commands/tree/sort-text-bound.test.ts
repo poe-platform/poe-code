@@ -38,18 +38,18 @@ function textBudget(limits: Partial<TreeLimits>): WalkBudget {
     stdout: { async write() {} }, stderr: { async write() {} } }, settings({ limits }));
 }
 
-test("TREE-WORK-002: actual Shell meters many long-prefix byte comparisons", async context => {
+test("TREE-WORK-002: actual Shell meters many long-prefix byte comparisons", async () => {
   const fs = createMemoryFileSystem();
   for (let index = 0; index < 32; index++) await fs.writeFile(`/${"x".repeat(62)}${String(index).padStart(2, "0")}`, new Uint8Array());
   const result = await shellRun(fs, ["-i", "--noreport"], { limits: { maxSteps: 256 } });
-  context.diagnostic(JSON.stringify({ entries: 32, nameBytes: 64, commonPrefixBytes: 62,
+  console.log(JSON.stringify({ entries: 32, nameBytes: 64, commonPrefixBytes: 62,
     maxSteps: 256, exitCode: result.exitCode, stdoutBytes: result.stdoutBytes.length, stderr: result.stderr }));
   assert.equal(result.exitCode, 1);
   assert.equal(result.stdout, "");
   assert.match(result.stderr, /tree work limit exceeded \(256\)/u);
 });
 
-test("TREE-WORK-002: dirsfirst consumes work beyond the first sorting pass", async context => {
+test("TREE-WORK-002: dirsfirst consumes work beyond the first sorting pass", async () => {
   const fs = createMemoryFileSystem();
   for (let index = 0; index < 32; index++) {
     const path = `/${String(index).padStart(2, "0")}`;
@@ -59,33 +59,33 @@ test("TREE-WORK-002: dirsfirst consumes work beyond the first sorting pass", asy
   const plainSteps = await measuredSteps(async () => assert.equal((await shellRun(fs, args)).exitCode, 0));
   assert.equal((await shellRun(fs, args, { limits: { maxSteps: plainSteps } })).exitCode, 0);
   const result = await shellRun(fs, [...args, "--dirsfirst"], { limits: { maxSteps: plainSteps } });
-  context.diagnostic(JSON.stringify({ entries: 32, nameBytes: 2, plainSteps, dirsfirstExitCode: result.exitCode, stderr: result.stderr }));
+  console.log(JSON.stringify({ entries: 32, nameBytes: 2, plainSteps, dirsfirstExitCode: result.exitCode, stderr: result.stderr }));
   assert.equal(result.exitCode, 1);
   assert.equal(result.stdout, "");
   assert.match(result.stderr, /tree work limit exceeded/u);
 });
 
-test("TEXT-BOUND-001: oversized backend error is admitted before regex or byte scanning", async context => {
+test("TEXT-BOUND-001: oversized backend error is admitted before regex or byte scanning", async () => {
   const text = "X".repeat(96);
   const fs = wrapped(createMemoryFileSystem(), { async lstat() { throw new Error(text); } });
   const scans = await measuredScans(text, async () => {
     await assert.rejects(run([], { limits: { maxPathBytes: 32 } }, { fs }), /path\/name limit exceeded/u);
   });
-  context.diagnostic(JSON.stringify({ messageCodeUnits: 96, maxPathBytes: 32, measuredRawMessageScans: scans }));
+  console.log(JSON.stringify({ messageCodeUnits: 96, maxPathBytes: 32, measuredRawMessageScans: scans }));
   assert.deepEqual(scans, { replace: 0, byteLength: 0, encode: 0 });
 });
 
-test("TEXT-BOUND-001: prefix stripping cannot evade raw backend message admission", async context => {
+test("TEXT-BOUND-001: prefix stripping cannot evade raw backend message admission", async () => {
   const fs = wrapped(createMemoryFileSystem(), { async lstat() { throw new Error(`${"A".repeat(96)}: denied`); } });
   const result = await shellRun(fs, ["--noreport"], { limits: { maxPathBytes: 32 } });
-  context.diagnostic(JSON.stringify({ rawMessageCodeUnits: 104, maxPathBytes: 32, exitCode: result.exitCode,
+  console.log(JSON.stringify({ rawMessageCodeUnits: 104, maxPathBytes: 32, exitCode: result.exitCode,
     stdout: result.stdout, stderr: result.stderr }));
   assert.equal(result.exitCode, 1);
   assert.equal(result.stdout, "");
   assert.match(result.stderr, /path\/name limit exceeded/u);
 });
 
-test("byte comparison reservation fails before calling Buffer.compare", async context => {
+test("byte comparison reservation fails before calling Buffer.compare", async () => {
   const fs = createMemoryFileSystem();
   for (let index = 0; index < 32; index++) await fs.writeFile(`/${"x".repeat(62)}${String(index).padStart(2, "0")}`, new Uint8Array());
   const original = Buffer.compare;
@@ -97,7 +97,7 @@ test("byte comparison reservation fails before calling Buffer.compare", async co
   try {
     await assert.rejects(run(["--noreport"], { limits: { maxSteps: 100 } }, { fs }), /work limit exceeded/u);
     assert.equal(comparisons, 0);
-    context.diagnostic(JSON.stringify({ nameBytes: 64, maxSteps: 100, measuredByteComparisons: comparisons }));
+    console.log(JSON.stringify({ nameBytes: 64, maxSteps: 100, measuredByteComparisons: comparisons }));
   } finally { Buffer.compare = original; }
 });
 

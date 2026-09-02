@@ -21,7 +21,7 @@ function hardlink(name: string, target: string): Buffer {
 
 const chain = archive(member({ name: "a", data: payload }), hardlink("b", "a"), hardlink("c", "b"));
 
-test("H01 plain/gzip backward hardlink chains preserve inode, nlink and write aliases", async context => {
+test("H01 plain/gzip backward hardlink chains preserve inode, nlink and write aliases", async () => {
   for (const gzip of [false, true]) {
     const fs = await fixture();
     const bytes = gzip ? gzipSync(chain) : chain;
@@ -45,11 +45,11 @@ test("H01 plain/gzip backward hardlink chains preserve inode, nlink and write al
         assert.deepEqual(Buffer.from(await fs.readFile(`/output/${name}`)), phase === "initial" ? payload : phase === "write" ? changed : Buffer.concat([changed, payload]));
       }
     }
-    context.diagnostic(JSON.stringify({ gzip, fixtureSha256: digest(bytes), limits, nlink: 3, sameIdentityAndSharedWrites: true }));
+    console.log(JSON.stringify({ gzip, fixtureSha256: digest(bytes), limits, nlink: 3, sameIdentityAndSharedWrites: true }));
   }
 });
 
-test("H02 missing hardlink method or false capability explicitly rejects without copy fallback", async context => {
+test("H02 missing hardlink method or false capability explicitly rejects without copy fallback", async () => {
   for (const missingMethod of [true, false]) {
     const fs = await fixture();
     await fs.writeFile("/output/b", Buffer.from("keep"));
@@ -70,11 +70,11 @@ test("H02 missing hardlink method or false capability explicitly rejects without
     assert.equal(Buffer.from(await fs.readFile("/output/b")).toString(), "keep");
     await absent(fs, "/output/c");
     assert.deepEqual((await fs.readdir("/output")).map(entry => entry.name).sort(), ["a", "b"]);
-    context.diagnostic(JSON.stringify({ missingMethod, linkCalls, fixtureSha256: digest(bytes), ...result }));
+    console.log(JSON.stringify({ missingMethod, linkCalls, fixtureSha256: digest(bytes), ...result }));
   }
 });
 
-test("H03 malicious hardlink target and destination vectors preserve outside VFS sentinels", async context => {
+test("H03 malicious hardlink target and destination vectors preserve outside VFS sentinels", async () => {
   for (const pivot of [false, true]) {
     const fs = await fixture();
     if (pivot) await fs.symlink!("/outside", "/output/pivot");
@@ -91,6 +91,6 @@ test("H03 malicious hardlink target and destination vectors preserve outside VFS
     await absent(fs, "/outside/evil");
     if (pivot) assert.equal(await fs.readlink!("/output/pivot"), "/outside");
     assert.deepEqual((await fs.readdir("/output")).map(entry => entry.name).sort(), pivot ? ["a", "pivot"] : ["a"]);
-    context.diagnostic(JSON.stringify({ pivot, fixtureSha256: digest(bytes), ...result }));
+    console.log(JSON.stringify({ pivot, fixtureSha256: digest(bytes), ...result }));
   }
 });

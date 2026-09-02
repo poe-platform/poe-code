@@ -38,7 +38,7 @@ async function waitForRelease(release: Promise<void>, signal: AbortSignal): Prom
   } finally { signal.removeEventListener("abort", onAbort); }
 }
 
-test("B01 configured entry, PAX and expanded-archive boundaries accept exact and reject one over", async context => {
+test("B01 configured entry, PAX and expanded-archive boundaries accept exact and reject one over", async () => {
   const payload = Buffer.from("12345678901234567");
   const extension = pax(["comment", "small"]);
   const plain = archive(member({ name: "data", data: payload }));
@@ -61,7 +61,7 @@ test("B01 configured entry, PAX and expanded-archive boundaries accept exact and
       const bytes = valid ? vector.good : vector.bad;
       const result = await tar(fs, [vector.label === "expanded archive" ? "-xzf" : "-xf", "-", "-C", "/output"],
         { stdin: source(bytes, 512) }, { limits: { ...vector.limits, chunkSize: 512 } });
-      context.diagnostic(JSON.stringify({ label: vector.label, valid, limits: vector.limits, fixtureSha256: digest(bytes), ...result }));
+      console.log(JSON.stringify({ label: vector.label, valid, limits: vector.limits, fixtureSha256: digest(bytes), ...result }));
       if (valid) success(result);
       else { assert.equal(result.exitCode, 2); assert.match(result.stderr, vector.error); }
       assert.deepEqual(Buffer.from(await fs.readFile("/output/data")), valid || vector.published ? payload : Buffer.from("old destination"));
@@ -71,7 +71,7 @@ test("B01 configured entry, PAX and expanded-archive boundaries accept exact and
   }
 });
 
-test("B02 default 64 MiB entry declaration rejects plus one before body reads or publication", async context => {
+test("B02 default 64 MiB entry declaration rejects plus one before body reads or publication", async () => {
   assert.equal(DEFAULT_ARCHIVE_LIMITS.maxEntryBytes, 67_108_864);
   for (const over of [false, true]) {
     const fs = await fixture();
@@ -111,11 +111,11 @@ test("B02 default 64 MiB entry declaration rejects plus one before body reads or
     assert.deepEqual(Buffer.from(await fs.readFile("/output/data")), over ? Buffer.from("old destination") : Buffer.alloc(0));
     assert.deepEqual(await names(fs), ["data"]);
     await sentinel(fs);
-    context.diagnostic(JSON.stringify({ over, declaredBytes: 67_108_864 + Number(over), headerBytes: bytes.length, fixtureSha256: digest(bytes), pulls, returns, publications, ...result }));
+    console.log(JSON.stringify({ over, declaredBytes: 67_108_864 + Number(over), headerBytes: bytes.length, fixtureSha256: digest(bytes), pulls, returns, publications, ...result }));
   }
 });
 
-test("B03 small gzip amplification obeys expanded-byte budget and a valid full-size control", async context => {
+test("B03 small gzip amplification obeys expanded-byte budget and a valid full-size control", async () => {
   const payload = Buffer.alloc(8192, 65);
   const plain = archive(member({ name: "data", data: payload }));
   const compressed = gzipSync(plain, { level: 9 });
@@ -131,11 +131,11 @@ test("B03 small gzip amplification obeys expanded-byte budget and a valid full-s
     assert.deepEqual(Buffer.from(await fs.readFile("/output/data")), expected);
     assert.deepEqual(await names(fs), ["data"]);
     await sentinel(fs);
-    context.diagnostic(JSON.stringify({ compressedBytes: compressed.length, expandedBytes: plain.length, maxArchiveBytes, retainedBytes: expected.length, fixtureSha256: digest(compressed), ...result }));
+    console.log(JSON.stringify({ compressedBytes: compressed.length, expandedBytes: plain.length, maxArchiveBytes, retainedBytes: expected.length, fixtureSha256: digest(compressed), ...result }));
   }
 });
 
-test("B04 late body, padding and gated gzip trailer failures retain exact partial effects", { timeout: 15000 }, async context => {
+test("B04 late body, padding and gated gzip trailer failures retain exact partial effects", { timeout: 15000 }, async () => {
   const first = Buffer.from("accepted first file");
   const current = pattern(29);
   const prefix = Buffer.concat([member({ name: "directory", type: "5" }), member({ name: "first", data: first })]);
@@ -184,7 +184,7 @@ test("B04 late body, padding and gated gzip trailer failures retain exact partia
       if (laterPublished) assert.equal(Buffer.from(await fs.readFile("/output/later")).toString(), "later");
       else await absent(fs, "/output/later");
       await sentinel(fs);
-      context.diagnostic(JSON.stringify({ kind, retainedBytes: kind === "body" ? 7 : current.length, directoryMode: kind === "valid" ? "0755" : "0700", ...result }));
+      console.log(JSON.stringify({ kind, retainedBytes: kind === "body" ? 7 : current.length, directoryMode: kind === "valid" ? "0755" : "0700", ...result }));
     } finally {
       release.resolve();
       controller.abort(new Error("late-effects cleanup"));
@@ -195,7 +195,7 @@ test("B04 late body, padding and gated gzip trailer failures retain exact partia
   }
 });
 
-test("B05 blocked compressed extraction bounds source pulls, resumes, or aborts with exact cleanup", { timeout: 15000 }, async context => {
+test("B05 blocked compressed extraction bounds source pulls, resumes, or aborts with exact cleanup", { timeout: 15000 }, async () => {
   const payload = pattern(128 * 1024, 0x87654321);
   const bytes = gzipSync(archive(member({ name: "data", data: payload }), member({ name: "later", data: Buffer.from("later") })));
   const sourceChunkBytes = 512;
@@ -301,7 +301,7 @@ test("B05 blocked compressed extraction bounds source pulls, resumes, or aborts 
       }
       assert.equal(sourceFinalized, 1);
       await sentinel(fs);
-      context.diagnostic(JSON.stringify({ abort, fixtureSha256: digest(bytes), compressedBytes: bytes.length, sourceChunkBytes, maximumBlockedSourceBytes, blockedBytes, blockedPulls, finalSourceBytes: sourceBytes, pulls, returns, sourceFinalized, committed, writes }));
+      console.log(JSON.stringify({ abort, fixtureSha256: digest(bytes), compressedBytes: bytes.length, sourceChunkBytes, maximumBlockedSourceBytes, blockedBytes, blockedPulls, finalSourceBytes: sourceBytes, pulls, returns, sourceFinalized, committed, writes }));
     } finally {
       controller.abort(reason);
       release.resolve();

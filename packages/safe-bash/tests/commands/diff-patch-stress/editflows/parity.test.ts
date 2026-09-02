@@ -8,7 +8,9 @@ import { cwd, expectedBytes, fileBytes, memory, run } from "./helpers.js";
 for (const flow of flows) test(`edit-flow parity: ${flow.name}`, async context => {
   const filesystem = await memory(flow.files);
   const result = await run("patch", flow.args, filesystem, flow.input);
-  context.diagnostic(JSON.stringify({ status: result.status, stdout: result.stdout.toString(), stderr: result.stderr.toString() }));
+  const report = JSON.stringify({ status: result.status, stdout: result.stdout.toString(), stderr: result.stderr.toString() });
+  if (result.status === 0 && result.stderr.length === 0) console.log(report);
+  else context.diagnostic(report);
   assert.deepEqual({ status: result.status, files: await fileBytes(filesystem, Object.keys(flow.expected)), stderr: result.stderr },
     { status: 0, files: expectedBytes(flow.expected), stderr: Buffer.alloc(0) });
 });

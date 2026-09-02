@@ -5,7 +5,7 @@ import { Shell } from "../../../../src/shell/index.js";
 import { snapshot } from "../safety/helpers.js";
 import { contents, example, golden, memory, random, run } from "./helpers.js";
 
-test("64 seeded handwritten adjacent/separated hunks retain displaced anchors and reverse", { timeout: 30_000 }, async context => {
+test("64 seeded handwritten adjacent/separated hunks retain displaced anchors and reverse", { timeout: 30_000 }, async () => {
   let passed = 0;
   for (let index = 0; index < 64; index++) {
     const seed = (0x17ab0123 + index) >>> 0;
@@ -24,10 +24,10 @@ test("64 seeded handwritten adjacent/separated hunks retain displaced anchors an
     }
     passed++;
   }
-  context.diagnostic(`HANDWRITTEN_REPORT ${JSON.stringify({ baseSeed: 0x17ab0123, denominator: 64, pass: passed, fail: 0, skips: 0 })}`);
+  console.log(`HANDWRITTEN_REPORT ${JSON.stringify({ baseSeed: 0x17ab0123, denominator: 64, pass: passed, fail: 0, skips: 0 })}`);
 });
 
-test("all six file-section orderings apply coding-agent create/edit/delete flows and reverse", { timeout: 15_000 }, async context => {
+test("all six file-section orderings apply coding-agent create/edit/delete flows and reverse", { timeout: 15_000 }, async () => {
   const orders = [[0, 1, 2], [0, 2, 1], [1, 0, 2], [1, 2, 0], [2, 0, 1], [2, 1, 0]];
   const edited = golden("export const enabled = false;\n", "export const enabled = true;\n", "config.ts");
   const created = "--- /dev/null\n+++ added.ts\n@@ -0,0 +1 @@\n+export const added = 1;\n";
@@ -48,7 +48,7 @@ test("all six file-section orderings apply coding-agent create/edit/delete flows
     await assert.rejects(contents(filesystem, "added.ts"), { code: "ENOENT" });
     virtualPass++;
   }
-  context.diagnostic(`ORDER_REPORT ${JSON.stringify({ denominator: 6, virtualPass, skips: 0 })}`);
+  console.log(`ORDER_REPORT ${JSON.stringify({ denominator: 6, virtualPass, skips: 0 })}`);
   assert.equal(virtualPass, 6);
 });
 
@@ -103,7 +103,7 @@ for (const atomic of [false, true]) test(`${atomic ? "atomic extension" : "GNU d
   assert.equal(await contents(filesystem), "new\nmiddle\nend\n");
 });
 
-test("12 actual Shell plugin seeded pipeline/redirection/dry-run/reverse flows", { timeout: 15_000 }, async context => {
+test("12 actual Shell plugin seeded pipeline/redirection/dry-run/reverse flows", { timeout: 15_000 }, async () => {
   for (const index of [2, 7, 8, 9, 10, 11, 12, 13, 15, 31, 47, 63]) {
     const sample = example(index);
     const filesystem = await memory({ old: sample.before, next: sample.after, target: sample.before });
@@ -121,7 +121,7 @@ test("12 actual Shell plugin seeded pipeline/redirection/dry-run/reverse flows",
     assert.equal(backward.exitCode, 0, backward.stderr);
     assert.equal(await contents(filesystem), sample.before);
   }
-  context.diagnostic("SHELL_REPORT denominator=12 pass=12 fail=0 skips=0");
+  console.log("SHELL_REPORT denominator=12 pass=12 fail=0 skips=0");
 });
 
 for (const atomic of [false, true]) test(`${atomic ? "atomic extension" : "GNU default"} repeated hunk cannot bypass its first misordered match for a later duplicate`, async () => {

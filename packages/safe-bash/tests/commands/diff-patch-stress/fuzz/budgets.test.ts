@@ -3,7 +3,7 @@ import { performance } from "node:perf_hooks";
 import test from "node:test";
 import { contents, memory, run } from "./helpers.js";
 
-test("adversarial repeated-line unmatched rectangle rejects before oversized LCS allocation", { timeout: 5000 }, async context => {
+test("adversarial repeated-line unmatched rectangle rejects before oversized LCS allocation", { timeout: 5000 }, async () => {
   const before = `old-start\n${"same\n".repeat(2100)}old-end\n`;
   const after = `new-start\n${"same\n".repeat(2100)}new-end\n`;
   const started = performance.now();
@@ -11,10 +11,10 @@ test("adversarial repeated-line unmatched rectangle rejects before oversized LCS
   assert.equal(result.exitCode, 2);
   assert.match(result.stderr, /matrix cell limit/u);
   assert.equal(result.stdout, "");
-  context.diagnostic(`MATRIX_REPORT linesPerSide=2102 cells=4422609 limit=4000000 elapsedMs=${(performance.now() - started).toFixed(2)}`);
+  console.log(`MATRIX_REPORT linesPerSide=2102 cells=4422609 limit=4000000 elapsedMs=${(performance.now() - started).toFixed(2)}`);
 });
 
-test("repeated-line rectangle within limit computes exact result and reverse", { timeout: 5000 }, async context => {
+test("repeated-line rectangle within limit computes exact result and reverse", { timeout: 5000 }, async () => {
   const before = `old-start\n${"same\n".repeat(350)}old-end\n`;
   const after = `new-start\n${"same\n".repeat(350)}new-end\n`;
   const filesystem = await memory({ old: before, next: after, target: before });
@@ -27,7 +27,7 @@ test("repeated-line rectangle within limit computes exact result and reverse", {
   const reverse = await run("patch", ["-R"], filesystem, result.stdout);
   assert.equal(reverse.exitCode, 0, reverse.stderr);
   assert.equal(await contents(filesystem), before);
-  context.diagnostic(`REPETITION_REPORT linesPerSide=352 cells=124609 elapsedMs=${(performance.now() - started).toFixed(2)}`);
+  console.log(`REPETITION_REPORT linesPerSide=352 cells=124609 elapsedMs=${(performance.now() - started).toFixed(2)}`);
 });
 
 test("long compared lines exhaust charged work rather than allocating a large rectangle", { timeout: 5000 }, async () => {

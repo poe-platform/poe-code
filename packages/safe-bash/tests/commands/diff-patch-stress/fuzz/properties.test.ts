@@ -48,7 +48,14 @@ test("512 independent seeded diff/patch, reverse, golden, and minimality propert
       assert.equal(await contents(goldenFilesystem), reverse ? sample.before : sample.after);
     });
   }
-  context.diagnostic(`FUZZ_REPORT ${JSON.stringify({ baseSeed: BASE_SEED, denominator: indices.length, families, counts, skips: 0 })}`);
-  context.diagnostic(`FAILURE_INDEX ${JSON.stringify(failures.map(({ index, seed, family, phase }) => ({ index, seed, family, phase })))}`);
+  const report = `FUZZ_REPORT ${JSON.stringify({ baseSeed: BASE_SEED, denominator: indices.length, families, counts, skips: 0 })}`;
+  const failureIndex = `FAILURE_INDEX ${JSON.stringify(failures.map(({ index, seed, family, phase }) => ({ index, seed, family, phase })))}`;
+  if (failures.length === 0) {
+    console.log(report);
+    console.log(failureIndex);
+  } else {
+    context.diagnostic(report);
+    context.diagnostic(failureIndex);
+  }
   assert.equal(failures.length, 0, JSON.stringify(failures.slice(0, 12), null, 2));
 });

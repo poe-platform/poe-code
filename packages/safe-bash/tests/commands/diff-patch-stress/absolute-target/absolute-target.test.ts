@@ -122,7 +122,9 @@ test("exact benchmark fixture through existing EngineSession and pluginFixtures"
     const session = new EngineSession(engine);
     try {
       const result = await session.run({ kind: "fixture", fixture });
-      context.diagnostic(JSON.stringify(result));
+      const report = JSON.stringify(result);
+      if (result.status === "pass") console.log(report);
+      else context.diagnostic(report);
       assert.deepEqual(session.backgroundErrors, []);
       if (engine === "virtual-bash") {
         assert.equal(result.status, "pass", JSON.stringify(result));

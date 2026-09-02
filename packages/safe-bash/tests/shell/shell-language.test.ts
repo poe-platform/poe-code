@@ -1,0 +1,14 @@
+import "./ansi-words.cases.js";
+import "./case.cases.js";
+import "./core.cases.js";
+import "./env-replacement.cases.js";
+import "./env-shebang.cases.js";
+import "./expanded-gaps-env-host.cases.js";
+import "./expanded-gaps-fallback-host.cases.js";
+import "./fatal-expansion.cases.js";
+import "./glob-budget.cases.js";
+import "./parser-regressions.cases.js";
+import "./pathname-classes.cases.js";
+import "./runtime-regressions.cases.js";
+import "./substitution-nul.cases.js";
+import "./unsupported-options.cases.js";

@@ -285,7 +285,7 @@ describe("OBJ-003 independent supported-iterable validation", () => {
     expect(expected.chosen).toBe(native.last);
     const events: string[] = [];
     const input = fixture(events);
-    const transform = createObjectArrayGlobals({ budget: new Budget(limits) }).Object.fromEntries;
+    const transform = createObjectArrayGlobals({ budget: new Budget(limits) }).Object.properties!.fromEntries;
     if (!isSandboxClosure(transform)) throw new Error("Missing fromEntries closure");
     const result = await transform.call([input.iterable as unknown as SandboxValue]);
     expect(events).toEqual(expectedEvents);
@@ -334,7 +334,7 @@ describe("OBJ-003 independent supported-iterable validation", () => {
       );
       expect(nativeEvents).toEqual(expectedEvents);
       const events: string[] = [];
-      const transform = createObjectArrayGlobals({ budget: new Budget(limits) }).Object.fromEntries;
+      const transform = createObjectArrayGlobals({ budget: new Budget(limits) }).Object.properties!.fromEntries;
       if (!isSandboxClosure(transform)) throw new Error("Missing fromEntries closure");
       await expect(
         Promise.resolve().then(() => transform.call([fixture(events) as unknown as SandboxValue]))
@@ -370,7 +370,7 @@ describe("OBJ-003 merged adapter timing", () => {
     "returns $name results synchronously without copying supplied values",
     async ({ create }) => {
       const shared = { count: 2 };
-      const transform = createObjectArrayGlobals({ budget: new Budget(limits) }).Object.fromEntries;
+      const transform = createObjectArrayGlobals({ budget: new Budget(limits) }).Object.properties!.fromEntries;
       if (!isSandboxClosure(transform)) throw new Error("Missing fromEntries closure");
       const result = transform.call([
         create([
@@ -392,7 +392,7 @@ describe("OBJ-003 merged adapter timing", () => {
   it.each(inputs)(
     "throws $name allocation failures synchronously rather than rejecting later",
     async ({ create }) => {
-      const transform = createObjectArrayGlobals({ budget: new Budget({ arrayLength: 1 }) }).Object
+      const transform = createObjectArrayGlobals({ budget: new Budget({ arrayLength: 1 }) }).Object.properties!
         .fromEntries;
       if (!isSandboxClosure(transform)) throw new Error("Missing fromEntries closure");
       let returned: SandboxValue | Promise<SandboxValue>;
@@ -430,7 +430,7 @@ describe("OBJ-003 merged adapter timing", () => {
       if (!prepared.ok || !isSandboxGenerator(prepared.returnValue))
         throw new Error("Expected sandbox generator");
       const generator = prepared.returnValue;
-      const transform = createObjectArrayGlobals({ budget: new Budget({ arrayLength }) }).Object
+      const transform = createObjectArrayGlobals({ budget: new Budget({ arrayLength }) }).Object.properties!
         .fromEntries;
       if (!isSandboxClosure(transform)) throw new Error("Missing fromEntries closure");
       let returned: SandboxValue | Promise<SandboxValue>;

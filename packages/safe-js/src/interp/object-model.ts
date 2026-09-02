@@ -15,7 +15,9 @@ import {
 
 const guestClosures = new WeakSet<object>();
 const functionProperties = new WeakMap<object, SandboxObject>();
-const prototypes = new WeakMap<object, object>();
+const prototypes = new WeakMap<object, object | null>();
+const intrinsicPrototypes = new WeakMap<Budget, SandboxObject>();
+const intrinsicConstructors = new WeakMap<object, () => boolean>();
 const descriptorObjects = new WeakSet<object>();
 
 export function registerGuestClosure(closure: SandboxClosure): void {
@@ -72,8 +74,36 @@ export function getGuestFunctionProperty(closure: SandboxClosure, key: string): 
     : Object.getOwnPropertyDescriptor(properties, key)?.value;
 }
 
-export function getSandboxPrototype(value: object): object | null {
-  return prototypes.get(value) ?? null;
+export function installObjectPrototype(budget: Budget, prototype: SandboxObject, constructor: SandboxClosure): void {
+  prototypes.set(prototype, null);
+  intrinsicPrototypes.set(budget, prototype);
+  const records = [prototype, materializeFunctionProperties(constructor)].map(value => ({
+    value, descriptors: new Map(Object.entries(Object.getOwnPropertyDescriptors(value)))
+  }));
+  const unchanged = (before: PropertyDescriptor | undefined, after: PropertyDescriptor | undefined): boolean =>
+    before !== undefined && after !== undefined && before.value === after.value &&
+    before.writable === after.writable && before.configurable === after.configurable && before.enumerable === after.enumerable;
+  intrinsicConstructors.set(constructor, () => records.every(({ value, descriptors }) => {
+    const current = Object.getOwnPropertyDescriptors(value);
+    return Object.keys(current).length === descriptors.size &&
+      Object.keys(current).every(key => unchanged(descriptors.get(key), current[key]));
+  }));
+  budget.setRetainedValues(prototype, () => records.flatMap(({ value, descriptors }) =>
+    Object.entries(Object.getOwnPropertyDescriptors(value)).flatMap(([key, descriptor]) =>
+      unchanged(descriptors.get(key), descriptor) ? [] : [key, descriptor.value])));
+}
+
+export function releaseObjectPrototype(budget: Budget): void {
+  const prototype = intrinsicPrototypes.get(budget);
+  if (prototype !== undefined) budget.setRetainedValues(prototype, undefined);
+  intrinsicPrototypes.delete(budget);
+}
+
+export function getSandboxPrototype(value: object, budget?: Budget): object | null {
+  if (prototypes.has(value)) return prototypes.get(value) ?? null;
+  return budget !== undefined && isPrototypeRecord(value)
+    ? intrinsicPrototypes.get(budget) ?? null
+    : null;
 }
 
 export function getSandboxDataProperty(
@@ -101,7 +131,7 @@ export function getSandboxDataProperty(
     )
       return undefined;
     if (Object.hasOwn(current, String(key))) return (current as SandboxObject)[String(key)];
-    current = getSandboxPrototype(current) as SandboxValue;
+    current = getSandboxPrototype(current, budget) as SandboxValue;
     if (current !== null) {
       budget?.visitNode();
       assertSandboxDataDepth(++depth);
@@ -115,23 +145,25 @@ export function setSandboxPrototype(
   prototype: object | null,
   budget?: Budget
 ): void {
+  if (budget !== undefined && intrinsicPrototypes.get(budget) === value && prototype !== null) {
+    throw new TypeError("Object.prototype has an immutable null prototype.");
+  }
   if (!isPrototypeRecord(value) || (prototype !== null && !isPrototypeRecord(prototype))) {
     throw new TypeError(
       "Prototype links require ordinary sandbox objects; callable and exotic prototype chains are not supported."
     );
   }
-  if (getSandboxPrototype(value) === prototype) return;
+  if (prototypes.has(value) && getSandboxPrototype(value, budget) === prototype) return;
   if (!Object.isExtensible(isGuestClosure(value) ? materializeFunctionProperties(value) : value)) {
     throw new TypeError("Cannot change the prototype of a non-extensible object.");
   }
   let depth = 0;
-  for (let current = prototype; current !== null; current = getSandboxPrototype(current)) {
+  for (let current = prototype; current !== null; current = getSandboxPrototype(current, budget)) {
     budget?.visitNode();
     assertSandboxDataDepth(depth++);
     if (current === value) throw new TypeError("Cyclic prototype value.");
   }
-  if (prototype === null) prototypes.delete(value);
-  else prototypes.set(value, prototype);
+  prototypes.set(value, prototype);
 }
 
 function isPrototypeRecord(value: object): boolean {
@@ -158,6 +190,8 @@ export function hasManagedDescriptors(value: object): boolean {
 }
 
 export function hasGuestObjectState(value: object): boolean {
+  const intrinsicUnchanged = intrinsicConstructors.get(value);
+  if (intrinsicUnchanged !== undefined) return !intrinsicUnchanged();
   if (isLiveCapability(value)) return true;
   if (functionProperties.has(value) || prototypes.has(value)) return true;
   return (

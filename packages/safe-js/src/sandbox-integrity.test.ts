@@ -126,7 +126,7 @@ describe("sandbox integrity at the run boundary", () => {
     const result = await run(`
       const closure = function () {};
       return [
-        ({}).__proto__, ({}).constructor, ({}).prototype,
+        ({}).__proto__, ({}).constructor === Object, ({}).prototype,
         [].__proto__, [].constructor, [].prototype,
         "value".__proto__, "value".constructor, "value".prototype,
         (1).__proto__, (1).constructor, (1).prototype,
@@ -139,7 +139,7 @@ describe("sandbox integrity at the run boundary", () => {
       ok: true,
       returnValue: [
         undefined,
-        undefined,
+        true,
         undefined,
         undefined,
         undefined,
@@ -189,7 +189,7 @@ describe("sandbox integrity at the run boundary", () => {
 
   it.each([
     ["closure constructor", "return (function () {}).constructor;"],
-    ["object constructor", "return ({}).constructor;"],
+    ["object constructor", "return ({}).constructor.constructor;"],
     ["array constructor", "return [].constructor;"]
   ])("does not expose a Function constructor through %s", async (_label, source) => {
     await expect(run(source)).resolves.toMatchObject({ ok: true, returnValue: undefined });
@@ -204,7 +204,7 @@ describe("sandbox integrity at the run boundary", () => {
     [
       "object gadget",
       'return ({}).constructor("return process")();',
-      "Attempted to call a non-function value."
+      "Object primitive boxing is not supported."
     ],
     [
       "array gadget",

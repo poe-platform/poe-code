@@ -46,6 +46,7 @@ import {
 } from "./interp/host-call.js";
 import type { ConsoleSink } from "./interp/globals/console-json.js";
 import { createBuiltinBindings } from "./interp/globals.js";
+import { releaseObjectPrototype } from "./interp/object-model.js";
 import {
   declareHostOperation,
   wrapCallerInjectedBindings,
@@ -533,6 +534,7 @@ export function run(source: string, options: RunOptions = {}): Promise<RunResult
         }
       });
     } finally {
+      releaseObjectPrototype(budget);
       compilation.dispose();
       operation.release();
     }

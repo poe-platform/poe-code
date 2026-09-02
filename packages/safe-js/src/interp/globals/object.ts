@@ -1,0 +1,171 @@
+import { assertSandboxDataDepth } from "../../graph-depth.js";
+import type { Budget } from "../budget.js";
+import { isSandboxDate } from "../date.js";
+import { isSandboxErrorConstructorInstance } from "../exceptions.js";
+import { isFloat32Array } from "../float32.js";
+import { getHostObjectKeys, isGuestHostObject } from "../host-capabilities.js";
+import {
+  getSandboxPrototype,
+  installObjectPrototype,
+  isGuestClosure,
+  markDescriptorObject,
+  materializeFunctionProperties
+} from "../object-model.js";
+import { sandboxString } from "../string-coercion.js";
+import {
+  createSandboxClosure,
+  isSandboxClosure,
+  isSandboxGenerator,
+  isSandboxMap,
+  isSandboxPromise,
+  isSandboxRegex,
+  isSandboxSet,
+  type SandboxClosure,
+  type SandboxObject,
+  type SandboxValue
+} from "../values.js";
+
+export function createObjectGlobal(methods: SandboxObject, budget: Budget): SandboxClosure {
+  const construct = ([value]: readonly SandboxValue[]): SandboxValue => {
+    if (value === null || value === undefined) {
+      budget.chargeDataUsage(1);
+      return Object.create(null) as SandboxObject;
+    }
+    if (typeof value !== "object") throw new TypeError("Object primitive boxing is not supported.");
+    return value;
+  };
+  const constructor = createSandboxClosure({
+    guest: true,
+    sandbox: true,
+    name: "Object",
+    length: 1,
+    call: construct,
+    construct
+  });
+  const properties = materializeFunctionProperties(constructor);
+  const prototype = properties.prototype as SandboxObject;
+  Object.defineProperty(properties, "prototype", { writable: false });
+  for (const [name, method] of Object.entries(methods)) {
+    Object.defineProperty(properties, name, { value: method, writable: true, configurable: true });
+  }
+  const prototypeMethods: SandboxObject = {
+    toString: createSandboxClosure({
+      sandbox: true,
+      name: "toString",
+      length: 0,
+      call: (_args, context) => budget.allocateString(`[object ${typeTag(context?.thisValue)}]`)
+    }),
+    valueOf: createSandboxClosure({
+      sandbox: true,
+      name: "valueOf",
+      length: 0,
+      call: (_args, context) => {
+        const value = requireReceiver(context?.thisValue);
+        if (typeof value !== "object")
+          throw new TypeError("Object primitive boxing is not supported.");
+        return value;
+      }
+    }),
+    hasOwnProperty: createSandboxClosure({
+      sandbox: true,
+      name: "hasOwnProperty",
+      length: 1,
+      call: async ([key], context) =>
+        hasOwnSandboxProperty(
+          requireReceiver(context?.thisValue),
+          await sandboxString(key, budget, context),
+          false
+        )
+    }),
+    propertyIsEnumerable: createSandboxClosure({
+      sandbox: true,
+      name: "propertyIsEnumerable",
+      length: 1,
+      call: async ([key], context) =>
+        hasOwnSandboxProperty(
+          requireReceiver(context?.thisValue),
+          await sandboxString(key, budget, context),
+          true
+        )
+    }),
+    isPrototypeOf: createSandboxClosure({
+      sandbox: true,
+      name: "isPrototypeOf",
+      length: 1,
+      call: ([value], context) => {
+        if (typeof value !== "object" || value === null) return false;
+        const receiver = requireReceiver(context?.thisValue);
+        let depth = 0;
+        for (
+          let current = getSandboxPrototype(value, budget);
+          current !== null;
+          current = getSandboxPrototype(current, budget)
+        ) {
+          budget.visitNode();
+          assertSandboxDataDepth(depth++);
+          if (current === receiver) return true;
+        }
+        return false;
+      }
+    })
+  };
+  for (const [name, method] of Object.entries(prototypeMethods)) {
+    Object.defineProperty(prototype, name, { value: method, writable: true, configurable: true });
+  }
+  markDescriptorObject(prototype);
+  installObjectPrototype(budget, prototype, constructor);
+  return constructor;
+}
+
+function requireReceiver(value: SandboxValue): Exclude<SandboxValue, null | undefined> {
+  if (value === null || value === undefined)
+    throw new TypeError("Object method requires a non-null receiver.");
+  return value;
+}
+
+export function hasOwnSandboxProperty(
+  value: SandboxValue,
+  key: string,
+  enumerable: boolean
+): boolean {
+  requireReceiver(value);
+  if (isGuestHostObject(value)) return getHostObjectKeys(value).includes(key);
+  let properties: object;
+  if (isGuestClosure(value)) properties = materializeFunctionProperties(value);
+  else if (isSandboxClosure(value)) {
+    if (key === "length" || key === "name") return !enumerable;
+    properties = value.properties ?? (Object.create(null) as SandboxObject);
+  } else if (
+    isSandboxMap(value) ||
+    isSandboxSet(value) ||
+    isSandboxPromise(value) ||
+    isSandboxGenerator(value)
+  )
+    return false;
+  else if (isSandboxRegex(value)) return key === "lastIndex" && !enumerable;
+  else properties = Object(value) as object;
+  const descriptor = Object.getOwnPropertyDescriptor(properties, key);
+  return descriptor !== undefined && (!enumerable || descriptor.enumerable === true);
+}
+
+function typeTag(value: SandboxValue): string {
+  if (value === undefined) return "Undefined";
+  if (value === null) return "Null";
+  if (typeof value === "string") return "String";
+  if (typeof value === "number") return "Number";
+  if (typeof value === "boolean") return "Boolean";
+  if (isSandboxClosure(value)) {
+    while (value.boundTarget !== undefined) value = value.boundTarget;
+    return value.generator ? "GeneratorFunction" : value.async ? "AsyncFunction" : "Function";
+  }
+  if (Array.isArray(value)) return "Array";
+  if (isSandboxDate(value)) return "Date";
+  if (isSandboxErrorConstructorInstance(value, "Error")) return "Error";
+  if (isSandboxRegex(value)) return "RegExp";
+  if (isSandboxMap(value)) return "Map";
+  if (isSandboxSet(value)) return "Set";
+  if (isSandboxPromise(value)) return "Promise";
+  if (isSandboxGenerator(value)) return "Generator";
+  if (isFloat32Array(value)) return "Float32Array";
+  return "Object";
+}

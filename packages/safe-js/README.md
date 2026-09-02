@@ -56,6 +56,29 @@ const result = await run(`
 Properties stay inside the interpreter, not on native host functions. Arrows and object methods remain nonconstructible. Prototype links between callable or exotic objects (such as arrays) and accessor descriptors are unsupported; native `Function.prototype` is never exposed.
 
 <details>
+<summary>Object inspection and prototypes</summary>
+
+Ordinary objects inherit a sandbox-owned `Object.prototype`. Cached inspection works:
+
+```js
+const result = await run(`
+  const inspect = ({}).toString;
+  return [inspect.call([]), inspect.call(new Date(0)),
+    Object.getPrototypeOf({}) === Object.prototype];
+`);
+// result.returnValue: ["[object Array]", "[object Date]", true]
+```
+
+- `Object()` / `new Object()` create ordinary objects; passing an object preserves its identity.
+- `toString`, `valueOf`, `hasOwnProperty`, `propertyIsEnumerable` and `isPrototypeOf` support ordinary inspection. Type tags use sandbox brands, not guest-supplied fields.
+- Intrinsic methods are non-enumerable. Guest constructor prototypes inherit the ordinary Object prototype; explicit null/custom prototypes work with `Object.create`, `Object.setPrototypeOf` and literal `__proto__`. A computed `['__proto__']` remains an own data property.
+- Prototype mutations stay inside the current run or persistent realm and consume its retained-data budget. They never change native prototypes or another realm.
+
+Primitive boxing, inherited accessors, symbols and full Array/Function/exotic prototype graphs are unsupported. Use borrowed Object methods for inspecting those supported values. Explicit prototype links and mutated Object intrinsics are not portable checkpoint/copy data; project own data before crossing those boundaries. The conservative `AS011` lint rule still flags explicit `prototype`/`constructor` access; `run()` executes it without automatic linting.
+
+</details>
+
+<details>
 <summary>Dates and clocks</summary>
 
 `new Date(0).toISOString()` returns `1970-01-01T00:00:00.000Z`. Both `Date.now()` and `+new Date` work without a host shim.

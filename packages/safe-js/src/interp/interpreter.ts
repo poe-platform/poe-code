@@ -97,7 +97,7 @@ import {
   type ArrayMethodOptions
 } from "./methods/array.js";
 import { getFunctionMember, type FunctionMethodOptions } from "./methods/function.js";
-import { getGuestFunctionProperty, getSandboxPrototype, isGuestClosure, materializeFunctionProperties } from "./object-model.js";
+import { getGuestFunctionProperty, getSandboxPrototype, isGuestClosure, materializeFunctionProperties, setSandboxPrototype } from "./object-model.js";
 import { assertSandboxDataDepth } from "../graph-depth.js";
 import {
   callMapMethod,
@@ -653,6 +653,9 @@ async function evaluateObjectExpression(
     }
 
     if (isObjectPrototypeSetterProperty(property, key.value)) {
+      if (value.value === null || typeof value.value === "object") {
+        setSandboxPrototype(object, value.value as object | null, context.budget);
+      }
       continue;
     }
 
@@ -1747,7 +1750,7 @@ function forInKeys(object: object, budget: Budget): string[] {
   const keys: string[] = [];
   const seen = new Set<string>();
   let depth = 0;
-  for (let current: object | null = object; current !== null; current = getSandboxPrototype(current)) {
+  for (let current: object | null = object; current !== null; current = getSandboxPrototype(current, budget)) {
     if (depth > 0) budget.visitNode();
     assertSandboxDataDepth(depth++);
     const properties = isGuestClosure(current) ? materializeFunctionProperties(current) : isSandboxClosure(current) ? current.properties ?? {} : current;
@@ -1764,7 +1767,7 @@ function forInKeys(object: object, budget: Budget): string[] {
 function hasForInProperty(object: object, key: string, budget: Budget): boolean {
   if (isGuestHostObject(object)) return getHostObjectKeys(object).includes(key);
   let depth = 0;
-  for (let current: object | null = object; current !== null; current = getSandboxPrototype(current)) {
+  for (let current: object | null = object; current !== null; current = getSandboxPrototype(current, budget)) {
     if (depth > 0) budget.visitNode();
     assertSandboxDataDepth(depth++);
     const properties = isGuestClosure(current) ? materializeFunctionProperties(current) : isSandboxClosure(current) ? current.properties ?? {} : current;
@@ -3102,7 +3105,7 @@ function applyBinaryOperator(
           throw new TypeError("Function has a non-object prototype in instanceof check.");
         }
         let depth = 0;
-        for (let current = getSandboxPrototype(left); current !== null; current = getSandboxPrototype(current)) {
+        for (let current = getSandboxPrototype(left, context.budget); current !== null; current = getSandboxPrototype(current, context.budget)) {
           context.budget.visitNode();
           assertSandboxDataDepth(depth++);
           if (current === prototype) return true;
@@ -3393,7 +3396,7 @@ function getMemberValue(
       return getPropertyValue(current, property, context);
     }
     if (Object.hasOwn(current, String(property))) return (current as SandboxObject)[String(property)];
-    current = getSandboxPrototype(current) as SandboxValue;
+    current = getSandboxPrototype(current, context.budget) as SandboxValue;
     if (current !== null) {
       context.budget.visitNode();
       assertSandboxDataDepth(++depth);
@@ -3456,7 +3459,7 @@ export function setSandboxProperty(
   } else {
     if (typeof prototypeOwner === "object" && prototypeOwner !== null) {
       let depth = 0;
-      for (let prototype = getSandboxPrototype(prototypeOwner); prototype !== null; prototype = getSandboxPrototype(prototype)) {
+      for (let prototype = getSandboxPrototype(prototypeOwner, budget); prototype !== null; prototype = getSandboxPrototype(prototype, budget)) {
         budget.visitNode();
         assertSandboxDataDepth(depth++);
         const properties = isSandboxClosure(prototype) ? prototype.properties : prototype;

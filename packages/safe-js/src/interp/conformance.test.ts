@@ -448,9 +448,9 @@ describe("JavaScript conformance matrix", () => {
       ).resolves.toEqual([true, true, true, true, true, true]);
     });
 
-    it("does not provide prototype chains", async () => {
-      await expect(run("return [({}).toString, [].hasOwnProperty]")).resolves.toEqual([
-        undefined,
+    it("provides ordinary Object inspection without an Array prototype graph", async () => {
+      await expect(run("return [({}).toString(), [].hasOwnProperty]")).resolves.toEqual([
+        "[object Object]",
         undefined
       ]);
     });

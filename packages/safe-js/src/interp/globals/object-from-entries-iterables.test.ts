@@ -126,7 +126,7 @@ describe("Object.fromEntries supported iterables", () => {
 
   it.each([undefined, null, 12, true, { length: 0 }])("rejects non-iterable %j", (input) => {
     const globals = createObjectArrayGlobals({ budget: new Budget() });
-    const fromEntries = globals.Object.fromEntries as SandboxClosure;
+    const fromEntries = globals.Object.properties!.fromEntries as SandboxClosure;
     expect(() => Reflect.apply(Object.fromEntries, Object, [input])).toThrow(TypeError);
     expect(() => fromEntries.call([input])).toThrow(TypeError);
   });
@@ -184,7 +184,7 @@ describe("Object.fromEntries supported iterables", () => {
       ).toThrow(error);
       const sandboxEvents: string[] = [];
       const globals = createObjectArrayGlobals({ budget: new Budget() });
-      const fromEntries = globals.Object.fromEntries as SandboxClosure;
+      const fromEntries = globals.Object.properties!.fromEntries as SandboxClosure;
       await expect(
         Promise.resolve().then(() =>
           fromEntries.call([createIterable(sandboxEvents) as unknown as SandboxValue])

@@ -240,6 +240,7 @@ function createGeneratorClosure(
 ) {
   return createSandboxClosure({
     guest: true,
+    generator: true,
     sandbox: true,
     length: getFunctionLength(node.params),
     ...(node.id === undefined ? {} : { name: node.id.name }),

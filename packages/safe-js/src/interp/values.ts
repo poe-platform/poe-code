@@ -108,6 +108,7 @@ export type SandboxCallContext = {
 
 export type SandboxClosure = {
   readonly async?: true;
+  readonly generator?: true;
   readonly sandbox?: true;
   readonly boundTarget?: SandboxClosure;
   readonly cancellationSignal?: AbortSignal;
@@ -159,6 +160,7 @@ type CopyState<TValue> = {
 export function createSandboxClosure(input: {
   guest?: boolean;
   async?: boolean;
+  generator?: boolean;
   sandbox?: boolean;
   boundTarget?: SandboxClosure;
   cancellationSignal?: AbortSignal;
@@ -197,6 +199,7 @@ export function createSandboxClosure(input: {
   if (input.sandbox === true) {
     Object.defineProperty(closure, "sandbox", { value: true });
   }
+  if (input.generator === true) Object.defineProperty(closure, "generator", { value: true });
 
   if (input.length !== undefined) {
     Object.defineProperty(closure, "length", { value: input.length });
@@ -563,7 +566,7 @@ export function reconcileCompiledValues(
 ): void {
   while (parent?.closed) parent = parent.parent;
   const included = new Set<CompileTicket>();
-  const usage = measureSandboxData(values, { compileTickets: included });
+  const usage = measureSandboxData([...values, ...budget.retainedValues()], { compileTickets: included });
   const kept = new Set<CompileTicket>();
   if (parent !== undefined) measureSandboxData(escaping, { compileTickets: kept });
   const transferred = new Set<CompileTicket>();

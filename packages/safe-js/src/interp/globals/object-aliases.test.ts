@@ -483,7 +483,7 @@ describe("OBJ-001 source-local Object transform aliases", () => {
 
   it.each(["entries", "values", "fromEntries"])("continues budgeting %s results", (method) => {
     const globals = createObjectArrayGlobals({ budget: new Budget({ arrayLength: 1 }) });
-    const transform = globals.Object[method];
+    const transform = globals.Object.properties![method];
     if (!isSandboxClosure(transform)) throw new Error("Missing Object transform");
     const input = method === "fromEntries" ? [["nested", [1, 2]]] : { first: 1, second: 2 };
     expect(() => transform.call([input])).toThrowError(

@@ -3,6 +3,7 @@ import { types } from "node:util";
 import { Budget, SandboxError } from "./interp/budget.js";
 import { CompileScope } from "./interp/regex/compile-guard.js";
 import { createBuiltinBindings } from "./interp/globals.js";
+import { releaseObjectPrototype } from "./interp/object-model.js";
 import { interpret, Scope, type InterpreterResult } from "./interp/interpreter.js";
 import { SandboxJobQueue, runAsyncPrefix, suspendJob } from "./interp/jobs.js";
 import { withCancellationSignal, awaitSandboxValue } from "./interp/cancel.js";
@@ -231,6 +232,7 @@ class RealmState {
       this.budget.setRetainedValues(this, this.retainedRoots);
       this.tracker.onFatalRejection((error) => this.poison(error));
     } catch (error) {
+      releaseObjectPrototype(this.budget);
       this.compilation.dispose();
       this.lease.release();
       throw error;
@@ -808,6 +810,7 @@ class RealmState {
     for (const reference of this.guestReferences.keys()) revokeGuestReference(reference, this);
     this.guestReferences.clear();
     this.budget.setRetainedValues(this, undefined);
+    releaseObjectPrototype(this.budget);
     this.disposal = (async () => {
       const errors: unknown[] = [];
       for (const cleanup of this.cleanups.splice(0).reverse()) {

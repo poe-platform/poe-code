@@ -563,8 +563,8 @@ describe("OBJ-001 independent validation", () => {
     const hostInput = { left: hostRecord, right: hostRecord };
     const guestInput = deepCopyToSandbox(hostInput);
     const globals = createObjectArrayGlobals({ budget: new Budget(limits) });
-    const entries = globals.Object.entries;
-    const fromEntries = globals.Object.fromEntries;
+    const entries = globals.Object.properties!.entries;
+    const fromEntries = globals.Object.properties!.fromEntries;
     if (!isSandboxClosure(entries) || !isSandboxClosure(fromEntries))
       throw new Error("Missing Object transforms");
     const rebuilt = await fromEntries.call([await entries.call([guestInput])]);

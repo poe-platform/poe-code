@@ -1,6 +1,7 @@
 import type { Budget, CompileOwner } from "../budget.js";
 import { dateTime, isSandboxDate } from "../date.js";
 import { getDatePrototype } from "./date.js";
+import { createObjectGlobal, hasOwnSandboxProperty } from "./object.js";
 import { getHostObjectKeys, isGuestHostObject } from "../host-capabilities.js";
 import { isFloat32Array } from "../float32.js";
 import { setSandboxProperty } from "../interpreter.js";
@@ -25,7 +26,7 @@ import {
 } from "../values.js";
 
 export type ObjectArrayGlobals = {
-  Object: SandboxObject;
+  Object: SandboxClosure;
   Array: SandboxClosure;
   String: SandboxClosure;
   Number: SandboxClosure;
@@ -34,7 +35,7 @@ export type ObjectArrayGlobals = {
 
 export function createObjectArrayGlobals(options: { budget: Budget; compileOwner?: CompileOwner }): ObjectArrayGlobals {
   return {
-    Object: {
+    Object: createObjectGlobal({
       keys: createSandboxClosure({
         sandbox: true,
         call: ([value]) => budgetSandboxValue(getOwnEnumerableKeys(value), options.budget),
@@ -54,7 +55,13 @@ export function createObjectArrayGlobals(options: { budget: Budget; compileOwner
       }),
       hasOwn: createSandboxClosure({
         sandbox: true,
-        call: ([value, key]) => Reflect.apply(Object.hasOwn, Object, [isSandboxClosure(value) ? objectProperties(value) : value, key]),
+        call: ([value, key], context) => {
+          if (value === null || value === undefined) throw new TypeError("Cannot convert undefined or null to object.");
+          const name = sandboxString(key, options.budget, context);
+          return typeof name === "string"
+            ? hasOwnSandboxProperty(value, name, false)
+            : name.then(property => hasOwnSandboxProperty(value, property, false));
+        },
         name: "hasOwn"
       }),
       getOwnPropertyDescriptor: createSandboxClosure({
@@ -95,7 +102,7 @@ export function createObjectArrayGlobals(options: { budget: Budget; compileOwner
         call: ([value]) => {
           if (isSandboxDate(value)) return getDatePrototype(value, options.budget, options.compileOwner);
           objectProperties(value);
-          return getSandboxPrototype(value as object) as SandboxValue;
+          return getSandboxPrototype(value as object, options.budget) as SandboxValue;
         },
         name: "getPrototypeOf"
       }),
@@ -171,7 +178,7 @@ export function createObjectArrayGlobals(options: { budget: Budget; compileOwner
         call: ([target, ...sources]) => assignSandboxValues(target, sources, options.budget),
         name: "assign"
       })
-    },
+    }, options.budget),
     Array: createSandboxClosure({
       sandbox: true,
       call: (args) => createArrayFromConstructorArgs(args, options.budget),

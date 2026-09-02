@@ -23,43 +23,70 @@ assert.ok([originalCohortHash, "fdc22c27541f4f29334274e35238c22fa4645730dbe52391
 assert.equal(native.profiles.length, 2);
 assert.deepEqual(native.profiles.map(profile => profile.rows.map(row => row.id)), [cases.map(row => row.id), cases.map(row => row.id)]);
 
-async function probe(id: string) {
+async function probe(id: string, ids: readonly string[] = []) {
   const env = sanitizedEnv();
   if (process.env.INVOCATION_TRACE) env.INVOCATION_TRACE = process.env.INVOCATION_TRACE;
-  return boundedProcess(process.execPath, ["--unhandled-rejections=strict", "--import", "tsx", "--import", `./${owned}/trace.mjs`, `${owned}/virtual-child.ts`, id], { cwd: resolve("."), env });
+  return boundedProcess(process.execPath, ["--unhandled-rejections=strict", "--import", "tsx", "--import", `./${owned}/trace.mjs`, `${owned}/virtual-child.ts`, id, ...ids], { cwd: resolve("."), env });
 }
 
-for (const row of cases) test(`invocation differential: ${row.id}`, async context => {
-  const child = await probe(row.id);
-  context.diagnostic(JSON.stringify({ id: row.id, child }));
-  assert.equal(child.timedOut, false, "Hard process deadline is a failure, never caller-rescued success");
-  assert.equal(child.overflow, false);
-  assert.equal(child.code, 0, child.stdout + child.stderr);
-  assert.equal(child.stderr, "", "Unhandled process diagnostics");
-  const actual: VirtualRow = JSON.parse(child.stdout);
-  assert.equal(actual.error, undefined);
-  for (const profile of native.profiles) {
-    const expected = profile.rows.find(candidate => candidate.id === row.id)!;
-    assert.equal(expected.result.timedOut, false);
-    assert.equal(expected.result.overflow, false);
-    if (row.scope === "policy") {
-      assert.equal(actual.exitCode, row.policyStatus, `${profile.id}: deliberate contained policy, not native parity`);
-      assert.equal(actual.stdoutHex, "");
-      assert.match(actual.stderr, /invtool/u);
-      assert.notEqual(actual.stderr, "");
-    } else {
-      assert.equal(actual.exitCode, expected.result.code, `${profile.id} status`);
-      assert.equal(actual.stdoutHex, expected.result.stdoutHex, `${profile.id} exact stdout bytes`);
-      if (row.diagnostic) {
-        for (const fragment of row.diagnostic) {
-          assert.ok(expected.result.stderr.includes(fragment), `${profile.id}: native diagnostic lacks ${fragment}`);
-          assert.ok(actual.stderr.includes(fragment), `virtual diagnostic lacks ${fragment}: ${actual.stderr}`);
-        }
-      } else assert.equal(actual.stderrHex, expected.result.stderrHex, `${profile.id} exact stderr bytes`);
-      assert.deepEqual(actual.effects, expected.effects, `${profile.id} exact namespace effects`);
+const filtered = ["--test-name-pattern", "--test-skip-pattern"].some(flag =>
+  process.execArgv.some(argument => argument === flag || argument.startsWith(`${flag}=`))
+  || process.env.NODE_OPTIONS?.includes(flag));
+const batchSize = filtered ? 1 : 8;
+for (let offset = 0; offset < cases.length; offset += batchSize) {
+  const batch = cases.slice(offset, offset + batchSize);
+  const ids = batch.map(row => row.id);
+  let pending: ReturnType<typeof probe> | undefined;
+  for (const [index, row] of batch.entries()) test(`invocation differential: ${row.id}`, async context => {
+    const child = await (pending ??= filtered ? probe(row.id) : probe("--batch", ids));
+    const receipt = { id: row.id, sourceScope: filtered ? "case" : "batch", batchIds: ids };
+    const proof = index === 0 ? { child } : { childPid: child.pid, batchReceiptId: ids[0] };
+    let actual: VirtualRow;
+    try {
+      assert.equal(child.timedOut, false, "Hard process deadline is a failure, never caller-rescued success");
+      assert.equal(child.overflow, false);
+      assert.equal(child.code, 0, child.stdout + child.stderr);
+      assert.equal(child.stderr, "", "Unhandled process diagnostics");
+      const response = JSON.parse(child.stdout) as VirtualRow | { sourceScope: string; rows: VirtualRow[] };
+      if (filtered) actual = response as VirtualRow;
+      else {
+        assert.ok("rows" in response);
+        assert.equal(response.sourceScope, "batch");
+        assert.deepEqual(response.rows.map(result => result.id), ids, "Differential batch must preserve every ID in order");
+        actual = response.rows[index]!;
+      }
+      assert.equal(actual.id, row.id);
+    } catch (error) {
+      context.diagnostic(JSON.stringify({ ...receipt, ...proof }));
+      throw error;
     }
-  }
-});
+    context.diagnostic(JSON.stringify({ ...receipt,
+      ...(!filtered ? { observationEncoding: "row-json", stdoutHex: Buffer.from(JSON.stringify(actual) + "\n").toString("hex") } : {}),
+      ...proof }));
+    assert.equal(actual.error, undefined);
+    for (const profile of native.profiles) {
+      const expected = profile.rows.find(candidate => candidate.id === row.id)!;
+      assert.equal(expected.result.timedOut, false);
+      assert.equal(expected.result.overflow, false);
+      if (row.scope === "policy") {
+        assert.equal(actual.exitCode, row.policyStatus, `${profile.id}: deliberate contained policy, not native parity`);
+        assert.equal(actual.stdoutHex, "");
+        assert.match(actual.stderr, /invtool/u);
+        assert.notEqual(actual.stderr, "");
+      } else {
+        assert.equal(actual.exitCode, expected.result.code, `${profile.id} status`);
+        assert.equal(actual.stdoutHex, expected.result.stdoutHex, `${profile.id} exact stdout bytes`);
+        if (row.diagnostic) {
+          for (const fragment of row.diagnostic) {
+            assert.ok(expected.result.stderr.includes(fragment), `${profile.id}: native diagnostic lacks ${fragment}`);
+            assert.ok(actual.stderr.includes(fragment), `virtual diagnostic lacks ${fragment}: ${actual.stderr}`);
+          }
+        } else assert.equal(actual.stderrHex, expected.result.stderrHex, `${profile.id} exact stderr bytes`);
+        assert.deepEqual(actual.effects, expected.effects, `${profile.id} exact namespace effects`);
+      }
+    }
+  });
+}
 
 export const hostCases = [
   "host-nested-invoke-middleware-origin", "host-origin-default-and-replacement", "host-registry-interpreter-precedence",

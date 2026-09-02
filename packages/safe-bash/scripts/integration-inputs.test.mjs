@@ -1453,6 +1453,7 @@ test("default normal runner passes every discovered active file to serial Node e
   const files = discoverTests(root, loadBoundaries(root));
   assertSource7Discovery(files);
   assert.ok(files.includes("tests/plugins/git-removal.test.ts"));
+  assert.ok(files.includes("tests/shell-stress/invocation-modes/batch-controls.test.ts"));
   assert.equal(runTests(root, [], (executable, args, options) => {
     assert.equal(executable, process.execPath);
     assert.deepEqual(args, ["--import", "tsx", "--test", "--test-concurrency=1", ...files]);

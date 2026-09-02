@@ -1,5 +1,7 @@
 import assert from "node:assert/strict";
+import { realpathSync } from "node:fs";
 import { dirname } from "node:path";
+import { fileURLToPath } from "node:url";
 import { CommandRegistry, FsError, pipeBytes, toByteSource, writeText } from "../../../src/contracts/index.js";
 import type { ByteSource, FileSystem } from "../../../src/contracts/index.js";
 import { createStandardCommands } from "../../../src/commands/index.js";
@@ -17,33 +19,48 @@ async function setup() {
   return { fs, commands, shell };
 }
 
-async function differential(id: string) {
+export async function differential(id: string) {
   const row = cases.find(candidate => candidate.id === id);
   assert.ok(row, id);
   const { fs, shell } = await setup();
-  const renderedFixtures = [];
-  for (const fixture of row.fixtures ?? []) {
-    const path = `/work/${fixture.path}`;
-    await fs.mkdir(dirname(path), { recursive: true });
-    if (fixture.directory) await fs.mkdir(path, { recursive: true });
-    else if (fixture.link) await fs.symlink(fixture.link, path);
-    else {
-      const bytes = fixtureBytes(fixture, "/bin/bash");
-      await fs.writeFile(path, bytes, { mode: fixture.mode ?? 0o644 });
-      renderedFixtures.push({ path, hex: bytes.toString("hex"), mode: fixture.mode ?? 0o644 });
+  const outcome = await (async () => {
+    const renderedFixtures = [];
+    for (const fixture of row.fixtures ?? []) {
+      const path = `/work/${fixture.path}`;
+      await fs.mkdir(dirname(path), { recursive: true });
+      if (fixture.directory) await fs.mkdir(path, { recursive: true });
+      else if (fixture.link) await fs.symlink(fixture.link, path);
+      else {
+        const bytes = fixtureBytes(fixture, "/bin/bash");
+        await fs.writeFile(path, bytes, { mode: fixture.mode ?? 0o644 });
+        renderedFixtures.push({ path, hex: bytes.toString("hex"), mode: fixture.mode ?? 0o644 });
+      }
     }
-  }
-  for (const fixture of row.fixtures ?? []) if (fixture.mode !== undefined && fixture.directory) await fs.chmod(`/work/${fixture.path}`, fixture.mode);
-  const input = inputBytes(row);
-  const stdin = (async function* (): AsyncGenerator<Uint8Array> {
-    for (let offset = 0; offset < input.length; offset += row.chunkBytes ?? input.length) yield input.subarray(offset, offset + (row.chunkBytes ?? input.length));
-  })();
-  const result = await shell.exec(row.source, { stdin });
-  const effects: Record<string, string> = {};
-  for (const path of ["effect", "fd-output"]) {
-    try { effects[path] = Buffer.from(await fs.readFile(`/work/${path}`)).toString("hex"); } catch (error) { if (!(error instanceof FsError) || error.code !== "ENOENT") throw error; }
-  }
-  return { id, exitCode: result.exitCode, stdoutHex: Buffer.from(result.stdoutBytes).toString("hex"), stderrHex: Buffer.from(result.stderrBytes).toString("hex"), stdout: result.stdout, stderr: result.stderr, effects, renderedFixtures };
+    for (const fixture of row.fixtures ?? []) if (fixture.mode !== undefined && fixture.directory) await fs.chmod(`/work/${fixture.path}`, fixture.mode);
+    const input = inputBytes(row);
+    const stdin = (async function* (): AsyncGenerator<Uint8Array> {
+      for (let offset = 0; offset < input.length; offset += row.chunkBytes ?? input.length) yield input.subarray(offset, offset + (row.chunkBytes ?? input.length));
+    })();
+    const result = await shell.exec(row.source, { stdin });
+    const effects: Record<string, string> = {};
+    for (const path of ["effect", "fd-output"]) {
+      try { effects[path] = Buffer.from(await fs.readFile(`/work/${path}`)).toString("hex"); } catch (error) { if (!(error instanceof FsError) || error.code !== "ENOENT") throw error; }
+    }
+    return { id, exitCode: result.exitCode, stdoutHex: Buffer.from(result.stdoutBytes).toString("hex"), stderrHex: Buffer.from(result.stderrBytes).toString("hex"), stdout: result.stdout, stderr: result.stderr, effects, renderedFixtures };
+  })().then(value => ({ ok: true as const, value }), (error: unknown) => ({ ok: false as const, error }));
+  try { await shell.dispose(); }
+  catch (error) { if (outcome.ok) throw error; }
+  if (!outcome.ok) throw outcome.error;
+  return outcome.value;
+}
+
+export async function differentialBatch(ids: readonly string[]) {
+  assert.ok(ids.length > 0 && ids.length <= 8, "Differential batch requires 1..8 rows");
+  assert.equal(new Set(ids).size, ids.length, "Duplicate differential batch ID");
+  for (const id of ids) assert.ok(cases.some(row => row.id === id), `Unknown differential batch ID: ${id}`);
+  const rows = [];
+  for (const id of ids) rows.push(await differential(id));
+  return rows;
 }
 
 async function host(id: string) {
@@ -189,10 +206,14 @@ async function host(id: string) {
   return { id, passed: true, seen, origin };
 }
 
-try {
-  const id = process.argv[2]!;
-  console.log(JSON.stringify(id.startsWith("host-") ? await host(id) : await differential(id)));
-} catch (error) {
-  console.log(JSON.stringify({ id: process.argv[2], error: String(error), stack: error instanceof Error ? error.stack : undefined }));
-  process.exitCode = 1;
+if (process.argv[1] && realpathSync(process.argv[1]) === realpathSync(fileURLToPath(import.meta.url))) {
+  try {
+    const id = process.argv[2]!;
+    console.log(JSON.stringify(id === "--batch"
+      ? { sourceScope: "batch", rows: await differentialBatch(process.argv.slice(3)) }
+      : id.startsWith("host-") ? await host(id) : await differential(id)));
+  } catch (error) {
+    console.log(JSON.stringify({ id: process.argv[2], error: String(error), stack: error instanceof Error ? error.stack : undefined }));
+    process.exitCode = 1;
+  }
 }

@@ -13,18 +13,14 @@ test("documented unsupported native workflows are errors, not native passes", as
   }
 });
 
-test("nullable author audit preserves all controls and explicitly classifies the known gap", { timeout: 30_000 }, async () => {
-  let unsupported = 0;
-  for (const specimen of nullableAuditCases()) {
+test("nullable repeated-capture backreferences are explicitly unsupported across audit subjects", { timeout: 30_000 }, async () => {
+  const specimens = nullableAuditCases().filter(specimen => specimen.args.at(-1) === "\\(a*\\)*\\1");
+  assert.equal(specimens.length, 11, "all known-gap audit subjects remain selected");
+  for (const specimen of specimens) {
     const observed = await run(specimen.args, {}, { env: { LC_ALL: specimen.locale } });
     const actual = { exitCode: observed.exitCode, stdoutHex: observed.stdoutHex, stderr: observed.stderr };
-if (specimen.args.at(-1) === "\\(a*\\)*\\1") {
-      unsupported++;
-      assert.equal(actual.exitCode, 2);
-      assert.equal(actual.stdoutHex, "");
-      assert.equal(actual.stderr, "expr: unsupported BRE: backreference to a capture in nullable repetition\n");
-
-    }
+    assert.equal(actual.exitCode, 2, specimen.name);
+    assert.equal(actual.stdoutHex, "", specimen.name);
+    assert.equal(actual.stderr, "expr: unsupported BRE: backreference to a capture in nullable repetition\n", specimen.name);
   }
-  assert.equal(unsupported, 11, "unsupported cases remain in original denominator, never counted as native passes");
 });

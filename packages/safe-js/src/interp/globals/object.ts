@@ -3,7 +3,7 @@ import type { Budget } from "../budget.js";
 import { isSandboxDate } from "../date.js";
 import { isSandboxErrorConstructorInstance } from "../exceptions.js";
 import { isFloat32Array } from "../float32.js";
-import { getHostObjectKeys, isGuestHostObject } from "../host-capabilities.js";
+import { hasHostObjectMember, isGuestHostObject } from "../host-capabilities.js";
 import {
   getSandboxPrototype,
   installObjectPrototype,
@@ -129,7 +129,7 @@ export function hasOwnSandboxProperty(
   enumerable: boolean
 ): boolean {
   requireReceiver(value);
-  if (isGuestHostObject(value)) return getHostObjectKeys(value).includes(key);
+  if (isGuestHostObject(value)) return hasHostObjectMember(value, key, enumerable);
   let properties: object;
   if (isGuestClosure(value)) properties = materializeFunctionProperties(value);
   else if (isSandboxClosure(value)) {

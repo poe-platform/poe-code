@@ -1,8 +1,8 @@
-import { Budget, run, makeFsModule, type RunClock } from "@poe-platform/safe-js";
+import { Budget, run, makeFsModule, type RunClock, type HostObjectIndexedDefinition } from "@poe-platform/safe-js";
 import { createMemoryFileSystem, type FileSystem } from "@poe-platform/safe-fs/core";
 import type { FileSystem as CompatibilityFileSystem } from "@poe-platform/safe-js/fs";
 import { Shell, standardCommands } from "@poe-platform/safe-bash";
-import { createRealm, defineExtension, type HostObject, type GuestReference } from "@poe-platform/safe-js/core";
+import { createRealm, defineExtension, type HostObject, type GuestReference, type HostObjectIndexedDefinition as CoreIndexed } from "@poe-platform/safe-js/core";
 
 const fs: FileSystem & CompatibilityFileSystem = createMemoryFileSystem();
 let next = 0;
@@ -13,13 +13,15 @@ await run("return 1;", { budget: new Budget({ maxSteps: 100 }) });
 void makeFsModule;
 await shell.dispose();
 const extension = defineExtension({
-  manifest: { version: 1, name: "typed-consumer", capabilities: ["guest:retain"], globals: ["node", "discard"] },
+  manifest: { version: 1, name: "typed-consumer", capabilities: ["guest:retain"], globals: ["node", "discard", "nodes"] },
   setup(context) {
     const node: HostObject = context.createHostObject({ properties: { value: { get: () => 7 } } });
+    const indexed: HostObjectIndexedDefinition & CoreIndexed = { length: () => 1, get: () => node, maxLength: 8 };
+    const nodes = context.createHostObject({ indexed });
     const discard = context.retainGuestArguments((reference: GuestReference) => context.releaseGuestReference(reference), 0);
-    return { globals: { node, discard } };
+    return { globals: { node, discard, nodes } };
   }
 });
 const realm = createRealm({ extensions: [extension], grants: ["guest:retain"], clock, limits: { callbacks: 10, guestReferences: 10 } });
-await realm.evaluate("discard({}); return node.value;");
+await realm.evaluate("discard({}); return [node.value, nodes[0] === node];");
 await realm.close();

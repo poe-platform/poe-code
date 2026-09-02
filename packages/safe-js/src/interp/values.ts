@@ -1,6 +1,6 @@
 import { bindOtelSpan, getBoundOtelSpan } from "../observability/otel.js";
 import { copyNativeDate, exportDate, isSandboxDate } from "./date.js";
-import { getHostObjectKeys, getHostObjectMember, isGuestHostObject, isLiveCapability } from "./host-capabilities.js";
+import { getHostObjectKeys, getHostObjectMember, hasHostObjectMember, measureHostObjectData, isGuestHostObject, isLiveCapability } from "./host-capabilities.js";
 import type { Budget, CompileTicket } from "./budget.js";
 import { types as nodeTypes } from "node:util";
 import { CompileScope, RegexCompileGuard, regexCompiledData } from "./regex/compile-guard.js";
@@ -239,7 +239,13 @@ export function createSandboxClosure(input: {
 }
 
 export function ownEnumerableSandboxEntries(value: SandboxValue): Array<[string, SandboxValue]> {
-  if (isGuestHostObject(value)) return getHostObjectKeys(value).map(key => [key, getHostObjectMember(value, key)]);
+  if (isGuestHostObject(value)) {
+    const entries: Array<[string, SandboxValue]> = [];
+    for (const key of getHostObjectKeys(value)) {
+      if (hasHostObjectMember(value, key, true)) entries.push([key, getHostObjectMember(value, key)]);
+    }
+    return entries;
+  }
   if (value === null || value === undefined) throw new TypeError("Cannot convert undefined or null to object.");
   if (isGuestClosure(value)) return Object.entries(value.properties ?? {}) as Array<[string, SandboxValue]>;
   if (isSandboxClosure(value) || isSandboxGenerator(value) || isSandboxMap(value) || isSandboxSet(value) || isSandboxPromise(value) || isSandboxRegex(value)) return [];
@@ -456,7 +462,7 @@ export function measureSandboxData(
     usage += 1;
     if (isSandboxDate(value)) { usage += 8; return; }
     if (isGuestHostObject(value)) {
-      for (const key of getHostObjectKeys(value)) usage += key.length + 1;
+      usage += measureHostObjectData(value);
       return;
     }
     const prototype = getSandboxPrototype(value);

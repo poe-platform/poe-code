@@ -7,6 +7,7 @@ import {
 } from "./values.js";
 import { enterRunningState } from "./running-state.js";
 import { isFloat32Array } from "./float32.js";
+import { getHostObjectIterator, isGuestHostObject } from "./host-capabilities.js";
 
 export type SandboxIterator = {
   readonly generator?: true;
@@ -21,6 +22,7 @@ export type SandboxIterator = {
 };
 
 export function getSandboxIterator(value: SandboxValue): SandboxIterator | undefined {
+  if (isGuestHostObject(value)) return getHostObjectIterator(value);
   if (isFloat32Array(value)) {
     return syncIterator(Float32Array.prototype.values.call(value));
   }

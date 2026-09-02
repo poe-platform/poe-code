@@ -420,6 +420,7 @@ class RealmState {
       owner: this,
       assertActive: this.assertOpen,
       chargeWork: this.chargeWork,
+      checkLength: (length) => this.budget.allocateArrayLength(length),
       read: (operation) => {
         const value = this.invokeHost(operation, operation);
         if (types.isPromise(value)) {

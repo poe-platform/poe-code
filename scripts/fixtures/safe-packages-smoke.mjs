@@ -3,6 +3,7 @@ import "./safe-packages-realms.mjs";
 import "./safe-packages-retained.mjs";
 import "./safe-packages-date.mjs";
 import "./safe-packages-object.mjs";
+import "./safe-packages-indexed.mjs";
 import { Budget, run } from "@poe-platform/safe-js";
 import { FsError, createMemoryFileSystem, createReadOnlyFileSystem } from "@poe-platform/safe-fs";
 import { FsError as CompatibilityFsError } from "@poe-platform/safe-js/fs";

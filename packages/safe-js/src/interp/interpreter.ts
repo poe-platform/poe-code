@@ -1,5 +1,6 @@
 import { promiseReplayContext } from "./promise-replay.js";
-import { getHostObjectKeys, getHostObjectMember, isGuestHostObject, setHostObjectMember } from "./host-capabilities.js";
+import { getHostObjectKeys, getHostObjectMember, hasHostObjectMember, isGuestHostObject, setHostObjectMember } from "./host-capabilities.js";
+import { sandboxString } from "./string-coercion.js";
 import { assertPromiseExecutionAllowed } from "./promise-tracker.js";
 import { SandboxJobQueue, runAsyncPrefix, suspendJob } from "./jobs.js";
 import { withCancellationSignal } from "./cancel.js";
@@ -831,7 +832,13 @@ async function evaluateBinaryExpression(
     return right;
   }
 
-  const value = applyBinaryOperator(node, left.value, right.value, context);
+  const value = node.operator === "in" && isGuestHostObject(right.value)
+    ? hasHostObjectMember(right.value, await sandboxString(left.value, context.budget, {
+      stack: context.callStack,
+      thisValue: undefined,
+      invokeClosure: (closure, args, thisValue) => invokeSandboxClosure(closure, args, context, context.callStack, undefined, thisValue)
+    }))
+    : applyBinaryOperator(node, left.value, right.value, context);
 
   return {
     kind: "normal",
@@ -1765,7 +1772,7 @@ function forInKeys(object: object, budget: Budget): string[] {
 }
 
 function hasForInProperty(object: object, key: string, budget: Budget): boolean {
-  if (isGuestHostObject(object)) return getHostObjectKeys(object).includes(key);
+  if (isGuestHostObject(object)) return hasHostObjectMember(object, key, true);
   let depth = 0;
   for (let current: object | null = object; current !== null; current = getSandboxPrototype(current, budget)) {
     if (depth > 0) budget.visitNode();
@@ -3732,6 +3739,14 @@ async function evaluateObjectSpread(
       ok: true,
       value: []
     };
+  }
+
+  if (isGuestHostObject(value.value)) {
+    const entries: Array<readonly [string, SandboxValue]> = [];
+    for (const key of getHostObjectKeys(value.value)) {
+      if (hasHostObjectMember(value.value, key, true)) entries.push([key, getHostObjectMember(value.value, key)]);
+    }
+    return { ok: true, value: entries };
   }
 
   if ((isSandboxClosure(value.value) && !isGuestClosure(value.value)) || isSandboxPromise(value.value)) {

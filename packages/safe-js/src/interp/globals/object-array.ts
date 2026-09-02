@@ -160,6 +160,7 @@ export function createObjectArrayGlobals(options: { budget: Budget; compileOwner
       freeze: createSandboxClosure({
         sandbox: true,
         call: ([value]) => {
+          if (isGuestHostObject(value)) throw new TypeError("Live host objects cannot be frozen.");
           if (typeof value === "object" && value !== null) {
             Object.freeze(isGuestClosure(value) ? materializeFunctionProperties(value) : value);
           }
@@ -410,6 +411,23 @@ async function arrayFromSandboxValues(
   const [items, mapFn, thisValue] = args;
 
   const iterator = getSandboxIterator(items);
+  if (isGuestHostObject(items) && iterator !== undefined) {
+    if (mapFn !== undefined && !isSandboxClosure(mapFn))
+      throw new TypeError("Array.from mapping callback must be a function.");
+    const values: SandboxValue[] = [];
+    while (true) {
+      const next = await iterator.next();
+      if (next.done) break;
+      budget.allocateArrayLength(values.length + 1);
+      const value = mapFn === undefined
+        ? next.value
+        : await mapFn.call([next.value, values.length], { stack: [], thisValue });
+      if (isSandboxPromise(value) && value.synchronousPrefix !== undefined)
+        await value.synchronousPrefix;
+      values.push(value);
+    }
+    return allocateProducedSandboxValue(values, budget);
+  }
   const values =
     iterator === undefined
       ? (Reflect.apply(Array.from, Array, [items]) as SandboxValue[])

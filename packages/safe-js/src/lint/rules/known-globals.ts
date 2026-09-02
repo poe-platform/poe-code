@@ -2,6 +2,7 @@ export const KNOWN_RUNTIME_GLOBALS = [
   "AggregateError",
   "Array",
   "Boolean",
+  "Date",
   "Error",
   "Infinity",
   "isFinite",

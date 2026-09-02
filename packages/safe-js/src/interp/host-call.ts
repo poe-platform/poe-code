@@ -1,5 +1,6 @@
 import { createHash, randomUUID } from "node:crypto";
 import { float32DataProperties, float32Storage, isFloat32Array } from "./float32.js";
+import { copyNativeDate, serializedDateTime } from "./date.js";
 import {
   cloneSandboxValue,
   createSandboxClosure,
@@ -824,6 +825,8 @@ function normalize(value: unknown, seen: WeakSet<object>): unknown {
   if (seen.has(value)) throw new TypeError("Host call arguments cannot contain cycles.");
   seen.add(value);
   try {
+    const date = copyNativeDate(value);
+    if (date !== undefined) return Object.assign(Object.create(null), { $type: "date", time: serializedDateTime(date) });
     if (isFloat32Array(value)) {
       const storage = float32Storage(value);
       const properties = Object.create(null) as Record<string, unknown>;

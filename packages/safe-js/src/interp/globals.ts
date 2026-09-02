@@ -7,14 +7,17 @@ import { createRegexGlobals } from "./globals/regex.js";
 import { createMiscGlobals } from "./globals/misc.js";
 import { createObjectArrayGlobals } from "./globals/object-array.js";
 import { createPromiseGlobals } from "./promise.js";
+import { createDateGlobal } from "./globals/date.js";
+import type { RunClock } from "../run.js";
 
 export function createBuiltinBindings(
-  options: Parameters<typeof createConsoleJsonGlobals>[0] & { random?: () => number }
+  options: Parameters<typeof createConsoleJsonGlobals>[0] & { random?: () => number; clock?: RunClock }
 ) {
   return {
     ...createConsoleJsonGlobals(options),
     ...createCollectionGlobals(options),
     Float32Array: createFloat32ArrayGlobal(options.budget),
+    Date: createDateGlobal(options),
     ...createErrorGlobals(options),
     ...createMathGlobals({ random: options.random }),
     ...createObjectArrayGlobals(options),

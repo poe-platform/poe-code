@@ -206,6 +206,7 @@ describe("Math.f16round independent review", () => {
       ...capture.completed,
       bindings: {
         ...capture.completed.bindings,
+        Date: { kind: "fn", name: "Date" },
         Object: {
           ...capture.completed.bindings.Object,
           create: { kind: "fn", name: "create" },

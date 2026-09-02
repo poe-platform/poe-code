@@ -1,4 +1,5 @@
 import { normalizeClosureResult } from "./async.js";
+import { copyNativeDate } from "./date.js";
 import { exportHostCapability, importHostCapability, isLiveCapability } from "./host-capabilities.js";
 import { attachErrorSpan, replaceErrorStack, type ErrorSourceSpan } from "../error/shape.js";
 import { SandboxError, type Budget, type CompileOwner } from "./budget.js";
@@ -975,6 +976,15 @@ export function copyHostValueToSandbox(
       },
       state
     );
+  }
+
+  const date = copyNativeDate(value);
+  if (date !== undefined) {
+    const existing = state.seen.get(value as object);
+    if (existing !== undefined) return existing;
+    budget.chargeDataUsage(9);
+    state.seen.set(value as object, date);
+    return date;
   }
 
   if (isFloat32Array(value)) {

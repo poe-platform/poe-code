@@ -2763,8 +2763,9 @@ class Parser {
       break;
     }
 
-    this.expectPunctuator("(");
-    const args = this.parseArguments();
+    const optional = this.consumePunctuator("?.");
+    if (optional !== undefined) throw new DisallowedSyntaxError("new optional chain", optional.start);
+    const args = this.consumePunctuator("(") === undefined ? [] : this.parseArguments();
     const end = this.previousToken();
 
     return {

@@ -149,6 +149,8 @@ export type RunClockSnapshot = {
 };
 
 export type RunClock = {
+  now?: () => number;
+  restore?: (snapshot: RunClockSnapshot) => void;
   snapshot: () => RunClockSnapshot | undefined;
 };
 
@@ -253,7 +255,7 @@ export function run(source: string, options: RunOptions = {}): Promise<RunResult
                   lifecycle
                 })
           );
-          const builtinBindings = createBuiltinBindings({ compileOwner: operation.owner, budget, hostCalls, sink: options.sink, random: random?.generator.next });
+          const builtinBindings = createBuiltinBindings({ compileOwner: operation.owner, budget, hostCalls, sink: options.sink, random: random?.generator.next, clock: options.clock });
           const importMeta = convertInitialInput(
             () => deepCopyToSandbox(options.importMeta ?? {}) as Record<string, SandboxValue>
           );

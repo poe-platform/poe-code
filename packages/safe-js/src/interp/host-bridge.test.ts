@@ -1061,7 +1061,7 @@ describe("host bridge", () => {
     const wrapped = wrapCallerInjectedBindings(
       {
         async load() {
-          return new Date("2026-04-28T12:00:00Z");
+          return new WeakMap();
         }
       },
       {
@@ -1076,8 +1076,8 @@ describe("host bridge", () => {
     expect(isSandboxPromise(result)).toBe(true);
     await expect(result.promise).rejects.toEqual({
       name: "TypeError",
-      message: "Unsupported sandbox value at <root>: Date",
-      stack: "TypeError: Unsupported sandbox value at <root>: Date\n    at load (line 1, column 7)"
+      message: "Unsupported sandbox value at <root>: WeakMap",
+      stack: "TypeError: Unsupported sandbox value at <root>: WeakMap\n    at load (line 1, column 7)"
     });
   });
 });

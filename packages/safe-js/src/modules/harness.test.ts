@@ -205,11 +205,11 @@ describe("makeHarnessModule", () => {
         },
         {
           filepath: "/repo/docs/plans/invalid-meta.md",
-          kind: new Date("2026-04-29T00:00:00Z"),
+          kind: new WeakMap(),
           version: 1
         }
       )
-    ).toThrow("Unsupported sandbox value at <root>: Date");
+    ).toThrow("Unsupported sandbox value at <root>: WeakMap");
   });
 
   it("prepends frontmatter principles as hard constraints", () => {

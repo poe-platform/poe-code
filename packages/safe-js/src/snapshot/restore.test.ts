@@ -54,6 +54,18 @@ function withObjectPrototypeProperties<T>(
 }
 
 describe("snapshot restore", () => {
+  it("does not reinterpret ordinary records with a date kind as Date heap nodes", () => {
+    const source = "await task()";
+    const descriptor = { kind: "date", time: "application metadata" };
+    const snapshot = serialize({
+      source,
+      currentAstNodeId: getNodeIdByType(parseModule(source), "AwaitExpression"),
+      scopeChain: [{ id: "module", bindings: { descriptor } }],
+      callStack: [], pendingPromises: [], moduleBindings: {}
+    });
+    const binding = restore(snapshot, { source }).currentScope.lookup("descriptor");
+    expect(binding).toMatchObject({ found: true, value: descriptor });
+  });
   it.each([
     "extensibility",
     "length order",

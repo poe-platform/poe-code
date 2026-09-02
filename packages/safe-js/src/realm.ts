@@ -58,7 +58,7 @@ import { hashSource } from "./parse/hash.js";
 import { describeThrownValue } from "./error/shape.js";
 import { encodeReplayData } from "./snapshot/replay-data.js";
 import type { ConsoleSink } from "./interp/globals/console-json.js";
-import type { RunOptions, RunResult } from "./run.js";
+import type { RunClock, RunOptions, RunResult } from "./run.js";
 
 export type RealmLimits = {
   extensions?: number;
@@ -69,6 +69,7 @@ export type RealmLimits = {
   nestedEvaluations?: number;
 };
 export type RealmOptions = {
+  clock?: RunClock;
   bindings?: Record<string, CallerInjectedBinding>;
   modules?: ModuleRegistry;
   extensions?: readonly SafeJSExtension[];
@@ -195,6 +196,7 @@ class RealmState {
         budget: this.budget,
         compileOwner: this.lease.owner,
         sink: options.sink,
+        clock: options.clock,
         random: createReplayableRandom({ seed: options.randomSeed }).next
       });
       const names = new Set<string>();
@@ -921,6 +923,7 @@ function readRealmOptions(value: unknown, oneShot = false): RealmOptions {
     "signal",
     "sink",
     "randomSeed",
+    "clock",
     "limits"
   ]);
   for (const [key, entry] of Object.entries(options)) {

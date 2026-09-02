@@ -5,6 +5,7 @@ import type { ParseResult } from "../parse/parser.js";
 import { DUMP_FORMAT_VERSION } from "./dump-format.js";
 import { MAX_DATA_DEPTH } from "../graph-depth.js";
 import { validateFloat32Storage } from "./float32array.js";
+import { restoreDateTime } from "../interp/date.js";
 import { hasGuestObjectState } from "../interp/object-model.js";
 
 const DEFAULT_MAX_DEPTH = MAX_DATA_DEPTH;
@@ -120,6 +121,10 @@ function validateDumpHeap(root: Record<string, unknown>, state: ValidationState)
     addUnique(heapIds, id, path);
     const entry = requireRecord(value, path);
     validateErrorType(entry, path);
+    if (entry.kind === "date") {
+      validateDateRecord(entry, path);
+      continue;
+    }
     if (entry.kind === "float32array") {
       validateFloat32Storage(entry);
       requireRecord(entry.entries, `${path}.entries`);
@@ -511,12 +516,13 @@ function validateGeneratorShape(
 function validateHeapValue(value: unknown, path: string, state: ValidationState): void {
   const record = requireRecord(value, path);
   validateErrorType(record, path);
-  if (!["arguments", "array", "object", "map", "set", "float32array"].includes(String(record.kind)))
+  if (!["arguments", "array", "object", "map", "set", "float32array", "date"].includes(String(record.kind)))
     fail("unknownTag", `${path}.kind`, "unknown heap tag");
   validateValue(record, path, 1, state);
   if (record.kind === "arguments") validateArgumentsProperties(record, path);
   if (record.kind === "array") validateArrayHeap(record, path, state);
   if (record.kind === "object") requireRecord(record.entries, `${path}.entries`);
+  if (record.kind === "date") validateDateRecord(record, path);
   if (record.kind === "float32array") {
     validateFloat32Storage(record);
     requireRecord(record.entries, `${path}.entries`);
@@ -529,6 +535,12 @@ function validateHeapValue(value: unknown, path: string, state: ValidationState)
     });
   }
   if (record.kind === "set") requireArray(record.values, `${path}.values`, state);
+}
+
+function validateDateRecord(record: Record<string, unknown>, path: string): void {
+  if (Object.keys(record).length !== 2) fail("invalidValue", path, "invalid Date fields");
+  try { restoreDateTime(record.time); }
+  catch { fail("invalidValue", `${path}.time`, "invalid Date epoch"); }
 }
 
 function validateArrayHeap(

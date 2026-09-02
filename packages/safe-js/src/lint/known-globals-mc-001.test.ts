@@ -19,6 +19,9 @@ afterEach(() => {
 });
 
 describe("MC-001 runtime global lint parity", () => {
+  it("recognizes Date construction and current-time reads", () => {
+    expect(lint("Date.now(); +new Date; new Date(0).toISOString();")).toEqual([]);
+  });
   it.each(Object.keys(createMathGlobals()))("recognizes runtime math global %s", (name) => {
     expect(AS003(`${name};`)).toEqual([]);
     expect(lint(`${name};`)).toEqual([]);

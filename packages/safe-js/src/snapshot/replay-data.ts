@@ -3,6 +3,7 @@ import { hasGuestObjectState } from "../interp/object-model.js";
 import { CompileScope } from "../interp/regex/compile-guard.js";
 import { float32DataProperties, isFloat32Array } from "../interp/float32.js";
 import { decodeFloat32Storage, encodeFloat32Storage, type Float32Data } from "./float32array.js";
+import { isSandboxDate, restoreDateTime, serializedDateTime } from "../interp/date.js";
 import { sandboxErrorNames, sandboxErrorTypes, type SandboxErrorName } from "../error/shape.js";
 import {
   createSandboxArguments,
@@ -39,6 +40,7 @@ type Properties = Record<
   { value: Atom; configurable: boolean; enumerable: boolean; writable: boolean }
 >;
 type DataNode =
+  | { kind: "date"; time: number | null }
   | (Float32Data<Atom> & { properties: Properties; extensible: boolean })
   | { kind: "capability"; id: string; properties: Atom }
   | {
@@ -110,6 +112,8 @@ export function encodeReplayData(
         id: capabilityId!,
         properties: child(entry.properties, "properties")
       };
+    } else if (isSandboxDate(entry)) {
+      nodes[id] = { kind: "date", time: serializedDateTime(entry) };
     } else if (isFloat32Array(entry)) {
       const storage = encodeFloat32Storage(entry, id, float32Buffers, (id) => ({
         tag: "ref" as const,
@@ -284,6 +288,12 @@ export function decodeReplayData(
         });
         options.onCapabilityRestored?.(capability, copy);
         return copy;
+      }
+      if (kind === "date") {
+        if (Object.keys(node).length !== 2) throw new TypeError("Invalid serialized Date fields.");
+        const result = restoreDateTime(own(node, "time"));
+        restored.set(id, result);
+        return result;
       }
       if (kind === "float32array") {
         if (typeof node.extensible !== "boolean")

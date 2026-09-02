@@ -134,6 +134,8 @@ import {
   setFloat32Member
 } from "./globals/float32array.js";
 import { isFloat32Array } from "./float32.js";
+import { dateString, dateTime, isSandboxDate } from "./date.js";
+import { getDateMember, getDatePrototype, isDateConstructor } from "./globals/date.js";
 import {
   createSandboxRegex,
   allocateProducedSandboxValue,
@@ -2439,6 +2441,7 @@ function getPropertyValue(
   if (typeof target === "number") return getNumberMember(target, property, context.budget);
   if (typeof target === "boolean") return undefined;
   if (isFloat32Array(target)) return getFloat32Member(target, property, context.budget);
+  if (isSandboxDate(target)) return getDateMember(property, context.budget, context.compilation?.owner);
   if (isSandboxMap(target)) return getMapMember(target, property, createMapMethodOptions(context));
   if (isSandboxSet(target)) return getSetMember(target, property, createSetMethodOptions(context));
   if (isSandboxGenerator(target)) return getGeneratorMember(target, property, context.budget);
@@ -2765,6 +2768,9 @@ async function evaluateMemberCallExpression(
     );
   }
 
+  if (isSandboxDate(member.object)) {
+    return evaluateResolvedCallExpression(node, getDateMember(member.property, context.budget, context.compilation?.owner), context, member.object);
+  }
   if (isFloat32Array(member.object)) {
     return evaluateResolvedCallExpression(
       node,
@@ -3082,6 +3088,7 @@ function applyBinaryOperator(
         return true;
       }
       if (isFloat32ArrayConstructor(right)) return isFloat32Array(left);
+      if (isDateConstructor(right)) return isSandboxDate(left) && getDatePrototype(left, context.budget, context.compilation?.owner) !== null;
       if (isSandboxSetConstructor(right) && isSandboxSet(left)) {
         return true;
       }
@@ -3163,8 +3170,8 @@ function compareRelational(
   right: InterpreterValue,
   operator: "<" | "<=" | ">" | ">="
 ): boolean {
-  const leftPrimitive = toPrimitive(left);
-  const rightPrimitive = toPrimitive(right);
+  const leftPrimitive = isSandboxDate(left) ? dateTime(left) : toPrimitive(left);
+  const rightPrimitive = isSandboxDate(right) ? dateTime(right) : toPrimitive(right);
 
   if (typeof leftPrimitive === "string" && typeof rightPrimitive === "string") {
     switch (operator) {
@@ -3275,6 +3282,7 @@ async function toNumericPrimitive(
   value: InterpreterValue,
   context: EvaluationContext
 ): Promise<SandboxPrimitive> {
+  if (isSandboxDate(value)) return dateTime(value);
   if (isPrimitiveCoercionType(getCoercionType(value))) {
     return value as SandboxPrimitive;
   }
@@ -3308,6 +3316,7 @@ async function toNumericPrimitive(
 }
 
 function toNumber(value: InterpreterValue): number {
+  if (isSandboxDate(value)) return dateTime(value);
   if (typeof value === "number") {
     return value;
   }
@@ -3332,6 +3341,7 @@ function toNumber(value: InterpreterValue): number {
 }
 
 function toString(value: InterpreterValue): string {
+  if (isSandboxDate(value)) return dateString(value);
   if (Array.isArray(value)) {
     return value
       .map((entry) => (entry === null || entry === undefined ? "" : toString(entry)))
@@ -3410,6 +3420,7 @@ export function setSandboxProperty(
   value: SandboxValue,
   budget: Budget
 ): void {
+  if (isSandboxDate(target)) throw new TypeError("Date own properties are not supported.");
   if (isGuestHostObject(target)) {
     setHostObjectMember(target, String(property), value);
     return;

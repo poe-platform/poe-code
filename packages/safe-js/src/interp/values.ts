@@ -1,4 +1,5 @@
 import { bindOtelSpan, getBoundOtelSpan } from "../observability/otel.js";
+import { copyNativeDate, exportDate, isSandboxDate } from "./date.js";
 import { getHostObjectKeys, getHostObjectMember, isGuestHostObject, isLiveCapability } from "./host-capabilities.js";
 import type { Budget, CompileTicket } from "./budget.js";
 import { types as nodeTypes } from "node:util";
@@ -44,6 +45,7 @@ export type SandboxPrimitive = string | number | boolean | null | undefined;
 
 export type SandboxValue =
   | SandboxPrimitive
+  | Date
   | Float32Array
   | SandboxObject
   | SandboxArray
@@ -449,6 +451,7 @@ export function measureSandboxData(
     seen.add(value);
 
     usage += 1;
+    if (isSandboxDate(value)) { usage += 8; return; }
     if (isGuestHostObject(value)) {
       for (const key of getHostObjectKeys(value)) usage += key.length + 1;
       return;
@@ -692,6 +695,14 @@ function copyToSandbox(
     return sandboxPromise;
   }
 
+  if (nodeTypes.isDate(value)) {
+    const existing = state.seen.get(value);
+    if (existing !== undefined) return existing;
+    const copy = copyNativeDate(value)!;
+    state.seen.set(value, copy);
+    return copy;
+  }
+
   if (isFloat32Array(value)) {
     const existing = state.seen.get(value);
     if (existing !== undefined) return existing;
@@ -872,6 +883,14 @@ function copyFromSandbox(
       });
     }
     if (!Object.isExtensible(value)) Object.preventExtensions(copy);
+    return copy;
+  }
+
+  if (isSandboxDate(value)) {
+    const existing = state.seen.get(value);
+    if (existing !== undefined) return existing;
+    const copy = exportDate(value);
+    state.seen.set(value, copy);
     return copy;
   }
 

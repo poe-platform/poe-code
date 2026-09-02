@@ -1,4 +1,5 @@
 import type { Budget, CompileOwner } from "../budget.js";
+import { dateMethods, isSandboxDate } from "../date.js";
 import { CompileScope } from "../regex/compile-guard.js";
 import type { HostCallJournal } from "../host-call.js";
 import { wrapCallerInjectedBindings } from "../host-bridge.js";
@@ -175,7 +176,9 @@ async function stringifyProperty(
 ): Promise<string | undefined> {
   let value = getOwnDataValue(holder, key);
 
-  if (isStringifyContainer(value)) {
+  if (isSandboxDate(value)) {
+    value = dateMethods.get("toJSON")!.invoke(value, []) as SandboxValue;
+  } else if (isStringifyContainer(value)) {
     const toJSON = getOwnDataValue(value, "toJSON");
     if (isSandboxClosure(toJSON)) {
       value = await callStringifyClosure(toJSON, [key], value, state);

@@ -1,6 +1,7 @@
 import { Budget, SandboxError, type CompileOwner } from "../interp/budget.js";
 import { CompileScope } from "../interp/regex/compile-guard.js";
 import { decodeFloat32Storage } from "./float32array.js";
+import { restoreDateTime } from "../interp/date.js";
 import { sandboxErrorTypes } from "../error/shape.js";
 import { SnapshotMismatchError } from "../restore.js";
 import { Scope, setSandboxProperty } from "../interp/interpreter.js";
@@ -528,6 +529,11 @@ function restoreHeapValue(id: number, state: RestoreState): RuntimeSnapshotValue
     throw new Error(`Snapshot references unknown heap value ${id}.`);
   }
 
+  if (serialized.kind === "date") {
+    const value = restoreDateTime(serialized.time);
+    state.heapValueById.set(id, value);
+    return value;
+  }
   if (serialized.kind === "float32array") {
     const value = decodeFloat32Storage(serialized, (reference) =>
       deserializeValue(reference as SerializedSnapshotValue, state)

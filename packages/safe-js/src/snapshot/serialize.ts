@@ -6,6 +6,7 @@ import { serializeArguments, type SerializedArguments } from "./arguments.js";
 import { requiresArrayEntries, serializeArray, type SerializedArray } from "./arrays.js";
 import { float32DataProperties, isFloat32Array } from "../interp/float32.js";
 import { encodeFloat32Storage, type Float32Data } from "./float32array.js";
+import { isSandboxDate, serializedDateTime } from "../interp/date.js";
 import {
   isSandboxArguments,
   isSandboxGenerator,
@@ -66,6 +67,7 @@ export type SerializedReferenceValue = {
 };
 
 export type SerializedHeapValue =
+  | { kind: "date"; time: number | null }
   | (Float32Data<SerializedReferenceValue> & { entries: Record<string, SerializedSnapshotValue> })
   | SerializedArguments<SerializedSnapshotValue>
   | SerializedArray<SerializedSnapshotValue>
@@ -114,6 +116,7 @@ export type RuntimePromiseValue = {
 };
 
 export type RuntimeSnapshotValue =
+  | Date
   | Float32Array
   | boolean
   | null
@@ -389,7 +392,7 @@ function serializeValue(
     return { kind: "regex", source: value.source, flags: value.flags, lastIndex: value.lastIndex };
   }
 
-  if (isSandboxMap(value) || isSandboxSet(value) || isFloat32Array(value)) {
+  if (isSandboxDate(value) || isSandboxMap(value) || isSandboxSet(value) || isFloat32Array(value)) {
     const reference = serializeHeapReference(value, path, state);
     if (reference === undefined) {
       throw new TypeError(`Cannot serialize collection without a heap reference at ${path}.`);
@@ -423,6 +426,7 @@ function serializeHeapReference(
     | Record<string, RuntimeSnapshotValue>
     | SandboxMap
     | SandboxSet
+    | Date
     | Float32Array,
   path: string,
   state: SerializationState
@@ -435,7 +439,9 @@ function serializeHeapReference(
   if (!state.serializedHeapIds.has(id)) {
     state.serializedHeapIds.add(id);
 
-    if (isFloat32Array(value)) {
+    if (isSandboxDate(value)) {
+      state.heap[String(id)] = { kind: "date", time: serializedDateTime(value) };
+    } else if (isFloat32Array(value)) {
       const storage = encodeFloat32Storage(value, id, state.float32Buffers, (id) => ({
         kind: "ref" as const,
         id
@@ -576,6 +582,7 @@ function indexHeapContainers(input: SerializeInput): WeakMap<object, number> {
     if (
       stat.count > 1 ||
       stat.cyclic ||
+      isSandboxDate(value) ||
       isFloat32Array(value) ||
       (Array.isArray(value) && requiresArrayEntries(value)) ||
       sandboxErrorTypes.has(value) ||
@@ -609,6 +616,7 @@ function collectContainerStats(
   if (
     !Array.isArray(value) &&
     !isPlainObject(value) &&
+    !isSandboxDate(value) &&
     !isFloat32Array(value) &&
     !isSandboxMap(value) &&
     !isSandboxSet(value)

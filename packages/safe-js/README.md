@@ -33,7 +33,7 @@ console.log(result.returnValue);
 
 - **JavaScript control flow:** functions and closures, async/await, loops, destructuring, spread, templates, exceptions, and synchronous generators.
 - **Guest function objects:** own properties on functions and arrows; ordinary constructors with shared prototypes, inherited methods and `instanceof`. `Object.create`, `getPrototypeOf`, `setPrototypeOf`, own-property inspection, and data descriptors work on ordinary sandbox records.
-- **Data processing:** arrays, objects, strings, numbers, JSON, Math, Map, Set, Float32Array, promises, and a bounded regular-expression subset. These are selected APIs, not complete ECMAScript implementations.
+- **Data processing:** arrays, objects, strings, numbers, JSON, Math, Date, Map, Set, Float32Array, promises, and a bounded regular-expression subset. These are selected APIs, not complete ECMAScript implementations.
 - **Explicit capabilities:** named, default, and namespace imports resolve against host-supplied modules. Optional helpers cover agents, MCP tools, files, environment reads, time, logging, and metrics.
 - **Persistent realms:** keep guest state across evaluations; register trusted extensions with explicit grants, live host objects, revocable callbacks, and ordered cleanup.
 - **Execution controls:** step, call-depth, string, array, and retained-data budgets; an absolute deadline; host cancellation; console and telemetry sinks.
@@ -54,6 +54,35 @@ const result = await run(`
 ```
 
 Properties stay inside the interpreter, not on native host functions. Arrows and object methods remain nonconstructible. Prototype links between callable or exotic objects (such as arrays) and accessor descriptors are unsupported; native `Function.prototype` is never exposed.
+
+<details>
+<summary>Dates and clocks</summary>
+
+`new Date(0).toISOString()` returns `1970-01-01T00:00:00.000Z`. Both `Date.now()` and `+new Date` work without a host shim.
+
+| Operation | Supported |
+| --- | --- |
+| Construction | Current time, epoch milliseconds, strings, another Date, or calendar components; `Date()` returns a time string. |
+| Static methods | `now`, `parse`, `UTC`. |
+| Reading | `getTime`, `valueOf`, `getTimezoneOffset`; local and UTC getters for full year, month, date, day, hours, minutes, seconds and milliseconds. |
+| Mutation | `setTime`; local and UTC setters for full year, month, date, hours, minutes, seconds and milliseconds. Overflow and invalid dates follow Date semantics. |
+| Formatting | `toISOString`, `toJSON`, `toString`, `toUTCString`, `toDateString`, `toTimeString`. Invalid dates stringify as `Invalid Date`, become JSON `null`, and throw on `toISOString`. |
+
+Current time defaults to wall time. Supply a clock for controlled reads:
+
+```js
+const result = await run("return [Date.now(), new Date().toISOString()];", {
+  clock: { now: () => 0, snapshot: () => undefined }
+});
+```
+
+Current-time reads are recorded for replay; replay does not call `now()` again. A stateful provider can implement `restore({ next })` to advance its state after each replayed read. `snapshot()` retains its existing clock-metadata role. The same clock option works in persistent realms.
+
+Date values copy by value across host bindings, preserving aliases within a graph. Checkpoints preserve epoch values, invalid dates and mutations rather than converting dates to strings. Parsing is limited to 4,096 characters and consumes the work/string budgets; retained values consume data budget. Local methods and non-ISO parsing follow the host timezone/runtime, so use explicit-zone ISO strings and UTC methods for portable output.
+
+Unsupported: locale formatting, legacy `getYear`/`setYear`/`toGMTString`, subclassing, custom argument coercion, Date-instance own properties and prototype modification. These are restrictions, not stubs; no native constructor or prototype is exposed to guest code.
+
+</details>
 
 ## Add a host capability
 
@@ -110,7 +139,7 @@ try {
 
 This prints `2`. Evaluations share declarations, closures and object identity without rerunning earlier source. Budgets are cumulative. `evaluate(source, { filename? })` returns `ok`, `returnValue` or `error`, and `stats`; it can also reject. Concurrent evaluations are rejected. Deferred callbacks can run while guest code awaits their result; overlapping invocation of the same callback is rejected. Close cancels pending work, revokes capabilities and awaits cleanup; repeated close does not rerun cleanup. Unhandled execution failures also close the realm.
 
-`createRealm(options?)` accepts `bindings`, `modules`, `budget`, `signal`, `sink` and `randomSeed` as described below, plus:
+`createRealm(options?)` accepts `bindings`, `modules`, `budget`, `clock`, `signal`, `sink` and `randomSeed` as described below, plus:
 
 | Option | Purpose / default |
 | --- | --- |
@@ -174,7 +203,7 @@ Release each reference when the host no longer needs it; returning it does not r
 
 Live objects do not support native prototypes, property-descriptor manipulation or portable serialization. Realm state is not a checkpoint: snapshot/replay and live-capability error-data conversion are rejected. Extensions are trusted native code; grants are a registration contract, not OS isolation. Native work still needs host timeouts and external process supervision for hard limits. No DOM, timers or browser engine are bundled.
 
-For one-shot use, `run(source, { extensions, grants, ... })` accepts the same realm options plus `filename`, returns data only, and closes resources before settling. Run-only features such as snapshots, `entryPointArgs`, `importMeta`, custom clocks/random generators and telemetry are rejected in this mode rather than silently ignored.
+For one-shot use, `run(source, { extensions, grants, ... })` accepts the same realm options plus `filename`, returns data only, and closes resources before settling. Run-only features such as snapshots, `entryPointArgs`, `importMeta`, custom random generators and telemetry are rejected in this mode rather than silently ignored.
 
 </details>
 
@@ -197,7 +226,7 @@ For one-shot use, `run(source, { extensions, grants, ... })` accepts the same re
 | `sink` | Console destination with `log(...args)` and `error(...args)`; defaults to the host console. |
 | `otelSink` | Telemetry with `startSpan` and `recordException`; spans implement `setAttribute`, `addEvent`, and `end`. Optional; `noopOtelSink` is available. |
 | `randomSeed`, `random` | Seed for built-in `Math.random`, or a custom `{ next, seed, snapshot }` generator. `random` takes precedence. |
-| `clock` | Clock-state provider with `snapshot()` returning `{ next }` or `undefined`; not a replacement for host time. |
+| `clock` | Optional `now()` supplies Date current-time reads; defaults to wall time. `snapshot()` returns `{ next }` or `undefined`; optional `restore({ next })` advances state on replayed reads. Snapshot-only providers remain valid. |
 | `snapshot` | Previously captured state to resume. |
 | `snapshotPath`, `snapshotBackend` | Checkpoint output file or custom backend (`read`, `write`, `remove`); backend takes precedence. Neither automatically loads state into `snapshot`. |
 | `snapshotIntervalMs` | Periodic checkpoint interval when persistence is configured: 30,000 ms; `0` disables periodic writes. Capture happens at interpreter yield points. |

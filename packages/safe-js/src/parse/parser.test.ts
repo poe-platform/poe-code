@@ -3346,6 +3346,15 @@ describe("parse", () => {
   });
 
   it("parses new expressions with identifier and member callees", () => {
+    expect(parse("+new Date")).toMatchObject({
+      type: "UnaryExpression", operator: "+", argument: {
+        type: "NewExpression", arguments: [], callee: { type: "Identifier", name: "Date" }
+      }
+    });
+    expect(parse("new services.Service")).toMatchObject({
+      type: "NewExpression", arguments: [], callee: { type: "MemberExpression" }
+    });
+    expect(() => parse("new Service?.()")).toThrow();
     expect(parse("new Service(1)")).toMatchObject({
       type: "NewExpression",
       callee: { type: "Identifier", name: "Service" },

@@ -1,4 +1,5 @@
 import { sandboxErrorTypes } from "../error/shape.js";
+import { dateString, isSandboxDate } from "./date.js";
 import type { Budget } from "./budget.js";
 import { float32Storage, isFloat32Array } from "./float32.js";
 import {
@@ -60,6 +61,7 @@ async function defaultToString(
   context: SandboxCallContext | undefined,
   joining: Set<object>
 ): Promise<SandboxValue> {
+  if (isSandboxDate(value)) return budget.allocateString(dateString(value));
   if (Array.isArray(value) || isFloat32Array(value)) {
     if (Object.hasOwn(value, "join")) {
       const join = ownDataValue(value, "join");

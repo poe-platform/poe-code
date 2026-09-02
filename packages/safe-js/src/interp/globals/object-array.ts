@@ -1,4 +1,6 @@
-import type { Budget } from "../budget.js";
+import type { Budget, CompileOwner } from "../budget.js";
+import { dateTime, isSandboxDate } from "../date.js";
+import { getDatePrototype } from "./date.js";
 import { getHostObjectKeys, isGuestHostObject } from "../host-capabilities.js";
 import { isFloat32Array } from "../float32.js";
 import { setSandboxProperty } from "../interpreter.js";
@@ -30,7 +32,7 @@ export type ObjectArrayGlobals = {
   Boolean: SandboxClosure;
 };
 
-export function createObjectArrayGlobals(options: { budget: Budget }): ObjectArrayGlobals {
+export function createObjectArrayGlobals(options: { budget: Budget; compileOwner?: CompileOwner }): ObjectArrayGlobals {
   return {
     Object: {
       keys: createSandboxClosure({
@@ -91,6 +93,7 @@ export function createObjectArrayGlobals(options: { budget: Budget }): ObjectArr
       getPrototypeOf: createSandboxClosure({
         sandbox: true,
         call: ([value]) => {
+          if (isSandboxDate(value)) return getDatePrototype(value, options.budget, options.compileOwner);
           objectProperties(value);
           return getSandboxPrototype(value as object) as SandboxValue;
         },
@@ -220,7 +223,7 @@ export function createObjectArrayGlobals(options: { budget: Budget }): ObjectArr
     }),
     Number: createSandboxClosure({
       sandbox: true,
-      call: ([value]) => Number(value),
+      call: ([value]) => isSandboxDate(value) ? dateTime(value) : Number(value),
       name: "Number",
       properties: {
         isFinite: createSandboxClosure({
@@ -330,6 +333,10 @@ function assignSandboxValues(target: SandboxValue, sources: readonly SandboxValu
 }
 
 function objectProperties(value: SandboxValue, mutable = false): SandboxObject | SandboxArray {
+  if (isSandboxDate(value)) {
+    if (mutable) throw new TypeError("Date own properties and prototypes are not supported.");
+    return value as unknown as SandboxObject;
+  }
   if (isGuestHostObject(value)) throw new TypeError("Live host object descriptors are not supported.");
   if (isGuestClosure(value)) return materializeFunctionProperties(value);
   if (isSandboxClosure(value)) {

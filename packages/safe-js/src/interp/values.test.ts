@@ -382,8 +382,8 @@ describe("sandbox values", () => {
   });
 
   it("rejects unsupported host values", () => {
-    expect(() => deepCopyToSandbox(new Date("2026-04-28T12:00:00Z"))).toThrowError(
-      "Unsupported sandbox value at <root>: Date"
+    expect(() => deepCopyToSandbox(new WeakMap())).toThrowError(
+      "Unsupported sandbox value at <root>: WeakMap"
     );
     expect(() => deepCopyToSandbox(() => "nope")).toThrowError(
       "Unsupported sandbox value at <root>: function"

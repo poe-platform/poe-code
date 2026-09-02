@@ -1621,7 +1621,7 @@ try {
       {
         bindings: {
           async load() {
-            return new Date("2026-04-28T12:00:00Z");
+            return new WeakMap();
           }
         }
       }
@@ -1631,8 +1631,8 @@ try {
       ok: true,
       returnValue: JSON.stringify([
         "TypeError",
-        "Unsupported sandbox value at <root>: Date",
-        "TypeError: Unsupported sandbox value at <root>: Date\n    at load (line 1, column 13)"
+        "Unsupported sandbox value at <root>: WeakMap",
+        "TypeError: Unsupported sandbox value at <root>: WeakMap\n    at load (line 1, column 13)"
       ])
     });
     expect((result.ok ? result.returnValue : "") as string).not.toContain("run.test.ts");

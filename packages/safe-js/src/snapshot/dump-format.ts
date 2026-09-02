@@ -8,6 +8,7 @@ import { serializeArguments, type SerializedArguments } from "./arguments.js";
 import { requiresArrayEntries, serializeArray, type SerializedArray } from "./arrays.js";
 import { float32DataProperties, isFloat32Array } from "../interp/float32.js";
 import { encodeFloat32Storage, type Float32Data } from "./float32array.js";
+import { isSandboxDate, serializedDateTime } from "../interp/date.js";
 
 const SKIP_VALUE = Symbol("SafeJS.skip-dump-value");
 
@@ -21,6 +22,7 @@ type DumpValue =
     };
 
 type DumpHeapValue =
+  | { kind: "date"; time: number | null }
   | (Float32Data<DumpValue> & { entries: Record<string, DumpValue> })
   | SerializedArguments<DumpValue>
   | SerializedArray<DumpValue>
@@ -127,7 +129,7 @@ function serializeDumpValue(
     throw new TypeError("Guest function properties and prototype links cannot be serialized.");
   }
 
-  if (isFloat32Array(value)) return serializeHeapReference(value, path, state)!;
+  if (isSandboxDate(value) || isFloat32Array(value)) return serializeHeapReference(value, path, state)!;
 
   if (Array.isArray(value)) {
     const reference = serializeHeapReference(value, path, state);
@@ -151,7 +153,7 @@ function serializeDumpValue(
 }
 
 function serializeHeapReference(
-  value: unknown[] | Record<string, unknown> | Float32Array,
+  value: unknown[] | Record<string, unknown> | Float32Array | Date,
   path: string,
   state: DumpState
 ):
@@ -168,7 +170,9 @@ function serializeHeapReference(
   if (!state.serializedHeapIds.has(id)) {
     state.serializedHeapIds.add(id);
 
-    if (isFloat32Array(value)) {
+    if (isSandboxDate(value)) {
+      state.heap[String(id)] = { kind: "date", time: serializedDateTime(value) };
+    } else if (isFloat32Array(value)) {
       const storage = encodeFloat32Storage(value, id, state.float32Buffers, (id) => ({
         kind: "ref",
         id
@@ -240,6 +244,7 @@ function indexHeapContainers(snapshot: DumpableSnapshot): WeakMap<object, number
     if (
       stat.count > 1 ||
       stat.cyclic ||
+      isSandboxDate(value) ||
       isFloat32Array(value) ||
       (Array.isArray(value) && requiresArrayEntries(value)) ||
       isSandboxArguments(value) ||
@@ -262,7 +267,7 @@ function collectContainerStats(
     return;
   }
 
-  if (!Array.isArray(value) && !isPlainObject(value) && !isFloat32Array(value)) {
+  if (!Array.isArray(value) && !isPlainObject(value) && !isFloat32Array(value) && !isSandboxDate(value)) {
     return;
   }
 

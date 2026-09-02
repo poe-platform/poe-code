@@ -10,7 +10,7 @@ const hash = bytes => createHash("sha256").update(bytes).digest("hex");
 const testArgs = paths => ["--unhandled-rejections=strict", "--import", "tsx", "--import", "./tests/shell/invocation-discovery-fixes-imports.mjs", "--test", "--test-concurrency=1", ...paths];
 const commands = [
   ["substring-author", process.execPath, testArgs(["tests/shell/substring.test.ts", "tests/shell/substring-bounds.test.ts", "tests/shell/substring-positional.test.ts"])],
-  ["parser-expansion", process.execPath, testArgs(["tests/shell/parser-regressions.test.ts", "tests/shell/ansi-words.test.ts", "tests/shell/fatal-expansion.test.ts", "tests/shell/positional-ifs.test.ts", "tests/shell/variable-scope.test.ts", "tests/shell/quoted-patterns.test.ts", "tests/shell/newline-patterns.test.ts", "tests/shell/expanded-gaps-parameter.test.ts", "tests/shell/input-units.test.ts", "tests/shell/file-shortcut.test.ts"])],
+  ["parser-expansion", process.execPath, testArgs(["tests/shell/parser-regressions.cases.ts", "tests/shell/ansi-words.cases.ts", "tests/shell/fatal-expansion.cases.ts", "tests/shell/positional-ifs.test.ts", "tests/shell/variable-scope.test.ts", "tests/shell/quoted-patterns.test.ts", "tests/shell/newline-patterns.test.ts", "tests/shell/expanded-gaps-parameter.test.ts", "tests/shell/input-units.test.ts", "tests/shell/file-shortcut.test.ts"])],
   ["source-eval86", process.execPath, testArgs(["tests/shell/source-dot-eval-source.test.ts", "tests/shell/source-dot-eval-source-host.test.ts", "tests/shell/source-dot-eval-eval.test.ts", "tests/shell/source-dot-eval-eval-host.test.ts"])],
   ["current-shell43", process.execPath, testArgs(["tests/shell-stress/current-shell/current-shell.test.ts"])],
 ];

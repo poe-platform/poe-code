@@ -22,8 +22,8 @@ function snapshot() {
 const testArgs = paths => ["--unhandled-rejections=strict", "--import", "tsx", "--import", "./tests/shell/invocation-discovery-fixes-imports.mjs", "--test", "--test-concurrency=1", ...paths];
 const commands = [
   ["output-author", process.execPath, testArgs(["tests/shell/output-accounting.test.ts", "tests/shell/output-accounting-bounds.test.ts"])],
-  ["expanded-author", process.execPath, testArgs(["tests/shell/expanded-gaps-fallback.test.ts", "tests/shell/expanded-gaps-fallback-host.test.ts", "tests/shell/expanded-gaps-env.test.ts", "tests/shell/expanded-gaps-env-host.test.ts", "tests/shell/expanded-gaps-parameter.test.ts", "tests/shell/expanded-gaps-bounds.test.ts"])],
-  ["env-author", process.execPath, testArgs(["tests/shell/env-replacement.test.ts", "tests/shell/env-replacement-bounds.test.ts"])],
+  ["expanded-author", process.execPath, testArgs(["tests/shell/expanded-gaps-fallback.test.ts", "tests/shell/expanded-gaps-fallback-host.cases.ts", "tests/shell/expanded-gaps-env.test.ts", "tests/shell/expanded-gaps-env-host.cases.ts", "tests/shell/expanded-gaps-parameter.test.ts", "tests/shell/expanded-gaps-bounds.test.ts"])],
+  ["env-author", process.execPath, testArgs(["tests/shell/env-replacement.cases.ts", "tests/shell/env-replacement-bounds.test.ts"])],
   ["current-shell43", process.execPath, testArgs(["tests/shell-stress/current-shell/current-shell.test.ts"])],
   ["previous86", process.execPath, testArgs(["tests/shell/source-dot-eval-source.test.ts", "tests/shell/source-dot-eval-source-host.test.ts", "tests/shell/source-dot-eval-eval.test.ts", "tests/shell/source-dot-eval-eval-host.test.ts"])],
   ["legacy415", process.execPath, testArgs(["tests/shell-stress/invocation-modes/holdout.test.ts", "tests/shell/invocation-modes.test.ts", "tests/shell/invocation-closure-discovery.test.ts", "tests/shell/invocation-closure-read.test.ts", "tests/shell/invocation-closure-sh.test.ts"])],

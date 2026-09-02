@@ -1,4 +1,3 @@
-import "./command.cases.js";
 import "./command.stress.cases.js";
 import "./errors.cases.js";
 import "./exports.cases.js";
@@ -8,7 +7,6 @@ import "./filesystem-identity.cases.js";
 import "./filesystem.cases.js";
 import "./invocation-cleanup.cases.js";
 import "./invoke.cases.js";
-import "./io.cases.js";
 import "./path-error.stress.cases.js";
 import "./path.cases.js";
 import "./stdin-provenance.cases.js";

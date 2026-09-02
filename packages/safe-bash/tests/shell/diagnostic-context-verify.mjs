@@ -10,7 +10,7 @@ const hash = bytes => createHash("sha256").update(bytes).digest("hex");
 const testArgs = paths => ["--unhandled-rejections=strict", "--import", "tsx", "--import", "./tests/shell/invocation-discovery-fixes-imports.mjs", "--test", "--test-concurrency=1", ...paths];
 const commands = [
   ["author", process.execPath, testArgs(["tests/shell/diagnostic-context.test.ts", "tests/shell/diagnostic-context-bounds.test.ts"])],
-  ["diagnostic-parser", process.execPath, testArgs(["tests/shell/substitution-nul.test.ts", "tests/shell/diagnostic-regressions.test.ts", "tests/shell/fatal-diagnostics.test.ts", "tests/shell/fs-error-diagnostics.test.ts", "tests/shell/parser-regressions.test.ts", "tests/shell/descriptor-moves.test.ts", "tests/shell/descriptor-inheritance.test.ts", "tests/shell/ansi-words.test.ts", "tests/shell/input-units.test.ts"])],
+  ["diagnostic-parser", process.execPath, testArgs(["tests/shell/substitution-nul.cases.ts", "tests/shell/diagnostic-regressions.test.ts", "tests/shell/fatal-diagnostics.test.ts", "tests/shell/fs-error-diagnostics.test.ts", "tests/shell/parser-regressions.cases.ts", "tests/shell/descriptor-moves.test.ts", "tests/shell/descriptor-inheritance.test.ts", "tests/shell/ansi-words.cases.ts", "tests/shell/input-units.test.ts"])],
   ["current-shell43", process.execPath, testArgs(["tests/shell-stress/current-shell/current-shell.test.ts"])],
   ["source-eval134", process.execPath, testArgs(["tests/shell/source-dot-eval-source.test.ts", "tests/shell/source-dot-eval-source-host.test.ts", "tests/shell/source-dot-eval-eval.test.ts", "tests/shell/source-dot-eval-eval-host.test.ts", "tests/shell/source-dot-eval-diagnostics.test.ts"])],
 ];

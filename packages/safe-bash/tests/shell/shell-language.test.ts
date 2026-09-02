@@ -11,4 +11,3 @@ import "./parser-regressions.cases.js";
 import "./pathname-classes.cases.js";
 import "./runtime-regressions.cases.js";
 import "./substitution-nul.cases.js";
-import "./unsupported-options.cases.js";

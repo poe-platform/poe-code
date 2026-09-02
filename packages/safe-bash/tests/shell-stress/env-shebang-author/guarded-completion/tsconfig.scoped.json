@@ -2,7 +2,7 @@
   "extends": "../../../../tsconfig.json",
   "compilerOptions": { "noEmit": true },
   "files": [
-    "../../../shell/env-shebang.test.ts",
+    "../../../shell/env-shebang.cases.ts",
     "../../../shell/env-shebang-host.test.ts"
   ],
   "include": []

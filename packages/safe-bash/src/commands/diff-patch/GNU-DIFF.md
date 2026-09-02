@@ -191,11 +191,11 @@ Reproduction commands from the repository root:
 export DIFF_WHITESPACE_ORACLE=/tmp/safe-bash-gnu-oracle.Yg2F0W/diffutils-3.12/src/diff
 export DIFF_PATCH_NATIVE_DIFF="$DIFF_WHITESPACE_ORACLE"
 export DIFF_PATCH_NATIVE_PATCH=/tmp/safe-bash-gnu-oracle.Yg2F0W/patch-2.8/src/patch
-node --import tsx --test tests/commands/diff-patch/options-regressions.test.ts tests/commands/diff-patch/diff-gnu-options.test.ts
+node --import tsx --test tests/commands/diff-patch/options-regressions.cases.ts tests/commands/diff-patch/diff-gnu-options.cases.ts
 node --import tsx --test tests/commands/diff-patch-stress/compatibility/*.test.ts
 node --import tsx --test tests/commands/diff-patch-stress/formats/*.test.ts
-node --import tsx --test tests/commands/diff-patch/{options-regressions,diff-gnu-options,diff-formats,diff,safety,shell}.test.ts
-node node_modules/typescript/bin/tsc --noEmit --target ES2023 --lib ES2023 --module NodeNext --moduleResolution NodeNext --strict --noUncheckedIndexedAccess --exactOptionalPropertyTypes --verbatimModuleSyntax --forceConsistentCasingInFileNames --skipLibCheck --types node src/commands/diff-patch/diff.ts src/commands/diff-patch/diff-format.ts tests/commands/diff-patch/options-regressions.test.ts tests/commands/diff-patch/diff-gnu-options.test.ts
+node --import tsx --test tests/commands/diff-patch/{options-regressions,diff-gnu-options,diff-formats,diff,safety,shell}.cases.ts
+node node_modules/typescript/bin/tsc --noEmit --target ES2023 --lib ES2023 --module NodeNext --moduleResolution NodeNext --strict --noUncheckedIndexedAccess --exactOptionalPropertyTypes --verbatimModuleSyntax --forceConsistentCasingInFileNames --skipLibCheck --types node src/commands/diff-patch/diff.ts src/commands/diff-patch/diff-format.ts tests/commands/diff-patch/options-regressions.cases.ts tests/commands/diff-patch/diff-gnu-options.cases.ts
 ```
 
 The scoped strict TypeScript command passes, as does owned-path

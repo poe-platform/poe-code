@@ -15,7 +15,7 @@ const commands: Record<string, string[][]> = {
   regression: [
     ["--unhandled-rejections=strict", "--import", "tsx", "--import", `./${owned}/trace.mjs`, "--test", "tests/shell/invocation-modes.test.ts"],
     ["--unhandled-rejections=strict", "--import", "tsx", "--import", `./${owned}/trace.mjs`, "--test", "tests/shell/script-entrypoint.test.ts", "tests/shell-stress/script-entrypoint/holdout.test.ts"],
-    ["--unhandled-rejections=strict", "--import", "tsx", "--import", `./${owned}/trace.mjs`, "--test", "tests/shell/core.test.ts", "tests/shell/invoke.test.ts", "tests/shell/stdin-origin.test.ts", "tests/shell/input-units.test.ts", "tests/shell/descriptor-inheritance.test.ts", "tests/shell/glob-budget.test.ts", "tests/shell/inline-input-limits.test.ts"],
+    ["--unhandled-rejections=strict", "--import", "tsx", "--import", `./${owned}/trace.mjs`, "--test", "tests/shell/core.cases.ts", "tests/shell/invoke.test.ts", "tests/shell/stdin-origin.test.ts", "tests/shell/input-units.test.ts", "tests/shell/descriptor-inheritance.test.ts", "tests/shell/glob-budget.cases.ts", "tests/shell/inline-input-limits.test.ts"],
     ["node_modules/typescript/bin/tsc", "--noEmit"],
     ["node_modules/typescript/bin/tsc", "-p", "tsconfig.build.json", "--noEmit"],
   ],

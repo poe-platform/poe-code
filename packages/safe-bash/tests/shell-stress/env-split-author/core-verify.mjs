@@ -13,7 +13,7 @@ if (!sourcePaths.includes('src/commands/env-split.ts')) sourcePaths.push('src/co
 sourcePaths.sort();
 const author = ['tests/shell/env-split-native.test.ts', 'tests/shell/env-split-host.test.ts', 'tests/shell/env-split-limits.test.ts'];
 const legacy = [
-  'tests/commands/execution.test.ts', 'tests/shell/env-replacement.test.ts', 'tests/shell/env-replacement-bounds.test.ts',
+  'tests/commands/execution.test.ts', 'tests/shell/env-replacement.cases.ts', 'tests/shell/env-replacement-bounds.test.ts',
   'tests/shell/errexit-native.test.ts', 'tests/shell/errexit-extra.test.ts', 'tests/shell/errexit-host.test.ts',
   'tests/shell/invocation-modes.test.ts', 'tests/shell/input-units.test.ts', 'tests/shell/stdin-origin.test.ts',
   'tests/shell/descriptor-inheritance.test.ts', 'tests/shell/output-accounting.test.ts', 'tests/shell/output-accounting-bounds.test.ts',

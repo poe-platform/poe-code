@@ -10,11 +10,11 @@ const hash = bytes => createHash('sha256').update(bytes).digest('hex');
 const testArgs = paths => ['--unhandled-rejections=strict', '--import', 'tsx', '--import', './tests/shell/invocation-discovery-fixes-imports.mjs', '--test', '--test-concurrency=1', ...paths];
 const commands = [
   ['errexit-author', process.execPath, testArgs(['tests/shell/errexit-native.test.ts', 'tests/shell/errexit-extra.test.ts', 'tests/shell/errexit-host.test.ts'])],
-  ['parser-state', process.execPath, testArgs(['tests/shell/parser-regressions.test.ts', 'tests/shell/core.test.ts', 'tests/shell/runtime-regressions.test.ts', 'tests/shell/variable-scope.test.ts', 'tests/shell/positional-ifs.test.ts', 'tests/shell/input-units.test.ts', 'tests/shell/descriptor-inheritance.test.ts', 'tests/shell/stdin-origin.test.ts', 'tests/shell/fatal-expansion.test.ts'])],
+  ['parser-state', process.execPath, testArgs(['tests/shell/parser-regressions.cases.ts', 'tests/shell/core.cases.ts', 'tests/shell/runtime-regressions.cases.ts', 'tests/shell/variable-scope.test.ts', 'tests/shell/positional-ifs.test.ts', 'tests/shell/input-units.test.ts', 'tests/shell/descriptor-inheritance.test.ts', 'tests/shell/stdin-origin.test.ts', 'tests/shell/fatal-expansion.cases.ts'])],
   ['invocation', process.execPath, testArgs(['tests/shell/invocation-modes.test.ts', 'tests/shell/invoke.test.ts', 'tests/shell/invocation-closure-discovery.test.ts', 'tests/shell/invocation-closure-read.test.ts', 'tests/shell/invocation-closure-sh.test.ts'])],
   ['source-eval', process.execPath, testArgs(['tests/shell/source-dot-eval-source.test.ts', 'tests/shell/source-dot-eval-source-host.test.ts', 'tests/shell/source-dot-eval-eval.test.ts', 'tests/shell/source-dot-eval-eval-host.test.ts'])],
   ['current-shell', process.execPath, testArgs(['tests/shell-stress/current-shell/current-shell.test.ts'])],
-  ['file-entry', process.execPath, testArgs(['tests/shell/script-entrypoint.test.ts', 'tests/shell/expanded-gaps-env.test.ts', 'tests/shell/expanded-gaps-env-host.test.ts', 'tests/shell/expanded-gaps-fallback.test.ts', 'tests/shell/expanded-gaps-fallback-host.test.ts', 'tests/shell/unsupported-options.test.ts'])],
+  ['file-entry', process.execPath, testArgs(['tests/shell/script-entrypoint.test.ts', 'tests/shell/expanded-gaps-env.test.ts', 'tests/shell/expanded-gaps-env-host.cases.ts', 'tests/shell/expanded-gaps-fallback.test.ts', 'tests/shell/expanded-gaps-fallback-host.cases.ts', 'tests/shell/unsupported-options.test.ts'])],
 ];
 for (const [name, args] of [['global', []], ['build', ['-p', 'tsconfig.build.json']], ['benchmark', ['-p', 'benchmarks/tsconfig.json']]]) commands.push([name, './node_modules/.bin/tsc', [...args, '--noEmit', '--listFiles']]);
 function inventory() {

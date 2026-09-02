@@ -127,7 +127,7 @@ function check(name: string, run: (lab: Lab, context: TestContext) => Promise<vo
       lab.mock.locks.clear();
       await turn();
       await turn();
-      context.diagnostic(JSON.stringify({ name, verdict: failures.length ? "FAIL" : "PASS", durationMs: performance.now() - started,
+      console.log(JSON.stringify({ name, verdict: failures.length ? "FAIL" : "PASS", durationMs: performance.now() - started,
         events: lab.events, operations: lab.operations.map(({ signal, ...operation }) => ({ ...operation, signalAbortedAtEnd: signal.aborted })) }));
     }
     if (failures.length) throw new AggregateError(failures, "independent verification failure");

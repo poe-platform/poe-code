@@ -9,11 +9,11 @@ const options = { timeout: 5000 };
 
 for (const profile of profiles) {
   for (const exists of [false, true]) {
-    test(`${profile}: legitimate ${exists ? "replacement" : "new destination"} uses actually supported destination guards`, options, async context => {
+    test(`${profile}: legitimate ${exists ? "replacement" : "new destination"} uses actually supported destination guards`, options, async () => {
       const setup = await profileFixture(profile, { source: "original", ...(exists ? { target: "old" } : {}) });
       const previous = await setup.state();
       const error = await renameOutcome(setup.fs);
-      context.diagnostic(JSON.stringify({ profile, error: error instanceof Error ? error.message : null, mutations: setup.mutations }));
+      console.log(JSON.stringify({ profile, error: error instanceof Error ? error.message : null, mutations: setup.mutations }));
       assert.equal(error, undefined, "capable-client legitimate rename must remain available");
       const state = await setup.state();
       assert.equal(state.source, undefined);
@@ -30,14 +30,14 @@ for (const profile of profiles) {
       assert.equal(deletion?.input.IfMatch, previous.source?.etag);
     });
 
-    test(`${profile}: concurrent destination ${exists ? "replacement" : "creation"} cannot destroy the writer`, options, async context => {
+    test(`${profile}: concurrent destination ${exists ? "replacement" : "creation"} cannot destroy the writer`, options, async () => {
       const setup = await profileFixture(profile, { source: "original", ...(exists ? { target: "old" } : {}) });
       setup.before(async mutation => {
         if (mutation.operation !== "delete") await setup.actorPut("target", "concurrent destination");
       });
       const error = await renameOutcome(setup.fs);
       const state = await setup.state();
-      context.diagnostic(JSON.stringify({ resolved: error === undefined, state, mutations: setup.mutations }));
+      console.log(JSON.stringify({ resolved: error === undefined, state, mutations: setup.mutations }));
       assert.equal(state.target?.text, "concurrent destination");
       assert.equal(state.source?.text, "original");
       assert.ok(error instanceof S3RenameError);
@@ -50,7 +50,7 @@ for (const profile of profiles) {
 
   for (const stage of ["publish", "delete"] as const) {
     for (const recreate of [false, true]) {
-      test(`${profile}: different-content ${recreate ? "recreation" : "mutation"} before ${stage} is retained`, options, async context => {
+      test(`${profile}: different-content ${recreate ? "recreation" : "mutation"} before ${stage} is retained`, options, async () => {
         const setup = await profileFixture(profile, { source: "original" });
         let fired = false;
         setup.before(async mutation => {
@@ -61,7 +61,7 @@ for (const profile of profiles) {
         });
         const error = await renameOutcome(setup.fs);
         const state = await setup.state();
-        context.diagnostic(JSON.stringify({ fired, resolved: error === undefined, state }));
+        console.log(JSON.stringify({ fired, resolved: error === undefined, state }));
         assert.equal(fired, true);
         assert.equal(state.source?.text, "new source");
         assert.deepEqual(state.source?.metadata, { writer: "concurrent" });
@@ -93,7 +93,7 @@ for (const profile of profiles) {
   }
 
   for (const childCount of [1, 2, 4]) {
-    test(`${profile}: preserves ${childCount} late source children without bulk deletion`, options, async context => {
+    test(`${profile}: preserves ${childCount} late source children without bulk deletion`, options, async () => {
       const setup = await profileFixture(profile, { "source/old": "original" });
       let inserted = false;
       setup.before(async mutation => {
@@ -103,7 +103,7 @@ for (const profile of profiles) {
       });
       const error = await renameOutcome(setup.fs);
       const state = await setup.state();
-      context.diagnostic(JSON.stringify({ resolved: error === undefined, remainingSourceKeys: Object.keys(state).filter(key => key.startsWith("source/")) }));
+      console.log(JSON.stringify({ resolved: error === undefined, remainingSourceKeys: Object.keys(state).filter(key => key.startsWith("source/")) }));
       assert.equal(inserted, true);
       assert.equal(state["target/old"]?.text, "original");
       for (let child = 0; child < childCount; child++) assert.equal(state[`source/new-${child}`]?.text, `writer-${child}`);
@@ -113,10 +113,10 @@ for (const profile of profiles) {
   }
 }
 
-test("classic-put: buffered fallback refuses over-budget source before any publication", options, async context => {
+test("classic-put: buffered fallback refuses over-budget source before any publication", options, async () => {
   const setup = await profileFixture("classic-put", { source: "12345", target: "keep" }, 4);
   const error = await renameOutcome(setup.fs);
-  context.diagnostic(JSON.stringify({ resolved: error === undefined, mutations: setup.mutations, state: await setup.state() }));
+  console.log(JSON.stringify({ resolved: error === undefined, mutations: setup.mutations, state: await setup.state() }));
   assert.equal(setup.mutations.length, 0);
   assert.ok(error instanceof FsError);
   assert.equal(error.code, "EFBIG");

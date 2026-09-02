@@ -133,3 +133,38 @@ measurements remain final GitHub qualification owned by root. Focused local chec
 co-loaded with root activity and establish correctness, not isolated speedups.
 No local full Bash rerun, root lint, source/compiler cache, timeout weakening,
 workflow edit, commit or push is part of this sidecar.
+
+## September 2 integration fixture closure regression
+
+At primary `fa4aec313`, the full pre-push run found one failure: the native-data
+control copied the current test.mjs without its new test-shards.mjs dependency.
+The unchanged targeted test reproduced ERR_MODULE_NOT_FOUND before edits.
+
+The cohort-local createCopy now copies test-shards.mjs and both scheduling JSON
+files byte-for-byte from the current runner. The existing control checks those
+bytes and executes the real npm test script in default and opt-in concurrency-two
+modes, both retaining all five canonical/neighbor cases. Its original seven-file
+discovery check, exclusion of both native payloads, and historical unfiltered
+negative (two failed native payloads) remain intact. Fixture-local environment
+overrides explicitly select the whole synthetic cohort rather than inheriting a
+CI shard index; actual scheduler code, metadata, and npm scripts are not mocked.
+
+Only the cohort's helpers.ts, controls.test.ts and this plan change. No runner
+design, pins, historical JSON, authentication, exclusions, caps, or timeouts change.
+No new test entrypoint or registration is needed; the existing control is extended.
+
+Evidence: `/tmp/poe-shard-fixture-closure-20260902`.
+
+- `red.tap`: original failure reproduced (ERR_MODULE_NOT_FOUND).
+- `closure-red.tap`: added exact staging checks fail before the copy-list fix.
+- `targeted-green.tap`: original case with both current runner modes and retained
+  historical negative passes, 4.130 seconds total including startup.
+- `controls-full-ci-env.tap`: all 14 controls pass, 7.381 seconds, with outer
+  SAFE_BASH_TEST_SHARD=1/4 and SAFE_BASH_TEST_CONCURRENCY=2.
+- `test-runner-ci-env.log`: literal npm run test:runner, unchanged native hooks,
+  same outer CI flags; all 241 tests pass, 19.760 seconds.
+- `scoped-types.log`: strict package compiler options, controls/helper roots and
+  transitive dependencies, no emit; zero diagnostics.
+
+These are bounded correctness runs, not isolated performance measurements.
+Root owns commit/rebase, full pre-push, remote verification and release monitoring.

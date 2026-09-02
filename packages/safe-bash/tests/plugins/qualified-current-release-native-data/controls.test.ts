@@ -309,6 +309,9 @@ test("identical undefined symbols outside the exact subtree remain real TS2304 e
 test("actual npm script excludes future native test data without excluding neighboring tests/helpers", () => {
   const copy = createCopy();
   try {
+    for (const path of ["scripts/test-shards.mjs", "scripts/test-duration-weights.json", "scripts/test-parallel-review.json"]) {
+      assert.deepEqual(readFileSync(join(copy.directory, path)), readFileSync(join(root, path)), path);
+    }
     copy.write("tests/canonical/helper.ts", "export const helper = 'helper-loaded';\n");
     copy.write("tests/canonical/control.test.ts", "import assert from 'node:assert/strict'; import test from 'node:test'; import { helper } from './helper.js'; test('canonical-test-and-helper', () => assert.equal(helper, 'helper-loaded'));\n");
     const neighbors = [`${native}-neighbor/control.test.ts`, "tests/commands/regex-execution/continuation/artifacts/control.test.ts", "tests/commands/regex-execution/continuation/control.test.ts", "tests/other/artifacts/native/space 🙂.test.ts"];
@@ -319,13 +322,16 @@ test("actual npm script excludes future native test data without excluding neigh
     const discovery = globSync("tests/**/*.test.ts", { cwd: copy.directory }).sort();
     assert.equal(discovery.length, 7);
     assert.ok(data.every(path => discovery.includes(path)));
-    const result = run(copy.directory, "npm", ["test", "--", "--test-reporter=tap"]);
-    assert.equal(result.status, 0, result.stdout + result.stderr);
-    assert.match(result.stdout, /# tests 5\b/u);
-    assert.match(result.stdout, /# pass 5\b/u);
-    assert.match(result.stdout, /canonical-test-and-helper/u);
-    for (const index of neighbors.keys()) assert.match(result.stdout, new RegExp(`neighbor-${index}`, "u"));
-    assert.doesNotMatch(result.stdout + result.stderr, /NATIVE_DATA_MUST_NOT_EXECUTE/u);
+    for (const concurrency of [undefined, "2"]) {
+      const result = run(copy.directory, "npm", ["test", "--", "--test-reporter=tap"], { SAFE_BASH_TEST_SHARD: undefined, SAFE_BASH_TEST_CONCURRENCY: concurrency });
+      assert.equal(result.status, 0, result.stdout + result.stderr);
+      assert.match(result.stdout, /# tests 5\b/u);
+      assert.match(result.stdout, /# pass 5\b/u);
+      assert.match(result.stdout, /canonical-test-and-helper/u);
+      for (const index of neighbors.keys()) assert.match(result.stdout, new RegExp(`neighbor-${index}`, "u"));
+      assert.doesNotMatch(result.stdout + result.stderr, /NATIVE_DATA_MUST_NOT_EXECUTE/u);
+      if (concurrency) assert.match(result.stdout, /# safe-bash shard: 1\/1; 5 files;/u);
+    }
     const original = JSON.parse(readFileSync(join(owned, "before-02.json"), "utf8")) as { before: { testScript: string } };
     copy.write("package.json", JSON.stringify({ ...current, scripts: { ...current.scripts, test: original.before.testScript.replace("--test ", "--test --test-reporter=tap ") } }));
     const unfiltered = run(copy.directory, "npm", ["test"]);

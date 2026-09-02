@@ -13,7 +13,7 @@ const require = createRequire(import.meta.url);
 export function createCopy() {
   const directory = mkdtempSync(join(owned, ".scratch-"));
   const boundaries = JSON.parse(readFileSync(join(root, "integration-boundaries.json"), "utf8")) as { fixtureDirectories: { owner: string }[] };
-  for (const path of ["tsconfig.json", "package.json", "integration-boundaries.json", "integration-type-inputs.json", "scripts/integration-inputs.mjs", "scripts/typecheck-integration-inputs.mjs", "scripts/test.mjs", "scripts/test-reporting.mjs", ...boundaries.fixtureDirectories.map(fixture => fixture.owner)]) {
+  for (const path of ["tsconfig.json", "package.json", "integration-boundaries.json", "integration-type-inputs.json", "scripts/integration-inputs.mjs", "scripts/typecheck-integration-inputs.mjs", "scripts/test.mjs", "scripts/test-reporting.mjs", "scripts/test-shards.mjs", "scripts/test-duration-weights.json", "scripts/test-parallel-review.json", ...boundaries.fixtureDirectories.map(fixture => fixture.owner)]) {
     mkdirSync(dirname(join(directory, path)), { recursive: true });
     copyFileSync(join(root, path), join(directory, path));
   }
@@ -29,8 +29,8 @@ export function createCopy() {
   };
 }
 
-export function run(directory: string, command: string, args: string[]) {
-  const env = { ...process.env };
+export function run(directory: string, command: string, args: string[], environment?: NodeJS.ProcessEnv) {
+  const env = { ...process.env, ...environment };
   delete env.NODE_TEST_CONTEXT;
   let executable = command, arguments_ = args;
   if (command === "npm" && process.env.npm_execpath) {

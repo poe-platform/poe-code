@@ -1,6 +1,6 @@
 import { readFileSync, readdirSync } from "node:fs";
 import path from "node:path";
-import { describe, expect, it } from "vitest";
+import { beforeAll, describe, expect, it } from "vitest";
 import { compileJsonSchema } from "./index.js";
 
 type SuiteCase = {
@@ -63,12 +63,17 @@ for (const draft of ["draft2020-12", "draft7"] as const) {
         readFileSync(path.join(directory, filename), "utf8")
       ) as SuiteCase[];
       for (const group of groups) {
-        for (const testCase of group.tests) {
-          it(`${filename}: ${group.description}: ${testCase.description}`, () => {
-            const compiled = compileJsonSchema(schemaForDraft(group.schema, draft), { registry });
-            expect(compiled.validate(testCase.data).ok).toBe(testCase.valid);
+        describe(`${filename}: ${group.description}:`, () => {
+          let compiled: ReturnType<typeof compileJsonSchema>;
+          beforeAll(() => {
+            compiled = compileJsonSchema(schemaForDraft(group.schema, draft), { registry });
           });
-        }
+          for (const testCase of group.tests) {
+            it(testCase.description, () => {
+              expect(compiled.validate(testCase.data).ok).toBe(testCase.valid);
+            });
+          }
+        });
       }
     }
   });

@@ -33,8 +33,31 @@ skipped because main advanced. A green workflow is not publication evidence.
   measurement, not a complete CI timing claim.
 - Use in-memory ownership regression fixtures and verify actual discovered test
   inventories before and after root ownership partitioning.
-- Record focused and full serial timings; fifteen minutes remains unproven until
-  a complete CI test stage meets it.
+- Record focused and full serial timings; qualify the target using a complete
+  CI test stage rather than a root-only or selected-test measurement.
 - Commit each independently validated improvement with its evidence. Push main,
   monitor failing tests, and verify npm publication and release ancestry.
 - Preserve other engineers' changes and do not modify concurrency settings.
+
+## First complete CI timing checkpoint
+
+Release run 33578842810 at `cd9ce19e4` completed successfully on September 2,
+2026 UTC. Its complete workspace test step ran from 01:28:48 to 01:41:03:
+**12m15s**, meeting the fifteen-minute test target in this observation. The
+whole job ran from 01:24:51 to 01:41:55: **17m04s**. The native Bash runner
+passed 227 controls; its main suite passed 18,249 cases with 63 existing skips.
+All declared workspace stages completed successfully. No concurrency setting
+was changed to obtain this result.
+
+Publication was explicitly skipped because remote main had advanced. This is
+not a successful stable-release claim: the latest published version at this
+checkpoint remains v14.0.4. Preceding successful test stages took 18m20s and
+18m52s, so runner variability is substantial and this one observation is not a
+guaranteed runtime or an isolated causal measurement of one commit.
+
+Later main revisions include shared-Vitest change `81e36dc8b` and concise-output
+change `4c3c553d2`; neither was included in this checkpoint run. Their releases
+and the remaining atomic improvements still need monitoring through actual
+publication. Raw checkpoint evidence is retained
+at `/tmp/poe-release-cd9ce19e-raw.log`; `gh run view --log` omitted the long
+unit-test output, so the complete job log was fetched from the Actions API.

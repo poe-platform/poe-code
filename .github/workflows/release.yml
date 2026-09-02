@@ -6,7 +6,12 @@ on:
   push:
     branches:
       - main
-  workflow_dispatch: null
+  workflow_dispatch:
+    inputs:
+      cold_cache:
+        description: Ignore restored Turbo results to measure cold test execution
+        type: boolean
+        default: false
 concurrency:
   group: release-${{ github.ref }}
   cancel-in-progress: false
@@ -16,6 +21,150 @@ permissions:
   pull-requests: write
   id-token: write
 jobs:
+  build:
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v7.0.1
+        with:
+          ref: ${{ github.sha }}
+          fetch-depth: 0
+          persist-credentials: false
+        env:
+          GIT_CONFIG_COUNT: "1"
+          GIT_CONFIG_KEY_0: init.defaultBranch
+          GIT_CONFIG_VALUE_0: main
+      - uses: actions/setup-node@v7.0.0
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm clean-install
+      - name: Build and smoke-test packed CLI
+        run: npm run smoke
+      - name: Archive fresh build outputs
+        run: tar -cf "$RUNNER_TEMP/build.tar" dist packages/*/dist
+      - uses: actions/upload-artifact@v7.0.1
+        with:
+          name: build-${{ github.sha }}
+          path: ${{ runner.temp }}/build.tar
+          compression-level: 6
+          retention-days: 1
+  checks:
+    needs: build
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v7.0.1
+        with:
+          ref: ${{ github.sha }}
+          fetch-depth: 0
+          persist-credentials: false
+        env:
+          GIT_CONFIG_COUNT: "1"
+          GIT_CONFIG_KEY_0: init.defaultBranch
+          GIT_CONFIG_VALUE_0: main
+      - uses: actions/setup-node@v7.0.0
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm clean-install
+      - uses: actions/download-artifact@v8.0.1
+        with:
+          name: build-${{ github.sha }}
+          path: ${{ runner.temp }}/poe-build
+      - name: Restore freshly verified build
+        run: tar -xf "$RUNNER_TEMP/poe-build/build.tar"
+      - run: npm audit signatures
+      - run: npm run lint:packages
+      - name: Run required lint stress tests
+        run: npm run test:stress:lint
+        timeout-minutes: 7
+  unit:
+    needs: build
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: read
+    env:
+      TZ: UTC
+      LANG: C.UTF-8
+      LC_ALL: C.UTF-8
+      TURBO_TELEMETRY_DISABLED: "1"
+    steps:
+      - uses: actions/checkout@v7.0.1
+        with:
+          ref: ${{ github.sha }}
+          fetch-depth: 0
+          persist-credentials: false
+        env:
+          GIT_CONFIG_COUNT: "1"
+          GIT_CONFIG_KEY_0: init.defaultBranch
+          GIT_CONFIG_VALUE_0: main
+      - uses: actions/setup-node@v7.0.0
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm clean-install
+      - uses: actions/download-artifact@v8.0.1
+        with:
+          name: build-${{ github.sha }}
+          path: ${{ runner.temp }}/poe-build
+      - name: Restore freshly verified build
+        run: tar -xf "$RUNNER_TEMP/poe-build/build.tar"
+      - name: Identify cache runtime
+        run: node -e 'console.log("POE_CI_RUNTIME=" + JSON.stringify({versions:process.versions,platform:process.platform,arch:process.arch,image:process.env.ImageOS,imageVersion:process.env.ImageVersion}))' >> "$GITHUB_ENV"
+      - name: Restore eligible unit task cache
+        uses: actions/cache@v6.1.0
+        with:
+          path: .turbo/ci-cache
+          key: ${{ runner.os }}-${{ runner.arch }}-unit-v1-${{ hashFiles('package-lock.json') }}-${{ github.run_id }}-${{ github.run_attempt }}
+          restore-keys: ${{ runner.os }}-${{ runner.arch }}-unit-v1-${{ hashFiles('package-lock.json') }}-
+      - name: Run fresh unit and native checks
+        run: npm run test:ci:fresh
+      - name: Run cache-eligible unit checks
+        env:
+          TURBO_FORCE: ${{ inputs.cold_cache && 'true' || 'false' }}
+        run: npm exec -- turbo run test:ci:cached --filter=// --cache-dir=.turbo/ci-cache --cache=local:rw --output-logs=new-only --summarize
+  bash:
+    needs: build
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: read
+    strategy:
+      fail-fast: false
+      matrix:
+        shard:
+          - 1
+          - 2
+          - 3
+          - 4
+    env:
+      SAFE_BASH_TEST_SHARD: ${{ matrix.shard }}/4
+      SAFE_BASH_TEST_CONCURRENCY: "2"
+    steps:
+      - uses: actions/checkout@v7.0.1
+        with:
+          ref: ${{ github.sha }}
+          fetch-depth: 0
+          persist-credentials: false
+        env:
+          GIT_CONFIG_COUNT: "1"
+          GIT_CONFIG_KEY_0: init.defaultBranch
+          GIT_CONFIG_VALUE_0: main
+      - uses: actions/setup-node@v7.0.0
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm clean-install
+      - uses: actions/download-artifact@v8.0.1
+        with:
+          name: build-${{ github.sha }}
+          path: ${{ runner.temp }}/poe-build
+      - name: Restore freshly verified build
+        run: tar -xf "$RUNNER_TEMP/poe-build/build.tar"
+      - name: Run balanced Bash shard
+        run: npm run test:unit --workspace=virtual-bash
   release-stable:
     runs-on: ubuntu-24.04
     steps:
@@ -31,15 +180,8 @@ jobs:
       - uses: actions/setup-node@v7.0.0
         with:
           node-version: 22
+          cache: npm
       - run: npm clean-install
-      - name: Build and smoke-test packed CLI
-        run: npm run smoke
-      - run: npm audit signatures
-      - run: npm run lint:packages
-      - run: npm run test:workspaces -- --concurrency=1
-      - name: Run required lint stress tests
-        run: npm run test:stress:lint
-        timeout-minutes: 7
       - name: Generate GitHub App token
         id: app_token
         uses: actions/create-github-app-token@v3.0.0
@@ -51,5 +193,9 @@ jobs:
           GITHUB_TOKEN: ${{ steps.app_token.outputs.token }}
           GH_TOKEN: ${{ steps.app_token.outputs.token }}
           HUSKY: "0"
-          NPM_CONFIG_LOGLEVEL: "warn"
+          NPM_CONFIG_LOGLEVEL: warn
         run: npx --yes semantic-release@25.0.9
+    needs:
+      - checks
+      - unit
+      - bash

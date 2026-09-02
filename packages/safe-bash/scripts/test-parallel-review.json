@@ -1,0 +1,23 @@
+{
+  "version": 1,
+  "reviewedRevision": "fff9f7875",
+  "scope": "Only reviewed pure test entries and their local test helpers; changed or unknown inputs route serial. Not a production-source seal or execution cache.",
+  "files": {
+    "tests/contracts/io.test.ts": {
+      "tests/contracts/io.test.ts": "0be30d243f4df7688f57fc2bdc5b7b914c3fae62203f8e5613595d4153e7f0ec"
+    },
+    "tests/contracts/command.test.ts": {
+      "tests/contracts/command.test.ts": "be7956b1a0720e39bd3473e641b4ef2be37f1168da1aea47353a858fc9b79d63"
+    },
+    "tests/contracts/value.test.ts": {
+      "tests/contracts/value.test.ts": "6c5ffdcc2eb01b344a292beacdbb85d864d2a11cc1f949e587b6af47e6be5d9f"
+    },
+    "tests/shell/value-state.test.ts": {
+      "tests/shell/value-state.test.ts": "049e232e8d58fd6fa9f1240ca5ccdcc8efe3b2a83dcc713a471d88d076dd3585"
+    },
+    "tests/commands/time-env/format-regressions.test.ts": {
+      "tests/commands/time-env/format-regressions.test.ts": "86ea94cd32b2607f66d691bcc4a12f75073c89729e42307c6216ec10ed765cb5",
+      "tests/commands/time-env/helpers.ts": "335c3d447edb33a08276f2c81b4f16ec39f4b258b26aad8fa5f0e7fb2347f43b"
+    }
+  }
+}

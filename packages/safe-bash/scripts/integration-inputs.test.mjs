@@ -1,18 +1,306 @@
 import assert from "node:assert/strict";
+import { spawn, spawnSync } from "node:child_process";
 import { createHash } from "node:crypto";
+import { once } from "node:events";
 import * as fs from "node:fs";
 import { readFileSync } from "node:fs";
 import { posix, relative } from "node:path";
-import { fileURLToPath } from "node:url";
+import { createInterface } from "node:readline";
+import { fileURLToPath, pathToFileURL } from "node:url";
 import test from "node:test";
 import { Script } from "node:vm";
 import { createFsFromVolume, Volume } from "memfs";
 import { createLintInputGuard } from "../../../scripts/lint-input-guard.mjs";
 import { discoverTests, integrationExclusions, lintExclusions, lintInventoryPaths, loadBoundaries, readIntegrationLintInputs, readTypecheckInventories, validateBoundaries, validateImportRetirement, verifyLintInventory } from "./integration-inputs.mjs";
-import { runTests } from "./test.mjs";
+import { parseTestExecution, runTests } from "./test.mjs";
+import { planTestPhases, planTestShards, validateShardArguments } from "./test-shards.mjs";
 import { assertAdmittedInputPath, assertLiteralInputPath, readIntegrationTypeInputs, readRegularInput } from "./typecheck-integration-inputs.mjs";
 
 const owner = "fixture producer";
+
+function shardFixture() {
+  const selected = ["tests/safe-a.test.ts", "tests/safe-b.test.ts", "tests/native.test.ts"];
+  const contents = new Map([
+    ["/package/integration-boundaries.json", Buffer.from(JSON.stringify(boundary))],
+    ["/package/" + fixture.owner, Buffer.from(owner)],
+    ["/package/tests/safe-a.test.ts", Buffer.from("pure-a")],
+    ["/package/tests/safe-b.test.ts", Buffer.from("pure-b")],
+    ["/package/tests/helper.ts", Buffer.from("pure-helper")],
+    ["/package/tests/native.test.ts", Buffer.from("native")],
+  ]);
+  const digest = path => createHash("sha256").update(contents.get("/package/" + path)).digest("hex");
+  const profile = { version: 1, unknownWeightMs: 5000, weights: { "tests/safe-a.test.ts": 10, "tests/safe-b.test.ts": 10, "tests/native.test.ts": 20 } };
+  const review = { version: 1, files: {
+    "tests/safe-a.test.ts": { "tests/safe-a.test.ts": digest("tests/safe-a.test.ts"), "tests/helper.ts": digest("tests/helper.ts") },
+    "tests/safe-b.test.ts": { "tests/safe-b.test.ts": digest("tests/safe-b.test.ts") },
+  } };
+  contents.set("/package/scripts/test-duration-weights.json", Buffer.from(JSON.stringify(profile)));
+  contents.set("/package/scripts/test-parallel-review.json", Buffer.from(JSON.stringify(review)));
+  const fileSystem = { ...fileSystemFor(contents), globSync(ignoredPattern, options) { return selected.filter(path => !options.exclude(path)); } };
+  return { selected, contents, profile, review, fileSystem };
+}
+
+test("Bash shards: env parsing is opt-in and strictly bounded", () => {
+  assert.equal(parseTestExecution({}), undefined);
+  assert.deepEqual(parseTestExecution({ SAFE_BASH_TEST_SHARD: "1/4" }), { shardIndex: 0, shardCount: 4, concurrency: 1 });
+  assert.deepEqual(parseTestExecution({ SAFE_BASH_TEST_SHARD: "4/4", SAFE_BASH_TEST_CONCURRENCY: "2" }), { shardIndex: 3, shardCount: 4, concurrency: 2 });
+  assert.deepEqual(parseTestExecution({ SAFE_BASH_TEST_CONCURRENCY: "2" }), { shardIndex: 0, shardCount: 1, concurrency: 2 });
+  for (const value of ["", "0/4", "5/4", "1/3", "1/04", "01/4", " 1/4", "1/4 ", "1", undefined]) {
+    assert.throws(() => parseTestExecution({ SAFE_BASH_TEST_SHARD: value }), /SAFE_BASH_TEST_SHARD/);
+  }
+  for (const value of ["", "0", "3", "02", "-1", "1.5", " 2", undefined]) {
+    assert.throws(() => parseTestExecution({ SAFE_BASH_TEST_CONCURRENCY: value }), /SAFE_BASH_TEST_CONCURRENCY/);
+  }
+  for (const flag of ["--test-concurrency=8", "--test-shard=1/2", "--experimental-test-isolation=none", "--test-force-exit"]) {
+    assert.throws(() => parseTestExecution({ SAFE_BASH_TEST_CONCURRENCY: "2", NODE_OPTIONS: flag }), /Conflicting NODE_OPTIONS/);
+    assert.equal(parseTestExecution({ NODE_OPTIONS: flag }), undefined);
+  }
+});
+
+test("Bash shards: longest-first balancing is deterministic with stable ties", () => {
+  const files = ["d", "b", "a", "c", "e", "f", "g", "h"];
+  const weights = { a: 8, b: 7, c: 6, d: 5, e: 4, f: 3, g: 2, h: 1 };
+  const plan = planTestShards(files, weights, 4, 5000);
+  assert.deepEqual(plan.map(shard => shard.estimatedMs), [9, 9, 9, 9]);
+  assert.deepEqual(plan.map(shard => shard.files), [["a", "h"], ["b", "g"], ["c", "f"], ["d", "e"]]);
+  assert.deepEqual(planTestShards([...files].reverse(), weights, 4, 5000), plan);
+  assert.deepEqual(files, ["d", "b", "a", "c", "e", "f", "g", "h"]);
+});
+
+test("Bash shards: discovery is membership; missing weights and new files cannot disappear", () => {
+  const files = ["known", "new", "other"];
+  const plan = planTestShards(files, { known: 100, obsolete: 100000 }, 4, 5000);
+  assert.deepEqual(plan.flatMap(shard => shard.files).sort(), [...files].sort());
+  assert.equal(new Set(plan.flatMap(shard => shard.files)).size, files.length);
+  assert.equal(plan.reduce((sum, shard) => sum + shard.estimatedMs, 0), 10100);
+  assert.equal(plan.some(shard => shard.files.includes("obsolete")), false);
+  assert.throws(() => planTestShards(["same", "same"], {}, 4, 5000), /duplicate/i);
+  for (const weight of [0, -1, NaN, Infinity, "2"]) assert.throws(() => planTestShards(["known"], { known: weight }, 4, 5000));
+  assert.throws(() => planTestShards(files, {}, 3, 5000));
+  assert.throws(() => planTestShards(files, {}, 4, 0));
+});
+
+test("Bash shards: only reviewed unchanged pure files enter the parallel phase", () => {
+  const specimen = shardFixture();
+  assert.deepEqual(planTestPhases("/package", specimen.selected, 2, specimen.review, specimen.fileSystem), [
+    { concurrency: 2, files: ["tests/safe-a.test.ts", "tests/safe-b.test.ts"] },
+    { concurrency: 1, files: ["tests/native.test.ts"] },
+  ]);
+  specimen.contents.set("/package/tests/helper.ts", Buffer.from("changed helper"));
+  assert.deepEqual(planTestPhases("/package", specimen.selected, 2, specimen.review, specimen.fileSystem), [{ concurrency: 1, files: specimen.selected }]);
+  specimen.contents.delete("/package/tests/safe-b.test.ts");
+  assert.deepEqual(planTestPhases("/package", specimen.selected, 2, specimen.review, specimen.fileSystem), [{ concurrency: 1, files: specimen.selected }]);
+});
+
+test("Bash shards: new and symlinked files stay serial without reading link targets", () => {
+  const specimen = shardFixture();
+  const fileSystem = { ...specimen.fileSystem, lstatSync(path) {
+    if (path === "/package/tests/safe-a.test.ts") return { isFile: () => false, isSymbolicLink: () => true };
+    return specimen.fileSystem.lstatSync(path);
+  }, readFileSync(path) {
+    assert.notEqual(path, "/package/tests/safe-a.test.ts");
+    return specimen.fileSystem.readFileSync(path);
+  } };
+  const phases = planTestPhases("/package", [...specimen.selected, "tests/new.test.ts"], 2, specimen.review, fileSystem);
+  assert.deepEqual(phases, [{ concurrency: 1, files: [...specimen.selected, "tests/new.test.ts"] }]);
+  assert.deepEqual(planTestPhases("/package", specimen.selected, 1, specimen.review, fileSystem), [{ concurrency: 1, files: specimen.selected }]);
+});
+
+test("Bash shards: a singleton reviewed group needs no extra runner process", () => {
+  const specimen = shardFixture();
+  specimen.selected.splice(1, 1);
+  const calls = [];
+  assert.equal(runTests("/package", [], (ignoredExecutable, args) => { calls.push(args); return { status: 0 }; }, specimen.fileSystem, { shardIndex: 0, shardCount: 1, concurrency: 2 }), 0);
+  assert.deepEqual(calls, [["--import", "tsx", "--test", "--test-concurrency=1", ...[...specimen.selected].sort()]]);
+});
+
+test("Bash shards: the executable rejects invalid opt-ins before discovery or test execution", () => {
+  for (const [key, value] of [["SAFE_BASH_TEST_SHARD", "0/4"], ["SAFE_BASH_TEST_CONCURRENCY", "3"]]) {
+    const env = { ...process.env };
+    delete env.NODE_TEST_CONTEXT;
+    delete env.SAFE_BASH_TEST_SHARD;
+    delete env.SAFE_BASH_TEST_CONCURRENCY;
+    env[key] = value;
+    const result = spawnSync(process.execPath, [fileURLToPath(new URL("./test.mjs", import.meta.url))], { env, encoding: "utf8", timeout: 5000 });
+    assert.ifError(result.error);
+    assert.equal(result.status, 1);
+    assert.equal(result.stdout, "");
+    assert.ok(result.stderr.includes(key), result.stderr);
+  }
+});
+
+test("Bash shards: controlled arguments preserve selectors and reject scheduler bypasses", () => {
+  for (const args of [[], ["--test-name-pattern", "some case"], ["--test-skip-pattern=skip", "--test-reporter=tap"], ["--test-reporter", "spec"]]) assert.doesNotThrow(() => validateShardArguments(args));
+  for (const args of [["--test-concurrency=4"], ["--test-concurrency", "1"], ["--test-shard=1/2"], ["--experimental-test-isolation=none"], ["--test-force-exit"], ["--test-reporter-destination=result.tap"], ["tests/extra.test.ts"], ["--"], ["--test-name-pattern"]]) assert.throws(() => validateShardArguments(args));
+});
+
+test("Bash shards: phases are sequential, bounded, and strip scheduling env from children", () => {
+  const specimen = shardFixture();
+  const calls = [];
+  assert.equal(runTests("/package", ["--test-name-pattern", "a case", "--test-reporter=tap"], (executable, args, options) => {
+    assert.equal(executable, process.execPath);
+    assert.equal(options.cwd, "/package"); assert.equal(options.stdio, "inherit");
+    assert.equal(Object.hasOwn(options.env, "SAFE_BASH_TEST_SHARD"), false);
+    assert.equal(Object.hasOwn(options.env, "SAFE_BASH_TEST_CONCURRENCY"), false);
+    assert.equal(options.env.PATH, process.env.PATH);
+    calls.push(args);
+    return { status: 0 };
+  }, specimen.fileSystem, { shardIndex: 0, shardCount: 1, concurrency: 2 }), 0);
+  assert.deepEqual(calls, [
+    ["--import", "tsx", "--test", "--test-concurrency=2", "--test-name-pattern", "a case", "--test-reporter=tap", "tests/safe-a.test.ts", "tests/safe-b.test.ts"],
+    ["--import", "tsx", "--test", "--test-concurrency=1", "--test-name-pattern", "a case", "--test-reporter=tap", "tests/native.test.ts"],
+  ]);
+});
+
+test("Bash shards: failure or termination prevents later phases without retries", () => {
+  const specimen = shardFixture();
+  for (const result of [{ status: 17 }, { status: null, signal: "SIGTERM" }]) {
+    let calls = 0;
+    assert.equal(runTests("/package", [], () => { calls++; return result; }, specimen.fileSystem, { shardIndex: 0, shardCount: 1, concurrency: 2 }), result.status ?? 1);
+    assert.equal(calls, 1);
+  }
+  const failure = new Error("spawn failed");
+  let calls = 0;
+  assert.throws(() => runTests("/package", [], () => { calls++; return { error: failure }; }, specimen.fileSystem, { shardIndex: 0, shardCount: 1, concurrency: 2 }), error => error === failure);
+  assert.equal(calls, 1);
+});
+
+test("Bash shards: all four runner selections cover discovery exactly once including new files", () => {
+  const specimen = shardFixture();
+  specimen.selected.push("tests/new.test.ts", "tests/review/run/source/frozen.test.ts", "tests/commands/xan-author-20260828/held.test.ts");
+  const executed = [];
+  for (let shardIndex = 0; shardIndex < 4; shardIndex++) {
+    assert.equal(runTests("/package", [], (ignoredExecutable, args) => { executed.push(...args.filter(value => value.endsWith(".test.ts"))); return { status: 0 }; }, specimen.fileSystem, { shardIndex, shardCount: 4, concurrency: 2 }), 0);
+  }
+  assert.deepEqual(executed.sort(), ["tests/safe-a.test.ts", "tests/safe-b.test.ts", "tests/native.test.ts", "tests/new.test.ts"].sort());
+});
+
+test("Bash shards: empty shards do not accidentally invoke Node discovery", () => {
+  const specimen = shardFixture();
+  specimen.selected.splice(1);
+  assert.equal(runTests("/package", [], () => { throw new Error("must not launch an empty shard"); }, specimen.fileSystem, { shardIndex: 3, shardCount: 4, concurrency: 2 }), 0);
+});
+
+test("Bash shards: maintained discovery union is dynamic, without profile-only members", () => {
+  const root = fileURLToPath(new URL("../", import.meta.url));
+  const files = discoverTests(root, loadBoundaries(root));
+  const profile = JSON.parse(readFileSync(new URL("./test-duration-weights.json", import.meta.url)));
+  const shards = planTestShards(files, profile.weights, 4, profile.unknownWeightMs);
+  assert.deepEqual(shards.flatMap(shard => shard.files).sort(), files);
+  assert.equal(new Set(shards.flatMap(shard => shard.files)).size, files.length);
+  const expanded = planTestShards([...files, "tests/new-unweighted-shard-control.test.ts"], profile.weights, 4, profile.unknownWeightMs);
+  assert.deepEqual(expanded.flatMap(shard => shard.files).sort(), [...files, "tests/new-unweighted-shard-control.test.ts"].sort());
+});
+
+test("Bash shards: real workers rendezvous in pairs, retire before serial work, and forward failures", async () => {
+  const root = fileURLToPath(new URL("../", import.meta.url));
+  const entries = ["tests/contracts/command.test.ts", "tests/contracts/value.test.ts", "tests/shell/value-state.test.ts", "tests/commands/time-env/format-regressions.test.ts"];
+  const env = { ...process.env };
+  delete env.NODE_TEST_CONTEXT;
+  for (const failing of [null, 0, 2]) {
+    const coordinator = spawn(process.execPath, ["--input-type=module", "-e", `
+      import { createServer } from 'node:net';
+      const seen = [];
+      const waiting = [];
+      const sockets = new Set();
+      const server = createServer(socket => {
+        sockets.add(socket);
+        socket.on('close', () => sockets.delete(socket));
+        socket.on('error', () => socket.destroy());
+        let input = '';
+        socket.on('data', chunk => {
+          input += chunk;
+          if (!input.includes('\\n')) return;
+          const row = JSON.parse(input);
+          input = '';
+          const previousAlive = seen.filter(previous => {
+            try { process.kill(previous.pid, 0); return true; }
+            catch (error) { if (error.code !== 'ESRCH') throw error; return false; }
+          }).map(previous => previous.id);
+          seen.push(row);
+          console.log(JSON.stringify({ ...row, previousAlive }));
+          if (row.id < 2) {
+            waiting.push(socket);
+            if (waiting.length === 2) for (const peer of waiting) peer.end('release');
+          } else socket.end('release');
+        });
+      });
+      server.listen(0, '127.0.0.1', () => console.log(JSON.stringify({ port: server.address().port })));
+      process.on('SIGTERM', () => { for (const socket of sockets) socket.destroy(); server.close(); });
+    `], { env, stdio: ["ignore", "pipe", "pipe"] });
+    const closed = once(coordinator, "close");
+    let output = "";
+    let errors = "";
+    coordinator.stdout.setEncoding("utf8");
+    coordinator.stderr.setEncoding("utf8");
+    coordinator.stdout.on("data", chunk => { output += chunk; });
+    coordinator.stderr.on("data", chunk => { errors += chunk; });
+    const lines = createInterface({ input: coordinator.stdout });
+    try {
+      const [ready] = await Promise.race([once(lines, "line"), closed.then(() => { throw new Error("fixture coordinator exited before ready: " + errors); })]);
+      const { port } = JSON.parse(ready);
+      const sources = Object.fromEntries(entries.map((entry, id) => [pathToFileURL(root + entry).href, `
+        import assert from 'node:assert/strict';
+        import { createConnection } from 'node:net';
+        import test from 'node:test';
+        test('shard fixture ${id}', async () => {
+          assert.equal(process.env.SAFE_BASH_TEST_SHARD, undefined);
+          assert.equal(process.env.SAFE_BASH_TEST_CONCURRENCY, undefined);
+          await new Promise((resolve, reject) => {
+            const socket = createConnection({ host: '127.0.0.1', port: ${port} });
+            socket.setTimeout(3000, () => socket.destroy(new Error('missing worker rendezvous')));
+            socket.on('connect', () => socket.write(JSON.stringify({ id: ${id}, pid: process.pid }) + '\\n'));
+            socket.resume();
+            socket.on('error', reject);
+            socket.on('end', () => { socket.setTimeout(0); resolve(); });
+          });
+          assert.notEqual(${id}, ${JSON.stringify(failing)}, 'controlled shard failure');
+        });
+      `]));
+      const loader = `
+        import { registerHooks } from 'node:module';
+        const sources = ${JSON.stringify(sources)};
+        registerHooks({ load(url, context, next) {
+          return Object.hasOwn(sources, url) ? { format: 'module', source: sources[url], shortCircuit: true } : next(url, context);
+        } });
+      `;
+      const contents = new Map([
+        [root + "integration-boundaries.json", Buffer.from(JSON.stringify(boundary))],
+        [root + fixture.owner, Buffer.from(owner)],
+        ...entries.map(entry => [root + entry, Buffer.from(sources[pathToFileURL(root + entry).href])]),
+      ]);
+      const review = { version: 1, files: Object.fromEntries(entries.slice(0, 2).map(entry => [entry, { [entry]: createHash("sha256").update(contents.get(root + entry)).digest("hex") }])) };
+      contents.set(root + "scripts/test-parallel-review.json", Buffer.from(JSON.stringify(review)));
+      contents.set(root + "scripts/test-duration-weights.json", Buffer.from(JSON.stringify({ version: 1, weights: {}, unknownWeightMs: 5000 })));
+      const fileSystem = { ...fileSystemFor(contents), globSync() { return [...entries]; } };
+      const results = [];
+      const result = runTests(root.slice(0, -1), ["--test-reporter=tap"], (executable, args, options) => {
+        const childEnv = { ...options.env };
+        delete childEnv.NODE_TEST_CONTEXT;
+        assert.deepEqual(args.slice(0, 2), ["--import", "tsx"]);
+        const child = spawnSync(executable, ["--import", `data:text/javascript,${encodeURIComponent(loader)}`, ...args.slice(2)], { ...options, env: childEnv, stdio: "pipe", encoding: "utf8", timeout: 10000, maxBuffer: 2 * 1024 * 1024 });
+        results.push(child);
+        return child;
+      }, fileSystem, { shardIndex: 0, shardCount: 1, concurrency: 2 });
+      assert.equal(result, failing === null ? 0 : 1, results.map(child => child.stdout + child.stderr).join("\n"));
+      assert.equal(results.length, failing === 0 ? 1 : 2);
+      for (const child of results) assert.ifError(child.error);
+      if (failing !== null) assert.ok(results.some(child => child.stdout.includes("controlled shard failure")));
+    } finally {
+      coordinator.kill("SIGTERM");
+      await closed;
+      lines.close();
+    }
+    assert.equal(errors, "");
+    const rows = output.trim().split("\n").slice(1).map(line => JSON.parse(line));
+    assert.deepEqual(rows.map(row => row.id).sort(), failing === 0 ? [0, 1] : [0, 1, 2, 3]);
+    assert.equal(rows[0].previousAlive.length, 0);
+    assert.deepEqual(rows[1].previousAlive, [rows[0].id]);
+    for (const row of rows.slice(2)) assert.deepEqual(row.previousAlive, [], "previous workers must retire before serial admission");
+    assert.equal(new Set(rows.map(row => row.pid)).size, rows.length);
+    for (const row of rows) assert.throws(() => process.kill(row.pid, 0), error => error.code === "ESRCH", "fixture worker leaked");
+  }
+});
 const removedGitFixtureRoots = [
   "tests/commands/git-author-20260828",
   "tests/commands/git-design-20260828",

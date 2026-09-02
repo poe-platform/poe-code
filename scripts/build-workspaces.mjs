@@ -215,8 +215,11 @@ export function createWorkspaceTestPlan(rootDirectory, options = {}) {
     for (const name of cacheable) {
       const workspace = plan.workspaces.find(candidate => candidate.name === name);
       const scripts = workspace?.manifest.scripts ?? {};
-      const command = `cd ../.. && vitest run ${workspace?.path}/src`;
-      assert.ok(name !== "virtual-bash" && workspace && [command, `${command}/`].includes(scripts["test:unit"])
+      const commands = ["", "--config vitest.config.ts "].flatMap(config => {
+        const command = `cd ../.. && vitest run ${config}${workspace?.path}/src`;
+        return [command, `${command}/`];
+      });
+      assert.ok(name !== "virtual-bash" && workspace && commands.includes(scripts["test:unit"])
         && scripts["pretest:unit"] === undefined && scripts["posttest:unit"] === undefined, `Workspace is not cacheable: ${name}`);
     }
   }

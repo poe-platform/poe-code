@@ -36,6 +36,14 @@ describe("opt-in CI unit groups", () => {
     expect(createWorkspaceTestPlan("/repo", { fileSystem, ciGroup: "fresh" }).testStages.map(stage => stage.name)).toContain("new");
   });
 
+  for (const suffix of ["", "/"]) it(`admits the explicit shared Vitest config with suffix ${suffix}`, () => {
+    const fileSystem = fixture();
+    fileSystem.writeFileSync("/repo/packages/alpha/package.json", JSON.stringify({ name: "alpha", version: "1.0.0", scripts: {
+      "test:unit": `cd ../.. && vitest run --config vitest.config.ts packages/alpha/src${suffix}`
+    } }));
+    expect(createWorkspaceTestPlan("/repo", { fileSystem, ciGroup: "cached" }).testStages.map(stage => stage.name)).toEqual(["alpha"]);
+  });
+
   for (const scripts of [
     { "test:unit": "node --test" },
     { "test:unit": "cd ../.. && vitest run packages/alpha/src", "pretest:unit": "check" },

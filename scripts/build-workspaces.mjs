@@ -288,7 +288,8 @@ async function executeStages(plan, { environment, spawn, host, concurrency = 1, 
     const event = stage.event ?? "build";
     const selection = stage.path === null ? ["--workspaces=false"] : ['--workspace=' + stage.path, "--include-workspace-root=false"];
     const args = [environment.npm_execpath, "--prefix", plan.root, "run", event, ...selection, "--if-present=false"];
-    if (event === "test:unit" && testArguments.length) args.push("--", ...testArguments);
+    const forwardedArguments = event === "test:unit" ? testArguments : stage.testArguments ?? [];
+    if (forwardedArguments.length) args.push("--", ...forwardedArguments);
     let resolveClose;
     const closed = new Promise(resolve => { resolveClose = resolve; });
     const onError = error => { remember(context, error); failure(); };
@@ -379,6 +380,11 @@ export async function testWorkspaces(rootDirectory, options = {}) {
   const { environment = process.env, spawn = spawnChild, host = process, fileSystem = fs, excludeWorkspace, concurrency = 1, testArguments = [] } = options;
   validateEnvironment(environment);
   const plan = createWorkspaceTestPlan(rootDirectory, { fileSystem, excludeWorkspace, concurrency, testArguments });
+  let testStages = plan.testStages;
+  if (plan.rootManifest.scripts["test:unit:shared"]) {
+    const { sharedVitestStages } = await import("./test-vitest-workspaces.mjs");
+    testStages = sharedVitestStages(plan, fileSystem);
+  }
   const childEnvironment = { ...environment };
   const localGitVariables = execFileSync("git", ["rev-parse", "--local-env-vars"], {
     cwd: plan.root,
@@ -388,8 +394,8 @@ export async function testWorkspaces(rootDirectory, options = {}) {
   assert.ok(localGitVariables.every(name => name.startsWith("GIT_") && [...name].every(character => "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789_".includes(character))), "Invalid Git local environment names");
   for (const name of localGitVariables) delete childEnvironment[name];
   const builds = await executeStages({ ...plan, stages: plan.buildStages }, { environment: childEnvironment, spawn, host, unitMode: true });
-  const tests = await executeStages({ ...plan, stages: plan.testStages }, { environment: childEnvironment, spawn, host, unitMode: true, concurrency, testArguments });
-  return { workspaces: plan.workspaces.length, builds, tests, concurrency, cache: "UNCACHED", excluded: excludeWorkspace ? [excludeWorkspace] : [], noTest: plan.noTest, noBuild: plan.buildNoBuild, manifestless: plan.manifestless };
+  await executeStages({ ...plan, stages: testStages }, { environment: childEnvironment, spawn, host, unitMode: true, concurrency, testArguments });
+  return { workspaces: plan.workspaces.length, builds, tests: plan.testStages.length, concurrency, cache: "UNCACHED", excluded: excludeWorkspace ? [excludeWorkspace] : [], noTest: plan.noTest, noBuild: plan.buildNoBuild, manifestless: plan.manifestless };
 }
 
 export function parseWorkspaceArguments(args) {

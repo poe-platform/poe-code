@@ -244,6 +244,7 @@
     "dev:bundle": "npm run build && node dist/bin.cjs",
     "test": "node scripts/build-workspaces.mjs --test-unit",
     "test:unit": "vitest run --config vitest.root.config.ts",
+    "test:unit:shared": "node scripts/test-vitest-workspaces.mjs",
     "test:postinstall-lifecycle": "vitest run --config vitest.postinstall.config.ts",
     "typecheck": "npm run lint:types",
     "check:semver": "node -e \"const semver=require('semver'); const pkg=require('./package.json'); if(!semver.valid(pkg.version)){console.error('Invalid semver version in package.json:', pkg.version); process.exit(1);}\"",

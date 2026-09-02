@@ -1,6 +1,6 @@
 import { createFsFromVolume, Volume } from "memfs";
 import { describe, expect, it } from "vitest";
-import { workspaceTestExclusions } from "./workspace-test-ownership.mjs";
+import { workspaceTestExclusions, workspaceUnitSelections } from "./workspace-test-ownership.mjs";
 
 function fixture(script?: string, files: Record<string, string> = {}) {
   return createFsFromVolume(Volume.fromJSON({
@@ -9,10 +9,48 @@ function fixture(script?: string, files: Record<string, string> = {}) {
     "/repo/packages/example/src/nested/unit.spec.ts": "",
     "/repo/packages/example/scripts/build.test.ts": "",
     ...files
-  }));
+  })) as unknown as typeof import("node:fs");
 }
 
 describe("workspace test ownership", () => {
+  it("exposes literal selections without changing their exclusion boundaries", () => {
+    const fileSystem = fixture("cd ../.. && vitest run --config vitest.config.ts packages/example/src packages/example/scripts/build.test.ts");
+    expect(workspaceUnitSelections("/repo", fileSystem)).toEqual([{
+      path: "packages/example",
+      selectors: ["packages/example/src", "packages/example/scripts/build.test.ts"],
+      exclusions: ["packages/example/src/**", "packages/example/scripts/build.test.ts"],
+      passWithNoTests: false,
+      hasHooks: false
+    }]);
+  });
+
+  it("preserves the declared empty-selection policy", () => {
+    expect(workspaceUnitSelections("/repo", fixture("cd ../.. && vitest run --passWithNoTests packages/example/src"))[0])
+      .toMatchObject({ passWithNoTests: true });
+  });
+
+  for (const hook of ["pretest:unit", "posttest:unit"]) {
+    it(`retains ownership but marks ${hook} as requiring its native lifecycle`, () => {
+      const fileSystem = fixture("cd ../.. && vitest run packages/example/src");
+      fileSystem.writeFileSync("/repo/packages/example/package.json", JSON.stringify({
+        scripts: { "test:unit": "cd ../.. && vitest run packages/example/src", [hook]: "node hook.mjs" }
+      }));
+      expect(workspaceUnitSelections("/repo", fileSystem)[0]).toMatchObject({ hasHooks: true });
+      expect(workspaceTestExclusions("/repo", fileSystem)).toEqual(["packages/example/src/**"]);
+    });
+  }
+
+  it("does not treat an unfiltered invocation as a reusable workspace selection", () => {
+    expect(workspaceUnitSelections("/repo", fixture("cd ../.. && vitest run"))).toEqual([]);
+  });
+
+  it("does not reuse custom configurations or shell side effects", () => {
+    for (const script of [
+      "cd ../.. && vitest run --config custom.config.ts packages/example/src",
+      "cd ../.. && vitest run packages/example/src && node after.mjs"
+    ]) expect(workspaceUnitSelections("/repo", fixture(script))).toEqual([]);
+  });
+
   it("excludes only a declared literal directory, keeping sibling tests in root", () => {
     expect(workspaceTestExclusions("/repo", fixture("cd ../.. && vitest run packages/example/src/")))
       .toEqual(["packages/example/src/**"]);

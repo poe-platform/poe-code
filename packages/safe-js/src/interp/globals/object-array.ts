@@ -1,17 +1,20 @@
 import type { Budget } from "../budget.js";
 import { isFloat32Array } from "../float32.js";
-import { setFloat32Member } from "./float32array.js";
+import { setSandboxProperty } from "../interpreter.js";
 import { getSandboxIterator } from "../iteration.js";
 import { sandboxString } from "../string-coercion.js";
+import { getSandboxPrototype, isGuestClosure, markDescriptorObject, materializeFunctionProperties, setSandboxPrototype } from "../object-model.js";
 import {
   allocateProducedSandboxValue,
   createSandboxClosure,
   deepCopyToSandbox,
   isSandboxClosure,
+  isSandboxGenerator,
   isSandboxMap,
   isSandboxPromise,
   isSandboxRegex,
   isSandboxSet,
+  ownEnumerableSandboxEntries as getOwnEnumerableEntries,
   type SandboxArray,
   type SandboxClosure,
   type SandboxObject,
@@ -48,8 +51,75 @@ export function createObjectArrayGlobals(options: { budget: Budget }): ObjectArr
       }),
       hasOwn: createSandboxClosure({
         sandbox: true,
-        call: ([value, key]) => Reflect.apply(Object.hasOwn, Object, [value, key]),
+        call: ([value, key]) => Reflect.apply(Object.hasOwn, Object, [isSandboxClosure(value) ? objectProperties(value) : value, key]),
         name: "hasOwn"
+      }),
+      getOwnPropertyDescriptor: createSandboxClosure({
+        sandbox: true,
+        call: async ([value, key], context) => {
+          const descriptor = Object.getOwnPropertyDescriptor(objectProperties(value), await sandboxString(key, options.budget, context));
+          if (descriptor !== undefined && !("value" in descriptor)) throw new TypeError("Only data property descriptors are supported.");
+          return descriptor === undefined ? undefined : allocateProducedSandboxValue(descriptor as SandboxObject, options.budget);
+        },
+        name: "getOwnPropertyDescriptor"
+      }),
+      getOwnPropertyNames: createSandboxClosure({
+        sandbox: true,
+        call: ([value]) => budgetSandboxValue(Object.getOwnPropertyNames(objectProperties(value)), options.budget),
+        name: "getOwnPropertyNames"
+      }),
+      defineProperty: createSandboxClosure({
+        sandbox: true,
+        call: async ([value, key, descriptor], context) => {
+          defineDataProperty(value, await sandboxString(key, options.budget, context), dataDescriptor(descriptor), options.budget);
+          return value;
+        },
+        name: "defineProperty"
+      }),
+      defineProperties: createSandboxClosure({
+        sandbox: true,
+        call: ([value, descriptors]) => {
+          const properties = getOwnEnumerableEntries(descriptors).map(([key, descriptor]) => [key, dataDescriptor(descriptor)] as const);
+          for (const [key, descriptor] of properties) {
+            defineDataProperty(value, key, descriptor, options.budget);
+          }
+          return value;
+        },
+        name: "defineProperties"
+      }),
+      getPrototypeOf: createSandboxClosure({
+        sandbox: true,
+        call: ([value]) => {
+          objectProperties(value);
+          return getSandboxPrototype(value as object) as SandboxValue;
+        },
+        name: "getPrototypeOf"
+      }),
+      setPrototypeOf: createSandboxClosure({
+        sandbox: true,
+        call: ([value, prototype]) => {
+          objectProperties(value, true);
+          if (prototype !== null) objectProperties(prototype);
+          setSandboxPrototype(value as object, prototype as object | null, options.budget);
+          return value;
+        },
+        name: "setPrototypeOf"
+      }),
+      create: createSandboxClosure({
+        sandbox: true,
+        call: ([prototype, descriptors]) => {
+          if (prototype !== null) objectProperties(prototype);
+          const value = Object.create(null) as SandboxObject;
+          setSandboxPrototype(value, prototype as object | null, options.budget);
+          if (descriptors !== undefined) {
+            const properties = getOwnEnumerableEntries(descriptors).map(([key, descriptor]) => [key, dataDescriptor(descriptor)] as const);
+            for (const [key, descriptor] of properties) {
+              defineDataProperty(value, key, descriptor, options.budget);
+            }
+          }
+          return allocateProducedSandboxValue(value, options.budget);
+        },
+        name: "create"
       }),
       is: createSandboxClosure({
         sandbox: true,
@@ -80,7 +150,7 @@ export function createObjectArrayGlobals(options: { budget: Budget }): ObjectArr
         sandbox: true,
         call: ([value]) => {
           if (typeof value === "object" && value !== null) {
-            Object.freeze(value);
+            Object.freeze(isGuestClosure(value) ? materializeFunctionProperties(value) : value);
           }
 
           return value;
@@ -89,12 +159,12 @@ export function createObjectArrayGlobals(options: { budget: Budget }): ObjectArr
       }),
       isFrozen: createSandboxClosure({
         sandbox: true,
-        call: ([value]) => Object.isFrozen(value),
+        call: ([value]) => Object.isFrozen(isGuestClosure(value) ? materializeFunctionProperties(value) : value),
         name: "isFrozen"
       }),
       assign: createSandboxClosure({
         sandbox: true,
-        call: ([target, ...sources]) => assignSandboxValues(target, sources),
+        call: ([target, ...sources]) => assignSandboxValues(target, sources, options.budget),
         name: "assign"
       })
     },
@@ -236,12 +306,12 @@ async function objectFromSandboxEntries(
   return allocateProducedSandboxValue(object, budget);
 }
 
-function assignSandboxValues(target: SandboxValue, sources: readonly SandboxValue[]): SandboxValue {
+function assignSandboxValues(target: SandboxValue, sources: readonly SandboxValue[], budget: Budget): SandboxValue {
   if (target === null || target === undefined) {
     throw new TypeError("Object.assign(target, ...sources) requires a non-null target.");
   }
 
-  if (!isAssignableSandboxTarget(target)) {
+  if (!isGuestClosure(target) && !isAssignableSandboxTarget(target)) {
     throw new TypeError("Object.assign(target, ...sources) requires an object or array target.");
   }
 
@@ -251,20 +321,53 @@ function assignSandboxValues(target: SandboxValue, sources: readonly SandboxValu
     }
 
     for (const [key, value] of getOwnEnumerableEntries(source)) {
-      if (isFloat32Array(target)) {
-        setFloat32Member(target, key, value);
-        continue;
-      }
-      Object.defineProperty(target, key, {
-        configurable: true,
-        enumerable: true,
-        value,
-        writable: true
-      });
+      setSandboxProperty(target, key, value, budget);
     }
   }
 
   return target;
+}
+
+function objectProperties(value: SandboxValue, mutable = false): SandboxObject | SandboxArray {
+  if (isGuestClosure(value)) return materializeFunctionProperties(value);
+  if (isSandboxClosure(value)) {
+    if (mutable) throw new TypeError("Host function properties are read only.");
+    return value.properties ?? Object.create(null) as SandboxObject;
+  }
+  if (!isAssignableSandboxTarget(value)) throw new TypeError("Expected a sandbox object or function.");
+  return value;
+}
+
+function dataDescriptor(input: SandboxValue): PropertyDescriptor {
+  const source = objectProperties(input);
+  const descriptor: PropertyDescriptor = {};
+  for (const field of ["get", "set", "value", "writable", "enumerable", "configurable"] as const) {
+    const entry = Object.getOwnPropertyDescriptor(source, field);
+    if (entry === undefined) continue;
+    if (!("value" in entry) || field === "get" || field === "set") {
+      throw new TypeError("Only data property descriptors are supported.");
+    }
+    if (field === "value") descriptor.value = entry.value;
+    else descriptor[field] = Boolean(entry.value);
+  }
+  return descriptor;
+}
+
+function defineDataProperty(target: SandboxValue, key: string, descriptor: PropertyDescriptor, budget: Budget): void {
+  budget.visitNode();
+  if (isFloat32Array(target)) throw new TypeError("Typed array property descriptors are not supported.");
+  const properties = objectProperties(target, true);
+  if (Array.isArray(properties)) {
+    if (key === "length" && "value" in descriptor) budget.allocateArrayLength(Number(descriptor.value));
+    else {
+      const index = Number(key);
+      if (Number.isInteger(index) && index >= 0 && index < 0xffffffff && String(index) === key) {
+        budget.allocateArrayLength(index + 1);
+      }
+    }
+  }
+  Object.defineProperty(properties, key, descriptor);
+  markDescriptorObject(properties);
 }
 
 function isAssignableSandboxTarget(
@@ -276,6 +379,7 @@ function isAssignableSandboxTarget(
     typeof value === "object" &&
     value !== null &&
     !isSandboxClosure(value) &&
+    !isSandboxGenerator(value) &&
     !isSandboxMap(value) &&
     !isSandboxSet(value) &&
     !isSandboxPromise(value) &&
@@ -352,24 +456,6 @@ function getOwnEnumerableKeys(value: SandboxValue): string[] {
 
 function getOwnEnumerableValues(value: SandboxValue): SandboxValue[] {
   return getOwnEnumerableEntries(value).map(([, entryValue]) => entryValue);
-}
-
-function getOwnEnumerableEntries(value: SandboxValue): Array<[string, SandboxValue]> {
-  if (value === null || value === undefined) {
-    throw new TypeError("Cannot convert undefined or null to object.");
-  }
-
-  if (
-    isSandboxClosure(value) ||
-    isSandboxMap(value) ||
-    isSandboxSet(value) ||
-    isSandboxPromise(value) ||
-    isSandboxRegex(value)
-  ) {
-    return [];
-  }
-
-  return Object.entries(Object(value)) as Array<[string, SandboxValue]>;
 }
 
 function budgetSandboxValue(value: unknown, budget: Budget): SandboxValue {

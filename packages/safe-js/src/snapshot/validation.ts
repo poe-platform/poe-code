@@ -5,6 +5,7 @@ import type { ParseResult } from "../parse/parser.js";
 import { DUMP_FORMAT_VERSION } from "./dump-format.js";
 import { MAX_DATA_DEPTH } from "../graph-depth.js";
 import { validateFloat32Storage } from "./float32array.js";
+import { hasGuestObjectState } from "../interp/object-model.js";
 
 const DEFAULT_MAX_DEPTH = MAX_DATA_DEPTH;
 const DEFAULT_MAX_ENTRIES = 100_000;
@@ -642,6 +643,9 @@ function validateGenericValue(
   depth: number,
   state: ValidationState
 ): void {
+  if (typeof value === "object" && value !== null && hasGuestObjectState(value)) {
+    fail("invalidState", path, "guest function properties, prototype links and custom descriptors cannot be restored");
+  }
   if (state.dataPropertiesOnly && types.isProxy(value)) {
     fail("invalidType", path, "proxy objects are not snapshot data");
   }

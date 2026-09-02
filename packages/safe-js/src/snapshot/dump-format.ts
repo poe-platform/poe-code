@@ -1,6 +1,7 @@
 export const DUMP_FORMAT_VERSION = 1;
 export const EXECUTION_SEMANTICS = "jobs-v7";
 import { assertSnapshotGraphDepth } from "../graph-depth.js";
+import { hasGuestObjectState } from "../interp/object-model.js";
 import { sandboxErrorTypes, type SandboxErrorName } from "../error/shape.js";
 import { getSandboxArgumentEntries, isSandboxArguments } from "../interp/arguments.js";
 import { serializeArguments, type SerializedArguments } from "./arguments.js";
@@ -120,6 +121,10 @@ function serializeDumpValue(
 
   if (typeof value !== "object") {
     return SKIP_VALUE;
+  }
+
+  if (hasGuestObjectState(value)) {
+    throw new TypeError("Guest function properties and prototype links cannot be serialized.");
   }
 
   if (isFloat32Array(value)) return serializeHeapReference(value, path, state)!;

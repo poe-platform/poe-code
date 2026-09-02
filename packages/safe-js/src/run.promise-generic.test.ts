@@ -92,6 +92,7 @@ describe("generic Promise operations", () => {
   it.each([
     ...["all", "allSettled", "any", "race"].map((method) => ({
       name: `${method} passes a missing resolver TypeError to a custom capability`,
+      prototypeState: true,
       source: `let name; function Container(executor) { executor(() => {}, error => { name = error.name; }); } Promise.${method}.call(Container, []); return name;`
     })),
     ...["all", "allSettled", "any", "race"].map((method) => ({
@@ -200,11 +201,13 @@ describe("generic Promise operations", () => {
     },
     {
       name: "resolve with a custom constructor",
+      prototypeState: true,
       source:
         "function Container(executor) { executor(value => { this.value = value; }, reason => { this.reason = reason; }); } return Promise.resolve.call(Container, 42).value;"
     },
     {
       name: "reject with a custom constructor",
+      prototypeState: true,
       source:
         "function Container(executor) { executor(value => { this.value = value; }, reason => { this.reason = reason; }); } return Promise.reject.call(Container, 42).reason;"
     },
@@ -220,46 +223,55 @@ describe("generic Promise operations", () => {
     },
     {
       name: "constructor result override",
+      prototypeState: true,
       source:
         "function Container(executor) { executor(() => {}, () => {}); return { answer: 42 }; } return Promise.resolve.call(Container, 13);"
     },
     {
       name: "undefined capability receiver",
+      prototypeState: true,
       source:
         "let receiver; function Container(executor) { executor(function () { receiver = this; }, () => {}); } Promise.resolve.call(Container, 42); return receiver === undefined;"
     },
     {
       name: "ignored async resolving callback result",
+      prototypeState: true,
       source:
         "let count = 0; function Container(executor) { executor(async () => { count++; await 0; count++; }, () => {}); } const result = Promise.resolve.call(Container, 42); const prefix = count; await 0; return [typeof result.then, prefix, count];"
     },
     {
       name: "synchronous resolving callback throw",
+      prototypeState: true,
       source:
         "function Container(executor) { executor(() => { throw 42; }, () => {}); } try { Promise.resolve.call(Container, 1); } catch (error) { return error; }"
     },
     {
       name: "synchronous constructor throw",
+      prototypeState: true,
       source:
         "function Container() { throw 42; } try { Promise.resolve.call(Container, 1); } catch (error) { return error; }"
     },
     {
       name: "missing capability functions",
+      prototypeState: true,
       source:
         "function Container() {} try { Promise.reject.call(Container, 1); } catch (error) { return error.name; }"
     },
     {
       name: "noncallable capability functions",
+      prototypeState: true,
       source:
         "function Container(executor) { executor(1, 2); } try { Promise.resolve.call(Container, 1); } catch (error) { return error.name; }"
     },
     {
       name: "repeated capability initialization",
+      prototypeState: true,
       source:
         "function Container(executor) { executor(() => {}, () => {}); executor(() => {}, () => {}); } try { Promise.resolve.call(Container, 1); } catch (error) { return error.name; }"
     },
     {
       name: "undefined first capability initialization",
+      prototypeState: true,
       source:
         "function Container(executor) { executor(undefined, undefined); executor(value => { this.value = value; }, () => {}); } return Promise.resolve.call(Container, 42).value;"
     },
@@ -268,7 +280,8 @@ describe("generic Promise operations", () => {
       source:
         "const receiver = {}; Promise.prototype.constructor = receiver; const pending = new Promise(resolve => resolve(42)); return Promise.resolve.call(receiver, pending) === pending;"
     }
-  ])("matches native $name", async ({ source }) => {
+  ])("matches native $name", async (testCase) => {
+    const { source } = testCase;
     const expected = await new Promise<unknown>((complete, fail) => {
       runInNewContext(
         `(async () => { "use strict"; await 0; ${source} })().then(complete, fail);`,
@@ -277,6 +290,10 @@ describe("generic Promise operations", () => {
     });
     let result = await run(source, { signal: new AbortController().signal });
     expect(result).toMatchObject({ ok: true, returnValue: expected });
+    if ("prototypeState" in testCase && testCase.prototypeState) {
+      await expect(dump(result)).rejects.toThrow(/function properties|prototype links/);
+      return;
+    }
     result = await run(source, {
       signal: new AbortController().signal,
       snapshot: JSON.parse(await dump(result))

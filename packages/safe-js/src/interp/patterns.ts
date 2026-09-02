@@ -15,6 +15,7 @@ import type { Scope } from "./scope.js";
 import {
   isSandboxMap,
   isSandboxSet,
+  ownEnumerableSandboxEntries,
   type SandboxArray,
   type SandboxObject,
   type SandboxValue
@@ -26,6 +27,8 @@ export type PatternTarget = { kind: VariableDeclarationKind; initialize?: true }
 
 export type PatternContext = {
   evaluate(node: ParseResult): Promise<AsyncEvaluationResult>;
+  getProperty(value: SandboxValue, key: string | number): SandboxValue;
+  setProperty(target: SandboxValue, key: string | number, value: SandboxValue): void;
 };
 
 export type BindPatternResult =
@@ -165,7 +168,7 @@ async function bindObjectPattern(
     excludedKeys.add(String(key.value));
     const binding = await bindPattern(
       property.value,
-      (value as Record<string | number, SandboxValue>)[key.value],
+      context.getProperty(value, key.value),
       target,
       scope,
       context
@@ -202,7 +205,7 @@ async function bindMemberExpression(
     return property;
   }
 
-  setProperty(object.value, property.value, value);
+  context.setProperty(object.value, property.value, value);
   return { ok: true };
 }
 
@@ -281,7 +284,7 @@ function copyObjectRestValue(
   excludedKeys: ReadonlySet<string>
 ): SandboxObject {
   const rest = Object.create(null) as SandboxObject;
-  for (const [key, entryValue] of Object.entries(value)) {
+  for (const [key, entryValue] of ownEnumerableSandboxEntries(value)) {
     if (!excludedKeys.has(key)) {
       defineProperty(rest, key, entryValue);
     }
@@ -291,32 +294,6 @@ function copyObjectRestValue(
 
 function isIndexableValue(value: SandboxValue): value is SandboxArray | SandboxObject {
   return typeof value === "object" && value !== null;
-}
-
-function setProperty(
-  target: SandboxArray | SandboxObject,
-  property: string | number,
-  value: SandboxValue
-): void {
-  if (Array.isArray(target)) {
-    const key = String(property);
-    if (key === "length" || isArrayIndexKey(key)) {
-      (target as unknown as Record<string, SandboxValue>)[key] = value;
-      return;
-    }
-    defineProperty(target, key, value);
-    return;
-  }
-  defineProperty(target, String(property), value);
-}
-
-function isArrayIndexKey(value: string): boolean {
-  if (value === "") {
-    return false;
-  }
-
-  const index = Number(value);
-  return Number.isInteger(index) && index >= 0 && index < 4_294_967_295 && String(index) === value;
 }
 
 function defineProperty(

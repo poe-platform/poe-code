@@ -1,4 +1,5 @@
 import { createSandboxClosure, type SandboxClosure, type SandboxValue } from "../values.js";
+import { getGuestFunctionProperty, isGuestClosure } from "../object-model.js";
 
 export type FunctionMethodOptions = {
   callClosure: (
@@ -19,9 +20,14 @@ export function getFunctionMember(
   property: string | number,
   options: FunctionMethodOptions
 ): SandboxValue | undefined {
-  const propertyValue = target.properties?.[String(property)];
-  if (propertyValue !== undefined || Object.hasOwn(target.properties ?? {}, String(property))) {
-    return propertyValue;
+  if (isGuestClosure(target)) {
+    const value = getGuestFunctionProperty(target, String(property));
+    if (value !== undefined || Object.hasOwn(target.properties ?? {}, String(property))) return value;
+    if (!isFunctionMethodName(property)) return undefined;
+  }
+  const properties = target.properties;
+  if (properties !== undefined && Object.hasOwn(properties, String(property))) {
+    return properties[String(property)];
   }
 
   if (property === "length") {
@@ -56,6 +62,7 @@ function callFunctionMethod(
   if (methodName === "bind") {
     const boundArgs = args.slice(1);
     return createSandboxClosure({
+      guest: true,
       sandbox: true,
       name: `bound ${target.name ?? ""}`,
       length:

@@ -8,6 +8,9 @@ import {
 } from "../parse.js";
 import { bindPattern, type PatternContext } from "./patterns.js";
 import { Scope } from "./scope.js";
+import { Budget } from "./budget.js";
+import { getSandboxDataProperty } from "./object-model.js";
+import { setSandboxProperty } from "./interpreter.js";
 
 function declarationPattern(source: string): VariableDeclaration["declarations"][number]["id"] {
   const node = parse(source);
@@ -36,7 +39,10 @@ function normal(value: unknown) {
 function context(
   evaluate: (node: ParseResult) => ReturnType<typeof normal> = () => normal(undefined)
 ): PatternContext & { evaluate: ReturnType<typeof vi.fn> } {
+  const budget = new Budget();
   return {
+    getProperty: (value, key) => getSandboxDataProperty(value, key, budget),
+    setProperty: (target, key, value) => setSandboxProperty(target, key, value, budget),
     evaluate: vi.fn(async (node: ParseResult) => evaluate(node))
   };
 }
@@ -126,6 +132,7 @@ describe("bindPattern", () => {
       result: normal("stopped")
     };
     const patternContext: PatternContext = {
+      ...context(),
       evaluate: vi.fn(async () => completion)
     };
 

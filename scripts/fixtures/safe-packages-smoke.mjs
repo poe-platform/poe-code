@@ -49,6 +49,30 @@ const result = await run("return values.map(value => value * 2);", {
 });
 assert.equal(result.ok, true);
 assert.deepEqual(result.returnValue, [4, 6]);
+for (const entry of ["@poe-platform/safe-js", "@poe-platform/safe-js/core"]) {
+  const { Budget: EntryBudget, run: execute } = await import(entry);
+  const functionResult = await execute(`
+    function Counter(value) { this.value = value; }
+    Counter.label = "counter";
+    Counter.fn = Counter.prototype = { read: function () { return this.value; } };
+    function Child(value) { Counter.call(this, value); }
+    Child.prototype = Object.create(Counter.prototype, {
+      constructor: { value: Child, writable: true, configurable: true }
+    });
+    const child = new Child(7);
+    const Bound = Child.bind(null, 9);
+    const arrow = () => 1;
+    arrow.label = "arrow";
+    let denied = false;
+    try { new arrow(); } catch (error) { denied = true; }
+    return [Counter.label, child.read(), child instanceof Child,
+      child instanceof Counter, Counter.fn === Counter.prototype,
+      child.constructor === Child, new Bound().read(), arrow.label,
+      denied, Counter.constructor, Array.constructor, Object.keys(Child.prototype).length];
+  `, { budget: new EntryBudget({ maxSteps: 10_000, dataSize: 100_000 }) });
+  assert.equal(functionResult.ok, true, entry);
+  assert.deepEqual(functionResult.returnValue, ["counter", 7, true, true, true, true, 9, "arrow", true, undefined, undefined, 0], entry);
+}
 for (const streaming of [true, false]) {
   const fs = createMemoryFileSystem();
   if (!streaming) Object.defineProperty(fs, "readStream", { value: undefined });

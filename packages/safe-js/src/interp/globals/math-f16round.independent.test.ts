@@ -196,7 +196,7 @@ describe("Math.f16round independent review", () => {
     ).resolves.toMatchObject({ ok: true, returnValue: [1.3369140625, 1, Infinity] });
   });
 
-  it("replays untouched EA checkpoints with exactly the explicit new Math binding", async () => {
+  it("replays untouched EA checkpoints with explicitly enumerated intrinsic additions", async () => {
     const captureBytes = JSON.stringify(capture);
     expect(capture.base).toBe("ea469259a7d61ab2839457863c445bd9f95155cb");
     expect(capture.expected).toStrictEqual([true, "a", "g", 1, 17]);
@@ -206,6 +206,16 @@ describe("Math.f16round independent review", () => {
       ...capture.completed,
       bindings: {
         ...capture.completed.bindings,
+        Object: {
+          ...capture.completed.bindings.Object,
+          create: { kind: "fn", name: "create" },
+          defineProperties: { kind: "fn", name: "defineProperties" },
+          defineProperty: { kind: "fn", name: "defineProperty" },
+          getOwnPropertyDescriptor: { kind: "fn", name: "getOwnPropertyDescriptor" },
+          getOwnPropertyNames: { kind: "fn", name: "getOwnPropertyNames" },
+          getPrototypeOf: { kind: "fn", name: "getPrototypeOf" },
+          setPrototypeOf: { kind: "fn", name: "setPrototypeOf" }
+        },
         Math: {
           ...capture.completed.bindings.Math,
           f16round: { kind: "fn", name: "f16round" }

@@ -20,6 +20,7 @@ import {
 import { parseRegex, type RegexPattern } from "./regex/parse.js";
 import { assertSandboxDataDepth } from "../graph-depth.js";
 import { sandboxErrorTypes } from "../error/shape.js";
+import { getGuestFunctionProperties, getSandboxPrototype, hasGuestObjectState, hasManagedDescriptors, isGuestClosure, registerGuestClosure } from "./object-model.js";
 import {
   copySandboxArgumentProperties,
   createSandboxArguments,
@@ -152,6 +153,7 @@ type CopyState<TValue> = {
 };
 
 export function createSandboxClosure(input: {
+  guest?: boolean;
   async?: boolean;
   sandbox?: boolean;
   boundTarget?: SandboxClosure;
@@ -206,7 +208,12 @@ export function createSandboxClosure(input: {
     });
   }
 
-  if (input.properties !== undefined) {
+  if (input.guest === true) {
+    registerGuestClosure(closure);
+    Object.defineProperty(closure, "properties", {
+      get: () => getGuestFunctionProperties(closure)
+    });
+  } else if (input.properties !== undefined) {
     Object.defineProperty(closure, "properties", {
       enumerable: false,
       value: Object.freeze(
@@ -222,6 +229,13 @@ export function createSandboxClosure(input: {
   }
 
   return Object.freeze(closure);
+}
+
+export function ownEnumerableSandboxEntries(value: SandboxValue): Array<[string, SandboxValue]> {
+  if (value === null || value === undefined) throw new TypeError("Cannot convert undefined or null to object.");
+  if (isGuestClosure(value)) return Object.entries(value.properties ?? {}) as Array<[string, SandboxValue]>;
+  if (isSandboxClosure(value) || isSandboxGenerator(value) || isSandboxMap(value) || isSandboxSet(value) || isSandboxPromise(value) || isSandboxRegex(value)) return [];
+  return Object.entries(Object(value)) as Array<[string, SandboxValue]>;
 }
 
 export function createSandboxPromise(
@@ -421,16 +435,19 @@ export function measureSandboxData(
   const seen = new WeakSet<object>();
   let usage = 0;
 
-  const visit = (value: unknown): void => {
+  const visit = (value: unknown, depth = 0): void => {
     if (typeof value === "string") {
       usage += value.length;
       return;
     }
     if (typeof value !== "object" || value === null) return;
     if (seen.has(value)) return;
+    assertSandboxDataDepth(depth);
     seen.add(value);
 
     usage += 1;
+    const prototype = getSandboxPrototype(value);
+    if (prototype !== null) visit(prototype, depth + 1);
     if (isFloat32Array(value)) {
       const storage = float32Storage(value);
       if (!seen.has(storage.buffer)) {
@@ -439,42 +456,50 @@ export function measureSandboxData(
       }
       for (const [key, descriptor] of float32DataProperties(value)) {
         usage += key.length + 1;
-        visit(descriptor.value);
+        visit(descriptor.value, depth + 1);
       }
       return;
     }
     if (Array.isArray(value)) {
       usage += value.length;
+      if (hasManagedDescriptors(value)) {
+        for (const [key, descriptor] of Object.entries(Object.getOwnPropertyDescriptors(value))) {
+          if (key === "length") continue;
+          usage += key.length + 1;
+          if ("value" in descriptor) visit(descriptor.value, depth + 1);
+        }
+        return;
+      }
       for (let index = 0; index < value.length; index += 1) {
         const descriptor = Object.getOwnPropertyDescriptor(value, index);
-        if (descriptor !== undefined && "value" in descriptor) visit(descriptor.value);
+        if (descriptor !== undefined && "value" in descriptor) visit(descriptor.value, depth + 1);
       }
       return;
     }
     if (isSandboxMap(value)) {
       usage += value.entries.size;
       for (const [key, entry] of value.entries) {
-        visit(key);
-        visit(entry);
+        visit(key, depth + 1);
+        visit(entry, depth + 1);
       }
       return;
     }
     if (isSandboxSet(value)) {
       usage += value.values.size;
-      for (const entry of value.values) visit(entry);
+      for (const entry of value.values) visit(entry, depth + 1);
       return;
     }
     if (isSandboxClosure(value)) {
       if (options.ignoreClosures) return;
-      if (value.properties !== undefined) visit(value.properties);
+      if (value.properties !== undefined) visit(value.properties, depth + 1);
       if (!options.ignoreClosureCaptures)
-        for (const retained of value[sandboxRetainedValues]?.() ?? []) visit(retained);
+        for (const retained of value[sandboxRetainedValues]?.() ?? []) visit(retained, depth + 1);
       return;
     }
     if (isSandboxGenerator(value)) {
       const snapshot = value.channel.snapshot();
       usage += snapshot.sent.length;
-      for (const completion of snapshot.sent) visit(completion.value);
+      for (const completion of snapshot.sent) visit(completion.value, depth + 1);
       return;
     }
     if (isSandboxPromise(value)) return;
@@ -495,7 +520,7 @@ export function measureSandboxData(
       usage += entries.length;
       for (const [key, entry] of entries) {
         usage += key.length;
-        visit(entry);
+        visit(entry, depth + 1);
       }
       return;
     }
@@ -504,14 +529,14 @@ export function measureSandboxData(
     const keys = Object.keys(descriptors);
     let entryCount = 0;
     for (const key of keys) {
-      if (descriptors[key].enumerable) entryCount += 1;
+      if (descriptors[key].enumerable || hasManagedDescriptors(value)) entryCount += 1;
     }
     usage += entryCount;
     for (const key of keys) {
       const descriptor = descriptors[key];
-      if (!descriptor.enumerable) continue;
+      if (!descriptor.enumerable && !hasManagedDescriptors(value)) continue;
       usage += key.length;
-      visit("value" in descriptor ? descriptor.value : undefined);
+      visit("value" in descriptor ? descriptor.value : undefined, depth + 1);
     }
   };
 
@@ -608,6 +633,10 @@ function copyToSandbox(
     isSandboxPromise(value)
   ) {
     return value;
+  }
+
+  if (typeof value === "object" && value !== null && hasGuestObjectState(value)) {
+    throw new TypeError("Guest prototype links and custom descriptors cannot be copied as data.");
   }
 
   if (isSandboxMap(value)) {
@@ -791,6 +820,10 @@ function copyFromSandbox(
   }
 
   if (nodeTypes.isProxy(value)) throw new TypeError("Unsupported proxy sandbox value.");
+  if (!isSandboxClosure(value) && hasGuestObjectState(value)) {
+    throw new TypeError("Guest prototype links and custom descriptors cannot be copied as data.");
+  }
+
   const regexBrand = Object.getOwnPropertyDescriptor(value, sandboxRegexBrand);
   if (regexBrand !== undefined) {
     if (!("value" in regexBrand) || regexBrand.value !== true) {

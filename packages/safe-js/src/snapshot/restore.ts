@@ -3,7 +3,8 @@ import { CompileScope } from "../interp/regex/compile-guard.js";
 import { decodeFloat32Storage } from "./float32array.js";
 import { sandboxErrorTypes } from "../error/shape.js";
 import { SnapshotMismatchError } from "../restore.js";
-import { Scope } from "../interp/interpreter.js";
+import { Scope, setSandboxProperty } from "../interp/interpreter.js";
+import { getGuestFunctionProperties, getGuestFunctionProperty, getSandboxDataProperty, registerGuestClosure, setSandboxPrototype } from "../interp/object-model.js";
 import { wrapCallerInjectedBindings, type CallerInjectedBinding } from "../interp/host-bridge.js";
 import {
   createSandboxArguments,
@@ -637,12 +638,18 @@ function restoreClosureValue(
   const baseClosure = createSandboxClosure({
     async: true,
     length: getFunctionLength(node.params),
+    ...(node.type === "ArrowFunctionExpression" || node.id === undefined ? {} : { name: node.id.name }),
     ...(node.type !== "ArrowFunctionExpression" &&
     !(node.type === "FunctionExpression" && node.method === true) &&
+    !node.generator &&
     !node.async
       ? {
           construct: async (args: readonly SandboxValue[]) => {
             const thisValue = {};
+            const prototype = getGuestFunctionProperty(restoredClosure, "prototype");
+            if (typeof prototype === "object" && prototype !== null) {
+              setSandboxPrototype(thisValue, prototype, state.budget);
+            }
             const result = await executeRestoredClosure(
               node,
               capturedScopeId,
@@ -688,6 +695,8 @@ function restoreClosureValue(
     astNodeId: number;
     capturedScopeId: SnapshotId;
   };
+  registerGuestClosure(restoredClosure);
+  Object.defineProperty(restoredClosure, "properties", { get: () => getGuestFunctionProperties(restoredClosure) });
   return restoredClosure;
 }
 
@@ -726,6 +735,8 @@ async function executeRestoredClosure(
         const rest = args.slice(index);
         state.budget.allocateArrayLength(rest.length);
         const binding = await bindPattern(param, rest, { kind: "let" }, scope, {
+          getProperty: (value, key) => getSandboxDataProperty(value, key, state.budget),
+          setProperty: (target, key, value) => setSandboxProperty(target, key, value, state.budget),
           evaluate: async (defaultNode) => {
             const result = await interpret(defaultNode, {
               budget: state.budget,
@@ -753,6 +764,8 @@ async function executeRestoredClosure(
         break;
       }
       const binding = await bindPattern(param, args[index], { kind: "let" }, scope, {
+        getProperty: (value, key) => getSandboxDataProperty(value, key, state.budget),
+        setProperty: (target, key, value) => setSandboxProperty(target, key, value, state.budget),
         evaluate: async (defaultNode) => {
           const result = await interpret(defaultNode, {
             budget: state.budget,

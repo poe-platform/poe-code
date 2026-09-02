@@ -405,10 +405,10 @@ describe("interpret", () => {
       ).rejects.toThrowError("make is not a constructor.");
     });
 
-    it("does not expose prototypes and rejects instanceof for user constructors", async () => {
+    it("preserves guest constructor prototypes and instanceof identity", async () => {
       await expect(
-        interpret(block(parse("function Person() {}"), parse("return Person.prototype")))
-      ).resolves.toMatchObject({ ok: true, returnValue: undefined });
+        interpret(block(parse("function Person() {}"), parse("return Person.prototype.constructor === Person")))
+      ).resolves.toMatchObject({ ok: true, returnValue: true });
 
       await expect(
         interpret(
@@ -418,9 +418,7 @@ describe("interpret", () => {
             parse("return person instanceof Person")
           )
         )
-      ).rejects.toThrowError(
-        "Constructor prototypes are not supported; check a brand property instead."
-      );
+      ).resolves.toMatchObject({ ok: true, returnValue: true });
     });
   });
 

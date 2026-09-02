@@ -96,6 +96,8 @@ import {
   type ArrayMethodOptions
 } from "./methods/array.js";
 import { getFunctionMember, type FunctionMethodOptions } from "./methods/function.js";
+import { getGuestFunctionProperty, getSandboxPrototype, isGuestClosure, materializeFunctionProperties } from "./object-model.js";
+import { assertSandboxDataDepth } from "../graph-depth.js";
 import {
   callMapMethod,
   getMapMember,
@@ -109,7 +111,7 @@ import { getSandboxIterator, type SandboxIterator } from "./iteration.js";
 import { assertCollectionMutable } from "./running-state.js";
 import { getGeneratorMember } from "./methods/generator.js";
 import { getRegexMember, isRegexMethodName, setRegexMember } from "./methods/regex.js";
-import { bindPattern, type BindPatternResult } from "./patterns.js";
+import { bindPattern, type BindPatternResult, type PatternContext } from "./patterns.js";
 import {
   callStringMethod,
   getStringMember,
@@ -123,7 +125,7 @@ import {
   type SetMethodName,
   type SetMethodOptions
 } from "./methods/set.js";
-import { isSandboxErrorConstructor, isSandboxErrorConstructorInstance } from "./globals/error.js";
+import { isSandboxErrorConstructorInstance } from "./globals/error.js";
 import { isSandboxMapConstructor, isSandboxSetConstructor } from "./globals/collections.js";
 import {
   getFloat32Member,
@@ -837,9 +839,7 @@ async function evaluateAssignmentExpression(
       return right;
     }
 
-    const binding = await bindPattern(node.left, right.value, { assign: true }, context.scope, {
-      evaluate: (patternNode) => evaluateNode(patternNode, context)
-    });
+    const binding = await bindPattern(node.left, right.value, { assign: true }, context.scope, createPatternContext(context));
     if (!binding.ok) {
       return binding.result;
     }
@@ -976,7 +976,7 @@ async function evaluateMemberAssignmentExpression(
       ? right.value
       : await applyCompoundAssignmentOperator(node.operator, current, right.value, context);
 
-  setSandboxProperty(member.object, member.property, value);
+  setSandboxProperty(member.object, member.property, value, context.budget);
 
   return {
     kind: "normal",
@@ -1184,7 +1184,7 @@ async function evaluateVariableDeclaration(
       value.value,
       { kind: node.kind },
       context.scope,
-      { evaluate: (patternNode) => evaluateNode(patternNode, context) }
+      createPatternContext(context)
     );
     if (!binding.ok) {
       return binding.result;
@@ -1680,14 +1680,14 @@ async function evaluateForInStatement(
   const restoredIteration = consumeRestoredLoopIteration(node, context);
   const keys =
     restoredIteration === undefined || typeof restoredIteration === "number"
-      ? forInKeys(object)
+      ? forInKeys(object, context.budget)
       : restoredIteration.values.map(String);
   const restoredIndex =
     typeof restoredIteration === "number" ? restoredIteration : (restoredIteration?.index ?? 0);
   for (let index = restoredIndex; index < keys.length; index += 1) {
     context.activeLoopIterations.set(node.nodeId ?? -1, { index, values: keys });
     const key = keys[index]!;
-    if (!(key in object)) {
+    if (!hasForInProperty(object, key, context.budget)) {
       continue;
     }
 
@@ -1719,6 +1719,7 @@ async function evaluateForInStatement(
 }
 
 function forInObject(value: SandboxValue): object | undefined {
+  if (isGuestClosure(value)) return value;
   if (value === null || value === undefined || isSandboxClosure(value) || isSandboxPromise(value)) {
     return undefined;
   }
@@ -1733,9 +1734,33 @@ function forInObject(value: SandboxValue): object | undefined {
   return undefined;
 }
 
-function forInKeys(object: object): string[] {
-  const keys = Object.keys(object);
-  return Array.isArray(object) ? keys.filter(isArrayIndexKey) : keys;
+function forInKeys(object: object, budget: Budget): string[] {
+  const keys: string[] = [];
+  const seen = new Set<string>();
+  let depth = 0;
+  for (let current: object | null = object; current !== null; current = getSandboxPrototype(current)) {
+    if (depth > 0) budget.visitNode();
+    assertSandboxDataDepth(depth++);
+    const properties = isGuestClosure(current) ? materializeFunctionProperties(current) : isSandboxClosure(current) ? current.properties ?? {} : current;
+    for (const key of Object.getOwnPropertyNames(properties)) {
+      if (seen.has(key)) continue;
+      seen.add(key);
+      if (Array.isArray(properties) && !isArrayIndexKey(key)) continue;
+      if (Object.getOwnPropertyDescriptor(properties, key)?.enumerable) keys.push(key);
+    }
+  }
+  return keys;
+}
+
+function hasForInProperty(object: object, key: string, budget: Budget): boolean {
+  let depth = 0;
+  for (let current: object | null = object; current !== null; current = getSandboxPrototype(current)) {
+    if (depth > 0) budget.visitNode();
+    assertSandboxDataDepth(depth++);
+    const properties = isGuestClosure(current) ? materializeFunctionProperties(current) : isSandboxClosure(current) ? current.properties ?? {} : current;
+    if (Object.hasOwn(properties, key)) return true;
+  }
+  return false;
 }
 
 function isArrayIndexKey(key: string): boolean {
@@ -1758,18 +1783,14 @@ async function bindForInLoopVariable(
   context: EvaluationContext
 ): Promise<BindPatternResult> {
   if (left.type === "Identifier") {
-    return bindPattern(left, key, { assign: true }, scope, {
-      evaluate: (patternNode) => evaluateNode(patternNode, { ...context, scope })
-    });
+    return bindPattern(left, key, { assign: true }, scope, createPatternContext(context, scope));
   }
 
   const [declarator] = left.declarations;
   if (left.declarations.length !== 1 || declarator?.id.type !== "Identifier") {
     throw new TypeError("for...in keys are strings; destructure inside the body");
   }
-  return bindPattern(declarator.id, key, { kind: left.kind }, scope, {
-    evaluate: (patternNode) => evaluateNode(patternNode, { ...context, scope })
-  });
+  return bindPattern(declarator.id, key, { kind: left.kind }, scope, createPatternContext(context, scope));
 }
 
 function normalEmptyResult(): EvaluationResult {
@@ -2026,9 +2047,7 @@ async function bindForOfLoopVariable(
   context: EvaluationContext
 ): Promise<BindPatternResult> {
   if (left.type === "Identifier") {
-    return bindPattern(left, value, { assign: true }, scope, {
-      evaluate: (patternNode) => evaluateNode(patternNode, { ...context, scope })
-    });
+    return bindPattern(left, value, { assign: true }, scope, createPatternContext(context, scope));
   }
 
   if (left.type !== "VariableDeclaration") {
@@ -2040,9 +2059,7 @@ async function bindForOfLoopVariable(
     throw new TypeError("for...of declarations must include exactly one declarator.");
   }
 
-  return bindPattern(declarator.id, value, { kind: left.kind }, scope, {
-    evaluate: (patternNode) => evaluateNode(patternNode, { ...context, scope })
-  });
+  return bindPattern(declarator.id, value, { kind: left.kind }, scope, createPatternContext(context, scope));
 }
 
 async function evaluateExpressionStatement(
@@ -2377,7 +2394,7 @@ async function evaluateMemberUpdateExpression(
     await toNumericPrimitive(getPropertyValue(member.object, member.property, context), context)
   );
   const next = node.operator === "++" ? current + 1 : current - 1;
-  setSandboxProperty(member.object, member.property, next);
+  setSandboxProperty(member.object, member.property, next, context.budget);
 
   return {
     kind: "normal",
@@ -2423,6 +2440,15 @@ function getPropertyValue(
     throw new TypeError("Attempted to read a property from a non-object value.");
   }
   return getMemberValue(target, property, context);
+}
+
+export function createPatternContext(context: AsyncEvaluationContext, scope = context.scope, evaluate = evaluateNode): PatternContext {
+  const evaluationContext = { ...context, scope };
+  return {
+    evaluate: node => evaluate(node, evaluationContext),
+    getProperty: (value, key) => getPropertyValue(value, key, evaluationContext),
+    setProperty: (target, key, value) => setSandboxProperty(target, key, value, context.budget)
+  };
 }
 
 async function evaluateCallExpression(
@@ -3053,14 +3079,18 @@ function applyBinaryOperator(
       if (isSandboxErrorConstructorInstance(left, right)) {
         return true;
       }
-      if (
-        isSandboxClosure(right) &&
-        right.construct !== undefined &&
-        !isSandboxErrorConstructor(right)
-      ) {
-        throw new TypeError(
-          "Constructor prototypes are not supported; check a brand property instead."
-        );
+      if (isGuestClosure(right)) {
+        if (typeof left !== "object" || left === null) return false;
+        const prototype = getGuestFunctionProperty(right, "prototype");
+        if (typeof prototype !== "object" || prototype === null) {
+          throw new TypeError("Function has a non-object prototype in instanceof check.");
+        }
+        let depth = 0;
+        for (let current = getSandboxPrototype(left); current !== null; current = getSandboxPrototype(current)) {
+          context.budget.visitNode();
+          assertSandboxDataDepth(depth++);
+          if (current === prototype) return true;
+        }
       }
       return false;
     case "in":
@@ -3307,7 +3337,7 @@ function toString(value: InterpreterValue): string {
 }
 
 function isIndexableSandboxValue(value: SandboxValue): value is SandboxArray | SandboxObject {
-  return Array.isArray(value) || isPlainSandboxObject(value);
+  return Array.isArray(value) || isPlainSandboxObject(value) || isGuestClosure(value);
 }
 
 function appendArrayValues(target: SandboxValue[], values: readonly SandboxValue[]): void {
@@ -3334,11 +3364,22 @@ function getMemberValue(
   property: string | number,
   context: EvaluationContext
 ): SandboxValue {
-  if (Array.isArray(target)) {
-    return getArrayMemberValue(target, property, context);
+  let current: SandboxValue = target;
+  let depth = 0;
+  while (typeof current === "object" && current !== null) {
+    if (isSandboxClosure(current)) return getClosureMemberValue(current, property, context);
+    if (Array.isArray(current)) return getArrayMemberValue(current, property, context);
+    if (!isPlainSandboxObject(current) || isSandboxGenerator(current) || isFloat32Array(current)) {
+      return getPropertyValue(current, property, context);
+    }
+    if (Object.hasOwn(current, String(property))) return (current as SandboxObject)[String(property)];
+    current = getSandboxPrototype(current) as SandboxValue;
+    if (current !== null) {
+      context.budget.visitNode();
+      assertSandboxDataDepth(++depth);
+    }
   }
-
-  return Object.hasOwn(target, String(property)) ? target[String(property)] : undefined;
+  return undefined;
 }
 
 function getArrayMemberValue(
@@ -3353,11 +3394,14 @@ function getArrayMemberValue(
   return getArrayMember(target, property, createArrayMethodOptions(context));
 }
 
-function setSandboxProperty(
+export function setSandboxProperty(
   target: SandboxValue,
   property: string | number,
-  value: SandboxValue
+  value: SandboxValue,
+  budget: Budget
 ): void {
+  const prototypeOwner = target;
+  if (isGuestClosure(target)) target = materializeFunctionProperties(target);
   if (isFloat32Array(target)) {
     setFloat32Member(target, property, value);
     return;
@@ -3385,6 +3429,18 @@ function setSandboxProperty(
     }
     Object.defineProperty(target, key, { value });
   } else {
+    if (typeof prototypeOwner === "object" && prototypeOwner !== null) {
+      let depth = 0;
+      for (let prototype = getSandboxPrototype(prototypeOwner); prototype !== null; prototype = getSandboxPrototype(prototype)) {
+        budget.visitNode();
+        assertSandboxDataDepth(depth++);
+        const properties = isSandboxClosure(prototype) ? prototype.properties : prototype;
+        const inherited = properties === undefined ? undefined : Object.getOwnPropertyDescriptor(properties, key);
+        if (inherited === undefined) continue;
+        if (inherited.writable !== true) throw new TypeError(`Cannot assign to read only property '${key}'.`);
+        break;
+      }
+    }
     defineSandboxProperty(target, key, value);
   }
 }
@@ -3393,6 +3449,7 @@ function deleteSandboxProperty(
   target: SandboxArray | SandboxObject,
   property: string | number
 ): void {
+  if (isGuestClosure(target)) target = materializeFunctionProperties(target);
   if (Array.isArray(target)) {
     assertCollectionMutable(target);
   }
@@ -3648,13 +3705,13 @@ async function evaluateObjectSpread(
     };
   }
 
-  if (isSandboxClosure(value.value) || isSandboxPromise(value.value)) {
+  if ((isSandboxClosure(value.value) && !isGuestClosure(value.value)) || isSandboxPromise(value.value)) {
     throw new TypeError(
       `Cannot spread ${describeObjectSpreadValue(value.value)} into object literal.`
     );
   }
 
-  const spreadValue = Object(value.value) as Record<string, SandboxValue>;
+  const spreadValue = isGuestClosure(value.value) ? value.value.properties ?? {} : Object(value.value) as Record<string, SandboxValue>;
   const keys = Object.keys(spreadValue);
   context.budget.allocateArrayLength(keys.length);
 

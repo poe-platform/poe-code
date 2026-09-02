@@ -122,7 +122,7 @@ describe("sandbox integrity at the run boundary", () => {
     expect(([] as unknown as { polluted?: unknown }).polluted).toBeUndefined();
   });
 
-  it("keeps prototype-bearing member reads closed across value kinds", async () => {
+  it("keeps native prototype reads closed while exposing guest constructor identity", async () => {
     const result = await run(`
       const closure = function () {};
       return [
@@ -130,7 +130,7 @@ describe("sandbox integrity at the run boundary", () => {
         [].__proto__, [].constructor, [].prototype,
         "value".__proto__, "value".constructor, "value".prototype,
         (1).__proto__, (1).constructor, (1).prototype,
-        closure.__proto__, closure.constructor, closure.prototype,
+        closure.__proto__, closure.constructor, closure.prototype.constructor === closure,
         typeof ([1].toSorted)
       ];
     `);
@@ -152,7 +152,7 @@ describe("sandbox integrity at the run boundary", () => {
         undefined,
         undefined,
         undefined,
-        undefined,
+        true,
         "function"
       ]
     });

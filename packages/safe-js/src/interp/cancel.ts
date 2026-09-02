@@ -1,4 +1,5 @@
 import { AsyncLocalStorage } from "node:async_hooks";
+import { getSandboxPrototype } from "./object-model.js";
 import {
   createSandboxPromise,
   isSandboxClosure,
@@ -110,6 +111,8 @@ function registerCancelablePromises(value: SandboxValue, signal: AbortSignal): v
     const current = pending.pop();
     if (typeof current !== "object" || current === null || seen.has(current)) continue;
     seen.add(current);
+    const prototype = getSandboxPrototype(current);
+    if (prototype !== null) pending.push(prototype as SandboxValue);
     if (isSandboxPromise(current)) {
       if (!sandboxPromises.has(current)) managePromiseCancellation(current, signal);
       continue;

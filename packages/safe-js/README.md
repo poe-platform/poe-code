@@ -32,6 +32,7 @@ console.log(result.returnValue);
 ## Supported features
 
 - **JavaScript control flow:** functions and closures, async/await, loops, destructuring, spread, templates, exceptions, and synchronous generators.
+- **Guest function objects:** own properties on functions and arrows; ordinary constructors with shared prototypes, inherited methods and `instanceof`. `Object.create`, `getPrototypeOf`, `setPrototypeOf`, own-property inspection, and data descriptors work on ordinary sandbox records.
 - **Data processing:** arrays, objects, strings, numbers, JSON, Math, Map, Set, Float32Array, promises, and a bounded regular-expression subset. These are selected APIs, not complete ECMAScript implementations.
 - **Explicit capabilities:** named, default, and namespace imports resolve against host-supplied modules. Optional helpers cover agents, MCP tools, files, environment reads, time, logging, and metrics.
 - **Execution controls:** step, call-depth, string, array, and retained-data budgets; an absolute deadline; host cancellation; console and telemetry sinks.
@@ -39,6 +40,19 @@ console.log(result.returnValue);
 - **Authoring tools:** lint diagnostics and fixes, source-positioned errors, Markdown harnesses, and paired Markdown/script files. `run()` does not lint automatically; harness runners do.
 
 Scripts have no ambient `process`, `require`, `fetch`, or filesystem access. Host functions still execute with the host's privileges. Register only the capabilities the script needs; this is not OS or process isolation.
+
+```js
+const result = await run(`
+  function Counter(value) { this.value = value; }
+  Counter.label = "counter";
+  Counter.prototype.read = function () { return this.value; };
+  const counter = new Counter(7);
+  return [Counter.label, counter.read(), counter instanceof Counter];
+`, { budget: new Budget({ maxSteps: 10_000 }) });
+// result.returnValue: ["counter", 7, true]
+```
+
+Properties stay inside the interpreter, not on native host functions. Arrows and object methods remain nonconstructible. Prototype links between callable or exotic objects (such as arrays) and accessor descriptors are unsupported; native `Function.prototype` is never exposed.
 
 ## Add a host capability
 
@@ -162,6 +176,8 @@ Factories return exports to register in `modules`; calling a factory alone does 
 <details>
 <summary>Checkpoints and recovery</summary>
 
+Guest functions with materialized own-property state, prototype-linked objects, and custom data descriptors are not portable checkpoint data. Dump, restore, and replay serialization reject these values instead of silently discarding their state. Data-copy boundaries also reject prototype-linked objects and custom descriptors; pass a plain projection such as `{ value: counter.value }` to host operations. Bridged callbacks retain their function identity and properties while the run is alive.
+
 - `dump(resultOrRunningPromise, { mode?, onFailure? })` returns checkpoint JSON. `mode` is `capture` or `replay`; `onFailure` is `throw` or `checkpoint`.
 - `restore(snapshot, { source })` validates state for compatible source; pass it as `run`'s `snapshot` option. It does not run the program.
 - `new FileSnapshotBackend(path, { writeMaxAttempts?, writeRetryDelayMs? })` defaults to 3 write attempts and a 100 ms retry delay.
@@ -199,7 +215,7 @@ For embedding, `runCli(argv, options?)` comes from `@poe-platform/safe-js/cli`. 
 
 ## Meaningful limitations
 
-- **Not a full JavaScript engine.** No user-defined classes/prototype chains, async generators, dynamic imports, or automatic multi-file/npm resolution. No browser build, DOM, general Node API, `eval`, or `Function` constructor. Built-in coverage is selective; lint success is not a runtime compatibility guarantee.
+- **Not a full JavaScript engine.** No user-defined classes, async generators, dynamic imports, or automatic multi-file/npm resolution. No browser build, DOM, general Node API, `eval`, or `Function` constructor. Ordinary guest constructor prototypes are supported, but native and exotic prototype chains are not. Built-in coverage is selective; lint success is not a runtime compatibility guarantee.
 - **Some familiar syntax differs.** Binary `in` is unsupported; use `Object.hasOwn(object, key)` for own-property checks. Regex supports `g`, `i`, `m`, and `s`, but not lookaround, backreferences, named groups, Unicode property escapes, or other flags. Compilation and matching have fixed limits in addition to configured budgets.
 - **Budgets are not hard resource isolation.** Limits govern interpreter work, not arbitrary host functions or total process memory. Deadlines are checked cooperatively; cancellation cannot forcibly stop a blocking host call or undo its effects. Add host-operation timeouts and external isolation where required.
 - **Recovery is not exactly-once delivery.** Replay can repeat work and consumes budget again. Pending side effects need external reconciliation; opaque host handles and native iterator frames are not portable checkpoint state. Keep compatible source for ordinary restore or explicitly migrate. Checkpoints can contain input data and host results: store them as sensitive data.

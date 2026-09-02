@@ -1,4 +1,5 @@
 import { MAX_DATA_DEPTH } from "../graph-depth.js";
+import { hasGuestObjectState } from "../interp/object-model.js";
 import { CompileScope } from "../interp/regex/compile-guard.js";
 import { float32DataProperties, isFloat32Array } from "../interp/float32.js";
 import { decodeFloat32Storage, encodeFloat32Storage, type Float32Data } from "./float32array.js";
@@ -81,6 +82,9 @@ export function encodeReplayData(
     if (isSandboxPromise(entry)) {
       const id = options.identifyPromise?.(entry, path);
       if (typeof id === "string" && id.length > 0) return { tag: "promise-capability", id };
+    }
+    if (typeof entry === "object" && entry !== null && hasGuestObjectState(entry)) {
+      throw new MissingReplayCapabilityError("Guest function properties and prototype links cannot be serialized.");
     }
     let capabilityId: string | undefined;
     if (isSandboxClosure(entry)) {

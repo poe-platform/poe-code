@@ -138,6 +138,16 @@ describe("compile checkpoint hash compatibility", () => {
       ...capture.completed,
       bindings: {
         ...capture.completed.bindings,
+        Object: {
+          ...capture.completed.bindings.Object,
+          create: { kind: "fn", name: "create" },
+          defineProperties: { kind: "fn", name: "defineProperties" },
+          defineProperty: { kind: "fn", name: "defineProperty" },
+          getOwnPropertyDescriptor: { kind: "fn", name: "getOwnPropertyDescriptor" },
+          getOwnPropertyNames: { kind: "fn", name: "getOwnPropertyNames" },
+          getPrototypeOf: { kind: "fn", name: "getPrototypeOf" },
+          setPrototypeOf: { kind: "fn", name: "setPrototypeOf" }
+        },
         Math: {
           ...capture.completed.bindings.Math,
           f16round: { kind: "fn", name: "f16round" }

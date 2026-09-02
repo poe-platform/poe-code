@@ -23,6 +23,8 @@ import { CompileScope } from "./regex/compile-guard.js";
 import { awaitSandboxValue } from "./cancel.js";
 import type { Scope } from "./scope.js";
 import { hoistVarDeclarations } from "./var-hoist.js";
+import { createPatternContext } from "./interpreter.js";
+import { getGuestFunctionProperty, setSandboxPrototype } from "./object-model.js";
 import {
   boundIdentifiers,
   containsParameterExpression,
@@ -149,6 +151,10 @@ export function createInterpretedClosure(
     !node.async
       ? async (args: readonly SandboxValue[], callContext?: SandboxCallContext) => {
           const thisValue = {};
+          const prototype = getGuestFunctionProperty(closure, "prototype");
+          if (typeof prototype === "object" && prototype !== null) {
+            setSandboxPrototype(thisValue, prototype, context.budget);
+          }
           const result = await executeClosure(
             node,
             args,
@@ -164,7 +170,8 @@ export function createInterpretedClosure(
         }
       : undefined;
 
-  return createSandboxClosure({
+  const closure = createSandboxClosure({
+    guest: true,
     sandbox: true,
     length: getFunctionLength(node.params),
     ...(node.async ? { async: true } : {}),
@@ -222,6 +229,7 @@ export function createInterpretedClosure(
       return createSandboxPromise(promise, { synchronousPrefix });
     }
   });
+  return closure;
 }
 
 function createGeneratorClosure(
@@ -230,6 +238,7 @@ function createGeneratorClosure(
   evaluateNode: EvaluateAsyncNode
 ) {
   return createSandboxClosure({
+    guest: true,
     sandbox: true,
     length: getFunctionLength(node.params),
     ...(node.id === undefined ? {} : { name: node.id.name }),
@@ -415,9 +424,7 @@ async function bindParameters(
     if (param.type === "RestElement") {
       const rest = args.slice(index);
       context.budget.allocateArrayLength(rest.length);
-      const binding = await bindPattern(param, rest, { kind: "var", initialize: true }, scope, {
-        evaluate: (defaultNode) => evaluateNode(defaultNode, { ...context, scope })
-      });
+      const binding = await bindPattern(param, rest, { kind: "var", initialize: true }, scope, createPatternContext(context, scope, evaluateNode));
       if (!binding.ok) {
         if (binding.result.kind === "error") {
           throw binding.result.error;
@@ -434,9 +441,7 @@ async function bindParameters(
       args[index],
       { kind: "var", initialize: true },
       scope,
-      {
-        evaluate: (defaultNode) => evaluateNode(defaultNode, { ...context, scope })
-      }
+      createPatternContext(context, scope, evaluateNode)
     );
     if (!binding.ok) {
       if (binding.result.kind === "error") {

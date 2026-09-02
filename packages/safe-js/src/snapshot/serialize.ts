@@ -1,4 +1,5 @@
 import { hashSource } from "../parse/hash.js";
+import { hasGuestObjectState } from "../interp/object-model.js";
 import { sandboxErrorTypes, type SandboxErrorName } from "../error/shape.js";
 import { assertSnapshotGraphDepth } from "../graph-depth.js";
 import { serializeArguments, type SerializedArguments } from "./arguments.js";
@@ -292,6 +293,9 @@ function serializeValue(
   path: string,
   state: SerializationState
 ): SerializedSnapshotValue {
+  if (typeof value === "object" && value !== null && hasGuestObjectState(value)) {
+    throw new TypeError("Guest function properties and prototype links cannot be serialized.");
+  }
   if (value === null || typeof value === "string" || typeof value === "boolean") {
     return value;
   }

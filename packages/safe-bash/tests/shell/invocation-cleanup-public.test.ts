@@ -46,7 +46,9 @@ for (const command of ["grep", "rg"]) {
         cwd: snapshot, encoding: "utf8", timeout: 10000, killSignal: "SIGKILL", maxBuffer: 2 * 1024 * 1024,
       });
       const proof = { scenario, pid: result.pid, status: result.status, signal: result.signal, error: result.error?.message ?? null, stdout: result.stdout, stderr: result.stderr };
-      context.diagnostic(JSON.stringify(proof));
+      const serialized = JSON.stringify(proof);
+      if (result.error === undefined && result.signal === null && result.status === 0 && result.stderr === "") console.log(serialized);
+      else context.diagnostic(serialized);
       await binding.verify();
       assert.equal(result.error, undefined, `${scenario}: ${result.error?.message}`);
       assert.equal(result.signal, null, `${scenario}: ${result.stderr}`);

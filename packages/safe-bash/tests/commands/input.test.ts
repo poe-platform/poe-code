@@ -5,6 +5,218 @@ import { standardCommands } from "../../src/commands/index.js";
 import { bufferLimit, input } from "../../src/commands/internal.js";
 import { collectBytes, toByteSource, type CommandContext } from "../../src/contracts/index.js";
 import { Shell, ShellLimitError } from "../../src/shell/index.js";
+import { fileInput } from "../../src/shell/input.js";
+
+for (const boxed of [false, true]) {
+  for (const streaming of [false, undefined]) {
+    test(`mounted buffered redirections: boxed=${boxed}, streaming=${streaming}`, async () => {
+      const backend = await bufferedBackend();
+      backend.readStream = (path) => ({ [Symbol.asyncIterator]: () => ({
+        async next(): Promise<IteratorResult<Uint8Array>> { throw new FsError("ENOTSUP", { syscall: "readStream", path }); },
+      }) });
+      const mounted = { ...backend, capabilities: streaming === undefined ? {} : { streamingRead: streaming } };
+      const fs = createMountFileSystem({ root: createReadOnlyFileSystem(new MemoryFileSystem()), mounts: {
+        "/data": boxed ? createReadOnlyFileSystem(mounted) : mounted,
+        "/scratch": new MemoryFileSystem(),
+      } });
+      assert.equal(fs.capabilities.streamingRead, undefined);
+      const shell = new Shell({ fs }).use(standardCommands());
+      try {
+        for (const [script, expected] of [
+          ["cat /data/note", "buffered\n"],
+          ["cat < /data/note", "buffered\n"],
+          ["read -r value < /data/note; printf '%s' \"$value\"", "buffered"],
+          ["printf '%s' \"$(< /data/note)\"", "buffered"],
+        ]) {
+          const result = await shell.exec(script!);
+          assert.equal(result.stderr, "", script);
+          assert.equal(result.exitCode, 0, script);
+          assert.equal(result.stdout, expected, script);
+        }
+      } finally { await shell.dispose(); }
+    });
+  }
+}
+
+for (const partial of [false, true]) {
+  for (const code of ["ENOTSUP", "EIO", "EACCES", "ENOENT"] as const) {
+    test(`redirected ${code} ${partial ? "after" : "before"} bytes preserves errors and cleanup`, async (suite) => {
+      const backend = await bufferedBackend();
+      const failure = new FsError(code);
+      const closed = suite.mock.fn();
+      const fs = { ...backend, capabilities: {}, readStream: async function* () {
+        try {
+          if (partial) yield Uint8Array.of(65);
+          throw failure;
+        } finally { closed(); }
+      } };
+      const read = suite.mock.method(fs, "readFile");
+      const source = await fileInput(fs, "/note", 9, new AbortController().signal);
+      const collected = collectBytes(source, { maxBytes: 100 });
+      const fallback = !partial && code === "ENOTSUP";
+      if (fallback) assert.equal(new TextDecoder().decode(await collected), "buffered\n");
+      else await assert.rejects(collected, error => error === failure);
+      assert.equal(read.mock.callCount(), fallback ? 1 : 0);
+      assert.equal(closed.mock.callCount(), 1);
+    });
+  }
+}
+
+test("mounted redirected fallback forwards input limits and rejects dishonest buffers", async (suite) => {
+  const backend = await bufferedBackend();
+  const read = suite.mock.method(backend, "readFile", async (_path: string, options?: ReadFileOptions) => {
+    assert.equal(options?.maxBytes, 8);
+    assert.ok(options?.signal);
+    return new Uint8Array(9);
+  });
+  const fs = createMountFileSystem({ root: new MemoryFileSystem(), mounts: { "/data": backend } });
+  const shell = new Shell({ fs, limits: { maxInputBytes: 8, maxOutputBytes: 1000 } }).use(standardCommands());
+  try {
+    const result = await shell.exec("cat < /data/note");
+    assert.equal(result.exitCode, 1);
+    assert.match(result.stderr, /EFBIG|file too large/i);
+    assert.equal(read.mock.callCount(), 1);
+  } finally { await shell.dispose(); }
+});
+
+test("redirected cancellation never falls back even for ENOTSUP", async (suite) => {
+  for (const preAborted of [false, true]) {
+    const backend = await bufferedBackend();
+    const controller = new AbortController();
+    const failure = new FsError("ENOTSUP");
+    const closed = suite.mock.fn();
+    const fs = { ...backend, capabilities: {}, readStream: () => ({ [Symbol.asyncIterator]: () => ({
+      async next(): Promise<IteratorResult<Uint8Array>> { controller.abort(failure); throw failure; },
+      async return(): Promise<IteratorResult<Uint8Array>> { closed(); return { done: true, value: undefined }; },
+    }) }) };
+    const read = suite.mock.method(fs, "readFile");
+    if (preAborted) controller.abort(failure);
+    await assert.rejects(async () => {
+      const source = await fileInput(fs, "/note", 100, controller.signal);
+      await collectBytes(source, { maxBytes: 100 });
+    }, error => error === failure);
+    assert.equal(read.mock.callCount(), 0);
+    assert.equal(closed.mock.callCount(), preAborted ? 0 : 1);
+  }
+});
+
+test("redirected fallback cancels pending reads and observes late failures", async (suite) => {
+  const backend = await bufferedBackend();
+  const controller = new AbortController();
+  const failure = new Error("cancel redirected fallback");
+  let start!: () => void;
+  const started = new Promise<void>(resolve => { start = resolve; });
+  let rejectRead!: (reason: unknown) => void;
+  suite.mock.method(backend, "readFile", async (_path: string, options?: ReadFileOptions) => {
+    assert.equal(options?.signal, controller.signal);
+    assert.equal(options?.maxBytes, 9);
+    start();
+    return new Promise<Uint8Array>((_resolve, reject) => { rejectRead = reject; });
+  });
+  const fs = createMountFileSystem({ root: new MemoryFileSystem(), mounts: { "/data": backend } });
+  const source = await fileInput(fs, "/data/note", 9, controller.signal);
+  const reading = collectBytes(source, { maxBytes: 100 });
+  const rejected = assert.rejects(reading, error => error === failure);
+  assert.equal(await Promise.race([started.then(() => "started"), reading.then(() => "finished", () => "failed")]), "started");
+  controller.abort(failure);
+  await rejected;
+  rejectRead(new Error("late read failure"));
+});
+
+test("redirected live streams close on early consumption without buffered reads", async (suite) => {
+  const backend = await bufferedBackend();
+  const read = suite.mock.method(backend, "readFile");
+  const closed = suite.mock.fn();
+  let pulls = 0;
+  const fs = { ...backend, capabilities: {}, readStream: async function* () {
+    try {
+      pulls++;
+      yield Uint8Array.of(65);
+      pulls++;
+      yield Uint8Array.of(66);
+    } finally { closed(); }
+  } };
+  const shell = new Shell({ fs }).use(standardCommands());
+  try {
+    const result = await shell.exec("head -c 1 < /note");
+    assert.equal(result.stdout, "A");
+    assert.equal(result.stderr, "");
+    assert.equal(result.exitCode, 0);
+    assert.equal(pulls, 1);
+    assert.equal(closed.mock.callCount(), 1);
+    assert.equal(read.mock.callCount(), 0);
+  } finally { await shell.dispose(); }
+});
+
+test("redirected fallback waits for stream cleanup and handles synchronous unsupported reads", async (suite) => {
+  for (const synchronous of [false, true]) {
+    const backend = await bufferedBackend();
+    const failure = new FsError("ENOTSUP");
+    let closed = synchronous;
+    const fs = { ...backend, capabilities: {}, readStream() {
+      if (synchronous) throw failure;
+      return { [Symbol.asyncIterator]() { return {
+        async next(): Promise<IteratorResult<Uint8Array>> { throw failure; },
+        async return(): Promise<IteratorResult<Uint8Array>> {
+          await Promise.resolve();
+          closed = true;
+          return { done: true, value: undefined };
+        },
+      }; } };
+    } };
+    const read = suite.mock.method(fs, "readFile", async () => {
+      assert.equal(closed, true);
+      return Uint8Array.of(65);
+    });
+    const source = await fileInput(fs, "/note", 1, new AbortController().signal);
+    assert.deepEqual(await collectBytes(source, { maxBytes: 1 }), Uint8Array.of(65));
+    assert.equal(read.mock.callCount(), 1);
+  }
+});
+
+test("redirected early-close errors cannot trigger fallback after an empty chunk", async (suite) => {
+  const backend = await bufferedBackend();
+  const failure = new FsError("ENOTSUP");
+  const fs = { ...backend, capabilities: {}, readStream: () => ({ [Symbol.asyncIterator]: () => ({
+    async next(): Promise<IteratorResult<Uint8Array>> { return { done: false, value: new Uint8Array() }; },
+    async return(): Promise<IteratorResult<Uint8Array>> { throw failure; },
+  }) }) };
+  const read = suite.mock.method(fs, "readFile");
+  const source = await fileInput(fs, "/note", 9, new AbortController().signal);
+  const iterator = source[Symbol.asyncIterator]();
+  assert.equal((await iterator.next()).done, false);
+  await assert.rejects(async () => iterator.return!(), error => error === failure);
+  assert.equal(read.mock.callCount(), 0);
+});
+
+test("redirected pending streams close once on cancellation without fallback", async (suite) => {
+  const backend = await bufferedBackend();
+  const controller = new AbortController();
+  const failure = new FsError("ENOTSUP");
+  let start!: () => void;
+  const started = new Promise<void>(resolve => { start = resolve; });
+  let rejectRead!: (reason: unknown) => void;
+  const close = suite.mock.fn(async () => ({ done: true as const, value: undefined }));
+  const fs = { ...backend, capabilities: {}, readStream() {
+    return { [Symbol.asyncIterator]() { return {
+      next() {
+        start();
+        return new Promise<IteratorResult<Uint8Array>>((_resolve, reject) => { rejectRead = reject; });
+      },
+      return: close,
+    }; } };
+  } };
+  const read = suite.mock.method(fs, "readFile");
+  const source = await fileInput(fs, "/note", 9, controller.signal);
+  const reading = collectBytes(source, { maxBytes: 100 });
+  const rejected = assert.rejects(reading, error => error === failure);
+  await started;
+  controller.abort(failure);
+  await rejected;
+  assert.equal(close.mock.callCount(), 1);
+  assert.equal(read.mock.callCount(), 0);
+  rejectRead(new Error("late stream failure"));
+});
 
 for (const streaming of [false, true]) {
   for (const size of [65_537, 65_538]) {

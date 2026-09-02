@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import { Budget, run } from "@poe-platform/safe-js";
-import { FsError, createMemoryFileSystem } from "@poe-platform/safe-fs";
+import { FsError, createMemoryFileSystem, createReadOnlyFileSystem } from "@poe-platform/safe-fs";
 import { FsError as CompatibilityFsError } from "@poe-platform/safe-js/fs";
 import { FsError as CoreFsError } from "@poe-platform/safe-js/fs/core";
 import { FsError as NodeFsError } from "@poe-platform/safe-js/fs/node";
@@ -10,6 +10,40 @@ assert.equal(FsError, ShellFsError);
 assert.equal(FsError, CompatibilityFsError);
 assert.equal(FsError, CoreFsError);
 assert.equal(FsError, NodeFsError);
+for (const entry of ["@poe-platform/safe-bash", "@poe-platform/safe-bash/browser"]) {
+  const { Shell: EntryShell, standardCommands: standard, browserCommands: browser } = await import(entry);
+  for (const boxed of [false, true]) {
+    for (const mode of ["disabled", "missing", "unsupported"]) {
+      const backend = createMemoryFileSystem();
+      await backend.writeFile("/note", new TextEncoder().encode("hello\n"));
+      Object.defineProperty(backend, "capabilities", { value: { streamingRead: mode === "unsupported" ? undefined : false } });
+      backend.readStream = mode === "missing" ? undefined : (path) => ({ [Symbol.asyncIterator]: () => ({
+        async next() { throw new FsError("ENOTSUP", { syscall: "readStream", path }); },
+      }) });
+      const fs = createMountFileSystem({ root: createReadOnlyFileSystem(createMemoryFileSystem()), mounts: {
+        "/data": boxed ? createReadOnlyFileSystem(backend) : backend,
+        "/scratch": createMemoryFileSystem(),
+      } });
+      const shell = new EntryShell({ fs }).use((standard ?? browser)());
+      try {
+        for (const [script, expected] of [
+          ["cat /data/note", "hello\n"], ["cat < /data/note", "hello\n"],
+          ["read -r value < /data/note; printf '%s' \"$value\"", "hello"],
+          ["printf '%s' \"$(< /data/note)\"", "hello"],
+        ]) {
+          const output = await shell.exec(script);
+          assert.equal(output.stderr, "", `${entry}, ${mode}, boxed=${boxed}: ${script}`);
+          assert.equal(output.exitCode, 0);
+          assert.equal(output.stdout, expected);
+        }
+        assert.equal((await shell.exec("wc -c < /data/note", { limits: { maxInputBytes: 6, maxOutputBytes: 4 } })).stdout.trim(), "6");
+        const oversized = await shell.exec("cat < /data/note", { limits: { maxInputBytes: 5 } });
+        assert.equal(oversized.exitCode, 1);
+        assert.match(oversized.stderr, /EFBIG|file too large/i);
+      } finally { await shell.dispose(); }
+    }
+  }
+}
 const result = await run("return values.map(value => value * 2);", {
   bindings: { values: [2, 3] }, budget: new Budget({ maxSteps: 1000 }),
 });

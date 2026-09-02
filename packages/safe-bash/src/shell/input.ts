@@ -3,19 +3,52 @@ import type { ByteSource, FileSystem } from "../contracts/index.js";
 import { Budget, interruptible } from "./runtime.js";
 
 export async function fileInput(fs: FileSystem, path: string, maxBytes: number, signal: AbortSignal): Promise<ByteSource> {
-  if (!fs.readStream || fs.capabilities.streamingRead === false) {
+  signal.throwIfAborted();
+  async function bufferedInput(): Promise<ByteSource> {
+    signal.throwIfAborted();
     const bytes = await interruptible(fs.readFile(path, { signal, maxBytes }), signal);
     signal.throwIfAborted();
     if (bytes.byteLength > maxBytes) throw new FsError("EFBIG", { syscall: "readFile", path });
     return toByteSource(bytes);
   }
-  const iterator = fs.readStream(path, { signal })[Symbol.asyncIterator]();
+  const readStream = fs.readStream;
+  if (!readStream || fs.capabilities.streamingRead === false) return bufferedInput();
+  let iterator: AsyncIterator<Uint8Array>;
+  try { iterator = readStream.call(fs, path, { signal })[Symbol.asyncIterator](); }
+  catch (error) {
+    signal.throwIfAborted();
+    if (!(error instanceof FsError) || error.code !== "ENOTSUP") throw error;
+    return bufferedInput();
+  }
   let size = 0;
+  let buffered = false;
+  let closed = false;
+  let returned: Promise<IteratorResult<Uint8Array>> | undefined;
+  function closeIterator(): Promise<IteratorResult<Uint8Array>> {
+    returned ??= Promise.resolve().then(() => iterator.return?.() ?? { done: true, value: undefined });
+    return returned;
+  }
   return {
     [Symbol.asyncIterator]: () => ({
       async next() {
         signal.throwIfAborted();
-        const result = await interruptible(Promise.resolve(iterator.next()), signal);
+        if (closed) return { done: true, value: undefined };
+        let result: IteratorResult<Uint8Array>;
+        try { result = await interruptible(Promise.resolve(iterator.next()), signal); }
+        catch (error) {
+          signal.throwIfAborted();
+          if (buffered || size > 0 || !(error instanceof FsError) || error.code !== "ENOTSUP") throw error;
+          await interruptible(closeIterator(), signal);
+          signal.throwIfAborted();
+          if (closed) return { done: true, value: undefined };
+          const source = await bufferedInput();
+          if (closed) return { done: true, value: undefined };
+          iterator = source[Symbol.asyncIterator]();
+          buffered = true;
+          returned = undefined;
+          result = await iterator.next();
+        }
+        signal.throwIfAborted();
         if (!result.done) {
           if (!(result.value instanceof Uint8Array)) throw new TypeError("Shell stdin must yield Uint8Array");
           if (result.value.byteLength > maxBytes - size) throw new FsError("EFBIG", { syscall: "readFile", path });
@@ -23,7 +56,10 @@ export async function fileInput(fs: FileSystem, path: string, maxBytes: number, 
         }
         return result;
       },
-      ...(iterator.return ? { return: iterator.return.bind(iterator) } : {}),
+      return() {
+        closed = true;
+        return closeIterator();
+      },
     }),
   };
 }

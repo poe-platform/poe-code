@@ -6,7 +6,7 @@ import { workspaceUnitSelections } from "./workspace-test-ownership.mjs";
 
 export function sharedVitestStages(plan, fileSystem = fs) {
   const scripts = plan.rootManifest.scripts;
-  if (plan.concurrency !== 1 || plan.testArguments.length ||
+  if (plan.testArguments.length ||
       scripts["test:unit"] !== "vitest run --config vitest.root.config.ts" ||
       scripts["test:unit:shared"] !== "node scripts/test-vitest-workspaces.mjs" ||
       ["pretest:unit", "posttest:unit", "pretest:unit:shared", "posttest:unit:shared"].some(event => scripts[event] !== undefined)) {
@@ -15,12 +15,14 @@ export function sharedVitestStages(plan, fileSystem = fs) {
   const selections = new Map(workspaceUnitSelections(plan.root, fileSystem)
     .filter(selection => !selection.hasHooks).map(selection => [selection.path, selection]));
   const compatible = plan.testStages.filter(stage => stage.path === null || selections.has(stage.path));
-  const root = compatible.find(stage => stage.path === null);
-  if (!root || compatible.length < 2) return plan.testStages;
+  if (compatible.length < 2) return plan.testStages;
+  const root = compatible.find(stage => stage.path === null)
+    ?? (plan.ciGroup ? { ...compatible[0], id: "//#test:unit", name: plan.rootManifest.name, path: null } : undefined);
+  if (!root) return plan.testStages;
   const shared = {
     ...root,
     event: "test:unit:shared",
-    testArguments: compatible.map(stage => stage.path ?? "."),
+    testArguments: [...(plan.ciGroup ? [`--ci-group=${plan.ciGroup}`] : []), ...compatible.map(stage => stage.path ?? ".")],
     phases: compatible.map(stage => ({
       name: stage.name,
       path: stage.path,
@@ -130,11 +132,12 @@ if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.me
   try {
     const { createWorkspaceTestPlan } = await import("./build-workspaces.mjs");
     const root = fileURLToPath(new URL("../", import.meta.url));
-    const plan = createWorkspaceTestPlan(root);
+    const expected = process.argv.slice(2);
+    const groupArgument = expected[0]?.startsWith("--ci-group=") ? expected.shift() : undefined;
+    const plan = createWorkspaceTestPlan(root, { ciGroup: groupArgument?.slice("--ci-group=".length) });
     const shared = sharedVitestStages(plan).find(stage => stage.event === "test:unit:shared");
     assert.ok(shared, "Shared Vitest is not enabled for this workspace configuration");
-    const expected = process.argv.slice(2);
-    if (expected.length) assert.deepEqual(shared.testArguments, expected, "Workspace unit selection changed before shared execution");
+    if (expected.length) assert.deepEqual(shared.testArguments, [...(groupArgument ? [groupArgument] : []), ...expected], "Workspace unit selection changed before shared execution");
     await runSharedVitest(root, shared.phases);
   } catch (error) {
     console.error(error);

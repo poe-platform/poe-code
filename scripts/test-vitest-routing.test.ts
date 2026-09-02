@@ -47,6 +47,7 @@ function fixture(failedEvent?: string) {
     spawn: start as unknown as typeof import("node:child_process").spawn,
     environment: {
       npm_execpath: "/npm-cli.js", PATH: "/bin", GIT_DIR: "/foreign/git",
+      SAFE_BASH_TEST_SHARD: "1/4", SAFE_BASH_TEST_CONCURRENCY: "2",
       SAFEJS_LOCAL_ROOT: "/owned/safejs", S3_HTTP_EXPORTS_REVISION: "owned-revision", FULL_GATE_ROOT: "/owned/gate"
     }
   };
@@ -66,7 +67,7 @@ describe("native workspace routing with shared Vitest", () => {
       expect(call[2].detached).toBe(true);
       expect(call[2].env?.GIT_DIR).toBeUndefined();
       const bash = call[1][4] === "test:unit";
-      for (const name of ["SAFEJS_LOCAL_ROOT", "S3_HTTP_EXPORTS_REVISION", "FULL_GATE_ROOT"] as const) {
+      for (const name of ["SAFEJS_LOCAL_ROOT", "S3_HTTP_EXPORTS_REVISION", "FULL_GATE_ROOT", "SAFE_BASH_TEST_SHARD", "SAFE_BASH_TEST_CONCURRENCY"] as const) {
         expect(call[2].env?.[name]).toBe(bash ? options.environment[name] : undefined);
       }
     }

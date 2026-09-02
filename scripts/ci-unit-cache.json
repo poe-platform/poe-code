@@ -1,0 +1,11 @@
+{
+  "workspaces": [
+    "@poe-code/frontmatter",
+    "@poe-code/memory",
+    "@poe-code/task-list",
+    "@poe-code/workspace-resolver",
+    "toolcraft-schema",
+    "@poe-code/markdown-reader",
+    "@poe-code/package-lint"
+  ]
+}

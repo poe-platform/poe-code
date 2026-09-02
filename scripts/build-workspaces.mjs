@@ -199,11 +199,27 @@ function selectBuildStages(plan, roots) {
 }
 
 export function createWorkspaceTestPlan(rootDirectory, options = {}) {
-  const { fileSystem = fs, excludeWorkspace, concurrency = 1, testArguments = [] } = options;
+  const { fileSystem = fs, excludeWorkspace, concurrency = 1, testArguments = [], ciGroup } = options;
   assert.ok(concurrency === 1 || concurrency === 4, "Unit concurrency must be 1 or 4");
   assert.ok(excludeWorkspace === undefined || excludeWorkspace === "virtual-bash", "Only the Node20 virtual-bash exclusion is supported");
   assert.ok(Array.isArray(testArguments) && testArguments.every(value => typeof value === "string" && !value.includes("\0")), "Invalid test arguments");
+  assert.ok(ciGroup === undefined || ciGroup === "fresh" || ciGroup === "cached", "Invalid CI unit group");
+  assert.ok(ciGroup === undefined || (!excludeWorkspace && !testArguments.length), "CI unit groups do not accept exclusions or test arguments");
   const plan = createWorkspaceBuildPlan(rootDirectory, fileSystem);
+  let cacheable;
+  if (ciGroup !== undefined) {
+    const policy = readManifest(path.join(plan.root, "scripts"), "ci-unit-cache.json", fileSystem);
+    assert.ok(policy && Object.keys(policy).length === 1 && Array.isArray(policy.workspaces) && policy.workspaces.length, "Invalid CI cache policy");
+    cacheable = new Set(policy.workspaces);
+    assert.equal(cacheable.size, policy.workspaces.length, "Duplicate CI cache admission");
+    for (const name of cacheable) {
+      const workspace = plan.workspaces.find(candidate => candidate.name === name);
+      const scripts = workspace?.manifest.scripts ?? {};
+      const command = `cd ../.. && vitest run ${workspace?.path}/src`;
+      assert.ok(name !== "virtual-bash" && workspace && [command, `${command}/`].includes(scripts["test:unit"])
+        && scripts["pretest:unit"] === undefined && scripts["posttest:unit"] === undefined, `Workspace is not cacheable: ${name}`);
+    }
+  }
   const names = new Set(plan.workspaces.map(workspace => workspace.name));
   if (excludeWorkspace) assert.ok(names.has(excludeWorkspace), "Excluded workspace is missing");
   const tasks = plan.configuration.tasks;
@@ -235,6 +251,7 @@ export function createWorkspaceTestPlan(rootDirectory, options = {}) {
     const settings = { ...tasks["test:unit"], ...tasks[id] };
     if (workspace.path === null) assert.ok(!settings.dependsOn?.length, "Root test build dependencies are unsupported");
     if (workspace.name === excludeWorkspace && workspace.path !== null) continue;
+    if (ciGroup !== undefined && (workspace.name === "virtual-bash" || cacheable.has(workspace.name) !== (ciGroup === "cached"))) continue;
     testStages.push({ id, name: workspace.name, path: workspace.path, event: "test:unit" });
     for (const dependency of settings.dependsOn ?? []) {
       if (dependency === "build") buildRoots.add(workspace.name);
@@ -242,13 +259,13 @@ export function createWorkspaceTestPlan(rootDirectory, options = {}) {
     }
   }
   const selected = selectBuildStages(plan, buildRoots);
-  return { ...plan, buildStages: selected.stages, buildNoBuild: selected.noBuild, testStages, noTest, concurrency, testArguments, excludeWorkspace };
+  return { ...plan, buildStages: selected.stages, buildNoBuild: selected.noBuild, testStages, noTest, concurrency, testArguments, excludeWorkspace, ...(ciGroup === undefined ? {} : { ciGroup }) };
 }
 
 function taskEnvironment(environment, stage, unitMode) {
   const selected = { ...environment };
   if (unitMode && !(stage.path !== null && stage.name === "virtual-bash" && stage.event === "test:unit")) {
-    for (const name of ["SAFEJS_LOCAL_ROOT", "S3_HTTP_EXPORTS_REVISION", "FULL_GATE_ROOT"]) delete selected[name];
+    for (const name of ["SAFEJS_LOCAL_ROOT", "S3_HTTP_EXPORTS_REVISION", "FULL_GATE_ROOT", "SAFE_BASH_TEST_SHARD", "SAFE_BASH_TEST_CONCURRENCY"]) delete selected[name];
   }
   return selected;
 }
@@ -377,9 +394,9 @@ export async function buildWorkspaces(rootDirectory, options = {}) {
 }
 
 export async function testWorkspaces(rootDirectory, options = {}) {
-  const { environment = process.env, spawn = spawnChild, host = process, fileSystem = fs, excludeWorkspace, concurrency = 1, testArguments = [] } = options;
+  const { environment = process.env, spawn = spawnChild, host = process, fileSystem = fs, excludeWorkspace, concurrency = 1, testArguments = [], ciGroup } = options;
   validateEnvironment(environment);
-  const plan = createWorkspaceTestPlan(rootDirectory, { fileSystem, excludeWorkspace, concurrency, testArguments });
+  const plan = createWorkspaceTestPlan(rootDirectory, { fileSystem, excludeWorkspace, concurrency, testArguments, ciGroup });
   let testStages = plan.testStages;
   if (plan.rootManifest.scripts["test:unit:shared"]) {
     const { sharedVitestStages } = await import("./test-vitest-workspaces.mjs");
@@ -414,16 +431,18 @@ export function parseWorkspaceArguments(args) {
     if (argument === "--") { result.testArguments.push(...args.slice(index + 1)); break; }
     const equals = argument.indexOf("=");
     const name = equals < 0 ? argument : argument.slice(0, equals);
-    if (name === "--concurrency" || name === "--exclude-workspace") {
+    if (name === "--concurrency" || name === "--exclude-workspace" || name === "--ci-group") {
       assert.ok(!seen.has(name), "Duplicate runner option"); seen.add(name);
       const value = equals < 0 ? undefined : argument.slice(equals + 1);
       if (name === "--concurrency") { assert.ok(value === "1" || value === "4", "Unit concurrency must be 1 or 4"); result.concurrency = Number(value); }
+      else if (name === "--ci-group") { assert.ok(value === "fresh" || value === "cached", "Invalid CI unit group"); result.ciGroup = value; }
       else { assert.equal(value, "virtual-bash", "Only the Node20 virtual-bash exclusion is supported"); result.excludeWorkspace = value; }
     } else {
       assert.ok(!["--workspace", "--test-unit"].includes(name), "Unsupported unit runner option");
       result.testArguments.push(...args.slice(index)); break;
     }
   }
+  assert.ok(result.ciGroup === undefined || (!result.excludeWorkspace && !result.testArguments.length), "CI unit groups do not accept exclusions or test arguments");
   return result;
 }
 

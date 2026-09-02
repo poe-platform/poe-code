@@ -302,7 +302,9 @@
     "postinstall": "node scripts/postinstall-sync-skills.mjs",
     "test:workspaces": "node scripts/build-workspaces.mjs --test-unit",
     "test:stress:lint": "vitest run --config vitest.lint-stress.config.ts",
-    "posttest": "npm run test:stress:lint"
+    "posttest": "npm run test:stress:lint",
+    "test:ci:fresh": "node scripts/build-workspaces.mjs --test-unit --ci-group=fresh",
+    "test:ci:cached": "node scripts/build-workspaces.mjs --test-unit --ci-group=cached"
   },
   "bin": {
     "poe": "dist/bin.cjs",

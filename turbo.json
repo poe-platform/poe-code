@@ -128,6 +128,21 @@
       ],
       "outputs": [],
       "cache": false
+    },
+    "//#test:ci:cached": {
+      "inputs": [
+        "$TURBO_DEFAULT$"
+      ],
+      "outputs": [],
+      "env": [
+        "CI",
+        "NODE_ENV",
+        "TZ",
+        "LANG",
+        "LC_ALL",
+        "POE_CI_RUNTIME"
+      ],
+      "cache": true
     }
   }
 }

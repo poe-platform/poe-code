@@ -94,10 +94,22 @@ describe("shared Vitest task selection", () => {
     expect(sharedVitestStages(plan, fileSystem)).toBe(plan.testStages);
   });
 
-  it("does not change the separately requested concurrent route", () => {
+  it("retains the shared context when native workspace tasks run concurrently", () => {
     const { fileSystem, plan } = fixture();
     plan.concurrency = 4;
-    expect(sharedVitestStages(plan, fileSystem)).toBe(plan.testStages);
+    const stages = sharedVitestStages(plan, fileSystem);
+    expect(stages).toHaveLength(2);
+    expect(stages[0].phases.map(phase => phase.name)).toEqual(["root", "alpha", "beta"]);
+    expect(stages[1].name).toBe("native");
+  });
+
+  it("shares explicitly selected workspace phases without running root tests", () => {
+    const { fileSystem, plan } = fixture();
+    plan.testStages = plan.testStages.filter(stage => stage.path !== null);
+    const stages = sharedVitestStages({ ...plan, ciGroup: "cached" }, fileSystem);
+    expect(stages[0].path).toBeNull();
+    expect(stages[0].phases.map(phase => phase.name)).toEqual(["alpha", "beta"]);
+    expect(stages[0].testArguments).toEqual(["--ci-group=cached", "packages/alpha", "packages/beta"]);
   });
 
   it("requires the declared shared command and supported root selection", () => {

@@ -16,6 +16,7 @@ concurrency:
   group: release-${{ github.ref }}
   cancel-in-progress: false
 permissions:
+  actions: read
   contents: write
   issues: write
   pull-requests: write
@@ -25,11 +26,13 @@ jobs:
     runs-on: ubuntu-24.04
     permissions:
       contents: read
+    outputs:
+      archive-sha256: ${{ steps.archive.outputs.sha256 }}
     steps:
       - uses: actions/checkout@v7.0.1
         with:
           ref: ${{ github.sha }}
-          fetch-depth: 0
+          fetch-depth: 1
           persist-credentials: false
         env:
           GIT_CONFIG_COUNT: "1"
@@ -43,7 +46,10 @@ jobs:
       - name: Build and smoke-test packed CLI
         run: npm run smoke
       - name: Archive fresh build outputs
-        run: tar -cf "$RUNNER_TEMP/build.tar" dist packages/*/dist
+        id: archive
+        run: |
+          tar -cf "$RUNNER_TEMP/build.tar" dist packages/*/dist
+          echo "sha256=$(sha256sum "$RUNNER_TEMP/build.tar" | cut -d ' ' -f 1)" >> "$GITHUB_OUTPUT"
       - uses: actions/upload-artifact@v7.0.1
         with:
           name: build-${{ github.sha }}
@@ -54,12 +60,13 @@ jobs:
     needs: build
     runs-on: ubuntu-24.04
     permissions:
+      actions: read
       contents: read
     steps:
       - uses: actions/checkout@v7.0.1
         with:
           ref: ${{ github.sha }}
-          fetch-depth: 0
+          fetch-depth: 1
           persist-credentials: false
         env:
           GIT_CONFIG_COUNT: "1"
@@ -70,12 +77,16 @@ jobs:
           node-version: 22
           cache: npm
       - run: npm clean-install
-      - uses: actions/download-artifact@v8.0.1
-        with:
-          name: build-${{ github.sha }}
-          path: ${{ runner.temp }}/poe-build
+      - name: Download freshly verified build
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh run download "$GITHUB_RUN_ID" --repo "$GITHUB_REPOSITORY" --name "build-$GITHUB_SHA" --dir "$RUNNER_TEMP/poe-build"
       - name: Restore freshly verified build
-        run: tar -xf "$RUNNER_TEMP/poe-build/build.tar"
+        env:
+          BUILD_SHA256: ${{ needs.build.outputs.archive-sha256 }}
+        run: |
+          printf '%s  %s\n' "$BUILD_SHA256" "$RUNNER_TEMP/poe-build/build.tar" | sha256sum --check --status
+          tar -xf "$RUNNER_TEMP/poe-build/build.tar"
       - run: npm audit signatures
       - run: npm run lint:packages
       - name: Run required lint stress tests
@@ -85,6 +96,7 @@ jobs:
     needs: build
     runs-on: ubuntu-24.04
     permissions:
+      actions: read
       contents: read
     env:
       TZ: UTC
@@ -95,7 +107,7 @@ jobs:
       - uses: actions/checkout@v7.0.1
         with:
           ref: ${{ github.sha }}
-          fetch-depth: 0
+          fetch-depth: 1
           persist-credentials: false
         env:
           GIT_CONFIG_COUNT: "1"
@@ -106,12 +118,16 @@ jobs:
           node-version: 22
           cache: npm
       - run: npm clean-install
-      - uses: actions/download-artifact@v8.0.1
-        with:
-          name: build-${{ github.sha }}
-          path: ${{ runner.temp }}/poe-build
+      - name: Download freshly verified build
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh run download "$GITHUB_RUN_ID" --repo "$GITHUB_REPOSITORY" --name "build-$GITHUB_SHA" --dir "$RUNNER_TEMP/poe-build"
       - name: Restore freshly verified build
-        run: tar -xf "$RUNNER_TEMP/poe-build/build.tar"
+        env:
+          BUILD_SHA256: ${{ needs.build.outputs.archive-sha256 }}
+        run: |
+          printf '%s  %s\n' "$BUILD_SHA256" "$RUNNER_TEMP/poe-build/build.tar" | sha256sum --check --status
+          tar -xf "$RUNNER_TEMP/poe-build/build.tar"
       - name: Identify cache runtime
         run: node -e 'console.log("POE_CI_RUNTIME=" + JSON.stringify({versions:process.versions,platform:process.platform,arch:process.arch,image:process.env.ImageOS,imageVersion:process.env.ImageVersion}))' >> "$GITHUB_ENV"
       - name: Restore eligible unit task cache
@@ -130,6 +146,7 @@ jobs:
     needs: build
     runs-on: ubuntu-24.04
     permissions:
+      actions: read
       contents: read
     strategy:
       fail-fast: false
@@ -157,12 +174,16 @@ jobs:
           node-version: 22
           cache: npm
       - run: npm clean-install
-      - uses: actions/download-artifact@v8.0.1
-        with:
-          name: build-${{ github.sha }}
-          path: ${{ runner.temp }}/poe-build
+      - name: Download freshly verified build
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh run download "$GITHUB_RUN_ID" --repo "$GITHUB_REPOSITORY" --name "build-$GITHUB_SHA" --dir "$RUNNER_TEMP/poe-build"
       - name: Restore freshly verified build
-        run: tar -xf "$RUNNER_TEMP/poe-build/build.tar"
+        env:
+          BUILD_SHA256: ${{ needs.build.outputs.archive-sha256 }}
+        run: |
+          printf '%s  %s\n' "$BUILD_SHA256" "$RUNNER_TEMP/poe-build/build.tar" | sha256sum --check --status
+          tar -xf "$RUNNER_TEMP/poe-build/build.tar"
       - name: Run balanced Bash shard
         run: npm run test:unit --workspace=virtual-bash
   release-stable:
@@ -182,6 +203,16 @@ jobs:
           node-version: 22
           cache: npm
       - run: npm clean-install
+      - name: Download freshly verified build
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh run download "$GITHUB_RUN_ID" --repo "$GITHUB_REPOSITORY" --name "build-$GITHUB_SHA" --dir "$RUNNER_TEMP/poe-build"
+      - name: Restore freshly verified build
+        env:
+          BUILD_SHA256: ${{ needs.build.outputs.archive-sha256 }}
+        run: |
+          printf '%s  %s\n' "$BUILD_SHA256" "$RUNNER_TEMP/poe-build/build.tar" | sha256sum --check --status
+          tar -xf "$RUNNER_TEMP/poe-build/build.tar"
       - name: Generate GitHub App token
         id: app_token
         uses: actions/create-github-app-token@v3.0.0
@@ -196,6 +227,7 @@ jobs:
           NPM_CONFIG_LOGLEVEL: warn
         run: npx --yes semantic-release@25.0.9
     needs:
+      - build
       - checks
       - unit
       - bash

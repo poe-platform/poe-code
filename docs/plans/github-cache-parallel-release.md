@@ -60,3 +60,42 @@ It is not evidence for an end-to-end CI speedup. Actual GitHub timings will be
 reported only after the corresponding jobs finish. More simultaneous runners may
 lower latency while increasing billed runner-minutes; report both rather than
 claiming a linear speedup or a cost reduction.
+
+## Checkout follow-up
+
+The first GitHub run at `02f6a83e7` passed every verification gate. Its build
+checkout took 553 seconds fetching all branches and tags, versus 213 seconds for
+the actual fresh build and smoke test. Checkout also took 221 seconds in checks
+and 289 seconds in Bash shard three; other checkouts took 44–54 seconds.
+
+Build, checks and ordinary unit jobs now fetch only the selected HEAD. These jobs
+do not need release ancestry. Bash retains full history: maintained tests read
+authenticated objects at `8e09db96b51248137648cd5fd6093e4bc08f2b59` and
+`96db59ac7d355d1a94422634b4c4f53d00932ad9`. Publication also retains full history
+for semantic-release. No historical comparison or authentication check is removed.
+
+Validate the workflow with the maintained lint command, push through normal hooks,
+and measure the resulting cold publication and same-SHA warm rerun. Do not subtract
+checkout delays from the reported end-to-end time or claim this first cold run met
+the twenty-minute target.
+
+That run published `14.0.18` successfully in 26 minutes 40 seconds, consuming
+50 minutes 28 seconds across runners. The release-only fresh checkout exposed
+missing-bin warnings when npm normalized the manifest before prepack generated
+the outputs. Restore the same-run verified build artifact before semantic-release
+so those binaries exist; retain the unchanged fresh prepack build and smoke gate.
+This is not restoration of a previous release or a cached verification receipt.
+
+Measure the existing revision's warm unit job separately while this follow-up is
+validated. Its dependent publication check normally has no new version; do not
+report that targeted rerun as a complete warm build or publication measurement.
+
+The artifact downloader also emitted Node DEP0005 during extraction in every
+consumer job, despite using its current release. Use the runner's GitHub CLI with
+the explicit workflow run ID and SHA-qualified artifact name instead. Consumers
+receive only the additional `actions: read` permission and the ordinary job token.
+The producing build exports the tar's SHA-256 as a job output; every consumer must
+verify that exact hash before extracting. Missing or mismatched hashes fail closed.
+This avoids the deprecated downloader dependency without hiding warnings or losing
+archive integrity validation. No server, added secret, or previous-run artifact is
+introduced.

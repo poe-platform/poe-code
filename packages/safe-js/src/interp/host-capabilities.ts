@@ -1,4 +1,5 @@
 import { readDataRecord, type HostOperation } from "../extensions.js";
+import { types } from "node:util";
 import type { SandboxClosure, SandboxObject, SandboxValue } from "./values.js";
 import type { SandboxIterator } from "./iteration.js";
 
@@ -17,15 +18,24 @@ export type HostObjectIndexedDefinition = {
 };
 export type HostObjectDefinition = {
   indexed?: HostObjectIndexedDefinition;
+  named?: HostObjectNamedDefinition;
   properties?: Record<string, { get?: () => unknown; set?: (value: unknown) => void }>;
   methods?: Record<string, HostOperation>;
+};
+export type HostObjectNamedDefinition = {
+  keys(): readonly string[];
+  get(name: string): unknown;
+  maxKeys: number;
+  maxKeyCodeUnits: number;
+  enumerable?: boolean;
 };
 export type HostObjectController = {
   owner: object;
   assertActive(): void;
   chargeWork(units?: number): void;
   checkLength(length: number): void;
-  read(operation: () => unknown): SandboxValue;
+  checkTemporaryDataSize(size: number): void;
+  read(operation: () => unknown, validate?: (value: unknown) => unknown): SandboxValue;
   write(operation: (value: unknown) => void, value: SandboxValue): void;
   method(operation: HostOperation): SandboxClosure;
 };
@@ -36,8 +46,11 @@ type HostObjectState = {
   properties: Map<string, { get?: () => unknown; set?: (value: unknown) => void }>;
   methods: Map<string, SandboxClosure>;
   indexed?: HostObjectIndexedDefinition;
+  named?: HostObjectNamedDefinition;
 };
 const MAX_INDEXED_LENGTH = 65_536;
+const MAX_NAMED_KEYS = 65_536;
+const MAX_NAMED_KEY_CODE_UNITS = 1_048_576;
 type GuestCallbackState = { owner: object; closure?: SandboxClosure; assertActive(): void };
 const hostObjects = new WeakMap<object, HostObjectState>();
 const guestObjects = new WeakMap<object, HostObjectState>();
@@ -81,7 +94,7 @@ export function createLiveHostObject(
 ): HostObject {
   const input = readDataRecord(definition, "Host object definition");
   if (
-    Object.keys(input).some((key) => key !== "properties" && key !== "methods" && key !== "indexed")
+    Object.keys(input).some((key) => !["properties", "methods", "indexed", "named"].includes(key))
   )
     throw new TypeError("Unknown host object definition field.");
   let indexed: HostObjectIndexedDefinition | undefined;
@@ -102,6 +115,43 @@ export function createLiveHostObject(
       length: data.length as () => number,
       get: data.get as (index: number) => unknown,
       maxLength: data.maxLength
+    };
+  }
+  let named: HostObjectNamedDefinition | undefined;
+  if (input.named !== undefined) {
+    const data = readDataRecord(input.named, "Named host capability");
+    if (
+      Object.keys(data).some(
+        (key) => !["keys", "get", "maxKeys", "maxKeyCodeUnits", "enumerable"].includes(key)
+      )
+    )
+      throw new TypeError("Unknown named host capability field.");
+    if (typeof data.keys !== "function" || typeof data.get !== "function")
+      throw new TypeError("Named keys and get must be synchronous functions.");
+    if (
+      typeof data.maxKeys !== "number" ||
+      !Number.isInteger(data.maxKeys) ||
+      data.maxKeys < 1 ||
+      data.maxKeys > MAX_NAMED_KEYS
+    )
+      throw new RangeError(`Named maxKeys must be an integer from 1 to ${MAX_NAMED_KEYS}.`);
+    if (
+      typeof data.maxKeyCodeUnits !== "number" ||
+      !Number.isInteger(data.maxKeyCodeUnits) ||
+      data.maxKeyCodeUnits < 1 ||
+      data.maxKeyCodeUnits > MAX_NAMED_KEY_CODE_UNITS
+    )
+      throw new RangeError(
+        `Named maxKeyCodeUnits must be an integer from 1 to ${MAX_NAMED_KEY_CODE_UNITS}.`
+      );
+    if (data.enumerable !== undefined && typeof data.enumerable !== "boolean")
+      throw new TypeError("Named enumerable must be a boolean.");
+    named = {
+      keys: data.keys as () => readonly string[],
+      get: data.get as (name: string) => unknown,
+      maxKeys: data.maxKeys,
+      maxKeyCodeUnits: data.maxKeyCodeUnits,
+      enumerable: data.enumerable as boolean | undefined
     };
   }
   const properties = new Map<string, { get?: () => unknown; set?: (value: unknown) => void }>();
@@ -139,7 +189,7 @@ export function createLiveHostObject(
       controller.method(operation as HostOperation)
     ])
   );
-  const state = { host, guest, controller, properties, methods, indexed };
+  const state = { host, guest, controller, properties, methods, indexed, named };
   hostObjects.set(host, state);
   guestObjects.set(guest, state);
   return host;
@@ -211,6 +261,7 @@ export function revokeHostObject(value: HostObject, owner: object): void {
   state.properties.clear();
   state.methods.clear();
   state.indexed = undefined;
+  state.named = undefined;
 }
 
 export function getHostObjectMember(value: SandboxObject, key: string): SandboxValue {
@@ -228,7 +279,11 @@ export function getHostObjectMember(value: SandboxObject, key: string): SandboxV
   const property = state.properties.get(key);
   if (property !== undefined)
     return property.get === undefined ? undefined : state.controller.read(property.get);
-  return state.methods.get(key);
+  const method = state.methods.get(key);
+  if (method !== undefined) return method;
+  if (state.named !== undefined && namedKeys(state).includes(key))
+    return state.controller.read(() => state.named!.get(key));
+  return undefined;
 }
 
 export function setHostObjectMember(value: SandboxObject, key: string, entry: SandboxValue): void {
@@ -244,13 +299,26 @@ export function getHostObjectKeys(value: SandboxObject): string[] {
   const state = guestObjects.get(value)!;
   state.controller.assertActive();
   const length = state.indexed === undefined ? 0 : indexedLength(state);
-  const size = length + state.properties.size + state.methods.size;
+  const names =
+    state.named === undefined || state.named.enumerable === false
+      ? []
+      : namedKeys(state).filter(
+          (key) =>
+            !state.properties.has(key) &&
+            !state.methods.has(key) &&
+            !(
+              state.indexed !== undefined &&
+              (key === "length" || canonicalIndex(key) !== undefined)
+            )
+        );
+  const size = length + state.properties.size + state.methods.size + names.length;
   state.controller.checkLength(size);
   state.controller.chargeWork(size + 1);
   return [
     ...Array.from({ length }, (_entry, index) => String(index)),
     ...state.properties.keys(),
-    ...state.methods.keys()
+    ...state.methods.keys(),
+    ...names
   ];
 }
 
@@ -267,12 +335,18 @@ export function hasHostObjectMember(
     const index = canonicalIndex(key);
     if (index !== undefined) return index < state.indexed.maxLength && index < indexedLength(state);
   }
-  return state.properties.has(key) || state.methods.has(key);
+  if (state.properties.has(key) || state.methods.has(key)) return true;
+  return (
+    state.named !== undefined &&
+    !(enumerableOnly && state.named.enumerable === false) &&
+    namedKeys(state).includes(key)
+  );
 }
 
 export function measureHostObjectData(value: SandboxObject): number {
   const state = guestObjects.get(value)!;
   let size = state.indexed === undefined ? 0 : 16;
+  if (state.named !== undefined) size += 24;
   for (const key of state.properties.keys()) size += key.length + 1;
   for (const key of state.methods.keys()) size += key.length + 1;
   return size;
@@ -318,4 +392,44 @@ function canonicalIndex(key: string): number | undefined {
   return Number.isInteger(index) && index >= 0 && index < 0xffffffff && String(index) === key
     ? index
     : undefined;
+}
+
+function namedKeys(state: HostObjectState): string[] {
+  const named = state.named!;
+  return state.controller.read(named.keys, (value) => {
+    if (!Array.isArray(value) || types.isProxy(value))
+      throw new TypeError("Named keys must be a dense own-data array of strings, not a proxy.");
+    const length = Object.getOwnPropertyDescriptor(value, "length")!.value as number;
+    if (length > named.maxKeys) throw new RangeError("Named keys exceed maxKeys.");
+    state.controller.checkLength(length);
+    state.controller.chargeWork(length + 1);
+    if (Reflect.ownKeys(value).length !== length + 1)
+      throw new TypeError("Named keys must contain only dense own-data indices and length.");
+    const result: string[] = [];
+    const seen = new Set<string>();
+    let units = 0;
+    for (let index = 0; index < length; index++) {
+      const descriptor = Object.getOwnPropertyDescriptor(value, String(index));
+      if (
+        descriptor === undefined ||
+        !("value" in descriptor) ||
+        typeof descriptor.value !== "string"
+      )
+        throw new TypeError(
+          "Named keys require dense own string data, not accessors or sparse arrays."
+        );
+      const key = descriptor.value;
+      units += key.length;
+      if (units > named.maxKeyCodeUnits)
+        throw new RangeError("Named keys exceed maximum UTF-16 code units.");
+      state.controller.chargeWork(key.length);
+      if (seen.has(key)) throw new TypeError("Named keys must be distinct.");
+      if (["constructor", "prototype", "__proto__"].includes(key))
+        throw new TypeError(`Reserved named host member '${key}'.`);
+      seen.add(key);
+      result.push(key);
+    }
+    state.controller.checkTemporaryDataSize(1 + length + units);
+    return result;
+  }) as string[];
 }

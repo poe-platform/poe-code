@@ -421,13 +421,21 @@ class RealmState {
       assertActive: this.assertOpen,
       chargeWork: this.chargeWork,
       checkLength: (length) => this.budget.allocateArrayLength(length),
-      read: (operation) => {
+      checkTemporaryDataSize: (size) => {
+        const temporary = {};
+        try {
+          this.budget.setRetainedDataUsage(temporary, size);
+        } finally {
+          this.budget.setRetainedDataUsage(temporary, 0);
+        }
+      },
+      read: (operation, validate) => {
         const value = this.invokeHost(operation, operation);
         if (types.isPromise(value)) {
           void Promise.resolve(value).catch(() => undefined);
           throw new TypeError("Live property getters must be synchronous.");
         }
-        return this.importValue(value);
+        return this.importValue(validate === undefined ? value : validate(value));
       },
       write: (operation, value) => {
         const result = this.invokeHost(operation, () => operation(this.exportValue(value)));

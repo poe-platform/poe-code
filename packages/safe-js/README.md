@@ -212,7 +212,7 @@ The manifest requires `version: 1` and a nonempty `name`. Optional `capabilities
 | `signal` | Realm cancellation signal; aborted on close or failure. |
 | `onCleanup(fn)` | Register a sync/async disposer. Cleanup runs in reverse order, awaits every disposer, and reports failures without skipping the rest. |
 | `chargeWork(units = 1)` | Charge a nonnegative integer against the shared execution budget. Fatal exhaustion cannot be swallowed to continue execution. |
-| `createHostObject({ properties?, methods?, indexed? })` | Create a realm-owned capability. Properties declare synchronous `get`/`set` functions; methods are host functions. Optional `indexed` exposes a bounded live collection. Undeclared members expose no native prototype. |
+| `createHostObject({ properties?, methods?, indexed?, named? })` | Create a realm-owned capability. Properties declare synchronous `get`/`set` functions; methods are host functions. Optional `indexed` and `named` expose bounded live members. Undeclared members expose no native prototype. |
 | `invokeCallback(callback, { thisValue?, args? })` | Invoke a captured guest function with the realm's state, cancellation and budgets. Same operation as on the realm. |
 | `releaseCallback(callback)` | Revoke the callback and release its retained guest state. |
 | `retainGuestArguments(operation, from)` | During setup, opt an operation into opaque argument references starting at the zero-based index `from`. Requires declared and granted `guest:retain`. Earlier arguments keep normal conversion; live host methods preserve the declaration. |
@@ -238,7 +238,30 @@ const collection = context.createHostObject({ indexed: {
 
 Saved collections observe current host contents. Index reads, `Object.keys`/`values`/`entries`, `Object.hasOwn`, `in`, `for...in`, `for...of`, array/object spread and `Array.from` use the live view. Enumerable keys include current indices and fixed members, but not `length`. `Array.from` preserves element identity and interleaves mapping with reads. Noncanonical and out-of-range indices never call `get`; fixed members cannot reuse `length` or canonical index names. Enumeration and traversal consume execution budgets, without eagerly allocating virtual properties.
 
-Indexed members and their `length` are read-only. Live objects reject deletion, freezing, native prototype access, property-descriptor manipulation and portable serialization. Realm state is not a checkpoint: snapshot/replay and live-capability error-data conversion are rejected. Extensions are trusted native code; grants are a registration contract, not OS isolation. Native work still needs host timeouts and external process supervision for hard limits. No DOM, timers or browser engine are bundled.
+For changing named properties, add `named` to the same definition:
+
+```js
+const named = {
+  keys: () => [...attributes.keys()],
+  get: name => attributes.get(name),
+  maxKeys: 256,
+  maxKeyCodeUnits: 8192,
+  enumerable: false
+};
+const attributesObject = context.createHostObject({ named });
+```
+
+| Named option | Contract |
+| --- | --- |
+| `keys()` | Synchronous dense own-data array of distinct strings. Proxies, accessors, sparse arrays and reserved `constructor`/`prototype`/`__proto__` names reject. |
+| `get(name)` | Synchronous value provider, called only for a currently present name. Existing host conversion and identity rules apply. |
+| `maxKeys` | Required positive integer, at most 65,536. |
+| `maxKeyCodeUnits` | Required positive aggregate key-length cap, at most 1,048,576 UTF-16 code units. Execution, array, string and data budgets also apply. |
+| `enumerable` | Defaults to `true`. Set `false` to keep names readable and visible to `in`/`Object.hasOwn`, but omit them from keys/values/entries, object spread and `for...in`. |
+
+Fixed properties/methods take precedence over names. With `indexed`, numeric indices and `length` remain indexed members. Enumeration deduplicates collisions; names removed by an earlier getter are skipped. Named-only objects are not iterable—combine `named` with `indexed` when you need numeric collection access and `for...of`.
+
+Named properties, indexed members and indexed `length` are read-only. Live objects reject deletion, freezing, native prototype access, property-descriptor manipulation and portable serialization. Realm state is not a checkpoint: snapshot/replay and live-capability error-data conversion are rejected. Extensions are trusted native code; grants are a registration contract, not OS isolation. Native work still needs host timeouts and external process supervision for hard limits. No DOM, timers or browser engine are bundled.
 
 For one-shot use, `run(source, { extensions, grants, ... })` accepts the same realm options plus `filename`, returns data only, and closes resources before settling. Run-only features such as snapshots, `entryPointArgs`, `importMeta`, custom random generators and telemetry are rejected in this mode rather than silently ignored.
 

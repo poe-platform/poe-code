@@ -1,8 +1,8 @@
-import { Budget, run, makeFsModule, type RunClock, type HostObjectIndexedDefinition, type HostObjectNamedDefinition } from "@poe-platform/safe-js";
+import { Budget, run, makeFsModule, type RunClock, type HostObjectIndexedDefinition, type HostObjectNamedDefinition, type CallbackInvocation } from "@poe-platform/safe-js";
 import { createMemoryFileSystem, type FileSystem } from "@poe-platform/safe-fs/core";
 import type { FileSystem as CompatibilityFileSystem } from "@poe-platform/safe-js/fs";
 import { Shell, standardCommands } from "@poe-platform/safe-bash";
-import { createRealm, defineExtension, type HostObject, type GuestReference, type HostObjectIndexedDefinition as CoreIndexed, type HostObjectNamedDefinition as CoreNamed } from "@poe-platform/safe-js/core";
+import { createRealm, defineExtension, type HostObject, type GuestReference, type HostObjectIndexedDefinition as CoreIndexed, type HostObjectNamedDefinition as CoreNamed, type CallbackInvocation as CoreInvocation } from "@poe-platform/safe-js/core";
 
 const fs: FileSystem & CompatibilityFileSystem = createMemoryFileSystem();
 let next = 0;
@@ -15,6 +15,8 @@ await shell.dispose();
 const extension = defineExtension({
   manifest: { version: 1, name: "typed-consumer", capabilities: ["guest:retain"], globals: ["node", "discard", "nodes"] },
   setup(context) {
+    const start: (callback: unknown) => CallbackInvocation & CoreInvocation = context.startCallback;
+    void start;
     const node: HostObject = context.createHostObject({ properties: { value: { get: () => 7 } } });
     const indexed: HostObjectIndexedDefinition & CoreIndexed = { length: () => 1, get: () => node, maxLength: 8 };
     const named: HostObjectNamedDefinition & CoreNamed = { keys: () => ["node"], get: () => node, maxKeys: 8, maxKeyCodeUnits: 128, enumerable: false };
@@ -24,5 +26,7 @@ const extension = defineExtension({
   }
 });
 const realm = createRealm({ extensions: [extension], grants: ["guest:retain"], clock, limits: { callbacks: 10, guestReferences: 10 } });
+const start: (callback: unknown) => CallbackInvocation & CoreInvocation = realm.startCallback;
+void start;
 await realm.evaluate("discard({}); return [node.value, nodes[0] === node, nodes.node === node];");
 await realm.close();

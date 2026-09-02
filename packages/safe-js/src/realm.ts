@@ -37,6 +37,7 @@ import {
 import {
   deepCopyFromSandbox,
   isSandboxClosure,
+  isSandboxPromise,
   measureSandboxData,
   reconcileCompiledValues,
   type SandboxClosure,
@@ -47,6 +48,7 @@ import {
   readDataRecord,
   readStringList,
   type CallbackOptions,
+  type CallbackInvocation,
   type ExtensionContext,
   type ExtensionExports,
   type HostOperation,
@@ -89,6 +91,7 @@ export type RealmResult =
 export type SafeJSRealm = {
   readonly extensions: readonly SafeJSExtension["manifest"][];
   evaluate(source: string, options?: { filename?: string }): Promise<RealmResult>;
+  startCallback(callback: unknown, options?: CallbackOptions): CallbackInvocation;
   invokeCallback(callback: unknown, options?: CallbackOptions): Promise<unknown>;
   releaseCallback(callback: unknown): void;
   releaseGuestReference(reference: unknown): void;
@@ -508,7 +511,26 @@ class RealmState {
       );
   };
 
-  invokeCallback = async (callback: unknown, options: CallbackOptions = {}): Promise<unknown> => {
+  startCallback = (callback: unknown, options: CallbackOptions = {}): CallbackInvocation => {
+    let complete!: () => void;
+    let fail!: (reason: unknown) => void;
+    const synchronous = new Promise<void>((resolve, reject) => {
+      complete = resolve;
+      fail = reject;
+    });
+    const result = this.executeCallback(callback, options, complete);
+    void result.catch(fail);
+    void synchronous.catch(() => undefined);
+    return Object.freeze({ synchronous, result });
+  };
+
+  invokeCallback = this.executeCallback.bind(this);
+
+  private async executeCallback(
+    callback: unknown,
+    options: CallbackOptions = {},
+    completeSynchronous?: () => void
+  ): Promise<unknown> {
     if (this.closed || this.failure !== undefined) await this.dispose();
     this.assertOpen();
     const closure = readGuestCallback(callback, this);
@@ -530,9 +552,13 @@ class RealmState {
           compilation: this.compilation,
           stack: []
         });
-        const settled = await suspendJob(
-          awaitSandboxValue(value, this.controller.signal, this.budget)
-        );
+        const settlement = awaitSandboxValue(value, this.controller.signal, this.budget);
+        void settlement.catch(() => undefined);
+        if (isSandboxPromise(value) && value.synchronousPrefix !== undefined)
+          await value.synchronousPrefix;
+        this.assertOpen();
+        completeSynchronous?.();
+        const settled = await suspendJob(settlement);
         return this.exportValue(settled);
       } finally {
         leaveCall();
@@ -540,17 +566,15 @@ class RealmState {
       }
     };
     try {
-      if (this.active !== undefined) {
-        record.promise = withSandboxPromiseRejectionTracker(this.tracker, () =>
-          runResources.run({ signal: this.controller.signal, add: this.onCleanup }, () =>
-            withCancellationSignal(this.controller.signal, () =>
-              this.phase.getStore()?.active ? runAsyncPrefix(invoke) : this.queue.run(invoke)
-            )
+      const active = this.active !== undefined;
+      const pending = withSandboxPromiseRejectionTracker(this.tracker, () =>
+        runResources.run({ signal: this.controller.signal, add: this.onCleanup }, () =>
+          withCancellationSignal(this.controller.signal, () =>
+            active && this.phase.getStore()?.active ? runAsyncPrefix(invoke) : this.queue.run(invoke)
           )
-        );
-      } else {
-        record.promise = this.perform(() => this.queue.run(invoke));
-      }
+        )
+      );
+      record.promise = active ? pending : this.perform(() => pending);
       return await record.promise;
     } catch (error) {
       if (error instanceof SandboxError) this.poison(error);
@@ -564,7 +588,7 @@ class RealmState {
           this.compilation
         );
     }
-  };
+  }
 
   initialize(): void {
     if (this.initialized) return;
@@ -576,6 +600,7 @@ class RealmState {
         onCleanup: this.onCleanup,
         chargeWork: this.chargeWork,
         createHostObject: this.createHostObject,
+        startCallback: this.startCallback,
         invokeCallback: this.invokeCallback,
         releaseCallback: this.releaseCallback,
         releaseGuestReference: this.releaseGuestReference,
@@ -880,6 +905,7 @@ export function createRealm(options: RealmOptions = {}): SafeJSRealm {
   return Object.freeze({
     extensions: Object.freeze(state.extensions.map((extension) => extension.manifest)),
     evaluate: state.evaluate,
+    startCallback: state.startCallback,
     invokeCallback: state.invokeCallback,
     releaseCallback: state.releaseCallback,
     releaseGuestReference: state.releaseGuestReference,

@@ -172,6 +172,8 @@ This prints `2`. Evaluations share declarations, closures and object identity wi
 
 Ordinary host arguments/results are still copied. To preserve live native identity, explicitly create a host object. A guest function crossing to the host becomes an opaque callback: invoke it with `realm.invokeCallback(callback, { thisValue?, args? })`, then `realm.releaseCallback(callback)` when no longer needed. Callbacks and live objects cannot cross realms or survive close. For deferred arguments that must preserve guest identity, opt into retained references as described below.
 
+Need synchronous effects without waiting for an async callback's tail? Use `realm.startCallback(callback, options)` or `context.startCallback(callback, options)`. The frozen `CallbackInvocation` exposes two promises: await `synchronous` when the guest function returns or its async body reaches its first `await`; await `result` for the final value. Interpreter implementation awaits and budget work do not complete the prefix. Ordinary throws reject both promises; nonfatal async-function errors reject only `result`, even before the first `await`. Close, abort and fatal errors reject still-pending handles without changing a completed prefix. The same callback limits, identity and reentry rules apply; no extra grant is required. Calls started outside a host operation are queued in invocation order. Browser event/default-action policy remains the host's responsibility.
+
 <details>
 <summary>Trusted extensions and live host objects</summary>
 
@@ -214,6 +216,7 @@ The manifest requires `version: 1` and a nonempty `name`. Optional `capabilities
 | `chargeWork(units = 1)` | Charge a nonnegative integer against the shared execution budget. Fatal exhaustion cannot be swallowed to continue execution. |
 | `createHostObject({ properties?, methods?, indexed?, named? })` | Create a realm-owned capability. Properties declare synchronous `get`/`set` functions; methods are host functions. Optional `indexed` and `named` expose bounded live members. Undeclared members expose no native prototype. |
 | `invokeCallback(callback, { thisValue?, args? })` | Invoke a captured guest function with the realm's state, cancellation and budgets. Same operation as on the realm. |
+| `startCallback(callback, { thisValue?, args? })` | Return separate `synchronous` and `result` promises for the same realm-owned invocation. Also available on the realm. |
 | `releaseCallback(callback)` | Revoke the callback and release its retained guest state. |
 | `retainGuestArguments(operation, from)` | During setup, opt an operation into opaque argument references starting at the zero-based index `from`. Requires declared and granted `guest:retain`. Earlier arguments keep normal conversion; live host methods preserve the declaration. |
 | `releaseGuestReference(reference)` | Revoke one reference and release its retained state. Also available on the realm. |

@@ -4,6 +4,10 @@ import type { ModuleRegistry } from "./modules/registry.js";
 import type { CallerInjectedBinding } from "./interp/host-bridge.js";
 
 export type CallbackOptions = { thisValue?: unknown; args?: readonly unknown[] };
+export type CallbackInvocation = {
+  readonly synchronous: Promise<void>;
+  readonly result: Promise<unknown>;
+};
 export type HostOperation = { invoke(...args: readonly any[]): unknown }["invoke"];
 export type ExtensionManifest = {
   version: 1;
@@ -21,6 +25,7 @@ export type ExtensionContext = {
   onCleanup(cleanup: () => void | Promise<void>): void;
   chargeWork(units?: number): void;
   createHostObject(definition: HostObjectDefinition): HostObject;
+  startCallback(callback: unknown, options?: CallbackOptions): CallbackInvocation;
   invokeCallback(callback: unknown, options?: CallbackOptions): Promise<unknown>;
   releaseCallback(callback: unknown): void;
   retainGuestArguments<Operation extends HostOperation>(

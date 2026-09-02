@@ -219,7 +219,8 @@ function wrapCallerInjectedFunction(
               throw error;
             }
             if (options.realm.awaitResult(callable)) {
-              return Promise.resolve(result).then(value => copyHostResultToSandbox(value, stackFrames, options));
+              return wrapHostPromiseWithSignal(Promise.resolve(result), options.signal)
+                .then(value => copyHostResultToSandbox(value, stackFrames, options));
             }
             return copyHostResultToSandbox(result, stackFrames, options);
           }
@@ -868,6 +869,7 @@ function wrapHostPromiseWithSignal<TValue>(
   }
 
   if (signal.aborted) {
+    void promise.catch(() => undefined);
     return Promise.reject(readAbortReason(signal));
   }
 

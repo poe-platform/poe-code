@@ -6,6 +6,12 @@
     "noEmit": false,
     "declaration": true
   },
-  "include": ["src"],
-  "exclude": ["**/*.test.ts", "src/fixtures.ts"]
+  "include": [
+    "src"
+  ],
+  "exclude": [
+    "**/*.test.ts",
+    "src/fixtures.ts",
+    "src/rules/*.test.cases.ts"
+  ]
 }

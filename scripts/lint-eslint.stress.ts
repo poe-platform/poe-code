@@ -12,7 +12,7 @@ describe("guarded configuration bootstrap ordering", () => {
   it("captures the actual metadata cap in inventory phase and clears a fresh initialization", async () => {
     const state = bootstrapModel("opens");
     const options = { ...state.options, lintExclusions(_root: string, _boundaries: unknown, fileSystem: any) {
-      for (let attempt = 0; attempt < 8000001; attempt++) fileSystem.lstatSync(root + "/src/ordinary.js");
+      for (let attempt = 0; attempt < 8000001; attempt++) fileSystem.lstatSync(root);
       return { files: [], directories: [] };
     } };
     await guardedInputs.withLintFailureDiagnostics(async (diagnostics: any) => {

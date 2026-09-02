@@ -6,6 +6,7 @@ import "./safe-packages-object.mjs";
 import "./safe-packages-indexed.mjs";
 import "./safe-packages-named.mjs";
 import "./safe-packages-callback-phases.mjs";
+import "./safe-packages-curl-output.mjs";
 import { Budget, run } from "@poe-platform/safe-js";
 import { FsError, createMemoryFileSystem, createReadOnlyFileSystem } from "@poe-platform/safe-fs";
 import { FsError as CompatibilityFsError } from "@poe-platform/safe-js/fs";

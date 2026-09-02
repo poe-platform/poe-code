@@ -1,4 +1,4 @@
-import { readBytes, writeBytes, type ByteSource, type CommandContext } from "../../contracts/index.js";
+import { FsError, readBytes, writeBytes, type ByteSource, type CommandContext } from "../../contracts/index.js";
 import { pathOf } from "../internal.js";
 import { encode, withSignal } from "./shared.js";
 import { CurlError, type HttpResponse } from "./types.js";
@@ -28,11 +28,23 @@ export async function writeOutput(context: CommandContext, path: string | undefi
   }
   try {
     const target = pathOf(context, path);
-    if (context.fs.writeStream) await withSignal(() => context.fs.writeStream!(target, source, { signal, flag: "w" }), signal);
-    else {
-      await withSignal(() => context.fs.writeFile(target, new Uint8Array(), { signal, flag: "w" }), signal);
-      for await (const chunk of readBytes(source, signal)) await withSignal(() => context.fs.appendFile(target, chunk, { signal }), signal);
+    if (context.fs.capabilities.streamingWrite !== false && context.fs.writeStream) {
+      let acquired = false;
+      const observed: ByteSource = {
+        [Symbol.asyncIterator]() {
+          acquired = true;
+          return source[Symbol.asyncIterator]();
+        }
+      };
+      try {
+        await withSignal(() => context.fs.writeStream!(target, observed, { signal, flag: "w" }), signal);
+        return;
+      } catch (error) {
+        if (acquired || !(error instanceof FsError) || error.code !== "ENOTSUP") throw error;
+      }
     }
+    await withSignal(() => context.fs.writeFile(target, new Uint8Array(), { signal, flag: "w" }), signal);
+    for await (const chunk of readBytes(source, signal)) await withSignal(() => context.fs.appendFile(target, chunk, { signal }), signal);
   } catch (error) {
     signal.throwIfAborted();
     if (error instanceof CurlError) throw error;

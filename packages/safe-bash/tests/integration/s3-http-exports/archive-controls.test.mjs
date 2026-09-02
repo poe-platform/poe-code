@@ -972,9 +972,12 @@ function requestedBodies(args, options) {
 }
 
 for (const defect of ["guard", "manifest"]) test(`committed bootstrap rejects bad ${defect} before requesting product source bodies`, async () => {
-  await withRepository(fixture => {
-    if (defect === "guard") fixture.put("scripts/guard-package-dist.mjs", "throw new Error('untrusted guard');\n");
-    else fixture.manifest.files = ["src"];
+  for (const mutation of defect === "guard" ? ["same-length", "short"] : ["short"]) await withRepository(fixture => {
+    if (defect === "guard") {
+      const bytes = mutation === "short" ? Buffer.from("throw new Error('untrusted guard');\n") : readRegularInput(resolve(authority, "../.."), "scripts/guard-package-dist.mjs", 300000);
+      if (mutation === "same-length") bytes[Math.floor(bytes.length / 2)] ^= 1;
+      fixture.put("scripts/guard-package-dist.mjs", bytes);
+    } else fixture.manifest.files = ["src"];
   }, fixture => {
     const sourceOids = new Set(fixture.git(["ls-tree", "-r", "--format=%(objectname)", "HEAD", "--", `${packagePrefix}/src`]).split("\n"));
     const reads = [];
@@ -982,7 +985,15 @@ for (const defect of ["guard", "manifest"]) test(`committed bootstrap rejects ba
       reads.push(...requestedBodies(args, options));
       return spawnSync(command, args, options);
     };
-    assert.throws(() => inspectCommittedCandidate(fixture.repository, "HEAD", fixture.output, execute), defect === "guard" ? /committed guard differs/ : /dist/);
+    assert.throws(() => inspectCommittedCandidate(fixture.repository, "HEAD", fixture.output, execute), error => {
+      assert.match(error.message, defect === "guard" ? /committed guard differs/ : /dist/);
+      if (defect === "guard") {
+        assert.ok(error instanceof assert.AssertionError);
+        assert.equal(error.code, "ERR_ASSERTION");
+        assert.equal(error.message, "committed guard differs from reviewed verifier authority");
+      }
+      return true;
+    });
     assert.ok(reads.length > 0, "bootstrap refusal must authenticate committed inputs");
     assert.deepEqual(reads.filter(oid => sourceOids.has(oid)), [], "untrusted bootstrap must not request product source bodies");
     assert.equal(existsSync(fixture.marker), false);
@@ -1000,6 +1011,13 @@ test("committed admission batches exact object IDs while retaining raw admitted 
     };
     const candidate = inspectCommittedCandidate(fixture.repository, "HEAD", fixture.output, execute);
     assert.deepEqual(candidate.files.get(path), payload);
+    for (const input of ["scripts/guard-package-dist.mjs", ...["tsconfig.json", "tsconfig.build.json", "integration-boundaries.json", "scripts/integration-inputs.mjs", "scripts/typecheck-integration-inputs.mjs", "scripts/build.mjs"].map(input => `${packagePrefix}/${input}`)]) {
+      const expected = readRegularInput(resolve(authority, "../.."), input, 300000);
+      const actual = candidate.files.get(input);
+      assert.ok(Buffer.isBuffer(actual) && Buffer.isBuffer(expected), input);
+      assert.notEqual(actual, expected, input);
+      assert.ok(actual.equals(expected), input);
+    }
     assert.ok(candidate.blobReads.includes(path));
     assert.ok(calls[0].args.some(arg => arg.startsWith("--batch-check")));
     assert.equal(calls.filter(call => call.args.some(arg => arg.startsWith("--batch-check"))).length, 1);
@@ -1033,12 +1051,15 @@ test("committed archive requires the committed output guard and matching workspa
 
 for (const defect of ["missing", "drift", "symlink", "legacy-command"]) test(`committed guarded build rejects ${defect} before execution`, async () => {
   const entrypoint = `${packagePrefix}/scripts/build.mjs`;
-  await withRepository(fixture => {
+  for (const mutation of defect === "drift" ? ["same-length", "short"] : ["short"]) await withRepository(fixture => {
     if (defect === "missing") {
       rmSync(join(fixture.repository, entrypoint));
       fixture.paths.splice(fixture.paths.indexOf(entrypoint), 1);
-    } else if (defect === "drift") fixture.put(entrypoint, "throw new Error('unreviewed compiler must not execute');\n");
-    else if (defect === "symlink") {
+    } else if (defect === "drift") {
+      const bytes = mutation === "short" ? Buffer.from("throw new Error('unreviewed compiler must not execute');\n") : readRegularInput(authority, "scripts/build.mjs", 300000);
+      if (mutation === "same-length") bytes[Math.floor(bytes.length / 2)] ^= 1;
+      fixture.put(entrypoint, bytes);
+    } else if (defect === "symlink") {
       rmSync(join(fixture.repository, entrypoint));
       symlinkSync("integration-inputs.mjs", join(fixture.repository, entrypoint));
     } else fixture.manifest.scripts.build = "node ../../scripts/guard-package-dist.mjs && node scripts/integration-inputs.mjs && tsc -p tsconfig.build.json";
@@ -1062,7 +1083,15 @@ for (const defect of ["missing", "drift", "symlink", "legacy-command"]) test(`co
       : defect === "drift" ? /committed build input differs from reviewed authority: scripts\/build.mjs/
         : defect === "symlink" ? /not a regular committed input: packages\/safe-bash\/scripts\/build.mjs/
           : /unreviewed committed build command/;
-    assert.throws(() => inspectCommittedCandidate(fixture.repository, "HEAD", fixture.output, execute), expected);
+    assert.throws(() => inspectCommittedCandidate(fixture.repository, "HEAD", fixture.output, execute), error => {
+      assert.match(error.message, expected);
+      if (defect === "drift") {
+        assert.ok(error instanceof assert.AssertionError);
+        assert.equal(error.code, "ERR_ASSERTION");
+        assert.equal(error.message, "committed build input differs from reviewed authority: scripts/build.mjs");
+      }
+      return true;
+    });
     if (defect === "missing" || defect === "symlink") assert.equal(admittedBlobReads, 0);
     else assert.ok(admittedBlobReads > 0);
     assert.equal(existsSync(fixture.marker), false);
@@ -1084,7 +1113,15 @@ test("committed build script drift and held path aliases fail before candidate e
       assert.ok(alias, "synthetic committed tree must contain the exact case-alias bytes");
       console.log(JSON.stringify({ defect, treeBytes: tree.length, alias }));
     }
-    assert.throws(() => inspectCommittedCandidate(fixture.repository, "HEAD", fixture.output), defect === "script" ? /differs from reviewed authority/ : defect === "held-alias" ? /case alias/ : /held source metadata inventory/, defect);
+    assert.throws(() => inspectCommittedCandidate(fixture.repository, "HEAD", fixture.output), error => {
+      assert.match(error.message, defect === "script" ? /differs from reviewed authority/ : defect === "held-alias" ? /case alias/ : /held source metadata inventory/, defect);
+      if (defect === "script") {
+        assert.ok(error instanceof assert.AssertionError);
+        assert.equal(error.code, "ERR_ASSERTION");
+        assert.equal(error.message, "committed build input differs from reviewed authority: scripts/integration-inputs.mjs");
+      }
+      return true;
+    });
   });
 });
 

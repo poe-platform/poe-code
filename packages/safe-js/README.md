@@ -168,6 +168,7 @@ This prints `2`. Evaluations share declarations, closures and object identity wi
 | --- | --- |
 | `extensions` | Explicit `defineExtension(...)` registrations; `[]`. Setup runs once, on first evaluation, not on construction or unused close. |
 | `grants` | Granted capability names; `[]`. Every requested capability must be granted before any extension setup runs. |
+| `builtinOverrides` | Optional `{ console: "extension-name" }` authorizes that registered extension to replace only the builtin console. It must declare `console` and export a host object created in the realm. No overrides by default. |
 | `limits` | Positive integer caps: `extensions: 32`, `hostObjects: 1024`, `callbacks: 1024`, `guestReferences: 1024`, `cleanups: 1024`, `nestedEvaluations: 16`. Collection budgets also apply. |
 
 Ordinary host arguments/results are still copied. To preserve live native identity, explicitly create a host object. A guest function crossing to the host becomes an opaque callback: invoke it with `realm.invokeCallback(callback, { thisValue?, args? })`, then `realm.releaseCallback(callback)` when no longer needed. Callbacks and live objects cannot cross realms or survive close. For deferred arguments that must preserve guest identity, opt into retained references as described below.
@@ -208,6 +209,30 @@ try {
 ```
 
 The manifest requires `version: 1` and a nonempty `name`. Optional `capabilities` and `globals` are name arrays; `modules` maps module names to export-name arrays. Synchronous `setup(context)` returns `{ globals?, modules? }` matching those declarations exactly. Module exports use the existing record/Map registry. Duplicate names, incompatible versions, missing grants and conflicts with intrinsics or caller values are rejected before setup. Accessor-based declarations and asynchronous factories are unsupported.
+
+**Sharing an owned console.** An extension can expose the same host object as `console`, `window.console` and `self.console`:
+
+```js
+const browser = defineExtension({
+  manifest: { version: 1, name: "browser", globals: ["console", "window", "self"] },
+  setup(context) {
+    const console = context.createHostObject({ methods: {
+      log: (...args) => journal.log(...args),
+      warn: (...args) => journal.warn(...args)
+    } });
+    const window = context.createHostObject({ properties: {
+      console: { get: () => console }
+    } });
+    return { globals: { console, window, self: window } };
+  }
+});
+const realm = createRealm({
+  extensions: [browser],
+  builtinOverrides: { console: "browser" }
+});
+```
+
+Supply your own bounded `journal`; this does not add browser console behavior. Without authorization, registration still fails before setup. Caller-provided console bindings, another extension claiming console, unknown override names and missing capability grants still reject. JSON and other intrinsics cannot be overridden this way. The replacement uses normal capability accounting and revocation; its calls do not also go to the builtin `sink`. Close the realm when finished, as in the example above.
 
 | Context member | Contract |
 | --- | --- |
@@ -303,7 +328,7 @@ For one-shot use, `run(source, { extensions, grants, ... })` accepts the same re
 | --- | --- |
 | `bindings` | Global input values and host functions; none by default. |
 | `modules` | Module names mapped to export records or Maps; none by default. |
-| `extensions`, `grants`, `limits` | Opt into a one-shot extension realm; see the supported options and lifetime rules above. |
+| `extensions`, `grants`, `builtinOverrides`, `limits` | Opt into a one-shot extension realm; see the supported options and lifetime rules above. |
 | `budget` | A `Budget` instance. Without one, only the default call-depth limit of 1,000 is configured. |
 | `signal` | Host `AbortSignal` for cancellation. |
 | `filename` | Diagnostic filename; defaults to `<input>`. |

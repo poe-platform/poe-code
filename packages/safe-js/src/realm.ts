@@ -76,6 +76,7 @@ export type RealmOptions = {
   bindings?: Record<string, CallerInjectedBinding>;
   modules?: ModuleRegistry;
   extensions?: readonly SafeJSExtension[];
+  builtinOverrides?: { console?: string };
   grants?: readonly string[];
   budget?: Budget;
   signal?: AbortSignal;
@@ -118,6 +119,7 @@ class RealmState {
   readonly bridge: RealmBridge;
   readonly limits: Required<RealmLimits>;
   readonly extensions: readonly SafeJSExtension[];
+  readonly consoleExtension?: string;
   readonly cleanups: Array<() => void | Promise<void>> = [];
   readonly callbacks = new Map<Callback, SandboxClosure>();
   readonly pendingCallbacks = new Set<{ closure: SandboxClosure; promise?: Promise<unknown> }>();
@@ -184,6 +186,14 @@ class RealmState {
     this.modules = readModules(options.modules);
     const grants = new Set(readStringList(options.grants ?? [], "Realm grants"));
     for (const extension of this.extensions) getExtensionSetup(extension);
+    const overrides = readDataRecord(options.builtinOverrides === undefined ? {} : options.builtinOverrides, "Builtin overrides");
+    for (const [name, extensionName] of Object.entries(overrides)) {
+      if (name !== "console" || typeof extensionName !== "string" || extensionName.length === 0 || extensionName.length > 256)
+        throw new TypeError("Builtin overrides only supports console with a nonempty extension name.");
+      if (!this.extensions.some(extension => extension.manifest.name === extensionName && extension.manifest.globals?.includes(name)))
+        throw new TypeError("Console override requires a registered extension declaring console.");
+      this.consoleExtension = extensionName;
+    }
     this.budget = options.budget ?? new Budget({ maxCallDepth: 1000 });
     this.lease = this.budget.acquireCompileOwner(true);
     this.compilation = new CompileScope(this.lease.owner);
@@ -204,7 +214,10 @@ class RealmState {
         random: createReplayableRandom({ seed: options.randomSeed }).next
       });
       const names = new Set<string>();
-      const globals = new Set([...Object.keys(this.builtinBindings), ...Object.keys(this.globals)]);
+      const globals = new Set([
+        ...Object.keys(this.builtinBindings).filter(name => name !== "console" || this.consoleExtension === undefined),
+        ...Object.keys(this.globals)
+      ]);
       const modules = new Map(
         Object.entries(this.modules).map(([name, exports]) => [name, new Set(Object.keys(exports))])
       );
@@ -218,6 +231,8 @@ class RealmState {
             throw new TypeError(`Missing grant '${capability}' for extension '${manifest.name}'.`);
         }
         for (const name of manifest.globals ?? []) {
+          if (name === "console" && this.consoleExtension !== undefined && manifest.name !== this.consoleExtension)
+            throw new TypeError(`Conflicting global 'console': replacement is authorized only for '${this.consoleExtension}'.`);
           if (globals.has(name)) throw new TypeError(`Conflicting global '${name}'.`);
           globals.add(name);
         }
@@ -683,6 +698,8 @@ class RealmState {
       ) as ExtensionExports["globals"] & {};
       const modules = readModules(exports.modules as ModuleRegistry | undefined);
       assertNames(Object.keys(globals), extension.manifest.globals ?? [], "global");
+      if (extension.manifest.name === this.consoleExtension && !this.hostObjects.has(globals.console as HostObject))
+        throw new TypeError("Console replacement must be a host object created in this realm.");
       assertNames(Object.keys(modules), Object.keys(extension.manifest.modules ?? {}), "module");
       for (const [name, values] of Object.entries(modules)) {
         assertNames(Object.keys(values), extension.manifest.modules?.[name] ?? [], "module export");
@@ -957,6 +974,7 @@ function readRealmOptions(value: unknown, oneShot = false): RealmOptions {
     "bindings",
     "modules",
     "extensions",
+    "builtinOverrides",
     "grants",
     "budget",
     "signal",

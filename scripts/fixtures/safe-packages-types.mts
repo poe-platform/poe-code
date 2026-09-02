@@ -31,3 +31,12 @@ const start: (callback: unknown) => CallbackInvocation & CoreInvocation = realm.
 void start;
 await realm.evaluate("discard({}); return [node.value, nodes[0] === node, nodes.node === node];");
 await realm.close();
+const consoleExtension = defineExtension({
+  manifest: { version: 1, name: "owned-console", globals: ["console"] },
+  setup(context) { return { globals: { console: context.createHostObject({ methods: { log: (...args: unknown[]) => { void args; } } }) } }; }
+});
+const consoleOptions = { extensions: [consoleExtension], builtinOverrides: { console: "owned-console" } };
+const consoleRealm = createRealm(consoleOptions);
+await consoleRealm.evaluate('console.log("typed");');
+await consoleRealm.close();
+await run('console.log("typed one-shot");', consoleOptions);

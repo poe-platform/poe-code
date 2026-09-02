@@ -89,6 +89,7 @@ import {
 
 export type RunOptions = {
   extensions?: RealmOptions["extensions"];
+  builtinOverrides?: RealmOptions["builtinOverrides"];
   grants?: RealmOptions["grants"];
   limits?: RealmOptions["limits"];
   bindings?: Record<string, CallerInjectedBinding>;
@@ -172,7 +173,8 @@ export type RunResult = WithRunSnapshot<InterpreterResult>;
 const DEFAULT_MAX_CALL_DEPTH = 1_000;
 
 export function run(source: string, options: RunOptions = {}): Promise<RunResult> {
-  if (options.extensions !== undefined) return runWithExtensions(source, options);
+  if (options.extensions !== undefined || options.builtinOverrides !== undefined)
+    return runWithExtensions(source, options);
   const lifecycle = {
     hostCallbackDepth: 0,
     hostCallbackContext: new AsyncLocalStorage<boolean>()

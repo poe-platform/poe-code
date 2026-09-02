@@ -1,4 +1,5 @@
 import { AsyncLocalStorage } from "node:async_hooks";
+import { runWithExtensions, type RealmOptions } from "./realm.js";
 
 import { hashParsedAst, hashSource } from "./parse/hash.js";
 import { withRunResources } from "./interp/resources.js";
@@ -43,14 +44,8 @@ import {
   type HostCallReplay,
   type HostCallResumeProvider
 } from "./interp/host-call.js";
-import { createConsoleJsonGlobals, type ConsoleSink } from "./interp/globals/console-json.js";
-import { createCollectionGlobals } from "./interp/globals/collections.js";
-import { createFloat32ArrayGlobal } from "./interp/globals/float32array.js";
-import { createErrorGlobals } from "./interp/globals/error.js";
-import { createMathGlobals } from "./interp/globals/math.js";
-import { createRegexGlobals } from "./interp/globals/regex.js";
-import { createMiscGlobals } from "./interp/globals/misc.js";
-import { createObjectArrayGlobals } from "./interp/globals/object-array.js";
+import type { ConsoleSink } from "./interp/globals/console-json.js";
+import { createBuiltinBindings } from "./interp/globals.js";
 import {
   declareHostOperation,
   wrapCallerInjectedBindings,
@@ -62,7 +57,7 @@ import {
   type InterpreterResult,
   type LoopIterationSnapshot
 } from "./interp/interpreter.js";
-import { consumeSettledHostCall, createPromiseGlobals } from "./interp/promise.js";
+import { consumeSettledHostCall } from "./interp/promise.js";
 import {
   deepCopyToSandbox,
   isSandboxClosure,
@@ -92,6 +87,9 @@ import {
 } from "./snapshot/replay-data.js";
 
 export type RunOptions = {
+  extensions?: RealmOptions["extensions"];
+  grants?: RealmOptions["grants"];
+  limits?: RealmOptions["limits"];
   bindings?: Record<string, CallerInjectedBinding>;
   budget?: Budget;
   clock?: RunClock;
@@ -171,6 +169,7 @@ export type RunResult = WithRunSnapshot<InterpreterResult>;
 const DEFAULT_MAX_CALL_DEPTH = 1_000;
 
 export function run(source: string, options: RunOptions = {}): Promise<RunResult> {
+  if (options.extensions !== undefined) return runWithExtensions(source, options);
   const lifecycle = {
     hostCallbackDepth: 0,
     hostCallbackContext: new AsyncLocalStorage<boolean>()
@@ -254,32 +253,7 @@ export function run(source: string, options: RunOptions = {}): Promise<RunResult
                   lifecycle
                 })
           );
-          const builtinBindings = {
-            ...createConsoleJsonGlobals({
-              compileOwner: operation.owner,
-              budget,
-              hostCalls,
-              sink: options.sink
-            }),
-            ...createCollectionGlobals({ budget }),
-            Float32Array: createFloat32ArrayGlobal(budget),
-            ...createErrorGlobals({
-              budget
-            }),
-            ...createMathGlobals({
-              random: random?.generator.next
-            }),
-            ...createObjectArrayGlobals({
-              budget
-            }),
-            ...createMiscGlobals({
-              budget
-            }),
-            ...createPromiseGlobals({
-              budget
-            }),
-            ...createRegexGlobals(operation.owner)
-          };
+          const builtinBindings = createBuiltinBindings({ compileOwner: operation.owner, budget, hostCalls, sink: options.sink, random: random?.generator.next });
           const importMeta = convertInitialInput(
             () => deepCopyToSandbox(options.importMeta ?? {}) as Record<string, SandboxValue>
           );

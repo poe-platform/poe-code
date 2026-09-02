@@ -1,4 +1,5 @@
 import { bindOtelSpan, getBoundOtelSpan } from "../observability/otel.js";
+import { getHostObjectKeys, getHostObjectMember, isGuestHostObject, isLiveCapability } from "./host-capabilities.js";
 import type { Budget, CompileTicket } from "./budget.js";
 import { types as nodeTypes } from "node:util";
 import { CompileScope, RegexCompileGuard, regexCompiledData } from "./regex/compile-guard.js";
@@ -145,6 +146,7 @@ export type SandboxGenerator = {
 
 type CopyFromSandboxOptions = {
   wrapClosure?: (value: SandboxClosure) => unknown;
+  unwrapHostObject?: (value: SandboxObject) => unknown;
   compilation?: CompileScope;
 };
 
@@ -232,6 +234,7 @@ export function createSandboxClosure(input: {
 }
 
 export function ownEnumerableSandboxEntries(value: SandboxValue): Array<[string, SandboxValue]> {
+  if (isGuestHostObject(value)) return getHostObjectKeys(value).map(key => [key, getHostObjectMember(value, key)]);
   if (value === null || value === undefined) throw new TypeError("Cannot convert undefined or null to object.");
   if (isGuestClosure(value)) return Object.entries(value.properties ?? {}) as Array<[string, SandboxValue]>;
   if (isSandboxClosure(value) || isSandboxGenerator(value) || isSandboxMap(value) || isSandboxSet(value) || isSandboxPromise(value) || isSandboxRegex(value)) return [];
@@ -446,6 +449,10 @@ export function measureSandboxData(
     seen.add(value);
 
     usage += 1;
+    if (isGuestHostObject(value)) {
+      for (const key of getHostObjectKeys(value)) usage += key.length + 1;
+      return;
+    }
     const prototype = getSandboxPrototype(value);
     if (prototype !== null) visit(prototype, depth + 1);
     if (isFloat32Array(value)) {
@@ -625,6 +632,8 @@ function copyToSandbox(
   if (isSandboxPrimitive(value)) {
     return value;
   }
+
+  if (isLiveCapability(value)) throw new TypeError("Live capabilities require their owning realm bridge.");
 
   if (
     isSandboxClosure(value) ||
@@ -817,6 +826,11 @@ function copyFromSandbox(
   assertSandboxDataDepth(depth);
   if (isSandboxPrimitive(value)) {
     return value;
+  }
+
+  if (isGuestHostObject(value)) {
+    if (options.unwrapHostObject === undefined) throw new TypeError("Live capabilities require their owning realm bridge.");
+    return options.unwrapHostObject(value);
   }
 
   if (nodeTypes.isProxy(value)) throw new TypeError("Unsupported proxy sandbox value.");

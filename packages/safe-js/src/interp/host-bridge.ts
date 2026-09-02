@@ -1,4 +1,5 @@
 import { normalizeClosureResult } from "./async.js";
+import { exportHostCapability, importHostCapability, isLiveCapability } from "./host-capabilities.js";
 import { attachErrorSpan, replaceErrorStack, type ErrorSourceSpan } from "../error/shape.js";
 import { SandboxError, type Budget, type CompileOwner } from "./budget.js";
 import { CompileScope } from "./regex/compile-guard.js";
@@ -65,7 +66,16 @@ const hostOperationReplayHandlers = new WeakMap<
   (args: readonly unknown[], outcome: HostCallOutcome) => void
 >();
 
-type HostBridgeOptions = {
+export type RealmBridge = {
+  readonly owner: object;
+  assertActive(): void;
+  wrapCallback(closure: SandboxClosure): (...args: readonly unknown[]) => Promise<unknown>;
+  invoke(operation: CallerInjectedFunction, call: () => unknown): unknown;
+  awaitResult(operation: CallerInjectedFunction): boolean;
+};
+
+export type HostBridgeOptions = {
+  realm?: RealmBridge;
   registerCapabilities?: boolean;
   capabilityPath?: readonly string[];
   budget: Budget;
@@ -126,7 +136,7 @@ export function wrapCallerInjectedBindings(
     const copied = Object.fromEntries(
       Object.entries(bindings).map(([name, value]) => [
         name,
-        typeof value === "function"
+        typeof value === "function" && !isLiveCapability(value)
           ? wrapCallerInjectedFunction(name, value, { ...options, capabilityPath: [name] }, state)
           : copyHostValueToSandbox(
               value,
@@ -156,9 +166,10 @@ function wrapCallerInjectedFunction(
   const callable = value as (...args: readonly unknown[]) => unknown;
 
   return createSandboxClosure({
-    ...(isAsyncFunction(callable) ? { async: true as const } : {}),
+    ...(isAsyncFunction(callable) && !options.realm?.awaitResult(callable) ? { async: true as const } : {}),
     cancellationSignal: options.signal,
     call: (args, context) => {
+      options.realm?.assertActive();
       const operationLease = options.budget.acquireCompileOwner(false, options.compileOwner);
       const compilation = new CompileScope(operationLease.owner);
       try {
@@ -176,8 +187,9 @@ function wrapCallerInjectedFunction(
         };
         const hostArgs = deepCopyFromSandbox([...args], {
           compilation,
+          unwrapHostObject: options.realm === undefined ? undefined : object => exportHostCapability(object, options.realm!.owner),
           wrapClosure: (closure) =>
-            wrapSandboxClosureForHost(
+            options.realm?.wrapCallback(closure) ?? wrapSandboxClosureForHost(
               closure,
               stackFrames,
               options.budget,
@@ -194,6 +206,13 @@ function wrapCallerInjectedFunction(
           readRegisteredPendingHostCallPolicy(moduleId, operation) ??
           "re-issue";
         if (hostCalls === undefined) {
+          if (options.realm !== undefined) {
+            const result = options.realm.invoke(callable, () => Reflect.apply(callable, undefined, hostArgs));
+            if (options.realm.awaitResult(callable)) {
+              return Promise.resolve(result).then(value => copyHostResultToSandbox(value, stackFrames, options));
+            }
+            return copyHostResultToSandbox(result, stackFrames, options);
+          }
           return copyHostResultToSandbox(
             invokeHostCallback(() => Reflect.apply(callable, undefined, hostArgs), options),
             stackFrames,
@@ -872,7 +891,7 @@ function wrapHostPromiseWithSignal<TValue>(
   });
 }
 
-function copyHostValueToSandbox(
+export function copyHostValueToSandbox(
   value: unknown,
   stackFrames: readonly string[],
   options: HostBridgeOptions & { errorData?: boolean },
@@ -882,6 +901,11 @@ function copyHostValueToSandbox(
   path: string
 ): SandboxValue {
   const { budget } = options;
+
+  if (isLiveCapability(value)) {
+    if (options.realm === undefined || options.errorData || options.hostCalls !== undefined) throw new TypeError("Live capabilities are not portable replay or error data.");
+    return importHostCapability(value as object, options.realm.owner);
+  }
 
   if (
     value === null ||

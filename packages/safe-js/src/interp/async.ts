@@ -59,6 +59,7 @@ export type AsyncInterpreterError = InterpreterError;
 export type AsyncEvaluationResult = EvaluationResult<AsyncInterpreterError>;
 
 export type AsyncEvaluationContext = {
+  assertActive?: () => void;
   compilation?: CompileScope;
   activeLoopIterations: Map<number, LoopIterationSnapshot>;
   budget: Budget;

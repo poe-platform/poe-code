@@ -1,6 +1,7 @@
 import { promiseReplayContext } from "./promise-replay.js";
+import { getHostObjectKeys, getHostObjectMember, isGuestHostObject, setHostObjectMember } from "./host-capabilities.js";
 import { assertPromiseExecutionAllowed } from "./promise-tracker.js";
-import { SandboxJobQueue, suspendJob } from "./jobs.js";
+import { SandboxJobQueue, runAsyncPrefix, suspendJob } from "./jobs.js";
 import { withCancellationSignal } from "./cancel.js";
 import type {
   ArrayExpression,
@@ -202,6 +203,9 @@ export type InterpreterResult =
     };
 
 export type InterpretOptions = {
+  assertActive?: () => void;
+  jobs?: SandboxJobQueue;
+  nested?: boolean;
   compilation?: CompileScope;
   compileOwner?: CompileOwner;
   captureReplayState?: () => unknown;
@@ -327,9 +331,10 @@ export async function interpret(
       peakDataSize: { enumerable: false, value: 0, writable: true }
     });
     const activeLoopIterations = new Map<number, LoopIterationSnapshot>();
-    const jobs = new SandboxJobQueue();
+    const jobs = options.jobs ?? new SandboxJobQueue();
     hoistVarDeclarations(node, scope);
     const context = {
+      assertActive: options.assertActive,
       compilation,
       budget,
       callStack: [],
@@ -351,9 +356,9 @@ export async function interpret(
       resumeTarget: { nodeId: options.snapshot?.resumeNodeId }
     };
     const evaluation = await withCancellationSignal(options.signal, () =>
-      jobs.run(() => evaluateNode(node, context))
+      options.nested ? runAsyncPrefix(() => evaluateNode(node, context)) : jobs.run(() => evaluateNode(node, context))
     );
-    await jobs.drain();
+    if (!options.nested) await jobs.drain();
     const snapshot = scope.snapshot();
     reconcileDataBudget(
       budget,
@@ -423,6 +428,7 @@ async function evaluateNode(
   node: ParseResult,
   context: EvaluationContext
 ): Promise<EvaluationResult> {
+  context.assertActive?.();
   const replayWait = promiseReplayContext.getStore()?.beforeNode(node.nodeId);
   if (replayWait !== undefined) await suspendJob(replayWait);
   assertPromiseExecutionAllowed();
@@ -1735,6 +1741,7 @@ function forInObject(value: SandboxValue): object | undefined {
 }
 
 function forInKeys(object: object, budget: Budget): string[] {
+  if (isGuestHostObject(object)) return getHostObjectKeys(object);
   const keys: string[] = [];
   const seen = new Set<string>();
   let depth = 0;
@@ -1753,6 +1760,7 @@ function forInKeys(object: object, budget: Budget): string[] {
 }
 
 function hasForInProperty(object: object, key: string, budget: Budget): boolean {
+  if (isGuestHostObject(object)) return getHostObjectKeys(object).includes(key);
   let depth = 0;
   for (let current: object | null = object; current !== null; current = getSandboxPrototype(current)) {
     if (depth > 0) budget.visitNode();
@@ -2426,6 +2434,7 @@ function getPropertyValue(
   property: string | number,
   context: EvaluationContext
 ): SandboxValue {
+  if (isGuestHostObject(target)) return getHostObjectMember(target, String(property));
   if (typeof target === "string") return getStringMember(target, property, context.budget);
   if (typeof target === "number") return getNumberMember(target, property, context.budget);
   if (typeof target === "boolean") return undefined;
@@ -3364,6 +3373,7 @@ function getMemberValue(
   property: string | number,
   context: EvaluationContext
 ): SandboxValue {
+  if (isGuestHostObject(target)) return getHostObjectMember(target, String(property));
   let current: SandboxValue = target;
   let depth = 0;
   while (typeof current === "object" && current !== null) {
@@ -3400,6 +3410,10 @@ export function setSandboxProperty(
   value: SandboxValue,
   budget: Budget
 ): void {
+  if (isGuestHostObject(target)) {
+    setHostObjectMember(target, String(property), value);
+    return;
+  }
   const prototypeOwner = target;
   if (isGuestClosure(target)) target = materializeFunctionProperties(target);
   if (isFloat32Array(target)) {
@@ -3449,6 +3463,7 @@ function deleteSandboxProperty(
   target: SandboxArray | SandboxObject,
   property: string | number
 ): void {
+  if (isGuestHostObject(target)) throw new TypeError("Live host properties cannot be deleted.");
   if (isGuestClosure(target)) target = materializeFunctionProperties(target);
   if (Array.isArray(target)) {
     assertCollectionMutable(target);

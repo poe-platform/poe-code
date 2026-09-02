@@ -1,4 +1,5 @@
 import type { Budget } from "../budget.js";
+import { getHostObjectKeys, isGuestHostObject } from "../host-capabilities.js";
 import { isFloat32Array } from "../float32.js";
 import { setSandboxProperty } from "../interpreter.js";
 import { getSandboxIterator } from "../iteration.js";
@@ -329,6 +330,7 @@ function assignSandboxValues(target: SandboxValue, sources: readonly SandboxValu
 }
 
 function objectProperties(value: SandboxValue, mutable = false): SandboxObject | SandboxArray {
+  if (isGuestHostObject(value)) throw new TypeError("Live host object descriptors are not supported.");
   if (isGuestClosure(value)) return materializeFunctionProperties(value);
   if (isSandboxClosure(value)) {
     if (mutable) throw new TypeError("Host function properties are read only.");
@@ -451,6 +453,7 @@ async function collectIteratorValues(
 }
 
 function getOwnEnumerableKeys(value: SandboxValue): string[] {
+  if (isGuestHostObject(value)) return getHostObjectKeys(value);
   return getOwnEnumerableEntries(value).map(([key]) => key);
 }
 

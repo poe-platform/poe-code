@@ -5,6 +5,7 @@ import { wrapCancelableBindings } from "../interp/cancel.js";
 import {
   readHostOperationPolicy,
   wrapCallerInjectedBindings,
+  type RealmBridge,
   type CallerInjectedBinding
 } from "../interp/host-bridge.js";
 import type { SandboxValue } from "../interp/values.js";
@@ -54,6 +55,8 @@ export function resolveModuleImports(
   modules: ModuleRegistry | undefined,
   options: {
     budget: Budget;
+    realm?: RealmBridge;
+    wrappedModules?: Map<string, Record<string, SandboxValue>>;
     compileOwner?: CompileOwner;
     hostCalls?: HostCallJournal;
     signal?: AbortSignal;
@@ -62,7 +65,7 @@ export function resolveModuleImports(
 ): Record<string, SandboxValue> {
   const registry = normalizeModuleRegistry(modules);
   const bindings = createBindingRecord();
-  const wrappedModules = new Map<string, Record<string, SandboxValue>>();
+  const wrappedModules = options.wrappedModules ?? new Map<string, Record<string, SandboxValue>>();
 
   for (const statement of module.body) {
     if (statement.type !== "ImportDeclaration") {
@@ -82,6 +85,7 @@ function bindImportDeclaration(
   bindings: Record<string, SandboxValue>,
   options: {
     budget: Budget;
+    realm?: RealmBridge;
     compileOwner?: CompileOwner;
     hostCalls?: HostCallJournal;
     signal?: AbortSignal;
@@ -104,6 +108,7 @@ function bindImportDeclaration(
     createBindingRecord(
       wrapCancelableBindings(
         wrapCallerInjectedBindings(Object.fromEntries(moduleExports), {
+          realm: options.realm,
           budget: options.budget,
           compileOwner: options.compileOwner,
           hostCalls: options.hostCalls,

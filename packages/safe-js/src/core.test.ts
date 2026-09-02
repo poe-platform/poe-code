@@ -12,7 +12,7 @@ describe("@poe-code/safe-js/core", () => {
     expect(core.run).toBe(run);
     expect(core.createReplayableRandom({ seed: 123 }).next()).toBe(0.2837369213812053);
     expect(Object.keys(core).sort()).toEqual(
-      ["Budget", "createReplayableRandom", "run", "lint"].sort()
+      ["Budget", "createRealm", "createReplayableRandom", "defineExtension", "run", "lint"].sort()
     );
   });
 });

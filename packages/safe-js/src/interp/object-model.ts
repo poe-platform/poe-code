@@ -1,4 +1,5 @@
 import { assertSandboxDataDepth } from "../graph-depth.js";
+import { getHostObjectMember, isGuestHostObject, isLiveCapability } from "./host-capabilities.js";
 import type { Budget } from "./budget.js";
 import {
   isSandboxClosure,
@@ -83,6 +84,7 @@ export function getSandboxDataProperty(
   let current = value;
   let depth = 0;
   while (typeof current === "object" && current !== null) {
+    if (isGuestHostObject(current)) return getHostObjectMember(current, String(key));
     if (isGuestClosure(current)) return getGuestFunctionProperty(current, String(key));
     if (isSandboxClosure(current)) {
       const properties = current.properties;
@@ -133,6 +135,7 @@ export function setSandboxPrototype(
 }
 
 function isPrototypeRecord(value: object): boolean {
+  if (isGuestHostObject(value)) return false;
   if (
     isSandboxClosure(value) ||
     isSandboxGenerator(value) ||
@@ -155,6 +158,7 @@ export function hasManagedDescriptors(value: object): boolean {
 }
 
 export function hasGuestObjectState(value: object): boolean {
+  if (isLiveCapability(value)) return true;
   if (functionProperties.has(value) || prototypes.has(value)) return true;
   return (
     descriptorObjects.has(value) &&

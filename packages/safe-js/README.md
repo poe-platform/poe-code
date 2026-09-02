@@ -27,7 +27,7 @@ console.log(result.returnValue);
 
 `run()` takes source text, not a file path. Success returns `ok`, `returnValue`, `snapshot`, and `stats`. Handle both an `ok: false` result and a rejected promise: parsing, budget exhaustion, cancellation, and some execution failures can reject. Top-level `await` in this example lets rejections reach Node.
 
-`@poe-platform/safe-js/core` exposes `run`, `lint`, `Budget`, and replayable-random helpers. The shared filesystem lives in `@poe-platform/safe-fs`, with a portable `/core` entry. Existing `@poe-platform/safe-js/fs`, `/fs/core`, and `/fs/node` imports re-export it. Legacy `poe-code/safe-js` imports remain available through the CLI package but use a separate runtime; keep factories and errors within one import family.
+`@poe-platform/safe-js/core` exposes `run`, `createRealm`, `defineExtension`, `lint`, `Budget`, and replayable-random helpers. The shared filesystem lives in `@poe-platform/safe-fs`, with a portable `/core` entry. Existing `@poe-platform/safe-js/fs`, `/fs/core`, and `/fs/node` imports re-export it. Legacy `poe-code/safe-js` imports remain available through the CLI package but use a separate runtime; keep factories and errors within one import family.
 
 ## Supported features
 
@@ -35,6 +35,7 @@ console.log(result.returnValue);
 - **Guest function objects:** own properties on functions and arrows; ordinary constructors with shared prototypes, inherited methods and `instanceof`. `Object.create`, `getPrototypeOf`, `setPrototypeOf`, own-property inspection, and data descriptors work on ordinary sandbox records.
 - **Data processing:** arrays, objects, strings, numbers, JSON, Math, Map, Set, Float32Array, promises, and a bounded regular-expression subset. These are selected APIs, not complete ECMAScript implementations.
 - **Explicit capabilities:** named, default, and namespace imports resolve against host-supplied modules. Optional helpers cover agents, MCP tools, files, environment reads, time, logging, and metrics.
+- **Persistent realms:** keep guest state across evaluations; register trusted extensions with explicit grants, live host objects, revocable callbacks, and ordered cleanup.
 - **Execution controls:** step, call-depth, string, array, and retained-data budgets; an absolute deadline; host cancellation; console and telemetry sinks.
 - **Checkpoints:** capture execution state, restore compatible source, and reconcile pending host operations. Changed programs can use explicit continuation migration.
 - **Authoring tools:** lint diagnostics and fixes, source-positioned errors, Markdown harnesses, and paired Markdown/script files. `run()` does not lint automatically; harness runners do.
@@ -91,6 +92,86 @@ console.log(result.returnValue);
 
 The lint registry describes exports; the runtime registry supplies their values. Both accept records or Maps. Module names are host-defined identifiers, not file paths or npm packages. Validate arguments and enforce permissions inside each host operation. Adding a function does not make its effects safe to replay.
 
+## Keep state between evaluations
+
+```js
+import { Budget, createRealm } from "@poe-platform/safe-js/core";
+
+const realm = createRealm({ budget: new Budget({ maxSteps: 10_000 }) });
+try {
+  await realm.evaluate("let total = 1;");
+  const result = await realm.evaluate("return ++total;");
+  if (!result.ok) throw new Error(result.error.message);
+  console.log(result.returnValue);
+} finally {
+  await realm.close();
+}
+```
+
+This prints `2`. Evaluations share declarations, closures and object identity without rerunning earlier source. Budgets are cumulative. `evaluate(source, { filename? })` returns `ok`, `returnValue` or `error`, and `stats`; it can also reject. Concurrent evaluations are rejected. Deferred callbacks can run while guest code awaits their result; overlapping invocation of the same callback is rejected. Close cancels pending work, revokes capabilities and awaits cleanup; repeated close does not rerun cleanup. Unhandled execution failures also close the realm.
+
+`createRealm(options?)` accepts `bindings`, `modules`, `budget`, `signal`, `sink` and `randomSeed` as described below, plus:
+
+| Option | Purpose / default |
+| --- | --- |
+| `extensions` | Explicit `defineExtension(...)` registrations; `[]`. Setup runs once, on first evaluation, not on construction or unused close. |
+| `grants` | Granted capability names; `[]`. Every requested capability must be granted before any extension setup runs. |
+| `limits` | Positive integer caps: `extensions: 32`, `hostObjects: 1024`, `callbacks: 1024`, `cleanups: 1024`, `nestedEvaluations: 16`. Collection budgets also apply. |
+
+Ordinary host arguments/results are still copied. To preserve live native identity, explicitly create a host object. A guest function crossing to the host becomes an opaque callback: invoke it with `realm.invokeCallback(callback, { thisValue?, args? })`, then `realm.releaseCallback(callback)` when no longer needed. Callbacks and live objects cannot cross realms or survive close. Guest-object argument retention is not yet supported; copying a timer argument does not preserve its guest identity.
+
+<details>
+<summary>Trusted extensions and live host objects</summary>
+
+```js
+import { createRealm, defineExtension } from "@poe-platform/safe-js/core";
+
+const counter = defineExtension({
+  manifest: {
+    version: 1,
+    name: "counter",
+    capabilities: ["counter-state"],
+    globals: ["counter"]
+  },
+  setup(context) {
+    let value = 0;
+    return { globals: {
+      counter: context.createHostObject({
+        properties: { value: { get: () => value } },
+        methods: { increment: () => ++value }
+      })
+    } };
+  }
+});
+
+const realm = createRealm({ extensions: [counter], grants: ["counter-state"] });
+try {
+  await realm.evaluate("counter.increment();");
+  console.log((await realm.evaluate("return counter.value;")).returnValue);
+} finally {
+  await realm.close();
+}
+```
+
+The manifest requires `version: 1` and a nonempty `name`. Optional `capabilities` and `globals` are name arrays; `modules` maps module names to export-name arrays. Synchronous `setup(context)` returns `{ globals?, modules? }` matching those declarations exactly. Module exports use the existing record/Map registry. Duplicate names, incompatible versions, missing grants and conflicts with intrinsics or caller values are rejected before setup. Accessor-based declarations and asynchronous factories are unsupported.
+
+| Context member | Contract |
+| --- | --- |
+| `signal` | Realm cancellation signal; aborted on close or failure. |
+| `onCleanup(fn)` | Register a sync/async disposer. Cleanup runs in reverse order, awaits every disposer, and reports failures without skipping the rest. |
+| `chargeWork(units = 1)` | Charge a nonnegative integer against the shared execution budget. Fatal exhaustion cannot be swallowed to continue execution. |
+| `createHostObject({ properties?, methods? })` | Create a realm-owned capability. Properties declare synchronous `get`/`set` functions; methods are host functions. Undeclared members expose no native prototype. |
+| `invokeCallback(callback, { thisValue?, args? })` | Invoke a captured guest function with the realm's state, cancellation and budgets. Same operation as on the realm. |
+| `releaseCallback(callback)` | Revoke the callback and release its retained guest state. |
+| `nestedOperation(fn)` | During setup, mark a host operation authorized to run nested source. Requires declared and granted `source:nested`. |
+| `evaluateNested(source)` | Only inside that extension's authorized operation. Completes before the enclosing call returns to guest code, shares scope/budgets, and propagates errors. Parallel nested evaluations and ordinary source reentry are rejected. |
+
+Live objects do not support native prototypes, property-descriptor manipulation or portable serialization. Realm state is not a checkpoint: snapshot/replay and live-capability error-data conversion are rejected. Extensions are trusted native code; grants are a registration contract, not OS isolation. Native work still needs host timeouts and external process supervision for hard limits. No DOM, timers or browser engine are bundled.
+
+For one-shot use, `run(source, { extensions, grants, ... })` accepts the same realm options plus `filename`, returns data only, and closes resources before settling. Run-only features such as snapshots, `entryPointArgs`, `importMeta`, custom clocks/random generators and telemetry are rejected in this mode rather than silently ignored.
+
+</details>
+
 ## Options
 
 ### Execution
@@ -101,6 +182,7 @@ The lint registry describes exports; the runtime registry supplies their values.
 | --- | --- |
 | `bindings` | Global input values and host functions; none by default. |
 | `modules` | Module names mapped to export records or Maps; none by default. |
+| `extensions`, `grants`, `limits` | Opt into a one-shot extension realm; see the supported options and lifetime rules above. |
 | `budget` | A `Budget` instance. Without one, only the default call-depth limit of 1,000 is configured. |
 | `signal` | Host `AbortSignal` for cancellation. |
 | `filename` | Diagnostic filename; defaults to `<input>`. |

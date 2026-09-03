@@ -1,4 +1,4 @@
-import { setImmediate } from "node:timers/promises";
+import { yieldTurn } from "../../contracts/yield.js";
 import { readBytes, writeBytes, type ByteSink, type ByteSource } from "../../contracts/index.js";
 import { SafeJsCommandLimitError } from "./types.js";
 import { renderOutput } from "./render.js";
@@ -18,7 +18,7 @@ export class GuestInput {
   private async take(size: number): Promise<Uint8Array | undefined> {
     this.signal.throwIfAborted();
     while (!this.pending.length) {
-      if (++this.pulls % 64 === 0) await setImmediate(undefined, { signal: this.signal });
+      if (++this.pulls % 64 === 0) await yieldTurn(this.signal);
       const next = await this.iterator.next();
       if (next.done) return undefined;
       this.pending = next.value;

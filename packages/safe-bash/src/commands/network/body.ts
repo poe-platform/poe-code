@@ -1,6 +1,6 @@
 import { randomBytes } from "node:crypto";
 import { posix } from "node:path";
-import { setImmediate } from "node:timers/promises";
+import { yieldTurn } from "../../contracts/yield.js";
 import { collectBytes, readBytes, type ByteSource, type CommandContext } from "../../contracts/index.js";
 import { pathOf } from "../internal.js";
 import type { CurlArguments, DataArgument } from "./args.js";
@@ -128,7 +128,7 @@ export function createBody(context: CommandContext, args: CurlArguments, limits:
         let count = 0;
         let chunks = 0;
         for (const part of parts) for await (const raw of source(part, signal)) {
-          if (++chunks % 256 === 0) await setImmediate(undefined, { signal });
+          if (++chunks % 256 === 0) await yieldTurn(signal);
           for (let offset = 0; offset < raw.length; offset += 16 * 1024) {
             signal.throwIfAborted();
             let chunk = raw.subarray(offset, offset + 16 * 1024);

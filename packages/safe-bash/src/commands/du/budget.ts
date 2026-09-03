@@ -1,3 +1,4 @@
+import { cancelTurn, scheduleTurn, type TurnHandle } from "../../contracts/yield.js";
 import { FsError, writeBytes, type ByteSink, type CommandContext } from "../../contracts/index.js";
 import type { DuLimits } from "./options.js";
 
@@ -18,7 +19,7 @@ export class Budget {
   private outputSignal: AbortSignal | undefined;
   private readonly work = new Set<Promise<unknown>>();
   private readonly pending = new Set<() => void>();
-  private readonly timers = new Set<ReturnType<typeof setImmediate>>();
+  private readonly timers = new Set<TurnHandle>();
 
   constructor(readonly context: CommandContext, readonly limits: DuLimits, readonly caller: CommandContext = context) {
     this.ioSignal = AbortSignal.any([caller.signal, this.cancellation.signal]);
@@ -28,7 +29,7 @@ export class Budget {
     if (this.completion) return this.completion;
     this.closed = true;
     this.cancellation.abort(this.context.signal.aborted ? this.context.signal.reason : new Error("du invocation closed"));
-    for (const timer of this.timers) clearImmediate(timer);
+    for (const timer of this.timers) cancelTurn(timer);
     this.timers.clear();
     for (const cancel of this.pending) {
       this.context.signal.removeEventListener("abort", cancel);
@@ -99,7 +100,7 @@ export class Budget {
     this.step();
     if (++this.operations % 64 === 0) {
       await this.wait(() => new Promise<void>(resolve => {
-        const timer = setImmediate(() => { this.timers.delete(timer); resolve(); });
+        const timer = scheduleTurn(() => { this.timers.delete(timer); resolve(); });
         this.timers.add(timer);
       }));
     }

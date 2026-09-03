@@ -120,12 +120,23 @@ class Lexer {
   conditional = false;
   conditionalPattern: "pattern" | "regex" | undefined;
   readonly documents: HereDocument[] = [];
+  readonly newlineOffsets: number[] = [];
 
   constructor(readonly source: string, readonly depth: number, readonly warnings: string[] = [], readonly lineOffset = 0, readonly byteLocale = false, readonly documentLine?: number, readonly partial = false) {
     if (depth > 64) throw new ShellSyntaxError("Syntax nesting exceeds 64", 0);
+    for (let offset = source.indexOf("\n"); offset !== -1; offset = source.indexOf("\n", offset + 1)) this.newlineOffsets.push(offset);
   }
 
-  lineAt(position: number): number { return this.lineOffset + this.source.slice(0, position).split("\n").length; }
+  lineAt(position: number): number {
+    let low = 0;
+    let high = this.newlineOffsets.length;
+    while (low < high) {
+      const middle = low + Math.floor((high - low) / 2);
+      if (this.newlineOffsets[middle]! < position) low = middle + 1;
+      else high = middle;
+    }
+    return this.lineOffset + low + 1;
+  }
 
   error(message: string, unclosedQuote?: { quote: string; line: number }): never {
     throw new ShellSyntaxError(message, this.position, 2, undefined, unclosedQuote);

@@ -1,3 +1,4 @@
+import { cancelTurn, monotonicNow, registerYieldCheckpoint, scheduleTurn, yieldTurn, type TurnHandle } from "../contracts/yield.js";
 import {
   ACCESS_MODES, FsError, composeMiddleware, createBytePipe, pipeBytes, resolvePath, toByteSource, validateExitCode, writeText,
 } from "../contracts/index.js";
@@ -41,10 +42,10 @@ import { publishPipelineStatus } from "./pipestatus.js";
 import type { Restoration } from "./arrays/state.js";
 import type { Admission } from "./arrays/ledger.js";
 import type { BindingWatch, OwnedText } from "./arrays/bindings.js";
-import { EreTransportRoot } from "../commands/regex-execution/ere/transport/root.js";
-import { EreTransportProfileLimitError, EreTransportSemanticError } from "../commands/regex-execution/ere/transport/protocol.js";
-import type { EreTransportResult } from "../commands/regex-execution/ere/transport/protocol.js";
-import { EreProfileLimitError, EreUnsupportedError } from "../commands/regex-execution/ere/errors.js";
+import { EreProfileLimitError, EreSyntaxError, EreUnsupportedError } from "../commands/regex-execution/ere/errors.js";
+import { EreLedger } from "../commands/regex-execution/ere/limits.js";
+import { compileEre } from "../commands/regex-execution/ere/syntax.js";
+import { matchEre } from "../commands/regex-execution/ere/matcher.js";
 import type { EreFragment } from "../commands/regex-execution/ere/types.js";
 
 export const defaultLimits: Required<ShellLimits> = {
@@ -56,6 +57,8 @@ export const defaultLimits: Required<ShellLimits> = {
   maxSourceBytes: 1024 * 1024,
   maxExpansionFields: 10_000,
   maxExpansionBytes: 16 * 1024 * 1024,
+  maxWallClockMs: 30_000,
+  maxCpuMs: 30_000,
   pipeHighWaterMark: 64 * 1024,
 };
 
@@ -93,10 +96,31 @@ export class Budget {
   sourceBytes = 0;
   readonly controller = new AbortController();
   readonly signal: AbortSignal;
+  #wallClockTimer: ReturnType<typeof setTimeout> | undefined;
+  #wallClockDeadline = 0;
+  readonly #cpuStarted = monotonicNow();
 
   constructor(readonly limits: Required<ShellLimits>, signal?: AbortSignal) {
     this.signal = signal ? AbortSignal.any([signal, this.controller.signal]) : this.controller.signal;
     this.values = new ValueArena(limits.maxExpansionBytes, limits.maxExpansionFields, () => this.signal.throwIfAborted(), limit => this.fail(limit));
+    this.#wallClockDeadline = Date.now() + limits.maxWallClockMs;
+    this.#armWallClock();
+  }
+
+  #armWallClock(): void {
+    const remaining = this.#wallClockDeadline - Date.now();
+    if (remaining <= 0) {
+      this.controller.abort(new ShellLimitError("maxWallClockMs"));
+      return;
+    }
+    this.#wallClockTimer = setTimeout(() => this.#armWallClock(), Math.min(remaining, 2_147_483_647));
+    const timer = this.#wallClockTimer as ReturnType<typeof setTimeout> & { unref?: () => void };
+    timer.unref?.();
+  }
+
+  close(): void {
+    if (this.#wallClockTimer !== undefined) clearTimeout(this.#wallClockTimer);
+    this.#wallClockTimer = undefined;
   }
 
   fail(limit: keyof ShellLimits): never {
@@ -105,7 +129,13 @@ export class Budget {
     throw error;
   }
 
+  cpuCheckpoint(): void {
+    this.signal.throwIfAborted();
+    if (monotonicNow() - this.#cpuStarted > this.limits.maxCpuMs) this.fail("maxCpuMs");
+  }
+
   tick(): void {
+    this.cpuCheckpoint();
     this.signal.throwIfAborted();
     if (++this.commands > this.limits.maxCommands) this.fail("maxCommands");
   }
@@ -555,7 +585,7 @@ class CdLookup {
       amount -= step;
       if (this.spent % 128 === 0) {
         this.signal.throwIfAborted();
-        await interruptible(new Promise<void>(resolve => setImmediate(resolve)), this.signal);
+        await yieldTurn(this.signal);
         this.signal.throwIfAborted();
       }
     }
@@ -655,7 +685,7 @@ class DirectoryStackWork {
   async flushWork(): Promise<void> {
     this.signal.throwIfAborted();
     if (this.flushed === this.spent) return;
-    await interruptible(new Promise<void>(resolve => setImmediate(resolve)), this.signal);
+    await yieldTurn(this.signal);
     this.signal.throwIfAborted();
     this.flushed = this.spent;
   }
@@ -976,17 +1006,6 @@ class InvocationCancellationOwner implements CancellationAdmissionOwner {
 }
 
 export class Runtime {
-  static readonly #ereRoots = new WeakMap<Budget, { root?: EreTransportRoot; cleanup?: () => Promise<void>; closed: boolean }>();
-
-  static registerEreRoot(budget: Budget, scope: InvocationScope): void {
-    const entry: { root?: EreTransportRoot; cleanup?: () => Promise<void>; closed: boolean } = { closed: false };
-    scope.register(async () => {
-      entry.closed = true;
-      try { await entry.cleanup?.(); } finally { Runtime.#ereRoots.delete(budget); }
-    });
-    Runtime.#ereRoots.set(budget, entry);
-  }
-
   constructor(
     readonly fs: FileSystem,
     readonly commands: CommandRegistry,
@@ -1002,7 +1021,7 @@ export class Runtime {
     readonly cancellationDepth: number,
     readonly cancellationMaxDepth: number,
     readonly outcomeFrame: RuntimeOutcomeFrame | undefined = undefined,
-  ) {}
+  ) { registerYieldCheckpoint(this.signal, () => this.budget.cpuCheckpoint()); }
 
   private async ereDiagnostic(io: IO, detail: string): Promise<void> {
     try { await this.diagnostic(io, detail); }
@@ -1044,31 +1063,22 @@ export class Runtime {
       await textToken(operation, subject, this.signal);
       const name = "BASH_REMATCH";
       const watch = await store.watch(name, operation, this.signal);
-      const entry = Runtime.#ereRoots.get(this.budget);
-      if (!entry || entry.closed) throw new Error("ERE invocation owner is closed");
-      if (!entry.root) entry.root = new EreTransportRoot({ maxExpansionBytes: this.budget.limits.maxExpansionBytes, maxExpansionFields: this.budget.limits.maxExpansionFields }, cleanup => {
-        scope.assertOpen();
-        if (entry.closed) throw new Error("ERE invocation owner is closed");
-        entry.cleanup = cleanup;
+      const ledger = new EreLedger({
+        maxExpansionBytes: this.budget.limits.maxExpansionBytes,
+        maxExpansionFields: this.budget.limits.maxExpansionFields,
       });
-      const session = entry.root.openSession(cleanup => scope.register(cleanup));
-      let result: EreTransportResult;
-      let sessionEscaping = false;
-      try { result = await session.execute({ pattern: fragments, subject }, this.signal); }
+      let result: Awaited<ReturnType<typeof matchEre>>;
+      try {
+        const program = await compileEre(fragments, ledger, this.signal);
+        result = await matchEre(program, subject, ledger, this.signal);
+      }
       catch (error) {
-        sessionEscaping = true;
         this.signal.throwIfAborted();
-        if (error instanceof EreTransportSemanticError || error instanceof EreUnsupportedError) {
+        if (error instanceof EreSyntaxError || error instanceof EreUnsupportedError) {
           await this.ereDiagnostic(io, `[[ ${error.message}`);
-          sessionEscaping = false;
           return 2;
         }
         throw error;
-      } finally {
-        await session.close().catch(error => {
-          if (sessionEscaping) scope.failures.push(error);
-          else throw new NounsetDiagnosticFailure(error);
-        });
       }
       const status = result.matched ? 0 : 1;
       this.signal.throwIfAborted();
@@ -1080,8 +1090,8 @@ export class Runtime {
       const tickets = operation.reserve({ generation: true, version: true, epoch: true, work: 8 });
       const prepared = await store.prepareName(name, operation, this.signal);
       staged = IndexedBinding.create(store.owner);
-      if (result.matched) for (let index = 0; index < result.spans.length; index++) {
-        const span = result.spans[index]!;
+      if (result.matched) for (let index = 0; index < result.captures.length; index++) {
+        const span = result.captures[index]!;
         const size = span === null ? 0 : span.end - span.start;
         operation.reserve({ payload: size, metadata: 32, work: size + 2 });
         const value = span === null ? "" : subject.slice(span.start, span.end);
@@ -1254,6 +1264,7 @@ export class Runtime {
   writeVariable(state: State, name: string, value: ShellValue, origin: "assignment" | "arithmetic" | "getopts" = "assignment"): void {
     if (arrayStore(state)?.get(name)) throw new ArrayFailure(origin === "arithmetic" ? "indexed arithmetic is unsupported" : "indexed write requires prepared publication");
     if (state.readonlyVariables?.has(name)) throw new Error(`${name}: readonly variable`);
+    if (shellValueByteLength(value) > this.budget.limits.maxExpansionBytes) this.budget.fail("maxExpansionBytes");
     if (name === "OPTIND" && state.getopts?.integer && origin !== "arithmetic") {
       try { value = String(evaluateArithmetic(prepareArithmetic(shellValueText(value) || "0"), this.arithmeticVariables(state))); }
       catch (error) { this.rethrowArithmeticControl(error); throw new ExpansionFailure(message(error)); }
@@ -1635,7 +1646,7 @@ export class Runtime {
       const controllers = pipeline.commands.map(() => new AbortController());
       const written = new Set<number>();
       const completed = new Set<number>();
-      const closing = new Set<ReturnType<typeof setImmediate>>();
+      const closing = new Set<TurnHandle>();
       const tasks = pipeline.commands.map(async (command, index) => {
         const incoming = pipes[index - 1];
         const outgoing = pipes[index];
@@ -1697,7 +1708,7 @@ export class Runtime {
             completed.add(index);
             if (incoming) {
               const upstream = index - 1;
-              const close = setImmediate(() => {
+              const close = scheduleTurn(() => {
                 closing.delete(close);
                 if (written.has(upstream) && !completed.has(upstream)) controllers[upstream]!.abort(new PipelineClosed());
               });
@@ -1723,7 +1734,7 @@ export class Runtime {
       try {
         statuses = await interruptible(Promise.all(tasks), this.signal);
       } finally {
-        for (const close of closing) clearImmediate(close);
+        for (const close of closing) cancelTurn(close);
         for (const [index, controller] of controllers.entries()) if (!completed.has(index) || written.has(index)) controller.abort(new PipelineClosed());
         await Promise.all(pipes.map((pipe) => pipe.abort()));
       }
@@ -1787,7 +1798,7 @@ export class Runtime {
     originalIO = { ...originalIO, diagnosticLine, substitutionDiagnosticLine: originalIO.substitutionDiagnosticLines?.get(command) ?? diagnosticLine };
     if (command.kind === "subshell") originalIO = isolateIO(originalIO);
     this.budget.tick();
-    if (this.budget.commands % 128 === 0) await interruptible(new Promise<void>((resolve) => setImmediate(resolve)), this.signal);
+    if (this.budget.commands % 128 === 0) await yieldTurn(this.signal);
     this.signal.throwIfAborted();
     const inputs = new Set<ShellInput>();
     const outputs = new Set<() => void>();
@@ -1829,7 +1840,7 @@ export class Runtime {
         } catch (error) {
           this.signal.throwIfAborted();
           if (error instanceof NounsetDiagnosticFailure) { diagnosticFailure = error; throw error; }
-          if (error instanceof EreProfileLimitError || error instanceof EreTransportProfileLimitError) {
+          if (error instanceof EreProfileLimitError) {
             try { await this.diagnostic(io, `[[ ${error.message}`); }
             catch (reason) { this.signal.throwIfAborted(); if (reason instanceof ShellLimitError) throw reason; diagnosticFailure = new NounsetDiagnosticFailure(reason); throw diagnosticFailure; }
             return 3;
@@ -1879,7 +1890,7 @@ export class Runtime {
         for (const clause of command.clauses) {
           let matched = fallthrough;
           if (!matched) for (const word of clause.patterns) {
-            if (++patterns % 128 === 0) await interruptible(new Promise<void>((resolve) => setImmediate(resolve)), this.signal);
+            if (++patterns % 128 === 0) await yieldTurn(this.signal);
             const pattern = (await this.word(word, state, io, false, true)).join("");
             if (await matchesPattern(pattern, subject, work)) { matched = true; break; }
           }
@@ -1988,7 +1999,7 @@ export class Runtime {
       for (const word of hereDocumentWords(document, line, byteLocale(state.variables), warnings)) {
         this.signal.throwIfAborted();
         for (const warning of warnings.splice(0)) await writeText(io.stderr, `shell: warning: ${warning}\n`);
-        if (++words % 128 === 0) await interruptible(new Promise<void>((resolve) => setImmediate(resolve)), this.signal);
+        if (++words % 128 === 0) await yieldTurn(this.signal);
         const part = (await this.word(word, state, io, false)).join("");
         size += Buffer.byteLength(part);
         if (size > this.budget.limits.maxExpansionBytes) this.budget.fail("maxExpansionBytes");
@@ -2765,7 +2776,7 @@ export class Runtime {
     let status = 0;
     let lines = 0;
     while (true) {
-      if (++lines % 32 === 0) await interruptible(new Promise<void>(resolve => setImmediate(resolve)), this.signal);
+      if (++lines % 32 === 0) await yieldTurn(this.signal);
       this.signal.throwIfAborted();
       const bytes = await input.sourceLine();
       const eof = bytes === undefined;
@@ -3304,7 +3315,7 @@ export class Runtime {
     };
     const checkpoint = async (): Promise<void> => {
       this.signal.throwIfAborted();
-      await interruptible(new Promise<void>(resolve => setImmediate(resolve)), this.signal);
+      await yieldTurn(this.signal);
       this.signal.throwIfAborted();
     };
     const { args } = context;
@@ -3349,7 +3360,7 @@ export class Runtime {
     };
     const checkpoint = async (): Promise<void> => {
       this.signal.throwIfAborted();
-      await interruptible(new Promise<void>(resolve => setImmediate(resolve)), this.signal);
+      await yieldTurn(this.signal);
       this.signal.throwIfAborted();
     };
     if (!Array.isArray(context.args)) throw new CommandFailure("getopts: argument array required", 2);
@@ -4227,7 +4238,7 @@ export class Runtime {
     const match = async (start: number, end: number): Promise<boolean> => {
       work.remaining -= end - start + 1;
       if (work.remaining < 0) work.exhausted();
-      if (++attempts % 256 === 0) await new Promise<void>(resolve => setImmediate(resolve));
+      if (++attempts % 256 === 0) await yieldTurn(this.signal);
       this.signal.throwIfAborted();
       if (owner) await owner.ledger.checkpoint(this.signal, end - start + 1);
       return matches(slice(start, end));

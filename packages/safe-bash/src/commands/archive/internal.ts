@@ -1,3 +1,4 @@
+import { yieldTurn } from "../../contracts/yield.js";
 import { collectBytes, readBytes, writeBytes, type ByteSource, type CommandContext, type FileStat } from "../../contracts/index.js";
 
 export interface ArchiveLimits {
@@ -122,7 +123,7 @@ export class Budget {
     if (!Number.isSafeInteger(size) || size < 0 || size > this.limits.maxEntryBytes) fail("entry byte limit exceeded");
     if (size > this.limits.maxTotalBytes - this.totalBytes) fail("total payload byte limit exceeded");
     this.totalBytes += size;
-    if (this.members % 128 === 0) await wait(this.context.signal, () => new Promise<void>(resolve => setImmediate(resolve)));
+    if (this.members % 128 === 0) await yieldTurn(this.context.signal);
   }
   async output(value: string, stderr = false): Promise<void> {
     const bytes = Buffer.from(value);
@@ -142,7 +143,7 @@ export async function* bounded(source: ByteSource, maximum: number, signal: Abor
       signal.throwIfAborted();
       yield chunk.subarray(offset, Math.min(chunk.length, offset + chunkSize));
     }
-    if (++turns % 128 === 0) await wait(signal, () => new Promise<void>(resolve => setImmediate(resolve)));
+    if (++turns % 128 === 0) await yieldTurn(signal);
   }
 }
 

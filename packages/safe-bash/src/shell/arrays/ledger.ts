@@ -1,3 +1,4 @@
+import { yieldTurn } from "../../contracts/yield.js";
 export class ArrayFailure extends Error {
   constructor(detail: string) { super(`indexed array: ${detail}`); }
 }
@@ -134,10 +135,7 @@ export class ArrayLedger {
     this.#checkpoint += units;
     if (this.#checkpoint >= 128) {
       this.#checkpoint %= 128;
-      return new Promise<void>((resolve, reject) => setImmediate(() => {
-        try { signal?.throwIfAborted(); resolve(); }
-        catch (error) { reject(error); }
-      }));
+      return yieldTurn(signal);
     }
   }
 }

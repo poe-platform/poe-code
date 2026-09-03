@@ -1,4 +1,4 @@
-import { setImmediate } from "node:timers/promises";
+import { yieldTurn } from "../../contracts/yield.js";
 import { FsError, readBytes, writeBytes, type ByteSource, type CommandContext, type CommandDefinition } from "../../contracts/index.js";
 
 export interface TextProgramOptions {
@@ -30,7 +30,7 @@ export class Budget {
     return text;
   }
   async checkpoint(): Promise<void> {
-    if (++this.checkpoints % 256 === 0) await setImmediate(undefined, { signal: this.context.signal });
+    if (++this.checkpoints % 256 === 0) await yieldTurn(this.context.signal);
     this.context.signal.throwIfAborted();
   }
 }

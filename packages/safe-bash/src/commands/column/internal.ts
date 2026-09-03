@@ -1,3 +1,4 @@
+import { yieldTurn } from "../../contracts/yield.js";
 import { FsError, writeBytes, type ByteSource, type CommandContext, type FileSystem, type ReadStreamOptions } from "../../contracts/index.js";
 import { Budget, Inputs, type RecordReader } from "../table-text/internal.js";
 import { readerSettings, type ColumnLimits } from "./options.js";
@@ -43,7 +44,7 @@ export class ColumnBudget extends Budget {
     this.untilYield -= amount;
     if (this.untilYield <= 0) {
       this.untilYield = 128;
-      await new Promise<void>(resolve => setImmediate(resolve));
+      await yieldTurn();
     }
     this.context.signal.throwIfAborted();
   }

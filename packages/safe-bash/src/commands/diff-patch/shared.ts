@@ -1,4 +1,4 @@
-import { setImmediate } from "node:timers/promises";
+import { yieldTurn } from "../../contracts/yield.js";
 import {
   collectBytes, isFsError, readBytes, resolvePath, writeBytes,
   type ByteSource, type CommandContext, type CommandDefinition, type FileStat,
@@ -54,7 +54,7 @@ export class Budget {
     this.context.signal.throwIfAborted();
     if (this.work >= this.nextYield) {
       this.nextYield = this.work + 4096;
-      await setImmediate(undefined, { signal: this.context.signal });
+      await yieldTurn(this.context.signal);
     }
   }
 

@@ -4,6 +4,7 @@
   "private": true,
   "description": "Extensible virtual shell with pluggable filesystems and streaming commands",
   "type": "module",
+  "sideEffects": false,
   "engines": {
     "node": ">=22"
   },

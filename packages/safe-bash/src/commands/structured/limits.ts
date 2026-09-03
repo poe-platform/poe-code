@@ -1,4 +1,4 @@
-import { setImmediate } from "node:timers/promises";
+import { yieldTurn } from "../../contracts/yield.js";
 import { Decimal, isNumber, numberText } from "./numbers.js";
 
 export type Json = null | boolean | number | Decimal | string | Json[] | { [key: string]: Json };
@@ -59,7 +59,7 @@ export class Budget {
     this.step();
     if (this.steps >= this.nextYield) {
       this.nextYield = this.steps + 1024;
-      await setImmediate(undefined, { signal: this.signal });
+      await yieldTurn(this.signal);
       this.signal.throwIfAborted();
     }
   }

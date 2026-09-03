@@ -1,3 +1,4 @@
+import { yieldTurn } from "../../contracts/yield.js";
 import { writeBytes, type ByteSink, type CommandContext } from "../../contracts/index.js";
 
 export interface FileLimits {
@@ -73,7 +74,7 @@ export class SharedBudget {
     this.work(count);
     if (--this.untilYield <= 0) {
       this.untilYield = 128;
-      await new Promise<void>(resolve => setImmediate(resolve));
+      await yieldTurn();
       this.checkTime();
     }
   }
@@ -108,7 +109,7 @@ export class SharedBudget {
       untilYield -= character.length;
       if (untilYield <= 0) {
         untilYield = 4096;
-        await new Promise<void>(resolve => setImmediate(resolve));
+        await yieldTurn();
         this.checkTime();
       }
     }

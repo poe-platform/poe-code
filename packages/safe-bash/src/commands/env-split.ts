@@ -1,3 +1,4 @@
+import { yieldTurn } from "../contracts/yield.js";
 import { createCommandArguments, getCommandArguments, type CommandArguments } from "../contracts/command.js";
 import { type ShellValue } from "../contracts/value.js";
 import { decoder, encoder, UsageError, type ParsedOptions } from "./internal.js";
@@ -39,7 +40,7 @@ class SplitWork {
   }
 
   async pause(): Promise<void> {
-    await new Promise<void>(resolve => setImmediate(resolve));
+    await yieldTurn();
     this.signal.throwIfAborted();
     this.nextYield = this.work + 4096;
   }

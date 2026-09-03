@@ -1,4 +1,4 @@
-import { setImmediate } from "node:timers/promises";
+import { yieldTurn } from "../../../contracts/yield.js";
 import { EreProfileLimitError, EreUsageUnknownError } from "./errors.js";
 import type { EreExpansionBounds, EreLimits, EreResource, EreUsage } from "./types.js";
 
@@ -81,7 +81,7 @@ export class EreLedger {
     this.check(signal);
     if (this.#usage.work - this.#lastYield >= 256) {
       this.#lastYield = this.#usage.work;
-      await setImmediate();
+      await yieldTurn(signal);
       this.check(signal);
     }
   }

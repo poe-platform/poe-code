@@ -170,10 +170,11 @@ test("xargs maps child failures and stops on status 255", async () => {
 });
 
 test("find traverses virtual trees with name/type/depth filters, boolean expressions and pruning", async () => {
-  const fs = await fixture({ "a.txt": "A", "b.log": "B", "nested/c.txt": "C", "skip/hidden.txt": "H" });
+  const fs = await fixture({ "1.digit": "digit", "a.txt": "A", "b.log": "B", "nested/c.txt": "C", "skip/hidden.txt": "H" });
+  assert.equal((await run("find", [".", "-type", "f", "-name", "[[:digit:]].digit"], { fs })).stdout, "./1.digit\n");
   assert.equal((await run("find", [".", "-type", "f", "-name", "*.txt"], { fs })).stdout, "./a.txt\n./nested/c.txt\n./skip/hidden.txt\n");
-  assert.equal((await run("find", [".", "-maxdepth", "1", "-type", "f", "-print0"], { fs })).stdout, "./a.txt\0./b.log\0");
-  assert.equal((await run("find", [".", "-name", "skip", "-prune", "-o", "-type", "f", "-print"], { fs })).stdout, "./a.txt\n./b.log\n./nested/c.txt\n");
+  assert.equal((await run("find", [".", "-maxdepth", "1", "-type", "f", "-print0"], { fs })).stdout, "./1.digit\0./a.txt\0./b.log\0");
+  assert.equal((await run("find", [".", "-name", "skip", "-prune", "-o", "-type", "f", "-print"], { fs })).stdout, "./1.digit\n./a.txt\n./b.log\n./nested/c.txt\n");
   assert.equal((await run("find", [".", "(", "-name", "a.txt", "-o", "-name", "b.log", ")", "-type", "f"], { fs })).stdout, "./a.txt\n./b.log\n");
   assert.equal((await run("find", [".", "-unsupported"], { fs })).exitCode, 2);
 });

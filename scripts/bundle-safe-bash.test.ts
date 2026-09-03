@@ -65,9 +65,10 @@ it("runs filesystem pipelines with canonical identity and injected mounts", asyn
     await fs.writeFile("/run.sh", new TextEncoder().encode("cat /memory/state"));
     expect((await shell.exec("sh /run.sh")).stdout).toBe("saved");
     expect((await shell.exec("printf forbidden > /input/note")).exitCode).not.toBe(0);
-    const unsupported = await shell.exec("[[ a =~ a ]]");
-    expect(unsupported.exitCode).toBe(2);
-    expect(unsupported.stderr).toContain("not supported by the browser shell");
+    const matched = await shell.exec("[[ abc123 =~ ^([a-z]+)([0-9]+)$ ]] && printf '%s:%s' \"${BASH_REMATCH[1]}\" \"${BASH_REMATCH[2]}\"");
+    expect(matched.exitCode).toBe(0);
+    expect(matched.stdout).toBe("abc:123");
+    expect(matched.stderr).toBe("");
   } finally { await shell.dispose(); }
   await expect(shell.exec("echo closed")).rejects.toThrow();
 });

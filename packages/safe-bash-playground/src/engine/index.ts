@@ -19,6 +19,7 @@ export type {
 export type { ShellExecOptions, RootShellState } from "virtual:safe-bash-kernel";
 
 export const browserLimits: Readonly<ShellLimits> = Object.freeze({
+  maxInputBytes: 4 * 1024 * 1024,
   maxOutputBytes: 64 * 1024,
   maxCommands: 1000,
   maxLoopIterations: 1000,
@@ -26,6 +27,8 @@ export const browserLimits: Readonly<ShellLimits> = Object.freeze({
   maxSourceBytes: 16 * 1024,
   maxExpansionFields: 1000,
   maxExpansionBytes: 64 * 1024,
+  maxWallClockMs: 5_000,
+  maxCpuMs: 5_000,
   pipeHighWaterMark: 16 * 1024
 });
 

@@ -1,3 +1,4 @@
+import { yieldTurn } from "../../contracts/yield.js";
 import { FsError, readBytes, resolvePath, writeBytes, type ByteSource, type CommandContext, type CommandDefinition } from "../../contracts/index.js";
 import { diagnostic } from "../internal.js";
 
@@ -59,7 +60,7 @@ export class Session {
     this.untilYield -= count;
     if (this.untilYield <= 0) {
       this.untilYield = 4096;
-      await new Promise<void>(resolve => setImmediate(resolve));
+      await yieldTurn();
       this.signal.throwIfAborted();
     }
   }

@@ -1,3 +1,4 @@
+import { yieldTurn } from "../../contracts/yield.js";
 import type { CommandContext } from "../../contracts/index.js";
 import type { RegexExecutionOptions } from "../regex-execution/client.js";
 import { exprMatchCeilings } from "../regex-execution/protocol.js";
@@ -63,7 +64,7 @@ export class Budget {
     this.charge();
     if (this.steps - this.checkpoint >= 4096) {
       this.checkpoint = this.steps;
-      await new Promise<void>(resolve => setImmediate(resolve));
+      await yieldTurn();
       this.context.signal.throwIfAborted();
     }
   }

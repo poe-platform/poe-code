@@ -1,5 +1,5 @@
 import { posix } from "node:path";
-import { setImmediate } from "node:timers/promises";
+import { yieldTurn } from "../../contracts/yield.js";
 import { collectBytes, createOutputOperation, readBytes, toByteSource, writeBytes, type ByteSource, type CommandContext, type CommandDefinition } from "../../contracts/index.js";
 import { pathOf } from "../internal.js";
 import { parseArguments, type CurlArguments } from "./args.js";
@@ -250,7 +250,7 @@ async function transfer(context: CommandContext, args: CurlArguments, input: str
             let chunks = 0;
             try {
               for await (const chunk of readBytes(final.body, bodySignal)) {
-                if (++chunks % 256 === 0) await setImmediate(undefined, { signal: bodySignal });
+                if (++chunks % 256 === 0) await yieldTurn(bodySignal);
                 downloaded += chunk.length;
                 if (downloaded > args.maxFileSize) throw new CurlError(63, "Response exceeds download byte limit");
                 published += chunk.length;

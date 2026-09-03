@@ -47,7 +47,7 @@ function integer(text: string): bigint {
   for (const character of match[2]!) {
     const digit = "0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ@_".indexOf(base <= 36 ? character.toLowerCase() : character);
     if (digit >= base || digit < 0) throw new Error("Digit exceeds arithmetic base");
-    value = value * BigInt(base) + BigInt(digit);
+    value = BigInt.asIntN(64, value * BigInt(base) + BigInt(digit));
   }
   return value;
 }

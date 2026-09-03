@@ -121,7 +121,7 @@ These plugins are separate from `agentCommands()`; pass them to `shell.use(...)`
 
 | Command | Plugin and configuration |
 | --- | --- |
-| `curl` | `networkCommands({ authorize, transport?, limits?, replace? })`: required authorization on every request, redirect, and retry. The default transport makes real HTTP(S) requests; inject `transport` for mocks. [Options and limits](src/commands/network/types.ts). |
+| `curl` | `networkCommands({ authorize, transport?, limits?, replace? })`: required authorization on every request, redirect, and retry. Node uses the native HTTP transport; Workers can inject `createFetchTransport()`. `createOriginAuthorizer([...])` provides exact origin/hostname policy; its omitted allowlist is deliberately `*` (allow all). [Options and limits](src/commands/network/types.ts). |
 | `node` | `nodeCommands({ runtime, limits?, replace? })`: runs JavaScript with an injected SafeJS runtime, virtual files, and shell streams. [Usage and supported subset](src/commands/node/README.md). |
 | `safejs` | `safeJsCommands({ runtime, limits?, replace? })`: inject `run`, `createBudget`, `makeFsModule`, and `declareHostOperation` to execute programs. [Runtime contract](src/commands/safejs/types.ts). |
 
@@ -271,7 +271,7 @@ For SafeJS host integration, `makeSafeJsShellModule` exposes shell execution and
 | --- | --- |
 | `fs` | Required filesystem; no implicit host access. |
 | `cwd` | Initial virtual directory; defaults to `/`. |
-| `env` | Initial exported variables; defaults to an empty map, with `PWD` set from `cwd`. No host environment inheritance. |
+| `env` | Initial exported variables; defaults to an empty map, with `PWD` set from `cwd`. No host environment inheritance. Never pass host `process.env` or any secret-bearing object: everything in `env` is readable by executed scripts (`env`, `printenv`, `$VAR`), and on Cloudflare Workers with `nodejs_compat` `process.env` contains the Worker's secret bindings. The shell logs a warning when it detects this. |
 | `commands` | Existing `CommandRegistry`; defaults to an empty registry. |
 | `limits` | Resource limits listed below. |
 
@@ -289,10 +289,19 @@ provided. Pass an `AbortSignal` as `signal` to cancel. [Option types](src/shell/
 | `maxSourceBytes` | 1 MiB |
 | `maxExpansionFields` | 10,000 |
 | `maxExpansionBytes` | 16 MiB |
+| `maxWallClockMs` | 30 seconds |
+| `maxCpuMs` | 30 seconds, checked at command and cooperative-yield checkpoints |
 | `pipeHighWaterMark` | 64 KiB |
 
 Always call `dispose()` when finished. Shell failures normally produce an exit
 code and stderr; limit violations, cancellation, and host failures can reject `exec()`.
+For Cloudflare Workers, start with the exported `cloudflareWorkerLimits` profile
+and configure command-family buffers at no more than 8 MiB. Create a separate
+`Shell`, environment object, and quota-wrapped filesystem view for each tenant or
+request. Never reuse tenant state across requests; import `withFileSystemQuota`
+from `poe-code/safe-fs` to bound cumulative writes, including command-initiated
+copies and streaming output. Admission control and rate limiting remain host
+responsibilities.
 
 ### Command configuration
 

@@ -2,14 +2,27 @@ import assert from "node:assert/strict";
 import { test } from "node:test";
 import {
   Shell, agentCommands, createAgentCommands, createMemoryFileSystem, networkCommands, curlCommands,
-  createNetworkCommands, createCurlCommands, createCurlCommand, createNodeHttpTransport,
-  defaultNetworkLimits, CurlError, toByteSource, type NetworkCommandsOptions,
+  createNetworkCommands, createCurlCommands, createCurlCommand, createFetchTransport,
+  createNodeHttpTransport, createOriginAuthorizer,
+  cloudflareWorkerNetworkLimits, defaultNetworkLimits, CurlError, toByteSource, type NetworkCommandsOptions,
 } from "../../../src/index.js";
 
 test("root exposes the explicit usable network capability without altering aggregate", async () => {
   assert.equal(createAgentCommands().some(command => command.name === "curl"), false);
   assert.equal(networkCommands, curlCommands); assert.equal(createNetworkCommands, createCurlCommands);
   assert.equal(typeof createNodeHttpTransport(), "function"); assert.ok(defaultNetworkLimits.maxDownloadBytes > 0);
+  assert.ok(cloudflareWorkerNetworkLimits.maxUrls * (cloudflareWorkerNetworkLimits.maxRetries + 1) *
+    (cloudflareWorkerNetworkLimits.maxRedirects + 1) <= 50);
+  assert.equal(typeof createFetchTransport(), "function");
+  assert.equal(await createOriginAuthorizer()({ url: "https://example.test/path", method: "GET", attempt: 0, signal: AbortSignal.timeout(100) }), true);
+  const authorize = createOriginAuthorizer(["https://allowed.test", "host.test"]);
+  assert.equal(await authorize({ url: "https://allowed.test/path", method: "GET", attempt: 0, signal: AbortSignal.timeout(100) }), true);
+  assert.equal(await authorize({ url: "http://host.test/path", method: "GET", attempt: 0, signal: AbortSignal.timeout(100) }), true);
+  assert.equal(await authorize({ url: "https://denied.test/path", method: "GET", attempt: 0, signal: AbortSignal.timeout(100) }), false);
+  const publicOnly = createOriginAuthorizer("*", { denyPrivateNetworks: true });
+  assert.equal(await publicOnly({ url: "http://127.0.0.1/secret", method: "GET", attempt: 0, signal: AbortSignal.timeout(100) }), false);
+  assert.equal(await publicOnly({ url: "http://192.168.1.2/secret", method: "GET", attempt: 0, signal: AbortSignal.timeout(100) }), false);
+  assert.equal(await publicOnly({ url: "https://example.test/path", method: "GET", attempt: 0, signal: AbortSignal.timeout(100) }), true);
   const seen: string[] = [];
   const options: NetworkCommandsOptions = {
     authorize: request => request.url === "http://allowed.test/data",

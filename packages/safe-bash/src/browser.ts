@@ -11,6 +11,11 @@ export * from "./fs/memory/index.js";
 export * from "./fs/readonly/index.js";
 export * from "./fs/mount/index.js";
 export * from "./fs/overlay/index.js";
+export { createFetchTransport } from "./commands/network/fetch-transport.js";
+export type { FetchTransportOptions } from "./commands/network/fetch-transport.js";
+export { createOriginAuthorizer } from "./commands/network/authorizer.js";
+export type { OriginAllowlist, OriginAuthorizerOptions } from "./commands/network/authorizer.js";
+export { cloudflareWorkerNetworkLimits } from "./commands/network/types.js";
 
 export interface BrowserCommandsOptions {
   readonly replace?: boolean;

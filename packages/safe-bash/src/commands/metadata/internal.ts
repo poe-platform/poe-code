@@ -1,3 +1,4 @@
+import { yieldTurn } from "../../contracts/yield.js";
 import { FsError, writeBytes, type CommandContext, type CommandDefinition, type CommandHandler } from "../../contracts/index.js";
 import { diagnostic } from "../internal.js";
 
@@ -34,7 +35,7 @@ export class MetadataBudget {
   async step(depth = 0): Promise<void> {
     this.context.signal.throwIfAborted();
     if (++this.entries > this.limits.maxEntries || depth > this.limits.maxDepth) throw new FsError("EFBIG", { message: "metadata traversal limit exceeded" });
-    if (this.entries % 128 === 0) await new Promise<void>(resolve => setImmediate(resolve));
+    if (this.entries % 128 === 0) await yieldTurn();
     this.context.signal.throwIfAborted();
   }
   async output(text: string | Uint8Array): Promise<void> {

@@ -3,6 +3,7 @@ import type {
   ByteSink, CommandDefinition, FileSystemFactory, Middleware, PluginHost,
   RegisterCommandOptions, VirtualShellPlugin,
 } from "../contracts/index.js";
+import { warnIfHostProcessEnv } from "./env-warning.js";
 import { parseShellUnit } from "./parser.js";
 import { ShellInput } from "./input.js";
 import { byteLocale } from "./locale.js";
@@ -101,6 +102,7 @@ export class Shell implements PluginHost {
 
   constructor(options: ShellOptions) {
     if (!options?.fs) throw new TypeError("Shell requires an explicit filesystem");
+    warnIfHostProcessEnv(options.env);
     resolveLimits(options.limits);
     this.#options = { ...options, cwd: resolvePath("/", options.cwd ?? "/"), env: { ...options.env }, limits: { ...options.limits } };
     this.commands = options.commands ?? new CommandRegistry();
@@ -162,6 +164,7 @@ export class Shell implements PluginHost {
 
   async exec(source: string, options: ShellExecOptions = {}): Promise<ShellResult> {
     if (this.#disposed) throw new Error("Shell is disposed");
+    warnIfHostProcessEnv(options.env);
     const budget = new Budget(resolveLimits(this.#options.limits, options.limits), options.signal);
     const scope = new InvocationScope(options.signal);
     const cancellationState = new RuntimeCancellationState();
@@ -171,7 +174,7 @@ export class Shell implements PluginHost {
       callerSignal: options.signal,
       controls: [{ role: "budget-control", signal: budget.controller.signal }],
     });
-    try { Runtime.registerEreRoot(budget, scope); owner.activate(boundary); }
+    try { owner.activate(boundary); }
     catch (error) {
       scope.failures.push(...boundary.close().failures);
       await scope.close();
@@ -182,7 +185,7 @@ export class Shell implements PluginHost {
     this.#active.add(active);
     let captured: CapturedCancellationOutcome<ShellResult>;
     try { captured = await owner.capture(() => this.#execute(source, options, scope, budget, boundary, cancellationState, owner)); }
-    finally { await scope.close(); }
+    finally { budget.close(); await scope.close(); }
     const selection = owner.finish(captured);
     cancellationState.close();
     this.#active.delete(active);

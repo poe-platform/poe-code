@@ -1,4 +1,4 @@
-import { setImmediate as pause } from "node:timers/promises";
+import { yieldTurn } from "../../contracts/yield.js";
 import { FsError, writeBytes, type CommandContext } from "../../contracts/index.js";
 import type { HtmlToMarkdownLimits } from "./options.js";
 
@@ -29,7 +29,7 @@ export class Budget {
     this.context.signal.throwIfAborted();
     if (this.sinceYield >= 4096) {
       this.sinceYield = 0;
-      try { await pause(undefined, { signal: this.context.signal }); }
+      try { await yieldTurn(this.context.signal); }
       catch (error) { this.context.signal.throwIfAborted(); throw error; }
     }
     this.context.signal.throwIfAborted();

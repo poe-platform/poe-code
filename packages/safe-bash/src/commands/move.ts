@@ -1,3 +1,4 @@
+import { yieldTurn } from "../contracts/yield.js";
 import { dirname, FsError, isPathWithin, joinPath, type CommandContext, type FileStat } from "../contracts/index.js";
 import { compareCopyIdentity, compareObservedEntries } from "./copy-identity.js";
 import { codeOf, diagnostic } from "./internal.js";
@@ -17,7 +18,7 @@ export class MoveBudget {
   async step(): Promise<void> {
     this.signal.throwIfAborted();
     if (++this.steps > 100_000) throw new FsError("EFBIG", { message: "cross-device move entry limit exceeded" });
-    if (this.steps % 128 === 0) await new Promise<void>(resolve => setImmediate(resolve));
+    if (this.steps % 128 === 0) await yieldTurn();
     this.signal.throwIfAborted();
   }
 }

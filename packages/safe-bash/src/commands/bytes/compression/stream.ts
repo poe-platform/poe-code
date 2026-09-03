@@ -1,6 +1,6 @@
 import { Readable, PassThrough } from "node:stream";
 import { pipeline } from "node:stream/promises";
-import { setImmediate } from "node:timers/promises";
+import { yieldTurn } from "../../../contracts/yield.js";
 import { createGzip } from "node:zlib";
 import { FsError, readBytes, type ByteSource } from "../../../contracts/index.js";
 import type { CompressionOptions } from "./options.js";
@@ -13,7 +13,7 @@ async function* split(source: ByteSource, signal: AbortSignal): ByteSource {
   let emptyChunks = 0;
   for await (const chunk of readBytes(source, signal)) {
     if (!chunk.byteLength) {
-      if (++emptyChunks >= 64) { await setImmediate(undefined, { signal }); emptyChunks = 0; }
+      if (++emptyChunks >= 64) { await yieldTurn(signal); emptyChunks = 0; }
       continue;
     }
     emptyChunks = 0;

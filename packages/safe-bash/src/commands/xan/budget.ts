@@ -1,4 +1,4 @@
-import { setImmediate } from "node:timers/promises";
+import { yieldTurn } from "../../contracts/yield.js";
 import type { XanLimits } from "./options.js";
 
 export class XanError extends Error {}
@@ -25,7 +25,7 @@ export class Budget {
   work(bytes = 1): void { this.add("maxWork", bytes); this.workSinceYield += bytes; }
   async checkpoint(): Promise<void> {
     this.check();
-    if (this.workSinceYield >= 65536) { this.workSinceYield = 0; await setImmediate(); this.check(); }
+    if (this.workSinceYield >= 65536) { this.workSinceYield = 0; await yieldTurn(); this.check(); }
   }
   async textSize(text: string): Promise<number> {
     let bytes = 0;

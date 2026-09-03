@@ -1,25 +1,9 @@
 import { basename, FsError, getCommandArguments, type CommandDefinition, type CommandHandler, type FileStat } from "../contracts/index.js";
+import { compilePattern } from "../shell/pattern.js";
 import { codeOf, define, diagnostic, integer, output, pathOf, replaceArgument, UsageError } from "./internal.js";
 
 interface Entry { path: string; display: string; stat: FileStat; depth: number; prune: boolean }
 type Expression = (entry: Entry) => Promise<boolean>;
-
-function glob(pattern: string, ignoreCase: boolean): RegExp {
-  let source = "";
-  for (let offset = 0; offset < pattern.length; offset++) {
-    const character = pattern[offset]!;
-    if (character === "*") source += ".*";
-    else if (character === "?") source += ".";
-    else if (character === "[") {
-      const end = pattern.indexOf("]", offset + 1);
-      if (end < 0) source += "\\[";
-      else { source += `[${pattern.slice(offset + 1, end).replace(/^!/u, "^")}]`; offset = end; }
-    } else if (character === "\\" && offset + 1 < pattern.length) source += pattern[++offset]!.replace(/[.*+?^${}()|[\]\\]/gu, "\\$&");
-    else source += character.replace(/[.*+?^${}()|[\]\\]/gu, "\\$&");
-  }
-  try { return new RegExp(`^${source}$`, ignoreCase ? "is" : "s"); }
-  catch { throw new UsageError(`invalid name pattern '${pattern}'`); }
-}
 
 export function findCommands(execute: CommandHandler): CommandDefinition[] {
   return [define("find", async context => {
@@ -76,8 +60,17 @@ export function findCommands(execute: CommandHandler): CommandDefinition[] {
           const unit = match[3] === "c" ? 1 : match[3] === "k" ? 1024 : match[3] === "M" ? 1048576 : 512;
           return async entry => match[1] === "+" ? Math.ceil(entry.stat.size / unit) > size : match[1] === "-" ? Math.ceil(entry.stat.size / unit) < size : Math.ceil(entry.stat.size / unit) === size;
         }
-        const matcher = glob(operand, token === "-iname" || token === "-ipath");
-        return async entry => matcher.test(token === "-name" || token === "-iname" ? basename(entry.display) || entry.display : entry.display);
+        const ignoreCase = token === "-iname" || token === "-ipath";
+        const work = {
+          remaining: 1_000_000,
+          signal: context.signal,
+          exhausted(): never { throw new UsageError(`pattern work limit exceeded for '${operand}'`); },
+        };
+        const matcher = compilePattern(ignoreCase ? operand.toLowerCase() : operand, work);
+        return async entry => {
+          const value = token === "-name" || token === "-iname" ? basename(entry.display) || entry.display : entry.display;
+          return (await matcher)(ignoreCase ? value.toLowerCase() : value);
+        };
       }
       if (token === "-true" || token === "-false") return async () => token === "-true";
       if (token === "-empty") return async entry => entry.stat.type === "directory" ? !(await context.fs.readdir(entry.path, { signal: context.signal })).length : entry.stat.type === "file" && entry.stat.size === 0;

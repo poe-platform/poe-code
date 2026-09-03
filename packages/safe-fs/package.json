@@ -7,6 +7,7 @@
   "types": "dist/index.d.ts",
   "imports": {
     "#safe-fs-platform": {
+      "workerd": "./src/platform/browser.ts",
       "browser": "./src/platform/browser.ts",
       "default": "./src/platform/node.ts"
     }
@@ -23,7 +24,8 @@
     "./fs/webdav": { "types": "./dist/fs/webdav/index.d.ts", "import": "./dist/fs/webdav/index.js" },
     "./fs/readonly": { "types": "./dist/fs/readonly/index.d.ts", "import": "./dist/fs/readonly/index.js" },
     "./fs/mount": { "types": "./dist/fs/mount/index.d.ts", "import": "./dist/fs/mount/index.js" },
-    "./fs/overlay": { "types": "./dist/fs/overlay/index.d.ts", "import": "./dist/fs/overlay/index.js" }
+    "./fs/overlay": { "types": "./dist/fs/overlay/index.d.ts", "import": "./dist/fs/overlay/index.js" },
+    "./fs/quota": { "types": "./dist/fs/quota/index.d.ts", "import": "./dist/fs/quota/index.js" }
   },
   "files": ["dist", "README.md", "PROVENANCE.json"],
   "scripts": {

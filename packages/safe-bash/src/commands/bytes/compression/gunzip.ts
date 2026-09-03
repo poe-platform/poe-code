@@ -1,4 +1,4 @@
-import { setImmediate } from "node:timers/promises";
+import { yieldTurn } from "../../../contracts/yield.js";
 import { createInflateRaw } from "node:zlib";
 import { readBytes, type ByteSource } from "../../../contracts/index.js";
 
@@ -20,7 +20,7 @@ class Input {
   async chunk(): Promise<Uint8Array | undefined> {
     this.signal.throwIfAborted();
     if (this.pending.length) { const result = this.pending; this.pending = new Uint8Array(); return result; }
-    if (++this.pulls % 64 === 0) await setImmediate(undefined, { signal: this.signal });
+    if (++this.pulls % 64 === 0) await yieldTurn(this.signal);
     const next = await this.iterator.next();
     return next.done ? undefined : next.value;
   }

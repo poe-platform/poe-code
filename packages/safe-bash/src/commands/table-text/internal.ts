@@ -1,3 +1,4 @@
+import { yieldTurn } from "../../contracts/yield.js";
 import { FsError, readBytes, resolvePath, writeBytes, type ByteSource, type CommandContext, type CommandDefinition, type CommandHandler } from "../../contracts/index.js";
 import { diagnostic } from "../internal.js";
 
@@ -77,7 +78,7 @@ export class Budget {
   async step(): Promise<void> {
     this.context.signal.throwIfAborted();
     this.check(++this.steps, this.limits.maxSteps, "step");
-    if (this.steps % 128 === 0) await new Promise<void>(resolve => setImmediate(resolve));
+    if (this.steps % 128 === 0) await yieldTurn();
     this.context.signal.throwIfAborted();
   }
   input(size: number): void {

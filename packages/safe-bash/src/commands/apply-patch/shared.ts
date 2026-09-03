@@ -1,4 +1,4 @@
-import { setImmediate } from "node:timers/promises";
+import { yieldTurn } from "../../contracts/yield.js";
 import { isFsError, type CommandContext, type FsError } from "../../contracts/index.js";
 import type { ApplyPatchLimits } from "./options.js";
 
@@ -55,7 +55,7 @@ export class Work {
     this.check();
     if (this.units >= this.nextYield) {
       this.nextYield += 4096;
-      try { await setImmediate(undefined, { signal: this.context.signal }); }
+      try { await yieldTurn(this.context.signal); }
       catch (error) { this.context.signal.throwIfAborted(); throw error; }
       this.check();
     }

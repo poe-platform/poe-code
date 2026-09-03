@@ -1,3 +1,4 @@
+import { yieldTurn } from "../contracts/yield.js";
 import type { FileSystem } from "../contracts/index.js";
 import { isFsError, resolvePath } from "../contracts/index.js";
 import type { Word } from "./parser.js";
@@ -36,7 +37,7 @@ async function charge(context: ConditionalContext, amount = 1): Promise<void> {
   const previous = context.work.remaining;
   context.work.remaining -= amount;
   if ((previous >>> 10) !== (context.work.remaining >>> 10)) {
-    await new Promise<void>(resolve => setImmediate(resolve));
+    await yieldTurn();
     context.signal.throwIfAborted();
   }
 }

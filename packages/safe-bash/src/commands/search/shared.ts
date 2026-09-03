@@ -1,4 +1,4 @@
-import { setImmediate } from "node:timers/promises";
+import { yieldTurn } from "../../contracts/yield.js";
 import { readBytes, writeBytes, type ByteSource, type CommandContext } from "../../contracts/index.js";
 import { SearchError, type SearchOptions } from "./options.js";
 
@@ -31,7 +31,7 @@ export class Limits {
   }
   async tick(): Promise<void> {
     this.context.signal.throwIfAborted();
-    if (++this.ticks % 128 === 0) await setImmediate(undefined, { signal: this.context.signal });
+    if (++this.ticks % 128 === 0) await yieldTurn(this.context.signal);
   }
   private async write(chunk: Uint8Array): Promise<void> {
     try { await writeBytes(this.context.stdout, chunk, this.signal); }

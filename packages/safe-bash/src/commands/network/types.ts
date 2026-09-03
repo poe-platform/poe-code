@@ -61,6 +61,17 @@ export const defaultNetworkLimits: Readonly<NetworkLimits> = Object.freeze({
   maxTimeMs: 120_000,
 });
 
+export const cloudflareWorkerNetworkLimits: Readonly<NetworkLimits> = Object.freeze({
+  maxUploadBytes: 4 * 1024 * 1024,
+  maxDownloadBytes: 4 * 1024 * 1024,
+  maxBufferBytes: 1024 * 1024,
+  maxHeaderBytes: 32 * 1024,
+  maxRedirects: 2,
+  maxRetries: 1,
+  maxUrls: 8,
+  maxTimeMs: 10_000,
+});
+
 export class CurlError extends Error {
   constructor(readonly exitCode: number, message: string) {
     super(message);

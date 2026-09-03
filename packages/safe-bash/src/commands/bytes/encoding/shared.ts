@@ -1,4 +1,4 @@
-import { setImmediate } from "node:timers/promises";
+import { yieldTurn } from "../../../contracts/yield.js";
 import { FsError, readBytes, type ByteSource, type CommandContext } from "../../../contracts/index.js";
 import { pathOf, UsageError, type ParsedOptions } from "../../internal.js";
 
@@ -27,11 +27,11 @@ export async function* sources(context: CommandContext, operands: readonly strin
     }
     for await (const chunk of readBytes(source, context.signal)) {
       if (chunk.length === 0 && ++emptyChunks % 64 === 0) {
-        await setImmediate();
+        await yieldTurn();
         context.signal.throwIfAborted();
       }
       for (let offset = 0; offset < chunk.length; offset += blockSize) {
-        await setImmediate();
+        await yieldTurn();
         context.signal.throwIfAborted();
         yield chunk.subarray(offset, offset + blockSize);
       }

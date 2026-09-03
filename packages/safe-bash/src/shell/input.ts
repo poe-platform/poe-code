@@ -1,5 +1,6 @@
 import { FsError, toByteSource } from "../contracts/index.js";
 import type { ByteSource, FileSystem } from "../contracts/index.js";
+import { yieldTurn } from "../contracts/yield.js";
 import { Budget, interruptible } from "./runtime.js";
 
 export async function fileInput(fs: FileSystem, path: string, maxBytes: number, signal: AbortSignal): Promise<ByteSource> {
@@ -165,7 +166,7 @@ export class ShellInput implements ByteSource {
       let length = 0;
       let pulls = 0;
       while (true) {
-        if (++pulls % 128 === 0) await interruptible(new Promise<void>(resolve => setImmediate(resolve)), this.signal);
+        if (++pulls % 128 === 0) await yieldTurn(this.signal);
         const result = await this.#cursor.take(this.signal);
         if (result.done) {
           if (!length) return undefined;
@@ -206,7 +207,7 @@ export class ShellInput implements ByteSource {
     try {
       while (!terminated) {
         if (offset === chunk.length) {
-          if (++pulls % 128 === 0) await interruptible(new Promise<void>(resolve => setImmediate(resolve)), this.signal);
+          if (++pulls % 128 === 0) await yieldTurn(this.signal);
           const result = await this.#cursor.take(this.signal);
           if (result.done) {
             break;
@@ -219,7 +220,7 @@ export class ShellInput implements ByteSource {
         if (!options.exact && !escaping && byte === delimiter) { terminated = true; break; }
         if (++length > this.budget.limits.maxOutputBytes) this.budget.fail("maxOutputBytes");
         if (length % 1024 === 0) {
-          await interruptible(new Promise<void>((resolve) => setImmediate(resolve)), this.signal);
+          await yieldTurn(this.signal);
           this.signal.throwIfAborted();
         }
         if (byte === 0) continue;

@@ -1,4 +1,4 @@
-import { setImmediate as yieldTurn } from "node:timers/promises";
+import { yieldTurn } from "../../contracts/yield.js";
 import { FsError, writeBytes, type ByteSink, type CommandContext } from "../../contracts/index.js";
 import type { TreeLimits } from "./options.js";
 
@@ -68,7 +68,7 @@ export class WalkBudget {
   async fs<Result>(operation: () => Promise<Result>): Promise<Result> {
     this.step();
     const { signal } = this.context;
-    if (++this.operations % 64 === 0) await yieldTurn(undefined, { signal });
+    if (++this.operations % 64 === 0) await yieldTurn(signal);
     signal.throwIfAborted();
     let abort!: () => void;
     const aborted = new Promise<never>((_resolve, reject) => {

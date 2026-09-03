@@ -77,6 +77,7 @@ All required methods must exist, but a backend may reject an operation with `FsE
 | `createReadOnlyFileSystem(filesystem)` | Rejecting writes through one view of an existing filesystem |
 | `createMountFileSystem({ root, mounts })` | Routing absolute virtual mount paths to different filesystems |
 | `createOverlayFileSystem({ upper, lower })` | Reading through to a lower layer and writing changes to an upper layer |
+| `withFileSystemQuota(filesystem, { maxBytes })` | Enforcing a cumulative logical-byte ceiling across every write path |
 
 `createNodeFsBridge` offers a promises-shaped subset, including recursive `cp` and `mkdtemp`. The portable `createFsBridge` from `@poe-platform/safe-fs/core` instead requires a caller-supplied text codec and returns `Uint8Array` values.
 
@@ -201,6 +202,7 @@ There are no package environment variables, implicit credentials, or automatic `
 | Real | Required `root`: existing absolute host directory; the constructor/factory also accepts the root string directly. |
 | Mount | Required `root`: fallback filesystem. `mounts` defaults to `{}` and maps absolute virtual paths to filesystems. |
 | Overlay | Required `upper` and `lower`; `maxBufferBytes` defaults to 64 MiB. |
+| Quota | `withFileSystemQuota` requires a nonnegative safe-integer `maxBytes`. It serializes mutations and counts files, symlinks, copies, hard links, truncation, and streaming writes. |
 | Node bridge | `cwd` defaults to `/`, must be an absolute virtual path; optional lifetime `signal`. |
 | Portable bridge | Same `cwd` and `signal`, plus required `codec` with `isEncoding`, `encode`, and `decode` functions. |
 | Catalog example | Required `files`: a plain record of single-component filenames to text strings; no other options. |

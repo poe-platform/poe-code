@@ -1,4 +1,4 @@
-import { setImmediate } from "node:timers/promises";
+import { yieldTurn } from "../../contracts/yield.js";
 import { Interpreter } from "./interpreter.js";
 import {
   Budget,
@@ -410,7 +410,7 @@ class OwnedWork implements YqOwnedWork {
           checkpointRemaining--;
           throwSignal(this.#signal);
           try {
-            await setImmediate(undefined, { signal: this.#signal });
+            await yieldTurn(this.#signal);
           } catch (failure) {
             if (this.#signal.aborted) throw this.#signal.reason;
             throw failure;

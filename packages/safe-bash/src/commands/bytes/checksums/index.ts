@@ -1,3 +1,4 @@
+import { yieldTurn } from "../../../contracts/yield.js";
 import { createHash } from "node:crypto";
 import { FsError, readBytes, toByteSource, type ByteSource, type CommandContext, type CommandDefinition } from "../../../contracts/index.js";
 import { codeOf, define, diagnostic, encoder, options, output, pathOf, UsageError, value } from "../../internal.js";
@@ -100,14 +101,14 @@ async function* blocks(input: ByteSource, signal: AbortSignal): AsyncGenerator<U
       yield block;
       work += block.length;
       if (work >= blockBytes) {
-        await new Promise<void>(resolve => setImmediate(resolve));
+        await yieldTurn();
         signal.throwIfAborted();
         work = 0;
         pulls = 0;
       }
     }
     if (pulls >= 256) {
-      await new Promise<void>(resolve => setImmediate(resolve));
+      await yieldTurn();
       signal.throwIfAborted();
       pulls = 0;
     }

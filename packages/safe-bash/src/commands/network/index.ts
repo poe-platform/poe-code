@@ -4,6 +4,8 @@ import type { NetworkCommandsOptions } from "./types.js";
 
 export * from "./types.js";
 export { createNodeHttpTransport, type NodeHttpTransportOptions } from "./transport.js";
+export { createFetchTransport, type FetchTransportOptions } from "./fetch-transport.js";
+export { createOriginAuthorizer, type OriginAllowlist, type OriginAuthorizerOptions } from "./authorizer.js";
 export { createCurlCommand } from "./curl.js";
 
 export function createNetworkCommands(options: NetworkCommandsOptions): readonly CommandDefinition[] {

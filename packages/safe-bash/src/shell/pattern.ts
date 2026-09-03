@@ -1,3 +1,4 @@
+import { yieldTurn } from "../contracts/yield.js";
 type PatternToken = { kind: "star" } | { kind: "any" } | { kind: "literal"; value: string } | { kind: "class"; expression: RegExp };
 
 const characterClasses: Readonly<Record<string, string>> = {
@@ -16,7 +17,7 @@ async function tokens(pattern: string, work: PatternWork): Promise<PatternToken[
   let steps = 0;
   const tick = (): Promise<void> | undefined => {
     if (--work.remaining < 0) work.exhausted();
-    if (++steps % 1024 === 0) return new Promise<void>((resolve) => setImmediate(resolve)).then(() => work.signal.throwIfAborted());
+    if (++steps % 1024 === 0) return yieldTurn(work.signal);
     return undefined;
   };
   for (let index = 0; index < characters.length; index++) {
@@ -87,7 +88,7 @@ async function matchTokens(patternTokens: PatternToken[], value: string, work: P
   while (position < characters.length) {
     if (--work.remaining < 0) work.exhausted();
     if (++steps % 1024 === 0) {
-      await new Promise<void>((resolve) => setImmediate(resolve));
+      await yieldTurn(work.signal);
       work.signal.throwIfAborted();
     }
     const token = patternTokens[tokenIndex];

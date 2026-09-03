@@ -1,4 +1,4 @@
-import { setImmediate as yieldTurn } from "node:timers/promises";
+import { yieldTurn } from "../../contracts/yield.js";
 import { FsError, readBytes, type ByteSource, type CommandContext } from "../../contracts/index.js";
 import { pathOf } from "../internal.js";
 import type { SplitLimits } from "./options.js";
@@ -38,7 +38,7 @@ export class Budget {
     this.untilYield -= count;
     if (this.untilYield <= 0) {
       this.untilYield = 65536;
-      await yieldTurn(undefined, { signal: this.signal }).catch(error => { this.signal.throwIfAborted(); throw error; });
+      await yieldTurn(this.signal).catch(error => { this.signal.throwIfAborted(); throw error; });
     }
     this.signal.throwIfAborted();
   }

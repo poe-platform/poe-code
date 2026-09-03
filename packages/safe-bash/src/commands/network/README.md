@@ -7,10 +7,10 @@ processes, host filesystem reads, proxy environment reads, curlrc/netrc reads,
 cookie jars, or global TLS/environment mutations in this implementation.
 
 ```ts
-import { networkCommands, Shell } from "virtual-bash";
+import { createOriginAuthorizer, networkCommands, Shell } from "virtual-bash";
 
 const shell = new Shell({ fs, cwd: "/work" }).use(networkCommands({
-  authorize: ({ url }) => new URL(url).origin === "https://api.example.com",
+  authorize: createOriginAuthorizer(["https://api.example.com"]),
 }));
 const result = await shell.exec("curl --json '{\"enabled\":true}' https://api.example.com/tasks");
 ```
@@ -43,9 +43,25 @@ backpressure and cancellation, and release resources in `dispose`. Late response
 after timeout are disposed; rejected late promises are observed. A transport
 ignoring its signal cannot be forcibly stopped by this plugin.
 
+Cloudflare Workers and browsers can inject `createFetchTransport()`. It uses the
+host `fetch`, forces manual redirects so each hop returns to the authorizer,
+omits ambient credentials, and streams request and response bodies. Pass a
+specific Fetch function as `createFetchTransport({ fetch })` when the host does
+not expose it globally.
+
+`createOriginAuthorizer(allowlist?)` accepts exact origins (scheme, host, and
+port) or hostnames. Its omitted/default allowlist is `"*"`, which deliberately
+allows every HTTP(S) destination. Use an explicit list whenever scripts can see
+secrets or SSRF matters. Hostname/origin policy cannot detect a public hostname
+that DNS resolves to a private address; enforce DNS/IP policy in the transport.
+`createOriginAuthorizer(allowlist, { denyPrivateNetworks: true })` additionally
+rejects literal loopback, link-local, RFC-1918, and IPv6 local addresses. It does
+not perform DNS resolution and is therefore defense in depth, not DNS pinning.
+
 URL authorization is not DNS pinning or an SSRF sandbox. Hosts needing destination
 IP guarantees must provide a transport that validates/pins actual connections.
-An allow-all callback explicitly grants broad outbound HTTP(S) authority.
+An allow-all callback or `createOriginAuthorizer()` explicitly grants broad
+outbound HTTP(S) authority.
 
 ## Implemented command subset
 
@@ -74,6 +90,9 @@ connect-only timeouts are not relabeled as total timeouts.
 Defaults: 64 MiB upload, 64 MiB response body, 8 MiB replay/query/argument buffer,
 64 KiB combined redirect headers, ten redirects, five retries, 32 URLs, and
 120 seconds per URL including retries. CLI settings cannot raise host ceilings.
+For Workers, pass `limits: cloudflareWorkerNetworkLimits`; its worst-case URL,
+retry, and redirect combination is 48 fetches, within the smallest 50-subrequest
+budget, and its byte/deadline ceilings are substantially smaller.
 
 `options.limits.maxRedirects` and `maxRetries` accept safe integers in the inclusive
 range 0–9,007,199,254,740,991 (`Number.MAX_SAFE_INTEGER`), including JavaScript `-0`.

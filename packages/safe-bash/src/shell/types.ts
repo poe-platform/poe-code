@@ -26,6 +26,8 @@ export interface ShellLimits {
   readonly maxSourceBytes?: number;
   readonly maxExpansionFields?: number;
   readonly maxExpansionBytes?: number;
+  readonly maxWallClockMs?: number;
+  readonly maxCpuMs?: number;
   readonly pipeHighWaterMark?: number;
 }
 

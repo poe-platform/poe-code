@@ -42,6 +42,8 @@ export function createFetchTransport(options: FetchTransportOptions = {}): HttpT
       signal,
       ...(body ? { duplex: "half" } : {}),
     } as RequestInit & { duplex?: "half" });
+    // Cleanup must be registered before the request settles, so assignment happens afterward.
+    // eslint-disable-next-line prefer-const
     let response: Response | undefined;
     const dispose = async (): Promise<void> => {
       stopped.abort();

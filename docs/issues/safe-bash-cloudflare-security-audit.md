@@ -38,10 +38,12 @@ the value comes back in the tool response.
 
 **Fix:**
 - **Implemented:** `packages/safe-bash/src/shell/env-warning.ts`
-  (`warnIfHostProcessEnv`) warns once per object when the shell env is
-  `process.env` or a shallow copy of it, wired into the `Shell` constructor and
-  `exec()`. It warns rather than blocks — a deliberate design decision, since a
-  host may legitimately pass a curated copy.
+  (`warnIfHostProcessEnv`) warns once when the shell env is the actual
+  `process.env` object, wired into the `Shell` constructor and `exec()`. It warns
+  rather than blocks — a deliberate design decision, since a host may
+  legitimately pass a curated copy. JavaScript cannot reliably distinguish a
+  spread copy from an independently constructed equal-valued environment, so
+  copied environments remain covered by the documented deployment rule.
 - Deployment rule, documented in the README: secrets live in Worker bindings
   touched only by host code (authorizers, transports); **never** in `Shell({ env })`.
 - Per-tenant credentials are injected per-request by host code, never baked into a
@@ -310,8 +312,8 @@ interleaves two independent tenant shells, environments, and filesystem views.
 ## Deployment checklist (blocking items for go-live)
 
 1. Finding 1 guard: `warnIfHostProcessEnv` is implemented and warns when the
-   shell env is `process.env` or a shallow copy; secrets only in Worker bindings
-   used by host code.
+   shell env is the actual `process.env` object; never pass it or a secret-bearing
+   copy. Keep secrets only in Worker bindings used by host code.
 2. Finding 2: per-tenant Shell/FS + FS quota wrapper.
 3. Finding 3: fetch-based curl transport + origin allowlist authorizer (default
    is `*` = allow-all; configure an explicit allowlist if secrets live in env or

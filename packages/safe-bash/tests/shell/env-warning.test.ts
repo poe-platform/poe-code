@@ -19,23 +19,11 @@ test("warns when env is literally process.env, at most once per object", async (
   assert.equal(warn.mock.calls.length, 1);
 });
 
-test("warns when constructor env is a shallow copy of process.env", (context) => {
+test("does not guess that an equal-valued object came from process.env", (context) => {
   const warn = context.mock.method(console, "warn");
   const copy = { ...hostEnv };
   setup({ env: copy });
-  assert.equal(warn.mock.calls.length, 1);
-  setup({ env: copy });
-  assert.equal(warn.mock.calls.length, 1);
-});
-
-test("warns when exec env is a shallow copy of process.env", async (context) => {
-  const warn = context.mock.method(console, "warn");
-  const { shell } = setup();
-  const copy = { ...hostEnv };
-  await shell.exec("true", { env: copy });
-  assert.equal(warn.mock.calls.length, 1);
-  await shell.exec("true", { env: copy });
-  assert.equal(warn.mock.calls.length, 1);
+  assert.equal(warn.mock.calls.length, 0);
 });
 
 test("does not warn for ordinary env objects", async (context) => {

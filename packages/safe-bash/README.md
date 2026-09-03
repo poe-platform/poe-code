@@ -177,6 +177,40 @@ package/local-module loading, `process.exit()`, or native module fallback.
 Pass `limits` for source/input/output bytes, timeout, and interpreter budgets;
 see [defaults and configuration](src/commands/node/README.md#configuration).
 
+## Wire an individual MCP tool
+
+There is no generic safe-bash MCP server. Define each server and tool around the
+specific operation it grants, then call `Shell.exec()` with fixed shell source.
+For example, this server exposes name normalization without accepting arbitrary
+Bash from the MCP client:
+
+```ts
+import { Shell, agentCommands, createMemoryFileSystem } from "poe-code/safe-bash";
+import { createServer, defineSchema } from "tiny-stdio-mcp-server";
+
+const shell = new Shell({ fs: createMemoryFileSystem() }).use(agentCommands());
+const input = defineSchema({ names: { type: "string" } });
+
+const server = createServer({ name: "contacts-tools", version: "1.0.0" })
+  .tool("normalize_names", "Sort and deduplicate newline-separated names", input,
+    async ({ names }) => {
+      const result = await shell.exec("sort | uniq", { stdin: names });
+      if (result.exitCode !== 0) throw new Error(result.stderr);
+      return result.stdout;
+    });
+
+try {
+  await server.listen();
+} finally {
+  await shell.dispose();
+}
+```
+
+Install `poe-code` and the MCP transport package in that server's own project.
+Choose its filesystem, command bundle, limits, and opt-in capabilities there;
+do not expose caller-supplied shell source unless arbitrary shell execution is
+the deliberate API.
+
 ## Add a command
 
 A `CommandDefinition` has a name and an `execute(context)` handler. This example

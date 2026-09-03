@@ -185,7 +185,6 @@ describe("standalone package publish metadata", () => {
       "./credentials",
       "./memory",
       "./safe-bash",
-      "./safe-bash-mcp",
       "./safe-bash/browser",
       "./safe-bash/commands/apply-patch",
       "./safe-bash/commands/archive",
@@ -241,11 +240,19 @@ describe("standalone package publish metadata", () => {
       "poe",
       "poe-agent",
       "poe-code",
-      "poe-safe-bash-mcp",
       "poe-safe-js",
       "poe-safejs",
       "poe-superintendent-mcp"
     ]);
+  });
+
+  it("does not publish a generic safe-bash MCP server", () => {
+    const rootPackage = readPackageJson("package.json");
+
+    expect(rootPackage.exports?.["./safe-bash-mcp"]).toBeUndefined();
+    expect(rootPackage.bin?.["poe-safe-bash-mcp"]).toBeUndefined();
+    expect(rootPackage.files).not.toContain("packages/safe-bash-mcp/dist");
+    expect(rootPackage.devDependencies?.["safe-bash-mcp"]).toBeUndefined();
   });
 
   it("keeps dev-only tiny test servers out of the published package", () => {

@@ -1265,6 +1265,7 @@ describe("TerminalSession", () => {
     sessions.push(session);
 
     await session.waitFor("What is your name?");
+    await session.resize(100, 30);
 
     const expression = /Hello, Grace!/g;
     await session.send("Grace\r");
@@ -1274,7 +1275,6 @@ describe("TerminalSession", () => {
     expect(expression.lastIndex).toBe(0);
 
     await session.waitForQuiet(20);
-    await session.resize(100, 30);
 
     const screen = await session.screen();
     expect(screen.size).toEqual({ cols: 100, rows: 30 });

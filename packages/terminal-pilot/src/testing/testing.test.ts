@@ -1,6 +1,5 @@
 import { spawn } from "node:child_process";
 import { once } from "node:events";
-import { existsSync } from "node:fs";
 import { mkdtemp, rm } from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
@@ -11,7 +10,6 @@ import { stripAnsi } from "../ansi.js";
 
 const testingDirectory = path.dirname(fileURLToPath(import.meta.url));
 const testCliPath = path.join(testingDirectory, "test-cli.js");
-const terminalPilotCliPath = path.join(testingDirectory, "..", "cli.ts");
 const terminalPilotDistCliPath = path.join(testingDirectory, "..", "..", "dist", "cli.js");
 
 function normalizeOutput(output: string): string {
@@ -46,22 +44,15 @@ async function runFixture(scriptName: string, input: string) {
   };
 }
 
-function resolveTerminalPilotCliCommand(env: NodeJS.ProcessEnv): { command: string; args: string[] } {
-  if (env.CI === "true" && existsSync(terminalPilotDistCliPath)) {
-    return {
-      command: process.execPath,
-      args: [terminalPilotDistCliPath]
-    };
-  }
-
+function resolveTerminalPilotCliCommand(): { command: string; args: string[] } {
   return {
     command: process.execPath,
-    args: ["--import", "tsx", terminalPilotCliPath]
+    args: [terminalPilotDistCliPath]
   };
 }
 
 async function runTerminalPilotCli(args: string[], env: NodeJS.ProcessEnv) {
-  const cli = resolveTerminalPilotCliCommand(env);
+  const cli = resolveTerminalPilotCliCommand();
   const child = spawn(cli.command, [...cli.args, ...args], {
     cwd: process.cwd(),
     env,

@@ -1,6 +1,6 @@
 import type { ByteSource } from "./io.js";
 
-export type FileType = "file" | "directory" | "symlink";
+export type FileType = "file" | "directory" | "symlink" | "character";
 export type EntryComparison = "same" | "distinct" | "unknown";
 
 export interface FileStat {
@@ -15,6 +15,8 @@ export interface FileStat {
   readonly identityScope?: object | symbol;
   readonly ino?: number;
   readonly dev?: number;
+  readonly rdevMajor?: number;
+  readonly rdevMinor?: number;
   readonly nlink?: number;
   readonly uid?: number;
   readonly gid?: number;

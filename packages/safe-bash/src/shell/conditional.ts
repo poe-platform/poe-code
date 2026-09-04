@@ -104,7 +104,7 @@ async function unary(operator: string, value: string, context: ConditionalContex
     return context.present(value);
   }
   if (operator === "-o") return context.option(value);
-  if (!["-e", "-a", "-f", "-d", "-s", "-L", "-h", "-r", "-w", "-x"].includes(operator)) unsupported(operator);
+  if (!["-e", "-a", "-f", "-d", "-c", "-s", "-L", "-h", "-r", "-w", "-x"].includes(operator)) unsupported(operator);
   if (value === "") return false;
   if (/^\/dev\/(?:fd(?:\/|$)|stdin$|stdout$|stderr$)/u.test(value)) unsupported("descriptor predicate");
   const access = ["-r", "-w", "-x"].includes(operator);
@@ -117,6 +117,7 @@ async function unary(operator: string, value: string, context: ConditionalContex
     const metadata = await (operator === "-L" || operator === "-h" ? context.fs.lstat(resolvePath(context.cwd, value), { signal: context.signal }) : context.fs.stat(resolvePath(context.cwd, value), { signal: context.signal }));
     context.signal.throwIfAborted();
     if (operator === "-f") return metadata.type === "file";
+    if (operator === "-c") return metadata.type === "character";
     if (operator === "-d") return metadata.type === "directory";
     if (operator === "-s") return metadata.size > 0;
     if (operator === "-L" || operator === "-h") return metadata.type === "symlink";

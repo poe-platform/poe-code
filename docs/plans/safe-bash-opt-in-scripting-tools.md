@@ -66,6 +66,8 @@ this request to keep additions out of the default package.
 
 ## Work ledger
 
+- Local commits: `d18b2e0ed` establishes build isolation; `27beeaf50` adds yes.
+  Neither commit has been pushed or released, and neither action is requested.
 - First implementation wave: cmp, yes, shuf and virtual devices in disjoint leaf
   directories. Root is qualifying native oracles and the opt-in delivery boundary.
 - The yes leaf is verified for its documented GNU 9.7 C-locale profile: 135 tests
@@ -81,6 +83,15 @@ this request to keep additions out of the default package.
 - Independent yes integration exposed an option-parsing mismatch in the first GNU
   reference binary. A clean reference rebuild resolved it without product parser
   changes. Preserve that failed reference evidence rather than hiding it.
+- Shared character metadata support passed 21 focused command tests and 12 root-run
+  bridge tests; the author also reports 73 nearby command and 56 bridge regression
+  tests. Character nodes remain distinct from ordinary files, including across
+  bridge Stats/Dirents. This introduces no default device mount and does not widen
+  the real adapter's native special-file admission. The device implementation,
+  concurrent output handling and independent copy review remain separate work.
+- The maintained selected virtual-bash build completed both dependency tasks.
+  A default virtual-bash npm pack dry run listed 1,046 files and no optional
+  cmp/dd/install/shuf/truncate/yes/yq/device implementation files.
 
 ## Native oracle preparation
 

@@ -28,7 +28,7 @@ export function predicateCommands(): CommandDefinition[] {
     if (!args.length) return { exitCode: 1 };
     if (args.length === 1) return { exitCode: args[0] ? 0 : 1 };
     if (args.length === 2 && args[0] === "!") return { exitCode: args[1] ? 1 : 0 };
-    const unary = new Set(["-n", "-z", "-e", "-a", "-f", "-d", "-L", "-h", "-s", "-r", "-w", "-x"]);
+    const unary = new Set(["-n", "-z", "-e", "-a", "-f", "-d", "-c", "-L", "-h", "-s", "-r", "-w", "-x"]);
     const binary = new Set(["=", "==", "!=", "<", ">", "-eq", "-ne", "-lt", "-le", "-gt", "-ge", "-nt", "-ot", "-ef"]);
     let offset = 0;
     const number = (text: string): bigint => {
@@ -90,6 +90,7 @@ export function predicateCommands(): CommandDefinition[] {
           const stat = await metadata(context, operand, token === "-L" || token === "-h");
           if (!stat) return false;
           if (token === "-f") return stat.type === "file";
+          if (token === "-c") return stat.type === "character";
           if (token === "-d") return stat.type === "directory";
           if (token === "-L" || token === "-h") return stat.type === "symlink";
           if (token === "-s") return stat.size > 0;

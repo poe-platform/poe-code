@@ -193,7 +193,7 @@ async function render(context: CommandContext, path: string, name: string, stat:
       }
     } else if (code === "%") text = "%";
     else if (code === "A") text = permissionString(stat.mode, stat.type);
-    else if (code === "F") text = stat.type === "directory" ? "directory" : stat.type === "symlink" ? "symbolic link" : stat.size === 0 ? "regular empty file" : "regular file";
+    else if (code === "F") text = stat.type === "directory" ? "directory" : stat.type === "symlink" ? "symbolic link" : stat.type === "character" ? "character special file" : stat.size === 0 ? "regular empty file" : "regular file";
     else if (["x", "y", "z", "w"].includes(code)) {
       const value = times[code.toUpperCase()];
       text = code === "w" && value === undefined ? "-" : timestamp(available(value, code));

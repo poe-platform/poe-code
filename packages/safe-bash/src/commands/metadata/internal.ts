@@ -1,5 +1,5 @@
 import { yieldTurn } from "../../contracts/yield.js";
-import { FsError, writeBytes, type CommandContext, type CommandDefinition, type CommandHandler } from "../../contracts/index.js";
+import { FsError, writeBytes, type CommandContext, type CommandDefinition, type CommandHandler, type FileType } from "../../contracts/index.js";
 import { diagnostic } from "../internal.js";
 
 export interface MetadataLimits {
@@ -54,8 +54,8 @@ export function metadataCommand(name: string, handler: CommandHandler): CommandD
   } };
 }
 
-export function permissionString(mode: number, type: "file" | "directory" | "symlink"): string {
-  let text = type === "directory" ? "d" : type === "symlink" ? "l" : "-";
+export function permissionString(mode: number, type: FileType): string {
+  let text = type === "directory" ? "d" : type === "symlink" ? "l" : type === "character" ? "c" : "-";
   for (const [read, write, execute, special, lower, upper] of [
     [0o400, 0o200, 0o100, 0o4000, "s", "S"],
     [0o040, 0o020, 0o010, 0o2000, "s", "S"],

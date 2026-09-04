@@ -1,3 +1,24 @@
+# Character-device metadata
+
+`FileType` includes `"character"` for an explicitly supplied virtual character
+device. This is distinct from a regular file, including an empty regular file.
+A character device may report `size: 0` while its read stream has no EOF. Consumers
+must not use that size as the readable-stream length.
+
+`FileStat.rdevMajor` and `FileStat.rdevMinor` are optional, nonnegative safe
+integers identifying the special device, when the provider has that observation.
+They are not `dev`, which identifies the filesystem containing the entry.
+Absence means unknown, not zero. Faithful metadata forwarding preserves supplied
+values; consumers must not invent native major/minor numbers from an inode,
+logical size, or backing filesystem ID. The generic bridge preserves character
+type and mode in Stats/Dirent predicates; its legacy numeric `rdev` field does not
+yet encode these optional components.
+
+This contract does not mount devices, widen the rooted real-filesystem adapter
+to native special files, supply process-wide permissions, or promise kernel
+ioctl, seek, entropy-pool, or device-driver behavior. Those require separately
+implemented capabilities. Default filesystem instances remain unchanged.
+
 # Directory enumeration admission
 
 The [Directory Enumeration Admission Specification](directory-enumeration.md)

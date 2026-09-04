@@ -7,7 +7,7 @@ function predicates(type: FileType) {
     isDirectory: () => type === "directory",
     isSymbolicLink: () => type === "symlink",
     isBlockDevice: () => false,
-    isCharacterDevice: () => false,
+    isCharacterDevice: () => type === "character",
     isFIFO: () => false,
     isSocket: () => false,
   };
@@ -17,7 +17,7 @@ export function bridgeStats(stat: FileStat): FsBridgeStats {
   return {
     dev: stat.dev ?? 0,
     ino: stat.ino ?? 0,
-    mode: (stat.mode & 0o7777) | (stat.type === "directory" ? 0o040000 : stat.type === "symlink" ? 0o120000 : 0o100000),
+    mode: (stat.mode & 0o7777) | (stat.type === "directory" ? 0o040000 : stat.type === "symlink" ? 0o120000 : stat.type === "character" ? 0o020000 : 0o100000),
     nlink: stat.nlink ?? 1,
     uid: stat.uid ?? 0,
     gid: stat.gid ?? 0,

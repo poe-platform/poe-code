@@ -411,6 +411,7 @@ function assertSource7Discovery(files) {
     "tests/commands/yes/native.test.ts",
     "tests/commands/yes/integration.test.ts",
   ]) assert.ok(files.includes(path), "optional yes test is missing: " + path);
+  assert.ok(files.includes("tests/commands/device-metadata.test.ts"), "character metadata test is missing");
   assert.equal(new Set(files).size, files.length);
   for (const path of removed) assert.ok(!files.includes(path), "removed filesystem test remains selected: " + path);
   for (const path of added) assert.ok(files.includes(path), "retained filesystem test is missing: " + path);

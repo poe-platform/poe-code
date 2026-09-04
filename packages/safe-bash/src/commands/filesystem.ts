@@ -161,7 +161,7 @@ async function copy(
 }
 
 function modeText(stat: FileStat): string {
-  let text = stat.type === "directory" ? "d" : stat.type === "symlink" ? "l" : "-";
+  let text = stat.type === "directory" ? "d" : stat.type === "symlink" ? "l" : stat.type === "character" ? "c" : "-";
   for (const shift of [6, 3, 0]) {
     const mode = stat.mode >> shift;
     text += (mode & 4 ? "r" : "-") + (mode & 2 ? "w" : "-") + (mode & 1 ? "x" : "-");
@@ -419,7 +419,16 @@ export function filesystemCommands(maxDirectoryEntries?: number): CommandDefinit
             await admitFilesystemModes(context, "ls", ["link"], [path]);
             needCapability(context, "readlink"); target = ` -> ${await context.fs.readlink!(path, { signal: context.signal })}`;
           }
-          await output(context, `${modeText(stat)} ${stat.nlink ?? 1} ${stat.uid ?? 0} ${stat.gid ?? 0} ${stat.size} ${date} ${display}${suffix}${target}\n`);
+          let size = String(stat.size);
+          if (stat.type === "character") {
+            for (const number of [stat.rdevMajor, stat.rdevMinor]) {
+              if (number !== undefined && (!Number.isSafeInteger(number) || number < 0)) {
+                throw new FsError("EIO", { path, message: "invalid device number" });
+              }
+            }
+            size = `${stat.rdevMajor ?? "?"}, ${stat.rdevMinor ?? "?"}`;
+          }
+          await output(context, `${modeText(stat)} ${stat.nlink ?? 1} ${stat.uid ?? 0} ${stat.gid ?? 0} ${size} ${date} ${display}${suffix}${target}\n`);
         } else await output(context, `${display}${suffix}\n`);
       };
       const list = async (path: string, display: string, header: boolean, ancestors = new Set<string>()): Promise<void> => {

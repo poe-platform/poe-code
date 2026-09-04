@@ -74,8 +74,10 @@ disk fixtures. Root finishes build before guarded lint begins.
 - For exact-candidate validation, the user's staged changes are held in
   recoverable stash `807a0cfb99b754aaa5602a83dad6b709f3aa8653`, containing exactly
   three files with 33 insertions / 3 deletions. Full tracked-state recovery is
-  also retained at `72c634c653eb1827c71635c0f579a788c5bd5549`. Restore the user's
-  original staging after committing this issue; never drop these recovery records.
+  also retained at `72c634c653eb1827c71635c0f579a788c5bd5549`. After implementation
+  commit `47a8017df1aab4a215fad910aec79364776c1d27`, the original staging was
+  restored and verified: helper/test blobs are byte-identical and the cut hunk
+  content matches despite shifted line numbers. Recovery records remain retained.
 - Without the user's staged edits, all maintained core-sort tests, text tests
   and literal integration-input controls pass 281/281 with no skips/failures.
   Exact-candidate `text.ts` SHA-256 is
@@ -90,7 +92,8 @@ disk fixtures. Root finishes build before guarded lint begins.
 - Full maintained lint passes: 9,703 configured/linted files, zero errors or
   warnings, followed by type and workflow checks. Build completed before lint.
 - Frozen exact-candidate source/test/registration hashes remain unchanged.
-  Local gates are complete. #601 stays open until
+  Local gates and implementation commit `47a8017df1aab4a215fad910aec79364776c1d27`
+  are complete. #601 stays open until
   exact remote-main delivery is verified, then closes before publication.
 - #600 is separately delivered and closed at the baseline. Its release is
   monitored while this work proceeds; delivery alone is not release success.

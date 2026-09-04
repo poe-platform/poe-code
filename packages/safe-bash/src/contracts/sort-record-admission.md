@@ -1,8 +1,8 @@
 # Sort Record Admission Specification
 
-Status: Accepted
+Status: Implemented
 
-Implemented Through: Not applicable
+Implemented Through: `47a8017df1aab4a215fad910aec79364776c1d27`
 
 Purpose: Bound sort's retained record count independently of payload bytes and
 admit completed records before materialization.
@@ -92,7 +92,8 @@ back, and unrelated failure details MUST NOT be swallowed.
 
 ## 7. Conformance Criteria
 
-The extension is implemented only after all normative behavior and evidence
-categories pass against an identified implementation commit. Tests using logical
-lengths or counters prove admission arithmetic, not real allocation costs or
-historical OOM claims.
+The recorded implementation passed the required admission, compatibility,
+ownership, build, public-import, consumer and lint categories, as recorded in
+the associated #601 plan. Tests using logical lengths or counters prove admission
+arithmetic, not real allocation costs or historical OOM claims. Actual public
+record-boundary checks establish count enforcement, not a heap measurement.

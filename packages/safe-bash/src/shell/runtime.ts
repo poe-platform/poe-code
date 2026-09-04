@@ -10,7 +10,7 @@ import type { ShellValue } from "../contracts/value.js";
 import { createCommandArguments, getCommandArguments } from "../contracts/command.js";
 import type { CommandArguments } from "../contracts/command.js";
 import { ValueArena } from "./value-state.js";
-import type { HeldValue, ValueScope } from "./value-state.js";
+import type { HeldValue, ValueScope, ValueStore } from "./value-state.js";
 import type { Command, HereDocument, Pipeline, Redirect, Script, Word, WordPart } from "./parser.js";
 import { HereDocumentSyntaxError, hereDocumentWords, parseShellInputUnit, parseShellUnit } from "./parser.js";
 import { ShellLimitError, ShellSyntaxError } from "./types.js";
@@ -435,7 +435,7 @@ function cloneGetoptsBinding(state: State): GetoptsBinding {
 function saveVariable(state: State, name: string): SavedVariable {
   const monitor = stateMonitor(state);
   const value = monitor?.values.get(name, state.variables[name] ?? "");
-  const heldValue = value !== undefined && typeof value !== "string" ? monitor!.values.scope.hold(value) : undefined;
+  const heldValue = state.variables[name] !== undefined && value !== undefined ? monitor!.values.scope.hold(value) : undefined;
   return { value: state.variables[name], ...(heldValue ? { heldValue } : {}), exported: state.exported.has(name), readOnly: state.readonlyVariables?.has(name) ?? false, ...(name === "OPTIND" ? { getopts: cloneGetoptsBinding(state) } : {}) };
 }
 
@@ -1414,7 +1414,7 @@ export class Runtime {
         const tickets = publications.get(key)!;
         stateMonitor(state)!.publish(tickets, key, () => {
           void store.remove(key, tickets);
-          state.variables[key] = env[key]!;
+          publishVariable(state, key, env[key]!);
         });
       }
     } finally { try { await operation.close(); } finally { holding.release(); } }
@@ -2271,7 +2271,7 @@ export class Runtime {
           for (const [name, saved] of previous) {
             saved.value = variables[name];
             const value = stateMonitor(redirectState)!.values.get(name, saved.value ?? "");
-            const held = typeof value === "string" ? undefined : stateMonitor(state)!.values.scope.hold(value);
+            const held = saved.value === undefined ? undefined : stateMonitor(state)!.values.scope.hold(value);
             saved.heldValue?.release();
             if (held) saved.heldValue = held;
             else delete saved.heldValue;
@@ -2399,7 +2399,7 @@ export class Runtime {
             stateMonitor(state)!.publish(publication, key, () => {
               void store.remove(key, publication);
               if (saved.overlay === undefined) { delete state.variables[key]; state.exported.delete(key); }
-              else { state.variables[key] = saved.overlay; state.exported.add(key); }
+              else { publishVariable(state, key, saved.overlay); state.exported.add(key); }
               if (key === "OPTIND") this.reconcileGetopts(state, saved.value);
             });
             typedSavedVariables.get(saved)!.overlayVersion = publication.version;
@@ -2420,7 +2420,7 @@ export class Runtime {
         if (key.includes("\0") || key.includes("=") || (value !== undefined && (typeof value !== "string" || value.includes("\0")))) throw new TypeError("Invalid middleware environment value");
         previous.set(key, { ...saveVariable(state, key), overlay: value });
         if (value === undefined) { delete state.variables[key]; state.exported.delete(key); }
-        else { state.variables[key] = value; state.exported.add(key); }
+        else { publishVariable(state, key, value); state.exported.add(key); }
         if (key === "OPTIND") this.reconcileGetopts(state, previous.get(key)!.value);
       }
       }
@@ -2533,7 +2533,7 @@ export class Runtime {
             else await this.discardVariable(saved);
             return;
           }
-          if (saved.superseded || state.variables[key] !== saved.overlay) return;
+          if (saved.superseded || state.variables[key] !== saved.overlay) { await this.discardVariable(saved); return; }
           await restoreVariable(state, key, saved);
         });
         await scope.cleanup(() => stateMonitor(state)?.closeOverlay(previous));
@@ -3171,14 +3171,16 @@ export class Runtime {
     const sourceDepth = state.sourceDepth ?? 0;
     const monitor = stateMonitor(state);
     const restoration = monitor?.restoration(true);
+    let savedPositionals: ValueStore | undefined;
     try {
+      if (args.length) savedPositionals = monitor!.positionals.clone();
       const owner = arrayStore(state)?.owner;
       if (owner) {
         owner.reserve({ metadata: 64 + args.length * 32, allocatedSlots: args.length, work: args.length + 4 });
         monitor!.prepareCollection(args, "positional");
       }
       const entry = () => {
-        if (args.length) state.positional = args;
+        if (args.length) this.replacePositionals(state, getCommandArguments(context).values.slice(context.args.length - args.length), () => { state.positional = args; });
         state.sourceDepth = (state.sourceDepth ?? 0) + 1;
         state.depth++;
       };
@@ -3187,7 +3189,7 @@ export class Runtime {
         monitor!.publish(tickets, undefined, entry);
         tickets.release();
       } else entry();
-    } catch (error) { restoration?.close(); throw error; }
+    } catch (error) { savedPositionals?.close(); restoration?.close(); throw error; }
     try {
       return await this.runCurrentText(source, state, { ...io, scriptName: target, diagnosticOffset: 0, diagnosticLine: 1 }, special);
     } catch (error) {
@@ -3197,13 +3199,17 @@ export class Runtime {
       const restore = () => {
         state.depth--;
         state.sourceDepth = sourceDepth;
-        if (args.length && (state.functionDepth > 0 || (state.positionalSetVersion ?? 0) === version)) {
-          state.positional = positional;
-          state.positionalSetVersion = version;
+        if (savedPositionals && (state.functionDepth > 0 || (state.positionalSetVersion ?? 0) === version)) {
+          monitor!.positionals.restore(savedPositionals, () => {
+            state.positional = positional;
+            state.positionalSetVersion = version;
+          });
         }
       };
-      if (restoration) restoration.apply(restore);
-      else restore();
+      try {
+        if (restoration) restoration.apply(restore);
+        else restore();
+      } finally { savedPositionals?.close(); }
     }
   }
 
@@ -3230,7 +3236,7 @@ export class Runtime {
     for (const key of child.exported) delete child.variables[key];
     for (const [key, value] of Object.entries(env)) {
       if (key.includes("\0") || key.includes("=") || typeof value !== "string" || value.includes("\0")) throw new TypeError("Invalid invoke environment entry");
-      child.variables[key] = value;
+      publishVariable(child, key, value);
     }
     child.exported = new Set(Object.keys(env));
     }

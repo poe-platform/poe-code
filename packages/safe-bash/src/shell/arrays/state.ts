@@ -30,7 +30,7 @@ export function trackState(state: State, budget: { readonly values?: ValueArena;
     session = { values, ledger, internal: ledger.internal(budget.limits.maxCommands ?? 10_000), scope, owner: undefined, guestOwner: undefined };
     const registered = session;
     scope.register(async () => { await registered.scope.drainWork(); await registered.owner?.close(); });
-    scope.register(() => values.close());
+    scope.register(async () => { await registered.scope.drainWork(); values.close(); });
     sessions.set(budget, session);
   }
   return new StateMonitor(state, session).proxy;
@@ -72,7 +72,7 @@ export class StateMonitor {
     this.proxy = this.wrap(raw, "state") as State;
     monitors.set(raw, this);
     monitors.set(this.proxy, this);
-    session.scope.register(() => this.closeValues());
+    session.scope.register(async () => { await session.scope.drainWork(); this.closeValues(); });
   }
 
   closeValues(): void { this.values.close(); this.positionals.close(); }

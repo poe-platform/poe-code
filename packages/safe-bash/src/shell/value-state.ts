@@ -1,5 +1,5 @@
 import { shellValueRetainedBytes } from "../contracts/value.js";
-import type { ByteShellValue, ShellValue, ValueAllocation, ValueReservation } from "../contracts/value.js";
+import type { ShellValue, ValueAllocation, ValueReservation } from "../contracts/value.js";
 import { ShellLimitError } from "./types.js";
 
 interface AllocationRecord {
@@ -64,8 +64,17 @@ export class ValueArena {
     this.#slots -= record.slots;
   }
 
-  hold(value: ByteShellValue): HeldValue {
+  hold(value: ShellValue): HeldValue {
     this.assertOpen();
+    if (typeof value === "string") {
+      const payload = this.allocate(value.length * 2, 0);
+      let released = false;
+      return { value, release: () => {
+        if (released) return;
+        released = true;
+        this.release(payload);
+      } };
+    }
     const reference = this.allocate(32, 1);
     let payload: AllocationRecord;
     try {
@@ -125,8 +134,7 @@ export class ValueScope implements ValueAllocation {
 
   hold(value: ShellValue): HeldValue {
     this.assertOpen();
-    if (typeof value === "string") return { value, release() {} };
-    this.#enrollment ??= this.arena.allocate(64, 1);
+    if (typeof value !== "string") this.#enrollment ??= this.arena.allocate(64, 1);
     const held = this.arena.hold(value);
     const owner = { scope: this as ValueScope };
     const result = { value, release: (): void => {
@@ -144,7 +152,7 @@ export class ValueScope implements ValueAllocation {
     const validate = (): { scope: ValueScope } => {
       this.arena.assertRetained();
       const owner = this.#holds.get(held);
-      if (!owner || this.#closed || destination.#closed || this.arena !== destination.arena || !destination.#enrollment) throw new Error("Shell value restoration ownership is not prepared");
+      if (!owner || this.#closed || destination.#closed || this.arena !== destination.arena || typeof held.value !== "string" && !destination.#enrollment) throw new Error("Shell value restoration ownership is not prepared");
       return owner;
     };
     validate();
@@ -175,12 +183,12 @@ export class ValueStore {
   get(name: string, text: string): ShellValue { return this.#values.get(name)?.value ?? text; }
 
   publish(name: string, value: ShellValue, action: () => boolean): boolean {
-    const held = typeof value === "string" ? undefined : this.scope.hold(value);
+    const held = this.scope.hold(value);
     try {
-      if (!action()) { held?.release(); return false; }
-    } catch (error) { held?.release(); throw error; }
+      if (!action()) { held.release(); return false; }
+    } catch (error) { held.release(); throw error; }
     this.invalidate(name);
-    if (held) this.#values.set(name, held);
+    this.#values.set(name, held);
     return true;
   }
 
@@ -206,14 +214,9 @@ export class ValueStore {
     const staged = new Map<string, HeldValue>();
     try {
       for (const [name, value] of entries) {
-        if (typeof value !== "string") {
-          const held = this.scope.hold(value);
-          staged.get(name)?.release();
-          staged.set(name, held);
-        } else {
-          staged.get(name)?.release();
-          staged.delete(name);
-        }
+        const held = this.scope.hold(value);
+        staged.get(name)?.release();
+        staged.set(name, held);
       }
       action();
     } catch (error) { for (const held of staged.values()) held.release(); throw error; }

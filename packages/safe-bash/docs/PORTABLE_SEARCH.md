@@ -43,6 +43,11 @@ Literal matching compares original bytes without decoding, normalization, case
 folding, or replacement characters. Supported results retain original byte
 offsets and command output bytes, including BOM bytes.
 
+These are provider admission rules. Normal `rg` binary detection still handles
+NUL before provider admission and may report a binary-file match. Use `rg -aF`
+to pass text records through unchanged; an embedded NUL then causes an explicit
+provider rejection. No command-level binary policy is overridden by this profile.
+
 | Mode | Supported behavior |
 | --- | --- |
 | `grep -E` | Case-sensitive restricted ASCII ERE, leftmost-longest matching |
@@ -281,6 +286,13 @@ against exact installed registry versions after publication. Require the
 `PRODUCTION_PORTABLE_SEARCH_WORKERD_PASS` marker, all byte/profile/budget and
 cleanup assertions, and a successful workerd exit without Node compatibility
 flags. Retain module-graph and artifact identity evidence for each run.
+
+Also follow `docs/plans/issue-611-utf8-literal-search.md` for the separate
+`tests/integration/utf8-literal-search-workerd/` fixture. Require its
+`UTF8_LITERAL_SEARCH_WORKERD_PASS` marker and native workerd test success against
+the candidate and exact registry versions. This covers UTF-8 byte spans,
+malformed-input admission, command binary policy, budgets, and awaited retirement;
+it does not replace the original ASCII/regex acceptance.
 
 ## Provider-seam workerd acceptance
 

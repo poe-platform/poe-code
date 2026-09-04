@@ -4,7 +4,8 @@ import { observeProvider } from "./observe.mjs";
 
 const encoder = new TextEncoder();
 const endpointOptions = Object.freeze({ requestTimeoutMs: 1000, startupTimeoutMs: 1000, maxWorkers: 2, maxQueuedRequests: 64, maxQueuedBytes: 134217728, idleTimeoutMs: 100, workerOldGenerationMb: 128, workerStackMb: 4 });
-const grep = (patterns, overrides = {}) => ({ kind: "grep", patterns, fixed: true, extended: false, insensitive: false, whole: false, word: false, ...overrides });
+// Grep transports original pattern bytes as a Latin-1 string; rg transports Unicode.
+const grep = (patterns, overrides = {}) => ({ kind: "grep", patterns: patterns.map(pattern => Array.from(encoder.encode(pattern), byte => String.fromCharCode(byte)).join("")), fixed: true, extended: false, insensitive: false, whole: false, word: false, ...overrides });
 const rg = (patterns, overrides = {}) => ({ kind: "rg", patterns, fixed: true, case: "sensitive", whole: false, word: false, nullData: false, ...overrides });
 const row = (text, overrides = {}) => ({ bytes: encoder.encode(text), all: false, terminated: true, ...overrides });
 const note = "café\r\nCafe\ne\u0301\né\n前😀後\n\ufeffBOM\n";
@@ -81,7 +82,12 @@ export default {
           results.push({ kind: "exact-command-bytes", script, status });
         }
       }
-      for (const script of ["grep -F '�' /invalid", "rg -F '�' /invalid", "grep -F é /nul", "rg -F é /nul", "grep -E é /notes", "grep -E . /notes", "rg é /notes", "grep -Fi é /notes", "rg -Fi é /notes", "rg -FS é /notes", "grep -Fw é /notes", "rg -Fw é /notes", "grep -Fo é /notes", "rg -Fo é /notes", "rg -F -g '*.txt' é /notes"]) {
+      // Default rg binary handling splits at NUL before provider admission. Preserve
+      // that command policy; --text must forward the NUL and reject it below.
+      await command(shell, "rg -F é /nul", 'binary file matches (found "\\0" byte around offset 2)\n');
+      clean(provider);
+      results.push({ kind: "rg-default-binary-policy", script: "rg -F é /nul", binaryOffset: 2 });
+      for (const script of ["grep -F '�' /invalid", "rg -F '�' /invalid", "grep -F é /nul", "rg -aF é /nul", "grep -E é /notes", "grep -E . /notes", "rg é /notes", "grep -Fi é /notes", "rg -Fi é /notes", "rg -FS é /notes", "grep -Fw é /notes", "rg -Fw é /notes", "grep -Fo é /notes", "rg -Fo é /notes", "rg -F -g '*.txt' é /notes"]) {
         const value = await shell.exec(script);
         check(value.exitCode === 2 && value.stderr.length > 0, `unsupported command accepted: ${script}: ${JSON.stringify(value)}`);
         bytesEqual(value.stdoutBytes, new Uint8Array(), `${script} rejection output`);
@@ -112,8 +118,8 @@ export default {
       ]) {
         const value = descriptor(patterns, flags);
         const evidence = await directCase({}, value, [row(text)], reply => {
-          check(reply.results?.length === 1, `missing fixed UTF-8 result: ${JSON.stringify(reply)}`);
-          bytesEqual(reply.results[0], expected, "original byte span");
+          check(reply.results?.length === 1, `missing fixed UTF-8 result: ${JSON.stringify({ descriptor: value, text, reply })}`);
+          bytesEqual(reply.results[0], expected, `original byte span: ${JSON.stringify({ descriptor: value, text })}`);
         });
         results.push({ kind: "original-byte-offset", descriptor: value, text, expected, evidence });
       }
@@ -127,7 +133,9 @@ export default {
         results.push({ kind: "invalid-input-rejected-unchanged", descriptor: descriptor.kind, bytes, evidence });
       }
     }
-    for (const descriptor of [grep(["\ud800"]), rg(["\udc00"]), grep(["\0"]), rg(["\0"]), grep(["é"], { fixed: false, extended: true }), rg(["é"], { fixed: false }), grep(["é"], { insensitive: true }), rg(["é"], { case: "smart" }), grep(["é"], { word: true })]) {
+    // Keep the malformed grep transport raw; encoding a lone surrogate would
+    // silently replace it with valid U+FFFD and test the wrong request.
+    for (const descriptor of [grep([], { patterns: ["\ud800"] }), rg(["\udc00"]), grep(["\0"]), rg(["\0"]), grep(["é"], { fixed: false, extended: true }), rg(["é"], { fixed: false }), grep(["é"], { insensitive: true }), rg(["é"], { case: "smart" }), grep(["é"], { word: true })]) {
       const evidence = await directCase({}, descriptor, [], reply => check(typeof reply.error === "string" && reply.error.includes("unsupported"), `unsupported pattern accepted on empty input: ${JSON.stringify(reply)}`));
       results.push({ kind: "empty-input-pattern-rejection", descriptor, evidence });
     }

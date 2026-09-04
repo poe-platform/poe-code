@@ -58,3 +58,8 @@ A normal root build passed. A clean temporary install of its packed CLI reflecte
 an isolated manifest change from 0.0.0-dev to 0.0.0-release-speed-check without
 rebuilding. Its version/update display was inspected in a terminal screenshot.
 All 17 package-publication lint rules passed, unchanged.
+
+The final-source full lint chain also passed: 9,666 configured files, zero
+errors/warnings, TypeScript, and workflow checks. That combined validation took
+500.99 seconds while the full unit suite and isolated checkout/install/build
+were running; it is not a comparable standalone performance sample.

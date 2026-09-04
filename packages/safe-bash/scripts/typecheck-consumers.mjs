@@ -122,11 +122,17 @@ function installedPeer(packageRoot, binding) {
   }
 }
 
-function assertPeerResolution(specifier, target, importer, peerRoot, binding) {
+function assertPeerResolution(specifier, target, importer, peerRoot, binding, candidateRoot) {
   const publicImport = specifier === binding.name || specifier.startsWith(`${binding.name}/`);
-  const fromPeer = importer && existsSync(importer) && within(peerRoot, realpathSync(importer));
+  const fromPeer = importer && existsSync(importer) && binding.declarations.has(relative(peerRoot, realpathSync(importer)));
   const privateImport = specifier.startsWith("#");
-  if (!publicImport && !within(peerRoot, target) && !(fromPeer && (specifier.startsWith(".") || privateImport))) return;
+  // A checkout-root peer contains the candidate and ambient dependencies too.
+  // Those paths do not claim peer ownership; explicit peer imports still do.
+  const competingTarget = peerRoot !== candidateRoot && within(peerRoot, candidateRoot)
+    && (within(candidateRoot, target) || relative(peerRoot, target).split(sep).includes("node_modules"));
+  const peerTarget = binding.declarations.has(relative(peerRoot, target)) || (within(peerRoot, target) && !competingTarget);
+  if (!publicImport && !peerTarget && !(privateImport && binding.privateEntries?.has(specifier))
+    && !(fromPeer && (specifier.startsWith(".") || privateImport))) return;
   assert.ok(within(peerRoot, target), `foreign peer declaration/source fallback: ${specifier} -> ${target}`);
   const expected = binding.declarations.get(relative(peerRoot, target));
   assert.ok(expected, `peer resolution is outside the authenticated public closure: ${specifier} -> ${target}`);
@@ -159,7 +165,7 @@ function assertCandidateResolutions(stdout, installed, binding) {
     if (!match) continue;
     const [, specifier, target] = match;
     const physicalTarget = realpathSync(target);
-    if (peerRoot) assertPeerResolution(specifier, physicalTarget, importer, peerRoot, binding.peer);
+    if (peerRoot) assertPeerResolution(specifier, physicalTarget, importer, peerRoot, binding.peer, packageRoot);
     const publicImport = /^virtual-bash(?:\/|$)/u.test(specifier);
     const localLeaf = /(?:^|\/)node_modules\/virtual-bash\//u.test(specifier);
     const relativeDeclaration = /^\.\.?\//u.test(specifier) && importer && existsSync(importer) && within(dist, realpathSync(importer));

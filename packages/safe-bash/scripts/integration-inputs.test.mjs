@@ -351,12 +351,14 @@ test("optional scripting leaves stay outside the default build and package expor
   const metadata = JSON.parse(readRegularInput(root, "package.json", 65536, fs, boundaries));
   for (const path of [
     "src/commands/cmp/compare.ts", "src/commands/cmp/index.ts", "src/commands/cmp/io.ts", "src/commands/cmp/options.ts",
+    "src/commands/dd/conversions.ts", "src/commands/dd/index.ts", "src/commands/dd/io.ts", "src/commands/dd/options.ts", "src/commands/dd/report.ts",
+    "src/commands/install/arguments.ts", "src/commands/install/index.ts", "src/commands/install/mode.ts", "src/commands/install/options.ts",
     "src/commands/shuf/args.ts", "src/commands/shuf/index.ts", "src/commands/shuf/input.ts", "src/commands/shuf/options.ts",
     "src/commands/shuf/random.ts", "src/commands/shuf/shuf.ts", "src/commands/shuf/usage.ts",
     "src/commands/truncate/arguments.ts", "src/commands/truncate/index.ts", "src/commands/yes/index.ts",
     "src/fs/devices/index.ts",
   ]) assert.ok(configuration.exclude.includes(path), `optional source must not ship in the default build: ${path}`);
-  for (const path of ["./commands/cmp", "./commands/shuf", "./commands/truncate", "./commands/yes", "./fs/devices"]) {
+  for (const path of ["./commands/cmp", "./commands/dd", "./commands/install", "./commands/shuf", "./commands/truncate", "./commands/yes", "./fs/devices"]) {
     assert.equal(Object.hasOwn(metadata.exports, path), false, `optional leaf is not a default package export: ${path}`);
   }
 });

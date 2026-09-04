@@ -67,7 +67,8 @@ this request to keep additions out of the default package.
 ## Work ledger
 
 - Local commits: `d18b2e0ed` establishes build isolation; `27beeaf50` adds yes;
-  `209190556` preserves character-device metadata through filesystem consumers.
+  `209190556` preserves character-device metadata through filesystem consumers;
+  `75a013fd4` adds preferred-I/O metadata and corrects device-number forwarding.
   None has been pushed or released, and neither action is requested.
 - First implementation wave: cmp, yes, shuf and virtual devices in disjoint leaf
   directories. Root is qualifying native oracles and the opt-in delivery boundary.

@@ -133,7 +133,12 @@ for (const streamingAppend of [true, false, undefined]) {
       const bytes: number[] = [];
       let streams = 0;
       const fs = filesystem({
-        capabilities: { streamingAppend, streamingWrite, append: false, write: false },
+        capabilities: {
+          ...(streamingAppend === undefined ? {} : { streamingAppend }),
+          ...(streamingWrite === undefined ? {} : { streamingWrite }),
+          append: false,
+          write: false,
+        },
         async writeStream(_path, source, options) {
           streams++;
           assert.equal(options?.flag, "a");

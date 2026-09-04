@@ -46,11 +46,12 @@ beforeEach(() => {
   vol.fromJSON({ "/machine/.keep": "", "/outside/secret": "outside" });
 });
 
-const adapters: Array<{ name: string; create: () => FileSystem }> = [
-  { name: "memory", create: () => new MemoryFileSystem() },
-  { name: "machine directory (memfs)", create: () => new RealFileSystem({ root: "/machine" }) },
+const adapters: Array<{ name: string; create: () => FileSystem; overlayAppend: boolean }> = [
+  { name: "memory", create: () => new MemoryFileSystem(), overlayAppend: true },
+  { name: "machine directory (memfs)", create: () => new RealFileSystem({ root: "/machine" }), overlayAppend: true },
   {
     name: "S3 mock",
+    overlayAppend: false,
     create: () =>
       new S3FileSystem({
         transport: new MockS3Client({ buckets: ["test"] }),
@@ -58,15 +59,16 @@ const adapters: Array<{ name: string; create: () => FileSystem }> = [
         allowNonAtomicRename: true
       })
   },
-  { name: "mount", create: () => new MountFileSystem({ root: new MemoryFileSystem() }) },
+  { name: "mount", create: () => new MountFileSystem({ root: new MemoryFileSystem() }), overlayAppend: true },
   {
     name: "overlay",
+    overlayAppend: false,
     create: () =>
       new OverlayFileSystem({ lower: new MemoryFileSystem(), upper: new MemoryFileSystem() })
   }
 ];
 
-describe.each(adapters)("shared contract: $name", ({ create }) => {
+describe.each(adapters)("shared contract: $name", ({ create, overlayAppend }) => {
   it("preserves binary bytes, exclusive creation, append, copy and rename", async () => {
     const filesystem = create();
     const bytes = new Uint8Array([0, 255, 128, 10]);
@@ -108,16 +110,38 @@ describe.each(adapters)("shared contract: $name", ({ create }) => {
     await expect(filesystem.stat("/cancelled")).rejects.toMatchObject({ code: "ENOENT" });
   });
 
-  it("preserves conservative append capability declarations through wrappers", () => {
+  it("preserves conservative append capability declarations through wrappers", async () => {
     const writable = create();
+    const initial = new Uint8Array([1, 2]);
+    const suffix = new Uint8Array([3]);
+    await writable.writeFile("/existing", initial);
     const readonly = new ReadOnlyFileSystem(writable);
     expect(writable.capabilities.append).toBe(true);
     expect(readonly.capabilities.append).toBe(false);
     expect(new MountFileSystem({ root: readonly }).capabilities.append).toBe(false);
     expect(new MountFileSystem({ root: writable }).capabilities.append).toBe(true);
-    expect(new OverlayFileSystem({ upper: readonly, lower: writable }).capabilities.append).toBe(false);
+    const readonlyOverlay = new OverlayFileSystem({ upper: readonly, lower: writable });
+    expect(readonlyOverlay.capabilities.readOnly).toBe(true);
+    expect(readonlyOverlay.capabilities.append).toBe(false);
+    await expect(readonlyOverlay.appendFile("/existing", suffix)).rejects.toMatchObject({ code: "EROFS" });
+    expect(await writable.readFile("/existing")).toEqual(initial);
     const overlay = new OverlayFileSystem({ upper: writable, lower: create() });
-    expect(overlay.capabilities.append).toBe(!overlay.capabilities.readOnly);
+    expect(overlay.capabilities.readOnly).toBe(false);
+    expect(overlay.capabilities.append).toBe(overlayAppend);
+    if (overlayAppend) {
+      await overlay.appendFile("/existing", suffix);
+      await overlay.appendFile("/missing", suffix);
+      expect(await overlay.readFile("/existing")).toEqual(new Uint8Array([1, 2, 3]));
+      expect(await overlay.readFile("/missing")).toEqual(suffix);
+    } else {
+      for (const path of ["/existing", "/missing"]) {
+        await expect(overlay.appendFile(path, suffix)).rejects.toMatchObject({ code: "ENOTSUP" });
+      }
+      expect(await overlay.readFile("/existing")).toEqual(initial);
+      expect(await writable.readFile("/existing")).toEqual(initial);
+      await expect(overlay.stat("/missing")).rejects.toMatchObject({ code: "ENOENT" });
+      await expect(writable.stat("/missing")).rejects.toMatchObject({ code: "ENOENT" });
+    }
   });
 
   it("preserves retained stream chunks when a producer reuses its buffer", async () => {

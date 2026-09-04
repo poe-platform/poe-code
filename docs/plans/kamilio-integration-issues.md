@@ -41,8 +41,9 @@ not merely a local passing test.
 2. Run focused tests, maintained builds, strict package type/consumer checks,
    and package smoke tests relevant to each change. No snapshot or test failure
    waiver, environment weakening, or skipped hook substitutes for validation.
-3. Use explicit owned file lists and Conventional Commits. Run normal commit
-   and push hooks (`npm test` remains the maintained full unit route).
+3. Use explicit owned file lists and Conventional Commits. Follow the current
+   repository manual pre-push policy: this cross-workspace change requires the
+   full `npm test` route and repository-wide lint. Never bypass installed hooks.
 4. Verify remote-main commit identity after each push and monitor both root and
    scoped-safe-package GitHub release workflows to successful completion.
 5. Report local commits, remote delivery, package publication, and acceptance
@@ -65,7 +66,12 @@ changing repository dependencies, global npm, test selection, or hook policy:
   Its conflict with Vitest's `FORCE_COLOR` adds Node warning lines to process
   output assertions. Do not suppress warnings or change the assertions.
 - Preserve caller-supplied optional unit profiles and normal Git-hook cleanup.
-  Run the same complete `npm test` route and normal commit/push hooks.
+  Run the same complete `npm test` route and required manual pre-push checks.
+
+Newer main commits removed the commit/push hooks and established selective
+manual validation. Integration preserves those commits and the independent
+stat-format fix by merging `42d9dba27cafcb637ca28498c1e5ca4d53d68633`, without
+rewriting the existing fix commits. Revalidate the merged tree before pushing.
 
 The extra strict SafeBash audit initially reports 24 diagnostics already present
 at `e4e23699e696d320363da662d1d74475bb098d28`, independently checked against

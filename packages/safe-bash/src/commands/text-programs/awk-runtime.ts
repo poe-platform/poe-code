@@ -18,7 +18,10 @@ class Reader {
     this.budget.step();
     const next = await this.iterator.next();
     if (next.done) this.ended = true;
-    else this.buffer = this.budget.check(this.buffer + Buffer.from(next.value).toString("latin1"));
+    else {
+      if (next.value.byteLength > this.budget.maxBufferBytes - this.buffer.length) throw new ProgramError("text buffer limit exceeded");
+      this.buffer = this.budget.check(this.buffer + Buffer.from(next.value).toString("latin1"));
+    }
   }
   async read(separator: string): Promise<string | undefined> {
     if (separator.length > 1) throw new ProgramError("RS must be one byte or empty for paragraph records");

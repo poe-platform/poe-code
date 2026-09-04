@@ -5,6 +5,71 @@ import { standardCommands } from "../../../src/commands/index.js";
 import { textProgramCommands } from "../../../src/commands/text-programs/index.js";
 import { byteChunks, makeFileSystem, runVirtual } from "./helpers.js";
 
+for (const program of ['{ print }', 'BEGIN { while ((getline value < "-") > 0) print value }']) {
+  for (const carriedBytes of [0, 64]) {
+    test(`awk reader rejects before copying or decoding: carry=${carriedBytes}, ${program}`, async context => {
+      const maxBufferBytes = 128;
+      const rejected = new Uint8Array(maxBufferBytes - carriedBytes + 1).fill(120);
+      const prefix = Buffer.from(`done\n${"x".repeat(carriedBytes)}`);
+      let pulls = 0;
+      let closed = false;
+      const source = (async function* () {
+        try {
+          if (carriedBytes) { pulls++; yield prefix; }
+          pulls++; yield rejected;
+          pulls++; yield Uint8Array.of(10);
+        } finally { closed = true; }
+      })();
+      const from = context.mock.method(Buffer, "from");
+      const toString = context.mock.method(Buffer.prototype, "toString");
+      const result = await runVirtual("awk", { args: [program] }, { maxBufferBytes }, source);
+      const copies = from.mock.calls.filter(call => call.arguments[0] === rejected);
+      const decodings = toString.mock.calls.filter((call: { this: unknown }) => copies.some(copy => copy.result === call.this));
+      assert.equal(result.exitCode, 2);
+      assert.equal(result.stderr.toString(), "awk: text buffer limit exceeded\n");
+      assert.equal(result.stdout.toString(), carriedBytes ? "done\n" : "");
+      assert.equal(pulls, carriedBytes ? 2 : 1);
+      assert.equal(closed, true);
+      assert.deepEqual({ copies: copies.length, decodings: decodings.length }, { copies: 0, decodings: 0 });
+    });
+  }
+}
+
+test("awk reader admits exact byte limits with split UTF-8, carry and empty chunks", async () => {
+  const contents = Buffer.from(`${"é".repeat(63)}x\n`);
+  assert.equal(contents.byteLength, 128);
+  const source = (async function* () {
+    yield contents.subarray(0, 1);
+    yield new Uint8Array();
+    yield contents.subarray(1, 127);
+    yield contents.subarray(127);
+    yield contents;
+  })();
+  const result = await runVirtual("awk", { args: ['{ print }'] }, { maxBufferBytes: 128 }, source);
+  assert.equal(result.exitCode, 0, result.stderr.toString());
+  assert.deepEqual(result.stdout, Buffer.concat([contents, contents]));
+});
+
+test("awk reader counts UTF-8 bytes rather than decoded characters", async () => {
+  const result = await runVirtual("awk", { args: ['{ print }'], stdin: `${"é".repeat(64)}\n` }, { maxBufferBytes: 128 });
+  assert.equal(result.exitCode, 2);
+  assert.equal(result.stderr.toString(), "awk: text buffer limit exceeded\n");
+  assert.equal(result.stdout.length, 0);
+});
+
+test("awk reader retains owned raw bytes across producer reuse and unterminated EOF", async () => {
+  const source = (async function* () {
+    const chunk = Uint8Array.of(0xff, 0xc3);
+    yield chunk;
+    chunk.set([0xa9, 0]);
+    yield chunk;
+    chunk.fill(120);
+  })();
+  const result = await runVirtual("awk", { args: ['{ print }'] }, { maxBufferBytes: 128 }, source);
+  assert.equal(result.exitCode, 0, result.stderr.toString());
+  assert.deepEqual(result.stdout, Buffer.from([0xff, 0xc3, 0xa9, 0, 10]));
+});
+
 for (const [name, program, expected] of [
   ["empty program", "", ""],
   ["only repeated mixed separators", "\n;;\n;\n", ""],

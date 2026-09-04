@@ -1,7 +1,7 @@
 import { parentPort } from "node:worker_threads";
 import { compile } from "./matching.js";
 import { matchExpr } from "../expr/bre-worker.js";
-import { ExprMatchError, validateExprRequest, type ExprMatchRequest, type ExprMatchReply, type Request, type Reply } from "./protocol.js";
+import { ExprMatchError, matchRangeLimits, validateExprRequest, type ExprMatchRequest, type ExprMatchReply, type Request, type Reply } from "./protocol.js";
 
 if (!parentPort) throw new Error("regex worker requires a parent port");
 const port = parentPort;
@@ -29,8 +29,12 @@ port.on("message", (request: Request | ExprMatchRequest) => {
       matcher = compile(legacy.descriptor);
       previous = identity;
     }
+    let retainedRanges = 0;
     const results = request.rows.map((row, index) => {
       const matches = matcher!(row, index);
+      if (matches.length > matchRangeLimits.perRow) throw new Error("matches per row limit exceeded");
+      if (matches.length > matchRangeLimits.perReply - retainedRanges) throw new Error("matches per reply limit exceeded");
+      retainedRanges += matches.length;
       const ranges = new Float64Array(matches.length * 2);
       for (let index = 0; index < matches.length; index++) {
         ranges[index * 2] = matches[index]!.start;

@@ -1,5 +1,5 @@
 import { isAscii } from "node:buffer";
-import type { Descriptor, GrepDescriptor, SearchDescriptor, Match, Row } from "./protocol.js";
+import { matchRangeLimits, type Descriptor, type GrepDescriptor, type SearchDescriptor, type Match, type Row } from "./protocol.js";
 
 class SearchError extends Error {}
 class UsageError extends Error {}
@@ -77,7 +77,7 @@ class SearchMatcher {
     if (!this.regex) return [];
     if (this.byteEmpty) {
       const length = all ? bytes.length + Number(terminated) : 1;
-      if (length > 100000) throw new SearchError("matches per line limit exceeded");
+      if (length > matchRangeLimits.perRow) throw new SearchError("matches per line limit exceeded");
       return Array.from({ length }, (_value, offset) => ({ start: offset, end: offset }));
     }
     const { text, offsets, invalid } = isAscii(bytes) ? { text: Buffer.from(bytes).toString("ascii"), offsets: undefined, invalid: [] } : decode(bytes);
@@ -95,8 +95,10 @@ class SearchMatcher {
         const last = first + match[0].length;
         const start = offsets?.[first] ?? first;
         const end = offsets?.[last] ?? last;
-        if (start !== end || start !== previousEnd) matches.push({ start, end });
-        if (matches.length > 100000) throw new SearchError("matches per line limit exceeded");
+        if (start !== end || start !== previousEnd) {
+          if (matches.length >= matchRangeLimits.perRow) throw new SearchError("matches per line limit exceeded");
+          matches.push({ start, end });
+        }
         if (!all && matches.length) return matches;
         previousEnd = end;
         if (match[0].length === 0) {
@@ -153,6 +155,7 @@ function grepMatcher(args: GrepDescriptor): (bytes: Uint8Array, all: boolean) =>
       while ((match = matcher.exec(text)) !== null) {
         const boundary = !args.word || !/[A-Za-z0-9_]/u.test(text[match.index - 1] ?? "") && !/[A-Za-z0-9_]/u.test(text[match.index + match[0].length] ?? "");
         if (boundary) {
+          if (ranges.length >= matchRangeLimits.perRow) throw new SearchError("matches per line limit exceeded");
           ranges.push({ start: match.index, end: match.index + match[0].length });
           if (!all) return ranges;
         }

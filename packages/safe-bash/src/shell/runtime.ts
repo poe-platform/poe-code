@@ -4448,28 +4448,67 @@ export class Runtime {
     const arrayOwned = word.parts.some(part => part.kind === "variable" && (getArraySelector(part) !== undefined || arrayStore(state)?.get(part.name) !== undefined));
     const owner = arrayOwned ? requireArrays(state).owner : undefined;
     const holding = owner?.hold();
+    const scratch = !owner && split && state.variables.IFS !== "" && word.parts.some(part => !part.quoted && part.kind !== "text")
+      ? this.budget.values.scope() : undefined;
     try {
     if (owner) await this.prepareArrayObservers(state, owner);
     owner?.reserve({ metadata: 128 + word.parts.length * 32, allocatedSlots: word.parts.length + 1, work: word.parts.length + 5 });
-    const fields: { value: string; fragments: ShellValue[]; bytes: boolean; pattern: string; present: boolean }[] = [{ value: "", fragments: [], bytes: false, pattern: "", present: false }];
+    scratch?.reserve(word.parts.length * 32, 0);
+    const fields: { fragments: ShellValue[]; bytes: boolean; patterns: string[] | undefined; present: boolean }[] = [];
+    const addField = (): void => {
+      if (fields.length >= this.budget.limits.maxExpansionFields) this.budget.fail("maxExpansionFields");
+      scratch?.reserve(32, 0);
+      owner?.reserve({ metadata: 32, allocatedSlots: 1, work: 3 });
+      fields.push({ fragments: [], bytes: false, patterns: undefined, present: false });
+    };
+    addField();
     let expansionBytes = 0;
     const append = (value: ShellValue, glob: boolean, present: boolean) => {
       const text = shellValueText(value);
       const size = shellValueByteLength(value);
       if (size > this.budget.limits.maxExpansionBytes - expansionBytes) this.budget.fail("maxExpansionBytes");
       expansionBytes += size;
-      regexAppend?.(text, !glob);
       const field = fields.at(-1)!;
-      if (owner) owner.reserve({ payload: exactSum(Buffer.byteLength(field.value) + size, Buffer.byteLength(field.pattern) + (glob ? size : size * 2)), metadata: 64, work: text.length + 8 });
+      let escapes = 0;
+      if (!glob) {
+        const special = conditionalPattern ? "\\*?[]-^()|+!@" : "\\*?[]-^";
+        for (const character of text) if (special.includes(character)) escapes++;
+      }
+      scratch?.reserve(32, 0);
+      if (owner) owner.reserve({ payload: size + (escapes ? size + escapes : 0), metadata: 64, work: text.length + 8 });
+      if (escapes) {
+        scratch?.reserve((field.patterns ? 32 : 32 * (field.fragments.length + 1)) + (text.length + escapes) * 2, 0);
+        field.patterns ??= field.fragments.map(shellValueText);
+        field.patterns.push(text.replace(conditionalPattern ? /[\\*?[\]\-^()|+!@]/gu : /[\\*?[\]\-^]/gu, "\\$&"));
+      } else if (field.patterns) {
+        scratch?.reserve(32, 0);
+        field.patterns.push(text);
+      }
       if (typeof value !== "string" || field.bytes) {
-        io[valueScope]?.reserve(32 * (field.bytes ? 1 : field.fragments.length + 1), field.bytes ? 1 : field.fragments.length + 1);
+        if (!scratch) io[valueScope]?.reserve(32 * (field.bytes ? 1 : field.fragments.length + 1), field.bytes ? 1 : field.fragments.length + 1);
         if (typeof value !== "string") io[valueScope]?.hold(value);
         field.bytes = true;
       }
+      regexAppend?.(text, !glob);
       field.fragments.push(value);
-      field.value += text;
-      field.pattern += glob ? text : text.replace(conditionalPattern ? /[\\*?[\]\-^()|+!@]/gu : /[\\*?[\]\-^]/gu, "\\$&");
       field.present ||= present;
+    };
+    const appendSplit = async (value: ShellValue): Promise<void> => {
+      const separators = state.variables.IFS ?? " \t\n";
+      let boundary = false;
+      for await (const piece of this.splitValue(value, separators, io, scratch)) {
+        if (typeof piece === "string" && separators.includes(piece)) {
+          if (!" \t\n".includes(piece)) {
+            fields.at(-1)!.present = true;
+            addField();
+          } else if (fields.at(-1)!.present) boundary = true;
+        } else {
+          if (boundary) addField();
+          boundary = false;
+          append(piece, true, true);
+        }
+      }
+      if (boundary) addField();
     };
     const parts = word.parts.map((part) => ({ part, splitText: false }));
     for (let index = 0; index < parts.length; index++) {
@@ -4479,6 +4518,7 @@ export class Runtime {
         const value = this.variable(state, part.name);
         const missing = value === undefined || (part.operator!.startsWith(":") && value === "");
         if (part.operator!.endsWith("+") ? !missing : missing) {
+          scratch?.reserve(part.alternate!.parts.length * 32, 0);
           const alternate = part.alternate!.parts.map((entry) => ({ part: copyArraySelector(entry, { ...entry, quoted: entry.quoted || part.quoted }), splitText: true }));
           if (!alternate.length && part.quoted) append("", false, true);
           parts.splice(index + 1, 0, ...alternate);
@@ -4489,31 +4529,10 @@ export class Runtime {
       if (part.kind === "variable" && selector?.kind === "members" && !part.length && split && (!part.quoted || selector.separator === "@")) {
         const members = await this.arrayMembers(part.name, state);
         for (let position = 0; position < members.length; position++) {
-          if (position > 0) {
-            owner?.reserve({ metadata: 32, allocatedSlots: 1, work: 3 });
-            fields.push({ value: "", fragments: [], bytes: false, pattern: "", present: false });
-          }
+          if (position > 0) addField();
           const value = members[position]!;
           if (part.quoted || state.variables.IFS === "") append(value, !part.quoted, part.quoted || value.length > 0);
-          else {
-            const separators = state.variables.IFS ?? " \t\n";
-            let boundary = false;
-            for (const character of value) {
-              if (separators.includes(character)) {
-                if (!/[ \t\n]/u.test(character)) {
-                  fields.at(-1)!.present = true;
-                  owner?.reserve({ metadata: 32, allocatedSlots: 1, work: 3 });
-                  fields.push({ value: "", fragments: [], bytes: false, pattern: "", present: false });
-                } else if (fields.at(-1)!.present) boundary = true;
-              } else {
-                if (boundary) { owner?.reserve({ metadata: 32, allocatedSlots: 1, work: 3 }); fields.push({ value: "", fragments: [], bytes: false, pattern: "", present: false }); }
-                boundary = false;
-                append(character, true, true);
-              }
-              await owner!.ledger.checkpoint(this.signal);
-            }
-            if (boundary) { owner?.reserve({ metadata: 32, allocatedSlots: 1, work: 3 }); fields.push({ value: "", fragments: [], bytes: false, pattern: "", present: false }); }
-          }
+          else await appendSplit(value);
         }
       } else if (part.kind === "text" && !splitText) {
         let value: ShellValue = invokedValues.get(part) ?? part.byteValue ?? part.value;
@@ -4521,32 +4540,14 @@ export class Runtime {
         append(value, !part.quoted, quotedPresence || shellValueByteLength(value) > 0);
       } else if (part.kind === "variable" && part.name === "@" && part.quoted && !part.operator && split) {
         for (let position = 0; position < state.positional.length; position++) {
-          if (position > 0) fields.push({ value: "", fragments: [], bytes: false, pattern: "", present: false });
+          if (position > 0) addField();
           append(stateMonitor(state)?.positionals.get(String(position), state.positional[position]!) ?? state.positional[position]!, false, true);
         }
         if (state.positional.length === 0 && word.parts.every((entry) => (entry.kind === "text" && entry.value === "") || entry === part)) fields[0]!.present = false;
       } else {
         const value = part.kind === "text" ? part.byteValue ?? part.value : await this.valuePart(part, state, io, hereString);
         if (part.quoted || !split || state.variables.IFS === "") append(value, !part.quoted, quotedPresence || !split || shellValueByteLength(value) > 0);
-        else {
-          const separators = state.variables.IFS ?? " \t\n";
-          let boundary = false;
-          const pieces = this.splitValue(value, separators, io);
-          for (const character of pieces) {
-            const text = shellValueText(character);
-            if (typeof character === "string" && separators.includes(character)) {
-              if (!/[ \t\n]/u.test(text)) {
-                fields.at(-1)!.present = true;
-                fields.push({ value: "", fragments: [], bytes: false, pattern: "", present: false });
-              } else if (fields.at(-1)!.present) boundary = true;
-            } else {
-              if (boundary) fields.push({ value: "", fragments: [], bytes: false, pattern: "", present: false });
-              boundary = false;
-              append(character, true, true);
-            }
-          }
-          if (boundary) fields.push({ value: "", fragments: [], bytes: false, pattern: "", present: false });
-        }
+        else await appendSplit(value);
       }
       if (fields.length > this.budget.limits.maxExpansionFields) this.budget.fail("maxExpansionFields");
       if (owner) await owner.ledger.checkpoint(this.signal);
@@ -4555,31 +4556,73 @@ export class Runtime {
     let resultBytes = 0;
     for (const field of fields) {
       if (!field.present && split) continue;
+      if (scratch && field.fragments.length > 1 && !field.bytes) scratch.reserve(field.fragments.reduce((bytes, value) => bytes + shellValueText(value).length * 2, 0), 0);
       const assembled = concatShellValues(field.fragments, io[valueScope]);
       const projection = shellValueText(assembled);
-      const expanded = split ? await this.glob(projection, field.pattern, state) : [pattern ? field.pattern : projection];
+      if (field.bytes && field.fragments.length > 1 && !field.patterns) {
+        scratch?.reserve(field.fragments.length * 32, 0);
+        field.patterns = field.fragments.map(shellValueText);
+      }
+      if (scratch && field.patterns && field.patterns.length > 1) scratch.reserve(field.patterns.reduce((bytes, text) => bytes + text.length * 2, 0), 0);
+      const fieldPattern = field.patterns ? field.patterns.join("") : projection;
+      const expanded = split ? await this.glob(projection, fieldPattern, state) : [pattern ? fieldPattern : projection];
       for (const text of expanded) {
+        if (result.length >= this.budget.limits.maxExpansionFields) this.budget.fail("maxExpansionFields");
         const value = !pattern && expanded.length === 1 && text === projection ? assembled : text;
         const size = shellValueByteLength(value);
         if (size > this.budget.limits.maxExpansionBytes - resultBytes) this.budget.fail("maxExpansionBytes");
         resultBytes += size;
+        scratch?.reserve(32, 0);
         owner?.reserve({ metadata: 32, allocatedSlots: 1, work: 3 });
         result.push(value);
       }
       if (result.length > this.budget.limits.maxExpansionFields) this.budget.fail("maxExpansionFields");
     }
     return result;
-    } finally { holding?.release(); }
+    } finally { scratch?.close(); holding?.release(); }
   }
 
-  private *splitValue(value: ShellValue, separators: string, io: IO): Generator<ShellValue> {
+  private splitWork?: { scanned: number };
+
+  private async *splitValue(value: ShellValue, separators: string, io: IO, scratch?: ValueScope): AsyncGenerator<ShellValue> {
+    this.budget.cpuCheckpoint();
+    const work = this.splitWork ??= { scanned: 0 };
     if (typeof value === "string" || Array.from(separators).some(character => character.charCodeAt(0) > 127)) {
-      yield* shellValueText(value);
+      const text = shellValueText(value);
+      const slice = (start: number, end: number): string => {
+        if (start === 0 && end === text.length) return text;
+        scratch?.reserve((end - start) * 2, 0);
+        return text.slice(start, end);
+      };
+      let start = 0;
+      for (let index = 0; index < text.length;) {
+        const character = String.fromCodePoint(text.codePointAt(index)!);
+        const end = index + character.length;
+        if (separators.includes(character)) {
+          if (start < index) yield slice(start, index);
+          yield character;
+          start = end;
+        } else if (end - start >= 4096) {
+          yield slice(start, end);
+          start = end;
+        }
+        work.scanned += character.length;
+        index = end;
+        if (work.scanned >= 4096) {
+          work.scanned = 0;
+          await yieldTurn(this.signal);
+        }
+      }
+      if (start < text.length) yield slice(start, text.length);
       return;
     }
     const bytes = shellValueBytes(value, io[valueScope]);
     let start = 0;
     for (let index = 0; index < bytes.length; index++) {
+      if (++work.scanned >= 4096) {
+        work.scanned = 0;
+        await yieldTurn(this.signal);
+      }
       const byte = bytes[index]!;
       if (byte > 127 || !separators.includes(String.fromCharCode(byte))) continue;
       if (start < index) yield shellValueFromBytes(bytes.subarray(start, index), io[valueScope]);

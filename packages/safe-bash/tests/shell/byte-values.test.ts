@@ -57,6 +57,56 @@ test("ordinary Unicode text keeps its text semantics", async () => {
   assert.deepEqual(await fs.readFile("/bytes"), new TextEncoder().encode("é🙂�"));
 });
 
+test("IFS byte runs preserve invalid bytes and UTF8 across scanner checkpoints", async () => {
+  const { shell, commands } = fixture();
+  const payload = Uint8Array.from([...new TextEncoder().encode(`${"a".repeat(4095)}🙂`), 255, 32, 254]);
+  commands.register({ name: "emit", async execute({ stdout }) { await stdout.write(payload); return { exitCode: 0 }; } });
+  const result = await shell.exec('value=$(emit); printf "%s" $value');
+  assert.equal(result.exitCode, 0, result.stderr);
+  assert.deepEqual(result.stdoutBytes, Uint8Array.from([...payload.subarray(0, -2), 254]));
+  await shell.dispose();
+});
+
+test("IFS non-ASCII separators preserve Unicode substitution and quoted byte boundaries", async () => {
+  const { shell } = fixture();
+  assert.equal((await shell.exec('IFS=🙂; value="a🙂🙂b"; args $value')).stdout, '["a","","b"]');
+  const result = await shell.exec('value=$(printf "a b"); printf "%s" $\'\\xff\'${value}$\'\\xfe\'');
+  assert.equal(result.exitCode, 0, result.stderr);
+  assert.deepEqual(result.stdoutBytes, Uint8Array.of(255, 97, 98, 254));
+  await shell.dispose();
+});
+
+for (const [name, source, expected] of [
+  ["pattern does not decode merged bytes", String.raw`case 'é' in $'\xc3'$'\xa9') say yes;; *) say no;; esac`, "no\n"],
+  ["pattern keeps each fragment projection", String.raw`case '��' in $'\xc3'$'\xa9') say yes;; *) say no;; esac`, "yes\n"],
+  ["subject still decodes merged bytes", String.raw`case $'\xc3'$'\xa9' in 'é') say yes;; *) say no;; esac`, "yes\n"],
+  ["quoted glob escape stays literal", String.raw`case '��*' in $'\xc3'$'\xa9''*') say yes;; *) say no;; esac`, "yes\n"],
+] as const) {
+  test(`byte pattern fragment projection: ${name}`, async () => {
+    const { shell } = fixture();
+    const result = await shell.exec(source);
+    assert.equal(result.exitCode, 0, result.stderr);
+    assert.equal(result.stderr, "");
+    assert.equal(result.stdout, expected);
+    await shell.dispose();
+  });
+}
+
+test("byte pattern fragment projection does not replace the raw argument value", async () => {
+  const { shell, commands } = fixture();
+  commands.register({ name: "inspect", async execute(context) {
+    const args = getCommandArguments(context);
+    assert.notEqual(typeof args.values[0], "string");
+    assert.deepEqual(args.bytes(0), Uint8Array.of(195, 169));
+    await context.stdout.write(args.bytes(0)!);
+    return { exitCode: 0 };
+  } });
+  const result = await shell.exec(String.raw`inspect $'\xc3'$'\xa9'`);
+  assert.equal(result.exitCode, 0, result.stderr);
+  assert.deepEqual(result.stdoutBytes, Uint8Array.of(195, 169));
+  await shell.dispose();
+});
+
 test("execution-local bytes and copies do not become globals across exec", async () => {
   const { shell } = fixture();
   const first = await shell.exec("value=$(printf '\\377'); copy=$value; text='é🙂'; printf '%s' \"$value\" \"$copy\" \"$text\"; value='�'; printf '%s' \"$value\" \"$copy\"; unset value; printf '%s' \"$value\" \"$copy\"");

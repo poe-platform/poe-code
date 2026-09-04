@@ -1,4 +1,4 @@
-import { yieldTurn } from "../../contracts/yield.js";
+import { monotonicNow, yieldTurn } from "../../contracts/yield.js";
 import { FsError, readBytes, writeBytes, type ByteSource, type CommandContext, type CommandDefinition } from "../../contracts/index.js";
 import { inputRequirements } from "../portable-requirements.js";
 import { requiredFileInput } from "../search/requirements.js";
@@ -15,6 +15,7 @@ export class Budget {
   readonly maxBufferBytes: number;
   private remaining: number;
   private checkpoints = 0;
+  private lastYield = monotonicNow();
   constructor(readonly context: CommandContext, options: TextProgramOptions) {
     this.remaining = options.maxSteps ?? 5_000_000;
     this.maxBufferBytes = options.maxBufferBytes ?? 32 * 1024 * 1024;
@@ -32,7 +33,11 @@ export class Budget {
     return text;
   }
   async checkpoint(): Promise<void> {
-    if (++this.checkpoints % 256 === 0) await yieldTurn(this.context.signal);
+    this.context.signal.throwIfAborted();
+    if (++this.checkpoints % 256 === 0 || monotonicNow() - this.lastYield >= 25) {
+      await yieldTurn(this.context.signal);
+      this.lastYield = monotonicNow();
+    }
     this.context.signal.throwIfAborted();
   }
 }

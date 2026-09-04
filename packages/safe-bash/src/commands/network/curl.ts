@@ -289,6 +289,7 @@ async function transfer(context: CommandContext, args: CurlArguments, input: str
   } catch (error) {
     if (context.signal.aborted) throw context.signal.reason;
     if (pipeClosed(error)) closedOutput = true;
+    else if (!hasFileOutput && context.stdout.ownedOutput?.consumerClosed.aborted) failure = new CurlError(23, "Failed writing output");
     else failure = signal.aborted && signal.reason instanceof CurlError ? signal.reason : networkError(error);
   } finally {
     clearTimeout(timeout);

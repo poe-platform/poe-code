@@ -23,6 +23,8 @@ import { byteLocale } from "./locale.js";
 import { functionDisplay } from "./display.js";
 import { ConditionalUnsupported, evaluateConditional } from "./conditional.js";
 import { invocationScope, throwCleanupFailures, type InvocationScope } from "./cleanup.js";
+import { bindFileOutputBudget, openFileOutput } from "../contracts/filesystem-output.js";
+import { outputFailure } from "../contracts/io.js";
 import { executionCommands } from "../commands/execution.js";
 import { cloneGetoptsState, createGetoptsState, GetoptsError, scanGetopts, withGetoptsIndex } from "./getopts.js";
 import type { GetoptsState } from "./getopts.js";
@@ -155,6 +157,7 @@ export class Budget {
     const ownership = budgetedSinks.get(sink);
     if (ownership?.budget === this && ownership.write === sink.write) return signalSink(sink, signal);
     const output: ByteSink = {
+      ...(sink[outputFailure] ? { [outputFailure]: sink[outputFailure] } : {}),
       ...(sink.ownedOutput ? { ownedOutput: {
         consumerClosed: sink.ownedOutput.consumerClosed,
         write: async (chunk: Uint8Array) => {
@@ -329,6 +332,8 @@ interface OutputFile {
   references: number;
 }
 
+type OutputCompletion = { reason: unknown } | { status: number };
+
 class Flow extends Error {
   constructor(readonly kind: "exit" | "return" | "break" | "continue", readonly status: number, public levels = 1) {
     super(kind);
@@ -375,6 +380,7 @@ function signalSink(sink: ByteSink, signal: AbortSignal): ByteSink {
   const owned = ownership?.write === sink.write ? ownership : undefined;
   const write = owned ? owned.write.bind(sink) : (chunk: Uint8Array) => sink.write(chunk);
   const output: ByteSink = {
+    ...(sink[outputFailure] ? { [outputFailure]: sink[outputFailure] } : {}),
     ...(sink.ownedOutput ? { ownedOutput: {
       consumerClosed: sink.ownedOutput.consumerClosed,
       async write(chunk: Uint8Array) { signal.throwIfAborted(); await interruptible(sink.ownedOutput!.write(chunk), signal); },
@@ -1672,7 +1678,7 @@ export class Runtime {
           childDepth, this.cancellationMaxDepth, frame,
         );
         const input = new ShellInput(incoming?.readable ?? io.stdin, this.budget, signal);
-        const pipeOutput: ByteSink | undefined = outgoing && { ownedOutput: outgoing.writable.ownedOutput!, write: async (chunk) => {
+        const pipeOutput: ByteSink | undefined = outgoing && { [outputFailure]: outgoing.abort, ownedOutput: outgoing.writable.ownedOutput!, write: async (chunk) => {
           try {
             await outgoing.writable.write(chunk);
             if (chunk.byteLength) written.add(index);
@@ -1801,12 +1807,19 @@ export class Runtime {
     if (this.budget.commands % 128 === 0) await yieldTurn(this.signal);
     this.signal.throwIfAborted();
     const inputs = new Set<ShellInput>();
-    const outputs = new Set<() => void>();
+    const outputs = new Set<(completion: OutputCompletion) => void | Promise<void>>();
+    const finishOutputs = async (status: number): Promise<void> => {
+      const pending = [...outputs];
+      outputs.clear();
+      const settled = await Promise.allSettled(pending.map(close => close({ status })));
+      throwCleanupFailures(settled.filter(result => result.status === "rejected").map(result => result.reason));
+    };
     const allocation = this.budget.values.scope();
     originalIO = { ...originalIO, [valueScope]: allocation };
     let io = originalIO;
     let diagnosticFailure: NounsetDiagnosticFailure | undefined;
     try {
+      const execute = async (): Promise<number> => {
       if (command.kind === "function") {
         if (state.profile === "sh" && specialBuiltinNames.has(command.name)) {
           await this.diagnostic(io, `\`${command.name}': is a special builtin`);
@@ -1929,12 +1942,17 @@ export class Runtime {
         else state.loopDepth--;
       }
       return status;
+      };
+      const status = await execute();
+      await finishOutputs(status);
+      return status;
     } catch (caught) {
       const diagnostic = caught instanceof ExecutionFailure ? caught.diagnostic : undefined;
       const error = caught instanceof ExecutionFailure ? caught.original : caught;
       if (caught instanceof ExecutionFailure) io = caught.io;
       if (error instanceof NounsetDiagnosticFailure) diagnosticFailure = error;
       this.signal.throwIfAborted();
+      if (error instanceof Flow) await finishOutputs(error.status);
       if (error instanceof Flow || error instanceof ShellLimitError || error instanceof ShellSyntaxError) throw error;
       this.clearOutcomeReport();
       if (error instanceof HereDocumentSyntaxError) {
@@ -1970,7 +1988,7 @@ export class Runtime {
       return status;
     } finally {
       await Promise.allSettled([
-        ...[...outputs].map(async close => close()),
+        ...[...outputs].map(async close => close({ reason: new FsError("ECANCELED", { syscall: "redirect" }) })),
         ...[...inputs].map(async input => input.close()),
       ]).then(results => {
         const failures = results.filter(result => result.status === "rejected").map(result => result.reason);
@@ -2011,7 +2029,7 @@ export class Runtime {
     return value;
   }
 
-  async redirect(redirects: readonly Redirect[], state: State, io: IO, inputs: Set<ShellInput>, outputs: Set<() => void>, isolatedInlineInput = false, persistMoves = false, fileShortcut = false, line?: number): Promise<IO> {
+  async redirect(redirects: readonly Redirect[], state: State, io: IO, inputs: Set<ShellInput>, outputs: Set<(completion: OutputCompletion) => void | Promise<void>>, isolatedInlineInput = false, persistMoves = false, fileShortcut = false, line?: number): Promise<IO> {
     io.descriptors ??= new Map<number, Descriptor>([
       [0, { input: io.stdin, ...(io.stdinIsDefault === undefined ? {} : { stdinIsDefault: io.stdinIsDefault }) }],
       [1, { output: io.stdout }], [2, { output: io.stderr }],
@@ -2103,21 +2121,24 @@ export class Runtime {
           descriptors.set(redirect.descriptor, { input, stdinIsDefault: false });
         } else {
           const append = redirect.operator === ">>";
+          const capabilities = await this.fs.capabilitiesFor?.(path, options) ?? this.fs.capabilities;
+          const random = capabilities.randomAccessWrite === true;
           let file!: OutputFile;
           await this.fileOperation(path, async () => {
-            await this.fs.writeFile(path, new Uint8Array(), { ...options, flag: append ? "a" : "w" });
             file = this.outputFiles.get(path) ?? { data: undefined, references: 0 };
-            if (!append) file.data = new Uint8Array();
+            if (!random && file.references) throw new FsError("ENOTSUP", { path, message: "Conflicting sequential output descriptors" });
             file.references++;
             this.outputFiles.set(path, file);
           });
           let closed = false;
-          outputs.add(() => {
-            closed = true;
-            if (--file.references === 0 && this.outputFiles.get(path) === file) this.outputFiles.delete(path);
-          });
           let offset = 0;
-          const output = this.budget.sink({ write: (chunk) => {
+          const incremental = async (): Promise<ByteSink> => {
+            await this.fileOperation(path, async () => {
+              if (append) await this.fs.appendFile(path, new Uint8Array(), options);
+              else await this.fs.writeFile(path, new Uint8Array(), { ...options, flag: "w" });
+              if (!append) file.data = new Uint8Array();
+            });
+            return { write: (chunk) => {
             const copy = new Uint8Array(chunk);
             return this.fileOperation(path, async () => {
               if (closed) throw new Error("Output descriptor is closed");
@@ -2139,7 +2160,31 @@ export class Runtime {
                 offset += copy.length;
               }
             });
-          } }, this.signal);
+            } };
+          };
+          const release = (): void => {
+            if (closed) return;
+            closed = true;
+            if (--file.references === 0 && this.outputFiles.get(path) === file) this.outputFiles.delete(path);
+          };
+          let target;
+          try {
+            target = await openFileOutput({ fs: this.fs, signal: this.signal, registerCleanup: cleanup => io[invocationScope].register(cleanup) }, path, append ? "a" : "w", random ? incremental : undefined);
+          } catch (error) { release(); throw error; }
+          outputs.add(async completion => {
+            try {
+              if (this.signal.aborted) await target.abort(this.signal.reason);
+              else if ("reason" in completion) await target.abort(completion.reason);
+              else {
+                try { await target.finish(); }
+                catch (error) {
+                  this.signal.throwIfAborted();
+                  if (completion.status === 0) throw error;
+                }
+              }
+            } finally { release(); }
+          });
+          const output = this.budget.sink(target.sink, this.signal);
           descriptors.set(redirect.descriptor, { output });
           if (redirect.operator === "&>") {
             replaced.add(2);
@@ -2170,7 +2215,7 @@ export class Runtime {
     return { name: match[1]!, append: match[2] === "+", value: { offset: word.offset, parts: [{ ...first, value: first.value.slice(match[0].length) }, ...word.parts.slice(1)] } };
   }
 
-  async simple(command: Extract<Command, { kind: "simple" }>, state: State, originalIO: IO, inputs: Set<ShellInput>, outputs: Set<() => void>, fileShortcut = false): Promise<number> {
+  async simple(command: Extract<Command, { kind: "simple" }>, state: State, originalIO: IO, inputs: Set<ShellInput>, outputs: Set<(completion: OutputCompletion) => void | Promise<void>>, fileShortcut = false): Promise<number> {
     state.substitutionStatus = 0;
     const assignments: ({ name: string; value: Word; append: boolean; kind?: undefined } | ArrayAssignment)[] = [];
     let wordIndex = 0;
@@ -2345,6 +2390,7 @@ export class Runtime {
         return invocation;
       },
     };
+    bindFileOutputBudget(context, sink => this.budget.sink(sink, this.signal));
     if (argumentValues.values.every(value => typeof value === "string")) Reflect.deleteProperty(context, "argumentValues");
     const middleware = this.middleware.map<Middleware>((handler) => (context, next) => {
       scope.assertOpen();
@@ -2860,6 +2906,7 @@ export class Runtime {
           return invocation;
         },
       };
+      bindFileOutputBudget(context, sink => this.budget.sink(sink, runtime.signal));
       if (argumentValues.values.every(value => typeof value === "string")) Reflect.deleteProperty(context, "argumentValues");
       const child = await runtime.shebangState(context, state);
       const childIO = { ...io, ...context, [invocationScope]: scope };

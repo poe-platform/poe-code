@@ -335,7 +335,7 @@ test("optional capabilities reject unsupported operations honestly", async () =>
   await lower.writeFile("/file", encode("value"));
   const overlay = new OverlayFileSystem({ upper, lower });
   assert.equal(overlay.capabilities.atomicRename, false);
-  assert.equal(overlay.capabilities.readOnly, true);
+  assert.equal(overlay.capabilities.readOnly, undefined);
   assert.equal(overlay.capabilities.hardlinks, false);
   assert.equal(overlay.capabilities.permissions, false);
   assert.equal(overlay.capabilities.timestamps, false);

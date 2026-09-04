@@ -27,7 +27,28 @@ export interface DirectoryEntry {
 
 export interface FileSystemCapabilities {
   readonly readOnly?: boolean;
+  readonly read?: boolean;
+  readonly stat?: boolean;
+  readonly readdir?: boolean;
+  readonly realpath?: boolean;
+  readonly access?: boolean;
+  readonly write?: boolean;
   readonly append?: boolean;
+  readonly exclusiveCreate?: boolean;
+  readonly explicitDirectories?: boolean;
+  readonly implicitDirectories?: boolean;
+  readonly mkdir?: boolean;
+  readonly recursiveMkdir?: boolean;
+  readonly remove?: boolean;
+  readonly removeDirectory?: boolean;
+  readonly recursiveRemove?: boolean;
+  readonly rename?: boolean;
+  readonly copy?: boolean;
+  readonly exclusiveCopy?: boolean;
+  readonly readlink?: boolean;
+  readonly truncate?: boolean;
+  readonly streamingAppend?: boolean;
+  readonly randomAccessWrite?: boolean;
   readonly symlinks?: boolean;
   readonly hardlinks?: boolean;
   readonly permissions?: boolean;
@@ -78,6 +99,7 @@ export interface ReadStreamOptions extends FsOptions {
 
 export interface FileSystem {
   readonly capabilities: FileSystemCapabilities;
+  capabilitiesFor?(path: string, options?: FsOptions): Promise<FileSystemCapabilities>;
   readFile(path: string, options?: ReadFileOptions): Promise<Uint8Array>;
   writeFile(path: string, data: Uint8Array, options?: WriteFileOptions): Promise<void>;
   appendFile(path: string, data: Uint8Array, options?: AppendFileOptions): Promise<void>;

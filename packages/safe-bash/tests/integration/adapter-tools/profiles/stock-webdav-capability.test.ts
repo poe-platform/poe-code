@@ -37,7 +37,8 @@ for (const nonempty of [false, true]) {
         const result = await exec(`${command} ${path}`);
         assert.equal(result.exitCode, 1);
         assert.equal(result.stdout, "");
-        assert.equal(result.stderr, `${command === "rmdir" ? "rmdir" : "rm"}: ${diagnostic}\n`);
+        const expected = nonempty ? diagnostic : new FsError("ENOTSUP", { syscall: "rmdir", path }).message;
+        assert.equal(result.stderr, `${command === "rmdir" ? "rmdir" : "rm"}: ${expected}\n`);
         await unchanged();
       }
       assert.ok(dispatched.includes("rmdir"));

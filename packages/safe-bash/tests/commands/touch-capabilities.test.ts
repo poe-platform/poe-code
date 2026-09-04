@@ -42,7 +42,7 @@ for (const present of [false, true]) {
     assert.equal(after.atimeMs, before.atimeMs);
     assert.equal(after.mtimeMs, before.mtimeMs);
     assert.equal(Buffer.from(await backing.readFile("/work/existing")).toString(), "keep");
-    assert.equal(observed.calls(), present ? 1 : 0);
+    assert.equal(observed.calls(), 0);
   });
 }
 

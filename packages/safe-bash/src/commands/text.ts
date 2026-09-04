@@ -1,5 +1,14 @@
 import { FsError, type ByteSource, type CommandContext, type CommandDefinition } from "../contracts/index.js";
-import { bufferLimit, concatenate, define, diagnostic, encoder, input, integer, lines, options, output, pathOf, requireOperands, UsageError, value } from "./internal.js";
+import { assertInputRequirements, bufferLimit, concatenate, define, diagnostic, encoder, input, integer, lines, options, output, pathOf, requireOperands, UsageError, value } from "./internal.js";
+import { assertCommandRequirements } from "../contracts/command-requirements.js";
+import { inputRequirements, textOutputRequirements } from "./portable-requirements.js";
+
+async function admitTextOutput(context: CommandContext, destination: string | undefined): Promise<void> {
+  if (destination === undefined) return;
+  assertCommandRequirements(context, textOutputRequirements, ["output"]);
+  if (context.fs.capabilitiesFor) assertCommandRequirements(context, textOutputRequirements, ["output"],
+    await context.fs.capabilitiesFor(pathOf(context, destination), { signal: context.signal }));
+}
 
 function compareBytes(left: Uint8Array, right: Uint8Array): number { return Buffer.compare(left, right); }
 function fold(bytes: Uint8Array): Uint8Array { return bytes.map(byte => byte >= 97 && byte <= 122 ? byte - 32 : byte); }
@@ -70,8 +79,10 @@ function keyBytes(line: Uint8Array, key: SortKey, separator: number | undefined,
 
 async function emitRecords(context: CommandContext, records: ByteSource, destination?: string): Promise<void> {
   if (destination === undefined) { for await (const bytes of records) await output(context, bytes); return; }
-  if (context.fs.writeStream) await context.fs.writeStream(pathOf(context, destination), records, { signal: context.signal });
+  await admitTextOutput(context, destination);
+  if (context.fs.writeStream && context.fs.capabilities.streamingWrite !== false) await context.fs.writeStream(pathOf(context, destination), records, { signal: context.signal });
   else {
+    if (context.fs.capabilities.write === false) throw new FsError("ENOTSUP", { syscall: "writeFile", path: pathOf(context, destination) });
     let size = 0;
     const chunks: Uint8Array[] = [];
     for await (const bytes of records) {
@@ -110,6 +121,8 @@ export function textCommands(): CommandDefinition[] {
   return [
     define("sort", async context => {
       const parsed = options(context.args, "nrfbuszt:k:o:c", { "numeric-sort": "n", reverse: "r", "ignore-case": "f", "ignore-leading-blanks": "b", unique: "u", stable: "s", "zero-terminated": "z", "field-separator": "t", key: "k", output: "o", check: "c" });
+      await assertInputRequirements(context, parsed.operands);
+      if (!parsed.flags.has("c")) await admitTextOutput(context, value(parsed, "o"));
       const separatorText = value(parsed, "t");
       if (separatorText !== undefined && encoder.encode(separatorText).length !== 1) throw new UsageError("field separator must be one byte");
       const separator = separatorText === undefined ? undefined : encoder.encode(separatorText)[0];
@@ -228,6 +241,8 @@ export function textCommands(): CommandDefinition[] {
     define("uniq", async context => {
       const parsed = options(context.args, "cduif:s:w:z", { count: "c", repeated: "d", unique: "u", "ignore-case": "i", "skip-fields": "f", "skip-chars": "s", "check-chars": "w", "zero-terminated": "z" });
       requireOperands(parsed.operands, 0, 2);
+      await assertInputRequirements(context, parsed.operands.slice(0, 1));
+      await admitTextOutput(context, parsed.operands[1]);
       const skipFields = integer(value(parsed, "f") ?? "0");
       const skipCharacters = integer(value(parsed, "s") ?? "0");
       const width = value(parsed, "w") === undefined ? Infinity : integer(value(parsed, "w")!);
@@ -266,6 +281,7 @@ export function textCommands(): CommandDefinition[] {
     }),
     define("cut", async context => {
       const parsed = options(context.args, "b:c:f:d:szo:C", { bytes: "b", characters: "c", fields: "f", delimiter: "d", "only-delimited": "s", "zero-terminated": "z", "output-delimiter": "o", complement: "C" });
+      await assertInputRequirements(context, parsed.operands);
       const modes = ["b", "c", "f"].filter(mode => parsed.flags.has(mode));
       if (modes.length !== 1) throw new UsageError("exactly one byte, character, or field list is required");
       const mode = modes[0]!;
@@ -349,5 +365,5 @@ export function textCommands(): CommandDefinition[] {
       }
       return { exitCode };
     }),
-  ];
+  ].map(command => ({ ...command, filesystemRequirements: command.name === "cut" ? inputRequirements : textOutputRequirements }));
 }

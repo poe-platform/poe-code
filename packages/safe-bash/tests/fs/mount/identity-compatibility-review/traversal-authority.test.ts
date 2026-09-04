@@ -77,7 +77,7 @@ test("missing permission capability preserves traversal support and actual denia
   } });
   const local = createMemoryFileSystem();
   const filesystem = createMountFileSystem({ root: local, mounts: { "/unknown": unknown, "/known": backend } });
-  assert.equal(filesystem.capabilities.permissions, false);
+  assert.equal(filesystem.capabilities.permissions, undefined);
   assert.equal((await filesystem.stat("/known/dir/source")).type, "file");
   await filesystem.access("/unknown/dir", 1);
   assert.ok(methods(service).every(method => method === "PROPFIND"));
@@ -112,7 +112,7 @@ for (const kind of ["memory", "real"] as const) {
     const filesystem = createMountFileSystem({ root: createMemoryFileSystem(), mounts: {
       "/dav": remote(service), "/local": observed.filesystem,
     } });
-    assert.equal(filesystem.capabilities.permissions, false);
+    assert.equal(filesystem.capabilities.permissions, undefined);
     await assert.rejects(local.access("/locked", 1), (error: unknown) => error instanceof FsError && error.code === "EACCES");
     await assert.rejects(filesystem.copyFile("/dav/dir/source", "/local/locked/new"),
       rejection("EACCES", "/dav/dir/source", "copyFile", "/local/locked/new"));
@@ -226,18 +226,18 @@ for (const operation of ["symlink-copy", "hidden-mount-removal"] as const) {
     const backing = createMemoryFileSystem();
     await backing.symlink("dav/dir/source", "/jump");
     const inner = createMountFileSystem({ root: backing, mounts: { "/dav": remote(service) } });
-    assert.equal(inner.capabilities.permissions, false);
+    assert.equal(inner.capabilities.permissions, undefined);
     const outerRoot = createMemoryFileSystem();
     const view = operation === "symlink-copy" ? createReadOnlyFileSystem(inner) : inner;
     const { symlinks: ignoredSymlinks, ...unknownLinkCapabilities } = view.capabilities;
     let linkReads = 0;
     const opaqueView = wrapped(view, operation === "symlink-copy" ? {
-      capabilities: unknownLinkCapabilities,
+      capabilities: { ...unknownLinkCapabilities, permissions: false },
       async readlink(path, options) {
         linkReads++;
         return view.readlink!(path, options);
       },
-    } : {});
+    } : { capabilities: { ...view.capabilities, permissions: false } });
     assert.equal(opaqueView instanceof MountFileSystem, false);
     assert.equal(opaqueView.capabilities.permissions, false);
     const filesystem = createMountFileSystem({ root: outerRoot, mounts: { "/view": opaqueView } });

@@ -96,10 +96,11 @@ for (const entry of ["@poe-platform/safe-bash", "@poe-platform/safe-bash/browser
     }));
     try {
       const result = await shell.exec("curl https://example.invalid/file -o /out");
-      assert.equal(result.exitCode, stage === "unsupported" ? 0 : 23);
-      assert.equal(writes, stage === "unsupported" ? 1 : 0);
-      assert.equal(produced, stage === "unsupported" ? 2 : stage === "partial" ? 1 : 0);
-      assert.deepEqual(await backing.readFile("/out"), new Uint8Array(stage === "unsupported" ? [1, 2] : stage === "partial" ? [1] : [9]));
+      const fallback = stage === "unsupported" || stage === "acquired";
+      assert.equal(result.exitCode, fallback ? 0 : 23);
+      assert.equal(writes, fallback ? 1 : 0);
+      assert.equal(produced, fallback ? 2 : stage === "partial" ? 1 : 0);
+      assert.deepEqual(await backing.readFile("/out"), new Uint8Array(fallback ? [1, 2] : stage === "partial" ? [1] : [9]));
     } finally { await shell.dispose(); }
   }
 

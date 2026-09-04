@@ -1,4 +1,5 @@
 import type { FileSystem } from "./filesystem.js";
+import type { CommandFileSystemRequirement } from "./command-requirements.js";
 import type { ByteSink, ByteSource } from "./io.js";
 import { concatShellValues, shellValueBytes, shellValueFromBytes, shellValueText, type ShellValue, type ValueAllocation, type ValueReservation } from "./value.js";
 
@@ -215,6 +216,7 @@ export type AsyncCommandHandler = (context: CommandContext) => Promise<CommandRe
 export interface CommandDefinition {
   readonly name: string;
   readonly description?: string;
+  readonly filesystemRequirements?: readonly CommandFileSystemRequirement[];
   readonly execute: CommandHandler;
 }
 

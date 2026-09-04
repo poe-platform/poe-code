@@ -1,3 +1,5 @@
+import { assertCommandRequirements } from "../contracts/command-requirements.js";
+import { inputRequirements } from "./portable-requirements.js";
 import {
   FsError, isAbsolutePath, readBytes, toByteSource, validatePath, writeBytes,
   type ByteSource, type CommandContext, type CommandDefinition, type CommandHandler,
@@ -136,6 +138,7 @@ export async function* input(context: CommandContext, name = "-"): ByteSource {
   if (name === "-") {
     yield* readBytes(context.stdin, context.signal);
   } else {
+    await assertInputRequirements(context, [name]);
     const path = pathOf(context, name);
     if (context.fs.readStream && context.fs.capabilities.streamingRead !== false) {
       let emitted = false;
@@ -153,6 +156,7 @@ export async function* input(context: CommandContext, name = "-"): ByteSource {
         if (!reading || emitted || !(error instanceof FsError) || error.code !== "ENOTSUP") throw error;
       }
     }
+    if (context.fs.capabilities.read === false) throw new FsError("ENOTSUP", { syscall: "readFile", path });
     yield* readBytes({
       async *[Symbol.asyncIterator]() {
         const bytes = await context.fs.readFile(path, { signal: context.signal, maxBytes: bufferLimit });
@@ -161,6 +165,21 @@ export async function* input(context: CommandContext, name = "-"): ByteSource {
         yield bytes;
       },
     }, context.signal);
+  }
+}
+
+export async function assertInputRequirements(context: CommandContext, names: readonly string[]): Promise<void> {
+  const files = names.filter(name => name !== "-");
+  assertCommandRequirements(context, inputRequirements, [files.length ? "file" : "stdin"]);
+  if (!context.fs.capabilitiesFor) return;
+  for (const name of files) {
+    try {
+      const capabilities = await context.fs.capabilitiesFor(pathOf(context, name), { signal: context.signal });
+      assertCommandRequirements(context, inputRequirements, ["file"], capabilities);
+    } catch (error) {
+      context.signal.throwIfAborted();
+      if (codeOf(error) === "ENOTSUP" || codeOf(error) === "EROFS") throw error;
+    }
   }
 }
 

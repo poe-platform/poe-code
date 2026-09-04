@@ -151,7 +151,7 @@ test("WebDAV directory execute access permits traversal without claiming write p
   const fs = mounted(new WebDavFileSystem({ baseUrl: "https://example.test/dav/", fetch: mock.fetch }));
   await fs.access("/dav/dir", 0);
   await fs.access("/dav/dir", 1);
-  assert.equal(fs.capabilities.permissions, false);
+  assert.equal(fs.capabilities.permissions, undefined);
   for (const mode of [2, 3, 6, 7]) await assert.rejects(fs.access("/dav/dir", mode), rejected("ENOTSUP", "/dav/dir"));
   assert.deepEqual(mock.files.get("/dir/source"), bytes);
   assert.ok(mock.requests.every(request => request.init.method === "PROPFIND"));
@@ -186,7 +186,7 @@ for (const permissions of [true, undefined]) {
     });
     const remote = new WebDavFileSystem({ baseUrl: "https://example.test/dav/", fetch: seeded().fetch });
     const fs = createMountFileSystem({ root: backend, mounts: { "/dav": remote } });
-    assert.equal(fs.capabilities.permissions, false);
+    assert.equal(fs.capabilities.permissions, undefined);
     await assert.rejects(fs.readFile("/file"), rejected("EACCES", "/file"));
     assert.deepEqual(modes, [1]);
     assert.deepEqual(await local.readFile("/file"), bytes);

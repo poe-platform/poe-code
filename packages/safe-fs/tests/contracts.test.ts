@@ -111,13 +111,13 @@ describe.each(adapters)("shared contract: $name", ({ create }) => {
   it("preserves conservative append capability declarations through wrappers", () => {
     const writable = create();
     const readonly = new ReadOnlyFileSystem(writable);
-    expect(writable.capabilities.append).toBeUndefined();
+    expect(writable.capabilities.append).toBe(true);
     expect(readonly.capabilities.append).toBe(false);
     expect(new MountFileSystem({ root: readonly }).capabilities.append).toBe(false);
-    expect(new MountFileSystem({ root: writable }).capabilities.append).toBeUndefined();
+    expect(new MountFileSystem({ root: writable }).capabilities.append).toBe(true);
     expect(new OverlayFileSystem({ upper: readonly, lower: writable }).capabilities.append).toBe(false);
     const overlay = new OverlayFileSystem({ upper: writable, lower: create() });
-    expect(overlay.capabilities.append).toBe(overlay.capabilities.readOnly ? false : undefined);
+    expect(overlay.capabilities.append).toBe(!overlay.capabilities.readOnly);
   });
 
   it("preserves retained stream chunks when a producer reuses its buffer", async () => {

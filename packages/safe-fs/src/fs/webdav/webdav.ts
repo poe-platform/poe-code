@@ -6,7 +6,7 @@ import type { ErrnoCode } from "../../contracts/errors.js";
 import { readBytes } from "../../contracts/io.js";
 import type { ByteSource } from "../../contracts/io.js";
 import type {
-  AppendFileOptions, CopyFileOptions, DirectoryEntry, EntryComparison, FileStat, FileSystem,
+  AppendFileOptions, CopyFileOptions, DirectoryEntry, EntryComparison, FileStat, FileSystem, FileSystemCapabilities,
   FsOptions, MkdirOptions, ReadFileOptions, ReadStreamOptions, RemoveOptions, WriteFileOptions,
 } from "../../contracts/filesystem.js";
 import { davChild, davChildren, parseXml, scalar } from "./xml.js";
@@ -182,9 +182,14 @@ function statusCode(element: XmlElement): number {
 
 export class WebDavFileSystem implements FileSystem {
   readonly capabilities = Object.freeze({
+    read: true, stat: true, readdir: true, realpath: true, access: true,
+    write: true, append: true, exclusiveCreate: true, explicitDirectories: true, implicitDirectories: false,
+    mkdir: true, recursiveMkdir: true, remove: true, recursiveRemove: true, rename: true, copy: true,
+    exclusiveCopy: true, readlink: false, truncate: false, randomAccessWrite: false,
+    removeDirectory: false as boolean, streamingAppend: false as boolean,
     symlinks: false, hardlinks: false, permissions: false, timestamps: true,
     atomicRename: false, streamingRead: true, streamingWrite: true,
-  });
+  } satisfies FileSystemCapabilities);
   private readonly base: URL;
   private readonly baseSegments: string[];
   private readonly transport: WebDavFetch;
@@ -239,6 +244,10 @@ export class WebDavFileSystem implements FileSystem {
     }
     this.transport = options.fetch === globalThis.fetch ? options.fetch.bind(globalThis) : options.fetch;
     this.requestStreamSupport = options.requestStreamSupport ?? (options.fetch === globalThis.fetch ? "native" : false);
+    this.capabilities = Object.freeze({ ...this.capabilities,
+      removeDirectory: this.atomicEmptyDirectory !== undefined,
+      streamingAppend: this.requestStreamSupport !== false,
+    });
     this.maxResponseBytes = positive(options.maxResponseBytes ?? 64 * 1024 * 1024, "maxResponseBytes");
     this.maxXmlBytes = positive(options.maxXmlBytes ?? 2 * 1024 * 1024, "maxXmlBytes");
     this.maxEntries = positive(options.maxEntries ?? 10_000, "maxEntries");

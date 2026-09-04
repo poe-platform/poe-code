@@ -106,7 +106,7 @@ for (const name of ["cp", "mv"] as const) for (const sourceReadonly of [false, t
     assert.equal(result.exitCode, allowed ? 0 : 1, result.stderr);
     if (!allowed) assert.match(result.stderr, /EROFS/u);
     assert.deepEqual(await bytes(left, "/source"), payload);
-    assert.deepEqual(await bytes(right, "/target"), sourceReadonly ? payload : previous);
+    assert.deepEqual(await bytes(right, "/target"), allowed ? payload : previous);
   });
 }
 

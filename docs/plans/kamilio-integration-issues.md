@@ -47,3 +47,57 @@ not merely a local passing test.
    scoped-safe-package GitHub release workflows to successful completion.
 5. Report local commits, remote delivery, package publication, and acceptance
    evidence separately. Re-query open issues before claiming the goal complete.
+
+## Local validation prerequisites
+
+The September 4, 2026 host needs an isolated validation environment, without
+changing repository dependencies, global npm, test selection, or hook policy:
+
+- Use Node 22.22.0 with npm 11.19.1, which satisfies the release workflow's npm
+  range and supplies the `tar.Parser` API required by committed-archive checks.
+  The host's npm 10.9.4 and the minimum npm 11.5.1 both bundle incompatible tar 6.
+  An isolated npm prefix with an identical copy of the host Node binary keeps
+  the verifier's sibling-npm resolution bound to the intended toolchain.
+- Set `TMPDIR` to a fresh directory outside the checkout and `node_modules`.
+  The shared `/tmp` has over 45,000 entries and exceeds guard-test limits;
+  checkout-local directories instead cause nested Vitest config discovery.
+- Remove the terminal-injected `NO_COLOR` only from validation child commands.
+  Its conflict with Vitest's `FORCE_COLOR` adds Node warning lines to process
+  output assertions. Do not suppress warnings or change the assertions.
+- Preserve caller-supplied optional unit profiles and normal Git-hook cleanup.
+  Run the same complete `npm test` route and normal commit/push hooks.
+
+The extra strict SafeBash audit initially reports 24 diagnostics already present
+at `e4e23699e696d320363da662d1d74475bb098d28`, independently checked against
+unchanged Git blobs. Keep this audit limitation separate from the required unit,
+build, lint, current-consumer, publication, and runtime-acceptance results; do not
+describe the entire strict source audit as passing.
+
+## Verified published baseline
+
+The independent audit installs fresh registry tarballs for all three scoped
+packages at version `0.1.44`, verifies their registry SHA-512 integrity, and does
+not use the earlier local artifacts that happen to share that version number.
+
+| Issue | Classification | Observed baseline |
+| --- | --- | --- |
+| #552 | Reproduced defect | Browser-bundled field-mode `cut` fails for stdin and VFS input with `val must be string, number or Buffer`; character-mode controls pass. |
+| #555 | Reproduced defect | Stream-only redirection fails while `tee` and `curl -o` preserve the same bytes. A byte-preserving adapter leaves only `c3` of `c3a9`, or 32 of 70 PNG bytes, before a failed overwrite. Append fails but preserves the original; the audit does not call that append corruption. |
+| #551 | Confirmed capability request | The documented browser subset lacks `grep`, `rg`, and `sed`, and the published API lacks an injected portable bounded provider seam. Default browser registration is not claimed to be broken. |
+| #554 | Confirmed capability request | Package-owned command requirements and their evaluator are absent. |
+| #556 | Confirmed refactor request | Redirection, `tee`, and network files have separate output implementations; this is not evidence that every requested regression-matrix case previously failed. |
+
+Adapter controls verify exact byte handling, honored append flags, unchanged
+files after rejected append, and working streaming append. Browser baseline
+evidence uses an isolated VM with consistent typed-array realms and no Buffer
+shim; it is not a workerd result. Compare the same bug stimuli with the final
+candidate, and separately qualify the opt-in portable search pack in workerd.
+
+The final local candidate (`0.1.45-local.4`, not a publication) passes all 13
+output cases and all nine exact-byte `cut` cases. Five output failures are
+reproduced on the registry baseline; eight successful controls remain unchanged.
+The sequential adapter explicitly declares `randomAccessWrite: false` in both
+runs rather than inheriting a newly added capability from its MemoryFS backing.
+Original receipts and the one-line fixture difference are retained; the corrected
+baseline receipts match the originals. Unsupported binary append is not claimed
+to succeed. The opt-in search pack separately passes 15 actual workerd cases.

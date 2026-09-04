@@ -5,8 +5,11 @@ export type { ByteSource, CollectOptions } from "poe-code/safe-fs";
 import { TransformStream } from "node:stream/web";
 import { FsError } from "./errors.js";
 
+export const outputFailure = Symbol("output failure");
+
 export interface ByteSink {
   write(chunk: Uint8Array): Promise<void>;
+  readonly [outputFailure]?: (reason: unknown) => Promise<void>;
   readonly ownedOutput?: {
     readonly consumerClosed: AbortSignal;
     write(chunk: Uint8Array): Promise<void>;
@@ -108,6 +111,7 @@ export function createBytePipe(options: BytePipeOptions = {}): BytePipe {
     readable,
     writable: {
       write,
+      [outputFailure]: abort,
       ownedOutput: { consumerClosed: consumer.signal, write },
     },
     close() {

@@ -1,8 +1,27 @@
-import { createBytePipe, createOutputOperation, FsError, type BytePipe, type ByteSource, type CommandContext, type CommandDefinition } from "../contracts/index.js";
+import { createOutputOperation, FsError, type ByteSource, type CommandContext, type CommandDefinition } from "../contracts/index.js";
+import { openFileOutput, type FileOutput } from "../contracts/filesystem-output.js";
+import { outputFailure } from "../contracts/io.js";
+import { assertCommandRequirements, type CommandFileSystemRequirement } from "../contracts/command-requirements.js";
+import { inputRequirements } from "./portable-requirements.js";
 import {
-  bufferLimit, concatenate, define, diagnostic, encoder, escapeBytes, input, integer,
+  assertInputRequirements, bufferLimit, concatenate, define, diagnostic, encoder, escapeBytes, input, integer,
   lines, options, output, pathOf, UsageError, value,
 } from "./internal.js";
+
+const inspectedInputRequirements: readonly CommandFileSystemRequirement[] = inputRequirements.map(mode => mode.id === "file" ? { ...mode, capabilities: ["stat", "access"] } : mode);
+const countRequirements: readonly CommandFileSystemRequirement[] = [
+  ...inputRequirements,
+  { id: "width", description: "Inspect file sizes for column widths", capabilities: ["stat"] },
+];
+const teeRequirements: readonly CommandFileSystemRequirement[] = [
+  { id: "stdout", description: "Copy standard input to standard output", capabilities: [] },
+  { id: "overwrite", description: "Write output files", capabilities: [], anyOf: [["streamingWrite"], ["write", "append"]], mutates: true },
+  { id: "append", description: "Append to output files", capabilities: [], anyOf: [["streamingAppend"], ["append"]], mutates: true },
+];
+const streamRequirements: Readonly<Record<string, readonly CommandFileSystemRequirement[]>> = {
+  cat: inputRequirements, head: inspectedInputRequirements, tail: inspectedInputRequirements,
+  wc: countRequirements, tee: teeRequirements, tr: [],
+};
 
 async function* combinedInput(context: CommandContext, names: readonly string[], state: { exitCode: number }): ByteSource {
   for (const name of names.length ? names : ["-"]) {
@@ -107,18 +126,6 @@ function wcSpace(point: number, posix: boolean): boolean {
     || point === 0x202f || point === 0x205f || point === 0x3000 || !posix && point === 0x2060;
 }
 
-interface TeeStreamTarget {
-  readonly path: string;
-  readonly flag: "w" | "a";
-  readonly pipe: BytePipe;
-  task: Promise<void>;
-  failure?: unknown;
-  failed: boolean;
-  accepted: boolean;
-  reported: boolean;
-  active: boolean;
-}
-
 function headTail(name: "head" | "tail"): CommandDefinition {
   return define(name, async context => {
     const args = context.args[0] && /^-[0-9]+$/u.test(context.args[0]) ? ["-n", context.args[0].slice(1), ...context.args.slice(1)] : context.args;
@@ -130,12 +137,15 @@ function headTail(name: "head" | "tail"): CommandDefinition {
     const negative = amount.startsWith("-");
     const count = integer(amount.replace(/^[+-]/u, ""));
     const names = parsed.operands.length ? parsed.operands : ["-"];
+    await assertInputRequirements(context, names);
+    assertCommandRequirements(context, inspectedInputRequirements, [names.some(name => name !== "-") ? "file" : "stdin"]);
     let exitCode = 0;
     let headerWritten = false;
     for (const file of names) {
       try {
         if (file !== "-") {
           const path = pathOf(context, file);
+          assertCommandRequirements(context, inspectedInputRequirements, ["file"], await context.fs.capabilitiesFor?.(path, { signal: context.signal }) ?? context.fs.capabilities);
           if ((await context.fs.stat(path, { signal: context.signal })).type === "directory") throw new FsError("EISDIR", { path });
           await context.fs.access(path, 4, { signal: context.signal });
         }
@@ -202,6 +212,7 @@ export function streamCommands(): CommandDefinition[] {
   return [
     define("cat", async context => {
       const parsed = options(context.args, "nbsvETAute", { number: "n", "number-nonblank": "b", "squeeze-blank": "s", "show-ends": "E", "show-tabs": "T", "show-nonprinting": "v", "show-all": "A" });
+      await assertInputRequirements(context, parsed.operands);
       if (parsed.flags.has("A")) for (const flag of ["v", "E", "T"]) parsed.flags.add(flag);
       if (parsed.flags.has("e")) { parsed.flags.add("v"); parsed.flags.add("E"); }
       if (parsed.flags.has("t")) { parsed.flags.add("v"); parsed.flags.add("T"); }
@@ -260,6 +271,7 @@ export function streamCommands(): CommandDefinition[] {
       if (!parsed.flags.size) for (const flag of ["l", "w", "c"]) parsed.flags.add(flag);
       const selected = ["l", "w", "m", "c"].filter(flag => parsed.flags.has(flag));
       const names = parsed.operands.length ? parsed.operands : ["-"];
+      await assertInputRequirements(context, names);
       const totals: Record<string, number> = { l: 0, w: 0, m: 0, c: 0 };
       const locale = context.env.LC_ALL || context.env.LC_CTYPE || context.env.LANG || "C.UTF-8";
       const singleByte = locale === "C" || locale === "POSIX";
@@ -269,6 +281,7 @@ export function streamCommands(): CommandDefinition[] {
         let totalSize = 0n;
         for (const name of names) {
           if (name === "-") { width = Math.max(width, 7); continue; }
+          assertCommandRequirements(context, countRequirements, ["width"]);
           try {
             const stat = await context.fs.stat(pathOf(context, name), { signal: context.signal });
             if (stat.type !== "file") width = Math.max(width, 7);
@@ -311,117 +324,48 @@ export function streamCommands(): CommandDefinition[] {
     }),
     define("tee", async context => {
       const parsed = options(context.args, "a", { append: "a" });
-      const paths: string[] = [];
-      const streams: TeeStreamTarget[] = [];
+      const targets = new Set<FileOutput>();
       let exitCode = 0;
-      let closed = false;
-      let cleanup: Promise<void> | undefined;
-      const closeStreams = (): Promise<void> => {
-        closed = true;
-        return cleanup ??= Promise.allSettled(streams.map(async target => {
-          await target.pipe.abort(context.signal.aborted ? context.signal.reason : undefined);
-          await target.task;
-        })).then(() => {});
-      };
-      context.registerCleanup?.(closeStreams);
-      const report = async (target: TeeStreamTarget, error: unknown): Promise<void> => {
-        target.active = false;
-        if (target.reported) return;
-        target.reported = true;
-        await diagnostic(context, error);
-        exitCode = 1;
-      };
-      const fallback = async (target: TeeStreamTarget): Promise<boolean> => {
-        if (context.fs.capabilities.append === false || target.accepted
-          || !(target.failure instanceof FsError) || target.failure.code !== "ENOTSUP") return false;
-        await context.fs.writeFile(target.path, new Uint8Array(), { flag: target.flag, signal: context.signal });
-        target.active = false;
-        paths.push(target.path);
-        return true;
-      };
-      const recover = async (target: TeeStreamTarget, error: unknown): Promise<void> => {
-        try {
-          if (await fallback(target)) return;
-        } catch (fallbackError) {
-          context.signal.throwIfAborted();
-          await report(target, fallbackError);
-          return;
-        }
-        await report(target, error);
-      };
-      const streaming = context.fs.capabilities.streamingWrite !== false && typeof context.fs.writeStream === "function";
-      for (const operand of parsed.operands) {
-        try {
-          const path = pathOf(context, operand);
-          if (closed) throw new FsError("ECANCELED", { syscall: "tee", path });
-          const flag = parsed.flags.has("a") ? "a" : "w";
-          if (streaming) {
-            const pipe = createBytePipe({ signal: context.signal });
-            const target: TeeStreamTarget = {
-              path, flag, pipe, task: Promise.resolve(), failed: false, accepted: false, reported: false, active: true,
-            };
-            const source = (async function* () {
-              for await (const chunk of pipe.readable) {
-                target.accepted = true;
-                yield chunk;
-              }
-            })();
-            target.task = context.fs.writeStream!(path, source, { flag, signal: context.signal }).catch(async error => {
-              target.failed = true;
-              target.failure = error;
-              await pipe.abort(error);
-            });
-            streams.push(target);
-          } else {
-            if (context.fs.capabilities.append === false) {
-              throw new FsError(context.fs.capabilities.readOnly === true ? "EROFS" : "ENOTSUP", { syscall: "tee", path });
-            }
-            await context.fs.writeFile(path, new Uint8Array(), { flag, signal: context.signal });
-            paths.push(path);
-          }
-        } catch (error) {
-          context.signal.throwIfAborted();
-          await diagnostic(context, error);
-          exitCode = 1;
-        }
-      }
       try {
+        for (const operand of parsed.operands) {
+          try {
+            assertCommandRequirements(context, teeRequirements, [parsed.flags.has("a") ? "append" : "overwrite"]);
+            targets.add(await openFileOutput(context, pathOf(context, operand), parsed.flags.has("a") ? "a" : "w"));
+          }
+          catch (error) {
+            context.signal.throwIfAborted();
+            await diagnostic(context, error);
+            exitCode = 1;
+          }
+        }
         for await (const chunk of input(context)) {
           await output(context, chunk);
-          for (const target of streams) {
-            if (!target.active) continue;
-            try { await target.pipe.writable.write(chunk); }
+          for (const target of targets) {
+            try { await target.sink.write(chunk); }
             catch (error) {
               context.signal.throwIfAborted();
-              await target.task;
-              await recover(target, target.failed ? target.failure : error);
-            }
-          }
-          for (let index = 0; index < paths.length;) {
-            try { await context.fs.appendFile(paths[index]!, chunk, { signal: context.signal }); index++; }
-            catch (error) {
-              context.signal.throwIfAborted();
-              await diagnostic(context, error);
-              paths.splice(index, 1);
+              await target.abort(error);
+              targets.delete(target);
               exitCode = 1;
+              await diagnostic(context, error);
             }
           }
         }
-        for (const target of streams) {
-          if (!target.active) continue;
-          try {
-            await target.pipe.close();
-            await target.task;
-            if (target.failed) await recover(target, target.failure);
-          } catch (error) {
+        for (const target of targets) {
+          try { await target.finish(); }
+          catch (error) {
             context.signal.throwIfAborted();
-            await target.task;
-            await recover(target, target.failed ? target.failure : error);
+            await diagnostic(context, error);
+            exitCode = 1;
           }
+          targets.delete(target);
         }
         return { exitCode };
+      } catch (error) {
+        await context.stdout[outputFailure]?.(error);
+        throw error;
       } finally {
-        await closeStreams();
+        await Promise.allSettled([...targets].map(target => target.abort(context.signal.aborted ? context.signal.reason : new FsError("ECANCELED"))));
       }
     }),
     define("tr", async context => {
@@ -457,5 +401,5 @@ export function streamCommands(): CommandDefinition[] {
       }
       return { exitCode: 0 };
     }),
-  ];
+  ].map(command => ({ ...command, filesystemRequirements: streamRequirements[command.name]! }));
 }

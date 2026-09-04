@@ -8,6 +8,7 @@ import type {
 import type { ByteSource } from "../../contracts/io.js";
 import { readBytes } from "../../contracts/io.js";
 import { finishCleanup } from "../../contracts/cleanup.js";
+import { readOnlyCapabilities } from "../capabilities.js";
 import { normalizePath, validatePath } from "../../contracts/virtual-path.js";
 import { compareIdentity } from "./identity.js";
 import { compareEntries, registerEntryAuthority, registerEntryView } from "./comparison.js";
@@ -123,14 +124,30 @@ export class MountFileSystem implements FileSystem {
     const streamingWrite = streaming("streamingWrite", "writeStream");
     const append = all("append") ? true
       : mounts.every(({ backend }) => backend.capabilities.append === false) ? false : undefined;
+    const common = (capability: string): boolean | undefined => {
+      const optional: Record<string, readonly (keyof FileSystem)[]> = {
+        symlinks: ["symlink", "readlink"], hardlinks: ["link"], permissions: ["chmod"], timestamps: ["utimes"], readlink: ["readlink"],
+      };
+      const values = mounts.map(({ backend }) => {
+        if (backend.capabilities.readOnly === true
+          && !["read", "stat", "readdir", "realpath", "access", "readlink", "explicitDirectories", "implicitDirectories"].includes(capability)) return false;
+        const declared = backend.capabilities[capability];
+        return declared === true && optional[capability]?.some(method => typeof backend[method] !== "function") ? false : declared;
+      });
+      if (["rename", "copy", "exclusiveCopy"].includes(capability) && mounts.length > 1) return undefined;
+      return values.every(value => value === true) ? true : values.every(value => value === false) ? false : undefined;
+    };
+    const semantics = Object.fromEntries([
+      "read", "stat", "readdir", "realpath", "access",
+      "write", "append", "exclusiveCreate", "explicitDirectories", "implicitDirectories", "mkdir", "recursiveMkdir",
+      "remove", "removeDirectory", "recursiveRemove", "rename", "copy", "exclusiveCopy", "readlink", "truncate",
+      "streamingAppend", "randomAccessWrite", "symlinks", "hardlinks", "permissions", "timestamps",
+    ].map(capability => [capability, common(capability)]).filter(([, value]) => value !== undefined));
     this.capabilities = Object.freeze({
       get snapshotRmdir() { return mounts.some(({ backend }) => backend.capabilities.snapshotRmdir === true); },
       readOnly: all("readOnly"),
       ...(append === undefined ? {} : { append }),
-      symlinks: all("symlinks", ["readlink", "symlink"]),
-      hardlinks: all("hardlinks", ["link"]),
-      permissions: all("permissions", ["chmod"]),
-      timestamps: all("timestamps", ["utimes"]),
+      ...semantics,
       atomicRename: mounts.length === 1 && all("atomicRename"),
       ...(streamingRead === undefined ? {} : { streamingRead }),
       ...(streamingWrite === undefined ? {} : { streamingWrite }),
@@ -139,6 +156,23 @@ export class MountFileSystem implements FileSystem {
 
   private select(path: string): Mount {
     return this.mounts.find((mount) => within(mount.path, path))!;
+  }
+
+  async capabilitiesFor(path: string, options: FsOptions = {}): Promise<FileSystemCapabilities> {
+    return this.operation("capabilitiesFor", path, options, async () => {
+      const location = await this.resolve(path, options, { allowMissing: true });
+      const capabilities = await location.mount.backend.capabilitiesFor?.(location.local, options)
+        ?? location.mount.backend.capabilities;
+      if (location.synthetic) return readOnlyCapabilities(capabilities);
+      if (this.mounts.length === 1 || capabilities.readOnly === true) return Object.freeze({ ...capabilities });
+      const { rename: ignoredRename, copy: ignoredCopy, exclusiveCopy: ignoredExclusiveCopy, ...selected } = capabilities;
+      const cannotPublish = capabilities.write === false && capabilities.streamingWrite === false && capabilities.exclusiveCreate === false;
+      return Object.freeze({
+        ...selected,
+        ...(capabilities.copy === false && capabilities.exclusiveCopy === false && cannotPublish ? { copy: false } : {}),
+        ...(capabilities.exclusiveCopy === false && capabilities.exclusiveCreate === false && capabilities.streamingWrite === false ? { exclusiveCopy: false } : {}),
+      });
+    });
   }
 
   private protected(path: string): boolean {

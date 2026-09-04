@@ -129,6 +129,18 @@ export class S3FileSystem implements FileSystem {
     this.maxStreamBytes = validateLimit(options.maxStreamBytes ?? 5_000_000_000, "maxStreamBytes", 0, 5_000_000_000);
     this.maxListEntries = validateLimit(options.maxListEntries ?? 100_000, "maxListEntries", 1);
     this.capabilities = Object.freeze({
+      read: true, stat: true, readdir: true, realpath: true, access: true,
+      write: true, explicitDirectories: true, implicitDirectories: true, mkdir: true, recursiveMkdir: true,
+      remove: true, removeDirectory: true, recursiveRemove: true, copy: true, readlink: false,
+      exclusiveCopy: options.transport.capabilities?.conditionalCopy === true,
+      append: options.transport.capabilities?.conditionalPut === true,
+      exclusiveCreate: options.transport.capabilities?.conditionalPut === true,
+      truncate: options.transport.capabilities?.conditionalPut === true,
+      rename: this.allowRename && options.transport.capabilities?.conditionalDelete === true
+        && (options.transport.capabilities?.conditionalCopy === true || options.transport.capabilities?.conditionalPut === true),
+      streamingAppend: options.transport.capabilities?.streamingWrite === true
+        && options.transport.capabilities?.conditionalPut === true && typeof options.transport.putObjectStream === "function",
+      randomAccessWrite: false,
       readOnly: options.readOnly ?? false,
       symlinks: false, hardlinks: false, permissions: false,
       timestamps: options.transport.capabilities?.conditionalCopy === true || options.transport.capabilities?.conditionalPut === true,

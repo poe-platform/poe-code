@@ -8,6 +8,7 @@ import type {
   ReadStreamOptions, RemoveOptions, WriteFileOptions,
 } from "../../contracts/filesystem.js";
 import { compareEntries, registerEntryView } from "../mount/comparison.js";
+import { readOnlyCapabilities } from "../capabilities.js";
 
 function readOnly(syscall: string, path: string, dest?: string): never {
   throw new FsError("EROFS", { syscall, path, ...(dest === undefined ? {} : { dest }) });
@@ -36,7 +37,8 @@ export class ReadOnlyFileSystem implements FileSystem {
     this.#filesystem = filesystem;
     registerEntryView(this, async (path) => ({ filesystem: this.#filesystem, path, readOnly: true }));
     const streamingRead = typeof filesystem.readStream === "function" ? filesystem.capabilities.streamingRead : false;
-    this.#capabilities = Object.freeze({
+    this.#capabilities = readOnlyCapabilities({
+      ...filesystem.capabilities,
       readOnly: true,
       append: false,
       symlinks: filesystem.capabilities.symlinks === true && typeof filesystem.readlink === "function",
@@ -51,6 +53,11 @@ export class ReadOnlyFileSystem implements FileSystem {
 
   get capabilities(): FileSystemCapabilities {
     return this.#capabilities;
+  }
+
+  async capabilitiesFor(path: string, options?: FsOptions): Promise<FileSystemCapabilities> {
+    const capabilities = await this.#filesystem.capabilitiesFor?.(path, options) ?? this.#filesystem.capabilities;
+    return readOnlyCapabilities(capabilities);
   }
 
   async readFile(path: string, options?: ReadFileOptions): Promise<Uint8Array> {

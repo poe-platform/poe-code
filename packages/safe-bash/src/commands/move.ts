@@ -2,6 +2,7 @@ import { yieldTurn } from "../contracts/yield.js";
 import { dirname, FsError, isPathWithin, joinPath, type CommandContext, type FileStat } from "../contracts/index.js";
 import { compareCopyIdentity, compareObservedEntries } from "./copy-identity.js";
 import { codeOf, diagnostic } from "./internal.js";
+import { admitFilesystemModes } from "./filesystem-requirements.js";
 
 interface MoveEntry {
   readonly source: string;
@@ -91,6 +92,22 @@ export async function moveAcrossDevices(context: CommandContext, source: string,
     }
   };
   await visit(source, target, sourceStat, targetStat, 0);
+  for (const entry of plan) {
+    const sourceMode = entry.stat.type === "directory" ? "cross-directory-source"
+      : entry.stat.type === "symlink" ? "cross-link-source" : "cross-source";
+    await admitFilesystemModes(context, "mv", [sourceMode], [entry.source]);
+    if (entry.stat.type === "directory") {
+      if (!entry.targetStat) await admitFilesystemModes(context, "mv", ["cross-directory"], [entry.target]);
+    } else if (entry.stat.type === "symlink") {
+      await admitFilesystemModes(context, "mv", ["cross-link"], [entry.target]);
+      if (entry.targetStat) await admitFilesystemModes(context, "mv", ["cross-replace"], [entry.target]);
+    } else {
+      await admitFilesystemModes(context, "mv", ["cross-file",
+        ...!entry.targetStat || entry.targetStat.type === "symlink" ? ["cross-exclusive"] : [],
+        ...entry.targetStat?.type === "symlink" ? ["cross-replace"] : [],
+      ], [entry.target]);
+    }
+  }
   for (const entry of plan) {
     await recheck(context, entry);
     try {

@@ -408,7 +408,8 @@ test("heterogeneous capability intersections do not disable a capable selected m
     chmod: undefined, utimes: undefined, truncate: undefined, readStream: undefined, writeStream: undefined,
   });
   const fs = createMountFileSystem({ root: createMemoryFileSystem(), mounts: { "/limited": unsupported } });
-  for (const key of ["symlinks", "hardlinks", "permissions", "timestamps", "atomicRename"]) assert.equal(fs.capabilities[key], false);
+  for (const key of ["symlinks", "hardlinks", "permissions", "timestamps"]) assert.equal(fs.capabilities[key], undefined);
+  assert.equal(fs.capabilities.atomicRename, false);
   assert.equal(fs.capabilities.streamingRead, undefined);
   assert.equal(fs.capabilities.streamingWrite, undefined);
   await fs.writeFile("/limited/file", bytes);
@@ -433,7 +434,7 @@ test("missing readlink fails closed on preexisting symlinks", async () => {
   await disk.writeFile("/target", bytes);
   await disk.symlink("/target", "/alias");
   const fs = createMountFileSystem({ root: createMemoryFileSystem(), mounts: { "/disk": backend({ readlink: undefined }, disk) } });
-  assert.equal(fs.capabilities.symlinks, false);
+  assert.equal(fs.capabilities.symlinks, undefined);
   await assert.rejects(fs.readFile("/disk/alias"), errno("ENOTSUP"));
   await assert.rejects(fs.readlink("/disk/alias"), errno("ENOTSUP"));
   assert.equal((await fs.lstat("/disk/alias")).type, "symlink");

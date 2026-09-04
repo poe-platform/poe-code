@@ -1,10 +1,17 @@
 import { type CommandContext, type CommandDefinition, type FileStat } from "../contracts/index.js";
 import { codeOf, define, pathOf, UsageError } from "./internal.js";
+import { assertCommandRequirements } from "../contracts/command-requirements.js";
+import { predicateRequirements } from "./portable-requirements.js";
 
 type Predicate = () => Promise<boolean>;
 
 async function metadata(context: CommandContext, path: string, link = false): Promise<FileStat | undefined> {
-  try { return await context.fs[link ? "lstat" : "stat"](pathOf(context, path), { signal: context.signal }); }
+  assertCommandRequirements(context, predicateRequirements, ["metadata"]);
+  try {
+    if (context.fs.capabilitiesFor) assertCommandRequirements(context, predicateRequirements, ["metadata"],
+      await context.fs.capabilitiesFor(pathOf(context, path), { signal: context.signal }));
+    return await context.fs[link ? "lstat" : "stat"](pathOf(context, path), { signal: context.signal });
+  }
   catch (error) {
     context.signal.throwIfAborted();
     if (["ENOENT", "ENOTDIR", "EACCES", "ELOOP"].includes(codeOf(error) ?? "")) return undefined;
@@ -71,7 +78,13 @@ export function predicateCommands(): CommandDefinition[] {
           if (token === "-n") return operand !== "";
           if (token === "-z") return operand === "";
           if (["-r", "-w", "-x"].includes(token)) {
-            try { await context.fs.access(pathOf(context, operand), token === "-r" ? 4 : token === "-w" ? 2 : 1, { signal: context.signal }); return true; }
+            assertCommandRequirements(context, predicateRequirements, ["access"]);
+            try {
+              if (context.fs.capabilitiesFor) assertCommandRequirements(context, predicateRequirements, ["access"],
+                await context.fs.capabilitiesFor(pathOf(context, operand), { signal: context.signal }));
+              await context.fs.access(pathOf(context, operand), token === "-r" ? 4 : token === "-w" ? 2 : 1, { signal: context.signal });
+              return true;
+            }
             catch (error) { context.signal.throwIfAborted(); if (["ENOENT", "ENOTDIR", "EACCES", "EROFS"].includes(codeOf(error) ?? "")) return false; throw error; }
           }
           const stat = await metadata(context, operand, token === "-L" || token === "-h");
@@ -108,5 +121,5 @@ export function predicateCommands(): CommandDefinition[] {
     const evaluate = disjunction();
     if (offset !== args.length) throw new UsageError(`unexpected argument '${args[offset]}'`);
     return { exitCode: await evaluate() ? 0 : 1 };
-  }));
+  })).map(command => ({ ...command, filesystemRequirements: predicateRequirements }));
 }

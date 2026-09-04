@@ -107,6 +107,11 @@ function nativeError(error: unknown): FsError {
  */
 export class RealFileSystem implements FileSystem {
   readonly capabilities: FileSystemCapabilities = Object.freeze({
+    read: true, stat: true, readdir: true, realpath: true, access: true,
+    write: true, append: true, exclusiveCreate: true, explicitDirectories: true, implicitDirectories: false,
+    mkdir: true, recursiveMkdir: true, remove: true, removeDirectory: true, recursiveRemove: true,
+    rename: true, copy: true, exclusiveCopy: true, readlink: true, truncate: true,
+    streamingAppend: true, randomAccessWrite: true,
     readOnly: false, symlinks: true, hardlinks: true, permissions: true,
     timestamps: true, atomicRename: true, streamingRead: true, streamingWrite: true,
   });

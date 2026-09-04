@@ -1,10 +1,15 @@
 import { Budget, run, makeFsModule, type RunClock, type HostObjectIndexedDefinition, type HostObjectNamedDefinition, type CallbackInvocation } from "@poe-platform/safe-js";
 import { createMemoryFileSystem, type FileSystem } from "@poe-platform/safe-fs/core";
 import type { FileSystem as CompatibilityFileSystem } from "@poe-platform/safe-js/fs";
-import { Shell, standardCommands } from "@poe-platform/safe-bash";
+import { Shell, standardCommands, evaluateCommandSupport, type CommandSupport, type CommandFileSystemRequirement } from "@poe-platform/safe-bash";
+import { evaluateCommandSupport as evaluateBrowserCommandSupport, type CommandSupport as BrowserCommandSupport } from "@poe-platform/safe-bash/browser";
 import { createRealm, defineExtension, type HostObject, type GuestReference, type HostObjectIndexedDefinition as CoreIndexed, type HostObjectNamedDefinition as CoreNamed, type CallbackInvocation as CoreInvocation } from "@poe-platform/safe-js/core";
 
 const fs: FileSystem & CompatibilityFileSystem = createMemoryFileSystem();
+const requirements: readonly CommandFileSystemRequirement[] = [{ id: "append", description: "Append file content", capabilities: ["append"], mutates: true }];
+const support: CommandSupport & BrowserCommandSupport = evaluateCommandSupport({ filesystemRequirements: requirements }, fs.capabilities);
+void support;
+evaluateBrowserCommandSupport({ filesystemRequirements: requirements }, fs.capabilities);
 let next = 0;
 const clock: RunClock = { now: () => next++, snapshot: () => ({ next }), restore: state => { next = state.next; } };
 await run("return new Date(Date.now()).toISOString();", { clock });

@@ -494,9 +494,11 @@ test("tee propagates cancellation into adapter writeStream and releases input", 
   const reason = new Error("cancel tee stream");
   let adapterSignal: AbortSignal | undefined;
   let released = false;
+  let writerJoined = false;
   const fs = streamingOnlyAdapter(backing, async (_path, source, options) => {
     adapterSignal = options?.signal;
-    for await (const ignoredChunk of source) { /* consume with backpressure */ }
+    try { for await (const chunk of source) assert.ok(chunk instanceof Uint8Array); }
+    finally { writerJoined = true; }
   });
   const source = (async function* () {
     try {
@@ -508,8 +510,10 @@ test("tee propagates cancellation into adapter writeStream and releases input", 
   await new Promise<void>(resolve => setImmediate(resolve));
   controller.abort(reason);
   await assert.rejects(pending, error => error === reason);
-  assert.equal(adapterSignal, controller.signal);
+  assert.equal(adapterSignal?.aborted, true);
+  assert.equal(adapterSignal?.reason, reason);
   assert.equal(released, true);
+  assert.equal(writerJoined, true);
 });
 
 test("tr translates, deletes, squeezes and complements byte sets across chunks", async () => {

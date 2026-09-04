@@ -1,5 +1,5 @@
 import type { CommandContext, InvocationCleanup } from "./command.js";
-import { writeBytes, type ByteSink } from "./io.js";
+import { outputFailure, writeBytes, type ByteSink } from "./io.js";
 
 export interface OutputOperation {
   readonly signal: AbortSignal;
@@ -8,6 +8,7 @@ export interface OutputOperation {
   registerCleanup(cleanup: InvocationCleanup): void;
   acquire<Value>(start: (signal: AbortSignal) => Value | Promise<Value>, release: (resource: Value) => void | Promise<void>): Promise<Value>;
   close(): Promise<void>;
+  abort(reason: unknown): Promise<void>;
 }
 
 export function createOutputOperation(context: Pick<CommandContext, "signal" | "registerCleanup">, destination: ByteSink): OutputOperation {
@@ -75,6 +76,7 @@ export function createOutputOperation(context: Pick<CommandContext, "signal" | "
   return {
     signal,
     output: {
+      ...(destination[outputFailure] ? { [outputFailure]: destination[outputFailure] } : {}),
       async write(chunk) {
         assertOpen();
         await writeBytes(capability ?? destination, chunk, signal);
@@ -116,5 +118,9 @@ export function createOutputOperation(context: Pick<CommandContext, "signal" | "
       return wait(pending);
     },
     close,
+    abort(reason) {
+      abort(reason);
+      return close();
+    },
   };
 }

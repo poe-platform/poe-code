@@ -1,3 +1,70 @@
+# Semantic operation capabilities
+
+Capability flags describe operations, not JavaScript method presence. `true`
+declares support subject to normal path, permission, provider, cancellation, and
+resource constraints; `false` declares known lack of support; absence is unknown.
+The required `FileSystem` methods may intentionally reject `ENOTSUP` and do not
+establish support. `readOnly: true` takes precedence over all mutation flags.
+
+| Capability | Meaning |
+| --- | --- |
+| `read` | Ordinary `readFile` bytes |
+| `stat` | `stat`/`lstat` entry metadata |
+| `readdir` | Directory enumeration |
+| `realpath` | Canonical path resolution |
+| `access` | Access/permission inspection, not unconditional authorization |
+| `write` | Ordinary `writeFile` create-or-truncate (`w`) |
+| `append` | Direct incremental `appendFile`; separate from stream append |
+| `exclusiveCreate` | Exclusive file creation (`wx`/`ax`), not ordinary overwrite |
+| `streamingWrite` | `writeStream` write/truncate route |
+| `streamingAppend` | `writeStream` append (`a`) route, independent of `append` |
+| `truncate` | Explicit `truncate(path, length)` resizing, distinct from `w` |
+| `explicitDirectories` | Explicit/empty directory entries are representable |
+| `implicitDirectories` | Directory views can arise from existing file prefixes |
+| `mkdir`, `recursiveMkdir` | Explicit directory creation, and recursive parent creation |
+| `remove`, `removeDirectory`, `recursiveRemove` | File-entry deletion, empty-directory removal, and recursive removal |
+| `copy`, `exclusiveCopy` | Ordinary and exclusive `copyFile` operations |
+| `rename` | Configured rename primitive, not necessarily atomic |
+| `atomicRename` | Existing stronger atomic-rename guarantee |
+| `readlink`, `symlinks`, `hardlinks` | Link inspection, symbolic-link creation, and hard-link creation |
+| `timestamps`, `permissions` | Timestamp and permission mutation |
+| `randomAccessWrite` | Eligibility for the shell's existing bounded descriptor-offset update strategy |
+
+`implicitDirectories` does not promise that writes create missing ancestors.
+Adapters may expose both implicit prefixes and explicit directory markers. Flags
+do not promise transactions, arbitrary file sizes, preserved inode identity,
+successful cross-device operations, or deployed server feature availability.
+
+`randomAccessWrite` is not a new positional-writer API. It expressly permits the
+existing shell strategy that observes current bytes and writes an offset-adjusted
+replacement; it must not be inferred from `write`, `append`, or `streamingWrite`.
+Memory and real adapters advertise it; atomic/sequential object adapters do not.
+This does not add a new emulation route or promise concurrent-writer isolation.
+
+## Adapter and wrapper declarations
+
+Memory and real declare their supported primitives explicitly. S3 conditions
+exclusive creation/append on conditional PUT, exclusive copy on conditional COPY,
+and rename on its configured non-atomic rename policy plus conditional copy/PUT
+and delete prerequisites. This documents existing S3 semantics; it does not add a
+rename emulation. WebDAV declares empty-directory removal only with its explicit
+atomic binding and does not advertise unsupported explicit truncation.
+
+Readonly views preserve inspection and directory-representation declarations but
+disable mutation flags. Mounts report true only for uniform declared support,
+false only for uniform lack of support, and omit mixed/unknown declarations;
+multi-mount rename remains unknown because cross-mount rename is not a primitive.
+`capabilitiesFor?(path, options)` optionally resolves a specific target through the
+same mount path rules, including symlinks and a missing final entry, without
+creating anything. Synthetic directories return a readonly profile. It is a
+point-in-time observation, not a lease, and can fail with normal resolution errors.
+
+Readonly and quota views preserve selected-path resolution. Quota stream flags
+describe its actual incremental append-based route, not the backing atomic
+writer's flags. Overlay declarations conservatively include upper staging and
+copy-up prerequisites; missing required declarations remain unknown. Wrappers
+must not manufacture support from delegated mandatory methods.
+
 # Optional allocation metadata
 
 `FileStat.allocatedBytes?: number` is an optional, readonly observation of the

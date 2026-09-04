@@ -1,6 +1,8 @@
-import { FsError, readBytes, writeBytes, type ByteSource, type CommandContext } from "../../contracts/index.js";
+import { readBytes, writeBytes, type ByteSource, type CommandContext } from "../../contracts/index.js";
+import { openFileOutput } from "../../contracts/filesystem-output.js";
+import { outputFailure } from "../../contracts/io.js";
 import { pathOf } from "../internal.js";
-import { encode, withSignal } from "./shared.js";
+import { encode } from "./shared.js";
 import { CurlError, type HttpResponse } from "./types.js";
 
 export function responseHeaders(response: HttpResponse, maxBytes: number): Uint8Array {
@@ -20,31 +22,23 @@ export function responseHeaders(response: HttpResponse, maxBytes: number): Uint8
 
 export async function writeOutput(context: CommandContext, path: string | undefined, source: ByteSource, signal: AbortSignal): Promise<void> {
   if (path === undefined || path === "-") {
-    for await (const chunk of readBytes(source, signal)) {
-      try { await writeBytes(context.stdout, chunk, signal); }
-      catch { signal.throwIfAborted(); throw new CurlError(23, "Failed writing output"); }
+    try {
+      for await (const chunk of readBytes(source, signal)) {
+        try { await writeBytes(context.stdout, chunk, signal); }
+        catch { signal.throwIfAborted(); throw new CurlError(23, "Failed writing output"); }
+      }
+    } catch (error) {
+      await context.stdout[outputFailure]?.(error);
+      throw error;
     }
     return;
   }
   try {
-    const target = pathOf(context, path);
-    if (context.fs.capabilities.streamingWrite !== false && context.fs.writeStream) {
-      let acquired = false;
-      const observed: ByteSource = {
-        [Symbol.asyncIterator]() {
-          acquired = true;
-          return source[Symbol.asyncIterator]();
-        }
-      };
-      try {
-        await withSignal(() => context.fs.writeStream!(target, observed, { signal, flag: "w" }), signal);
-        return;
-      } catch (error) {
-        if (acquired || !(error instanceof FsError) || error.code !== "ENOTSUP") throw error;
-      }
-    }
-    await withSignal(() => context.fs.writeFile(target, new Uint8Array(), { signal, flag: "w" }), signal);
-    for await (const chunk of readBytes(source, signal)) await withSignal(() => context.fs.appendFile(target, chunk, { signal }), signal);
+    const target = await openFileOutput({ ...context, signal }, pathOf(context, path), "w");
+    try {
+      for await (const chunk of readBytes(source, target.signal)) await target.sink.write(chunk);
+      await target.finish();
+    } catch (error) { await target.abort(error); throw error; }
   } catch (error) {
     signal.throwIfAborted();
     if (error instanceof CurlError) throw error;
@@ -55,8 +49,11 @@ export async function writeOutput(context: CommandContext, path: string | undefi
 export async function dumpHeaders(context: CommandContext, path: string, bytes: Uint8Array, append: boolean, signal: AbortSignal): Promise<void> {
   try {
     if (path === "-") await writeBytes(context.stdout, bytes, signal);
-    else if (append) await withSignal(() => context.fs.appendFile(pathOf(context, path), bytes, { signal }), signal);
-    else await withSignal(() => context.fs.writeFile(pathOf(context, path), bytes, { signal, flag: "w" }), signal);
+    else {
+      const target = await openFileOutput({ ...context, signal }, pathOf(context, path), append ? "a" : "w");
+      try { await target.sink.write(bytes); await target.finish(); }
+      catch (error) { await target.abort(error); throw error; }
+    }
   } catch {
     signal.throwIfAborted();
     throw new CurlError(23, "Failed writing response headers");

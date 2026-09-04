@@ -1,5 +1,6 @@
 import type { FileSystem, FsOptions } from "../../contracts/filesystem.js";
 import type { ByteSource } from "../../contracts/io.js";
+import { quotaCapabilities } from "../capabilities.js";
 
 export interface FileSystemQuotaOptions {
   readonly maxBytes: number;
@@ -100,6 +101,9 @@ export function withFileSystemQuota(fs: FileSystem, options: FileSystemQuotaOpti
   };
   return new Proxy(fs, {
     get(target, property) {
+      if (property === "capabilities") return quotaCapabilities(target.capabilities);
+      if (property === "capabilitiesFor") return async (path: string, fsOptions?: FsOptions) =>
+        quotaCapabilities(await target.capabilitiesFor?.(path, fsOptions) ?? target.capabilities);
       const replacement = Reflect.get(mutations, property) as unknown;
       if (typeof replacement === "function") return replacement;
       const original = Reflect.get(target, property) as unknown;

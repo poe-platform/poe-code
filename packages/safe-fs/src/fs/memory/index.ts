@@ -92,6 +92,11 @@ const compareOwnedMemory: EntryAuthority = async (own, peer, options) => {
 
 export class MemoryFileSystem implements FileSystem {
   readonly capabilities = Object.freeze({
+    read: true, stat: true, readdir: true, realpath: true, access: true,
+    write: true, append: true, exclusiveCreate: true, explicitDirectories: true, implicitDirectories: false,
+    mkdir: true, recursiveMkdir: true, remove: true, removeDirectory: true, recursiveRemove: true,
+    rename: true, copy: true, exclusiveCopy: true, readlink: true, truncate: true,
+    streamingAppend: true, randomAccessWrite: true,
     readOnly: false,
     symlinks: true,
     hardlinks: true,

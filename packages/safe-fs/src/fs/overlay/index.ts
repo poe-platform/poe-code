@@ -1,4 +1,5 @@
 import { platform } from "#safe-fs-platform";
+import { requireCapabilities } from "../capabilities.js";
 import { finishCleanup } from "../../contracts/cleanup.js";
 import { collectBytes, readBytes } from "../../contracts/io.js";
 import type { ByteSource } from "../../contracts/io.js";
@@ -133,9 +134,36 @@ export class OverlayFileSystem implements FileSystem {
       ? readable.every((capability) => capability === true) ? true : undefined : false;
     const append = !writable || this.#upper.capabilities.append === false ? false
       : this.#upper.capabilities.append === true ? true : undefined;
+    const upper = this.#upper.capabilities;
+    const mutation = requireCapabilities(writable, upper.mkdir, upper.rename, upper.remove,
+      upper.exclusiveCreate, upper.timestamps, upper.permissions);
+    const effectiveAppend = requireCapabilities(append, mutation);
+    const effectiveStreamingWrite = requireCapabilities(streamingWrite, mutation);
+    const semantics = Object.fromEntries([
+      ...["read", "stat", "readdir", "realpath", "access"].map(capability => [capability,
+        requireCapabilities(upper[capability], this.#lower.capabilities[capability])]),
+      ["write", requireCapabilities(mutation, upper.write)],
+      ["exclusiveCreate", requireCapabilities(mutation, upper.exclusiveCreate)],
+      ["mkdir", requireCapabilities(mutation, upper.mkdir)],
+      ["recursiveMkdir", requireCapabilities(mutation, upper.recursiveMkdir)],
+      ["remove", requireCapabilities(mutation, upper.remove)],
+      ["removeDirectory", requireCapabilities(mutation, upper.removeDirectory)],
+      ["recursiveRemove", requireCapabilities(mutation, upper.recursiveRemove)],
+      ["rename", requireCapabilities(mutation, upper.rename, upper.write)],
+      ["copy", requireCapabilities(mutation, upper.write)],
+      ["exclusiveCopy", requireCapabilities(mutation, upper.exclusiveCreate)],
+      ["truncate", requireCapabilities(mutation, upper.truncate)],
+      ["streamingAppend", requireCapabilities(mutation, streamingWrite, upper.streamingAppend)],
+      ["randomAccessWrite", requireCapabilities(mutation, upper.randomAccessWrite)],
+      ["explicitDirectories", requireCapabilities(upper.explicitDirectories, this.#lower.capabilities.explicitDirectories)],
+    ].filter(([, value]) => value !== undefined));
     this.capabilities = Object.freeze({
-      readOnly: !writable,
-      ...(append === undefined ? {} : { append }),
+      ...semantics,
+      implicitDirectories: false,
+      readlink: upper.readlink === true && this.#lower.capabilities.readlink === true ? true
+        : upper.readlink === false && this.#lower.capabilities.readlink === false ? false : undefined,
+      ...(upper.readOnly === undefined ? {} : { readOnly: upper.readOnly }),
+      ...(effectiveAppend === undefined ? {} : { append: effectiveAppend }),
       atomicRename: false,
       hardlinks: false,
       symlinks: writable && this.#upper.capabilities.symlinks === true
@@ -144,7 +172,7 @@ export class OverlayFileSystem implements FileSystem {
       permissions: writable && this.#upper.capabilities.permissions === true && typeof this.#upper.chmod === "function",
       timestamps: writable && this.#upper.capabilities.timestamps === true && typeof this.#upper.utimes === "function",
       ...(streamingRead === undefined ? {} : { streamingRead }),
-      ...(streamingWrite === undefined ? {} : { streamingWrite }),
+      ...(effectiveStreamingWrite === undefined ? {} : { streamingWrite: effectiveStreamingWrite }),
     });
     Object.defineProperty(this, "capabilities", { writable: false, configurable: false });
   }

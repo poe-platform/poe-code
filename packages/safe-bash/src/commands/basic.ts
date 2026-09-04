@@ -1,5 +1,7 @@
 import { basename, dirname, getCommandArguments, writeBytes, type CommandDefinition } from "../contracts/index.js";
 import { decoder, define, encoder, escapeBytes, options, output, requireOperands, UsageError, value } from "./internal.js";
+import { assertCommandRequirements } from "../contracts/command-requirements.js";
+import { pwdRequirements } from "./portable-requirements.js";
 
 export function basicCommands(): CommandDefinition[] {
   return [
@@ -30,6 +32,10 @@ export function basicCommands(): CommandDefinition[] {
     define("pwd", async (context) => {
       const parsed = options(context.args, "LP");
       requireOperands(parsed.operands, 0, 0);
+      const mode = parsed.flags.has("P") ? "physical" : "logical";
+      assertCommandRequirements(context, pwdRequirements, [mode]);
+      if (mode === "physical" && context.fs.capabilitiesFor) assertCommandRequirements(context, pwdRequirements, [mode],
+        await context.fs.capabilitiesFor(context.cwd, { signal: context.signal }));
       await output(context, `${parsed.flags.has("P") ? await context.fs.realpath(context.cwd, { signal: context.signal }) : context.cwd}\n`);
       return { exitCode: 0 };
     }),
@@ -162,5 +168,5 @@ export function basicCommands(): CommandDefinition[] {
       } while (argument < args.length && !stopped);
       return { exitCode };
     }),
-  ];
+  ].map(command => ({ ...command, filesystemRequirements: command.name === "pwd" ? pwdRequirements : [] }));
 }

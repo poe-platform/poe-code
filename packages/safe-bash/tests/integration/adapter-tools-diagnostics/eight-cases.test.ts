@@ -89,15 +89,20 @@ for (const row of rows) {
         const caughtErrors: unknown[] = [];
         const originalAccess = fs.access;
         const originalWrite = fs.writeFile;
+        const originalAppend = fs.appendFile;
+        const originalStream = fs.writeStream;
         if (row.flag) {
           fs.writeFile = async (target, bytes, options) => {
-            try { return await originalWrite.call(fs, target, bytes, options); }
-            catch (error) {
-              caughtErrors.push(error);
-              observed.push({ operation: "writeFile", target, bytesHex: Buffer.from(bytes).toString("hex"),
-                flag: options?.flag });
-              throw error;
-            }
+            observed.push({ operation: "writeFile", target, bytesHex: Buffer.from(bytes).toString("hex"), flag: options?.flag });
+            return originalWrite.call(fs, target, bytes, options);
+          };
+          fs.appendFile = async (target, bytes, options) => {
+            observed.push({ operation: "appendFile", target, bytesHex: Buffer.from(bytes).toString("hex") });
+            return originalAppend.call(fs, target, bytes, options);
+          };
+          if (originalStream) fs.writeStream = async (target, source, options) => {
+            observed.push({ operation: "writeStream", target, flag: options?.flag });
+            return originalStream.call(fs, target, source, options);
           };
         } else {
           fs.access = async (target, mode, options) => {
@@ -111,19 +116,28 @@ for (const row of rows) {
         }
         let result: ShellResult;
         try { result = await exec(row.source); }
-        finally { fs.access = originalAccess; fs.writeFile = originalWrite; }
+        finally {
+          fs.access = originalAccess;
+          fs.writeFile = originalWrite;
+          fs.appendFile = originalAppend;
+          if (originalStream) fs.writeStream = originalStream;
+        }
         evidence.result = { status: result.exitCode, stdoutHex: Buffer.from(result.stdout).toString("hex"),
           stderrHex: Buffer.from(result.stderr).toString("hex") };
         evidence.observed = observed;
         await check("exact CLI reference", () => exactResult(result, row.flag ? reference.readonly : reference.missing));
-        await check("corresponding rejecting operation", () => {
+        await check(row.flag ? "readonly admission avoids mutation APIs" : "corresponding rejecting operation", () => {
+          if (row.flag) {
+            assert.equal(fs.capabilities.readOnly, true);
+            assert.deepEqual(observed, []);
+            return;
+          }
           assert.equal(observed.length, 1);
           const event = observed[0]!;
           Object.assign(event, boundary(caughtErrors[0], code, path));
           assert.equal(event.target, path);
-          assert.equal(event.operation, row.flag ? "writeFile" : "access");
-          if (row.flag) { assert.equal(event.flag, row.flag); assert.equal(event.bytesHex, ""); assert.equal(event.syscall, "writeFile"); }
-          else assert.equal(event.mode, 4);
+          assert.equal(event.operation, "access");
+          assert.equal(event.mode, 4);
         });
         await check("failed redirection never dispatches utility", () => assert.equal(dispatched.length, dispatchCount));
         await check("CLI namespace and bytes unchanged", async () => assert.deepEqual(await snapshot(fs), beforeRedirect));

@@ -59,7 +59,7 @@ test("curl honors an explicit streaming opt-out even when the method exists", as
 });
 
 for (const stage of ["before", "acquired", "consumed"] as const) {
-  test(`curl only falls back for typed ENOTSUP before iterator acquisition: ${stage}`, async () => {
+  test(`curl only falls back for typed ENOTSUP before reading the iterator: ${stage}`, async () => {
     const backing = createMemoryFileSystem();
     const fs: FileSystem = { ...buffered(backing), capabilities: {} };
     await backing.writeFile("/out", new Uint8Array([9]));
@@ -85,10 +85,10 @@ for (const stage of ["before", "acquired", "consumed"] as const) {
     })());
     try {
       const result = await shell.exec("curl https://example.invalid/file -o /out");
-      assert.equal(result.exitCode, stage === "before" ? 0 : 23, result.stderr);
-      assert.equal(bufferedWrites, stage === "before" ? 1 : 0);
-      assert.equal(produced, stage === "before" ? 2 : stage === "consumed" ? 1 : 0);
-      assert.deepEqual(await backing.readFile("/out"), new Uint8Array(stage === "before" ? [1, 2] : stage === "consumed" ? [1] : [9]));
+      assert.equal(result.exitCode, stage === "consumed" ? 23 : 0, result.stderr);
+      assert.equal(bufferedWrites, stage === "consumed" ? 0 : 1);
+      assert.equal(produced, stage === "consumed" ? 1 : 2);
+      assert.deepEqual(await backing.readFile("/out"), new Uint8Array(stage === "consumed" ? [1] : [1, 2]));
     } finally { await shell.dispose(); }
   });
 }

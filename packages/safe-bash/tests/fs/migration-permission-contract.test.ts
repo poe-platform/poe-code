@@ -43,7 +43,7 @@ test("opaque unknown permission backend actually rejects X_OK before any copy ef
   const calls: { path: string; mode: number | undefined }[] = [];
   const local = createMemoryFileSystem();
   const filesystem = createMountFileSystem({ root: local, mounts: { "/unknown": rejectingOpaque(remote, calls), "/known": remote } });
-  assert.equal(filesystem.capabilities.permissions, false);
+  assert.equal(filesystem.capabilities.permissions, undefined);
   assert.equal((await filesystem.stat("/known/dir/source")).type, "file");
   service.requests.length = 0;
   await assert.rejects(filesystem.copyFile("/unknown/dir/source", "/new"), error => {

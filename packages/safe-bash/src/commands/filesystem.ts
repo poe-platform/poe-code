@@ -5,6 +5,20 @@ import {
 import { codeOf, define, eachOperand, options, output, pathOf, requireOperands, UsageError, value } from "./internal.js";
 import { compareCopyIdentity, compareObservedEntries } from "./copy-identity.js";
 import { MoveBudget, moveAcrossDevices } from "./move.js";
+import { admitFilesystemModes, filesystemCommandRequirements } from "./filesystem-requirements.js";
+
+async function preflightOperands(
+  context: CommandContext, operands: readonly string[], check: (operand: string) => Promise<void>,
+): Promise<void> {
+  for (const operand of operands) {
+    try { await check(operand); }
+    catch (error) {
+      context.signal.throwIfAborted();
+      if (codeOf(error) === "ENOTSUP" || codeOf(error) === "EROFS"
+        || codeOf(error) === "ENOTEMPTY" && error instanceof FsError && codeOf(error.cause) === "ENOTSUP") throw error;
+    }
+  }
+}
 
 async function maybeStat(context: CommandContext, path: string, follow = true): Promise<FileStat | undefined> {
   try { return await context.fs[follow ? "stat" : "lstat"](path, { signal: context.signal }); }
@@ -23,10 +37,28 @@ async function canonicalMissing(context: CommandContext, path: string): Promise<
 }
 
 function needCapability(context: CommandContext, capability: "symlink" | "link" | "readlink" | "utimes"): void {
+  const declaration = { symlink: "symlinks", link: "hardlinks", readlink: "readlink", utimes: "timestamps" }[capability];
+  if (!context.fs.capabilitiesFor && context.fs.capabilities[declaration] === false) throw new FsError("ENOTSUP", { syscall: capability });
   if (!context.fs[capability]) throw new FsError("ENOTSUP", { syscall: capability });
 }
 
+async function admitEmptyDirectory(context: CommandContext, path: string): Promise<void> {
+  try { await admitFilesystemModes(context, "rmdir", ["directory"], [path]); }
+  catch (error) {
+    context.signal.throwIfAborted();
+    if (codeOf(error) === "ENOTSUP") {
+      const capabilities = await context.fs.capabilitiesFor?.(path, { signal: context.signal }) ?? context.fs.capabilities;
+      if (capabilities.write !== false && capabilities.readdir !== false
+        && (await context.fs.readdir(path, { signal: context.signal })).length) {
+        throw new FsError("ENOTEMPTY", { syscall: "rmdir", path, cause: error });
+      }
+    }
+    throw error;
+  }
+}
+
 async function removeEmptyDirectory(context: CommandContext, path: string): Promise<void> {
+  await admitEmptyDirectory(context, path);
   context.signal.throwIfAborted();
   if (!context.fs.rmdir) throw new FsError("ENOTSUP", { syscall: "rmdir", path });
   await context.fs.rmdir(path, { signal: context.signal });
@@ -43,6 +75,7 @@ async function destinations(context: CommandContext, operands: readonly string[]
 async function copy(
   context: CommandContext, source: string, target: string,
   flags: ReadonlySet<string>, top = true, ancestors = new Set<string>(),
+  preflight = false,
 ): Promise<void> {
   context.signal.throwIfAborted();
   const link = await context.fs.lstat(source, { signal: context.signal });
@@ -53,13 +86,14 @@ async function copy(
     ? joinPath(await context.fs.realpath(dirname(source), { signal: context.signal }), basename(source))
     : await context.fs.realpath(source, { signal: context.signal });
   const physicalTarget = preserveLink
-    ? joinPath(await context.fs.realpath(dirname(target), { signal: context.signal }), basename(target))
+    ? joinPath(preflight ? await canonicalMissing(context, dirname(target))
+      : await context.fs.realpath(dirname(target), { signal: context.signal }), basename(target))
     : await canonicalMissing(context, target);
   if (physicalSource === physicalTarget || compareCopyIdentity(sourceStat, targetStat) === "same") {
     throw new FsError("EINVAL", { path: source, dest: target, message: "source and destination are the same file" });
   }
   if (flags.has("n") && await maybeStat(context, target, false)) return;
-  if (!preserveLink && targetStat && await compareObservedEntries(context.fs, source, sourceStat, context.fs, target, targetStat, { signal: context.signal }) === "same") {
+  if (!preflight && !preserveLink && targetStat && await compareObservedEntries(context.fs, source, sourceStat, context.fs, target, targetStat, { signal: context.signal }) === "same") {
     throw new FsError("EINVAL", { path: source, dest: target, message: "source and destination are the same file" });
   }
   if (sourceStat.type === "directory") {
@@ -67,27 +101,32 @@ async function copy(
     if (isPathWithin(physicalSource, physicalTarget)) throw new FsError("EINVAL", { path: target, message: "cannot copy a directory into itself" });
     if (ancestors.has(physicalSource)) throw new FsError("ELOOP", { path: source });
     if (targetStat && targetStat.type !== "directory") throw new FsError("ENOTDIR", { path: target });
-    if (!targetStat) await context.fs.mkdir(target, { mode: sourceStat.mode & 0o777, signal: context.signal });
+    await admitFilesystemModes(context, "cp", ["recursive"], [target]);
+    if (!targetStat && !preflight) await context.fs.mkdir(target, { mode: sourceStat.mode & 0o777, signal: context.signal });
     const next = new Set(ancestors).add(physicalSource);
     for (const entry of (await context.fs.readdir(source, { signal: context.signal })).sort((left, right) => left.name < right.name ? -1 : left.name > right.name ? 1 : 0)) {
-      await copy(context, joinPath(source, entry.name), joinPath(target, entry.name), flags, false, next);
+      await copy(context, joinPath(source, entry.name), joinPath(target, entry.name), flags, false, next, preflight);
     }
   } else if (preserveLink) {
+    await admitFilesystemModes(context, "cp", ["symlink"], [target]);
     needCapability(context, "symlink"); needCapability(context, "readlink");
     const linkTarget = await context.fs.readlink!(source, { signal: context.signal });
     const existing = await maybeStat(context, target, false);
     if (existing) {
+      await admitFilesystemModes(context, "cp", ["replace"], [target]);
       if (existing.type === "directory") throw new FsError("EISDIR", { path: target });
       const sourceEntry = await context.fs.lstat(source, { signal: context.signal });
       const identity = compareCopyIdentity(sourceEntry, existing);
       if (identity === "same") throw new FsError("EINVAL", { path: source, dest: target, message: "source and destination are the same file" });
       if (identity === "unknown") throw new FsError("ENOTSUP", { path: source, dest: target, message: "symbolic link copy unlink lacks authoritative distinctness" });
       context.signal.throwIfAborted();
-      await context.fs.rm(target, { recursive: false, signal: context.signal });
+      if (!preflight) await context.fs.rm(target, { recursive: false, signal: context.signal });
     }
-    await context.fs.symlink!(linkTarget, target, { signal: context.signal });
+    if (!preflight) await context.fs.symlink!(linkTarget, target, { signal: context.signal });
   } else {
+    await admitFilesystemModes(context, "cp", ["file", ...flags.has("f") && targetStat ? ["replace", "exclusive"] : []], [target]);
     if (targetStat?.type === "directory") throw new FsError("EISDIR", { path: target });
+    if (preflight) return;
     try { await context.fs.copyFile(source, target, { signal: context.signal }); }
     catch (error) {
       context.signal.throwIfAborted();
@@ -107,7 +146,7 @@ async function copy(
       await context.fs.copyFile(source, target, { exclusive: true, signal: context.signal });
     }
   }
-  if (flags.has("v")) await output(context, `'${source}' -> '${target}'\n`);
+  if (!preflight && flags.has("v")) await output(context, `'${source}' -> '${target}'\n`);
 }
 
 function modeText(stat: FileStat): string {
@@ -129,6 +168,8 @@ export function filesystemCommands(): CommandDefinition[] {
       requireOperands(parsed.operands);
       const mode = value(parsed, "m");
       if (mode !== undefined && !/^[0-7]{1,4}$/u.test(mode)) throw new UsageError(`invalid mode '${mode}' (octal required)`);
+      await preflightOperands(context, parsed.operands, operand => admitFilesystemModes(context, "mkdir",
+        [parsed.flags.has("p") ? "parents" : "directory"], [pathOf(context, operand)]));
       return eachOperand(context, parsed.operands, async operand => {
         await context.fs.mkdir(pathOf(context, operand), { recursive: parsed.flags.has("p"), ...(mode === undefined ? {} : { mode: parseInt(mode, 8) }), signal: context.signal });
         if (parsed.flags.has("v")) await output(context, `mkdir: created directory '${operand}'\n`);
@@ -140,17 +181,26 @@ export function filesystemCommands(): CommandDefinition[] {
       const reference = value(parsed, "r");
       const times = reference === undefined ? undefined : await context.fs.stat(pathOf(context, reference), { signal: context.signal });
       const now = Date.now();
+      await preflightOperands(context, parsed.operands, async operand => {
+        const path = pathOf(context, operand);
+        const existing = await maybeStat(context, path);
+        const modes = existing ? ["existing"] : parsed.flags.has("c") ? ["no-create"]
+          : reference === undefined ? ["create"] : ["create", "existing"];
+        await admitFilesystemModes(context, "touch", modes, [path]);
+      });
       return eachOperand(context, parsed.operands, async operand => {
         const path = pathOf(context, operand);
         let existing = await maybeStat(context, path);
         if (!existing) {
           if (parsed.flags.has("c")) return;
+          await admitFilesystemModes(context, "touch", reference === undefined ? ["create"] : ["create", "existing"], [path]);
           if (reference !== undefined) needCapability(context, "utimes");
           await context.fs.writeFile(path, new Uint8Array(), { flag: "wx", signal: context.signal });
           if (reference === undefined) return;
           existing = await context.fs.stat(path, { signal: context.signal });
         }
         needCapability(context, "utimes");
+        await admitFilesystemModes(context, "touch", ["existing"], [path]);
         const accessOnly = parsed.flags.has("a") && !parsed.flags.has("m");
         const modifyOnly = parsed.flags.has("m") && !parsed.flags.has("a");
         await context.fs.utimes!(path, modifyOnly ? existing.atimeMs : times?.atimeMs ?? now,
@@ -161,6 +211,11 @@ export function filesystemCommands(): CommandDefinition[] {
       const parsed = options(context.args, "rRfnvPL", { recursive: "R", force: "f", "no-clobber": "n", verbose: "v", dereference: "L", "no-dereference": "P" });
       if (parsed.flags.has("P") && parsed.flags.has("L")) throw new UsageError("-P and -L cannot be combined");
       const destination = await destinations(context, parsed.operands);
+      await preflightOperands(context, destination.sources, async operand => {
+        const source = pathOf(context, operand);
+        await copy(context, source, destination.directory ? joinPath(destination.target, basename(source)) : destination.target,
+          parsed.flags, true, new Set(), true);
+      });
       return eachOperand(context, destination.sources, async operand => {
         const source = pathOf(context, operand);
         await copy(context, source, destination.directory ? joinPath(destination.target, basename(source)) : destination.target, parsed.flags);
@@ -170,6 +225,12 @@ export function filesystemCommands(): CommandDefinition[] {
       const parsed = options(context.args, "fnv", { force: "f", "no-clobber": "n", verbose: "v" });
       const destination = await destinations(context, parsed.operands);
       const budget = new MoveBudget(context.signal);
+      await preflightOperands(context, destination.sources, async operand => {
+        const source = pathOf(context, operand);
+        const target = destination.directory ? joinPath(destination.target, basename(source)) : destination.target;
+        if (parsed.flags.has("n") && await maybeStat(context, target, false)) return;
+        await admitFilesystemModes(context, "mv", ["rename"], [source, target]);
+      });
       return eachOperand(context, destination.sources, async operand => {
         const source = pathOf(context, operand);
         const target = destination.directory ? joinPath(destination.target, basename(source)) : destination.target;
@@ -189,6 +250,14 @@ export function filesystemCommands(): CommandDefinition[] {
     define("rm", async context => {
       const parsed = options(context.args, "rRfdv", { recursive: "r", force: "f", dir: "d", verbose: "v" });
       if (!parsed.flags.has("f")) requireOperands(parsed.operands);
+      await preflightOperands(context, parsed.operands, async operand => {
+        const path = pathOf(context, operand);
+        const stat = await maybeStat(context, path, false);
+        if (!stat) return;
+        const mode = stat.type === "directory" ? parsed.flags.has("r") || parsed.flags.has("R") ? "recursive" : "directory" : "file";
+        if (mode === "directory") await admitEmptyDirectory(context, path);
+        else await admitFilesystemModes(context, "rm", [mode], [path]);
+      });
       return eachOperand(context, parsed.operands, async operand => {
         const path = pathOf(context, operand);
         if (path === "/" || [".", ".."].includes(operand.replace(/\/+$/u, "").split("/").at(-1)!)) throw new FsError("EBUSY", { path, message: "refusing to remove root, '.' or '..'" });
@@ -214,6 +283,14 @@ export function filesystemCommands(): CommandDefinition[] {
     define("rmdir", async context => {
       const parsed = options(context.args, "pv", { parents: "p", verbose: "v" });
       requireOperands(parsed.operands);
+      await preflightOperands(context, parsed.operands, async operand => {
+        let path = pathOf(context, operand);
+        const stop = dirname(pathOf(context, operand.split("/").find(part => part && part !== ".") ?? operand));
+        do {
+          await admitEmptyDirectory(context, path);
+          path = dirname(path);
+        } while (parsed.flags.has("p") && path !== "/" && path !== stop);
+      });
       return eachOperand(context, parsed.operands, async operand => {
         let path = pathOf(context, operand);
         const stop = dirname(pathOf(context, operand.split("/").find(part => part && part !== ".") ?? operand));
@@ -235,6 +312,11 @@ export function filesystemCommands(): CommandDefinition[] {
       if (operands.length > 2 && !directory) throw new FsError("ENOTDIR", { path: target });
       const symbolic = parsed.flags.has("s");
       needCapability(context, symbolic ? "symlink" : "link");
+      await preflightOperands(context, operands.slice(0, -1), async operand => {
+        const destination = directory ? joinPath(target, basename(operand)) : target;
+        const replacing = parsed.flags.has("f") && await maybeStat(context, destination, false);
+        await admitFilesystemModes(context, "ln", [symbolic ? "symbolic" : "hard", ...replacing ? ["replace"] : []], [destination]);
+      });
       return eachOperand(context, operands.slice(0, -1), async operand => {
         const destination = directory ? joinPath(target, basename(operand)) : target;
         const source = pathOf(context, operand);
@@ -259,6 +341,7 @@ export function filesystemCommands(): CommandDefinition[] {
       requireOperands(parsed.operands);
       return eachOperand(context, parsed.operands, async operand => {
         const path = pathOf(context, operand);
+        await admitFilesystemModes(context, "readlink", [parsed.flags.has("e") || parsed.flags.has("f") ? "canonical" : "link"], [path]);
         let result: string;
         if (parsed.flags.has("e")) result = await context.fs.realpath(path, { signal: context.signal });
         else if (parsed.flags.has("f")) {
@@ -290,6 +373,7 @@ export function filesystemCommands(): CommandDefinition[] {
       requireOperands(parsed.operands);
       const canonical = async (operand: string): Promise<string> => {
         const path = pathOf(context, operand);
+        await admitFilesystemModes(context, "realpath", ["canonical"], [path]);
         const existing = await maybeStat(context, path, false);
         return parsed.flags.has("m") ? await canonicalMissing(context, path)
           : parsed.flags.has("e") || existing ? await context.fs.realpath(path, { signal: context.signal })
@@ -311,6 +395,7 @@ export function filesystemCommands(): CommandDefinition[] {
       const operands = parsed.operands.length ? parsed.operands : ["."];
       let headerWritten = false;
       const render = async (path: string, display: string) => {
+        await admitFilesystemModes(context, "ls", ["entry"], [path]);
         const stat = await context.fs[parsed.flags.has("L") ? "stat" : "lstat"](path, { signal: context.signal });
         let suffix = stat.type === "directory" && (parsed.flags.has("F") || parsed.flags.has("p")) ? "/" : "";
         if (parsed.flags.has("F") && stat.type === "symlink") suffix = "@";
@@ -318,14 +403,19 @@ export function filesystemCommands(): CommandDefinition[] {
         if (parsed.flags.has("l")) {
           const date = new Date(stat.mtimeMs).toISOString().slice(0, 16).replace("T", " ");
           let target = "";
-          if (stat.type === "symlink") { needCapability(context, "readlink"); target = ` -> ${await context.fs.readlink!(path, { signal: context.signal })}`; }
+          if (stat.type === "symlink") {
+            await admitFilesystemModes(context, "ls", ["link"], [path]);
+            needCapability(context, "readlink"); target = ` -> ${await context.fs.readlink!(path, { signal: context.signal })}`;
+          }
           await output(context, `${modeText(stat)} ${stat.nlink ?? 1} ${stat.uid ?? 0} ${stat.gid ?? 0} ${stat.size} ${date} ${display}${suffix}${target}\n`);
         } else await output(context, `${display}${suffix}\n`);
       };
       const list = async (path: string, display: string, header: boolean, ancestors = new Set<string>()): Promise<void> => {
         context.signal.throwIfAborted();
+        await admitFilesystemModes(context, "ls", ["entry"], [path]);
         const stat = await context.fs[parsed.flags.has("L") || !parsed.flags.has("d") && !parsed.flags.has("l") ? "stat" : "lstat"](path, { signal: context.signal });
         if (stat.type !== "directory" || parsed.flags.has("d")) { await render(path, display); return; }
+        await admitFilesystemModes(context, "ls", ["directory"], [path]);
         const physical = await context.fs.realpath(path, { signal: context.signal });
         if (ancestors.has(physical)) throw new FsError("ELOOP", { path });
         const next = new Set(ancestors).add(physical);
@@ -345,5 +435,8 @@ export function filesystemCommands(): CommandDefinition[] {
       };
       return eachOperand(context, operands, operand => list(pathOf(context, operand), operand, operands.length > 1 || parsed.flags.has("R")));
     }),
-  ];
+  ].map(command => {
+    const requirements = filesystemCommandRequirements[command.name as keyof typeof filesystemCommandRequirements];
+    return requirements ? { ...command, filesystemRequirements: requirements } : command;
+  });
 }

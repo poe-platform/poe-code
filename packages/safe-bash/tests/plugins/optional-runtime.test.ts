@@ -11,7 +11,9 @@ type OptionalRuntime = {
   Shell: typeof import("poe-code/safe-bash").Shell;
   createYesCommand(): PublishedDefinition;
   createCmpCommand(): PublishedDefinition;
+  createShufCommand(): PublishedDefinition;
   yesCommands(): import("poe-code/safe-bash").VirtualShellPlugin;
+  shufCommands(): import("poe-code/safe-bash").VirtualShellPlugin;
 };
 
 const selected = process.env.SAFE_BASH_TEST_OPTIONAL_BUILD;
@@ -27,7 +29,7 @@ describe("explicit coherent optional build", { skip: selected === undefined ? "R
   test("optional factories and public host share the actual contract instance", async () => {
     const { published, optional } = await runtimes();
     assert.equal(optional.Shell, published.Shell);
-    for (const command of [optional.createYesCommand(), optional.createCmpCommand()]) {
+    for (const command of [optional.createYesCommand(), optional.createCmpCommand(), optional.createShufCommand()]) {
       assert.equal(command.runtimeIdentity, published.commandRuntimeIdentity);
       assert.equal(new published.CommandRegistry([command]).has(command.name), true);
     }
@@ -98,9 +100,9 @@ describe("explicit coherent optional build", { skip: selected === undefined ? "R
     const source = [
       'import { Shell, CommandRegistry } from "poe-code/safe-bash";',
       'import { createMemoryFileSystem } from "poe-code/safe-fs";',
-      'import { createYesCommand, yesCommands } from "../../dist/optional.js";',
-      'new CommandRegistry([createYesCommand()]);',
-      'new Shell({ fs: createMemoryFileSystem() }).use(yesCommands());',
+      'import { createYesCommand, yesCommands, createShufCommand, shufCommands } from "../../dist/optional.js";',
+      'new CommandRegistry([createYesCommand(), createShufCommand()]);',
+      'new Shell({ fs: createMemoryFileSystem() }).use(yesCommands()).use(shufCommands());',
     ].join("\n");
     const options: ts.CompilerOptions = {
       noEmit: true, strict: true, exactOptionalPropertyTypes: true,
@@ -114,5 +116,25 @@ describe("explicit coherent optional build", { skip: selected === undefined ? "R
     const program = ts.createProgram([filename], options, host);
     const diagnostics = ts.getPreEmitDiagnostics(program);
     assert.deepEqual(diagnostics.map(diagnostic => ts.flattenDiagnosticMessageText(diagnostic.messageText, "\n")), []);
+  });
+
+  test("compiled shuf preserves raw binary operands through the public host", async () => {
+    const { published, optional } = await runtimes();
+    const shell = new published.Shell({ fs: createMemoryFileSystem() }).use(optional.shufCommands());
+    try {
+      const result = await shell.exec("shuf -e $'\\377'");
+      assert.equal(result.exitCode, 0, result.stderr);
+      assert.deepEqual(result.stdoutBytes, Uint8Array.of(255, 10));
+    } finally { await shell.dispose(); }
+  });
+
+  test("compiled shuf named output cannot escape the public host budget", async () => {
+    const { published, optional } = await runtimes();
+    const fs = createMemoryFileSystem();
+    const shell = new published.Shell({ fs, limits: { maxOutputBytes: 1 } }).use(optional.shufCommands());
+    try {
+      await assert.rejects(shell.exec("shuf -e abc -o /out"), error => error instanceof published.ShellLimitError && error.limit === "maxOutputBytes");
+      assert.ok((await fs.readFile("/out")).length <= 1);
+    } finally { await shell.dispose(); }
   });
 });

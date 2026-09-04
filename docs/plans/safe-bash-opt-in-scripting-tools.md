@@ -96,8 +96,15 @@ this request to keep additions out of the default package.
   `209190556` preserves character-device metadata through filesystem consumers;
   `75a013fd4` adds preferred-I/O metadata and corrects device-number forwarding;
   `71e3f5f74` isolates dd/install leaves; `633b73d50` adds opt-in virtual devices;
-  `533c75ab1` adds the reviewed cmp command.
+  `533c75ab1` adds the reviewed cmp command; `98a1cbb83` keeps explicit optional
+  builds in the host runtime's module tree and rejects accidental runtime mixing.
   None has been pushed or released, and neither action is requested.
+- Shuf is ready for its separate local tool commit: 323 native/profile tests and
+  eight compiled optional/public-host tests pass, source/test/consumer types pass,
+  exact canonical test membership is declared, and the actual output screenshot
+  was inspected. Public-host binary argv and named-file output budget failures
+  were explicitly retested after coherent compilation. Default exports and
+  registry membership remain unchanged.
 - First implementation wave: cmp, yes, shuf and virtual devices in disjoint leaf
   directories. Root is qualifying native oracles and the opt-in delivery boundary.
 - The yes leaf is verified for its documented GNU 9.7 C-locale profile: 135 tests

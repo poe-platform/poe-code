@@ -1,0 +1,33 @@
+{
+  "classification": "historical unqualified native observation; not a clean-build parity certificate",
+  "date": "2026-09-04",
+  "path": "/tmp/safe-bash-scripting-oracles-20260904/coreutils-9.7/src/shuf",
+  "sha256": "4a98165c9e0f900e4e35891844ee1e3f1d84b19816e1ab8424828e69548126b6",
+  "sourceArchiveSha256": "e8bb26ad0293f9b5a1fc43fb42ba970e312c66ce92c1b0b16713d7500db251bf",
+  "profile": "GNU coreutils 9.7; Darwin arm64; LC_ALL=C; argv0=shuf; 64-bit size_t and uintmax_t",
+  "qualificationWarning": "Root reported that targeted make compiled some objects before generated getopt.h and make all reused those objects with dependency tracking disabled. A yes mixed native/GNU parser defect was observed. Shuf qualification remains pending a fresh make-all-only build; measured behavior is retained, not promoted to authoritative GNU semantics.",
+  "focusedRunBeforeWarning": { "tests": 271, "passed": 271, "failed": 0, "skipped": 0, "durationMs": 1657.641583 },
+  "earlierLocatedOracle": {
+    "path": "/Users/kjopek/Workspace/safe-bash/tests/commands/metadata-stress/.oracle/coreutils-9.7/src/shuf",
+    "sha256": "83efd3ea2fbe225cd0a3f08475353fffd5d8a95b278c8c48fec117087ae2ca12",
+    "versionFirstLine": "shuf (GNU coreutils) 9.7",
+    "initialRun": { "tests": 86, "passed": 83, "failed": 3 },
+    "failureExplanation": "Three empty-entropy cases exposed a Darwin /dev/fd socket transport artifact: native fopen returned EACCES after the parent closed an empty socket, rather than observing regular-file EOF. Those cases now use native /dev/null and an explicitly empty VFS file at the same pathname; no product EACCES workaround was added."
+  },
+  "observationsAfterWarningBeforeReplacement": [
+    { "args": ["--r"], "exitCode": 1, "stdoutHex": "", "stderr": "shuf: option '--r' is ambiguous; possibilities: '--random-source' '--repeat'\nTry 'shuf --help' for more information.\n" },
+    { "args": ["--he"], "exitCode": 1, "stdoutHex": "", "stderr": "shuf: option '--he' is ambiguous; possibilities: '--head-count' '--help'\nTry 'shuf --help' for more information.\n" },
+    { "args": ["-n0", "-o/"], "exitCode": 1, "stdoutHex": "", "stderr": "shuf: /: File exists\n" },
+    { "args": ["-e", "-n1", "-n0"], "exitCode": 0, "stdoutHex": "", "stderr": "" },
+    { "args": ["-i2-1"], "exitCode": 0, "stdoutHex": "", "stderr": "" },
+    { "args": ["--echo=x"], "exitCode": 1, "stdoutHex": "", "stderr": "shuf: option '--echo' doesn't allow an argument\nTry 'shuf --help' for more information.\n" },
+    { "args": ["-n0", "--random-source=/missing"], "exitCode": 0, "stdoutHex": "", "stderr": "" },
+    { "args": ["-rn0", "--random-source=/missing"], "exitCode": 1, "stdoutHex": "", "stderr": "shuf: /missing: No such file or directory\n" }
+  ],
+  "sourceFiles": {
+    "src/shuf.c": "2537adb961d8e20c2e080f4f3d4f38d3d3919910deced72683a7d743ec99bee5",
+    "lib/randint.c": "085f9b23bb64081b621d46b85b29dee31f1ac9e2bfadef4bc975af609b4601ec",
+    "lib/randperm.c": "a9820f3c0f05a723d1f7dc2a5f67126cc51c6fa94df94dd8a04ba200d937e999",
+    "lib/randread.c": "e2a26cf662465a36e161ff36ff0cb842a9bb519c62a4aaed5aa66c5b5bc73f53"
+  }
+}

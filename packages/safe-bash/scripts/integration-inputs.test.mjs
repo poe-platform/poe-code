@@ -429,6 +429,14 @@ function assertSource7Discovery(files) {
     "tests/commands/cmp/review.test.ts",
   ]) assert.ok(files.includes(path), "optional cmp test is missing: " + path);
   for (const path of [
+    "tests/commands/shuf/behavior.test.ts",
+    "tests/commands/shuf/lifecycle.test.ts",
+    "tests/commands/shuf/helpers.test.ts",
+    "tests/commands/shuf/parity.test.ts",
+    "tests/commands/shuf/integration.test.ts",
+    "tests/commands/shuf/review.test.ts",
+  ]) assert.ok(files.includes(path), "optional shuf test is missing: " + path);
+  for (const path of [
     "tests/fs/devices/devices.test.ts",
     "tests/fs/devices/native.test.ts",
     "tests/fs/devices/review.test.ts",

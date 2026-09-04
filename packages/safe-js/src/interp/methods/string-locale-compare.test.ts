@@ -4,11 +4,148 @@ import { describe, expect, it, vi } from "vitest";
 import { dump } from "../../dump.js";
 import { restore } from "../../restore.js";
 import { run } from "../../run.js";
-import { Budget } from "../budget.js";
+import { Budget, SandboxError } from "../budget.js";
 import { createSandboxClosure, isSandboxClosure } from "../values.js";
 import { getStringMember } from "./string.js";
 
 describe("String#localeCompare", () => {
+  it.each([
+    { receiver: "", comparison: "", units: 0 },
+    { receiver: "a", comparison: "b", units: 2 },
+    { receiver: "abcd", comparison: "ef", units: 6 },
+    { receiver: "\u{1f642}", comparison: "\u{1f642}", units: 4 },
+    { receiver: "a", comparison: 123, units: 4 }
+  ])("charges $units UTF-16 units before native collation", ({ receiver, comparison, units }) => {
+    const expected = receiver.localeCompare(String(comparison), "en");
+    const budget = new Budget({ maxSteps: units });
+    const member = getStringMember(receiver, "localeCompare", budget);
+    if (!isSandboxClosure(member)) throw new Error("Missing localeCompare intrinsic");
+    const original = String.prototype.localeCompare;
+    const native = vi.spyOn(String.prototype, "localeCompare").mockImplementation(function (
+      this: string,
+      ...args
+    ) {
+      expect(budget.stepsUsed).toBe(units);
+      return Reflect.apply(original, this, args);
+    });
+    try {
+      expect(member.call([comparison, "en"])).toBe(expected);
+      expect(budget.stepsUsed).toBe(units);
+      expect(native).toHaveBeenCalledTimes(1);
+    } finally {
+      native.mockRestore();
+    }
+  });
+
+  it("rejects insufficient collation work before any native invocation", () => {
+    const budget = new Budget({ maxSteps: 3 });
+    const member = getStringMember("ab", "localeCompare", budget);
+    if (!isSandboxClosure(member)) throw new Error("Missing localeCompare intrinsic");
+    const native = vi.spyOn(String.prototype, "localeCompare");
+    let failure: unknown;
+    try {
+      try {
+        member.call(["cd", "en"]);
+      } catch (error) {
+        failure = error;
+      }
+      expect(native).not.toHaveBeenCalled();
+      expect(failure).toMatchObject({
+        code: "budgetExceeded",
+        budget: "steps",
+        current: 4,
+        limit: 3
+      });
+    } finally {
+      native.mockRestore();
+    }
+  });
+
+  it.each([
+    'return receiver.localeCompare(comparison, "en");',
+    'const compare = receiver.localeCompare; return compare(comparison, "en");',
+    'const compare = receiver.localeCompare.bind("ignored"); return compare(comparison, "en");'
+  ])("admits public-path work and preserves fatal identity: %s", async (invocation) => {
+    const source = `try { ${invocation} } catch (error) { return "caught"; }`;
+    const baseline = new Budget();
+    await run(source, { bindings: { receiver: "", comparison: "" }, budget: baseline });
+    const bindings = { receiver: "abc", comparison: "defg" };
+    const units = 7;
+    const expected = bindings.receiver.localeCompare(bindings.comparison, "en");
+    const exact = new Budget({ maxSteps: baseline.stepsUsed + units });
+    expect(await run(source, { bindings, budget: exact })).toMatchObject({
+      ok: true,
+      returnValue: expected
+    });
+    expect(exact.stepsUsed).toBe(baseline.stepsUsed + units);
+    const budget = new Budget({ maxSteps: baseline.stepsUsed + units - 1 });
+    const visitNode = budget.visitNode.bind(budget);
+    let failure: unknown;
+    vi.spyOn(budget, "visitNode").mockImplementation((chargedUnits) => {
+      try {
+        visitNode(chargedUnits);
+      } catch (error) {
+        failure = error;
+        throw error;
+      }
+    });
+    const native = vi.spyOn(String.prototype, "localeCompare");
+    try {
+      const outcome = await run(source, { bindings, budget }).then(
+        (result) => result,
+        (error: unknown) => error
+      );
+      expect(outcome).toBeInstanceOf(SandboxError);
+      expect(outcome).toBe(failure);
+      expect(outcome).toMatchObject({ code: "budgetExceeded", budget: "steps" });
+      expect(native).not.toHaveBeenCalled();
+    } finally {
+      native.mockRestore();
+    }
+  });
+
+  it("checks a crossed deadline sample before native collation", () => {
+    const budget = new Budget({ deadline: 100, maxSteps: 1_024 });
+    budget.visitNode(1_023);
+    const member = getStringMember("a", "localeCompare", budget);
+    if (!isSandboxClosure(member)) throw new Error("Missing localeCompare intrinsic");
+    const dateNow = vi.spyOn(Date, "now").mockReturnValue(101);
+    const native = vi.spyOn(String.prototype, "localeCompare");
+    try {
+      expect(() => member.call(["b", "en"])).toThrow(
+        expect.objectContaining({
+          code: "budgetExceeded",
+          budget: "deadline",
+          current: 101,
+          limit: 100
+        })
+      );
+      expect(native).not.toHaveBeenCalled();
+    } finally {
+      native.mockRestore();
+      dateNow.mockRestore();
+    }
+  });
+
+  it("keeps existing string and locale-option admission ahead of work charging", () => {
+    const budget = new Budget({ maxSteps: 0, stringLength: 8 });
+    const member = getStringMember("a", "localeCompare", budget);
+    if (!isSandboxClosure(member)) throw new Error("Missing localeCompare intrinsic");
+    const options = Object.defineProperty({}, "sensitivity", { get: () => "base" });
+    const native = vi.spyOn(String.prototype, "localeCompare");
+    try {
+      expect(() => member.call([123456789])).toThrow("stringLength");
+      expect(() => member.call(["b", "en_US", options])).toThrow(RangeError);
+      expect(() => member.call(["b", "en", options])).toThrow(
+        "only supports data option properties"
+      );
+      expect(budget.stepsUsed).toBe(0);
+      expect(native).not.toHaveBeenCalled();
+    } finally {
+      native.mockRestore();
+    }
+  });
+
   it.each([
     '"alpha".localeCompare("beta")',
     '"beta".localeCompare("alpha")',

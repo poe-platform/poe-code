@@ -240,6 +240,7 @@ export function callStringMethod(
                 ];
               })
             );
+      budget.visitNode(value.length + comparison.length);
       return Reflect.apply(String.prototype.localeCompare, value, [
         comparison,
         locales,

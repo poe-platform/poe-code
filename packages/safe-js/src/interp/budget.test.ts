@@ -106,6 +106,115 @@ function expectSandboxError(action: () => unknown, expected: Partial<SandboxErro
 }
 
 describe("Budget", () => {
+  it("admits bulk work at the exact limit and retains rejected charges", () => {
+    const budget = new Budget({ maxSteps: 5 });
+    budget.visitNode();
+    budget.visitNode(4);
+    expect(budget.stepsUsed).toBe(5);
+    expectSandboxError(() => budget.visitNode(2), {
+      budget: "steps",
+      current: 7,
+      limit: 5
+    });
+    expect(budget.stepsUsed).toBe(7);
+  });
+
+  it.each([-1, 0.5, Number.NaN, Infinity, Number.MAX_SAFE_INTEGER + 1])(
+    "rejects invalid bulk units %s without charging work",
+    (units) => {
+      const budget = new Budget();
+      budget.visitNode();
+      const resume = budget.suspendChecks();
+      expect(() => budget.visitNode(units)).toThrow("units must be a non-negative safe integer.");
+      expect(budget.stepsUsed).toBe(1);
+      resume();
+    }
+  );
+
+  it("treats zero units as no work and resets bulk accounting", () => {
+    const budget = new Budget({ maxSteps: 3, deadline: 100 });
+    const dateNow = vi.spyOn(Date, "now").mockReturnValue(101);
+    try {
+      budget.visitNode(0);
+      expect(budget.stepsUsed).toBe(0);
+      expect(dateNow).not.toHaveBeenCalled();
+      budget.visitNode(3);
+      budget.reset();
+      expect(budget.stepsUsed).toBe(0);
+      budget.visitNode(3);
+      expect(budget.stepsUsed).toBe(3);
+      expect(dateNow).not.toHaveBeenCalled();
+    } finally {
+      dateNow.mockRestore();
+    }
+  });
+
+  it("samples bulk work once across multiple windows and retains the remainder", () => {
+    const budget = new Budget({ deadline: 100 });
+    const dateNow = vi.spyOn(Date, "now").mockReturnValue(100);
+    try {
+      budget.visitNode(2_049);
+      expect(dateNow).toHaveBeenCalledTimes(1);
+      budget.visitNode(1_022);
+      expect(dateNow).toHaveBeenCalledTimes(1);
+      dateNow.mockReturnValue(101);
+      expectSandboxError(() => budget.visitNode(), {
+        budget: "deadline",
+        current: 101,
+        limit: 100
+      });
+      expect(dateNow).toHaveBeenCalledTimes(2);
+      budget.reset();
+      budget.visitNode(1_023);
+      expect(dateNow).toHaveBeenCalledTimes(2);
+      expectSandboxError(() => budget.visitNode(), { budget: "deadline" });
+    } finally {
+      dateNow.mockRestore();
+    }
+  });
+
+  it.each(["all", "deadline"])("preserves %s suspension across bulk charges", (scope) => {
+    const budget = new Budget({ deadline: 100, maxSteps: 10_000 });
+    const dateNow = vi.spyOn(Date, "now").mockReturnValue(101);
+    try {
+      budget.visitNode(1_023);
+      const resume = scope === "all" ? budget.suspendChecks() : budget.suspendDeadlineChecks();
+      budget.visitNode(2_049);
+      expect(budget.stepsUsed).toBe(3_072);
+      expect(dateNow).not.toHaveBeenCalled();
+      resume();
+      resume();
+      expectSandboxError(() => budget.visitNode(), { budget: "deadline" });
+    } finally {
+      dateNow.mockRestore();
+    }
+  });
+
+  it("suspends bulk step checks only when all checks are suspended", () => {
+    const budget = new Budget({ maxSteps: 1 });
+    const resume = budget.suspendChecks();
+    budget.visitNode(3);
+    resume();
+    const resumeDeadline = budget.suspendDeadlineChecks();
+    expectSandboxError(() => budget.visitNode(2), { budget: "steps", current: 5, limit: 1 });
+    resumeDeadline();
+  });
+
+  it("preserves deadline priority when a bulk charge crosses both limits", () => {
+    const budget = new Budget({ deadline: 100, maxSteps: 1_023 });
+    const dateNow = vi.spyOn(Date, "now").mockReturnValue(101);
+    try {
+      expectSandboxError(() => budget.visitNode(1_024), {
+        budget: "deadline",
+        current: 101,
+        limit: 100
+      });
+      expect(budget.stepsUsed).toBe(1_024);
+    } finally {
+      dateNow.mockRestore();
+    }
+  });
+
   it("keeps runtime-retained data charged across scope reconciliation", () => {
     const budget = new Budget({ dataSize: 10 });
     const owner = {};

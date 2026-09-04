@@ -64,7 +64,7 @@ function install(): InstallContext {
   const packagePath = path.join(tmpDir, tgz);
   const sdkProjectDir = mkdtempSync(path.join(os.tmpdir(), "poe-smoke-sdk-"));
   execSync("npm init -y", { cwd: sdkProjectDir, stdio: "pipe" });
-  execSync(`npm install "${packagePath}" --silent`, {
+  execSync(`npm install "${packagePath}" --loglevel=error`, {
     cwd: sdkProjectDir,
     stdio: "pipe"
   });

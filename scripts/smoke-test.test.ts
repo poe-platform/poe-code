@@ -9,6 +9,29 @@ afterEach(() => {
 });
 
 describe("packed smoke build selection", () => {
+  it("retains npm installation errors in quiet smoke runs", async () => {
+    const failure = new Error("npm error 404 unavailable package tarball");
+    const execSync = vi.fn((command: string) => {
+      if (command.startsWith("npm install ")) {
+        throw command.includes("--silent") ? new Error("Command failed") : failure;
+      }
+      return "";
+    });
+    vi.doMock("node:child_process", () => ({ execSync, spawnSync: vi.fn() }));
+    vi.doMock("node:fs", async (importOriginal) => ({
+      ...(await importOriginal<typeof import("node:fs")>()),
+      mkdtempSync: vi.fn().mockReturnValueOnce("/smoke-owned/pack").mockReturnValueOnce("/smoke-owned/sdk"),
+      readdirSync: vi.fn(() => ["poe-code.tgz"]),
+      rmSync: vi.fn()
+    }));
+    process.argv = [process.execPath, "scripts/smoke-test.ts", "--prebuilt"];
+    await expect(import("./smoke-test.js")).rejects.toBe(failure);
+    expect(execSync).toHaveBeenLastCalledWith(
+      'npm install "/smoke-owned/pack/poe-code.tgz" --loglevel=error',
+      { cwd: "/smoke-owned/sdk", stdio: "pipe" }
+    );
+  });
+
   it("runs the temporary installed CLI without mutating the global installation", async () => {
     const stop = new Error("installed CLI observed");
     const execSync = vi.fn(() => "");

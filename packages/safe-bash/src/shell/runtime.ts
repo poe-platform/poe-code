@@ -320,6 +320,7 @@ export interface State {
 interface IO {
   readonly [invocationScope]: InvocationScope;
   readonly [valueScope]?: ValueScope;
+  readonly parameterDepth?: number;
   readonly execution?: { readonly ignoreErrexit: boolean };
   readonly stdin: ByteSource;
   readonly stdinIsDefault?: boolean;
@@ -4182,7 +4183,15 @@ export class Runtime {
     } finally { token?.release(); holding?.release(); }
   }
 
+  private parameterOperandIO(word: Word, state: State, io: IO): IO {
+    this.signal.throwIfAborted();
+    const parameterDepth = (io.parameterDepth ?? 0) + 1;
+    if (state.depth + parameterDepth > 64) throw new ShellSyntaxError("Syntax nesting exceeds 64", word.offset);
+    return { ...io, parameterDepth };
+  }
+
   private async partValue(part: Exclude<WordPart, { kind: "text" }>, state: State, io: IO, hereString: boolean): Promise<ShellValue> {
+    this.signal.throwIfAborted();
     if (part.kind === "failed-substitution") {
       if (state.depth >= this.budget.limits.maxSubstitutionDepth) this.budget.fail("maxSubstitutionDepth");
       await writeText(io.stderr, part.diagnostic);
@@ -4204,6 +4213,8 @@ export class Runtime {
     }
     if (part.kind === "substitution") {
       if (state.depth >= this.budget.limits.maxSubstitutionDepth) this.budget.fail("maxSubstitutionDepth");
+      const parameterDepth = io.parameterDepth ?? 0;
+      if (parameterDepth > 0 && state.depth + parameterDepth + 1 > 64) throw new ShellSyntaxError("Syntax nesting exceeds 64", 0);
       const capture = new Capture();
       const child = await cloneState(state, this.signal);
       child.isolated = true;
@@ -4282,17 +4293,18 @@ export class Runtime {
       const missing = value === undefined || (part.operator.startsWith(":") && value === "");
       const operator = part.operator.at(-1)!;
       if ((operator === "+" && !missing) || (operator !== "+" && missing)) {
+        const operandIO = this.parameterOperandIO(part.alternate!, state, io);
         let alternate: string;
         if (operator === "=" && arrayStore(state)?.get(part.name)) {
           alternate = "";
           await this.arrayZero(state, part.name, async () => {
-            alternate = await this.arrayJoin(requireArrays(state).owner, await this.word(part.alternate!, state, io, false, false, hereString), "");
+            alternate = await this.arrayJoin(requireArrays(state).owner, await this.word(part.alternate!, state, operandIO, false, false, hereString), "");
             return alternate;
           });
           value = alternate;
           return part.length ? this.parameterLength(value) : value;
         }
-        retained = concatShellValues(await this.valueWord(part.alternate!, state, io, false, false, hereString), io[valueScope]);
+        retained = concatShellValues(await this.valueWord(part.alternate!, state, operandIO, false, false, hereString), io[valueScope]);
         alternate = shellValueText(retained);
         if (operator === "?") throw new ParameterExpansionFailure(`${part.name}: ${alternate || (part.operator.startsWith(":") ? "parameter null or not set" : "parameter not set")}`, io.diagnosticLine ?? part.line);
         if (operator === "=") {
@@ -4331,12 +4343,13 @@ export class Runtime {
       return value;
     } });
     const arithmetic = async (word: Word): Promise<{ value: bigint; source: string }> => {
+      const operandIO = this.parameterOperandIO(word, state, io);
       let source = "";
       let bytes = 0;
       let retained: ValueReservation | undefined;
       for (const entry of word.parts) {
         this.signal.throwIfAborted();
-        const text = entry.kind === "text" ? entry.value : await this.part(entry, state, io);
+        const text = entry.kind === "text" ? entry.value : await this.part(entry, state, operandIO);
         bytes += Buffer.byteLength(text);
         if (bytes > limit) this.budget.fail("maxExpansionBytes");
         owner?.reserve({ metadata: 32, payload: bytes, work: text.length + 4 });
@@ -4390,7 +4403,7 @@ export class Runtime {
     const scratch = this.budget.values.scope();
     const work = { remaining: Math.min(Number.MAX_SAFE_INTEGER, limit * 4 + 1024), signal: this.signal, exhausted: (): never => this.budget.fail("maxExpansionBytes"), allocation: scratch };
     try {
-    const patternFields = await this.word(part.alternate!, state, io, false, true, hereString);
+    const patternFields = await this.word(part.alternate!, state, this.parameterOperandIO(part.alternate!, state, io), false, true, hereString);
     let patternUnits = 0;
     for (const field of patternFields) {
       const pending = stringCheckpoint(work, field.length + 1);
@@ -4425,8 +4438,9 @@ export class Runtime {
     scratch.reserve(64, 0);
     const replacements: { value: string; quoted: boolean }[] = [];
     let replacementBytes = 0;
+    const replacementIO = part.replacement ? this.parameterOperandIO(part.replacement, state, io) : io;
     for (const [index, entry] of (part.replacement?.parts ?? []).entries()) {
-      let value = entry.kind === "text" ? entry.value : await this.part(entry, state, io, hereString);
+      let value = entry.kind === "text" ? entry.value : await this.part(entry, state, replacementIO, hereString);
       if (index === 0 && !entry.quoted && /^~(?:\/|$)/u.test(value)) {
         const home = state.variables.HOME ?? "~";
         scratch.reserve((home.length + value.length - 1) * 2, 0);
@@ -4572,16 +4586,17 @@ export class Runtime {
       }
       if (boundary) addField();
     };
-    const parts = word.parts.map((part) => ({ part, splitText: false }));
+    const parts = word.parts.map((part) => ({ part, splitText: false, io }));
     for (let index = 0; index < parts.length; index++) {
-      const { part, splitText } = parts[index]!;
+      const { part, splitText, io: partIO } = parts[index]!;
       const quotedPresence = part.quoted && !(arrayOwned && isQuoteMarker(part));
       if (part.kind === "variable" && ["-", "+", ":-", ":+"].includes(part.operator ?? "") && /^[a-zA-Z_][a-zA-Z_0-9]*$/u.test(part.name)) {
         const value = this.variable(state, part.name);
         const missing = value === undefined || (part.operator!.startsWith(":") && value === "");
         if (part.operator!.endsWith("+") ? !missing : missing) {
+          const operandIO = this.parameterOperandIO(part.alternate!, state, partIO);
           scratch?.reserve(part.alternate!.parts.length * 32, 0);
-          const alternate = part.alternate!.parts.map((entry) => ({ part: copyArraySelector(entry, { ...entry, quoted: entry.quoted || part.quoted }), splitText: true }));
+          const alternate = part.alternate!.parts.map((entry) => ({ part: copyArraySelector(entry, { ...entry, quoted: entry.quoted || part.quoted }), splitText: true, io: operandIO }));
           if (!alternate.length && part.quoted) append("", false, true);
           parts.splice(index + 1, 0, ...alternate);
           continue;
@@ -4607,7 +4622,7 @@ export class Runtime {
         }
         if (state.positional.length === 0 && word.parts.every((entry) => (entry.kind === "text" && entry.value === "") || entry === part)) fields[0]!.present = false;
       } else {
-        const value = part.kind === "text" ? part.byteValue ?? part.value : await this.valuePart(part, state, io, hereString);
+        const value = part.kind === "text" ? part.byteValue ?? part.value : await this.valuePart(part, state, partIO, hereString);
         if (part.quoted || !split || state.variables.IFS === "") append(value, !part.quoted, quotedPresence || !split || shellValueByteLength(value) > 0);
         else await appendSplit(value);
       }

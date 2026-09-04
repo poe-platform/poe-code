@@ -117,6 +117,7 @@ class IncompleteShellInput extends Error {}
 
 class Lexer {
   position = 0;
+  operandDepth = 0;
   printedNewlineReduction = 0;
   unprintedWords = 0;
   delimiterOperator: string | undefined;
@@ -469,7 +470,7 @@ class Lexer {
       }
       if (this.source[this.position] !== "`") this.error("Unterminated command substitution");
       this.position++;
-      try { parts.push({ kind: "substitution", script: parseSource(source, this.depth + 1, this.warnings, line - 1, this.byteLocale, this.budget), line, quoted }); }
+      try { parts.push({ kind: "substitution", script: parseSource(source, this.depth + this.operandDepth + 1, this.warnings, line - 1, this.byteLocale, this.budget), line, quoted }); }
       catch (error) {
         if (this.documentLine === undefined || !(error instanceof ShellSyntaxError) || /nesting|exceeds/u.test(error.reason)) throw error;
         this.budget.admit();
@@ -491,7 +492,7 @@ class Lexer {
       let script: Script;
       try {
         this.budget.admit();
-        nested = new Parser(this.budget, this.source.slice(start), this.depth + 1, this.warnings, this.lineAt(start) - 1, undefined, this.byteLocale);
+        nested = new Parser(this.budget, this.source.slice(start), this.depth + this.operandDepth + 1, this.warnings, this.lineAt(start) - 1, undefined, this.byteLocale);
         script = nested.script(new Set([")"]));
       }
       catch (error) {
@@ -530,25 +531,31 @@ class Lexer {
       let alternate: Word | undefined;
       let replacement: Word | undefined;
       let substring: Extract<WordPart, { kind: "variable" }>["substring"];
-      if (operator) {
-        if (length) this.error("Invalid length expansion");
-        this.position += operator.length;
-        alternate = this.word(operator.startsWith("/") ? "/}" : "}", quoted && !["#", "##", "%", "%%"].includes(operator) && !operator.startsWith("/"));
-        if (operator.startsWith("/") && this.source[this.position] === "/") {
-          this.position++;
-          replacement = this.word("}");
-        }
-      } else if (this.source[this.position] === ":") {
-        if (length || !/^(?:[a-zA-Z_][a-zA-Z_0-9]*|[0-9]+)$/u.test(name)) this.error("Unsupported non-scalar substring expansion");
-        this.position++;
-        const offset = this.word(":}", true, false, true);
-        let substringLength: Word | undefined;
-        if (this.source[this.position] === ":") {
-          this.position++;
-          substringLength = this.word("}", true, false, true);
-        }
-        this.budget.admit();
-        substring = { offset, ...(substringLength ? { length: substringLength } : {}), source: this.source.slice(parameterStart, this.position + 1) };
+      if (operator || this.source[this.position] === ":") {
+        if (this.depth + this.operandDepth + 1 > 64) this.error("Syntax nesting exceeds 64");
+        this.operandDepth++;
+        try {
+          if (operator) {
+            if (length) this.error("Invalid length expansion");
+            this.position += operator.length;
+            alternate = this.word(operator.startsWith("/") ? "/}" : "}", quoted && !["#", "##", "%", "%%"].includes(operator) && !operator.startsWith("/"));
+            if (operator.startsWith("/") && this.source[this.position] === "/") {
+              this.position++;
+              replacement = this.word("}");
+            }
+          } else {
+            if (length || !/^(?:[a-zA-Z_][a-zA-Z_0-9]*|[0-9]+)$/u.test(name)) this.error("Unsupported non-scalar substring expansion");
+            this.position++;
+            const offset = this.word(":}", true, false, true);
+            let substringLength: Word | undefined;
+            if (this.source[this.position] === ":") {
+              this.position++;
+              substringLength = this.word("}", true, false, true);
+            }
+            this.budget.admit();
+            substring = { offset, ...(substringLength ? { length: substringLength } : {}), source: this.source.slice(parameterStart, this.position + 1) };
+          }
+        } finally { this.operandDepth--; }
       }
       if (this.source[this.position] !== "}") this.error("Unterminated or unsupported parameter expansion");
       this.position++;

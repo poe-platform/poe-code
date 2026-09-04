@@ -1,4 +1,4 @@
-import { type CommandDefinition, type VirtualShellPlugin } from "../../contracts/index.js";
+import { commandRuntimeIdentity, type CommandDefinition, type VirtualShellPlugin } from "../../contracts/index.js";
 import { compare } from "./compare.js";
 import { errorText, InputError, inputDiagnostic, Session } from "./io.js";
 import { limitsFor, parseArguments, UsageError, type CmpCommandsOptions } from "./options.js";
@@ -12,7 +12,7 @@ export function createCmpCommand(options: CmpCommandsOptions = {}): CommandDefin
     throw new RangeError("cmp comparisonBlockBytes must be a positive safe integer");
   }
   return {
-    name: "cmp", description: "Compare two inputs byte by byte",
+    name: "cmp", runtimeIdentity: commandRuntimeIdentity, description: "Compare two inputs byte by byte",
     async execute(context) {
       context.signal.throwIfAborted();
       const session = new Session(context, limits, comparisonBlockBytes);

@@ -357,8 +357,13 @@ test("optional scripting leaves stay outside the default build and package expor
     "src/commands/shuf/random.ts", "src/commands/shuf/shuf.ts", "src/commands/shuf/usage.ts",
     "src/commands/truncate/arguments.ts", "src/commands/truncate/index.ts", "src/commands/yes/index.ts",
     "src/fs/devices/index.ts",
+    "src/optional.ts",
+    "src/shell/extensions/trap/index.ts",
   ]) assert.ok(configuration.exclude.includes(path), `optional source must not ship in the default build: ${path}`);
-  for (const path of ["./commands/cmp", "./commands/dd", "./commands/install", "./commands/shuf", "./commands/truncate", "./commands/yes", "./fs/devices"]) {
+  for (const path of ["!dist/optional.js", "!dist/optional.js.map", "!dist/optional.d.ts", "!dist/optional.d.ts.map", "!dist/commands/cmp", "!dist/commands/dd", "!dist/commands/install", "!dist/commands/shuf", "!dist/commands/truncate", "!dist/commands/yes", "!dist/commands/yq", "!dist/fs/devices", "!dist/shell/extensions/trap"]) {
+    assert.ok(metadata.files.includes(path), `optional artifacts must remain unpublished after explicit compilation: ${path}`);
+  }
+  for (const path of ["./commands/cmp", "./commands/dd", "./commands/install", "./commands/shuf", "./commands/truncate", "./commands/yes", "./fs/devices", "./shell/extensions/trap"]) {
     assert.equal(Object.hasOwn(metadata.exports, path), false, `optional leaf is not a default package export: ${path}`);
   }
 });
@@ -405,6 +410,8 @@ function assertSource7Discovery(files) {
     "tests/commands/input.test.ts",
     "tests/commands/network/mounted-output.test.ts",
     "tests/contracts/value.test.ts",
+    "tests/contracts/runtime-identity.test.ts",
+    "tests/plugins/optional-runtime.test.ts",
     "tests/shell/value-state.test.ts",
     "tests/shell/byte-values.test.ts",
   ]) assert.ok(files.includes(path), "retained byte-value test is missing: " + path);

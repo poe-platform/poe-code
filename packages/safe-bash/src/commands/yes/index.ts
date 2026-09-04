@@ -1,5 +1,5 @@
 import {
-  FsError, getCommandArguments, isFsError, writeBytes,
+  commandRuntimeIdentity, FsError, getCommandArguments, isFsError, writeBytes,
   type CommandContext, type CommandDefinition, type VirtualShellPlugin,
 } from "../../contracts/index.js";
 import { shellValueByteLength } from "../../contracts/value.js";
@@ -57,6 +57,7 @@ export function createYesCommand(options: YesCommandOptions = {}): CommandDefini
   }
   return Object.freeze({
     name: "yes",
+    runtimeIdentity: commandRuntimeIdentity,
     description: "Repeat a line until canceled or its output consumer closes",
     async execute(context: CommandContext) {
       context.signal.throwIfAborted();

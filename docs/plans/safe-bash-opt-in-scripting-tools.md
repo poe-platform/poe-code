@@ -66,10 +66,37 @@ this request to keep additions out of the default package.
 
 ## Work ledger
 
+- Root reproduced mixed source/compiled runtime failures: binary argument
+  ownership rejected and named output bypassed the public host's output budget.
+  Runtime-bound command definitions now declare their contract-module identity.
+  Independent review then reproduced mutable-identity and supplied-registry
+  bypasses; regression tests failed before their fixes. Reviewed identity tests
+  pass 9/9, and rebuilt public-host tests pass 6/6, including binary output,
+  shared named-output accounting/cleanup, foreign empty/populated registries,
+  replacement safety, and actual declaration compatibility. This guards accidental
+  runtime mixing, not malicious host JavaScript or prototype tampering.
+- An explicit local `build:optional` compiles a selected entry into the public
+  host's own dist module tree. It does not add npm exports or default registrations.
+  After successful compilation, workspace and root pack dry runs respectively
+  contain 1,050 and 4,641 files with zero optional implementation leaks. Both
+  manifests explicitly exclude optional artifacts even if locally compiled.
+  These are live-worktree integration observations, not a frozen release gate.
+- Current root reruns of the independently reviewed leaves: shuf 323/323 and
+  truncate 348/348, zero skips, using the clean GNU 9.7 binaries and explicit
+  digests. Their runtime-affinity tags are included in these reruns.
+- The yq audit confirmed that the existing implementation is a restricted YAML
+  plus jq subset, not qualified Mike Farah compatibility. New work begins with
+  four reproduced correctness defects: flow comments, symlink-sensitive paths,
+  raw-byte filename aliases, and cancellation starvation on empty input chunks.
+  The pinned official v4.53.3 Darwin arm64 binary is authenticated by SHA-256
+  `877de31753a4dd2401aa048937aa9a7fc4d5f6ce858cf31508c5802954297213`
+  and its version was executed. CLI/default/operator parity remains open.
+
 - Local commits: `d18b2e0ed` establishes build isolation; `27beeaf50` adds yes;
   `209190556` preserves character-device metadata through filesystem consumers;
   `75a013fd4` adds preferred-I/O metadata and corrects device-number forwarding;
-  `71e3f5f74` isolates dd/install leaves; `633b73d50` adds opt-in virtual devices.
+  `71e3f5f74` isolates dd/install leaves; `633b73d50` adds opt-in virtual devices;
+  `533c75ab1` adds the reviewed cmp command.
   None has been pushed or released, and neither action is requested.
 - First implementation wave: cmp, yes, shuf and virtual devices in disjoint leaf
   directories. Root is qualifying native oracles and the opt-in delivery boundary.
@@ -137,7 +164,75 @@ this request to keep additions out of the default package.
   The next complete guarded lint run has no cmp findings; its sole remaining
   finding is a prefer-const binding in the concurrently implemented trap leaf.
 
+## Coherent opt-in runtime boundary
+
+The full maintained root build succeeded after the selected workspace build was
+found insufficient to refresh `poe-code/safe-fs`'s bundled public import. The
+public memory filesystem now reports its 65,536-byte I/O preference. Preserve
+this distinction between a workspace build and the root suffix bundle stages.
+
+Root then reproduced an actual mixed-runtime failure: the compiled public Shell
+plus source-loaded shuf returned success and wrote four bytes for
+`shuf -e abc -o /file` with `maxOutputBytes: 1`. The same mixture rejected retained
+binary arguments as foreign-owned carriers. Source and compiled copies have
+different private argument/output-budget bindings; normal ASCII stdout checks
+had not exposed the mismatch. No ownership checks or global brands may be weakened
+to hide it.
+
+A root-owned guard is in progress: optional command definitions declare their
+`commandRuntimeIdentity`; a registry rejects a foreign identity before install
+or replacement. The initial three rejection tests failed, then five contract
+tests passed; a factory-affinity test then failed before yes/cmp declarations
+were added, and all six now pass. Shuf/truncate declarations are also added but
+their commits remain pending. This is not yet a rebuilt-public-runtime or
+coherent-consumer acceptance result. Independent guard review is assigned.
+
+The intended follow-up is an explicit optional TypeScript build into the same
+dist module tree as its host, preserving shared private bindings instead of
+bundling another runtime copy. Optional implementation artifacts must remain
+excluded from BOTH the root and virtual-bash npm packages even after that build;
+the current files lists have not yet been extended for this route. Default build
+exclusions/registries stay unchanged. Actual public-host tests must cover binary
+arguments, named output limits and lifetime cleanup before this delivery boundary
+is accepted. Do not recommend mixing source factories with a compiled host.
+
+## Descriptor work required by dd
+
+The default stream adapter's refusal of named notrunc, nocreat and output seek
+does not complete the requested real-world dd scope. Root approved an optional
+canonical descriptor API with retained-object identity, explicit access/creation
+flags, positioned and sequential byte operations, truncate, synchronization and
+noncancelable close. The first phase covers memory and rooted-real adapters,
+faithful mount/readonly handling, and explicit refusal rather than descriptor
+leakage through quota/overlay/unsupported providers. Unit fixtures remain memfs;
+bounded native qualification may use a new controlled descriptor-qa directory
+under the existing temporary oracle directory. This does not authorize native
+special-file access or a hostile-tree containment claim.
+
+DD integration remains a separate acceptance step. Direct descriptor output must
+enroll in the existing shared shell file-output budget and lifetime before any
+write. Partial writes must preserve dd's byte/record counts and must not bypass
+the budget or silently charge retries as independently completed records. A
+counted-write reservation/settlement design should retain conservative charges
+when a failed operation's effects are unknown, and return unused admission only
+for validated, known partial results. It must preserve existing stdout/stream
+accounting, cancellation and cleanup precedence; no fresh per-file allowance or
+read/replace pseudo-descriptor is permitted. This design requires failing tests
+through actual Shell execution before implementation.
+
 ## Native oracle preparation
+
+A separate GNU Bash 5.2.37 oracle is now built for modern shell extensions at
+`/tmp/safe-bash-scripting-oracles-20260904/bash-5.2.37/bash`. Its official release
+archive has observed SHA-256
+`9599b22ecd1d5787ad7d3b7bf0c59f312b3396d1e281175dd1f8a4014da621ff`; the executable
+has SHA-256 `f5b331844c67482075aea7883153127668cc67f83a60a7b4362cc8469a9dc77d`.
+Clean configure and a full make succeeded. A bounded smoke check verifies indexed
+and associative arrays, mapfile, read array/descriptor options, background wait,
+and an EXIT handler. This is a deliberately pinned target, not a latest-version
+claim. Existing `/bin/bash` 3.2.57 observations remain separate; they do not
+qualify modern features absent from that version. Native-comparison suites should
+select the new binary explicitly, never silently assume a temporary path exists.
 
 GNU coreutils 9.7 and GNU diffutils 3.12 were built from their official GNU HTTPS
 release archives under `/tmp/safe-bash-scripting-oracles-20260904`. They are native

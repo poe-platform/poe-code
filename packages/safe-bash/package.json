@@ -129,11 +129,25 @@
     }
   },
   "files": [
-    "dist"
+    "dist",
+    "!dist/optional.js",
+    "!dist/optional.js.map",
+    "!dist/optional.d.ts",
+    "!dist/optional.d.ts.map",
+    "!dist/commands/cmp",
+    "!dist/commands/dd",
+    "!dist/commands/install",
+    "!dist/commands/shuf",
+    "!dist/commands/truncate",
+    "!dist/commands/yes",
+    "!dist/commands/yq",
+    "!dist/fs/devices",
+    "!dist/shell/extensions/trap"
   ],
   "scripts": {
     "benchmark": "node --import tsx benchmarks/run.ts",
     "build": "node ../../scripts/guard-package-dist.mjs && node scripts/integration-inputs.mjs && node scripts/build.mjs",
+    "build:optional": "node ../../scripts/guard-package-dist.mjs && tsc -p tsconfig.optional.json",
     "typecheck": "node scripts/typecheck.mjs",
     "typecheck:all": "node scripts/typecheck.mjs --build",
     "typecheck:consumers": "node scripts/typecheck.mjs --consumers",
@@ -194,7 +208,9 @@
         "src/commands/yq/index.ts",
         "src/commands/yq/parser.ts",
         "src/commands/yes/index.ts",
-        "src/fs/devices/index.ts"
+        "src/fs/devices/index.ts",
+        "src/optional.ts",
+        "src/shell/extensions/trap/index.ts"
       ]
     },
     "integration": {

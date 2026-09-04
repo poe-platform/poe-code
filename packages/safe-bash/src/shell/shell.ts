@@ -102,10 +102,12 @@ export class Shell implements PluginHost {
 
   constructor(options: ShellOptions) {
     if (!options?.fs) throw new TypeError("Shell requires an explicit filesystem");
+    const commands = options.commands ?? new CommandRegistry();
+    if (!(commands instanceof CommandRegistry)) throw new TypeError("CommandRegistry requires its matching shell runtime; do not mix source and compiled runtime modules");
     warnIfHostProcessEnv(options.env);
     resolveLimits(options.limits);
     this.#options = { ...options, cwd: resolvePath("/", options.cwd ?? "/"), env: { ...options.env }, limits: { ...options.limits } };
-    this.commands = options.commands ?? new CommandRegistry();
+    this.commands = commands;
   }
 
   use(middleware: Middleware | VirtualShellPlugin): this {

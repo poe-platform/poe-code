@@ -966,14 +966,43 @@ class BlockParser {
     const property = /^(?:(!![^\s]+|!<[^>]+>|!)\s+)?(?:&([^\s]+)\s+)?([|>])([1-9]?[+-]?|[+-]?[1-9]?)$/u.exec(content);
     if (property) return this.#blockScalar(property, parentIndent, lineNumber);
     if (/^[|>]/u.test(content)) throw syntax(lineNumber, 1);
-    let source = content;
-    if (!this.#inlineBalanced(source)) {
-      while (this.#index < this.lines.length && !this.#inlineBalanced(source)) {
-        source += `\n${this.lines[this.#index++]!.text.trimStart()}`;
+    const fragments = [content];
+    let fragment = content;
+    let single = false;
+    let double = false;
+    let escaped = false;
+    let depth = 0;
+    let negativeDepth = false;
+    let balanced = false;
+    while (true) {
+      for (let start = 0; start < fragment.length; start += 256) {
+        const end = Math.min(start + 256, fragment.length);
+        await this.composer.work.charge(end - start);
+        this.composer.work.assertOpen();
+        for (let index = start; index < end; index++) {
+          const character = fragment[index]!;
+          if (double) {
+            if (escaped) escaped = false;
+            else if (character === "\\") escaped = true;
+            else if (character === '"') double = false;
+          } else if (single) {
+            if (character === "'") single = false;
+          } else if (character === '"') double = true;
+          else if (character === "'") single = true;
+          else if (character === "[" || character === "{") depth++;
+          else if (character === "]" || character === "}") {
+            depth--;
+            if (depth < 0) negativeDepth = true;
+          }
+        }
       }
-      if (!this.#inlineBalanced(source)) throw syntax(lineNumber, 1);
+      balanced = !single && !double && (negativeDepth || depth === 0);
+      if (balanced || this.#index >= this.lines.length) break;
+      fragment = `\n${this.lines[this.#index++]!.text.trimStart()}`;
+      fragments.push(fragment);
     }
-    return new FlowParser(source, this.composer, lineNumber).parse();
+    if (!balanced) throw syntax(lineNumber, 1);
+    return new FlowParser(fragments.join(""), this.composer, lineNumber).parse();
   }
 
   async #blockScalar(match: RegExpExecArray, parentIndent: number, lineNumber: number): Promise<ParsedNode> {
@@ -1012,49 +1041,6 @@ class BlockParser {
     if (record) this.composer.completeAnchor(record, node.value);
     void lineNumber;
     return node;
-  }
-
-  #quotesBalanced(source: string): boolean {
-    let single = false;
-    let double = false;
-    let escaped = false;
-    for (let index = 0; index < source.length; index++) {
-      const character = source[index]!;
-      if (double) {
-        if (escaped) escaped = false;
-        else if (character === "\\") escaped = true;
-        else if (character === '"') double = false;
-      } else if (single) {
-        if (character === "'" && source[index + 1] === "'") index++;
-        else if (character === "'") single = false;
-      } else if (character === '"') double = true;
-      else if (character === "'") single = true;
-    }
-    return !single && !double;
-  }
-
-  #inlineBalanced(source: string): boolean {
-    if (!this.#quotesBalanced(source)) return false;
-    let single = false;
-    let double = false;
-    let escaped = false;
-    let depth = 0;
-    for (let index = 0; index < source.length; index++) {
-      const character = source[index]!;
-      if (double) {
-        if (escaped) escaped = false;
-        else if (character === "\\") escaped = true;
-        else if (character === '"') double = false;
-      } else if (single) {
-        if (character === "'" && source[index + 1] === "'") index++;
-        else if (character === "'") single = false;
-      } else if (character === '"') double = true;
-      else if (character === "'") single = true;
-      else if (character === "[" || character === "{") depth++;
-      else if (character === "]" || character === "}") depth--;
-      if (depth < 0) return true;
-    }
-    return depth === 0;
   }
 
   #skip(): void {

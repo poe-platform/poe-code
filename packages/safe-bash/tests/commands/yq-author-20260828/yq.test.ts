@@ -2,6 +2,7 @@ import assert from "node:assert/strict";
 import { createHash } from "node:crypto";
 import { test } from "node:test";
 import { toByteSource, type ByteSink, type CommandContext } from "../../../src/contracts/index.js";
+import { registerYieldCheckpoint } from "../../../src/contracts/yield.js";
 import { createMemoryFileSystem } from "../../../src/fs/memory/index.js";
 import { createYqCommand, createYqCommands, yqCommands } from "../../../src/commands/yq/index.js";
 import { createYqQuerySession } from "../../../src/commands/structured/query-core.js";
@@ -17,6 +18,166 @@ function sink(): ByteSink & { readonly bytes: Uint8Array[] } {
 
 function text(output: { readonly bytes: Uint8Array[] }): string {
   return new TextDecoder().decode(Buffer.concat(output.bytes));
+}
+
+test("inline continuation preserves quoting, inserted newlines, and comments", async () => {
+  for (const [input, value] of [
+    ['[\n  "[}]",\n  \'can\'\'t\',\n  {key: "value"}\n]', ["[}]", "can't", { key: "value" }]],
+    ['"first\\\nsecond"', "firstsecond"],
+    ['"open\\\n"', "open"],
+    ["['a''\nb']", ["a' b"]],
+    ['[\n  1, # comment\n  2\n]', [1, "# comment 2"]],
+    ['[1] # [ ignored', [1]],
+  ] as const) {
+    assert.deepEqual(await run(["-o", "json", "-c", "."], input), {
+      status: 0, stdout: `${JSON.stringify(value)}\n`, stderr: "",
+    });
+  }
+});
+
+test("inline continuation preserves malformed diagnostic positions", async () => {
+  for (const [input, line, column] of [
+    ["'first'\n'next'", 2, 1],
+    ['[\n  1, # [\n  2\n]', 1, 1],
+    [']"open[\nclose"', 1, 1],
+    ['][\nnext', 1, 1],
+    ['[\n  1,\n', 1, 1],
+  ] as const) {
+    const session = createYqQuerySession({ signal: new AbortController().signal });
+    try {
+      await assert.rejects(async () => {
+        for await (const unused of parseYamlDocuments(input, session.ownedWork, new YqLedger())) void unused;
+      }, error => error instanceof YqError && error.code === "INPUT_YAML_SYNTAX" && error.line === line && error.column === column);
+    } finally { await session.close(); }
+  }
+});
+
+test("inline continuation preserves doubled quotes and escapes across charge boundaries", async () => {
+  for (const padding of [252, 253, 254, 255, 256]) {
+    const prefix = "a".repeat(padding);
+    for (const [input, value] of [
+      [`['${prefix}''\nb']`, [`${prefix}' b`]],
+      [`[\n"${prefix}\\\"[}]\\\nnext"]`, [`${prefix}"[}]next`]],
+    ] as const) {
+      assert.deepEqual(await run(["-o", "json", "-c", "."], input), {
+        status: 0, stdout: `${JSON.stringify(value)}\n`, stderr: "",
+      });
+    }
+  }
+});
+
+test("inline balancing gates negative depth on closed quotes and remembers earlier negative depth", async context => {
+  for (const [fragments, consumed] of [
+    [['][', 'ignored'], 1],
+    [[']"open[', 'close"[[', 'ignored'], 2],
+    [[']"open[', 'neverclosed'], 2],
+  ] as const) {
+    const session = createYqQuerySession({ signal: new AbortController().signal });
+    const charge = session.ownedWork.charge.bind(session.ownedWork);
+    const charges: number[] = [];
+    context.mock.method(session.ownedWork, "charge", async (units = 1) => {
+      charges.push(units);
+      await charge(units);
+    });
+    try {
+      await assert.rejects(async () => {
+        for await (const unused of parseYamlDocuments(fragments.join("\n"), session.ownedWork, new YqLedger())) void unused;
+      }, error => error instanceof YqError && error.code === "INPUT_YAML_SYNTAX");
+      assert.deepEqual(charges.slice(fragments.length), fragments.slice(0, consumed).map((fragment, index) => fragment.length + (index > 0 ? 1 : 0)));
+    } finally { await session.close(); }
+  }
+});
+
+for (const lines of [64, 128, 256, 512]) test(`inline balancing charges linear character work: ${lines} continuations`, async context => {
+  const input = ["[", ...Array<string>(lines).fill("x")].join("\n");
+  const session = createYqQuerySession({ signal: new AbortController().signal });
+  const charge = session.ownedWork.charge.bind(session.ownedWork);
+  const charges: number[] = [];
+  context.mock.method(session.ownedWork, "charge", async (units = 1) => {
+    charges.push(units);
+    await charge(units);
+  });
+  const ledger = new YqLedger();
+  try {
+    await assert.rejects(async () => {
+      for await (const unused of parseYamlDocuments(input, session.ownedWork, ledger)) void unused;
+    }, error => error instanceof YqError && error.code === "INPUT_YAML_SYNTAX");
+    assert.equal(ledger.documentNodes, 0);
+    const balancing = charges.slice(lines + 1);
+    assert.equal(balancing.reduce((total, units) => total + units, 0), input.length);
+    assert.ok(balancing.length >= lines + 1);
+    assert.ok(balancing.every(units => units > 0 && units <= 256));
+  } finally { await session.close(); }
+});
+
+test("inline balancing uses the existing shared step budget", async () => {
+  const session = createYqQuerySession({ signal: new AbortController().signal });
+  const ledger = new YqLedger();
+  try {
+    await session.ownedWork.charge(997_000);
+    await assert.rejects(async () => {
+      for await (const unused of parseYamlDocuments("[" + "x".repeat(1500), session.ownedWork, ledger)) void unused;
+    }, error => error instanceof JqLimitError && error.message.includes("maxSteps"));
+    assert.equal(ledger.documentNodes, 0);
+  } finally { await session.close(); }
+});
+
+for (const reason of [false, null]) {
+  for (const longLine of [false, true]) test(`inline balancing cancels ${longLine ? "within long lines" : "between continuations"}: ${reason}`, async context => {
+    const fragments = longLine ? ["[", "x".repeat(2048)] : ["[", ...Array<string>(64).fill("x")];
+    const input = fragments.join("\n");
+    const preliminaryUnits = fragments.reduce((total, fragment) => total + fragment.length, 0);
+    const controller = new AbortController();
+    const session = createYqQuerySession({ signal: controller.signal });
+    const charge = session.ownedWork.charge.bind(session.ownedWork);
+    let unitsCharged = 0;
+    let balancingCheckpoints = 0;
+    context.mock.method(session.ownedWork, "charge", async (units = 1) => {
+      await charge(units);
+      unitsCharged += units;
+      if (unitsCharged > preliminaryUnits) {
+        assert.ok(units <= 256);
+        if (++balancingCheckpoints === 3) controller.abort(reason);
+      }
+    });
+    const ledger = new YqLedger();
+    try {
+      await assert.rejects(async () => {
+        for await (const unused of parseYamlDocuments(input, session.ownedWork, ledger)) void unused;
+      }, error => error === reason);
+      assert.equal(balancingCheckpoints, 3);
+      assert.ok(unitsCharged > preliminaryUnits && unitsCharged < preliminaryUnits + input.length);
+      assert.equal(ledger.documentNodes, 0);
+    } finally { await session.close(); }
+  });
+  for (const longLine of [false, true]) test(`inline balancing reaches real work yields ${longLine ? "within long lines" : "between continuations"}: ${reason}`, async context => {
+    const fragments = longLine ? ["[", "x".repeat(4096)] : ["[", ...Array<string>(1024).fill("x")];
+    const preliminaryUnits = fragments.reduce((total, fragment) => total + fragment.length, 0);
+    const controller = new AbortController();
+    const session = createYqQuerySession({ signal: controller.signal });
+    const charge = session.ownedWork.charge.bind(session.ownedWork);
+    let unitsCharged = 0;
+    let balancingYields = 0;
+    context.mock.method(session.ownedWork, "charge", async (units = 1) => {
+      await charge(units);
+      unitsCharged += units;
+    });
+    registerYieldCheckpoint(controller.signal, () => {
+      if (unitsCharged >= preliminaryUnits) {
+        balancingYields++;
+        controller.abort(reason);
+      }
+    });
+    const ledger = new YqLedger();
+    try {
+      await assert.rejects(async () => {
+        for await (const unused of parseYamlDocuments(fragments.join("\n"), session.ownedWork, ledger)) void unused;
+      }, error => error === reason);
+      assert.equal(balancingYields, 1);
+      assert.ok(unitsCharged > preliminaryUnits);
+      assert.equal(ledger.documentNodes, 0);
+    } finally { await session.close(); }
+  });
 }
 
 const depthCases = [

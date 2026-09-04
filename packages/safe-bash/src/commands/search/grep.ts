@@ -1,8 +1,10 @@
-import type { CommandDefinition } from "../../contracts/index.js";
-import { bufferLimit, collect, diagnostic, input, integer, lines, options as parseOptions, output, UsageError, value } from "../internal.js";
+import { toByteSource, type ByteSource, type CommandDefinition } from "../../contracts/index.js";
+import { bufferLimit, diagnostic, input, integer, lines, options as parseOptions, output, UsageError, value } from "../internal.js";
 import { AvailableRecords, RegexExecutor, RegexExecutionError, withRegexSession } from "../regex-execution/portable.js";
 import type { GrepDescriptor } from "../regex-execution/protocol.js";
 import { grepRequirements, requiredFileInput } from "./requirements.js";
+
+const maxPatternCount = 1024;
 
 export function createGrepCommands(executor: RegexExecutor): CommandDefinition[] {
   return [{ name: "grep", filesystemRequirements: grepRequirements, execute: context => withRegexSession(context, executor, async session => {
@@ -16,18 +18,44 @@ export function createGrepCommands(executor: RegexExecutor): CommandDefinition[]
       const names = parsed.operands.length ? parsed.operands : ["-"];
       const patternFiles = parsed.values.get("f") ?? [];
       const patterns: string[] = [];
-      const addPatterns = (text: string, file: boolean) => {
-        if (file && text === "") return;
-        const parts = text.split("\n");
-        if (parts.length > 1 && parts.at(-1) === "") parts.pop();
-        patterns.push(...parts);
+      let patternCount = 0;
+      let patternBytes = 0;
+      const admit = (chunk: string | Uint8Array, atStart: boolean): boolean => {
+        context.signal.throwIfAborted();
+        const size = typeof chunk === "string" ? Buffer.byteLength(chunk) : chunk.length;
+        if (size > bufferLimit - patternBytes) throw new UsageError(`pattern byte limit exceeded (${bufferLimit} bytes)`);
+        patternBytes += size;
+        for (let offset = 0; offset < chunk.length;) {
+          if (atStart && ++patternCount > maxPatternCount) throw new UsageError(`pattern count limit exceeded (${maxPatternCount})`);
+          const newline = typeof chunk === "string" ? chunk.indexOf("\n", offset) : chunk.indexOf(10, offset);
+          if (newline < 0) return false;
+          offset = newline + 1;
+          atStart = true;
+        }
+        return atStart;
       };
-      for (const pattern of parsed.values.get("e") ?? []) addPatterns(Buffer.from(pattern).toString("latin1"), false);
-      for (const name of patternFiles) {
-        const source = name === "-" ? input(context) : requiredFileInput(context, grepRequirements, "pattern-file", name, bufferLimit);
-        addPatterns(Buffer.from(await collect(source, context.signal)).toString("latin1"), true);
+      const addArgument = async (pattern: string) => {
+        admit(pattern, true);
+        if (pattern === "") {
+          if (++patternCount > maxPatternCount) throw new UsageError(`pattern count limit exceeded (${maxPatternCount})`);
+          patterns.push("");
+        } else {
+          for await (const line of lines(toByteSource(pattern))) patterns.push(Buffer.from(line.bytes).toString("latin1"));
+        }
+      };
+      async function* admitted(source: ByteSource): ByteSource {
+        let atStart = true;
+        for await (const chunk of source) {
+          atStart = admit(chunk, atStart);
+          yield chunk;
+        }
       }
-      if (positionalPattern !== undefined) addPatterns(Buffer.from(positionalPattern).toString("latin1"), false);
+      for (const pattern of parsed.values.get("e") ?? []) await addArgument(pattern);
+      for (const name of patternFiles) {
+        const source = name === "-" ? input(context) : requiredFileInput(context, grepRequirements, "pattern-file", name, bufferLimit - patternBytes);
+        for await (const line of lines(admitted(source))) patterns.push(Buffer.from(line.bytes).toString("latin1"));
+      }
+      if (positionalPattern !== undefined) await addArgument(positionalPattern);
       if (parsed.flags.has("E") && parsed.flags.has("F")) throw new UsageError("conflicting matchers specified");
       const descriptor: GrepDescriptor = {
         kind: "grep", patterns, fixed: parsed.flags.has("F"), extended: parsed.flags.has("E"),

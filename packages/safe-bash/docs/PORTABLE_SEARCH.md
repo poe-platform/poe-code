@@ -134,6 +134,20 @@ one generic JavaScript regex engine has identical grep, rg, and glob semantics.
   bounded instruction interpreter, not the injected grep/rg transport. Pattern
   parsing/instruction bounds and cooperative command checkpoints remain in force.
 
+Grep also admits at most 1,024 patterns and 33,554,432 cumulative pattern-input
+bytes per invocation, across `-e`, `-f` (including stdin), or the positional
+pattern. These fixed command ceilings apply to both Node and portable packs,
+including `-F`; they are not provider or `search` options. Bytes include LF
+separators, UTF-8 encoded argv, and raw pattern-file bytes. An empty file adds
+no patterns; an empty argument adds one; a final LF adds no extra pattern.
+Admission happens before argument encoding or streamed chunk retention and
+before provider dispatch or subject reads. Exceeding a ceiling exits 2 with a
+diagnostic, closing the pattern source. This deliberately rejects larger sets
+previously accepted by grep; rg's existing 1,024-pattern limit is unchanged.
+The byte ceiling reuses the existing 32 MiB buffer limit cumulatively rather
+than independently for each pattern file. It is not an RSS bound or a limit on
+bytes already allocated by the caller or filesystem provider.
+
 Shell input/output limits and cancellation remain independently applicable;
 provider, command, and shell budgets are not one interchangeable global budget.
 This feature introduces no environment variables or runtime dependencies.

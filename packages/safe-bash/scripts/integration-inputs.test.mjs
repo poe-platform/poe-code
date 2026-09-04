@@ -1750,6 +1750,7 @@ test("default normal runner passes every discovered active file to serial Node e
   assert.ok(files.includes("tests/commands/regex-execution/portable.test.ts"));
   assert.ok(files.includes("tests/commands/regex-execution/provider.test.ts"));
   assert.ok(files.includes("tests/commands/search/capability-requirements.test.ts"));
+  assert.ok(files.includes("tests/commands/search/grep-pattern-admission.test.ts"));
   assert.ok(files.includes("tests/shell-stress/invocation-modes/batch-controls.test.ts"));
   assert.equal(runTests(root, [], (executable, args, options) => {
     assert.equal(executable, process.execPath);

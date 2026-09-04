@@ -63,3 +63,12 @@ The final-source full lint chain also passed: 9,666 configured files, zero
 errors/warnings, TypeScript, and workflow checks. That combined validation took
 500.99 seconds while the full unit suite and isolated checkout/install/build
 were running; it is not a comparable standalone performance sample.
+
+The next integrated unit run exposed two pattern-child deadline failures under
+host contention. The child loaded the complete command registry even in matcher
+mode. Its harness now imports only the tested matcher or Shell/memory filesystem,
+with an added positive builtin-redirection control. The original 65,536-character
+inputs, 10 ms cancellation, 1,500 ms child watchdog, 4,000 ms test deadline,
+source-before/after census and awaited disposal remain intact. The positive
+control failed before implementation; all three focused cases now pass. This
+does not replace the full uncached unit gate.

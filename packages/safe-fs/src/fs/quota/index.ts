@@ -99,15 +99,17 @@ export function withFileSystemQuota(fs: FileSystem, options: FileSystemQuotaOpti
       });
     },
   };
-  return new Proxy(fs, {
-    get(target, property) {
-      if (property === "capabilities") return quotaCapabilities(target.capabilities);
+  // Backend descriptors may be frozen. An independent view lets us adapt
+  // capabilities and methods without violating invariants on own properties.
+  return new Proxy(Object.create(fs) as FileSystem, {
+    get(_target, property) {
+      if (property === "capabilities") return quotaCapabilities(fs.capabilities);
       if (property === "capabilitiesFor") return async (path: string, fsOptions?: FsOptions) =>
-        quotaCapabilities(await target.capabilitiesFor?.(path, fsOptions) ?? target.capabilities);
+        quotaCapabilities(await fs.capabilitiesFor?.(path, fsOptions) ?? fs.capabilities);
       const replacement = Reflect.get(mutations, property) as unknown;
       if (typeof replacement === "function") return replacement;
-      const original = Reflect.get(target, property) as unknown;
-      return typeof original === "function" ? original.bind(target) : original;
+      const original = Reflect.get(fs, property) as unknown;
+      return typeof original === "function" ? original.bind(fs) : original;
     },
   });
 }

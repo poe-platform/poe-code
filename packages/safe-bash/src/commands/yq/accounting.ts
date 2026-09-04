@@ -7,7 +7,7 @@ export const yqCaps = Object.freeze({
   maxArgvEntries: 4096,
   maxArgvUtf8Bytes: 65_536,
   maxVfsOperandPathBytes: 16_384,
-  maxInputBytes: 67_108_864,
+  maxInputBytes: 16_000_000,
   maxDocumentBytes: 8_388_608,
   maxValueBytes: 8_388_608,
   maxScalarBytes: 1_048_576,

@@ -9,9 +9,9 @@ function hexDigit(byte: number): number {
   return -1;
 }
 
-async function reversePlain(context: CommandContext, files: readonly string[]): Promise<void> {
+async function reversePlain(context: CommandContext, files: readonly string[], maxInputBytes: number): Promise<void> {
   let high = -1;
-  for await (const chunk of sources(context, files)) {
+  for await (const chunk of sources(context, files, maxInputBytes)) {
     const pending: number[] = [];
     let invalid = false;
     for (const byte of chunk) {
@@ -27,7 +27,7 @@ async function reversePlain(context: CommandContext, files: readonly string[]): 
   if (high >= 0) throw new Error("invalid input: unmatched hexadecimal digit");
 }
 
-async function reverseNormal(context: CommandContext, files: readonly string[], columns: number): Promise<void> {
+async function reverseNormal(context: CommandContext, files: readonly string[], columns: number, maxInputBytes: number): Promise<void> {
   let line = "";
   let offset = 0;
   const emitLine = async (): Promise<void> => {
@@ -46,7 +46,7 @@ async function reverseNormal(context: CommandContext, files: readonly string[], 
     await output(context, bytes);
     line = "";
   };
-  for await (const chunk of sources(context, files)) {
+  for await (const chunk of sources(context, files, maxInputBytes)) {
     for (const byte of chunk) {
       if (byte === 10) await emitLine();
       else {
@@ -58,7 +58,7 @@ async function reverseNormal(context: CommandContext, files: readonly string[], 
   if (line) await emitLine();
 }
 
-export function createXxdCommand(): CommandDefinition {
+export function createXxdCommand(maxInputBytes: number): CommandDefinition {
   return define("xxd", async context => {
     const aliases: Record<string, string> = { "-ps": "-p", "-plain": "-p", "-postscript": "-p", "-revert": "-r", "-cols": "-c", "-groupsize": "-g", "-len": "-l" };
     let ended = false;
@@ -88,12 +88,12 @@ export function createXxdCommand(): CommandDefinition {
     const displacement = validatedOption(parsed, "o", numeric, 0);
     if (reverse && ["s", "l", "o", "d"].some(flag => parsed.flags.has(flag))) throw new UsageError("reverse does not support seek, length, displacement, or decimal addresses");
     if (reverse) {
-      if (plain) await reversePlain(context, files);
-      else await reverseNormal(context, files, columns);
+      if (plain) await reversePlain(context, files, maxInputBytes);
+      else await reverseNormal(context, files, columns, maxInputBytes);
       return { exitCode: 0 };
     }
     let offset = addOffset(skip, displacement);
-    const source = range(sources(context, files), skip, count);
+    const source = range(sources(context, files, maxInputBytes), skip, count);
     let any = false;
     for await (const row of rows(source, plain && !columns ? 4096 : columns)) {
       any = true;

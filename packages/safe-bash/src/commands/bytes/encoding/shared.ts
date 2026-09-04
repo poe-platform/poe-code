@@ -1,6 +1,7 @@
 import { yieldTurn } from "../../../contracts/yield.js";
-import { FsError, readBytes, type ByteSource, type CommandContext } from "../../../contracts/index.js";
+import { FsError, type ByteSource, type CommandContext } from "../../../contracts/index.js";
 import { pathOf, UsageError, type ParsedOptions } from "../../internal.js";
+import { ByteInputBudget } from "../input-budget.js";
 
 export const blockSize = 8192;
 
@@ -10,11 +11,12 @@ export function validatedOption<Value>(parsed: ParsedOptions, key: string, parse
   return result;
 }
 
-export async function* sources(context: CommandContext, operands: readonly string[]): ByteSource {
+export async function* sources(context: CommandContext, operands: readonly string[], maxInputBytes: number): ByteSource {
+  const budget = new ByteInputBudget(maxInputBytes);
   let usedStdin = false;
   let emptyChunks = 0;
   for (const operand of operands.length ? operands : ["-"]) {
-    context.signal.throwIfAborted();
+    budget.assertOpen(context.signal);
     let source: ByteSource;
     if (operand === "-") {
       if (usedStdin) continue;
@@ -25,7 +27,7 @@ export async function* sources(context: CommandContext, operands: readonly strin
       if (!context.fs.readStream) throw new FsError("ENOTSUP", { path, syscall: "readStream", message: "encoding commands require a streaming-read filesystem" });
       source = context.fs.readStream(path, { signal: context.signal, chunkSize: blockSize });
     }
-    for await (const chunk of readBytes(source, context.signal)) {
+    for await (const chunk of budget.read(source, context.signal)) {
       if (chunk.length === 0 && ++emptyChunks % 64 === 0) {
         await yieldTurn();
         context.signal.throwIfAborted();

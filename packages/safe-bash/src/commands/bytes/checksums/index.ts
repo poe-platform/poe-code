@@ -2,6 +2,7 @@ import { yieldTurn } from "../../../contracts/yield.js";
 import { createHash } from "node:crypto";
 import { FsError, readBytes, toByteSource, type ByteSource, type CommandContext, type CommandDefinition } from "../../../contracts/index.js";
 import { codeOf, define, diagnostic, encoder, options, output, pathOf, UsageError, value } from "../../internal.js";
+import { ByteInputBudget, resolveInputLimit, type ByteInputOptions } from "../input-budget.js";
 
 const blockBytes = 64 * 1024;
 const manifestLineBytes = 64 * 1024;
@@ -21,7 +22,7 @@ interface Settings {
   report: ReportMode;
 }
 
-interface InputState { stdinUsed: boolean }
+interface InputState { stdinUsed: boolean; budget: ByteInputBudget }
 interface ReadProgress { hasData: boolean }
 interface Digest { hex: string; length: bigint }
 interface Entry { digest: string; filename: string }
@@ -79,15 +80,16 @@ function validateFilename(filename: string): void {
 }
 
 function source(context: CommandContext, filename: string, state: InputState): ByteSource {
+  state.budget.assertOpen(context.signal);
   validateFilename(filename);
   if (filename === "-") {
     if (state.stdinUsed) return toByteSource("");
     state.stdinUsed = true;
-    return context.stdin;
+    return state.budget.read(context.stdin, context.signal);
   }
   const path = pathOf(context, filename);
   if (!context.fs.readStream) throw new FsError("ENOTSUP", { message: "checksum file input requires VFS readStream" });
-  return context.fs.readStream(path, { signal: context.signal, chunkSize: blockBytes });
+  return state.budget.read(context.fs.readStream(path, { signal: context.signal, chunkSize: blockBytes }), context.signal);
 }
 
 async function* blocks(input: ByteSource, signal: AbortSignal): AsyncGenerator<Uint8Array> {
@@ -214,7 +216,7 @@ async function verify(context: CommandContext, manifest: string, algorithm: Algo
     const progress: ReadProgress = { hasData: false };
     try { actual = await digest(source(context, entry.filename, state), algorithm, context.signal, progress); }
     catch (error) {
-      context.signal.throwIfAborted();
+      state.budget.assertOpen(context.signal);
       if (settings.ignoreMissing && entry.filename !== "-" && !progress.hasData && codeOf(error) === "ENOENT") continue;
       failures++;
       await diagnostic(context, error);
@@ -236,23 +238,23 @@ async function verify(context: CommandContext, manifest: string, algorithm: Algo
   return valid && matched && !failures && !mismatched && (!settings.strict || !malformed);
 }
 
-function command(name: string, algorithm: Algorithm): CommandDefinition {
+function command(name: string, algorithm: Algorithm, maxInputBytes: number): CommandDefinition {
   return define(name, async context => {
     const selected = name === "cksum" ? parseCksum(context.args) : { algorithm, settings: parse(context.args, algorithm) };
     const selectedAlgorithm = selected.algorithm;
     const settings = selected.settings;
-    const state: InputState = { stdinUsed: false };
+    const state: InputState = { stdinUsed: false, budget: new ByteInputBudget(maxInputBytes) };
     let failed = false;
     for (const filename of settings.operands.length ? settings.operands : ["-"]) {
       context.signal.throwIfAborted();
       if (settings.check) {
         try { if (!await verify(context, filename, selectedAlgorithm, settings, state)) failed = true; }
-        catch (error) { await diagnostic(context, error); failed = true; }
+        catch (error) { state.budget.assertOpen(context.signal); await diagnostic(context, error); failed = true; }
         continue;
       }
       let result: Digest;
       try { result = await digest(source(context, filename, state), selectedAlgorithm, context.signal); }
-      catch (error) { await diagnostic(context, error); failed = true; continue; }
+      catch (error) { state.budget.assertOpen(context.signal); await diagnostic(context, error); failed = true; continue; }
       const delimiter = settings.zero ? "\0" : "\n";
       if (selectedAlgorithm === "crc") await output(context, `${result.hex} ${result.length}${settings.operands.length ? ` ${filename}` : ""}${delimiter}`);
       else {
@@ -266,6 +268,7 @@ function command(name: string, algorithm: Algorithm): CommandDefinition {
   });
 }
 
-export function createChecksumCommands(): readonly CommandDefinition[] {
-  return [command("sha256sum", "sha256"), command("sha1sum", "sha1"), command("md5sum", "md5"), command("cksum", "crc")];
+export function createChecksumCommands(options: ByteInputOptions = {}): readonly CommandDefinition[] {
+  const maxInputBytes = resolveInputLimit(options);
+  return [command("sha256sum", "sha256", maxInputBytes), command("sha1sum", "sha1", maxInputBytes), command("md5sum", "md5", maxInputBytes), command("cksum", "crc", maxInputBytes)];
 }

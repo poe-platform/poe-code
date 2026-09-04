@@ -43,7 +43,7 @@ function formatRow(row: Uint8Array, format: Format, bigEndian: boolean): string 
   return text;
 }
 
-export function createOdCommand(): CommandDefinition {
+export function createOdCommand(maxInputBytes: number): CommandDefinition {
   return define("od", async context => {
     const aliases: Record<string, string> = { b: "o1", c: "c", d: "u2", o: "o2", s: "d2", x: "x2" };
     const rewritten: string[] = [];
@@ -95,7 +95,7 @@ export function createOdCommand(): CommandDefinition {
     let previous: Uint8Array | undefined;
     let suppressed = false;
     const address = (): string => radix === "n" ? "" : offset.toString(radix === "o" ? 8 : radix === "x" ? 16 : 10).padStart(radix === "x" ? 6 : 7, "0");
-    for await (const row of rows(range(sources(context, parsed.operands), skip, count), width)) {
+    for await (const row of rows(range(sources(context, parsed.operands, maxInputBytes), skip, count), width)) {
       const same = previous?.length === row.length && row.every((byte, index) => previous![index] === byte);
       if (!parsed.flags.has("v") && same) {
         if (!suppressed) await output(context, "*\n");

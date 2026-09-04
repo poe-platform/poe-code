@@ -4,7 +4,7 @@ import { diagnostic } from "../commands/internal.js";
 import { createTextProgramCommands, type TextProgramOptions } from "../commands/text-programs/index.js";
 import { createStructuredCommands, type StructuredCommandsOptions } from "../commands/structured/index.js";
 import { createSearchCommands, type SearchOptions } from "../commands/search/index.js";
-import { createByteCommands } from "../commands/bytes/index.js";
+import { createByteCommands, type ByteCommandsOptions } from "../commands/bytes/index.js";
 import { createDiffPatchCommands, type DiffPatchOptions } from "../commands/diff-patch/index.js";
 import { createMetadataCommands, type MetadataCommandsOptions } from "../commands/metadata/index.js";
 import { createArchiveCommands, type ArchiveCommandsOptions } from "../commands/archive/index.js";
@@ -26,6 +26,7 @@ import { createApplyPatchCommands, type ApplyPatchCommandsOptions } from "../com
 import type { RegexExecutionOptions } from "../commands/regex-execution/protocol.js";
 
 export interface AgentCommandsOptions {
+  readonly bytes?: Omit<ByteCommandsOptions, "replace">;
   readonly applyPatch?: Omit<ApplyPatchCommandsOptions, "replace">;
   readonly timeout?: Omit<TimeoutCommandsOptions, "replace">;
   readonly which?: Omit<WhichCommandsOptions, "replace">;
@@ -71,7 +72,7 @@ export function createAgentCommands(options: AgentCommandsOptions = {}): readonl
     ...createTextProgramCommands({ ...options.text }),
     ...createStructuredCommands({ ...options.structured }),
     ...createSearchCommands({ ...options.search }),
-    ...createByteCommands(),
+    ...createByteCommands(options.bytes),
     ...createDiffPatchCommands({ ...options.diffPatch }),
     ...createMetadataCommands({ ...options.metadata }),
     ...createArchiveCommands({ ...options.archive }),

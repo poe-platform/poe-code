@@ -3974,21 +3974,28 @@ export class Runtime {
       }
       else {
         const separators = exact ? "" : state.variables.IFS ?? " \t\n";
-        const characters = Array.from(line.value);
-        const separator = (index: number): boolean => index < characters.length && !line.escaped.has(index) && separators.includes(characters[index]!);
-        const whitespace = (index: number): boolean => separator(index) && /[ \t\n]/u.test(characters[index]!);
-        let end = characters.length;
-        while (end > 0 && whitespace(end - 1)) end--;
+        let end = 0;
+        let offset = 0;
+        let point = 0;
+        for (const character of line.value) {
+          offset += character.length;
+          if (line.escaped.has(point) || !separators.includes(character) || !" \t\n".includes(character)) end = offset;
+          point++;
+        }
         let position = 0;
-        while (position < end && whitespace(position)) position++;
+        point = 0;
+        const separator = (): boolean => position < end && !line.escaped.has(point) && separators.includes(String.fromCodePoint(line.value.codePointAt(position)!));
+        const whitespace = (): boolean => separator() && " \t\n".includes(line.value[position]!);
+        const advance = (): void => { position += line.value.codePointAt(position)! > 0xffff ? 2 : 1; point++; };
+        while (position < end && whitespace()) advance();
         const fields: { start: number; end: number }[] = [];
-        while (position < end) {
+        while (position < end && fields.length < names.length) {
           const start = position;
-          while (position < end && !separator(position)) position++;
+          while (position < end && !separator()) advance();
           fields.push({ start, end: position });
-          while (position < end && whitespace(position)) position++;
-          if (position < end && separator(position)) position++;
-          while (position < end && whitespace(position)) position++;
+          while (position < end && whitespace()) advance();
+          if (position < end && separator()) advance();
+          while (position < end && whitespace()) advance();
         }
         for (let index = 0; index < names.length; index++) {
           if (state.readonlyVariables?.has(names[index]!)) {
@@ -3996,7 +4003,7 @@ export class Runtime {
             return index === names.length - 1 ? 1 : 2;
           }
           const field = fields[index];
-          await this.assignVariable(state, names[index]!, field ? characters.slice(field.start, index === names.length - 1 && fields.length > names.length ? end : field.end).join("") : "");
+          await this.assignVariable(state, names[index]!, field ? line.value.slice(field.start, index === names.length - 1 && position < end ? end : field.end) : "");
         }
       }
       return line.terminated ? 0 : 1;

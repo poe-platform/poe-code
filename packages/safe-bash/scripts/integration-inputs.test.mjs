@@ -455,6 +455,12 @@ function assertSource7Discovery(files) {
     "tests/shell/extensions/trap/review.test.ts",
   ]) assert.ok(files.includes(path), "optional trap test is missing: " + path);
   for (const path of [
+    "tests/commands/yq-scripting/regressions.test.ts",
+    "tests/commands/yq-scripting/oracle.test.ts",
+    "tests/commands/yq-scripting/review.test.ts",
+    "tests/commands/yq-scripting/lifecycle.test.ts",
+  ]) assert.ok(files.includes(path), "optional yq scripting test is missing: " + path);
+  for (const path of [
     "tests/fs/devices/devices.test.ts",
     "tests/fs/devices/native.test.ts",
     "tests/fs/devices/review.test.ts",

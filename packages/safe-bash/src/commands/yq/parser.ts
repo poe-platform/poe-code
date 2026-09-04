@@ -114,9 +114,10 @@ function stripComment(text: string): string {
     else if (character === "'") single = true;
     else if (character === "[" || character === "{") flowDepth++;
     else if (character === "]" || character === "}") flowDepth--;
-    else if (character === "#" && (index === 0 || /[ \t\r\n]/u.test(text[index - 1]!))) return text.slice(0, index).trimEnd();
+    else if (character === "#" && (index === 0 || /[ \t\r\n]/u.test(text[index - 1]!))) {
+      return flowDepth > 0 ? text.trimEnd() : text.slice(0, index).trimEnd();
+    }
   }
-  void flowDepth;
   return text.trimEnd();
 }
 
@@ -686,6 +687,7 @@ class FlowParser {
     let depth = 0;
     while (this.#position < this.source.length) {
       const character = this.source[this.#position]!;
+      if (character === "#" && /[ \t\r\n]/u.test(this.source[this.#position - 1] ?? "")) break;
       if (character === "[" || character === "{") depth++;
       if (character === "]" || character === "}") {
         if (depth === 0) break;
@@ -705,7 +707,13 @@ class FlowParser {
   }
 
   #space(): void {
-    while (/[ \t\r\n]/u.test(this.source[this.#position] ?? "")) this.#position++;
+    while (this.#position < this.source.length) {
+      const character = this.source[this.#position]!;
+      if (/[ \t\r\n]/u.test(character)) this.#position++;
+      else if (character === "#") {
+        while (this.#position < this.source.length && this.source[this.#position] !== "\n") this.#position++;
+      } else break;
+    }
   }
 }
 
@@ -975,11 +983,13 @@ class BlockParser {
     let negativeDepth = false;
     let balanced = false;
     while (true) {
+      let inComment = false;
       for (let start = 0; start < fragment.length; start += 256) {
         const end = Math.min(start + 256, fragment.length);
         await this.composer.work.charge(end - start);
         this.composer.work.assertOpen();
         for (let index = start; index < end; index++) {
+          if (inComment) continue;
           const character = fragment[index]!;
           if (double) {
             if (escaped) escaped = false;
@@ -989,6 +999,7 @@ class BlockParser {
             if (character === "'") single = false;
           } else if (character === '"') double = true;
           else if (character === "'") single = true;
+          else if (character === "#" && (index === 0 || " \t\r\n,[]{}\"'".includes(fragment[index - 1]!))) inComment = true;
           else if (character === "[" || character === "{") depth++;
           else if (character === "]" || character === "}") {
             depth--;

@@ -1,8 +1,9 @@
 import {
+  commandRuntimeIdentity,
   createOutputOperation,
   FsError,
+  getCommandArguments,
   readBytes,
-  resolvePath,
   type ByteSource,
   type CommandContext,
   type CommandDefinition,
@@ -307,6 +308,16 @@ async function collectSource(
   source: ByteSource,
   vfs: boolean,
 ): Promise<InputFrame[]> {
+  let producer: AsyncIterator<Uint8Array> | undefined;
+  let finished = false;
+  let producerReturn: Promise<IteratorResult<Uint8Array>> | undefined;
+  const closeProducer = (): Promise<IteratorResult<Uint8Array>> => {
+    if (producerReturn) return producerReturn;
+    if (!producer || finished || !producer.return) return Promise.resolve({ done: true, value: undefined });
+    producerReturn = Promise.resolve().then(() => producer!.return!());
+    return producerReturn;
+  };
+  owner.register(async () => { await closeProducer(); });
   let iterator: AsyncIterator<Uint8Array> | undefined;
   let returned: Promise<unknown> | undefined;
   owner.register(async () => {
@@ -315,7 +326,19 @@ async function collectSource(
       await returned;
     }
   });
-  iterator = readBytes(source, context.signal)[Symbol.asyncIterator]();
+  iterator = readBytes({ [Symbol.asyncIterator]() {
+    owner.assertOpen(context.signal);
+    producer = source[Symbol.asyncIterator]();
+    return {
+      async next() {
+        owner.assertOpen(context.signal);
+        const next = await producer!.next();
+        if (next.done) finished = true;
+        return next;
+      },
+      return: closeProducer,
+    };
+  } }, context.signal)[Symbol.asyncIterator]();
   const chunks: Uint8Array[] = [];
   const framer = new RawDocumentFramer();
   let size = 0;
@@ -331,6 +354,9 @@ async function collectSource(
     owner.assertOpen(context.signal);
     if (next.done) break;
     const chunk = next.value;
+    await session.ownedWork.charge(1);
+    owner.assertOpen(context.signal);
+    if (chunk.byteLength === 0) continue;
     session.ownedWork.admitInputBytes(chunk.byteLength);
     if (chunk.byteLength > yqCaps.maxInputBytes - size) throw fromJqLimit(new JqLimitError("maxInputBytes"));
     framer.admit(chunk);
@@ -357,7 +383,7 @@ async function sourceFrames(
   sourceName: string,
 ): Promise<InputFrame[]> {
   if (sourceName === "-") return collectSource(context, owner, session, "<stdin>", context.stdin, false);
-  const path = resolvePath(context.cwd, sourceName);
+  const path = sourceName.startsWith("/") ? sourceName : `${context.cwd.endsWith("/") ? context.cwd : `${context.cwd}/`}${sourceName}`;
   if (context.fs.readStream) {
     let source: ByteSource;
     try { source = context.fs.readStream(path, { signal: context.signal }); }
@@ -426,6 +452,12 @@ async function runCommand(context: CommandContext, owner: InvocationOwner): Prom
   };
   try {
     preflightArguments(context.args);
+    const argumentValues = getCommandArguments(context);
+    const decoder = new TextDecoder("utf-8", { fatal: true, ignoreBOM: true });
+    for (let index = 0; index < argumentValues.args.length; index++) {
+      try { decoder.decode(argumentValues.bytes(index)!); }
+      catch { throw cli("CLI_INVALID_UNICODE"); }
+    }
     const info = isInformationForm(context.args);
     if (context.args.some(argument => argument === "-h" || argument === "--help" || argument === "--version") && info === undefined) {
       throw cli("CLI_INFO_COMBINATION");
@@ -579,6 +611,7 @@ export interface YqCommandsOptions {
 export function createYqCommand(): CommandDefinition {
   return Object.freeze({
     name: "yq",
+    runtimeIdentity: commandRuntimeIdentity,
     description: "Bounded restricted YAML query and formatter",
     execute,
   });

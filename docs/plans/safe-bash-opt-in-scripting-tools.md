@@ -151,6 +151,16 @@ this request to keep additions out of the default package.
   bindings, validate Bash 5.2.37, and use a closed PATH with five explicit child
   shell overrides. Without either binding, 66 tests pass and 118 native-only tests
   skip; malformed or partial bindings fail. There is no native fallback.
+- Trap is locally committed as `5f7c9b054`; no push or release occurred.
+- Restricted yq input repairs now pass independent review and the final root
+  run: 147 author/allocation/scripting tests, zero failures or skips, plus strict
+  source/test types. Review reproduced producer teardown settling too early;
+  registered, memoized producer cleanup repairs it and retains falsey cancellation
+  behavior. Canonical discovery explicitly names all four new test files. This
+  repairs the existing restricted dialect only; the separate native Mike profile
+  is still under development and is not yet exported by the optional entry.
+  Actual repaired flow-comment and element-selection output was rendered and
+  inspected in `yq-phase1-final-visual.png` under the native-oracle directory.
 
 - First implementation wave: cmp, yes, shuf and virtual devices in disjoint leaf
   directories. Root is qualifying native oracles and the opt-in delivery boundary.

@@ -28,7 +28,7 @@ async function usedBytes(fs: FileSystem, options?: FsOptions): Promise<number> {
 
 async function existingBytes(fs: FileSystem, path: string, options?: FsOptions): Promise<number> {
   try {
-    const stat = await fs.lstat(path, options);
+    const stat = await fs.stat(path, options);
     return stat.type === "directory" ? 0 : stat.size;
   } catch (error) {
     if (error instanceof Error && "code" in error && error.code === "ENOENT") return 0;
@@ -77,7 +77,7 @@ export function withFileSystemQuota(fs: FileSystem, options: FileSystemQuotaOpti
     },
     link(source, destination, linkOptions) {
       return mutate(async () => {
-        await assertDelta(destination, (await fs.stat(source, linkOptions)).size, linkOptions);
+        await assertDelta(destination, (await fs.lstat(source, linkOptions)).size, linkOptions);
         await fs.link!(source, destination, linkOptions);
       });
     },

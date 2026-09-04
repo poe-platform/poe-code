@@ -68,6 +68,12 @@
 
 ## Handoff and limits
 
+- Root integration review confirmed that the existing `tsconfig.build.json`
+  excludes the yq sources and the public command exports do not expose yq. This
+  fixes the maintained source implementation and its source-profile tests; it
+  does not newly ship yq in either npm package. Preserve those build/export
+  exclusions. Visual smoke verification must identify its source profile, and
+  successful package publication must not be described as published yq support.
 - Implementation and focused verification complete; writes frozen after this
   handoff document and final whitespace/hash inspection. Root receives an explicit
   freeze notice before its gates; no additional edits without coordination.

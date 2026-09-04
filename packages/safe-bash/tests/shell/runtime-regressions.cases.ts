@@ -3,6 +3,7 @@ import { test } from "node:test";
 import { writeText } from "../../src/contracts/index.js";
 import type { ByteSource } from "../../src/contracts/index.js";
 import { setup } from "./helpers.js";
+import { evaluateArithmetic, prepareArithmetic, type Arithmetic } from "../../src/shell/arithmetic.js";
 
 test("synchronous cancellation observes already-rejected command promises", async () => {
   const { shell } = setup();
@@ -156,4 +157,104 @@ test("arithmetic stays bounded and handles short circuit, updates and overflow",
   assert.equal((await shell.exec('COUNT=0; until (( COUNT == 3 )); do say "$COUNT"; ((COUNT++)); done')).stdout, "0\n1\n2\n");
   assert.equal((await shell.exec('args "$((0 && (COUNT=7)))" "$((1 || (COUNT=9)))" "$COUNT" "$((9223372036854775807 + 1))"')).stdout, '["0","1","","-9223372036854775808"]');
   assert.equal((await shell.exec('args "$((1 / 0))"')).exitCode, 1);
+});
+
+for (const terms of [5000, 5001, 8000]) {
+  test(`arithmetic enforces node visits without host recursion: ${terms} terms`, () => {
+    const program = prepareArithmetic(Array(terms).fill("1").join("+"));
+    assert.ok(program.tree);
+    if (terms === 5000) assert.equal(evaluateArithmetic(program, {}), 5000n);
+    else assert.throws(() => evaluateArithmetic(program, {}), { message: "Arithmetic operation limit exceeded" });
+  });
+
+  for (const mode of ["expansion", "command", "let"] as const) {
+    test(`arithmetic ${mode} preserves the operation cap for ${terms} terms`, async () => {
+      const { shell } = setup();
+      const expression = Array(terms).fill("1").join("+");
+      const source = mode === "expansion" ? `say $(( ${expression} ))` : mode === "command" ? `(( ${expression} ))` : `let '${expression}'`;
+      try {
+        const result = await shell.exec(source);
+        assert.equal(result.exitCode, terms === 5000 ? 0 : 1, result.stderr);
+        if (terms === 5000) assert.equal(result.stdout, mode === "expansion" ? "5000\n" : "");
+        else assert.match(result.stderr, /Arithmetic operation limit exceeded/u);
+        assert.doesNotMatch(result.stderr, /call stack|RangeError/u);
+      } finally { await shell.dispose(); }
+    });
+  }
+}
+
+test("arithmetic charges exactly one step per entered node", () => {
+  const chain = Array(5000).fill("1").join("+");
+  assert.equal(evaluateArithmetic(prepareArithmetic(`+(${chain})`), {}), 5000n);
+  assert.throws(() => evaluateArithmetic(prepareArithmetic(`++ignored,(${chain})`), {}), { message: "Arithmetic operation limit exceeded" });
+  for (const expression of [`0 && (${chain}+1)`, `1 || (${chain}+1)`, `1 ? 7 : (${chain}+1)`, `0 ? (${chain}+1) : 9`]) {
+    const expected = expression.startsWith("0 &&") ? 0n : expression.startsWith("1 ||") ? 1n : expression.startsWith("1 ?") ? 7n : 9n;
+    assert.equal(evaluateArithmetic(prepareArithmetic(expression), {}), expected);
+  }
+});
+
+test("arithmetic continuations preserve assignment timing and lazy effects", () => {
+  for (const [source, value, stored] of [
+    ["x=1, x++ + ++x", 4n, "3"],
+    ["x=5, x+=(x=2)", 7n, "7"],
+    ["x=1, (x=3)+x", 6n, "3"],
+    ["x=1, 0 && (x=7), 1 || (x=9), x", 1n, "1"],
+    ["x=1, 0 ? (x=8) : (x=2), 1 ? x : (x=9)", 2n, "2"],
+  ] as const) {
+    const variables: Record<string, string> = {};
+    assert.equal(evaluateArithmetic(prepareArithmetic(source), variables), value, source);
+    assert.equal(variables.x, stored, source);
+  }
+  for (const [source, expected, events] of [
+    ["x+=x++", 4n, ["get", "get", "set:3", "set:4"]],
+    ["x=x++", 2n, ["get", "set:3", "set:2"]],
+  ] as const) {
+    const observed: string[] = [];
+    const variables = new Proxy({ x: "2" }, {
+      get(target) { observed.push("get"); return target.x; },
+      set(target, _key, value: string) { observed.push(`set:${value}`); target.x = value; return true; },
+    });
+    assert.equal(evaluateArithmetic(prepareArithmetic(source), variables), expected);
+    assert.deepEqual(observed, events);
+  }
+});
+
+test("arithmetic variable recursion remains scoped to active references", () => {
+  assert.equal(evaluateArithmetic(prepareArithmetic("first+first"), { first: "second", second: "7" }), 14n);
+  for (const count of [64, 65]) {
+    const variables = Object.fromEntries(Array.from({ length: count }, (_, index) => [`v${index}`, index + 1 === count ? "1" : `v${index + 1}`]));
+    if (count === 64) assert.equal(evaluateArithmetic(prepareArithmetic("v0"), variables), 1n);
+    else assert.throws(() => evaluateArithmetic(prepareArithmetic("v0"), variables), /Arithmetic variable recursion/u);
+  }
+  const cycles: Record<string, string>[] = [{ first: "first" }, { first: "second", second: "first" }];
+  for (const variables of cycles) {
+    assert.throws(() => evaluateArithmetic(prepareArithmetic("first"), variables), /Arithmetic variable recursion/u);
+  }
+});
+
+test("arithmetic supplied trees retain path-specific 64-bit normalization", () => {
+  const literal: Arithmetic = { kind: "literal", value: (1n << 64n) + 3n };
+  const zero: Arithmetic = { kind: "literal", value: 0n };
+  const variables: Record<string, string> = {};
+  for (const tree of [literal,
+    { kind: "conditional", condition: literal, yes: literal, no: zero },
+    { kind: "binary", operator: ",", left: zero, right: literal },
+  ] satisfies Arithmetic[]) assert.equal(evaluateArithmetic({ source: "", tree }, variables), literal.value);
+  for (const tree of [
+    { kind: "unary", operator: "+", operand: literal, postfix: false },
+    { kind: "binary", operator: "+", left: literal, right: zero },
+    { kind: "binary", operator: "=", left: { kind: "name", name: "stored" }, right: literal },
+  ] satisfies Arithmetic[]) assert.equal(evaluateArithmetic({ source: "", tree }, variables), 3n);
+  assert.equal(variables.stored, "3");
+});
+
+test("arithmetic preserves diagnostic offsets and falsey host failures", () => {
+  assert.throws(() => evaluateArithmetic(prepareArithmetic("10 / 0"), {}), { message: '10 / 0: division by 0 (error token is "0")' });
+  assert.throws(() => evaluateArithmetic(prepareArithmetic("2 ** -1"), {}), { message: '2 ** -1: exponent less than 0 (error token is "-1")' });
+  for (const reason of [undefined, null, false, 0, ""]) {
+    const reading = new Proxy({}, { get() { throw reason; } });
+    const writing = new Proxy({}, { set() { throw reason; } });
+    assert.throws(() => evaluateArithmetic(prepareArithmetic("value"), reading), error => Object.is(error, reason));
+    assert.throws(() => evaluateArithmetic(prepareArithmetic("value=2"), writing), error => Object.is(error, reason));
+  }
 });

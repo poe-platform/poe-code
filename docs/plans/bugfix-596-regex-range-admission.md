@@ -65,9 +65,10 @@ workflow unit test, physical RSS claim or visual CLI redesign is part of this fi
 
 ## Delivery
 
-Implementation and local validation are complete; commit and remote delivery are
-pending. Close #596 after verified remote-main delivery, then monitor actual
-releases while progressing to the next issue.
+Implementation and local validation are complete in local commit
+`f44109a8d0267a5cd6af794557e99dbe899c7532`. Remote delivery and publication are
+not established by that local commit. Close #596 after verified remote-main
+delivery, then monitor actual releases while progressing to the next issue.
 
 ## Candidate evidence
 

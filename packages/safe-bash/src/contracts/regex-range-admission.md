@@ -1,8 +1,8 @@
 # Regex Match-Range Admission Specification
 
-Status: Accepted
+Status: Implemented
 
-Implemented Through: Not applicable
+Implemented Through: f44109a8d0267a5cd6af794557e99dbe899c7532
 
 Purpose: Bound retained candidate ranges and their reconstruction across the
 legacy regex worker protocol without truncating results.

@@ -1,4 +1,29 @@
-# Filesystem output lifecycle
+# Filesystem Output Lifecycle Specification
+
+Status: Implemented
+
+Implemented Through: 35679576d17e019989dde12b985d42a6ac2b63c5
+
+Purpose: Preserve filesystem output ownership, visibility and shared Shell byte
+admission across streaming outputs and assembled direct text-program writes.
+
+The recorded implementation includes the direct-write extension and preserves
+the existing streaming/redirection behavior, verified by the focused contract,
+command and built public-export checks recorded in the corresponding issue plan.
+
+## Normative language
+
+`MUST`, `MUST NOT` and `MAY` identify required, prohibited and permitted behavior.
+
+## Problem Statement, Goals and Non-Goals
+
+File output must preserve its adapter's lifecycle and visibility while sharing
+the enclosing Shell's cumulative output accounting. Per-buffer limits and host
+storage quotas are independent: neither bounds cumulative repeated writes.
+This contract does not promise a transaction across files, rollback of completed
+incremental writes, total memory bounds or preemption of arbitrary host work.
+
+## System boundary
 
 `openFileOutput` is the internal filesystem output operation shared by shell
 redirection, `tee`, curl body files and curl header files. It builds on
@@ -92,7 +117,43 @@ whole commands; an echo's word and newline can be separate appends. An atomic
 streaming append may commit the complete descriptor stream at once. Neither
 profile implies a transaction across separate descriptors or commands.
 
-## Regression coverage
+## Direct text-program writes
+
+Assembled awk named-file writes, sed script-output writes and sed in-place
+replacement writes MUST use the same
+enclosing Shell `maxOutputBytes` ledger as standard output and streaming file
+destinations. Admission is cumulative across files, repeated overwrite/append
+operations, close/reopen cycles and nested commands sharing an execution.
+Starting another named-file destination MUST NOT create a fresh allowance.
+
+Each submitted byte MUST be charged exactly once before its direct host write
+is invoked. A write exceeding the remaining allowance MUST be rejected in full
+before that host call; existing completed writes need not be rolled back.
+Exactly fitting writes MUST remain admissible. Failed admitted host writes do
+not refund the shared allowance, matching ordinary Shell output accounting.
+
+The extension MUST preserve the direct write's existing flags, single-write
+visibility, empty creation/truncation effects, evaluation/error ordering and
+awk `close()` reopening semantics. It MUST NOT silently replace direct writes
+with persistent buffered streams or count filesystem-internal rewrite traffic.
+Zero bytes consume no allowance but do not erase the requested filesystem effect.
+
+Cancellation MUST be checked before admission and MUST retain exact caller
+reason identity, including falsey reasons. An already admitted direct host-write
+promise MUST remain observed and awaited according to the direct-write path's
+settlement behavior, even when an enclosing interruptible sink rejects earlier.
+Completed writes MUST NOT leave a growing list of per-write cleanup callbacks.
+No universal termination guarantee is made for an uncooperative host promise.
+
+Direct command hosts without a Shell budget binding retain their existing
+behavior and responsibility for limits; this extension introduces no additional
+public option or implicit standalone allowance. Host filesystem quotas remain
+an independent policy limiting stored size rather than cumulative write traffic.
+Existing sed backup-copy operations retain their separate filesystem semantics
+and backup-before-replacement ordering; this extension accounts assembled output
+bytes, not every filesystem mutation or copy operation.
+
+## Test and validation matrix
 
 The focused command matrix in `tests/commands/filesystem-output.test.ts` exercises
 `>`, `>>`, `tee`, `tee -a`, and `curl -o`, plus header files where applicable:
@@ -110,3 +171,20 @@ failure identity before and after consumption. Existing mounted-network and
 shell lifecycle tests retain independent/interleaved descriptor offset coverage.
 These are local unit/contract checks, not a claim of a deployed Worker or remote
 service qualification.
+
+The direct-write extension additionally requires:
+
+| Requirement | Required evidence |
+| --- | --- |
+| Shared admission | Exact and over-limit awk/sed named writes, mixed stdout/files, multiple destinations and nested invocation. |
+| Pre-write ordering | Over-limit bytes cause no rejected host call; failed admitted writes retain their charge. |
+| Compatibility | Original flags and byte content, overwrite/append/reopen, empty effects and complete-write visibility. |
+| Cancellation | Exact falsey reasons, no new work after cancellation and settlement of already admitted host promises. |
+| Host boundary | Unbound direct hosts retain existing behavior; stored-byte quotas remain independent. |
+
+## Conformance criteria
+
+All direct-write requirements and their validation matrix MUST pass before that
+extension is marked implemented. Streaming/redirection regression coverage MUST
+remain green; direct-write adoption must not add charges to existing output
+paths or change their adapter-specific publication behavior.

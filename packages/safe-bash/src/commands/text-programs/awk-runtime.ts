@@ -1,4 +1,5 @@
 import { FsError, type CommandContext } from "../../contracts/index.js";
+import { writeFileOutput } from "../../contracts/filesystem-output.js";
 import type { AwkProgram, Expression, Statement } from "./awk-syntax.js";
 import { decodeString } from "./awk-syntax.js";
 import { AwkArray, compare, formatted, inputValue, number, numeric, scalar, string, text, truth, unset, type Scalar, type Value } from "./awk-values.js";
@@ -51,7 +52,7 @@ export class AwkRuntime {
   private store(name: string): Map<string, Value> { return this.frames.at(-1)?.has(name) ? this.frames.at(-1)! : this.variables; }
   private get(name: string): Value { return this.store(name).get(name) ?? unset; }
   private getScalar(name: string): Scalar { return scalar(this.get(name)); }
-  private asText(value: Scalar): string { return text(value, this.budget, text(this.getScalar("CONVFMT"), this.budget)); }
+  private asText(value: Scalar): string { return text(value, text(this.getScalar("CONVFMT"), undefined, this.budget), this.budget); }
   private varText(name: string): string { return this.asText(this.getScalar(name)); }
   private retainName(path: string): string {
     this.context.signal.throwIfAborted();
@@ -451,15 +452,16 @@ export class AwkRuntime {
         for (const argument of statement.args) values.push(await this.scalarExpression(argument));
         const output = statement.formatted
           ? this.budget.check(formatted(this.asText(values[0]!), values.slice(1), value => this.asText(value), this.budget))
-          : this.join(values.length ? values.map(value => text(value, this.budget, this.varText("OFMT"))) : [this.record], values.length ? this.varText("OFS") : "", this.varText("ORS"));
+          : this.join(values.length ? values.map(value => text(value, this.varText("OFMT"), this.budget)) : [this.record], values.length ? this.varText("OFS") : "", this.varText("ORS"));
         if (!statement.redirect) { await write(this.context, output); return; }
         const destination = Buffer.from(this.asText(await this.scalarExpression(statement.redirect.destination)), "latin1").toString("utf8");
         const path = virtualPath(this.context, destination);
-        if (this.outputs.has(path)) await this.context.fs.appendFile(path, bytes(output), { signal: this.context.signal });
+        if (this.outputs.has(path)) await writeFileOutput(this.context, bytes(output), chunk => this.context.fs.appendFile(path, chunk, { signal: this.context.signal }));
         else {
           const name = this.retainName(path);
           try {
-            await this.context.fs.writeFile(name, bytes(output), { flag: statement.redirect.append ? "a" : "w", signal: this.context.signal });
+            const flag = statement.redirect.append ? "a" : "w";
+            await writeFileOutput(this.context, bytes(output), chunk => this.context.fs.writeFile(name, chunk, { flag, signal: this.context.signal }));
             this.context.signal.throwIfAborted();
             this.outputs.add(name);
           } catch (error) { this.retention.release(Buffer.byteLength(name, "utf8")); throw error; }

@@ -57,7 +57,7 @@ test("inline continuation preserves doubled quotes and escapes across charge bou
     const prefix = "a".repeat(padding);
     for (const [input, value] of [
       [`['${prefix}''\nb']`, [`${prefix}' b`]],
-      [`[\n"${prefix}\\\"[}]\\\nnext"]`, [`${prefix}"[}]next`]],
+      [`[\n"${prefix}\\"[}]\\\nnext"]`, [`${prefix}"[}]next`]],
     ] as const) {
       assert.deepEqual(await run(["-o", "json", "-c", "."], input), {
         status: 0, stdout: `${JSON.stringify(value)}\n`, stderr: "",

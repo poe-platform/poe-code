@@ -52,6 +52,7 @@ export interface FileSystemCapabilities {
   readonly truncate?: boolean;
   readonly streamingAppend?: boolean;
   readonly randomAccessWrite?: boolean;
+  readonly independentWriteStreams?: boolean;
   readonly symlinks?: boolean;
   readonly hardlinks?: boolean;
   readonly permissions?: boolean;

@@ -97,6 +97,10 @@ this request to keep additions out of the default package.
 - Follow-up root device run: 79 tests pass with no skips, including independent
   descriptor and copy review. This is scoped behavior evidence, not a claim that
   Darwin urandom writes match the explicitly different portable device profile.
+  The named independentWriteStreams contract is integrated, the device test
+  project typechecks, and actual command output passed visual inspection. The
+  selected default build passes; its pack dry run lists 1,046 files and zero
+  optional implementation leaks. Final device rerun: 79 pass, zero skips.
 - Preferred-I/O metadata has 40 passing focused tests and a successful selected
   safe-fs build. Independent root review then reproduced lost rdevMajor/rdevMinor
   fields through readonly, mount and overlay snapshots in three failing tests.

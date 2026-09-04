@@ -2186,7 +2186,7 @@ export class Runtime {
           let file!: OutputFile;
           await this.fileOperation(path, async () => {
             file = this.outputFiles.get(path) ?? { data: undefined, references: 0 };
-            if (!random && file.references) throw new FsError("ENOTSUP", { path, message: "Conflicting sequential output descriptors" });
+            if (!random && capabilities.independentWriteStreams !== true && file.references) throw new FsError("ENOTSUP", { path, message: "Conflicting sequential output descriptors" });
             file.references++;
             this.outputFiles.set(path, file);
           });

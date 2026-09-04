@@ -92,11 +92,23 @@ establish support. `readOnly: true` takes precedence over all mutation flags.
 | `readlink`, `symlinks`, `hardlinks` | Link inspection, symbolic-link creation, and hard-link creation |
 | `timestamps`, `permissions` | Timestamp and permission mutation |
 | `randomAccessWrite` | Eligibility for the shell's existing bounded descriptor-offset update strategy |
+| `independentWriteStreams` | Independent concurrent sequential writers to the same destination |
 
 `implicitDirectories` does not promise that writes create missing ancestors.
 Adapters may expose both implicit prefixes and explicit directory markers. Flags
 do not promise transactions, arbitrary file sizes, preserved inode identity,
 successful cross-device operations, or deployed server feature availability.
+
+`independentWriteStreams: true` explicitly admits multiple simultaneous sequential
+writers to the same path without one writer replacing, truncating or invalidating
+another writer's output. Each writer retains its own lifetime and cancellation.
+This does not promise shared offsets, positional writes, ordering between writers,
+transactions, or atomic publication. The shell requires an exact `true` for this
+sequential-writer exception and uses destination-specific capabilities when
+available; absence or false retains the conflict refusal. Faithful wrappers must
+preserve the actual destination assertion rather than infer it from streaming
+support. Stateless discard devices satisfy this contract; an object-replacement
+backend cannot advertise it merely because its API accepts concurrent requests.
 
 `randomAccessWrite` is not a new positional-writer API. It expressly permits the
 existing shell strategy that observes current bytes and writes an offset-adjusted

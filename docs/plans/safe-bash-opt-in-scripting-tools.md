@@ -68,7 +68,8 @@ this request to keep additions out of the default package.
 
 - Local commits: `d18b2e0ed` establishes build isolation; `27beeaf50` adds yes;
   `209190556` preserves character-device metadata through filesystem consumers;
-  `75a013fd4` adds preferred-I/O metadata and corrects device-number forwarding.
+  `75a013fd4` adds preferred-I/O metadata and corrects device-number forwarding;
+  `71e3f5f74` isolates dd/install leaves; `633b73d50` adds opt-in virtual devices.
   None has been pushed or released, and neither action is requested.
 - First implementation wave: cmp, yes, shuf and virtual devices in disjoint leaf
   directories. Root is qualifying native oracles and the opt-in delivery boundary.
@@ -117,6 +118,24 @@ this request to keep additions out of the default package.
 - Literal exclusions now cover the five dd and four install source files present
   in this wave. Three focused default-boundary/discovery assertions pass. New
   implementation filenames still require explicit exclusion and pack inspection.
+- Later shuf review rerun: 316 of 319 pass with zero skips. The helper-lifecycle
+  fixes pass; three independently reproduced product defects remain: cleanup
+  masking the primary output failure, nonregular-input reservoir selection, and
+  raw-byte count diagnostics. The independent reviewer owns their corrections.
+- Truncate's current 200 tests and dedicated test-project typecheck pass;
+  independent review is pending. Generic shell-extension infrastructure and the
+  opt-in trap leaf are now in implementation. The trap implementation has a
+  failing-then-passing literal default-build exclusion check; no shell feature
+  acceptance or commit is implied by that packaging check.
+- Cmp's follow-up independent review corrected exact help output and default
+  block selection from canonical first-input metadata, preserving the pinned
+  GNU 3.12 selection behavior. The native helper no longer signals an already
+  closed process group. Root's final run passes 97 tests with zero skips, and
+  the source/test project typechecks. Actual comparison, status and full-help
+  output passed visual inspection. Unknown/stdin block metadata, dynamic FIFO
+  profiles, non-C locales and truthful version identity remain explicit limits.
+  The next complete guarded lint run has no cmp findings; its sole remaining
+  finding is a prefer-const binding in the concurrently implemented trap leaf.
 
 ## Native oracle preparation
 

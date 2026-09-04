@@ -414,6 +414,14 @@ function assertSource7Discovery(files) {
     "tests/commands/yes/integration.test.ts",
   ]) assert.ok(files.includes(path), "optional yes test is missing: " + path);
   for (const path of [
+    "tests/commands/cmp/cmp.test.ts",
+    "tests/commands/cmp/blocks.test.ts",
+    "tests/commands/cmp/native.test.ts",
+    "tests/commands/cmp/parity.test.ts",
+    "tests/commands/cmp/oracle-lifecycle.test.ts",
+    "tests/commands/cmp/review.test.ts",
+  ]) assert.ok(files.includes(path), "optional cmp test is missing: " + path);
+  for (const path of [
     "tests/fs/devices/devices.test.ts",
     "tests/fs/devices/native.test.ts",
     "tests/fs/devices/review.test.ts",

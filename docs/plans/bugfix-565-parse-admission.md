@@ -125,3 +125,32 @@ Logs and the final explicit-file SHA-256 manifest are retained beneath the
 private TMPDIR's `issue-565` directory and reported in the handoff. Root owns
 review, browser/public-consumer builds, full gates, commits, pushes, and release
 monitoring. No README edits are authorized.
+
+## Maintained standalone admission correction
+
+The maintained typecheck route also requires the consumer in the authenticated
+`tests/plugins/qualified-current-release/inventory.json`. Registering only
+`consumers.mjs` and checking source-mapped types missed this pre-diagnostic
+guard. Add exactly the shell parse-limits consumer as `current`, with its
+existing explicit compile/runtime group; current entries become 37 and the
+complete standalone inventory becomes 214. Update only the mutable inventory's
+authentication pin in `scripts/integration-inputs.mjs`.
+
+Before this metadata correction, the new narrow guard test failed with the
+missing shell parse-limits path in the standalone inventory comparison. It
+checks authenticated current entries against current consumer routes and
+retains missing-entry and unregistered-route negative controls in memory.
+The source7 test explicitly projects out the one new current entry to recover
+the exact previous inventory digest, then retains its original thirteen-entry
+historical reconstruction and digest unchanged. Existing entries, historical
+metadata, snapshots, and seals are not rewritten or reclassified.
+
+The same discovery assertion list includes the separately owned #571
+`tests/commands/structured/string-work.test.ts` by exact literal path. Its
+implementation and historical fixture correction remain with that owner.
+
+Correction logs are `inventory-red.log` and `inventory-green.log` beneath the
+existing private `issue-565` directory. The four-file handoff manifest is
+`inventory-frozen.sha256`. Only focused admission/discovery tests are run for
+this correction; maintained full gates and remote integration remain root's
+responsibility. Remote #598 changes are not fetched or incorporated here.

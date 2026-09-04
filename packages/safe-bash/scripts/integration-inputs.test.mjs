@@ -398,6 +398,7 @@ function assertSource7Discovery(files) {
   assert.ok(files.includes("tests/shell/parse-admission.test.ts"));
   assert.ok(files.includes("tests/shell/parse-admission-runtime.test.ts"));
   assert.ok(files.includes("tests/shell/arithmetic-admission.test.ts"));
+  assert.ok(files.includes("tests/commands/structured/string-work.test.ts"));
   assert.ok(files.includes("tests/commands/text-programs/allocation-admission.test.ts"));
   assert.ok(files.includes("tests/commands/directory-admission.test.ts"));
   assert.ok(files.includes("tests/plugins/git-removal.test.ts"));
@@ -1901,10 +1902,18 @@ test("source7 inventory admits exactly the already sealed thirteen-entry source 
   const files = new Map(["captured-types.json", "staged-types.json", "inventory.json"].map(name => ["/package/" + prefix + name, readRegularInput(root, prefix + name, 300000, fs, boundaries)]));
   const reads = [];
   const memory = fileSystemFor(files);
-  const { captured, staged, inventory } = readTypecheckInventories("/package", boundaries, {
+  const { captured, staged, inventory: currentInventory } = readTypecheckInventories("/package", boundaries, {
     ...memory,
     readFileSync(path) { reads.push(path); return memory.readFileSync(path); },
   });
+  assert.equal(currentInventory.entries.length, 214);
+  assert.deepEqual(currentInventory.counts, { "frozen-evidence": 166, current: 37, declaration: 7, "frozen-oracle": 1, "negative-types": 3 });
+  const inventory = structuredClone(currentInventory);
+  const currentAddition = "tests/plugins/qualified-current-release/current-shell-parse-limits.mts";
+  assert.equal(inventory.entries.filter(entry => entry.path === currentAddition).length, 1);
+  inventory.entries = inventory.entries.filter(entry => entry.path !== currentAddition);
+  inventory.counts.current = 36;
+  assert.equal(createHash("sha256").update(JSON.stringify(inventory, null, 2) + "\n").digest("hex"), "ad4b990db1317e78a32db465a198d90b57008612ca6de490815d5fdd83604ea7");
   const types = JSON.parse(readRegularInput(root, "integration-type-inputs.json", 100000, fs, boundaries));
   const sealed = types.cohorts.flatMap(cohort => cohort.entries).filter(entry => entry.path.endsWith(".mts"));
   assert.equal(sealed.length, 13);
@@ -1934,6 +1943,34 @@ test("source7 inventory admits exactly the already sealed thirteen-entry source 
   assert.deepEqual(mergedPrevious.counts, inventory.counts);
   assert.deepEqual(mergedPrevious.entries.map(entry => entry.path).sort(), inventory.entries.map(entry => entry.path).sort());
   assert.deepEqual(reads, [...files.keys()]);
+});
+
+test("current standalone inventory explicitly admits the shell parse-limits consumer", async () => {
+  const root = fileURLToPath(new URL("../", import.meta.url));
+  const boundaries = loadBoundaries(root);
+  const { inventory } = readTypecheckInventories(root, boundaries);
+  const { currentConsumerPaths } = await import("../tests/plugins/qualified-current-release/consumers.mjs");
+  const { verifyAdmittedStandaloneInventory } = await import("./typecheck-inputs.mjs");
+  const path = "tests/plugins/qualified-current-release/current-shell-parse-limits.mts";
+  const current = currentConsumerPaths();
+  const entries = inventory.entries.filter(entry => entry.classification === "current");
+  const currentInventory = { entries, counts: { current: inventory.counts.current } };
+  const read = () => assert.fail("current-route admission must not read historical payloads");
+  const admitted = verifyAdmittedStandaloneInventory(currentInventory, current, current, [], read, boundaries);
+  assert.deepEqual(admitted.checked, { current: 37 });
+  assert.equal(inventory.entries.length, 214);
+  assert.equal(inventory.counts.current, 37);
+  const selected = entries.filter(entry => entry.path === path);
+  assert.equal(selected.length, 1);
+  assert.equal(selected[0].classification, "current");
+  assert.equal(selected[0].group, "shell-parse-limits-public");
+  assert.throws(() => verifyAdmittedStandaloneInventory({
+    entries: entries.filter(entry => entry.path !== path), counts: { current: 36 },
+  }, current, current, [], read, boundaries), /standalone inventory changed/);
+  const unregistered = "tests/plugins/qualified-current-release/unregistered-current.mts";
+  assert.throws(() => verifyAdmittedStandaloneInventory({
+    entries: [...entries, { path: unregistered, classification: "current" }], counts: { current: 38 },
+  }, [...current, unregistered], current, [], read, boundaries), /current consumers must have an explicit compile\/runtime route/);
 });
 
 test("source7 standalone union preserves old and new inventory epochs without double counting", async () => {

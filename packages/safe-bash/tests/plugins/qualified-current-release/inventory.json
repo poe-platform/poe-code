@@ -5,12 +5,21 @@
   "historicalColdReview": "aac345a0: canonical470/470 and485/485; standalone omissions11/30 at respective frozen commits, not current denominator.",
   "counts": {
     "frozen-evidence": 166,
-    "current": 36,
+    "current": 37,
     "declaration": 7,
     "frozen-oracle": 1,
     "negative-types": 3
   },
   "entries": [
+    {
+      "path": "tests/plugins/qualified-current-release/current-shell-parse-limits.mts",
+      "sha256": "71e6d807cf4f0b2d015a2cd6b944816a5b26e79a272687b92bee4569bf9e8351",
+      "classification": "current",
+      "group": "shell-parse-limits-public",
+      "reason": "Maintained public shell parse-admission consumer; strict declarations and emitted runtime.",
+      "existingCoverage": "tests/shell/parse-admission-runtime.test.ts",
+      "qualifiedCoverage": "scripts/verify-current-consumers.mjs: strict and runtime shell-parse-limits-public"
+    },
     {
       "path": "tests/commands/column-stress/current-contract-review/consumer.mts",
       "sha256": "b2b44e440153be72a34aff617b27f02b4c52b508295ce6a81904322ba82ef35d",

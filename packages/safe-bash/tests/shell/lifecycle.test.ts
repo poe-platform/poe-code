@@ -2,10 +2,10 @@ import assert from "node:assert/strict";
 import { spawnSync } from "node:child_process";
 import { test } from "node:test";
 import { fileURLToPath } from "node:url";
-import { writeText } from "../../src/contracts/index.js";
+import { FsError, writeText } from "../../src/contracts/index.js";
 import type { ByteSource } from "../../src/contracts/index.js";
 import { ShellInput } from "../../src/shell/input.js";
-import { Budget, defaultLimits } from "../../src/shell/runtime.js";
+import { Budget, defaultLimits, Runtime } from "../../src/shell/runtime.js";
 import { setup } from "./helpers.js";
 
 for (const scenario of ["cleanup-abort", "cleanup-late-rejection", "shared-delayed-generator", "shared-serialized", "shared-repeated-cancellation", "shared-abandoned-rejection", "shared-retained-rejection", "owned-cleanup-abort", "busy-loop-abort"]) {
@@ -66,6 +66,178 @@ test("offset and append descriptors interleave correctly without reading files",
     assert.equal(new TextDecoder().decode(await fs.readFile("/file")), expected, script);
     await fs.chmod("/file", 0o200);
   }
+});
+
+test("EOF redirects append only new bytes and expose each completed write", async () => {
+  const { shell, fs, commands } = setup();
+  const writes: number[] = [], appends: number[] = [];
+  const write = fs.writeFile.bind(fs), append = fs.appendFile.bind(fs);
+  fs.writeFile = async (path, bytes, options) => { writes.push(bytes.length); await write(path, bytes, options); };
+  fs.appendFile = async (path, bytes, options) => { appends.push(bytes.length); await append(path, bytes, options); };
+  commands.register({ name: "chunks", async execute({ stdout }) {
+    for (let index = 0; index < 8; index++) {
+      await writeText(stdout, "abc");
+      assert.equal(new TextDecoder().decode(await fs.readFile("/file")), "abc".repeat(index + 1));
+    }
+    return { exitCode: 0 };
+  } });
+  try {
+    assert.equal((await shell.exec("chunks >file", { limits: { maxOutputBytes: 24 } })).exitCode, 0);
+    assert.deepEqual(writes, [0]);
+    assert.deepEqual(appends, Array(8).fill(3));
+  } finally { await shell.dispose(); }
+});
+
+for (const mixed of [false, true]) test(`redirect retained storage grows geometrically: mixed append=${mixed}`, async context => {
+  const { shell, commands } = setup();
+  const buffers = new Set<ArrayBufferLike>();
+  const fileOperation = Runtime.prototype.fileOperation;
+  context.mock.method(Runtime.prototype, "fileOperation", async function (this: Runtime, ...args: Parameters<Runtime["fileOperation"]>) {
+    await fileOperation.apply(this, args);
+    const data = this.outputFiles.get(args[0])?.data;
+    if (data?.length) buffers.add(data.buffer);
+  });
+  commands.register({ name: "chunks", async execute({ stdout, stderr }) {
+    for (let index = 0; index < 64; index++) await writeText(mixed ? stderr : stdout, "abc");
+    return { exitCode: 0 };
+  } });
+  try {
+    assert.equal((await shell.exec(mixed ? "chunks >file 2>>file" : "chunks >file")).exitCode, 0);
+    assert.ok(buffers.size > 0);
+    assert.ok([...buffers].reduce((sum, buffer) => sum + buffer.byteLength, 0) <= 4 * 192);
+  } finally { await shell.dispose(); }
+});
+
+for (const [replacement, expected] of [["Q", "abcXYZ"], ["123456789", "abcXYZ"], ["def", "defXYZ"]] as const) {
+  test(`EOF redirect after direct VFS replacement preserves the declared mutation boundary: ${replacement}`, async () => {
+    const { shell, fs, commands } = setup();
+    commands.register({ name: "mutate", async execute({ stdout }) {
+      await writeText(stdout, "abc");
+      await fs.writeFile("/file", new TextEncoder().encode(replacement));
+      await writeText(stdout, "XYZ");
+      return { exitCode: 0 };
+    } });
+    try {
+      assert.equal((await shell.exec("mutate >file")).exitCode, 0);
+      assert.equal(new TextDecoder().decode(await fs.readFile("/file")), expected);
+    } finally { await shell.dispose(); }
+  });
+}
+
+test("EOF metadata failure falls back without reading a write-only file", async () => {
+  const { shell, fs } = setup();
+  await fs.writeFile("/file", new Uint8Array());
+  await fs.chmod("/file", 0o200);
+  const read = fs.readFile.bind(fs);
+  fs.readFile = async () => { assert.fail("redirect must not read file contents"); };
+  fs.stat = async () => { throw new FsError("EACCES"); };
+  try {
+    assert.equal((await shell.exec("{ say one; say two; } >file")).exitCode, 0);
+    await fs.chmod("/file", 0o600);
+    assert.equal(new TextDecoder().decode(await read("/file")), "one\ntwo\n");
+  } finally { await shell.dispose(); }
+});
+
+for (const selected of [false, true]) for (const append of [false, undefined]) test(`EOF optimization requires declared append support: ${append}, path capabilities=${selected}`, async () => {
+  const { shell, fs } = setup();
+  const capabilities = { ...fs.capabilities, append };
+  if (append === undefined) Reflect.deleteProperty(capabilities, "append");
+  if (selected) Object.defineProperty(fs, "capabilitiesFor", { value: async () => capabilities });
+  else Object.defineProperty(fs, "capabilities", { value: capabilities });
+  let probes = 0;
+  fs.appendFile = async () => { assert.fail("append is unsupported"); };
+  fs.stat = async () => { probes++; throw new FsError("ENOTSUP"); };
+  try {
+    assert.equal((await shell.exec("{ say one; say two; } >file")).exitCode, 0);
+    assert.equal(new TextDecoder().decode(await fs.readFile("/file")), "one\ntwo\n");
+    assert.equal(probes, 0);
+  } finally { await shell.dispose(); }
+});
+
+test("EOF optimization skips explicitly unavailable metadata", async () => {
+  const { shell, fs } = setup();
+  Object.defineProperty(fs, "capabilities", { value: { ...fs.capabilities, stat: false } });
+  let probes = 0;
+  fs.stat = async () => { probes++; throw new FsError("ENOTSUP"); };
+  try {
+    assert.equal((await shell.exec("{ say one; say two; } >file")).exitCode, 0);
+    assert.equal(new TextDecoder().decode(await fs.readFile("/file")), "one\ntwo\n");
+    assert.equal(probes, 0);
+  } finally { await shell.dispose(); }
+});
+
+test("EOF metadata cancellation preserves the falsey caller reason before data writes", async () => {
+  const { shell, fs } = setup();
+  const controller = new AbortController();
+  fs.stat = async () => { controller.abort(0); throw false; };
+  try {
+    await assert.rejects(shell.exec("say never >file", { signal: controller.signal }), error => Object.is(error, 0));
+    assert.equal((await fs.readFile("/file")).length, 0);
+  } finally { await shell.dispose(); }
+});
+
+test("empty redirect writes do not probe or mutate the backend", async () => {
+  const { shell, fs, commands } = setup();
+  let calls = 0;
+  const stat = fs.stat.bind(fs), write = fs.writeFile.bind(fs), append = fs.appendFile.bind(fs);
+  fs.stat = async (...args) => { calls++; return stat(...args); };
+  fs.writeFile = async (...args) => { calls++; return write(...args); };
+  fs.appendFile = async (...args) => { calls++; return append(...args); };
+  commands.register({ name: "empty", async execute({ stdout }) {
+    const before = calls;
+    await stdout.write(new Uint8Array());
+    assert.equal(calls, before);
+    await writeText(stdout, "abc");
+    await fs.writeFile("/file", new TextEncoder().encode("Q"));
+    const replaced = calls;
+    await stdout.write(new Uint8Array());
+    assert.equal(calls, replaced);
+    return { exitCode: 0 };
+  } });
+  try {
+    assert.equal((await shell.exec("empty >file")).exitCode, 0);
+    assert.equal(new TextDecoder().decode(await fs.readFile("/file")), "Q");
+  } finally { await shell.dispose(); }
+});
+
+test("failed EOF appends do not publish pending bytes into another descriptor's mirror", async () => {
+  const { shell, fs, commands } = setup();
+  const append = fs.appendFile.bind(fs);
+  let failures = 0;
+  fs.appendFile = async (path, bytes, options) => {
+    if (new TextDecoder().decode(bytes) === "cd") { failures++; throw false; }
+    await append(path, bytes, options);
+  };
+  commands.register({ name: "failure", async execute({ stdout, stderr }) {
+    await writeText(stdout, "ab");
+    await assert.rejects(writeText(stdout, "cd"), error => Object.is(error, false));
+    await writeText(stderr, "Z");
+    return { exitCode: 1 };
+  } });
+  try {
+    assert.equal((await shell.exec("failure >file 2>file")).exitCode, 1);
+    assert.equal(new TextDecoder().decode(await fs.readFile("/file")), "Zb");
+    assert.equal(failures, 1);
+  } finally { await shell.dispose(); }
+});
+
+test("failed overlapping redirects preserve the retained bytes for a later EOF append", async () => {
+  const { shell, fs, commands } = setup();
+  const write = fs.writeFile.bind(fs);
+  fs.writeFile = async (path, bytes, options) => {
+    if (new TextDecoder().decode(bytes) === "cd") throw null;
+    await write(path, bytes, options);
+  };
+  commands.register({ name: "failure", async execute({ stdout, stderr }) {
+    await writeText(stdout, "ab");
+    await assert.rejects(writeText(stderr, "cd"), error => Object.is(error, null));
+    await writeText(stdout, "E");
+    return { exitCode: 1 };
+  } });
+  try {
+    assert.equal((await shell.exec("failure >file 2>file")).exitCode, 1);
+    assert.equal(new TextDecoder().decode(await fs.readFile("/file")), "abE");
+  } finally { await shell.dispose(); }
 });
 
 test("cancelled queued readers cannot bypass an active shared read", async () => {

@@ -10,7 +10,8 @@ const activeJob = new AsyncLocalStorage<ExecutionJob>();
 
 export class SandboxJobQueue {
   private running = false;
-  private readonly pending: Array<() => void> = [];
+  private pending: Array<() => void> = [];
+  private ready: Array<() => void> = [];
   private readonly idle: Array<() => void> = [];
   private generation = 0;
 
@@ -58,7 +59,12 @@ export class SandboxJobQueue {
 
   private advance(): void {
     if (this.running) return;
-    const next = this.pending.shift();
+    if (this.ready.length === 0 && this.pending.length > 0) {
+      const empty = this.ready;
+      this.ready = this.pending.reverse();
+      this.pending = empty;
+    }
+    const next = this.ready.pop();
     if (next !== undefined) {
       next();
     } else {

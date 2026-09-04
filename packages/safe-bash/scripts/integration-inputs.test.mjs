@@ -363,8 +363,9 @@ test("optional scripting leaves stay outside the default build and package expor
     "src/fs/devices/index.ts",
     "src/optional.ts",
     "src/shell/extensions/trap/index.ts",
+    "src/shell/extensions/jobs/state.ts",
   ]) assert.ok(configuration.exclude.includes(path), `optional source must not ship in the default build: ${path}`);
-  for (const path of ["!dist/optional.js", "!dist/optional.js.map", "!dist/optional.d.ts", "!dist/optional.d.ts.map", "!dist/commands/cmp", "!dist/commands/dd", "!dist/commands/install", "!dist/commands/shuf", "!dist/commands/truncate", "!dist/commands/yes", "!dist/commands/yq", "!dist/fs/devices", "!dist/shell/extensions/trap"]) {
+  for (const path of ["!dist/optional.js", "!dist/optional.js.map", "!dist/optional.d.ts", "!dist/optional.d.ts.map", "!dist/commands/cmp", "!dist/commands/dd", "!dist/commands/install", "!dist/commands/shuf", "!dist/commands/truncate", "!dist/commands/yes", "!dist/commands/yq", "!dist/fs/devices", "!dist/shell/extensions/trap", "!dist/shell/extensions/jobs"]) {
     assert.ok(metadata.files.includes(path), `optional artifacts must remain unpublished after explicit compilation: ${path}`);
   }
   for (const path of ["./commands/cmp", "./commands/dd", "./commands/install", "./commands/shuf", "./commands/truncate", "./commands/yes", "./fs/devices", "./shell/extensions/trap"]) {

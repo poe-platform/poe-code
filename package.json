@@ -348,6 +348,7 @@
     "!packages/safe-bash/dist/commands/yq",
     "!packages/safe-bash/dist/fs/devices",
     "!packages/safe-bash/dist/shell/extensions/trap",
+    "!packages/safe-bash/dist/shell/extensions/jobs",
     "packages/safe-js/dist",
     "packages/agent-spawn/dist",
     "packages/auth-store/dist",

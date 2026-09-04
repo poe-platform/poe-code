@@ -202,6 +202,22 @@ this request to keep additions out of the default package.
   the untouched `tests/quota.test.ts:46` contradictory-capability narrowing;
   that broader route is not claimed clean. The precision fix does not promise
   nanosecond-exact timestamps or prevent independent filesystem access-time changes.
+- Fractional timestamp preservation is locally committed as `67eca8ad0`.
+- Install's current source suite passes 110 tests and strict types; the maintained
+  full workspace build and root public bundle also pass. The first actual public
+  optional run is nevertheless **16 pass / 1 fail**: a four-byte install succeeds
+  under a two-byte Shell output limit because direct filesystem writes bypass
+  the shared budget. The command is not committed or accepted while this remains.
+  Its repaired public test permits a missing or bounded partial destination after
+  rejection, without assuming transactional creation. An exclusive `wx`/mode
+  extension to the audited output helper is approved; exclusive creation must not
+  degrade into pathname-based create-then-append. Buffered-only adapters retain
+  single-call exclusive publication with counted admission and owned cleanup.
+- Background job state is assigned as a separate opt-in foundation, not yet
+  delivered `&`/`wait` syntax. Exact `jobs/state.ts` default-build/lint exclusions
+  and workspace/root pack negations are prepared; the isolation test fails before
+  those entries and passes afterward. Its API and native semantics still require
+  review before implementation; no new default builtin or syntax is admitted.
 
 - First implementation wave: cmp, yes, shuf and virtual devices in disjoint leaf
   directories. Root is qualifying native oracles and the opt-in delivery boundary.

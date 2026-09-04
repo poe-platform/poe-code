@@ -61,8 +61,9 @@ Keep user-staged text/helper files and unrelated held evidence untouched.
 
 ## Delivery
 
-Validation, implementation and local gates are complete; Git delivery remains
-pending. #596 is already delivered and closed; its release workflows run
+Validation, implementation and local gates are complete in local commit
+`35679576d17e019989dde12b985d42a6ac2b63c5`. Remote delivery and publication are
+not established by that local commit. #596 is already delivered and closed; its release workflows run
 independently while this issue progresses. Close #576 only after verified
 remote-main delivery, before publication, and monitor its release separately.
 

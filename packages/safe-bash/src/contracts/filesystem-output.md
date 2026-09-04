@@ -1,16 +1,15 @@
 # Filesystem Output Lifecycle Specification
 
-Status: Accepted
+Status: Implemented
 
-Implemented Through: be2436635736abda76b9f3543622feb1a01d7065
+Implemented Through: 35679576d17e019989dde12b985d42a6ac2b63c5
 
 Purpose: Preserve filesystem output ownership, visibility and shared Shell byte
 admission across streaming outputs and assembled direct text-program writes.
 
-The existing streaming/redirection behavior was inspected at the recorded
-baseline. The direct-write extension below is accepted but not yet implemented
-at that baseline; its conformance must be established before advancing this
-record.
+The recorded implementation includes the direct-write extension and preserves
+the existing streaming/redirection behavior, verified by the focused contract,
+command and built public-export checks recorded in the corresponding issue plan.
 
 ## Normative language
 
@@ -118,7 +117,7 @@ whole commands; an echo's word and newline can be separate appends. An atomic
 streaming append may commit the complete descriptor stream at once. Neither
 profile implies a transaction across separate descriptors or commands.
 
-## Direct text-program writes: accepted extension
+## Direct text-program writes
 
 Assembled awk named-file writes, sed script-output writes and sed in-place
 replacement writes MUST use the same

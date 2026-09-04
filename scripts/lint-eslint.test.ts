@@ -104,6 +104,65 @@ describe("fixture operation observation retention", () => {
     expect(reencodings).toBe(0);
   });
 
+  it("reuses decoded listings only after a fresh byte-for-byte comparison", () => {
+    const state = model({ "src/π.js": "export {};" });
+    state.guard.directory("src");
+    const before = state.guard.snapshot().metadataOperations;
+    const decode = vi.spyOn(Buffer.prototype, "toString");
+    let decodings;
+    try {
+      expect(state.guard.directory("src").entries).toEqual(["π.js"]);
+      decodings = decode.mock.calls.filter(([encoding]) => encoding === "utf8").length;
+    } finally {
+      decode.mockRestore();
+    }
+    expect(state.guard.snapshot().metadataOperations).toBeGreaterThan(before);
+    expect(decodings).toBe(0);
+  });
+
+  it("does not expose or borrow cached directory observations", () => {
+    const state = model({ "src/π.js": "export {};" });
+    const bytes = Buffer.from("π.js");
+    const guard = createLintInputGuard({ root, boundaries, fileSystem: { ...state.fileSystem, readdirSync(absolute: string, options: unknown) {
+      return absolute === root + "/src" ? [bytes] : state.fileSystem.readdirSync(absolute, options as any);
+    } } });
+    guard.directory("src").entries[0] = "forged.js";
+    expect(guard.directory("src").entries).toEqual(["π.js"]);
+    bytes[0] = 0xff;
+    expect(() => guard.directory("src")).toThrow("invalid directory entry encoding");
+  });
+
+  it("revalidates changed and duplicate names after a cached listing", () => {
+    const state = model({ "src/one.js": "export {};" });
+    let entries = [Buffer.from("one.js")];
+    const guard = createLintInputGuard({ root, boundaries, fileSystem: { ...state.fileSystem, readdirSync(absolute: string, options: unknown) {
+      return absolute === root + "/src" ? entries : state.fileSystem.readdirSync(absolute, options as any);
+    } } });
+    expect(guard.directory("src").entries).toEqual(["one.js"]);
+    entries = [Buffer.from("two.js")];
+    expect(guard.directory("src").entries).toEqual(["two.js"]);
+    entries = [Buffer.from("two.js"), Buffer.from("two.js")];
+    expect(() => guard.directory("src")).toThrow("duplicate directory entry");
+  });
+
+  it("bounds retained directory decodings and revalidates evicted listings", () => {
+    const state = model({ "src/π.js": "export {};" });
+    state.guard.directory("src");
+    for (let index = 0; index < 32; index++) {
+      state.volume.mkdirSync(root + "/directory-" + index);
+      state.guard.directory("directory-" + index);
+    }
+    const decode = vi.spyOn(Buffer.prototype, "toString");
+    let decodings;
+    try {
+      expect(state.guard.directory("src").entries).toEqual(["π.js"]);
+      decodings = decode.mock.calls.filter(([encoding]) => encoding === "utf8").length;
+    } finally {
+      decode.mockRestore();
+    }
+    expect(decodings).toBeGreaterThan(0);
+  });
+
   it.each([[0xff], [0xc0, 0xaf], [0xed, 0xa0, 0x80], [0xe2, 0x82], [0x61, 0x2f, 0x62], [0x61, 0]])("rejects invalid directory name bytes %j", (...bytes) => {
     const state = model({ "src/member.js": "export {};" });
     const guard = createLintInputGuard({ root, boundaries, fileSystem: { ...state.fileSystem, readdirSync(absolute: string, options: unknown) {

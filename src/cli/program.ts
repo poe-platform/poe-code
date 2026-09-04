@@ -55,7 +55,7 @@ import { registerCompletionCommand } from "./commands/completion.js";
 import { registerTasksCommand } from "./commands/tasks.js";
 import { registerGaslightCommand } from "./commands/gaslight.js";
 import { registerWorktreeCommand } from "./commands/worktree.js";
-import packageJson from "../../package.json" with { type: "json" };
+import { packageVersion } from "../package-metadata.js";
 import { throwCommandNotFound } from "./command-not-found.js";
 import { ValidationError } from "./errors.js";
 import {
@@ -989,10 +989,10 @@ function bootstrapProgram(container: CliContainer): Command {
       }
     });
 
-  registerVersionCommand(program, container, packageJson.version);
+  registerVersionCommand(program, container, packageVersion);
   registerHelpCommand(program, container);
   registerInstallCommand(program, container);
-  registerUpdateCommand(program, container, packageJson.version);
+  registerUpdateCommand(program, container, packageVersion);
   registerConfigureCommand(program, container);
   registerAgentCommand(program, container);
   const inProcessSpawnHandlers = {

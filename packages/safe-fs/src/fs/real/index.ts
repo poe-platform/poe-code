@@ -2,6 +2,8 @@ import { constants, type Stats } from "node:fs";
 import * as native from "node:fs/promises";
 import { isAbsolute, join, relative, resolve, sep } from "node:path";
 import { nativeAllocatedBytes } from "./allocation.js";
+import { openFileDescriptor } from "../descriptor.js";
+import type { FileDescriptor, OpenFileOptions } from "../../contracts/descriptor.js";
 import { finishCleanup } from "../../contracts/cleanup.js";
 import { admitDirectoryEntries, directoryEntryLimit } from "../directory-admission.js";
 import {
@@ -109,7 +111,7 @@ function nativeError(error: unknown): FsError {
  */
 export class RealFileSystem implements FileSystem {
   readonly capabilities: FileSystemCapabilities = Object.freeze({
-    read: true, stat: true, readdir: true, realpath: true, access: true,
+    read: true, stat: true, readdir: true, realpath: true, access: true, open: true,
     write: true, append: true, exclusiveCreate: true, explicitDirectories: true, implicitDirectories: false,
     mkdir: true, recursiveMkdir: true, remove: true, removeDirectory: true, recursiveRemove: true,
     rename: true, copy: true, exclusiveCopy: true, readlink: true, truncate: true,
@@ -255,6 +257,54 @@ export class RealFileSystem implements FileSystem {
 
   private protectRoot(path: string, root: string): void {
     if (resolve(path) === root) throw new FsError("EBUSY", { message: "the filesystem root cannot be removed or replaced" });
+  }
+
+  open(path: string, options: OpenFileOptions): Promise<FileDescriptor> {
+    return openFileDescriptor<{ handle: native.FileHandle | undefined }>(path, options, {
+      positionedRead: true, positionedWrite: true, truncate: true, synchronization: "storage",
+    }, async admitted => {
+      let handle: native.FileHandle | undefined;
+      try {
+        const target = await this.path(path, {
+          ...admitted, followFinal: admitted.creation !== "exclusive",
+          ...(admitted.creation === "never" ? {} : { missing: "final" as const }),
+        });
+        let flags = (admitted.access === "read" ? constants.O_RDONLY : admitted.access === "write" ? constants.O_WRONLY : constants.O_RDWR)
+          | constants.O_NOFOLLOW | constants.O_NONBLOCK;
+        if (admitted.creation !== "never") flags |= constants.O_CREAT;
+        if (admitted.creation === "exclusive") flags |= constants.O_EXCL;
+        if (admitted.append) flags |= constants.O_APPEND;
+        handle = await native.open(target, flags, admitted.mode);
+        admitted.signal?.throwIfAborted();
+        const stat = await handle.stat();
+        if (stat.isDirectory()) throw new FsError("EISDIR");
+        if (!stat.isFile()) throw new FsError("ENOTSUP");
+        admitted.signal?.throwIfAborted();
+        if (admitted.truncate) await handle.truncate(0);
+        const resource: { handle: native.FileHandle | undefined } = { handle };
+        handle = undefined;
+        return {
+          resource,
+          stat: (retained, forwarded) => this.operation("fstat", path, forwarded, async () => fileStat(await retained.handle!.stat())),
+          read: (retained, buffer, position, forwarded) => this.operation("read", path, forwarded,
+            async () => (await retained.handle!.read(buffer, 0, buffer.byteLength, position)).bytesRead),
+          write: (retained, buffer, position, forwarded) => this.operation("write", path, forwarded,
+            async () => (await retained.handle!.write(buffer, 0, buffer.byteLength, position)).bytesWritten),
+          truncate: (retained, length, forwarded) => this.operation("ftruncate", path, forwarded, () => retained.handle!.truncate(length)),
+          sync: (retained, dataOnly, forwarded) => this.operation(dataOnly ? "fdatasync" : "fsync", path, forwarded,
+            () => dataOnly ? retained.handle!.datasync() : retained.handle!.sync()),
+          close: async retained => {
+            try { await this.operation("close", path, {}, () => retained.handle!.close()); }
+            finally { retained.handle = undefined; }
+          },
+        };
+      } catch (error) {
+        if (handle) await finishCleanup(() => handle!.close(), true);
+        handle = undefined;
+        admitted.signal?.throwIfAborted();
+        throw new FsError(nativeError(error).code, { syscall: "open", path });
+      }
+    });
   }
 
   private protectTerminal(path: string): void {

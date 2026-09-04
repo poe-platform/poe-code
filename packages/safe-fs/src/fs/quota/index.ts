@@ -1,6 +1,7 @@
 import type { FileSystem, FsOptions } from "../../contracts/filesystem.js";
 import type { ByteSource } from "../../contracts/io.js";
 import { quotaCapabilities } from "../capabilities.js";
+import { FsError } from "../../contracts/errors.js";
 
 export interface FileSystemQuotaOptions {
   readonly maxBytes: number;
@@ -50,6 +51,10 @@ export function withFileSystemQuota(fs: FileSystem, options: FileSystemQuotaOpti
     if (await usedBytes(fs, fsOptions) - current + nextBytes > options.maxBytes) throw new FileSystemQuotaError(options.maxBytes);
   };
   const mutations: Partial<FileSystem> = {
+    async open(path, openOptions) {
+      openOptions.signal?.throwIfAborted();
+      throw new FsError("ENOTSUP", { syscall: "open", path });
+    },
     writeFile(path, data, writeOptions) {
       return mutate(async () => {
         const append = writeOptions?.flag === "a" || writeOptions?.flag === "ax";

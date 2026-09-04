@@ -100,6 +100,8 @@ this request to keep additions out of the default package.
   builds in the host runtime's module tree and rejects accidental runtime mixing;
   `e0ac05530` adds the reviewed shuf command; `005b812cb` adds the reviewed
   truncate command; `ce26db16e` exports optional configuration types.
+  `5aa3f59fc` isolates the native yq dependency/implementation graph, and
+  `bdd27a559` covers an actual composed opt-in script.
   None has been pushed or released, and neither action is requested.
 - Shuf is ready for its separate local tool commit: 323 native/profile tests and
   eight compiled optional/public-host tests pass, source/test/consumer types pass,
@@ -135,6 +137,15 @@ this request to keep additions out of the default package.
   reference; independent review is pending. Trap review instead reproduces two
   failures (144/146) in BASH_COMMAND reporting and independently identifies mixed
   source/compiled extension byte ownership. Those are open author fixes.
+- Trap's three review findings are now repaired. Root's source run passes 158
+  tests, compiled/public-consumer coverage passes fourteen, and strict consumer
+  types pass. A broader trap/default-shell run passed 760 tests before the final
+  class-receiver regression was added. That extra TDD case exposed changed factory
+  `this`; binding the captured method to its original receiver fixes it while
+  preserving immutable affinity snapshots. The original reviewer approved the
+  reconciled getter-count assertion. The actual trap screenshot was inspected.
+  The opt-in leaf is ready for a separate local commit; declaration tracing and
+  debugger metadata remain explicit follow-up gaps, not claimed full completion.
 
 - First implementation wave: cmp, yes, shuf and virtual devices in disjoint leaf
   directories. Root is qualifying native oracles and the opt-in delivery boundary.
@@ -258,6 +269,21 @@ arguments, named output limits and lifetime cleanup before this delivery boundar
 is accepted. Do not recommend mixing source factories with a compiled host.
 
 ## Descriptor work required by dd
+
+Phase 1 now has independent approval and root verification: all 1,270 maintained
+filesystem tests pass, including 79 descriptor tests and thirteen independent
+review cases. The complete maintained build succeeds, including root bundle
+generation. Actual public runtime and declaration consumers verify retained
+inode identity after unlink/rename, capacity retention/release, and mounted
+readonly descriptors. The initial root attempt used node:test on Vitest files;
+that runner error was corrected by the maintained selected Vitest route. A
+separate manual check initially expected EROFS from a read-acquired descriptor;
+its correct error is EBADF, while readonly write acquisition is EROFS. Those
+harness corrections are not product fixes. Native QA retains 18 checks plus
+three final-build checks in `descriptor-qa-vXYFk5` under the oracle directory.
+The reviewer verified source hashes and retained evidence, but did not rerun
+that native QA. DD's shared counted-output budget and owned acquisition remain
+pending; phase-1 API acceptance does not complete DD or all provider support.
 
 The default stream adapter's refusal of named notrunc, nocreat and output seek
 does not complete the requested real-world dd scope. Root approved an optional

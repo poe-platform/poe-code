@@ -1,4 +1,7 @@
 import type { ByteSource } from "./io.js";
+import type { FileDescriptor, OpenFileOptions } from "./descriptor.js";
+
+export type { FileDescriptor, FileDescriptorCapabilities, OpenFileOptions } from "./descriptor.js";
 
 export type FileType = "file" | "directory" | "symlink" | "character";
 export type EntryComparison = "same" | "distinct" | "unknown";
@@ -29,6 +32,7 @@ export interface DirectoryEntry {
 }
 
 export interface FileSystemCapabilities {
+  readonly open?: boolean;
   readonly readOnly?: boolean;
   readonly read?: boolean;
   readonly stat?: boolean;
@@ -114,6 +118,7 @@ export interface ReadStreamOptions extends FsOptions {
 
 export interface FileSystem {
   readonly capabilities: FileSystemCapabilities;
+  open?(path: string, options: OpenFileOptions): Promise<FileDescriptor>;
   capabilitiesFor?(path: string, options?: FsOptions): Promise<FileSystemCapabilities>;
   readFile(path: string, options?: ReadFileOptions): Promise<Uint8Array>;
   writeFile(path: string, data: Uint8Array, options?: WriteFileOptions): Promise<void>;

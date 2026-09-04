@@ -11,6 +11,8 @@ import { finishCleanup } from "../../contracts/cleanup.js";
 import { readOnlyCapabilities } from "../capabilities.js";
 import { admitDirectoryEntries, directoryEntryLimit } from "../directory-admission.js";
 import { normalizePath, validatePath } from "../../contracts/virtual-path.js";
+import { forwardFileDescriptor, openFileDescriptor } from "../descriptor.js";
+import type { FileDescriptor, OpenFileOptions } from "../../contracts/descriptor.js";
 import { compareIdentity } from "./identity.js";
 import { compareEntries, registerEntryAuthority, registerEntryView } from "./comparison.js";
 
@@ -130,11 +132,12 @@ export class MountFileSystem implements FileSystem {
       : mounts.every(({ backend }) => backend.capabilities.append === false) ? false : undefined;
     const common = (capability: string): boolean | undefined => {
       const optional: Record<string, readonly (keyof FileSystem)[]> = {
+        open: ["open"],
         symlinks: ["symlink", "readlink"], hardlinks: ["link"], permissions: ["chmod"], timestamps: ["utimes"], readlink: ["readlink"],
       };
       const values = mounts.map(({ backend }) => {
         if (backend.capabilities.readOnly === true
-          && !["read", "stat", "readdir", "realpath", "access", "readlink", "explicitDirectories", "implicitDirectories"].includes(capability)) return false;
+          && !["open", "read", "stat", "readdir", "realpath", "access", "readlink", "explicitDirectories", "implicitDirectories"].includes(capability)) return false;
         const declared = backend.capabilities[capability];
         return declared === true && optional[capability]?.some(method => typeof backend[method] !== "function") ? false : declared;
       });
@@ -142,7 +145,7 @@ export class MountFileSystem implements FileSystem {
       return values.every(value => value === true) ? true : values.every(value => value === false) ? false : undefined;
     };
     const semantics = Object.fromEntries([
-      "read", "stat", "readdir", "realpath", "access",
+      "read", "stat", "readdir", "realpath", "access", "open",
       "write", "append", "exclusiveCreate", "explicitDirectories", "implicitDirectories", "mkdir", "recursiveMkdir",
       "remove", "removeDirectory", "recursiveRemove", "rename", "copy", "exclusiveCopy", "readlink", "truncate",
       "streamingAppend", "randomAccessWrite", "symlinks", "hardlinks", "permissions", "timestamps",
@@ -165,9 +168,10 @@ export class MountFileSystem implements FileSystem {
   async capabilitiesFor(path: string, options: FsOptions = {}): Promise<FileSystemCapabilities> {
     return this.operation("capabilitiesFor", path, options, async () => {
       const location = await this.resolve(path, options, { allowMissing: true });
-      const capabilities = await location.mount.backend.capabilitiesFor?.(location.local, options)
+      const declared = await location.mount.backend.capabilitiesFor?.(location.local, options)
         ?? location.mount.backend.capabilities;
-      if (location.synthetic) return readOnlyCapabilities(capabilities);
+      const capabilities = { ...declared, ...(typeof location.mount.backend.open === "function" ? {} : { open: false }) };
+      if (location.synthetic) return readOnlyCapabilities({ ...capabilities, open: false });
       if (this.mounts.length === 1 || capabilities.readOnly === true) return Object.freeze({ ...capabilities });
       const { rename: ignoredRename, copy: ignoredCopy, exclusiveCopy: ignoredExclusiveCopy, ...selected } = capabilities;
       const cannotPublish = capabilities.write === false && capabilities.streamingWrite === false && capabilities.exclusiveCreate === false;
@@ -345,6 +349,34 @@ export class MountFileSystem implements FileSystem {
       const location = await this.resolve(path, options);
       if (location.synthetic) fail("EISDIR");
       return location.mount.backend.readFile(location.local, options);
+    });
+  }
+
+  open(path: string, options: OpenFileOptions): Promise<FileDescriptor> {
+    return openFileDescriptor(globalPath(path), options, {
+      positionedRead: true, positionedWrite: true, truncate: true, synchronization: "storage",
+    }, async admitted => {
+      try {
+        const location = await this.resolve(path, admitted, {
+          allowMissing: admitted.creation !== "never", followFinal: admitted.creation !== "exclusive",
+        });
+        if (location.synthetic) fail("EISDIR");
+        if (admitted.access !== "read" || admitted.creation !== "never" || admitted.truncate || admitted.append) this.mutable(location);
+        const backend = location.mount.backend;
+        const capabilities = await backend.capabilitiesFor?.(location.local, admitted) ?? backend.capabilities;
+        if (!backend.open || capabilities.open === false) fail("ENOTSUP");
+        admitted.signal?.throwIfAborted();
+        const descriptor = await backend.open(location.local, admitted);
+        try {
+          return forwardFileDescriptor(descriptor, (syscall, forwarded, action) => this.operation(syscall, path, forwarded, action), descriptor.capabilities, snapshotStat);
+        } catch (error) {
+          await finishCleanup(() => descriptor.close(), true);
+          throw error;
+        }
+      } catch (error) {
+        admitted.signal?.throwIfAborted();
+        throw this.error(error, "open", path, admitted);
+      }
     });
   }
 

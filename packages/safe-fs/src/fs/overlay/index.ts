@@ -9,6 +9,7 @@ import { dirname, isPathWithin, normalizePath, validatePath } from "../../contra
 import { compareIdentity } from "../mount/identity.js";
 import { compareEntries, registerEntryView } from "../mount/comparison.js";
 import { admitDirectoryEntries, directoryEntryLimit } from "../directory-admission.js";
+import type { FileDescriptor, OpenFileOptions } from "../../contracts/descriptor.js";
 import type {
   AppendFileOptions, CopyFileOptions, DirectoryEntry,
   FileStat, FileSystem, FileSystemCapabilities, FsOptions, MkdirOptions,
@@ -163,6 +164,7 @@ export class OverlayFileSystem implements FileSystem {
     ].filter(([, value]) => value !== undefined));
     this.capabilities = Object.freeze({
       ...semantics,
+      open: false,
       implicitDirectories: false,
       readlink: upper.readlink === true && this.#lower.capabilities.readlink === true ? true
         : upper.readlink === false && this.#lower.capabilities.readlink === false ? false : undefined,
@@ -179,6 +181,11 @@ export class OverlayFileSystem implements FileSystem {
       ...(effectiveStreamingWrite === undefined ? {} : { streamingWrite: effectiveStreamingWrite }),
     });
     Object.defineProperty(this, "capabilities", { writable: false, configurable: false });
+  }
+
+  async open(path: string, options: OpenFileOptions): Promise<FileDescriptor> {
+    options.signal?.throwIfAborted();
+    throw new FsError("ENOTSUP", { syscall: "open", path });
   }
 
   private async run<Result>(options: FsOptions, operation: () => Promise<Result>, cleanup = true): Promise<Result> {

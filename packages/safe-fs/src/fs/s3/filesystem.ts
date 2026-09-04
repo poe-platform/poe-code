@@ -12,6 +12,7 @@ import { compareEntries, registerEntryAuthority } from "../mount/comparison.js";
 import { compareOwnedS3Entries, queryS3Head, recordS3Stat, registerS3EntryOwner } from "./authority.js";
 import { encodeCopySource } from "./transport.js";
 import { admitDirectoryEntries, directoryEntryLimit } from "../directory-admission.js";
+import type { FileDescriptor, OpenFileOptions } from "../../contracts/descriptor.js";
 import type {
   S3GetOutput, S3HeadOutput, S3ListOutput, S3ObjectSummary, S3RequestOptions, S3Transport,
   S3StreamGetOutput,
@@ -92,6 +93,11 @@ function isWellFormed(value: string): boolean {
 }
 
 export class S3FileSystem implements FileSystem {
+  async open(path: string, options: OpenFileOptions): Promise<FileDescriptor> {
+    options.signal?.throwIfAborted();
+    throw new FsError("ENOTSUP", { syscall: "open", path });
+  }
+
   readonly capabilities;
   readonly readStream?: (path: string, options?: ReadStreamOptions) => ByteSource;
   readonly writeStream?: (path: string, source: ByteSource, options?: WriteFileOptions) => Promise<void>;
@@ -130,6 +136,7 @@ export class S3FileSystem implements FileSystem {
     this.maxStreamBytes = validateLimit(options.maxStreamBytes ?? 5_000_000_000, "maxStreamBytes", 0, 5_000_000_000);
     this.maxListEntries = validateLimit(options.maxListEntries ?? 100_000, "maxListEntries", 1);
     this.capabilities = Object.freeze({
+      open: false,
       read: true, stat: true, readdir: true, realpath: true, access: true,
       write: true, explicitDirectories: true, implicitDirectories: true, mkdir: true, recursiveMkdir: true,
       remove: true, removeDirectory: true, recursiveRemove: true, copy: true, readlink: false,

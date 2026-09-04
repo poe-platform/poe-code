@@ -1,6 +1,7 @@
 import { ACCESS_MODES } from "../../contracts/filesystem.js";
 import { FsError } from "../../contracts/errors.js";
 import { readBytes } from "../../contracts/io.js";
+import { finishCleanup } from "../../contracts/cleanup.js";
 import type { ByteSource } from "../../contracts/io.js";
 import type {
   AppendFileOptions, CopyFileOptions, DirectoryEntry, FileStat,
@@ -10,6 +11,8 @@ import type {
 import { compareEntries, registerEntryView } from "../mount/comparison.js";
 import { readOnlyCapabilities } from "../capabilities.js";
 import { admitDirectoryEntries, directoryEntryLimit } from "../directory-admission.js";
+import { forwardFileDescriptor, openFileDescriptor } from "../descriptor.js";
+import type { FileDescriptor, OpenFileOptions } from "../../contracts/descriptor.js";
 
 function readOnly(syscall: string, path: string, dest?: string): never {
   throw new FsError("EROFS", { syscall, path, ...(dest === undefined ? {} : { dest }) });
@@ -43,6 +46,7 @@ export class ReadOnlyFileSystem implements FileSystem {
     const streamingRead = typeof filesystem.readStream === "function" ? filesystem.capabilities.streamingRead : false;
     this.#capabilities = readOnlyCapabilities({
       ...filesystem.capabilities,
+      ...(typeof filesystem.open === "function" ? {} : { open: false }),
       readOnly: true,
       append: false,
       symlinks: filesystem.capabilities.symlinks === true && typeof filesystem.readlink === "function",
@@ -61,7 +65,30 @@ export class ReadOnlyFileSystem implements FileSystem {
 
   async capabilitiesFor(path: string, options?: FsOptions): Promise<FileSystemCapabilities> {
     const capabilities = await this.#filesystem.capabilitiesFor?.(path, options) ?? this.#filesystem.capabilities;
-    return readOnlyCapabilities(capabilities);
+    return readOnlyCapabilities({ ...capabilities, ...(typeof this.#filesystem.open === "function" ? {} : { open: false }) });
+  }
+
+  async open(path: string, options: OpenFileOptions): Promise<FileDescriptor> {
+    options?.signal?.throwIfAborted();
+    if (options && (options.access === "write" || options.access === "readwrite" || options.truncate === true || options.append === true
+      || options.creation === "ifMissing" || options.creation === "exclusive")) readOnly("open", path);
+    return openFileDescriptor(path, options, {
+      positionedRead: true, positionedWrite: false, truncate: false, synchronization: "none",
+    }, async admitted => {
+      const capabilities = await this.#filesystem.capabilitiesFor?.(path, admitted) ?? this.#filesystem.capabilities;
+      if (!this.#filesystem.open || capabilities.open === false) throw new FsError("ENOTSUP", { syscall: "open", path });
+      admitted.signal?.throwIfAborted();
+      const descriptor = await this.#filesystem.open(path, admitted);
+      try {
+        return forwardFileDescriptor(descriptor, async (_syscall, forwarded, action) => {
+          forwarded.signal?.throwIfAborted();
+          return action();
+        }, { ...descriptor.capabilities, positionedWrite: false, truncate: false, synchronization: "none" }, snapshotStat);
+      } catch (error) {
+        await finishCleanup(() => descriptor.close(), true);
+        throw error;
+      }
+    });
   }
 
   async readFile(path: string, options?: ReadFileOptions): Promise<Uint8Array> {

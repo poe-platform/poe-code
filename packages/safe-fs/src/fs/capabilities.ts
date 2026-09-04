@@ -7,7 +7,7 @@ export function requireCapabilities(...values: readonly (boolean | undefined)[])
 export function readOnlyCapabilities(capabilities: FileSystemCapabilities): FileSystemCapabilities {
   const inspection = Object.fromEntries([
     "read", "stat", "readdir", "realpath", "access", "readlink", "explicitDirectories", "implicitDirectories",
-    "symlinks", "streamingRead",
+    "symlinks", "streamingRead", "open",
   ].filter(name => capabilities[name] !== undefined).map(name => [name, capabilities[name]]));
   return Object.freeze({
     ...inspection, readOnly: true, write: false, append: false, exclusiveCreate: false,
@@ -22,7 +22,7 @@ export function quotaCapabilities(capabilities: FileSystemCapabilities): FileSys
   const streamingWrite = requireCapabilities(capabilities.write, capabilities.append, !capabilities.readOnly);
   const streamingAppend = requireCapabilities(capabilities.append, !capabilities.readOnly);
   const { streamingWrite: ignoredWrite, streamingAppend: ignoredAppend, ...rest } = capabilities;
-  return Object.freeze({ ...rest,
+  return Object.freeze({ ...rest, open: false,
     ...(streamingWrite === undefined ? {} : { streamingWrite }),
     ...(streamingAppend === undefined ? {} : { streamingAppend }),
   });

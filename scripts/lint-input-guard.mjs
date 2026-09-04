@@ -1,5 +1,6 @@
 import assert from 'node:assert/strict';
 import { AsyncLocalStorage } from 'node:async_hooks';
+import { isUtf8 } from 'node:buffer';
 import fs from 'node:fs';
 import { createHash } from 'node:crypto';
 import { posix } from 'node:path';
@@ -114,12 +115,12 @@ export function createLintInputGuard({ root, boundaries, fileSystem = fs, limits
 
   function metadata(method, ...args) {
     assert.ok(!failed, 'input guard failed');
-    lastMetadata = Object.freeze({ method, path: typeof args[0] === 'string' ? args[0] : null, descriptor: typeof args[0] === 'number' ? args[0] : null, admitted: false, completed: false });
+    lastMetadata = { method, path: typeof args[0] === 'string' ? args[0] : null, descriptor: typeof args[0] === 'number' ? args[0] : null, admitted: false, completed: false };
     budget(counters.metadataOperations < limits.metadataOperations, 'metadata operation cap');
     counters.metadataOperations++;
-    lastMetadata = Object.freeze({ ...lastMetadata, admitted: true });
+    lastMetadata.admitted = true;
     const value = fileSystem[method](...args);
-    lastMetadata = Object.freeze({ ...lastMetadata, completed: true });
+    lastMetadata.completed = true;
     return value;
   }
 
@@ -150,8 +151,9 @@ export function createLintInputGuard({ root, boundaries, fileSystem = fs, limits
     budget(Array.isArray(values) && values.length <= limits.directoryEntries, 'directory entry cap');
     const strings = values.map(value => {
       assert.ok(Buffer.isBuffer(value), 'byte-exact directory names required');
+      assert.ok(isUtf8(value), 'invalid directory entry encoding');
       const name = value.toString('utf8');
-      assert.ok(Buffer.from(name, 'utf8').equals(value) && !name.includes('/') && !name.includes('\0'), 'invalid directory entry encoding');
+      assert.ok(!name.includes('/') && !name.includes('\0'), 'invalid directory entry encoding');
       return name;
     });
     assert.equal(new Set(strings).size, strings.length, 'duplicate directory entry');
@@ -630,7 +632,7 @@ export function createLintInputGuard({ root, boundaries, fileSystem = fs, limits
       assert.ok(path === packagePrefix || path.startsWith(packagePrefix + '/'), 'case alias of package boundary');
       return path !== packagePrefix && isHeldInputPath(path.slice(packagePrefix.length + 1), held);
     },
-    snapshot: () => Object.freeze({ ...counters, failed, reading, used, bootstrap, receiptsComplete, lastMetadata, lastInput }),
+    snapshot: () => Object.freeze({ ...counters, failed, reading, used, bootstrap, receiptsComplete, lastMetadata: lastMetadata === null ? null : Object.freeze({ ...lastMetadata }), lastInput }),
     begin() {
       available();
       assert.ok(!used && !failed, 'guard already used or failed');

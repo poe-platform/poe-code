@@ -275,6 +275,7 @@ function policyConfig(safeBashInputs, compatibility = []) {
       'dist/**',
       '**/dist/**',
       '.codex/**',
+      '.cursor/**',
       '.tmp/**',
       '.turbo/**',
       'tmp/**',

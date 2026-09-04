@@ -43,8 +43,8 @@ jobs:
           node-version: 22
           cache: npm
       - run: npm clean-install
-      - name: Build and smoke-test packed CLI
-        run: npm run smoke
+      - name: Build workspace and CLI outputs
+        run: npm run build
       - name: Archive fresh build outputs
         id: archive
         run: |
@@ -87,8 +87,29 @@ jobs:
         run: |
           printf '%s  %s\n' "$BUILD_SHA256" "$RUNNER_TEMP/poe-build/build.tar" | sha256sum --check --status
           tar -xf "$RUNNER_TEMP/poe-build/build.tar"
-      - run: npm audit signatures
+      - name: Smoke-test freshly built packed CLI
+        run: npm run smoke -- --prebuilt
       - run: npm run lint:packages
+  audit:
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v7.0.1
+        with:
+          ref: ${{ github.sha }}
+          fetch-depth: 1
+          persist-credentials: false
+        env:
+          GIT_CONFIG_COUNT: "1"
+          GIT_CONFIG_KEY_0: init.defaultBranch
+          GIT_CONFIG_VALUE_0: main
+      - uses: actions/setup-node@v7.0.0
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm clean-install
+      - run: npm audit signatures
       - name: Run required lint stress tests
         run: npm run test:stress:lint
         timeout-minutes: 7
@@ -225,9 +246,10 @@ jobs:
           GH_TOKEN: ${{ steps.app_token.outputs.token }}
           HUSKY: "0"
           NPM_CONFIG_LOGLEVEL: warn
-        run: npx --yes semantic-release@25.0.9
+        run: npm exec --no -- semantic-release
     needs:
       - build
       - checks
+      - audit
       - unit
       - bash

@@ -282,7 +282,7 @@ async function executeStages(plan, { environment, spawn, host, concurrency = 1, 
     try { host.kill(-pid, value); } catch (error) { if (error?.code !== "ESRCH") throw error; }
   };
   const terminate = (context, value) => {
-    if (!context.child?.pid || context.stopped) return;
+    if (!context.child?.pid || context.stopped || context.exited) return;
     context.stopped = true;
     context.forceTimer = setTimeout(() => {
       try { signal(context.child.pid, "SIGKILL"); } catch (error) { remember(context, error); }
@@ -291,7 +291,7 @@ async function executeStages(plan, { environment, spawn, host, concurrency = 1, 
   };
   const failure = () => {
     failed = true;
-    if (unitMode) for (const owned of active) terminate(owned, "SIGTERM");
+    if (unitMode || concurrency > 1) for (const owned of active) terminate(owned, "SIGTERM");
   };
   const stop = value => {
     if (!interrupted) {
@@ -314,6 +314,7 @@ async function executeStages(plan, { environment, spawn, host, concurrency = 1, 
     const closed = new Promise(resolve => { resolveClose = resolve; });
     const onError = error => { remember(context, error); failure(); };
     const onClose = (code, receivedSignal) => {
+      context.exited = true;
       if (!context.errors.length && !context.stopped && (code !== 0 || receivedSignal)) {
         remember(context, taskError('Workspace ' + event + ' failed: ' + stage.name + ' (' + (receivedSignal ?? code) + ')', code > 0 ? code : 1));
         failure();
@@ -339,7 +340,7 @@ async function executeStages(plan, { environment, spawn, host, concurrency = 1, 
         failure();
         terminate(context, "SIGTERM");
       }
-      if (interrupted || (failed && unitMode)) terminate(context, "SIGTERM");
+      if (interrupted || (failed && (unitMode || concurrency > 1))) terminate(context, "SIGTERM");
       await closed;
       clearTimeout(context.forceTimer);
       context.forceTimer = undefined;
@@ -388,11 +389,17 @@ async function executeStages(plan, { environment, spawn, host, concurrency = 1, 
 }
 
 export async function buildWorkspaces(rootDirectory, options = {}) {
-  const { environment = process.env, spawn = spawnChild, host = process, fileSystem = fs, workspace } = options;
+  const { environment = process.env, spawn = spawnChild, host = process, fileSystem = fs, workspace, concurrency = 2 } = options;
+  assert.ok(concurrency === 1 || concurrency === 2, "Build concurrency must be 1 or 2");
   validateEnvironment(environment);
   const plan = createWorkspaceBuildPlan(rootDirectory, fileSystem);
   const selected = workspace === undefined ? plan : { ...plan, ...selectBuildStages(plan, [workspace]) };
-  const completed = await executeStages(selected, { environment, spawn, host });
+  let completed = 0;
+  for (const layer of plan.layers) {
+    const names = new Set(layer);
+    const stages = selected.stages.filter(stage => names.has(stage.name));
+    if (stages.length) completed += await executeStages({ ...selected, stages }, { environment, spawn, host, concurrency });
+  }
   return { workspaces: plan.workspaces.length, builds: completed, edges: plan.edges.length, layers: plan.layers.length, noBuild: selected.noBuild, manifestless: plan.manifestless };
 }
 
@@ -421,11 +428,21 @@ export async function testWorkspaces(rootDirectory, options = {}) {
 export function parseWorkspaceArguments(args) {
   if (!args.length) return { mode: "build" };
   if (args[0] !== "--test-unit") {
-    assert.equal(args.length, 1, "Build accepts only one literal workspace selector");
-    assert.ok(args[0].startsWith("--workspace="), "Unsupported build argument");
-    const workspace = args[0].slice(12);
-    assert.ok(workspace && !["*", "?", "[", "]", "{", "}", "\\", "\0", ".."].some(value => workspace.includes(value)), "Invalid literal workspace selector");
-    return { mode: "build", workspace };
+    const result = { mode: "build" };
+    for (const argument of args) {
+      if (argument.startsWith("--concurrency=")) {
+        assert.ok(!Object.hasOwn(result, "concurrency"), "Duplicate build concurrency");
+        const value = argument.slice("--concurrency=".length);
+        assert.ok(value === "1" || value === "2", "Build concurrency must be 1 or 2");
+        result.concurrency = Number(value);
+      } else {
+        assert.ok(argument.startsWith("--workspace=") && !Object.hasOwn(result, "workspace"), "Unsupported build argument");
+        const workspace = argument.slice(12);
+        assert.ok(workspace && !["*", "?", "[", "]", "{", "}", "\\", "\0", ".."].some(value => workspace.includes(value)), "Invalid literal workspace selector");
+        result.workspace = workspace;
+      }
+    }
+    return result;
   }
   const result = { mode: "test-unit", concurrency: 1, excludeWorkspace: undefined, testArguments: [] };
   const seen = new Set();

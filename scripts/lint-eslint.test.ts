@@ -56,6 +56,53 @@ async function referenceFiles(state: ReturnType<typeof model>, config: unknown[]
 afterEach(() => vi.restoreAllMocks());
 
 describe("fixture operation observation retention", () => {
+  it("validates directory names without re-encoding UTF-8 strings", () => {
+    const state = model({ "src/π.js": "export {};" });
+    const names = [Buffer.from("π.js")];
+    const guard = createLintInputGuard({ root, boundaries, fileSystem: { ...state.fileSystem, readdirSync(absolute: string, options: unknown) {
+      return absolute === root + "/src" ? names : state.fileSystem.readdirSync(absolute, options as any);
+    } } });
+    const from = vi.spyOn(Buffer, "from");
+    let reencodings = 0;
+    let directory;
+    try {
+      directory = guard.directory("src", true);
+      reencodings = from.mock.calls.filter(([value]) => value === "π.js").length;
+    } finally {
+      from.mockRestore();
+    }
+    expect(directory.inspections.get("π.js")).toEqual({ kind: "file" });
+    expect(reencodings).toBe(0);
+  });
+
+  it.each([[0xff], [0xc0, 0xaf], [0xed, 0xa0, 0x80], [0xe2, 0x82], [0x61, 0x2f, 0x62], [0x61, 0]])("rejects invalid directory name bytes %j", (...bytes) => {
+    const state = model({ "src/member.js": "export {};" });
+    const guard = createLintInputGuard({ root, boundaries, fileSystem: { ...state.fileSystem, readdirSync(absolute: string, options: unknown) {
+      return absolute === root + "/src" ? [Buffer.from(bytes)] : state.fileSystem.readdirSync(absolute, options as any);
+    } } });
+    expect(() => guard.directory("src", true)).toThrow("invalid directory entry encoding");
+    expect(state.operations.some(operation => operation.method === "openSync")).toBe(false);
+  });
+
+  it("materializes immutable metadata diagnostics only when observed", () => {
+    const state = model({ "src/member.js": "export {};" });
+    const freeze = vi.spyOn(Object, "freeze");
+    let metadataFreezes = 0;
+    try {
+      state.guard.directory("src", true);
+      metadataFreezes = freeze.mock.calls.filter(([value]) => value && typeof value === "object" && "method" in value && "admitted" in value).length;
+    } finally {
+      freeze.mockRestore();
+    }
+    expect(metadataFreezes).toBe(0);
+    const before = state.guard.snapshot();
+    expect(Object.isFrozen(before.lastMetadata)).toBe(true);
+    expect(before.lastMetadata).toMatchObject({ admitted: true, completed: true });
+    const captured = structuredClone(before.lastMetadata);
+    state.guard.read("src/member.js", "subject");
+    expect(before.lastMetadata).toEqual(captured);
+  });
+
   it("retains full observations and symlink correction by default", () => {
     const state = model({ "src/member.js": "export {};" });
     const absolute = root + "/src/member.js";

@@ -4,6 +4,7 @@ import os from "node:os";
 import path from "node:path";
 import process from "node:process";
 import { Command } from "commander";
+import { parse } from "shell-quote";
 import ts from "typescript";
 
 // ── Smoke test commands ──────────────────────────────────────
@@ -36,6 +37,7 @@ const COMMANDS = [
 const program = new Command()
   .description("Run smoke tests against the packed CLI")
   .option("--verbose", "Show command output")
+  .option("--prebuilt", "Pack existing build outputs without rebuilding")
   .parse();
 
 const verbose = program.opts().verbose as boolean;
@@ -47,18 +49,19 @@ type InstallContext = {
 
 function install(): InstallContext {
   const tmpDir = mkdtempSync(path.join(os.tmpdir(), "poe-smoke-"));
-  console.log("Packing and installing globally...");
-  execSync(`npm pack --pack-destination "${tmpDir}" --silent`, {
-    stdio: "pipe"
-  });
+  console.log("Packing and installing in a temporary consumer...");
+  execSync(
+    `npm pack --pack-destination "${tmpDir}" --silent${program.opts().prebuilt ? " --ignore-scripts" : ""}`,
+    {
+      stdio: "pipe"
+    }
+  );
   const tgz = readdirSync(tmpDir).find((f) => f.endsWith(".tgz"));
   if (!tgz) {
     throw new Error("Failed to locate packed tarball.");
   }
 
   const packagePath = path.join(tmpDir, tgz);
-  execSync(`npm install -g "${packagePath}"`, { stdio: "pipe" });
-
   const sdkProjectDir = mkdtempSync(path.join(os.tmpdir(), "poe-smoke-sdk-"));
   execSync("npm init -y", { cwd: sdkProjectDir, stdio: "pipe" });
   execSync(`npm install "${packagePath}" --silent`, {
@@ -70,23 +73,24 @@ function install(): InstallContext {
 }
 
 function cleanup(context: InstallContext) {
-  try {
-    execSync("npm uninstall -g poe-code", { stdio: "pipe" });
-  } catch {
-    if (verbose) {
-      console.log("Cleanup warning: npm uninstall failed.");
-    }
-  }
   rmSync(context.packageDir, { recursive: true, force: true });
   rmSync(context.sdkProjectDir, { recursive: true, force: true });
 }
 
-function run(): boolean {
+function run(sdkProjectDir: string): boolean {
   let failed = false;
 
   for (const cmd of COMMANDS) {
-    const result = spawnSync(cmd, {
-      shell: true,
+    const arguments_ = parse(cmd);
+    if (
+      !arguments_.length ||
+      !arguments_.every((argument): argument is string => typeof argument === "string")
+    ) {
+      throw new Error(`Smoke command must contain only literal arguments: ${cmd}`);
+    }
+    const [binary, ...args] = arguments_;
+    const result = spawnSync(path.join(sdkProjectDir, "node_modules", ".bin", binary!), args, {
+      cwd: sdkProjectDir,
       encoding: "utf-8",
       timeout: 30_000,
       env: { ...process.env, POE_CODE_OAUTH_LOGIN: "0" }
@@ -408,7 +412,7 @@ function runConfigImportSmoke(sdkProjectDir: string): boolean {
 const installContext = install();
 try {
   const ok =
-    run() &&
+    run(installContext.sdkProjectDir) &&
     runSdkImportSmoke(installContext.sdkProjectDir) &&
     runSafeFsImportSmoke(installContext.sdkProjectDir) &&
     runCredentialsImportSmoke(installContext.sdkProjectDir) &&

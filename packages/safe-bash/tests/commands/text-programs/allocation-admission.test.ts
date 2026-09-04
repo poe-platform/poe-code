@@ -2,8 +2,227 @@ import assert from "node:assert/strict";
 import test from "node:test";
 import { createTextProgramCommands } from "../../../src/commands/text-programs/index.js";
 import { Budget } from "../../../src/commands/text-programs/shared.js";
+import { formatted, numeric, string, unset } from "../../../src/commands/text-programs/awk-values.js";
 import { toByteSource } from "../../../src/contracts/index.js";
 import { makeFileSystem, runVirtual } from "./helpers.js";
+
+for (const [name, program] of [
+  ["literal", `BEGIN { printf "${"x".repeat(128)}" }`],
+  ["escaped percent", `BEGIN { printf "${"%%".repeat(64)}" }`],
+  ["sprintf", `BEGIN { value=sprintf("${"%%".repeat(64)}") }`],
+  ["string width", 'BEGIN { printf "%128s", "x" }'],
+  ["dynamic width", 'BEGIN { printf "%*s", -128, "x" }'],
+  ["integer precision", 'BEGIN { printf "%.*d", 128, 7 }'],
+  ["CONVFMT", 'BEGIN { CONVFMT="%0128.1f"; value=1.5 "" }'],
+  ["comparison CONVFMT", 'BEGIN { CONVFMT="%0128.1f"; value=(1.5 == "x") }'],
+  ["OFMT", 'BEGIN { OFMT="%0128.1f"; print 1.5 }'],
+  ["rebuild conversion", 'BEGIN { CONVFMT="%0128.1f"; $1=1.5 }'],
+] as const) {
+  test(`awk format work admits ${name}`, async context => {
+    let padded = 0;
+    for (const method of ["padStart", "padEnd"] as const) {
+      const original = String.prototype[method];
+      context.mock.method(String.prototype, method, function (this: string, length: number, fill?: string) {
+        if (length >= 128) padded++;
+        return original.call(this, length, fill);
+      });
+    }
+    const result = await runVirtual("awk", { args: [program] }, { maxSteps: 64, maxBufferBytes: 256 });
+    assert.equal(result.exitCode, 2);
+    assert.equal(result.stderr.toString(), "awk: execution step limit exceeded\n");
+    assert.equal(result.stdout.length, 0);
+    assert.equal(padded, 0, "rejected formatting must not pad first");
+  });
+}
+
+for (const [format, args] of [
+  ["%32s", '"x"'], ["%-32s", '"x"'], ["%032d", "1"],
+  ["%+.32d", "1"], ["%#.32x", "1"], ["%32.1f", "1.5"],
+] as const) {
+  test(`awk format work admits configured buffer before padding ${format}`, async context => {
+    let padded = 0;
+    for (const method of ["padStart", "padEnd"] as const) {
+      const original = String.prototype[method];
+      context.mock.method(String.prototype, method, function (this: string, length: number, fill?: string) {
+        if (length >= 30) padded++;
+        return original.call(this, length, fill);
+      });
+    }
+    const result = await runVirtual("awk", { args: [`BEGIN { printf "${format}", ${args} }`] }, { maxBufferBytes: 31 });
+    assert.equal(result.exitCode, 2);
+    assert.equal(result.stderr.toString(), "awk: text buffer limit exceeded\n");
+    assert.equal(result.stdout.length, 0);
+    assert.equal(padded, 0);
+  });
+}
+
+for (const [format, argumentsAfterValue, expected] of [
+  ["%d", "", "1"], ["%*s", ', "x"', "x"], ["%.*f", ", 1.5", "1.5"],
+] as const) {
+  test(`awk format work admits string numeric coercion ${format}`, async context => {
+    const longOne = "0".repeat(127) + "1";
+    const exec = RegExp.prototype.exec;
+    const nativeNumber = globalThis.Number;
+    let scanned = 0;
+    let converted = 0;
+    context.mock.method(RegExp.prototype, "exec", function (this: RegExp, input: string) {
+      if (input === longOne) scanned++;
+      return exec.call(this, input);
+    });
+    globalThis.Number = new Proxy(nativeNumber, {
+      apply(target, receiver, args: unknown[]) {
+        if (args[0] === longOne) converted++;
+        return Reflect.apply(target, receiver, args);
+      },
+    });
+    context.after(() => { globalThis.Number = nativeNumber; });
+    const program = `BEGIN { printf "${format}", "${longOne}"${argumentsAfterValue} }`;
+    const rejected = await runVirtual("awk", { args: [program] }, { maxSteps: 64 });
+    assert.deepEqual({ scanned, converted }, { scanned: 0, converted: 0 });
+    assert.equal(rejected.exitCode, 2);
+    assert.equal(rejected.stderr.toString(), "awk: execution step limit exceeded\n");
+    assert.equal(rejected.stdout.length, 0);
+    const accepted = await runVirtual("awk", { args: [program] }, { maxSteps: 256 });
+    assert.equal(accepted.exitCode, 0, accepted.stderr.toString());
+    assert.equal(accepted.stdout.toString(), expected);
+    assert.deepEqual({ scanned, converted }, { scanned: 1, converted: 1 });
+  });
+}
+
+test("awk format work does not charge untouched cached numeric text", async () => {
+  const command = {
+    command: "awk", args: [], cwd: "/work", env: {}, fs: await makeFileSystem(),
+    signal: new AbortController().signal, stdin: toByteSource(""),
+    stdout: { async write() { assert.fail("formatter must not write directly"); } },
+    stderr: { async write() { assert.fail("formatter must not write diagnostics"); } },
+  };
+  const cached = { kind: "numeric", number: 1, get text(): string { return assert.fail("cached numeric coercion must not inspect text"); } } as const;
+  for (const value of [numeric(1), cached, unset]) {
+    const convert = (argument: ReturnType<typeof string>): string => argument.kind === "string" ? argument.text : assert.fail("unexpected text coercion");
+    assert.equal(formatted("%d", [value], convert, new Budget(command, { maxSteps: 4 })), value.kind === "unset" ? "0" : "1");
+    assert.equal(formatted("%*s", [value, string("x")], convert, new Budget(command, { maxSteps: 4 })), "x");
+    assert.equal(formatted("%.*f", [value, numeric(1.5)], convert, new Budget(command, { maxSteps: 9 })), value.kind === "unset" ? "2" : "1.5");
+  }
+});
+
+test("awk format work charges literal and percent scans plus output bytes", async context => {
+  const original = Budget.prototype.step;
+  let charged = 0;
+  context.mock.method(Budget.prototype, "step", function (this: Budget, count = 1) {
+    charged += count;
+    return original.call(this, count);
+  });
+  for (const piece of ["x", "%%"]) {
+    const charges: number[] = [];
+    for (const length of [4, 8]) {
+      charged = 0;
+      const result = await runVirtual("awk", { args: [`BEGIN { printf "${piece.repeat(length)}" }`] });
+      assert.equal(result.exitCode, 0, result.stderr.toString());
+      assert.equal(result.stdout.toString(), (piece === "x" ? "x" : "%").repeat(length));
+      charges.push(charged);
+    }
+    assert.equal(charges[1]! - charges[0]!, 4 * (piece.length + 1));
+  }
+});
+
+test("awk format work rejects scanning before reaching conversions", async context => {
+  const original = String.prototype.padStart;
+  let padded = 0;
+  context.mock.method(String.prototype, "padStart", function (this: string, length: number, fill?: string) {
+    if (length === 32) padded++;
+    return original.call(this, length, fill);
+  });
+  const result = await runVirtual("awk", { args: [`BEGIN { printf "${"x".repeat(128)}%32s", "x" }`] }, { maxSteps: 64 });
+  assert.equal(result.exitCode, 2);
+  assert.equal(result.stderr.toString(), "awk: execution step limit exceeded\n");
+  assert.equal(padded, 0);
+});
+
+test("awk format work admits string slicing and floating precision before native work", async context => {
+  const slice = String.prototype.slice;
+  let sliced = 0;
+  context.mock.method(String.prototype, "slice", function (this: string, start?: number, end?: number) {
+    if (String(this) === "0123456789" && start === 0 && end === 9) sliced++;
+    return slice.call(this, start, end);
+  });
+  const rejected = await runVirtual("awk", { args: ['BEGIN { printf "%.9s", "0123456789" }'] }, { maxBufferBytes: 8 });
+  assert.equal(rejected.stderr.toString(), "awk: text buffer limit exceeded\n");
+  assert.equal(sliced, 0);
+  const accepted = await runVirtual("awk", { args: ['BEGIN { printf "%.9s", "0123456789" }'] }, { maxBufferBytes: 9 });
+  assert.equal(accepted.stdout.toString(), "012345678");
+  assert.equal(sliced, 1);
+  const fixed = Number.prototype.toFixed;
+  let converted = 0;
+  context.mock.method(Number.prototype, "toFixed", function (this: number, precision?: number) {
+    if (precision === 100) converted++;
+    return fixed.call(this, precision);
+  });
+  const limited = await runVirtual("awk", { args: ['BEGIN { printf "%.100f", 1.5 }'] }, { maxSteps: 64 });
+  assert.equal(limited.stderr.toString(), "awk: execution step limit exceeded\n");
+  assert.equal(converted, 0);
+  const precise = await runVirtual("awk", { args: ['BEGIN { printf "%.100f", 1.5 }'] });
+  assert.equal(precise.stdout.toString(), "1.5" + "0".repeat(99));
+  assert.equal(converted, 1);
+});
+
+test("awk format work has exact step admission before padding and preserves abort identity", async context => {
+  const fs = await makeFileSystem();
+  const controller = new AbortController();
+  const command = {
+    command: "awk", args: [], cwd: "/work", env: {}, fs, signal: controller.signal, stdin: toByteSource(""),
+    stdout: { async write() { assert.fail("formatter must not write directly"); } },
+    stderr: { async write() { assert.fail("formatter must not write diagnostics"); } },
+  };
+  const original = String.prototype.padStart;
+  let padded = 0;
+  context.mock.method(String.prototype, "padStart", function (this: string, length: number, fill?: string) {
+    if (length === 8) padded++;
+    return original.call(this, length, fill);
+  });
+  const convert = () => { assert.fail("integer formatting must not coerce as text"); };
+  assert.throws(() => formatted("%08d", [numeric(7)], convert, new Budget(command, { maxSteps: 12 })), { message: "execution step limit exceeded" });
+  assert.equal(padded, 0);
+  assert.equal(formatted("%08d", [numeric(7)], convert, new Budget(command, { maxSteps: 13 })), "00000007");
+  assert.equal(padded, 1);
+  controller.abort(false);
+  assert.throws(() => formatted("%08d", [numeric(7)], convert, new Budget(command, {})), reason => reason === false);
+  assert.equal(padded, 1);
+});
+
+test("awk format work preserves exact output limits and byte-oriented Unicode", async () => {
+  for (const [format, args, output] of [
+    ["abc", "", Buffer.from("abc")], ["%%%%%%", "", Buffer.from("%%%")],
+    ["%3s", ', "é"', Buffer.from(" é")], ["%.1s", ', "é"', Buffer.from([0xc3])],
+    ["%+.3d", ", 7", Buffer.from("+007")], ["%#.3x", ", 7", Buffer.from("0x007")],
+    ["%.*f", ", 2, 1.25", Buffer.from("1.25")], ["%.*g", ", 100, 1.5", Buffer.from("1.5")],
+    ["%*.*s", ', -4, -1, "é"', Buffer.from("é  ")],
+  ] as const) {
+    const program = `BEGIN { ORS="!"; printf "start:${format}"${args} }`;
+    const expected = Buffer.concat([Buffer.from("start:"), output]);
+    const accepted = await runVirtual("awk", { args: [program] }, { maxBufferBytes: expected.length });
+    assert.equal(accepted.exitCode, 0, accepted.stderr.toString());
+    assert.deepEqual(accepted.stdout, expected);
+    if (output.length > 1) {
+      const rejected = await runVirtual("awk", { args: [program] }, { maxBufferBytes: expected.length - 1 });
+      assert.equal(rejected.exitCode, 2);
+      assert.equal(rejected.stdout.length, 0);
+    }
+  }
+});
+
+test("awk format work preserves argument effects, conversion order and redirect deferral", async () => {
+  const program = 'function arg(){ printf "a"; return 1.5 } function dest(){ printf "d"; return "out" } BEGIN { printf "%128.1f", arg() > dest() }';
+  const rejected = await runVirtual("awk", { args: [program] }, { maxSteps: 64 });
+  assert.equal(rejected.exitCode, 2);
+  assert.equal(rejected.stdout.toString(), "a");
+  assert.equal(rejected.files.out, undefined);
+  const accepted = await runVirtual("awk", { args: [program] });
+  assert.equal(accepted.exitCode, 0, accepted.stderr.toString());
+  assert.equal(accepted.stdout.toString(), "ad");
+  assert.equal(accepted.files.out?.toString(), "1.5".padStart(128));
+  const missing = await runVirtual("awk", { args: ['BEGIN { printf "%32s" }'] }, { maxBufferBytes: 8 });
+  assert.equal(missing.stderr.toString(), "awk: not enough arguments for format\n");
+});
 
 test("sed transliteration admits byte work before materializing its output", async () => {
   const result = await runVirtual("sed", { args: ["-n", "y/a/b/"], stdin: "a".repeat(128) }, { maxSteps: 64 });

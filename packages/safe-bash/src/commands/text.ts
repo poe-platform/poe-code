@@ -291,7 +291,7 @@ export function textCommands(): CommandDefinition[] {
             let bytes: Uint8Array;
             if (mode === "f") {
               const record = Buffer.from(line.bytes.buffer, line.bytes.byteOffset, line.bytes.byteLength);
-              const separator = encoder.encode(delimiter);
+              const separator = Buffer.from(delimiter);
               let boundary = record.indexOf(separator);
               if (boundary < 0) {
                 if (parsed.flags.has("s")) continue;

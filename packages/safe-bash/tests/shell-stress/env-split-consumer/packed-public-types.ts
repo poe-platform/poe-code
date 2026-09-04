@@ -9,7 +9,7 @@ const command = async (context: CommandContext) => {
   if (!context.invoke) throw new Error('Literal invocation required');
   return context.invoke('env', ['-S', 'record "a b"'], invocation);
 };
-const shell = new Shell({ fs: filesystem, env: {} }).use(agentCommands()).use({
+const shell = new Shell({ fs: filesystem, env: {}, limits: { maxRedirects: 64 } }).use(agentCommands()).use({
   name: 'packed-declaration-proof',
   setup(host) { host.commands.register({ name: 'record', execute: command }); host.use(async (context, next) => next()); },
 });

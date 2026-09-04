@@ -54,6 +54,7 @@ export const defaultLimits: Required<ShellLimits> = {
   maxInputBytes: 32 * 1024 * 1024,
   maxOutputBytes: 16 * 1024 * 1024,
   maxCommands: 10_000,
+  maxRedirects: 64,
   maxPipelineStages: 64,
   maxLoopIterations: 10_000,
   maxSubstitutionDepth: 64,
@@ -2077,6 +2078,8 @@ export class Runtime {
   }
 
   async redirect(redirects: readonly Redirect[], state: State, io: IO, inputs: Set<ShellInput>, outputs: Set<(completion: OutputCompletion) => void | Promise<void>>, isolatedInlineInput = false, persistMoves = false, fileShortcut = false, line?: number): Promise<IO> {
+    this.signal.throwIfAborted();
+    if (redirects.length > this.budget.limits.maxRedirects) this.budget.fail("maxRedirects");
     io.descriptors ??= new Map<number, Descriptor>([
       [0, { input: io.stdin, ...(io.stdinIsDefault === undefined ? {} : { stdinIsDefault: io.stdinIsDefault }) }],
       [1, { output: io.stdout }], [2, { output: io.stderr }],

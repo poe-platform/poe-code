@@ -47,7 +47,7 @@ test("blocked upstream reads require caller cancellation, not consumer completio
 });
 
 test("broken-pipe writes cancel signal-waiting upstream commands", { timeout: 2000 }, async () => {
-  const { shell, commands } = setup();
+  const { shell, commands } = setup({ limits: { pipeHighWaterMark: 1 } });
   let aborted = false;
   commands.register({ name: "waiting", async execute({ signal, stdout }) {
     try { while (true) await writeText(stdout, "chunk"); }

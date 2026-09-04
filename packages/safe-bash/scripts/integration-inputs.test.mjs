@@ -406,6 +406,11 @@ function assertSource7Discovery(files) {
     "tests/shell/value-state.test.ts",
     "tests/shell/byte-values.test.ts",
   ]) assert.ok(files.includes(path), "retained byte-value test is missing: " + path);
+  for (const path of [
+    "tests/commands/yes/yes.test.ts",
+    "tests/commands/yes/native.test.ts",
+    "tests/commands/yes/integration.test.ts",
+  ]) assert.ok(files.includes(path), "optional yes test is missing: " + path);
   assert.equal(new Set(files).size, files.length);
   for (const path of removed) assert.ok(!files.includes(path), "removed filesystem test remains selected: " + path);
   for (const path of added) assert.ok(files.includes(path), "retained filesystem test is missing: " + path);

@@ -68,16 +68,19 @@ this request to keep additions out of the default package.
 
 - First implementation wave: cmp, yes, shuf and virtual devices in disjoint leaf
   directories. Root is qualifying native oracles and the opt-in delivery boundary.
-- No tool is yet accepted or committed.
+- The yes leaf is verified for its documented GNU 9.7 C-locale profile: 135 tests
+  pass with zero skips, including independent Shell comparisons and VFS scripting.
+  Its source/test project typechecks, and actual output passed visual inspection.
+  The explicit version-identity and resource/host limits remain documented.
+  Commit it separately; all other tool and shell-extension acceptance is pending.
 - Default-build isolation now has a failing-then-passing test and matching literal
   exclusions in tsconfig.build.json and package-lint metadata. This preparatory
   boundary does not admit any implementation or change default command inventories.
 - Build/input tests: 219 passed after correcting the required metadata mirror;
   the portable browser bundle baseline has five passing tests.
-- Independent yes integration checks passed explicit registration and a VFS script
-  workflow, but exposed an option-parsing mismatch in the first GNU reference
-  binary. That mismatch is unresolved pending reference-build requalification,
-  not evidence permitting an arbitrary product change.
+- Independent yes integration exposed an option-parsing mismatch in the first GNU
+  reference binary. A clean reference rebuild resolved it without product parser
+  changes. Preserve that failed reference evidence rather than hiding it.
 
 ## Native oracle preparation
 
@@ -108,8 +111,17 @@ the subsequent full make completed successfully. Executable versions were checke
 after compilation. Later independent yes checks exposed mixed GNU/native option
 behavior. The suspected cause is objects compiled before generated headers,
 retained by the later build with dependency tracking disabled. A fresh extraction
-and configure/default-make sequence is running in coreutils-9.7-clean. Preserve
+and configure/default-make sequence completed in coreutils-9.7-clean. Preserve
 the first binaries and observations; version output alone did not qualify them.
+
+The clean yes binary has SHA-256
+`5326dd9df1374a85e4a2a0fddf27d7ae3315ba57a10866c2b27f71cb1878740f`.
+It resolves the option-parser mismatches and passes the strict differential suite.
+Run that suite with SAFE_BASH_YES_GNU_ORACLE set to the clean src/yes path, then
+run `node_modules/.bin/tsc --project packages/safe-bash/tests/commands/yes/tsconfig.json`.
+Both checks passed. The actual Shell output image
+`/tmp/safe-bash-scripting-oracles-20260904/yes-visual-review.png` was inspected;
+this is ad-hoc QA, not a screenshot test or committed artifact.
 
 Baseline aggregate check: 36 tests passed using
 `node --import tsx --test packages/safe-bash/tests/plugins/agent-commands.test.ts`.

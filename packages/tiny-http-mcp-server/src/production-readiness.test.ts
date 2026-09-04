@@ -94,6 +94,7 @@ async function dispatchRaw(
     method: string;
     headers?: HeadersInit;
     body?: string;
+    parsedBody?: unknown;
     url?: string;
     writableLength?: number;
     omitDefaultHost?: boolean;
@@ -117,7 +118,8 @@ async function dispatchRaw(
     headers: Object.fromEntries(
       [...headers.entries()].map(([key, value]) => [key.toLowerCase(), value])
     ),
-    socket: {}
+    socket: {},
+    ...(options.parsedBody === undefined ? {} : { body: options.parsedBody })
   }) as IncomingMessage;
 
   const response = new EventEmitter() as ServerResponse & {
@@ -419,6 +421,34 @@ describe("HTTP MCP production readiness", () => {
         message: "Batch size exceeds configured limit"
       }
     });
+  });
+
+  it("rejects an oversized pre-populated request body before creating a session", async () => {
+    const sessionIdGenerator = vi.fn(() => "oversized-session");
+    const server = createHttpServer({
+      name: "pre-parsed-body-limit",
+      version: "1.0.0",
+      maxRequestBytes: 80,
+      sessionIdGenerator
+    });
+    const { response } = await dispatchRaw(server, {
+      method: "POST",
+      headers: {
+        Accept: "application/json, text/event-stream",
+        "Content-Type": "application/json"
+      },
+      parsedBody: {
+        jsonrpc: "2.0",
+        id: 1,
+        method: "initialize",
+        params: { protocolVersion: TEST_PROTOCOL_VERSION, padding: "é".repeat(40) }
+      }
+    });
+    expect(response.statusCode).toBe(413);
+    expect(JSON.parse(Buffer.concat(response.chunks).toString("utf8"))).toMatchObject({
+      error: { message: "Payload too large" }
+    });
+    expect(sessionIdGenerator).not.toHaveBeenCalled();
   });
 
   it("expires inactive sessions without another request", async () => {

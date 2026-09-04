@@ -114,13 +114,19 @@ async function readRawBody(
   preParsed: unknown | undefined,
   options: BodyReadOptions
 ): Promise<unknown> {
-  if (preParsed !== undefined) {
-    return preParsed;
-  }
-
   const reqWithBody = req as IncomingMessage & { body?: unknown };
-  if (reqWithBody.body !== undefined) {
-    return reqWithBody.body;
+  const body = preParsed !== undefined ? preParsed : reqWithBody.body;
+  if (body !== undefined) {
+    if (options.maxBytes !== undefined) {
+      const serialized = JSON.stringify(body);
+      if (serialized === undefined) {
+        throw new Error("Invalid Request");
+      }
+      if (Buffer.byteLength(serialized, "utf8") > options.maxBytes) {
+        throw new Error("Payload too large");
+      }
+    }
+    return body;
   }
 
   const raw = await readStreamBody(req, options.maxBytes);

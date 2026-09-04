@@ -289,6 +289,59 @@ describe("session", () => {
 // ---------------------------------------------------------------------------
 
 describe("readAndClassifyBody", () => {
+  it.each(["stream", "req.body", "preParsed"])(
+    "enforces serialized UTF-8 byte limits for %s messages and batches",
+    async (route) => {
+      const request = { jsonrpc: "2.0", id: 1, method: "ping", params: { text: 'é😀\n"' } };
+      const response = { jsonrpc: "2.0", id: 2, result: { text: 'é😀\n"' } };
+      for (const body of [request, response, [request, response]]) {
+        const serialized = JSON.stringify(body);
+        const byteLength = Buffer.byteLength(serialized, "utf8");
+        expect(byteLength).toBeGreaterThan(serialized.length);
+        const read = (maxBytes: number) =>
+          readAndClassifyBody(
+            createRequest(route === "stream" ? serialized : "not-json", {
+              ...(route === "req.body" ? { body } : {})
+            }),
+            route === "preParsed" ? body : undefined,
+            { maxBytes }
+          );
+        await expect(read(byteLength)).resolves.toMatchObject({
+          messages: Array.isArray(body) ? body : [body]
+        });
+        await expect(read(byteLength - 1)).rejects.toThrow("Payload too large");
+      }
+    }
+  );
+
+  it("checks the explicit pre-parsed body without reading lower-priority inputs", async () => {
+    const body = { jsonrpc: "2.0", id: 1, method: "ping" };
+    const request = createRequest("not-json");
+    const fallback = vi.fn(() => {
+      throw new Error("Unexpected req.body read");
+    });
+    Object.defineProperty(request, "body", { get: fallback });
+    await expect(
+      readAndClassifyBody(request, body, {
+        maxBytes: Buffer.byteLength(JSON.stringify(body))
+      })
+    ).resolves.toMatchObject({ messages: [body] });
+    expect(fallback).not.toHaveBeenCalled();
+  });
+
+  it("retains pre-parsed batch limits when the byte allowance is sufficient", async () => {
+    const body = [
+      { jsonrpc: "2.0", id: 1, method: "ping" },
+      { jsonrpc: "2.0", id: 2, method: "ping" }
+    ];
+    await expect(
+      readAndClassifyBody(createRequest("ignored", { body }), undefined, {
+        maxBytes: Buffer.byteLength(JSON.stringify(body)),
+        maxBatchSize: 1
+      })
+    ).rejects.toThrow("Batch size exceeds configured limit");
+  });
+
   it("P1 parses single request", async () => {
     const parsed = await readAndClassifyBody(
       createRequest('{"jsonrpc":"2.0","id":1,"method":"tools/list"}')

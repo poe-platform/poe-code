@@ -137,7 +137,7 @@ this request to keep additions out of the default package.
   reference; independent review is pending. Trap review instead reproduces two
   failures (144/146) in BASH_COMMAND reporting and independently identifies mixed
   source/compiled extension byte ownership. Those are open author fixes.
-- Trap's three review findings are now repaired. Root's source run passes 158
+- Trap's three review findings are now repaired. Root's source run passes 184
   tests, compiled/public-consumer coverage passes fourteen, and strict consumer
   types pass. A broader trap/default-shell run passed 760 tests before the final
   class-receiver regression was added. That extra TDD case exposed changed factory
@@ -146,6 +146,11 @@ this request to keep additions out of the default package.
   reconciled getter-count assertion. The actual trap screenshot was inspected.
   The opt-in leaf is ready for a separate local commit; declaration tracing and
   debugger metadata remain explicit follow-up gaps, not claimed full completion.
+  A final oracle-hygiene check reproduced fourteen failures from implicit system
+  Bash 3.2 selection. Native fixtures now require explicit executable and SHA256
+  bindings, validate Bash 5.2.37, and use a closed PATH with five explicit child
+  shell overrides. Without either binding, 66 tests pass and 118 native-only tests
+  skip; malformed or partial bindings fail. There is no native fallback.
 
 - First implementation wave: cmp, yes, shuf and virtual devices in disjoint leaf
   directories. Root is qualifying native oracles and the opt-in delivery boundary.

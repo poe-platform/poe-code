@@ -447,6 +447,14 @@ function assertSource7Discovery(files) {
     "tests/commands/truncate/review.test.ts",
   ]) assert.ok(files.includes(path), "optional truncate test is missing: " + path);
   for (const path of [
+    "tests/shell/extensions/trap/builtin.test.ts",
+    "tests/shell/extensions/trap/host.test.ts",
+    "tests/shell/extensions/trap/infrastructure.test.ts",
+    "tests/shell/extensions/trap/lifecycle.test.ts",
+    "tests/shell/extensions/trap/oracle.test.ts",
+    "tests/shell/extensions/trap/review.test.ts",
+  ]) assert.ok(files.includes(path), "optional trap test is missing: " + path);
+  for (const path of [
     "tests/fs/devices/devices.test.ts",
     "tests/fs/devices/native.test.ts",
     "tests/fs/devices/review.test.ts",

@@ -1,0 +1,106 @@
+import type { ByteSink, ByteSource } from "../contracts/io.js";
+import type { ShellValue } from "../contracts/value.js";
+import { commandRuntimeIdentity } from "../contracts/command.js";
+
+export type ShellExtensionScope = "process" | "subshell" | "substitution" | "pipeline" | "invocation";
+export type ShellExtensionEvent = "exit" | "error" | "command" | "function-enter" | "function-return" | "function-leave" | "source-enter" | "source-return" | "source-leave";
+export type ShellExtensionEventResult = void | { readonly action: "skip" } | { readonly action: "return"; readonly status: number };
+
+export interface ShellExtensionContext {
+  readonly command: string;
+  readonly args: readonly string[];
+  readonly argumentValues: readonly ShellValue[];
+  readonly status: number;
+  readonly functionDepth: number;
+  readonly sourceDepth: number;
+  readonly stdin: ByteSource;
+  readonly stdout: ByteSink;
+  readonly stderr: ByteSink;
+  readonly signal: AbortSignal;
+  readonly scope: object;
+  evaluate(source: ShellValue, options?: { readonly name?: string }): Promise<number>;
+  variable(name: string): string | undefined;
+  accountSource(source: ShellValue): void;
+  diagnostic(message: string): Promise<void>;
+  registerCleanup(cleanup: () => void | Promise<void>): void;
+}
+
+export interface ShellExtensionBuiltin {
+  readonly name: string;
+  readonly special?: boolean;
+  execute(context: ShellExtensionContext): number | Promise<number>;
+}
+
+export interface ShellExtensionInstance {
+  readonly builtins: readonly ShellExtensionBuiltin[];
+  readonly options?: readonly ShellExtensionOption[];
+  readonly shoptOptions?: readonly ShellExtensionOption[];
+  start?(context: ShellExtensionContext): void | Promise<void>;
+  fork?(scope: ShellExtensionScope): ShellExtensionInstance;
+  event?(event: ShellExtensionEvent, context: ShellExtensionContext): ShellExtensionEventResult | Promise<ShellExtensionEventResult>;
+}
+
+export interface ShellExtensionOption {
+  readonly name: string;
+  readonly flag?: string;
+  enabled: boolean;
+}
+
+export interface ShellExtension {
+  readonly name: string;
+  readonly runtimeIdentity?: object;
+  create(): ShellExtensionInstance;
+}
+
+export interface ShellExtensionState {
+  readonly entries: readonly { readonly definition: ShellExtension; readonly instance: ShellExtensionInstance }[];
+  readonly builtins: ReadonlyMap<string, ShellExtensionBuiltin>;
+  readonly options: ReadonlyMap<string, ShellExtensionOption>;
+  readonly shoptOptions: ReadonlyMap<string, ShellExtensionOption>;
+  exitStatus?: number;
+  exiting?: boolean;
+  started?: boolean;
+  eventDepth?: number;
+  readonly cleanup: (() => Promise<void>)[];
+}
+
+export function extensionState(definitions: readonly ShellExtension[], parent?: ShellExtensionState, scope?: ShellExtensionScope): ShellExtensionState | undefined {
+  if (!definitions.length) return undefined;
+  const names = new Set<string>();
+  const captured = Array.from(definitions, definition => {
+    if (!definition) throw new TypeError("Invalid shell extension");
+    const { name, create, runtimeIdentity } = definition;
+    if (typeof name !== "string" || !name || names.has(name) || typeof create !== "function") throw new TypeError("Invalid or duplicate shell extension");
+    if (runtimeIdentity !== undefined && runtimeIdentity !== commandRuntimeIdentity) throw new TypeError("Shell extension requires its matching shell runtime; do not mix source and compiled runtime modules");
+    names.add(name);
+    return Object.freeze({ name, create: create.bind(definition), ...(runtimeIdentity === undefined ? {} : { runtimeIdentity }) });
+  });
+  const builtins = new Map<string, ShellExtensionBuiltin>();
+  const options = new Map<string, ShellExtensionOption>();
+  const shoptOptions = new Map<string, ShellExtensionOption>();
+  const flags = new Set(["e", "u", "o"]);
+  const entries = captured.map((definition, index) => {
+    const previous = parent?.entries[index]?.instance;
+    const instance = previous?.fork && scope ? previous.fork(scope) : definition.create();
+    if (!instance || !Array.isArray(instance.builtins)) throw new TypeError("Shell extension requires builtin definitions");
+    for (const builtin of instance.builtins) {
+      if (!builtin || typeof builtin.name !== "string" || !builtin.name || builtin.name.includes("\0") || typeof builtin.execute !== "function" || builtins.has(builtin.name)) throw new TypeError("Invalid or duplicate extension builtin");
+      builtins.set(builtin.name, builtin);
+    }
+    for (const option of instance.options ?? []) {
+      if (!option.name || ["errexit", "nounset", "pipefail"].includes(option.name) || options.has(option.name) || typeof option.enabled !== "boolean" || option.flag !== undefined && (option.flag.length !== 1 || flags.has(option.flag))) throw new TypeError("Invalid or duplicate extension shell option");
+      if (option.flag !== undefined) flags.add(option.flag);
+      options.set(option.name, option);
+    }
+    for (const option of instance.shoptOptions ?? []) {
+      if (!option.name || option.name === "dotglob" || shoptOptions.has(option.name) || option.flag !== undefined || typeof option.enabled !== "boolean") throw new TypeError("Invalid or duplicate extension shopt option");
+      shoptOptions.set(option.name, option);
+    }
+    return { definition, instance };
+  });
+  return { entries, builtins, options, shoptOptions, cleanup: [] };
+}
+
+export function forkExtensions(parent: ShellExtensionState | undefined, scope: ShellExtensionScope): ShellExtensionState | undefined {
+  return parent && extensionState(parent.entries.map(entry => entry.definition), parent, scope);
+}

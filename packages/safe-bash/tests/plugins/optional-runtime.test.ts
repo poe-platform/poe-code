@@ -5,6 +5,7 @@ import ts from "typescript";
 import { createMemoryFileSystem, createMountFileSystem } from "poe-code/safe-fs";
 import { createYesCommand as sourceYesCommand } from "../../src/commands/yes/index.js";
 import { CommandRegistry as SourceRegistry } from "../../src/contracts/command.js";
+import { trapExtension as sourceTrapExtension } from "../../src/shell/extensions/trap/index.js";
 
 type PublishedDefinition = import("poe-code/safe-bash").CommandDefinition;
 type OptionalRuntime = {
@@ -18,6 +19,7 @@ type OptionalRuntime = {
   truncateCommands(): import("poe-code/safe-bash").VirtualShellPlugin;
   cmpCommands(): import("poe-code/safe-bash").VirtualShellPlugin;
   createDeviceFileSystem(): import("poe-code/safe-fs").FileSystem;
+  trapExtension(): NonNullable<import("poe-code/safe-bash").ShellOptions["extensions"]>[number];
 };
 
 const selected = process.env.SAFE_BASH_TEST_OPTIONAL_BUILD;
@@ -68,6 +70,16 @@ describe("explicit coherent optional build", { skip: selected === undefined ? "R
     }
   });
 
+  test("public host refuses source-bound shell extensions before ASCII or raw actions execute", async () => {
+    const { published } = await runtimes();
+    type PublishedExtension = NonNullable<import("poe-code/safe-bash").ShellOptions["extensions"]>[number];
+    for (const source of ["trap 'printf ascii' EXIT", String.raw`action=$'printf "\377"'; trap "$action" EXIT`]) {
+      const shell = new published.Shell({ fs: createMemoryFileSystem(), extensions: [sourceTrapExtension() as unknown as PublishedExtension] }).use(published.agentCommands());
+      try { await assert.rejects(shell.exec(source), /matching shell runtime/); }
+      finally { await shell.dispose(); }
+    }
+  });
+
   test("coherent named-output helpers share the public budget and settle cleanup", async () => {
     const { published } = await runtimes();
     const helpers = await import(new URL("../../dist/contracts/filesystem-output.js", import.meta.url).href) as typeof import("../../src/contracts/filesystem-output.js");
@@ -107,12 +119,15 @@ describe("explicit coherent optional build", { skip: selected === undefined ? "R
       'import { createYesCommand, yesCommands, createShufCommand, shufCommands } from "../../dist/optional.js";',
       'import { createTruncateCommand, truncateCommands } from "../../dist/optional.js";',
       'import type { YesCommandOptions, YesCommandsOptions, CmpCommandsOptions, CmpLimits, ShufCommandsOptions, TruncateCommandsOptions, DeviceFileSystem } from "../../dist/optional.js";',
+      'import { trapExtension, type TrapExtensionOptions, type ShellExtension } from "../../dist/optional.js";',
       'const yesOptions: YesCommandOptions = {}; const yesPluginOptions: YesCommandsOptions = {};',
       'const cmpOptions: CmpCommandsOptions = {}; const cmpLimits: Partial<CmpLimits> = {};',
       'const shufOptions: ShufCommandsOptions = {}; const truncateOptions: TruncateCommandsOptions = {};',
       'type Devices = DeviceFileSystem;',
+      'const trapOptions: TrapExtensionOptions = {}; const trap: ShellExtension = trapExtension(trapOptions);',
       'new CommandRegistry([createYesCommand(), createShufCommand(), createTruncateCommand()]);',
       'new Shell({ fs: createMemoryFileSystem() }).use(yesCommands()).use(shufCommands()).use(truncateCommands());',
+      'new Shell({ fs: createMemoryFileSystem(), extensions: [trap] });',
     ].join("\n");
     const options: ts.CompilerOptions = {
       noEmit: true, strict: true, exactOptionalPropertyTypes: true,
@@ -210,6 +225,30 @@ describe("explicit coherent optional build", { skip: selected === undefined ? "R
       assert.deepEqual(copy.subarray(0, 32), token);
       assert.deepEqual(copy.subarray(32), new Uint8Array(8));
       assert.ok(["alpha\n", "beta\n", "gamma\n"].includes(new TextDecoder().decode(await fs.readFile("/choice"))));
+    } finally { await shell.dispose(); }
+  });
+
+  test("compiled trap retains byte-valued actions in the public host", async () => {
+    const { published, optional } = await runtimes();
+    const extension = optional.trapExtension();
+    assert.equal(extension.runtimeIdentity, published.commandRuntimeIdentity);
+    const shell = new published.Shell({ fs: createMemoryFileSystem(), extensions: [extension] }).use(published.agentCommands());
+    try {
+      const result = await shell.exec(String.raw`action=$'printf "\377"'; trap "$action" EXIT`);
+      assert.equal(result.exitCode, 0, result.stderr);
+      assert.equal(result.stderr, "");
+      assert.deepEqual(result.stdoutBytes, Uint8Array.of(255));
+    } finally { await shell.dispose(); }
+  });
+
+  test("compiled trap preserves runtime affinity and separate actions when forking", async () => {
+    const { published, optional } = await runtimes();
+    const shell = new published.Shell({ fs: createMemoryFileSystem(), extensions: [optional.trapExtension()] }).use(published.agentCommands());
+    try {
+      const result = await shell.exec("trap 'printf outer' EXIT; (trap 'printf child' EXIT; :); printf body");
+      assert.equal(result.exitCode, 0, result.stderr);
+      assert.equal(result.stderr, "");
+      assert.equal(result.stdout, "childbodyouter");
     } finally { await shell.dispose(); }
   });
 });

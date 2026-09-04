@@ -15,6 +15,8 @@ import type { Command, HereDocument, Pipeline, Redirect, Script, Word, WordPart 
 import { HereDocumentSyntaxError, hereDocumentWords, parseShellInputUnit, parseShellUnit } from "./parser.js";
 import { ShellLimitError, ShellSyntaxError } from "./types.js";
 import type { ShellCommandContext, ShellInvokeOptions, ShellLimits } from "./types.js";
+import { forkExtensions } from "./extensions.js";
+import type { ShellExtensionContext, ShellExtensionEvent, ShellExtensionState } from "./extensions.js";
 import { fileInput, ShellInput } from "./input.js";
 import { evaluateArithmetic, prepareArithmetic } from "./arithmetic.js";
 import { evaluatePositionalArithmetic } from "./arithmetic-parameters.js";
@@ -79,6 +81,18 @@ const unsupportedSetOptionNames = new Set([
   "notify", "onecmd", "physical", "posix", "privileged", "verbose", "vi", "xtrace",
 ]);
 type Discovery = { kind: "function" | "builtin" | "command" | "interpreter" | "file"; name: string };
+
+function commandSpelling(command: Extract<Command, { kind: "simple" | "arithmetic" | "conditional" }>): string {
+  if (command.kind === "arithmetic") return `((${command.source}))`;
+  if (command.kind === "conditional") return `[[${command.source}]]`;
+  const redirects = command.redirects.map(redirect => {
+    const target = redirect.target.spelling ?? redirect.target.plain ?? "";
+    if (redirect.operator === ">&" || redirect.operator === "<&") return `${redirect.descriptor}${redirect.operator}${target}`;
+    const implicit = redirect.operator.startsWith("<") ? 0 : 1;
+    return `${redirect.descriptor === implicit ? "" : redirect.descriptor}${redirect.operator} ${target}`;
+  });
+  return [...command.words.map(word => word.spelling ?? word.plain ?? ""), ...redirects].join(" ");
+}
 
 export function resolveLimits(...limits: (ShellLimits | undefined)[]): Required<ShellLimits> {
   const result = Object.assign({}, defaultLimits, ...limits) as Required<ShellLimits>;
@@ -284,6 +298,7 @@ const valueScope = Symbol("shell value allocation scope");
 const invokedValues = new WeakMap<WordPart, ShellValue>();
 
 export interface State {
+  extensions?: ShellExtensionState | undefined;
   cwd: string;
   variables: Record<string, string>;
   exported: Set<string>;
@@ -370,15 +385,15 @@ function appendOutputBytes(current: Uint8Array, chunk: Uint8Array): Uint8Array {
 type OutputCompletion = { reason: unknown } | { status: number };
 
 class Flow extends Error {
-  constructor(readonly kind: "exit" | "return" | "break" | "continue", readonly status: number, public levels = 1) {
+  constructor(readonly kind: "exit" | "return" | "break" | "continue", readonly status: number, public levels = 1, readonly previousStatus?: number, readonly expansionFailure = false) {
     super(kind);
   }
 }
 
 const completedFlows = new WeakSet<Flow>();
 
-function completedExit(status: number, kind: Flow["kind"] = "exit", levels = 1): Flow {
-  const flow = new Flow(kind, status, levels);
+function completedExit(status: number, kind: Flow["kind"] = "exit", levels = 1, previousStatus?: number, expansionFailure = false): Flow {
+  const flow = new Flow(kind, status, levels, previousStatus, expansionFailure);
   completedFlows.add(flow);
   return flow;
 }
@@ -1642,18 +1657,126 @@ export class Runtime {
   }
 
   async run(script: Script, state: State, io: IO): Promise<number> {
-    return (await this.runUnit(script, state, io)).exitCode;
+    return this.finishShell(state, io, (await this.runUnit(script, state, io)).exitCode);
+  }
+
+  private extensionContext(state: State, io: IO, command = "", args: readonly string[] = [], argumentValues: readonly ShellValue[] = args): ShellExtensionContext {
+    const frame = state.extensions!;
+    return {
+      command, args, argumentValues, status: state.status, functionDepth: state.functionDepth, sourceDepth: state.sourceDepth ?? 0,
+      stdin: io.stdin, stdout: io.stdout, stderr: io.stderr, signal: this.signal, scope: frame,
+      variable: name => state.variables[name],
+      accountSource: source => this.budget.source(shellValueByteLength(source)),
+      diagnostic: message => this.diagnostic(io, message),
+      evaluate: async (source, options) => {
+        this.signal.throwIfAborted();
+        if (state.depth >= this.budget.limits.maxSubstitutionDepth) this.budget.fail("maxSubstitutionDepth");
+        this.budget.source(shellValueByteLength(source));
+        const byteSource = typeof source !== "string";
+        const text = byteSource ? Buffer.from(shellValueBytes(source)).toString("latin1") : source;
+        const restoration = stateMonitor(state)?.restoration(true);
+        try {
+          state.depth++;
+          return await this.runCurrentText(text, state, { ...io, diagnosticOffset: (io.diagnosticLine ?? 1) - 1 }, false, options?.name === undefined ? undefined : `${io.scriptName ?? "shell"}: ${options.name}`, byteSource, false);
+        } finally {
+          if (restoration) restoration.apply(() => { state.depth--; });
+          else state.depth--;
+        }
+      },
+      registerCleanup: cleanup => {
+        let completion: Promise<void> | undefined;
+        const close = (): Promise<void> => completion ??= Promise.resolve().then(cleanup);
+        frame.cleanup.push(close);
+        io[invocationScope].register(close);
+      },
+    };
+  }
+
+  private async startExtensions(state: State, io: IO): Promise<void> {
+    const frame = state.extensions;
+    if (!frame || frame.started) return;
+    frame.started = true;
+    for (const name of frame.builtins.keys()) if (shellBuiltinNames.has(name)) throw new TypeError(`Extension builtin conflicts with existing builtin: ${name}`);
+    for (const entry of frame.entries) await entry.instance.start?.(this.extensionContext(state, io));
+  }
+
+  private async extensionEvent(event: ShellExtensionEvent, state: State, io: IO, status: number, command = ""): Promise<boolean> {
+    if (!state.extensions) return false;
+    this.signal.throwIfAborted();
+    await this.startExtensions(state, io);
+    const previous = state.status;
+    state.status = status;
+    state.extensions.eventDepth = (state.extensions.eventDepth ?? 0) + 1;
+    try {
+      for (const entry of state.extensions.entries) {
+        this.signal.throwIfAborted();
+        const result = await entry.instance.event?.(event, this.extensionContext(state, io, command));
+        if (result !== undefined) {
+          if (event !== "command" || !result || (result.action !== "skip" && result.action !== "return")) throw new TypeError("Invalid extension lifecycle control");
+          if (result.action === "return") throw new Flow("return", validateExitCode(result.status), 1, status);
+          return true;
+        }
+      }
+      return false;
+    } finally {
+      state.extensions.eventDepth!--;
+      if (!this.signal.aborted) state.status = previous;
+    }
+  }
+
+  async finishShell(state: State, io: IO, status: number): Promise<number> {
+    const frame = state.extensions;
+    if (!frame || frame.exiting) return status;
+    if (frame.exitStatus !== undefined) return frame.exitStatus;
+    this.signal.throwIfAborted();
+    state = trackState(state, this.budget, io[invocationScope]);
+    frame.exiting = true;
+    let failure: { reason: unknown } | undefined;
+    try {
+      try { await this.extensionEvent("exit", state, io, status); }
+      catch (error) { if (error instanceof Flow && error.kind === "exit") { if (!error.expansionFailure) status = error.status; } else throw error; }
+      this.signal.throwIfAborted();
+      frame.exitStatus = status;
+    } catch (reason) { failure = { reason }; }
+    frame.exiting = false;
+    try { await this.releaseExtensions(state); }
+    catch (cleanup) {
+      this.signal.throwIfAborted();
+      if (failure) throw new AggregateError([failure.reason, cleanup], "Shell completion and extension cleanup failed");
+      throw cleanup;
+    }
+    this.signal.throwIfAborted();
+    if (failure) throw failure.reason;
+    return status;
+  }
+
+  private async releaseExtensions(state: State): Promise<void> {
+    const cleanup = await Promise.allSettled(state.extensions?.cleanup.map(close => close()) ?? []);
+    this.signal.throwIfAborted();
+    throwCleanupFailures(cleanup.filter(result => result.status === "rejected").map(result => result.reason));
+  }
+
+  private async finishReturn(event: "function-return" | "source-return", state: State, io: IO, status: number, previous = status): Promise<number> {
+    while (true) {
+      try { await this.extensionEvent(event, state, io, previous); return status; }
+      catch (error) {
+        if (error instanceof Flow && error.kind === "return") { status = error.status; previous = error.previousStatus ?? status; continue; }
+        if (error instanceof Flow && error.kind === "exit") throw new Flow("exit", await this.finishShell(state, io, error.status), 1, error.previousStatus);
+        throw error;
+      }
+    }
   }
 
   async runUnit(script: Script, state: State, io: IO): Promise<{ exitCode: number; terminated: boolean }> {
     state = trackState(state, this.budget, io[invocationScope]);
+    await this.startExtensions(state, io);
     try { return { exitCode: await this.script(script, state, io), terminated: false }; }
     catch (error) {
       if (error instanceof NounsetDiagnosticFailure) {
         if (state.isolated) throw error;
         throw error.reason;
       }
-      if (error instanceof Flow && error.kind === "exit") return { exitCode: error.status, terminated: true };
+      if (error instanceof Flow && error.kind === "exit") return { exitCode: await this.finishShell(state, io, error.status), terminated: true };
       throw error;
     }
   }
@@ -1699,6 +1822,13 @@ export class Runtime {
       const closing = new Set<TurnHandle>();
       let statuses: number[];
       try {
+        if (state.extensions && !state.extensions.eventDepth) {
+          for (const command of pipeline.commands) {
+            if (command.kind === "simple" || command.kind === "arithmetic" || command.kind === "conditional") {
+              this.writeVariable(state, "BASH_COMMAND", commandSpelling(command));
+            }
+          }
+        }
         for (let index = 1; index < pipeline.commands.length; index++) pipes.push(createBytePipe({
           highWaterMark: this.budget.limits.pipeHighWaterMark, signal: this.signal,
         }));
@@ -1747,14 +1877,19 @@ export class Runtime {
               let exitCode: number;
               try {
                 const child = await cloneState(state, this.signal);
+                child.extensions = forkExtensions(state.extensions, "pipeline");
                 child.isolated = true;
-                const work = runtime.runCommandIsolated(command, child, {
+                const childIO: IO = {
                   ...isolateIO(io),
                   stdin: input,
                   ...(incoming ? { stdinIsDefault: false } : {}),
                   stdout: pipeOutput ? this.budget.sink(pipeOutput, signal) : signalSink(io.stdout, signal),
                   stderr: signalSink(io.stderr, signal),
-                }).finally(() => stateMonitor(child)?.closeValues());
+                };
+                const work = runtime.runCommandIsolated(command, child, childIO).then(status => runtime.finishShell(child, childIO, status)).finally(async () => {
+                  try { await runtime.releaseExtensions(child); }
+                  finally { stateMonitor(child)?.closeValues(); }
+                });
                 retain(work);
                 exitCode = await interruptible(work, signal);
               } catch (error) {
@@ -1805,7 +1940,7 @@ export class Runtime {
       await this.publishStatus(state, statuses, io);
       status = state.pipefail ? statuses.findLast((status) => status !== 0) ?? 0 : statuses.at(-1)!;
     }
-    if (pipeline.commands.length > 1) this.errexit(status, state, io);
+    if (pipeline.commands.length > 1) await this.errexit(status, state, io);
     return pipeline.negate ? Number(status === 0) : status;
   }
 
@@ -1813,14 +1948,18 @@ export class Runtime {
     try { return await this.command(command, state, io, fileShortcut); }
     catch (error) {
       if (error instanceof NounsetDiagnosticFailure) throw error;
-      if (error instanceof Flow && (error.kind === "exit" || error.kind === "return")) return error.status;
+      if (error instanceof Flow && error.kind === "exit") return this.finishShell(state, io, error.status);
+      if (error instanceof Flow && error.kind === "return") return error.status;
       throw error;
     }
   }
 
-  errexit(status: number, state: State, io: IO): void {
+  async errexit(status: number, state: State, io: IO): Promise<void> {
     this.signal.throwIfAborted();
-    if (status !== 0 && state.errexit && !io.execution?.ignoreErrexit) throw new Flow("exit", status);
+    if (status !== 0 && !io.execution?.ignoreErrexit) {
+      await this.extensionEvent("error", state, io, status);
+      if (state.errexit) throw new Flow("exit", status);
+    }
   }
 
   private async publishStatus(state: State, statuses: readonly number[], io: IO): Promise<void> {
@@ -1832,6 +1971,12 @@ export class Runtime {
 
   async command(command: Command, state: State, io: IO, fileShortcut = false, publicationNegate = false): Promise<number> {
     io[invocationScope].assertOpen();
+    if (state.extensions && (command.kind === "simple" || command.kind === "arithmetic" || command.kind === "conditional")) {
+      io = { ...io, diagnosticLine: (command.line ?? 1) + (io.diagnosticOffset ?? 0) };
+      const description = commandSpelling(command);
+      if (!state.extensions.eventDepth) this.writeVariable(state, "BASH_COMMAND", description);
+      if (await this.extensionEvent("command", state, io, state.status, description)) return state.status;
+    }
     const publishes = command.kind === "simple" || command.kind === "subshell" || command.kind === "arithmetic" || command.kind === "conditional";
     let status: number;
     try { status = await io[invocationScope].run(() => this.executeCommand(command, state, io, fileShortcut)); }
@@ -1846,7 +1991,7 @@ export class Runtime {
     if (publishes) {
       const reported = publicationNegate && (command.kind === "conditional" || command.kind === "arithmetic") ? Number(status === 0) : status;
       await this.publishStatus(state, [reported], io);
-      this.errexit(status, state, io);
+      await this.errexit(status, state, io);
     }
     return status;
   }
@@ -1879,7 +2024,7 @@ export class Runtime {
     try {
       const execute = async (): Promise<number> => {
       if (command.kind === "function") {
-        if (state.profile === "sh" && specialBuiltinNames.has(command.name)) {
+        if (state.profile === "sh" && (specialBuiltinNames.has(command.name) || state.extensions?.builtins.get(command.name)?.special)) {
           await this.diagnostic(io, `\`${command.name}': is a special builtin`);
           throw new Flow("exit", 2);
         }
@@ -1896,7 +2041,7 @@ export class Runtime {
             work: { remaining: this.budget.limits.maxExpansionBytes, signal: this.signal, exhausted: (): never => this.budget.fail("maxExpansionBytes") },
             expand: async (word, pattern = false) => (await this.word(word, state, io, false, pattern, false, pattern)).join(""),
             regex: (subject, pattern) => this.ere(subject, pattern, state, io),
-            option: name => name === "errexit" ? !!state.errexit : name === "nounset" ? !!state.nounset : name === "pipefail" ? state.pipefail : false,
+            option: name => name === "errexit" ? !!state.errexit : name === "nounset" ? !!state.nounset : name === "pipefail" ? state.pipefail : state.extensions?.options.get(name)?.enabled ?? false,
             present: name => {
               const match = /^([a-zA-Z_][a-zA-Z_0-9]*)(?:\[(0|[1-9][0-9]*|[@*])\])?$/u.exec(name);
               if (!match) throw new ConditionalUnsupported("[[ variable selector: unsupported conditional profile");
@@ -1940,6 +2085,7 @@ export class Runtime {
       }
       if (command.kind === "subshell") {
         const child = await cloneState(state, this.signal);
+        child.extensions = forkExtensions(state.extensions, "subshell");
         child.isolated = true;
         child.loopDepth = 0;
         try { return await this.run(command.body, child, io); }
@@ -1953,6 +2099,11 @@ export class Runtime {
         return command.otherwise ? await this.script(command.otherwise, state, io) : 0;
       }
       if (command.kind === "case") {
+        if (state.extensions) {
+          const description = `case ${command.subject.spelling ?? command.subject.plain ?? ""} in `;
+          if (!state.extensions.eventDepth) this.writeVariable(state, "BASH_COMMAND", description);
+          if (await this.extensionEvent("command", state, io, state.status, description)) return state.status;
+        }
         const subject = (await this.word(command.subject, state, io, false)).join("");
         const work = { remaining: this.budget.limits.maxExpansionBytes, signal: this.signal, exhausted: (): never => this.budget.fail("maxExpansionBytes") };
         let status = 0;
@@ -1981,6 +2132,11 @@ export class Runtime {
           for (const value of values) {
             this.budget.loop();
             await this.assignVariable(state, command.name, value);
+            if (state.extensions) {
+              const description = `for ${command.name} in ${command.words?.map(word => word.spelling ?? word.plain ?? "").join(" ") ?? '"$@"'}`;
+              if (!state.extensions.eventDepth) this.writeVariable(state, "BASH_COMMAND", description);
+              if (await this.extensionEvent("command", state, io, state.status, description)) continue;
+            }
             const result = await this.loopBody(command.body, state, io);
             status = result.status;
             if (result.stop) break;
@@ -2015,11 +2171,11 @@ export class Runtime {
       this.clearOutcomeReport();
       if (error instanceof HereDocumentSyntaxError) {
         await writeText(io.stderr, error.diagnostic);
-        if (command.kind !== "simple" && command.kind !== "subshell" && command.kind !== "arithmetic" && command.kind !== "conditional") this.errexit(1, state, io);
+        if (command.kind !== "simple" && command.kind !== "subshell" && command.kind !== "arithmetic" && command.kind !== "conditional") await this.errexit(1, state, io);
         return 1;
       }
       if (errorCode(error) === "EPIPE") {
-        if (command.kind !== "simple" && command.kind !== "subshell" && command.kind !== "arithmetic" && command.kind !== "conditional") this.errexit(141, state, io);
+        if (command.kind !== "simple" && command.kind !== "subshell" && command.kind !== "arithmetic" && command.kind !== "conditional") await this.errexit(141, state, io);
         return 141;
       }
       const line = error instanceof ExpansionFailure ? error.line ?? io.diagnosticLine ?? 1 : io.diagnosticLine ?? 1;
@@ -2032,7 +2188,7 @@ export class Runtime {
           diagnosticFailure = new NounsetDiagnosticFailure(reason);
           throw diagnosticFailure;
         }
-        throw completedExit(error instanceof ParameterExpansionFailure && !state.isolated ? 127 : 1);
+        throw completedExit(error instanceof ParameterExpansionFailure && !state.isolated ? 127 : 1, "exit", 1, undefined, true);
       }
       if (error instanceof ArrayFailure) await writeText(io.stderr, `${io.scriptName ?? "shell"}: line ${line}: ${diagnostic ?? message(error)}\n`);
       else {
@@ -2042,7 +2198,7 @@ export class Runtime {
       if (error instanceof ExpansionFailure) throw completedExit(error instanceof ParameterExpansionFailure && !state.isolated ? 127 : 1);
       if (error instanceof FatalCommandFailure) throw completedExit(error.status);
       const status = error instanceof CommandFailure ? error.status : 1;
-      if (command.kind !== "simple" && command.kind !== "subshell" && command.kind !== "arithmetic" && command.kind !== "conditional") this.errexit(status, state, io);
+      if (command.kind !== "simple" && command.kind !== "subshell" && command.kind !== "arithmetic" && command.kind !== "conditional") await this.errexit(status, state, io);
       return status;
     } finally {
       await Promise.allSettled([
@@ -2299,10 +2455,10 @@ export class Runtime {
     }
     const wordValues = await this.valueWords(commandWords, state, originalIO, ["export", "local", "readonly"].includes(commandWords[declarationIndex]?.plain ?? ""));
     const words = wordValues.map(shellValueText);
-    const special = state.profile === "sh" && specialBuiltinNames.has(words[0] ?? "");
+    const special = state.profile === "sh" && (specialBuiltinNames.has(words[0] ?? "") || !!state.extensions?.builtins.get(words[0] ?? "")?.special);
     const inlineInput = command.redirects.some((redirect) => redirect.document || redirect.operator === "<<<");
     const functionCommand = words.length > 0 && state.functions.has(words[0]!);
-    const isolatedInlineInput = inlineInput && words.length > 0 && !shellBuiltinNames.has(words[0]!) && !functionCommand;
+    const isolatedInlineInput = inlineInput && words.length > 0 && !shellBuiltinNames.has(words[0]!) && !state.extensions?.builtins.has(words[0]!) && !functionCommand;
     if (isolatedInlineInput) state = await cloneState(state, this.signal);
     let io = originalIO;
     const previous = new Map<string, SavedVariable>();
@@ -2393,7 +2549,7 @@ export class Runtime {
           }
           } finally { try { await copyOwner?.close(); } finally { holding?.release(); stateMonitor(redirectState)?.closeValues(); } }
         }
-      } else io = await this.redirect(command.redirects, state, io, inputs, outputs, isolatedInlineInput, !words.length || shellBuiltinNames.has(words[0]!) || functionCommand, fileShortcut, command.line ?? 1);
+      } else io = await this.redirect(command.redirects, state, io, inputs, outputs, isolatedInlineInput, !words.length || shellBuiltinNames.has(words[0]!) || !!state.extensions?.builtins.has(words[0]!) || functionCommand, fileShortcut, command.line ?? 1);
       if (!inlineInput) await assign();
       if (fileShortcut) {
         const input = io.descriptors?.get(command.redirects[0]!.descriptor)?.input;
@@ -2571,11 +2727,33 @@ export class Runtime {
               tickets.release();
             } else entry();
           } catch (error) { savedPositionals.close(); getoptsRestoration?.close(); functionRestoration?.close(); throw error; }
-          try { return { exitCode: await this.command(body, state, { ...io, ...context, scriptName: body.sourceName ?? io.scriptName ?? "shell" }) }; }
+          let restoredLocals = false;
+          const restoreLocals = async (): Promise<void> => {
+            if (restoredLocals) return;
+            restoredLocals = true;
+            for (const [name, previous] of locals) await scope.cleanup(async () => {
+              const typed = typedSavedVariables.has(previous);
+              await restoreVariable(state, name, previous);
+              if (!typed && !previous.readOnly) state.readonlyVariables?.delete(name);
+            });
+          };
+          try {
+            await this.extensionEvent("function-enter", state, io, state.status);
+            if (await this.extensionEvent("command", state, { ...io, ...context }, state.status, context.command)) return { exitCode: state.status };
+            const status = await this.command(body, state, { ...io, ...context, scriptName: body.sourceName ?? io.scriptName ?? "shell" });
+            return { exitCode: await this.finishReturn("function-return", state, { ...io, ...context }, status) };
+          }
           catch (error) {
-            if (error instanceof Flow && error.kind === "return") return { exitCode: error.status };
+            if (error instanceof Flow && error.kind === "return") {
+              return { exitCode: await this.finishReturn("function-return", state, { ...io, ...context }, error.status, error.previousStatus) };
+            }
+            if (error instanceof Flow && error.kind === "exit" && state.extensions) {
+              if (error.previousStatus === undefined) await restoreLocals();
+              throw new Flow("exit", await this.finishShell(state, { ...io, ...context }, error.status));
+            }
             throw error;
           } finally {
+            await scope.cleanup(async () => { if (!this.signal.aborted) await this.extensionEvent("function-leave", state, io, state.status); });
             const restoreControls = () => {
               stateMonitor(state)!.positionals.restore(savedPositionals, () => { state.positional = positional; });
               savedPositionals.close();
@@ -2588,11 +2766,7 @@ export class Runtime {
               if (functionRestoration) functionRestoration.apply(restoreControls, false);
               else restoreControls();
             });
-            for (const [name, previous] of locals) await scope.cleanup(async () => {
-              const typed = typedSavedVariables.has(previous);
-              await restoreVariable(state, name, previous);
-              if (!typed && !previous.readOnly) state.readonlyVariables?.delete(name);
-            });
+            await restoreLocals();
             if (locals.has("OPTIND")) await scope.cleanup(() => {
               const restoreGetopts = () => {
                 state.getopts ??= getoptsEntry;
@@ -2607,8 +2781,14 @@ export class Runtime {
         }
         if (selected?.kind === "builtin") {
           if (context.command === "command" || context.command === "builtin" || context.command === "type") return { exitCode: await this.discoveryBuiltin(context, state, io, assignments) };
-          const special = state.profile === "sh" && !bypassFunctions && specialBuiltinNames.has(context.command);
+          const extensionBuiltin = state.extensions?.builtins.get(context.command);
+          const special = state.profile === "sh" && !bypassFunctions && (specialBuiltinNames.has(context.command) || !!extensionBuiltin?.special);
           if (special) assignments.clear();
+          if (extensionBuiltin) {
+            const status = validateExitCode(await extensionBuiltin.execute(this.extensionContext(state, { ...io, ...context }, context.command, context.args, context.argumentValues.values)));
+            if (special && status !== 0) throw new Flow("exit", status);
+            return { exitCode: status };
+          }
           if (context.command === "." || context.command === "source") return { exitCode: await this.sourceBuiltin(context, state, { ...io, ...context }, special) };
           if (context.command === "eval") return { exitCode: await this.evalBuiltin(context, state, { ...io, ...context }, special) };
           const builtinWork = this.builtin(context, state, assignments, (error, diagnostic) => { builtinFailure = { error, diagnostic }; }, bypassFunctions);
@@ -2666,10 +2846,10 @@ export class Runtime {
   internalDiscovery(name: string, state: State, bypassFunctions = false): Discovery[] {
     const matches: Discovery[] = [];
     if (!bypassFunctions && state.functions.has(name)) matches.push({ kind: "function", name });
-    if (implementedBuiltins.has(name)) matches.push({ kind: "builtin", name });
+    if (implementedBuiltins.has(name) || state.extensions?.builtins.has(name)) matches.push({ kind: "builtin", name });
     else if (this.commands.has(name)) matches.push({ kind: "command", name });
     else if (name === "bash" || name === "sh") matches.push({ kind: "interpreter", name });
-    if (state.profile === "sh" && specialBuiltinNames.has(name)) matches.sort((left, right) => Number(right.kind === "builtin") - Number(left.kind === "builtin"));
+    if (state.profile === "sh" && (specialBuiltinNames.has(name) || state.extensions?.builtins.get(name)?.special)) matches.sort((left, right) => Number(right.kind === "builtin") - Number(left.kind === "builtin"));
     return matches;
   }
 
@@ -2704,7 +2884,7 @@ export class Runtime {
     if (!discover) {
       const target = args.shift();
       if (target === undefined) return 0;
-      if (builtin && !shellBuiltinNames.has(target)) {
+      if (builtin && !shellBuiltinNames.has(target) && !state.extensions?.builtins.has(target)) {
         await this.diagnostic({ ...io, ...context }, `builtin: ${target}: not a shell builtin`);
         return 1;
       }
@@ -2797,6 +2977,7 @@ export class Runtime {
     variables.OPTIND = "1";
     variables.OPTERR = "1";
     return {
+      extensions: forkExtensions(state.extensions, "process"),
       cwd: state.cwd, variables, exported, functions: new Map(), getopts: { cursor: createGetoptsState(), integer: true },
       directoryStack: { entries: [], bytes: 0 },
       dotglob: false,
@@ -2834,19 +3015,20 @@ export class Runtime {
     const childIO = isolateIO({ ...io, ...context, execution: { ignoreErrexit: false }, diagnosticLine: 1, diagnosticOffset: 0, scriptName: arg0 });
     if (source !== undefined) {
       this.budget.source(Buffer.byteLength(source));
-      return this.runCommandString(source, child, childIO);
+      return this.finishShell(child, childIO, await this.runCommandString(source, child, childIO));
     }
     const input = new ShellInput(context.stdin, this.budget, this.signal);
-    return this.runStandardInput(input, child, { ...childIO, stdin: input });
+    const inputIO = { ...childIO, stdin: input };
+    return this.finishShell(child, inputIO, await this.runStandardInput(input, child, inputIO));
   }
 
-  async syntaxFailure(error: ShellSyntaxError, source: string, io: IO, commandString: boolean): Promise<number> {
+  async syntaxFailure(error: ShellSyntaxError, source: string, io: IO, commandString: boolean, includeContext = true): Promise<number> {
     const offset = io.diagnosticOffset ?? 0;
     const line = source.slice(0, error.offset).split("\n").length;
     const prefix = `${io.scriptName ?? "shell"}:${commandString ? " -c:" : ""}`;
     if (error.unclosedQuote) await writeText(io.stderr, `${prefix} line ${offset + error.unclosedQuote.line}: unexpected EOF while looking for matching \`${error.unclosedQuote.quote}'\n`);
     else if (error.offset >= source.length && !/Unterminated|nesting|Unsupported/u.test(error.reason)) {
-      const context = error.incompleteCommand ? ` from \`${error.incompleteCommand.name}' command on line ${offset + error.incompleteCommand.line}` : "";
+      const context = includeContext && error.incompleteCommand ? ` from \`${error.incompleteCommand.name}' command on line ${offset + error.incompleteCommand.line}` : "";
       await writeText(io.stderr, `${prefix} line ${offset + source.split("\n").length + Number(!source.endsWith("\n"))}: syntax error: unexpected end of file${context}\n`);
     } else {
       const token = /^[;&|()<>]|^[^\s;&|()<>]+/u.exec(source.slice(error.offset))?.[0] ?? "newline";
@@ -3166,17 +3348,17 @@ export class Runtime {
       status = result.exitCode;
       if (result.terminated) break;
     }
-    return status;
+    return this.finishShell(child, childIO, status);
   }
 
-  async runCurrentText(source: string, state: State, io: IO, fatalSyntax: boolean, syntaxName?: string): Promise<number> {
+  async runCurrentText(source: string, state: State, io: IO, fatalSyntax: boolean, syntaxName?: string, byteSource = false, includeSyntaxContext = true): Promise<number> {
     let position = 0;
     let status = 0;
     let executed = false;
     try {
       do {
         this.signal.throwIfAborted();
-        const unit = parseShellUnit(source, position, byteLocale(state.variables));
+        const unit = parseShellUnit(source, position, byteLocale(state.variables), byteSource);
         for (const warning of unit.script.warnings ?? []) await writeText(io.stderr, `${io.scriptName ?? "shell"}: warning: ${warning}\n`);
         if (unit.script.lists.length) {
           status = await this.script(unit.script, state, io);
@@ -3187,7 +3369,7 @@ export class Runtime {
       return status;
     } catch (error) {
       if (!(error instanceof ShellSyntaxError)) throw error;
-      const status = await this.syntaxFailure(error, source, syntaxName === undefined ? io : { ...io, scriptName: syntaxName }, false);
+      const status = await this.syntaxFailure(error, source, syntaxName === undefined ? io : { ...io, scriptName: syntaxName }, false, includeSyntaxContext);
       if (fatalSyntax && !executed) throw new Flow("exit", status);
       return status;
     }
@@ -3305,11 +3487,14 @@ export class Runtime {
       } else entry();
     } catch (error) { savedPositionals?.close(); restoration?.close(); throw error; }
     try {
-      return await this.runCurrentText(source, state, { ...io, scriptName: target, diagnosticOffset: 0, diagnosticLine: 1 }, special);
+      await this.extensionEvent("source-enter", state, io, state.status);
+      const status = await this.runCurrentText(source, state, { ...io, scriptName: target, diagnosticOffset: 0, diagnosticLine: 1 }, special);
+      return await this.finishReturn("source-return", state, io, status);
     } catch (error) {
-      if (error instanceof Flow && error.kind === "return") return error.status;
+      if (error instanceof Flow && error.kind === "return") return await this.finishReturn("source-return", state, io, error.status, error.previousStatus);
       throw error;
     } finally {
+      if (!this.signal.aborted) await this.extensionEvent("source-leave", state, io, state.status);
       const restore = () => {
         state.depth--;
         state.sourceDepth = sourceDepth;
@@ -3343,6 +3528,7 @@ export class Runtime {
     scope.register(() => allocation.close());
     const carrier = this.admitArguments(getCommandArguments({ args, ...(options.argumentValues ? { argumentValues: options.argumentValues } : {}) }).values, allocation);
     const child = await cloneState(state, this.signal);
+    child.extensions = forkExtensions(state.extensions, "invocation");
     child.cwd = resolvePath(context.cwd, options.cwd ?? ".");
     const env = options.replaceEnv ? { ...options.env } : { ...context.env, ...options.env, PWD: child.cwd };
     if (guestArrays(child) || Object.keys(env).some(key => arrayStore(child)?.get(key))) await this.indexedEnvironment(child, env);
@@ -3379,7 +3565,10 @@ export class Runtime {
       }),
     };
     try { return { exitCode: await this.runCommandIsolated(command, child, io) }; }
-    finally { stateMonitor(child)?.closeValues(); await input?.close(); }
+    finally {
+      try { await this.releaseExtensions(child); }
+      finally { stateMonitor(child)?.closeValues(); await input?.close(); }
+    }
   }
 
   private async setOptions(context: CommandContext & IO, state: State): Promise<number> {
@@ -3398,15 +3587,19 @@ export class Runtime {
         const flag = option[position];
         if (flag === "e") state.errexit = enabled;
         else if (flag === "u") state.nounset = enabled;
+        else if ([...state.extensions?.options.values() ?? []].some(option => option.flag === flag)) {
+          for (const option of state.extensions!.options.values()) if (option.flag === flag) option.enabled = enabled;
+        }
         else if (flag === "o" && position === option.length - 1) {
           const name = args[index + 1];
           if (name === undefined) {
-            const options = [["errexit", !!state.errexit], ["nounset", !!state.nounset], ["pipefail", state.pipefail]] as const;
+            const options = [["errexit", !!state.errexit], ["nounset", !!state.nounset], ["pipefail", state.pipefail], ...[...state.extensions?.options.values() ?? []].map(option => [option.name, option.enabled] as const)] as const;
             for (const [name, active] of options) await writeText(stdout, enabled ? `${name}\t${active ? "on" : "off"}\n` : `set ${active ? "-" : "+"}o ${name}\n`);
           } else {
             if (name === "errexit") state.errexit = enabled;
             else if (name === "nounset") state.nounset = enabled;
             else if (name === "pipefail") state.pipefail = enabled;
+            else if (state.extensions?.options.has(name)) state.extensions.options.get(name)!.enabled = enabled;
             else {
               const unsupported = unsupportedSetOptionNames.has(name);
               await this.diagnostic(context, `set: ${name}: ${unsupported ? "unsupported shell option" : "invalid option name"}`);
@@ -3742,13 +3935,21 @@ export class Runtime {
     };
     if (index === context.args.length) {
       if ((!set || state.dotglob) && (!unset || !state.dotglob)) await emit();
+      for (const option of state.extensions?.shoptOptions.values() ?? []) if (!quiet && (!set || option.enabled) && (!unset || !option.enabled)) await writeText(context.stdout, print ? `shopt -${option.enabled ? "s" : "u"} ${option.name}\n` : `${option.name.padEnd(19)}\t${option.enabled ? "on" : "off"}\n`);
       return 0;
     }
     let status = 0;
     for (; index < context.args.length; index++) {
       this.signal.throwIfAborted();
       const name = context.args[index]!;
-      if (name !== "dotglob") {
+      const extension = state.extensions?.shoptOptions.get(name);
+      if (extension) {
+        if (set || unset) extension.enabled = set;
+        else {
+          if (!quiet) await writeText(context.stdout, print ? `shopt -${extension.enabled ? "s" : "u"} ${name}\n` : `${name.padEnd(19)}\t${extension.enabled ? "on" : "off"}\n`);
+          if (!extension.enabled) status = 1;
+        }
+      } else if (name !== "dotglob") {
         await this.diagnostic(context, `shopt: ${name}: unsupported shell option name (only dotglob is supported)`);
         status = 1;
       } else if (set || unset) state.dotglob = set;
@@ -4130,7 +4331,7 @@ export class Runtime {
         throw completedExit(2, command);
       }
       const status = args[0] === undefined ? state.status : Number((BigInt(args[0]) % 256n + 256n) % 256n);
-      throw completedExit(status, command);
+      throw completedExit(status, command, 1, state.status);
     }
     if (command === "break" || command === "continue") {
       const levels = args[0] === undefined ? 1 : Number(args[0]);
@@ -4196,6 +4397,7 @@ export class Runtime {
       const capture = new Capture();
       const child = await cloneState(state, this.signal);
       child.isolated = true;
+      child.extensions = forkExtensions(state.extensions, "substitution");
       if (state.profile !== "sh") child.errexit = false;
       for (const [name, value] of state.redirectAssignments ?? []) {
         this.writeVariable(child, name, value);
@@ -4248,7 +4450,7 @@ export class Runtime {
       : part.name === "@" || part.name === "*" ? state.positional.join(hereString && (part.name === "@" || !part.quoted) ? " " : Array.from(state.variables.IFS ?? " ")[0] ?? "")
       : /^0+$/u.test(part.name) ? state.arg0 ?? "virtual-bash"
       : /^\d+$/u.test(part.name) ? state.positional[Number(part.name) - 1]
-      : this.variable(state, part.name);
+      : part.name === "LINENO" && state.extensions ? String(io.diagnosticLine ?? part.line ?? 1) : this.variable(state, part.name);
     let retained: ShellValue | undefined = value;
     if (!part.length && value !== undefined) {
       if (/^[a-zA-Z_][a-zA-Z_0-9]*$/u.test(part.name) && !arrayStore(state)?.get(part.name)) retained = stateMonitor(state)?.values.get(part.name, value) ?? value;

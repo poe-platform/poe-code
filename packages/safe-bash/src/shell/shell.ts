@@ -5,6 +5,7 @@ import type {
 } from "../contracts/index.js";
 import { warnIfHostProcessEnv } from "./env-warning.js";
 import { parseShellUnit } from "./parser.js";
+import { extensionState } from "./extensions.js";
 import { ShellInput } from "./input.js";
 import { byteLocale } from "./locale.js";
 import { Budget, Capture, interruptible, resolveLimits, Runtime, RuntimeCancellationState } from "./runtime.js";
@@ -106,7 +107,7 @@ export class Shell implements PluginHost {
     if (!(commands instanceof CommandRegistry)) throw new TypeError("CommandRegistry requires its matching shell runtime; do not mix source and compiled runtime modules");
     warnIfHostProcessEnv(options.env);
     resolveLimits(options.limits);
-    this.#options = { ...options, cwd: resolvePath("/", options.cwd ?? "/"), env: { ...options.env }, limits: { ...options.limits } };
+    this.#options = { ...options, extensions: [...options.extensions ?? []], cwd: resolvePath("/", options.cwd ?? "/"), env: { ...options.env }, limits: { ...options.limits } };
     this.commands = commands;
   }
 
@@ -232,6 +233,8 @@ export class Shell implements PluginHost {
       stdout: sink(stdout, options.stdout), stderr: sink(stderr, options.stderr),
     };
     let exitCode: number;
+    let runtime: Runtime | undefined;
+    let state: State | undefined;
     let failed = false;
     try {
       try {
@@ -247,14 +250,15 @@ export class Shell implements PluginHost {
         const exported = new Set(Object.keys(variables));
         variables.OPTIND = "1";
         variables.OPTERR = "1";
-        const state: State = {
+        state = {
+          extensions: extensionState(this.#options.extensions ?? []),
           cwd, variables, exported, functions: new Map(), positional: [], getopts: { cursor: { index: 0 }, integer: true },
           directoryStack: { entries: [], bytes: 0 },
           dotglob: false,
           status: 0, substitutionStatus: 0, depth: 0, loopDepth: 0, functionDepth: 0, locals: [], pipefail: false, profile: "bash",
         };
         const admission = Runtime.rootCancellationAdmission(budget);
-        const runtime = new Runtime(
+        runtime = new Runtime(
           options.fs ?? this.#options.fs,
           this.commands,
           [...this.#middleware],
@@ -295,6 +299,7 @@ export class Shell implements PluginHost {
         } else await writeText(io.stderr, `shell: ${error.message}\n`);
         exitCode = error.exitCode;
       }
+      if (runtime && state) exitCode = await runtime.finishShell(state, io, exitCode);
     } catch (error) { failed = true; throw error; }
     finally {
       if (failed) await stdin?.close().catch(() => {});

@@ -9,3 +9,6 @@ export { createTruncateCommand, createTruncateCommands, truncateCommands } from 
 export type { TruncateCommandsOptions } from "./commands/truncate/index.js";
 export { createDeviceFileSystem } from "./fs/devices/index.js";
 export type { DeviceFileSystem } from "./fs/devices/index.js";
+export { trapExtension } from "./shell/extensions/trap/index.js";
+export type { TrapExtensionOptions, TrapSignalHost } from "./shell/extensions/trap/index.js";
+export type { ShellExtension, ShellExtensionBuiltin, ShellExtensionContext, ShellExtensionEvent, ShellExtensionInstance, ShellExtensionOption, ShellExtensionScope } from "./shell/extensions.js";

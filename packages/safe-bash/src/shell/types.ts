@@ -1,5 +1,6 @@
 import type { ByteSink, ByteSource, CommandContext, CommandRegistry, CommandResult, FileSystem } from "../contracts/index.js";
 import type { CommandArguments } from "../contracts/command.js";
+import type { ShellExtension } from "./extensions.js";
 
 export interface ShellInvokeOptions {
   readonly argumentValues?: CommandArguments;
@@ -41,6 +42,7 @@ export interface ShellOptions {
   readonly cwd?: string;
   readonly env?: Readonly<Record<string, string>>;
   readonly limits?: ShellLimits;
+  readonly extensions?: readonly ShellExtension[];
 }
 
 export interface ShellExecOptions {

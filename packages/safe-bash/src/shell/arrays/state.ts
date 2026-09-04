@@ -242,6 +242,7 @@ export class StateMonitor {
       proxy = new Proxy(value, {
         get(target, key, receiver) {
           const entry: unknown = Reflect.get(target, key, receiver);
+          if (field === "state" && key === "extensions") return entry;
           if (entry && typeof entry === "object" && key !== "redirectAssignments") {
             if (field === "state" && key === "functions") return monitor.wrap(entry, "functions");
             if (field !== "functions") return monitor.wrap(entry, field === "state" ? String(key) : field);

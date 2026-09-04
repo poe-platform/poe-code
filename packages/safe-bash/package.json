@@ -155,7 +155,20 @@
   "poeCode": {
     "packageLint": {
       "sourceExclude": [
+        "src/commands/cmp/compare.ts",
+        "src/commands/cmp/index.ts",
+        "src/commands/cmp/io.ts",
+        "src/commands/cmp/options.ts",
+        "src/commands/shuf/args.ts",
+        "src/commands/shuf/index.ts",
+        "src/commands/shuf/input.ts",
+        "src/commands/shuf/options.ts",
+        "src/commands/shuf/random.ts",
+        "src/commands/shuf/shuf.ts",
+        "src/commands/shuf/usage.ts",
         "src/commands/structured/query-core.ts",
+        "src/commands/truncate/arguments.ts",
+        "src/commands/truncate/index.ts",
         "src/commands/xan/argv.ts",
         "src/commands/xan/budget.ts",
         "src/commands/xan/commands.ts",
@@ -170,7 +183,9 @@
         "src/commands/yq/encoder.ts",
         "src/commands/yq/errors.ts",
         "src/commands/yq/index.ts",
-        "src/commands/yq/parser.ts"
+        "src/commands/yq/parser.ts",
+        "src/commands/yes/index.ts",
+        "src/fs/devices/index.ts"
       ]
     },
     "integration": {

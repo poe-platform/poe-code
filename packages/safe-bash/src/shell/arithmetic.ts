@@ -167,44 +167,69 @@ export function evaluateArithmetic(program: ArithmeticProgram, variables: Record
       default: throw new Error(`Unsupported arithmetic operator ${operator}`);
     }
   };
-  const evaluate = (node: Arithmetic): bigint => {
-    if (++steps > 10_000) throw new Error("Arithmetic operation limit exceeded");
-    let value: bigint;
-    if (node.kind === "literal") return node.value;
-    if (node.kind === "name") {
-      if (visiting.has(node.name) || visiting.size >= 64) throw new Error("Arithmetic variable recursion");
-      visiting.add(node.name);
-      try { return evaluate(parseArithmetic(variables[node.name] ?? "0")); }
-      finally { visiting.delete(node.name); }
-    }
-    if (node.kind === "conditional") return evaluate(evaluate(node.condition) ? node.yes : node.no);
-    if (node.kind === "unary") {
-      const operand = evaluate(node.operand);
-      if (node.operator === "+") value = operand;
-      else if (node.operator === "-") value = -operand;
-      else if (node.operator === "!") value = BigInt(!operand);
-      else if (node.operator === "~") value = ~operand;
-      else {
-        value = BigInt.asIntN(64, operand + (node.operator === "++" ? 1n : -1n));
-        variables[(node.operand as Extract<Arithmetic, { kind: "name" }>).name] = String(value);
-        if (node.postfix) value = operand;
-      }
-    } else {
-      if (node.operator === "=") value = evaluate(node.right);
-      else {
-        const left = evaluate(node.left);
-        if (node.operator === "&&") return left ? BigInt(evaluate(node.right) !== 0n) : 0n;
-        if (node.operator === "||") return left ? 1n : BigInt(evaluate(node.right) !== 0n);
-        if (node.operator === ",") return evaluate(node.right);
-        value = binary(precedence[node.operator] === 2 ? node.operator.slice(0, -1) : node.operator, left, evaluate(node.right), node.right.start ?? 0);
-      }
-      if (precedence[node.operator] === 2) variables[(node.left as Extract<Arithmetic, { kind: "name" }>).name] = String(BigInt.asIntN(64, value));
-    }
-    return BigInt.asIntN(64, value);
-  };
+  type Frame = { kind: "evaluate"; node: Arithmetic }
+    | { kind: "variable"; name: string }
+    | { kind: "conditional"; node: Extract<Arithmetic, { kind: "conditional" }> }
+    | { kind: "unary"; node: Extract<Arithmetic, { kind: "unary" }> }
+    | { kind: "left"; node: Extract<Arithmetic, { kind: "binary" }> }
+    | { kind: "right"; node: Extract<Arithmetic, { kind: "binary" }>; left?: bigint }
+    | { kind: "logical" };
   try {
     if (program.error) throw program.error;
-    return evaluate(program.tree!);
+    const pending: Frame[] = [{ kind: "evaluate", node: program.tree! }];
+    let value = 0n;
+    while (pending.length) {
+      const frame = pending.pop()!;
+      if (frame.kind === "evaluate") {
+        if (++steps > 10_000) throw new Error("Arithmetic operation limit exceeded");
+        const node = frame.node;
+        if (node.kind === "literal") value = node.value;
+        else if (node.kind === "name") {
+          if (visiting.has(node.name) || visiting.size >= 64) throw new Error("Arithmetic variable recursion");
+          visiting.add(node.name);
+          pending.push({ kind: "variable", name: node.name }, { kind: "evaluate", node: parseArithmetic(variables[node.name] ?? "0") });
+        } else if (node.kind === "conditional") {
+          pending.push({ kind: "conditional", node }, { kind: "evaluate", node: node.condition });
+        } else if (node.kind === "unary") {
+          pending.push({ kind: "unary", node }, { kind: "evaluate", node: node.operand });
+        } else if (node.operator === "=") {
+          pending.push({ kind: "right", node }, { kind: "evaluate", node: node.right });
+        } else {
+          pending.push({ kind: "left", node }, { kind: "evaluate", node: node.left });
+        }
+      } else if (frame.kind === "variable") visiting.delete(frame.name);
+      else if (frame.kind === "conditional") {
+        pending.push({ kind: "evaluate", node: value ? frame.node.yes : frame.node.no });
+      } else if (frame.kind === "unary") {
+        const { node } = frame;
+        const operand = value;
+        if (node.operator === "+") value = operand;
+        else if (node.operator === "-") value = -operand;
+        else if (node.operator === "!") value = BigInt(!operand);
+        else if (node.operator === "~") value = ~operand;
+        else {
+          value = BigInt.asIntN(64, operand + (node.operator === "++" ? 1n : -1n));
+          variables[(node.operand as Extract<Arithmetic, { kind: "name" }>).name] = String(value);
+          if (node.postfix) value = operand;
+        }
+        value = BigInt.asIntN(64, value);
+      } else if (frame.kind === "left") {
+        const { node } = frame;
+        if (node.operator === "&&" || node.operator === "||") {
+          if (node.operator === "&&" ? value === 0n : value !== 0n) value = BigInt(value !== 0n);
+          else pending.push({ kind: "logical" }, { kind: "evaluate", node: node.right });
+        } else {
+          if (node.operator !== ",") pending.push({ kind: "right", node, left: value });
+          pending.push({ kind: "evaluate", node: node.right });
+        }
+      } else if (frame.kind === "right") {
+        const { node } = frame;
+        if (node.operator !== "=") value = binary(precedence[node.operator] === 2 ? node.operator.slice(0, -1) : node.operator, frame.left!, value, node.right.start ?? 0);
+        if (precedence[node.operator] === 2) variables[(node.left as Extract<Arithmetic, { kind: "name" }>).name] = String(BigInt.asIntN(64, value));
+        value = BigInt.asIntN(64, value);
+      } else value = BigInt(value !== 0n);
+    }
+    return value;
   } catch (error) {
     if (error instanceof ArithmeticFailure) throw new Error(`${program.source.trimStart()}: ${error.message} (error token is "${program.source.slice(error.offset)}")`);
     if (error instanceof ShellSyntaxError) {

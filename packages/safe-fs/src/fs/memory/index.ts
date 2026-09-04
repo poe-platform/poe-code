@@ -53,6 +53,7 @@ interface ResolveOptions {
 }
 
 const typeModes = { file: 0o100000, directory: 0o040000, symlink: 0o120000 } as const;
+const preferredIoBlockSize = 64 * 1024;
 const ownedStats = new WeakMap<FileStat, { filesystem: FileSystem; path: string; root: DirectoryNode }>();
 const ownedStores = new WeakMap<FileSystem, { root: DirectoryNode; intact: () => boolean }>();
 const registeredAuthorities = new WeakSet<FileSystem>();
@@ -236,6 +237,7 @@ export class MemoryFileSystem implements FileSystem {
   private snapshot(node: MemoryNode): FileStat {
     return {
       type: node.type,
+      ioBlockSize: preferredIoBlockSize,
       size: node.type === "file" ? node.data.byteLength
         : node.type === "symlink" ? new TextEncoder().encode(node.target).byteLength : 0,
       mode: node.mode, ...(ownedStores.get(this)?.intact() ? { identityScope: this.identityScope } : {}),
@@ -525,7 +527,7 @@ export class MemoryFileSystem implements FileSystem {
   async *readStream(path: string, options: ReadStreamOptions = {}): ByteSource {
     options.signal?.throwIfAborted();
     const start = options.start ?? 0;
-    const chunkSize = options.chunkSize ?? 64 * 1024;
+    const chunkSize = options.chunkSize ?? preferredIoBlockSize;
     this.integer(start, "readStream", path);
     this.integer(chunkSize, "readStream", path);
     if (chunkSize === 0) this.fail("EINVAL", "readStream", path);

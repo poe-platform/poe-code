@@ -1,3 +1,37 @@
+# Preferred I/O size
+
+`FileStat.ioBlockSize?: number` is an optional, readonly preferred I/O size in
+bytes. A supplied value must be a positive safe integer. Absence means unknown;
+zero is not a known size. This is independent of logical `size`, physical
+`allocatedBytes`, allocation units, device numbers, and actual stream chunk
+boundaries. Consumers must not derive any of those quantities from this field.
+
+The rooted real adapter preserves native `Stats.blksize` only when it is a
+positive safe integer. Missing, zero, negative, fractional, nonnumeric, infinite,
+or unsafe values remain absent; there is no platform fallback in canonical
+metadata. Native `stat` and `lstat` retain their respective target/entry semantics.
+
+Memory declares a virtual filesystem preference of 65,536 bytes on its metadata
+entries, using the same policy as its existing default `readStream` chunk size.
+Explicit stream chunk sizes remain supported and do not change the preference.
+This is not a claim of physical allocation, disk sectors, or native filesystem
+geometry, and does not populate `allocatedBytes` or require new configuration.
+
+Faithful readonly, mount, and overlay views preserve the selected backing's
+value or its absence. Synthetic mount ancestors leave the field absent. After
+overlay copy-up, metadata reflects the upper backing, including an unknown
+upper preference; the lower preference must not be retained as upper geometry.
+Quota forwarding preserves the underlying observation unchanged. Providers
+without a supported preference must leave it absent.
+
+The generic bridge reports a supplied `ioBlockSize` as `Stats.blksize`. When the
+canonical field is absent, its existing numeric compatibility fallback remains
+4096; this fallback is not an observation about the backing filesystem and must
+not be copied into canonical metadata. Block-unit consumers such as `truncate
+-o` must use canonical metadata rather than that compatibility fallback. Different
+legitimate filesystem preferences can produce different byte lengths for the
+same block count.
+
 # Character-device metadata
 
 `FileType` includes `"character"` for an explicitly supplied virtual character

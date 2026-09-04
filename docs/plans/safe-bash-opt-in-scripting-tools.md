@@ -66,8 +66,9 @@ this request to keep additions out of the default package.
 
 ## Work ledger
 
-- Local commits: `d18b2e0ed` establishes build isolation; `27beeaf50` adds yes.
-  Neither commit has been pushed or released, and neither action is requested.
+- Local commits: `d18b2e0ed` establishes build isolation; `27beeaf50` adds yes;
+  `209190556` preserves character-device metadata through filesystem consumers.
+  None has been pushed or released, and neither action is requested.
 - First implementation wave: cmp, yes, shuf and virtual devices in disjoint leaf
   directories. Root is qualifying native oracles and the opt-in delivery boundary.
 - The yes leaf is verified for its documented GNU 9.7 C-locale profile: 135 tests
@@ -92,6 +93,25 @@ this request to keep additions out of the default package.
 - The maintained selected virtual-bash build completed both dependency tasks.
   A default virtual-bash npm pack dry run listed 1,046 files and no optional
   cmp/dd/install/shuf/truncate/yes/yq/device implementation files.
+- Follow-up root device run: 79 tests pass with no skips, including independent
+  descriptor and copy review. This is scoped behavior evidence, not a claim that
+  Darwin urandom writes match the explicitly different portable device profile.
+- Preferred-I/O metadata has 40 passing focused tests and a successful selected
+  safe-fs build. Independent root review then reproduced lost rdevMajor/rdevMinor
+  fields through readonly, mount and overlay snapshots in three failing tests.
+  The correction preserves known zero, partial metadata and absence through each
+  wrapper. Root reran all four focused metadata/bridge files: 67 tests pass.
+  The selected safe-fs build passes after the correction. Guarded lint completed
+  with no metadata findings; its two remaining findings are unsafe-finally throws
+  in the concurrently implemented dd leaf, which remain assigned for correction.
+- Root cmp rerun: 78 of 79 tests pass; the remaining failure is a native-oracle
+  helper signalling its process group after successful close (EPERM), not a
+  permitted diagnostic normalization. Root shuf rerun during helper TDD: 292 of
+  298 pass, with six new oracle-lifecycle cases still red. Both test projects
+  typecheck. Neither tool is accepted or committed by these partial runs.
+- Literal exclusions now cover the five dd and four install source files present
+  in this wave. Three focused default-boundary/discovery assertions pass. New
+  implementation filenames still require explicit exclusion and pack inspection.
 
 ## Native oracle preparation
 

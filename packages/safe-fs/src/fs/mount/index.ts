@@ -63,14 +63,17 @@ function fail(code: ErrnoCode): never {
 }
 
 function snapshotStat(stat: FileStat): FileStat {
-  const { type, size, allocatedBytes, mode, mtimeMs, atimeMs, ctimeMs, birthtimeMs, identityScope, ino, dev, nlink, uid, gid } = stat;
+  const { type, size, allocatedBytes, ioBlockSize, mode, mtimeMs, atimeMs, ctimeMs, birthtimeMs, identityScope, ino, dev, rdevMajor, rdevMinor, nlink, uid, gid } = stat;
   return {
     type, size, mode, mtimeMs, atimeMs, ctimeMs,
     ...(allocatedBytes === undefined ? {} : { allocatedBytes }),
+    ...(ioBlockSize === undefined ? {} : { ioBlockSize }),
     ...(birthtimeMs === undefined ? {} : { birthtimeMs }),
     ...(identityScope === undefined ? {} : { identityScope }),
     ...(ino === undefined ? {} : { ino }),
     ...(dev === undefined ? {} : { dev }),
+    ...(rdevMajor === undefined ? {} : { rdevMajor }),
+    ...(rdevMinor === undefined ? {} : { rdevMinor }),
     ...(nlink === undefined ? {} : { nlink }),
     ...(uid === undefined ? {} : { uid }),
     ...(gid === undefined ? {} : { gid }),

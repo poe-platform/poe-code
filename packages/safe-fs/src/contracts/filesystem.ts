@@ -7,6 +7,7 @@ export interface FileStat {
   readonly type: FileType;
   readonly size: number;
   readonly allocatedBytes?: number;
+  readonly ioBlockSize?: number;
   readonly mode: number;
   readonly mtimeMs: number;
   readonly atimeMs: number;

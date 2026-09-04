@@ -43,6 +43,7 @@ function fileStat(stats: Stats): FileStat {
   return {
     type: fileType(stats), size: stats.size, mode: stats.mode,
     ...(allocatedBytes === undefined ? {} : { allocatedBytes }),
+    ...(Number.isSafeInteger(stats.blksize) && stats.blksize > 0 ? { ioBlockSize: stats.blksize } : {}),
     atimeMs: stats.atimeMs, mtimeMs: stats.mtimeMs, ctimeMs: stats.ctimeMs,
     birthtimeMs: stats.birthtimeMs, ino: stats.ino, dev: stats.dev,
     ...(Number.isSafeInteger(stats.dev) && stats.dev >= 0 && Number.isSafeInteger(stats.ino) && stats.ino >= 0

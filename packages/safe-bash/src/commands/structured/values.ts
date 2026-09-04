@@ -122,7 +122,11 @@ export function binary(operator: string, left: Json, right: Json, budget: Budget
     if (left === null) return right;
     if (right === null) return left;
     if (isNumber(left) && isNumber(right)) return numberValue(left) + numberValue(right);
-    if (typeof left === "string" && typeof right === "string") { budget.text(left + right); return left + right; }
+    if (typeof left === "string" && typeof right === "string") {
+      budget.step(left.length + right.length);
+      const result = left + right;
+      budget.text(result); return result;
+    }
     if (Array.isArray(left) && Array.isArray(right)) { budget.collection(left.length + right.length); return [...left, ...right]; }
     if (isObject(left) && isObject(right)) { const result = copyObject(left, right); budget.collection(objectKeys(result).length); return result; }
   }

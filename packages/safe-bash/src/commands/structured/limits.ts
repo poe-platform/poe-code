@@ -88,7 +88,7 @@ export class Budget {
           visit((current as Record<string, Json>)[key]!, depth + 1);
         }
       } else {
-        if (typeof current === "string") this.text(current);
+        if (typeof current === "string") { this.step(current.length); this.text(current); }
         bytes += Buffer.byteLength(scalarJson(current, this));
       }
       if (bytes > this.limits.maxValueBytes) throw new JqLimitError("maxValueBytes");

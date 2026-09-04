@@ -266,6 +266,53 @@ test("capture coalesces tiny writes without retaining one fragment per write", a
   assert.deepEqual(capture.bytes(), Uint8Array.from({ length: 5000 }, (_, index) => index % 256));
 });
 
+test("capture bytes retains independent live snapshots", async () => {
+  const capture = new Capture();
+  const producer = Uint8Array.of(65, 66);
+  await capture.write(producer);
+  producer.fill(90);
+  const first = capture.bytes();
+  const second = capture.bytes();
+  first[0] = 88;
+  await capture.write(Uint8Array.of(67));
+  assert.deepEqual(second, Uint8Array.of(65, 66));
+  assert.deepEqual(capture.bytes(), Uint8Array.of(65, 66, 67));
+});
+
+for (const length of [0, 17, 4096, 4113, 8192]) {
+  test(`capture terminal extraction owns ${length} bytes and releases storage`, async context => {
+    const capture = new Capture();
+    for (let offset = 0; offset < length; offset += 4096) {
+      const producer = new Uint8Array(Math.min(4096, length - offset)).fill(65);
+      await capture.write(producer);
+      producer.fill(90);
+    }
+    const previousChunks = [...capture.chunks];
+    const snapshot = capture.bytes();
+    const set = context.mock.method(Uint8Array.prototype, "set");
+    const extracted = capture.takeBytes();
+    const copiedBytes = set.mock.calls.reduce((total, call) => total + (call.this === extracted ? call.arguments[0].length : 0), 0);
+    set.mock.restore();
+    assert.equal(copiedBytes, length === 4096 ? 0 : length);
+    assert.equal(extracted.byteLength, length);
+    assert.equal(extracted.buffer.byteLength, length);
+    assert.ok(extracted.every(byte => byte === 65));
+    assert.equal(previousChunks.some(chunk => chunk.buffer === extracted.buffer), length === 4096);
+    assert.equal(capture.length, 0);
+    assert.deepEqual(capture.chunks, []);
+    assert.deepEqual(capture.bytes(), new Uint8Array());
+    assert.deepEqual(capture.takeBytes(), new Uint8Array());
+    await capture.write(Uint8Array.of(66));
+    assert.ok(previousChunks.every(chunk => chunk.buffer !== capture.chunks[0]!.buffer));
+    assert.equal(extracted.byteLength, length);
+    assert.ok(extracted.every(byte => byte === 65));
+    extracted.fill(88);
+    assert.deepEqual(capture.bytes(), Uint8Array.of(66));
+    assert.equal(snapshot.byteLength, length);
+    assert.ok(snapshot.every(byte => byte === 65));
+  });
+}
+
 test("prepared restoration transfers ownership without new admission after cancellation", () => {
   let cancelled = false;
   const reason = Object.freeze({ cancelled: true });

@@ -3,7 +3,7 @@ import { test } from "node:test";
 import { writeText } from "../../src/contracts/index.js";
 import { ShellLimitError } from "../../src/shell/index.js";
 import { setup } from "./helpers.js";
-import { Budget, Runtime } from "../../src/shell/runtime.js";
+import { Budget, Capture, Runtime } from "../../src/shell/runtime.js";
 
 test("pipeline stage admission rejects before any stage starts", async context => {
   const { shell, commands } = setup();
@@ -240,6 +240,64 @@ test("streaming external sinks receive exact bytes and results retain captures",
   assert.deepEqual([...result.stdoutBytes], chunks);
   assert.deepEqual([...(await shell.exec("pass", { stdin: Uint8Array.from([255, 0]) })).stdoutBytes], [255, 0]);
 });
+
+for (const length of [0, 17, 4096, 8192]) {
+  test(`terminal result extraction copies only necessary bytes and releases captures before decoding: ${length}`, async context => {
+    const { shell, commands } = setup({ limits: { maxOutputBytes: Math.max(1, length * 2) } });
+    const captures = new Set<Capture>();
+    const decodings: { input: unknown; retainedChunks: number; retainedBytes: number }[] = [];
+    const originalWrite = Capture.prototype.write;
+    context.mock.method(Capture.prototype, "write", function (this: Capture, chunk: Uint8Array) {
+      captures.add(this);
+      return originalWrite.call(this, chunk);
+    });
+    const originalDecode = TextDecoder.prototype.decode;
+    context.mock.method(TextDecoder.prototype, "decode", function (this: typeof TextDecoder.prototype, ...args: Parameters<typeof originalDecode>) {
+      decodings.push({
+        input: args[0],
+        retainedChunks: [...captures].reduce((total, capture) => total + capture.chunks.length, 0),
+        retainedBytes: [...captures].reduce((total, capture) => total + capture.length, 0),
+      });
+      return originalDecode.apply(this, args);
+    });
+    const set = context.mock.method(Uint8Array.prototype, "set");
+    let cleaned = false;
+    commands.register({ name: "emit-owned", async execute(command) {
+      command.registerCleanup!(async () => { await Promise.resolve(); cleaned = true; });
+      for (const channel of ["stdout", "stderr"] as const) {
+        if (!length) await command[channel].write(new Uint8Array());
+        for (let offset = 0; offset < length; offset += 4096) {
+          const producer = new Uint8Array(Math.min(4096, length - offset)).fill(channel === "stdout" ? 65 : 66);
+          await command[channel].write(producer);
+          producer.fill(90);
+        }
+      }
+      return { exitCode: 7 };
+    } });
+    let delivered = 0;
+    const sink = { async write(chunk: Uint8Array) { delivered += chunk.byteLength; chunk.fill(89); } };
+    try {
+      const result = await shell.exec("emit-owned", { stdout: sink, stderr: sink });
+      assert.equal(result.exitCode, 7);
+      assert.equal(cleaned, true);
+      assert.equal(delivered, length * 2);
+      assert.equal(captures.size, 2);
+      for (const [bytes, expected] of [[result.stdoutBytes, 65], [result.stderrBytes, 66]] as const) {
+        const copiedBytes = set.mock.calls.reduce((total, call) => total + (call.this === bytes ? call.arguments[0].length : 0), 0);
+        assert.equal(copiedBytes, length === 4096 ? 0 : length, "terminal assembly copy bytes");
+        assert.equal(bytes.byteLength, length);
+        assert.equal(bytes.buffer.byteLength, length);
+        assert.ok(bytes.every(byte => byte === expected));
+        const decoding = decodings.find(call => call.input === bytes);
+        assert.ok(decoding);
+        assert.deepEqual({ chunks: decoding.retainedChunks, bytes: decoding.retainedBytes }, { chunks: 0, bytes: 0 });
+        bytes.fill(88);
+      }
+      assert.equal(result.stdout, "A".repeat(length));
+      assert.equal(result.stderr, "B".repeat(length));
+    } finally { await shell.dispose(); }
+  });
+}
 
 test("AbortSignal reaches commands and releases blocked pipelines", { timeout: 3000 }, async () => {
   const { shell, commands } = setup();

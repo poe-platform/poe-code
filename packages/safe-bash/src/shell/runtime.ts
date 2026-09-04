@@ -242,6 +242,16 @@ export class Capture implements ByteSink {
     }
     return bytes;
   }
+
+  takeBytes(): Uint8Array {
+    const chunk = this.chunks.length === 1 ? this.chunks[0] : undefined;
+    const bytes = chunk && chunk.byteLength === chunk.buffer.byteLength ? chunk : this.bytes();
+    this.chunks.length = 0;
+    this.length = 0;
+    this.#tail = undefined;
+    this.#tailLength = 0;
+    return bytes;
+  }
 }
 
 interface GetoptsBinding {

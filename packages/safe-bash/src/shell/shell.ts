@@ -298,8 +298,8 @@ export class Shell implements PluginHost {
       if (failed) await stdin?.close().catch(() => {});
       else await stdin?.close();
     }
-    const stdoutBytes = stdout.bytes();
-    const stderrBytes = stderr.bytes();
+    const stdoutBytes = stdout.takeBytes();
+    const stderrBytes = stderr.takeBytes();
     return {
       stdout: new TextDecoder("utf-8", { ignoreBOM: true }).decode(stdoutBytes),
       stderr: new TextDecoder("utf-8", { ignoreBOM: true }).decode(stderrBytes),

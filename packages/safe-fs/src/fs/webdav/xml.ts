@@ -9,7 +9,10 @@ export interface XmlLimits {
   readonly maxDepth?: number;
   readonly maxNodes?: number;
   readonly maxAttributes?: number;
+  readonly maxResponses?: number;
 }
+
+export class XmlResponseLimitError extends SyntaxError {}
 
 const xmlNamespace = "http://www.w3.org/XML/1998/namespace";
 const xmlnsNamespace = "http://www.w3.org/2000/xmlns/";
@@ -81,7 +84,7 @@ export function parseXml(input: string, limits: XmlLimits = {}): XmlElement {
   const maxDepth = limits.maxDepth ?? 64;
   const maxNodes = limits.maxNodes ?? 100_000;
   const maxAttributes = limits.maxAttributes ?? 10_000;
-  for (const limit of [maxDepth, maxNodes, maxAttributes]) {
+  for (const limit of [maxDepth, maxNodes, maxAttributes, ...(limits.maxResponses === undefined ? [] : [limits.maxResponses])]) {
     if (!Number.isSafeInteger(limit) || limit < 1) throw new RangeError("XML limits must be positive integers");
   }
   for (const character of input) {
@@ -93,6 +96,7 @@ export function parseXml(input: string, limits: XmlLimits = {}): XmlElement {
   let offset = 0;
   let nodes = 0;
   let attributeCount = 0;
+  let responses = 0;
   const whitespace = (): void => {
     while (offset < source.length && " \t\n\r".includes(source[offset]!)) offset++;
   };
@@ -193,8 +197,15 @@ export function parseXml(input: string, limits: XmlLimits = {}): XmlElement {
       }
       const [prefix, localName] = qualifiedName(name);
       if (prefix === "xmlns" || (prefix && !namespaces.has(prefix))) invalid("unbound element prefix");
-      const element: XmlElement = { namespace: namespaces.get(prefix) ?? "", localName, children: [], text: "" };
       if (++nodes > maxNodes || stack.length + 1 > maxDepth) invalid("XML resource limit exceeded");
+      const namespace = namespaces.get(prefix) ?? "";
+      if (limits.maxResponses !== undefined && stack.length === 1
+        && root?.namespace === "DAV:" && root.localName === "multistatus"
+        && namespace === "DAV:" && localName === "response"
+        && ++responses > limits.maxResponses) {
+        throw new XmlResponseLimitError("WebDAV XML response limit exceeded");
+      }
+      const element: XmlElement = { namespace, localName, children: [], text: "" };
       const parent = stack.at(-1);
       if (parent) parent.element.children.push(element);
       else if (root) invalid("multiple root elements");

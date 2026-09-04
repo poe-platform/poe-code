@@ -3,6 +3,7 @@ import { assertInputRequirements, bufferLimit, concatenate, define, diagnostic, 
 import { assertCommandRequirements } from "../contracts/command-requirements.js";
 import { inputRequirements, textOutputRequirements } from "./portable-requirements.js";
 import { yieldTurn } from "../contracts/yield.js";
+import { SortRecordBudget } from "./sort-admission.js";
 
 class SortWork {
   #pending = 0;
@@ -279,18 +280,23 @@ async function emitRecords(context: CommandContext, records: ByteSource, destina
   }
 }
 
-async function collectSortRecords(source: ByteSource, delimiter: number, accept: (bytes: Uint8Array) => void): Promise<void> {
+async function collectSortRecords(source: ByteSource, delimiter: number, budget: SortRecordBudget, signal: AbortSignal, accept: (bytes: Uint8Array) => boolean | void | Promise<boolean | void>): Promise<boolean> {
   let pending: Uint8Array[] = [];
   let size = 0;
   for await (const chunk of source) {
     let start = 0;
     for (let offset = 0; offset < chunk.length; offset++) {
       if (chunk[offset] !== delimiter) continue;
-      const part = chunk.subarray(start, offset);
-      size += part.length;
+      size += offset - start;
       if (size > bufferLimit) throw new FsError("EFBIG", { message: "line buffer limit exceeded" });
-      if (pending.length) { pending.push(part); accept(concatenate(pending, size)); }
-      else accept(new Uint8Array(part));
+      signal.throwIfAborted();
+      budget.admit(size);
+      const part = chunk.subarray(start, offset);
+      let record: Uint8Array;
+      if (pending.length) { pending.push(part); record = concatenate(pending, size); }
+      else record = new Uint8Array(part);
+      const accepted = accept(record);
+      if ((accepted instanceof Promise ? await accepted : accepted) === false) return false;
       pending = []; size = 0; start = offset + 1;
     }
     if (start < chunk.length) {
@@ -299,7 +305,12 @@ async function collectSortRecords(source: ByteSource, delimiter: number, accept:
       if (size > bufferLimit) throw new FsError("EFBIG", { message: "line buffer limit exceeded" });
     }
   }
-  if (size) accept(concatenate(pending, size));
+  if (size) {
+    signal.throwIfAborted();
+    budget.admit(size);
+    return await accept(concatenate(pending, size)) !== false;
+  }
+  return true;
 }
 
 export function textCommands(): CommandDefinition[] {
@@ -388,30 +399,23 @@ export function textCommands(): CommandDefinition[] {
         return result || (simple || parsed.flags.has("s") || parsed.flags.has("u") ? 0 : await compareSortBytes(left, right, work) * direction);
       };
       const records: Uint8Array[] = [];
-      let size = 0;
+      const recordBudget = new SortRecordBudget();
       const exitCode: number = 0;
       const delimiter = parsed.flags.has("z") ? 0 : 10;
       for (const name of parsed.operands.length ? parsed.operands : ["-"]) {
         try {
-          if (!parsed.flags.has("c")) {
-            await collectSortRecords(input(context, name), delimiter, bytes => {
-              context.signal.throwIfAborted();
-              size += bytes.length + 1;
-              if (size > bufferLimit) throw new FsError("EFBIG", { message: "sort buffer limit exceeded" });
-              records.push(bytes);
-            });
-            continue;
-          }
-          for await (const line of lines(input(context, name), delimiter)) {
+          const complete = await collectSortRecords(input(context, name), delimiter, recordBudget, context.signal, bytes => {
             context.signal.throwIfAborted();
-            size += line.bytes.length + 1;
-            if (size > bufferLimit) throw new FsError("EFBIG", { message: "sort buffer limit exceeded" });
-            if (parsed.flags.has("c") && records.length && (await compare(records.at(-1)!, line.bytes) > 0 || parsed.flags.has("u") && await keyCompare(records.at(-1)!, line.bytes) === 0)) {
-              await diagnostic(context, new Error(`disorder at record ${records.length + 1}`));
-              return { exitCode: 1 };
-            }
-            records.push(line.bytes);
-          }
+            if (!parsed.flags.has("c")) { records.push(bytes); return; }
+            return (async () => {
+              if (records.length && (await compare(records.at(-1)!, bytes) > 0 || parsed.flags.has("u") && await keyCompare(records.at(-1)!, bytes) === 0)) {
+                await diagnostic(context, new Error(`disorder at record ${records.length + 1}`));
+                return false;
+              }
+              records.push(bytes);
+            })();
+          });
+          if (!complete) return { exitCode: 1 };
         } catch (error) { await diagnostic(context, error); return { exitCode: 2 }; }
       }
       if (parsed.flags.has("c")) return { exitCode };

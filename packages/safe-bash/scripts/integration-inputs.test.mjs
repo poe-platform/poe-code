@@ -416,6 +416,9 @@ function assertSource7Discovery(files) {
   assert.ok(files.includes("tests/commands/text-programs/format-admission.test.ts"));
   assert.ok(files.includes("tests/commands/network/private-addresses.test.ts"));
   assert.ok(files.includes("tests/commands/network/private-address-integration.test.ts"));
+  assert.ok(files.includes("tests/commands/core-sort/record-budget.test.ts"));
+  assert.ok(files.includes("tests/commands/core-sort/record-admission.test.ts"));
+  assert.ok(files.includes("tests/commands/core-sort/record-integration.test.ts"));
   assert.ok(files.includes("tests/plugins/git-removal.test.ts"));
   assert.ok(files.includes("tests/shell-stress/invocation-closure/v2-batch-controls.test.ts"));
   assert.ok(!files.includes("tests/commands/git/io-cleanup.test.ts"));

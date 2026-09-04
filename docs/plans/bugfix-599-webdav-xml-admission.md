@@ -87,3 +87,64 @@ fa12cba93a8ce44e1ac45efc1cfd124ead50d68445a9cad40ea234a52a4e855b  src/fs/webdav/
 Local validation is complete; exact-path commit is next. Verify remote-main delivery before
 closing #599, then monitor actual publication while progressing to the next
 validated issue. Local commits, pushes and releases remain separate milestones.
+
+## Downstream listing-budget correction — September 4, 2026
+
+Root supplied post-merge HEAD `a3e1beba8` after upstream `4b98f2357` (#599).
+The original downstream run remains preserved at
+`/tmp/kamilio-565-571-merge-webdav.log`: 177 passed / 1 failed. The existing
+`packages/safe-bash/tests/fs/webdav/listing-budget.test.ts` expected its rich
+12,000-child listing to bypass independent structural admission when byte and
+entry budgets were sufficient. A direct Node 22.22.0/tsx reproduction confirmed
+1 passed / 1 failed, with the large positive rejecting as `EIO`:
+`/tmp/kamilio-599-listing-correction-red.log`.
+
+Scoped AGENTS instructions and active seal/protected-owner references were
+checked before editing; no active seal naming this test was found. Historical
+captures and seals remain unchanged. This correction owns only the existing
+listing-budget test and this appended evidence; no production, caps, API,
+README, manifest, or seal changes are made.
+
+- Preserve `listing(12_000)` unchanged as an explicit structural negative:
+  108,011 elements and 24,001 attributes, including the self response and root
+  namespace declaration. Its per-child local namespace and `xml:lang` attributes
+  reach the independent 10,000-attribute cap first. Assert `EIO`, `PROPFIND`, path
+  `/`, and the specific XML attribute-limit `SyntaxError` cause despite exact
+  sufficient `maxXmlBytes` and `maxEntries: 12_001`.
+- Preserve the original 256-child locally namespaced positive unchanged.
+- Add a separate minimal 12,000-child positive with a self response, shared DAV
+  namespace, href, resource type, content length, and successful propstat status.
+  It uses 84,009 elements and one attribute, within both independent caps, and
+  remains larger than 2 MiB. Assert all 12,000 entries are files. Exact byte and
+  12,001-response budgets succeed; one fewer byte or one fewer admitted response
+  still rejects as `EFBIG`.
+- Replace obsolete hidden-counter wording with explicit independent-cap wording.
+  This intentionally rejects the old oversized rich profile; it is not universal
+  compatibility for every previously accepted 12,000-entry document.
+
+Verification uses the supplied `/tmp/kamilio-toolchain.path` Node 22 toolchain,
+private TMPDIR from `/tmp/kamilio-561-562-tmp.path`, `TSX_DISABLE_CACHE=1`, unset
+`NO_COLOR`, and cleared child Git-local variables without invoking Git. Every
+exec requested escalation. Direct commands, from the repository root:
+
+```text
+node --import tsx --test packages/safe-bash/tests/fs/webdav/listing-budget.test.ts
+node --import tsx --test --test-concurrency=1 packages/safe-bash/tests/fs/webdav/webdav.test.ts packages/safe-bash/tests/fs/webdav/listing-budget.test.ts packages/safe-bash/tests/fs/webdav/review-regressions.test.ts packages/safe-bash/tests/commands/directory-admission.test.ts
+```
+
+- First correction run: 2 passed / 1 failed; the nested cause assertion used a
+  plain object where Node's deep comparison requires an Error instance. Preserve
+  `/tmp/kamilio-599-listing-correction-green.log` as failed evidence. Correct only
+  the assertion to the exact `SyntaxError`, not production error behavior.
+- Final focused run: 3 passed / 0 failed, approximately 0.59 seconds:
+  `/tmp/kamilio-599-listing-correction-green-final.log`.
+- Exact four-file downstream cohort: 179 passed / 0 failed, approximately
+  1.79 seconds: `/tmp/kamilio-599-listing-correction-cohort.log`.
+- No separate typecheck, Git, build, broad gate, commit, push, issue action, or
+  release action was run in this correction. Root reports #599 already closed,
+  the post-merge build passed, and all 1,141 SafeFS tests passed; those are root
+  evidence, not newly executed worker checks. Final normal lint, consumers,
+  six-issue-batch delivery and release verification remain root-owned.
+
+Correction frozen for root handoff after these scoped passes; no issue reopening
+or relaxation of independent XML admission is requested.

@@ -380,6 +380,7 @@ function assertSource7Discovery(files) {
     "tests/integrations/safejs/published-replay.test.ts",
   ];
   for (const path of [
+    "tests/commands/bytes/input-budget.test.ts",
     "tests/commands/node-safejs.test.ts",
     "tests/commands/input.test.ts",
     "tests/commands/network/mounted-output.test.ts",
@@ -391,6 +392,7 @@ function assertSource7Discovery(files) {
   for (const path of removed) assert.ok(!files.includes(path), "removed filesystem test remains selected: " + path);
   for (const path of added) assert.ok(files.includes(path), "retained filesystem test is missing: " + path);
   assert.ok(files.includes("tests/fs/conformance/provenance.test.ts"));
+  assert.ok(files.includes("tests/integration/typecheck-consumer-resolution.test.ts"));
   assert.ok(files.includes("tests/plugins/git-removal.test.ts"));
   assert.ok(files.includes("tests/shell-stress/invocation-closure/v2-batch-controls.test.ts"));
   assert.ok(!files.includes("tests/commands/git/io-cleanup.test.ts"));

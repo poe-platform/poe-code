@@ -420,6 +420,11 @@ function assertSource7Discovery(files) {
     "tests/shell/byte-values.test.ts",
   ]) assert.ok(files.includes(path), "retained byte-value test is missing: " + path);
   for (const path of [
+    "tests/contracts/filesystem-descriptor.test.ts",
+    "tests/contracts/filesystem-descriptor-review.test.ts",
+    "tests/shell/counted-file-output.test.ts",
+  ]) assert.ok(files.includes(path), "counted descriptor test is missing: " + path);
+  for (const path of [
     "tests/commands/yes/yes.test.ts",
     "tests/commands/yes/native.test.ts",
     "tests/commands/yes/integration.test.ts",

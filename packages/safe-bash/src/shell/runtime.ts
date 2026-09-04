@@ -182,6 +182,24 @@ export class Budget {
     this.sourceBytes += bytes;
   }
 
+  async writeCounted(chunk: Uint8Array, write: () => Promise<number>, signal = this.signal): Promise<number> {
+    signal.throwIfAborted();
+    if (!(chunk instanceof Uint8Array)) throw new TypeError("Shell output must be Uint8Array");
+    const reserved = chunk.byteLength;
+    if (reserved > this.limits.maxOutputBytes - this.bytes) this.fail("maxOutputBytes");
+    this.bytes += reserved;
+    try {
+      const count = await write();
+      if (!Number.isSafeInteger(count) || count < 0 || count > reserved) throw new FsError("EIO", { syscall: "write", message: "invalid byte count" });
+      this.bytes -= reserved - count;
+      signal.throwIfAborted();
+      return count;
+    } catch (error) {
+      signal.throwIfAborted();
+      throw error;
+    }
+  }
+
   sink(sink: ByteSink, signal = this.signal): ByteSink {
     const ownership = budgetedSinks.get(sink);
     if (ownership?.budget === this && ownership.write === sink.write) return signalSink(sink, signal);
@@ -2613,7 +2631,7 @@ export class Runtime {
         return invocation;
       },
     };
-    bindFileOutputBudget(context, sink => this.budget.sink(sink, this.signal));
+    bindFileOutputBudget(context, sink => this.budget.sink(sink, this.signal), (chunk, write) => this.budget.writeCounted(chunk, write, this.signal));
     if (argumentValues.values.every(value => typeof value === "string")) Reflect.deleteProperty(context, "argumentValues");
     const middleware = this.middleware.map<Middleware>((handler) => (context, next) => {
       scope.assertOpen();
@@ -3155,7 +3173,7 @@ export class Runtime {
           return invocation;
         },
       };
-      bindFileOutputBudget(context, sink => this.budget.sink(sink, runtime.signal));
+      bindFileOutputBudget(context, sink => this.budget.sink(sink, runtime.signal), (chunk, write) => this.budget.writeCounted(chunk, write, runtime.signal));
       if (argumentValues.values.every(value => typeof value === "string")) Reflect.deleteProperty(context, "argumentValues");
       const child = await runtime.shebangState(context, state);
       const childIO = { ...io, ...context, [invocationScope]: scope };

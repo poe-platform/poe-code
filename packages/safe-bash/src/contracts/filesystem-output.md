@@ -71,6 +71,55 @@ not promise that incremental adapters can undo published bytes. `tee` destinatio
 are independent operations, not a multi-file transaction: a failing target does
 not roll back another successfully completed target.
 
+## Retained command descriptors and counted output
+
+`openCommandFile` in `filesystem-descriptor.ts` acquires an optional canonical
+filesystem descriptor. Operations retain that acquired object across namespace
+changes; they never reopen the pathname or emulate writes by reading and replacing
+a file. Unsupported providers refuse acquisition. Access modes and advertised
+positioning, truncation and synchronization capabilities remain authoritative;
+memory synchronization does not imply durable storage.
+
+Cleanup is registered before capability lookup and acquisition. Idempotent close
+immediately refuses new operations, waits for acquisition and admitted cooperative
+work, closes a late-arriving descriptor, and releases the retained reference.
+Normal close drains admitted work rather than canceling it. Cancellation prevents
+queued work from starting and is forwarded to active operations. Root cancellation
+takes precedence; otherwise the original failure, including falsey thrown values,
+is preserved over secondary cleanup failures. Opaque uncooperative host work cannot
+be forcibly interrupted.
+
+`bindFileOutputBudget(context, sinkBudget, countedWrite)` binds both output forms
+to the same runtime cleanup owner (`context.registerCleanup`), using one WeakMap.
+`writeFileOutputCounted` returns a validated partial byte count rather than hiding
+it behind a `ByteSink`. An enrolled owner with only a sink binding refuses counted
+writes; writable `openCommandFile` acquisition checks this before creation or
+truncation. Standard output already charged by its sink must not be charged again.
+An unbound standalone context is explicitly trusted: its host owns output limits
+and cleanup enrollment. This is neither a cross-runtime binding mechanism nor a
+process-isolation boundary.
+
+The runtime counted writer reserves the requested byte length in the same ledger
+as stream and standard output before admitting the write. Only a successful safe
+integer count from zero through the requested length permits one refund of the
+unused reservation. Failure, cancellation or an invalid/unknown count retains the
+full conservative charge. A partial-write retry is a new admission; the helper
+does not retry. Zero is a valid partial count, so a copying command must separately
+reject nonempty zero-progress writes. Output accounting is not a logical-file-size
+quota: positioning and truncation remain filesystem operations.
+
+Callers must not mutate a borrowed buffer until the returned operation settles.
+The counted callback can admit the underlying writer only once and cannot save it
+for invocation after settlement. Even if that callback fails without awaiting an
+already-started writer, the helper drains the writer before settling, preserving
+buffer ownership and the primary failure. Descriptor close joins that work too.
+These guarantees do not automatically migrate the legacy shell redirection
+implementation described below to canonical descriptors.
+
+Focused coverage lives in `tests/contracts/filesystem-descriptor.test.ts`, the
+independent `tests/contracts/filesystem-descriptor-review.test.ts`, and
+`tests/shell/counted-file-output.test.ts`.
+
 ## Redirection descriptors and visibility
 
 Filesystems explicitly advertising `randomAccessWrite: true` retain the existing

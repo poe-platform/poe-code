@@ -161,6 +161,32 @@ this request to keep additions out of the default package.
   is still under development and is not yet exported by the optional entry.
   Actual repaired flow-comment and element-selection output was rendered and
   inspected in `yq-phase1-final-visual.png` under the native-oracle directory.
+- Restricted yq repairs are locally committed as `0c7531ade`. Guarded root
+  ESLint's seventh run completed cleanly with exit 0. Post-trap source inventory
+  checks pass all 36 tests, retaining 79 defaults. Workspace/root dry-pack
+  inventories contain 1,050/4,641 files and no optional implementation artifacts;
+  these checks do not claim a release or that normal builds delete optional files.
+- Root captured fourteen native yq in-place fixtures from the exact authenticated
+  current request in `yq-inplace-root-hhxk41/evidence.json` under the oracle
+  directory. Captures retain raw output, metadata, inode/link relationships,
+  target bytes and private temporary-directory contents. Successful symlink
+  writes preserve the target inode; ordinary hardlink replacement breaks the
+  link. Five native failure cases leave temporary files. These observations are
+  input to implementation review, not a product parity pass or permission to
+  intentionally leak product-owned temporary resources.
+- Counted descriptor output passes independent review and the final root scoped
+  run: 89 tests, zero failures/skips, including fourteen independent cases and
+  29 actual Runtime cases. Review first reproduced late callback invocation and
+  premature settlement of admitted writes; those defects are repaired without
+  weakening assertions. One shared output ledger reserves requested bytes before
+  writes, refunds only validated partial success, and retains unknown-failure
+  charges. Descriptor ownership registers cleanup before acquisition and drains
+  admitted operations and late handles. This is not broad DD command approval.
+  The selected workspace closure and optional build pass. A new actual public
+  consumer first failed because the descriptor module was not built; after the
+  build, all fifteen optional/public tests and strict consumer types pass. That
+  case verifies binary partial writes, shared stdout accounting, limit rejection
+  and exactly-once retained-handle cleanup.
 
 - First implementation wave: cmp, yes, shuf and virtual devices in disjoint leaf
   directories. Root is qualifying native oracles and the opt-in delivery boundary.

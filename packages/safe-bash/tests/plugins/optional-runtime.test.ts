@@ -143,6 +143,42 @@ describe("explicit coherent optional build", { skip: selected === undefined ? "R
     assert.deepEqual(diagnostics.map(diagnostic => ts.flattenDiagnosticMessageText(diagnostic.messageText, "\n")), []);
   });
 
+  test("public host shares counted descriptor output accounting and drains its retained handle", async () => {
+    const { published } = await runtimes();
+    const helpers = await import(new URL("../../dist/contracts/filesystem-descriptor.js", import.meta.url).href) as typeof import("../../src/contracts/filesystem-descriptor.js");
+    const fs = createMemoryFileSystem();
+    const open = fs.open.bind(fs);
+    let writes = 0;
+    let closes = 0;
+    fs.open = async (...args) => {
+      const descriptor = await open(...args);
+      const write = descriptor.write.bind(descriptor);
+      const close = descriptor.close.bind(descriptor);
+      descriptor.write = (bytes, position, options) => {
+        writes++;
+        return write(bytes.subarray(0, 2), position, options);
+      };
+      descriptor.close = async () => { closes++; await close(); };
+      return descriptor;
+    };
+    const shell = new published.Shell({ fs, limits: { maxOutputBytes: 4 } });
+    shell.register({ name: "counted", runtimeIdentity: published.commandRuntimeIdentity, async execute(context) {
+      await context.stdout.write(Uint8Array.of(120));
+      const descriptor = await helpers.openCommandFile(context, "/out", { access: "write", creation: "exclusive" });
+      const bytes = Uint8Array.of(255, 0, 66);
+      assert.equal(await descriptor.write(bytes, null), 2);
+      assert.equal(await descriptor.write(bytes.subarray(2), null), 1);
+      await context.stdout.write(Uint8Array.of(121));
+      return { exitCode: 0 };
+    } });
+    try {
+      await assert.rejects(shell.exec("counted"), error => error instanceof published.ShellLimitError && error.limit === "maxOutputBytes");
+      assert.deepEqual(await fs.readFile("/out"), Uint8Array.of(255, 0, 66));
+      assert.equal(writes, 2);
+      assert.equal(closes, 1);
+    } finally { await shell.dispose(); }
+  });
+
   test("compiled shuf preserves raw binary operands through the public host", async () => {
     const { published, optional } = await runtimes();
     const shell = new published.Shell({ fs: createMemoryFileSystem() }).use(optional.shufCommands());

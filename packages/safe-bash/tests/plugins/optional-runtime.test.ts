@@ -12,8 +12,10 @@ type OptionalRuntime = {
   createYesCommand(): PublishedDefinition;
   createCmpCommand(): PublishedDefinition;
   createShufCommand(): PublishedDefinition;
+  createTruncateCommand(): PublishedDefinition;
   yesCommands(): import("poe-code/safe-bash").VirtualShellPlugin;
   shufCommands(): import("poe-code/safe-bash").VirtualShellPlugin;
+  truncateCommands(): import("poe-code/safe-bash").VirtualShellPlugin;
 };
 
 const selected = process.env.SAFE_BASH_TEST_OPTIONAL_BUILD;
@@ -29,7 +31,7 @@ describe("explicit coherent optional build", { skip: selected === undefined ? "R
   test("optional factories and public host share the actual contract instance", async () => {
     const { published, optional } = await runtimes();
     assert.equal(optional.Shell, published.Shell);
-    for (const command of [optional.createYesCommand(), optional.createCmpCommand(), optional.createShufCommand()]) {
+    for (const command of [optional.createYesCommand(), optional.createCmpCommand(), optional.createShufCommand(), optional.createTruncateCommand()]) {
       assert.equal(command.runtimeIdentity, published.commandRuntimeIdentity);
       assert.equal(new published.CommandRegistry([command]).has(command.name), true);
     }
@@ -101,8 +103,9 @@ describe("explicit coherent optional build", { skip: selected === undefined ? "R
       'import { Shell, CommandRegistry } from "poe-code/safe-bash";',
       'import { createMemoryFileSystem } from "poe-code/safe-fs";',
       'import { createYesCommand, yesCommands, createShufCommand, shufCommands } from "../../dist/optional.js";',
-      'new CommandRegistry([createYesCommand(), createShufCommand()]);',
-      'new Shell({ fs: createMemoryFileSystem() }).use(yesCommands()).use(shufCommands());',
+      'import { createTruncateCommand, truncateCommands } from "../../dist/optional.js";',
+      'new CommandRegistry([createYesCommand(), createShufCommand(), createTruncateCommand()]);',
+      'new Shell({ fs: createMemoryFileSystem() }).use(yesCommands()).use(shufCommands()).use(truncateCommands());',
     ].join("\n");
     const options: ts.CompilerOptions = {
       noEmit: true, strict: true, exactOptionalPropertyTypes: true,
@@ -135,6 +138,34 @@ describe("explicit coherent optional build", { skip: selected === undefined ? "R
     try {
       await assert.rejects(shell.exec("shuf -e abc -o /out"), error => error instanceof published.ShellLimitError && error.limit === "maxOutputBytes");
       assert.ok((await fs.readFile("/out")).length <= 1);
+    } finally { await shell.dispose(); }
+  });
+
+  test("compiled truncate receives preferred I/O metadata through the public filesystem", async () => {
+    const { published, optional } = await runtimes();
+    const fs = createMemoryFileSystem();
+    const shell = new published.Shell({ fs }).use(optional.truncateCommands());
+    try {
+      const result = await shell.exec("truncate -o -s 1 /blocks");
+      assert.equal(result.exitCode, 0, result.stderr);
+      const stat = await fs.stat("/blocks");
+      assert.equal(stat.ioBlockSize, 65536);
+      assert.equal(stat.size, stat.ioBlockSize);
+    } finally { await shell.dispose(); }
+  });
+
+  test("compiled truncate preserves raw arguments without aliasing decoded filenames", async () => {
+    const { published, optional } = await runtimes();
+    const fs = createMemoryFileSystem();
+    await fs.writeFile("/\ufffd", Uint8Array.of(1, 2, 3));
+    const shell = new published.Shell({ fs }).use(optional.truncateCommands());
+    try {
+      const diagnostic = await shell.exec("truncate -s $'\\377' /out");
+      assert.equal(diagnostic.exitCode, 1);
+      assert.deepEqual(Buffer.from(diagnostic.stderrBytes), Buffer.from("truncate: Invalid number: '\\377'\n"));
+      const filename = await shell.exec("truncate -s 0 $'\\377'");
+      assert.equal(filename.exitCode, 1);
+      assert.deepEqual(await fs.readFile("/\ufffd"), Uint8Array.of(1, 2, 3));
     } finally { await shell.dispose(); }
   });
 });

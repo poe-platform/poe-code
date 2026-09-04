@@ -49,6 +49,9 @@ jobs:
           node-version: ${{ matrix.node-version }}
       - name: Install dependencies
         run: npm clean-install
+      - name: Keep Node 18 smoke npm compatible with its runtime
+        if: matrix.node-version == '18.18.0'
+        run: npm install --no-save --package-lock=false --ignore-scripts --no-audit --no-fund npm@9.8.1
       - name: Build toolcraft and bundled dependencies
         run: npx turbo build --filter=toolcraft
       - name: Verify published SDK declaration types

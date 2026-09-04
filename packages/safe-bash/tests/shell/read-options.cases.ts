@@ -63,3 +63,30 @@ test("C byte counts explicitly reject an incomplete UTF-8 text value", async () 
   assert.match(result.stderr, /unsupported non-UTF-8 text boundary/u);
   assert.deepEqual(result.stdoutBytes, new Uint8Array([...new TextEncoder().encode('["","1"]'), 0xa9, 90]));
 });
+
+for (const [options, input, values, tail] of [
+  ["-n2", "\\😀xTAIL", ["😀x", ""], "TAIL"],
+  ["-N3 -d x", "x yTAIL", ["x y", ""], "TAIL"],
+  ["-rN2", "a\0bTAIL", ["ab", ""], "TAIL"],
+  ["-d ''", "a\0bTAIL", ["a", ""], "bTAIL"],
+] as const) {
+  test(`read bounded fragments preserve ${options}`, async () => {
+    const { shell } = setup();
+    try {
+      const result = await shell.exec(`read ${options} first second; args "$?" "$first" "$second"; pass`, { stdin: input, env: { LC_ALL: "en_US.UTF-8" } });
+      assert.equal(result.stdout, JSON.stringify(["0", ...values]) + tail);
+      assert.equal(result.stderr, "");
+    } finally { await shell.dispose(); }
+  });
+}
+
+for (const [options, suffix] of [["-rn4097", ""], ["-rN4097", ""], ["-rd :", ":"]] as const) {
+  test(`read bounded text spans several fragment batches: ${options}`, async () => {
+    const { shell } = setup();
+    try {
+      const result = await shell.exec(`read ${options} value; args "$value"; pass`, { stdin: `${"😀".repeat(4097)}${suffix}TAIL`, env: { LC_ALL: "en_US.UTF-8" } });
+      assert.equal(result.stdout, JSON.stringify(["😀".repeat(4097)]) + "TAIL");
+      assert.equal(result.stderr, "");
+    } finally { await shell.dispose(); }
+  });
+}

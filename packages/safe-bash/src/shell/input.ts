@@ -137,6 +137,22 @@ class InputCursor {
   }
 }
 
+class ReadText {
+  readonly #chunks: string[] = [];
+  readonly #pending: string[] = [];
+
+  append(value: string): void {
+    if (!value) return;
+    this.#pending.push(value);
+    if (this.#pending.length === 1024) {
+      this.#chunks.push(this.#pending.join(""));
+      this.#pending.length = 0;
+    }
+  }
+
+  finish(): string { return this.#chunks.join("") + this.#pending.join(""); }
+}
+
 export class ShellInput implements ByteSource {
   readonly #cursor: InputCursor;
   readonly #owned: boolean;
@@ -192,7 +208,8 @@ export class ShellInput implements ByteSource {
   }
 
   private async readBounded(raw: boolean, options: { count?: number; delimiter?: number; byteCount?: boolean; exact?: boolean }): Promise<{ value: string; escaped: ReadonlySet<number>; terminated: boolean }> {
-    const characters: string[] = [];
+    const text = new ReadText();
+    let characters = 0;
     const escaped = new Set<number>();
     const decoder = new TextDecoder("utf-8", { fatal: true });
     const delimiter = options.delimiter ?? 10;
@@ -231,18 +248,21 @@ export class ShellInput implements ByteSource {
           escapedCharacter = true;
         }
         const decoded = decoder.decode(Uint8Array.of(byte), { stream: true });
+        let decodedCharacters = 0;
         for (const character of decoded) {
           if (escapedCharacter) {
             escapedCharacter = false;
-            escaped.add(characters.length);
+            escaped.add(characters);
           }
-          characters.push(character);
+          text.append(character);
+          characters++;
+          decodedCharacters++;
         }
-        units += options.byteCount ? 1 : Array.from(decoded).length;
+        units += options.byteCount ? 1 : decodedCharacters;
         if (units === options.count) terminated = true;
       }
       decoder.decode();
-      return { value: characters.join(""), escaped, terminated };
+      return { value: text.finish(), escaped, terminated };
     } catch (error) {
       if (error instanceof TypeError && error.message.includes("encoded data")) throw new Error("read: unsupported non-UTF-8 text boundary");
       throw error;
@@ -286,17 +306,21 @@ export class ShellInput implements ByteSource {
     for (const chunk of chunks) { bytes.set(chunk, offset); offset += chunk.length; }
     const value = new TextDecoder().decode(bytes).replace(/\0/gu, "");
     const escaped = new Set<number>();
-    if (raw) return { value, escaped, terminated };
-    const characters = Array.from(value);
-    const unescaped: string[] = [];
-    for (let index = 0; index < characters.length; index++) {
-      if (characters[index] === "\\") {
-        if (++index === characters.length) break;
-        escaped.add(unescaped.length);
-      }
-      unescaped.push(characters[index]!);
+    if (raw || !value.includes("\\")) return { value, escaped, terminated };
+    const text = new ReadText();
+    let characters = 0;
+    for (let index = 0; index < value.length;) {
+      const slash = value.indexOf("\\", index);
+      const span = value.slice(index, slash < 0 ? value.length : slash);
+      text.append(span);
+      for (let pointOffset = 0; pointOffset < span.length; pointOffset += span.codePointAt(pointOffset)! > 0xffff ? 2 : 1) characters++;
+      if (slash < 0 || slash + 1 === value.length) break;
+      const character = String.fromCodePoint(value.codePointAt(slash + 1)!);
+      escaped.add(characters++);
+      text.append(character);
+      index = slash + 1 + character.length;
     }
-    return { value: unescaped.join(""), escaped, terminated };
+    return { value: text.finish(), escaped, terminated };
   }
 
   close(): Promise<void> {

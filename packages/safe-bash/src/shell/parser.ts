@@ -1,4 +1,6 @@
 import { ShellSyntaxError } from "./types.js";
+import type { ShellParseOptions } from "./types.js";
+import { ParseBudget } from "./parse-budget.js";
 import { arithmeticEnd, prepareArithmetic } from "./arithmetic.js";
 import type { ArithmeticProgram } from "./arithmetic.js";
 import { arraySelector, compoundEntry, compoundHead, elementAssignment, getArrayAssignment, scalarAssignmentName, setArrayAssignment, setArraySelector, setQuoteMarker } from "./arrays/syntax.js";
@@ -94,7 +96,8 @@ export interface Script {
   readonly printedNewlines?: number;
 }
 
-function printedSimpleLines(lists: readonly AndOr[], separators: readonly boolean[]): Pick<Script, "printedLines" | "printedNewlines"> {
+function printedSimpleLines(lists: readonly AndOr[], separators: readonly boolean[], budget: ParseBudget): Pick<Script, "printedLines" | "printedNewlines"> {
+  budget.admit();
   const printedLines = new Map<Command, number>();
   let line = 1;
   for (let index = 0; index < lists.length; index++) {
@@ -122,7 +125,7 @@ class Lexer {
   readonly documents: HereDocument[] = [];
   readonly newlineOffsets: number[] = [];
 
-  constructor(readonly source: string, readonly depth: number, readonly warnings: string[] = [], readonly lineOffset = 0, readonly byteLocale = false, readonly documentLine?: number, readonly partial = false) {
+  constructor(readonly budget: ParseBudget, readonly source: string, readonly depth: number, readonly warnings: string[] = [], readonly lineOffset = 0, readonly byteLocale = false, readonly documentLine?: number, readonly partial = false) {
     if (depth > 64) throw new ShellSyntaxError("Syntax nesting exceeds 64", 0);
     for (let offset = source.indexOf("\n"); offset !== -1; offset = source.indexOf("\n", offset + 1)) this.newlineOffsets.push(offset);
   }
@@ -143,6 +146,7 @@ class Lexer {
   }
 
   next(): Token {
+    this.budget.admit();
     while (this.position < this.source.length) {
       const current = this.source[this.position]!;
       if (current === " " || current === "\t" || this.conditional && current === "\n") {
@@ -181,6 +185,7 @@ class Lexer {
     if (this.position <= offset) this.error("Tokenizer made no progress");
     let document: HereDocument | undefined;
     if (delimiterOperator) {
+      this.budget.admit();
       document = {
         delimiter: word.parts.map((part) => part.kind === "text" ? part.value : "").join(""),
         quoted: word.parts.some((part) => part.quoted), stripTabs: delimiterOperator === "<<-", offset,
@@ -188,6 +193,7 @@ class Lexer {
       };
       this.documents.push(document);
     }
+    this.budget.admit();
     return { kind: "word", value: word.plain ?? "", offset, end: this.position, word: { ...word, spelling: this.source.slice(offset, this.position) }, ...(document ? { document } : {}) };
   }
 
@@ -223,8 +229,9 @@ class Lexer {
     while (this.position < this.source.length) {
       const current = this.source[this.position]!;
       if (current === "$" || current === "`") {
-        if (text) { yield { offset: 0, parts: [{ kind: "text", value: text, quoted: true }] }; text = ""; }
+        if (text) { this.budget.admit(2); yield { offset: 0, parts: [{ kind: "text", value: text, quoted: true }] }; text = ""; }
         const offset = this.position;
+        this.budget.admit();
         const parts: WordPart[] = [];
         try { this.expansion(parts, true); }
         catch (error) {
@@ -242,9 +249,9 @@ class Lexer {
         text += current;
         this.position++;
       }
-      if (text.length >= 1024) { yield { offset: 0, parts: [{ kind: "text", value: text, quoted: true }] }; text = ""; }
+      if (text.length >= 1024) { this.budget.admit(2); yield { offset: 0, parts: [{ kind: "text", value: text, quoted: true }] }; text = ""; }
     }
-    if (text) yield { offset: 0, parts: [{ kind: "text", value: text, quoted: true }] };
+    if (text) { this.budget.admit(2); yield { offset: 0, parts: [{ kind: "text", value: text, quoted: true }] }; }
   }
 
   documentSubstitutionError(source: string, error: ShellSyntaxError, backtick = false): HereDocumentSyntaxError {
@@ -293,6 +300,7 @@ class Lexer {
   }
 
   word(terminator?: string, enclosingQuoted = false, literal = false, arithmetic = false): Word {
+    this.budget.admit();
     const offset = this.position;
     const reduction = this.printedNewlineReduction;
     const unprinted = this.unprintedWords;
@@ -314,6 +322,7 @@ class Lexer {
         previous.value += value;
         if (!synthetic) setQuoteMarker(previous, false);
       } else {
+        this.budget.admit();
         const part: WordPart = { kind: "text", value: projection, quoted, ...(typeof value === "string" ? {} : { byteValue: value }) };
         setQuoteMarker(part, synthetic);
         parts.push(part);
@@ -414,6 +423,7 @@ class Lexer {
         try { return new TextDecoder("utf-8", { fatal: true, ignoreBOM: true }).decode(raw); }
         catch (error) {
           if (!(error instanceof TypeError) || !("code" in error) || error.code !== "ERR_ENCODING_INVALID_ENCODED_DATA") throw error;
+          this.budget.admit(2);
           return shellValueFromBytes(raw);
         }
       }
@@ -448,6 +458,7 @@ class Lexer {
   }
 
   expansion(parts: WordPart[], quoted: boolean): void {
+    this.budget.admit();
     const line = this.documentLine ?? this.lineAt(this.position);
     if (this.source[this.position] === "`") {
       this.position++;
@@ -458,9 +469,10 @@ class Lexer {
       }
       if (this.source[this.position] !== "`") this.error("Unterminated command substitution");
       this.position++;
-      try { parts.push({ kind: "substitution", script: parseSource(source, this.depth + 1, this.warnings, line - 1, this.byteLocale), line, quoted }); }
+      try { parts.push({ kind: "substitution", script: parseSource(source, this.depth + 1, this.warnings, line - 1, this.byteLocale, this.budget), line, quoted }); }
       catch (error) {
         if (this.documentLine === undefined || !(error instanceof ShellSyntaxError) || /nesting|exceeds/u.test(error.reason)) throw error;
+        this.budget.admit();
         parts.push({ kind: "failed-substitution", diagnostic: this.documentSubstitutionError(source, error, true).diagnostic, quoted });
       }
       return;
@@ -471,14 +483,15 @@ class Lexer {
       const start = this.position + 2;
       const end = arithmeticEnd(this.source, start);
       const source = this.source.slice(start, end);
-      parts.push({ kind: "arithmetic", expression: prepareArithmetic(source), source, line, quoted });
+      parts.push({ kind: "arithmetic", expression: prepareArithmetic(source, this.budget), source, line, quoted });
       this.position = end + 2;
     } else if (this.source[this.position] === "(") {
       const start = this.position + 1;
       let nested: Parser;
       let script: Script;
       try {
-        nested = new Parser(this.source.slice(start), this.depth + 1, this.warnings, this.lineAt(start) - 1, undefined, this.byteLocale);
+        this.budget.admit();
+        nested = new Parser(this.budget, this.source.slice(start), this.depth + 1, this.warnings, this.lineAt(start) - 1, undefined, this.byteLocale);
         script = nested.script(new Set([")"]));
       }
       catch (error) {
@@ -509,7 +522,7 @@ class Lexer {
         const start = ++this.position;
         const end = this.source.indexOf("]", start);
         if (end < 0) this.error("Unterminated indexed-array subscript");
-        selector = arraySelector(this.source.slice(start, end), start);
+        selector = arraySelector(this.source.slice(start, end), start, this.budget);
         this.position = end + 1;
         if (this.source[this.position] !== "}") this.error("Unsupported indexed-array operator");
       }
@@ -534,6 +547,7 @@ class Lexer {
           this.position++;
           substringLength = this.word("}", true, false, true);
         }
+        this.budget.admit();
         substring = { offset, ...(substringLength ? { length: substringLength } : {}), source: this.source.slice(parameterStart, this.position + 1) };
       }
       if (this.source[this.position] !== "}") this.error("Unterminated or unsupported parameter expansion");
@@ -558,9 +572,10 @@ class Parser {
   nesting = 0;
   readonly openCommands: { name: string; line: number }[] = [];
 
-  constructor(source: string, depth: number, warnings: string[] = [], lineOffset = 0, position?: number, byteLocale = false, partial = false) {
+  constructor(readonly budget: ParseBudget, source: string, depth: number, warnings: string[] = [], lineOffset = 0, position?: number, byteLocale = false, partial = false) {
     if (position === undefined && depth === 0 && source.includes("\0")) throw new ShellSyntaxError("NUL bytes are not valid shell source", source.indexOf("\0"));
-    this.lexer = new Lexer(source, depth, warnings, lineOffset, byteLocale, undefined, partial);
+    budget.admit();
+    this.lexer = new Lexer(budget, source, depth, warnings, lineOffset, byteLocale, undefined, partial);
     this.lexer.position = position ?? 0;
     this.current = this.lexer.next();
   }
@@ -593,11 +608,13 @@ class Parser {
   newlines(): void { while (this.is("\n")) this.advance(); }
 
   script(stops = new Set<string>(), inputUnit = false): Script {
+    this.budget.admit();
     const lists: AndOr[] = [];
     const separators: boolean[] = [];
     this.newlines();
     const line = this.lexer.lineAt(this.current.offset);
     while (this.current.kind !== "end" && !stops.has(this.current.value)) {
+      this.budget.admit();
       const pipelines = [this.pipeline()];
       const operators: ("&&" | "||")[] = [];
       while (this.is("&&") || this.is("||")) {
@@ -614,20 +631,24 @@ class Parser {
         this.newlines();
       } else if (!this.isEnd() && !this.is(")") && !(stops.has(this.current.value) && [";;", ";&", ";;&"].includes(this.current.value))) this.error("Expected command separator");
     }
-    const printed = printedSimpleLines(lists, separators);
+    const printed = printedSimpleLines(lists, separators, this.budget);
     return { lists, line, ...printed };
   }
 
   pipeline(): Pipeline {
+    this.budget.admit();
     const negate = this.is("!");
     if (negate) this.advance();
     const commands = [this.command()];
     while (this.is("|") || this.is("|&")) {
       const operator = this.advance();
-      if (operator.value === "|&") commands.at(-1)!.redirects.push({
-        descriptor: 2, operator: ">&", implicitPipeline: true,
-        target: { offset: operator.offset, plain: "1", spelling: "1", parts: [{ kind: "text", value: "1", quoted: false }] },
-      });
+      if (operator.value === "|&") {
+        this.budget.admit(3);
+        commands.at(-1)!.redirects.push({
+          descriptor: 2, operator: ">&", implicitPipeline: true,
+          target: { offset: operator.offset, plain: "1", spelling: "1", parts: [{ kind: "text", value: "1", quoted: false }] },
+        });
+      }
       this.newlines();
       commands.push(this.command());
     }
@@ -636,15 +657,18 @@ class Parser {
 
   command(): Command {
     if (++this.nesting + this.lexer.depth > 64) this.error("Syntax nesting exceeds 64");
+    this.budget.admit();
     const line = this.lexer.lineAt(this.current.offset);
     this.openCommands.push({ name: this.current.value, line });
     try {
       const command = this.commandInner();
+      this.budget.admit();
       return { ...command, line: command.line ?? line };
     } finally { this.nesting--; this.openCommands.pop(); }
   }
 
   commandInner(): Command {
+    this.budget.admit();
     let command: Command;
     if (this.is("[[")) {
       const start = this.current.end;
@@ -659,9 +683,17 @@ class Parser {
       };
       const primary = (depth: number): ConditionalExpression => {
         if (depth > 64) this.error("Conditional syntax nesting exceeds 64");
-        if (this.is("!")) { admit(); this.advance(); const expression = primary(depth + 1); return expression.kind === "not" && !grouped.has(expression) ? expression.operand : { kind: "not", operand: expression }; }
+        if (this.is("!")) {
+          admit();
+          this.advance();
+          const expression = primary(depth + 1);
+          if (expression.kind === "not" && !grouped.has(expression)) return expression.operand;
+          this.budget.admit();
+          return { kind: "not", operand: expression };
+        }
         if (this.is("(")) { this.advance(); const expression = disjunction(depth + 1); this.expect(")"); grouped.add(expression); return expression; }
         admit();
+        this.budget.admit();
         const first = operand();
         if (conditionalBinary.has(this.current.value)) {
           const operator = this.current.value;
@@ -675,12 +707,12 @@ class Parser {
       };
       const conjunction = (depth: number): ConditionalExpression => {
         let expression = primary(depth);
-        while (this.is("&&")) { admit(); this.advance(); expression = { kind: "and", left: expression, right: primary(depth) }; }
+        while (this.is("&&")) { admit(); this.budget.admit(); this.advance(); expression = { kind: "and", left: expression, right: primary(depth) }; }
         return expression;
       };
       const disjunction = (depth: number): ConditionalExpression => {
         let expression = conjunction(depth);
-        while (this.is("||")) { admit(); this.advance(); expression = { kind: "or", left: expression, right: conjunction(depth) }; }
+        while (this.is("||")) { admit(); this.budget.admit(); this.advance(); expression = { kind: "or", left: expression, right: conjunction(depth) }; }
         return expression;
       };
       const expression = disjunction(1);
@@ -693,7 +725,7 @@ class Parser {
       const start = this.current.offset + 2;
       const end = arithmeticEnd(this.lexer.source, start);
       const source = this.lexer.source.slice(start, end);
-      command = { kind: "arithmetic", expression: prepareArithmetic(source), source, redirects: [] };
+      command = { kind: "arithmetic", expression: prepareArithmetic(source, this.budget), source, redirects: [] };
       this.lexer.position = end + 2;
       this.lookahead = undefined;
       this.current = this.lexer.next();
@@ -711,6 +743,7 @@ class Parser {
         const condition = this.nonemptyScript(new Set(["then"]));
         this.expect("then");
         const body = this.nonemptyScript(new Set(["elif", "else", "fi"]));
+        this.budget.admit();
         branches.push({ condition, body });
         if (!this.is("elif")) break;
         this.advance();
@@ -743,6 +776,7 @@ class Parser {
         const body = this.script(new Set([";;", ";&", ";;&", "esac"]));
         if (![";;", ";&", ";;&", "esac"].includes(this.current.value)) this.error("Expected case terminator");
         const terminator = this.current.value as CaseClause["terminator"];
+        this.budget.admit();
         clauses.push({ patterns, body, terminator });
         if (terminator === "esac") break;
         this.advance();
@@ -786,7 +820,7 @@ class Parser {
       this.newlines();
       if (!this.is("{")) this.error("Expected brace function body");
       command = { kind: "function", name, body: this.command(), redirects: [] };
-    } else if (this.current.kind === "word" && !compoundHead(this.current.word!) && this.peek().value === "(") {
+    } else if (this.current.kind === "word" && !compoundHead(this.current.word!, this.budget) && this.peek().value === "(") {
       const name = this.advance().value;
       if (!/^[a-zA-Z_][a-zA-Z_0-9]*$/u.test(name)) this.error("Invalid function name");
       this.expect("(");
@@ -806,21 +840,22 @@ class Parser {
         else if (this.current.kind === "word") {
           line ??= wordLine;
           let word = this.advance().word!;
-          const head = compoundHead(word);
+          const head = compoundHead(word, this.budget);
           if (head && this.is("(")) {
             this.advance();
             const entries: ArrayEntry[] = [];
             this.newlines();
             while (this.current.kind === "word") {
-              entries.push(compoundEntry(this.advance().word!));
+              entries.push(compoundEntry(this.advance().word!, this.budget));
               this.newlines();
             }
             if (!this.is(")")) this.error("Unsupported indexed-array compound assignment");
             const end = this.advance().end;
+            this.budget.admit(2);
             word = { offset: word.offset, parts: word.parts, spelling: this.lexer.source.slice(word.offset, end) };
             setArrayAssignment(word, { kind: "compound", ...head, entries });
           } else {
-            const assignment = words.every(previous => getArrayAssignment(previous) || scalarAssignmentName(previous)) ? elementAssignment(word) : undefined;
+            const assignment = words.every(previous => getArrayAssignment(previous) || scalarAssignmentName(previous)) ? elementAssignment(word, this.budget) : undefined;
             if (assignment) setArrayAssignment(word, assignment);
           }
           words.push(word);
@@ -849,6 +884,7 @@ class Parser {
       if (/^(?:>|>>|<|<<|<<-|<<<|>&|<&|>\|)$/u.test(next.value) && this.current.end === next.offset) descriptor = Number(this.advance().value);
     }
     if (!/^(?:>|>>|<|<<|<<-|<<<|>&|<&|>\||&>)$/u.test(this.current.value) || this.current.kind !== "operator") return undefined;
+    this.budget.admit();
     const operator = this.advance().value;
     descriptor ??= operator.startsWith("<") ? 0 : 1;
     if (!Number.isSafeInteger(descriptor) || descriptor > 255) this.error("File descriptor must be between 0 and 255");
@@ -858,32 +894,38 @@ class Parser {
   }
 }
 
-export function parseShell(source: string, depth = 0): Script {
+export function parseShell(source: string, depth = 0, options: ShellParseOptions = {}): Script {
+  const budget = new ParseBudget(options.maxParseUnits);
   const warnings: string[] = [];
-  const script = parseSource(source, depth, warnings);
+  const script = parseSource(source, depth, warnings, 0, false, budget);
+  budget.admit();
   return { ...script, ...(warnings.length ? { warnings } : {}) };
 }
 
-export function* hereDocumentWords(document: HereDocument, line: number, byteLocale: boolean, warnings: string[]): Generator<Word> {
-  if (document.quoted) yield { offset: document.offset, parts: [{ kind: "text", value: document.body, quoted: true }] };
-  else yield* new Lexer(document.body, document.depth, warnings, line - 1, byteLocale, line).documentWords();
+export function* hereDocumentWords(document: HereDocument, line: number, byteLocale: boolean, warnings: string[], budget = new ParseBudget()): Generator<Word> {
+  if (document.quoted) { budget.admit(2); yield { offset: document.offset, parts: [{ kind: "text", value: document.body, quoted: true }] }; }
+  else { budget.admit(); yield* new Lexer(budget, document.body, document.depth, warnings, line - 1, byteLocale, line).documentWords(); }
 }
 
-export function parseShellUnit(source: string, position = 0, byteLocale = false): { script: Script; next: number } {
+export function parseShellUnit(source: string, position = 0, byteLocale = false, budget = new ParseBudget()): { script: Script; next: number } {
   const warnings: string[] = [];
-  const parser = new Parser(source, 0, warnings, 0, position, byteLocale);
+  budget.admit();
+  const parser = new Parser(budget, source, 0, warnings, 0, position, byteLocale);
   const script = parser.script(new Set(), true);
   const next = parser.current.end;
   const nul = source.indexOf("\0", position);
   if (nul >= 0 && nul < next) throw new ShellSyntaxError("NUL bytes are not valid shell source", nul);
+  budget.admit(2);
   return { script: { ...script, ...(warnings.length ? { warnings } : {}) }, next };
 }
 
-export function parseShellInputUnit(source: string, byteLocale = false): { script: Script; next: number } | undefined {
+export function parseShellInputUnit(source: string, byteLocale = false, budget = new ParseBudget()): { script: Script; next: number } | undefined {
   const warnings: string[] = [];
   try {
-    const parser = new Parser(source, 0, warnings, 0, 0, byteLocale, true);
+    budget.admit();
+    const parser = new Parser(budget, source, 0, warnings, 0, 0, byteLocale, true);
     const script = parser.script(new Set(), true);
+    budget.admit(2);
     return { script: { ...script, ...(warnings.length ? { warnings } : {}) }, next: parser.current.end };
   } catch (error) {
     if (error instanceof IncompleteShellInput) return undefined;
@@ -892,8 +934,9 @@ export function parseShellInputUnit(source: string, byteLocale = false): { scrip
   }
 }
 
-function parseSource(source: string, depth: number, warnings: string[], lineOffset = 0, byteLocale = false): Script {
-  const parser = new Parser(source, depth, warnings, lineOffset, undefined, byteLocale);
+function parseSource(source: string, depth: number, warnings: string[], lineOffset: number, byteLocale: boolean, budget: ParseBudget): Script {
+  budget.admit();
+  const parser = new Parser(budget, source, depth, warnings, lineOffset, undefined, byteLocale);
   const script = parser.script();
   if (parser.current.kind !== "end") parser.error("Unexpected token");
   return script;

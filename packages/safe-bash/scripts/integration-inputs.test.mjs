@@ -394,6 +394,10 @@ function assertSource7Discovery(files) {
   assert.ok(files.includes("tests/fs/conformance/provenance.test.ts"));
   assert.ok(files.includes("tests/integration/typecheck-consumer-resolution.test.ts"));
   assert.ok(files.includes("tests/shell/redirect-limits.test.ts"));
+  assert.ok(files.includes("tests/shell/parse-budget.test.ts"));
+  assert.ok(files.includes("tests/shell/parse-admission.test.ts"));
+  assert.ok(files.includes("tests/shell/parse-admission-runtime.test.ts"));
+  assert.ok(files.includes("tests/shell/arithmetic-admission.test.ts"));
   assert.ok(files.includes("tests/commands/text-programs/allocation-admission.test.ts"));
   assert.ok(files.includes("tests/plugins/git-removal.test.ts"));
   assert.ok(files.includes("tests/shell-stress/invocation-closure/v2-batch-controls.test.ts"));
@@ -1302,7 +1306,8 @@ test("frozen lint inventory adds only its 1804 literal exclusions and preserves 
   const tests = discoverTests(root, boundaries);
   assertSource7Discovery(tests);
   assert.ok(tests.includes("tests/plugins/git-removal.test.ts"));
-  assert.equal(currentConsumerPaths().length, 36);
+  assert.equal(currentConsumerPaths().length, 37);
+  assert.ok(currentConsumerPaths().includes("tests/plugins/qualified-current-release/current-shell-parse-limits.mts"));
   assert.equal(negativeGroups.length, 3);
   const protectedPaths = [
     ...tests,

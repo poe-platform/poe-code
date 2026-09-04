@@ -3,6 +3,7 @@ import { performance } from "node:perf_hooks";
 import { test } from "node:test";
 import { parseArithmetic } from "../../src/shell/arithmetic.js";
 import { parseShellUnit } from "../../src/shell/parser.js";
+import { ParseBudget } from "../../src/shell/parse-budget.js";
 import { yieldTurn } from "../../src/contracts/yield.js";
 import { cloudflareWorkerLimits, ShellLimitError } from "../../src/shell/index.js";
 import { setup } from "./helpers.js";
@@ -10,7 +11,7 @@ import { setup } from "./helpers.js";
 test("parser line lookup remains linear for token-heavy input", { timeout: 1_000 }, () => {
   const source = "a;".repeat(100_000);
   const started = performance.now();
-  parseShellUnit(source);
+  parseShellUnit(source, 0, false, new ParseBudget(2_000_000));
   assert.ok(performance.now() - started < 750);
 });
 

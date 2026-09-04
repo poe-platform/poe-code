@@ -17,6 +17,7 @@ import { ShellLimitError, ShellSyntaxError } from "./types.js";
 import type { ShellCommandContext, ShellInvokeOptions, ShellLimits } from "./types.js";
 import { fileInput, ShellInput } from "./input.js";
 import { evaluateArithmetic, prepareArithmetic } from "./arithmetic.js";
+import { defaultMaxParseUnits, ParseBudget } from "./parse-budget.js";
 import { evaluatePositionalArithmetic } from "./arithmetic-parameters.js";
 import { compilePattern, matchesPattern } from "./pattern.js";
 import { byteLocale } from "./locale.js";
@@ -51,6 +52,7 @@ import { matchEre } from "../commands/regex-execution/ere/matcher.js";
 import type { EreFragment } from "../commands/regex-execution/ere/types.js";
 
 export const defaultLimits: Required<ShellLimits> = {
+  maxParseUnits: defaultMaxParseUnits,
   maxInputBytes: 32 * 1024 * 1024,
   maxOutputBytes: 16 * 1024 * 1024,
   maxCommands: 10_000,
@@ -93,6 +95,7 @@ export function resolveLimits(...limits: (ShellLimits | undefined)[]): Required<
 const budgetedSinks = new WeakMap<ByteSink, { budget: Budget; write: ByteSink["write"] }>();
 
 export class Budget {
+  readonly parsing: ParseBudget;
   readonly values: ValueArena;
   commands = 0;
   iterations = 0;
@@ -107,6 +110,7 @@ export class Budget {
 
   constructor(readonly limits: Required<ShellLimits>, signal?: AbortSignal) {
     this.signal = signal ? AbortSignal.any([signal, this.controller.signal]) : this.controller.signal;
+    this.parsing = new ParseBudget(limits.maxParseUnits, this.signal, error => this.controller.abort(error));
     this.values = new ValueArena(limits.maxExpansionBytes, limits.maxExpansionFields, () => this.signal.throwIfAborted(), limit => this.fail(limit));
     this.#wallClockDeadline = Date.now() + limits.maxWallClockMs;
     this.#armWallClock();
@@ -1307,7 +1311,7 @@ export class Runtime {
     if (state.readonlyVariables?.has(name)) throw new Error(`${name}: readonly variable`);
     if (shellValueByteLength(value) > this.budget.limits.maxExpansionBytes) this.budget.fail("maxExpansionBytes");
     if (name === "OPTIND" && state.getopts?.integer && origin !== "arithmetic") {
-      try { value = String(evaluateArithmetic(prepareArithmetic(shellValueText(value) || "0"), this.arithmeticVariables(state))); }
+      try { value = String(evaluateArithmetic(prepareArithmetic(shellValueText(value) || "0", this.budget.parsing), this.arithmeticVariables(state), this.budget.parsing)); }
       catch (error) { this.rethrowArithmeticControl(error); throw new ExpansionFailure(message(error)); }
     }
     publishVariable(state, name, value);
@@ -1929,12 +1933,13 @@ export class Runtime {
       if (command.kind === "arithmetic") {
         try {
           return Number(evaluatePositionalArithmetic(command.expression, {
+            parseBudget: this.budget.parsing,
             positional: state.positional, arg0: state.arg0 ?? "virtual-bash", owner: arrayStore(state)?.owner,
             maximumBytes: this.budget.limits.maxExpansionBytes,
             checkpoint: () => this.signal.throwIfAborted(),
             requireParameter: (name, value) => this.requireParameter(value, name, state, io),
             limit: () => this.budget.fail("maxExpansionBytes"),
-          }, (prepared) => evaluateArithmetic(prepared, this.arithmeticVariables(state, io.diagnosticLine))) === 0n);
+          }, (prepared) => evaluateArithmetic(prepared, this.arithmeticVariables(state, io.diagnosticLine), this.budget.parsing)) === 0n);
         }
         catch (error) { this.rethrowArithmeticControl(error); throw new Error(`((: ${message(error)}`); }
       }
@@ -2072,7 +2077,7 @@ export class Runtime {
     let words = 0;
     const warnings: string[] = [];
     try {
-      for (const word of hereDocumentWords(document, line, byteLocale(state.variables), warnings)) {
+      for (const word of hereDocumentWords(document, line, byteLocale(state.variables), warnings, this.budget.parsing)) {
         this.signal.throwIfAborted();
         for (const warning of warnings.splice(0)) await writeText(io.stderr, `shell: warning: ${warning}\n`);
         if (++words % 128 === 0) await yieldTurn(this.signal);
@@ -2861,7 +2866,7 @@ export class Runtime {
     try {
       do {
         this.signal.throwIfAborted();
-        const unit = parseShellUnit(source, position, byteLocale(state.variables));
+        const unit = parseShellUnit(source, position, byteLocale(state.variables), this.budget.parsing);
         for (const warning of unit.script.warnings ?? []) await writeText(io.stderr, `${io.scriptName}: warning: ${warning}\n`);
         if (unit.script.lists.length) {
           const result = await this.runUnit(unit.script, state, io);
@@ -2896,7 +2901,7 @@ export class Runtime {
       if (bytes) source += this.sourceText(bytes, io.scriptName ?? "shell");
       const unitIO = { ...io, diagnosticOffset: offset };
       try {
-        const unit = eof ? parseShellUnit(source, 0, byteLocale(state.variables)) : parseShellInputUnit(source, byteLocale(state.variables));
+        const unit = eof ? parseShellUnit(source, 0, byteLocale(state.variables), this.budget.parsing) : parseShellInputUnit(source, byteLocale(state.variables), this.budget.parsing);
         if (unit) {
           for (const warning of unit.script.warnings ?? []) await writeText(io.stderr, `${io.scriptName}: warning: ${warning}\n`);
           if (unit.script.lists.length) {
@@ -3144,7 +3149,7 @@ export class Runtime {
       let position = 0;
       do {
         this.signal.throwIfAborted();
-        const unit = parseShellUnit(source, position, byteLocale(context.env));
+        const unit = parseShellUnit(source, position, byteLocale(context.env), this.budget.parsing);
         units.push(unit.script);
         position = unit.next;
       } while (position < source.length);
@@ -3176,7 +3181,7 @@ export class Runtime {
     try {
       do {
         this.signal.throwIfAborted();
-        const unit = parseShellUnit(source, position, byteLocale(state.variables));
+        const unit = parseShellUnit(source, position, byteLocale(state.variables), this.budget.parsing);
         for (const warning of unit.script.warnings ?? []) await writeText(io.stderr, `${io.scriptName ?? "shell"}: warning: ${warning}\n`);
         if (unit.script.lists.length) {
           status = await this.script(unit.script, state, io);
@@ -3459,7 +3464,7 @@ export class Runtime {
     let value = 0n;
     for (let index = offset; index < args.length; index++) {
       this.signal.throwIfAborted();
-      try { value = evaluateArithmetic(prepareArithmetic(args[index]!), variables); }
+      try { value = evaluateArithmetic(prepareArithmetic(args[index]!, this.budget.parsing), variables, this.budget.parsing); }
       catch (error) {
         this.rethrowArithmeticControl(error);
         throw new Error(`let: ${message(error)}`);
@@ -4022,8 +4027,12 @@ export class Runtime {
           if (selector === "@" || selector === "*") await this.unsetIndexed(state, base, "members");
           else {
             let index: number | undefined;
-            try { index = numericIndex(literalIndex(selector, 0)); }
-            catch { await this.diagnostic(context, "indexed array: unsupported subscript"); status = 2; continue; }
+            try { index = numericIndex(literalIndex(selector, 0, this.budget.parsing)); }
+            catch (error) {
+              this.signal.throwIfAborted();
+              if (error instanceof ShellLimitError) throw error;
+              await this.diagnostic(context, "indexed array: unsupported subscript"); status = 2; continue;
+            }
             if (index === undefined) { await this.diagnostic(context, "indexed array: index outside 0..2147483647"); status = 1; continue; }
             await this.unsetIndexed(state, base, index);
           }
@@ -4182,12 +4191,13 @@ export class Runtime {
     if (part.kind === "arithmetic") {
       try {
         return String(evaluatePositionalArithmetic(part.expression, {
+          parseBudget: this.budget.parsing,
           positional: state.positional, arg0: state.arg0 ?? "virtual-bash", owner: arrayStore(state)?.owner,
           maximumBytes: this.budget.limits.maxExpansionBytes,
           checkpoint: () => this.signal.throwIfAborted(),
           requireParameter: (name, value) => this.requireParameter(value, name, state, io, part.line),
           limit: () => this.budget.fail("maxExpansionBytes"),
-        }, (prepared) => evaluateArithmetic(prepared, this.arithmeticVariables(state, io.diagnosticLine ?? part.line))));
+        }, (prepared) => evaluateArithmetic(prepared, this.arithmeticVariables(state, io.diagnosticLine ?? part.line), this.budget.parsing)));
       }
       catch (error) { this.rethrowArithmeticControl(error); throw new ExpansionFailure(message(error), io.diagnosticLine ?? part.line); }
     }
@@ -4320,7 +4330,7 @@ export class Runtime {
         source += text;
       }
       this.signal.throwIfAborted();
-      try { return { value: evaluateArithmetic(prepareArithmetic(source), variables), source }; }
+      try { return { value: evaluateArithmetic(prepareArithmetic(source, this.budget.parsing), variables, this.budget.parsing), source }; }
       catch (error) {
         this.rethrowArithmeticControl(error);
         throw new ExpansionFailure(`${part.name}: ${message(error)}`, line);

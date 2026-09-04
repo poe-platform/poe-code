@@ -95,6 +95,17 @@ it("enforces command and output budgets in the portable runtime", async () => {
   finally { await looping.dispose(); }
 });
 
+it("enforces structural parse admission in the portable runtime", async () => {
+  expect(browser.cloudflareWorkerLimits.maxParseUnits).toBe(65_536);
+  expect(() => browser.parseShell(":", 0, { maxParseUnits: 0 })).toThrow(browser.ShellLimitError);
+  expect(browser.parseShell(":", 0)).toEqual(browser.parseShell(":"));
+  const shell = new browser.Shell({ fs: new filesystem.MemoryFileSystem(), limits: { maxParseUnits: 32 } });
+  try {
+    await expect(shell.exec(`: ${"w ".repeat(32)}`)).rejects.toMatchObject({ name: "ShellLimitError", limit: "maxParseUnits" });
+    expect((await shell.exec(":")).exitCode).toBe(0);
+  } finally { await shell.dispose(); }
+});
+
 it("cancels active custom commands and disposes the shell", async () => {
   const controller = new AbortController();
   let start!: () => void;

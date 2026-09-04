@@ -1,4 +1,5 @@
 import { ShellSyntaxError } from "./types.js";
+import { ParseBudget } from "./parse-budget.js";
 
 export type Arithmetic = (
   | { kind: "literal"; value: bigint }
@@ -18,10 +19,12 @@ class ArithmeticFailure extends Error {
   constructor(message: string, readonly offset: number) { super(message); }
 }
 
-export function prepareArithmetic(source: string): ArithmeticProgram {
-  try { return { source, tree: parseArithmetic(source) }; }
+export function prepareArithmetic(source: string, budget = new ParseBudget()): ArithmeticProgram {
+  budget.admit();
+  try { return { source, tree: parseArithmetic(source, 0, budget) }; }
   catch (error) {
     if (!(error instanceof ShellSyntaxError) || /nesting/u.test(error.reason)) throw error;
+    budget.admit();
     return { source, error };
   }
 }
@@ -52,13 +55,14 @@ function integer(text: string): bigint {
   return value;
 }
 
-export function parseArithmetic(source: string, offset = 0): Arithmetic {
+export function parseArithmetic(source: string, offset = 0, budget = new ParseBudget()): Arithmetic {
   const tokens: { value: string; offset: number }[] = [];
   let position = 0;
   while (position < source.length) {
     if (/\s/u.test(source[position]!)) { position++; continue; }
     const value = /^(?:\d+#[\da-zA-Z@_]+|0[xX][\da-fA-F]+|\d+|[a-zA-Z_][a-zA-Z_0-9]*|<<=|>>=|\*\*|\+\+|--|&&|\|\||<<|>>|[+*/%&^|!<>=-]=|[()+*/%~!<>=&^|?:,\-])/u.exec(source.slice(position))?.[0];
     if (!value) throw new ShellSyntaxError("Unsupported arithmetic token", offset + position);
+    budget.admit();
     tokens.push({ value, offset: offset + position });
     position += value.length;
   }
@@ -73,6 +77,7 @@ export function parseArithmetic(source: string, offset = 0): Arithmetic {
     const token = current();
     cursor++;
     if (["+", "-", "!", "~", "++", "--"].includes(token)) {
+      budget.admit();
       const operand = expression(15);
       if (["++", "--"].includes(token) && operand.kind !== "name") error("Arithmetic assignment requires a variable");
       left = { kind: "unary", operator: token, operand, postfix: false };
@@ -80,8 +85,9 @@ export function parseArithmetic(source: string, offset = 0): Arithmetic {
       left = expression();
       if (current() !== ")") error("Unclosed arithmetic parenthesis");
       cursor++;
-    } else if (/^[a-zA-Z_]/u.test(token)) left = { kind: "name", name: token };
+    } else if (/^[a-zA-Z_]/u.test(token)) { budget.admit(); left = { kind: "name", name: token }; }
     else {
+      budget.admit();
       try { left = { kind: "literal", value: BigInt.asIntN(64, integer(token)) }; }
       catch { error("Invalid arithmetic operand"); }
     }
@@ -91,12 +97,14 @@ export function parseArithmetic(source: string, offset = 0): Arithmetic {
       if (operator === "++" || operator === "--") {
         if (left!.kind !== "name") error("Arithmetic assignment requires a variable");
         cursor++;
+        budget.admit();
         left = { kind: "unary", operator, operand: left!, postfix: true, start };
         continue;
       }
       const priority = Object.hasOwn(precedence, operator) ? precedence[operator]! : 0;
       if (priority < minimum || priority === 0) break;
       cursor++;
+      budget.admit();
       if (operator === "?") {
         const yes = expression();
         if (current() !== ":") error("Expected arithmetic colon");
@@ -112,7 +120,7 @@ export function parseArithmetic(source: string, offset = 0): Arithmetic {
     depth--;
     return left!;
   };
-  if (!tokens.length) return { kind: "literal", value: 0n };
+  if (!tokens.length) { budget.admit(); return { kind: "literal", value: 0n }; }
   const tree = expression();
   if (cursor < tokens.length) error("Unexpected arithmetic token");
   return tree;
@@ -131,7 +139,7 @@ export function arithmeticEnd(source: string, start: number): number {
   throw new ShellSyntaxError("Unterminated arithmetic expression", start);
 }
 
-export function evaluateArithmetic(program: ArithmeticProgram, variables: Record<string, string>): bigint {
+export function evaluateArithmetic(program: ArithmeticProgram, variables: Record<string, string>, budget = new ParseBudget()): bigint {
   const visiting = new Set<string>();
   let steps = 0;
   const binary = (operator: string, left: bigint, right: bigint, offset: number): bigint => {
@@ -187,7 +195,7 @@ export function evaluateArithmetic(program: ArithmeticProgram, variables: Record
         else if (node.kind === "name") {
           if (visiting.has(node.name) || visiting.size >= 64) throw new Error("Arithmetic variable recursion");
           visiting.add(node.name);
-          pending.push({ kind: "variable", name: node.name }, { kind: "evaluate", node: parseArithmetic(variables[node.name] ?? "0") });
+          pending.push({ kind: "variable", name: node.name }, { kind: "evaluate", node: parseArithmetic(variables[node.name] ?? "0", 0, budget) });
         } else if (node.kind === "conditional") {
           pending.push({ kind: "conditional", node }, { kind: "evaluate", node: node.condition });
         } else if (node.kind === "unary") {

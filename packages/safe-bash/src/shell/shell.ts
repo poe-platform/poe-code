@@ -233,7 +233,7 @@ export class Shell implements PluginHost {
     let failed = false;
     try {
       try {
-        let unit = parseShellUnit(source, 0, byteLocale({ ...this.#options.env, ...options.env }));
+        let unit = parseShellUnit(source, 0, byteLocale({ ...this.#options.env, ...options.env }), budget.parsing);
         stdin = new ShellInput(typeof options.stdin === "string" || options.stdin instanceof Uint8Array ? toByteSource(options.stdin) : options.stdin ?? toByteSource(""), budget);
         io.stdin = stdin;
         await interruptible(this.#ready, budget.signal);
@@ -277,7 +277,7 @@ export class Shell implements PluginHost {
           }
           if (unit.next >= source.length) break;
           budget.signal.throwIfAborted();
-          unit = parseShellUnit(source, unit.next, byteLocale(state.variables));
+          unit = parseShellUnit(source, unit.next, byteLocale(state.variables), budget.parsing);
         }
       } catch (error) {
         if (!(error instanceof ShellSyntaxError)) throw error;

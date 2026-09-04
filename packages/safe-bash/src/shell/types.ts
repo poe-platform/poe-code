@@ -18,6 +18,7 @@ export interface ShellCommandContext extends CommandContext {
 }
 
 export interface ShellLimits {
+  readonly maxParseUnits?: number;
   readonly maxInputBytes?: number;
   readonly maxOutputBytes?: number;
   readonly maxCommands?: number;
@@ -33,6 +34,10 @@ export interface ShellLimits {
   readonly maxWallClockMs?: number;
   readonly maxCpuMs?: number;
   readonly pipeHighWaterMark?: number;
+}
+
+export interface ShellParseOptions {
+  readonly maxParseUnits?: number;
 }
 
 export interface ShellOptions {

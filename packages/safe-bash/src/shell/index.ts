@@ -1,5 +1,5 @@
 export { Shell } from "./shell.js";
 export { parseShell } from "./parser.js";
 export { ShellLimitError, ShellSyntaxError } from "./types.js";
-export type { ShellCommandContext, ShellExecOptions, ShellInvokeOptions, ShellLimits, ShellOptions, ShellResult } from "./types.js";
+export type { ShellCommandContext, ShellExecOptions, ShellInvokeOptions, ShellLimits, ShellOptions, ShellParseOptions, ShellResult } from "./types.js";
 export { cloudflareWorkerLimits } from "./worker-limits.js";

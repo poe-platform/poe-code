@@ -550,7 +550,7 @@ export function textCommands(): CommandDefinition[] {
                 if (start >= 0) await writer.write(line.bytes.subarray(start, end));
               }
             } else {
-              const decoder = new TextDecoder();
+              const decoder = new TextDecoder("utf-8", { ignoreBOM: true });
               let index = 0;
               let emitted = false;
               let previousIncluded = false;

@@ -330,7 +330,7 @@ test("cut preserves range union record and Unicode behavior across chunk boundar
   assert.equal((await run("cut", ["-c", "1-"], { stdin: unicode })).stdout, unicode);
   assert.deepEqual((await run("cut", ["-b", "1-"], { stdin: new Uint8Array([255, 195, 10]) })).stdoutBytes, Buffer.from([255, 195, 10]));
   assert.equal((await run("cut", ["-c", "1-"], { stdin: new Uint8Array([255, 195, 10]) })).stdout, "��\n");
-  assert.equal((await run("cut", ["-c", "1-"], { stdin: "\uFEFFa\uFEFFb\n\uFEFFc\n" })).stdout, "a\uFEFFb\nc\n");
+  assert.equal((await run("cut", ["-c", "1-"], { stdin: "\uFEFFa\uFEFFb\n\uFEFFc\n" })).stdout, "\uFEFFa\uFEFFb\n\uFEFFc\n");
   assert.equal((await run("cut", ["-b", "1-"], { stdin: "\uFEFFa\n" })).stdout, "\uFEFFa\n");
   assert.equal((await run("cut", ["-b", Array(10001).fill("1").join(",")], { stdin: "abc\n" })).stdout, "a\n");
   for (const ranges of ["", "0", "3-1", "-", "1--2", "1,", ",1", "9007199254740992"]) {

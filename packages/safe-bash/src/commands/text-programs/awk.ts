@@ -1,6 +1,7 @@
 import type { CommandDefinition } from "../../contracts/index.js";
 import { AwkParser, decodeString } from "./awk-syntax.js";
 import { AwkRuntime } from "./awk-runtime.js";
+import { AwkRetention } from "./awk-retention.js";
 import { Budget, ProgramError, byteString, command, readProgram, type TextProgramOptions } from "./shared.js";
 
 export function awkCommand(options: TextProgramOptions = {}): CommandDefinition {
@@ -31,6 +32,6 @@ export function awkCommand(options: TextProgramOptions = {}): CommandDefinition 
       programs.push(byteString(program));
     }
     const program = new AwkParser(programs.join("\n")).parse();
-    return new AwkRuntime(program, context, budget, context.args.slice(index), assignments, separator).run();
+    return new AwkRuntime(program, context, budget, new AwkRetention(32 * 1024 * 1024, context.signal), context.args.slice(index), assignments, separator).run();
   });
 }

@@ -148,3 +148,59 @@ node --import tsx --test --test-concurrency=1 packages/safe-bash/tests/fs/webdav
 
 Correction frozen for root handoff after these scoped passes; no issue reopening
 or relaxation of independent XML admission is requested.
+## Parallel validation and delivery reconciliation
+
+Implementation commit `4b98f235760e98adaff331d17847cb09ab2c0487` was verified on
+remote main before #599 was closed. Scoped workflow 33917279836 published
+`@poe-platform/safe-fs`, `safe-js` and `safe-bash` version 0.1.74 on September 4,
+2026, at 20:43:18, 20:43:29 and 20:43:44 UTC respectively. Actual publish output
+is recorded in `/tmp/poe-599-release-scoped-publish.log`.
+
+CLI workflow 33917280002 failed Bash shard 1, job 101168081248. The existing
+`tests/fs/webdav/listing-budget.test.ts` large-listing case expected document
+counters not to apply, but now reaches the independent XML attribute limit.
+That failure was validated separately; CLI publication is not yet claimed.
+Local commits, verified pushes and actual releases remain separate milestones.
+
+### Release-test correction
+
+The failed test was reproduced locally: one passed, one failed with the same
+attribute-limit cause. Its 12,000-child fixture carries 24,001 attributes and
+108,011 elements. Both exceed the restored independent limits; removing only
+the repeated namespace/language attributes still reproduces the node-limit
+failure. This is an obsolete test expectation, not evidence to loosen the caps.
+
+The parallel local candidate's large-listing fixture omitted repeated attributes and optional
+timestamps, retaining required DAV properties. It has 84,011 elements, one
+attribute and 2,305,310 bytes. It preserves the intended entry and byte boundary
+checks below the independent structural caps. The small 256-child namespace
+test stays unchanged, and the old large redundant-namespace shape becomes an
+explicit structural-refusal control. No production change is needed.
+
+Focused correction passed 3/3 tests; adjacent WebDAV listing, response-integrity,
+cancellation and regression coverage passed 175/175 tests. Root independently
+reran the focused file: 3/3 passed, with no skipped or cancelled cases
+(`/tmp/poe-599-listing-followup-tests.log`). The first guarded lint completed
+all 9,676 configured files but found one `prefer-const` error in the separate,
+uncommitted #597 test; it is not a passing gate
+(`/tmp/poe-599-listing-followup-lint.log`). After that correction, a clean
+`npm run lint:eslint` rerun passed all 9,676 configured files with zero errors
+or warnings (`/tmp/poe-599-listing-followup-lint-clean.log`). The corrected
+WebDAV test's SHA-256 remained
+`b4782186715b304bdc6f5da77e20bab6d1b36b9659cb919482ecf7e833073214`.
+`git diff --check` passed for that local candidate. Its push was rejected because
+another owner had already delivered the equivalent correction in
+`070c762bde2bda8dd46da28d23d14873fc1326f2`. Integration preserves that owner's
+test exactly, including the 84,009-element minimal fixture and stronger entry
+type/error metadata assertions. The parallel local test is superseded, not
+combined into duplicate coverage. This reconciliation adds only the evidence
+above; it does not claim the pre-integration lint checked the new upstream
+changes. Successor CLI publication remains separately monitored.
+
+Successor CLI workflow 33918838110 and its release-stable job 101174801768
+completed successfully. Actual publication output confirms `poe-code@14.0.30`
+on npm `latest` at 21:10:55 UTC and GitHub `v14.0.30` at 21:10:56 UTC on
+September 4, 2026 (`/tmp/poe-599-successor-cli-publish.log`). The descendant
+contains the original implementation and the upstream listing-test correction.
+Post-integration listing/text/cut checks passed 78/78 without changing that
+upstream correction (`/tmp/poe-599-upstream-integration-tests.log`).

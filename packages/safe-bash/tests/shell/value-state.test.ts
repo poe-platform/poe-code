@@ -68,11 +68,65 @@ test("clones retain bytes independently and mutations do not affect their parent
   assert.deepEqual(arena.usage, { bytes: 0, slots: 0 });
 });
 
-test("text-only values do not activate byte retention admission", () => {
-  const { arena, scope, store } = fixture(0, 0);
-  assert.equal(store.publish("text", "a".repeat(4096), () => true), true);
-  assert.equal(store.get("text", "plain"), "plain");
+test("text-only values charge payload without byte-carrier overhead", () => {
+  const { arena, scope, store } = fixture(6, 0);
+  assert.equal(store.publish("text", "é🙂", () => true), true);
+  assert.equal(store.get("text", "plain"), "é🙂");
+  assert.deepEqual(arena.usage, { bytes: 6, slots: 0 });
+  let writes = 0;
+  assert.throws(() => store.publish("other", "a", () => { writes++; return true; }));
+  assert.equal(writes, 0);
   scope.close();
+  store.close();
+  assert.deepEqual(arena.usage, { bytes: 0, slots: 0 });
+});
+
+test("text aliases and cloned bindings conservatively charge each retained value", () => {
+  const { arena, store } = fixture(32, 0);
+  store.publish("first", "text", () => true);
+  store.publish("second", "text", () => true);
+  const clone = store.clone();
+  assert.deepEqual(arena.usage, { bytes: 32, slots: 0 });
+  store.invalidate("first");
+  store.close();
+  clone.invalidate("second");
+  assert.equal(clone.get("first", ""), "text");
+  assert.deepEqual(arena.usage, { bytes: 8, slots: 0 });
+  clone.close();
+  assert.deepEqual(arena.usage, { bytes: 0, slots: 0 });
+});
+
+test("failed text publication and replacement retain prior ownership", () => {
+  const { arena, store } = fixture(10, 0);
+  store.publish("value", "old", () => true);
+  const before = arena.usage;
+  assert.equal(store.publish("value", "no", () => false), false);
+  assert.deepEqual(arena.usage, before);
+  assert.throws(() => store.publish("value", "no", () => { throw new Error("publication"); }), /publication/u);
+  assert.throws(() => store.replace([["value", "no"]], () => { throw new Error("replacement"); }), /replacement/u);
+  assert.deepEqual(arena.usage, before);
+  assert.equal(store.get("value", ""), "old");
+  store.publish("value", "no", () => true);
+  assert.deepEqual(arena.usage, { bytes: 4, slots: 0 });
+  store.invalidate("value");
+  assert.deepEqual(arena.usage, { bytes: 0, slots: 0 });
+  store.close();
+});
+
+test("string-only saved bindings and snapshots restore after cancellation without admission", () => {
+  let cancelled = false;
+  const arena = new ValueArena(24, 0, () => { if (cancelled) throw undefined; });
+  const store = new ValueStore(arena);
+  store.publish("value", "text", () => true);
+  const saved = store.scope.hold("text");
+  const snapshot = store.clone();
+  store.invalidate("value");
+  cancelled = true;
+  store.restoreHeld("value", saved, () => {});
+  store.restore(snapshot, () => {});
+  snapshot.close();
+  assert.equal(store.get("value", ""), "text");
+  assert.deepEqual(arena.usage, { bytes: 8, slots: 0 });
   store.close();
   assert.deepEqual(arena.usage, { bytes: 0, slots: 0 });
 });
@@ -260,7 +314,7 @@ for (const finalText of ["\ufffd", ""]) {
     let published = "initial";
     store.replace([["value", raw], ["value", finalText]], () => { published = finalText; });
     assert.deepEqual(shellValueBytes(store.get("value", published)), new TextEncoder().encode(finalText));
-    assert.equal(arena.usage.bytes - before.bytes, 64);
+    assert.equal(arena.usage.bytes - before.bytes, 64 + finalText.length * 2);
     assert.equal(arena.usage.slots - before.slots, 1);
     store.close();
     assert.deepEqual(arena.usage, { bytes: 0, slots: 0 });

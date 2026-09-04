@@ -3,7 +3,7 @@ import { test } from "node:test";
 import type { CommandContext, CommandResult } from "../../src/contracts/index.js";
 import { setup } from "./helpers.js";
 import { ArrayOwner, type Admission } from "../../src/shell/arrays/ledger.js";
-import { StateMonitor } from "../../src/shell/arrays/state.js";
+import { StateMonitor, stateMonitor } from "../../src/shell/arrays/state.js";
 import { Runtime } from "../../src/shell/runtime.js";
 
 function deferred<Value = void>() {
@@ -122,6 +122,26 @@ for (const cleanupFails of [false, true]) {
     } finally { await shell.dispose(); }
   });
 }
+
+test("superseded middleware overlays release their saved scalar ownership", async context => {
+  const { shell } = setup({ limits: { maxExpansionBytes: 512 } });
+  const retained: number[] = [];
+  const simple = Runtime.prototype.simple;
+  context.mock.method(Runtime.prototype, "simple", async function (this: Runtime, ...args: Parameters<Runtime["simple"]>) {
+    const result = await simple.apply(this, args);
+    if (args[0].words.some(word => word.plain === "f")) retained.push(stateMonitor(args[1])!.values.arena.usage.bytes);
+    return result;
+  });
+  shell.use((command, next) => {
+    if (command.command === "f") Object.assign(command, { env: { ...command.env, V: "m".repeat(20) } });
+    return next();
+  });
+  try {
+    const result = await shell.exec(`V=${"o".repeat(20)}; f() { V=${"g".repeat(20)}; }; f; f; f`);
+    assert.equal(result.exitCode, 0, result.stderr);
+    assert.deepEqual(retained, [40, 40, 40]);
+  } finally { await shell.dispose(); }
+});
 
 test("normal completion seals saved registration and invoke before input acquisition", { timeout: 2000 }, async () => {
   const { shell, commands } = setup();

@@ -160,6 +160,108 @@ test("isolated text-only executions retain ordinary low-budget admission", async
   await shell.dispose();
 });
 
+test("text variable publications share an aggregate execution byte budget", async () => {
+  const { shell } = fixture({ limits: { maxExpansionBytes: 128 } });
+  try {
+    await assert.rejects(
+      shell.exec(`seed=${"x".repeat(60)}; first="\${seed}1"; second="\${seed}2"`),
+      error => error instanceof ShellLimitError && error.limit === "maxExpansionBytes",
+    );
+  } finally { await shell.dispose(); }
+});
+
+test("equal text bindings cannot bypass aggregate retained storage admission", async () => {
+  const { shell } = fixture({ limits: { maxExpansionBytes: 128 } });
+  try {
+    await assert.rejects(
+      shell.exec(`first=${"x".repeat(60)}; second="\${first:0}"`),
+      error => error instanceof ShellLimitError && error.limit === "maxExpansionBytes",
+    );
+  } finally { await shell.dispose(); }
+});
+
+test("nested locals keep shadowed text charged until restoration", async () => {
+  const { shell } = fixture({ limits: { maxExpansionBytes: 200 } });
+  try {
+    await assert.rejects(
+      shell.exec(`value=${"a".repeat(30)}; inner() { local value=${"c".repeat(30)}; }; outer() { local value=${"b".repeat(30)}; inner; }; outer`),
+      error => error instanceof ShellLimitError && error.limit === "maxExpansionBytes",
+    );
+  } finally { await shell.dispose(); }
+});
+
+test("text overwrite, unset and local restoration release execution quota", async () => {
+  const { shell } = fixture({ limits: { maxExpansionBytes: 128 } });
+  const mutations = `value=${"a".repeat(20)}; value=${"b".repeat(20)}; unset value; `;
+  const source = `${mutations.repeat(10)}value=outer; inner() { local value=deep; }; outer() { local value=inner; inner; printf %s "$value"; }; outer; printf %s "$value"`;
+  try {
+    for (let iteration = 0; iteration < 3; iteration++) {
+      const result = await shell.exec(source);
+      assert.equal(result.exitCode, 0, result.stderr);
+      assert.equal(result.stdout, "innerouter");
+    }
+  } finally { await shell.dispose(); }
+});
+
+test("source arguments retain the caller positional storage budget", async () => {
+  const { shell, fs } = fixture({ limits: { maxExpansionBytes: 128 } });
+  await fs.writeFile("/inside", new TextEncoder().encode(`value=${"y".repeat(60)}`));
+  try {
+    await assert.rejects(
+      shell.exec(`set -- ${"x".repeat(60)}; . /inside short; args "$1" "$value"`),
+      error => error instanceof ShellLimitError && error.limit === "maxExpansionBytes",
+    );
+  } finally { await shell.dispose(); }
+});
+
+test("source positional restoration releases snapshots and preserves set semantics", async () => {
+  const { shell, fs } = fixture({ limits: { maxExpansionBytes: 128 } });
+  await fs.writeFile("/inside", new TextEncoder().encode('printf %s "$1"'));
+  await fs.writeFile("/replace", new TextEncoder().encode("set -- changed"));
+  try {
+    const result = await shell.exec(`set -- original; ${". /inside short; ".repeat(10)}printf %s "$1"; . /replace short; printf %s "$1"`);
+    assert.equal(result.exitCode, 0, result.stderr);
+    assert.equal(result.stdout, `${"short".repeat(10)}originalchanged`);
+  } finally { await shell.dispose(); }
+});
+
+test("source arguments and restored positionals retain byte identity", async () => {
+  const { shell, fs } = fixture();
+  await fs.writeFile("/inside", new TextEncoder().encode('printf %s "$1"'));
+  try {
+    const result = await shell.exec("set -- $'\\xff'; . /inside $'\\xfe'; printf %s \"$1\"");
+    assert.equal(result.exitCode, 0, result.stderr);
+    assert.deepEqual(result.stdoutBytes, Uint8Array.of(254, 255));
+  } finally { await shell.dispose(); }
+});
+
+for (const indexed of [false, true]) {
+  test(`middleware environment publications share retained storage with scalars (indexed=${indexed})`, async () => {
+    const { shell } = fixture({ limits: { maxExpansionBytes: 4096 } });
+    shell.use((context, next) => {
+      if (context.command === "f") Object.assign(context, { env: { ...context.env, injected: "x".repeat(1100) } });
+      return next();
+    });
+    try {
+      await assert.rejects(
+        shell.exec(`${indexed ? "injected=(x); " : ""}f() { value=${"y".repeat(1100)}; }; f`),
+        error => error instanceof ShellLimitError && error.limit === "maxExpansionBytes",
+      );
+    } finally { await shell.dispose(); }
+  });
+
+  test(`invoke environment publications share retained storage with scalars (indexed=${indexed})`, async () => {
+    const { shell, commands } = fixture({ limits: { maxExpansionBytes: 4096 } });
+    commands.register({ name: "forward", execute: context => context.invoke!("f", [], { env: { injected: "x".repeat(1100) }, replaceEnv: true }) });
+    try {
+      await assert.rejects(
+        shell.exec(`${indexed ? "injected=(x); " : ""}f() { value=${"y".repeat(1100)}; }; forward`),
+        error => error instanceof ShellLimitError && error.limit === "maxExpansionBytes",
+      );
+    } finally { await shell.dispose(); }
+  });
+}
+
 test("cleanup failure releases execution values without changing configured text", async () => {
   const { shell, commands } = fixture({ env: { value: "�" }, limits: { maxExpansionBytes: 2048, maxExpansionFields: 64 } });
   const reason = Object.freeze({ cleanup: true });

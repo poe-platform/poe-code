@@ -81,6 +81,29 @@ function epoch(milliseconds: number, precision: number): string {
   return `${value < 0 ? "-" : ""}${seconds}${precision ? "." + fraction.toString().padStart(precision, "0") : ""}`;
 }
 
+function directive(format: string, start: number) {
+  let index = start + 1;
+  const flagsStart = index;
+  while (index < format.length && "-+ #0".includes(format[index]!)) index++;
+  const flags = format.slice(flagsStart, index);
+  const widthStart = index;
+  while (index < format.length && format[index]! >= "0" && format[index]! <= "9") index++;
+  const width = format.slice(widthStart, index);
+  let precision: string | undefined;
+  if (format[index] === ".") {
+    const precisionStart = ++index;
+    while (index < format.length && format[index]! >= "0" && format[index]! <= "9") index++;
+    precision = format.slice(precisionStart, index);
+  }
+  const code = format[index];
+  if (code === undefined) throw new UsageError("invalid stat format directive");
+  const codePoint = code.charCodeAt(0);
+  if (code !== "%" && !(codePoint >= 65 && codePoint <= 90) && !(codePoint >= 97 && codePoint <= 122)) {
+    throw new UsageError("invalid stat format directive");
+  }
+  return { code, flags, length: index + 1 - start, precision, width };
+}
+
 function formatField(text: string, code: string, flags: string, width: number, precision: number | undefined, numeric: boolean, epoch: boolean): Uint8Array {
   if (numeric) {
     const nonzero = !/^0+$/u.test(text);
@@ -130,17 +153,15 @@ async function render(context: CommandContext, path: string, name: string, stat:
       const point = String.fromCodePoint(format.codePointAt(index)!);
       append(point); index += point.length; continue;
     }
-    const match = /^%([-+ #0]*)(\d*)(?:\.(\d*))?([a-zA-Z%])/u.exec(format.slice(index));
-    if (!match) throw new UsageError("invalid stat format directive");
-    index += match[0].length;
-    const flags = match[1]!;
-    const width = Number(match[2] || 0);
+    const parsed = directive(format, index);
+    index += parsed.length;
+    const { code, flags } = parsed;
+    const width = Number(parsed.width || 0);
     if (!Number.isSafeInteger(width) || width > limit) throw new FsError("EFBIG", { message: "stat format width limit exceeded" });
-    const code = match[4]!;
     const epochCode = ["X", "Y", "Z", "W"].includes(code);
-    const precision = match[3] === undefined ? undefined : Number(match[3] || (epochCode ? 9 : 0));
+    const precision = parsed.precision === undefined ? undefined : Number(parsed.precision || (epochCode ? 9 : 0));
     if (precision !== undefined && (!Number.isSafeInteger(precision) || precision > limit)) throw new FsError("EFBIG", { message: "stat format precision limit exceeded" });
-    if (code === "%" && match[0] !== "%%") throw new UsageError("invalid stat format directive");
+    if (code === "%" && parsed.length !== 2) throw new UsageError("invalid stat format directive");
     let text: string;
     let linkText: string | undefined;
     let numeric = false;

@@ -8,10 +8,11 @@ import type { ErrnoCode } from "../../contracts/errors.js";
 import { dirname, isPathWithin, normalizePath, validatePath } from "../../contracts/virtual-path.js";
 import { compareIdentity } from "../mount/identity.js";
 import { compareEntries, registerEntryView } from "../mount/comparison.js";
+import { admitDirectoryEntries, directoryEntryLimit } from "../directory-admission.js";
 import type {
   AppendFileOptions, CopyFileOptions, DirectoryEntry,
   FileStat, FileSystem, FileSystemCapabilities, FsOptions, MkdirOptions,
-  ReadFileOptions, ReadStreamOptions, RemoveOptions, WriteFileOptions,
+  ReadDirectoryOptions, ReadFileOptions, ReadStreamOptions, RemoveOptions, WriteFileOptions,
 } from "../../contracts/filesystem.js";
 
 export interface OverlayFileSystemOptions {
@@ -356,18 +357,29 @@ export class OverlayFileSystem implements FileSystem {
     return (await this.resolve(path, options, followFinal)).entry!;
   }
 
-  private async listing(entry: Entry, options: FsOptions): Promise<DirectoryEntry[]> {
+  private async listing(entry: Entry, options: FsOptions, limit?: number): Promise<DirectoryEntry[]> {
     if (entry.stat.type !== "directory") fail("ENOTDIR", entry.path);
     this.permission(entry, 4);
     const names = new Set<string>();
+    const admit = (name: string): void => {
+      options.signal?.throwIfAborted();
+      if (!names.has(name)) admitDirectoryEntries(names.size + 1, limit, entry.path);
+      names.add(name);
+    };
     const upper = await this.maybeStat(this.#upper, entry.path, options);
     if (upper?.type === "directory") {
-      for (const child of await this.#upper.readdir(entry.path, options)) names.add(child.name);
+      const children = await this.#upper.readdir(entry.path, options);
+      options.signal?.throwIfAborted();
+      admitDirectoryEntries(children.length, limit, entry.path);
+      for (const child of children) admit(child.name);
     }
     if (await this.lowerVisible(entry.path, options) && !this.opaque.has(entry.path)) {
       const lower = await this.maybeStat(this.#lower, entry.path, options);
       if (lower?.type === "directory") {
-        for (const child of await this.#lower.readdir(entry.path, options)) names.add(child.name);
+        const children = await this.#lower.readdir(entry.path, options);
+        options.signal?.throwIfAborted();
+        admitDirectoryEntries(children.length, limit, entry.path);
+        for (const child of children) admit(child.name);
       }
     }
     const entries: DirectoryEntry[] = [];
@@ -566,8 +578,9 @@ export class OverlayFileSystem implements FileSystem {
     return compareEntries(this, path, peer, peerPath, options);
   }
 
-  async readdir(path: string, options: FsOptions = {}): Promise<DirectoryEntry[]> {
-    return this.run(options, async () => this.listing(await this.required(path, options), options), false);
+  async readdir(path: string, options: ReadDirectoryOptions = {}): Promise<DirectoryEntry[]> {
+    const limit = directoryEntryLimit(options, path);
+    return this.run(options, async () => this.listing(await this.required(path, options), options, limit), false);
   }
 
   async realpath(path: string, options: FsOptions = {}): Promise<string> {

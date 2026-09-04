@@ -21,11 +21,12 @@ export * from "./commands/regex-execution/public.js";
 
 export interface BrowserCommandsOptions {
   readonly replace?: boolean;
+  readonly maxDirectoryEntries?: number;
 }
 
-export function createBrowserCommands(): readonly CommandDefinition[] {
+export function createBrowserCommands(options: BrowserCommandsOptions = {}): readonly CommandDefinition[] {
   return [
-    ...basicCommands(), ...filesystemCommands(), ...predicateCommands(),
+    ...basicCommands(), ...filesystemCommands(options.maxDirectoryEntries), ...predicateCommands(),
     ...streamCommands(), ...textCommands(),
   ];
 }
@@ -34,7 +35,7 @@ export function browserCommands(options: BrowserCommandsOptions = {}): VirtualSh
   return {
     name: "browser-commands",
     setup(host) {
-      const commands = createBrowserCommands();
+      const commands = createBrowserCommands(options);
       if (!options.replace) {
         for (const command of commands) {
           if (host.commands.has(command.name)) throw new Error(`Command already registered: ${command.name}`);

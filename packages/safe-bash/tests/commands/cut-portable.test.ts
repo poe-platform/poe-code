@@ -29,6 +29,12 @@ before(async () => {
 });
 
 const cases = [
+  { name: "overlapping reordered byte ranges", args: "-b 5-,2-3,1-2,2 --output-delimiter='|'", input: "abcdef\n", output: "abc|ef\n" },
+  { name: "adjacent byte ranges retain current join behavior", args: "-b 1,2,3-4 --output-delimiter='|'", input: "abcdef\n", output: "abcd\n" },
+  { name: "Unicode character ranges", args: "-c 2-3", input: "a😀éz\n", output: "😀é\n" },
+  { name: "Unicode decoder chunk boundary", args: "-c 4096-4097", input: "a".repeat(4095) + "😀éz\n", output: "😀é\n" },
+  { name: "multibyte field separator chunk boundary", args: "-d 😀 -f 2,3", input: "a".repeat(4095) + "😀é😀z\n", output: "é😀z\n" },
+  { name: "complement with NUL records", args: "-z -b 2-3 --complement", input: "abcd\0efgh", output: "ad\0eh\0" },
   { name: "explicit comma delimiter", args: "-d , -f 2", input: "one,two,three\nfour,five,six\n", output: "two\nfive\n" },
   { name: "default tab delimiter", args: "-f 2", input: "one\ttwo\tthree\nfour\tfive\tsix\n", output: "two\nfive\n" },
   { name: "multiple comma fields", args: "-d , -f 1,3", input: "one,two,three,four\n", output: "one,three\n" },

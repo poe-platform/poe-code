@@ -24,10 +24,10 @@ class SortWork {
   }
 }
 
-async function sortRecords(records: Uint8Array[], compare: (left: Uint8Array, right: Uint8Array) => Promise<number>, work: SortWork): Promise<Uint8Array[]> {
+async function sortRecords<Record>(records: Record[], compare: (left: Record, right: Record) => Promise<number>, work: SortWork): Promise<Record[]> {
   if (records.length < 2) return records;
   let source = records;
-  let target = new Array<Uint8Array>(records.length);
+  let target = new Array<Record>(records.length);
   for (let width = 1; width < records.length; width *= 2) {
     for (let begin = 0; begin < records.length; begin += width * 2) {
       const middle = Math.min(begin + width, records.length);
@@ -44,6 +44,107 @@ async function sortRecords(records: Uint8Array[], compare: (left: Uint8Array, ri
     [source, target] = [target, source];
   }
   return source;
+}
+
+interface CutRange { start: number; end: number }
+
+async function cutRanges(list: string, work: SortWork): Promise<CutRange[]> {
+  const ranges: CutRange[] = [];
+  let tokenStart = 0;
+  let dash = -1;
+  let start = 0;
+  let end = 0;
+  let invalid = false;
+  for (let index = 0; index <= list.length; index++) {
+    const checkpoint = work.charge();
+    if (checkpoint) await checkpoint;
+    const character = list[index];
+    if (character === "," || character === " " || index === list.length) {
+      if (index === tokenStart) {
+        if (index === 0 || index === list.length) throw new UsageError("invalid range ''");
+        tokenStart = index + 1;
+        continue;
+      }
+      if (invalid || (dash === tokenStart && dash === index - 1)) throw new UsageError(`invalid range '${list.slice(tokenStart, index)}'`);
+      if (dash === tokenStart) start = 1;
+      if (dash < 0) end = start;
+      const openEnd = dash >= 0 && dash === index - 1;
+      if (openEnd) end = Infinity;
+      if (!Number.isSafeInteger(start) || start < 1) throw new UsageError(`invalid number '${list.slice(tokenStart, dash < 0 ? index : dash)}'`);
+      if (!openEnd && (!Number.isSafeInteger(end) || end < 1)) throw new UsageError(`invalid number '${list.slice(dash < 0 ? tokenStart : dash + 1, index)}'`);
+      if (end < start) throw new UsageError(`decreasing range '${list.slice(tokenStart, index)}'`);
+      ranges.push({ start, end });
+      tokenStart = index + 1;
+      dash = -1;
+      start = 0;
+      end = 0;
+      invalid = false;
+    } else if (character === "-" && dash < 0) {
+      dash = index;
+    } else {
+      const digit = list.charCodeAt(index) - 48;
+      if (digit < 0 || digit > 9) invalid = true;
+      else if (dash < 0) start = start * 10 + digit;
+      else end = end * 10 + digit;
+    }
+  }
+  const ordered = await sortRecords(ranges, async (left, right) => left.start - right.start, work);
+  const normalized: CutRange[] = [];
+  for (const range of ordered) {
+    const checkpoint = work.charge();
+    if (checkpoint) await checkpoint;
+    const previous = normalized.at(-1);
+    if (previous && range.start <= previous.end + 1) previous.end = Math.max(previous.end, range.end);
+    else normalized.push(range);
+  }
+  return normalized;
+}
+
+class CutOutput {
+  readonly #buffer = new Uint8Array(64 * 1024);
+  #used = 0;
+
+  constructor(readonly context: CommandContext, readonly work: SortWork) {}
+
+  async write(bytes: Uint8Array): Promise<void> {
+    for (let offset = 0; offset < bytes.length;) {
+      const length = Math.min(4096, bytes.length - offset, this.#buffer.length - this.#used);
+      const checkpoint = this.work.charge(length);
+      if (checkpoint) await checkpoint;
+      this.#buffer.set(bytes.subarray(offset, offset + length), this.#used);
+      this.#used += length;
+      offset += length;
+      if (this.#used === this.#buffer.length) await this.flush();
+    }
+  }
+
+  async text(text: string): Promise<void> {
+    for (let offset = 0; offset < text.length;) {
+      let end = Math.min(offset + 4096, text.length);
+      const last = text.charCodeAt(end - 1);
+      if (end < text.length && last >= 0xd800 && last <= 0xdbff) end--;
+      await this.write(encoder.encode(text.slice(offset, end)));
+      offset = end;
+    }
+  }
+
+  async flush(): Promise<void> {
+    if (!this.#used) return;
+    const bytes = this.#buffer.slice(0, this.#used);
+    this.#used = 0;
+    await output(this.context, bytes);
+  }
+}
+
+async function cutFieldBoundary(record: Buffer, separator: Uint8Array, start: number, work: SortWork): Promise<number> {
+  for (let offset = start; offset < record.length; offset += 4096) {
+    const window = record.subarray(offset, Math.min(record.length, offset + 4096 + separator.length - 1));
+    const found = window.indexOf(separator);
+    const checkpoint = work.charge(found < 0 ? Math.min(4096, window.length) : found + separator.length);
+    if (checkpoint) await checkpoint;
+    if (found >= 0) return offset + found;
+  }
+  return -1;
 }
 
 async function compareSortBytes(left: Uint8Array, right: Uint8Array, work: SortWork): Promise<number> {
@@ -386,80 +487,98 @@ export function textCommands(): CommandDefinition[] {
       if (modes.length !== 1) throw new UsageError("exactly one byte, character, or field list is required");
       const mode = modes[0]!;
       if (mode !== "f" && (parsed.flags.has("d") || parsed.flags.has("s"))) throw new UsageError("delimiter options require field mode");
-      const ranges = value(parsed, mode)!.split(/[ ,]+/u).map(part => {
-        const match = /^(?:([0-9]+)(?:-([0-9]*))?|-([0-9]+))$/u.exec(part);
-        if (!match) throw new UsageError(`invalid range '${part}'`);
-        const start = match[3] === undefined ? integer(match[1]!, 1) : 1;
-        const end = match[3] !== undefined ? integer(match[3], 1) : match[2] === undefined ? start : match[2] === "" ? Infinity : integer(match[2], 1);
-        if (end < start) throw new UsageError(`decreasing range '${part}'`);
-        return { start, end };
-      });
-      const selected = (position: number) => ranges.some(range => position >= range.start && position <= range.end) !== parsed.flags.has("C");
+      const work = new SortWork(context.signal);
+      const ranges = await cutRanges(value(parsed, mode)!, work);
+      const complement = parsed.flags.has("C");
       const delimiter = value(parsed, "d") ?? "\t";
-      if ([...delimiter].length !== 1) throw new UsageError("delimiter must be a single character");
+      if (delimiter.length !== (delimiter.codePointAt(0)! > 0xffff ? 2 : 1)) throw new UsageError("delimiter must be a single character");
       const outputDelimiter = value(parsed, "o");
       const recordDelimiter = parsed.flags.has("z") ? 0 : 10;
+      const separator = Buffer.from(delimiter);
+      const writer = new CutOutput(context, work);
       let exitCode = 0;
       for (const name of parsed.operands.length ? parsed.operands : ["-"]) {
         try {
           for await (const line of lines(input(context, name), recordDelimiter)) {
             context.signal.throwIfAborted();
-            let bytes: Uint8Array;
+            let cursor = 0;
+            const selected = (position: number) => {
+              while (cursor < ranges.length && position > ranges[cursor]!.end) cursor++;
+              return (cursor < ranges.length && position >= ranges[cursor]!.start) !== complement;
+            };
             if (mode === "f") {
               const record = Buffer.from(line.bytes.buffer, line.bytes.byteOffset, line.bytes.byteLength);
-              const separator = Buffer.from(delimiter);
-              let boundary = record.indexOf(separator);
+              let boundary = await cutFieldBoundary(record, separator, 0, work);
               if (boundary < 0) {
                 if (parsed.flags.has("s")) continue;
-                bytes = line.bytes;
+                await writer.write(line.bytes);
               } else {
-                const pieces: Uint8Array[] = [];
-                const joiner = encoder.encode(outputDelimiter ?? delimiter);
                 let field = 1;
                 let start = 0;
                 let emitted = false;
                 while (true) {
+                  const checkpoint = work.charge();
+                  if (checkpoint) await checkpoint;
                   if (selected(field++)) {
-                    if (emitted) pieces.push(joiner);
-                    pieces.push(record.subarray(start, boundary < 0 ? record.length : boundary));
+                    if (emitted) await writer.text(outputDelimiter ?? delimiter);
+                    await writer.write(record.subarray(start, boundary < 0 ? record.length : boundary));
                     emitted = true;
                   }
                   if (boundary < 0) break;
                   start = boundary + separator.length;
-                  boundary = record.indexOf(separator, start);
+                  boundary = await cutFieldBoundary(record, separator, start, work);
                 }
-                bytes = concatenate(pieces);
               }
             } else if (mode === "b") {
-              const chunks: Uint8Array[] = [];
-              let start = -1;
               let emitted = false;
-              for (let index = 0; index <= line.bytes.length; index++) {
-                const included = index < line.bytes.length && selected(index + 1);
-                if (included && start < 0) start = index;
-                if (!included && start >= 0) {
-                  if (emitted && outputDelimiter !== undefined) chunks.push(encoder.encode(outputDelimiter));
-                  chunks.push(line.bytes.subarray(start, index)); emitted = true; start = -1;
+              let previousIncluded = false;
+              for (let offset = 0; offset < line.bytes.length; offset += 4096) {
+                const end = Math.min(line.bytes.length, offset + 4096);
+                const checkpoint = work.charge(end - offset);
+                if (checkpoint) await checkpoint;
+                let start = -1;
+                for (let index = offset; index < end; index++) {
+                  const included = selected(index + 1);
+                  if (included && start < 0) {
+                    if (!previousIncluded && emitted && outputDelimiter !== undefined) await writer.text(outputDelimiter);
+                    start = index;
+                    emitted = true;
+                  }
+                  if (!included && start >= 0) { await writer.write(line.bytes.subarray(start, index)); start = -1; }
+                  previousIncluded = included;
                 }
+                if (start >= 0) await writer.write(line.bytes.subarray(start, end));
               }
-              bytes = concatenate(chunks);
             } else {
-              const text = new TextDecoder().decode(line.bytes);
-              const pieces: string[] = [];
+              const decoder = new TextDecoder();
               let index = 0;
-              let offset = 0;
-              let start = -1;
-              for (const character of text) {
-                const included = selected(++index);
-                if (included && start < 0) start = offset;
-                if (!included && start >= 0) { pieces.push(text.slice(start, offset)); start = -1; }
-                offset += character.length;
+              let emitted = false;
+              let previousIncluded = false;
+              for (let offset = 0; offset < line.bytes.length; offset += 4096) {
+                const end = Math.min(line.bytes.length, offset + 4096);
+                const checkpoint = work.charge(end - offset);
+                if (checkpoint) await checkpoint;
+                const text = decoder.decode(line.bytes.subarray(offset, end), { stream: end < line.bytes.length });
+                let start = -1;
+                let position = 0;
+                for (const character of text) {
+                  const checkpoint = work.charge();
+                  if (checkpoint) await checkpoint;
+                  const included = selected(++index);
+                  if (included && start < 0) {
+                    if (!previousIncluded && emitted && outputDelimiter !== undefined) await writer.text(outputDelimiter);
+                    start = position;
+                    emitted = true;
+                  }
+                  if (!included && start >= 0) { await writer.text(text.slice(start, position)); start = -1; }
+                  position += character.length;
+                  previousIncluded = included;
+                }
+                if (start >= 0) await writer.text(text.slice(start));
               }
-              if (start >= 0) pieces.push(text.slice(start));
-              bytes = encoder.encode(pieces.join(outputDelimiter ?? ""));
             }
-            await output(context, bytes);
-            await output(context, Uint8Array.of(recordDelimiter));
+            await writer.write(Uint8Array.of(recordDelimiter));
+            await writer.flush();
           }
         } catch (error) { await diagnostic(context, error); exitCode = 1; }
       }

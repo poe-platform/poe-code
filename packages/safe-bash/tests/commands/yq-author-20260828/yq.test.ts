@@ -6,6 +6,9 @@ import { createMemoryFileSystem } from "../../../src/fs/memory/index.js";
 import { createYqCommand, createYqCommands, yqCommands } from "../../../src/commands/yq/index.js";
 import { createYqQuerySession } from "../../../src/commands/structured/query-core.js";
 import { JqLimitError } from "../../../src/commands/structured/limits.js";
+import { parseYamlDocuments } from "../../../src/commands/yq/parser.js";
+import { YqLedger } from "../../../src/commands/yq/accounting.js";
+import { YqError } from "../../../src/commands/yq/errors.js";
 
 function sink(): ByteSink & { readonly bytes: Uint8Array[] } {
   const bytes: Uint8Array[] = [];
@@ -15,6 +18,104 @@ function sink(): ByteSink & { readonly bytes: Uint8Array[] } {
 function text(output: { readonly bytes: Uint8Array[] }): string {
   return new TextDecoder().decode(Buffer.concat(output.bytes));
 }
+
+const depthCases = [
+  { name: "flow sequences", input: (depth: number) => "[".repeat(depth) + "null" + "]".repeat(depth) },
+  { name: "flow mappings", input: (depth: number) => "{k: ".repeat(depth) + "null" + "}".repeat(depth) },
+  { name: "block mappings", input: (depth: number) => Array.from({ length: depth }, (_, index) => " ".repeat(index * 2) + "k:").join("\n") + "\n" + " ".repeat(depth * 2) + "null" },
+  { name: "block sequences", input: (depth: number) => Array.from({ length: depth }, (_, index) => " ".repeat(index * 2) + "-").join("\n") + "\n" + " ".repeat(depth * 2) + "null" },
+  { name: "mixed block and flow", input: (depth: number) => Array.from({ length: 64 }, (_, index) => " ".repeat(index * 2) + "k:").join("\n") + "\n" + " ".repeat(128) + "[".repeat(depth - 64) + "null" + "]".repeat(depth - 64) },
+  { name: "implicit flow pairs", input: (depth: number) => "[k: ".repeat(64) + (depth === 128 ? "null" : "[null]") + "]".repeat(64) },
+  { name: "block sequence mappings", input: (depth: number) => Array.from({ length: 64 }, (_, index) => " ".repeat(index * 4) + "- k:").join("\n") + "\n" + " ".repeat(256) + (depth === 128 ? "null" : "[null]") },
+  { name: "indentless sequence", input: (depth: number) => "k:\n- " + "[".repeat(depth - 2) + "null" + "]".repeat(depth - 2) },
+];
+
+for (const { name, input } of depthCases) {
+  test(`parse depth admits the scalar boundary: ${name}`, async () => {
+    const result = await run(["-o", "json", "-c", "."], input(128));
+    assert.equal(result.status, 0, result.stderr);
+    assert.notEqual(result.stdout.length, 0);
+  });
+  test(`parse depth rejects before the over-depth child: ${name}`, async () => {
+    const session = createYqQuerySession({ signal: new AbortController().signal });
+    let leafAdmissions = 0;
+    const ledger = new class extends YqLedger {
+      override admitScalar(bytes: number): void {
+        if (bytes === 4) leafAdmissions++;
+        super.admitScalar(bytes);
+      }
+    }();
+    try {
+      await assert.rejects(async () => {
+        for await (const unused of parseYamlDocuments(input(129), session.ownedWork, ledger)) void unused;
+      }, error => error instanceof YqError && error.code === "LIMIT_MAX_DEPTH");
+      assert.equal(leafAdmissions, 0);
+    } finally { await session.close(); }
+  });
+}
+
+test("parse depth admits empty collections at the exact boundary", async () => {
+  for (const leaf of ["[]", "{}"]) {
+    const input = "[".repeat(127) + leaf + "]".repeat(127);
+    assert.deepEqual(await run(["-o", "json", "-c", "."], input), { status: 0, stdout: `${input}\n`, stderr: "" });
+  }
+});
+
+test("parse depth admits only 128 collection nodes and wins before deep malformed syntax", async () => {
+  for (const leaf of ["", "!unsupported x"]) {
+    const session = createYqQuerySession({ signal: new AbortController().signal });
+    const ledger = new YqLedger();
+    try {
+      await assert.rejects(async () => {
+        for await (const unused of parseYamlDocuments("[".repeat(256) + leaf + "]".repeat(256), session.ownedWork, ledger)) void unused;
+      }, error => error instanceof YqError && error.code === "LIMIT_MAX_DEPTH");
+      assert.equal(ledger.documentNodes, 128);
+    } finally { await session.close(); }
+  }
+});
+
+test("parse depth releases sibling collections and resets between documents", async () => {
+  const branch = "[".repeat(127) + "null" + "]".repeat(127);
+  const document = `[${branch},${branch}]`;
+  const result = await run(["-o", "json", "-c", "."], `${document}\n---\n${document}`);
+  assert.equal(result.status, 0, result.stderr);
+  assert.equal(result.stdout, `${document}\n${document}\n`);
+});
+
+for (const reason of [false, null, 0]) test(`parse depth keeps caller cancellation primary: ${reason}`, async () => {
+  const controller = new AbortController();
+  const session = createYqQuerySession({ signal: controller.signal });
+  const ledger = new class extends YqLedger {
+    override admitNode(): void {
+      super.admitNode();
+      if (this.documentNodes === 128) controller.abort(reason);
+    }
+  }();
+  try {
+    await assert.rejects(async () => {
+      for await (const unused of parseYamlDocuments("[".repeat(129) + "]".repeat(129), session.ownedWork, ledger)) void unused;
+    }, error => Object.is(error, reason));
+  } finally { await session.close(); }
+});
+
+test("parse depth retains final measurement of alias-expanded collection depth", async () => {
+  for (const wrappers of [126, 127]) {
+    const input = "a: &a []\nb: " + "[".repeat(wrappers) + "*a" + "]".repeat(wrappers);
+    const session = createYqQuerySession({ signal: new AbortController().signal });
+    try {
+      let documents = 0;
+      for await (const value of parseYamlDocuments(input, session.ownedWork, new YqLedger())) {
+        documents++;
+        if (wrappers === 126) await session.ownedWork.measure(value);
+        else await assert.rejects(session.ownedWork.measure(value), error => error instanceof JqLimitError && error.message.includes("maxDepth"));
+      }
+      assert.equal(documents, 1);
+    } finally { await session.close(); }
+    const result = await run(["-o", "json", "-c", "."], input);
+    assert.equal(result.status, wrappers === 126 ? 0 : 5, result.stderr);
+    if (wrappers === 127) assert.match(result.stderr, /LIMIT_MAX_DEPTH/u);
+  }
+});
 
 async function run(args: readonly string[], input = ""): Promise<{ status: number; stdout: string; stderr: string }> {
   const stdout = sink();

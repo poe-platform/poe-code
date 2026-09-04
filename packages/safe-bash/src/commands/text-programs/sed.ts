@@ -1,4 +1,5 @@
 import { FsError, writeBytes, type CommandContext, type CommandDefinition } from "../../contracts/index.js";
+import { writeFileOutput } from "../../contracts/filesystem-output.js";
 import { Pattern, substitute } from "./regex.js";
 import { Budget, ProgramError, byteString, bytes, command, lineRecords, readProgram, virtualPath, write, type RecordLine, type TextProgramOptions } from "./shared.js";
 import { assertPathRequirements, requiredFileInput, sedRequirements } from "../search/requirements.js";
@@ -243,7 +244,7 @@ async function execute(program: readonly Instruction[], context: CommandContext,
         appended.length = 0; appendedSize = 0;
       };
       const writeFile = async (file: string): Promise<void> => {
-        await context.fs.appendFile(virtualPath(context, file), bytes(pattern + "\n"), { signal: context.signal });
+        await writeFileOutput(context, bytes(pattern + "\n"), chunk => context.fs.appendFile(virtualPath(context, file), chunk, { signal: context.signal }));
       };
       const matches = async (address: Address): Promise<boolean> => address.kind === "number" ? number === address.number : address.kind === "last" ? (await peekNext()).done === true : getPattern(address.pattern).find(pattern, budget) !== undefined;
       for (let pc = 0; pc < program.length;) {
@@ -401,7 +402,7 @@ export function sedCommand(options: TextProgramOptions = {}): CommandDefinition 
     }
     const prepareOutputs = async (): Promise<void> => {
       const paths = new Set(outputFiles.map(file => virtualPath(context, file)));
-      for (const path of paths) await context.fs.writeFile(path, new Uint8Array(), { signal: context.signal });
+      for (const path of paths) await writeFileOutput(context, new Uint8Array(), chunk => context.fs.writeFile(path, chunk, { signal: context.signal }));
     };
     if (inPlace !== undefined) {
       if (!files.length || files.includes("-")) throw new ProgramError("in-place editing requires named files");
@@ -419,7 +420,7 @@ export function sedCommand(options: TextProgramOptions = {}): CommandDefinition 
         const result = await execute(program, child, [file], quiet, budget);
         const path = virtualPath(context, file);
         if (inPlace) await context.fs.copyFile(path, path + inPlace, { signal: context.signal });
-        await context.fs.writeFile(path, bytes(rewritten), { signal: context.signal });
+        await writeFileOutput(context, bytes(rewritten), chunk => context.fs.writeFile(path, chunk, { signal: context.signal }));
         if (result.quit || result.status) return result.status;
       }
       return 0;

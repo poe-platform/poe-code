@@ -1,4 +1,5 @@
 import { FsError, type CommandContext } from "../../contracts/index.js";
+import { writeFileOutput } from "../../contracts/filesystem-output.js";
 import type { AwkProgram, Expression, Statement } from "./awk-syntax.js";
 import { decodeString } from "./awk-syntax.js";
 import { AwkArray, compare, formatted, inputValue, number, numeric, scalar, string, text, truth, unset, type Scalar, type Value } from "./awk-values.js";
@@ -455,11 +456,12 @@ export class AwkRuntime {
         if (!statement.redirect) { await write(this.context, output); return; }
         const destination = Buffer.from(this.asText(await this.scalarExpression(statement.redirect.destination)), "latin1").toString("utf8");
         const path = virtualPath(this.context, destination);
-        if (this.outputs.has(path)) await this.context.fs.appendFile(path, bytes(output), { signal: this.context.signal });
+        if (this.outputs.has(path)) await writeFileOutput(this.context, bytes(output), chunk => this.context.fs.appendFile(path, chunk, { signal: this.context.signal }));
         else {
           const name = this.retainName(path);
           try {
-            await this.context.fs.writeFile(name, bytes(output), { flag: statement.redirect.append ? "a" : "w", signal: this.context.signal });
+            const flag = statement.redirect.append ? "a" : "w";
+            await writeFileOutput(this.context, bytes(output), chunk => this.context.fs.writeFile(name, chunk, { flag, signal: this.context.signal }));
             this.context.signal.throwIfAborted();
             this.outputs.add(name);
           } catch (error) { this.retention.release(Buffer.byteLength(name, "utf8")); throw error; }

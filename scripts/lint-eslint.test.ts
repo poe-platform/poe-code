@@ -132,6 +132,17 @@ describe("fixture operation observation retention", () => {
     expect(() => guard.directory("src")).toThrow("invalid directory entry encoding");
   });
 
+  it.each([false, true])("rejects sparse directory byte listings, warmed=%s", (warmed) => {
+    const state = model({ "src/one.js": "export {};" });
+    let entries = [Buffer.from("one.js")];
+    const guard = createLintInputGuard({ root, boundaries, fileSystem: { ...state.fileSystem, readdirSync(absolute: string, options: unknown) {
+      return absolute === root + "/src" ? entries : state.fileSystem.readdirSync(absolute, options as any);
+    } } });
+    if (warmed) guard.directory("src");
+    entries = new Array(1);
+    expect(() => guard.directory("src")).toThrow("byte-exact directory names required");
+  });
+
   it("revalidates changed and duplicate names after a cached listing", () => {
     const state = model({ "src/one.js": "export {};" });
     let entries = [Buffer.from("one.js")];

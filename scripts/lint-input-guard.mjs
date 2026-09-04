@@ -154,9 +154,9 @@ export function createLintInputGuard({ root, boundaries, fileSystem = fs, limits
     budget(Array.isArray(values) && values.length <= limits.directoryEntries, 'directory entry cap');
     const previous = decodedDirectories.get(absolute);
     // Reread every time: only decoding is reused, never filesystem observations.
-    if (previous && values.length === previous.bytes.length && values.every((value, index) => Buffer.isBuffer(value) && value.equals(previous.bytes[index]))) return [...previous.strings];
+    if (previous && values.length === previous.bytes.length && previous.bytes.every((expected, index) => Buffer.isBuffer(values[index]) && values[index].equals(expected))) return [...previous.strings];
     let byteLength = 0;
-    const strings = values.map(value => {
+    const strings = Array.from(values, value => {
       assert.ok(Buffer.isBuffer(value), 'byte-exact directory names required');
       assert.ok(isUtf8(value), 'invalid directory entry encoding');
       byteLength += value.length;

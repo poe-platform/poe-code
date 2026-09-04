@@ -3,6 +3,7 @@ import { assertInputRequirements, bufferLimit, concatenate, define, diagnostic, 
 import { assertCommandRequirements } from "../contracts/command-requirements.js";
 import { inputRequirements, textOutputRequirements } from "./portable-requirements.js";
 import { yieldTurn } from "../contracts/yield.js";
+import { RecordBuffer } from "./record-buffer.js";
 
 class SortWork {
   #pending = 0;
@@ -279,27 +280,22 @@ async function emitRecords(context: CommandContext, records: ByteSource, destina
   }
 }
 
-async function collectSortRecords(source: ByteSource, delimiter: number, accept: (bytes: Uint8Array) => void): Promise<void> {
-  let pending: Uint8Array[] = [];
-  let size = 0;
-  for await (const chunk of source) {
-    let start = 0;
-    for (let offset = 0; offset < chunk.length; offset++) {
-      if (chunk[offset] !== delimiter) continue;
-      const part = chunk.subarray(start, offset);
-      size += part.length;
-      if (size > bufferLimit) throw new FsError("EFBIG", { message: "line buffer limit exceeded" });
-      if (pending.length) { pending.push(part); accept(concatenate(pending, size)); }
-      else accept(new Uint8Array(part));
-      pending = []; size = 0; start = offset + 1;
+async function collectSortRecords(
+  source: ByteSource, delimiter: number, admit: (size: number) => void, accept: (bytes: Uint8Array) => void,
+): Promise<void> {
+  const pending = new RecordBuffer(bufferLimit);
+  try {
+    for await (const chunk of source) {
+      let start = 0;
+      for (let offset = 0; offset < chunk.length; offset++) {
+        if (chunk[offset] !== delimiter) continue;
+        accept(pending.finish(admit, chunk, start, offset));
+        start = offset + 1;
+      }
+      pending.append(chunk, start);
     }
-    if (start < chunk.length) {
-      pending.push(new Uint8Array(chunk.subarray(start)));
-      size += chunk.length - start;
-      if (size > bufferLimit) throw new FsError("EFBIG", { message: "line buffer limit exceeded" });
-    }
-  }
-  if (size) accept(concatenate(pending, size));
+    if (pending.size) accept(pending.finish(admit));
+  } finally { pending.clear(); }
 }
 
 export function textCommands(): CommandDefinition[] {
@@ -389,23 +385,20 @@ export function textCommands(): CommandDefinition[] {
       };
       const records: Uint8Array[] = [];
       let size = 0;
+      const admitRecord = (length: number): void => {
+        context.signal.throwIfAborted();
+        if (length + 1 > bufferLimit - size) throw new FsError("EFBIG", { message: "sort buffer limit exceeded" });
+        size += length + 1;
+      };
       const exitCode: number = 0;
       const delimiter = parsed.flags.has("z") ? 0 : 10;
       for (const name of parsed.operands.length ? parsed.operands : ["-"]) {
         try {
           if (!parsed.flags.has("c")) {
-            await collectSortRecords(input(context, name), delimiter, bytes => {
-              context.signal.throwIfAborted();
-              size += bytes.length + 1;
-              if (size > bufferLimit) throw new FsError("EFBIG", { message: "sort buffer limit exceeded" });
-              records.push(bytes);
-            });
+            await collectSortRecords(input(context, name), delimiter, admitRecord, bytes => { records.push(bytes); });
             continue;
           }
-          for await (const line of lines(input(context, name), delimiter)) {
-            context.signal.throwIfAborted();
-            size += line.bytes.length + 1;
-            if (size > bufferLimit) throw new FsError("EFBIG", { message: "sort buffer limit exceeded" });
+          for await (const line of lines(input(context, name), delimiter, admitRecord)) {
             if (parsed.flags.has("c") && records.length && (await compare(records.at(-1)!, line.bytes) > 0 || parsed.flags.has("u") && await keyCompare(records.at(-1)!, line.bytes) === 0)) {
               await diagnostic(context, new Error(`disorder at record ${records.length + 1}`));
               return { exitCode: 1 };

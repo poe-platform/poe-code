@@ -1,5 +1,6 @@
 import { assertCommandRequirements } from "../contracts/command-requirements.js";
 import { inputRequirements } from "./portable-requirements.js";
+import { RecordBuffer } from "./record-buffer.js";
 import {
   FsError, isAbsolutePath, readBytes, toByteSource, validatePath, writeBytes,
   type ByteSource, type CommandContext, type CommandDefinition, type CommandHandler,
@@ -204,29 +205,20 @@ export async function collect(source: ByteSource, signal: AbortSignal, limit = b
 
 export interface Line { readonly bytes: Uint8Array; readonly terminated: boolean }
 
-export async function* lines(source: ByteSource, separator = 10): AsyncGenerator<Line> {
-  let pending: Uint8Array[] = [];
-  let size = 0;
-  for await (const chunk of source) {
-    let start = 0;
-    for (let offset = 0; offset < chunk.length; offset++) {
-      if (chunk[offset] !== separator) continue;
-      const part = chunk.slice(start, offset);
-      size += part.length;
-      if (size > bufferLimit) throw new FsError("EFBIG", { message: "line buffer limit exceeded" });
-      pending.push(part);
-      yield { bytes: concatenate(pending, size), terminated: true };
-      pending = [];
-      size = 0;
-      start = offset + 1;
+export async function* lines(source: ByteSource, separator = 10, admit?: (size: number) => void): AsyncGenerator<Line> {
+  const pending = new RecordBuffer(bufferLimit);
+  try {
+    for await (const chunk of source) {
+      let start = 0;
+      for (let offset = 0; offset < chunk.length; offset++) {
+        if (chunk[offset] !== separator) continue;
+        yield { bytes: pending.finish(admit, chunk, start, offset), terminated: true };
+        start = offset + 1;
+      }
+      pending.append(chunk, start);
     }
-    if (start < chunk.length) {
-      pending.push(new Uint8Array(chunk.subarray(start)));
-      size += chunk.length - start;
-      if (size > bufferLimit) throw new FsError("EFBIG", { message: "line buffer limit exceeded" });
-    }
-  }
-  if (size) yield { bytes: concatenate(pending, size), terminated: false };
+    if (pending.size) yield { bytes: pending.finish(admit), terminated: false };
+  } finally { pending.clear(); }
 }
 
 export function emptyInput(): ByteSource { return toByteSource(""); }

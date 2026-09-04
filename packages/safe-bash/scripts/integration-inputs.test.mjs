@@ -403,6 +403,7 @@ function assertSource7Discovery(files) {
   assert.ok(files.includes("tests/shell/runtime-parameter-depth.test.ts"));
   assert.ok(files.includes("tests/commands/structured/string-work.test.ts"));
   assert.ok(files.includes("tests/commands/cut-bom.test.ts"));
+  assert.ok(files.includes("tests/commands/line-fragment-admission.test.ts"));
   assert.ok(files.includes("tests/commands/yq-author-20260828/input-admission.test.ts"));
   assert.ok(files.includes("tests/commands/text-programs/allocation-admission.test.ts"));
   assert.ok(files.includes("tests/commands/directory-admission.test.ts"));

@@ -311,7 +311,8 @@ for (const [prefix, maxCommands] of [["", 4], ["seed=; ", 5], ["seed=; ", 8], ["
       return builtin.apply(this, args);
     });
     try {
-      const result = await instance.exec(`${prefix}f() { :; }; f ${Array(3000).fill("x").join(" ")}`, { limits: { maxCommands, maxExpansionFields: 3001, maxExpansionBytes: 1 } });
+      // Each retained positional owns two UTF-16 bytes; automatic status adds none.
+      const result = await instance.exec(`${prefix}f() { :; }; f ${Array(3000).fill("x").join(" ")}`, { limits: { maxCommands, maxExpansionFields: 3001, maxExpansionBytes: 6000 } });
       assert.equal(result.exitCode, 0, result.stderr);
       assert.equal(result.stdout, "");
       assert.equal(result.stderr, "");
@@ -325,9 +326,10 @@ test("foundation: scalar function argv retains exact public field byte and comma
   const source = `seed=; f() { :; }; f ${Array(3000).fill("x").join(" ")}`;
   try {
     for (const [limit, limits, script] of [
-      ["maxExpansionFields", { maxCommands: 8, maxExpansionFields: 3000, maxExpansionBytes: 1 }, source],
-      ["maxExpansionBytes", { maxCommands: 8, maxExpansionFields: 3001, maxExpansionBytes: 1 }, `${source}x`],
-      ["maxCommands", { maxCommands: 4, maxExpansionFields: 3001, maxExpansionBytes: 1 }, source],
+      ["maxExpansionFields", { maxCommands: 8, maxExpansionFields: 3000, maxExpansionBytes: 6000 }, source],
+      ["maxExpansionBytes", { maxCommands: 8, maxExpansionFields: 3001, maxExpansionBytes: 5999 }, source],
+      ["maxExpansionBytes", { maxCommands: 8, maxExpansionFields: 3001, maxExpansionBytes: 6000 }, `${source}x`],
+      ["maxCommands", { maxCommands: 4, maxExpansionFields: 3001, maxExpansionBytes: 6000 }, source],
     ] as const) await assert.rejects(instance.exec(script, { limits }), error => error instanceof ShellLimitError && error.limit === limit);
   } finally { await instance.dispose(); }
 });

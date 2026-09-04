@@ -116,9 +116,14 @@ export class Budget {
     });
   }
 
-  visitNode(): void {
-    this.stepsUsed += 1;
-    this.checkSampledDeadline();
+  visitNode(units = 1): void {
+    if (!Number.isSafeInteger(units) || units < 0) {
+      throw new Error("units must be a non-negative safe integer.");
+    }
+    if (units === 0) return;
+
+    this.stepsUsed += units;
+    this.checkSampledDeadline(units);
 
     if (
       this.allChecksSuspended === 0 &&
@@ -445,7 +450,7 @@ export class Budget {
     }
   }
 
-  private checkSampledDeadline(): void {
+  private checkSampledDeadline(units: number): void {
     if (
       this.allChecksSuspended > 0 ||
       this.deadlineChecksSuspended > 0 ||
@@ -454,12 +459,13 @@ export class Budget {
       return;
     }
 
-    this.visitsUntilDeadlineCheck -= 1;
+    this.visitsUntilDeadlineCheck -= units;
     if (this.visitsUntilDeadlineCheck > 0) {
       return;
     }
 
-    this.visitsUntilDeadlineCheck = DEADLINE_CHECK_INTERVAL;
+    this.visitsUntilDeadlineCheck =
+      DEADLINE_CHECK_INTERVAL - (-this.visitsUntilDeadlineCheck % DEADLINE_CHECK_INTERVAL);
     this.checkDeadline();
   }
 

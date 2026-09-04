@@ -227,3 +227,14 @@ The final combined-candidate full lint also exited zero: all 9,663 configured
 files, zero errors/warnings, 25 receipts, root types and workflow lint. No source
 changes followed these checks. Only this plan and the reviewed contract/link
 are included in the delivery documentation commit; user staging stays separate.
+
+The first push was rejected because remote main gained the independently owned
+#563/#564 fixes at `3ff5bba346c738a0d92f0fbd827ca4698ce2f818`. A clean merge
+preserves the inspected #590 implementation and documentation commits. Recovery
+stash `93f832e2604944ad54db0bbdc939014af77803b4` retains user staging; its exact
+index diff was preserved after restoration. No #590 source changed in the merge.
+
+Final-merge focused checks passed 1,225 SafeFS/SafeJS budget and locale-comparison
+tests in 51 files, plus 144 Bash directory-admission and jq semantics tests.
+The preceding full repository unit/lint results retain their exact candidate
+scopes above; they are not represented as a new full-suite run on this merge.

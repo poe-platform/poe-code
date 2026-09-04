@@ -68,15 +68,35 @@ export function indexValue(value: Json, index: Json): Json {
   }
   throw new JqError(`Cannot index ${type(value)} with ${type(index)}${typeof index === "string" && Buffer.byteLength(index) < 30 ? ` ${JSON.stringify(index)}` : ""}`);
 }
-export function sliceValue(value: Json, start: Json, end: Json): Json {
+export async function sliceValue(value: Json, start: Json, end: Json, budget: Budget): Promise<Json> {
   if (start !== null && (!isNumber(start) || !Number.isSafeInteger(numberValue(start)))) throw new JqError("slice start must be an integer or null");
   if (end !== null && (!isNumber(end) || !Number.isSafeInteger(numberValue(end)))) throw new JqError("slice end must be an integer or null");
-  const first = start === null ? 0 : numberValue(start);
-  const last = end === null ? undefined : numberValue(end);
+  budget.signal.throwIfAborted();
+  let first = start === null ? 0 : numberValue(start);
+  let last = end === null ? undefined : numberValue(end);
   if (value === null) return null;
   if (Array.isArray(value)) return value.slice(first, last);
-  if (typeof value === "string") { const points = Array.from(value); return points.slice(first, last).join(""); }
-  throw new JqError(`cannot slice ${type(value)}`);
+  if (typeof value !== "string") throw new JqError(`cannot slice ${type(value)}`);
+  if (last === 0 || (last !== undefined && (first < 0) === (last < 0) && first >= last)) return "";
+  if (first < 0 || (last !== undefined && last < 0)) {
+    let length = 0;
+    for (let offset = 0; offset < value.length; length++) {
+      await budget.tick();
+      offset += value.codePointAt(offset)! > 0xffff ? 2 : 1;
+    }
+    if (first < 0) first = Math.max(0, length + first);
+    if (last !== undefined && last < 0) last = Math.max(0, length + last);
+    if (last !== undefined && first >= last) return "";
+  }
+  let firstOffset = first === 0 ? 0 : value.length;
+  let offset = 0;
+  const stop = last ?? first;
+  for (let point = 0; point < stop && offset < value.length;) {
+    await budget.tick();
+    offset += value.codePointAt(offset)! > 0xffff ? 2 : 1;
+    if (++point === first) firstOffset = offset;
+  }
+  return value.slice(firstOffset, last === undefined ? undefined : offset);
 }
 export function contains(value: Json, sought: Json, budget: Budget): boolean {
   budget.step();

@@ -566,79 +566,88 @@ class FlowParser {
   }
 
   async #sequence(): Promise<ParsedNode> {
-    this.#position++;
-    await this.composer.node();
-    this.composer.collection();
-    const result: Json[] = [];
-    this.#space();
-    if (this.source[this.#position] === "]") {
+    this.composer.enterCollection();
+    try {
       this.#position++;
-      return { value: result };
-    }
-    while (true) {
-      this.composer.member(result.length + 1);
-      this.composer.member(1);
-      const start = this.#position;
-      let value = await this.#node();
-      this.#space();
-      if (this.source[this.#position] === ":") {
-        if (this.source.slice(start, this.#position).includes("\n")) throw syntax(this.line, this.#position + 1);
-        this.#position++;
-        const mapped = await this.#node();
-        await this.composer.node();
-        this.composer.collection();
-        const pair = object();
-        this.composer.mappingEntry(pair, value, mapped.value, true, true);
-        value = { value: pair };
-      }
-      result.push(value.value);
+      await this.composer.node();
+      this.composer.collection();
+      const result: Json[] = [];
       this.#space();
       if (this.source[this.#position] === "]") {
         this.#position++;
         return { value: result };
       }
-      if (this.source[this.#position] !== ",") throw syntax(this.line, this.#position + 1);
-      this.#position++;
-      this.#space();
-      if (this.source[this.#position] === "]") {
+      while (true) {
+        this.composer.member(result.length + 1);
+        this.composer.member(1);
+        const start = this.#position;
+        let value = await this.#node();
+        this.#space();
+        if (this.source[this.#position] === ":") {
+          if (this.source.slice(start, this.#position).includes("\n")) throw syntax(this.line, this.#position + 1);
+          this.#position++;
+          this.composer.enterCollection();
+          try {
+            const mapped = await this.#node();
+            await this.composer.node();
+            this.composer.collection();
+            const pair = object();
+            this.composer.mappingEntry(pair, value, mapped.value, true, true);
+            value = { value: pair };
+          } finally { this.composer.leaveCollection(); }
+        }
+        result.push(value.value);
+        this.#space();
+        if (this.source[this.#position] === "]") {
+          this.#position++;
+          return { value: result };
+        }
+        if (this.source[this.#position] !== ",") throw syntax(this.line, this.#position + 1);
         this.#position++;
-        return { value: result };
+        this.#space();
+        if (this.source[this.#position] === "]") {
+          this.#position++;
+          return { value: result };
+        }
       }
-    }
+    } finally { this.composer.leaveCollection(); }
   }
 
   async #mapping(): Promise<ParsedNode> {
-    this.#position++;
-    await this.composer.node();
-    this.composer.collection();
-    const result = object();
-    let members = 0;
-    this.#space();
-    if (this.source[this.#position] === "}") {
+    this.composer.enterCollection();
+    try {
       this.#position++;
-      return { value: result };
-    }
-    while (true) {
-      this.composer.member(++members);
-      const key = await this.#node(true);
-      this.#space();
-      if (this.source[this.#position] !== ":") throw syntax(this.line, this.#position + 1);
-      this.#position++;
-      const value = await this.#node();
-      this.composer.mappingEntry(result, key, value.value, true, true);
+      await this.composer.node();
+      this.composer.collection();
+      const result = object();
+      let members = 0;
       this.#space();
       if (this.source[this.#position] === "}") {
         this.#position++;
         return { value: result };
       }
-      if (this.source[this.#position] !== ",") throw syntax(this.line, this.#position + 1);
-      this.#position++;
-      this.#space();
-      if (this.source[this.#position] === "}") {
+      while (true) {
+        this.composer.member(++members);
+        const key = await this.#node(true);
+        this.#space();
+        if (this.source[this.#position] !== ":") throw syntax(this.line, this.#position + 1);
         this.#position++;
-        return { value: result };
+        const value = await this.#node();
+        this.composer.mappingEntry(result, key, value.value, true, true);
+        this.#space();
+        if (this.source[this.#position] === "}") {
+          this.#position++;
+          return { value: result };
+        }
+        if (this.source[this.#position] !== ",") throw syntax(this.line, this.#position + 1);
+        this.#position++;
+        this.#space();
+        if (this.source[this.#position] === "}") {
+          this.#position++;
+          return { value: result };
+        }
       }
-    }
+    } finally { this.composer.leaveCollection(); }
   }
 
   async #quoted(): Promise<ParsedNode> {
@@ -703,6 +712,7 @@ class FlowParser {
 class Composer {
   readonly #anchors = new Map<string, AnchorRecord>();
   readonly #futureAnchors: Set<string>;
+  #collectionDepth = 0;
 
   constructor(
     readonly work: YqOwnedWork,
@@ -716,6 +726,16 @@ class Composer {
     await this.work.charge(1);
     this.work.assertOpen();
     this.ledger.admitNode();
+  }
+
+  enterCollection(): void {
+    this.work.assertOpen();
+    if (this.#collectionDepth >= yqCaps.maxDepth) throw limit("LIMIT_MAX_DEPTH");
+    this.#collectionDepth++;
+  }
+
+  leaveCollection(): void {
+    this.#collectionDepth--;
   }
 
   admitScalar(bytes: number): void {
@@ -834,82 +854,91 @@ class BlockParser {
   }
 
   async #sequence(indent: number): Promise<ParsedNode> {
-    await this.composer.node();
-    this.composer.collection();
-    const result: Json[] = [];
-    while (this.#index < this.lines.length) {
-      this.#skip();
-      const line = this.lines[this.#index];
-      if (!line || indentation(line.text) !== indent) break;
-      const content = stripComment(line.text.slice(indent));
-      if (!/^-(?:[ \t]|$)/u.test(content)) break;
-      this.composer.member(result.length + 1);
-      this.#index++;
-      const rest = content.slice(1).trimStart();
-      let item: ParsedNode;
-      if (rest.length === 0) {
+    this.composer.enterCollection();
+    try {
+      await this.composer.node();
+      this.composer.collection();
+      const result: Json[] = [];
+      while (this.#index < this.lines.length) {
         this.#skip();
-        const next = this.lines[this.#index];
-        item = next && indentation(next.text) > indent ? await this.#node(indentation(next.text)) : { value: null, style: "plain" };
-        if (!next || indentation(next.text) <= indent) await this.composer.scalar("", null);
-      } else if (mappingColon(rest) >= 0) {
-        item = await this.#inlineMappingItem(rest, indent + 2, line.number);
-      } else item = await this.#inlineOrBlock(rest, indent, line.number);
-      result.push(item.value);
-    }
-    return { value: result };
+        const line = this.lines[this.#index];
+        if (!line || indentation(line.text) !== indent) break;
+        const content = stripComment(line.text.slice(indent));
+        if (!/^-(?:[ \t]|$)/u.test(content)) break;
+        this.composer.member(result.length + 1);
+        this.#index++;
+        const rest = content.slice(1).trimStart();
+        let item: ParsedNode;
+        if (rest.length === 0) {
+          this.#skip();
+          const next = this.lines[this.#index];
+          item = next && indentation(next.text) > indent ? await this.#node(indentation(next.text)) : { value: null, style: "plain" };
+          if (!next || indentation(next.text) <= indent) await this.composer.scalar("", null);
+        } else if (mappingColon(rest) >= 0) {
+          item = await this.#inlineMappingItem(rest, indent + 2, line.number);
+        } else item = await this.#inlineOrBlock(rest, indent, line.number);
+        result.push(item.value);
+      }
+      return { value: result };
+    } finally { this.composer.leaveCollection(); }
   }
 
   async #inlineMappingItem(first: string, indent: number, lineNumber: number): Promise<ParsedNode> {
-    await this.composer.node();
-    this.composer.collection();
-    const result = object();
-    let members = 1;
-    this.composer.member(members);
-    await this.#mappingLine(result, first, indent, lineNumber, true);
-    while (this.#index < this.lines.length) {
-      this.#skip();
-      const line = this.lines[this.#index];
-      if (!line || indentation(line.text) !== indent) break;
-      const content = stripComment(line.text.slice(indent));
-      if (mappingColon(content) < 0) break;
-      this.composer.member(++members);
-      this.#index++;
-      await this.#mappingLine(result, content, indent, line.number, true);
-    }
-    return { value: result };
+    this.composer.enterCollection();
+    try {
+      await this.composer.node();
+      this.composer.collection();
+      const result = object();
+      let members = 1;
+      this.composer.member(members);
+      await this.#mappingLine(result, first, indent, lineNumber, true);
+      while (this.#index < this.lines.length) {
+        this.#skip();
+        const line = this.lines[this.#index];
+        if (!line || indentation(line.text) !== indent) break;
+        const content = stripComment(line.text.slice(indent));
+        if (mappingColon(content) < 0) break;
+        this.composer.member(++members);
+        this.#index++;
+        await this.#mappingLine(result, content, indent, line.number, true);
+      }
+      return { value: result };
+    } finally { this.composer.leaveCollection(); }
   }
 
   async #mapping(indent: number): Promise<ParsedNode> {
-    await this.composer.node();
-    this.composer.collection();
-    const result = object();
-    let members = 0;
-    while (this.#index < this.lines.length) {
-      this.#skip();
-      const line = this.lines[this.#index];
-      if (!line || indentation(line.text) !== indent) break;
-      const content = stripComment(line.text.slice(indent));
-      if (content.startsWith("? ")) {
+    this.composer.enterCollection();
+    try {
+      await this.composer.node();
+      this.composer.collection();
+      const result = object();
+      let members = 0;
+      while (this.#index < this.lines.length) {
+        this.#skip();
+        const line = this.lines[this.#index];
+        if (!line || indentation(line.text) !== indent) break;
+        const content = stripComment(line.text.slice(indent));
+        if (content.startsWith("? ")) {
+          this.composer.member(++members);
+          this.#index++;
+          const key = await this.#inlineOrBlock(content.slice(2).trimStart(), indent, line.number);
+          this.#skip();
+          const valueLine = this.lines[this.#index];
+          if (!valueLine || indentation(valueLine.text) !== indent || !stripComment(valueLine.text.slice(indent)).startsWith(":")) throw syntax(line.number, 1);
+          this.#index++;
+          const valueText = stripComment(valueLine.text.slice(indent)).slice(1).trimStart();
+          const value = valueText.length > 0 ? await this.#inlineOrBlock(valueText, indent, valueLine.number) : await this.#nestedOrNull(indent);
+          this.composer.mappingEntry(result, key, value.value, false, true);
+          continue;
+        }
+        const colon = mappingColon(content);
+        if (colon < 0) break;
         this.composer.member(++members);
         this.#index++;
-        const key = await this.#inlineOrBlock(content.slice(2).trimStart(), indent, line.number);
-        this.#skip();
-        const valueLine = this.lines[this.#index];
-        if (!valueLine || indentation(valueLine.text) !== indent || !stripComment(valueLine.text.slice(indent)).startsWith(":")) throw syntax(line.number, 1);
-        this.#index++;
-        const valueText = stripComment(valueLine.text.slice(indent)).slice(1).trimStart();
-        const value = valueText.length > 0 ? await this.#inlineOrBlock(valueText, indent, valueLine.number) : await this.#nestedOrNull(indent);
-        this.composer.mappingEntry(result, key, value.value, false, true);
-        continue;
+        await this.#mappingLine(result, content, indent, line.number, true);
       }
-      const colon = mappingColon(content);
-      if (colon < 0) break;
-      this.composer.member(++members);
-      this.#index++;
-      await this.#mappingLine(result, content, indent, line.number, true);
-    }
-    return { value: result };
+      return { value: result };
+    } finally { this.composer.leaveCollection(); }
   }
 
   async #mappingLine(target: Record<string, Json>, content: string, indent: number, lineNumber: number, memberAdmitted: boolean): Promise<void> {

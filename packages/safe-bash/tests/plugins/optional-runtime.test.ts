@@ -2,7 +2,7 @@ import assert from "node:assert/strict";
 import { describe, test } from "node:test";
 import { fileURLToPath } from "node:url";
 import ts from "typescript";
-import { createMemoryFileSystem } from "poe-code/safe-fs";
+import { createMemoryFileSystem, createMountFileSystem } from "poe-code/safe-fs";
 import { createYesCommand as sourceYesCommand } from "../../src/commands/yes/index.js";
 import { CommandRegistry as SourceRegistry } from "../../src/contracts/command.js";
 
@@ -16,6 +16,8 @@ type OptionalRuntime = {
   yesCommands(): import("poe-code/safe-bash").VirtualShellPlugin;
   shufCommands(): import("poe-code/safe-bash").VirtualShellPlugin;
   truncateCommands(): import("poe-code/safe-bash").VirtualShellPlugin;
+  cmpCommands(): import("poe-code/safe-bash").VirtualShellPlugin;
+  createDeviceFileSystem(): import("poe-code/safe-fs").FileSystem;
 };
 
 const selected = process.env.SAFE_BASH_TEST_OPTIONAL_BUILD;
@@ -171,6 +173,43 @@ describe("explicit coherent optional build", { skip: selected === undefined ? "R
       const filename = await shell.exec("truncate -s 0 $'\\377'");
       assert.equal(filename.exitCode, 1);
       assert.deepEqual(await fs.readFile("/\ufffd"), Uint8Array.of(1, 2, 3));
+    } finally { await shell.dispose(); }
+  });
+
+  test("compiled opt-ins compose with existing date and byte tools in a real script", async () => {
+    const { published, optional } = await runtimes();
+    const fs = createMountFileSystem({ root: createMemoryFileSystem(), mounts: { "/dev": optional.createDeviceFileSystem() } });
+    const shell = new published.Shell({ fs, limits: { maxWallClockMs: 2000 } })
+      .use(published.agentCommands()).use(optional.cmpCommands()).use(optional.shufCommands())
+      .use(optional.truncateCommands()).use(optional.yesCommands());
+    const script = [
+      "set -e",
+      "date -u -d @0 +%FT%TZ",
+      "tr -dc 'A-Za-z0-9' < /dev/urandom | head -c 32 > /token",
+      "wc -c < /token",
+      "printf 'alpha\\nbeta\\ngamma\\n' > /choices",
+      "shuf -n 1 /choices > /choice",
+      "wc -l < /choice",
+      "cp /token /copy",
+      "cmp /token /copy",
+      "truncate -s 40 /copy",
+      "wc -c < /copy",
+      "yes ok | head -n 2",
+    ].join("\n");
+    try {
+      await fs.writeFile("/workflow.sh", new TextEncoder().encode(script));
+      const result = await shell.exec("bash /workflow.sh");
+      assert.equal(result.exitCode, 0, result.stderr);
+      assert.equal(result.stderr, "");
+      assert.equal(result.stdout, "1970-01-01T00:00:00Z\n32\n1\n40\nok\nok\n");
+      const token = await fs.readFile("/token");
+      assert.equal(token.length, 32);
+      assert.ok([...token].every(byte => byte >= 48 && byte <= 57 || byte >= 65 && byte <= 90 || byte >= 97 && byte <= 122));
+      const copy = await fs.readFile("/copy");
+      assert.equal(copy.length, 40);
+      assert.deepEqual(copy.subarray(0, 32), token);
+      assert.deepEqual(copy.subarray(32), new Uint8Array(8));
+      assert.ok(["alpha\n", "beta\n", "gamma\n"].includes(new TextDecoder().decode(await fs.readFile("/choice"))));
     } finally { await shell.dispose(); }
   });
 });

@@ -401,6 +401,7 @@ function assertSource7Discovery(files) {
   assert.ok(files.includes("tests/commands/structured/string-work.test.ts"));
   assert.ok(files.includes("tests/commands/text-programs/allocation-admission.test.ts"));
   assert.ok(files.includes("tests/commands/directory-admission.test.ts"));
+  assert.ok(files.includes("tests/commands/recursive-filesystem-admission.test.ts"));
   assert.ok(files.includes("tests/plugins/git-removal.test.ts"));
   assert.ok(files.includes("tests/shell-stress/invocation-closure/v2-batch-controls.test.ts"));
   assert.ok(!files.includes("tests/commands/git/io-cleanup.test.ts"));
@@ -1782,6 +1783,19 @@ test("repository boundaries preserve unaccepted YQ as active source tests", () =
   const selected = discoverTests(root, current);
   assert.ok(selected.includes("tests/commands/yq-author-20260828/yq.test.ts"));
   assert.ok(selected.includes("tests/commands/yq-author-20260828/repair-allocation-v1/repair.test.ts"));
+});
+
+test("UTF-8 literal workerd acceptance remains admitted current input", () => {
+  const root = fileURLToPath(new URL("../", import.meta.url));
+  const boundaries = loadBoundaries(root);
+  for (const path of [
+    "tests/integration/utf8-literal-search-workerd/worker.mjs",
+    "tests/integration/utf8-literal-search-workerd/observe.mjs",
+    "tests/integration/utf8-literal-search-workerd/config.capnp",
+  ]) {
+    assertAdmittedInputPath(path, boundaries);
+    assert.ok(readRegularInput(root, path, 65536, fs, boundaries).length > 0);
+  }
 });
 
 test("published root mirrors only declared subpaths and keeps the feature isolated", () => {

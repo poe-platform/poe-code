@@ -95,6 +95,9 @@ export function createLintInputGuard({ root, boundaries, fileSystem = fs, limits
   const counters = { metadataOperations: 0, directories: 0, entries: 0, configurationBytes: 0, subjectBytes: 0, subjects: 0, opens: 0, closes: 0, readCalls: 0, readBytes: 0, receiptChecks: 0 };
   const receipts = new Map();
   const subjects = new Set();
+  const decodedDirectories = new Map();
+  let decodedDirectoryBytes = 0;
+  let decodedDirectoryEntries = 0;
   let failed = false;
   let reading = false;
   let used = false;
@@ -149,14 +152,35 @@ export function createLintInputGuard({ root, boundaries, fileSystem = fs, limits
   function names(absolute) {
     const values = metadata('readdirSync', absolute, { encoding: 'buffer' });
     budget(Array.isArray(values) && values.length <= limits.directoryEntries, 'directory entry cap');
-    const strings = values.map(value => {
+    const previous = decodedDirectories.get(absolute);
+    // Reread every time: only decoding is reused, never filesystem observations.
+    if (previous && values.length === previous.bytes.length && previous.bytes.every((expected, index) => Buffer.isBuffer(values[index]) && values[index].equals(expected))) return [...previous.strings];
+    let byteLength = 0;
+    const strings = Array.from(values, value => {
       assert.ok(Buffer.isBuffer(value), 'byte-exact directory names required');
       assert.ok(isUtf8(value), 'invalid directory entry encoding');
+      byteLength += value.length;
       const name = value.toString('utf8');
       assert.ok(!name.includes('/') && !name.includes('\0'), 'invalid directory entry encoding');
       return name;
     });
     assert.equal(new Set(strings).size, strings.length, 'duplicate directory entry');
+    if (previous) {
+      decodedDirectories.delete(absolute);
+      decodedDirectoryBytes -= previous.byteLength;
+      decodedDirectoryEntries -= previous.bytes.length;
+    }
+    // Bound both copied byte storage and per-entry overhead, including empty names.
+    if (byteLength <= 1048576 && values.length <= 32768) {
+      if (decodedDirectories.size >= 32 || decodedDirectoryBytes + byteLength > 1048576 || decodedDirectoryEntries + values.length > 32768) {
+        decodedDirectories.clear();
+        decodedDirectoryBytes = 0;
+        decodedDirectoryEntries = 0;
+      }
+      decodedDirectories.set(absolute, { bytes: values.map(value => Buffer.from(value)), strings: [...strings], byteLength });
+      decodedDirectoryBytes += byteLength;
+      decodedDirectoryEntries += values.length;
+    }
     return strings;
   }
 

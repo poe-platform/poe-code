@@ -4,6 +4,7 @@ export const cloudflareWorkerLimits: Readonly<Required<ShellLimits>> = Object.fr
   maxInputBytes: 4 * 1024 * 1024,
   maxOutputBytes: 4 * 1024 * 1024,
   maxCommands: 1_000,
+  maxPipelineStages: 64,
   maxLoopIterations: 1_000,
   maxSubstitutionDepth: 16,
   maxSourceBytes: 256 * 1024,

@@ -21,6 +21,7 @@ export interface ShellLimits {
   readonly maxInputBytes?: number;
   readonly maxOutputBytes?: number;
   readonly maxCommands?: number;
+  readonly maxPipelineStages?: number;
   readonly maxLoopIterations?: number;
   readonly maxSubstitutionDepth?: number;
   readonly maxSourceBytes?: number;

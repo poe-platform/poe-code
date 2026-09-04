@@ -52,6 +52,7 @@ export const defaultLimits: Required<ShellLimits> = {
   maxInputBytes: 32 * 1024 * 1024,
   maxOutputBytes: 16 * 1024 * 1024,
   maxCommands: 10_000,
+  maxPipelineStages: 64,
   maxLoopIterations: 10_000,
   maxSubstitutionDepth: 64,
   maxSourceBytes: 1024 * 1024,
@@ -98,6 +99,7 @@ export class Budget {
   readonly signal: AbortSignal;
   #wallClockTimer: ReturnType<typeof setTimeout> | undefined;
   #wallClockDeadline = 0;
+  #pipelineStages = 0;
   readonly #cpuStarted = monotonicNow();
 
   constructor(readonly limits: Required<ShellLimits>, signal?: AbortSignal) {
@@ -138,6 +140,18 @@ export class Budget {
     this.cpuCheckpoint();
     this.signal.throwIfAborted();
     if (++this.commands > this.limits.maxCommands) this.fail("maxCommands");
+  }
+
+  reservePipelineStages(count: number): () => void {
+    this.signal.throwIfAborted();
+    if (count > this.limits.maxPipelineStages - this.#pipelineStages) this.fail("maxPipelineStages");
+    this.#pipelineStages += count;
+    let released = false;
+    return () => {
+      if (released) return;
+      released = true;
+      this.#pipelineStages -= count;
+    };
   }
 
   loop(): void {
@@ -1640,103 +1654,126 @@ export class Runtime {
     let status: number;
     if (pipeline.commands.length === 1) status = await this.command(pipeline.commands[0]!, state, io, false, pipeline.negate);
     else {
-      const pipes = pipeline.commands.slice(1).map(() => createBytePipe({
-        highWaterMark: this.budget.limits.pipeHighWaterMark, signal: this.signal,
-      }));
-      const controllers = pipeline.commands.map(() => new AbortController());
+      const release = this.budget.reservePipelineStages(pipeline.commands.length);
+      const retained = new Set<Promise<unknown>>();
+      let setupClosed = false;
+      const retain = (work: Promise<unknown>): void => {
+        retained.add(work);
+        const settled = (): void => {
+          retained.delete(work);
+          if (setupClosed && !retained.size) release();
+        };
+        void work.then(settled, settled);
+      };
+      const pipes: ReturnType<typeof createBytePipe>[] = [];
+      const controllers: AbortController[] = [];
       const written = new Set<number>();
       const completed = new Set<number>();
       const closing = new Set<TurnHandle>();
-      const tasks = pipeline.commands.map(async (command, index) => {
-        const incoming = pipes[index - 1];
-        const outgoing = pipes[index];
-        const childDepth = this.cancellationDepth + 1;
-        const controls: readonly CancellationControlOriginInput[] = [
-          { role: "pipeline-control", signal: controllers[index]!.signal },
-        ];
-        const prepared = prepareChildCancellation(
-          this.cancellation,
-          undefined,
-          this.cancellationAdmission(childDepth, controls.length),
-          controls,
-        );
-        const owner = new InvocationCancellationOwner(io[invocationScope], prepared, this.cancellationState);
-        let boundary: CancellationBoundary;
-        try { boundary = owner.activate(); }
-        catch (error) { await owner.abandon(Promise.resolve()); throw error; }
-        const signal = AbortSignal.any([boundary.deliverySignal, io[invocationScope].signal]);
-        const frame: RuntimeOutcomeFrame = {};
-        const runtime = new Runtime(
-          this.fs, this.commands, this.middleware, this.budget, signal, this.fileWrites, this.outputFiles,
-          boundary.deliverySignal, boundary, this.cancellationState, owner,
-          childDepth, this.cancellationMaxDepth, frame,
-        );
-        const input = new ShellInput(incoming?.readable ?? io.stdin, this.budget, signal);
-        const pipeOutput: ByteSink | undefined = outgoing && { ownedOutput: outgoing.writable.ownedOutput!, write: async (chunk) => {
-          try {
-            await outgoing.writable.write(chunk);
-            if (chunk.byteLength) written.add(index);
-          }
-          catch (error) {
-            if (errorCode(error) === "EPIPE") {
-              const closed = new PipelineClosed();
-              controllers[index]!.abort(closed);
-              throw closed;
-            }
-            throw error;
-          }
-        } };
-        const executeStage = async (): Promise<CommandResult> => {
-          try {
-            let exitCode: number;
-            try {
-              const child = await cloneState(state, this.signal);
-              child.isolated = true;
-              exitCode = await interruptible(runtime.runCommandIsolated(command, child, {
-                ...isolateIO(io),
-                stdin: input,
-                ...(incoming ? { stdinIsDefault: false } : {}),
-                stdout: pipeOutput ? this.budget.sink(pipeOutput, signal) : signalSink(io.stdout, signal),
-                stderr: signalSink(io.stderr, signal),
-              }).finally(() => stateMonitor(child)?.closeValues()), signal);
-            } catch (error) {
-              if (!(error instanceof PipelineClosed)) throw error;
-              exitCode = 141;
-            }
-            return { exitCode };
-          } finally {
-            completed.add(index);
-            if (incoming) {
-              const upstream = index - 1;
-              const close = scheduleTurn(() => {
-                closing.delete(close);
-                if (written.has(upstream) && !completed.has(upstream)) controllers[upstream]!.abort(new PipelineClosed());
-              });
-              closing.add(close);
-              await incoming.abort();
-            }
-            await input.close().catch((error: unknown) => { if (!(error instanceof PipelineClosed)) throw error; });
-            if (outgoing) await outgoing.close().catch(() => undefined);
-          }
-        };
-        let captured: CapturedCancellationOutcome<CommandResult>;
-        try { captured = { kind: "return", value: await executeStage() }; }
-        catch (reason) {
-          captured = frame.report && Object.is(frame.report.origin.signal.reason, reason)
-            ? { kind: "throw", reason, report: frame.report }
-            : { kind: "throw", reason };
-        }
-        const selection = await owner.finish(Promise.resolve(), captured);
-        if (selection.outcome.kind === "throw") throw selection.outcome.reason;
-        return selection.outcome.value.exitCode;
-      });
       let statuses: number[];
       try {
+        for (let index = 1; index < pipeline.commands.length; index++) pipes.push(createBytePipe({
+          highWaterMark: this.budget.limits.pipeHighWaterMark, signal: this.signal,
+        }));
+        for (let index = 0; index < pipeline.commands.length; index++) controllers.push(new AbortController());
+        const tasks = pipeline.commands.map(async (command, index) => {
+          const incoming = pipes[index - 1];
+          const outgoing = pipes[index];
+          const childDepth = this.cancellationDepth + 1;
+          const controls: readonly CancellationControlOriginInput[] = [
+            { role: "pipeline-control", signal: controllers[index]!.signal },
+          ];
+          const prepared = prepareChildCancellation(
+            this.cancellation,
+            undefined,
+            this.cancellationAdmission(childDepth, controls.length),
+            controls,
+          );
+          const owner = new InvocationCancellationOwner(io[invocationScope], prepared, this.cancellationState);
+          let boundary: CancellationBoundary;
+          try { boundary = owner.activate(); }
+          catch (error) { await owner.abandon(Promise.resolve()); throw error; }
+          const signal = AbortSignal.any([boundary.deliverySignal, io[invocationScope].signal]);
+          const frame: RuntimeOutcomeFrame = {};
+          const runtime = new Runtime(
+            this.fs, this.commands, this.middleware, this.budget, signal, this.fileWrites, this.outputFiles,
+            boundary.deliverySignal, boundary, this.cancellationState, owner,
+            childDepth, this.cancellationMaxDepth, frame,
+          );
+          const input = new ShellInput(incoming?.readable ?? io.stdin, this.budget, signal);
+          const pipeOutput: ByteSink | undefined = outgoing && { ownedOutput: outgoing.writable.ownedOutput!, write: async (chunk) => {
+            try {
+              await outgoing.writable.write(chunk);
+              if (chunk.byteLength) written.add(index);
+            }
+            catch (error) {
+              if (errorCode(error) === "EPIPE") {
+                const closed = new PipelineClosed();
+                controllers[index]!.abort(closed);
+                throw closed;
+              }
+              throw error;
+            }
+          } };
+          const executeStage = async (): Promise<CommandResult> => {
+            try {
+              let exitCode: number;
+              try {
+                const child = await cloneState(state, this.signal);
+                child.isolated = true;
+                const work = runtime.runCommandIsolated(command, child, {
+                  ...isolateIO(io),
+                  stdin: input,
+                  ...(incoming ? { stdinIsDefault: false } : {}),
+                  stdout: pipeOutput ? this.budget.sink(pipeOutput, signal) : signalSink(io.stdout, signal),
+                  stderr: signalSink(io.stderr, signal),
+                }).finally(() => stateMonitor(child)?.closeValues());
+                retain(work);
+                exitCode = await interruptible(work, signal);
+              } catch (error) {
+                if (!(error instanceof PipelineClosed)) throw error;
+                exitCode = 141;
+              }
+              return { exitCode };
+            } finally {
+              completed.add(index);
+              if (incoming) {
+                const upstream = index - 1;
+                const close = scheduleTurn(() => {
+                  closing.delete(close);
+                  if (written.has(upstream) && !completed.has(upstream)) controllers[upstream]!.abort(new PipelineClosed());
+                });
+                closing.add(close);
+                await incoming.abort();
+              }
+              await input.close().catch((error: unknown) => { if (!(error instanceof PipelineClosed)) throw error; });
+              if (outgoing) await outgoing.close().catch(() => undefined);
+            }
+          };
+          let captured: CapturedCancellationOutcome<CommandResult>;
+          try { captured = { kind: "return", value: await executeStage() }; }
+          catch (reason) {
+            captured = frame.report && Object.is(frame.report.origin.signal.reason, reason)
+              ? { kind: "throw", reason, report: frame.report }
+              : { kind: "throw", reason };
+          }
+          const selection = await owner.finish(Promise.resolve(), captured);
+          if (selection.outcome.kind === "throw") throw selection.outcome.reason;
+          return selection.outcome.value.exitCode;
+        });
+        for (const task of tasks) retain(task);
         statuses = await interruptible(Promise.all(tasks), this.signal);
       } finally {
-        for (const close of closing) cancelTurn(close);
-        for (const [index, controller] of controllers.entries()) if (!completed.has(index) || written.has(index)) controller.abort(new PipelineClosed());
-        await Promise.all(pipes.map((pipe) => pipe.abort()));
+        try {
+          for (const close of closing) cancelTurn(close);
+          for (const [index, controller] of controllers.entries()) if (!completed.has(index) || written.has(index)) controller.abort(new PipelineClosed());
+          const aborts = pipes.map((pipe) => pipe.abort());
+          for (const abort of aborts) retain(abort);
+          await Promise.all(aborts);
+        } finally {
+          setupClosed = true;
+          if (!retained.size) release();
+        }
       }
       await this.publishStatus(state, statuses, io);
       status = state.pipefail ? statuses.findLast((status) => status !== 0) ?? 0 : statuses.at(-1)!;

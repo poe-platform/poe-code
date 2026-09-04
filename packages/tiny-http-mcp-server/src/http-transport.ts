@@ -74,6 +74,8 @@ export interface StreamableHttpTransportOptions {
   maxRequestBytes?: number;
   maxBatchSize?: number;
   maxSessions?: number;
+  /** Maximum sessions per authenticated subject or client ID; defaults to 16. */
+  maxSessionsPerSubject?: number;
   sessionTtlMs?: number;
   maxStreamsPerSession?: number;
   maxStreamBufferBytes?: number;
@@ -117,8 +119,9 @@ export class StreamableHttpTransport {
   private readonly allowedHosts: ReadonlySet<string>;
   private readonly maxRequestBytes: number | undefined;
   private readonly maxBatchSize: number | undefined;
-  private readonly maxSessions: number | undefined;
-  private readonly sessionTtlMs: number | undefined;
+  private readonly maxSessions: number;
+  private readonly maxSessionsPerSubject: number;
+  private readonly sessionTtlMs: number;
   private readonly maxStreamsPerSession: number;
   private readonly maxStreamBufferBytes: number;
   private readonly maxSseEventHistory: number;
@@ -162,8 +165,10 @@ export class StreamableHttpTransport {
       1
     );
     this.maxBatchSize = validateOptionalIntegerOption("maxBatchSize", options.maxBatchSize, 1);
-    this.maxSessions = validateOptionalIntegerOption("maxSessions", options.maxSessions, 1);
-    this.sessionTtlMs = validateOptionalIntegerOption("sessionTtlMs", options.sessionTtlMs, 1);
+    this.maxSessions = validateOptionalIntegerOption("maxSessions", options.maxSessions, 1) ?? 128;
+    this.maxSessionsPerSubject =
+      validateOptionalIntegerOption("maxSessionsPerSubject", options.maxSessionsPerSubject, 1) ?? 16;
+    this.sessionTtlMs = validateOptionalIntegerOption("sessionTtlMs", options.sessionTtlMs, 1) ?? 15 * 60_000;
     this.maxStreamsPerSession =
       validateOptionalIntegerOption("maxStreamsPerSession", options.maxStreamsPerSession, 1) ?? 1;
     this.maxStreamBufferBytes =
@@ -183,7 +188,7 @@ export class StreamableHttpTransport {
     this.observability = options.observability ?? {};
     this.trustedProxy = options.trustedProxy ?? false;
 
-    if (this.sessionTtlMs !== undefined) {
+    if (this.sessionIdGenerator !== undefined) {
       this.sessionExpiryInterval = setInterval(
         () => {
           try {
@@ -380,12 +385,24 @@ export class StreamableHttpTransport {
           return;
         }
 
-        if (this.maxSessions !== undefined && this.sessionCount() >= this.maxSessions) {
+        this.purgeExpiredSessions();
+        if (this.sessionCount() >= this.maxSessions) {
           this.respondWithRejection(
             res,
             503,
             "session_limit_reached",
             "The server has reached its session limit; close a session or retry later."
+          );
+          return;
+        }
+
+        const authSubject = this.readAuthSubject(req);
+        if (authSubject !== undefined && this.sessionCount(authSubject) >= this.maxSessionsPerSubject) {
+          this.respondWithRejection(
+            res,
+            429,
+            "subject_session_limit_reached",
+            "The authenticated subject has reached its session limit; close a session or retry later."
           );
           return;
         }
@@ -398,7 +415,6 @@ export class StreamableHttpTransport {
 
         sessionId = newSessionId;
         activeSession = this.sessionStore.create(newSessionId);
-        const authSubject = this.readAuthSubject(req);
         if (authSubject !== undefined) {
           activeSession.authSubject = authSubject;
         }
@@ -844,31 +860,37 @@ export class StreamableHttpTransport {
   }
 
   private isExpired(session: Session): boolean {
-    if (this.sessionTtlMs === undefined) {
-      return false;
-    }
-
     return Date.now() - session.lastSeenAt.getTime() > this.sessionTtlMs;
   }
 
   private purgeExpiredSessions(): void {
-    if (this.sessionTtlMs === undefined || this.sessionStore.entries === undefined) {
-      return;
-    }
-
-    for (const session of [...this.sessionStore.entries()]) {
+    for (const session of [...this.sessions()]) {
       if (this.isExpired(session)) {
         this.deleteSession(session.id, "expired");
       }
     }
   }
 
-  private sessionCount(): number {
+  private *sessions(): Iterable<Session> {
     if (this.sessionStore.entries !== undefined) {
-      return [...this.sessionStore.entries()].length;
+      yield* this.sessionStore.entries();
+    } else {
+      for (const id of this.sessionMessages.keys()) {
+        const session = this.sessionStore.get(id);
+        if (session !== undefined) yield session;
+      }
     }
+  }
 
-    return this.sessionMessages.size;
+  private sessionCount(authSubject?: string): number {
+    if (authSubject === undefined && this.sessionStore.entries === undefined) {
+      return this.sessionMessages.size;
+    }
+    let count = 0;
+    for (const session of this.sessions()) {
+      if (authSubject === undefined || session.authSubject === authSubject) count++;
+    }
+    return count;
   }
 
   private deleteSession(sessionId: string, reason: "client" | "expired" | "closed"): boolean {

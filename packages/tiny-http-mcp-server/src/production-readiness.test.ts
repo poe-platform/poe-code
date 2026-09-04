@@ -15,6 +15,7 @@ import {
   StreamableHttpTransport
 } from "./index.js";
 import { createBearerChallenge } from "./auth.js";
+import { createSessionStore } from "./session.js";
 
 const TEST_PROTOCOL_VERSION = "2025-03-26";
 
@@ -176,6 +177,169 @@ async function readSseJson(response: Response): Promise<Record<string, unknown>>
 }
 
 describe("HTTP MCP production readiness", () => {
+  it("bounds default session admission at 128 and reuses deleted capacity", async () => {
+    const sessionStore = createSessionStore();
+    const transport = new StreamableHttpTransport(
+      createServer({ name: "default-session-bound", version: "1.0.0" }),
+      { enableJsonResponse: true, sessionStore }
+    );
+    const initialize = { jsonrpc: "2.0", id: 1, method: "initialize", params: { protocolVersion: TEST_PROTOCOL_VERSION } };
+    try {
+      for (let index = 0; index < 128; index++) {
+        expect((await postJsonRpc(transport, initialize)).status).toBe(200);
+      }
+      expect((await postJsonRpc(transport, initialize)).status).toBe(503);
+      const sessions = [...sessionStore.entries!()];
+      expect(sessions).toHaveLength(128);
+      expect((await dispatch(transport, { method: "DELETE", headers: { "Mcp-Session-Id": sessions[0]!.id } })).status).toBe(204);
+      expect((await postJsonRpc(transport, initialize)).status).toBe(200);
+      expect([...sessionStore.entries!()]).toHaveLength(128);
+    } finally { await transport.close(); }
+  });
+
+  for (const enumerable of [true, false]) it(`expires default idle sessions with store enumeration ${enumerable}`, async () => {
+    vi.useFakeTimers();
+    const backing = createSessionStore();
+    const sessionStore: SessionStore = enumerable ? backing : {
+      create: backing.create, get: backing.get, delete: backing.delete, has: backing.has, touch: backing.touch
+    };
+    const transport = new StreamableHttpTransport(
+      createServer({ name: "default-session-expiry", version: "1.0.0" }),
+      { enableJsonResponse: true, sessionStore }
+    );
+    try {
+      const id = await initializeSession(transport);
+      vi.advanceTimersByTime(15 * 60_000);
+      expect(backing.has(id)).toBe(true);
+      vi.advanceTimersByTime(60_000);
+      expect(backing.has(id)).toBe(false);
+    } finally {
+      await transport.close();
+      expect(vi.getTimerCount()).toBe(0);
+      vi.useRealTimers();
+    }
+  });
+
+  it("bounds default authenticated-subject sessions independently", async () => {
+    const transport = new StreamableHttpTransport(
+      createServer({ name: "subject-session-bound", version: "1.0.0" }),
+      { enableJsonResponse: true }
+    );
+    let subject = "alice";
+    const authenticated: HttpRequestHandler = {
+      handleRequest(request, response) {
+        Object.assign(request, { auth: { subject } });
+        return transport.handleRequest(request, response);
+      }
+    };
+    const initialize = { jsonrpc: "2.0", id: 1, method: "initialize", params: { protocolVersion: TEST_PROTOCOL_VERSION } };
+    try {
+      for (let index = 0; index < 16; index++) expect((await postJsonRpc(authenticated, initialize)).status).toBe(200);
+      const rejected = await postJsonRpc(authenticated, initialize);
+      expect(rejected.status).toBe(429);
+      expect(await rejected.json()).toMatchObject({ error: "subject_session_limit_reached" });
+      subject = "bob";
+      expect((await postJsonRpc(authenticated, initialize)).status).toBe(200);
+    } finally { await transport.close(); }
+  });
+
+  it("reclaims expired session capacity before the timer sweep", async () => {
+    const sessionStore = createSessionStore();
+    const transport = new StreamableHttpTransport(
+      createServer({ name: "expired-session-capacity", version: "1.0.0" }),
+      { enableJsonResponse: true, maxSessions: 1, sessionTtlMs: 60_000, sessionStore }
+    );
+    try {
+      const id = await initializeSession(transport);
+      sessionStore.get(id)!.lastSeenAt = new Date(0);
+      const next = await postJsonRpc(transport, {
+        jsonrpc: "2.0", id: 2, method: "initialize", params: { protocolVersion: TEST_PROTOCOL_VERSION }
+      });
+      expect(next.status).toBe(200);
+      expect(sessionStore.has(id)).toBe(false);
+      expect([...sessionStore.entries!()]).toHaveLength(1);
+    } finally { await transport.close(); }
+  });
+
+  it("counts retained local sessions when a non-enumerable store loses metadata", async () => {
+    const backing = createSessionStore();
+    const sessionStore: SessionStore = {
+      create: backing.create, get: backing.get, delete: backing.delete, has: backing.has, touch: backing.touch
+    };
+    const transport = new StreamableHttpTransport(
+      createServer({ name: "retained-local-session", version: "1.0.0" }),
+      { enableJsonResponse: true, maxSessions: 1, sessionStore }
+    );
+    try {
+      const id = await initializeSession(transport);
+      backing.delete(id);
+      const next = await postJsonRpc(transport, {
+        jsonrpc: "2.0", id: 2, method: "initialize", params: { protocolVersion: TEST_PROTOCOL_VERSION }
+      });
+      expect(next.status).toBe(503);
+    } finally { await transport.close(); }
+  });
+
+  for (const enumerable of [true, false]) it(`honors subject overrides and client IDs with store enumeration ${enumerable}`, async () => {
+    const backing = createSessionStore();
+    const sessionStore: SessionStore = enumerable ? backing : {
+      create: backing.create, get: backing.get, delete: backing.delete, has: backing.has, touch: backing.touch
+    };
+    const transport = new StreamableHttpTransport(
+      createServer({ name: "subject-override", version: "1.0.0" }),
+      { enableJsonResponse: true, maxSessions: 2, maxSessionsPerSubject: 1, sessionStore }
+    );
+    let clientId = "client-a";
+    const authenticated: HttpRequestHandler = {
+      handleRequest(request, response) {
+        Object.assign(request, { auth: { clientId } });
+        return transport.handleRequest(request, response);
+      }
+    };
+    const initialize = { jsonrpc: "2.0", id: 1, method: "initialize", params: { protocolVersion: TEST_PROTOCOL_VERSION } };
+    try {
+      const first = await initializeSession(authenticated);
+      expect((await postJsonRpc(authenticated, initialize)).status).toBe(429);
+      clientId = "client-b";
+      expect((await postJsonRpc(authenticated, initialize)).status).toBe(200);
+      expect((await dispatch(authenticated, { method: "DELETE", headers: { "Mcp-Session-Id": first } })).status).toBe(404);
+      expect((await postJsonRpc(authenticated, initialize)).status).toBe(503);
+      clientId = "client-a";
+      expect((await dispatch(authenticated, { method: "DELETE", headers: { "Mcp-Session-Id": first } })).status).toBe(204);
+      expect((await postJsonRpc(authenticated, initialize)).status).toBe(200);
+      expect([...backing.entries!()]).toHaveLength(2);
+    } finally { await transport.close(); }
+  });
+
+  it("rejects invalid subject session limits before starting timers", () => {
+    const server = createServer({ name: "invalid-subject-limits", version: "1.0.0" });
+    for (const maxSessionsPerSubject of [0, -1, 1.5, NaN, Infinity]) {
+      expect(() => new StreamableHttpTransport(server, { maxSessionsPerSubject })).toThrow(
+        "maxSessionsPerSubject must be an integer greater than or equal to 1."
+      );
+    }
+  });
+
+  it("keeps stateless transports free of session admission and expiry timers", async () => {
+    vi.useFakeTimers();
+    const sessionStore = createSessionStore();
+    const transport = new StreamableHttpTransport(
+      createServer({ name: "stateless-session-limits", version: "1.0.0" }),
+      { enableJsonResponse: true, sessionIdGenerator: undefined, maxSessions: 1, maxSessionsPerSubject: 1, sessionStore }
+    );
+    try {
+      for (let id = 1; id <= 3; id++) {
+        const response = await postJsonRpc(transport, {
+          jsonrpc: "2.0", id, method: "initialize", params: { protocolVersion: TEST_PROTOCOL_VERSION }
+        });
+        expect(response.status).toBe(200);
+        expect(response.headers.has("mcp-session-id")).toBe(false);
+      }
+      expect([...sessionStore.entries!()]).toHaveLength(0);
+      expect(vi.getTimerCount()).toBe(0);
+    } finally { await transport.close(); vi.useRealTimers(); }
+  });
+
   async function expectRejection(
     response: Response,
     events: HttpObservabilityEvent[],

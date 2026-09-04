@@ -43,7 +43,7 @@ export class Interpreter {
       case "slice":
         for await (const start of ast.start ? this.run(ast.start, input) : [null])
           for await (const end of ast.end ? this.run(ast.end, input) : [null])
-            for await (const base of this.run(ast.base, input)) { await this.budget.tick(); yield sliceValue(base, start, end); }
+            for await (const base of this.run(ast.base, input)) { await this.budget.tick(); yield await sliceValue(base, start, end, this.budget); }
         return;
       case "iterate":
         for await (const base of this.run(ast.base, input)) for (const [, value] of entries(base, this.budget)) { await this.budget.tick(); yield value; }

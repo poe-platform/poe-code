@@ -1,5 +1,10 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
+import { Budget, defaultJqLimits, JqError, JqLimitError, type Json } from "../../../src/commands/structured/limits.js";
+import { sliceValue } from "../../../src/commands/structured/values.js";
+import { Interpreter } from "../../../src/commands/structured/interpreter.js";
+import { parse } from "../../../src/commands/structured/parser.js";
+import { registerYieldCheckpoint } from "../../../src/contracts/yield.js";
 import { row, run, type Case } from "./helpers.js";
 
 export const cases: Case[] = [
@@ -119,4 +124,168 @@ test("integer-like keys retain source/constructor order through output and updat
     assert.equal(result.stdout, `{"10":10,"2":2,"a":${filter === ".a=1" ? 1 : 0}}\n`, result.stderr);
   }
   assert.equal((await run(["-c", '{"10":10,"2":2}'])).stdout, '{"10":10,"2":2}\n');
+});
+
+for (const fixture of [
+  { filter: ".[range(8):1]", output: ["x", ...Array<string>(7).fill("")], scans: 1 },
+  { filter: ".[range(8):0]", output: Array<string>(8).fill(""), scans: 0 },
+  { filter: ".[range(8):1]|empty", output: [], scans: 1 },
+]) test(`slice generators avoid full materialization: ${fixture.filter}`, async context => {
+  const input = "x".repeat(64);
+  const budget = new Budget(defaultJqLimits, new AbortController().signal);
+  const ast = parse(fixture.filter, new Map(), budget);
+  const materialize = context.mock.method(Array, "from");
+  const scan = context.mock.method(String.prototype, "codePointAt");
+  const output: Json[] = [];
+  for await (const value of new Interpreter(budget, new Map()).run(ast, input)) output.push(value);
+  assert.deepEqual(output, fixture.output);
+  assert.equal(materialize.mock.calls.filter(call => call.arguments[0] === input).length, 0);
+  assert.equal(scan.mock.callCount(), fixture.scans);
+});
+
+test("slice work charges each scanned code point, including both negative-bound passes", async context => {
+  const input = "A😀éZ";
+  const cases = [
+    { start: 0, end: 1, output: "A", work: 1 },
+    { start: 1, end: 2, output: "😀", work: 2 },
+    { start: 2, end: null, output: "éZ", work: 2 },
+    { start: null, end: null, output: input, work: 0 },
+    { start: 3, end: 1, output: "", work: 0 },
+    { start: -1, end: -3, output: "", work: 0 },
+    { start: -2, end: 0, output: "", work: 0 },
+    { start: -2, end: null, output: "́Z", work: 8 },
+    { start: 0, end: -1, output: "A😀é", work: 9 },
+    { start: -99, end: 99, output: input, work: 10 },
+    { start: -1, end: 1, output: "", work: 5 },
+    { start: 99, end: null, output: "", work: 5 },
+    { start: 99, end: 100, output: "", work: 5 },
+    { start: null, end: -99, output: "", work: 5 },
+  ];
+  const scan = context.mock.method(String.prototype, "codePointAt");
+  for (const fixture of cases) {
+    const budget = new Budget(defaultJqLimits, new AbortController().signal);
+    const step = context.mock.method(budget, "step");
+    scan.mock.resetCalls();
+    assert.equal(await sliceValue(input, fixture.start, fixture.end, budget), fixture.output);
+    assert.equal(step.mock.callCount(), fixture.work, JSON.stringify(fixture));
+    assert.equal(scan.mock.callCount(), fixture.work, JSON.stringify(fixture));
+  }
+});
+
+for (const maxSteps of [4, 6]) test(`slice admits scan work before reading at maxSteps ${maxSteps}`, async context => {
+  const budget = new Budget({ ...defaultJqLimits, maxSteps }, new AbortController().signal);
+  const scan = context.mock.method(String.prototype, "codePointAt");
+  await assert.rejects(async () => sliceValue("A😀éZ", -2, null, budget),
+    error => error instanceof JqLimitError && error.message === "maxSteps limit exceeded");
+  assert.equal(scan.mock.callCount(), maxSteps);
+});
+
+for (const filter of [".[range(8):-1]?|empty", ".[-1:1]?|empty"]) test(`slice hidden work cannot suppress step exhaustion: ${filter}`, async () => {
+  const result = await run(["-c", filter], JSON.stringify("x".repeat(64)), { limits: { maxSteps: 40 } });
+  assert.equal(result.exitCode, 5);
+  assert.equal(result.stdout, "");
+  assert.equal(result.stderr, "jq: maxSteps limit exceeded\n");
+});
+
+for (const fixture of [
+  { start: 0, end: 1025, size: 1025, reason: false },
+  { start: -1, end: null, size: 1025, reason: null },
+  { start: -1, end: null, size: 600, reason: false },
+]) test(`slice cooperatively aborts within boundary/count passes: ${JSON.stringify(fixture)}`, async context => {
+  const controller = new AbortController();
+  const budget = new Budget(defaultJqLimits, controller.signal);
+  let checkpoints = 0;
+  registerYieldCheckpoint(controller.signal, () => { checkpoints++; controller.abort(fixture.reason); });
+  const scan = context.mock.method(String.prototype, "codePointAt");
+  await assert.rejects(async () => sliceValue("😀".repeat(fixture.size), fixture.start, fixture.end, budget), error => error === fixture.reason);
+  assert.equal(checkpoints, 1);
+  assert.equal(scan.mock.callCount(), 1023);
+});
+
+test("slice pre-abort preserves false/null identity without scanning", async context => {
+  const scan = context.mock.method(String.prototype, "codePointAt");
+  for (const reason of [false, null]) {
+    const controller = new AbortController();
+    controller.abort(reason);
+    await assert.rejects(async () => sliceValue("abc", 0, 1, new Budget(defaultJqLimits, controller.signal)), error => error === reason);
+  }
+  assert.equal(scan.mock.callCount(), 0);
+});
+
+for (const reason of [false, null]) test(`slice optional command preserves cancellation identity: ${reason}`, async context => {
+  const controller = new AbortController();
+  let checkpoints = 0;
+  let writes = 0;
+  registerYieldCheckpoint(controller.signal, () => { checkpoints++; controller.abort(reason); });
+  const scan = context.mock.method(String.prototype, "codePointAt");
+  await assert.rejects(run(["-nc", "--arg", "value", "😀".repeat(1100), "($value[0:1100])?"], "", {}, {
+    signal: controller.signal,
+    stdout: { async write() { writes++; } },
+    stderr: { async write() { writes++; } },
+  }), error => error === reason);
+  assert.equal(checkpoints, 1);
+  assert.ok(scan.mock.callCount() > 0 && scan.mock.callCount() < 1100);
+  assert.equal(writes, 0);
+});
+
+test("slice endpoint matrix preserves code points, clamping, arrays and lone surrogates", async () => {
+  const points = ["A", "😀", "e", "́", "Z"];
+  const bounds = [null, -99, -6, -5, -4, -2, -1, -0, 0, 1, 2, 4, 5, 6, 99];
+  const budget = new Budget(defaultJqLimits, new AbortController().signal);
+  const array: Json[] = [0, { nested: true }, 2, 3, 4];
+  for (const start of bounds) for (const end of bounds) {
+    assert.equal(await sliceValue(points.join(""), start, end, budget), points.slice(start ?? 0, end ?? undefined).join(""));
+    const result = await sliceValue(array, start, end, budget);
+    assert.deepEqual(result, array.slice(start ?? 0, end ?? undefined));
+    assert.notEqual(result, array);
+  }
+  assert.equal(await sliceValue("A\ud800B", 1, 2, budget), "\ud800");
+  assert.equal(await sliceValue("A\udc00B", -2, -1, budget), "\udc00");
+  assert.equal(await sliceValue("", null, null, budget), "");
+  const shallow = await sliceValue(array, 1, 2, budget) as Json[];
+  assert.equal(shallow[0], array[1]);
+});
+
+test("slice validates both endpoints before null handling and empty shortcuts", async () => {
+  const budget = new Budget(defaultJqLimits, new AbortController().signal);
+  for (const value of [null, "", "abc", []]) {
+    for (const bound of [1.5, "1", false, {}, [], Number.MAX_SAFE_INTEGER + 1]) {
+      await assert.rejects(async () => sliceValue(value, bound, 0, budget),
+        error => error instanceof JqError && error.message === "slice start must be an integer or null");
+      await assert.rejects(async () => sliceValue(value, 99, bound, budget),
+        error => error instanceof JqError && error.message === "slice end must be an integer or null");
+    }
+  }
+  assert.equal(await sliceValue(null, 3, 1, budget), null);
+  await assert.rejects(async () => sliceValue(false, 3, 1, budget), { message: "cannot slice boolean" });
+});
+
+test("slice generators preserve endpoint/base order, duplicates, lazy errors and output prefixes", async () => {
+  const cases = [
+    { filter: "(.a,.b)[(0,1):(1,2)]", input: { a: "abc", b: "XYZ" }, values: ["a", "X", "ab", "XY", "", "", "b", "Y"] },
+    { filter: ".[(0,0):(1,1)]", input: "abc", values: ["a", "a", "a", "a"] },
+    { filter: "first(.[(0,(1/0)):1])", input: "abc", values: ["a"] },
+    { filter: "first(.[range(32):1])", input: "abc", values: ["a"] },
+    { filter: "limit(0;.[range(32):1])", input: "abc", values: [] },
+    { filter: "limit(2;.[range(32):1])", input: "abc", values: ["a", ""] },
+    { filter: ".[empty:1]", input: "abc", values: [] },
+    { filter: ".[0:empty]", input: "abc", values: [] },
+    { filter: ".[range(3;0;-1):1]", input: "abc", values: ["", "", ""] },
+    { filter: ".[range(0;3;0):1]", input: "abc", values: [] },
+    { filter: ".[1e0:2e0]", input: "A😀éZ", values: ["😀"] },
+    { filter: ".[1.5:2]?", input: "abc", values: [] },
+    { filter: ".[range(4):]", input: "abcd", values: ["abcd", "bcd", "cd", "d"] },
+  ];
+  for (const fixture of cases) {
+    const result = await run(["-c", fixture.filter], JSON.stringify(fixture.input));
+    assert.equal(result.exitCode, 0, fixture.filter);
+    assert.equal(result.stderr, "", fixture.filter);
+    assert.equal(result.stdout, fixture.values.map(value => `${JSON.stringify(value)}\n`).join(""), fixture.filter);
+  }
+  for (const limits of [{ maxResults: 3 }, { maxOutputBytes: 7 }]) {
+    const result = await run(["-c", ".[range(8):1]"], '"abc"', { limits });
+    assert.equal(result.exitCode, 5);
+    assert.equal(result.stdout, "maxResults" in limits ? '"a"\n""\n""\n' : '"a"\n""\n');
+    assert.equal(result.stderr, `jq: ${Object.keys(limits)[0]} limit exceeded\n`);
+  }
 });

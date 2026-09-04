@@ -680,6 +680,10 @@ export class WebDavFileSystem implements FileSystem {
 
   async stat(path: string, options: FsOptions = {}): Promise<FileStat> {
     validateDirectoryWalkPath(path, "stat");
+    return this.statWithAncestors(path, options);
+  }
+
+  private async statWithAncestors(path: string, options: FsOptions): Promise<FileStat> {
     const normalized = normalize(path);
     const collection = requiresCollection(path);
     return this.withWalkDeadline(options, async scopedOptions => {
@@ -1096,7 +1100,8 @@ export class WebDavFileSystem implements FileSystem {
     if (options.signal?.aborted) fail("ECANCELED", "access", path);
     if (mode & 2) this.unsupported("access write/execute permission checks", path);
     if (mode & 1) validateDirectoryWalkPath(path);
-    const stat = await this.stat(path, options);
+    // Non-execute probes do not inherit stat's raw-path limits.
+    const stat = await (mode & 1 ? this.stat(path, options) : this.statWithAncestors(path, options));
     if (options.signal?.aborted) fail("ECANCELED", "access", path);
     if ((mode & 1) && stat.type !== "directory") this.unsupported("access execute permission checks", path);
     if (mode & 4) {

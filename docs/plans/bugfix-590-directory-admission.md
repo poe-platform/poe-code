@@ -146,3 +146,84 @@ deliberately stopped with exit 143 before changing the portability fixture;
 `lint-final.log` is therefore incomplete, not a pass. Final lint, a corrected
 normal build, public consumers and a complete maintained unit rerun remain
 delivery gates. No push or release is claimed by these local results.
+
+## Main integration and current candidate
+
+The corrected normal build passed, as did 124 related Bash tests (including the
+unchanged Readonly cancellation test), all 1,117 safe-fs tests, the maintained
+25 public consumer groups and their negative controls, and a public runtime
+smoke covering standard/agent/browser admission plus Readonly omission behavior.
+The subsequent complete lint route also passed: 9,663 configured files, zero
+errors/warnings, 25 receipts, root types and workflow lint.
+
+Implementation commit `b73531552b4bf81112e4a7ff38bb2b124ac54843` was local only.
+Remote main then advanced through `a6092b16a` with the separately owned #561/#562
+fixes and shared-test/CI throughput changes. Its full unit rerun was deliberately
+stopped before integration; `test-delivery.log` is incomplete, not a passing run.
+The implementation was rebased as
+`fdf8bfdac10543e0a6c41c9d30d0eb3ccb8567d5`; stable patch IDs prove the #590 patch
+is unchanged. The new combined candidate still requires integrated validation.
+
+The incoming sort changes overlapped two staged user files. Recovery stash
+`19400feee97fd02168c2316937a985fecb40599c` preserves the original index and
+working changes and is retained. Restoring it required combining one import
+block; every original staged added/deleted line was compared and preserved
+exactly. The same three user files remain staged with 33 insertions and three
+deletions. They are not part of the #590 implementation commit. The unstaged
+contract link and untracked specification were also preserved.
+
+## Integrated validation
+
+The combined candidate `fdf8bfdac10543e0a6c41c9d30d0eb3ccb8567d5` passed the
+normal `npm run build`, including root suffix stages, and full `npm run lint`:
+9,663 configured files, zero errors/warnings, 25 authenticated receipts, root
+type checking and workflow lint. The maintained public-consumer route passed
+all 25 current consumer groups and its three exact negative controls. This is
+not a claim that the separate legacy fixture typecheck tracked in #605 passes.
+
+Related directory-admission, readonly, text and YAML tests passed 189/189;
+the integrated shared-runner tests passed 28/28. These checks cover the incoming
+sort/YAML/test-runner changes as well as #590. The three unrelated staged user
+files were present during these checks but remain excluded from delivery.
+
+The full maintained `npm test` rerun exited successfully. Shared Vitest passed
+29,839 tests with 43 skips; Python passed 29 tests; Bash runner checks passed
+241 tests; Bash passed 18,895 tests with 63 skips and no failures. The remaining
+terminal-pilot task passed 239 tests after its native pretest build, and root
+posttest passed both lint-stress tests. The uncached maintained orchestration
+completed with no excluded declared unit tasks. Undeclared tasks and skipped
+cases are not passes. Logs are retained under `/tmp/poe-590-root.bg9YZy` with
+the `-integrated.log` suffix.
+
+Independent contract review clarified that new post-return cancellation guards
+apply to defined limits; omitted-limit readonly delegation retains its legacy
+backend outcomes. The specification checker reports no errors or warnings.
+Remote-main delivery, issue closure and actual publication remain separate
+pending steps.
+
+After that full run, remote main advanced only by
+`cd750d947a7d802a2e64b9f3f9c775d68dfa54aa`, the separately owned #610 quota
+Proxy-invariant fix. Rebase produced implementation commit
+`c01227019d07922f7770cddb8be0374c6b605c96`; stable patch IDs again prove the
+#590 patch unchanged. Recovery stash
+`33232860739a8ea4905fea9344c11df781b343cf` is retained, and the restored user
+index diff matches its saved index exactly. The complete unit result above
+belongs to the pre-quota-integration candidate, not this newer SHA. A fresh
+normal build, full lint and affected filesystem/public-consumer checks cover
+the incoming integration delta before delivery.
+
+The fresh normal build passed. The complete SafeFS package selection, including
+its collocated contract tests, passed 1,120 tests in 49 files; the directory-only
+selection independently passed 1,099 tests in 48 files. Related Bash admission,
+readonly and text tests passed 123/123. All 25 current public consumer groups
+and three exact negative controls passed. A built-public-entry smoke confirmed
+the newly constructible quota/Overlay/readonly composition rejects two entries
+at limit one and returns both at limit two. These are focused integration checks,
+not a second full repository unit run.
+
+The specification now records the inspected implementation commit
+`c01227019d07922f7770cddb8be0374c6b605c96`, separately from publication status.
+The final combined-candidate full lint also exited zero: all 9,663 configured
+files, zero errors/warnings, 25 receipts, root types and workflow lint. No source
+changes followed these checks. Only this plan and the reviewed contract/link
+are included in the delivery documentation commit; user staging stays separate.

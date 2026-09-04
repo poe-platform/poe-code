@@ -1,14 +1,15 @@
 # Awk Retained Text Specification
 
-Status: Accepted
+Status: Implemented
 
-Implemented Through: Not applicable
+Implemented Through: `87d83aa1d3927ad42c4d5938b984554133889e6c`
 
 Purpose: Bound invocation-owned retained awk text without changing stream or
 array semantics.
 
-This is the accepted #597 extension. The inspected baseline
-`4b98f235760e98adaff331d17847cb09ab2c0487` does not implement aggregate admission.
+This is the #597 extension, verified through the implementation commit above.
+The inspected baseline `4b98f235760e98adaff331d17847cb09ab2c0487` did not
+implement aggregate admission.
 
 ## Normative Language
 

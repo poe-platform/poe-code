@@ -69,8 +69,10 @@ can invalidate that parallel run.
 
 ## Delivery
 
-Implementation and validation are pending. Close #597 only after verified
-remote-main delivery, then monitor releases while continuing the issue queue.
+Implementation commit `87d83aa1d3927ad42c4d5938b984554133889e6c` contains the
+locally validated fix. Remote delivery and release verification remain pending.
+Close #597 only after verified remote-main delivery, then monitor releases while
+continuing the issue queue.
 
 ## Implementation evidence so far
 
@@ -158,4 +160,4 @@ can still detach an opaque backing iterator's pending return through existing
 `npm run lint` passed: all 9,683 configured files checked with zero errors or
 warnings, followed by root type and workflow lint (`/tmp/poe-597-lint.log`).
 No full repository unit run, RSS benchmark or visual CLI change is claimed.
-The source stays frozen for exact-path commit and verified main delivery.
+The committed source remains unchanged and ready for verified main delivery.

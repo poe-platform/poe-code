@@ -142,11 +142,27 @@ async function render(context: CommandContext, path: string, name: string, stat:
   for (let index = 0; index < format.length;) {
     context.signal.throwIfAborted();
     if (escapes && format[index] === "\\") {
-      const escape = /^\\(?:([abefnrtv\\])|x([0-9a-fA-F]{1,2})|([0-7]{1,3}))/u.exec(format.slice(index));
-      if (!escape) { append(format[index++]!); continue; }
       const named: Record<string, string> = { a: "\x07", b: "\b", e: "\x1b", f: "\f", n: "\n", r: "\r", t: "\t", v: "\v", "\\": "\\" };
-      append(escape[1] ? named[escape[1]]! : Uint8Array.of(Number.parseInt(escape[2] ?? escape[3]!, escape[2] ? 16 : 8)));
-      index += escape[0].length;
+      const code = format[index + 1] ?? "";
+      if (Object.hasOwn(named, code)) {
+        append(named[code]!);
+        index += 2;
+        continue;
+      }
+      const radix = code === "x" ? 16 : 8;
+      const start = index + (radix === 16 ? 2 : 1);
+      const end = Math.min(format.length, start + (radix === 16 ? 2 : 3));
+      let offset = start;
+      let value = 0;
+      while (offset < end) {
+        const digit = "0123456789abcdef".indexOf(format[offset]!.toLowerCase());
+        if (digit < 0 || digit >= radix) break;
+        value = value * radix + digit;
+        offset++;
+      }
+      if (offset === start) { append(format[index++]!); continue; }
+      append(Uint8Array.of(value));
+      index = offset;
       continue;
     }
     if (format[index] !== "%") {

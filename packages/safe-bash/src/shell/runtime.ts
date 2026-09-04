@@ -6,7 +6,7 @@ import type {
   ByteSink, ByteSource, CommandContext, CommandInvoker, CommandRegistry, CommandResult, FileSystem, Middleware,
 } from "../contracts/index.js";
 import { concatShellValues, shellValueByteLength, shellValueBytes, shellValueFromBytes, shellValueText } from "../contracts/value.js";
-import type { ShellValue } from "../contracts/value.js";
+import type { ShellValue, ValueReservation } from "../contracts/value.js";
 import { createCommandArguments, getCommandArguments } from "../contracts/command.js";
 import type { CommandArguments } from "../contracts/command.js";
 import { ValueArena } from "./value-state.js";
@@ -20,6 +20,7 @@ import { evaluateArithmetic, prepareArithmetic } from "./arithmetic.js";
 import { defaultMaxParseUnits, ParseBudget } from "./parse-budget.js";
 import { evaluatePositionalArithmetic } from "./arithmetic-parameters.js";
 import { compilePattern, matchesPattern } from "./pattern.js";
+import { nextCodePointOffset, previousCodePointOffset, scanString, stringCheckpoint } from "./string-operations.js";
 import { byteLocale } from "./locale.js";
 import { functionDisplay } from "./display.js";
 import { ConditionalUnsupported, evaluateConditional } from "./conditional.js";
@@ -4246,7 +4247,7 @@ export class Runtime {
         if (index === undefined) throw new ArrayFailure("index outside 0..2147483647");
         const value = binding ? binding.get(index) : index === 0 ? state.variables[part.name] : undefined;
         this.requireParameter(value, `${part.name}[${selector.index}]`, state, io, part.line);
-        return part.length ? String(Array.from(value ?? "").length) : value ?? "";
+        return part.length ? this.parameterLength(value ?? "") : value ?? "";
       }
       if (part.length) return String(binding?.values.size ?? (state.variables[part.name] === undefined ? 0 : 1));
       const values = await this.arrayMembers(part.name, state);
@@ -4289,7 +4290,7 @@ export class Runtime {
             return alternate;
           });
           value = alternate;
-          return part.length ? String(Array.from(value).length) : value;
+          return part.length ? this.parameterLength(value) : value;
         }
         retained = concatShellValues(await this.valueWord(part.alternate!, state, io, false, false, hereString), io[valueScope]);
         alternate = shellValueText(retained);
@@ -4301,7 +4302,15 @@ export class Runtime {
         value = alternate;
       } else if (operator === "+") { value = ""; retained = ""; }
     } else this.requireParameter(value, part.name, state, io, part.line);
-    return part.length ? String(Array.from(value ?? "").length) : retained ?? "";
+    return part.length ? this.parameterLength(value ?? "") : retained ?? "";
+  }
+
+  private async parameterLength(value: string): Promise<string> {
+    const limit = this.budget.limits.maxExpansionBytes;
+    const work = { remaining: Math.min(Number.MAX_SAFE_INTEGER, limit * 4 + 1024), signal: this.signal, exhausted: (): never => this.budget.fail("maxExpansionBytes") };
+    const scanned = await scanString(value, work);
+    if (scanned.bytes > limit) this.budget.fail("maxExpansionBytes");
+    return String(scanned.count);
   }
 
   async substring(part: Extract<WordPart, { kind: "variable" }>, value: string | undefined, state: State, io: IO): Promise<string> {
@@ -4312,6 +4321,9 @@ export class Runtime {
     if (value === undefined) return "";
     const limit = this.budget.limits.maxExpansionBytes;
     if (Buffer.byteLength(value) > limit) this.budget.fail("maxExpansionBytes");
+    const scratch = this.budget.values.scope();
+    const work = { remaining: Math.min(Number.MAX_SAFE_INTEGER, limit * 4 + 1024), signal: this.signal, exhausted: (): never => this.budget.fail("maxExpansionBytes") };
+    try {
     const variables = new Proxy(this.arithmeticVariables(state, line), { get: (target, key) => {
       this.signal.throwIfAborted();
       const value: unknown = Reflect.get(target, key);
@@ -4321,13 +4333,19 @@ export class Runtime {
     const arithmetic = async (word: Word): Promise<{ value: bigint; source: string }> => {
       let source = "";
       let bytes = 0;
+      let retained: ValueReservation | undefined;
       for (const entry of word.parts) {
         this.signal.throwIfAborted();
         const text = entry.kind === "text" ? entry.value : await this.part(entry, state, io);
         bytes += Buffer.byteLength(text);
         if (bytes > limit) this.budget.fail("maxExpansionBytes");
         owner?.reserve({ metadata: 32, payload: bytes, work: text.length + 4 });
+        const pending = stringCheckpoint(work, text.length + 1);
+        if (pending) await pending;
+        const next = scratch.reserve((source.length + text.length) * 2, 0);
         source += text;
+        retained?.release();
+        retained = next;
       }
       this.signal.throwIfAborted();
       try { return { value: evaluateArithmetic(prepareArithmetic(source, this.budget.parsing), variables, this.budget.parsing), source }; }
@@ -4335,12 +4353,15 @@ export class Runtime {
         this.rethrowArithmeticControl(error);
         throw new ExpansionFailure(`${part.name}: ${message(error)}`, line);
       }
+      finally { retained?.release(); }
     };
     const offsetExpression = await arithmetic(expression.offset);
-    owner?.reserve({ metadata: 128 + value.length * 64, payload: Buffer.byteLength(value), allocatedSlots: value.length, work: value.length + 8 });
-    const characters = byteLocale(state.variables) ? undefined : Array.from(value);
-    const bytes = characters ? undefined : Buffer.from(value);
-    const size = BigInt(characters?.length ?? bytes!.byteLength);
+    let bytes: Buffer | undefined;
+    if (byteLocale(state.variables)) {
+      scratch.reserve(Buffer.byteLength(value), 0);
+      bytes = Buffer.from(value);
+    }
+    const size = BigInt(bytes?.byteLength ?? (await scanString(value, work)).count);
     const offset = offsetExpression.value < 0n ? size + offsetExpression.value : offsetExpression.value;
     if (offset < 0n || offset > size) return "";
     let end = size;
@@ -4351,93 +4372,134 @@ export class Runtime {
       if (end > size) end = size;
     }
     this.signal.throwIfAborted();
-    owner?.reserve({ metadata: 96 + value.length * 32, payload: Buffer.byteLength(value) * 3, allocatedSlots: value.length, work: value.length + 7 });
-    if (characters) return characters.slice(Number(offset), Number(end)).join("");
-    try { return new TextDecoder("utf-8", { fatal: true, ignoreBOM: true }).decode(bytes!.subarray(Number(offset), Number(end))); }
+    if (!bytes) {
+      const start = (await scanString(value, work, 0, value.length, Number(offset))).end;
+      const finish = (await scanString(value, work, start, value.length, Number(end - offset))).end;
+      if (finish > start) scratch.reserve((finish - start) * 2, 0);
+      return value.slice(start, finish);
+    }
+    scratch.reserve(Number(end - offset) * 2, 0);
+    try { return new TextDecoder("utf-8", { fatal: true, ignoreBOM: true }).decode(bytes.subarray(Number(offset), Number(end))); }
     catch { throw new ExpansionFailure("substring expansion splits a UTF-8 character in a byte locale", line); }
+    } finally { scratch.close(); }
   }
 
   async parameterPattern(part: Extract<WordPart, { kind: "variable" }>, text: string, state: State, io: IO, hereString: boolean): Promise<string> {
-    const owner = arrayStore(state)?.get(part.name) ? requireArrays(state).owner : undefined;
     const limit = this.budget.limits.maxExpansionBytes;
     if (Buffer.byteLength(text) > limit) this.budget.fail("maxExpansionBytes");
+    const scratch = this.budget.values.scope();
+    const work = { remaining: Math.min(Number.MAX_SAFE_INTEGER, limit * 4 + 1024), signal: this.signal, exhausted: (): never => this.budget.fail("maxExpansionBytes"), allocation: scratch };
+    try {
     const patternFields = await this.word(part.alternate!, state, io, false, true, hereString);
-    const pattern = owner ? await this.arrayJoin(owner, patternFields, "") : patternFields.join("");
-    owner?.reserve({ metadata: 128 + text.length * 64, payload: Buffer.byteLength(text), allocatedSlots: text.length, work: text.length + 8 });
-    const characters = Array.from(text);
-    const slice = (start: number, end = characters.length): string => {
-      owner?.reserve({ metadata: 96 + (end - start) * 32, payload: (end - start) * 4, allocatedSlots: end - start, work: end - start + 7 });
-      return characters.slice(start, end).join("");
-    };
-    const work = { remaining: Math.min(Number.MAX_SAFE_INTEGER, limit * 4 + 1024), signal: this.signal, exhausted: (): never => this.budget.fail("maxExpansionBytes") };
+    let patternUnits = 0;
+    for (const field of patternFields) {
+      const pending = stringCheckpoint(work, field.length + 1);
+      if (pending) await pending;
+      patternUnits += field.length;
+    }
+    scratch.reserve(patternUnits * 2, 0);
+    const pattern = patternFields.join("");
+    const size = (await scanString(text, work)).count;
     const matches = await compilePattern(pattern, work);
-    let attempts = 0;
-    const match = async (start: number, end: number): Promise<boolean> => {
-      work.remaining -= end - start + 1;
-      if (work.remaining < 0) work.exhausted();
-      if (++attempts % 256 === 0) await yieldTurn(this.signal);
-      this.signal.throwIfAborted();
-      if (owner) await owner.ledger.checkpoint(this.signal, end - start + 1);
-      return matches(slice(start, end));
+    const match = async (start: number, end: number, length: number): Promise<boolean> => {
+      const pending = stringCheckpoint(work, length + 1);
+      if (pending) await pending;
+      return matches(text, start, end);
     };
     const operator = part.operator!;
     if (!operator.startsWith("/")) {
       const longest = operator.length === 2;
-      for (let length = longest ? characters.length : 0; longest ? length >= 0 : length <= characters.length; length += longest ? -1 : 1) {
-        const prefix = operator.startsWith("#");
-        if (await match(prefix ? 0 : characters.length - length, prefix ? length : characters.length)) return prefix ? slice(length) : slice(0, characters.length - length);
+      const prefix = operator.startsWith("#");
+      let boundary = longest === prefix ? text.length : 0;
+      for (let length = longest ? size : 0; longest ? length >= 0 : length <= size; length += longest ? -1 : 1) {
+        if (await match(prefix ? 0 : boundary, prefix ? boundary : text.length, length)) {
+          const start = prefix ? boundary : 0;
+          const end = prefix ? text.length : boundary;
+          scratch.reserve((end - start) * 2, 0);
+          return text.slice(start, end);
+        }
+        boundary = longest === prefix ? previousCodePointOffset(text, boundary) : nextCodePointOffset(text, boundary);
       }
       return text;
     }
+    scratch.reserve(64, 0);
     const replacements: { value: string; quoted: boolean }[] = [];
-    owner?.reserve({ metadata: 64, work: 3 });
     let replacementBytes = 0;
     for (const [index, entry] of (part.replacement?.parts ?? []).entries()) {
       let value = entry.kind === "text" ? entry.value : await this.part(entry, state, io, hereString);
-      if (index === 0 && !entry.quoted && /^~(?:\/|$)/u.test(value)) value = (state.variables.HOME ?? "~") + value.slice(1);
+      if (index === 0 && !entry.quoted && /^~(?:\/|$)/u.test(value)) {
+        const home = state.variables.HOME ?? "~";
+        scratch.reserve((home.length + value.length - 1) * 2, 0);
+        value = home + value.slice(1);
+      }
       replacementBytes += Buffer.byteLength(value);
       if (replacementBytes > limit) this.budget.fail("maxExpansionBytes");
-      owner?.reserve({ metadata: 64, payload: Buffer.byteLength(value), allocatedSlots: 1, work: 5 });
+      const pending = stringCheckpoint(work, value.length + 1);
+      if (pending) await pending;
+      scratch.reserve(64 + value.length * 2, 0);
       replacements.push({ value, quoted: entry.quoted });
     }
     if (!pattern && operator !== "/#" && operator !== "/%") return text;
     let result = "";
     let resultBytes = 0;
-    const append = (value: string): void => {
-      resultBytes += Buffer.byteLength(value);
+    let retained: ValueReservation | undefined;
+    const append = async (value: string, start = 0, end = value.length): Promise<void> => {
+      resultBytes += (await scanString(value, work, start, end)).bytes;
       if (resultBytes > limit) this.budget.fail("maxExpansionBytes");
-      owner?.reserve({ metadata: 32, payload: resultBytes, work: value.length + 4 });
-      result += value;
+      if (start === end) return;
+      const fragment = scratch.reserve((end - start) * 2, 0);
+      const next = scratch.reserve((result.length + end - start) * 2, 0);
+      result += value.slice(start, end);
+      fragment.release();
+      retained?.release();
+      retained = next;
     };
     let position = 0;
-    while (position <= characters.length) {
+    let positionIndex = 0;
+    while (positionIndex <= size) {
       let found = false;
-      for (let start = position; start <= characters.length; start++) {
+      for (let start = position, startIndex = positionIndex; startIndex <= size; startIndex++, start = nextCodePointOffset(text, start)) {
         if (operator === "/#" && start !== 0) break;
-        for (let end = characters.length; end >= start; end--) {
-          if (operator === "/%" && end !== characters.length) break;
-          if (!await match(start, end)) continue;
-          append(slice(position, start));
-          const matched = slice(start, end);
+        for (let end = text.length, endIndex = size; endIndex >= startIndex; endIndex--, end = previousCodePointOffset(text, end)) {
+          if (operator === "/%" && end !== text.length) break;
+          if (!await match(start, end, endIndex - startIndex)) continue;
+          await append(text, position, start);
           for (const replacement of replacements) {
-            if (replacement.quoted) append(replacement.value);
+            if (replacement.quoted) await append(replacement.value);
             else {
-              owner?.reserve({ metadata: 64 + replacement.value.length * 64, payload: Buffer.byteLength(replacement.value), allocatedSlots: replacement.value.length, work: replacement.value.length + 4 });
-              const pieces = replacement.value.split("&");
-              for (const [index, piece] of pieces.entries()) { if (index) append(matched); append(piece); }
+              let fragment = 0;
+              for (let cursor = 0; cursor < replacement.value.length; cursor++) {
+                const pending = stringCheckpoint(work);
+                if (pending) await pending;
+                if (replacement.value[cursor] !== "&") continue;
+                await append(replacement.value, fragment, cursor);
+                await append(text, start, end);
+                fragment = cursor + 1;
+              }
+              await append(replacement.value, fragment);
             }
           }
           position = end;
+          positionIndex = endIndex;
           found = true;
-          if (operator !== "//" || end === characters.length) { append(slice(end)); return result; }
-          if (end === start) { append(characters[position]!); position++; }
+          if (operator !== "//" || end === text.length) { await append(text, end); return result; }
+          if (end === start) {
+            position = nextCodePointOffset(text, end);
+            positionIndex++;
+            await append(text, end, position);
+          }
           break;
         }
         if (found) break;
       }
-      if (!found) { append(slice(position)); break; }
+      if (!found) {
+        if (positionIndex === 0) return text;
+        await append(text, position);
+        break;
+      }
     }
     return result;
+    } finally { scratch.close(); }
   }
 
   async word(word: Word, state: State, io: IO, split = true, pattern = false, hereString = false, conditionalPattern = false, regexAppend?: (text: string, literal: boolean) => void): Promise<string[]> {

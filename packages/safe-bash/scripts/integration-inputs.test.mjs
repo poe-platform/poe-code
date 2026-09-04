@@ -398,6 +398,7 @@ function assertSource7Discovery(files) {
   assert.ok(files.includes("tests/shell/parse-admission.test.ts"));
   assert.ok(files.includes("tests/shell/parse-admission-runtime.test.ts"));
   assert.ok(files.includes("tests/shell/arithmetic-admission.test.ts"));
+  assert.ok(files.includes("tests/shell/string-operations.test.ts"));
   assert.ok(files.includes("tests/commands/structured/string-work.test.ts"));
   assert.ok(files.includes("tests/commands/text-programs/allocation-admission.test.ts"));
   assert.ok(files.includes("tests/commands/directory-admission.test.ts"));

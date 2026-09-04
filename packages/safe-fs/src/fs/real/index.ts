@@ -3,13 +3,14 @@ import * as native from "node:fs/promises";
 import { isAbsolute, join, relative, resolve, sep } from "node:path";
 import { nativeAllocatedBytes } from "./allocation.js";
 import { finishCleanup } from "../../contracts/cleanup.js";
+import { admitDirectoryEntries, directoryEntryLimit } from "../directory-admission.js";
 import {
   FsError, collectBytes, isErrnoCode, toByteSource, toFsError, validatePath,
 } from "../../contracts/index.js";
 import type {
   AppendFileOptions, ByteSource, CopyFileOptions, DirectoryEntry, FileStat,
   FileSystem, FileSystemCapabilities, FileType, FsOptions, MkdirOptions,
-  ReadFileOptions, ReadStreamOptions, RemoveOptions, WriteFileOptions,
+  ReadDirectoryOptions, ReadFileOptions, ReadStreamOptions, RemoveOptions, WriteFileOptions,
 } from "../../contracts/index.js";
 
 export interface RealFileSystemOptions {
@@ -295,12 +296,33 @@ export class RealFileSystem implements FileSystem {
     });
   }
 
-  async readdir(path: string, options: FsOptions = {}): Promise<DirectoryEntry[]> {
+  async readdir(path: string, options: ReadDirectoryOptions = {}): Promise<DirectoryEntry[]> {
+    const limit = directoryEntryLimit(options, path);
     return this.operation("readdir", path, options, async () => {
       const target = await this.path(path, options);
       options.signal?.throwIfAborted();
-      const entries = await native.readdir(target, { withFileTypes: true });
-      return entries.map((entry) => ({ name: entry.name, type: fileType(entry) }));
+      if (limit === undefined) {
+        const entries = await native.readdir(target, { withFileTypes: true });
+        return entries.map((entry) => ({ name: entry.name, type: fileType(entry) }));
+      }
+      const handle = await native.opendir(target, { bufferSize: 1 });
+      let failed = false;
+      try {
+        const entries: DirectoryEntry[] = [];
+        while (true) {
+          options.signal?.throwIfAborted();
+          const entry = await handle.read();
+          options.signal?.throwIfAborted();
+          if (entry === null) return entries;
+          admitDirectoryEntries(entries.length + 1, limit, path);
+          entries.push({ name: entry.name, type: fileType(entry) });
+        }
+      } catch (error) {
+        failed = true;
+        throw error;
+      } finally {
+        await finishCleanup(() => handle.close(), failed);
+      }
     });
   }
 

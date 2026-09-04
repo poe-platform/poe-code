@@ -4,13 +4,14 @@ import { composeAbortSignals } from "../../contracts/abort.js";
 import type { ErrnoCode } from "../../contracts/errors.js";
 import type {
   AppendFileOptions, CopyFileOptions, DirectoryEntry, EntryComparison, FileStat, FileSystem,
-  FsOptions, MkdirOptions, ReadFileOptions, ReadStreamOptions, RemoveOptions, WriteFileOptions,
+  FsOptions, MkdirOptions, ReadDirectoryOptions, ReadFileOptions, ReadStreamOptions, RemoveOptions, WriteFileOptions,
 } from "../../contracts/filesystem.js";
 import { collectBytes, readBytes } from "../../contracts/io.js";
 import type { ByteSource } from "../../contracts/io.js";
 import { compareEntries, registerEntryAuthority } from "../mount/comparison.js";
 import { compareOwnedS3Entries, queryS3Head, recordS3Stat, registerS3EntryOwner } from "./authority.js";
 import { encodeCopySource } from "./transport.js";
+import { admitDirectoryEntries, directoryEntryLimit } from "../directory-admission.js";
 import type {
   S3GetOutput, S3HeadOutput, S3ListOutput, S3ObjectSummary, S3RequestOptions, S3Transport,
   S3StreamGetOutput,
@@ -481,18 +482,26 @@ export class S3FileSystem implements FileSystem {
     }, this.requestOptions(options)), "EEXIST");
   }
 
-  async readdir(input: string, options: FsOptions = {}): Promise<DirectoryEntry[]> {
+  async readdir(input: string, options: ReadDirectoryOptions = {}): Promise<DirectoryEntry[]> {
+    let limit: number | undefined;
+    if (options.maxEntries !== undefined) {
+      this.checkAbort(options, "readdir", input);
+      limit = directoryEntryLimit(options, input);
+    }
     const path = this.path(input);
     if ((await this.stat(input, options)).type !== "directory") fail("ENOTDIR", "readdir", path);
     const prefix = this.directoryKey(path);
     const entries = new Map<string, DirectoryEntry>();
     const add = (name: string, type: "file" | "directory"): void => {
+      this.checkAbort(options, "readdir", path);
       if (!name || name.includes("/")) fail("EIO", "readdir", path, "invalid direct child in delimited listing");
       const existing = entries.get(name);
       if (existing && existing.type !== type) this.unsupported("file/prefix collisions", path);
+      if (!existing) admitDirectoryEntries(entries.size + 1, limit, path);
       entries.set(name, { name, type });
     };
-    for await (const page of this.pages(prefix, path, options, "/")) {
+    const maxKeys = limit === undefined ? this.pageSize : Math.min(this.pageSize, limit + 1);
+    for await (const page of this.pages(prefix, path, options, "/", maxKeys)) {
       for (const item of page.Contents ?? []) {
         if (item.Key === prefix) continue;
         add(item.Key!.slice(prefix.length), "file");

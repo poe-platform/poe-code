@@ -7,9 +7,10 @@ import { readBytes } from "../../contracts/io.js";
 import type { ByteSource } from "../../contracts/io.js";
 import type {
   AppendFileOptions, CopyFileOptions, DirectoryEntry, EntryComparison, FileStat, FileSystem, FileSystemCapabilities,
-  FsOptions, MkdirOptions, ReadFileOptions, ReadStreamOptions, RemoveOptions, WriteFileOptions,
+  FsOptions, MkdirOptions, ReadDirectoryOptions, ReadFileOptions, ReadStreamOptions, RemoveOptions, WriteFileOptions,
 } from "../../contracts/filesystem.js";
 import { davChild, davChildren, parseXml, scalar } from "./xml.js";
+import { admitDirectoryEntries, directoryEntryLimit } from "../directory-admission.js";
 import type { XmlElement } from "./xml.js";
 import { assertCallbackAuthorityAllowed, compareEntries, registerEntryAuthority } from "../mount/comparison.js";
 import { compareWebDavResources, ownedResponseIdentifier, recordOwnedResourceStat, registerResourceQuery, resourceIdentifier } from "./resource-id.js";
@@ -607,13 +608,15 @@ export class WebDavFileSystem implements FileSystem {
     return stat;
   }
 
-  private async entries(path: string, depth: "0" | "1", options: FsOptions, collection = depth === "1"): Promise<Map<string, FileStat>> {
+  private async entries(path: string, depth: "0" | "1", options: FsOptions, collection = depth === "1", limit?: number): Promise<Map<string, FileStat>> {
     return this.request("PROPFIND", path, options, {
       headers: { Depth: depth, "Content-Type": "application/xml; charset=utf-8" }, body: propfindBody,
     }, async (response, signal) => {
       if (response.status !== 207) this.httpError(response.status, "PROPFIND", path);
       const result = new Map<string, FileStat>();
+      let children = 0;
       for (const element of await this.multistatus(response, signal)) {
+        signal.throwIfAborted();
         const href = davChild(element, "href");
         if (!href) throw new Error("missing DAV:href");
         const member = this.hrefPath(scalar(href));
@@ -622,6 +625,7 @@ export class WebDavFileSystem implements FileSystem {
           fail("EACCES", "PROPFIND", path, "response member is outside requested depth");
         }
         if (result.has(member)) throw new Error("duplicate response href");
+        if (member !== path) admitDirectoryEntries(++children, limit, path);
         const stat = this.entryStat(element, member);
         recordOwnedResourceStat(response, this, member, stat);
         result.set(member, stat);
@@ -708,9 +712,14 @@ export class WebDavFileSystem implements FileSystem {
     return this.stat(path, options);
   }
 
-  async readdir(path: string, options: FsOptions = {}): Promise<DirectoryEntry[]> {
+  async readdir(path: string, options: ReadDirectoryOptions = {}): Promise<DirectoryEntry[]> {
+    let limit: number | undefined;
+    if (options.maxEntries !== undefined) {
+      if (options.signal?.aborted) fail("ECANCELED", "readdir", path);
+      limit = directoryEntryLimit(options, path);
+    }
     const normalized = normalize(path);
-    const entries = await this.entries(normalized, "1", options);
+    const entries = await this.entries(normalized, "1", options, true, limit);
     if (entries.get(normalized)!.type !== "directory") fail("ENOTDIR", "readdir", path);
     return [...entries].filter(([member]) => member !== normalized)
       .map(([member, stat]) => ({ name: member.slice(member.lastIndexOf("/") + 1), type: stat.type }))

@@ -30,6 +30,7 @@ import type { TypedSchema } from "./schema.js";
 import { parseUriTemplate, type UriTemplate } from "./uri-template.js";
 import { toContentBlocks, type ToolReturn } from "./content/convert.js";
 import { ToolCallAdmission } from "./tool-call-admission.js";
+import { StdioOutput } from "./stdio-output.js";
 
 const PROTOCOL_VERSION = "2025-11-25";
 const SUPPORTED_PROTOCOL_VERSIONS = new Set(["2025-03-26", "2025-06-18", PROTOCOL_VERSION]);
@@ -125,9 +126,13 @@ export function createServer(options: ServerOptions): Server {
 
   const maxConcurrentToolCalls = options.maxConcurrentToolCalls ?? 4;
   const maxQueuedToolCalls = options.maxQueuedToolCalls ?? 64;
+  const maxStdioOutputBytes = options.maxStdioOutputBytes ?? 1024 * 1024;
+  const maxPendingStdioMessages = options.maxPendingStdioMessages ?? 128;
   for (const [name, value, minimum] of [
     ["maxConcurrentToolCalls", maxConcurrentToolCalls, 1],
-    ["maxQueuedToolCalls", maxQueuedToolCalls, 0]
+    ["maxQueuedToolCalls", maxQueuedToolCalls, 0],
+    ["maxStdioOutputBytes", maxStdioOutputBytes, 1],
+    ["maxPendingStdioMessages", maxPendingStdioMessages, 1]
   ] as const) {
     if (!Number.isSafeInteger(value) || value < minimum) {
       throw new Error(`${name} must be a safe integer greater than or equal to ${minimum}.`);
@@ -509,13 +514,13 @@ export function createServer(options: ServerOptions): Server {
 
   const processLine = async (
     line: string,
-    write: (data: string) => void,
+    write: (data: string) => Promise<void>,
     messageHandler: MessageHandler
   ): Promise<void> => {
     const parsed = parseMessage(line);
 
     if (!parsed.success) {
-      write(formatErrorResponse(parsed.id, parsed.error) + "\n");
+      await write(formatErrorResponse(parsed.id, parsed.error) + "\n");
       return;
     }
 
@@ -527,7 +532,7 @@ export function createServer(options: ServerOptions): Server {
 
     if (!isNotification && request.method === "notifications/initialized") {
       const requestWithId = request as JSONRPCRequest;
-      write(
+      await write(
         formatErrorResponse(requestWithId.id, {
           code: JSON_RPC_ERROR_CODES.INVALID_REQUEST,
           message: "Invalid Request"
@@ -542,7 +547,7 @@ export function createServer(options: ServerOptions): Server {
     } catch {
       if (!isNotification) {
         const requestWithId = request as JSONRPCRequest;
-        write(
+        await write(
           formatErrorResponse(requestWithId.id, {
             code: JSON_RPC_ERROR_CODES.INTERNAL_ERROR,
             message: "Internal error"
@@ -561,9 +566,9 @@ export function createServer(options: ServerOptions): Server {
     const requestWithId = request as JSONRPCRequest;
 
     if (error) {
-      write(formatErrorResponse(requestWithId.id, error) + "\n");
+      await write(formatErrorResponse(requestWithId.id, error) + "\n");
     } else if (result !== undefined) {
-      write(formatSuccessResponse(requestWithId.id, result) + "\n");
+      await write(formatSuccessResponse(requestWithId.id, result) + "\n");
     }
   };
 
@@ -749,33 +754,64 @@ export function createServer(options: ServerOptions): Server {
     },
 
     async connect(transport: Transport): Promise<void> {
-      return new Promise((resolve) => {
-        const listener = (notification: JSONRPCNotification) => {
-          transport.writable.write(`${JSON.stringify(notification)}\n`);
-        };
+      return new Promise((resolve, reject) => {
+        let inputClosed = false;
+        let settled = false;
+        const pendingMessages = new Set<Promise<void>>();
+        const output = new StdioOutput(transport.writable, maxStdioOutputBytes, fail, finish);
+        const listener = (notification: JSONRPCNotification) =>
+          output.write(`${JSON.stringify(notification)}\n`);
         const session = server.createMessageSession(listener);
         const rl = readline.createInterface({
           input: transport.readable,
           crlfDelay: Infinity
         });
-        const pendingMessages = new Set<Promise<void>>();
+
+        function fail(error: unknown): void {
+          if (settled) return;
+          settled = true;
+          session.close();
+          rl.close();
+          transport.readable.pause();
+          transport.readable.off("error", fail);
+          output.abort(error);
+          pendingMessages.clear();
+          reject(error);
+        }
+
+        function finish(): void {
+          if (settled || !inputClosed || pendingMessages.size > 0 || output.pending > 0) return;
+          settled = true;
+          session.close();
+          transport.readable.off("error", fail);
+          output.close();
+          resolve();
+        }
+
+        transport.readable.on("error", fail);
+        rl.on("error", fail);
 
         rl.on("line", (line) => {
+          if (settled) return;
+          if (pendingMessages.size >= maxPendingStdioMessages) {
+            fail(new Error("Stdio pending message limit exceeded"));
+            return;
+          }
           const message = processLine(
             line,
-            (data) => transport.writable.write(data),
+            data => output.write(data),
             session.handleMessage
           );
-          pendingMessages.add(message);
-          void message.finally(() => {
+          if (!settled) pendingMessages.add(message);
+          void message.then(() => {
             pendingMessages.delete(message);
-          });
+            finish();
+          }, fail);
         });
 
-        rl.on("close", async () => {
-          await Promise.all([...pendingMessages]);
-          session.close();
-          resolve();
+        rl.on("close", () => {
+          inputClosed = true;
+          finish();
         });
       });
     },

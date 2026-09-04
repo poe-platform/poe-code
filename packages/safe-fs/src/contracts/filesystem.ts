@@ -68,6 +68,17 @@ export interface ReadFileOptions extends FsOptions {
   readonly maxBytes?: number;
 }
 
+export interface ReadDirectoryOptions extends FsOptions {
+  /**
+   * Optional per-listing entry admission limit, a nonnegative safe integer.
+   * Zero permits an empty listing; overflow rejects with EFBIG, never truncates.
+   * Omission preserves the adapter's existing limits and ordering. Composed
+   * adapters may conservatively count distinct candidates before visibility
+   * filtering. This is not a global traversal, host-allocation or work quota.
+   */
+  readonly maxEntries?: number;
+}
+
 export interface WriteFileOptions extends FsOptions {
   readonly flag?: "w" | "wx" | "a" | "ax";
   readonly mode?: number;
@@ -106,7 +117,7 @@ export interface FileSystem {
   stat(path: string, options?: FsOptions): Promise<FileStat>;
   lstat(path: string, options?: FsOptions): Promise<FileStat>;
   compareEntry?(path: string, peer: FileSystem, peerPath: string, options?: FsOptions): Promise<EntryComparison>;
-  readdir(path: string, options?: FsOptions): Promise<DirectoryEntry[]>;
+  readdir(path: string, options?: ReadDirectoryOptions): Promise<DirectoryEntry[]>;
   mkdir(path: string, options?: MkdirOptions): Promise<void>;
   rm(path: string, options?: RemoveOptions): Promise<void>;
   rmdir?(path: string, options?: FsOptions): Promise<void>;

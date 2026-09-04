@@ -4,11 +4,12 @@ import { readBytes } from "../../contracts/io.js";
 import type { ByteSource } from "../../contracts/io.js";
 import type {
   AppendFileOptions, CopyFileOptions, DirectoryEntry, FileStat,
-  FileSystem, FileSystemCapabilities, FsOptions, MkdirOptions, ReadFileOptions,
+  FileSystem, FileSystemCapabilities, FsOptions, MkdirOptions, ReadDirectoryOptions, ReadFileOptions,
   ReadStreamOptions, RemoveOptions, WriteFileOptions,
 } from "../../contracts/filesystem.js";
 import { compareEntries, registerEntryView } from "../mount/comparison.js";
 import { readOnlyCapabilities } from "../capabilities.js";
+import { admitDirectoryEntries, directoryEntryLimit } from "../directory-admission.js";
 
 function readOnly(syscall: string, path: string, dest?: string): never {
   throw new FsError("EROFS", { syscall, path, ...(dest === undefined ? {} : { dest }) });
@@ -76,8 +77,12 @@ export class ReadOnlyFileSystem implements FileSystem {
     return compareEntries(this, path, peer, peerPath, options);
   }
 
-  async readdir(path: string, options?: FsOptions): Promise<DirectoryEntry[]> {
-    return (await this.#filesystem.readdir(path, options)).map((entry) => ({ name: entry.name, type: entry.type }));
+  async readdir(path: string, options?: ReadDirectoryOptions): Promise<DirectoryEntry[]> {
+    const limit = options?.maxEntries === undefined ? undefined : directoryEntryLimit(options, path);
+    const entries = await this.#filesystem.readdir(path, options);
+    if (limit !== undefined) options?.signal?.throwIfAborted();
+    admitDirectoryEntries(entries.length, limit, path);
+    return entries.map((entry) => ({ name: entry.name, type: entry.type }));
   }
 
   async realpath(path: string, options?: FsOptions): Promise<string> {

@@ -1,11 +1,13 @@
 import { basename, FsError, getCommandArguments, type CommandDefinition, type CommandHandler, type FileStat } from "../contracts/index.js";
 import { compilePattern } from "../shell/pattern.js";
 import { codeOf, define, diagnostic, integer, output, pathOf, replaceArgument, UsageError } from "./internal.js";
+import { createDirectoryReader } from "./directory-admission.js";
 
 interface Entry { path: string; display: string; stat: FileStat; depth: number; prune: boolean }
 type Expression = (entry: Entry) => Promise<boolean>;
 
-export function findCommands(execute: CommandHandler): CommandDefinition[] {
+export function findCommands(execute: CommandHandler, maxDirectoryEntries?: number): CommandDefinition[] {
+  const readDirectory = createDirectoryReader(maxDirectoryEntries);
   return [define("find", async context => {
     const argumentValues = getCommandArguments(context);
     const args = [...argumentValues.args];
@@ -73,7 +75,7 @@ export function findCommands(execute: CommandHandler): CommandDefinition[] {
         };
       }
       if (token === "-true" || token === "-false") return async () => token === "-true";
-      if (token === "-empty") return async entry => entry.stat.type === "directory" ? !(await context.fs.readdir(entry.path, { signal: context.signal })).length : entry.stat.type === "file" && entry.stat.size === 0;
+      if (token === "-empty") return async entry => entry.stat.type === "directory" ? !(await readDirectory(context, entry.path)).length : entry.stat.type === "file" && entry.stat.size === 0;
       if (token === "-prune") return async entry => { entry.prune = true; return true; };
       if (token === "-print" || token === "-print0") {
         explicitAction = true;
@@ -150,7 +152,7 @@ export function findCommands(execute: CommandHandler): CommandDefinition[] {
           const physical = await context.fs.realpath(path, { signal: context.signal });
           if (ancestors.has(physical)) throw new FsError("ELOOP", { path });
           const next = new Set(ancestors).add(physical);
-          const children = (await context.fs.readdir(path, { signal: context.signal })).sort((left, right) => left.name < right.name ? -1 : left.name > right.name ? 1 : 0);
+          const children = await readDirectory(context, path, true);
           for (const child of children) await visit(`${display.replace(/\/$/u, "")}/${child.name}`, depth + 1, next);
         }
         if (depthFirst) await apply();

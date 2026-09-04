@@ -6,6 +6,7 @@ import { codeOf, define, eachOperand, options, output, pathOf, requireOperands, 
 import { compareCopyIdentity, compareObservedEntries } from "./copy-identity.js";
 import { MoveBudget, moveAcrossDevices } from "./move.js";
 import { admitFilesystemModes, filesystemCommandRequirements } from "./filesystem-requirements.js";
+import { createDirectoryReader, type DirectoryReader } from "./directory-admission.js";
 
 async function preflightOperands(
   context: CommandContext, operands: readonly string[], check: (operand: string) => Promise<void>,
@@ -42,14 +43,14 @@ function needCapability(context: CommandContext, capability: "symlink" | "link" 
   if (!context.fs[capability]) throw new FsError("ENOTSUP", { syscall: capability });
 }
 
-async function admitEmptyDirectory(context: CommandContext, path: string): Promise<void> {
+async function admitEmptyDirectory(context: CommandContext, path: string, readDirectory: DirectoryReader): Promise<void> {
   try { await admitFilesystemModes(context, "rmdir", ["directory"], [path]); }
   catch (error) {
     context.signal.throwIfAborted();
     if (codeOf(error) === "ENOTSUP") {
       const capabilities = await context.fs.capabilitiesFor?.(path, { signal: context.signal }) ?? context.fs.capabilities;
       if (capabilities.write !== false && capabilities.readdir !== false
-        && (await context.fs.readdir(path, { signal: context.signal })).length) {
+        && (await readDirectory(context, path)).length) {
         throw new FsError("ENOTEMPTY", { syscall: "rmdir", path, cause: error });
       }
     }
@@ -57,8 +58,8 @@ async function admitEmptyDirectory(context: CommandContext, path: string): Promi
   }
 }
 
-async function removeEmptyDirectory(context: CommandContext, path: string): Promise<void> {
-  await admitEmptyDirectory(context, path);
+async function removeEmptyDirectory(context: CommandContext, path: string, readDirectory: DirectoryReader): Promise<void> {
+  await admitEmptyDirectory(context, path, readDirectory);
   context.signal.throwIfAborted();
   if (!context.fs.rmdir) throw new FsError("ENOTSUP", { syscall: "rmdir", path });
   await context.fs.rmdir(path, { signal: context.signal });
@@ -74,7 +75,7 @@ async function destinations(context: CommandContext, operands: readonly string[]
 
 async function copy(
   context: CommandContext, source: string, target: string,
-  flags: ReadonlySet<string>, top = true, ancestors = new Set<string>(),
+  flags: ReadonlySet<string>, readDirectory: DirectoryReader, top = true, ancestors = new Set<string>(),
   preflight = false,
 ): Promise<void> {
   context.signal.throwIfAborted();
@@ -104,8 +105,8 @@ async function copy(
     await admitFilesystemModes(context, "cp", ["recursive"], [target]);
     if (!targetStat && !preflight) await context.fs.mkdir(target, { mode: sourceStat.mode & 0o777, signal: context.signal });
     const next = new Set(ancestors).add(physicalSource);
-    for (const entry of (await context.fs.readdir(source, { signal: context.signal })).sort((left, right) => left.name < right.name ? -1 : left.name > right.name ? 1 : 0)) {
-      await copy(context, joinPath(source, entry.name), joinPath(target, entry.name), flags, false, next, preflight);
+    for (const entry of await readDirectory(context, source, true)) {
+      await copy(context, joinPath(source, entry.name), joinPath(target, entry.name), flags, readDirectory, false, next, preflight);
     }
   } else if (preserveLink) {
     await admitFilesystemModes(context, "cp", ["symlink"], [target]);
@@ -161,7 +162,8 @@ function modeText(stat: FileStat): string {
   return text;
 }
 
-export function filesystemCommands(): CommandDefinition[] {
+export function filesystemCommands(maxDirectoryEntries?: number): CommandDefinition[] {
+  const readDirectory = createDirectoryReader(maxDirectoryEntries);
   return [
     define("mkdir", async context => {
       const parsed = options(context.args, "pm:v", { parents: "p", mode: "m", verbose: "v" });
@@ -214,11 +216,11 @@ export function filesystemCommands(): CommandDefinition[] {
       await preflightOperands(context, destination.sources, async operand => {
         const source = pathOf(context, operand);
         await copy(context, source, destination.directory ? joinPath(destination.target, basename(source)) : destination.target,
-          parsed.flags, true, new Set(), true);
+          parsed.flags, readDirectory, true, new Set(), true);
       });
       return eachOperand(context, destination.sources, async operand => {
         const source = pathOf(context, operand);
-        await copy(context, source, destination.directory ? joinPath(destination.target, basename(source)) : destination.target, parsed.flags);
+        await copy(context, source, destination.directory ? joinPath(destination.target, basename(source)) : destination.target, parsed.flags, readDirectory);
       });
     }),
     define("mv", async context => {
@@ -255,7 +257,7 @@ export function filesystemCommands(): CommandDefinition[] {
         const stat = await maybeStat(context, path, false);
         if (!stat) return;
         const mode = stat.type === "directory" ? parsed.flags.has("r") || parsed.flags.has("R") ? "recursive" : "directory" : "file";
-        if (mode === "directory") await admitEmptyDirectory(context, path);
+        if (mode === "directory") await admitEmptyDirectory(context, path, readDirectory);
         else await admitFilesystemModes(context, "rm", [mode], [path]);
       });
       return eachOperand(context, parsed.operands, async operand => {
@@ -269,7 +271,7 @@ export function filesystemCommands(): CommandDefinition[] {
         const recursive = parsed.flags.has("r") || parsed.flags.has("R");
         if (stat.type === "directory" && !recursive && !parsed.flags.has("d")) throw new FsError("EISDIR", { path });
         if (stat.type === "directory" && !recursive) {
-          try { await removeEmptyDirectory(context, path); }
+          try { await removeEmptyDirectory(context, path, readDirectory); }
           catch (error) {
             context.signal.throwIfAborted();
             if (!parsed.flags.has("f") || codeOf(error) !== "ENOENT") throw error;
@@ -287,7 +289,7 @@ export function filesystemCommands(): CommandDefinition[] {
         let path = pathOf(context, operand);
         const stop = dirname(pathOf(context, operand.split("/").find(part => part && part !== ".") ?? operand));
         do {
-          await admitEmptyDirectory(context, path);
+          await admitEmptyDirectory(context, path, readDirectory);
           path = dirname(path);
         } while (parsed.flags.has("p") && path !== "/" && path !== stop);
       });
@@ -296,7 +298,7 @@ export function filesystemCommands(): CommandDefinition[] {
         const stop = dirname(pathOf(context, operand.split("/").find(part => part && part !== ".") ?? operand));
         do {
           if (path === "/") throw new FsError("EBUSY", { path });
-          await removeEmptyDirectory(context, path);
+          await removeEmptyDirectory(context, path, readDirectory);
           if (parsed.flags.has("v")) await output(context, `rmdir: removing directory '${path}'\n`);
           path = dirname(path);
         } while (parsed.flags.has("p") && path !== "/" && path !== stop);
@@ -420,10 +422,12 @@ export function filesystemCommands(): CommandDefinition[] {
         if (ancestors.has(physical)) throw new FsError("ELOOP", { path });
         const next = new Set(ancestors).add(physical);
         if (header) { await output(context, `${headerWritten ? "\n" : ""}${display}:\n`); headerWritten = true; }
-        const entries = await context.fs.readdir(path, { signal: context.signal });
+        const entries = await readDirectory(context, path, true);
         const names = entries.map(entry => entry.name).filter(name => parsed.flags.has("a") || parsed.flags.has("A") || !name.startsWith("."));
-        if (parsed.flags.has("a")) names.push(".", "..");
-        names.sort();
+        if (parsed.flags.has("a")) for (const name of [".", ".."]) {
+          const index = names.findIndex(entry => entry > name);
+          names.splice(index < 0 ? names.length : index, 0, name);
+        }
         if (parsed.flags.has("r")) names.reverse();
         for (const name of names) await render(joinPath(path, name), name);
         if (parsed.flags.has("R")) for (const name of names) {

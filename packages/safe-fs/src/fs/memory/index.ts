@@ -2,7 +2,7 @@ import { FsError } from "../../contracts/errors.js";
 import type { ErrnoCode } from "../../contracts/errors.js";
 import type {
   AppendFileOptions, CopyFileOptions, DirectoryEntry, EntryComparison, FileStat, FileSystem,
-  FsOptions, MkdirOptions, ReadFileOptions, ReadStreamOptions, RemoveOptions,
+  FsOptions, MkdirOptions, ReadDirectoryOptions, ReadFileOptions, ReadStreamOptions, RemoveOptions,
   WriteFileOptions,
 } from "../../contracts/filesystem.js";
 import type { ByteSource } from "../../contracts/io.js";
@@ -10,6 +10,7 @@ import { assertCallbackAuthorityAllowed, compareEntries, registerEntryAuthority 
 import type { EntryAuthority } from "../mount/comparison.js";
 import { getOwnedS3Entry } from "../s3/registry.js";
 import { getOwnedWebDavEntry } from "../webdav/resource-id.js";
+import { admitDirectoryEntries, directoryEntryLimit } from "../directory-admission.js";
 
 interface Metadata {
   mode: number;
@@ -330,11 +331,12 @@ export class MemoryFileSystem implements FileSystem {
     return stat;
   }
 
-  async readdir(path: string, options: FsOptions = {}): Promise<DirectoryEntry[]> {
-    options.signal?.throwIfAborted();
+  async readdir(path: string, options: ReadDirectoryOptions = {}): Promise<DirectoryEntry[]> {
+    const limit = directoryEntryLimit(options, path);
     const node = this.resolve(path, "readdir").node!;
     if (node.type !== "directory") this.fail("ENOTDIR", "readdir", path);
     this.permission(node, 4, "readdir", path);
+    admitDirectoryEntries(node.entries.size, limit, path);
     node.atimeMs = Date.now();
     return [...node.entries].map(([name, entry]) => ({ name, type: entry.type }))
       .sort((left, right) => left.name < right.name ? -1 : left.name > right.name ? 1 : 0);

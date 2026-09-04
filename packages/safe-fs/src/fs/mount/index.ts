@@ -2,13 +2,14 @@ import { FsError, isFsError, toFsError } from "../../contracts/errors.js";
 import type { ErrnoCode } from "../../contracts/errors.js";
 import type {
   AppendFileOptions, CopyFileOptions, DirectoryEntry, FileStat, FileSystem,
-  FileSystemCapabilities, FsOptions, MkdirOptions, ReadFileOptions,
+  FileSystemCapabilities, FsOptions, MkdirOptions, ReadDirectoryOptions, ReadFileOptions,
   ReadStreamOptions, RemoveOptions, WriteFileOptions,
 } from "../../contracts/filesystem.js";
 import type { ByteSource } from "../../contracts/io.js";
 import { readBytes } from "../../contracts/io.js";
 import { finishCleanup } from "../../contracts/cleanup.js";
 import { readOnlyCapabilities } from "../capabilities.js";
+import { admitDirectoryEntries, directoryEntryLimit } from "../directory-admission.js";
 import { normalizePath, validatePath } from "../../contracts/virtual-path.js";
 import { compareIdentity } from "./identity.js";
 import { compareEntries, registerEntryAuthority, registerEntryView } from "./comparison.js";
@@ -368,15 +369,21 @@ export class MountFileSystem implements FileSystem {
     return this.operation("lstat", path, options, async () => snapshotStat((await this.resolve(path, options, { followFinal: false })).stat!));
   }
 
-  readdir(path: string, options: FsOptions = {}): Promise<DirectoryEntry[]> {
+  readdir(path: string, options: ReadDirectoryOptions = {}): Promise<DirectoryEntry[]> {
     return this.operation("readdir", path, options, async () => {
+      const limit = directoryEntryLimit(options, path);
       const location = await this.resolve(path, options);
       if (location.stat?.type !== "directory") fail("ENOTDIR");
       const entries = new Map<string, DirectoryEntry>();
       if (!location.synthetic) {
-        for (const entry of await location.mount.backend.readdir(location.local, options)) {
+        const children = await location.mount.backend.readdir(location.local, options);
+        options.signal?.throwIfAborted();
+        admitDirectoryEntries(children.length, limit, path);
+        for (const entry of children) {
+          options.signal?.throwIfAborted();
           const { name, type } = entry;
           if (!name || name === "." || name === ".." || name.includes("/") || name.includes("\0")) fail("EIO");
+          if (!entries.has(name)) admitDirectoryEntries(entries.size + 1, limit, path);
           entries.set(name, { name, type });
         }
       }
@@ -384,6 +391,7 @@ export class MountFileSystem implements FileSystem {
         if (mount.path !== location.path && within(location.path, mount.path)) {
           const suffix = mount.path.slice(location.path === "/" ? 1 : location.path.length + 1);
           const name = suffix.split("/")[0]!;
+          if (!entries.has(name)) admitDirectoryEntries(entries.size + 1, limit, path);
           entries.set(name, { name, type: "directory" });
         }
       }

@@ -1,3 +1,11 @@
+# Directory enumeration admission
+
+The [Directory Enumeration Admission Specification](directory-enumeration.md)
+defines per-listing `ReadDirectoryOptions.maxEntries` admission,
+its cancellation and error rules, composed-filesystem profiles, and command
+integration. Its implementation-version record identifies the verified code;
+it does not establish registry publication.
+
 # Semantic operation capabilities
 
 Capability flags describe operations, not JavaScript method presence. `true`

@@ -36,6 +36,7 @@ export interface AgentCommandsOptions {
   readonly replace?: boolean;
   readonly execute?: CommandHandler;
   readonly regex?: RegexExecutionOptions;
+  readonly maxDirectoryEntries?: number;
   readonly text?: Omit<TextProgramOptions, "replace">;
   readonly structured?: Omit<StructuredCommandsOptions, "replace">;
   readonly search?: Omit<SearchOptions, "replace">;
@@ -68,7 +69,7 @@ export function createAgentCommands(options: AgentCommandsOptions = {}): readonl
   const timeoutOptions = options.timeout;
   const applyPatchLimits = options.applyPatch?.limits;
   commands.push(
-    ...createStandardCommands({ execute: options.execute ?? executor(name => commands.find(command => command.name === name)), ...(options.regex === undefined ? {} : { regex: options.regex }) }),
+    ...createStandardCommands({ execute: options.execute ?? executor(name => commands.find(command => command.name === name)), ...(options.regex === undefined ? {} : { regex: options.regex }), ...(options.maxDirectoryEntries === undefined ? {} : { maxDirectoryEntries: options.maxDirectoryEntries }) }),
     ...createTextProgramCommands({ ...options.text }),
     ...createStructuredCommands({ ...options.structured }),
     ...createSearchCommands({ ...options.search }),

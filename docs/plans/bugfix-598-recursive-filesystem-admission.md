@@ -93,7 +93,8 @@ Frozen source identities (SHA-256):
 
 ## Delivery
 
-Validation is complete; exact-path commit and remote delivery are next. Verify
-delivery on remote `main`, close #598 immediately afterward, and monitor actual
+Validation and local implementation commit
+`6331fd294e8440d8e8bc653ded005a2b79dcbd67` are complete; remote delivery is next.
+Verify delivery on remote `main`, close #598 immediately afterward, and monitor actual
 publication while beginning the next validated issue. Commit, push and
 publication are separate milestones.

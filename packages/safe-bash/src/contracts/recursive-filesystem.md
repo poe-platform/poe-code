@@ -1,14 +1,16 @@
 # Recursive Filesystem Command Admission Specification
 
-Status: Accepted
+Status: Implemented
 
-Implemented Through: Not applicable
+Implemented Through: `6331fd294e8440d8e8bc653ded005a2b79dcbd67`
 
 Purpose: Bound recursive `cp` and `ls` directory ancestry while preserving their
 existing filesystem and cancellation semantics.
 
-The depth admission below is an accepted extension under implementation for
-#598; the baseline `a4149921392f273dfae8a737a82a3c2fa2577f9b` does not implement it.
+The implemented-through commit contains the reviewed #598 source and tests,
+verified by focused tests, maintained build/lint, public consumers, and rebuilt
+public-factory checks recorded in the issue plan. The earlier baseline
+`a4149921392f273dfae8a737a82a3c2fa2577f9b` does not implement depth admission.
 
 ## Normative Language
 

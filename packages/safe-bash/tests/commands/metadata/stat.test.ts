@@ -78,6 +78,15 @@ test("stat limits, invalid options and cancellation have nonzero/abort outcomes"
   await assert.rejects(runMetadata("stat", ["file"], fs, {}, controller.signal), error => error === reason);
 });
 
+test("stat rejects long invalid format directives without regexp backtracking", async () => {
+  const fs = await fixture();
+  const started = performance.now();
+  const result = await runMetadata("stat", ["-c", `%${"0".repeat(32_000)}!`, "file"], fs);
+  const elapsed = performance.now() - started;
+  assert.equal(result.exitCode, 1);
+  assert.ok(elapsed < 500, `invalid directive took ${elapsed.toFixed(0)}ms`);
+});
+
 test("stat formats supplied numeric metadata on memory VFS", async () => {
   const fs = new MemoryFileSystem();
   await fs.mkdir("/work");

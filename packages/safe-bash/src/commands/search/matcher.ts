@@ -1,4 +1,4 @@
-import { RegexExecutionError, type RegexSession } from "../regex-execution/client.js";
+import { RegexExecutionError, type RegexSession } from "../regex-execution/portable.js";
 import type { Match, Row, SearchDescriptor } from "../regex-execution/protocol.js";
 import { SearchError, type Arguments } from "./options.js";
 

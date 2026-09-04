@@ -16,6 +16,8 @@ export type { FetchTransportOptions } from "./commands/network/fetch-transport.j
 export { createOriginAuthorizer } from "./commands/network/authorizer.js";
 export type { OriginAllowlist, OriginAuthorizerOptions } from "./commands/network/authorizer.js";
 export { cloudflareWorkerNetworkLimits } from "./commands/network/types.js";
+export { portableSearchCommands, type PortableSearchOptions } from "./commands/search/portable.js";
+export * from "./commands/regex-execution/public.js";
 
 export interface BrowserCommandsOptions {
   readonly replace?: boolean;

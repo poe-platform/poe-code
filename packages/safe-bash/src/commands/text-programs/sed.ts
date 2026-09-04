@@ -1,6 +1,7 @@
-import { FsError, readBytes, writeBytes, type CommandContext, type CommandDefinition } from "../../contracts/index.js";
+import { FsError, writeBytes, type CommandContext, type CommandDefinition } from "../../contracts/index.js";
 import { Pattern, substitute } from "./regex.js";
 import { Budget, ProgramError, byteString, bytes, command, lineRecords, readProgram, virtualPath, write, type RecordLine, type TextProgramOptions } from "./shared.js";
+import { assertPathRequirements, requiredFileInput, sedRequirements } from "../search/requirements.js";
 
 type Address = { kind: "number"; number: number } | { kind: "last" } | { kind: "regex"; pattern: Pattern | undefined };
 interface Instruction {
@@ -223,19 +224,17 @@ async function execute(program: readonly Instruction[], context: CommandContext,
       let status = 0;
       const print = () => write(context, pattern + (record.terminated ? "\n" : ""));
       const flush = async () => {
+        await assertPathRequirements(context, sedRequirements, ["script-read"], appended.flatMap(item => item.file === undefined ? [] : [item.file]));
         if (!quiet && !deleted) await print();
         for (const item of appended) {
           if (item.text !== undefined) { await write(context, item.text); continue; }
           const path = virtualPath(context, item.file!);
           try {
-            const stream = context.fs.readStream?.(path, { signal: context.signal });
-            if (stream) {
-              for await (const chunk of readBytes(stream, context.signal)) {
-                budget.step(); await budget.checkpoint();
-                if (chunk.byteLength > budget.maxBufferBytes) throw new ProgramError("read buffer limit exceeded");
-                await writeBytes(context.stdout, chunk, context.signal);
-              }
-            } else await writeBytes(context.stdout, await context.fs.readFile(path, { signal: context.signal, maxBytes: budget.maxBufferBytes }), context.signal);
+            for await (const chunk of requiredFileInput(context, sedRequirements, "script-read", path, budget.maxBufferBytes)) {
+              budget.step(); await budget.checkpoint();
+              if (chunk.byteLength > budget.maxBufferBytes) throw new ProgramError("read buffer limit exceeded");
+              await writeBytes(context.stdout, chunk, context.signal);
+            }
           } catch (error) {
             context.signal.throwIfAborted();
             if (!(error instanceof FsError) || !["ENOENT", "EACCES", "EPERM", "EISDIR", "ENOTDIR"].includes(error.code)) throw error;
@@ -345,7 +344,7 @@ async function execute(program: readonly Instruction[], context: CommandContext,
 }
 
 export function sedCommand(options: TextProgramOptions = {}): CommandDefinition {
-  return command("sed", async context => {
+  const definition = command("sed", async context => {
     const budget = new Budget(context, options);
     const sources: string[] = [];
     const files: string[] = [];
@@ -371,6 +370,7 @@ export function sedCommand(options: TextProgramOptions = {}): CommandDefinition 
         } else if (flag === "e" || flag === "f") {
           const source = argument.slice(position + 1) || context.args[++index];
           if (source === undefined) throw new ProgramError(`-${flag} requires an argument`);
+          if (flag === "f") await assertPathRequirements(context, sedRequirements, ["script-file"], [source]);
           sources.push(flag === "f" ? await readProgram(context, source) : byteString(source));
           position = argument.length;
         } else throw new ProgramError(`unsupported option '-${flag}'`);
@@ -382,13 +382,22 @@ export function sedCommand(options: TextProgramOptions = {}): CommandDefinition 
     }
     if (sources[0]?.startsWith("#n")) quiet = true;
     const program = parse(sources.join("\n"), extended);
+    const outputFiles = program.flatMap(instruction => instruction.kind !== "r" && instruction.file !== undefined ? [instruction.file] : []);
+    await assertPathRequirements(context, sedRequirements, ["script-output"], outputFiles);
+    if (inPlace !== undefined || outputFiles.length) {
+      await assertPathRequirements(context, sedRequirements, ["file"], files.filter(file => file !== "-"));
+      await assertPathRequirements(context, sedRequirements, ["script-read"],
+        program.flatMap(instruction => instruction.kind === "r" && instruction.file !== undefined ? [instruction.file] : []));
+    }
     const prepareOutputs = async (): Promise<void> => {
-      const paths = new Set(program.flatMap(instruction => instruction.file !== undefined && instruction.kind !== "r" ? [virtualPath(context, instruction.file)] : []));
+      const paths = new Set(outputFiles.map(file => virtualPath(context, file)));
       for (const path of paths) await context.fs.writeFile(path, new Uint8Array(), { signal: context.signal });
     };
     if (inPlace !== undefined) {
       if (!files.length || files.includes("-")) throw new ProgramError("in-place editing requires named files");
       if (inPlace.includes("/") || inPlace.includes("\0")) throw new ProgramError("backup suffix cannot contain '/' or NUL");
+      await assertPathRequirements(context, sedRequirements, ["in-place"], files);
+      if (inPlace) await assertPathRequirements(context, sedRequirements, ["backup"], files.flatMap(file => [file, file + inPlace]));
       for (const file of files) {
         const path = virtualPath(context, file);
         if ((await context.fs.lstat(path, { signal: context.signal })).type !== "file") throw new FsError("ENOTSUP", { path, message: "in-place editing requires regular files, not links or directories" });
@@ -412,4 +421,5 @@ export function sedCommand(options: TextProgramOptions = {}): CommandDefinition 
     }
     return (await execute(program, context, files, quiet, budget)).status;
   });
+  return { ...definition, filesystemRequirements: sedRequirements };
 }

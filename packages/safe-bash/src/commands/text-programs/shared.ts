@@ -1,5 +1,7 @@
 import { yieldTurn } from "../../contracts/yield.js";
 import { FsError, readBytes, writeBytes, type ByteSource, type CommandContext, type CommandDefinition } from "../../contracts/index.js";
+import { inputRequirements } from "../portable-requirements.js";
+import { requiredFileInput } from "../search/requirements.js";
 
 export interface TextProgramOptions {
   readonly replace?: boolean;
@@ -53,9 +55,7 @@ export async function* input(context: CommandContext, file = "-"): ByteSource {
   context.signal.throwIfAborted();
   if (file === "-") yield* readBytes(context.stdin, context.signal);
   else {
-    const path = virtualPath(context, file);
-    if (context.fs.readStream) yield* readBytes(context.fs.readStream(path, { signal: context.signal }), context.signal);
-    else yield await context.fs.readFile(path, { signal: context.signal, maxBytes: 32 * 1024 * 1024 });
+    yield* requiredFileInput(context, inputRequirements, "file", file, 32 * 1024 * 1024);
   }
 }
 

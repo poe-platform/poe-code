@@ -1,3 +1,4 @@
+import "./safe-packages-portable-search-types.mjs";
 import { Budget, run, makeFsModule, type RunClock, type HostObjectIndexedDefinition, type HostObjectNamedDefinition, type CallbackInvocation } from "@poe-platform/safe-js";
 import { createMemoryFileSystem, type FileSystem } from "@poe-platform/safe-fs/core";
 import type { FileSystem as CompatibilityFileSystem } from "@poe-platform/safe-js/fs";

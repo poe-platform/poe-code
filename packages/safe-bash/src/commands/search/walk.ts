@@ -1,8 +1,9 @@
 import { dirname, isPathWithin, relativePath, resolvePath, type CommandContext, type FileStat } from "../../contracts/index.js";
-import { RegexExecutionError, type RegexSession } from "../regex-execution/client.js";
+import { RegexExecutionError, type RegexSession } from "../regex-execution/portable.js";
 import { Glob, ignoreRules, matchGlobs, type IgnoreRule } from "./glob.js";
 import { SearchError, type Arguments } from "./options.js";
 import { Limits, pathFor } from "./shared.js";
+import { assertPathRequirements, searchRequirements } from "./requirements.js";
 
 export interface FileTarget { readonly path: string; readonly label: string; readonly explicit: boolean; readonly recursive: boolean }
 
@@ -19,7 +20,10 @@ export class Walker {
     await matchGlobs(this.globs.map(rule => rule.glob), [], this.session);
   }
   private async exists(path: string): Promise<boolean> {
-    try { await this.context.fs.lstat(path, { signal: this.context.signal }); return true; }
+    try {
+      await assertPathRequirements(this.context, searchRequirements, ["metadata"], [path]);
+      await this.context.fs.lstat(path, { signal: this.context.signal }); return true;
+    }
     catch (error) { this.context.signal.throwIfAborted(); if ((error as { code?: string }).code === "ENOENT") return false; throw error; }
   }
   private async load(directory: string, inherited: readonly IgnoreRule[], repository: boolean): Promise<{ rules: IgnoreRule[]; repository: boolean }> {
@@ -36,6 +40,7 @@ export class Walker {
       if (this.args.ignoreVcs && (repository || !this.args.requireGit)) names.push([".gitignore", 1]);
       if (this.args.ignoreDot) names.push([".ignore", 2], [".rgignore", 3]);
       for (const [name, priority] of names) {
+        await assertPathRequirements(this.context, searchRequirements, ["ignore-file"], [`${directory}/${name}`]);
         try {
           const data = await this.context.fs.readFile(`${directory}/${name}`, { signal: this.context.signal, maxBytes: 1024 * 1024 });
           local.push(...await ignoreRules(Buffer.from(data).toString("utf8"), base, priority, this.session));
@@ -76,6 +81,7 @@ export class Walker {
   }
   private async* directory(path: string, label: string, depth: number, ancestors: ReadonlyMap<string, string>, rules: readonly IgnoreRule[], repository: boolean): AsyncGenerator<FileTarget> {
     if (depth >= this.args.maxDepth) return;
+    await assertPathRequirements(this.context, searchRequirements, ["directory"], [path]);
     const canonical = await this.context.fs.realpath(path, { signal: this.context.signal });
     if (ancestors.has(canonical)) { await this.report(new SearchError(`File system loop found: ${label} points to an ancestor ${ancestors.get(canonical)}`)); return; }
     const parents = new Map(ancestors); parents.set(canonical, label || ".");
@@ -88,8 +94,10 @@ export class Walker {
       const display = label ? `${label.replace(/\/$/u, "")}/${entry.name}` : entry.name;
       try {
         if (entry.type === "symlink" && !this.args.follow) continue;
+        if (entry.type === "symlink") await assertPathRequirements(this.context, searchRequirements, ["metadata"], [child]);
         const type = entry.type === "symlink" ? (await this.context.fs.stat(child, { signal: this.context.signal })).type : entry.type;
         if (entry.type === "symlink" && type === "directory") {
+          await assertPathRequirements(this.context, searchRequirements, ["canonical"], [child]);
           const destination = await this.context.fs.realpath(child, { signal: this.context.signal });
           if (parents.has(destination)) {
             await this.report(new SearchError(`File system loop found: ${display} points to an ancestor ${parents.get(destination)}`));

@@ -1,4 +1,3 @@
-import { isUtf8 } from "node:buffer";
 import type { Match } from "./matcher.js";
 import type { Arguments } from "./options.js";
 import { Limits, type Line } from "./shared.js";
@@ -6,7 +5,10 @@ import { Limits, type Line } from "./shared.js";
 export const elapsed = Object.freeze({ secs: 0, nanos: 0, human: "0.000000s" });
 export interface Stats { elapsed: typeof elapsed; searches: number; searches_with_match: number; bytes_searched: number; bytes_printed: number; matched_lines: number; matches: number }
 export const stats = (): Stats => ({ elapsed, searches: 0, searches_with_match: 0, bytes_searched: 0, bytes_printed: 0, matched_lines: 0, matches: 0 });
-export const data = (bytes: Uint8Array): { text: string } | { bytes: string } => isUtf8(bytes) ? { text: Buffer.from(bytes).toString("utf8") } : { bytes: Buffer.from(bytes).toString("base64") };
+export function data(bytes: Uint8Array): { text: string } | { bytes: string } {
+  try { return { text: new TextDecoder("utf-8", { fatal: true, ignoreBOM: true }).decode(bytes) }; }
+  catch { return { bytes: Buffer.from(bytes).toString("base64") }; }
+}
 
 export class Printer {
   private lastFile: string | undefined;

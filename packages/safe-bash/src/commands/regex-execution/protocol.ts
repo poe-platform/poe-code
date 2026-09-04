@@ -191,7 +191,7 @@ export function validateReply(value: unknown, id: number, rows: readonly Row[], 
   if (!("results" in reply) || !Array.isArray(reply.results) || reply.results.length !== rows.length) throw new RegexExecutionError("PROTOCOL", "invalid reply rows");
   return reply.results.map((ranges: unknown, index: number) => {
     signal.throwIfAborted();
-    if (!(ranges instanceof Float64Array) || ranges.length % 2) throw new RegexExecutionError("PROTOCOL", "invalid match ranges");
+    if (!(ranges instanceof Float64Array) || ranges.length % 2 || ranges.length > 2 * (rows[index]!.bytes.length + 1)) throw new RegexExecutionError("PROTOCOL", "invalid match ranges");
     const result: Match[] = [];
     const row = rows[index]!;
     if (!row.all && ranges.length > 2) throw new RegexExecutionError("PROTOCOL", "unexpected multiple matches");

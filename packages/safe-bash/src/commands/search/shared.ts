@@ -1,6 +1,7 @@
 import { yieldTurn } from "../../contracts/yield.js";
 import { readBytes, writeBytes, type ByteSource, type CommandContext } from "../../contracts/index.js";
 import { SearchError, type SearchOptions } from "./options.js";
+import { assertPathRequirements, searchRequirements } from "./requirements.js";
 
 export function pathFor(context: CommandContext, path: string): string {
   if (!path || path.includes("\0")) throw new SearchError("invalid empty or NUL-containing path");
@@ -52,6 +53,7 @@ export class Limits {
 }
 
 export async function* fileInput(context: CommandContext, path: string, limits: Limits): ByteSource {
+  await assertPathRequirements(context, searchRequirements, ["file"], [path]);
   if (context.fs.readStream) yield* readBytes(context.fs.readStream(path, { signal: context.signal }), limits.signal);
   else yield await context.fs.readFile(path, { signal: context.signal, maxBytes: limits.maxFileBytes });
 }

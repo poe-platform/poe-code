@@ -394,6 +394,7 @@ function assertSource7Discovery(files) {
   assert.ok(files.includes("tests/fs/conformance/provenance.test.ts"));
   assert.ok(files.includes("tests/integration/typecheck-consumer-resolution.test.ts"));
   assert.ok(files.includes("tests/shell/redirect-limits.test.ts"));
+  assert.ok(files.includes("tests/commands/text-programs/allocation-admission.test.ts"));
   assert.ok(files.includes("tests/plugins/git-removal.test.ts"));
   assert.ok(files.includes("tests/shell-stress/invocation-closure/v2-batch-controls.test.ts"));
   assert.ok(!files.includes("tests/commands/git/io-cleanup.test.ts"));

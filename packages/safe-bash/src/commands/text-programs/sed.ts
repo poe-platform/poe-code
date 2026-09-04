@@ -315,7 +315,17 @@ async function execute(program: readonly Instruction[], context: CommandContext,
             if (changed.count) { substituted = true; if (instruction.print) await print(); if (instruction.file) await writeFile(instruction.file); }
             break;
           }
-          case "y": pattern = [...pattern].map(character => instruction.translation!.get(character) ?? character).join(""); break;
+          case "y": {
+            // Interpreter strings contain one Latin-1 code unit per input byte.
+            budget.step(pattern.length);
+            const translated = Buffer.allocUnsafe(pattern.length);
+            for (let index = 0; index < pattern.length; index++) {
+              if (index % 256 === 0) await budget.checkpoint();
+              translated[index] = (instruction.translation!.get(pattern[index]!) ?? pattern[index]!).charCodeAt(0);
+            }
+            pattern = translated.toString("latin1");
+            break;
+          }
           case "b": pc = instruction.jump!; continue;
           case "t": case "T": {
             const branch = instruction.kind === "t" ? substituted : !substituted;

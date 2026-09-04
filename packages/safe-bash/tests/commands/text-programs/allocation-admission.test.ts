@@ -99,9 +99,14 @@ test("awk format work does not charge untouched cached numeric text", async () =
   const cached = { kind: "numeric", number: 1, get text(): string { return assert.fail("cached numeric coercion must not inspect text"); } } as const;
   for (const value of [numeric(1), cached, unset]) {
     const convert = (argument: ReturnType<typeof string>): string => argument.kind === "string" ? argument.text : assert.fail("unexpected text coercion");
-    assert.equal(formatted("%d", [value], convert, new Budget(command, { maxSteps: 4 })), value.kind === "unset" ? "0" : "1");
-    assert.equal(formatted("%*s", [value, string("x")], convert, new Budget(command, { maxSteps: 4 })), "x");
-    assert.equal(formatted("%.*f", [value, numeric(1.5)], convert, new Budget(command, { maxSteps: 9 })), value.kind === "unset" ? "2" : "1.5");
+    for (const [format, values, maxSteps, expected] of [
+      ["%d", [value], 7, value.kind === "unset" ? "0" : "1"],
+      ["%*s", [value, string("x")], 6, "x"],
+      ["%.*f", [value, numeric(1.5)], value.kind === "unset" ? 9 : 18, value.kind === "unset" ? "2" : "1.5"],
+    ] as const) {
+      assert.throws(() => formatted(format, values, convert, new Budget(command, { maxSteps: maxSteps - 1 })), { message: "execution step limit exceeded" });
+      assert.equal(formatted(format, values, convert, new Budget(command, { maxSteps })), expected);
+    }
   }
 });
 
@@ -165,7 +170,7 @@ test("awk format work admits string slicing and floating precision before native
   assert.equal(converted, 1);
 });
 
-test("awk format work has exact step admission before padding and preserves abort identity", async context => {
+test("awk format work has exact staged admission before padding and final concatenation and preserves abort identity", async context => {
   const fs = await makeFileSystem();
   const controller = new AbortController();
   const command = {
@@ -180,13 +185,15 @@ test("awk format work has exact step admission before padding and preserves abor
     return original.call(this, length, fill);
   });
   const convert = () => { assert.fail("integer formatting must not coerce as text"); };
-  assert.throws(() => formatted("%08d", [numeric(7)], convert, new Budget(command, { maxSteps: 12 })), { message: "execution step limit exceeded" });
+  assert.throws(() => formatted("%08d", [numeric(7)], convert, new Budget(command, { maxSteps: 14 })), { message: "execution step limit exceeded" });
   assert.equal(padded, 0);
-  assert.equal(formatted("%08d", [numeric(7)], convert, new Budget(command, { maxSteps: 13 })), "00000007");
+  assert.throws(() => formatted("%08d", [numeric(7)], convert, new Budget(command, { maxSteps: 22 })), { message: "execution step limit exceeded" });
   assert.equal(padded, 1);
+  assert.equal(formatted("%08d", [numeric(7)], convert, new Budget(command, { maxSteps: 23 })), "00000007");
+  assert.equal(padded, 2);
   controller.abort(false);
   assert.throws(() => formatted("%08d", [numeric(7)], convert, new Budget(command, {})), reason => reason === false);
-  assert.equal(padded, 1);
+  assert.equal(padded, 2);
 });
 
 test("awk format work preserves exact output limits and byte-oriented Unicode", async () => {

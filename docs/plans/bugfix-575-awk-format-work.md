@@ -142,7 +142,7 @@ Evidence logs are below the directory named by
   The current owned source/test hashes below supersede the historical freeze;
   all previous evidence and hash receipts are retained. Frozen for root handoff.
 
-### Current frozen owned SHA-256
+### Coercion follow-up frozen SHA-256 (historical)
 
 - `packages/safe-bash/src/commands/text-programs/awk-values.ts`:
   `eb214b26cd1c8cdc759462e4d96708e4bea33ef96d9a1818f2e419aafe4e994e`
@@ -150,3 +150,46 @@ Evidence logs are below the directory named by
   `efe28b0aecd901eb0d9cfc1300fdb5314de6eab160083174ce7f4aab431e5f0b`
 - `packages/safe-bash/tests/commands/text-programs/allocation-admission.test.ts`:
   `5f0cd33932278923755f7f8635f5e0fdc59f3ff2658635e5dc88179d1454bba8`
+
+## Published upstream policy supersession: test-only reconciliation
+
+- September 4, 2026: root identifies published upstream `cf517239d` as the
+  stronger production policy, merged at inspected HEAD `3d3d2fa44`. Root reports
+  the independent push and issue closure at 22:04:49Z. Its per-stage accounting
+  and original optional internal signatures supersede this worker's earlier
+  once-per-produced-output policy and 13-step `%08d` boundary. Original commits,
+  historical hashes, tests and evidence remain preserved, not rewritten as current.
+- Only `allocation-admission.test.ts` and this plan change in this reconciliation.
+  No production, #576 implementation, registry, README, build, broad gate or Git
+  mutation. The cached getter/no-text-read observer remains intact.
+- Exact positive-unit arithmetic (zero-step cancellation checks add no units):
+  `%08d` = scan 4 + native numeric rendering 1 + normalization 1 + positive-prefix
+  construction 1 + width padding 8 + final concatenation 8 = **23**. Pre-padding
+  work totals 7, so allowance **14** rejects before padding needs total 15;
+  allowance **22** permits padding but rejects before final concatenation;
+  allowance **23** accepts the complete format. Tests observe respectively zero,
+  one and two cumulative padding calls, with abort preserving the final count.
+- Cached scalar exact totals: `%d` = 2+1+1+1+1+1 = **7**; `%*s` = 3+1+1+1 = **6**;
+  `%.*f` at precision 1 = 4+2+3+3+3+3 = **18**, while unset precision 0 gives
+  4+1+1+1+1+1 = **9**. Each cached case now rejects at total minus one and succeeds
+  at its exact total, without inspecting cached text. These are derived stage
+  costs, not arbitrary increased allowances.
+- Root RED is preserved at
+  `/home/kjopek/kamilio-validation-569-575.RoFXyZ/575-576-merged-focused.log`:
+  206 passes / two obsolete fixture failures. GREEN is **208/208**, zero failures,
+  skips, cancellations or TODOs, in `575-576-merged-focused-green.log` beside it.
+- The exact seven test files run with Node v22.22.0, `--import tsx --test
+  --test-concurrency=1`: text-programs `allocation-admission.test.ts`,
+  `awk-file-output-budget.test.ts`, `awk-format-integration.test.ts`,
+  `awk-format-work-budget.test.ts`, `format-admission.test.ts`,
+  `sed-file-output-budget.test.ts`, plus contracts
+  `filesystem-direct-output.test.ts`. No name filter or omitted cases.
+- Focused strict no-emit types rooted at the owned test file passed using the
+  compiler flags recorded above; evidence is `575-576-merged-focused-types.log`.
+  Fresh TMPDIR is the log directory's `tmp` child; TSX cache disabled, NO_COLOR
+  unset and child Git-local variables cleared. All exec calls were escalated.
+- Frozen test SHA-256:
+  `02cfd994eb5cee3ec48162b25a2849e2d073e1af810abf378837a7292426d6a5`.
+  Production was only read: merged formatter SHA-256
+  `a0a485a38d7bdc0f9ce679881b752a789b0ad23bbcf8b2d2fc319827d05200dc`.
+  Test-only correction is frozen for root build/lint/delivery; no further edits.

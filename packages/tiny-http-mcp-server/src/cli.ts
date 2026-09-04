@@ -32,6 +32,7 @@ interface ParsedCliArgs {
   maxRequestBytes?: number;
   maxBatchSize?: number;
   maxSessions?: number;
+  maxSessionsPerSubject?: number;
   sessionTtlMs?: number;
   maxStreamsPerSession?: number;
   maxStreamBufferBytes?: number;
@@ -92,8 +93,10 @@ const HELP_TEXT = [
   "                        Maximum JSON request body size",
   "  --max-batch-size <count>",
   "                        Maximum JSON-RPC batch member count",
-  "  --max-sessions <count> Maximum active sessions",
-  "  --session-ttl-ms <ms>  Expire sessions after this idle duration",
+  "  --max-sessions <count> Maximum active sessions (default: 128)",
+  "  --max-sessions-per-subject <count>",
+  "                        Maximum sessions per authenticated subject (default: 16)",
+  "  --session-ttl-ms <ms>  Expire idle sessions (default: 900000)",
   "  --max-streams-per-session <count>",
   "                        Maximum concurrent GET SSE streams per session",
   "  --max-stream-buffer-bytes <bytes>",
@@ -292,6 +295,7 @@ function parseCliOptions(args: string[]): ParsedCliArgs {
       "max-request-bytes": { type: "string" },
       "max-batch-size": { type: "string" },
       "max-sessions": { type: "string" },
+      "max-sessions-per-subject": { type: "string" },
       "session-ttl-ms": { type: "string" },
       "max-streams-per-session": { type: "string" },
       "max-stream-buffer-bytes": { type: "string" },
@@ -322,6 +326,9 @@ function parseCliOptions(args: string[]): ParsedCliArgs {
   );
   const maxBatchSize = parseOptionalInteger(values["max-batch-size"], "--max-batch-size", 1);
   const maxSessions = parseOptionalInteger(values["max-sessions"], "--max-sessions", 1);
+  const maxSessionsPerSubject = parseOptionalInteger(
+    values["max-sessions-per-subject"], "--max-sessions-per-subject", 1
+  );
   const sessionTtlMs = parseOptionalInteger(values["session-ttl-ms"], "--session-ttl-ms", 1);
   const maxStreamsPerSession = parseOptionalInteger(
     values["max-streams-per-session"],
@@ -387,6 +394,7 @@ function parseCliOptions(args: string[]): ParsedCliArgs {
     ...(maxRequestBytes === undefined ? {} : { maxRequestBytes }),
     ...(maxBatchSize === undefined ? {} : { maxBatchSize }),
     ...(maxSessions === undefined ? {} : { maxSessions }),
+    ...(maxSessionsPerSubject === undefined ? {} : { maxSessionsPerSubject }),
     ...(sessionTtlMs === undefined ? {} : { sessionTtlMs }),
     ...(maxStreamsPerSession === undefined ? {} : { maxStreamsPerSession }),
     ...(maxStreamBufferBytes === undefined ? {} : { maxStreamBufferBytes }),
@@ -561,6 +569,7 @@ export async function runCli(
         : { maxRequestBytes: options.maxRequestBytes }),
       ...(options.maxBatchSize === undefined ? {} : { maxBatchSize: options.maxBatchSize }),
       ...(options.maxSessions === undefined ? {} : { maxSessions: options.maxSessions }),
+      ...(options.maxSessionsPerSubject === undefined ? {} : { maxSessionsPerSubject: options.maxSessionsPerSubject }),
       ...(options.sessionTtlMs === undefined ? {} : { sessionTtlMs: options.sessionTtlMs }),
       ...(options.maxStreamsPerSession === undefined
         ? {}

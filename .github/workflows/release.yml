@@ -12,9 +12,6 @@ on:
         description: Ignore restored Turbo results to measure cold test execution
         type: boolean
         default: false
-concurrency:
-  group: release-${{ github.ref }}
-  cancel-in-progress: false
 permissions:
   actions: read
   contents: write
@@ -22,191 +19,6 @@ permissions:
   pull-requests: write
   id-token: write
 jobs:
-  build:
-    runs-on: ubuntu-24.04
-    permissions:
-      contents: read
-    outputs:
-      archive-sha256: ${{ steps.archive.outputs.sha256 }}
-    steps:
-      - uses: actions/checkout@v7.0.1
-        with:
-          ref: ${{ github.sha }}
-          fetch-depth: 1
-          persist-credentials: false
-        env:
-          GIT_CONFIG_COUNT: "1"
-          GIT_CONFIG_KEY_0: init.defaultBranch
-          GIT_CONFIG_VALUE_0: main
-      - uses: actions/setup-node@v7.0.0
-        with:
-          node-version: 22
-          cache: npm
-      - run: npm clean-install
-      - name: Build workspace and CLI outputs
-        run: npm run build
-      - name: Archive fresh build outputs
-        id: archive
-        run: |
-          tar -cf "$RUNNER_TEMP/build.tar" dist packages/*/dist
-          echo "sha256=$(sha256sum "$RUNNER_TEMP/build.tar" | cut -d ' ' -f 1)" >> "$GITHUB_OUTPUT"
-      - uses: actions/upload-artifact@v7.0.1
-        with:
-          name: build-${{ github.sha }}
-          path: ${{ runner.temp }}/build.tar
-          compression-level: 6
-          retention-days: 1
-  checks:
-    needs: build
-    runs-on: ubuntu-24.04
-    permissions:
-      actions: read
-      contents: read
-    steps:
-      - uses: actions/checkout@v7.0.1
-        with:
-          ref: ${{ github.sha }}
-          fetch-depth: 1
-          persist-credentials: false
-        env:
-          GIT_CONFIG_COUNT: "1"
-          GIT_CONFIG_KEY_0: init.defaultBranch
-          GIT_CONFIG_VALUE_0: main
-      - uses: actions/setup-node@v7.0.0
-        with:
-          node-version: 22
-          cache: npm
-      - run: npm clean-install
-      - name: Download freshly verified build
-        env:
-          GH_TOKEN: ${{ github.token }}
-        run: gh run download "$GITHUB_RUN_ID" --repo "$GITHUB_REPOSITORY" --name "build-$GITHUB_SHA" --dir "$RUNNER_TEMP/poe-build"
-      - name: Restore freshly verified build
-        env:
-          BUILD_SHA256: ${{ needs.build.outputs.archive-sha256 }}
-        run: |
-          printf '%s  %s\n' "$BUILD_SHA256" "$RUNNER_TEMP/poe-build/build.tar" | sha256sum --check --status
-          tar -xf "$RUNNER_TEMP/poe-build/build.tar"
-      - name: Smoke-test freshly built packed CLI
-        run: npm run smoke -- --prebuilt
-      - run: npm run lint:packages
-  audit:
-    runs-on: ubuntu-24.04
-    permissions:
-      contents: read
-    steps:
-      - uses: actions/checkout@v7.0.1
-        with:
-          ref: ${{ github.sha }}
-          fetch-depth: 1
-          persist-credentials: false
-        env:
-          GIT_CONFIG_COUNT: "1"
-          GIT_CONFIG_KEY_0: init.defaultBranch
-          GIT_CONFIG_VALUE_0: main
-      - uses: actions/setup-node@v7.0.0
-        with:
-          node-version: 22
-          cache: npm
-      - run: npm clean-install
-      - run: npm audit signatures
-      - name: Run required lint stress tests
-        run: npm run test:stress:lint
-        timeout-minutes: 7
-  unit:
-    needs: build
-    runs-on: ubuntu-24.04
-    permissions:
-      actions: read
-      contents: read
-    env:
-      TZ: UTC
-      LANG: C.UTF-8
-      LC_ALL: C.UTF-8
-      TURBO_TELEMETRY_DISABLED: "1"
-    steps:
-      - uses: actions/checkout@v7.0.1
-        with:
-          ref: ${{ github.sha }}
-          fetch-depth: 1
-          persist-credentials: false
-        env:
-          GIT_CONFIG_COUNT: "1"
-          GIT_CONFIG_KEY_0: init.defaultBranch
-          GIT_CONFIG_VALUE_0: main
-      - uses: actions/setup-node@v7.0.0
-        with:
-          node-version: 22
-          cache: npm
-      - run: npm clean-install
-      - name: Download freshly verified build
-        env:
-          GH_TOKEN: ${{ github.token }}
-        run: gh run download "$GITHUB_RUN_ID" --repo "$GITHUB_REPOSITORY" --name "build-$GITHUB_SHA" --dir "$RUNNER_TEMP/poe-build"
-      - name: Restore freshly verified build
-        env:
-          BUILD_SHA256: ${{ needs.build.outputs.archive-sha256 }}
-        run: |
-          printf '%s  %s\n' "$BUILD_SHA256" "$RUNNER_TEMP/poe-build/build.tar" | sha256sum --check --status
-          tar -xf "$RUNNER_TEMP/poe-build/build.tar"
-      - name: Identify cache runtime
-        run: node -e 'console.log("POE_CI_RUNTIME=" + JSON.stringify({versions:process.versions,platform:process.platform,arch:process.arch,image:process.env.ImageOS,imageVersion:process.env.ImageVersion}))' >> "$GITHUB_ENV"
-      - name: Restore eligible unit task cache
-        uses: actions/cache@v6.1.0
-        with:
-          path: .turbo/ci-cache
-          key: ${{ runner.os }}-${{ runner.arch }}-unit-v1-${{ hashFiles('package-lock.json') }}-${{ github.run_id }}-${{ github.run_attempt }}
-          restore-keys: ${{ runner.os }}-${{ runner.arch }}-unit-v1-${{ hashFiles('package-lock.json') }}-
-      - name: Run fresh unit and native checks
-        run: npm run test:ci:fresh
-      - name: Run cache-eligible unit checks
-        env:
-          TURBO_FORCE: ${{ inputs.cold_cache && 'true' || 'false' }}
-        run: npm exec -- turbo run test:ci:cached --filter=// --cache-dir=.turbo/ci-cache --cache=local:rw --output-logs=new-only --summarize
-  bash:
-    needs: build
-    runs-on: ubuntu-24.04
-    permissions:
-      actions: read
-      contents: read
-    strategy:
-      fail-fast: false
-      matrix:
-        shard:
-          - 1
-          - 2
-          - 3
-          - 4
-    env:
-      SAFE_BASH_TEST_SHARD: ${{ matrix.shard }}/4
-      SAFE_BASH_TEST_CONCURRENCY: "2"
-    steps:
-      - uses: actions/checkout@v7.0.1
-        with:
-          ref: ${{ github.sha }}
-          fetch-depth: 0
-          persist-credentials: false
-        env:
-          GIT_CONFIG_COUNT: "1"
-          GIT_CONFIG_KEY_0: init.defaultBranch
-          GIT_CONFIG_VALUE_0: main
-      - uses: actions/setup-node@v7.0.0
-        with:
-          node-version: 22
-          cache: npm
-      - run: npm clean-install
-      - name: Download freshly verified build
-        env:
-          GH_TOKEN: ${{ github.token }}
-        run: gh run download "$GITHUB_RUN_ID" --repo "$GITHUB_REPOSITORY" --name "build-$GITHUB_SHA" --dir "$RUNNER_TEMP/poe-build"
-      - name: Restore freshly verified build
-        env:
-          BUILD_SHA256: ${{ needs.build.outputs.archive-sha256 }}
-        run: |
-          printf '%s  %s\n' "$BUILD_SHA256" "$RUNNER_TEMP/poe-build/build.tar" | sha256sum --check --status
-          tar -xf "$RUNNER_TEMP/poe-build/build.tar"
-      - name: Run balanced Bash shard
-        run: npm run test:unit --workspace=virtual-bash
   release-stable:
     runs-on: ubuntu-24.04
     steps:
@@ -230,7 +42,7 @@ jobs:
         run: gh run download "$GITHUB_RUN_ID" --repo "$GITHUB_REPOSITORY" --name "build-$GITHUB_SHA" --dir "$RUNNER_TEMP/poe-build"
       - name: Restore freshly verified build
         env:
-          BUILD_SHA256: ${{ needs.build.outputs.archive-sha256 }}
+          BUILD_SHA256: ${{ needs.validate.outputs.archive-sha256 }}
         run: |
           printf '%s  %s\n' "$BUILD_SHA256" "$RUNNER_TEMP/poe-build/build.tar" | sha256sum --check --status
           tar -xf "$RUNNER_TEMP/poe-build/build.tar"
@@ -248,8 +60,17 @@ jobs:
           NPM_CONFIG_LOGLEVEL: warn
         run: npm exec --no -- semantic-release
     needs:
-      - build
-      - checks
-      - audit
-      - unit
-      - bash
+      - validate
+    concurrency:
+      group: release-${{ github.ref }}
+      cancel-in-progress: false
+  validate:
+    uses: ./.github/workflows/release-validation.yml
+    permissions:
+      actions: read
+      contents: read
+    with:
+      cold_cache: ${{ inputs.cold_cache || false }}
+    concurrency:
+      group: release-validation-${{ github.ref }}
+      cancel-in-progress: true

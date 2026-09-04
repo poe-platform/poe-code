@@ -1735,7 +1735,8 @@ describe("StreamableHttpTransport", () => {
       const { sessionId } = await fixture.initialize();
       const response = await fixture.get({ sessionId: sessionId ?? undefined });
       const reader = response.body!.getReader();
-      const interval = setIntervalSpy.mock.results[0]?.value as NodeJS.Timeout;
+      const keepaliveIndex = setIntervalSpy.mock.calls.findIndex(([, delay]) => delay === 30_000);
+      const interval = setIntervalSpy.mock.results[keepaliveIndex]?.value as NodeJS.Timeout;
 
       expect(setIntervalSpy).toHaveBeenCalledWith(expect.any(Function), 30_000);
       expect(interval.hasRef()).toBe(false);
@@ -1776,15 +1777,17 @@ describe("StreamableHttpTransport", () => {
         sessionId: sessionId ?? undefined,
         signal: secondAbortController.signal
       });
-      const interval = setIntervalSpy.mock.results[0]?.value as NodeJS.Timeout;
+      const keepaliveIndex = setIntervalSpy.mock.calls.findIndex(([, delay]) => delay === 30_000);
+      const interval = setIntervalSpy.mock.results[keepaliveIndex]?.value as NodeJS.Timeout;
 
-      expect(setIntervalSpy).toHaveBeenCalledTimes(1);
+      expect(setIntervalSpy.mock.calls.map(([, delay]) => delay)).toEqual([60_000, 30_000]);
 
       firstAbortController.abort();
       await vi.waitFor(() => expect(clearIntervalSpy).not.toHaveBeenCalled());
 
       secondAbortController.abort();
       await vi.waitFor(() => expect(clearIntervalSpy).toHaveBeenCalledWith(interval));
+      expect(vi.getTimerCount()).toBe(1);
     } finally {
       vi.useRealTimers();
     }
@@ -1811,11 +1814,11 @@ describe("StreamableHttpTransport", () => {
       expect(setIntervalSpy).toHaveBeenLastCalledWith(expect.any(Function), 5_000);
 
       firstAbortController.abort();
-      await vi.waitFor(() => expect(vi.getTimerCount()).toBe(0));
+      await vi.waitFor(() => expect(vi.getTimerCount()).toBe(1));
 
       const secondResponse = await fixture.get({ sessionId: sessionId ?? undefined });
 
-      expect(setIntervalSpy).toHaveBeenCalledTimes(2);
+      expect(setIntervalSpy.mock.calls.map(([, delay]) => delay)).toEqual([60_000, 5_000, 5_000]);
       expect(setIntervalSpy).toHaveBeenLastCalledWith(expect.any(Function), 5_000);
 
       await secondResponse.body!.cancel();
@@ -1834,7 +1837,7 @@ describe("StreamableHttpTransport", () => {
       });
       await postFixture.initialize();
 
-      expect(setIntervalSpy).not.toHaveBeenCalled();
+      expect(setIntervalSpy.mock.calls.map(([, delay]) => delay)).toEqual([60_000]);
 
       const disabledFixture = await createFixture({
         enableJsonResponse: true,
@@ -1844,7 +1847,7 @@ describe("StreamableHttpTransport", () => {
       const { sessionId } = await disabledFixture.initialize();
       const response = await disabledFixture.get({ sessionId: sessionId ?? undefined });
 
-      expect(setIntervalSpy).not.toHaveBeenCalled();
+      expect(setIntervalSpy.mock.calls.map(([, delay]) => delay)).toEqual([60_000, 60_000]);
 
       await response.body!.cancel();
     } finally {
@@ -3597,6 +3600,7 @@ describe("tiny-http-mcp-server CLI", () => {
     const cases = [
       ["--port", "0x50"],
       ["--max-batch-size", "1e3"],
+      ["--max-sessions-per-subject", "1e3"],
       ["--max-stream-buffer-bytes", "1e3"],
       ["--sse-keep-alive-ms", "1e3"],
       ["--request-timeout-ms", "0x100"]
@@ -3719,6 +3723,8 @@ describe("tiny-http-mcp-server CLI", () => {
         "8",
         "--max-sessions",
         "100",
+        "--max-sessions-per-subject",
+        "12",
         "--session-ttl-ms",
         "60000",
         "--max-streams-per-session",
@@ -3756,6 +3762,7 @@ describe("tiny-http-mcp-server CLI", () => {
         maxRequestBytes: 1024,
         maxBatchSize: 8,
         maxSessions: 100,
+        maxSessionsPerSubject: 12,
         sessionTtlMs: 60_000,
         maxStreamsPerSession: 2,
         maxStreamBufferBytes: 2048,

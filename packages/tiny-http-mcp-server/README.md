@@ -430,8 +430,8 @@ Returned `HttpServer` instances support:
 | `allowedOrigins`         | `readonly string[]`                          | `[]`                             | Allowed CORS `Origin` values. Empty means no cross-origin browser clients are allowed.        |
 | `maxRequestBytes`        | `number`                                     | unlimited                        | Maximum JSON request body size.                                                               |
 | `maxBatchSize`           | `number`                                     | unlimited                        | Maximum JSON-RPC batch member count.                                                          |
-| `maxSessions`            | `number`                                     | unlimited                        | Maximum active sessions.                                                                      |
-| `sessionTtlMs`           | `number`                                     | no idle expiry                   | Expire idle sessions after this duration.                                                     |
+| `maxSessions`            | `number`                                     | `128`                            | Maximum active sessions.                                                                      |
+| `sessionTtlMs`           | `number`                                     | `900000`                         | Expire idle sessions after this duration.                                                     |
 | `maxStreamsPerSession`   | `number`                                     | `1`                              | Maximum concurrent GET SSE streams per session.                                               |
 | `maxStreamBufferBytes`   | `number`                                     | `1048576`                        | End a GET SSE stream before a live write when its buffered bytes exceed this limit.           |
 | `maxSseEventHistory`     | `number`                                     | `100`                            | Number of server-sent events retained for `Last-Event-ID` replay.                             |
@@ -535,8 +535,8 @@ Returned by `listenHttp()`:
 | `allowedOrigins`         | `readonly string[]`                          | `[]`               | Allowed CORS origins.                                                                     |
 | `maxRequestBytes`        | `number`                                     | unlimited          | Maximum JSON request body size.                                                           |
 | `maxBatchSize`           | `number`                                     | unlimited          | Maximum JSON-RPC batch member count.                                                      |
-| `maxSessions`            | `number`                                     | unlimited          | Maximum active sessions.                                                                  |
-| `sessionTtlMs`           | `number`                                     | no idle expiry     | Idle session expiration window.                                                           |
+| `maxSessions`            | `number`                                     | `128`              | Maximum active sessions.                                                                  |
+| `sessionTtlMs`           | `number`                                     | `900000`           | Idle session expiration window.                                                           |
 | `maxStreamsPerSession`   | `number`                                     | `1`                | Maximum concurrent GET SSE streams per session.                                           |
 | `maxStreamBufferBytes`   | `number`                                     | `1048576`          | End a GET SSE stream before a live write when its buffered bytes exceed this limit.       |
 | `maxSseEventHistory`     | `number`                                     | `100`              | Number of SSE events retained for replay.                                                 |

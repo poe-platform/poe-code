@@ -146,8 +146,9 @@ jobs:
           npm publish --provenance --access public
         if: steps.release-admission.outputs.publish == 'true'
       - name: Wait for toolcraft-schema registry availability
+        timeout-minutes: 11
         run: |
-          for _ in {1..12}; do
+          for _ in {1..120}; do
             if npm view "toolcraft-schema@${{ steps.version.outputs.next }}" version >/dev/null 2>&1; then
               exit 0
             fi
@@ -181,8 +182,9 @@ jobs:
           npm publish --provenance --access public
         if: steps.release-admission.outputs.publish == 'true'
       - name: Wait for Toolcraft registry availability
+        timeout-minutes: 11
         run: |
-          for _ in {1..12}; do
+          for _ in {1..120}; do
             if npm view "toolcraft@${{ steps.version.outputs.next }}" version >/dev/null 2>&1 \
               && npm view "toolcraft-openapi@${{ steps.version.outputs.next }}" version >/dev/null 2>&1; then
               exit 0

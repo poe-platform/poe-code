@@ -53,7 +53,7 @@ test("cleanup negative type controls exclude values, required arguments and nonv
 test("registration does not change nested invoke options or invocation result types", () => {
   const invoker: Same<CommandContext["invoke"], CommandInvoker | undefined> = true;
   const options: Same<keyof CommandInvokeOptions,
-    "signal" | "stdin" | "stdinIsDefault" | "stdout" | "stderr" | "cwd" | "env" | "replaceEnv"> = true;
+    "argumentValues" | "signal" | "stdin" | "stdinIsDefault" | "stdout" | "stderr" | "cwd" | "env" | "replaceEnv"> = true;
   const callback: Same<InvocationCleanup, () => void | Promise<void>> = true;
   assert.equal(invoker, true);
   assert.equal(options, true);

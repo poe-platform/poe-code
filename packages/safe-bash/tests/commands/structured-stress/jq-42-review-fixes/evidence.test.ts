@@ -64,6 +64,7 @@ function assertSpellingMigration(migration: SpellingMigration, expected: string,
     before: { bytes: helper.predecessorBytes, sha256: helper.predecessorSha256 },
     after: { bytes: helper.bytes, sha256: helper.sha256 },
   } : receipt.changed[migration.index];
+  assert.ok(selected, "repair receipt member exists");
   assert.equal(selected.path, migration.path, "repair receipt path association");
   assert.equal(selected.before.sha256, expected, "original sealed expected digest");
   assert.equal(current.length, selected.after.bytes, "reviewed current source size");
@@ -162,8 +163,18 @@ const spellingControls: Array<[string, ((input: MigrationControl) => void) | nul
   ["rejects a different receipt-member path", input => { input.migration.path = "tests/commands/tree/backends.test.ts"; }],
   ["rejects a wrong selector", input => { input.migration.index += 1; }],
   ["rejects altered deletion offsets", input => { input.migration.deletions = input.migration.deletions.map(offset => offset + 1); }],
-  ["rejects receipt mutation", input => { input.receipt = Buffer.from(input.receipt); input.receipt[0] ^= 1; }],
-  ["rejects additional same-size source edits", input => { input.current = Buffer.from(input.current); input.current[0] ^= 1; }],
+  ["rejects receipt mutation", input => {
+    input.receipt = Buffer.from(input.receipt);
+    const firstByte = input.receipt[0];
+    assert.ok(firstByte !== undefined, "receipt mutation requires a byte");
+    input.receipt[0] = firstByte ^ 1;
+  }],
+  ["rejects additional same-size source edits", input => {
+    input.current = Buffer.from(input.current);
+    const firstByte = input.current[0];
+    assert.ok(firstByte !== undefined, "source mutation requires a byte");
+    input.current[0] = firstByte ^ 1;
+  }],
   ["rejects extra source bytes", input => { input.current = Buffer.concat([input.current, Buffer.from("\n")]); }],
   ["rejects a changed historical expected digest", input => { input.expected = "0".repeat(64); }],
 ];
@@ -171,9 +182,11 @@ const spellingControls: Array<[string, ((input: MigrationControl) => void) | nul
 for (const migration of spellingMigrations) for (const [name, mutate] of spellingControls) test("reviewed spelling migration " + migration.path + " " + name, () => {
   const evidence = JSON.parse(readFileSync(new URL("./immutable-before.json", import.meta.url), "utf8")) as { files: Record<string, string> };
   const predecessor = JSON.parse(readFileSync(new URL("../jq-grammar-canonical-plan/patch-manifest-v3.json", import.meta.url), "utf8")) as { files: Array<{ path: string; afterSha256: string }> };
+  const expected = predecessor.files.find(entry => entry.path === migration.path)?.afterSha256 ?? evidence.files[migration.path];
+  assert.ok(typeof expected === "string", "historical expected digest exists");
   const input: MigrationControl = {
     migration: { ...migration, deletions: [...migration.deletions] },
-    expected: predecessor.files.find(entry => entry.path === migration.path)?.afterSha256 ?? evidence.files[migration.path],
+    expected,
     current: readFileSync(migration.path),
     receipt: readFileSync(new URL("./" + repairReceipts[migration.receipt].filename, import.meta.url)),
   };
@@ -189,7 +202,9 @@ for (const migration of spellingMigrations.slice(0, 2)) test("reviewed spelling 
   const predecessor = JSON.parse(readFileSync(new URL("../jq-grammar-canonical-plan/patch-manifest-v3.json", import.meta.url), "utf8")) as { files: Array<{ path: string; afterSha256: string; afterSnapshot: string }> };
   const original = predecessor.files.find(entry => entry.path === migration.path)!;
   const snapshot = readFileSync(original.afterSnapshot);
-  snapshot[0] ^= 1;
+  const firstByte = snapshot[0];
+  assert.ok(firstByte !== undefined, "historical snapshot mutation requires a byte");
+  snapshot[0] = firstByte ^ 1;
   const restored = assertSpellingMigration(migration, original.afterSha256, readFileSync(migration.path), readFileSync(new URL("./" + repairReceipts[migration.receipt].filename, import.meta.url)));
   assert.throws(() => assert.deepEqual(restored, snapshot), { code: "ERR_ASSERTION" });
 });
@@ -235,7 +250,9 @@ for (const [name, mutate] of unusedBindingControls) test("reviewed unused-bindin
     const snapshot = readFileSync(original.afterSnapshot);
     assert.equal(digest(snapshot), unusedBindingMigration.before.sha256);
     assert.deepEqual(restored, snapshot, "unchanged historical helper snapshot");
-    snapshot[0] ^= 1;
+    const firstByte = snapshot[0];
+    assert.ok(firstByte !== undefined, "historical helper snapshot mutation requires a byte");
+    snapshot[0] = firstByte ^ 1;
     assert.throws(() => assert.deepEqual(restored, snapshot), { code: "ERR_ASSERTION" });
   }
 });

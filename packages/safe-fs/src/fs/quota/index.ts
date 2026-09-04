@@ -1,4 +1,5 @@
-import type { FileSystem, FsOptions } from "../../contracts/filesystem.js";
+import type { FileStat, FileSystem, FsOptions } from "../../contracts/filesystem.js";
+import { FsError } from "../../contracts/errors.js";
 import type { ByteSource } from "../../contracts/io.js";
 import { quotaCapabilities } from "../capabilities.js";
 
@@ -13,17 +14,36 @@ export class FileSystemQuotaError extends Error {
   }
 }
 
-async function usedBytes(fs: FileSystem, options?: FsOptions): Promise<number> {
+async function usedBytes(fs: FileSystem, options?: FsOptions, change?: { path: string; stat: FileStat; delta: number }): Promise<number> {
   let total = 0;
+  let possibleAliases = 0;
   const pending = ["/"];
   while (pending.length) {
+    options?.signal?.throwIfAborted();
     const directory = pending.pop()!;
     for (const entry of await fs.readdir(directory, options)) {
+      options?.signal?.throwIfAborted();
       const path = `${directory === "/" ? "" : directory}/${entry.name}`;
       if (entry.type === "directory") pending.push(path);
-      else total += (await fs.lstat(path, options)).size;
+      else {
+        const stat = await fs.lstat(path, options);
+        total += stat.size;
+        if (!change || stat.type !== "file") continue;
+        const scope = change.stat.identityScope;
+        const comparable = [scope, stat.identityScope].every(value => typeof value === "symbol" || typeof value === "object" && value !== null)
+          && [change.stat.dev, change.stat.ino, stat.dev, stat.ino].every(value => typeof value === "number" && Number.isSafeInteger(value) && value >= 0);
+        const compare = comparable ? undefined : fs.compareEntry;
+        const comparison = comparable
+          ? scope === stat.identityScope && change.stat.dev === stat.dev && change.stat.ino === stat.ino ? "same" : "distinct"
+          : compare === undefined ? "unknown" : await compare.call(fs, change.path, fs, path, options);
+        options?.signal?.throwIfAborted();
+        if (comparison !== "same" && comparison !== "distinct" && comparison !== "unknown") throw new FsError("EIO", { syscall: "compareEntry", path: change.path, dest: path, message: "invalid entry comparison" });
+        if (comparison === "same") { total += change.delta; possibleAliases++; }
+        else if (comparison !== "distinct") { total += Math.max(0, change.delta); possibleAliases++; }
+      }
     }
   }
+  if (change && possibleAliases === 0) total += Math.max(0, change.delta);
   return total;
 }
 
@@ -46,8 +66,17 @@ export function withFileSystemQuota(fs: FileSystem, options: FileSystemQuotaOpti
     return result;
   };
   const assertDelta = async (path: string, nextBytes: number, fsOptions?: FsOptions): Promise<void> => {
-    const current = await existingBytes(fs, path, fsOptions);
-    if (await usedBytes(fs, fsOptions) - current + nextBytes > options.maxBytes) throw new FileSystemQuotaError(options.maxBytes);
+    fsOptions?.signal?.throwIfAborted();
+    let current: FileStat | undefined;
+    try { current = await fs.stat(path, fsOptions); }
+    catch (error) {
+      if (!(error instanceof Error && "code" in error && error.code === "ENOENT")) throw error;
+    }
+    const projected = current?.type === "file" && nextBytes > current.size
+      ? await usedBytes(fs, fsOptions, { path, stat: current, delta: nextBytes - current.size })
+      : await usedBytes(fs, fsOptions) - (current?.type === "directory" ? 0 : current?.size ?? 0) + nextBytes;
+    fsOptions?.signal?.throwIfAborted();
+    if (projected > options.maxBytes) throw new FileSystemQuotaError(options.maxBytes);
   };
   const mutations: Partial<FileSystem> = {
     writeFile(path, data, writeOptions) {

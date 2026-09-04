@@ -73,6 +73,12 @@ writer's flags. Overlay declarations conservatively include upper staging and
 copy-up prerequisites; missing required declarations remain unknown. Wrappers
 must not manufacture support from delegated mandatory methods.
 
+## Quota accounting
+
+The [filesystem quota contract](filesystem-quota.md) defines logical namespace
+bytes, alias-aware admission for existing-file growth, conservative identity
+handling, incremental stream effects, and the limits of composed namespaces.
+
 # Optional allocation metadata
 
 `FileStat.allocatedBytes?: number` is an optional, readonly observation of the

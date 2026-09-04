@@ -1,4 +1,4 @@
-import { Shell, browserCommands, createBrowserCommands, createMemoryFileSystem, evaluateCommandSupport, FsError } from "@poe-platform/safe-bash/browser";
+import { Shell, browserCommands, createBrowserCommands, createMemoryFileSystem, evaluateCommandSupport, FsError, createBoundedRegexProvider, portableSearchCommands } from "@poe-platform/safe-bash/browser";
 import { FsError as CoreFsError } from "@poe-platform/safe-fs/core";
 import { FsError as CompatibilityFsError } from "@poe-platform/safe-js/fs/core";
 
@@ -29,3 +29,13 @@ try {
     }
   }
 } finally { await shell.dispose(); }
+
+const search = new Shell({ fs: createMemoryFileSystem() })
+  .use(browserCommands())
+  .use(portableSearchCommands({ provider: createBoundedRegexProvider() }));
+try {
+  const result = await search.exec("printf 'first\\nsecond\\n' | grep -E '^(first|second)$' | rg -F second | sed 's/second/done/'");
+  if (result.exitCode !== 0 || result.stderr !== "" || result.stdout !== "done\n") {
+    throw new Error(`Production portable search smoke failed: ${JSON.stringify(result)}`);
+  }
+} finally { await search.dispose(); }

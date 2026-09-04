@@ -1,4 +1,5 @@
 export type { BoundedRegexProvider, RegexWorker, RegexWorkerRequest } from "./provider.js";
+export { createBoundedRegexProvider, type BoundedRegexProviderOptions } from "./bounded-provider.js";
 export { RegexExecutionError } from "./protocol.js";
 export type {
   RegexExecutionOptions, Descriptor as RegexDescriptor, Request as RegexRequest,

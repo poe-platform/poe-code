@@ -7,27 +7,104 @@ The same plugin and provider types are exported from the Node entry.
 
 ```ts
 import {
-  Shell, browserCommands, portableSearchCommands,
-  type BoundedRegexProvider,
+  Shell, browserCommands, portableSearchCommands, createBoundedRegexProvider,
 } from "@poe-platform/safe-bash/browser";
 import { createMemoryFileSystem } from "@poe-platform/safe-fs/core";
 
-declare const provider: BoundedRegexProvider;
+const provider = createBoundedRegexProvider();
 const shell = new Shell({ fs: createMemoryFileSystem() })
   .use(browserCommands())
   .use(portableSearchCommands({ provider }));
 try {
   await shell.exec("printf 'first\\nsecond\\n' | grep second");
-  await shell.exec("printf 'first\\nsecond\\n' | rg second");
+  await shell.exec("printf 'first\\nsecond\\n' | rg -F second");
   await shell.exec("printf 'first\\nsecond\\n' | sed -n '/second/p'");
 } finally {
   await shell.dispose();
 }
 ```
 
-These are candidate source APIs until a release containing them is published.
-The integration acceptance consumes locally packaged public artifacts, not a
-claim that an existing registry release contains these exports.
+The package-owned provider removes the need to write a host regex adapter for
+the supported profile below. Custom trusted providers remain supported. Creating
+a provider is explicit: neither `browserCommands()` nor `portableSearchCommands`
+silently installs one.
+
+## Package-owned production profile
+
+`createBoundedRegexProvider(options?: BoundedRegexProviderOptions)` is exported
+from the Node and browser entries. It uses the cooperative ERE interpreter in
+the package, not native guest `RegExp`, a subprocess, or a Node/browser Worker.
+It can run inside a workerd request context without Node compatibility flags.
+
+This first profile accepts **non-NUL ASCII patterns and subjects only**. It
+does not decode invalid UTF-8 into replacement characters. Non-ASCII bytes,
+invalid UTF-8, and embedded NUL in a subject or pattern are explicitly rejected.
+Supported results retain original byte offsets and command output bytes.
+
+| Mode | Supported behavior |
+| --- | --- |
+| `grep -E` | Case-sensitive restricted ASCII ERE, leftmost-longest matching |
+| `grep -F` | Case-sensitive ASCII literal matching |
+| plain `grep` | Conservative BRE subset: ordinary literals, `.`, bracket classes, repetition `*`, leading `^`, and trailing `$`; escapes, interior anchors, leading `*`, and extended operator syntax are rejected |
+| `rg -F` | Case-sensitive ASCII fixed-string matching |
+| plain regex `rg` | Rejected; POSIX ERE spans are not advertised as rg regex semantics |
+| `grep -o` / `rg -o` | Rejected; all-match enumeration is not supported |
+| Unicode, case folding, smart case, word matching | Rejected |
+| rg path globs | Rejected, including validation with no candidate rows |
+
+Pattern lists, empty patterns, zero-pattern lists, whole-record selection, and
+ordinary selection are supported. The command's filename/output/invert flags
+remain command behavior; they do not widen the provider profile. The interpreter
+also rejects unsupported ERE syntax explicitly, including backreferences. Its
+grammar has a 4,096-node and 64-level ceiling. Descriptor and pattern validation
+run even when a batch has no subject rows. Sed continues to use its existing
+separate instruction interpreter and limits; this provider does not redefine
+sed's dialect.
+
+### Provider budgets
+
+All provider options are optional. Their defaults are:
+
+| Option | Default | Scope |
+| --- | ---: | --- |
+| `maxWorkers` | 2 | Live and retiring endpoints across this provider instance |
+| `maxPatterns` | 32 | Patterns per request |
+| `maxPatternBytes` | 8,192 | Aggregate ASCII pattern bytes per request |
+| `maxRows` | 128 | Subject rows per request |
+| `maxInputBytes` | 65,536 | Aggregate subject bytes per request |
+| `maxResultBytes` | 2,048 | Result-span storage admitted at 16 bytes per row |
+| `maxWork` | 2,000,000 | Cumulative interpreter work per request |
+| `maxAllocationUnits` | 1,000,000 | Cumulative algorithmic allocation accounting per request |
+| `maxStates` | 65,536 | Cumulative interpreter states per request |
+
+Options must be positive safe integers. Hard ceilings are 32 workers, 128
+patterns, 65,532 pattern bytes, 4,096 rows, 1,048,576 input bytes, 65,536 result
+bytes, 33,554,432 work units, 4,000,000 allocation units, and 65,536 states.
+Unknown options and explicit `undefined` values are rejected. To increase a
+batch size, increase both its input/row limits and the independent result and
+work/storage limits as needed; changing one limit does not widen the others.
+
+The provider rejects overload rather than storing an endpoint-local request
+queue. Each endpoint owns at most one request at a time. Its work, state,
+allocation, and result limits are independent of the pool's waiting-queue and
+deadline limits below. The interpreter shares one ledger across the request's
+patterns and rows; budgets do not reset per match. Inputs and intermediate/result
+storage are admitted before allocation. Exhausted work/storage budgets fail the
+request rather than returning truncated matches.
+`maxResultBytes` bounds match-result buffers; error diagnostics have a separate
+fixed 512-character ceiling.
+
+These are algorithmic resource bounds, not a JavaScript heap/RSS guarantee or a
+hard real-time deadline. Node-oriented `workerOldGenerationMb` and
+`workerStackMb` do not turn into portable heap limits. Caller-owned input and
+pool copies remain governed by their separate admission limits. Multiple
+provider instances have separate budgets.
+
+Termination closes admission, aborts cooperative work, suppresses late replies,
+and awaits owned work before releasing endpoint capacity. Repeated termination
+returns the same retirement barrier. The pool awaits that barrier on cancellation,
+timeout, successful final-session cleanup, and disposal. Consumers need not
+implement their own retirement or regex matching adapter.
 
 ## Provider authority and containment
 
@@ -176,7 +253,19 @@ This is a deliberately restricted ASCII ERE engine with leftmost-longest
 matching. It is not a complete grep BRE, Unicode rg, or glob adapter. Do not
 advertise those semantics merely because the primitives accept a regex string.
 
-## Workerd acceptance
+## Production workerd acceptance
+
+Follow `docs/plans/issue-609-production-portable-regex.md` from the repository
+root. Its independent fixture in
+`tests/integration/production-portable-search-workerd/` imports the actual
+package-owned factory from installed browser artifacts. It does not copy the
+provider or replace matching. Run it first against the local candidate, then
+against exact installed registry versions after publication. Require the
+`PRODUCTION_PORTABLE_SEARCH_WORKERD_PASS` marker, all byte/profile/budget and
+cleanup assertions, and a successful workerd exit without Node compatibility
+flags. Retain module-graph and artifact identity evidence for each run.
+
+## Provider-seam workerd acceptance
 
 Follow `docs/plans/portable-search-workerd-acceptance.md` from the repository root.
 Build and package normally, install the three resulting safe packages in a

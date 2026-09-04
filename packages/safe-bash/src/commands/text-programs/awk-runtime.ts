@@ -52,7 +52,7 @@ export class AwkRuntime {
   private store(name: string): Map<string, Value> { return this.frames.at(-1)?.has(name) ? this.frames.at(-1)! : this.variables; }
   private get(name: string): Value { return this.store(name).get(name) ?? unset; }
   private getScalar(name: string): Scalar { return scalar(this.get(name)); }
-  private asText(value: Scalar): string { return text(value, text(this.getScalar("CONVFMT"))); }
+  private asText(value: Scalar): string { return text(value, text(this.getScalar("CONVFMT"), undefined, this.budget), this.budget); }
   private varText(name: string): string { return this.asText(this.getScalar(name)); }
   private retainName(path: string): string {
     this.context.signal.throwIfAborted();
@@ -295,7 +295,7 @@ export class AwkRuntime {
         if (operator === "&&" || operator === "||") return numeric(truth(right) ? 1 : 0);
         if (operator === "concat") return string(this.budget.check(this.asText(left) + this.asText(right)));
         if (["==", "!=", "<", "<=", ">", ">="].includes(operator)) {
-          const order = compare(left, right, this.varText("CONVFMT"));
+          const order = compare(left, right, this.varText("CONVFMT"), this.budget);
           return numeric((operator === "==" ? order === 0 : operator === "!=" ? order !== 0 : operator === "<" ? order < 0 : operator === "<=" ? order <= 0 : operator === ">" ? order > 0 : order >= 0) ? 1 : 0);
         }
         return numeric(this.arithmetic(operator, number(left), number(right)));
@@ -416,7 +416,7 @@ export class AwkRuntime {
     const values: Scalar[] = [];
     for (const argument of args) values.push(await this.scalarExpression(argument));
     const first = values[0] ?? unset;
-    if (name === "sprintf") return string(this.budget.check(formatted(this.asText(first), values.slice(1), value => this.asText(value))));
+    if (name === "sprintf") return string(this.budget.check(formatted(this.asText(first), values.slice(1), value => this.asText(value), this.budget)));
     if (name === "substr") {
       const start = Math.max(0, Math.trunc(number(values[1]!)) - 1);
       const length = values[2] === undefined ? undefined : Math.max(0, Math.trunc(number(values[2])));
@@ -451,8 +451,8 @@ export class AwkRuntime {
         const values: Scalar[] = [];
         for (const argument of statement.args) values.push(await this.scalarExpression(argument));
         const output = statement.formatted
-          ? this.budget.check(formatted(this.asText(values[0]!), values.slice(1), value => this.asText(value)))
-          : this.join(values.length ? values.map(value => text(value, this.varText("OFMT"))) : [this.record], values.length ? this.varText("OFS") : "", this.varText("ORS"));
+          ? this.budget.check(formatted(this.asText(values[0]!), values.slice(1), value => this.asText(value), this.budget))
+          : this.join(values.length ? values.map(value => text(value, this.varText("OFMT"), this.budget)) : [this.record], values.length ? this.varText("OFS") : "", this.varText("ORS"));
         if (!statement.redirect) { await write(this.context, output); return; }
         const destination = Buffer.from(this.asText(await this.scalarExpression(statement.redirect.destination)), "latin1").toString("utf8");
         const path = virtualPath(this.context, destination);

@@ -4,6 +4,7 @@ import { assertCommandRequirements } from "../contracts/command-requirements.js"
 import { inputRequirements, textOutputRequirements } from "./portable-requirements.js";
 import { yieldTurn } from "../contracts/yield.js";
 import { RecordBuffer } from "./record-buffer.js";
+import { SortRecordBudget } from "./sort-admission.js";
 
 class SortWork {
   #pending = 0;
@@ -281,20 +282,27 @@ async function emitRecords(context: CommandContext, records: ByteSource, destina
 }
 
 async function collectSortRecords(
-  source: ByteSource, delimiter: number, admit: (size: number) => void, accept: (bytes: Uint8Array) => void,
-): Promise<void> {
+  source: ByteSource, delimiter: number, budget: SortRecordBudget, signal: AbortSignal,
+  accept: (bytes: Uint8Array) => boolean | void | Promise<boolean | void>,
+): Promise<boolean> {
   const pending = new RecordBuffer(bufferLimit);
+  const admit = (length: number): void => {
+    signal.throwIfAborted();
+    budget.admit(length);
+  };
   try {
     for await (const chunk of source) {
       let start = 0;
       for (let offset = 0; offset < chunk.length; offset++) {
         if (chunk[offset] !== delimiter) continue;
-        accept(pending.finish(admit, chunk, start, offset));
+        const accepted = accept(pending.finish(admit, chunk, start, offset));
+        if ((accepted instanceof Promise ? await accepted : accepted) === false) return false;
         start = offset + 1;
       }
       pending.append(chunk, start);
     }
-    if (pending.size) accept(pending.finish(admit));
+    if (pending.size) return await accept(pending.finish(admit)) !== false;
+    return true;
   } finally { pending.clear(); }
 }
 
@@ -384,27 +392,23 @@ export function textCommands(): CommandDefinition[] {
         return result || (simple || parsed.flags.has("s") || parsed.flags.has("u") ? 0 : await compareSortBytes(left, right, work) * direction);
       };
       const records: Uint8Array[] = [];
-      let size = 0;
-      const admitRecord = (length: number): void => {
-        context.signal.throwIfAborted();
-        if (length + 1 > bufferLimit - size) throw new FsError("EFBIG", { message: "sort buffer limit exceeded" });
-        size += length + 1;
-      };
+      const recordBudget = new SortRecordBudget();
       const exitCode: number = 0;
       const delimiter = parsed.flags.has("z") ? 0 : 10;
       for (const name of parsed.operands.length ? parsed.operands : ["-"]) {
         try {
-          if (!parsed.flags.has("c")) {
-            await collectSortRecords(input(context, name), delimiter, admitRecord, bytes => { records.push(bytes); });
-            continue;
-          }
-          for await (const line of lines(input(context, name), delimiter, admitRecord)) {
-            if (parsed.flags.has("c") && records.length && (await compare(records.at(-1)!, line.bytes) > 0 || parsed.flags.has("u") && await keyCompare(records.at(-1)!, line.bytes) === 0)) {
-              await diagnostic(context, new Error(`disorder at record ${records.length + 1}`));
-              return { exitCode: 1 };
-            }
-            records.push(line.bytes);
-          }
+          const complete = await collectSortRecords(input(context, name), delimiter, recordBudget, context.signal, bytes => {
+            context.signal.throwIfAborted();
+            if (!parsed.flags.has("c")) { records.push(bytes); return; }
+            return (async () => {
+              if (records.length && (await compare(records.at(-1)!, bytes) > 0 || parsed.flags.has("u") && await keyCompare(records.at(-1)!, bytes) === 0)) {
+                await diagnostic(context, new Error(`disorder at record ${records.length + 1}`));
+                return false;
+              }
+              records.push(bytes);
+            })();
+          });
+          if (!complete) return { exitCode: 1 };
         } catch (error) { await diagnostic(context, error); return { exitCode: 2 }; }
       }
       if (parsed.flags.has("c")) return { exitCode };

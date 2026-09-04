@@ -112,3 +112,45 @@ The direct-span tests reject before copying/allocation for line, aggregate, and
 overlap failures, include pending bytes in admission, and verify exact-capacity
 acceptance and independence from reused producer storage. No broad gates,
 builds, Git mutations, or large/stress probes were run for this repair.
+
+## #601 merge integration evidence
+
+September 4, 2026: resolved the working-tree `text.ts` conflict with ours
+`ba34f4bf01e72e357828a12a6a5be896f077fd30` and merge parent
+`e217568e9e8097314bf5ea5f2e14153489cb140a`. Both index-stage source texts were
+inspected and preserved in private evidence; no Git state was changed by this
+follow-up. Root owns staging and the merge commit, retaining both histories.
+
+The integrated collector keeps #601's invocation-shared `SortRecordBudget`
+unchanged: 100,000 records and 32 MiB including separators. All modes, including
+`-c`, use its unified collector. A callback checks cancellation and calls
+`budget.admit(length)` inside `RecordBuffer.finish` before exact output allocation.
+The collector preserves synchronous/awaited asynchronous acceptance, false early
+exit at delimiters and EOF, and pending-buffer/source cleanup. This supersedes
+the earlier local split between regular collection and `lines()` check mode.
+The internal optional lines callback remains available to its existing tests.
+
+Direct short-record finalization and bounded unfinished segments remain intact.
+The RecordBuffer implementation, internal line reader, all tests, #601 budget
+class, and #587 BOM handling were not changed in this follow-up. The existing
+synthetic aggregate instrumentation works through the integrated callback without
+test edits. The pending-fragment budget consideration above remains unchanged;
+no new metadata policy or pre-copy fragment-budget API was introduced.
+
+Evidence directory:
+`/home/kjopek/kamilio-validation-569-575.RoFXyZ/tmp/issue-586-601-merge.FVZQHr`.
+
+- `green-targeted.log`: all 135 tests pass across the #586 line-fragment file,
+  #587 cut-BOM file, all three #601 record files, and borrowed-sort controls.
+- `types.log`: strict NodeNext no-emit checking exits zero for the four source
+  files and all six selected test files, including their imports.
+- `unchanged.sha256`: protected helper/line/budget sources and existing tests
+  match their pre-resolution hashes; no conflict markers or whitespace findings
+  remain in `text.ts`.
+- `source-freeze.sha256` binds the only two changed files in this follow-up:
+  `text.ts` and this plan. `commands.txt` records execution details, and
+  `evidence.sha256` binds the integration evidence.
+
+No new RED claim is made for merge syntax: this integration reruns both fixes'
+existing behavioral regressions. No broad gate, build, Git mutation, or large
+input probe was run. The index remains for root to mark resolved and commit.

@@ -66,7 +66,9 @@ changes and held evidence. Build must finish before guarded lint starts.
 ## Delivery
 
 The valid formatter defect is established; implementation and local gates are
-complete, with Git delivery pending. #576 is delivered, closed and fully
+complete in local commit `cf517239d1e96262c06d969ede71a1acf650b5e9`. Remote
+delivery and publication are not established by that local commit.
+#576 is delivered, closed and fully
 released as safe packages 0.1.78 and poe-code 14.0.33.
 Close #575 only after verified remote-main delivery, before publication, then
 continue monitoring the release while working through the queue.

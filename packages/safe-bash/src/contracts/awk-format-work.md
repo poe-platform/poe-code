@@ -1,8 +1,8 @@
 # Awk Formatting Work Admission Specification
 
-Status: Accepted
+Status: Implemented
 
-Implemented Through: Not applicable
+Implemented Through: cf517239d1e96262c06d969ede71a1acf650b5e9
 
 Purpose: Admit execution-time format scanning and size-dependent rendering work
 against the existing awk invocation budget before carrying out that work.

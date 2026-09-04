@@ -77,7 +77,7 @@ test("regex reply admission retains range order, raw duplicates, input bounds an
 
 for (const reason of [false, null, 0, ""]) {
   test(`regex reply admission preserves pre-aborted falsey identity: ${JSON.stringify(reason)}`, () => {
-    const reply = { get id(): number { assert.fail("aborted replies must not be inspected"); } };
+    const reply = { get id(): number { return assert.fail("aborted replies must not be inspected"); } };
     assert.throws(() => protocol.validateReply(reply, 1, [], AbortSignal.abort(reason)), error => Object.is(error, reason));
   });
 }

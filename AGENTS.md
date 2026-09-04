@@ -47,7 +47,6 @@ Use `npm run lint:workflows`
 
 ## Delivery
 
-- For the safe-bash migration, preserve original commit IDs and keep unrelated fixes in separate atomic commits. Push approved integration promptly to `origin/main` after the appropriate manual checks; do not hold that push for separate artifact or release qualification.
 - Report local commits, verified remote-main delivery, and successful releases separately. A local commit is not a completed push; a completed push is not a verified release.
 
 ## Release
@@ -56,7 +55,7 @@ Use `npm run lint:workflows`
 
 Releases are always done on github, not locally
 
-See NPM_PUBLISHING.md
+See NPM_PUBLISHING.md for publishing new packages
 
 ## Configure commands / Providers
 

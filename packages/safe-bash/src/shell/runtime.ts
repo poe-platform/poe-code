@@ -346,6 +346,16 @@ interface OutputFile {
   references: number;
 }
 
+function appendOutputBytes(current: Uint8Array, chunk: Uint8Array): Uint8Array {
+  const length = current.length + chunk.length;
+  const bytes = current.buffer.byteLength - current.byteOffset >= length
+    ? new Uint8Array(current.buffer, current.byteOffset, length)
+    : new Uint8Array(Math.max(length, current.length * 2, 64));
+  if (bytes.buffer !== current.buffer) bytes.set(current);
+  bytes.set(chunk, current.length);
+  return bytes.subarray(0, length);
+}
+
 type OutputCompletion = { reason: unknown } | { status: number };
 
 class Flow extends Error {
@@ -2176,27 +2186,34 @@ export class Runtime {
               if (!append) file.data = new Uint8Array();
             });
             return { write: (chunk) => {
-            const copy = new Uint8Array(chunk);
-            return this.fileOperation(path, async () => {
-              if (closed) throw new Error("Output descriptor is closed");
-              const current = file.data;
-              if (append) {
-                await this.fs.appendFile(path, copy, options);
-                if (current) {
-                  const bytes = new Uint8Array(current.length + copy.length);
-                  bytes.set(current);
-                  bytes.set(copy, current.length);
+              const copy = new Uint8Array(chunk);
+              return this.fileOperation(path, async () => {
+                if (closed) throw new Error("Output descriptor is closed");
+                const current = file.data;
+                let atEOF = false;
+                if (!append && current && offset === current.length && capabilities.append === true && capabilities.stat !== false) {
+                  try {
+                    atEOF = (await interruptible(this.fs.stat(path, options), this.signal)).size === offset;
+                  } catch {
+                    // Metadata is optional for this optimization; writes need no read access.
+                    this.signal.throwIfAborted();
+                  }
+                  this.signal.throwIfAborted();
+                }
+                if (append || atEOF) {
+                  // Preparing a larger view only touches the unpublished tail of current.
+                  const bytes = current ? appendOutputBytes(current, copy) : undefined;
+                  await this.fs.appendFile(path, copy, options);
+                  file.data = bytes;
+                } else {
+                  const bytes = new Uint8Array(Math.max(current?.length ?? 0, offset + copy.length));
+                  if (current) bytes.set(current);
+                  bytes.set(copy, offset);
+                  await this.fs.writeFile(path, bytes, options);
                   file.data = bytes;
                 }
-              } else {
-                const bytes = new Uint8Array(Math.max(current?.length ?? 0, offset + copy.length));
-                if (current) bytes.set(current);
-                bytes.set(copy, offset);
-                await this.fs.writeFile(path, bytes, options);
-                file.data = bytes;
-                offset += copy.length;
-              }
-            });
+                if (!append) offset += copy.length;
+              });
             } };
           };
           const release = (): void => {

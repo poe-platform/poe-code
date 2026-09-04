@@ -141,7 +141,7 @@
     "test:contracts": "node --import tsx --test \"tests/contracts/**/*.test.ts\"",
     "verify:stream-public": "node tests/plugins/stream-five-public/verify-public.mjs",
     "verify:release:whole": "node scripts/verify-whole-gate.mjs",
-    "test:runner": "node scripts/test-reporting.mjs scripts/integration-inputs.test.mjs scripts/build.test.mjs scripts/test-reporting.test.mjs",
+    "test:runner": "node scripts/test-reporting.mjs scripts/integration-inputs.test.mjs scripts/build.test.mjs scripts/test-reporting.test.mjs scripts/historical-type-models.test.mjs",
     "test:unit": "npm run test:runner && node scripts/test.mjs"
   },
   "devDependencies": {

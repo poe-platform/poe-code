@@ -1,0 +1,34 @@
+export interface TimingEvent {
+  event: string;
+  ms: number;
+  detail?: unknown;
+}
+export interface NativeOptions {
+  profile?: "original-25ms" | "observed-prefix";
+  lineBuffered?: boolean;
+  readinessMs?: number;
+  completionMs?: number;
+  cleanupMs?: number;
+  mutation?: "suppress-readiness" | "withhold-delivery" | "stall-completion" | "suppress-cleanup" | "suppress-close-observation";
+}
+export interface NativeEvidence {
+  argv: string[];
+  profile: string;
+  pid: number | undefined;
+  code: number | null;
+  signal: NodeJS.Signals | null;
+  stdout: string;
+  stderr: string;
+  events: TimingEvent[];
+  ready: boolean;
+  actualClose: boolean;
+  closeObserved: boolean;
+  ownedListenersRemaining: number;
+  streamsDestroyed: boolean[];
+  activeTimers: number;
+}
+export declare class NativeHarnessError extends Error {
+  readonly evidence: NativeEvidence;
+  constructor(message: string, evidence: NativeEvidence);
+}
+export declare function nativeDelivery(options?: NativeOptions): Promise<NativeEvidence>;

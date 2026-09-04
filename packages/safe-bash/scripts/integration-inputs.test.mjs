@@ -1865,6 +1865,7 @@ test("Turbo admits maintained tests with a build dependency and prunes exact hel
   assert.ok(turbo.globalDependencies.includes("scripts/guard-package-dist.mjs"));
   assert.ok(turbo.tasks["//#test:unit"].inputs.includes("!packages/safe-bash/**"));
   assert.equal(source.scripts.test, "node scripts/test.mjs");
+  assert.ok(source.scripts["test:runner"].split(" ").includes("scripts/historical-type-models.test.mjs"));
   assert.equal(source.scripts["test:unit"], "npm run test:runner && node scripts/test.mjs");
 });
 

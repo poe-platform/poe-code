@@ -251,6 +251,10 @@ export interface ServerOptions {
   maxConcurrentToolCalls?: number;
   /** Maximum tool calls waiting for capacity; defaults to 64. Zero disables waiting. */
   maxQueuedToolCalls?: number;
+  /** Per-stdio-connection UTF-8 bytes queued or submitted but unsettled; defaults to 1 MiB. */
+  maxStdioOutputBytes?: number;
+  /** Per-stdio-connection messages awaiting handler/output settlement; defaults to 128. */
+  maxPendingStdioMessages?: number;
   validateToolArguments?: boolean;
   supportNotifications?: boolean;
   supportResourceSubscriptions?: boolean;

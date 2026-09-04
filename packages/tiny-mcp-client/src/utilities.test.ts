@@ -161,10 +161,13 @@ describe("createTestPair", () => {
       throw new Error("Expected client to receive transport");
     }
 
+    // Breaking readLines' async iterator destroys this shared stream. Observe
+    // this one fixture write without aborting the connection under test.
+    const received = once(client.connectedTransport.readable, "data");
     serverTransport.writable.write('{"from":"server"}\n');
-    await expect(readSingleLine(client.connectedTransport.readable)).resolves.toBe(
-      '{"from":"server"}'
-    );
+    const [chunk] = await received;
+    expect(chunk.toString()).toBe('{"from":"server"}\n');
+    expect(client.connectedTransport.readable.destroyed).toBe(false);
 
     await pairCleanup();
 

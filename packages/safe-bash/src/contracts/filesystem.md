@@ -320,3 +320,10 @@ permitted. Replacing that historical generic row's explicit-mode/X_OK ENOTSUP
 expectations is an intentional profile delta, **not a source bug fix**. Preserve
 the red historical cohort, exact bytes, exclusivity, invalid-mode, chmod,
 authorization, cancellation and read-only assertions when revising backend tests.
+
+# Recursive command admission
+
+The [recursive filesystem command contract](recursive-filesystem.md) defines
+the independent `cp`/`ls` directory-depth extension, active-path cycle handling,
+and retained partial-effect semantics. It does not change adapter guarantees or
+replace per-listing entry admission.

@@ -8,6 +8,10 @@ import { MoveBudget, moveAcrossDevices } from "./move.js";
 import { admitFilesystemModes, filesystemCommandRequirements } from "./filesystem-requirements.js";
 import { createDirectoryReader, type DirectoryReader } from "./directory-admission.js";
 
+// Operand directories start at depth zero; files inside the last admitted
+// directory do not consume another directory-recursion level.
+const MAX_RECURSIVE_DIRECTORY_DEPTH = 1024;
+
 async function preflightOperands(
   context: CommandContext, operands: readonly string[], check: (operand: string) => Promise<void>,
 ): Promise<void> {
@@ -102,12 +106,18 @@ async function copy(
     if (isPathWithin(physicalSource, physicalTarget)) throw new FsError("EINVAL", { path: target, message: "cannot copy a directory into itself" });
     if (ancestors.has(physicalSource)) throw new FsError("ELOOP", { path: source });
     if (targetStat && targetStat.type !== "directory") throw new FsError("ENOTDIR", { path: target });
-    await admitFilesystemModes(context, "cp", ["recursive"], [target]);
-    if (!targetStat && !preflight) await context.fs.mkdir(target, { mode: sourceStat.mode & 0o777, signal: context.signal });
-    const next = new Set(ancestors).add(physicalSource);
-    for (const entry of await readDirectory(context, source, true)) {
-      await copy(context, joinPath(source, entry.name), joinPath(target, entry.name), flags, readDirectory, false, next, preflight);
+    context.signal.throwIfAborted();
+    if (ancestors.size > MAX_RECURSIVE_DIRECTORY_DEPTH) {
+      throw new FsError("ELOOP", { path: source, message: `cp directory depth limit exceeded (${MAX_RECURSIVE_DIRECTORY_DEPTH})` });
     }
+    await admitFilesystemModes(context, "cp", ["recursive"], [target]);
+    ancestors.add(physicalSource);
+    try {
+      if (!targetStat && !preflight) await context.fs.mkdir(target, { mode: sourceStat.mode & 0o777, signal: context.signal });
+      for (const entry of await readDirectory(context, source, true)) {
+        await copy(context, joinPath(source, entry.name), joinPath(target, entry.name), flags, readDirectory, false, ancestors, preflight);
+      }
+    } finally { ancestors.delete(physicalSource); }
   } else if (preserveLink) {
     await admitFilesystemModes(context, "cp", ["symlink"], [target]);
     needCapability(context, "symlink"); needCapability(context, "readlink");
@@ -420,22 +430,28 @@ export function filesystemCommands(maxDirectoryEntries?: number): CommandDefinit
         await admitFilesystemModes(context, "ls", ["directory"], [path]);
         const physical = await context.fs.realpath(path, { signal: context.signal });
         if (ancestors.has(physical)) throw new FsError("ELOOP", { path });
-        const next = new Set(ancestors).add(physical);
-        if (header) { await output(context, `${headerWritten ? "\n" : ""}${display}:\n`); headerWritten = true; }
-        const entries = await readDirectory(context, path, true);
-        const names = entries.map(entry => entry.name).filter(name => parsed.flags.has("a") || parsed.flags.has("A") || !name.startsWith("."));
-        if (parsed.flags.has("a")) for (const name of [".", ".."]) {
-          const index = names.findIndex(entry => entry > name);
-          names.splice(index < 0 ? names.length : index, 0, name);
+        context.signal.throwIfAborted();
+        if (ancestors.size > MAX_RECURSIVE_DIRECTORY_DEPTH) {
+          throw new FsError("ELOOP", { path, message: `ls directory depth limit exceeded (${MAX_RECURSIVE_DIRECTORY_DEPTH})` });
         }
-        if (parsed.flags.has("r")) names.reverse();
-        for (const name of names) await render(joinPath(path, name), name);
-        if (parsed.flags.has("R")) for (const name of names) {
-          if (name === "." || name === "..") continue;
-          const child = joinPath(path, name);
-          const childStat = await context.fs[parsed.flags.has("L") ? "stat" : "lstat"](child, { signal: context.signal });
-          if (childStat.type === "directory") await list(child, `${display.replace(/\/$/u, "")}/${name}`, true, next);
-        }
+        ancestors.add(physical);
+        try {
+          if (header) { await output(context, `${headerWritten ? "\n" : ""}${display}:\n`); headerWritten = true; }
+          const entries = await readDirectory(context, path, true);
+          const names = entries.map(entry => entry.name).filter(name => parsed.flags.has("a") || parsed.flags.has("A") || !name.startsWith("."));
+          if (parsed.flags.has("a")) for (const name of [".", ".."]) {
+            const index = names.findIndex(entry => entry > name);
+            names.splice(index < 0 ? names.length : index, 0, name);
+          }
+          if (parsed.flags.has("r")) names.reverse();
+          for (const name of names) await render(joinPath(path, name), name);
+          if (parsed.flags.has("R")) for (const name of names) {
+            if (name === "." || name === "..") continue;
+            const child = joinPath(path, name);
+            const childStat = await context.fs[parsed.flags.has("L") ? "stat" : "lstat"](child, { signal: context.signal });
+            if (childStat.type === "directory") await list(child, `${display.replace(/\/$/u, "")}/${name}`, true, ancestors);
+          }
+        } finally { ancestors.delete(physical); }
       };
       return eachOperand(context, operands, operand => list(pathOf(context, operand), operand, operands.length > 1 || parsed.flags.has("R")));
     }),

@@ -135,3 +135,15 @@ release actions, resource probes, registry, historical capture or seal edits.
 - All four owned files are frozen. Root owns literal registration, exact-file
   commit/push/release and transfer of `text.ts` to #586 after committing #587.
   The earlier pending-assertion note is resolved, not a remaining blocker.
+
+## Full-input type-audit correction
+
+The maintained full-input audit of `be36bc1ca` reports three new diagnostics in
+the cancellation test's decoder mock, despite the earlier focused check.
+The runtime constructor cannot be used directly as a type in that full program.
+Use `InstanceType<typeof TextDecoder>` and `Parameters<typeof decode>` instead;
+this changes type annotations only, not assertions or runtime behavior.
+The original failing audit is preserved in
+`/home/kjopek/kamilio-validation-569-575.RoFXyZ/batch586-604/source-audit.log`.
+This correction must pass the same maintained full-input audit with no new
+diagnostics before delivery; the separate historical #605 failures remain open.

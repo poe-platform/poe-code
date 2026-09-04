@@ -54,7 +54,7 @@ test("cut BOM: cancellation after decoding preserves reason and closes input", a
     } finally { closed = true; }
   }
   const decode = TextDecoder.prototype.decode;
-  context.mock.method(TextDecoder.prototype, "decode", function(this: TextDecoder, ...args: Parameters<TextDecoder["decode"]>) {
+  context.mock.method(TextDecoder.prototype, "decode", function(this: InstanceType<typeof TextDecoder>, ...args: Parameters<typeof decode>) {
     const text = decode.apply(this, args);
     if (text === "\ufeff🙂" || text === "🙂") { decoded++; controller.abort(reason); }
     return text;

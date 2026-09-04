@@ -516,10 +516,13 @@ export class RealFileSystem implements FileSystem {
 
   async utimes(path: string, atimeMs: number, mtimeMs: number, options: FsOptions = {}): Promise<void> {
     return this.operation("utimes", path, options, async () => {
-      if (!Number.isFinite(atimeMs) || !Number.isFinite(mtimeMs)) throw new FsError("EINVAL");
+      if (!Number.isFinite(atimeMs) || !Number.isFinite(mtimeMs)
+        || Math.abs(atimeMs) > 8.64e15 || Math.abs(mtimeMs) > 8.64e15) throw new FsError("EINVAL");
       const target = await this.path(path, options);
       options.signal?.throwIfAborted();
-      await native.utimes(target, new Date(atimeMs), new Date(mtimeMs));
+      const atimeSeconds = atimeMs / 1000;
+      const mtimeSeconds = mtimeMs / 1000;
+      await native.utimes(target, atimeSeconds < 0 ? String(atimeSeconds) : atimeSeconds, mtimeSeconds < 0 ? String(mtimeSeconds) : mtimeSeconds);
     });
   }
 

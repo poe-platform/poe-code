@@ -187,6 +187,21 @@ this request to keep additions out of the default package.
   build, all fifteen optional/public tests and strict consumer types pass. That
   case verifies binary partial writes, shared stdout accounting, limit rejection
   and exactly-once retained-handle cleanup.
+- Counted descriptor integration is locally committed as `32df09bdb`.
+- Install timestamp investigation separates two issues. Metadata-only native
+  controls show unexplained access-time changes even without content reads or
+  subprocesses; the correct pre-read source snapshot is retained, and old raw
+  mismatches are not relabeled as passes. Separately, the real adapter's Date
+  conversion demonstrably discards fractional milliseconds. Its setter now
+  forwards numeric seconds (numeric strings for pre-epoch values to avoid Node
+  22.23.2's negative-number current-time convention), with an explicit inclusive
+  Date-representable bound. Uniform rejection of out-of-range invalid Dates by
+  the former native path was not established; the new validation is explicit.
+  Root review passes 29 focused tests, all 1,299 filesystem tests, and strict
+  source/new-test checking. Broad filesystem test-type checking instead reports
+  the untouched `tests/quota.test.ts:46` contradictory-capability narrowing;
+  that broader route is not claimed clean. The precision fix does not promise
+  nanosecond-exact timestamps or prevent independent filesystem access-time changes.
 
 - First implementation wave: cmp, yes, shuf and virtual devices in disjoint leaf
   directories. Root is qualifying native oracles and the opt-in delivery boundary.

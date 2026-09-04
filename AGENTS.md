@@ -47,7 +47,7 @@ Use `npm run lint:workflows`
 
 ## Delivery
 
-- For the safe-bash migration, preserve original commit IDs and keep unrelated fixes in separate atomic commits. Push approved integration promptly to `origin/main` with normal hooks; do not hold that push for separate artifact or release qualification.
+- For the safe-bash migration, preserve original commit IDs and keep unrelated fixes in separate atomic commits. Push approved integration promptly to `origin/main` after the appropriate manual checks; do not hold that push for separate artifact or release qualification.
 - Report local commits, verified remote-main delivery, and successful releases separately. A local commit is not a completed push; a completed push is not a verified release.
 
 ## Release
@@ -69,6 +69,12 @@ Providers must be declarative and minimal: you are not allowed to add repeated i
 A provider may define an optional `spawn(context, options)` conversation function — the imperative hook that actually runs the agent (e.g. `gemini-cli`). Prefer the declarative `agent-spawn` config; reach for `spawn` only when the declarative path can't express the run.
 
 ## Testing
+
+### Manual pre-push checks
+
+- Before pushing, manually run the lint and test commands appropriate to the changed scope.
+- Be selective because the full checks take a long time: use the narrowest maintained package or workspace checks that cover a focused change.
+- Run the full `npm test` and repository-wide lint routes when a change is broad, crosses workspace boundaries, affects shared infrastructure, or focused checks do not provide enough confidence.
 
 ### Maintained build and test routes
 

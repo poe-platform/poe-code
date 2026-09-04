@@ -144,7 +144,7 @@ describe("shared Vitest task selection", () => {
   });
 });
 
-describe("sequential shared Vitest execution", () => {
+describe("batched shared Vitest execution", () => {
   const rootFile = { moduleId: "/repo/src/root.test.ts" };
   const alphaFile = { moduleId: "/repo/packages/alpha/src/unit.test.ts" };
   const betaFile = { moduleId: "/repo/packages/beta/src/unit.test.ts" };
@@ -182,14 +182,14 @@ describe("sequential shared Vitest execution", () => {
     mocks.reporterOptions.mockReset();
   });
 
-  it("discovers actual root ownership and runs every workspace phase without changing workers", async () => {
+  it("discovers actual ownership and queues all isolated files without changing workers", async () => {
     const { discovery, execution } = contexts();
     const environment = { VITEST: process.env.VITEST, NODE_ENV: process.env.NODE_ENV };
     await runSharedVitest("/repo", phases);
     expect(mocks.createVitest.mock.calls.map(call => call[1].config)).toEqual([
       "/repo/vitest.root.config.ts", "/repo/vitest.config.ts"
     ]);
-    expect(execution.runTestSpecifications.mock.calls.map(call => call[0])).toEqual([[rootFile], [alphaFile], [betaFile]]);
+    expect(execution.runTestSpecifications).toHaveBeenCalledExactlyOnceWith([rootFile, alphaFile, betaFile], false);
     expect(discovery.close).toHaveBeenCalledOnce();
     expect(execution.close).toHaveBeenCalledOnce();
     expect(execution.config.maxWorkers).toBe(2);
@@ -197,7 +197,7 @@ describe("sequential shared Vitest execution", () => {
     expect({ VITEST: process.env.VITEST, NODE_ENV: process.env.NODE_ENV }).toEqual(environment);
   });
 
-  it("waits for each phase before starting another", async () => {
+  it("waits for the complete queue before closing the runner", async () => {
     const { execution } = contexts();
     let finish!: () => void;
     execution.runTestSpecifications.mockImplementationOnce(() => new Promise(resolve => {
@@ -208,7 +208,7 @@ describe("sequential shared Vitest execution", () => {
     expect(execution.close).not.toHaveBeenCalled();
     finish();
     await running;
-    expect(execution.runTestSpecifications).toHaveBeenCalledTimes(3);
+    expect(execution.runTestSpecifications).toHaveBeenCalledOnce();
   });
 
   it("sets and restores the native Vitest TEST startup marker", async () => {
@@ -250,7 +250,7 @@ describe("sequential shared Vitest execution", () => {
     const second = contexts();
     second.execution.globTestSpecifications.mockImplementation(async filters => filters === undefined ? [rootFile, alphaFile] : filters[0] === "packages/alpha/src" ? [alphaFile] : []);
     await runSharedVitest("/repo", phases);
-    expect(second.execution.runTestSpecifications).toHaveBeenCalledTimes(2);
+    expect(second.execution.runTestSpecifications).toHaveBeenCalledExactlyOnceWith([rootFile, alphaFile], false);
   });
 
   for (const failure of ["test", "unhandled"] as const) {
@@ -260,7 +260,7 @@ describe("sequential shared Vitest execution", () => {
         testModules: [{ ok: () => failure !== "test" }],
         unhandledErrors: failure === "unhandled" ? [new Error("unhandled sentinel")] : []
       });
-      await expect(runSharedVitest("/repo", phases)).rejects.toThrow("root");
+      await expect(runSharedVitest("/repo", phases)).rejects.toThrow("Shared unit tests failed");
       expect(execution.runTestSpecifications).toHaveBeenCalledOnce();
       expect(execution.close).toHaveBeenCalledOnce();
     });
@@ -284,31 +284,20 @@ describe("sequential shared Vitest execution", () => {
     expect(execution.runTestSpecifications).not.toHaveBeenCalled();
   });
 
-  it("prints one complete summary, but reports a failure immediately", async () => {
+  it("prints the complete queue summary and retains failure and interruption reports", async () => {
     const { execution } = contexts();
     await runSharedVitest("/repo", phases);
     const reporter = mocks.createVitest.mock.calls[1][1].reporters[0];
     reporter.ctx = execution;
-    reporter.onTestRunStart([rootFile]);
-    reporter.onTestRunStart([alphaFile]);
-    reporter.onTestRunStart([betaFile]);
-    expect(mocks.reportStarted).toHaveBeenCalledExactlyOnceWith([rootFile]);
-    reporter.onTestRunEnd([{ state: () => "passed" }], [], "passed");
-    reporter.onTestRunEnd([{ state: () => "passed" }], [], "passed");
-    expect(mocks.reportFinished).not.toHaveBeenCalled();
-    reporter.onTestRunEnd([{ state: () => "passed" }], [], "passed");
-    expect(mocks.reportFinished).toHaveBeenCalledWith(execution.state.getTestModules(), [], "passed");
-    reporter.phasesRemaining = 3;
-    reporter.onTestRunEnd([{ state: () => "failed" }], [], "failed");
-    expect(mocks.reportFinished).toHaveBeenCalledTimes(2);
-    reporter.phasesRemaining = 3;
-    reporter.onTestRunEnd([{ state: () => "passed" }], [], "interrupted");
+    const specifications = [rootFile, alphaFile, betaFile];
+    reporter.onTestRunStart(specifications);
+    expect(mocks.reportStarted).toHaveBeenCalledExactlyOnceWith(specifications);
+    for (const reason of ["passed", "failed", "interrupted"]) {
+      const modules = [{ state: () => reason }];
+      reporter.onTestRunEnd(modules, [], reason);
+      expect(mocks.reportFinished).toHaveBeenLastCalledWith(modules, [], reason);
+    }
     expect(mocks.reportFinished).toHaveBeenCalledTimes(3);
-    expect(mocks.reportFinished).toHaveBeenLastCalledWith(execution.state.getTestModules(), [], "interrupted");
-    reporter.phasesRemaining = 3;
-    reporter.onTestRunEnd([{ state: () => "passed" }], [], "failed");
-    expect(mocks.reportFinished).toHaveBeenCalledTimes(4);
-    expect(mocks.reportFinished).toHaveBeenLastCalledWith(execution.state.getTestModules(), [], "failed");
   });
 
   it("omits per-case progress and successful module output while retaining failed modules", async () => {
@@ -325,12 +314,12 @@ describe("sequential shared Vitest execution", () => {
     expect(mocks.reportModule).toHaveBeenCalledExactlyOnceWith(failed);
   });
 
-  it("identifies each nonempty phase before execution instead of printing individual progress dots", async () => {
+  it("identifies every nonempty workspace before scheduling the queue", async () => {
     const { execution } = contexts();
     const output = vi.spyOn(console, "log").mockImplementation(() => undefined);
     try {
       execution.runTestSpecifications.mockImplementation(async () => {
-        expect(output).toHaveBeenLastCalledWith(`Unit workspace ${phases[execution.runTestSpecifications.mock.calls.length - 1]!.name}: running 1 files`);
+        expect(output.mock.calls).toEqual(phases.map(phase => [`Unit workspace ${phase.name}: running 1 files`]));
         return { testModules: [{ ok: () => true }], unhandledErrors: [] };
       });
       await runSharedVitest("/repo", phases);
@@ -340,7 +329,7 @@ describe("sequential shared Vitest execution", () => {
     }
   });
 
-  it("reports snapshot notices before the next phase clears their state", async () => {
+  it("retains snapshot notices in the single queue report", async () => {
     const { execution } = contexts();
     await runSharedVitest("/repo", phases);
     const reporter = mocks.createVitest.mock.calls[1][1].reporters[0];
@@ -350,11 +339,11 @@ describe("sequential shared Vitest execution", () => {
       { unchecked: 1 }, { filesRemovedList: ["obsolete.snap"] }
     ]) {
       mocks.reportFinished.mockClear();
-      reporter.phasesRemaining = 3;
       execution.snapshot.summary = summary;
-      reporter.onTestRunEnd([{ state: () => "passed" }], [], "passed");
+      const modules = [{ state: () => "passed" }];
+      reporter.onTestRunEnd(modules, [], "passed");
       expect(mocks.reportFinished).toHaveBeenCalledOnce();
-      expect(mocks.reportFinished).toHaveBeenCalledWith(execution.state.getTestModules(), [], "passed");
+      expect(mocks.reportFinished).toHaveBeenCalledWith(modules, [], "passed");
     }
   });
 });

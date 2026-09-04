@@ -43,26 +43,11 @@ export async function runSharedVitest(root, phases) {
   try {
     const { createVitest, DefaultReporter } = await import("vitest/node");
     class WorkspaceReporter extends DefaultReporter {
-      phasesRemaining = 0;
-      runStarted = false;
       constructor() {
         super({ summary: false });
       }
-      onTestRunStart(specifications) {
-        if (this.runStarted) return;
-        this.runStarted = true;
-        super.onTestRunStart(specifications);
-      }
       printTestModule(module) {
         if (module.state() === "failed") super.printTestModule(module);
-      }
-      onTestRunEnd(modules, errors = [], reason) {
-        this.phasesRemaining--;
-        const snapshots = this.ctx.snapshot.summary;
-        const snapshotNotice = ["added", "unmatched", "updated", "filesRemoved", "unchecked"].some(key => snapshots[key]) || snapshots.filesRemovedList?.length;
-        if (this.phasesRemaining === 0 || errors.length || snapshotNotice || reason !== "passed" || modules.some(module => module.state() === "failed")) {
-          super.onTestRunEnd(this.ctx.state.getTestModules(), errors, reason);
-        }
       }
     }
     const discovery = await createVitest("test", {
@@ -100,7 +85,6 @@ export async function runSharedVitest(root, phases) {
       }
       groups.push({ phase, specifications: selected });
     }
-    reporter.phasesRemaining = groups.filter(group => group.specifications.length).length;
     await context.standalone();
     for (const group of groups) {
       if (!group.specifications.length) {
@@ -108,9 +92,12 @@ export async function runSharedVitest(root, phases) {
         continue;
       }
       console.log(`Unit workspace ${group.phase.name}: running ${group.specifications.length} files`);
-      const result = await context.runTestSpecifications(group.specifications, false);
+    }
+    const queue = groups.flatMap(group => group.specifications);
+    if (queue.length) {
+      const result = await context.runTestSpecifications(queue, false);
       if (result.unhandledErrors.length || result.testModules.some(module => !module.ok()) || process.exitCode) {
-        throw new Error(`Unit tests failed in workspace: ${group.phase.name}`);
+        throw new Error("Shared unit tests failed; see failed file reports above");
       }
     }
   } catch (error) {

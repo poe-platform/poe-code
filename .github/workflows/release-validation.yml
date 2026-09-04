@@ -140,6 +140,44 @@ jobs:
         run: |
           printf '%s  %s\n' "$BUILD_SHA256" "$RUNNER_TEMP/poe-build/build.tar" | sha256sum --check --status
           tar -xf "$RUNNER_TEMP/poe-build/build.tar"
+      - name: Run fresh unit and native checks
+        run: npm run test:ci:fresh
+  unit-cached:
+    needs: build
+    runs-on: ubuntu-24.04
+    permissions:
+      actions: read
+      contents: read
+    env:
+      TZ: UTC
+      LANG: C.UTF-8
+      LC_ALL: C.UTF-8
+      TURBO_TELEMETRY_DISABLED: "1"
+    steps:
+      - uses: actions/checkout@v7.0.1
+        with:
+          ref: ${{ github.sha }}
+          fetch-depth: 1
+          persist-credentials: false
+        env:
+          GIT_CONFIG_COUNT: "1"
+          GIT_CONFIG_KEY_0: init.defaultBranch
+          GIT_CONFIG_VALUE_0: main
+      - uses: actions/setup-node@v7.0.0
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm clean-install
+      - name: Download freshly verified build
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh run download "$GITHUB_RUN_ID" --repo "$GITHUB_REPOSITORY" --name "build-$GITHUB_SHA" --dir "$RUNNER_TEMP/poe-build"
+      - name: Restore freshly verified build
+        env:
+          BUILD_SHA256: ${{ needs.build.outputs.archive-sha256 }}
+        run: |
+          printf '%s  %s\n' "$BUILD_SHA256" "$RUNNER_TEMP/poe-build/build.tar" | sha256sum --check --status
+          tar -xf "$RUNNER_TEMP/poe-build/build.tar"
       - name: Identify cache runtime
         run: node -e 'console.log("POE_CI_RUNTIME=" + JSON.stringify({versions:process.versions,platform:process.platform,arch:process.arch,image:process.env.ImageOS,imageVersion:process.env.ImageVersion}))' >> "$GITHUB_ENV"
       - name: Restore eligible unit task cache
@@ -148,8 +186,6 @@ jobs:
           path: .turbo/ci-cache
           key: ${{ runner.os }}-${{ runner.arch }}-unit-v1-${{ hashFiles('package-lock.json') }}-${{ github.run_id }}-${{ github.run_attempt }}
           restore-keys: ${{ runner.os }}-${{ runner.arch }}-unit-v1-${{ hashFiles('package-lock.json') }}-
-      - name: Run fresh unit and native checks
-        run: npm run test:ci:fresh
       - name: Run cache-eligible unit checks
         env:
           TURBO_FORCE: ${{ inputs.cold_cache && 'true' || 'false' }}

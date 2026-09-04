@@ -1,6 +1,7 @@
 import "../vitest.setup.js";
 import { EventEmitter } from "node:events";
 import { Readable } from "node:stream";
+import { setImmediate } from "node:timers/promises";
 import type { IncomingMessage, ServerResponse } from "node:http";
 import { describe, expect, it, vi } from "vitest";
 import { defineSchema } from "tiny-stdio-mcp-server";
@@ -1030,6 +1031,52 @@ describe("HTTP MCP production readiness", () => {
     );
   });
 
+  it("queues default HTTP concurrency across sessions while retaining each request context", async () => {
+    const server = createHttpServer({ name: "shared-http-admission", version: "1", enableJsonResponse: true });
+    let release!: () => void;
+    const gate = new Promise<void>(resolve => { release = resolve; });
+    const started: string[] = [];
+    const finished: string[] = [];
+    server.tool("held", "Held work", defineSchema({}), async () => {
+      started.push(server.getRequestContext()?.auth?.subject ?? "missing");
+      await gate;
+      finished.push(server.getRequestContext()?.auth?.subject ?? "missing");
+      return "done";
+    });
+    const authenticated: HttpRequestHandler = {
+      handleRequest(request, response) {
+        Object.assign(request, { auth: { subject: request.headers["x-test-subject"] } });
+        return server.handleRequest(request, response);
+      }
+    };
+    const sessions: string[] = [];
+    for (let id = 0; id < 8; id++) {
+      const response = await postJsonRpc(authenticated, {
+        jsonrpc: "2.0", id: 0, method: "initialize", params: { protocolVersion: TEST_PROTOCOL_VERSION }
+      }, { headers: { "x-test-subject": String(id) } });
+      expect(response.status).toBe(200);
+      sessions.push(response.headers.get("mcp-session-id")!);
+      expect((await postJsonRpc(authenticated, {
+        jsonrpc: "2.0", method: "notifications/initialized"
+      }, { sessionId: sessions[id], headers: { "x-test-subject": String(id) } })).status).toBe(202);
+    }
+    const calls = sessions.map((sessionId, id) => postJsonRpc(authenticated, {
+      jsonrpc: "2.0", id, method: "tools/call", params: { name: "held" }
+    }, { sessionId, headers: { "x-test-subject": String(id) } }));
+    try {
+      await setImmediate();
+      expect(started).toEqual(["0", "1", "2", "3"]);
+      release();
+      const responses = await Promise.all(calls);
+      for (const response of responses) {
+        expect(response.status).toBe(200);
+        expect(await response.json()).toHaveProperty("result");
+      }
+      expect(started).toEqual(sessions.map((_, id) => String(id)));
+      expect(finished).toEqual(started);
+    } finally { release(); await Promise.all(calls); }
+  });
+
   it("rejects tool calls above the configured concurrency limit", async () => {
     const server = createHttpServer({
       name: "tool-limit",
@@ -1073,9 +1120,11 @@ describe("HTTP MCP production readiness", () => {
     await first;
   });
 
-  it("releases the concurrency slot and emits a failed tool end after timeout", async () => {
+  it("holds handler capacity after timeout while completing HTTP request accounting", async () => {
     const events: HttpObservabilityEvent[] = [];
     let callCount = 0;
+    let release!: () => void;
+    const pendingHandler = new Promise<string>(resolve => { release = () => resolve("done"); });
     const server = createHttpServer({
       name: "tool-timeout",
       version: "1.0.0",
@@ -1089,51 +1138,60 @@ describe("HTTP MCP production readiness", () => {
       }
     }).tool("sometimes-hangs", "Sometimes hangs", defineSchema({}), () => {
       callCount += 1;
-      return callCount === 1 ? new Promise(() => {}) : "done";
+      return callCount === 1 ? pendingHandler : "done";
     });
     const sessionId = await initializeSession(server);
+    try {
+      const timedOut = await postJsonRpc(
+        server,
+        {
+          jsonrpc: "2.0",
+          id: 2,
+          method: "tools/call",
+          params: { name: "sometimes-hangs", arguments: {} }
+        },
+        { sessionId }
+      );
+      const queuedTimeout = await postJsonRpc(
+        server,
+        {
+          jsonrpc: "2.0",
+          id: 3,
+          method: "tools/call",
+          params: { name: "sometimes-hangs", arguments: {} }
+        },
+        { sessionId }
+      );
 
-    const timedOut = await postJsonRpc(
-      server,
-      {
-        jsonrpc: "2.0",
+      await expect(timedOut.json()).resolves.toMatchObject({
         id: 2,
-        method: "tools/call",
-        params: { name: "sometimes-hangs", arguments: {} }
-      },
-      { sessionId }
-    );
-    const succeeded = await postJsonRpc(
-      server,
-      {
-        jsonrpc: "2.0",
+        error: {
+          code: -32603,
+          message: "Tool call timed out: sometimes-hangs"
+        }
+      });
+      await expect(queuedTimeout.json()).resolves.toMatchObject({
         id: 3,
-        method: "tools/call",
-        params: { name: "sometimes-hangs", arguments: {} }
-      },
-      { sessionId }
-    );
-
-    await expect(timedOut.json()).resolves.toMatchObject({
-      id: 2,
-      error: {
-        code: -32603,
-        message: "Tool call timed out: sometimes-hangs"
-      }
-    });
-    await expect(succeeded.json()).resolves.toMatchObject({
-      id: 3,
-      result: {
-        content: [{ type: "text", text: "done" }]
-      }
-    });
-    expect(events).toContainEqual(
-      expect.objectContaining({
-        type: "tool.end",
-        toolName: "sometimes-hangs",
-        ok: false
-      })
-    );
+        error: { code: -32603, message: "Tool call timed out: sometimes-hangs" }
+      });
+      expect(callCount).toBe(1);
+      release();
+      await pendingHandler;
+      const succeeded = await postJsonRpc(server, {
+        jsonrpc: "2.0", id: 4, method: "tools/call", params: { name: "sometimes-hangs", arguments: {} }
+      }, { sessionId });
+      await expect(succeeded.json()).resolves.toMatchObject({
+        id: 4, result: { content: [{ type: "text", text: "done" }] }
+      });
+      expect(callCount).toBe(2);
+      expect(events).toContainEqual(
+        expect.objectContaining({
+          type: "tool.end",
+          toolName: "sometimes-hangs",
+          ok: false
+        })
+      );
+    } finally { release(); }
   });
 
   it("replays stored SSE notifications after Last-Event-ID reconnects", async () => {

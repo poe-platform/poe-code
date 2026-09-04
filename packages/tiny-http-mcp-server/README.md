@@ -436,7 +436,7 @@ Returned `HttpServer` instances support:
 | `maxStreamBufferBytes`   | `number`                                     | `1048576`                        | End a GET SSE stream before a live write when its buffered bytes exceed this limit.           |
 | `maxSseEventHistory`     | `number`                                     | `100`                            | Number of server-sent events retained for `Last-Event-ID` replay.                             |
 | `sseKeepAliveMs`         | `number`                                     | `30000`                          | GET SSE keepalive interval in milliseconds. Set to `0` to disable keepalive comments.         |
-| `maxConcurrentToolCalls` | `number`                                     | unlimited                        | Maximum concurrent tool calls across sessions.                                                |
+| `maxConcurrentToolCalls` | `number`                                     | `4`                              | Maximum concurrent tool calls across sessions.                                                |
 | `sessionStore`           | `SessionStore`                               | in-memory store                  | Pluggable session-record storage; SSE streams and replay history remain instance-local.       |
 | `requestIdGenerator`     | `() => string`                               | incrementing ids                 | Generates request ids when `X-Request-Id` is absent.                                          |
 | `observability`          | `HttpObservabilityOptions`                   | none                             | Emits request, auth, session, stream, and tool lifecycle events.                              |
@@ -622,7 +622,7 @@ tiny-http-mcp-server [options]
 | `--max-stream-buffer-bytes <bytes>`          | `1048576`    | End a GET SSE stream before a live notification or keepalive write when buffered bytes exceed this limit.                            |
 | `--max-sse-event-history <count>`            | `100`        | Number of SSE events retained for `Last-Event-ID` replay.                                                                            |
 | `--sse-keep-alive-ms <ms>`                   | `30000`      | GET SSE keepalive interval in milliseconds. Set to `0` to disable keepalive comments.                                                |
-| `--max-concurrent-tool-calls <count>`        | unlimited    | Maximum concurrent tool calls across sessions.                                                                                       |
+| `--max-concurrent-tool-calls <count>`        | `4`          | Maximum concurrent tool calls across sessions.                                                                                       |
 | `--trusted-proxy`                            | off          | Trust `X-Forwarded-Proto` and `X-Forwarded-Host` for metadata challenge URLs.                                                        |
 | `--request-timeout-ms <ms>`                  | Node default | Node HTTP request timeout.                                                                                                           |
 | `--headers-timeout-ms <ms>`                  | Node default | Node HTTP headers timeout.                                                                                                           |

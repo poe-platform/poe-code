@@ -247,6 +247,10 @@ export interface ServerOptions {
   name: string;
   version: string;
   toolCallTimeoutMs?: number;
+  /** Shared active tool-handler capacity across sessions; defaults to four. */
+  maxConcurrentToolCalls?: number;
+  /** Maximum tool calls waiting for capacity; defaults to 64. Zero disables waiting. */
+  maxQueuedToolCalls?: number;
   validateToolArguments?: boolean;
   supportNotifications?: boolean;
   supportResourceSubscriptions?: boolean;

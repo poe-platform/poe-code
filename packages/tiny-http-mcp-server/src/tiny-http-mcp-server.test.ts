@@ -3601,6 +3601,7 @@ describe("tiny-http-mcp-server CLI", () => {
       ["--port", "0x50"],
       ["--max-batch-size", "1e3"],
       ["--max-sessions-per-subject", "1e3"],
+      ["--max-queued-tool-calls", "1e3"],
       ["--max-stream-buffer-bytes", "1e3"],
       ["--sse-keep-alive-ms", "1e3"],
       ["--request-timeout-ms", "0x100"]
@@ -3737,6 +3738,8 @@ describe("tiny-http-mcp-server CLI", () => {
         "15000",
         "--max-concurrent-tool-calls",
         "4",
+        "--max-queued-tool-calls",
+        "6",
         "--trusted-proxy",
         "--request-timeout-ms",
         "30000",
@@ -3769,6 +3772,7 @@ describe("tiny-http-mcp-server CLI", () => {
         maxSseEventHistory: 10,
         sseKeepAliveMs: 15_000,
         maxConcurrentToolCalls: 4,
+        maxQueuedToolCalls: 6,
         trustedProxy: true
       })
     );
@@ -3806,6 +3810,7 @@ describe("tiny-http-mcp-server CLI", () => {
     expect(shortOutput.stdout).toContain("--max-request-bytes");
     expect(shortOutput.stdout).toContain("--max-stream-buffer-bytes");
     expect(shortOutput.stdout).toContain("--sse-keep-alive-ms");
+    expect(shortOutput.stdout).toContain("--max-queued-tool-calls");
     expect(shortOutput.stdout).toContain("--trusted-proxy");
     expect(shortOutput.stdout).toContain("--request-timeout-ms");
     expect(shortOutput.stdout).toContain("--oauth-resource");

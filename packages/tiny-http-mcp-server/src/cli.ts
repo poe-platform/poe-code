@@ -39,6 +39,7 @@ interface ParsedCliArgs {
   maxSseEventHistory?: number;
   sseKeepAliveMs?: number;
   maxConcurrentToolCalls?: number;
+  maxQueuedToolCalls?: number;
   trustedProxy: boolean;
   requestTimeoutMs?: number;
   headersTimeoutMs?: number;
@@ -106,7 +107,9 @@ const HELP_TEXT = [
   "  --sse-keep-alive-ms <ms>",
   "                        GET SSE keepalive interval (default: 30000; 0 disables)",
   "  --max-concurrent-tool-calls <count>",
-  "                        Maximum concurrent tool calls across sessions",
+  "                        Maximum concurrent tool calls across sessions (default: 4)",
+  "  --max-queued-tool-calls <count>",
+  "                        Maximum waiting tool calls (default: 64; 0 disables waiting)",
   "  --trusted-proxy        Trust X-Forwarded-Proto and X-Forwarded-Host",
   "  --request-timeout-ms <ms>",
   "                        Node HTTP request timeout",
@@ -302,6 +305,7 @@ function parseCliOptions(args: string[]): ParsedCliArgs {
       "max-sse-event-history": { type: "string" },
       "sse-keep-alive-ms": { type: "string" },
       "max-concurrent-tool-calls": { type: "string" },
+      "max-queued-tool-calls": { type: "string" },
       "trusted-proxy": { type: "boolean" },
       "request-timeout-ms": { type: "string" },
       "headers-timeout-ms": { type: "string" },
@@ -355,6 +359,7 @@ function parseCliOptions(args: string[]): ParsedCliArgs {
     "--max-concurrent-tool-calls",
     1
   );
+  const maxQueuedToolCalls = parseOptionalInteger(values["max-queued-tool-calls"], "--max-queued-tool-calls", 0);
   const requestTimeoutMs = parseOptionalInteger(
     values["request-timeout-ms"],
     "--request-timeout-ms",
@@ -401,6 +406,7 @@ function parseCliOptions(args: string[]): ParsedCliArgs {
     ...(maxSseEventHistory === undefined ? {} : { maxSseEventHistory }),
     ...(sseKeepAliveMs === undefined ? {} : { sseKeepAliveMs }),
     ...(maxConcurrentToolCalls === undefined ? {} : { maxConcurrentToolCalls }),
+    ...(maxQueuedToolCalls === undefined ? {} : { maxQueuedToolCalls }),
     trustedProxy: values["trusted-proxy"] ?? false,
     ...(requestTimeoutMs === undefined ? {} : { requestTimeoutMs }),
     ...(headersTimeoutMs === undefined ? {} : { headersTimeoutMs }),
@@ -584,6 +590,7 @@ export async function runCli(
       ...(options.maxConcurrentToolCalls === undefined
         ? {}
         : { maxConcurrentToolCalls: options.maxConcurrentToolCalls }),
+      ...(options.maxQueuedToolCalls === undefined ? {} : { maxQueuedToolCalls: options.maxQueuedToolCalls }),
       ...(options.trustedProxy ? { trustedProxy: true } : {}),
       ...(oauth === undefined ? {} : { oauth })
     });

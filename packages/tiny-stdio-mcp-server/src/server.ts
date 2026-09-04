@@ -29,6 +29,7 @@ import { parseMessage, formatSuccessResponse, formatErrorResponse } from "./json
 import type { TypedSchema } from "./schema.js";
 import { parseUriTemplate, type UriTemplate } from "./uri-template.js";
 import { toContentBlocks, type ToolReturn } from "./content/convert.js";
+import { ToolCallAdmission } from "./tool-call-admission.js";
 
 const PROTOCOL_VERSION = "2025-11-25";
 const SUPPORTED_PROTOCOL_VERSIONS = new Set(["2025-03-26", "2025-06-18", PROTOCOL_VERSION]);
@@ -121,6 +122,18 @@ export function createServer(options: ServerOptions): Server {
   ) {
     throw new Error("toolCallTimeoutMs must be a positive integer.");
   }
+
+  const maxConcurrentToolCalls = options.maxConcurrentToolCalls ?? 4;
+  const maxQueuedToolCalls = options.maxQueuedToolCalls ?? 64;
+  for (const [name, value, minimum] of [
+    ["maxConcurrentToolCalls", maxConcurrentToolCalls, 1],
+    ["maxQueuedToolCalls", maxQueuedToolCalls, 0]
+  ] as const) {
+    if (!Number.isSafeInteger(value) || value < minimum) {
+      throw new Error(`${name} must be a safe integer greater than or equal to ${minimum}.`);
+    }
+  }
+  const toolAdmission = new ToolCallAdmission(maxConcurrentToolCalls, maxQueuedToolCalls);
 
   const supportNotifications = options.supportNotifications !== false;
   const supportResourceSubscriptions = options.supportResourceSubscriptions !== false;
@@ -266,21 +279,32 @@ export function createServer(options: ServerOptions): Server {
 
       try {
         let handlerResult: ToolReturn | CallToolResult;
+        const admissionTimeout = options.toolCallTimeoutMs === undefined ? undefined : new AbortController();
+        const admissionSignal = AbortSignal.any([
+          lifecycle.abortController.signal,
+          ...(admissionTimeout === undefined ? [] : [admissionTimeout.signal])
+        ]);
+        const handlerPromise = (async () => {
+          const release = await toolAdmission.acquire(admissionSignal);
+          try {
+            admissionSignal.throwIfAborted();
+            return await tool.handler(toolArgs);
+          } finally { release(); }
+        })();
         if (options.toolCallTimeoutMs === undefined) {
-          handlerResult = await tool.handler(toolArgs);
+          handlerResult = await handlerPromise;
         } else {
           let timeout: ReturnType<typeof setTimeout> | undefined;
-          const handlerPromise = Promise.resolve().then(() => tool.handler(toolArgs));
           handlerResult = await Promise.race([
             handlerPromise,
             new Promise<never>((_resolve, reject) => {
               timeout = setTimeout(() => {
-                reject(
-                  new ToolError(
-                    JSON_RPC_ERROR_CODES.INTERNAL_ERROR,
-                    `Tool call timed out: ${toolName}`
-                  )
+                const error = new ToolError(
+                  JSON_RPC_ERROR_CODES.INTERNAL_ERROR,
+                  `Tool call timed out: ${toolName}`
                 );
+                admissionTimeout!.abort(error);
+                reject(error);
               }, options.toolCallTimeoutMs);
             })
           ]).finally(() => {

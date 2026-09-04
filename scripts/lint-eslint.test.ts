@@ -56,6 +56,35 @@ async function referenceFiles(state: ReturnType<typeof model>, config: unknown[]
 afterEach(() => vi.restoreAllMocks());
 
 describe("fixture operation observation retention", () => {
+  it("batches positive literal ignores without crossing glob or negation boundaries", () => {
+    const patterns = ["a/one.js", "b/two.js", "!a/one.js", "c/three.js", "d/four.js", "**/*.tmp", "literal/{one,two}.js", "name/has,comma.js", "x/last.js"];
+    expect(guardedInputs.compactLiteralIgnores(patterns)).toEqual(["{a/one.js,b/two.js}", "!a/one.js", "{c/three.js,d/four.js}", "**/*.tmp", "literal/{one,two}.js", "name/has,comma.js", "x/last.js"]);
+    expect(patterns[0]).toBe("a/one.js");
+  });
+
+  it("bounds literal ignore batches", () => {
+    const patterns = Array.from({ length: 65 }, (_, index) => "tree/file-" + index + ".js");
+    const compacted = guardedInputs.compactLiteralIgnores(patterns);
+    expect(compacted).toHaveLength(3);
+    expect(compacted[0].split(",")).toHaveLength(32);
+    expect(compacted[2]).toBe(patterns[64]);
+    const long = "tree/" + "x".repeat(20000);
+    expect(guardedInputs.compactLiteralIgnores([long, long + "y"])).toEqual([long, long + "y"]);
+  });
+
+  it("preserves native ESLint selection for literal batches, directories, and negations", async () => {
+    const ignores = ["src/one.js", "src/two.js", "src/hidden", "!src/two.js", "src/three.js", "src/four.js", "**/*.tmp", "!src/keep.tmp", "src/.dot.js", "other/dot.js", "name/has,comma.js", "literal/{one,two}.js"];
+    const config = [{ ignores }, { files: ["**/*.js", "**/*.tmp"] }];
+    const native = new ESLint({ cwd: root, overrideConfigFile: true, overrideConfig: [...config, { files: ["**/*.ts"] }] });
+    const selection = createLintSelection(root, config);
+    for (const path of ["src/one.js", "src/two.js", "src/hidden/child.js", "src/hidden", "src/three.js", "src/four.js", "src/other.js", "src/skip.tmp", "src/keep.tmp", "src/.dot.js", "other/dot.js", "name/has,comma.js", "literal/one.js", "literal/two.js", "literal/three.js"]) {
+      const absolute = root + "/" + path;
+      expect(await selection.classify(absolute) === "configured", path).toBe(await native.calculateConfigForFile(absolute) !== undefined);
+    }
+    expect(selection.directoryIgnored(root + "/src/hidden")).toBe(true);
+    expect(selection.directoryIgnored(root + "/src")).toBe(false);
+  });
+
   it("validates directory names without re-encoding UTF-8 strings", () => {
     const state = model({ "src/π.js": "export {};" });
     const names = [Buffer.from("π.js")];

@@ -641,10 +641,34 @@ export function createLintInputGuard({ root, boundaries, fileSystem = fs, limits
   });
 }
 
+export function compactLiteralIgnores(patterns) {
+  const result = [];
+  let batch = [], length = 2;
+  function flush() {
+    if (batch.length > 1) result.push('{' + batch.join(',') + '}');
+    else result.push(...batch);
+    batch = [];
+    length = 2;
+  }
+  for (const pattern of patterns) {
+    // Only positive, unescaped literal paths can be joined without changing
+    // ignore order or introducing another interpretation of glob syntax.
+    const literal = pattern.includes('/') && !pattern.endsWith('/') && [...pattern].every(character => 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789/._-'.includes(character));
+    if (!literal || batch.length === 32 || length + pattern.length + 1 > 32768) flush();
+    if (!literal) result.push(pattern);
+    else {
+      batch.push(pattern);
+      length += pattern.length + 1;
+    }
+  }
+  flush();
+  return result;
+}
+
 export function createLintSelection(root, config) {
   assert.equal(ESLint.version, '9.39.4', 'unsupported ESLint version; compatibility review required');
   assert.ok(Array.isArray(config), 'unsupported root configuration');
-  const profile = [...config, { files: ['**/*.ts'] }];
+  let profile = [...config, { files: ['**/*.ts'] }];
   const all = [...ESLint.defaultConfig, ...profile];
   for (const entry of all) {
     assert.ok(entry && typeof entry === 'object' && !Array.isArray(entry), 'unsupported configuration entry');
@@ -653,7 +677,9 @@ export function createLintSelection(root, config) {
     if (entry.ignores !== undefined) assert.ok(Array.isArray(entry.ignores) && entry.ignores.every(pattern => typeof pattern === 'string'), 'unsupported ignores matcher');
   }
   const globalIgnores = all.filter(entry => Object.hasOwn(entry, 'ignores') && Object.keys(entry).every(key => key === 'name' || key === 'ignores'));
-  const projection = new ConfigArray(globalIgnores, { basePath: root });
+  const compacted = new Map(globalIgnores.map(entry => [entry, { ...entry, ignores: compactLiteralIgnores(entry.ignores) }]));
+  profile = profile.map(entry => compacted.get(entry) ?? entry);
+  const projection = new ConfigArray(globalIgnores.map(entry => compacted.get(entry)), { basePath: root });
   projection.normalizeSync();
   const eslint = new ESLint({ cwd: root, overrideConfigFile: true, overrideConfig: profile, fix: false });
   return Object.freeze({

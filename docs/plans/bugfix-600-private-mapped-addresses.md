@@ -60,7 +60,8 @@ unpublished work is retained in recovery stash
 ## Delivery
 
 #600 remains open pending verified remote delivery. Implementation and local
-validation are complete; a local commit is not a completed push or release.
+validation are complete in commit `1433543a56f5558f0eb9aa07bfa65da29ffda05c`;
+a local commit is not a completed push or release.
 Close after verified remote-main delivery, before publication, and monitor the
 release while continuing useful queue work. Local commits, remote delivery and
 successful releases remain separately reported.

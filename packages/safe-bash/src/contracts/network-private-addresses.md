@@ -1,8 +1,8 @@
 # Literal Private-Address Authorization Specification
 
-Status: Accepted
+Status: Implemented
 
-Implemented Through: Not applicable
+Implemented Through: `1433543a56f5558f0eb9aa07bfa65da29ffda05c`
 
 Purpose: Make the existing opt-in private-address authorizer classify mapped
 IPv4 and native IP literals consistently before curl transport dispatch.
@@ -95,6 +95,8 @@ change cancellation and response-cleanup ownership.
 
 ## 7. Conformance Criteria
 
-All normative behavior and validation categories MUST pass against an identified
-implementation commit before this accepted extension is marked implemented.
+All normative behavior and validation categories MUST pass against the identified
+implementation commit. The recorded commit passed the focused classifier and
+injected-curl regressions, maintained network selection, build, public exports,
+current consumers and lint routes recorded in the associated #600 plan.
 Passing a hostname classifier does not establish connection-level isolation.

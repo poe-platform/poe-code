@@ -26,6 +26,24 @@ adds no identity authority, lease, snapshot, transaction, or race protection and
 does not change `identityScope`, `compareEntry`, or `snapshotRmdir` semantics.
 Memory, S3, and WebDAV do not acquire physical-allocation values by this addition.
 
+# Append capability
+
+`FileSystemCapabilities.append?: boolean` describes the filesystem-wide support
+profile for `appendFile`. A value of `false` is a truthful, preflightable
+declaration that `appendFile` is unsupported on every path, so consumers can
+reject an operation before performing a destructive preparatory write. Absence
+is the legacy/unknown profile and must not be promoted to support or rejection.
+A value of `true` truthfully declares general operation support, but does not
+promise that every path or individual call succeeds; normal path, permission,
+limit, cancellation, and provider errors still apply.
+
+The separate `streamingWrite` capability and `writeStream` method govern the
+streaming-write path, including its declared write flags. In particular, an
+adapter may reject direct `appendFile` while supporting append through
+`writeStream`. Wrappers preserve a delegated `false`, or expose an accurate
+aggregate profile when routing across backends; they must not turn absence into
+`true` or conceal a globally unsupported delegated operation.
+
 ## Real filesystem conversion
 
 Real uses the native `Stats.blocks` observation returned by the existing rooted

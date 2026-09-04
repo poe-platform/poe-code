@@ -324,13 +324,13 @@ for (const readlink of [false, true]) {
 
 test("capabilities are immutable, detached, conservative, and omit unknown extensions", () => {
   const capabilities = {
-    readOnly: false, symlinks: true, hardlinks: true, permissions: true, timestamps: true,
+    readOnly: false, append: true, symlinks: true, hardlinks: true, permissions: true, timestamps: true,
     atomicRename: true, streamingRead: true, streamingWrite: true, nativeExec: true, customWrites: true,
   };
   const fixture = createFixture(true, capabilities);
   const filesystem = createReadOnlyFileSystem(fixture.filesystem);
   assert.deepEqual(filesystem.capabilities, {
-    readOnly: true, symlinks: true, hardlinks: false, permissions: false, timestamps: false,
+    readOnly: true, append: false, symlinks: true, hardlinks: false, permissions: false, timestamps: false,
     atomicRename: false, streamingRead: true, streamingWrite: false,
   });
   assert.ok(Object.isFrozen(filesystem.capabilities));

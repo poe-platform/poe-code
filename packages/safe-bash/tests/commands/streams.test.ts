@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { FsError, Shell, standardCommands } from "../../src/index.js";
+import { FsError, Shell, standardCommands, type ByteSource, type FileSystem, type WriteFileOptions } from "../../src/index.js";
 import { bufferLimit } from "../../src/commands/internal.js";
 import { streamCommands } from "../../src/commands/streams.js";
 import { chunks, fixture, run } from "./helpers.js";
@@ -277,6 +277,239 @@ test("tee streams to stdout and multiple virtual files, supports append, and con
   assert.deepEqual(await fs.readFile("/work/new"), new Uint8Array([0, 255, 10]));
   assert.equal((await run("tee", ["-a", "new"], { fs, stdin: "tail" })).exitCode, 0);
   assert.deepEqual(await fs.readFile("/work/new"), new Uint8Array([0, 255, 10, 116, 97, 105, 108]));
+});
+
+function streamingOnlyAdapter(
+  backing: FileSystem,
+  writeStream: (path: string, source: ByteSource, options?: WriteFileOptions) => Promise<void>,
+): FileSystem {
+  return new Proxy(backing, {
+    get(target, property) {
+      if (property === "capabilities") return { ...target.capabilities, append: false, streamingWrite: true };
+      if (property === "appendFile") return async (path: string) => { throw new FsError("ENOTSUP", { syscall: "appendFile", path }); };
+      if (property === "writeStream") return writeStream;
+      const member = Reflect.get(target, property) as unknown;
+      return typeof member === "function" ? member.bind(target) : member;
+    },
+  });
+}
+
+test("tee uses adapter writeStream for binary chunks and multiple non-append targets", async () => {
+  const backing = await fixture({ existing: "original" });
+  const writes: { path: string; flag: WriteFileOptions["flag"] }[] = [];
+  const fs = streamingOnlyAdapter(backing, async (path, source, options) => {
+    writes.push({ path, flag: options?.flag });
+    await backing.writeStream!(path, source, options);
+  });
+  const payload = new Uint8Array([0xe2, 0x82, 0xac, 0, 0xff, 0x41]);
+  const result = await run("tee", ["existing", "second"], { fs, stdin: chunks(payload, 2) });
+  assert.equal(result.exitCode, 0, result.stderr);
+  assert.deepEqual(result.stdoutBytes, Buffer.from(payload));
+  assert.deepEqual(await backing.readFile("/work/existing"), payload);
+  assert.deepEqual(await backing.readFile("/work/second"), payload);
+  assert.deepEqual(writes, [
+    { path: "/work/existing", flag: "w" },
+    { path: "/work/second", flag: "w" },
+  ]);
+});
+
+test("tee -a uses adapter writeStream append mode without requiring appendFile", async () => {
+  const backing = await fixture({ existing: new Uint8Array([0xff, 0]) });
+  const flags: WriteFileOptions["flag"][] = [];
+  const fs = streamingOnlyAdapter(backing, async (path, source, options) => {
+    flags.push(options?.flag);
+    await backing.writeStream!(path, source, options);
+  });
+  const result = await run("tee", ["-a", "existing"], { fs, stdin: chunks(new Uint8Array([0xe2, 0x82, 0xac]), 1) });
+  assert.equal(result.exitCode, 0, result.stderr);
+  assert.deepEqual(await backing.readFile("/work/existing"), new Uint8Array([0xff, 0, 0xe2, 0x82, 0xac]));
+  assert.deepEqual(flags, ["a"]);
+});
+
+test("tee takes the legacy path when writeStream exists but streamingWrite is false", async () => {
+  const backing = await fixture({ existing: "original" });
+  let streamWrites = 0;
+  const fs = new Proxy(backing, {
+    get(target, property) {
+      if (property === "capabilities") return { ...target.capabilities, streamingWrite: false };
+      if (property === "writeStream") return async () => { streamWrites++; throw new Error("must not stream"); };
+      const member = Reflect.get(target, property) as unknown;
+      return typeof member === "function" ? member.bind(target) : member;
+    },
+  });
+  const result = await run("tee", ["existing"], { fs, stdin: chunks("replacement", 2) });
+  assert.equal(result.exitCode, 0, result.stderr);
+  assert.equal(result.stdout, "replacement");
+  assert.equal(streamWrites, 0);
+  assert.equal(Buffer.from(await backing.readFile("/work/existing")).toString(), "replacement");
+});
+
+test("tee safely falls back when an unknown streaming adapter rejects before input", async () => {
+  const backing = await fixture({ existing: "original" });
+  let streamWrites = 0;
+  const fs = new Proxy(backing, {
+    get(target, property) {
+      if (property === "capabilities") return { ...target.capabilities, streamingWrite: undefined };
+      if (property === "writeStream") return async (path: string) => {
+        streamWrites++;
+        throw new FsError("ENOTSUP", { syscall: "writeStream", path });
+      };
+      const member = Reflect.get(target, property) as unknown;
+      return typeof member === "function" ? member.bind(target) : member;
+    },
+  });
+  const result = await run("tee", ["existing"], { fs, stdin: chunks("replacement", 2) });
+  assert.equal(result.exitCode, 0, result.stderr);
+  assert.equal(result.stdout, "replacement");
+  assert.equal(streamWrites, 1);
+  assert.equal(Buffer.from(await backing.readFile("/work/existing")).toString(), "replacement");
+});
+
+test("tee safely falls back for empty input before applying legacy truncation and creation", async () => {
+  const backing = await fixture({ existing: "original" });
+  const fs = new Proxy(backing, {
+    get(target, property) {
+      if (property === "capabilities") return { ...target.capabilities, streamingWrite: undefined };
+      if (property === "writeStream") return async (path: string) => {
+        throw new FsError("ENOTSUP", { syscall: "writeStream", path });
+      };
+      const member = Reflect.get(target, property) as unknown;
+      return typeof member === "function" ? member.bind(target) : member;
+    },
+  });
+  const result = await run("tee", ["existing", "created"], { fs, stdin: "" });
+  assert.equal(result.exitCode, 0, result.stderr);
+  assert.deepEqual(await backing.readFile("/work/existing"), new Uint8Array());
+  assert.deepEqual(await backing.readFile("/work/created"), new Uint8Array());
+});
+
+test("tee never falls back destructively after an unknown streaming adapter accepts input", async () => {
+  const backing = await fixture({ existing: "original" });
+  let fallbackWrites = 0;
+  const fs = new Proxy(backing, {
+    get(target, property) {
+      if (property === "capabilities") return { ...target.capabilities, streamingWrite: undefined };
+      if (property === "writeStream") return async (path: string, source: ByteSource) => {
+        for await (const ignoredChunk of source) throw new FsError("ENOTSUP", { syscall: "writeStream", path });
+      };
+      if (property === "writeFile") return async (...args: Parameters<FileSystem["writeFile"]>) => {
+        fallbackWrites++;
+        return target.writeFile(...args);
+      };
+      const member = Reflect.get(target, property) as unknown;
+      return typeof member === "function" ? member.bind(target) : member;
+    },
+  });
+  const result = await run("tee", ["existing"], { fs, stdin: chunks("replacement", 2) });
+  assert.equal(result.exitCode, 1);
+  assert.equal(result.stdout, "replacement");
+  assert.match(result.stderr, /ENOTSUP/);
+  assert.equal(fallbackWrites, 0);
+  assert.equal(Buffer.from(await backing.readFile("/work/existing")).toString(), "original");
+});
+
+test("tee preserves existing bytes when declared write and append operations are unsupported", async () => {
+  const backing = await fixture({ existing: "original" });
+  let destructiveWrites = 0;
+  const fs = new Proxy(backing, {
+    get(target, property) {
+      if (property === "capabilities") return { ...target.capabilities, append: false, streamingWrite: false };
+      if (property === "writeStream") return undefined;
+      if (property === "writeFile") return async (...args: Parameters<FileSystem["writeFile"]>) => {
+        destructiveWrites++;
+        return target.writeFile(...args);
+      };
+      if (property === "appendFile") return async (path: string) => { throw new FsError("ENOTSUP", { syscall: "appendFile", path }); };
+      const member = Reflect.get(target, property) as unknown;
+      return typeof member === "function" ? member.bind(target) : member;
+    },
+  });
+  const result = await run("tee", ["existing"], { fs, stdin: "replacement" });
+  assert.equal(result.exitCode, 1);
+  assert.equal(result.stdout, "replacement");
+  assert.match(result.stderr, /ENOTSUP/);
+  assert.equal(destructiveWrites, 0);
+  assert.equal(Buffer.from(await backing.readFile("/work/existing")).toString(), "original");
+});
+
+test("tee reports streaming adapter size failures while continuing stdout", async () => {
+  const backing = await fixture();
+  const fs = streamingOnlyAdapter(backing, async (path, source, options) => {
+    let size = 0;
+    await backing.writeStream!(path, (async function* () {
+      for await (const chunk of source) {
+        size += chunk.length;
+        if (size > 3) throw new FsError("EFBIG", { syscall: "writeStream", path });
+        yield chunk;
+      }
+    })(), options);
+  });
+  const payload = new Uint8Array([0, 1, 2, 3, 4, 5]);
+  const result = await run("tee", ["limited"], { fs, stdin: chunks(payload, 2) });
+  assert.equal(result.exitCode, 1);
+  assert.deepEqual(result.stdoutBytes, Buffer.from(payload));
+  assert.match(result.stderr, /EFBIG/);
+  assert.deepEqual(await backing.readFile("/work/limited"), new Uint8Array([0, 1]));
+});
+
+test("tee applies bounded backpressure when a streaming adapter pauses", async () => {
+  const backing = await fixture();
+  let release!: () => void;
+  const gate = new Promise<void>(resolve => { release = resolve; });
+  let started!: () => void;
+  const firstRead = new Promise<void>(resolve => { started = resolve; });
+  const fs = streamingOnlyAdapter(backing, async (path, source, options) => {
+    await backing.writeStream!(path, (async function* () {
+      let first = true;
+      for await (const chunk of source) {
+        if (first) {
+          first = false;
+          started();
+          await gate;
+        }
+        yield chunk;
+      }
+    })(), options);
+  });
+  let produced = 0;
+  const input = (async function* () {
+    for (let index = 0; index < 20; index++) {
+      produced++;
+      yield new Uint8Array(32 * 1024).fill(index);
+    }
+  })();
+  const pending = run("tee", ["paused"], { fs, stdin: input });
+  await firstRead;
+  await new Promise<void>(resolve => setImmediate(resolve));
+  assert.ok(produced < 20, `producer ran ahead by ${produced} chunks`);
+  release();
+  const result = await pending;
+  assert.equal(result.exitCode, 0, result.stderr);
+  assert.equal((await backing.stat("/work/paused")).size, 20 * 32 * 1024);
+});
+
+test("tee propagates cancellation into adapter writeStream and releases input", async () => {
+  const backing = await fixture();
+  const controller = new AbortController();
+  const reason = new Error("cancel tee stream");
+  let adapterSignal: AbortSignal | undefined;
+  let released = false;
+  const fs = streamingOnlyAdapter(backing, async (_path, source, options) => {
+    adapterSignal = options?.signal;
+    for await (const ignoredChunk of source) { /* consume with backpressure */ }
+  });
+  const source = (async function* () {
+    try {
+      yield new Uint8Array([1, 2]);
+      await new Promise<never>((_resolve, reject) => controller.signal.addEventListener("abort", () => reject(controller.signal.reason), { once: true }));
+    } finally { released = true; }
+  })();
+  const pending = run("tee", ["target"], { fs, stdin: source, signal: controller.signal });
+  await new Promise<void>(resolve => setImmediate(resolve));
+  controller.abort(reason);
+  await assert.rejects(pending, error => error === reason);
+  assert.equal(adapterSignal, controller.signal);
+  assert.equal(released, true);
 });
 
 test("tr translates, deletes, squeezes and complements byte sets across chunks", async () => {

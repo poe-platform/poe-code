@@ -131,8 +131,11 @@ export class OverlayFileSystem implements FileSystem {
       && this.#upper.capabilities.streamingRead === true
       && typeof this.#upper.writeStream === "function" && typeof this.#upper.readStream === "function"
       ? readable.every((capability) => capability === true) ? true : undefined : false;
+    const append = !writable || this.#upper.capabilities.append === false ? false
+      : this.#upper.capabilities.append === true ? true : undefined;
     this.capabilities = Object.freeze({
       readOnly: !writable,
+      ...(append === undefined ? {} : { append }),
       atomicRename: false,
       hardlinks: false,
       symlinks: writable && this.#upper.capabilities.symlinks === true

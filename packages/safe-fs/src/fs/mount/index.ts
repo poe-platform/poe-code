@@ -121,9 +121,12 @@ export class MountFileSystem implements FileSystem {
         backend.capabilities[capability] !== false && typeof backend[method] === "function") ? undefined : false;
     const streamingRead = streaming("streamingRead", "readStream");
     const streamingWrite = streaming("streamingWrite", "writeStream");
+    const append = all("append") ? true
+      : mounts.every(({ backend }) => backend.capabilities.append === false) ? false : undefined;
     this.capabilities = Object.freeze({
       get snapshotRmdir() { return mounts.some(({ backend }) => backend.capabilities.snapshotRmdir === true); },
       readOnly: all("readOnly"),
+      ...(append === undefined ? {} : { append }),
       symlinks: all("symlinks", ["readlink", "symlink"]),
       hardlinks: all("hardlinks", ["link"]),
       permissions: all("permissions", ["chmod"]),

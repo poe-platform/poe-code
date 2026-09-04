@@ -108,6 +108,18 @@ describe.each(adapters)("shared contract: $name", ({ create }) => {
     await expect(filesystem.stat("/cancelled")).rejects.toMatchObject({ code: "ENOENT" });
   });
 
+  it("preserves conservative append capability declarations through wrappers", () => {
+    const writable = create();
+    const readonly = new ReadOnlyFileSystem(writable);
+    expect(writable.capabilities.append).toBeUndefined();
+    expect(readonly.capabilities.append).toBe(false);
+    expect(new MountFileSystem({ root: readonly }).capabilities.append).toBe(false);
+    expect(new MountFileSystem({ root: writable }).capabilities.append).toBeUndefined();
+    expect(new OverlayFileSystem({ upper: readonly, lower: writable }).capabilities.append).toBe(false);
+    const overlay = new OverlayFileSystem({ upper: writable, lower: create() });
+    expect(overlay.capabilities.append).toBe(overlay.capabilities.readOnly ? false : undefined);
+  });
+
   it("preserves retained stream chunks when a producer reuses its buffer", async () => {
     const filesystem = create();
     expect(filesystem.capabilities.streamingWrite).toBe(true);

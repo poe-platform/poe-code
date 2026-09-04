@@ -1,4 +1,4 @@
-import { createOutputOperation, FsError, type ByteSource, type CommandContext, type CommandDefinition } from "../contracts/index.js";
+import { createBytePipe, createOutputOperation, FsError, type BytePipe, type ByteSource, type CommandContext, type CommandDefinition } from "../contracts/index.js";
 import {
   bufferLimit, concatenate, define, diagnostic, encoder, escapeBytes, input, integer,
   lines, options, output, pathOf, UsageError, value,
@@ -105,6 +105,18 @@ function wcSpace(point: number, posix: boolean): boolean {
   return point === 32 || point >= 9 && point <= 13 || point === 0xa0 || point === 0x1680
     || point >= 0x2000 && point <= 0x200a || point === 0x2028 || point === 0x2029
     || point === 0x202f || point === 0x205f || point === 0x3000 || !posix && point === 0x2060;
+}
+
+interface TeeStreamTarget {
+  readonly path: string;
+  readonly flag: "w" | "a";
+  readonly pipe: BytePipe;
+  task: Promise<void>;
+  failure?: unknown;
+  failed: boolean;
+  accepted: boolean;
+  reported: boolean;
+  active: boolean;
 }
 
 function headTail(name: "head" | "tail"): CommandDefinition {
@@ -299,23 +311,118 @@ export function streamCommands(): CommandDefinition[] {
     }),
     define("tee", async context => {
       const parsed = options(context.args, "a", { append: "a" });
-      const targets: string[] = [];
+      const paths: string[] = [];
+      const streams: TeeStreamTarget[] = [];
       let exitCode = 0;
+      let closed = false;
+      let cleanup: Promise<void> | undefined;
+      const closeStreams = (): Promise<void> => {
+        closed = true;
+        return cleanup ??= Promise.allSettled(streams.map(async target => {
+          await target.pipe.abort(context.signal.aborted ? context.signal.reason : undefined);
+          await target.task;
+        })).then(() => {});
+      };
+      context.registerCleanup?.(closeStreams);
+      const report = async (target: TeeStreamTarget, error: unknown): Promise<void> => {
+        target.active = false;
+        if (target.reported) return;
+        target.reported = true;
+        await diagnostic(context, error);
+        exitCode = 1;
+      };
+      const fallback = async (target: TeeStreamTarget): Promise<boolean> => {
+        if (context.fs.capabilities.append === false || target.accepted
+          || !(target.failure instanceof FsError) || target.failure.code !== "ENOTSUP") return false;
+        await context.fs.writeFile(target.path, new Uint8Array(), { flag: target.flag, signal: context.signal });
+        target.active = false;
+        paths.push(target.path);
+        return true;
+      };
+      const recover = async (target: TeeStreamTarget, error: unknown): Promise<void> => {
+        try {
+          if (await fallback(target)) return;
+        } catch (fallbackError) {
+          context.signal.throwIfAborted();
+          await report(target, fallbackError);
+          return;
+        }
+        await report(target, error);
+      };
+      const streaming = context.fs.capabilities.streamingWrite !== false && typeof context.fs.writeStream === "function";
       for (const operand of parsed.operands) {
         try {
           const path = pathOf(context, operand);
-          await context.fs.writeFile(path, new Uint8Array(), { flag: parsed.flags.has("a") ? "a" : "w", signal: context.signal });
-          targets.push(path);
-        } catch (error) { await diagnostic(context, error); exitCode = 1; }
-      }
-      for await (const chunk of input(context)) {
-        await output(context, chunk);
-        for (let index = 0; index < targets.length;) {
-          try { await context.fs.appendFile(targets[index]!, chunk, { signal: context.signal }); index++; }
-          catch (error) { await diagnostic(context, error); targets.splice(index, 1); exitCode = 1; }
+          if (closed) throw new FsError("ECANCELED", { syscall: "tee", path });
+          const flag = parsed.flags.has("a") ? "a" : "w";
+          if (streaming) {
+            const pipe = createBytePipe({ signal: context.signal });
+            const target: TeeStreamTarget = {
+              path, flag, pipe, task: Promise.resolve(), failed: false, accepted: false, reported: false, active: true,
+            };
+            const source = (async function* () {
+              for await (const chunk of pipe.readable) {
+                target.accepted = true;
+                yield chunk;
+              }
+            })();
+            target.task = context.fs.writeStream!(path, source, { flag, signal: context.signal }).catch(async error => {
+              target.failed = true;
+              target.failure = error;
+              await pipe.abort(error);
+            });
+            streams.push(target);
+          } else {
+            if (context.fs.capabilities.append === false) {
+              throw new FsError(context.fs.capabilities.readOnly === true ? "EROFS" : "ENOTSUP", { syscall: "tee", path });
+            }
+            await context.fs.writeFile(path, new Uint8Array(), { flag, signal: context.signal });
+            paths.push(path);
+          }
+        } catch (error) {
+          context.signal.throwIfAborted();
+          await diagnostic(context, error);
+          exitCode = 1;
         }
       }
-      return { exitCode };
+      try {
+        for await (const chunk of input(context)) {
+          await output(context, chunk);
+          for (const target of streams) {
+            if (!target.active) continue;
+            try { await target.pipe.writable.write(chunk); }
+            catch (error) {
+              context.signal.throwIfAborted();
+              await target.task;
+              await recover(target, target.failed ? target.failure : error);
+            }
+          }
+          for (let index = 0; index < paths.length;) {
+            try { await context.fs.appendFile(paths[index]!, chunk, { signal: context.signal }); index++; }
+            catch (error) {
+              context.signal.throwIfAborted();
+              await diagnostic(context, error);
+              paths.splice(index, 1);
+              exitCode = 1;
+            }
+          }
+        }
+        for (const target of streams) {
+          if (!target.active) continue;
+          try {
+            await target.pipe.close();
+            await target.task;
+            if (target.failed) await recover(target, target.failure);
+          } catch (error) {
+            context.signal.throwIfAborted();
+            await target.task;
+            await recover(target, target.failed ? target.failure : error);
+          }
+        }
+        return { exitCode };
+      } finally {
+        await closeStreams();
+      }
     }),
     define("tr", async context => {
       const parsed = options(context.args, "dscC", { delete: "d", "squeeze-repeats": "s", complement: "c" });

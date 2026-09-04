@@ -27,6 +27,7 @@ export interface DirectoryEntry {
 
 export interface FileSystemCapabilities {
   readonly readOnly?: boolean;
+  readonly append?: boolean;
   readonly symlinks?: boolean;
   readonly hardlinks?: boolean;
   readonly permissions?: boolean;

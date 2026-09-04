@@ -38,6 +38,7 @@ export class ReadOnlyFileSystem implements FileSystem {
     const streamingRead = typeof filesystem.readStream === "function" ? filesystem.capabilities.streamingRead : false;
     this.#capabilities = Object.freeze({
       readOnly: true,
+      append: false,
       symlinks: filesystem.capabilities.symlinks === true && typeof filesystem.readlink === "function",
       hardlinks: false,
       permissions: false,

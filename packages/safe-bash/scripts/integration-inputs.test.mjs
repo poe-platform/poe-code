@@ -1778,6 +1778,19 @@ test("repository boundaries preserve unaccepted YQ as active source tests", () =
   assert.ok(selected.includes("tests/commands/yq-author-20260828/repair-allocation-v1/repair.test.ts"));
 });
 
+test("UTF-8 literal workerd acceptance remains admitted current input", () => {
+  const root = fileURLToPath(new URL("../", import.meta.url));
+  const boundaries = loadBoundaries(root);
+  for (const path of [
+    "tests/integration/utf8-literal-search-workerd/worker.mjs",
+    "tests/integration/utf8-literal-search-workerd/observe.mjs",
+    "tests/integration/utf8-literal-search-workerd/config.capnp",
+  ]) {
+    assertAdmittedInputPath(path, boundaries);
+    assert.ok(readRegularInput(root, path, 65536, fs, boundaries).length > 0);
+  }
+});
+
 test("published root mirrors only declared subpaths and keeps the feature isolated", () => {
   const source = JSON.parse(readFileSync(new URL("../package.json", import.meta.url), "utf8"));
   const root = JSON.parse(readFileSync(new URL("../../../package.json", import.meta.url), "utf8"));

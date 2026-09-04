@@ -93,7 +93,7 @@ function descriptor(value: unknown, limits: Required<BoundedRegexProviderOptions
   for (const flag of flags) if (typeof value[flag] !== "boolean") fail("protocol", `invalid ${flag} flag`);
   if (kind.value === "rg" && !["sensitive", "insensitive", "smart"].includes(value.case as string)) fail("protocol", "invalid case flag");
   if (value.word || kind.value === "grep" && value.insensitive || kind.value === "rg" && value.case !== "sensitive") fail("unsupported", "only case-sensitive, non-word selection is supported");
-  if (kind.value === "rg" && !value.fixed) fail("unsupported", "rg regex and Unicode modes are unsupported; use fixed ASCII patterns");
+  if (kind.value === "rg" && !value.fixed) fail("unsupported", "rg regex modes are unsupported; use fixed UTF-8 patterns");
   array(value.patterns, limits.maxPatterns, "pattern");
   let bytes = 0;
   for (let index = 0; index < value.patterns.length; index++) {
@@ -124,7 +124,7 @@ function admit(input: RegexWorkerRequest, limits: Required<BoundedRegexProviderO
     bytes += length;
   }
   const ledger = new EreLedger({ maxExpansionBytes: 1_048_576, maxExpansionFields: 8192 }, {
-    patternBytes: limits.maxPatternBytes + 4, subjectBytes: limits.maxInputBytes,
+    patternBytes: limits.maxPatternBytes + (selected.fixed ? 0 : 4), subjectBytes: limits.maxInputBytes,
     work: limits.maxWork, allocationUnits: limits.maxAllocationUnits, states: limits.maxStates,
   });
   // Include snapshots, row/result metadata and worst-case match storage before copying.
@@ -170,8 +170,126 @@ async function admitBre(pattern: string, ledger: EreLedger, signal: AbortSignal)
   }
 }
 
+async function validateUtf8(input: Uint8Array | string, ledger: EreLedger, signal: AbortSignal): Promise<void> {
+  for (let index = 0; index < input.length;) {
+    const first = typeof input === "string" ? input.charCodeAt(index) : input[index]!;
+    const width = first < 0x80 ? 1 : first >= 0xc2 && first <= 0xdf ? 2
+      : first >= 0xe0 && first <= 0xef ? 3 : first >= 0xf0 && first <= 0xf4 ? 4 : 0;
+    ledger.charge("work", Math.max(width, 1), signal);
+    if (first === 0 || width === 0 || width > input.length - index) fail("unsupported", "literal patterns and subjects require valid non-NUL UTF-8 bytes");
+    for (let continuation = 1; continuation < width; continuation++) {
+      const byte = typeof input === "string" ? input.charCodeAt(index + continuation) : input[index + continuation]!;
+      if (byte < 0x80 || byte > 0xbf || continuation === 1 && (
+        first === 0xe0 && byte < 0xa0 || first === 0xed && byte > 0x9f
+        || first === 0xf0 && byte < 0x90 || first === 0xf4 && byte > 0x8f
+      )) fail("unsupported", "literal patterns and subjects require valid non-NUL UTF-8 bytes");
+    }
+    index += width;
+    await ledger.checkpoint(signal);
+  }
+}
+
+async function literalBytes(pattern: string, selected: SelectionDescriptor, ledger: EreLedger, signal: AbortSignal): Promise<Uint8Array> {
+  const { kind } = selected;
+  let length = 0;
+  if (kind === "grep") {
+    // grep transports raw pattern bytes in Latin-1 code units, not Unicode text.
+    await validateUtf8(pattern, ledger, signal);
+    length = pattern.length;
+  } else {
+    for (let index = 0; index < pattern.length;) {
+      const scalar = pattern.codePointAt(index)!;
+      const units = scalar > 0xffff ? 2 : 1;
+      ledger.charge("work", units, signal);
+      if (scalar === 0 || scalar >= 0xd800 && scalar <= 0xdfff) fail("unsupported", "rg literal patterns require non-NUL Unicode scalars for UTF-8");
+      if (scalar === 10 && selected.kind === "rg" && !selected.nullData) fail("unsupported", "rg multiline matching is unsupported");
+      length += scalar < 0x80 ? 1 : scalar < 0x800 ? 2 : scalar < 0x10000 ? 3 : 4;
+      index += units;
+      await ledger.checkpoint(signal);
+    }
+  }
+  ledger.charge("patternBytes", length, signal);
+  ledger.charge("allocationUnits", length + 1, signal);
+  const bytes = new Uint8Array(length);
+  let offset = 0;
+  for (let index = 0; index < pattern.length;) {
+    const scalar = kind === "grep" ? pattern.charCodeAt(index) : pattern.codePointAt(index)!;
+    const width = kind === "grep" || scalar < 0x80 ? 1 : scalar < 0x800 ? 2 : scalar < 0x10000 ? 3 : 4;
+    ledger.charge("work", width, signal);
+    if (width === 1) bytes[offset++] = scalar;
+    else {
+      bytes[offset++] = width === 2 ? 0xc0 | scalar >> 6 : width === 3 ? 0xe0 | scalar >> 12 : 0xf0 | scalar >> 18;
+      if (width === 4) bytes[offset++] = 0x80 | scalar >> 12 & 0x3f;
+      if (width >= 3) bytes[offset++] = 0x80 | scalar >> 6 & 0x3f;
+      bytes[offset++] = 0x80 | scalar & 0x3f;
+    }
+    index += kind === "rg" && scalar > 0xffff ? 2 : 1;
+    await ledger.checkpoint(signal);
+  }
+  return bytes;
+}
+
+interface LiteralProgram { readonly bytes: Uint8Array; readonly fallback: Uint32Array }
+
+async function compileLiteral(bytes: Uint8Array, ledger: EreLedger, signal: AbortSignal): Promise<LiteralProgram> {
+  ledger.charge("states", bytes.length, signal);
+  ledger.charge("allocationUnits", bytes.length * 4 + 3, signal);
+  const fallback = new Uint32Array(bytes.length);
+  // KMP failure links bound prefix-heavy matching to linear work per pattern/row.
+  for (let index = 1, prefix = 0; index < bytes.length;) {
+    ledger.charge("work", 1, signal);
+    if (bytes[index] === bytes[prefix]) fallback[index++] = ++prefix;
+    else if (prefix > 0) prefix = fallback[prefix - 1]!;
+    else index++;
+    await ledger.checkpoint(signal);
+  }
+  return { bytes, fallback };
+}
+
+async function literalStart(program: LiteralProgram, subject: Uint8Array, whole: boolean, ledger: EreLedger, signal: AbortSignal): Promise<number> {
+  const { bytes, fallback } = program;
+  ledger.charge("work", 1, signal);
+  await ledger.checkpoint(signal);
+  if (whole && bytes.length !== subject.length || bytes.length > subject.length) return -1;
+  if (bytes.length === 0) return 0;
+  for (let index = 0, prefix = 0; index < subject.length;) {
+    ledger.charge("work", 1, signal);
+    if (subject[index] === bytes[prefix]) {
+      index++;
+      if (++prefix === bytes.length) return index - prefix;
+    } else if (prefix > 0) prefix = fallback[prefix - 1]!;
+    else index++;
+    await ledger.checkpoint(signal);
+  }
+  return -1;
+}
+
+async function executeLiteral(input: OwnedRequest, signal: AbortSignal): Promise<Reply> {
+  const { descriptor: selected, rows, ledger } = input;
+  const programs: LiteralProgram[] = [];
+  for (const pattern of selected.patterns) {
+    programs.push(await compileLiteral(await literalBytes(pattern, selected, ledger, signal), ledger, signal));
+  }
+  const results: Float64Array[] = [];
+  for (const row of rows) {
+    await validateUtf8(row.bytes, ledger, signal);
+    let start = -1;
+    let end = -1;
+    for (const program of programs) {
+      const candidate = await literalStart(program, row.bytes, selected.whole, ledger, signal);
+      if (candidate < 0) continue;
+      if (start < 0 || candidate < start) { start = candidate; end = start + program.bytes.length; }
+      if (selected.kind === "grep") break;
+    }
+    signal.throwIfAborted();
+    results.push(start < 0 ? new Float64Array() : new Float64Array([start, end]));
+  }
+  return { id: input.id, results };
+}
+
 async function execute(input: OwnedRequest, signal: AbortSignal): Promise<Reply> {
   const { descriptor: selected, rows, ledger } = input;
+  if (selected.fixed) return executeLiteral(input, signal);
   const programs: EreProgram[] = [];
   for (const pattern of selected.patterns) {
     if (selected.kind === "grep" && !selected.fixed && !selected.extended) await admitBre(pattern, ledger, signal);
@@ -277,7 +395,7 @@ class CooperativeWorker implements RegexWorker {
   }
 }
 
-/** Cooperative non-NUL ASCII grep selection and fixed-rg provider; not a native-worker/RSS sandbox. */
+/** Cooperative ASCII grep regex and non-NUL UTF-8 literal provider; not a native-worker/RSS sandbox. */
 export function createBoundedRegexProvider(input: BoundedRegexProviderOptions = {}): BoundedRegexProvider {
   const limits = options(input);
   let active = 0;

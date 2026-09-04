@@ -10,6 +10,9 @@ const grep = (patterns: string[], overrides: object = {}): Descriptor => ({
 });
 const row = (text: string, all = false) => ({ bytes: new TextEncoder().encode(text), all, terminated: true });
 const request = (descriptor: Descriptor, texts: string[] = ["abc"]): RegexWorkerRequest => ({ id: 1, descriptor, rows: texts.map(text => row(text)) });
+const literal = (kind: "grep" | "rg", patterns: string[], whole = false): Descriptor => kind === "grep"
+  ? grep(patterns.map(pattern => Buffer.from(pattern).toString("latin1")), { fixed: true, whole })
+  : { kind, patterns, fixed: true, case: "sensitive", whole, word: false, nullData: false };
 
 async function exchange(worker: RegexWorker, input: RegexWorkerRequest): Promise<Reply> {
   return new Promise((resolve, reject) => {
@@ -89,6 +92,119 @@ test("raw non-ASCII, invalid UTF-8 and NUL are refused without decoding or repla
     assert.match(reply.error, /non-NUL ASCII/);
     assert.deepEqual(input.rows[0]!.bytes, bytes);
   }
+});
+
+test("UTF-8 literals preserve byte offsets without normalization or regex interpretation", async () => {
+  for (const kind of ["grep", "rg"] as const) {
+    assert.deepEqual(spans(await run(request(literal(kind, ["é🦊"]), ["aé🦊b", "ae\u0301🦊b"]))), [[1, 7], []]);
+    assert.deepEqual(spans(await run(request(literal(kind, ["[é]+"]), ["x[é]+y"]))), [[1, 6]]);
+    assert.deepEqual(spans(await run(request(literal(kind, ["中"], true), ["中", "中x"]))), [[0, 3], []]);
+    assert.deepEqual(spans(await run(request(literal(kind, [""]), ["🦊"]))), [[0, 0]]);
+    assert.deepEqual(spans(await run(request(literal(kind, [""], true), ["", "é"]))), [[0, 0], []]);
+    assert.deepEqual(spans(await run(request(literal(kind, []), ["é"]))), [[]]);
+    assert.deepEqual(spans(await run(request(literal(kind, ["\ufeffé"]), ["\ufeffé"]))), [[0, 5]]);
+  }
+  assert.deepEqual(spans(await run(request(literal("grep", ["🦊", "é"]), ["é🦊"]))), [[2, 6]]);
+  assert.deepEqual(spans(await run(request(literal("rg", ["🦊", "é"]), ["é🦊"]))), [[0, 2]]);
+  assert.deepEqual(spans(await run(request(literal("rg", ["é", "é🦊"]), ["é🦊"]))), [[0, 2]]);
+  const boundaries = "\u007f\u0080\u07ff\u0800\ud7ff\ue000\uffff\u{10000}\u{10ffff}";
+  for (const kind of ["grep", "rg"] as const) {
+    assert.deepEqual(spans(await run(request(literal(kind, [boundaries]), [`é${boundaries}x`]))), [[2, 27]]);
+  }
+});
+
+test("literal UTF-8 validation rejects malformed bytes, NUL and ambiguous protocol strings", async () => {
+  const invalid = [
+    [0], [0xff], [0x80], [0xc0, 0x80], [0xc2], [0xc2, 0x20],
+    [0xe0, 0x80, 0x80], [0xed, 0xa0, 0x80], [0xe2, 0x82],
+    [0xf0, 0x80, 0x80, 0x80], [0xf4, 0x90, 0x80, 0x80], [0xf5, 0x80, 0x80, 0x80], [0xf0, 0x90, 0x80],
+  ];
+  for (const bytes of invalid) {
+    const pattern = String.fromCharCode(...bytes);
+    const reply = await run(request(grep([pattern], { fixed: true }), []));
+    assert.ok("error" in reply);
+    assert.match(reply.error, /UTF-8|NUL/);
+    for (const kind of ["grep", "rg"] as const) {
+      const input = { ...request(literal(kind, [])), rows: [{ bytes: Uint8Array.from(bytes), all: false, terminated: true }] };
+      const reply = await run(input);
+      assert.ok("error" in reply);
+      assert.match(reply.error, /UTF-8|NUL/);
+      assert.deepEqual([...input.rows[0]!.bytes], bytes);
+    }
+  }
+  for (const descriptor of [grep(["中"], { fixed: true }), ...["\ud800", "\udfff", "x\ud800y", "\0"].map(pattern => literal("rg", [pattern]))]) {
+    const reply = await run(request(descriptor, []));
+    assert.ok("error" in reply);
+    assert.match(reply.error, /UTF-8|NUL|byte.string/);
+  }
+  const multiline = literal("rg", ["é\nx"]);
+  const reply = await run(request(multiline, []));
+  assert.ok("error" in reply);
+  assert.match(reply.error, /multiline/);
+  assert.deepEqual(spans(await run(request({ ...multiline, nullData: true } as Descriptor, ["é\nx"]))), [[0, 4]]);
+});
+
+test("literal resource admission counts UTF-8 bytes and shared preprocessing work", async () => {
+  for (const kind of ["grep", "rg"] as const) {
+    assert.deepEqual(spans(await run(request(literal(kind, ["é"]), ["é"]), { maxPatternBytes: 2, maxInputBytes: 2 })), [[0, 2]]);
+    for (const [input, options, expected] of [
+      [request(literal(kind, ["é"]), []), { maxPatternBytes: 1 }, /pattern/],
+      [request(literal(kind, ["é", "é"]), []), { maxPatternBytes: 3 }, /pattern/],
+      [request(literal(kind, ["é"]), ["é"]), { maxInputBytes: 1 }, /input/],
+      [request(literal(kind, ["é"]), ["é"]), { maxResultBytes: 15 }, /result/],
+      [request(literal(kind, ["é".repeat(64)]), []), { maxWork: 32 }, /work/],
+      [request(literal(kind, ["é".repeat(64)]), []), { maxAllocationUnits: 32 }, /allocation/],
+      [request(literal(kind, ["é".repeat(64)]), []), { maxStates: 32 }, /states/],
+    ] as const) {
+      const reply = await run(input, options);
+      assert.ok("error" in reply);
+      assert.match(reply.error, expected);
+    }
+  }
+});
+
+test("literal prefix-heavy searches stay linear and share their request budget", async () => {
+  const pattern = "é".repeat(128) + "x";
+  const subject = "é".repeat(2048) + "x";
+  for (const kind of ["grep", "rg"] as const) {
+    assert.deepEqual(spans(await run(request(literal(kind, [pattern]), [subject]), { maxWork: 15_000 })), [[3840, 4097]]);
+    const reply = await run(request(literal(kind, [pattern]), [subject, subject]), { maxWork: 15_000 });
+    assert.ok("error" in reply);
+    assert.match(reply.error, /work/);
+  }
+});
+
+test("UTF-8 request snapshots preserve literal bytes and allow reuse after a limit error", async () => {
+  const worker = createBoundedRegexProvider({ maxWork: 100 }).createWorker(defaults);
+  try {
+    const patterns = ["é"];
+    const input = request(literal("rg", patterns), ["xé"]);
+    const pending = exchange(worker, input);
+    input.rows[0]!.bytes.fill(0xff);
+    patterns[0] = "y";
+    assert.deepEqual(spans(await pending), [[1, 3]]);
+    const reply = await exchange(worker, request(literal("rg", ["é"]), ["é".repeat(100)]));
+    assert.ok("error" in reply);
+    assert.match(reply.error, /work/);
+    assert.deepEqual(spans(await exchange(worker, request(literal("rg", ["é"]), ["é"]))), [[0, 2]]);
+  } finally { await worker.terminate(); }
+});
+
+test("UTF-8 literal retirement stops pending preprocessing and releases capacity", async () => {
+  const provider = createBoundedRegexProvider({ maxWorkers: 1 });
+  const worker = provider.createWorker(defaults);
+  let replies = 0;
+  worker.on("message", value => { if (value && typeof value === "object" && "id" in value) replies++; });
+  worker.postMessage(request(literal("rg", ["é".repeat(3000)]), ["é".repeat(4000)]));
+  await new Promise<void>(resolve => setTimeout(resolve, 0));
+  const retirement = worker.terminate();
+  assert.equal(worker.terminate(), retirement);
+  assert.throws(() => provider.createWorker(defaults), /worker.*limit/);
+  await retirement;
+  assert.equal(replies, 0);
+  const replacement = provider.createWorker(defaults);
+  try { assert.deepEqual(spans(await exchange(replacement, request(literal("rg", ["é"]), ["é"]))), [[0, 2]]); }
+  finally { await replacement.terminate(); }
 });
 
 test("request shape admission rejects malformed descriptors, holes, and accessors without calling them", async () => {

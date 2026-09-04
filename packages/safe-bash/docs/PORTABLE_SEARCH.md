@@ -32,24 +32,26 @@ silently installs one.
 ## Package-owned production profile
 
 `createBoundedRegexProvider(options?: BoundedRegexProviderOptions)` is exported
-from the Node and browser entries. It uses the cooperative ERE interpreter in
-the package, not native guest `RegExp`, a subprocess, or a Node/browser Worker.
+from the Node and browser entries. It uses the package's cooperative ERE
+interpreter and byte-literal matcher, not native guest `RegExp`, a subprocess, or a Node/browser Worker.
 It can run inside a workerd request context without Node compatibility flags.
 
-This first profile accepts **non-NUL ASCII patterns and subjects only**. It
-does not decode invalid UTF-8 into replacement characters. Non-ASCII bytes,
-invalid UTF-8, and embedded NUL in a subject or pattern are explicitly rejected.
-Supported results retain original byte offsets and command output bytes.
+Literal modes accept **valid non-NUL UTF-8 patterns and subjects**; regex modes
+remain ASCII-only. Invalid UTF-8 and embedded NUL in a subject or pattern are
+explicitly rejected, including malformed subjects when the pattern list is empty.
+Literal matching compares original bytes without decoding, normalization, case
+folding, or replacement characters. Supported results retain original byte
+offsets and command output bytes, including BOM bytes.
 
 | Mode | Supported behavior |
 | --- | --- |
 | `grep -E` | Case-sensitive restricted ASCII ERE, leftmost-longest matching |
-| `grep -F` | Case-sensitive ASCII literal matching |
+| `grep -F` | Case-sensitive valid UTF-8 literal matching |
 | plain `grep` | Conservative BRE subset: ordinary literals, `.`, bracket classes, repetition `*`, leading `^`, and trailing `$`; escapes, interior anchors, leading `*`, and extended operator syntax are rejected |
-| `rg -F` | Case-sensitive ASCII fixed-string matching |
+| `rg -F` | Case-sensitive valid UTF-8 fixed-string matching |
 | plain regex `rg` | Rejected; POSIX ERE spans are not advertised as rg regex semantics |
 | `grep -o` / `rg -o` | Rejected; all-match enumeration is not supported |
-| Unicode, case folding, smart case, word matching | Rejected |
+| Unicode regex, case folding, smart case, word matching | Rejected |
 | rg path globs | Rejected, including validation with no candidate rows |
 
 Pattern lists, empty patterns, zero-pattern lists, whole-record selection, and
@@ -61,6 +63,15 @@ run even when a batch has no subject rows. Sed continues to use its existing
 separate instruction interpreter and limits; this provider does not redefine
 sed's dialect.
 
+The worker protocol is unchanged: grep pattern strings contain raw bytes in
+Latin-1 code units and are validated as UTF-8 bytes; rg pattern strings contain
+Unicode text and are encoded only after rejecting unpaired UTF-16 surrogates.
+Direct provider consumers must not pass Unicode text as grep's byte strings.
+For literal selection, grep returns the first matching pattern's first span;
+rg returns the earliest span, breaking ties by pattern order. Whole-record
+matching compares the complete byte sequence. Ordinary rg mode still rejects
+multiline patterns; NUL-delimited records do not permit embedded NUL payloads.
+
 ### Provider budgets
 
 All provider options are optional. Their defaults are:
@@ -69,13 +80,13 @@ All provider options are optional. Their defaults are:
 | --- | ---: | --- |
 | `maxWorkers` | 2 | Live and retiring endpoints across this provider instance |
 | `maxPatterns` | 32 | Patterns per request |
-| `maxPatternBytes` | 8,192 | Aggregate ASCII pattern bytes per request |
+| `maxPatternBytes` | 8,192 | Aggregate encoded pattern bytes per request |
 | `maxRows` | 128 | Subject rows per request |
 | `maxInputBytes` | 65,536 | Aggregate subject bytes per request |
 | `maxResultBytes` | 2,048 | Result-span storage admitted at 16 bytes per row |
-| `maxWork` | 2,000,000 | Cumulative interpreter work per request |
+| `maxWork` | 2,000,000 | Cumulative validation, encoding and matching work per request |
 | `maxAllocationUnits` | 1,000,000 | Cumulative algorithmic allocation accounting per request |
-| `maxStates` | 65,536 | Cumulative interpreter states per request |
+| `maxStates` | 65,536 | Cumulative interpreter states or literal failure-table entries per request |
 
 Options must be positive safe integers. Hard ceilings are 32 workers, 128
 patterns, 65,532 pattern bytes, 4,096 rows, 1,048,576 input bytes, 65,536 result
@@ -91,6 +102,12 @@ deadline limits below. The interpreter shares one ledger across the request's
 patterns and rows; budgets do not reset per match. Inputs and intermediate/result
 storage are admitted before allocation. Exhausted work/storage budgets fail the
 request rather than returning truncated matches.
+The literal matcher uses one KMP failure-table entry per encoded pattern byte;
+its preprocessing and search are linear per pattern/row. UTF-8 validation,
+encoding, table construction and matching charge the same request work budget
+and yield cooperatively. Encoded pattern buffers and four-byte failure-table
+entries are charged before allocation. No decoded subject or character-to-byte
+offset map is allocated.
 `maxResultBytes` bounds match-result buffers; error diagnostics have a separate
 fixed 512-character ceiling.
 

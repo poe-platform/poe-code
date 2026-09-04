@@ -1250,6 +1250,43 @@ describe("HTTP MCP production readiness", () => {
     expect(text).toContain("notifications/tools/list_changed");
   });
 
+  it("applies GET backpressure to replay without consuming stored history", async () => {
+    const server = createHttpServer({
+      name: "replay-backpressure",
+      version: "1.0.0",
+      sessionIdGenerator: () => "replay-backpressure-session",
+      maxStreamBufferBytes: 4
+    });
+    const sessionId = await initializeSession(server);
+    await server.notifyToolsChanged();
+    await server.notifyToolsChanged();
+    const headers = {
+      Accept: "text/event-stream",
+      "Mcp-Session-Id": sessionId,
+      "MCP-Protocol-Version": TEST_PROTOCOL_VERSION,
+      "Last-Event-ID": "0"
+    };
+    const stalled = await dispatchRaw(server, {
+      method: "GET",
+      headers,
+      writableLength: 5
+    });
+    expect(stalled.response.writableEnded).toBe(true);
+    expect(stalled.response.chunks).toHaveLength(0);
+    const resumed = await dispatchRaw(server, {
+      method: "GET",
+      headers,
+      writableLength: 4
+    });
+    expect(resumed.response.statusCode).toBe(200);
+    expect(resumed.response.writableEnded).toBe(false);
+    const text = Buffer.concat(resumed.response.chunks).toString("utf8");
+    expect(text).toContain("id: 1\n");
+    expect(text).toContain("id: 2\n");
+    expect(resumed.response.chunks).toHaveLength(2);
+    resumed.response.end();
+  });
+
   it("ends stalled GET streams while retaining notifications for replay", async () => {
     const server = createHttpServer({
       name: "stream-backpressure",

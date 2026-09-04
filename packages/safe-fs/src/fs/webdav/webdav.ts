@@ -43,6 +43,7 @@ export interface WebDavFileSystemOptions {
   readonly maxResponseBytes?: number;
   readonly maxXmlBytes?: number;
   readonly maxEntries?: number;
+  /** Per-request and aggregate stat/write-preflight walk timeout; defaults to 30,000 ms. */
   readonly timeoutMs?: number;
   readonly overwritePolicy?: "lock" | "etag";
   readonly atomicEmptyDirectory?: WebDavAtomicEmptyDirectoryBinding;
@@ -131,7 +132,7 @@ function normalize(path: string): string {
   return `/${segments.join("/")}`;
 }
 
-function validateDirectoryAccessPath(path: string): void {
+function validateDirectoryWalkPath(path: string, syscall = "access"): void {
   if (typeof path !== "string") fail("EINVAL", "resolve", String(path), "invalid WebDAV path");
   let bytes = 0;
   let components = 0;
@@ -146,7 +147,7 @@ function validateDirectoryAccessPath(path: string): void {
     bytes += point <= 0x7f ? 1 : point <= 0x7ff ? 2 : point <= 0xffff ? 3 : 4;
     if (point > 0xffff) offset++;
     if (bytes > 65_536 || components > 256) {
-      fail("ENAMETOOLONG", "access", path, "directory access exceeds the 64KiB path or 256 component limit");
+      fail("ENAMETOOLONG", syscall, path, "directory access exceeds the 64KiB path or 256 component limit");
     }
   }
 }
@@ -199,6 +200,7 @@ export class WebDavFileSystem implements FileSystem {
   private readonly maxXmlBytes: number;
   private readonly maxEntries: number;
   private readonly timeoutMs: number;
+  private readonly walkDeadlines = new WeakMap<FsOptions, { deadline?: AbortSignalScope }>();
   private readonly overwritePolicy: "lock" | "etag";
   private readonly configuredComparison: boolean;
   private readonly atomicEmptyDirectory: WebDavAtomicEmptyDirectoryBinding | undefined;
@@ -353,7 +355,9 @@ export class WebDavFileSystem implements FileSystem {
     consume: (response: Response, signal: AbortSignal) => AsyncIterable<T>, collection = false,
     received?: (response: Response, late: boolean) => void): AsyncGenerator<T> {
     if (options.signal?.aborted) fail("ECANCELED", method, path);
-    const deadline = createRequestTimeout(this.timeoutMs);
+    const walk = this.walkDeadlines.get(options);
+    const deadline = walk?.deadline ?? createRequestTimeout(this.timeoutMs);
+    if (walk) walk.deadline = deadline;
     const timeout = deadline.signal;
     try {
       const headers = new Headers(this.headers);
@@ -425,7 +429,7 @@ export class WebDavFileSystem implements FileSystem {
         if (response?.body && !response.body.locked) void response.body.cancel().catch(() => {});
       }
     } finally {
-      deadline.dispose();
+      if (!walk) deadline.dispose();
     }
   }
 
@@ -660,23 +664,40 @@ export class WebDavFileSystem implements FileSystem {
     catch (error) { if (isFsError(error, "ENOENT")) return undefined; throw error; }
   }
 
+  private async withWalkDeadline<Options extends FsOptions, Result>(
+    options: Options, walk: (options: Options) => Promise<Result>,
+  ): Promise<Result> {
+    if (this.walkDeadlines.has(options)) return walk(options);
+    const scopedOptions = { ...options };
+    const owned: { deadline?: AbortSignalScope } = {};
+    this.walkDeadlines.set(scopedOptions, owned);
+    try { return await walk(scopedOptions); }
+    finally {
+      owned.deadline?.dispose();
+      this.walkDeadlines.delete(scopedOptions);
+    }
+  }
+
   async stat(path: string, options: FsOptions = {}): Promise<FileStat> {
+    validateDirectoryWalkPath(path, "stat");
     const normalized = normalize(path);
     const collection = requiresCollection(path);
-    try {
-      const stat = (await this.entries(normalized, "0", options, collection)).get(normalized)!;
-      if (collection && stat.type !== "directory") fail("ENOTDIR", "stat", path);
-      return stat;
-    } catch (error) {
-      if (!isFsError(error, "ENOENT")) throw error;
-      let parent = "";
-      for (const segment of normalized.slice(1).split("/").slice(0, -1)) {
-        parent += `/${segment}`;
-        const ancestor = (await this.entries(parent, "0", options)).get(parent)!;
-        if (ancestor.type !== "directory") fail("ENOTDIR", "stat", path);
+    return this.withWalkDeadline(options, async scopedOptions => {
+      try {
+        const stat = (await this.entries(normalized, "0", scopedOptions, collection)).get(normalized)!;
+        if (collection && stat.type !== "directory") fail("ENOTDIR", "stat", path);
+        return stat;
+      } catch (error) {
+        if (!isFsError(error, "ENOENT")) throw error;
+        let parent = "";
+        for (const segment of normalized.slice(1).split("/").slice(0, -1)) {
+          parent += `/${segment}`;
+          const ancestor = (await this.entries(parent, "0", scopedOptions)).get(parent)!;
+          if (ancestor.type !== "directory") fail("ENOTDIR", "stat", path);
+        }
+        throw error;
       }
-      throw error;
-    }
+    });
   }
 
   async lstat(path: string, options: FsOptions = {}): Promise<FileStat> {
@@ -728,39 +749,42 @@ export class WebDavFileSystem implements FileSystem {
   private async prepareWrite(path: string, options: WriteFileOptions): Promise<{
     normalized: string; headers: Record<string, string>; prefix: Uint8Array;
   }> {
+    validateDirectoryWalkPath(path, "writeFile");
     const normalized = normalize(path);
     if (options.mode !== undefined) this.unsupported("writeFile mode", path);
     if (options.flag !== undefined && !["w", "wx", "a", "ax"].includes(options.flag)) fail("EINVAL", "writeFile", path);
     if (options.signal?.aborted) fail("ECANCELED", "writeFile", path);
     if (normalized === "/") fail("EISDIR", "writeFile", path);
-    if (requiresCollection(path)) {
-      await this.stat(path, options);
-      fail("EISDIR", "writeFile", path);
-    }
-    let parent = "";
-    for (const segment of normalized.slice(1).split("/").slice(0, -1)) {
-      parent += `/${segment}`;
-      await this.stat(`${parent}/`, options);
-    }
-    const exclusive = options.flag === "wx" || options.flag === "ax";
-    const existing = exclusive ? undefined : await this.maybeStat(normalized, options);
-    if (existing?.type === "directory") fail("EISDIR", "writeFile", path);
-    let prefix: Uint8Array = new Uint8Array();
-    const headers: Record<string, string> = { "Content-Type": "application/octet-stream" };
-    if (exclusive || (options.flag === "a" && !existing)) headers["If-None-Match"] = "*";
-    if (options.flag === "a" && existing) {
-      const snapshot = await this.request("GET", normalized, options, { headers: { "Accept-Encoding": "identity" } }, async (response, signal) => {
-        if (response.status !== 200) this.httpError(response.status, "GET", path);
-        const etag = strongEtag(response.headers.get("ETag"), path);
-        if (response.headers.get("Content-Encoding") && response.headers.get("Content-Encoding")!.toLowerCase() !== "identity") {
-          fail("ENOTSUP", "appendFile", path, "conditional append requires an identity representation");
-        }
-        return { etag, data: await this.bytes(response, this.maxResponseBytes, signal) };
-      });
-      prefix = snapshot.data;
-      headers["If-Match"] = snapshot.etag;
-    }
-    return { normalized, headers, prefix };
+    return this.withWalkDeadline(options, async scopedOptions => {
+      if (requiresCollection(path)) {
+        await this.stat(path, scopedOptions);
+        fail("EISDIR", "writeFile", path);
+      }
+      let parent = "";
+      for (const segment of normalized.slice(1).split("/").slice(0, -1)) {
+        parent += `/${segment}`;
+        await this.stat(`${parent}/`, scopedOptions);
+      }
+      const exclusive = options.flag === "wx" || options.flag === "ax";
+      const existing = exclusive ? undefined : await this.maybeStat(normalized, scopedOptions);
+      if (existing?.type === "directory") fail("EISDIR", "writeFile", path);
+      let prefix: Uint8Array = new Uint8Array();
+      const headers: Record<string, string> = { "Content-Type": "application/octet-stream" };
+      if (exclusive || (options.flag === "a" && !existing)) headers["If-None-Match"] = "*";
+      if (options.flag === "a" && existing) {
+        const snapshot = await this.request("GET", normalized, scopedOptions, { headers: { "Accept-Encoding": "identity" } }, async (response, signal) => {
+          if (response.status !== 200) this.httpError(response.status, "GET", path);
+          const etag = strongEtag(response.headers.get("ETag"), path);
+          if (response.headers.get("Content-Encoding") && response.headers.get("Content-Encoding")!.toLowerCase() !== "identity") {
+            fail("ENOTSUP", "appendFile", path, "conditional append requires an identity representation");
+          }
+          return { etag, data: await this.bytes(response, this.maxResponseBytes, signal) };
+        });
+        prefix = snapshot.data;
+        headers["If-Match"] = snapshot.etag;
+      }
+      return { normalized, headers, prefix };
+    });
   }
 
   async writeFile(path: string, data: Uint8Array, options: WriteFileOptions = {}): Promise<void> {
@@ -1071,7 +1095,7 @@ export class WebDavFileSystem implements FileSystem {
     if (!Number.isInteger(mode) || mode < 0 || mode > 7) fail("EINVAL", "access", path);
     if (options.signal?.aborted) fail("ECANCELED", "access", path);
     if (mode & 2) this.unsupported("access write/execute permission checks", path);
-    if (mode & 1) validateDirectoryAccessPath(path);
+    if (mode & 1) validateDirectoryWalkPath(path);
     const stat = await this.stat(path, options);
     if (options.signal?.aborted) fail("ECANCELED", "access", path);
     if ((mode & 1) && stat.type !== "directory") this.unsupported("access execute permission checks", path);

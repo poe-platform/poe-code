@@ -51,7 +51,7 @@ class Reader {
   async close(): Promise<void> { await this.iterator.return?.(); this.buffer = ""; this.ended = true; }
 }
 
-interface Reference { get(): Value; set(value: Scalar): void }
+interface Reference { get(): Value; set(value: Scalar): void | Promise<void> }
 
 export class AwkRuntime {
   private readonly variables = new Map<string, Value>();
@@ -114,41 +114,89 @@ export class AwkRuntime {
     return pattern;
   }
   private async regex(expression: Expression): Promise<Pattern> { return expression.kind === "regex" ? expression.pattern : this.pattern(this.asText(await this.scalarExpression(expression))); }
-  private split(value: string, separator: string | Pattern, paragraph = false): Scalar[] {
-    let parts: string[];
-    if (separator === " ") parts = value.split(/[ \t\n\r\v\f]+/u).filter(part => part !== "");
-    else if (separator === "") parts = [...value];
-    else if (typeof separator === "string" && separator.length === 1) parts = value === "" ? [] : value.split(separator).flatMap(part => paragraph ? part.split("\n") : [part]);
-    else {
+  private async split(value: string, separator: string | Pattern, paragraph = false): Promise<Scalar[]> {
+    // Admit the byte scan/copy before building fields; regex matching charges its own work.
+    this.budget.step(value.length);
+    const parts: Scalar[] = [];
+    const append = (start: number, end: number): void => {
+      if (parts.length >= 100000) throw new ProgramError("field count limit exceeded");
+      parts.push(inputValue(value.slice(start, end)));
+    };
+    if (separator === " ") {
+      let start = -1;
+      for (let index = 0; index < value.length; index++) {
+        if (index % 256 === 0) await this.budget.checkpoint();
+        if (" \t\n\r\v\f".includes(value[index]!)) {
+          if (start >= 0) { append(start, index); start = -1; }
+        } else if (start < 0) start = index;
+      }
+      if (start >= 0) append(start, value.length);
+    } else if (separator === "") {
+      if (value.length > 100000) throw new ProgramError("field count limit exceeded");
+      for (let index = 0; index < value.length; index++) {
+        if (index % 256 === 0) await this.budget.checkpoint();
+        append(index, index + 1);
+      }
+    } else if (typeof separator === "string" && separator.length === 1) {
+      let start = 0;
+      for (let index = 0; index < value.length; index++) {
+        if (index % 256 === 0) await this.budget.checkpoint();
+        if (value[index] === separator || paragraph && value[index] === "\n") {
+          append(start, index); start = index + 1;
+        }
+      }
+      if (value !== "") append(start, value.length);
+    } else {
       const matcher = typeof separator === "string" ? this.pattern(separator) : separator;
-      parts = [];
+      const segment = async (start: number, end: number): Promise<void> => {
+        if (paragraph) for (let index = start; index < end; index++) {
+          if (index % 256 === 0) await this.budget.checkpoint();
+          if (value[index] === "\n") { append(start, index); start = index + 1; }
+        }
+        append(start, end);
+      };
       let consumed = 0;
       let search = 0;
       while (search <= value.length) {
+        await this.budget.checkpoint();
         const match = matcher.find(value, this.budget, search);
         if (!match) break;
         if (match.start === match.end) { search = match.end + 1; continue; }
-        parts.push(value.slice(consumed, match.start)); consumed = match.end; search = match.end;
+        await segment(consumed, match.start); consumed = match.end; search = match.end;
       }
-      if (value !== "") parts.push(value.slice(consumed));
-      if (paragraph) parts = parts.flatMap(part => part.split("\n"));
+      if (value !== "") await segment(consumed, value.length);
     }
-    if (parts.length > 100000) throw new ProgramError("field count limit exceeded");
-    return parts.map(inputValue);
+    return parts;
   }
-  private setRecord(record: string): void {
+  private async setRecord(record: string): Promise<void> {
     this.record = this.budget.check(record);
-    this.fields = this.split(record, this.varText("FS"), this.varText("RS") === "");
+    this.fields = await this.split(record, this.varText("FS"), this.varText("RS") === "");
     this.variables.set("NF", numeric(this.fields.length));
   }
+  private join(parts: readonly string[], separator: string, suffix = ""): string {
+    this.budget.step(parts.length + 1);
+    let remaining = this.budget.maxBufferBytes;
+    for (let index = 0; index < parts.length; index++) {
+      if (index > 0) {
+        if (separator.length > remaining) throw new ProgramError("text buffer limit exceeded");
+        remaining -= separator.length;
+      }
+      if (parts[index]!.length > remaining) throw new ProgramError("text buffer limit exceeded");
+      remaining -= parts[index]!.length;
+    }
+    if (suffix.length > remaining) throw new ProgramError("text buffer limit exceeded");
+    remaining -= suffix.length;
+    this.budget.step(this.budget.maxBufferBytes - remaining);
+    return parts.join(separator) + suffix;
+  }
   private rebuild(): void {
-    this.record = this.budget.check(this.fields.map(value => this.asText(value)).join(this.varText("OFS")));
+    this.record = this.join(this.fields.map(value => this.asText(value)), this.varText("OFS"));
     this.variables.set("NF", numeric(this.fields.length));
   }
   private async key(items: readonly Expression[]): Promise<string> {
     const pieces: string[] = [];
     for (const item of items) pieces.push(this.asText(await this.scalarExpression(item)));
-    return this.budget.check(pieces.join(this.varText("SUBSEP")));
+    return this.join(pieces, this.varText("SUBSEP"));
   }
   private async reference(expression: Expression): Promise<Reference> {
     if (expression.kind === "variable") return { get: () => this.get(expression.name), set: value => this.set(expression.name, value) };
@@ -158,7 +206,7 @@ export class AwkRuntime {
       return {
         get: () => index === 0 ? inputValue(this.record) : this.fields[index - 1] ?? unset,
         set: value => {
-          if (index === 0) { this.setRecord(this.asText(value)); return; }
+          if (index === 0) return this.setRecord(this.asText(value));
           while (this.fields.length < index) this.fields.push(unset);
           this.fields[index - 1] = value; this.rebuild();
         },
@@ -195,7 +243,7 @@ export class AwkRuntime {
           const reference = await this.reference(expression.operand);
           const previous = number(scalar(reference.get()));
           const next = previous + (expression.operator === "++" ? 1 : -1);
-          reference.set(numeric(next)); return numeric(expression.postfix ? previous : next);
+          await reference.set(numeric(next)); return numeric(expression.postfix ? previous : next);
         }
         const operand = await this.scalarExpression(expression.operand);
         return numeric(expression.operator === "!" ? truth(operand) ? 0 : 1 : expression.operator === "-" ? -number(operand) : number(operand));
@@ -207,7 +255,7 @@ export class AwkRuntime {
           const previous = operator === "=" ? unset : scalar(reference.get());
           let value = await this.scalarExpression(expression.right);
           if (operator !== "=") value = numeric(this.arithmetic(operator[0]!, number(previous), number(value)));
-          reference.set(value); return value;
+          await reference.set(value); return value;
         }
         if (operator === "in") {
           const array = this.array((expression.right as Extract<Expression, { kind: "variable" }>).name);
@@ -268,8 +316,8 @@ export class AwkRuntime {
       return numeric(-1);
     }
     if (record === undefined) return numeric(0);
-    if (target) target.set(inputValue(record));
-    else this.setRecord(record);
+    if (target) await target.set(inputValue(record));
+    else await this.setRecord(record);
     return numeric(1);
   }
 
@@ -301,14 +349,14 @@ export class AwkRuntime {
       if (/\\[1-9]/u.test(replacement)) throw new ProgramError("awk replacement backreference escapes are not supported");
       const target = await this.reference(args[2] ?? { kind: "field", index: { kind: "number", value: 0 } });
       const result = substitute(this.asText(scalar(target.get())), pattern, replacement, this.budget, name === "gsub");
-      if (result.count) target.set(string(result.text));
+      if (result.count) await target.set(string(result.text));
       return numeric(result.count);
     }
     if (name === "split") {
       const value = this.asText(await this.scalarExpression(args[0]!));
       const target = this.array((args[1] as Extract<Expression, { kind: "variable" }>).name);
       const separator = args[2]?.kind === "regex" ? args[2].pattern : args[2] ? this.asText(await this.scalarExpression(args[2])) : this.varText("FS");
-      const parts = this.split(value, separator);
+      const parts = await this.split(value, separator);
       this.entries -= target.entries.size; target.entries.clear();
       parts.forEach((part, index) => this.arraySet(target, String(index + 1), part));
       return numeric(parts.length);
@@ -354,8 +402,9 @@ export class AwkRuntime {
       case "print": {
         const values: Scalar[] = [];
         for (const argument of statement.args) values.push(await this.scalarExpression(argument));
-        const output = this.budget.check(statement.formatted ? formatted(this.asText(values[0]!), values.slice(1), value => this.asText(value))
-          : (values.length ? values.map(value => text(value, this.varText("OFMT"))).join(this.varText("OFS")) : this.record) + this.varText("ORS"));
+        const output = statement.formatted
+          ? this.budget.check(formatted(this.asText(values[0]!), values.slice(1), value => this.asText(value)))
+          : this.join(values.length ? values.map(value => text(value, this.varText("OFMT"))) : [this.record], values.length ? this.varText("OFS") : "", this.varText("ORS"));
         if (!statement.redirect) { await write(this.context, output); return; }
         const destination = Buffer.from(this.asText(await this.scalarExpression(statement.redirect.destination)), "latin1").toString("utf8");
         const path = virtualPath(this.context, destination);
@@ -460,7 +509,7 @@ export class AwkRuntime {
         if (record === undefined) { await reader.close(); reader = undefined; continue; }
         this.set("NR", numeric(number(this.getScalar("NR")) + 1));
         this.set("FNR", numeric(number(this.getScalar("FNR")) + 1));
-        this.setRecord(record);
+        await this.setRecord(record);
         try {
           for (let index = 0; index < this.program.rules.length; index++) {
             const rule = this.program.rules[index]!;

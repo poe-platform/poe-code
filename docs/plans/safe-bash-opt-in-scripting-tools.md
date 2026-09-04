@@ -98,7 +98,8 @@ this request to keep additions out of the default package.
   `71e3f5f74` isolates dd/install leaves; `633b73d50` adds opt-in virtual devices;
   `533c75ab1` adds the reviewed cmp command; `98a1cbb83` keeps explicit optional
   builds in the host runtime's module tree and rejects accidental runtime mixing;
-  `e0ac05530` adds the reviewed shuf command.
+  `e0ac05530` adds the reviewed shuf command; `005b812cb` adds the reviewed
+  truncate command.
   None has been pushed or released, and neither action is requested.
 - Shuf is ready for its separate local tool commit: 323 native/profile tests and
   eight compiled optional/public-host tests pass, source/test/consumer types pass,
@@ -113,6 +114,12 @@ this request to keep additions out of the default package.
   diagnostics and invalid-byte filename non-aliasing also pass in the compiled
   host. The actual truncate output/help screenshot was inspected. Unsupported
   provider capabilities remain explicit rather than synthetic native behavior.
+- Post-commit checks: the maintained selected virtual-bash build succeeds, all
+  36 default inventory tests pass with the original 79 commands, and the maintained
+  contract route passes 249 tests. A missing optional options-type export was
+  reproduced by the actual declaration-consumer test (nine pass, one fail);
+  exporting the yes/cmp options and device interface restores ten passes. These
+  types remain part of the explicit local optional entry only.
 - First implementation wave: cmp, yes, shuf and virtual devices in disjoint leaf
   directories. Root is qualifying native oracles and the opt-in delivery boundary.
 - The yes leaf is verified for its documented GNU 9.7 C-locale profile: 135 tests

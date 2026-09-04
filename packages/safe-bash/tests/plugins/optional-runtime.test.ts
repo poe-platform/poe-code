@@ -104,6 +104,11 @@ describe("explicit coherent optional build", { skip: selected === undefined ? "R
       'import { createMemoryFileSystem } from "poe-code/safe-fs";',
       'import { createYesCommand, yesCommands, createShufCommand, shufCommands } from "../../dist/optional.js";',
       'import { createTruncateCommand, truncateCommands } from "../../dist/optional.js";',
+      'import type { YesCommandOptions, YesCommandsOptions, CmpCommandsOptions, CmpLimits, ShufCommandsOptions, TruncateCommandsOptions, DeviceFileSystem } from "../../dist/optional.js";',
+      'const yesOptions: YesCommandOptions = {}; const yesPluginOptions: YesCommandsOptions = {};',
+      'const cmpOptions: CmpCommandsOptions = {}; const cmpLimits: Partial<CmpLimits> = {};',
+      'const shufOptions: ShufCommandsOptions = {}; const truncateOptions: TruncateCommandsOptions = {};',
+      'type Devices = DeviceFileSystem;',
       'new CommandRegistry([createYesCommand(), createShufCommand(), createTruncateCommand()]);',
       'new Shell({ fs: createMemoryFileSystem() }).use(yesCommands()).use(shufCommands()).use(truncateCommands());',
     ].join("\n");

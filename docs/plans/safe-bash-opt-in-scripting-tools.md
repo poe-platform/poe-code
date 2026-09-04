@@ -99,7 +99,7 @@ this request to keep additions out of the default package.
   `533c75ab1` adds the reviewed cmp command; `98a1cbb83` keeps explicit optional
   builds in the host runtime's module tree and rejects accidental runtime mixing;
   `e0ac05530` adds the reviewed shuf command; `005b812cb` adds the reviewed
-  truncate command.
+  truncate command; `ce26db16e` exports optional configuration types.
   None has been pushed or released, and neither action is requested.
 - Shuf is ready for its separate local tool commit: 323 native/profile tests and
   eight compiled optional/public-host tests pass, source/test/consumer types pass,
@@ -120,6 +120,22 @@ this request to keep additions out of the default package.
   reproduced by the actual declaration-consumer test (nine pass, one fail);
   exporting the yes/cmp options and device interface restores ten passes. These
   types remain part of the explicit local optional entry only.
+- The compiled public-host suite now passes eleven tests, including an actual
+  VFS `.sh` file under `set -e` combining existing date/byte tools with mounted
+  urandom, shuf selection, copying/cmp, truncate zero-extension, and yes with a
+  short consumer. It checks exact output, token alphabet/length, copied prefix,
+  zero-filled extension, and sampled membership. Strict consumer types pass.
+  The first manual probe supplied an array instead of the documented mount map;
+  that harness argument error was corrected, not treated as a product defect.
+- Guarded root ESLint's fifth run completes with exit 0. The prior fourth run
+  reported three unsafe-finally findings in ongoing install/trap work; authors
+  repaired them without suppression. Subsequent in-flight source work still
+  requires its own final checks rather than inheriting this snapshot's result.
+- Root confirms yq phase-1 old/new tests pass 111/111 with the authenticated
+  reference; independent review is pending. Trap review instead reproduces two
+  failures (144/146) in BASH_COMMAND reporting and independently identifies mixed
+  source/compiled extension byte ownership. Those are open author fixes.
+
 - First implementation wave: cmp, yes, shuf and virtual devices in disjoint leaf
   directories. Root is qualifying native oracles and the opt-in delivery boundary.
 - The yes leaf is verified for its documented GNU 9.7 C-locale profile: 135 tests
@@ -185,6 +201,29 @@ this request to keep additions out of the default package.
   profiles, non-C locales and truthful version identity remain explicit limits.
   The next complete guarded lint run has no cmp findings; its sole remaining
   finding is a prefer-const binding in the concurrently implemented trap leaf.
+
+## Native yq implementation boundary
+
+The restricted legacy yq entry and its explicitly restricted tests remain
+separate from a new Mike Farah v4.53.3 profile. The new native-profile factories
+live in `commands/yq/mike.ts`; root will expose them as the normal optional yq
+factories only after qualification. No compatibility fallback to the restricted
+jq evaluator is authorized. Existing query-core and sealed evidence stay intact.
+
+Root approves the already-installed `yaml` 2.9.0 parser for this optional graph.
+The root already depends on YAML; the workspace declares an exact optional peer,
+with matching lock metadata, rather than adding a mandatory default dependency.
+The library must be loaded only when the native yq operation requires it, not by
+default commands, unrelated optional tools, or information-only invocations.
+Document/CST nodes preserve metadata; a native-qualified evaluator and emitter
+remain required because the library alone does not establish Mike parity.
+
+Eight new source filenames are literally excluded from the normal build and
+mirrored package-lint metadata. Their exclusion assertion failed first and now
+passes. The proposed implementation includes common native CLI forms, node-based
+assignment/tag operations, document-aware eval-all, and VFS in-place updates,
+with bounded work and cleanup. It is not yet delivered, publicly exported, or
+native-qualified; broader YAML/operator/platform limitations remain open.
 
 ## Coherent opt-in runtime boundary
 

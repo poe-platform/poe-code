@@ -349,6 +349,8 @@ test("optional scripting leaves stay outside the default build and package expor
   const boundaries = loadBoundaries(root);
   const configuration = JSON.parse(readRegularInput(root, "tsconfig.build.json", 65536, fs, boundaries));
   const metadata = JSON.parse(readRegularInput(root, "package.json", 65536, fs, boundaries));
+  assert.equal(metadata.peerDependencies.yaml, "2.9.0");
+  assert.equal(metadata.peerDependenciesMeta.yaml.optional, true);
   for (const path of [
     "src/commands/cmp/compare.ts", "src/commands/cmp/index.ts", "src/commands/cmp/io.ts", "src/commands/cmp/options.ts",
     "src/commands/dd/conversions.ts", "src/commands/dd/index.ts", "src/commands/dd/io.ts", "src/commands/dd/options.ts", "src/commands/dd/report.ts",
@@ -356,6 +358,8 @@ test("optional scripting leaves stay outside the default build and package expor
     "src/commands/shuf/args.ts", "src/commands/shuf/index.ts", "src/commands/shuf/input.ts", "src/commands/shuf/options.ts",
     "src/commands/shuf/random.ts", "src/commands/shuf/shuf.ts", "src/commands/shuf/usage.ts",
     "src/commands/truncate/arguments.ts", "src/commands/truncate/index.ts", "src/commands/yes/index.ts",
+    "src/commands/yq/arguments.ts", "src/commands/yq/nodes.ts", "src/commands/yq/expression.ts", "src/commands/yq/evaluate.ts",
+    "src/commands/yq/inplace.ts", "src/commands/yq/mike.ts", "src/commands/yq/native-encoder.ts", "src/commands/yq/native-work.ts",
     "src/fs/devices/index.ts",
     "src/optional.ts",
     "src/shell/extensions/trap/index.ts",

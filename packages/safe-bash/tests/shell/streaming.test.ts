@@ -3,6 +3,193 @@ import { test } from "node:test";
 import { writeText } from "../../src/contracts/index.js";
 import { ShellLimitError } from "../../src/shell/index.js";
 import { setup } from "./helpers.js";
+import { Budget, Runtime } from "../../src/shell/runtime.js";
+
+test("pipeline stage admission rejects before any stage starts", async context => {
+  const { shell, commands } = setup();
+  let effects = 0;
+  let stages = 0;
+  const original = Runtime.prototype.runCommandIsolated;
+  context.mock.method(Runtime.prototype, "runCommandIsolated", function (this: Runtime, ...args: Parameters<Runtime["runCommandIsolated"]>) {
+    stages++;
+    return original.apply(this, args);
+  });
+  commands.register({ name: "effect", execute() { effects++; return { exitCode: 0 }; } });
+  try {
+    await assert.rejects(shell.exec(Array(65).fill("effect").join(" | ")),
+      error => error instanceof ShellLimitError && error.limit === "maxPipelineStages");
+    assert.equal(stages, 0);
+    assert.equal(effects, 0);
+  } finally { await shell.dispose(); }
+});
+
+test("nested pipelines share admission with still-active outer stages", async () => {
+  const { shell, commands } = setup({ limits: { maxPipelineStages: 3 } });
+  let effects = 0;
+  commands.register({ name: "effect", execute() { effects++; return { exitCode: 0 }; } });
+  try {
+    await assert.rejects(shell.exec("{ effect | effect; } | true"),
+      error => error instanceof ShellLimitError && error.limit === "maxPipelineStages");
+    assert.equal(effects, 0);
+  } finally { await shell.dispose(); }
+});
+
+test("pipeline stage capacity admits the exact boundary and is reused sequentially", async () => {
+  const { shell } = setup({ limits: { maxPipelineStages: 2, pipeHighWaterMark: 1 } });
+  try {
+    const sequential = await shell.exec("say x | pass; ".repeat(10));
+    assert.equal(sequential.stdout, "x\n".repeat(10));
+    const nested = await shell.exec("{ say nested | pass; } | pass", { limits: { maxPipelineStages: 4 } });
+    assert.equal(nested.stdout, "nested\n");
+    await assert.rejects(shell.exec("true | true | true"),
+      error => error instanceof ShellLimitError && error.limit === "maxPipelineStages");
+  } finally { await shell.dispose(); }
+});
+
+test("the default pipeline capacity admits all 64 stages concurrently", { timeout: 2000 }, async () => {
+  const { shell, commands } = setup();
+  let started = 0;
+  let release!: () => void;
+  const gate = new Promise<void>(resolve => { release = resolve; });
+  commands.register({ name: "together", async execute() {
+    if (++started === 64) release();
+    await gate;
+    return { exitCode: 0 };
+  } });
+  try {
+    assert.equal((await shell.exec(Array(64).fill("together").join(" | "))).exitCode, 0);
+    assert.equal(started, 64);
+  } finally { release(); await shell.dispose(); }
+});
+
+for (const maxPipelineStages of [5, 6]) test(`parallel nested pipelines require six aggregate stage slots: ${maxPipelineStages}`, { timeout: 2000 }, async () => {
+  const { shell, commands } = setup({ limits: { maxPipelineStages } });
+  let started = 0;
+  let release!: () => void;
+  const gate = new Promise<void>(resolve => { release = resolve; });
+  commands.register({ name: "together", async execute({ signal }) {
+    if (++started === 4) release();
+    await Promise.race([gate, new Promise<void>(resolve => signal.addEventListener("abort", () => resolve(), { once: true }))]);
+    signal.throwIfAborted();
+    return { exitCode: 0 };
+  } });
+  try {
+    const execution = shell.exec("{ together | together; } | { together | together; }");
+    if (maxPipelineStages === 6) {
+      assert.equal((await execution).exitCode, 0);
+      assert.equal(started, 4);
+    } else {
+      await assert.rejects(execution, error => error instanceof ShellLimitError && error.limit === "maxPipelineStages");
+      assert.ok(started < 4);
+    }
+  } finally { release(); await shell.dispose(); }
+});
+
+for (const maxPipelineStages of [0, 1]) test(`pipeline capacity ${maxPipelineStages} permits commands without pipeline setup`, async () => {
+  const { shell } = setup({ limits: { maxPipelineStages } });
+  try {
+    assert.equal((await shell.exec("true; ! false; eval 'true'; (true)")).exitCode, 0);
+    await assert.rejects(shell.exec("true | true"),
+      error => error instanceof ShellLimitError && error.limit === "maxPipelineStages");
+    assert.equal((await shell.exec("true | true", { limits: { maxPipelineStages: 2 } })).exitCode, 0);
+  } finally { await shell.dispose(); }
+});
+
+test("pipeline limits use constructor and per-execution integer validation", async () => {
+  for (const maxPipelineStages of [-1, 1.5, NaN, Infinity, Number.MAX_SAFE_INTEGER + 1]) {
+    assert.throws(() => setup({ limits: { maxPipelineStages } }), RangeError);
+    const { shell } = setup();
+    try { await assert.rejects(shell.exec("true", { limits: { maxPipelineStages } }), RangeError); }
+    finally { await shell.dispose(); }
+  }
+});
+
+test("pipeline reservation survives cancellation until underlying stage work settles", { timeout: 2000 }, async context => {
+  const { shell } = setup({ limits: { maxPipelineStages: 2 } });
+  let released = 0;
+  const reserve = Budget.prototype.reservePipelineStages;
+  context.mock.method(Budget.prototype, "reservePipelineStages", function (this: Budget, count: number) {
+    const release = reserve.call(this, count);
+    return () => { released++; release(); };
+  });
+  let ready!: () => void;
+  const started = new Promise<void>(resolve => { ready = resolve; });
+  let finish!: () => void;
+  const gate = new Promise<void>(resolve => { finish = resolve; });
+  const underlying: Promise<number>[] = [];
+  let completed = 0;
+  const original = Runtime.prototype.runCommandIsolated;
+  context.mock.method(Runtime.prototype, "runCommandIsolated", function (this: Runtime, ...args: Parameters<Runtime["runCommandIsolated"]>) {
+    const work = original.apply(this, args).finally(async () => {
+      if (++completed === 2) ready();
+      await gate;
+    });
+    underlying.push(work);
+    return work;
+  });
+  const controller = new AbortController();
+  const execution = shell.exec("true | true", { signal: controller.signal });
+  try {
+    await started;
+    controller.abort(0);
+    await assert.rejects(execution, error => Object.is(error, 0));
+    assert.equal(released, 0);
+    finish();
+    await Promise.all(underlying);
+    await new Promise<void>(resolve => setImmediate(resolve));
+    assert.equal(released, 1);
+  } finally { finish(); await shell.dispose(); }
+});
+
+test("pipeline setup failure preserves a falsey reason and releases admission", async context => {
+  const { shell } = setup({ limits: { maxPipelineStages: 2 } });
+  let released = 0;
+  const reserve = Budget.prototype.reservePipelineStages;
+  context.mock.method(Budget.prototype, "reservePipelineStages", function (this: Budget, count: number) {
+    const release = reserve.call(this, count);
+    return () => { released++; release(); };
+  });
+  const original = Runtime.prototype.runCommandIsolated;
+  let failed = false;
+  context.mock.method(Runtime.prototype, "runCommandIsolated", function (this: Runtime, ...args: Parameters<Runtime["runCommandIsolated"]>) {
+    if (!failed) { failed = true; throw false; }
+    return original.apply(this, args);
+  });
+  try {
+    await assert.rejects(shell.exec("true | true"), error => Object.is(error, false));
+    assert.equal(released, 1);
+    assert.equal((await shell.exec("true | true")).exitCode, 0);
+    assert.equal(released, 2);
+  } finally { await shell.dispose(); }
+});
+
+test("partial pipe creation releases admission and closes already-created pipes", async context => {
+  const { shell } = setup({ limits: { maxPipelineStages: 3 } });
+  let released = 0;
+  let aborts = 0;
+  let building = false;
+  const abort = WritableStreamDefaultWriter.prototype.abort;
+  context.mock.method(WritableStreamDefaultWriter.prototype, "abort", function (this: WritableStreamDefaultWriter<Uint8Array>, reason: unknown) {
+    if (building) aborts++;
+    return abort.call(this, reason);
+  });
+  const reserve = Budget.prototype.reservePipelineStages;
+  context.mock.method(Budget.prototype, "reservePipelineStages", function (this: Budget, count: number) {
+    const release = reserve.call(this, count);
+    let reads = 0;
+    Object.defineProperty(this.limits, "pipeHighWaterMark", { configurable: true, get() {
+      if (++reads === 2) throw null;
+      return 1;
+    } });
+    building = true;
+    return () => { released++; building = false; release(); };
+  });
+  try {
+    await assert.rejects(shell.exec("true | true | true"), error => Object.is(error, null));
+    assert.equal(released, 1);
+    assert.equal(aborts, 1);
+  } finally { await shell.dispose(); }
+});
 
 test("pipes preserve bytes and launch downstream before upstream completes", { timeout: 3000 }, async () => {
   const { shell, commands } = setup({ limits: { pipeHighWaterMark: 1 } });

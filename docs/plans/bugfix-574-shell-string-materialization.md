@@ -78,3 +78,54 @@
 | `src/shell/pattern.ts` | `76b6222e81221f9c04c7db5772d0332dbbceaafe5eadda1d1c94ada076293cf4` |
 | `src/shell/string-operations.ts` | `8132b94610d81641c62f411d593bd5d4da3f4bf819d2ad128bd50249e5437a36` |
 | `tests/shell/string-operations.test.ts` | `9a86963ead981c503f856b188912b0a2e444ded02f7b6b61ca7b56c085d0b032` |
+
+## September 4, 2026: pathname cancellation control correction
+
+- Baseline: `b819bd3eb9e6816750ceef3d1d8ea43da1a271fa`. Root reported build
+  PASS, 230 focused passes, shared 29,920 passes, and Safe Bash 19,289 passes,
+  63 skips, one failure. The stopped `npm-test.log` confirms the sole failing
+  assertion was `unmatched bracket tokenization yields to cancellation`.
+- Cause: the fixture interpreted all work charged before its queued immediate
+  as tokenization. #574 legitimately charges the complete pattern and yields
+  before scratch admission/Array.from. Thus cancellation at that earlier phase
+  leaves exactly `budget - pattern.length`, not strictly more. This is a stale
+  observation boundary, not evidence of a production cancellation defect.
+- Seal/reference check before editing: exact current `.cases` references are
+  the active `shell-language.test.ts` import and the historical plans
+  `pathname-cancellation-fixture.md` and `shell-language-test-cohort.md`.
+  No tracked reference to the current case-file hash was found. Broader old
+  pathname references are historical inventories/captures. No live seal binding
+  was found; those historical files remain unchanged.
+- Existing case SHA-256 before correction:
+  `688dc4954532ed1ab17232f5cd0ccfae897f3dd5ddb07c923e3a4d7b8cd35838`.
+- Direct RED on the unchanged case file reproduced the gate assertion: one pass,
+  one failure. The correction changes only that case file and this plan.
+- Separate queued preallocation control: 128 unmatched brackets reach the real
+  admission checkpoint. Exact reason identity, exactly the initial pattern work
+  charge, zero scratch admissions, zero Array.from calls, and no later work are
+  asserted. Production admission and scheduling remain unmodified.
+- During-tokenization control: 1025 unmatched brackets are the smallest input
+  that crosses the current 1024-token checkpoint before finishing. The observer
+  calls the real Array.from, records its known post-preallocation work baseline,
+  and only then schedules cancellation. It requires one materialization, real
+  tokenization progress, exactly 1024 token charges, interruption strictly before
+  full tokenization/matching, exact reason identity and no later charges.
+- The separate finite-compilation-budget negative remains unchanged. No caps
+  were raised; the prior 8192-character fixture is reduced, not amplified.
+- GREEN: direct case file 3/3; combined case file plus #574
+  `string-operations.test.ts` 41/41, no skips. Focused strict TypeScript uses the
+  case file and its imports, package options, noEmit and no incremental output:
+  zero diagnostics. Owned whitespace check passes.
+- Evidence directory:
+  `/home/kjopek/kamilio-validation-569-575.RoFXyZ/574-pathname/` contains
+  `red.log`, `green.log`, `focused.log`, and `types.log`. Validation uses Node 22
+  via `/tmp/kamilio-toolchain.path`, the fresh base's `tmp` directory,
+  TSX_DISABLE_CACHE=1, unset NO_COLOR and cleared child Git-local variables.
+  No new artifacts were written to the full `/tmp` volume.
+- Case-file SHA-256 after correction:
+  `3c459db99099f941d868e61f0534261dc50d7e91a0922971d4359832336badd2`.
+- Root reviewed and approved the strengthened controls. Both owned files are
+  frozen. A final diff against HEAD confirms runtime.ts, pattern.ts and
+  string-operations.ts are unchanged in this correction. No production, registry,
+  README, seal/capture edits, broad gates or Git mutations were performed.
+  Root owns the exact two-file commit and test/lint/consumer gate restart.

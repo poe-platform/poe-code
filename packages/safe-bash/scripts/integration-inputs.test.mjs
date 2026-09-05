@@ -536,6 +536,10 @@ function assertSource7Discovery(files) {
     "tests/shell/extensions/jobs/review.test.ts",
   ]) assert.ok(files.includes(path), "optional jobs-state test is missing: " + path);
   for (const path of [
+    "tests/shell/extensions/jobs/native.test.ts",
+    "tests/shell/extensions/jobs/native-review.test.ts",
+  ]) assert.ok(files.includes(path), "native jobs qualification test is missing: " + path);
+  for (const path of [
     "tests/contracts/filesystem-descriptor-ack-review.test.ts",
     "tests/plugins/descriptor-ack-runtime.test.ts",
   ]) assert.ok(files.includes(path), "descriptor acknowledgement test is missing: " + path);

@@ -595,6 +595,30 @@ this request to keep additions out of the default package.
   write-only descriptor admission, indexed-key expansion and callback-exit cleanup
   ordering. Their concrete witnesses are retained; passing helper tests do not
   qualify those missing shell behaviors or complete the requested goal.
+- The jobs native corpus now freezes 33 behavior cases plus six supervision
+  checks against authenticated Bash 5.2.37. Seven independent supervision checks
+  pass as well. Review checks exact output bytes/statuses, causal process-ID
+  relationships, anchored process-group cleanup, split handshakes, falsey failures
+  and late errors after successful close. Without the native prerequisite the
+  34 native-dependent checks skip explicitly rather than count as passes.
+  This corpus establishes expected asynchronous list scope, snapshots, wait
+  option/operand precedence and EXIT ordering; it does not execute virtual jobs.
+  Trapped-wait interruption, interactive/stopped jobs and several notification/
+  destination cases remain separately unqualified.
+  Root independently replays all 46 cases with zero skips, passes eight focused
+  maintained discovery checks, and reports zero diagnostics for three selected
+  strict type roots. Guarded lint nineteen is pending, not counted as a pass.
+- Root's first compiled source-construction replay passes 15/16 cases. The sole
+  failure is an overconstrained new fixture expecting `ready` after established
+  regular-file EOF. The committed cursor contract reports `eof`, and timed read
+  treats both states as successful zero-timeout polls. Correcting only that
+  fixture gives 16/16 without a product edit; the original failure is retained.
+  Separately, root validates a real retained-file defect: after reading EOF and
+  appending data, the current virtual cursor remains at EOF while native Bash
+  reads the appended line. The native command/source/output is retained at
+  `/tmp/safe-bash-scripting-oracles-20260904/retained-read-eof-eSaPT4/evidence.json`.
+  That defect requires a same-descriptor lifecycle correction, not a change to
+  the readiness label or a pathname reopen. Input-owner tests/design are assigned.
 
 - First implementation wave: cmp, yes, shuf and virtual devices in disjoint leaf
   directories. Root is qualifying native oracles and the opt-in delivery boundary.

@@ -520,7 +520,7 @@ describe("run cancellation", () => {
           ? "value[0]"
           : kind === "map"
             ? "value.get('action')"
-            : "value.values()[0]";
+            : "value.values().next().value";
       expect(
         await run(
           `const value = load(); install(); const action = ${read}; abort(); try { action(); return 'missed'; } catch (error) { return error.message; }`,

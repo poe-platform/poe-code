@@ -5,6 +5,7 @@ import { invokeBuiltinClosure } from "./builtin-call.js";
 import { float32Storage, isFloat32Array } from "./float32.js";
 import { assertSandboxDataDepth } from "../graph-depth.js";
 import { isGuestHostObject } from "./host-capabilities.js";
+import { collectionIteratorState, isSandboxCollectionIterator } from "./collection-iterator.js";
 import {
   getGuestFunctionProperties,
   getSandboxPrototype,
@@ -95,6 +96,7 @@ function conversionHook(
       isSandboxClosure(value) ||
       isSandboxMap(value) ||
       isSandboxSet(value) ||
+      isSandboxCollectionIterator(value) ||
       isSandboxPromise(value) ||
       isSandboxRegex(value) ||
       isSandboxGenerator(value) ||
@@ -134,6 +136,7 @@ async function defaultToString(
 ): Promise<SandboxValue> {
   if (isSandboxMap(value)) return "[object Map]";
   if (isSandboxSet(value)) return "[object Set]";
+  if (isSandboxCollectionIterator(value)) return collectionIteratorState(value).collectionKind === "map" ? "[object Map Iterator]" : "[object Set Iterator]";
   if (isSandboxGenerator(value)) return "[object Generator]";
   if (isSandboxRegex(value)) {
     return budget.allocateString(

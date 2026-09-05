@@ -130,6 +130,8 @@ import {
 import { isSandboxErrorConstructorInstance } from "./globals/error.js";
 import { hasOwnSandboxProperty } from "./globals/object.js";
 import { isSandboxMapConstructor, isSandboxSetConstructor } from "./globals/collections.js";
+import { collectionIteratorState, isSandboxCollectionIterator } from "./collection-iterator.js";
+import { getCollectionIteratorMember } from "./methods/collection-iterator.js";
 import {
   getFloat32Member,
   isFloat32ArrayConstructor,
@@ -1230,6 +1232,9 @@ function isRestorableBindingValue(value: InterpreterValue, seen = new WeakSet<ob
   }
   if (seen.has(value)) return true;
   seen.add(value);
+  if (isSandboxCollectionIterator(value)) {
+    return isRestorableBindingValue(collectionIteratorState(value).collection, seen);
+  }
   if (isSandboxMap(value)) {
     for (const [key, entry] of value.entries) {
       if (!isRestorableBindingValue(key, seen) || !isRestorableBindingValue(entry, seen)) {
@@ -1560,7 +1565,7 @@ async function evaluateForOfStatement(
     const restored = context.scope.consumeRestoredBinding(restoredIteration.values[0]);
     if (restored.found && Array.isArray(restored.value)) {
       restoredEntry = { done: false, value: restored.value[1] };
-      if (isSandboxMap(restored.value[0]) || isSandboxSet(restored.value[0])) {
+      if (isSandboxMap(restored.value[0]) || isSandboxSet(restored.value[0]) || isSandboxCollectionIterator(restored.value[0])) {
         return evaluateForOfIterator(node, restored.value[0], context, restoredEntry);
       }
     }
@@ -1623,7 +1628,7 @@ async function evaluateForOfIterator(
   context: EvaluationContext,
   restoredEntry?: IteratorResult<SandboxValue>
 ): Promise<EvaluationResult> {
-  const iterator = getSandboxIterator(value);
+  const iterator = getSandboxIterator(value, context.budget);
   if (iterator === undefined) {
     throw new TypeError(`${String(value)} is not a supported iterable`);
   }
@@ -2001,7 +2006,7 @@ function createLoopIterationContext(context: EvaluationContext, scope: Scope): E
       for (const [nodeId, iteration] of context.activeLoopIterations) {
         if (
           typeof iteration !== "number" &&
-          (isSandboxMap(iteration.values[0]) || isSandboxSet(iteration.values[0]))
+          (isSandboxMap(iteration.values[0]) || isSandboxSet(iteration.values[0]) || isSandboxCollectionIterator(iteration.values[0]))
         ) {
           const bindingName = `#for-of:${nodeId}`;
           snapshot.bindings[bindingName] = iteration.values;
@@ -2196,7 +2201,7 @@ async function evaluateYieldDelegate(
   if (argument.kind !== "normal") {
     return argument;
   }
-  const iterator = getSandboxIterator(argument.value);
+  const iterator = getSandboxIterator(argument.value, context.budget);
   if (iterator === undefined) {
     throw new TypeError(`${String(argument.value)} is not a supported iterable`);
   }
@@ -2468,6 +2473,7 @@ function getPropertyValue(
   if (isSandboxDate(target)) return getDateMember(property, context.budget, context.compilation?.owner);
   if (isSandboxMap(target)) return getMapMember(target, property, createMapMethodOptions(context));
   if (isSandboxSet(target)) return getSetMember(target, property, createSetMethodOptions(context));
+  if (isSandboxCollectionIterator(target)) return getCollectionIteratorMember(target, property, context.budget);
   if (isSandboxGenerator(target)) return getGeneratorMember(target, property, context.budget);
   if (isSandboxClosure(target)) return getClosureMemberValue(target, property, context);
   if (isSandboxPromise(target)) return getPromiseMember(property, context.budget);
@@ -2481,6 +2487,7 @@ function getPropertyValue(
 export function createPatternContext(context: AsyncEvaluationContext, scope = context.scope, evaluate = evaluateNode): PatternContext {
   const evaluationContext = { ...context, scope };
   return {
+    budget: context.budget,
     evaluate: node => evaluate(node, evaluationContext),
     toPropertyKey: value => toPropertyKey(value, context.budget, createCoercionContext(evaluationContext)),
     getProperty: (value, key) => getPropertyValue(value, key, evaluationContext),
@@ -3143,7 +3150,7 @@ function hasSandboxProperty(value: SandboxValue, key: string, context: Evaluatio
     if (isGuestHostObject(current)) return hasHostObjectMember(current, key);
     if (hasOwnSandboxProperty(current, key, false)) return true;
     if (Array.isArray(current) || !isPlainSandboxObject(current) ||
-        isSandboxDate(current) || isFloat32Array(current) || isSandboxGenerator(current)) {
+        isSandboxDate(current) || isFloat32Array(current) || isSandboxGenerator(current) || isSandboxCollectionIterator(current)) {
       return getPropertyValue(current, key, context) !== undefined;
     }
     current = getSandboxPrototype(current, context.budget) as SandboxValue;
@@ -3430,7 +3437,7 @@ function getMemberValue(
   while (typeof current === "object" && current !== null) {
     if (isSandboxClosure(current)) return getClosureMemberValue(current, property, context);
     if (Array.isArray(current)) return getArrayMemberValue(current, property, context);
-    if (!isPlainSandboxObject(current) || isSandboxGenerator(current) || isFloat32Array(current)) {
+    if (!isPlainSandboxObject(current) || isSandboxGenerator(current) || isSandboxCollectionIterator(current) || isFloat32Array(current)) {
       return getPropertyValue(current, property, context);
     }
     if (Object.hasOwn(current, String(property))) return (current as SandboxObject)[String(property)];
@@ -3732,7 +3739,7 @@ async function evaluateSpreadElement(
     };
   }
 
-  const iterator = getSpreadIterator(value.value);
+  const iterator = getSandboxIterator(value.value, context.budget);
   if (iterator === undefined) {
     throw new TypeError("Spread arguments must evaluate to an iterable.");
   }
@@ -3819,10 +3826,6 @@ function describeObjectSpreadValue(value: SandboxValue): string {
   }
 
   return typeof value;
-}
-
-function getSpreadIterator(value: SandboxValue): SandboxIterator | undefined {
-  return getSandboxIterator(value);
 }
 
 async function closeIterator(iterator: SandboxIterator): Promise<void> {

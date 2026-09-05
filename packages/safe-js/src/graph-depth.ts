@@ -1,6 +1,8 @@
 import { replaceErrorStack } from "./error/shape.js";
 import { SandboxError } from "./interp/budget.js";
 import { getSandboxArgumentEntries, isSandboxArguments } from "./interp/arguments.js";
+import { collectionIteratorState, isSandboxCollectionIterator } from "./interp/collection-iterator.js";
+import { isSandboxMap, isSandboxSet } from "./interp/collection-brands.js";
 
 export const MAX_DATA_DEPTH = 1_024;
 
@@ -77,17 +79,20 @@ function graphEntries(value: object): Array<[string, unknown]> {
   if (isSandboxArguments(value)) {
     return getSandboxArgumentEntries(value).map(([key, entry]) => [`.${key}`, entry]);
   }
-  if (value instanceof Map) {
-    return [...value.entries()].flatMap(([key, entry], index) => [
+  const map = isSandboxMap(value) ? value.entries : value instanceof Map ? value : undefined;
+  if (map !== undefined) {
+    return [...map.entries()].flatMap(([key, entry], index) => [
       [`.<map>[${index}].key`, key] as [string, unknown],
       [`.<map>[${index}].value`, entry] as [string, unknown]
     ]);
   }
-  if (value instanceof Set) {
-    return [...value.values()].map((entry, index) => [`.<set>[${index}]`, entry]);
+  const set = isSandboxSet(value) ? value.values : value instanceof Set ? value : undefined;
+  if (set !== undefined) {
+    return [...set.values()].map((entry, index) => [`.<set>[${index}]`, entry]);
   }
 
   const entries: Array<[string, unknown]> = [];
+  if (isSandboxCollectionIterator(value)) entries.push([".<collection>", collectionIteratorState(value).collection]);
   for (const key of Object.keys(value)) {
     const descriptor = Object.getOwnPropertyDescriptor(value, key);
     if (descriptor !== undefined && "value" in descriptor)

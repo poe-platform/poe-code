@@ -1,6 +1,5 @@
 import type { Budget } from "../budget.js";
 import {
-  allocateProducedSandboxValue,
   createSandboxClosure,
   isSandboxClosure,
   isSandboxMap,
@@ -13,6 +12,7 @@ import {
   enterKeyedCollectionCallback,
   updateKeyedCollectionCallbacks
 } from "./collection-callback.js";
+import { createSandboxCollectionIterator } from "../collection-iterator.js";
 
 export type MapMethodName =
   | "get"
@@ -125,13 +125,8 @@ export async function callMapMethod(
       return undefined;
     }
     case "keys":
-      return allocateProducedSandboxValue([...target.entries.keys()], options.budget);
     case "values":
-      return allocateProducedSandboxValue([...target.entries.values()], options.budget);
     case "entries":
-      return allocateProducedSandboxValue(
-        [...target.entries].map(([key, value]) => [key, value]),
-        options.budget
-      );
+      return createSandboxCollectionIterator(target, methodName);
   }
 }

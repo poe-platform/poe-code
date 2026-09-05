@@ -104,7 +104,7 @@ function populateCollection<T extends SandboxMap | SandboxSet>(
 ): T | Promise<T> {
   budget.allocateCollectionEntries(0);
   if (source === undefined || source === null) return collection;
-  const iterator = getSandboxIterator(source);
+  const iterator = getSandboxIterator(source, budget);
   if (iterator === undefined) throw new TypeError(`${name} constructor requires an iterable.`);
   let entry: SandboxValue;
   let failure: unknown;

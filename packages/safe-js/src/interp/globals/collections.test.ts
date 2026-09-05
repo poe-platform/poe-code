@@ -184,14 +184,14 @@ describe("Map and Set globals", () => {
           map.has("second"),
           deleted,
           missing,
-          map.keys(),
-          map.values(),
-          map.entries(),
+          [...map.keys()],
+          [...map.values()],
+          [...map.entries()],
           map.size,
           visited
         ];
         map.clear();
-        return [beforeClear, map.size, map.entries()];
+        return [beforeClear, map.size, [...map.entries()]];
       `)
     ).resolves.toMatchObject({
       ok: true,
@@ -236,14 +236,14 @@ describe("Map and Set globals", () => {
           set.has("second"),
           deleted,
           missing,
-          set.keys(),
-          set.values(),
-          set.entries(),
+          [...set.keys()],
+          [...set.values()],
+          [...set.entries()],
           set.size,
           visited
         ];
         set.clear();
-        return [beforeClear, set.size, set.entries()];
+        return [beforeClear, set.size, [...set.entries()]];
       `)
     ).resolves.toMatchObject({
       ok: true,
@@ -351,7 +351,7 @@ describe("Map and Set globals", () => {
     });
   });
 
-  it("budgets construction, mutations, and eager result arrays", async () => {
+  it("budgets construction and collection mutations", async () => {
     const globals = createCollectionGlobals({ budget: new Budget({ arrayLength: 1 }) });
 
     expect(() =>

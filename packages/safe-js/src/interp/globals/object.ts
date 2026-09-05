@@ -4,6 +4,7 @@ import { isSandboxDate } from "../date.js";
 import { isSandboxErrorConstructorInstance } from "../exceptions.js";
 import { isFloat32Array } from "../float32.js";
 import { hasHostObjectMember, isGuestHostObject } from "../host-capabilities.js";
+import { collectionIteratorState, isSandboxCollectionIterator } from "../collection-iterator.js";
 import {
   getSandboxPrototype,
   installObjectPrototype,
@@ -164,6 +165,7 @@ function typeTag(value: SandboxValue): string {
   if (isSandboxRegex(value)) return "RegExp";
   if (isSandboxMap(value)) return "Map";
   if (isSandboxSet(value)) return "Set";
+  if (isSandboxCollectionIterator(value)) return collectionIteratorState(value).collectionKind === "map" ? "Map Iterator" : "Set Iterator";
   if (isSandboxPromise(value)) return "Promise";
   if (isSandboxGenerator(value)) return "Generator";
   if (isFloat32Array(value)) return "Float32Array";

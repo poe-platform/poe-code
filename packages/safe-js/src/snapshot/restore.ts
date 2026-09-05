@@ -9,6 +9,8 @@ import { SnapshotMismatchError } from "../restore.js";
 import { Scope, setSandboxProperty } from "../interp/interpreter.js";
 import { getGuestFunctionProperties, getGuestFunctionProperty, getSandboxDataProperty, registerGuestClosure, setSandboxPrototype } from "../interp/object-model.js";
 import { wrapCallerInjectedBindings, type CallerInjectedBinding } from "../interp/host-bridge.js";
+import { restoreSandboxCollectionIterator } from "../interp/collection-iterator.js";
+import { isSandboxMap, isSandboxSet } from "../interp/values.js";
 import {
   createSandboxArguments,
   createSandboxClosure,
@@ -98,6 +100,7 @@ export type RestoredSnapshot = {
 };
 
 type RestoreState = {
+  initializeIterators: Array<() => void>;
   budget: Budget;
   compilation: CompileScope;
   heap: Record<string, SerializedHeapValue>;
@@ -144,6 +147,7 @@ export function restore(
     }
 
     const state: RestoreState = {
+      initializeIterators: [],
       budget,
       compilation,
       heap: snapshot.heap ?? {},
@@ -176,6 +180,7 @@ export function restore(
     }
 
     const callStack = snapshot.callStack.map((frame) => restoreCallFrame(frame, state));
+    for (const initialize of state.initializeIterators) initialize();
     reconcileCompiledValues(
       budget,
       [
@@ -592,6 +597,16 @@ function restoreHeapValue(id: number, state: RestoreState): RuntimeSnapshotValue
     }
     if (!serialized.extensible) Object.preventExtensions(args);
     return args as RuntimeSnapshotValue;
+  }
+
+  if (serialized.kind === "collection-iterator") {
+    const iterator = restoreSandboxCollectionIterator({ collection: undefined, collectionKind: serialized.collectionKind, method: serialized.method, index: 0, exhausted: true });
+    state.heapValueById.set(id, iterator);
+    const collection = deserializeValue(serialized.collection, state);
+    if (collection !== undefined && !isSandboxMap(collection) && !isSandboxSet(collection)) throw new TypeError("Invalid collection iterator source.");
+    state.initializeIterators.push(() => { restoreSandboxCollectionIterator({ ...serialized, collection }, iterator); });
+    for (const [key, entry] of Object.entries(serialized.entries)) Object.defineProperty(iterator, key, { value: deserializeValue(entry, state), enumerable: true, configurable: true, writable: true });
+    return iterator;
   }
 
   if (serialized.kind === "map") {

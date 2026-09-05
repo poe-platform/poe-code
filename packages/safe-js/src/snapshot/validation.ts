@@ -463,6 +463,7 @@ function validateTaggedValue(
     case "object":
     case "map":
     case "set":
+    case "collection-iterator":
       return;
   }
 }
@@ -516,7 +517,7 @@ function validateGeneratorShape(
 function validateHeapValue(value: unknown, path: string, state: ValidationState): void {
   const record = requireRecord(value, path);
   validateErrorType(record, path);
-  if (!["arguments", "array", "object", "map", "set", "float32array", "date"].includes(String(record.kind)))
+  if (!["arguments", "array", "object", "map", "set", "float32array", "date", "collection-iterator"].includes(String(record.kind)))
     fail("unknownTag", `${path}.kind`, "unknown heap tag");
   validateValue(record, path, 1, state);
   if (record.kind === "arguments") validateArgumentsProperties(record, path);
@@ -535,6 +536,14 @@ function validateHeapValue(value: unknown, path: string, state: ValidationState)
     });
   }
   if (record.kind === "set") requireArray(record.values, `${path}.values`, state);
+  if (record.kind === "collection-iterator") {
+    if (record.collectionKind !== "map" && record.collectionKind !== "set") fail("invalidValue", `${path}.collectionKind`, "invalid iterator brand");
+    if (record.method !== "keys" && record.method !== "values" && record.method !== "entries") fail("invalidValue", `${path}.method`, "invalid iteration method");
+    if (typeof record.exhausted !== "boolean") fail("invalidValue", `${path}.exhausted`, "invalid iterator exhaustion");
+    requireSafeInteger(record.index, `${path}.index`, 0);
+    if (!Object.hasOwn(record, "collection")) fail("invalidValue", `${path}.collection`, "missing iterator source");
+    requireRecord(record.entries, `${path}.entries`);
+  }
 }
 
 function validateDateRecord(record: Record<string, unknown>, path: string): void {

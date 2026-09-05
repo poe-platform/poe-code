@@ -146,7 +146,7 @@ export function createObjectArrayGlobals(options: { budget: Budget; compileOwner
       fromEntries: createSandboxClosure({
         sandbox: true,
         call: ([value], context) => {
-          const iterator = getSandboxIterator(value);
+          const iterator = getSandboxIterator(value, options.budget);
           if (iterator === undefined) {
             throw new TypeError("Object.fromEntries requires an iterable.");
           }
@@ -455,7 +455,7 @@ async function arrayFromSandboxValues(
   const read = (property: string | number) => context?.getProperty !== undefined
     ? context.getProperty(items, property)
     : getSandboxDataProperty(items, property, budget);
-  const iterator = getSandboxIterator(items);
+  const iterator = getSandboxIterator(items, budget);
   const constructor = context?.thisValue;
   let result: SandboxValue;
   let currentValue: SandboxValue;

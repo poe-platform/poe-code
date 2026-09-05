@@ -2708,12 +2708,13 @@ export class Runtime {
               try { await cleanup(); }
               catch (error) { if (!failures.some(failure => Object.is(failure, error))) failures.push(error); }
             }
-            throwCleanupFailures(failures);
+            throwCleanupFailures(failures.filter(error => !(error instanceof PipelineClosed
+              && this.signal.aborted && Object.is(error, this.signal.reason))));
           })();
           inputs.add({ close });
           io[invocationScope].register(close);
           const prepared = stat.type === "directory" ? prepareBytesInput("", this.budget)
-            : await prepareFileInput({ fs: this.fs, signal: this.signal, registerCleanup: close => {
+            : await prepareFileInput({ fs: this.fs, signal: this.signal, cleanupFailurePrioritySignal: this.budget.signal, registerCleanup: close => {
               cleanups.push(close);
             } }, path, this.budget);
           if (!cleanups.includes(prepared.close)) cleanups.push(prepared.close);

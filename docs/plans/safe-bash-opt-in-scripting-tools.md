@@ -722,6 +722,68 @@ this request to keep additions out of the default package.
   without changing assertions. Default commands remain unchanged; no optional
   builtin is installed by this integration. A fresh guarded lint run remains
   required after the final integration/discovery edits.
+- Source construction is locally committed as `0ac181c73`. The subsequent
+  retained public/default cohort passes 73/74, exposing an EPIPE escape in the
+  existing optional script that combines date, random-byte filtering and bounded
+  consumers. Three additional unchanged optional-suite runs each pass 25/26 and
+  fail that same script; these failures are retained, not replaced by the earlier
+  narrow public pass. The runtime owner is investigating cleanup/cancellation
+  propagation before further feature work. Both post-rebuild pack inventories
+  still contain zero optional artifact leaks. The generic diagnostic/descriptor
+  sidecar is independently replayed at 24/44, with its 20 known failures still
+  awaiting implementation. Guarded lint twenty-two is running; no completed
+  clean result or full integration acceptance is claimed yet.
+- Guarded lint twenty-two completes with exit zero for the integrated source
+  snapshot. Read-only diagnosis identifies redirected-input cleanup rethrowing
+  the exact handled pipeline-cancellation reason into shared cleanup failures.
+  Deterministic `/dev/zero` pipelines reproduce the same escape directly and
+  through a script; ordinary `yes | head` controls pass. The runtime owner is
+  authorized to add regression tests and repair that cleanup boundary, preserving
+  genuine close failures and root cancellation. Root adds four compiled direct/
+  script and pipefail cases: the optional cohort now passes 25/30 against the
+  old build, retaining the original composition failure plus four new failures.
+- The runtime-only cleanup filter passes 11/18 new author cases; seven genuine
+  close failures remain masked by helper cancellation checks. Independent review
+  passes 27/33 and broadens the same blocker to legacy teardown and multiple
+  owners, including identical falsey failures. Root approves a narrow captured
+  internal `cleanupFailurePrioritySignal` context capability: omission/undefined
+  preserves existing behavior, and an explicit signal controls only priority
+  over an actual teardown failure. Ordinary cancellation, successful cleanup,
+  acknowledgement and drain rules remain unchanged. The redirect caller supplies
+  the execution-root budget signal. New helper policy tests initially pass 4/22;
+  author and independent tests remain frozen while implementation proceeds.
+- The first paired cleanup policy passes 258 root source cases and 99 compiled
+  public/default cases, plus four descriptor-public controls. Independent helper
+  review then finds two late-replay failures: cached direct close has rejected,
+  the execution root subsequently aborts, and registered cleanup fails to recheck
+  that priority. The repair changes registered failure replay only; direct-close
+  identity, default behavior and successful cached cleanup stay unchanged.
+  Earlier review corrections remain explicit: 23 overbroad expectations changed
+  45/70 to 68/70; two drain expectations changed expanded 73/77 to 75/77, leaving
+  the two genuine failures. A later fixture-only type repair preserves all 77
+  assertions. Root's first type failure was observed while that review file was
+  changing; a post-run hash did not authenticate the compiler's loaded bytes.
+- Final cleanup approval binds input SHA
+  `ad1f8cbb30651655813252469000261875c35937d294c168627e11c3cb272e04`,
+  descriptor SHA
+  `35f107d18d82d425d83816df984a0da4153080e9ce57f506791c702903968ea4`
+  and runtime SHA
+  `5d7d20d0e0ea183f82ff42ae4a2cc41db31579ccb1797883339875618889246b`.
+  Independent helper review passes 77/77 and 393 relevant retained cases; paired
+  pipeline review passes the unchanged 51 cases. Root passes 335 source cases,
+  103 compiled public/default cases after a fresh optional build, eight discovery
+  checks and six strict roots with unchanged before/after watched hashes. Actual
+  workflow and pipefail output images are inspected; the long hex line is wrapped
+  for readability without changing captured bytes. Guarded lint twenty-three is
+  running, not yet a completed gate.
+- A maintained workspace typecheck attempt exits two before TypeScript because
+  peer-profile admission still requires the whole peer object to contain only
+  poe-code, rejecting the authorized optional YAML 2.9.0 peer. The trailing shell
+  tail masked that command's status; the actual failed report is retained. This
+  is a separate metadata-admission mismatch, not a cleanup type diagnostic or a
+  full-route pass. The peer-guard owner is assigned read-only diagnosis pending
+  the active lint freeze; required-peer and archive authentication must remain
+  strict when the optional metadata is admitted.
 
 - First implementation wave: cmp, yes, shuf and virtual devices in disjoint leaf
   directories. Root is qualifying native oracles and the opt-in delivery boundary.

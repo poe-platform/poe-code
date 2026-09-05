@@ -528,6 +528,12 @@ function assertSource7Discovery(files) {
     "tests/plugins/prepared-input-runtime.test.ts",
   ]) assert.ok(files.includes(path), "owning source construction test is missing: " + path);
   for (const path of [
+    "tests/shell/extensions/core/source-pipeline-cleanup.test.ts",
+    "tests/shell/extensions/core/source-pipeline-cleanup-review.test.ts",
+    "tests/shell/extensions/arrays/prepared-input-cleanup.test.ts",
+    "tests/shell/extensions/arrays/prepared-input-cleanup-review.test.ts",
+  ]) assert.ok(files.includes(path), "prepared source cleanup test is missing: " + path);
+  for (const path of [
     "tests/shell/extensions/arrays/retained-file-eof.test.ts",
     "tests/shell/extensions/arrays/retained-file-eof-review.test.ts",
   ]) assert.ok(files.includes(path), "retained regular-file EOF test is missing: " + path);

@@ -126,6 +126,17 @@ before acquisition and remains required even when cursor construction fails.
 These integrations do not install optional builtins or make arbitrary host input
 pollable.
 
+Prepared file input accepts the same optional internal
+`cleanupFailurePrioritySignal` capability as canonical descriptor cleanup and
+forwards it to that descriptor owner. It also applies to legacy iterator
+teardown. Redirect owners select the execution-root signal, so a handled local
+pipeline stop does not replace a separate teardown failure. Cleanup still drains
+all enrolled sources before the runtime discards its exact handled pipeline-stop
+reason; root caller cancellation retains priority.
+Registered failure replay rechecks the captured priority signal. Direct close
+still returns its cached promise and original rejection, including after a later
+cancellation; successful cached cleanup is not reclassified as a failure.
+
 ## Internal raw input records
 
 `ShellInput.record({ delimiter? })` reads through a byte delimiter, defaulting to

@@ -133,6 +133,14 @@ takes precedence; otherwise the original failure, including falsey thrown values
 is preserved over secondary cleanup failures. Opaque uncooperative host work cannot
 be forcibly interrupted.
 
+An internal owner may supply `cleanupFailurePrioritySignal` on the descriptor
+context to select which cancellation outranks a registered teardown failure.
+The signal is captured once; omission or explicit undefined preserves the
+existing cancellation checks. When supplied, an unacknowledged teardown rejection
+retains its exact reason unless that priority signal is aborted. Ordinary
+operations and successful cleanup still observe their operational signals. This does not alter
+close-failure acknowledgement, skip draining, or add a shell configuration option.
+
 The returned `CommandFileDescriptor` additionally exposes
 `acknowledgeCloseFailure(reason)`. A command may call this after successfully
 diagnosing a settled close failure and mapping it to its command exit status.

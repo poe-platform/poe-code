@@ -243,6 +243,22 @@ describe("explicit coherent optional build", { skip: selected === undefined ? "R
     } finally { await shell.dispose(); }
   });
 
+  for (const scripted of [false, true]) for (const pipefail of [false, true]) {
+    test(`compiled device input drains early consumer cleanup: script=${scripted}, pipefail=${pipefail}`, async () => {
+      const { published, optional } = await runtimes();
+      const fs = createMountFileSystem({ root: createMemoryFileSystem(), mounts: { "/dev": optional.createDeviceFileSystem() } });
+      const shell = new published.Shell({ fs, limits: { maxWallClockMs: 2000 } }).use(published.agentCommands());
+      const source = `${pipefail ? "set -o pipefail; " : ""}cat </dev/zero | head -c32`;
+      try {
+        if (scripted) await fs.writeFile("/pipe.sh", new TextEncoder().encode(source));
+        const result = await shell.exec(scripted ? "bash /pipe.sh" : source);
+        assert.equal(result.exitCode, pipefail ? 141 : 0, result.stderr);
+        assert.equal(result.stderr, "");
+        assert.deepEqual(result.stdoutBytes, new Uint8Array(32));
+      } finally { await shell.dispose(); }
+    });
+  }
+
   test("compiled opt-ins compose with existing date and byte tools in a real script", async () => {
     const { published, optional } = await runtimes();
     const fs = createMountFileSystem({ root: createMemoryFileSystem(), mounts: { "/dev": optional.createDeviceFileSystem() } });

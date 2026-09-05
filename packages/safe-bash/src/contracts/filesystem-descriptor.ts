@@ -6,7 +6,8 @@ export interface CommandFileDescriptor extends FileDescriptor {
   acknowledgeCloseFailure(reason: unknown): boolean;
 }
 
-export async function openCommandFile(context: FileOutputContext, path: string, options: OpenFileOptions): Promise<CommandFileDescriptor> {
+export async function openCommandFile(context: FileOutputContext & { readonly cleanupFailurePrioritySignal?: AbortSignal | undefined }, path: string, options: OpenFileOptions): Promise<CommandFileDescriptor> {
+  const { cleanupFailurePrioritySignal } = context;
   let descriptor: FileDescriptor | undefined;
   let accepting = true;
   let closing: Promise<void> | undefined;
@@ -64,8 +65,11 @@ export async function openCommandFile(context: FileOutputContext, path: string, 
     context.registerCleanup?.(async () => {
       try { await close(); }
       catch (reason) {
-        check();
-        if (!closeFailure?.drained || !closeFailure.acknowledged || !Object.is(reason, closeFailure.reason)) throw reason;
+        if (!closeFailure?.drained || !closeFailure.acknowledged || !Object.is(reason, closeFailure.reason)) {
+          if (cleanupFailurePrioritySignal === undefined) check();
+          else cleanupFailurePrioritySignal.throwIfAborted();
+          throw reason;
+        }
       }
       check();
     });

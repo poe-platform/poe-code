@@ -91,11 +91,12 @@ export function prepareBytesInput(value: string | Uint8Array, budget: Budget): P
 }
 
 export async function prepareFileInput(
-  context: Pick<CommandContext, "fs" | "signal"> & Required<Pick<CommandContext, "registerCleanup">>,
+  context: Pick<CommandContext, "fs" | "signal"> & Required<Pick<CommandContext, "registerCleanup">>
+    & { readonly cleanupFailurePrioritySignal?: AbortSignal | undefined },
   path: string,
   budget: Budget,
 ): Promise<PreparedShellInput> {
-  const { fs, signal: parent, registerCleanup: register } = context;
+  const { fs, signal: parent, registerCleanup: register, cleanupFailurePrioritySignal } = context;
   const registerCleanup = register.bind(context);
   const signal = AbortSignal.any([parent, budget.signal]);
   const readerController = new AbortController();
@@ -110,6 +111,7 @@ export async function prepareFileInput(
   let admitted!: () => void;
   const acquisition = new Promise<void>(resolve => { admitted = resolve; });
   let closing: Promise<void> | undefined;
+  let teardownFailed = false;
   const close = (): Promise<void> => {
     accepting = false;
     if (!readerController.signal.aborted) readerController.abort(new FsError("EBADF", { syscall: "read", path }));
@@ -120,7 +122,8 @@ export async function prepareFileInput(
         if (descriptor) await descriptor.close();
         else await legacy?.return?.();
       } catch (error) {
-        signal.throwIfAborted();
+        teardownFailed = true;
+        (cleanupFailurePrioritySignal ?? signal).throwIfAborted();
         throw error;
       } finally {
         descriptor = undefined;
@@ -140,11 +143,17 @@ export async function prepareFileInput(
     if (!accepting) throw new FsError("EBADF", { syscall: "read", path });
   };
   try {
-    registerCleanup(close);
+    registerCleanup(cleanupFailurePrioritySignal === undefined ? close : async () => {
+      try { await close(); }
+      catch (error) {
+        if (teardownFailed) cleanupFailurePrioritySignal.throwIfAborted();
+        throw error;
+      }
+    });
     signal.addEventListener("abort", aborted, { once: true });
     check();
     let provenance: NonNullable<ShellInputOptions["provenance"]> = "unknown";
-    try { descriptor = await openCommandFile({ fs, signal, registerCleanup }, path, { access: "read", signal }); }
+    try { descriptor = await openCommandFile({ fs, signal, registerCleanup, cleanupFailurePrioritySignal }, path, { access: "read", signal }); }
     catch (error) {
       check();
       if (!(error instanceof FsError) || error.code !== "ENOTSUP") throw error;

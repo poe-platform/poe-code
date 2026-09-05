@@ -10,6 +10,7 @@ interface Session {
   readonly ledger: ArrayLedger;
   readonly internal: ArrayLedger;
   readonly scope: InvocationScope;
+  readonly monitors?: Set<StateMonitor>;
   owner: ArrayOwner | undefined;
   guestOwner: ArrayOwner | undefined;
 }
@@ -72,7 +73,8 @@ export class StateMonitor {
     this.proxy = this.wrap(raw, "state") as State;
     monitors.set(raw, this);
     monitors.set(this.proxy, this);
-    session.scope.register(async () => { await session.scope.drainWork(); this.closeValues(); });
+    if (session.monitors) session.monitors.add(this);
+    else session.scope.register(async () => { await session.scope.drainWork(); this.closeValues(); });
   }
 
   closeValues(): void { this.values.close(); this.positionals.close(); }
@@ -304,14 +306,27 @@ export class Restoration {
   }
 }
 
-export async function snapshotState(state: State, clone: () => State, signal: AbortSignal, prepare?: (destination: State, owner: ArrayOwner) => Promise<void>): Promise<State> {
+export async function snapshotState(state: State, clone: () => State, signal: AbortSignal, prepare?: (destination: State, owner: ArrayOwner) => Promise<void>, scope?: InvocationScope): Promise<State> {
   const monitor = stateMonitor(state);
   if (!monitor) return clone();
-  if (!monitor.store && !monitor.session.ledger.active) return new StateMonitor(clone(), monitor.session, monitor).proxy;
+  const session: Session = scope ? { ...monitor.session, scope, owner: undefined, guestOwner: undefined, monitors: new Set() } : monitor.session;
+  if (scope) scope.register(async () => {
+    await scope.drainWork();
+    for (const owned of session.monitors!) {
+      owned.closeValues();
+      if (owned.store) for (const [name] of owned.store.bindings) {
+        await scope.cleanup(async () => { await owned.store!.remove(name, { generation: 0, version: 0, epoch: 0 }); });
+      }
+    }
+    session.monitors!.clear();
+    await session.owner?.close();
+  });
+  if (!monitor.store && !monitor.session.ledger.active) return new StateMonitor(clone(), session, monitor).proxy;
   const store = monitor.store ?? monitor.activate();
   const internal = store.owner.ledger === monitor.session.internal;
   const epoch = monitor.epoch;
-  const owner = ArrayOwner.create(store.owner.ledger, store.owner);
+  const parent = scope ? session.owner ??= ArrayOwner.create(session.internal) : store.owner;
+  const owner = ArrayOwner.create(store.owner.ledger, parent);
   const holding = store.owner.hold();
   const check = () => {
     signal.throwIfAborted();
@@ -345,7 +360,7 @@ export async function snapshotState(state: State, clone: () => State, signal: Ab
     }
     }
     check();
-    result = new StateMonitor(clone(), monitor.session, monitor);
+    result = new StateMonitor(clone(), session, monitor);
     const destination = result.activate(internal);
     for (const [name, entry] of store.bindings) {
       check();

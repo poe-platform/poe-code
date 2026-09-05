@@ -1371,6 +1371,18 @@ qualify the Array receiver repair for its own atomic commit and push; delivery
 and publication remain separate steps. Primitive boxing below is not included
 or claimed complete.
 
+The initial push of 79cb29afd was rejected because main had advanced through
+e4b4c185b. The incoming child-dispatch cleanup was merged without changing the
+user's staged three-file SafeBash patch (its binary-patch SHA-256 remained
+e9c7047e5ec094d9e142a8115773da7849c2c19c45a418bdc61f61498875523d).
+Post-merge qualification passed: all 70 declared workspace builds and root
+suffix stages; 11,033 SafeJS tests with 41 skipped; 114 focused cleanup/array
+tests plus one exact registration test, all passing without skips; and root
+lint over 9,749 configured files with zero errors/warnings, then type/workflow
+checks. The cleanup cohort is scoped evidence, not a full SafeBash gate or
+closure of the separate heredoc issue. The integrated Array fix is ready for
+a normal push; remote delivery and publication still require verification.
+
 ### 26. Primitive boxing — validated open gap
 
 Eight built native comparisons fail: Object boxing of number/string/boolean,

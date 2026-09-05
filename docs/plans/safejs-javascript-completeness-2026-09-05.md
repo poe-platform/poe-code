@@ -2318,7 +2318,7 @@ CLI run 33963669839/job 101300966831 published poe-code 14.0.60 at 11:45:20 UTC
 on September 5. The remote tag independently resolves to c9b2457e1. Both
 publication routes are verified for the parser-context fix.
 
-### 42. Ordinary template substitution coercion — qualified; delivery pending
+### 42. Ordinary template substitution coercion — closed at verified main delivery; release pending
 
 Built/native probes show plain-object substitution rejects instead of producing
 [object Object], and a sandbox toString hook is not invoked. Returning an object
@@ -2401,6 +2401,14 @@ native controls cover primitive hook results, inherited hooks, cycles, mutated
 fallback methods and thrown null. RegExp/Map own toString assignment fails
 before both explicit String and template conversion; those separate intrinsic/
 object-model gaps are not folded into this semantic correction.
+Delivered as f9e49d88477cd7f4d42366a5f6baef25f079ad20, independently verified
+on remote refs/heads/main September 5. Close this finding at delivery. Scoped
+run 33965139974 and CLI run 33965140098 are monitored while the next validated
+issue is addressed; publication is not yet claimed.
+Scoped run 33965139974/job 101303819940 succeeded and published
+@poe-platform/safe-js 0.1.129 on September 5 at 12:11:44 UTC. The CLI workflow
+remains separately monitored for actual publication and inclusion of the prior
+retention fix.
 
 ### 43. Function stringification — validated open built-in gap
 
@@ -2415,6 +2423,14 @@ This is distinct from ordinary template coercion: explicit String already
 fails too. Validate source metadata, overrides, bound/builtin functions,
 budgets, realms and snapshot/replay before its own implementation and delivery.
 Do not expose host implementation source or add native eval as a workaround.
+Parser/source inspection identifies a prerequisite for exact guest text: grouping
+parentheses overwrite the function node's ordinary span, including functions
+inside template substitutions. Six bounded parser probes cover grouped ordinary
+functions, grouped arrows, async arrows, generators and computed/async methods.
+Slicing the final node span includes unwanted grouping parentheses. Preserve
+the function's own source range before that overwrite, retain comments/spacing,
+and recover it from reparsed source on restore; do not pretty-print approximate
+function source or expose host implementation details.
 
 ### 44. Converted string-prefix retention — closed at verified main delivery; release pending
 
@@ -2476,8 +2492,12 @@ Scoped run 33964754696/job 101302803347 succeeded; its log confirms
 @poe-platform/safe-js 0.1.128 published September 5 at 12:03:07 UTC. CLI
 run 33964754790 remains monitored; scoped publication is not treated as proof
 of CLI publication.
+CLI run 33964754790 subsequently ended canceled (unit job 101303198050 was
+stopped at 12:07:22 UTC; release-stable was skipped). It did not publish a CLI
+version. Track inclusion through the descendant template workflow 33965140098;
+do not mislabel the canceled run as a passed release or a code-test failure.
 
-### 45. String concat argument coercion — validated open semantic gap
+### 45. String concat argument coercion — qualified; delivery pending
 
 The attempted retention probe `''.concat([{toString:first},{toString:last}])`
 raises Cannot convert object to primitive value instead of reaching the marker.
@@ -2498,3 +2518,34 @@ Seven additional built/native probes confirm inherited/async/generator hooks,
 short-circuiting after thrown conversion and nonprimitive hook order fail;
 null-prototype TypeError and cyclic-array conversion are passing controls.
 These remain validation evidence only until the template change is delivered.
+After template commit f9e49d884 reaches remote main, the initial concat TDD
+suite reproduces 27 failures and six controls. Guest-aware conversion corrects
+the semantic failures, leaving two genuine missing-root failures for fresh
+receiver text and accumulated argument prefixes. Use the delivered synchronous
+retainValues helper around the result until conversion completes. Primitive-only
+calls retain their original synchronous route; an initial all-async candidate
+failed the maintained direct-method contract. A low-level allocation test first
+used dataSize, which allocateString does not enforce without runtime reconciliation;
+correct it to the actual stringLength contract rather than inventing a budget bug.
+The final six-file cohort passes 395 checks, including 34 concat regressions,
+receiver semantics, existing string methods, shared retention, templates and
+snapshots. Async hook promises are not adopted, generator checkpoints restore
+the exact hook order, caught failures release roots, and realm calls remain
+reusable. Ordinary function source display is still the distinct section 43 gap;
+custom function string hooks now run through the shared conversion path.
+
+Manual QA: create a schema-only concat.md/.ajs pair in the existing temporary
+validation directory. Use no capabilities or spawns; assert receiver/argument
+hook order, valueOf fallback, builtin display and thrown-value identity. Run the
+real harness via the screenshot route and inspect its output. Validate public
+entrypoints, low/high-budget checkpoint recovery and maintained SafeJS/consumer
+tests, build and root lint before a separate concat commit/push.
+Final maintained checks pass: SafeJS 12,356 tests with 41 skips, agent-harness
+163 tests, root lint 9,764 configured files with zero errors/warnings followed
+by TypeScript and workflow checks. Normal build and schema-only CLI/screenshot
+pass after 70 uncached predev builds; inspected output confirms R7:/a/g:[object
+Map], receiver/string/value order, error identity and zero spawns. Ten public
+root/core budget rejections recover at an explicitly larger quota without
+repeating completed effects; two public generator-in-hook checkpoints restore
+exact results; forty persistent-realm cycles release all temporary roots.
+git diff --check passes and the user-staged Safe Bash checksum remains unchanged.

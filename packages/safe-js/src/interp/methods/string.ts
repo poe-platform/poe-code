@@ -4,6 +4,7 @@ import { invokeBuiltinClosure } from "../builtin-call.js";
 import { CompileScope } from "../regex/compile-guard.js";
 import { normalizeLastIndex } from "../regex/engine.js";
 import { sandboxNumber, sandboxString } from "../string-coercion.js";
+import { retainValues } from "../resources.js";
 import {
   createSandboxClosure,
   createSandboxRegex,
@@ -164,6 +165,10 @@ export function callStringMethod(
   parent?: CompileScope,
   context?: SandboxCallContext
 ): SandboxValue | Promise<SandboxValue> {
+  if (methodName === "concat" && args.some(argument => argument !== null && typeof argument === "object")) {
+    return callConcat(value, args, budget, context);
+  }
+
   if (methodName === "isWellFormed") {
     for (let index = 0; index < value.length; index++) {
       const codeUnit = value.charCodeAt(index);
@@ -335,6 +340,25 @@ export function callStringMethod(
   } finally {
     compilation.dispose();
     operation.release();
+  }
+}
+
+async function callConcat(
+  value: string,
+  args: readonly SandboxValue[],
+  budget: Budget,
+  context?: SandboxCallContext
+): Promise<string> {
+  let result = budget.allocateString(value);
+  const release = retainValues(budget, () => [result]);
+  try {
+    for (const argument of args) {
+      const text = sandboxString(argument, budget, context);
+      result = budget.allocateString(result + (typeof text === "string" ? text : await text));
+    }
+    return result;
+  } finally {
+    release();
   }
 }
 

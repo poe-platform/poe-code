@@ -307,6 +307,33 @@ this request to keep additions out of the default package.
 - Guarded root lint's tenth run completes with exit 0 and no warnings. This
   precedes the final runtime byte repairs and subsequent dd/public additions;
   it is not a lint claim for those later edits.
+- The byte-array/read foundation is locally committed as `79081333e`. Input
+  readiness/deadline primitives and generic extension binding/descriptor adapters
+  are now assigned separately; full grammar and optional builtins remain open.
+- DD's repository-local optional entry now exposes factories and configuration
+  types. Three missing-export public cases fail before wiring; binary named copy,
+  mounted zero/random device composition, shared named-output budget and strict
+  consumer declarations then pass (four selected tests). An initial mount test
+  used the wrong factory argument shape; that fixture error is preserved in its
+  earlier capture and is not a product failure. Actual compiled output is visually
+  inspected in `dd-public-visual.png`. Root's full native/reviewer cohort currently
+  passes 123/134: five sparse append/seek cases, four exact-help byte comparisons
+  and two diagnosed-close recovery cases remain failures assigned to the author.
+  The help failures concern output bytes, not an exit-status mismatch. DD is not
+  approved or committed merely because the public smoke cases pass.
+- Standalone optional jobs state passes independent and root 70-test runs with
+  the pinned Bash oracle and zero skips, plus strict types. Independent review
+  first reproduced late runner-getter acquisition after cancelled preparation
+  in two tests; both pass unchanged after the repair. The reviewed source hash
+  is `69ff1cfa3fd4ed809f0d78eeb6bebf8dd46d51e3d6ee1ec32fd2ac39b9dba4d9`.
+  Admission reserves capacity before preparation, completed outcomes include
+  cleanup, waiter cancellation does not cancel a job, and natural `finish()`
+  drains without cancellation while `close(reason)` cancels and drains. Defaults
+  bound retained jobs to 256, waiters to 64 and cleanup callbacks per job to 64;
+  exhaustion refuses admission rather than evicting retained status. Falsey
+  failure identities and preparation-failure precedence remain intact. This
+  source is excluded from default build/package files, has no public export or
+  shell registration, and does not yet deliver actual background `&` or `wait`.
 
 - First implementation wave: cmp, yes, shuf and virtual devices in disjoint leaf
   directories. Root is qualifying native oracles and the opt-in delivery boundary.

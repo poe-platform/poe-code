@@ -9,7 +9,9 @@ export const filesystemOutputBudgets = new WeakMap<NonNullable<CommandContext["r
   readonly countedWrite?: CountedFileWrite;
 }>();
 
-export type FileOutputContext = Pick<CommandContext, "fs" | "signal" | "registerCleanup">;
+export type FileOutputContext = Pick<CommandContext, "fs" | "signal" | "registerCleanup"> & {
+  readonly cleanupFailurePrioritySignal?: AbortSignal | undefined;
+};
 
 export function bindFileOutputBudget(context: Pick<CommandContext, "registerCleanup">, budget: (sink: ByteSink) => ByteSink, countedWrite?: CountedFileWrite): void {
   if (!context.registerCleanup) throw new TypeError("Shell output budgets require invocation cleanup ownership");

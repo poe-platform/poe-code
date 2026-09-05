@@ -28,6 +28,48 @@ function owner(fs: FileSystem = createMemoryFileSystem()) {
   };
 }
 
+for (const reason of [false, 0, "", null]) {
+  test(`explicit cleanup priority separates settled output from operation cancellation ${String(reason)}`, async () => {
+    const context = owner();
+    const priority = new AbortController();
+    const target = await openFileOutput({ ...context, cleanupFailurePrioritySignal: priority.signal }, "/out", { flag: "w", descriptor: true });
+    await target.sink.write(Uint8Array.of(1));
+    await target.finish();
+    context.controller.abort(reason);
+    assert.deepEqual(await context.drain(), [{ status: "fulfilled", value: undefined }]);
+    await assert.rejects(target.descriptor!.stat(), error => Object.is(error, reason));
+  });
+
+  for (const acknowledged of [false, true]) test(`explicit cleanup priority preserves actual close failure ${String(reason)}, acknowledged=${acknowledged}`, async () => {
+    const backing = createMemoryFileSystem();
+    const context = owner(override(backing, { async open(path, options) {
+      const descriptor = await backing.open!(path, options);
+      return override(descriptor, { async close() { await descriptor.close(); throw reason; } });
+    } }));
+    const priority = new AbortController();
+    const target = await openFileOutput({ ...context, cleanupFailurePrioritySignal: priority.signal }, "/out", { flag: "w", descriptor: true });
+    await assert.rejects(target.finish(), error => Object.is(error, reason));
+    if (acknowledged) assert.equal(target.descriptor!.acknowledgeCloseFailure(reason), true);
+    context.controller.abort(new Error("operation ended"));
+    assert.deepEqual(await context.drain(), [acknowledged ? { status: "fulfilled", value: undefined } : { status: "rejected", reason }]);
+    await assert.rejects(target.descriptor!.close(), error => Object.is(error, reason));
+  });
+
+  test(`explicit cleanup priority keeps root cancellation ${String(reason)} above close failure`, async () => {
+    const backing = createMemoryFileSystem();
+    const context = owner(override(backing, { async open(path, options) {
+      const descriptor = await backing.open!(path, options);
+      return override(descriptor, { async close() { await descriptor.close(); throw new Error("close failed"); } });
+    } }));
+    const priority = new AbortController();
+    const target = await openFileOutput({ ...context, cleanupFailurePrioritySignal: priority.signal }, "/out", { flag: "w", descriptor: true });
+    priority.abort(reason);
+    context.controller.abort(new Error("operation ended"));
+    assert.deepEqual(await context.drain(), [{ status: "rejected", reason }]);
+    await assert.rejects(target.descriptor!.close(), { message: "close failed" });
+  });
+}
+
 const forwardedOperations: { name: string; invoke(descriptor: CommandFileDescriptor, options: FsOptions): Promise<unknown> }[] = [
   { name: "stat", invoke: (descriptor, options) => descriptor.stat(options) },
   { name: "read", invoke: (descriptor, options) => descriptor.read(new Uint8Array(1), null, options) },

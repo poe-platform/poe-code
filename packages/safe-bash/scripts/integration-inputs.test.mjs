@@ -433,6 +433,9 @@ function assertSource7Discovery(files) {
     "tests/contracts/retained-output-review.test.ts",
     "tests/commands/retained-output-descriptor.test.ts",
     "tests/plugins/retained-output-api-runtime.test.ts",
+    "tests/shell/extensions/core/retained-output-runtime.test.ts",
+    "tests/shell/extensions/core/retained-output-runtime-review.test.ts",
+    "tests/plugins/retained-output-runtime.test.ts",
   ]) assert.ok(files.includes(path), "retained output API test is missing: " + path);
   for (const path of [
     "tests/commands/yes/yes.test.ts",

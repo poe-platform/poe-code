@@ -1330,6 +1330,76 @@ this request to keep additions out of the default package.
   54 failures among 579 tests, zero skips. These failures and the default output
   rename failure are retained for the next runtime integration, not counted as
   passing API-foundation acceptance.
+- Local commit `cb68558db` records the retained-output API foundation separately
+  from the formatter. The next source assignment is canonical runtime output
+  selection for affirmative path-specific open capabilities, preserving legacy
+  selection elsewhere and counted-budget/close ownership. The compiled default
+  rename regression remains the concrete red test; no default-routing or
+  extended-read completion is inferred from the committed helper.
+- A bounded indexed-readonly audit captures 24 additional primary Bash 5.3 cases,
+  all with exact mismatches and no native timeouts or skipped cases. Nineteen
+  stop at readonly indexed declaration/assignment option dispatch; one direct
+  compound declaration fails in the parser; one invalid grouped option has
+  matching status/effects but wrong diagnostic/usage. Three plain-readonly
+  controls preserve status, values and local restoration but differ in mutation
+  diagnostics. Unsupported observation commands are not used to inflate these
+  failures. The immutable manifest is
+  `/tmp/readonly-indexed-primary53.w5xYlX/capture-manifest-v2.json`, SHA-256
+  `adec1b5094ae0e82c5f4c4bedd2ec69f9a3e26bc6ecffda15f40190c4584ae6d`.
+  The owner is preserving all 24 as native-backed regressions for later array
+  implementation; no readonly runtime or parser repair is yet approved or claimed.
+- Canonical runtime output selection now follows affirmative path-specific open
+  capabilities. Retained output preserves rename/unlink identity, independent
+  positions, shared duplicated positions, nested truncation and append behavior;
+  counted writes share the existing invocation allowance without a second charge.
+  Nonaffirmative open capabilities retain legacy streaming/random-update paths.
+  A canonical open failure never selects a fallback writer.
+- Independent review first exposed nine cleanup regressions: seven genuine close
+  failures hidden by handled local cancellation (including falsey reasons), and
+  two silently mapped close-EPIPE failures escaping registered cleanup again.
+  The author repaired these against the unchanged review. Independent frozen
+  re-review passes 57/57, plus legacy129 and gated-view13 (199/199), with zero
+  skips and stable watched hashes. Its receipt is
+  `/tmp/retained-output-runtime-independent-frozen-d3x0yn/validation.json`, SHA-256
+  `75eae01eb19ad7e549a4dfe31f080eef7f176e138df7033cd275214b8b40b044`.
+  Root verifies the legacy fixture diff contains only three `open: false`
+  declarations: its original stream/fallback assertions and programs are intact.
+  This explicitly corrects inherited memory-open capability in those fixture
+  profiles, not a claim that their provider declarations were unchanged.
+- Root sequential default and optional builds pass with stable source hashes.
+  The subsequent frozen mixed source/compiled cohort passes 3007/3007 in 88 files,
+  zero skips and no changes among 377 watched paths. Historical native suites
+  retain their Bash 5.2.37 oracle; new primary Bash 5.3 observations remain separate
+  authenticated goldens. An earlier wrong-profile run selected 5.3 for historical
+  suites and overlapped build output (187 failures and three changed dist paths);
+  preserve that incomplete run rather than claim it validated the candidate.
+  Evidence is under `/tmp/safe-bash-scripting-oracles-20260904/` with stems
+  `retained-routing-root-1`, `retained-routing-root-2`, and
+  `retained-routing-build-root-1`.
+- Root actual-package strict checking passes 19 roots / 436 source files with
+  zero diagnostics and no hash drift; literal discovery passes 98/98. Guarded
+  `scripting-lint-33` completes successfully: 9905 configured/linted files,
+  zero errors/warnings, 25 receipts and no drift among 366 watched paths.
+  The owner's complete package typecheck still reports 24 diagnostics outside
+  these changes; scoped success does not constitute a full typecheck pass.
+- Actual compiled public execution against an explicitly rooted real adapter
+  replays seven authenticated primary5.3 namespace programs both inline and as
+  `.sh` files: 14/14 exact statuses, stdout/stderr bytes, names and file contents.
+  Root inspects `retained-routing-real-public-2.png`; the adjacent JSON records
+  stable compiled hashes and the reference hash. Preserve the first QA capture,
+  whose comparison mistakenly included native inode/provenance fields as
+  content expectations. No native-host fallback enters product execution.
+- Public inventory remains 79 default commands and 28 browser commands, with
+  date still working and no automatic curl or new optional tools. Inventory and
+  optional-public suites pass 66/66. Fresh dry-run pack manifests contain 1066
+  workspace files / 4657 root files with no new optional runtime leakage;
+  despite `--ignore-scripts`, root prepare/husky executes and is captured.
+- This routing increment does not complete extended read or fuller arrays.
+  Current frozen-source read checks remain 525 pass / 54 fail among 579, while
+  all 24 preserved readonly-indexed primary5.3 regressions still fail. Their
+  root receipts are `read-after-retained-routing-root-1.json` and
+  `readonly-indexed-current-root-1.json`; no source drift or skipped cases occurs.
+  These red suites remain separate from this increment's acceptance and commit.
 
 - First implementation wave: cmp, yes, shuf and virtual devices in disjoint leaf
   directories. Root is qualifying native oracles and the opt-in delivery boundary.

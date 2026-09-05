@@ -6,7 +6,7 @@ path builds on `createOutputOperation`: cleanup is registered before filesystem 
 completion closes the byte stream, and abort cancels the operation and joins its
 writer and admitted writes. It is not a separate invocation lifecycle.
 
-## Selection and preflight
+## Legacy selection and preflight
 
 - Resolve `fs.capabilitiesFor(path)` when supplied; otherwise use the filesystem's
   aggregate capabilities. A mount's unrelated read-only paths do not determine
@@ -115,17 +115,32 @@ Accepted partial counts refund only the unused admitted bytes; invalid counts or
 unknown failures retain conservative charges. The budget binding is shared via
 the internal `filesystem-output-budget` module, not a second ledger.
 
-This explicit API does not yet migrate shell redirection selection. The legacy
-redirection behavior below remains in effect until its separate runtime
-integration. It also does not implement pipe endpoint aliases, write-end
-readiness, or extended-read descriptor semantics.
+The optional `FileOutputContext.cleanupFailurePrioritySignal` distinguishes
+caller cancellation during cleanup from operation cancellation or normal
+invocation admission closure. It is captured before acquisition and does not
+replace the operation signal passed to providers. When supplied, that signal
+controls cleanup cancellation precedence; omission retains the context signal.
+Unacknowledged canonical close failures remain errors unless caller cancellation
+or an escaping primary operation failure has precedence. A mapped close failure
+can be acknowledged through the same resource's descriptor after its outcome
+is handled, preventing that acknowledged failure from escaping again during
+registered cleanup. Diagnostic outcomes require successful diagnostic delivery;
+the silent EPIPE mapping instead retains status 141. This is explicit caller
+provenance, not classification by
+an exception's text or by comparing unrelated cancellation reasons.
+
+Shell redirections select this API as described below. It does not implement
+pipe endpoint aliases, write-end readiness, or extended-read descriptor semantics.
 
 Coverage includes `tests/contracts/filesystem-output-descriptor.test.ts`,
 `tests/contracts/retained-output-review.test.ts`,
 `tests/commands/retained-output-descriptor.test.ts`, and the compiled consumer
 `tests/plugins/retained-output-api-runtime.test.ts`.
+Runtime coverage additionally includes `tests/shell/extensions/core/retained-output-runtime.test.ts`,
+`tests/shell/extensions/core/retained-output-runtime-review.test.ts`, and the
+compiled consumer `tests/plugins/retained-output-runtime.test.ts`.
 
-## Backpressure, cancellation and budgets
+## Streaming backpressure, cancellation and budgets
 
 Concurrent writes to one output operation are serialized in invocation order.
 Each active write is split into fragments of at most 64 KiB and waits until the
@@ -189,8 +204,10 @@ operations and successful cleanup still observe their operational signals. This 
 close-failure acknowledgement, skip draining, or add a shell configuration option.
 
 The returned `CommandFileDescriptor` additionally exposes
-`acknowledgeCloseFailure(reason)`. A command may call this after successfully
-diagnosing a settled close failure and mapping it to its command exit status.
+`acknowledgeCloseFailure(reason)`. A command may call this after handling a
+settled close failure and mapping it to its command exit status. Diagnostic
+outcomes require successful diagnostic delivery; silent EPIPE mapping to 141
+does not require a diagnostic.
 Only the exact recorded reason, compared with `Object.is`, can be acknowledged;
 wrong or premature reasons return false. Repeating a successful acknowledgement
 is idempotent. This does not turn `close()` into success: explicit repeated close
@@ -236,8 +253,8 @@ The counted callback can admit the underlying writer only once and cannot save i
 for invocation after settlement. Even if that callback fails without awaiting an
 already-started writer, the helper drains the writer before settling, preserving
 buffer ownership and the primary failure. Descriptor close joins that work too.
-These guarantees do not automatically migrate the legacy shell redirection
-implementation described below to canonical descriptors.
+These guarantees apply to canonical output selection; the legacy paths below
+remain available when the provider does not affirm its canonical open capability.
 
 Focused coverage lives in `tests/contracts/filesystem-descriptor.test.ts`, the
 independent `tests/contracts/filesystem-descriptor-review.test.ts`, and
@@ -245,16 +262,34 @@ independent `tests/contracts/filesystem-descriptor-review.test.ts`, and
 
 ## Redirection descriptors and visibility
 
-Filesystems explicitly advertising `randomAccessWrite: true` retain the existing
+Shell redirections resolve the target's capabilities and select canonical output
+only when `open === true`. That selection never falls back after acquisition
+failure. Independent canonical opens have independent positions; duplicated
+output descriptors share their resource and position. Renaming or unlinking an
+open target does not redirect later writes to a replacement pathname. Nested
+truncation retains an outer handle's position, and append follows the provider's
+canonical append contract. Legacy sequential-stream conflict bookkeeping does
+not reject these independent canonical opens.
+
+Canonical sinks are enrolled as counted output before command dispatch. Reusing
+that same sink through builtins, interpreters or invocation forwarding does not
+add another ordinary sink charge. Replacing a sink does not inherit that
+enrollment. Finalization preserves an already nonzero command status, retains
+root cancellation and escaping control failure precedence, and acknowledges only
+close failures that the runtime has actually mapped.
+
+Without affirmative canonical open, filesystems explicitly advertising
+`randomAccessWrite: true` retain the existing
 redirection offset implementation. Independent opens have independent offsets,
 duplicates share their descriptor, nested truncation preserves an outer offset,
 and reads can observe completed incremental writes. This profile retains the
 existing budget-bounded byte image used for offset emulation; it is not the
 generic sequential streaming path.
 
-Other filesystems use one sequential stream per opened redirection. Duplicated
+Other legacy filesystems use one sequential stream per opened redirection. Duplicated
 descriptors share that stream, including throughout a compound command. A second
-simultaneous redirection to the same resolved shell path fails with `ENOTSUP`
+simultaneous redirection to the same resolved shell path fails with `ENOTSUP`,
+unless the provider explicitly advertises `independentWriteStreams`,
 instead of inventing random-access semantics. This is not an alias-identity or
 cross-process locking guarantee. An atomic adapter's new content becomes visible
 at stream completion; reads during the operation can still see the original.

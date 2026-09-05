@@ -24,6 +24,7 @@ export interface FileOutputOpenOptions {
 
 async function openDescriptorOutput(context: FileOutputContext, path: string, options: FileOutputOpenOptions): Promise<FileOutput> {
   const { flag, mode } = options;
+  const { cleanupFailurePrioritySignal } = context;
   if (flag !== "w" && flag !== "a" && flag !== "wx") throw new TypeError("Invalid descriptor output flag");
   const controller = new AbortController();
   const signal = AbortSignal.any([context.signal, controller.signal]);
@@ -31,8 +32,9 @@ async function openDescriptorOutput(context: FileOutputContext, path: string, op
   let descriptor: CommandFileDescriptor | undefined;
   let accepting = true;
   let completed = false;
-  let failure: { reason: unknown } | undefined;
+  let failure: { reason: unknown; cancellation: boolean } | undefined;
   let retirementFailure: { reason: unknown } | undefined;
+  let closeFailureAcknowledged = false;
   let writes: Promise<void> = Promise.resolve();
   let closing: Promise<void> | undefined;
   let finishing: Promise<void> | undefined;
@@ -63,8 +65,9 @@ async function openDescriptorOutput(context: FileOutputContext, path: string, op
     for (const close of cleanups) {
       try { await close(); } catch (reason) { cleanupFailure ??= { reason }; }
     }
-    context.signal.throwIfAborted();
-    if (!failure && cleanupFailure) throw cleanupFailure.reason;
+    (cleanupFailurePrioritySignal ?? context.signal).throwIfAborted();
+    if (retirementFailure && !closeFailureAcknowledged && (!failure || cleanupFailurePrioritySignal !== undefined && failure.cancellation)) throw retirementFailure.reason;
+    if (!failure && cleanupFailure && (cleanupFailurePrioritySignal === undefined || !signal.aborted)) throw cleanupFailure.reason;
   };
   const registerCleanup = (close: () => void | Promise<void>): void => { cleanups.push(close); };
   const budget = context.registerCleanup && filesystemOutputBudgets.get(context.registerCleanup);
@@ -79,7 +82,7 @@ async function openDescriptorOutput(context: FileOutputContext, path: string, op
     if (capabilities.readOnly === true) throw new FsError("EROFS", { path, syscall: "open" });
     if (flag === "a" ? capabilities.append === false : capabilities.write === false) throw new FsError("ENOTSUP", { path, syscall: "open" });
     if (flag === "wx" && capabilities.exclusiveCreate !== true) throw new FsError("ENOTSUP", { path, syscall: "open" });
-    descriptor = await openCommandFile({ fs: context.fs, signal, registerCleanup, cleanupFailurePrioritySignal: context.signal }, path, {
+    descriptor = await openCommandFile({ fs: context.fs, signal, registerCleanup, cleanupFailurePrioritySignal: cleanupFailurePrioritySignal ?? context.signal }, path, {
       access: "write", creation: flag === "wx" ? "exclusive" : "ifMissing",
       truncate: flag === "w", append: flag === "a", ...(mode === undefined ? {} : { mode }),
     });
@@ -106,7 +109,11 @@ async function openDescriptorOutput(context: FileOutputContext, path: string, op
       truncate: (length, forwarded = {}) => admit("ftruncate", forwarded, supplied => retained.truncate(length, supplied)),
       sync: (dataOnly, forwarded = {}) => admit(dataOnly ? "fdatasync" : "fsync", forwarded, supplied => retained.sync(dataOnly, supplied)),
       close: retire,
-      acknowledgeCloseFailure: retained.acknowledgeCloseFailure,
+      acknowledgeCloseFailure(reason) {
+        const acknowledged = retained.acknowledgeCloseFailure(reason);
+        if (acknowledged) closeFailureAcknowledged = true;
+        return acknowledged;
+      },
     };
     const write = (chunk: Uint8Array): Promise<void> => {
       try {
@@ -125,7 +132,7 @@ async function openDescriptorOutput(context: FileOutputContext, path: string, op
             offset += count;
           }
         } catch (reason) {
-          failure ??= { reason: context.signal.aborted ? context.signal.reason : reason };
+          failure ??= { reason: context.signal.aborted ? context.signal.reason : reason, cancellation: context.signal.aborted };
           controller.abort(failure.reason);
           check();
         }
@@ -135,7 +142,7 @@ async function openDescriptorOutput(context: FileOutputContext, path: string, op
     };
     const abort = (reason: unknown): Promise<void> => {
       if (!completed && !retirementFailure) {
-        failure ??= { reason };
+        failure ??= { reason, cancellation: context.signal.aborted };
         controller.abort(failure.reason);
       }
       return aborting ??= cleanup();
@@ -157,7 +164,7 @@ async function openDescriptorOutput(context: FileOutputContext, path: string, op
       abort,
     };
   } catch (reason) {
-    failure ??= { reason };
+    failure ??= { reason, cancellation: context.signal.aborted };
     acquired();
     await cleanup().catch(() => {});
     context.signal.throwIfAborted();

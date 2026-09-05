@@ -27,6 +27,7 @@ import { functionDisplay } from "./display.js";
 import { ConditionalUnsupported, evaluateConditional } from "./conditional.js";
 import { invocationScope, throwCleanupFailures, type InvocationScope } from "./cleanup.js";
 import { bindFileOutputBudget, openFileOutput } from "../contracts/filesystem-output.js";
+import type { CommandFileDescriptor } from "../contracts/filesystem-descriptor.js";
 import { outputFailure } from "../contracts/io.js";
 import { executionCommands } from "../commands/execution.js";
 import { cloneGetoptsState, createGetoptsState, GetoptsError, scanGetopts, withGetoptsIndex } from "./getopts.js";
@@ -406,6 +407,11 @@ function appendOutputBytes(current: Uint8Array, chunk: Uint8Array): Uint8Array {
 }
 
 type OutputCompletion = { reason: unknown } | { status: number };
+
+interface OutputFinalizer {
+  (completion: OutputCompletion): void | Promise<void>;
+  readonly descriptor?: CommandFileDescriptor;
+}
 
 class Flow extends Error {
   constructor(readonly kind: "exit" | "return" | "break" | "continue", readonly status: number, public levels = 1, readonly previousStatus?: number, readonly expansionFailure = false) {
@@ -2407,11 +2413,18 @@ export class Runtime {
     if (this.budget.commands % 128 === 0) await yieldTurn(this.signal);
     this.signal.throwIfAborted();
     const inputs = new Set<{ close(): void | Promise<void> }>();
-    const outputs = new Set<(completion: OutputCompletion) => void | Promise<void>>();
+    const outputs = new Set<OutputFinalizer>();
+    const outputFailures: { descriptor: CommandFileDescriptor; reason: unknown }[] = [];
+    let outputStatus: number | undefined;
     const finishOutputs = async (status: number): Promise<void> => {
       const pending = [...outputs];
       outputs.clear();
       const settled = await Promise.allSettled(pending.map(close => close({ status })));
+      for (const [index, result] of settled.entries()) {
+        const descriptor = pending[index]?.descriptor;
+        if (result.status === "rejected" && descriptor) outputFailures.push({ descriptor, reason: result.reason });
+      }
+      if (status !== 0) outputStatus = status;
       throwCleanupFailures(settled.filter(result => result.status === "rejected").map(result => result.reason));
     };
     const allocation = this.budget.values.scope();
@@ -2568,7 +2581,15 @@ export class Runtime {
       if (caught instanceof ExecutionFailure) io = caught.io;
       if (error instanceof NounsetDiagnosticFailure) diagnosticFailure = error;
       this.signal.throwIfAborted();
-      if (error instanceof Flow) await finishOutputs(error.status);
+      if (error instanceof Flow) {
+        try { await finishOutputs(error.status); }
+        catch (reason) {
+          this.signal.throwIfAborted();
+          if (!outputFailures.length) throw reason;
+          await writeText(io.stderr, `${io.scriptName ?? "shell"}: line ${io.diagnosticLine ?? 1}: ${message(reason)}\n`);
+          for (const failure of outputFailures) failure.descriptor.acknowledgeCloseFailure(failure.reason);
+        }
+      }
       if (error instanceof Flow || error instanceof ShellLimitError || error instanceof ShellSyntaxError) throw error;
       this.clearOutcomeReport();
       if (error instanceof HereDocumentSyntaxError) {
@@ -2577,6 +2598,7 @@ export class Runtime {
         return 1;
       }
       if (errorCode(error) === "EPIPE") {
+        for (const failure of outputFailures) failure.descriptor.acknowledgeCloseFailure(failure.reason);
         if (command.kind !== "simple" && command.kind !== "subshell" && command.kind !== "arithmetic" && command.kind !== "conditional") await this.errexit(141, state, io);
         return 141;
       }
@@ -2594,12 +2616,15 @@ export class Runtime {
       }
       if (error instanceof ArrayFailure) await writeText(io.stderr, `${io.scriptName ?? "shell"}: line ${line}: ${diagnostic ?? message(error)}\n`);
       else {
-        try { await writeText(io.stderr, `${io.scriptName ?? "shell"}: line ${line}: ${diagnostic ?? message(error)}\n`); }
+        try {
+          await writeText(io.stderr, `${io.scriptName ?? "shell"}: line ${line}: ${diagnostic ?? message(error)}\n`);
+          for (const failure of outputFailures) failure.descriptor.acknowledgeCloseFailure(failure.reason);
+        }
         catch { this.signal.throwIfAborted(); }
       }
       if (error instanceof ExpansionFailure) throw completedExit(error instanceof ParameterExpansionFailure && !state.isolated ? 127 : 1);
       if (error instanceof FatalCommandFailure) throw completedExit(error.status);
-      const status = error instanceof CommandFailure ? error.status : 1;
+      const status = outputStatus ?? (error instanceof CommandFailure ? error.status : 1);
       if (command.kind !== "simple" && command.kind !== "subshell" && command.kind !== "arithmetic" && command.kind !== "conditional") await this.errexit(status, state, io);
       return status;
     } finally {
@@ -2658,7 +2683,7 @@ export class Runtime {
     }
   }
 
-  async redirect(redirects: readonly Redirect[], state: State, io: IO, inputs: Set<{ close(): void | Promise<void> }>, outputs: Set<(completion: OutputCompletion) => void | Promise<void>>, isolatedInlineInput = false, persistMoves = false, fileShortcut = false, line?: number): Promise<IO> {
+  async redirect(redirects: readonly Redirect[], state: State, io: IO, inputs: Set<{ close(): void | Promise<void> }>, outputs: Set<OutputFinalizer>, isolatedInlineInput = false, persistMoves = false, fileShortcut = false, line?: number): Promise<IO> {
     this.signal.throwIfAborted();
     if (redirects.length > this.budget.limits.maxRedirects) this.budget.fail("maxRedirects");
     io.descriptors ??= new Map<number, Descriptor>([
@@ -2777,9 +2802,10 @@ export class Runtime {
         } else {
           const append = redirect.operator === ">>";
           const capabilities = await this.fs.capabilitiesFor?.(path, options) ?? this.fs.capabilities;
+          const canonical = capabilities.open === true;
           const random = capabilities.randomAccessWrite === true;
           let file!: OutputFile;
-          await this.fileOperation(path, async () => {
+          if (!canonical) await this.fileOperation(path, async () => {
             file = this.outputFiles.get(path) ?? { data: undefined, references: 0 };
             if (!random && capabilities.independentWriteStreams !== true && file.references) throw new FsError("ENOTSUP", { path, message: "Conflicting sequential output descriptors" });
             file.references++;
@@ -2827,13 +2853,16 @@ export class Runtime {
           const release = (): void => {
             if (closed) return;
             closed = true;
+            if (canonical) return;
             if (--file.references === 0 && this.outputFiles.get(path) === file) this.outputFiles.delete(path);
           };
           let target;
           try {
-            target = await openFileOutput({ fs: this.fs, signal: this.signal, registerCleanup: cleanup => io[invocationScope].register(cleanup) }, path, append ? "a" : "w", random ? incremental : undefined);
+            const context = { fs: this.fs, signal: this.signal, cleanupFailurePrioritySignal: this.budget.signal, registerCleanup: (cleanup: () => void | Promise<void>) => io[invocationScope].register(cleanup) };
+            if (canonical) bindFileOutputBudget(context, sink => this.budget.sink(sink, this.signal), (chunk, write) => this.budget.writeCounted(chunk, write, this.signal));
+            target = await openFileOutput(context, path, canonical ? { flag: append ? "a" : "w", descriptor: true } : append ? "a" : "w", !canonical && random ? incremental : undefined);
           } catch (error) { release(); throw error; }
-          outputs.add(async completion => {
+          const finalize: OutputFinalizer = async completion => {
             try {
               if (this.signal.aborted) await target.abort(this.signal.reason);
               else if ("reason" in completion) await target.abort(completion.reason);
@@ -2841,12 +2870,14 @@ export class Runtime {
                 try { await target.finish(); }
                 catch (error) {
                   this.signal.throwIfAborted();
-                  if (completion.status === 0) throw error;
+                  if (completion.status === 0 || target.descriptor && !target.signal.aborted) throw error;
                 }
               }
             } finally { release(); }
-          });
-          const output = this.budget.sink(target.sink, this.signal);
+          };
+          outputs.add(Object.assign(finalize, target.descriptor ? { descriptor: target.descriptor } : {}));
+          const output = canonical ? target.sink : this.budget.sink(target.sink, this.signal);
+          if (canonical) budgetedSinks.set(output, { budget: this.budget, write: output.write });
           descriptors.set(redirect.descriptor, { output });
           if (redirect.operator === "&>") {
             replaced.add(2);
@@ -2877,7 +2908,7 @@ export class Runtime {
     return { name: match[1]!, append: match[2] === "+", value: { offset: word.offset, parts: [{ ...first, value: first.value.slice(match[0].length) }, ...word.parts.slice(1)] } };
   }
 
-  async simple(command: Extract<Command, { kind: "simple" }>, state: State, originalIO: IO, inputs: Set<{ close(): void | Promise<void> }>, outputs: Set<(completion: OutputCompletion) => void | Promise<void>>, fileShortcut = false): Promise<number> {
+  async simple(command: Extract<Command, { kind: "simple" }>, state: State, originalIO: IO, inputs: Set<{ close(): void | Promise<void> }>, outputs: Set<OutputFinalizer>, fileShortcut = false): Promise<number> {
     state.substitutionStatus = 0;
     const assignments: ({ name: string; value: Word; append: boolean; kind?: undefined } | ArrayAssignment)[] = [];
     let wordIndex = 0;

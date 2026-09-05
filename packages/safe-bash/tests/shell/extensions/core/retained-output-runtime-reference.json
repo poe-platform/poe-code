@@ -1,0 +1,253 @@
+{
+  "profile": "GNU Bash 5.3.0 on Darwin; /bin/mv and /bin/rm are authenticated fixture primitives, not GNU utility parity or syscall-count observations",
+  "binaries": [
+    {
+      "path": "/tmp/safe-bash-gnu-5.3-adjudication.0zMRKT/bash-5.3/bash",
+      "sha256": "a0cfc1af0ff50f6b6e67c638979e2604f1c276c90116937fbaafcabb62ee2b40",
+      "size": 1397224,
+      "dev": 16777234,
+      "ino": 238253801
+    },
+    {
+      "path": "/bin/mv",
+      "sha256": "e17db5197afe47d1f4c8fd0a6ff32f153cce19183f3a70e33d043976a0943695",
+      "size": 119440,
+      "dev": 16777234,
+      "ino": 1152921500312570800
+    },
+    {
+      "path": "/bin/rm",
+      "sha256": "eac5b0e334d4c89493b505c72191a106af3b42bfe4ae5224967d71f11cc7f9ba",
+      "size": 119200,
+      "dev": 16777234,
+      "ino": 1152921500312570800
+    }
+  ],
+  "version": {
+    "status": 0,
+    "signal": null,
+    "stdoutBase64": "R05VIGJhc2gsIHZlcnNpb24gNS4zLjAoMSktcmVsZWFzZSAoYWFyY2g2NC1hcHBsZS1kYXJ3aW4yNS40LjApCkNvcHlyaWdodCAoQykgMjAyNSBGcmVlIFNvZnR3YXJlIEZvdW5kYXRpb24sIEluYy4KTGljZW5zZSBHUEx2Mys6IEdOVSBHUEwgdmVyc2lvbiAzIG9yIGxhdGVyIDxodHRwOi8vZ251Lm9yZy9saWNlbnNlcy9ncGwuaHRtbD4KClRoaXMgaXMgZnJlZSBzb2Z0d2FyZTsgeW91IGFyZSBmcmVlIHRvIGNoYW5nZSBhbmQgcmVkaXN0cmlidXRlIGl0LgpUaGVyZSBpcyBOTyBXQVJSQU5UWSwgdG8gdGhlIGV4dGVudCBwZXJtaXR0ZWQgYnkgbGF3Lgo=",
+    "stderrBase64": ""
+  },
+  "cases": [
+    {
+      "name": "unlink and recreate",
+      "source": "{ printf a; rm out; printf replacement >out; printf b; } >out",
+      "sourceSha256": "ad3fc41bf9ef37e99f146c5170c151943d65ee8c985d5f40e20fd12a65dad6ee",
+      "executedSource": "mv() { /bin/mv \"$@\"; }; rm() { /bin/rm \"$@\"; };\n{ printf a; rm out; printf replacement >out; printf b; } >out",
+      "argv": [
+        "--noprofile",
+        "--norc",
+        "-c",
+        "mv() { /bin/mv \"$@\"; }; rm() { /bin/rm \"$@\"; };\n{ printf a; rm out; printf replacement >out; printf b; } >out",
+        "shell"
+      ],
+      "stdinBase64": "",
+      "before": [],
+      "status": 0,
+      "signal": null,
+      "stdoutBase64": "",
+      "stderrBase64": "",
+      "files": {
+        "/out": {
+          "base64": "cmVwbGFjZW1lbnQ=",
+          "sha256": "95713e9cbdd1dfcb2d4080c2537f418d43ca0da25f0d7d6631f4f7c97b89dc47",
+          "mode": 420,
+          "size": 11,
+          "ino": 238780842,
+          "dev": 16777234
+        }
+      }
+    },
+    {
+      "name": "duplicated position across rename",
+      "source": "{ printf a >&3; printf b >&4; mv out moved; printf c >&3; } 3>out 4>&3",
+      "sourceSha256": "d4349eccf2dcc0a7cad62c9412b41a54d7061e3adf20794cd627b0c387dc7678",
+      "executedSource": "mv() { /bin/mv \"$@\"; }; rm() { /bin/rm \"$@\"; };\n{ printf a >&3; printf b >&4; mv out moved; printf c >&3; } 3>out 4>&3",
+      "argv": [
+        "--noprofile",
+        "--norc",
+        "-c",
+        "mv() { /bin/mv \"$@\"; }; rm() { /bin/rm \"$@\"; };\n{ printf a >&3; printf b >&4; mv out moved; printf c >&3; } 3>out 4>&3",
+        "shell"
+      ],
+      "stdinBase64": "",
+      "before": [],
+      "status": 0,
+      "signal": null,
+      "stdoutBase64": "",
+      "stderrBase64": "",
+      "files": {
+        "/moved": {
+          "base64": "YWJj",
+          "sha256": "ba7816bf8f01cfea414140de5dae2223b00361a396177a9cb410ff61f20015ad",
+          "mode": 420,
+          "size": 3,
+          "ino": 238780846,
+          "dev": 16777234
+        }
+      }
+    },
+    {
+      "name": "independent simultaneous positions",
+      "source": "{ printf A >&3; printf B >&4; printf C >&3; } 3>out 4>out",
+      "sourceSha256": "433c384a8c16445976bd7cafd5746b0fcc4147f588150b94975c581426be406e",
+      "executedSource": "mv() { /bin/mv \"$@\"; }; rm() { /bin/rm \"$@\"; };\n{ printf A >&3; printf B >&4; printf C >&3; } 3>out 4>out",
+      "argv": [
+        "--noprofile",
+        "--norc",
+        "-c",
+        "mv() { /bin/mv \"$@\"; }; rm() { /bin/rm \"$@\"; };\n{ printf A >&3; printf B >&4; printf C >&3; } 3>out 4>out",
+        "shell"
+      ],
+      "stdinBase64": "",
+      "before": [],
+      "status": 0,
+      "signal": null,
+      "stdoutBase64": "",
+      "stderrBase64": "",
+      "files": {
+        "/out": {
+          "base64": "QkM=",
+          "sha256": "768921a22b8e190c2cfafeb0688f0d58a5f76ee4c7fb369758a208c7ba5e9acb",
+          "mode": 420,
+          "size": 2,
+          "ino": 238780850,
+          "dev": 16777234
+        }
+      }
+    },
+    {
+      "name": "nested truncation preserves outer offset",
+      "source": "{ printf abc; printf X >out; printf Y; } >out",
+      "sourceSha256": "c5db94eaf50f317d1463928d48f5ba4a8abfc7fa4048d24e6cf01b0c7ed6e7b0",
+      "executedSource": "mv() { /bin/mv \"$@\"; }; rm() { /bin/rm \"$@\"; };\n{ printf abc; printf X >out; printf Y; } >out",
+      "argv": [
+        "--noprofile",
+        "--norc",
+        "-c",
+        "mv() { /bin/mv \"$@\"; }; rm() { /bin/rm \"$@\"; };\n{ printf abc; printf X >out; printf Y; } >out",
+        "shell"
+      ],
+      "stdinBase64": "",
+      "before": [],
+      "status": 0,
+      "signal": null,
+      "stdoutBase64": "",
+      "stderrBase64": "",
+      "files": {
+        "/out": {
+          "base64": "WAAAWQ==",
+          "sha256": "41e65bbb8be158b4a9d5a5b304df530186272bd323d4c9e70985ea2c1edc071c",
+          "mode": 420,
+          "size": 4,
+          "ino": 238780854,
+          "dev": 16777234
+        }
+      }
+    },
+    {
+      "name": "append across rename and replacement",
+      "source": "printf Z >out; { printf a; mv out moved; printf x >out; printf b; } >>out",
+      "sourceSha256": "f6cdf899b6139550635b1238c2ad1289d57a2be49f7b433f46b8a7fb954d802c",
+      "executedSource": "mv() { /bin/mv \"$@\"; }; rm() { /bin/rm \"$@\"; };\nprintf Z >out; { printf a; mv out moved; printf x >out; printf b; } >>out",
+      "argv": [
+        "--noprofile",
+        "--norc",
+        "-c",
+        "mv() { /bin/mv \"$@\"; }; rm() { /bin/rm \"$@\"; };\nprintf Z >out; { printf a; mv out moved; printf x >out; printf b; } >>out",
+        "shell"
+      ],
+      "stdinBase64": "",
+      "before": [],
+      "status": 0,
+      "signal": null,
+      "stdoutBase64": "",
+      "stderrBase64": "",
+      "files": {
+        "/moved": {
+          "base64": "WmFi",
+          "sha256": "f1fd1a1dd79dc394c6138d6615e39b66bf9af5b3d3c36ea4fa9c8d120fd5df1d",
+          "mode": 420,
+          "size": 3,
+          "ino": 238780858,
+          "dev": 16777234
+        },
+        "/out": {
+          "base64": "eA==",
+          "sha256": "2d711642b726b04401627ca9fbac32f5c8530fb1903cc4db02258717921a4881",
+          "mode": 420,
+          "size": 1,
+          "ino": 238780859,
+          "dev": 16777234
+        }
+      }
+    },
+    {
+      "name": "independent append cursors",
+      "source": "{ printf a >&3; printf b >&4; printf c >&3; } 3>>out 4>>out",
+      "sourceSha256": "37ae70b368802a5267b1ec86ca8e05a11af8356784e585bfc42ecb9b1543b6d2",
+      "executedSource": "mv() { /bin/mv \"$@\"; }; rm() { /bin/rm \"$@\"; };\n{ printf a >&3; printf b >&4; printf c >&3; } 3>>out 4>>out",
+      "argv": [
+        "--noprofile",
+        "--norc",
+        "-c",
+        "mv() { /bin/mv \"$@\"; }; rm() { /bin/rm \"$@\"; };\n{ printf a >&3; printf b >&4; printf c >&3; } 3>>out 4>>out",
+        "shell"
+      ],
+      "stdinBase64": "",
+      "before": [],
+      "status": 0,
+      "signal": null,
+      "stdoutBase64": "",
+      "stderrBase64": "",
+      "files": {
+        "/out": {
+          "base64": "YWJj",
+          "sha256": "ba7816bf8f01cfea414140de5dae2223b00361a396177a9cb410ff61f20015ad",
+          "mode": 420,
+          "size": 3,
+          "ino": 238780863,
+          "dev": 16777234
+        }
+      }
+    },
+    {
+      "name": "nested restoration across rename",
+      "source": "{ printf a; { printf x; } >inner; mv out moved; printf b; } >out",
+      "sourceSha256": "7c02035b3136f63c5476a25ebc61829ba2eae5a1b2039e2f88c05e781dfffbdf",
+      "executedSource": "mv() { /bin/mv \"$@\"; }; rm() { /bin/rm \"$@\"; };\n{ printf a; { printf x; } >inner; mv out moved; printf b; } >out",
+      "argv": [
+        "--noprofile",
+        "--norc",
+        "-c",
+        "mv() { /bin/mv \"$@\"; }; rm() { /bin/rm \"$@\"; };\n{ printf a; { printf x; } >inner; mv out moved; printf b; } >out",
+        "shell"
+      ],
+      "stdinBase64": "",
+      "before": [],
+      "status": 0,
+      "signal": null,
+      "stdoutBase64": "",
+      "stderrBase64": "",
+      "files": {
+        "/inner": {
+          "base64": "eA==",
+          "sha256": "2d711642b726b04401627ca9fbac32f5c8530fb1903cc4db02258717921a4881",
+          "mode": 420,
+          "size": 1,
+          "ino": 238780868,
+          "dev": 16777234
+        },
+        "/moved": {
+          "base64": "YWI=",
+          "sha256": "fb8e20fc2e4c3f248c60c39bd652f3c1347298bb977b8b4d5903b85055620603",
+          "mode": 420,
+          "size": 2,
+          "ino": 238780867,
+          "dev": 16777234
+        }
+      }
+    }
+  ]
+}

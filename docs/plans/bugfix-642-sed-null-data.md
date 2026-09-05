@@ -270,3 +270,44 @@ focused pass does not establish full qualification, remote delivery or release.
 
 The combined literal registration check subsequently passed 98/98 tests in
 7969 ms, logged in `tmp/issues-636-642-registry-root.log` under the same base.
+
+## Test promise typing correction, September 5, 2026
+
+Root reported maintained gate `2d70e2745` build, full npm test, lint and package
+lint passes, but a Bash source/test compiler failure. This worker inspected the
+bounded regular-file evidence at
+`issues-636-642-gate.74Wx9p/bash-types.log` under the base identified by
+`/tmp/kamilio-569-575-validation.path`
+(`/home/kjopek/kamilio-validation-569-575.RoFXyZ`). The log confirms eight #642
+diagnostics: two TS2339 `.then` errors, three TS2769 `assert.rejects` overload
+errors, and three consequent TS7006 callback errors. They match the current test
+sites and `CommandHandler`'s declared `CommandResult | Promise<CommandResult>`
+return type. The compiler log is the concrete RED evidence; no compiler/full guard
+was rerun by this worker. Unrelated #636 diagnostics remain root-owned.
+
+Only four direct `sedCommand().execute(...)` result sites in the new test were
+wrapped in `Promise.resolve(...)`. This normalizes the declared union without an
+unsafe cast, keeps execution timing and the existing promises, and preserves all
+byte, backpressure, cleanup and falsey-abort assertions. No product or contract
+files were changed, and all prior plan/history sections remain intact.
+
+The requested ten-file focused rerun passed **205/205** (124 new + 81 adjacent),
+zero failures/cancellations/skips/TODOs, exit 0, 2120.108547 ms. It used the existing
+Node toolchain pointer, `TMPDIR="$BASE/tmp"` from the validation-base pointer,
+`TSX_DISABLE_CACHE=1`, and `--test-concurrency=1`. This is runtime regression GREEN,
+not a maintained compiler/typecheck pass. Root will rerun maintained types after
+freeze. No production edits, Git mutations, shared dist, build or full guards
+were performed by this worker; native corpus accounting is unchanged.
+
+Handoff SHA-256:
+
+| Path | SHA-256 |
+| --- | --- |
+| `packages/safe-bash/tests/commands/sed-null-data.test.ts` | `56ed711446c81bccfa13dc35d04efcd1b099b916c3f3020e832e74f9634f47ee` |
+| `packages/safe-bash/src/commands/text-programs/sed.ts` (unchanged) | `944d30fdccbcf28a72933b7fd488d51379c88f2740e24cc52c505d1a8247f1fe` |
+| `packages/safe-bash/src/contracts/sed-null-data.md` (unchanged) | `6a5dff9cf4b8d2798758a74f2d7891efe8f364bc623584c6f4e1c9c343f96bda` |
+
+The previous test hash `ecda767360ffee55e57577021171fcc210c629b21e4ef4afa79e3f55ab44bc08`
+and pre-append plan hash `6c9fa26d1e53ab37c859419763adda4b911ff8e5ec60ec577006e4303a1c1963`
+identify the inputs to this typing-only correction. The plan's final hash is
+reported in the handoff rather than embedded in itself.

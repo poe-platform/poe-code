@@ -165,7 +165,7 @@ for (const [name, script, expected] of [
   test(`printf -v browser decoder TypeError has no Node code: ${name}`, async context => {
     const decode = TextDecoder.prototype.decode;
     let failures = 0;
-    context.mock.method(TextDecoder.prototype, "decode", function (this: TextDecoder, ...args: Parameters<TextDecoder["decode"]>) {
+    context.mock.method(TextDecoder.prototype, "decode", function (this: InstanceType<typeof TextDecoder>, ...args: Parameters<typeof decode>) {
       try { return decode.apply(this, args); }
       catch (error) {
         if (!this.fatal || !(error instanceof TypeError)) throw error;
@@ -193,7 +193,7 @@ for (const [name, script, expected] of [
 test("printf -v browser decoding does not relabel a storage TypeError", async context => {
   const decode = TextDecoder.prototype.decode;
   let failStorage = false;
-  context.mock.method(TextDecoder.prototype, "decode", function (this: TextDecoder, ...args: Parameters<TextDecoder["decode"]>) {
+  context.mock.method(TextDecoder.prototype, "decode", function (this: InstanceType<typeof TextDecoder>, ...args: Parameters<typeof decode>) {
     const result = decode.apply(this, args);
     if (this.fatal) failStorage = true;
     return result;
@@ -221,7 +221,7 @@ test("printf -v browser decoding does not relabel a storage TypeError", async co
 for (const reason of [false, 0, null, ""]) test(`printf -v browser decoder cancellation wins: ${String(reason)}`, async context => {
   const controller = new AbortController();
   const decode = TextDecoder.prototype.decode;
-  context.mock.method(TextDecoder.prototype, "decode", function (this: TextDecoder, ...args: Parameters<TextDecoder["decode"]>) {
+  context.mock.method(TextDecoder.prototype, "decode", function (this: InstanceType<typeof TextDecoder>, ...args: Parameters<typeof decode>) {
     if (this.fatal) {
       controller.abort(reason);
       throw new TypeError("The encoded data was not valid UTF-8");

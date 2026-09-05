@@ -238,3 +238,58 @@ the focused discovery controls pass unchanged. Root owns the full guarded lint/b
 after the concurrent-write freeze. Focused checks are not a full-gate, release,
 remote delivery or prior-baseline certification. No Git command, commit, push,
 branch, upstream merge, README edit, full guard/build or shared-dist write ran.
+
+## Maintained type-gate follow-up: annotations only
+
+Root reports that gate `2d70e2745` passed the build, full maintained `npm test`,
+root lint and package lint, but the Bash maintained historical source-and-tests
+compiler was RED. These results precede this annotation correction and are not
+claimed as a completed full gate or as qualification of the corrected test file.
+
+Independently inspected
+`$BASE/issues-636-642-gate.74Wx9p/bash-types.log`, with BASE resolved through
+`/tmp/kamilio-569-575-validation.path`. It records source-and-tests exit 1 and
+nine printf-test diagnostics: two TS2749 errors at each of lines 168, 196 and
+224, followed by TS2345 at lines 169, 197 and 229. In that maintained model,
+`TextDecoder` is a constructor value, not a usable type name; the invalid
+`Parameters<TextDecoder["decode"]>` annotation consequently gives an `unknown[]`
+argument list incompatible with `decode.apply`. Other owners' diagnostics in
+the same log are left untouched.
+
+Corrected exactly the three decoder-mock annotations in
+`packages/safe-bash/tests/shell/printf-variable.test.ts`:
+
+- `this: InstanceType<typeof TextDecoder>` derives the decoder instance type
+  from the available constructor value.
+- `...args: Parameters<typeof decode>` derives the precise argument tuple from
+  each captured actual decode method.
+- No casts, assertions, test bodies, test expectations, production files,
+  registry entries, compiler settings or shared outputs changed.
+
+The earlier scoped checks reporting zero diagnostics remain recorded as actual
+results of their narrower compiler context, but were **insufficient** to qualify
+the maintained historical source-and-tests model. They did not detect these nine
+errors. No replacement scoped-zero result or successful maintained typecheck is
+claimed here; root owns the next maintained type-check execution and acceptance.
+
+Validation after the annotation-only correction:
+
+- Requested nine-file focused command: **444/444 pass**, zero failures, skips or
+  cancellations, **4208.072921 ms**, with the same toolchain/private TMPDIR and
+  `TSX_DISABLE_CACHE=1`.
+- An in-memory identity check confirms exactly three annotation substitutions;
+  reversing them reconstructs the prior test SHA-256
+  `2e7c4226fe627d1ee5d021e88e8d731583f72fa1ee7016d482a3f2242aa8a77a`.
+  TypeScript in-memory transpilation produces identical JavaScript before and
+  after the substitutions. This proves the runtime test body is unchanged; it
+  is not a typecheck and writes no emitted files.
+- Both production hashes remain unchanged. No Git operation, full guard,
+  shared-dist build or additional maintained compiler run was performed.
+
+Annotation-corrected identities:
+
+| File | SHA-256 |
+| --- | --- |
+| `packages/safe-bash/tests/shell/printf-variable.test.ts` | `644ccedb7785f4da3f62c70b2dabe732dbd8d93740c41f2a74f880b84b2367e2` |
+| `packages/safe-bash/src/commands/basic.ts` (unchanged) | `64f298b3626f63bb964f82687670606003cc60551a49c67d25d08dc331e2d27e` |
+| `packages/safe-bash/src/shell/runtime.ts` (unchanged) | `027e65fd7b79c38bea8683afa5102b8542cbf1b525858c4c12c23b843ac3c1d7` |

@@ -178,12 +178,12 @@ test("sed NUL waits for the sink and quits without pulling the next chunk", asyn
     try { pulls++; yield Buffer.from("first\nname\0"); pulls++; assert.fail("unneeded input"); }
     finally { closed = true; }
   })();
-  const pending = sedCommand().execute({
+  const pending = Promise.resolve(sedCommand().execute({
     command: "sed", args: ["-z", "1q"], cwd: "/work", env: {}, fs: await makeFileSystem(), stdin,
     signal: new AbortController().signal,
     stdout: { async write(chunk) { assert.deepEqual(chunk, Buffer.from("first\nname\0")); entered(); await blocked; } },
     stderr: { async write() { assert.fail("unexpected stderr"); } },
-  });
+  }));
   try {
     await Promise.race([writing, pending.then(() => assert.fail("command settled before writing"))]);
     assert.equal(pulls, 1);
@@ -202,12 +202,12 @@ for (const reason of [false, 0, "", null, undefined]) {
       try { yield Buffer.from("first\0second\0"); }
       finally { closed = true; }
     })();
-    const pending = sedCommand().execute({
+    const pending = Promise.resolve(sedCommand().execute({
       command: "sed", args: ["-z", "p"], cwd: "/work", env: {}, fs: await makeFileSystem(), stdin: source,
       signal: controller.signal,
       stdout: { async write() { writes++; controller.abort(reason); } },
       stderr: { async write() { assert.fail("abort must not become stderr"); } },
-    });
+    }));
     await assert.rejects(pending, error => error === controller.signal.reason);
     assert.equal(writes, 1);
     assert.equal(closed, true);
@@ -339,11 +339,11 @@ test("sed NUL cancellation while assembling a record retains falsey identity", a
     try { yield Buffer.from("first"); controller.abort(false); yield Buffer.from("\0"); }
     finally { closed = true; }
   })();
-  await assert.rejects(sedCommand().execute({
+  await assert.rejects(Promise.resolve(sedCommand().execute({
     command: "sed", args: ["-z", ""], cwd: "/work", env: {}, fs: await makeFileSystem(), stdin, signal: controller.signal,
     stdout: { async write() { assert.fail("cancelled partial record must not print"); } },
     stderr: { async write() { assert.fail("abort must not become stderr"); } },
-  }), error => error === false);
+  })), error => error === false);
   assert.equal(closed, true);
 });
 
@@ -484,7 +484,7 @@ test("sed NUL pending separator output is awaited and retains falsey cancellatio
   let entered!: () => void;
   const blocked = new Promise<void>(resolve => { release = resolve; });
   const writing = new Promise<void>(resolve => { entered = resolve; });
-  const pending = sedCommand().execute({
+  const pending = Promise.resolve(sedCommand().execute({
     command: "sed", args: ["-zn", "p;p;p"], cwd: "/work", env: {}, fs: await makeFileSystem(),
     stdin: toByteSource("tail"), signal: controller.signal,
     stdout: { async write(chunk) {
@@ -492,7 +492,7 @@ test("sed NUL pending separator output is awaited and retains falsey cancellatio
       if (chunks.length === 2) { entered(); await blocked; controller.abort(false); }
     } },
     stderr: { async write() { assert.fail("abort must not become stderr"); } },
-  });
+  }));
   try {
     await Promise.race([writing, pending.then(() => assert.fail("settled before second write"))]);
     assert.deepEqual(chunks, [Buffer.from("tail"), Buffer.from("\0tail")]);

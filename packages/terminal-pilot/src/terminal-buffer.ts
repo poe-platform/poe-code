@@ -1,4 +1,6 @@
-type Cell = ([number, string] & { style?: string }) | null;
+import stringWidth from "fast-string-width";
+
+type Cell = ([number, string] & { style?: string; width?: number }) | null;
 type Row = Cell[];
 
 interface SgrStyleState {
@@ -75,6 +77,9 @@ export class TerminalBuffer {
   private _insertMode = false;
   private _tabStops: Set<number>;
   private _lastPrintedChar: string | null = null;
+  private _grapheme: { text: string; row: Row; column: number } | null = null;
+  private _pendingHighSurrogate = "";
+  private _segmenter = new Intl.Segmenter("en", { granularity: "grapheme" });
   private _style: SgrStyleState = createDefaultStyleState();
   private _styleSequence = "";
   private _stringState = State.Normal;
@@ -112,6 +117,13 @@ export class TerminalBuffer {
   }
 
   write(data: string): void {
+    data = this._pendingHighSurrogate + data;
+    this._pendingHighSurrogate = "";
+    const lastUnit = data.charCodeAt(data.length - 1);
+    if (lastUnit >= 0xd800 && lastUnit <= 0xdbff) {
+      this._pendingHighSurrogate = data.slice(-1);
+      data = data.slice(0, -1);
+    }
     for (const ch of data) {
       this._feed(ch);
     }
@@ -148,6 +160,7 @@ export class TerminalBuffer {
       }
 
       line += cell?.[1] ?? " ";
+      if (cell?.width === 2) index += 1;
     }
 
     if (activeStyle.length > 0) {
@@ -158,6 +171,7 @@ export class TerminalBuffer {
   }
 
   resize(cols: number, rows: number): void {
+    this._grapheme = null;
     // Adjust row count
     while (this._screen.length < rows) {
       this._screen.push(this._makeRow(cols));
@@ -168,6 +182,7 @@ export class TerminalBuffer {
     for (let y = 0; y < rows; y++) {
       const row = this._screen[y] ?? this._makeRow(cols);
       while (row.length < cols) row.push(null);
+      if (row[cols - 1]?.width === 2) row[cols - 1] = null;
       row.length = cols;
       this._screen[y] = row;
     }
@@ -243,6 +258,8 @@ export class TerminalBuffer {
   }
 
   private _writePrintable(ch: string): void {
+    if (this._extendGrapheme(ch)) return;
+    this._grapheme = null;
     const width = this._cellWidth(ch);
 
     if (width === 0) {
@@ -263,16 +280,18 @@ export class TerminalBuffer {
       if (row) {
         row.splice(this._cursorX, 0, ...(Array(width).fill(null) as Cell[]));
         row.splice(this._cols);
+        if (row[this._cols - 1]?.width === 2) row[this._cols - 1] = null;
       }
     }
 
-    this._setChar(this._cursorY, this._cursorX, ch);
-    for (let column = 1; column < width && this._cursorX + column < this._cols; column += 1) {
-      const row = this._screen[this._cursorY];
-      if (row) row[this._cursorX + column] = null;
-    }
+    this._setChar(this._cursorY, this._cursorX, ch, width);
+    const row = this._screen[this._cursorY];
+    if (row) this._grapheme = { text: ch, row, column: this._cursorX };
     this._lastPrintedChar = ch;
+    this._advanceCursor(width);
+  }
 
+  private _advanceCursor(width: number): void {
     if (!this._autoWrap) {
       this._cursorX = Math.min(this._cursorX + width, this._cols - 1);
       this._pendingWrap = false;
@@ -285,9 +304,37 @@ export class TerminalBuffer {
     }
   }
 
+  private _extendGrapheme(ch: string): boolean {
+    const previous = this._grapheme;
+    if (previous === null || previous.row !== this._screen[this._cursorY]) return false;
+    const cell = previous.row[previous.column];
+    if (!cell) return false;
+    const text = previous.text + ch;
+    const first = this._segmenter.segment(text)[Symbol.iterator]().next().value;
+    if (first?.segment !== text) return false;
+    const width = ch === "\u200d"
+      ? cell.width ?? 1
+      : Math.min(this._cols, 2, Math.max(1, stringWidth(text)));
+    this._cursorX = previous.column;
+    if (this._autoWrap && this._cursorX + width > this._cols) {
+      this._eraseLine(this._cursorY, this._cursorX, this._cursorX);
+      this._cursorX = 0;
+      this._newline();
+    }
+    this._setChar(this._cursorY, this._cursorX, text, width);
+    const row = this._screen[this._cursorY];
+    this._grapheme = row ? { text, row, column: this._cursorX } : null;
+    this._lastPrintedChar = text;
+    this._advanceCursor(width);
+    return true;
+  }
+
   private _cellWidth(ch: string): number {
     const codePoint = ch.codePointAt(0);
     if (codePoint === undefined) return 0;
+    if (ch.length > (codePoint > 0xffff ? 2 : 1)) {
+      return Math.min(this._cols, 2, stringWidth(ch.endsWith("\u200d") ? ch.slice(0, -1) : ch));
+    }
     if (isCombiningCodePoint(codePoint)) {
       return 0;
     }
@@ -346,11 +393,15 @@ export class TerminalBuffer {
     return null;
   }
 
-  private _setChar(y: number, x: number, ch: string): void {
+  private _setChar(y: number, x: number, ch: string, width = this._cellWidth(ch)): void {
     const row = this._screen[y];
     if (row && x >= 0 && x < this._cols) {
-      const renderedChar = this._style.conceal ? " " : ch;
+      this._eraseLine(y, x, x + width - 1);
+      const renderedChar = this._style.conceal ? " ".repeat(width) : ch;
       const cell = [renderedChar.charCodeAt(0), renderedChar] as Exclude<Cell, null>;
+      if (width === 2) {
+        Object.defineProperty(cell, "width", { value: width, configurable: true });
+      }
 
       if (this._styleSequence.length > 0) {
         Object.defineProperty(cell, "style", {
@@ -367,6 +418,8 @@ export class TerminalBuffer {
   private _eraseLine(y: number, fromX: number, toX: number): void {
     const row = this._screen[y];
     if (!row) return;
+    if (fromX > 0 && row[fromX - 1]?.width === 2) fromX -= 1;
+    if (row[toX]?.width === 2) toX += 1;
     for (let x = fromX; x <= toX && x < this._cols; x++) {
       row[x] = null;
     }
@@ -488,6 +541,7 @@ export class TerminalBuffer {
         break;
       case "H": // cursor position
       case "f":
+        this._pendingWrap = false;
         this._cursorY = this._originMode
           ? this._clamp(this._scrollTop + Math.max(1, p0) - 1, this._scrollTop, this._scrollBottom)
           : this._clamp(Math.max(1, p0) - 1, 0, this._rows - 1);
@@ -547,6 +601,9 @@ export class TerminalBuffer {
         const row = this._screen[this._cursorY];
         if (row) {
           const n = Math.max(1, p0);
+          if (this._cursorX > 0 && row[this._cursorX - 1]?.width === 2) {
+            row[this._cursorX - 1] = null;
+          }
           row.splice(this._cursorX, n);
           while (row.length < this._cols) row.push(null);
         }
@@ -557,8 +614,12 @@ export class TerminalBuffer {
         const row = this._screen[this._cursorY];
         if (row) {
           const n = Math.max(1, p0);
+          if (this._cursorX > 0 && row[this._cursorX - 1]?.width === 2) {
+            row[this._cursorX - 1] = null;
+          }
           for (let i = 0; i < n; i++) row.splice(this._cursorX, 0, null);
           row.splice(this._cols);
+          if (row[this._cols - 1]?.width === 2) row[this._cols - 1] = null;
         }
         break;
       }
@@ -686,6 +747,7 @@ export class TerminalBuffer {
   }
 
   private _feedNormal(ch: string, code: number): void {
+    if (code < 0x20 || (code >= 0x7f && code <= 0x9f)) this._grapheme = null;
     if (code === 0x1b) {
       this._state = State.Escape;
     } else if (code === 0x9b) {

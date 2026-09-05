@@ -386,7 +386,8 @@ plus root TypeScript and workflow checks. Committed and verified on remote
 main as `eac430cbb103fecd6adc41fa258501a9ce5e19eb`; scoped workflow
 `33941942279` succeeded. Publisher job `101240971024` confirms
 `@poe-platform/safe-js@0.1.91` published September 5, 2026, 03:32:49 UTC.
-CLI workflow `33941942363` is still being monitored.
+CLI workflow `33941942363` also succeeded; publisher job `101242287194`
+confirms `poe-code@14.0.44` published September 5, 2026, 03:40:31 UTC.
 
 This is one atomic part of the receiver audit, not completion of array-like
 objects, string/collection/regex receivers, method identity, or number-object
@@ -432,8 +433,12 @@ edge fix. Its in-flight lint run was intentionally stopped. Final validation
 passed: the selected SafeJS dependency build closure, 18 built root/core
 entrypoint checks (including live getter ordering), 10,344 SafeJS tests with
 41 skipped, and full root lint with 9,717 configured files linted and zero
-errors/warnings, plus root TypeScript and workflow checks. Commit, verified
-remote-main delivery, and releases are reported separately.
+errors/warnings, plus root TypeScript and workflow checks. Committed and
+verified on remote main as `d7b307fc47e496f6fe26dd252fe5402a589ab051`.
+Scoped workflow `33942502800` succeeded; publisher job `101242506103`
+confirms `@poe-platform/safe-js@0.1.92` published September 5, 2026,
+03:44:28 UTC. CLI workflow `33942503019` is still monitored separately
+from that completed push.
 
 The first broad regression matrix also exposed two independent property
 model gaps: `const fn=()=>7; return fn.name` produces `""`, not `"fn"`, and
@@ -463,3 +468,39 @@ patterns also reject `"ab"` where native `{0:first,length}` yields `["a",2]`.
 These are next atomic integrations, not silently included in this catch fix.
 Regular public function-parameter TDZ and var redeclaration controls pass;
 do not conflate those with the separately recorded internal restoration gaps.
+
+### 9. Ordinary rest-binding host reads — resolved and validated
+
+Declarations, assignments, and function parameters use a different rest-copy
+path from catch bindings. That path discards excluded keys only after reading
+their values. Fresh regressions reproduced nine failures and two passing
+controls, including an excluded host getter that throws on its second read.
+The pattern helper now passes exclusions to the existing guest enumeration
+helper before reads, preserving both the returned data and observable effects.
+
+The focused cohort passes 78 tests across rest reads, catch properties,
+patterns, and realms. Native observable-property controls use a transparent
+Proxy: local Node v22.23.2 can itself reread an excluded getter on an ordinary
+object declaration fast path. ECMAScript 2026 CopyDataProperties, section
+7.3.25, excludes keys before inspecting descriptors or performing Get; the
+transparent native control follows that order. Do not encode Node's duplicate
+read as the expected language behavior.
+
+Coverage includes declarations, assignments, normal/arrow/async parameters,
+computed exclusions, all-excluded rest, intentional repeated named reads,
+empty exclusions, unchanged object spread, and a throw-on-second-read getter.
+Final validation passed: the selected SafeJS dependency build closure,
+16 built root/core entrypoint checks, 10,355 SafeJS tests with 41 skipped,
+and full root lint with 9,718 configured files linted and zero errors/warnings,
+plus root TypeScript and workflow checks. Delivery and releases are reported
+separately from these local results.
+
+Follow-up native controls also validate a separate catch-completion gap:
+`try { throw null; } catch ({x}) {} finally { ... }` skips the finalizer
+when binding throws TypeError. A computed catch key whose toString throws
+also skips finally, while an explicit throw inside a default expression
+does run it. The binding helper's own exceptions currently escape its
+surrounding try evaluator. Separately, an unbound name in a catch default
+produces an uncatchable UNBOUND_IDENTIFIER diagnostic rather than a
+catchable ReferenceError. These require distinct exception-flow work;
+they are not fixed by property enumeration or catch TDZ predeclaration.

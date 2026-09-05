@@ -864,7 +864,8 @@ changes are preserved separately and are not part of this prerequisite commit.
 Committed and pushed as `e219cd412f95cbbd67787d382a4d8be6a9673743`, verified
 against remote main. Scoped workflow `33947671901`, publisher `101256602322`,
 succeeded: SafeJS 0.1.103 published September 5, 2026, 05:40:55 UTC. CLI workflow
-`33947671974` remains monitored separately.
+`33947671974` was canceled and its release-stable job was skipped. The newer
+descendant CLI workflow is monitored; this scoped publication is not a CLI release.
 
 ### 17. Object.fromEntries guest construction — validated repair
 
@@ -905,8 +906,29 @@ separate recursive-key check verifies maxCallDepth; an earlier probe misspelled
 that option and only exercised its maxSteps fallback. Atomic delivery and release
 remain separate from these local checks. Symbols and custom guest iterators are
 still broader open gaps, not claimed as fixed here.
+Committed and pushed as `1ff9cce1c65b6660f14eccd30ca5140ee430c808`, verified
+against remote main. Scoped workflow `33947960223` and CLI workflow `33947960350`
+are monitored separately; neither is claimed as a completed release here.
 
 Read-only follow-up validation confirms Map(null) and Set(null) reject in both
 public runs and realms, while undefined and empty-array controls pass. Array.from
 also still performs 210 full reconciliations for 200 object values versus 10 for
 200 primitive values. These are separate repairs, not part of this commit.
+
+### 18. Null collection inputs — validated repair
+
+Native comparisons reproduced TypeError for new Map(null) and new Set(null)
+instead of empty collections, both in public runs and persistent realms. Six
+new regressions failed before the fix, with 11 existing tests passing. The two
+input readers now treat null like undefined. Other non-iterable values are not
+accepted, and the direct constructors keep their synchronous return behavior.
+The tests also verify that the new empty collections remain mutable across
+realm evaluations. Broader collection-entry and iteration gaps remain separate.
+
+Final validation passes: 197 tests in the focused four-file cohort, selected
+SafeJS dependency build closure, 10,577 package tests with 41 skipped, and full
+root lint (9,733 configured files, zero errors/warnings), including TypeScript
+and workflows. Built root/core checks pass 24 null/undefined/empty-array and
+invalid-input cases. Both direct constructors also pass with arrayLength zero,
+and both collection types pass completed snapshot replay after mutation.
+Atomic delivery and successful publication remain separate from these checks.

@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 
 import { run } from "../../run.js";
+import { createRealm } from "../../realm.js";
 import { Budget, SandboxError } from "../budget.js";
 import { callArrayMethod } from "../methods/array.js";
 import { callMapMethod } from "../methods/map.js";
@@ -9,6 +10,36 @@ import { createSandboxMap, createSandboxSet, isSandboxMap, isSandboxSet } from "
 import { createCollectionGlobals } from "./collections.js";
 
 describe("Map and Set globals", () => {
+  it.each(["Map", "Set"] as const)("constructs an empty %s from null", async (constructor) => {
+    expect(await run(`const collection = new ${constructor}(null); return [collection.size, collection instanceof ${constructor}, [...collection]];`))
+      .toMatchObject({ ok: true, returnValue: [0, true, []] });
+  });
+
+  it.each(["Map", "Set"] as const)("keeps direct null %s construction synchronous", (constructor) => {
+    const globals = createCollectionGlobals({ budget: new Budget() });
+    const collection = globals[constructor].construct?.([null]);
+    expect(collection).not.toBeInstanceOf(Promise);
+    if (constructor === "Map") {
+      expect(isSandboxMap(collection)).toBe(true);
+      if (isSandboxMap(collection)) expect(collection.entries.size).toBe(0);
+    } else {
+      expect(isSandboxSet(collection)).toBe(true);
+      if (isSandboxSet(collection)) expect(collection.values.size).toBe(0);
+    }
+  });
+
+  it.each(["Map", "Set"] as const)("keeps null-constructed %s usable across realm evaluations", async (constructor) => {
+    const realm = createRealm();
+    try {
+      expect(await realm.evaluate(`const collection = new ${constructor}(null);`)).toMatchObject({ ok: true });
+      const mutate = constructor === "Map" ? "collection.set('key', 7)" : "collection.add('key')";
+      expect(await realm.evaluate(`${mutate}; return [collection.size, collection.has('key')];`))
+        .toMatchObject({ ok: true, returnValue: [1, true] });
+    } finally {
+      await realm.close();
+    }
+  });
+
   it("integrates collections with iteration, spread, brands, and object enumeration", async () => {
     const result = await run(`
       const index = new Map([["first", { done: false }], ["second", { done: true }]]);

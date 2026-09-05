@@ -128,6 +128,7 @@ import {
   type SetMethodOptions
 } from "./methods/set.js";
 import { isSandboxErrorConstructorInstance } from "./globals/error.js";
+import { hasOwnSandboxProperty } from "./globals/object.js";
 import { isSandboxMapConstructor, isSandboxSetConstructor } from "./globals/collections.js";
 import {
   getFloat32Member,
@@ -832,13 +833,14 @@ async function evaluateBinaryExpression(
     return right;
   }
 
-  const value = node.operator === "in" && isGuestHostObject(right.value)
-    ? hasHostObjectMember(right.value, await sandboxString(left.value, context.budget, {
-      stack: context.callStack,
-      thisValue: undefined,
-      invokeClosure: (closure, args, thisValue) => invokeSandboxClosure(closure, args, context, context.callStack, undefined, thisValue)
-    }))
-    : applyBinaryOperator(node, left.value, right.value, context);
+  let leftValue = left.value;
+  if (node.operator === "in") {
+    if (typeof right.value !== "object" || right.value === null) {
+      throw new TypeError("Right-hand side of 'in' must be an object.");
+    }
+    leftValue = await toPropertyKey(leftValue, context);
+  }
+  const value = applyBinaryOperator(node, leftValue, right.value, context);
 
   return {
     kind: "normal",
@@ -3120,8 +3122,48 @@ function applyBinaryOperator(
       }
       return false;
     case "in":
-      throw createError("UNSUPPORTED_NODE", node, "Binary operator 'in' is not supported.");
+      return hasSandboxProperty(right, left as string, context);
   }
+}
+
+async function toPropertyKey(value: SandboxValue, context: EvaluationContext): Promise<string> {
+  if (isPlainSandboxObject(value) && !isSandboxDate(value) && !isFloat32Array(value) &&
+      !isSandboxGenerator(value) && !isGuestHostObject(value)) {
+    for (const name of ["toString", "valueOf"] as const) {
+      const method = getMemberValue(value, name, context);
+      if (!isSandboxClosure(method)) continue;
+      const primitive = await invokeSandboxClosure(method, [], context, context.callStack, undefined, value);
+      if (primitive === null || typeof primitive !== "object") {
+        return context.budget.allocateString(String(primitive));
+      }
+    }
+    throw new TypeError("Cannot convert object to primitive value.");
+  }
+  return sandboxString(value, context.budget, {
+    stack: context.callStack,
+    thisValue: undefined,
+    invokeClosure: (closure, args, thisValue) =>
+      invokeSandboxClosure(closure, args, context, context.callStack, undefined, thisValue)
+  });
+}
+
+function hasSandboxProperty(value: SandboxValue, key: string, context: EvaluationContext): boolean {
+  let current = value;
+  let depth = 0;
+  while (typeof current === "object" && current !== null) {
+    if (isGuestHostObject(current)) return hasHostObjectMember(current, key);
+    if (hasOwnSandboxProperty(current, key, false)) return true;
+    if (Array.isArray(current) || !isPlainSandboxObject(current) ||
+        isSandboxDate(current) || isFloat32Array(current) || isSandboxGenerator(current)) {
+      return getPropertyValue(current, key, context) !== undefined;
+    }
+    current = getSandboxPrototype(current, context.budget) as SandboxValue;
+    if (current !== null) {
+      context.budget.visitNode();
+      assertSandboxDataDepth(++depth);
+    }
+  }
+  return false;
 }
 
 async function applyCompoundAssignmentOperator(

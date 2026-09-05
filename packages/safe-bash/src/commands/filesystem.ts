@@ -30,7 +30,13 @@ async function maybeStat(context: CommandContext, path: string, follow = true): 
   catch (error) { context.signal.throwIfAborted(); if (codeOf(error) === "ENOENT") return undefined; throw error; }
 }
 
-async function canonicalMissing(context: CommandContext, path: string): Promise<string> {
+async function canonicalMissing(context: CommandContext, path: string, preflight = false): Promise<string> {
+  if (preflight) {
+    context.signal.throwIfAborted();
+    const canonical = context.fs.canonicalizeMissingTarget?.(path, { signal: context.signal });
+    context.signal.throwIfAborted();
+    if (canonical !== undefined) return canonical;
+  }
   try { return await context.fs.realpath(path, { signal: context.signal }); }
   catch (error) {
     context.signal.throwIfAborted();
@@ -91,9 +97,9 @@ async function copy(
     ? joinPath(await context.fs.realpath(dirname(source), { signal: context.signal }), basename(source))
     : await context.fs.realpath(source, { signal: context.signal });
   const physicalTarget = preserveLink
-    ? joinPath(preflight ? await canonicalMissing(context, dirname(target))
+    ? joinPath(preflight ? await canonicalMissing(context, dirname(target), true)
       : await context.fs.realpath(dirname(target), { signal: context.signal }), basename(target))
-    : await canonicalMissing(context, target);
+    : await canonicalMissing(context, target, preflight);
   if (physicalSource === physicalTarget || compareCopyIdentity(sourceStat, targetStat) === "same") {
     throw new FsError("EINVAL", { path: source, dest: target, message: "source and destination are the same file" });
   }

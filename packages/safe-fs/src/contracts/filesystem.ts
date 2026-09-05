@@ -110,6 +110,7 @@ export interface ReadStreamOptions extends FsOptions {
 
 export interface FileSystem {
   readonly capabilities: FileSystemCapabilities;
+  canonicalizeMissingTarget?(path: string, options?: FsOptions): string | undefined;
   capabilitiesFor?(path: string, options?: FsOptions): Promise<FileSystemCapabilities>;
   readFile(path: string, options?: ReadFileOptions): Promise<Uint8Array>;
   writeFile(path: string, data: Uint8Array, options?: WriteFileOptions): Promise<void>;

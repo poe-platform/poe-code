@@ -11,6 +11,7 @@ import type { EntryAuthority } from "../mount/comparison.js";
 import { getOwnedS3Entry } from "../s3/registry.js";
 import { getOwnedWebDavEntry } from "../webdav/resource-id.js";
 import { admitDirectoryEntries, directoryEntryLimit } from "../directory-admission.js";
+import { resolveMissingTarget } from "./missing-target.js";
 
 interface Metadata {
   mode: number;
@@ -126,6 +127,20 @@ export class MemoryFileSystem implements FileSystem {
 
   compareEntry(path: string, peer: FileSystem, peerPath: string, options: FsOptions = {}): Promise<EntryComparison> {
     return compareEntries(this, path, peer, peerPath, options);
+  }
+
+  canonicalizeMissingTarget(path: string, options: FsOptions = {}): string | undefined {
+    options.signal?.throwIfAborted();
+    const owner = ownedStores.get(this);
+    if (!owner || Object.getPrototypeOf(this) !== MemoryFileSystem.prototype
+      || Object.getOwnPropertyDescriptor(this, "root")?.value !== owner.root) return undefined;
+    for (const name of ["realpath", "lstat", "resolve", "permission", "validatePath", "fail", "snapshot"]) {
+      const descriptor = Object.getOwnPropertyDescriptor(this, name)
+        ?? Object.getOwnPropertyDescriptor(MemoryFileSystem.prototype, name);
+      if (!descriptor || !("value" in descriptor) || descriptor.value !== memoryImplementation[name]?.value) return undefined;
+    }
+    if (path !== "") this.validatePath(path, "realpath");
+    return resolveMissingTarget(owner.root, path || ".", options.signal);
   }
 
   private metadata(mode: number): Metadata {

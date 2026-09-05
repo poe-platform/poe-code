@@ -40,6 +40,7 @@ Use `npm run lint:workflows`
 ## Commits
 
 - Follow Conventional Commits (`feat`, `fix`, `chore`, `docs`, `test`, `refactor`).
+- Give every atomic improvement its own commit and push it directly to `main`; do not batch unrelated improvements.
 - Commit specific files that you edited, never blanket git add -A
 - Do not add yourself as co-author!
 - Do not commit files that are in gitignore
@@ -49,6 +50,8 @@ Use `npm run lint:workflows`
 ## Delivery
 
 - Report local commits, verified remote-main delivery, and successful releases separately. A local commit is not a completed push; a completed push is not a verified release.
+- Close validated issues when their fixes are verified on remote `main`, without waiting for the release.
+- Continue with the next validated issue while release builds run, and keep monitoring those builds through successful publication.
 
 ## Release
 

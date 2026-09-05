@@ -28,10 +28,11 @@ import {
   type SandboxErrorName,
   type ErrorSourceSpan
 } from "../error/shape.js";
-import { SandboxError, type Budget } from "./budget.js";
+import { isFatalSandboxError, SandboxError, type Budget } from "./budget.js";
 import { HostCallResumabilityError } from "./host-call.js";
 import { withFatalPromiseCleanup } from "./promise-tracker.js";
 import type { Scope } from "./scope.js";
+import type { InterpreterError } from "./interpreter.js";
 import { deepCopyToSandbox, ownEnumerableSandboxEntries, type SandboxObject, type SandboxValue } from "./values.js";
 import { getSandboxDataProperty } from "./object-model.js";
 import { toPropertyKey } from "./property-key.js";
@@ -129,10 +130,19 @@ export async function evaluateTryStatement<TContext extends ExceptionContext, TE
     };
   }
 
-  const tryOrCatchResult =
-    fatalBudgetError === undefined && tryResult.kind === "throw" && node.handler !== undefined
-      ? await evaluateCatchClause(node.handler, tryResult.value, context, evaluateNode)
-      : tryResult;
+  let tryOrCatchResult = tryResult;
+  let catchFailure: CompletionResult | undefined;
+  if (fatalBudgetError === undefined && tryResult.kind === "throw" && node.handler !== undefined) {
+    try {
+      tryOrCatchResult = await evaluateCatchClause(node.handler, tryResult.value, context, evaluateNode);
+    } catch (error) {
+      if (isFatalSandboxError(error) || isInterpreterError(error) || error instanceof HostCallResumabilityError) {
+        throw error;
+      }
+      catchFailure = createThrowCompletion(error, context.budget, context.callStack, node.span);
+      tryOrCatchResult = catchFailure;
+    }
+  }
 
   if (node.finalizer === undefined || tryOrCatchResult.kind === "error") {
     return tryOrCatchResult;
@@ -144,19 +154,64 @@ export async function evaluateTryStatement<TContext extends ExceptionContext, TE
           evaluateBlockCompletion(node.finalizer as BlockStatement, context, evaluateNode)
         )
       : evaluateBlockCompletion(node.finalizer as BlockStatement, context, evaluateNode);
-  const finalizerResult = await (fatalBudgetError === undefined
-    ? evaluateFinalizer()
-    : withFatalPromiseCleanup(evaluateFinalizer));
-
-  if (fatalBudgetError !== undefined) {
-    throw fatalBudgetError;
+  if (catchFailure !== undefined) {
+    const value = catchFailure.value;
+    context.budget.setRetainedValues(catchFailure, () => [value]);
   }
+  try {
+    const finalizerResult = await (fatalBudgetError === undefined
+      ? evaluateFinalizer()
+      : withFatalPromiseCleanup(evaluateFinalizer));
 
-  if (finalizerResult.kind === "normal") {
-    return tryOrCatchResult;
+    if (fatalBudgetError !== undefined) {
+      throw fatalBudgetError;
+    }
+
+    if (finalizerResult.kind === "normal") {
+      return tryOrCatchResult;
+    }
+
+    return finalizerResult;
+  } finally {
+    if (catchFailure !== undefined) context.budget.setRetainedValues(catchFailure, undefined);
   }
+}
 
-  return finalizerResult;
+export function createThrowCompletion(
+  error: unknown,
+  budget: Budget,
+  stackFrames: readonly string[],
+  span?: ErrorSourceSpan
+): CompletionResult {
+  const value = isCapturedException(error)
+    ? coerceThrownValue(error.reason, budget, error.stackFrames, span, error.sandbox)
+    : coerceThrownValue(error, budget, stackFrames, span, true);
+  return {
+    kind: "throw",
+    hasValue: true,
+    span: readErrorSpan(value) ?? span,
+    stackFrames: isCapturedException(error) ? error.stackFrames : stackFrames,
+    value
+  };
+}
+
+export function isInterpreterError(value: unknown): value is InterpreterError {
+  return (
+    typeof value === "object" &&
+    value !== null &&
+    hasOwnProperty(value, "code") &&
+    hasOwnProperty(value, "message") &&
+    hasOwnProperty(value, "nodeType") &&
+    hasOwnProperty(value, "span") &&
+    (value.code === "UNBOUND_IDENTIFIER" || value.code === "UNSUPPORTED_NODE")
+  );
+}
+
+function hasOwnProperty<Name extends PropertyKey>(
+  value: object,
+  name: Name
+): value is Record<Name, unknown> {
+  return Object.prototype.hasOwnProperty.call(value, name);
 }
 
 export function createCapturedException(

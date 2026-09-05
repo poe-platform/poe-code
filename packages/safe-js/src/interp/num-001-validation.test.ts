@@ -170,12 +170,12 @@ describe("NUM-001 independent validation", () => {
       expect(getFunctionMember(binding.value, "length", options)).toBe(length);
       const bind = getFunctionMember(binding.value, "bind", options);
       if (!isSandboxClosure(bind)) throw new Error("Expected bind method");
-      const bound = await bind.call([null, 1]);
+      const bound = await bind.call([null, 1], { stack: [], thisValue: binding.value });
       if (!isSandboxClosure(bound)) throw new Error("Expected bound source closure");
       expect(getFunctionMember(bound, "length", options)).toBe(Math.max(0, length - 1));
       const bindAgain = getFunctionMember(bound, "bind", options);
       if (!isSandboxClosure(bindAgain)) throw new Error("Expected second bind method");
-      const rebound = await bindAgain.call([null, 2, 3, 4]);
+      const rebound = await bindAgain.call([null, 2, 3, 4], { stack: [], thisValue: bound });
       if (!isSandboxClosure(rebound)) throw new Error("Expected rebound source closure");
       expect(getFunctionMember(rebound, "length", options)).toBe(0);
       expect(options.callClosure).not.toHaveBeenCalled();

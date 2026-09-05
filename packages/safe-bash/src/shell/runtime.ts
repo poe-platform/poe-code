@@ -11,12 +11,12 @@ import { createCommandArguments, getCommandArguments } from "../contracts/comman
 import type { CommandArguments } from "../contracts/command.js";
 import { ValueArena } from "./value-state.js";
 import type { HeldValue, ValueScope, ValueStore } from "./value-state.js";
-import type { Command, HereDocument, Pipeline, Redirect, Script, Word, WordPart } from "./parser.js";
+import type { AndOr, Command, HereDocument, Pipeline, Redirect, Script, Word, WordPart } from "./parser.js";
 import { HereDocumentSyntaxError, functionReprintedLines, hereDocumentWords, parseCompoundArrayValue, parseShellInputUnit, parseShellUnit } from "./parser.js";
 import { ShellLimitError, ShellSyntaxError } from "./types.js";
 import type { ShellCommandContext, ShellInvokeOptions, ShellLimits } from "./types.js";
 import { forkExtensions } from "./extensions.js";
-import type { ShellExtensionBindings, ShellExtensionContext, ShellExtensionEvent, ShellExtensionInput, ShellExtensionState, ShellIndexedWriter } from "./extensions.js";
+import type { PreparedShellChild, ShellChildPreparation, ShellExtensionBindings, ShellExtensionContext, ShellExtensionEvent, ShellExtensionInput, ShellExtensionState, ShellIndexedWriter } from "./extensions.js";
 import { prepareBytesInput, prepareFileInput, ShellInput } from "./input.js";
 import { observeDescriptor, PipeDescriptorFrame, pipeObservation, type PipeDescriptorReference } from "./descriptors.js";
 import { evaluateArithmetic, prepareArithmetic } from "./arithmetic.js";
@@ -26,7 +26,7 @@ import { byteLocale } from "./locale.js";
 import { diagnosticCommandName } from "./diagnostic-name.js";
 import { functionDisplay } from "./display.js";
 import { ConditionalUnsupported, evaluateConditional } from "./conditional.js";
-import { invocationScope, throwCleanupFailures, type InvocationScope } from "./cleanup.js";
+import { invocationScope, throwCleanupFailures, InvocationScope } from "./cleanup.js";
 import { bindFileOutputBudget, openFileOutput } from "../contracts/filesystem-output.js";
 import type { CommandFileDescriptor } from "../contracts/filesystem-descriptor.js";
 import { outputFailure } from "../contracts/io.js";
@@ -110,8 +110,59 @@ export function resolveLimits(...limits: (ShellLimits | undefined)[]): Required<
 
 const budgetedSinks = new WeakMap<ByteSink, { budget: Budget; write: ByteSink["write"] }>();
 
+class ExecutionCleanup {
+  readonly controller = new AbortController();
+  readonly failures: unknown[] = [];
+  readonly #pending: { readonly cleanup: () => void | Promise<void>; readonly allocation: ValueScope }[] = [];
+  #closed = false;
+  #drain: Promise<void> | undefined;
+  #failure: { reason: unknown } | undefined;
+
+  constructor(private readonly budget: Budget) {}
+
+  register(cleanup: () => void | Promise<void>): void {
+    this.budget.signal.throwIfAborted();
+    if (this.#failure) throw this.#failure.reason;
+    if (this.#closed) throw new TypeError("Execution cleanup enrollment is closed");
+    if (typeof cleanup !== "function") throw new TypeError("Execution cleanup must be callable");
+    this.budget.cpuCheckpoint();
+    const allocation = this.budget.values.scope();
+    try {
+      allocation.reserve(96, 1);
+      this.#pending.push({ cleanup, allocation });
+    } catch (reason) { allocation.close(); throw reason; }
+  }
+
+  abort(reason: unknown): void {
+    this.#failure ??= { reason };
+    if (this.#pending.length || this.#drain) this.controller.abort(reason);
+  }
+
+  drain(): Promise<void> {
+    return this.#drain ??= Promise.resolve().then(async () => {
+      const retained: ValueScope[] = [];
+      try {
+        while (this.#pending.length) {
+          const pending = this.#pending.splice(0);
+          const results = await Promise.allSettled(pending.map(async entry => {
+            let failed = false;
+            try { await entry.cleanup(); }
+            catch (reason) { failed = true; retained.push(entry.allocation); throw reason; }
+            finally { if (!failed) entry.allocation.close(); }
+          }));
+          for (const result of results) if (result.status === "rejected") this.failures.push(result.reason);
+        }
+      } finally {
+        this.#closed = true;
+        for (const allocation of retained) allocation.close();
+      }
+    });
+  }
+}
+
 export class Budget {
   readonly values: ValueArena;
+  readonly executionCleanup = new ExecutionCleanup(this);
   commands = 0;
   iterations = 0;
   bytes = 0;
@@ -319,6 +370,7 @@ const typedSavedVariables = new WeakMap<SavedVariable, TypedSavedVariable>();
 const valueScope = Symbol("shell value allocation scope");
 const invokedValues = new WeakMap<WordPart, ShellValue>();
 const functionDiagnostics = new WeakMap<Command, Readonly<{ offset: number; lines?: ReadonlyMap<Command, number> }>>();
+const childIdentities = new WeakMap<Budget, number>();
 
 export interface State {
   extensions?: ShellExtensionState | undefined;
@@ -356,6 +408,7 @@ interface IO {
   readonly execution?: { readonly ignoreErrexit: boolean };
   readonly stdin: ByteSource;
   readonly stdinIsDefault?: boolean;
+  readonly asyncDefaultInput?: ByteSource | undefined;
   readonly stdout: ByteSink;
   readonly stderr: ByteSink;
   readonly diagnosticLine?: number;
@@ -366,6 +419,14 @@ interface IO {
   readonly substitutionDiagnosticLine?: number;
   readonly substitutionDiagnosticLines?: ReadonlyMap<Command, number>;
   readonly scriptName?: string;
+  readonly terminal?: {
+    readonly target: Command | Pipeline;
+    readonly frame: PreparedDescriptorFrame;
+    io?: IO;
+    beforeExit?(status: number, io: IO): Promise<void>;
+    published?: number;
+    completed?: boolean;
+  } | undefined;
   descriptors?: ReadonlyMap<number, Descriptor>;
 }
 
@@ -376,6 +437,93 @@ interface Descriptor {
   readonly output?: ByteSink;
   readonly file?: CommandFileDescriptor;
   readonly pipe?: PipeDescriptorReference;
+  readonly lifetime?: DescriptorLifetime;
+}
+
+class DescriptorLifetime {
+  #references = 1;
+  #ownerReleased = false;
+  #closing: Promise<void> | undefined;
+
+  constructor(private readonly finalize: () => void | Promise<void>) {}
+
+  acquire(): () => Promise<void> {
+    if (!this.#references) throw new FsError("EBADF");
+    this.#references++;
+    let released = false;
+    return () => {
+      if (released) return this.#closing ?? Promise.resolve();
+      released = true;
+      return this.#release();
+    };
+  }
+
+  release(): Promise<void> {
+    if (this.#ownerReleased) return this.#closing ?? Promise.resolve();
+    this.#ownerReleased = true;
+    return this.#release();
+  }
+
+  #release(): Promise<void> {
+    if (--this.#references) return Promise.resolve();
+    return this.#closing ??= Promise.resolve().then(this.finalize);
+  }
+}
+
+class PreparedDescriptorFrame {
+  #bindings = new Map<number, { lifetime: DescriptorLifetime; release(): Promise<void> }>();
+  #work: Promise<void> = Promise.resolve();
+  #closing: Promise<void> | undefined;
+
+  constructor(private readonly references: PipeDescriptorFrame, private readonly budget: Budget) {
+    references.scope.register(() => this.close());
+  }
+
+  acquire(descriptors: ReadonlyMap<number, Descriptor>): void {
+    if (this.#closing) throw new FsError("EBADF");
+    for (const [number, descriptor] of descriptors) {
+      if (descriptor.closed || !descriptor.lifetime) continue;
+      const allocation = this.budget.values.scope();
+      try {
+        allocation.reserve(64, 1);
+        const release = descriptor.lifetime.acquire();
+        this.#bindings.set(number, { lifetime: descriptor.lifetime, async release() {
+          try { await release(); } finally { allocation.close(); }
+        } });
+      } catch (reason) { allocation.close(); throw reason; }
+    }
+  }
+
+  reconcile(descriptors: ReadonlyMap<number, Descriptor>): Promise<void> {
+    if (this.#closing) return Promise.reject(new FsError("EBADF"));
+    const previous = this.#bindings;
+    this.#bindings = new Map();
+    const failures: unknown[] = [];
+    const inherited = new Set([...previous.values()].map(binding => binding.lifetime));
+    const surviving = new Map([...descriptors].filter(([, descriptor]) => descriptor.lifetime && inherited.has(descriptor.lifetime)));
+    try { this.acquire(surviving); } catch (reason) { failures.push(reason); }
+    const activePipes = new Set([...descriptors.values()].filter(descriptor => !descriptor.closed).map(descriptor => descriptor.pipe));
+    this.#work = this.#work.then(async () => {
+      const retired = await Promise.allSettled([
+        ...[...previous.values()].map(binding => binding.release()),
+        ...[...this.references.references].filter(reference => !activePipes.has(reference)).map(reference => reference.close()),
+      ]);
+      failures.push(...retired.filter(result => result.status === "rejected").map(result => result.reason));
+      throwCleanupFailures(failures);
+    });
+    return this.#work;
+  }
+
+  close(): Promise<void> {
+    return this.#closing ??= Promise.resolve().then(async () => {
+      const failures: unknown[] = [];
+      try { await this.#work; } catch (reason) { failures.push(reason); }
+      const retired = await Promise.allSettled([...this.#bindings.values()].map(binding => binding.release()));
+      this.#bindings.clear();
+      failures.push(...retired.filter(result => result.status === "rejected").map(result => result.reason));
+      throwCleanupFailures(failures);
+    });
+  }
 }
 
 function isolateIO(io: IO, references: PipeDescriptorFrame): IO {
@@ -1754,7 +1902,7 @@ export class Runtime {
     const createInput = this.extensionInput.bind(this, state, io);
     return {
       command, args, argumentValues, status: state.status, functionDepth: state.functionDepth, sourceDepth: state.sourceDepth ?? 0,
-      stdin: io.stdin, stdout: io.stdout, stderr: io.stderr, signal: this.signal, scope: frame,
+      stdin: io.stdin, stdout: io.stdout, stderr: io.stderr, signal: AbortSignal.any([this.signal, this.budget.executionCleanup.controller.signal]), scope: frame,
       get bindings() { return bindings ??= createBindings(); },
       get input() { return input ??= createInput(); },
       variable: name => state.variables[name],
@@ -1780,6 +1928,10 @@ export class Runtime {
         const close = (): Promise<void> => completion ??= Promise.resolve().then(cleanup);
         frame.cleanup.push(close);
         io[invocationScope].register(close);
+      },
+      registerExecutionCleanup: cleanup => {
+        this.budget.executionCleanup.register(cleanup);
+        return AbortSignal.any([this.commandSignal, this.budget.signal, this.budget.executionCleanup.controller.signal]);
       },
     };
   }
@@ -2251,6 +2403,31 @@ export class Runtime {
   async script(script: Script, state: State, io: IO): Promise<number> {
     if (state.extensions?.syntax.indexedDeclarations?.includes("readonly")) io.assignmentDiagnosticContext ??= { name: undefined };
     for (const list of script.lists) {
+      if (list.terminator) {
+        const hook = state.extensions?.listTerminators.get(list.terminator.operator);
+        if (!hook) throw new TypeError("Missing captured shell list terminator handler");
+        let admissionOpen = true;
+        let preparation: Promise<PreparedShellChild> | undefined;
+        let failure: { reason: unknown } | undefined;
+        let status = 0;
+        try {
+          status = validateExitCode(await hook.execute({
+            ...this.extensionContext(state, io),
+            prepareChild: options => {
+              if (!admissionOpen || preparation) return Promise.reject(this.commandSignal.aborted ? this.commandSignal.reason : new TypeError("Shell child preparation is single-use and dispatch-scoped"));
+              preparation = this.prepareListChild(list, script, state, io, options);
+              void preparation.catch(() => undefined);
+              return preparation;
+            },
+          }));
+        } catch (reason) { failure = { reason }; }
+        finally { admissionOpen = false; }
+        await preparation?.catch(() => undefined);
+        this.commandSignal.throwIfAborted();
+        if (failure) throw failure.reason;
+        state.status = status;
+        continue;
+      }
       for (let index = 0; index < list.pipelines.length; index++) {
         const operator = list.operators[index - 1];
         if ((operator === "&&" && state.status !== 0) || (operator === "||" && state.status === 0)) continue;
@@ -2267,10 +2444,80 @@ export class Runtime {
     return script.lists.length ? state.status : 0;
   }
 
+  private async prepareListChild(list: AndOr, script: Script, state: State, io: IO, options: ShellChildPreparation): Promise<PreparedShellChild> {
+    this.signal.throwIfAborted();
+    if (!options || !(options.signal instanceof AbortSignal) || typeof options.registerCleanup !== "function"
+      || options.stdin !== "inherit" && options.stdin !== "async-default") throw new TypeError("Invalid shell child preparation");
+    const signal = AbortSignal.any([this.commandSignal, options.signal, this.budget.executionCleanup.controller.signal]);
+    signal.throwIfAborted();
+    const scope = new InvocationScope(signal);
+    const references = new PipeDescriptorFrame(scope);
+    const descriptors = new PreparedDescriptorFrame(references, this.budget);
+    let child: State | undefined;
+    let runtime: Runtime | undefined;
+    let execution: Promise<number> | undefined;
+    let closing: Promise<void> | undefined;
+    let closed = false;
+    let ready!: () => void;
+    const acquisition = new Promise<void>(resolve => { ready = resolve; });
+    const close = (): Promise<void> => {
+      closed = true;
+      return closing ??= Promise.resolve().then(async () => {
+        await acquisition;
+        await execution?.catch(() => undefined);
+        await scope.close();
+        if (child) stateMonitor(child)?.closeValues();
+        throwCleanupFailures(scope.failures);
+      });
+    };
+    try {
+      options.registerCleanup(close);
+      if (state.depth >= this.budget.limits.maxSubstitutionDepth) this.budget.fail("maxSubstitutionDepth");
+      child = await cloneState(state, signal);
+      if (closed) throw new TypeError("Shell child preparation is closed");
+      signal.throwIfAborted();
+      child.extensions = forkExtensions(state.extensions, "subshell");
+      child.isolated = true;
+      child.depth++;
+      const allocation = this.budget.values.scope();
+      scope.register(() => allocation.close());
+      const childIO = isolateIO({ ...io, [invocationScope]: scope, [valueScope]: allocation }, references);
+      descriptors.acquire(childIO.descriptors!);
+      Object.assign(childIO, { terminal: list.pipelines.length === 1 ? { target: list.pipelines[0]!, frame: descriptors } : undefined });
+      if (options.stdin === "async-default") {
+        Object.assign(childIO, { asyncDefaultInput: (async function* () {})() });
+      }
+      runtime = new Runtime(this.fs, this.commands, this.middleware, this.budget, signal, this.fileWrites, this.outputFiles,
+        signal, this.cancellation, this.cancellationState, this.cancellationOwner, this.cancellationDepth, this.cancellationMaxDepth);
+      const processId = (childIdentities.get(this.budget) ?? 1000) + 1;
+      if (!Number.isSafeInteger(processId)) throw new RangeError("Shell child identity exhausted");
+      childIdentities.set(this.budget, processId);
+      const childScript: Script = { ...script, lists: [{ pipelines: list.pipelines, operators: list.operators }] };
+      return Object.freeze({ processId, run: (): Promise<number> => {
+        if (closed || execution) return Promise.reject(new TypeError("Prepared shell child run is single-use"));
+        execution = Promise.resolve().then(async () => {
+          signal.throwIfAborted();
+          try { return await runtime!.run(childScript, child!, childIO); }
+          catch (reason) {
+            if (reason instanceof NounsetDiagnosticFailure) throw reason.reason;
+            throw reason;
+          }
+        });
+        return execution;
+      } });
+    } catch (reason) {
+      ready();
+      try { await close(); } catch { this.commandSignal.throwIfAborted(); }
+      throw reason;
+    } finally { ready(); }
+  }
+
   async pipeline(pipeline: Pipeline, state: State, io: IO): Promise<number> {
     this.signal.throwIfAborted();
+    const terminal = io.terminal?.target === pipeline ? io.terminal : undefined;
     let status: number;
-    if (pipeline.commands.length === 1) status = await this.command(pipeline.commands[0]!, state, io, false, pipeline.negate);
+    if (pipeline.commands.length === 1) status = await this.command(pipeline.commands[0]!, state,
+      terminal ? { ...io, terminal: { target: pipeline.commands[0]!, frame: terminal.frame } } : io, false, pipeline.negate);
     else {
       const release = this.budget.reservePipelineStages(pipeline.commands.length);
       const retained = new Set<Promise<unknown>>();
@@ -2301,7 +2548,20 @@ export class Runtime {
           highWaterMark: this.budget.limits.pipeHighWaterMark, signal: this.signal,
         }));
         for (let index = 0; index < pipeline.commands.length; index++) controllers.push(new AbortController());
+        let transferred!: () => void;
+        let pendingTransfers = pipeline.commands.length;
+        const transfer = new Promise<void>(resolve => { transferred = resolve; });
+        const retireBaseline = terminal ? transfer.then(() => terminal.frame.reconcile(new Map())) : Promise.resolve();
+        retain(retireBaseline);
+        void retireBaseline.catch(() => undefined);
         const tasks = pipeline.commands.map(async (command, index) => {
+          let admitted = false;
+          const admit = (): void => {
+            if (admitted) return;
+            admitted = true;
+            if (--pendingTransfers === 0) transferred();
+          };
+          try {
           const incoming = pipes[index - 1];
           const outgoing = pipes[index];
           const childDepth = this.cancellationDepth + 1;
@@ -2326,6 +2586,7 @@ export class Runtime {
             childDepth, this.cancellationMaxDepth, frame,
           );
           const references = new PipeDescriptorFrame(io[invocationScope]);
+          const descriptorFrame = new PreparedDescriptorFrame(references, this.budget);
           const reading = incoming?.endpoints?.read;
           const writing = outgoing?.endpoints?.write;
           const readReference = reading && references.open(reading, this.budget);
@@ -2356,17 +2617,24 @@ export class Runtime {
                 const child = await cloneState(state, this.signal);
                 child.extensions = forkExtensions(state.extensions, "pipeline");
                 child.isolated = true;
-                const childIO: IO = isolateIO({
-                  ...io,
+                const inherited = isolateIO(io, references);
+                const childIO: IO = {
+                  ...inherited,
                   stdin: input,
+                  ...(incoming ? { asyncDefaultInput: undefined } : {}),
                   ...(incoming ? { stdinIsDefault: false } : {}),
                   stdout: pipeOutput ? this.budget.sink(pipeOutput, signal) : signalSink(io.stdout, signal),
                   stderr: signalSink(io.stderr, signal),
-                }, references);
+                  terminal: { target: command, frame: descriptorFrame },
+                };
                 const descriptors = new Map(childIO.descriptors);
-                if (readReference) descriptors.set(0, { input, stdinIsDefault: false, pipe: readReference });
-                if (writeReference) descriptors.set(1, { output: childIO.stdout, pipe: writeReference });
+                descriptors.set(0, incoming ? { input, stdinIsDefault: false, ...(readReference ? { pipe: readReference } : {}) } : { ...descriptors.get(0), input });
+                descriptors.set(1, outgoing ? { output: childIO.stdout, ...(writeReference ? { pipe: writeReference } : {}) } : { ...descriptors.get(1), output: childIO.stdout });
+                descriptors.set(2, { ...descriptors.get(2), output: childIO.stderr });
                 childIO.descriptors = descriptors;
+                descriptorFrame.acquire(descriptors);
+                admit();
+                await retireBaseline;
                 const work = runtime.runCommandIsolated(command, child, childIO).then(status => runtime.finishShell(child, childIO, status)).finally(async () => {
                   try { await runtime.releaseExtensions(child); }
                   finally { stateMonitor(child)?.closeValues(); }
@@ -2379,6 +2647,7 @@ export class Runtime {
               }
               return { exitCode };
             } finally {
+              admit();
               completed.add(index);
               if (incoming && !reading) {
                 const upstream = index - 1;
@@ -2390,6 +2659,7 @@ export class Runtime {
                 await incoming.abort();
               }
               await input.close().catch((error: unknown) => { if (!(error instanceof PipelineClosed)) throw error; });
+              await descriptorFrame.close();
               await references.close();
               if (outgoing && !writing) await outgoing.close().catch(() => undefined);
             }
@@ -2404,6 +2674,7 @@ export class Runtime {
           const selection = await owner.finish(Promise.resolve(), captured);
           if (selection.outcome.kind === "throw") throw selection.outcome.reason;
           return selection.outcome.value.exitCode;
+          } finally { admit(); }
         });
         for (const task of tasks) retain(task);
         statuses = await interruptible(Promise.all(tasks), this.signal);
@@ -2423,11 +2694,14 @@ export class Runtime {
       status = state.pipefail ? statuses.findLast((status) => status !== 0) ?? 0 : statuses.at(-1)!;
     }
     if (pipeline.commands.length > 1) await this.errexit(status, state, io);
-    return pipeline.negate ? Number(status === 0) : status;
+    return pipeline.negate && !terminal ? Number(status === 0) : status;
   }
 
   async runCommandIsolated(command: Command, state: State, io: IO, fileShortcut = false): Promise<number> {
-    try { return await this.command(command, state, io, fileShortcut); }
+    try {
+      await this.startExtensions(state, io);
+      return await this.command(command, state, io, fileShortcut);
+    }
     catch (error) {
       if (error instanceof NounsetDiagnosticFailure) throw error;
       if (error instanceof Flow && (error.kind === "exit" || error.kind === "discard")) return this.finishShell(state, io, error.status);
@@ -2460,6 +2734,15 @@ export class Runtime {
       if (await this.extensionEvent("command", state, io, state.status, description)) return state.status;
     }
     const publishes = command.kind === "simple" || command.kind === "subshell" || command.kind === "arithmetic" || command.kind === "conditional";
+    const terminal = io.terminal?.target === command ? io.terminal : undefined;
+    if (terminal) terminal.beforeExit = async (status, completionIO) => {
+      if (publishes) {
+        const reported = publicationNegate && (command.kind === "conditional" || command.kind === "arithmetic") ? Number(status === 0) : status;
+        await this.publishStatus(state, [reported], completionIO);
+        terminal.published = status;
+        await this.errexit(status, state, completionIO);
+      }
+    };
     let status: number;
     try { status = await io[invocationScope].run(() => this.executeCommand(command, state, io, fileShortcut)); }
     catch (error) {
@@ -2470,16 +2753,26 @@ export class Runtime {
       }
       throw error;
     }
+    if (terminal && state.extensions?.exitStatus !== undefined) state.extensions.exitStatus = status;
     if (publishes) {
       const reported = publicationNegate && (command.kind === "conditional" || command.kind === "arithmetic") ? Number(status === 0) : status;
-      await this.publishStatus(state, [reported], io);
-      await this.errexit(status, state, io);
+      if (terminal?.published !== status) await this.publishStatus(state, [reported], io);
+      if (!terminal?.completed) await this.errexit(status, state, io);
     }
     return status;
   }
 
   async executeCommand(command: Command, state: State, originalIO: IO, fileShortcut = false): Promise<number> {
+    const terminal = originalIO.terminal?.target === command ? originalIO.terminal : undefined;
+    originalIO = { ...originalIO, terminal: undefined };
     state = trackState(state, this.budget, originalIO[invocationScope]);
+    if (originalIO.asyncDefaultInput) {
+      if (!command.redirects.some(redirect => redirect.descriptor === 0)) {
+        const descriptors = new Map(originalIO.descriptors);
+        descriptors.set(0, { input: originalIO.asyncDefaultInput, stdinIsDefault: true });
+        originalIO = { ...originalIO, descriptors, stdin: originalIO.asyncDefaultInput, stdinIsDefault: true, asyncDefaultInput: undefined };
+      } else originalIO = { ...originalIO, asyncDefaultInput: undefined };
+    }
     originalIO = activeIO(originalIO);
     originalIO.descriptors ??= new Map<number, Descriptor>([
       [0, { input: originalIO.stdin, ...(originalIO.stdinIsDefault === undefined ? {} : { stdinIsDefault: originalIO.stdinIsDefault }) }],
@@ -2527,11 +2820,15 @@ export class Runtime {
         return 0;
       }
       if (command.kind === "simple") {
-        const status = await this.simple(command, state, originalIO, inputs, outputs, fileShortcut);
+        const status = await this.simple(command, state, originalIO, inputs, outputs, fileShortcut, terminal);
         if (originalIO.assignmentDiagnosticContext) originalIO.assignmentDiagnosticContext.name = undefined;
         return status;
       }
       io = await this.redirect(command.redirects, state, io, inputs, outputs, command.kind === "subshell", command.kind !== "subshell");
+      if (terminal) {
+        terminal.io = io;
+        await terminal.frame.reconcile(io.descriptors!);
+      }
       if (command.kind === "conditional") {
         if (io.assignmentDiagnosticContext) io.assignmentDiagnosticContext.name = "[[";
         try {
@@ -2659,7 +2956,12 @@ export class Runtime {
       }
       return status;
       };
-      const status = await execute();
+      let status = await execute();
+      if (terminal) {
+        await terminal.beforeExit?.(status, terminal.io ?? io);
+        status = await this.finishShell(state, terminal.io ?? io, status);
+        terminal.completed = true;
+      }
       await finishOutputs(status);
       return status;
     } catch (caught) {
@@ -2669,6 +2971,10 @@ export class Runtime {
       if (error instanceof NounsetDiagnosticFailure) diagnosticFailure = error;
       this.signal.throwIfAborted();
       if (error instanceof Flow) {
+        if (terminal && error.kind === "exit" && !(error instanceof NounsetDiagnosticFailure)) {
+          await this.finishShell(state, terminal.io ?? io, error.status);
+          terminal.completed = true;
+        }
         try { await finishOutputs(error.status); }
         catch (reason) {
           this.signal.throwIfAborted();
@@ -2843,11 +3149,11 @@ export class Runtime {
           value = concatShellValues([value, "\n"], io[valueScope]);
         }
         const prepared = prepareBytesInput(typeof value === "string" ? value : shellValueBytes(value, io[valueScope]), this.budget);
-        inputs.add(prepared);
-        io[invocationScope].register(prepared.close);
         const input = new ShellInput(prepared.source, this.budget, this.signal, prepared.options);
-        inputs.add(input);
-        await replaceDescriptor(redirect.descriptor, { input, stdinIsDefault: false });
+        const lifetime = new DescriptorLifetime(async () => { try { await input.close(); } finally { await prepared.close(); } });
+        inputs.add({ close: () => lifetime.release() });
+        io[invocationScope].register(() => lifetime.release());
+        await replaceDescriptor(redirect.descriptor, { input, stdinIsDefault: false, lifetime });
         continue;
       }
       const targets = await this.word(redirect.target, state, currentIO());
@@ -2891,8 +3197,9 @@ export class Runtime {
             throwCleanupFailures(failures.filter(error => !(error instanceof PipelineClosed
               && this.signal.aborted && Object.is(error, this.signal.reason))));
           })();
-          inputs.add({ close });
-          io[invocationScope].register(close);
+          const lifetime = new DescriptorLifetime(close);
+          inputs.add({ close: () => lifetime.release() });
+          io[invocationScope].register(() => lifetime.release());
           const prepared = stat.type === "directory" ? prepareBytesInput("", this.budget)
             : await prepareFileInput({ fs: this.fs, signal: this.signal, cleanupFailurePrioritySignal: this.budget.signal, registerCleanup: close => {
               cleanups.push(close);
@@ -2901,7 +3208,7 @@ export class Runtime {
           io[invocationScope].assertOpen();
           const input = new ShellInput(prepared.source, this.budget, this.signal, prepared.options);
           inputOwner.input = input;
-          await replaceDescriptor(redirect.descriptor, { input, stdinIsDefault: false });
+          await replaceDescriptor(redirect.descriptor, { input, stdinIsDefault: false, lifetime });
         } else {
           const append = redirect.operator === ">>";
           const capabilities = await this.fs.capabilitiesFor?.(path, options) ?? this.fs.capabilities;
@@ -2978,10 +3285,13 @@ export class Runtime {
               }
             } finally { release(); }
           };
-          outputs.add(Object.assign(finalize, target.descriptor ? { descriptor: target.descriptor } : {}));
+          let completion: Parameters<OutputFinalizer>[0] | undefined;
+          const lifetime = new DescriptorLifetime(() => finalize(completion ?? { status: 0 }));
+          const ownerFinalize: OutputFinalizer = value => { completion ??= value; return lifetime.release(); };
+          outputs.add(Object.assign(ownerFinalize, target.descriptor ? { descriptor: target.descriptor } : {}));
           const output = canonical ? target.sink : this.budget.sink(target.sink, this.signal);
           if (canonical) budgetedSinks.set(output, { budget: this.budget, write: output.write });
-          const binding: Descriptor = { output, ...(target.descriptor ? { file: target.descriptor } : {}) };
+          const binding: Descriptor = { output, lifetime, ...(target.descriptor ? { file: target.descriptor } : {}) };
           await replaceDescriptor(redirect.descriptor, binding);
           if (redirect.operator === "&>") {
             replaced.add(2);
@@ -3012,7 +3322,7 @@ export class Runtime {
     return { name: match[1]!, append: match[2] === "+", value: { offset: word.offset, parts: [{ ...first, value: first.value.slice(match[0].length) }, ...word.parts.slice(1)] } };
   }
 
-  async simple(command: Extract<Command, { kind: "simple" }>, state: State, originalIO: IO, inputs: Set<{ close(): void | Promise<void> }>, outputs: Set<OutputFinalizer>, fileShortcut = false): Promise<number> {
+  async simple(command: Extract<Command, { kind: "simple" }>, state: State, originalIO: IO, inputs: Set<{ close(): void | Promise<void> }>, outputs: Set<OutputFinalizer>, fileShortcut = false, terminal?: IO["terminal"]): Promise<number> {
     state.substitutionStatus = 0;
     const assignments: ({ name: string; value: Word; append: boolean; kind?: undefined } | ArrayAssignment)[] = [];
     let wordIndex = 0;
@@ -3128,6 +3438,10 @@ export class Runtime {
           } finally { try { await copyOwner?.close(); } finally { holding?.release(); stateMonitor(redirectState)?.closeValues(); } }
         }
       } else io = await this.redirect(command.redirects, state, io, inputs, outputs, isolatedInlineInput, !words.length || shellBuiltinNames.has(words[0]!) || !!state.extensions?.builtins.has(words[0]!) || functionCommand, fileShortcut, command.line ?? 1);
+      if (terminal) {
+        terminal.io = io;
+        await terminal.frame.reconcile(io.descriptors!);
+      }
       if (!inlineInput) await assign();
       if (fileShortcut) {
         const input = io.descriptors?.get(command.redirects[0]!.descriptor)?.input;
@@ -5131,16 +5445,21 @@ export class Runtime {
       const reprintedLines = part.sourceLine === undefined ? undefined : functionReprintedLines(part.script);
       const functionCommandLines = reprintedLines && new Map([...reprintedLines].map(([command, line]) => [command, warningLine + line - 1]));
       const references = new PipeDescriptorFrame(io[invocationScope]);
+      let captured!: () => void;
+      const capturedOutput = new Promise<void>(resolve => { captured = resolve; });
+      const lifetime = new DescriptorLifetime(captured);
       const captureIO = isolateIO({
         ...io, substitutionDiagnosticLines,
         diagnosticOffset: (io.diagnosticLine ?? part.line) - (part.sourceLine ?? part.line),
         functionCommandLines, diagnosticCommandLines: undefined, stdout: this.budget.sink(capture, this.signal),
       }, references);
+      captureIO.descriptors = new Map(captureIO.descriptors).set(1, { output: captureIO.stdout, lifetime });
       try { state.substitutionStatus = fileShortcut ? await this.runCommandIsolated(command, child, captureIO, true) : await this.run(part.script, child, captureIO); }
       finally {
-        try { await references.close(); }
+        try { await references.close(); await lifetime.release(); }
         finally { stateMonitor(child)?.closeValues(); }
       }
+      await capturedOutput;
       state.status = state.substitutionStatus;
       const bytes = capture.bytes();
       if (bytes.includes(0)) await writeText(io.stderr, `${io.scriptName ?? "shell"}: line ${warningLine}: warning: command substitution: ignored null byte in input\n`);
@@ -5153,6 +5472,12 @@ export class Runtime {
         if (!(error instanceof TypeError) || (error as NodeJS.ErrnoException).code !== "ERR_ENCODING_INVALID_ENCODED_DATA") throw error;
         return shellValueFromBytes(sanitized, io[valueScope]);
       }
+    }
+    let specialValue: ShellValue | undefined;
+    if (part.specialParameter) {
+      const hook = state.extensions?.specialParameters.get(part.specialParameter.name);
+      if (!hook) throw new TypeError("Missing captured shell special parameter handler");
+      specialValue = hook.lookup(this.extensionContext(state, io));
     }
     const selector = getArraySelector(part);
     if (selector) {
@@ -5172,14 +5497,15 @@ export class Runtime {
         : !part.quoted && split && state.variables.IFS === ""));
       return this.arrayJoin(store.owner, values, space ? " " : this.ifsSeparator(state, io));
     }
-    let value = part.name === "?" ? String(state.status)
+    let value = part.specialParameter ? specialValue === undefined ? undefined : shellValueText(specialValue)
+      : part.name === "?" ? String(state.status)
       : part.name === "-" ? `${state.errexit ? "e" : ""}${state.nounset ? "u" : ""}`
       : part.name === "#" ? String(state.positional.length)
       : part.name === "@" || part.name === "*" ? state.positional.join(hereString && (part.name === "@" || !part.quoted) ? " " : Array.from(state.variables.IFS ?? " ")[0] ?? "")
       : /^0+$/u.test(part.name) ? state.arg0 ?? "virtual-bash"
       : /^\d+$/u.test(part.name) ? state.positional[Number(part.name) - 1]
       : part.name === "LINENO" && state.extensions ? String(io.diagnosticLine ?? part.line ?? 1) : this.variable(state, part.name);
-    let retained: ShellValue | undefined = value;
+    let retained: ShellValue | undefined = part.specialParameter ? specialValue : value;
     if (value !== undefined) {
       if (/^[a-zA-Z_][a-zA-Z_0-9]*$/u.test(part.name)) retained = arrayStore(state)?.get(part.name)?.getValue(0) ?? stateMonitor(state)?.values.get(part.name, value) ?? value;
       else if (/^0+$/u.test(part.name)) retained = stateMonitor(state)?.positionals.get("$0", value) ?? value;

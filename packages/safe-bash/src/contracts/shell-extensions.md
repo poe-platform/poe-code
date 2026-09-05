@@ -23,7 +23,7 @@ validation ahead of its ordinary postparse initialization point.
 Syntax declarations contain only supported own data properties in a plain
 object. `arrayKeys` must be `true` when present. Different extensions can declare
 the same capability; this does not relax duplicate extension or builtin checks.
-The runtime does not admit background-job syntax through this declaration.
+The `arrayKeys` declaration does not admit background-job syntax.
 
 An extension may separately declare `indexedDeclarations: ["readonly"]` to
 enable indexed readonly declarations, including their compound-assignment
@@ -39,6 +39,63 @@ package artifacts. Keys use canonical numeric ordering and the existing shared
 allocation limits; this does not widen ordinary assignment bounds or implement
 associative arrays. The optional leaf's semantics document records the qualified
 expansion contexts and remaining limits.
+
+### List terminators and special parameters
+
+An extension may explicitly declare `listTerminators: [{ operator: "&" }]` and
+`specialParameters: [{ name: "!" }]` within its syntax object. These are separate
+capabilities: neither array syntax nor an extension named `jobs` enables them.
+The declarations follow the same preparse capture and fork rules. Unsupported
+operators or parameter names, accessors, sparse lists and extra properties are
+rejected rather than interpreted as future capabilities.
+
+The created instance supplies matching `listTerminators` hooks with `operator`
+and `execute`, and matching `specialParameters` hooks with `name` and `lookup`.
+Each hook is an own-data record; its callback is captured with its original
+receiver. Hook lists must be dense and match their declarations exactly, without
+duplicate handlers across instances. A valid declaration with a missing handler
+fails after factory creation but before command execution. Invalid declarations
+still fail before any factory is called. Mutation of caller-owned hook records
+does not replace captured callbacks.
+
+A list-terminator handler receives the usual extension context plus
+`prepareChild({ signal, stdin, registerCleanup })`. Preparation binds the complete
+admitted AND/OR list, not just its final pipeline. It does not expose mutable AST
+or runtime state and does not convert the program back to source for reparsing.
+The prepared child's `processId` is a positive virtual identity, not a host PID
+or an assertion that a native process exists. Its `run()` operation is single-use.
+The `stdin` policy is explicitly `inherit` or `async-default`; an asynchronous
+default must not override an explicit input redirection.
+
+Special-parameter lookup returns a canonical `ShellValue` or `undefined` for
+absence. Raw values must not be reconstructed from decoded display strings.
+These generic callbacks provide extension dispatch, not an automatically
+installed wait builtin, job table, native process launcher or signal service.
+
+### Execution-scoped cleanup
+
+The actual shell context also supplies `registerExecutionCleanup(cleanup)` for
+resources whose lifetime extends beyond one logical shell process. The member
+is optional in the standalone context interface; an extension requiring it must
+check availability before acquiring those resources, not silently substitute
+ordinary frame cleanup. Registration is synchronous and precedes acquisition.
+
+Ordinary `registerCleanup` remains attached to the shell frame and invocation.
+Execution-scoped work instead remains owned until the enclosing public
+`Shell.exec` settles. An isolated shell may publish its exit status and allow
+parent continuation while its asynchronous descendants still run. This does not
+permit the public execution or disposal to abandon those descendants' registered
+resources. A direct job's own task cleanup still precedes its handle completion;
+that obligation is distinct from its descendants' execution-scoped ownership.
+
+On normal completion, EXIT handlers run before the local frame retires, including
+handlers that launch further jobs. The execution drain precedes ordinary scope
+sealing, so successful logical exit is not turned into cancellation. Work
+registered by still-running descendants during the drain remains included until
+quiescence. Enrollment after the execution lifetime closes is rejected.
+Cancellation and escaping failures retain their existing outcome precedence;
+registered cooperative work is cancelled as appropriate and joined rather than
+detached. Opaque uncooperative host work is not forcibly preempted.
 
 ## Bindings and input
 

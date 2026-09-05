@@ -2717,3 +2717,565 @@ pass with375 stable compiler inputs at `/tmp/scripting-public-types-root-TCOlVR`
 Actual public output is visually inspected at
 `/tmp/read-separator-visual-root-ExNLyN/read.png`; its capture has464 stable inputs
 at `/tmp/read-separator-visual-capture-root-KP3dRX`.
+
+## Ordinary background-job integration, September 5, 2026
+
+The separator-timing repair is locally committed as
+`053e0c56f206b4a9f33f2cb6bbeefdffc697b169`; six committed blobs match the
+validated inputs at `/tmp/read-separator-commit-root-Y4HF7Z/verified.json`.
+There is no push or release.
+
+The next increment connects the existing optional job-state machinery to actual
+shell execution. It must retain default rejection of asynchronous syntax and
+absence of `wait`, dispatch the complete asynchronous AND/OR list without
+reparsing text, snapshot child state before parent continuation, and preserve
+descriptor ownership, shared budgets and cleanup. The ordinary-wait increment
+does not discharge the remaining wait options, job specifications, signal/trap
+interactions or full job-control requirements.
+
+The qualified primary oracle is GNU Bash5.3 on Darwin25.4.0 arm64, executable
+SHA256 `a0cfc1af0ff50f6b6e67c638979e2604f1c276c90116937fbaafcabb62ee2b40`.
+The bounded capture at `/private/tmp/jobs53-ordinary-59qdEb` contains18 subjects
+and18 authenticated supervisors, with no retries, signals or cleanup failures.
+Subjects use Bash builtins, owned input and explicitly controlled descriptors;
+native background null-input behavior was authorized. No native regular-file
+fixtures or external subject commands were created. These are18 observations,
+not18 passing product tests. Native descriptor cases using `exec` are evidence,
+not delivery of an `exec` builtin.
+
+The immutable `tests/shell/extensions/jobs/primary53-reference.json` embeds the
+exact38 captured files and has SHA256
+`b58b036980686beb7991eea09f4e7ab83a8be44aa77b8c923df47cd93623acd7`.
+The helper authenticates bounded held-descriptor reads and nested source/input/
+output/status bindings, returning fresh byte buffers. Independent review at
+`/tmp/jobs-reference-independent-XiiCWJ/final.json` verifies all18 records and
+38 origin files, passes12 helper controls and checks two strict roots with zero
+diagnostics and232 stable inputs. Its approval is fixture/helper/public-test
+review only, not runtime acceptance.
+
+The initial compiled-public cohort has14 tests: two default controls, one
+factory contract, nine identical ungated subjects (1,2,3,4,5,7,8,9,14), and two
+VFS script-file integrations. At `/tmp/jobs-public-red-root-Ldxm7U`, the default
+controls pass and the other12 fail because the optional factory is missing;
+902 watched inputs remain stable. Gated, dynamic-identity, native-exec and EXIT
+cases are not silently counted as covered by those nine replays.
+
+Generic instance hooks make two formerly unsupported syntax declarations valid.
+The original arrays-key controls now fail only at the expected factory count:
+six tests, four passes and two failures, with five stable inputs at
+`/tmp/jobs-legacy-syntax-before-root-mG8sEU`. Despite that capture's name, the
+core admission change was already present. Only these two controls are migrated:
+missing instance handlers still raise TypeError before command middleware runs,
+but after one factory call. The three invalid metadata controls and initial
+parse-failure control still require zero factory calls. The six corrected tests
+pass at `/tmp/jobs-legacy-syntax-after-root-r9TziK`, with five stable inputs.
+
+The new optional jobs entry is explicitly excluded from default build and
+package-lint source roots, alongside the existing state leaf. Existing package
+file exclusions already cover the entire jobs output directory. Literal test
+enrollment includes the new core, metadata, ordinary-wait, immutable-helper and
+compiled-public tests; the98 membership controls pass at
+`/tmp/jobs-literal-root-hGfN2W`. This is membership/configuration evidence, not a
+build, pack, full typecheck or runtime-completion claim.
+
+Root separately reruns the12 immutable-helper tests successfully at
+`/tmp/jobs-helper-validation-root-fZMILp` with three stable fixture inputs, and
+checks the migrated keys test plus helper roots with zero strict diagnostics
+and329 stable compiler inputs at `/tmp/scripting-public-types-root-zJySNF`.
+
+An independent six-case compiled-public lifecycle fixture now covers adaptations
+of primary cases6,11,12,13,17,18. Controlled in-memory gates replace native
+controller descriptors; silent custom commands observe virtual identities and
+export/cwd/argument snapshots. Only the captured native PID field is mapped in
+nonchild diagnostics. The EXIT case checks marker-before-drain ordering, not
+native physical process-exit timing. Exact transformations and retained results
+are recorded at `/tmp/jobs-lifecycle-public-independent-zjsnpf/adaptations.json`.
+The initial product run has six missing-factory failures, with311 stable inputs;
+the independent gate-harness controls pass7/7 and one strict root passes with
+316 stable inputs. Gate-harness passes are not product passes. The fixture is
+enrolled literally alongside the earlier jobs tests.
+
+The existing in-memory declaration consumer now requests the optional jobs
+factory and five generic hook types. Its red at
+`/tmp/jobs-declarations-red-root-dkfjHc` reports exactly those six missing
+compiled exports, with903 stable inputs. Root adds source exports only in the
+explicit optional entry; coherent compilation and the declaration-consumer
+green remain pending the core author's freeze and independent runtime review.
+
+The first held core candidate passes51 of52 focused tests, including all nine
+selected primary Bash5.3 exact-byte/status replays. Six strict roots have zero
+diagnostics, and the six owned paths are stable in
+`/tmp/jobs-bridge-checkpoint.QKjnd2`. This is not an acceptance-ready candidate:
+`( { gate; printf CHILD; } & ); printf PARENT; release` deadlocks until bounded
+cancellation because isolated-shell completion waits for its asynchronous
+descendants before allowing parent continuation. The original failure is
+preserved at `/tmp/jobs-nested-logical-exit-red.log`.
+
+The repair must separate logical shell exit from execution-wide resource drain
+without dropping either obligation. Own-task cleanup must still precede a job
+handle's completion; descendant registries need independent execution-lifetime
+ownership. Normal root completion must drain before scope sealing cancels its
+signal. EXIT handlers must remain able to launch jobs, and draining must retain
+newly admitted descendant work until quiescence. The author is continuing with
+these constraints and the demonstrated need for a root shell lifecycle change;
+no existing JobState cleanup guarantee is waived. Two additional bounded native
+nesting subjects are being qualified before any new oracle launch. The expanded
+literal membership check passes98/98 at `/tmp/jobs-literal-expanded-root-I7Kt42`.
+
+Independent lifecycle stress adds14 source-level controls at
+`tests/shell/extensions/jobs/lifecycle-review.test.ts`, with test SHA256
+`0194439d40d03b2707c5993586f60593f353f60acfc8e760762bb2ab97a6e75d`.
+The held run passes8 and fails6, with738 watched inputs unchanged, all gate
+owners released, and one strict root yielding zero diagnostics. The receipt is
+`/tmp/jobs-lifecycle-source-review-TDiXAi/final.json`. Three concrete findings
+remain: substitution loses descendant output despite a passing explicit-wait
+control; background pipelines encounter an uninitialized job registry; and
+late-generation cleanup leaks an internal exit flow instead of exact falsey
+failure reasons. The pipeline error blocks its intended EOF/backpressure
+acceptance rather than counting as a passed lifetime test.
+
+These are adapted lifecycle instrumentation, not unchanged native programs.
+The reviewer preserves earlier harness corrections separately: registering
+basic commands individually, supplying byte-valued VFS writes, and checking
+backpressure on a second write rather than assuming an oversized first chunk
+must block an empty pipe. The final six failures are behavioral evidence after
+those corrections. The test is enrolled literally; source repairs and final
+independent candidate approval remain pending.
+
+The two additional nesting subjects now qualify under the same pinned Bash5.3:
+`PARENT\nRELEASE\nCHILD\n` and `WAIT:7\nRELEASE\nGRANDCHILD\n`, with empty stderr
+and overall status0 in each case. The second direct-child wait returns7 before
+the later successful prints. Both gates release once after confirmed identities
+and the complete RELEASE marker; all10 owned pipes close, both write categories
+are fully acknowledged, and no retry, signal or deadline failure occurs. The
+outer handle closes with status0. Root inspected the sealed runner before
+authorizing exactly two subjects and two supervisors, not further probes.
+Raw14-artifact qualification data is preserved in
+`tests/shell/extensions/jobs/nested53-reference.json`, SHA256
+`a81935181331fcbf48fff315e866f830ac6f0a8545c24dfd570614da5b5d27e9`;
+generation receipt `/tmp/jobs-nested-evidence-root-eXIY7J/result.json`. These are
+native observations, not two additional product passes.
+
+The author freezes the lifecycle repair at
+`/tmp/jobs-lifecycle-repaired-freeze.gjzwOf`: focused95/95, unchanged reviewer
+14/14, and13 strict roots with323 compiler sources and zero diagnostics. The
+retained source cohort has1192 cases:1004 pass and188 explicitly skip unavailable
+native prerequisites. Root's maintained selected virtual-bash build succeeds
+with390 stable inputs at `/tmp/jobs-selected-build-root-0exoQb`. Independent
+lifecycle approval and compiled-public validation remain separate pending gates.
+
+A source-only ordinary-wait audit also identifies three grammar divergences:
+trailing C whitespace on digit-leading PIDs, immediate failure for malformed
+digit-leading operands, and original-byte invalid-option diagnostics. Seven
+inspected native source files match the recorded archive byte-for-byte; this
+does not establish a fresh source-to-binary reproducibility claim or a guessed
+Darwin PID width. Evidence and eight exact proposed subjects are at
+`/tmp/jobs-wait-source-review-MKX0l9`. Those eight observations require separately
+inspected runner approval and have not yet run. The existing lifecycle green
+does not resolve these findings or the remaining wait flags and job control.
+
+Root's optional build succeeds with386 stable inputs at
+`/tmp/jobs-optional-build-root-0nOdsN`. The compiled jobs cohort passes20/20 at
+`/tmp/jobs-public-lifecycle-root-CKSgqN`, the expanded declaration consumer passes
+at `/tmp/jobs-declarations-green-root-7UdO7y`, and the retained public cohort
+passes188/188 at `/tmp/jobs-retained-public-root-diUbTf`, with1264 stable inputs.
+Default inventory remains79 commands, browser28, date unchanged, and optional
+factories absent at `/tmp/jobs-default-inventory-root-ooK0F2`. These inventory
+and manifest checks are not an npm-pack proof. Six root consumer/helper inputs
+typecheck with zero diagnostics and449 stable compiler inputs at
+`/tmp/scripting-public-types-root-7lZfu4`. Actual VFS scripts under both `bash`
+and `sh` are visually inspected at `/tmp/jobs-visual-root-evPtsU/jobs.png`;
+the capture has466 stable inputs at `/tmp/jobs-visual-capture-root-8hMXrN`.
+
+Independent review still refuses lifecycle approval. The new two-control test
+`tests/shell/extensions/jobs/final-lifecycle-review.test.ts` passes the explicit
+fd3-writer control but fails when fully redirected background stdout keeps the
+substitution collector alive and blocks parent continuation. Test SHA256 is
+`2011f045e627f68dc969a540b079378dc33e673d8de01d4694cfcb92cf053361`;
+the held eight-source/test bindings, red, strict checks and refusal are at
+`/tmp/jobs-final-lifecycle-independent-BADuIx`. All gates and disposals settle.
+This JLR4 counterexample is not cleared by the broader green cohorts. It is
+enrolled literally; native descriptor/tail-position qualification and a precise
+ownership repair are required without dropping explicit aliases or writers
+needed by subsequent commands. No jobs commit, push or release has occurred.
+
+The JLR4 native-source audit supports the direct asynchronous redirection
+boundary: those builtin/function redirections do not retain an undo descriptor,
+whereas an explicit fd3 alias remains a collector writer. Tail position by
+itself is not sufficient; inner AND/OR commands and trap-sensitive execution
+can still require restoration. Source qualification and two proposed builtin-only
+subjects are at `/tmp/jobs-jlr4-native-source-rMWNXu`; no native launch has yet
+qualified those two programs. The author is repairing identifiable descriptor
+leases at the appropriate no-undo boundary, with pipeline-stage and continuation
+ownership controls rather than a blanket last-command release.
+
+The first grammar-eight capture candidate is also held before execution. Root
+reproduces a retention flaw in its outer capture callback:65536 captured bytes
+followed by1000 one-byte chunks retain1000 empty buffer entries. The byte cap
+itself holds, but metadata grows with discarded chunks. A fresh, preserved
+candidate revision must stop retaining empty fragments while keeping complete
+received-byte accounting; no grammar native subjects have run under that first
+candidate. This is capture-tool evidence, not a product behavior failure.
+
+The preserved grammar capture v2 fixes only empty-fragment retention and owned
+directory/seal bindings. Its in-memory fragment control retains one nonempty
+entry after the same1001 chunks while still reporting66536 received bytes and
+overflow. Root reinspects the exact diff and authorizes one eight-case run.
+All eight native subjects and supervisors complete with overall status0, no
+retry, signal or deadline failure, all10 pipes closed per case, and zero pending
+writes. The closed outer handle and all nine admitted handles are recorded at
+`/private/tmp/jobs53-wait-grammar-v2-Zdvnz1/handoff.json`, SHA256
+`799b1f2cc23192a55efa584dd84b711a63257219d4b4ea418e60496d9f1905df`.
+
+Those observations confirm trailing C whitespace acceptance, immediate failure
+for malformed digit-leading operands, and one-original-byte option diagnostics
+(FF and C3, not replacement text). They also distinguish the observed2147483647
+and2147483648 PID operands without inferring an unmeasured platform ABI. Case7
+includes the still-pending `-f` parsing interaction. Grammar implementation and
+new native-bound tests are assigned to a separate worker with exclusive jobs
+leaf ownership; the lifecycle author retains the three shared shell sources.
+Both changes still require coherent revalidation and independent approval.
+The separate two-subject JLR4 controller is being prepared for root inspection;
+it has not been authorized to execute.
+
+## September 5 jobs grammar and collector integration
+
+The grammar author freezes the leaf at SHA256
+`453a149bd9d07b31f3d8e725f879b33c689ae2a716907e5be30853391ed50a82`.
+The original native-bound cohort changes from four passes/five failures to
+nine passes; expanded grammar and immutable-reference controls pass25/25.
+Four actual-options strict roots cover331 source files with zero diagnostics.
+The lifecycle sections remain byte-identical to the prior leaf. The complete
+handoff is `/tmp/jobs-grammar-implementation-sBO0OV/final.json`. Independent
+review is assigned to a different worker, not inferred from author tests.
+
+The JLR4 core candidate is frozen at runtime SHA256
+`02dcb2d7341b71a208bcd29cf6c23e340faaedd2264e8be82c2bd46e925e3747`,
+with121 focused passes and1004 retained passes plus188 explicitly unavailable
+native-prerequisite skips. Fourteen strict roots have zero diagnostics. The
+author's handoff is `/tmp/jobs-jlr4-validation-va65PC/handoff.json`; its leaf
+hash predates the separate grammar repair, so it is not a combined-candidate
+freeze. The original independent lifecycle reviewer is checking the new core.
+
+Root's compiled collector controls reproduce three no-alias deadline failures
+and three explicit-fd3-alias passes in the preceding build at
+`/tmp/jobs-collector-public-red-root-53GYsX`. Inline, `bash`, and `sh` routes
+are all covered. The maintained selected workspace build and optional build
+then succeed with390/386 stable inputs at
+`/tmp/jobs-jlr4-selected-build-root-HHL9CD` and
+`/tmp/jobs-jlr4-optional-build-root-3lgpHI`. The same collector controls pass6/6
+at `/tmp/jobs-collector-public-green-root-wq3uCw`, with905 stable inputs.
+
+Root adds eight compiled grammar replays and six VFS counterparts. The old
+artifact gives three passes/eleven failures at
+`/tmp/jobs-grammar-public-red-root-Vs2zsb`. After rebuilding, all eight inline
+cases and both whitespace VFS cases pass, while four VFS expectations still
+incorrectly use the native `-c` name `shell` instead of `/grammar.sh`.
+That fixture-label error is preserved at
+`/tmp/jobs-grammar-public-green-root-MPReq0`; it is not a product defect.
+An explicit byte-preserving mapping changes only the exact diagnostic prefix,
+checks its count and leaves usage lines and raw option bytes untouched. The
+corrected cohort passes14/14 at
+`/tmp/jobs-grammar-public-label-green-root-jSqKeI`, with907 stable inputs.
+The original eleven failures are not claimed as eleven distinct product bugs.
+
+Root inspects and held-hash-verifies the two-subject native collector capture,
+then authorizes one invocation of the frozen outer runner with seal SHA256
+`4febf1d3b93376817b9a1e6c26c62ba84523d382224511a46b5f2a1a7a287fd0`.
+Both subjects and supervisors finish with status0, no retry, signal, deadline,
+pending write, or open owned pipe. Case1 produces `RELEASE\n<CAPTURE>\n`;
+case2 produces `RELEASE\n<CAPTUREALIAS>\n`; each has `CHILD:go\n` on stderr.
+Owned gate and acknowledgement writes total6/10 bytes, and private owner-release
+writes total16 bytes; all are acknowledged. The closed outer handle and all
+nine admitted-handle closures are in
+`/private/tmp/jobs53-jlr4-vUoMHe/handoff.json`, SHA256
+`d5c4b40272b23fea69491752adfcf9df098f95110a58cb5c9c8c0c7877594b7b`.
+These qualify the two direct-command counterparts, not general tail-position,
+AND/OR, trap, or unchanged product-program parity.
+
+The coherent retained public cohort passes188/188 at
+`/tmp/jobs-jlr4-retained-public-root-BAgCap`; existing jobs public tests pass20/20
+at `/tmp/jobs-jlr4-public-lifecycle-root-xh3S3T`. Five public-consumer strict
+roots cover367 source files with zero diagnostics and377 stable inputs at
+`/tmp/scripting-public-types-root-l8yD1J`. Default79/browser28 and date remain
+unchanged at `/tmp/jobs-jlr4-default-inventory-root-GO52Zn`. The actual VFS
+script screenshot is inspected at `/tmp/jobs-visual-root-1Cbn3E/jobs.png`.
+
+Root also creates actual workspace and root tarballs with prepack scripts
+explicitly disabled, preserving the already-built candidate rather than
+claiming a full root build or release. Their1070/4661 archive paths exactly
+match npm's reported inventories and contain no optional implementation files.
+Bounded archive hashes and receipts are at
+`/tmp/jobs-pack-isolation-root-RBPI1e`; the capture has615 stable inputs at
+`/tmp/jobs-pack-isolation-capture-root-8395dj`. This proves current tarball
+membership only, not installation/execution from the tarballs or publication.
+New grammar, collector and independent-review test paths are enrolled literally.
+Independent review and the final guarded lint/commit gates remain pending.
+
+The independent grammar review now approves only the bounded ordinary-wait
+repair at `/tmp/jobs-grammar-independent-review-jheAC0/final.json`:63 source
+tests,14 compiled public tests, and eight actual-config strict roots all pass,
+without skipped cases or measured drift. Its16 new independent controls are
+frozen in `grammar-review.test.ts`, SHA256
+`7a0b11223b4ced4dc75651c3e0d5c6522efedaf6d05ab7601e902c0d004b6a6e`.
+This approval does not cover full wait options or the core lifecycle.
+
+Core review instead confirms JLR5: direct `! true & wait "$!"` returns0 and
+direct `! false & wait "$!"` returns1, including incorrect child EXIT-event
+statuses, while both `: && ! ...` restoration controls pass. Terminal child
+completion is cached before the single-stage pipeline's negation is applied.
+The frozen four-control reviewer test has SHA256
+`0b67fac42b996777e7b394b7e9b22c6298a3e5c4b74e0e1ceeb1235323a6e84e`;
+the123-pass/two-failure cohort and refusal are retained at
+`/tmp/jobs-jlr4-independent-TqVRHe/final.json`. The two earlier native collector
+observations do not qualify this separate negation behavior.
+
+Root reproduces the status defect against the compiled artifact through all
+three routes, inline/`bash`/`sh`: six direct failures and six restoration-control
+passes at `/tmp/jobs-completion-public-red-root-EsbYJ2`, with905 stable inputs.
+The new public completion test is enrolled literally. The core author is
+repairing normal pipeline completion while preserving raw PIPESTATUS and
+explicit-exit control flow; a separate four-subject native boolean profile is
+being prepared, not yet authorized to run. No jobs commit is cleared by the
+earlier green public or package-membership checks.
+
+### Native adjudication corrects the negation expectation
+
+The native source audit contradicts the presumed JLR5 expectation before its
+runtime qualification: a directly asynchronous simple builtin exits before
+the enclosing inversion, unlike the synchronous command inside an async
+AND-list. Root holds compatibility approval, inspects the unchanged ungated
+grammar-v2 supervisor protocol and its four exact programs, authenticates the
+twelve preparation artifacts and executable bindings, and authorizes one run
+with seal SHA256
+`a7850987b1f995f7129bad23d291917cddacc579e99a17db69a3260d6c11cf39`.
+
+The four native observations at `/private/tmp/jobs53-negation-YOjRP6/results.json`
+produce `wait:0\n`, `wait:1\n`, `wait:1\n`, `wait:0\n`, respectively. All four
+subjects and supervisors exit0, stderr is empty, all10 pipes close per case,
+and all private release writes are acknowledged. The outer handle and nine
+admitted handles close with no retry, signal or deadline failure. These results
+confirm the source inference and contradict the reviewer/root assumption that
+both direct cases should be inverted.
+
+Accordingly, the earlier JLR5 counterexample is reclassified as an incorrect
+test expectation, not a validated defect in the prior native-conforming direct
+behavior. The intervening runtime candidate
+`b2bcf3ed10421bb87f13d00c5e6f036328bf16444eb1349ef17d00f3cde161d3`
+passes179 focused tests and the then-incorrect public12 expectations, but that
+does not establish compatibility: its direct inversion is a real regression
+against the newly qualified native profile. Its author handoff and evidence
+remain at `/tmp/jobs-negation-repair-mNo1sz`; no Git commit was made.
+
+Root preserves the incorrect public fixture and visual expectations at
+`/tmp/jobs-public-negation-adjudication-root-bWJyYp`, then changes the public12
+tests to run the exact native program text and compare the observed wait output.
+They reproduce six direct failures/six AND-list passes on the intervening
+compiled artifact at `/tmp/jobs-completion-native-qualified-red-root-R9KSrQ`,
+with905 stable inputs. The author is correcting only the newly introduced
+inversion behavior while retaining JLR4 descriptor ownership. The reviewer
+separately preserves and corrects its own expectations; neither party can use
+the earlier all-green assumption-based cohorts as a final approval.
+
+Guarded root ESLint completes its9969-file invocation at
+`/tmp/jobs-final-lint-root-DyCvkM` with six `prefer-const` findings and no measured
+drift in28 watched integration inputs. These concern early cleanup bindings in
+the new collector/core/reviewer tests. Their owners are making narrow resource-
+binding repairs without changing cleanup admission, suppressing rules or
+changing assertions. This is a completed failing lint run, not a clean gate.
+
+The native4 handoff is finalized at
+`/private/tmp/jobs53-negation-YOjRP6/handoff.json`, SHA256
+`cb7a5a94837dfdaed099383de20f5a4688bbf352e853a32da3aed1075e89fc99`.
+Its39 exact capture artifacts are preserved in `negation53-reference.json`,
+SHA256 `2400e2f16c4f71fdca26466512faf6a19dab501f57896ab455268be98e1782aa`.
+An independent fixture review approves the bounded held-descriptor loader,
+fresh-buffer API and32 passing refusal/integrity controls at
+`/tmp/jobs-negation-fixture-independent-DzzKJg/final.json`, SHA256
+`64901dae6256efa3c361b4f67da6204e5b0f1de2104cfb9149496d4ecda05357`.
+Its two actual-options strict roots cover249 sources with zero diagnostics.
+This is fixture approval only, not core acceptance.
+
+Root's public completion tests now use `negationJobReference` directly rather
+than reproducing even the corrected expected values by hand. The authenticated
+programs still reproduce six failures/six passes against the incompatible
+intermediate build at `/tmp/jobs-completion-authenticated-red-root-EUnQPn`,
+with907 stable inputs. The public collector's owned-resource style correction
+passes6/6 at `/tmp/jobs-collector-style-green-root-wAU3c9`; two public strict
+roots pass at `/tmp/scripting-public-types-root-5w41en` before the subsequent
+native-helper import, so that import still requires its own final strict check.
+
+Source inspection identifies additional compound/subshell and pipeline inversion
+boundaries that the four simple-command observations cannot certify. The core
+author holds the intermediate production bytes while a separate ten-program
+profile is prepared for those boundaries, function return7, and explicit exit7.
+No blanket restoration, new guessed expected statuses, or core approval is
+authorized by the four-case fixture alone. Earlier erroneous expectations and
+the currently demonstrated intermediate regression remain preserved.
+
+## September 5 extended negation qualification
+
+Root inspects all ten additional program texts and the exact changes from the
+approved ungated native4 controller, then authenticates thirteen preparation
+artifacts and every sealed executable/input binding. Root executes the outer
+runner exactly once with seal SHA256
+`d5606b217c35175a85c1d6051125318788cc3c4a9d3d9088634ce84289b8e03e`.
+The root-owned tool session51729 terminates with exit0. Capture data remains at
+`/private/tmp/jobs53-negation-extended-UxgquY`; no worker launches a duplicate.
+
+The measured wait outputs are0,1,0,1 for negated true/false groups and subshells;
+0,1,1 for the three qualified pipeline/pipefail combinations; and7,7,7 for
+function return7, direct exit7, and an AND-list ending in a negated explicit-exit
+group. All ten subjects and supervisors exit0, stdout is exactly `wait:N\n`,
+and stderr is empty. Each case closes all ten owned pipes, has zero pending
+writes, acknowledges its eight-byte private owner release, and records no
+retry, signal or deadline failure. Maximum observed case duration is33.265ms;
+combined output/control/requested input totals570 bytes. All eight before/after
+input bindings match and all nine outer admission handles close.
+
+These observations resolve the additional source-bound questions before a new
+production correction. The core author is now authorized to remove the incorrect
+asynchronous inversion while preserving synchronous AND-list inversion, raw
+pipeline status, explicit-exit behavior, and the independently qualified JLR4
+descriptor ownership. A fresh native-backed red must precede that correction.
+The ten-case reference and final independent review remain separate from the
+already approved four-case fixture; no completion or release is inferred.
+
+## September 5 qualified jobs integration gates
+
+The native-backed correction is now frozen at runtime SHA256
+`39c5927323c3e09e3a4286c7203274ad7dba50a4dc0fe45bb6aab1957313d0c9`.
+The author first records four passes and ten failures in the fourteen-program
+negation cohort, then fourteen passes after correcting asynchronous status
+selection. The JLR4 descriptor-ownership repair remains present. Author evidence
+is `/tmp/jobs-negation-qualified-correction-nJeJiU/provisional-freeze.json`:
+193 focused tests pass, and the broader cohort has1004 passes and188 explicitly
+unavailable native5.2.37 prerequisites. Those188 cases are not passes.
+
+The ten-program immutable reference is preserved in
+`tests/shell/extensions/jobs/negation-extended53-reference.json`, SHA256
+`70cebd5340e252249e7e849264a19496b7459b4f875ab559e47c24f67c9c131d`.
+The canonical helper returns fresh buffers from authenticated capture data.
+Core tests now use that helper rather than duplicated observed values; the
+test file is frozen at SHA256
+`64f512bb718aa0701bc01e3b6a8cfc63b747a62e7efc1c61868734288b9d5a6a`.
+The binding migration changes no production bytes. Its author receipt at
+`/tmp/jobs-negation-helper-freeze-spP9mQ/final.json` records110 core passes,
+193 focused passes, and19 strict roots/389 inputs with zero diagnostics or
+drift. The independent provisional core approval at
+`/tmp/jobs-native14-core-independent-nTnty0/approval.json` predates this helper
+migration and does not, by itself, approve the new fixture or test binding.
+
+Root completes the maintained selected workspace build at
+`/tmp/jobs-qualified-selected-build-root-OjtqEn` and separate optional build at
+`/tmp/jobs-qualified-optional-build-root-M4Pp5S`. The compiled native4 public
+cohort passes12 tests; the new compiled native10 cohort passes30 tests. No
+compiled native10 pre-fix red was executed or claimed: its pre-fix reproduction
+is the author's source-native14 cohort. The combined public run at
+`/tmp/jobs-final-public-root-vpv1L8` passes270 tests with no failures, skips,
+cancellations or drift across1279 watched inputs. Seven public strict roots at
+`/tmp/scripting-public-types-root-8ewvXB` cover371 compiler source files with
+zero diagnostics and381 stable watched inputs. Literal test enrollment passes
+98 tests at `/tmp/jobs-final-literal-root-6o8oE8`.
+
+The default inventory observation at
+`/tmp/jobs-qualified-default-root-RWaXOZ` retains79 aggregate commands,
+28 browser commands, the existing date result, and absent optional factories.
+The real VFS-script visual exercise runs under both `bash` and `sh`, including
+child isolation, wait status7, native-qualified negation0/1 and EXIT cleanup.
+Its screenshot `/tmp/jobs-visual-root-SLhXcu/jobs.png` was rendered and viewed;
+the capture is `/tmp/jobs-qualified-visual-root-9SrhP1`.
+
+Actual workspace and root tarballs are inspected at
+`/tmp/jobs-pack-isolation-root-bu4vwR`. The workspace tarball has1070 entries,
+925376 bytes and SHA256
+`7c0e1ff93b557efe6e26db7ecd03d81832c3ca3322f3d9241ac96d3e4268a876`;
+the root tarball has4661 entries,17623767 bytes and SHA256
+`9bc6e7a4e3823b5b455ad7451ec12def4bf987176d89cdaf821ce558451c20de`.
+Each tar inventory exactly matches its npm manifest, with zero optional
+implementation entries. Packing deliberately uses `--ignore-scripts`; this is
+not a full root build, installed-tarball execution, publication or release gate.
+
+All six newly reported style findings are repaired by their file owners without
+changing test expectations or cleanup-before-acquisition. The final guarded
+`npm run lint:eslint` completes at
+`/tmp/jobs-final-lint-qualified-root-KNBprW`:9974 configured/linted files,
+zero reported errors or warnings,25 receipt boundaries and39 stable owned
+inputs. Root polls the original session39466 to its terminal exit0 rather than
+starting a duplicate. Rechecking the eight integration captures against the
+current owned files finds no overlapping input drift. This remains a qualified
+ordinary-jobs milestone; advanced wait options, job control and the other
+unfinished items in this plan are not removed from the full objective.
+
+Final independent approval is now recorded at
+`/tmp/jobs-extended-fixture-independent-ULvF66/approval.json`, SHA256
+`e477e268d41d85e3d53795feadab4a17777d2bd845df18dab3277ca2d5e9eb46`;
+the detailed receipt SHA256 is
+`0f0b21dbca9b1c6788b4bef0680d32cb0ac71feaa248a6f8ad287bd3118f70f1`.
+The reviewer independently matches all58 embedded extended-reference artifacts
+to origin bytes, passes38 fixture tests and32 retained native4 controls, and
+verifies the ten-case literal-to-helper migration. Post-migration core110 plus
+reviewer4 tests pass114/114. Nineteen strict roots/389 sources have zero
+diagnostics or drift. The separate three-root fixture/public strict run covers
+394 sources with zero diagnostics. This approval retains the other reviewer's
+unchanged ordinary-wait grammar approval rather than self-approving that leaf.
+It does not claim a new independent public270, build, package or release run.
+
+Root rechecks every recorded input of all eight integration captures, not only
+the owned-path overlaps: all still match. The forty-one-path local commit scope
+contains only this jobs milestone and its integration evidence/documentation;
+unrelated safe-js, command-default-path and filesystem evidence edits remain
+outside it. No push or release is requested or performed. The next read-only
+audit proposes eighteen finite wait-option programs at
+`/tmp/jobs-next-wait-audit-P4wehz/proposed-subjects.json`; these are unexecuted
+proposals, not compatibility observations. Native qualification and TDD remain
+required before changing advanced wait behavior.
+
+### Primary reference wrapper and commit preflight
+
+The first guarded commit attempt at `/tmp/jobs-commit-root-IOGEOA` stages only
+the forty-one owned paths, then stops before committing: cached `git diff
+--check` reports a redundant blank line at EOF in `primary53-reference.json`.
+HEAD remains `053e0c56f206b4a9f33f2cb6bbeefdffc697b169`. No whitespace rule,
+hook or validation is bypassed, and unrelated staging is preserved.
+
+The fixture owner preserves the original148281-byte wrapper and helper at
+`/private/tmp/jobs-primary-wrapper-newline-gVWNXb`, removes exactly one final LF
+from the canonical wrapper, and first demonstrates rejection by the original
+integrity binding. That red is a module-load failure with zero executed test
+cases, not a failing native observation. Updating only the helper's expected
+wrapper digest then passes12/12 controls; the test file is unchanged. Parsed
+JSON is deeply equivalent and all38 embedded artifacts plus18 observed source/
+result records are byte-identical. The new148280-byte wrapper SHA256 is
+`2f03c8498f666a2c0dceb11f7907bc15aea4c21e301b36bd1492da8f20408612`;
+the helper SHA256 is
+`3b7088b65e7ee8934ebc1094def2c4126ccccd001b442c22d5a5e45e447be7c6`.
+The owner freeze SHA256 is
+`3a28c7ebc12700ceffa328ee1da3bcc53f33edd8886ac911bb5dab3f1be80ada`.
+Two strict roots/249 compiler sources/267 watched inputs have zero diagnostics
+or drift. This is a representation-only correction, not new native behavior.
+
+Root reruns the affected public cohort at
+`/tmp/jobs-primary-final-public-root-gM3xha`:270 passes, zero failures, skips or
+cancellations,1279 stable inputs. Seven public strict roots at
+`/tmp/scripting-public-types-root-O5JIf4` again cover371 compiler sources with
+zero diagnostics and381 stable inputs. The source/runtime/build inputs are
+unchanged, so this fixture-only correction does not require a new product build.
+The older public/lint captures remain history, not current fixture bindings;
+the replacement lint and independent representation review are required before
+retrying the exact-path commit.
+
+The replacement guarded lint completes at
+`/tmp/jobs-primary-final-lint-root-vYVAwW` with9974 configured/linted files,
+zero errors or warnings,25 receipt boundaries and39 stable owned inputs.
+Root polls the original session66571 to terminal exit0. Independent wrapper
+approval is `/tmp/jobs-primary-wrapper-independent-UoVQKF/approval.json`,
+SHA256 `86bc002796a753a9d0040267e7bbe734907a36deede21370a5412bdf6d79b4c1`;
+its detailed receipt SHA256 is
+`b0c957595185fe3a914c99131be8287d267e79e77e131534f45e5874e9196514`.
+The reviewer verifies the exact representation delta, unchanged observations,
+12/12 focused passes and two actual-options strict roots with zero diagnostics
+or drift. All three current reference-file hashes are bound in the approval.
+The retry uses a new validation manifest rather than changing the failed
+attempt's sealed input snapshot. Product, grammar and extended-reference
+approvals remain separate and unchanged; full-goal acceptance remains open.

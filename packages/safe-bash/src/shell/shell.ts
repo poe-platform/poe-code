@@ -187,8 +187,15 @@ export class Shell implements PluginHost {
     const active = { scope, budget, owner };
     this.#active.add(active);
     let captured: CapturedCancellationOutcome<ShellResult>;
-    try { captured = await owner.capture(() => this.#execute(source, options, scope, budget, boundary, cancellationState, owner)); }
-    finally { budget.close(); await scope.close(); }
+    try {
+      captured = await owner.capture(() => this.#execute(source, options, scope, budget, boundary, cancellationState, owner));
+      if (captured.kind === "throw") budget.executionCleanup.abort(captured.reason);
+    } finally {
+      await budget.executionCleanup.drain();
+      scope.failures.push(...budget.executionCleanup.failures);
+      budget.close();
+      await scope.close();
+    }
     const selection = owner.finish(captured);
     cancellationState.close();
     this.#active.delete(active);
@@ -313,11 +320,17 @@ export class Shell implements PluginHost {
         exitCode = error.exitCode;
       }
       if (runtime && state) exitCode = await runtime.finishShell(state, io, exitCode);
-    } catch (error) { failed = true; throw error; }
+    } catch (error) {
+      failed = true;
+      budget.executionCleanup.abort(error);
+      throw error;
+    }
     finally {
+      await budget.executionCleanup.drain();
       if (failed) await closeInput().catch(() => {});
       else await closeInput();
     }
+    throwCleanupFailures(budget.executionCleanup.failures);
     const stdoutBytes = stdout.takeBytes();
     const stderrBytes = stderr.takeBytes();
     return {
@@ -334,9 +347,8 @@ export class Shell implements PluginHost {
     const drains: Promise<void>[] = [];
     this.#disposal = Promise.resolve().then(() => this.#dispose(active, drains));
     for (const { scope, budget } of active) {
-      const drain = scope.close();
       budget.controller.abort(new Error("Shell is disposed"));
-      drains.push(drain);
+      drains.push(budget.executionCleanup.drain().then(() => scope.close()));
     }
     return this.#disposal;
   }

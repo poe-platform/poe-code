@@ -132,13 +132,25 @@ test("initial syntax failure does not create extension instances", async context
   assert.equal(created, 0);
 });
 
-for (const syntax of [{ arrayKeys: false }, { arrayKeys: "true" }, { arrayKeys: true, unknown: true }, { listTerminators: [{ operator: "&" }] }, { specialParameters: [{ name: "!" }] }]) {
+for (const syntax of [{ arrayKeys: false }, { arrayKeys: "true" }, { arrayKeys: true, unknown: true }]) {
   test(`invalid or unsupported runtime key syntax metadata: ${JSON.stringify(syntax)}`, async context => {
     let created = 0;
     const subject = setup([{ name: "invalid", syntax, create() { created++; return { builtins: [] }; } } as unknown as ShellExtension]);
     context.after(() => subject.shell.dispose());
     await assert.rejects(subject.shell.exec(":"), TypeError);
     assert.equal(created, 0);
+  });
+}
+
+for (const syntax of [{ listTerminators: [{ operator: "&" }] }, { specialParameters: [{ name: "!" }] }]) {
+  test(`valid runtime syntax without instance handlers fails before execution: ${JSON.stringify(syntax)}`, async context => {
+    let created = 0, executed = 0;
+    const subject = setup([{ name: "missing-handlers", syntax, create() { created++; return { builtins: [] }; } } as unknown as ShellExtension]);
+    subject.shell.use(async (_context, next) => { executed++; return next(); });
+    context.after(() => subject.shell.dispose());
+    await assert.rejects(subject.shell.exec(":"), TypeError);
+    assert.equal(created, 1);
+    assert.equal(executed, 0);
   });
 }
 

@@ -81,6 +81,7 @@ export interface ShellExtensionContext {
   accountSource(source: ShellValue): void;
   diagnostic(message: ShellValue): Promise<void>;
   registerCleanup(cleanup: () => void | Promise<void>): void;
+  registerExecutionCleanup?(cleanup: () => void | Promise<void>): AbortSignal;
 }
 
 export interface ShellExtensionBuiltin {
@@ -91,10 +92,37 @@ export interface ShellExtensionBuiltin {
   execute(context: ShellExtensionContext): number | Promise<number>;
 }
 
+export interface PreparedShellChild {
+  readonly processId: number;
+  run(): Promise<number>;
+}
+
+export interface ShellChildPreparation {
+  readonly signal: AbortSignal;
+  readonly stdin: "inherit" | "async-default";
+  registerCleanup(cleanup: () => void | Promise<void>): void;
+}
+
+export interface ShellListTerminatorContext extends ShellExtensionContext {
+  prepareChild(options: ShellChildPreparation): Promise<PreparedShellChild>;
+}
+
+export interface ShellListTerminatorHook {
+  readonly operator: string;
+  execute(context: ShellListTerminatorContext): number | Promise<number>;
+}
+
+export interface ShellSpecialParameterHook {
+  readonly name: string;
+  lookup(context: ShellExtensionContext): ShellValue | undefined;
+}
+
 export interface ShellExtensionInstance {
   readonly builtins: readonly ShellExtensionBuiltin[];
   readonly options?: readonly ShellExtensionOption[];
   readonly shoptOptions?: readonly ShellExtensionOption[];
+  readonly listTerminators?: readonly ShellListTerminatorHook[];
+  readonly specialParameters?: readonly ShellSpecialParameterHook[];
   start?(context: ShellExtensionContext): void | Promise<void>;
   fork?(scope: ShellExtensionScope): ShellExtensionInstance;
   event?(event: ShellExtensionEvent, context: ShellExtensionContext): ShellExtensionEventResult | Promise<ShellExtensionEventResult>;
@@ -119,6 +147,8 @@ export interface ShellExtensionState {
   readonly builtins: ReadonlyMap<string, ShellExtensionBuiltin>;
   readonly options: ReadonlyMap<string, ShellExtensionOption>;
   readonly shoptOptions: ReadonlyMap<string, ShellExtensionOption>;
+  readonly listTerminators: ReadonlyMap<string, ShellListTerminatorHook>;
+  readonly specialParameters: ReadonlyMap<string, ShellSpecialParameterHook>;
   exitStatus?: number;
   exiting?: boolean;
   started?: boolean;
@@ -142,9 +172,12 @@ export function captureShellExtensions(definitions: readonly ShellExtension[]): 
   const declarations: CapturedShellSyntax[] = [];
   let arrayKeys = false;
   let indexedReadonly = false;
+  const listTerminators: { operator: string }[] = [];
+  const specialParameters: { name: string }[] = [];
   const captured = Array.from(definitions, definition => {
     const syntax = captureShellSyntax(definition?.syntax);
-    if (syntax.listTerminators.length || syntax.specialParameters.length) throw new TypeError("Unsupported runtime shell syntax declarations");
+    listTerminators.push(...syntax.listTerminators);
+    specialParameters.push(...syntax.specialParameters);
     arrayKeys ||= syntax.arrayKeys === true;
     indexedReadonly ||= syntax.indexedDeclarations?.includes("readonly") === true;
     declarations.push(syntax);
@@ -153,9 +186,33 @@ export function captureShellExtensions(definitions: readonly ShellExtension[]): 
   const result = Object.freeze({ definitions: Object.freeze(captured), declarations: Object.freeze(declarations), syntax: captureShellSyntax({
     ...(arrayKeys ? { arrayKeys: true } : {}),
     ...(indexedReadonly ? { indexedDeclarations: ["readonly"] } : {}),
+    listTerminators, specialParameters,
   }) });
   capturedDeclarations.set(result.definitions, result);
   return result;
+}
+
+function captureHooks(instance: ShellExtensionInstance, field: "listTerminators" | "specialParameters", declared: readonly string[]): readonly { key: string; callback: (...args: never[]) => unknown }[] {
+  const descriptor = Object.getOwnPropertyDescriptor(instance, field);
+  if (descriptor && !("value" in descriptor)) throw new TypeError("Shell syntax hooks require own data properties");
+  const hooks: unknown = descriptor?.value;
+  if (hooks === undefined && !declared.length) return [];
+  if (!Array.isArray(hooks) || hooks.length !== declared.length || hooks.length > 32
+    || Reflect.ownKeys(hooks).length !== hooks.length + 1) throw new TypeError("Shell syntax hooks must match declarations");
+  const keyName = field === "listTerminators" ? "operator" : "name";
+  const methodName = field === "listTerminators" ? "execute" : "lookup";
+  const seen = new Set<string>();
+  return Array.from({ length: hooks.length }, (_, index) => {
+    const entry = Object.getOwnPropertyDescriptor(hooks, String(index));
+    if (!entry || !("value" in entry) || !entry.value || typeof entry.value !== "object") throw new TypeError("Invalid shell syntax hook");
+    const hook = entry.value as object;
+    const key = Object.getOwnPropertyDescriptor(hook, keyName);
+    const method = Object.getOwnPropertyDescriptor(hook, methodName);
+    if (Reflect.ownKeys(hook).length !== 2 || !key || !("value" in key) || typeof key.value !== "string"
+      || !declared.includes(key.value) || seen.has(key.value) || !method || !("value" in method) || typeof method.value !== "function") throw new TypeError("Invalid or duplicate shell syntax hook");
+    seen.add(key.value);
+    return { key: key.value, callback: method.value.bind(hook) as (...args: never[]) => unknown };
+  });
 }
 
 export function extensionState(definitions: readonly ShellExtension[], parent?: ShellExtensionState, scope?: ShellExtensionScope): ShellExtensionState | undefined {
@@ -176,11 +233,21 @@ export function extensionState(definitions: readonly ShellExtension[], parent?: 
   const builtins = new Map<string, ShellExtensionBuiltin>();
   const options = new Map<string, ShellExtensionOption>();
   const shoptOptions = new Map<string, ShellExtensionOption>();
+  const listTerminators = new Map<string, ShellListTerminatorHook>();
+  const specialParameters = new Map<string, ShellSpecialParameterHook>();
   const flags = new Set(["e", "u", "o"]);
   const entries = snapshots.map((definition, index) => {
     const previous = parent?.entries[index]?.instance;
     const instance = previous?.fork && scope ? previous.fork(scope) : definition.create();
     if (!instance || !Array.isArray(instance.builtins)) throw new TypeError("Shell extension requires builtin definitions");
+    for (const hook of captureHooks(instance, "listTerminators", definition.syntax?.listTerminators?.map(entry => entry.operator) ?? [])) {
+      if (listTerminators.has(hook.key)) throw new TypeError("Duplicate shell list terminator");
+      listTerminators.set(hook.key, Object.freeze({ operator: hook.key, execute: hook.callback as ShellListTerminatorHook["execute"] }));
+    }
+    for (const hook of captureHooks(instance, "specialParameters", definition.syntax?.specialParameters?.map(entry => entry.name) ?? [])) {
+      if (specialParameters.has(hook.key)) throw new TypeError("Duplicate shell special parameter");
+      specialParameters.set(hook.key, Object.freeze({ name: hook.key, lookup: hook.callback as ShellSpecialParameterHook["lookup"] }));
+    }
     for (const builtin of instance.builtins) {
       if (!builtin) throw new TypeError("Invalid extension builtin");
       const { name, replace, special, expansion, execute } = builtin;
@@ -200,7 +267,7 @@ export function extensionState(definitions: readonly ShellExtension[], parent?: 
     }
     return { definition, instance };
   });
-  return { entries, syntax: captured.syntax, builtins, options, shoptOptions, cleanup: [] };
+  return { entries, syntax: captured.syntax, builtins, options, shoptOptions, listTerminators, specialParameters, cleanup: [] };
 }
 
 export function forkExtensions(parent: ShellExtensionState | undefined, scope: ShellExtensionScope): ShellExtensionState | undefined {

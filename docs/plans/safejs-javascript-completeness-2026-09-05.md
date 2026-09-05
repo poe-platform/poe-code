@@ -1963,7 +1963,7 @@ This CLI release also contains the cursor and flag-read fixes in sections 35–3
 The flag-read CLI workflow succeeded without publishing because main had moved;
 do not count that green run as a separate release.
 
-### 38. Receiver retention before member operations — delivered; release monitored
+### 38. Receiver retention before member operations — delivered and released
 
 Temporary String receivers disappear from accounting while argument expressions
 run (match and indexOf), as do Array receivers (includes and join). Computed
@@ -2060,7 +2060,9 @@ CLI run 33961246976/job 101294636857 published poe-code 14.0.58 at 10:52:39 UTC
 on September 5. Its independently checked remote tag points to cc107c1eb.
 Receiver retention is delivered and released through both publication routes.
 
-### 39. Repeated object-valued member-key conversion — validated open gap
+### 39. Repeated object-valued member-key conversion — disproved; already conforms
+
+Historical observations and initial interpretation (withdrawn below):
 
 A native comparison with an object key whose toString records calls shows
 three conversions across o[key]++ followed by delete o[key], but SafeJS performs
@@ -2080,8 +2082,42 @@ The expanded native/built matrix has 40 mismatches and five short-circuit
 controls across all 15 compound/logical operators and initial values 0, 2 and
 null. Throwing on the second key conversion also shows prefix, postfix, += and
 taking &&= incorrectly write instead of throwing without a write.
+After intermediate retention reached remote main, the next TDD cohort
+reproduces 48 native-key-conversion failures with 90 passing controls, including
+both delivered retention suites. The write-key semantic fix is not yet applied;
+do not combine it with the already delivered lifetime changes.
 
-### 40. Intermediate operand retention — qualified; delivery pending
+Correction: the preceding classification was wrong. These comparisons used
+Node v22.23.2 as a normative oracle, but its repeated conversion does not match
+ECMAScript 2026. Sections 6.2.5.5 GetValue and 6.2.5.6 PutValue require caching
+the converted ReferencedName and reusing it for the write. The frozen standard
+is `https://tc39.es/ecma262/2026/multipage/ecmascript-data-types-and-values.html`.
+The existing computed-property-keys.test.ts explicitly records that requirement
+and warns about Node v22. Its four failing cases in the attempted package run
+exposed the erroneous candidate. The candidate was removed before any commit
+or push; production interpreter.ts is unchanged from delivered b2e90f90.
+
+The 48 earlier differential failures are not 48 SafeJS bugs, and the changed
+key, second-hook throw and second-hook allocation claims above are withdrawn.
+Close this finding as a false positive, not as a runtime fix. Keep the earlier
+observations here to explain the correction rather than silently rewriting
+the investigation history. Strengthen conformance coverage for all compound
+and logical operators, key/receiver mutation, numeric-hook mutation, prefix and
+postfix results, and absence of a second allocating or throwing hook. Native
+fixed-key arithmetic is a control only; conversion count and cached target
+expectations come from the specification. Existing conformance tests stay intact.
+
+For subsequent findings, a native differential is evidence to investigate,
+not sufficient proof of a defect. Check existing conformance regressions and
+the relevant specification before changing behavior that differs from Node.
+The corrected 63-case conformance matrix passes without a production change.
+The maintained SafeJS package route passes 12,218 tests with 41 explicit skips;
+all existing computed-key and retention tests remain intact. Maintained root
+lint passes 9,760 configured files with zero errors/warnings, followed by types
+and workflows. This is a test/documentation correction, not a runtime fix;
+it has no CLI-visible change requiring a new screenshot or production build.
+
+### 40. Intermediate operand retention — delivered; release monitored
 
 Separate built probes show three more live values disappear from data accounting:
 an assignment RHS while its object-valued key is coerced, an earlier call
@@ -2167,6 +2203,16 @@ Unavailable optional comparator cases remain pending, not passes. Together
 with the successful build, CLI, replay and maintained root lint gates, this
 qualifies intermediate operand retention for its own commit and push. The
 unrelated staged Safe Bash patch remains byte-for-byte unchanged.
+Committed and independently verified on remote main as
+b2e90f90be9777fa297eb28225e4e55f53982a3d. Close this finding at delivery.
+Scoped run 33962313424 and CLI run 33962313552 are monitored independently;
+neither is yet a publication receipt. The proposed next member-key conversion
+fix was subsequently disproved in section 39; do not change correct runtime
+behavior to match that Node v22 differential. Continue the independent template
+findings while monitoring releases.
+Scoped run 33962313424/job 101296205103 published
+@poe-platform/safe-js 0.1.125 at 11:07:13 UTC on September 5. The separate CLI
+run has reached release-stable/job 101297560669 and is still monitored.
 
 ### 41. Generator context inside template substitutions — validated open syntax gap
 

@@ -535,6 +535,13 @@ function assertSource7Discovery(files) {
     "tests/plugins/function-diagnostic-runtime.test.ts",
   ]) assert.ok(files.includes(path), "function diagnostic origin test is missing: " + path);
   for (const path of [
+    "tests/shell/extensions/core/command-name-diagnostic.test.ts",
+    "tests/shell/extensions/core/command-name-review.test.ts",
+    "tests/shell/extensions/core/command-name-runtime.test.ts",
+    "tests/shell/extensions/core/command-name-final-review.test.ts",
+    "tests/plugins/command-name-runtime.test.ts",
+  ]) assert.ok(files.includes(path), "command name diagnostic test is missing: " + path);
+  for (const path of [
     "tests/shell/extensions/mapfile/arguments.test.ts",
     "tests/shell/extensions/mapfile/behavior.test.ts",
     "tests/shell/extensions/mapfile/callback-boundary.test.ts",

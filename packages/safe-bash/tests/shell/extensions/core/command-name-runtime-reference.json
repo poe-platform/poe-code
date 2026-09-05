@@ -1,0 +1,275 @@
+{
+  "profile": "primary-5.3",
+  "locale": "C",
+  "oracle": {
+    "executable": "/tmp/safe-bash-gnu-5.3-adjudication.0zMRKT/bash-5.3/bash",
+    "sha256": "a0cfc1af0ff50f6b6e67c638979e2604f1c276c90116937fbaafcabb62ee2b40"
+  },
+  "capturedAt": "2026-09-05T06:30:44.288Z",
+  "records": [
+    {
+      "name": "direct raw FF",
+      "source": "name=$'\\377'; \"$name\"",
+      "status": 127,
+      "stdoutHex": "",
+      "stderrHex": "7368656c6c3a206c696e6520313a2024275c333737273a20636f6d6d616e64206e6f7420666f756e640a"
+    },
+    {
+      "name": "command raw FF",
+      "source": "name=$'\\377'; command -- \"$name\"",
+      "status": 127,
+      "stdoutHex": "",
+      "stderrHex": "7368656c6c3a206c696e6520313a2024275c333737273a20636f6d6d616e64206e6f7420666f756e640a"
+    },
+    {
+      "name": "builtin command raw FF",
+      "source": "name=$'\\377'; builtin command -- \"$name\"",
+      "status": 127,
+      "stdoutHex": "",
+      "stderrHex": "7368656c6c3a206c696e6520313a2024275c333737273a20636f6d6d616e64206e6f7420666f756e640a"
+    },
+    {
+      "name": "command builtin raw FF",
+      "source": "name=$'\\377'; command builtin -- \"$name\"",
+      "status": 1,
+      "stdoutHex": "",
+      "stderrHex": "7368656c6c3a206c696e6520313a206275696c74696e3a20ff3a206e6f742061207368656c6c206275696c74696e0a"
+    },
+    {
+      "name": "function argument forwarding",
+      "source": "fn(){ command -- \"$1\"; }; fn $'\\377'",
+      "status": 127,
+      "stdoutHex": "",
+      "stderrHex": "7368656c6c3a206c696e6520313a2024275c333737273a20636f6d6d616e64206e6f7420666f756e640a"
+    },
+    {
+      "name": "eval variable forwarding",
+      "source": "name=$'\\377'; eval 'command -- \"$name\"'",
+      "status": 127,
+      "stdoutHex": "",
+      "stderrHex": "7368656c6c3a206c696e6520313a2024275c333737273a20636f6d6d616e64206e6f7420666f756e640a"
+    },
+    {
+      "name": "genuine replacement character",
+      "source": "name=$'\\357\\277\\275'; \"$name\"",
+      "status": 127,
+      "stdoutHex": "",
+      "stderrHex": "7368656c6c3a206c696e6520313a2024275c3335375c3237375c323735273a20636f6d6d616e64206e6f7420666f756e640a"
+    },
+    {
+      "name": "builtin genuine replacement character",
+      "source": "name=$'\\357\\277\\275'; builtin -- \"$name\"",
+      "status": 1,
+      "stdoutHex": "",
+      "stderrHex": "7368656c6c3a206c696e6520313a206275696c74696e3a20efbfbd3a206e6f742061207368656c6c206275696c74696e0a"
+    },
+    {
+      "name": "printable shell metacharacters",
+      "source": "name=$'a b*\\047\\134'; \"$name\"",
+      "status": 127,
+      "stdoutHex": "",
+      "stderrHex": "7368656c6c3a206c696e6520313a206120622a275c3a20636f6d6d616e64206e6f7420666f756e640a"
+    },
+    {
+      "name": "quoted control and punctuation",
+      "source": "name=$'a\\047\\134\\n\\377'; \"$name\"",
+      "status": 127,
+      "stdoutHex": "",
+      "stderrHex": "7368656c6c3a206c696e6520313a202427615c275c5c5c6e5c333737273a20636f6d6d616e64206e6f7420666f756e640a"
+    },
+    {
+      "name": "empty failed command",
+      "source": "''",
+      "status": 127,
+      "stdoutHex": "",
+      "stderrHex": "7368656c6c3a206c696e6520313a203a20636f6d6d616e64206e6f7420666f756e640a"
+    }
+  ],
+  "localeBoundaryCapture": {
+    "path": "/tmp/safe-bash-scripting-oracles-20260904/command-name-final-review.YWmMf2/locale-boundaries.json",
+    "sha256": "4baa0fe2b715182fa7d7e9c75cd51bbc13a2ebe78a44a643d935ac0395067845",
+    "oracleSha256": "a0cfc1af0ff50f6b6e67c638979e2604f1c276c90116937fbaafcabb62ee2b40"
+  },
+  "localeBoundaries": [
+    {
+      "name": "persistent",
+      "locale": "C",
+      "source": "name=$'\\303\\251\\377\\344\\270\\255'; LC_ALL=C.UTF-8; \"$name\"",
+      "environment": {
+        "PATH": "/usr/bin:/bin",
+        "HOME": "/tmp/safe-bash-scripting-oracles-20260904/command-name-final-review.YWmMf2/no-home",
+        "LC_ALL": "C"
+      },
+      "expected": {
+        "status": 127,
+        "stdoutHex": "",
+        "stderrHex": "7368656c6c3a206c696e6520313a202427c3a95c333737e4b8ad273a20636f6d6d616e64206e6f7420666f756e640a"
+      }
+    },
+    {
+      "name": "command-prefix",
+      "locale": "C",
+      "source": "name=$'\\303\\251\\377\\344\\270\\255'; LC_ALL=C.UTF-8 command \"$name\"",
+      "environment": {
+        "PATH": "/usr/bin:/bin",
+        "HOME": "/tmp/safe-bash-scripting-oracles-20260904/command-name-final-review.YWmMf2/no-home",
+        "LC_ALL": "C"
+      },
+      "expected": {
+        "status": 127,
+        "stdoutHex": "",
+        "stderrHex": "7368656c6c3a206c696e6520313a202427c3a95c333737e4b8ad273a20636f6d6d616e64206e6f7420666f756e640a"
+      }
+    },
+    {
+      "name": "builtin-command-prefix",
+      "locale": "C",
+      "source": "name=$'\\303\\251\\377\\344\\270\\255'; LC_ALL=C.UTF-8 builtin command \"$name\"",
+      "environment": {
+        "PATH": "/usr/bin:/bin",
+        "HOME": "/tmp/safe-bash-scripting-oracles-20260904/command-name-final-review.YWmMf2/no-home",
+        "LC_ALL": "C"
+      },
+      "expected": {
+        "status": 127,
+        "stdoutHex": "",
+        "stderrHex": "7368656c6c3a206c696e6520313a202427c3a95c333737e4b8ad273a20636f6d6d616e64206e6f7420666f756e640a"
+      }
+    },
+    {
+      "name": "function-prefix",
+      "locale": "C",
+      "source": "name=$'\\303\\251\\377\\344\\270\\255'; probe(){ \"$name\"; }; LC_ALL=C.UTF-8 probe",
+      "environment": {
+        "PATH": "/usr/bin:/bin",
+        "HOME": "/tmp/safe-bash-scripting-oracles-20260904/command-name-final-review.YWmMf2/no-home",
+        "LC_ALL": "C"
+      },
+      "expected": {
+        "status": 127,
+        "stdoutHex": "",
+        "stderrHex": "7368656c6c3a206c696e6520313a202427c3a95c333737e4b8ad273a20636f6d6d616e64206e6f7420666f756e640a"
+      }
+    },
+    {
+      "name": "eval-prefix",
+      "locale": "C",
+      "source": "name=$'\\303\\251\\377\\344\\270\\255'; LC_ALL=C.UTF-8 eval '\"$name\"'",
+      "environment": {
+        "PATH": "/usr/bin:/bin",
+        "HOME": "/tmp/safe-bash-scripting-oracles-20260904/command-name-final-review.YWmMf2/no-home",
+        "LC_ALL": "C"
+      },
+      "expected": {
+        "status": 127,
+        "stdoutHex": "",
+        "stderrHex": "7368656c6c3a206c696e6520313a202427c3a95c333737e4b8ad273a20636f6d6d616e64206e6f7420666f756e640a"
+      }
+    },
+    {
+      "name": "noop-restored",
+      "locale": "C",
+      "source": "name=$'\\303\\251\\377\\344\\270\\255'; LC_ALL=C.UTF-8 :; \"$name\"",
+      "environment": {
+        "PATH": "/usr/bin:/bin",
+        "HOME": "/tmp/safe-bash-scripting-oracles-20260904/command-name-final-review.YWmMf2/no-home",
+        "LC_ALL": "C"
+      },
+      "expected": {
+        "status": 127,
+        "stdoutHex": "",
+        "stderrHex": "7368656c6c3a206c696e6520313a2024275c3330335c3235315c3337375c3334345c3237305c323535273a20636f6d6d616e64206e6f7420666f756e640a"
+      }
+    },
+    {
+      "name": "persistent",
+      "locale": "C.UTF-8",
+      "source": "name=$'\\303\\251\\377\\344\\270\\255'; LC_ALL=C; \"$name\"",
+      "environment": {
+        "PATH": "/usr/bin:/bin",
+        "HOME": "/tmp/safe-bash-scripting-oracles-20260904/command-name-final-review.YWmMf2/no-home",
+        "LC_ALL": "C.UTF-8"
+      },
+      "expected": {
+        "status": 127,
+        "stdoutHex": "",
+        "stderrHex": "7368656c6c3a206c696e6520313a2024275c3330335c3235315c3337375c3334345c3237305c323535273a20636f6d6d616e64206e6f7420666f756e640a"
+      }
+    },
+    {
+      "name": "command-prefix",
+      "locale": "C.UTF-8",
+      "source": "name=$'\\303\\251\\377\\344\\270\\255'; LC_ALL=C command \"$name\"",
+      "environment": {
+        "PATH": "/usr/bin:/bin",
+        "HOME": "/tmp/safe-bash-scripting-oracles-20260904/command-name-final-review.YWmMf2/no-home",
+        "LC_ALL": "C.UTF-8"
+      },
+      "expected": {
+        "status": 127,
+        "stdoutHex": "",
+        "stderrHex": "7368656c6c3a206c696e6520313a2024275c3330335c3235315c3337375c3334345c3237305c323535273a20636f6d6d616e64206e6f7420666f756e640a"
+      }
+    },
+    {
+      "name": "builtin-command-prefix",
+      "locale": "C.UTF-8",
+      "source": "name=$'\\303\\251\\377\\344\\270\\255'; LC_ALL=C builtin command \"$name\"",
+      "environment": {
+        "PATH": "/usr/bin:/bin",
+        "HOME": "/tmp/safe-bash-scripting-oracles-20260904/command-name-final-review.YWmMf2/no-home",
+        "LC_ALL": "C.UTF-8"
+      },
+      "expected": {
+        "status": 127,
+        "stdoutHex": "",
+        "stderrHex": "7368656c6c3a206c696e6520313a2024275c3330335c3235315c3337375c3334345c3237305c323535273a20636f6d6d616e64206e6f7420666f756e640a"
+      }
+    },
+    {
+      "name": "function-prefix",
+      "locale": "C.UTF-8",
+      "source": "name=$'\\303\\251\\377\\344\\270\\255'; probe(){ \"$name\"; }; LC_ALL=C probe",
+      "environment": {
+        "PATH": "/usr/bin:/bin",
+        "HOME": "/tmp/safe-bash-scripting-oracles-20260904/command-name-final-review.YWmMf2/no-home",
+        "LC_ALL": "C.UTF-8"
+      },
+      "expected": {
+        "status": 127,
+        "stdoutHex": "",
+        "stderrHex": "7368656c6c3a206c696e6520313a2024275c3330335c3235315c3337375c3334345c3237305c323535273a20636f6d6d616e64206e6f7420666f756e640a"
+      }
+    },
+    {
+      "name": "eval-prefix",
+      "locale": "C.UTF-8",
+      "source": "name=$'\\303\\251\\377\\344\\270\\255'; LC_ALL=C eval '\"$name\"'",
+      "environment": {
+        "PATH": "/usr/bin:/bin",
+        "HOME": "/tmp/safe-bash-scripting-oracles-20260904/command-name-final-review.YWmMf2/no-home",
+        "LC_ALL": "C.UTF-8"
+      },
+      "expected": {
+        "status": 127,
+        "stdoutHex": "",
+        "stderrHex": "7368656c6c3a206c696e6520313a2024275c3330335c3235315c3337375c3334345c3237305c323535273a20636f6d6d616e64206e6f7420666f756e640a"
+      }
+    },
+    {
+      "name": "noop-restored",
+      "locale": "C.UTF-8",
+      "source": "name=$'\\303\\251\\377\\344\\270\\255'; LC_ALL=C :; \"$name\"",
+      "environment": {
+        "PATH": "/usr/bin:/bin",
+        "HOME": "/tmp/safe-bash-scripting-oracles-20260904/command-name-final-review.YWmMf2/no-home",
+        "LC_ALL": "C.UTF-8"
+      },
+      "expected": {
+        "status": 127,
+        "stdoutHex": "",
+        "stderrHex": "7368656c6c3a206c696e6520313a202427c3a95c333737e4b8ad273a20636f6d6d616e64206e6f7420666f756e640a"
+      }
+    }
+  ]
+}

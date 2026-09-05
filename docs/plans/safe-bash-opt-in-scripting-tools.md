@@ -1193,6 +1193,127 @@ this request to keep additions out of the default package.
   currently prefers streaming or the shell's incremental callback; canonical
   output-open preference would change routing/publication semantics and still
   requires an explicit reviewed decision, not an inferred unchanged path.
+- Root reproduces the retained-output defect through the compiled public shell:
+  after writing `a`, renaming an open output, and writing `b`, native Bash keeps
+  `ab` in the renamed file and does not recreate the original pathname. The
+  current shell leaves only `a` in the renamed file and recreates the old path.
+  Native/effect evidence is in
+  `/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-retained-output-p00bwq/result.json`;
+  `/bin/mv` is an explicitly bound fixture rename primitive, not a GNU-mv
+  comparison. The new compiled public regression fails 0/1 before any routing fix.
+- Root approves an explicit `FileOutputOpenOptions.descriptor` mode for canonical
+  owned output, with no fallback after that request. Omission/false preserves
+  the existing streaming and incremental selection. A returned descriptor must
+  be the actual guarded object used for writes, not a reopened path or stat-based
+  approximation; finish/abort retain its lifetime and draining obligations.
+  Partial writes must not double-charge shared budgets. Runtime integration will
+  deliberately select this mode for shell redirections only when path-specific
+  `capabilities.open === true`; other providers retain the legacy route. This is
+  an approved routing change awaiting implementation and review, not an assertion
+  that the current default shell or the 54 descriptor-read failures are repaired.
+- Command-name review preserves 26 C-locale native captures and 30 captures in
+  each admitted UTF-8 locale. The original two cases and the new 86-case suite
+  reproduce 60 failures among 88 tests, with matching statuses/stdout. The source
+  loses raw argv-zero bytes and formats unknown-command names incorrectly;
+  builtin rejection diagnostics require raw bytes rather than global quoting.
+  Printable UTF-8 must remain intact even inside ANSI-quoted names. Full locale
+  classification is being qualified separately; generic display width, `%q`,
+  or blanket C-byte escaping is not an accepted substitute. Original captures,
+  codepoint policy, and fixture hashes remain in the `command-name-review` and
+  `command-name-utf8-review` temporary evidence directories.
+- Full-scalar qualification now binds the command-name UTF-8 classifier to the
+  admitted GNU Bash 5.3/macOS libc and locale-data profile. Both admitted UTF-8
+  locales agree on all 1,112,064 scalars: 286,484 printable, represented by 713
+  maximal ranges. The formatter preserves the existing C/POSIX versus virtual
+  UTF-8 routing, rather than pretending unknown/default locales have native
+  qualification. The source documentation records the binary, locale and table
+  bindings. The author's 153 formatter tests pass; the independent review and
+  root compiled-consumer gate remain pending. The separate `command -p` witness
+  still fails and is not included among formatter passes.
+- The root compiled-consumer regression confirms the original diagnostic defect:
+  28 of 88 cases pass and 60 fail before rebuilding. A first source-only retained
+  run gives 1,743 passes and 167 explicitly skipped native cases because the
+  required native-oracle environment was not supplied correctly; output source
+  also changed during that run. This is provisional evidence, not a frozen or
+  complete gate. Original logs remain under `command-name-source-root-1`.
+- Independent retained-output review finds six deterministic failures: once
+  finish or registered cleanup starts, exposed descriptor operations can still
+  reach the provider while admitted sink writes drain. Repair must close new
+  descriptor admission without cancelling the already-admitted partial writes.
+  The independent regression remains unchanged while the owner repairs it;
+  default runtime routing and the compiled rename regression remain unresolved.
+- The first admission repair passes those six witnesses, but independent review
+  adds seven failures: a forwarded aborted operation signal loses its exact
+  reason to EBADF after closure. The source owner must preserve the canonical
+  descriptor cancellation ordering. Root explicitly refines the earlier literal
+  same-object requirement: the public descriptor may be an admission-gated view
+  of the same canonical open resource, while already-admitted sink work retains
+  its operation access. Identity metadata, cursor position, operation signals
+  and close ownership must remain shared; reopening or guessing metadata remains
+  prohibited. This is a documented design change, not unchanged object identity.
+- Root's rebuilt command-name public regression passes all 88 cases. The broader
+  70-file check passes 2,337 tests with zero skips and no drift across 351 watched
+  source, test and compiled files. Existing native 5.2 suites retain their
+  explicit oracle; new primary diagnostics and mapfile cases retain their 5.3
+  goldens. Seven actual-package strict roots have zero diagnostics, discovery
+  passes 98 tests, and both sequential builds succeed. Four actual compiled
+  diagnostic examples match their native records and their PNG was inspected.
+  Dry-pack inventories have no optional implementation leaks (workspace 1,066,
+  root 4,657 files). Despite the supplied `--ignore-scripts`, root npm logs an
+  executed prepare hook; no no-lifecycle-execution claim is made. These results
+  describe the recorded working-tree snapshot, including the separately pending
+  output-helper changes, not a completed output or full-read qualification.
+- Independent read review verifies the 336 primary expectations, 313 historical
+  records, 12 preserved fixtures and failed-timeout witness. The 579-case suite
+  remains 525 passes and the same 54 descriptor failures. Its 152 fresh checks
+  give 149 passes and three witnesses of a separate core `readonly -a` gap.
+  The optional nonterminal setting is accepted only as a captured truthful host
+  assertion, not input detection or a readiness/deadline capability grant.
+  The reviewer also catches a falsely relabeled historical regular-file witness;
+  the owner restores its 5.2 label and reseals the migration manifest without
+  changing assertions or captures. Focused rerun retains five passes and all 54
+  known descriptor failures. Neither correction establishes full read support.
+- Final independent command-name review blocks the initial formatter candidate:
+  four direct missing-command prefix-assignment cases incorrectly use the
+  temporary locale instead of the ambient locale. Persistent assignments and
+  command/function/eval prefixes have separate native controls and must not be
+  globally changed to ambient lookup. The new 52-case review gives 48 passes and
+  four failures; its full non-NUL scalar audit is exact for 1,112,063 values.
+  Root extends the compiled public matrix without removing the original 88:
+  the resulting 100 cases give 96 passes and the same four failures. The owner
+  is repairing the scope selection; the earlier 2,337-pass cohort is not approval
+  of these newly exposed cases. No formatter commit precedes their repair.
+- The maintained package typecheck exits 2 with 24 diagnostics outside the
+  formatter files: four missing diff/patch oracle imports, ten jq-review typing
+  errors, one invocation-cleanup keyset assertion, and nine timing-harness
+  import/type errors. Its 25 consumer groups run, but that does not turn the
+  overall result green. No exclusions or diagnostic suppressions are added.
+- The repaired formatter receives independent scoped approval at runtime SHA
+  `5c7da0bfa7153bccd857d7feacf8baf1af5f3bab27cd85cd02e1e0deea9090df`:
+  224 source tests, 24 fresh native replays and 20 middleware/restoration/
+  cancellation controls pass. Original and independent goldens remain intact.
+  The rebuilt public matrix passes 100/100, including all four locale regressions.
+  The source and compiled diagnostic examples retain their native byte matches.
+  The first locale PNG exposes the renderer's missing CJK glyph; four additional
+  acute-only native controls pass and their readable PNG is inspected without
+  changing product bytes or discarding the original image.
+- The second output repair also receives independent scoped approval, including
+  the clarified same-resource contract. Root verifies 29 compiled API tests and
+  persists a fresh 425/425 complete retained-output run after the reviewer's
+  equivalent run and additional 28 inline controls. Those inline controls have
+  tool-transcript evidence only, not a claimed standalone capture file. The
+  actual default-redirection rename regression is rerun and still fails 0/1;
+  helper/API qualification must not be presented as runtime migration.
+- Combined root checks now pass 2,532 tests across 75 files, with zero skips and
+  no drift across 361 watched files. Fifteen actual-package strict roots covering
+  278 source files have zero diagnostics; discovery passes 98 tests, and default
+  then optional builds succeed without watched source drift. The aggregate
+  remains 79 commands, browser remains 28, date remains present and curl is not
+  automatically installed. Guarded lint 31 completes with zero errors/warnings,
+  9,902 configured/linted inputs and unchanged 363 watched files, under the
+  unchanged 600-second/1-GiB/64-MiB supervision. These scoped results do not
+  waive the full-typecheck failure, pending read/descriptor jobs, `command -p`,
+  or the four previously recorded nested-word coordinate gaps.
 
 - First implementation wave: cmp, yes, shuf and virtual devices in disjoint leaf
   directories. Root is qualifying native oracles and the opt-in delivery boundary.

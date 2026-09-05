@@ -22,6 +22,7 @@ import { evaluateArithmetic, prepareArithmetic } from "./arithmetic.js";
 import { evaluatePositionalArithmetic } from "./arithmetic-parameters.js";
 import { compilePattern, matchesPattern } from "./pattern.js";
 import { byteLocale } from "./locale.js";
+import { diagnosticCommandName } from "./diagnostic-name.js";
 import { functionDisplay } from "./display.js";
 import { ConditionalUnsupported, evaluateConditional } from "./conditional.js";
 import { invocationScope, throwCleanupFailures, type InvocationScope } from "./cleanup.js";
@@ -2998,7 +2999,7 @@ export class Runtime {
         await pipeBytes(input, io.stdout, this.signal);
         return 0;
       }
-      return words.length ? await this.dispatch(words[0]!, words.slice(1), state, io, previous, false, wordValues.slice(1)) : state.substitutionStatus;
+      return words.length ? await this.dispatch(wordValues[0]!, words.slice(1), state, io, previous, false, wordValues.slice(1), previous) : state.substitutionStatus;
     } catch (error) {
       if (error instanceof Flow) throw error;
       this.signal.throwIfAborted();
@@ -3020,7 +3021,7 @@ export class Runtime {
     }
   }
 
-  async dispatch(name: string, args: readonly string[], state: State, io: IO, assignments: Map<string, SavedVariable>, bypassFunctions = false, values: readonly ShellValue[] = args): Promise<number> {
+  async dispatch(name: ShellValue, args: readonly string[], state: State, io: IO, assignments: Map<string, SavedVariable>, bypassFunctions = false, values: readonly ShellValue[] = args, temporaryEnvironment?: ReadonlyMap<string, SavedVariable>): Promise<number> {
     const scope = io[invocationScope].child();
     const runtime = new Runtime(
       this.fs, this.commands, this.middleware, this.budget,
@@ -3028,14 +3029,18 @@ export class Runtime {
       this.cancellation, this.cancellationState, this.cancellationOwner,
       this.cancellationDepth, this.cancellationMaxDepth, this.outcomeFrame,
     );
-    try { return await runtime.dispatchScoped(name, values, state, { ...io, [invocationScope]: scope }, assignments, bypassFunctions); }
+    try { return await runtime.dispatchScoped(name, values, state, { ...io, [invocationScope]: scope }, assignments, bypassFunctions, temporaryEnvironment); }
     finally { await scope.close(); }
   }
 
-  private async dispatchScoped(name: string, values: readonly ShellValue[], state: State, io: IO, assignments: Map<string, SavedVariable>, bypassFunctions: boolean): Promise<number> {
+  private async dispatchScoped(nameValue: ShellValue, values: readonly ShellValue[], state: State, io: IO, assignments: Map<string, SavedVariable>, bypassFunctions: boolean, temporaryEnvironment?: ReadonlyMap<string, SavedVariable>): Promise<number> {
     const { [invocationScope]: scope, ...publicIO } = io;
     const allocation = this.budget.values.scope();
     scope.register(() => allocation.close());
+    if (typeof nameValue !== "string") allocation.hold(nameValue);
+    const name = shellValueText(nameValue);
+    let currentName = nameValue;
+    const readName = (): string => shellValueText(currentName);
     const argumentValues = this.admitArguments(values, allocation);
     let builtinFailure: { error: unknown; diagnostic: string } | undefined;
     const env = Object.create(null) as Record<string, string>;
@@ -3054,6 +3059,10 @@ export class Runtime {
         return invocation;
       },
     };
+    if (typeof nameValue !== "string") Object.defineProperty(context, "command", {
+      configurable: true, enumerable: true, get: readName,
+      set(replacement: string) { currentName = replacement; },
+    });
     bindFileOutputBudget(context, sink => this.budget.sink(sink, this.signal), (chunk, write) => this.budget.writeCounted(chunk, write, this.signal));
     if (argumentValues.values.every(value => typeof value === "string")) Reflect.deleteProperty(context, "argumentValues");
     const middleware = this.middleware.map<Middleware>((handler) => (context, next) => {
@@ -3067,6 +3076,7 @@ export class Runtime {
     });
     const execute = composeMiddleware(middleware, (forwarded) => scope.run(async () => {
       scope.assertOpen();
+      const commandName = Object.getOwnPropertyDescriptor(forwarded, "command")?.get === readName ? currentName : forwarded.command;
       const forwardedValues = getCommandArguments(forwarded);
       const admitted = forwardedValues === argumentValues ? argumentValues : this.admitArguments(forwardedValues.values, allocation);
       const context = { ...forwarded, args: admitted.args, argumentValues: admitted, [invocationScope]: scope };
@@ -3250,7 +3260,12 @@ export class Runtime {
           if (context.command.includes("/") || state.variables.PATH === undefined && state.pathUnset) return { exitCode: await this.scriptFile(context, state, io, context.command, context.args, true) };
           const target = await this.searchPath(context.command, state);
           if (target !== undefined) return { exitCode: await this.scriptFile(context, state, io, target, context.args, true) };
-          await this.diagnostic({ ...io, ...context }, `${context.command}: command not found`);
+          const localeValue = (key: string) => temporaryEnvironment?.has(key) && !previous.has(key)
+            ? temporaryEnvironment.get(key)!.value ?? "" : state.variables[key] ?? "";
+          const displayed = diagnosticCommandName(commandName, byteLocale({
+            LC_ALL: localeValue("LC_ALL"), LC_CTYPE: localeValue("LC_CTYPE"), LANG: localeValue("LANG"),
+          }), allocation);
+          await this.diagnostic({ ...io, ...context }, concatShellValues([displayed, ": command not found"], allocation));
           return { exitCode: 127 };
         }
         const raw = definition.execute(forwarded);
@@ -3328,10 +3343,12 @@ export class Runtime {
       }
     }
     if (!discover) {
+      const targetIndex = context.args.length - args.length;
       const target = args.shift();
       if (target === undefined) return 0;
+      const targetValue = getCommandArguments(context).values[targetIndex]!;
       if (builtin && !shellBuiltinNames.has(target) && !state.extensions?.builtins.has(target)) {
-        await this.diagnostic({ ...io, ...context }, `builtin: ${target}: not a shell builtin`);
+        await this.diagnostic({ ...io, ...context }, concatShellValues(["builtin: ", targetValue, ": not a shell builtin"], io[valueScope]));
         return 1;
       }
       this.budget.tick();
@@ -3339,7 +3356,7 @@ export class Runtime {
       const restoration = stateMonitor(state)?.restoration(true);
       try { state.depth++; }
       catch (error) { restoration?.close(); throw error; }
-      try { return await this.dispatch(target, args, state, { ...io, ...context }, assignments, true, getCommandArguments(context).values.slice(context.args.length - args.length)); }
+      try { return await this.dispatch(targetValue, args, state, { ...io, ...context }, assignments, true, getCommandArguments(context).values.slice(context.args.length - args.length)); }
       finally {
         const restore = () => { state.depth--; };
         if (restoration) restoration.apply(restore);

@@ -31,7 +31,7 @@ vi.mock("node:fs/promises", async () => {
 });
 
 const expectedFresh =
-  process.env.SAFEJS_PPR2_ADJUDICATION_PHASE === "ordered" ? "jobs-v6" : "jobs-v7";
+  process.env.SAFEJS_PPR2_ADJUDICATION_PHASE === "ordered" ? "jobs-v6" : "jobs-v8";
 
 afterEach(() => {
   vi.restoreAllMocks();
@@ -396,7 +396,7 @@ describe("independent native ALS receiver and lifetime checks", () => {
         );
         expect(disable.mock.contexts.filter((context) => context === hostContext)).toHaveLength(1);
         expect(disable.mock.contexts.some((context) => context === promiseReplayContext)).toBe(
-          expectedFresh === "jobs-v7"
+          expectedFresh !== "jobs-v6"
         );
         expect(retained!.runInAsyncScope(() => hostContext!.getStore())).toBeUndefined();
         console.info(

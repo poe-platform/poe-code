@@ -25,6 +25,7 @@ import type { Scope } from "./scope.js";
 import { hoistVarDeclarations } from "./var-hoist.js";
 import { createPatternContext } from "./interpreter.js";
 import { getGuestFunctionProperty, setSandboxPrototype } from "./object-model.js";
+import { functionSources } from "../parse/function-source.js";
 import {
   boundIdentifiers,
   containsParameterExpression,
@@ -172,6 +173,7 @@ export function createInterpretedClosure(
       : undefined;
 
   const closure = createSandboxClosure({
+    sourceRange: functionSources.get(node),
     guest: true,
     sandbox: true,
     length: getFunctionLength(node.params),
@@ -252,6 +254,7 @@ function createGeneratorClosure(
   evaluateNode: EvaluateAsyncNode
 ) {
   return createSandboxClosure({
+    sourceRange: functionSources.get(node),
     guest: true,
     generator: true,
     sandbox: true,

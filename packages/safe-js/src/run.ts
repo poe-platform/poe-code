@@ -2,7 +2,7 @@ import { AsyncLocalStorage } from "node:async_hooks";
 import { runWithExtensions, type RealmOptions } from "./realm.js";
 
 import { hashParsedAst, hashSource } from "./parse/hash.js";
-import { withRunResources } from "./interp/resources.js";
+import { runResources, withRunResources } from "./interp/resources.js";
 import { createReplayableRandom } from "./random.js";
 import {
   attachErrorSpan,
@@ -211,7 +211,11 @@ export function run(source: string, options: RunOptions = {}): Promise<RunResult
               ? undefined
               : restore(options.snapshot, { source }, operation.owner);
           const executionSemantics =
-            restoredSnapshot?.executionSemantics === "jobs-v6" ? "jobs-v6" : EXECUTION_SEMANTICS;
+            restoredSnapshot?.executionSemantics === "jobs-v6" ||
+            restoredSnapshot?.executionSemantics === "jobs-v7"
+              ? restoredSnapshot.executionSemantics
+              : EXECUTION_SEMANTICS;
+          runResources.getStore()!.functionSourceText = executionSemantics === EXECUTION_SEMANTICS;
           const convertInitialInput = <TValue>(convert: () => TValue): TValue =>
             executionSemantics === "jobs-v6" ? convert() : promiseReplayContext.exit(convert);
           if (restoredSnapshot !== undefined) {
@@ -223,8 +227,8 @@ export function run(source: string, options: RunOptions = {}): Promise<RunResult
           promiseReplay.validateNodes(module);
           const sourceHash =
             findRegexLiteral(module) === undefined
-              ? hashSource(source, operation.owner)
-              : hashParsedAst(module);
+              ? hashSource(source, operation.owner, executionSemantics === EXECUTION_SEMANTICS)
+              : hashParsedAst(module, executionSemantics === EXECUTION_SEMANTICS);
           const hostCalls = new HostCallJournal(
             sourceHash,
             readHostCallSnapshot(restoredSnapshot),
@@ -258,7 +262,14 @@ export function run(source: string, options: RunOptions = {}): Promise<RunResult
                   lifecycle
                 })
           );
-          const builtinBindings = createBuiltinBindings({ compileOwner: operation.owner, budget, hostCalls, sink: options.sink, random: random?.generator.next, clock: options.clock });
+          const builtinBindings = createBuiltinBindings({
+            compileOwner: operation.owner,
+            budget,
+            hostCalls,
+            sink: options.sink,
+            random: random?.generator.next,
+            clock: options.clock
+          });
           const importMeta = convertInitialInput(
             () => deepCopyToSandbox(options.importMeta ?? {}) as Record<string, SandboxValue>
           );
@@ -694,7 +705,7 @@ function createExecutableNode(module: Module): ParseResult {
 }
 
 function createRunSnapshot(input: {
-  executionSemantics: "jobs-v6" | typeof EXECUTION_SEMANTICS;
+  executionSemantics: "jobs-v6" | "jobs-v7" | typeof EXECUTION_SEMANTICS;
   migration?: SafeJSSnapshot["migration"];
   bindings: InterpreterResult["snapshot"]["bindings"];
   clock: RunClock | undefined;

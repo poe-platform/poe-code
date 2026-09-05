@@ -1,28 +1,37 @@
-import { parse, parseModule, type Module, type ParseResult } from "./parser.js";
+import { parse, parseModule, type FunctionNode, type Module, type ParseResult } from "./parser.js";
 import { SandboxError, type CompileOwner } from "../interp/budget.js";
+import { functionSources, type FunctionSource } from "./function-source.js";
 
 const FNV_OFFSET_BASIS = 0x811c9dc5;
 const FNV_PRIME = 0x01000193;
 
 const IGNORED_KEYS = new Set(["nodeId", "raw", "span"]);
 
-export function hashSource(source: string, owner?: CompileOwner): string {
+export function hashSource(
+  source: string,
+  owner?: CompileOwner,
+  includeFunctionSource = true
+): string {
   try {
-    return hashParsedAst(parse(source, "<input>", owner));
+    return hashParsedAst(parse(source, "<input>", owner), includeFunctionSource);
   } catch (error) {
     if (error instanceof SandboxError) throw error;
-    return hashParsedAst(parseModule(source, "<input>", owner));
+    return hashParsedAst(parseModule(source, "<input>", owner), includeFunctionSource);
   }
 }
 
-export function hashParsedAst(ast: Module | ParseResult): string {
+export function hashParsedAst(ast: Module | ParseResult, includeFunctionSource = true): string {
   let hash = FNV_OFFSET_BASIS;
 
   visit(ast);
 
   return hash.toString(16).padStart(8, "0");
 
-  function visit(value: unknown, includeTemplateRaw = false): void {
+  function visit(
+    value: unknown,
+    includeTemplateRaw = false,
+    enclosingSource?: FunctionSource
+  ): void {
     if (value === null) {
       write("null");
       return;
@@ -36,7 +45,7 @@ export function hashParsedAst(ast: Module | ParseResult): string {
     if (Array.isArray(value)) {
       write("[");
       for (const entry of value) {
-        visit(entry, includeTemplateRaw);
+        visit(entry, includeTemplateRaw, enclosingSource);
         write(",");
       }
       write("]");
@@ -55,6 +64,23 @@ export function hashParsedAst(ast: Module | ParseResult): string {
         return;
       case "object": {
         const record = value as Record<string, unknown>;
+        const source = includeFunctionSource
+          ? functionSources.get(value as FunctionNode)
+          : undefined;
+        if (
+          source !== undefined &&
+          !(
+            enclosingSource !== undefined &&
+            source.text === enclosingSource.text &&
+            source.start >= enclosingSource.start &&
+            source.end <= enclosingSource.end
+          )
+        ) {
+          write("function-source:");
+          write(String(source.end - source.start));
+          write(":");
+          write(source.text, source.start, source.end);
+        }
         const keys = Object.keys(value)
           .filter((key) => shouldHashKey(record, key, includeTemplateRaw))
           .sort();
@@ -63,7 +89,11 @@ export function hashParsedAst(ast: Module | ParseResult): string {
         for (const key of keys) {
           write(JSON.stringify(key));
           write(":");
-          visit(record[key], shouldIncludeTemplateRaw(record, key, includeTemplateRaw));
+          visit(
+            record[key],
+            shouldIncludeTemplateRaw(record, key, includeTemplateRaw),
+            source ?? enclosingSource
+          );
           write(",");
         }
         write("}");
@@ -74,8 +104,8 @@ export function hashParsedAst(ast: Module | ParseResult): string {
     }
   }
 
-  function write(chunk: string): void {
-    for (let index = 0; index < chunk.length; index += 1) {
+  function write(chunk: string, start = 0, end = chunk.length): void {
+    for (let index = start; index < end; index += 1) {
       hash ^= chunk.charCodeAt(index);
       hash = Math.imul(hash, FNV_PRIME) >>> 0;
     }

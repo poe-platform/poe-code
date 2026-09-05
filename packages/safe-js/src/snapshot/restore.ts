@@ -8,6 +8,7 @@ import { sandboxErrorTypes } from "../error/shape.js";
 import { SnapshotMismatchError } from "../restore.js";
 import { Scope, setSandboxProperty } from "../interp/interpreter.js";
 import { getGuestFunctionProperties, getGuestFunctionProperty, getSandboxDataProperty, registerGuestClosure, setSandboxPrototype } from "../interp/object-model.js";
+import { functionSources } from "../parse/function-source.js";
 import { wrapCallerInjectedBindings, type CallerInjectedBinding } from "../interp/host-bridge.js";
 import { restoreSandboxCollectionIterator } from "../interp/collection-iterator.js";
 import { isSandboxMap, isSandboxSet } from "../interp/values.js";
@@ -667,6 +668,7 @@ function restoreClosureValue(
   }
 
   const baseClosure = createSandboxClosure({
+    sourceRange: functionSources.get(node),
     async: node.async,
     sandbox: true,
     length: getFunctionLength(node.params),

@@ -2318,7 +2318,7 @@ CLI run 33963669839/job 101300966831 published poe-code 14.0.60 at 11:45:20 UTC
 on September 5. The remote tag independently resolves to c9b2457e1. Both
 publication routes are verified for the parser-context fix.
 
-### 42. Ordinary template substitution coercion — closed at verified main delivery; release pending
+### 42. Ordinary template substitution coercion — closed; released in CLI 14.0.61
 
 Built/native probes show plain-object substitution rejects instead of producing
 [object Object], and a sandbox toString hook is not invoked. Returning an object
@@ -2409,6 +2409,9 @@ Scoped run 33965139974/job 101303819940 succeeded and published
 @poe-platform/safe-js 0.1.129 on September 5 at 12:11:44 UTC. The CLI workflow
 remains separately monitored for actual publication and inclusion of the prior
 retention fix.
+CLI run 33965140098 subsequently completed canceled; it did not publish a CLI
+version. Track both the template and preceding retention changes through the
+descendant concat CLI workflow 33965571630.
 
 ### 43. Function stringification — validated open built-in gap
 
@@ -2431,8 +2434,79 @@ Slicing the final node span includes unwanted grouping parentheses. Preserve
 the function's own source range before that overwrite, retain comments/spacing,
 and recover it from reparsed source on restore; do not pretty-print approximate
 function source or expose host implementation details.
+After concat delivery, the new 45-case function-string suite reproduces 34
+failures and eleven controls. Record private source ranges when function nodes
+are created, before grouping modifies ordinary spans; share the original source
+instead of eagerly copying nested function bodies. Ordinary, async and generator
+closures retain that range, and restored closures recover it from the reparsed
+AST. Function#toString and default string coercion use the same formatter;
+borrowed methods validate callable receivers and public calls enforce string
+budgets. Bound/builtin functions use native-function syntax, not host source.
+Three added host-label tests prevent non-identifier diagnostic labels from being
+interpolated into that syntax; anonymous native text is used for those callables.
+The six-file source-range/function-method/template/concat/snapshot cohort passes
+164 checks, including 48 function-string cases and three parser range checks.
+No runtime Function constructor, eval, ambient capability or prototype-graph
+expansion is included in this change.
+Two further controls confirm the private source range is not exposed by ordinary
+guest reads/enumeration and cannot be replaced by a guest property of the same
+name. The 50 function-string tests plus three parser-range tests pass. The first
+normal build caught an import conflicting with the parser's existing FunctionNode
+type; reuse that type and rerun the build. No delivery is claimed from focused
+tests alone.
+The first built harness passes and its screenshot is inspected. A stronger
+built replay probe then finds a release-blocking consequence of the new feature:
+changing /*aaaa*/ to /*bbbb*/ in a function body is accepted by the old semantic
+hash even though restored toString output changes. Eight new hash/replay tests
+fail before repair. Include observable function source in the semantic hash,
+while still ignoring formatting outside functions. Hash an enclosing function's
+text once; nested ranges already covered by that source are not redundantly
+hashed, keeping source scanning linear rather than quadratic. Continue hashing
+the semantic AST as well. A source-less cloned AST is now distinct because its
+function display is no longer the same; ordinary span/raw/node-id mutation on
+the original parsed AST remains hash-insignificant. The five-file hash/range/
+function/snapshot cohort passes 182 tests. Rebuild and rerun qualification against
+this final hash-aware implementation; earlier build/UI evidence alone is not
+delivery evidence. The full maintained test gate then exposed 57 genuine legacy
+checkpoint hash failures and one fresh host-display expectation. Preserve those
+histories rather than requiring reset or changing fixture markers: new runs now
+write jobs-v8, while restored v6/v7 runs retain their original hashes and opaque
+default function conversion. Explicit guest hooks remain available in old modes;
+explicit migration targets v8. The historical fixtures remain unchanged. The
+targeted current-writer cohort passes all 250 tests after updating only fresh
+writer expectations and moving the unsupported future marker check to jobs-v9.
+The harness loader's fresh-writer assertion also fails specifically on v8 versus
+v7, and the built SDK smoke probe confirms unchanged reference results and one
+host read with the new marker. Update those two fresh expectations without
+altering any historical fixture. The final normal build passes, followed by the
+real schema-only harness and inspected screenshot after 70 uncached predev
+builds. Packed-consumer smoke checks all pass. Built root/core probes pass six
+observable-source-change rejections with outside-formatting restores, sixteen
+fatal-budget checkpoint recoveries without repeated effects, and six genuine
+v7 replays with unchanged journals, hashes, markers and no host effects. The
+first ad-hoc v7 comparison used prototype-sensitive strict equality against JSON
+fixture objects; normalize the returned sandbox object's prototype with
+structuredClone for that value comparison, while comparing histories directly.
+No runtime change follows from that probe mistake.
+The full shared unit stage passes 32,284 tests (43 skipped). Native workspace
+stages pass: Python 29, runner prechecks 279, Safe Bash 19,981 (63 skipped), and
+terminal 288. Both root post-test stress checks pass, and the full maintained
+npm test command exits zero with its uncached declaration-derived receipt.
+Root lint completes successfully across all 9,769
+configured files with zero errors/warnings, followed by TypeScript and workflow
+checks. git diff --check passes; the staged Safe Bash patch checksum remains
+e9c7047e5ec094d9e142a8115773da7849c2c19c45a418bdc61f61498875523d.
+This atomic improvement is ready for its own commit and verified main delivery;
+successful checks do not themselves claim a push or release.
 
-### 44. Converted string-prefix retention — closed at verified main delivery; release pending
+Manual QA: build and execute a schema-only function-string.md/.ajs pair with
+zero capabilities/spawns. Assert exact grouped function/comment text, template
+and concat parity, builtin native display and bound native display. Inspect the
+real CLI screenshot; validate public entrypoints and checkpoint/budget recovery.
+Run full maintained npm test and root lint after builds are complete because
+the parser, closure representation and restoration are shared infrastructure.
+
+### 44. Converted string-prefix retention — closed; released in CLI 14.0.61
 
 Built low/high-budget probes show both explicit String and the candidate template
 path lose newly produced array-prefix and Error-name strings. A first hook
@@ -2497,7 +2571,7 @@ stopped at 12:07:22 UTC; release-stable was skipped). It did not publish a CLI
 version. Track inclusion through the descendant template workflow 33965140098;
 do not mislabel the canceled run as a passed release or a code-test failure.
 
-### 45. String concat argument coercion — qualified; delivery pending
+### 45. String concat argument coercion — closed; released in CLI 14.0.61
 
 The attempted retention probe `''.concat([{toString:first},{toString:last}])`
 raises Cannot convert object to primitive value instead of reaching the marker.
@@ -2549,3 +2623,14 @@ root/core budget rejections recover at an explicitly larger quota without
 repeating completed effects; two public generator-in-hook checkpoints restore
 exact results; forty persistent-realm cycles release all temporary roots.
 git diff --check passes and the user-staged Safe Bash checksum remains unchanged.
+Delivered as e6247a2d53049ad0e69fa34fb7cb265f52f3153f, independently verified
+on remote refs/heads/main September 5. The finding is closed at delivery. Scoped
+run 33965571496 and CLI run 33965571630 are monitored separately; no publication
+is claimed yet.
+Scoped run 33965571496/job 101304973075 succeeded and published
+@poe-platform/safe-js 0.1.130 on September 5 at 12:20:33 UTC. CLI run
+33965571630/job 101306294841 succeeded and actually published poe-code 14.0.61
+at 12:29:03 UTC September 5. The remote v14.0.61 tag independently resolves to
+e6247a2d53049ad0e69fa34fb7cb265f52f3153f. This release includes the preceding
+template (§42) and retention (§44) fixes; their own canceled CLI runs are not
+misreported as publications. All three findings now have verified CLI delivery.

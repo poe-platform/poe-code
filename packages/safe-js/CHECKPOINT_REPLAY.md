@@ -373,10 +373,22 @@ runtime returns true. Managed MCP clients use those stable capabilities and
 run-scoped cleanup. Unsupported replay markers are rejected before effects, not
 silently migrated.
 
-New run snapshots in poe-code 11.0.32 carry `executionSemantics: "jobs-v7"`.
-The restore path also accepts genuine `jobs-v6` snapshots and keeps their v6
-execution semantics, including on subsequent dumps; accepting that marker is
-not an upgrade to v7. Packaged working v6 histories have compatibility coverage,
+New runs carry `executionSemantics: "jobs-v8"`. Guest function stringification
+preserves the original function source, so source hashes include that observable
+text (including comments and whitespace inside functions). Formatting outside
+functions remains hash-insignificant. Host and bound functions expose native
+function syntax, never their host implementation bodies.
+
+The restore path also accepts genuine `jobs-v6` and `jobs-v7` snapshots and keeps
+their execution semantics and original source-hash rules, including on subsequent
+dumps. Their default function conversion remains opaque and does not gain the
+new `toString` method; explicit guest conversion hooks still work. Accepting an
+older marker is not an upgrade to v8. Explicit migration emits a fresh v8
+continuation with its own source hash. Never rewrite a checkpoint's marker or
+hash to opt into new behavior.
+
+New run snapshots in poe-code 11.0.32 carried `executionSemantics: "jobs-v7"`.
+Packaged working v6 histories have compatibility coverage,
 while historical failing raw v6 histories remain separate evidence. Acceptance
 does not guarantee that every v6 history can complete. Do not rewrite markers
 to bypass this distinction.

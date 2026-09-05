@@ -1,5 +1,5 @@
 export const DUMP_FORMAT_VERSION = 1;
-export const EXECUTION_SEMANTICS = "jobs-v7";
+export const EXECUTION_SEMANTICS = "jobs-v8";
 import { assertSnapshotGraphDepth } from "../graph-depth.js";
 import { hasGuestObjectState } from "../interp/object-model.js";
 import { sandboxErrorTypes, type SandboxErrorName } from "../error/shape.js";

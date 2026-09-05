@@ -411,7 +411,7 @@ describe("O12 exact modeled Error proof projection", () => {
     expect(captured.calls).toEqual(profile.expectedCalls);
     expect(captured.hostTrace).toEqual(profile.expectedHostTrace);
     expect(captured.acknowledgements).toEqual(profile.expectedAcks);
-    expect(captured.saved.executionSemantics).toBe("jobs-v7");
+    expect(captured.saved.executionSemantics).toBe("jobs-v8");
     expect(
       captured.saved.replay.calls.filter((call: Observation) => call.moduleId === "<inputs>")
     ).toHaveLength(2);
@@ -588,7 +588,7 @@ describe("O12 exact modeled Error proof projection", () => {
     expect(raw.status).toBe("error");
     expect(raw.errorProperties.name).toBe("UnhandledRejectionError");
     expect(raw.error.message).toContain("Unsupported sandbox value at <root>: Error");
-    expect(raw.saved.executionSemantics).toBe("jobs-v7");
+    expect(raw.saved.executionSemantics).toBe("jobs-v8");
     expect(raw.model.actualError).toBeInstanceOf(Error);
     expect(raw.model.nativeValue).toEqual(profile.expected);
     expect(raw.model.nativeReasonIsOriginal).toBe(true);

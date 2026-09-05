@@ -25,6 +25,7 @@ import { parseRegex, type RegexPattern } from "./regex/parse.js";
 import { assertSandboxDataDepth } from "../graph-depth.js";
 import { sandboxErrorTypes } from "../error/shape.js";
 import { getGuestFunctionProperties, getSandboxPrototype, hasGuestObjectState, hasManagedDescriptors, isGuestClosure, registerGuestClosure } from "./object-model.js";
+import type { FunctionSource } from "../parse/function-source.js";
 import {
   copySandboxArgumentProperties,
   createSandboxArguments,
@@ -112,6 +113,7 @@ export type SandboxCallContext = {
 };
 
 export type SandboxClosure = {
+  readonly sourceRange?: FunctionSource;
   readonly async?: true;
   readonly generator?: true;
   readonly sandbox?: true;
@@ -166,6 +168,7 @@ type CopyState<TValue> = {
 };
 
 export function createSandboxClosure(input: {
+  sourceRange?: FunctionSource;
   guest?: boolean;
   async?: boolean;
   generator?: boolean;
@@ -203,6 +206,10 @@ export function createSandboxClosure(input: {
     enumerable: false,
     value: true
   });
+
+  if (input.sourceRange !== undefined) {
+    Object.defineProperty(closure, "sourceRange", { value: input.sourceRange });
+  }
 
   if (input.sandbox === true) {
     Object.defineProperty(closure, "sandbox", { value: true });

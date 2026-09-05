@@ -3644,6 +3644,7 @@ function createSetMethodOptions(context: EvaluationContext): SetMethodOptions {
 
 function createFunctionMethodOptions(context: EvaluationContext): FunctionMethodOptions {
   return {
+    budget: context.budget,
     callClosure: (closure, args, stack, thisValue, construct) =>
       invokeSandboxClosure(closure, args, context, stack, undefined, thisValue, construct)
   };

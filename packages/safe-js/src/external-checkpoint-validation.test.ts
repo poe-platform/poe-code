@@ -420,7 +420,7 @@ describe("independent AR-001 original workflows", () => {
         ["completed", completedSnapshot]
       ]) {
         const restored = restore(JSON.parse(serialized!), { source: scenario.source });
-        expect(restored.executionSemantics).toBe("jobs-v7");
+        expect(restored.executionSemantics).toBe("jobs-v8");
         expect(restored.version).toBe(1);
         const rebound = makeFixture(scenario.id, false, scenario.policy);
         const requests: HostCallResumeRequest[] = [];
@@ -669,7 +669,7 @@ describe("CLI parity for externally requested checkpoints", () => {
       const snapshot = JSON.parse(
         vol.readFileSync("/validation/interrupted.json", "utf8") as string
       );
-      expect(snapshot.executionSemantics).toBe("jobs-v7");
+      expect(snapshot.executionSemantics).toBe("jobs-v8");
       const rebound = makeFixture("reduction", false);
       await expect(
         run(source, {

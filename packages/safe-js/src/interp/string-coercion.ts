@@ -14,6 +14,7 @@ import {
 } from "./object-model.js";
 import { getRegexMember } from "./methods/regex.js";
 import { retainValues } from "./resources.js";
+import { functionString } from "./function-string.js";
 import {
   isSandboxClosure,
   isSandboxPromise,
@@ -135,6 +136,7 @@ async function defaultToString(
   context: SandboxCallContext | undefined,
   joining: Set<object>
 ): Promise<SandboxValue> {
+  if (isSandboxClosure(value)) return budget.allocateString(functionString(value));
   if (isSandboxMap(value)) return "[object Map]";
   if (isSandboxSet(value)) return "[object Set]";
   if (isSandboxCollectionIterator(value)) return collectionIteratorState(value).collectionKind === "map" ? "[object Map Iterator]" : "[object Set Iterator]";

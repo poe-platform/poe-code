@@ -18,7 +18,11 @@ describe("String hooks across host digest and completed replay", () => {
     }
     const source = "return [String(capability), String([capability]), String(String)];";
     const bindings = { capability };
-    const expected = ["[object Object]", "[object Object]", "[object Object]"];
+    const expected = [
+      "function capability() { [native code] }",
+      "function capability() { [native code] }",
+      "function String() { [native code] }"
+    ];
     const original = await run(source, { bindings });
     expect(original.ok).toBe(true);
     if (!original.ok) throw original.error;

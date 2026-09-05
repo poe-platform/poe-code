@@ -25,7 +25,7 @@ describe("native promise execution order", () => {
     "jobs-v3",
     "jobs-v4",
     "jobs-v5",
-    "jobs-v8",
+    "jobs-v9",
     null
   ])(
     "rejects incompatible execution semantics %s before host effects",

@@ -1,7 +1,11 @@
 import { createSandboxClosure, isSandboxClosure, type SandboxClosure, type SandboxValue } from "../values.js";
 import { getGuestFunctionProperty, isGuestClosure } from "../object-model.js";
+import type { Budget } from "../budget.js";
+import { functionString } from "../function-string.js";
+import { runResources } from "../resources.js";
 
 export type FunctionMethodOptions = {
+  budget?: Budget;
   callClosure: (
     closure: SandboxClosure,
     args: readonly SandboxValue[],
@@ -11,9 +15,9 @@ export type FunctionMethodOptions = {
   ) => Promise<SandboxValue> | SandboxValue;
 };
 
-type FunctionMethodName = "apply" | "bind" | "call";
+type FunctionMethodName = "apply" | "bind" | "call" | "toString";
 
-const functionMethodNames = new Set<FunctionMethodName>(["apply", "bind", "call"]);
+const functionMethodNames = new Set<FunctionMethodName>(["apply", "bind", "call", "toString"]);
 
 export function getFunctionMember(
   target: SandboxClosure,
@@ -34,6 +38,8 @@ export function getFunctionMember(
     return target.length;
   }
 
+  if (property === "toString" && runResources.getStore()?.functionSourceText === false) return undefined;
+
   if (!isFunctionMethodName(property)) {
     return undefined;
   }
@@ -41,6 +47,7 @@ export function getFunctionMember(
   return createSandboxClosure({
     sandbox: true,
     name: `Function#${property}`,
+    ...(property === "toString" ? { length: 0 } : {}),
     call: (args, context) =>
       callFunctionMethod(context?.thisValue, property, args, options, context?.stack ?? [])
   });
@@ -59,6 +66,10 @@ function callFunctionMethod(
 ): Promise<SandboxValue> | SandboxValue {
   if (!isSandboxClosure(target)) {
     throw new TypeError(`Function#${methodName} requires a callable receiver.`);
+  }
+  if (methodName === "toString") {
+    const text = functionString(target);
+    return options.budget?.allocateString(text) ?? text;
   }
   const thisValue = args[0];
 

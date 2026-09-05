@@ -53,6 +53,7 @@ export function restore<TSnapshot extends SafeJSSnapshot>(
   if (
     snapshot.executionSemantics !== EXECUTION_SEMANTICS &&
     snapshot.executionSemantics !== "jobs-v6" &&
+    snapshot.executionSemantics !== "jobs-v7" &&
     (snapshot.executionSemantics !== undefined ||
       snapshot.promiseReplay !== undefined ||
       snapshot.replay !== undefined ||
@@ -65,7 +66,11 @@ export function restore<TSnapshot extends SafeJSSnapshot>(
     );
   }
 
-  const currentSourceHash = hashSource(options.source, owner);
+  const currentSourceHash = hashSource(
+    options.source,
+    owner,
+    snapshot.executionSemantics !== "jobs-v6" && snapshot.executionSemantics !== "jobs-v7"
+  );
 
   if (snapshot.sourceHash !== currentSourceHash) {
     throw new SnapshotMismatchError(snapshot.sourceHash, currentSourceHash);

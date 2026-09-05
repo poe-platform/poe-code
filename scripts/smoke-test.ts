@@ -141,7 +141,7 @@ function runSdkImportSmoke(sdkProjectDir: string): boolean {
       "const referenceResult = await run(referenceSource, {bindings: referenceBindings});",
       "const referenceSnapshot = JSON.parse(await dump(referenceResult));",
       "const referenceReplay = await runCore(referenceSource, {bindings: referenceBindings, snapshot: referenceSnapshot});",
-      'if (JSON.stringify(referenceResult.returnValue) !== "[14,1,2e+100]" || JSON.stringify(referenceReplay.returnValue) !== "[14,1,2e+100]" || referenceReads !== 1 || referenceSnapshot.executionSemantics !== "jobs-v7") throw new Error("SafeJS reference evaluation or numeric checkpoint replay failed.");',
+      'if (JSON.stringify(referenceResult.returnValue) !== "[14,1,2e+100]" || JSON.stringify(referenceReplay.returnValue) !== "[14,1,2e+100]" || referenceReads !== 1 || referenceSnapshot.executionSemantics !== "jobs-v8") throw new Error("SafeJS reference evaluation or numeric checkpoint replay failed.");',
       "let effects = 0;",
       'const recoverySource = "effect(); let total=0; for(let index=0; index<50; index++) total += index; return total;";',
       "const recoveryBindings = { effect() { effects++; } };",

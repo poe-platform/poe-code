@@ -66,6 +66,22 @@ describe("hashSource", () => {
     expectDifferentHash("tag`a\\nb`", "tag`a\nb`");
   });
 
+  it.each([
+    ["function fn(){/*aaaa*/return 1}", "function fn(){/*bbbb*/return 1}"],
+    ["(x)=>x+1", "(x) => x + 1"],
+    ["function fn(){return 'x'}", "function fn(){return \"x\"}"],
+    ["function outer(){return function inner(){/*a*/return 1}}", "function outer(){return function inner(){/*b*/return 1}}"],
+    ["const object={method(){/*a*/return 1}}", "const object={method(){/*b*/return 1}}"],
+    ["`${()=> 'a'}`", "`${()=> \"a\"}`"]
+  ])("distinguishes observable function source: %s", (first, second) => {
+    expectDifferentHash(first, second);
+  });
+
+  it("keeps formatting outside function source insignificant", () => {
+    expectSameHash("const fn=function fn(){return 1}", "const fn = (function fn(){return 1})");
+    expectSameHash("function fn(){return 1}", "/* outside */ function fn(){return 1}");
+  });
+
   it("ignores source spans, node ids, and raw literal formatting", () => {
     expect(hashSource("'value'")).toBe(hashSource('"value"'));
     expect(hashSource("[1, user]")).toBe(hashSource("[ 1 , user ]"));
@@ -90,11 +106,14 @@ describe("hashSource", () => {
   it("ignores source metadata when hashing a parsed AST", () => {
     const ast = parse("({ value = 'x' }, ...rest) => `hi ${value}`");
     const baselineHash = hashParsedAst(ast);
-    const mutatedAst = structuredClone(ast);
+    mutateSourceMetadata(ast);
 
-    mutateSourceMetadata(mutatedAst);
+    expect(hashParsedAst(ast)).toBe(baselineHash);
+  });
 
-    expect(hashParsedAst(mutatedAst)).toBe(baselineHash);
+  it("distinguishes a source-less cloned function AST", () => {
+    const ast = parse("(x)=>x");
+    expect(hashParsedAst(structuredClone(ast))).not.toBe(hashParsedAst(ast));
   });
 });
 

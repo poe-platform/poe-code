@@ -1,6 +1,7 @@
 import { boundIdentifiers } from "./bindings.js";
 import { tokenize, type Position, type Token } from "./tokenizer.js";
 import { assignIds } from "./assign-ids.js";
+import { functionSources } from "./function-source.js";
 import { formatParseError } from "./format-error.js";
 import {
   createExportDefaultDeclaration,
@@ -570,7 +571,11 @@ export function parse(source: string, filename = "<input>", owner?: CompileOwner
   const compilation = new CompileScope(owner);
   try {
     const result = assignIds(
-      parseTokens(tokenize(source, { allowRegexLiterals: true, compilation }), compilation)
+      new Parser(
+        tokenize(source, { allowRegexLiterals: true, compilation }),
+        source,
+        compilation
+      ).parseTopLevel()
     );
     const regexLiteral = findRegexLiteral(result);
     if (regexLiteral !== undefined) {
@@ -597,7 +602,11 @@ export function parseModule(source: string, filename = "<input>", owner?: Compil
   const compilation = new CompileScope(owner);
   try {
     return assignIds(
-      parseModuleTokens(tokenize(source, { allowRegexLiterals: true, compilation }), compilation)
+      new Parser(
+        tokenize(source, { allowRegexLiterals: true, compilation }),
+        source,
+        compilation
+      ).parseModule()
     );
   } catch (error) {
     if (error instanceof DisallowedSyntaxError || error instanceof SandboxError) {
@@ -620,7 +629,11 @@ export function parseExecutableModule(
   const compilation = new CompileScope(owner);
   try {
     const result = assignIds(
-      parseModuleTokens(tokenize(source, { allowRegexLiterals: true, compilation }), compilation)
+      new Parser(
+        tokenize(source, { allowRegexLiterals: true, compilation }),
+        source,
+        compilation
+      ).parseModule()
     );
     throwIfImportMetaAssignment(result);
     return result;
@@ -635,14 +648,6 @@ export function parseExecutableModule(
   } finally {
     compilation.dispose();
   }
-}
-
-function parseTokens(tokens: Token[], compilation?: CompileScope): ParseResult {
-  return new Parser(tokens, compilation).parseTopLevel();
-}
-
-function parseModuleTokens(tokens: Token[], compilation?: CompileScope): Module {
-  return new Parser(tokens, compilation).parseModule();
 }
 
 type ParserBindingKind = "lexical" | "function" | "parameter" | "catch";
@@ -661,10 +666,20 @@ class Parser {
 
   constructor(
     private readonly tokens: Token[],
+    private readonly source: string,
     private readonly compilation?: CompileScope,
     private functionContext: FunctionParseContext = "normal"
   ) {
     this.functionScopes.add(this.scopes[0]!);
+  }
+
+  private withFunctionSource<T extends FunctionNode>(node: T): T {
+    functionSources.set(node, {
+      text: this.source,
+      start: node.span.start.offset,
+      end: node.span.end.offset
+    });
+    return node;
   }
 
   parseTopLevel(): ParseResult {
@@ -844,14 +859,14 @@ class Parser {
     });
     this.expectPunctuator("=>");
     const body = this.parseArrowFunctionBody(params);
-    return {
+    return this.withFunctionSource({
       type: "ArrowFunctionExpression",
       async: isAsync,
       body,
       expression: body.type !== "BlockStatement",
       params,
       span: createSpan(start, body.span.end)
-    };
+    });
   }
 
   private parseConditionalExpression(): ParsedExpression {
@@ -1646,9 +1661,11 @@ class Parser {
       return parsedParams;
     });
     const generator = generatorToken !== undefined;
-    const body = this.withFunctionContext(generator ? "generator" : "normal", () => this.parseBlockStatement(params));
+    const body = this.withFunctionContext(generator ? "generator" : "normal", () =>
+      this.parseBlockStatement(params)
+    );
 
-    return {
+    return this.withFunctionSource({
       type: "FunctionDeclaration",
       async: asyncToken !== undefined,
       body,
@@ -1656,7 +1673,7 @@ class Parser {
       id,
       params,
       span: createSpan(asyncToken?.start ?? functionToken.start, body.span.end)
-    };
+    });
   }
 
   private parseVariableDeclarator(kind: VariableDeclarationKind): VariableDeclarator {
@@ -2569,7 +2586,11 @@ class Parser {
       if (this.currentToken().type === "template") {
         const quasi = createTemplateLiteral(
           this.currentToken(),
-          { allowMalformedEscapes: true, functionContext: this.functionContext },
+          {
+            allowMalformedEscapes: true,
+            functionContext: this.functionContext,
+            source: this.source
+          },
           this.compilation
         );
         this.index += 1;
@@ -2677,7 +2698,11 @@ class Parser {
       return {
         node: createTemplateLiteral(
           token,
-          { allowMalformedEscapes: false, functionContext: this.functionContext },
+          {
+            allowMalformedEscapes: false,
+            functionContext: this.functionContext,
+            source: this.source
+          },
           this.compilation
         ),
         parenthesized: false
@@ -2774,7 +2799,8 @@ class Parser {
     }
 
     const optional = this.consumePunctuator("?.");
-    if (optional !== undefined) throw new DisallowedSyntaxError("new optional chain", optional.start);
+    if (optional !== undefined)
+      throw new DisallowedSyntaxError("new optional chain", optional.start);
     const args = this.consumePunctuator("(") === undefined ? [] : this.parseArguments();
     const end = this.previousToken();
 
@@ -2811,9 +2837,11 @@ class Parser {
       return parsedParams;
     });
     const generator = generatorToken !== undefined;
-    const body = this.withFunctionContext(generator ? "generator" : "normal", () => this.parseBlockStatement(params));
+    const body = this.withFunctionContext(generator ? "generator" : "normal", () =>
+      this.parseBlockStatement(params)
+    );
 
-    return {
+    return this.withFunctionSource({
       type: "FunctionExpression",
       async: asyncToken !== undefined,
       body,
@@ -2821,7 +2849,7 @@ class Parser {
       id,
       params,
       span: createSpan(asyncToken?.start ?? functionToken.start, body.span.end)
-    };
+    });
   }
 
   private parseArrayExpression(): ArrayExpression {
@@ -3109,7 +3137,7 @@ class Parser {
     });
     const body = this.withFunctionContext("normal", () => this.parseBlockStatement(params));
 
-    return {
+    return this.withFunctionSource({
       type: "FunctionExpression",
       async: asyncToken !== undefined,
       body,
@@ -3118,7 +3146,7 @@ class Parser {
       method: true,
       params,
       span: createSpan(asyncToken?.start ?? methodStart, body.span.end)
-    };
+    });
   }
 
   private parseIdentifierName(): Identifier {
@@ -4217,7 +4245,11 @@ function createLiteralFromToken(
 
 function createTemplateLiteral(
   token: Token,
-  options: { allowMalformedEscapes: boolean; functionContext: FunctionParseContext },
+  options: {
+    allowMalformedEscapes: boolean;
+    functionContext: FunctionParseContext;
+    source: string;
+  },
   compilation?: CompileScope
 ): TemplateLiteral {
   const raw = token.value;
@@ -4243,6 +4275,7 @@ function createTemplateLiteral(
           raw.slice(expressionStart, expressionEnd),
           positionWithinRaw(token.start, raw, expressionStart),
           options.functionContext,
+          options.source,
           compilation
         )
       );
@@ -4711,6 +4744,7 @@ function parseEmbeddedExpression(
   source: string,
   base: Position,
   functionContext: FunctionParseContext,
+  fullSource: string,
   compilation?: CompileScope
 ): Expression {
   const tokens = tokenize(source, { allowRegexLiterals: true, compilation }).map((token) => ({
@@ -4718,7 +4752,7 @@ function parseEmbeddedExpression(
     start: rebasePosition(token.start, base),
     end: rebasePosition(token.end, base)
   }));
-  return new Parser(tokens, compilation, functionContext).parseExpressionOnly();
+  return new Parser(tokens, fullSource, compilation, functionContext).parseExpressionOnly();
 }
 
 export function findRegexLiteral(node: unknown): RegexLiteral | undefined {

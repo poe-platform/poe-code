@@ -30,17 +30,26 @@ describe("restore", () => {
     expect(restore(snapshot, { source: "1 + 2" })).toBe(snapshot);
   });
 
-  it("accepts snapshots when only formatting and raw literal syntax change", () => {
+  it("accepts formatting and raw literal changes outside function source", () => {
     const snapshot = {
       version: 1,
-      sourceHash: hashSource("({ value = 0x1f }) => `hi ${value}`")
+      sourceHash: hashSource("const { value = 0x1f } = {}; `hi ${value}`")
     };
 
     expect(
       restore(snapshot, {
-        source: "({value = 31}) => `hi ${ value }`"
+        source: "const {value = 31}={}; `hi ${ value }`"
       })
     ).toBe(snapshot);
+  });
+
+  it("rejects raw literal changes observable through function toString", () => {
+    const snapshot = {
+      version: 1,
+      sourceHash: hashSource("({ value = 0x1f }) => `hi ${value}`")
+    };
+    expect(() => restore(snapshot, { source: "({value = 31}) => `hi ${ value }`" }))
+      .toThrow("source changed since snapshot");
   });
 
   it("rejects snapshots when the source hash no longer matches", () => {

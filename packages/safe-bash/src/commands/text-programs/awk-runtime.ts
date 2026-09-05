@@ -381,7 +381,7 @@ export class AwkRuntime {
       const replacement = this.asText(await this.scalarExpression(args[1]!));
       if (/\\[1-9]/u.test(replacement)) throw new ProgramError("awk replacement backreference escapes are not supported");
       const target = await this.reference(args[2] ?? { kind: "field", index: { kind: "number", value: 0 } });
-      const result = substitute(this.asText(scalar(target.get())), pattern, replacement, this.budget, name === "gsub");
+      const result = await substitute(this.asText(scalar(target.get())), pattern, replacement, this.budget, name === "gsub");
       if (result.count) await target.set(string(result.text));
       return numeric(result.count);
     }

@@ -1,4 +1,5 @@
 import { Budget, ProgramError } from "./shared.js";
+import { ReplacementBuffer } from "./replacement-buffer.js";
 
 type Node = { type: "empty" | "begin" | "end" }
   | { type: "backreference"; index: number }
@@ -279,38 +280,87 @@ export class Pattern {
   }
 }
 
-export function replacementText(replacement: string, match: Match): string {
-  let result = "";
+async function replacementLength(replacement: string, match: Match, budget: Budget, available: number): Promise<number> {
+  let length = 0;
+  let tokens = 0;
   for (let index = 0; index < replacement.length; index++) {
+    if (tokens++ % 256 === 0) await budget.checkpoint();
+    budget.step();
     const character = replacement[index]!;
-    if (character === "&") result += match.groups[0] ?? "";
-    else if (character === "\\" && index + 1 < replacement.length) {
+    let size = 1;
+    if (character === "&") {
+      budget.step();
+      size = match.groups[0]?.length ?? 0;
+    } else if (character === "\\" && index + 1 < replacement.length) {
+      budget.step();
       const next = replacement[++index]!;
-      result += /^[1-9]$/u.test(next) ? match.groups[Number(next)] ?? "" : next === "n" ? "\n" : next === "t" ? "\t" : next;
-    } else result += character;
+      if (next >= "1" && next <= "9") {
+        budget.step();
+        size = match.groups[Number(next)]?.length ?? 0;
+      }
+    }
+    if (size > available - length) throw new ProgramError("text buffer limit exceeded");
+    length += size;
   }
-  return result;
+  return length;
 }
 
-export function substitute(text: string, pattern: Pattern, replacement: string, budget: Budget, global: boolean, occurrence = 1): { text: string; count: number } {
+async function replacementText(replacement: string, match: Match, buffer: ReplacementBuffer, budget: Budget): Promise<void> {
+  let literal = 0;
+  let tokens = 0;
+  for (let index = 0; index < replacement.length; index++) {
+    if (tokens++ % 256 === 0) await budget.checkpoint();
+    budget.step();
+    const character = replacement[index]!;
+    if (character !== "&" && (character !== "\\" || index + 1 === replacement.length)) continue;
+    await buffer.append(replacement, literal, index);
+    if (character === "&") {
+      budget.step();
+      await buffer.append(match.groups[0] ?? "");
+    } else {
+      budget.step();
+      const next = replacement[++index]!;
+      if (next >= "1" && next <= "9") {
+        budget.step();
+        await buffer.append(match.groups[Number(next)] ?? "");
+      } else await buffer.append(next === "n" ? "\n" : next === "t" ? "\t" : next);
+    }
+    literal = index + 1;
+  }
+  await buffer.append(replacement, literal);
+}
+
+export async function substitute(text: string, pattern: Pattern, replacement: string, budget: Budget, global: boolean, occurrence = 1): Promise<{ text: string; count: number }> {
   let search = 0;
   let consumed = 0;
   let previousEnd = -1;
   let encountered = 0;
   let count = 0;
-  let result = "";
-  while (search <= text.length) {
-    const match = pattern.find(text, budget, search);
-    if (!match) break;
-    if (match.start === match.end && match.start === previousEnd) { search = match.end + 1; continue; }
-    encountered++;
-    if (encountered >= occurrence) {
-      result = budget.check(result + text.slice(consumed, match.start) + replacementText(replacement, match));
-      consumed = match.end; count++;
-      if (!global) break;
+  const result = new ReplacementBuffer(budget);
+  try {
+    while (search <= text.length) {
+      await budget.checkpoint();
+      budget.step();
+      const match = pattern.find(text, budget, search);
+      if (!match) break;
+      if (match.start === match.end && match.start === previousEnd) { search = match.end + 1; continue; }
+      encountered++;
+      if (encountered >= occurrence) {
+        const prefix = match.start - consumed;
+        result.admit(prefix);
+        const length = await replacementLength(replacement, match, budget, result.remaining - prefix);
+        result.admit(prefix + length);
+        await result.append(text, consumed, match.start);
+        await replacementText(replacement, match, result, budget);
+        consumed = match.end; count++;
+        if (!global) break;
+      }
+      previousEnd = match.end > match.start ? match.end : -1;
+      search = match.end > match.start ? match.end : match.end + 1;
     }
-    previousEnd = match.end > match.start ? match.end : -1;
-    search = match.end > match.start ? match.end : match.end + 1;
-  }
-  return { text: budget.check(result + text.slice(consumed)), count };
+    budget.step(0);
+    if (!count) return { text: budget.check(text), count };
+    await result.append(text, consumed);
+    return { text: await result.finish(), count };
+  } finally { result.clear(); }
 }

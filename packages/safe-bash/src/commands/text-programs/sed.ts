@@ -311,7 +311,7 @@ async function execute(program: readonly Instruction[], context: CommandContext,
           case "G": pattern = budget.check(pattern + "\n" + hold); break;
           case "x": [pattern, hold] = [hold, pattern]; break;
           case "s": {
-            const changed = substitute(pattern, getPattern(instruction.pattern), instruction.replacement!, budget, instruction.global ?? false, instruction.occurrence ?? 1);
+            const changed = await substitute(pattern, getPattern(instruction.pattern), instruction.replacement!, budget, instruction.global ?? false, instruction.occurrence ?? 1);
             pattern = changed.text;
             if (changed.count) { substituted = true; if (instruction.print) await print(); if (instruction.file) await writeFile(instruction.file); }
             break;

@@ -257,6 +257,30 @@ this request to keep additions out of the default package.
   This does not erase the six documented foreign-group backend differences.
   Guarded lint's ninth run completes with exit 0 and one unused-import warning in
   the in-flight jobs test; no install finding is reported.
+- Install's separately validated opt-in implementation is locally committed as
+  `f1a233f57`; no remote delivery or release is claimed.
+- Native yq's nine independently reproduced expression/output-budget defects
+  now pass unchanged reviewer assertions. Root replay passes 236 native-profile
+  tests and 21 compiled public-host tests, including strict declaration consumers.
+  Explicit optional compilation passes after annotating the public AbortSignal
+  field. Two initial public readdir expectations incorrectly used strings rather
+  than directory entries; correcting those fixtures required no product change.
+  The compiled YAML edit/JSON conversion transcript was rendered and visually
+  inspected in `yq-native-final-visual.png`. Four focused discovery/isolation
+  checks pass. The normal optional aliases do not replace the restricted legacy
+  dialect and remain absent from default registration and npm exports. This is
+  an incremental implementation commit, not completion: multiline-quote parsing,
+  malformed-JSON diagnostics, broader operators/CLI and filesystem metadata
+  differences still require further native scrutiny and implementation.
+- Resumed yq verification repeats 236 native-profile and 21 enabled public tests
+  successfully. Workspace/root pack inventories contain 1,054/4,645 files and
+  zero optional implementation leaks. The initial root pack ran its prepack full
+  build; its mixed build/JSON stdout was not a parseable inventory, so the final
+  root inventory was captured separately with scripts disabled after that build.
+  An overlapping public test encountered the temporarily removed safe-fs bundle;
+  after the build and explicit optional rebuild completed, all 21 tests passed.
+  An earlier public invocation omitted the explicit profile variable and ran no
+  tests; that capture is not counted as a pass.
 
 - First implementation wave: cmp, yes, shuf and virtual devices in disjoint leaf
   directories. Root is qualifying native oracles and the opt-in delivery boundary.

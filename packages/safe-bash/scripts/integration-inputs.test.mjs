@@ -475,6 +475,14 @@ function assertSource7Discovery(files) {
     "tests/commands/yq-scripting/lifecycle.test.ts",
   ]) assert.ok(files.includes(path), "optional yq scripting test is missing: " + path);
   for (const path of [
+    "tests/commands/yq-native/behavior.test.ts",
+    "tests/commands/yq-native/parity.test.ts",
+    "tests/commands/yq-native/lazy.test.ts",
+    "tests/commands/yq-native/edge.test.ts",
+    "tests/commands/yq-native/lifecycle.test.ts",
+    "tests/commands/yq-native/review.test.ts",
+  ]) assert.ok(files.includes(path), "native-profile yq test is missing: " + path);
+  for (const path of [
     "tests/fs/devices/devices.test.ts",
     "tests/fs/devices/native.test.ts",
     "tests/fs/devices/review.test.ts",

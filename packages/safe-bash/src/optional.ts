@@ -9,6 +9,9 @@ export { createTruncateCommand, createTruncateCommands, truncateCommands } from 
 export type { TruncateCommandsOptions } from "./commands/truncate/index.js";
 export { createInstallCommand, createInstallCommands, installCommands } from "./commands/install/index.js";
 export type { InstallCommandsOptions, InstallModeRequest, InstallContextRequest } from "./commands/install/options.js";
+export { createMikeYqCommand as createYqCommand, createMikeYqCommands as createYqCommands, mikeYqCommands as yqCommands } from "./commands/yq/mike.js";
+export type { MikeYqOptions as YqCommandsOptions } from "./commands/yq/mike.js";
+export type { MikeLimits as YqLimits } from "./commands/yq/native-work.js";
 export { createDeviceFileSystem } from "./fs/devices/index.js";
 export type { DeviceFileSystem } from "./fs/devices/index.js";
 export { trapExtension } from "./shell/extensions/trap/index.js";

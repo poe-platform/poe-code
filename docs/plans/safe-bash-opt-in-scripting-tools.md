@@ -358,6 +358,43 @@ this request to keep additions out of the default package.
   types pass in independent checks, and `descriptor-ack-public-visual.png` was
   inspected. This is a shared repair, not acceptance of DD's remaining sparse
   append cases or the unfinished optional shell extensions.
+- The shared close-failure repair is locally committed as `210ba165f`.
+- The next yq patch repairs all thirteen known regressions and passes the root
+  replay of its 279-test native cohort. Five additional compiled public cases
+  verify duplicate JSON members/key order, quoted YAML continuation, byte-based
+  wildcards, hexadecimal spelling and partial output before a later JSON error.
+  Its actual output is inspected in `yq-repair-public-visual.png`; independent
+  review is assigned before a repair commit. Broader yq compatibility is open.
+- Generic extension bindings, borrowed descriptor input and declaration metadata
+  pass their author's 33-test cohort. Independent review then finds four native
+  mismatches for zero-prefixed positional values and lengths. Root reproduces the
+  same boundary through compiled execution: six public cases pass and two new
+  cases fail. These unchanged regressions require a repair before core acceptance.
+- Input deadline/readiness primitives are frozen for independent review after
+  46 new cases, eleven authenticated native witnesses and 386 combined passes.
+  Their integration into optional read/mapfile commands has not happened yet.
+- DD's remaining sparse-append cases require the retained descriptor's actual
+  cursor. Root authorizes optional `capabilities.position` and `getPosition()`
+  on canonical descriptors, memory implementation, managed/forwarded validation,
+  and safe-bash forwarding. Do not estimate position from EOF; the real backend
+  must refuse a query without an actual supported primitive. Public safe-fs
+  runtime must be rebuilt as the safe-js bundle before DD integration testing;
+  refreshing only safe-fs declarations does not deliver the runtime change.
+- The maintained full workspace/root build and subsequent optional build pass
+  with the cursor implementation. DD then passes all 145 current native/reviewer
+  tests, zero skips. The compiled aggregate passes 45 public checks; a subsequent
+  28-test subset additionally covers actual cursor retention through unrelated
+  growth, readonly mounts, and the two previously failing sparse-append patterns.
+  The cursor implementation still requires independent review before its commit.
+- Guarded lint's eleventh run completes with two core-runtime findings:
+  `no-this-alias` and `prefer-const`. Narrow fixes are assigned; do not treat that
+  run as clean or weaken lazy allocation and cleanup-before-acquisition semantics.
+- Mapfile/readarray implementation is assigned in a separate optional leaf using
+  the generic binding/input interfaces. A failing isolation assertion precedes
+  explicit exclusion of its single planned source from both default-build lists
+  and of its directory from workspace/root package files. Four focused discovery
+  and isolation checks then pass. No default registration, optional export or
+  implementation acceptance is implied by this build-boundary commit.
 
 - First implementation wave: cmp, yes, shuf and virtual devices in disjoint leaf
   directories. Root is qualifying native oracles and the opt-in delivery boundary.

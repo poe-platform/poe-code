@@ -62,6 +62,7 @@
     "src/fs/devices/index.ts",
     "src/optional.ts",
     "src/shell/extensions/trap/index.ts",
-    "src/shell/extensions/jobs/state.ts"
+    "src/shell/extensions/jobs/state.ts",
+    "src/shell/extensions/mapfile/index.ts"
   ]
 }

@@ -143,7 +143,8 @@
     "!dist/commands/yq",
     "!dist/fs/devices",
     "!dist/shell/extensions/trap",
-    "!dist/shell/extensions/jobs"
+    "!dist/shell/extensions/jobs",
+    "!dist/shell/extensions/mapfile"
   ],
   "scripts": {
     "benchmark": "node --import tsx benchmarks/run.ts",
@@ -220,7 +221,8 @@
         "src/fs/devices/index.ts",
         "src/optional.ts",
         "src/shell/extensions/trap/index.ts",
-        "src/shell/extensions/jobs/state.ts"
+        "src/shell/extensions/jobs/state.ts",
+        "src/shell/extensions/mapfile/index.ts"
       ]
     },
     "integration": {

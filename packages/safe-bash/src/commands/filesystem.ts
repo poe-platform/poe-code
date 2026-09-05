@@ -7,6 +7,7 @@ import { compareCopyIdentity, compareObservedEntries } from "./copy-identity.js"
 import { MoveBudget, moveAcrossDevices } from "./move.js";
 import { admitFilesystemModes, filesystemCommandRequirements } from "./filesystem-requirements.js";
 import { createDirectoryReader, type DirectoryReader } from "./directory-admission.js";
+import { yieldTurn } from "../contracts/yield.js";
 
 // Operand directories start at depth zero; files inside the last admitted
 // directory do not consume another directory-recursion level.
@@ -30,21 +31,40 @@ async function maybeStat(context: CommandContext, path: string, follow = true): 
   catch (error) { context.signal.throwIfAborted(); if (codeOf(error) === "ENOENT") return undefined; throw error; }
 }
 
-async function canonicalMissing(context: CommandContext, path: string, preflight = false): Promise<string> {
-  if (preflight) {
+async function canonicalMissing(
+  context: CommandContext, path: string, mode: "copy" | "preflight" | "realpath" = "copy",
+): Promise<string> {
+  if (mode !== "copy") {
     context.signal.throwIfAborted();
     const canonical = context.fs.canonicalizeMissingTarget?.(path, { signal: context.signal });
     context.signal.throwIfAborted();
     if (canonical !== undefined) return canonical;
   }
-  try { return await context.fs.realpath(path, { signal: context.signal }); }
-  catch (error) {
-    context.signal.throwIfAborted();
-    if (codeOf(error) !== "ENOENT" || path === "/") throw error;
-    const link = await maybeStat(context, path, false);
-    if (link?.type === "symlink") throw error;
-    return joinPath(await canonicalMissing(context, dirname(path)), basename(path));
+  const suffix: string[] = [];
+  let canonical: string;
+  while (true) {
+    if (mode === "realpath") {
+      context.signal.throwIfAborted();
+      if (suffix.length > 0 && suffix.length % 32 === 0) await yieldTurn(context.signal);
+    }
+    try { canonical = await context.fs.realpath(path, { signal: context.signal }); break; }
+    catch (error) {
+      context.signal.throwIfAborted();
+      if (codeOf(error) !== "ENOENT" || path === "/") throw error;
+      const link = await maybeStat(context, path, false);
+      if (link?.type === "symlink") throw error;
+      suffix.push(basename(path));
+      path = dirname(path);
+    }
   }
+  for (let index = suffix.length - 1; index >= 0; index--) {
+    if (mode === "realpath") {
+      context.signal.throwIfAborted();
+      if ((suffix.length - index) % 32 === 0) await yieldTurn(context.signal);
+    }
+    canonical = joinPath(canonical, suffix[index]!);
+  }
+  return canonical;
 }
 
 function needCapability(context: CommandContext, capability: "symlink" | "link" | "readlink" | "utimes"): void {
@@ -97,9 +117,9 @@ async function copy(
     ? joinPath(await context.fs.realpath(dirname(source), { signal: context.signal }), basename(source))
     : await context.fs.realpath(source, { signal: context.signal });
   const physicalTarget = preserveLink
-    ? joinPath(preflight ? await canonicalMissing(context, dirname(target), true)
+    ? joinPath(preflight ? await canonicalMissing(context, dirname(target), "preflight")
       : await context.fs.realpath(dirname(target), { signal: context.signal }), basename(target))
-    : await canonicalMissing(context, target, preflight);
+    : await canonicalMissing(context, target, preflight ? "preflight" : "copy");
   if (physicalSource === physicalTarget || compareCopyIdentity(sourceStat, targetStat) === "same") {
     throw new FsError("EINVAL", { path: source, dest: target, message: "source and destination are the same file" });
   }
@@ -393,7 +413,7 @@ export function filesystemCommands(maxDirectoryEntries?: number): CommandDefinit
         const path = pathOf(context, operand);
         await admitFilesystemModes(context, "realpath", ["canonical"], [path]);
         const existing = await maybeStat(context, path, false);
-        return parsed.flags.has("m") ? await canonicalMissing(context, path)
+        return parsed.flags.has("m") ? await canonicalMissing(context, path, "realpath")
           : parsed.flags.has("e") || existing ? await context.fs.realpath(path, { signal: context.signal })
           : joinPath(await context.fs.realpath(dirname(path), { signal: context.signal }), basename(path));
       };

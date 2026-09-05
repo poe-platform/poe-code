@@ -3,6 +3,7 @@ import {
   allocateProducedSandboxValue,
   createSandboxClosure,
   isSandboxClosure,
+  isSandboxSet,
   type SandboxClosure,
   type SandboxSet,
   type SandboxValue
@@ -63,7 +64,11 @@ export function getSetMember(
 
   return createSandboxClosure({
     sandbox: true,
-    call: (args, context) => callSetMethod(target, property, args, options, context?.stack ?? []),
+    call: (args, context) => {
+      const receiver = context?.thisValue;
+      if (!isSandboxSet(receiver)) throw new TypeError(`Set#${property} requires a Set receiver.`);
+      return callSetMethod(receiver, property, args, options, context?.stack ?? []);
+    },
     name: property
   });
 }

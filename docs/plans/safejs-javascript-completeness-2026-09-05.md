@@ -1020,9 +1020,11 @@ validated Set defects are the next independent repair.
 Committed and pushed as `cca5631a14c62e73baa7f0d7955d6ba9eb65bcf2`, verified
 against remote main. Scoped workflow `33949133351`, publisher `101260479055`,
 succeeded: SafeJS 0.1.107 published September 5, 2026, 06:15:21 UTC. CLI workflow
-`33949133459` remains monitored separately.
+`33949133459` succeeded, but release-stable job `101261600301` explicitly skipped
+publication at 06:22:04 UTC because its checkout was behind remote main. This is
+not a new CLI release.
 
-### 21. Set live iterable construction — validated repair
+### 21. Set live iterable construction — delivered and released
 
 The initial 38-test cohort reproduced 14 failures with 24 passing controls.
 Set now accepts the existing sandbox iterable types, including Map and Float32Array,
@@ -1057,3 +1059,47 @@ instead of rejecting an absent receiver, wrong collection brands are accepted,
 and borrowed forEach callbacks receive the wrong collection. These method-receiver
 defects remain a separate next repair; intrinsic method identity, live method
 iterators, and broader prototype/Symbol support are not claimed as fixed here.
+Committed and pushed as `d61e1eabcd7f491596eb86e8acac411a45e35022`, verified
+against remote main. Scoped workflow `33949605980`, publisher `101261760211`,
+succeeded: SafeJS 0.1.108 published September 5, 2026, 06:25:44 UTC. CLI workflow
+`33949606140` was canceled; it is not a successful CLI publication.
+
+### 22. Map and Set method receivers — validated repair
+
+The 54-case receiver cohort reproduced 52 failures with two passing ordinary-call
+controls before implementation. Saved Map/Set methods captured the collection
+used for lookup instead of honoring the call receiver. Both member factories now
+validate the supplied collection brand and dispatch using that receiver. Ordinary
+direct and optional calls retain their existing behavior. Detached or wrong-brand
+calls throw TypeError; call/apply/bind, mutation return identity, borrowed forEach,
+callback thisArg, callback-driven mutation, and async-prefix ordering match native
+JavaScript in the focused comparisons.
+
+All 54 regressions and 185 tests in the five-file cohort pass. A selected SafeJS
+build, full package suite (10,717 passed, 41 skipped), and root lint passed before
+integration. Twenty built root/core comparisons and completed replay pass. Two
+additional pending-checkpoint probes preserve saved Map.get/Set.has methods and
+use their replacement receivers after restore. Those probes do not substantiate
+the suspected stored-method snapshot defect, so no speculative snapshot change
+was made.
+
+Remote main advanced with nonoverlapping SafeBash IFS and documentation changes.
+Fast-forward integration to `8484a9cca2e2541a1666430d5648368b74831da0` preserved
+the unrelated staged cut edits. The maintained complete root build then passed
+(70 declared builds across 71 workspaces; the workspace without a build is not a
+passing build). Integrated SafeJS validation passes again: 10,717 tests, 41
+skipped, 284 passing files and one skipped file; root lint covers 9,738 configured
+files with zero errors/warnings, followed by passing type and workflow checks.
+Twenty built root/core comparisons and completed replay pass on the rebuilt
+tree. Delegated read-only incoming-IFS verification passes 164 adjacent tests,
+12 selected security tests, and one registration test. The latter checks literal
+registration/serial forwarding, not execution of all registered files. These
+focused integration checks are not a full SafeBash suite or release qualification.
+Atomic commit, verified push, and publication remain separate delivery steps.
+
+Seven further native comparisons confirm the independent live-method-iterator
+gap: keys/values/entries return eager arrays, have no next method, miss later
+additions/deletions/value updates, and can be consumed repeatedly. A correct
+repair needs real single-use iterator state plus retained-source accounting and
+snapshot/restore coverage; adding next to arrays is not native iterator parity.
+Canonical method identity and broader prototype/Symbol support remain separate.

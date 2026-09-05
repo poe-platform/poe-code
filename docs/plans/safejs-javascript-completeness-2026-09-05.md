@@ -864,9 +864,10 @@ changes are preserved separately and are not part of this prerequisite commit.
 Committed and pushed as `e219cd412f95cbbd67787d382a4d8be6a9673743`, verified
 against remote main. Scoped workflow `33947671901`, publisher `101256602322`,
 succeeded: SafeJS 0.1.103 published September 5, 2026, 05:40:55 UTC. CLI workflow
-`33947671974` remains monitored separately.
+`33947671974` was canceled and its release-stable job was skipped. The newer
+descendant CLI workflow is monitored; this scoped publication is not a CLI release.
 
-### 17. Object.fromEntries guest construction — validated repair
+### 17. Object.fromEntries guest construction — delivered and released
 
 The initial native/public-source cohort reproduced 25 failures with 18 passing
 controls. Guest execution now reads inherited and function-entry fields through
@@ -905,8 +906,60 @@ separate recursive-key check verifies maxCallDepth; an earlier probe misspelled
 that option and only exercised its maxSteps fallback. Atomic delivery and release
 remain separate from these local checks. Symbols and custom guest iterators are
 still broader open gaps, not claimed as fixed here.
+Committed and pushed as `1ff9cce1c65b6660f14eccd30ca5140ee430c808`, verified
+against remote main. Scoped workflow `33947960223`, publisher `101257356294`,
+succeeded: SafeJS 0.1.104 published September 5, 2026, 05:48:18 UTC. CLI workflow
+`33947960350` was canceled; the newer descendant workflow is monitored separately.
 
 Read-only follow-up validation confirms Map(null) and Set(null) reject in both
 public runs and realms, while undefined and empty-array controls pass. Array.from
 also still performs 210 full reconciliations for 200 object values versus 10 for
 200 primitive values. These are separate repairs, not part of this commit.
+
+### 18. Null collection inputs — delivered and released
+
+Native comparisons reproduced TypeError for new Map(null) and new Set(null)
+instead of empty collections, both in public runs and persistent realms. Six
+new regressions failed before the fix, with 11 existing tests passing. The two
+input readers now treat null like undefined. Other non-iterable values are not
+accepted, and the direct constructors keep their synchronous return behavior.
+The tests also verify that the new empty collections remain mutable across
+realm evaluations. Broader collection-entry and iteration gaps remain separate.
+
+Final validation passes: 197 tests in the focused four-file cohort, selected
+SafeJS dependency build closure, 10,577 package tests with 41 skipped, and full
+root lint (9,733 configured files, zero errors/warnings), including TypeScript
+and workflows. Built root/core checks pass 24 null/undefined/empty-array and
+invalid-input cases. Both direct constructors also pass with arrayLength zero,
+and both collection types pass completed snapshot replay after mutation.
+Atomic delivery and successful publication remain separate from these checks.
+Committed and pushed as `4c260abe87a3fdd73dc532872e2b94570c71fc57`, verified
+against remote main. Scoped workflow `33948175146`, publisher `101257918770`,
+succeeded: SafeJS 0.1.105 published September 5, 2026, 05:52:40 UTC. CLI workflow
+`33948175200` remains monitored separately.
+
+### 19. Array.from object-value accounting scans — validated performance repair
+
+Three new regressions reproduced 210 full reconciliations for 200 object values,
+covering distinct objects, shared objects, and array-like input. All 58 existing
+Array.from tests passed before the repair. Object values now contribute a bounded
+graph-size growth estimate, as in the separately delivered Object.fromEntries
+fix, instead of forcing a full-root scan after every write. Closure-valued output
+containers retain their explicit exact-check path. Unlimited data budgets skip
+the graph measurement. No constructor, mapper, iterator, or identity behavior is
+changed by this focused repair.
+
+The focused four-file cohort passes 157 tests. Final validation passes: selected
+SafeJS dependency build closure, 10,580 package tests with 41 skipped, and full
+root lint (9,733 configured files, zero errors/warnings), including TypeScript
+and workflows. Ten built root/core checks confirm 10 scans instead of 210 for
+each object-input form, plus retained mapped-output rejection at 5,000 data units
+and success at 7,000. Atomic delivery and release remain separate from these checks.
+
+Further native comparisons confirm Map precollection loses earlier entries when
+a generator reuses its entry array. Invalid entries also lose their original
+TypeError to a later generator or cleanup string throw. Empty-string Map input
+is incorrectly rejected, and borrowed Map.get still captures its lookup receiver.
+These are follow-ups, not part of this performance repair. A separate array-entry
+prototype probe failed at Object.setPrototypeOf before reaching Map construction;
+it is evidence of the existing prototype limitation, not a validated Map defect.

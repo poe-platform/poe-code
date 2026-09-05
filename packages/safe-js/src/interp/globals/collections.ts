@@ -70,7 +70,7 @@ function getMapEntries(
 ):
   | Array<readonly [SandboxValue, SandboxValue]>
   | Promise<Array<readonly [SandboxValue, SandboxValue]>> {
-  if (source === undefined) {
+  if (source === undefined || source === null) {
     return [];
   }
 
@@ -108,7 +108,7 @@ function validateMapEntries(sourceEntries: SandboxValue[]) {
 }
 
 function getSetValues(source: SandboxValue): SandboxValue[] | Promise<SandboxValue[]> {
-  if (source === undefined) {
+  if (source === undefined || source === null) {
     return [];
   }
 

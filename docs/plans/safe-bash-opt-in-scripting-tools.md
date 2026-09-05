@@ -817,6 +817,14 @@ this request to keep additions out of the default package.
   All twelve native case bodies, operations, assertions and scope behavior are
   unchanged. Root passes all twelve authenticated Bash cases and one strict type
   root. This is a fixture compatibility repair, not a new trap runtime behavior.
+- The trap fixture repair is locally committed as `4e7812da5`. The overlay and
+  readonly full-stat fixtures now include this goal's ioBlockSize and device
+  number fields, with getter/nonenumerable copying, mutation isolation and
+  optional-absence checks retained and extended. Root passes 59 tests in roughly
+  half a second and two strict type roots after the two recorded diagnostics.
+  The readonly combinations cover all 1,024 masks for each method/representation;
+  required-only fixtures remain unchanged. No filesystem production code changes
+  or compiler relaxations are needed for this fixture migration.
 
 - First implementation wave: cmp, yes, shuf and virtual devices in disjoint leaf
   directories. Root is qualifying native oracles and the opt-in delivery boundary.

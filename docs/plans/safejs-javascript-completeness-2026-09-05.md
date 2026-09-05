@@ -936,9 +936,10 @@ Atomic delivery and successful publication remain separate from these checks.
 Committed and pushed as `4c260abe87a3fdd73dc532872e2b94570c71fc57`, verified
 against remote main. Scoped workflow `33948175146`, publisher `101257918770`,
 succeeded: SafeJS 0.1.105 published September 5, 2026, 05:52:40 UTC. CLI workflow
-`33948175200` remains monitored separately.
+`33948175200` was canceled. Its changes are included in descendant CLI release
+14.0.49, published September 5, 2026, 06:06:31 UTC.
 
-### 19. Array.from object-value accounting scans — validated performance repair
+### 19. Array.from object-value accounting scans — delivered and released
 
 Three new regressions reproduced 210 full reconciliations for 200 object values,
 covering distinct objects, shared objects, and array-like input. All 58 existing
@@ -963,3 +964,56 @@ is incorrectly rejected, and borrowed Map.get still captures its lookup receiver
 These are follow-ups, not part of this performance repair. A separate array-entry
 prototype probe failed at Object.setPrototypeOf before reaching Map construction;
 it is evidence of the existing prototype limitation, not a validated Map defect.
+Committed and pushed as `9cba49861ac1455b6a61adfd3572c425b84e95d7`, verified
+against remote main. Scoped workflow `33948412618`, publisher `101258546896`,
+succeeded: SafeJS 0.1.106 published September 5, 2026, 05:58:37 UTC. CLI workflow
+`33948412741`, release-stable job `101259694275`, succeeded: poe-code 14.0.49
+published at 06:06:31 UTC, with its GitHub release at 06:06:32 UTC. This descendant
+CLI includes sections 16–19; canceled older workflows are not separate releases.
+
+### 20. Map live iterable construction — validated repair
+
+The corrected initial 34-case cohort reproduced 22 failures with 12 passing
+controls. Map now consumes each entry before advancing, supports the existing
+sandbox iterable types, and reads ordinary, inherited, and function-entry fields
+through the guest property model. Keys and values retain identity; keys are not
+coerced. Synchronous inputs still construct synchronously. Guest generators use
+their asynchronous interpreter bridge without changing observable job ordering.
+
+Entry errors close the iterator and preserve the original throw against ordinary
+cleanup throws, including falsey values. Fatal cleanup budgets remain fatal.
+Iterator advancement errors remain distinct from entry-processing errors. Five
+direct synchronous host controls match native next/done/value/field error order.
+The partially built Map and current entry fields stay rooted during advancement
+and cleanup. Removing the Map root made the retention regression incorrectly
+succeed at 5,000 data units; restored retention rejects at 5,000 and passes at 7,000.
+
+Traversal and unique-key capacity are checked incrementally. A built old-code
+probe processed 1,000 duplicate-key entries under a 100-step budget with only five
+recorded node visits; the new regression rejects that run. Repeated keys do not
+consume additional collection capacity. The capacity fixture allows each two-item
+entry array so that it exercises constructor admission, not fixture allocation.
+The existing bounded data-checkpoint helper is shared with Array.from and
+Object.fromEntries without changing their behavior; object insertion takes ten
+full reconciliations for 1,000 object-valued entries in the built checks.
+
+Final review caught an introduced output-budgeting regression: recursive value
+traversal invoked properties of stored keys and values. Four regressions reproduced
+that extra read with and without a data limit. Removing the redundant traversal
+preserves opaque stored values while keeping exact final data reconciliation.
+The first lint run was canceled; builds and tests were rerun after the correction.
+
+Final validation passes: 45 Map construction tests, 340 tests in the focused
+seven-file cohort, selected SafeJS dependency build closure, 10,625 package tests
+with 41 skipped, and full root lint (9,735 configured files, zero errors/warnings),
+including TypeScript and workflows. Twenty-six final built checks cover root/core
+behavior, job ordering, compiled values, retained data, scan counts, and opaque
+stored properties. Atomic push and publication remain separate from these checks.
+Broader prototype, Symbol/custom-iterator, and borrowed-method gaps are not claimed
+as fixed here.
+
+Separate Set probes confirm rejection of Map and Float32Array inputs, uncharged
+duplicate-value traversal, and collection-capacity checks after the generator's
+later body has already run. Set also reports only 4,026 data units while three
+2,000-character values coexist, incorrectly passing a 5,000-unit limit. These
+validated Set defects are the next independent repair.

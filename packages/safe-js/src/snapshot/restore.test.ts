@@ -54,6 +54,26 @@ function withObjectPrototypeProperties<T>(
 }
 
 describe("snapshot restore", () => {
+  it("counts registered retained roots once during restoration", () => {
+    const source = "await task()";
+    const snapshot = serialize({
+      source,
+      currentAstNodeId: getNodeIdByType(parseModule(source), "AwaitExpression"),
+      scopeChain: [{ id: "module", bindings: {} }],
+      callStack: [], pendingPromises: [], moduleBindings: {}
+    });
+    const budget = new Budget({ dataSize: 500 });
+    const owner = {};
+    budget.setRetainedValues(owner, () => ["x".repeat(300)]);
+    try {
+      expect(restore(snapshot, { source, budget }).currentNode.type).toBe("AwaitExpression");
+      expect(budget.peakDataSize).toBeGreaterThanOrEqual(300);
+      expect(budget.peakDataSize).toBeLessThanOrEqual(500);
+    } finally {
+      budget.setRetainedValues(owner, undefined);
+    }
+  });
+
   it("does not reinterpret ordinary records with a date kind as Date heap nodes", () => {
     const source = "await task()";
     const descriptor = { kind: "date", time: "application metadata" };

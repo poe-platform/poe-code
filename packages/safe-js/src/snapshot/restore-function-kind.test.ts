@@ -43,6 +43,20 @@ function fixture(declaration: string, nodeType: ParseResult["type"], bindings = 
 }
 
 describe("restored function execution kind", () => {
+  it.each(["", "async "])("counts registered retained roots once when a restored function completes: %s", async (prefix) => {
+    const { budget, target } = fixture(`${prefix}function target(){return 7}`, "FunctionDeclaration");
+    const owner = {};
+    budget.setRetainedValues(owner, () => ["x".repeat(300)]);
+    try {
+      const result = target.call([]);
+      expect(await (isSandboxPromise(result) ? result.promise : result)).toBe(7);
+      expect(budget.peakDataSize).toBeGreaterThanOrEqual(300);
+      expect(budget.peakDataSize).toBeLessThanOrEqual(500);
+    } finally {
+      budget.setRetainedValues(owner, undefined);
+    }
+  });
+
   it.each(["", "async "])("coerces restored computed parameter keys: %s", async (prefix) => {
     const { target } = fixture(
       `${prefix}function target({ [{ toString() { return "x"; } }]: value }) { return value; }`,

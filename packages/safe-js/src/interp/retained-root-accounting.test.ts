@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { Budget, createRealm } from "../core.js";
+import { Budget, createRealm, run } from "../core.js";
 import { parse } from "../parse.js";
 import { interpret } from "./interpreter.js";
 
@@ -22,6 +22,27 @@ describe("interpreter retained-root accounting", () => {
     }
   });
 
+  it.each([
+    "return 7",
+    "function value(){return 7}return value()",
+    "async function value(){return 7}return await value()"
+  ])("counts registered roots once when a public run completes: %s", async (source) => {
+    const budget = new Budget({ dataSize: 3500 });
+    const owner = {};
+    try {
+      expect(await run(`retain();${source}`, {
+        budget,
+        bindings: {
+          retain: () => { budget.setRetainedValues(owner, () => ["x".repeat(2000)]); }
+        }
+      })).toMatchObject({ ok: true, returnValue: 7 });
+      expect(budget.peakDataSize).toBeGreaterThanOrEqual(2000);
+      expect(budget.peakDataSize).toBeLessThanOrEqual(3500);
+    } finally {
+      budget.setRetainedValues(owner, undefined);
+    }
+  });
+
   it("still rejects a single retained root above the limit", async () => {
     const budget = new Budget({ dataSize: 99 });
     const owner = {};
@@ -31,6 +52,26 @@ describe("interpreter retained-root accounting", () => {
         .rejects.toMatchObject({ code: "budgetExceeded", budget: "dataSize", current: 100, limit: 99 });
     } finally {
       budget.setRetainedValues(owner, undefined);
+    }
+  });
+
+  it.each([
+    "return (()=>7)()",
+    "function value(){return 7}return value()",
+    "async function value(){return 7}return await value()",
+    "return Number({valueOf(){return 7}})"
+  ])("counts registered roots once when a guest closure completes: %s", async (source) => {
+    const budget = new Budget({ dataSize: 500 });
+    const realm = createRealm({ budget });
+    const owner = {};
+    budget.setRetainedValues(owner, () => ["x".repeat(300)]);
+    try {
+      expect(await realm.evaluate(source)).toMatchObject({ ok: true, returnValue: 7 });
+      expect(budget.peakDataSize).toBeGreaterThanOrEqual(300);
+      expect(budget.peakDataSize).toBeLessThanOrEqual(500);
+    } finally {
+      budget.setRetainedValues(owner, undefined);
+      await realm.close();
     }
   });
 });

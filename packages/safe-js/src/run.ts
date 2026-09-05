@@ -496,8 +496,7 @@ export function run(source: string, options: RunOptions = {}): Promise<RunResult
             budget,
             [
               ...Object.values(result.snapshot.bindings),
-              ...(result.ok && "returnValue" in result ? [result.returnValue] : []),
-              ...budget.retainedValues()
+              ...(result.ok && "returnValue" in result ? [result.returnValue] : [])
             ],
             compilation
           );

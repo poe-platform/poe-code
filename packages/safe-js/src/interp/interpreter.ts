@@ -4,7 +4,7 @@ import { toPropertyKey } from "./property-key.js";
 import { assertPromiseExecutionAllowed } from "./promise-tracker.js";
 import { SandboxJobQueue, runAsyncPrefix, suspendJob } from "./jobs.js";
 import { withCancellationSignal } from "./cancel.js";
-import { runResources } from "./resources.js";
+import { retainValues } from "./resources.js";
 import type {
   ArrayExpression,
   ArrayPattern,
@@ -2651,21 +2651,6 @@ async function evaluateMemberAccess(
   } finally {
     release();
   }
-}
-
-function retainValues(
-  budget: Budget,
-  values: () => Iterable<unknown>
-): () => void {
-  const retained = {};
-  budget.setRetainedValues(retained, values);
-  const pending = runResources.getStore()?.referenceReleases;
-  const release = () => {
-    budget.setRetainedValues(retained, undefined);
-    pending?.delete(release);
-  };
-  pending?.add(release);
-  return release;
 }
 
 async function evaluateMemberProperty(

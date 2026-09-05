@@ -13,6 +13,7 @@ import {
   isGuestClosure
 } from "./object-model.js";
 import { getRegexMember } from "./methods/regex.js";
+import { retainValues } from "./resources.js";
 import {
   isSandboxClosure,
   isSandboxPromise,
@@ -153,9 +154,10 @@ async function defaultToString(
     }
     if (joining.has(value)) return "";
     joining.add(value);
+    let text = "";
+    const release = retainValues(budget, () => [text]);
     try {
       const length = isFloat32Array(value) ? float32Storage(value).length : value.length;
-      let text = "";
       for (let index = 0; index < length; index++) {
         budget.visitNode();
         const element = ownDataValue(value, String(index));
@@ -167,6 +169,7 @@ async function defaultToString(
       }
       return text;
     } finally {
+      release();
       joining.delete(value);
     }
   }
@@ -174,10 +177,15 @@ async function defaultToString(
     const nameValue = ownDataValue(value, "name");
     const name =
       nameValue === undefined ? "Error" : await sandboxString(nameValue, budget, context, joining);
-    const messageValue = ownDataValue(value, "message");
-    const message =
-      messageValue === undefined ? "" : await sandboxString(messageValue, budget, context, joining);
-    return name === "" ? message : message === "" ? name : `${name}: ${message}`;
+    const release = retainValues(budget, () => [name]);
+    try {
+      const messageValue = ownDataValue(value, "message");
+      const message =
+        messageValue === undefined ? "" : await sandboxString(messageValue, budget, context, joining);
+      return name === "" ? message : message === "" ? name : `${name}: ${message}`;
+    } finally {
+      release();
+    }
   }
   return isSandboxPromise(value) ? "[object Promise]" : "[object Object]";
 }

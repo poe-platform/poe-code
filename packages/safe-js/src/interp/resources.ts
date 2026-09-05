@@ -1,4 +1,5 @@
 import { AsyncLocalStorage } from "node:async_hooks";
+import type { Budget } from "./budget.js";
 
 export type RunResources = {
   signal: AbortSignal;
@@ -8,6 +9,21 @@ export type RunResources = {
 };
 
 export const runResources = new AsyncLocalStorage<RunResources>();
+
+export function retainValues(
+  budget: Budget,
+  values: () => Iterable<unknown>
+): () => void {
+  const retained = {};
+  budget.setRetainedValues(retained, values);
+  const pending = runResources.getStore()?.referenceReleases;
+  const release = () => {
+    budget.setRetainedValues(retained, undefined);
+    pending?.delete(release);
+  };
+  pending?.add(release);
+  return release;
+}
 
 export async function withRunResources<Result>(
   signal: AbortSignal | undefined,

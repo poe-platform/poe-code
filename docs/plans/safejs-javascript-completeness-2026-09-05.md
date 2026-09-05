@@ -2228,7 +2228,7 @@ at 11:17:31 UTC on September 5. Its remote tag independently resolves to
 b2e90f90. Intermediate retention is now delivered and released through both
 publication routes.
 
-### 41. Generator context inside template substitutions — qualified; delivery pending
+### 41. Generator context inside template substitutions — delivered and released
 
 The new lifecycle matrix exposed eight failures before runtime: yield inside
 ordinary and tagged template substitutions is rejected as outside a generator.
@@ -2306,6 +2306,17 @@ and all 163 agent-harness consumer tests. Maintained root lint completes all
 No source/build changes occurred during that final lint gate. This qualifies the
 parser-context change, including the required parameter-boundary guard, for its
 own commit and push; unrelated staged Safe Bash changes remain unchanged.
+Committed and independently verified on remote main as
+c9b2457e1b0db1fe2cd7bb1601247be52f0bef0b. Close the parser-context finding at
+delivery. Scoped run 33963669685 and CLI run 33963669839 are monitored
+independently; neither is yet a publication receipt. Start section 42's focused
+coercion regressions while releases run instead of waiting idle.
+Scoped run 33963669685/job 101299848983 published
+@poe-platform/safe-js 0.1.127 at 11:38:10 UTC on September 5. CLI publication is
+still monitored separately.
+CLI run 33963669839/job 101300966831 published poe-code 14.0.60 at 11:45:20 UTC
+on September 5. The remote tag independently resolves to c9b2457e1. Both
+publication routes are verified for the parser-context fix.
 
 ### 42. Ordinary template substitution coercion — validated open semantic gap
 
@@ -2333,6 +2344,42 @@ passing controls. An initial object-shaped error comparison differed only in
 host/sandbox prototypes; comparing error.name confirms matching TypeError, not
 a runtime defect. Function display is independently unsupported as section 43
 records; merely wiring the helper into templates does not fix that broader gap.
+After the parser fix reached remote main, the focused template-coercion TDD
+cohort reproduces 13 failures with 71 passing controls, including the delivered
+generator-template and intermediate-retention suites. No coercion runtime fix
+has been applied or pushed yet.
+The expanded semantic matrix adds async-prefix/fallback, non-primitive failure,
+thrown identity and coercion-before-next-expression cases. Reuse sandboxString
+with the existing coercion context; preserve the synchronous primitive path
+instead of adding a new await for every template value. Tagged substitutions
+are unchanged. Five phase-isolated budget checks expose three missing current-
+input roots through Array and Error coercion. Retain the current input alongside
+the prefix, then clear it as soon as conversion completes, before the next
+substitution. Low-budget failures remain fatal and raised-budget controls reach
+the allocation marker. No shared string-helper behavior is changed.
+
+The final five-file cohort passes 165 checks, including 35 template tests,
+existing receiver/intermediate retention and snapshots. Async hooks are not
+adopted, generator hooks remain lazy, sent generator values coerce correctly
+after a verified suspended-template checkpoint, and realm evaluations release
+their roots. Two initial post-error cleanup probes exceeded their quota even
+without a preceding template; no large retained input remained after catch.
+Replace their length-access probe with a pure allocation marker to isolate
+cleanup rather than treating that fixture assumption as a runtime defect.
+
+Manual QA: build and execute the schema-only pair
+`/tmp/poe-safejs-template-coercion.IqBShC/template-coercion.md` with its adjacent
+.ajs, zero capabilities and zero spawns. Inspect the screenshot; assert guest
+string/value fallback order, RegExp/Map text and tagged input identity. Validate
+built public entrypoints and recovery, then maintained package and root lint
+routes against the final source before this change's own commit/push.
+A deeper validation found a shared-helper prerequisite (section 44): freshly
+coerced array prefixes and Error names are unaccounted for during the next hook,
+even with explicit String. Keep its delivery separate. Temporarily restore only
+this uncommitted template runtime patch, and hold the 35-case template test file
+at `/tmp/poe-safejs-template-coercion.IqBShC/template-coercion.test.ts` while the
+shared lifetime fix is delivered. Reapply the template wiring/input root and
+restore that file afterward; the template issue remains open, not abandoned.
 
 ### 43. Function stringification — validated open built-in gap
 
@@ -2347,3 +2394,74 @@ This is distinct from ordinary template coercion: explicit String already
 fails too. Validate source metadata, overrides, bound/builtin functions,
 budgets, realms and snapshot/replay before its own implementation and delivery.
 Do not expose host implementation source or add native eval as a workaround.
+
+### 44. Converted string-prefix retention — qualified; delivery pending
+
+Built low/high-budget probes show both explicit String and the candidate template
+path lose newly produced array-prefix and Error-name strings. A first hook
+returns 2,000 characters; the next allocates 5,000 and throws a catchable marker.
+At dataSize 6,000 the marker incorrectly escapes, as it does at 14,000. The raw
+input objects contain hooks rather than the produced text, so retaining only
+the input cannot fix this lifetime.
+
+The initial TDD matrix reports five failures and one control. Four are confirmed
+retention failures (flat/nested arrays, Error names and property-key conversion).
+The concat case instead raises TypeError before the allocator; it is not a
+memory finding and is separated into section 45. Retain accumulated array text
+and a converted Error name until message conversion completes. Move the existing
+synchronous retainValues implementation unchanged into the resource module so
+both interpreter and conversion helpers use the same disposal-owned registration.
+Do not add an async wrapper, cancellation listener or public cleanup slot.
+
+Low-budget failures, raised-budget controls, empty-prefix controls and continuation
+after caught failures are covered. The template-wiring patch and its tests are
+held out of this commit so this shared lifetime correction remains atomic.
+Manual QA: run the schema-only string-retention.md/.ajs pair in the same temporary
+directory, assert length 2,005 and Named: value with zero spawns, and inspect its
+screenshot. Validate a 6,000-unit rejection with a temporary failure snapshot,
+built entrypoints/checkpoint recovery and the broader maintained checks before
+committing and pushing this prerequisite separately.
+The nine-file cohort passes 264 tests. The normal maintained build and the
+schema-only CLI pair pass after 70 uncached predev builds; the inspected
+screenshot shows length 2,005, Named: value and zero spawns. The same built CLI
+rejects dataSize 6,000 with usage 7,816 and exit 1, using an explicit temporary
+failure snapshot path. Public root/core pass eight low-budget rejections and
+eight raised-budget checkpoint recoveries without repeating completed effects;
+both paths release retained roots. Full maintained npm test is running because
+the shared resource registration is touched. Its required build phase is complete;
+freeze source/build outputs before maintained root lint.
+Maintained root lint passes all 9,762 configured files with no errors or warnings,
+followed by types and workflow checks. Additional built controls pass 13 native
+result/order/cyclic-array comparisons and two checkpoints captured at a verified
+generator yield inside array/Error coercion. Twenty persistent-realm cleanup
+cycles and twenty fatal-budget reset/reuse cycles pass. Number and RegExp input
+conversion also reject at 6,000 and reach the marker at 14,000. parseInt rejects
+before invoking the hook at either quota; that is its separately recorded input
+coercion limitation, not evidence of a memory-retention failure.
+Full maintained npm test finishes with exit zero: shared unit stage 32,145 passed
+and 43 skipped; Python 29 passed; native runner prechecks 279 passed; native Bash
+19,981 passed and 63 skipped; terminal-pilot 288 passed; root posttest lint-stress
+two passed. The declaration-derived receipt records 71 workspaces, two required
+builds and 40 declared test tasks, uncached, with no exclusions; workspaces without
+declared tests are explicitly not counted as passes. git diff --check passes.
+The user-staged Safe Bash patch checksum remains unchanged. Commit and push only
+the five prerequisite files, then close this finding upon verified remote-main
+delivery and monitor its actual publications separately.
+
+### 45. String concat argument coercion — validated open semantic gap
+
+The attempted retention probe `''.concat([{toString:first},{toString:last}])`
+raises Cannot convert object to primitive value instead of reaching the marker.
+It therefore does not prove missing prefix retention. Validate native behavior,
+argument conversion order, error propagation and existing concat implementation
+before any change; do not silently fold it into the shared-helper lifetime fix.
+Seven subsequent built/native comparisons reproduce six semantic failures:
+guest toString, string-hint valueOf fallback, left-to-right hook order, thrown
+object identity, plain-object display and RegExp/Map display. Primitive/null/
+undefined/ordinary-array concatenation is the passing control. The current
+implementation applies host String to each sandbox argument. ECMAScript 2026
+section 22.1.3.5 requires ordered ToString conversion and propagation of abrupt
+completion, confirming these are genuine gaps independently of the native
+comparison. Source:
+`https://tc39.es/ecma262/2026/multipage/text-processing.html#sec-string.prototype.concat`.
+No concat runtime change is included in the shared-prefix retention delivery.

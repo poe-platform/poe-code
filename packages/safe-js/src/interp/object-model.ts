@@ -106,6 +106,10 @@ export function getSandboxPrototype(value: object, budget?: Budget): object | nu
     : null;
 }
 
+export function hasExplicitSandboxPrototype(value: object): boolean {
+  return prototypes.has(value);
+}
+
 export function getSandboxDataProperty(
   value: SandboxValue,
   key: string | number,

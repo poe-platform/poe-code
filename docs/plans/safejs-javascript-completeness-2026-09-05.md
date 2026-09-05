@@ -198,8 +198,9 @@ Full root lint passed: 9,712 configured files linted, zero errors or warnings,
 plus root TypeScript and workflow checks. Committed and verified on remote
 main as `f4a63397fc13365b696f03284be03ae868cf2782`. Scoped workflow
 `33940132473` and publisher job `101235786601` succeeded: SafeJS 0.1.88
-published September 5, 2026, 02:53:11 UTC. CLI workflow `33940132599` is
-still running; its publication is not claimed.
+published September 5, 2026, 02:53:11 UTC. CLI workflow `33940132599` and
+publisher job `101236999980` succeeded: `poe-code@14.0.41` published to
+latest September 5, 2026, 03:00:11 UTC, including both internal restore fixes.
 
 Reachability correction: these two recovery fixes affect the maintained
 internal `snapshot/restore.ts` reconstruction path. Public `run`/`restore`
@@ -208,7 +209,7 @@ to public replay behavior or prerequisites for public computed-key coercion.
 Further internal reconstruction gaps are lower priority than reproduced public
 language gaps.
 
-### 5. Computed property coercion — validated, delivery pending
+### 5. Computed property coercion — delivered, scoped release complete
 
 With `const key = { toString() { return "x"; } }; const object = { x: 7 };`,
 native JavaScript accepts each of the following; built SafeJS rejects all seven
@@ -241,8 +242,12 @@ record data is compared without assuming a host Object.prototype; an initial
 strict-prototype smoke assertion was inappropriate for the safe export shape.
 The full maintained SafeJS suite passed 10,252 tests, with 41 skipped. Full
 root lint passed: 9,714 configured files, zero errors or warnings, plus root
-TypeScript and workflow checks. Commit, verified push, and release remain
-pending.
+TypeScript and workflow checks. Committed and verified on remote main as
+`cb782e1ec46aa7000a11c2c2d4985c5352bb643b`. Scoped workflow `33940657073`
+and publisher job `101237302063` succeeded: SafeJS 0.1.89 published
+September 5, 2026, 03:04:47 UTC. CLI workflow `33940657200` and publisher
+job `101238480840` succeeded: `poe-code@14.0.42` published to latest
+September 5, 2026, 03:11:24 UTC.
 
 This integrates the existing sandbox string-conversion model; it does not
 claim complete Symbol support, exotic prototype graphs, callable source
@@ -255,6 +260,43 @@ return `"[object Object]"` instead of their native tags/regex text. Likewise,
 defects. These bounded probes confirm the conversion gaps independently of
 computed-key syntax and make them the next conversion work, not inferred
 limitations.
+
+### 6. Shared string conversion and RegExp display — validated, delivery pending
+
+Initial public regression suite: 32 failures, two passes. Current built code
+confirms skipped inherited hooks, incorrect Map/Set/Generator tags, ignored
+guest-function own hooks, and raw RegExp source/flag display. Cover ordinary
+prototype traversal, explicit null prototypes, shadowing and hook mutation,
+original receivers, guest exceptions, and existing opaque host capabilities.
+Use the same conversion path for explicit String and computed property keys.
+
+RegExp display must retain matching state while exposing escaped source and
+canonical supported flag order. Native controls include empty patterns,
+slashes, escaped slashes/backslashes, line terminators, and character classes.
+The formatter traverses source with step and string-size limits; it does not
+compile or execute a native regex.
+
+The focused cohort passes 196 tests. It includes prior String/error conversion,
+host digest/replay/cancellation, computed keys and `in`, plus the new cases.
+A first replay fixture retained a custom prototype in a root binding, which
+the existing portable format intentionally rejects. Keep an explicit rejection
+test and separately exercise successful completed replay with temporary
+prototype-backed values. Persistent-realm tests retain their prototype state.
+
+The selected workspace build closure passed. Cross-version probes against the
+pre-change build preserve the ordinary-object result; a prior Map conversion
+checkpoint now produces the corrected Map tag during replay. Therefore this
+change does not claim identical results when replaying prior buggy conversion
+semantics. Snapshot portability and runtime-upgrade compatibility remain
+separate inventory concerns; do not mistake corrected pure computation for a
+newly validated replay defect.
+
+Final validation: 16 built root/core entrypoint checks passed. The maintained
+full SafeJS suite passed 10,287 tests, with 41 skipped. Full root lint passed:
+9,715 configured files linted, zero errors or warnings, plus root TypeScript
+and workflow checks. Commit, verified push, and release validation remain
+pending. Callable source text, full exotic prototype graphs, symbols,
+accessors, and implicit-coercion integration remain separate inventory items.
 Additional probes confirm failures in computed parameter/catch bindings,
 method calls, and boolean/null/undefined/array keys. A null-base assignment
 also skips RHS side effects which native JavaScript executes before throwing.
@@ -275,6 +317,22 @@ Built public-entrypoint probes reproduce built-in receiver defects:
 | `"abc".slice.call("xyz", 1)` | `"yz"` | `"bc"` |
 | A map's `get` called with another map | Reads the supplied map | Reads the original map |
 | Detached map `get` called without a receiver | TypeError | Reads the original map |
+
+Additional current-code native comparisons extend that receiver audit:
+
+- `[].map.call({ 0: 7, length: 1 }, value => value * 2)` returns `[]`, not `[14]`.
+- `(1).toFixed.call(2, 1)` returns `"1.0"`, not `"2.0"`.
+- `/a/.test.call(/b/, "b")` returns false, not true.
+- `"abc".slice.call({ toString() { return "xyz"; } }, 1)` returns `"bc"`, not `"yz"`.
+- `[].map === [].map` returns false, not true.
+- `typeof new Map([["x", 7]]).keys().next` is undefined, not `"function"`.
+- Object-literal getters are rejected by the parser; accessor descriptors
+  are rejected by Object.defineProperty. Both bounded native controls return 7.
+
+Receiver selection, generic array-like operations, intrinsic identity, and
+accessor/prototype support are distinct requirements. Do not call the receiver
+work complete merely by accepting a different array receiver while rejecting
+the ordinary array-like object required by native methods.
 
 The internal reconstruction path also loses argument 7 for
 `function target(a) { var a; return a; }`, and for a return preceding `var a`.

@@ -5,6 +5,7 @@ import {
   type SandboxValue
 } from "../values.js";
 import { matchRegex, type RegexMatch } from "../regex/engine.js";
+import type { Budget } from "../budget.js";
 
 export type RegexMethodName = "exec" | "test";
 
@@ -16,11 +17,15 @@ export function isRegexMethodName(property: string | number): property is RegexM
 
 export function getRegexMember(
   target: SandboxRegex,
-  property: string | number
+  property: string | number,
+  budget?: Budget
 ): SandboxValue | undefined {
-  if (property === "source" || property === "flags" || property === "lastIndex") {
-    return target[property];
+  if (property === "source") return escapeRegexSource(target.source, budget);
+  if (property === "flags") {
+    const flags = [..."gims"].filter((flag) => target.flags.includes(flag)).join("");
+    return budget === undefined ? flags : budget.allocateString(flags);
   }
+  if (property === "lastIndex") return target.lastIndex;
   if (!isRegexMethodName(property)) {
     return undefined;
   }
@@ -29,6 +34,40 @@ export function getRegexMember(
     name: `RegExp#${property}`,
     call: (args) => callRegexMethod(target, property, args)
   });
+}
+
+function escapeRegexSource(source: string, budget?: Budget): string {
+  let text = "";
+  let escaped = false;
+  let inClass = false;
+  for (const character of source) {
+    budget?.visitNode();
+    if (
+      character === "\n" ||
+      character === "\r" ||
+      character === "\u2028" ||
+      character === "\u2029"
+    ) {
+      if (escaped) text = text.slice(0, -1);
+      text +=
+        character === "\n"
+          ? "\\n"
+          : character === "\r"
+            ? "\\r"
+            : character === "\u2028"
+              ? "\\u2028"
+              : "\\u2029";
+      escaped = false;
+    } else {
+      if (!escaped && character === "[") inClass = true;
+      if (!escaped && character === "]") inClass = false;
+      text += character === "/" && !escaped && !inClass ? "\\/" : character;
+      escaped = character === "\\" && !escaped;
+    }
+    budget?.allocateString(text);
+  }
+  text = text === "" ? "(?:)" : text;
+  return budget === undefined ? text : budget.allocateString(text);
 }
 
 export function setRegexMember(

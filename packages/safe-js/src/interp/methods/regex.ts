@@ -16,6 +16,10 @@ import { sandboxNumber, sandboxString } from "../string-coercion.js";
 export type RegexMethodName = "exec" | "test";
 
 const regexMethodNames = new Set<RegexMethodName>(["exec", "test"]);
+const regexFlagProperties: Readonly<Record<string, string>> = {
+  hasIndices: "d", global: "g", ignoreCase: "i", multiline: "m",
+  dotAll: "s", unicode: "u", unicodeSets: "v", sticky: "y"
+};
 
 export function isRegexMethodName(property: string | number): property is RegexMethodName {
   return typeof property === "string" && regexMethodNames.has(property as RegexMethodName);
@@ -32,6 +36,7 @@ export function getRegexMember(
     return budget === undefined ? flags : budget.allocateString(flags);
   }
   if (property === "lastIndex") return target.lastIndex;
+  if (Object.hasOwn(regexFlagProperties, property)) return target.flags.includes(regexFlagProperties[property]);
   if (!isRegexMethodName(property)) {
     return undefined;
   }

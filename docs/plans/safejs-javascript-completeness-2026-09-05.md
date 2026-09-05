@@ -1782,10 +1782,12 @@ true. Its constructor is undefined instead of RegExp. RegExp.length is undefined
 instead of 2, and RegExp.prototype is absent. Defining a regex's own constructor
 also throws, whereas native allows it and makes RegExp(pattern) clone. This
 intrinsic/object-model work remains distinct from supported constructor inputs.
+The separate flag reads/existence repair is described in section 36; prototype
+and constructor reflection here remain open.
 RegExp.escape was undefined in both this Node runtime and SafeJS: that probe is
 not evidence of a native-parity failure.
 
-### 35. RegExp lastIndex storage and deferred coercion — fixed; delivery pending
+### 35. RegExp lastIndex storage and deferred coercion — delivered; release monitored
 
 Native lastIndex assignment stores an object unchanged without invoking its
 valueOf; execution coerces that cursor later. SafeJS calls host Number during
@@ -1849,6 +1851,14 @@ or warnings, followed by types and workflows. The cursor repair is qualified
 for its own atomic commit/push; remote delivery and publication remain separate
 receipts. The unrelated staged Safe Bash patch hash remains unchanged.
 
+Committed and pushed 6d523173db34fb2142f4c3847cc649849ee5cf03; remote main
+independently resolves to that exact SHA. Close the cursor finding at verified
+delivery. Publication is being monitored while flag-property work proceeds.
+
+Scoped run 33958730407/job 101286685090 published SafeJS 0.1.121 at 09:46:47 UTC
+on September 5. The CLI run 33958730542 remains in validation; scoped publication
+is not a claim that the CLI version has shipped.
+
 ### 36. RegExp flag reads and further object/engine gaps — validated open
 
 Across all 16 supported g/i/m/s flag combinations, the eight native boolean
@@ -1863,3 +1873,39 @@ groups are rejected during parsing, /a/.toString() throws instead of returning
 the slash-delimited source, and deleting inherited global throws instead of
 returning true. RegExp own-property reflection also rejects the receiver.
 Record these as open work, not as functionality delivered by cursor support.
+
+The flag-read unit matrix reproduces 16 failures with 16 passing controls.
+Map the standard property names to their flag characters in getRegexMember;
+existing existence checks then see both true and false values, while assignment
+and own-property/enumeration rules remain unchanged. The focused cohort passes
+362 tests across flag reads, cursor behavior and cursor graph/replay boundaries.
+This small read/existence repair does not implement prototype descriptors,
+deletion, toString, named groups or unsupported matching flags. Run maintained
+build/package/CLI screenshot/root lint gates for its own atomic delivery.
+
+The selected build passes 23 workspaces and four native ESM import checks. The
+full SafeJS package passes 12,056 tests with 41 skips. Built root/core pass 32
+native comparisons and two completed-effect replay checks without repeating the
+effect. The real schema-only pair passes after 70 uncached builds with zero
+spawns; its inspected screenshot shows gims, enabled/disabled flag groups,
+inherited existence and read-only assignment. Freeze source/build outputs for
+the final maintained root lint gate.
+
+Final maintained root lint passed all 9,757 configured files with zero errors
+or warnings, followed by types and workflows. Flag reads/existence are qualified
+for their own commit/push. Other object/engine gaps in this section remain open.
+
+### 37. Converted matching input retention — validated open budget gap
+
+After input coercion produces a 4,000-character nonmatching string, a cursor
+valueOf hook allocates another 4,000-character temporary. With dataSize 6,000,
+exec, borrowed match, matchAll and replace incorrectly complete; test correctly
+rejects. All five pass with dataSize 14,000. Use nonmatching input to avoid
+confounding matchAll's eager output allocation with cursor-time admission.
+The live converted input must survive cursor hooks even when it is not retained
+by the original argument/receiver. Prioritize this separate follow-up over the
+toString method gap; do not bundle it into the completed flag-read repair.
+
+Further toString probes reproduce ordinary and borrowed calls, inherited source
+and flags, and source conversion that changes flags. String(regex) and the
+Object.prototype.toString RegExp tag already pass and remain controls.

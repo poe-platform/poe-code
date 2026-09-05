@@ -93,9 +93,14 @@ export async function openCommandFile(context: FileOutputContext & { readonly cl
     if (descriptor.capabilities.readObservation === true && typeof probeRead !== "function") throw new FsError("ENOTSUP", { syscall: "probeRead", path });
     const admitted = Object.freeze({ ...descriptor.capabilities,
       positionedRead: descriptor.capabilities.positionedRead && request.access !== "write",
-      positionedWrite: descriptor.capabilities.positionedWrite && request.access !== "read" && !request.append,
+      positionedWrite: descriptor.capabilities.positionedWrite && request.access !== "read"
+        && (!request.append || descriptor.capabilities.positionedAppendWrite === true),
       truncate: descriptor.capabilities.truncate && request.access !== "read",
       ...(descriptor.capabilities.position === undefined ? {} : { position }),
+      ...(descriptor.capabilities.positionedAppendWrite === undefined ? {} : {
+        positionedAppendWrite: descriptor.capabilities.positionedAppendWrite === true
+          && descriptor.capabilities.positionedWrite && request.access !== "read",
+      }),
     });
     check();
     if (!accepting) throw new FsError("EBADF", { syscall: "open", path });

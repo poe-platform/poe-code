@@ -62,10 +62,14 @@ Invalid offsets use EINVAL; numeric positioning on a nonseekable descriptor uses
 ESPIPE. Providers must admit resulting cursor/extent arithmetic and storage
 growth against their own bounds before effects; this API does not remove quotas.
 
-Append descriptors accept only null write positions; explicit positions use
-EINVAL rather than platform-dependent silent offset ignoring. Each append write
-must use the provider's genuine append operation. This is not a promise that
-multiple writes or a read/write sequence form a transaction.
+Append descriptors normally accept only null write positions; explicit positions
+use EINVAL rather than platform-dependent silent offset ignoring. A provider
+may explicitly advertise `positionedAppendWrite: true` when positioned writes
+remain supported on an append-open handle. Such writes must preserve the supplied
+absolute offset and must not advance the sequential cursor or silently become
+append writes. Null-position writes still use the provider's genuine append
+operation. This is not a promise that multiple writes or a read/write sequence
+form a transaction. No existing provider gains this capability automatically.
 
 Callers must not mutate, resize, detach or reuse borrowed buffers until their
 operation settles. Providers must copy any data they retain past settlement.
@@ -88,8 +92,11 @@ Storage synchronization invokes the backing store's operation and retains its
 platform/filesystem limits; it is not a universal hardware durability guarantee.
 
 Descriptor capabilities are immutable snapshots. Positioned capabilities are
-masked by the acquired access mode; append disables positionedWrite, and read
-access disables truncate. Runtime provider errors still remain possible.
+masked by the acquired access mode; append disables positionedWrite unless
+positionedAppendWrite is affirmatively supported. The optional flag is itself
+masked by base positionedWrite support and writable access; false/omitted
+cannot grant support, and omission remains omitted. Read access disables
+truncate. Runtime provider errors still remain possible.
 Wrong access mode uses EBADF; unavailable truncation/synchronization uses ENOTSUP.
 
 ## Lifecycle helper

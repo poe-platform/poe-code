@@ -1847,6 +1847,161 @@ this request to keep additions out of the default package.
   nineteen watched candidates (`/tmp/provider-observation-clean-lint-root-jVmOgN/`).
   The initial lint failure and original test bytes remain preserved. No
   production source, behavioral assertion or native reference changed for style.
+- The descriptor-observation bridge is locally committed as
+  `d6240959b6c6834cd5e3e40c02f2de58ee63a542`. Root verifies all twenty committed
+  paths and content hashes (`/tmp/provider-observation-commit-root-TZB45P/`).
+  This completed goal turn is progress, not a push, release or full-goal finish.
+- The next generic descriptor increment adds optional
+  `positionedAppendWrite: true` for providers that actually support positioned
+  writes on append-open handles. It preserves the supplied offset and separate
+  sequential cursor; it does not model Linux's append override. False/omitted
+  retains existing EINVAL behavior and masks positionedWrite on append handles.
+  The affirmative flag cannot promote missing base support or readonly access.
+  Existing memory/real providers are not enabled automatically. This capability
+  is required by the measured Darwin device behavior, not pathname inference.
+- The filesystem author reproduces 55 failures and 18 controls before the
+  implementation, then passes all 73 new tests and 395 retained descriptor
+  cases, with actual package and test strict checks clean. Independent review
+  follows. The command-helper author separately reproduces three capability
+  masking failures among 77 controls. Root corrects that new suite's initial
+  raw-flag expectation: effective flag metadata must also reflect base support
+  and access mode, consistently with the filesystem constructor.
+- The compiled public append-capability boundary starts at 6/16 passing with
+  ten genuine missing-capability failures, zero skips/cancellations and no
+  measured bundle drift (`/tmp/append-position-public-red-root-BjEYMI/`). This
+  is before public bundle rebuilding and is distinct from source qualification.
+- Readonly-indexed qualification independently reproduces all 24 pinned native
+  mismatches and the two read integration cases, while six new default-isolation
+  controls pass (`/tmp/readonly-indexed-checkpoint-4PNBaJ/`). Root authorizes
+  captured `indexedDeclarations: ["readonly"]` syntax metadata explicitly
+  declared by arraysExtension, not inferred from its name or arrayKeys.
+  Default grammar and dispatch must remain unchanged. The read descriptor-order
+  test host must explicitly compose arraysExtension for its readonly-array
+  cases; its programs, assertions and native reference bytes remain unchanged.
+
+- Independent append-capability review withholds approval after reproducing a
+  selected capability getter that aborts with `false` during acquisition but
+  still publishes a live descriptor. Its 31 new cases have 30 passes and one
+  failure; the author's 73 remain green. Strict checks are clean, so this is a
+  product defect, not a type or fixture failure. Preserve
+  `/tmp/safe-fs-append-position-independent-KX9fwO/summary.json` and the original
+  reviewer test. Root authorizes a post-materialization admission/cleanup repair
+  and requires independent replay before accepting this shared prerequisite.
+- The separately bounded Darwin device sync/empty-operation capture
+  `/tmp/device-sync-zero-profile.LyFRyx/freeze.json` records 135 observations.
+  Random/urandom synchronous opens and synchronization succeed. Empty reads
+  succeed with readable access; wrong-access empty reads/writes return EBADF.
+  Empty writable null/zero/random writes return zero, but an empty writable
+  urandom write returns EPERM. All observed cursors remain unchanged and all
+  twelve descriptors close. This exposes another canonical helper gap: its
+  unconditional empty-write fast path masks the measured urandom error.
+- Root approves the next optional capability design,
+  `delegateZeroLengthWrite?: boolean`: true delegates an empty write after the
+  existing access/position checks through the same serialized, drained backend
+  operation; its accepted byte count must still be zero. False/omitted preserves
+  the current fast path, omission remains omitted, and read-only access masks
+  the flag false. Empty reads and nonempty writes are unchanged. No provider is
+  automatically enabled. This is a TDD assignment, not implemented support or a
+  completed device profile; the append repair is reviewed before source work
+  starts on this separate prerequisite.
+
+- The append helper's strengthened effective-mask suite reproduces nine failures
+  among 77 cases before its repair, then passes all 77. Its retained thirteen-file
+  cohort passes 543/543, with fifteen strict roots clean. The output wrapper is
+  unchanged; these runs use structural public descriptors and do not certify the
+  then-stale public filesystem JavaScript. Evidence is
+  `/tmp/safe-bash-append-position-effective-4dAZD9/receipt-final.json`.
+- The filesystem author retains the independent selected-getter red, adds two
+  constructor-method getter cancellation regressions, and reproduces 103 passes
+  plus three failures before repair. Checks after capability and method capture
+  restore 106/106 focused and 428/428 retained cases; independent rereview is
+  required. No empty-write capability has been implemented in this increment.
+- Root's compiled readonly test preserves and replays all 24 primary5.3 records
+  with their exact statuses and stdout/stderr bytes, plus three default/name-only/
+  arrayKeys-only isolation controls. The existing public bundle passes three and
+  fails 24 with no skips, cancellations or measured drift
+  (`/tmp/readonly-public-red-root-9fkdVn/`). The initial outer capture
+  `/tmp/readonly-public-red-root-in9nVY/` fails before launch because it guessed
+  a nonexistent safe-js/safe-bash bundle path; it is a harness admission failure,
+  not a product test result. Corrected admission uses the actual package export.
+
+- Independent rereview approves the append repair: 352/352 across thirteen
+  filesystem descriptor files, including the unchanged 31-case reviewer suite
+  and 75 author cases; package and scoped strict checks are clean. The separate
+  command-helper review passes 193/193, including seventeen independent cases,
+  with strict checks clean. Both source freezes remain unchanged. Receipts:
+  `/tmp/safe-fs-append-position-rereview-MOGgCw/summary.json` and
+  `/tmp/safe-bash-append-helper-independent-Y20wG7/summary.json`.
+- Maintained `npm run build` succeeds and refreshes the actual public filesystem
+  bundles, unlike the earlier types-only selected build. Root's compiled
+  append/provider/observer/default cohort passes 87/87 with 458 measured test and
+  generated-JavaScript inputs unchanged (`/tmp/append-public-green-root-mjdOjk/`).
+  The new public append suite therefore improves from 6/16 to 16/16. Its actual
+  public declaration-consumer strict check has zero diagnostics. Literal
+  discovery, including all three new append tests, passes 98/98.
+- Compiled inventory checks retain 79 default and exactly 28 browser commands,
+  working date, no automatic curl or new tools, and no optional factory exports
+  (`/tmp/append-default-inventory-root-1Egpww/`). Root views the actual public
+  descriptor/Shell output in `/tmp/append-public-visual-root-rcrMOp/append.png`:
+  positioned writes preserve cursor 7, sequential writing advances to 8, cleanup
+  runs once, memory append still refuses explicit offsets, and an unmounted
+  urandom remains absent. This injected memory-only provider is not native
+  device qualification. The ongoing readonly source was not frozen by this
+  build; its public acceptance still needs a coherent later rebuild.
+- The next empty-write prerequisite has a frozen 50-case source test with 15
+  passes and 35 failures, no skips, and clean actual-options strict typing
+  (`/tmp/descriptor-zero-write-red.T26B4R/freeze.json`). Preserve the original
+  49-case capture and its disclosed Vitest empty-parameter-row correction. The
+  device owner confirms counted budgets already delegate callbacks and that
+  byte streams do not promise to preserve empty-write events. Root separately
+  requests command-helper effective-metadata TDD before authorizing its change.
+- The readonly author freezes four source files with 24 unchanged native cases
+  and 55 author cases passing, plus the two explicitly composed readonly/read
+  cases. Its unfiltered 1646-case run has 1634 passes and twelve failures: one
+  intentional factory metadata shape addition and eleven device-null failures
+  reproduced unchanged without arrays enabled. Root approves only the additive
+  factory syntax assertion migration in keys.test.ts, preserving its original
+  bytes/red and all behavior assertions. Independent readonly review is pending;
+  none of those eleven device gaps is waived or counted as a pass.
+
+- Guarded append lint finds two prefer-const declarations, one in each new
+  independent review test. Root preserves the exact reviewed originals and
+  proves the changes only merge each declaration into its later assignment
+  (`/tmp/append-review-style-root-NgiRsJ/reconstruction.json`). No assertion,
+  native reference or product source changes. The resulting filesystem 106 and
+  command-helper 94 cases all pass again, with five actual-options strict roots
+  clean and no measured drift (`/tmp/append-post-style-root-Ry0KKa/`). A fresh
+  guarded lint is required; the original two-error result remains preserved.
+- A coherent selected virtual-bash build and optional build both succeed with
+  the four readonly source hashes unchanged. Compiled readonly27 now passes,
+  and its combined optional/mapfile/default cohort passes 101/101 with 458
+  measured generated/test inputs unchanged
+  (`/tmp/readonly-public-green-root-TKEdo6/`). Independent review remains open;
+  this is not full readonly/array or device acceptance.
+- Empty-write command-helper TDD passes 89 of 90 cases, exposing one effective
+  read-only metadata masking defect without requiring a budget/output-wrapper
+  repair (`/tmp/safe-bash-zero-write-red-ZTCerj/receipt.json`). Root's compiled
+  public18 starts at six passes and twelve failures, with zero skips/cancellations
+  and 151 measured inputs stable (`/tmp/zero-write-public-red-root-LJ7LFw/`).
+  Four cases directly expose swallowed empty-write EPERM; other failures expose
+  missing capability metadata. These are preserved future-prerequisite reds,
+  not part of the passing append increment.
+
+- Fresh guarded append lint succeeds: zero errors/warnings, 9939 configured and
+  linted files, 25 receipts, and no drift among the ten watched append candidates
+  (`/tmp/append-clean-lint-root-20PFIL/`). The append prerequisite is ready for
+  its separate local commit; this does not certify unfinished readonly, empty
+  writes, device descriptors, remaining tools or jobs.
+- Independent readonly review correctly withholds approval despite the passing
+  original/source/public cohorts. Its 26 cases have 22 passes and four failures:
+  direct readonly compound redeclaration and append wrongly continue execution;
+  an already readonly scalar wrongly becomes indexed; and local-array shadow
+  refusal loses the `local:` diagnostic prefix. Quoted compound operands must
+  retain their distinct nonfatal behavior. Primary24 plus author55 still pass,
+  for 101/105 overall, with strict diagnostics zero and unchanged source/reference
+  hashes (`/tmp/readonly-indexed-independent-Ulcs6X/final-report.json`). Root
+  assigns the evidence-backed repairs to the readonly source owner. The original
+  four failures and separately recorded harness corrections remain preserved.
 
 - First implementation wave: cmp, yes, shuf and virtual devices in disjoint leaf
   directories. Root is qualifying native oracles and the opt-in delivery boundary.

@@ -15,6 +15,7 @@ export interface FileDescriptorCapabilities {
   readonly openTruncate?: boolean;
   readonly positionedRead: boolean;
   readonly positionedWrite: boolean;
+  readonly positionedAppendWrite?: boolean;
   readonly truncate: boolean;
   readonly synchronization: "none" | "volatile" | "storage";
 }

@@ -511,6 +511,9 @@ function assertSource7Discovery(files) {
   for (const path of [
     "tests/plugins/descriptor-provider-runtime.test.ts",
     "tests/plugins/descriptor-provider-observation-runtime.test.ts",
+    "tests/plugins/descriptor-append-position-runtime.test.ts",
+    "tests/contracts/filesystem-descriptor-append-position.test.ts",
+    "tests/contracts/filesystem-descriptor-append-review.test.ts",
     "tests/contracts/filesystem-descriptor-observation.test.ts",
     "tests/contracts/filesystem-output-observation.test.ts",
     "tests/contracts/filesystem-observation-review.test.ts",

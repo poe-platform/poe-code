@@ -27,6 +27,7 @@ function admitCapabilities(path: string, options: OpenFileOptions, capabilities:
     || capabilities.position !== undefined && typeof capabilities.position !== "boolean"
     || capabilities.readObservation !== undefined && typeof capabilities.readObservation !== "boolean"
     || capabilities.openTruncate !== undefined && typeof capabilities.openTruncate !== "boolean"
+    || capabilities.positionedAppendWrite !== undefined && typeof capabilities.positionedAppendWrite !== "boolean"
     || !["none", "volatile", "storage"].includes(capabilities.synchronization)) throw new FsError("EINVAL", { syscall: "open", path });
   if (options.truncate && !(capabilities.openTruncate ?? capabilities.truncate) || options.synchronization !== undefined && capabilities.synchronization === "none") {
     throw new FsError("ENOTSUP", { syscall: "open", path });
@@ -86,12 +87,14 @@ class ManagedFileDescriptor<Resource> implements FileDescriptor {
     if (capabilities.readObservation === true && typeof probeRead !== "function") throw new FsError("ENOTSUP", { syscall: "probeRead", path });
     this.#probeRead = probeRead?.bind(backend);
     this.#backend = backend;
+    const positionedAppendWrite = capabilities.positionedAppendWrite === true && capabilities.positionedWrite && options.access !== "read";
     this.capabilities = Object.freeze({
       ...(capabilities.position === undefined ? {} : { position: capabilities.position }),
       ...(capabilities.readObservation === undefined ? {} : { readObservation: capabilities.readObservation }),
       ...(capabilities.openTruncate === undefined ? {} : { openTruncate: capabilities.openTruncate }),
       positionedRead: capabilities.positionedRead && options.access !== "write",
-      positionedWrite: capabilities.positionedWrite && options.access !== "read" && !options.append,
+      positionedWrite: capabilities.positionedWrite && options.access !== "read" && (!options.append || positionedAppendWrite),
+      ...(capabilities.positionedAppendWrite === undefined ? {} : { positionedAppendWrite }),
       truncate: capabilities.truncate && options.access !== "read",
       synchronization: capabilities.synchronization,
     });
@@ -124,7 +127,7 @@ class ManagedFileDescriptor<Resource> implements FileDescriptor {
     if (!(buffer instanceof Uint8Array)) throw new FsError("EINVAL", { syscall, path: this.#path });
     if (position !== null) {
       integer(position, syscall, this.#path);
-      if (syscall === "write" && this.#append) throw new FsError("EINVAL", { syscall, path: this.#path });
+      if (syscall === "write" && this.#append && this.capabilities.positionedAppendWrite !== true) throw new FsError("EINVAL", { syscall, path: this.#path });
       if (!(syscall === "read" ? this.capabilities.positionedRead : this.capabilities.positionedWrite)) {
         throw new FsError("ESPIPE", { syscall, path: this.#path });
       }
@@ -233,8 +236,11 @@ export async function openFileDescriptor<Resource>(path: string, options: OpenFi
   try {
     signal?.throwIfAborted();
     const selected = Object.freeze({ ...(backend.capabilities ?? admittedCapabilities) });
+    signal?.throwIfAborted();
     admitCapabilities(path, admitted, selected);
-    return new ManagedFileDescriptor(path, admitted, selected, backend);
+    const descriptor = new ManagedFileDescriptor(path, admitted, selected, backend);
+    signal?.throwIfAborted();
+    return descriptor;
   } catch (error) {
     await finishCleanup(() => backend.close(backend.resource), true);
     signal?.throwIfAborted();

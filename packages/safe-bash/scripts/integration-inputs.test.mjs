@@ -534,6 +534,14 @@ function assertSource7Discovery(files) {
     "tests/plugins/extension-descriptor-runtime.test.ts",
   ]) assert.ok(files.includes(path), "extension diagnostic/descriptor test is missing: " + path);
   for (const path of [
+    "tests/contracts/pipe-endpoint-lifetime.test.ts",
+    "tests/contracts/pipe-endpoint-review.test.ts",
+    "tests/shell/extensions/core/descriptor-observer.test.ts",
+    "tests/shell/extensions/core/descriptor-observer-review.test.ts",
+    "tests/shell/extensions/core/descriptor-alias-lifetime.test.ts",
+    "tests/plugins/descriptor-observer-runtime.test.ts",
+  ]) assert.ok(files.includes(path), "descriptor observation/lifetime test is missing: " + path);
+  for (const path of [
     "tests/shell/extensions/core/evaluation-exit.test.ts",
     "tests/shell/extensions/core/evaluation-exit-runtime.test.ts",
     "tests/shell/extensions/core/evaluation-exit-review.test.ts",
@@ -558,6 +566,7 @@ function assertSource7Discovery(files) {
     "tests/shell/extensions/mapfile/behavior.test.ts",
     "tests/shell/extensions/mapfile/callback-boundary.test.ts",
     "tests/shell/extensions/mapfile/evaluation-exit-review.test.ts",
+    "tests/shell/extensions/mapfile/fixture-revision.test.ts",
     "tests/shell/extensions/mapfile/lifecycle.test.ts",
     "tests/shell/extensions/mapfile/native.test.ts",
     "tests/shell/extensions/mapfile/prerequisites.test.ts",

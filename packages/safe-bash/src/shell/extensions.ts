@@ -40,9 +40,22 @@ export interface ShellInputBorrow {
   release(): Promise<void>;
 }
 
+export interface ShellReadProbe {
+  readonly readiness: "ready" | "blocked" | "unknown";
+  readonly timeout: "honor" | "ignore" | "unknown";
+}
+
+export interface ShellInputObserver {
+  readonly readable: boolean;
+  probeRead(): Promise<ShellReadProbe>;
+  waitRead(options: { readonly timeoutMs: number; readonly signal?: AbortSignal | undefined }): Promise<"ready" | "timeout" | "unknown">;
+  release(): Promise<void>;
+}
+
 export interface ShellExtensionInput {
   validateOpen(descriptor: number): void;
   borrow(descriptor: number): ShellInputBorrow;
+  observe(descriptor: number): ShellInputObserver;
 }
 
 export type ShellExtensionScope = "process" | "subshell" | "substitution" | "pipeline" | "invocation";

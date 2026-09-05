@@ -18,6 +18,7 @@ import type { ShellCommandContext, ShellInvokeOptions, ShellLimits } from "./typ
 import { forkExtensions } from "./extensions.js";
 import type { ShellExtensionBindings, ShellExtensionContext, ShellExtensionEvent, ShellExtensionInput, ShellExtensionState, ShellIndexedWriter } from "./extensions.js";
 import { prepareBytesInput, prepareFileInput, ShellInput } from "./input.js";
+import { observeDescriptor, PipeDescriptorFrame, pipeObservation, type PipeDescriptorReference } from "./descriptors.js";
 import { evaluateArithmetic, prepareArithmetic } from "./arithmetic.js";
 import { evaluatePositionalArithmetic } from "./arithmetic-parameters.js";
 import { compilePattern, matchesPattern } from "./pattern.js";
@@ -372,10 +373,24 @@ interface Descriptor {
   readonly input?: ByteSource;
   readonly stdinIsDefault?: boolean;
   readonly output?: ByteSink;
+  readonly file?: CommandFileDescriptor;
+  readonly pipe?: PipeDescriptorReference;
 }
 
-function isolateIO(io: IO): IO {
-  return { ...io, ...(io.descriptors ? { descriptors: new Map([...io.descriptors].map(([number, descriptor]) => [number, { ...descriptor }])) } : {}) };
+function isolateIO(io: IO, references: PipeDescriptorFrame): IO {
+  const descriptors = new Map<number, Descriptor>();
+  for (const [number, descriptor] of io.descriptors ?? []) {
+    if (number === 0 && descriptor.input !== io.stdin || number === 1 && descriptor.output !== io.stdout || number === 2 && descriptor.output !== io.stderr) continue;
+    if (descriptor.closed || !descriptor.pipe) descriptors.set(number, { ...descriptor });
+    else {
+      const pipe = references.acquire(descriptor.pipe);
+      descriptors.set(number, { ...descriptor, pipe });
+    }
+  }
+  if (!descriptors.has(0)) descriptors.set(0, { input: io.stdin, ...(io.stdinIsDefault === undefined ? {} : { stdinIsDefault: io.stdinIsDefault }) });
+  if (!descriptors.has(1)) descriptors.set(1, { output: io.stdout });
+  if (!descriptors.has(2)) descriptors.set(2, { output: io.stderr });
+  return { ...io, descriptors };
 }
 
 function activeIO(io: IO): IO {
@@ -2038,6 +2053,22 @@ export class Runtime {
       const input = entry?.input ?? (!io.descriptors && descriptor === 0 ? io.stdin : undefined);
       const output = entry?.output ?? (!io.descriptors ? descriptor === 1 ? io.stdout : descriptor === 2 ? io.stderr : undefined : undefined);
       if (entry?.closed || (!input || input === closedSource) && (!output || output === closedSink)) throw new FsError("EBADF", { message: "Closed input descriptor" });
+    }, observe: (descriptor: number) => {
+      checkDescriptor(descriptor);
+      const entry = io.descriptors?.get(descriptor);
+      const input = entry?.input ?? (!io.descriptors && descriptor === 0 ? io.stdin : undefined);
+      const output = entry?.output ?? (!io.descriptors ? descriptor === 1 ? io.stdout : descriptor === 2 ? io.stderr : undefined : undefined);
+      if (entry?.closed || (!input || input === closedSource) && (!output || output === closedSink)) throw new FsError("EBADF", { syscall: "observe" });
+      const readable = input !== undefined && input !== closedSource;
+      if (entry?.pipe) return observeDescriptor(pipeObservation(entry.pipe.endpoint, input instanceof ShellInput ? () => input.probeRead() : undefined), scope, this.budget, this.signal);
+      const file = entry?.file;
+      const stat = file?.stat.bind(file);
+      return observeDescriptor({ readable, async probeRead(signal) {
+        signal.throwIfAborted();
+        if (input instanceof ShellInput) return input.probeRead();
+        if (stat && (await stat({ signal })).type === "file") return { readiness: "ready", timeout: "ignore" };
+        return { readiness: "unknown", timeout: "unknown" };
+      } }, scope, this.budget, this.signal);
     }, borrow: (descriptor: number) => {
       checkDescriptor(descriptor);
       const entry = io.descriptors?.get(descriptor);
@@ -2258,12 +2289,19 @@ export class Runtime {
             boundary.deliverySignal, boundary, this.cancellationState, owner,
             childDepth, this.cancellationMaxDepth, frame,
           );
+          const references = new PipeDescriptorFrame(io[invocationScope]);
+          const reading = incoming?.endpoints?.read;
+          const writing = outgoing?.endpoints?.write;
+          const readReference = reading && references.open(reading, this.budget);
+          const writeReference = writing && references.open(writing, this.budget);
           const input = incoming
-            ? new ShellInput(incoming.readable, this.budget, signal, { provenance: "stream", poll: () => incoming.readiness() })
+            ? new ShellInput(reading?.readable ?? incoming.readable, this.budget, signal, { provenance: "stream", poll: () => incoming.readiness() })
             : new ShellInput(io.stdin, this.budget, signal);
-          const pipeOutput: ByteSink | undefined = outgoing && { [outputFailure]: outgoing.abort, ownedOutput: outgoing.writable.ownedOutput!, write: async (chunk) => {
+          const writable = writing?.writable ?? outgoing?.writable;
+          const failOutput = writable?.[outputFailure]?.bind(writable);
+          const pipeOutput: ByteSink | undefined = outgoing && { ...(failOutput ? { [outputFailure]: failOutput } : {}), ownedOutput: writable!.ownedOutput!, write: async (chunk) => {
             try {
-              await outgoing.writable.write(chunk);
+              await writable!.write(chunk);
               if (chunk.byteLength) written.add(index);
             }
             catch (error) {
@@ -2282,13 +2320,17 @@ export class Runtime {
                 const child = await cloneState(state, this.signal);
                 child.extensions = forkExtensions(state.extensions, "pipeline");
                 child.isolated = true;
-                const childIO: IO = {
-                  ...isolateIO(io),
+                const childIO: IO = isolateIO({
+                  ...io,
                   stdin: input,
                   ...(incoming ? { stdinIsDefault: false } : {}),
                   stdout: pipeOutput ? this.budget.sink(pipeOutput, signal) : signalSink(io.stdout, signal),
                   stderr: signalSink(io.stderr, signal),
-                };
+                }, references);
+                const descriptors = new Map(childIO.descriptors);
+                if (readReference) descriptors.set(0, { input, stdinIsDefault: false, pipe: readReference });
+                if (writeReference) descriptors.set(1, { output: childIO.stdout, pipe: writeReference });
+                childIO.descriptors = descriptors;
                 const work = runtime.runCommandIsolated(command, child, childIO).then(status => runtime.finishShell(child, childIO, status)).finally(async () => {
                   try { await runtime.releaseExtensions(child); }
                   finally { stateMonitor(child)?.closeValues(); }
@@ -2302,7 +2344,7 @@ export class Runtime {
               return { exitCode };
             } finally {
               completed.add(index);
-              if (incoming) {
+              if (incoming && !reading) {
                 const upstream = index - 1;
                 const close = scheduleTurn(() => {
                   closing.delete(close);
@@ -2312,7 +2354,8 @@ export class Runtime {
                 await incoming.abort();
               }
               await input.close().catch((error: unknown) => { if (!(error instanceof PipelineClosed)) throw error; });
-              if (outgoing) await outgoing.close().catch(() => undefined);
+              await references.close();
+              if (outgoing && !writing) await outgoing.close().catch(() => undefined);
             }
           };
           let captured: CapturedCancellationOutcome<CommandResult>;
@@ -2408,7 +2451,8 @@ export class Runtime {
     ]);
     const diagnosticLine = originalIO.diagnosticCommandLines?.get(command) ?? (command.line ?? 1) + (originalIO.diagnosticOffset ?? 0);
     originalIO = { ...originalIO, diagnosticLine, substitutionDiagnosticLine: originalIO.substitutionDiagnosticLines?.get(command) ?? diagnosticLine };
-    if (command.kind === "subshell") originalIO = isolateIO(originalIO);
+    const references = new PipeDescriptorFrame(originalIO[invocationScope]);
+    if (command.kind === "subshell") originalIO = isolateIO(originalIO, references);
     this.budget.tick();
     if (this.budget.commands % 128 === 0) await yieldTurn(this.signal);
     this.signal.throwIfAborted();
@@ -2629,6 +2673,7 @@ export class Runtime {
       return status;
     } finally {
       await Promise.allSettled([
+        references.close(),
         ...[...outputs].map(async close => close({ reason: new FsError("ECANCELED", { syscall: "redirect" }) })),
         ...[...inputs].map(async input => input.close()),
       ]).then(results => {
@@ -2700,6 +2745,14 @@ export class Runtime {
       [2, errorDescriptor?.output === io.stderr ? errorDescriptor : { output: io.stderr }],
     ]);
     const replaced = new Set<number>();
+    const references = new PipeDescriptorFrame(io[invocationScope]);
+    inputs.add(references);
+    const replaceDescriptor = async (number: number, next?: Descriptor): Promise<void> => {
+      const previous = descriptors.get(number)?.pipe;
+      if (previous && references.references.has(previous)) await previous.close();
+      if (next) descriptors.set(number, next);
+      else descriptors.delete(number);
+    };
     let errorTarget: string | undefined;
     if (io.stdin === closedSource) descriptors.delete(0);
     if (io.stdout === closedSink) descriptors.delete(1);
@@ -2746,7 +2799,7 @@ export class Runtime {
         io[invocationScope].register(prepared.close);
         const input = new ShellInput(prepared.source, this.budget, this.signal, prepared.options);
         inputs.add(input);
-        descriptors.set(redirect.descriptor, { input, stdinIsDefault: false });
+        await replaceDescriptor(redirect.descriptor, { input, stdinIsDefault: false });
         continue;
       }
       const targets = await this.word(redirect.target, state, currentIO());
@@ -2754,7 +2807,7 @@ export class Runtime {
       const target = targets[0]!;
       errorTarget = target;
       if (redirect.operator.endsWith("&")) {
-        if (target === "-") descriptors.delete(redirect.descriptor);
+        if (target === "-") await replaceDescriptor(redirect.descriptor);
         else {
           if (!/^\d+-?$/u.test(target)) throw new Error(`${target}: Bad file descriptor`);
           const move = target.endsWith("-");
@@ -2762,9 +2815,11 @@ export class Runtime {
           const sourceDescriptor = Number(move ? target.slice(0, -1) : target);
           const descriptor = descriptors.get(sourceDescriptor);
           if (!descriptor || descriptor.closed || (!move && (redirect.operator === "<&" ? !descriptor.input : !descriptor.output))) throw new Error(`${move ? sourceDescriptor : target}: Bad file descriptor`);
-          descriptors.set(redirect.descriptor, { ...descriptor });
+          const pipe = descriptor.pipe && references.acquire(descriptor.pipe);
+          await replaceDescriptor(redirect.descriptor, { ...descriptor, ...(pipe ? { pipe } : {}) });
           if (move && sourceDescriptor !== redirect.descriptor) {
             descriptors.delete(sourceDescriptor);
+            if (descriptor.pipe && (references.references.has(descriptor.pipe) || persistMoves && !replaced.has(sourceDescriptor))) await descriptor.pipe.close();
             if (persistMoves && !replaced.has(sourceDescriptor)) descriptor.closed = true;
           }
         }
@@ -2798,7 +2853,7 @@ export class Runtime {
           io[invocationScope].assertOpen();
           const input = new ShellInput(prepared.source, this.budget, this.signal, prepared.options);
           inputOwner.input = input;
-          descriptors.set(redirect.descriptor, { input, stdinIsDefault: false });
+          await replaceDescriptor(redirect.descriptor, { input, stdinIsDefault: false });
         } else {
           const append = redirect.operator === ">>";
           const capabilities = await this.fs.capabilitiesFor?.(path, options) ?? this.fs.capabilities;
@@ -2878,10 +2933,11 @@ export class Runtime {
           outputs.add(Object.assign(finalize, target.descriptor ? { descriptor: target.descriptor } : {}));
           const output = canonical ? target.sink : this.budget.sink(target.sink, this.signal);
           if (canonical) budgetedSinks.set(output, { budget: this.budget, write: output.write });
-          descriptors.set(redirect.descriptor, { output });
+          const binding: Descriptor = { output, ...(target.descriptor ? { file: target.descriptor } : {}) };
+          await replaceDescriptor(redirect.descriptor, binding);
           if (redirect.operator === "&>") {
             replaced.add(2);
-            descriptors.set(2, { output });
+            await replaceDescriptor(2, { ...binding });
           }
         }
       }
@@ -3512,14 +3568,19 @@ export class Runtime {
     if (commandString) args.shift();
     const child = this.processState(context, state, io, arg0, args);
     child.errexit = errexit;
-    const childIO = isolateIO({ ...io, ...context, execution: { ignoreErrexit: false }, diagnosticLine: 1, diagnosticOffset: 0, scriptName: shellValueText(arg0) });
+    const references = new PipeDescriptorFrame(io[invocationScope]);
+    const childIO = isolateIO({ ...io, ...context, execution: { ignoreErrexit: false }, diagnosticLine: 1, diagnosticOffset: 0, scriptName: shellValueText(arg0) }, references);
+    try {
     if (source !== undefined) {
       this.budget.source(Buffer.byteLength(source));
-      return this.finishShell(child, childIO, await this.runCommandString(source, child, childIO));
+      return await this.finishShell(child, childIO, await this.runCommandString(source, child, childIO));
     }
     const input = new ShellInput(context.stdin, this.budget, this.signal);
-    const inputIO = { ...childIO, stdin: input };
-    return this.finishShell(child, inputIO, await this.runStandardInput(input, child, inputIO));
+    const descriptors = new Map(childIO.descriptors);
+    descriptors.set(0, { ...descriptors.get(0), input });
+    const inputIO = { ...childIO, stdin: input, descriptors };
+    return await this.finishShell(child, inputIO, await this.runStandardInput(input, child, inputIO));
+    } finally { await references.close(); }
   }
 
   async syntaxFailure(error: ShellSyntaxError, source: string, io: IO, commandString: boolean, includeContext = true): Promise<number> {
@@ -3839,7 +3900,9 @@ export class Runtime {
     const child = this.processState(context, state, io, target, args);
     child.errexit = errexit;
     if (direct) child.profile = interpreterProfile ?? state.profile ?? "bash";
-    const childIO = isolateIO({ ...io, ...context, execution: { ignoreErrexit: false }, diagnosticLine: 1, diagnosticOffset: 0, scriptName: target });
+    const references = new PipeDescriptorFrame(io[invocationScope]);
+    const childIO = isolateIO({ ...io, ...context, execution: { ignoreErrexit: false }, diagnosticLine: 1, diagnosticOffset: 0, scriptName: target }, references);
+    try {
     let status = 0;
     for (const unit of units) {
       for (const warning of unit.warnings ?? []) await writeText(context.stderr, `${target}: warning: ${warning}\n`);
@@ -3848,7 +3911,8 @@ export class Runtime {
       status = result.exitCode;
       if (result.terminated) break;
     }
-    return this.finishShell(child, childIO, status);
+    return await this.finishShell(child, childIO, status);
+    } finally { await references.close(); }
   }
 
   async runCurrentText(source: string, state: State, io: IO, fatalSyntax: boolean, syntaxName?: string, byteSource = false, includeSyntaxContext = true): Promise<number> {
@@ -4048,14 +4112,15 @@ export class Runtime {
     child.locals = [];
     const input = options.stdin === undefined ? undefined : new ShellInput(options.stdin, this.budget, this.signal);
     const stdinIsDefault = options.stdin === undefined ? context.stdinIsDefault : (options.stdinIsDefault ?? false);
-    const io = {
+    const references = new PipeDescriptorFrame(scope);
+    const io = isolateIO({
       ...context,
       [invocationScope]: scope,
       stdin: input ?? context.stdin,
       ...(stdinIsDefault === undefined ? {} : { stdinIsDefault }),
       stdout: options.stdout ? this.budget.sink(options.stdout, this.signal) : context.stdout,
       stderr: options.stderr ? this.budget.sink(options.stderr, this.signal) : context.stderr,
-    };
+    }, references);
     const command: Command = {
       kind: "simple", redirects: [],
       words: [name, ...carrier.values].map((value) => {
@@ -4067,7 +4132,10 @@ export class Runtime {
     try { return { exitCode: await this.runCommandIsolated(command, child, io) }; }
     finally {
       try { await this.releaseExtensions(child); }
-      finally { stateMonitor(child)?.closeValues(); await input?.close(); }
+      finally {
+        try { stateMonitor(child)?.closeValues(); await input?.close(); }
+        finally { await references.close(); }
+      }
     }
   }
 
@@ -4896,13 +4964,17 @@ export class Runtime {
         part.sourceLine === undefined ? warningLine + (command.line ?? part.line) - part.line : warningLine + line - 1);
       const reprintedLines = part.sourceLine === undefined ? undefined : functionReprintedLines(part.script);
       const functionCommandLines = reprintedLines && new Map([...reprintedLines].map(([command, line]) => [command, warningLine + line - 1]));
-      const captureIO = {
-        ...isolateIO(io), substitutionDiagnosticLines,
+      const references = new PipeDescriptorFrame(io[invocationScope]);
+      const captureIO = isolateIO({
+        ...io, substitutionDiagnosticLines,
         diagnosticOffset: (io.diagnosticLine ?? part.line) - (part.sourceLine ?? part.line),
         functionCommandLines, diagnosticCommandLines: undefined, stdout: this.budget.sink(capture, this.signal),
-      };
+      }, references);
       try { state.substitutionStatus = fileShortcut ? await this.runCommandIsolated(command, child, captureIO, true) : await this.run(part.script, child, captureIO); }
-      finally { stateMonitor(child)?.closeValues(); }
+      finally {
+        try { await references.close(); }
+        finally { stateMonitor(child)?.closeValues(); }
+      }
       state.status = state.substitutionStatus;
       const bytes = capture.bytes();
       if (bytes.includes(0)) await writeText(io.stderr, `${io.scriptName ?? "shell"}: line ${warningLine}: warning: command substitution: ignored null byte in input\n`);

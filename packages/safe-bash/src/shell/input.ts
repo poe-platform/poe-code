@@ -7,6 +7,7 @@ import type { ShellValue, ValueReservation } from "../contracts/value.js";
 import type { ValueScope } from "./value-state.js";
 import type { CommandContext } from "../contracts/command.js";
 import { openCommandFile, type CommandFileDescriptor } from "../contracts/filesystem-descriptor.js";
+import type { ShellReadProbe } from "./extensions.js";
 
 export interface PreparedShellInput {
   readonly source: ByteSource;
@@ -397,6 +398,12 @@ class InputCursor {
     return readiness;
   }
 
+  probeRead(): ShellReadProbe {
+    const readiness = this.readiness();
+    return { readiness: readiness === "eof" ? "ready" : readiness,
+      timeout: this.#provenance === "regular" ? "ignore" : this.#provenance === "stream" ? "honor" : "unknown" };
+  }
+
   deadline(timeoutMs: number | undefined, signal: AbortSignal, scope: ValueScope): InputDeadline | undefined {
     if (timeoutMs === undefined) return undefined;
     if (!Number.isFinite(timeoutMs) || timeoutMs <= 0) throw new RangeError("Read timeout must be positive and finite; use readiness for zero timeout");
@@ -570,6 +577,13 @@ export class ShellInput implements ByteSource {
     const readiness = this.#cursor.readiness();
     this.signal.throwIfAborted();
     return readiness;
+  }
+
+  probeRead(): ShellReadProbe {
+    this.signal.throwIfAborted();
+    const result = this.#cursor.probeRead();
+    this.signal.throwIfAborted();
+    return result;
   }
 
   next(): Promise<IteratorResult<Uint8Array>> {

@@ -96,6 +96,7 @@ function fixture(args: readonly ShellValue[]) {
       async openIndexed(name, options) { events.push("writer"); if (options?.clear) cells.clear(); return writer; },
     },
     input: {
+      observe() { throw new Error("Mapfile must not acquire a descriptor observer"); },
       validateOpen(descriptor) { assert.equal(cleanups.length, 1); events.push(`validate:${descriptor}`); if (descriptor === 9) throw new FsError("EBADF"); },
       borrow(descriptor) { events.push(`borrow:${descriptor}`); if (descriptor === 3) throw new FsError("EBADF"); return input; },
     },

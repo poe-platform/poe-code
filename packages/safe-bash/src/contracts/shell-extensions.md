@@ -82,6 +82,52 @@ invalid numeric descriptors fail with `RangeError`, as with `borrow`. Invocation
 lifetime and root cancellation checks apply to retained input capabilities too.
 Successful validation does not establish readability or polling support.
 
+### Non-consuming descriptor observation
+
+`input.observe(fd)` synchronously captures the current open descriptor binding
+and returns an invocation-owned observer. Missing or closed descriptors fail
+with `EBADF`; malformed descriptor numbers fail with `RangeError`. The observer
+does not reopen the pathname, follow a later replacement of the same descriptor
+number, acquire read access, or create an additional pipe peer reference.
+Its `readable` property describes access, not readiness.
+
+`probeRead()` asynchronously returns an explicit pair:
+
+- `readiness`: `ready`, `blocked`, or `unknown`.
+- `timeout`: `honor`, `ignore`, or `unknown`.
+
+Ready means a read attempt need not wait for readiness, not that the descriptor
+is readable or that the attempt succeeds. In particular, readiness on a
+write-only descriptor must not turn a subsequent read error into EOF. Unknown
+readiness is neither ready nor EOF. Observation does not consume input, start
+a producer pull, or replace the shared cursor's polling and provenance.
+
+`waitRead({ timeoutMs, signal? })` accepts a positive finite timeout and returns
+`ready`, `timeout`, or `unknown`. Invalid arguments reject before waiting. Zero
+timeout is represented by `probeRead()`, not a consuming read or a timed wait.
+The supplied signal is captured for that operation; cancelling one observation
+does not close its descriptor or cancel unrelated output. Caller cancellation
+and invocation lifetime continue to apply, with exact falsey reasons preserved.
+
+Observation cleanup is registered before resource work begins. `release()`
+idempotently closes observer admission, cancels and joins its admitted
+cooperative observations, and releases only its observation resources. It does
+not close the guest FD. New observer operations after release fail with `EBADF`;
+releasing a readable borrow and releasing an observer remain separate operations.
+Opaque host work is not forcibly interrupted.
+
+Canonical regular-output observations use the same retained descriptor's
+`stat()` and ignore read timeouts; pathname stat or reopen cannot establish that
+resource's identity. Internal pipes require directional endpoint evidence:
+buffered data or final writer closure makes the read end ready, while final
+reader closure makes the write end ready for a read attempt. Read-end buffered
+bytes do not establish write-end readiness. A duplicate peer FD keeps its end
+open; an observation or operation lease does not. Unenrolled host/device output
+remains unknown rather than receiving guessed readiness from its pathname or
+generic file type. These capabilities do not activate an optional shell builtin.
+
+### Readable cursor borrowing
+
 `input.borrow(fd)` borrows an enrolled readable descriptor's shared cursor.
 Descriptor aliases and subsequent consumers see the same consumed position.
 Releasing a borrow does not close the underlying descriptor. A borrow is scoped
@@ -173,6 +219,33 @@ bytes, drained EOF or blocked input. Empty writes do not make the pipe ready,
 and failed pipes throw their original failure reason. Input-source construction
 must explicitly thread these owned capabilities into the shared cursor; these
 helpers do not infer capabilities for arbitrary host iterables.
+
+Managed pipes additionally expose optional `endpoints.read` and `endpoints.write`
+capabilities. `acquire()` creates a distinct peer FD reference; `close()` retires
+that reference idempotently. The final writer closure exposes EOF after queued
+bytes drain. The final reader closure rejects pending or subsequent writes with
+EPIPE and signals consumer closure, but does not by itself cancel an upstream
+command or its unrelated named-file output. A later failed pipe write is a
+separate delivery failure. Runtime descriptor frames retain and retire references
+across duplication, moves, redirection restoration and child invocations.
+
+Endpoint `probe()` returns a revision and directional readiness/peer-closure
+snapshot. `waitForChange(revision, { timeoutMs, signal? })` observes revision
+changes without pulling bytes or acquiring another peer reference. Its timeout
+is an integer from zero through 2147483647 milliseconds; timeout returns
+`undefined`, not EOF. Stale revisions return the current snapshot immediately;
+invalid or future revisions are refused. At most 64 endpoint observation waits
+may be pending per pipe. Higher-level descriptor waits retain one monotonic
+deadline across notifications and bounded timer intervals.
+
+An iterator borrowed from `endpoints.read.readable` shares the pipe cursor but
+does not keep the peer FD open. Returning or throwing from that iterator cancels
+only that operation lease. In contrast, the legacy `pipe.readable` iterator keeps
+its whole-pipe abort behavior when explicitly terminated. Legacy `pipe.abort()`
+and `pipe.abort(undefined)` retain the default EPIPE reason. Explicit
+`[outputFailure](reason)` hooks and legacy iterator `throw(reason)` preserve the
+actual failure value, including `undefined`; operation-lease cancellation must
+not be routed through those whole-pipe failure channels.
 
 Prepared transport buffers use Budget-keyed ownership accounting independently
 of the expansion-value arena. Allocation is admitted before the owned copy or

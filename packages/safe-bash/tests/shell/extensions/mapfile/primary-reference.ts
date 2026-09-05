@@ -1,6 +1,7 @@
 import assert from "node:assert/strict";
 import { createHash } from "node:crypto";
 import { lstatSync, readFileSync } from "node:fs";
+import { verifyMapfileFixtureRevision } from "./fixture-revision.js";
 
 interface Reference {
   schemaVersion: number;
@@ -20,7 +21,8 @@ const referenceURL = new URL("./primary-reference.json", import.meta.url);
 const stat = lstatSync(referenceURL);
 assert.ok(stat.isFile() && stat.size <= 256 * 1024, "Primary reference must be a bounded regular file");
 const bytes = readFileSync(referenceURL);
-assert.equal(createHash("sha256").update(bytes).digest("hex"), "8b36b77a1a9e1d922dc7c69976c33da779a275251341bc5c8a96a532f48b3e6f");
+const referenceSHA256 = createHash("sha256").update(bytes).digest("hex");
+assert.equal(referenceSHA256, "8b36b77a1a9e1d922dc7c69976c33da779a275251341bc5c8a96a532f48b3e6f");
 const reference = JSON.parse(bytes.toString()) as Reference;
 assert.equal(reference.schemaVersion, 1);
 assert.equal(reference.oracle.name, "5.3.0");
@@ -28,11 +30,17 @@ assert.equal(reference.oracle.executableSHA256, "a0cfc1af0ff50f6b6e67c638979e260
 assert.equal(reference.records.length, 170);
 assert.equal(new Set(reference.records.map(record => record.captureIndex)).size, 170);
 assert.equal(reference.fixtures.length, 7);
+const revisionURL = new URL("./fixture-revision.json", import.meta.url);
+const revisionStat = lstatSync(revisionURL);
+assert.ok(revisionStat.isFile() && revisionStat.size <= 4096, "Fixture revision receipt must be a bounded regular file");
+const revisionBytes = readFileSync(revisionURL);
 for (const fixture of reference.fixtures) {
   const file = new URL(fixture.file, import.meta.url);
   const stat = lstatSync(file);
   assert.ok(stat.isFile() && stat.size <= 64 * 1024, "Primary fixture must be a bounded regular file");
-  assert.equal(createHash("sha256").update(readFileSync(file)).digest("hex"), fixture.sha256);
+  const current = readFileSync(file);
+  if (fixture.file === "review.test.ts") verifyMapfileFixtureRevision(fixture, current, referenceSHA256, revisionBytes);
+  else assert.equal(createHash("sha256").update(current).digest("hex"), fixture.sha256);
 }
 
 export function primaryReference(fixtureURL: string, script: string, input?: string) {

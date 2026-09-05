@@ -1,4 +1,5 @@
 import assert from "node:assert/strict";
+import { once } from "node:events";
 import test from "node:test";
 import { createMemoryFileSystem, FsError, type FileSystem } from "poe-code/safe-fs";
 import { browserCommands } from "../../../../src/browser.js";
@@ -224,9 +225,34 @@ test("pipeline consumer closure cancels the retained writer without escaping the
       async close() { closes++; await descriptor.close(); },
     });
   } }));
-  shell.register({ name: "stop", async execute() { await entered.promise; return { exitCode: 0 }; } });
+  shell.register({ name: "producer", async execute(command) {
+    assert.ok(command.invoke);
+    const peerClosed = command.stdout.ownedOutput?.consumerClosed;
+    assert.ok(peerClosed);
+    await command.stdout.write(Buffer.from("pipe"));
+    const writing = command.invoke("filewriter", []);
+    void writing.catch(() => {});
+    try {
+      await entered.promise;
+      if (!peerClosed.aborted) await once(peerClosed, "abort", { signal: command.signal });
+      assert.equal(command.signal.aborted, false);
+      assert.equal(cancelled, false);
+      await command.stdout.write(Buffer.from("again"));
+      assert.fail("A real write to the closed pipeline must fail");
+    } finally { await writing; }
+  } });
+  shell.register({ name: "stop", async execute(command) {
+    const received: number[] = [];
+    for await (const chunk of command.stdin) {
+      received.push(...chunk);
+      if (received.length >= 4) break;
+    }
+    assert.deepEqual(received, [...Buffer.from("pipe")]);
+    await entered.promise;
+    return { exitCode: 0 };
+  } });
   context.after(() => shell.dispose());
-  const result = await shell.exec("{ printf pipe; printf a >&3; } 3>out | stop", { limits: { maxWallClockMs: 1000 } });
+  const result = await shell.exec("filewriter() { printf a >&3; }; producer 3>out | stop", { limits: { maxWallClockMs: 1000 } });
   assert.equal(result.exitCode, 0, result.stderr);
   assert.equal(result.stderr, "");
   assert.equal(cancelled, true);

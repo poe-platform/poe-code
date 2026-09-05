@@ -1606,6 +1606,64 @@ this request to keep additions out of the default package.
   no writable device is opened. Exact inputs, outcomes and stable Node binary
   hashes are in `/tmp/darwin-device-read-position-root-AkfTw5/`. This is Node/libuv
   read API evidence, not lseek/getPosition, direct pread syscall or Linux proof.
+- Local commit `92753aaede7f15071fa61f9584b5623ffc9b01e0` contains exactly the
+  thirteen reviewed SafeFS foundation/public-integration/plan paths. Root verifies
+  every committed blob against its pre-commit content hash. No push or release
+  is requested or performed. The pipe observer/runtime work remains uncommitted.
+- The runtime owner's three-file migration passes an unfiltered nineteen-file
+  cohort, 666/666 with no skips or cancellations, and retains all eleven original
+  regression names and status/reason/vector assertions. Four positive controls
+  bind the permanent `pipe-peer-retirement-reference.json` record and disclose
+  their control-channel adaptation. Production source hashes remain frozen;
+  independent migration review and root's broader original-cohort replay are
+  next, not inferred from those 666 cases. Evidence is retained in
+  `/tmp/descriptor-fixture-receipt-unfiltered.log` and
+  `/tmp/descriptor-fixture-receipt-final-hashes.txt`.
+- Independent read-observer integration review passes seventeen new checks plus
+  twelve author checks, with two strict roots and no diagnostics or measured
+  input drift (`/tmp/read-observer-independent.Ppx8Rq/`). The read leaf remains
+  at `66f2e8cfb8923357d2fb07a5e3db39bb774b1cbdf6e05452bdbc22eed9d1901c`.
+  Its eleven device failures are specifically write-only `/dev/null`: seven
+  zero-timeout readiness cases and four positive-timeout readiness-before-error
+  cases. Canonical provider observation must reach both helper wrappers and the
+  runtime; affirmative readiness must precede any demand for an unknown waiting
+  policy. The other two read failures share readonly24's existing indexed-array
+  declaration root cause, but their complete integration programs remain distinct.
+- Root replays all eighty-eight prior retained-output qualification files plus
+  nine current observer/transport/public/fixture/streaming files without filters:
+  3234/3234 tests pass across 97 files, with zero skips or cancellations and no
+  drift among 2211 watched files. The historical 5.2.37 oracle and immutable
+  primary5.3 references remain separate; compiled optional consumers are enabled
+  (`/tmp/descriptor-observer-broad-root-EJHeWL/`). Nineteen explicit core/test
+  roots typecheck with zero diagnostics and 245 stable local inputs
+  (`/tmp/descriptor-core-strict-root-i3fz2S/`); updated literal discovery passes
+  98/98 (`/tmp/descriptor-core-discovery-root-aq7Uy6/`). Independent migration
+  review, final documentation review and a fresh core-scope lint gate remain
+  required before the separate pipe/observer commit.
+- Root authorizes a separate TDD follow-up in the read leaf: an already-ready
+  unreadable descriptor must report its immediate genuine read error without
+  requiring a known waiting policy. This does not generalize to readable streams
+  or manufacture timeout support. Existing native goldens and the eleven device
+  failures remain unwaived until the provider/forwarding/runtime path exists.
+- Independent final migration review approves all three fixture revisions and
+  the managed-endpoint documentation, reauthenticating the eleven designated
+  pins. It passes 137/137 cases with three strict roots, zero diagnostics and 320
+  stable inputs (`/tmp/descriptor-migration-independent.1WYZRV/` and
+  `/tmp/descriptor-contract-doc-review.ocEE4R/`). No original close-error,
+  falsey-reason or pipeline-vector expectation is waived.
+- The fresh core-scope guarded lint succeeds with zero errors/warnings: 9923
+  configured/linted files, 25 receipts and no drift across its twenty-three
+  watched candidates (`/tmp/descriptor-core-lint-root-ueVU2N/`). Production and
+  fixture source hashes still match the reviewed frozen receipt.
+- Actual compiled public execution with explicitly rooted real filesystems
+  matches all four native peer-retirement observations inline and through both
+  `bash` and `sh` VFS scripts: 12/12 status/stdout/stderr/file-effect comparisons.
+  Root inspects the actual-output PNG; compiled inputs remain unchanged
+  (`/tmp/descriptor-peer-public-corrected-root-QhXqps/`). Preserve the earlier QA
+  capture where the harness omitted await on the asynchronous filesystem
+  factory (`/tmp/descriptor-peer-public-root-T6bUWS/`); it is not a product defect.
+  These observations qualify the stated native-control adaptation, not all
+  kernel wakeup timing or the still-incomplete extended-read/device matrix.
 
 - First implementation wave: cmp, yes, shuf and virtual devices in disjoint leaf
   directories. Root is qualifying native oracles and the opt-in delivery boundary.

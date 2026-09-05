@@ -1,0 +1,9 @@
+{
+  "schemaVersion": 1,
+  "referenceSHA256": "8b36b77a1a9e1d922dc7c69976c33da779a275251341bc5c8a96a532f48b3e6f",
+  "fixture": "review.test.ts",
+  "originalSHA256": "c7945003e742e9062875ae64e8c3dfba73616bae71e0f7323419f30c4eb9e0e3",
+  "currentSHA256": "429f5d09ff457cc535a5afdc471abc31069d1bf2ab2e8b00fd161b2918c440a3",
+  "offset": 6884,
+  "insertion": "      observe() { throw new Error(\"Mapfile must not acquire a descriptor observer\"); },\n"
+}

@@ -49,6 +49,7 @@ function setup(args: readonly ShellValue[] = ["-t"]) {
       async openIndexed() { assert.equal(cleanups.length, 1); return writer; },
     },
     input: {
+      observe() { throw new Error("Mapfile must not acquire a descriptor observer"); },
       validateOpen(descriptor) { assert.equal(cleanups.length, 1); assert.ok(Number.isSafeInteger(descriptor) && descriptor >= 0); },
       borrow() { assert.equal(cleanups.length, 1); return input; },
     },

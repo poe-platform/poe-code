@@ -95,12 +95,12 @@ describe.each(["interpreter", "dump"])("NUM → OBJ002 combined %s restoration",
     expect(getFunctionMember(target, "length", options)).toBe(length);
     const bind = getFunctionMember(target, "bind", options);
     if (!isSandboxClosure(bind)) throw new Error("Expected bind method");
-    const bound = await bind.call([null, 1]);
+    const bound = await bind.call([null, 1], { stack: [], thisValue: target });
     if (!isSandboxClosure(bound)) throw new Error("Expected bound closure");
     expect(getFunctionMember(bound, "length", options)).toBe(Math.max(0, length - 1));
     const bindAgain = getFunctionMember(bound, "bind", options);
     if (!isSandboxClosure(bindAgain)) throw new Error("Expected rebound method");
-    const rebound = await bindAgain.call([null, 2, 3]);
+    const rebound = await bindAgain.call([null, 2, 3], { stack: [], thisValue: bound });
     if (!isSandboxClosure(rebound)) throw new Error("Expected rebound closure");
     expect(getFunctionMember(rebound, "length", options)).toBe(0);
     expect(options.callClosure).not.toHaveBeenCalled();

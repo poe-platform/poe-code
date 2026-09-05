@@ -1,4 +1,4 @@
-import { createSandboxClosure, type SandboxClosure, type SandboxValue } from "../values.js";
+import { createSandboxClosure, isSandboxClosure, type SandboxClosure, type SandboxValue } from "../values.js";
 import { getGuestFunctionProperty, isGuestClosure } from "../object-model.js";
 
 export type FunctionMethodOptions = {
@@ -42,7 +42,7 @@ export function getFunctionMember(
     sandbox: true,
     name: `Function#${property}`,
     call: (args, context) =>
-      callFunctionMethod(target, property, args, options, context?.stack ?? [])
+      callFunctionMethod(context?.thisValue, property, args, options, context?.stack ?? [])
   });
 }
 
@@ -51,12 +51,15 @@ function isFunctionMethodName(property: string | number): property is FunctionMe
 }
 
 function callFunctionMethod(
-  target: SandboxClosure,
+  target: SandboxValue,
   methodName: FunctionMethodName,
   args: readonly SandboxValue[],
   options: FunctionMethodOptions,
   stack: readonly string[]
 ): Promise<SandboxValue> | SandboxValue {
+  if (!isSandboxClosure(target)) {
+    throw new TypeError(`Function#${methodName} requires a callable receiver.`);
+  }
   const thisValue = args[0];
 
   if (methodName === "bind") {

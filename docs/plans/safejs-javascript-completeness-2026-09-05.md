@@ -565,7 +565,7 @@ They require active guest property/coercion/call operations, live iteration,
 and constructor semantics; do not substitute native-object copies for the
 guest model or present a partial receiver patch as full JavaScript parity.
 
-### 11. Finally after catch-binding failures — validated, ready for delivery
+### 11. Finally after catch-binding failures — delivered, release monitored
 
 The catch evaluator awaited binding initialization outside the path that
 turns ordinary errors into throw completions. Thus binding TypeErrors,
@@ -604,5 +604,61 @@ the user's staged cut changes. The initial focused source-index check could
 not load the root safe-fs bundle, which the selected SafeJS build does not
 produce; the maintained full root build supplied it, and all 26 source-index
 integration tests then passed. This was a build prerequisite, not a source
-regression. Delivery remains one atomic commit; remote push and release must
-still be verified separately.
+regression. Commit `266f25a8dc6910c6e4f702a60c09fda5cb35ceab` was pushed and
+verified against remote main. Scoped workflow `33944139708`, publisher job
+`101247040198`, succeeded: SafeJS 0.1.96 published September 5, 2026,
+04:21:11 UTC. CLI workflow `33944139971` is monitored separately and was
+still running at this checkpoint.
+
+### 12. Function call/apply/bind receivers — validated, ready for delivery
+
+Native/public-source probes confirmed that the three method closures captured
+the function used for lookup. For example, `a.call.call(b, null)` invoked a
+instead of b; detached methods invoked their former target rather than
+throwing TypeError. This also affected borrowed binding, construction, async
+functions, and generators. ECMAScript 2026 sections 20.2.3.1–20.2.3.3 specify
+the actual this value as the callable receiver.
+
+All three methods now validate and invoke their actual callable receiver,
+leaving argument passing, bound state retention, construction, and ordinary
+invocation on the existing paths. The 24 new regressions failed before the
+fix. A corrected control restoring only the old captured-receiver dispatch
+again failed all 24. The focused cohort passes 119 tests across six files,
+including own-property precedence, arity, restored-function metadata,
+construction, identity, async/generator results, realm evaluations, completed
+replay, and fatal step budgets.
+
+Older direct-helper tests now supply the receiver in their call context;
+the old detached-method test now requires TypeError. The first broad focused
+attempt was stopped because a new infinite-loop control incorrectly used
+`steps` instead of the declared `maxSteps` option. The corrected bounded
+control passes. A separate test parser setup needed one statement per parse
+call; the completed cohort includes that correction, not the interrupted run.
+
+Final validation passed: the selected SafeJS dependency build closure, 18
+built root/core checks, 10,429 SafeJS tests with 41 skipped, and full root
+lint (9,724 configured files, zero errors/warnings), including TypeScript
+and workflow checks. A further public-source realm check preserved stored
+borrowed methods and bound regex-using functions across evaluations.
+Remote delivery and release remain pending.
+Generic array-like apply arguments, stable method identity, missing function
+intrinsics, and other built-in receiver families remain separate open gaps.
+
+### Collection-construction follow-up audit
+
+Bounded native/public-source probes reproduced these separate current gaps:
+
+- Array.from drains iterables before mapping. Array replacement, append,
+  truncation, and Set insertion from callbacks are missed; generator next,
+  mapper, and finally ordering differs. A noncallable mapper is rejected only
+  after an ordinary generator has already run. A throwing generator finalizer
+  can replace the mapper's intended failure because it runs before mapping.
+- Array.from deep-copies ordinary items and mapper results: returning an
+  existing object through either path loses identity. Its array-like fallback
+  also eagerly reads later indices before earlier mapping callbacks.
+- Object.fromEntries bypasses guest key conversion and inherited entry
+  fields: a guest toString returning "name" is not called, and entries with
+  inherited 0/1 fields do not produce the expected named property. Both array
+  and generator entry sources reproduce the inherited-field mismatch.
+
+These are validated open findings, not included in the function receiver fix.

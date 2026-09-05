@@ -610,7 +610,7 @@ verified against remote main. Scoped workflow `33944139708`, publisher job
 04:21:11 UTC. CLI workflow `33944139971` is monitored separately and was
 still running at this checkpoint.
 
-### 12. Function call/apply/bind receivers — validated, ready for delivery
+### 12. Function call/apply/bind receivers — delivered and released
 
 Native/public-source probes confirmed that the three method closures captured
 the function used for lookup. For example, `a.call.call(b, null)` invoked a
@@ -640,7 +640,13 @@ built root/core checks, 10,429 SafeJS tests with 41 skipped, and full root
 lint (9,724 configured files, zero errors/warnings), including TypeScript
 and workflow checks. A further public-source realm check preserved stored
 borrowed methods and bound regex-using functions across evaluations.
-Remote delivery and release remain pending.
+Committed, pushed, and verified on remote main as
+`92b9b026fe10bdc8dc9723a14e87870a24be4581`. Scoped workflow `33944509803`,
+publisher job `101248057977`, succeeded: SafeJS 0.1.97 published September 5,
+2026, 04:29:05 UTC. CLI workflow `33944509925`, release job `101249320723`,
+succeeded: poe-code 14.0.46 published at 04:37:41 UTC. This descendant release
+also includes the catch/finally fix; its original CLI workflow `33944139971`
+was canceled by the newer push rather than failing validation.
 Generic array-like apply arguments, stable method identity, missing function
 intrinsics, and other built-in receiver families remain separate open gaps.
 
@@ -662,3 +668,36 @@ Bounded native/public-source probes reproduced these separate current gaps:
   and generator entry sources reproduce the inherited-field mismatch.
 
 These are validated open findings, not included in the function receiver fix.
+
+### 13. Registered retained roots counted twice — validated prerequisite
+
+The Array.from work exposed an independent interpreter accounting defect.
+reconcileDataBudget explicitly appended budget.retainedValues, then called
+reconcileCompiledValues, which appended the same registered roots again.
+Object identity deduplication concealed the duplicate traversal for object
+roots, but primitive string roots were charged twice. A public realm with a
+single 100-unit retained string failed a 150-unit limit with reported usage
+200. Distinct 100/25-unit roots and two distinct registrations of equal
+50-unit strings similarly exposed the duplicate accounting.
+
+The interpreter now leaves registered-root collection to the existing shared
+reconciler. Scope/transient roots, compiled ownership, and genuine repeated
+primitive registrations remain intact. The three realm cases now report
+peaks of 100, 125, and 100 respectively. The over-limit interpreter control
+still rejects at 100 against a 99-unit limit. Its first realm-based fixture
+also exercised poisoned-realm cleanup and produced an AggregateError, so the
+negative control was moved to the interpreter to isolate accounting rather
+than lock unrelated cleanup behavior into this regression.
+
+The four-file focused cohort passes 57 tests, including existing data budgets
+and finally retention. The selected SafeJS dependency build closure passes.
+Final integrated validation passes: 10,433 SafeJS tests with 41 skipped,
+six built public root/core checks, and full root lint (9,726 configured
+files, zero errors/warnings), including TypeScript and workflow checks.
+Remote main advanced with unrelated filesystem-output and private-network
+repairs; the checkpoint was rebased onto
+`01267b14ea7604c127e26b16b2c1c3ef23f991cf`, preserving the user's staged cut
+changes. The maintained full root build and 261 affected Safe Bash integration
+tests also pass. Array.from changes are preserved separately and are not
+included in this prerequisite commit; they will resume after its atomic
+push. Remote delivery and release are tracked separately from these checks.

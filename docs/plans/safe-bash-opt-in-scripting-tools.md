@@ -218,6 +218,34 @@ this request to keep additions out of the default package.
   and workspace/root pack negations are prepared; the isolation test fails before
   those entries and passes afterward. Its API and native semantics still require
   review before implementation; no new default builtin or syntax is admitted.
+- Background isolation is locally committed as `a82b5355b`; the maintained
+  runner/config suite passes 243 tests afterward. Guarded root ESLint's eighth
+  live-worktree run also completes with exit 0; later edits need fresh checks.
+- After the full public bundle rebuild, three real-adapter fractional/pre-epoch
+  modification-time pairs match direct Node calls. Raw access times are retained
+  but not used as an isolation claim. Evidence is under
+  `timestamp-public-root-oKil0m` in the oracle directory. The first manual attempt
+  omitted `await` on the documented asynchronous factory; its untouched scratch
+  directory remains as a harness error, not a product failure.
+- Install's repaired streaming and buffered paths now pass the root replay:
+  238 combined install/output/descriptor tests and all seventeen actual public
+  optional tests, including the previously failing global-output limit case.
+  Strict public-consumer types pass. The explicit build succeeds, and fresh
+  workspace/root dry packs contain 1,054/4,645 files with zero optional leaks.
+  Actual compiled install/stat/cmp output was rendered and inspected in
+  `install-public-budget-final-visual.png`. Independent shared-helper/command
+  review is still required before committing this implementation milestone.
+- Native yq independent review separately reproduces five `-i` global-budget
+  failures and four expression mismatches (205/214 pass, no skips). Staging
+  must charge its bytes, rename adds no payload charge, and fallback copying
+  requires a second charge. These are open author fixes, not qualified passes.
+- Independent review approves the shared exclusive-output extension; the root
+  replay passes all 113 contract/runtime cases, including four new independent
+  tests. A separate install regression still fails (129/130): direct execution
+  can settle cancellation before its admitted buffered writer drains. Passing
+  public Shell tests do not waive direct-command cleanup; this remains an open
+  author fix. The shared helper is ready for its own commit without claiming
+  install completion.
 
 - First implementation wave: cmp, yes, shuf and virtual devices in disjoint leaf
   directories. Root is qualifying native oracles and the opt-in delivery boundary.

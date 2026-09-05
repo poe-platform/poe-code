@@ -12,17 +12,17 @@ writer and admitted writes. It is not a separate invocation lifecycle.
   aggregate capabilities. A mount's unrelated read-only paths do not determine
   whether a writable target can be opened.
 - Reject known read-only destinations before writing. Probe existing-target write
-  access where available. `ENOENT` permits creation; `ENOTSUP` means that this
+  access for ordinary overwrite/append where available. `ENOENT` permits creation; `ENOTSUP` means that this
   optional policy probe cannot establish permission. Other probe failures remain
   errors. The selected filesystem writer still owns authoritative authorization.
-- Prefer `writeStream(path, source, { flag, signal })` unless streaming writes are
+- Prefer `writeStream(path, source, { flag, signal, mode? })` unless streaming writes are
   explicitly disabled. For append, `streamingAppend: false` disables that mode;
   `append: false` alone does not disable streaming append.
 - `write: false` disables ordinary overwrite, not streaming overwrite. Fallback
   checks ordinary write and incremental append capabilities before creating or
   truncating the target. No helper-side complete-file buffering substitutes for
   an unsupported operation.
-- A typed `ENOTSUP` may select incremental fallback only before the streaming
+- For ordinary overwrite/append, a typed `ENOTSUP` may select incremental fallback only before the streaming
   writer requests its first source item. Merely obtaining an iterator does not
   consume it. Once reading has started, failures never replay source prefixes or
   switch output implementations. Other errors never select fallback.
@@ -33,6 +33,50 @@ redirection profile: an append-only filesystem need not implement `writeFile(a)`
 Overwrite initialization continues to use `writeFile(empty, { flag: "w" })`.
 Like other incremental filesystem operations, its already completed effects are
 not rolled back if later work fails.
+
+### Exclusive creation and initial mode
+
+The existing `openFileOutput(context, path, "w" | "a", incremental?)` calls remain
+compatible. The third argument additionally accepts `FileOutputOpenOptions`:
+
+```ts
+interface FileOutputOpenOptions {
+  readonly flag: "w" | "a" | "wx";
+  readonly mode?: number;
+}
+```
+
+For example, `openFileOutput(context, path, { flag: "wx", mode: 0o600 })` forwards
+exclusive creation and initial mode to the selected streaming provider. Mode is
+a creation request, not a later chmod or a promise beyond that provider's mode,
+permission and umask semantics. Ordinary object-form overwrite/append also forwards
+mode to the streaming writer or built-in incremental initialization and appends.
+The request is snapshotted before asynchronous acquisition; later caller mutation
+does not change the selected flag or mode. Exclusive append (`ax`) is not added.
+
+Exclusive creation requires affirmative path-specific `exclusiveCreate: true`
+and available streaming writes. Known unsupported/read-only paths are refused
+before writer admission. A `wx` open does not probe write access to an existing
+target: authoritative exclusive creation must reject collisions, not overwrite
+them or require permission to modify that existing file. The provider owns the
+atomic creation decision; no helper-side stat-then-create approximation is used.
+
+Exclusive output never falls back, even if the streaming provider rejects with
+ENOTSUP before consuming input. In particular, this helper never substitutes an
+empty exclusive creation followed by pathname appends. Existing incremental
+callbacks cannot receive creation options, so supplying one with `wx` or an
+explicit mode is refused before invoking it. Legacy mode-free callbacks remain
+unchanged. Unsupported exclusive streaming is not a reason to require canonical
+descriptors: buffered-only command implementations may preserve a single bounded
+`writeFile(wx)` operation with counted admission and their own registered/drained
+writer ownership. That leaf fallback is not implemented by `openFileOutput`.
+
+The existing shared sink budget, backpressure and cleanup lifecycle also apply
+to exclusive streams. Providers, including quota wrappers, retain their own
+publication, identity and rollback limitations; delegation does not upgrade those
+guarantees. `tests/contracts/filesystem-output.test.ts` covers mode forwarding,
+collision preservation, missing capabilities/streaming, no exclusive downgrade,
+incremental refusal, path-local admission, quota and falsey cancellation cleanup.
 
 ## Backpressure, cancellation and budgets
 
@@ -102,8 +146,12 @@ process-isolation boundary.
 The runtime counted writer reserves the requested byte length in the same ledger
 as stream and standard output before admitting the write. Only a successful safe
 integer count from zero through the requested length permits one refund of the
-unused reservation. Failure, cancellation or an invalid/unknown count retains the
-full conservative charge. A partial-write retry is a new admission; the helper
+unused reservation. Failure or an invalid/unknown count retains the full
+conservative charge. The helper rejects cancellation before returning a count to
+the runtime, so cancelled helper writes retain the full reservation. A direct
+internal `Budget.writeCounted` callback that resolves with a valid count instead
+settles that known count before checking cancellation; its operation still rejects
+with the cancellation reason. A partial-write retry is a new admission; the helper
 does not retry. Zero is a valid partial count, so a copying command must separately
 reject nonempty zero-progress writes. Output accounting is not a logical-file-size
 quota: positioning and truncation remain filesystem operations.

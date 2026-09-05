@@ -70,7 +70,13 @@ export interface FileOutput {
   abort(reason: unknown): Promise<void>;
 }
 
-export async function openFileOutput(context: FileOutputContext, path: string, flag: "w" | "a", incremental?: () => Promise<ByteSink>): Promise<FileOutput> {
+export interface FileOutputOpenOptions {
+  readonly flag: "w" | "a" | "wx";
+  readonly mode?: number;
+}
+
+export async function openFileOutput(context: FileOutputContext, path: string, options: "w" | "a" | FileOutputOpenOptions, incremental?: () => Promise<ByteSink>): Promise<FileOutput> {
+  const { flag, mode } = typeof options === "string" ? { flag: options, mode: undefined } : options;
   let pipe: BytePipe | undefined;
   let task: Promise<void> | undefined;
   let completed = false;
@@ -132,29 +138,36 @@ export async function openFileOutput(context: FileOutputContext, path: string, f
       signal.throwIfAborted();
       const capabilities = await fs.capabilitiesFor?.(path, { signal }) ?? fs.capabilities;
       if (capabilities.readOnly === true) throw new FsError("EROFS", { path, syscall: "write" });
-      try { await fs.access(path, 2, { signal }); }
-      catch (error) {
-        signal.throwIfAborted();
-        if (!(error instanceof FsError) || error.code !== "ENOENT" && error.code !== "ENOTSUP") throw error;
+      if (incremental && (flag === "wx" || mode !== undefined)) throw new FsError("ENOTSUP", { path, syscall: "write", message: "incremental callback cannot honor exclusive creation or initial mode" });
+      if (flag === "wx") {
+        if (capabilities.exclusiveCreate !== true) throw new FsError("ENOTSUP", { path, syscall: "write", message: "exclusive creation is not supported" });
+      } else {
+        try { await fs.access(path, 2, { signal }); }
+        catch (error) {
+          signal.throwIfAborted();
+          if (!(error instanceof FsError) || error.code !== "ENOENT" && error.code !== "ENOTSUP") throw error;
+        }
       }
       signal.throwIfAborted();
+      const fsOptions = { signal, ...(mode === undefined ? {} : { mode }) };
       const streaming = flag === "a" ? capabilities.streamingAppend ?? capabilities.streamingWrite : capabilities.streamingWrite;
       if (!incremental && streaming !== false && fs.writeStream) {
         try {
-          await fs.writeStream(path, source, { flag, signal });
+          await fs.writeStream(path, source, { ...fsOptions, flag });
           if (!ended) throw new FsError("EIO", { path, message: "Streaming writer returned before consuming output" });
           return;
         } catch (error) {
           signal.throwIfAborted();
-          if (reading || !(error instanceof FsError) || error.code !== "ENOTSUP") throw error;
+          if (flag === "wx" || reading || !(error instanceof FsError) || error.code !== "ENOTSUP") throw error;
         }
       }
+      if (flag === "wx") throw new FsError("ENOTSUP", { path, syscall: "writeStream", message: "exclusive output requires streaming support" });
       if (flag === "w" && capabilities.write === false) throw new FsError("ENOTSUP", { path, syscall: "writeFile" });
       if ((!incremental || flag === "a") && capabilities.append === false) throw new FsError("ENOTSUP", { path, syscall: "appendFile" });
       const sink = incremental ? await incremental() : await (async (): Promise<ByteSink> => {
-        if (flag === "a") await fs.appendFile(path, new Uint8Array(), { signal });
-        else await fs.writeFile(path, new Uint8Array(), { flag, signal });
-        return { write: chunk => fs.appendFile(path, chunk, { signal }) };
+        if (flag === "a") await fs.appendFile(path, new Uint8Array(), fsOptions);
+        else await fs.writeFile(path, new Uint8Array(), { ...fsOptions, flag });
+        return { write: chunk => fs.appendFile(path, chunk, fsOptions) };
       })();
       for await (const chunk of source) {
         signal.throwIfAborted();

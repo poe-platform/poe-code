@@ -1,8 +1,9 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
 import { FsError, type FileSystem, type InvocationCleanup } from "../../src/contracts/index.js";
-import { openFileOutput } from "../../src/contracts/filesystem-output.js";
+import { bindFileOutputBudget, openFileOutput } from "../../src/contracts/filesystem-output.js";
 import { createMemoryFileSystem } from "../../src/fs/memory/index.js";
+import { withFileSystemQuota, FileSystemQuotaError } from "poe-code/safe-fs";
 
 function deferred() {
   let resolve!: () => void;
@@ -176,4 +177,179 @@ test("incremental append initializes only with appendFile even when writeFile is
   await target.sink.write(Uint8Array.of(169));
   await target.finish();
   assert.deepEqual(appended, [new Uint8Array(), Uint8Array.of(195), Uint8Array.of(169)]);
+});
+
+test("exclusive stream options forward wx and initial mode with cleanup enrolled first", async () => {
+  const backing = createMemoryFileSystem();
+  const writeStream = backing.writeStream.bind(backing);
+  let cleanup: InvocationCleanup | undefined;
+  backing.writeStream = async (path, source, options) => {
+    assert.ok(cleanup);
+    assert.equal(options?.flag, "wx");
+    assert.equal(options.mode, 0o600);
+    await writeStream(path, source, options);
+  };
+  const target = await openFileOutput({ fs: backing, signal: new AbortController().signal,
+    registerCleanup: callback => { cleanup = callback; } }, "/out", { flag: "wx", mode: 0o600 });
+  await target.sink.write(Uint8Array.of(0, 255, 1));
+  await target.finish();
+  await cleanup!();
+  assert.deepEqual(await backing.readFile("/out"), Uint8Array.of(0, 255, 1));
+  assert.equal((await backing.stat("/out")).mode & 0o777, 0o600);
+});
+
+test("exclusive collisions preserve bytes and mode without probing target write access", async () => {
+  const fs = createMemoryFileSystem();
+  await fs.writeFile("/out", Uint8Array.of(7, 8), { mode: 0o444 });
+  fs.access = async () => { assert.fail("wx must not require write access to an existing target"); };
+  await assert.rejects(openFileOutput({ fs, signal: new AbortController().signal }, "/out", { flag: "wx", mode: 0o600 }), { code: "EEXIST" });
+  assert.deepEqual(await fs.readFile("/out"), Uint8Array.of(7, 8));
+  assert.equal((await fs.stat("/out")).mode & 0o777, 0o444);
+});
+
+for (const exclusiveCreate of [false, undefined]) {
+  test(`exclusive streaming requires affirmative capability, received ${exclusiveCreate}`, async () => {
+    let attempts = 0;
+    const fs = filesystem({ capabilities: { streamingWrite: true, ...(exclusiveCreate === undefined ? {} : { exclusiveCreate }) },
+      async writeStream() { attempts++; }, async writeFile() { attempts++; }, async appendFile() { attempts++; } });
+    await assert.rejects(openFileOutput({ fs, signal: new AbortController().signal }, "/out", { flag: "wx" }), { code: "ENOTSUP" });
+    assert.equal(attempts, 0);
+  });
+}
+
+for (const missing of [false, true]) {
+  test(`exclusive output refuses unavailable streaming without creating then appending: missing=${missing}`, async () => {
+    let attempts = 0;
+    const backing = filesystem({ capabilities: { exclusiveCreate: true, streamingWrite: missing },
+      async writeStream() { attempts++; },
+      async writeFile() { attempts++; }, async appendFile() { attempts++; } });
+    const fs = new Proxy(backing, { get(target, key) {
+      return missing && key === "writeStream" ? undefined : Reflect.get(target, key, target);
+    } });
+    await assert.rejects(openFileOutput({ fs, signal: new AbortController().signal }, "/out", { flag: "wx", mode: 0o600 }), { code: "ENOTSUP" });
+    assert.equal(attempts, 0);
+  });
+}
+
+test("exclusive ENOTSUP before consumption never downgrades to writeFile plus appendFile", async () => {
+  let attempts = 0;
+  const fs = filesystem({ capabilities: { exclusiveCreate: true, streamingWrite: true },
+    async writeStream() { throw new FsError("ENOTSUP"); },
+    async writeFile() { attempts++; }, async appendFile() { attempts++; } });
+  await assert.rejects(openFileOutput({ fs, signal: new AbortController().signal }, "/out", { flag: "wx" }), { code: "ENOTSUP" });
+  assert.equal(attempts, 0);
+});
+
+test("exclusive options use path-specific capabilities rather than unrelated aggregate capabilities", async () => {
+  let streams = 0;
+  const fs = filesystem({ capabilities: { readOnly: true, exclusiveCreate: false, streamingWrite: false },
+    async capabilitiesFor(path) { assert.equal(path, "/out"); return { exclusiveCreate: true, streamingWrite: true }; },
+    async writeStream(_path, source, options) {
+      streams++; assert.equal(options?.flag, "wx");
+      for await (const chunk of source) assert.deepEqual(chunk, Uint8Array.of(2));
+    } });
+  const target = await openFileOutput({ fs, signal: new AbortController().signal }, "/out", { flag: "wx" });
+  await target.sink.write(Uint8Array.of(2));
+  await target.finish();
+  assert.equal(streams, 1);
+});
+
+test("exclusive and mode-bearing requests cannot silently use an uninformed incremental callback", async () => {
+  const fs = createMemoryFileSystem();
+  for (const options of [{ flag: "wx" }, { flag: "w", mode: 0o600 }, { flag: "a", mode: 0o600 }] as const) {
+    let attempts = 0;
+    await assert.rejects(openFileOutput({ fs, signal: new AbortController().signal }, "/out", options,
+      async () => { attempts++; return { async write() {} }; }), { code: "ENOTSUP" });
+    assert.equal(attempts, 0);
+    await assert.rejects(fs.stat("/out"), { code: "ENOENT" });
+  }
+});
+
+for (const flag of ["w", "a"] as const) {
+  for (const streamingWrite of [true, false]) {
+    test(`ordinary options preserve ${flag} mode in streaming=${streamingWrite} path`, async () => {
+      const fs = createMemoryFileSystem();
+      const scoped = new Proxy(fs, { get(target, key) {
+        if (key === "capabilities") return { ...target.capabilities, streamingWrite, streamingAppend: streamingWrite };
+        const value: unknown = Reflect.get(target, key, target);
+        return typeof value === "function" ? value.bind(target) : value;
+      } });
+      const target = await openFileOutput({ fs: scoped, signal: new AbortController().signal }, "/out", { flag, mode: 0o600 });
+      await target.sink.write(Uint8Array.of(3));
+      await target.finish();
+      assert.deepEqual(await fs.readFile("/out"), Uint8Array.of(3));
+      assert.equal((await fs.stat("/out")).mode & 0o777, 0o600);
+    });
+  }
+}
+
+test("exclusive stream still charges the same enrolled sink budget before payload consumption", async () => {
+  let received = 0, reserved = 0;
+  const reason = new Error("shared output allowance exhausted");
+  const fs = filesystem({ capabilities: { exclusiveCreate: true, streamingWrite: true },
+    async writeStream(_path, source) { for await (const chunk of source) received += chunk.length; } });
+  const cleanups: InvocationCleanup[] = [];
+  const context = { fs, signal: new AbortController().signal, registerCleanup: (cleanup: InvocationCleanup) => { cleanups.push(cleanup); } };
+  bindFileOutputBudget(context, sink => ({ async write(chunk) {
+    if (reserved + chunk.length > 2) throw reason;
+    reserved += chunk.length;
+    await sink.write(chunk);
+  } }));
+  const target = await openFileOutput(context, "/out", { flag: "wx", mode: 0o600 });
+  await target.sink.write(Uint8Array.of(1, 2));
+  await assert.rejects(target.sink.write(Uint8Array.of(3)), error => error === reason);
+  await target.abort(reason);
+  for (const cleanup of cleanups) await cleanup();
+  assert.equal(received, 2);
+  assert.equal(reserved, 2);
+});
+
+test("exclusive stream keeps quota enforcement and does not require canonical descriptors", async () => {
+  const backing = createMemoryFileSystem();
+  const fs = withFileSystemQuota(backing, { maxBytes: 2 });
+  assert.equal(fs.capabilities.open, false);
+  const context = { fs, signal: new AbortController().signal };
+  const target = await openFileOutput(context, "/out", { flag: "wx", mode: 0o600 });
+  await target.sink.write(Uint8Array.of(1, 2));
+  await target.finish();
+  assert.equal((await backing.stat("/out")).mode & 0o777, 0o600);
+  const excessive = await openFileOutput(context, "/extra", { flag: "wx", mode: 0o600 });
+  await assert.rejects(excessive.sink.write(Uint8Array.of(3)), FileSystemQuotaError);
+  await assert.rejects(excessive.finish(), FileSystemQuotaError);
+  await excessive.abort(new Error("finished failed output"));
+  assert.deepEqual(await backing.readFile("/out"), Uint8Array.of(1, 2));
+  assert.equal((await backing.stat("/extra")).size, 0);
+});
+
+test("exclusive stream cancellation preserves falsey reason and joins admitted provider cleanup", async () => {
+  const entered = deferred(), aborted = deferred(), release = deferred();
+  const controller = new AbortController();
+  let cleanup!: InvocationCleanup;
+  let released = false;
+  const fs = filesystem({ capabilities: { exclusiveCreate: true, streamingWrite: true },
+    async writeStream(_path, source, options) {
+      assert.ok(cleanup);
+      assert.equal(options?.flag, "wx");
+      try {
+        for await (const chunk of source) {
+          assert.deepEqual(chunk, Uint8Array.of(9));
+          entered.resolve();
+          await new Promise<void>(resolve => options.signal!.addEventListener("abort", () => { aborted.resolve(); resolve(); }, { once: true }));
+          options.signal!.throwIfAborted();
+        }
+      } finally { await release.promise; released = true; }
+    } });
+  const target = await openFileOutput({ fs, signal: controller.signal, registerCleanup: callback => { cleanup = callback; } }, "/out", { flag: "wx", mode: 0o600 });
+  const writing = assert.rejects(target.sink.write(Uint8Array.of(9)), reason => reason === 0);
+  await entered.promise;
+  controller.abort(0);
+  await aborted.promise;
+  let settled = false;
+  const closing = Promise.resolve(cleanup()).then(() => { settled = true; });
+  await Promise.resolve();
+  assert.equal(settled, false);
+  assert.equal(released, false);
+  release.resolve();
+  await Promise.all([writing, closing]);
+  assert.equal(released, true);
 });

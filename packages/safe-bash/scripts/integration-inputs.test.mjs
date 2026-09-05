@@ -423,6 +423,7 @@ function assertSource7Discovery(files) {
   for (const path of [
     "tests/contracts/filesystem-descriptor.test.ts",
     "tests/contracts/filesystem-descriptor-review.test.ts",
+    "tests/contracts/exclusive-file-output-review.test.ts",
     "tests/shell/counted-file-output.test.ts",
   ]) assert.ok(files.includes(path), "counted descriptor test is missing: " + path);
   for (const path of [

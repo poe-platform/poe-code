@@ -2,7 +2,7 @@ import assert from "node:assert/strict";
 import { test } from "node:test";
 import { createMemoryFileSystem } from "../../src/fs/memory/index.js";
 import { openCommandFile } from "../../src/contracts/filesystem-descriptor.js";
-import { openFileOutput, writeFileOutputCounted } from "../../src/contracts/filesystem-output.js";
+import { bindFileOutputBudget, openFileOutput, writeFileOutputCounted } from "../../src/contracts/filesystem-output.js";
 import { Budget, defaultLimits } from "../../src/shell/runtime.js";
 import { Shell } from "../../src/shell/shell.js";
 import { ShellLimitError } from "../../src/shell/types.js";
@@ -131,6 +131,20 @@ test("valid partial and zero counts settle once and permit retries", async conte
   assert.equal(await budget.writeCounted(new Uint8Array(2), async () => 2), 2);
   assert.equal(budget.bytes, 4);
   assert.equal(await budget.writeCounted(new Uint8Array(), async () => 0), 0);
+});
+
+for (const reason of [false, 0, "", null]) test(`cancellation accounting distinguishes direct validated counts from guarded rejection: ${String(reason)}`, async context => {
+  for (const guarded of [false, true]) {
+    const controller = new AbortController();
+    const budget = new Budget({ ...defaultLimits, maxOutputBytes: 3 }, controller.signal);
+    context.after(() => budget.close());
+    const write = async () => { controller.abort(reason); return 1; };
+    const command = { signal: controller.signal, registerCleanup: () => {} };
+    bindFileOutputBudget(command, sink => sink, (chunk, callback) => budget.writeCounted(chunk, callback));
+    const operation = guarded ? writeFileOutputCounted(command, new Uint8Array(3), write) : budget.writeCounted(new Uint8Array(3), write);
+    await assert.rejects(operation, error => Object.is(error, reason));
+    assert.equal(budget.bytes, guarded ? 3 : 1);
+  }
 });
 
 for (const count of [-1, 0.5, NaN, Infinity, 4]) test(`Budget independently validates count ${count} before any refund`, async context => {

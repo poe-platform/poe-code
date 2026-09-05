@@ -29,6 +29,8 @@ import { invocationScope, throwCleanupFailures, type InvocationScope } from "./c
 import { bindFileOutputBudget, openFileOutput } from "../contracts/filesystem-output.js";
 import { outputFailure } from "../contracts/io.js";
 import { executionCommands } from "../commands/execution.js";
+import { formatPrintf, printfCommand } from "../commands/basic.js";
+import { UsageError } from "../commands/internal.js";
 import { cloneGetoptsState, createGetoptsState, GetoptsError, scanGetopts, withGetoptsIndex } from "./getopts.js";
 import type { GetoptsState } from "./getopts.js";
 import {
@@ -2646,6 +2648,9 @@ export class Runtime {
           }
         }
         const definition = this.commands.get(context.command);
+        if (context.command === "printf" && definition?.execute === printfCommand.execute && context.args[0]?.startsWith("-v")) {
+          return { exitCode: await this.printfVariable(context, state, assignments) };
+        }
         if (!definition) {
           if (context.command === "bash" || context.command === "sh") return { exitCode: await this.interpreter(context, state, io) };
           if (context.command.includes("/") || state.variables.PATH === undefined && state.pathUnset) return { exitCode: await this.scriptFile(context, state, io, context.command, context.args, true) };
@@ -3793,6 +3798,111 @@ export class Runtime {
       }
     }
     return status;
+  }
+
+  private async printfVariable(context: CommandContext & IO, state: State, assignments: Map<string, SavedVariable>): Promise<number> {
+    const incoming = getCommandArguments(context);
+    let offset = 0;
+    let name = "";
+    let index: ReturnType<typeof literalIndex> | undefined;
+    while (incoming.args[offset]?.startsWith("-v")) {
+      const option = incoming.args[offset++]!;
+      const target = option.slice(2) || incoming.args[offset++];
+      if (target === undefined) {
+        await writeText(context.stderr, "printf: -v: option requires an argument\n");
+        return 2;
+      }
+      const bracket = target.indexOf("[");
+      name = bracket < 0 ? target : target.slice(0, bracket);
+      if (!/^[a-zA-Z_][a-zA-Z_0-9]*$/u.test(name) || bracket >= 0 && !target.endsWith("]")) {
+        await writeText(context.stderr, `printf: '${target}': not a valid identifier\n`);
+        return 2;
+      }
+      index = undefined;
+      if (bracket >= 0) {
+        if (target[bracket + 1] === "'" || target[bracket + 1] === '"') {
+          await writeText(context.stderr, `printf: '${target}': unsupported indexed-array subscript\n`);
+          return 2;
+        }
+        try { index = literalIndex(target.slice(bracket + 1, -1), 0, this.budget.parsing); }
+        catch (error) {
+          this.signal.throwIfAborted();
+          if (!(error instanceof ShellSyntaxError)) throw error;
+          await writeText(context.stderr, `printf: '${target}': unsupported indexed-array subscript\n`);
+          return 2;
+        }
+        if (numericIndex(index) === undefined) {
+          await writeText(context.stderr, "printf: index outside 0..2147483647\n");
+          return 2;
+        }
+      }
+    }
+    const arguments_ = incoming.slice(offset);
+    const format = arguments_.args[0] === "--" ? arguments_.args[1] : arguments_.args[0];
+    if (format === undefined || arguments_.args[0] !== "--" && format.startsWith("-")) {
+      await writeText(context.stderr, "printf: usage: printf [-v var] format [arguments]\n");
+      return 2;
+    }
+    const allocation = this.budget.values.scope();
+    context[invocationScope].register(() => allocation.close());
+    const chunks: ShellValue[] = [];
+    let length = 0;
+    let terminated = false;
+    const stdout: ByteSink = { write: async chunk => {
+      this.budget.cpuCheckpoint();
+      if (chunk.byteLength > this.budget.limits.maxExpansionBytes - length) this.budget.fail("maxExpansionBytes");
+      length += chunk.byteLength;
+      if (terminated || !chunk.byteLength) return;
+      const nul = chunk.indexOf(0);
+      const bytes = nul < 0 ? chunk : chunk.subarray(0, nul);
+      if (bytes.byteLength) chunks.push(shellValueFromBytes(bytes, allocation));
+      terminated = nul >= 0;
+    } };
+    try {
+      let status: number;
+      try { status = (await formatPrintf({ ...context, args: arguments_.args, argumentValues: arguments_, stdout })).exitCode; }
+      catch (error) {
+        this.signal.throwIfAborted();
+        if (!(error instanceof UsageError)) throw error;
+        await writeText(context.stderr, `printf: ${error.message}\n`);
+        status = 1;
+      }
+      const value = concatShellValues(chunks, allocation);
+      this.signal.throwIfAborted();
+      if (state.readonlyVariables?.has(name)) {
+        await writeText(context.stderr, `printf: ${name}: readonly variable\n`);
+        return 1;
+      }
+      if (index || arrayStore(state)?.get(name)) {
+        const decoder = new TextDecoder("utf-8", { fatal: true, ignoreBOM: true });
+        const decode = (bytes: Uint8Array): string | undefined => {
+          try { return decoder.decode(bytes); }
+          catch (error) {
+            this.signal.throwIfAborted();
+            if (!(error instanceof TypeError)) throw error;
+            return undefined;
+          }
+        };
+        let text = decode(shellValueBytes(value, allocation));
+        if (text !== undefined && index && numericIndex(index) !== 0 && !arrayStore(state)?.get(name) && state.variables[name] !== undefined) {
+          const previous = stateMonitor(state)!.values.get(name, state.variables[name]!);
+          if (decode(shellValueBytes(previous, allocation)) === undefined) text = undefined;
+        }
+        if (text === undefined) {
+          await writeText(context.stderr, "printf: indexed variables do not support non-UTF-8 bytes\n");
+          return 1;
+        }
+        if (index) await this.arrayAssignment({ kind: "element", name, index, append: false, value: { offset: 0, parts: [{ kind: "text", value: text, quoted: true }] } }, state, context);
+        else await this.assignVariable(state, name, text);
+      } else this.writeVariable(state, name, value);
+      const previous = assignments.get(name);
+      if (previous) {
+        if (!previous.exported) state.exported.delete(name);
+        await this.discardVariable(previous);
+        assignments.delete(name);
+      }
+      return status;
+    } finally { allocation.close(); }
   }
 
   async builtin(context: CommandContext & IO, state: State, assignments: Map<string, SavedVariable>, diagnose?: (error: unknown, diagnostic: string) => void, suppressSpecial = false): Promise<number | undefined> {

@@ -1,6 +1,6 @@
 import { FsError } from "poe-code/safe-fs";
 import type { FileDescriptor, FsOptions, OpenFileOptions } from "poe-code/safe-fs";
-import { assertCountedFileOutput, writeFileOutputCounted, type FileOutputContext } from "./filesystem-output.js";
+import { assertCountedFileOutput, writeFileOutputCounted, type FileOutputContext } from "./filesystem-output-budget.js";
 
 export interface CommandFileDescriptor extends FileDescriptor {
   acknowledgeCloseFailure(reason: unknown): boolean;

@@ -1,8 +1,8 @@
 # Filesystem output lifecycle
 
 `openFileOutput` is the internal filesystem output operation shared by shell
-redirection, `tee`, curl body files and curl header files. It builds on
-`createOutputOperation`: cleanup is registered before filesystem acquisition,
+redirection, `tee`, curl body files and curl header files. Its legacy streaming
+path builds on `createOutputOperation`: cleanup is registered before filesystem acquisition,
 completion closes the byte stream, and abort cancels the operation and joins its
 writer and admitted writes. It is not a separate invocation lifecycle.
 
@@ -43,6 +43,7 @@ compatible. The third argument additionally accepts `FileOutputOpenOptions`:
 interface FileOutputOpenOptions {
   readonly flag: "w" | "a" | "wx";
   readonly mode?: number;
+  readonly descriptor?: boolean;
 }
 ```
 
@@ -77,6 +78,52 @@ publication, identity and rollback limitations; delegation does not upgrade thos
 guarantees. `tests/contracts/filesystem-output.test.ts` covers mode forwarding,
 collision preservation, missing capabilities/streaming, no exclusive downgrade,
 incremental refusal, path-local admission, quota and falsey cancellation cleanup.
+
+### Explicit retained-descriptor output
+
+`descriptor: true` selects a canonical `openCommandFile` resource instead of the
+streaming/incremental route. Omission or false leaves that route unchanged; a
+nonboolean descriptor option is rejected. Explicit descriptor output never
+falls back after failure and does not call an incremental callback. It requires
+the path's canonical open capability, rejects known read-only or unsupported
+write/append destinations, and requires affirmative exclusive creation for `wx`.
+Flags and mode are captured before asynchronous acquisition. Write-only access,
+creation, truncation and append are delegated to the canonical open operation.
+
+The returned `FileOutput.descriptor` is an admission-gated view over that same
+open resource. It shares the provider's actual capability metadata, retained
+identity, cursor position and close ownership; it does not reopen the pathname
+or infer descriptor identity from a stat result. Renaming the pathname therefore
+does not redirect subsequent writes or recreate the old pathname. This does not
+upgrade providers lacking retained-object semantics or add a namespace lease.
+
+Finish, registered cleanup and descriptor close stop new sink and descriptor
+admission immediately. Already-admitted sink writes retain their access while
+draining; closing their public admission does not cancel those continuations.
+Partial writes retry the remaining bytes, with fragments no larger than 64 KiB;
+nonempty zero progress fails. The canonical resource closes once after admitted
+work drains. Abort additionally cancels the output operation. Root cancellation,
+owner failure and forwarded operation cancellation retain their precedence and
+exact reasons, including false, zero, empty string and null. Each method captures
+its forwarded signal once before queueing. Operation cancellation does not cancel
+other admitted sink work. Cooperative acquisition and cleanup remain enrolled
+before resources are acquired; this does not promise to preempt an opaque host.
+
+Descriptor writes use the same counted output budget as standard output and
+other named output. They are not additionally wrapped in the legacy sink budget.
+Accepted partial counts refund only the unused admitted bytes; invalid counts or
+unknown failures retain conservative charges. The budget binding is shared via
+the internal `filesystem-output-budget` module, not a second ledger.
+
+This explicit API does not yet migrate shell redirection selection. The legacy
+redirection behavior below remains in effect until its separate runtime
+integration. It also does not implement pipe endpoint aliases, write-end
+readiness, or extended-read descriptor semantics.
+
+Coverage includes `tests/contracts/filesystem-output-descriptor.test.ts`,
+`tests/contracts/retained-output-review.test.ts`,
+`tests/commands/retained-output-descriptor.test.ts`, and the compiled consumer
+`tests/plugins/retained-output-api-runtime.test.ts`.
 
 ## Backpressure, cancellation and budgets
 

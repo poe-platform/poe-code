@@ -1314,6 +1314,22 @@ this request to keep additions out of the default package.
   unchanged 600-second/1-GiB/64-MiB supervision. These scoped results do not
   waive the full-typecheck failure, pending read/descriptor jobs, `command -p`,
   or the four previously recorded nested-word coordinate gaps.
+- Local commit `743ca1797` records the qualified command-name diagnostic repair.
+  It does not include the separate output API source, the read leaf, or the
+  pending default-path witness. No push or release is requested or performed.
+  The retained-output API foundation is prepared as a separate increment: its
+  three source files, contract documentation, three source-level suites and
+  compiled 29-case consumer are registered explicitly. The root 425-case retained
+  rerun and compiled consumer pass against the independently approved source;
+  default redirection routing remains the next implementation task.
+- The output foundation's final discovery check passes 98 tests and guarded
+  lint 32 completes cleanly with 9,902 linted inputs and unchanged 363 watched
+  files. Fresh dry packs retain the 1,066/4,657 file inventories with no optional
+  implementation leaks; root prepare-hook execution is recorded, not concealed.
+  A fresh read-suite run after the formatter commit still gives 525 passes and
+  54 failures among 579 tests, zero skips. These failures and the default output
+  rename failure are retained for the next runtime integration, not counted as
+  passing API-foundation acceptance.
 
 - First implementation wave: cmp, yes, shuf and virtual devices in disjoint leaf
   directories. Root is qualifying native oracles and the opt-in delivery boundary.

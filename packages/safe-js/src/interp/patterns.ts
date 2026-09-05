@@ -281,10 +281,8 @@ function copyObjectRestValue(
   excludedKeys: ReadonlySet<string>
 ): SandboxObject {
   const rest = Object.create(null) as SandboxObject;
-  for (const [key, entryValue] of ownEnumerableSandboxEntries(value)) {
-    if (!excludedKeys.has(key)) {
-      defineProperty(rest, key, entryValue);
-    }
+  for (const [key, entryValue] of ownEnumerableSandboxEntries(value, excludedKeys)) {
+    defineProperty(rest, key, entryValue);
   }
   return rest;
 }

@@ -72,12 +72,12 @@ for (const reason of [false, null]) {
 
 test("IFS scanner checkpoints byte runs and non-ASCII IFS without losing bytes", async context => {
   const { runtime, budget, io } = ifsFixture(context, "");
-  const scanner = runtime as unknown as { splitValue(value: ShellValue, separators: string, io: unknown): Iterable<ShellValue> | AsyncIterable<ShellValue> };
+  const scanner = runtime as unknown as { splitValue(value: ShellValue, separators: ReadonlySet<number>, asciiSeparators: boolean, io: unknown): Iterable<ShellValue> | AsyncIterable<ShellValue> };
   const checkpoint = context.mock.method(budget, "cpuCheckpoint");
   for (const separators of [" ", "é"]) {
     const value = shellValueFromBytes(new TextEncoder().encode("a".repeat(16384)));
     let text = "";
-    for await (const piece of scanner.splitValue(value, separators, io)) text += shellValueText(piece);
+    for await (const piece of scanner.splitValue(value, new Set([separators.codePointAt(0)!]), separators === " ", io)) text += shellValueText(piece);
     assert.equal(text, "a".repeat(16384));
   }
   assert.ok(checkpoint.mock.callCount() >= 8);

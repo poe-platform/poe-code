@@ -34,6 +34,14 @@ before push. No root full-gate, delivery, publication, CPU-severity or heap-safe
 claim is made by these focused results. Close issue 623 immediately after verified
 delivery to main, then verify the release separately.
 
+The first full workspace run caught an existing security-audit test calling the
+private splitter with its old string-based signature. The Bash task reported
+19,962 passes, one failure and 63 skips; this is not a passing full gate. Root
+updated only that test's private signature and invocation to supply numeric
+membership and the ASCII flag, retaining its original byte reconstruction,
+checkpoint and command-count assertions. The original failing log is preserved;
+focused and complete qualification must run again before delivery.
+
 ## Implementation and compatibility
 
 Prepare a numeric membership set once per nonempty split value and share it with

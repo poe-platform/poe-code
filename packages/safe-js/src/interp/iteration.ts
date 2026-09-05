@@ -3,16 +3,21 @@ import {
   isSandboxMap,
   isSandboxSet,
   type SandboxGenerator,
+  type SandboxCallContext,
   type SandboxValue
 } from "./values.js";
 import { enterRunningState } from "./running-state.js";
 import { isFloat32Array } from "./float32.js";
+import { boxedValue, isSandboxBox } from "./boxed.js";
 import { getHostObjectIterator, isGuestHostObject } from "./host-capabilities.js";
 import { isSandboxCollectionIterator, nextCollectionIterator } from "./collection-iterator.js";
-import type { Budget } from "./budget.js";
+import { Budget } from "./budget.js";
+import { sandboxString } from "./string-coercion.js";
 
 export type SandboxIterator = {
   readonly generator?: true;
+  readonly asynchronous?: true;
+  readonly retainedValue?: SandboxValue;
   snapshotIndex?(): number;
   next(value?: SandboxValue): IteratorResult<SandboxValue> | Promise<IteratorResult<SandboxValue>>;
   return?(
@@ -23,7 +28,25 @@ export type SandboxIterator = {
   ): IteratorResult<SandboxValue> | Promise<IteratorResult<SandboxValue>>;
 };
 
-export function getSandboxIterator(value: SandboxValue, budget?: Budget): SandboxIterator | undefined {
+export function getSandboxIterator(value: SandboxValue, budget?: Budget, context?: SandboxCallContext): SandboxIterator | undefined {
+  if (isSandboxBox(value) && typeof boxedValue(value) === "string") {
+    const primitive = boxedValue(value);
+    let text: string | undefined;
+    let iterator: SandboxIterator | undefined;
+    let initialized: Promise<void> | undefined;
+    return {
+      asynchronous: true,
+      get retainedValue() { return text === primitive ? undefined : text; },
+      next: async () => {
+        initialized ??= Promise.resolve(sandboxString(value, budget ?? new Budget(), context)).then(converted => {
+          text = converted;
+          iterator = syncIterator(converted[Symbol.iterator]());
+        });
+        await initialized;
+        return iterator!.next();
+      }
+    };
+  }
   if (isSandboxCollectionIterator(value)) return { next: () => nextCollectionIterator(value, budget), snapshotIndex: () => 0 };
   if (isGuestHostObject(value)) return getHostObjectIterator(value);
   if (isFloat32Array(value)) {

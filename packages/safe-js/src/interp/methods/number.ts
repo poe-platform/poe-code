@@ -1,10 +1,11 @@
 import { Budget } from "../budget.js";
 import { sandboxNumber } from "../string-coercion.js";
+import { isSandboxBox, boxedValue } from "../boxed.js";
 import { createSandboxClosure, type SandboxCallContext, type SandboxValue } from "../values.js";
 
 export type NumberMethodName = "toExponential" | "toFixed" | "toPrecision" | "toString";
 
-const numberMethodNames = new Set<NumberMethodName>([
+export const numberMethodNames = new Set<NumberMethodName>([
   "toExponential",
   "toFixed",
   "toPrecision",
@@ -37,6 +38,7 @@ export function callNumberMethod(
   budget: Budget,
   context?: SandboxCallContext
 ): string | Promise<string> {
+  if (isSandboxBox(value)) value = boxedValue(value);
   if (typeof value !== "number") {
     throw new TypeError(`Number#${methodName} requires a number receiver.`);
   }

@@ -25,6 +25,7 @@ import { serialize } from "./serialize.js";
 import { createSandboxRegex, isSandboxRegex } from "../interp/values.js";
 import { SnapshotValidationError } from "./validation.js";
 import { MAX_DATA_DEPTH } from "../graph-depth.js";
+import { boxedValue, createSandboxBox, isSandboxBox } from "../interp/boxed.js";
 
 function withObjectPrototypeProperties<T>(
   properties: Record<string, unknown>,
@@ -54,6 +55,66 @@ function withObjectPrototypeProperties<T>(
 }
 
 describe("snapshot restore", () => {
+  it.each(["extensible", "properties"])("does not inherit boxed %s metadata", field => {
+    const source = "await task()";
+    const value = createSandboxBox(3);
+    const snapshot = serialize({
+      source,
+      currentAstNodeId: getNodeIdByType(parseModule(source), "AwaitExpression"),
+      scopeChain: [{ id: "module", bindings: { value } }],
+      callStack: [], pendingPromises: [], moduleBindings: {}
+    });
+    const node = Object.values(snapshot.heap ?? {}).find(entry => entry.kind === "boxed")! as unknown as Record<string, unknown>;
+    const inherited = node[field];
+    delete node[field];
+    const failure = withObjectPrototypeProperties({ [field]: inherited }, () => {
+      try { restore(snapshot, { source }); }
+      catch (error) { return error; }
+    });
+    expect(failure).toMatchObject({ code: "invalidValue" });
+  });
+  it.each(["writable", "enumerable", "configurable"])("does not inherit boxed descriptor %s flags", field => {
+    const source = "await task()";
+    const value = createSandboxBox(3);
+    value.extra = 7;
+    const snapshot = serialize({
+      source,
+      currentAstNodeId: getNodeIdByType(parseModule(source), "AwaitExpression"),
+      scopeChain: [{ id: "module", bindings: { value } }],
+      callStack: [], pendingPromises: [], moduleBindings: {}
+    });
+    const node = Object.values(snapshot.heap ?? {}).find(entry => entry.kind === "boxed")!;
+    if (node.kind !== "boxed") throw new Error("Missing boxed snapshot value");
+    const descriptor = node.properties.extra as unknown as Record<string, unknown>;
+    delete descriptor[field];
+    descriptor.unexpected = true;
+    const failure = withObjectPrototypeProperties({ [field]: true }, () => {
+      try { restore(snapshot, { source }); }
+      catch (error) { return error; }
+    });
+    expect(failure).toMatchObject({ code: "invalidValue" });
+  });
+  it.each([NaN, -0, Infinity, "😀", false])("restores boxed payloads, frozen descriptors and aliases: %s", primitive => {
+    const source = "await task()";
+    const value = createSandboxBox(primitive);
+    value.self = value;
+    Object.defineProperty(value, "hidden", { value: 3 });
+    Object.freeze(value);
+    const snapshot = serialize({
+      source,
+      currentAstNodeId: getNodeIdByType(parseModule(source), "AwaitExpression"),
+      scopeChain: [{ id: "module", bindings: { value, alias: value } }],
+      callStack: [], pendingPromises: [], moduleBindings: {}
+    });
+    const scope = restore(JSON.parse(JSON.stringify(snapshot)), { source }).currentScope;
+    const restored = scope.lookup("value");
+    if (!restored.found || !isSandboxBox(restored.value)) throw new Error("Missing boxed snapshot value");
+    expect(boxedValue(restored.value)).toBe(primitive);
+    expect(restored.value.self).toBe(restored.value);
+    expect(scope.lookup("alias")).toMatchObject({ found: true, value: restored.value });
+    expect(Object.isFrozen(restored.value)).toBe(true);
+    expect(Object.getOwnPropertyDescriptor(restored.value, "hidden")).toEqual({ value: 3, writable: false, configurable: false, enumerable: false });
+  });
   it("counts registered retained roots once during restoration", () => {
     const source = "await task()";
     const snapshot = serialize({

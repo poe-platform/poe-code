@@ -100,7 +100,8 @@ import {
   type ArrayMethodOptions
 } from "./methods/array.js";
 import { getFunctionMember, type FunctionMethodOptions } from "./methods/function.js";
-import { getGuestFunctionProperty, getSandboxPrototype, isGuestClosure, materializeFunctionProperties, setSandboxPrototype } from "./object-model.js";
+import { getBoxedPrototype, getGuestFunctionProperty, getSandboxPrototype, isDefaultBoxedMethod, isGuestClosure, materializeFunctionProperties, setSandboxPrototype } from "./object-model.js";
+import { getStringIndex } from "./methods/string.js";
 import { assertSandboxDataDepth } from "../graph-depth.js";
 import {
   callMapMethod,
@@ -141,6 +142,7 @@ import {
 } from "./globals/float32array.js";
 import { isFloat32Array } from "./float32.js";
 import { dateString, dateTime, isSandboxDate } from "./date.js";
+import { isSandboxBox } from "./boxed.js";
 import { getDateMember, getDatePrototype, isDateConstructor } from "./globals/date.js";
 import {
   createSandboxRegex,
@@ -853,8 +855,9 @@ async function evaluateBinaryExpression(
     return left;
   }
 
+  let leftValue = left.value;
   let rightValue: SandboxValue;
-  const release = retainValues(context.budget, () => [left.value, rightValue]);
+  const release = retainValues(context.budget, () => [leftValue, rightValue]);
   try {
     const right = await evaluateNode(node.right, context);
     if (right.kind !== "normal") {
@@ -862,14 +865,20 @@ async function evaluateBinaryExpression(
     }
 
     rightValue = right.value;
-    let leftValue = left.value;
     if (node.operator === "in") {
       if (typeof right.value !== "object" || right.value === null) {
         throw new TypeError("Right-hand side of 'in' must be an object.");
       }
       leftValue = await toPropertyKey(leftValue, context.budget, createCoercionContext(context));
     }
-    const value = applyBinaryOperator(node, leftValue, right.value, context);
+    if (!["in", "instanceof", "===", "!=="].includes(node.operator)) {
+      const equality = node.operator === "==" || node.operator === "!=";
+      if (isSandboxBox(leftValue) && (!equality || (rightValue !== null && rightValue !== undefined && typeof rightValue !== "object")))
+        leftValue = await toNumericPrimitive(leftValue, context);
+      if (isSandboxBox(rightValue) && (!equality || (left.value !== null && left.value !== undefined && typeof left.value !== "object")))
+        rightValue = await toNumericPrimitive(rightValue, context);
+    }
+    const value = applyBinaryOperator(node, leftValue, rightValue, context);
 
     return {
       kind: "normal",
@@ -1666,69 +1675,74 @@ async function evaluateForOfIterator(
   context: EvaluationContext,
   restoredEntry?: IteratorResult<SandboxValue>
 ): Promise<EvaluationResult> {
-  const iterator = getSandboxIterator(value, context.budget);
+  const iterator = getSandboxIterator(value, context.budget, createCoercionContext(context));
   if (iterator === undefined) {
     throw new TypeError(`${String(value)} is not a supported iterable`);
   }
 
-  const nodeId = node.nodeId ?? -1;
-  let index = consumeRestoredLoopIterationIndex(node, context);
-  for (let skipped = 0; skipped < index; skipped += 1) {
-    const skippedIteration = await iterator.next();
-    if (typeof skippedIteration !== "object" || skippedIteration === null) {
-      throw new TypeError("Iterator result must be an object.");
-    }
-    if (skippedIteration.done) {
-      return normalEmptyResult();
-    }
-  }
-
-  while (true) {
-    const iteration = restoredEntry ?? (await iterator.next());
-    restoredEntry = undefined;
-    if (typeof iteration !== "object" || iteration === null) {
-      throw new TypeError("Iterator result must be an object.");
-    }
-    if (iteration.done) {
-      context.activeLoopIterations.delete(nodeId);
-      return normalEmptyResult();
+  const releaseIterator = retainValues(context.budget, () => [value, iterator.retainedValue]);
+  try {
+    const nodeId = node.nodeId ?? -1;
+    let index = consumeRestoredLoopIterationIndex(node, context);
+    for (let skipped = 0; skipped < index; skipped += 1) {
+      const skippedIteration = await iterator.next();
+      if (typeof skippedIteration !== "object" || skippedIteration === null) {
+        throw new TypeError("Iterator result must be an object.");
+      }
+      if (skippedIteration.done) {
+        return normalEmptyResult();
+      }
     }
 
-    context.activeLoopIterations.set(
-      nodeId,
-      iterator.snapshotIndex === undefined
-        ? index
-        : {
-            get index() {
-              return iterator.snapshotIndex!();
-            },
-            values: [value, iteration.value]
-          }
-    );
-    const scope = context.scope.child();
-    const binding = await bindForOfLoopVariable(node.left, iteration.value, scope, context);
-    if (!binding.ok) {
-      return binding.result;
-    }
+    while (true) {
+      const iteration = restoredEntry ?? (await iterator.next());
+      restoredEntry = undefined;
+      if (typeof iteration !== "object" || iteration === null) {
+        throw new TypeError("Iterator result must be an object.");
+      }
+      if (iteration.done) {
+        context.activeLoopIterations.delete(nodeId);
+        return normalEmptyResult();
+      }
 
-    const iterationContext = createLoopIterationContext(context, scope);
-    emitLoopIterationBreakpoint(node, iterationContext);
-    const result = await evaluateNode(node.body, iterationContext);
-    if (isMatchingBreak(result, loopLabels(node))) {
-      context.activeLoopIterations.delete(nodeId);
-      await closeIterator(iterator);
-      return normalEmptyResult();
-    }
-    if (isMatchingContinue(result, loopLabels(node))) {
+      context.activeLoopIterations.set(
+        nodeId,
+        iterator.snapshotIndex === undefined
+          ? index
+          : {
+              get index() {
+                return iterator.snapshotIndex!();
+              },
+              values: [value, iteration.value]
+            }
+      );
+      const scope = context.scope.child();
+      const binding = await bindForOfLoopVariable(node.left, iteration.value, scope, context);
+      if (!binding.ok) {
+        return binding.result;
+      }
+
+      const iterationContext = createLoopIterationContext(context, scope);
+      emitLoopIterationBreakpoint(node, iterationContext);
+      const result = await evaluateNode(node.body, iterationContext);
+      if (isMatchingBreak(result, loopLabels(node))) {
+        context.activeLoopIterations.delete(nodeId);
+        await closeIterator(iterator);
+        return normalEmptyResult();
+      }
+      if (isMatchingContinue(result, loopLabels(node))) {
+        index += 1;
+        continue;
+      }
+      if (result.kind !== "normal") {
+        context.activeLoopIterations.delete(nodeId);
+        await closeIterator(iterator);
+        return result;
+      }
       index += 1;
-      continue;
     }
-    if (result.kind !== "normal") {
-      context.activeLoopIterations.delete(nodeId);
-      await closeIterator(iterator);
-      return result;
-    }
-    index += 1;
+  } finally {
+    releaseIterator();
   }
 }
 
@@ -2239,53 +2253,65 @@ async function evaluateYieldDelegate(
   if (argument.kind !== "normal") {
     return argument;
   }
-  const iterator = getSandboxIterator(argument.value, context.budget);
+  const iterator = getSandboxIterator(
+    argument.value,
+    context.budget,
+    createCoercionContext(context)
+  );
   if (iterator === undefined) {
     throw new TypeError(`${String(argument.value)} is not a supported iterable`);
   }
 
-  let completion: { type: "normal" | "return" | "throw"; value: SandboxValue } = {
-    type: "normal",
-    value: undefined
-  };
-  const replay = context.generatorResume?.sent ?? [];
-  let replayIndex = 0;
-  while (true) {
-    const method = completion.type === "normal" ? "next" : completion.type;
-    const iteratorMethod = iterator[method];
-    if (iteratorMethod === undefined) {
-      if (completion.type === "throw") {
-        throw completion.value;
+  const releaseIterator = retainValues(context.budget, () => [
+    argument.value,
+    iterator.retainedValue
+  ]);
+  try {
+    let completion: { type: "normal" | "return" | "throw"; value: SandboxValue } = {
+      type: "normal",
+      value: undefined
+    };
+    const replay = context.generatorResume?.sent ?? [];
+    let replayIndex = 0;
+    while (true) {
+      const method = completion.type === "normal" ? "next" : completion.type;
+      const iteratorMethod = iterator[method];
+      if (iteratorMethod === undefined) {
+        if (completion.type === "throw") {
+          throw completion.value;
+        }
+        return generatorCompletionResult(completion);
       }
-      return generatorCompletionResult(completion);
-    }
-    const result = await iteratorMethod(completion.value);
-    if (result.done) {
-      if (completion.type === "return") {
-        return generatorCompletionResult({ type: "return", value: result.value });
+      const result = await iteratorMethod(completion.value);
+      if (result.done) {
+        if (completion.type === "return") {
+          return generatorCompletionResult({ type: "return", value: result.value });
+        }
+        return {
+          kind: "normal",
+          hasValue: true,
+          value: result.value
+        };
       }
-      return {
-        kind: "normal",
-        hasValue: true,
-        value: result.value
-      };
+      if (replayIndex < replay.length - 1) {
+        completion = replay[replayIndex + 1] as typeof completion;
+        replayIndex += 1;
+        continue;
+      }
+      const completionPromise = context.generatorYield!(
+        allocateProducedSandboxValue(result.value, context.budget),
+        node.nodeId
+      );
+      emitResumeBreakpoint(context, {
+        kind: "generator-yield",
+        nodeId: node.nodeId,
+        span: node.span
+      });
+      completion = (await completionPromise) as typeof completion;
+      context.generatorResume = undefined;
     }
-    if (replayIndex < replay.length - 1) {
-      completion = replay[replayIndex + 1] as typeof completion;
-      replayIndex += 1;
-      continue;
-    }
-    const completionPromise = context.generatorYield!(
-      allocateProducedSandboxValue(result.value, context.budget),
-      node.nodeId
-    );
-    emitResumeBreakpoint(context, {
-      kind: "generator-yield",
-      nodeId: node.nodeId,
-      span: node.span
-    });
-    completion = (await completionPromise) as typeof completion;
-    context.generatorResume = undefined;
+  } finally {
+    releaseIterator();
   }
 }
 
@@ -2492,6 +2518,14 @@ function getPropertyValue(
   context: EvaluationContext
 ): SandboxValue {
   if (isGuestHostObject(target)) return getHostObjectMember(target, String(property));
+  if (typeof target === "string" || typeof target === "number" || typeof target === "boolean") {
+    const prototype = getBoxedPrototype(target, context.budget);
+    if (prototype !== undefined) {
+      if (typeof target === "string" && (property === "length" || getStringIndex(property) !== undefined))
+        return getStringMember(target, property, context.budget);
+      return getMemberValue(prototype, property, context);
+    }
+  }
   if (typeof target === "string") return getStringMember(target, property, context.budget);
   if (typeof target === "number") return getNumberMember(property, context.budget);
   if (typeof target === "boolean") return undefined;
@@ -2727,6 +2761,17 @@ async function evaluateMemberCallExpression(
       ...reference,
       property: await toPropertyKey(reference.property, context.budget, createCoercionContext(context))
     };
+
+    if ((typeof member.object === "string" || typeof member.object === "number" || typeof member.object === "boolean") &&
+        getBoxedPrototype(member.object, context.budget) !== undefined) {
+      if (isDefaultBoxedMethod(member.object, member.property, context.budget)) {
+        if (typeof member.object === "string" && isStringMethodName(member.property))
+          return evaluateStringMethodCall(node, member.object, member.property, context);
+        if (typeof member.object === "number" && isNumberMethodName(member.property))
+          return evaluateNumberMethodCall(node, member.object, member.property, context);
+      }
+      return evaluateResolvedCallExpression(node, getPropertyValue(member.object, member.property, context), context, member.object);
+    }
 
     if (typeof member.object === "string" && isStringMethodName(member.property)) {
       return evaluateStringMethodCall(node, member.object, member.property, context);
@@ -3177,33 +3222,41 @@ async function applyCompoundAssignmentOperator(
   right: InterpreterValue,
   context: EvaluationContext
 ): Promise<InterpreterValue> {
-  left = await toNumericPrimitive(left, context);
-  right = await toNumericPrimitive(right, context);
-  switch (operator) {
-    case "+=":
-      return applyAdditionOperator(left, right, context);
-    case "-=":
-      return toNumber(left) - toNumber(right);
-    case "*=":
-      return toNumber(left) * toNumber(right);
-    case "/=":
-      return toNumber(left) / toNumber(right);
-    case "%=":
-      return toNumber(left) % toNumber(right);
-    case "**=":
-      return toNumber(left) ** toNumber(right);
-    case "&=":
-      return toNumber(left) & toNumber(right);
-    case "|=":
-      return toNumber(left) | toNumber(right);
-    case "^=":
-      return toNumber(left) ^ toNumber(right);
-    case "<<=":
-      return toNumber(left) << toNumber(right);
-    case ">>=":
-      return toNumber(left) >> toNumber(right);
-    case ">>>=":
-      return toNumber(left) >>> toNumber(right);
+  const convertingObject = typeof left === "object" && left !== null;
+  let convertedLeft: InterpreterValue;
+  const release = retainValues(context.budget, () => [convertedLeft]);
+  try {
+    left = await toNumericPrimitive(left, context);
+    if (convertingObject) convertedLeft = left;
+    right = await toNumericPrimitive(right, context);
+    switch (operator) {
+      case "+=":
+        return applyAdditionOperator(left, right, context);
+      case "-=":
+        return toNumber(left) - toNumber(right);
+      case "*=":
+        return toNumber(left) * toNumber(right);
+      case "/=":
+        return toNumber(left) / toNumber(right);
+      case "%=":
+        return toNumber(left) % toNumber(right);
+      case "**=":
+        return toNumber(left) ** toNumber(right);
+      case "&=":
+        return toNumber(left) & toNumber(right);
+      case "|=":
+        return toNumber(left) | toNumber(right);
+      case "^=":
+        return toNumber(left) ^ toNumber(right);
+      case "<<=":
+        return toNumber(left) << toNumber(right);
+      case ">>=":
+        return toNumber(left) >> toNumber(right);
+      case ">>>=":
+        return toNumber(left) >>> toNumber(right);
+    }
+  } finally {
+    release();
   }
 }
 
@@ -3757,13 +3810,13 @@ async function evaluateSpreadElement(
     };
   }
 
-  const iterator = getSandboxIterator(value.value, context.budget);
+  const iterator = getSandboxIterator(value.value, context.budget, createCoercionContext(context));
   if (iterator === undefined) {
     throw new TypeError("Spread arguments must evaluate to an iterable.");
   }
 
   const spreadValues: SandboxValue[] = [];
-  const release = retainValues(context.budget, () => [value.value, ...spreadValues]);
+  const release = retainValues(context.budget, () => [value.value, iterator.retainedValue, ...spreadValues]);
   try {
     while (true) {
       const next = await iterator.next();

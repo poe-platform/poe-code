@@ -104,12 +104,12 @@ function populateCollection<T extends SandboxMap | SandboxSet>(
 ): T | Promise<T> {
   budget.allocateCollectionEntries(0);
   if (source === undefined || source === null) return collection;
-  const iterator = getSandboxIterator(source, budget);
+  const iterator = getSandboxIterator(source, budget, context);
   if (iterator === undefined) throw new TypeError(`${name} constructor requires an iterable.`);
   let entry: SandboxValue;
   let failure: unknown;
   const retained = {};
-  budget.setRetainedValues(retained, () => [source, collection, entry, failure, ...(retainedValues?.() ?? [])]);
+  budget.setRetainedValues(retained, () => [source, iterator.retainedValue, collection, entry, failure, ...(retainedValues?.() ?? [])]);
   const checkData = createDataCheckpoint(budget, context);
   const closeOnThrow = (error: unknown): never | Promise<never> => {
     failure = isCapturedException(error) ? error.reason : error;
@@ -119,7 +119,7 @@ function populateCollection<T extends SandboxMap | SandboxSet>(
     };
     try {
       const closing = iterator.return?.();
-      if (iterator.generator) return Promise.resolve(closing).then(() => { throw error; }, rethrow);
+      if (iterator.generator || iterator.asynchronous) return Promise.resolve(closing).then(() => { throw error; }, rethrow);
     } catch (closeError) { return rethrow(closeError); }
     throw error;
   };
@@ -135,7 +135,7 @@ function populateCollection<T extends SandboxMap | SandboxSet>(
     } catch (error) { return closeOnThrow(error); }
     return false;
   };
-  if (iterator.generator) {
+  if (iterator.generator || iterator.asynchronous) {
     return (async () => {
       try {
         checkData(collection, 0, true);

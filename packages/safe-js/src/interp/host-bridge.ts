@@ -1,5 +1,6 @@
 import { normalizeClosureResult } from "./async.js";
 import { copyNativeDate } from "./date.js";
+import { boxedDataProperties, createSandboxBox, nativeBoxedValue } from "./boxed.js";
 import { exportHostCapability, importHostCapability, isLiveCapability } from "./host-capabilities.js";
 import { attachErrorSpan, replaceErrorStack, type ErrorSourceSpan } from "../error/shape.js";
 import { SandboxError, type Budget, type CompileOwner } from "./budget.js";
@@ -978,6 +979,26 @@ export function copyHostValueToSandbox(
       },
       state
     );
+  }
+
+  const primitive = nativeBoxedValue(value);
+  if (primitive !== undefined) {
+    if (typeof primitive === "string") budget.allocateString(primitive);
+    const original = value as object;
+    const existing = state.seen.get(original);
+    if (existing !== undefined) return existing;
+    const copy = createSandboxBox(primitive);
+    state.seen.set(original, copy);
+    budget.chargeDataUsage(measureSandboxData([copy]));
+    for (const [key, descriptor] of boxedDataProperties(original)) {
+      if (!("value" in descriptor)) throw new TypeError(`Unsupported sandbox value at ${joinPath(path, key)}: accessor property`);
+      Object.defineProperty(copy, budget.allocateString(key), {
+        ...descriptor,
+        value: copyHostValueToSandbox(descriptor.value, stackFrames,
+          { ...options, capabilityPath: [...(options.capabilityPath ?? []), key] }, state, joinPath(path, key))
+      });
+    }
+    return copy;
   }
 
   const date = copyNativeDate(value);

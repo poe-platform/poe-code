@@ -1,10 +1,12 @@
 import { Budget } from "../budget.js";
+import { createSandboxBox } from "../boxed.js";
 import {
   createSandboxClosure,
   isSandboxClosure,
   isSandboxMap,
   isSandboxPromise,
   isSandboxSet,
+  measureSandboxData,
   type SandboxArray,
   type SandboxCallContext,
   type SandboxClosure,
@@ -159,7 +161,10 @@ export async function callArrayMethod(
   stack: readonly string[] = []
 ): Promise<SandboxValue> {
   if (receiver === null || receiver === undefined) throw new TypeError("Array method requires a receiver.");
-  if (typeof receiver !== "object") throw new TypeError("Object primitive boxing is not supported.");
+  if (typeof receiver !== "object") {
+    receiver = createSandboxBox(receiver);
+    options.budget.chargeDataUsage(measureSandboxData([receiver]));
+  }
   const retainedReceiver = {};
   options.budget.setRetainedValues(retainedReceiver, () => [receiver]);
   try {

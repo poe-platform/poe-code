@@ -8,6 +8,8 @@ import { requiresArrayEntries, serializeArray, type SerializedArray } from "./ar
 import { float32DataProperties, isFloat32Array } from "../interp/float32.js";
 import { encodeFloat32Storage, type Float32Data } from "./float32array.js";
 import { isSandboxDate, serializedDateTime } from "../interp/date.js";
+import { boxedDataProperties, isSandboxBox, type SandboxBox } from "../interp/boxed.js";
+import { encodeBoxedData, type BoxedData } from "./boxed.js";
 import {
   isSandboxArguments,
   isSandboxGenerator,
@@ -68,6 +70,7 @@ export type SerializedReferenceValue = {
 };
 
 export type SerializedHeapValue =
+  | BoxedData<SerializedSnapshotValue>
   | { kind: "regex-object"; source: string; flags: string; lastIndex: SerializedSnapshotValue }
   | { kind: "collection-iterator"; collectionKind: "map" | "set"; method: CollectionIterationMethod; collection: SerializedSnapshotValue; index: number; exhausted: boolean; entries: Record<string, SerializedSnapshotValue> }
   | { kind: "date"; time: number | null }
@@ -119,6 +122,7 @@ export type RuntimePromiseValue = {
 };
 
 export type RuntimeSnapshotValue =
+  | SandboxBox
   | Date
   | Float32Array
   | boolean
@@ -400,7 +404,7 @@ function serializeValue(
     return { kind: "regex", source: value.source, flags: value.flags, lastIndex: value.lastIndex };
   }
 
-  if (isSandboxDate(value) || isSandboxMap(value) || isSandboxSet(value) || isSandboxCollectionIterator(value) || isFloat32Array(value)) {
+  if (isSandboxBox(value) || isSandboxDate(value) || isSandboxMap(value) || isSandboxSet(value) || isSandboxCollectionIterator(value) || isFloat32Array(value)) {
     const reference = serializeHeapReference(value, path, state);
     if (reference === undefined) {
       throw new TypeError(`Cannot serialize collection without a heap reference at ${path}.`);
@@ -430,6 +434,7 @@ function serializeValue(
 
 function serializeHeapReference(
   value:
+    | SandboxBox
     | RuntimeSnapshotValue[]
     | Record<string, RuntimeSnapshotValue>
     | SandboxMap
@@ -461,6 +466,8 @@ function serializeHeapReference(
         index: snapshot.index, exhausted: snapshot.exhausted, entries
       };
       for (const [key, entry] of Object.entries(value)) entries[key] = serializeValue(entry as RuntimeSnapshotValue, `${path}.${key}`, state);
+    } else if (isSandboxBox(value)) {
+      state.heap[String(id)] = encodeBoxedData(value, (entry, key) => serializeValue(entry as RuntimeSnapshotValue, `${path}.${key}`, state));
     } else if (isSandboxDate(value)) {
       state.heap[String(id)] = { kind: "date", time: serializedDateTime(value) };
     } else if (isFloat32Array(value)) {
@@ -606,6 +613,7 @@ function indexHeapContainers(input: SerializeInput): WeakMap<object, number> {
       stat.cyclic ||
       (isSandboxRegex(value) && (!Number.isSafeInteger(value.lastIndex) ||
         (typeof value.lastIndex === "number" && value.lastIndex < 0) || Object.is(value.lastIndex, -0))) ||
+      isSandboxBox(value) ||
       isSandboxDate(value) ||
       isFloat32Array(value) ||
       (Array.isArray(value) && requiresArrayEntries(value)) ||
@@ -674,7 +682,9 @@ function collectContainerStats(
   stat.expanded = true;
   ancestors.add(value);
 
-  const entries = isSandboxCollectionIterator(value)
+  const entries = isSandboxBox(value)
+    ? boxedDataProperties(value).map(([, descriptor]) => descriptor.value)
+    : isSandboxCollectionIterator(value)
     ? [collectionIteratorState(value).collection, ...Object.values(value)]
     : isSandboxArguments(value)
     ? Object.values(Object.getOwnPropertyDescriptors(value)).flatMap((descriptor) =>

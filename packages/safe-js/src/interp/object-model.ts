@@ -1,6 +1,7 @@
 import { assertSandboxDataDepth } from "../graph-depth.js";
 import { getHostObjectMember, isGuestHostObject, isLiveCapability } from "./host-capabilities.js";
 import type { Budget } from "./budget.js";
+import { boxedValue, isSandboxBox, type BoxedKind, type BoxedPrimitive } from "./boxed.js";
 import {
   isSandboxClosure,
   isSandboxGenerator,
@@ -17,7 +18,10 @@ const guestClosures = new WeakSet<object>();
 const functionProperties = new WeakMap<object, SandboxObject>();
 const prototypes = new WeakMap<object, object | null>();
 const intrinsicPrototypes = new WeakMap<Budget, SandboxObject>();
+const boxedPrototypes = new WeakMap<Budget, Map<BoxedKind, SandboxObject>>();
+const intrinsicPrototypeRoots = new WeakMap<Budget, Set<SandboxObject>>();
 const intrinsicConstructors = new WeakMap<object, () => boolean>();
+const initialBoxedMethods = new WeakMap<object, Map<string, SandboxValue>>();
 const descriptorObjects = new WeakSet<object>();
 
 export function registerGuestClosure(closure: SandboxClosure): void {
@@ -77,11 +81,40 @@ export function getGuestFunctionProperty(closure: SandboxClosure, key: string): 
 export function installObjectPrototype(budget: Budget, prototype: SandboxObject, constructor: SandboxClosure): void {
   prototypes.set(prototype, null);
   intrinsicPrototypes.set(budget, prototype);
+  registerIntrinsicPrototype(budget, prototype, constructor);
+}
+
+export function installBoxedPrototype(budget: Budget, prototype: SandboxObject, constructor: SandboxClosure): void {
+  let state = boxedPrototypes.get(budget);
+  if (state === undefined) boxedPrototypes.set(budget, state = new Map());
+  state.set(typeof boxedValue(prototype) as BoxedKind, prototype);
+  initialBoxedMethods.set(prototype, new Map(Object.entries(Object.getOwnPropertyDescriptors(prototype)).map(([key, descriptor]) => [key, descriptor.value])));
+  registerIntrinsicPrototype(budget, prototype, constructor);
+}
+
+export function getBoxedPrototype(value: BoxedPrimitive, budget: Budget): SandboxObject | undefined {
+  return boxedPrototypes.get(budget)?.get(typeof value as BoxedKind);
+}
+
+export function isDefaultBoxedMethod(value: BoxedPrimitive, key: string, budget: Budget): boolean {
+  const prototype = getBoxedPrototype(value, budget);
+  return prototype !== undefined && initialBoxedMethods.get(prototype)?.has(key) === true &&
+    Object.getOwnPropertyDescriptor(prototype, key)?.value === initialBoxedMethods.get(prototype)?.get(key);
+}
+
+export function isIntrinsicConstructor(value: object): boolean {
+  return intrinsicConstructors.has(value);
+}
+
+function registerIntrinsicPrototype(budget: Budget, prototype: SandboxObject, constructor: SandboxClosure): void {
+  let roots = intrinsicPrototypeRoots.get(budget);
+  if (roots === undefined) intrinsicPrototypeRoots.set(budget, roots = new Set());
+  roots.add(prototype);
   const records = [prototype, materializeFunctionProperties(constructor)].map(value => ({
     value, descriptors: new Map(Object.entries(Object.getOwnPropertyDescriptors(value)))
   }));
   const unchanged = (before: PropertyDescriptor | undefined, after: PropertyDescriptor | undefined): boolean =>
-    before !== undefined && after !== undefined && before.value === after.value &&
+    before !== undefined && after !== undefined && Object.is(before.value, after.value) &&
     before.writable === after.writable && before.configurable === after.configurable && before.enumerable === after.enumerable;
   intrinsicConstructors.set(constructor, () => records.every(({ value, descriptors }) => {
     const current = Object.getOwnPropertyDescriptors(value);
@@ -94,13 +127,18 @@ export function installObjectPrototype(budget: Budget, prototype: SandboxObject,
 }
 
 export function releaseObjectPrototype(budget: Budget): void {
-  const prototype = intrinsicPrototypes.get(budget);
-  if (prototype !== undefined) budget.setRetainedValues(prototype, undefined);
+  for (const prototype of intrinsicPrototypeRoots.get(budget) ?? []) budget.setRetainedValues(prototype, undefined);
+  intrinsicPrototypeRoots.delete(budget);
+  boxedPrototypes.delete(budget);
   intrinsicPrototypes.delete(budget);
 }
 
 export function getSandboxPrototype(value: object, budget?: Budget): object | null {
   if (prototypes.has(value)) return prototypes.get(value) ?? null;
+  if (budget !== undefined && isSandboxBox(value)) {
+    const prototype = getBoxedPrototype(boxedValue(value), budget);
+    if (prototype !== undefined && prototype !== value) return prototype;
+  }
   return budget !== undefined && isPrototypeRecord(value)
     ? intrinsicPrototypes.get(budget) ?? null
     : null;
@@ -198,6 +236,7 @@ export function hasGuestObjectState(value: object): boolean {
   if (intrinsicUnchanged !== undefined) return !intrinsicUnchanged();
   if (isLiveCapability(value)) return true;
   if (functionProperties.has(value) || prototypes.has(value)) return true;
+  if (isSandboxBox(value)) return false;
   return (
     descriptorObjects.has(value) &&
     Object.values(Object.getOwnPropertyDescriptors(value)).some(

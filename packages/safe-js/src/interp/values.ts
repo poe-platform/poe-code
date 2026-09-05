@@ -2,6 +2,7 @@ import { bindOtelSpan, getBoundOtelSpan } from "../observability/otel.js";
 import { isSandboxMap, isSandboxSet, sandboxMapBrand, sandboxSetBrand } from "./collection-brands.js";
 import { collectionIteratorState, isSandboxCollectionIterator, restoreSandboxCollectionIterator, snapshotCollectionIterator, type SandboxCollectionIterator } from "./collection-iterator.js";
 import { copyNativeDate, exportDate, isSandboxDate } from "./date.js";
+import { boxedDataProperties, boxedValue, createSandboxBox, isSandboxBox, nativeBoxedValue } from "./boxed.js";
 import { getHostObjectKeys, getHostObjectMember, hasHostObjectMember, measureHostObjectData, isGuestHostObject, isLiveCapability } from "./host-capabilities.js";
 import type { Budget, CompileTicket } from "./budget.js";
 import { types as nodeTypes } from "node:util";
@@ -24,7 +25,7 @@ import {
 import { parseRegex, type RegexPattern } from "./regex/parse.js";
 import { assertSandboxDataDepth } from "../graph-depth.js";
 import { sandboxErrorTypes } from "../error/shape.js";
-import { getGuestFunctionProperties, getSandboxPrototype, hasGuestObjectState, hasManagedDescriptors, isGuestClosure, registerGuestClosure } from "./object-model.js";
+import { getGuestFunctionProperties, getSandboxPrototype, hasGuestObjectState, hasManagedDescriptors, isGuestClosure, isIntrinsicConstructor, registerGuestClosure } from "./object-model.js";
 import type { FunctionSource } from "../parse/function-source.js";
 import {
   copySandboxArgumentProperties,
@@ -165,6 +166,7 @@ type CopyState<TValue> = {
   initializeIterators?: Array<() => void>;
   compilation?: CompileScope;
   resetRegexLastIndex?: boolean;
+  structuredClone?: boolean;
 };
 
 export function createSandboxClosure(input: {
@@ -435,7 +437,7 @@ export function deepCopyToSandbox(value: unknown): SandboxValue {
   });
 }
 
-export function cloneSandboxValue(value: SandboxValue, options: { compilation?: CompileScope; resetRegexLastIndex?: boolean } = {}): SandboxValue {
+export function cloneSandboxValue(value: SandboxValue, options: { compilation?: CompileScope; resetRegexLastIndex?: boolean; structuredClone?: boolean } = {}): SandboxValue {
   const initializeIterators: Array<() => void> = [];
   const copy = copyToSandbox(
     value,
@@ -478,6 +480,17 @@ export function measureSandboxData(
     seen.add(value);
 
     usage += 1;
+    if (isSandboxBox(value)) {
+      const primitive = boxedValue(value);
+      usage += typeof primitive === "string" ? primitive.length : 8;
+      const prototype = getSandboxPrototype(value);
+      if (prototype !== null) visit(prototype, depth + 1);
+      for (const [key, descriptor] of boxedDataProperties(value)) {
+        usage += key.length + 1;
+        if ("value" in descriptor) visit(descriptor.value, depth + 1);
+      }
+      return;
+    }
     if (isSandboxDate(value)) { usage += 8; return; }
     if (isGuestHostObject(value)) {
       usage += measureHostObjectData(value);
@@ -536,7 +549,15 @@ export function measureSandboxData(
     }
     if (isSandboxClosure(value)) {
       if (options.ignoreClosures) return;
-      if (value.properties !== undefined) visit(value.properties, depth + 1);
+      if (value.properties !== undefined) {
+        if (isIntrinsicConstructor(value)) {
+          for (const [key, descriptor] of Object.entries(Object.getOwnPropertyDescriptors(value.properties))) {
+            if (key === "prototype" || key === "name" || key === "length") continue;
+            usage += key.length + 1;
+            if ("value" in descriptor) visit(descriptor.value, depth + 1);
+          }
+        } else visit(value.properties, depth + 1);
+      }
       if (!options.ignoreClosureCaptures)
         for (const retained of value[sandboxRetainedValues]?.() ?? []) visit(retained, depth + 1);
       return;
@@ -711,6 +732,25 @@ function copyToSandbox(
 
   if (typeof value === "object" && value !== null && hasGuestObjectState(value)) {
     throw new TypeError("Guest prototype links and custom descriptors cannot be copied as data.");
+  }
+
+  const primitive = nativeBoxedValue(value);
+  if (primitive !== undefined) {
+    const original = value as object;
+    const existing = state.seen.get(original);
+    if (existing !== undefined) return existing;
+    const copy = createSandboxBox(primitive);
+    state.seen.set(original, copy);
+    if (!state.structuredClone) {
+      for (const [key, descriptor] of boxedDataProperties(original)) {
+        if (!("value" in descriptor)) throw new TypeError("Boxed data cannot contain accessors.");
+        Object.defineProperty(copy, key, {
+          ...descriptor,
+          value: copyToSandbox(descriptor.value, state, joinPath(path, key), cloneSandboxCollections, depth + 1)
+        });
+      }
+    }
+    return copy;
   }
 
   if (isSandboxMap(value)) {
@@ -909,6 +949,21 @@ function copyFromSandbox(
   if (nodeTypes.isProxy(value)) throw new TypeError("Unsupported proxy sandbox value.");
   if (!isSandboxClosure(value) && hasGuestObjectState(value)) {
     throw new TypeError("Guest prototype links and custom descriptors cannot be copied as data.");
+  }
+
+  if (isSandboxBox(value)) {
+    const existing = state.seen.get(value);
+    if (existing !== undefined) return existing;
+    const copy = Object(boxedValue(value));
+    state.seen.set(value, copy);
+    for (const [key, descriptor] of boxedDataProperties(value)) {
+      if (!("value" in descriptor)) throw new TypeError("Boxed data cannot contain accessors.");
+      Object.defineProperty(copy, key, {
+        ...descriptor,
+        value: copyFromSandbox(descriptor.value, state, joinPath(path, key), options, depth + 1)
+      });
+    }
+    return copy;
   }
 
   const regexBrand = Object.getOwnPropertyDescriptor(value, sandboxRegexBrand);
@@ -1111,6 +1166,18 @@ function isHostPromise(value: unknown): value is Promise<unknown> {
 function allocateSandboxValue(value: SandboxValue, budget: Budget, seen: WeakSet<object>): void {
   if (typeof value === "string") {
     budget.allocateString(value);
+    return;
+  }
+
+  if (isSandboxBox(value)) {
+    if (seen.has(value)) return;
+    seen.add(value);
+    const primitive = boxedValue(value);
+    if (typeof primitive === "string") budget.allocateString(primitive);
+    for (const [key, descriptor] of boxedDataProperties(value)) {
+      budget.allocateString(key);
+      if ("value" in descriptor) allocateSandboxValue(descriptor.value, budget, seen);
+    }
     return;
   }
 

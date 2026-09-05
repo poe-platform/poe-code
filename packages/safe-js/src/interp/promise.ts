@@ -1,6 +1,7 @@
 import { SandboxError, type Budget } from "./budget.js";
 import { coerceThrownValue, createSubsetErrorValue } from "./exceptions.js";
 import { getSandboxIterator } from "./iteration.js";
+import { retainValues } from "./resources.js";
 import { runPromiseJob } from "./jobs.js";
 import { observeSandboxPromise } from "./promise-tracker.js";
 import {
@@ -464,74 +465,80 @@ async function settleIterable(
     const promiseResolve = readPromiseReceiverProperty(constructor, "resolve", prototype);
     if (!isSandboxClosure(promiseResolve))
       throw new TypeError("Promise constructor requires a callable resolve.");
-    const iterator = getSandboxIterator(iterable, budget);
+    const iterator = getSandboxIterator(iterable, budget, context);
     if (iterator === undefined) throw new TypeError("Promise helpers require an iterable.");
-    let index = 0;
-    while (true) {
-      budget.visitNode();
-      const next = iterator.generator
-        ? await iterator.next()
-        : (iterator.next() as IteratorResult<SandboxValue>);
-      if (typeof next !== "object" || next === null)
-        throw new TypeError("Iterator result must be an object.");
-      if (next.done) break;
-      const value = next.value;
-      try {
-        budget.allocateArrayLength(index + 1);
-        const entryIndex = index++;
-        if (method !== "race") values.push(undefined);
-        const entry = await callPromiseClosure(
-          promiseResolve,
-          [value],
-          constructor,
-          budget,
-          context
-        );
-        let called = false;
-        const handlers = (["fulfilled", "rejected"] as const).map((state) => {
-          if (method === "race" || (method === "any" && state === "fulfilled"))
-            return state === "fulfilled" ? capability.resolve : capability.reject;
-          if (method === "all" && state === "rejected") return capability.reject;
-          return createSandboxClosure({
-            sandbox: true,
-            retainedValues: () => [
-              capability.promise,
-              capability.resolve,
-              capability.reject,
-              values
-            ],
-            call: async ([settlement]) => {
-              if (called) return undefined;
-              called = true;
-              values[entryIndex] =
-                method === "allSettled"
-                  ? state === "fulfilled"
-                    ? { status: state, value: settlement }
-                    : { status: state, reason: settlement }
-                  : settlement;
-              remaining--;
-              await complete();
-              return undefined;
-            }
-          });
-        });
-        remaining++;
-        const then = readPromiseReceiverProperty(entry, "then", prototype);
-        if (!isSandboxClosure(then))
-          throw new TypeError("Promise resolver result requires a callable then.");
-        await callPromiseClosure(then, handlers, entry, budget, context);
-      } catch (error) {
+    const releaseIterator = retainValues(budget, () => [iterator.retainedValue]);
+    try {
+      let index = 0;
+      while (true) {
+        budget.visitNode();
+        const next =
+          iterator.generator || iterator.asynchronous
+            ? await iterator.next()
+            : (iterator.next() as IteratorResult<SandboxValue>);
+        if (typeof next !== "object" || next === null)
+          throw new TypeError("Iterator result must be an object.");
+        if (next.done) break;
+        const value = next.value;
         try {
-          const closed = iterator.return?.();
-          if (iterator.generator) await closed;
-        } catch {
+          budget.allocateArrayLength(index + 1);
+          const entryIndex = index++;
+          if (method !== "race") values.push(undefined);
+          const entry = await callPromiseClosure(
+            promiseResolve,
+            [value],
+            constructor,
+            budget,
+            context
+          );
+          let called = false;
+          const handlers = (["fulfilled", "rejected"] as const).map((state) => {
+            if (method === "race" || (method === "any" && state === "fulfilled"))
+              return state === "fulfilled" ? capability.resolve : capability.reject;
+            if (method === "all" && state === "rejected") return capability.reject;
+            return createSandboxClosure({
+              sandbox: true,
+              retainedValues: () => [
+                capability.promise,
+                capability.resolve,
+                capability.reject,
+                values
+              ],
+              call: async ([settlement]) => {
+                if (called) return undefined;
+                called = true;
+                values[entryIndex] =
+                  method === "allSettled"
+                    ? state === "fulfilled"
+                      ? { status: state, value: settlement }
+                      : { status: state, reason: settlement }
+                    : settlement;
+                remaining--;
+                await complete();
+                return undefined;
+              }
+            });
+          });
+          remaining++;
+          const then = readPromiseReceiverProperty(entry, "then", prototype);
+          if (!isSandboxClosure(then))
+            throw new TypeError("Promise resolver result requires a callable then.");
+          await callPromiseClosure(then, handlers, entry, budget, context);
+        } catch (error) {
+          try {
+            const closed = iterator.return?.();
+            if (iterator.generator || iterator.asynchronous) await closed;
+          } catch {
+            throw error;
+          }
           throw error;
         }
-        throw error;
       }
+      remaining--;
+      await complete();
+    } finally {
+      releaseIterator();
     }
-    remaining--;
-    await complete();
   } catch (error) {
     if (
       error instanceof SandboxError &&

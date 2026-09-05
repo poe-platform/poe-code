@@ -15,6 +15,7 @@ import {
 import { getRegexMember } from "./methods/regex.js";
 import { retainValues } from "./resources.js";
 import { functionString } from "./function-string.js";
+import { boxedValue, isSandboxBox } from "./boxed.js";
 import {
   isSandboxClosure,
   isSandboxPromise,
@@ -68,7 +69,7 @@ async function objectToPrimitive(
       if (hook === defaultStringHook) {
         result = await defaultToString(value, budget, context, joining);
       } else if (hook === defaultValueHook) {
-        result = isSandboxDate(value) ? dateTime(value) : value;
+        result = isSandboxDate(value) ? dateTime(value) : isSandboxBox(value) ? boxedValue(value) : value;
       } else {
         if (!isSandboxClosure(hook)) continue;
         result = await invokeBuiltinClosure(hook, [], budget, context, value);
@@ -136,6 +137,7 @@ async function defaultToString(
   context: SandboxCallContext | undefined,
   joining: Set<object>
 ): Promise<SandboxValue> {
+  if (isSandboxBox(value)) return budget.allocateString(String(boxedValue(value)));
   if (isSandboxClosure(value)) return budget.allocateString(functionString(value));
   if (isSandboxMap(value)) return "[object Map]";
   if (isSandboxSet(value)) return "[object Set]";

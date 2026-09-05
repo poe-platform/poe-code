@@ -1399,7 +1399,7 @@ job 101276302770. That job explicitly skipped publishing because its local main
 was behind remote main. There is no standalone CLI publication from this run;
 verify a published descendant containing the Array commit instead.
 
-### 26. Primitive boxing — validated open gap
+### 26. Primitive boxing — qualified locally; main delivery pending
 
 Eight built native comparisons fail: Object boxing of number/string/boolean,
 new Number/String/Boolean wrappers, Array.map on a string primitive, and
@@ -1409,7 +1409,120 @@ boxing are therefore a concrete next capability, not a speculative limitation.
 The repair must preserve boxed value identity, coercion, string indexing and
 readonly properties, method receivers, budgets, and snapshot/host boundaries;
 an ordinary record pretending to be a boxed primitive is not a complete repair.
-No implementation or completion claim is made for this gap yet.
+Implementation is now in progress; no delivery or completion claim is made yet.
+
+After §47 delivery, begin the full boxing capability. The first broad TDD matrix
+reported 48 failures and three apparent receiver controls; move method lookup
+outside those controls' try blocks so missing prototypes cannot impersonate
+correct brand checks. Add generic Array ToObject cases and a primitive-conversion
+identity control. The resulting 56-case suite reports 54 failures and two
+controls. No runtime boxing implementation has been changed yet. Tests cover
+Number/String/Boolean constructors and Object conversion, private payload and
+borrowed methods, string UTF-16 indices/read-only descriptors, prototype identity,
+generic array receivers, JSON/structuredClone, host copies/aliases, checkpoint
+restore and fatal constructor-conversion budgets.
+
+Current-code audit: Object's constructor/valueOf explicitly rejects primitives;
+the three primitive constructors lack construct hooks; Number methods reject
+boxed receivers; String lacks its toString/valueOf intrinsic methods, and
+Boolean member lookup returns undefined. Host copying rejects unsupported
+objects or explicit guest prototype state. Heap dumps, interpreter snapshots
+and replay-data graphs each have separate value encoders/decoders. Implement a
+genuine boxed payload with controlled guest prototypes, preserve data-boundary
+identity and encoded payloads, and account for budgets/cleanup across all these
+paths. Do not substitute ordinary records for actual wrapper semantics.
+The implementation uses genuine native wrapper slots with detached host
+prototypes, a private sandbox brand and budget-owned guest prototypes. Two test
+fixture defects were identified and corrected: the native VM needs an explicit
+structuredClone binding and deepCopyFromSandbox comes from values, not core.
+The six affected initial failures are not evidence of runtime defects. The
+other reproductions and the original built/native probes validate this gap.
+Frozen ECMAScript 2026 constructor sections are the normative reference.
+
+The first runtime implementation passes the basic 66-test storage/behavior cohort.
+Additional tests reproduce and repair primitive Object.assign/getPrototypeOf and
+unwanted coercion during null/undefined equality. Broader package validation
+exposes budget overhead and duplicate String receiver retention: keep unchanged
+intrinsic methods on maintained fast paths, use shared prototypes for overrides,
+and exclude implicit prototype graphs from constructor accounting. The focused
+627-test regression cohort passes without increasing budget limits. Explicit
+prototype mutations remain budget roots and are cleared on realm close.
+New boundary tests preserve special numeric payloads, alias cycles, host wrapper
+brands, checkpoint replay and malformed-payload rejection; one real failure
+shows boxed host strings bypassed stringLength. Apply the existing budget check
+before copying their payload. Full build/test/lint and real CLI QA remain pending.
+
+Further fidelity tests validate boxed String iteration (Unicode code points and
+guest toString overrides), immutable Number constants, and frozen/non-enumerable
+wrapper metadata. A hidden cyclic property originally overflowed heap indexing;
+index all boxed data descriptors and share the boxed heap encoding/validation.
+Private interpreter restore tests verify payload, aliases, frozen state and
+hidden descriptors, independently of public replay. Iteration conversion occurs
+before consumption while preserving Array.from's construct-before-conversion
+order; an incorrect initial ordering assumption was corrected against native
+execution. Converted text is retained during iteration and released with its
+consumer. Public checkpoint tests show conversion executes once, and step
+failures remain fatal. The maintained SafeJS suite now passes 12,688 tests with
+41 skipped. A suspected intrinsic-assignment budget issue is disproved by the
+ordinary-record control: both peak at roughly twice the retained string during
+assignment, consistent with existing accounting; do not add a speculative fix.
+
+Manual boxing QA uses the schema-only primitive-boxing.md/.ajs fixture with zero
+capabilities/spawns. Validate constructor coercion, UTF-16 length versus Unicode
+iteration, Boolean wrapper truthiness, alias identity, structuredClone payload,
+immutable String indices and frozen negative zero. Run it via the real CLI and
+inspect its screenshot, then run full npm test and root lint on frozen sources.
+
+The normal build and real CLI fixture pass; the inspected screenshot shows
+7/8/3/2/false/true, preserved identity, copied payload, readonly indices and zero
+spawns. Built public probes pass eight fatal-budget recoveries without repeating
+completed effects, a suspended delegated-generator checkpoint, twenty realm
+cleanup cycles, twenty canceled-iteration cleanup cycles, and three boxed host
+result replays. Cancellation preserves AbortController's AbortError reason; an
+initial probe incorrectly expected a budget error code and was corrected without
+changing runtime behavior. A converted-text retention probe rejects the larger
+live state while its small-input control succeeds at the same limit.
+
+Before delivery, a direct public-restore probe validates a new metadata flaw:
+omitted boxed extensibility is rejected normally but accepted when inherited
+from Object.prototype. Stop the owned lint process (exit 143, not a passing
+check) before editing. Two failing tests reproduce inherited extensibility and
+properties; require own fields throughout the boxed schema, including descriptor
+flags, and share this validation with replay data. Five inherited-metadata tests
+cover the repair. Rebuild and rerun the full gates on the corrected sources.
+
+That rebuild passes. The metadata preflight passes 211 tests; polluted-prototype
+tests capture failures before making assertions so the test framework itself is
+not affected by inherited writable flags. Public restore also rejects inherited
+payload metadata. Root lint passes 9,778 configured files, zero errors/warnings,
+TypeScript and workflow checks. The following full npm test is deliberately
+stopped through its owned runner after a further concrete budget reproduction;
+its partial run is not reported as passing.
+
+The reproduction converts a temporary left Number wrapper to a 4,000-character
+string, then runs a right-hand conversion with a 3,000-character host argument.
+The former binary root retained the original wrapper but not its converted
+operand; four tests show the oversized live state reaching a host effect. Retain
+the current left operand as it is converted. Compound operators have the same
+conversion interval: four more failing tests show either no rejection or a
+rejection only after the host effect. Retain their converted left value until
+the right conversion completes, without double-registering primitive inputs.
+The 536-test interpreter/budget cohort passes, including the smaller-input
+control. Requalify this corrected tree before its atomic commit and main push.
+
+Final qualification passes on the corrected sources: the maintained SafeJS
+workspace suite has 12,702 passing tests and 41 skips, including 144 additional
+regressions/controls. The normal build, full npm test and root lint all exit zero.
+Full tests include the 32,562-pass shared cohort, 29 Python tests, 279 Bash-runner
+tests, 19,981 Bash tests (63 skips), 288 shell-stress tests and two lint-stress
+tests. Root lint covers all 9,778 configured files with zero errors or warnings,
+followed by successful TypeScript and workflow checks. The rebuilt zero-spawn
+CLI harness passes and its screenshot is inspected. Four final built/native
+comparisons also confirm that String-wrapper iteration conversion does not run
+guest promise jobs before Promise.all, Set, spread or Array.from completes its
+synchronous prefix. Public budget-recovery probes retain converted binary and
+compound operands before host effects and replay completed effects only once.
+This is ready for its own commit and push; publication is not yet claimed.
 
 ### 27. Number formatting coercion — delivered and released
 
@@ -2696,8 +2809,11 @@ Scoped run 33967858498 and CLI run 33967858610 are active release watches.
 Scoped run 33967858498/job 101311035454 succeeded and published
 @poe-platform/safe-js 0.1.132 September 5 at 13:08:56 UTC. Its watch exited zero;
 CLI publication remains separately monitored.
+CLI run 33967858610 was canceled after the next main push; its watch exited
+nonzero and it did not publish. Descendant CLI run 33968267176 is monitored for
+publication including the function, parser and predicate fixes.
 
-### 47. Global numeric predicate conversion — validated open gap
+### 47. Global numeric predicate conversion — closed at verified main delivery; release pending
 
 After §46 delivery, three fresh built/native probes reproduce missing guest
 conversion in global isFinite/isNaN: valueOf is not called, valid custom numbers
@@ -2742,3 +2858,12 @@ checkpoint restores. Low-budget instances can be reused after failure. Root
 lint passes all 9,772 configured files with zero errors/warnings, followed by
 TypeScript and workflow checks. This local fix is ready for its own commit and
 verified main push, not yet a publication claim.
+Delivered as a66cc1f327da9599dbac1039425d1869742e8bb9 and independently verified
+on remote refs/heads/main September 5. Close the finding at main delivery;
+scoped-package and CLI publication remain separately monitored.
+Scoped run 33968267028/job 101312124507 succeeded and published
+@poe-platform/safe-js 0.1.133 September 5 at 13:16:45 UTC. Its watch exited zero.
+CLI run 33968267176 succeeded and explicitly published poe-code@14.0.62 to latest
+September 5 at 13:24:44 UTC. The remote v14.0.62 tag independently resolves to
+a66cc1f327da9599dbac1039425d1869742e8bb9, also covering the earlier function-source
+and numeric-parser commits whose individual CLI runs were canceled.

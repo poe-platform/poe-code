@@ -74,7 +74,7 @@ const result = await run(`
 - Intrinsic methods are non-enumerable. Guest constructor prototypes inherit the ordinary Object prototype; explicit null/custom prototypes work with `Object.create`, `Object.setPrototypeOf` and literal `__proto__`. A computed `['__proto__']` remains an own data property.
 - Prototype mutations stay inside the current run or persistent realm and consume its retained-data budget. They never change native prototypes or another realm.
 
-Primitive boxing, inherited accessors, symbols and full Array/Function/exotic prototype graphs are unsupported. Use borrowed Object methods for inspecting those supported values. Explicit prototype links and mutated Object intrinsics are not portable checkpoint/copy data; project own data before crossing those boundaries. The conservative `AS011` lint rule still flags explicit `prototype`/`constructor` access; `run()` executes it without automatic linting.
+Inherited accessors, symbols and full Array/Function/exotic prototype graphs are unsupported. Use borrowed Object methods for inspecting those supported values. Explicit prototype links and mutated Object intrinsics are not portable checkpoint/copy data; project own data before crossing those boundaries. The conservative `AS011` lint rule still flags explicit `prototype`/`constructor` access; `run()` executes it without automatic linting.
 
 </details>
 

@@ -6,6 +6,7 @@ import { DUMP_FORMAT_VERSION } from "./dump-format.js";
 import { MAX_DATA_DEPTH } from "../graph-depth.js";
 import { validateFloat32Storage } from "./float32array.js";
 import { restoreDateTime } from "../interp/date.js";
+import { validateBoxedProperties } from "./boxed.js";
 import { hasGuestObjectState } from "../interp/object-model.js";
 
 const DEFAULT_MAX_DEPTH = MAX_DATA_DEPTH;
@@ -121,6 +122,10 @@ function validateDumpHeap(root: Record<string, unknown>, state: ValidationState)
     addUnique(heapIds, id, path);
     const entry = requireRecord(value, path);
     validateErrorType(entry, path);
+    if (entry.kind === "boxed") {
+      validateBoxedRecord(entry, path);
+      continue;
+    }
     if (entry.kind === "date") {
       validateDateRecord(entry, path);
       continue;
@@ -522,12 +527,13 @@ function validateGeneratorShape(
 function validateHeapValue(value: unknown, path: string, state: ValidationState): void {
   const record = requireRecord(value, path);
   validateErrorType(record, path);
-  if (!["arguments", "array", "object", "map", "set", "float32array", "date", "collection-iterator", "regex-object"].includes(String(record.kind)))
+  if (!["arguments", "array", "object", "map", "set", "float32array", "date", "boxed", "collection-iterator", "regex-object"].includes(String(record.kind)))
     fail("unknownTag", `${path}.kind`, "unknown heap tag");
   validateValue(record, path, 1, state);
   if (record.kind === "arguments") validateArgumentsProperties(record, path);
   if (record.kind === "array") validateArrayHeap(record, path, state);
   if (record.kind === "object") requireRecord(record.entries, `${path}.entries`);
+  if (record.kind === "boxed") validateBoxedRecord(record, path);
   if (record.kind === "date") validateDateRecord(record, path);
   if (record.kind === "float32array") {
     validateFloat32Storage(record);
@@ -549,6 +555,16 @@ function validateHeapValue(value: unknown, path: string, state: ValidationState)
     if (!Object.hasOwn(record, "collection")) fail("invalidValue", `${path}.collection`, "missing iterator source");
     requireRecord(record.entries, `${path}.entries`);
   }
+}
+
+function validateBoxedRecord(record: Record<string, unknown>, path: string): void {
+  try { validateBoxedProperties(record); }
+  catch { fail("invalidValue", path, "invalid boxed primitive properties"); }
+  const value = record.value;
+  if (typeof value === "number" || typeof value === "string" || typeof value === "boolean") return;
+  const number = requireRecord(value, `${path}.value`);
+  if (number.kind !== "number" || !["NaN", "Infinity", "-Infinity", "-0"].includes(String(number.value)))
+    fail("invalidValue", `${path}.value`, "invalid boxed primitive payload");
 }
 
 function validateDateRecord(record: Record<string, unknown>, path: string): void {

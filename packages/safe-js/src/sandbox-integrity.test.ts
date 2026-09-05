@@ -128,8 +128,8 @@ describe("sandbox integrity at the run boundary", () => {
       return [
         ({}).__proto__, ({}).constructor === Object, ({}).prototype,
         [].__proto__, [].constructor, [].prototype,
-        "value".__proto__, "value".constructor, "value".prototype,
-        (1).__proto__, (1).constructor, (1).prototype,
+        "value".__proto__, "value".constructor === String, "value".prototype,
+        (1).__proto__, (1).constructor === Number, (1).prototype,
         closure.__proto__, closure.constructor, closure.prototype.constructor === closure,
         typeof ([1].toSorted)
       ];
@@ -138,22 +138,11 @@ describe("sandbox integrity at the run boundary", () => {
     expect(result).toMatchObject({
       ok: true,
       returnValue: [
-        undefined,
-        true,
-        undefined,
-        undefined,
-        undefined,
-        undefined,
-        undefined,
-        undefined,
-        undefined,
-        undefined,
-        undefined,
-        undefined,
-        undefined,
-        undefined,
-        true,
-        "function"
+        undefined, true, undefined,
+        undefined, undefined, undefined,
+        undefined, true, undefined,
+        undefined, true, undefined,
+        undefined, undefined, true, "function"
       ]
     });
   });
@@ -204,7 +193,7 @@ describe("sandbox integrity at the run boundary", () => {
     [
       "object gadget",
       'return ({}).constructor("return process")();',
-      "Object primitive boxing is not supported."
+      "Attempted to call a non-function value."
     ],
     [
       "array gadget",

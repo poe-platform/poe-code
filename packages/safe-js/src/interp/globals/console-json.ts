@@ -1,5 +1,7 @@
 import type { Budget, CompileOwner } from "../budget.js";
 import { dateMethods, isSandboxDate } from "../date.js";
+import { boxedValue, isSandboxBox } from "../boxed.js";
+import { sandboxNumber, sandboxString } from "../string-coercion.js";
 import { CompileScope } from "../regex/compile-guard.js";
 import type { HostCallJournal } from "../host-call.js";
 import { wrapCallerInjectedBindings } from "../host-bridge.js";
@@ -10,6 +12,7 @@ import {
   isSandboxClosure,
   isSandboxPromise,
   type SandboxArray,
+  type SandboxCallContext,
   type SandboxClosure,
   type SandboxObject,
   type SandboxValue
@@ -41,8 +44,8 @@ export function createConsoleJsonGlobals(
       }),
       stringify: createSandboxClosure({
         sandbox: true,
-        call: async ([value, replacer, indent]) =>
-          stringifyJson(value, replacer, indent, options.budget),
+        call: async ([value, replacer, indent], context) =>
+          stringifyJson(value, replacer, indent, options.budget, context),
         name: "stringify"
       })
     },
@@ -117,7 +120,8 @@ async function stringifyJson(
   value: SandboxValue,
   replacer: SandboxValue,
   indent: SandboxValue,
-  budget: Budget
+  budget: Budget,
+  context?: SandboxCallContext
 ): Promise<SandboxValue> {
   if (replacer !== undefined && replacer !== null && !isSandboxClosure(replacer)) {
     throw new TypeError(
@@ -135,6 +139,7 @@ async function stringifyJson(
   defineDataProperty(holder, "", value);
   const output = await stringifyProperty("", holder, {
     budget,
+    context,
     gap: normalizeStringifyGap(indent),
     replacer: isSandboxClosure(replacer) ? replacer : undefined,
     stack: []
@@ -163,6 +168,7 @@ function toJsonParseText(input: SandboxValue): string {
 
 type StringifyState = {
   budget: Budget;
+  context?: SandboxCallContext;
   gap: string;
   replacer?: SandboxClosure;
   stack: object[];
@@ -197,6 +203,12 @@ async function stringifyValue(
   state: StringifyState,
   indent: string
 ): Promise<string | undefined> {
+  if (isSandboxBox(value)) {
+    const primitive = boxedValue(value);
+    value = typeof primitive === "number" ? await sandboxNumber(value, state.budget, state.context)
+      : typeof primitive === "string" ? await sandboxString(value, state.budget, state.context)
+      : primitive;
+  }
   if (value === null) {
     return "null";
   }

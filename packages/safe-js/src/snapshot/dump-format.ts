@@ -9,6 +9,8 @@ import { requiresArrayEntries, serializeArray, type SerializedArray } from "./ar
 import { float32DataProperties, isFloat32Array } from "../interp/float32.js";
 import { encodeFloat32Storage, type Float32Data } from "./float32array.js";
 import { isSandboxDate, serializedDateTime } from "../interp/date.js";
+import { boxedDataProperties, isSandboxBox } from "../interp/boxed.js";
+import { encodeBoxedData, type BoxedData } from "./boxed.js";
 
 const SKIP_VALUE = Symbol("SafeJS.skip-dump-value");
 
@@ -22,6 +24,7 @@ type DumpValue =
     };
 
 type DumpHeapValue =
+  | BoxedData<DumpValue>
   | { kind: "date"; time: number | null }
   | (Float32Data<DumpValue> & { entries: Record<string, DumpValue> })
   | SerializedArguments<DumpValue>
@@ -129,7 +132,7 @@ function serializeDumpValue(
     throw new TypeError("Guest function properties and prototype links cannot be serialized.");
   }
 
-  if (isSandboxDate(value) || isFloat32Array(value)) return serializeHeapReference(value, path, state)!;
+  if (isSandboxBox(value) || isSandboxDate(value) || isFloat32Array(value)) return serializeHeapReference(value, path, state)!;
 
   if (Array.isArray(value)) {
     const reference = serializeHeapReference(value, path, state);
@@ -170,7 +173,13 @@ function serializeHeapReference(
   if (!state.serializedHeapIds.has(id)) {
     state.serializedHeapIds.add(id);
 
-    if (isSandboxDate(value)) {
+    if (isSandboxBox(value)) {
+      state.heap[String(id)] = encodeBoxedData(value, (entry, key) => {
+        if (Object.is(entry, -0)) return { kind: "number", value: "-0" };
+        const serialized = serializeDumpValue(entry, `${path}.${key}`, state);
+        return serialized === SKIP_VALUE ? { kind: "undefined" } : serialized;
+      });
+    } else if (isSandboxDate(value)) {
       state.heap[String(id)] = { kind: "date", time: serializedDateTime(value) };
     } else if (isFloat32Array(value)) {
       const storage = encodeFloat32Storage(value, id, state.float32Buffers, (id) => ({
@@ -244,6 +253,7 @@ function indexHeapContainers(snapshot: DumpableSnapshot): WeakMap<object, number
     if (
       stat.count > 1 ||
       stat.cyclic ||
+      isSandboxBox(value) ||
       isSandboxDate(value) ||
       isFloat32Array(value) ||
       (Array.isArray(value) && requiresArrayEntries(value)) ||
@@ -295,7 +305,9 @@ function collectContainerStats(
   stat.expanded = true;
   ancestors.add(value);
 
-  const entries = isSandboxArguments(value)
+  const entries = isSandboxBox(value)
+    ? boxedDataProperties(value).map(([, descriptor]) => descriptor.value)
+    : isSandboxArguments(value)
     ? getSandboxArgumentEntries(value).map(([, entry]) => entry)
     : getEnumerableDataValues(value);
   for (const entry of entries) {

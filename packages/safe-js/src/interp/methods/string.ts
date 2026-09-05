@@ -53,7 +53,7 @@ type StringMethodName =
   | "trimEnd"
   | "trimStart";
 
-const stringMethodNames = new Set<StringMethodName>([
+export const stringMethodNames = new Set<StringMethodName>([
   "at",
   "charAt",
   "charCodeAt",
@@ -135,7 +135,7 @@ export function getStringMember(
   });
 }
 
-function getStringIndex(property: string | number): number | undefined {
+export function getStringIndex(property: string | number): number | undefined {
   const index = typeof property === "number" ? property : Number(property);
   if (!Number.isInteger(index) || index < 0 || String(index) !== String(property)) {
     return undefined;

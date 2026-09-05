@@ -5,6 +5,8 @@ import { CompileScope } from "../interp/regex/compile-guard.js";
 import { float32DataProperties, isFloat32Array } from "../interp/float32.js";
 import { decodeFloat32Storage, encodeFloat32Storage, type Float32Data } from "./float32array.js";
 import { isSandboxDate, restoreDateTime, serializedDateTime } from "../interp/date.js";
+import { boxedDataProperties, createSandboxBox, nativeBoxedValue } from "../interp/boxed.js";
+import { validateBoxedProperties } from "./boxed.js";
 import { sandboxErrorNames, sandboxErrorTypes, type SandboxErrorName } from "../error/shape.js";
 import {
   createSandboxArguments,
@@ -41,6 +43,7 @@ type Properties = Record<
   { value: Atom; configurable: boolean; enumerable: boolean; writable: boolean }
 >;
 type DataNode =
+  | { kind: "boxed"; value: Atom; properties: Properties; extensible: boolean }
   | { kind: "collection-iterator"; collectionKind: "map" | "set"; method: CollectionIterationMethod; collection: Atom; index: number; exhausted: boolean; properties: Properties; extensible: boolean }
   | { kind: "date"; time: number | null }
   | (Float32Data<Atom> & { properties: Properties; extensible: boolean })
@@ -114,6 +117,13 @@ export function encodeReplayData(
         id: capabilityId!,
         properties: child(entry.properties, "properties")
       };
+    } else if (nativeBoxedValue(entry) !== undefined) {
+      const properties: Properties = Object.create(null);
+      nodes[id] = { kind: "boxed", value: child(nativeBoxedValue(entry)!, "<payload>"), properties, extensible: Object.isExtensible(entry) };
+      for (const [key, descriptor] of boxedDataProperties(entry)) {
+        if (!("value" in descriptor)) throw new TypeError(`Cannot record replay data accessor '${key}'.`);
+        properties[key] = { value: child(descriptor.value, JSON.stringify(["property", key])), configurable: descriptor.configurable === true, enumerable: descriptor.enumerable === true, writable: descriptor.writable === true };
+      }
     } else if (isSandboxDate(entry)) {
       nodes[id] = { kind: "date", time: serializedDateTime(entry) };
     } else if (isFloat32Array(entry)) {
@@ -299,6 +309,18 @@ export function decodeReplayData(
         });
         options.onCapabilityRestored?.(capability, copy);
         return copy;
+      }
+      if (kind === "boxed") {
+        validateBoxedProperties(node);
+        const payload = own(node, "value");
+        if (typeof payload !== "number" && typeof payload !== "string" && typeof payload !== "boolean" &&
+          (payload === null || typeof payload !== "object" || own(record(payload), "tag") !== "number"))
+          throw new TypeError("Invalid boxed primitive payload.");
+        const result = createSandboxBox(child(payload));
+        restored.set(id, result);
+        defineProperties(result, record(own(node, "properties")), child);
+        if (!node.extensible) Object.preventExtensions(result);
+        return result;
       }
       if (kind === "date") {
         if (Object.keys(node).length !== 2) throw new TypeError("Invalid serialized Date fields.");

@@ -1,6 +1,7 @@
 import { assertSandboxDataDepth } from "../../graph-depth.js";
 import type { Budget } from "../budget.js";
 import { isSandboxDate } from "../date.js";
+import { boxedValue, createSandboxBox, isSandboxBox } from "../boxed.js";
 import { isSandboxErrorConstructorInstance } from "../exceptions.js";
 import { isFloat32Array } from "../float32.js";
 import { hasHostObjectMember, isGuestHostObject } from "../host-capabilities.js";
@@ -25,6 +26,7 @@ import {
   type SandboxObject,
   type SandboxValue
 } from "../values.js";
+import { measureSandboxData } from "../values.js";
 
 export function createObjectGlobal(methods: SandboxObject, budget: Budget): SandboxClosure {
   const construct = ([value]: readonly SandboxValue[]): SandboxValue => {
@@ -32,7 +34,11 @@ export function createObjectGlobal(methods: SandboxObject, budget: Budget): Sand
       budget.chargeDataUsage(1);
       return Object.create(null) as SandboxObject;
     }
-    if (typeof value !== "object") throw new TypeError("Object primitive boxing is not supported.");
+    if (typeof value !== "object") {
+      const box = createSandboxBox(value);
+      budget.chargeDataUsage(measureSandboxData([box]));
+      return box;
+    }
     return value;
   };
   const constructor = createSandboxClosure({
@@ -62,9 +68,7 @@ export function createObjectGlobal(methods: SandboxObject, budget: Budget): Sand
       length: 0,
       call: (_args, context) => {
         const value = requireReceiver(context?.thisValue);
-        if (typeof value !== "object")
-          throw new TypeError("Object primitive boxing is not supported.");
-        return value;
+        return construct([value]);
       }
     }),
     hasOwnProperty: createSandboxClosure({
@@ -150,6 +154,7 @@ export function hasOwnSandboxProperty(
 }
 
 function typeTag(value: SandboxValue): string {
+  if (isSandboxBox(value)) value = boxedValue(value);
   if (value === undefined) return "Undefined";
   if (value === null) return "Null";
   if (typeof value === "string") return "String";

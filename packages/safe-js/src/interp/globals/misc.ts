@@ -56,7 +56,7 @@ function structuredCloneSandboxValue(value: SandboxValue, budget: Budget, parent
   const operation = budget.acquireCompileOwner(false, parent?.owner);
   const compilation = parent?.owner === operation.owner ? parent : new CompileScope(operation.owner);
   try {
-    const clone = cloneSandboxValue(value, { compilation, resetRegexLastIndex: true });
+    const clone = cloneSandboxValue(value, { compilation, resetRegexLastIndex: true, structuredClone: true });
     assertSandboxGraphDepth(clone);
     assertStructuredCloneable(clone, new WeakSet());
     allocateProducedSandboxValue(clone, budget);

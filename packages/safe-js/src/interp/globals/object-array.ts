@@ -3,14 +3,16 @@ import { invokeBuiltinClosure } from "../builtin-call.js";
 import { createDataCheckpoint } from "../data-checkpoint.js";
 import { isCapturedException } from "../exceptions.js";
 import { isSandboxDate } from "../date.js";
+import { createSandboxBox } from "../boxed.js";
 import { getDatePrototype } from "./date.js";
 import { createObjectGlobal, hasOwnSandboxProperty } from "./object.js";
 import { getHostObjectKeys, isGuestHostObject } from "../host-capabilities.js";
 import { isFloat32Array } from "../float32.js";
 import { setSandboxProperty } from "../interpreter.js";
-import { getSandboxIterator } from "../iteration.js";
+import { getSandboxIterator, type SandboxIterator } from "../iteration.js";
 import { sandboxNumber, sandboxString } from "../string-coercion.js";
 import { createNumericParsers } from "./numeric-parsers.js";
+import { createPrimitiveConstructor } from "./primitives.js";
 import { getSandboxDataProperty, getSandboxPrototype, isGuestClosure, markDescriptorObject, materializeFunctionProperties, setSandboxPrototype } from "../object-model.js";
 import {
   allocateProducedSandboxValue,
@@ -108,6 +110,7 @@ export function createObjectArrayGlobals(options: { budget: Budget; compileOwner
         sandbox: true,
         call: ([value]) => {
           if (isSandboxDate(value)) return getDatePrototype(value, options.budget, options.compileOwner);
+          if (value !== null && value !== undefined && typeof value !== "object") value = createSandboxBox(value);
           objectProperties(value);
           return getSandboxPrototype(value as object, options.budget) as SandboxValue;
         },
@@ -147,11 +150,11 @@ export function createObjectArrayGlobals(options: { budget: Budget; compileOwner
       fromEntries: createSandboxClosure({
         sandbox: true,
         call: ([value], context) => {
-          const iterator = getSandboxIterator(value, options.budget);
+          const iterator = getSandboxIterator(value, options.budget, context);
           if (iterator === undefined) {
             throw new TypeError("Object.fromEntries requires an iterable.");
           }
-          if (context === undefined && !iterator.generator) {
+          if (context === undefined && !iterator.generator && !iterator.asynchronous) {
             // The direct host adapter preserves synchronous results and native hooks.
             return allocateProducedSandboxValue(
               Object.setPrototypeOf(
@@ -212,8 +215,7 @@ export function createObjectArrayGlobals(options: { budget: Budget; compileOwner
         })
       }
     }),
-    String: createSandboxClosure({
-      sandbox: true,
+    String: createPrimitiveConstructor({
       call: (args, context) =>
         sandboxString(args.length === 0 ? "" : args[0], options.budget, context),
       name: "String",
@@ -236,9 +238,8 @@ export function createObjectArrayGlobals(options: { budget: Budget; compileOwner
           name: "fromCodePoint"
         })
       }
-    }),
-    Number: createSandboxClosure({
-      sandbox: true,
+    }, options.budget),
+    Number: createPrimitiveConstructor({
       call: (args, context) => sandboxNumber(args.length === 0 ? 0 : args[0], options.budget, context),
       name: "Number",
       properties: {
@@ -272,18 +273,17 @@ export function createObjectArrayGlobals(options: { budget: Budget; compileOwner
         NEGATIVE_INFINITY: Number.NEGATIVE_INFINITY,
         POSITIVE_INFINITY: Number.POSITIVE_INFINITY
       }
-    }),
-    Boolean: createSandboxClosure({
-      sandbox: true,
+    }, options.budget),
+    Boolean: createPrimitiveConstructor({
       call: ([value]) => Boolean(value),
       name: "Boolean"
-    })
+    }, options.budget)
   };
 }
 
 async function objectFromSandboxEntries(
   items: SandboxValue,
-  iterator: NonNullable<ReturnType<typeof getSandboxIterator>>,
+  iterator: SandboxIterator,
   budget: Budget,
   context?: SandboxCallContext
 ): Promise<SandboxValue> {
@@ -293,7 +293,7 @@ async function objectFromSandboxEntries(
   let value: SandboxValue;
   let failure: unknown;
   const retained = {};
-  budget.setRetainedValues(retained, () => [items, object, entry, key, value, failure]);
+  budget.setRetainedValues(retained, () => [items, iterator.retainedValue, object, entry, key, value, failure]);
   const checkData = createDataCheckpoint(budget, context);
   const closeOnThrow = async (error: unknown): Promise<never> => {
     failure = isCapturedException(error) ? error.reason : error;
@@ -349,6 +349,11 @@ async function objectFromSandboxEntries(
 function assignSandboxValues(target: SandboxValue, sources: readonly SandboxValue[], budget: Budget): SandboxValue {
   if (target === null || target === undefined) {
     throw new TypeError("Object.assign(target, ...sources) requires a non-null target.");
+  }
+
+  if (typeof target !== "object") {
+    target = createSandboxBox(target);
+    budget.chargeDataUsage(measureSandboxData([target]));
   }
 
   if (!isGuestClosure(target) && !isAssignableSandboxTarget(target)) {
@@ -447,13 +452,13 @@ async function arrayFromSandboxValues(
   const read = (property: string | number) => context?.getProperty !== undefined
     ? context.getProperty(items, property)
     : getSandboxDataProperty(items, property, budget);
-  const iterator = getSandboxIterator(items, budget);
+  const iterator = getSandboxIterator(items, budget, context);
   const constructor = context?.thisValue;
   let result: SandboxValue;
   let currentValue: SandboxValue;
   let failure: unknown;
   const retained = {};
-  budget.setRetainedValues(retained, () => [items, mapFn, constructor, result, currentValue, failure]);
+  budget.setRetainedValues(retained, () => [items, iterator?.retainedValue, mapFn, constructor, result, currentValue, failure]);
   const checkData = createDataCheckpoint(budget, context);
   const closeOnThrow = async (error: unknown): Promise<never> => {
     failure = isCapturedException(error) ? error.reason : error;

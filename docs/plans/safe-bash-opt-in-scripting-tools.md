@@ -784,6 +784,24 @@ this request to keep additions out of the default package.
   full-route pass. The peer-guard owner is assigned read-only diagnosis pending
   the active lint freeze; required-peer and archive authentication must remain
   strict when the optional metadata is admitted.
+- Pipeline cleanup repair is locally committed as `c5cf629c0`. The final pack
+  inventories again contain 1,054 workspace and 4,645 root files, with zero
+  optional artifact leaks. Guarded lint twenty-three finishes with one test-only
+  no-unsafe-finally finding in the independent legacy iterator fixture; its owner
+  is replacing the fixture's teardown representation without weakening the
+  failure assertion. The metadata-guard design is approved: preserve the required
+  canonical peer and canonical-only profile; additionally admit only pinned YAML
+  2.9.0 with exact optional metadata, with selected-lock consistency and existing
+  archive/profile/declaration authentication retained. Implementation is limited
+  to the peer guard and its memfs build tests, not installation or default exports.
+- The independent iterator fixture now uses explicit next/return state instead
+  of a throwing finally. All 33 assertions are unchanged, root replays 51 paired
+  cases successfully, and the reviewer passes ten old/new in-memory lifecycle
+  comparisons including unstarted return, natural exhaustion and queued calls.
+  The new review SHA is
+  `c757c0a4cb6d1206266fae8c9dac64fcd40eb82f3137622ae83806c8e58e0e0d`.
+  This removes the source of the reported lint finding without suppressing its
+  rule; a fresh guarded run is still required after the active peer-guard edits.
 
 - First implementation wave: cmp, yes, shuf and virtual devices in disjoint leaf
   directories. Root is qualifying native oracles and the opt-in delivery boundary.

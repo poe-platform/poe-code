@@ -188,10 +188,32 @@ for (const failure of [false, new FsError("EIO", { syscall: "return" })]) test(`
   await memory.writeFile("/input", new Uint8Array());
   Object.defineProperty(memory, "open", { value: undefined });
   let returned = 0;
-  const fs = intercept(memory, { readStream() { return { async *[Symbol.asyncIterator]() {
-    try {
-      for (let index = 0; index < 16; index++) yield new Uint8Array(65536);
-    } finally { returned++; throw failure; }
+  const fs = intercept(memory, { readStream() { return { [Symbol.asyncIterator]() {
+    let index = 0;
+    let started = false;
+    let closed = false;
+    return {
+      async next(): Promise<IteratorResult<Uint8Array>> {
+        if (closed) return { done: true, value: undefined };
+        started = true;
+        if (index < 16) {
+          index++;
+          return { done: false, value: new Uint8Array(65536) };
+        }
+        closed = true;
+        returned++;
+        throw failure;
+      },
+      async return(): Promise<IteratorResult<Uint8Array>> {
+        if (closed) return { done: true, value: undefined };
+        closed = true;
+        if (started) {
+          returned++;
+          throw failure;
+        }
+        return { done: true, value: undefined };
+      },
+    };
   } }; } });
   const shell = setup(fs);
   context.after(() => shell.dispose());

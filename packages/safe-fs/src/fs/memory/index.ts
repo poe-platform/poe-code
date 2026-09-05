@@ -292,7 +292,7 @@ export class MemoryFileSystem implements FileSystem {
 
   open(path: string, options: OpenFileOptions): Promise<FileDescriptor> {
     return openFileDescriptor<{ node: FileNode | undefined; position: number }>(path, options, {
-      positionedRead: true, positionedWrite: true, truncate: true, synchronization: "volatile",
+      positionedRead: true, positionedWrite: true, truncate: true, synchronization: "volatile", position: true,
     }, async admitted => {
       const location = this.resolve(path, "open", {
         followFinal: admitted.creation !== "exclusive", allowMissing: admitted.creation !== "never",
@@ -313,6 +313,7 @@ export class MemoryFileSystem implements FileSystem {
       const resource: { node: FileNode | undefined; position: number } = { node, position: 0 };
       return {
         resource,
+        getPosition: async retained => retained.position,
         stat: async retained => this.snapshot(retained.node!),
         read: async (retained, buffer, position) => {
           const inode = retained.node!;

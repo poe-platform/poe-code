@@ -420,6 +420,14 @@ this request to keep additions out of the default package.
   read leaf is assigned separately; a failing isolation check precedes its exact
   source and package-artifact exclusions. No builtin replacement, timeout support
   at the public shell boundary, or leaf acceptance is implied by those exclusions.
+- Read build isolation is locally committed as `4c9cf0180`. Independent cursor
+  review approves the frozen three-source capability after 19 new and 133 combined
+  tests, zero skips, with clean source and focused strict test typechecks. Root
+  repeats the 54 author/reviewer cases successfully; the actual rebuilt public
+  bundle passes both retained-cursor cases. Rooted-real query support remains
+  unavailable and is refused, not inferred from file size. Native zero-length
+  I/O observations remain a separate qualification task, not a newly changed
+  implementation behavior or a claim of native cursor support.
 
 - First implementation wave: cmp, yes, shuf and virtual devices in disjoint leaf
   directories. Root is qualifying native oracles and the opt-in delivery boundary.

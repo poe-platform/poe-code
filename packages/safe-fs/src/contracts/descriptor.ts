@@ -10,6 +10,7 @@ export interface OpenFileOptions extends FsOptions {
 }
 
 export interface FileDescriptorCapabilities {
+  readonly position?: boolean;
   readonly positionedRead: boolean;
   readonly positionedWrite: boolean;
   readonly truncate: boolean;
@@ -18,6 +19,7 @@ export interface FileDescriptorCapabilities {
 
 export interface FileDescriptor {
   readonly capabilities: FileDescriptorCapabilities;
+  getPosition?(options?: FsOptions): Promise<number>;
   stat(options?: FsOptions): Promise<FileStat>;
   read(buffer: Uint8Array, position: number | null, options?: FsOptions): Promise<number>;
   write(buffer: Uint8Array, position: number | null, options?: FsOptions): Promise<number>;

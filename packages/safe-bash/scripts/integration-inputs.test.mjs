@@ -512,6 +512,7 @@ function assertSource7Discovery(files) {
     "tests/contracts/filesystem-descriptor-ack-review.test.ts",
     "tests/plugins/descriptor-ack-runtime.test.ts",
   ]) assert.ok(files.includes(path), "descriptor acknowledgement test is missing: " + path);
+  assert.ok(files.includes("tests/plugins/descriptor-position-runtime.test.ts"), "public descriptor position test is missing");
   for (const path of [
     "tests/fs/devices/devices.test.ts",
     "tests/fs/devices/native.test.ts",

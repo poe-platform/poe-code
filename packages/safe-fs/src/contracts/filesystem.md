@@ -118,6 +118,22 @@ or that external owners have released their own references. After close starts,
 new operations reject EBADF. Owners must still close descriptors explicitly and
 register invocation cleanup before acquisition when their host provides it.
 
+`capabilities.position === true` declares an optional `getPosition(options?)`
+query for the retained descriptor's actual cursor. Both the affirmative capability
+and a callable backend method are required; method presence alone is not support.
+The query is serialized with admitted descriptor operations, honors cancellation,
+and participates in the same close drain. Its result must be a nonnegative safe
+integer. It neither seeks nor reserves a position for a later operation.
+
+Memory descriptors report their retained cursor directly. Sequential I/O advances
+that cursor; positioned I/O and truncation do not. Append reports the position
+left by that descriptor's write, not a subsequent file size after another writer
+grows the file. Mount and readonly forwarding preserve truthful query support.
+The current rooted-real backend does not advertise this capability: it must
+refuse rather than estimate the cursor from EOF. A managed descriptor may expose
+the method while refusing an unsupported query with ENOTSUP. Existing quota
+descriptor refusals remain unchanged.
+
 ## Adapter requirements and delivery boundary
 
 Memory implementations must retain the actual inode-like node; changing its

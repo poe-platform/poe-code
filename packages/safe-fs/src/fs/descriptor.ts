@@ -12,6 +12,7 @@ export interface DescriptorOpenOptions extends OpenFileOptions {
 export interface DescriptorBackend<Resource> {
   readonly resource: Resource;
   readonly capabilities?: FileDescriptorCapabilities;
+  getPosition?(resource: Resource, options: FsOptions): Promise<number>;
   stat(resource: Resource, options: FsOptions): Promise<FileStat>;
   read(resource: Resource, buffer: Uint8Array, position: number | null, options: FsOptions): Promise<number>;
   write(resource: Resource, buffer: Uint8Array, position: number | null, options: FsOptions): Promise<number>;
@@ -22,6 +23,7 @@ export interface DescriptorBackend<Resource> {
 
 function admitCapabilities(path: string, options: OpenFileOptions, capabilities: FileDescriptorCapabilities): void {
   if (![capabilities.positionedRead, capabilities.positionedWrite, capabilities.truncate].every(value => typeof value === "boolean")
+    || capabilities.position !== undefined && typeof capabilities.position !== "boolean"
     || !["none", "volatile", "storage"].includes(capabilities.synchronization)) throw new FsError("EINVAL", { syscall: "open", path });
   if (options.truncate && !capabilities.truncate || options.synchronization !== undefined && capabilities.synchronization === "none") {
     throw new FsError("ENOTSUP", { syscall: "open", path });
@@ -30,10 +32,17 @@ function admitCapabilities(path: string, options: OpenFileOptions, capabilities:
 
 export function forwardFileDescriptor(descriptor: FileDescriptor,
   operation: <Result>(syscall: string, options: FsOptions, action: () => Promise<Result>) => Promise<Result>,
-  capabilities: FileDescriptorCapabilities = descriptor.capabilities,
+  capabilities?: FileDescriptorCapabilities,
   snapshot: (stat: FileStat) => FileStat = stat => ({ ...stat })): DescriptorBackend<FileDescriptor> {
+  const retainedCapabilities = descriptor.capabilities;
+  const selected = Object.freeze({ ...(capabilities ?? retainedCapabilities) });
+  const getPosition = selected.position === true && retainedCapabilities.position === true ? descriptor.getPosition : undefined;
+  if (selected.position === true && typeof getPosition !== "function") throw new FsError("ENOTSUP", { syscall: "getPosition" });
   return {
-    resource: descriptor, capabilities,
+    resource: descriptor, capabilities: selected,
+    ...(getPosition === undefined ? {} : {
+      getPosition: (retained: FileDescriptor, options: FsOptions) => operation("getPosition", options, () => getPosition.call(retained, options)),
+    }),
     stat: (retained, options) => operation("fstat", options, async () => snapshot(await retained.stat(options))),
     read: (retained, buffer, position, options) => operation("read", options, () => retained.read(buffer, position, options)),
     write: (retained, buffer, position, options) => operation("write", options, () => retained.write(buffer, position, options)),
@@ -52,6 +61,7 @@ class ManagedFileDescriptor<Resource> implements FileDescriptor {
   readonly #path: string;
   readonly #access: OpenFileOptions["access"];
   readonly #append: boolean;
+  #getPosition: DescriptorBackend<Resource>["getPosition"];
   #backend: DescriptorBackend<Resource> | undefined;
   #pending: Promise<void> = Promise.resolve();
   #closing: Promise<void> | undefined;
@@ -60,8 +70,12 @@ class ManagedFileDescriptor<Resource> implements FileDescriptor {
     this.#path = path;
     this.#access = options.access;
     this.#append = options.append;
+    const getPosition = capabilities.position === true ? backend.getPosition : undefined;
+    if (capabilities.position === true && typeof getPosition !== "function") throw new FsError("ENOTSUP", { syscall: "getPosition", path });
+    this.#getPosition = getPosition?.bind(backend);
     this.#backend = backend;
     this.capabilities = Object.freeze({
+      ...(capabilities.position === undefined ? {} : { position: capabilities.position }),
       positionedRead: capabilities.positionedRead && options.access !== "write",
       positionedWrite: capabilities.positionedWrite && options.access !== "read" && !options.append,
       truncate: capabilities.truncate && options.access !== "read",
@@ -105,6 +119,15 @@ class ManagedFileDescriptor<Resource> implements FileDescriptor {
 
   stat(options: FsOptions = {}): Promise<FileStat> {
     return this.#run("fstat", options, (backend, forwarded) => backend.stat(backend.resource, forwarded));
+  }
+
+  getPosition(options: FsOptions = {}): Promise<number> {
+    return this.#run("getPosition", options, async (backend, forwarded) => {
+      if (!this.capabilities.position || !this.#getPosition) throw new FsError("ENOTSUP", { syscall: "getPosition", path: this.#path });
+      const position = await this.#getPosition(backend.resource, forwarded);
+      if (!Number.isSafeInteger(position) || position < 0) throw new FsError("EIO", { syscall: "getPosition", path: this.#path });
+      return position;
+    });
   }
 
   read(buffer: Uint8Array, position: number | null, options: FsOptions = {}): Promise<number> {
@@ -151,6 +174,7 @@ class ManagedFileDescriptor<Resource> implements FileDescriptor {
       try { await this.#backend!.close(this.#backend!.resource); }
       finally {
         this.#backend = undefined;
+        this.#getPosition = undefined;
         this.#pending = Promise.resolve();
       }
     });

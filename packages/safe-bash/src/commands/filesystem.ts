@@ -429,30 +429,85 @@ export function filesystemCommands(maxDirectoryEntries?: number): CommandDefinit
       });
     }),
     define("ls", async context => {
-      const parsed = options(context.args, "aAl1dFprRL", { all: "a", "almost-all": "A", directory: "d", classify: "F", reverse: "r", recursive: "R", dereference: "L" });
+      let sort: "name" | "time" | "size" = "name";
+      let ended = false;
+      const args: string[] = [];
+      for (let index = 0; index < context.args.length; index++) {
+        const argument = context.args[index]!;
+        if (!ended && (argument === "--sort" || argument.startsWith("--sort="))) {
+          const selection = argument === "--sort" ? context.args[++index] : argument.slice(7);
+          if (selection !== "time" && selection !== "size") throw new UsageError("--sort requires 'time' or 'size'");
+          sort = selection;
+          args.push(selection === "time" ? "-t" : "-S");
+          continue;
+        }
+        args.push(argument);
+        if (argument === "--") ended = true;
+        if (!ended && argument.startsWith("-") && !argument.startsWith("--")) for (const flag of argument.slice(1)) {
+          if (flag === "t") sort = "time";
+          else if (flag === "S") sort = "size";
+        }
+      }
+      const parsed = options(args, "aAl1dFprRLhtS", { all: "a", "almost-all": "A", directory: "d", classify: "F", reverse: "r", recursive: "R", dereference: "L", "human-readable": "h" });
       const operands = parsed.operands.length ? parsed.operands : ["."];
-      let headerWritten = false;
-      const render = async (path: string, display: string) => {
+      interface ListingEntry { path: string; display: string; stat: FileStat }
+      let outputWritten = false;
+      const inspect = async (path: string, display: string, operand = false): Promise<ListingEntry> => {
         await admitFilesystemModes(context, "ls", ["entry"], [path]);
-        const stat = await context.fs[parsed.flags.has("L") ? "stat" : "lstat"](path, { signal: context.signal });
+        let stat = await context.fs[parsed.flags.has("L") ? "stat" : "lstat"](path, { signal: context.signal });
+        context.signal.throwIfAborted();
+        if (operand && stat.type === "symlink" && !parsed.flags.has("L") && !parsed.flags.has("d") && !parsed.flags.has("l") && !parsed.flags.has("F")) {
+          try {
+            const target = await context.fs.stat(path, { signal: context.signal });
+            if (target.type === "directory") stat = target;
+          } catch (error) { context.signal.throwIfAborted(); if (codeOf(error) !== "ENOENT") throw error; }
+          context.signal.throwIfAborted();
+        }
+        return { path, display, stat };
+      };
+      const order = async (entries: ListingEntry[], lexical = false): Promise<void> => {
+        await yieldTurn(context.signal);
+        if (sort !== "name" || !lexical) entries.sort((left, right) => {
+          context.signal.throwIfAborted();
+          if (sort !== "name") {
+            const key = sort === "time" ? "mtimeMs" : "size";
+            if (left.stat[key] > right.stat[key]) return -1;
+            if (left.stat[key] < right.stat[key]) return 1;
+          }
+          return left.display < right.display ? -1 : left.display > right.display ? 1 : 0;
+        });
+        if (parsed.flags.has("r")) entries.reverse();
+        await yieldTurn(context.signal);
+      };
+      const humanSize = (size: number, path: string): string => {
+        if (!Number.isSafeInteger(size) || size < 0) throw new FsError("EINVAL", { path, message: "human-readable size must be a nonnegative safe integer" });
+        if (size < 1024) return String(size);
+        const bytes = BigInt(size);
+        const units = "KMGTPEZY";
+        let unit = 0;
+        let scale = 1024n;
+        while (unit < units.length - 1 && bytes > 1023n * scale) { scale *= 1024n; unit++; }
+        const tenths = (bytes * 10n + scale - 1n) / scale;
+        return (tenths < 100n ? `${tenths / 10n}.${tenths % 10n}` : String((bytes + scale - 1n) / scale)) + units[unit]!;
+      };
+      const render = async ({ path, display, stat }: ListingEntry): Promise<void> => {
         let suffix = stat.type === "directory" && (parsed.flags.has("F") || parsed.flags.has("p")) ? "/" : "";
         if (parsed.flags.has("F") && stat.type === "symlink") suffix = "@";
         else if (parsed.flags.has("F") && stat.type === "file" && stat.mode & 0o111) suffix = "*";
         if (parsed.flags.has("l")) {
+          const size = parsed.flags.has("h") ? humanSize(stat.size, path) : String(stat.size);
           const date = new Date(stat.mtimeMs).toISOString().slice(0, 16).replace("T", " ");
           let target = "";
           if (stat.type === "symlink") {
             await admitFilesystemModes(context, "ls", ["link"], [path]);
             needCapability(context, "readlink"); target = ` -> ${await context.fs.readlink!(path, { signal: context.signal })}`;
           }
-          await output(context, `${modeText(stat)} ${stat.nlink ?? 1} ${stat.uid ?? 0} ${stat.gid ?? 0} ${stat.size} ${date} ${display}${suffix}${target}\n`);
+          await output(context, `${modeText(stat)} ${stat.nlink ?? 1} ${stat.uid ?? 0} ${stat.gid ?? 0} ${size} ${date} ${display}${suffix}${target}\n`);
         } else await output(context, `${display}${suffix}\n`);
+        outputWritten = true;
       };
-      const list = async (path: string, display: string, header: boolean, ancestors = new Set<string>()): Promise<void> => {
+      const list = async ({ path, display }: ListingEntry, header: boolean, ancestors = new Set<string>()): Promise<void> => {
         context.signal.throwIfAborted();
-        await admitFilesystemModes(context, "ls", ["entry"], [path]);
-        const stat = await context.fs[parsed.flags.has("L") || !parsed.flags.has("d") && !parsed.flags.has("l") ? "stat" : "lstat"](path, { signal: context.signal });
-        if (stat.type !== "directory" || parsed.flags.has("d")) { await render(path, display); return; }
         await admitFilesystemModes(context, "ls", ["directory"], [path]);
         const physical = await context.fs.realpath(path, { signal: context.signal });
         if (ancestors.has(physical)) throw new FsError("ELOOP", { path });
@@ -462,24 +517,44 @@ export function filesystemCommands(maxDirectoryEntries?: number): CommandDefinit
         }
         ancestors.add(physical);
         try {
-          if (header) { await output(context, `${headerWritten ? "\n" : ""}${display}:\n`); headerWritten = true; }
+          if (header) { await output(context, `${outputWritten ? "\n" : ""}${display}:\n`); outputWritten = true; }
           const entries = await readDirectory(context, path, true);
           const names = entries.map(entry => entry.name).filter(name => parsed.flags.has("a") || parsed.flags.has("A") || !name.startsWith("."));
           if (parsed.flags.has("a")) for (const name of [".", ".."]) {
             const index = names.findIndex(entry => entry > name);
             names.splice(index < 0 ? names.length : index, 0, name);
           }
-          if (parsed.flags.has("r")) names.reverse();
-          for (const name of names) await render(joinPath(path, name), name);
-          if (parsed.flags.has("R")) for (const name of names) {
-            if (name === "." || name === "..") continue;
-            const child = joinPath(path, name);
-            const childStat = await context.fs[parsed.flags.has("L") ? "stat" : "lstat"](child, { signal: context.signal });
-            if (childStat.type === "directory") await list(child, `${display.replace(/\/$/u, "")}/${name}`, true, ancestors);
+          const children: ListingEntry[] = [];
+          for (const [index, name] of names.entries()) {
+            if (index % 128 === 0) await yieldTurn(context.signal);
+            children.push(await inspect(joinPath(path, name), name));
+          }
+          await order(children, true);
+          for (const child of children) await render(child);
+          if (parsed.flags.has("R")) for (const child of children) {
+            if (child.display === "." || child.display === "..") continue;
+            if (child.stat.type === "directory") await list({ ...child, display: `${display.replace(/\/$/u, "")}/${child.display}` }, true, ancestors);
           }
         } finally { ancestors.delete(physical); }
       };
-      return eachOperand(context, operands, operand => list(pathOf(context, operand), operand, operands.length > 1 || parsed.flags.has("R")));
+      const entries: ListingEntry[] = [];
+      let admitted = 0;
+      const result = await eachOperand(context, operands, async operand => {
+        if (admitted++ % 128 === 0) await yieldTurn(context.signal);
+        entries.push(await inspect(pathOf(context, operand), operand, true));
+      });
+      const files = entries.filter(entry => parsed.flags.has("d") || entry.stat.type !== "directory");
+      const directories = entries.filter(entry => !parsed.flags.has("d") && entry.stat.type === "directory");
+      await order(files);
+      await order(directories);
+      for (const entry of [...files, ...directories]) {
+        const rendered = await eachOperand(context, [entry.display], async () => {
+          if (entry.stat.type !== "directory" || parsed.flags.has("d")) await render(entry);
+          else await list(entry, operands.length > 1 || parsed.flags.has("R"));
+        });
+        result.exitCode = Math.max(result.exitCode, rendered.exitCode);
+      }
+      return result;
     }),
   ].map(command => {
     const requirements = filesystemCommandRequirements[command.name as keyof typeof filesystemCommandRequirements];

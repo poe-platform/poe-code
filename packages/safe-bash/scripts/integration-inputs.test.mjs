@@ -409,6 +409,7 @@ function assertSource7Discovery(files) {
   assert.ok(files.includes("tests/commands/ere-work-accounting.test.ts"));
   assert.ok(files.includes("tests/commands/find-time-delete.test.ts"));
   assert.ok(files.includes("tests/commands/sed-null-data.test.ts"));
+  assert.ok(files.includes("tests/commands/ls-human-sort.test.ts"));
   assert.ok(files.includes("tests/commands/sort-human-numeric.test.ts"));
   assert.ok(files.includes("tests/commands/realpath-missing-admission.test.ts"));
   assert.ok(files.includes("tests/shell/source-line-nested.test.ts"));

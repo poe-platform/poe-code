@@ -2,6 +2,7 @@ import type { Budget } from "../budget.js";
 import { isSandboxCollectionIterator } from "../collection-iterator.js";
 import { assertSandboxGraphDepth } from "../../graph-depth.js";
 import { CompileScope } from "../regex/compile-guard.js";
+import { createNumericParsers } from "./numeric-parsers.js";
 import {
   allocateProducedSandboxValue,
   cloneSandboxValue,
@@ -30,16 +31,7 @@ export function createMiscGlobals(options: { budget: Budget }): MiscGlobals {
       call: ([value], context) => structuredCloneSandboxValue(value, options.budget, context?.compilation),
       name: "structuredClone"
     }),
-    parseInt: createSandboxClosure({
-      sandbox: true,
-      call: (args) => Reflect.apply(globalThis.parseInt, globalThis, [...args]),
-      name: "parseInt"
-    }),
-    parseFloat: createSandboxClosure({
-      sandbox: true,
-      call: (args) => Reflect.apply(globalThis.parseFloat, globalThis, [...args]),
-      name: "parseFloat"
-    }),
+    ...createNumericParsers(options.budget),
     isNaN: createSandboxClosure({
       sandbox: true,
       call: ([value]) => globalThis.isNaN(value as number),

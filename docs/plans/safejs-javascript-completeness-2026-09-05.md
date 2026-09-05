@@ -2413,7 +2413,7 @@ CLI run 33965140098 subsequently completed canceled; it did not publish a CLI
 version. Track both the template and preceding retention changes through the
 descendant concat CLI workflow 33965571630.
 
-### 43. Function stringification — validated open built-in gap
+### 43. Function stringification — closed at verified main delivery; release pending
 
 Five built/native probes cover named, arrow, async, generator and builtin
 functions. value.toString() rejects with Function#toString is not a supported
@@ -2498,6 +2498,12 @@ checks. git diff --check passes; the staged Safe Bash patch checksum remains
 e9c7047e5ec094d9e142a8115773da7849c2c19c45a418bdc61f61498875523d.
 This atomic improvement is ready for its own commit and verified main delivery;
 successful checks do not themselves claim a push or release.
+Delivered as dbe9917a7c207c62f97082ae77e14e3cc8cea9aa and independently verified
+on remote refs/heads/main September 5. The finding is closed at delivery;
+scoped-package and CLI publications remain separately monitored.
+Scoped run 33967405571/job 101309832582 succeeded and published
+@poe-platform/safe-js 0.1.131 on September 5 at 12:58:49 UTC. CLI run 33967405694
+remains separately monitored; no CLI publication is claimed yet.
 
 Manual QA: build and execute a schema-only function-string.md/.ajs pair with
 zero capabilities/spawns. Assert exact grouped function/comment text, template
@@ -2634,3 +2640,49 @@ at 12:29:03 UTC September 5. The remote v14.0.61 tag independently resolves to
 e6247a2d53049ad0e69fa34fb7cb265f52f3153f. This release includes the preceding
 template (§42) and retention (§44) fixes; their own canceled CLI runs are not
 misreported as publications. All three findings now have verified CLI delivery.
+
+### 46. Numeric parser guest conversion — validated, implementation under qualification
+
+Six built/native probes reconfirm the open §15 finding in global parseInt,
+Number.parseInt, parseFloat and Number.parseFloat. Guest toString/valueOf hooks
+are not executed: valid values throw TypeError, the observed conversion log is
+empty instead of string then radix, and a thrown guest marker loses identity.
+ECMAScript 2026 §§19.2.4–19.2.5 requires ToString first, then ToInt32 of parseInt's
+radix. Source: `https://tc39.es/ecma262/2026/multipage/global-object.html`.
+
+The initial 72-case suite reports 68 failures and four primitive controls. Four
+realm cases initially contain an incorrect cleanup call (dispose instead of the
+public close method); correct the fixture, not the runtime. Remaining failures
+reproduce guest conversion, ordering, thrown-value and budget defects. Share one
+numeric-parser factory between the global and Number property implementations.
+Use existing sandboxString/sandboxNumber conversion, preserve synchronous
+primitive calls, and pass only converted primitives to native parsing. Retain
+the generated input text while the radix hook runs, releasing it on success,
+rejection and cancellation. No predicate conversion, primitive boxing, intrinsic
+identity/arity or prototype-graph expansion is included.
+
+The five-file focused cohort passes 167 tests, including 78 parser cases,
+existing direct helper calls, Number conversion and promise ordering. Added
+controls cover no early promise-job drain and data-budget retention across a
+radix hook, with roots empty after rejection. Broader validation and delivery
+remain outstanding.
+
+Manual QA: run a schema-only numeric-parsing.md/.ajs pair with zero capabilities
+or spawns. Check numeric prefixes, global/Number parity, string-before-radix
+order, negative zero and thrown marker identity. Inspect its real CLI screenshot.
+After the normal build, run maintained SafeJS and harness checks plus root lint,
+then exercise public root/core checkpoint recovery and retained-root cleanup.
+
+Qualification completed: 86 parser regressions/controls, full maintained SafeJS
+workspace suite 12,510 passed with 41 skipped, and harness suite 163 passed.
+The normal build and zero-spawn CLI fixture pass; its screenshot is inspected
+after 70 uncached predev builds. Public root/core probes pass twelve fatal-budget
+checkpoint recoveries with no repeated completed effects, twenty cancellation
+cleanup cycles, and twenty persistent-realm close/reuse cycles with no retained
+roots. Root lint passes all 9,771 configured files with zero errors/warnings,
+followed by TypeScript and workflow checks. git diff --check passes and the
+unrelated staged Safe Bash checksum remains unchanged. This package-local
+change uses maintained package checks; the preceding shared-runtime change's
+full repository gate is not misrepresented as a new full run for this change.
+Ready for a separate atomic commit and verified main delivery; publication is
+tracked separately.

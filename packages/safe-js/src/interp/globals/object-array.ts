@@ -10,6 +10,7 @@ import { isFloat32Array } from "../float32.js";
 import { setSandboxProperty } from "../interpreter.js";
 import { getSandboxIterator } from "../iteration.js";
 import { sandboxNumber, sandboxString } from "../string-coercion.js";
+import { createNumericParsers } from "./numeric-parsers.js";
 import { getSandboxDataProperty, getSandboxPrototype, isGuestClosure, markDescriptorObject, materializeFunctionProperties, setSandboxPrototype } from "../object-model.js";
 import {
   allocateProducedSandboxValue,
@@ -256,16 +257,7 @@ export function createObjectArrayGlobals(options: { budget: Budget; compileOwner
           call: ([value]) => typeof value === "number" && Number.isInteger(value),
           name: "isInteger"
         }),
-        parseInt: createSandboxClosure({
-          sandbox: true,
-          call: (args) => Reflect.apply(Number.parseInt, Number, [...args]),
-          name: "parseInt"
-        }),
-        parseFloat: createSandboxClosure({
-          sandbox: true,
-          call: (args) => Reflect.apply(Number.parseFloat, Number, [...args]),
-          name: "parseFloat"
-        }),
+        ...createNumericParsers(options.budget),
         isSafeInteger: createSandboxClosure({
           sandbox: true,
           call: ([value]) => typeof value === "number" && Number.isSafeInteger(value),

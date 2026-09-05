@@ -48,6 +48,11 @@ export async function openFileOutput(context: FileOutputContext, path: string, f
   const consumer = new AbortController();
   let writes = Promise.resolve();
   let acknowledge: (() => void) | undefined;
+  const acknowledgeWrite = (): void => {
+    const accepted = acknowledge;
+    acknowledge = undefined;
+    accepted?.();
+  };
   let ready!: () => void;
   const opened = new Promise<void>(resolve => { ready = resolve; });
   const destination: ByteSink = {
@@ -58,7 +63,9 @@ export async function openFileOutput(context: FileOutputContext, path: string, f
         for (let offset = 0; offset < chunk.byteLength; offset += 64 * 1024) {
           const accepted = new Promise<void>(resolve => { acknowledge = resolve; });
           await pipe!.writable.write(chunk.subarray(offset, offset + 64 * 1024));
-          await Promise.race([accepted, task!]);
+          await accepted;
+          if (failure) throw failure.reason;
+          operation.signal.throwIfAborted();
         }
       });
       writes = writing.catch(() => {});
@@ -86,8 +93,7 @@ export async function openFileOutput(context: FileOutputContext, path: string, f
           ready();
           for await (const chunk of pipe!.readable) {
             yield chunk;
-            acknowledge?.();
-            acknowledge = undefined;
+            acknowledgeWrite();
           }
           operation.signal.throwIfAborted();
           ended = true;
@@ -129,8 +135,9 @@ export async function openFileOutput(context: FileOutputContext, path: string, f
         await sink.write(chunk);
       }
     })();
-    void task.catch(error => {
+    void task.then(acknowledgeWrite, error => {
       failure = { reason: error };
+      acknowledgeWrite();
       if (!operation.signal.aborted) consumer.abort(error);
       void operation.abort(error).catch(() => {});
     });

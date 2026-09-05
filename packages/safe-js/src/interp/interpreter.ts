@@ -2469,7 +2469,7 @@ function getPropertyValue(
 ): SandboxValue {
   if (isGuestHostObject(target)) return getHostObjectMember(target, String(property));
   if (typeof target === "string") return getStringMember(target, property, context.budget);
-  if (typeof target === "number") return getNumberMember(target, property, context.budget);
+  if (typeof target === "number") return getNumberMember(property, context.budget);
   if (typeof target === "boolean") return undefined;
   if (isFloat32Array(target)) return getFloat32Member(target, property, context.budget);
   if (isSandboxDate(target)) return getDateMember(property, context.budget, context.compilation?.owner);
@@ -2760,7 +2760,7 @@ async function evaluateMemberCallExpression(
       node,
       "Number",
       member.property,
-      getNumberMember(member.object, member.property, context.budget),
+      getNumberMember(member.property, context.budget),
       context
     );
   }

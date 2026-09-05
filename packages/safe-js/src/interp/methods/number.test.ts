@@ -9,9 +9,9 @@ describe("number methods", () => {
   it("exposes intercepted number members", () => {
     const budget = new Budget();
 
-    expect(isSandboxClosure(getNumberMember(255, "toString", budget))).toBe(true);
-    expect(isSandboxClosure(getNumberMember(255, "toExponential", budget))).toBe(true);
-    expect(getNumberMember(255, "missing", budget)).toBeUndefined();
+    expect(isSandboxClosure(getNumberMember("toString", budget))).toBe(true);
+    expect(isSandboxClosure(getNumberMember("toExponential", budget))).toBe(true);
+    expect(getNumberMember("missing", budget)).toBeUndefined();
   });
 
   it("supports toString with ECMAScript radix coercion", () => {

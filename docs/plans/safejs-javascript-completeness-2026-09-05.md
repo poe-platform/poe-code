@@ -294,8 +294,14 @@ newly validated replay defect.
 Final validation: 16 built root/core entrypoint checks passed. The maintained
 full SafeJS suite passed 10,287 tests, with 41 skipped. Full root lint passed:
 9,715 configured files linted, zero errors or warnings, plus root TypeScript
-and workflow checks. Commit, verified push, and release validation remain
-pending. Callable source text, full exotic prototype graphs, symbols,
+and workflow checks. Committed and verified on remote main as
+`cad3deeeb40c1da7acd94636a692b078ce5bc18c`. Scoped workflow `33941378185`,
+publisher job `101239359387`, succeeded; its log confirms
+`@poe-platform/safe-js@0.1.90` published September 5, 2026, 03:20:23 UTC.
+CLI workflow `33941378321` is still being monitored. The remote advanced
+with a terminal-only repair before delivery; rebasing preserved the exact
+SafeJS tree, and the selected terminal build plus 253 terminal tests passed.
+Callable source text, full exotic prototype graphs, symbols,
 accessors, and implicit-coercion integration remain separate inventory items.
 Additional probes confirm failures in computed parameter/catch bindings,
 method calls, and boolean/null/undefined/array keys. A null-base assignment
@@ -347,3 +353,47 @@ A public catch-pattern probe also confirms inherited reads are missing:
 undefined instead of 7. Catch binding currently uses separate property-read
 logic from ordinary destructuring; keep that independently validated defect
 in the queue.
+
+### 7. Number-method receivers — validated, delivery pending
+
+The public reproducer `(1).toFixed.call(2, 1)` returns `"1.0"` instead of
+`"2.0"`. Each intercepted number member closes over the number from lookup
+and ignores the call context's receiver. The issue is reproduced in 26
+failing public-runner tests before implementation (five controls passed).
+
+Number members now use the actual call receiver and reject non-number
+receivers before converting formatting arguments. The lookup no longer
+captures a number. This follows ECMAScript ThisNumberValue and the four
+implemented Number.prototype formatting methods; boxed numbers remain
+outside the currently supported value model, not an implemented feature.
+
+Focused validation: 40 passing tests covering existing number formatting,
+call/apply/bind (including rebinding), non-finite values and negative zero,
+detached and incompatible receivers, argument evaluation before receiver
+validation, no receiver coercion, persistent evaluations, completed replay,
+and fatal string-budget enforcement. The selected SafeJS build closure passed
+(23 dependency builds), followed by 16 built root/core entrypoint checks.
+The maintained SafeJS suite passed 10,318 tests, with 41 skipped. An initial
+overlapping build/test run hit three missing tiny-mcp-client dist imports;
+rerunning the full suite after the build completed passed. Do not overlap
+dependency-dist replacement with this suite's integration children.
+Full root lint passed: 9,716 configured files linted, zero errors or warnings,
+plus root TypeScript and workflow checks. Commit/push/release pending.
+
+This is one atomic part of the receiver audit, not completion of array-like
+objects, string/collection/regex receivers, method identity, or number-object
+boxing. Those remain separate inventory items.
+
+A separate formatting-argument probe validates that
+`(1.25).toFixed({valueOf(){return 2}})` throws rather than returning `"1.25"`;
+argument numeric conversion is not repaired by the receiver change.
+
+Further catch-pattern probes confirm that function rest bindings expose
+internal `kind`, `call`, `name`, and `construct` keys instead of guest own
+properties; RegExp rest includes internal `kind`/`flags`/`lastIndex` fields
+instead of being empty. Map catch `{size}` returns undefined rather than 1.
+String/number object catch patterns reject valid primitive values. These
+failures were compared with bounded native controls; the next catch-property
+fix must use guest property reads and guest enumerable entries, not raw
+implementation objects. Primitive boxing and full accessor semantics remain
+separate from fixing observable property reads.

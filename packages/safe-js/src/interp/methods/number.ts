@@ -11,7 +11,6 @@ const numberMethodNames = new Set<NumberMethodName>([
 ]);
 
 export function getNumberMember(
-  value: number,
   property: string | number,
   budget: Budget
 ): SandboxValue | undefined {
@@ -22,7 +21,7 @@ export function getNumberMember(
   return createSandboxClosure({
     sandbox: true,
     name: `Number#${property}`,
-    call: (args) => callNumberMethod(value, property, args, budget)
+    call: (args, context) => callNumberMethod(context?.thisValue, property, args, budget)
   });
 }
 
@@ -31,11 +30,15 @@ export function isNumberMethodName(property: string | number): property is Numbe
 }
 
 export function callNumberMethod(
-  value: number,
+  value: SandboxValue,
   methodName: NumberMethodName,
   args: readonly SandboxValue[],
   budget: Budget
 ): string {
+  if (typeof value !== "number") {
+    throw new TypeError(`Number#${methodName} requires a number receiver.`);
+  }
+
   return budget.allocateString(callNativeNumberMethod(value, methodName, args));
 }
 

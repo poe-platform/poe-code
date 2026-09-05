@@ -1,5 +1,6 @@
 import { createSandboxClosure, isSandboxClosure, type SandboxClosure, type SandboxValue } from "../values.js";
-import { getGuestFunctionProperty, isGuestClosure } from "../object-model.js";
+import { getGuestFunctionProperty, getSandboxPrototype, hasExplicitSandboxPrototype, isGuestClosure, setSandboxPrototype } from "../object-model.js";
+import { assertSandboxDataDepth } from "../../graph-depth.js";
 import type { Budget } from "../budget.js";
 import { functionString } from "../function-string.js";
 import { runResources } from "../resources.js";
@@ -24,19 +25,27 @@ export function getFunctionMember(
   property: string | number,
   options: FunctionMethodOptions
 ): SandboxValue | undefined {
-  if (isGuestClosure(target)) {
-    const value = getGuestFunctionProperty(target, String(property));
-    if (value !== undefined || Object.hasOwn(target.properties ?? {}, String(property))) return value;
-    if (!isFunctionMethodName(property)) return undefined;
+  let current: object | null = target;
+  let depth = 0;
+  while (current !== null) {
+    if (isGuestClosure(current)) {
+      const value = getGuestFunctionProperty(current, String(property));
+      if (value !== undefined || Object.hasOwn(current.properties ?? {}, String(property))) return value;
+    } else if (isSandboxClosure(current)) {
+      if (current.properties !== undefined && Object.hasOwn(current.properties, String(property)))
+        return current.properties[String(property)];
+      if (property === "length") return current.length;
+    } else if (Object.hasOwn(current, String(property))) {
+      return (current as Record<string, SandboxValue>)[String(property)];
+    }
+    if (isSandboxClosure(current) && !hasExplicitSandboxPrototype(current)) break;
+    current = getSandboxPrototype(current, options.budget);
+    if (current !== null) {
+      options.budget?.visitNode();
+      assertSandboxDataDepth(++depth);
+    }
   }
-  const properties = target.properties;
-  if (properties !== undefined && Object.hasOwn(properties, String(property))) {
-    return properties[String(property)];
-  }
-
-  if (property === "length") {
-    return target.length;
-  }
+  if (current === null) return undefined;
 
   if (property === "toString" && runResources.getStore()?.functionSourceText === false) return undefined;
 
@@ -75,7 +84,7 @@ function callFunctionMethod(
 
   if (methodName === "bind") {
     const boundArgs = args.slice(1);
-    return createSandboxClosure({
+    const bound = createSandboxClosure({
       guest: true,
       sandbox: true,
       name: `bound ${target.name ?? ""}`,
@@ -98,6 +107,9 @@ function callFunctionMethod(
               )
           })
     });
+    if (hasExplicitSandboxPrototype(target))
+      setSandboxPrototype(bound, getSandboxPrototype(target, options.budget), options.budget);
+    return bound;
   }
 
   if (methodName === "call") {

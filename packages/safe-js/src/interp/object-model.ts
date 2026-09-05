@@ -110,20 +110,28 @@ function registerIntrinsicPrototype(budget: Budget, prototype: SandboxObject, co
   let roots = intrinsicPrototypeRoots.get(budget);
   if (roots === undefined) intrinsicPrototypeRoots.set(budget, roots = new Set());
   roots.add(prototype);
-  const records = [prototype, materializeFunctionProperties(constructor)].map(value => ({
-    value, descriptors: new Map(Object.entries(Object.getOwnPropertyDescriptors(value)))
+  const records = [prototype, constructor].map(target => ({
+    target,
+    value: isGuestClosure(target) ? materializeFunctionProperties(target) : target,
+    prototype: getSandboxPrototype(target),
+    explicit: hasExplicitSandboxPrototype(target)
+  })).map(record => ({
+    ...record, descriptors: new Map(Object.entries(Object.getOwnPropertyDescriptors(record.value)))
   }));
   const unchanged = (before: PropertyDescriptor | undefined, after: PropertyDescriptor | undefined): boolean =>
     before !== undefined && after !== undefined && Object.is(before.value, after.value) &&
     before.writable === after.writable && before.configurable === after.configurable && before.enumerable === after.enumerable;
-  intrinsicConstructors.set(constructor, () => records.every(({ value, descriptors }) => {
+  intrinsicConstructors.set(constructor, () => records.every(({ target, value, descriptors, prototype: parent, explicit }) => {
     const current = Object.getOwnPropertyDescriptors(value);
-    return Object.keys(current).length === descriptors.size &&
+    return getSandboxPrototype(target) === parent && hasExplicitSandboxPrototype(target) === explicit &&
+      Object.keys(current).length === descriptors.size &&
       Object.keys(current).every(key => unchanged(descriptors.get(key), current[key]));
   }));
-  budget.setRetainedValues(prototype, () => records.flatMap(({ value, descriptors }) =>
-    Object.entries(Object.getOwnPropertyDescriptors(value)).flatMap(([key, descriptor]) =>
-      unchanged(descriptors.get(key), descriptor) ? [] : [key, descriptor.value])));
+  budget.setRetainedValues(prototype, () => records.flatMap(({ target, value, descriptors, prototype: parent }) => [
+    ...(getSandboxPrototype(target) === parent ? [] : [getSandboxPrototype(target) as SandboxValue]),
+    ...Object.entries(Object.getOwnPropertyDescriptors(value)).flatMap(([key, descriptor]) =>
+      unchanged(descriptors.get(key), descriptor) ? [] : [key, descriptor.value])
+  ]));
 }
 
 export function releaseObjectPrototype(budget: Budget): void {
@@ -139,7 +147,7 @@ export function getSandboxPrototype(value: object, budget?: Budget): object | nu
     const prototype = getBoxedPrototype(boxedValue(value), budget);
     if (prototype !== undefined && prototype !== value) return prototype;
   }
-  return budget !== undefined && isPrototypeRecord(value)
+  return budget !== undefined && !isSandboxClosure(value) && isPrototypeRecord(value)
     ? intrinsicPrototypes.get(budget) ?? null
     : null;
 }
@@ -157,8 +165,10 @@ export function getSandboxDataProperty(
   let depth = 0;
   while (typeof current === "object" && current !== null) {
     if (isGuestHostObject(current)) return getHostObjectMember(current, String(key));
-    if (isGuestClosure(current)) return getGuestFunctionProperty(current, String(key));
-    if (isSandboxClosure(current)) {
+    if (isGuestClosure(current)) {
+      const entry = getGuestFunctionProperty(current, String(key));
+      if (entry !== undefined || Object.hasOwn(current.properties ?? {}, String(key))) return entry;
+    } else if (isSandboxClosure(current)) {
       const properties = current.properties;
       return properties !== undefined && Object.hasOwn(properties, String(key))
         ? properties[String(key)]
@@ -172,7 +182,7 @@ export function getSandboxDataProperty(
       isSandboxGenerator(current)
     )
       return undefined;
-    if (Object.hasOwn(current, String(key))) return (current as SandboxObject)[String(key)];
+    if (!isSandboxClosure(current) && Object.hasOwn(current, String(key))) return (current as SandboxObject)[String(key)];
     current = getSandboxPrototype(current, budget) as SandboxValue;
     if (current !== null) {
       budget?.visitNode();
@@ -192,7 +202,7 @@ export function setSandboxPrototype(
   }
   if (!isPrototypeRecord(value) || (prototype !== null && !isPrototypeRecord(prototype))) {
     throw new TypeError(
-      "Prototype links require ordinary sandbox objects; callable and exotic prototype chains are not supported."
+      "Prototype links require ordinary sandbox objects or guest functions."
     );
   }
   if (prototypes.has(value) && getSandboxPrototype(value, budget) === prototype) return;
@@ -209,6 +219,7 @@ export function setSandboxPrototype(
 }
 
 function isPrototypeRecord(value: object): boolean {
+  if (isGuestClosure(value)) return true;
   if (isGuestHostObject(value)) return false;
   if (
     isSandboxClosure(value) ||

@@ -100,7 +100,7 @@ import {
   type ArrayMethodOptions
 } from "./methods/array.js";
 import { getFunctionMember, type FunctionMethodOptions } from "./methods/function.js";
-import { getBoxedPrototype, getGuestFunctionProperty, getSandboxPrototype, isDefaultBoxedMethod, isGuestClosure, materializeFunctionProperties, setSandboxPrototype } from "./object-model.js";
+import { getBoxedPrototype, getGuestFunctionProperty, getSandboxPrototype, hasExplicitSandboxPrototype, isDefaultBoxedMethod, isGuestClosure, materializeFunctionProperties, setSandboxPrototype } from "./object-model.js";
 import { getStringIndex } from "./methods/string.js";
 import { assertSandboxDataDepth } from "../graph-depth.js";
 import {
@@ -3203,8 +3203,9 @@ function hasSandboxProperty(value: SandboxValue, key: string, context: Evaluatio
   while (typeof current === "object" && current !== null) {
     if (isGuestHostObject(current)) return hasHostObjectMember(current, key);
     if (hasOwnSandboxProperty(current, key, false)) return true;
-    if (Array.isArray(current) || !isPlainSandboxObject(current) ||
-        isSandboxDate(current) || isFloat32Array(current) || isSandboxGenerator(current) || isSandboxCollectionIterator(current)) {
+    if (!(isGuestClosure(current) && hasExplicitSandboxPrototype(current)) &&
+        (Array.isArray(current) || !isPlainSandboxObject(current) ||
+        isSandboxDate(current) || isFloat32Array(current) || isSandboxGenerator(current) || isSandboxCollectionIterator(current))) {
       return getPropertyValue(current, key, context) !== undefined;
     }
     current = getSandboxPrototype(current, context.budget) as SandboxValue;

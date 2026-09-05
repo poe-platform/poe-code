@@ -1533,6 +1533,9 @@ a publication receipt; the delivered descendant contains both commits.
 Scoped run 33985896644/job 101359199026 succeeded and explicitly published
 @poe-platform/safe-js 0.1.134 September 5 at 19:06:41 UTC; its watcher exited zero.
 The CLI release remains separately monitored and is not yet claimed published.
+CLI run 33985896714 was canceled by the next atomic improvement's validation;
+its watcher exited one. This is not a CLI publication receipt. Track descendant
+39989f934051f4b6b0a241a4f32a2168d2745a23/run 33986405726, which contains boxing.
 
 ### 27. Number formatting coercion — delivered and released
 
@@ -2878,7 +2881,7 @@ September 5 at 13:24:44 UTC. The remote v14.0.62 tag independently resolves to
 a66cc1f327da9599dbac1039425d1869742e8bb9, also covering the earlier function-source
 and numeric-parser commits whose individual CLI runs were canceled.
 
-### 48. JSON.parse input conversion — qualified locally; main delivery pending
+### 48. JSON.parse input conversion — closed at verified main delivery; release pending
 
 After boxing delivery, four built/native probes validate the next bounded gap:
 JSON.parse ignores ordinary-object toString hooks, rejects boxed String input,
@@ -2923,3 +2926,88 @@ The actual zero-spawn CLI fixture passes; its inspected screenshot shows values
 presentation-only rerun changes only the temporary fixture's returned summary;
 the qualified repository source remains unchanged. Ready for this improvement's
 separate commit and verified main push, not yet a publication claim.
+Delivered as 39989f934051f4b6b0a241a4f32a2168d2745a23 and independently verified
+on remote refs/heads/main September 5. Close this validated finding at delivery.
+Scoped run 33986405642 and CLI run 33986405726 are monitored separately; neither
+is claimed published yet. A generic run listing returned unrelated older heads,
+so discover these exact runs through the repository API filtered by head SHA.
+Scoped run 33986405642 explicitly published @poe-platform/safe-js 0.1.135 on
+September 5 at 19:16:28 UTC. CLI run 33986405726 succeeded and explicitly
+published poe-code@14.0.63 to latest at 19:25:37 UTC. The remote v14.0.63 tag
+independently resolves to 39989f934051f4b6b0a241a4f32a2168d2745a23, covering both
+this fix and the boxing commit whose own CLI validation had been canceled.
+
+### 49. Class syntax and inheritance — current-main gap reconfirmed
+
+Built probes against delivered 39989f934 reconfirm that a class with constructor
+and instance method, and a separate extends example, both return structured
+UNBOUND_IDENTIFIER failures for `class`; native execution returns 7 in each
+case. The ordinary-function constructor/prototype-method control returns 7 in
+both engines. Read the structured run error, not only its absent returnValue.
+Prioritize this larger language foundation next, with failing tests before any
+implementation and separate atomic deliveries for independently usable support.
+No class or inheritance runtime change has been made in this follow-up inventory.
+Implementation audit against frozen ECMAScript 2026 §15.7.14 confirms the next
+integration points: real ClassDeclaration/ClassExpression nodes and lexical
+class bindings; constructor-only invocation and newTarget propagation through
+SandboxCallContext; delayed derived-this initialization in function Scope;
+lexically captured home objects for super; and ordered element definition before
+static initialization. Class source ranges must also participate in maintained
+function-source handling. The existing parser, async closure evaluator, block
+binding preparation, lint admission and snapshot boundaries all need coverage.
+Do not emulate a default derived constructor by spreading an ordinary array:
+the specification forwards its argument list without invoking an iterator.
+Reference: https://tc39.es/ecma262/2026/multipage/ecmascript-language-functions-and-classes.html#sec-runtime-semantics-classdefinitionevaluation.
+
+### 50. Callable prototype links — qualified locally; main delivery pending
+
+The class audit finds an explicit shared object-model restriction: guest
+functions cannot be prototype-link targets or parents. Class constructor
+inheritance requires that capability, independently of class syntax. Fix this
+prerequisite in its own atomic delivery, then return to class evaluation rather
+than lowering classes to ordinary functions with different semantics.
+
+The initial native-comparison suite reports 35 failures and three controls.
+Correct three fixture assumptions before attributing all failures to this gap:
+Array prototype mutation is a separate unsupported exotic graph, and
+Object.preventExtensions is unavailable. Use an ordinary boxed target and the
+maintained Object.freeze route for the two immutability controls instead.
+Actual callable-link cases reproduce the explicit rejection. Enable private
+prototype links for guest functions, traverse their exposed property tables
+without leaking implementation fields, respect undefined shadowing and explicit
+null parents, and preserve bound-function parent identity. Keep readonly host
+functions and unsupported exotic prototype graphs outside this change.
+
+The initial implementation passes 80 focused tests after replacing two obsolete
+function-link rejection expectations with the new native-comparison coverage.
+Four additional failing tests expose unretained intrinsic-constructor parents.
+Track those explicit links in retained roots and nonportable-state detection.
+A first broader run then catches 507 failures: my comparison mistakenly treats
+released implicit intrinsic prototypes as mutations. Three focused cleanup
+tests reproduce that regression; compare explicit links independently of the
+realm registry. All 96 focused tests and the corrected maintained SafeJS suite
+now pass: 12,786 tests with 41 skips. No budget was increased and no failure is
+waived. Class syntax, accessor semantics and full intrinsic Function/Array graphs
+remain open requirements, not claimed delivered by this prerequisite.
+
+Manual QA: run the schema-only callable-prototypes.md/.ajs fixture with zero
+capabilities/spawns. Check inherited static-method receiver identity, bound
+construction, inherited values and parent identity; inspect the CLI screenshot.
+Run the normal build, full maintained npm test and root lint because the shared
+object model changed. Probe built public budgets and cleanup before the separate
+commit and verified main push.
+
+Qualification passes on the corrected sources: the normal build, full npm test
+and root lint all exit zero. Full tests include 32,646 shared-cohort passes,
+29 Python tests, 279 Bash-runner tests, 19,981 Bash tests (63 skips), 288
+shell-stress tests and two lint-stress tests. Root lint covers 9,780 configured
+files with zero errors/warnings, followed by TypeScript and workflow checks.
+The inspected real CLI screenshot shows inherited-method result 8, bound
+construction result 9, the correct bound parent and inherited value 7, with zero
+spawns. Built API probes verify that a retained 1,509-unit intrinsic parent
+causes the expected low-budget failure but permits the larger-budget control;
+twenty realm cleanup cycles and twenty async inherited-method cancellations
+release all retained roots. Two unchanged public snapshots still round-trip.
+Three native dispatch/descriptor controls and simultaneous-realm isolation pass,
+with native host intrinsics unchanged. This prerequisite is ready for its own
+commit and main push, not yet a publication claim.

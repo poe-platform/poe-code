@@ -117,7 +117,10 @@ describe("guest function objects through the public core", () => {
 
   it.each([
     "function Counter() {} Counter.value = 7; return 1;",
-    "function Counter() {} const instance = new Counter(); return 1;"
+    "function Counter() {} const instance = new Counter(); return 1;",
+    "function Parent() {} function Child() {} Object.setPrototypeOf(Child, Parent); return 1;",
+    "Object.setPrototypeOf(Number, { value: 7 }); return 1;",
+    "Object.setPrototypeOf(Number, null); return 1;"
   ])("rejects unsupported snapshots rather than dropping function state: %s", async (source) => {
     const result = await run(source, { budget: new Budget() });
     await expect(dump(result)).rejects.toThrow(/function properties|prototype links/i);
@@ -153,7 +156,10 @@ describe("guest function objects through the public core", () => {
 
   it.each([
     "function Counter() {} Counter.value = 7; return Counter;",
-    "function Counter() {} return new Counter();"
+    "function Counter() {} return new Counter();",
+    "function Parent() {} function Child() {} Object.setPrototypeOf(Child, Parent); return Child;",
+    "Object.setPrototypeOf(Number, { value: 7 }); return Number;",
+    "Object.setPrototypeOf(Number, null); return Number;"
   ])("refuses unsupported state in each serialization path: %s", async (source) => {
     const result = await run(source, { budget: new Budget() });
     if (!result.ok) throw new Error("Guest evaluation failed");
@@ -230,9 +236,7 @@ describe("guest function budgets", () => {
     expect(measureSandboxData([array])).toBeGreaterThanOrEqual(400);
   });
   it.each([
-    "Object.setPrototypeOf(function Child() {}, {});",
     "Object.setPrototypeOf([], {});",
-    "Object.create(function Parent() {});",
     "function Counter() {} Counter.prototype = []; new Counter();"
   ])("explicitly rejects unsupported exotic prototype links: %s", async (source) => {
     const result = await run(

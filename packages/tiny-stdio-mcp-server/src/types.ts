@@ -255,6 +255,7 @@ export interface ServerOptions {
   maxStdioOutputBytes?: number;
   /** Per-stdio-connection messages awaiting handler/output settlement; defaults to 128. */
   maxPendingStdioMessages?: number;
+  maxStdioLineBytes?: number;
   validateToolArguments?: boolean;
   supportNotifications?: boolean;
   supportResourceSubscriptions?: boolean;

@@ -31,6 +31,7 @@ import { parseUriTemplate, type UriTemplate } from "./uri-template.js";
 import { toContentBlocks, type ToolReturn } from "./content/convert.js";
 import { ToolCallAdmission } from "./tool-call-admission.js";
 import { StdioOutput } from "./stdio-output.js";
+import { StdioInput } from "./stdio-input.js";
 
 const PROTOCOL_VERSION = "2025-11-25";
 const SUPPORTED_PROTOCOL_VERSIONS = new Set(["2025-03-26", "2025-06-18", PROTOCOL_VERSION]);
@@ -128,11 +129,13 @@ export function createServer(options: ServerOptions): Server {
   const maxQueuedToolCalls = options.maxQueuedToolCalls ?? 64;
   const maxStdioOutputBytes = options.maxStdioOutputBytes ?? 1024 * 1024;
   const maxPendingStdioMessages = options.maxPendingStdioMessages ?? 128;
+  const maxStdioLineBytes = options.maxStdioLineBytes ?? 1024 * 1024;
   for (const [name, value, minimum] of [
     ["maxConcurrentToolCalls", maxConcurrentToolCalls, 1],
     ["maxQueuedToolCalls", maxQueuedToolCalls, 0],
     ["maxStdioOutputBytes", maxStdioOutputBytes, 1],
-    ["maxPendingStdioMessages", maxPendingStdioMessages, 1]
+    ["maxPendingStdioMessages", maxPendingStdioMessages, 1],
+    ["maxStdioLineBytes", maxStdioLineBytes, 1]
   ] as const) {
     if (!Number.isSafeInteger(value) || value < minimum) {
       throw new Error(`${name} must be a safe integer greater than or equal to ${minimum}.`);
@@ -762,8 +765,9 @@ export function createServer(options: ServerOptions): Server {
         const listener = (notification: JSONRPCNotification) =>
           output.write(`${JSON.stringify(notification)}\n`);
         const session = server.createMessageSession(listener);
+        const input = new StdioInput(maxStdioLineBytes);
         const rl = readline.createInterface({
-          input: transport.readable,
+          input,
           crlfDelay: Infinity
         });
 
@@ -772,6 +776,8 @@ export function createServer(options: ServerOptions): Server {
           settled = true;
           session.close();
           rl.close();
+          transport.readable.unpipe(input);
+          input.destroy();
           transport.readable.pause();
           transport.readable.off("error", fail);
           output.abort(error);
@@ -783,12 +789,15 @@ export function createServer(options: ServerOptions): Server {
           if (settled || !inputClosed || pendingMessages.size > 0 || output.pending > 0) return;
           settled = true;
           session.close();
+          transport.readable.unpipe(input);
+          input.destroy();
           transport.readable.off("error", fail);
           output.close();
           resolve();
         }
 
         transport.readable.on("error", fail);
+        input.on("error", fail);
         rl.on("error", fail);
 
         rl.on("line", (line) => {
@@ -813,6 +822,7 @@ export function createServer(options: ServerOptions): Server {
           inputClosed = true;
           finish();
         });
+        transport.readable.pipe(input);
       });
     },
 

@@ -400,6 +400,7 @@ function assertSource7Discovery(files) {
   assert.ok(files.includes("tests/shell/source-line-units.test.ts"));
   assert.ok(files.includes("tests/shell/ifs-membership.test.ts"));
   assert.ok(files.includes("tests/shell/child-dispatch-retirement.test.ts"));
+  assert.ok(files.includes("tests/shell/inline-input-retirement.test.ts"));
   assert.ok(files.includes("tests/shell/source-line-nested.test.ts"));
   assert.ok(files.includes("tests/shell/arithmetic-admission.test.ts"));
   assert.ok(files.includes("tests/shell/string-operations.test.ts"));

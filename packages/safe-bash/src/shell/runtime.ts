@@ -433,7 +433,7 @@ function signalSink(sink: ByteSink, signal: AbortSignal): ByteSink {
   return output;
 }
 
-async function cloneState(state: State, signal: AbortSignal, scope?: InvocationScope): Promise<State> {
+async function cloneState(state: State, signal: AbortSignal, scope?: InvocationScope, inheritLocals = true): Promise<State> {
   const destination = await snapshotState(state, () => ({
     ...state,
     variables: Object.assign(Object.create(null) as Record<string, string>, state.variables),
@@ -441,7 +441,7 @@ async function cloneState(state: State, signal: AbortSignal, scope?: InvocationS
     readonlyVariables: new Set(state.readonlyVariables),
     getopts: cloneGetoptsBinding(state),
     directoryStack: { entries: [...state.directoryStack?.entries ?? []], bytes: state.directoryStack?.bytes ?? 0 },
-    locals: scope ? [] : state.locals.map((scope) => new Map([...scope].map(([name, saved]) => [name, { ...saved, ...(saved.getopts ? { getopts: { integer: saved.getopts.integer, cursor: cloneGetoptsState(saved.getopts.cursor) } } : {}) }]))),
+    locals: inheritLocals ? state.locals.map((scope) => new Map([...scope].map(([name, saved]) => [name, { ...saved, ...(saved.getopts ? { getopts: { integer: saved.getopts.integer, cursor: cloneGetoptsState(saved.getopts.cursor) } } : {}) }]))) : [],
   }), signal, async (destination, owner) => {
     const store = arrayStore(destination) ?? requireArrays(destination);
     for (let index = 0; index < destination.locals.length; index++) {
@@ -454,14 +454,18 @@ async function cloneState(state: State, signal: AbortSignal, scope?: InvocationS
           if (!copied) throw new ArrayFailure("stale state snapshot");
           const savedOwner = ArrayOwner.create(owner.ledger, owner);
           let binding: IndexedBinding | undefined;
+          let releaseBinding: Promise<void> | undefined;
           try {
+            scope?.register(async () => { await savedOwner.completion; await releaseBinding; });
             const watch = await store.watch(name, savedOwner, signal);
             const tickets = savedOwner.reserve({ generation: true, version: true, epoch: true, slots: 1, metadata: 64, work: 14 });
             const token = await textToken(savedOwner, name, signal);
             const admission = savedOwner.reserve({ slots: 1, metadata: 32, work: 5 });
             binding = typed.binding?.retain();
             typedSavedVariables.set(copied, { owner: savedOwner, binding, tickets, prepared: { name: token, admission }, watch, scalarLegacy: typed.scalarLegacy });
-            tickets.cleanup = () => { typedSavedVariables.delete(copied); };
+            tickets.cleanup = () => {
+              if (typedSavedVariables.delete(copied) && scope) releaseBinding = scope.cleanup(async () => { await binding?.release(); });
+            };
           } catch (error) { await binding?.release(); await savedOwner.close(); throw error; }
         }
         await owner.ledger.checkpoint(signal);
@@ -2311,8 +2315,10 @@ export class Runtime {
     const inlineInput = command.redirects.some((redirect) => redirect.document || redirect.operator === "<<<");
     const functionCommand = words.length > 0 && state.functions.has(words[0]!);
     const isolatedInlineInput = inlineInput && words.length > 0 && !shellBuiltinNames.has(words[0]!) && !functionCommand;
-    if (isolatedInlineInput) state = await cloneState(state, this.signal);
-    let io = originalIO;
+    const snapshotScope = isolatedInlineInput ? originalIO[invocationScope].child() : undefined;
+    let finishSnapshot: (() => void) | undefined;
+    if (snapshotScope) void snapshotScope.run(() => new Promise<void>(resolve => { finishSnapshot = resolve; }));
+    let io = snapshotScope ? { ...originalIO, [invocationScope]: snapshotScope } : originalIO;
     const previous = new Map<string, SavedVariable>();
     const assign = async () => {
       for (const assignment of assignments) {
@@ -2344,8 +2350,13 @@ export class Runtime {
         if (words.length) state.exported.add(assignment.name);
       }
     };
-    if (words.length) stateMonitor(state)?.openOverlay(previous);
+    let overlayOpen = false;
     try {
+      if (snapshotScope) state = await cloneState(state, this.signal, snapshotScope);
+      if (words.length) {
+        stateMonitor(state)?.openOverlay(previous);
+        overlayOpen = true;
+      }
       if (inlineInput || (state.profile === "sh" || !words.length) && assignments.some(assignment => state.readonlyVariables?.has(assignment.name))) await assign();
       if (inlineInput && functionCommand && previous.size) {
         const redirectState = await cloneState(state, this.signal);
@@ -2420,14 +2431,18 @@ export class Runtime {
       if (error instanceof ExecutionFailure) throw error;
       throw new ExecutionFailure(error, io);
     } finally {
-      if (words.length) {
-        for (const [key, saved] of previous) await originalIO[invocationScope].cleanup(async () => {
-          if (saved.superseded) await this.discardVariable(saved);
-          else await restoreVariable(state, key, saved);
-        });
-        await originalIO[invocationScope].cleanup(() => stateMonitor(state)?.closeOverlay(previous));
-      } else for (const saved of previous.values()) saved.heldValue?.release();
-      if (isolatedInlineInput) stateMonitor(state)?.closeValues();
+      try {
+        if (overlayOpen) {
+          for (const [key, saved] of previous) await originalIO[invocationScope].cleanup(async () => {
+            if (saved.superseded) await this.discardVariable(saved);
+            else await restoreVariable(state, key, saved);
+          });
+          await originalIO[invocationScope].cleanup(() => stateMonitor(state)?.closeOverlay(previous));
+        } else for (const saved of previous.values()) saved.heldValue?.release();
+      } finally {
+        finishSnapshot?.();
+        await snapshotScope?.close();
+      }
     }
   }
 
@@ -3358,7 +3373,7 @@ export class Runtime {
     const allocation = this.budget.values.scope();
     scope.register(() => allocation.close());
     const carrier = this.admitArguments(getCommandArguments({ args, ...(options.argumentValues ? { argumentValues: options.argumentValues } : {}) }).values, allocation);
-    const child = await cloneState(state, this.signal, scope);
+    const child = await cloneState(state, this.signal, scope, false);
     child.cwd = resolvePath(context.cwd, options.cwd ?? ".");
     const env = options.replaceEnv ? { ...options.env } : { ...context.env, ...options.env, PWD: child.cwd };
     if (guestArrays(child) || Object.keys(env).some(key => arrayStore(child)?.get(key))) await this.indexedEnvironment(child, env);

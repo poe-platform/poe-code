@@ -510,6 +510,12 @@ function assertSource7Discovery(files) {
   ]) assert.ok(files.includes(path), "opt-in array keys test is missing: " + path);
   for (const path of [
     "tests/plugins/descriptor-provider-runtime.test.ts",
+    "tests/plugins/descriptor-provider-observation-runtime.test.ts",
+    "tests/contracts/filesystem-descriptor-observation.test.ts",
+    "tests/contracts/filesystem-output-observation.test.ts",
+    "tests/contracts/filesystem-observation-review.test.ts",
+    "tests/shell/extensions/core/provider-observation-runtime.test.ts",
+    "tests/shell/extensions/core/provider-observation-review.test.ts",
   ]) assert.ok(files.includes(path), "public descriptor provider test is missing: " + path);
   for (const path of [
     "tests/shell/extensions/core/bindings.test.ts",

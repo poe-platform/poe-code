@@ -1,5 +1,6 @@
 import assert from "node:assert/strict";
 import test from "node:test";
+import type { FileSystem } from "poe-code/safe-fs";
 import { FsError } from "../../../../src/contracts/errors.js";
 import { openCommandFile } from "../../../../src/contracts/filesystem-descriptor.js";
 import { MemoryFileSystem } from "../../../../src/fs/memory/index.js";
@@ -21,7 +22,8 @@ async function fixture(reason: unknown, explicitPriority: boolean, options: { le
   await memory.writeFile("/input", Uint8Array.of(255, 0, 10));
   let closes = 0;
   const cleanups: (() => void | Promise<void>)[] = [];
-  const fs = intercept(memory, {
+  const fs = intercept<FileSystem>(memory, {
+    ...(options.legacy ? { capabilities: { ...memory.capabilities, open: false } } : {}),
     async open(...args) {
       if (options.legacy) throw new FsError("ENOTSUP", { syscall: "open" });
       const descriptor = await memory.open(...args);
@@ -75,9 +77,9 @@ for (const legacy of [false, true]) for (const reason of failures) test(`prepare
     const local = new Error("handled stage cancellation");
     subject.parent.abort(local);
     await assert.rejects(prepared.close(), error => Object.is(error, reason));
-    assert.equal(subject.cleanups.length, 2);
+    assert.equal(subject.cleanups.length, legacy ? 1 : 2);
     await assert.rejects(Promise.resolve().then(subject.cleanups[0]!), error => Object.is(error, reason));
-    await assert.rejects(Promise.resolve().then(subject.cleanups[1]!), error => Object.is(error, legacy ? local : reason));
+    if (!legacy) await assert.rejects(Promise.resolve().then(subject.cleanups[1]!), error => Object.is(error, reason));
   } finally { await subject.dispose(); }
 });
 

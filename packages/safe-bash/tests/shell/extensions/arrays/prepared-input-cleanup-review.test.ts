@@ -38,6 +38,7 @@ async function fixture(kind: Kind, mode: Mode = "supplied", priorityIsBudgetRoot
   } = {};
   let opens = 0, reads = 0, closes = 0;
   const fs: FileSystem = kind === "legacy" ? intercept<FileSystem>(memory, {
+    capabilities: { ...memory.capabilities, open: false },
     readStream() { return { [Symbol.asyncIterator]() { opens++; return {
       async next() { reads++; return hooks.legacyRead ? hooks.legacyRead() : reads === 1 ? { done: false, value: Uint8Array.of(255, 0, 10) } : { done: true, value: undefined }; },
       async return() { closes++; await hooks.close?.(); return { done: true, value: undefined }; },
@@ -252,7 +253,7 @@ for (const kind of kinds) test(`cleanup review: ${kind} concurrent registered cl
   const rejected = assert.rejects(closing, error => error === false);
   await entered.promise;
   const drainingCleanups = kind === "legacy" ? subject.cleanups.slice(0, 1) : subject.cleanups;
-  if (kind === "legacy") await subject.cleanups[1]!();
+  if (kind === "legacy") await subject.cleanups[1]?.();
   const pending = drainingCleanups.map(cleanup => Promise.resolve().then(cleanup));
   let settled = 0;
   for (const work of [closing, ...pending]) void work.then(() => { settled++; }, () => { settled++; });

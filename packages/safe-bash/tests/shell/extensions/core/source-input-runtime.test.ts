@@ -236,7 +236,8 @@ test("legacy file streams remain unknown and refuse deadlines before consumption
   const memory = createMemoryFileSystem();
   await memory.writeFile("/input", Buffer.from("line\n"));
   let reads = 0;
-  const fs = intercept(memory, {
+  const fs = intercept<FileSystem>(memory, {
+    capabilities: { ...memory.capabilities, open: false },
     async open() { throw new FsError("ENOTSUP"); },
     readStream() { return { async *[Symbol.asyncIterator]() { reads++; yield Buffer.from("line\n"); } }; },
   });

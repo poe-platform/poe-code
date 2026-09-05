@@ -315,7 +315,8 @@ test("source review: ENOTSUP fallback keeps unknown provenance despite a stat-ca
   const subject = fixture();
   await subject.fs.writeFile("/input", Uint8Array.of(255, 0, 10));
   let opens = 0, stats = 0, streams = 0;
-  const fs: FileSystem = intercept(subject.fs, {
+  const fs: FileSystem = intercept<FileSystem>(subject.fs, {
+    capabilities: { ...subject.fs.capabilities, open: false },
     open: async () => { opens++; throw new FsError("ENOTSUP"); },
     stat: async (...args) => { stats++; return subject.fs.stat(...args); },
     readStream(...args) { assert.equal(this, fs); streams++; return subject.fs.readStream(...args); },
@@ -332,7 +333,7 @@ test("source review: ENOTSUP fallback keeps unknown provenance despite a stat-ca
       assert.deepEqual(shellValueBytes(record.shellValue), Uint8Array.of(255, 0, 10));
       await record.release();
     } finally { await input.close(); await prepared.close(); }
-    assert.deepEqual({ opens, stats, streams }, { opens: 1, stats: 0, streams: 1 });
+    assert.deepEqual({ opens, stats, streams }, { opens: 0, stats: 0, streams: 1 });
   } finally { await subject.close(); }
 });
 

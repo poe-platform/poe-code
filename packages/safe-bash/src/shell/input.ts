@@ -11,7 +11,7 @@ import type { ShellReadProbe } from "./extensions.js";
 
 export interface PreparedShellInput {
   readonly source: ByteSource;
-  readonly options: Pick<ShellInputOptions, "provenance" | "poll" | "eof">;
+  readonly options: Pick<ShellInputOptions, "provenance" | "poll" | "eof" | "descriptor">;
   close(): Promise<void>;
 }
 
@@ -153,11 +153,12 @@ export async function prepareFileInput(
     });
     signal.addEventListener("abort", aborted, { once: true });
     check();
+    const capabilities = await fs.capabilitiesFor?.(path, { signal }) ?? fs.capabilities;
+    check();
     let provenance: NonNullable<ShellInputOptions["provenance"]> = "unknown";
-    try { descriptor = await openCommandFile({ fs, signal, registerCleanup, cleanupFailurePrioritySignal }, path, { access: "read", signal }); }
-    catch (error) {
-      check();
-      if (!(error instanceof FsError) || error.code !== "ENOTSUP") throw error;
+    if (capabilities.open === true || capabilities.open !== false && typeof fs.open === "function") {
+      descriptor = await openCommandFile({ fs, signal, registerCleanup, cleanupFailurePrioritySignal }, path, { access: "read", signal });
+    } else {
       const source = await fileInput(fs, path, budget.limits.maxInputBytes, readSignal);
       legacy = source[Symbol.asyncIterator]();
     }
@@ -201,7 +202,10 @@ export async function prepareFileInput(
         });
         work = operation.then(() => {}, () => {});
         return operation.then(async result => {
-          if (result.done && provenance !== "regular") await close();
+          if (result.done && provenance !== "regular") {
+            if (legacy) await close();
+            else { buffer?.release(); buffer = undefined; }
+          }
           signal.throwIfAborted();
           return result;
         }, async error => {
@@ -213,7 +217,7 @@ export async function prepareFileInput(
       async return() { await close(); return { done: true, value: undefined }; },
     };
     admitted();
-    return Object.freeze({ source, close, options: Object.freeze({ provenance, eof: provenance === "regular" ? "retryable" : "terminal" }) });
+    return Object.freeze({ source, close, options: Object.freeze({ provenance, eof: provenance === "regular" ? "retryable" : "terminal", ...(descriptor ? { descriptor } : {}) }) });
   } catch (error) {
     admitted();
     try { await close(); } catch {}
@@ -292,6 +296,7 @@ export interface InputClock {
 }
 
 export interface ShellInputOptions {
+  readonly descriptor?: CommandFileDescriptor;
   readonly provenance?: "regular" | "stream" | "unknown";
   readonly eof?: "terminal" | "retryable";
   readonly poll?: () => InputReadiness;
@@ -382,6 +387,11 @@ class InputCursor {
     this.#poll = poll?.bind(options);
     this.#clock = Object.freeze({ now: now.bind(clock), schedule: schedule.bind(clock) });
     this.#iterator = source[Symbol.asyncIterator]();
+  }
+
+  get bufferedBytes(): number {
+    if (this.#active) return 0;
+    return this.remainder?.length || (this.#readResult && !this.#readResult.done ? this.#readResult.value.length : 0);
   }
 
   readiness(): InputReadiness {
@@ -556,6 +566,7 @@ function displayWidth(bytes: Uint8Array, offset: number): number {
 }
 
 export class ShellInput implements ByteSource {
+  readonly descriptor: CommandFileDescriptor | undefined;
   readonly #cursor: InputCursor;
   readonly #owned: boolean;
   readonly #lifetime = new AbortController();
@@ -568,8 +579,14 @@ export class ShellInput implements ByteSource {
     this.#owned = !(source instanceof ShellInput);
     if (!this.#owned && options !== undefined) throw new TypeError("Borrowed input cannot replace cursor capabilities");
     this.#cursor = source instanceof ShellInput ? source.#cursor : new InputCursor(source, options);
+    this.descriptor = source instanceof ShellInput ? source.descriptor : options?.descriptor;
     this.#cleanupSignal = signal;
     this.signal = AbortSignal.any([budget.signal, signal, this.#lifetime.signal]);
+  }
+
+  get bufferedBytes(): number {
+    this.signal.throwIfAborted();
+    return this.#cursor.bufferedBytes;
   }
 
   readiness(): InputReadiness {

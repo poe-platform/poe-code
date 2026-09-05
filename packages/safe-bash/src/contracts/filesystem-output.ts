@@ -90,6 +90,8 @@ async function openDescriptorOutput(context: FileOutputContext, path: string, op
     check();
     if (!accepting) throw new FsError("EBADF", { path, syscall: "open" });
     const retained = descriptor;
+    const probeRead = retained.capabilities.readObservation === true ? retained.probeRead : undefined;
+    if (retained.capabilities.readObservation === true && typeof probeRead !== "function") throw new FsError("ENOTSUP", { path, syscall: "probeRead" });
     const admit = <Result>(syscall: string, forwarded: FsOptions, action: (options: FsOptions) => Promise<Result>): Promise<Result> => {
       try {
         const operationSignal = forwarded.signal;
@@ -102,6 +104,7 @@ async function openDescriptorOutput(context: FileOutputContext, path: string, op
     };
     const exposed: CommandFileDescriptor = {
       capabilities: retained.capabilities,
+      ...(probeRead === undefined ? {} : { probeRead: (forwarded: FsOptions = {}) => admit("probeRead", forwarded, supplied => probeRead.call(retained, supplied)) }),
       ...(retained.getPosition ? { getPosition: (forwarded = {}) => admit("getPosition", forwarded, supplied => retained.getPosition!(supplied)) } : {}),
       stat: (forwarded = {}) => admit("fstat", forwarded, supplied => retained.stat(supplied)),
       read: (buffer, position, forwarded = {}) => admit("read", forwarded, supplied => retained.read(buffer, position, supplied)),

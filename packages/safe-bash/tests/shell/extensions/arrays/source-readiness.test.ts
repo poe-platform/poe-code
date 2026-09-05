@@ -230,7 +230,7 @@ for (const code of ["ENOENT", "EACCES", "EIO"] as const) test(`canonical ${code}
 test("documented unsupported open falls back unchanged but leaves provenance unknown", async () => {
   const subject = fixture();
   await subject.fs.writeFile("/input", Uint8Array.of(65, 10));
-  const fs = intercept(subject.fs, { async open() { throw new FsError("ENOTSUP", { syscall: "open" }); } });
+  const fs = intercept<FileSystem>(subject.fs, { capabilities: { ...subject.fs.capabilities, open: false }, async open() { throw new FsError("ENOTSUP", { syscall: "open" }); } });
   const prepared = await prepareFileInput({ ...subject.context, fs }, "/input", subject.budget);
   const input = new ShellInput(prepared.source, subject.budget, subject.budget.signal, prepared.options);
   try {
@@ -424,7 +424,8 @@ test("legacy pending read receives owner-close cancellation and returns its iter
   let supplied: AbortSignal | undefined;
   let finish!: () => void;
   let returns = 0;
-  const fs = intercept(subject.fs, {
+  const fs = intercept<FileSystem>(subject.fs, {
+    capabilities: { ...subject.fs.capabilities, open: false },
     async open() { throw new FsError("ENOTSUP"); },
     readStream(_path, options) {
       supplied = options?.signal;

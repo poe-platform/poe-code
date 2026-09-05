@@ -69,6 +69,7 @@ test("redirected input resources close after partial, zero and failed consumptio
   for (const script of ["first < input", "true < input", "true < input < missing", "true < input 0<&-"]) {
     const { shell, fs, commands } = setup();
     Object.defineProperty(fs, "open", { value: undefined });
+    Object.defineProperty(fs, "capabilities", { value: { ...fs.capabilities, open: false } });
     await fs.writeFile("/input", new Uint8Array([1, 2, 3]));
     let returned = 0;
     fs.readStream = () => ({ [Symbol.asyncIterator]() {

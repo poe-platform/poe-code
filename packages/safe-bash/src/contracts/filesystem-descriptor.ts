@@ -89,14 +89,23 @@ export async function openCommandFile(context: FileOutputContext & { readonly cl
     check();
     if (!accepting) throw new FsError("EBADF", { syscall: "open", path });
     const position = descriptor.capabilities.position === true && typeof descriptor.getPosition === "function";
+    const probeRead = descriptor.capabilities.readObservation === true ? descriptor.probeRead : undefined;
+    if (descriptor.capabilities.readObservation === true && typeof probeRead !== "function") throw new FsError("ENOTSUP", { syscall: "probeRead", path });
     const admitted = Object.freeze({ ...descriptor.capabilities,
       positionedRead: descriptor.capabilities.positionedRead && request.access !== "write",
       positionedWrite: descriptor.capabilities.positionedWrite && request.access !== "read" && !request.append,
       truncate: descriptor.capabilities.truncate && request.access !== "read",
       ...(descriptor.capabilities.position === undefined ? {} : { position }),
     });
+    check();
+    if (!accepting) throw new FsError("EBADF", { syscall: "open", path });
     return {
       capabilities: admitted,
+      ...(probeRead === undefined ? {} : { probeRead: (forwarded: FsOptions = {}) => run("probeRead", forwarded, async (retained, supplied) => {
+        const readiness = await probeRead.call(retained, supplied);
+        if (readiness !== "ready" && readiness !== "blocked" && readiness !== "unknown") throw new FsError("EIO", { syscall: "probeRead", path });
+        return readiness;
+      }) }),
       ...(position ? { getPosition: (forwarded: FsOptions = {}) => run("getPosition", forwarded, async (retained, supplied) => {
         if (retained.capabilities.position !== true || typeof retained.getPosition !== "function") throw new FsError("ENOTSUP", { syscall: "getPosition", path });
         const cursor = await retained.getPosition(supplied);

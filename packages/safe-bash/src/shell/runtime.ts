@@ -2061,13 +2061,20 @@ export class Runtime {
       if (entry?.closed || (!input || input === closedSource) && (!output || output === closedSink)) throw new FsError("EBADF", { syscall: "observe" });
       const readable = input !== undefined && input !== closedSource;
       if (entry?.pipe) return observeDescriptor(pipeObservation(entry.pipe.endpoint, input instanceof ShellInput ? () => input.probeRead() : undefined), scope, this.budget, this.signal);
-      const file = entry?.file;
+      const file = (input instanceof ShellInput ? input.descriptor : undefined) ?? entry?.file;
       const stat = file?.stat.bind(file);
+      const method = file?.capabilities.readObservation === true ? file.probeRead : undefined;
+      if (file?.capabilities.readObservation === true && typeof method !== "function") throw new FsError("ENOTSUP", { syscall: "probeRead" });
+      const probe = method?.bind(file);
       return observeDescriptor({ readable, async probeRead(signal) {
         signal.throwIfAborted();
-        if (input instanceof ShellInput) return input.probeRead();
-        if (stat && (await stat({ signal })).type === "file") return { readiness: "ready", timeout: "ignore" };
-        return { readiness: "unknown", timeout: "unknown" };
+        const local = input instanceof ShellInput ? input.probeRead() : undefined;
+        if (!file && local) return local;
+        const timeout = local?.timeout ?? (stat && (await stat({ signal })).type === "file" ? "ignore" : "unknown");
+        if (input instanceof ShellInput && input.bufferedBytes > 0) return { readiness: "ready", timeout };
+        if (probe) return { readiness: await probe({ signal }), timeout };
+        if (local) return local;
+        return { readiness: timeout === "ignore" ? "ready" : "unknown", timeout };
       } }, scope, this.budget, this.signal);
     }, borrow: (descriptor: number) => {
       checkDescriptor(descriptor);

@@ -126,6 +126,20 @@ open; an observation or operation lease does not. Unenrolled host/device output
 remains unknown rather than receiving guessed readiness from its pathname or
 generic file type. These capabilities do not activate an optional shell builtin.
 
+Canonical descriptors may advertise `readObservation: true` with a callable
+`probeRead`. The command and retained-output helpers capture that operation
+with its original receiver and preserve their existing admission, serialization
+and cleanup ownership. Missing advertised methods refuse acquisition; invalid
+readiness results fail rather than becoming EOF. Observation performs no byte
+read or write, advances no cursor, and grants no read access to a write-only FD.
+The runtime uses the same retained identity for input and output observations,
+including aliases. An advertised probe supplies readiness, not a timeout policy.
+Canonical readable character inputs retain their independently captured stream
+deadline policy; a write-only character binding without that input policy stays
+unknown. Ordinary regular-input and managed-pipe policies remain unchanged.
+Already-buffered input bytes remain readable without consulting the provider;
+cached terminal EOF does not override an advertised provider observation.
+
 ### Readable cursor borrowing
 
 `input.borrow(fd)` borrows an enrolled readable descriptor's shared cursor.
@@ -202,8 +216,14 @@ cleanup. Callers must enroll that cleanup before constructing a cursor.
 classifies and reads the same canonical descriptor, and preserves the original
 cleanup-registration receiver. Regular descriptors ignore positive deadlines;
 character descriptors allow deadlines without inventing nonblocking readiness.
-Only an unsupported canonical open permits the legacy source fallback, whose
-provenance remains unknown. Queued reads observe established EOF consistently.
+This captured input policy is independent of optional provider observation.
+Other unclassified sources remain unknown; explicitly supplied stream policies
+and managed-pipe evidence remain distinct.
+Legacy routing is selected before acquisition when canonical open is declared
+unsupported, or is absent without affirmative support. An attempted canonical
+acquisition failure never becomes a legacy read, even when it reports `ENOTSUP`;
+affirmative support with a missing method also refuses. Legacy provenance
+remains unknown. Queued reads observe established EOF consistently.
 
 Canonical regular-file sources select captured `eof: "retryable"` behavior.
 EOF ends the current serialized operation without closing its descriptor. The
@@ -213,6 +233,13 @@ descriptor after EOF. Established EOF may still be reported by readiness until
 the next consuming operation. Ordinary sources default to terminal EOF, and
 retryable EOF is rejected unless regular provenance is supplied. Borrowers
 cannot replace this captured policy.
+
+Canonical nonregular input retains terminal byte EOF without retiring its
+still-bound descriptor. Its byte buffer may be released at EOF; later
+observations use the same retained resource until owning redirection cleanup.
+Prepared-input options carry that borrowed descriptor identity through cursor
+views, without reopening it or creating another close owner. Releasing an
+observer or a readable borrow does not close the owning descriptor.
 
 `createBytePipe().readiness()` is a detachable, nonconsuming poll for buffered
 bytes, drained EOF or blocked input. Empty writes do not make the pipe ready,

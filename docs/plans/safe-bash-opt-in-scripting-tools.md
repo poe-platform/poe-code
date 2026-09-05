@@ -1665,6 +1665,189 @@ this request to keep additions out of the default package.
   These observations qualify the stated native-control adaptation, not all
   kernel wakeup timing or the still-incomplete extended-read/device matrix.
 
+- The pipe/observer foundation is locally committed as
+  `9c7207c0e6ef795e67c109f943e0078c7b64c2aa`. Root verifies all twenty-four
+  committed paths and their captured content hashes
+  (`/tmp/descriptor-core-commit-root-COHKrb/verified.json`). This is a local
+  commit, not a push or release. The earlier inventory-only response does not
+  complete any remaining implementation requirement; the required scope above
+  remains authoritative, without adding its later zip/bc/flock suggestions.
+- The next helper bridge has a preserved red checkpoint: 48 command-descriptor
+  tests yield 46 failures, and 45 retained-output tests yield 43 failures. Four
+  controls pass, with zero skips/cancellations and zero diagnostics under the
+  package's actual strict options with two explicit roots
+  (`/tmp/safe-bash-descriptor-observation-31Lm4Y/receipt.json`). Missing forwarded
+  `probeRead` methods prevent the deeper lifecycle assertions from establishing
+  correctness yet. Root authorizes only the two existing filesystem helper
+  owners to forward captured, affirmatively advertised observation through
+  their existing admission/cleanup paths. This does not authorize devices,
+  implicit timing support, or a new operation owner.
+- Root adds a separate compiled-public boundary cohort covering retained
+  provider observation through read/write aliases, inline and bash/sh VFS
+  scripts, plus terminal-EOF descriptor lifetime. All 21 cases currently fail,
+  with zero skips/cancellations and no measured compiled-input drift
+  (`/tmp/provider-observation-public-red-corrected-root-XCBx1v/`). Preserve the
+  first fixture capture, which omitted the backing namespace entry and did not
+  reach provider admission for input redirects
+  (`/tmp/provider-observation-public-red-root-8dLAd3/`). The corrected failures
+  expose missing observation and premature close; a character stat alone is
+  not evidence of a provider's timeout policy. Runtime/input changes remain at
+  proposal-and-red-test authorization while the helper repair proceeds.
+- The two helper changes turn their unchanged 93 observation tests green;
+  the complete retained helper cohort passes 460/460, zero skips/cancellations.
+  Thirteen explicit source/test roots typecheck with zero diagnostics and
+  stable measured inputs (`/tmp/safe-bash-observation-green-ahAOMJ/receipt.json`).
+  The author freezes both helper sources and the original tests for independent
+  review; this does not establish end-to-end runtime observation.
+- Independent review approves the read leaf's ready/unreadable/unknown-policy
+  precedence change at source hash
+  `5b80289193c3541196906841109c366d9da747ac8c6f6af33a2fef4bb5b943b6`:
+  46/46 cases, three strict roots with zero diagnostics, 303 stable inputs and
+  28 authenticated pins (`/tmp/read-ready-unknown-independent.q7zhnv/`). Four
+  unchanged static native ordering analogues are audited separately, not
+  counted as additional product passes. All thirteen read integration gaps
+  remain unwaived, and this leaf is still not committed or publicly delivered.
+- The source-runtime bridge checkpoint contains 31 cases: five controls pass
+  and 26 fail, with zero skips/cancellations and one strict root free of
+  diagnostics (`/tmp/provider-observation-runtime-final-red.log`). Both helper
+  forwarding controls pass on the new snapshot. Remaining causes include
+  ignored provider probes, character classification implying an unsupported
+  timing policy, terminal EOF retiring a still-bound descriptor, and legacy
+  fallback hiding malformed affirmative canonical observation. The proposed
+  repair retains one borrowed descriptor identity and existing cleanup owners;
+  it adds no device profile or timing capability.
+- Root's helper snapshot passes all 97 prior foundation qualification files
+  plus both new helper files: 3327/3327 across 99 files, zero skips/cancellations,
+  stable watched inputs and authenticated historical Bash
+  (`/tmp/provider-observation-helper-broad-root-5tHLgK/`). Maintained selected
+  default and optional builds succeed separately
+  (`/tmp/provider-observation-helper-build-root-Ocxfnu/` and
+  `/tmp/provider-observation-helper-optional-root-TUNxos/`). These results do not
+  override the subsequent independent defect below.
+- Independent helper review adds six controls: four pass and two fail.
+  Advertised method capture may synchronously revoke admission or cancel the
+  root, yet command-descriptor acquisition returns before retained close drains
+  (`/tmp/filesystem-observation-independent.7x8zcw/`). The complete retained
+  helper cohort still passes 460/460 and fourteen strict roots have no
+  diagnostics. Approval is withheld; the original independent test is frozen
+  while its helper owner repairs publication admission. In parallel, root
+  authorizes the disjoint input/runtime implementation against the existing
+  31-case red checkpoint, without changing old fixtures or default registrations.
+- Root corrects its new timeout-policy assumption before accepting the runtime
+  change. The committed character-input stream policy already honors positive
+  deadlines, independently of any new observation method. The GNU Bash Builtins
+  manual's read-timeout contract and the two existing character-deadline tests
+  support preserving that behavior, not replacing it with an unknown-policy
+  refusal. Thus the earlier claim that character classification necessarily
+  implies unsupported timing is withdrawn. New provider probes alone still
+  supply no timing capability, and write-only character observations remain
+  unknown. The new root public test's pre-correction bytes and explicit decision
+  are retained in `/tmp/provider-observation-timeout-adjudication-root-oAd7JL/`;
+  earlier red captures remain unchanged. The legacy identity, ignored-probe,
+  premature-close and malformed-acquisition failures are separate valid issues.
+- The independent post-repair helper review grants scoped approval: 99/99
+  unchanged tests pass, three strict roots have zero diagnostics, and 241
+  helper-graph inputs remain stable. Runtime/input are not dependencies of this
+  focused replay (`/tmp/filesystem-observation-repair-independent.pQ8kZP/`).
+  Both original capture-time reentrancy failures remain preserved. The accepted
+  descriptor hash is
+  `68810b5764653a0c50664396fe0a65c515baa0ebc2516de70e5fda418f9b62ee`;
+  the output helper remains
+  `8322b16a9e4259bf5a75facd0f482861214317321c227bcf53bc8c3abeaac019`.
+- Device adjudication chooses one fixed, explicitly documented Darwin target
+  for the unfinished opt-in device implementation, not automatic host detection
+  or a second configuration profile preserving known mismatches. No device
+  implementation is yet authorized. Read-only native C qualification records
+  104 observations (`/tmp/device-canonical-profile.5twqzP/attempt2/result.json`):
+  retained character identity, independent/shared cursors, successful positioned
+  reads, select readiness and distinct poll behavior. Separate null/zero writable
+  qualification records 149 observations
+  (`/tmp/device-writable-profile.tTzWN8/result.json`), including successful
+  positioned writes under append, unchanged positioned-write cursors, sync and
+  no-op truncate. Neither count is a unit-test pass count or Linux evidence.
+  The existing generic descriptor append mask conflicts with those measured
+  positioned writes and needs explicit contract adjudication before capability
+  publication. A final bounded four-byte-per-random-device write matrix is
+  separately authorized; no implementation or complete native parity follows
+  from source inspection alone.
+- The final authorized random-node write matrix runs once: eight requests,
+  55 observations (`/tmp/device-random-write-profile.aYgenT/result.json`). Random
+  accepts four fixed bytes; urandom rejects every write with EPERM and consumes
+  none. Sequential random writes advance the cursor; positioned writes retain
+  it, including append handles. All four handles close. This does not qualify
+  random-node synchronization or erase the positioned-append contract gap.
+- The runtime bridge passes 42/42 new cases while preserving both original
+  character-deadline tests. Its five legacy fixture files initially yield
+  thirteen failures because their mock providers still advertise canonical open
+  while intending legacy routing. Root explicitly authorizes those fixtures to
+  declare unsupported canonical open before acquisition. Two internal counting
+  changes are disclosed: the legacy branch now has one cleanup owner rather
+  than a second unused failed-open owner, and performs zero canonical opens
+  rather than one. Canonical two-owner checks, genuine close failures, byte
+  effects, cancellation, unknown legacy deadlines and stream/stat counts remain.
+  Original files, all thirteen failing names and the exact assertion mapping
+  are preserved in `/tmp/provider-observation-legacy-migration-OxTYle/`.
+  Unfiltered author reruns pass 42/42, 863/863 and 160/160; the five migrated
+  files pass 193/193. Eight strict roots have no diagnostics. Independent
+  migration and final runtime review remain required.
+- Maintained selected and optional builds succeed on the frozen runtime source
+  (`/tmp/provider-observation-runtime-build-root-Z7vrBI/` and
+  `/tmp/provider-observation-runtime-optional-root-hjU3jj/`). Root's actual
+  compiled public cohort passes 71/71: 21 new bridge cases, 14 prior descriptor
+  cases and 36 aggregate cases, zero skips/cancellations and no measured input
+  drift (`/tmp/provider-observation-public-green-root-WYRLlp/`). The corrected
+  pre-build 21-case red capture remains at
+  `/tmp/provider-observation-public-policy-red-root-OqXMTH/`.
+- Root visually inspects actual compiled inline/bash/sh output from an
+  explicitly injected memory-only character provider: readable alias readiness,
+  retained EOF observation, write-only EBADF, independent timeout policies and
+  exactly-once final resource closure
+  (`/tmp/provider-observation-public-visual-root-1Xt2LY/`). This is public API
+  integration, not a native-device replay or completed device implementation.
+- Independent runtime review approves 58/58 cases with two strict roots, no
+  diagnostics and 280 stable inputs; five-file migration review approves
+  193/193 with five strict roots and 287 stable inputs. Public-test and final
+  contract semantics are reviewed, and root's compiled receipt is authenticated
+  rather than counted as a second execution
+  (`/tmp/provider-observation-independent.W7nH27/` and
+  `/tmp/provider-observation-migration-independent.NM7aNo/`).
+- Root's wider 102-file replay exposes 24 more legacy fixture mismatches:
+  3372/3396 pass, no skips/cancellations or input drift
+  (`/tmp/provider-observation-final-broad-root-e15IEm/`). Twenty-three cases in
+  prepared-input-cleanup-review and one runtime-regressions case remove open
+  while retaining affirmative support. Their two explicit legacy capability
+  declarations are corrected. One call to the now-nonexistent second legacy
+  cleanup becomes optional; real resource-close/registered-cleanup concurrency
+  and all original assertions remain. Preserve the intermediate single failure
+  and nine cascading cancellations, not just the final 110/110 green result.
+  The two-file AST assertion/name comparison, originals, exact 24-name mapping
+  and strict two-root zero-diagnostic receipt remain in
+  `/tmp/provider-observation-extra-legacy-AHCSs7/`. Source and the earlier five
+  fixture files remain frozen; final broad replay and addendum review follow.
+- Final independent addendum review passes 110/110, two strict roots with zero
+  diagnostics and 283 stable inputs. It verifies the exact three approved
+  changes and unchanged assertions, names and options
+  (`/tmp/provider-observation-extra-independent.CrGV5n/`). No source repair or
+  unresolved finding remains within this bridge's reviewed scope.
+- Root's current complete bridge cohort passes 3412/3412 across 103 files,
+  with zero skips/cancellations and no measured input or oracle drift
+  (`/tmp/provider-observation-post-style-broad-root-ZBzehr/`). Seventeen explicit
+  source/test roots typecheck with zero diagnostics and 212 stable local inputs
+  (`/tmp/provider-observation-post-style-strict-root-1hE2I0/`). Final literal
+  discovery passes 98/98
+  (`/tmp/provider-observation-complete-strict-root-qNr1Xw/`). These are scoped
+  bridge checks, not a full-package typecheck or completion of the read/device
+  matrix, readonly arrays, remaining tools or jobs.
+- Guarded lint first identifies exactly two prefer-const declarations in the
+  new helper tests. Root merges only those declarations with their assignments;
+  reversing those two changes reconstructs the exact independently reviewed
+  original test hashes. All 99 focused cases pass again, as does the complete
+  3412-case replay (`/tmp/provider-observation-style-root-C4TPwG/`). The fresh
+  guarded lint then succeeds with zero errors/warnings and no drift across
+  nineteen watched candidates (`/tmp/provider-observation-clean-lint-root-jVmOgN/`).
+  The initial lint failure and original test bytes remain preserved. No
+  production source, behavioral assertion or native reference changed for style.
+
 - First implementation wave: cmp, yes, shuf and virtual devices in disjoint leaf
   directories. Root is qualifying native oracles and the opt-in delivery boundary.
 - The yes leaf is verified for its documented GNU 9.7 C-locale profile: 135 tests

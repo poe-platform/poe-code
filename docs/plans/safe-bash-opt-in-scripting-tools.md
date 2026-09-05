@@ -837,6 +837,13 @@ this request to keep additions out of the default package.
   repairs; consumer phases still pass, but source/test compilation does not.
   The original metadata refusal, 31-diagnostic report and admission-order failures
   remain recorded. Guarded lint twenty-four is running on the frozen candidates.
+- Peer admission is locally committed as `dd0844c16`, and guarded lint twenty-four
+  completes with exit zero for the verified snapshot. No push or release is
+  performed. Work now advances to generic byte-preserving extension diagnostics
+  and open-descriptor validation; the existing 44-case sidecar had 20 reproduced
+  failures. Read/mapfile leaf completion and background execution remain pending,
+  and the last maintained workspace typecheck is not a clean full gate. The clean
+  lint result does not prospectively qualify the next uncommitted core changes.
 
 - First implementation wave: cmp, yes, shuf and virtual devices in disjoint leaf
   directories. Root is qualifying native oracles and the opt-in delivery boundary.

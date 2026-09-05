@@ -619,6 +619,38 @@ this request to keep additions out of the default package.
   `/tmp/safe-bash-scripting-oracles-20260904/retained-read-eof-eSaPT4/evidence.json`.
   That defect requires a same-descriptor lifecycle correction, not a change to
   the readiness label or a pathname reopen. Input-owner tests/design are assigned.
+- Native job semantics are locally committed as `bf95f587c`. Construction wiring
+  receives conditional independent approval after 14 review cases and 111
+  combined cases pass. Two older legacy-I/O fixtures now explicitly disable
+  canonical open; all original assertions remain unchanged, and root replays
+  both successfully. The remaining five-byte inline-input expansion regression
+  is real and stays red; source wiring is not committed as complete acceptance.
+  Guarded lint nineteen completes with one prefer-const source finding and
+  seven warnings in a then-in-progress native-wait fixture. The source owner is
+  assigned a cleanup-safe holder correction; a fresh guarded run is still needed.
+  Retained-file EOF tests reproduce 12 failures of 18, and input-retention budget
+  tests reproduce six failures of 11. Retryable regular-file EOF is approved for
+  input-owner implementation. Repurposing the documented per-input maxInputBytes
+  option as an aggregate limit is not approved; the budget repair must preserve
+  existing per-input allowances and the original five-byte expansion boundary.
+- The retryable-EOF candidate passes 24 helper tests; two unchanged actual-read
+  integration cases are relocated into the read extension's test directory so
+  the helper commit will not import an uncommitted leaf. The combined helper
+  and existing readiness cohorts pass 97 cases. Root's original virtual/native
+  append witness now agrees: `0:<one>`, `1:<>`, then `0:<two>`. A new compiled
+  public witness remains red against the older build, as expected before rebuild.
+  Independent EOF review remains pending. The revised budget policy is approved
+  in principle: Budget-keyed ownership accounting preserves per-input allowances
+  rather than silently introducing an aggregate cap; implementation waits until
+  the EOF candidate is reviewed and committed.
+- Independent EOF review approves 34 new cases; root replays 131 combined helper
+  cases, eight maintained discovery checks and four strict type roots with zero
+  diagnostics. A fresh explicit optional build passes 17 compiled public input
+  checks, including the earlier appended-data failure; the actual output image
+  is inspected. Those public checks include the still-uncommitted construction
+  integration and are not substituted for the standalone helper proof. The
+  helper commit excludes both the pending construction and the relocated read
+  tests. Guarded lint twenty is running, not yet a completed clean gate.
 
 - First implementation wave: cmp, yes, shuf and virtual devices in disjoint leaf
   directories. Root is qualifying native oracles and the opt-in delivery boundary.

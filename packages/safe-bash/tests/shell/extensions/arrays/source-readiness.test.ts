@@ -395,7 +395,7 @@ for (const count of [-1, 0.5, NaN, 100000]) test(`invalid descriptor count ${cou
   } finally { await subject.close(); }
 });
 
-for (const reason of [false, null, 0, ""]) test(`root cancellation outranks EOF cleanup failure ${JSON.stringify(reason)}`, async () => {
+for (const reason of [false, null, 0, ""]) test(`root cancellation outranks explicit cleanup failure after regular EOF ${JSON.stringify(reason)}`, async () => {
   const subject = fixture();
   await subject.fs.writeFile("/input", new Uint8Array());
   const fs = intercept(subject.fs, { async open(path, options) {
@@ -408,7 +408,9 @@ for (const reason of [false, null, 0, ""]) test(`root cancellation outranks EOF 
   } });
   try {
     const prepared = await prepareFileInput({ ...subject.context, fs }, "/input", subject.budget);
-    await assert.rejects(prepared.source[Symbol.asyncIterator]().next(), error => Object.is(error, reason));
+    assert.equal((await prepared.source[Symbol.asyncIterator]().next()).done, true);
+    assert.equal(subject.controller.signal.aborted, false);
+    await assert.rejects(prepared.close(), error => Object.is(error, reason));
     assert.deepEqual(subject.budget.values.usage, { bytes: 0, slots: 0 });
   } finally { await subject.close(); }
 });

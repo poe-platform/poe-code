@@ -10,7 +10,7 @@ import { openCommandFile, type CommandFileDescriptor } from "../contracts/filesy
 
 export interface PreparedShellInput {
   readonly source: ByteSource;
-  readonly options: Pick<ShellInputOptions, "provenance" | "poll">;
+  readonly options: Pick<ShellInputOptions, "provenance" | "poll" | "eof">;
   close(): Promise<void>;
 }
 
@@ -150,12 +150,13 @@ export async function prepareFileInput(
           if (!Number.isSafeInteger(length) || length < 0 || length > chunk.length) throw new FsError("EIO", { syscall: "read", path });
           if (length > budget.limits.maxInputBytes - size) throw new FsError("EFBIG", { syscall: "read", path });
           size += length;
-          ended = length === 0;
-          return ended ? { done: true, value: undefined } : { done: false, value: chunk.subarray(0, length) };
+          const done = length === 0;
+          ended = done && provenance !== "regular";
+          return done ? { done: true, value: undefined } : { done: false, value: chunk.subarray(0, length) };
         });
         work = operation.then(() => {}, () => {});
         return operation.then(async result => {
-          if (result.done) await close();
+          if (result.done && provenance !== "regular") await close();
           signal.throwIfAborted();
           return result;
         }, async error => {
@@ -167,7 +168,7 @@ export async function prepareFileInput(
       async return() { await close(); return { done: true, value: undefined }; },
     };
     admitted();
-    return Object.freeze({ source, close, options: Object.freeze({ provenance }) });
+    return Object.freeze({ source, close, options: Object.freeze({ provenance, eof: provenance === "regular" ? "retryable" : "terminal" }) });
   } catch (error) {
     admitted();
     try { await close(); } catch {}
@@ -247,6 +248,7 @@ export interface InputClock {
 
 export interface ShellInputOptions {
   readonly provenance?: "regular" | "stream" | "unknown";
+  readonly eof?: "terminal" | "retryable";
   readonly poll?: () => InputReadiness;
   readonly clock?: InputClock;
 }
@@ -308,6 +310,7 @@ class InputDeadline {
 class InputCursor {
   readonly #iterator: AsyncIterator<Uint8Array>;
   readonly #provenance: "regular" | "stream" | "unknown";
+  readonly #eof: "terminal" | "retryable";
   readonly #poll: (() => InputReadiness) | undefined;
   readonly #clock: InputClock;
   remainder: Uint8Array | undefined;
@@ -323,12 +326,14 @@ class InputCursor {
   #active = false;
 
   constructor(source: ByteSource, options: ShellInputOptions = {}) {
-    const { provenance = "unknown", poll, clock = inputClock } = options;
+    const { provenance = "unknown", eof = "terminal", poll, clock = inputClock } = options;
     if (provenance !== "unknown" && provenance !== "regular" && provenance !== "stream") throw new TypeError("Invalid input provenance");
+    if (eof !== "terminal" && eof !== "retryable" || eof === "retryable" && provenance !== "regular") throw new TypeError("Retryable input EOF requires regular provenance");
     if (poll !== undefined && typeof poll !== "function") throw new TypeError("Invalid input polling capability");
     const { now, schedule } = clock;
     if (typeof now !== "function" || typeof schedule !== "function") throw new TypeError("Invalid input clock");
     this.#provenance = provenance;
+    this.#eof = eof;
     this.#poll = poll?.bind(options);
     this.#clock = Object.freeze({ now: now.bind(clock), schedule: schedule.bind(clock) });
     this.#iterator = source[Symbol.asyncIterator]();
@@ -367,6 +372,7 @@ class InputCursor {
     try {
       try { await interruptible(previous, signal); signal.throwIfAborted(); }
       catch (error) { if (signal.aborted && interrupted) return await interrupted(error); throw error; }
+      if (this.#eof === "retryable") this.#ended = false;
       this.#active = true;
       try { return await operation(); }
       finally { this.#active = false; }
@@ -405,7 +411,7 @@ class InputCursor {
   }
 
   async close(signal: AbortSignal): Promise<void> {
-    if (this.#ended) { signal.throwIfAborted(); return; }
+    if (this.#ended && this.#eof === "terminal") { signal.throwIfAborted(); return; }
     this.#closed = true;
     this.remainder = undefined;
     const pendingRead = this.#read !== undefined && !this.#readSettled;

@@ -92,6 +92,15 @@ character descriptors allow deadlines without inventing nonblocking readiness.
 Only an unsupported canonical open permits the legacy source fallback, whose
 provenance remains unknown. Queued reads observe established EOF consistently.
 
+Canonical regular-file sources select captured `eof: "retryable"` behavior.
+EOF ends the current serialized operation without closing its descriptor. The
+next operation may read appended data through that same descriptor and offset;
+it does not reopen the pathname. Explicit owner/cursor close still drains the
+descriptor after EOF. Established EOF may still be reported by readiness until
+the next consuming operation. Ordinary sources default to terminal EOF, and
+retryable EOF is rejected unless regular provenance is supplied. Borrowers
+cannot replace this captured policy.
+
 `createBytePipe().readiness()` is a detachable, nonconsuming poll for buffered
 bytes, drained EOF or blocked input. Empty writes do not make the pipe ready,
 and failed pipes throw their original failure reason. Input-source construction

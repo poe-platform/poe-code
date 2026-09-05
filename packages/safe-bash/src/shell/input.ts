@@ -273,6 +273,16 @@ export interface ReadLine {
   release(): Promise<void>;
 }
 
+export interface RawRecordOptions {
+  readonly delimiter?: number;
+}
+
+export interface RawRecord {
+  readonly shellValue: ShellValue;
+  readonly reason: "delimiter" | "eof";
+  release(): Promise<void>;
+}
+
 class ReadBuffer {
   #buffer: Uint8Array = new Uint8Array();
   #reservation: ValueReservation | undefined;
@@ -374,6 +384,67 @@ export class ShellInput implements ByteSource {
       for (const chunk of chunks) { bytes.set(chunk, offset); offset += chunk.length; }
       return bytes;
     });
+  }
+
+  async record(options: RawRecordOptions = {}): Promise<RawRecord> {
+    this.signal.throwIfAborted();
+    const { delimiter = 10 } = options;
+    this.signal.throwIfAborted();
+    if (!Number.isInteger(delimiter) || delimiter < 0 || delimiter > 255) throw new RangeError("Invalid raw record delimiter");
+    const scope = this.budget.values.scope();
+    let active = true;
+    let completion: Promise<void> | undefined;
+    let resolve!: () => void;
+    const finish = (): void => {
+      if (!completion || active) return;
+      this.#reads.delete(release);
+      scope.close();
+      resolve();
+    };
+    const release = (): Promise<void> => {
+      if (!completion) {
+        completion = new Promise(done => { resolve = done; });
+        finish();
+      }
+      return completion;
+    };
+    try {
+      scope.reserve(128, 2);
+      this.#reads.add(release);
+      const result = await this.#cursor.consume(this.signal, async () => {
+        const buffer = new ReadBuffer(scope, this.budget.limits.maxOutputBytes);
+        let chunk: Uint8Array = new Uint8Array();
+        let offset = 0;
+        let pulls = 0;
+        let reason: RawRecord["reason"] = "eof";
+        try {
+          while (true) {
+            this.signal.throwIfAborted();
+            if (offset === chunk.length) {
+              if (++pulls % 128 === 0) await yieldTurn(this.signal);
+              const next = await this.#cursor.take(this.signal);
+              if (next.done) break;
+              chunk = next.value;
+              offset = 0;
+              if (!chunk.length) continue;
+            }
+            if (buffer.length >= this.budget.limits.maxOutputBytes) this.budget.fail("maxOutputBytes");
+            const byte = chunk[offset++]!;
+            buffer.append(byte);
+            if (byte === delimiter) { reason = "delimiter"; break; }
+            if (buffer.length % 1024 === 0) await yieldTurn(this.signal);
+          }
+          const shellValue = shellValueFromBytes(buffer.bytes(), scope);
+          this.signal.throwIfAborted();
+          return Object.freeze({ shellValue, reason, release });
+        } finally {
+          if (offset < chunk.length) this.#cursor.remainder = chunk.subarray(offset);
+        }
+      });
+      this.signal.throwIfAborted();
+      return result;
+    } catch (error) { void release(); this.signal.throwIfAborted(); throw error; }
+    finally { active = false; finish(); }
   }
 
   async line(raw: boolean, options: ReadLineOptions = {}): Promise<ReadLine> {

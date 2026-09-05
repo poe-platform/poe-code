@@ -482,6 +482,27 @@ this request to keep additions out of the default package.
 - Guarded lint's fourteenth run completes cleanly with exit zero. The reviewed
   yq repair is ready for its own scoped commit; optional packaging, explicit
   activation and the documented broader compatibility gaps remain unchanged.
+- The reviewed yq repair is locally committed as `be49ee194`. The internal raw
+  record primitive is frozen for independent review after 65 new cases, including
+  fourteen pinned native mapfile-projection witnesses, and 400 combined passes.
+  Root repeats 207 raw-record/deadline/byte-input cases successfully with zero
+  skips. Raw records retain delimiter and NUL bytes without changing ordinary
+  shell-read semantics; public borrowing and mapfile remain separate integration.
+- Independent raw-record review approves the unchanged source after 29 new
+  adversarial cases and 362 combined array/input passes, zero skips. Root repeats
+  all 362 successfully and checks both new strict test roots with zero diagnostics.
+  The frozen source SHA-256 is
+  `2d8cd2a47f078a3b7d35f6dfec9166ed37186167d282f7055d740efb5104984c`;
+  the independent review SHA-256 is
+  `c6cacd3ce91a1f368e9ba905db45c5343609b3bcf17f84fbb5bf8aa3eb04e64f`.
+  Eight discovery/isolation checks pass. A fifteenth guarded lint run is pending.
+- The raw-record optional build succeeds, and a compiled internal-module smoke
+  check retains `ff000a` before an ordinary line read consumes the shared cursor's
+  following `tail` record. This is not a public extension-borrow acceptance.
+  Guarded lint fifteen completes with one `prefer-const` finding in the unrelated
+  uncommitted mapfile leaf; no raw-record source/test findings are reported. The
+  mapfile owner is assigned that repair. The complete lint run is not clean; the
+  reviewed raw-record slice can be committed independently of that future leaf.
 
 - First implementation wave: cmp, yes, shuf and virtual devices in disjoint leaf
   directories. Root is qualifying native oracles and the opt-in delivery boundary.

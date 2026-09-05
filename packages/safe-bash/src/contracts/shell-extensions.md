@@ -50,3 +50,21 @@ including owned partial values that callers must release.
 
 This internal capability does not itself add shell `read -t`, infer host stream
 readiness, or expose deadlines through the extension borrow API.
+
+## Internal raw input records
+
+`ShellInput.record({ delimiter? })` reads through a byte delimiter, defaulting to
+LF, or EOF. The returned owned `shellValue` preserves every byte, including the
+delimiter, embedded NUL and invalid UTF-8. `reason` distinguishes `delimiter` from
+`eof`; an EOF record can be empty or contain an unterminated suffix. Callers must
+release each result with its idempotent `release()` operation.
+
+Record reads share the existing cursor, serialization, cancellation and retained
+byte accounting with line reads and descriptor aliases. They do not implement
+backslash processing, IFS splitting, NUL removal, delimiter trimming or timed
+reads. Those transformations belong to the consuming builtin. Existing `line()`
+semantics remain unchanged; a raw record is not an ordinary shell variable
+assignment and must not silently be substituted for a shell-read result.
+
+The raw-record primitive alone does not expose a new extension borrow method or
+deliver mapfile/readarray. Their activation and callback semantics remain separate.

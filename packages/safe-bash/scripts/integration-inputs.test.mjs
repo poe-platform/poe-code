@@ -507,6 +507,10 @@ function assertSource7Discovery(files) {
     "tests/shell/extensions/arrays/input-deadlines-review.test.ts",
   ]) assert.ok(files.includes(path), "input deadline test is missing: " + path);
   for (const path of [
+    "tests/shell/extensions/arrays/raw-records.test.ts",
+    "tests/shell/extensions/arrays/raw-records-review.test.ts",
+  ]) assert.ok(files.includes(path), "raw input record test is missing: " + path);
+  for (const path of [
     "tests/shell/extensions/jobs/state.test.ts",
     "tests/shell/extensions/jobs/review.test.ts",
   ]) assert.ok(files.includes(path), "optional jobs-state test is missing: " + path);

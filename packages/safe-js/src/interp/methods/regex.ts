@@ -104,7 +104,8 @@ export async function callRegexMethod(
   }
   const retained = {};
   let cursor: SandboxValue;
-  budget.setRetainedValues(retained, () => [target, ...args, cursor]);
+  let convertedInput: string | undefined;
+  budget.setRetainedValues(retained, () => [target, ...args, cursor, convertedInput]);
   try {
     const input = await sandboxString(args[0], budget, context);
     if (methodName === "test") {
@@ -119,6 +120,7 @@ export async function callRegexMethod(
       }
     }
     if (!isSandboxRegex(target)) throw new TypeError("RegExp execution requires a regex receiver.");
+    if (typeof args[0] !== "string") convertedInput = input;
     cursor = target.lastIndex;
     const lastIndex = await sandboxNumber(cursor, budget, context);
     const match = executeRegex(target, input, lastIndex);

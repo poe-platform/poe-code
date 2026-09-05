@@ -138,4 +138,16 @@ describe("String pattern admission and ownership", () => {
     const source = "try{return 'a'.search({toString(){while(true){}return 'a'}})}catch(error){return 'caught'}";
     await expect(run(source, { budget: new Budget({ maxSteps: 100 }) })).rejects.toMatchObject({ code: "budgetExceeded", budget: "steps" });
   });
+
+  describe.each([false, true])("live matching input with receiver coercion=%s", coerce => {
+    it.each(methods)("retains input while %s coerces its pattern", async method => {
+      const operation = coerce
+        ? `''.${method}.call({toString(){return 'b'.repeat(4000)}},pattern)`
+        : `('b'.repeat(4000)).${method}(pattern)`;
+      const source = `const pattern={toString(){const temporary='y'.repeat(4000);return 'a'}};
+        try{${operation}}catch(error){return 'caught'}return true`;
+      await expect(run(source, { budget: new Budget({ dataSize: 6000 }) })).rejects.toMatchObject({ code: "budgetExceeded", budget: "dataSize" });
+      expect(await run(source, { budget: new Budget({ dataSize: 14000 }) })).toMatchObject({ ok: true, returnValue: true });
+    });
+  });
 });

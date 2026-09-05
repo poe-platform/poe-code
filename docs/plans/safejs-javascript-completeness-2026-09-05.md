@@ -1859,7 +1859,12 @@ Scoped run 33958730407/job 101286685090 published SafeJS 0.1.121 at 09:46:47 UTC
 on September 5. The CLI run 33958730542 remains in validation; scoped publication
 is not a claim that the CLI version has shipped.
 
-### 36. RegExp flag reads and further object/engine gaps — validated open
+The next atomic main push superseded cursor CLI validation: run 33958730542 is
+cancelled and release-stable job 101287507305 was skipped. Do not call that a
+successful CLI publication. Continue monitoring the descendant release that
+contains the cursor repair.
+
+### 36. RegExp flag reads — delivered; further object/engine gaps open
 
 Across all 16 supported g/i/m/s flag combinations, the eight native boolean
 properties (hasIndices, global, ignoreCase, multiline, dotAll, unicode,
@@ -1895,7 +1900,15 @@ Final maintained root lint passed all 9,757 configured files with zero errors
 or warnings, followed by types and workflows. Flag reads/existence are qualified
 for their own commit/push. Other object/engine gaps in this section remain open.
 
-### 37. Converted matching input retention — validated open budget gap
+Flag reads/existence were committed and pushed as
+0363303a4a759ffd63876770966e3e5b992a36d8, independently verified on remote main.
+Close that read/existence finding at delivery. Scoped run 33959023752 and CLI
+run 33959023817 are monitored separately; neither is yet a publication receipt.
+
+Scoped run 33959023752/job 101287476034 published SafeJS 0.1.122 at 09:54:08 UTC
+on September 5. The CLI validation is still monitored independently.
+
+### 37. Converted matching input retention — fixed; delivery pending
 
 After input coercion produces a 4,000-character nonmatching string, a cursor
 valueOf hook allocates another 4,000-character temporary. With dataSize 6,000,
@@ -1909,3 +1922,51 @@ toString method gap; do not bundle it into the completed flag-read repair.
 Further toString probes reproduce ordinary and borrowed calls, inherited source
 and flags, and source conversion that changes flags. String(regex) and the
 Object.prototype.toString RegExp tag already pass and remain controls.
+
+The cursor regression matrix fails seven tests with 280 passing controls.
+Direct and coerced String pattern inputs also reproduce the same admission
+failure during match/matchAll/search pattern conversion. The expanded cohort
+has 13 failures and 381 controls before the fix. Retain matching input in the
+three asynchronous String matching helpers; retain newly converted exec input
+through cursor coercion. Existing string arguments are already retained, and
+test's delegated exec owns its argument, so avoid charging duplicate roots.
+An initial unconditional input root broke two success controls through duplicate
+charges; adjust the implementation, not those controls' budgets. The corrected
+three-file focused cohort passes all 426 tests, including fatal-budget behavior
+and dataSize 14,000 success controls. The selected maintained build passes 23
+workspaces and four native ESM import checks. Broader qualification follows.
+
+The full SafeJS package passes 12,072 tests with 41 skips. Built root/core pass
+24 budget checks and ten low-level success/error retention-cleanup checks. Four
+public failure-checkpoint recoveries pass at a raised budget without repeating
+completed effects. The initial recovery probe mixed a private unbundled dump
+module with bundled public run; it could not see that run's controller. Use the
+public dump/restore exports shared with root/core instead. This is a QA fixture
+correction, not evidence of a runtime recovery defect.
+
+The real zero-capability pair passes after 70 uncached builds. Its inspected
+screenshot confirms the 4,000-character input, executed cursor hook and no match.
+The same freshly built CLI rejects the pair at dataSize 6,000 (reported usage
+8,850), exit 1. Freeze source/build outputs for final maintained root lint before
+this retention repair's separate commit and push.
+
+Final maintained root lint passed all 9,757 configured files with zero errors
+or warnings, then types and workflows passed. This fix is qualified for its
+own commit and push. The unrelated staged Safe Bash patch remains unchanged.
+
+### 38. Receiver retention before member operations — validated open budget gap
+
+Temporary String receivers disappear from accounting while argument expressions
+run (match and indexOf), as do Array receivers (includes and join). Computed
+member-key evaluation also loses a String or ordinary-object receiver. Initial
+4,000-character receiver plus 4,000-character temporary probes incorrectly pass
+dataSize 6,000 and have successful dataSize 14,000 controls.
+
+Some whole-operation Object/Map probes reject at 6,000 in a later or construction
+phase, so those results do not establish correct argument-time retention. A
+phase-isolated probe uses a 2,000-character receiver and an argument function
+that allocates 5,000 characters, then throws a catchable marker. String, Array,
+Object and Map all return the marker at dataSize 6,000, proving the allocation
+completed while the live receiver was unaccounted for. The Object method body
+reads this.payload, so do not infer that its receiver can be discarded early.
+Address this interpreter-level lifetime separately from matching-hook retention.

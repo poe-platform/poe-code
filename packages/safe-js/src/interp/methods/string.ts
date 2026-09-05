@@ -399,7 +399,7 @@ async function replaceRegex(
   if (regex.flags.includes("g")) regex.lastIndex = 0;
   const cursor = regex.lastIndex;
   const retained = {};
-  budget.setRetainedValues(retained, () => [regex, cursor, replacement]);
+  budget.setRetainedValues(retained, () => [value, regex, cursor, replacement]);
   try {
     const lastIndex = await sandboxNumber(cursor, budget, context);
     const matches = collectRegexMatches(regex, value, replaceAll || regex.flags.includes("g"), undefined, lastIndex);
@@ -576,7 +576,7 @@ async function callStringPattern(
   const operation = budget.acquireCompileOwner(false, parent?.owner);
   const compilation = new CompileScope(operation.owner);
   const retainedPattern = {};
-  budget.setRetainedValues(retainedPattern, () => [pattern]);
+  budget.setRetainedValues(retainedPattern, () => [value, pattern]);
   try {
     const source = pattern === undefined ? "" : await sandboxString(pattern, budget, context);
     const regex = createSandboxRegex(source, methodName === "matchAll" ? "g" : "", 0, compilation);
@@ -600,7 +600,7 @@ async function callStringRegexCursor(
   const compilation = new CompileScope(operation.owner);
   const cursor = regex.lastIndex;
   const retained = {};
-  budget.setRetainedValues(retained, () => [regex, cursor]);
+  budget.setRetainedValues(retained, () => [value, regex, cursor]);
   try {
     const lastIndex = await sandboxNumber(cursor, budget, context);
     return callMatchLikeMethod(value, methodName, [regex], compilation, lastIndex);

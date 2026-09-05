@@ -55,6 +55,20 @@ describe("RegExp cursor coercion order", () => {
 });
 
 describe("RegExp cursor admission", () => {
+  describe.each([false, true])("matching input with coercion=%s", coerce => {
+    it.each(["exec", "test", "match", "matchAll", "replace"])("retains live input during %s cursor hooks", async method => {
+      const input = coerce ? "{toString(){return 'b'.repeat(4000)}}" : "'b'.repeat(4000)";
+      const replacement = method === "replace" ? ",'X'" : "";
+      const operation = method === "exec" || method === "test" ? `regex.${method}(${input})`
+        : coerce ? `''.${method}.call(${input},regex${replacement})` : `(${input}).${method}(regex${replacement})`;
+      const source = `const regex=/a/${method === "matchAll" ? "g" : ""};
+        regex.lastIndex={valueOf(){const temporary='y'.repeat(4000);return 0}};
+        try{${operation}}catch(error){return 'caught'}return true`;
+      await expect(run(source, { budget: new Budget({ dataSize: 6000 }) })).rejects.toMatchObject({ code: "budgetExceeded", budget: "dataSize" });
+      expect(await run(source, { budget: new Budget({ dataSize: 14000 }) })).toMatchObject({ ok: true, returnValue: true });
+    });
+  });
+
   it.each(["exec", "match", "matchAll", "replace"])("retains a replaced cursor during %s fallback coercion", async method => {
     const operation = method === "exec" ? "regex.exec('aba')"
       : `'aba'.${method}(regex${method === "replace" ? ",'X'" : ""})`;

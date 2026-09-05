@@ -99,10 +99,13 @@ export type SandboxCallContext = {
   };
   readonly stack: readonly string[];
   readonly thisValue: SandboxValue;
+  readonly getProperty?: (value: SandboxValue, property: string | number) => SandboxValue;
+  readonly reconcileData?: (value: SandboxValue) => void;
   readonly invokeClosure?: (
     closure: SandboxClosure,
     args: readonly SandboxValue[],
-    thisValue: SandboxValue
+    thisValue: SandboxValue,
+    construct?: boolean
   ) => Promise<SandboxValue>;
 };
 

@@ -610,7 +610,7 @@ verified against remote main. Scoped workflow `33944139708`, publisher job
 04:21:11 UTC. CLI workflow `33944139971` is monitored separately and was
 still running at this checkpoint.
 
-### 12. Function call/apply/bind receivers — validated, ready for delivery
+### 12. Function call/apply/bind receivers — delivered and released
 
 Native/public-source probes confirmed that the three method closures captured
 the function used for lookup. For example, `a.call.call(b, null)` invoked a
@@ -640,7 +640,13 @@ built root/core checks, 10,429 SafeJS tests with 41 skipped, and full root
 lint (9,724 configured files, zero errors/warnings), including TypeScript
 and workflow checks. A further public-source realm check preserved stored
 borrowed methods and bound regex-using functions across evaluations.
-Remote delivery and release remain pending.
+Committed, pushed, and verified on remote main as
+`92b9b026fe10bdc8dc9723a14e87870a24be4581`. Scoped workflow `33944509803`,
+publisher job `101248057977`, succeeded: SafeJS 0.1.97 published September 5,
+2026, 04:29:05 UTC. CLI workflow `33944509925`, release job `101249320723`,
+succeeded: poe-code 14.0.46 published at 04:37:41 UTC. This descendant release
+also includes the catch/finally fix; its original CLI workflow `33944139971`
+was canceled by the newer push rather than failing validation.
 Generic array-like apply arguments, stable method identity, missing function
 intrinsics, and other built-in receiver families remain separate open gaps.
 
@@ -662,3 +668,120 @@ Bounded native/public-source probes reproduced these separate current gaps:
   and generator entry sources reproduce the inherited-field mismatch.
 
 These are validated open findings, not included in the function receiver fix.
+
+### 13. Registered retained roots counted twice — delivered and released
+
+The Array.from work exposed an independent interpreter accounting defect.
+reconcileDataBudget explicitly appended budget.retainedValues, then called
+reconcileCompiledValues, which appended the same registered roots again.
+Object identity deduplication concealed the duplicate traversal for object
+roots, but primitive string roots were charged twice. A public realm with a
+single 100-unit retained string failed a 150-unit limit with reported usage
+200. Distinct 100/25-unit roots and two distinct registrations of equal
+50-unit strings similarly exposed the duplicate accounting.
+
+The interpreter now leaves registered-root collection to the existing shared
+reconciler. Scope/transient roots, compiled ownership, and genuine repeated
+primitive registrations remain intact. The three realm cases now report
+peaks of 100, 125, and 100 respectively. The over-limit interpreter control
+still rejects at 100 against a 99-unit limit. Its first realm-based fixture
+also exercised poisoned-realm cleanup and produced an AggregateError, so the
+negative control was moved to the interpreter to isolate accounting rather
+than lock unrelated cleanup behavior into this regression.
+
+The four-file focused cohort passes 57 tests, including existing data budgets
+and finally retention. The selected SafeJS dependency build closure passes.
+Final integrated validation passes: 10,433 SafeJS tests with 41 skipped,
+six built public root/core checks, and full root lint (9,726 configured
+files, zero errors/warnings), including TypeScript and workflow checks.
+Remote main advanced with unrelated filesystem-output and private-network
+repairs; the checkpoint was rebased onto
+`01267b14ea7604c127e26b16b2c1c3ef23f991cf`, preserving the user's staged cut
+changes. The maintained full root build and 261 affected Safe Bash integration
+tests also pass. Array.from changes are preserved separately and are not
+included in this prerequisite commit; they will resume after its atomic
+push. Committed and pushed as `107fb94c6add617c05f2e3c935ca23c2e02e10b5`,
+verified against remote main. Scoped workflow `33945998128`, publisher job
+`101252076877`, succeeded: SafeJS 0.1.99 published September 5, 2026,
+05:03:37 UTC. CLI workflow `33945998235` remains monitored separately.
+
+### 14. Array.from guest construction — implemented and validated
+
+The initial native/public regression suite reproduced 32 failures with nine
+passing controls. Array.from now maps while consuming its input, preserves
+guest identity, reads array-like fields through the guest property model,
+converts length with number-hint guest hooks, and invokes a supplied
+constructor through the active sandbox invocation path. Iterable constructors
+receive no arguments; array-like constructors receive the clamped length.
+Own element creation and final length assignment retain their distinct rules.
+
+The shared invocation helper preserves active context, construction, fallback
+call-depth checks, and synchronous async-function prefixes without awaiting
+guest promise results. String and number conversion share the existing guest
+prototype/hook traversal, with the appropriate hint order and Date valueOf
+default. This does not route arbitrary guest objects through host coercion.
+
+Mapping/element-definition failures close iterators and preserve the original
+throw against ordinary cleanup throws; fatal cleanup budgets cannot be hidden
+by an earlier ordinary mapper throw. Iterator advancement failures are not
+mistaken for mapper failures. Incremental work/allocation checks and retained
+partial results keep resource accounting active during callbacks and cleanup.
+Removing the partial-result root made the targeted data-budget test incorrectly
+succeed at 5,000 units. With retention restored, it rejects at 5,000 and succeeds
+at 7,000; a one-element control succeeds at 5,000. Measured unbounded peak: 6,049.
+
+The latest focused nine-file cohort passed 257 tests before the retained-root
+prerequisite. Callback-free construction now checks data growth incrementally,
+including known-size constructor allocation. Primitive writes use bounded
+growth estimates between exact reconciliations; object graph writes force an
+exact check. A mutation control removing that shortcut caused 5,011 scans for
+5,000 primitive elements, failing the regression's fewer-than-100 bound.
+Earlier build, full-package, and lint checks preceded these latest accounting
+changes and were not treated as final validation. The integrated string-input
+control now succeeds for 400 characters within 1,500 data units, without
+double-charging its retained input. Final review removed an unnecessary Budget
+accessor in favor of the existing read-only limits; its in-progress lint run
+was canceled and validation restarted against the final source.
+
+Final validation passes: the selected SafeJS dependency build closure,
+10,491 package tests with 41 skipped, 24 built root/core checks, and full root
+lint (9,728 configured files, zero errors/warnings), including TypeScript and
+workflow checks. An additional bounded native comparison matrix passed 144
+construction combinations, and nine mutation/cleanup controls also matched
+native behavior. Atomic push and release are tracked separately from these
+local checks.
+
+An initial implementation used the public descriptor helper for ordinary
+element creation, incorrectly marking arrays as custom-descriptor objects and
+breaking realm export. Existing live-host tests caught it; internal standard
+data-property creation fixes it without relaxing export restrictions. A Date
+override fixture failed before Array.from because Date own-property assignment
+is unsupported; it was replaced by an ordinary Date length-conversion control.
+Date overrides remain an explicit separate gap, not a claimed Array.from fix.
+Symbols/custom guest iterator protocols, missing Array/Function intrinsic
+prototypes, Date own state, and Object.fromEntries remain open broader work.
+
+### Additional constructor audit — validated open findings
+
+Bounded native/public built-entrypoint probes confirmed these separate gaps:
+
+- Map(null) and Set(null) reject instead of constructing empty collections.
+  Map from Set entries and Set from Map entries also reject supported iterator
+  families. Calling Map without new already throws correctly and needs no fix.
+- Object.fromEntries misses inherited and function-entry 0/1 fields and guest
+  key conversion. Entry values must be read before key conversion can mutate
+  them. A throwing key hook currently never runs, changing cleanup/error order.
+- Map drains a generator past an invalid entry before rejecting it: its later
+  body runs where native execution immediately closes the generator.
+- Object.fromEntries, Map, and Set omit previously accumulated values from
+  generator-time data accounting. A retained 2,000-character value, a live
+  2,000-character temporary, and the next 2,000-character value coexist, but
+  measured peaks are only 4,028/4,028/4,026 respectively; all incorrectly fit
+  a 5,000-unit limit. Corresponding compiled-regex retention probes pass and
+  are controls, not claimed defects.
+- Number() returns NaN instead of zero. Number(object) bypasses guest own and
+  inherited valueOf/toString hooks, changes thrown-value identity, and misses
+  async-hook prefix ordering. Date and primitive conversion controls pass.
+
+These findings are not included in the Array.from implementation. Each repair
+requires its own failing regressions, focused implementation, checks, and push.

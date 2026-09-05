@@ -32,3 +32,21 @@ count, delimiter and exact-count controls. It follows existing shell-read byte
 handling, not arbitrary binary-record semantics. The current borrow API does not
 expose deadlines or claim nonblocking readiness. Extension methods retained after
 their invocation cannot acquire new resources or publish new state.
+
+## Internal input readiness and deadlines
+
+The internal `ShellInput` constructor accepts explicit source provenance and an
+optional nonconsuming readiness poll and clock. These capabilities belong to the
+shared cursor; borrowed inputs cannot replace them. `readiness()` reports ready,
+EOF, blocked or unknown without starting a producer pull. Unknown is not EOF.
+
+`line` accepts a positive finite `timeoutMs`. Stream deadlines preserve pending
+pulls and unconsumed input for later reads; regular-file provenance ignores the
+deadline. Unknown provenance refuses timed reads rather than guessing. A zero
+timeout is represented by a readiness query, not a timed consuming read. Queue
+wait is included in the original deadline, and root cancellation retains its
+reason and precedence. Results distinguish delimiter, count, EOF and timeout,
+including owned partial values that callers must release.
+
+This internal capability does not itself add shell `read -t`, infer host stream
+readiness, or expose deadlines through the extension borrow API.

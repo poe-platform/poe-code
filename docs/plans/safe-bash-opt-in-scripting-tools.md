@@ -410,6 +410,12 @@ this request to keep additions out of the default package.
   types. Root's eight selected source/public type roots have zero diagnostics.
   Guarded lint's twelfth run completes cleanly with exit zero. No full-tool or
   release acceptance is inferred from these scoped checks.
+- The generic extension boundary is locally committed as `07a9d8566`. Input
+  deadline review approves the unchanged frozen implementation after 21 new
+  independent cases and 268 combined array/input checks, zero skips. Root
+  repeats the 268-case cohort with the pinned Bash oracle successfully and
+  typechecks both new deadline test files with zero diagnostics. This commit
+  supplies shared-cursor readiness/deadline primitives, not shell `read -t`.
 
 - First implementation wave: cmp, yes, shuf and virtual devices in disjoint leaf
   directories. Root is qualifying native oracles and the opt-in delivery boundary.

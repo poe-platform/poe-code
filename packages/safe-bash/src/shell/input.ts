@@ -1,6 +1,6 @@
 import { FsError, toByteSource } from "../contracts/index.js";
 import type { ByteSource, FileSystem } from "../contracts/index.js";
-import { yieldTurn } from "../contracts/yield.js";
+import { monotonicNow, yieldTurn } from "../contracts/yield.js";
 import { Budget, interruptible } from "./runtime.js";
 import { shellValueBytes, shellValueFromBytes, shellValueText } from "../contracts/value.js";
 import type { ShellValue, ValueReservation } from "../contracts/value.js";
@@ -68,31 +68,137 @@ export async function fileInput(fs: FileSystem, path: string, maxBytes: number, 
   };
 }
 
+export type InputReadiness = "ready" | "eof" | "blocked" | "unknown";
+
+export interface InputClock {
+  now(): number;
+  schedule(delayMs: number, expire: () => void): () => void;
+}
+
+export interface ShellInputOptions {
+  readonly provenance?: "regular" | "stream" | "unknown";
+  readonly poll?: () => InputReadiness;
+  readonly clock?: InputClock;
+}
+
+const inputClock: InputClock = {
+  now: monotonicNow,
+  schedule(delayMs, expire) {
+    const timer = setTimeout(expire, Math.min(delayMs, 2_147_483_647));
+    return () => clearTimeout(timer);
+  },
+};
+
+class InputDeadline {
+  readonly #controller = new AbortController();
+  readonly #expiresAt: number;
+  #cancel: (() => void) | undefined;
+  #closed = false;
+  readonly signal: AbortSignal;
+
+  constructor(readonly clock: InputClock, timeoutMs: number, readonly parent: AbortSignal) {
+    const now = clock.now();
+    this.#expiresAt = now + timeoutMs;
+    if (!Number.isFinite(now) || !Number.isFinite(this.#expiresAt)) throw new RangeError("Invalid input clock deadline");
+    this.signal = AbortSignal.any([parent, this.#controller.signal]);
+    parent.throwIfAborted();
+    parent.addEventListener("abort", this.close, { once: true });
+    try { this.#schedule(); } catch (error) { this.close(); throw error; }
+  }
+
+  expired(): boolean {
+    this.parent.throwIfAborted();
+    if (!this.#closed && this.clock.now() >= this.#expiresAt) {
+      this.#controller.abort();
+      this.close();
+    }
+    return this.#controller.signal.aborted;
+  }
+
+  #schedule(): void {
+    const cancel = this.clock.schedule(Math.max(0, this.#expiresAt - this.clock.now()), () => {
+      this.#cancel = undefined;
+      if (this.#closed || this.parent.aborted) return;
+      if (!this.expired()) this.#schedule();
+    });
+    if (this.#closed) cancel();
+    else this.#cancel = cancel;
+  }
+
+  readonly close = (): void => {
+    this.#closed = true;
+    const cancel = this.#cancel;
+    this.#cancel = undefined;
+    this.parent.removeEventListener("abort", this.close);
+    try { cancel?.(); }
+    catch (error) { if (!this.parent.aborted) throw error; }
+  };
+}
+
 class InputCursor {
   readonly #iterator: AsyncIterator<Uint8Array>;
+  readonly #provenance: "regular" | "stream" | "unknown";
+  readonly #poll: (() => InputReadiness) | undefined;
+  readonly #clock: InputClock;
   remainder: Uint8Array | undefined;
   #read: Promise<IteratorResult<Uint8Array>> | undefined;
+  #readResult: IteratorResult<Uint8Array> | undefined;
+  #readError: { reason: unknown } | undefined;
   #readSettled = false;
   #readFailed = false;
   #turn = Promise.resolve();
   #returned: Promise<void> | undefined;
   #ended = false;
   #closed = false;
+  #active = false;
 
-  constructor(source: ByteSource) {
+  constructor(source: ByteSource, options: ShellInputOptions = {}) {
+    const { provenance = "unknown", poll, clock = inputClock } = options;
+    if (provenance !== "unknown" && provenance !== "regular" && provenance !== "stream") throw new TypeError("Invalid input provenance");
+    if (poll !== undefined && typeof poll !== "function") throw new TypeError("Invalid input polling capability");
+    const { now, schedule } = clock;
+    if (typeof now !== "function" || typeof schedule !== "function") throw new TypeError("Invalid input clock");
+    this.#provenance = provenance;
+    this.#poll = poll?.bind(options);
+    this.#clock = Object.freeze({ now: now.bind(clock), schedule: schedule.bind(clock) });
     this.#iterator = source[Symbol.asyncIterator]();
   }
 
-  async consume<Value>(signal: AbortSignal, operation: () => Promise<Value>): Promise<Value> {
+  readiness(): InputReadiness {
+    if (this.#active) return "blocked";
+    if (this.remainder?.length) return "ready";
+    if (this.#readError) throw this.#readError.reason;
+    if (this.#ended || this.#readResult?.done) return "eof";
+    if (this.#readResult && this.#readResult.value.length) return "ready";
+    if (this.#closed) throw new Error("Shell input cursor is closed");
+    if (this.#provenance === "regular") return "ready";
+    const readiness = this.#poll?.() ?? "unknown";
+    if (!["ready", "eof", "blocked", "unknown"].includes(readiness)) throw new TypeError("Invalid input readiness");
+    return readiness;
+  }
+
+  deadline(timeoutMs: number | undefined, signal: AbortSignal, scope: ValueScope): InputDeadline | undefined {
+    if (timeoutMs === undefined) return undefined;
+    if (!Number.isFinite(timeoutMs) || timeoutMs <= 0) throw new RangeError("Read timeout must be positive and finite; use readiness for zero timeout");
+    if (this.#provenance === "unknown") throw new TypeError("Read timeout requires explicit input provenance");
+    if (this.#provenance === "regular") return undefined;
+    scope.reserve(192, 3);
+    return new InputDeadline(this.#clock, timeoutMs, signal);
+  }
+
+  async consume<Value>(signal: AbortSignal, operation: () => Promise<Value>, interrupted?: (error: unknown) => Promise<Value>): Promise<Value> {
+    if (signal.aborted && interrupted) return interrupted(signal.reason);
     signal.throwIfAborted();
     const previous = this.#turn;
     let release!: () => void;
     const completed = new Promise<void>((resolve) => { release = resolve; });
     this.#turn = previous.then(() => completed);
     try {
-      await interruptible(previous, signal);
-      signal.throwIfAborted();
-      return await operation();
+      try { await interruptible(previous, signal); signal.throwIfAborted(); }
+      catch (error) { if (signal.aborted && interrupted) return await interrupted(error); throw error; }
+      this.#active = true;
+      try { return await operation(); }
+      finally { this.#active = false; }
     } finally { release(); }
   }
 
@@ -106,17 +212,19 @@ class InputCursor {
     if (this.#ended || this.#closed) return { value: undefined, done: true };
     if (!this.#read) {
       this.#readSettled = false;
+      this.#readResult = undefined;
       this.#read = Promise.resolve().then(() => this.#closed ? { value: undefined, done: true as const } : this.#iterator.next()).then((result) => {
         if (result.done) return { value: undefined, done: true };
         if (!(result.value instanceof Uint8Array)) throw new TypeError("Shell stdin must yield Uint8Array");
         return { value: result.value, done: false };
       });
-      void this.#read.then(() => { this.#readSettled = true; }, () => { this.#readSettled = true; });
+      void this.#read.then(result => { this.#readSettled = true; this.#readResult = result; }, reason => { this.#readSettled = true; this.#readError = { reason }; });
     }
     try {
       const result = await interruptible(this.#read, signal);
       signal.throwIfAborted();
       this.#read = undefined;
+      this.#readResult = undefined;
       if (result.done) this.#ended = true;
       return result;
     } catch (error) {
@@ -145,6 +253,7 @@ export interface ReadLineOptions {
   readonly delimiter?: number;
   readonly byteCount?: boolean;
   readonly exact?: boolean;
+  readonly timeoutMs?: number;
 }
 
 export interface ReadField {
@@ -159,6 +268,7 @@ export interface ReadLine {
   readonly escaped: ReadonlySet<number>;
   readonly escapedByteOffsets: readonly number[];
   readonly terminated: boolean;
+  readonly reason: "delimiter" | "count" | "eof" | "timeout";
   fields(ifs: ShellValue, maximum?: number): Promise<readonly ReadField[]>;
   release(): Promise<void>;
 }
@@ -216,11 +326,19 @@ export class ShellInput implements ByteSource {
   readonly #reads = new Set<() => Promise<void>>();
   #closing: Promise<void> | undefined;
 
-  constructor(source: ByteSource, readonly budget: Budget, signal = budget.signal) {
+  constructor(source: ByteSource, readonly budget: Budget, signal = budget.signal, options?: ShellInputOptions) {
     this.#owned = !(source instanceof ShellInput);
-    this.#cursor = source instanceof ShellInput ? source.#cursor : new InputCursor(source);
+    if (!this.#owned && options !== undefined) throw new TypeError("Borrowed input cannot replace cursor capabilities");
+    this.#cursor = source instanceof ShellInput ? source.#cursor : new InputCursor(source, options);
     this.#cleanupSignal = signal;
-    this.signal = AbortSignal.any([signal, this.#lifetime.signal]);
+    this.signal = AbortSignal.any([budget.signal, signal, this.#lifetime.signal]);
+  }
+
+  readiness(): InputReadiness {
+    this.signal.throwIfAborted();
+    const readiness = this.#cursor.readiness();
+    this.signal.throwIfAborted();
+    return readiness;
   }
 
   next(): Promise<IteratorResult<Uint8Array>> {
@@ -258,11 +376,11 @@ export class ShellInput implements ByteSource {
     });
   }
 
-  line(raw: boolean, options: ReadLineOptions = {}): Promise<ReadLine> {
-    const { count, delimiter = 10, byteCount = false, exact = false } = options;
+  async line(raw: boolean, options: ReadLineOptions = {}): Promise<ReadLine> {
+    const { count, delimiter = 10, byteCount = false, exact = false, timeoutMs } = options;
+    this.signal.throwIfAborted();
     if (count !== undefined && (!Number.isSafeInteger(count) || count < 0)) throw new RangeError("Invalid read count");
     if (!Number.isInteger(delimiter) || delimiter < 0 || delimiter > 255) throw new RangeError("Invalid read delimiter");
-    return this.#cursor.consume(this.signal, async () => {
       const scope = this.budget.values.scope();
       let active = 1;
       let closed = false;
@@ -289,9 +407,13 @@ export class ShellInput implements ByteSource {
       };
       let chunk: Uint8Array = new Uint8Array();
       let offset = 0;
+      let deadline: InputDeadline | undefined;
       try {
         scope.reserve(256, 3);
         this.#reads.add(release);
+        deadline = this.#cursor.deadline(timeoutMs, this.signal, scope);
+        const read = async (): Promise<ReadLine> => {
+        try {
         const buffer = new ReadBuffer(scope, this.budget.limits.maxOutputBytes);
         const escapedByteOffsets: number[] = [];
         let escaping = false;
@@ -301,13 +423,26 @@ export class ShellInput implements ByteSource {
         let checkpoint = 0;
         let pulls = 0;
         let terminated = count === 0;
+        const outcome: { reason: ReadLine["reason"] } = { reason: terminated ? "count" : "eof" };
         const nextByte = async (): Promise<number | undefined> => {
+          this.signal.throwIfAborted();
+          if (deadline?.expired()) { outcome.reason = "timeout"; return undefined; }
           while (offset === chunk.length) {
             if (++pulls % 128 === 0) await yieldTurn(this.signal);
-            const result = await this.#cursor.take(this.signal);
-            if (result.done) return undefined;
+            let result: IteratorResult<Uint8Array>;
+            try { result = await this.#cursor.take(deadline?.signal ?? this.signal); }
+            catch (error) {
+              this.signal.throwIfAborted();
+              if (deadline?.expired()) { outcome.reason = "timeout"; return undefined; }
+              throw error;
+            }
+            if (result.done) {
+              if (deadline?.expired()) outcome.reason = "timeout";
+              return undefined;
+            }
             chunk = result.value;
             offset = 0;
+            if (deadline?.expired()) { outcome.reason = "timeout"; return undefined; }
           }
           this.signal.throwIfAborted();
           return chunk[offset++]!;
@@ -319,14 +454,14 @@ export class ShellInput implements ByteSource {
           if (consumed - checkpoint >= 1024) { checkpoint = consumed; await yieldTurn(this.signal); }
           const first = await nextByte();
           if (first === undefined) {
-            if (escaping && visible && !buffer.length) buffer.append(1);
+            if (escaping && visible && !buffer.length && outcome.reason === "eof") buffer.append(1);
             break;
           }
           const quoted = escaping;
           escaping = false;
           if (quoted && first === 10) { account(); continue; }
           if (!quoted && !raw && first === 92) { account(); escaping = true; continue; }
-          if (!quoted && !exact && first === delimiter) { terminated = true; break; }
+          if (!quoted && !exact && first === delimiter) { terminated = true; outcome.reason = "delimiter"; break; }
           account();
           if (!quoted && first === 0) continue;
           if (quoted && visible && first !== 0) {
@@ -338,6 +473,7 @@ export class ShellInput implements ByteSource {
             visible = false;
           } else if (visible) buffer.append(first);
           const width = byteCount ? 1 : utf8Length(first);
+          const committedLength = buffer.length;
           for (let position = 1; position < width; position++) {
             const next = await nextByte();
             if (next === undefined) break;
@@ -346,12 +482,33 @@ export class ShellInput implements ByteSource {
             else if (visible) buffer.append(next);
             if (!utf8Continuation(first, position, next)) break;
           }
+          if (outcome.reason === "timeout") { buffer.length = committedLength; break; }
           units++;
-          if (units === count) terminated = true;
+          if (units === count) { terminated = true; outcome.reason = "count"; }
           if (units % 1024 === 0) await yieldTurn(this.signal);
         }
         this.signal.throwIfAborted();
-        const bytes = buffer.bytes();
+        deadline?.close();
+        const reason = outcome.reason;
+        let bytes = buffer.bytes();
+        if (reason === "timeout" && (escapedByteOffsets.length || escaping && visible)) {
+          const projected = new ReadBuffer(scope, this.budget.limits.maxOutputBytes);
+          let escape = 0;
+          for (let position = 0; position < bytes.length; position++) {
+            if (escapedByteOffsets[escape] === position) {
+              projected.append(1);
+              escapedByteOffsets[escape++] = projected.length;
+            }
+            projected.append(bytes[position]!);
+            if (position % 1024 === 0) await yieldTurn(this.signal);
+          }
+          if (escaping && visible) {
+            scope.reserve(64, 2);
+            escapedByteOffsets.push(projected.length);
+            projected.append(1);
+          }
+          bytes = projected.bytes();
+        }
         const shellValue = shellValueFromBytes(bytes, scope);
         const escaped = new Set<number>();
         let escapeIndex = 0;
@@ -362,7 +519,7 @@ export class ShellInput implements ByteSource {
         }
         Object.freeze(escapedByteOffsets);
         const result: ReadLine = {
-          value: shellValueText(shellValue), shellValue, escaped, escapedByteOffsets, terminated, release,
+          value: shellValueText(shellValue), shellValue, escaped, escapedByteOffsets, terminated, reason, release,
           fields: async (ifs, maximum) => {
             assertOpen();
             active++;
@@ -384,6 +541,7 @@ export class ShellInput implements ByteSource {
               return false;
             };
             const width = (input: Uint8Array, start: number): number => {
+              if (input === bytes && reason === "timeout" && bytes[start] === 1 && escapedStart(start + 1)) return 2;
               if (byteCount || input === bytes && escapedStart(start)) return 1;
               const length = displayWidth(input, start);
               return length === utf8Length(input[start]!) ? length : 1;
@@ -403,7 +561,8 @@ export class ShellInput implements ByteSource {
               }
               if (++steps % 1024 === 0) { await yieldTurn(this.signal); assertOpen(); }
             }
-            const separator = (start: number): boolean => !escapedStart(start) && keys.has(key(bytes, start));
+            const separator = (start: number): boolean => !escapedStart(start)
+              && !(reason === "timeout" && bytes[start] === 1 && escapedStart(start + 1)) && keys.has(key(bytes, start));
             const whitespace = (start: number): boolean => (bytes[start] === 32 || bytes[start] === 9 || bytes[start] === 10) && separator(start);
             let end = 0;
             for (let start = 0; start < bytes.length; start += width(bytes, start)) {
@@ -437,13 +596,23 @@ export class ShellInput implements ByteSource {
         };
         assertOpen();
         return Object.freeze(result);
-      } catch (error) { void release(); throw error; }
+        } finally {
+          if (offset < chunk.length) this.#cursor.remainder = chunk.subarray(offset);
+        }
+        };
+        const result = await this.#cursor.consume(deadline?.signal ?? this.signal, read, async error => {
+          this.signal.throwIfAborted();
+          if (deadline?.expired()) return read();
+          throw error;
+        });
+        this.signal.throwIfAborted();
+        return result;
+      } catch (error) { void release(); this.signal.throwIfAborted(); throw error; }
       finally {
-        if (offset < chunk.length) this.#cursor.remainder = chunk.subarray(offset);
+        deadline?.close();
         active--;
         finish();
       }
-    });
   }
 
   close(): Promise<void> {

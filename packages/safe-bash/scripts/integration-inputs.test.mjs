@@ -500,6 +500,10 @@ function assertSource7Discovery(files) {
     "tests/plugins/extension-core-runtime.test.ts",
   ]) assert.ok(files.includes(path), "extension-core boundary test is missing: " + path);
   for (const path of [
+    "tests/shell/extensions/arrays/input-deadlines.test.ts",
+    "tests/shell/extensions/arrays/input-deadlines-review.test.ts",
+  ]) assert.ok(files.includes(path), "input deadline test is missing: " + path);
+  for (const path of [
     "tests/shell/extensions/jobs/state.test.ts",
     "tests/shell/extensions/jobs/review.test.ts",
   ]) assert.ok(files.includes(path), "optional jobs-state test is missing: " + path);

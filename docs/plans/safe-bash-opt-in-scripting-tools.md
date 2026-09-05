@@ -416,6 +416,10 @@ this request to keep additions out of the default package.
   repeats the 268-case cohort with the pinned Bash oracle successfully and
   typechecks both new deadline test files with zero diagnostics. This commit
   supplies shared-cursor readiness/deadline primitives, not shell `read -t`.
+- Input deadlines are locally committed as `b36995ecc`. The optional extended
+  read leaf is assigned separately; a failing isolation check precedes its exact
+  source and package-artifact exclusions. No builtin replacement, timeout support
+  at the public shell boundary, or leaf acceptance is implied by those exclusions.
 
 - First implementation wave: cmp, yes, shuf and virtual devices in disjoint leaf
   directories. Root is qualifying native oracles and the opt-in delivery boundary.

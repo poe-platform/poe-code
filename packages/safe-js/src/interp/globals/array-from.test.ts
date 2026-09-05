@@ -111,6 +111,17 @@ describe("Array.from construction", () => {
     expect(reconcile.mock.calls.length).toBeLessThan(100);
   });
 
+  it.each(["unique", "shared", "array-like"])("does not rescan all roots for every %s object value", async (kind) => {
+    const budget = new Budget({ dataSize: 1000000 });
+    const reconcile = vi.spyOn(budget, "reconcileCompileData");
+    const shared = { value: 7 };
+    const values = Array.from({ length: 200 }, (_, index) => kind === "shared" ? shared : { value: index });
+    const items = kind === "array-like" ? Object.assign({ length: values.length }, values) : values;
+    expect(await run("return Array.from(items).length", { budget, bindings: { items } }))
+      .toMatchObject({ ok: true, returnValue: 200 });
+    expect(reconcile.mock.calls.length).toBeLessThan(100);
+  });
+
   it("does not double-charge a retained string input", async () => {
     expect(await run("return Array.from('x'.repeat(400)).length", {
       budget: new Budget({ dataSize: 1500 })

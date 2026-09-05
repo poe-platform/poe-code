@@ -505,12 +505,11 @@ async function arrayFromSandboxValues(
         const key = String(index);
         const growth = key.length + 1 +
           (Array.isArray(result) ? Math.max(0, index + 1 - result.length) : 0) +
-          (typeof currentValue === "string" ? currentValue.length : 0);
-        const graphChanged = (typeof currentValue === "object" && currentValue !== null) || isSandboxClosure(result);
+          (budget.limits.dataSize === undefined ? 0 : measureSandboxData([currentValue]));
         budget.visitNode();
         defineOwnDataProperty(objectProperties(result, true), key, currentValue);
         currentValue = undefined;
-        checkData(result, growth, graphChanged);
+        checkData(result, growth, isSandboxClosure(result));
       } catch (error) {
         await closeOnThrow(error);
       }

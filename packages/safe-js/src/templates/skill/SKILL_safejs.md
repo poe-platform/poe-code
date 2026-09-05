@@ -87,10 +87,15 @@ literals, assignments/member assignment, `if`/`else`, `for`, `for...in`,
 `for...of`, `while`, `do...while`, labels, `try`/`catch`/`finally`, `throw`,
 `switch`, `this`, and `return`.
 
+Public classes support constructors, instance/static methods and fields, static
+blocks, inheritance, `super`, and `new.target`. Private elements, accessors, and
+default class exports remain unsupported; built-in inheritance and portable
+custom-prototype snapshots remain incomplete.
+
 Top-level `await` also works inside control-flow blocks. `new Map(...)`,
 `new Set(...)`, and `new Promise(executor)` do not require lint suppressions.
 
-Not supported: class syntax, async generators, `eval`, `Function`, dynamic
+Not supported: async generators, `eval`, `Function`, dynamic
 imports, BigInt literals, and Node/browser globals such as `process`, `fetch`,
 `setTimeout`, or `globalThis`.
 

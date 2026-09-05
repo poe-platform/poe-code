@@ -1,3 +1,4 @@
+import { visitClassElements } from "../class-elements.js";
 import {
   parseModule,
   type ArrayExpression,
@@ -79,6 +80,10 @@ class ASLargeLiteralScanner {
   }
 
   private visitStatement(node: Statement): void {
+    if (node.type === "ClassDeclaration") {
+      visitClassElements(node, expression => this.visitExpression(expression), statement => this.visitStatement(statement));
+      return;
+    }
     switch (node.type) {
       case "FunctionDeclaration":
         this.visitArrowFunction(node);
@@ -211,6 +216,10 @@ class ASLargeLiteralScanner {
   }
 
   private visitExpression(node: Expression): void {
+    if (node.type === "ClassExpression") {
+      visitClassElements(node, expression => this.visitExpression(expression), statement => this.visitStatement(statement));
+      return;
+    }
     switch (node.type) {
       case "YieldExpression":
         if (node.argument !== undefined) {

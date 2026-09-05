@@ -11,7 +11,8 @@ import {
   installObjectPrototype,
   isGuestClosure,
   markDescriptorObject,
-  materializeFunctionProperties
+  materializeFunctionProperties,
+  setSandboxPrototype
 } from "../object-model.js";
 import { sandboxString } from "../string-coercion.js";
 import {
@@ -47,7 +48,13 @@ export function createObjectGlobal(methods: SandboxObject, budget: Budget): Sand
     name: "Object",
     length: 1,
     call: construct,
-    construct
+    construct: (args, context) => {
+      if (context?.newTarget === undefined || context.newTarget === constructor) return construct(args);
+      const value = construct([]) as SandboxObject;
+      const prototype = context.getProperty!(context.newTarget, "prototype");
+      if (typeof prototype === "object" && prototype !== null) setSandboxPrototype(value, prototype, budget);
+      return value;
+    }
   });
   const properties = materializeFunctionProperties(constructor);
   const prototype = properties.prototype as SandboxObject;

@@ -12,18 +12,18 @@ describe("lint", () => {
     );
   });
   it("returns AS001 diagnostics for disallowed syntax instead of throwing", () => {
-    expect(() => lint("class Example {}", { filename: "rule.js" })).not.toThrow();
-    expect(lint("class Example {}", { filename: "rule.js" })).toEqual([
+    expect(() => lint("eval('7')", { filename: "rule.js" })).not.toThrow();
+    expect(lint("eval('7')", { filename: "rule.js" })).toEqual([
       {
         code: "AS001",
         severity: "error",
-        message: "Disallowed syntax: class.",
+        message: "Disallowed syntax: eval.",
         filename: "rule.js",
         line: 1,
         column: 1,
         span: {
           start: { line: 1, column: 1, offset: 0 },
-          end: { line: 1, column: 6, offset: 5 }
+          end: { line: 1, column: 5, offset: 4 }
         }
       }
     ]);

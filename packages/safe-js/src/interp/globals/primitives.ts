@@ -5,7 +5,7 @@ import {
   type BoxedKind,
   type BoxedPrimitive
 } from "../boxed.js";
-import { installBoxedPrototype, materializeFunctionProperties } from "../object-model.js";
+import { installBoxedPrototype, materializeFunctionProperties, setSandboxPrototype } from "../object-model.js";
 import { getNumberMember, numberMethodNames } from "../methods/number.js";
 import { getStringMember, stringMethodNames } from "../methods/string.js";
 import {
@@ -32,8 +32,12 @@ export function createPrimitiveConstructor(
   const initial: BoxedPrimitive = { Number: 0, String: "", Boolean: false }[options.name];
   const kind = typeof initial as BoxedKind;
   const prototype = createSandboxBox(initial);
-  const allocate = (value: BoxedPrimitive) => {
+  const allocate = (value: BoxedPrimitive, context?: SandboxCallContext) => {
     const box = createSandboxBox(value);
+    if (context?.newTarget !== undefined && context.newTarget !== constructor) {
+      const prototype = context.getProperty!(context.newTarget, "prototype");
+      if (typeof prototype === "object" && prototype !== null) setSandboxPrototype(box, prototype, budget);
+    }
     budget.chargeDataUsage(measureSandboxData([box]));
     return box;
   };
@@ -45,7 +49,7 @@ export function createPrimitiveConstructor(
     call: options.call,
     construct: (args, context) => {
       const value = options.call(args, context);
-      return value instanceof Promise ? value.then(allocate) : allocate(value);
+      return value instanceof Promise ? value.then(result => allocate(result, context)) : allocate(value, context);
     }
   });
   const properties = materializeFunctionProperties(constructor);

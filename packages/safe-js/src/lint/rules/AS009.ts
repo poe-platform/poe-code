@@ -1,4 +1,6 @@
+import { visitClassElements } from "../class-elements.js";
 import {
+  type ClassNode,
   parseModule,
   type ArrayExpression,
   type ArrayPattern,
@@ -84,6 +86,10 @@ class AS009Scanner {
   }
 
   private visitStatement(node: Statement): void {
+    if (node.type === "ClassDeclaration") {
+      this.visitClass(node);
+      return;
+    }
     switch (node.type) {
       case "FunctionDeclaration":
         this.visitArrowFunction(node);
@@ -226,7 +232,19 @@ class AS009Scanner {
     }
   }
 
+  private visitClass(node: ClassNode): void {
+    const scope: Scope = new Map();
+    if (node.id !== undefined) scope.set(node.id.name, "local");
+    this.withScope(scope, () => {
+      visitClassElements(node, expression => this.visitExpression(expression), statement => this.visitStatement(statement));
+    });
+  }
+
   private visitExpression(node: Expression): void {
+    if (node.type === "ClassExpression") {
+      this.visitClass(node);
+      return;
+    }
     switch (node.type) {
       case "YieldExpression":
         if (node.argument !== undefined) {
@@ -502,7 +520,7 @@ class AS009Scanner {
   }
 
   private collectModuleBindings(node: Module): Scope {
-    const scope = new Map<string, BindingKind>();
+    const scope = this.collectBlockBindings(node.body);
 
     for (const statement of node.body) {
       if (statement.type === "ImportDeclaration") {
@@ -517,6 +535,7 @@ class AS009Scanner {
     const scope = new Map<string, BindingKind>();
 
     for (const statement of body) {
+      if (statement.type === "ClassDeclaration") scope.set(statement.id.name, "local");
       if (statement.type === "VariableDeclaration") {
         for (const declarator of statement.declarations) {
           this.collectBindingNamesFromPattern(declarator.id, scope);

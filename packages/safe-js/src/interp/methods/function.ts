@@ -12,7 +12,8 @@ export type FunctionMethodOptions = {
     args: readonly SandboxValue[],
     stack: readonly string[],
     thisValue: SandboxValue,
-    construct?: boolean
+    construct?: boolean,
+    newTarget?: SandboxClosure
   ) => Promise<SandboxValue> | SandboxValue;
 };
 
@@ -103,7 +104,8 @@ function callFunctionMethod(
                 [...boundArgs, ...callArgs],
                 context?.stack ?? [],
                 undefined,
-                true
+                true,
+                context?.newTarget === bound ? target : context?.newTarget
               )
           })
     });

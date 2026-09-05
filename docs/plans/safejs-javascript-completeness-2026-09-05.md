@@ -2959,7 +2959,7 @@ Do not emulate a default derived constructor by spreading an ordinary array:
 the specification forwards its argument list without invoking an iterator.
 Reference: https://tc39.es/ecma262/2026/multipage/ecmascript-language-functions-and-classes.html#sec-runtime-semantics-classdefinitionevaluation.
 
-### 50. Callable prototype links — qualified locally; main delivery pending
+### 50. Callable prototype links — closed; publication verified
 
 The class audit finds an explicit shared object-model restriction: guest
 functions cannot be prototype-link targets or parents. Class constructor
@@ -3011,3 +3011,86 @@ release all retained roots. Two unchanged public snapshots still round-trip.
 Three native dispatch/descriptor controls and simultaneous-realm isolation pass,
 with native host intrinsics unchanged. This prerequisite is ready for its own
 commit and main push, not yet a publication claim.
+Delivered as 916fcddeb6b9517ea1104e5791fd2097a7ae7079 and independently verified
+on remote refs/heads/main September 5. Close this prerequisite at main delivery.
+Scoped run 33995164123 and CLI run 33995164358 are monitored independently;
+neither is claimed published yet. Class construction work continues during
+those releases rather than waiting for publication.
+
+Publication verified independently: scoped run 33995164123 published
+`@poe-platform/safe-js@0.1.136` on September 5 at 22:14:53 UTC; CLI run
+33995164358 published `poe-code@14.0.64` to latest at 22:23:27 UTC. Both runs
+completed successfully, and remote tag `v14.0.64` resolves exactly to
+916fcddeb6b9517ea1104e5791fd2097a7ae7079.
+
+### 51. Public class construction and elements
+
+The full class gap remains open. The first 72 native runtime comparisons produced 71
+failures and one passing ordinary-constructor control before implementation.
+Initial parser checks identified invalid acceptance of non-async arrow await
+and `new super()`, now corrected. Native JavaScript accepts `delete super.x`
+syntactically and rejects it at runtime, so the erroneous early-error fixture
+was corrected rather than changing the parser to match a hallucinated rule.
+
+The public-class implementation now covers declarations and expressions,
+constructor-only calls, base/derived construction, delayed derived `this`,
+dynamic super-constructor lookup, lexical method home objects, `new.target`,
+bound construction, public fields, static blocks, and ordered computed keys.
+Ordinary/Number/Object inheritance is covered; private elements, accessors,
+default class exports, other intrinsic inheritance graphs, and portable custom
+prototype snapshots are separate open work, not completed JavaScript parity.
+
+Additional native comparisons exposed and corrected static-block var hoisting,
+super tagged receivers, and anonymous class name inference. Class syntax also
+required traversal in the maintained lint rules, with specific class-name
+shadowing and static-block scope tests. Escaped normal/async/generator methods
+initially retained only 18 charged units while keeping a 700-character home
+object payload alive. After correcting the fixture to inspect realm data usage
+rather than non-scope budget roots, all three reproduced the undercount; lexical
+home objects and new targets are now included in closure retention.
+
+Boundary checks reproduced two additional implementation defects: typed-array
+receiver fields bypassed existing descriptor restrictions, and super assignment
+could alter private RegExp source metadata. Both now use the existing descriptor
+and assignment admission paths. Date field rejection was a passing control.
+Focused runtime coverage has 93 passes (87 native comparisons and six resource/
+admission cases); class parser coverage has 37 passes and class lint coverage
+has 17 passes. A broader package run before the last three admission cases had
+12,930 passes and 41 skips, and the first normal workspace build passed. Final
+post-fix qualification is still required before this atomic feature is delivered.
+
+Manual QA plan: run the schema-only `classes.md`/`classes.ajs` fixture with the
+real harness and zero spawns/capabilities. Inspect the CLI screenshot for inherited
+value 8, static label `parent:child:ready`, correct parent checks, and Number
+subclass value 9. Run the maintained full unit route and root lint after a fresh
+build. Verify budget rejection/cleanup and realm isolation on the built public
+API, commit this class improvement separately, then verify remote main delivery.
+
+Final qualification passed: the normal build; the full maintained npm test route
+(32,793 shared tests, 29 Python tests, 279 Bash-runner tests, 19,981 Bash tests,
+288 shell-stress tests, and two lint-stress tests); and root lint covering 9,785
+configured files with zero errors/warnings, followed by passing TypeScript and
+workflow checks. A post-screenshot maintained SafeJS package run separately
+passed 12,933 tests with 41 skips. The inspected real CLI screenshot has the
+four expected results and zero spawns. Built API probes passed twenty realm
+retention/cleanup cycles, low/high data-budget controls, and twenty canceled
+class-method calls, leaving no retained roots.
+
+Coherent built public exports reject class snapshots with the existing
+function-property/prototype restriction, as does an ordinary mutated-function
+control; an unchanged scalar snapshot still dumps. An initial probe mixed a
+bundled public API with unexported internal modules and therefore used separate
+runtime identity registries. That probe was invalid, not a new snapshot defect;
+no code was changed for it. The user-staged Safe Bash patch is unchanged.
+This public-class increment is qualified for its own commit and main delivery;
+private elements, accessors, full intrinsic graphs and snapshot portability
+remain open requirements of the overall goal.
+
+### 52. Anonymous class names in binding defaults — confirmed gap
+
+Read-only source/native comparisons confirm that object-destructuring defaults,
+array-destructuring defaults, and ordinary function parameter defaults evaluate
+`class { static n = this.name }` with an empty name instead of the binding name.
+The class-field initializer control correctly uses its field name. This has not
+been fixed or claimed delivered with the public-class increment; add focused
+regressions and fix the default-binding named-evaluation path next.

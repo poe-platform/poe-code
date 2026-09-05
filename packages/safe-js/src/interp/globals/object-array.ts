@@ -403,7 +403,7 @@ function dataDescriptor(input: SandboxValue): PropertyDescriptor {
   return descriptor;
 }
 
-function defineDataProperty(target: SandboxValue, key: string, descriptor: PropertyDescriptor, budget: Budget): void {
+export function defineDataProperty(target: SandboxValue, key: string, descriptor: PropertyDescriptor, budget: Budget): void {
   budget.visitNode();
   if (isFloat32Array(target)) throw new TypeError("Typed array property descriptors are not supported.");
   const properties = objectProperties(target, true);

@@ -1,4 +1,6 @@
+import { visitClassElements } from "../class-elements.js";
 import {
+  type ClassNode,
   parseModule,
   type ArrayExpression,
   type ArrayPattern,
@@ -97,6 +99,10 @@ class AS003Scanner {
   }
 
   private visitStatement(node: Statement): void {
+    if (node.type === "ClassDeclaration") {
+      this.visitClass(node);
+      return;
+    }
     switch (node.type) {
       case "FunctionDeclaration":
         this.visitArrowFunction(node);
@@ -270,7 +276,17 @@ class AS003Scanner {
     }
   }
 
+  private visitClass(node: ClassNode): void {
+    this.withScope(node.id === undefined ? [] : [{ kind: "const", name: node.id.name }], () => {
+      visitClassElements(node, expression => this.visitExpression(expression), block => this.visitBlock(block, true));
+    });
+  }
+
   private visitExpression(node: Expression): void {
+    if (node.type === "ClassExpression") {
+      this.visitClass(node);
+      return;
+    }
     switch (node.type) {
       case "YieldExpression":
         if (node.argument !== undefined) {
@@ -614,7 +630,7 @@ class AS003Scanner {
         bindings.push(...this.collectImportBindings(statement));
         continue;
       }
-      if (statement.type === "FunctionDeclaration") {
+      if (statement.type === "FunctionDeclaration" || statement.type === "ClassDeclaration") {
         bindings.push({ kind: "let", name: statement.id.name });
         continue;
       }
@@ -632,7 +648,7 @@ class AS003Scanner {
   private collectBlockBindings(body: Statement[]): Binding[] {
     const bindings: Binding[] = [];
     for (const statement of body) {
-      if (statement.type === "FunctionDeclaration") {
+      if (statement.type === "FunctionDeclaration" || statement.type === "ClassDeclaration") {
         bindings.push({ kind: "let", name: statement.id.name });
       }
       if (statement.type === "VariableDeclaration" && statement.kind !== "var") {

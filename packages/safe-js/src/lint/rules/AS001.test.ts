@@ -42,20 +42,7 @@ describe("AS001", () => {
     expect(AS001("function example() {}", { filename: "rule.js" })).toEqual([]);
     expect(AS001("function* example() {}")).toEqual([]);
 
-    expect(AS001("class Example {}")).toEqual([
-      {
-        code: "AS001",
-        severity: "error",
-        message: "Disallowed syntax: class.",
-        filename: "<input>",
-        line: 1,
-        column: 1,
-        span: {
-          start: { line: 1, column: 1, offset: 0 },
-          end: { line: 1, column: 6, offset: 5 }
-        }
-      }
-    ]);
+    expect(AS001("class Example {}")).toEqual([]);
 
     expect(AS001("new Example()")).toEqual([]);
 
@@ -208,20 +195,7 @@ describe("AS001", () => {
       "}"
     ].join("\n");
 
-    expect(AS001(source)).toEqual([
-      {
-        code: "AS001",
-        severity: "error",
-        message: "Disallowed syntax: class.",
-        filename: "<input>",
-        line: 12,
-        column: 1,
-        span: {
-          start: { line: 12, column: 1, offset: 145 },
-          end: { line: 12, column: 6, offset: 150 }
-        }
-      }
-    ]);
+    expect(AS001(source)).toEqual([]);
   });
 
   it("reports disallowed syntax inside nested expression positions", () => {
@@ -272,8 +246,8 @@ describe("AS001", () => {
   });
 
   it("reports disallowed syntax inside exported arrow block bodies", () => {
-    expect(messages("export default () => { return class Example {}; };")).toEqual([
-      "Disallowed syntax: class."
+    expect(messages("export default () => { return class Example { read() { return eval('7'); } }; };")).toEqual([
+      "Disallowed syntax: eval."
     ]);
   });
 });

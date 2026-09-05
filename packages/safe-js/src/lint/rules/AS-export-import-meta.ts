@@ -1,3 +1,4 @@
+import { visitClassElements } from "../class-elements.js";
 import {
   parseModule,
   type ArrayExpression,
@@ -125,6 +126,10 @@ class Scanner {
   }
 
   private visitStatement(node: Statement): void {
+    if (node.type === "ClassDeclaration") {
+      visitClassElements(node, expression => this.visitExpression(expression), statement => this.visitStatement(statement));
+      return;
+    }
     switch (node.type) {
       case "FunctionDeclaration":
         for (const param of node.params) {
@@ -298,6 +303,10 @@ class Scanner {
   }
 
   private visitExpression(node: Expression): void {
+    if (node.type === "ClassExpression") {
+      visitClassElements(node, expression => this.visitExpression(expression), statement => this.visitStatement(statement));
+      return;
+    }
     switch (node.type) {
       case "YieldExpression":
         if (node.argument !== undefined) {

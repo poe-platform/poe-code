@@ -1,3 +1,4 @@
+import { classDefinitionContains, visitClassElements } from "../class-elements.js";
 import {
   parseModule,
   type ArrayExpression,
@@ -98,6 +99,10 @@ class ASAsyncNotNeededScanner {
   }
 
   private visitStatement(node: Statement): void {
+    if (node.type === "ClassDeclaration") {
+      visitClassElements(node, expression => this.visitExpression(expression), statement => this.visitStatement(statement));
+      return;
+    }
     switch (node.type) {
       case "FunctionDeclaration":
         this.visitFunctionExpression(node);
@@ -245,6 +250,10 @@ class ASAsyncNotNeededScanner {
   }
 
   private visitExpression(node: Expression): void {
+    if (node.type === "ClassExpression") {
+      visitClassElements(node, expression => this.visitExpression(expression), statement => this.visitStatement(statement));
+      return;
+    }
     switch (node.type) {
       case "YieldExpression":
         if (node.argument !== undefined) {
@@ -529,6 +538,8 @@ function statementListContainsAwait(statements: readonly Statement[]): boolean {
 
 function statementContainsAwait(node: Statement): boolean {
   switch (node.type) {
+    case "ClassDeclaration":
+      return classDefinitionContains(node, expressionContainsAwait);
     case "BlockStatement":
       return statementListContainsAwait(node.body);
     case "ExpressionStatement":
@@ -611,6 +622,11 @@ function variableDeclarationContainsAwait(node: VariableDeclaration): boolean {
 
 function expressionContainsAwait(node: Expression): boolean {
   switch (node.type) {
+    case "ClassExpression":
+      return classDefinitionContains(node, expressionContainsAwait);
+    case "NewTargetExpression":
+    case "Super":
+      return false;
     case "AwaitExpression":
       return true;
     case "YieldExpression":

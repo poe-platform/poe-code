@@ -1,4 +1,4 @@
-import type { FunctionNode } from "./parser.js";
+import type { ClassNode, FunctionNode } from "./parser.js";
 
 export type FunctionSource = {
   readonly text: string;
@@ -6,4 +6,4 @@ export type FunctionSource = {
   readonly end: number;
 };
 
-export const functionSources = new WeakMap<FunctionNode, FunctionSource>();
+export const functionSources = new WeakMap<FunctionNode | ClassNode, FunctionSource>();

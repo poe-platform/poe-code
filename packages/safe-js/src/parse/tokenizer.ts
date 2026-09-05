@@ -37,6 +37,9 @@ export type TokenizeOptions = {
 };
 
 const KEYWORDS = new Set([
+  "class",
+  "extends",
+  "super",
   "const",
   "let",
   "if",

@@ -88,6 +88,7 @@ export type SandboxRegex = {
 };
 
 export type SandboxCallContext = {
+  readonly newTarget?: SandboxClosure;
   readonly compilation?: CompileScope;
   readonly span?: {
     readonly end: {
@@ -109,7 +110,8 @@ export type SandboxCallContext = {
     closure: SandboxClosure,
     args: readonly SandboxValue[],
     thisValue: SandboxValue,
-    construct?: boolean
+    construct?: boolean,
+    newTarget?: SandboxClosure
   ) => Promise<SandboxValue>;
 };
 

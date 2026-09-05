@@ -1,3 +1,4 @@
+import { visitClassElements } from "../class-elements.js";
 import {
   parseModule,
   type ArrayExpression,
@@ -77,6 +78,10 @@ class ASUnboundedLoopScanner {
   }
 
   private visitStatement(node: Statement): void {
+    if (node.type === "ClassDeclaration") {
+      visitClassElements(node, expression => this.visitExpression(expression), statement => this.visitStatement(statement));
+      return;
+    }
     switch (node.type) {
       case "FunctionDeclaration":
         this.visitArrowFunction(node);
@@ -228,6 +233,10 @@ class ASUnboundedLoopScanner {
   }
 
   private visitExpression(node: Expression): void {
+    if (node.type === "ClassExpression") {
+      visitClassElements(node, expression => this.visitExpression(expression), statement => this.visitStatement(statement));
+      return;
+    }
     switch (node.type) {
       case "YieldExpression":
         if (node.argument !== undefined) {
@@ -419,6 +428,8 @@ function bodyHasExit(
   allowUnlabeledBreak: boolean
 ): boolean {
   switch (node.type) {
+    case "ClassDeclaration":
+      return false;
     case "BlockStatement":
       return node.body.some((statement) =>
         bodyHasExit(statement, exitingLabels, allowUnlabeledBreak)

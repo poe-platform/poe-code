@@ -41,6 +41,8 @@ import {
   reconcileCompiledValues,
   isSandboxPromise,
   type SandboxCallContext,
+  type SandboxClosure,
+  type SandboxObject,
   type SandboxValue
 } from "./values.js";
 
@@ -60,6 +62,16 @@ export type AsyncInterpreterError = InterpreterError;
 export type AsyncEvaluationResult = EvaluationResult<AsyncInterpreterError>;
 
 export type AsyncEvaluationContext = {
+  inferredName?: string;
+  functionEnvironment?: {
+    newTarget?: SandboxClosure;
+    homeObject?: SandboxObject | SandboxClosure;
+    construction?: {
+      derived: boolean;
+      initialize(scope: Scope): Promise<void>;
+      superCall(args: readonly SandboxValue[]): Promise<SandboxValue>;
+    };
+  };
   assertActive?: () => void;
   compilation?: CompileScope;
   activeLoopIterations: Map<number, LoopIterationSnapshot>;
@@ -141,8 +153,12 @@ export async function evaluateFunctionExpression(
 export function createInterpretedClosure(
   node: ArrowFunctionExpression | FunctionDeclaration | FunctionExpression,
   context: AsyncEvaluationContext,
-  evaluateNode: EvaluateAsyncNode
+  evaluateNode: EvaluateAsyncNode,
+  homeObject?: SandboxObject | SandboxClosure
 ) {
+  if (node.type !== "ArrowFunctionExpression") {
+    context = { ...context, functionEnvironment: { homeObject } };
+  }
   if (node.type !== "ArrowFunctionExpression" && node.generator) {
     return createGeneratorClosure(node, context, evaluateNode);
   }
@@ -153,7 +169,8 @@ export function createInterpretedClosure(
     !node.async
       ? async (args: readonly SandboxValue[], callContext?: SandboxCallContext) => {
           const thisValue = {};
-          const prototype = getGuestFunctionProperty(closure, "prototype");
+          const newTarget = callContext?.newTarget ?? closure;
+          const prototype = getGuestFunctionProperty(newTarget, "prototype");
           if (typeof prototype === "object" && prototype !== null) {
             setSandboxPrototype(thisValue, prototype, context.budget);
           }
@@ -163,6 +180,7 @@ export function createInterpretedClosure(
             thisValue,
             {
               ...context,
+              functionEnvironment: { newTarget },
               compilation: callContext?.compilation ?? context.compilation,
               callStack: [...(callContext?.stack ?? context.callStack)]
             },
@@ -184,7 +202,7 @@ export function createInterpretedClosure(
         : { name: node.id.name }
       : {}),
     ...(construct === undefined ? {} : { construct }),
-    retainedValues: () => context.scope.retainedValues(),
+    retainedValues: () => [...context.scope.retainedValues(), context.functionEnvironment?.homeObject, context.functionEnvironment?.newTarget],
     call: (args, callContext) => {
       const invocationContext = {
         ...context,
@@ -260,7 +278,7 @@ function createGeneratorClosure(
     sandbox: true,
     length: getFunctionLength(node.params),
     ...(node.id === undefined ? {} : { name: node.id.name }),
-    retainedValues: () => context.scope.retainedValues(),
+    retainedValues: () => [...context.scope.retainedValues(), context.functionEnvironment?.homeObject, context.functionEnvironment?.newTarget],
     call: async (args, callContext) => {
       const closureContext = {
         ...context,
@@ -338,7 +356,7 @@ export async function evaluateAwaitExpression(
   }
 }
 
-async function executeClosure(
+export async function executeClosure(
   node: ArrowFunctionExpression | FunctionDeclaration | FunctionExpression,
   args: readonly SandboxValue[],
   thisValue: SandboxValue,
@@ -395,9 +413,12 @@ async function createClosureScope(
 ): Promise<Scope> {
   const scope = context.scope.child({}, { functionBoundary: true });
   if (node.type !== "ArrowFunctionExpression") {
-    scope.declare("this", "const", thisValue);
+    const construction = context.functionEnvironment?.construction;
+    if (construction?.derived === true) scope.predeclare("this", "const");
+    else scope.declare("this", "const", thisValue);
     context.budget.allocateArrayLength(args.length);
     scope.declare("arguments", "let", createSandboxArguments(args));
+    await construction?.initialize(scope);
   }
   await bindParameters(node.params, args, scope, context, evaluateNode);
   const bodyScope = node.params.some(containsParameterExpression)

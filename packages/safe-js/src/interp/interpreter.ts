@@ -5,6 +5,7 @@ import { assertPromiseExecutionAllowed } from "./promise-tracker.js";
 import { SandboxJobQueue, runAsyncPrefix, suspendJob } from "./jobs.js";
 import { withCancellationSignal } from "./cancel.js";
 import { retainValues } from "./resources.js";
+import { evaluateClass } from "./classes.js";
 import { sandboxString } from "./string-coercion.js";
 import type {
   ArrayExpression,
@@ -270,6 +271,14 @@ const dispatchTable: DispatchTable = {
   BlockStatement: evaluateBlockStatement,
   BooleanLiteral: evaluatePrimitiveLiteral,
   CallExpression: evaluateCallExpression,
+  ClassDeclaration: (node, context) => evaluateClass(node, context, evaluateNode, createCoercionContext(context)),
+  ClassExpression: (node, context) => evaluateClass(node, context, evaluateNode, createCoercionContext(context)),
+  NewTargetExpression: async (_node, context) => ({ kind: "normal", hasValue: true, value: context.functionEnvironment?.newTarget }),
+  Super: async (_node, context) => {
+    const home = context.functionEnvironment?.homeObject;
+    if (home === undefined) throw new ReferenceError("Super binding is unavailable.");
+    return { kind: "normal", hasValue: true, value: getSandboxPrototype(home, context.budget) as SandboxValue };
+  },
   ConditionalExpression: evaluateConditionalExpression,
   ContinueStatement: evaluateContinueStatement,
   DoWhileStatement: evaluateDoWhileStatement,
@@ -442,6 +451,7 @@ async function evaluateNode(
   context: EvaluationContext
 ): Promise<EvaluationResult> {
   context.assertActive?.();
+  if (context.inferredName !== undefined && node.type !== "ClassExpression") context = { ...context, inferredName: undefined };
   const replayWait = promiseReplayContext.getStore()?.beforeNode(node.nodeId);
   if (replayWait !== undefined) await suspendJob(replayWait);
   assertPromiseExecutionAllowed();
@@ -658,7 +668,7 @@ async function evaluateObjectExpression(
       const releaseKey = retainValues(context.budget, () => [key.value]);
       let value: EvaluationResult;
       try {
-        value = await evaluateNode(property.value, context);
+        value = await evaluateNode(property.value, { ...context, inferredName: String(key.value) });
       } finally {
         releaseKey();
       }
@@ -728,30 +738,27 @@ async function evaluateTaggedTemplateExpression(
   node: TaggedTemplateExpression,
   context: EvaluationContext
 ): Promise<EvaluationResult> {
-  const tag = await evaluateNode(node.tag, context);
-  if (tag.kind !== "normal") {
-    return tag;
-  }
-
-  if (!isSandboxClosure(tag.value)) {
-    throw new TypeError("Tagged template tag must be a function.");
-  }
-
-  const values = await evaluateTemplateExpressionValues(node.quasi, context);
-  if (!values.ok) {
-    return values.result;
-  }
-
-  return {
-    kind: "normal",
-    hasValue: true,
-    value: await invokeSandboxClosure(
-      tag.value,
-      [createTaggedTemplateStrings(node.quasi, context), ...values.value],
-      context,
-      [...context.callStack, formatStackFrame(node, tag.value.name)]
-    )
+  const invokeTag = async (tag: SandboxValue, receiver: SandboxValue): Promise<EvaluationResult> => {
+    if (!isSandboxClosure(tag)) throw new TypeError("Tagged template tag must be a function.");
+    const release = retainValues(context.budget, () => [tag, receiver]);
+    try {
+      const values = await evaluateTemplateExpressionValues(node.quasi, context);
+      if (!values.ok) return values.result;
+      return {
+        kind: "normal", hasValue: true,
+        value: await invokeSandboxClosure(tag,
+          [createTaggedTemplateStrings(node.quasi, context), ...values.value], context,
+          [...context.callStack, formatStackFrame(node, tag.name)], node.span, receiver)
+      };
+    } finally { release(); }
   };
+  if (node.tag.type === "MemberExpression") return evaluateMemberAccess(node.tag, context, async member => {
+    if (member.kind === "nullish") throw new TypeError("Tagged template tag must be a function.");
+    const key = await toPropertyKey(member.property, context.budget, createCoercionContext(context));
+    return invokeTag(getPropertyValue(member.object, key, context), member.superReceiver === undefined ? member.object : member.superReceiver.value);
+  });
+  const tag = await evaluateNode(node.tag, context);
+  return tag.kind === "normal" ? invokeTag(tag.value, undefined) : tag;
 }
 
 async function evaluateTemplateExpressionValues(
@@ -957,7 +964,7 @@ async function evaluateAssignmentExpression(
     };
   }
 
-  const right = await evaluateNode(node.right, context);
+  const right = await evaluateNode(node.right, { ...context, inferredName: node.left.type === "Identifier" ? node.left.name : undefined });
   if (right.kind !== "normal") {
     return right;
   }
@@ -1047,7 +1054,8 @@ async function evaluateMemberAssignmentExpression(
       }
       operands = [value];
       property ??= await toPropertyKey(member.property, context.budget, createCoercionContext(context));
-      setSandboxProperty(member.object, property, value, context.budget);
+      if (member.superReceiver === undefined) setSandboxProperty(member.object, property, value, context.budget);
+      else setSuperProperty(member.object, member.superReceiver.value, property, value, context.budget);
 
       return {
         kind: "normal",
@@ -1248,7 +1256,7 @@ async function evaluateVariableDeclaration(
               hasValue: true as const,
               value: undefined
             }
-          : await evaluateNode(declarator.init, context);
+          : await evaluateNode(declarator.init, { ...context, inferredName: declarator.id.type === "Identifier" ? declarator.id.name : undefined });
 
     if (value.kind !== "normal") {
       return value;
@@ -1490,6 +1498,11 @@ function predeclareStatementListBindings(
   const names = new Set<string>();
 
   for (const statement of statements) {
+    if (statement.type === "ClassDeclaration") {
+      scope.predeclare(statement.id.name, "let");
+      names.add(statement.id.name);
+      continue;
+    }
     if (statement.type === "FunctionDeclaration") {
       const name = statement.id.name;
       if (names.has(name) && !(functionBody && scope.getOwnBindingKind(name) === "var")) {
@@ -2399,6 +2412,8 @@ async function evaluateDeleteExpression(
   }
 
   return evaluateMemberAccess(node.argument, context, async member => {
+    if (member.kind === "resolved" && member.superReceiver !== undefined)
+      throw new ReferenceError("Cannot delete a super property.");
     if (member.kind === "nullish" || member.object === null || member.object === undefined) {
       if (member.kind === "nullish") {
         return {
@@ -2485,7 +2500,8 @@ async function evaluateMemberUpdateExpression(
       await toNumericPrimitive(getPropertyValue(member.object, property, context), context)
     );
     const next = node.operator === "++" ? current + 1 : current - 1;
-    setSandboxProperty(member.object, property, next, context.budget);
+    if (member.superReceiver === undefined) setSandboxProperty(member.object, property, next, context.budget);
+    else setSuperProperty(member.object, member.superReceiver.value, property, next, context.budget);
 
     return {
       kind: "normal",
@@ -2559,6 +2575,13 @@ async function evaluateCallExpression(
   node: CallExpression,
   context: EvaluationContext
 ): Promise<EvaluationResult> {
+  if (node.callee.type === "Super") {
+    const construction = context.functionEnvironment?.construction;
+    if (construction === undefined) throw new ReferenceError("Super constructor binding is unavailable.");
+    const args = await evaluateCallArguments(node.arguments, context);
+    if (!args.ok) return args.result;
+    return { kind: "normal", hasValue: true, value: await construction.superCall(args.value) };
+  }
   if (node.callee.type === "MemberExpression") {
     context.budget.visitNode();
     context.stats.nodeVisits += 1;
@@ -2668,9 +2691,11 @@ async function evaluateMemberAccess(
       kind: "resolved";
       object: InterpreterValue;
       property: SandboxValue;
+      superReceiver?: { value: SandboxValue };
     }
   ) => Promise<EvaluationResult>
 ): Promise<EvaluationResult> {
+  const superReceiver = node.object.type === "Super" ? { value: context.scope.lookup("this") } : undefined;
   const object = await evaluateNode(node.object, context);
   if (object.kind !== "normal") return object;
 
@@ -2686,7 +2711,8 @@ async function evaluateMemberAccess(
       : { kind: "normal" as const, value: getStaticPropertyName(node.property) };
     if (result.kind !== "normal") return result;
     property = result.value;
-    return await consume({ kind: "resolved", object: object.value, property });
+    return await consume({ kind: "resolved", object: object.value, property,
+      ...(superReceiver === undefined ? {} : { superReceiver: { value: superReceiver.value.found ? superReceiver.value.value : undefined } }) });
   } finally {
     release();
   }
@@ -2761,6 +2787,9 @@ async function evaluateMemberCallExpression(
       ...reference,
       property: await toPropertyKey(reference.property, context.budget, createCoercionContext(context))
     };
+
+    if (member.superReceiver !== undefined)
+      return evaluateResolvedCallExpression(node, getPropertyValue(member.object, member.property, context), context, member.superReceiver.value);
 
     if ((typeof member.object === "string" || typeof member.object === "number" || typeof member.object === "boolean") &&
         getBoxedPrototype(member.object, context.budget) !== undefined) {
@@ -3529,7 +3558,8 @@ export function setSandboxProperty(
   target: SandboxValue,
   property: string | number,
   value: SandboxValue,
-  budget: Budget
+  budget: Budget,
+  checkInherited = true
 ): void {
   if (isSandboxDate(target)) throw new TypeError("Date own properties are not supported.");
   if (isGuestHostObject(target)) {
@@ -3565,7 +3595,7 @@ export function setSandboxProperty(
     }
     Object.defineProperty(target, key, { value });
   } else {
-    if (typeof prototypeOwner === "object" && prototypeOwner !== null) {
+    if (checkInherited && typeof prototypeOwner === "object" && prototypeOwner !== null) {
       let depth = 0;
       for (let prototype = getSandboxPrototype(prototypeOwner, budget); prototype !== null; prototype = getSandboxPrototype(prototype, budget)) {
         budget.visitNode();
@@ -3579,6 +3609,22 @@ export function setSandboxProperty(
     }
     defineSandboxProperty(target, key, value);
   }
+}
+
+function setSuperProperty(base: SandboxValue, receiver: SandboxValue, key: string, value: SandboxValue, budget: Budget): void {
+  if (typeof base !== "object" || base === null) throw new TypeError("Cannot assign a property of null.");
+  let depth = 0;
+  for (let current: object | null = base; current !== null; current = getSandboxPrototype(current, budget)) {
+    budget.visitNode();
+    assertSandboxDataDepth(depth++);
+    const properties = isSandboxClosure(current) ? current.properties : current;
+    const descriptor = properties === undefined ? undefined : Object.getOwnPropertyDescriptor(properties, key);
+    if (descriptor === undefined) continue;
+    if (descriptor.writable !== true) throw new TypeError(`Cannot assign to read only property '${key}'.`);
+    break;
+  }
+  if (typeof receiver !== "object" || receiver === null) throw new TypeError("Super assignment requires an object receiver.");
+  setSandboxProperty(receiver, key, value, budget, false);
 }
 
 function deleteSandboxProperty(
@@ -3699,8 +3745,8 @@ function createSetMethodOptions(context: EvaluationContext): SetMethodOptions {
 function createFunctionMethodOptions(context: EvaluationContext): FunctionMethodOptions {
   return {
     budget: context.budget,
-    callClosure: (closure, args, stack, thisValue, construct) =>
-      invokeSandboxClosure(closure, args, context, stack, undefined, thisValue, construct)
+    callClosure: (closure, args, stack, thisValue, construct, newTarget) =>
+      invokeSandboxClosure(closure, args, context, stack, undefined, thisValue, construct, newTarget)
   };
 }
 
@@ -3711,7 +3757,8 @@ async function invokeSandboxClosure(
   stack: readonly string[],
   span?: SourceSpan,
   thisValue: SandboxValue = undefined,
-  construct = false
+  construct = false,
+  newTarget?: SandboxClosure
 ): Promise<SandboxValue> {
   const leaveCall = context.budget.enterCall();
 
@@ -3723,6 +3770,7 @@ async function invokeSandboxClosure(
       {
         stack,
         thisValue,
+        newTarget: construct ? newTarget ?? callee : undefined,
         compilation: context.compilation,
         getProperty: (value: SandboxValue, property: string | number) =>
           getPropertyValue(value, property, context),
@@ -3732,8 +3780,9 @@ async function invokeSandboxClosure(
           closure: SandboxClosure,
           argumentsList: readonly SandboxValue[],
           receiver: SandboxValue,
-          asConstructor?: boolean
-        ) => invokeSandboxClosure(closure, argumentsList, context, stack, span, receiver, asConstructor),
+          asConstructor?: boolean,
+          target?: SandboxClosure
+        ) => invokeSandboxClosure(closure, argumentsList, context, stack, span, receiver, asConstructor, target),
         ...(span === undefined ? {} : { span })
       }
     ]);

@@ -362,6 +362,41 @@ export type FunctionExpression = BaseNode & {
   params: ArrowFunctionExpression["params"];
 };
 
+export type ClassElement =
+  | (BaseNode & {
+      type: "MethodDefinition";
+      computed: boolean;
+      key: Expression;
+      kind: "constructor" | "method";
+      static: boolean;
+      value: FunctionExpression;
+    })
+  | (BaseNode & {
+      type: "PropertyDefinition";
+      computed: boolean;
+      key: Expression;
+      static: boolean;
+      value?: Expression;
+    })
+  | (BaseNode & { type: "StaticBlock"; body: BlockStatement });
+
+export type ClassBody = BaseNode & { type: "ClassBody"; body: ClassElement[] };
+export type ClassDeclaration = BaseNode & {
+  type: "ClassDeclaration";
+  id: Identifier;
+  superClass?: Expression;
+  body: ClassBody;
+};
+export type ClassExpression = BaseNode & {
+  type: "ClassExpression";
+  id?: Identifier;
+  superClass?: Expression;
+  body: ClassBody;
+};
+export type ClassNode = ClassDeclaration | ClassExpression;
+export type SuperExpression = BaseNode & { type: "Super" };
+export type NewTargetExpression = BaseNode & { type: "NewTargetExpression" };
+
 export type IfStatement = BaseNode & {
   type: "IfStatement";
   test: Expression;
@@ -472,6 +507,7 @@ export type Module = BaseNode & {
 
 export type Statement =
   | BlockStatement
+  | ClassDeclaration
   | BreakStatement
   | DoWhileStatement
   | ExportDefaultDeclaration
@@ -511,18 +547,21 @@ export type Expression =
   | BooleanLiteral
   | CallExpression
   | ConditionalExpression
+  | ClassExpression
   | FunctionExpression
   | Identifier
   | LogicalExpression
   | MemberExpression
   | MetaProperty
   | NewExpression
+  | NewTargetExpression
   | NullLiteral
   | NumericLiteral
   | ObjectExpression
   | RegexLiteral
   | SequenceExpression
   | StringLiteral
+  | SuperExpression
   | TaggedTemplateExpression
   | TemplateLiteral
   | ThisExpression
@@ -553,6 +592,7 @@ const BITWISE_AND_OPERATORS = new Set<BinaryOperator>(["&"]);
 const MAX_UNICODE_CODE_POINT = 0x10ffff;
 const TOP_LEVEL_STATEMENT_KEYWORDS = new Set([
   "break",
+  "class",
   "const",
   "continue",
   "do",
@@ -653,6 +693,19 @@ export function parseExecutableModule(
 type ParserBindingKind = "lexical" | "function" | "parameter" | "catch";
 type ParserScope = Map<string, ParserBindingKind>;
 type FunctionParseContext = "normal" | "generator" | "parameters";
+type LexicalParseContext = {
+  newTarget: boolean;
+  superProperty: boolean;
+  superCall: boolean;
+  arguments: boolean;
+  return: boolean;
+  await: boolean;
+  strictAwait?: boolean;
+};
+const ordinaryFunctionContext: LexicalParseContext = {
+  newTarget: true, superProperty: false, superCall: false,
+  arguments: true, return: true, await: true
+};
 
 class Parser {
   private index = 0;
@@ -668,12 +721,13 @@ class Parser {
     private readonly tokens: Token[],
     private readonly source: string,
     private readonly compilation?: CompileScope,
-    private functionContext: FunctionParseContext = "normal"
+    private functionContext: FunctionParseContext = "normal",
+    private lexicalContext: LexicalParseContext = { ...ordinaryFunctionContext, newTarget: false }
   ) {
     this.functionScopes.add(this.scopes[0]!);
   }
 
-  private withFunctionSource<T extends FunctionNode>(node: T): T {
+  private withFunctionSource<T extends FunctionNode | ClassNode>(node: T): T {
     functionSources.set(node, {
       text: this.source,
       start: node.span.start.offset,
@@ -858,7 +912,9 @@ class Parser {
       }
     });
     this.expectPunctuator("=>");
-    const body = this.parseArrowFunctionBody(params);
+    const body = this.withLexicalContext({
+      ...this.lexicalContext, return: true, await: isAsync || this.lexicalContext.strictAwait !== true
+    }, () => this.parseArrowFunctionBody(params));
     return this.withFunctionSource({
       type: "ArrowFunctionExpression",
       async: isAsync,
@@ -974,6 +1030,10 @@ class Parser {
     }
 
     this.assertAllowedStatementStart(token);
+
+    if (token.value === "class") return this.parseClass(true) as ClassDeclaration;
+    if (token.value === "return" && !this.lexicalContext.return)
+      throw new DisallowedSyntaxError("return in a static block", token.start);
 
     if (token.type === "punctuator" && token.value === "{") {
       return this.parseBlockStatement();
@@ -1651,19 +1711,8 @@ class Parser {
     }
     const id = this.parseBindingIdentifier();
     this.declareBinding(id, "function");
-    const params = this.withScope(() => {
-      const parsedParams = this.parseArrowParameters();
-      for (const param of parsedParams) {
-        for (const identifier of boundIdentifiers(param)) {
-          this.declareBinding(identifier);
-        }
-      }
-      return parsedParams;
-    });
     const generator = generatorToken !== undefined;
-    const body = this.withFunctionContext(generator ? "generator" : "normal", () =>
-      this.parseBlockStatement(params)
-    );
+    const { params, body } = this.parseFunctionParts(generator, ordinaryFunctionContext);
 
     return this.withFunctionSource({
       type: "FunctionDeclaration",
@@ -1674,6 +1723,125 @@ class Parser {
       params,
       span: createSpan(asyncToken?.start ?? functionToken.start, body.span.end)
     });
+  }
+
+  private parseClass(declaration: boolean): ClassNode {
+    const start = this.expectKeyword("class");
+    const id = isIdentifierLikeToken(this.currentToken()) && this.currentToken().value !== "extends"
+      ? this.parseBindingIdentifier()
+      : undefined;
+    if (declaration && id === undefined) throw unexpectedTokenError(this.currentToken());
+    if (declaration) this.declareBinding(id!);
+    return this.withScope(() => {
+      if (id !== undefined) this.declareBinding(id);
+      const superClass = this.consumeKeyword("extends") === undefined
+        ? undefined
+        : this.parseLeftHandSideExpression().node;
+      const open = this.expectPunctuator("{");
+      const elements: ClassElement[] = [];
+      let constructorSeen = false;
+      while (this.consumePunctuator("}") === undefined) {
+        if (this.currentToken().type === "eof") throw unexpectedTokenError(this.currentToken());
+        if (this.consumePunctuator(";") !== undefined) continue;
+        const element = this.parseClassElement(superClass !== undefined);
+        if (element.type === "MethodDefinition" && element.kind === "constructor") {
+          if (constructorSeen) throw new Error("A class may only have one constructor.");
+          constructorSeen = true;
+        }
+        elements.push(element);
+      }
+      const body: ClassBody = {
+        type: "ClassBody", body: elements,
+        span: createSpan(open.start, this.previousToken().end)
+      };
+      return this.withFunctionSource({
+        type: declaration ? "ClassDeclaration" : "ClassExpression",
+        id, superClass, body, span: createSpan(start.start, body.span.end)
+      } as ClassNode);
+    });
+  }
+
+  private parseFunctionParts(generator: boolean, lexicalContext: LexicalParseContext): {
+    params: ArrowFunctionExpression["params"];
+    body: BlockStatement;
+  } {
+    return this.withLexicalContext(lexicalContext, () => {
+      const params = this.withScope(() => {
+        const parsed = this.parseArrowParameters();
+        for (const param of parsed)
+          for (const identifier of boundIdentifiers(param)) this.declareBinding(identifier);
+        return parsed;
+      });
+      const body = this.withFunctionContext(generator ? "generator" : "normal", () => this.parseBlockStatement(params));
+      return { params, body };
+    });
+  }
+
+  private parseClassElement(derived: boolean): ClassElement {
+    const start = this.currentToken();
+    let isStatic = false;
+    if (start.value === "static" && !["(", "=", ";", "}"].includes(this.peekToken(1).value)) {
+      this.index++;
+      isStatic = true;
+      if (this.currentToken().value === "{") {
+        const body = this.withLexicalContext({
+          newTarget: true, superProperty: true, superCall: false,
+          arguments: false, return: false, await: false, strictAwait: true
+        }, () => this.withFunctionContext("normal", () => this.parseBlockStatement([])));
+        return { type: "StaticBlock", body, span: createSpan(start.start, body.span.end) };
+      }
+    }
+    const methodStart = this.currentToken();
+    let async = false;
+    if (methodStart.value === "async" && !hasLineBreakBetween(methodStart, this.peekToken(1)) &&
+        (this.peekToken(1).value === "*" || this.isObjectMethodStart())) {
+      this.index++;
+      async = true;
+    }
+    const generator = this.consumePunctuator("*") !== undefined;
+    if (async && generator) throw new DisallowedSyntaxError("async generator", methodStart.start);
+    if ((this.currentToken().value === "get" || this.currentToken().value === "set") && this.isObjectMethodStart())
+      throw new DisallowedSyntaxError("class accessor", this.currentToken().start);
+    const computed = this.consumePunctuator("[") !== undefined;
+    const key = computed
+      ? this.parseExpression({ allowSequence: true }).node
+      : this.currentToken().type === "string"
+        ? createStringLiteral(this.tokens[this.index++]!)
+        : this.currentToken().type === "numeric"
+          ? createNumericLiteral(this.tokens[this.index++]!)
+          : this.parseIdentifierName();
+    if (computed) this.expectPunctuator("]");
+    const name = computed ? undefined : key.type === "Identifier" ? key.name
+      : key.type === "StringLiteral" || key.type === "NumericLiteral" ? String(key.value) : undefined;
+    if (isStatic && name === "prototype") throw new Error("A static class element cannot be named prototype.");
+    if (this.currentToken().value === "(") {
+      const constructor = !isStatic && name === "constructor";
+      if (constructor && (async || generator)) throw new Error("A class constructor cannot be async or a generator.");
+      const { params, body } = this.parseFunctionParts(generator, {
+        newTarget: true, superProperty: true, superCall: constructor && derived,
+        arguments: true, return: true, await: async, strictAwait: true
+      });
+      const value = this.withFunctionSource({
+        type: "FunctionExpression", async, generator, method: true, params, body,
+        span: createSpan(methodStart.start, body.span.end)
+      } as FunctionExpression);
+      return {
+        type: "MethodDefinition", key, computed, static: isStatic,
+        kind: constructor ? "constructor" : "method", value,
+        span: createSpan(start.start, value.span.end)
+      };
+    }
+    if (async || generator) throw unexpectedTokenError(this.currentToken());
+    if (name === "constructor") throw new Error("A class field cannot be named constructor.");
+    const value = this.consumePunctuator("=") === undefined ? undefined : this.withLexicalContext({
+      newTarget: true, superProperty: true, superCall: false,
+      arguments: false, return: false, await: false, strictAwait: true
+    }, () => this.withFunctionContext("normal", () => this.parseExpression().node));
+    const end = value?.span.end ?? key.span.end;
+    if (this.consumePunctuator(";") === undefined && this.currentToken().value !== "}" &&
+        !hasLineBreakBetween(this.previousToken(), this.currentToken()))
+      throw unexpectedTokenError(this.currentToken());
+    return { type: "PropertyDefinition", key, computed, static: isStatic, value, span: createSpan(start.start, end) };
   }
 
   private parseVariableDeclarator(kind: VariableDeclarationKind): VariableDeclarator {
@@ -2435,6 +2603,7 @@ class Parser {
     }
 
     if (token.type === "keyword" && token.value === "await") {
+      if (!this.lexicalContext.await) throw new DisallowedSyntaxError("await in a class element", token.start);
       if (this.functionContext === "generator") {
         throw new Error(
           `generators cannot await; use a regular async function at line ${token.start.line}, column ${token.start.column}.`
@@ -2589,6 +2758,7 @@ class Parser {
           {
             allowMalformedEscapes: true,
             functionContext: this.functionContext,
+            lexicalContext: this.lexicalContext,
             source: this.source
           },
           this.compilation
@@ -2634,6 +2804,18 @@ class Parser {
 
   private parsePrimaryExpression(): ParsedExpression {
     const token = this.currentToken();
+
+    if (token.value === "class") return { node: this.parseClass(false) as ClassExpression, parenthesized: false };
+    if (token.value === "super") {
+      const next = this.peekToken(1).value;
+      if (!(next === "(" ? this.lexicalContext.superCall :
+          (next === "." || next === "[") && this.lexicalContext.superProperty))
+        throw new DisallowedSyntaxError("super", token.start);
+      this.index++;
+      return { node: { type: "Super", span: createTokenSpan(token) }, parenthesized: false };
+    }
+    if (token.value === "arguments" && !this.lexicalContext.arguments)
+      throw new DisallowedSyntaxError("arguments in a class element", token.start);
 
     if (token.type === "keyword" && token.value === "this") {
       this.index += 1;
@@ -2701,6 +2883,7 @@ class Parser {
           {
             allowMalformedEscapes: false,
             functionContext: this.functionContext,
+            lexicalContext: this.lexicalContext,
             source: this.source
           },
           this.compilation
@@ -2757,7 +2940,11 @@ class Parser {
     this.index += 1;
 
     if (this.consumePunctuator(".") !== undefined) {
-      throw new DisallowedSyntaxError(newToken.value, newToken.start);
+      const target = this.currentToken();
+      if (target.value !== "target" || !this.lexicalContext.newTarget)
+        throw new DisallowedSyntaxError(newToken.value, newToken.start);
+      this.index++;
+      return { node: { type: "NewTargetExpression", span: createSpan(newToken.start, target.end) }, parenthesized: false };
     }
 
     let callee = this.parsePrimaryExpression();
@@ -2801,6 +2988,8 @@ class Parser {
     const optional = this.consumePunctuator("?.");
     if (optional !== undefined)
       throw new DisallowedSyntaxError("new optional chain", optional.start);
+    if (callee.node.type === "Super")
+      throw new DisallowedSyntaxError("new super", newToken.start);
     const args = this.consumePunctuator("(") === undefined ? [] : this.parseArguments();
     const end = this.previousToken();
 
@@ -2827,19 +3016,8 @@ class Parser {
     const id = isIdentifierLikeToken(this.currentToken())
       ? this.parseBindingIdentifier()
       : undefined;
-    const params = this.withScope(() => {
-      const parsedParams = this.parseArrowParameters();
-      for (const param of parsedParams) {
-        for (const identifier of boundIdentifiers(param)) {
-          this.declareBinding(identifier);
-        }
-      }
-      return parsedParams;
-    });
     const generator = generatorToken !== undefined;
-    const body = this.withFunctionContext(generator ? "generator" : "normal", () =>
-      this.parseBlockStatement(params)
-    );
+    const { params, body } = this.parseFunctionParts(generator, ordinaryFunctionContext);
 
     return this.withFunctionSource({
       type: "FunctionExpression",
@@ -3126,16 +3304,7 @@ class Parser {
     asyncToken: Token | undefined,
     methodStart: Position
   ): FunctionExpression {
-    const params = this.withScope(() => {
-      const parsedParams = this.parseArrowParameters();
-      for (const param of parsedParams) {
-        for (const identifier of boundIdentifiers(param)) {
-          this.declareBinding(identifier);
-        }
-      }
-      return parsedParams;
-    });
-    const body = this.withFunctionContext("normal", () => this.parseBlockStatement(params));
+    const { params, body } = this.parseFunctionParts(false, ordinaryFunctionContext);
 
     return this.withFunctionSource({
       type: "FunctionExpression",
@@ -3697,6 +3866,12 @@ class Parser {
     }
   }
 
+  private withLexicalContext<T>(context: LexicalParseContext, callback: () => T): T {
+    const previous = this.lexicalContext;
+    this.lexicalContext = context;
+    try { return callback(); } finally { this.lexicalContext = previous; }
+  }
+
   private withLoopContext<T>(callback: () => T): T {
     this.breakableDepth += 1;
     this.loopDepth += 1;
@@ -4248,6 +4423,7 @@ function createTemplateLiteral(
   options: {
     allowMalformedEscapes: boolean;
     functionContext: FunctionParseContext;
+    lexicalContext: LexicalParseContext;
     source: string;
   },
   compilation?: CompileScope
@@ -4275,6 +4451,7 @@ function createTemplateLiteral(
           raw.slice(expressionStart, expressionEnd),
           positionWithinRaw(token.start, raw, expressionStart),
           options.functionContext,
+          options.lexicalContext,
           options.source,
           compilation
         )
@@ -4744,6 +4921,7 @@ function parseEmbeddedExpression(
   source: string,
   base: Position,
   functionContext: FunctionParseContext,
+  lexicalContext: LexicalParseContext,
   fullSource: string,
   compilation?: CompileScope
 ): Expression {
@@ -4752,7 +4930,7 @@ function parseEmbeddedExpression(
     start: rebasePosition(token.start, base),
     end: rebasePosition(token.end, base)
   }));
-  return new Parser(tokens, fullSource, compilation, functionContext).parseExpressionOnly();
+  return new Parser(tokens, fullSource, compilation, functionContext, lexicalContext).parseExpressionOnly();
 }
 
 export function findRegexLiteral(node: unknown): RegexLiteral | undefined {

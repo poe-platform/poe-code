@@ -52,8 +52,16 @@ They return actual integer byte counts from zero through the view's length;
 partial operations are not automatically retried. A zero read of a nonempty
 buffer means EOF; an error is never converted to EOF. A zero write is not an
 implicit success for all remaining bytes: retrying consumers must handle lack
-of progress. Empty views return zero without backend I/O after normal access
-and argument checks.
+of progress. Empty views normally return zero without backend I/O after normal
+access and argument checks. A descriptor may advertise
+`delegateZeroLengthWrite: true` to require an empty write to reach its backend
+after those checks, including position validation. The backend's successful
+count must still be zero, and its errors remain observable. The operation uses
+the same serialization, cancellation and cleanup drain as a nonempty write.
+False or omission retains the existing fast path; empty reads are unchanged.
+This capability governs explicit descriptor writes, not whether a byte-stream
+sink preserves empty chunks as write events. No existing provider is enabled
+automatically.
 
 Numeric positions are nonnegative safe integers and mean absolute byte offsets,
 without changing the sequential cursor. Null uses and advances that cursor.
@@ -96,7 +104,8 @@ masked by the acquired access mode; append disables positionedWrite unless
 positionedAppendWrite is affirmatively supported. The optional flag is itself
 masked by base positionedWrite support and writable access; false/omitted
 cannot grant support, and omission remains omitted. Read access disables
-truncate. Runtime provider errors still remain possible.
+truncate and masks an explicitly supplied delegateZeroLengthWrite flag false;
+omission remains omitted. Runtime provider errors still remain possible.
 Wrong access mode uses EBADF; unavailable truncation/synchronization uses ENOTSUP.
 
 ## Lifecycle helper

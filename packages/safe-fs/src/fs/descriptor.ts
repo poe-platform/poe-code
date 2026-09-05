@@ -28,6 +28,7 @@ function admitCapabilities(path: string, options: OpenFileOptions, capabilities:
     || capabilities.readObservation !== undefined && typeof capabilities.readObservation !== "boolean"
     || capabilities.openTruncate !== undefined && typeof capabilities.openTruncate !== "boolean"
     || capabilities.positionedAppendWrite !== undefined && typeof capabilities.positionedAppendWrite !== "boolean"
+    || capabilities.delegateZeroLengthWrite !== undefined && typeof capabilities.delegateZeroLengthWrite !== "boolean"
     || !["none", "volatile", "storage"].includes(capabilities.synchronization)) throw new FsError("EINVAL", { syscall: "open", path });
   if (options.truncate && !(capabilities.openTruncate ?? capabilities.truncate) || options.synchronization !== undefined && capabilities.synchronization === "none") {
     throw new FsError("ENOTSUP", { syscall: "open", path });
@@ -95,6 +96,7 @@ class ManagedFileDescriptor<Resource> implements FileDescriptor {
       positionedRead: capabilities.positionedRead && options.access !== "write",
       positionedWrite: capabilities.positionedWrite && options.access !== "read" && (!options.append || positionedAppendWrite),
       ...(capabilities.positionedAppendWrite === undefined ? {} : { positionedAppendWrite }),
+      ...(capabilities.delegateZeroLengthWrite === undefined ? {} : { delegateZeroLengthWrite: capabilities.delegateZeroLengthWrite && options.access !== "read" }),
       truncate: capabilities.truncate && options.access !== "read",
       synchronization: capabilities.synchronization,
     });
@@ -171,7 +173,7 @@ class ManagedFileDescriptor<Resource> implements FileDescriptor {
     return this.#run("write", options, async (backend, forwarded) => {
       if (this.#access === "read") throw new FsError("EBADF", { syscall: "write", path: this.#path });
       this.#position(buffer, position, "write");
-      if (buffer.byteLength === 0) return 0;
+      if (buffer.byteLength === 0 && this.capabilities.delegateZeroLengthWrite !== true) return 0;
       const count = await backend.write(backend.resource, buffer, position, forwarded);
       if (!Number.isSafeInteger(count) || count < 0 || count > buffer.byteLength) throw new FsError("EIO", { syscall: "write", path: this.#path });
       return count;

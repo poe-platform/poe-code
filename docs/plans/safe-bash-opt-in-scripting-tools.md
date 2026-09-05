@@ -2003,6 +2003,107 @@ this request to keep additions out of the default package.
   assigns the evidence-backed repairs to the readonly source owner. The original
   four failures and separately recorded harness corrections remain preserved.
 
+- The append prerequisite is locally committed as
+  `a6aa9d63211af41d15ab9dd5b3ceab9bd64a91aa`. Root verifies all eleven committed
+  paths and their captured content hashes
+  (`/tmp/append-capability-commit-root-F8nQxB/verified.json`). No push or release
+  occurs. The goal turn makes concrete progress but does not complete the scope.
+- After that verified commit, root authorizes the narrowly specified empty-write
+  capability implementation in the filesystem contract/helper and the separately
+  reproduced read-only metadata mask in the command helper. The frozen 50-case
+  filesystem, 90-case command-helper and 18-case public red suites remain
+  unchanged. Budget and output-wrapper changes are not justified by the evidence.
+  Independent review and coherent public rebuilding are still required before
+  these changes or the device provider can be accepted.
+
+- The filesystem empty-write implementation turns the unchanged 50-case red
+  suite green and passes 478 retained descriptor cases. Package typecheck is
+  clean, but the deliberate string-valued invalid-capability fixture produces
+  one newly exposed TS2352 diagnostic. Root validates the exact fixture and
+  authorizes replacing only its cast with equivalent Reflect.set construction,
+  retaining the invalid string, every assertion and the original bytes/red.
+  Independent review owns that disclosed fixture migration; it may not weaken
+  the test or change the provider profile.
+- The command helper now captures the declared empty-write capability directly,
+  without reflection or casts, and masks read-only access. Its unchanged 90 cases
+  pass, as do 633 retained cases and sixteen strict roots with 305 measured inputs
+  unchanged (`/tmp/safe-bash-zero-write-mask-WcOnrY/receipt-final.json`). No budget
+  or output-wrapper change is made. Independent filesystem/helper review is
+  still pending, so these are author qualifications, not final acceptance.
+- Root refreshes selected filesystem declarations, then runs the maintained
+  normal build to refresh actual public JavaScript. Both succeed with their
+  measured source hashes unchanged. Public empty-write18 improves from 6/18 to
+  18/18; its combined append/provider/observer/default cohort passes 105/105,
+  zero skips/cancellations, with 459 measured inputs stable
+  (`/tmp/zero-write-public-green-root-9FEEHf/`). Both public filesystem entry
+  points expose the flag in an actual-options in-memory declaration consumer
+  with zero diagnostics (`/tmp/zero-write-public-types-root-XbePEg/`).
+- Root views `/tmp/zero-write-public-visual-root-p2Gsww/zero-write.png`: the
+  actual managed descriptor skips the default empty write, propagates EPERM
+  under explicit delegation, refuses read-only writes with EBADF, and closes
+  each backend once. This uses an injected memory-only backend, not the product
+  device provider or a new native execution. Fresh lint, literal test enrollment,
+  independent review and a separate local commit remain pending for empty-write
+  support. Device production edits are not yet authorized; readonly repairs
+  remain with their source owner following the four independent failures.
+
+- The readonly owner reproduces the independent 101/105 result, preserves all
+  26 reviewer cases, and repairs the four failures. Two additional expansion
+  controls bring the focused cohort to 107/107: primary24, reviewer26 and
+  author57. Its broad run passes 1663/1674, with only the eleven still-active
+  device-observation failures; nine strict roots have zero diagnostics/drift.
+  Evidence and complete frozen hashes are in
+  `/tmp/readonly-indexed-independent-repair-rpAMIm/final.json`. The original
+  reviewer is rechecking that repair. The prior public101 result belongs to the
+  earlier candidate and does not qualify these new parser/runtime bytes; a
+  fresh coherent public build/replay is required before readonly acceptance.
+
+- Independent empty-write review approves the filesystem implementation: 69/69
+  focused and 421/421 retained descriptor cases, with strict checks clean after
+  the exact authorized invalid-fixture construction migration. The helper still
+  has one failure among 101 cases: an enumerable getter returning undefined and
+  then true is observed twice, reintroducing an affirmative empty-write flag on
+  a read-only handle. Writes correctly remain EBADF; metadata is wrong. Root
+  authorizes a single captured capability snapshot, deriving masks from that
+  snapshot and omitting the undefined optional flag. Preserve the eleven-case
+  independent test and its red (`/tmp/zero-write-independent.z8DTKd/freeze.json`).
+- Readonly rereview passes the original107 but adds two valid newline-continuation
+  failures, alongside four passing cancellation controls. Native Bash5.3 skips
+  the remainder of the failed command list and can resume the next input unit;
+  the implementation instead exits the entire input. The extended32-case review
+  preserves its original26 prefix. Its focused result is 111/113, not acceptance
+  (`/tmp/readonly-indexed-rereview-Ma3HCz/final-report.json`). The owner must repair
+  the actual control-flow boundary, preserving quoted operands, diagnostics,
+  cancellation and cleanup rather than splitting source text or weakening tests.
+
+- The helper's single-snapshot repair turns the unchanged 100/101 red green and
+  passes 644 retained author cases. Independent rereview approves 101/101 focused
+  and 661/661 related cases, with eighteen strict roots clean and 338 measured
+  inputs unchanged (`/tmp/zero-write-helper-rereview.l60o09/receipt.json`). The
+  original double-getter failure is preserved; later live cursor validation,
+  cancellation, admission and cleanup behavior remain unchanged.
+- Root's selected virtual-bash build refreshes the final helper and succeeds.
+  The final public zero-write/append/provider/observer/default cohort passes
+  105/105. In the same separately labelled capture, the newly added readonly
+  continuation cases reproduce 27/29 passing; that outer process exits 1 for
+  those two retained readonly failures, not for zero-write acceptance. All 461
+  measured test/generated inputs stay unchanged
+  (`/tmp/zero-write-final-public-root-VFrIjm/`). Literal discovery passes 98/98
+  with all three new zero-write test paths explicitly enrolled.
+- Fresh guarded zero-write lint succeeds with zero errors/warnings and no drift
+  among ten watched candidates (`/tmp/zero-write-final-lint-root-9Zkq0t/`). The
+  independently approved empty-write prerequisite is ready for its separate
+  local commit. This does not qualify the still-pending readonly continuation
+  repair or the product device provider.
+- With both generic descriptor prerequisites independently approved, root
+  authorizes the device owner to implement the fixed Darwin canonical provider
+  in its existing leaf. Its public-builder test must explicitly opt into the
+  new empty-write capability; only that fixture setting may change before the
+  new red run. All other original device expectations/native captures remain
+  preserved pending explicit migration decisions. No additional native entropy
+  writes are authorized; the old native test that writes random-device payloads
+  must not be executed during this source implementation phase.
+
 - First implementation wave: cmp, yes, shuf and virtual devices in disjoint leaf
   directories. Root is qualifying native oracles and the opt-in delivery boundary.
 - The yes leaf is verified for its documented GNU 9.7 C-locale profile: 135 tests

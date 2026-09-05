@@ -88,18 +88,22 @@ export async function openCommandFile(context: FileOutputContext & { readonly cl
     acquisitionSettled();
     check();
     if (!accepting) throw new FsError("EBADF", { syscall: "open", path });
-    const position = descriptor.capabilities.position === true && typeof descriptor.getPosition === "function";
-    const probeRead = descriptor.capabilities.readObservation === true ? descriptor.probeRead : undefined;
-    if (descriptor.capabilities.readObservation === true && typeof probeRead !== "function") throw new FsError("ENOTSUP", { syscall: "probeRead", path });
-    const admitted = Object.freeze({ ...descriptor.capabilities,
-      positionedRead: descriptor.capabilities.positionedRead && request.access !== "write",
-      positionedWrite: descriptor.capabilities.positionedWrite && request.access !== "read"
-        && (!request.append || descriptor.capabilities.positionedAppendWrite === true),
-      truncate: descriptor.capabilities.truncate && request.access !== "read",
-      ...(descriptor.capabilities.position === undefined ? {} : { position }),
-      ...(descriptor.capabilities.positionedAppendWrite === undefined ? {} : {
-        positionedAppendWrite: descriptor.capabilities.positionedAppendWrite === true
-          && descriptor.capabilities.positionedWrite && request.access !== "read",
+    const { delegateZeroLengthWrite, ...retainedCapabilities } = descriptor.capabilities;
+    const position = retainedCapabilities.position === true && typeof descriptor.getPosition === "function";
+    const probeRead = retainedCapabilities.readObservation === true ? descriptor.probeRead : undefined;
+    if (retainedCapabilities.readObservation === true && typeof probeRead !== "function") throw new FsError("ENOTSUP", { syscall: "probeRead", path });
+    const admitted = Object.freeze({ ...retainedCapabilities,
+      positionedRead: retainedCapabilities.positionedRead && request.access !== "write",
+      positionedWrite: retainedCapabilities.positionedWrite && request.access !== "read"
+        && (!request.append || retainedCapabilities.positionedAppendWrite === true),
+      truncate: retainedCapabilities.truncate && request.access !== "read",
+      ...(retainedCapabilities.position === undefined ? {} : { position }),
+      ...(retainedCapabilities.positionedAppendWrite === undefined ? {} : {
+        positionedAppendWrite: retainedCapabilities.positionedAppendWrite === true
+          && retainedCapabilities.positionedWrite && request.access !== "read",
+      }),
+      ...(delegateZeroLengthWrite === undefined ? {} : {
+        delegateZeroLengthWrite: delegateZeroLengthWrite === true && request.access !== "read",
       }),
     });
     check();

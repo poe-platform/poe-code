@@ -503,6 +503,39 @@ this request to keep additions out of the default package.
   uncommitted mapfile leaf; no raw-record source/test findings are reported. The
   mapfile owner is assigned that repair. The complete lint run is not clean; the
   reviewed raw-record slice can be committed independently of that future leaf.
+- Raw input records are locally committed as `1e9ee0d17`. The incremental indexed
+  writer is frozen for independent review after 31 author cases, including seven
+  native witnesses, and 247 combined passes. Root separately passes 128 focused
+  source cases and three compiled public cases for callback-visible publication,
+  post-admission readonly, replacement and scalar-prefix restoration. Actual
+  output is inspected in `incremental-public-visual.png`. Unset/recreate safety
+  refusal, associative/control-name boundaries and indexed-prefix restrictions
+  remain explicit; this is not a completed mapfile or fuller-array implementation.
+- Independent writer review withholds approval: nine of fifteen cases pass, six
+  fail. UInt32 records cannot round-trip through individual element expansion or
+  generic binding reads, and an outer writer can mutate a newly shadowing local,
+  even one declared readonly. Root reproduces all six through the compiled public
+  boundary: three prior cases pass, six new cases fail. The unchanged reviewer
+  and public regressions require source repair before commit; post-admission
+  readonly on the originally admitted binding remains a separate allowed case.
+  The broader review's missing `prepareBytesInput` import belongs to concurrent
+  source-readiness TDD, not the frozen writer. Read's separate independent review
+  also finds thirteen trailing-whitespace numeric parsing mismatches; its owner
+  is assigned a fix without weakening the new reviewer assertions.
+- The writer author repairs all six unchanged review failures: uint32 read
+  access is extended without widening one-shot/assignment bounds, and admitted
+  local identity is checked across shadowing/restoration. Root passes 146 focused
+  source cases and, after a successful optional build, all 43 selected compiled
+  cases—including the nine-case writer cohort that previously had six failures.
+  Independent re-review and the sixteenth guarded lint run remain pending before
+  commit. Read's whitespace repair separately passes its author's 201-case replay;
+  independent re-review is assigned, with timed/public replacement still open.
+- Independent writer re-review approves the unchanged repair after fifteen review,
+  34 author and 509 combined cases, zero skips, with clean strict source/test
+  types. All five frozen author hashes match. Root's three selected type roots
+  also have zero diagnostics. Guarded lint sixteen completes cleanly with exit
+  zero. The read leaf separately receives a 77-review/201-combined approval for
+  its untimed slice; that does not approve replacement, timing or mapfile.
 
 - First implementation wave: cmp, yes, shuf and virtual devices in disjoint leaf
   directories. Root is qualifying native oracles and the opt-in delivery boundary.

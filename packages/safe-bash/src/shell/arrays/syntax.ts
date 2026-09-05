@@ -41,8 +41,8 @@ export function literalIndex(source: string, offset: number): LiteralIndex {
   return { decimal };
 }
 
-export function numericIndex(index: LiteralIndex): number | undefined {
-  if (index.decimal.length > 10 || index.decimal.length === 10 && index.decimal > "2147483647") return undefined;
+export function numericIndex(index: LiteralIndex, maximum: 2147483647 | 4294967295 = 2147483647): number | undefined {
+  if (index.decimal.length > 10 || index.decimal.length === 10 && index.decimal > String(maximum)) return undefined;
   return Number(index.decimal);
 }
 

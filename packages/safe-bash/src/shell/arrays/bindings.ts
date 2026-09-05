@@ -350,6 +350,13 @@ export class BindingStore {
     return displaced?.release();
   }
 
+  revise(name: string, binding: IndexedBinding, tickets: Tickets): void {
+    if (this.get(name) !== binding) throw new ArrayFailure("binding identity changed before revision");
+    this.changed(tickets, name);
+    const watch = this.watches.get(name);
+    if (watch) watch.typedVersion = tickets.version;
+  }
+
   remove(name: string, tickets: Tickets): Promise<void> | undefined {
     const previous = this.bindings.get(name);
     this.bindings.delete(name);

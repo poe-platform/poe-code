@@ -20,6 +20,26 @@ invalidate publication. Values, snapshots and local restoration share the shell'
 existing ownership and allocation accounting. This API is not an incremental
 writer and does not establish mapfile callback semantics.
 
+`openIndexed(name, { clear? })` instead admits an incremental indexed writer.
+Admission creates or promotes the target and optionally clears it immediately.
+Each awaited `set` publishes its cell before the next callback or operation;
+`close` drains admitted work without rolling back already published cells.
+Sequential writes do not clone the entire array per record. Retained snapshots
+use copy-on-write and keep their prior contents and ownership accounting.
+
+The writer preserves canonical bytes, local restoration and scalar command-prefix
+restoration. A readonly attribute added after successful admission does not revoke
+that admitted writer. Compatible array replacement remains visible to subsequent
+writes; unset/recreate invalidates the identity and is safely refused rather than
+emulating native stale-target behavior. This does not qualify associative/type
+replacement, control-name indexing or previously unsupported indexed prefixes.
+The one-shot transaction's stricter publication checks remain unchanged.
+Indexed reads support `0..4294967295` so writer-created cells can be queried by
+binding access, element expansion, element length and `[[ -v ]]`. This does not
+widen the existing one-shot transaction or ordinary assignment limits. Admission
+also binds the local declaration identity: a deeper local shadow is not the
+original target, even if its name matches, and cannot receive that writer's edits.
+
 `input.borrow(fd)` borrows an enrolled readable descriptor's shared cursor.
 Descriptor aliases and subsequent consumers see the same consumed position.
 Releasing a borrow does not close the underlying descriptor. A borrow is scoped

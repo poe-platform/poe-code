@@ -17,10 +17,16 @@ export interface ShellBindingTransaction {
   close(): Promise<void>;
 }
 
+export interface ShellIndexedWriter {
+  set(index: number, value: ShellValue): Promise<void>;
+  close(): Promise<void>;
+}
+
 export interface ShellExtensionBindings {
   describe(name: string): ShellBindingDescription;
   get(name: string, index?: number): ShellValue | undefined;
   assign(name: string, value: ShellValue): Promise<void>;
+  openIndexed(name: string, options?: { readonly clear?: boolean }): Promise<ShellIndexedWriter>;
   prepare(name: string, options: { readonly kind: "indexed"; readonly clear?: boolean }): Promise<ShellBindingTransaction>;
 }
 

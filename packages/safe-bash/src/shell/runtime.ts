@@ -16,7 +16,7 @@ import { HereDocumentSyntaxError, hereDocumentWords, parseShellInputUnit, parseS
 import { ShellLimitError, ShellSyntaxError } from "./types.js";
 import type { ShellCommandContext, ShellInvokeOptions, ShellLimits } from "./types.js";
 import { forkExtensions } from "./extensions.js";
-import type { ShellExtensionBindings, ShellExtensionContext, ShellExtensionEvent, ShellExtensionInput, ShellExtensionState } from "./extensions.js";
+import type { ShellExtensionBindings, ShellExtensionContext, ShellExtensionEvent, ShellExtensionInput, ShellExtensionState, ShellIndexedWriter } from "./extensions.js";
 import { fileInput, ShellInput } from "./input.js";
 import { evaluateArithmetic, prepareArithmetic } from "./arithmetic.js";
 import { evaluatePositionalArithmetic } from "./arithmetic-parameters.js";
@@ -1745,8 +1745,8 @@ export class Runtime {
       assertOpen();
       if (typeof name !== "string" || !/^[a-zA-Z_][a-zA-Z_0-9]*$/u.test(name)) throw new TypeError("Invalid binding name");
     };
-    const checkIndex = (index: number): void => {
-      if (!Number.isSafeInteger(index) || index < 0 || index > 2147483647) throw new RangeError("Binding index outside 0..2147483647");
+    const checkIndex = (index: number, maximum: 2147483647 | 4294967295 = 2147483647): void => {
+      if (!Number.isSafeInteger(index) || index < 0 || index > maximum) throw new RangeError(`Binding index outside 0..${maximum}`);
     };
     const retain = (value: ShellValue | undefined): ShellValue | undefined => {
       if (value !== undefined && typeof value !== "string") allocation.hold(value);
@@ -1760,7 +1760,7 @@ export class Runtime {
       },
       get: (name: string, index = 0) => {
         checkName(name);
-        checkIndex(index);
+        checkIndex(index, 4294967295);
         const binding = arrayStore(state)?.get(name);
         const scalar = state.variables[name];
         return retain(binding ? binding.getValue(index) : index === 0 && scalar !== undefined ? stateMonitor(state)?.values.get(name, scalar) ?? scalar : undefined);
@@ -1769,6 +1769,12 @@ export class Runtime {
         checkName(name);
         await scope.run(() => this.assignVariable(state, name, value));
         assertOpen();
+      },
+      openIndexed: async (name: string, options: { readonly clear?: boolean } = {}) => {
+        checkName(name);
+        const clear = options.clear;
+        if (clear !== undefined && typeof clear !== "boolean") throw new TypeError("Invalid indexed writer options");
+        return this.incrementalIndexed(state, io, name, clear === true);
       },
       prepare: async (name: string, options: { readonly kind: "indexed"; readonly clear?: boolean }) => {
         checkName(name);
@@ -1858,6 +1864,146 @@ export class Runtime {
           });
         } catch (error) { await close(); throw error; }
       },
+    });
+  }
+
+  private async incrementalIndexed(state: State, io: IO, name: string, clear: boolean): Promise<ShellIndexedWriter> {
+    const scope = io[invocationScope];
+    scope.assertOpen();
+    this.signal.throwIfAborted();
+    if (state.readonlyVariables?.has(name)) throw new ArrayFailure("readonly binding");
+    if (controlNames.has(name)) throw new ArrayFailure("control binding cannot be indexed");
+    const store = requireArrays(state);
+    const owner = store.owner;
+    const monitor = stateMonitor(state)!;
+    let lifetime: ArrayOwner | undefined;
+    let holding: Admission | undefined;
+    let identity: object | undefined;
+    let admittedLocal: SavedVariable | undefined;
+    let preparing: Promise<void> | undefined;
+    let active: Promise<void> | undefined;
+    let closed = false;
+    let completion: Promise<void> | undefined;
+    const close = (): Promise<void> => {
+      closed = true;
+      return completion ??= (async () => {
+        await Promise.allSettled([preparing, active]);
+        try { await lifetime?.close(); }
+        finally { holding?.release(); }
+      })();
+    };
+    scope.register(close);
+    const localIdentity = (): SavedVariable | undefined => {
+      for (let index = state.locals.length - 1; index >= 0; index--) {
+        owner.reserve({ work: 2 }).release();
+        const saved = state.locals[index]!.get(name);
+        if (saved) return saved;
+      }
+      return undefined;
+    };
+    const validate = (): void => {
+      this.signal.throwIfAborted();
+      scope.assertOpen();
+      if (closed) throw new ArrayFailure("indexed writer is closed");
+      owner.assertOpen();
+      if (arrayStore(state) !== store || store.owner !== owner || identity !== undefined && store.bindings.get(name) !== identity) throw new ArrayFailure("incremental target identity changed");
+      if (localIdentity() !== admittedLocal) throw new ArrayFailure("incremental target local identity changed");
+    };
+    try {
+      admittedLocal = localIdentity();
+      preparing = scope.run(async () => {
+        holding = owner.hold();
+        lifetime = ArrayOwner.create(owner.ledger, owner);
+        lifetime.reserve({ metadata: 192, work: 12 });
+        await textToken(lifetime, name, this.signal);
+        const watch = await store.watch(name, lifetime, this.signal);
+        try {
+          await this.prepareArrayObservers(state, lifetime);
+          validate();
+          if (state.readonlyVariables?.has(name)) throw new ArrayFailure("readonly binding");
+          if (!watch.valid()) throw new ArrayFailure("binding changed during writer admission");
+          if (clear || !store.get(name)) {
+            const prepared = await store.prepare(name, this.signal, false);
+            try {
+              if (!clear && state.variables[name] !== undefined) {
+                const value = monitor.values.get(name, state.variables[name]!);
+                const token = await textToken(prepared.binding.owner, value, this.signal);
+                try { prepared.validate(); prepared.binding.insert(0, token); }
+                catch (error) { token.release(); throw error; }
+              }
+              validate();
+              if (state.readonlyVariables?.has(name)) throw new ArrayFailure("readonly binding");
+              if (!watch.valid()) throw new ArrayFailure("binding changed during writer admission");
+              prepared.validate();
+              let retirement: Promise<void> | undefined;
+              monitor.publish(prepared.tickets, name, () => {
+                delete state.variables[name];
+                retirement = prepared.publish();
+              });
+              await retirement;
+            } finally { await prepared.close(); }
+          }
+          identity = store.bindings.get(name);
+          if (!identity) throw new ArrayFailure("incremental target is not indexed");
+          validate();
+        } finally { watch.close(); }
+      });
+      await preparing;
+    } catch (error) {
+      try { await close(); } catch (cleanup) { scope.failures.push(cleanup); }
+      throw error;
+    }
+    return Object.freeze({
+      set: (index: number, value: ShellValue): Promise<void> => {
+        try {
+          validate();
+          if (!Number.isSafeInteger(index) || index < 0 || index > 4294967295) throw new ArrayFailure("index outside 0..4294967295");
+          if (active) throw new ArrayFailure("indexed writer is busy");
+          const work = scope.run(async () => {
+            const current = store.get(name)!;
+            const operation = ArrayOwner.create(owner.ledger, lifetime!);
+            let retained = false;
+            let staged: IndexedBinding | undefined;
+            let token: OwnedText | undefined;
+            try {
+              current.retain();
+              retained = true;
+              const watch = await store.watch(name, operation, this.signal);
+              const tickets = operation.reserve({ generation: true, version: true, epoch: true, work: 8 });
+              await this.prepareArrayObservers(state, operation);
+              token = await textToken(operation, value, this.signal);
+              validate();
+              if (!watch.valid() || store.get(name) !== current) throw new ArrayFailure("incremental target changed during write");
+              if (current.references > 2) staged = await current.copy(this.signal);
+              validate();
+              if (!watch.valid() || store.get(name) !== current) throw new ArrayFailure("incremental target changed during write");
+              const target = staged ?? current;
+              let retirement: Promise<void> | undefined;
+              monitor.publish(tickets, name, () => {
+                target.insert(index, token!);
+                token = undefined;
+                if (staged) retirement = store.publish(name, staged, tickets);
+                else store.revise(name, current, tickets);
+              });
+              staged = undefined;
+              watch.close();
+              await retirement;
+              this.signal.throwIfAborted();
+            } finally {
+              token?.release();
+              try { await staged?.release(); }
+              finally {
+                try { if (retained) await current.release(); }
+                finally { await operation.close(); }
+              }
+            }
+          });
+          active = work;
+          void work.then(() => { if (active === work) active = undefined; }, () => { if (active === work) active = undefined; });
+          return work;
+        } catch (error) { return Promise.reject(error); }
+      },
+      close,
     });
   }
 
@@ -2253,7 +2399,7 @@ export class Runtime {
               const binding = arrayStore(state)?.get(match[1]!);
               const selector = match[2];
               if (selector === "@" || selector === "*") return binding ? binding.values.size > 0 : this.variable(state, match[1]!) !== undefined;
-              const index = selector === undefined ? 0 : numericIndex({ decimal: selector });
+              const index = selector === undefined ? 0 : numericIndex({ decimal: selector }, 4294967295);
               if (index === undefined) throw new ConditionalUnsupported("[[ variable index: unsupported conditional profile");
               return binding ? binding.get(index) !== undefined : index === 0 && this.variable(state, match[1]!) !== undefined;
             },
@@ -4558,7 +4704,7 @@ export class Runtime {
     const binding = part.kind === "variable" ? arrayStore(state)?.get(part.name) : undefined;
     const holding = binding ? requireArrays(state).owner.hold() : undefined;
     const selector = getArraySelector(part);
-    const index = selector?.kind === "element" ? numericIndex(selector.index) : 0;
+    const index = selector?.kind === "element" ? numericIndex(selector.index, 4294967295) : 0;
     const token = index === undefined || selector?.kind === "members" ? undefined : binding?.values.get(index)?.text;
     token?.retain();
     try {
@@ -4629,8 +4775,8 @@ export class Runtime {
       const store = requireArrays(state);
       const binding = store.get(part.name);
       if (selector.kind === "element") {
-        const index = numericIndex(selector.index);
-        if (index === undefined) throw new ArrayFailure("index outside 0..2147483647");
+        const index = numericIndex(selector.index, 4294967295);
+        if (index === undefined) throw new ArrayFailure("index outside 0..4294967295");
         const value = binding ? binding.getValue(index) : index === 0 && state.variables[part.name] !== undefined ? stateMonitor(state)?.values.get(part.name, state.variables[part.name]!) ?? state.variables[part.name] : undefined;
         this.requireParameter(value === undefined ? undefined : shellValueText(value), `${part.name}[${selector.index}]`, state, io, part.line);
         return part.length ? this.valueLength(value ?? "", state, io) : value ?? "";

@@ -4,6 +4,8 @@ import { createMemoryFileSystem, FsError, type FileDescriptor, type FileSystem }
 import type { InvocationCleanup } from "../../src/contracts/command.js";
 import { bindFileOutputBudget, writeFileOutputCounted, type CountedFileWrite } from "../../src/contracts/filesystem-output.js";
 import { openCommandFile } from "../../src/contracts/filesystem-descriptor.js";
+import { Shell } from "../../src/shell/shell.js";
+import { ShellLimitError } from "../../src/shell/types.js";
 
 function deferred<Value = void>() {
   let resolve!: (value: Value) => void;
@@ -191,4 +193,242 @@ test("an unsupported provider is refused rather than emulated through path write
   const fs: FileSystem = { ...context.fs, capabilities: { ...context.fs.capabilities, open: false } } as FileSystem;
   fs.open = async () => { throw new Error("must not open"); };
   await assert.rejects(openCommandFile({ ...context, fs }, "/file", { access: "read" }), error => error instanceof FsError && error.code === "ENOTSUP");
+});
+
+function rejectingClose(reason: unknown, ready: Promise<void> = Promise.resolve()) {
+  const context = owner();
+  const open = context.fs.open!.bind(context.fs);
+  let closes = 0;
+  context.fs.open = async (...args) => {
+    const descriptor = await open(...args);
+    const close = descriptor.close.bind(descriptor);
+    descriptor.close = async () => { closes++; await ready; await close(); throw reason; };
+    return descriptor;
+  };
+  return { ...context, closes: () => closes };
+}
+
+for (const reason of [undefined, null, false, 0, -0, "", NaN, new FsError("EIO")]) {
+  test(`acknowledged close retains exact rejection and repeated close: ${Object.is(reason, -0) ? "-0" : String(reason)}`, async () => {
+    const context = rejectingClose(reason);
+    const descriptor = await openCommandFile(context, "/file", { access: "write", creation: "exclusive" });
+    try {
+      assert.equal(descriptor.acknowledgeCloseFailure(reason), false);
+      const closing = descriptor.close();
+      await assert.rejects(closing, error => Object.is(error, reason));
+      const wrong = Object.is(reason, 0) ? -0 : Object.is(reason, -0) ? 0 : new FsError("EIO");
+      assert.equal(descriptor.acknowledgeCloseFailure(wrong), false);
+      await assert.rejects(Promise.resolve().then(() => context.cleanups[0]!()), error => Object.is(error, reason));
+      assert.equal(descriptor.acknowledgeCloseFailure(reason), true);
+      assert.equal(descriptor.acknowledgeCloseFailure(reason), true);
+      assert.equal(descriptor.acknowledgeCloseFailure(wrong), false);
+      await context.cleanups[0]!();
+      await context.cleanups[0]!();
+      assert.equal(descriptor.close(), closing);
+      await assert.rejects(descriptor.close(), error => Object.is(error, reason));
+      assert.equal(context.closes(), 1);
+      await assert.rejects(descriptor.write(Uint8Array.of(1), null), { code: "EBADF" });
+    } finally { await descriptor.close().catch(() => {}); }
+  });
+}
+
+test("close acknowledgement refuses premature matching reasons and still drains admitted writes", async () => {
+  const writeEntered = deferred();
+  const writeRelease = deferred();
+  const closeRelease = deferred();
+  const reason = new FsError("EIO");
+  const context = rejectingClose(reason, closeRelease.promise);
+  const open = context.fs.open!.bind(context.fs);
+  context.fs.open = async (...args) => {
+    const descriptor = await open(...args);
+    const write = descriptor.write.bind(descriptor);
+    descriptor.write = async (...args) => { writeEntered.resolve(); await writeRelease.promise; return write(...args); };
+    return descriptor;
+  };
+  const descriptor = await openCommandFile(context, "/file", { access: "write", creation: "exclusive" });
+  const writing = descriptor.write(Uint8Array.of(255, 254), null);
+  await writeEntered.promise;
+  const closing = descriptor.close();
+  const rejected = assert.rejects(closing, error => error === reason);
+  let cleaned = false;
+  const cleanup = Promise.resolve().then(() => context.cleanups[0]!()).then(
+    () => { cleaned = true; }, error => { cleaned = true; assert.equal(error, reason); },
+  );
+  try {
+    assert.equal(descriptor.acknowledgeCloseFailure(reason), false);
+    assert.equal(context.closes(), 0);
+    assert.equal(cleaned, false);
+    writeRelease.resolve();
+    assert.equal(await writing, 2);
+    await new Promise<void>(resolve => setImmediate(resolve));
+    assert.equal(context.closes(), 1);
+    assert.equal(descriptor.acknowledgeCloseFailure(reason), false);
+    assert.equal(cleaned, false);
+    closeRelease.resolve();
+    await rejected;
+    await cleanup;
+    assert.equal(descriptor.acknowledgeCloseFailure(reason), true);
+    await context.cleanups[0]!();
+    assert.deepEqual(await context.fs.readFile("/file"), Uint8Array.of(255, 254));
+  } finally { writeRelease.resolve(); closeRelease.resolve(); await writing; await rejected; await cleanup; }
+});
+
+test("successful close cannot acknowledge a write failure or an unknown reason", async () => {
+  const context = owner();
+  const reason = new FsError("ENOSPC");
+  const open = context.fs.open!.bind(context.fs);
+  context.fs.open = async (...args) => {
+    const descriptor = await open(...args);
+    descriptor.write = async () => { throw reason; };
+    return descriptor;
+  };
+  const descriptor = await openCommandFile(context, "/file", { access: "write", creation: "exclusive" });
+  try {
+    const writing = descriptor.write(Uint8Array.of(1), null);
+    await assert.rejects(writing, error => error === reason);
+    assert.equal(descriptor.acknowledgeCloseFailure(reason), false);
+    await descriptor.close();
+    assert.equal(descriptor.acknowledgeCloseFailure(reason), false);
+    assert.equal(descriptor.acknowledgeCloseFailure(undefined), false);
+    await context.cleanups[0]!();
+    await assert.rejects(writing, error => error === reason);
+  } finally { await descriptor.close(); }
+});
+
+for (const scope of ["context", "open"] as const) for (const acknowledgeFirst of [false, true]) {
+  test(`${scope} cancellation is never acknowledged or suppressed; acknowledged first=${acknowledgeFirst}`, async () => {
+    const context = rejectingClose(new FsError("EIO"));
+    const local = new AbortController();
+    const descriptor = await openCommandFile(context, "/file", { access: "write", creation: "exclusive", signal: local.signal });
+    let failure: unknown;
+    try { await descriptor.close(); } catch (reason) { failure = reason; }
+    try {
+      assert.ok(failure instanceof FsError);
+      if (acknowledgeFirst) assert.equal(descriptor.acknowledgeCloseFailure(failure), true);
+      (scope === "context" ? context.controller : local).abort(false);
+      assert.equal(descriptor.acknowledgeCloseFailure(false), false);
+      assert.equal(descriptor.acknowledgeCloseFailure(failure), acknowledgeFirst);
+      await assert.rejects(Promise.resolve().then(() => context.cleanups[0]!()), reason => reason === false);
+      await assert.rejects(descriptor.close(), reason => reason === failure);
+    } finally { await descriptor.close().catch(() => {}); }
+  });
+}
+
+test("cancellation with the identical close reason cannot be newly acknowledged", async () => {
+  const context = rejectingClose(false);
+  const descriptor = await openCommandFile(context, "/file", { access: "write", creation: "exclusive" });
+  await assert.rejects(descriptor.close(), reason => reason === false);
+  context.controller.abort(false);
+  assert.equal(descriptor.acknowledgeCloseFailure(false), false);
+  await assert.rejects(Promise.resolve().then(() => context.cleanups[0]!()), reason => reason === false);
+});
+
+test("Shell recovery runs after an awaited diagnosed close failure is explicitly acknowledged", async context => {
+  const fixture = rejectingClose(new FsError("EIO"));
+  const shell = new Shell({ fs: fixture.fs });
+  context.after(() => shell.dispose());
+  shell.register({ name: "copy", async execute(command) {
+    const descriptor = await openCommandFile(command, "/output", { access: "write", creation: "exclusive" });
+    await descriptor.write(Buffer.from("WXYZ"), null);
+    try { await descriptor.close(); }
+    catch (reason) {
+      await command.stderr.write(Buffer.from("copy: closing output file '/output': Input/output error\n"));
+      assert.equal(descriptor.acknowledgeCloseFailure(reason), true);
+      return { exitCode: 1 };
+    }
+    throw new Error("expected close failure");
+  } });
+  shell.register({ name: "recover", async execute(command) {
+    await command.stdout.write(await command.fs.readFile("/output"));
+    return { exitCode: 0 };
+  } });
+  const result = await shell.exec("copy || recover");
+  assert.equal(result.exitCode, 0);
+  assert.equal(result.stdout, "WXYZ");
+  assert.equal(result.stderr, "copy: closing output file '/output': Input/output error\n");
+  assert.equal(fixture.closes(), 1);
+});
+
+test("acknowledging a close failure never consumes an escaping writer failure with identical identity", async context => {
+  const reason = new ShellLimitError("maxOutputBytes");
+  const fixture = rejectingClose(reason);
+  const open = fixture.fs.open!.bind(fixture.fs);
+  fixture.fs.open = async (...args) => {
+    const descriptor = await open(...args);
+    descriptor.write = async () => { throw reason; };
+    return descriptor;
+  };
+  const shell = new Shell({ fs: fixture.fs });
+  context.after(() => shell.dispose());
+  shell.register({ name: "copy", async execute(command) {
+    const descriptor = await openCommandFile(command, "/output", { access: "write", creation: "exclusive" });
+    try { await descriptor.write(Uint8Array.of(1), null); }
+    finally {
+      try { await descriptor.close(); }
+      catch (failure) { assert.equal(descriptor.acknowledgeCloseFailure(failure), true); }
+    }
+    return { exitCode: 0 };
+  } });
+  await assert.rejects(shell.exec("copy"), failure => failure === reason);
+  assert.equal(fixture.closes(), 1);
+});
+
+test("open failures stay primary and do not expose acknowledgement authority", async () => {
+  const fixture = owner();
+  const reason = new FsError("EIO");
+  fixture.fs.open = async () => { throw reason; };
+  const opening = openCommandFile(fixture, "/output", { access: "write", creation: "exclusive" });
+  await assert.rejects(opening, failure => failure === reason);
+  await fixture.cleanups[0]!();
+  await assert.rejects(opening, failure => failure === reason);
+});
+
+test("acknowledgement cannot suppress an unrelated failure from the close drain", async context => {
+  const closeReason = new FsError("EIO");
+  const drainReason = new Error("listener release failure");
+  const fixture = rejectingClose(closeReason);
+  const descriptor = await openCommandFile(fixture, "/file", { access: "write", creation: "exclusive" });
+  const remove = context.mock.method(fixture.signal, "removeEventListener", () => { throw drainReason; });
+  try {
+    const closing = descriptor.close();
+    await assert.rejects(closing, reason => reason === drainReason);
+    assert.equal(descriptor.acknowledgeCloseFailure(drainReason), false);
+    assert.equal(descriptor.acknowledgeCloseFailure(closeReason), true);
+    await assert.rejects(Promise.resolve().then(() => fixture.cleanups[0]!()), reason => reason === drainReason);
+    assert.equal(descriptor.close(), closing);
+    assert.equal(fixture.closes(), 1);
+  } finally { remove.mock.restore(); fixture.controller.abort(false); await descriptor.close().catch(() => {}); }
+});
+
+test("actual Shell root cancellation still wins after explicit close acknowledgement", async context => {
+  const controller = new AbortController();
+  const fixture = rejectingClose(new FsError("EIO"));
+  const shell = new Shell({ fs: fixture.fs });
+  context.after(() => shell.dispose());
+  let recovered = false;
+  shell.register({ name: "copy", async execute(command) {
+    const descriptor = await openCommandFile(command, "/output", { access: "write", creation: "exclusive" });
+    await descriptor.write(Uint8Array.of(255), null);
+    try { await descriptor.close(); }
+    catch (reason) { assert.equal(descriptor.acknowledgeCloseFailure(reason), true); }
+    controller.abort(false);
+    return { exitCode: 1 };
+  } });
+  shell.register({ name: "recover", execute() { recovered = true; return { exitCode: 0 }; } });
+  await assert.rejects(shell.exec("copy || recover", { signal: controller.signal }), reason => reason === false);
+  assert.equal(recovered, false);
+  assert.equal(fixture.closes(), 1);
+  assert.deepEqual(await fixture.fs.readFile("/output"), Uint8Array.of(255));
+});
+
+test("an unrelated close-drain failure cannot be suppressed even when it aliases the retained close reason", async context => {
+  const reason = new FsError("EIO");
+  const fixture = rejectingClose(reason);
+  const descriptor = await openCommandFile(fixture, "/file", { access: "write", creation: "exclusive" });
+  const remove = context.mock.method(fixture.signal, "removeEventListener", () => { throw reason; });
+  try {
+    await assert.rejects(descriptor.close(), failure => failure === reason);
+    assert.equal(descriptor.acknowledgeCloseFailure(reason), true);
+    await assert.rejects(Promise.resolve().then(() => fixture.cleanups[0]!()), failure => failure === reason);
+  } finally { remove.mock.restore(); fixture.controller.abort(false); await descriptor.close().catch(() => {}); }
 });

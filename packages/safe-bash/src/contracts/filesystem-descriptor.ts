@@ -2,10 +2,15 @@ import { FsError } from "poe-code/safe-fs";
 import type { FileDescriptor, FsOptions, OpenFileOptions } from "poe-code/safe-fs";
 import { assertCountedFileOutput, writeFileOutputCounted, type FileOutputContext } from "./filesystem-output.js";
 
-export async function openCommandFile(context: FileOutputContext, path: string, options: OpenFileOptions): Promise<FileDescriptor> {
+export interface CommandFileDescriptor extends FileDescriptor {
+  acknowledgeCloseFailure(reason: unknown): boolean;
+}
+
+export async function openCommandFile(context: FileOutputContext, path: string, options: OpenFileOptions): Promise<CommandFileDescriptor> {
   let descriptor: FileDescriptor | undefined;
   let accepting = true;
   let closing: Promise<void> | undefined;
+  let closeFailure: { reason: unknown; acknowledged: boolean; drained: boolean } | undefined;
   let work: Promise<void> = Promise.resolve();
   let acquisitionSettled!: () => void;
   const acquired = new Promise<void>(resolve => { acquisitionSettled = resolve; });
@@ -18,8 +23,10 @@ export async function openCommandFile(context: FileOutputContext, path: string, 
       const retained = descriptor;
       descriptor = undefined;
       try { await retained?.close(); }
+      catch (reason) { closeFailure = { reason, acknowledged: false, drained: false }; throw reason; }
       finally {
         scope?.removeEventListener("abort", aborted);
+        if (closeFailure) closeFailure.drained = true;
       }
     })();
     void closing.catch(() => {});
@@ -54,7 +61,14 @@ export async function openCommandFile(context: FileOutputContext, path: string, 
     return operation;
   };
   try {
-    context.registerCleanup?.(close);
+    context.registerCleanup?.(async () => {
+      try { await close(); }
+      catch (reason) {
+        check();
+        if (!closeFailure?.drained || !closeFailure.acknowledged || !Object.is(reason, closeFailure.reason)) throw reason;
+      }
+      check();
+    });
     const request = { ...options };
     scope = request.signal ? AbortSignal.any([context.signal, request.signal]) : context.signal;
     scope.addEventListener("abort", aborted, { once: true });
@@ -92,6 +106,13 @@ export async function openCommandFile(context: FileOutputContext, path: string, 
       }),
       sync: (dataOnly, forwarded = {}) => run(dataOnly ? "fdatasync" : "fsync", forwarded, (retained, supplied) => retained.sync(dataOnly, supplied)),
       close,
+      acknowledgeCloseFailure: (reason: unknown): boolean => {
+        if (!closeFailure || !Object.is(reason, closeFailure.reason)) return false;
+        if (closeFailure.acknowledged) return true;
+        if (context.signal.aborted || scope?.aborted) return false;
+        closeFailure.acknowledged = true;
+        return true;
+      },
     };
   } catch (error) {
     acquisitionSettled();

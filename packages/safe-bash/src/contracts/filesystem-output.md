@@ -133,6 +133,19 @@ takes precedence; otherwise the original failure, including falsey thrown values
 is preserved over secondary cleanup failures. Opaque uncooperative host work cannot
 be forcibly interrupted.
 
+The returned `CommandFileDescriptor` additionally exposes
+`acknowledgeCloseFailure(reason)`. A command may call this after successfully
+diagnosing a settled close failure and mapping it to its command exit status.
+Only the exact recorded reason, compared with `Object.is`, can be acknowledged;
+wrong or premature reasons return false. Repeating a successful acknowledgement
+is idempotent. This does not turn `close()` into success: explicit repeated close
+calls retain the original rejection. Registered cleanup still joins the same
+acquisition/work/close barrier, but does not replay an acknowledged close failure.
+Acknowledgement does not consume open or write failures, affect another
+descriptor, undo effects, or suppress cancellation. A failed diagnostic must not
+acknowledge the close failure. This command-wrapper operation does not extend the
+underlying filesystem descriptor contract or authorize untrusted host code.
+
 `bindFileOutputBudget(context, sinkBudget, countedWrite)` binds both output forms
 to the same runtime cleanup owner (`context.registerCleanup`), using one WeakMap.
 `writeFileOutputCounted` returns a validated partial byte count rather than hiding

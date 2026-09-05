@@ -334,6 +334,30 @@ this request to keep additions out of the default package.
   failure identities and preparation-failure precedence remain intact. This
   source is excluded from default build/package files, has no public export or
   shell registration, and does not yet deliver actual background `&` or `wait`.
+- Jobs-state infrastructure is locally committed as `e99a78c30`. The next shared
+  DD repair is explicitly scoped to the command-owned descriptor wrapper: an
+  exact-reason `acknowledgeCloseFailure` operation may prevent registered cleanup
+  from replaying a successfully diagnosed, settled close failure. Explicit close
+  must still reject idempotently, all owned work must drain, and open/write errors,
+  wrong or premature acknowledgements and cancellation must remain unmasked.
+  The filesystem base interface is unchanged. A different worker independently
+  reviews this helper while the DD author repairs help and sparse-append behavior.
+  Generic extension bindings/descriptor borrowing and owned input deadlines are
+  proceeding in disjoint files; no optional leaf is admitted into default core.
+- The command-owned descriptor acknowledgement repair passes 153 shared
+  descriptor/output/accounting tests, including nineteen independent review
+  cases. The final reviewed helper hash is
+  `8d522cc32b924151259222624d9f2e3f94cfa2152b7f96c45f06aea7f96c40c8`.
+  Review additionally reproduced an unrelated listener-cleanup failure using the
+  same reason object; the helper now requires completed draining before cleanup
+  can suppress the acknowledged close failure. The original independent assertion
+  remains unchanged. Root's actual compiled-host pair improves from one pass/one
+  failure to two passes after rebuilding; it verifies required acknowledgement,
+  `||` recovery, preserved file bytes, one underlying close, and still-rejecting
+  explicit repeated close. The final optional build succeeds, strict source/test
+  types pass in independent checks, and `descriptor-ack-public-visual.png` was
+  inspected. This is a shared repair, not acceptance of DD's remaining sparse
+  append cases or the unfinished optional shell extensions.
 
 - First implementation wave: cmp, yes, shuf and virtual devices in disjoint leaf
   directories. Root is qualifying native oracles and the opt-in delivery boundary.

@@ -825,6 +825,18 @@ this request to keep additions out of the default package.
   The readonly combinations cover all 1,024 masks for each method/representation;
   required-only fixtures remain unchanged. No filesystem production code changes
   or compiler relaxations are needed for this fixture migration.
+- Stat-fixture migration is locally committed as `8fe28703e`. Peer admission
+  receives independent approval after restoring early manifest-only rejection:
+  30 policy and 12 independent ordering cases pass, as do the retained 115-case
+  matrix and 16 new author ordering cases. Root passes the full 252-case build
+  suite and eight discovery checks. Frozen peer helper SHA is
+  `b71537ded9892304c29e8c8877bbdb96af550bf5a6c52a0fe2fd982ebd6f6a49`;
+  its build-test SHA is
+  `28b11b8a110106644c6f0043f147d94c17ac2aba9455a5b2eedcd65ac6824a09`.
+  The maintained typecheck now reports 28 diagnostics after the three fixture
+  repairs; consumer phases still pass, but source/test compilation does not.
+  The original metadata refusal, 31-diagnostic report and admission-order failures
+  remain recorded. Guarded lint twenty-four is running on the frozen candidates.
 
 - First implementation wave: cmp, yes, shuf and virtual devices in disjoint leaf
   directories. Root is qualifying native oracles and the opt-in delivery boundary.

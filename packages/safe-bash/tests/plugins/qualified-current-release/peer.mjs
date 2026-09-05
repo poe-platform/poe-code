@@ -64,16 +64,45 @@ function conditionalTarget(entry, conditions) {
   }
 }
 
+function validatePeerMetadata(candidate) {
+  assert.ok(candidate && typeof candidate === "object" && !Array.isArray(candidate), "Expected package peer metadata in manifest and selected lock record");
+  const peers = candidate.peerDependencies;
+  assert.ok(peers && typeof peers === "object" && !Array.isArray(peers), "Expected peer dependency map");
+  assert.ok(Object.keys(peers).every(name => name === "poe-code" || name === "yaml"), "Unknown peer dependency is outside the qualification profile");
+  assert.equal(peers["poe-code"], ">=13.0.0", "Canonical published peer range must remain explicit");
+  const metadata = Object.hasOwn(candidate, "peerDependenciesMeta") ? candidate.peerDependenciesMeta : {};
+  assert.ok(metadata && typeof metadata === "object" && !Array.isArray(metadata), "Expected peer metadata map");
+  for (const [name, entry] of Object.entries(metadata)) {
+    assert.ok(Object.hasOwn(peers, name), `Orphan peer metadata: ${name}`);
+    assert.ok(entry && typeof entry === "object" && !Array.isArray(entry), `Expected peer metadata record: ${name}`);
+    if (name === "poe-code") {
+      assert.deepEqual(entry, Object.hasOwn(entry, "optional") ? { optional: false } : {}, "Canonical peer must be required with valid metadata");
+    } else {
+      assert.deepEqual(entry, { optional: true }, "YAML peer metadata must explicitly declare optional true");
+    }
+  }
+  if (Object.hasOwn(peers, "yaml")) {
+    assert.equal(peers.yaml, "2.9.0", "YAML peer must retain the exact authorized pin");
+    assert.deepEqual(metadata.yaml, { optional: true }, "YAML peer must be explicitly optional");
+  }
+}
+
+function validateLockedPeerMetadata(manifest, locked) {
+  validatePeerMetadata(locked);
+  assert.deepEqual(locked.peerDependencies, manifest.peerDependencies, "Locked peers differ from manifest");
+  assert.deepEqual(locked.peerDependenciesMeta ?? {}, manifest.peerDependenciesMeta ?? {}, "Locked peer metadata differs from manifest");
+}
+
 export function resolvePeerProfile(root, io = filesystem) {
   root = io.realpathSync(root);
   const manifest = JSON.parse(regularBytes(io, join(root, "package.json")));
-  assert.deepEqual(manifest.peerDependencies, { "poe-code": ">=13.0.0" }, "Canonical published peer range must remain explicit");
-  assert.notEqual(manifest.peerDependenciesMeta?.["poe-code"]?.optional, true, "Canonical peer must be required");
+  validatePeerMetadata(manifest);
   const checkout = manifest.poeCode?.integration?.peerProfile === "checkout-root";
   const directory = checkout ? resolve(root, "../..") : io.realpathSync(join(root, "node_modules/poe-code"));
   const lockPath = join(checkout ? directory : root, "package-lock.json");
   const metadata = regularBytes(io, join(directory, "package.json"));
   const peer = JSON.parse(metadata), lock = JSON.parse(regularBytes(io, lockPath));
+  validateLockedPeerMetadata(manifest, lock?.packages?.[checkout ? "packages/safe-bash" : ""]);
   assert.equal(peer.name, "poe-code");
   if (checkout) {
     assert.equal(relative(directory, root), "packages/safe-bash", "Checkout profile requires the integrated package location");
@@ -107,12 +136,12 @@ export function bindPeerArtifact({ root, artifact, declarations, checkout = fals
     artifact = join(io.realpathSync(dirname(resolve(artifact))), basename(artifact));
   }
   const manifestBytes = regularBytes(io, join(root, "package.json"));
+  const manifest = JSON.parse(manifestBytes);
+  validatePeerMetadata(manifest);
   const lockBytes = regularBytes(io, profile.lockPath);
-  const manifest = JSON.parse(manifestBytes), lock = JSON.parse(lockBytes);
-  assert.deepEqual(manifest.peerDependencies, { "poe-code": ">=13.0.0" }, "This qualification profile requires only the canonical peer >=13.0.0");
-  assert.notEqual(manifest.peerDependenciesMeta?.["poe-code"]?.optional, true, "Canonical peer must be required");
+  const lock = JSON.parse(lockBytes);
+  validateLockedPeerMetadata(manifest, lock?.packages?.[profile.profile === "checkout-root" ? "packages/safe-bash" : ""]);
   if (profile.profile === "registry-release") {
-    assert.deepEqual(lock.packages?.[""]?.peerDependencies, manifest.peerDependencies, "Locked required peers differ");
     assert.equal(lock.packages?.[""]?.devDependencies?.["poe-code"], "13.0.0", "Locked development pin differs");
   }
   const compressed = checkout ? undefined : regularBytes(io, artifact, 64 * 1024 * 1024);

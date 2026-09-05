@@ -2,6 +2,7 @@ import assert from "node:assert/strict";
 import test from "node:test";
 import { constants } from "node:fs";
 import { createHash } from "node:crypto";
+import { gzipSync } from "node:zlib";
 import ts from "typescript";
 import { createFsFromVolume, Volume } from "memfs";
 import { buildPackage } from "./build.mjs";
@@ -548,11 +549,19 @@ test("guarded compiler resolves the public peer declaration without admitting pe
   noHeldReads(owned);
 });
 
-function checkoutPeerFixture() {
+function checkoutPeerFixture(optionalYaml = false) {
   const checkout = "/checkout", packageRoot = checkout + "/packages/safe-bash";
   const manifest = { name: "virtual-bash", private: true, peerDependencies: { "poe-code": ">=13.0.0" }, devDependencies: { "poe-code": "file:../.." }, poeCode: { integration: { peerProfile: "checkout-root" } } };
+  if (optionalYaml) {
+    manifest.peerDependencies.yaml = "2.9.0";
+    manifest.peerDependenciesMeta = { yaml: { optional: true } };
+  }
   const peer = { name: "poe-code", version: "0.0.0-dev", type: "module", devDependencies: { "poe-code": "file:." }, exports: { "./safe-fs": { types: { default: "./packages/safe-fs/dist/index.d.ts" }, import: "./packages/safe-js/dist/safe-fs.js" } } };
-  const lock = { packages: { "packages/safe-bash": { devDependencies: { "poe-code": "file:../.." } }, "node_modules/poe-code": { resolved: "", link: true } } };
+  const lock = { packages: { "packages/safe-bash": {
+    peerDependencies: structuredClone(manifest.peerDependencies),
+    ...(optionalYaml ? { peerDependenciesMeta: structuredClone(manifest.peerDependenciesMeta) } : {}),
+    devDependencies: { "poe-code": "file:../.." },
+  }, "node_modules/poe-code": { resolved: "", link: true } } };
   const declaration = "export interface Canonical {}\n";
   const io = createFsFromVolume(Volume.fromJSON({
     [packageRoot + "/package.json"]: JSON.stringify(manifest), [checkout + "/package.json"]: JSON.stringify(peer),
@@ -563,7 +572,229 @@ function checkoutPeerFixture() {
   }));
   const hash = bytes => createHash("sha256").update(bytes).digest("hex");
   const declarations = { peer: { version: peer.version, integrity: null, metadataSha256: hash(JSON.stringify(peer)), declarations: new Map([["packages/safe-fs/dist/index.d.ts", hash(declaration)]]), publicEntries: new Map([["poe-code/safe-fs", "packages/safe-fs/dist/index.d.ts"]]) } };
-  return { checkout, root: packageRoot, io, manifest, peer, lock, declarations };
+  return { checkout, root: packageRoot, io, manifest, peer, lock, declarations, lockPath: checkout + "/package-lock.json", lockEntry: "packages/safe-bash" };
+}
+
+function registryPeerFixture(optionalYaml = false) {
+  const original = checkoutPeerFixture(optionalYaml);
+  const packageRoot = "/registry/candidate", directory = packageRoot + "/node_modules/poe-code";
+  const manifest = structuredClone(original.manifest), peer = structuredClone(original.peer);
+  delete manifest.poeCode;
+  delete manifest.private;
+  manifest.devDependencies["poe-code"] = "13.0.0";
+  peer.version = "13.0.0";
+  delete peer.devDependencies;
+  const files = new Map([["package.json", Buffer.from(JSON.stringify(peer))]]);
+  for (const path of ["packages/safe-fs/dist/index.d.ts", "packages/safe-js/dist/safe-fs.js", "packages/safe-js/dist/shared.js"]) {
+    files.set(path, original.io.readFileSync(original.checkout + "/" + path));
+  }
+  const blocks = [];
+  for (const [path, bytes] of files) {
+    const header = Buffer.alloc(512);
+    header.write("package/" + path);
+    header.write("0000644\0", 100);
+    header.write("0000000\0", 108);
+    header.write("0000000\0", 116);
+    header.write(bytes.length.toString(8).padStart(11, "0") + "\0", 124);
+    header.write("00000000000\0", 136);
+    header.fill(32, 148, 156);
+    header[156] = 48;
+    header.write("ustar\0" + "00", 257);
+    header.write(header.reduce((sum, byte) => sum + byte, 0).toString(8).padStart(6, "0") + "\0 ", 148);
+    blocks.push(header, bytes, Buffer.alloc((512 - bytes.length % 512) % 512));
+  }
+  const archive = gzipSync(Buffer.concat([...blocks, Buffer.alloc(1024)]));
+  const artifact = "/registry/poe-code-13.0.0.tgz";
+  const integrity = "sha512-" + createHash("sha512").update(archive).digest("base64");
+  const lock = { packages: {
+    "": { peerDependencies: structuredClone(manifest.peerDependencies), devDependencies: { ...manifest.devDependencies },
+      ...(optionalYaml ? { peerDependenciesMeta: structuredClone(manifest.peerDependenciesMeta) } : {}) },
+    "node_modules/poe-code": { version: "13.0.0", resolved: "https://registry.npmjs.org/poe-code/-/poe-code-13.0.0.tgz", integrity },
+  } };
+  const lockPath = packageRoot + "/package-lock.json";
+  const io = createFsFromVolume(Volume.fromJSON({
+    [packageRoot + "/package.json"]: JSON.stringify(manifest), [lockPath]: JSON.stringify(lock), [artifact]: archive,
+    ...Object.fromEntries([...files].map(([path, bytes]) => [directory + "/" + path, bytes])),
+  }));
+  const declarations = { peer: { ...original.declarations.peer, version: "13.0.0", integrity,
+    metadataSha256: createHash("sha256").update(files.get("package.json")).digest("hex") } };
+  return { root: packageRoot, io, manifest, peer, lock, declarations, lockPath, lockEntry: "", artifact, directory };
+}
+
+for (const [profile, create] of [["checkout-root", checkoutPeerFixture], ["registry-release", registryPeerFixture]]) {
+  for (const operation of ["resolve", "bind"]) for (const missing of ["nothing", "peer path", "lock"]) {
+    test(`peer admission ordering ${profile} rejects unknown required peers before ${operation} inputs with missing ${missing}`, () => {
+      const owned = create(true), manifestPath = owned.root + "/package.json";
+      owned.manifest.peerDependencies.unapproved = "1.0.0";
+      owned.io.writeFileSync(manifestPath, JSON.stringify(owned.manifest));
+      if (missing === "peer path") {
+        if (profile === "checkout-root") owned.io.unlinkSync(owned.checkout + "/package.json");
+        else owned.io.rmSync(owned.directory, { recursive: true });
+      }
+      if (missing === "lock") owned.io.unlinkSync(owned.lockPath);
+      const inspected = [];
+      for (const method of ["realpathSync", "lstatSync", "readFileSync"]) {
+        const original = owned.io[method].bind(owned.io);
+        owned.io[method] = (path, ...args) => {
+          if (path !== owned.root && path !== manifestPath) inspected.push({ method, path: String(path) });
+          return original(path, ...args);
+        };
+      }
+      assert.throws(() => operation === "resolve" ? resolvePeerProfile(owned.root, owned.io)
+        : bindPeerArtifact({ ...owned, checkout: profile === "checkout-root" }), /Unknown peer dependency/);
+      assert.deepEqual(inspected, []);
+    });
+  }
+
+  for (const missingLock of [false, true]) {
+    test(`peer admission ordering ${profile} rejects a changed manifest before rereading lock with missing lock ${missingLock}`, () => {
+      const owned = create(true), manifestPath = owned.root + "/package.json";
+      const read = owned.io.readFileSync.bind(owned.io), inspected = [];
+      let manifestReads = 0, rereading = false;
+      for (const method of ["realpathSync", "lstatSync"]) {
+        const original = owned.io[method].bind(owned.io);
+        owned.io[method] = (path, ...args) => {
+          if (rereading && path !== manifestPath) inspected.push({ method, path: String(path) });
+          return original(path, ...args);
+        };
+      }
+      owned.io.readFileSync = (path, ...args) => {
+        if (path === manifestPath && ++manifestReads === 2) {
+          rereading = true;
+          if (missingLock) owned.io.unlinkSync(owned.lockPath);
+        }
+        if (rereading && path !== manifestPath) inspected.push({ method: "readFileSync", path: String(path) });
+        const bytes = read(path, ...args);
+        if (path === manifestPath && manifestReads === 1) {
+          owned.manifest.peerDependencies.unapproved = "1.0.0";
+          owned.io.writeFileSync(manifestPath, JSON.stringify(owned.manifest));
+        }
+        return bytes;
+      };
+      assert.throws(() => bindPeerArtifact({ ...owned, checkout: profile === "checkout-root" }), /Unknown peer dependency/);
+      assert.equal(manifestReads, 2);
+      assert.deepEqual(inspected, []);
+    });
+  }
+
+  for (const optionalYaml of [false, true]) for (const explicitRequired of [false, true]) {
+    test(`peer metadata ${profile} admits canonical requiredness ${explicitRequired} with optional YAML ${optionalYaml} without staging YAML`, () => {
+      const owned = create(optionalYaml);
+      if (explicitRequired) {
+        owned.manifest.peerDependenciesMeta = { ...owned.manifest.peerDependenciesMeta, "poe-code": { optional: false } };
+        owned.lock.packages[owned.lockEntry].peerDependenciesMeta = structuredClone(owned.manifest.peerDependenciesMeta);
+        owned.io.writeFileSync(owned.root + "/package.json", JSON.stringify(owned.manifest));
+        owned.io.writeFileSync(owned.lockPath, JSON.stringify(owned.lock));
+      }
+      const read = owned.io.readFileSync.bind(owned.io), reads = [];
+      owned.io.readFileSync = (path, ...args) => { reads.push(String(path)); return read(path, ...args); };
+      assert.equal(resolvePeerProfile(owned.root, owned.io).profile, profile);
+      const binding = bindPeerArtifact({ ...owned, checkout: profile === "checkout-root" });
+      assert.equal(binding.profile, profile);
+      assert.equal(binding.runtimeFiles, 2);
+      assert.equal(binding.declarationFiles, 1);
+      assert.equal(binding.tarballSha256 !== null, profile === "registry-release");
+      owned.io.mkdirSync("/consumer");
+      stagePeerArtifact(binding, "/consumer");
+      assertPeerArtifact(binding, "/consumer");
+      assert.deepEqual(owned.io.readdirSync("/consumer/node_modules"), ["poe-code"]);
+      assert.equal(reads.some(path => path.includes("/node_modules/yaml")), false);
+      assert.equal(owned.io.existsSync(owned.root + "/node_modules/yaml"), false);
+    });
+  }
+
+  const defects = [
+    ["missing canonical peer", manifest => { delete manifest.peerDependencies["poe-code"]; }],
+    ["canonical range", manifest => { manifest.peerDependencies["poe-code"] = "^13.0.0"; }],
+    ["optional canonical peer", manifest => { manifest.peerDependenciesMeta["poe-code"] = { optional: true }; }],
+    ["nonboolean canonical optional flag", manifest => { manifest.peerDependenciesMeta["poe-code"] = { optional: "false" }; }],
+    ["null peer map", manifest => { manifest.peerDependencies = null; }],
+    ["array peer map", manifest => { manifest.peerDependencies = []; }],
+    ["null metadata", manifest => { manifest.peerDependenciesMeta = null; }],
+    ["array metadata", manifest => { manifest.peerDependenciesMeta = []; }],
+    ["null peer metadata", manifest => { manifest.peerDependenciesMeta["poe-code"] = null; }],
+    ["array peer metadata", manifest => { manifest.peerDependenciesMeta["poe-code"] = []; }],
+    ["orphan YAML metadata", manifest => { delete manifest.peerDependencies.yaml; }],
+    ["unknown required peer", manifest => { manifest.peerDependencies.extra = "1.0.0"; }],
+    ["unknown optional peer", manifest => { manifest.peerDependencies.extra = "1.0.0"; manifest.peerDependenciesMeta.extra = { optional: true }; }],
+    ["orphan metadata", manifest => { manifest.peerDependenciesMeta.extra = { optional: true }; }],
+    ["YAML range", manifest => { manifest.peerDependencies.yaml = "^2.9.0"; }],
+    ["YAML other pin", manifest => { manifest.peerDependencies.yaml = "2.8.0"; }],
+    ["YAML implicit requiredness", manifest => { delete manifest.peerDependenciesMeta; }],
+    ["YAML missing optional flag", manifest => { manifest.peerDependenciesMeta.yaml = {}; }],
+    ["YAML required", manifest => { manifest.peerDependenciesMeta.yaml.optional = false; }],
+    ["YAML nonboolean flag", manifest => { manifest.peerDependenciesMeta.yaml.optional = "true"; }],
+    ["YAML extra metadata", manifest => { manifest.peerDependenciesMeta.yaml.extra = true; }],
+    ["canonical extra metadata", manifest => { manifest.peerDependenciesMeta["poe-code"] = { extra: true }; }],
+  ];
+  for (const location of ["manifest", "lock"]) for (const [name, mutate] of defects) {
+    test(`peer metadata ${profile} rejects ${location} ${name} in resolution and binding`, () => {
+      const owned = create(true);
+      mutate(location === "manifest" ? owned.manifest : owned.lock.packages[owned.lockEntry]);
+      owned.io.writeFileSync(owned.root + "/package.json", JSON.stringify(owned.manifest));
+      owned.io.writeFileSync(owned.lockPath, JSON.stringify(owned.lock));
+      assert.throws(() => resolvePeerProfile(owned.root, owned.io), /peer|metadata|YAML|Canonical|Locked/i);
+      assert.throws(() => bindPeerArtifact({ ...owned, checkout: profile === "checkout-root" }), /peer|metadata|YAML|Canonical|Locked/i);
+    });
+  }
+
+  for (const defect of ["missing record", "valid but different peer set", "valid but different metadata"]) {
+    test(`peer metadata ${profile} rejects selected lock ${defect}`, () => {
+      const owned = create(true), selected = owned.lock.packages[owned.lockEntry];
+      if (defect === "missing record") delete owned.lock.packages[owned.lockEntry];
+      if (defect === "valid but different peer set") { delete selected.peerDependencies.yaml; delete selected.peerDependenciesMeta; }
+      if (defect === "valid but different metadata") selected.peerDependenciesMeta["poe-code"] = { optional: false };
+      owned.io.writeFileSync(owned.lockPath, JSON.stringify(owned.lock));
+      assert.throws(() => resolvePeerProfile(owned.root, owned.io), /peer|metadata|Locked/i);
+      assert.throws(() => bindPeerArtifact({ ...owned, checkout: profile === "checkout-root" }), /peer|metadata|Locked/i);
+    });
+  }
+
+  for (const location of ["manifest", "lock"]) {
+    test(`peer metadata ${profile} revalidates ${location} between profile resolution and binding`, () => {
+      const owned = create(true);
+      const path = location === "manifest" ? owned.root + "/package.json" : owned.lockPath;
+      const read = owned.io.readFileSync.bind(owned.io);
+      let changed = false;
+      owned.io.readFileSync = (filename, ...args) => {
+        const bytes = read(filename, ...args);
+        if (filename === path && !changed) {
+          changed = true;
+          (location === "manifest" ? owned.manifest : owned.lock.packages[owned.lockEntry]).peerDependenciesMeta.yaml.optional = false;
+          owned.io.writeFileSync(path, JSON.stringify(location === "manifest" ? owned.manifest : owned.lock));
+        }
+        return bytes;
+      };
+      assert.throws(() => bindPeerArtifact({ ...owned, checkout: profile === "checkout-root" }), /peer|metadata|YAML|Locked/i);
+      assert.equal(changed, true);
+    });
+
+    test(`peer metadata ${profile} keeps ${location} authenticated after admission`, () => {
+      const owned = create(true);
+      const binding = bindPeerArtifact({ ...owned, checkout: profile === "checkout-root" });
+      const path = location === "manifest" ? owned.root + "/package.json" : owned.lockPath;
+      (location === "manifest" ? owned.manifest : owned.lock.packages[owned.lockEntry]).peerDependenciesMeta.yaml.optional = false;
+      owned.io.writeFileSync(path, JSON.stringify(location === "manifest" ? owned.manifest : owned.lock));
+      owned.io.mkdirSync("/consumer");
+      assert.throws(() => stagePeerArtifact(binding, "/consumer"), /Source .* changed after peer admission/);
+      assert.equal(owned.io.existsSync("/consumer/node_modules"), false);
+    });
+  }
+}
+
+for (const defect of ["archive", "declaration", "installed declaration", "foreign runtime closure", "profile selector"]) {
+  test(`peer metadata optional YAML does not bypass registry ${defect} authentication`, () => {
+    const owned = registryPeerFixture(true);
+    if (defect === "archive") {
+      const bytes = owned.io.readFileSync(owned.artifact);
+      bytes[bytes.length - 1] ^= 1;
+      owned.io.writeFileSync(owned.artifact, bytes);
+    }
+    if (defect === "declaration") owned.declarations.peer.declarations.set("packages/safe-fs/dist/index.d.ts", "0".repeat(64));
+    if (defect === "installed declaration") owned.io.writeFileSync(owned.directory + "/packages/safe-fs/dist/index.d.ts", "forged");
+    if (defect === "foreign runtime closure") owned.declarations.peer.publicEntries.set("yaml", "packages/safe-fs/dist/index.d.ts");
+    assert.throws(() => bindPeerArtifact({ ...owned, checkout: defect === "profile selector" }), /SRI|declaration|differs|public|checkout/i);
+  });
 }
 
 test("checkout peer preserves dev-root identity without claiming released peer-range satisfaction", () => {

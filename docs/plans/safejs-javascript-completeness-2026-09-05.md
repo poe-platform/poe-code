@@ -971,7 +971,7 @@ succeeded: SafeJS 0.1.106 published September 5, 2026, 05:58:37 UTC. CLI workflo
 published at 06:06:31 UTC, with its GitHub release at 06:06:32 UTC. This descendant
 CLI includes sections 16–19; canceled older workflows are not separate releases.
 
-### 20. Map live iterable construction — validated repair
+### 20. Map live iterable construction — delivered and released
 
 The corrected initial 34-case cohort reproduced 22 failures with 12 passing
 controls. Map now consumes each entry before advancing, supports the existing
@@ -1017,3 +1017,43 @@ duplicate-value traversal, and collection-capacity checks after the generator's
 later body has already run. Set also reports only 4,026 data units while three
 2,000-character values coexist, incorrectly passing a 5,000-unit limit. These
 validated Set defects are the next independent repair.
+Committed and pushed as `cca5631a14c62e73baa7f0d7955d6ba9eb65bcf2`, verified
+against remote main. Scoped workflow `33949133351`, publisher `101260479055`,
+succeeded: SafeJS 0.1.107 published September 5, 2026, 06:15:21 UTC. CLI workflow
+`33949133459` remains monitored separately.
+
+### 21. Set live iterable construction — validated repair
+
+The initial 38-test cohort reproduced 14 failures with 24 passing controls.
+Set now accepts the existing sandbox iterable types, including Map and Float32Array,
+without collecting all values first. Values retain identity and are not coerced
+or recursively inspected. Synchronous inputs remain synchronous; generator job
+ordering, original iterator throws, completed replay, and realm state are covered.
+
+Set and Map now share their collection-population loop, retained-root lifetime,
+iterator cleanup, and bounded data checkpoints. Their insertion rules remain
+separate: Map reads entry fields; Set stores each value directly. Unique capacity
+and traversal work are checked before insertion, including duplicate-heavy inputs.
+This removes Set's unbudgeted collection pass and redundant backing-set creation.
+The original fatal capacity error is preserved if cleanup also exhausts a budget.
+
+Removing the shared collection root made both Map and Set retention tests
+incorrectly pass their 5,000-unit limits. Restoring it makes both reject at 5,000
+and succeed at 7,000. Built peaks are 6,038 for Set and 6,041 for Map. The newly
+added Set case previously reported only 4,026 units. Opaque-property controls keep
+the Map fix's non-observation guarantee intact for both collection constructors.
+
+Final validation passes: all 38 new Set tests, 378 tests in the focused eight-file
+cohort, selected SafeJS dependency build closure, 10,663 package tests with 41
+skipped, and full root lint (9,736 configured files, zero errors/warnings), including
+TypeScript and workflows. Twenty-eight built checks cover root/core behavior,
+identity, job ordering, retained data for both constructors, synchronous opaque
+values, and ten full scans for 1,000 Set object values. Atomic delivery and release
+remain separate from these local checks.
+
+Further native probes confirm eight receiver mismatches across Map and Set:
+borrowed getters and mutations act on the lookup object, detached methods succeed
+instead of rejecting an absent receiver, wrong collection brands are accepted,
+and borrowed forEach callbacks receive the wrong collection. These method-receiver
+defects remain a separate next repair; intrinsic method identity, live method
+iterators, and broader prototype/Symbol support are not claimed as fixed here.

@@ -7,11 +7,11 @@ import {
   createSandboxClosure,
   createSandboxMap,
   createSandboxSet,
-  isSandboxSet,
   measureSandboxData,
   type SandboxCallContext,
   type SandboxClosure,
   type SandboxMap,
+  type SandboxSet,
   type SandboxValue
 } from "../values.js";
 
@@ -29,7 +29,27 @@ export function createCollectionGlobals(options: { budget: Budget }): Collection
     call: () => {
       throw new TypeError("Constructor Map requires 'new'.");
     },
-    construct: ([source], context) => constructMap(source, options.budget, context),
+    construct: ([source], context) => {
+      const map = createSandboxMap([]);
+      let key: SandboxValue;
+      let value: SandboxValue;
+      return populateCollection(source, map, {
+        name: "Map", budget: options.budget, context,
+        retainedValues: () => [key, value],
+        append: (entry) => {
+          if (typeof entry !== "object" || entry === null) throw new TypeError("Map constructor requires entry objects.");
+          key = context?.getProperty !== undefined ? context.getProperty(entry, 0) : getSandboxDataProperty(entry, 0, options.budget);
+          value = context?.getProperty !== undefined ? context.getProperty(entry, 1) : getSandboxDataProperty(entry, 1, options.budget);
+          const added = map.entries.has(key) ? 0 : 1;
+          const growth = added +
+            (options.budget.limits.dataSize === undefined ? 0 : measureSandboxData([key, value]));
+          options.budget.allocateCollectionEntries(map.entries.size + added);
+          map.entries.set(key, value);
+          key = value = undefined;
+          return growth;
+        }
+      });
+    },
     name: "Map"
   });
   const setConstructor = createSandboxClosure({
@@ -37,12 +57,19 @@ export function createCollectionGlobals(options: { budget: Budget }): Collection
     call: () => {
       throw new TypeError("Constructor Set requires 'new'.");
     },
-    construct: ([source]) => {
-      const values = getSetValues(source);
-      if (values instanceof Promise) {
-        return values.then((resolved) => createBudgetedSet(resolved, options.budget));
-      }
-      return createBudgetedSet(values, options.budget);
+    construct: ([source], context) => {
+      const set = createSandboxSet([]);
+      return populateCollection(source, set, {
+        name: "Set", budget: options.budget, context,
+        append: (value) => {
+          const added = set.values.has(value) ? 0 : 1;
+          const growth = added +
+            (options.budget.limits.dataSize === undefined ? 0 : measureSandboxData([value]));
+          options.budget.allocateCollectionEntries(set.values.size + added);
+          set.values.add(value);
+          return growth;
+        }
+      });
     },
     name: "Set"
   });
@@ -64,18 +91,25 @@ export function isSandboxSetConstructor(value: unknown): value is SandboxClosure
   );
 }
 
-function constructMap(source: SandboxValue, budget: Budget, context?: SandboxCallContext): SandboxMap | Promise<SandboxMap> {
-  const map = createSandboxMap([]);
+function populateCollection<T extends SandboxMap | SandboxSet>(
+  source: SandboxValue,
+  collection: T,
+  { name, budget, context, append, retainedValues }: {
+    name: "Map" | "Set";
+    budget: Budget;
+    context?: SandboxCallContext;
+    append: (value: SandboxValue) => number;
+    retainedValues?: () => Iterable<SandboxValue>;
+  }
+): T | Promise<T> {
   budget.allocateCollectionEntries(0);
-  if (source === undefined || source === null) return map;
+  if (source === undefined || source === null) return collection;
   const iterator = getSandboxIterator(source);
-  if (iterator === undefined) throw new TypeError("Map constructor requires an iterable.");
+  if (iterator === undefined) throw new TypeError(`${name} constructor requires an iterable.`);
   let entry: SandboxValue;
-  let key: SandboxValue;
-  let value: SandboxValue;
   let failure: unknown;
   const retained = {};
-  budget.setRetainedValues(retained, () => [source, map, entry, key, value, failure]);
+  budget.setRetainedValues(retained, () => [source, collection, entry, failure, ...(retainedValues?.() ?? [])]);
   const checkData = createDataCheckpoint(budget, context);
   const closeOnThrow = (error: unknown): never | Promise<never> => {
     failure = isCapturedException(error) ? error.reason : error;
@@ -95,67 +129,26 @@ function constructMap(source: SandboxValue, budget: Budget, context?: SandboxCal
     entry = result.value;
     try {
       budget.visitNode();
-      if (typeof entry !== "object" || entry === null) throw new TypeError("Map constructor requires entry objects.");
-      key = context?.getProperty !== undefined ? context.getProperty(entry, 0) : getSandboxDataProperty(entry, 0, budget);
-      value = context?.getProperty !== undefined ? context.getProperty(entry, 1) : getSandboxDataProperty(entry, 1, budget);
-      const added = map.entries.has(key) ? 0 : 1;
-      const growth = added +
-        (budget.limits.dataSize === undefined ? 0 : measureSandboxData([key, value]));
-      budget.allocateCollectionEntries(map.entries.size + added);
-      map.entries.set(key, value);
-      entry = key = value = undefined;
-      checkData(map, growth);
+      const growth = append(entry);
+      entry = undefined;
+      checkData(collection, growth);
     } catch (error) { return closeOnThrow(error); }
     return false;
   };
   if (iterator.generator) {
     return (async () => {
       try {
-        checkData(map, 0, true);
+        checkData(collection, 0, true);
         while (!(await consume(await iterator.next()))) { /* Consume each entry before advancing. */ }
-        checkData(map, 0, true);
-        return map;
+        checkData(collection, 0, true);
+        return collection;
       } finally { budget.setRetainedValues(retained, undefined); }
     })();
   }
   try {
-    checkData(map, 0, true);
+    checkData(collection, 0, true);
     while (!consume(iterator.next() as IteratorResult<SandboxValue>)) { /* Synchronous inputs stay synchronous. */ }
-    checkData(map, 0, true);
-    return map;
+    checkData(collection, 0, true);
+    return collection;
   } finally { budget.setRetainedValues(retained, undefined); }
-}
-
-function getSetValues(source: SandboxValue): SandboxValue[] | Promise<SandboxValue[]> {
-  if (source === undefined || source === null) {
-    return [];
-  }
-
-  if (isSandboxSet(source)) {
-    return [...source.values];
-  }
-
-  if (typeof source === "string") return [...source];
-  if (Array.isArray(source)) return [...source];
-
-  const iterator = getSandboxIterator(source);
-  if (iterator?.generator === true) {
-    return collectSetValues(iterator);
-  }
-  throw new TypeError("Set constructor argument must be an array, string, or Set.");
-}
-
-async function collectSetValues(iterator: NonNullable<ReturnType<typeof getSandboxIterator>>) {
-  const values: SandboxValue[] = [];
-  while (true) {
-    const result = await iterator.next();
-    if (result.done) break;
-    values.push(result.value);
-  }
-  return values;
-}
-
-function createBudgetedSet(values: SandboxValue[], budget: Budget) {
-  budget.allocateCollectionEntries(new Set(values).size);
-  return createSandboxSet(values);
 }

@@ -2600,3 +2600,55 @@ bounded investigation of that printf diagnostic path is assigned separately;
 no additional random/urandom writes are authorized. Extended read is undergoing
 independent audit. Fuller arrays, background execution/wait, other recorded tool
 gaps, and the overall goal remain unfinished. No push or release is requested.
+
+## Extended read public integration, September 5, 2026
+
+The next increment exposes the existing opt-in read leaf and its options type
+through the local optional entry. Default registration, public default barrels,
+browser membership and package exclusions are unchanged. This increment does not
+close the full read or overall scripting requirement.
+
+- Independent source review first retains the 638-case baseline and adds eleven
+  controls. Two controls reproduce incorrect `invalid hex number` diagnostics
+  for signed hex-looking counts; input and array effects already match. The
+  preserved red is `/tmp/read-leaf-independent-I8Q24G/final.json`.
+- The bounded repair classifies the original operand rather than stripping its
+  sign. Source SHA256 is
+  `28d4435f06c4a72cfc5bbf49bdb9dbe4d9fda5ce540b7fa7790a3198ee67833a`.
+  The author retains the independent test bytes, adds ten controls from existing
+  qualified captures, and reports 21 focused and 659 retained read tests passing,
+  without native launches: `/tmp/read-numeric-sign-repair-rl5jRv/final.json`.
+- Public-entry TDD preserves forty tests with one default-isolation pass and
+  thirty-nine missing-factory failures before rebuilding, plus a separate
+  declaration-consumer failure naming both missing exports. Receipts are
+  `/tmp/read-public-red-root-OnPLdQ` and
+  `/tmp/read-public-types-red-root-Mv66Ed`. Neither red is a shell behavior failure.
+- After explicit optional compilation, all forty public tests pass at
+  `/tmp/read-public-green-root-tLqtYn`; the thirty-case optional consumer cohort
+  passes at `/tmp/read-public-types-green-root-xb8mh3`. The new public suite has
+  27 exact primary Bash 5.3 byte/status replays and thirteen integration contracts,
+  not forty identical-program native comparisons. An independent reviewer
+  approves its frozen fixture SHA256
+  `c01b4c7b04b9b5da4881516fe98a071d73190930c104b6d4dac9a8567a9feb3f`.
+- Actual-options strict checking of the optional entry and two public test roots
+  reports zero diagnostics and 659 stable compiler inputs at
+  `/tmp/scripting-public-types-root-iyya5L`. The broader public/default/device/
+  readonly/mapfile cohort passes 140 tests at `/tmp/read-public-broad-root-KYgRnk`.
+- The compiled default inventory remains exactly79 commands and browser28;
+  optional factories/tools and curl remain absent from defaults, date remains
+  functional, and manifest exclusions remain explicit:
+  `/tmp/read-default-inventory-root-rxEc1a`. This is an inventory/manifest check,
+  not a new packed-artifact or release qualification.
+- Actual public output for array reads, retained descriptor aliases, zero-timeout
+  device readiness and the repaired count diagnostic is rendered and inspected:
+  `/tmp/read-public-visual-root-orDapl/read.png`, captured with464 stable inputs
+  at `/tmp/read-public-visual-capture-root-s9fwv0`.
+
+Independent review confirms another required gap: `read -a IFS` consumes the
+record but the shared incremental binding bridge refuses the indexed control
+name. Native Bash succeeds and subsequent IFS-dependent effects differ. The
+scope adjudication `/tmp/read-ifs-adjudication-WlFbUN/final.json` preserves exact
+native/current output and assigns shared effective-IFS lookup/restoration work;
+the restriction is not accepted as parity and will not be hidden by a private
+read implementation or a blanket control-name admission change. Background
+execution/wait, fuller arrays and previously recorded tool gaps remain open.

@@ -593,6 +593,28 @@ function assertSource7Discovery(files) {
     "tests/plugins/mapfile-runtime.test.ts",
   ]) assert.ok(files.includes(path), "optional mapfile test is missing: " + path);
   for (const path of [
+    "tests/shell/extensions/read/descriptor-order.test.ts",
+    "tests/shell/extensions/read/descriptor-selection.test.ts",
+    "tests/shell/extensions/read/diagnostic-bytes.test.ts",
+    "tests/shell/extensions/read/diagnostic-review.test.ts",
+    "tests/shell/extensions/read/independent-current.test.ts",
+    "tests/shell/extensions/read/lifecycle.test.ts",
+    "tests/shell/extensions/read/native.test.ts",
+    "tests/shell/extensions/read/nonterminal.test.ts",
+    "tests/shell/extensions/read/numeric-sign-author.test.ts",
+    "tests/shell/extensions/read/observer-review.test.ts",
+    "tests/shell/extensions/read/observer.test.ts",
+    "tests/shell/extensions/read/primary53.test.ts",
+    "tests/shell/extensions/read/read.test.ts",
+    "tests/shell/extensions/read/readiness-precedence.test.ts",
+    "tests/shell/extensions/read/retained-eof.test.ts",
+    "tests/shell/extensions/read/review.test.ts",
+    "tests/shell/extensions/read/timed-native.test.ts",
+    "tests/shell/extensions/read/timed-review.test.ts",
+    "tests/shell/extensions/read/timed.test.ts",
+    "tests/plugins/read-runtime.test.ts",
+  ]) assert.ok(files.includes(path), "optional read test is missing: " + path);
+  for (const path of [
     "tests/shell/extensions/core/syntax.test.ts",
     "tests/shell/extensions/core/syntax-review.test.ts",
   ]) assert.ok(files.includes(path), "opt-in parser syntax test is missing: " + path);

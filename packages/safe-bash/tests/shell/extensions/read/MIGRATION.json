@@ -1,0 +1,267 @@
+{
+  "scope": "Read-local primary Bash 5.3 migration and bounded leaf repairs; source tests only; no complete-read or FD parity claim",
+  "date": "2026-09-05",
+  "provenanceCorrection": {
+    "file": "descriptor-order.test.ts",
+    "detail": "Restore the historical Bash 5.2.37 label for ad-hoc regular-file observations. None of the 336 primary Bash 5.3 records covers /regular; no new native capture or assertion change is claimed.",
+    "reviewSHA256": "db44b0afc07d6d2ab52a1f5b487ae35de1d0bd7dca3769544bb9328062a09166",
+    "evidence": "/tmp/read-provenance-fix.A8h8mt"
+  },
+  "oracle": {
+    "version": "5.3.0",
+    "sha256": "a0cfc1af0ff50f6b6e67c638979e2604f1c276c90116937fbaafcabb62ee2b40",
+    "platform": "darwin",
+    "arch": "arm64",
+    "locale": "C",
+    "records": 336
+  },
+  "historical": {
+    "version": "5.2.37",
+    "sha256": "f5b331844c67482075aea7883153127668cc67f83a60a7b4362cc8469a9dc77d",
+    "files": 12,
+    "tests": 516,
+    "nativeRecords": 313,
+    "archive": "historical-5.2-reference.json"
+  },
+  "fixtureCorrections": [
+    {
+      "kind": "locale",
+      "files": [
+        "read.test.ts",
+        "review.test.ts"
+      ],
+      "detail": "Align actual Shell LC_ALL=C with native; preserve ANSI-C source programs and raw diagnostics, no leaf escaping"
+    },
+    {
+      "kind": "obsolete-timeout-guard",
+      "file": "timed-review.test.ts",
+      "detail": "Original negative-TMOUT guard failure remains archived. Bounded-release native capture replaces the hanging witness; deterministic real-input assertions test ignored deadline and retained bytes."
+    }
+  ],
+  "rawProgramPolicy": "Existing raw native programs and controls retained as keys; unmodified old fixture source and full historical records archived. New nonterminal and negative-deadline captures use explicit framing/probe programs bound to their captured bytes.",
+  "tdd": {
+    "liveMigratedBefore": {
+      "tests": 546,
+      "pass": 437,
+      "fail": 109,
+      "skip": 0
+    },
+    "categories": {
+      "numericWhitespace": {
+        "failingAssertions": 13,
+        "afterFailures": 0
+      },
+      "roundedNegativeFractionAndTMOUT": {
+        "failingAssertions": 7,
+        "afterFailures": 0
+      },
+      "readonlyStatuses": {
+        "failingAssertions": 2,
+        "afterFailures": 0,
+        "unchangedControls": 2
+      },
+      "usageAndBudget": {
+        "failingAssertions": 6,
+        "afterFailures": 0
+      },
+      "declaredNonterminal": {
+        "tests": 33,
+        "beforeFailures": 33,
+        "afterFailures": 0
+      }
+    },
+    "note": "Focused logs include empty-file harness successes for other files in the command; category failing assertions exclude those wrappers."
+  },
+  "qualification": {
+    "tests": 579,
+    "pass": 525,
+    "fail": 54,
+    "skip": 0,
+    "remaining": "All 54 failures belong to separate descriptor-order work",
+    "originalCohort": 516,
+    "addedTests": 63,
+    "ownedStrictRoots": 16,
+    "ownedStrictDiagnostics": 0,
+    "packageStrictRoots": 1940,
+    "packageStrictDiagnostics": 41,
+    "packageStrictScope": "All 41 diagnostics outside owned read paths; no package-wide typecheck pass"
+  },
+  "nonterminalContract": "Optional nonTerminalInput:true is a captured trusted-host declaration for all descriptors used by that factory. Default/false refuse terminal options; the declaration never grants timeout/readiness provenance or TTY functionality.",
+  "artifacts": {
+    "audit": "/tmp/read-dialect-audit.xYm3hI",
+    "auditManifestSHA256": "715a8958470dd8999ce9e7c30ee976146706dc8ef172f1842f24d28e0ba28f9a",
+    "implementation": "/tmp/read-primary53-candidate.2f7ZLp",
+    "redLogs": [
+      "live-migrated-red.tap",
+      "live-numeric-whitespace-red.tap",
+      "live-fraction-timeout-red.tap",
+      "live-readonly-status-red.tap",
+      "live-usage-red.tap",
+      "nonterminal-live-red.tap"
+    ],
+    "full": "stable-live.tap",
+    "strictOwned": "stable-live-after.json",
+    "strictPackage": "strict-package.log"
+  },
+  "stableValidation": {
+    "manifest": "/tmp/read-primary53-candidate.2f7ZLp/stable-live-after.json",
+    "hashedInputs": 76,
+    "changedDuringTestsAndStrictCheck": 0,
+    "runtimeAtPromotion": "33b2c38825fdac6892b79cd0e42b8e14bd29f6b5af7e6c93ef724effd96ae0a7",
+    "runtimeAtStableRerun": "219cc1366e3647412167d460fcec7ec0bf09786c97d58ea2dc08b5c79675444f",
+    "note": "Runtime changed outside this task during earlier qualification. Earlier runs remain preserved; the stable rerun qualifies the later hash. No runtime file was edited by this task."
+  },
+  "files": [
+    {
+      "file": "packages/safe-bash/tests/shell/extensions/read/cases.ts",
+      "beforeSHA256": "17602fd62bba010ce6f471d1f66669e01ccfd513dfbd91c13df7e9f58c6368ff",
+      "sha256": "6ccdb3a957aec8918e3b848a4ac72916778fe778a3cfb53c739cb7b485fa2426",
+      "bytes": 6332,
+      "changed": true
+    },
+    {
+      "file": "packages/safe-bash/tests/shell/extensions/read/descriptor-order.test.ts",
+      "beforeSHA256": "5735c4ccd567d47e5c69403697aaae9e2dee53181ffdb63150165cd40d8c7489",
+      "sha256": "246005cd911e5c784ce61e5c2f0a57ba6ad38a217d094000423da0cb442f23b4",
+      "bytes": 12406,
+      "changed": true
+    },
+    {
+      "file": "packages/safe-bash/tests/shell/extensions/read/diagnostic-bytes.test.ts",
+      "beforeSHA256": "e728a9cc9a96c783d5a0d904b1011000f60706de630d096bf4c0a0507d68e432",
+      "sha256": "b7d8a8a5d062175b1944273343d890bd5827372fe7e085f4d67b3e62931b16c3",
+      "bytes": 4706,
+      "changed": true
+    },
+    {
+      "file": "packages/safe-bash/tests/shell/extensions/read/diagnostic-review.test.ts",
+      "beforeSHA256": "c700dd6d5aae5f00753fabeca31a1309205466c7d7cdad4615020a3e91a87743",
+      "sha256": "b365899034a56d526fdd6082c95be24a37ddf0ecf813436c6ee8b05b13a00621",
+      "bytes": 7834,
+      "changed": true
+    },
+    {
+      "file": "packages/safe-bash/tests/shell/extensions/read/historical-5.2-reference.json",
+      "beforeSHA256": null,
+      "sha256": "02804907975bf18ef171d8c2e6541b49eb12531f0591ce97bd2b8f64b5a60358",
+      "bytes": 436239,
+      "changed": true
+    },
+    {
+      "file": "packages/safe-bash/tests/shell/extensions/read/lifecycle.test.ts",
+      "beforeSHA256": "1737811c2bc7b830d95224e041ab66f7489a71957961b20570ff0da175c2c012",
+      "sha256": "1737811c2bc7b830d95224e041ab66f7489a71957961b20570ff0da175c2c012",
+      "bytes": 7837,
+      "changed": false
+    },
+    {
+      "file": "packages/safe-bash/tests/shell/extensions/read/native.test.ts",
+      "beforeSHA256": "b1a605b210d1dceb6669fa14296abb10e18af9c94a0897637b6f29d8245149bf",
+      "sha256": "5efb9d9433762d0662841ae9548fcbf0c0890bee7ea1318ad8b0ba107658a769",
+      "bytes": 3757,
+      "changed": true
+    },
+    {
+      "file": "packages/safe-bash/tests/shell/extensions/read/nonterminal.test.ts",
+      "beforeSHA256": null,
+      "sha256": "0d89bfb9f8a524d0850e0407ce1d228edcb15f06959243e811e94cefeac1a139",
+      "bytes": 3436,
+      "changed": true
+    },
+    {
+      "file": "packages/safe-bash/tests/shell/extensions/read/primary-reference.json",
+      "beforeSHA256": null,
+      "sha256": "b8fdff9ae056741dc9a57890959bb4c0196b87718eef6c1f6e3e9c0057f0b864",
+      "bytes": 262768,
+      "changed": true
+    },
+    {
+      "file": "packages/safe-bash/tests/shell/extensions/read/primary-reference.ts",
+      "beforeSHA256": null,
+      "sha256": "db65f50cde43a6bd2cec39c0e402ee1ce656cb280089adf001376ba3501b07b5",
+      "bytes": 3345,
+      "changed": true
+    },
+    {
+      "file": "packages/safe-bash/tests/shell/extensions/read/primary53.test.ts",
+      "beforeSHA256": null,
+      "sha256": "c79f14341a84ca3640c4ad886907321acc94e34991727683c42734bb14d22acf",
+      "bytes": 3751,
+      "changed": true
+    },
+    {
+      "file": "packages/safe-bash/tests/shell/extensions/read/read.test.ts",
+      "beforeSHA256": "fcb108fe280e148d6967c7d1e019be2163ae79b14779920716f8146cc2fb91bf",
+      "sha256": "29c29ae03862e46435b940c7c3d7d8c1aa228e2126c1e2ecad8053d7f8d6a1e2",
+      "bytes": 8663,
+      "changed": true
+    },
+    {
+      "file": "packages/safe-bash/tests/shell/extensions/read/retained-eof.test.ts",
+      "beforeSHA256": "72b1c698f14f88d5cdec81061a540e0663172a35ce3ed77b14c3d733532bb4fe",
+      "sha256": "72b1c698f14f88d5cdec81061a540e0663172a35ce3ed77b14c3d733532bb4fe",
+      "bytes": 2097,
+      "changed": false
+    },
+    {
+      "file": "packages/safe-bash/tests/shell/extensions/read/review.test.ts",
+      "beforeSHA256": "8e20c0700b58031b2aea65be8ce169d7182c93a640a8ddb77328f3ca97f93835",
+      "sha256": "000e4bedd3f2c616059166a79dda4011abad7b2e757e59128b0f8b313467b56f",
+      "bytes": 14668,
+      "changed": true
+    },
+    {
+      "file": "packages/safe-bash/tests/shell/extensions/read/timed-native.test.ts",
+      "beforeSHA256": "e9ca84b025c509286dffe4692305611b9261d072d5d5d4b32851e99a401e232c",
+      "sha256": "e5261cf8e93d6e25c82fbc1a736911a46b83d1a56373a2eb29a3b1b9843836a6",
+      "bytes": 10957,
+      "changed": true
+    },
+    {
+      "file": "packages/safe-bash/tests/shell/extensions/read/timed-review.test.ts",
+      "beforeSHA256": "2251b4c4db36b6d5bf6d5e3aa2c30422eab78c1e2e91b9c88210f443c10f8525",
+      "sha256": "6ab0ee282dd5e25cf297a282a90bda04d8862aeffd19fa50b0baf05a34688da1",
+      "bytes": 16522,
+      "changed": true
+    },
+    {
+      "file": "packages/safe-bash/tests/shell/extensions/read/timed.test.ts",
+      "beforeSHA256": "691ff9c64022ccb93d604dece53f7c1dca4b7a332a0e7e452667e46bb741bbc0",
+      "sha256": "2726dea201e5d997373ed9d82c8fea88b89e13e84978093327acc85b57a07021",
+      "bytes": 16205,
+      "changed": true
+    },
+    {
+      "file": "packages/safe-bash/src/shell/extensions/read/index.ts",
+      "beforeSHA256": "462e9c8c4fc0500c2c672c7a07030a8d0084fbd4da0e245c8dabac8969235a5e",
+      "sha256": "2c6c82159612a5a81fe965760769ba3bb795bba07ec1bb6e331b0af3f157d79d",
+      "bytes": 11843,
+      "changed": true
+    },
+    {
+      "file": "packages/safe-bash/src/shell/extensions/read/SEMANTICS.md",
+      "beforeSHA256": "89facd6e7093f4747385f6829379551dd4da92e968adb5aabcef4d542792bd94",
+      "sha256": "4aa9e566b08d66bf8181a5a397f5ecf340d3f180bbb5f41bff63f58b5c366118",
+      "bytes": 28073,
+      "changed": true
+    }
+  ],
+  "core": [
+    {
+      "file": "packages/safe-bash/src/shell/runtime.ts",
+      "sha256": "219cc1366e3647412167d460fcec7ec0bf09786c97d58ea2dc08b5c79675444f"
+    },
+    {
+      "file": "packages/safe-bash/src/shell/parser.ts",
+      "sha256": "a9263b877687b2f9d803ce6bc717c69b040f8790402b6e24b17078c1f5084bad"
+    },
+    {
+      "file": "packages/safe-bash/src/shell/extensions.ts",
+      "sha256": "bf6532e0a6c2c665d5b95f478a33a0197d12b1cdaef98be9f7d266dd82b26cf4"
+    },
+    {
+      "file": "packages/safe-bash/tests/shell/extensions/trap/oracle.ts",
+      "sha256": "e92742d9f8796238583b9906b9a1deb8630abdd99228a6d707d8300f468cb74c"
+    }
+  ]
+}

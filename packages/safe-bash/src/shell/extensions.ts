@@ -1,7 +1,7 @@
 import type { ByteSink, ByteSource } from "../contracts/io.js";
 import type { ShellValue } from "../contracts/value.js";
 import { commandRuntimeIdentity } from "../contracts/command.js";
-import type { ReadLine, ReadLineOptions } from "./input.js";
+import type { InputReadiness, RawRecord, RawRecordOptions, ReadLine, ReadLineOptions } from "./input.js";
 
 export interface ShellBindingDescription {
   readonly kind: "unset" | "scalar" | "indexed";
@@ -32,7 +32,9 @@ export interface ShellExtensionBindings {
 
 export interface ShellInputBorrow {
   readonly stdinIsDefault?: boolean;
-  read(raw: boolean, options?: Pick<ReadLineOptions, "count" | "delimiter" | "exact">): Promise<ReadLine>;
+  read(raw: boolean, options?: Pick<ReadLineOptions, "count" | "delimiter" | "exact" | "timeoutMs">): Promise<ReadLine>;
+  record(options?: RawRecordOptions): Promise<RawRecord>;
+  readiness(): InputReadiness;
   release(): Promise<void>;
 }
 
@@ -67,6 +69,7 @@ export interface ShellExtensionContext {
 
 export interface ShellExtensionBuiltin {
   readonly name: string;
+  readonly replace?: boolean;
   readonly special?: boolean;
   readonly expansion?: "ordinary" | "declaration";
   execute(context: ShellExtensionContext): number | Promise<number>;
@@ -126,10 +129,11 @@ export function extensionState(definitions: readonly ShellExtension[], parent?: 
     if (!instance || !Array.isArray(instance.builtins)) throw new TypeError("Shell extension requires builtin definitions");
     for (const builtin of instance.builtins) {
       if (!builtin) throw new TypeError("Invalid extension builtin");
-      const { name, special, expansion, execute } = builtin;
+      const { name, replace, special, expansion, execute } = builtin;
       if (typeof name !== "string" || !name || name.includes("\0") || typeof execute !== "function" || builtins.has(name)) throw new TypeError("Invalid or duplicate extension builtin");
       if (expansion !== undefined && expansion !== "ordinary" && expansion !== "declaration") throw new TypeError("Invalid extension builtin expansion metadata");
-      builtins.set(name, Object.freeze({ name, ...(special === undefined ? {} : { special }), ...(expansion === undefined ? {} : { expansion }), execute: execute.bind(builtin) }));
+      if (replace !== undefined && typeof replace !== "boolean") throw new TypeError("Invalid extension builtin replacement metadata");
+      builtins.set(name, Object.freeze({ name, ...(replace === undefined ? {} : { replace }), ...(special === undefined ? {} : { special }), ...(expansion === undefined ? {} : { expansion }), execute: execute.bind(builtin) }));
     }
     for (const option of instance.options ?? []) {
       if (!option.name || ["errexit", "nounset", "pipefail"].includes(option.name) || options.has(option.name) || typeof option.enabled !== "boolean" || option.flag !== undefined && (option.flag.length !== 1 || flags.has(option.flag))) throw new TypeError("Invalid or duplicate extension shell option");

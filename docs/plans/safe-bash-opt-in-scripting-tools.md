@@ -557,6 +557,20 @@ this request to keep additions out of the default package.
   source evidence. Guarded lint seventeen completed with two unnecessary escapes
   in the new independent fixture; their removal preserves the fixture bytes and
   all 86 focused passes. The full guarded rerun remains pending at this boundary.
+- Parser-only syntax is locally committed as `3f8283c0b`. The separate builtin
+  replacement/borrowed-input bridge receives independent approval: 28 review
+  cases and 69 combined author/reviewer cases pass without skips. Four frozen
+  source/author hashes remain unchanged during review. Root initially observes
+  six compiled-public failures against the old build; rebuilding the explicit
+  optional tree makes all six pass, with 23 public bridge/binding/writer cases
+  passing together. Root's first source regression cohort passes 149 cases.
+  A public pipeline screenshot is inspected: the raw record preserves bytes
+  `61 00 62 0a` and replacement discovery reports read as a shell builtin.
+  Deadlines forward owned cursor capabilities; this still does not install
+  extended read or supply the missing owning-source preparation.
+  Final root bridge replay passes 83 author/reviewer/retained boundary cases;
+  five strict type roots have zero diagnostics and eight focused maintained
+  discovery checks pass. The pending guarded lint rerun is not counted as a pass.
 
 - First implementation wave: cmp, yes, shuf and virtual devices in disjoint leaf
   directories. Root is qualifying native oracles and the opt-in delivery boundary.

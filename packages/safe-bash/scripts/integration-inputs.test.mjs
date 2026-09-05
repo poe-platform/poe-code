@@ -503,6 +503,13 @@ function assertSource7Discovery(files) {
     "tests/plugins/extension-core-runtime.test.ts",
   ]) assert.ok(files.includes(path), "extension-core boundary test is missing: " + path);
   for (const path of [
+    "tests/shell/extensions/core/builtin-replacement.test.ts",
+    "tests/shell/extensions/core/borrowed-input.test.ts",
+    "tests/shell/extensions/core/builtin-replacement-review.test.ts",
+    "tests/shell/extensions/core/borrowed-input-review.test.ts",
+    "tests/plugins/extension-input-runtime.test.ts",
+  ]) assert.ok(files.includes(path), "extension input bridge test is missing: " + path);
+  for (const path of [
     "tests/shell/extensions/core/syntax.test.ts",
     "tests/shell/extensions/core/syntax-review.test.ts",
   ]) assert.ok(files.includes(path), "opt-in parser syntax test is missing: " + path);

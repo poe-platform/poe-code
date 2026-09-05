@@ -2031,12 +2031,24 @@ export class Runtime {
       const stdinIsDefault = entry?.stdinIsDefault ?? (descriptor === 0 ? io.stdinIsDefault : undefined);
       return Object.freeze({
         ...(stdinIsDefault === undefined ? {} : { stdinIsDefault }),
-        read: async (raw: boolean, options: { readonly count?: number; readonly delimiter?: number; readonly exact?: boolean } = {}) => {
+        read: async (raw: boolean, options: { readonly count?: number; readonly delimiter?: number; readonly exact?: boolean; readonly timeoutMs?: number } = {}) => {
           assertOpen();
           if (closed) throw new Error("Input borrow is closed");
-          const { count, delimiter, exact } = options;
-          if (typeof raw !== "boolean" || count !== undefined && (!Number.isSafeInteger(count) || count < 0) || delimiter !== undefined && (!Number.isInteger(delimiter) || delimiter < 0 || delimiter > 255) || exact !== undefined && typeof exact !== "boolean") throw new TypeError("Invalid input read options");
-          return scope.run(() => input.line(raw, { ...(count === undefined ? {} : { count }), ...(delimiter === undefined ? {} : { delimiter }), ...(exact === undefined ? {} : { exact }), byteCount: byteLocale(state.variables) }));
+          const { count, delimiter, exact, timeoutMs } = options;
+          if (typeof raw !== "boolean" || count !== undefined && (!Number.isSafeInteger(count) || count < 0) || delimiter !== undefined && (!Number.isInteger(delimiter) || delimiter < 0 || delimiter > 255) || exact !== undefined && typeof exact !== "boolean" || timeoutMs !== undefined && (!Number.isFinite(timeoutMs) || timeoutMs <= 0)) throw new TypeError("Invalid input read options");
+          return scope.run(() => input.line(raw, { ...(count === undefined ? {} : { count }), ...(delimiter === undefined ? {} : { delimiter }), ...(exact === undefined ? {} : { exact }), ...(timeoutMs === undefined ? {} : { timeoutMs }), byteCount: byteLocale(state.variables) }));
+        },
+        record: async (options: { readonly delimiter?: number } = {}) => {
+          assertOpen();
+          if (closed) throw new Error("Input borrow is closed");
+          const { delimiter } = options;
+          if (delimiter !== undefined && (!Number.isInteger(delimiter) || delimiter < 0 || delimiter > 255)) throw new TypeError("Invalid input record options");
+          return scope.run(() => input.record(delimiter === undefined ? {} : { delimiter }));
+        },
+        readiness: () => {
+          assertOpen();
+          if (closed) throw new Error("Input borrow is closed");
+          return input.readiness();
         },
         release,
       });
@@ -2047,7 +2059,7 @@ export class Runtime {
     const frame = state.extensions;
     if (!frame || frame.started) return;
     frame.started = true;
-    for (const name of frame.builtins.keys()) if (shellBuiltinNames.has(name)) throw new TypeError(`Extension builtin conflicts with existing builtin: ${name}`);
+    for (const [name, builtin] of frame.builtins) if (shellBuiltinNames.has(name) && builtin.replace !== true) throw new TypeError(`Extension builtin conflicts with existing builtin: ${name}`);
     for (const entry of frame.entries) await entry.instance.start?.(this.extensionContext(state, io));
   }
 
@@ -2800,13 +2812,13 @@ export class Runtime {
     }
     const commandWords = command.words.slice(wordIndex);
     let declarationIndex = 0;
-    while (commandWords[declarationIndex]?.plain === "command" || commandWords[declarationIndex]?.plain === "builtin") {
+    while ((commandWords[declarationIndex]?.plain === "command" || commandWords[declarationIndex]?.plain === "builtin") && !state.extensions?.builtins.has(commandWords[declarationIndex]!.plain!)) {
       declarationIndex++;
       if (commandWords[declarationIndex]?.plain === "--") declarationIndex++;
     }
     const declarationName = commandWords[declarationIndex]?.plain ?? "";
-    const expansion = state.extensions?.builtins.get(declarationName)?.expansion;
-    const declaration = expansion === undefined ? ["export", "local", "readonly"].includes(declarationName) : expansion === "declaration";
+    const declarationBuiltin = state.extensions?.builtins.get(declarationName);
+    const declaration = declarationBuiltin ? declarationBuiltin.expansion === "declaration" : ["export", "local", "readonly"].includes(declarationName);
     const wordValues = await this.valueWords(commandWords, state, originalIO, declaration);
     const words = wordValues.map(shellValueText);
     const special = state.profile === "sh" && (specialBuiltinNames.has(words[0] ?? "") || !!state.extensions?.builtins.get(words[0] ?? "")?.special);
@@ -3134,7 +3146,6 @@ export class Runtime {
           }
         }
         if (selected?.kind === "builtin") {
-          if (context.command === "command" || context.command === "builtin" || context.command === "type") return { exitCode: await this.discoveryBuiltin(context, state, io, assignments) };
           const extensionBuiltin = state.extensions?.builtins.get(context.command);
           const special = state.profile === "sh" && !bypassFunctions && (specialBuiltinNames.has(context.command) || !!extensionBuiltin?.special);
           if (special) assignments.clear();
@@ -3143,6 +3154,7 @@ export class Runtime {
             if (special && status !== 0) throw new Flow("exit", status);
             return { exitCode: status };
           }
+          if (context.command === "command" || context.command === "builtin" || context.command === "type") return { exitCode: await this.discoveryBuiltin(context, state, io, assignments) };
           if (context.command === "." || context.command === "source") return { exitCode: await this.sourceBuiltin(context, state, { ...io, ...context }, special) };
           if (context.command === "eval") return { exitCode: await this.evalBuiltin(context, state, { ...io, ...context }, special) };
           const builtinWork = this.builtin(context, state, assignments, (error, diagnostic) => { builtinFailure = { error, diagnostic }; }, bypassFunctions);

@@ -3,8 +3,12 @@
 Extensions are explicit `Shell` configuration. Their builtin metadata is captured
 at installation, including the original execution receiver. `expansion` defaults
 to `ordinary`; `declaration` preserves assignment arguments through direct,
-`command`, and `builtin` invocation. This does not grant permission to replace
-existing builtins or enable optional command implementations.
+`command`, and `builtin` invocation. Replacing a core builtin requires explicit
+`replace: true`; omitted or false replacement metadata retains collision errors.
+Replacement metadata is validated and captured at installation. Duplicate
+extension builtin names still reject, even when replacement is requested.
+Direct dispatch and the `command`, `builtin` and `type` lookup paths honor the
+installed replacement without enabling optional command implementations.
 
 An invocation's `bindings` interface reads canonical `ShellValue` values, not
 reconstructed display text. `describe` distinguishes unset, scalar and indexed
@@ -48,10 +52,14 @@ descriptors fail with `EBADF`; unenrolled sources fail with `ENOTSUP` rather tha
 creating an independent cursor.
 
 `read` returns an owned, explicitly releasable shell-read record, with optional
-count, delimiter and exact-count controls. It follows existing shell-read byte
-handling, not arbitrary binary-record semantics. The current borrow API does not
-expose deadlines or claim nonblocking readiness. Extension methods retained after
-their invocation cannot acquire new resources or publish new state.
+count, delimiter, exact-count and positive finite `timeoutMs` controls. It follows
+existing shell-read byte handling, not arbitrary binary-record semantics.
+`record({ delimiter? })` forwards the raw-record operation described below.
+`readiness()` queries the shared cursor without consuming input. Neither method
+lets the borrower override source provenance, polling or clocks. Invalid options
+reject before consumption; zero timeout requires a readiness query, not `read`.
+Extension methods retained after their invocation cannot acquire new resources
+or publish new state, and a released borrow cannot read or poll its cursor.
 
 ## Internal input readiness and deadlines
 
@@ -68,8 +76,9 @@ wait is included in the original deadline, and root cancellation retains its
 reason and precedence. Results distinguish delimiter, count, EOF and timeout,
 including owned partial values that callers must release.
 
-This internal capability does not itself add shell `read -t`, infer host stream
-readiness, or expose deadlines through the extension borrow API.
+This capability and its borrowed-input forwarding do not themselves add shell
+`read -t` or infer host stream readiness. Owning-source construction and optional
+builtin installation must supply those separate integrations.
 
 ## Internal raw input records
 
@@ -86,5 +95,5 @@ reads. Those transformations belong to the consuming builtin. Existing `line()`
 semantics remain unchanged; a raw record is not an ordinary shell variable
 assignment and must not silently be substituted for a shell-read result.
 
-The raw-record primitive alone does not expose a new extension borrow method or
-deliver mapfile/readarray. Their activation and callback semantics remain separate.
+The extension borrow forwards this same raw-record primitive; it does not deliver
+mapfile/readarray by itself. Their activation and callback semantics remain separate.

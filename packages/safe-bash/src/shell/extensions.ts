@@ -1,6 +1,38 @@
 import type { ByteSink, ByteSource } from "../contracts/io.js";
 import type { ShellValue } from "../contracts/value.js";
 import { commandRuntimeIdentity } from "../contracts/command.js";
+import type { ReadLine, ReadLineOptions } from "./input.js";
+
+export interface ShellBindingDescription {
+  readonly kind: "unset" | "scalar" | "indexed";
+  readonly readonly: boolean;
+  readonly exported: boolean;
+}
+
+export interface ShellBindingTransaction {
+  get(index: number): ShellValue | undefined;
+  set(index: number, value: ShellValue): Promise<void>;
+  unset(index: number): Promise<void>;
+  commit(): Promise<void>;
+  close(): Promise<void>;
+}
+
+export interface ShellExtensionBindings {
+  describe(name: string): ShellBindingDescription;
+  get(name: string, index?: number): ShellValue | undefined;
+  assign(name: string, value: ShellValue): Promise<void>;
+  prepare(name: string, options: { readonly kind: "indexed"; readonly clear?: boolean }): Promise<ShellBindingTransaction>;
+}
+
+export interface ShellInputBorrow {
+  readonly stdinIsDefault?: boolean;
+  read(raw: boolean, options?: Pick<ReadLineOptions, "count" | "delimiter" | "exact">): Promise<ReadLine>;
+  release(): Promise<void>;
+}
+
+export interface ShellExtensionInput {
+  borrow(descriptor: number): ShellInputBorrow;
+}
 
 export type ShellExtensionScope = "process" | "subshell" | "substitution" | "pipeline" | "invocation";
 export type ShellExtensionEvent = "exit" | "error" | "command" | "function-enter" | "function-return" | "function-leave" | "source-enter" | "source-return" | "source-leave";
@@ -18,6 +50,8 @@ export interface ShellExtensionContext {
   readonly stderr: ByteSink;
   readonly signal: AbortSignal;
   readonly scope: object;
+  readonly bindings: ShellExtensionBindings;
+  readonly input: ShellExtensionInput;
   evaluate(source: ShellValue, options?: { readonly name?: string }): Promise<number>;
   variable(name: string): string | undefined;
   accountSource(source: ShellValue): void;
@@ -28,6 +62,7 @@ export interface ShellExtensionContext {
 export interface ShellExtensionBuiltin {
   readonly name: string;
   readonly special?: boolean;
+  readonly expansion?: "ordinary" | "declaration";
   execute(context: ShellExtensionContext): number | Promise<number>;
 }
 
@@ -84,8 +119,11 @@ export function extensionState(definitions: readonly ShellExtension[], parent?: 
     const instance = previous?.fork && scope ? previous.fork(scope) : definition.create();
     if (!instance || !Array.isArray(instance.builtins)) throw new TypeError("Shell extension requires builtin definitions");
     for (const builtin of instance.builtins) {
-      if (!builtin || typeof builtin.name !== "string" || !builtin.name || builtin.name.includes("\0") || typeof builtin.execute !== "function" || builtins.has(builtin.name)) throw new TypeError("Invalid or duplicate extension builtin");
-      builtins.set(builtin.name, builtin);
+      if (!builtin) throw new TypeError("Invalid extension builtin");
+      const { name, special, expansion, execute } = builtin;
+      if (typeof name !== "string" || !name || name.includes("\0") || typeof execute !== "function" || builtins.has(name)) throw new TypeError("Invalid or duplicate extension builtin");
+      if (expansion !== undefined && expansion !== "ordinary" && expansion !== "declaration") throw new TypeError("Invalid extension builtin expansion metadata");
+      builtins.set(name, Object.freeze({ name, ...(special === undefined ? {} : { special }), ...(expansion === undefined ? {} : { expansion }), execute: execute.bind(builtin) }));
     }
     for (const option of instance.options ?? []) {
       if (!option.name || ["errexit", "nounset", "pipefail"].includes(option.name) || options.has(option.name) || typeof option.enabled !== "boolean" || option.flag !== undefined && (option.flag.length !== 1 || flags.has(option.flag))) throw new TypeError("Invalid or duplicate extension shell option");

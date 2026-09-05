@@ -395,6 +395,21 @@ this request to keep additions out of the default package.
   and of its directory from workspace/root package files. Four focused discovery
   and isolation checks then pass. No default registration, optional export or
   implementation acceptance is implied by this build-boundary commit.
+- Mapfile build isolation is locally committed as `533334246`. The repaired
+  extension-core boundary passes the root's 186-case focused cohort with the
+  authenticated Bash 5.2.37 oracle and zero skips, including unchanged review
+  regressions for leading-zero positional aliases. The core remains generic;
+  this does not implement mapfile, read flags, background syntax or full arrays.
+- Core public execution also passes eight cases after the rebuilt optional
+  runtime; eight discovery/isolation checks pass. The actual declaration and
+  positional-alias output is inspected in `core-public-final-visual.png`.
+  `src/contracts/shell-extensions.md` documents this one-shot boundary, including
+  its deliberate lack of incremental publication and binary-record/deadline APIs.
+- Independent core review approves the frozen runtime after 14 unchanged review,
+  534 combined and eight compiled public checks, with zero skips and clean strict
+  types. Root's eight selected source/public type roots have zero diagnostics.
+  Guarded lint's twelfth run completes cleanly with exit zero. No full-tool or
+  release acceptance is inferred from these scoped checks.
 
 - First implementation wave: cmp, yes, shuf and virtual devices in disjoint leaf
   directories. Root is qualifying native oracles and the opt-in delivery boundary.

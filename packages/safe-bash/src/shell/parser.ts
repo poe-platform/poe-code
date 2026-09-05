@@ -501,7 +501,7 @@ class Lexer {
     } else if (this.source[this.position] === "{") {
       this.position++;
       const parameterStart = this.position - 2;
-      const length = this.source[this.position] === "#" && /[a-zA-Z_]/u.test(this.source[this.position + 1] ?? "");
+      const length = this.source[this.position] === "#" && /[a-zA-Z_0-9]/u.test(this.source[this.position + 1] ?? "");
       if (length) this.position++;
       const name = /^(?:[a-zA-Z_][a-zA-Z_0-9]*|[0-9]+|[?@*#-])/u.exec(this.source.slice(this.position))?.[0];
       if (!name) this.error("Unsupported parameter expansion");

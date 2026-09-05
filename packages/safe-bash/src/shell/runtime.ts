@@ -16,7 +16,7 @@ import { HereDocumentSyntaxError, hereDocumentWords, parseShellInputUnit, parseS
 import { ShellLimitError, ShellSyntaxError } from "./types.js";
 import type { ShellCommandContext, ShellInvokeOptions, ShellLimits } from "./types.js";
 import { forkExtensions } from "./extensions.js";
-import type { ShellExtensionContext, ShellExtensionEvent, ShellExtensionState } from "./extensions.js";
+import type { ShellExtensionBindings, ShellExtensionContext, ShellExtensionEvent, ShellExtensionInput, ShellExtensionState } from "./extensions.js";
 import { fileInput, ShellInput } from "./input.js";
 import { evaluateArithmetic, prepareArithmetic } from "./arithmetic.js";
 import { evaluatePositionalArithmetic } from "./arithmetic-parameters.js";
@@ -45,7 +45,7 @@ import { arrayStore, guestArrays, requireArrays, snapshotState, stateMonitor, tr
 import { publishPipelineStatus } from "./pipestatus.js";
 import type { Restoration } from "./arrays/state.js";
 import type { Admission } from "./arrays/ledger.js";
-import type { BindingWatch, OwnedText } from "./arrays/bindings.js";
+import type { BindingWatch, OwnedText, PreparedBinding } from "./arrays/bindings.js";
 import { EreProfileLimitError, EreSyntaxError, EreUnsupportedError } from "../commands/regex-execution/ere/errors.js";
 import { EreLedger } from "../commands/regex-execution/ere/limits.js";
 import { compileEre } from "../commands/regex-execution/ere/syntax.js";
@@ -1699,9 +1699,15 @@ export class Runtime {
 
   private extensionContext(state: State, io: IO, command = "", args: readonly string[] = [], argumentValues: readonly ShellValue[] = args): ShellExtensionContext {
     const frame = state.extensions!;
+    let bindings: ShellExtensionBindings | undefined;
+    let input: ShellExtensionInput | undefined;
+    const createBindings = this.extensionBindings.bind(this, state, io);
+    const createInput = this.extensionInput.bind(this, state, io);
     return {
       command, args, argumentValues, status: state.status, functionDepth: state.functionDepth, sourceDepth: state.sourceDepth ?? 0,
       stdin: io.stdin, stdout: io.stdout, stderr: io.stderr, signal: this.signal, scope: frame,
+      get bindings() { return bindings ??= createBindings(); },
+      get input() { return input ??= createInput(); },
       variable: name => state.variables[name],
       accountSource: source => this.budget.source(shellValueByteLength(source)),
       diagnostic: message => this.diagnostic(io, message),
@@ -1727,6 +1733,168 @@ export class Runtime {
         io[invocationScope].register(close);
       },
     };
+  }
+
+  private extensionBindings(state: State, io: IO): ShellExtensionBindings {
+    const scope = io[invocationScope];
+    scope.assertOpen();
+    const allocation = this.budget.values.scope();
+    scope.register(() => allocation.close());
+    const assertOpen = (): void => { this.signal.throwIfAborted(); scope.assertOpen(); allocation.assertOpen(); };
+    const checkName = (name: string): void => {
+      assertOpen();
+      if (typeof name !== "string" || !/^[a-zA-Z_][a-zA-Z_0-9]*$/u.test(name)) throw new TypeError("Invalid binding name");
+    };
+    const checkIndex = (index: number): void => {
+      if (!Number.isSafeInteger(index) || index < 0 || index > 2147483647) throw new RangeError("Binding index outside 0..2147483647");
+    };
+    const retain = (value: ShellValue | undefined): ShellValue | undefined => {
+      if (value !== undefined && typeof value !== "string") allocation.hold(value);
+      return value;
+    };
+    return Object.freeze({
+      describe: (name: string) => {
+        checkName(name);
+        const kind = arrayStore(state)?.get(name) ? "indexed" : state.variables[name] === undefined ? "unset" : "scalar";
+        return Object.freeze({ kind, readonly: state.readonlyVariables?.has(name) ?? false, exported: state.exported.has(name) });
+      },
+      get: (name: string, index = 0) => {
+        checkName(name);
+        checkIndex(index);
+        const binding = arrayStore(state)?.get(name);
+        const scalar = state.variables[name];
+        return retain(binding ? binding.getValue(index) : index === 0 && scalar !== undefined ? stateMonitor(state)?.values.get(name, scalar) ?? scalar : undefined);
+      },
+      assign: async (name: string, value: ShellValue) => {
+        checkName(name);
+        await scope.run(() => this.assignVariable(state, name, value));
+        assertOpen();
+      },
+      prepare: async (name: string, options: { readonly kind: "indexed"; readonly clear?: boolean }) => {
+        checkName(name);
+        if (options.kind !== "indexed" || options.clear !== undefined && typeof options.clear !== "boolean") throw new TypeError("Unsupported binding preparation");
+        if (state.readonlyVariables?.has(name)) throw new ArrayFailure("readonly binding");
+        if (controlNames.has(name)) throw new ArrayFailure("control binding cannot be indexed");
+        if (state.exported.has(name)) throw new ArrayFailure("exported binding cannot be indexed");
+        const clear = options.clear === true;
+        const store = requireArrays(state);
+        let prepared: PreparedBinding | undefined;
+        let preparing: Promise<void> | undefined;
+        let active: Promise<void> | undefined;
+        let closed = false;
+        let completion: Promise<void> | undefined;
+        const close = (): Promise<void> => {
+          closed = true;
+          return completion ??= (async () => {
+            await Promise.allSettled([preparing, active]);
+            await prepared?.close();
+          })();
+        };
+        scope.register(close);
+        const validate = (): void => {
+          assertOpen();
+          if (closed) throw new ArrayFailure("binding transaction is closed");
+          if (state.readonlyVariables?.has(name)) throw new ArrayFailure("readonly binding");
+          if (state.exported.has(name)) throw new ArrayFailure("exported binding cannot be indexed");
+          prepared!.validate();
+        };
+        const run = (action: () => Promise<void>): Promise<void> => {
+          try {
+            validate();
+            if (active) throw new ArrayFailure("binding transaction is busy");
+            const work = scope.run(action);
+            active = work;
+            void work.then(() => { if (active === work) active = undefined; }, () => { if (active === work) active = undefined; });
+            return work;
+          } catch (error) { return Promise.reject(error); }
+        };
+        try {
+          preparing = scope.run(async () => {
+            prepared = await store.prepare(name, this.signal, !clear);
+            validate();
+            if (!clear && !store.get(name) && state.variables[name] !== undefined) {
+              const value = stateMonitor(state)!.values.get(name, state.variables[name]!);
+              const token = await textToken(prepared.binding.owner, value, this.signal);
+              try { validate(); prepared.binding.insert(0, token); }
+              catch (error) { token.release(); throw error; }
+            }
+            validate();
+          });
+          await preparing;
+          return Object.freeze({
+            get: (index: number) => { validate(); checkIndex(index); return retain(prepared!.binding.getValue(index)); },
+            set: (index: number, value: ShellValue) => run(async () => {
+              checkIndex(index);
+              const token = await textToken(prepared!.binding.owner, value, this.signal);
+              try { validate(); prepared!.binding.insert(index, token); }
+              catch (error) { token.release(); throw error; }
+            }),
+            unset: (index: number) => run(async () => {
+              checkIndex(index);
+              const binding = prepared!.binding;
+              binding.values.get(index)?.slot.release();
+              let maximum = -1;
+              for (const key of binding.values.keys()) {
+                maximum = Math.max(maximum, key);
+                await binding.owner.ledger.checkpoint(this.signal, 2);
+                validate();
+              }
+              binding.maximum = maximum;
+            }),
+            commit: () => run(async () => {
+              await this.prepareArrayObservers(state, prepared!.binding.owner);
+              const supersede = await stateMonitor(state)!.prepareTypedPublication(name, prepared!.binding.owner, this.signal);
+              validate();
+              let retirement: Promise<void> | undefined;
+              stateMonitor(state)!.publish(prepared!.tickets, name, () => {
+                supersede();
+                delete state.variables[name];
+                retirement = prepared!.publish();
+              });
+              await retirement;
+              this.signal.throwIfAborted();
+            }),
+            close,
+          });
+        } catch (error) { await close(); throw error; }
+      },
+    });
+  }
+
+  private extensionInput(state: State, io: IO): ShellExtensionInput {
+    const scope = io[invocationScope];
+    const assertOpen = (): void => { this.signal.throwIfAborted(); scope.assertOpen(); };
+    assertOpen();
+    return Object.freeze({ borrow: (descriptor: number) => {
+      assertOpen();
+      if (!Number.isSafeInteger(descriptor) || descriptor < 0) throw new RangeError("Invalid input descriptor");
+      const entry = io.descriptors?.get(descriptor);
+      const source = entry?.closed ? undefined : entry?.input ?? (descriptor === 0 && !io.descriptors ? io.stdin : undefined);
+      if (!source) throw new FsError("EBADF", { message: "Unreadable input descriptor" });
+      if (!(source instanceof ShellInput)) throw new FsError("ENOTSUP", { message: "Input descriptor has no enrolled shared cursor" });
+      const resource: { input?: ShellInput } = {};
+      let closed = false;
+      let completion: Promise<void> | undefined;
+      const release = (): Promise<void> => {
+        closed = true;
+        return completion ??= Promise.resolve().then(() => resource.input?.close());
+      };
+      scope.register(release);
+      const input = new ShellInput(source, this.budget, this.signal);
+      resource.input = input;
+      const stdinIsDefault = entry?.stdinIsDefault ?? (descriptor === 0 ? io.stdinIsDefault : undefined);
+      return Object.freeze({
+        ...(stdinIsDefault === undefined ? {} : { stdinIsDefault }),
+        read: async (raw: boolean, options: { readonly count?: number; readonly delimiter?: number; readonly exact?: boolean } = {}) => {
+          assertOpen();
+          if (closed) throw new Error("Input borrow is closed");
+          const { count, delimiter, exact } = options;
+          if (typeof raw !== "boolean" || count !== undefined && (!Number.isSafeInteger(count) || count < 0) || delimiter !== undefined && (!Number.isInteger(delimiter) || delimiter < 0 || delimiter > 255) || exact !== undefined && typeof exact !== "boolean") throw new TypeError("Invalid input read options");
+          return scope.run(() => input.line(raw, { ...(count === undefined ? {} : { count }), ...(delimiter === undefined ? {} : { delimiter }), ...(exact === undefined ? {} : { exact }), byteCount: byteLocale(state.variables) }));
+        },
+        release,
+      });
+    } });
   }
 
   private async startExtensions(state: State, io: IO): Promise<void> {
@@ -2486,11 +2654,14 @@ export class Runtime {
     }
     const commandWords = command.words.slice(wordIndex);
     let declarationIndex = 0;
-    while (commandWords[declarationIndex]?.plain === "command") {
+    while (commandWords[declarationIndex]?.plain === "command" || commandWords[declarationIndex]?.plain === "builtin") {
       declarationIndex++;
       if (commandWords[declarationIndex]?.plain === "--") declarationIndex++;
     }
-    const wordValues = await this.valueWords(commandWords, state, originalIO, ["export", "local", "readonly"].includes(commandWords[declarationIndex]?.plain ?? ""));
+    const declarationName = commandWords[declarationIndex]?.plain ?? "";
+    const expansion = state.extensions?.builtins.get(declarationName)?.expansion;
+    const declaration = expansion === undefined ? ["export", "local", "readonly"].includes(declarationName) : expansion === "declaration";
+    const wordValues = await this.valueWords(commandWords, state, originalIO, declaration);
     const words = wordValues.map(shellValueText);
     const special = state.profile === "sh" && (specialBuiltinNames.has(words[0] ?? "") || !!state.extensions?.builtins.get(words[0] ?? "")?.special);
     const inlineInput = command.redirects.some((redirect) => redirect.document || redirect.operator === "<<<");
@@ -4479,7 +4650,7 @@ export class Runtime {
     if (value !== undefined) {
       if (/^[a-zA-Z_][a-zA-Z_0-9]*$/u.test(part.name)) retained = arrayStore(state)?.get(part.name)?.getValue(0) ?? stateMonitor(state)?.values.get(part.name, value) ?? value;
       else if (/^0+$/u.test(part.name)) retained = stateMonitor(state)?.positionals.get("$0", value) ?? value;
-      else if (/^[1-9][0-9]*$/u.test(part.name)) retained = stateMonitor(state)?.positionals.get(String(Number(part.name) - 1), value) ?? value;
+      else if (/^[0-9]+$/u.test(part.name)) retained = stateMonitor(state)?.positionals.get(String(Number(part.name) - 1), value) ?? value;
       else if (part.name === "@" || part.name === "*") {
         const separator = hereString && (part.name === "@" || !part.quoted) ? " " : this.ifsSeparator(state, io);
         const values = this.positionalValues(state);

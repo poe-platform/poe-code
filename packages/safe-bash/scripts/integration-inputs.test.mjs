@@ -492,6 +492,14 @@ function assertSource7Discovery(files) {
     "tests/plugins/byte-array-runtime.test.ts",
   ]) assert.ok(files.includes(path), "byte-array foundation test is missing: " + path);
   for (const path of [
+    "tests/shell/extensions/core/bindings.test.ts",
+    "tests/shell/extensions/core/declarations.test.ts",
+    "tests/shell/extensions/core/input.test.ts",
+    "tests/shell/extensions/core/positional-length.test.ts",
+    "tests/shell/extensions/core/review.test.ts",
+    "tests/plugins/extension-core-runtime.test.ts",
+  ]) assert.ok(files.includes(path), "extension-core boundary test is missing: " + path);
+  for (const path of [
     "tests/shell/extensions/jobs/state.test.ts",
     "tests/shell/extensions/jobs/review.test.ts",
   ]) assert.ok(files.includes(path), "optional jobs-state test is missing: " + path);

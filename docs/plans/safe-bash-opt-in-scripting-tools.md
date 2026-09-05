@@ -802,6 +802,21 @@ this request to keep additions out of the default package.
   `c757c0a4cb6d1206266fae8c9dac64fcd40eb82f3137622ae83806c8e58e0e0d`.
   This removes the source of the reported lint finding without suppressing its
   rule; a fresh guarded run is still required after the active peer-guard edits.
+- The iterator fixture repair is locally committed as `617aa54f7`. Peer-guard
+  author tests pass 236 cases, and maintained typecheck now passes admission and
+  the historical/source/current consumer phases before reporting 31 compilation
+  diagnostics in 12 files. That is progress, not a full-route pass. Independent
+  review confirms 30 additional policy cases but reproduces premature peer/lock
+  reads for invalid manifest metadata; early manifest rejection is being restored
+  before accepting the patch. Two stat-fixture diagnostics caused by this goal's
+  new metadata fields and the trap fixture's missing new capabilities are assigned
+  narrowly for repair. Unrelated old stress-fixture and invocation type diagnostics
+  are not being silently rewritten or counted as passes.
+- The trap builtin fixture's missing-capability diagnostic is reproduced and
+  repaired with two explicitly typed getters that reject unexpected access.
+  All twelve native case bodies, operations, assertions and scope behavior are
+  unchanged. Root passes all twelve authenticated Bash cases and one strict type
+  root. This is a fixture compatibility repair, not a new trap runtime behavior.
 
 - First implementation wave: cmp, yes, shuf and virtual devices in disjoint leaf
   directories. Root is qualifying native oracles and the opt-in delivery boundary.

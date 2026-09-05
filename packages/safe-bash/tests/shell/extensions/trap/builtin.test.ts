@@ -36,6 +36,8 @@ for (const [name, operations] of cases) test(`native trap builtin: ${name}`, nat
       stdin: (async function* () {})(), signal: new AbortController().signal, scope: {},
       stdout: { async write(bytes) { stdout.push(bytes.slice()); } },
       stderr: { async write(bytes) { stderr.push(bytes.slice()); } },
+      get bindings(): ShellExtensionContext["bindings"] { throw new Error("Listing must not access bindings"); },
+      get input(): ShellExtensionContext["input"] { throw new Error("Listing must not access input"); },
       async evaluate() { throw new Error("Listing must not evaluate actions"); },
       variable() { return undefined; }, accountSource() {}, registerCleanup() {},
       async diagnostic(message) { stderr.push(new TextEncoder().encode(message + "\n")); },

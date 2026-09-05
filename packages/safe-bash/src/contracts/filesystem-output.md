@@ -146,6 +146,13 @@ descriptor, undo effects, or suppress cancellation. A failed diagnostic must not
 acknowledge the close failure. This command-wrapper operation does not extend the
 underlying filesystem descriptor contract or authorize untrusted host code.
 
+The command wrapper forwards optional retained-position queries only with both
+`capabilities.position === true` and a backend `getPosition` method. Queries use
+the same serialized operation, cancellation and cleanup path as other descriptor
+operations, validate a nonnegative safe-integer result, and do not consume a
+payload-byte output reservation. Missing support is not replaced by `stat().size`
+or a guessed cursor.
+
 `bindFileOutputBudget(context, sinkBudget, countedWrite)` binds both output forms
 to the same runtime cleanup owner (`context.registerCleanup`), using one WeakMap.
 `writeFileOutputCounted` returns a validated partial byte count rather than hiding

@@ -428,6 +428,13 @@ this request to keep additions out of the default package.
   unavailable and is refused, not inferred from file size. Native zero-length
   I/O observations remain a separate qualification task, not a newly changed
   implementation behavior or a claim of native cursor support.
+- Canonical retained positions are locally committed as `5ceb930c9`. The
+  safe-bash command-descriptor forwarding addition independently passes 93 cases,
+  including capability gating, count validation, budget neutrality, serialized
+  close drainage and falsey cancellation. Root repeats 79 helper/acknowledgement
+  cases successfully. The reviewed forwarding source has SHA-256
+  `76a51a171ea761c02634b6255e08d9314e50d132ad7a369a160f6817ed012a65`;
+  its existing acknowledgement behavior is preserved.
 
 - First implementation wave: cmp, yes, shuf and virtual devices in disjoint leaf
   directories. Root is qualifying native oracles and the opt-in delivery boundary.

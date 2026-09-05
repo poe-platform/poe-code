@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
-import { createMemoryFileSystem, FsError, type FileDescriptor, type FileSystem } from "poe-code/safe-fs";
+import { createMemoryFileSystem, FsError, type FileDescriptor, type FileSystem, type FsOptions } from "poe-code/safe-fs";
 import type { InvocationCleanup } from "../../src/contracts/command.js";
 import { bindFileOutputBudget, writeFileOutputCounted, type CountedFileWrite } from "../../src/contracts/filesystem-output.js";
 import { openCommandFile } from "../../src/contracts/filesystem-descriptor.js";
@@ -432,3 +432,123 @@ test("an unrelated close-drain failure cannot be suppressed even when it aliases
     await assert.rejects(Promise.resolve().then(() => fixture.cleanups[0]!()), failure => failure === reason);
   } finally { remove.mock.restore(); fixture.controller.abort(false); await descriptor.close().catch(() => {}); }
 });
+
+function positionOwner(capability: boolean | undefined, query?: (options?: FsOptions) => Promise<number>) {
+  const context = owner();
+  const events: string[] = [];
+  const open = context.fs.open!.bind(context.fs);
+  context.fs.open = async (...args) => {
+    const descriptor = await open(...args);
+    Object.defineProperty(descriptor, "capabilities", { value: { ...descriptor.capabilities, position: capability } });
+    Object.defineProperty(descriptor, "getPosition", { value: query });
+    const stat = descriptor.stat.bind(descriptor), close = descriptor.close.bind(descriptor);
+    descriptor.stat = async options => { events.push("stat"); return stat(options); };
+    descriptor.close = async () => { events.push("close"); await close(); };
+    return descriptor;
+  };
+  return { ...context, events };
+}
+
+for (const position of [0, 7, Number.MAX_SAFE_INTEGER]) {
+  test(`owned position query forwards ${position} without charging bytes or using size`, async () => {
+    let queried = 0;
+    const context = positionOwner(true, async options => {
+      assert.equal(options?.signal?.aborted, false);
+      queried++;
+      return position;
+    });
+    await context.fs.writeFile("/file", Uint8Array.of(1));
+    bindFileOutputBudget(context, () => { throw new Error("position query must not wrap output"); });
+    const descriptor = await openCommandFile(context, "/file", { access: "read" });
+    try {
+      assert.equal(descriptor.capabilities.position, true);
+      assert.equal(await descriptor.getPosition!(), position);
+      assert.equal(queried, 1);
+      assert.deepEqual(context.events, []);
+    } finally { await descriptor.close(); }
+  });
+}
+
+for (const [capability, method] of [[undefined, false], [undefined, true], [false, true], [true, false]] as const) {
+  test(`owned position query requires affirmative capability and method: ${String(capability)}/${method}`, async () => {
+    let queried = 0;
+    const context = positionOwner(capability, method ? async () => { queried++; return 0; } : undefined);
+    const descriptor = await openCommandFile(context, "/file", { access: "write", creation: "exclusive" });
+    try {
+      assert.equal(descriptor.getPosition, undefined);
+      assert.notEqual(descriptor.capabilities.position, true);
+      assert.equal(queried, 0);
+    } finally { await descriptor.close(); }
+  });
+}
+
+for (const position of [-1, 1.5, NaN, Infinity, Number.MAX_SAFE_INTEGER + 1]) {
+  test(`owned position query rejects invalid result ${String(position)}`, async () => {
+    const context = positionOwner(true, async () => position);
+    const budget = ledger(0);
+    bindFileOutputBudget(context, sink => sink, budget.counted);
+    const descriptor = await openCommandFile(context, "/file", { access: "write", creation: "exclusive" });
+    try {
+      await assert.rejects(async () => descriptor.getPosition!(), { code: "EIO", syscall: "getPosition", path: "/file" });
+      assert.equal(budget.used(), 0);
+    } finally { await descriptor.close(); }
+  });
+}
+
+for (const reason of [undefined, false, 0]) {
+  test(`owned position query preserves falsey provider failure ${String(reason)}`, async () => {
+    const context = positionOwner(true, async () => { throw reason; });
+    const descriptor = await openCommandFile(context, "/file", { access: "write", creation: "exclusive" });
+    try { await assert.rejects(async () => descriptor.getPosition!(), error => error === reason); }
+    finally { await descriptor.close(); }
+  });
+}
+
+test("owned position query serializes with descriptor work and close drains its admitted query", async () => {
+  const started = deferred(), release = deferred<number>();
+  const context = positionOwner(true, async () => { context.events.push("query"); started.resolve(); return release.promise; });
+  const descriptor = await openCommandFile(context, "/file", { access: "write", creation: "exclusive" });
+  try {
+    const query = descriptor.getPosition!();
+    await started.promise;
+    const stat = descriptor.stat();
+    const closing = descriptor.close();
+    await assert.rejects(async () => descriptor.getPosition!(), { code: "EBADF", syscall: "getPosition", path: "/file" });
+    assert.deepEqual(context.events, ["query"]);
+    release.resolve(7);
+    assert.equal(await query, 7);
+    await stat;
+    await closing;
+    assert.deepEqual(context.events, ["query", "stat", "close"]);
+  } finally { release.resolve(7); await descriptor.close(); }
+});
+
+for (const source of ["root", "open", "query"] as const) {
+  test(`owned position query observes ${source} cancellation and drains before close`, async () => {
+    const started = deferred(), release = deferred<number>();
+    const controller = new AbortController();
+    let forwarded: AbortSignal | undefined;
+    const context = positionOwner(true, async options => {
+      forwarded = options?.signal;
+      started.resolve();
+      return release.promise;
+    });
+    const descriptor = await openCommandFile(context, "/file", {
+      access: "write", creation: "exclusive", ...(source === "open" ? { signal: controller.signal } : {}),
+    });
+    try {
+      const query = descriptor.getPosition!(source === "query" ? { signal: controller.signal } : {});
+      const rejected = assert.rejects(query, reason => reason === false);
+      await started.promise;
+      (source === "root" ? context.controller : controller).abort(false);
+      const closing = descriptor.close();
+      assert.equal(forwarded?.aborted, true);
+      assert.equal(forwarded?.reason, false);
+      assert.deepEqual(context.events, []);
+      release.resolve(9);
+      await rejected;
+      await closing;
+      assert.deepEqual(context.events, ["close"]);
+    } finally { release.resolve(9); await descriptor.close(); }
+  });
+}

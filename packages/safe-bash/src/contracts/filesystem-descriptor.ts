@@ -84,13 +84,21 @@ export async function openCommandFile(context: FileOutputContext, path: string, 
     acquisitionSettled();
     check();
     if (!accepting) throw new FsError("EBADF", { syscall: "open", path });
+    const position = descriptor.capabilities.position === true && typeof descriptor.getPosition === "function";
     const admitted = Object.freeze({ ...descriptor.capabilities,
       positionedRead: descriptor.capabilities.positionedRead && request.access !== "write",
       positionedWrite: descriptor.capabilities.positionedWrite && request.access !== "read" && !request.append,
       truncate: descriptor.capabilities.truncate && request.access !== "read",
+      ...(descriptor.capabilities.position === undefined ? {} : { position }),
     });
     return {
       capabilities: admitted,
+      ...(position ? { getPosition: (forwarded: FsOptions = {}) => run("getPosition", forwarded, async (retained, supplied) => {
+        if (retained.capabilities.position !== true || typeof retained.getPosition !== "function") throw new FsError("ENOTSUP", { syscall: "getPosition", path });
+        const cursor = await retained.getPosition(supplied);
+        if (!Number.isSafeInteger(cursor) || cursor < 0) throw new FsError("EIO", { syscall: "getPosition", path });
+        return cursor;
+      }) } : {}),
       stat: (forwarded = {}) => run("fstat", forwarded, (retained, supplied) => retained.stat(supplied)),
       read: (buffer, position, forwarded = {}) => run("read", forwarded, async (retained, supplied) => {
         if (request.access === "write") throw new FsError("EBADF", { syscall: "read", path });

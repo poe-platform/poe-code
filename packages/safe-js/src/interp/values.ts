@@ -1,4 +1,6 @@
 import { bindOtelSpan, getBoundOtelSpan } from "../observability/otel.js";
+import { isSandboxMap, isSandboxSet, sandboxMapBrand, sandboxSetBrand } from "./collection-brands.js";
+import { collectionIteratorState, isSandboxCollectionIterator, restoreSandboxCollectionIterator, snapshotCollectionIterator, type SandboxCollectionIterator } from "./collection-iterator.js";
 import { copyNativeDate, exportDate, isSandboxDate } from "./date.js";
 import { getHostObjectKeys, getHostObjectMember, hasHostObjectMember, measureHostObjectData, isGuestHostObject, isLiveCapability } from "./host-capabilities.js";
 import type { Budget, CompileTicket } from "./budget.js";
@@ -31,14 +33,13 @@ import {
 } from "./arguments.js";
 
 export { createSandboxArguments, isSandboxArguments } from "./arguments.js";
+export { isSandboxMap, isSandboxSet } from "./collection-brands.js";
 
 const sandboxClosureBrand = Symbol("SandboxClosure");
 const sandboxGeneratorBrand = Symbol("SandboxGenerator");
-const sandboxMapBrand = Symbol("SandboxMap");
 const sandboxPromiseBrand = Symbol("SandboxPromise");
 const sandboxRegexBrand = Symbol("SandboxRegex");
 const sandboxRegexPattern = Symbol("SandboxRegexPattern");
-const sandboxSetBrand = Symbol("SandboxSet");
 const sandboxRetainedValues = Symbol("SandboxRetainedValues");
 
 export type SandboxPrimitive = string | number | boolean | null | undefined;
@@ -51,6 +52,7 @@ export type SandboxValue =
   | SandboxArray
   | SandboxClosure
   | SandboxGenerator
+  | SandboxCollectionIterator
   | SandboxMap
   | SandboxSet
   | SandboxPromise
@@ -158,6 +160,7 @@ type CopyFromSandboxOptions = {
 
 type CopyState<TValue> = {
   seen: WeakMap<object, TValue>;
+  initializeIterators?: Array<() => void>;
 };
 
 export function createSandboxClosure(input: {
@@ -405,16 +408,8 @@ export function isSandboxClosure(value: unknown): value is SandboxClosure {
   return typeof value === "object" && value !== null && sandboxClosureBrand in value;
 }
 
-export function isSandboxMap(value: unknown): value is SandboxMap {
-  return typeof value === "object" && value !== null && sandboxMapBrand in value;
-}
-
 export function isSandboxPromise(value: unknown): value is SandboxPromise {
   return typeof value === "object" && value !== null && sandboxPromiseBrand in value;
-}
-
-export function isSandboxSet(value: unknown): value is SandboxSet {
-  return typeof value === "object" && value !== null && sandboxSetBrand in value;
 }
 
 export function isSandboxGenerator(value: unknown): value is SandboxGenerator {
@@ -432,14 +427,18 @@ export function deepCopyToSandbox(value: unknown): SandboxValue {
 }
 
 export function cloneSandboxValue(value: SandboxValue): SandboxValue {
-  return copyToSandbox(
+  const initializeIterators: Array<() => void> = [];
+  const copy = copyToSandbox(
     value,
     {
-      seen: new WeakMap()
+      seen: new WeakMap(),
+      initializeIterators
     },
     "<root>",
     true
   );
+  for (const initialize of initializeIterators) initialize();
+  return copy;
 }
 
 export function allocateProducedSandboxValue(value: SandboxValue, budget: Budget): SandboxValue {
@@ -509,6 +508,14 @@ export function measureSandboxData(
       for (const [key, entry] of value.entries) {
         visit(key, depth + 1);
         visit(entry, depth + 1);
+      }
+      return;
+    }
+    if (isSandboxCollectionIterator(value)) {
+      visit(collectionIteratorState(value).collection, depth + 1);
+      for (const [key, descriptor] of Object.entries(Object.getOwnPropertyDescriptors(value))) {
+        usage += key.length + 1;
+        if ("value" in descriptor) visit(descriptor.value, depth + 1);
       }
       return;
     }
@@ -663,6 +670,23 @@ function copyToSandbox(
     isSandboxPromise(value)
   ) {
     return value;
+  }
+
+  if (isSandboxCollectionIterator(value)) {
+    if (hasGuestObjectState(value)) throw new TypeError("Guest prototype links and custom descriptors cannot be copied as data.");
+    if (!cloneSandboxCollections) return value;
+    const existing = state.seen.get(value);
+    if (existing !== undefined) return existing;
+    const snapshot = snapshotCollectionIterator(value);
+    const copy = restoreSandboxCollectionIterator({ ...snapshot, collection: undefined, index: 0, exhausted: true });
+    state.seen.set(value, copy);
+    const collection = copyToSandbox(snapshot.collection, state, `${path}.<collection>`, true, depth + 1);
+    if (collection !== undefined && !isSandboxMap(collection) && !isSandboxSet(collection)) throw new TypeError("Invalid cloned collection iterator source.");
+    state.initializeIterators!.push(() => { restoreSandboxCollectionIterator({ ...snapshot, collection }, copy); });
+    for (const entry of getEnumerableObjectEntries(value, path)) {
+      defineOwnDataProperty(copy, entry.key, copyToSandbox(entry.value, state, joinPath(path, entry.key), true, depth + 1));
+    }
+    return copy;
   }
 
   if (typeof value === "object" && value !== null && hasGuestObjectState(value)) {
@@ -952,6 +976,10 @@ function copyFromSandbox(
 
   if (isSandboxGenerator(value)) {
     throw new TypeError("Sandbox generators cannot cross into host values.");
+  }
+
+  if (isSandboxCollectionIterator(value)) {
+    throw new TypeError("Sandbox collection iterators cannot cross into host values.");
   }
 
   if (isSandboxRegex(value)) {

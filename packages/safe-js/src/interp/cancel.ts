@@ -1,4 +1,5 @@
 import { AsyncLocalStorage } from "node:async_hooks";
+import { collectionIteratorState, isSandboxCollectionIterator } from "./collection-iterator.js";
 import { getSandboxPrototype } from "./object-model.js";
 import {
   createSandboxPromise,
@@ -124,6 +125,7 @@ function registerCancelablePromises(value: SandboxValue, signal: AbortSignal): v
     } else if (isSandboxSet(current)) {
       for (const entry of current.values) pending.push(entry);
     } else {
+      if (isSandboxCollectionIterator(current)) pending.push(collectionIteratorState(current).collection);
       for (const descriptor of Object.values(Object.getOwnPropertyDescriptors(current))) {
         if ("value" in descriptor) pending.push(descriptor.value as SandboxValue);
       }

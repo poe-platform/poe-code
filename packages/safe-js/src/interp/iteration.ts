@@ -8,6 +8,8 @@ import {
 import { enterRunningState } from "./running-state.js";
 import { isFloat32Array } from "./float32.js";
 import { getHostObjectIterator, isGuestHostObject } from "./host-capabilities.js";
+import { isSandboxCollectionIterator, nextCollectionIterator } from "./collection-iterator.js";
+import type { Budget } from "./budget.js";
 
 export type SandboxIterator = {
   readonly generator?: true;
@@ -21,7 +23,8 @@ export type SandboxIterator = {
   ): IteratorResult<SandboxValue> | Promise<IteratorResult<SandboxValue>>;
 };
 
-export function getSandboxIterator(value: SandboxValue): SandboxIterator | undefined {
+export function getSandboxIterator(value: SandboxValue, budget?: Budget): SandboxIterator | undefined {
+  if (isSandboxCollectionIterator(value)) return { next: () => nextCollectionIterator(value, budget), snapshotIndex: () => 0 };
   if (isGuestHostObject(value)) return getHostObjectIterator(value);
   if (isFloat32Array(value)) {
     return syncIterator(Float32Array.prototype.values.call(value));

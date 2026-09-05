@@ -1,4 +1,5 @@
 import type { Budget } from "../budget.js";
+import { isSandboxCollectionIterator } from "../collection-iterator.js";
 import { assertSandboxGraphDepth } from "../../graph-depth.js";
 import {
   allocateProducedSandboxValue,
@@ -58,8 +59,8 @@ function structuredCloneSandboxValue(value: SandboxValue, budget: Budget): Sandb
 }
 
 function assertStructuredCloneable(value: SandboxValue, seen: WeakSet<object>): void {
-  if (isSandboxClosure(value) || isSandboxPromise(value)) {
-    throw new TypeError("structuredClone() cannot clone closures or promises.");
+  if (isSandboxClosure(value) || isSandboxPromise(value) || isSandboxCollectionIterator(value)) {
+    throw new TypeError("structuredClone() cannot clone closures, promises, or collection iterators.");
   }
 
   if (typeof value !== "object" || value === null || seen.has(value)) {

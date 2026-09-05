@@ -31,6 +31,7 @@
   },
   "scripts": {
     "build": "node ../../scripts/guard-package-dist.mjs && rm -rf dist && tsc && node ../../scripts/set-bin-executable.mjs",
+    "postbuild": "node --test scripts/built-imports.test.mjs",
     "example:experiment": "tsx src/cli.ts examples/experiment.md",
     "example:pipeline": "tsx src/cli.ts examples/pipeline.md",
     "example:superintendent": "tsx src/cli.ts examples/superintendent.md",

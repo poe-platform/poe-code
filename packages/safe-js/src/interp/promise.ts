@@ -464,7 +464,7 @@ async function settleIterable(
     const promiseResolve = readPromiseReceiverProperty(constructor, "resolve", prototype);
     if (!isSandboxClosure(promiseResolve))
       throw new TypeError("Promise constructor requires a callable resolve.");
-    const iterator = getSandboxIterator(iterable);
+    const iterator = getSandboxIterator(iterable, budget);
     if (iterator === undefined) throw new TypeError("Promise helpers require an iterable.");
     let index = 0;
     while (true) {

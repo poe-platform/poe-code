@@ -388,7 +388,7 @@ describe("JavaScript conformance matrix", () => {
     it("uses SameValueZero keys and object identity", async () => {
       await expect(
         run(
-          "const first = {}; const second = {}; const map = new Map([[NaN, 1], [first, 2], [second, 3]]); const set = new Set([-0]); const iterated = set.values()[0]; return [map.get(NaN), map.get(first), map.get(second), set.has(0), Object.is(iterated, 0)]"
+          "const first = {}; const second = {}; const map = new Map([[NaN, 1], [first, 2], [second, 3]]); const set = new Set([-0]); const iterated = set.values().next().value; return [map.get(NaN), map.get(first), map.get(second), set.has(0), Object.is(iterated, 0)]"
         )
       ).resolves.toEqual([1, 2, 3, true, true]);
     });
@@ -439,15 +439,17 @@ describe("JavaScript conformance matrix", () => {
     ).resolves.toEqual([0, 42, 1]);
   });
 
-  describe("documented deviations", () => {
-    it("returns eager arrays from Map and Set iteration methods", async () => {
+  describe("collection iterator representation", () => {
+    it("returns iterator objects from Map and Set iteration methods", async () => {
       await expect(
         run(
           "const map = new Map([[1, 2]]); const set = new Set([3]); return [Array.isArray(map.keys()), Array.isArray(map.values()), Array.isArray(map.entries()), Array.isArray(set.keys()), Array.isArray(set.values()), Array.isArray(set.entries())]"
         )
-      ).resolves.toEqual([true, true, true, true, true, true]);
+      ).resolves.toEqual([false, false, false, false, false, false]);
     });
+  });
 
+  describe("documented deviations", () => {
     it("provides ordinary Object inspection without an Array prototype graph", async () => {
       await expect(run("return [({}).toString(), [].hasOwnProperty]")).resolves.toEqual([
         "[object Object]",

@@ -1064,7 +1064,7 @@ against remote main. Scoped workflow `33949605980`, publisher `101261760211`,
 succeeded: SafeJS 0.1.108 published September 5, 2026, 06:25:44 UTC. CLI workflow
 `33949606140` was canceled; it is not a successful CLI publication.
 
-### 22. Map and Set method receivers — validated repair
+### 22. Map and Set method receivers — delivered and released
 
 The 54-case receiver cohort reproduced 52 failures with two passing ordinary-call
 controls before implementation. Saved Map/Set methods captured the collection
@@ -1103,3 +1103,143 @@ additions/deletions/value updates, and can be consumed repeatedly. A correct
 repair needs real single-use iterator state plus retained-source accounting and
 snapshot/restore coverage; adding next to arrays is not native iterator parity.
 Canonical method identity and broader prototype/Symbol support remain separate.
+
+Receiver delivery is complete: commit `e29ff3ceb424a0e3b02361407e1318e3256f1213`
+was pushed and verified against remote main. Scoped workflow `33950308439`,
+publisher `101263700253`, published SafeJS 0.1.111 on September 5, 2026,
+06:40:24 UTC. CLI workflow `33950308628`, release-stable job `101264967768`,
+published poe-code 14.0.50 at 06:49:14 UTC and its GitHub release at 06:49:15 UTC.
+The descendant CLI also includes the preceding Map and Set constructor repairs.
+
+### 23. Live collection method iterators — validated repair
+
+The initial 39 native-behavior tests reproduced 35 failures with four passing
+controls. Map/Set method iterators now have separately branded, hidden cursor
+state rather than eager arrays. Native backing iterators preserve additions,
+deletions, reinsertion, value updates, and permanent exhaustion. Iterator next
+honors its receiver and distinguishes Map versus Set brands. Supported consumers
+include spread, for-of, destructuring, generator delegation, Array.from,
+Object.fromEntries, collection constructors, and Promise helpers. Iterator
+creation is lazy; entry-pair capacity is charged on advancement. The old
+getSpreadIterator proxy was removed while threading budgets through consumers.
+
+Initial high-level checkpoint controls all passed (112 tests), so those alone
+did not establish persistence correctness. Eighteen new low-level snapshot/replay
+tests failed because iterator brands, cursor positions, source references, and
+aliases were lost. Dedicated heap/replay records now retain them. Restore defers
+native cursor initialization until source collections are populated, preserving
+cycles. Adding internal clone coverage reproduced three failures with 24 passing
+controls; cloning now preserves source identity and independent live cursors.
+
+The first complete SafeJS package run reported 13 failures, 10,778 passes and 41
+skips. Twelve failures depended on the former eager-array behavior. Consumers
+now use next().value or explicit materialization without dropping their identity,
+cancellation, clone, or ordering assertions. The formerly passing shared-identity
+test had compared two missing indexed iterator values; it now compares actual
+yielded values. Native checkpoint comparisons no longer rewrite methods into
+Array.from. The remaining failure was a budget fixture: yielding a 2,000-character
+Set value added another retained primitive occurrence and correctly needed 8,024
+units. The fixture now inspects the next method without yielding, isolating source
+retention: rejection at 5,000 and success at 7,000. This was not a budget defect.
+
+Two added in-operator tests reproduced missing inherited next admission; the
+property check now recognizes iterator members. A selected build found two
+introduced typing errors, which were corrected; the subsequent maintained root
+build passed all 70 declared builds (the 71st workspace has no build task).
+The bundled skill's eager-array claim was corrected using skill-creator guidance,
+then npm run sync-skills updated six installed copies with 27 others unchanged.
+The skill validator passed through an isolated uv/PyYAML environment because the
+system Python did not have PyYAML. No invocation policy or unrelated guidance was
+changed.
+
+Further review reproduced acceptance of iterator values by guest structuredClone;
+native JavaScript rejects them. Internal snapshot cloning remains supported, but
+the guest API now rejects direct/nested collection iterators using its existing
+TypeError policy. Native DOMException/DataCloneError parity is not claimed.
+Additional tests reproduced an internal clone accepting custom prototype links
+and graph-depth checks missing hidden iterator/source edges. Copy admission now
+keeps the existing prototype/descriptor boundary, and graph-depth traversal
+follows iterator sources and branded Map/Set contents. The corrected native
+baseline explicitly supplies structuredClone to the VM; the earlier baseline's
+missing host global is not used as evidence. Six boundary regressions failed with
+102 passing controls before these corrections; the six-file follow-up cohort
+passes 219 tests.
+
+The initial broad npm test run was intentionally canceled after this review, not
+reported as passing. Its exact owned runner was stopped; the separate worktree's
+runner was left untouched. A new root build, complete maintained unit route,
+lint, built API checks, and relevant CLI validation remain required before atomic
+commit/push. Iterator helpers, canonical method identity/arity, full prototype
+graphs, and custom Symbol/iterator protocol overrides are not included in this
+repair or claimed complete.
+
+CLI validation plan: create a temporary no-spawn harness pair with a schema-only
+import. Run the built SafeJS stub first, then the real harness command through
+the maintained screenshot route. Confirm the first Map key is a, later keys
+include b and newly added c, and a second Set iterator consumption is empty.
+Inspect the PNG for readable, complete result output. Grant no filesystem, MCP,
+environment, or agent-spawn capabilities. Temporary fixture/output files are
+manual validation artifacts, not unit-test disk writes or committed source.
+
+The raw .safejs stub produced the expected first/remaining/once/twice values.
+The paired real harness passed with zero spawns and a readable screenshot after
+correcting the temporary fixture to declare its required frontmatter parameter.
+The first screenshot's signature rejection was fixture feedback, not an iterator
+defect. The maintained screenshot helper also ran its existing predev preparation;
+that does not replace the uncached maintained root-build gate.
+
+A separate, validated skill-documentation follow-up remains: the standalone CLI
+does not consume schema-based harness pairs as the skill's stub instructions
+claim. Passing the Markdown pair to it fails parsing, and passing the paired
+.ajs fails because the stub registry has no schema module. Its raw .safejs route
+works. Correct that guidance in a separate atomic commit after this runtime fix.
+
+Final value-type integration review reproduced nine additional failures with 58
+passing controls: capability rebinding through iterator sources, a capability
+path collision with a guest property named <collection>, accepting iterators as
+input-section records, cancellation registration for retained promises, and
+String/Object type tags. Replay now distinguishes source paths from encoded own
+property paths; input-section validation excludes iterator exotics. Cancellation
+traversal follows the retained source, and built-in type tags distinguish Map
+Iterator and Set Iterator. The cancellation fixture was corrected to use a truly
+pending promise: its original Promise.resolve control could legitimately settle
+before abort. The five-file corrected follow-up cohort passes 166 tests. These
+last source changes still need fresh broad gates before delivery.
+
+A fresh native ESM process then exposed an introduced import-order cycle:
+graph-depth imported values, which could reach snapshot validation before
+MAX_DATA_DEPTH initialized. Ordinary root/core imports passed; importing the SDK
+together with snapshot helpers without preloading value modules failed. New
+maintained built-import tests reproduced one failure with three passing public
+entry controls. Collection brands/guards now live in a type-only-dependent module,
+and SafeJS postbuild runs the four fresh-process checks; all pass after the change.
+The second broad unit attempt was canceled rather than qualifying the earlier
+tree. A selected maintained SafeJS closure build passes, including the new checks.
+
+Forty built native comparisons, four codec checks, and four data-retention checks
+passed before that dependency-only correction. Correct public-SDK pending probes
+also restore a saved iterator next method and a suspended generator across an
+await checkpoint. An initial probe incorrectly supplied internal SandboxClosure
+objects as public SDK host bindings and failed before reaching the checkpoint;
+that fixture misuse is not a runtime defect. Native function bindings fix the
+probe. Ordinary user prototypes and instanceof also work in a concrete built
+probe, making the skill's blanket prototype/generator limitations further
+validated documentation follow-ups rather than missing runtime features.
+
+Final maintained gates pass: the complete root build ran all 70 declared builds
+across 71 workspaces, including four fresh-process native ESM import checks.
+The complete uncached npm test route finished successfully: 30,673 shared Vitest
+tests passed with 43 skipped; SafeBash passed 279 tooling tests and 19,964 native
+tests with 63 skipped; Python passed 29 tests, the postinstall suite passed 288,
+and the root posttest lint-stress suite passed two. These skips and workspaces
+without declared tests are not counted as passes.
+
+Remote main advanced with the nonoverlapping MCP stdio-input repair. Fast-forward
+integration to 34a025dcbdcfdb60fe18005aa99c2b50a4ac1c20 preserved the unrelated
+staged SafeBash edits. The selected maintained MCP build closure passed both
+declared builds, and all 749 focused MCP tests passed on the integrated tree.
+Final root lint then passed for all 9,747 configured files with zero errors or
+warnings, followed by successful type and workflow checks. The CLI screenshot,
+built API/codec/budget probes, skill sync, and skill validator described above
+also passed. This qualifies the iterator repair for its own commit and push;
+remote delivery and publication remain separately verified steps.

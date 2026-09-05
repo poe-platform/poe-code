@@ -1,4 +1,5 @@
 import { hashSource } from "../parse/hash.js";
+import { collectionIteratorState, isSandboxCollectionIterator, snapshotCollectionIterator, type CollectionIterationMethod, type SandboxCollectionIterator } from "../interp/collection-iterator.js";
 import { hasGuestObjectState } from "../interp/object-model.js";
 import { sandboxErrorTypes, type SandboxErrorName } from "../error/shape.js";
 import { assertSnapshotGraphDepth } from "../graph-depth.js";
@@ -67,6 +68,7 @@ export type SerializedReferenceValue = {
 };
 
 export type SerializedHeapValue =
+  | { kind: "collection-iterator"; collectionKind: "map" | "set"; method: CollectionIterationMethod; collection: SerializedSnapshotValue; index: number; exhausted: boolean; entries: Record<string, SerializedSnapshotValue> }
   | { kind: "date"; time: number | null }
   | (Float32Data<SerializedReferenceValue> & { entries: Record<string, SerializedSnapshotValue> })
   | SerializedArguments<SerializedSnapshotValue>
@@ -125,6 +127,7 @@ export type RuntimeSnapshotValue =
   | undefined
   | RuntimeClosureValue
   | SandboxGenerator
+  | SandboxCollectionIterator
   | RuntimePromiseValue
   | SandboxMap
   | SandboxRegex
@@ -392,7 +395,7 @@ function serializeValue(
     return { kind: "regex", source: value.source, flags: value.flags, lastIndex: value.lastIndex };
   }
 
-  if (isSandboxDate(value) || isSandboxMap(value) || isSandboxSet(value) || isFloat32Array(value)) {
+  if (isSandboxDate(value) || isSandboxMap(value) || isSandboxSet(value) || isSandboxCollectionIterator(value) || isFloat32Array(value)) {
     const reference = serializeHeapReference(value, path, state);
     if (reference === undefined) {
       throw new TypeError(`Cannot serialize collection without a heap reference at ${path}.`);
@@ -426,6 +429,7 @@ function serializeHeapReference(
     | Record<string, RuntimeSnapshotValue>
     | SandboxMap
     | SandboxSet
+    | SandboxCollectionIterator
     | Date
     | Float32Array,
   path: string,
@@ -439,7 +443,16 @@ function serializeHeapReference(
   if (!state.serializedHeapIds.has(id)) {
     state.serializedHeapIds.add(id);
 
-    if (isSandboxDate(value)) {
+    if (isSandboxCollectionIterator(value)) {
+      const snapshot = snapshotCollectionIterator(value);
+      const entries: Record<string, SerializedSnapshotValue> = Object.create(null);
+      state.heap[String(id)] = {
+        kind: "collection-iterator", collectionKind: snapshot.collectionKind, method: snapshot.method,
+        collection: serializeValue(snapshot.collection, `${path}.<collection>`, state),
+        index: snapshot.index, exhausted: snapshot.exhausted, entries
+      };
+      for (const [key, entry] of Object.entries(value)) entries[key] = serializeValue(entry as RuntimeSnapshotValue, `${path}.${key}`, state);
+    } else if (isSandboxDate(value)) {
       state.heap[String(id)] = { kind: "date", time: serializedDateTime(value) };
     } else if (isFloat32Array(value)) {
       const storage = encodeFloat32Storage(value, id, state.float32Buffers, (id) => ({
@@ -587,6 +600,7 @@ function indexHeapContainers(input: SerializeInput): WeakMap<object, number> {
       (Array.isArray(value) && requiresArrayEntries(value)) ||
       sandboxErrorTypes.has(value) ||
       isSandboxArguments(value) ||
+      isSandboxCollectionIterator(value) ||
       isSandboxMap(value) ||
       isSandboxSet(value)
     ) {
@@ -619,6 +633,7 @@ function collectContainerStats(
     !isSandboxDate(value) &&
     !isFloat32Array(value) &&
     !isSandboxMap(value) &&
+    !isSandboxCollectionIterator(value) &&
     !isSandboxSet(value)
   ) {
     return;
@@ -648,7 +663,9 @@ function collectContainerStats(
   stat.expanded = true;
   ancestors.add(value);
 
-  const entries = isSandboxArguments(value)
+  const entries = isSandboxCollectionIterator(value)
+    ? [collectionIteratorState(value).collection, ...Object.values(value)]
+    : isSandboxArguments(value)
     ? Object.values(Object.getOwnPropertyDescriptors(value)).flatMap((descriptor) =>
         "value" in descriptor ? [descriptor.value] : []
       )

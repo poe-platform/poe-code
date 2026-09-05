@@ -12,6 +12,8 @@ import type {
 } from "../parse.js";
 import type { AsyncEvaluationResult } from "./async.js";
 import type { Scope } from "./scope.js";
+import type { Budget } from "./budget.js";
+import { isSandboxCollectionIterator, nextCollectionIterator } from "./collection-iterator.js";
 import {
   isSandboxMap,
   isSandboxSet,
@@ -26,6 +28,7 @@ type Pattern = VariableDeclarator["id"] | AssignmentPattern | MemberExpression |
 export type PatternTarget = { kind: VariableDeclarationKind; initialize?: true } | { assign: true };
 
 export type PatternContext = {
+  budget?: Budget;
   evaluate(node: ParseResult): Promise<AsyncEvaluationResult>;
   toPropertyKey(value: SandboxValue): Promise<string>;
   getProperty(value: SandboxValue, key: string | number): SandboxValue;
@@ -115,16 +118,29 @@ async function bindArrayPattern(
   scope: Scope,
   context: PatternContext
 ): Promise<BindPatternResult> {
-  const values = getArrayPatternValues(value);
+  const iterator = isSandboxCollectionIterator(value) ? value : undefined;
+  const values = iterator === undefined ? getArrayPatternValues(value) : undefined;
 
   for (let index = 0; index < pattern.elements.length; index += 1) {
     const element = pattern.elements[index];
     if (element === null) {
+      if (iterator !== undefined) nextCollectionIterator(iterator, context.budget);
       continue;
     }
 
-    const elementValue =
-      element.type === "RestElement" ? values.slice(index) : (values[index] as SandboxValue);
+    let elementValue: SandboxValue;
+    if (iterator === undefined) {
+      elementValue = element.type === "RestElement" ? values!.slice(index) : values![index];
+    } else if (element.type === "RestElement") {
+      const rest: SandboxValue[] = [];
+      for (let entry = nextCollectionIterator(iterator, context.budget); !entry.done; entry = nextCollectionIterator(iterator, context.budget)) {
+        context.budget?.allocateArrayLength(rest.length + 1);
+        rest.push(entry.value);
+      }
+      elementValue = rest;
+    } else {
+      elementValue = nextCollectionIterator(iterator, context.budget).value;
+    }
     const binding = await bindPattern(element, elementValue, target, scope, context);
     if (!binding.ok) {
       return binding;

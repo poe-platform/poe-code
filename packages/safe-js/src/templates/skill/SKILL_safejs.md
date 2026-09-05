@@ -102,7 +102,9 @@ or rely on runtime imports during schema extraction.
 
 ## Common Pitfalls
 
-- `Map` and `Set` methods `keys()`, `values()`, and `entries()` return eager arrays.
+- `Map` and `Set` methods `keys()`, `values()`, and `entries()` return live,
+  single-use iterators. Use `Array.from(...)` or spread when you need an array
+  snapshot; use `iterator.next()` to consume one entry.
 - Prototype chains are absent. `Foo.prototype` is `undefined`; `instanceof`
   with a user constructor throws. Use an explicit brand property.
 - `for...in` rejects destructuring in the loop head. Destructure in the body.

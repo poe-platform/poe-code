@@ -1,4 +1,5 @@
 import { MAX_DATA_DEPTH } from "../graph-depth.js";
+import { isSandboxCollectionIterator, restoreSandboxCollectionIterator, snapshotCollectionIterator, type CollectionIterationMethod } from "../interp/collection-iterator.js";
 import { hasGuestObjectState } from "../interp/object-model.js";
 import { CompileScope } from "../interp/regex/compile-guard.js";
 import { float32DataProperties, isFloat32Array } from "../interp/float32.js";
@@ -40,6 +41,7 @@ type Properties = Record<
   { value: Atom; configurable: boolean; enumerable: boolean; writable: boolean }
 >;
 type DataNode =
+  | { kind: "collection-iterator"; collectionKind: "map" | "set"; method: CollectionIterationMethod; collection: Atom; index: number; exhausted: boolean; properties: Properties; extensible: boolean }
   | { kind: "date"; time: number | null }
   | (Float32Data<Atom> & { properties: Properties; extensible: boolean })
   | { kind: "capability"; id: string; properties: Atom }
@@ -129,6 +131,14 @@ export function encodeReplayData(
         };
       }
       nodes[id] = { ...storage, properties, extensible: Object.isExtensible(entry) };
+    } else if (isSandboxCollectionIterator(entry)) {
+      const snapshot = snapshotCollectionIterator(entry);
+      const properties: Properties = Object.create(null);
+      for (const [key, descriptor] of Object.entries(Object.getOwnPropertyDescriptors(entry))) {
+        if (!("value" in descriptor)) throw new TypeError(`Cannot record replay data accessor '${key}'.`);
+        properties[key] = { value: child(descriptor.value, JSON.stringify(["property", key])), configurable: descriptor.configurable === true, enumerable: descriptor.enumerable === true, writable: descriptor.writable === true };
+      }
+      nodes[id] = { kind: "collection-iterator", collectionKind: snapshot.collectionKind, method: snapshot.method, collection: child(snapshot.collection, "<collection>"), index: snapshot.index, exhausted: snapshot.exhausted, properties, extensible: Object.isExtensible(entry) };
     } else if (isSandboxMap(entry)) {
       nodes[id] = {
         kind: "map",
@@ -199,6 +209,7 @@ export function decodeReplayData(
     const graph = record(input);
     const nodes = list(own(graph, "nodes"));
     const restored = new Map<number, SandboxValue>();
+    const initializeIterators: Array<() => void> = [];
     const decode = (entry: unknown, depth = 0): SandboxValue => {
       if (depth > MAX_DATA_DEPTH) throw new TypeError("Replay data exceeds the nesting limit.");
       if (entry === null || typeof entry === "boolean" || typeof entry === "string") return entry;
@@ -304,6 +315,21 @@ export function decodeReplayData(
         if (!node.extensible) Object.preventExtensions(result);
         return result;
       }
+      if (kind === "collection-iterator") {
+        const collectionKind = own(node, "collectionKind");
+        const method = own(node, "method");
+        const index = own(node, "index");
+        const exhausted = own(node, "exhausted");
+        if ((collectionKind !== "map" && collectionKind !== "set") || (method !== "keys" && method !== "values" && method !== "entries") || typeof index !== "number" || !Number.isSafeInteger(index) || index < 0 || typeof exhausted !== "boolean" || typeof node.extensible !== "boolean") throw new TypeError("Invalid replay collection iterator.");
+        const result = restoreSandboxCollectionIterator({ collection: undefined, collectionKind, method, index: 0, exhausted: true });
+        restored.set(id, result);
+        const collection = child(own(node, "collection"));
+        if (collection !== undefined && !isSandboxMap(collection) && !isSandboxSet(collection)) throw new TypeError("Invalid replay collection iterator source.");
+        initializeIterators.push(() => { restoreSandboxCollectionIterator({ collection, collectionKind, method, index, exhausted }, result); });
+        defineProperties(result, record(own(node, "properties")), child);
+        if (!node.extensible) Object.preventExtensions(result);
+        return result;
+      }
       if (kind === "map") {
         const result = createSandboxMap();
         restored.set(id, result);
@@ -366,6 +392,7 @@ export function decodeReplayData(
       return result;
     };
     const result = decode(own(graph, "root"));
+    for (const initialize of initializeIterators) initialize();
     if (parent !== undefined) compilation.forward(compilation.tickets, parent);
     return result;
   } finally {

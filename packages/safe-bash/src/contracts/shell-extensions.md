@@ -75,6 +75,20 @@ reject before consumption; zero timeout requires a readiness query, not `read`.
 Extension methods retained after their invocation cannot acquire new resources
 or publish new state, and a released borrow cannot read or poll its cursor.
 
+## Evaluation exit and cleanup
+
+A current-shell `exit` inside `evaluate` escapes as shell control flow rather
+than returning an ordinary callback status. EXIT handlers run while the exiting
+callback's local bindings remain visible. Frame-wide owned cleanup waits until
+the enclosing extension execution and evaluation have unwound, so cleanup may
+join the operation that registered it without creating a self-wait cycle.
+
+The cached exit status does not skip the final owned drain. EXIT-handler failures
+remain available for aggregation with cleanup failures, including falsey failure
+values; root cancellation retains its existing precedence. Public execution still
+awaits owned cleanup. A subshell's exit and drain belong to that child frame and
+do not terminate its enclosing evaluator.
+
 ## Internal input readiness and deadlines
 
 The internal `ShellInput` constructor accepts explicit source provenance and an

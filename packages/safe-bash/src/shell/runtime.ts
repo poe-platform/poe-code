@@ -74,6 +74,7 @@ const shellBuiltinNames = new Set([
 ]);
 
 const implementedBuiltins = new Set([...shellBuiltinNames].filter(name => !["echo", "printf", "test", "["].includes(name)));
+const extensionExitFailures = new WeakMap<ShellExtensionState, { reason: unknown }>();
 const specialBuiltinNames = new Set([":", ".", "break", "continue", "eval", "exit", "export", "readonly", "return", "set", "shift", "unset"]);
 const unsupportedSetOptionNames = new Set([
   "allexport", "braceexpand", "emacs", "errtrace", "functrace", "hashall", "histexpand", "history",
@@ -2102,21 +2103,31 @@ export class Runtime {
     }
   }
 
-  async finishShell(state: State, io: IO, status: number): Promise<number> {
+  private async beginShellExit(state: State, io: IO, status: number): Promise<number> {
     const frame = state.extensions;
     if (!frame || frame.exiting) return status;
     if (frame.exitStatus !== undefined) return frame.exitStatus;
     this.signal.throwIfAborted();
     state = trackState(state, this.budget, io[invocationScope]);
     frame.exiting = true;
-    let failure: { reason: unknown } | undefined;
     try {
       try { await this.extensionEvent("exit", state, io, status); }
       catch (error) { if (error instanceof Flow && error.kind === "exit") { if (!error.expansionFailure) status = error.status; } else throw error; }
       this.signal.throwIfAborted();
-      frame.exitStatus = status;
+    } catch (reason) { extensionExitFailures.set(frame, { reason }); }
+    finally { frame.exiting = false; }
+    frame.exitStatus = status;
+    return status;
+  }
+
+  async finishShell(state: State, io: IO, status: number): Promise<number> {
+    const frame = state.extensions;
+    if (!frame || frame.exiting) return status;
+    let failure: { reason: unknown } | undefined;
+    try {
+      status = await this.beginShellExit(state, io, status);
+      failure = extensionExitFailures.get(frame);
     } catch (reason) { failure = { reason }; }
-    frame.exiting = false;
     try { await this.releaseExtensions(state); }
     catch (cleanup) {
       this.signal.throwIfAborted();
@@ -2139,7 +2150,7 @@ export class Runtime {
       try { await this.extensionEvent(event, state, io, previous); return status; }
       catch (error) {
         if (error instanceof Flow && error.kind === "return") { status = error.status; previous = error.previousStatus ?? status; continue; }
-        if (error instanceof Flow && error.kind === "exit") throw new Flow("exit", await this.finishShell(state, io, error.status), 1, error.previousStatus);
+        if (error instanceof Flow && error.kind === "exit") throw new Flow("exit", await this.beginShellExit(state, io, error.status), 1, error.previousStatus);
         throw error;
       }
     }
@@ -2147,8 +2158,10 @@ export class Runtime {
 
   async runUnit(script: Script, state: State, io: IO): Promise<{ exitCode: number; terminated: boolean }> {
     state = trackState(state, this.budget, io[invocationScope]);
-    await this.startExtensions(state, io);
-    try { return { exitCode: await this.script(script, state, io), terminated: false }; }
+    try {
+      await this.startExtensions(state, io);
+      return { exitCode: await this.script(script, state, io), terminated: false };
+    }
     catch (error) {
       if (error instanceof NounsetDiagnosticFailure) {
         if (state.isolated) throw error;
@@ -3154,7 +3167,7 @@ export class Runtime {
             }
             if (error instanceof Flow && error.kind === "exit" && state.extensions) {
               if (error.previousStatus === undefined) await restoreLocals();
-              throw new Flow("exit", await this.finishShell(state, { ...io, ...context }, error.status));
+              throw new Flow("exit", await this.beginShellExit(state, { ...io, ...context }, error.status));
             }
             throw error;
           } finally {

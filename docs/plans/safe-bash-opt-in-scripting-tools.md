@@ -891,6 +891,53 @@ this request to keep additions out of the default package.
   file witnesses remain ad-hoc native QA, not disk-writing canonical unit tests.
   Read-only borrowing is deliberately unchanged. A separate descriptor-level
   readiness/deadline integration remains necessary for full read parity.
+- The generic diagnostic/descriptor core is locally committed as `1be425706`.
+  Root then reproduces eight failures in the unchanged 28-case evaluator-exit
+  cohort and three additional compiled-public failures: callback exit runs owned
+  cleanup before extension execution unwinds. The actual cyclic mapfile drain
+  and independent lifecycle review remain part of the core repair, not a leaf
+  workaround. No push or release is performed.
+- The mapfile descriptor-stage adaptation now validates every `-u` before target
+  binding and borrows only the selected descriptor after admission. Root repeats
+  135/137 authenticated cases with zero skips. The remaining array-key expansion
+  and callback-exit cases are preserved, and the tool is not committed or publicly
+  exported yet. Separate read raw-diagnostic repairs and typed mock migrations
+  are in progress; completing one core capability does not complete either tool.
+- Evaluator exit now dispatches EXIT handlers before callback locals unwind but
+  defers frame-wide cleanup until enclosing operations can retire. Cached exit
+  status no longer suppresses final draining, and falsey handler failures remain
+  available for cleanup-error aggregation. The original 28-case cohort now
+  passes; 14 author and 23 independent cases also pass, including sixteen pinned
+  native witnesses. Independent approval binds runtime SHA
+  `ec1f113a923295f8771c182aecd6ede551440058610b128ec40940e14e97e4f7`.
+  Two actual-mapfile review cases are mechanically separated into the mapfile
+  test directory so the core commit does not depend on an uncommitted leaf.
+- Root passes all 531 core tests and 101 selected public/default tests with zero
+  skips. All four new public callback/EXIT tests previously failed cleanup order;
+  after rebuilding they pass, including raw callback-local output and EXIT status
+  replacement. Four actual-package-tsconfig roots have zero diagnostics and
+  unchanged watched hashes. Discovery passes 98 cases. The actual public output
+  image `evaluation-exit-public-visual.png` is inspected: stdout `ff`, no stderr,
+  exit nine, and `unwind -> cleanup`. Fresh default-pack inspections again find
+  1,054 workspace and 4,645 root files with zero optional artifact leaks.
+  Guarded lint twenty-six completes with one `require-yield` finding in the
+  separate uncommitted mapfile review fixture, not the frozen evaluator patch.
+  That fixture is assigned a narrow iterator-shape repair; the full lint run is
+  not clean and its finding is not waived by committing the reviewed core slice.
+- The broader evaluator run exposes one legacy-stream fixture still leaving
+  canonical open enabled. Its existing four-script iterator-return assertions
+  are preserved with explicit legacy selection; four additional canonical cases
+  check acquisition/read/close counts, no fallback and no repeated disposal close.
+  Root repeats the maintained shell-language suite: 181/181 pass. Separately,
+  the namespace fixture now explicitly refuses unsupported device/FIFO nodes
+  instead of misclassifying them as files/directories. Root's isolated in-memory
+  review moves from 2/5 to 5/5; supported traversal, bytes, symlinks and metadata
+  remain unchanged. This does not execute the fixture's missing native oracle.
+- The maintained typecheck now exits two with 24 remaining diagnostics, after
+  the eight read/mapfile mock migrations and three namespace type errors are
+  repaired. Historical, three source-consumer and all 25 current-consumer groups
+  pass, and temporary cleanup completes. The full typecheck remains failed;
+  source/test compilation and runtime/native acceptance are not interchangeable.
 
 - First implementation wave: cmp, yes, shuf and virtual devices in disjoint leaf
   directories. Root is qualifying native oracles and the opt-in delivery boundary.

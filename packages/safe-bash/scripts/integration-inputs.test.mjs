@@ -517,6 +517,12 @@ function assertSource7Discovery(files) {
     "tests/plugins/extension-descriptor-runtime.test.ts",
   ]) assert.ok(files.includes(path), "extension diagnostic/descriptor test is missing: " + path);
   for (const path of [
+    "tests/shell/extensions/core/evaluation-exit.test.ts",
+    "tests/shell/extensions/core/evaluation-exit-runtime.test.ts",
+    "tests/shell/extensions/core/evaluation-exit-review.test.ts",
+    "tests/plugins/extension-evaluation-runtime.test.ts",
+  ]) assert.ok(files.includes(path), "extension evaluation exit test is missing: " + path);
+  for (const path of [
     "tests/shell/extensions/core/syntax.test.ts",
     "tests/shell/extensions/core/syntax-review.test.ts",
   ]) assert.ok(files.includes(path), "opt-in parser syntax test is missing: " + path);

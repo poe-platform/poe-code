@@ -5,6 +5,7 @@ import { assertPromiseExecutionAllowed } from "./promise-tracker.js";
 import { SandboxJobQueue, runAsyncPrefix, suspendJob } from "./jobs.js";
 import { withCancellationSignal } from "./cancel.js";
 import { retainValues } from "./resources.js";
+import { sandboxString } from "./string-coercion.js";
 import type {
   ArrayExpression,
   ArrayPattern,
@@ -692,7 +693,8 @@ async function evaluateTemplateLiteral(
   context: EvaluationContext
 ): Promise<EvaluationResult> {
   let value = context.budget.allocateString(node.quasis[0]?.value.cooked ?? "");
-  const release = retainValues(context.budget, () => [value]);
+  let input: SandboxValue = undefined;
+  const release = retainValues(context.budget, () => [value, input]);
   try {
     for (let index = 0; index < node.expressions.length; index += 1) {
       const expression = await evaluateNode(node.expressions[index], context);
@@ -700,7 +702,10 @@ async function evaluateTemplateLiteral(
         return expression;
       }
 
-      const expressionText = context.budget.allocateString(String(expression.value));
+      input = expression.value;
+      const text = sandboxString(input, context.budget, createCoercionContext(context));
+      const expressionText = typeof text === "string" ? text : await text;
+      input = undefined;
       value = context.budget.allocateString(value + expressionText);
 
       const quasiText = context.budget.allocateString(node.quasis[index + 1]?.value.cooked ?? "");

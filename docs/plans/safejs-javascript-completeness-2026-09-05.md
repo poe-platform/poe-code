@@ -2318,7 +2318,7 @@ CLI run 33963669839/job 101300966831 published poe-code 14.0.60 at 11:45:20 UTC
 on September 5. The remote tag independently resolves to c9b2457e1. Both
 publication routes are verified for the parser-context fix.
 
-### 42. Ordinary template substitution coercion — validated open semantic gap
+### 42. Ordinary template substitution coercion — qualified; delivery pending
 
 Built/native probes show plain-object substitution rejects instead of producing
 [object Object], and a sandbox toString hook is not invoked. Returning an object
@@ -2380,6 +2380,27 @@ this uncommitted template runtime patch, and hold the 35-case template test file
 at `/tmp/poe-safejs-template-coercion.IqBShC/template-coercion.test.ts` while the
 shared lifetime fix is delivered. Reapply the template wiring/input root and
 restore that file afterward; the template issue remains open, not abandoned.
+After prerequisite 7266ab29f reached remote main, restore the template suite and
+reconfirm its failures: the maintained SafeJS route has 27 failures, all in the
+restored file, with 12,293 passing controls and 41 skips. Two added integration
+cases cover freshly produced array-prefix and Error-name text; the isolated suite
+then has 29 failures and eight controls before the runtime change. Reapply only
+the sandboxString wiring/current-input lifetime. All 37 template tests pass; the
+five-file template/shared-prefix/intermediate/receiver/snapshot cohort passes 158
+tests. Build, actual CLI/screenshot and final maintained checks remain required
+before this semantic fix's separate commit and push.
+Final maintained checks pass: SafeJS 12,322 tests with 41 skips; agent-harness
+163 tests; root lint 9,763 configured files with zero errors/warnings, followed
+by TypeScript and workflows. The normal build and actual schema-only CLI pair
+pass; the inspected screenshot confirms expected text, hook order, tagged value
+identity and zero spawns. Fourteen public root/core budget rejections recover
+from checkpoints at an explicitly raised quota without repeating completed
+effects. Two public suspended-template checkpoints restore exact values; forty
+persistent-realm cycles release all temporary roots. Thirteen additional built/
+native controls cover primitive hook results, inherited hooks, cycles, mutated
+fallback methods and thrown null. RegExp/Map own toString assignment fails
+before both explicit String and template conversion; those separate intrinsic/
+object-model gaps are not folded into this semantic correction.
 
 ### 43. Function stringification — validated open built-in gap
 
@@ -2395,7 +2416,7 @@ fails too. Validate source metadata, overrides, bound/builtin functions,
 budgets, realms and snapshot/replay before its own implementation and delivery.
 Do not expose host implementation source or add native eval as a workaround.
 
-### 44. Converted string-prefix retention — qualified; delivery pending
+### 44. Converted string-prefix retention — closed at verified main delivery; release pending
 
 Built low/high-budget probes show both explicit String and the candidate template
 path lose newly produced array-prefix and Error-name strings. A first hook
@@ -2447,6 +2468,14 @@ declared tests are explicitly not counted as passes. git diff --check passes.
 The user-staged Safe Bash patch checksum remains unchanged. Commit and push only
 the five prerequisite files, then close this finding upon verified remote-main
 delivery and monitor its actual publications separately.
+Delivered in 7266ab29fc947f245b5f00da68c42903875738a1, independently verified
+as remote refs/heads/main on September 5. This finding is closed at delivery;
+publication is not yet claimed. Scoped run 33964754696 and CLI run 33964754790
+are monitored while work resumes on the separate template-coercion fix.
+Scoped run 33964754696/job 101302803347 succeeded; its log confirms
+@poe-platform/safe-js 0.1.128 published September 5 at 12:03:07 UTC. CLI
+run 33964754790 remains monitored; scoped publication is not treated as proof
+of CLI publication.
 
 ### 45. String concat argument coercion — validated open semantic gap
 
@@ -2465,3 +2494,7 @@ completion, confirming these are genuine gaps independently of the native
 comparison. Source:
 `https://tc39.es/ecma262/2026/multipage/text-processing.html#sec-string.prototype.concat`.
 No concat runtime change is included in the shared-prefix retention delivery.
+Seven additional built/native probes confirm inherited/async/generator hooks,
+short-circuiting after thrown conversion and nonprimitive hook order fail;
+null-prototype TypeError and cyclic-array conversion are passing controls.
+These remain validation evidence only until the template change is delivered.

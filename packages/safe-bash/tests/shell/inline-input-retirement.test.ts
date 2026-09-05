@@ -20,6 +20,75 @@ function deferred() {
   return { promise, resolve };
 }
 
+for (const redirect of ["<<EOF\nx\nEOF", "<<<x"]) {
+  test(`inline snapshot outlives successful file finalization: ${redirect}`, async () => {
+    const { shell, fs } = fixture();
+    const result = await shell.exec(`cat >out ${redirect}\nsay after`);
+    assert.equal(result.exitCode, 0, result.stderr);
+    assert.equal(result.stderr, "");
+    assert.equal(result.stdout, "after\n");
+    assert.equal(new TextDecoder().decode(await fs.readFile("/out")), "x\n");
+  });
+}
+
+for (const expansion of ["${VALUE:?stop}", "$((1/0))"]) {
+  for (const operator of ["heredoc", "here-string"]) {
+    test(`inline snapshot outlives redirected diagnostic: ${operator} ${expansion}`, async () => {
+      const { shell, fs } = fixture();
+      const redirect = operator === "heredoc" ? `<<EOF\n${expansion}\nEOF` : `<<<"${expansion}"`;
+      const result = await shell.exec(`cat 2>errors ${redirect}\nsay after`);
+      assert.equal(result.exitCode, 0, result.stderr);
+      assert.equal(result.stderr, "");
+      assert.equal(result.stdout, "after\n");
+      assert.match(new TextDecoder().decode(await fs.readFile("/errors")), expansion === "$((1/0))" ? /division by 0/u : /VALUE: stop/u);
+    });
+  }
+}
+
+for (const cancellation of [undefined, null, false, 0, ""]) {
+  test(`inline snapshot joins delayed file finalization: ${String(cancellation)}`, { timeout: 2000 }, async context => {
+    const { shell, fs } = fixture();
+    const finishing = deferred();
+    const release = deferred();
+    const controller = new AbortController();
+    let outputSignal: AbortSignal | undefined;
+    let settled = false;
+    let consumed = false;
+    Object.defineProperty(fs, "capabilities", { value: { ...fs.capabilities, randomAccessWrite: false } });
+    const writeStream = fs.writeStream.bind(fs);
+    context.mock.method(fs, "writeStream", async (...args: Parameters<typeof writeStream>) => {
+      outputSignal = args[2]?.signal;
+      try { await writeStream(...args); consumed = true; }
+      finally { finishing.resolve(); await release.promise; }
+    });
+    const execution = shell.exec("cat >out <<EOF\nx\nEOF\nsay after", { signal: controller.signal });
+    const observed = execution.then(result => ({ result }), (error: unknown) => ({ error })).finally(() => { settled = true; });
+    await finishing.promise;
+    try {
+      assert.equal(consumed, true);
+      assert.ok(outputSignal);
+      assert.equal(outputSignal.aborted, false);
+      assert.equal(settled, false);
+      if (cancellation !== undefined) {
+        controller.abort(cancellation);
+        await new Promise<void>(resolve => setImmediate(resolve));
+        assert.equal(settled, false);
+      }
+    } finally { release.resolve(); }
+    const outcome = await observed;
+    if (cancellation === undefined) {
+      assert.ok("result" in outcome);
+      assert.equal(outcome.result.exitCode, 0, outcome.result.stderr);
+      assert.equal(outcome.result.stderr, "");
+      assert.equal(outcome.result.stdout, "after\n");
+      assert.equal(new TextDecoder().decode(await fs.readFile("/out")), "x\n");
+    } else {
+      assert.ok("error" in outcome);
+      assert.equal(outcome.error, cancellation);
+    }
+  });
+}
+
 for (const route of ["heredoc", "builtin", "file"]) {
   for (const count of [1, 2, 4]) {
     test(`${count} ${route} commands retire bookkeeping while root remains active`, async context => {

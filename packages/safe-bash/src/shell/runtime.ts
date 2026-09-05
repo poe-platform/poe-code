@@ -1887,6 +1887,8 @@ export class Runtime {
     originalIO = { ...originalIO, [valueScope]: allocation };
     let io = originalIO;
     let diagnosticFailure: NounsetDiagnosticFailure | undefined;
+    let snapshotScope: InvocationScope | undefined;
+    let finishSnapshot: (() => void) | undefined;
     try {
       const execute = async (): Promise<number> => {
       if (command.kind === "function") {
@@ -1897,7 +1899,11 @@ export class Runtime {
         state.functions.set(command.name, { ...command.body, sourceName: io.scriptName ?? "shell" });
         return 0;
       }
-      if (command.kind === "simple") return await this.simple(command, state, originalIO, inputs, outputs, fileShortcut);
+      if (command.kind === "simple") return await this.simple(command, state, originalIO, inputs, outputs, () => {
+        snapshotScope = originalIO[invocationScope].child();
+        void snapshotScope.run(() => new Promise<void>(resolve => { finishSnapshot = resolve; }));
+        return snapshotScope;
+      }, fileShortcut);
       io = await this.redirect(command.redirects, state, io, inputs, outputs, command.kind === "subshell", command.kind !== "subshell");
       if (command.kind === "conditional") {
         try {
@@ -2057,14 +2063,19 @@ export class Runtime {
       if (command.kind !== "simple" && command.kind !== "subshell" && command.kind !== "arithmetic" && command.kind !== "conditional") this.errexit(status, state, io);
       return status;
     } finally {
-      await Promise.allSettled([
-        ...[...outputs].map(async close => close({ reason: new FsError("ECANCELED", { syscall: "redirect" }) })),
-        ...[...inputs].map(async input => input.close()),
-      ]).then(results => {
-        const failures = results.filter(result => result.status === "rejected").map(result => result.reason);
-        if (diagnosticFailure) io[invocationScope].failures.push(...failures);
-        else throwCleanupFailures(failures);
-      }).finally(() => allocation.close());
+      try {
+        await Promise.allSettled([
+          ...[...outputs].map(async close => close({ reason: new FsError("ECANCELED", { syscall: "redirect" }) })),
+          ...[...inputs].map(async input => input.close()),
+        ]).then(results => {
+          const failures = results.filter(result => result.status === "rejected").map(result => result.reason);
+          if (diagnosticFailure) io[invocationScope].failures.push(...failures);
+          else throwCleanupFailures(failures);
+        }).finally(() => allocation.close());
+      } finally {
+        finishSnapshot?.();
+        await snapshotScope?.close();
+      }
     }
   }
 
@@ -2294,7 +2305,7 @@ export class Runtime {
     return { name: match[1]!, append: match[2] === "+", value: { offset: word.offset, parts: [{ ...first, value: first.value.slice(match[0].length) }, ...word.parts.slice(1)] } };
   }
 
-  async simple(command: Extract<Command, { kind: "simple" }>, state: State, originalIO: IO, inputs: Set<ShellInput>, outputs: Set<(completion: OutputCompletion) => void | Promise<void>>, fileShortcut = false): Promise<number> {
+  async simple(command: Extract<Command, { kind: "simple" }>, state: State, originalIO: IO, inputs: Set<ShellInput>, outputs: Set<(completion: OutputCompletion) => void | Promise<void>>, createSnapshotScope: () => InvocationScope, fileShortcut = false): Promise<number> {
     state.substitutionStatus = 0;
     const assignments: ({ name: string; value: Word; append: boolean; kind?: undefined } | ArrayAssignment)[] = [];
     let wordIndex = 0;
@@ -2315,9 +2326,7 @@ export class Runtime {
     const inlineInput = command.redirects.some((redirect) => redirect.document || redirect.operator === "<<<");
     const functionCommand = words.length > 0 && state.functions.has(words[0]!);
     const isolatedInlineInput = inlineInput && words.length > 0 && !shellBuiltinNames.has(words[0]!) && !functionCommand;
-    const snapshotScope = isolatedInlineInput ? originalIO[invocationScope].child() : undefined;
-    let finishSnapshot: (() => void) | undefined;
-    if (snapshotScope) void snapshotScope.run(() => new Promise<void>(resolve => { finishSnapshot = resolve; }));
+    const snapshotScope = isolatedInlineInput ? createSnapshotScope() : undefined;
     let io = snapshotScope ? { ...originalIO, [invocationScope]: snapshotScope } : originalIO;
     const previous = new Map<string, SavedVariable>();
     const assign = async () => {
@@ -2431,18 +2440,13 @@ export class Runtime {
       if (error instanceof ExecutionFailure) throw error;
       throw new ExecutionFailure(error, io);
     } finally {
-      try {
-        if (overlayOpen) {
-          for (const [key, saved] of previous) await originalIO[invocationScope].cleanup(async () => {
-            if (saved.superseded) await this.discardVariable(saved);
-            else await restoreVariable(state, key, saved);
-          });
-          await originalIO[invocationScope].cleanup(() => stateMonitor(state)?.closeOverlay(previous));
-        } else for (const saved of previous.values()) saved.heldValue?.release();
-      } finally {
-        finishSnapshot?.();
-        await snapshotScope?.close();
-      }
+      if (overlayOpen) {
+        for (const [key, saved] of previous) await originalIO[invocationScope].cleanup(async () => {
+          if (saved.superseded) await this.discardVariable(saved);
+          else await restoreVariable(state, key, saved);
+        });
+        await originalIO[invocationScope].cleanup(() => stateMonitor(state)?.closeOverlay(previous));
+      } else for (const saved of previous.values()) saved.heldValue?.release();
     }
   }
 

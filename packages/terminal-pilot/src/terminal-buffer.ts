@@ -140,7 +140,10 @@ export class TerminalBuffer {
       const cellStyle = cell?.style ?? "";
 
       if (cellStyle !== activeStyle) {
-        line += cellStyle.length > 0 ? cellStyle : RESET_SGR;
+        if (activeStyle.length > 0) {
+          line += RESET_SGR;
+        }
+        line += cellStyle;
         activeStyle = cellStyle;
       }
 

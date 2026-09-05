@@ -589,6 +589,45 @@ describe("TerminalBuffer", () => {
   });
 
   describe("SGR and OSC passthrough", () => {
+    it.each([
+      ["inverse", "7;37", "27;36", "36"],
+      ["bold", "1;31", "22;36", "36"],
+      ["dim", "2;31", "22;36", "36"],
+      ["bold and dim", "1;2;31", "22;36", "36"],
+      ["underline", "4;31", "24;36", "36"],
+      ["italic", "3;31", "23;36", "36"],
+      ["conceal", "8;31", "28;36", "36"],
+      ["strikethrough", "9;31", "29;36", "36"],
+      ["default foreground", "1;31;44", "39", "1;44"],
+      ["default background", "1;31;44", "49", "1;31"],
+      ["default colors", "1;31;44", "39;49", "1"],
+      ["indexed foreground", "7;38;5;196", "27;38;5;45", "38;5;45"],
+      ["truecolor foreground", "7;38;2;255;0;0", "27;38;2;1;255;255", "38;2;1;255;255"]
+    ])("round-trips %s disable transitions without leaking prior attributes", (_name, enabled, disabled, expected) => {
+      const original = new TerminalBuffer(16, 1);
+      original.write(`\x1b[${enabled}mA\x1b[${disabled}mB\x1b[0mC`);
+
+      expect(original.displayBuffer.data[0]?.[1]?.style).toBe(`\x1b[${expected}m`);
+
+      const reconstructed = new TerminalBuffer(16, 1);
+      reconstructed.write(original.renderLine(0));
+
+      expect(reconstructed.displayBuffer.data[0]).toEqual(original.displayBuffer.data[0]);
+      expect(reconstructed.displayBuffer.data[0]?.map((cell) => cell?.style)).toEqual(
+        original.displayBuffer.data[0]?.map((cell) => cell?.style)
+      );
+      expect(reconstructed.renderLine(0)).toBe(original.renderLine(0));
+    });
+
+    it("resets the preceding full style before serializing inverse-off with cyan", () => {
+      const buffer = new TerminalBuffer(64, 1);
+      buffer.write("\x1b[7;37m INVERSE \x1b[27;36m NORMAL CYAN \x1b[0m DEFAULT ");
+
+      expect(buffer.renderLine(0)).toBe(
+        "\x1b[7;37m INVERSE \x1b[0m\x1b[36m NORMAL CYAN \x1b[0m DEFAULT "
+      );
+    });
+
     it("preserves SGR styling when reconstructing the visible line", () => {
       const buf = new TerminalBuffer(10, 5);
       buf.write("\x1b[1;31mAB\x1b[0m C\x1b[38;2;162;0;255mD");

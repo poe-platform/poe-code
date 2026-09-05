@@ -1,6 +1,8 @@
 import type { Expression } from "../../parse.js";
 import { Budget } from "../budget.js";
+import { invokeBuiltinClosure } from "../builtin-call.js";
 import { CompileScope } from "../regex/compile-guard.js";
+import { sandboxString } from "../string-coercion.js";
 import {
   createSandboxClosure,
   createSandboxRegex,
@@ -105,18 +107,27 @@ export function getStringMember(
     name: `String#${property}`,
     ...(property === "localeCompare" ? { length: 1 } : {}),
     ...(property === "isWellFormed" || property === "toWellFormed" ? { length: 0 } : {}),
-    call: (args, context) =>
-      callStringMethod(
-        value,
-        property,
-        args,
-        budget,
-        context === undefined
-          ? undefined
-          : async (closure, closureArgs) =>
-              await closure.call(closureArgs, { ...context, thisValue: undefined }),
-        context?.compilation
-      )
+    call: async (args, context) => {
+      const receiver = context?.thisValue;
+      if (receiver === null || receiver === undefined) {
+        throw new TypeError(`String#${property} requires a non-null receiver.`);
+      }
+      const retainedReceiver = {};
+      budget.setRetainedValues(retainedReceiver, () => [receiver]);
+      try {
+        const string = await sandboxString(receiver, budget, context);
+        return await callStringMethod(
+          string,
+          property,
+          args,
+          budget,
+          (closure, closureArgs) => invokeBuiltinClosure(closure, closureArgs, budget, context, undefined),
+          context?.compilation
+        );
+      } finally {
+        budget.setRetainedValues(retainedReceiver, undefined);
+      }
+    }
   });
 }
 

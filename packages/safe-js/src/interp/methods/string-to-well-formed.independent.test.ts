@@ -77,22 +77,25 @@ describe("independent String#toWellFormed verification", () => {
     ["plain", "\ud800", "plain"],
     ["\ud800", "plain", "\ufffd"]
   ] as const)(
-    "retains receiver %j and zero arity on extraction",
+    "uses explicit receivers and zero arity after extraction from %j",
     async (value, other, expected) => {
+      const otherExpected = other === "plain" ? "plain" : "\ufffd";
       await expect(
         run(
           `
           const repair = value.toWellFormed;
-          const holder = { repair };
+          const holder = { repair, toString(){return other} };
           const bound = repair.bind(other, 42);
-          return [repair(), repair.call(other), repair.apply(other, []), bound(),
-            holder.repair(), repair.length, bound.length, value];
+          let detached;
+          try{repair()}catch(error){detached=error.name}
+          return [repair.call(value), repair.call(other), repair.apply(other, []), bound(),
+            holder.repair(), repair.length, bound.length, value, detached];
         `,
           { modules: {}, bindings: { value, other } }
         )
       ).resolves.toMatchObject({
         ok: true,
-        returnValue: [expected, expected, expected, expected, expected, 0, 0, value]
+        returnValue: [expected, otherExpected, otherExpected, otherExpected, otherExpected, 0, 0, value, "TypeError"]
       });
     }
   );

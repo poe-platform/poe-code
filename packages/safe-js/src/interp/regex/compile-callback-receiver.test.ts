@@ -12,8 +12,8 @@ describe("compile callback receiver control", () => {
       const bound = callback.bind(receiver);
       const replace = "a".replace;
       const replaceAll = "aa".replaceAll;
-      const first = await replace("a", bound);
-      const second = await replaceAll("a", bound);
+      const first = await replace.call("a", "a", bound);
+      const second = await replaceAll.call("aa", "a", bound);
       return [first, second, receiver.calls];
     `);
     expect(result).toMatchObject({ ok: true, returnValue: ["X", "XX", 3] });

@@ -51,14 +51,14 @@ describe("compile preimage ownership", () => {
     "CONTROL extracted %s keeps bound callback owner",
     async (method) => {
       await expect(
-        run(`const replace = "a".${method}; return await replace("a", "x".toUpperCase);`)
+        run(`const replace = "a".${method}; return await replace.call("a", "a", "x".toUpperCase.bind("x"));`)
       ).resolves.toMatchObject({ ok: true, returnValue: "X" });
     }
   );
   it.each(["replace", "replaceAll"])(
     "CONTROL direct %s keeps bound callback owner",
     async (method) => {
-      await expect(run(`return await "a".${method}("a", "x".toUpperCase);`)).resolves.toMatchObject(
+      await expect(run(`return await "a".${method}("a", "x".toUpperCase.bind("x"));`)).resolves.toMatchObject(
         { ok: true, returnValue: "X" }
       );
     }

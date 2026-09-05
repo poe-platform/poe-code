@@ -1394,6 +1394,11 @@ succeeded, publishing @poe-platform/safe-js 0.1.115 on September 5 at
 08:11:14 UTC. Bulk log download timed out; the job-specific API log succeeded
 and contains the publication receipt. CLI validation remains separately monitored.
 
+CLI run 33954384170 succeeded, including all validation jobs and release-stable
+job 101276302770. That job explicitly skipped publishing because its local main
+was behind remote main. There is no standalone CLI publication from this run;
+verify a published descendant containing the Array commit instead.
+
 ### 26. Primitive boxing — validated open gap
 
 Eight built native comparisons fail: Object boxing of number/string/boolean,
@@ -1458,6 +1463,23 @@ coercion replay. Root lint covered 9,750 configured files with zero errors or
 warnings; types and workflows also passed. This qualifies the Number repair
 for its own atomic commit/push, not a claim of remote delivery or publication.
 
+Delivered: commit 8dfbd443e02b28d9c4660147f3f9e65132de4ac7 was pushed normally
+and independently matched remote main. The Number formatting finding is fixed
+and closed at that delivery, without waiting for publication. Scoped release
+33954902467 and CLI release 33954902599 are monitored separately. The user's
+staged SafeBash patch hash remains unchanged.
+
+Scoped run 33954902467 and publish job 101276325399 succeeded, publishing
+@poe-platform/safe-js 0.1.116 on September 5 at 08:22:23 UTC. The job-specific
+publication log verifies that result. CLI run 33954902599 remains separately
+monitored; scoped publication does not prove a CLI release.
+
+CLI publication is now verified: run 33954902599 and release-stable job
+101277565743 succeeded, publishing poe-code 14.0.53 on September 5 at
+08:30:44 UTC. The GitHub release was published in the same second, and a remote
+tag check maps v14.0.53 to 8dfbd443e02b28d9c4660147f3f9e65132de4ac7.
+This published descendant includes both the Array and Number improvements.
+
 ### 28. String method receivers — validated open gap
 
 Built native comparisons show borrowed slice and toUpperCase using the lookup
@@ -1470,3 +1492,92 @@ A broader built comparison now reproduces the guest-object receiver/coercion
 failure for all 31 exposed String methods, with matchAll materialized only to
 compare receiver-dependent output. This is not a claim of iterator protocol
 parity. No String source has been changed while qualifying Number formatting.
+
+The initial 259-case receiver cohort failed 210 cases with 49 passing cases.
+The first receiver implementation leaves six failures with 275 passing tests
+across the new and existing method files. All six use a string search argument,
+including the direct-call control: search currently explicitly requires a regex.
+Those six failures are not all receiver failures. Correct the new receiver-only
+fixture to the supported /t/ argument and track string-pattern construction as
+the independent capability below, rather than bundling it into this improvement.
+The receiver fix uses the actual call context, sandbox string coercion, nullish
+rejection and the normal callback invocation path. Further safety and delivery
+gates remain required.
+
+The corrected receiver cohort plus existing String tests passes 281 tests.
+Three additional retention tests then fail with 261 passing controls: clearing
+the guest binding during toString can hide the receiver while valueOf fallback
+still needs it. Retain the receiver across coercion and method execution and
+release it in finally after success/failure. The combined suite now passes 286
+tests, including fatal step exhaustion in coercion and replacement callbacks.
+The selected 23-workspace build and four fresh-process ESM checks pass; the
+full SafeJS package gate is running.
+
+Manual CLI QA: use a temporary schema-only zero-capability harness pair. Borrow
+trim and replaceAll onto an object, check coercion/callback order and callback
+this/input, verify null rejection, and return a compact summary. Run the maintained
+screenshot route and inspect the readable success and zero-spawn output. Also
+verify built root/core comparisons, retained-data checks and pending coercion/
+replacement replay after the final build. Lint and its own commit/push follow.
+
+The first full package run found 29 failures with 11,360 passing tests and 41
+skipped. Native probes confirm that detached String methods and unbound String
+replacement callbacks throw; explicit binding works. Older ownership/stack and
+well-formed fixtures assumed automatic binding. Supply explicit receivers/binds
+while preserving their ownership, diagnostic and arity assertions, and assert
+native detached/nullish behavior separately. Low-level localeCompare calls now
+await the intrinsic and supply thisValue; preserve exact work/deadline charging,
+fatal identity, accessor rejection and native-call boundaries. The nine-file
+focused contract suite passes after those fixture corrections.
+
+A built replay probe initially expected every host call to reissue. Inspection
+showed that unawaited pause() calls let later replacement effects complete before
+the snapshot: only the coercion-emitted effect was pending in that case. The
+replacement-emitted case had two pending effects. Replaying consumed effects
+without reissuing them is correct; no replay implementation change is justified.
+The corrected probe must assert the snapshot lifecycles and reissue only pending
+effects, rather than claim an ignored promise suspended the guest hook body.
+
+Final qualification passed: 417 tests in the nine-file focused cohort, the
+23-workspace selected build and four fresh-process ESM checks, then the full
+package suite with 11,389 passed tests and 41 skipped. Corrected built probes
+pass eight native root/core comparisons, four retained-data checks and two
+pending-effect replays with explicit journal lifecycle assertions. The maintained
+zero-spawn harness screenshot route rebuilt successfully and its PNG was visually
+inspected. Root lint passed all 9,751 configured files with zero errors/warnings,
+then types and workflows passed. This qualifies the receiver repair for its own
+atomic commit/push; delivery and release require separate verification.
+
+### 29. String search pattern construction — validated open gap
+
+Native ' Otter '.search('t') returns 2; SafeJS throws its explicit regex-only
+TypeError. This also affected five borrowed receiver fixtures before their input
+was narrowed to the supported regex form. Implement native pattern construction
+for supported non-regex inputs as its own atomic improvement, with failing tests,
+coercion order, regex admission/budgets and invalid-pattern tests. This gap remains
+open; changing the receiver fixture does not fix or close it.
+
+Twelve further built comparisons reproduce the same unsupported construction
+across search, match and matchAll: string, undefined, numeric and guest toString
+inputs. Treat this shared pattern-construction capability as one subsequent
+atomic improvement. Materializing matchAll output for these comparisons does
+not qualify its iterator protocol, which is separately validated below.
+
+### 30. RegExp constructor input semantics — validated open gap
+
+Three built native comparisons fail: null becomes an empty pattern instead of
+the string 'null'; guest pattern/flags coercion throws rather than running the
+hooks in order; and RegExp(existingRegex) loses identity/source/flags while new
+RegExp(existingRegex) also loses source/flags. Ordinary string pattern/flags is
+a passing control. Keep constructor call-versus-new behavior, explicit flags,
+lastIndex reset, coercion, compile ownership, budgets and snapshots in scope
+when repairing this separately. No implementation has been made yet.
+
+### 31. String matchAll iterator protocol — validated open gap
+
+Two built native comparisons fail: native matchAll returns a non-array with a
+next method, but SafeJS returns an array without next; consuming the same native
+iterator twice yields lengths [2,0], while SafeJS yields [2,2]. The receiver fix
+does not repair this. A future iterator implementation needs lazy consumption,
+regex cursor ownership, budgets, snapshots and all iterator consumers, not just
+a next wrapper around an eagerly materialized array.

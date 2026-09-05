@@ -96,7 +96,7 @@ describe("independent localeCompare candidate validation", () => {
     expect(result.returnValue).toStrictEqual(deepCopyToSandbox(expected));
   });
 
-  it("passes primitive or copied data only to host collation", () => {
+  it("passes primitive or copied data only to host collation", async () => {
     const callback = createSandboxClosure({ name: "unused", call: () => "unused" });
     const member = getStringMember("2", "localeCompare", new Budget());
     expect(isSandboxClosure(member)).toBe(true);
@@ -104,11 +104,11 @@ describe("independent localeCompare candidate validation", () => {
     const spy = vi.spyOn(String.prototype, "localeCompare");
     try {
       expect(
-        member.call([
+        await member.call([
           "10",
           ["en"],
           { numeric: callback, ignorePunctuation: [], unrelated: callback }
-        ])
+        ], { stack: [], thisValue: "2" })
       ).toBeLessThan(0);
       const forwarded = spy.mock.calls.at(-1);
       expect(forwarded?.[0]).toBe("10");
@@ -127,7 +127,7 @@ describe("independent localeCompare candidate validation", () => {
     }
   });
 
-  it.each(["locales", "options"])("does not invoke a benign %s accessor", (kind) => {
+  it.each(["locales", "options"])("does not invoke a benign %s accessor", async (kind) => {
     let reads = 0;
     const value = Object.create(null) as Record<string, unknown>;
     Object.defineProperty(value, kind === "locales" ? "0" : "sensitivity", {
@@ -142,7 +142,7 @@ describe("independent localeCompare candidate validation", () => {
     expect(isSandboxClosure(member)).toBe(true);
     if (!isSandboxClosure(member)) throw new Error("Missing localeCompare");
     const argument = value as Parameters<typeof member.call>[0][number];
-    expect(() => member.call(kind === "locales" ? ["b", argument] : ["b", "en", argument])).toThrow(
+    await expect(member.call(kind === "locales" ? ["b", argument] : ["b", "en", argument], { stack: [], thisValue: "a" })).rejects.toThrow(
       TypeError
     );
     expect(reads).toBe(0);
@@ -162,7 +162,7 @@ describe("independent localeCompare candidate validation", () => {
     expect(reads).toBe(0);
   });
 
-  it("rejects comparison closures without running them", () => {
+  it("rejects comparison closures without running them", async () => {
     let calls = 0;
     const callback = createSandboxClosure({
       name: "comparison",
@@ -173,7 +173,7 @@ describe("independent localeCompare candidate validation", () => {
     });
     const member = getStringMember("a", "localeCompare", new Budget());
     if (!isSandboxClosure(member)) throw new Error("Missing localeCompare");
-    expect(() => member.call([callback])).toThrow(TypeError);
+    await expect(member.call([callback], { stack: [], thisValue: "a" })).rejects.toThrow(TypeError);
     expect(calls).toBe(0);
   });
 

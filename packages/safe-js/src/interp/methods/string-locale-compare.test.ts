@@ -15,7 +15,7 @@ describe("String#localeCompare", () => {
     { receiver: "abcd", comparison: "ef", units: 6 },
     { receiver: "\u{1f642}", comparison: "\u{1f642}", units: 4 },
     { receiver: "a", comparison: 123, units: 4 }
-  ])("charges $units UTF-16 units before native collation", ({ receiver, comparison, units }) => {
+  ])("charges $units UTF-16 units before native collation", async ({ receiver, comparison, units }) => {
     const expected = receiver.localeCompare(String(comparison), "en");
     const budget = new Budget({ maxSteps: units });
     const member = getStringMember(receiver, "localeCompare", budget);
@@ -29,7 +29,7 @@ describe("String#localeCompare", () => {
       return Reflect.apply(original, this, args);
     });
     try {
-      expect(member.call([comparison, "en"])).toBe(expected);
+      expect(await member.call([comparison, "en"], { stack: [], thisValue: receiver })).toBe(expected);
       expect(budget.stepsUsed).toBe(units);
       expect(native).toHaveBeenCalledTimes(1);
     } finally {
@@ -37,7 +37,7 @@ describe("String#localeCompare", () => {
     }
   });
 
-  it("rejects insufficient collation work before any native invocation", () => {
+  it("rejects insufficient collation work before any native invocation", async () => {
     const budget = new Budget({ maxSteps: 3 });
     const member = getStringMember("ab", "localeCompare", budget);
     if (!isSandboxClosure(member)) throw new Error("Missing localeCompare intrinsic");
@@ -45,7 +45,7 @@ describe("String#localeCompare", () => {
     let failure: unknown;
     try {
       try {
-        member.call(["cd", "en"]);
+        await member.call(["cd", "en"], { stack: [], thisValue: "ab" });
       } catch (error) {
         failure = error;
       }
@@ -63,8 +63,8 @@ describe("String#localeCompare", () => {
 
   it.each([
     'return receiver.localeCompare(comparison, "en");',
-    'const compare = receiver.localeCompare; return compare(comparison, "en");',
-    'const compare = receiver.localeCompare.bind("ignored"); return compare(comparison, "en");'
+    'const compare = receiver.localeCompare; return compare.call(receiver, comparison, "en");',
+    'const compare = receiver.localeCompare.bind(receiver); return compare(comparison, "en");'
   ])("admits public-path work and preserves fatal identity: %s", async (invocation) => {
     const source = `try { ${invocation} } catch (error) { return "caught"; }`;
     const baseline = new Budget();
@@ -104,7 +104,7 @@ describe("String#localeCompare", () => {
     }
   });
 
-  it("checks a crossed deadline sample before native collation", () => {
+  it("checks a crossed deadline sample before native collation", async () => {
     const budget = new Budget({ deadline: 100, maxSteps: 1_024 });
     budget.visitNode(1_023);
     const member = getStringMember("a", "localeCompare", budget);
@@ -112,7 +112,7 @@ describe("String#localeCompare", () => {
     const dateNow = vi.spyOn(Date, "now").mockReturnValue(101);
     const native = vi.spyOn(String.prototype, "localeCompare");
     try {
-      expect(() => member.call(["b", "en"])).toThrow(
+      await expect(member.call(["b", "en"], { stack: [], thisValue: "a" })).rejects.toThrow(
         expect.objectContaining({
           code: "budgetExceeded",
           budget: "deadline",
@@ -127,16 +127,16 @@ describe("String#localeCompare", () => {
     }
   });
 
-  it("keeps existing string and locale-option admission ahead of work charging", () => {
+  it("keeps existing string and locale-option admission ahead of work charging", async () => {
     const budget = new Budget({ maxSteps: 0, stringLength: 8 });
     const member = getStringMember("a", "localeCompare", budget);
     if (!isSandboxClosure(member)) throw new Error("Missing localeCompare intrinsic");
     const options = Object.defineProperty({}, "sensitivity", { get: () => "base" });
     const native = vi.spyOn(String.prototype, "localeCompare");
     try {
-      expect(() => member.call([123456789])).toThrow("stringLength");
-      expect(() => member.call(["b", "en_US", options])).toThrow(RangeError);
-      expect(() => member.call(["b", "en", options])).toThrow(
+      await expect(member.call([123456789], { stack: [], thisValue: "a" })).rejects.toThrow("stringLength");
+      await expect(member.call(["b", "en_US", options], { stack: [], thisValue: "a" })).rejects.toThrow(RangeError);
+      await expect(member.call(["b", "en", options], { stack: [], thisValue: "a" })).rejects.toThrow(
         "only supports data option properties"
       );
       expect(budget.stepsUsed).toBe(0);
@@ -213,7 +213,7 @@ describe("String#localeCompare", () => {
     expect(isSandboxClosure(member)).toBe(true);
     if (!isSandboxClosure(member)) throw new Error("Missing localeCompare intrinsic");
     expect(member.sandbox).toBe(true);
-    expect(await member.call(["z", "sv"])).toBe("ä".localeCompare("z", "sv"));
+    expect(await member.call(["z", "sv"], { stack: [], thisValue: "ä" })).toBe("ä".localeCompare("z", "sv"));
   });
 
   it("preserves the native intrinsic arity through extraction and binding", async () => {
@@ -270,17 +270,17 @@ describe("String#localeCompare", () => {
     });
     const member = getStringMember("a", "localeCompare", new Budget());
     if (!isSandboxClosure(member)) throw new Error("Missing localeCompare intrinsic");
-    expect(() => member.call([closure])).toThrow(TypeError);
+    await expect(member.call([closure], { stack: [], thisValue: "a" })).rejects.toThrow(TypeError);
     expect(calls).toBe(0);
   });
 
-  it("passes only relevant data to native collation, not sandbox callback records", () => {
+  it("passes only relevant data to native collation, not sandbox callback records", async () => {
     const unused = createSandboxClosure({ name: "unused", call: () => "unused" });
     const member = getStringMember("item2", "localeCompare", new Budget());
     if (!isSandboxClosure(member)) throw new Error("Missing localeCompare intrinsic");
     const native = vi.spyOn(String.prototype, "localeCompare");
     try {
-      member.call(["item10", "en", { numeric: unused, unrelated: unused }]);
+      await member.call(["item10", "en", { numeric: unused, unrelated: unused }], { stack: [], thisValue: "item2" });
       const forwarded = native.mock.calls.at(-1);
       expect(forwarded?.[2]?.numeric).toBe(true);
       expect(forwarded?.[2]).not.toHaveProperty("unrelated");
@@ -302,10 +302,10 @@ describe("String#localeCompare", () => {
     expect(await run(source)).toMatchObject({ ok: true, returnValue: native });
   });
 
-  it("charges comparison string coercion to the string budget", () => {
+  it("charges comparison string coercion to the string budget", async () => {
     const member = getStringMember("a", "localeCompare", new Budget({ stringLength: 2 }));
     if (!isSandboxClosure(member)) throw new Error("Missing localeCompare intrinsic");
-    expect(() => member.call([123])).toThrow("stringLength");
+    await expect(member.call([123], { stack: [], thisValue: "a" })).rejects.toThrow("stringLength");
   });
 
   it("does not turn a fatal comparison budget error into a catchable error", async () => {
@@ -342,14 +342,15 @@ describe("String#localeCompare", () => {
     expect(await run(source)).toMatchObject({ ok: true, returnValue: native });
   });
 
-  it("retains the existing bound-intrinsic model for extraction, call and apply", async () => {
+  it("matches native receiver semantics for extraction, call and apply", async () => {
     const source = `const compare = "a".localeCompare;
-      return [compare("b", "en"), compare.call("z", "b", "en"), compare.apply("z", ["b", "en"])];
+      let detached;try{compare("b", "en")}catch(error){detached=error.name}
+      return [detached, compare.call("z", "b", "en"), compare.apply("z", ["b", "en"])];
     `;
-    const native = "a".localeCompare.bind("a");
+    const native = runInNewContext(`(function(){'use strict';${source}})()`);
     expect(await run(source)).toMatchObject({
       ok: true,
-      returnValue: [native("b", "en"), native.call("z", "b", "en"), native.apply("z", ["b", "en"])]
+      returnValue: native
     });
   });
 

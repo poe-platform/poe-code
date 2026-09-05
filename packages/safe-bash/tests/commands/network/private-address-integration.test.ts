@@ -47,6 +47,12 @@ const privateDestinations = [
   "http://[::ffff:192.168.0.1]/secret",
   "http://[::ffff:0.1.2.3]/secret",
   "http://[::]/secret",
+  "http://[::ffff:0:127.0.0.1]/secret",
+  "http://[::ffff:0:a9fe:a9fe]/secret",
+  "http://[0:0:0:0:FFFF:0:A9FE:A9FE]/secret",
+  "http://[64:ff9b::127.0.0.1]/secret",
+  "http://[64:ff9b::a9fe:a9fe]/secret",
+  "http://[0064:FF9B:0:0:0:0:A9FE:A9FE]/secret",
 ] as const;
 
 for (const kind of ["transport", "fetch"] as const) {
@@ -92,7 +98,11 @@ for (const kind of ["transport", "fetch"] as const) {
     });
   }
 
-  for (const destination of ["http://[::ffff:8.8.8.8]/ok", "http://[2001:4860:4860::8888]/ok", "http://public.example/ok"]) {
+  for (const destination of [
+    "http://[::ffff:8.8.8.8]/ok", "http://[2001:4860:4860::8888]/ok", "http://public.example/ok",
+    "http://[::ffff:0:8.8.8.8]/ok", "http://[64:ff9b::8.8.8.8]/ok",
+    "http://[::ffff:1:7f00:1]/ok", "http://[64:ff9b:0:0:1:0:7f00:1]/ok",
+  ]) {
     test(`${kind}: public destination remains allowed and identical at each hop: ${destination}`, async () => {
       const initial = "http://public.example/start";
       const f = fixture(kind, createOriginAuthorizer("*", { denyPrivateNetworks: true }), destination);
@@ -108,6 +118,35 @@ for (const kind of ["transport", "fetch"] as const) {
         assert.deepEqual(f.disposed, f.sent);
       } finally { await f.shell.dispose(); }
     });
+  }
+
+  for (const destination of ["http://[::ffff:0:127.0.0.1]/secret", "http://[64:ff9b::127.0.0.1]/secret"]) {
+    test(`${kind}: explicit translated-private allowlist cannot bypass opt-in filtering for ${destination}`, async () => {
+      const f = fixture(kind, createOriginAuthorizer([new URL(destination).origin], { denyPrivateNetworks: true }));
+      try {
+        const result = await f.shell.exec(`curl '${destination}'`);
+        assert.equal(result.exitCode, 7, result.stderr);
+        assert.deepEqual(f.admitted, [{ url: new URL(destination).href, allowed: false }]);
+        assert.deepEqual(f.sent, []);
+        assert.deepEqual(f.disposed, []);
+      } finally { await f.shell.dispose(); }
+    });
+
+    for (const options of [undefined, { denyPrivateNetworks: false }]) {
+      test(`${kind}: translated-private dispatch remains opt-in for ${destination} (${options === undefined ? "omitted" : "false"})`, async () => {
+        const initial = "http://public.example/start";
+        const f = fixture(kind, createOriginAuthorizer([new URL(initial).origin, new URL(destination).origin], options), destination);
+        try {
+          const result = await f.shell.exec(`curl -L '${initial}'`);
+          assert.equal(result.exitCode, 0, result.stderr);
+          assert.equal(result.stdout, "allowed");
+          assert.deepEqual(f.sent, [initial, new URL(destination).href]);
+          assert.deepEqual(f.sent, f.admitted.map(request => request.url));
+          assert.ok(f.admitted.every(request => request.allowed));
+          assert.deepEqual(f.disposed, f.sent);
+        } finally { await f.shell.dispose(); }
+      });
+    }
   }
 
   for (const options of [undefined, { denyPrivateNetworks: false }]) {

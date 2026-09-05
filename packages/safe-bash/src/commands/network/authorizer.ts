@@ -25,7 +25,10 @@ function privateHostname(input: string): boolean {
     for (let index = 0; index < leading.length; index++) hextets[index] = Number.parseInt(leading[index]!, 16);
     for (let index = 0; index < trailing.length; index++) hextets[8 - trailing.length + index] = Number.parseInt(trailing[index]!, 16);
     if (hextets.every(value => value === 0)) return true;
-    if (hextets.slice(0, 5).every(value => value === 0) && hextets[5] === 0xffff) {
+    const mappedIPv4 = hextets.slice(0, 5).every(value => value === 0) && hextets[5] === 0xffff;
+    const translatedIPv4 = hextets.slice(0, 4).every(value => value === 0) && hextets[4] === 0xffff && hextets[5] === 0;
+    const nat64IPv4 = hextets[0] === 0x64 && hextets[1] === 0xff9b && hextets.slice(2, 6).every(value => value === 0);
+    if (mappedIPv4 || translatedIPv4 || nat64IPv4) {
       return privateIPv4(hextets[6]! >>> 8, hextets[6]! & 255);
     }
     return (hextets[0]! & 0xfe00) === 0xfc00 || (hextets[0]! & 0xffc0) === 0xfe80;

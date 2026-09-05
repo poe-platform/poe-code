@@ -83,7 +83,9 @@ export class ReadOnlyFileSystem implements FileSystem {
         return forwardFileDescriptor(descriptor, async (_syscall, forwarded, action) => {
           forwarded.signal?.throwIfAborted();
           return action();
-        }, { ...descriptor.capabilities, positionedWrite: false, truncate: false, synchronization: "none" }, snapshotStat);
+        }, { ...descriptor.capabilities,
+          ...(descriptor.capabilities.openTruncate === undefined ? {} : { openTruncate: false }),
+          positionedWrite: false, truncate: false, synchronization: "none" }, snapshotStat);
       } catch (error) {
         await finishCleanup(() => descriptor.close(), true);
         throw error;

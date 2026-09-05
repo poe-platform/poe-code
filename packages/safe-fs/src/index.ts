@@ -1,4 +1,6 @@
 export * from "./contracts/index.js";
+export { openFileDescriptor } from "./fs/descriptor.js";
+export type { DescriptorBackend, DescriptorOpenOptions } from "./fs/descriptor.js";
 export * from "./fs/memory/index.js";
 export * from "./fs/real/index.js";
 export * from "./fs/s3/index.js";

@@ -13,6 +13,7 @@ export interface DescriptorBackend<Resource> {
   readonly resource: Resource;
   readonly capabilities?: FileDescriptorCapabilities;
   getPosition?(resource: Resource, options: FsOptions): Promise<number>;
+  probeRead?(resource: Resource, options: FsOptions): Promise<"ready" | "blocked" | "unknown">;
   stat(resource: Resource, options: FsOptions): Promise<FileStat>;
   read(resource: Resource, buffer: Uint8Array, position: number | null, options: FsOptions): Promise<number>;
   write(resource: Resource, buffer: Uint8Array, position: number | null, options: FsOptions): Promise<number>;
@@ -24,8 +25,10 @@ export interface DescriptorBackend<Resource> {
 function admitCapabilities(path: string, options: OpenFileOptions, capabilities: FileDescriptorCapabilities): void {
   if (![capabilities.positionedRead, capabilities.positionedWrite, capabilities.truncate].every(value => typeof value === "boolean")
     || capabilities.position !== undefined && typeof capabilities.position !== "boolean"
+    || capabilities.readObservation !== undefined && typeof capabilities.readObservation !== "boolean"
+    || capabilities.openTruncate !== undefined && typeof capabilities.openTruncate !== "boolean"
     || !["none", "volatile", "storage"].includes(capabilities.synchronization)) throw new FsError("EINVAL", { syscall: "open", path });
-  if (options.truncate && !capabilities.truncate || options.synchronization !== undefined && capabilities.synchronization === "none") {
+  if (options.truncate && !(capabilities.openTruncate ?? capabilities.truncate) || options.synchronization !== undefined && capabilities.synchronization === "none") {
     throw new FsError("ENOTSUP", { syscall: "open", path });
   }
 }
@@ -34,14 +37,19 @@ export function forwardFileDescriptor(descriptor: FileDescriptor,
   operation: <Result>(syscall: string, options: FsOptions, action: () => Promise<Result>) => Promise<Result>,
   capabilities?: FileDescriptorCapabilities,
   snapshot: (stat: FileStat) => FileStat = stat => ({ ...stat })): DescriptorBackend<FileDescriptor> {
-  const retainedCapabilities = descriptor.capabilities;
+  const retainedCapabilities = Object.freeze({ ...descriptor.capabilities });
   const selected = Object.freeze({ ...(capabilities ?? retainedCapabilities) });
   const getPosition = selected.position === true && retainedCapabilities.position === true ? descriptor.getPosition : undefined;
   if (selected.position === true && typeof getPosition !== "function") throw new FsError("ENOTSUP", { syscall: "getPosition" });
+  const probeRead = selected.readObservation === true && retainedCapabilities.readObservation === true ? descriptor.probeRead : undefined;
+  if (selected.readObservation === true && typeof probeRead !== "function") throw new FsError("ENOTSUP", { syscall: "probeRead" });
   return {
     resource: descriptor, capabilities: selected,
     ...(getPosition === undefined ? {} : {
       getPosition: (retained: FileDescriptor, options: FsOptions) => operation("getPosition", options, () => getPosition.call(retained, options)),
+    }),
+    ...(probeRead === undefined ? {} : {
+      probeRead: (retained: FileDescriptor, options: FsOptions) => operation("probeRead", options, () => probeRead.call(retained, options)),
     }),
     stat: (retained, options) => operation("fstat", options, async () => snapshot(await retained.stat(options))),
     read: (retained, buffer, position, options) => operation("read", options, () => retained.read(buffer, position, options)),
@@ -62,6 +70,7 @@ class ManagedFileDescriptor<Resource> implements FileDescriptor {
   readonly #access: OpenFileOptions["access"];
   readonly #append: boolean;
   #getPosition: DescriptorBackend<Resource>["getPosition"];
+  #probeRead: DescriptorBackend<Resource>["probeRead"];
   #backend: DescriptorBackend<Resource> | undefined;
   #pending: Promise<void> = Promise.resolve();
   #closing: Promise<void> | undefined;
@@ -73,9 +82,14 @@ class ManagedFileDescriptor<Resource> implements FileDescriptor {
     const getPosition = capabilities.position === true ? backend.getPosition : undefined;
     if (capabilities.position === true && typeof getPosition !== "function") throw new FsError("ENOTSUP", { syscall: "getPosition", path });
     this.#getPosition = getPosition?.bind(backend);
+    const probeRead = capabilities.readObservation === true ? backend.probeRead : undefined;
+    if (capabilities.readObservation === true && typeof probeRead !== "function") throw new FsError("ENOTSUP", { syscall: "probeRead", path });
+    this.#probeRead = probeRead?.bind(backend);
     this.#backend = backend;
     this.capabilities = Object.freeze({
       ...(capabilities.position === undefined ? {} : { position: capabilities.position }),
+      ...(capabilities.readObservation === undefined ? {} : { readObservation: capabilities.readObservation }),
+      ...(capabilities.openTruncate === undefined ? {} : { openTruncate: capabilities.openTruncate }),
       positionedRead: capabilities.positionedRead && options.access !== "write",
       positionedWrite: capabilities.positionedWrite && options.access !== "read" && !options.append,
       truncate: capabilities.truncate && options.access !== "read",
@@ -130,6 +144,15 @@ class ManagedFileDescriptor<Resource> implements FileDescriptor {
     });
   }
 
+  probeRead(options: FsOptions = {}): Promise<"ready" | "blocked" | "unknown"> {
+    return this.#run("probeRead", options, async (backend, forwarded) => {
+      if (!this.capabilities.readObservation || !this.#probeRead) throw new FsError("ENOTSUP", { syscall: "probeRead", path: this.#path });
+      const readiness = await this.#probeRead(backend.resource, forwarded);
+      if (readiness !== "ready" && readiness !== "blocked" && readiness !== "unknown") throw new FsError("EIO", { syscall: "probeRead", path: this.#path });
+      return readiness;
+    });
+  }
+
   read(buffer: Uint8Array, position: number | null, options: FsOptions = {}): Promise<number> {
     return this.#run("read", options, async (backend, forwarded) => {
       if (this.#access === "write") throw new FsError("EBADF", { syscall: "read", path: this.#path });
@@ -175,6 +198,7 @@ class ManagedFileDescriptor<Resource> implements FileDescriptor {
       finally {
         this.#backend = undefined;
         this.#getPosition = undefined;
+        this.#probeRead = undefined;
         this.#pending = Promise.resolve();
       }
     });

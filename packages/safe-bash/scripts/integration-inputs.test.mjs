@@ -509,6 +509,9 @@ function assertSource7Discovery(files) {
     "tests/plugins/array-keys-runtime.test.ts",
   ]) assert.ok(files.includes(path), "opt-in array keys test is missing: " + path);
   for (const path of [
+    "tests/plugins/descriptor-provider-runtime.test.ts",
+  ]) assert.ok(files.includes(path), "public descriptor provider test is missing: " + path);
+  for (const path of [
     "tests/shell/extensions/core/bindings.test.ts",
     "tests/shell/extensions/core/declarations.test.ts",
     "tests/shell/extensions/core/input.test.ts",

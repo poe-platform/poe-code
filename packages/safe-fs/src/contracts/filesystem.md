@@ -94,8 +94,10 @@ Wrong access mode uses EBADF; unavailable truncation/synchronization uses ENOTSU
 
 ## Lifecycle helper
 
-The internal `fs/descriptor.ts` helper, `openFileDescriptor`, normalizes and
-snapshots options/capabilities before calling its acquisition callback. It does
+The `openFileDescriptor` helper is exported from both the Node and portable core
+entry points, together with the `DescriptorBackend` and `DescriptorOpenOptions`
+types. It normalizes and snapshots options/capabilities before calling its
+acquisition callback. It does
 not resolve paths, authorize permissions, create/truncate files, invent cursors,
 or provide a replacement backend. Its callback must implement the admitted open
 against the real backing object and release partially acquired resources on
@@ -117,6 +119,27 @@ even on failure; this is not proof that a failing provider closed its OS resourc
 or that external owners have released their own references. After close starts,
 new operations reject EBADF. Owners must still close descriptors explicitly and
 register invocation cleanup before acquisition when their host provides it.
+
+`capabilities.readObservation === true` declares the optional `probeRead(options?)`
+query. An affirmative capability and a callable backend method are both required;
+an unadvertised method is not accessed or promoted to support. Acquisition captures
+the selected method and its receiver. The query returns exactly `ready`, `blocked`
+or `unknown`; other results reject with EIO. It participates in the same operation
+queue, cancellation and close drain without reading bytes or changing the cursor.
+It is available on write-only descriptors without granting permission to read.
+Providers must report the retained resource's read readiness, not infer it from
+its pathname or substitute write readiness. This API does not itself wait for
+readiness or promise a later read will succeed.
+
+`capabilities.openTruncate`, when supplied, separately declares whether an open
+request with `truncate: true` can be admitted. When omitted, admission falls back
+to `capabilities.truncate`, preserving existing providers. An affirmative
+`openTruncate` does not grant the descriptor's `truncate()` operation, nor cause
+the helper to call it during acquisition. The provider implements the admitted
+open against its actual resource. Readonly wrappers mask an advertised
+`openTruncate` to false along with their existing mutation restrictions; mount
+wrappers preserve the selected resource's capability. Neither field installs
+devices or establishes any particular operating system's character-device rules.
 
 `capabilities.position === true` declares an optional `getPosition(options?)`
 query for the retained descriptor's actual cursor. Both the affirmative capability

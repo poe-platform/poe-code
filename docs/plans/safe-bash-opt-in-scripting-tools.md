@@ -1400,6 +1400,212 @@ this request to keep additions out of the default package.
   root receipts are `read-after-retained-routing-root-1.json` and
   `readonly-indexed-current-root-1.json`; no source drift or skipped cases occurs.
   These red suites remain separate from this increment's acceptance and commit.
+- Local commit `e30aa91ef` records the independently approved retained-output
+  routing increment. No push or release is performed. Follow-up source ownership
+  is split into transport endpoint lifetime/observation, runtime FD-frame and
+  observer enrollment, and the read leaf's argument/selection ordering. Runtime
+  observation must capture the actual open binding without granting read access;
+  readable borrowing remains separate. Observer/operation leases do not create
+  peer aliases, and only final directional FD-reference closure changes peer
+  readiness. Regular-output observations use the retained descriptor, never a
+  pathname reopen or inferred identity. Unknown provider/device observations
+  remain unknown pending a resource-bound capability, not a pathname exception.
+- The read owner may normalize the six regular-file fixtures' Buffer-versus-
+  Uint8Array comparison only after preserving their original bytes and reproducing
+  that assertion mismatch. Programs, expected bytes, statuses and diagnostics
+  remain unchanged; actual descriptor-order failures must still be exposed. The
+  original 54-failure partition is 44 null/pipe cases, six regular-file cases and
+  four hook-order cases. Static native endpoint/alias evidence does not by itself
+  qualify in-flight last-peer-close wakeups. Fuller readonly-array implementation
+  remains deferred while the runtime has a separate active owner.
+- Read descriptor selection now validates every `-u` occurrence before borrowing
+  only the selected final descriptor. The owner preserves the original native
+  programs and normalizes only the six authorized Buffer/Uint8Array comparisons.
+  Initial selection evidence improves the descriptor cohort from 5/59 to 37/59;
+  the retained 579 suite reaches 555 passes before two mock-contract corrections.
+  After root independently reproduces those two failures, the narrow mock
+  migration verifies descriptor validation/order without premature acquisition,
+  exact raw diagnostic bytes and falsey failure identity. A separate genuine
+  post-acquisition diagnostic test retains the cleanup-drain assertion. The
+  retained suite then reaches 557 pass / 22 fail, with 12 selection tests and one
+  additional drain test passing separately, all without skips. The remaining
+  partition is 20 observation gaps and two readonly-core failures, not read
+  completion. Evidence is `/tmp/read-fd-selection.1C0bgN/freeze.json` and
+  `/tmp/read-selection-mock-migration.pxT8UO/freeze-final.json`.
+- The mandatory observer API requires explicit non-observing methods in two
+  mapfile mock contexts. Root first reproduces their actual-package type errors,
+  then adds exactly one fail-if-used method to each. The historical primary
+  reference remains byte-unchanged. A separately bounded, hash-authenticated
+  fixture-revision receipt authorizes only the review fixture's 88-byte insertion
+  at offset 6884 and reconstructs the exact original sealed source in memory.
+  All six other fixture seals, seven-fixture/170-record counts and exact native
+  request lookup remain unchanged. Independent review verifies the deltas,
+  original reconstruction, all 170 expected results, and negative gate controls.
+  Root and independent runs each pass 102/102 (10 gate, 21 lifecycle, 71 review).
+  Root strict checking of three actual-package roots / 192 sources is clean;
+  independent three- and five-root checks also pass. This is fixture/API
+  maintenance, not a fresh native capture or runtime-observer approval.
+- Root adds ten compiled-public observer checks and preserves their 10/10 red
+  baseline against the previous build. They cover inline/bash/sh invocation,
+  retained aliased identity, untouched raw input, unknown opaque streams, and
+  exact falsey operation cancellation. Independent observer review exposes a
+  reentrant-release race: source work could begin before its drain promise was
+  enrolled. The original 24-pass/one-fail result and immutable source snapshots
+  are retained in `/tmp/descriptor-observer-independent.cwXtfF/`; author repair
+  and frozen independent approval are required before integration acceptance.
+- Root qualifies 12 additional Bash 5.3 descriptor-lifetime topologies using
+  actual Bash-created subject pipes. Separate inherited control channels permit
+  observation only after the peer reports its waiting state, and keep that peer
+  alive until the observation arrives. Move-close and same-shell function moves
+  expose readiness; saved aliases and child-shell/subshell moves retain the peer.
+  All 12 captures exit zero without stderr or timeout, with the pinned Bash hash
+  stable before/after. This is static readiness during a live peer stage, not an
+  in-flight wakeup timing claim. Raw scripts, arguments and channel bytes are in
+  `/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/bash53-descriptor-lifetimes-JWkxg3/`.
+- Resource-bound device observation requires a retained provider capability,
+  not a pathname or character-type readiness guess. Root authorizes a separate
+  safe-fs slice adding optional descriptor `readObservation`/`probeRead` and
+  separating optional `openTruncate` admission from later truncate capability.
+  Omission must preserve existing providers; readonly/mount forwarding and
+  observation cancellation/close-drain require tests. A public builder export,
+  device implementation and safe-bash bridge integration remain separate root
+  integration steps. No private cross-package implementation import is approved.
+- Fresh Darwin native device evidence qualifies zero-timeout read readiness for
+  null, zero, random and urandom across read/write/readwrite opens: all 12 probes
+  return ready and preserve the assigned variable. Write opens also accept the
+  truncate-on-open flag. Contrary to an unqualified truncate-refusal assumption,
+  GNU truncate succeeds with size zero on all four; independent Node native
+  ftruncate calls with sizes 0, 1 and 4096 also succeed while device sizes stay
+  zero. This does not qualify Linux kernel behavior or random-device writes.
+  Keep the generic open/ftruncate capability distinction separate from choosing
+  actual device-profile behavior; do not label truncate refusal as Darwin parity.
+  Captures are under
+  `/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/bash53-device-observation-p3CvIp/`.
+- The pipe transport author freezes a 422/422 related cohort with four clean
+  strict roots. Independent endpoint review adds 18 passing tests with a clean
+  strict root and no measured source drift. This qualifies the reviewed API
+  cases, not runtime FD-frame integration or kernel wakeup timing.
+  Before acceptance, root resolves an explicit-undefined failure-channel defect:
+  three direct reproductions show that legacy output-failure hooks, endpoint
+  output-failure hooks and legacy iterator throws replace a genuine undefined
+  failure with EPIPE in subsequent reads/writes. Source hash remains
+  `4e79d0eaa1e38087747d74d6d6f031247a366cafde38bebf000047cfb3759e48`
+  throughout the root reproduction (`pipe-undefined-failure-red-root-1.json`).
+  Preserve legacy `abort()` and `abort(undefined)` default-EPIPE behavior, but
+  give explicit failure channels a separate exact-reason path. Endpoint borrow
+  cancellation must remain local; it is not a new whole-pipe failure channel.
+  Runtime forwarding and frozen independent re-review remain required.
+
+- Root resumes the existing required scope after a read-only inventory response;
+  that response did not advance implementation or authorize adding zip, unzip,
+  flock or bc to this goal. The command and extension list above remains intact.
+- Device providers need a public canonical descriptor builder rather than a
+  private cross-package import or a second lifecycle implementation. Root adds
+  six public-source entry-point tests: all six fail with missing builder exports
+  before the change (`/tmp/safe-fs-provider-api-root-oBt8he/`). Both Node and core
+  barrels now export `openFileDescriptor` and its backend/open-options types.
+  The six tests and the author's 71 observation/open-truncation tests pass 77/77
+  with selected source hashes unchanged during the run
+  (`/tmp/safe-fs-provider-api-green-root-SWYgMQ/`). This is source integration,
+  not compiled public delivery, independent acceptance, or device installation.
+  A separate reviewer owns an independent safe-fs observation suite; root owns
+  the lifecycle contract documentation and subsequent public/build integration.
+- The runtime owner reports a frozen 166/166 descriptor cohort, including the
+  unchanged 25 independent observer tests, with seven strict roots and no
+  diagnostics. Root releases that API checkpoint to the read leaf for actual
+  integration. Ten cancellation-fixture conflicts and one old WebStreams fixture
+  remain subject to reproduction and adjudication; these narrow passing checks
+  are not a full compatibility gate.
+- The safe-fs independent reviewer adds 36 tests and passes all 113 cases across
+  the four focused suites, with unchanged source and test inputs. Evidence is
+  `/tmp/safe-fs-observation-independent-pM85YX/summary.json`. The maintained
+  package typecheck passes. Its first scoped test check retains TS6059 rather
+  than suppressing the package's source-only rootDir restriction. Root's scoped
+  public-consumer check preserves package compiler settings, changes rootDir
+  solely to admit the test root, and reports zero diagnostics across 54 local
+  source inputs with no drift; six public-source tests also pass. Preserve the
+  earlier two unknown-resource typing errors and their explicit generic argument
+  correction (`/tmp/safe-fs-provider-types-root-NxaHGj/` and
+  `/tmp/safe-fs-provider-strict-green-root-0NGOwU/`).
+- Root independently reruns each of the eleven retained-output/streaming conflicts
+  against the current frozen runtime. Ten isolated tests are cancelled with
+  unresolved promises; the WebStreams spy fails 0 versus 1. These are eleven
+  separate reproductions, not a cascade count. Exact names, selected source
+  hashes, raw outputs and original three files are preserved under
+  `/tmp/descriptor-fixture-current-root-EzIZ2S/`.
+- Four new pinned Bash 5.3 observations distinguish peer retirement from a real
+  later broken-pipe write. After a control-channel handshake and positive
+  read-readiness confirmation of peer closure, a named-file write still writes
+  `a`; without another pipe write the vector is `0 0`, with or without pipefail.
+  Adding a later pipe write changes the vector to `141 0`, with aggregate status
+  0 or 141 according to pipefail. All four exit normally with no stderr, no
+  timeout and stable oracle hashes. Exact source/argv/events/effects are retained
+  in `/tmp/bash53-peer-retirement-root-72JW4p/`. This proves the old fixtures must
+  not require cancellation merely from peer retirement; it does not authorize
+  dropping genuine close-failure, falsey-reason or broken-pipe vector coverage.
+  A concrete fixture-migration proposal remains required before editing them.
+- Root approves the owner's concrete three-file fixture migration: retain the
+  ten original close/cancellation/vector assertions but trigger cancellation
+  through an actual later pipe write while an owned invoked child is active.
+  Add the four native-positive sequential controls separately. Replace only the
+  obsolete WebStreams construction spy with observable managed-pipe listener
+  retirement and consumer-close completion before admission release. Source
+  runtime changes are not authorized by that fixture approval.
+- The maintained safe-fs selection passes 1466/1466 across 65 files with no
+  watched source/test drift (`/tmp/safe-fs-package-tests-root-v7RxCT/`). The
+  selected virtual-bash dependency build also passes, but a new actual-public
+  test correctly finds stale bundled SafeFS exports: two provider tests fail
+  while two no-implicit-device controls pass. Preserve that red capture in
+  `/tmp/descriptor-provider-public-red-root-9wltG3/`; workspace declarations alone
+  are not public runtime delivery.
+- A subsequent normal `npm run build` completes all maintained declared builds
+  and root suffix stages, including public bundles, without drift in the watched
+  SafeFS/SafeJS/safe-bash sources (`/tmp/descriptor-public-full-build-root-GDDg9F/`).
+  The four actual-public provider tests and ten actual-public observer tests now
+  pass 14/14, with 1634 compiled/test files unchanged during execution
+  (`/tmp/descriptor-public-green-root-I3rUiC/`). This is local build integration,
+  not a push or release, and does not close the remaining tool/extension gaps.
+- Final scoped type checks use each package's actual compiler settings with
+  noEmit and a rootDir adjustment solely to admit the explicit test roots. All
+  four SafeFS test roots and the public-provider test root have zero diagnostics
+  and no watched-input drift (`/tmp/descriptor-provider-types-final-root-sVwqMU/`).
+  Literal discovery passes 98/98; aggregate/capability tests pass 55/55
+  (`/tmp/descriptor-provider-discovery-root-bXK66g/`). Real compiled public checks
+  retain 79 default commands, 28 browser commands, no automatic optional tools or
+  devices, and the exact epoch date through a VFS `.sh` file. Root inspects the
+  actual-output PNG in `/tmp/descriptor-provider-public-visual-root-xhWtxG/`;
+  its explicit host-provider check is not native character-device qualification.
+- Independent compiled integration review approves the four public-provider
+  tests, literal registration and contract documentation, rerunning 4/4 without
+  source aliases (`/tmp/descriptor-provider-integration-review-NnUeNy/`). The
+  optional build then succeeds; workspace/root pack dry runs contain 1070/4661
+  files and no optional tool, device or extension implementation leaks
+  (`/tmp/descriptor-provider-packs-root-Xp9mMd/`). The root prepare/husky hook
+  executes despite the ignore-scripts argument; its output is retained.
+- Guarded lint completes with exactly three prefer-const findings in new
+  reentrancy tests, not product source. Root merges their declarations and
+  assignments without changing assertions. Preserve the first corrective run,
+  which exposed an ambiguous edit in the observer test, and its repaired 68/68
+  replay. The final observer and SafeFS review texts reconstruct their original
+  reviewed hashes by reversing only those declaration merges
+  (`/tmp/descriptor-style-corrected-root-cGBQdw/style-reconstruction.json`).
+  The full SafeFS selection still passes 1466/1466; four SafeFS roots and three
+  safe-bash roots have zero scoped type diagnostics and stable watched inputs
+  (`/tmp/descriptor-style-types-root-O6CTad/`). A fresh guarded lint run is pending.
+- The final guarded lint run succeeds with zero errors/warnings: 9922 configured
+  and linted files, 25 receipts, and no drift among its fourteen watched inputs
+  (`/tmp/descriptor-provider-lint-final-root-sNHqL7/`). The independently reviewed
+  SafeFS observation/open-truncation contract, canonical provider exports,
+  source/public tests and documentation are qualified as one separate foundation
+  commit. Pipe runtime, legacy fixture migration and the read extension remain
+  separate uncommitted work; this gate does not complete their acceptance.
+- Further bounded Darwin Node API observations show successful sequential and
+  positioned reads at offsets 0 and 7 on all four character devices, with null
+  returning zero bytes and the others one byte. Caller-buffer sentinels remain
+  intact. All four attempted writes through read-only descriptors reject EBADF;
+  no writable device is opened. Exact inputs, outcomes and stable Node binary
+  hashes are in `/tmp/darwin-device-read-position-root-AkfTw5/`. This is Node/libuv
+  read API evidence, not lseek/getPosition, direct pread syscall or Linux proof.
 
 - First implementation wave: cmp, yes, shuf and virtual devices in disjoint leaf
   directories. Root is qualifying native oracles and the opt-in delivery boundary.

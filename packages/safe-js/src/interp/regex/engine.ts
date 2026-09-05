@@ -275,11 +275,11 @@ function charge(context: MatchContext): void {
   allocateRegexSteps(context.steps);
 }
 
-function normalizeLastIndex(lastIndex: number): number {
-  if (!Number.isFinite(lastIndex) || lastIndex <= 0) {
+export function normalizeLastIndex(lastIndex: number): number {
+  if (Number.isNaN(lastIndex) || lastIndex <= 0) {
     return 0;
   }
-  return Math.floor(lastIndex);
+  return Math.min(Math.floor(lastIndex), Number.MAX_SAFE_INTEGER);
 }
 
 function charactersEqual(left: string | undefined, right: string, ignoreCase: boolean): boolean {

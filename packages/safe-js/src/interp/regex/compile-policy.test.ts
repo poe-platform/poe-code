@@ -334,11 +334,12 @@ describe("compile preimage policy", () => {
     const native = deepCopyFromSandbox(regex) as RegExp;
     expect([native.source, native.flags]).toEqual(["b", "i"]);
     expect(Object.getOwnPropertyDescriptor(native, "lastIndex")).toEqual({
-      value: cursor,
+      value: {},
       writable: true,
       enumerable: false,
       configurable: false
     });
+    expect(native.lastIndex).not.toBe(cursor);
     expect(cursor[Symbol.toPrimitive]).not.toHaveBeenCalled();
   });
   it("RED source ceiling", () => {
@@ -431,7 +432,7 @@ describe("compile preimage policy", () => {
       expect(hook).not.toHaveBeenCalled();
     }
   );
-  it("CONTROL supported grammar, captures, raw cursor and native alias behavior", () => {
+  it("CONTROL supported grammar, captures, isolated cursor data and native aliases", () => {
     expect(parseRegex("(a)", "g").captureCount).toBe(1);
     expect(() => parseRegex("a", "u")).toThrow(SyntaxError);
     expect(() => parseRegex("a", "y")).toThrow(SyntaxError);
@@ -442,7 +443,8 @@ describe("compile preimage policy", () => {
     expect(copy[0]).toBe(copy[1]);
     expect(copy[0].source).toBe("a");
     expect(copy[0].flags).toBe("g");
-    expect(copy[0].lastIndex).toBe(cursor);
+    expect(copy[0].lastIndex).not.toBe(cursor);
+    expect(copy[0].lastIndex).toEqual({});
     expect(cursor[Symbol.toPrimitive]).not.toHaveBeenCalled();
   });
 });

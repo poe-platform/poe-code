@@ -1630,7 +1630,7 @@ Scoped run 33956590050 and publish job 101280918830 succeeded, publishing
 @poe-platform/safe-js 0.1.118 on September 5 at 09:00:24 UTC. CLI publication
 from run 33956590155 remains separately monitored.
 
-### 30. RegExp constructor input semantics — delivered; release monitored
+### 30. RegExp constructor input semantics — delivered and released
 
 Three built native comparisons fail: null becomes an empty pattern instead of
 the string 'null'; guest pattern/flags coercion throws rather than running the
@@ -1711,7 +1711,7 @@ execution; native accepts it. Unicode u is likewise explicitly rejected by
 existing parser tests. Full flag/Unicode/index-mode coverage needs its own native
 matrix and engine work, not relabeling these unsupported modes as passing controls.
 
-### 33. RegExp method receivers and input coercion — validated open gaps
+### 33. RegExp method receivers and input coercion — delivered and released
 
 Built native comparisons show /a/.test.call(/b/,'b') returning false instead of
 true; a detached /a/.exec accepts a call that native rejects with TypeError; and
@@ -1767,6 +1767,14 @@ for Array callbacks with explicit regex receivers, global cursor transitions,
 nested custom exec and bound receiver precedence. The method repair is qualified
 for its own commit/push; publication remains a separate monitored outcome.
 
+Delivered method repair d01c3b97f1007f6a2560fd627587509080f64bf1 to verified
+remote main. Scoped run 33957559841 published SafeJS 0.1.120 at 09:21:10 UTC
+on September 5. CLI run 33957559857 published poe-code 14.0.56 at 09:29:10 UTC;
+its remote tag resolves to that exact commit. Close this finding at delivery,
+with publication independently confirmed. Constructor b939a8af and String
+pattern f54dbc1b are also covered by poe-code 14.0.55, published at 09:16:33 UTC;
+that tag resolves to b939a8af594418e90d2650b6bc7b0ee75f47d48e.
+
 ### 34. RegExp intrinsic properties — validated open gaps
 
 For /a/gims, global, ignoreCase, multiline and dotAll are undefined instead of
@@ -1777,7 +1785,7 @@ intrinsic/object-model work remains distinct from supported constructor inputs.
 RegExp.escape was undefined in both this Node runtime and SafeJS: that probe is
 not evidence of a native-parity failure.
 
-### 35. RegExp lastIndex storage and deferred coercion — validated open gap
+### 35. RegExp lastIndex storage and deferred coercion — fixed; delivery pending
 
 Native lastIndex assignment stores an object unchanged without invoking its
 valueOf; execution coerces that cursor later. SafeJS calls host Number during
@@ -1794,3 +1802,64 @@ A public negative-cursor run and snapshot restore passed, so do not label that
 path broken based only on the legacy snapshot validator's numeric restrictions.
 Audit graph traversal, copying, legacy and replay snapshots when adding object
 cursors, rather than changing assignment alone.
+
+The initial runtime matrix reproduced 166 failures with 107 passing controls;
+the graph/copy matrix reproduced 35 failures with 12 controls. Store arbitrary
+sandbox values, defer sandbox-number conversion until execution, saturate
+ToLength at MAX_SAFE_INTEGER, and preserve each String consumer's cursor phase.
+Global match/replace reset before conversion; search restores the raw cursor;
+matchAll converts its copied cursor; split and structuredClone ignore the old
+cursor. This does not repair matchAll's eager-array result or unsupported flags.
+
+Regex cursor data now participates in data accounting, graph copies, host
+exports and replay encoding. Snapshot regex-object heap entries preserve aliases,
+cycles, closures and special numeric cursors; ordinary unshared numeric snapshots
+retain their legacy representation. Host exports deep-copy cursor data and reject
+unregistered closures. Native structuredClone creates a fresh regex with cursor
+zero and preserves graph aliases without inspecting discarded cursor contents.
+
+The first full package run had three legacy assertions expecting raw host-mutated
+cursor objects to remain shared after export. Update those identity expectations
+to the isolated copy boundary, retaining source/flags, native descriptors, regex
+aliases and no-coercion assertions. A host-only Symbol.toPrimitive property is
+not silently exported as a guest capability. Do not special-case that fixture.
+
+Two additional RED probes found replacement cursor retention and an unowned
+structuredClone compile scope bypass. Retain regex/cursor/replacement through
+coercion and callbacks; select an owned compile scope before cloning. The focused
+four-file cohort then passed 375 tests. Four further capability/reference and
+pending-effect replay checks pass: callable cursor data requires explicit replay
+capabilities, dangling cursor references reject, and snapshots taken with one
+running effect before/inside coercion retain cursor closure and object aliases.
+The selected maintained build passes 23 workspaces plus four native ESM imports.
+Final package, paired CLI/screenshot and maintained root lint gates follow before
+this improvement's separate commit and push.
+
+The full SafeJS package passes 12,024 tests with 41 skips. Built root/core
+pass 16 native comparisons and 16 budget checks; five malformed cursor snapshot
+cases reject (missing cursor, dangling heap/scope/promise references and invalid
+numeric tag). The manual comparison's initial VM control lacked structuredClone;
+supplying the native function to that context fixed the control, not runtime code.
+The real schema-only CLI pair passes after 70 uncached builds, with zero spawns.
+Its inspected screenshot shows stored identity, index 2, Infinity saturation and
+isolated cloning. Freeze source/build outputs for final maintained root lint.
+
+Final maintained root lint passed all 9,756 configured files with zero errors
+or warnings, followed by types and workflows. The cursor repair is qualified
+for its own atomic commit/push; remote delivery and publication remain separate
+receipts. The unrelated staged Safe Bash patch hash remains unchanged.
+
+### 36. RegExp flag reads and further object/engine gaps — validated open
+
+Across all 16 supported g/i/m/s flag combinations, the eight native boolean
+properties (hasIndices, global, ignoreCase, multiline, dotAll, unicode,
+unicodeSets and sticky) return undefined and fail property-existence checks.
+The 16 controls for existing flags strings, read-only assignment and empty
+enumeration pass. Repair reads/existence independently from the absent intrinsic
+prototype graph; false for unsupported flags does not implement those flags.
+
+Further built/native probes reproduce three separate failures: named capture
+groups are rejected during parsing, /a/.toString() throws instead of returning
+the slash-delimited source, and deleting inherited global throws instead of
+returning true. RegExp own-property reflection also rejects the receiver.
+Record these as open work, not as functionality delivered by cursor support.

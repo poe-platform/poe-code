@@ -28,7 +28,7 @@ type SerializedUndefinedValue = {
 
 type SerializedNonFiniteNumber = {
   kind: "number";
-  value: "-Infinity" | "Infinity" | "NaN";
+  value: "-Infinity" | "Infinity" | "NaN" | "-0";
 };
 
 export type SerializedClosureValue = {
@@ -68,6 +68,7 @@ export type SerializedReferenceValue = {
 };
 
 export type SerializedHeapValue =
+  | { kind: "regex-object"; source: string; flags: string; lastIndex: SerializedSnapshotValue }
   | { kind: "collection-iterator"; collectionKind: "map" | "set"; method: CollectionIterationMethod; collection: SerializedSnapshotValue; index: number; exhausted: boolean; entries: Record<string, SerializedSnapshotValue> }
   | { kind: "date"; time: number | null }
   | (Float32Data<SerializedReferenceValue> & { entries: Record<string, SerializedSnapshotValue> })
@@ -313,6 +314,7 @@ function serializeValue(
   }
 
   if (typeof value === "number") {
+    if (Object.is(value, -0)) return { kind: "number", value: "-0" };
     if (Number.isFinite(value)) {
       return value;
     }
@@ -392,6 +394,9 @@ function serializeValue(
   }
 
   if (isSandboxRegex(value)) {
+    const reference = serializeHeapReference(value, path, state);
+    if (reference !== undefined) return reference;
+    if (typeof value.lastIndex !== "number") throw new TypeError(`Missing regex heap reference at ${path}.`);
     return { kind: "regex", source: value.source, flags: value.flags, lastIndex: value.lastIndex };
   }
 
@@ -429,6 +434,7 @@ function serializeHeapReference(
     | Record<string, RuntimeSnapshotValue>
     | SandboxMap
     | SandboxSet
+    | SandboxRegex
     | SandboxCollectionIterator
     | Date
     | Float32Array,
@@ -443,7 +449,10 @@ function serializeHeapReference(
   if (!state.serializedHeapIds.has(id)) {
     state.serializedHeapIds.add(id);
 
-    if (isSandboxCollectionIterator(value)) {
+    if (isSandboxRegex(value)) {
+      state.heap[String(id)] = { kind: "regex-object", source: value.source, flags: value.flags,
+        lastIndex: serializeValue(value.lastIndex as RuntimeSnapshotValue, `${path}.lastIndex`, state) };
+    } else if (isSandboxCollectionIterator(value)) {
       const snapshot = snapshotCollectionIterator(value);
       const entries: Record<string, SerializedSnapshotValue> = Object.create(null);
       state.heap[String(id)] = {
@@ -595,6 +604,8 @@ function indexHeapContainers(input: SerializeInput): WeakMap<object, number> {
     if (
       stat.count > 1 ||
       stat.cyclic ||
+      (isSandboxRegex(value) && (!Number.isSafeInteger(value.lastIndex) ||
+        (typeof value.lastIndex === "number" && value.lastIndex < 0) || Object.is(value.lastIndex, -0))) ||
       isSandboxDate(value) ||
       isFloat32Array(value) ||
       (Array.isArray(value) && requiresArrayEntries(value)) ||

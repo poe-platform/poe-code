@@ -391,6 +391,8 @@ function deserializeValue(
 
   if (isSerializedNonFiniteNumberValue(value)) {
     switch (value.value) {
+      case "-0":
+        return -0;
       case "NaN":
         return Number.NaN;
       case "Infinity":
@@ -539,6 +541,12 @@ function restoreHeapValue(id: number, state: RestoreState): RuntimeSnapshotValue
   if (serialized.kind === "date") {
     const value = restoreDateTime(serialized.time);
     state.heapValueById.set(id, value);
+    return value;
+  }
+  if (serialized.kind === "regex-object") {
+    const value = createSandboxRegex(serialized.source, serialized.flags, 0, state.compilation);
+    state.heapValueById.set(id, value);
+    value.lastIndex = deserializeValue(serialized.lastIndex, state) as SandboxValue;
     return value;
   }
   if (serialized.kind === "float32array") {
@@ -974,7 +982,7 @@ function isSerializedUndefinedValue(
 
 function isSerializedNonFiniteNumberValue(
   value: SerializedSnapshotValue
-): value is { kind: "number"; value: "-Infinity" | "Infinity" | "NaN" } {
+): value is { kind: "number"; value: "-Infinity" | "Infinity" | "NaN" | "-0" } {
   return (
     typeof value === "object" &&
     value !== null &&

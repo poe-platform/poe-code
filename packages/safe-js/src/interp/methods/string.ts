@@ -2,7 +2,8 @@ import type { Expression } from "../../parse.js";
 import { Budget } from "../budget.js";
 import { invokeBuiltinClosure } from "../builtin-call.js";
 import { CompileScope } from "../regex/compile-guard.js";
-import { sandboxString } from "../string-coercion.js";
+import { normalizeLastIndex } from "../regex/engine.js";
+import { sandboxNumber, sandboxString } from "../string-coercion.js";
 import {
   createSandboxClosure,
   createSandboxRegex,
@@ -201,7 +202,14 @@ export function callStringMethod(
   }
 
   if (methodName === "replace" || methodName === "replaceAll") {
-    return callReplaceLikeMethod(value, methodName, args, budget, callClosure);
+    return callReplaceLikeMethod(value, methodName, args, budget, callClosure, context);
+  }
+
+  const regex = args[0];
+  if (isSandboxRegex(regex) && regex.lastIndex !== null && typeof regex.lastIndex === "object" &&
+      ((methodName === "match" && !regex.flags.includes("g")) ||
+       (methodName === "matchAll" && regex.flags.includes("g")))) {
+    return callStringRegexCursor(value, methodName, regex, budget, parent, context);
   }
 
   if ((methodName === "match" || methodName === "matchAll" || methodName === "search") && !isSandboxRegex(args[0])) {
@@ -335,7 +343,8 @@ function callReplaceLikeMethod(
   methodName: "replace" | "replaceAll",
   args: readonly SandboxValue[],
   budget: Budget,
-  callClosure: (closure: SandboxClosure, args: readonly SandboxValue[]) => Promise<SandboxValue>
+  callClosure: (closure: SandboxClosure, args: readonly SandboxValue[]) => Promise<SandboxValue>,
+  context?: SandboxCallContext
 ): string | Promise<string> {
   const search = args[0];
   const replacement = args[1];
@@ -357,7 +366,8 @@ function callReplaceLikeMethod(
       replacement,
       methodName === "replaceAll",
       budget,
-      callClosure
+      callClosure,
+      context
     );
   }
   if (typeof replacement === "string") {
@@ -383,24 +393,33 @@ async function replaceRegex(
   replacement: string | SandboxClosure,
   replaceAll: boolean,
   budget: Budget,
-  callClosure: (closure: SandboxClosure, args: readonly SandboxValue[]) => Promise<SandboxValue>
+  callClosure: (closure: SandboxClosure, args: readonly SandboxValue[]) => Promise<SandboxValue>,
+  context?: SandboxCallContext
 ): Promise<string> {
   if (regex.flags.includes("g")) regex.lastIndex = 0;
-  const matches = collectRegexMatches(regex, value, replaceAll || regex.flags.includes("g"));
-  let result = "";
-  let copiedThrough = 0;
-  for (const match of matches) {
-    result += value.slice(copiedThrough, match.index);
-    result +=
-      typeof replacement === "string"
-        ? expandReplacement(replacement, match.text, match.captures, value, match.index)
-        : String(
-            await callClosure(replacement, [match.text, ...match.captures, match.index, value])
-          );
-    copiedThrough = match.index + match.text.length;
+  const cursor = regex.lastIndex;
+  const retained = {};
+  budget.setRetainedValues(retained, () => [regex, cursor, replacement]);
+  try {
+    const lastIndex = await sandboxNumber(cursor, budget, context);
+    const matches = collectRegexMatches(regex, value, replaceAll || regex.flags.includes("g"), undefined, lastIndex);
+    let result = "";
+    let copiedThrough = 0;
+    for (const match of matches) {
+      result += value.slice(copiedThrough, match.index);
+      result +=
+        typeof replacement === "string"
+          ? expandReplacement(replacement, match.text, match.captures, value, match.index)
+          : String(
+              await callClosure(replacement, [match.text, ...match.captures, match.index, value])
+            );
+      copiedThrough = match.index + match.text.length;
+    }
+    result += value.slice(copiedThrough);
+    return budget.allocateString(result);
+  } finally {
+    budget.setRetainedValues(retained, undefined);
   }
-  result += value.slice(copiedThrough);
-  return budget.allocateString(result);
 }
 
 function expandReplacement(
@@ -569,11 +588,35 @@ async function callStringPattern(
   }
 }
 
+async function callStringRegexCursor(
+  value: string,
+  methodName: "match" | "matchAll",
+  regex: SandboxRegex,
+  budget: Budget,
+  parent: CompileScope | undefined,
+  context: SandboxCallContext | undefined
+): Promise<SandboxValue> {
+  const operation = budget.acquireCompileOwner(false, parent?.owner);
+  const compilation = new CompileScope(operation.owner);
+  const cursor = regex.lastIndex;
+  const retained = {};
+  budget.setRetainedValues(retained, () => [regex, cursor]);
+  try {
+    const lastIndex = await sandboxNumber(cursor, budget, context);
+    return callMatchLikeMethod(value, methodName, [regex], compilation, lastIndex);
+  } finally {
+    budget.setRetainedValues(retained, undefined);
+    compilation.dispose();
+    operation.release();
+  }
+}
+
 function callMatchLikeMethod(
   value: string,
   methodName: "match" | "matchAll" | "search",
   args: readonly SandboxValue[],
-  compilation: CompileScope
+  compilation: CompileScope,
+  lastIndex?: number
 ): SandboxValue {
   const regex = args[0];
   if (!isSandboxRegex(regex))
@@ -581,34 +624,35 @@ function callMatchLikeMethod(
   if (methodName === "search") {
     const lastIndex = regex.lastIndex;
     if (!Object.is(lastIndex, 0)) regex.lastIndex = 0;
-    const match = executeRegex(regex, value);
+    const match = executeRegex(regex, value, 0);
     if (!Object.is(regex.lastIndex, lastIndex)) regex.lastIndex = lastIndex;
     return match?.index ?? -1;
   }
   if (methodName === "matchAll" && !regex.flags.includes("g"))
     throw new TypeError("String#matchAll requires a global regex.");
   if (methodName === "match" && !regex.flags.includes("g"))
-    return toMatchArray(executeRegex(regex, value), value);
+    return toMatchArray(executeRegex(regex, value, lastIndex ?? Number(regex.lastIndex)), value);
   if (methodName === "match") regex.lastIndex = 0;
   const matcher =
     methodName === "matchAll"
-      ? createSandboxRegex(regex.source, regex.flags, regex.lastIndex, compilation)
+      ? createSandboxRegex(regex.source, regex.flags, normalizeLastIndex(lastIndex ?? Number(regex.lastIndex)), compilation)
       : regex;
-  const matches = collectRegexMatches(matcher, value, true, compilation.owner?.budget);
+  const matches = collectRegexMatches(matcher, value, true, compilation.owner?.budget, Number(matcher.lastIndex));
   if (methodName === "match" && matches.length === 0) return null;
   return methodName === "match"
     ? matches.map((match) => match.text)
     : matches.map((match) => toMatchArray(match, value));
 }
 
-function collectRegexMatches(regex: SandboxRegex, value: string, all: boolean, budget?: Budget) {
+function collectRegexMatches(regex: SandboxRegex, value: string, all: boolean, budget?: Budget, lastIndex = 0) {
   const matches = [];
   do {
-    const match = executeRegex(regex, value);
+    const match = executeRegex(regex, value, lastIndex);
     if (match === null) break;
     budget?.allocateArrayLength(matches.length + 1);
     matches.push(match);
-    if (all && match.text.length === 0) regex.lastIndex += 1;
+    lastIndex = match.index + match.text.length;
+    if (all && match.text.length === 0) regex.lastIndex = ++lastIndex;
   } while (all);
   return matches;
 }

@@ -55,7 +55,7 @@ type DataNode =
   | { kind: "arguments"; data: SerializedArguments<Atom> }
   | { kind: "map"; entries: Array<[Atom, Atom]> }
   | { kind: "set"; values: Atom[] }
-  | { kind: "regex"; source: string; flags: string; lastIndex: number };
+  | { kind: "regex"; source: string; flags: string; lastIndex: Atom };
 export type ReplayData = { root: Atom; nodes: DataNode[] };
 
 export class MissingReplayCapabilityError extends TypeError {}
@@ -157,7 +157,7 @@ export function encodeReplayData(
         kind: "regex",
         source: entry.source,
         flags: entry.flags,
-        lastIndex: entry.lastIndex
+        lastIndex: child(entry.lastIndex, "lastIndex")
       };
     } else if (isSandboxArguments(entry)) {
       nodes[id] = { kind: "arguments", data: serializeArguments(entry, child) };
@@ -350,13 +350,13 @@ export function decodeReplayData(
         if (
           typeof node.source !== "string" ||
           typeof node.flags !== "string" ||
-          typeof node.lastIndex !== "number" ||
-          !Number.isFinite(node.lastIndex)
+          !Object.hasOwn(node, "lastIndex")
         ) {
           throw new TypeError("Invalid replay regular expression.");
         }
-        const result = createSandboxRegex(node.source, node.flags, node.lastIndex, compilation);
+        const result = createSandboxRegex(node.source, node.flags, 0, compilation);
         restored.set(id, result);
+        result.lastIndex = child(own(node, "lastIndex"));
         return result;
       }
       if (kind === "arguments") {

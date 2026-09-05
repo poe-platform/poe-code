@@ -436,7 +436,7 @@ function validateTaggedValue(
     case "undefined":
       return;
     case "number":
-      if (!["-Infinity", "Infinity", "NaN"].includes(String(record.value))) {
+      if (!["-Infinity", "Infinity", "NaN", "-0"].includes(String(record.value))) {
         fail("invalidValue", `${path}.value`, "unknown non-finite number value");
       }
       return;
@@ -457,6 +457,11 @@ function validateTaggedValue(
       requireString(record.source, `${path}.source`, state.limits);
       requireString(record.flags, `${path}.flags`, state.limits);
       requireSafeInteger(record.lastIndex, `${path}.lastIndex`, 0);
+      return;
+    case "regex-object":
+      requireString(record.source, `${path}.source`, state.limits);
+      requireString(record.flags, `${path}.flags`, state.limits);
+      if (!Object.hasOwn(record, "lastIndex")) fail("invalidValue", `${path}.lastIndex`, "missing regex cursor");
       return;
     case "array":
     case "arguments":
@@ -517,7 +522,7 @@ function validateGeneratorShape(
 function validateHeapValue(value: unknown, path: string, state: ValidationState): void {
   const record = requireRecord(value, path);
   validateErrorType(record, path);
-  if (!["arguments", "array", "object", "map", "set", "float32array", "date", "collection-iterator"].includes(String(record.kind)))
+  if (!["arguments", "array", "object", "map", "set", "float32array", "date", "collection-iterator", "regex-object"].includes(String(record.kind)))
     fail("unknownTag", `${path}.kind`, "unknown heap tag");
   validateValue(record, path, 1, state);
   if (record.kind === "arguments") validateArgumentsProperties(record, path);

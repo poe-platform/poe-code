@@ -11,7 +11,7 @@ import { matchRegex, type RegexMatch } from "../regex/engine.js";
 import type { Budget } from "../budget.js";
 import { invokeBuiltinClosure } from "../builtin-call.js";
 import { getSandboxDataProperty } from "../object-model.js";
-import { sandboxString } from "../string-coercion.js";
+import { sandboxNumber, sandboxString } from "../string-coercion.js";
 
 export type RegexMethodName = "exec" | "test";
 
@@ -84,7 +84,7 @@ export function setRegexMember(
   if (property !== "lastIndex") {
     throw new TypeError(`RegExp#${String(property)} is not writable.`);
   }
-  target.lastIndex = Number(value);
+  target.lastIndex = value;
 }
 
 export async function callRegexMethod(
@@ -98,7 +98,8 @@ export async function callRegexMethod(
     throw new TypeError(`RegExp#${methodName} requires ${methodName === "exec" ? "a regex" : "an object"} receiver.`);
   }
   const retained = {};
-  budget.setRetainedValues(retained, () => [target, ...args]);
+  let cursor: SandboxValue;
+  budget.setRetainedValues(retained, () => [target, ...args, cursor]);
   try {
     const input = await sandboxString(args[0], budget, context);
     if (methodName === "test") {
@@ -113,16 +114,18 @@ export async function callRegexMethod(
       }
     }
     if (!isSandboxRegex(target)) throw new TypeError("RegExp execution requires a regex receiver.");
-    const match = executeRegex(target, input);
+    cursor = target.lastIndex;
+    const lastIndex = await sandboxNumber(cursor, budget, context);
+    const match = executeRegex(target, input, lastIndex);
     return methodName === "test" ? match !== null : toMatchArray(match, input);
   } finally {
     budget.setRetainedValues(retained, undefined);
   }
 }
 
-export function executeRegex(target: SandboxRegex, input: string): RegexMatch | null {
+export function executeRegex(target: SandboxRegex, input: string, lastIndex: number): RegexMatch | null {
   const pattern = getSandboxRegexPattern(target);
-  const match = matchRegex(pattern, input, target.lastIndex);
+  const match = matchRegex(pattern, input, lastIndex);
   if (pattern.flags.global) {
     target.lastIndex = match === null ? 0 : match.index + match.text.length;
   }

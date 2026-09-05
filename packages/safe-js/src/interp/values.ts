@@ -80,7 +80,7 @@ export type SandboxRegex = {
   readonly kind: "regex";
   readonly source: string;
   readonly flags: string;
-  lastIndex: number;
+  lastIndex: SandboxValue;
   readonly [sandboxRegexBrand]: true;
   readonly [sandboxRegexPattern]: RegexPattern;
 };
@@ -161,6 +161,8 @@ type CopyFromSandboxOptions = {
 type CopyState<TValue> = {
   seen: WeakMap<object, TValue>;
   initializeIterators?: Array<() => void>;
+  compilation?: CompileScope;
+  resetRegexLastIndex?: boolean;
 };
 
 export function createSandboxClosure(input: {
@@ -383,7 +385,7 @@ export function createSandboxSet(values: Iterable<SandboxValue> = []): SandboxSe
 export function createSandboxRegex(
   source: string,
   flags = "",
-  lastIndex = 0,
+  lastIndex: SandboxValue = 0,
   compilation?: CompileScope
 ): SandboxRegex {
   if (typeof source !== "string" || typeof flags !== "string") {
@@ -426,13 +428,14 @@ export function deepCopyToSandbox(value: unknown): SandboxValue {
   });
 }
 
-export function cloneSandboxValue(value: SandboxValue): SandboxValue {
+export function cloneSandboxValue(value: SandboxValue, options: { compilation?: CompileScope; resetRegexLastIndex?: boolean } = {}): SandboxValue {
   const initializeIterators: Array<() => void> = [];
   const copy = copyToSandbox(
     value,
     {
       seen: new WeakMap(),
-      initializeIterators
+      initializeIterators,
+      ...options
     },
     "<root>",
     true
@@ -539,7 +542,7 @@ export function measureSandboxData(
     }
     if (isSandboxPromise(value)) return;
     if (isSandboxRegex(value)) {
-      const { source, flags } = captureRegexData(value);
+      const { source, flags, lastIndex } = captureRegexData(value);
       const compiled = regexCompiledData(getSandboxRegexPattern(value));
       const staged =
         compiled.ticket === undefined
@@ -547,6 +550,7 @@ export function measureSandboxData(
           : compiled.ticket.owner.budget.compileTicketUsage(compiled.ticket);
       usage += Math.max(6 + source.length + flags.length + compiled.units, staged - 1);
       if (compiled.ticket !== undefined) options.compileTickets?.add(compiled.ticket);
+      visit(lastIndex, depth + 1);
       return;
     }
 
@@ -608,7 +612,7 @@ export function reconcileCompiledValues(
   if (compilation !== undefined && parent !== undefined) compilation.forward(included, parent);
 }
 
-function captureRegexData(value: object): { source: string; flags: string; lastIndex: number } {
+function captureRegexData(value: object): { source: string; flags: string; lastIndex: SandboxValue } {
   const source = Object.getOwnPropertyDescriptor(value, "source");
   const flags = Object.getOwnPropertyDescriptor(value, "flags");
   if (
@@ -627,7 +631,7 @@ function captureRegexData(value: object): { source: string; flags: string; lastI
   if (cursor === undefined || !("value" in cursor)) {
     throw new TypeError("Invalid sandbox RegExp lastIndex: expected an own data property.");
   }
-  return { source: source.value, flags: flags.value, lastIndex: cursor.value as number };
+  return { source: source.value, flags: flags.value, lastIndex: cursor.value as SandboxValue };
 }
 
 export function deepCopyFromSandbox(
@@ -663,10 +667,19 @@ function copyToSandbox(
 
   if (isLiveCapability(value)) throw new TypeError("Live capabilities require their owning realm bridge.");
 
+  if (isSandboxRegex(value)) {
+    if (!cloneSandboxCollections) return value;
+    const existing = state.seen.get(value);
+    if (existing !== undefined) return existing;
+    const copy = createSandboxRegex(value.source, value.flags, 0, state.compilation);
+    state.seen.set(value, copy);
+    if (!state.resetRegexLastIndex) copy.lastIndex = copyToSandbox(value.lastIndex, state, `${path}.lastIndex`, true, depth + 1);
+    return copy;
+  }
+
   if (
     isSandboxClosure(value) ||
     isSandboxGenerator(value) ||
-    isSandboxRegex(value) ||
     isSandboxPromise(value)
   ) {
     return value;
@@ -904,9 +917,9 @@ function copyFromSandbox(
       if (existing !== undefined) return existing;
       guard.allocate(1 + source.length + flags.length);
       const regex = new RegExp(source, flags);
-      regex.lastIndex = lastIndex;
-      guard.retainScratch();
       state.seen.set(value, regex);
+      Reflect.set(regex, "lastIndex", copyFromSandbox(lastIndex, state, `${path}.lastIndex`, options, depth + 1));
+      guard.retainScratch();
       return regex;
     } finally {
       guard.close();

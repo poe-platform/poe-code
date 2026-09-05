@@ -234,7 +234,7 @@ describe("compile policy drafts", () => {
     }
   });
 
-  it("preserves native source, flags, raw cursors and existing copy alias behavior", () => {
+  it("preserves native source, flags and aliases while isolating cursor data without coercion", () => {
     const regex = createSandboxRegex("a", "g", 2);
     const cursor = {
       [Symbol.toPrimitive]: vi.fn(() => {
@@ -246,7 +246,8 @@ describe("compile policy drafts", () => {
     expect(copied[0]).toBe(copied[1]);
     expect(copied[0].source).toBe("a");
     expect(copied[0].flags).toBe("g");
-    expect(copied[0].lastIndex).toBe(cursor);
+    expect(copied[0].lastIndex).not.toBe(cursor);
+    expect(copied[0].lastIndex).toEqual({});
     expect(cursor[Symbol.toPrimitive]).not.toHaveBeenCalled();
   });
 });

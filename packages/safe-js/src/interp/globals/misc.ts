@@ -1,6 +1,7 @@
 import type { Budget } from "../budget.js";
 import { isSandboxCollectionIterator } from "../collection-iterator.js";
 import { assertSandboxGraphDepth } from "../../graph-depth.js";
+import { CompileScope } from "../regex/compile-guard.js";
 import {
   allocateProducedSandboxValue,
   cloneSandboxValue,
@@ -9,6 +10,7 @@ import {
   isSandboxMap,
   isSandboxPromise,
   isSandboxSet,
+  reconcileCompiledValues,
   type SandboxClosure,
   type SandboxValue
 } from "../values.js";
@@ -25,7 +27,7 @@ export function createMiscGlobals(options: { budget: Budget }): MiscGlobals {
   return {
     structuredClone: createSandboxClosure({
       sandbox: true,
-      call: ([value]) => structuredCloneSandboxValue(value, options.budget),
+      call: ([value], context) => structuredCloneSandboxValue(value, options.budget, context?.compilation),
       name: "structuredClone"
     }),
     parseInt: createSandboxClosure({
@@ -51,11 +53,20 @@ export function createMiscGlobals(options: { budget: Budget }): MiscGlobals {
   };
 }
 
-function structuredCloneSandboxValue(value: SandboxValue, budget: Budget): SandboxValue {
-  assertSandboxGraphDepth(value);
-  const clone = cloneSandboxValue(value);
-  assertStructuredCloneable(clone, new WeakSet());
-  return allocateProducedSandboxValue(clone, budget);
+function structuredCloneSandboxValue(value: SandboxValue, budget: Budget, parent?: CompileScope): SandboxValue {
+  const operation = budget.acquireCompileOwner(false, parent?.owner);
+  const compilation = parent?.owner === operation.owner ? parent : new CompileScope(operation.owner);
+  try {
+    const clone = cloneSandboxValue(value, { compilation, resetRegexLastIndex: true });
+    assertSandboxGraphDepth(clone);
+    assertStructuredCloneable(clone, new WeakSet());
+    allocateProducedSandboxValue(clone, budget);
+    if (compilation !== parent) reconcileCompiledValues(budget, [clone], compilation);
+    return clone;
+  } finally {
+    if (compilation !== parent) compilation.dispose();
+    operation.release();
+  }
 }
 
 function assertStructuredCloneable(value: SandboxValue, seen: WeakSet<object>): void {

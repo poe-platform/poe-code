@@ -208,6 +208,7 @@ export type InterpreterResult =
 
 export type InterpretOptions = {
   assertActive?: () => void;
+  onSuspend?: () => void;
   jobs?: SandboxJobQueue;
   nested?: boolean;
   compilation?: CompileScope;
@@ -343,6 +344,7 @@ export async function interpret(
       budget,
       callStack: [],
       onYield: options.onYield,
+      onSuspend: options.onSuspend,
       captureReplayState: options.captureReplayState,
       rootNode: node,
       scope,

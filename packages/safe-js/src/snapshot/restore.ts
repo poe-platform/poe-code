@@ -1,4 +1,5 @@
 import { Budget, SandboxError, type CompileOwner } from "../interp/budget.js";
+import { executeAsyncFunction } from "../interp/async.js";
 import { CompileScope } from "../interp/regex/compile-guard.js";
 import { decodeFloat32Storage } from "./float32array.js";
 import { restoreDateTime } from "../interp/date.js";
@@ -672,7 +673,23 @@ function restoreClosureValue(
         }
       : {}),
     call: (args, callContext) => {
-      const result = executeRestoredClosure(
+      if (node.async) {
+        return executeAsyncFunction(
+          (onSuspend) =>
+            executeRestoredClosure(
+              node,
+              capturedScopeId,
+              restoredClosure,
+              args,
+              callContext?.thisValue,
+              state,
+              callContext,
+              onSuspend
+            ),
+          state.budget
+        );
+      }
+      return executeRestoredClosure(
         node,
         capturedScopeId,
         restoredClosure,
@@ -681,7 +698,6 @@ function restoreClosureValue(
         state,
         callContext
       );
-      return node.async ? createSandboxPromise(result) : result;
     }
   });
 
@@ -717,7 +733,8 @@ async function executeRestoredClosure(
   args: readonly SandboxValue[],
   thisValue: SandboxValue,
   state: RestoreState,
-  callContext?: SandboxCallContext
+  callContext?: SandboxCallContext,
+  onSuspend?: () => void
 ): Promise<SandboxValue> {
   const parent = callContext?.compilation ?? state.compilation;
   const operation = state.budget.acquireCompileOwner(false, parent.owner);
@@ -810,6 +827,7 @@ async function executeRestoredClosure(
       budget: state.budget,
       compilation,
       nested: true,
+      onSuspend,
       scope
     });
 

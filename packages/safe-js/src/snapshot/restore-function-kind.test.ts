@@ -118,7 +118,7 @@ describe("restored function execution kind", () => {
 
   it("runs an async function prefix before resuming its caller", async () => {
     const { state, budget } = fixture(
-      'async function target() { events.push("before"); await 0; events.push("after"); return 7; }',
+      'async function target() { events.push(1); events.push(2); events.push(3); events.push(4); await 0; events.push("after"); return 7; }',
       "FunctionDeclaration",
       { events: [] }
     );
@@ -130,8 +130,49 @@ describe("restored function execution kind", () => {
         { type: "BlockStatement", body: caller.body, span: caller.span },
         { scope: state.currentScope, budget }
       )
-    ).toMatchObject({ ok: true, returnValue: [7, ["before", "caller", "after"]] });
+    ).toMatchObject({ ok: true, returnValue: [7, [1, 2, 3, 4, "caller", "after"]] });
   });
+
+  it.each([
+    [
+      "async function target() { return { then(resolve) { resolve(7); } }; }",
+      "FunctionDeclaration"
+    ],
+    ["const target = async () => ({ then(resolve) { resolve(7); } });", "ArrowFunctionExpression"],
+    [
+      "const target = async function named() { return { then(resolve) { resolve(7); } }; };",
+      "FunctionExpression"
+    ]
+  ] as const)(
+    "adopts a thenable into the restored async promise itself: %s",
+    async (source, kind) => {
+      const { target } = fixture(source, kind);
+      const result = target.call([]);
+      expect(isSandboxPromise(result)).toBe(true);
+      if (!isSandboxPromise(result)) throw new Error("Expected async function promise");
+      await expect(result.promise).resolves.toBe(7);
+    }
+  );
+
+  it.each(["return marker;", "throw marker;"])(
+    "finishes the synchronous prefix when an async function completes without await: %s",
+    async (completion) => {
+      const { state, budget } = fixture(
+        `async function target() { events.push(1); events.push(2); events.push(3); events.push(4); ${completion} }`,
+        "FunctionDeclaration",
+        { events: [], marker: { value: 7 } }
+      );
+      const caller = parseModule(
+        'const promise = target(); events.push("caller"); let value; try { value = await promise; } catch (error) { value = error; } return [value === marker, events];'
+      );
+      expect(
+        await interpret(
+          { type: "BlockStatement", body: caller.body, span: caller.span },
+          { scope: state.currentScope, budget }
+        )
+      ).toMatchObject({ ok: true, returnValue: [true, [1, 2, 3, 4, "caller"]] });
+    }
+  );
 
   it("adopts an async return thenable without adopting a synchronous return", async () => {
     const asyncFixture = fixture(

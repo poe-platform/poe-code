@@ -433,7 +433,7 @@ function signalSink(sink: ByteSink, signal: AbortSignal): ByteSink {
   return output;
 }
 
-async function cloneState(state: State, signal: AbortSignal): Promise<State> {
+async function cloneState(state: State, signal: AbortSignal, scope?: InvocationScope): Promise<State> {
   const destination = await snapshotState(state, () => ({
     ...state,
     variables: Object.assign(Object.create(null) as Record<string, string>, state.variables),
@@ -441,10 +441,10 @@ async function cloneState(state: State, signal: AbortSignal): Promise<State> {
     readonlyVariables: new Set(state.readonlyVariables),
     getopts: cloneGetoptsBinding(state),
     directoryStack: { entries: [...state.directoryStack?.entries ?? []], bytes: state.directoryStack?.bytes ?? 0 },
-    locals: state.locals.map((scope) => new Map([...scope].map(([name, saved]) => [name, { ...saved, ...(saved.getopts ? { getopts: { integer: saved.getopts.integer, cursor: cloneGetoptsState(saved.getopts.cursor) } } : {}) }]))),
+    locals: scope ? [] : state.locals.map((scope) => new Map([...scope].map(([name, saved]) => [name, { ...saved, ...(saved.getopts ? { getopts: { integer: saved.getopts.integer, cursor: cloneGetoptsState(saved.getopts.cursor) } } : {}) }]))),
   }), signal, async (destination, owner) => {
     const store = arrayStore(destination) ?? requireArrays(destination);
-    for (let index = 0; index < state.locals.length; index++) {
+    for (let index = 0; index < destination.locals.length; index++) {
       const sourceFrame = state.locals[index]!;
       const copiedFrame = destination.locals[index]!;
       for (const [name, saved] of sourceFrame) {
@@ -467,7 +467,7 @@ async function cloneState(state: State, signal: AbortSignal): Promise<State> {
         await owner.ledger.checkpoint(signal);
       }
     }
-  });
+  }, scope);
   try {
     for (const frame of destination.locals) for (const saved of frame.values()) {
       if (saved.heldValue) saved.heldValue = stateMonitor(destination)!.values.scope.hold(saved.heldValue.value);
@@ -3358,7 +3358,7 @@ export class Runtime {
     const allocation = this.budget.values.scope();
     scope.register(() => allocation.close());
     const carrier = this.admitArguments(getCommandArguments({ args, ...(options.argumentValues ? { argumentValues: options.argumentValues } : {}) }).values, allocation);
-    const child = await cloneState(state, this.signal);
+    const child = await cloneState(state, this.signal, scope);
     child.cwd = resolvePath(context.cwd, options.cwd ?? ".");
     const env = options.replaceEnv ? { ...options.env } : { ...context.env, ...options.env, PWD: child.cwd };
     if (guestArrays(child) || Object.keys(env).some(key => arrayStore(child)?.get(key))) await this.indexedEnvironment(child, env);

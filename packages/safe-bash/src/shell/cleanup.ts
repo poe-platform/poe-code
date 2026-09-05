@@ -65,11 +65,15 @@ export class InvocationScope {
   close(): Promise<void> {
     if (!this.#drain) {
       this.#drain = Promise.resolve().then(async () => {
-        await Promise.all([
-          ...this.#callbacks.map((cleanup) => this.cleanup(cleanup)),
-          ...[...this.#children].map((child) => child.close()),
-          ...this.#work,
-        ]);
+        try {
+          await Promise.all([
+            ...this.#callbacks.splice(0).map((cleanup) => this.cleanup(cleanup)),
+            ...[...this.#children].map((child) => child.close()),
+            ...this.#work,
+          ]);
+        } finally {
+          if (this.parent) this.parent.#children.delete(this);
+        }
       });
       this.#seal();
     }

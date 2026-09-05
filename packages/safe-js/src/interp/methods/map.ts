@@ -3,6 +3,7 @@ import {
   allocateProducedSandboxValue,
   createSandboxClosure,
   isSandboxClosure,
+  isSandboxMap,
   type SandboxClosure,
   type SandboxMap,
   type SandboxValue
@@ -65,7 +66,11 @@ export function getMapMember(
 
   return createSandboxClosure({
     sandbox: true,
-    call: (args, context) => callMapMethod(target, property, args, options, context?.stack ?? []),
+    call: (args, context) => {
+      const receiver = context?.thisValue;
+      if (!isSandboxMap(receiver)) throw new TypeError(`Map#${property} requires a Map receiver.`);
+      return callMapMethod(receiver, property, args, options, context?.stack ?? []);
+    },
     name: property
   });
 }

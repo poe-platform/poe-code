@@ -102,15 +102,15 @@ Committed and verified on remote main as
 `33938517813`, publisher job `101231110596`, succeeded; its log confirms
 `@poe-platform/safe-js@0.1.85` published September 5, 2026, 02:19:02 UTC
 (the shared SafeFS and Safe Bash packages also published 0.1.85).
-CLI release workflow `33938517919` is still running; CLI publication is not
-claimed complete yet.
+CLI release workflow `33938517919` was canceled by the next push. Its change
+is included in the successful descendant CLI release recorded below.
 
 Existing restrictions still apply to members absent from the guest object
 model (for example full exotic prototype graphs), symbols, and general
 exotic-to-string coercion. These remain in the completeness inventory; this
 atomic change does not pretend to implement those separate subsystems.
 
-### 2. Keyword property names — validated, delivery pending
+### 2. Keyword property names — delivered and released
 
 Native controls and built SafeJS probes reproduce failures for literal-word
 keys (`null`, `true`, `false`, `undefined`) and reserved words such as `return`,
@@ -132,7 +132,51 @@ must fail. Native compilation confirms it is valid; that assertion now checks
 the accepted property AST while retaining reserved binding/shorthand failures.
 Final full-suite rerun passed: 10,187 tests, 41 skipped. Full root lint passed:
 9,711 configured files, zero errors or warnings, plus root TypeScript and
-workflow checks. No commit or push yet.
+workflow checks. Committed and verified on remote main as
+`00bfb59310ce57c0156f362b4328bab076a75449`. Scoped workflow `33938935424`
+and publisher job `101232337963` succeeded: SafeJS 0.1.86 published
+September 5, 2026, 02:27:48 UTC. CLI workflow `33938935543` and publisher
+job `101233757704` succeeded: `poe-code@14.0.40` published to latest
+September 5, 2026, 02:35:38 UTC. This CLI release includes both atomic changes.
+
+### 3. Restored function execution kind — validated, delivery pending
+
+While investigating computed-key coercion through restored methods, a bounded
+serialized-closure probe reproduced `target() + 1` returning
+`"[object Object]1"` instead of 8, followed by a compilation-owner reentry error.
+The restore path marks every closure async and retains the restore-time owner
+instead of using the active caller's owner. This is a distinct prerequisite,
+not part of computed-key coercion.
+
+Initial regression suite: seven failed, one passed. Preserve source async
+metadata, guest exception identity, caller compilation ownership, nested
+execution, and returned compiled values. Keep synchronous internal execution
+promises separate from guest async promises. Six historical test cases expected
+the incorrect guest-promise wrapper; their result assertions now match source
+function kind. Eleven focused regressions cover declarations, arrows, named
+expressions, return identity, thrown identity, recursion, constructors, genuine
+async results, async ordering, thenable adoption, and fatal recursion limits.
+The focused restore/async cohort passes 97 tests.
+
+The additional async-ordering control passed without a new async-prefix helper.
+The proposed extraction was removed from this synchronous-function fix.
+The normal build passed, as did six built-module checks including returned
+regular expressions and default/destructured parameters. The maintained
+SafeJS suite passed 10,198 tests, with 41 skipped. Full root lint passed:
+9,712 configured files linted, zero errors or warnings, plus root TypeScript
+and workflow checks. Commit, remote-main delivery, and release verification
+remain pending.
+
+### Next validated prerequisite: restored async completion
+
+A stronger built-module probe found a separate defect after the synchronous
+fix: a restored async function with four pushes before its first await produces
+`[1, "caller", 2, 3, 4, "after"]`; native JavaScript produces
+`[1, 2, 3, 4, "caller", "after"]`. Inspecting the restored async promise
+directly also reveals that returning a guest thenable resolves to the object,
+not its adopted value 7. The earlier await-based control masks this because
+the caller's await adopts the thenable. These are validated follow-up work;
+the current change does not claim complete restored async semantics.
 
 ### Next validated candidate: computed property coercion
 
@@ -150,3 +194,10 @@ with "Computed property access requires a string or number key":
 
 No implementation change for this candidate yet. It needs coercion-order,
 single-evaluation, optional-access, error, budget, and host-boundary controls.
+Additional probes confirm failures in computed parameter/catch bindings,
+method calls, and boolean/null/undefined/array keys. A null-base assignment
+also skips RHS side effects which native JavaScript executes before throwing.
+Check against ECMAScript 2026 sections 6.2.5.5, 6.2.5.6, and 13.3.3 rather
+than treating the local Node v22.23.2 behavior as an infallible oracle: it
+coerces compound/update keys twice, unlike the specified retained key. The
+normative history is TC39 ecma262 issue 3295 and merged PR 3307.

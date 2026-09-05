@@ -2504,6 +2504,9 @@ scoped-package and CLI publications remain separately monitored.
 Scoped run 33967405571/job 101309832582 succeeded and published
 @poe-platform/safe-js 0.1.131 on September 5 at 12:58:49 UTC. CLI run 33967405694
 remains separately monitored; no CLI publication is claimed yet.
+That CLI run was subsequently canceled after the next atomic main push; its
+watch exited nonzero. This is not a CLI publication. Descendant CLI run
+33967858610 is monitored for delivery of both the function and parser fixes.
 
 Manual QA: build and execute a schema-only function-string.md/.ajs pair with
 zero capabilities/spawns. Assert exact grouped function/comment text, template
@@ -2641,7 +2644,7 @@ e6247a2d53049ad0e69fa34fb7cb265f52f3153f. This release includes the preceding
 template (§42) and retention (§44) fixes; their own canceled CLI runs are not
 misreported as publications. All three findings now have verified CLI delivery.
 
-### 46. Numeric parser guest conversion — validated, implementation under qualification
+### 46. Numeric parser guest conversion — closed at verified main delivery; release pending
 
 Six built/native probes reconfirm the open §15 finding in global parseInt,
 Number.parseInt, parseFloat and Number.parseFloat. Guest toString/valueOf hooks
@@ -2686,3 +2689,56 @@ change uses maintained package checks; the preceding shared-runtime change's
 full repository gate is not misrepresented as a new full run for this change.
 Ready for a separate atomic commit and verified main delivery; publication is
 tracked separately.
+Delivered as 280e1ffed106364653ed90cd4d5f7ba5ab1d55d8 and independently verified
+on remote refs/heads/main September 5. The finding is closed at delivery. Scoped
+and CLI workflows are monitored for actual publication, not merely green checks.
+Scoped run 33967858498 and CLI run 33967858610 are active release watches.
+Scoped run 33967858498/job 101311035454 succeeded and published
+@poe-platform/safe-js 0.1.132 September 5 at 13:08:56 UTC. Its watch exited zero;
+CLI publication remains separately monitored.
+
+### 47. Global numeric predicate conversion — validated open gap
+
+After §46 delivery, three fresh built/native probes reproduce missing guest
+conversion in global isFinite/isNaN: valueOf is not called, valid custom numbers
+throw TypeError, and thrown guest marker identity is lost. A fourth control
+confirms Number.isFinite/Number.isNaN correctly remain non-coercing and invoke
+neither hook. Preserve that distinction. Existing global implementations still
+pass raw sandbox values to the host predicates; the numeric parser repair did
+not modify them. Add focused failing tests before this separate implementation.
+
+Four additional built/native probes reconfirm §26 primitive boxing remains open:
+Object(3) rejects primitive boxing, and new Number/String/Boolean reject as
+non-constructors. Do not claim boxing fixed by numeric conversion work. No
+boxing or predicate runtime changes have been made in this follow-up validation.
+
+Implementation begins only after a 48-case suite reproduces 40 failures and eight
+controls. ECMAScript 2026 §§19.2.2–19.2.3 explicitly applies ToNumber in both
+global predicates. Use the existing sandboxNumber path, then apply Number's
+non-coercing numeric predicates to the resulting number. Keep primitive calls
+synchronous and forward hook context, errors and budgets. Number.isFinite and
+Number.isNaN are unchanged. Source:
+`https://tc39.es/ecma262/2026/multipage/global-object.html`.
+The five-file focused cohort passes 208 tests, including inherited hooks,
+function/array overrides, fallback order, thrown marker identity, async-prefix
+handling without promise adoption, realm reuse, completed replay, promise-job
+ordering and fatal step/call-depth budgets with retained-root cleanup.
+
+Manual QA: build and run a schema-only numeric-predicates.md/.ajs pair, with zero
+capabilities/spawns. Check hook order, global-versus-Number distinctions and
+thrown marker identity; inspect the CLI screenshot. Run the maintained SafeJS
+and harness suites and root lint after builds finish. Probe public root/core
+budget recovery, cancellation, realm cleanup and completed effects before the
+separate commit/push. Primitive boxing remains a separate next capability.
+
+Qualification completed: 48 predicate regression/control cases; maintained
+SafeJS workspace suite 12,558 passed (41 skipped), harness suite 163 passed,
+normal build and real zero-spawn CLI fixture passed. The inspected screenshot
+shows true/true/false/false, value-before-string hooks and preserved thrown
+marker identity. Public root/core probes pass eight fatal-budget checkpoint
+recoveries without repeating completed effects, twenty cancellation cleanup
+cycles, twenty persistent-realm cycles, and four generator-backed conversion
+checkpoint restores. Low-budget instances can be reused after failure. Root
+lint passes all 9,772 configured files with zero errors/warnings, followed by
+TypeScript and workflow checks. This local fix is ready for its own commit and
+verified main push, not yet a publication claim.

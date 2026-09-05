@@ -3,6 +3,7 @@ import { isSandboxCollectionIterator } from "../collection-iterator.js";
 import { assertSandboxGraphDepth } from "../../graph-depth.js";
 import { CompileScope } from "../regex/compile-guard.js";
 import { createNumericParsers } from "./numeric-parsers.js";
+import { sandboxNumber } from "../string-coercion.js";
 import {
   allocateProducedSandboxValue,
   cloneSandboxValue,
@@ -34,12 +35,18 @@ export function createMiscGlobals(options: { budget: Budget }): MiscGlobals {
     ...createNumericParsers(options.budget),
     isNaN: createSandboxClosure({
       sandbox: true,
-      call: ([value]) => globalThis.isNaN(value as number),
+      call: ([value], context) => {
+        const number = sandboxNumber(value, options.budget, context);
+        return typeof number === "number" ? Number.isNaN(number) : number.then(Number.isNaN);
+      },
       name: "isNaN"
     }),
     isFinite: createSandboxClosure({
       sandbox: true,
-      call: ([value]) => globalThis.isFinite(value as number),
+      call: ([value], context) => {
+        const number = sandboxNumber(value, options.budget, context);
+        return typeof number === "number" ? Number.isFinite(number) : number.then(Number.isFinite);
+      },
       name: "isFinite"
     })
   };

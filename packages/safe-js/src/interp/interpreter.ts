@@ -588,39 +588,43 @@ async function evaluateArrayExpression(
   context: EvaluationContext
 ): Promise<EvaluationResult> {
   const values: SandboxArray = [];
-
-  for (const element of node.elements) {
-    if (element.type === "UndefinedLiteral" && element.elision === true) {
-      values.length += 1;
-      context.budget.allocateArrayLength(values.length);
-      continue;
-    }
-
-    if (element.type === "SpreadElement") {
-      const spreadValues = await evaluateSpreadElement(element, context);
-      if (!spreadValues.ok) {
-        return spreadValues.result;
+  const release = retainValues(context.budget, () => [values]);
+  try {
+    for (const element of node.elements) {
+      if (element.type === "UndefinedLiteral" && element.elision === true) {
+        values.length += 1;
+        context.budget.allocateArrayLength(values.length);
+        continue;
       }
 
-      appendArrayValues(values, spreadValues.value);
+      if (element.type === "SpreadElement") {
+        const spreadValues = await evaluateSpreadElement(element, context);
+        if (!spreadValues.ok) {
+          return spreadValues.result;
+        }
+
+        appendArrayValues(values, spreadValues.value);
+        context.budget.allocateArrayLength(values.length);
+        continue;
+      }
+
+      const result = await evaluateNode(element, context);
+      if (result.kind !== "normal") {
+        return result;
+      }
+
+      values.push(result.value);
       context.budget.allocateArrayLength(values.length);
-      continue;
     }
 
-    const result = await evaluateNode(element, context);
-    if (result.kind !== "normal") {
-      return result;
-    }
-
-    values.push(result.value);
-    context.budget.allocateArrayLength(values.length);
+    return {
+      kind: "normal",
+      hasValue: true,
+      value: values
+    };
+  } finally {
+    release();
   }
-
-  return {
-    kind: "normal",
-    hasValue: true,
-    value: values
-  };
 }
 
 async function evaluateObjectExpression(
@@ -628,45 +632,55 @@ async function evaluateObjectExpression(
   context: EvaluationContext
 ): Promise<EvaluationResult> {
   const object = Object.create(null) as SandboxObject;
+  const release = retainValues(context.budget, () => [object]);
+  try {
+    for (const property of node.properties) {
+      if (property.type === "SpreadElement") {
+        const spreadEntries = await evaluateObjectSpread(property, context);
+        if (!spreadEntries.ok) {
+          return spreadEntries.result;
+        }
 
-  for (const property of node.properties) {
-    if (property.type === "SpreadElement") {
-      const spreadEntries = await evaluateObjectSpread(property, context);
-      if (!spreadEntries.ok) {
-        return spreadEntries.result;
+        for (const [key, value] of spreadEntries.value) {
+          defineSandboxProperty(object, key, value);
+        }
+        continue;
       }
 
-      for (const [key, value] of spreadEntries.value) {
-        defineSandboxProperty(object, key, value);
+      const key = await evaluateObjectPropertyKey(property, context);
+      if (!key.ok) {
+        return key.result;
       }
-      continue;
-    }
 
-    const key = await evaluateObjectPropertyKey(property, context);
-    if (!key.ok) {
-      return key.result;
-    }
-
-    const value = await evaluateNode(property.value, context);
-    if (value.kind !== "normal") {
-      return value;
-    }
-
-    if (isObjectPrototypeSetterProperty(property, key.value)) {
-      if (value.value === null || typeof value.value === "object") {
-        setSandboxPrototype(object, value.value as object | null, context.budget);
+      const releaseKey = retainValues(context.budget, () => [key.value]);
+      let value: EvaluationResult;
+      try {
+        value = await evaluateNode(property.value, context);
+      } finally {
+        releaseKey();
       }
-      continue;
+      if (value.kind !== "normal") {
+        return value;
+      }
+
+      if (isObjectPrototypeSetterProperty(property, key.value)) {
+        if (value.value === null || typeof value.value === "object") {
+          setSandboxPrototype(object, value.value as object | null, context.budget);
+        }
+        continue;
+      }
+
+      defineSandboxProperty(object, String(key.value), value.value);
     }
 
-    defineSandboxProperty(object, String(key.value), value.value);
+    return {
+      kind: "normal",
+      hasValue: true,
+      value: object
+    };
+  } finally {
+    release();
   }
-
-  return {
-    kind: "normal",
-    hasValue: true,
-    value: object
-  };
 }
 
 function isObjectPrototypeSetterProperty(property: Property, key: string | number): boolean {
@@ -678,25 +692,29 @@ async function evaluateTemplateLiteral(
   context: EvaluationContext
 ): Promise<EvaluationResult> {
   let value = context.budget.allocateString(node.quasis[0]?.value.cooked ?? "");
+  const release = retainValues(context.budget, () => [value]);
+  try {
+    for (let index = 0; index < node.expressions.length; index += 1) {
+      const expression = await evaluateNode(node.expressions[index], context);
+      if (expression.kind !== "normal") {
+        return expression;
+      }
 
-  for (let index = 0; index < node.expressions.length; index += 1) {
-    const expression = await evaluateNode(node.expressions[index], context);
-    if (expression.kind !== "normal") {
-      return expression;
+      const expressionText = context.budget.allocateString(String(expression.value));
+      value = context.budget.allocateString(value + expressionText);
+
+      const quasiText = context.budget.allocateString(node.quasis[index + 1]?.value.cooked ?? "");
+      value = context.budget.allocateString(value + quasiText);
     }
 
-    const expressionText = context.budget.allocateString(String(expression.value));
-    value = context.budget.allocateString(value + expressionText);
-
-    const quasiText = context.budget.allocateString(node.quasis[index + 1]?.value.cooked ?? "");
-    value = context.budget.allocateString(value + quasiText);
+    return {
+      kind: "normal",
+      hasValue: true,
+      value
+    };
+  } finally {
+    release();
   }
-
-  return {
-    kind: "normal",
-    hasValue: true,
-    value
-  };
 }
 
 async function evaluateTaggedTemplateExpression(
@@ -734,23 +752,27 @@ async function evaluateTemplateExpressionValues(
   context: EvaluationContext
 ): Promise<HelperResult<SandboxValue[]>> {
   const values: SandboxValue[] = [];
+  const release = retainValues(context.budget, () => values);
+  try {
+    for (const expressionNode of node.expressions) {
+      const expression = await evaluateNode(expressionNode, context);
+      if (expression.kind !== "normal") {
+        return {
+          ok: false,
+          result: expression
+        };
+      }
 
-  for (const expressionNode of node.expressions) {
-    const expression = await evaluateNode(expressionNode, context);
-    if (expression.kind !== "normal") {
-      return {
-        ok: false,
-        result: expression
-      };
+      values.push(expression.value);
     }
 
-    values.push(expression.value);
+    return {
+      ok: true,
+      value: values
+    };
+  } finally {
+    release();
   }
-
-  return {
-    ok: true,
-    value: values
-  };
 }
 
 function createTaggedTemplateStrings(
@@ -826,25 +848,32 @@ async function evaluateBinaryExpression(
     return left;
   }
 
-  const right = await evaluateNode(node.right, context);
-  if (right.kind !== "normal") {
-    return right;
-  }
-
-  let leftValue = left.value;
-  if (node.operator === "in") {
-    if (typeof right.value !== "object" || right.value === null) {
-      throw new TypeError("Right-hand side of 'in' must be an object.");
+  let rightValue: SandboxValue;
+  const release = retainValues(context.budget, () => [left.value, rightValue]);
+  try {
+    const right = await evaluateNode(node.right, context);
+    if (right.kind !== "normal") {
+      return right;
     }
-    leftValue = await toPropertyKey(leftValue, context.budget, createCoercionContext(context));
-  }
-  const value = applyBinaryOperator(node, leftValue, right.value, context);
 
-  return {
-    kind: "normal",
-    hasValue: true,
-    value
-  };
+    rightValue = right.value;
+    let leftValue = left.value;
+    if (node.operator === "in") {
+      if (typeof right.value !== "object" || right.value === null) {
+        throw new TypeError("Right-hand side of 'in' must be an object.");
+      }
+      leftValue = await toPropertyKey(leftValue, context.budget, createCoercionContext(context));
+    }
+    const value = applyBinaryOperator(node, leftValue, right.value, context);
+
+    return {
+      kind: "normal",
+      hasValue: true,
+      value
+    };
+  } finally {
+    release();
+  }
 }
 
 async function evaluateAssignmentExpression(
@@ -982,30 +1011,38 @@ async function evaluateMemberAssignmentExpression(
       };
     }
 
-    const right = await evaluateNode(node.right, context);
-    if (right.kind !== "normal") {
-      return right;
+    let operands: SandboxValue[] = [current, property];
+    const release = retainValues(context.budget, () => operands);
+    try {
+      const right = await evaluateNode(node.right, context);
+      if (right.kind !== "normal") {
+        return right;
+      }
+
+      operands.push(right.value);
+      const value =
+        node.operator === "=" ||
+        node.operator === "&&=" ||
+        node.operator === "||=" ||
+        node.operator === "??="
+          ? right.value
+          : await applyCompoundAssignmentOperator(node.operator, current, right.value, context);
+
+      if (member.object === null || member.object === undefined) {
+        throw new TypeError("Cannot assign properties of null or undefined.");
+      }
+      operands = [value];
+      property ??= await toPropertyKey(member.property, context.budget, createCoercionContext(context));
+      setSandboxProperty(member.object, property, value, context.budget);
+
+      return {
+        kind: "normal",
+        hasValue: true,
+        value
+      };
+    } finally {
+      release();
     }
-
-    const value =
-      node.operator === "=" ||
-      node.operator === "&&=" ||
-      node.operator === "||=" ||
-      node.operator === "??="
-        ? right.value
-        : await applyCompoundAssignmentOperator(node.operator, current, right.value, context);
-
-    if (member.object === null || member.object === undefined) {
-      throw new TypeError("Cannot assign properties of null or undefined.");
-    }
-    property ??= await toPropertyKey(member.property, context.budget, createCoercionContext(context));
-    setSandboxProperty(member.object, property, value, context.budget);
-
-    return {
-      kind: "normal",
-      hasValue: true,
-      value
-    };
   });
 }
 
@@ -2602,12 +2639,8 @@ async function evaluateMemberAccess(
     return consume({ kind: "nullish" });
   }
 
-  const retained = {};
   let property: SandboxValue;
-  context.budget.setRetainedValues(retained, () => [object.value, property]);
-  const release = () => context.budget.setRetainedValues(retained, undefined);
-  const pending = runResources.getStore()?.referenceReleases;
-  pending?.add(release);
+  const release = retainValues(context.budget, () => [object.value, property]);
   try {
     const result = node.computed
       ? await evaluateNode(node.property, context)
@@ -2617,8 +2650,22 @@ async function evaluateMemberAccess(
     return await consume({ kind: "resolved", object: object.value, property });
   } finally {
     release();
-    pending?.delete(release);
   }
+}
+
+function retainValues(
+  budget: Budget,
+  values: () => Iterable<unknown>
+): () => void {
+  const retained = {};
+  budget.setRetainedValues(retained, values);
+  const pending = runResources.getStore()?.referenceReleases;
+  const release = () => {
+    budget.setRetainedValues(retained, undefined);
+    pending?.delete(release);
+  };
+  pending?.add(release);
+  return release;
 }
 
 async function evaluateMemberProperty(
@@ -3672,35 +3719,39 @@ async function evaluateCallArguments(
   context: EvaluationContext
 ): Promise<HelperResult<SandboxValue[]>> {
   const values: SandboxValue[] = [];
+  const release = retainValues(context.budget, () => values);
+  try {
+    for (const arg of args) {
+      if (arg.type === "SpreadElement") {
+        const spreadValues = await evaluateSpreadElement(arg, context);
+        if (!spreadValues.ok) {
+          return spreadValues;
+        }
 
-  for (const arg of args) {
-    if (arg.type === "SpreadElement") {
-      const spreadValues = await evaluateSpreadElement(arg, context);
-      if (!spreadValues.ok) {
-        return spreadValues;
+        appendArrayValues(values, spreadValues.value);
+        context.budget.allocateArrayLength(values.length);
+        continue;
       }
 
-      appendArrayValues(values, spreadValues.value);
+      const result = await evaluateNode(arg, context);
+      if (result.kind !== "normal") {
+        return {
+          ok: false,
+          result
+        };
+      }
+
+      values.push(result.value);
       context.budget.allocateArrayLength(values.length);
-      continue;
     }
 
-    const result = await evaluateNode(arg, context);
-    if (result.kind !== "normal") {
-      return {
-        ok: false,
-        result
-      };
-    }
-
-    values.push(result.value);
-    context.budget.allocateArrayLength(values.length);
+    return {
+      ok: true,
+      value: values
+    };
+  } finally {
+    release();
   }
-
-  return {
-    ok: true,
-    value: values
-  };
 }
 
 async function evaluateSpreadElement(
@@ -3721,24 +3772,29 @@ async function evaluateSpreadElement(
   }
 
   const spreadValues: SandboxValue[] = [];
-  while (true) {
-    const next = await iterator.next();
-    if (typeof next !== "object" || next === null) {
-      throw new TypeError("Iterator result must be an object.");
+  const release = retainValues(context.budget, () => [value.value, ...spreadValues]);
+  try {
+    while (true) {
+      const next = await iterator.next();
+      if (typeof next !== "object" || next === null) {
+        throw new TypeError("Iterator result must be an object.");
+      }
+
+      if (next.done === true) {
+        break;
+      }
+
+      spreadValues.push(next.value as SandboxValue);
+      context.budget.allocateArrayLength(spreadValues.length);
     }
 
-    if (next.done === true) {
-      break;
-    }
-
-    spreadValues.push(next.value as SandboxValue);
-    context.budget.allocateArrayLength(spreadValues.length);
+    return {
+      ok: true,
+      value: spreadValues
+    };
+  } finally {
+    release();
   }
-
-  return {
-    ok: true,
-    value: spreadValues
-  };
 }
 
 async function evaluateObjectSpread(

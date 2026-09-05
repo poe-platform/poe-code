@@ -1963,7 +1963,7 @@ This CLI release also contains the cursor and flag-read fixes in sections 35–3
 The flag-read CLI workflow succeeded without publishing because main had moved;
 do not count that green run as a separate release.
 
-### 38. Receiver retention before member operations — qualified; delivery pending
+### 38. Receiver retention before member operations — delivered; release monitored
 
 Temporary String receivers disappear from accounting while argument expressions
 run (match and indexOf), as do Array receivers (includes and join). Computed
@@ -2048,6 +2048,17 @@ uncached execution. Missing optional comparator cases remain pending and
 workspaces without declared tests are not counted as passes. This receiver
 lifetime fix is qualified for its own commit and push; the staged Safe Bash
 patch remains byte-for-byte unchanged.
+Committed and independently verified on remote main as
+cc107c1ebed22b46ccdbbd2ecf88ec145f1acf5a. Close the receiver-retention finding at
+delivery. Scoped run 33961246877 and CLI run 33961246976 are monitored separately;
+neither is yet a publication receipt. Continue the validated operand-retention
+work while those releases run rather than waiting idle for publication.
+Scoped run 33961246877/job 101293388961 subsequently published
+@poe-platform/safe-js 0.1.124 at 10:43:31 UTC on September 5. The CLI release
+is still monitored separately.
+CLI run 33961246976/job 101294636857 published poe-code 14.0.58 at 10:52:39 UTC
+on September 5. Its independently checked remote tag points to cc107c1eb.
+Receiver retention is delivered and released through both publication routes.
 
 ### 39. Repeated object-valued member-key conversion — validated open gap
 
@@ -2070,7 +2081,7 @@ controls across all 15 compound/logical operators and initial values 0, 2 and
 null. Throwing on the second key conversion also shows prefix, postfix, += and
 taking &&= incorrectly write instead of throwing without a write.
 
-### 40. Intermediate operand retention — validated open budget gaps
+### 40. Intermediate operand retention — qualified; delivery pending
 
 Separate built probes show three more live values disappear from data accounting:
 an assignment RHS while its object-valued key is coerced, an earlier call
@@ -2090,3 +2101,93 @@ an earlier object-literal field, binary left operand, template substitution,
 computed object-literal key, spread call argument, spread array element and
 constructor argument. These observations expand the investigation; none is
 claimed fixed by the receiver-only change.
+The next TDD cohort reproduces ten failures with 38 passing controls, including
+all delivered receiver-retention tests. Further built probes reproduce earlier
+tagged-template substitutions and accumulated values from generator spreads
+(array and argument spread), with successful raised-budget controls. The
+expanded regression cohort has 13 failures and 38 passing controls. No runtime
+fix for these intermediate lifetimes has been applied yet. Investigate shared
+run/realm disposal ownership for partial arrays/objects, argument lists,
+template values, binary operands and assignment values, and preserve the
+cancellation/generator behavior validated for receiver retention.
+
+Revalidate all 13 failures on the current worktree before implementation.
+Additional probes reproduce the right-hand object of `in` during key coercion,
+the old compound-assignment value after its property is removed, the compound
+RHS during left coercion, and a converted compound member key during RHS
+evaluation. The expanded matrix contains 17 concrete budget failures.
+Retain partially built arrays/objects, accumulated call/template/spread values,
+binary operands, and phase-appropriate assignment values through later guest
+evaluation. Retain computed object keys while their values are evaluated.
+Reuse run/realm disposal ownership established in section 38; normal completion
+unregisters roots, and disposal clears abandoned suspended roots.
+
+The initial asynchronous retention wrapper passed 204 focused checks, but the
+full SafeJS package exposed a snapshot scheduling regression (one failure with
+12,126 passing tests and 41 skips). Reproduce it in isolation: extra async
+wrapper layers let a dump request observe a different yield. Replace the
+wrapper with synchronous registration and ordinary try/finally at evaluation
+sites; preserve the existing snapshot test without relaxing its assertions.
+The corrected eight-file cohort passes 263 tests, including snapshots, receiver
+retention, run/realm suspension and disposal, catchable cancellation, native
+order/results, and async ordinary/tagged-template suspension. Broader build,
+CLI, full-unit and lint qualification remains before atomic delivery.
+The normal maintained build passes. The actual schema-only pair passes after
+70 uncached predev builds, with zero spawns; its inspected screenshot shows
+total 7,000 and the expected argument event. The same built CLI rejects at
+dataSize 6,000 with usage 7,850 and exit 1, using a temporary snapshot path.
+Fresh public root/core pass 18 low-budget failures and 18 raised-budget
+checkpoint recoveries without repeating completed effects. Full npm test is
+running against the final synchronous-lifetime code. Finish the required build
+phase before freezing source/build outputs for maintained root lint.
+Twelve additional built root/core native comparisons pass. An attempted built
+next-yield capture during an active host callback hit the explicit reentry
+guard in assertDumpAllowed; that probe was not a runtime regression. Two public
+capture-guard/replay-mode controls pass. Existing next-yield unit tests remain
+unchanged and passing, alongside the completed-effect recovery checks above.
+The final full route's shared stage passes 32,015 tests with 43 skips in 1,170
+passing files and three skipped files; Python and all 279 native runner
+prechecks also pass. With source/build outputs frozen, maintained root lint
+passes all 9,759 configured files with zero errors or warnings, followed by
+types and workflows. The remaining native workspace unit tasks are running.
+Twenty-four built fatal-budget cleanup/reset/reuse cycles pass. Six public
+root/core suspended-generator recoveries preserve partial array, object and
+binary state, with the original run stopped and pending host effects explicitly
+reconciled; neither completed effects nor the pending operation are repeated.
+The initial probe captured an earlier generator yield before the host call was
+dispatched. Select the current replay-mode checkpoint at the host await and
+use the recorded running call's proof, rather than assuming every first dump
+already contains hostCalls. This was a probe-position correction, not a
+snapshot-retention defect.
+The full maintained npm test route completed successfully: native Bash passes
+19,981 tests with 63 skips, terminal-pilot passes 288 tests, and both root
+posttest checks pass. The declaration-derived receipt confirms 71 workspaces,
+two required builds, 40 unit tasks, uncached execution and no exclusions.
+Unavailable optional comparator cases remain pending, not passes. Together
+with the successful build, CLI, replay and maintained root lint gates, this
+qualifies intermediate operand retention for its own commit and push. The
+unrelated staged Safe Bash patch remains byte-for-byte unchanged.
+
+### 41. Generator context inside template substitutions — validated open syntax gap
+
+The new lifecycle matrix exposed eight failures before runtime: yield inside
+ordinary and tagged template substitutions is rejected as outside a generator.
+Native JavaScript suspends and resumes both; the already delivered cc107c1eb
+build rejects both, confirming this is independent of intermediate retention.
+Keep this parser-context fix separate. Remove those unsupported forms from the
+current generator-lifecycle fixture and validate template suspension using
+supported async substitutions instead; do not claim synchronous template yield
+is covered or fixed. Add focused parser/runtime regressions before its own fix.
+
+### 42. Ordinary template substitution coercion — validated open semantic gap
+
+Built/native probes show plain-object substitution rejects instead of producing
+[object Object], and a sandbox toString hook is not invoked. Returning an object
+from toString then a primitive from valueOf also fails instead of honoring the
+string-hint fallback order. RegExp, Map and Set substitutions produce
+[object Object] instead of their native strings; a custom array toString hook
+fails instead of running. Ordinary array substitution and tagged-template
+object identity are passing controls. evaluateTemplateLiteral currently calls
+host String on sandbox values; investigate the maintained sandboxString path
+with prefix/input retention and hook order/error/budget tests. Keep this
+semantic correction separate from the intermediate-retention change.

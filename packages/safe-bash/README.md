@@ -335,7 +335,7 @@ honors changes made in the script. `PIPESTATUS` exposes pipeline stage statuses.
 ## Limitations
 
 - This is a Bash-like interpreter, not full Bash or POSIX certification. No
-  background jobs/job control, `trap`, `exec`, process substitution, brace expansion,
+  background jobs/job control, `trap`, `exec`, process substitution,
   associative arrays, or C-style `for ((…))` loops. `shopt` supports only `dotglob`.
 - Utilities implement subsets of their native counterparts' flags and behavior.
   There is no `git`, `npm`, `npx`, or fallback to installed host programs.

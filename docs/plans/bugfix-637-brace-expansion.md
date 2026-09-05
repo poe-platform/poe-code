@@ -1,5 +1,15 @@
 # Bugfix #637: brace expansion
 
+## README limitation correction
+
+After the full maintained qualification of
+`d17a11832251969d2b7406736cc17b80b36408b0`, root removed only the stale
+`brace expansion` limitation from the package README. An exact transformation
+check confirms no README content was added. That qualified revision passed the
+normal full build, `npm test`, package source/test/26 consumer type groups,
+repository lint and package lint. The subsequent jq work is a separate candidate
+and is not qualified by that earlier result.
+
 ## Root review
 
 Root independently ran both brace suites together with the seven-file parallel

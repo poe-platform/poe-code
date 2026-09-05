@@ -1383,6 +1383,17 @@ checks. The cleanup cohort is scoped evidence, not a full SafeBash gate or
 closure of the separate heredoc issue. The integrated Array fix is ready for
 a normal push; remote delivery and publication still require verification.
 
+Delivered: a normal push and independent ls-remote confirmed main at
+2fab41597c6fd5e449e19705ade8fe2dc9f08962, containing the atomic Array repair
+79cb29afd and the integration commit. The Array finding is fixed and closed
+at remote-main delivery, without waiting for release. Scoped run 33954384092
+and CLI run 33954384170 are monitored separately; publication is not yet claimed.
+
+Scoped publication is verified: run 33954384092 and publish job 101274907273
+succeeded, publishing @poe-platform/safe-js 0.1.115 on September 5 at
+08:11:14 UTC. Bulk log download timed out; the job-specific API log succeeded
+and contains the publication receipt. CLI validation remains separately monitored.
+
 ### 26. Primitive boxing — validated open gap
 
 Eight built native comparisons fail: Object boxing of number/string/boolean,
@@ -1394,3 +1405,68 @@ The repair must preserve boxed value identity, coercion, string indexing and
 readonly properties, method receivers, budgets, and snapshot/host boundaries;
 an ordinary record pretending to be a boxed primitive is not a complete repair.
 No implementation or completion claim is made for this gap yet.
+
+### 27. Number formatting coercion — validated repair in progress
+
+Built comparisons exposed guest valueOf/toString hooks bypassed by raw host
+Number conversion. Separate controls reproduced incorrect RangeError results
+for Infinity.toExponential(101) and NaN.toPrecision(101); primitive ordinary
+formatting, invalid receiver ordering, and ignored extra arguments passed.
+The 84-case native comparison regression cohort fails 70 cases with 14 passing
+controls before implementation, across four methods, call/apply/bind, inherited
+and async hooks, thrown values, receiver identity, and non-finite validation order.
+
+Route the formatting argument through sandboxNumber with the current call
+context, then let the native Number method perform its own numeric validation
+in its specified order. This removes duplicate range/integer conversion logic.
+Preserve undefined and synchronous primitive results; await guest coercion in
+the interpreter's direct-call path. Existing low-level object/array comparisons
+must await potentially asynchronous coercion without weakening their assertions.
+Qualify budgets, built entrypoints/replay, maintained build/package/lint gates,
+and a zero-spawn screenshot before this improvement's own commit and push.
+This does not implement boxed primitive values or claim full Number parity.
+
+The first focused gate passed 93 tests. A further guest-data probe showed that
+clearing the argument binding in an arrow valueOf hook could hide its payload
+while the fallback toString still needed the argument. Three new tests fail
+with 85 passing controls; step exhaustion remains fatal. Retaining that argument
+for object coercion and releasing it in finally closes this reproduced gap.
+The combined formatting cohort now passes 97 tests. Synchronous primitive calls
+remain synchronous. Fresh maintained build and full package qualification follow.
+
+Manual CLI QA: use a temporary schema-only .md/.ajs pair with no agent or other
+capabilities. Assert guest digits conversion, borrowed hexadecimal formatting,
+non-finite exponential formatting and hook order, return a compact JSON summary,
+then run the screenshot route and visually inspect the success/zero-spawn output.
+
+The selected 23-workspace build and four native ESM checks passed. Built root/core
+probes passed eight native comparisons, four live-data checks and a pending
+coercion-hook replay. The first full package run found one introduced regression
+with 11,120 passing tests and 41 skipped: native RangeError wording differed from
+the existing interpreter contract. Keep that test unchanged; normalize only
+native formatter range failures to the existing messages after native validation,
+leaving guest-thrown error identity and messages untouched. Four new hook-error
+controls and the original interpreter tests verify that boundary. Fresh final
+gates are required after this correction.
+
+Final qualification passed: 578 focused tests, all 23 selected workspace builds
+and four fresh-process ESM checks, then 11,125 package tests with 41 skipped.
+The maintained screenshot route rebuilt successfully; the zero-spawn formatting
+harness passed and its PNG was visually inspected. After that rebuild, root/core
+probes passed ten native comparisons, four retained-data checks and one pending
+coercion replay. Root lint covered 9,750 configured files with zero errors or
+warnings; types and workflows also passed. This qualifies the Number repair
+for its own atomic commit/push, not a claim of remote delivery or publication.
+
+### 28. String method receivers — validated open gap
+
+Built native comparisons show borrowed slice and toUpperCase using the lookup
+string, includes ignoring a guest object receiver's toString, and slice accepting
+null rather than throwing. Direct slice is a passing control. The member factory
+captures the lookup string. Fix separately with receiver/coercion-order tests,
+budgets, async callback and replay checks; do not fold it into Number formatting.
+
+A broader built comparison now reproduces the guest-object receiver/coercion
+failure for all 31 exposed String methods, with matchAll materialized only to
+compare receiver-dependent output. This is not a claim of iterator protocol
+parity. No String source has been changed while qualifying Number formatting.

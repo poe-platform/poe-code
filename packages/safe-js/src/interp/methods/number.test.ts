@@ -61,7 +61,7 @@ describe("number methods", () => {
     expect(callNumberMethod(12.3456, "toExponential", [2], budget)).toBe("1.23e+1");
   });
 
-  it("matches native toString coercion and radix validation", () => {
+  it("matches native toString coercion and radix validation", async () => {
     const cases: readonly (readonly SandboxValue[])[] = [
       [],
       [undefined],
@@ -88,11 +88,11 @@ describe("number methods", () => {
     ];
 
     for (const args of cases) {
-      expectNumberMethodToMatchNative(10, "toString", args);
+      await expectNumberMethodToMatchNative(10, "toString", args);
     }
   });
 
-  it("matches native toFixed coercion and digits validation", () => {
+  it("matches native toFixed coercion and digits validation", async () => {
     const cases: readonly (readonly SandboxValue[])[] = [
       [],
       [undefined],
@@ -120,11 +120,11 @@ describe("number methods", () => {
     ];
 
     for (const args of cases) {
-      expectNumberMethodToMatchNative(12.3456, "toFixed", args);
+      await expectNumberMethodToMatchNative(12.3456, "toFixed", args);
     }
   });
 
-  it("matches native toPrecision coercion and precision validation", () => {
+  it("matches native toPrecision coercion and precision validation", async () => {
     const cases: readonly (readonly SandboxValue[])[] = [
       [],
       [undefined],
@@ -152,11 +152,11 @@ describe("number methods", () => {
     ];
 
     for (const args of cases) {
-      expectNumberMethodToMatchNative(12.3456, "toPrecision", args);
+      await expectNumberMethodToMatchNative(12.3456, "toPrecision", args);
     }
   });
 
-  it("matches native toExponential coercion and fraction digit validation", () => {
+  it("matches native toExponential coercion and fraction digit validation", async () => {
     const cases: readonly (readonly SandboxValue[])[] = [
       [],
       [undefined],
@@ -184,25 +184,25 @@ describe("number methods", () => {
     ];
 
     for (const args of cases) {
-      expectNumberMethodToMatchNative(12.3456, "toExponential", args);
+      await expectNumberMethodToMatchNative(12.3456, "toExponential", args);
     }
   });
 });
 
-function expectNumberMethodToMatchNative(
+async function expectNumberMethodToMatchNative(
   value: number,
   methodName: "toExponential" | "toFixed" | "toPrecision" | "toString",
   args: readonly SandboxValue[]
-): void {
+): Promise<void> {
   const nativeResult = getNativeNumberMethodResult(value, methodName, args);
   const budget = new Budget();
 
   if (nativeResult.ok) {
-    expect(callNumberMethod(value, methodName, args, budget)).toBe(nativeResult.value);
+    expect(await callNumberMethod(value, methodName, args, budget)).toBe(nativeResult.value);
     return;
   }
 
-  expect(() => callNumberMethod(value, methodName, args, budget)).toThrow(
+  await expect(async () => await callNumberMethod(value, methodName, args, budget)).rejects.toThrow(
     nativeResult.error.constructor as new () => Error
   );
 }

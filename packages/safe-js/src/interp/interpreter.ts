@@ -3590,7 +3590,7 @@ async function evaluateNumberMethodCall(
     return {
       kind: "normal",
       hasValue: true,
-      value: callNumberMethod(target, methodName, args.value, context.budget)
+      value: await callNumberMethod(target, methodName, args.value, context.budget, createCoercionContext(context))
     };
   } catch (error) {
     if (isFatalSandboxError(error)) {

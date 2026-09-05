@@ -651,6 +651,41 @@ this request to keep additions out of the default package.
   integration and are not substituted for the standalone helper proof. The
   helper commit excludes both the pending construction and the relocated read
   tests. Guarded lint twenty is running, not yet a completed clean gate.
+- The EOF helper is locally committed as `a4dc567c8`; guarded lint twenty then
+  completes cleanly with exit zero. Input-budget repair is now authorized under
+  the preserved per-input policy. Independently, the negative-fraction read
+  timeout repair passes the unchanged 139-case review cohort. Root confirms four
+  further read diagnostic-byte mismatches against native Bash; these are not
+  cleared by the timeout repair. The trapped-wait native harness also remains
+  under repair after independent repeats exposed two supervisor failures.
+- Root adds compiled public heredoc and here-string witnesses for the unchanged
+  five-byte expansion boundary. Both fail against the prior build at the prepared
+  input allocation; the other six public source cases pass. The default command
+  inventory separately passes 36 cases. These are scoped observations, not a
+  completed budget repair or a full feature gate.
+- The frozen budget candidate builds successfully. Root's first wider source
+  replay passes 275/278 cases; three retained independent checks still assume
+  transport allocations use the expansion arena. Their policy migration is
+  assigned to the independent reviewer, with allocation-before-copy and cleanup
+  assertions retained rather than deleted. Seven strict type roots pass. A first
+  public selection passes 13 cases but names a nonexistent third test path; the
+  corrected selection explicitly includes the extension-input bridge and passes
+  19/19. Both new five-byte witnesses pass after rebuilding, and their actual
+  public-runtime output screenshot is inspected. Native trapped-wait repair is
+  independently reviewing; root's native jobs aggregate passes 77/77 once.
+- The repaired trapped-wait native harness receives independent approval at
+  author SHA `a2b389400dc251d88f28d30bca764f5f5d0d503b17a049649b6612614ba6e1c5`
+  and unchanged review SHA
+  `dc2baed37d19f1f5510a437e3eddd802c9ea614736dcb91971dd67bf76677fc0`.
+  The supervisor now acknowledges one outstanding signal and explicit retirement
+  before its sole join rather than inferring completion from resettable trap
+  state. Author and independent reviewers each repeat the 19-case suite 50 times
+  without failures; the independent combined gate passes 31/31. Original two of
+  eight failing runs and later traced failures remain recorded. The reviewer
+  also checks 663 positive protocol captures and rejects bad supplied oracle
+  prerequisites. This qualifies the native witness only, not virtual jobs.
+  Both package dry-run inventories retain zero optional artifact leaks, with
+  1,054 workspace and 4,645 root files after the explicit optional build.
 
 - First implementation wave: cmp, yes, shuf and virtual devices in disjoint leaf
   directories. Root is qualifying native oracles and the opt-in delivery boundary.

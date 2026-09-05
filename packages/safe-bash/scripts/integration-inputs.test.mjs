@@ -542,6 +542,8 @@ function assertSource7Discovery(files) {
   for (const path of [
     "tests/shell/extensions/jobs/native.test.ts",
     "tests/shell/extensions/jobs/native-review.test.ts",
+    "tests/shell/extensions/jobs/trap-wait-native.test.ts",
+    "tests/shell/extensions/jobs/trap-wait-native-review.test.ts",
   ]) assert.ok(files.includes(path), "native jobs qualification test is missing: " + path);
   for (const path of [
     "tests/contracts/filesystem-descriptor-ack-review.test.ts",

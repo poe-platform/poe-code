@@ -7,6 +7,7 @@ import {
   type VariableDeclaration
 } from "../parse.js";
 import { bindPattern, type PatternContext } from "./patterns.js";
+import { toPropertyKey } from "./property-key.js";
 import { Scope } from "./scope.js";
 import { Budget } from "./budget.js";
 import { getSandboxDataProperty } from "./object-model.js";
@@ -41,6 +42,7 @@ function context(
 ): PatternContext & { evaluate: ReturnType<typeof vi.fn> } {
   const budget = new Budget();
   return {
+    toPropertyKey: value => toPropertyKey(value, budget, { stack: [], thisValue: undefined }),
     getProperty: (value, key) => getSandboxDataProperty(value, key, budget),
     setProperty: (target, key, value) => setSandboxProperty(target, key, value, budget),
     evaluate: vi.fn(async (node: ParseResult) => evaluate(node))

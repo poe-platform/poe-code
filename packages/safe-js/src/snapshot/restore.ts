@@ -1,4 +1,6 @@
 import { Budget, SandboxError, type CompileOwner } from "../interp/budget.js";
+import { executeAsyncFunction } from "../interp/async.js";
+import { toPropertyKey } from "../interp/property-key.js";
 import { CompileScope } from "../interp/regex/compile-guard.js";
 import { decodeFloat32Storage } from "./float32array.js";
 import { restoreDateTime } from "../interp/date.js";
@@ -672,7 +674,23 @@ function restoreClosureValue(
         }
       : {}),
     call: (args, callContext) => {
-      const result = executeRestoredClosure(
+      if (node.async) {
+        return executeAsyncFunction(
+          (onSuspend) =>
+            executeRestoredClosure(
+              node,
+              capturedScopeId,
+              restoredClosure,
+              args,
+              callContext?.thisValue,
+              state,
+              callContext,
+              onSuspend
+            ),
+          state.budget
+        );
+      }
+      return executeRestoredClosure(
         node,
         capturedScopeId,
         restoredClosure,
@@ -681,7 +699,6 @@ function restoreClosureValue(
         state,
         callContext
       );
-      return node.async ? createSandboxPromise(result) : result;
     }
   });
 
@@ -717,7 +734,8 @@ async function executeRestoredClosure(
   args: readonly SandboxValue[],
   thisValue: SandboxValue,
   state: RestoreState,
-  callContext?: SandboxCallContext
+  callContext?: SandboxCallContext,
+  onSuspend?: () => void
 ): Promise<SandboxValue> {
   const parent = callContext?.compilation ?? state.compilation;
   const operation = state.budget.acquireCompileOwner(false, parent.owner);
@@ -747,6 +765,7 @@ async function executeRestoredClosure(
         const rest = args.slice(index);
         state.budget.allocateArrayLength(rest.length);
         const binding = await bindPattern(param, rest, { kind: "let" }, scope, {
+          toPropertyKey: value => toPropertyKey(value, state.budget, { ...callContext, stack: callContext?.stack ?? [], thisValue, compilation }),
           getProperty: (value, key) => getSandboxDataProperty(value, key, state.budget),
           setProperty: (target, key, value) => setSandboxProperty(target, key, value, state.budget),
           evaluate: async (defaultNode) => {
@@ -777,6 +796,7 @@ async function executeRestoredClosure(
         break;
       }
       const binding = await bindPattern(param, args[index], { kind: "let" }, scope, {
+        toPropertyKey: value => toPropertyKey(value, state.budget, { ...callContext, stack: callContext?.stack ?? [], thisValue, compilation }),
         getProperty: (value, key) => getSandboxDataProperty(value, key, state.budget),
         setProperty: (target, key, value) => setSandboxProperty(target, key, value, state.budget),
         evaluate: async (defaultNode) => {
@@ -810,6 +830,7 @@ async function executeRestoredClosure(
       budget: state.budget,
       compilation,
       nested: true,
+      onSuspend,
       scope
     });
 

@@ -192,45 +192,58 @@ export function createInterpretedClosure(
       if (!node.async)
         return executeClosure(node, args, callContext?.thisValue, invocationContext, evaluateNode);
 
-      let completePrefix!: () => void;
-      const synchronousPrefix = new Promise<void>((resolve) => {
-        completePrefix = resolve;
-      });
-      const promise = new Promise<SandboxValue>((resolve, reject) => {
-        runAsyncPrefix(async () => {
-          try {
-            const value = await executeClosure(
-              node,
-              args,
-              callContext?.thisValue,
-              { ...invocationContext, onSuspend: completePrefix },
-              evaluateNode
-            );
-            resolve(
-              isSandboxPromise(value) || getThenable(value) !== undefined
-                ? awaitSandboxValue(
-                    createSandboxPromise(resolveSandboxValue(value, { budget: context.budget }), {
-                      trackReplay: false
-                    }),
-                    context.signal,
-                    context.budget
-                  )
-                : allocateProducedSandboxValue(value, context.budget)
-            );
-          } catch (error) {
-            reject(error);
-          } finally {
-            completePrefix();
-          }
-        }).catch((error: unknown) => {
-          reject(error);
-          completePrefix();
-        });
-      });
-      return createSandboxPromise(promise, { synchronousPrefix });
+      return executeAsyncFunction(
+        (onSuspend) =>
+          executeClosure(
+            node,
+            args,
+            callContext?.thisValue,
+            { ...invocationContext, onSuspend },
+            evaluateNode
+          ),
+        context.budget,
+        context.signal
+      );
     }
   });
   return closure;
+}
+
+export function executeAsyncFunction(
+  execute: (onSuspend: () => void) => Promise<SandboxValue>,
+  budget: Budget,
+  signal?: AbortSignal
+) {
+  let completePrefix!: () => void;
+  const synchronousPrefix = new Promise<void>((resolve) => {
+    completePrefix = resolve;
+  });
+  const promise = new Promise<SandboxValue>((resolve, reject) => {
+    runAsyncPrefix(async () => {
+      try {
+        const value = await execute(completePrefix);
+        resolve(
+          isSandboxPromise(value) || getThenable(value) !== undefined
+            ? awaitSandboxValue(
+                createSandboxPromise(resolveSandboxValue(value, { budget }), {
+                  trackReplay: false
+                }),
+                signal,
+                budget
+              )
+            : allocateProducedSandboxValue(value, budget)
+        );
+      } catch (error) {
+        reject(error);
+      } finally {
+        completePrefix();
+      }
+    }).catch((error: unknown) => {
+      reject(error);
+      completePrefix();
+    });
+  });
+  return createSandboxPromise(promise, { synchronousPrefix });
 }
 
 function createGeneratorClosure(

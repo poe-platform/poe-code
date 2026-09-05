@@ -27,6 +27,7 @@ export type PatternTarget = { kind: VariableDeclarationKind; initialize?: true }
 
 export type PatternContext = {
   evaluate(node: ParseResult): Promise<AsyncEvaluationResult>;
+  toPropertyKey(value: SandboxValue): Promise<string>;
   getProperty(value: SandboxValue, key: string | number): SandboxValue;
   setProperty(target: SandboxValue, key: string | number, value: SandboxValue): void;
 };
@@ -191,6 +192,12 @@ async function bindMemberExpression(
   if (object.kind !== "normal") {
     return { ok: false, result: object };
   }
+  const property = pattern.computed
+    ? await context.evaluate(pattern.property)
+    : { kind: "normal" as const, value: getStaticPropertyName(pattern.property) };
+  if (property.kind !== "normal") {
+    return { ok: false, result: property };
+  }
   if (object.value === null || object.value === undefined) {
     throw new TypeError("Cannot assign properties of null or undefined.");
   }
@@ -198,14 +205,7 @@ async function bindMemberExpression(
     throw new TypeError("Assignment expressions require a sandbox object property.");
   }
 
-  const property = pattern.computed
-    ? await evaluateProperty(pattern.property, context)
-    : { ok: true as const, value: getStaticPropertyName(pattern.property) };
-  if (!property.ok) {
-    return property;
-  }
-
-  context.setProperty(object.value, property.value, value);
+  context.setProperty(object.value, await context.toPropertyKey(property.value), value);
   return { ok: true };
 }
 
@@ -226,10 +226,7 @@ async function evaluateProperty(
   if (result.kind !== "normal") {
     return { ok: false, result };
   }
-  if (typeof result.value !== "string" && typeof result.value !== "number") {
-    throw new TypeError("Computed property access requires a string or number key.");
-  }
-  return { ok: true, value: result.value };
+  return { ok: true, value: await context.toPropertyKey(result.value) };
 }
 
 function getStaticPropertyName(property: MemberExpression["property"]): string | number {

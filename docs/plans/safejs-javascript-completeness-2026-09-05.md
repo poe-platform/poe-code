@@ -139,13 +139,13 @@ September 5, 2026, 02:27:48 UTC. CLI workflow `33938935543` and publisher
 job `101233757704` succeeded: `poe-code@14.0.40` published to latest
 September 5, 2026, 02:35:38 UTC. This CLI release includes both atomic changes.
 
-### 3. Restored function execution kind — validated, delivery pending
+### 3. Restored function execution kind — delivered, scoped release complete
 
 While investigating computed-key coercion through restored methods, a bounded
 serialized-closure probe reproduced `target() + 1` returning
 `"[object Object]1"` instead of 8, followed by a compilation-owner reentry error.
 The restore path marks every closure async and retains the restore-time owner
-instead of using the active caller's owner. This is a distinct prerequisite,
+instead of using the active caller's owner. This is a distinct internal defect,
 not part of computed-key coercion.
 
 Initial regression suite: seven failed, one passed. Preserve source async
@@ -164,10 +164,13 @@ The normal build passed, as did six built-module checks including returned
 regular expressions and default/destructured parameters. The maintained
 SafeJS suite passed 10,198 tests, with 41 skipped. Full root lint passed:
 9,712 configured files linted, zero errors or warnings, plus root TypeScript
-and workflow checks. Commit, remote-main delivery, and release verification
-remain pending.
+and workflow checks. Committed and verified on remote main as
+`a1d6a0ba6588db8e07f7b6d063b5eb30a458da35`. Scoped workflow `33939788191`
+and publisher job `101234818953` succeeded: SafeJS 0.1.87 published
+September 5, 2026, 02:45:18 UTC. CLI workflow `33939788323` was canceled
+by the next push; it is not counted as a successful CLI release.
 
-### Next validated prerequisite: restored async completion
+### 4. Restored async completion — delivered, scoped release complete
 
 A stronger built-module probe found a separate defect after the synchronous
 fix: a restored async function with four pushes before its first await produces
@@ -176,9 +179,36 @@ fix: a restored async function with four pushes before its first await produces
 directly also reveals that returning a guest thenable resolves to the object,
 not its adopted value 7. The earlier await-based control masks this because
 the caller's await adopts the thenable. These are validated follow-up work;
-the current change does not claim complete restored async semantics.
+the preceding change does not claim complete restored async semantics.
 
-### Next validated candidate: computed property coercion
+RED: two failures and ten passes after strengthening the prefix test and
+checking the async promise directly. Extract the established async execution
+machinery and use it for restored async closures, preserving fresh-function
+signal handling, allocation accounting, thenable resolution, and job behavior.
+Pass the first-suspension notification through nested body interpretation.
+The focused restore/async cohort passes 102 tests, including expanded checks
+for async declarations, arrows, named expressions, and return/throw completion
+before any await. Build the explicitly selected SafeJS workspace dependency
+closure, then run its maintained full suite and full root lint. No unrelated
+root build stages need changes for this package-internal fix.
+
+Final validation: the selected workspace build closure and four built-module
+checks passed. The maintained suite passed 10,203 tests, with 41 skipped.
+Full root lint passed: 9,712 configured files linted, zero errors or warnings,
+plus root TypeScript and workflow checks. Committed and verified on remote
+main as `f4a63397fc13365b696f03284be03ae868cf2782`. Scoped workflow
+`33940132473` and publisher job `101235786601` succeeded: SafeJS 0.1.88
+published September 5, 2026, 02:53:11 UTC. CLI workflow `33940132599` is
+still running; its publication is not claimed.
+
+Reachability correction: these two recovery fixes affect the maintained
+internal `snapshot/restore.ts` reconstruction path. Public `run`/`restore`
+uses replay and does not call that module. They must not be presented as fixes
+to public replay behavior or prerequisites for public computed-key coercion.
+Further internal reconstruction gaps are lower priority than reproduced public
+language gaps.
+
+### 5. Computed property coercion — validated, delivery pending
 
 With `const key = { toString() { return "x"; } }; const object = { x: 7 };`,
 native JavaScript accepts each of the following; built SafeJS rejects all seven
@@ -192,8 +222,39 @@ with "Computed property access requires a string or number key":
 - `let value; ({ [key]: value } = object); return value;` → 7
 - `object[key]++; return object.x;` → 8
 
-No implementation change for this candidate yet. It needs coercion-order,
-single-evaluation, optional-access, error, budget, and host-boundary controls.
+The regression suite initially had 31 failures and seven passes. Share the
+property-key conversion used by `in` with member operations and all pattern
+contexts. Evaluate member references before converting their keys: defer simple
+assignment conversion until after its RHS, and retain the converted key across
+compound/update reads and writes. Check null bases after evaluating index
+expressions but before converting keys. Preserve optional short-circuiting.
+
+The focused cohort passes 104 tests. It includes literal/method definitions,
+member calls and constructors, binding/assignment/parameter/catch/loop patterns,
+rest exclusions, primitive/array keys, inherited hooks, string-hint fallback,
+async hooks without implicit adoption, abrupt completions, host capability
+checks, recursion budgets, persistent realms, completed replay, and internal
+restored parameter patterns. The selected maintained workspace build closure
+passed. Sixteen built root/core entrypoint data checks passed, including an
+awaited RHS, along with two fatal generated-string budget checks. Exported
+record data is compared without assuming a host Object.prototype; an initial
+strict-prototype smoke assertion was inappropriate for the safe export shape.
+The full maintained SafeJS suite passed 10,252 tests, with 41 skipped. Full
+root lint passed: 9,714 configured files, zero errors or warnings, plus root
+TypeScript and workflow checks. Commit, verified push, and release remain
+pending.
+
+This integrates the existing sandbox string-conversion model; it does not
+claim complete Symbol support, exotic prototype graphs, callable source
+stringification, or all built-in string tags. Those are separate existing
+value-model/string-conversion gaps in the completeness inventory.
+Standalone public `String(new Map())`, `String(new Set())`, and `String(/a/g)`
+return `"[object Object]"` instead of their native tags/regex text. Likewise,
+`String([Object.create({ toString() { return "x"; } })])` returns
+`"[object Object]"` instead of `"x"`. Matching computed keys have the same
+defects. These bounded probes confirm the conversion gaps independently of
+computed-key syntax and make them the next conversion work, not inferred
+limitations.
 Additional probes confirm failures in computed parameter/catch bindings,
 method calls, and boolean/null/undefined/array keys. A null-base assignment
 also skips RHS side effects which native JavaScript executes before throwing.
@@ -201,3 +262,30 @@ Check against ECMAScript 2026 sections 6.2.5.5, 6.2.5.6, and 13.3.3 rather
 than treating the local Node v22.23.2 behavior as an infallible oracle: it
 coerces compound/update keys twice, unlike the specified retained key. The
 normative history is TC39 ecma262 issue 3295 and merged PR 3307.
+
+### Additional validated gaps, not implemented
+
+Built public-entrypoint probes reproduce built-in receiver defects:
+
+| Probe | Native JavaScript | Current SafeJS |
+| --- | --- | --- |
+| `[1].join.call([2], ",")` | `"2"` | `"1"` |
+| Detached `[].push` called with a separate array and 7 | Receiver becomes `[7]` | Receiver remains `[]` |
+| Detached `[1].join` called without a receiver | TypeError | `"1"` |
+| `"abc".slice.call("xyz", 1)` | `"yz"` | `"bc"` |
+| A map's `get` called with another map | Reads the supplied map | Reads the original map |
+| Detached map `get` called without a receiver | TypeError | Reads the original map |
+
+The internal reconstruction path also loses argument 7 for
+`function target(a) { var a; return a; }`, and for a return preceding `var a`.
+With an outer `b = 9`, `function target(a = b, b = 2) { return a; }` returns
+9 after reconstruction instead of throwing ReferenceError for the later
+parameter's temporal dead zone. These are separately validated internal scope
+gaps, not additional claims about public replay. Keep them queued while
+prioritizing the public computed-key and built-in receiver defects.
+
+A public catch-pattern probe also confirms inherited reads are missing:
+`try { throw Object.create({ x: 7 }); } catch ({ x }) { return x; }` returns
+undefined instead of 7. Catch binding currently uses separate property-read
+logic from ordinary destructuring; keep that independently validated defect
+in the queue.

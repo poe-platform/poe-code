@@ -1411,7 +1411,7 @@ readonly properties, method receivers, budgets, and snapshot/host boundaries;
 an ordinary record pretending to be a boxed primitive is not a complete repair.
 No implementation or completion claim is made for this gap yet.
 
-### 27. Number formatting coercion — validated repair in progress
+### 27. Number formatting coercion — delivered and released
 
 Built comparisons exposed guest valueOf/toString hooks bypassed by raw host
 Number conversion. Separate controls reproduced incorrect RangeError results
@@ -1480,7 +1480,7 @@ CLI publication is now verified: run 33954902599 and release-stable job
 tag check maps v14.0.53 to 8dfbd443e02b28d9c4660147f3f9e65132de4ac7.
 This published descendant includes both the Array and Number improvements.
 
-### 28. String method receivers — validated open gap
+### 28. String method receivers — delivered and released
 
 Built native comparisons show borrowed slice and toUpperCase using the lookup
 string, includes ignoring a guest object receiver's toString, and slice accepting
@@ -1548,6 +1548,15 @@ inspected. Root lint passed all 9,751 configured files with zero errors/warnings
 then types and workflows passed. This qualifies the receiver repair for its own
 atomic commit/push; delivery and release require separate verification.
 
+Delivered: e1695d1487a48a89460b4f67b5438b26eda0e518 was pushed and matched
+remote main. The receiver finding is fixed and closed at that delivery. Scoped
+run 33955601971 and publish job 101278260658 succeeded, publishing
+@poe-platform/safe-js 0.1.117 on September 5 at 08:39:11 UTC. CLI run
+33955602097 and publish job 101279507328 also succeeded: poe-code 14.0.54
+was published on September 5 at 08:46:19 UTC. The remote v14.0.54 tag resolves
+to the exact delivered commit. The next goal turn revalidated main and the
+unchanged user staging before starting pattern construction.
+
 ### 29. String search pattern construction — validated open gap
 
 Native ' Otter '.search('t') returns 2; SafeJS throws its explicit regex-only
@@ -1563,6 +1572,55 @@ inputs. Treat this shared pattern-construction capability as one subsequent
 atomic improvement. Materializing matchAll output for these comparisons does
 not qualify its iterator protocol, which is separately validated below.
 
+The 90-case pattern regression cohort initially failed 78 cases with 12 passing.
+Three supposed regex-input controls used the unsupported sticky y flag; those
+are not pattern-construction regressions. Use supported g/i modes for those
+controls and retain sticky matching as a separate open language gap. The first
+implementation passes 376 tests across three focused files. Pattern inputs now
+use sandbox string coercion with the call context, then compile through the
+existing guarded regex engine. Undefined creates an empty pattern; matchAll
+construction supplies g. Existing regex inputs retain their original path.
+
+Four further tests fail with 94 passing controls: the pattern can become hidden
+from live-data accounting after its binding is cleared during coercion, and the
+internal matchAll path can exceed its output array limit. Retain the pattern
+through coercion, clean up retained roots and temporary compile ownership in
+finally, and check match-array growth before appending. The focused suite now
+passes 384 tests, including compile length/syntax failure cleanup and fatal step
+exhaustion. A separate haystack-retention probe already enforced its data limit;
+do not invent an additional repair for that passing boundary.
+
+The selected maintained build passed before the full package gate. Manual CLI
+QA will use a schema-only zero-capability pair: search a coerced pattern, match
+capture groups, materialize matchAll output, verify hook order and invalid-pattern
+rejection, then inspect the screenshot. Built root/core native comparisons,
+retained-data/array admission, and pending-effect replay must pass before lint
+and this improvement's own commit/push. Iterator protocol, constructor input
+semantics, unsupported regex flags, and primitive boxing are not claimed fixed.
+
+Those gates passed: 23 selected workspace builds and four fresh ESM import
+checks; 11,487 package tests with 41 skips; the paired CLI harness and visual
+screenshot inspection; 12 built root/core comparisons, four retained-data checks,
+two array-admission checks and one pending-effect replay; and root lint across
+9,752 files with zero errors/warnings plus types and workflows. However, a final
+low-level ownership probe then showed one guest coercion hook running before
+foreign-owner rejection. Three new tests reproduced that ordering defect with
+98 passing controls. Acquire compile ownership before coercion, then release it
+and retained roots in finally. All 387 focused tests pass, including foreign,
+stale and missing owner rejection. Re-run final build/package/built/CLI/lint gates
+for this correction before the pattern-construction commit and push.
+
+Final correction gates: 23 selected builds and four ESM import checks passed;
+the SafeJS package passed 11,490 tests with 41 skips. Built root/core passed
+12 native comparisons, four retained-data checks, two array-admission checks,
+three pre-coercion ownership checks and one pending-effect replay. The repeated
+schema-only paired CLI run passed after 70 uncached builds; its screenshot was
+visually inspected again. Final maintained root lint is the remaining gate.
+
+Final root lint passed all 9,752 configured files with zero errors/warnings;
+types and workflows also passed. The final source is qualified for its atomic
+commit and main push. Delivery and publication are verified separately.
+
 ### 30. RegExp constructor input semantics — validated open gap
 
 Three built native comparisons fail: null becomes an empty pattern instead of
@@ -1573,6 +1631,13 @@ a passing control. Keep constructor call-versus-new behavior, explicit flags,
 lastIndex reset, coercion, compile ownership, budgets and snapshots in scope
 when repairing this separately. No implementation has been made yet.
 
+Further native comparisons validate null flags being accepted incorrectly,
+explicit flags losing a cloned regex's source, ordinary RegExp.call losing
+identity, and guest flags coercion failing before its hook can run on an invalid
+pattern. Empty construction is another passing control. Preserve owner rejection
+before guest effects when adding constructor coercion; the pattern-method repair
+above exposed why this order matters.
+
 ### 31. String matchAll iterator protocol — validated open gap
 
 Two built native comparisons fail: native matchAll returns a non-array with a
@@ -1581,3 +1646,30 @@ iterator twice yields lengths [2,0], while SafeJS yields [2,2]. The receiver fix
 does not repair this. A future iterator implementation needs lazy consumption,
 regex cursor ownership, budgets, snapshots and all iterator consumers, not just
 a next wrapper around an eagerly materialized array.
+
+### 32. RegExp flags beyond g/i/m/s — validated open gap
+
+The parser accepts only global, ignore-case, multiline and dotAll flags. Existing
+rejection tests and a fresh literal probe confirm sticky y is rejected before
+execution; native accepts it. Unicode u is likewise explicitly rejected by
+existing parser tests. Full flag/Unicode/index-mode coverage needs its own native
+matrix and engine work, not relabeling these unsupported modes as passing controls.
+
+### 33. RegExp method receivers and input coercion — validated open gaps
+
+Built native comparisons show /a/.test.call(/b/,'b') returning false instead of
+true; a detached /a/.exec accepts a call that native rejects with TypeError; and
+a guest toString input to test throws rather than invoking the hook and matching.
+Keep receiver branding, extracted invocation, cursor ownership and input coercion
+as subsequent repairs, separate from String pattern construction and RegExp
+constructor inputs.
+
+### 34. RegExp intrinsic properties — validated open gaps
+
+For /a/gims, global, ignoreCase, multiline and dotAll are undefined instead of
+true. Its constructor is undefined instead of RegExp. RegExp.length is undefined
+instead of 2, and RegExp.prototype is absent. Defining a regex's own constructor
+also throws, whereas native allows it and makes RegExp(pattern) clone. This
+intrinsic/object-model work remains distinct from supported constructor inputs.
+RegExp.escape was undefined in both this Node runtime and SafeJS: that probe is
+not evidence of a native-parity failure.

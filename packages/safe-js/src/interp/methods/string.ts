@@ -9,6 +9,7 @@ import {
   deepCopyFromSandbox,
   isSandboxClosure,
   isSandboxRegex,
+  type SandboxCallContext,
   type SandboxClosure,
   type SandboxRegex,
   type SandboxValue
@@ -122,7 +123,8 @@ export function getStringMember(
           args,
           budget,
           (closure, closureArgs) => invokeBuiltinClosure(closure, closureArgs, budget, context, undefined),
-          context?.compilation
+          context?.compilation,
+          context
         );
       } finally {
         budget.setRetainedValues(retainedReceiver, undefined);
@@ -158,7 +160,8 @@ export function callStringMethod(
     closure: SandboxClosure,
     args: readonly SandboxValue[]
   ) => Promise<SandboxValue> = async (closure, closureArgs) => await closure.call(closureArgs),
-  parent?: CompileScope
+  parent?: CompileScope,
+  context?: SandboxCallContext
 ): SandboxValue | Promise<SandboxValue> {
   if (methodName === "isWellFormed") {
     for (let index = 0; index < value.length; index++) {
@@ -199,6 +202,10 @@ export function callStringMethod(
 
   if (methodName === "replace" || methodName === "replaceAll") {
     return callReplaceLikeMethod(value, methodName, args, budget, callClosure);
+  }
+
+  if ((methodName === "match" || methodName === "matchAll" || methodName === "search") && !isSandboxRegex(args[0])) {
+    return callStringPattern(value, methodName, args[0], budget, parent, context);
   }
 
   const operation = budget.acquireCompileOwner(false, parent?.owner);
@@ -539,6 +546,29 @@ function callSplit(
   return result;
 }
 
+async function callStringPattern(
+  value: string,
+  methodName: "match" | "matchAll" | "search",
+  pattern: SandboxValue,
+  budget: Budget,
+  parent: CompileScope | undefined,
+  context: SandboxCallContext | undefined
+): Promise<SandboxValue> {
+  const operation = budget.acquireCompileOwner(false, parent?.owner);
+  const compilation = new CompileScope(operation.owner);
+  const retainedPattern = {};
+  budget.setRetainedValues(retainedPattern, () => [pattern]);
+  try {
+    const source = pattern === undefined ? "" : await sandboxString(pattern, budget, context);
+    const regex = createSandboxRegex(source, methodName === "matchAll" ? "g" : "", 0, compilation);
+    return callMatchLikeMethod(value, methodName, [regex], compilation);
+  } finally {
+    budget.setRetainedValues(retainedPattern, undefined);
+    compilation.dispose();
+    operation.release();
+  }
+}
+
 function callMatchLikeMethod(
   value: string,
   methodName: "match" | "matchAll" | "search",
@@ -564,18 +594,19 @@ function callMatchLikeMethod(
     methodName === "matchAll"
       ? createSandboxRegex(regex.source, regex.flags, regex.lastIndex, compilation)
       : regex;
-  const matches = collectRegexMatches(matcher, value, true);
+  const matches = collectRegexMatches(matcher, value, true, compilation.owner?.budget);
   if (methodName === "match" && matches.length === 0) return null;
   return methodName === "match"
     ? matches.map((match) => match.text)
     : matches.map((match) => toMatchArray(match, value));
 }
 
-function collectRegexMatches(regex: SandboxRegex, value: string, all: boolean) {
+function collectRegexMatches(regex: SandboxRegex, value: string, all: boolean, budget?: Budget) {
   const matches = [];
   do {
     const match = executeRegex(regex, value);
     if (match === null) break;
+    budget?.allocateArrayLength(matches.length + 1);
     matches.push(match);
     if (all && match.text.length === 0) regex.lastIndex += 1;
   } while (all);

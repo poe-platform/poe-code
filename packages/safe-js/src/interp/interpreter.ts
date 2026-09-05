@@ -2894,7 +2894,8 @@ async function evaluateStringMethodCall(
         context.budget,
         (closure, closureArgs) =>
           invokeSandboxClosure(closure, closureArgs, context, context.callStack),
-        context.compilation
+        context.compilation,
+        createCoercionContext(context)
       )
     };
   } catch (error) {

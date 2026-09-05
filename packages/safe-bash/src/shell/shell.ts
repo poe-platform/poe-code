@@ -5,6 +5,7 @@ import type {
 } from "../contracts/index.js";
 import { warnIfHostProcessEnv } from "./env-warning.js";
 import { parseShellUnit } from "./parser.js";
+import { SourceLineIndex } from "./source-line-index.js";
 import { ShellInput } from "./input.js";
 import { byteLocale } from "./locale.js";
 import { Budget, Capture, interruptible, resolveLimits, Runtime, RuntimeCancellationState } from "./runtime.js";
@@ -233,7 +234,8 @@ export class Shell implements PluginHost {
     let failed = false;
     try {
       try {
-        let unit = parseShellUnit(source, 0, byteLocale({ ...this.#options.env, ...options.env }), budget.parsing);
+        const lineIndex = new SourceLineIndex(source, budget.parsing);
+        let unit = parseShellUnit(source, 0, byteLocale({ ...this.#options.env, ...options.env }), budget.parsing, lineIndex);
         stdin = new ShellInput(typeof options.stdin === "string" || options.stdin instanceof Uint8Array ? toByteSource(options.stdin) : options.stdin ?? toByteSource(""), budget);
         io.stdin = stdin;
         await interruptible(this.#ready, budget.signal);
@@ -277,7 +279,7 @@ export class Shell implements PluginHost {
           }
           if (unit.next >= source.length) break;
           budget.signal.throwIfAborted();
-          unit = parseShellUnit(source, unit.next, byteLocale(state.variables), budget.parsing);
+          unit = parseShellUnit(source, unit.next, byteLocale(state.variables), budget.parsing, lineIndex);
         }
       } catch (error) {
         if (!(error instanceof ShellSyntaxError)) throw error;

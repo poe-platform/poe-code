@@ -13,6 +13,7 @@ import { ValueArena } from "./value-state.js";
 import type { HeldValue, ValueScope, ValueStore } from "./value-state.js";
 import type { Command, HereDocument, Pipeline, Redirect, Script, Word, WordPart } from "./parser.js";
 import { HereDocumentSyntaxError, hereDocumentWords, parseShellInputUnit, parseShellUnit } from "./parser.js";
+import { SourceLineIndex } from "./source-line-index.js";
 import { ShellLimitError, ShellSyntaxError } from "./types.js";
 import type { ShellCommandContext, ShellInvokeOptions, ShellLimits } from "./types.js";
 import { fileInput, ShellInput } from "./input.js";
@@ -2863,12 +2864,13 @@ export class Runtime {
   }
 
   async runCommandString(source: string, state: State, io: IO): Promise<number> {
+    const lineIndex = new SourceLineIndex(source, this.budget.parsing);
     let position = 0;
     let status = 0;
     try {
       do {
         this.signal.throwIfAborted();
-        const unit = parseShellUnit(source, position, byteLocale(state.variables), this.budget.parsing);
+        const unit = parseShellUnit(source, position, byteLocale(state.variables), this.budget.parsing, lineIndex);
         for (const warning of unit.script.warnings ?? []) await writeText(io.stderr, `${io.scriptName}: warning: ${warning}\n`);
         if (unit.script.lists.length) {
           const result = await this.runUnit(unit.script, state, io);
@@ -2892,6 +2894,7 @@ export class Runtime {
 
   async runStandardInput(input: ShellInput, state: State, io: IO): Promise<number> {
     let source = "";
+    let lineIndex = new SourceLineIndex(source, this.budget.parsing);
     let offset = 0;
     let status = 0;
     let lines = 0;
@@ -2900,10 +2903,13 @@ export class Runtime {
       this.signal.throwIfAborted();
       const bytes = await input.sourceLine();
       const eof = bytes === undefined;
-      if (bytes) source += this.sourceText(bytes, io.scriptName ?? "shell");
+      if (bytes) {
+        lineIndex.append(this.sourceText(bytes, io.scriptName ?? "shell"));
+        source = lineIndex.source;
+      }
       const unitIO = { ...io, diagnosticOffset: offset };
       try {
-        const unit = eof ? parseShellUnit(source, 0, byteLocale(state.variables), this.budget.parsing) : parseShellInputUnit(source, byteLocale(state.variables), this.budget.parsing);
+        const unit = eof ? parseShellUnit(source, 0, byteLocale(state.variables), this.budget.parsing, lineIndex) : parseShellInputUnit(source, byteLocale(state.variables), this.budget.parsing, lineIndex);
         if (unit) {
           for (const warning of unit.script.warnings ?? []) await writeText(io.stderr, `${io.scriptName}: warning: ${warning}\n`);
           if (unit.script.lists.length) {
@@ -2913,6 +2919,7 @@ export class Runtime {
           }
           offset += source.slice(0, unit.next).split("\n").length - 1;
           source = source.slice(unit.next);
+          lineIndex = new SourceLineIndex(source, this.budget.parsing);
         }
       } catch (error) {
         if (!(error instanceof ShellSyntaxError)) throw error;
@@ -3147,11 +3154,12 @@ export class Runtime {
     }
     if (direct && environmentInterpreter) return this.envShebang(context, state, io, environmentInterpreter[1], target, args, { path, source });
     const units: Script[] = [];
+    const lineIndex = new SourceLineIndex(source, this.budget.parsing);
     try {
       let position = 0;
       do {
         this.signal.throwIfAborted();
-        const unit = parseShellUnit(source, position, byteLocale(context.env), this.budget.parsing);
+        const unit = parseShellUnit(source, position, byteLocale(context.env), this.budget.parsing, lineIndex);
         units.push(unit.script);
         position = unit.next;
       } while (position < source.length);
@@ -3177,13 +3185,14 @@ export class Runtime {
   }
 
   async runCurrentText(source: string, state: State, io: IO, fatalSyntax: boolean, syntaxName?: string): Promise<number> {
+    const lineIndex = new SourceLineIndex(source, this.budget.parsing);
     let position = 0;
     let status = 0;
     let executed = false;
     try {
       do {
         this.signal.throwIfAborted();
-        const unit = parseShellUnit(source, position, byteLocale(state.variables), this.budget.parsing);
+        const unit = parseShellUnit(source, position, byteLocale(state.variables), this.budget.parsing, lineIndex);
         for (const warning of unit.script.warnings ?? []) await writeText(io.stderr, `${io.scriptName ?? "shell"}: warning: ${warning}\n`);
         if (unit.script.lists.length) {
           status = await this.script(unit.script, state, io);

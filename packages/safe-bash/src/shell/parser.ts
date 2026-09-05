@@ -1,6 +1,7 @@
 import { ShellSyntaxError } from "./types.js";
 import type { ShellParseOptions } from "./types.js";
 import { ParseBudget } from "./parse-budget.js";
+import { SourceLineIndex } from "./source-line-index.js";
 import { arithmeticEnd, prepareArithmetic } from "./arithmetic.js";
 import type { ArithmeticProgram } from "./arithmetic.js";
 import { arraySelector, compoundEntry, compoundHead, elementAssignment, getArrayAssignment, scalarAssignmentName, setArrayAssignment, setArraySelector, setQuoteMarker } from "./arrays/syntax.js";
@@ -124,22 +125,12 @@ class Lexer {
   conditional = false;
   conditionalPattern: "pattern" | "regex" | undefined;
   readonly documents: HereDocument[] = [];
-  readonly newlineOffsets: number[] = [];
-
-  constructor(readonly budget: ParseBudget, readonly source: string, readonly depth: number, readonly warnings: string[] = [], readonly lineOffset = 0, readonly byteLocale = false, readonly documentLine?: number, readonly partial = false) {
+  constructor(readonly budget: ParseBudget, readonly source: string, readonly depth: number, readonly warnings: string[] = [], readonly lineOffset = 0, readonly byteLocale = false, readonly documentLine?: number, readonly partial = false, readonly lineIndex = new SourceLineIndex(source, budget), readonly sourceOffset = 0) {
     if (depth > 64) throw new ShellSyntaxError("Syntax nesting exceeds 64", 0);
-    for (let offset = source.indexOf("\n"); offset !== -1; offset = source.indexOf("\n", offset + 1)) this.newlineOffsets.push(offset);
   }
 
   lineAt(position: number): number {
-    let low = 0;
-    let high = this.newlineOffsets.length;
-    while (low < high) {
-      const middle = low + Math.floor((high - low) / 2);
-      if (this.newlineOffsets[middle]! < position) low = middle + 1;
-      else high = middle;
-    }
-    return this.lineOffset + low + 1;
+    return this.lineOffset + this.lineIndex.lineAt(this.sourceOffset + position) - this.lineIndex.lineAt(this.sourceOffset) + 1;
   }
 
   error(message: string, unclosedQuote?: { quote: string; line: number }): never {
@@ -492,7 +483,7 @@ class Lexer {
       let script: Script;
       try {
         this.budget.admit();
-        nested = new Parser(this.budget, this.source.slice(start), this.depth + this.operandDepth + 1, this.warnings, this.lineAt(start) - 1, undefined, this.byteLocale);
+        nested = new Parser(this.budget, this.source.slice(start), this.depth + this.operandDepth + 1, this.warnings, this.lineAt(start) - 1, undefined, this.byteLocale, false, this.lineIndex, this.sourceOffset + start);
         script = nested.script(new Set([")"]));
       }
       catch (error) {
@@ -579,10 +570,10 @@ class Parser {
   nesting = 0;
   readonly openCommands: { name: string; line: number }[] = [];
 
-  constructor(readonly budget: ParseBudget, source: string, depth: number, warnings: string[] = [], lineOffset = 0, position?: number, byteLocale = false, partial = false) {
+  constructor(readonly budget: ParseBudget, source: string, depth: number, warnings: string[] = [], lineOffset = 0, position?: number, byteLocale = false, partial = false, lineIndex = new SourceLineIndex(source, budget), sourceOffset = 0) {
     if (position === undefined && depth === 0 && source.includes("\0")) throw new ShellSyntaxError("NUL bytes are not valid shell source", source.indexOf("\0"));
     budget.admit();
-    this.lexer = new Lexer(budget, source, depth, warnings, lineOffset, byteLocale, undefined, partial);
+    this.lexer = new Lexer(budget, source, depth, warnings, lineOffset, byteLocale, undefined, partial, lineIndex, sourceOffset);
     this.lexer.position = position ?? 0;
     this.current = this.lexer.next();
   }
@@ -914,10 +905,11 @@ export function* hereDocumentWords(document: HereDocument, line: number, byteLoc
   else { budget.admit(); yield* new Lexer(budget, document.body, document.depth, warnings, line - 1, byteLocale, line).documentWords(); }
 }
 
-export function parseShellUnit(source: string, position = 0, byteLocale = false, budget = new ParseBudget()): { script: Script; next: number } {
+export function parseShellUnit(source: string, position = 0, byteLocale = false, budget = new ParseBudget(), lineIndex = new SourceLineIndex(source, budget)): { script: Script; next: number } {
   const warnings: string[] = [];
   budget.admit();
-  const parser = new Parser(budget, source, 0, warnings, 0, position, byteLocale);
+  if (lineIndex.source !== source || lineIndex.budget !== budget) throw new TypeError("Source line index belongs to a different source or parse budget");
+  const parser = new Parser(budget, source, 0, warnings, 0, position, byteLocale, false, lineIndex);
   const script = parser.script(new Set(), true);
   const next = parser.current.end;
   const nul = source.indexOf("\0", position);
@@ -926,11 +918,12 @@ export function parseShellUnit(source: string, position = 0, byteLocale = false,
   return { script: { ...script, ...(warnings.length ? { warnings } : {}) }, next };
 }
 
-export function parseShellInputUnit(source: string, byteLocale = false, budget = new ParseBudget()): { script: Script; next: number } | undefined {
+export function parseShellInputUnit(source: string, byteLocale = false, budget = new ParseBudget(), lineIndex = new SourceLineIndex(source, budget)): { script: Script; next: number } | undefined {
   const warnings: string[] = [];
   try {
     budget.admit();
-    const parser = new Parser(budget, source, 0, warnings, 0, 0, byteLocale, true);
+    if (lineIndex.source !== source || lineIndex.budget !== budget) throw new TypeError("Source line index belongs to a different source or parse budget");
+    const parser = new Parser(budget, source, 0, warnings, 0, 0, byteLocale, true, lineIndex);
     const script = parser.script(new Set(), true);
     budget.admit(2);
     return { script: { ...script, ...(warnings.length ? { warnings } : {}) }, next: parser.current.end };

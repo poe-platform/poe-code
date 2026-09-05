@@ -397,6 +397,8 @@ function assertSource7Discovery(files) {
   assert.ok(files.includes("tests/shell/parse-budget.test.ts"));
   assert.ok(files.includes("tests/shell/parse-admission.test.ts"));
   assert.ok(files.includes("tests/shell/parse-admission-runtime.test.ts"));
+  assert.ok(files.includes("tests/shell/source-line-units.test.ts"));
+  assert.ok(files.includes("tests/shell/source-line-nested.test.ts"));
   assert.ok(files.includes("tests/shell/arithmetic-admission.test.ts"));
   assert.ok(files.includes("tests/shell/string-operations.test.ts"));
   assert.ok(files.includes("tests/shell/parameter-depth.test.ts"));

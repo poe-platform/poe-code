@@ -584,6 +584,17 @@ this request to keep additions out of the default package.
   A fresh explicit optional build succeeds; 28 compiled public pipe/bridge/
   binding/writer cases pass together. Eight focused maintained discovery checks
   also pass. Guarded lint eighteen is still running, not a completed clean gate.
+- Prepared input helpers are locally committed as `57a440057`. Guarded lint
+  eighteen subsequently completes cleanly with exit zero. Explicit-build,
+  ignore-scripts dry-run packs contain 1,054 workspace files and 4,645 root files,
+  with no optional tool, device, trap/read/mapfile/jobs, or optional-entry leaks
+  under the checked paths. These are local package checks, not remote delivery.
+  The next owning-source slice remains red: 33 of 41 author cases and all five
+  new compiled-public integration cases fail before implementation. Mapfile's
+  current native cohort passes 117/121, retaining four blockers: byte diagnostics,
+  write-only descriptor admission, indexed-key expansion and callback-exit cleanup
+  ordering. Their concrete witnesses are retained; passing helper tests do not
+  qualify those missing shell behaviors or complete the requested goal.
 
 - First implementation wave: cmp, yes, shuf and virtual devices in disjoint leaf
   directories. Root is qualifying native oracles and the opt-in delivery boundary.

@@ -323,7 +323,7 @@ class Lexer {
         this.budget.admit();
         const part: WordPart = { kind: "text", value: projection, quoted, ...(typeof value === "string" ? {} : { byteValue: value }) };
         setQuoteMarker(part, synthetic);
-        if (quoted || ansi) {
+        if ((quoted || ansi) && this.documentLine === undefined) {
           this.budget.admit();
           expansionSpellings.set(part, { source: this.source, start, end, ...(ansi ? { ansi } : {}) });
         }
@@ -508,8 +508,10 @@ class Lexer {
         this.budget.admit();
         parts.push({ kind: "failed-substitution", diagnostic: this.documentSubstitutionError(source, error, true).diagnostic, quoted });
       }
-      this.budget.admit();
-      expansionSpellings.set(parts.at(-1)!, { source: this.source, start: spellingStart, end: this.position });
+      if (this.documentLine === undefined) {
+        this.budget.admit();
+        expansionSpellings.set(parts.at(-1)!, { source: this.source, start: spellingStart, end: this.position });
+      }
       return;
     }
     this.position++;
@@ -603,8 +605,10 @@ class Lexer {
         parts.push({ kind: "variable", name, quoted, line });
       } else parts.push({ kind: "text", value: "$", quoted });
     }
-    this.budget.admit();
-    expansionSpellings.set(parts.at(-1)!, { source: this.source, start: spellingStart, end: this.position });
+    if (this.documentLine === undefined) {
+      this.budget.admit();
+      expansionSpellings.set(parts.at(-1)!, { source: this.source, start: spellingStart, end: this.position });
+    }
   }
 }
 

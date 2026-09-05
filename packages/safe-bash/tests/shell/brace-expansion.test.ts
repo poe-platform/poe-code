@@ -4,6 +4,8 @@ import { basicCommands } from "../../src/commands/basic.js";
 import { filesystemCommands } from "../../src/commands/filesystem.js";
 import { ShellLimitError } from "../../src/shell/types.js";
 import type { ShellCommandContext } from "../../src/shell/types.js";
+import { ParseBudget } from "../../src/shell/parse-budget.js";
+import { expansionSpellings, hereDocumentWords, parseShellUnit } from "../../src/shell/parser.js";
 import { setup } from "./helpers.js";
 
 for (const [source, expected] of [
@@ -74,4 +76,43 @@ test("ambiguous brace redirects have no file effects", async () => {
   const result = await shell.exec("say value >{left,right}");
   assert.equal(result.exitCode, 1);
   assert.deepEqual(await fs.readdir("/"), []);
+});
+
+test("here-document operands omit unused brace provenance and its parse charge", () => {
+  for (const [body, units] of [["${value}", 3], ['${value:-"quoted"}', 6]] as const) {
+    const budget = new ParseBudget(units);
+    const words = [...hereDocumentWords({ delimiter: "END", quoted: false, stripTabs: false, offset: 0, body, endLine: 1, depth: 0 }, 1, false, [], budget)];
+    assert.equal(words.length, 1);
+    const part = words[0]!.parts[0]!;
+    assert.equal(expansionSpellings.has(part), false);
+    if (part.kind === "variable" && part.alternate) for (const operand of part.alternate.parts) assert.equal(expansionSpellings.has(operand), false);
+    assert.throws(() => budget.admit(), error => error instanceof ShellLimitError && error.limit === "maxParseUnits");
+  }
+});
+
+test("brace-consuming words still admit their required lexical provenance", () => {
+  const source = 'args {Y..c..3}"$value"';
+  assert.throws(() => parseShellUnit(source, 0, false, new ParseBudget(24)), error => error instanceof ShellLimitError && error.limit === "maxParseUnits");
+  const budget = new ParseBudget(25);
+  const { script } = parseShellUnit(source, 0, false, budget);
+  const command = script.lists[0]!.pipelines[0]!.commands[0]!;
+  assert.equal(command.kind, "simple");
+  if (command.kind !== "simple") throw new Error("Expected simple command");
+  const parts = command.words[1]!.parts;
+  assert.equal(expansionSpellings.has(parts[1]!), true);
+  assert.equal(expansionSpellings.has(parts[2]!), true);
+  assert.throws(() => budget.admit(), error => error instanceof ShellLimitError && error.limit === "maxParseUnits");
+});
+
+test("commands nested inside here-documents retain brace-consuming provenance", () => {
+  const body = '$(args {Y..c..3}"$value")';
+  const words = [...hereDocumentWords({ delimiter: "END", quoted: false, stripTabs: false, offset: 0, body, endLine: 1, depth: 0 }, 1, false, [], new ParseBudget(64))];
+  const part = words[0]!.parts[0]!;
+  assert.equal(expansionSpellings.has(part), false);
+  assert.equal(part.kind, "substitution");
+  if (part.kind !== "substitution") throw new Error("Expected command substitution");
+  const command = part.script.lists[0]!.pipelines[0]!.commands[0]!;
+  assert.equal(command.kind, "simple");
+  if (command.kind !== "simple") throw new Error("Expected simple command");
+  for (const nested of command.words[1]!.parts.slice(1)) assert.equal(expansionSpellings.has(nested), true);
 });

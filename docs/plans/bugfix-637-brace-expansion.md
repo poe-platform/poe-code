@@ -26,7 +26,7 @@ fallbacks, runtime dependencies, build output, registry changes or Git mutations
 The current issue author/body were read with `gh issue view 637` from
 `poe-platform/poe-code`; the author is `kamilio` (Kamil Jopek).
 
-Implementation ownership is limited to:
+Initial implementation ownership was limited to:
 
 - `packages/safe-bash/src/shell/runtime.ts`
 - `packages/safe-bash/src/shell/parser.ts`
@@ -214,7 +214,101 @@ The native-oracle sandbox startup was retried with the identical escalated
 command. These results cover the typing follow-up and the existing brace cohort;
 they are not a full root gate, universal shell compatibility or release proof.
 
+## Authorized gate-failure follow-up
+
+Root authorized exactly three failure corrections against committed input
+`fa43ae5ebf537b77720ecfbb6629ae7711e2647c`: the stale default-flag assertions,
+the obsolete unsupported-braceexpand case, and a real structural parse-budget
+regression in here-document parameter operands. The authorization covered
+`parser.ts`, the existing `errexit-host.test.ts`, new brace regressions and this
+plan. No runtime/helper semantics, unrelated options, Git operations or full root
+gate were changed or run by this worker.
+
+The original gate artifacts remain preserved under
+`/home/kjopek/kamilio-validation-569-575.RoFXyZ/issues-637-641-gate.Wgj5w8/`:
+
+| Artifact | SHA-256 |
+| --- | --- |
+| `npm-test.log` | `fd29dd9c9357b677b7e190f70d43554569a334ed6ac3d42497590ea6ace37cc3` |
+| `termination.json` | `27b5e70ef05911ade4a4cfca2ef1c6e0488ec1ec85b01c1219f818212d14ab51` |
+
+The termination record explicitly classifies that root orchestrator run as
+incomplete: tool exit 143, despite shell-trap status zero. The trap status is
+not a successful `npm test` result. The three test diagnostics are actionable
+evidence, not a full-gate PASS.
+
+Before editing implementation or the stale expectations, a fresh six-file
+isolated run reproduced **187 tests, 184 passes and exactly 3 failures**:
+`/tmp/brace-637-budget-followup-red.log`, SHA-256
+`061471b78353f3d887a7475bf75d97fc3fbda3ef754be0955f75036889312c6f`.
+The run used the prescribed Node 22/TMPDIR/TSX environment and
+`node --import tsx --test --test-concurrency=1`, retaining default per-file
+process isolation. The native-oracle sandbox failure was retried with the same
+test command and escalation; no `--test-isolation=none` mode was used.
+
+Corrections are narrowly scoped:
+
+- Update both `$-` expectations in the existing errexit-isolation test to retain
+  the default `B`: `[B][eB][B][eB]` and `[B]`.
+- Remove only `braceexpand` from the explicit unsupported-option list and replace
+  its case with a supported named-option test that also verifies unchanged
+  errexit state. Every other unsupported/invalid-option case remains intact.
+- When `documentLine` identifies a here-document expansion lexer, omit both the
+  replay-provenance allocation and its admission. Here-document operands cannot
+  consume brace replay metadata. Separate parsers for nested commands retain
+  normal admitted metadata, including quoted text and parameter spelling.
+
+The existing `parameter-depth.test.ts` remains byte-for-byte unchanged, including
+its exact five-unit assertion. Added bounded brace regressions verify absence of
+unused heredoc metadata and its charge, the exact 25-unit admission needed for
+a brace-consuming quoted parameter word (24 rejects), and retained provenance
+inside a command substitution nested in a here-document. These tests avoid
+uncharged allocations and do not weaken the original structural limits.
+
+The same six suites with those three new regressions pass **190/190**, with zero
+failures, skips, cancellations or TODOs. GREEN log:
+`/tmp/brace-637-budget-followup-green.log`, SHA-256
+`c9f1bf87c3b9a06450120b2514b1ba013ef1c3819003a7a0d8ef65fab3ef3df9`.
+Exact isolated suite membership:
+
+```text
+packages/safe-bash/tests/shell/brace-expansion.test.ts
+packages/safe-bash/tests/shell/brace-expansion-differential.test.ts
+packages/safe-bash/tests/shell/parameter-depth.test.ts
+packages/safe-bash/tests/shell/errexit-host.test.ts
+packages/safe-bash/tests/shell/parse-budget.test.ts
+packages/safe-bash/tests/shell/parse-admission.test.ts
+```
+
+| Follow-up input | SHA-256 |
+| --- | --- |
+| Updated `src/shell/parser.ts` | `e7a9590b9966b01a473873ae79a712385578872efcb8173cf0cd61356fd8cea8` |
+| Updated `tests/shell/errexit-host.test.ts` | `84c0474cfb97f7ce39eade9a1cfb1d5fca02b6fdbd154cbf6c571ca69cb30406` |
+| Updated `tests/shell/brace-expansion.test.ts` | `68d8bc4c0bd1b55671835a724b9a04af72aa3f0587dc2e419d3a81c89c6e5492` |
+| Unchanged `tests/shell/parameter-depth.test.ts` | `b1bdd6fc6199955034f66c1fd6e4409159233a6c620fe95fe0bc6658e271aa7d` |
+| Unchanged `src/shell/brace-expansion.ts` | `22ae0b1ee28e47dc211b3e4818bad0b30634205ffca3aecad6c54ea9863bd55f` |
+
+After the focused GREEN run, the authorized maintained
+`npm run typecheck:all --workspace virtual-bash` command also passed. Its new log
+is `/tmp/brace-637-budget-followup-types.log`, SHA-256
+`cf908a34a7fb62a4f8e130e07bbb9cee066803c49a35f94943a400bf8bd04e42`.
+Build and source-and-tests exited zero; all 26 current consumer groups passed,
+the three negative validators retained their expected exit-2 outcomes, and the
+summary reported `typecheck-passed-not-runtime-acceptance`, one build, four held
+evidence inputs, zero runtime executions and successful cleanup. The prescribed
+TMPDIR sandbox EROFS startup was retried with the identical escalated command.
+These focused and maintained-package results do not turn the preserved
+incomplete root gate into a pass or establish remote-main/release delivery.
+
 ## Remaining integration work
+
+Root independently repeated the six corrected brace/parse/errexit suites with
+the seven-file parallel-xargs cohort: 427/427 passed under normal process
+isolation. The maintained integration registry passed 98/98. Logs are retained
+as `issues-637-641-root-correction-focused.log` and
+`issues-637-641-root-correction-registry.log` below
+`/home/kjopek/kamilio-validation-569-575.RoFXyZ/tmp`. This is focused verification
+before the corrected candidate's full maintained build/test/lint run.
 
 The original scoped source results are not a maintained full-package, typecheck,
 lint, build, packed-consumer, remote-main or release qualification. That original

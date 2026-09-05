@@ -158,7 +158,7 @@ test("identical key capabilities union across distinct extensions; accessors rem
 test("optional arrays factory is identity-tagged and declarative", () => {
   const extension = arraysExtension();
   assert.equal(extension.runtimeIdentity, commandRuntimeIdentity);
-  assert.deepEqual(extension.syntax, { arrayKeys: true });
+  assert.deepEqual(extension.syntax, { arrayKeys: true, indexedDeclarations: ["readonly"] });
   assert.deepEqual(extension.create(), { builtins: [] });
 });
 

@@ -141,14 +141,19 @@ export function captureShellExtensions(definitions: readonly ShellExtension[]): 
   if (previous) return previous;
   const declarations: CapturedShellSyntax[] = [];
   let arrayKeys = false;
+  let indexedReadonly = false;
   const captured = Array.from(definitions, definition => {
     const syntax = captureShellSyntax(definition?.syntax);
     if (syntax.listTerminators.length || syntax.specialParameters.length) throw new TypeError("Unsupported runtime shell syntax declarations");
     arrayKeys ||= syntax.arrayKeys === true;
+    indexedReadonly ||= syntax.indexedDeclarations?.includes("readonly") === true;
     declarations.push(syntax);
     return definition;
   });
-  const result = Object.freeze({ definitions: Object.freeze(captured), declarations: Object.freeze(declarations), syntax: captureShellSyntax(arrayKeys ? { arrayKeys: true } : {}) });
+  const result = Object.freeze({ definitions: Object.freeze(captured), declarations: Object.freeze(declarations), syntax: captureShellSyntax({
+    ...(arrayKeys ? { arrayKeys: true } : {}),
+    ...(indexedReadonly ? { indexedDeclarations: ["readonly"] } : {}),
+  }) });
   capturedDeclarations.set(result.definitions, result);
   return result;
 }

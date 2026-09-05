@@ -10,17 +10,30 @@ import type { ByteShellValue, ShellValue } from "../contracts/value.js";
 
 export interface ShellSyntaxDeclarations {
   readonly arrayKeys?: true;
+  readonly indexedDeclarations?: readonly "readonly"[];
   readonly listTerminators?: readonly { readonly operator: string }[];
   readonly specialParameters?: readonly { readonly name: string }[];
 }
 
 export interface CapturedShellSyntax {
   readonly arrayKeys?: true;
+  readonly indexedDeclarations?: readonly "readonly"[];
   readonly listTerminators: readonly Readonly<{ operator: "&" }>[];
   readonly specialParameters: readonly Readonly<{ name: "!" }>[];
 }
 
 const capturedSyntax = new WeakSet<object>();
+
+function indexedDeclarations(input: unknown): readonly "readonly"[] {
+  if (input === undefined) return Object.freeze([]);
+  if (!Array.isArray(input) || input.length > 1 || Reflect.ownKeys(input).some(name => name !== "length" && name !== "0")) {
+    throw new TypeError("Invalid or duplicate indexed declarations");
+  }
+  if (!input.length) return Object.freeze([]);
+  const slot = Object.getOwnPropertyDescriptor(input, "0");
+  if (!slot || !("value" in slot) || slot.value !== "readonly") throw new TypeError("Invalid indexed declaration");
+  return Object.freeze(["readonly"]);
+}
 
 function syntaxEntries<Key extends string, Value extends string>(input: unknown, key: Key, allowed: Value): readonly Readonly<Record<Key, Value>>[] {
   if (input === undefined) return Object.freeze([]);
@@ -45,13 +58,15 @@ export function captureShellSyntax(declarations: ShellSyntaxDeclarations = defau
   const prototype: unknown = Object.getPrototypeOf(declarations);
   if (prototype !== null && prototype !== Object.prototype) throw new TypeError("Invalid shell syntax declarations");
   const properties = Object.getOwnPropertyDescriptors(declarations);
-  if (Reflect.ownKeys(properties).some(key => key !== "listTerminators" && key !== "specialParameters" && key !== "arrayKeys")
+  if (Reflect.ownKeys(properties).some(key => key !== "listTerminators" && key !== "specialParameters" && key !== "arrayKeys" && key !== "indexedDeclarations")
     || Object.values(properties).some(property => !("value" in property))) throw new TypeError("Invalid shell syntax declarations");
   if (properties.arrayKeys && properties.arrayKeys.value !== true) throw new TypeError("Invalid shell syntax capability");
+  const indexed = indexedDeclarations(properties.indexedDeclarations?.value);
   const syntax: CapturedShellSyntax = Object.freeze({
     listTerminators: syntaxEntries(properties.listTerminators?.value, "operator", "&"),
     specialParameters: syntaxEntries(properties.specialParameters?.value, "name", "!"),
     ...(properties.arrayKeys ? { arrayKeys: true as const } : {}),
+    ...(indexed.length ? { indexedDeclarations: indexed } : {}),
   });
   capturedSyntax.add(syntax);
   return syntax;
@@ -997,6 +1012,11 @@ class Parser {
       if (["!", "then", "else", "elif", "fi", "do", "done", "}", "case", "esac", "select", "function", "[[", "]]"].includes(this.current.value)) this.error(`Unexpected or unsupported keyword ${this.current.value}`);
       const words: Word[] = [];
       const redirects: Redirect[] = [];
+      const indexedDeclaration = (): boolean => {
+        let index = 0;
+        while (words[index] && scalarAssignmentName(words[index]!)) index++;
+        return this.lexer.syntax.indexedDeclarations?.some(name => name === words[index]?.plain) === true;
+      };
       let line: number | undefined;
       while (true) {
         const wordLine = this.lexer.lineAt(Math.max(this.current.offset, this.current.end - 1));
@@ -1027,7 +1047,7 @@ class Parser {
         else break;
       }
       if (!words.length && !redirects.length) this.error("Expected command");
-      if (words.some(word => getArrayAssignment(word)) && words.some(word => !getArrayAssignment(word) && !scalarAssignmentName(word))) this.error("Indexed-array command prefixes are unsupported");
+      if (words.some(word => getArrayAssignment(word)) && words.some(word => !getArrayAssignment(word) && !scalarAssignmentName(word)) && !indexedDeclaration()) this.error("Indexed-array command prefixes are unsupported");
       return { kind: "simple", words, redirects, ...(line === undefined ? {} : { line }) };
     }
     let redirect: Redirect | undefined;
@@ -1055,6 +1075,18 @@ class Parser {
     const target = this.advance();
     return { descriptor, operator, target: target.word!, line: this.lexer.lineAt(Math.max(target.offset, target.end - 1)), ...((operator === "<&" || operator === ">&") && this.lexer.source[target.end - 1] === "-" ? { move: true } : {}), ...(target.document ? { document: target.document } : {}) };
   }
+}
+
+export function parseCompoundArrayValue(source: string, byteLocale: boolean, byteSource: boolean, syntax?: CapturedShellSyntax): readonly ArrayEntry[] {
+  const lexer = new Lexer(source, 0, [], 0, byteLocale, undefined, false, byteSource, syntax);
+  if (lexer.next().value !== "(") throw new ShellSyntaxError("Expected indexed-array compound value", 0);
+  const entries: ArrayEntry[] = [];
+  for (let token = lexer.next(); token.kind !== "end" && token.value !== ")"; token = lexer.next()) {
+    if (token.value === "\n") continue;
+    if (token.kind !== "word") throw new ShellSyntaxError("Unsupported indexed-array compound value", token.offset);
+    entries.push(compoundEntry(token.word!));
+  }
+  return entries;
 }
 
 export function parseShell(source: string, depth = 0, syntax?: ShellSyntaxDeclarations): Script {

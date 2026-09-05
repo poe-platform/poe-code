@@ -2320,3 +2320,217 @@ this is ad-hoc QA, not a screenshot test or committed artifact.
 Baseline aggregate check: 36 tests passed using
 `node --import tsx --test packages/safe-bash/tests/plugins/agent-commands.test.ts`.
 The 79-command default remains unchanged at this baseline; repeat after integration.
+
+## September 5 continuation: canonical device public boundaries
+
+The original 16-case compiled-device cohort is preserved at
+`/tmp/device-canonical-public-red-root-siIvi7`: one pass and fifteen failures.
+Twelve failures reached the missing canonical open capability; three workflow
+failures instead used the unsupported `exec` builtin. Those three are fixture
+errors, not evidence of a device-open defect. The original test bytes and hash
+are preserved at `/tmp/device-public-fixture-root-A2JVj7`.
+
+The workflow now scopes descriptor 3 to a brace group, retaining identical
+device reads and exact output-byte assertions through inline, `bash`, and `sh`
+entrypoints. Against the unchanged compiled provider, the corrected cohort is
+four passes and twelve failures, with no skips or cancellation and no drift in
+456 watched inputs: `/tmp/device-public-adjusted-root-3KJqMC`.
+
+A separately authorized readonly native probe on Darwin 25.4.0 establishes full
+reads of 65,536, 65,537 and 262,144 bytes for zero/random/urandom, and full
+positioned reads of 65,537 bytes without changing the sequential cursor. Null
+returns zero throughout. Its sixteen calls request 1,835,016 bytes in total;
+four readonly opens and four closes complete, with no device writes, retries,
+or random payload logging. Source/compiler/executable hashes and observations
+are in `/private/tmp/device-large-read-boundary-pRZM7K/handoff.json`.
+
+The expanded public cohort preserves all corrected cases and adds large
+descriptor-read and actual compiled `dd` cases. Before rebuilding the optional
+provider, it reports six passes and twenty-six failures:
+`/tmp/device-public-large-red-root-GRSWHu`. Twenty failures reach missing open;
+six `dd bs=65537/262144 count=1` cases copy only 65,536 bytes. This is concrete
+public evidence that the crypto-call chunk limit must not become the device's
+descriptor-read limit. No production fix or green public replay is claimed yet.
+
+Both new public test files pass the actual strict package compiler options with
+two explicit roots, 313 source files, 323 watched inputs and zero diagnostics or
+drift: `/tmp/scripting-public-types-root-NcSJ46`. The selected virtual-bash build
+also passes with the current readonly boundary repair and nine watched inputs
+unchanged: `/tmp/readonly-selected-build-root-1ReWK7`. Independent readonly
+re-review and a fresh coherent optional build remain pending. These scoped
+results do not establish full-package type correctness or complete tool parity.
+
+The subsequent coherent optional build passes with 385 source/configuration
+inputs unchanged: `/tmp/scripting-optional-build-root-3ht2iz`. Public device
+replay now passes all 32 cases, including the six formerly short large-block
+copies. The combined 63-case replay has 61 passes and two failures, both newly
+added readonly diagnostic regressions; it is not an all-green run. All 458
+watched compiled/reference/test inputs remain unchanged:
+`/tmp/scripting-public-boundary-root-zVsrS6`. Both public test roots again have
+zero strict diagnostics: `/tmp/scripting-public-types-root-MpEiKp`.
+
+Independent readonly review preserves the original 139 passing cases and adds
+two failing cases: declarations created inside eval incorrectly acquire an
+`eval:` diagnostic prefix, and a nested function marking its caller-local
+binding readonly incorrectly acquires a function-name prefix. Pinned Bash 5.3
+confirms that status, stdout, input-unit continuation and local restoration
+already match; diagnostics do not. The independent report and original/new
+hashes are preserved at `/tmp/readonly-input-unit-independent-tJVMxk`.
+The corresponding public cases also fail on the built candidate. A narrow
+runtime repair is assigned; exact diagnostic parity remains unapproved.
+
+The actual compiled device transcript was rendered and visually inspected at
+`/tmp/device-canonical-visual-root-v2HITM/devices.png`. It shows 65,537-byte zero
+output, a 262,144-byte random pipeline count, descriptor-3 zero reads, and the
+urandom write refusal. The refusal still displays an errno-oriented printf
+diagnostic; exact native printf diagnostic qualification remains open. This
+visual check performs no native device operations and logs no random payload.
+Its outer capture watches 463 unchanged inputs:
+`/tmp/device-canonical-visual-capture-root-njK7Y0`.
+
+The actual compiled default inventory still matches the independently declared
+79-name test list, the browser inventory has 28 commands, and epoch date output
+remains unchanged. New tools/extensions/devices stay absent from both default
+barrels/registries, with explicit optional packaging exclusions retained:
+`/tmp/scripting-default-inventory-capture-root-XA88TM` (457 unchanged inputs;
+the earlier PQA2r8 capture checked extension/device export absence, while this
+expanded capture also explicitly checks each new tool factory/plugin export).
+Literal integration membership passes 98/98 after enrolling the four readonly
+tests: `/tmp/readonly-literal-root-VbvJwV`. Device test enrollment, final independent
+review, final guarded lint, and separate local commits remain outstanding.
+
+The readonly diagnostic repair now tracks the active command identity until
+simple-command completion and copies that state for isolated children, instead
+of inferring prefixes from eval or local-binding ownership. Author evidence at
+`/tmp/read-independent-current-UrUD22/final.json` preserves the original 139/141
+failure and reports 151/151 focused cases and 1828/1828 across 43 broader roots.
+Runtime SHA-256 is
+`619bb61b2bb5e3477d9f6fc4003f721075c86abbdc176be39dba8a6f3b2ce1c1`;
+independent34 and primary24/reference remain unchanged. The paused read-leaf
+audit separately reports 638/638 across 17 roots without any read-leaf edits;
+it does not establish complete read-option parity.
+
+Fresh selected and optional builds pass at
+`/tmp/readonly-diagnostic-build-root-W1xNXo` and
+`/tmp/readonly-diagnostic-optional-root-v5i4LQ`. The unchanged public tests now
+pass 63/63: device32 plus readonly31, including both diagnostic regressions.
+There are no skips/cancellations and no drift in 458 watched inputs:
+`/tmp/scripting-public-diagnostic-green-root-eedqfe`. Independent review of this
+new runtime snapshot and final guarded lint are still required before committing.
+
+Further independent scrutiny leaves this increment unapproved: after a function's
+conditional `[[` or arithmetic `((` command, native Bash reports that command's
+identity in the subsequent readonly-assignment diagnostic. The candidate instead
+retains the function name. The original 151 cases still pass, but three added
+native-backed cases fail; status, stdout and continuation already match.
+Evidence: `/tmp/readonly-diagnostic-independent-lw0UTr/final.json`. Its initial
+oracle admission error launched no child; the corrected canonical pathname
+authenticates the same pinned executable. No fallback was used.
+
+Root preserves the prior green public63 and adds these exact three regressions.
+The resulting public66 cohort is 63 passes and three failures, with no skips,
+cancellations or drift in 458 watched inputs:
+`/tmp/readonly-command-identity-public-red-root-lLW7aH`. A broader preceding
+public/default/optional/mapfile cohort passed 137/137 with 1230 unchanged inputs
+at `/tmp/scripting-public-broad-root-zA0AKq`; that earlier green is not evidence
+that the new regressions pass. The diagnostic-transition repair is assigned
+across supported command kinds rather than suppressing these prefixes globally.
+
+The actual compiled readonly-array listing and direct/eval continuation outputs
+were rendered and visually inspected at
+`/tmp/readonly-canonical-visual-root-XB54aw/readonly.png`; the separate stdout and
+stderr sections preserve channel attribution. All three displayed programs
+exit zero; this ad-hoc visualization is not a screenshot test or proof of the
+still-failing conditional/arithmetic cases.
+
+## Native device reference migration decision
+
+Independent device source review passes 108/108 and strict checking with four
+roots, with 550 watched inputs unchanged:
+`/tmp/device-canonical-independent-5b64zb/final.json`. The nine approved legacy
+stream-fixture migrations also pass independent review: 34/34 native-free cases,
+with eleven native invokers deliberately excluded, not counted as passes.
+`/tmp/device-migration-independent-9zoEJY/final.json` verifies preservation of
+original programs/assertions and the added positive iterator-admission checks.
+
+The ambient native device test must not keep performing automatic entropy
+writes or imply that this fixed Darwin provider has a Linux qualification.
+Four older passing TAP captures were located, but none binds that execution to
+a contemporaneous input-source hash and pinned executable. Preserve the TAP,
+the original test, and their hashes; a later source snapshot does not repair
+that missing provenance or yield exact malformed-path errno goldens.
+
+Root authorizes replacing that ambient test with authenticated immutable native
+references and actual virtual API replay. Existing C captures qualify exact
+one-byte writes and the recorded empty/access/positioned/sync profiles. Preserve
+five-byte virtual write and 256-byte virtual-stream regressions separately;
+they must not be presented as exact five-byte native write witnesses. Historical
+random-sample inequality is probabilistic sampling, not a proof of secure
+freshness. Retain its history and replace the maintained assurance with the
+existing deterministic crypto-provider mapping and fresh-call controls, without
+claiming an authenticated native-versus-virtual payload comparison.
+
+One additional bounded metadata/read probe is authorized to fill safe missing
+evidence: four existing nodes, one verified-character
+`O_RDWR|O_APPEND|O_NONBLOCK` open and one 256-byte read each, four closes, and the
+five original malformed-path lstat requests. Total requested payload is at most
+1024 bytes; record counts, errno, cursor and zero/nonzero booleans only. No retry,
+native write/pwrite/writev, ioctl, reseed, or entropy payload/hash logging is
+authorized. Authenticate canonical C/compiler/executable/platform inputs under
+outer-owned startup/catch capture and bounded execution. This does not authorize
+automatic host-device operations in maintained tests. The migration owner must
+return exact mappings, preserved originals and frozen tests/reference data for
+independent review before any device commit.
+
+## Readonly increment: final scoped acceptance
+
+The remaining conditional-operand probe is demonstrably outside this opt-in
+increment: six controls behave identically with and without arrays and without
+readonly state. `conditional.ts` is unchanged from HEAD. Standalone
+`[[ 1 -eq 1/0 ]]` retains the existing unsupported-profile status2, whereas the
+native arithmetic failure has status1. Implementing new default conditional
+arithmetic is not authorized as a readonly-array fix.
+
+Root therefore approves explicit test separation, not removal of the evidence:
+the exact source and complete native record remain preserved; one named boundary
+control checks complete virtual bytes, exact downstream readonly identity, and
+the explicitly unmatched first diagnostic. Every other assertion is unchanged.
+The original full217 red and all55 new native observations remain retained.
+Final accounting is **216 readonly acceptance cases plus one boundary control**,
+not217 native-parity passes. The new native whole-result comparisons remain
+54/55 exact, with that default-profile mismatch disclosed separately.
+
+Independent approval of source and this narrow test migration is recorded at
+`/tmp/readonly-kind-independent-6IFFAr/final.json`: all217 maintained checks pass,
+retained172 pass, actual-options strict has zero diagnostics, and 545 watched
+inputs remain unchanged. Author broader checks pass1894/1894 across43 roots,
+with the same explicit boundary classification:
+`/tmp/readonly-boundary-separation-Vwy2aG/final.json`.
+
+Final source/test hashes:
+- Runtime: `865a333d5fdb552b01e423c92596b66afb55f70b0906847815f7ee6f8075c9f4`
+- Author test: `9f1d6864e3b8c525f24ccf89d31099dc775c33154c561063cf72e7e29d571a21`
+- Independent37: `3978dc6d7bdaad03041fb4269a62a19cb33bf81cd36df1749e51614fdc10b072`
+- Primary24/reference hashes remain unchanged from their original captures.
+
+Fresh selected/optional builds pass at `/tmp/readonly-kind-build-root-Qvw1eK`
+and `/tmp/readonly-kind-optional-root-nHyCUy`. Public device32 plus readonly34
+pass66/66 at `/tmp/readonly-kind-public-root-bwhjD0`; the broader public/default/
+optional/mapfile cohort passes140/140 with1230 unchanged inputs at
+`/tmp/readonly-kind-public-broad-root-MNkWNj`. Actual public strict checking again
+has zero diagnostics at `/tmp/scripting-public-types-root-60PNQy`.
+Default79/browser28, epoch date output, explicit opt-ins and packaging exclusions
+remain checked at `/tmp/readonly-kind-inventory-root-oRaEQE`.
+
+Guarded `npm run lint:eslint` completes successfully: 9946 configured/linted
+files, zero errors/warnings,25 receipts and13 unchanged readonly candidate inputs.
+Capture: `/tmp/readonly-final-lint-root-JrhzCw`. No autofix or guard bypass is used.
+The final actual-output image includes corrected conditional/arithmetic prefixes
+and is visually inspected at
+`/tmp/readonly-canonical-visual-root-GwCKRZ/readonly.png`.
+
+This qualifies a separate local readonly-array increment, not full arrays,
+default conditional parity, the pending read leaf, jobs, or the whole requested
+tool set. Device source/test changes remain outside this commit and still need
+final native-reference review and their own local commit. No push or release is
+requested or claimed.

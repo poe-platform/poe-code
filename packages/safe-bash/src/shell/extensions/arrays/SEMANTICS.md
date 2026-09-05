@@ -1,9 +1,10 @@
-# Indexed array-key expansion
+# Indexed array keys and readonly declarations
 
-`arraysExtension()` explicitly enables `${!name[@]}` and `${!name[*]}`.
-It declares `syntax: { arrayKeys: true }` and the matching runtime identity;
-it installs no builtins. The default shell neither imports this leaf nor enables
-these expansions. This is an indexed-key increment, not full Bash array support.
+`arraysExtension()` explicitly enables `${!name[@]}`, `${!name[*]}` and indexed
+readonly declarations. It declares
+`syntax: { arrayKeys: true, indexedDeclarations: ["readonly"] }` and the matching
+runtime identity; it installs no builtins. The default shell neither imports
+this leaf nor enables these capabilities. This is not full Bash array support.
 
 ## Capture and composition
 
@@ -20,6 +21,12 @@ The capability must be an own, positive `arrayKeys: true` data property in a
 plain declaration object. Unknown properties, accessors and false/nonboolean
 values are rejected. Runtime extensions cannot activate the parser's separately
 declared `&`/`!` syntax: background jobs are not implemented by this increment.
+
+Indexed readonly support is a separate own data capability. Its declaration list
+must be dense and contain only the single known head `readonly`; holes, accessors,
+extra keys, duplicate heads and unknown heads are rejected. An absent or empty
+list is omitted from the captured object. Naming an extension `arrays` or
+declaring only `arrayKeys` does not enable indexed readonly declarations.
 
 Captured syntax follows incremental execution, eval, source, function bodies,
 interpreters, script files, command substitutions, heredocs and shell-input
@@ -48,13 +55,36 @@ Enumeration, ordering, copied values and output use the existing shared array,
 value and output ledgers. Root cancellation and awaited extension cleanup retain
 their existing precedence. There is no host-shell execution in the implementation.
 
+## Indexed readonly declarations
+
+The explicit capability enables `readonly -a` and indexed declaration listing.
+Declarations use the existing canonical binding storage, readonly attributes,
+local restoration, byte ownership and shared allocation limits.
+
+Direct compound declaration operands are assignments during expansion. In the
+qualified non-errexit input profile, attempts to overwrite a readonly binding
+through those operands skip the remainder of the current command list; later
+input units can continue. This is not an unconditional whole-script exit.
+Quoted compound operands instead retain builtin argument handling and its
+nonfatal failure behavior. An already-readonly scalar retains its scalar kind
+when `readonly -a` is subsequently applied without an assignment. Rejected local
+indexed shadows retain the `local:` diagnostic provenance and the outer binding.
+These distinctions do not enable associative declarations or relax the existing
+control-name, exported-binding or ordinary-assignment restrictions.
+
 ## Qualification boundary
 
-The source tests use an explicitly selected and SHA-256-authenticated GNU Bash
-5.2.37 oracle. Native-only comparisons skip when both oracle prerequisites are
+Key-expansion source tests use an explicitly selected and SHA-256-authenticated
+GNU Bash 5.2.37 oracle. Native-only comparisons skip when both prerequisites are
 absent; supplied invalid prerequisites fail. Host-independent checks still run.
 Native here-string/heredoc witnesses define a bounded shell `emit` function in
 place of the test VFS byte-copy command; the expansion fixtures are unchanged.
+
+Readonly qualification uses preserved GNU Bash 5.3 captures and separately
+authenticated native reviews, including raw output bytes and exit status. Those
+profiles do not replace the older key-expansion evidence or establish full Bash
+array compatibility. Compiled public replay and independent review are separate
+acceptance requirements.
 
 General indirection, associative arrays, wider ordinary assignments, additional
 array grammar, control-name changes and jobs remain outside this increment.

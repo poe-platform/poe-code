@@ -25,7 +25,15 @@ object. `arrayKeys` must be `true` when present. Different extensions can declar
 the same capability; this does not relax duplicate extension or builtin checks.
 The runtime does not admit background-job syntax through this declaration.
 
-The optional `arraysExtension()` factory declares that capability and matching
+An extension may separately declare `indexedDeclarations: ["readonly"]` to
+enable indexed readonly declarations, including their compound-assignment
+grammar. This is an own data property containing a dense, bounded list of known
+declaration heads; accessors, holes, extra keys, duplicates and unknown heads
+are rejected. An absent or empty list remains omitted from captured syntax.
+The declaration is captured and propagated with the other syntax capabilities.
+Neither an extension's name nor `arrayKeys` alone enables it.
+
+The optional `arraysExtension()` factory declares both capabilities and matching
 runtime identity, with no builtins. It is absent from default registration and
 package artifacts. Keys use canonical numeric ordering and the existing shared
 allocation limits; this does not widen ordinary assignment bounds or implement

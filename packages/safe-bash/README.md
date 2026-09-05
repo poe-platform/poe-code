@@ -75,8 +75,7 @@ adapters from `@poe-platform/safe-fs/core`; matching scoped packages share files
 and error identity. Legacy `poe-code` imports use a separate runtime; see the
 [filesystem migration boundary](../safe-fs/README.md#entry-points-and-shared-identity).
 The core's portable `posixPath` exposes `basename`, `dirname`, `extname`, `join`,
-and `isAbsolute`. Node-only adapters and command packs are not included;
-`[[ … =~ … ]]` explicitly returns status 2. Use the Node entry for regex-worker
+and `isAbsolute`. Node-only adapters and command packs are not included. Use the Node entry for regex-worker
 commands such as `grep`, `sed`, and `rg`.
 
 ## Supported features and commands

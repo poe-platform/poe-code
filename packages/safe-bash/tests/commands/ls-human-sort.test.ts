@@ -3,6 +3,7 @@ import test from "node:test";
 import { CommandRegistry, FsError, type FsOptions } from "../../src/contracts/index.js";
 import { createStandardCommands } from "../../src/commands/index.js";
 import { Shell } from "../../src/shell/index.js";
+import { registerYieldCheckpoint } from "../../src/contracts/yield.js";
 import { fixture, run } from "./helpers.js";
 
 async function sortableFixture() {
@@ -322,4 +323,27 @@ test("ls sorted rendering awaits sink backpressure before writing the next recor
   } finally { release(); }
   assert.equal((await execution).exitCode, 0);
   assert.deepEqual(writes, ["b-old-large\n", "c-old-large\n", "a-new-small\n"]);
+});
+
+test("ls honors a pre-acquisition checkpoint cancellation without acquiring ancestors", async () => {
+  const fs = await sortableFixture();
+  const controller = new AbortController();
+  const active: Set<unknown>[] = [];
+  let checkpoints = 0;
+  registerYieldCheckpoint(controller.signal, () => {
+    checkpoints++;
+    assert.equal(active.length, 0, "this control must cancel before ancestor acquisition");
+    controller.abort(false);
+  });
+  const add = Set.prototype.add;
+  Set.prototype.add = function (value: unknown) {
+    const result = add.call(this, value);
+    if (value === "/work") active.push(this);
+    return result;
+  };
+  try {
+    await assert.rejects(run("ls", ["-tR", "/work"], { fs, signal: controller.signal }), error => Object.is(error, false));
+    assert.equal(checkpoints, 1);
+    assert.equal(active.length, 0);
+  } finally { Set.prototype.add = add; }
 });

@@ -156,3 +156,111 @@ argv and existing shell budgets, not a global traversal-memory quota or atomic
 metadata snapshot. Required metadata is collected before listing records, so
 an error can leave a header without entries. Full details are in the new ls
 contract. Stop before root registration, maintained gates and commit.
+
+## Root-gate cancellation fixture follow-up
+
+Starting checkout: clean `ed2ff202bdf8beddfa9bc930ba65e108209eec41`.
+Root reported selected build/types PASS, then full Bash 20,718 pass / 1 fail /
+63 skipped. The sole failure was the existing `ls releases active ancestors
+after cancel` assertion at recursive-filesystem-admission.test.ts:253:
+`0 !== 1`. This follow-up does not reinterpret that failed full gate as a pass.
+
+Preserved original gate evidence, resolved from
+`$BASE/issues-635-643-gate.path` (where BASE is the supplied validation pointer):
+
+- `/home/kjopek/kamilio-validation-569-575.RoFXyZ/issues-635-643-gate.SITEju/bash-unit.log`
+- Regular file, 480579 bytes; SHA-256
+  `ec85c965254197f462075d90d38eea00ec5c480714cc30927106484582f9ba88`.
+- The log is read-only evidence; it is not replaced, edited or recaptured.
+
+### Concrete RED and mechanism controls
+
+Before editing, selected `releases active ancestors after` cases on current
+code: 4 tests, 3 pass, 1 fail, 0 cancelled/skipped, exit 1 (262.433227 ms).
+The failing ls assertion reproduced exactly `0 !== 1`; both cp controls and
+the ls read-failure control passed.
+
+In-memory direct-command traces, without product/test edits, showed:
+
+| Command / trigger | Observed acquisition and cancellation | Final active sets |
+| --- | --- | --- |
+| ls / checkpoint 2 | checkpoints 1 and 2 both had no live ancestor; rejection `false` | 0 acquired |
+| ls / observed acquisition | checkpoints 1–5 precede acquisition; add `/source`, read `/source`, checkpoint 6 cancels `false` | 1 acquired, size 0 |
+| cp / checkpoint 2 | acquisition precedes checkpoint 1; checkpoint 2 cancels `false` | 1 acquired, size 0 |
+| cp / observed acquisition | acquisition, root read, checkpoint 1 cancels `false` | 1 acquired, size 0 |
+
+This validates a misplaced fixture trigger, not a production leak. The shared
+ls/cp fixture now cancels at a checkpoint only while an observed ancestor set
+actually contains both `/source` and `/source/child`, preserving nested unwind
+coverage, and observes acquisition after Set.add succeeds.
+The original exact acquired-set count and all-sets-empty assertions remain
+unchanged for both commands and both read/cancel failure paths. A separate ls
+control confirms early checkpoint cancellation rejects with the exact falsey
+reason and acquires zero ancestors. No useful production yield was removed.
+
+Only the two authorized test files and this plan are edited. Production,
+registry, shared dist/builds and Git state are not modified; full guards remain
+with root. Focused GREEN results and final evidence hashes follow below.
+
+An interim root-acquisition trigger passed both complete files: 136/136,
+exit 0, 1664.718388 ms. Before handoff it was strengthened to require the child
+frame as well, so cancellation exercises both recursive finally blocks rather
+than only the root. The original count and emptiness assertions are unchanged.
+
+### Final focused GREEN and preservation
+
+Root independently reran the five-file union on September 5, 2026 after
+reviewing the corrected trigger and unchanged cleanup assertions: 201/201
+passed in 2232 ms, with no failures, skips or cancellations. The output is
+preserved in `tmp/issue-635-ancestor-root-focused.log` under the validation
+base. This is focused evidence only; the previously failed workspace run
+remains failed and a fresh maintained workspace run is required.
+
+With the final root-and-child acquisition trigger, both complete test files
+pass: 136 tests, 136 pass, 0 fail/cancelled/skipped, exit 0, 1599.613848 ms.
+Their union with the prior 162-case cohort passes: 201 tests, 201 pass,
+0 fail/cancelled/skipped, exit 0, 2467.505838 ms. The union includes the new
+pre-acquisition case and all 38 recursive admission cases; it is not a full
+workspace gate.
+
+Both GREEN runs used normal Node test isolation, Node 22.22.0 through the
+toolchain pointer, the supplied TMPDIR pointer, TSX_DISABLE_CACHE=1, one test
+worker, a 256 MiB old-space cap and 60-second external supervision. Repository
+local hook variables were cleared in the command subshell before unit children.
+All fixtures and result filtering were in memory; no host fixture/log writes.
+The RED used the same toolchain/cache profile with isolation disabled, a
+30-second cap and the name filter `releases active ancestors after` on the
+recursive file. Commands for the final GREEN selections:
+
+```bash
+TOOLCHAIN=$(cat /tmp/kamilio-toolchain.path)
+export TMPDIR=$(cat /tmp/kamilio-unit-tmp.path)
+export TSX_DISABLE_CACHE=1
+while IFS= read -r variable; do unset "$variable"; done < <(git rev-parse --local-env-vars)
+timeout 60s "$TOOLCHAIN/bin/node" --max-old-space-size=256 --import tsx \
+  --test --test-concurrency=1 --test-reporter=tap \
+  packages/safe-bash/tests/commands/recursive-filesystem-admission.test.ts \
+  packages/safe-bash/tests/commands/ls-human-sort.test.ts
+timeout 60s "$TOOLCHAIN/bin/node" --max-old-space-size=256 --import tsx \
+  --test --test-concurrency=1 --test-reporter=tap \
+  packages/safe-bash/tests/commands/recursive-filesystem-admission.test.ts \
+  packages/safe-bash/tests/commands/ls-human-sort.test.ts \
+  packages/safe-bash/tests/commands/filesystem.test.ts \
+  packages/safe-bash/tests/commands/directory-admission.test.ts \
+  packages/safe-bash/tests/commands/realpath-missing-admission.test.ts
+```
+
+Final follow-up SHA-256 values (superseding earlier test hashes only):
+
+| Path | SHA-256 |
+| --- | --- |
+| `packages/safe-bash/tests/commands/recursive-filesystem-admission.test.ts` | `401f00f7b2f9829167bae27563de1494ec8da030368dd5c47554f07dd94d338c` |
+| `packages/safe-bash/tests/commands/ls-human-sort.test.ts` | `e95950849c3e28f1f0d10f92d883b03cefef1237b4c753d3807ed32c6f9ef0ea` |
+
+After both final runs, filesystem.ts remained byte-identical with SHA-256
+`b20717015b1fda6730a6f08d51910cde2f68061924e6b0e6b8bbbc3c27d1b022`.
+The original failed bash-unit.log remained 480579 bytes with its original
+`ec85c965254197f462075d90d38eea00ec5c480714cc30927106484582f9ba88`
+hash. No production fix is warranted by these controls. Full Bash/build/types,
+maintained guarded lint, registration and integration remain root-owned and
+were not rerun here. No commit, push or delivery claim.

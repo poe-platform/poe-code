@@ -1111,7 +1111,7 @@ publisher `101263700253`, published SafeJS 0.1.111 on September 5, 2026,
 published poe-code 14.0.50 at 06:49:14 UTC and its GitHub release at 06:49:15 UTC.
 The descendant CLI also includes the preceding Map and Set constructor repairs.
 
-### 23. Live collection method iterators — validated repair
+### 23. Live collection method iterators — delivered; release pending
 
 The initial 39 native-behavior tests reproduced 35 failures with four passing
 controls. Map/Set method iterators now have separately branded, hidden cursor
@@ -1243,3 +1243,32 @@ warnings, followed by successful type and workflow checks. The CLI screenshot,
 built API/codec/budget probes, skill sync, and skill validator described above
 also passed. This qualifies the iterator repair for its own commit and push;
 remote delivery and publication remain separately verified steps.
+
+Iterator commit c6b726f9651263fa34205ea1fc0157f1accc772e is pushed and verified
+on remote main. The implementation finding is closed after delivery, without
+waiting for publication. Scoped release 33952547645 and CLI release 33952547762
+are monitored separately; their initial running state is not release success.
+
+### 24. SafeJS skill accuracy — validated documentation correction
+
+Actual CLI probes and current loader/registry source contradict the skill's claim
+that the standalone stub validates schema-based Markdown/JavaScript harness pairs.
+The Markdown pair failed parsing; its paired JavaScript failed the absent schema
+module check. An isolated raw .safejs probe passed, and the real harness runner
+validated and executed the pair with zero spawns. The template now distinguishes
+those routes and makes clear that the real runner is not a dry-run.
+
+Concrete built-runtime probes also showed ordinary user-constructor prototypes,
+instanceof, and suspended synchronous generator checkpoint restoration working.
+The blanket unsupported claims were removed, while built-in prototype coverage,
+copy/snapshot restrictions, and pending-effect reconciliation remain explicit.
+No speculative runtime repair or wording-only regression test is added for these
+already-working behaviors. Skill synchronization, the skill validator, focused
+CLI/harness tests, and diff checks qualify this separate documentation commit.
+
+Validation passed: npm run sync-skills updated the six installed SafeJS copies;
+the skill validator passed; 122 maintained focused sync/harness-command tests
+passed. Fresh built CLI checks again passed for the standalone .safejs probe and
+the paired real harness with zero spawns. The correction changes Markdown only;
+the preceding integrated full build, unit, and lint gates cover unchanged runtime
+code. Diff checks pass, and the skill's invocation policy is unchanged.

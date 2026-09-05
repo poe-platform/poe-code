@@ -10,10 +10,12 @@ and the same-basename `.ajs` file, validates Markdown frontmatter against the
 `.ajs` `schema` export, lints the `.ajs` source, then executes the default export
 with real agent spawns.
 
-`npx --package poe-code poe-safe-js <path>` uses canned agent
-responses and is good for syntax, lint, schema, frontmatter, and control-flow
-checks before paying for real spawns. It does not prove real model behavior.
-Explicit `--fs` and `--mcp-config` capabilities are real, not stubs.
+`npx --package poe-code poe-safe-js <script.safejs>` runs standalone scripts with
+canned agent responses. Use it for isolated syntax, lint, and control-flow probes
+with the stub's supported modules. It does not load `.md`/`.ajs` harness pairs or
+provide their `schema` module, so it cannot validate a pair's frontmatter/schema.
+It does not prove real model behavior. Explicit `--fs` and `--mcp-config`
+capabilities are real, not stubs.
 
 ## Pair Layout
 
@@ -105,22 +107,24 @@ or rely on runtime imports during schema extraction.
 - `Map` and `Set` methods `keys()`, `values()`, and `entries()` return live,
   single-use iterators. Use `Array.from(...)` or spread when you need an array
   snapshot; use `iterator.next()` to consume one entry.
-- Prototype chains are absent. `Foo.prototype` is `undefined`; `instanceof`
-  with a user constructor throws. Use an explicit brand property.
+- Ordinary user constructors expose `.prototype` and support `instanceof`.
+  Built-in prototype graphs remain incomplete, and custom prototype-linked
+  values still have copy/snapshot restrictions.
 - `for...in` rejects destructuring in the loop head. Destructure in the body.
 - Bare function calls set `this` to `undefined` (strict semantics).
 - Generators cannot `await`.
-- A generator suspended mid-iteration cannot be snapshotted. Drain or discard
-  it before an await boundary.
+- Suspended synchronous generators can cross snapshot boundaries when their
+  captured state is snapshotable. Pending host effects still need reconciliation.
 - Schema extraction only sees `schema`; runtime imports are irrelevant there.
 
 ## Local Validation
 
-Dry-run with the stub before real spawns, then use the real runner when agent
-responses and side effects matter:
+Use a standalone probe for isolated language/runtime checks. Validate and run the
+actual harness pair with the real runner; that command is not a dry-run and can
+spawn agents or perform granted capability effects:
 
 ```bash
-npx --package poe-code poe-safe-js path/to/harness.md
+npx --package poe-code poe-safe-js path/to/probe.safejs
 poe-code harness run path/to/harness.md
 ```
 

@@ -156,10 +156,17 @@ test("writes and append discard; exclusive flags and missing entries still fail"
   const payload = new Uint8Array([0, 255, 128]);
   for (const name of names) {
     const path = `/${name}`;
-    await fs.writeFile(path, payload);
-    await fs.writeFile(path, payload, { flag: "a" });
-    await fs.appendFile(path, payload);
-    await fs.writeStream(path, toByteSource(payload), { flag: "a" });
+    if (name === "urandom") {
+      await assert.rejects(fs.writeFile(path, payload), errno("EPERM"));
+      await assert.rejects(fs.writeFile(path, payload, { flag: "a" }), errno("EPERM"));
+      await assert.rejects(fs.appendFile(path, payload), errno("EPERM"));
+      await assert.rejects(fs.writeStream(path, toByteSource(payload), { flag: "a" }), errno("EPERM"));
+    } else {
+      await fs.writeFile(path, payload);
+      await fs.writeFile(path, payload, { flag: "a" });
+      await fs.appendFile(path, payload);
+      await fs.writeStream(path, toByteSource(payload), { flag: "a" });
+    }
     for (const flag of ["wx", "ax"] as const) {
       await assert.rejects(fs.writeFile(path, payload, { flag }), errno("EEXIST"));
     }

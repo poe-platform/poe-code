@@ -2534,3 +2534,69 @@ default conditional parity, the pending read leaf, jobs, or the whole requested
 tool set. Device source/test changes remain outside this commit and still need
 final native-reference review and their own local commit. No push or release is
 requested or claimed.
+
+## Local readonly delivery and canonical device acceptance
+
+Readonly delivery is local commit
+`eeb4b362a4446d9851cb735714c279aa03b3d1d1`, with all14 committed blobs verified
+against the validated snapshot in `/tmp/readonly-commit-root-PELOpU/verified.json`.
+There is no remote-main or release claim.
+
+The authorized supplemental native device probe completed once: four existing
+device opens with the recorded RW/append/nonblocking flags, four read calls
+requesting1024 bytes total, five malformed-path lstat calls, and four closes.
+Null returned zero; the other three returned256. The first four malformed paths
+returned ENOTDIR and the missing-component case returned ENOENT. There were no
+device writes, retries, or entropy payload/hash logs. Raw receipt:
+`/tmp/device-native-reference.T17UKv/result.json`, SHA-256
+`104c126efc5950972ca0788edef89c480459ad452d88435d60fb9406890bdfd1`.
+
+The maintained native reference test now reads one bounded authenticated fixture
+and exercises virtual APIs, rather than opening host devices or launching native
+tools. The fixture preserves A-F raw receipts and C sources, the original test,
+historical TAPs, and their explicit provenance limits. The previously authorized
+reclassifications remain visible: one-byte native writes are not five-byte native
+witnesses; cursor deltas are not identical seek programs; supported virtual
+RW/append does not invent a NONBLOCK option; separate access checks do not become
+an identical native access6 call; random samples do not prove secure freshness.
+
+Independent validation at `/tmp/device-native-independent-cnL1ex/final.json`
+passes46/46 both normally and under a guard recording zero host-device or child-
+process attempts and zero retained fixture handles. Tampered, empty, oversized
+and symlink fixtures produce four expected refusals, not product failures.
+The retained safe selection passes188/188; eleven ambient-native invokers and
+the separate shell oracle file remain unexecuted and are not counted as passes.
+The subsequent mapping audit finds no new defect:
+`/tmp/device-native-mapping-independent-cZ4aif/final.json`.
+
+Final runtime SHA-256 remains
+`6c823ef23f3b68330dfc3395cb2b8bc8fff553f8bc2e3b74a345713bf8092f35`.
+Native test and fixture hashes are respectively
+`ca289ddedde0291855660e890da68f894781b2dfcd3beeb925d493feb08fe48d` and
+`a1aedcc6aaf493964a9379e8a0f340f4b224f6b1c12d9eb86446428139c2ae80`.
+Documentation and four exact new test registrations are independently approved
+at `/tmp/device-integration-independent-lbndcc/final.json` without changing any
+previously approved test/reference bytes.
+
+Root final checks:
+- Safe source cohort188/188,625 inputs unchanged:
+  `/tmp/device-final-tests-root-Wx9TNA`.
+- Actual package strict options,8 roots,380 sources,390 inputs, zero diagnostics
+  or drift: `/tmp/scripting-public-types-root-x0DElK`.
+- Literal membership98/98: `/tmp/device-final-literal-root-1iRxBK`.
+- Actual public device32 remains green within the coherent66-case replay and
+  140-case broader public/default/optional/mapfile check recorded above; runtime
+  and public test hashes remain unchanged.
+- Guarded lint completes with9946 configured/linted files, zero errors/warnings,
+  25 receipts and11 unchanged candidate inputs:
+  `/tmp/device-final-lint-root-eVGg80`.
+- Actual public device output was visually inspected at
+  `/tmp/device-canonical-visual-root-v2HITM/devices.png`.
+
+This supports a separate local canonical-device increment. It is not a new
+qualification of kernel entropy accounting, reseeding, ioctl, arbitrary off_t
+ranges, the excluded live-native tests, or exact printf error formatting. A
+bounded investigation of that printf diagnostic path is assigned separately;
+no additional random/urandom writes are authorized. Extended read is undergoing
+independent audit. Fuller arrays, background execution/wait, other recorded tool
+gaps, and the overall goal remain unfinished. No push or release is requested.

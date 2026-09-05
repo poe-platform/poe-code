@@ -1,7 +1,7 @@
-import { FsError, readBytes } from "poe-code/safe-fs";
+import { FsError, openFileDescriptor, readBytes } from "poe-code/safe-fs";
 import type {
-  ByteSource, FileStat, FileSystem, FileSystemCapabilities, FsOptions,
-  ReadStreamOptions, WriteFileOptions,
+  ByteSource, FileDescriptor, FileStat, FileSystem, FileSystemCapabilities, FsOptions,
+  OpenFileOptions, ReadStreamOptions, WriteFileOptions,
 } from "poe-code/safe-fs";
 import { yieldTurn } from "../../contracts/yield.js";
 
@@ -11,6 +11,7 @@ type Entry = DeviceName | "/";
 const maxChunkBytes = 65536;
 
 export interface DeviceFileSystem extends FileSystem {
+  open(path: string, options: OpenFileOptions): Promise<FileDescriptor>;
   readStream(path: string, options?: ReadStreamOptions): ByteSource;
   writeStream(path: string, source: ByteSource, options?: WriteFileOptions): Promise<void>;
   rmdir(path: string, options?: FsOptions): Promise<void>;
@@ -21,7 +22,7 @@ export function createDeviceFileSystem(): DeviceFileSystem {
   const identityScope = Symbol("virtual device namespace");
   const capabilities: FileSystemCapabilities = Object.freeze({
     readOnly: false, read: true, stat: true, readdir: true, realpath: true, access: true,
-    write: true, append: true, streamingRead: true, streamingWrite: true, streamingAppend: true,
+    write: true, append: true, open: true, streamingRead: true, streamingWrite: true, streamingAppend: true,
     independentWriteStreams: true,
     explicitDirectories: true, implicitDirectories: false, exclusiveCreate: false,
     mkdir: false, recursiveMkdir: false, remove: false, removeDirectory: false, recursiveRemove: false,
@@ -58,7 +59,7 @@ export function createDeviceFileSystem(): DeviceFileSystem {
     if (!Number.isSafeInteger(value) || value < 0) throw new FsError("EINVAL", { syscall, path });
   }
 
-  function openWrite(path: string, options: WriteFileOptions, syscall: string): void {
+  function openWrite(path: string, options: WriteFileOptions, syscall: string): DeviceName {
     options.signal?.throwIfAborted();
     const flag = options.flag ?? "w";
     if (!["w", "a", "wx", "ax"].includes(flag)) throw new FsError("EINVAL", { syscall, path });
@@ -69,6 +70,28 @@ export function createDeviceFileSystem(): DeviceFileSystem {
     const entry = resolve(path, syscall, options);
     if (flag === "wx" || flag === "ax") throw new FsError("EEXIST", { syscall, path });
     if (entry === "/") throw new FsError("EISDIR", { syscall, path });
+    return entry;
+  }
+
+  function fill(entry: DeviceName, bytes: Uint8Array<ArrayBuffer>, path: string, syscall: string, options: FsOptions): void {
+    options.signal?.throwIfAborted();
+    if (entry === "random" || entry === "urandom") {
+      const crypto = globalThis.crypto;
+      if (typeof crypto?.getRandomValues !== "function") throw new FsError("ENOTSUP", {
+        syscall, path, message: "Web Crypto getRandomValues is required",
+      });
+      try { crypto.getRandomValues(bytes); }
+      catch (cause) {
+        options.signal?.throwIfAborted();
+        throw new FsError("EIO", { syscall, path, cause });
+      }
+    } else bytes.fill(0);
+    options.signal?.throwIfAborted();
+  }
+
+  function admitWrite(entry: DeviceName, bytes: Uint8Array, path: string, syscall: string): void {
+    if (!(bytes instanceof Uint8Array)) throw new TypeError("Device writes require Uint8Array data");
+    if (entry === "urandom") throw new FsError("EPERM", { syscall, path });
   }
 
   function metadata(entry: Entry): FileStat {
@@ -83,6 +106,55 @@ export function createDeviceFileSystem(): DeviceFileSystem {
 
   const filesystem: DeviceFileSystem = {
     capabilities,
+    async open(path, options) {
+      return openFileDescriptor<{ entry: DeviceName; cursor: number }>(path, options, {
+        position: true, readObservation: true, openTruncate: true,
+        positionedRead: true, positionedWrite: true, positionedAppendWrite: true,
+        delegateZeroLengthWrite: true, truncate: true, synchronization: "volatile",
+      }, async admitted => {
+        const entry = resolve(path, "open", admitted);
+        if (admitted.creation === "exclusive") throw new FsError("EEXIST", { syscall: "open", path });
+        if (entry === "/") throw new FsError("EISDIR", { syscall: "open", path });
+        return {
+          resource: { entry, cursor: 0 },
+          async stat(retained) { return metadata(retained.entry); },
+          async getPosition(retained) { return retained.cursor; },
+          async probeRead() { return "ready"; },
+          async read(retained, bytes, position, supplied) {
+            if (retained.entry === "null") return 0;
+            const count = bytes.byteLength;
+            if (position === null && !Number.isSafeInteger(retained.cursor + count)) throw new FsError("EFBIG", { syscall: "read", path });
+            const staging = retained.entry === "zero" ? undefined : new Uint8Array(Math.min(count, maxChunkBytes));
+            let offset = 0;
+            while (offset < count) {
+              supplied.signal?.throwIfAborted();
+              const length = Math.min(count - offset, maxChunkBytes);
+              if (staging === undefined) bytes.fill(0, offset, offset + length);
+              else {
+                const chunk = staging.subarray(0, length);
+                fill(retained.entry, chunk, path, "read", supplied);
+                bytes.set(chunk, offset);
+              }
+              offset += length;
+              if (position === null) retained.cursor += length;
+              if (offset < count) await yieldTurn(supplied.signal);
+            }
+            return count;
+          },
+          async write(retained, bytes, position) {
+            admitWrite(retained.entry, bytes, path, "write");
+            if (position === null) {
+              if (!Number.isSafeInteger(retained.cursor + bytes.byteLength)) throw new FsError("EFBIG", { syscall: "write", path });
+              retained.cursor += bytes.byteLength;
+            }
+            return bytes.byteLength;
+          },
+          async truncate() {},
+          async sync() {},
+          async close() {},
+        };
+      });
+    },
     async stat(path, options = {}) {
       return metadata(resolve(path, "stat", options));
     },
@@ -116,18 +188,7 @@ export function createDeviceFileSystem(): DeviceFileSystem {
       while (remaining > 0) {
         options.signal?.throwIfAborted();
         const bytes = new Uint8Array(Math.min(chunkSize, remaining));
-        if (entry === "random" || entry === "urandom") {
-          const crypto = globalThis.crypto;
-          if (typeof crypto?.getRandomValues !== "function") throw new FsError("ENOTSUP", {
-            syscall: "readStream", path, message: "Web Crypto getRandomValues is required",
-          });
-          try { crypto.getRandomValues(bytes); }
-          catch (cause) {
-            options.signal?.throwIfAborted();
-            throw new FsError("EIO", { syscall: "readStream", path, cause });
-          }
-        }
-        options.signal?.throwIfAborted();
+        fill(entry, bytes, path, "readStream", options);
         remaining -= bytes.byteLength;
         yield bytes;
         options.signal?.throwIfAborted();
@@ -135,17 +196,18 @@ export function createDeviceFileSystem(): DeviceFileSystem {
       }
     },
     async writeFile(path, data, options = {}) {
-      openWrite(path, options, "writeFile");
-      if (!(data instanceof Uint8Array)) throw new TypeError("Device writes require Uint8Array data");
+      const entry = openWrite(path, options, "writeFile");
+      admitWrite(entry, data, path, "writeFile");
     },
     async appendFile(path, data, options = {}) {
-      openWrite(path, { ...options, flag: "a" }, "appendFile");
-      if (!(data instanceof Uint8Array)) throw new TypeError("Device writes require Uint8Array data");
+      const entry = openWrite(path, { ...options, flag: "a" }, "appendFile");
+      admitWrite(entry, data, path, "appendFile");
     },
     async writeStream(path, source, options = {}) {
-      openWrite(path, options, "writeStream");
+      const entry = openWrite(path, options, "writeStream");
       for await (const chunk of readBytes(source, options.signal)) {
         if (!(chunk instanceof Uint8Array)) throw new TypeError("Device writes require Uint8Array data");
+        if (chunk.byteLength !== 0) admitWrite(entry, chunk, path, "writeStream");
         await yieldTurn(options.signal);
       }
       options.signal?.throwIfAborted();

@@ -58,7 +58,8 @@ for (const advertised of [undefined, false, 1, "true"]) {
   test(`review ordinary sequential backends still refuse shared opens: ${String(advertised)}`, async () => {
     const memory = createMemoryFileSystem();
     const fs: FileSystem = new Proxy(memory, { get(target, key) {
-      if (key === "capabilities") return { ...memory.capabilities, randomAccessWrite: false, independentWriteStreams: advertised as boolean | undefined };
+      if (key === "open") return undefined;
+      if (key === "capabilities") return { ...memory.capabilities, open: false, randomAccessWrite: false, independentWriteStreams: advertised as boolean | undefined };
       const value: unknown = Reflect.get(target, key);
       return typeof value === "function" ? value.bind(target) : value;
     } });
@@ -76,8 +77,9 @@ for (const advertised of [undefined, false, 1, "true"]) {
 
 test("review path-specific refusal overrides aggregate independent-stream capability", async () => {
   const memory = createMemoryFileSystem();
-  const capabilities = { ...memory.capabilities, randomAccessWrite: false, independentWriteStreams: false };
+  const capabilities = { ...memory.capabilities, open: false, randomAccessWrite: false, independentWriteStreams: false };
   const fs: FileSystem = new Proxy(memory, { get(target, key) {
+    if (key === "open") return undefined;
     if (key === "capabilities") return { ...capabilities, independentWriteStreams: true };
     if (key === "capabilitiesFor") return async () => capabilities;
     const value: unknown = Reflect.get(target, key);
@@ -99,6 +101,7 @@ test("review independent discard streams do not serialize lifetimes or buffer co
   let bytes = 0;
   const fs = {
     ...devices,
+    capabilities: { ...devices.capabilities, open: false },
     async writeStream(path: string, source: ByteSource, options: Parameters<typeof devices.writeStream>[2]) {
       active++;
       peak = Math.max(peak, active);
@@ -114,6 +117,7 @@ test("review independent discard streams do not serialize lifetimes or buffer co
       } finally { active--; }
     },
   };
+  Reflect.deleteProperty(fs, "open");
   const shell = new Shell({ fs: createMountFileSystem({ root: createMemoryFileSystem(), mounts: { "/dev": fs } }), commands: new CommandRegistry(basicCommands()) });
   shell.register({ name: "fragmented", async execute(context) {
     const payload = new Uint8Array(65536);
@@ -138,21 +142,33 @@ test("review independent discard streams do not serialize lifetimes or buffer co
 test("review failure opening a later descriptor closes earlier device streams", async () => {
   const devices = createDeviceFileSystem();
   let active = 0;
+  let admissions = 0;
+  let peak = 0;
   const fs = {
     ...devices,
+    capabilities: { ...devices.capabilities, open: false },
     async writeStream(path: string, source: ByteSource, options: Parameters<typeof devices.writeStream>[2]) {
       active++;
-      try { await devices.writeStream(path, source, options); }
+      peak = Math.max(peak, active);
+      try { await devices.writeStream(path, {
+        [Symbol.asyncIterator]() { admissions++; return source[Symbol.asyncIterator](); },
+      }, options); }
       finally { active--; }
     },
   };
+  Reflect.deleteProperty(fs, "open");
   const shell = new Shell({ fs: createMountFileSystem({ root: createMemoryFileSystem(), mounts: { "/dev": fs } }), commands: new CommandRegistry(basicCommands()) });
   try {
     const failure = await shell.exec("printf x >/dev/null 2>/dev/missing");
     assert.equal(failure.exitCode, 1);
     assert.equal(active, 0);
+    assert.equal(admissions, 1);
+    assert.equal(peak, 2);
+    peak = 0;
     assert.equal((await shell.exec("printf x >/dev/null 2>/dev/null")).exitCode, 0);
     assert.equal(active, 0);
+    assert.equal(admissions, 3);
+    assert.equal(peak, 2);
   } finally { await shell.dispose(); }
 });
 
@@ -162,14 +178,21 @@ for (const budgetFailure of [false, true]) {
     const controller = new AbortController();
     const reason = new Error("cancel this invocation");
     let active = 0;
+    let admissions = 0;
+    let peak = 0;
     const fs = {
       ...devices,
+      capabilities: { ...devices.capabilities, open: false },
       async writeStream(path: string, source: ByteSource, options: Parameters<typeof devices.writeStream>[2]) {
         active++;
-        try { await devices.writeStream(path, source, options); }
+        peak = Math.max(peak, active);
+        try { await devices.writeStream(path, {
+          [Symbol.asyncIterator]() { admissions++; return source[Symbol.asyncIterator](); },
+        }, options); }
         finally { active--; }
       },
     };
+    Reflect.deleteProperty(fs, "open");
     const shell = new Shell({
       fs: createMountFileSystem({ root: createMemoryFileSystem(), mounts: { "/dev": fs } }),
       commands: new CommandRegistry(basicCommands()),
@@ -187,9 +210,14 @@ for (const budgetFailure of [false, true]) {
         return error instanceof Error && "limit" in error && error.limit === "maxOutputBytes";
       });
       assert.equal(active, 0);
+      assert.equal(admissions, 2);
+      assert.equal(peak, 2);
+      peak = 0;
       const later = await shell.exec("printf ok >/dev/null 2>/dev/null");
       assert.equal(later.exitCode, 0, later.stderr);
       assert.equal(active, 0);
+      assert.equal(admissions, 4);
+      assert.equal(peak, 2);
     } finally { await shell.dispose(); }
   });
 }

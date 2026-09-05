@@ -662,6 +662,10 @@ function assertSource7Discovery(files) {
     "tests/fs/devices/native.test.ts",
     "tests/fs/devices/review.test.ts",
     "tests/fs/devices/shell.test.ts",
+    "tests/fs/devices/canonical-descriptor.test.ts",
+    "tests/fs/devices/canonical-author.test.ts",
+    "tests/fs/devices/canonical-independent.test.ts",
+    "tests/plugins/device-canonical-runtime.test.ts",
   ]) assert.ok(files.includes(path), "optional device test is missing: " + path);
   assert.ok(files.includes("tests/commands/device-metadata.test.ts"), "character metadata test is missing");
   assert.equal(new Set(files).size, files.length);

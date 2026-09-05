@@ -9,6 +9,11 @@ and `/urandom`; `/` is the containing directory. Mount it explicitly at `/dev`
 to obtain conventional shell paths. Nothing is installed in memory filesystems,
 the default command registry, or the default shell.
 
+The single fixed behavioral profile is the qualified GNU-on-Darwin device profile.
+There is no platform detection, portable-profile option, or host-device access.
+Historical portable-profile observations below remain historical evidence, not
+current behavior or a Linux qualification.
+
 Source-level example from the repository root, using the TypeScript loader:
 
 ```ts
@@ -74,11 +79,66 @@ timer-driven cancellation. Breaking iteration closes the generator. Cancelling a
 signal preserves its exact reason, including falsey reasons. Synchronous Web Crypto
 work is not interruptible mid-call; each such call is bounded to one chunk.
 
+## Canonical retained descriptors
+
+`open(path, options)` uses the public safe-fs `openFileDescriptor` builder. Each
+successful open retains a distinct cursor starting at zero and the selected
+virtual node identity. The builder validates options, enforces read/write access,
+serializes admitted operations, preserves signal reasons, blocks new work after
+close, drains admitted work, and releases the retained backend on idempotent close.
+Closing one handle does not close another. No operation reopens a path.
+
+All four nodes advertise `position`, `readObservation`, `openTruncate`,
+`positionedRead`, `positionedWrite`, `positionedAppendWrite`, and
+`delegateZeroLengthWrite`. Effective read/write capabilities are masked by the
+builder for the acquired access mode. `getPosition()` reports the retained cursor;
+`probeRead()` returns `ready` without consuming bytes, including for write-only
+handles. Read attempts on write-only handles and write attempts on read-only
+handles still fail with `EBADF`, including zero-length calls.
+
+Null reads return EOF without touching the caller buffer or advancing the cursor.
+Other successful descriptor reads fill the entire requested view. Zero and random
+reads process it in chunks of at most 65,536 bytes, yielding between chunks for
+cancellation; this is an implementation work bound, not a native syscall ceiling.
+Random reads reuse one bounded, owned ArrayBuffer-backed staging array before
+publishing each chunk into the caller's view, including shared storage. A failing
+or canceled entropy chunk is not published. Earlier successfully published chunks
+remain visible; sequential cursors advance by precisely that committed prefix
+even if a later chunk fails. Positioned reads never change the sequential cursor.
+Errors/cancellation are not converted to a successful partial count. Callers must
+keep their destination view valid until settlement and treat rejected reads as
+potentially having partial effects. No byte equality or replay guarantee exists
+for random reads.
+
+Sequential successful reads/writes advance the cursor by the returned count.
+Positioned operations do not change it. The Darwin profile accepts positioned
+character I/O and positioned writes on append handles; append does not reset a
+sequential cursor to stat size zero. Offsets do not select stored contents or burn
+random bytes. A sequential cursor beyond JavaScript's safe-integer range refuses
+with `EFBIG` rather than publishing an imprecise position. This numerical limit is
+not a native off_t-range parity claim. Large descriptor reads yield between bounded
+chunks; unbounded loops of small reads remain responsible for yielding and
+cancellation/budgets.
+
+Open truncation and writable `truncate(length)` are no-ops preserving identity,
+cursor, size, and timestamps. The descriptor advertises `truncate: true`, while
+the separate filesystem-level pathname truncate capability remains false.
+`sync(false)`, `sync(true)`, and synchronization open options succeed as volatile
+no-ops, never a claim of durable storage or persistence. Exclusive creation fails
+with `EEXIST` for existing entries; missing nodes remain `ENOENT` for every creation
+policy. Opening the directory as a device fails with `EISDIR`.
+
 ## Writes and namespace
 
-`writeFile`, `appendFile`, and `writeStream` accept only `Uint8Array` payloads and
-discard them. Writes never store contents, change read results into stored data,
-or truncate a device. Flags `w` and `a` are supported; `wx` and `ax` reject existing
+`writeFile`, `appendFile`, and `writeStream` accept only `Uint8Array` payloads.
+Null, zero, and random accept and discard writes. Urandom rejects actual writes
+with `EPERM`, including explicit empty `writeFile`, `appendFile`, and descriptor
+`write` calls. Access and writable open still succeed: refusal occurs on writing,
+not acquisition. Bulk stream empty chunks are not explicit write syscalls: an
+empty source or only empty chunks succeeds without writes. A nonempty urandom
+stream chunk fails and closes the producer without pulling subsequent chunks.
+Writes never store contents, change read results into stored data, or truncate a
+device. Flags `w` and `a` are supported; `wx` and `ax` reject existing
 entries with `EEXIST`. Unknown flags and invalid modes reject with `EINVAL`.
 Creation modes do not change existing device permissions.
 
@@ -90,7 +150,8 @@ late failures; cancellation does not wait forever for an uncooperative pending
 `next()` or force arbitrary host work to stop. Cooperative generators finalize.
 
 Namespace entries cannot be created, removed, renamed, linked, or changed
-by chmod, utimes, or truncate. Unsupported mutating capabilities are false;
+by chmod or utimes. Canonical descriptor truncation is a no-op, not a namespace
+mutation; pathname truncation remains unsupported. Unsupported capabilities are false;
 required mutation methods reject with `ENOTSUP` after path admission. Specific
 nonmutating results remain meaningful: recursive mkdir of `/` succeeds, ordinary
 mkdir of an existing entry gives `EEXIST`, force-removing a missing path succeeds,
@@ -101,7 +162,8 @@ This fixed namespace is not a writable devfs or a general-purpose copy engine.
 nodes. It validates both endpoints, directories, exclusivity, and same-node
 identity before reading the source. Null reaches EOF immediately; zero and the
 random devices stream until cancellation or failure. Destination writes discard
-the bytes without accumulation. Missing destinations fail with `ENOENT`, existing
+the bytes without accumulation, except nonempty urandom writes fail with `EPERM`.
+Missing destinations fail with `ENOENT`, existing
 destinations with `exclusive: true` fail with `EEXIST`, and same-node aliases fail
 with `EINVAL`. `copy: true` advertises this operation, not creation of device nodes;
 `exclusiveCopy` remains false. The mounted cross-backend streaming route can also
@@ -131,8 +193,10 @@ not native inode or backing-device claims. Native major/minor numbers, ownership
 and physical allocation remain omitted. Metadata is returned as fresh snapshots.
 
 Reading, stat, listing, realpath, access, writes, append, streaming read/write/append,
-streaming copies, and an explicit containing directory are supported. Random-access writes, mutation
-of permissions/timestamps, namespace changes, and exclusive creation are not.
+streaming copies, retained descriptors, and an explicit containing directory are
+supported. Canonical positioned I/O does not authorize the legacy filesystem-level
+read/modify/replace random-access contract: `randomAccessWrite` remains false.
+Mutation of permissions/timestamps, namespace changes, and exclusive creation are not supported.
 `readOnly` is false because payload writes succeed. `permissions` is false because
 the mode is a fixed virtual policy, not mutable host permission enforcement.
 Access permits device reads/writes but rejects execution; the directory permits
@@ -141,22 +205,19 @@ and rejects overflow with `EFBIG`, never a silently truncated listing.
 
 ## Native differences and integration boundaries
 
-This is a portable character-stream profile, not a complete kernel device driver.
-The Linux manuals describe null EOF, zero-byte reads, and discarded null/zero
-writes. Linux random-device writes additionally mix data into the kernel entropy
-pool. Web Crypto has no equivalent reseeding API: virtual random-device writes
-are accepted and discarded, **not entropy contributions**. Boot-time entropy
-blocking, entropy accounting, ioctl, descriptor seeking, polling, mmap, native
-minor/major numbers, and platform-specific random read syscall limits are not
-emulated. Async stream chunk sizes are not native syscall sizes.
+This implements one fixed Darwin I/O profile, not a complete kernel device driver.
+Web Crypto has no reseeding API: accepted virtual random-device writes are
+discarded, **not entropy contributions**. Boot-time entropy blocking, entropy
+accounting, ioctl, lseek mutation, mmap, and native minor/major numbers are not
+emulated. Stream fragments and bounded internal crypto calls are not native
+syscall-size limits. Successful large descriptor reads preserve the full requested
+count observed in the qualified Darwin matrix.
 
-The Darwin oracle observed `/dev/urandom` writes failing with `EPERM` despite
-successful read/write access and open. Apple's `random_write` implementation
-explicitly rejects the urandom minor number. The virtual device deliberately
-accepts/discards those writes. Tests record this exact mismatch; they do not count
-it as Darwin write parity. Native random bytes cannot be compared for equality;
-sample-length and nonconstant-output checks are smoke evidence, not proof of
-cryptographic quality. The secure-generation guarantee rests on Web Crypto.
+The preserved Darwin receipts establish urandom `EPERM` even for an explicit
+zero-byte write, despite successful access/open. The former portable acceptance
+of those writes is repaired; its original assertions and captures are retained.
+Native random bytes cannot be compared for equality. The secure-generation
+guarantee rests on the embedding host's Web Crypto, not output-distribution tests.
 
 Shared safe-fs integration requires `"character"` in `FileType`. Bridges must
 preserve character type/mode and implement `isCharacterDevice`; Bash renderers and
@@ -164,14 +225,13 @@ type predicates must recognize the new type. The mount implementation forwards
 device identities, stats, streams, and destination-specific capabilities.
 
 Single and multiple shell input/output redirects work with explicit mounts.
-`randomAccessWrite: false` selects the existing streaming output path. The explicit
+Canonical retained-output routing now uses `open` where supported. The explicit
 `independentWriteStreams: true` capability permits separate concurrent sequential
 output streams to the same discard target. It does not assert offsets, random
 access, stored content, cross-stream ordering, or append atomicity. Each descriptor
 owns its stream and cleanup; closing or canceling one does not close its peers.
-The shell consults destination-specific capabilities and relaxes its same-path
-conflict check only for exact boolean true. Absent, false, or other truthy values
-do not relax ordinary sequential-backend protections. This is a provider assertion,
+Stream-only consumers consult destination-specific capabilities; the assertion
+does not disable canonical retained-descriptor support on other providers. This is a provider assertion,
 not a capability inferred from a `/dev` pathname or character mode. Shell input
 and output budgets still apply even to devices. A large producer chunk may exceed
 a very small shell input budget before `head` consumes its requested prefix; devices
@@ -179,6 +239,73 @@ do not bypass those guards. Unbounded `cat`/`tail` needs consumer cancellation o
 shell limits. Buffered/script consumers must not infer EOF from special-node size.
 
 ## References and scoped evidence
+
+Current fixed-profile receipts are retained, not rerun by canonical unit tests:
+`/tmp/device-canonical-profile.5twqzP` (104 observations),
+`/tmp/device-writable-profile.tTzWN8` (149),
+`/tmp/device-random-write-profile.aYgenT` (55), and
+`/tmp/device-sync-zero-profile.LyFRyx` (135). These distinguish running Darwin
+behavior from Apple source evidence. No new native device I/O is authorized by
+the commands below. Rooted-real adapter containment and special-file refusal are
+unchanged; virtual character-device support does not widen host `/dev` access.
+
+The additional read-only native receipt
+`/private/tmp/device-large-read-boundary-pRZM7K/handoff.json` and its `result.json`
+cover 16 syscalls: reads of 65,536, 65,537, and 262,144 bytes and positioned reads
+of 65,537 bytes at offset 3 for all four nodes. Non-null nodes returned full counts;
+null returned zero. Positioned reads retained cursor 7. The retained probe binary
+SHA256 is `474170b0f7cfc81c7d55e8e0f403c65ff4ac6c85799a570311ade0250af6bf91`.
+No native rerun was performed for the implementation. The earlier artificial
+65,536-byte descriptor return cap and its author-test expectation are superseded;
+original source/test bytes and the 12-failure test run remain in
+`/tmp/device-full-read-author.lYmyBW`. Stream chunk behavior is unchanged.
+
+Safe focused tests (no host-device I/O):
+
+```sh
+node --import tsx --test packages/safe-bash/tests/fs/devices/canonical-descriptor.test.ts packages/safe-bash/tests/fs/devices/canonical-author.test.ts
+node --import tsx --test packages/safe-bash/tests/fs/devices/canonical-independent.test.ts packages/safe-bash/tests/fs/devices/native.test.ts
+node --import tsx --test --test-name-pattern='^descriptor order native/null: (readiness|positive)' packages/safe-bash/tests/shell/extensions/read/descriptor-order.test.ts
+```
+
+The eleven read cases use authenticated frozen Bash 5.3 records, not fresh native
+execution. Canonical49 retains every assertion with only the approved fake-backend
+`delegateZeroLengthWrite: true` opt-in. Its original bytes and red runs are in
+`/tmp/device-canonical-author.pllnYw`.
+
+`native.test.ts` now authenticates the bounded `native-reference.json` fixture
+and exercises virtual APIs only. It does not open host devices or spawn native
+processes. Captures A-E preserve the raw receipts and C sources described above.
+Capture F adds four recorded RW/append/nonblocking opens, one 256-byte read per
+device, four closes, and the five original malformed-path lstat observations.
+That separately authorized probe requested 1024 bytes total and performed no
+device writes. The virtual API comparisons do not invent a nonblocking option,
+equate host/virtual inode numbers, or turn separate access calls into an identical
+combined native access call.
+
+Exact one-byte native writes remain distinct from five-byte virtual regressions.
+Large reads compare recorded counts and cursor deltas, not an identical native
+seek setup. Historical random-sample comparisons are diagnostic sampling, not
+proof of secure generation or freshness. The original test and TAPs remain inert
+historical data; their preservation does not establish a missing contemporaneous
+execution binding. Fixture authentication, normal and guarded replay, and
+tampered/empty/oversized/symlink refusal controls are independently reviewed.
+
+Legacy virtual tests now expect urandom write refusal. Stream-only conflict and
+lifecycle fixtures explicitly omit canonical open and advertise `open: false`;
+positive iterator-admission checks prevent cleanup assertions from passing
+without exercising their streams. Original programs and other assertions remain
+preserved. The native-free legacy cohort passes 34 tests.
+
+**Do not use a device-directory wildcard as a no-native-I/O test command.**
+Eleven other legacy cases and the separate `shell.test.ts` still invoke ambient
+native tools; those were not included in the safe retained qualification. They
+are not counted as passes or as a newly pinned native profile. Requalifying them
+requires pinned oracle admission and explicit operation authorization. Exact
+printf diagnostics for urandom write refusal also remain a separate command-level
+qualification gap, not a property established by C syscall errno captures.
+
+### Historical portable candidate (not current qualification)
 
 Primary references inspected September 4, 2026:
 
@@ -188,11 +315,9 @@ Primary references inspected September 4, 2026:
 - W3C Web Cryptography, `getRandomValues`: <https://www.w3.org/TR/webcrypto/#Crypto-method-getRandomValues>.
 - Apple XNU `random_write`: <https://github.com/apple-oss-distributions/xnu/blob/main/bsd/dev/random/randomdev.c>.
 
-Focused test command from the repository root:
-
-```sh
-node --import tsx --test --test-concurrency=1 packages/safe-bash/tests/fs/devices/*.test.ts
-```
+The historical directory-wide test command is retired here because it performs
+native random-device writes and invokes unpinned native Bash. Its old outcomes
+below describe earlier candidates only; they are not safe current run instructions.
 
 TDD evidence: the first suite failed with `ERR_MODULE_NOT_FOUND` before production
 code existed. A subsequent operation-label regression failed with `stat !== lstat`
@@ -232,7 +357,7 @@ SHA-256 bindings for that initial owned candidate and native tools (not future s
 | `/bin/cat` | `580599dd318fa34bb0f91c29106894852c49c3a3df724b637113df95c6758fe6` |
 | `/usr/bin/head` | `b4d147753ce0a14a40c5f9aaca06c04eb7697f2d56c207c0a5e7ce16f31ebfc1` |
 
-## Independent review, September 4, 2026
+### Historical independent review, September 4, 2026
 
 `tests/fs/devices/review.test.ts` independently reproduced the simultaneous
 `printf x >/dev/null 2>/dev/null` failure before adding the capability and a

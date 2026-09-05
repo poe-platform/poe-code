@@ -1,0 +1,3133 @@
+{
+  "schemaVersion": 1,
+  "oracle": {
+    "name": "5.3.0",
+    "executableSHA256": "a0cfc1af0ff50f6b6e67c638979e2604f1c276c90116937fbaafcabb62ee2b40",
+    "environment": {
+      "LC_ALL": "C",
+      "PATH": "/__safe_bash_oracle_no_path__"
+    }
+  },
+  "provenance": {
+    "capturePath": "/tmp/safe-bash-mapfile-primary53.OKIlL7/attempt2/5.3.0/native.jsonl",
+    "captureSHA256": "0e4507ad4f20a7898ec54c1085c038032061a9b050bab577ca146fb4730f2cbe",
+    "profileResultsSHA256": "78859facb7ddc00f2e28bf170b23c6d633a739013b5a64af5e68e36a5645bcb6",
+    "profileDriverSHA256": "37925e2d5956eef69b78e3c8df5773cf7e4d0c3c99fb6b73cec67733be9110f0",
+    "archivePath": "/tmp/safe-bash-mapfile-primary-migration-Msfbtb",
+    "archiveManifestSHA256": "7a630aac1e3ede47a104e585425f2271eb2e11797d005f743581f8364f8b4948",
+    "bindingSHA256": "3f5f84bf581f142b90e120452db20303765de00d9267178be3d2d32503132c09",
+    "policy": "All expected status/stdout/stderr copied exclusively from authenticated GNU Bash 5.3.0 native observations. The unchanged original fixtures were import-only replayed to bind their exact script/argv/stdin request multiset to all 170 observations (147 distinct requests). No virtual output supplies expectations. Original 5.2 files/captures remain in the unique archive. Canonical fixture migration changes only reference imports/calls, frozen-reference gating and explicit version labels; program strings and raw assertions remain unchanged.",
+    "prior52": {
+      "tests": 241,
+      "passed": 234,
+      "failed": 7,
+      "skipped": 0
+    },
+    "prior53Composite": {
+      "coreCommit": "4a516d97018ea6e451ca062da65e3cced13b2b0b",
+      "tests": 241,
+      "passed": 218,
+      "failed": 23,
+      "skipped": 0
+    }
+  },
+  "fixtures": [
+    {
+      "file": "arguments.test.ts",
+      "sha256": "cb3b83e68db9772004a2cb28e014e06c5d04d365fdddca4030fd8776b5975086",
+      "original52SHA256": "e2c3b5bceccaf36fc9a264f2be0c996e968b3b45c3beca67830e4f1818ebec4f"
+    },
+    {
+      "file": "behavior.test.ts",
+      "sha256": "e14b4e3ffd03c90afd59bb175a1e537714bdd520f13bd7e2a934b26cc6ac8fce",
+      "original52SHA256": "fb2c2ef25ee8ba832a8e6829b8aeb7449b24801180464111ce9903956ab8febf"
+    },
+    {
+      "file": "native.test.ts",
+      "sha256": "5a54100d270066f36ce4216641701756ba1ce577ea2a1f15d11744ae834ed058",
+      "original52SHA256": "08511e60d7bff69aebd064c44a0f3fa8fd718e4d151c1ca9d4cce9b644e92405"
+    },
+    {
+      "file": "review.test.ts",
+      "sha256": "c7945003e742e9062875ae64e8c3dfba73616bae71e0f7323419f30c4eb9e0e3",
+      "original52SHA256": "879f9c9d9eb378b1f038a86736333d1052e416449fa16905902d067d494a14fd"
+    },
+    {
+      "file": "evaluation-exit-review.test.ts",
+      "sha256": "d1a04e104a1d77857d394a2123444bcae1d6a23856c51536a326f48453acf2b7",
+      "original52SHA256": "d2b348e60848195ae53690fe01b7becb2c3017324d05f4ada944674f6372e87b"
+    },
+    {
+      "file": "callback-boundary.test.ts",
+      "sha256": "1b1827955b7a409e27e306cf3d9e35fa35cdae930e8ff25263c35ff8a115dee5",
+      "original52SHA256": "41e02a3808ea5bdd9d694cca044f5f8c0ea06397fffbc7cf4b1f2d7f11bcec40"
+    },
+    {
+      "file": "syntax.test.ts",
+      "sha256": "0d4163923fced16800c991e8ba5d3079cd9262019801139f8e94aef32d5e5911",
+      "original52SHA256": "95a0607da0fd543d32b8620a353d5e5f6ea1d943ebb4bb3e4bd063d760354212"
+    }
+  ],
+  "records": [
+    {
+      "fixture": "arguments.test.ts",
+      "captureIndex": 0,
+      "args": [
+        "--noprofile",
+        "--norc",
+        "-c",
+        "mapfile '-n' '-1'",
+        "shell"
+      ],
+      "argv0": null,
+      "inputHex": "6f6e650a74776f0a",
+      "expected": {
+        "status": 1,
+        "stdoutHex": "",
+        "stderrHex": "7368656c6c3a206c696e6520313a206d617066696c653a202d313a20696e76616c6964206c696e6520636f756e740a"
+      }
+    },
+    {
+      "fixture": "arguments.test.ts",
+      "captureIndex": 1,
+      "args": [
+        "--noprofile",
+        "--norc",
+        "-c",
+        "mapfile '-n' '4294967296'",
+        "shell"
+      ],
+      "argv0": null,
+      "inputHex": "6f6e650a74776f0a",
+      "expected": {
+        "status": 1,
+        "stdoutHex": "",
+        "stderrHex": "7368656c6c3a206c696e6520313a206d617066696c653a20343239343936373239363a20696e76616c6964206c696e6520636f756e740a"
+      }
+    },
+    {
+      "fixture": "arguments.test.ts",
+      "captureIndex": 2,
+      "args": [
+        "--noprofile",
+        "--norc",
+        "-c",
+        "mapfile '-n' '0x10'",
+        "shell"
+      ],
+      "argv0": null,
+      "inputHex": "6f6e650a74776f0a",
+      "expected": {
+        "status": 1,
+        "stdoutHex": "",
+        "stderrHex": "7368656c6c3a206c696e6520313a206d617066696c653a20307831303a20696e76616c6964206c696e6520636f756e740a"
+      }
+    },
+    {
+      "fixture": "arguments.test.ts",
+      "captureIndex": 3,
+      "args": [
+        "--noprofile",
+        "--norc",
+        "-c",
+        "mapfile '-n' '2x'",
+        "shell"
+      ],
+      "argv0": null,
+      "inputHex": "6f6e650a74776f0a",
+      "expected": {
+        "status": 1,
+        "stdoutHex": "",
+        "stderrHex": "7368656c6c3a206c696e6520313a206d617066696c653a2032783a20696e76616c6964206c696e6520636f756e740a"
+      }
+    },
+    {
+      "fixture": "arguments.test.ts",
+      "captureIndex": 4,
+      "args": [
+        "--noprofile",
+        "--norc",
+        "-c",
+        "mapfile '-n' ''",
+        "shell"
+      ],
+      "argv0": null,
+      "inputHex": "6f6e650a74776f0a",
+      "expected": {
+        "status": 1,
+        "stdoutHex": "",
+        "stderrHex": "7368656c6c3a206c696e6520313a206d617066696c653a203a20696e76616c6964206c696e6520636f756e740a"
+      }
+    },
+    {
+      "fixture": "arguments.test.ts",
+      "captureIndex": 5,
+      "args": [
+        "--noprofile",
+        "--norc",
+        "-c",
+        "mapfile '-O' '-1'",
+        "shell"
+      ],
+      "argv0": null,
+      "inputHex": "6f6e650a74776f0a",
+      "expected": {
+        "status": 1,
+        "stdoutHex": "",
+        "stderrHex": "7368656c6c3a206c696e6520313a206d617066696c653a202d313a20696e76616c6964206172726179206f726967696e0a"
+      }
+    },
+    {
+      "fixture": "arguments.test.ts",
+      "captureIndex": 6,
+      "args": [
+        "--noprofile",
+        "--norc",
+        "-c",
+        "mapfile '-s' '-1'",
+        "shell"
+      ],
+      "argv0": null,
+      "inputHex": "6f6e650a74776f0a",
+      "expected": {
+        "status": 1,
+        "stdoutHex": "",
+        "stderrHex": "7368656c6c3a206c696e6520313a206d617066696c653a202d313a20696e76616c6964206c696e6520636f756e740a"
+      }
+    },
+    {
+      "fixture": "arguments.test.ts",
+      "captureIndex": 7,
+      "args": [
+        "--noprofile",
+        "--norc",
+        "-c",
+        "mapfile '-c' '0'",
+        "shell"
+      ],
+      "argv0": null,
+      "inputHex": "6f6e650a74776f0a",
+      "expected": {
+        "status": 1,
+        "stdoutHex": "",
+        "stderrHex": "7368656c6c3a206c696e6520313a206d617066696c653a20303a20696e76616c69642063616c6c6261636b207175616e74756d0a"
+      }
+    },
+    {
+      "fixture": "arguments.test.ts",
+      "captureIndex": 8,
+      "args": [
+        "--noprofile",
+        "--norc",
+        "-c",
+        "mapfile '-c' '4294967296'",
+        "shell"
+      ],
+      "argv0": null,
+      "inputHex": "6f6e650a74776f0a",
+      "expected": {
+        "status": 1,
+        "stdoutHex": "",
+        "stderrHex": "7368656c6c3a206c696e6520313a206d617066696c653a20343239343936373239363a20696e76616c69642063616c6c6261636b207175616e74756d0a"
+      }
+    },
+    {
+      "fixture": "arguments.test.ts",
+      "captureIndex": 9,
+      "args": [
+        "--noprofile",
+        "--norc",
+        "-c",
+        "mapfile '-u' '-1'",
+        "shell"
+      ],
+      "argv0": null,
+      "inputHex": "6f6e650a74776f0a",
+      "expected": {
+        "status": 1,
+        "stdoutHex": "",
+        "stderrHex": "7368656c6c3a206c696e6520313a206d617066696c653a202d313a20696e76616c69642066696c652064657363726970746f722073706563696669636174696f6e0a"
+      }
+    },
+    {
+      "fixture": "arguments.test.ts",
+      "captureIndex": 10,
+      "args": [
+        "--noprofile",
+        "--norc",
+        "-c",
+        "mapfile '-u' '2147483648'",
+        "shell"
+      ],
+      "argv0": null,
+      "inputHex": "6f6e650a74776f0a",
+      "expected": {
+        "status": 1,
+        "stdoutHex": "",
+        "stderrHex": "7368656c6c3a206c696e6520313a206d617066696c653a20323134373438333634383a20696e76616c69642066696c652064657363726970746f722073706563696669636174696f6e0a"
+      }
+    },
+    {
+      "fixture": "arguments.test.ts",
+      "captureIndex": 11,
+      "args": [
+        "--noprofile",
+        "--norc",
+        "-c",
+        "mapfile '-Q'",
+        "shell"
+      ],
+      "argv0": null,
+      "inputHex": "6f6e650a74776f0a",
+      "expected": {
+        "status": 2,
+        "stdoutHex": "",
+        "stderrHex": "7368656c6c3a206c696e6520313a206d617066696c653a202d513a20696e76616c6964206f7074696f6e0a6d617066696c653a2075736167653a206d617066696c65205b2d642064656c696d5d205b2d6e20636f756e745d205b2d4f206f726967696e5d205b2d7320636f756e745d205b2d745d205b2d752066645d205b2d432063616c6c6261636b5d205b2d63207175616e74756d5d205b61727261795d0a"
+      }
+    },
+    {
+      "fixture": "arguments.test.ts",
+      "captureIndex": 12,
+      "args": [
+        "--noprofile",
+        "--norc",
+        "-c",
+        "mapfile '--hel'",
+        "shell"
+      ],
+      "argv0": null,
+      "inputHex": "6f6e650a74776f0a",
+      "expected": {
+        "status": 2,
+        "stdoutHex": "",
+        "stderrHex": "7368656c6c3a206c696e6520313a206d617066696c653a202d2d3a20696e76616c6964206f7074696f6e0a6d617066696c653a2075736167653a206d617066696c65205b2d642064656c696d5d205b2d6e20636f756e745d205b2d4f206f726967696e5d205b2d7320636f756e745d205b2d745d205b2d752066645d205b2d432063616c6c6261636b5d205b2d63207175616e74756d5d205b61727261795d0a"
+      }
+    },
+    {
+      "fixture": "arguments.test.ts",
+      "captureIndex": 13,
+      "args": [
+        "--noprofile",
+        "--norc",
+        "-c",
+        "mapfile '-n'",
+        "shell"
+      ],
+      "argv0": null,
+      "inputHex": "6f6e650a74776f0a",
+      "expected": {
+        "status": 2,
+        "stdoutHex": "",
+        "stderrHex": "7368656c6c3a206c696e6520313a206d617066696c653a202d6e3a206f7074696f6e20726571756972657320616e20617267756d656e740a6d617066696c653a2075736167653a206d617066696c65205b2d642064656c696d5d205b2d6e20636f756e745d205b2d4f206f726967696e5d205b2d7320636f756e745d205b2d745d205b2d752066645d205b2d432063616c6c6261636b5d205b2d63207175616e74756d5d205b61727261795d0a"
+      }
+    },
+    {
+      "fixture": "arguments.test.ts",
+      "captureIndex": 14,
+      "args": [
+        "--noprofile",
+        "--norc",
+        "-c",
+        "mapfile ''",
+        "shell"
+      ],
+      "argv0": null,
+      "inputHex": "6f6e650a74776f0a",
+      "expected": {
+        "status": 2,
+        "stdoutHex": "",
+        "stderrHex": "7368656c6c3a206c696e6520313a206d617066696c653a20656d707479206172726179207661726961626c65206e616d650a"
+      }
+    },
+    {
+      "fixture": "arguments.test.ts",
+      "captureIndex": 15,
+      "args": [
+        "--noprofile",
+        "--norc",
+        "-c",
+        "mapfile 'a[0]'",
+        "shell"
+      ],
+      "argv0": null,
+      "inputHex": "6f6e650a74776f0a",
+      "expected": {
+        "status": 1,
+        "stdoutHex": "",
+        "stderrHex": "7368656c6c3a206c696e6520313a206d617066696c653a2060615b305d273a206e6f7420612076616c6964206964656e7469666965720a"
+      }
+    },
+    {
+      "fixture": "arguments.test.ts",
+      "captureIndex": 16,
+      "args": [
+        "--noprofile",
+        "--norc",
+        "-c",
+        "mapfile '-t' '--' '-a'",
+        "shell"
+      ],
+      "argv0": null,
+      "inputHex": "6f6e650a74776f0a",
+      "expected": {
+        "status": 1,
+        "stdoutHex": "",
+        "stderrHex": "7368656c6c3a206c696e6520313a206d617066696c653a20602d61273a206e6f7420612076616c6964206964656e7469666965720a"
+      }
+    },
+    {
+      "fixture": "arguments.test.ts",
+      "captureIndex": 17,
+      "args": [
+        "--noprofile",
+        "--norc",
+        "-c",
+        "mapfile '-t' '-'",
+        "shell"
+      ],
+      "argv0": null,
+      "inputHex": "6f6e650a74776f0a",
+      "expected": {
+        "status": 1,
+        "stdoutHex": "",
+        "stderrHex": "7368656c6c3a206c696e6520313a206d617066696c653a20602d273a206e6f7420612076616c6964206964656e7469666965720a"
+      }
+    },
+    {
+      "fixture": "arguments.test.ts",
+      "captureIndex": 18,
+      "args": [
+        "--noprofile",
+        "--norc",
+        "-c",
+        "mapfile --help",
+        "shell"
+      ],
+      "argv0": null,
+      "inputHex": null,
+      "expected": {
+        "status": 2,
+        "stdoutHex": "6d617066696c653a206d617066696c65205b2d642064656c696d5d205b2d6e20636f756e745d205b2d4f206f726967696e5d205b2d7320636f756e745d205b2d745d205b2d752066645d205b2d432063616c6c6261636b5d205b2d63207175616e74756d5d205b61727261795d0a2020202052656164206c696e65732066726f6d20746865207374616e6461726420696e70757420696e746f20616e20696e6465786564206172726179207661726961626c652e0a202020200a2020202052656164206c696e65732066726f6d20746865207374616e6461726420696e70757420696e746f2074686520696e6465786564206172726179207661726961626c652041525241592c206f720a2020202066726f6d2066696c652064657363726970746f7220464420696620746865202d75206f7074696f6e20697320737570706c6965642e2020546865207661726961626c65204d415046494c450a202020206973207468652064656661756c742041525241592e0a202020200a202020204f7074696f6e733a0a2020202020202d642064656c696d095573652044454c494d20746f207465726d696e617465206c696e65732c20696e7374656164206f66206e65776c696e650a2020202020202d6e20636f756e7409436f7079206174206d6f737420434f554e54206c696e65732e2020496620434f554e5420697320302c20616c6c206c696e65732061726520636f706965640a2020202020202d4f206f726967696e09426567696e2061737369676e696e6720746f20415252415920617420696e646578204f524947494e2e20205468652064656661756c7420696e64657820697320300a2020202020202d7320636f756e7409446973636172642074686520666972737420434f554e54206c696e657320726561640a2020202020202d740952656d6f7665206120747261696c696e672044454c494d2066726f6d2065616368206c696e652072656164202864656661756c74206e65776c696e65290a2020202020202d752066640952656164206c696e65732066726f6d2066696c652064657363726970746f7220464420696e7374656164206f6620746865207374616e6461726420696e7075740a2020202020202d432063616c6c6261636b094576616c756174652043414c4c4241434b20656163682074696d65205155414e54554d206c696e65732061726520726561640a2020202020202d63207175616e74756d095370656369667920746865206e756d626572206f66206c696e65732072656164206265747765656e20656163682063616c6c20746f0a2020202009090943414c4c4241434b0a202020200a20202020417267756d656e74733a0a2020202020204152524159094172726179207661726961626c65206e616d6520746f2075736520666f722066696c6520646174610a202020200a202020204966202d4320697320737570706c69656420776974686f7574202d632c207468652064656661756c74207175616e74756d20697320353030302e20205768656e0a2020202043414c4c4241434b206973206576616c75617465642c20697420697320737570706c6965642074686520696e646578206f6620746865206e6578742061727261790a20202020656c656d656e7420746f2062652061737369676e656420616e6420746865206c696e6520746f2062652061737369676e656420746f207468617420656c656d656e740a202020206173206164646974696f6e616c20617267756d656e74732e0a202020200a202020204966206e6f7420737570706c696564207769746820616e206578706c69636974206f726967696e2c206d617066696c652077696c6c20636c656172204152524159206265666f72650a2020202061737369676e696e6720746f2069742e0a202020200a2020202045786974205374617475733a0a2020202052657475726e73207375636365737320756e6c65737320616e20696e76616c6964206f7074696f6e20697320676976656e206f7220415252415920697320726561646f6e6c79206f720a202020206e6f7420616e20696e64657865642061727261792e0a",
+        "stderrHex": ""
+      }
+    },
+    {
+      "fixture": "arguments.test.ts",
+      "captureIndex": 19,
+      "args": [
+        "--noprofile",
+        "--norc",
+        "-c",
+        "mapfile '-n' '-1'",
+        "shell"
+      ],
+      "argv0": null,
+      "inputHex": "6f6e650a74776f0a",
+      "expected": {
+        "status": 1,
+        "stdoutHex": "",
+        "stderrHex": "7368656c6c3a206c696e6520313a206d617066696c653a202d313a20696e76616c6964206c696e6520636f756e740a"
+      }
+    },
+    {
+      "fixture": "arguments.test.ts",
+      "captureIndex": 20,
+      "args": [
+        "--noprofile",
+        "--norc",
+        "-c",
+        "mapfile '-n' '4294967296'",
+        "shell"
+      ],
+      "argv0": null,
+      "inputHex": "6f6e650a74776f0a",
+      "expected": {
+        "status": 1,
+        "stdoutHex": "",
+        "stderrHex": "7368656c6c3a206c696e6520313a206d617066696c653a20343239343936373239363a20696e76616c6964206c696e6520636f756e740a"
+      }
+    },
+    {
+      "fixture": "arguments.test.ts",
+      "captureIndex": 21,
+      "args": [
+        "--noprofile",
+        "--norc",
+        "-c",
+        "mapfile '-n' '0x10'",
+        "shell"
+      ],
+      "argv0": null,
+      "inputHex": "6f6e650a74776f0a",
+      "expected": {
+        "status": 1,
+        "stdoutHex": "",
+        "stderrHex": "7368656c6c3a206c696e6520313a206d617066696c653a20307831303a20696e76616c6964206c696e6520636f756e740a"
+      }
+    },
+    {
+      "fixture": "arguments.test.ts",
+      "captureIndex": 22,
+      "args": [
+        "--noprofile",
+        "--norc",
+        "-c",
+        "mapfile '-n' '2x'",
+        "shell"
+      ],
+      "argv0": null,
+      "inputHex": "6f6e650a74776f0a",
+      "expected": {
+        "status": 1,
+        "stdoutHex": "",
+        "stderrHex": "7368656c6c3a206c696e6520313a206d617066696c653a2032783a20696e76616c6964206c696e6520636f756e740a"
+      }
+    },
+    {
+      "fixture": "arguments.test.ts",
+      "captureIndex": 23,
+      "args": [
+        "--noprofile",
+        "--norc",
+        "-c",
+        "mapfile '-n' ''",
+        "shell"
+      ],
+      "argv0": null,
+      "inputHex": "6f6e650a74776f0a",
+      "expected": {
+        "status": 1,
+        "stdoutHex": "",
+        "stderrHex": "7368656c6c3a206c696e6520313a206d617066696c653a203a20696e76616c6964206c696e6520636f756e740a"
+      }
+    },
+    {
+      "fixture": "arguments.test.ts",
+      "captureIndex": 24,
+      "args": [
+        "--noprofile",
+        "--norc",
+        "-c",
+        "mapfile '-O' '-1'",
+        "shell"
+      ],
+      "argv0": null,
+      "inputHex": "6f6e650a74776f0a",
+      "expected": {
+        "status": 1,
+        "stdoutHex": "",
+        "stderrHex": "7368656c6c3a206c696e6520313a206d617066696c653a202d313a20696e76616c6964206172726179206f726967696e0a"
+      }
+    },
+    {
+      "fixture": "arguments.test.ts",
+      "captureIndex": 25,
+      "args": [
+        "--noprofile",
+        "--norc",
+        "-c",
+        "mapfile '-s' '-1'",
+        "shell"
+      ],
+      "argv0": null,
+      "inputHex": "6f6e650a74776f0a",
+      "expected": {
+        "status": 1,
+        "stdoutHex": "",
+        "stderrHex": "7368656c6c3a206c696e6520313a206d617066696c653a202d313a20696e76616c6964206c696e6520636f756e740a"
+      }
+    },
+    {
+      "fixture": "arguments.test.ts",
+      "captureIndex": 26,
+      "args": [
+        "--noprofile",
+        "--norc",
+        "-c",
+        "mapfile '-c' '0'",
+        "shell"
+      ],
+      "argv0": null,
+      "inputHex": "6f6e650a74776f0a",
+      "expected": {
+        "status": 1,
+        "stdoutHex": "",
+        "stderrHex": "7368656c6c3a206c696e6520313a206d617066696c653a20303a20696e76616c69642063616c6c6261636b207175616e74756d0a"
+      }
+    },
+    {
+      "fixture": "arguments.test.ts",
+      "captureIndex": 27,
+      "args": [
+        "--noprofile",
+        "--norc",
+        "-c",
+        "mapfile '-c' '4294967296'",
+        "shell"
+      ],
+      "argv0": null,
+      "inputHex": "6f6e650a74776f0a",
+      "expected": {
+        "status": 1,
+        "stdoutHex": "",
+        "stderrHex": "7368656c6c3a206c696e6520313a206d617066696c653a20343239343936373239363a20696e76616c69642063616c6c6261636b207175616e74756d0a"
+      }
+    },
+    {
+      "fixture": "arguments.test.ts",
+      "captureIndex": 28,
+      "args": [
+        "--noprofile",
+        "--norc",
+        "-c",
+        "mapfile '-u' '-1'",
+        "shell"
+      ],
+      "argv0": null,
+      "inputHex": "6f6e650a74776f0a",
+      "expected": {
+        "status": 1,
+        "stdoutHex": "",
+        "stderrHex": "7368656c6c3a206c696e6520313a206d617066696c653a202d313a20696e76616c69642066696c652064657363726970746f722073706563696669636174696f6e0a"
+      }
+    },
+    {
+      "fixture": "arguments.test.ts",
+      "captureIndex": 29,
+      "args": [
+        "--noprofile",
+        "--norc",
+        "-c",
+        "mapfile '-u' '2147483648'",
+        "shell"
+      ],
+      "argv0": null,
+      "inputHex": "6f6e650a74776f0a",
+      "expected": {
+        "status": 1,
+        "stdoutHex": "",
+        "stderrHex": "7368656c6c3a206c696e6520313a206d617066696c653a20323134373438333634383a20696e76616c69642066696c652064657363726970746f722073706563696669636174696f6e0a"
+      }
+    },
+    {
+      "fixture": "arguments.test.ts",
+      "captureIndex": 30,
+      "args": [
+        "--noprofile",
+        "--norc",
+        "-c",
+        "mapfile '-Q'",
+        "shell"
+      ],
+      "argv0": null,
+      "inputHex": "6f6e650a74776f0a",
+      "expected": {
+        "status": 2,
+        "stdoutHex": "",
+        "stderrHex": "7368656c6c3a206c696e6520313a206d617066696c653a202d513a20696e76616c6964206f7074696f6e0a6d617066696c653a2075736167653a206d617066696c65205b2d642064656c696d5d205b2d6e20636f756e745d205b2d4f206f726967696e5d205b2d7320636f756e745d205b2d745d205b2d752066645d205b2d432063616c6c6261636b5d205b2d63207175616e74756d5d205b61727261795d0a"
+      }
+    },
+    {
+      "fixture": "arguments.test.ts",
+      "captureIndex": 31,
+      "args": [
+        "--noprofile",
+        "--norc",
+        "-c",
+        "mapfile '--hel'",
+        "shell"
+      ],
+      "argv0": null,
+      "inputHex": "6f6e650a74776f0a",
+      "expected": {
+        "status": 2,
+        "stdoutHex": "",
+        "stderrHex": "7368656c6c3a206c696e6520313a206d617066696c653a202d2d3a20696e76616c6964206f7074696f6e0a6d617066696c653a2075736167653a206d617066696c65205b2d642064656c696d5d205b2d6e20636f756e745d205b2d4f206f726967696e5d205b2d7320636f756e745d205b2d745d205b2d752066645d205b2d432063616c6c6261636b5d205b2d63207175616e74756d5d205b61727261795d0a"
+      }
+    },
+    {
+      "fixture": "arguments.test.ts",
+      "captureIndex": 32,
+      "args": [
+        "--noprofile",
+        "--norc",
+        "-c",
+        "mapfile '-n'",
+        "shell"
+      ],
+      "argv0": null,
+      "inputHex": "6f6e650a74776f0a",
+      "expected": {
+        "status": 2,
+        "stdoutHex": "",
+        "stderrHex": "7368656c6c3a206c696e6520313a206d617066696c653a202d6e3a206f7074696f6e20726571756972657320616e20617267756d656e740a6d617066696c653a2075736167653a206d617066696c65205b2d642064656c696d5d205b2d6e20636f756e745d205b2d4f206f726967696e5d205b2d7320636f756e745d205b2d745d205b2d752066645d205b2d432063616c6c6261636b5d205b2d63207175616e74756d5d205b61727261795d0a"
+      }
+    },
+    {
+      "fixture": "arguments.test.ts",
+      "captureIndex": 33,
+      "args": [
+        "--noprofile",
+        "--norc",
+        "-c",
+        "mapfile ''",
+        "shell"
+      ],
+      "argv0": null,
+      "inputHex": "6f6e650a74776f0a",
+      "expected": {
+        "status": 2,
+        "stdoutHex": "",
+        "stderrHex": "7368656c6c3a206c696e6520313a206d617066696c653a20656d707479206172726179207661726961626c65206e616d650a"
+      }
+    },
+    {
+      "fixture": "arguments.test.ts",
+      "captureIndex": 34,
+      "args": [
+        "--noprofile",
+        "--norc",
+        "-c",
+        "mapfile 'a[0]'",
+        "shell"
+      ],
+      "argv0": null,
+      "inputHex": "6f6e650a74776f0a",
+      "expected": {
+        "status": 1,
+        "stdoutHex": "",
+        "stderrHex": "7368656c6c3a206c696e6520313a206d617066696c653a2060615b305d273a206e6f7420612076616c6964206964656e7469666965720a"
+      }
+    },
+    {
+      "fixture": "arguments.test.ts",
+      "captureIndex": 35,
+      "args": [
+        "--noprofile",
+        "--norc",
+        "-c",
+        "mapfile '-t' '--' '-a'",
+        "shell"
+      ],
+      "argv0": null,
+      "inputHex": "6f6e650a74776f0a",
+      "expected": {
+        "status": 1,
+        "stdoutHex": "",
+        "stderrHex": "7368656c6c3a206c696e6520313a206d617066696c653a20602d61273a206e6f7420612076616c6964206964656e7469666965720a"
+      }
+    },
+    {
+      "fixture": "arguments.test.ts",
+      "captureIndex": 36,
+      "args": [
+        "--noprofile",
+        "--norc",
+        "-c",
+        "mapfile '-t' '-'",
+        "shell"
+      ],
+      "argv0": null,
+      "inputHex": "6f6e650a74776f0a",
+      "expected": {
+        "status": 1,
+        "stdoutHex": "",
+        "stderrHex": "7368656c6c3a206c696e6520313a206d617066696c653a20602d273a206e6f7420612076616c6964206964656e7469666965720a"
+      }
+    },
+    {
+      "fixture": "behavior.test.ts",
+      "captureIndex": 37,
+      "args": [
+        "--noprofile",
+        "--norc",
+        "-c",
+        "mapfile; printf '<%s>' \"${MAPFILE[@]}\"",
+        "shell"
+      ],
+      "argv0": null,
+      "inputHex": "6f6e650a74776f0a7461696c",
+      "expected": {
+        "status": 0,
+        "stdoutHex": "3c6f6e650a3e3c74776f0a3e3c7461696c3e",
+        "stderrHex": ""
+      }
+    },
+    {
+      "fixture": "behavior.test.ts",
+      "captureIndex": 38,
+      "args": [
+        "--noprofile",
+        "--norc",
+        "-c",
+        "readarray -t a; printf '<%s>' \"${a[@]}\"",
+        "shell"
+      ],
+      "argv0": null,
+      "inputHex": "6f6e650a74776f0a",
+      "expected": {
+        "status": 0,
+        "stdoutHex": "3c6f6e653e3c74776f3e",
+        "stderrHex": ""
+      }
+    },
+    {
+      "fixture": "behavior.test.ts",
+      "captureIndex": 39,
+      "args": [
+        "--noprofile",
+        "--norc",
+        "-c",
+        "a=(old tail); mapfile a; printf '%s' \"${#a[@]}\"",
+        "shell"
+      ],
+      "argv0": null,
+      "inputHex": "",
+      "expected": {
+        "status": 0,
+        "stdoutHex": "30",
+        "stderrHex": ""
+      }
+    },
+    {
+      "fixture": "behavior.test.ts",
+      "captureIndex": 40,
+      "args": [
+        "--noprofile",
+        "--norc",
+        "-c",
+        "a=(old tail keep); mapfile -tn1 -s1 -O1 a; printf '<%s>' \"${a[@]}\"; read -r rest; printf '<%s>' \"$rest\"",
+        "shell"
+      ],
+      "argv0": null,
+      "inputHex": "736b69700a6f6e650a726573740a",
+      "expected": {
+        "status": 0,
+        "stdoutHex": "3c6f6c643e3c6f6e653e3c6b6565703e3c726573743e",
+        "stderrHex": ""
+      }
+    },
+    {
+      "fixture": "behavior.test.ts",
+      "captureIndex": 41,
+      "args": [
+        "--noprofile",
+        "--norc",
+        "-c",
+        "mapfile -td:: a; printf '<%s>' \"${a[@]}\"",
+        "shell"
+      ],
+      "argv0": null,
+      "inputHex": "6f6e653a74776f3a3a7461696c",
+      "expected": {
+        "status": 0,
+        "stdoutHex": "3c6f6e653e3c74776f3e3c3e3c7461696c3e",
+        "stderrHex": ""
+      }
+    },
+    {
+      "fixture": "behavior.test.ts",
+      "captureIndex": 42,
+      "args": [
+        "--noprofile",
+        "--norc",
+        "-c",
+        "mapfile -d '' a; printf '<%s>' \"${a[@]}\"",
+        "shell"
+      ],
+      "argv0": null,
+      "inputHex": "6f6e650074776f007461696c",
+      "expected": {
+        "status": 0,
+        "stdoutHex": "3c6f6e653e3c74776f3e3c7461696c3e",
+        "stderrHex": ""
+      }
+    },
+    {
+      "fixture": "behavior.test.ts",
+      "captureIndex": 43,
+      "args": [
+        "--noprofile",
+        "--norc",
+        "-c",
+        "mapfile a; printf '<%s>' \"${a[@]}\"",
+        "shell"
+      ],
+      "argv0": null,
+      "inputHex": "6100620a630a",
+      "expected": {
+        "status": 0,
+        "stdoutHex": "3c613e3c630a3e",
+        "stderrHex": ""
+      }
+    },
+    {
+      "fixture": "behavior.test.ts",
+      "captureIndex": 44,
+      "args": [
+        "--noprofile",
+        "--norc",
+        "-c",
+        "a=(old); cb() { printf 'cb:%s:<%s>:<%s>\\n' \"$1\" \"$2\" \"${a[*]}\"; }; mapfile -t -C cb -c1 a; printf '<%s>' \"${a[@]}\"",
+        "shell"
+      ],
+      "argv0": null,
+      "inputHex": "6f6e650a74776f0a",
+      "expected": {
+        "status": 0,
+        "stdoutHex": "63623a303a3c6f6e653e3a3c3e0a63623a313a3c74776f3e3a3c6f6e653e0a3c6f6e653e3c74776f3e",
+        "stderrHex": ""
+      }
+    },
+    {
+      "fixture": "behavior.test.ts",
+      "captureIndex": 45,
+      "args": [
+        "--noprofile",
+        "--norc",
+        "-c",
+        "cb() { false; }; mapfile -t -C cb -c1 a; printf '%s:<%s>' \"$?\" \"${a[*]}\"",
+        "shell"
+      ],
+      "argv0": null,
+      "inputHex": "6f6e650a74776f0a",
+      "expected": {
+        "status": 0,
+        "stdoutHex": "303a3c6f6e652074776f3e",
+        "stderrHex": ""
+      }
+    },
+    {
+      "fixture": "behavior.test.ts",
+      "captureIndex": 46,
+      "args": [
+        "--noprofile",
+        "--norc",
+        "-c",
+        "cb() { readonly a; }; mapfile -t -C cb -c1 a; printf '<%s>' \"${a[@]}\"",
+        "shell"
+      ],
+      "argv0": null,
+      "inputHex": "6f6e650a74776f0a",
+      "expected": {
+        "status": 0,
+        "stdoutHex": "3c6f6e653e3c74776f3e",
+        "stderrHex": ""
+      }
+    },
+    {
+      "fixture": "behavior.test.ts",
+      "captureIndex": 47,
+      "args": [
+        "--noprofile",
+        "--norc",
+        "-c",
+        "cb() { a=(callback); }; mapfile -t -C cb -c1 a; printf '<%s>' \"${a[@]}\"",
+        "shell"
+      ],
+      "argv0": null,
+      "inputHex": "6f6e650a74776f0a",
+      "expected": {
+        "status": 0,
+        "stdoutHex": "3c63616c6c6261636b3e3c74776f3e",
+        "stderrHex": ""
+      }
+    },
+    {
+      "fixture": "behavior.test.ts",
+      "captureIndex": 48,
+      "args": [
+        "--noprofile",
+        "--norc",
+        "-c",
+        "cb() { read -r consumed; printf '%s:%s;' \"$2\" \"$consumed\"; }; mapfile -t -C cb -c1 a; printf '<%s>' \"${a[@]}\"",
+        "shell"
+      ],
+      "argv0": null,
+      "inputHex": "6f6e650a74776f0a74687265650a666f75720a",
+      "expected": {
+        "status": 0,
+        "stdoutHex": "6f6e653a74776f3b74687265653a666f75723b3c6f6e653e3c74687265653e",
+        "stderrHex": ""
+      }
+    },
+    {
+      "fixture": "behavior.test.ts",
+      "captureIndex": 49,
+      "args": [
+        "--noprofile",
+        "--norc",
+        "-c",
+        "export a=old; mapfile -t a; printf '<%s>' \"${a[@]}\"",
+        "shell"
+      ],
+      "argv0": null,
+      "inputHex": "6f6e650a74776f0a",
+      "expected": {
+        "status": 0,
+        "stdoutHex": "3c6f6e653e3c74776f3e",
+        "stderrHex": ""
+      }
+    },
+    {
+      "fixture": "behavior.test.ts",
+      "captureIndex": 50,
+      "args": [
+        "--noprofile",
+        "--norc",
+        "-c",
+        "mapfile -t -O4294967295 a; printf '<%s>' \"${!a[@]}\"",
+        "shell"
+      ],
+      "argv0": null,
+      "inputHex": "6f6e650a74776f0a",
+      "expected": {
+        "status": 0,
+        "stdoutHex": "3c303e3c343239343936373239353e",
+        "stderrHex": ""
+      }
+    },
+    {
+      "fixture": "behavior.test.ts",
+      "captureIndex": 51,
+      "args": [
+        "--noprofile",
+        "--norc",
+        "-c",
+        "mapfile --help",
+        "shell"
+      ],
+      "argv0": null,
+      "inputHex": null,
+      "expected": {
+        "status": 2,
+        "stdoutHex": "6d617066696c653a206d617066696c65205b2d642064656c696d5d205b2d6e20636f756e745d205b2d4f206f726967696e5d205b2d7320636f756e745d205b2d745d205b2d752066645d205b2d432063616c6c6261636b5d205b2d63207175616e74756d5d205b61727261795d0a2020202052656164206c696e65732066726f6d20746865207374616e6461726420696e70757420696e746f20616e20696e6465786564206172726179207661726961626c652e0a202020200a2020202052656164206c696e65732066726f6d20746865207374616e6461726420696e70757420696e746f2074686520696e6465786564206172726179207661726961626c652041525241592c206f720a2020202066726f6d2066696c652064657363726970746f7220464420696620746865202d75206f7074696f6e20697320737570706c6965642e2020546865207661726961626c65204d415046494c450a202020206973207468652064656661756c742041525241592e0a202020200a202020204f7074696f6e733a0a2020202020202d642064656c696d095573652044454c494d20746f207465726d696e617465206c696e65732c20696e7374656164206f66206e65776c696e650a2020202020202d6e20636f756e7409436f7079206174206d6f737420434f554e54206c696e65732e2020496620434f554e5420697320302c20616c6c206c696e65732061726520636f706965640a2020202020202d4f206f726967696e09426567696e2061737369676e696e6720746f20415252415920617420696e646578204f524947494e2e20205468652064656661756c7420696e64657820697320300a2020202020202d7320636f756e7409446973636172642074686520666972737420434f554e54206c696e657320726561640a2020202020202d740952656d6f7665206120747261696c696e672044454c494d2066726f6d2065616368206c696e652072656164202864656661756c74206e65776c696e65290a2020202020202d752066640952656164206c696e65732066726f6d2066696c652064657363726970746f7220464420696e7374656164206f6620746865207374616e6461726420696e7075740a2020202020202d432063616c6c6261636b094576616c756174652043414c4c4241434b20656163682074696d65205155414e54554d206c696e65732061726520726561640a2020202020202d63207175616e74756d095370656369667920746865206e756d626572206f66206c696e65732072656164206265747765656e20656163682063616c6c20746f0a2020202009090943414c4c4241434b0a202020200a20202020417267756d656e74733a0a2020202020204152524159094172726179207661726961626c65206e616d6520746f2075736520666f722066696c6520646174610a202020200a202020204966202d4320697320737570706c69656420776974686f7574202d632c207468652064656661756c74207175616e74756d20697320353030302e20205768656e0a2020202043414c4c4241434b206973206576616c75617465642c20697420697320737570706c6965642074686520696e646578206f6620746865206e6578742061727261790a20202020656c656d656e7420746f2062652061737369676e656420616e6420746865206c696e6520746f2062652061737369676e656420746f207468617420656c656d656e740a202020206173206164646974696f6e616c20617267756d656e74732e0a202020200a202020204966206e6f7420737570706c696564207769746820616e206578706c69636974206f726967696e2c206d617066696c652077696c6c20636c656172204152524159206265666f72650a2020202061737369676e696e6720746f2069742e0a202020200a2020202045786974205374617475733a0a2020202052657475726e73207375636365737320756e6c65737320616e20696e76616c6964206f7074696f6e20697320676976656e206f7220415252415920697320726561646f6e6c79206f720a202020206e6f7420616e20696e64657865642061727261792e0a",
+        "stderrHex": ""
+      }
+    },
+    {
+      "fixture": "behavior.test.ts",
+      "captureIndex": 52,
+      "args": [
+        "--noprofile",
+        "--norc",
+        "-c",
+        "readarray --help",
+        "shell"
+      ],
+      "argv0": null,
+      "inputHex": null,
+      "expected": {
+        "status": 2,
+        "stdoutHex": "7265616461727261793a20726561646172726179205b2d642064656c696d5d205b2d6e20636f756e745d205b2d4f206f726967696e5d205b2d7320636f756e745d205b2d745d205b2d752066645d205b2d432063616c6c6261636b5d205b2d63207175616e74756d5d205b61727261795d0a2020202052656164206c696e65732066726f6d20612066696c6520696e746f20616e206172726179207661726961626c652e0a202020200a20202020412073796e6f6e796d20666f7220606d617066696c65272e0a",
+        "stderrHex": ""
+      }
+    },
+    {
+      "fixture": "behavior.test.ts",
+      "captureIndex": 53,
+      "args": [
+        "--noprofile",
+        "--norc",
+        "-c",
+        "a=(old tail); mapfile -u3 -u0 -tn1 a 3>/dev/null; status=$?; read -r remainder; printf 'status:%s,count:%s,rest:<%s>' \"$status\" \"${#a[@]}\" \"$remainder\"",
+        "shell"
+      ],
+      "argv0": null,
+      "inputHex": "6f6e650a74776f0a",
+      "expected": {
+        "status": 0,
+        "stdoutHex": "7374617475733a302c636f756e743a312c726573743a3c74776f3e",
+        "stderrHex": ""
+      }
+    },
+    {
+      "fixture": "behavior.test.ts",
+      "captureIndex": 54,
+      "args": [
+        "--noprofile",
+        "--norc",
+        "-c",
+        "a=(old tail); mapfile -u0 -u3 a 3>/dev/null; status=$?; read -r remainder; printf 'status:%s,count:%s,rest:<%s>' \"$status\" \"${#a[@]}\" \"$remainder\"",
+        "shell"
+      ],
+      "argv0": null,
+      "inputHex": "6f6e650a74776f0a",
+      "expected": {
+        "status": 0,
+        "stdoutHex": "7374617475733a302c636f756e743a302c726573743a3c6f6e653e",
+        "stderrHex": ""
+      }
+    },
+    {
+      "fixture": "behavior.test.ts",
+      "captureIndex": 55,
+      "args": [
+        "--noprofile",
+        "--norc",
+        "-c",
+        "a=(old tail); mapfile -u3 -O1 a 3>/dev/null; status=$?; read -r remainder; printf 'status:%s,count:%s,rest:<%s>' \"$status\" \"${#a[@]}\" \"$remainder\"",
+        "shell"
+      ],
+      "argv0": null,
+      "inputHex": "6f6e650a74776f0a",
+      "expected": {
+        "status": 0,
+        "stdoutHex": "7374617475733a302c636f756e743a322c726573743a3c6f6e653e",
+        "stderrHex": ""
+      }
+    },
+    {
+      "fixture": "behavior.test.ts",
+      "captureIndex": 56,
+      "args": [
+        "--noprofile",
+        "--norc",
+        "-c",
+        "a=(old tail); mapfile -u3 -n-1 a 3>/dev/null; status=$?; read -r remainder; printf 'status:%s,count:%s,rest:<%s>' \"$status\" \"${#a[@]}\" \"$remainder\"",
+        "shell"
+      ],
+      "argv0": null,
+      "inputHex": "6f6e650a74776f0a",
+      "expected": {
+        "status": 0,
+        "stdoutHex": "7374617475733a312c636f756e743a322c726573743a3c6f6e653e",
+        "stderrHex": "7368656c6c3a206c696e6520313a206d617066696c653a202d313a20696e76616c6964206c696e6520636f756e740a"
+      }
+    },
+    {
+      "fixture": "behavior.test.ts",
+      "captureIndex": 57,
+      "args": [
+        "--noprofile",
+        "--norc",
+        "-c",
+        "a=(old tail); mapfile -u3 bad-name 3>/dev/null; status=$?; read -r remainder; printf 'status:%s,count:%s,rest:<%s>' \"$status\" \"${#a[@]}\" \"$remainder\"",
+        "shell"
+      ],
+      "argv0": null,
+      "inputHex": "6f6e650a74776f0a",
+      "expected": {
+        "status": 0,
+        "stdoutHex": "7374617475733a312c636f756e743a322c726573743a3c6f6e653e",
+        "stderrHex": "7368656c6c3a206c696e6520313a206d617066696c653a20606261642d6e616d65273a206e6f7420612076616c6964206964656e7469666965720a"
+      }
+    },
+    {
+      "fixture": "behavior.test.ts",
+      "captureIndex": 58,
+      "args": [
+        "--noprofile",
+        "--norc",
+        "-c",
+        "a=(old tail); mapfile -u3 --help 3>/dev/null; status=$?; read -r remainder; printf 'status:%s,count:%s,rest:<%s>' \"$status\" \"${#a[@]}\" \"$remainder\"",
+        "shell"
+      ],
+      "argv0": null,
+      "inputHex": "6f6e650a74776f0a",
+      "expected": {
+        "status": 0,
+        "stdoutHex": "6d617066696c653a206d617066696c65205b2d642064656c696d5d205b2d6e20636f756e745d205b2d4f206f726967696e5d205b2d7320636f756e745d205b2d745d205b2d752066645d205b2d432063616c6c6261636b5d205b2d63207175616e74756d5d205b61727261795d0a2020202052656164206c696e65732066726f6d20746865207374616e6461726420696e70757420696e746f20616e20696e6465786564206172726179207661726961626c652e0a202020200a2020202052656164206c696e65732066726f6d20746865207374616e6461726420696e70757420696e746f2074686520696e6465786564206172726179207661726961626c652041525241592c206f720a2020202066726f6d2066696c652064657363726970746f7220464420696620746865202d75206f7074696f6e20697320737570706c6965642e2020546865207661726961626c65204d415046494c450a202020206973207468652064656661756c742041525241592e0a202020200a202020204f7074696f6e733a0a2020202020202d642064656c696d095573652044454c494d20746f207465726d696e617465206c696e65732c20696e7374656164206f66206e65776c696e650a2020202020202d6e20636f756e7409436f7079206174206d6f737420434f554e54206c696e65732e2020496620434f554e5420697320302c20616c6c206c696e65732061726520636f706965640a2020202020202d4f206f726967696e09426567696e2061737369676e696e6720746f20415252415920617420696e646578204f524947494e2e20205468652064656661756c7420696e64657820697320300a2020202020202d7320636f756e7409446973636172642074686520666972737420434f554e54206c696e657320726561640a2020202020202d740952656d6f7665206120747261696c696e672044454c494d2066726f6d2065616368206c696e652072656164202864656661756c74206e65776c696e65290a2020202020202d752066640952656164206c696e65732066726f6d2066696c652064657363726970746f7220464420696e7374656164206f6620746865207374616e6461726420696e7075740a2020202020202d432063616c6c6261636b094576616c756174652043414c4c4241434b20656163682074696d65205155414e54554d206c696e65732061726520726561640a2020202020202d63207175616e74756d095370656369667920746865206e756d626572206f66206c696e65732072656164206265747765656e20656163682063616c6c20746f0a2020202009090943414c4c4241434b0a202020200a20202020417267756d656e74733a0a2020202020204152524159094172726179207661726961626c65206e616d6520746f2075736520666f722066696c6520646174610a202020200a202020204966202d4320697320737570706c69656420776974686f7574202d632c207468652064656661756c74207175616e74756d20697320353030302e20205768656e0a2020202043414c4c4241434b206973206576616c75617465642c20697420697320737570706c6965642074686520696e646578206f6620746865206e6578742061727261790a20202020656c656d656e7420746f2062652061737369676e656420616e6420746865206c696e6520746f2062652061737369676e656420746f207468617420656c656d656e740a202020206173206164646974696f6e616c20617267756d656e74732e0a202020200a202020204966206e6f7420737570706c696564207769746820616e206578706c69636974206f726967696e2c206d617066696c652077696c6c20636c656172204152524159206265666f72650a2020202061737369676e696e6720746f2069742e0a202020200a2020202045786974205374617475733a0a2020202052657475726e73207375636365737320756e6c65737320616e20696e76616c6964206f7074696f6e20697320676976656e206f7220415252415920697320726561646f6e6c79206f720a202020206e6f7420616e20696e64657865642061727261792e0a7374617475733a322c636f756e743a322c726573743a3c6f6e653e",
+        "stderrHex": ""
+      }
+    },
+    {
+      "fixture": "behavior.test.ts",
+      "captureIndex": 59,
+      "args": [
+        "--noprofile",
+        "--norc",
+        "-c",
+        "a=(old tail); readonly a; mapfile -u3 a 3>/dev/null; status=$?; read -r remainder; printf 'status:%s,count:%s,rest:<%s>' \"$status\" \"${#a[@]}\" \"$remainder\"",
+        "shell"
+      ],
+      "argv0": null,
+      "inputHex": "6f6e650a74776f0a",
+      "expected": {
+        "status": 0,
+        "stdoutHex": "7374617475733a312c636f756e743a322c726573743a3c6f6e653e",
+        "stderrHex": "7368656c6c3a206c696e6520313a20613a20726561646f6e6c79207661726961626c650a"
+      }
+    },
+    {
+      "fixture": "behavior.test.ts",
+      "captureIndex": 60,
+      "args": [
+        "--noprofile",
+        "--norc",
+        "-c",
+        "a=(old tail); mapfile -u9 -u0 a 9<&-; status=$?; read -r remainder; printf 'status:%s,count:%s,rest:<%s>' \"$status\" \"${#a[@]}\" \"$remainder\"",
+        "shell"
+      ],
+      "argv0": null,
+      "inputHex": "6f6e650a74776f0a",
+      "expected": {
+        "status": 0,
+        "stdoutHex": "7374617475733a312c636f756e743a322c726573743a3c6f6e653e",
+        "stderrHex": "7368656c6c3a206c696e6520313a206d617066696c653a20393a20696e76616c69642066696c652064657363726970746f723a204261642066696c652064657363726970746f720a"
+      }
+    },
+    {
+      "fixture": "behavior.test.ts",
+      "captureIndex": 61,
+      "args": [
+        "--noprofile",
+        "--norc",
+        "-c",
+        "a=(old tail); mapfile a 0<&-; status=$?; read -r remainder; printf 'status:%s,count:%s,rest:<%s>' \"$status\" \"${#a[@]}\" \"$remainder\"",
+        "shell"
+      ],
+      "argv0": null,
+      "inputHex": "6f6e650a74776f0a",
+      "expected": {
+        "status": 0,
+        "stdoutHex": "7374617475733a302c636f756e743a302c726573743a3c6f6e653e",
+        "stderrHex": ""
+      }
+    },
+    {
+      "fixture": "behavior.test.ts",
+      "captureIndex": 62,
+      "args": [
+        "--noprofile",
+        "--norc",
+        "-c",
+        "a=(old tail); mapfile -u0 a 0<&-; status=$?; read -r remainder; printf 'status:%s,count:%s,rest:<%s>' \"$status\" \"${#a[@]}\" \"$remainder\"",
+        "shell"
+      ],
+      "argv0": null,
+      "inputHex": "6f6e650a74776f0a",
+      "expected": {
+        "status": 0,
+        "stdoutHex": "7374617475733a312c636f756e743a322c726573743a3c6f6e653e",
+        "stderrHex": "7368656c6c3a206c696e6520313a206d617066696c653a20303a20696e76616c69642066696c652064657363726970746f723a204261642066696c652064657363726970746f720a"
+      }
+    },
+    {
+      "fixture": "behavior.test.ts",
+      "captureIndex": 63,
+      "args": [
+        "--noprofile",
+        "--norc",
+        "-c",
+        "a=(old tail); mapfile a 0>/dev/null; status=$?; read -r remainder; printf 'status:%s,count:%s,rest:<%s>' \"$status\" \"${#a[@]}\" \"$remainder\"",
+        "shell"
+      ],
+      "argv0": null,
+      "inputHex": "6f6e650a74776f0a",
+      "expected": {
+        "status": 0,
+        "stdoutHex": "7374617475733a302c636f756e743a302c726573743a3c6f6e653e",
+        "stderrHex": ""
+      }
+    },
+    {
+      "fixture": "behavior.test.ts",
+      "captureIndex": 64,
+      "args": [
+        "--noprofile",
+        "--norc",
+        "-c",
+        "a=(old tail); mapfile -u $'\\xff' a; status=$?; read -r remainder; printf 'status:%s,count:%s,rest:<%s>' \"$status\" \"${#a[@]}\" \"$remainder\"",
+        "shell"
+      ],
+      "argv0": null,
+      "inputHex": "6f6e650a74776f0a",
+      "expected": {
+        "status": 0,
+        "stdoutHex": "7374617475733a312c636f756e743a322c726573743a3c6f6e653e",
+        "stderrHex": "7368656c6c3a206c696e6520313a206d617066696c653a20ff3a20696e76616c69642066696c652064657363726970746f722073706563696669636174696f6e0a"
+      }
+    },
+    {
+      "fixture": "callback-boundary.test.ts",
+      "captureIndex": 65,
+      "args": [
+        "--noprofile",
+        "--norc",
+        "-c",
+        "calls=0; cb() { calls=$((calls + 1)); printf 'cb=<%s><%s><%s>;' \"$1\" \"$2\" \"$3\"; }; mapfile -tn2 -O2147483647 -c1 -C 'cb prefix' a; printf 'status=%s;calls=%s;cells=<%s><%s>;' \"$?\" \"$calls\" \"${a[2147483647]}\" \"${a[2147483648]}\"; read -r tail; printf 'tail=<%s>' \"$tail\"",
+        "shell"
+      ],
+      "argv0": null,
+      "inputHex": "636cc3a927f09f98800a66696e0a7461696c0a",
+      "expected": {
+        "status": 0,
+        "stdoutHex": "63623d3c7072656669783e3c323134373438333634373e3c636cc3a927f09f98803e3b7374617475733d303b63616c6c733d313b63656c6c733d3c636cc3a927f09f98803e3c66696e3e3b7461696c3d3c7461696c3e",
+        "stderrHex": "7368656c6c3a20737464696e3a206c696e6520313a20756e657870656374656420454f46207768696c65206c6f6f6b696e6720666f72206d61746368696e67206027270a"
+      }
+    },
+    {
+      "fixture": "callback-boundary.test.ts",
+      "captureIndex": 66,
+      "args": [
+        "--noprofile",
+        "--norc",
+        "-c",
+        "calls=0; cb() { calls=$((calls + 1)); printf 'cb=<%s><%s><%s>;' \"$1\" \"$2\" \"$3\"; }; mapfile -tn2 -O2147483647 -c1 -C 'cb pré😀' a; printf 'status=%s;calls=%s;cells=<%s><%s>;' \"$?\" \"$calls\" \"${a[2147483647]}\" \"${a[2147483648]}\"; read -r tail; printf 'tail=<%s>' \"$tail\"",
+        "shell"
+      ],
+      "argv0": null,
+      "inputHex": "636cc3a927f09f98800a66696e0a7461696c0a",
+      "expected": {
+        "status": 0,
+        "stdoutHex": "63623d3c7072c3a9f09f98803e3c323134373438333634373e3c636cc3a927f09f98803e3b7374617475733d303b63616c6c733d313b63656c6c733d3c636cc3a927f09f98803e3c66696e3e3b7461696c3d3c7461696c3e",
+        "stderrHex": "7368656c6c3a20737464696e3a206c696e6520313a20756e657870656374656420454f46207768696c65206c6f6f6b696e6720666f72206d61746368696e67206027270a"
+      }
+    },
+    {
+      "fixture": "callback-boundary.test.ts",
+      "captureIndex": 67,
+      "args": [
+        "--noprofile",
+        "--norc",
+        "-c",
+        "calls=0; cb() { calls=$((calls + 1)); printf 'cb=<%s><%s><%s>;' \"$1\" \"$2\" \"$3\"; }; mapfile -tn2 -O2147483647 -c1 -C $'cb \\xff' a; printf 'status=%s;calls=%s;cells=<%s><%s>;' \"$?\" \"$calls\" \"${a[2147483647]}\" \"${a[2147483648]}\"; read -r tail; printf 'tail=<%s>' \"$tail\"",
+        "shell"
+      ],
+      "argv0": null,
+      "inputHex": "636cc3a927f09f98800a66696e0a7461696c0a",
+      "expected": {
+        "status": 0,
+        "stdoutHex": "63623d3cff3e3c323134373438333634373e3c636cc3a927f09f98803e3b7374617475733d303b63616c6c733d313b63656c6c733d3c636cc3a927f09f98803e3c66696e3e3b7461696c3d3c7461696c3e",
+        "stderrHex": "7368656c6c3a20737464696e3a206c696e6520313a20756e657870656374656420454f46207768696c65206c6f6f6b696e6720666f72206d61746368696e67206027270a"
+      }
+    },
+    {
+      "fixture": "callback-boundary.test.ts",
+      "captureIndex": 68,
+      "args": [
+        "--noprofile",
+        "--norc",
+        "-c",
+        "calls=0; cb() { calls=$((calls + 1)); printf 'cb=<%s><%s><%s>;' \"$1\" \"$2\" \"$3\"; }; mapfile -tn2 -O2147483648 -c1 -C 'cb prefix' a; printf 'status=%s;calls=%s;cells=<%s><%s>;' \"$?\" \"$calls\" \"${a[2147483648]}\" \"${a[2147483649]}\"; read -r tail; printf 'tail=<%s>' \"$tail\"",
+        "shell"
+      ],
+      "argv0": null,
+      "inputHex": "636cc3a927f09f98800a66696e0a7461696c0a",
+      "expected": {
+        "status": 0,
+        "stdoutHex": "7374617475733d303b63616c6c733d303b63656c6c733d3c636cc3a927f09f98803e3c66696e3e3b7461696c3d3c7461696c3e",
+        "stderrHex": "7368656c6c3a20737464696e3a206c696e6520313a20756e657870656374656420454f46207768696c65206c6f6f6b696e6720666f72206d61746368696e67206027270a7368656c6c3a20737464696e3a206c696e6520313a20756e657870656374656420454f46207768696c65206c6f6f6b696e6720666f72206d61746368696e67206027270a"
+      }
+    },
+    {
+      "fixture": "callback-boundary.test.ts",
+      "captureIndex": 69,
+      "args": [
+        "--noprofile",
+        "--norc",
+        "-c",
+        "calls=0; cb() { calls=$((calls + 1)); printf 'cb=<%s><%s><%s>;' \"$1\" \"$2\" \"$3\"; }; mapfile -tn2 -O2147483648 -c1 -C 'cb pré😀' a; printf 'status=%s;calls=%s;cells=<%s><%s>;' \"$?\" \"$calls\" \"${a[2147483648]}\" \"${a[2147483649]}\"; read -r tail; printf 'tail=<%s>' \"$tail\"",
+        "shell"
+      ],
+      "argv0": null,
+      "inputHex": "636cc3a927f09f98800a66696e0a7461696c0a",
+      "expected": {
+        "status": 0,
+        "stdoutHex": "7374617475733d303b63616c6c733d303b63656c6c733d3c636cc3a927f09f98803e3c66696e3e3b7461696c3d3c7461696c3e",
+        "stderrHex": "7368656c6c3a20737464696e3a206c696e6520313a20756e657870656374656420454f46207768696c65206c6f6f6b696e6720666f72206d61746368696e67206027270a7368656c6c3a20737464696e3a206c696e6520313a20756e657870656374656420454f46207768696c65206c6f6f6b696e6720666f72206d61746368696e67206027270a"
+      }
+    },
+    {
+      "fixture": "callback-boundary.test.ts",
+      "captureIndex": 70,
+      "args": [
+        "--noprofile",
+        "--norc",
+        "-c",
+        "calls=0; cb() { calls=$((calls + 1)); printf 'cb=<%s><%s><%s>;' \"$1\" \"$2\" \"$3\"; }; mapfile -tn2 -O2147483648 -c1 -C $'cb \\xff' a; printf 'status=%s;calls=%s;cells=<%s><%s>;' \"$?\" \"$calls\" \"${a[2147483648]}\" \"${a[2147483649]}\"; read -r tail; printf 'tail=<%s>' \"$tail\"",
+        "shell"
+      ],
+      "argv0": null,
+      "inputHex": "636cc3a927f09f98800a66696e0a7461696c0a",
+      "expected": {
+        "status": 0,
+        "stdoutHex": "7374617475733d303b63616c6c733d303b63656c6c733d3c636cc3a927f09f98803e3c66696e3e3b7461696c3d3c7461696c3e",
+        "stderrHex": "7368656c6c3a20737464696e3a206c696e6520313a20756e657870656374656420454f46207768696c65206c6f6f6b696e6720666f72206d61746368696e67206027270a7368656c6c3a20737464696e3a206c696e6520313a20756e657870656374656420454f46207768696c65206c6f6f6b696e6720666f72206d61746368696e67206027270a"
+      }
+    },
+    {
+      "fixture": "callback-boundary.test.ts",
+      "captureIndex": 71,
+      "args": [
+        "--noprofile",
+        "--norc",
+        "-c",
+        "calls=0; cb() { calls=$((calls + 1)); printf 'cb=<%s><%s><%s>;' \"$1\" \"$2\" \"$3\"; }; mapfile -tn2 -O3294967296 -c1 -C 'cb prefix' a; printf 'status=%s;calls=%s;cells=<%s><%s>;' \"$?\" \"$calls\" \"${a[3294967296]}\" \"${a[3294967297]}\"; read -r tail; printf 'tail=<%s>' \"$tail\"",
+        "shell"
+      ],
+      "argv0": null,
+      "inputHex": "636cc3a927f09f98800a66696e0a7461696c0a",
+      "expected": {
+        "status": 0,
+        "stdoutHex": "63623d3c7072656669783e3c2d3939393939393939393e3c66696e3e3b7374617475733d303b63616c6c733d313b63656c6c733d3c636cc3a927f09f98803e3c66696e3e3b7461696c3d3c7461696c3e",
+        "stderrHex": "7368656c6c3a20737464696e3a206c696e6520313a20756e657870656374656420454f46207768696c65206c6f6f6b696e6720666f72206d61746368696e67206027270a"
+      }
+    },
+    {
+      "fixture": "callback-boundary.test.ts",
+      "captureIndex": 72,
+      "args": [
+        "--noprofile",
+        "--norc",
+        "-c",
+        "calls=0; cb() { calls=$((calls + 1)); printf 'cb=<%s><%s><%s>;' \"$1\" \"$2\" \"$3\"; }; mapfile -tn2 -O3294967296 -c1 -C 'cb pré😀' a; printf 'status=%s;calls=%s;cells=<%s><%s>;' \"$?\" \"$calls\" \"${a[3294967296]}\" \"${a[3294967297]}\"; read -r tail; printf 'tail=<%s>' \"$tail\"",
+        "shell"
+      ],
+      "argv0": null,
+      "inputHex": "636cc3a927f09f98800a66696e0a7461696c0a",
+      "expected": {
+        "status": 0,
+        "stdoutHex": "63623d3c7072c3a9f09f98803e3c2d3939393939393939393e3c66696e3e3b7374617475733d303b63616c6c733d313b63656c6c733d3c636cc3a927f09f98803e3c66696e3e3b7461696c3d3c7461696c3e",
+        "stderrHex": "7368656c6c3a20737464696e3a206c696e6520313a20756e657870656374656420454f46207768696c65206c6f6f6b696e6720666f72206d61746368696e67206027270a"
+      }
+    },
+    {
+      "fixture": "callback-boundary.test.ts",
+      "captureIndex": 73,
+      "args": [
+        "--noprofile",
+        "--norc",
+        "-c",
+        "calls=0; cb() { calls=$((calls + 1)); printf 'cb=<%s><%s><%s>;' \"$1\" \"$2\" \"$3\"; }; mapfile -tn2 -O3294967296 -c1 -C $'cb \\xff' a; printf 'status=%s;calls=%s;cells=<%s><%s>;' \"$?\" \"$calls\" \"${a[3294967296]}\" \"${a[3294967297]}\"; read -r tail; printf 'tail=<%s>' \"$tail\"",
+        "shell"
+      ],
+      "argv0": null,
+      "inputHex": "636cc3a927f09f98800a66696e0a7461696c0a",
+      "expected": {
+        "status": 0,
+        "stdoutHex": "63623d3cff3e3c2d3939393939393939393e3c66696e3e3b7374617475733d303b63616c6c733d313b63656c6c733d3c636cc3a927f09f98803e3c66696e3e3b7461696c3d3c7461696c3e",
+        "stderrHex": "7368656c6c3a20737464696e3a206c696e6520313a20756e657870656374656420454f46207768696c65206c6f6f6b696e6720666f72206d61746368696e67206027270a"
+      }
+    },
+    {
+      "fixture": "callback-boundary.test.ts",
+      "captureIndex": 74,
+      "args": [
+        "--noprofile",
+        "--norc",
+        "-c",
+        "calls=0; cb() { calls=$((calls + 1)); printf 'cb=<%s><%s><%s>;' \"$1\" \"$2\" \"$3\"; }; mapfile -tn2 -O3294967297 -c1 -C 'cb prefix' a; printf 'status=%s;calls=%s;cells=<%s><%s>;' \"$?\" \"$calls\" \"${a[3294967297]}\" \"${a[3294967298]}\"; read -r tail; printf 'tail=<%s>' \"$tail\"",
+        "shell"
+      ],
+      "argv0": null,
+      "inputHex": "636cc3a927f09f98800a66696e0a7461696c0a",
+      "expected": {
+        "status": 0,
+        "stdoutHex": "63623d3c7072656669783e3c2d3939393939393939393e3c636cc3a927f09f98803e3b63623d3c7072656669783e3c2d3939393939393939383e3c66696e3e3b7374617475733d303b63616c6c733d323b63656c6c733d3c636cc3a927f09f98803e3c66696e3e3b7461696c3d3c7461696c3e",
+        "stderrHex": ""
+      }
+    },
+    {
+      "fixture": "callback-boundary.test.ts",
+      "captureIndex": 75,
+      "args": [
+        "--noprofile",
+        "--norc",
+        "-c",
+        "calls=0; cb() { calls=$((calls + 1)); printf 'cb=<%s><%s><%s>;' \"$1\" \"$2\" \"$3\"; }; mapfile -tn2 -O3294967297 -c1 -C 'cb pré😀' a; printf 'status=%s;calls=%s;cells=<%s><%s>;' \"$?\" \"$calls\" \"${a[3294967297]}\" \"${a[3294967298]}\"; read -r tail; printf 'tail=<%s>' \"$tail\"",
+        "shell"
+      ],
+      "argv0": null,
+      "inputHex": "636cc3a927f09f98800a66696e0a7461696c0a",
+      "expected": {
+        "status": 0,
+        "stdoutHex": "63623d3c7072c3a9f09f98803e3c2d3939393939393939393e3c636cc3a927f09f98803e3b63623d3c7072c3a9f09f98803e3c2d3939393939393939383e3c66696e3e3b7374617475733d303b63616c6c733d323b63656c6c733d3c636cc3a927f09f98803e3c66696e3e3b7461696c3d3c7461696c3e",
+        "stderrHex": ""
+      }
+    },
+    {
+      "fixture": "callback-boundary.test.ts",
+      "captureIndex": 76,
+      "args": [
+        "--noprofile",
+        "--norc",
+        "-c",
+        "calls=0; cb() { calls=$((calls + 1)); printf 'cb=<%s><%s><%s>;' \"$1\" \"$2\" \"$3\"; }; mapfile -tn2 -O3294967297 -c1 -C $'cb \\xff' a; printf 'status=%s;calls=%s;cells=<%s><%s>;' \"$?\" \"$calls\" \"${a[3294967297]}\" \"${a[3294967298]}\"; read -r tail; printf 'tail=<%s>' \"$tail\"",
+        "shell"
+      ],
+      "argv0": null,
+      "inputHex": "636cc3a927f09f98800a66696e0a7461696c0a",
+      "expected": {
+        "status": 0,
+        "stdoutHex": "63623d3cff3e3c2d3939393939393939393e3c636cc3a927f09f98803e3b63623d3cff3e3c2d3939393939393939383e3c66696e3e3b7374617475733d303b63616c6c733d323b63656c6c733d3c636cc3a927f09f98803e3c66696e3e3b7461696c3d3c7461696c3e",
+        "stderrHex": ""
+      }
+    },
+    {
+      "fixture": "evaluation-exit-review.test.ts",
+      "captureIndex": 77,
+      "args": [
+        "--noprofile",
+        "--norc",
+        "-c",
+        "value=outer; trap 'printf \"exit:%s:<%s>\" \"$?\" \"$value\"' EXIT; callback() { local value=inner; exit 7; }; mapfile -C callback -c1 values; printf after",
+        "shell"
+      ],
+      "argv0": null,
+      "inputHex": "6f6e650a74776f0a",
+      "expected": {
+        "status": 7,
+        "stdoutHex": "657869743a373a3c696e6e65723e",
+        "stderrHex": ""
+      }
+    },
+    {
+      "fixture": "native.test.ts",
+      "captureIndex": 78,
+      "args": [
+        "--noprofile",
+        "--norc",
+        "-c",
+        "mapfile; printf 'status=%s,count=%s\\n' \"$?\" \"${#MAPFILE[@]}\"; printf '<%s>' \"${MAPFILE[@]}\"",
+        "shell"
+      ],
+      "argv0": null,
+      "inputHex": "610a620a6c617374",
+      "expected": {
+        "status": 0,
+        "stdoutHex": "7374617475733d302c636f756e743d330a3c610a3e3c620a3e3c6c6173743e",
+        "stderrHex": ""
+      }
+    },
+    {
+      "fixture": "native.test.ts",
+      "captureIndex": 79,
+      "args": [
+        "--noprofile",
+        "--norc",
+        "-c",
+        "readarray -t a; printf '<%s>' \"${a[@]}\"",
+        "shell"
+      ],
+      "argv0": null,
+      "inputHex": "610a620a",
+      "expected": {
+        "status": 0,
+        "stdoutHex": "3c613e3c623e",
+        "stderrHex": ""
+      }
+    },
+    {
+      "fixture": "native.test.ts",
+      "captureIndex": 80,
+      "args": [
+        "--noprofile",
+        "--norc",
+        "-c",
+        "a=(old tail keep); mapfile -tn1 -s1 -O1 a; printf '<%s>' \"${a[@]}\"; read -r rest; printf 'rest=<%s>' \"$rest\"",
+        "shell"
+      ],
+      "argv0": null,
+      "inputHex": "736b69700a6f6e650a7461696c0a",
+      "expected": {
+        "status": 0,
+        "stdoutHex": "3c6f6c643e3c6f6e653e3c6b6565703e726573743d3c7461696c3e",
+        "stderrHex": ""
+      }
+    },
+    {
+      "fixture": "native.test.ts",
+      "captureIndex": 81,
+      "args": [
+        "--noprofile",
+        "--norc",
+        "-c",
+        "mapfile -d '' a; printf '<%s>' \"${a[@]}\"",
+        "shell"
+      ],
+      "argv0": null,
+      "inputHex": "6f6e650074776f007461696c",
+      "expected": {
+        "status": 0,
+        "stdoutHex": "3c6f6e653e3c74776f3e3c7461696c3e",
+        "stderrHex": ""
+      }
+    },
+    {
+      "fixture": "native.test.ts",
+      "captureIndex": 82,
+      "args": [
+        "--noprofile",
+        "--norc",
+        "-c",
+        "mapfile a; printf '<%s>' \"${a[@]}\"",
+        "shell"
+      ],
+      "argv0": null,
+      "inputHex": "6100620a630a",
+      "expected": {
+        "status": 0,
+        "stdoutHex": "3c613e3c630a3e",
+        "stderrHex": ""
+      }
+    },
+    {
+      "fixture": "native.test.ts",
+      "captureIndex": 83,
+      "args": [
+        "--noprofile",
+        "--norc",
+        "-c",
+        "mapfile -d '::' a; printf '<%s>' \"${a[@]}\"",
+        "shell"
+      ],
+      "argv0": null,
+      "inputHex": "613a623a3a7461696c",
+      "expected": {
+        "status": 0,
+        "stdoutHex": "3c613a3e3c623a3e3c3a3e3c7461696c3e",
+        "stderrHex": ""
+      }
+    },
+    {
+      "fixture": "native.test.ts",
+      "captureIndex": 84,
+      "args": [
+        "--noprofile",
+        "--norc",
+        "-c",
+        "a=(old tail); mapfile a; printf 'count=%s' \"${#a[@]}\"",
+        "shell"
+      ],
+      "argv0": null,
+      "inputHex": "",
+      "expected": {
+        "status": 0,
+        "stdoutHex": "636f756e743d30",
+        "stderrHex": ""
+      }
+    },
+    {
+      "fixture": "native.test.ts",
+      "captureIndex": 85,
+      "args": [
+        "--noprofile",
+        "--norc",
+        "-c",
+        "a=(old tail); mapfile -O0 a; printf '<%s>' \"${a[@]}\"",
+        "shell"
+      ],
+      "argv0": null,
+      "inputHex": "",
+      "expected": {
+        "status": 0,
+        "stdoutHex": "3c6f6c643e3c7461696c3e",
+        "stderrHex": ""
+      }
+    },
+    {
+      "fixture": "native.test.ts",
+      "captureIndex": 86,
+      "args": [
+        "--noprofile",
+        "--norc",
+        "-c",
+        "cb() { printf 'cb:%s:<%s>\\n' \"$1\" \"$2\"; false; }; mapfile -t -C cb -c2 a; printf 'status=%s\\n' \"$?\"; printf '<%s>' \"${a[@]}\"",
+        "shell"
+      ],
+      "argv0": null,
+      "inputHex": "6f6e650a74776f0a74687265650a",
+      "expected": {
+        "status": 0,
+        "stdoutHex": "63623a313a3c74776f3e0a7374617475733d300a3c6f6e653e3c74776f3e3c74687265653e",
+        "stderrHex": ""
+      }
+    },
+    {
+      "fixture": "native.test.ts",
+      "captureIndex": 87,
+      "args": [
+        "--noprofile",
+        "--norc",
+        "-c",
+        "a=(old tail); cb() { printf 'before:%s:<%s>:array=<%s>\\n' \"$1\" \"$2\" \"${a[*]}\"; }; mapfile -t -C cb -c1 a; printf '<%s>' \"${a[@]}\"",
+        "shell"
+      ],
+      "argv0": null,
+      "inputHex": "6f6e650a74776f0a",
+      "expected": {
+        "status": 0,
+        "stdoutHex": "6265666f72653a303a3c6f6e653e3a61727261793d3c3e0a6265666f72653a313a3c74776f3e3a61727261793d3c6f6e653e0a3c6f6e653e3c74776f3e",
+        "stderrHex": ""
+      }
+    },
+    {
+      "fixture": "native.test.ts",
+      "captureIndex": 88,
+      "args": [
+        "--noprofile",
+        "--norc",
+        "-c",
+        "a=(old tail); cb() { printf 'before:%s:<%s>:array=<%s>\\n' \"$1\" \"$2\" \"${a[*]}\"; }; mapfile -t -O1 -C cb -c1 a; printf '<%s>' \"${a[@]}\"",
+        "shell"
+      ],
+      "argv0": null,
+      "inputHex": "6f6e650a74776f0a",
+      "expected": {
+        "status": 0,
+        "stdoutHex": "6265666f72653a313a3c6f6e653e3a61727261793d3c6f6c64207461696c3e0a6265666f72653a323a3c74776f3e3a61727261793d3c6f6c64206f6e653e0a3c6f6c643e3c6f6e653e3c74776f3e",
+        "stderrHex": ""
+      }
+    },
+    {
+      "fixture": "native.test.ts",
+      "captureIndex": 89,
+      "args": [
+        "--noprofile",
+        "--norc",
+        "-c",
+        "a=(old); cb() { if [[ $1 == 1 ]]; then readonly a; fi; }; mapfile -t -C cb -c1 a; printf 'status=%s\\n' \"$?\"; printf '<%s>' \"${a[@]}\"",
+        "shell"
+      ],
+      "argv0": null,
+      "inputHex": "6f6e650a74776f0a",
+      "expected": {
+        "status": 0,
+        "stdoutHex": "7374617475733d300a3c6f6e653e3c74776f3e",
+        "stderrHex": ""
+      }
+    },
+    {
+      "fixture": "native.test.ts",
+      "captureIndex": 90,
+      "args": [
+        "--noprofile",
+        "--norc",
+        "-c",
+        "a=(old); cb() { a=(callback); }; mapfile -t -C cb -c1 a; printf '<%s>' \"${a[@]}\"",
+        "shell"
+      ],
+      "argv0": null,
+      "inputHex": "6f6e650a74776f0a",
+      "expected": {
+        "status": 0,
+        "stdoutHex": "3c63616c6c6261636b3e3c74776f3e",
+        "stderrHex": ""
+      }
+    },
+    {
+      "fixture": "native.test.ts",
+      "captureIndex": 91,
+      "args": [
+        "--noprofile",
+        "--norc",
+        "-c",
+        "export a=old; mapfile -t a; printf '<%s>' \"${a[@]}\"",
+        "shell"
+      ],
+      "argv0": null,
+      "inputHex": "6f6e650a74776f0a",
+      "expected": {
+        "status": 0,
+        "stdoutHex": "3c6f6e653e3c74776f3e",
+        "stderrHex": ""
+      }
+    },
+    {
+      "fixture": "native.test.ts",
+      "captureIndex": 92,
+      "args": [
+        "--noprofile",
+        "--norc",
+        "-c",
+        "mapfile -t -O4294967295 -n2 a; printf '<%s>' \"${!a[@]}\"",
+        "shell"
+      ],
+      "argv0": null,
+      "inputHex": "6f6e650a74776f0a",
+      "expected": {
+        "status": 0,
+        "stdoutHex": "3c303e3c343239343936373239353e",
+        "stderrHex": ""
+      }
+    },
+    {
+      "fixture": "native.test.ts",
+      "captureIndex": 93,
+      "args": [
+        "--noprofile",
+        "--norc",
+        "-c",
+        "mapfile a extra",
+        "shell"
+      ],
+      "argv0": null,
+      "inputHex": "6f6e650a74776f0a",
+      "expected": {
+        "status": 0,
+        "stdoutHex": "",
+        "stderrHex": ""
+      }
+    },
+    {
+      "fixture": "native.test.ts",
+      "captureIndex": 94,
+      "args": [
+        "--noprofile",
+        "--norc",
+        "-c",
+        "mapfile -n \" 2 \"",
+        "shell"
+      ],
+      "argv0": null,
+      "inputHex": "6f6e650a74776f0a",
+      "expected": {
+        "status": 0,
+        "stdoutHex": "",
+        "stderrHex": ""
+      }
+    },
+    {
+      "fixture": "native.test.ts",
+      "captureIndex": 95,
+      "args": [
+        "--noprofile",
+        "--norc",
+        "-c",
+        "mapfile -t -u3 -n1 a 3<&0; read -r tail; printf '<%s>:<%s>' \"${a[@]}\" \"$tail\"",
+        "shell"
+      ],
+      "argv0": null,
+      "inputHex": "6f6e650a74776f0a74687265650a666f75720a",
+      "expected": {
+        "status": 0,
+        "stdoutHex": "3c6f6e653e3a3c74776f3e",
+        "stderrHex": ""
+      }
+    },
+    {
+      "fixture": "native.test.ts",
+      "captureIndex": 96,
+      "args": [
+        "--noprofile",
+        "--norc",
+        "-c",
+        "cb() { read -r consumed; printf 'cb:%s:%s:%s\\n' \"$1\" \"$2\" \"$consumed\"; }; mapfile -t -C cb -c1 a; printf '<%s>' \"${a[@]}\"",
+        "shell"
+      ],
+      "argv0": null,
+      "inputHex": "6f6e650a74776f0a74687265650a666f75720a",
+      "expected": {
+        "status": 0,
+        "stdoutHex": "63623a303a6f6e653a74776f0a63623a313a74687265653a666f75720a3c6f6e653e3c74687265653e",
+        "stderrHex": ""
+      }
+    },
+    {
+      "fixture": "native.test.ts",
+      "captureIndex": 97,
+      "args": [
+        "--noprofile",
+        "--norc",
+        "-c",
+        "mapfile -n -1",
+        "shell"
+      ],
+      "argv0": null,
+      "inputHex": "6f6e650a74776f0a",
+      "expected": {
+        "status": 1,
+        "stdoutHex": "",
+        "stderrHex": "7368656c6c3a206c696e6520313a206d617066696c653a202d313a20696e76616c6964206c696e6520636f756e740a"
+      }
+    },
+    {
+      "fixture": "native.test.ts",
+      "captureIndex": 98,
+      "args": [
+        "--noprofile",
+        "--norc",
+        "-c",
+        "mapfile -n 4294967296",
+        "shell"
+      ],
+      "argv0": null,
+      "inputHex": "6f6e650a74776f0a",
+      "expected": {
+        "status": 1,
+        "stdoutHex": "",
+        "stderrHex": "7368656c6c3a206c696e6520313a206d617066696c653a20343239343936373239363a20696e76616c6964206c696e6520636f756e740a"
+      }
+    },
+    {
+      "fixture": "native.test.ts",
+      "captureIndex": 99,
+      "args": [
+        "--noprofile",
+        "--norc",
+        "-c",
+        "mapfile -n 0x10",
+        "shell"
+      ],
+      "argv0": null,
+      "inputHex": "6f6e650a74776f0a",
+      "expected": {
+        "status": 1,
+        "stdoutHex": "",
+        "stderrHex": "7368656c6c3a206c696e6520313a206d617066696c653a20307831303a20696e76616c6964206c696e6520636f756e740a"
+      }
+    },
+    {
+      "fixture": "native.test.ts",
+      "captureIndex": 100,
+      "args": [
+        "--noprofile",
+        "--norc",
+        "-c",
+        "mapfile -O -1",
+        "shell"
+      ],
+      "argv0": null,
+      "inputHex": "6f6e650a74776f0a",
+      "expected": {
+        "status": 1,
+        "stdoutHex": "",
+        "stderrHex": "7368656c6c3a206c696e6520313a206d617066696c653a202d313a20696e76616c6964206172726179206f726967696e0a"
+      }
+    },
+    {
+      "fixture": "native.test.ts",
+      "captureIndex": 101,
+      "args": [
+        "--noprofile",
+        "--norc",
+        "-c",
+        "mapfile -s -1",
+        "shell"
+      ],
+      "argv0": null,
+      "inputHex": "6f6e650a74776f0a",
+      "expected": {
+        "status": 1,
+        "stdoutHex": "",
+        "stderrHex": "7368656c6c3a206c696e6520313a206d617066696c653a202d313a20696e76616c6964206c696e6520636f756e740a"
+      }
+    },
+    {
+      "fixture": "native.test.ts",
+      "captureIndex": 102,
+      "args": [
+        "--noprofile",
+        "--norc",
+        "-c",
+        "mapfile -c 0",
+        "shell"
+      ],
+      "argv0": null,
+      "inputHex": "6f6e650a74776f0a",
+      "expected": {
+        "status": 1,
+        "stdoutHex": "",
+        "stderrHex": "7368656c6c3a206c696e6520313a206d617066696c653a20303a20696e76616c69642063616c6c6261636b207175616e74756d0a"
+      }
+    },
+    {
+      "fixture": "native.test.ts",
+      "captureIndex": 103,
+      "args": [
+        "--noprofile",
+        "--norc",
+        "-c",
+        "mapfile -u -1",
+        "shell"
+      ],
+      "argv0": null,
+      "inputHex": "6f6e650a74776f0a",
+      "expected": {
+        "status": 1,
+        "stdoutHex": "",
+        "stderrHex": "7368656c6c3a206c696e6520313a206d617066696c653a202d313a20696e76616c69642066696c652064657363726970746f722073706563696669636174696f6e0a"
+      }
+    },
+    {
+      "fixture": "native.test.ts",
+      "captureIndex": 104,
+      "args": [
+        "--noprofile",
+        "--norc",
+        "-c",
+        "mapfile -u 9",
+        "shell"
+      ],
+      "argv0": null,
+      "inputHex": "6f6e650a74776f0a",
+      "expected": {
+        "status": 1,
+        "stdoutHex": "",
+        "stderrHex": "7368656c6c3a206c696e6520313a206d617066696c653a20393a20696e76616c69642066696c652064657363726970746f723a204261642066696c652064657363726970746f720a"
+      }
+    },
+    {
+      "fixture": "native.test.ts",
+      "captureIndex": 105,
+      "args": [
+        "--noprofile",
+        "--norc",
+        "-c",
+        "mapfile -u 3 a 3<&-",
+        "shell"
+      ],
+      "argv0": null,
+      "inputHex": "6f6e650a74776f0a",
+      "expected": {
+        "status": 1,
+        "stdoutHex": "",
+        "stderrHex": "7368656c6c3a206c696e6520313a206d617066696c653a20333a20696e76616c69642066696c652064657363726970746f723a204261642066696c652064657363726970746f720a"
+      }
+    },
+    {
+      "fixture": "native.test.ts",
+      "captureIndex": 106,
+      "args": [
+        "--noprofile",
+        "--norc",
+        "-c",
+        "mapfile -Q",
+        "shell"
+      ],
+      "argv0": null,
+      "inputHex": "6f6e650a74776f0a",
+      "expected": {
+        "status": 2,
+        "stdoutHex": "",
+        "stderrHex": "7368656c6c3a206c696e6520313a206d617066696c653a202d513a20696e76616c6964206f7074696f6e0a6d617066696c653a2075736167653a206d617066696c65205b2d642064656c696d5d205b2d6e20636f756e745d205b2d4f206f726967696e5d205b2d7320636f756e745d205b2d745d205b2d752066645d205b2d432063616c6c6261636b5d205b2d63207175616e74756d5d205b61727261795d0a"
+      }
+    },
+    {
+      "fixture": "native.test.ts",
+      "captureIndex": 107,
+      "args": [
+        "--noprofile",
+        "--norc",
+        "-c",
+        "mapfile --bogus",
+        "shell"
+      ],
+      "argv0": null,
+      "inputHex": "6f6e650a74776f0a",
+      "expected": {
+        "status": 2,
+        "stdoutHex": "",
+        "stderrHex": "7368656c6c3a206c696e6520313a206d617066696c653a202d2d3a20696e76616c6964206f7074696f6e0a6d617066696c653a2075736167653a206d617066696c65205b2d642064656c696d5d205b2d6e20636f756e745d205b2d4f206f726967696e5d205b2d7320636f756e745d205b2d745d205b2d752066645d205b2d432063616c6c6261636b5d205b2d63207175616e74756d5d205b61727261795d0a"
+      }
+    },
+    {
+      "fixture": "native.test.ts",
+      "captureIndex": 108,
+      "args": [
+        "--noprofile",
+        "--norc",
+        "-c",
+        "mapfile -n",
+        "shell"
+      ],
+      "argv0": null,
+      "inputHex": "6f6e650a74776f0a",
+      "expected": {
+        "status": 2,
+        "stdoutHex": "",
+        "stderrHex": "7368656c6c3a206c696e6520313a206d617066696c653a202d6e3a206f7074696f6e20726571756972657320616e20617267756d656e740a6d617066696c653a2075736167653a206d617066696c65205b2d642064656c696d5d205b2d6e20636f756e745d205b2d4f206f726967696e5d205b2d7320636f756e745d205b2d745d205b2d752066645d205b2d432063616c6c6261636b5d205b2d63207175616e74756d5d205b61727261795d0a"
+      }
+    },
+    {
+      "fixture": "native.test.ts",
+      "captureIndex": 109,
+      "args": [
+        "--noprofile",
+        "--norc",
+        "-c",
+        "mapfile \"\"",
+        "shell"
+      ],
+      "argv0": null,
+      "inputHex": "6f6e650a74776f0a",
+      "expected": {
+        "status": 2,
+        "stdoutHex": "",
+        "stderrHex": "7368656c6c3a206c696e6520313a206d617066696c653a20656d707479206172726179207661726961626c65206e616d650a"
+      }
+    },
+    {
+      "fixture": "native.test.ts",
+      "captureIndex": 110,
+      "args": [
+        "--noprofile",
+        "--norc",
+        "-c",
+        "mapfile a[0]",
+        "shell"
+      ],
+      "argv0": null,
+      "inputHex": "6f6e650a74776f0a",
+      "expected": {
+        "status": 1,
+        "stdoutHex": "",
+        "stderrHex": "7368656c6c3a206c696e6520313a206d617066696c653a2060615b305d273a206e6f7420612076616c6964206964656e7469666965720a"
+      }
+    },
+    {
+      "fixture": "native.test.ts",
+      "captureIndex": 111,
+      "args": [
+        "--noprofile",
+        "--norc",
+        "-c",
+        "readonly a; mapfile a",
+        "shell"
+      ],
+      "argv0": null,
+      "inputHex": "6f6e650a74776f0a",
+      "expected": {
+        "status": 1,
+        "stdoutHex": "",
+        "stderrHex": "7368656c6c3a206c696e6520313a20613a20726561646f6e6c79207661726961626c650a"
+      }
+    },
+    {
+      "fixture": "native.test.ts",
+      "captureIndex": 112,
+      "args": [
+        "--noprofile",
+        "--norc",
+        "-c",
+        "callback() { exit 7; }; mapfile -C callback -c1 a; printf after",
+        "shell"
+      ],
+      "argv0": null,
+      "inputHex": "6f6e650a74776f0a",
+      "expected": {
+        "status": 7,
+        "stdoutHex": "",
+        "stderrHex": ""
+      }
+    },
+    {
+      "fixture": "review.test.ts",
+      "captureIndex": 113,
+      "args": [
+        "--noprofile",
+        "--norc",
+        "-c",
+        "a=(old keep); mapfile -n $'1\\r' a; printf 'status=%s:' \"$?\"; printf '<%s>' \"${a[@]}\"; read -r tail; printf 'tail=<%s>' \"$tail\"",
+        "shell"
+      ],
+      "argv0": null,
+      "inputHex": "66697273740a7365636f6e640a74686972640a",
+      "expected": {
+        "status": 0,
+        "stdoutHex": "7374617475733d303a3c66697273740a3e7461696c3d3c7365636f6e643e",
+        "stderrHex": ""
+      }
+    },
+    {
+      "fixture": "review.test.ts",
+      "captureIndex": 114,
+      "args": [
+        "--noprofile",
+        "--norc",
+        "-c",
+        "a=(old keep); mapfile -n $'1\\n' a; printf 'status=%s:' \"$?\"; printf '<%s>' \"${a[@]}\"; read -r tail; printf 'tail=<%s>' \"$tail\"",
+        "shell"
+      ],
+      "argv0": null,
+      "inputHex": "66697273740a7365636f6e640a74686972640a",
+      "expected": {
+        "status": 0,
+        "stdoutHex": "7374617475733d303a3c66697273740a3e7461696c3d3c7365636f6e643e",
+        "stderrHex": ""
+      }
+    },
+    {
+      "fixture": "review.test.ts",
+      "captureIndex": 115,
+      "args": [
+        "--noprofile",
+        "--norc",
+        "-c",
+        "a=(old keep); mapfile -n $'1\\v' a; printf 'status=%s:' \"$?\"; printf '<%s>' \"${a[@]}\"; read -r tail; printf 'tail=<%s>' \"$tail\"",
+        "shell"
+      ],
+      "argv0": null,
+      "inputHex": "66697273740a7365636f6e640a74686972640a",
+      "expected": {
+        "status": 0,
+        "stdoutHex": "7374617475733d303a3c66697273740a3e7461696c3d3c7365636f6e643e",
+        "stderrHex": ""
+      }
+    },
+    {
+      "fixture": "review.test.ts",
+      "captureIndex": 116,
+      "args": [
+        "--noprofile",
+        "--norc",
+        "-c",
+        "a=(old keep); mapfile -n $'1\\f' a; printf 'status=%s:' \"$?\"; printf '<%s>' \"${a[@]}\"; read -r tail; printf 'tail=<%s>' \"$tail\"",
+        "shell"
+      ],
+      "argv0": null,
+      "inputHex": "66697273740a7365636f6e640a74686972640a",
+      "expected": {
+        "status": 0,
+        "stdoutHex": "7374617475733d303a3c66697273740a3e7461696c3d3c7365636f6e643e",
+        "stderrHex": ""
+      }
+    },
+    {
+      "fixture": "review.test.ts",
+      "captureIndex": 117,
+      "args": [
+        "--noprofile",
+        "--norc",
+        "-c",
+        "a=(old keep); mapfile -O $'1\\r' a; printf 'status=%s:' \"$?\"; printf '<%s>' \"${a[@]}\"; read -r tail; printf 'tail=<%s>' \"$tail\"",
+        "shell"
+      ],
+      "argv0": null,
+      "inputHex": "66697273740a7365636f6e640a74686972640a",
+      "expected": {
+        "status": 0,
+        "stdoutHex": "7374617475733d303a3c6f6c643e3c66697273740a3e3c7365636f6e640a3e3c74686972640a3e7461696c3d3c3e",
+        "stderrHex": ""
+      }
+    },
+    {
+      "fixture": "review.test.ts",
+      "captureIndex": 118,
+      "args": [
+        "--noprofile",
+        "--norc",
+        "-c",
+        "a=(old keep); mapfile -O $'1\\n' a; printf 'status=%s:' \"$?\"; printf '<%s>' \"${a[@]}\"; read -r tail; printf 'tail=<%s>' \"$tail\"",
+        "shell"
+      ],
+      "argv0": null,
+      "inputHex": "66697273740a7365636f6e640a74686972640a",
+      "expected": {
+        "status": 0,
+        "stdoutHex": "7374617475733d303a3c6f6c643e3c66697273740a3e3c7365636f6e640a3e3c74686972640a3e7461696c3d3c3e",
+        "stderrHex": ""
+      }
+    },
+    {
+      "fixture": "review.test.ts",
+      "captureIndex": 119,
+      "args": [
+        "--noprofile",
+        "--norc",
+        "-c",
+        "a=(old keep); mapfile -O $'1\\v' a; printf 'status=%s:' \"$?\"; printf '<%s>' \"${a[@]}\"; read -r tail; printf 'tail=<%s>' \"$tail\"",
+        "shell"
+      ],
+      "argv0": null,
+      "inputHex": "66697273740a7365636f6e640a74686972640a",
+      "expected": {
+        "status": 0,
+        "stdoutHex": "7374617475733d303a3c6f6c643e3c66697273740a3e3c7365636f6e640a3e3c74686972640a3e7461696c3d3c3e",
+        "stderrHex": ""
+      }
+    },
+    {
+      "fixture": "review.test.ts",
+      "captureIndex": 120,
+      "args": [
+        "--noprofile",
+        "--norc",
+        "-c",
+        "a=(old keep); mapfile -O $'1\\f' a; printf 'status=%s:' \"$?\"; printf '<%s>' \"${a[@]}\"; read -r tail; printf 'tail=<%s>' \"$tail\"",
+        "shell"
+      ],
+      "argv0": null,
+      "inputHex": "66697273740a7365636f6e640a74686972640a",
+      "expected": {
+        "status": 0,
+        "stdoutHex": "7374617475733d303a3c6f6c643e3c66697273740a3e3c7365636f6e640a3e3c74686972640a3e7461696c3d3c3e",
+        "stderrHex": ""
+      }
+    },
+    {
+      "fixture": "review.test.ts",
+      "captureIndex": 121,
+      "args": [
+        "--noprofile",
+        "--norc",
+        "-c",
+        "a=(old keep); mapfile -s $'1\\r' a; printf 'status=%s:' \"$?\"; printf '<%s>' \"${a[@]}\"; read -r tail; printf 'tail=<%s>' \"$tail\"",
+        "shell"
+      ],
+      "argv0": null,
+      "inputHex": "66697273740a7365636f6e640a74686972640a",
+      "expected": {
+        "status": 0,
+        "stdoutHex": "7374617475733d303a3c7365636f6e640a3e3c74686972640a3e7461696c3d3c3e",
+        "stderrHex": ""
+      }
+    },
+    {
+      "fixture": "review.test.ts",
+      "captureIndex": 122,
+      "args": [
+        "--noprofile",
+        "--norc",
+        "-c",
+        "a=(old keep); mapfile -s $'1\\n' a; printf 'status=%s:' \"$?\"; printf '<%s>' \"${a[@]}\"; read -r tail; printf 'tail=<%s>' \"$tail\"",
+        "shell"
+      ],
+      "argv0": null,
+      "inputHex": "66697273740a7365636f6e640a74686972640a",
+      "expected": {
+        "status": 0,
+        "stdoutHex": "7374617475733d303a3c7365636f6e640a3e3c74686972640a3e7461696c3d3c3e",
+        "stderrHex": ""
+      }
+    },
+    {
+      "fixture": "review.test.ts",
+      "captureIndex": 123,
+      "args": [
+        "--noprofile",
+        "--norc",
+        "-c",
+        "a=(old keep); mapfile -s $'1\\v' a; printf 'status=%s:' \"$?\"; printf '<%s>' \"${a[@]}\"; read -r tail; printf 'tail=<%s>' \"$tail\"",
+        "shell"
+      ],
+      "argv0": null,
+      "inputHex": "66697273740a7365636f6e640a74686972640a",
+      "expected": {
+        "status": 0,
+        "stdoutHex": "7374617475733d303a3c7365636f6e640a3e3c74686972640a3e7461696c3d3c3e",
+        "stderrHex": ""
+      }
+    },
+    {
+      "fixture": "review.test.ts",
+      "captureIndex": 124,
+      "args": [
+        "--noprofile",
+        "--norc",
+        "-c",
+        "a=(old keep); mapfile -s $'1\\f' a; printf 'status=%s:' \"$?\"; printf '<%s>' \"${a[@]}\"; read -r tail; printf 'tail=<%s>' \"$tail\"",
+        "shell"
+      ],
+      "argv0": null,
+      "inputHex": "66697273740a7365636f6e640a74686972640a",
+      "expected": {
+        "status": 0,
+        "stdoutHex": "7374617475733d303a3c7365636f6e640a3e3c74686972640a3e7461696c3d3c3e",
+        "stderrHex": ""
+      }
+    },
+    {
+      "fixture": "review.test.ts",
+      "captureIndex": 125,
+      "args": [
+        "--noprofile",
+        "--norc",
+        "-c",
+        "a=(old keep); mapfile -u $'0\\r' a; printf 'status=%s:' \"$?\"; printf '<%s>' \"${a[@]}\"; read -r tail; printf 'tail=<%s>' \"$tail\"",
+        "shell"
+      ],
+      "argv0": null,
+      "inputHex": "66697273740a7365636f6e640a74686972640a",
+      "expected": {
+        "status": 0,
+        "stdoutHex": "7374617475733d303a3c66697273740a3e3c7365636f6e640a3e3c74686972640a3e7461696c3d3c3e",
+        "stderrHex": ""
+      }
+    },
+    {
+      "fixture": "review.test.ts",
+      "captureIndex": 126,
+      "args": [
+        "--noprofile",
+        "--norc",
+        "-c",
+        "a=(old keep); mapfile -u $'0\\n' a; printf 'status=%s:' \"$?\"; printf '<%s>' \"${a[@]}\"; read -r tail; printf 'tail=<%s>' \"$tail\"",
+        "shell"
+      ],
+      "argv0": null,
+      "inputHex": "66697273740a7365636f6e640a74686972640a",
+      "expected": {
+        "status": 0,
+        "stdoutHex": "7374617475733d303a3c66697273740a3e3c7365636f6e640a3e3c74686972640a3e7461696c3d3c3e",
+        "stderrHex": ""
+      }
+    },
+    {
+      "fixture": "review.test.ts",
+      "captureIndex": 127,
+      "args": [
+        "--noprofile",
+        "--norc",
+        "-c",
+        "a=(old keep); mapfile -u $'0\\v' a; printf 'status=%s:' \"$?\"; printf '<%s>' \"${a[@]}\"; read -r tail; printf 'tail=<%s>' \"$tail\"",
+        "shell"
+      ],
+      "argv0": null,
+      "inputHex": "66697273740a7365636f6e640a74686972640a",
+      "expected": {
+        "status": 0,
+        "stdoutHex": "7374617475733d303a3c66697273740a3e3c7365636f6e640a3e3c74686972640a3e7461696c3d3c3e",
+        "stderrHex": ""
+      }
+    },
+    {
+      "fixture": "review.test.ts",
+      "captureIndex": 128,
+      "args": [
+        "--noprofile",
+        "--norc",
+        "-c",
+        "a=(old keep); mapfile -u $'0\\f' a; printf 'status=%s:' \"$?\"; printf '<%s>' \"${a[@]}\"; read -r tail; printf 'tail=<%s>' \"$tail\"",
+        "shell"
+      ],
+      "argv0": null,
+      "inputHex": "66697273740a7365636f6e640a74686972640a",
+      "expected": {
+        "status": 0,
+        "stdoutHex": "7374617475733d303a3c66697273740a3e3c7365636f6e640a3e3c74686972640a3e7461696c3d3c3e",
+        "stderrHex": ""
+      }
+    },
+    {
+      "fixture": "review.test.ts",
+      "captureIndex": 129,
+      "args": [
+        "--noprofile",
+        "--norc",
+        "-c",
+        "a=(old keep); mapfile -c $'1\\r' a; printf 'status=%s:' \"$?\"; printf '<%s>' \"${a[@]}\"; read -r tail; printf 'tail=<%s>' \"$tail\"",
+        "shell"
+      ],
+      "argv0": null,
+      "inputHex": "66697273740a7365636f6e640a74686972640a",
+      "expected": {
+        "status": 0,
+        "stdoutHex": "7374617475733d303a3c66697273740a3e3c7365636f6e640a3e3c74686972640a3e7461696c3d3c3e",
+        "stderrHex": ""
+      }
+    },
+    {
+      "fixture": "review.test.ts",
+      "captureIndex": 130,
+      "args": [
+        "--noprofile",
+        "--norc",
+        "-c",
+        "a=(old keep); mapfile -c $'1\\n' a; printf 'status=%s:' \"$?\"; printf '<%s>' \"${a[@]}\"; read -r tail; printf 'tail=<%s>' \"$tail\"",
+        "shell"
+      ],
+      "argv0": null,
+      "inputHex": "66697273740a7365636f6e640a74686972640a",
+      "expected": {
+        "status": 0,
+        "stdoutHex": "7374617475733d303a3c66697273740a3e3c7365636f6e640a3e3c74686972640a3e7461696c3d3c3e",
+        "stderrHex": ""
+      }
+    },
+    {
+      "fixture": "review.test.ts",
+      "captureIndex": 131,
+      "args": [
+        "--noprofile",
+        "--norc",
+        "-c",
+        "a=(old keep); mapfile -c $'1\\v' a; printf 'status=%s:' \"$?\"; printf '<%s>' \"${a[@]}\"; read -r tail; printf 'tail=<%s>' \"$tail\"",
+        "shell"
+      ],
+      "argv0": null,
+      "inputHex": "66697273740a7365636f6e640a74686972640a",
+      "expected": {
+        "status": 0,
+        "stdoutHex": "7374617475733d303a3c66697273740a3e3c7365636f6e640a3e3c74686972640a3e7461696c3d3c3e",
+        "stderrHex": ""
+      }
+    },
+    {
+      "fixture": "review.test.ts",
+      "captureIndex": 132,
+      "args": [
+        "--noprofile",
+        "--norc",
+        "-c",
+        "a=(old keep); mapfile -c $'1\\f' a; printf 'status=%s:' \"$?\"; printf '<%s>' \"${a[@]}\"; read -r tail; printf 'tail=<%s>' \"$tail\"",
+        "shell"
+      ],
+      "argv0": null,
+      "inputHex": "66697273740a7365636f6e640a74686972640a",
+      "expected": {
+        "status": 0,
+        "stdoutHex": "7374617475733d303a3c66697273740a3e3c7365636f6e640a3e3c74686972640a3e7461696c3d3c3e",
+        "stderrHex": ""
+      }
+    },
+    {
+      "fixture": "review.test.ts",
+      "captureIndex": 133,
+      "args": [
+        "--noprofile",
+        "--norc",
+        "-c",
+        "a=(old keep); mapfile -n $'\\r\\n\\v\\f +1\\t' a; printf 'status=%s:' \"$?\"; printf '<%s>' \"${a[@]}\"",
+        "shell"
+      ],
+      "argv0": null,
+      "inputHex": "66697273740a7365636f6e640a",
+      "expected": {
+        "status": 0,
+        "stdoutHex": "7374617475733d303a3c66697273740a3e",
+        "stderrHex": ""
+      }
+    },
+    {
+      "fixture": "review.test.ts",
+      "captureIndex": 134,
+      "args": [
+        "--noprofile",
+        "--norc",
+        "-c",
+        "a=(old keep); mapfile -O $'\\r\\n\\v\\f +1\\t' a; printf 'status=%s:' \"$?\"; printf '<%s>' \"${a[@]}\"",
+        "shell"
+      ],
+      "argv0": null,
+      "inputHex": "66697273740a7365636f6e640a",
+      "expected": {
+        "status": 0,
+        "stdoutHex": "7374617475733d303a3c6f6c643e3c66697273740a3e3c7365636f6e640a3e",
+        "stderrHex": ""
+      }
+    },
+    {
+      "fixture": "review.test.ts",
+      "captureIndex": 135,
+      "args": [
+        "--noprofile",
+        "--norc",
+        "-c",
+        "a=(old keep); mapfile -s $'\\r\\n\\v\\f +1\\t' a; printf 'status=%s:' \"$?\"; printf '<%s>' \"${a[@]}\"",
+        "shell"
+      ],
+      "argv0": null,
+      "inputHex": "66697273740a7365636f6e640a",
+      "expected": {
+        "status": 0,
+        "stdoutHex": "7374617475733d303a3c7365636f6e640a3e",
+        "stderrHex": ""
+      }
+    },
+    {
+      "fixture": "review.test.ts",
+      "captureIndex": 136,
+      "args": [
+        "--noprofile",
+        "--norc",
+        "-c",
+        "a=(old keep); mapfile -u $'\\r\\n\\v\\f +0\\t' a; printf 'status=%s:' \"$?\"; printf '<%s>' \"${a[@]}\"",
+        "shell"
+      ],
+      "argv0": null,
+      "inputHex": "66697273740a7365636f6e640a",
+      "expected": {
+        "status": 0,
+        "stdoutHex": "7374617475733d303a3c66697273740a3e3c7365636f6e640a3e",
+        "stderrHex": ""
+      }
+    },
+    {
+      "fixture": "review.test.ts",
+      "captureIndex": 137,
+      "args": [
+        "--noprofile",
+        "--norc",
+        "-c",
+        "a=(old keep); mapfile -c $'\\r\\n\\v\\f +1\\t' a; printf 'status=%s:' \"$?\"; printf '<%s>' \"${a[@]}\"",
+        "shell"
+      ],
+      "argv0": null,
+      "inputHex": "66697273740a7365636f6e640a",
+      "expected": {
+        "status": 0,
+        "stdoutHex": "7374617475733d303a3c66697273740a3e3c7365636f6e640a3e",
+        "stderrHex": ""
+      }
+    },
+    {
+      "fixture": "review.test.ts",
+      "captureIndex": 138,
+      "args": [
+        "--noprofile",
+        "--norc",
+        "-c",
+        "cb() { printf 'cb=%s:<%s>;' \"$1\" \"$2\"; }; mapfile -tn1 -O2147483647 -c1 -C cb a; printf '<%s>' \"${a[2147483647]}\"",
+        "shell"
+      ],
+      "argv0": null,
+      "inputHex": "6f6e650a74776f0a",
+      "expected": {
+        "status": 0,
+        "stdoutHex": "63623d323134373438333634373a3c6f6e653e3b3c6f6e653e",
+        "stderrHex": ""
+      }
+    },
+    {
+      "fixture": "review.test.ts",
+      "captureIndex": 139,
+      "args": [
+        "--noprofile",
+        "--norc",
+        "-c",
+        "cb() { printf 'cb=%s:<%s>;' \"$1\" \"$2\"; }; mapfile -tn1 -O2147483648 -c1 -C cb a; printf '<%s>' \"${a[2147483648]}\"",
+        "shell"
+      ],
+      "argv0": null,
+      "inputHex": "6f6e650a74776f0a",
+      "expected": {
+        "status": 0,
+        "stdoutHex": "3c6f6e653e",
+        "stderrHex": "7368656c6c3a20737464696e3a206c696e6520313a20756e657870656374656420454f46207768696c65206c6f6f6b696e6720666f72206d61746368696e67206027270a"
+      }
+    },
+    {
+      "fixture": "review.test.ts",
+      "captureIndex": 140,
+      "args": [
+        "--noprofile",
+        "--norc",
+        "-c",
+        "cb() { printf 'cb=%s:<%s>;' \"$1\" \"$2\"; }; mapfile -tn1 -O4294967294 -c1 -C cb a; printf '<%s>' \"${a[4294967294]}\"",
+        "shell"
+      ],
+      "argv0": null,
+      "inputHex": "6f6e650a74776f0a",
+      "expected": {
+        "status": 0,
+        "stdoutHex": "63623d2d323a3c6f6e653e3b3c6f6e653e",
+        "stderrHex": ""
+      }
+    },
+    {
+      "fixture": "review.test.ts",
+      "captureIndex": 141,
+      "args": [
+        "--noprofile",
+        "--norc",
+        "-c",
+        "mapfile -tn1 -u4 a 3<&0 4<&3-; printf 'status=%s:' \"$?\"; printf '<%s>' \"${a[@]}\"; read -r tail; printf '<%s>' \"$tail\"",
+        "shell"
+      ],
+      "argv0": null,
+      "inputHex": "6f6e650a74776f0a",
+      "expected": {
+        "status": 0,
+        "stdoutHex": "7374617475733d303a3c6f6e653e3c74776f3e",
+        "stderrHex": ""
+      }
+    },
+    {
+      "fixture": "review.test.ts",
+      "captureIndex": 142,
+      "args": [
+        "--noprofile",
+        "--norc",
+        "-c",
+        "a=(old); mapfile -u3 -u4 a 3<&0 4<&3-; printf 'status=%s:<%s>' \"$?\" \"${a[@]}\"",
+        "shell"
+      ],
+      "argv0": null,
+      "inputHex": "6f6e650a",
+      "expected": {
+        "status": 0,
+        "stdoutHex": "7374617475733d313a3c6f6c643e",
+        "stderrHex": "7368656c6c3a206c696e6520313a206d617066696c653a20333a20696e76616c69642066696c652064657363726970746f723a204261642066696c652064657363726970746f720a"
+      }
+    },
+    {
+      "fixture": "review.test.ts",
+      "captureIndex": 143,
+      "args": [
+        "--noprofile",
+        "--norc",
+        "-c",
+        "a=(old); readonly a; mapfile -u0 -u9 -u0 a; printf 'status=%s:<%s>' \"$?\" \"${a[@]}\"",
+        "shell"
+      ],
+      "argv0": null,
+      "inputHex": "6f6e650a",
+      "expected": {
+        "status": 0,
+        "stdoutHex": "7374617475733d313a3c6f6c643e",
+        "stderrHex": "7368656c6c3a206c696e6520313a206d617066696c653a20393a20696e76616c69642066696c652064657363726970746f723a204261642066696c652064657363726970746f720a"
+      }
+    },
+    {
+      "fixture": "review.test.ts",
+      "captureIndex": 144,
+      "args": [
+        "--noprofile",
+        "--norc",
+        "-c",
+        "readarray $'-\\xff'; printf 'status=%s' \"$?\"",
+        "shell"
+      ],
+      "argv0": null,
+      "inputHex": "6f6e650a",
+      "expected": {
+        "status": 0,
+        "stdoutHex": "7374617475733d32",
+        "stderrHex": "7368656c6c3a206c696e6520313a207265616461727261793a202dff3a20696e76616c6964206f7074696f6e0a7265616461727261793a2075736167653a20726561646172726179205b2d642064656c696d5d205b2d6e20636f756e745d205b2d4f206f726967696e5d205b2d7320636f756e745d205b2d745d205b2d752066645d205b2d432063616c6c6261636b5d205b2d63207175616e74756d5d205b61727261795d0a"
+      }
+    },
+    {
+      "fixture": "review.test.ts",
+      "captureIndex": 145,
+      "args": [
+        "--noprofile",
+        "--norc",
+        "-c",
+        "readarray -n $'\\xff'; printf 'status=%s' \"$?\"",
+        "shell"
+      ],
+      "argv0": null,
+      "inputHex": "6f6e650a",
+      "expected": {
+        "status": 0,
+        "stdoutHex": "7374617475733d31",
+        "stderrHex": "7368656c6c3a206c696e6520313a207265616461727261793a20ff3a20696e76616c6964206c696e6520636f756e740a"
+      }
+    },
+    {
+      "fixture": "review.test.ts",
+      "captureIndex": 146,
+      "args": [
+        "--noprofile",
+        "--norc",
+        "-c",
+        "cb() { printf 'cb=%s:<%s>;' \"$1\" \"$2\"; }; mapfile -t -O4294967295 -n2 -c1 -C cb a; printf '<%s><%s>' \"${a[4294967295]}\" \"${a[0]}\"",
+        "shell"
+      ],
+      "argv0": null,
+      "inputHex": "6f6e650a74776f0a74687265650a",
+      "expected": {
+        "status": 0,
+        "stdoutHex": "63623d2d313a3c6f6e653e3b63623d303a3c74776f3e3b3c6f6e653e3c74776f3e",
+        "stderrHex": ""
+      }
+    },
+    {
+      "fixture": "review.test.ts",
+      "captureIndex": 147,
+      "args": [
+        "--noprofile",
+        "--norc",
+        "-c",
+        "cb() { printf 'cb=%s:<%s>;' \"$1\" \"$2\"; }; mapfile -t -s2 -n3 -c2 -C cb a; printf '<%s>' \"${a[@]}\"; read -r tail; printf 'tail=<%s>' \"$tail\"",
+        "shell"
+      ],
+      "argv0": null,
+      "inputHex": "736b6970310a736b6970320a610a620a630a7461696c0a",
+      "expected": {
+        "status": 0,
+        "stdoutHex": "63623d313a3c623e3b3c613e3c623e3c633e7461696c3d3c7461696c3e",
+        "stderrHex": ""
+      }
+    },
+    {
+      "fixture": "review.test.ts",
+      "captureIndex": 148,
+      "args": [
+        "--noprofile",
+        "--norc",
+        "-c",
+        "mapfile -td: a; printf '<%s>' \"${a[@]}\"",
+        "shell"
+      ],
+      "argv0": null,
+      "inputHex": "610068696464656e3a623a007461696c3a",
+      "expected": {
+        "status": 0,
+        "stdoutHex": "3c613e3c623e3c3e",
+        "stderrHex": ""
+      }
+    },
+    {
+      "fixture": "review.test.ts",
+      "captureIndex": 149,
+      "args": [
+        "--noprofile",
+        "--norc",
+        "-c",
+        "mapfile -td '' -s1 -n1 a; printf '<%s>' \"${a[@]}\"; mapfile -d '' b; printf '<%s>' \"${b[@]}\"",
+        "shell"
+      ],
+      "argv0": null,
+      "inputHex": "736b6970006f6e65007461696c00",
+      "expected": {
+        "status": 0,
+        "stdoutHex": "3c6f6e653e3c7461696c3e",
+        "stderrHex": ""
+      }
+    },
+    {
+      "fixture": "review.test.ts",
+      "captureIndex": 150,
+      "args": [
+        "--noprofile",
+        "--norc",
+        "-c",
+        "cb() { printf 'cb:<%s>;' \"$2\"; }; mapfile -t -c1 -C cb a; printf '<%s>' \"${a[@]}\"",
+        "shell"
+      ],
+      "argv0": null,
+      "inputHex": "2724287072696e746620696e6a656374656429607072696e746620626164605c0a",
+      "expected": {
+        "status": 0,
+        "stdoutHex": "63623a3c2724287072696e746620696e6a656374656429607072696e746620626164605c3e3b3c2724287072696e746620696e6a656374656429607072696e746620626164605c3e",
+        "stderrHex": ""
+      }
+    },
+    {
+      "fixture": "review.test.ts",
+      "captureIndex": 151,
+      "args": [
+        "--noprofile",
+        "--norc",
+        "-c",
+        "cb() { printf '<%s><%s><%s>;' \"$1\" \"$2\" \"$3\"; }; mapfile -tn1 -c1 -C 'cb prefix' a; printf '<%s>' \"${a[@]}\"",
+        "shell"
+      ],
+      "argv0": null,
+      "inputHex": "6f6e650a74776f0a",
+      "expected": {
+        "status": 0,
+        "stdoutHex": "3c7072656669783e3c303e3c6f6e653e3b3c6f6e653e",
+        "stderrHex": ""
+      }
+    },
+    {
+      "fixture": "review.test.ts",
+      "captureIndex": 152,
+      "args": [
+        "--noprofile",
+        "--norc",
+        "-c",
+        "mapfile -tn1 -c1 -C ')' a; printf 'status=%s' \"$?\"; printf 'a=<%s>;b=<%s>;c=<%s>' \"${a[*]}\" \"${b[*]}\" \"${c[*]}\"",
+        "shell"
+      ],
+      "argv0": null,
+      "inputHex": "6f6e650a74776f0a74687265650a666f75720a",
+      "expected": {
+        "status": 0,
+        "stdoutHex": "7374617475733d30613d3c6f6e653e3b623d3c3e3b633d3c3e",
+        "stderrHex": "7368656c6c3a20737464696e3a206c696e6520313a2073796e746178206572726f72206e65617220756e657870656374656420746f6b656e206029270a7368656c6c3a20737464696e3a206c696e6520313a206029203020276f6e6527270a"
+      }
+    },
+    {
+      "fixture": "review.test.ts",
+      "captureIndex": 153,
+      "args": [
+        "--noprofile",
+        "--norc",
+        "-c",
+        "mapfile -tn1 -c1 -C 'mapfile -tn1 -c1 -C \")\" b; :' a; printf 'status=%s' \"$?\"; printf 'a=<%s>;b=<%s>;c=<%s>' \"${a[*]}\" \"${b[*]}\" \"${c[*]}\"",
+        "shell"
+      ],
+      "argv0": null,
+      "inputHex": "6f6e650a74776f0a74687265650a666f75720a",
+      "expected": {
+        "status": 0,
+        "stdoutHex": "7374617475733d30613d3c6f6e653e3b623d3c74776f3e3b633d3c3e",
+        "stderrHex": "7368656c6c3a20737464696e3a206c696e6520313a2073796e746178206572726f72206e65617220756e657870656374656420746f6b656e206029270a7368656c6c3a20737464696e3a206c696e6520313a2060292030202774776f27270a"
+      }
+    },
+    {
+      "fixture": "review.test.ts",
+      "captureIndex": 154,
+      "args": [
+        "--noprofile",
+        "--norc",
+        "-c",
+        "mapfile -tn1 -c1 -C 'mapfile -tn1 -O2147483648 -c1 -C : b; :' a; printf 'status=%s' \"$?\"; printf 'a=<%s>;b=<%s>;c=<%s>' \"${a[*]}\" \"${b[*]}\" \"${c[*]}\"",
+        "shell"
+      ],
+      "argv0": null,
+      "inputHex": "6f6e650a74776f0a74687265650a666f75720a",
+      "expected": {
+        "status": 0,
+        "stdoutHex": "7374617475733d30613d3c6f6e653e3b623d3c74776f3e3b633d3c3e",
+        "stderrHex": "7368656c6c3a20737464696e3a206c696e6520313a20756e657870656374656420454f46207768696c65206c6f6f6b696e6720666f72206d61746368696e67206027270a"
+      }
+    },
+    {
+      "fixture": "review.test.ts",
+      "captureIndex": 155,
+      "args": [
+        "--noprofile",
+        "--norc",
+        "-c",
+        "mapfile -tn1 -c1 -C 'mapfile -tn1 -c1 -C '\\''mapfile -tn1 -O2147483648 -c1 -C : b; :'\\'' c; :' a; printf 'status=%s' \"$?\"; printf 'a=<%s>;b=<%s>;c=<%s>' \"${a[*]}\" \"${b[*]}\" \"${c[*]}\"",
+        "shell"
+      ],
+      "argv0": null,
+      "inputHex": "6f6e650a74776f0a74687265650a666f75720a",
+      "expected": {
+        "status": 0,
+        "stdoutHex": "7374617475733d30613d3c6f6e653e3b623d3c74687265653e3b633d3c74776f3e",
+        "stderrHex": "7368656c6c3a20737464696e3a206c696e6520313a20756e657870656374656420454f46207768696c65206c6f6f6b696e6720666f72206d61746368696e67206027270a"
+      }
+    },
+    {
+      "fixture": "review.test.ts",
+      "captureIndex": 156,
+      "args": [
+        "--noprofile",
+        "--norc",
+        "-c",
+        "outer() { mapfile -tn1 -O2147483648 -c1 -C : b; :; }; mapfile -tn1 -c1 -C outer a; printf 'status=%s' \"$?\"; printf 'a=<%s>;b=<%s>;c=<%s>' \"${a[*]}\" \"${b[*]}\" \"${c[*]}\"",
+        "shell"
+      ],
+      "argv0": null,
+      "inputHex": "6f6e650a74776f0a74687265650a666f75720a",
+      "expected": {
+        "status": 0,
+        "stdoutHex": "7374617475733d30613d3c6f6e653e3b623d3c74776f3e3b633d3c3e",
+        "stderrHex": "7368656c6c3a20737464696e3a206c696e6520313a20756e657870656374656420454f46207768696c65206c6f6f6b696e6720666f72206d61746368696e67206027270a"
+      }
+    },
+    {
+      "fixture": "review.test.ts",
+      "captureIndex": 157,
+      "args": [
+        "--noprofile",
+        "--norc",
+        "-c",
+        "mapfile -tn1 -c1 -C 'inner() { missing_callback_command; }; inner; :' a; printf 'status=%s' \"$?\"; printf 'a=<%s>;b=<%s>;c=<%s>' \"${a[*]}\" \"${b[*]}\" \"${c[*]}\"",
+        "shell"
+      ],
+      "argv0": null,
+      "inputHex": "6f6e650a74776f0a74687265650a666f75720a",
+      "expected": {
+        "status": 0,
+        "stdoutHex": "7374617475733d30613d3c6f6e653e3b623d3c3e3b633d3c3e",
+        "stderrHex": "7368656c6c3a206c696e6520313a206d697373696e675f63616c6c6261636b5f636f6d6d616e643a20636f6d6d616e64206e6f7420666f756e640a"
+      }
+    },
+    {
+      "fixture": "review.test.ts",
+      "captureIndex": 158,
+      "args": [
+        "--noprofile",
+        "--norc",
+        "-c",
+        "cb() { missing_callback_command; }; mapfile -tn1 -c1 -C cb a; printf 'status=%s' \"$?\"; printf 'a=<%s>;b=<%s>;c=<%s>' \"${a[*]}\" \"${b[*]}\" \"${c[*]}\"",
+        "shell"
+      ],
+      "argv0": null,
+      "inputHex": "6f6e650a74776f0a74687265650a666f75720a",
+      "expected": {
+        "status": 0,
+        "stdoutHex": "7374617475733d30613d3c6f6e653e3b623d3c3e3b633d3c3e",
+        "stderrHex": "7368656c6c3a206c696e6520313a206d697373696e675f63616c6c6261636b5f636f6d6d616e643a20636f6d6d616e64206e6f7420666f756e640a"
+      }
+    },
+    {
+      "fixture": "review.test.ts",
+      "captureIndex": 159,
+      "args": [
+        "--noprofile",
+        "--norc",
+        "-c",
+        "mapfile -tn1 -c1 -C ':\n)' a; printf 'status=%s' \"$?\"; printf 'a=<%s>;b=<%s>;c=<%s>' \"${a[*]}\" \"${b[*]}\" \"${c[*]}\"",
+        "shell"
+      ],
+      "argv0": null,
+      "inputHex": "6f6e650a74776f0a74687265650a666f75720a",
+      "expected": {
+        "status": 0,
+        "stdoutHex": "7374617475733d30613d3c6f6e653e3b623d3c3e3b633d3c3e",
+        "stderrHex": "7368656c6c3a20737464696e3a206c696e6520323a2073796e746178206572726f72206e65617220756e657870656374656420746f6b656e206029270a7368656c6c3a20737464696e3a206c696e6520323a206029203020276f6e6527270a"
+      }
+    },
+    {
+      "fixture": "review.test.ts",
+      "captureIndex": 160,
+      "args": [
+        "--noprofile",
+        "--norc",
+        "-c",
+        ". /dev/fd/3 3<<'MAPFILE_REVIEW_END'\ncallback() {\nmissing_callback_command;\n}\nMAPFILE_REVIEW_END\nmapfile -tn1 -c1 -C callback a; printf 'status=%s;a=<%s>;b=<%s>' \"$?\" \"${a[*]}\" \"${b[*]}\"",
+        "shell"
+      ],
+      "argv0": null,
+      "inputHex": "6f6e650a74776f0a74687265650a",
+      "expected": {
+        "status": 0,
+        "stdoutHex": "7374617475733d303b613d3c6f6e653e3b623d3c3e",
+        "stderrHex": "2f6465762f66642f333a206c696e6520323a206d697373696e675f63616c6c6261636b5f636f6d6d616e643a20636f6d6d616e64206e6f7420666f756e640a"
+      }
+    },
+    {
+      "fixture": "review.test.ts",
+      "captureIndex": 161,
+      "args": [
+        "--noprofile",
+        "--norc",
+        "-c",
+        ". /dev/fd/3 3<<'MAPFILE_REVIEW_END'\ncallback() {\nmapfile -tn1 -O2147483648 -c1 -C : b; :\n}\nMAPFILE_REVIEW_END\nmapfile -tn1 -c1 -C callback a; printf 'status=%s;a=<%s>;b=<%s>' \"$?\" \"${a[*]}\" \"${b[*]}\"",
+        "shell"
+      ],
+      "argv0": null,
+      "inputHex": "6f6e650a74776f0a74687265650a",
+      "expected": {
+        "status": 0,
+        "stdoutHex": "7374617475733d303b613d3c6f6e653e3b623d3c74776f3e",
+        "stderrHex": "2f6465762f66642f333a20737464696e3a206c696e6520323a20756e657870656374656420454f46207768696c65206c6f6f6b696e6720666f72206d61746368696e67206027270a"
+      }
+    },
+    {
+      "fixture": "review.test.ts",
+      "captureIndex": 162,
+      "args": [
+        "--noprofile",
+        "--norc",
+        "-c",
+        "cb() { missing_callback_command; }; cb; printf 'status=%s' \"$?\"",
+        "shell"
+      ],
+      "argv0": null,
+      "inputHex": null,
+      "expected": {
+        "status": 0,
+        "stdoutHex": "7374617475733d313237",
+        "stderrHex": "7368656c6c3a206c696e6520313a206d697373696e675f63616c6c6261636b5f636f6d6d616e643a20636f6d6d616e64206e6f7420666f756e640a"
+      }
+    },
+    {
+      "fixture": "review.test.ts",
+      "captureIndex": 163,
+      "args": [
+        "--noprofile",
+        "--norc",
+        "-c",
+        ". /dev/fd/3 3<<'MAPFILE_REVIEW_END'\ncallback() {\nmissing_callback_command;\n}\nMAPFILE_REVIEW_END\ncallback; printf 'status=%s' \"$?\"",
+        "shell"
+      ],
+      "argv0": null,
+      "inputHex": null,
+      "expected": {
+        "status": 0,
+        "stdoutHex": "7374617475733d313237",
+        "stderrHex": "2f6465762f66642f333a206c696e6520323a206d697373696e675f63616c6c6261636b5f636f6d6d616e643a20636f6d6d616e64206e6f7420666f756e640a"
+      }
+    },
+    {
+      "fixture": "review.test.ts",
+      "captureIndex": 164,
+      "args": [
+        "--noprofile",
+        "--norc",
+        "-c",
+        ". /dev/fd/3 3<<'MAPFILE_REVIEW_END'\ncallback() {\nmissing_callback_command;\n}\nMAPFILE_REVIEW_END\neval callback; printf 'status=%s' \"$?\"",
+        "shell"
+      ],
+      "argv0": null,
+      "inputHex": null,
+      "expected": {
+        "status": 0,
+        "stdoutHex": "7374617475733d313237",
+        "stderrHex": "2f6465762f66642f333a206c696e6520323a206d697373696e675f63616c6c6261636b5f636f6d6d616e643a20636f6d6d616e64206e6f7420666f756e640a"
+      }
+    },
+    {
+      "fixture": "syntax.test.ts",
+      "captureIndex": 165,
+      "args": [
+        "--noprofile",
+        "--norc",
+        "-c",
+        "mapfile -t -O4294967295 a; printf '<%s>' \"${!a[@]}\"; printf 'values=<%s><%s>' \"${a[4294967295]}\" \"${a[0]}\"",
+        "shell"
+      ],
+      "argv0": null,
+      "inputHex": "6f6e650a74776f0a",
+      "expected": {
+        "status": 0,
+        "stdoutHex": "3c303e3c343239343936373239353e76616c7565733d3c6f6e653e3c74776f3e",
+        "stderrHex": ""
+      }
+    },
+    {
+      "fixture": "syntax.test.ts",
+      "captureIndex": 166,
+      "args": [
+        "--noprofile",
+        "--norc",
+        "-c",
+        "readarray -t -O4294967295 a; printf '<%s>' \"${!a[@]}\"; printf 'values=<%s><%s>' \"${a[4294967295]}\" \"${a[0]}\"",
+        "shell"
+      ],
+      "argv0": null,
+      "inputHex": "6f6e650a74776f0a",
+      "expected": {
+        "status": 0,
+        "stdoutHex": "3c303e3c343239343936373239353e76616c7565733d3c6f6e653e3c74776f3e",
+        "stderrHex": ""
+      }
+    },
+    {
+      "fixture": "syntax.test.ts",
+      "captureIndex": 167,
+      "args": [
+        "--noprofile",
+        "--norc",
+        "-c",
+        "mapfile -tn1 -O3 a; readarray -tn1 -O7 b; printf 'a=<%s>;b=<%s>' \"${!a[@]}\" \"${!b[@]}\"",
+        "shell"
+      ],
+      "argv0": null,
+      "inputHex": "6f6e650a74776f0a",
+      "expected": {
+        "status": 0,
+        "stdoutHex": "613d3c333e3b623d3c373e",
+        "stderrHex": ""
+      }
+    },
+    {
+      "fixture": "syntax.test.ts",
+      "captureIndex": 168,
+      "args": [
+        "--noprofile",
+        "--norc",
+        "-c",
+        "mapfile -tn1 -O3 a; readarray -tn1 -O7 b; printf 'a=<%s>;b=<%s>' \"${!a[@]}\" \"${!b[@]}\"",
+        "shell"
+      ],
+      "argv0": null,
+      "inputHex": "6f6e650a74776f0a",
+      "expected": {
+        "status": 0,
+        "stdoutHex": "613d3c333e3b623d3c373e",
+        "stderrHex": ""
+      }
+    },
+    {
+      "fixture": "syntax.test.ts",
+      "captureIndex": 169,
+      "args": [
+        "--noprofile",
+        "--norc",
+        "-c",
+        "mapfile -t -O3 a; (printf 'child=<%s>' \"${!a[@]}\"); printf 'sub=<%s>;parent=<%s>' \"$(printf '<%s>' \"${!a[@]}\")\" \"${!a[*]}\"",
+        "shell"
+      ],
+      "argv0": null,
+      "inputHex": "6f6e650a74776f0a",
+      "expected": {
+        "status": 0,
+        "stdoutHex": "6368696c643d3c333e6368696c643d3c343e7375623d3c3c333e3c343e3e3b706172656e743d3c3320343e",
+        "stderrHex": ""
+      }
+    }
+  ]
+}

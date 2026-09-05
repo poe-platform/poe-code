@@ -535,6 +535,18 @@ function assertSource7Discovery(files) {
     "tests/plugins/function-diagnostic-runtime.test.ts",
   ]) assert.ok(files.includes(path), "function diagnostic origin test is missing: " + path);
   for (const path of [
+    "tests/shell/extensions/mapfile/arguments.test.ts",
+    "tests/shell/extensions/mapfile/behavior.test.ts",
+    "tests/shell/extensions/mapfile/callback-boundary.test.ts",
+    "tests/shell/extensions/mapfile/evaluation-exit-review.test.ts",
+    "tests/shell/extensions/mapfile/lifecycle.test.ts",
+    "tests/shell/extensions/mapfile/native.test.ts",
+    "tests/shell/extensions/mapfile/prerequisites.test.ts",
+    "tests/shell/extensions/mapfile/review.test.ts",
+    "tests/shell/extensions/mapfile/syntax.test.ts",
+    "tests/plugins/mapfile-runtime.test.ts",
+  ]) assert.ok(files.includes(path), "optional mapfile test is missing: " + path);
+  for (const path of [
     "tests/shell/extensions/core/syntax.test.ts",
     "tests/shell/extensions/core/syntax-review.test.ts",
   ]) assert.ok(files.includes(path), "opt-in parser syntax test is missing: " + path);

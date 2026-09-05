@@ -1154,6 +1154,45 @@ this request to keep additions out of the default package.
   multiline backticks match, without establishing universal backtick support.
   Full review evidence is in the temporary
   `function-compound-review.cgyUtQ/handoff.json` under the scripting-oracle root.
+- Mapfile's primary migration is independently accepted as a bounded increment:
+  all 170 observations cover 147 distinct requests with no contradictory
+  duplicates. Reversing only the documented reference imports/calls, gating and
+  version labels reproduces all seven archived fixture files; programs and raw
+  assertions remain unchanged. Independent fresh native holdouts pass 134/134
+  without overlap with the primary requests: ASCII/non-ASCII whitespace, signs,
+  overflow, wrapped indexes and raw callback values. Full evidence is in
+  `/tmp/safe-bash-mapfile-independent-review.IGpenD/review.json`.
+- Root reruns the nine mapfile suites without native-oracle environment variables:
+  241/241 pass with stable source/test/reference/core hashes. The rebuilt optional
+  entry passes eight compiled public tests, including a separately authenticated
+  5.3 trailing-CR numeric case that preserves the unread input tail. Actual output
+  is visually inspected in `mapfile-final-public-visual.png`; eleven exact-package
+  strict roots report zero diagnostics and discovery passes 98/98. All nine
+  canonical suites and the public suite are registered by literal path.
+- Current compiled inventories remain 79 default commands and 28 browser
+  commands, with date retained and no optional-command or automatic-curl leaks.
+  Final workspace/root dry packs contain 1,054/4,645 files with zero optional
+  implementation leaks. Guarded lint 30 completes with zero errors/warnings,
+  no stop and all 80 watched hashes unchanged; separate stdout/stderr preserve
+  the clean receipt without the previous merged-stream ambiguity. The mapfile
+  leaf and explicit optional export can now be committed separately. This is
+  not full Bash, all-locale, all-provider or release acceptance.
+- The extended-read profile audit preserves the complete 516-case cohorts:
+  5.2 gives 462 passes/54 failures, while 5.3 gives 433 passes/83 failures.
+  The original 54 descriptor failures remain. The 29 added failures partition
+  into numeric whitespace, usage, readonly status, negative fractional timeout,
+  negative-TMOUT expectation and two Unicode/locale fixture differences. The
+  original negative-TMOUT run reaches its SIGKILL guard rather than proving
+  status 142. Evidence and corrected bounded controls are retained in
+  `/tmp/read-dialect-audit.xYm3hI/EVIDENCE.md`; none are acceptance passes.
+- A separate read-only ownership audit confirms that descriptor-table copies,
+  replacements and moves currently share streams without fd-alias reference
+  counting. Cursor ownership and whole-pipe abort do not establish last-peer
+  closure. The next descriptor repair needs directional endpoint ownership and
+  explicit binding lifetimes, preserving cancellation separately. File output
+  currently prefers streaming or the shell's incremental callback; canonical
+  output-open preference would change routing/publication semantics and still
+  requires an explicit reviewed decision, not an inferred unchanged path.
 
 - First implementation wave: cmp, yes, shuf and virtual devices in disjoint leaf
   directories. Root is qualifying native oracles and the opt-in delivery boundary.

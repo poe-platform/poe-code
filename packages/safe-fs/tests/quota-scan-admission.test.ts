@@ -317,9 +317,14 @@ test("quota preserves a scan refusal over source-return failure", async () => {
   const cleanupFailure = new Error("source return failed");
   let closed = 0;
   const source = (async function* () {
-    try { yield bytes("a"); }
-    finally { closed++; throw cleanupFailure; }
+    yield bytes("a");
   })();
+  const closeSource = source.return.bind(source);
+  source.return = async value => {
+    await closeSource(value);
+    closed++;
+    throw cleanupFailure;
+  };
   assert.ok(quota.writeStream);
   await assert.rejects(quota.writeStream("/file", source), { code: "EFBIG" });
   assert.equal(closed, 1);

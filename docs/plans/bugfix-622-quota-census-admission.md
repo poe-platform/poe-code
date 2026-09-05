@@ -191,3 +191,18 @@ Evidence is retained in
 These are local integration checks, not a completed full maintained gate, push,
 or release. The separate #633 correction is still pending, and the denied
 upstream merge has not been retried.
+
+## Shared-gate fixture follow-up (September 5, 2026)
+
+After the #633 correction, the normal workspace build and complete maintained
+`npm test` route pass on `e9ef1944b1cb8641088aa34215cd0379f8fae966`.
+Full guarded lint completes its inventory but reports one `no-unsafe-finally`
+finding in this issue's source-return-failure fixture; the original report is
+preserved under `issues-620-622-631-633-gate.77IYZV`.
+
+The fixture now closes its real generator explicitly, then rejects its `return`
+operation with the same cleanup error outside `finally`. Its assertions remain
+unchanged: the scan refusal stays primary, cleanup runs once, and the file stays
+empty. All 1,184 SafeFS tests pass again. No production source changes accompany
+this fixture correction. Remaining lint, package and full Safe Bash type gates
+must still complete before qualification is claimed.

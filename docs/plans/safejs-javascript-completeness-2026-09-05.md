@@ -71,7 +71,7 @@ built SafeJS core. These are open defects/feature gaps, not completed fixes.
 
 ## Atomic work log
 
-### 1. Binary property existence — validated, delivery pending
+### 1. Binary property existence — delivered, scoped release complete
 
 Source evidence: `evaluateBinaryExpression` only special-cases host objects;
 `applyBinaryOperator` otherwise raises UNSUPPORTED_NODE for `in`.
@@ -97,9 +97,56 @@ SafeJS suite (10,133 passed, 41 skipped). Full root lint passed: 9,710 configure
 files linted, zero errors or warnings, plus root TypeScript and workflow checks.
 Skipped cases are not counted as passes. The one-step-under-budget regression
 correctly expects the public runner to reject with its fatal budget error.
-No code has been committed or pushed yet.
+Committed and verified on remote main as
+`cb1de216639fca088b61de1b1374c8c72c05fc09`. Scoped release workflow
+`33938517813`, publisher job `101231110596`, succeeded; its log confirms
+`@poe-platform/safe-js@0.1.85` published September 5, 2026, 02:19:02 UTC
+(the shared SafeFS and Safe Bash packages also published 0.1.85).
+CLI release workflow `33938517919` is still running; CLI publication is not
+claimed complete yet.
 
 Existing restrictions still apply to members absent from the guest object
 model (for example full exotic prototype graphs), symbols, and general
 exotic-to-string coercion. These remain in the completeness inventory; this
 atomic change does not pretend to implement those separate subsystems.
+
+### 2. Keyword property names — validated, delivery pending
+
+Native controls and built SafeJS probes reproduce failures for literal-word
+keys (`null`, `true`, `false`, `undefined`) and reserved words such as `return`,
+`const`, `for`, and `in`. Object literals and both destructuring parsers use
+different handling for keyword tokens; literal words become expression AST
+nodes that the property evaluators cannot interpret as static names.
+
+Treat property names as IdentifierName without widening binding/reference
+grammar. Cover literals, binding/assignment patterns, parameters, defaults,
+rest, escapes, lint, and completed replay. Keep existing string/numeric keys
+and keyword method definitions unchanged. ECMAScript reference: 13.2.5.4,
+LiteralPropertyName : IdentifierName.
+
+RED: 39 failed, 15 passed. The fix uses identifier-name AST nodes for keyword
+data keys and keeps shorthand/binding rejection separate. Focused coverage:
+155 passed. The normal build and twelve built public-entrypoint checks passed.
+The first full suite found one historical expectation that `{ return: 1 }`
+must fail. Native compilation confirms it is valid; that assertion now checks
+the accepted property AST while retaining reserved binding/shorthand failures.
+Final full-suite rerun passed: 10,187 tests, 41 skipped. Full root lint passed:
+9,711 configured files, zero errors or warnings, plus root TypeScript and
+workflow checks. No commit or push yet.
+
+### Next validated candidate: computed property coercion
+
+With `const key = { toString() { return "x"; } }; const object = { x: 7 };`,
+native JavaScript accepts each of the following; built SafeJS rejects all seven
+with "Computed property access requires a string or number key":
+
+- `return object[key];` → 7
+- `object[key] = 8; return object.x;` → 8
+- `delete object[key]; return Object.hasOwn(object, "x");` → false
+- `return { [key]: 8 }.x;` → 8
+- `const { [key]: value } = object; return value;` → 7
+- `let value; ({ [key]: value } = object); return value;` → 7
+- `object[key]++; return object.x;` → 8
+
+No implementation change for this candidate yet. It needs coercion-order,
+single-evaluation, optional-access, error, budget, and host-boundary controls.

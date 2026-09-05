@@ -197,12 +197,18 @@ describe("IP-002 independent keyword and async-computed method validation", () =
     });
   });
 
-  it("keeps keyword tokens reserved outside the method-name gate", () => {
+  it("keeps keyword token classification while accepting identifier property names", () => {
     expect(
       tokenize("return throw const import async")
         .slice(0, -1)
         .map((token) => token.type)
     ).toEqual(["keyword", "keyword", "keyword", "keyword", "keyword"]);
-    expect(() => parse("return { return: 1 };")).toThrow();
+    expect(() => new Script("(function () { return { return: 1 }; })()")).not.toThrow();
+    expect(parse("({ return: 1 })")).toMatchObject({
+      type: "ObjectExpression",
+      properties: [{ computed: false, shorthand: false, key: { type: "Identifier", name: "return" } }]
+    });
+    expect(() => parse("const return = 1;")).toThrow();
+    expect(() => parse("return { return };")).toThrow();
   });
 });

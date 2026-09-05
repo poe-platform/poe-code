@@ -8,10 +8,57 @@ import type { ConditionalExpression } from "./conditional.js";
 import { shellValueFromBytes, shellValueText } from "../contracts/value.js";
 import type { ByteShellValue, ShellValue } from "../contracts/value.js";
 
+export interface ShellSyntaxDeclarations {
+  readonly listTerminators?: readonly { readonly operator: string }[];
+  readonly specialParameters?: readonly { readonly name: string }[];
+}
+
+export interface CapturedShellSyntax {
+  readonly listTerminators: readonly Readonly<{ operator: "&" }>[];
+  readonly specialParameters: readonly Readonly<{ name: "!" }>[];
+}
+
+const capturedSyntax = new WeakSet<object>();
+
+function syntaxEntries<Key extends string, Value extends string>(input: unknown, key: Key, allowed: Value): readonly Readonly<Record<Key, Value>>[] {
+  if (input === undefined) return Object.freeze([]);
+  if (!Array.isArray(input) || input.length > 1 || Reflect.ownKeys(input).some(name => name !== "length" && name !== "0")) {
+    throw new TypeError("Invalid or duplicate shell syntax declarations");
+  }
+  const entries: Readonly<Record<Key, Value>>[] = [];
+  for (let index = 0; index < input.length; index++) {
+    const slot = Object.getOwnPropertyDescriptor(input, String(index));
+    const entry: unknown = slot && "value" in slot ? slot.value : undefined;
+    if (!entry || typeof entry !== "object" || Reflect.ownKeys(entry).length !== 1) throw new TypeError("Invalid shell syntax declaration");
+    const property = Object.getOwnPropertyDescriptor(entry, key);
+    if (!property || !("value" in property) || property.value !== allowed) throw new TypeError("Invalid or reserved shell syntax declaration");
+    entries.push(Object.freeze({ [key]: allowed }) as Readonly<Record<Key, Value>>);
+  }
+  return Object.freeze(entries);
+}
+
+export function captureShellSyntax(declarations: ShellSyntaxDeclarations = defaultSyntax): CapturedShellSyntax {
+  if (!declarations || typeof declarations !== "object" || Array.isArray(declarations)) throw new TypeError("Invalid shell syntax declarations");
+  if (capturedSyntax.has(declarations)) return declarations as CapturedShellSyntax;
+  const prototype: unknown = Object.getPrototypeOf(declarations);
+  if (prototype !== null && prototype !== Object.prototype) throw new TypeError("Invalid shell syntax declarations");
+  const properties = Object.getOwnPropertyDescriptors(declarations);
+  if (Reflect.ownKeys(properties).some(key => key !== "listTerminators" && key !== "specialParameters")
+    || Object.values(properties).some(property => !("value" in property))) throw new TypeError("Invalid shell syntax declarations");
+  const syntax: CapturedShellSyntax = Object.freeze({
+    listTerminators: syntaxEntries(properties.listTerminators?.value, "operator", "&"),
+    specialParameters: syntaxEntries(properties.specialParameters?.value, "name", "!"),
+  });
+  capturedSyntax.add(syntax);
+  return syntax;
+}
+
+const defaultSyntax = captureShellSyntax({});
+
 export type WordPart =
   | { kind: "text"; value: string; quoted: boolean; byteValue?: ByteShellValue }
   | { kind: "arithmetic"; expression: ArithmeticProgram; source: string; line: number; quoted: boolean }
-  | { kind: "variable"; name: string; quoted: boolean; line?: number; length?: boolean; operator?: string; alternate?: Word; replacement?: Word; substring?: { offset: Word; length?: Word; source: string } }
+  | { kind: "variable"; name: string; quoted: boolean; line?: number; specialParameter?: CapturedShellSyntax["specialParameters"][number]; length?: boolean; operator?: string; alternate?: Word; replacement?: Word; substring?: { offset: Word; length?: Word; source: string } }
   | { kind: "failed-substitution"; diagnostic: string; quoted: boolean }
   | { kind: "substitution"; script: Script; line: number; sourceLine?: number; quoted: boolean };
 
@@ -42,6 +89,8 @@ export interface HereDocument {
   endLine: number;
   readonly byteSource?: boolean;
 }
+
+const hereDocumentSyntax = new WeakMap<HereDocument, CapturedShellSyntax>();
 
 export class HereDocumentSyntaxError extends Error {
   constructor(readonly diagnostic: string) { super(diagnostic); }
@@ -85,6 +134,7 @@ export interface Pipeline {
 export interface AndOr {
   readonly pipelines: Pipeline[];
   readonly operators: ("&&" | "||")[];
+  readonly terminator?: Readonly<{ operator: "&"; offset: number; line: number }>;
 }
 
 export interface Script {
@@ -123,7 +173,7 @@ class Lexer {
   readonly documents: HereDocument[] = [];
   readonly newlineOffsets: number[] = [];
 
-  constructor(readonly source: string, readonly depth: number, readonly warnings: string[] = [], readonly lineOffset = 0, readonly byteLocale = false, readonly documentLine?: number, readonly partial = false, readonly byteSource = false) {
+  constructor(readonly source: string, readonly depth: number, readonly warnings: string[] = [], readonly lineOffset = 0, readonly byteLocale = false, readonly documentLine?: number, readonly partial = false, readonly byteSource = false, readonly syntax: CapturedShellSyntax = defaultSyntax) {
     if (depth > 64) throw new ShellSyntaxError("Syntax nesting exceeds 64", 0);
     for (let offset = source.indexOf("\n"); offset !== -1; offset = source.indexOf("\n", offset + 1)) this.newlineOffsets.push(offset);
   }
@@ -170,7 +220,7 @@ class Lexer {
     }
     const operator = this.conditionalPattern ? undefined : /^(?:;;&|<<<|<<-|&>>|;&|&&|\|\||\|&|>>|>&|<&|>\||<<|;;|&>|[;\n|&()<>])/u.exec(logical)?.[0];
     if (operator) {
-      if (["&", "&>>"].includes(operator)) this.error(`Unsupported operator ${operator}`);
+      if (operator === "&>>" || operator === "&" && !this.syntax.listTerminators.length) this.error(`Unsupported operator ${operator}`);
       this.position = ends[operator.length - 1]!;
       if (operator === "<<" || operator === "<<-") this.delimiterOperator = operator;
       if (operator === "\n") this.readDocuments();
@@ -188,6 +238,7 @@ class Lexer {
         body: "", endLine: this.lineAt(offset), depth: this.depth, ...(this.byteSource ? { byteSource: true } : {}),
       };
       this.documents.push(document);
+      hereDocumentSyntax.set(document, this.syntax);
     }
     return { kind: "word", value: word.plain ?? "", offset, end: this.position, word: { ...word, spelling: this.source.slice(offset, this.position) }, ...(document ? { document } : {}) };
   }
@@ -461,7 +512,7 @@ class Lexer {
       }
       if (this.source[this.position] !== "`") this.error("Unterminated command substitution");
       this.position++;
-      try { parts.push({ kind: "substitution", script: parseSource(source, this.depth + 1, this.warnings, line - 1, this.byteLocale, this.byteSource), line, quoted }); }
+      try { parts.push({ kind: "substitution", script: parseSource(source, this.depth + 1, this.warnings, line - 1, this.byteLocale, this.byteSource, this.syntax), line, quoted }); }
       catch (error) {
         if (this.documentLine === undefined || !(error instanceof ShellSyntaxError) || /nesting|exceeds/u.test(error.reason)) throw error;
         parts.push({ kind: "failed-substitution", diagnostic: this.documentSubstitutionError(source, error, true).diagnostic, quoted });
@@ -469,7 +520,8 @@ class Lexer {
       return;
     }
     this.position++;
-    if (["$", "!"].includes(this.source[this.position] ?? "") || (!quoted && ["'", '"'].includes(this.source[this.position] ?? ""))) this.error("Unsupported shell quoting or special parameter");
+    if (this.source[this.position] === "$" || this.source[this.position] === "!" && !this.syntax.specialParameters.length
+      || (!quoted && ["'", '"'].includes(this.source[this.position] ?? ""))) this.error("Unsupported shell quoting or special parameter");
     if (this.source.startsWith("((", this.position)) {
       const start = this.position + 2;
       const end = arithmeticEnd(this.source, start);
@@ -481,7 +533,7 @@ class Lexer {
       let nested: Parser;
       let script: Script;
       try {
-        nested = new Parser(this.source.slice(start), this.depth + 1, this.warnings, this.lineAt(start) - 1, undefined, this.byteLocale, false, this.byteSource);
+        nested = new Parser(this.source.slice(start), this.depth + 1, this.warnings, this.lineAt(start) - 1, undefined, this.byteLocale, false, this.byteSource, this.syntax);
         script = nested.script(new Set([")"]));
       }
       catch (error) {
@@ -501,9 +553,11 @@ class Lexer {
     } else if (this.source[this.position] === "{") {
       this.position++;
       const parameterStart = this.position - 2;
-      const length = this.source[this.position] === "#" && /[a-zA-Z_0-9]/u.test(this.source[this.position + 1] ?? "");
+      const length = this.source[this.position] === "#" && (/[a-zA-Z_0-9]/u.test(this.source[this.position + 1] ?? "")
+        || this.syntax.specialParameters.some(parameter => parameter.name === this.source[this.position + 1]));
       if (length) this.position++;
-      const name = /^(?:[a-zA-Z_][a-zA-Z_0-9]*|[0-9]+|[?@*#-])/u.exec(this.source.slice(this.position))?.[0];
+      const specialParameter = this.syntax.specialParameters.find(parameter => parameter.name === this.source[this.position]);
+      const name = specialParameter?.name ?? /^(?:[a-zA-Z_][a-zA-Z_0-9]*|[0-9]+|[?@*#-])/u.exec(this.source.slice(this.position))?.[0];
       if (!name) this.error("Unsupported parameter expansion");
       this.position += name.length;
       let selector: ArraySelector | undefined;
@@ -541,14 +595,15 @@ class Lexer {
       }
       if (this.source[this.position] !== "}") this.error("Unterminated or unsupported parameter expansion");
       this.position++;
-      const part: WordPart = { kind: "variable", name, quoted, line, ...(length ? { length } : {}), ...(operator ? { operator, alternate: alternate! } : {}), ...(replacement ? { replacement } : {}), ...(substring ? { substring } : {}) };
+      const part: WordPart = { kind: "variable", name, quoted, line, ...(specialParameter ? { specialParameter } : {}), ...(length ? { length } : {}), ...(operator ? { operator, alternate: alternate! } : {}), ...(replacement ? { replacement } : {}), ...(substring ? { substring } : {}) };
       if (selector) setArraySelector(part, selector);
       parts.push(part);
     } else {
-      const name = /^(?:[a-zA-Z_][a-zA-Z_0-9]*|[?@*#0-9-])/u.exec(this.source.slice(this.position))?.[0];
+      const specialParameter = this.syntax.specialParameters.find(parameter => parameter.name === this.source[this.position]);
+      const name = specialParameter?.name ?? /^(?:[a-zA-Z_][a-zA-Z_0-9]*|[?@*#0-9-])/u.exec(this.source.slice(this.position))?.[0];
       if (name) {
         this.position += name.length;
-        parts.push({ kind: "variable", name, quoted, line });
+        parts.push({ kind: "variable", name, quoted, line, ...(specialParameter ? { specialParameter } : {}) });
       } else parts.push({ kind: "text", value: "$", quoted });
     }
   }
@@ -561,9 +616,9 @@ class Parser {
   nesting = 0;
   readonly openCommands: { name: string; line: number }[] = [];
 
-  constructor(source: string, depth: number, warnings: string[] = [], lineOffset = 0, position?: number, byteLocale = false, partial = false, byteSource = false) {
+  constructor(source: string, depth: number, warnings: string[] = [], lineOffset = 0, position?: number, byteLocale = false, partial = false, byteSource = false, syntax: CapturedShellSyntax = defaultSyntax) {
     if (position === undefined && depth === 0 && source.includes("\0")) throw new ShellSyntaxError("NUL bytes are not valid shell source", source.indexOf("\0"));
-    this.lexer = new Lexer(source, depth, warnings, lineOffset, byteLocale, undefined, partial, byteSource);
+    this.lexer = new Lexer(source, depth, warnings, lineOffset, byteLocale, undefined, partial, byteSource, syntax);
     this.lexer.position = position ?? 0;
     this.current = this.lexer.next();
   }
@@ -608,10 +663,11 @@ class Parser {
         this.newlines();
         pipelines.push(this.pipeline());
       }
-      lists.push({ pipelines, operators });
+      const terminator = this.is("&") ? Object.freeze({ operator: "&" as const, offset: this.current.offset, line: this.lexer.lineAt(this.current.offset) }) : undefined;
+      lists.push({ pipelines, operators, ...(terminator ? { terminator } : {}) });
       separators.push(this.is("\n"));
       if (inputUnit && this.is("\n")) break;
-      if (this.is(";") || this.is("\n")) {
+      if (terminator || this.is(";") || this.is("\n")) {
         this.advance();
         if (inputUnit && this.is("\n")) break;
         this.newlines();
@@ -861,20 +917,24 @@ class Parser {
   }
 }
 
-export function parseShell(source: string, depth = 0): Script {
+export function parseShell(source: string, depth = 0, syntax?: ShellSyntaxDeclarations): Script {
   const warnings: string[] = [];
-  const script = parseSource(source, depth, warnings);
+  const script = parseSource(source, depth, warnings, 0, false, false, captureShellSyntax(syntax));
   return { ...script, ...(warnings.length ? { warnings } : {}) };
 }
 
-export function* hereDocumentWords(document: HereDocument, line: number, byteLocale: boolean, warnings: string[]): Generator<Word> {
-  if (document.quoted) yield { offset: document.offset, parts: [{ kind: "text", value: document.body, quoted: true, ...(document.byteSource ? { byteValue: shellValueFromBytes(Buffer.from(document.body, "latin1")) } : {}) }] };
-  else yield* new Lexer(document.body, document.depth, warnings, line - 1, byteLocale, line, false, document.byteSource).documentWords();
+export function hereDocumentWords(document: HereDocument, line: number, byteLocale: boolean, warnings: string[], syntax?: ShellSyntaxDeclarations): Generator<Word> {
+  const captured = captureShellSyntax(syntax === undefined ? hereDocumentSyntax.get(document) : syntax);
+  if (document.quoted) {
+    const word: Word = { offset: document.offset, parts: [{ kind: "text", value: document.body, quoted: true, ...(document.byteSource ? { byteValue: shellValueFromBytes(Buffer.from(document.body, "latin1")) } : {}) }] };
+    return (function* () { yield word; })();
+  }
+  return new Lexer(document.body, document.depth, warnings, line - 1, byteLocale, line, false, document.byteSource, captured).documentWords();
 }
 
-export function parseShellUnit(source: string, position = 0, byteLocale = false, byteSource = false): { script: Script; next: number } {
+export function parseShellUnit(source: string, position = 0, byteLocale = false, byteSource = false, syntax?: ShellSyntaxDeclarations): { script: Script; next: number } {
   const warnings: string[] = [];
-  const parser = new Parser(source, 0, warnings, 0, position, byteLocale, false, byteSource);
+  const parser = new Parser(source, 0, warnings, 0, position, byteLocale, false, byteSource, captureShellSyntax(syntax));
   const script = parser.script(new Set(), true);
   const next = parser.current.end;
   const nul = source.indexOf("\0", position);
@@ -882,10 +942,10 @@ export function parseShellUnit(source: string, position = 0, byteLocale = false,
   return { script: { ...script, ...(warnings.length ? { warnings } : {}) }, next };
 }
 
-export function parseShellInputUnit(source: string, byteLocale = false): { script: Script; next: number } | undefined {
+export function parseShellInputUnit(source: string, byteLocale = false, syntax?: ShellSyntaxDeclarations): { script: Script; next: number } | undefined {
   const warnings: string[] = [];
   try {
-    const parser = new Parser(source, 0, warnings, 0, 0, byteLocale, true);
+    const parser = new Parser(source, 0, warnings, 0, 0, byteLocale, true, false, captureShellSyntax(syntax));
     const script = parser.script(new Set(), true);
     return { script: { ...script, ...(warnings.length ? { warnings } : {}) }, next: parser.current.end };
   } catch (error) {
@@ -895,8 +955,8 @@ export function parseShellInputUnit(source: string, byteLocale = false): { scrip
   }
 }
 
-function parseSource(source: string, depth: number, warnings: string[], lineOffset = 0, byteLocale = false, byteSource = false): Script {
-  const parser = new Parser(source, depth, warnings, lineOffset, undefined, byteLocale, false, byteSource);
+function parseSource(source: string, depth: number, warnings: string[], lineOffset = 0, byteLocale = false, byteSource = false, syntax: CapturedShellSyntax = defaultSyntax): Script {
+  const parser = new Parser(source, depth, warnings, lineOffset, undefined, byteLocale, false, byteSource, syntax);
   const script = parser.script();
   if (parser.current.kind !== "end") parser.error("Unexpected token");
   return script;

@@ -536,6 +536,27 @@ this request to keep additions out of the default package.
   also have zero diagnostics. Guarded lint sixteen completes cleanly with exit
   zero. The read leaf separately receives a 77-review/201-combined approval for
   its untimed slice; that does not approve replacement, timing or mapfile.
+- The incremental writer is locally committed as `4b48afdf5`. A separate core
+  bridge is assigned for explicit builtin replacement and borrowed record,
+  readiness and deadline operations; owning-source construction is not included.
+  Prepared finite/file sources and pipe-readiness helpers are separately frozen
+  for review after 47 author cases and 674 retained passes. Root passes 208
+  source-readiness/deadline/raw-record cases and 55 existing I/O tests. These
+  helpers do not yet establish actual public-shell timeout behavior.
+- The opt-in parser declaration slice is frozen after 46 author and 40
+  independent cases, all 86 passing. Independent review verifies capture
+  validation, immutable declarations, default rejection, whole AND/OR-list
+  terminators, nested substitutions, heredocs and input-unit boundaries. This
+  is parser metadata only: it neither installs background execution nor claims
+  wait or trap-interruption semantics. The next runtime integration must thread
+  captured declarations through every existing parse entrypoint.
+  Root additionally passes 238 parser/heredoc/input-unit/byte/diagnostic cases,
+  98 maintained integration-input checks and 36 unchanged aggregate checks.
+  Source-inclusive strict checking uses the maintained ES2023 options with zero
+  diagnostics. An initial root ES2022 invocation was a configuration error, not
+  source evidence. Guarded lint seventeen completed with two unnecessary escapes
+  in the new independent fixture; their removal preserves the fixture bytes and
+  all 86 focused passes. The full guarded rerun remains pending at this boundary.
 
 - First implementation wave: cmp, yes, shuf and virtual devices in disjoint leaf
   directories. Root is qualifying native oracles and the opt-in delivery boundary.

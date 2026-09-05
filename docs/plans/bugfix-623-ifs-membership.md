@@ -42,6 +42,13 @@ membership and the ASCII flag, retaining its original byte reconstruction,
 checkpoint and command-count assertions. The original failing log is preserved;
 focused and complete qualification must run again before delivery.
 
+After that correction, the complete maintained workspace unit route passes;
+the Bash task reports 19,963 passes and 63 skips. The subsequent complete root
+lint finds one boxed `String` type annotation in the new observer test. Root
+replaces it with primitive `string`, without changing the observer or assertions.
+The failed lint is retained, and fresh lint/type checks remain required. Runtime
+equivalence of this type-only correction is checked separately from those gates.
+
 ## Implementation and compatibility
 
 Prepare a numeric membership set once per nonempty split value and share it with

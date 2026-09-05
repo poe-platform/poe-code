@@ -43,7 +43,7 @@ async function inspect(control: Control) {
 async function searchWork(ifs: string, action: () => Promise<void>): Promise<number> {
   const descriptor = Object.getOwnPropertyDescriptor(String.prototype, "includes")!;
   let submittedUnits = 0;
-  Object.defineProperty(String.prototype, "includes", { ...descriptor, value: function(this: string, ...args: Parameters<String["includes"]>) {
+  Object.defineProperty(String.prototype, "includes", { ...descriptor, value: function(this: string, ...args: Parameters<string["includes"]>) {
     if (this === ifs && args[0] !== "\0") submittedUnits += this.length;
     return Reflect.apply(descriptor.value, this, args);
   } });

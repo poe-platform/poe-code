@@ -1,6 +1,7 @@
 import { sandboxErrorTypes } from "../error/shape.js";
-import { dateString, isSandboxDate } from "./date.js";
+import { dateString, dateTime, isSandboxDate } from "./date.js";
 import type { Budget } from "./budget.js";
+import { invokeBuiltinClosure } from "./builtin-call.js";
 import { float32Storage, isFloat32Array } from "./float32.js";
 import { assertSandboxDataDepth } from "../graph-depth.js";
 import { isGuestHostObject } from "./host-capabilities.js";
@@ -19,10 +20,20 @@ import {
   isSandboxRegex,
   isSandboxGenerator,
   type SandboxCallContext,
+  type SandboxPrimitive,
   type SandboxValue
 } from "./values.js";
 
 const defaultStringHook = Symbol("defaultStringHook");
+const defaultValueHook = Symbol("defaultValueHook");
+
+export function sandboxNumber(value: SandboxValue, budget: Budget, context?: SandboxCallContext): number | Promise<number> {
+  if (value === null || typeof value !== "object") {
+    if (typeof value === "function") throw new TypeError("Expected a sandbox value.");
+    return Number(value);
+  }
+  return objectToPrimitive(value, budget, context, new Set(), "number").then(Number);
+}
 
 export function sandboxString(
   value: SandboxValue,
@@ -34,53 +45,34 @@ export function sandboxString(
     if (typeof value === "function") throw new TypeError("Expected a sandbox value.");
     return budget.allocateString(String(value));
   }
-  const invocation: SandboxCallContext =
-    context?.invokeClosure !== undefined
-      ? context
-      : {
-          ...context,
-          stack: context?.stack ?? [],
-          thisValue: context?.thisValue,
-          invokeClosure: async (closure, args, thisValue) => {
-            const leaveCall = budget.enterCall();
-            try {
-              const result = closure.call(args, { ...invocation, thisValue });
-              if (isSandboxPromise(result)) {
-                await result.synchronousPrefix;
-                return result;
-              }
-              return await result;
-            } finally {
-              leaveCall();
-            }
-          }
-        };
-  return stringifyObject(value, budget, invocation, joining);
+  return objectToPrimitive(value, budget, context, joining, "string")
+    .then(primitive => budget.allocateString(String(primitive)));
 }
 
-async function stringifyObject(
+async function objectToPrimitive(
   value: SandboxValue & object,
   budget: Budget,
   context: SandboxCallContext | undefined,
-  joining: Set<object>
-): Promise<string> {
+  joining: Set<object>,
+  hint: "string" | "number"
+): Promise<SandboxPrimitive> {
   const leaveCall = budget.enterCall();
   try {
     budget.visitNode();
-    for (const name of ["toString", "valueOf"]) {
+    for (const name of hint === "string" ? ["toString", "valueOf"] : ["valueOf", "toString"]) {
       const hook = conversionHook(value, name, budget);
       let result: SandboxValue;
       if (hook === defaultStringHook) {
         result = await defaultToString(value, budget, context, joining);
+      } else if (hook === defaultValueHook) {
+        result = isSandboxDate(value) ? dateTime(value) : value;
       } else {
         if (!isSandboxClosure(hook)) continue;
-        if (context?.invokeClosure === undefined) {
-          throw new TypeError("String hooks require a sandbox call context.");
-        }
-        result = await context.invokeClosure(hook, [], value);
+        result = await invokeBuiltinClosure(hook, [], budget, context, value);
       }
       if (result === null || typeof result !== "object") {
-        return sandboxString(result, budget, context, joining);
+        if (typeof result === "function") throw new TypeError("Expected a sandbox value.");
+        return result;
       }
     }
     throw new TypeError("Cannot convert object to primitive value");
@@ -93,7 +85,7 @@ function conversionHook(
   value: SandboxValue & object,
   name: string,
   budget: Budget
-): SandboxValue | typeof defaultStringHook {
+): SandboxValue | typeof defaultStringHook | typeof defaultValueHook {
   const implicitBuiltin =
     !hasExplicitSandboxPrototype(value) &&
     (Array.isArray(value) ||
@@ -123,7 +115,7 @@ function conversionHook(
       current === value &&
       (implicitBuiltin || (parent === null && !hasExplicitSandboxPrototype(value)))
     ) {
-      return name === "toString" ? defaultStringHook : undefined;
+      return name === "toString" ? defaultStringHook : defaultValueHook;
     }
     current = parent;
     if (current !== null) {
@@ -154,10 +146,7 @@ async function defaultToString(
       const join = ownDataValue(value, "join");
       if (!isSandboxClosure(join))
         return isFloat32Array(value) ? "[object Float32Array]" : "[object Array]";
-      if (context?.invokeClosure === undefined) {
-        throw new TypeError("String hooks require a sandbox call context.");
-      }
-      return context.invokeClosure(join, [], value);
+      return invokeBuiltinClosure(join, [], budget, context, value);
     }
     if (joining.has(value)) return "";
     joining.add(value);

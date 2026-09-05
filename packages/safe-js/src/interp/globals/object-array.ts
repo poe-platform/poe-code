@@ -1,4 +1,6 @@
-import type { Budget, CompileOwner } from "../budget.js";
+import { isFatalSandboxError, type Budget, type CompileOwner } from "../budget.js";
+import { invokeBuiltinClosure } from "../builtin-call.js";
+import { isCapturedException } from "../exceptions.js";
 import { dateTime, isSandboxDate } from "../date.js";
 import { getDatePrototype } from "./date.js";
 import { createObjectGlobal, hasOwnSandboxProperty } from "./object.js";
@@ -6,12 +8,13 @@ import { getHostObjectKeys, isGuestHostObject } from "../host-capabilities.js";
 import { isFloat32Array } from "../float32.js";
 import { setSandboxProperty } from "../interpreter.js";
 import { getSandboxIterator } from "../iteration.js";
-import { sandboxString } from "../string-coercion.js";
-import { getSandboxPrototype, isGuestClosure, markDescriptorObject, materializeFunctionProperties, setSandboxPrototype } from "../object-model.js";
+import { sandboxNumber, sandboxString } from "../string-coercion.js";
+import { getSandboxDataProperty, getSandboxPrototype, isGuestClosure, markDescriptorObject, materializeFunctionProperties, setSandboxPrototype } from "../object-model.js";
 import {
   allocateProducedSandboxValue,
   createSandboxClosure,
   deepCopyToSandbox,
+  defineOwnDataProperty,
   isSandboxClosure,
   isSandboxGenerator,
   isSandboxMap,
@@ -19,7 +22,9 @@ import {
   isSandboxRegex,
   isSandboxSet,
   ownEnumerableSandboxEntries as getOwnEnumerableEntries,
+  reconcileCompiledValues,
   type SandboxArray,
+  type SandboxCallContext,
   type SandboxClosure,
   type SandboxObject,
   type SandboxValue
@@ -193,7 +198,7 @@ export function createObjectArrayGlobals(options: { budget: Budget; compileOwner
         }),
         from: createSandboxClosure({
           sandbox: true,
-          call: (args) => arrayFromSandboxValues(args, options.budget),
+          call: (args, context) => arrayFromSandboxValues(args, options.budget, context),
           name: "from"
         }),
         of: createSandboxClosure({
@@ -406,50 +411,96 @@ function isAssignableSandboxTarget(
 
 async function arrayFromSandboxValues(
   args: readonly SandboxValue[],
-  budget: Budget
+  budget: Budget,
+  context?: SandboxCallContext
 ): Promise<SandboxValue> {
   const [items, mapFn, thisValue] = args;
-
+  if (mapFn !== undefined && !isSandboxClosure(mapFn)) {
+    throw new TypeError("Array.from mapping callback must be a function.");
+  }
+  if (items === null || items === undefined) {
+    throw new TypeError("Array.from requires a non-null input.");
+  }
+  const read = (property: string | number) => context?.getProperty !== undefined
+    ? context.getProperty(items, property)
+    : getSandboxDataProperty(items, property, budget);
   const iterator = getSandboxIterator(items);
-  if (isGuestHostObject(items) && iterator !== undefined) {
-    if (mapFn !== undefined && !isSandboxClosure(mapFn))
-      throw new TypeError("Array.from mapping callback must be a function.");
-    const values: SandboxValue[] = [];
-    while (true) {
-      const next = await iterator.next();
-      if (next.done) break;
-      budget.allocateArrayLength(values.length + 1);
-      const value = mapFn === undefined
-        ? next.value
-        : await mapFn.call([next.value, values.length], { stack: [], thisValue });
-      if (isSandboxPromise(value) && value.synchronousPrefix !== undefined)
-        await value.synchronousPrefix;
-      values.push(value);
+  const constructor = context?.thisValue;
+  let result: SandboxValue;
+  let currentValue: SandboxValue;
+  let failure: unknown;
+  let estimatedDataSize = 0;
+  const retained = {};
+  budget.setRetainedValues(retained, () => [items, mapFn, constructor, result, currentValue, failure]);
+  const checkData = (growth = 0, force = false) => {
+    const limit = budget.limits.dataSize;
+    if (limit === undefined) return;
+    estimatedDataSize = Math.max(estimatedDataSize, budget.currentDataSize) + growth;
+    // Primitive writes have bounded growth; changed graphs require an exact check.
+    if (!force && estimatedDataSize <= limit) return;
+    if (context?.reconcileData !== undefined) context.reconcileData(result);
+    else reconcileCompiledValues(budget, [], context?.compilation);
+    estimatedDataSize = budget.currentDataSize;
+  };
+  const closeOnThrow = async (error: unknown): Promise<never> => {
+    failure = isCapturedException(error) ? error.reason : error;
+    try {
+      await iterator?.return?.();
+    } catch (closeError) {
+      if (!isFatalSandboxError(error) && isFatalSandboxError(closeError)) throw closeError;
     }
-    return allocateProducedSandboxValue(values, budget);
-  }
-  const values =
-    iterator === undefined
-      ? (Reflect.apply(Array.from, Array, [items]) as SandboxValue[])
-      : await collectIteratorValues(iterator);
-  if (mapFn === undefined || !isSandboxClosure(mapFn)) {
-    if (mapFn !== undefined) {
-      throw new TypeError("Array.from mapping callback must be a function.");
+    throw error;
+  };
+  try {
+    let length = 0;
+    if (iterator === undefined) {
+      const number = await sandboxNumber(read("length"), budget, context);
+      length = Number.isNaN(number) || number <= 0 ? 0 : Math.min(Math.trunc(number), Number.MAX_SAFE_INTEGER);
     }
+    result = isSandboxClosure(constructor) && constructor.construct !== undefined
+      ? await invokeBuiltinClosure(constructor, iterator === undefined ? [length] : [], budget, context, undefined, true)
+      : createArrayFromConstructorArgs([length], budget);
+    checkData(0, true);
 
-    return budgetSandboxValue(values, budget);
-  }
-  const mappedValues: SandboxValue[] = [];
-
-  for (const [index, value] of values.entries()) {
-    const result = await mapFn.call([value, index], { stack: [], thisValue });
-    if (isSandboxPromise(result) && result.synchronousPrefix !== undefined) {
-      await result.synchronousPrefix;
+    let index = 0;
+    while (iterator !== undefined || index < length) {
+      try {
+        budget.visitNode();
+        if (iterator !== undefined && index >= Number.MAX_SAFE_INTEGER) throw new TypeError("Array.from input is too long.");
+      } catch (error) {
+        await closeOnThrow(error);
+      }
+      if (iterator !== undefined) {
+        const next = await iterator.next();
+        if (typeof next !== "object" || next === null) throw new TypeError("Iterator result must be an object.");
+        if (next.done) break;
+        currentValue = next.value;
+      } else {
+        currentValue = read(index);
+      }
+      try {
+        if (Array.isArray(result)) budget.allocateArrayLength(index + 1);
+        if (mapFn !== undefined) currentValue = await invokeBuiltinClosure(mapFn, [currentValue, index], budget, context, thisValue);
+        const key = String(index);
+        const growth = key.length + 1 +
+          (Array.isArray(result) ? Math.max(0, index + 1 - result.length) : 0) +
+          (typeof currentValue === "string" ? currentValue.length : 0);
+        const graphChanged = (typeof currentValue === "object" && currentValue !== null) || isSandboxClosure(result);
+        budget.visitNode();
+        defineOwnDataProperty(objectProperties(result, true), key, currentValue);
+        currentValue = undefined;
+        checkData(growth, graphChanged);
+      } catch (error) {
+        await closeOnThrow(error);
+      }
+      index += 1;
     }
-    mappedValues.push(result);
+    setSandboxProperty(result, "length", index, budget);
+    checkData(0, true);
+    return allocateProducedSandboxValue(result, budget);
+  } finally {
+    budget.setRetainedValues(retained, undefined);
   }
-
-  return budgetSandboxValue(mappedValues, budget);
 }
 
 function createArrayFromConstructorArgs(
@@ -470,17 +521,11 @@ function createArrayFromConstructorArgs(
   }
 
   budget.allocateArrayLength(lengthOrValue);
-  return new Array(lengthOrValue) as SandboxArray;
-}
-
-async function collectIteratorValues(
-  iterator: NonNullable<ReturnType<typeof getSandboxIterator>>
-): Promise<SandboxValue[]> {
-  const values: SandboxValue[] = [];
-  while (true) {
-    const result = await iterator.next();
-    if (result.done) return values;
-    values.push(result.value);
+  const release = budget.provisionDataUsage(lengthOrValue + 1);
+  try {
+    return new Array(lengthOrValue) as SandboxArray;
+  } finally {
+    release();
   }
 }
 

@@ -3129,8 +3129,10 @@ function createCoercionContext(context: EvaluationContext): SandboxCallContext {
     stack: context.callStack,
     thisValue: undefined,
     compilation: context.compilation,
-    invokeClosure: (closure, args, thisValue) =>
-      invokeSandboxClosure(closure, args, context, context.callStack, undefined, thisValue)
+    getProperty: (value, property) => getPropertyValue(value, property, context),
+    reconcileData: value => reconcileDataBudget(context.budget, context.stats, context.scope, value, context.compilation, context.compilation?.parent),
+    invokeClosure: (closure, args, thisValue, construct) =>
+      invokeSandboxClosure(closure, args, context, context.callStack, undefined, thisValue, construct)
   };
 }
 
@@ -3647,11 +3649,16 @@ async function invokeSandboxClosure(
         stack,
         thisValue,
         compilation: context.compilation,
+        getProperty: (value: SandboxValue, property: string | number) =>
+          getPropertyValue(value, property, context),
+        reconcileData: (value: SandboxValue) =>
+          reconcileDataBudget(context.budget, context.stats, context.scope, value, context.compilation, context.compilation?.parent),
         invokeClosure: (
           closure: SandboxClosure,
           argumentsList: readonly SandboxValue[],
-          receiver: SandboxValue
-        ) => invokeSandboxClosure(closure, argumentsList, context, stack, span, receiver),
+          receiver: SandboxValue,
+          asConstructor?: boolean
+        ) => invokeSandboxClosure(closure, argumentsList, context, stack, span, receiver, asConstructor),
         ...(span === undefined ? {} : { span })
       }
     ]);

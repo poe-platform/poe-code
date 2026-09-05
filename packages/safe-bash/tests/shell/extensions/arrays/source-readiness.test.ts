@@ -5,7 +5,7 @@ import { FsError } from "../../../../src/contracts/errors.js";
 import { createBytePipe } from "../../../../src/contracts/io.js";
 import { shellValueBytes } from "../../../../src/contracts/value.js";
 import { MemoryFileSystem } from "../../../../src/fs/memory/index.js";
-import { fileInput, prepareBytesInput, prepareFileInput, ShellInput } from "../../../../src/shell/input.js";
+import { fileInput, inputBufferUsage, prepareBytesInput, prepareFileInput, ShellInput } from "../../../../src/shell/input.js";
 import { Budget, defaultLimits } from "../../../../src/shell/runtime.js";
 
 const turn = () => new Promise<void>(resolve => setImmediate(resolve));
@@ -56,7 +56,8 @@ test("finite input owns one admitted copy, preserves remainder across aliases, a
   const alias = new ShellInput(input, subject.budget);
   try {
     bytes.fill(0);
-    assert.deepEqual(subject.budget.values.usage, { bytes: 68, slots: 2 });
+    assert.deepEqual(inputBufferUsage(subject.budget), { bytes: 4, buffers: 1 });
+    assert.deepEqual(subject.budget.values.usage, { bytes: 0, slots: 0 });
     const first = await input.record();
     assert.deepEqual(shellValueBytes(first.shellValue), Uint8Array.of(255, 10));
     await first.release();
@@ -66,17 +67,20 @@ test("finite input owns one admitted copy, preserves remainder across aliases, a
     await second.release();
     assert.equal(input.readiness(), "eof");
     await prepared.close();
+    assert.deepEqual(inputBufferUsage(subject.budget), { bytes: 0, buffers: 0 });
     assert.deepEqual(subject.budget.values.usage, { bytes: 0, slots: 0 });
     const untouched = prepareBytesInput("unused", subject.budget);
     await untouched.close();
+    assert.deepEqual(inputBufferUsage(subject.budget), { bytes: 0, buffers: 0 });
     assert.deepEqual(subject.budget.values.usage, { bytes: 0, slots: 0 });
   } finally { await alias.close(); await input.close(); await prepared.close(); await subject.close(); }
 });
 
 test("finite preparation admits bytes before allocation and cleans failed reservations", async () => {
-  const subject = fixture({ maxExpansionBytes: 70 });
+  const subject = fixture({ maxInputBytes: 8 });
   try {
-    assert.throws(() => prepareBytesInput("too large", subject.budget));
+    assert.throws(() => prepareBytesInput("too large", subject.budget), error => error instanceof FsError && error.code === "EFBIG");
+    assert.deepEqual(inputBufferUsage(subject.budget), { bytes: 0, buffers: 0 });
     assert.deepEqual(subject.budget.values.usage, { bytes: 0, slots: 0 });
   } finally { await subject.close(); }
 });

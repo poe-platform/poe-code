@@ -107,6 +107,16 @@ and failed pipes throw their original failure reason. Input-source construction
 must explicitly thread these owned capabilities into the shared cursor; these
 helpers do not infer capabilities for arbitrary host iterables.
 
+Prepared transport buffers use Budget-keyed ownership accounting independently
+of the expansion-value arena. Allocation is admitted before the owned copy or
+descriptor buffer is created, and explicit cleanup retires the capacity lease.
+`maxInputBytes` remains a per-input limit: two individually admitted inputs may
+coexist even when their combined capacity exceeds one input's allowance. A
+canonical descriptor may use a one-byte overflow probe when the allowance is
+zero. Materializing retained shell values still uses the existing expansion
+budget. This separation does not introduce an aggregate memory limit or an RSS
+guarantee.
+
 ## Internal raw input records
 
 `ShellInput.record({ delimiter? })` reads through a byte delimiter, defaulting to

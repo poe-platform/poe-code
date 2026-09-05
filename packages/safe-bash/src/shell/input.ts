@@ -14,32 +14,68 @@ export interface PreparedShellInput {
   close(): Promise<void>;
 }
 
+const inputBuffers = new WeakMap<Budget, Set<InputBufferLease>>();
+const inputByteLength = Object.getOwnPropertyDescriptor(Object.getPrototypeOf(Uint8Array.prototype) as object, "byteLength")!.get!;
+
+export function inputBufferUsage(budget: Budget): Readonly<{ bytes: number; buffers: number }> {
+  let bytes = 0;
+  const leases = inputBuffers.get(budget);
+  if (leases) for (const lease of leases) bytes += lease.capacity;
+  return Object.freeze({ bytes, buffers: leases?.size ?? 0 });
+}
+
+class InputBufferLease {
+  bytes: Uint8Array | undefined;
+
+  constructor(private readonly budget: Budget, readonly capacity: number, allocate: () => Uint8Array) {
+    budget.signal.throwIfAborted();
+    if (!Number.isSafeInteger(capacity) || capacity <= 0 || capacity > Math.max(1, budget.limits.maxInputBytes)) {
+      throw new FsError("EFBIG", { syscall: "read" });
+    }
+    let leases = inputBuffers.get(budget);
+    if (!leases) { leases = new Set(); inputBuffers.set(budget, leases); }
+    leases.add(this);
+    try {
+      this.bytes = allocate();
+      budget.signal.throwIfAborted();
+    } catch (error) { this.release(); budget.signal.throwIfAborted(); throw error; }
+  }
+
+  release(): void {
+    this.bytes = undefined;
+    const leases = inputBuffers.get(this.budget);
+    leases?.delete(this);
+    if (!leases?.size) inputBuffers.delete(this.budget);
+  }
+}
+
 export function prepareBytesInput(value: string | Uint8Array, budget: Budget): PreparedShellInput {
   budget.signal.throwIfAborted();
   if (typeof value !== "string" && !(value instanceof Uint8Array)) throw new TypeError("Shell input must be a string or Uint8Array");
-  const length = typeof value === "string" ? Buffer.byteLength(value) : value.byteLength;
+  const length = typeof value === "string" ? Buffer.byteLength(value) : inputByteLength.call(value) as number;
   if (length > budget.limits.maxInputBytes) throw new FsError("EFBIG", { syscall: "read" });
-  const scope = budget.values.scope();
-  let bytes: Uint8Array | undefined;
+  let buffer: InputBufferLease | undefined;
   let sent = false;
   let closed = false;
   let closing: Promise<void> | undefined;
   const close = (): Promise<void> => {
     closed = true;
-    bytes = undefined;
-    scope.close();
+    buffer?.release();
+    buffer = undefined;
+    budget.signal.removeEventListener("abort", aborted);
     return closing ??= Promise.resolve();
   };
+  const aborted = (): void => { void close(); };
   try {
     if (length) {
-      const reservation = scope.reserve(length, 1);
-      bytes = typeof value === "string" ? new TextEncoder().encode(value) : new Uint8Array(value);
-      reservation.commit(bytes);
+      buffer = new InputBufferLease(budget, length, () => typeof value === "string" ? new TextEncoder().encode(value) : new Uint8Array(value));
     }
+    budget.signal.addEventListener("abort", aborted, { once: true });
     const source: AsyncIterableIterator<Uint8Array> = {
       [Symbol.asyncIterator]() { return this; },
       async next() {
         budget.signal.throwIfAborted();
+        const bytes = buffer?.bytes;
         if (closed || sent || !bytes?.byteLength) return { done: true, value: undefined };
         sent = true;
         return { done: false, value: bytes };
@@ -68,12 +104,11 @@ export async function prepareFileInput(
   let legacy: AsyncIterator<Uint8Array> | undefined;
   let accepting = true;
   let ended = false;
-  let buffer: Uint8Array | undefined;
+  let buffer: InputBufferLease | undefined;
   let size = 0;
   let work: Promise<void> = Promise.resolve();
   let admitted!: () => void;
   const acquisition = new Promise<void>(resolve => { admitted = resolve; });
-  const scope = budget.values.scope();
   let closing: Promise<void> | undefined;
   const close = (): Promise<void> => {
     accepting = false;
@@ -90,8 +125,8 @@ export async function prepareFileInput(
       } finally {
         descriptor = undefined;
         legacy = undefined;
+        buffer?.release();
         buffer = undefined;
-        scope.close();
         signal.removeEventListener("abort", aborted);
       }
       signal.throwIfAborted();
@@ -140,11 +175,11 @@ export async function prepareFileInput(
           }
           if (!buffer) {
             const capacity = Math.min(64 * 1024, budget.limits.maxInputBytes) || 1;
-            const reservation = scope.reserve(capacity, 1);
-            buffer = new Uint8Array(capacity);
-            reservation.commit(buffer);
+            buffer = new InputBufferLease(budget, capacity, () => new Uint8Array(capacity));
           }
-          const chunk = buffer.subarray(0, Math.min(buffer.length, budget.limits.maxInputBytes - size + 1));
+          const bytes = buffer.bytes!;
+          const remaining = budget.limits.maxInputBytes - size;
+          const chunk = bytes.subarray(0, remaining >= bytes.length ? bytes.length : remaining + 1);
           const length = await descriptor!.read(chunk, null, { signal: readSignal });
           check();
           if (!Number.isSafeInteger(length) || length < 0 || length > chunk.length) throw new FsError("EIO", { syscall: "read", path });

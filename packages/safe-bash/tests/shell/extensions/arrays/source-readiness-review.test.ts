@@ -5,9 +5,9 @@ import { FsError } from "../../../../src/contracts/errors.js";
 import { createBytePipe } from "../../../../src/contracts/io.js";
 import { shellValueBytes } from "../../../../src/contracts/value.js";
 import { MemoryFileSystem } from "../../../../src/fs/memory/index.js";
-import { prepareBytesInput, prepareFileInput, ShellInput } from "../../../../src/shell/input.js";
+import { inputBufferUsage, prepareBytesInput, prepareFileInput, ShellInput } from "../../../../src/shell/input.js";
 import { Budget, defaultLimits } from "../../../../src/shell/runtime.js";
-import { ShellLimitError, type ShellLimits } from "../../../../src/shell/types.js";
+import type { ShellLimits } from "../../../../src/shell/types.js";
 
 function deferred<Value>() {
   let resolve!: (value: Value) => void;
@@ -96,22 +96,32 @@ for (const value of ["", new Uint8Array()]) {
   });
 }
 
-for (const kind of ["input", "arena"] as const) {
-  test(`source review: finite ${kind} budget is admitted before copying caller bytes`, async () => {
+for (const kind of ["input", "allocation"] as const) {
+  test(`source review: finite ${kind} admission precedes copying caller bytes`, async () => {
     const bytes = Uint8Array.of(255, 0, 10);
-    const subject = fixture(kind === "input" ? { maxInputBytes: 2 } : { maxExpansionBytes: 66 });
+    const subject = fixture(kind === "input" ? { maxInputBytes: 2 } : { maxExpansionBytes: 0, maxExpansionFields: 0 });
     const NativeBytes = Uint8Array;
-    let copies = 0;
+    const failure = new Error("finite allocation failure");
+    let attempts = 0, copies = 0;
     globalThis.Uint8Array = new Proxy(NativeBytes, { construct(target, args, receiver) {
-      if (args[0] instanceof NativeBytes && args[0].byteLength) copies++;
+      if (args[0] instanceof NativeBytes && args[0].byteLength) {
+        attempts++;
+        if (kind === "allocation") {
+          assert.deepEqual(inputBufferUsage(subject.budget), { bytes: 3, buffers: 1 });
+          throw failure;
+        }
+        copies++;
+      }
       return Reflect.construct(target, args, receiver);
     } });
     try {
       assert.throws(() => prepareBytesInput(bytes, subject.budget), error => kind === "input"
         ? error instanceof FsError && error.code === "EFBIG"
-        : error instanceof ShellLimitError && error.limit === "maxExpansionBytes");
+        : error === failure);
+      assert.equal(attempts, kind === "input" ? 0 : 1);
       assert.equal(copies, 0);
       assert.deepEqual(subject.budget.values.usage, { bytes: 0, slots: 0 });
+      assert.deepEqual(inputBufferUsage(subject.budget), { bytes: 0, buffers: 0 });
     } finally { globalThis.Uint8Array = NativeBytes; await subject.close(); }
   });
 }
@@ -330,17 +340,19 @@ test("source review: unconsumed finite input releases admitted storage before cu
   const subject = fixture();
   try {
     const prepared = prepareBytesInput(Uint8Array.of(255, 0, 10), subject.budget);
-    assert.ok(subject.budget.values.usage.bytes > 0);
+    assert.deepEqual(inputBufferUsage(subject.budget), { bytes: 3, buffers: 1 });
+    assert.deepEqual(subject.budget.values.usage, { bytes: 0, slots: 0 });
     const close = prepared.close();
     assert.equal(prepared.close(), close);
     await close;
     assert.deepEqual(subject.budget.values.usage, { bytes: 0, slots: 0 });
+    assert.deepEqual(inputBufferUsage(subject.budget), { bytes: 0, buffers: 0 });
     assert.throws(() => prepared.options.poll!(), /closed/);
   } finally { await subject.close(); }
 });
 
-test("source review: canonical buffer admission fails before descriptor read and still closes it", async () => {
-  const subject = fixture({ maxExpansionBytes: 63 });
+test("source review: canonical buffer allocation failure precedes descriptor read and still closes it", async context => {
+  const subject = fixture({ maxInputBytes: 3, maxExpansionBytes: 0, maxExpansionFields: 0 });
   await subject.fs.writeFile("/input", Uint8Array.of(255, 0, 10));
   let reads = 0, closes = 0;
   const fs = intercept(subject.fs, { async open(...args) {
@@ -352,9 +364,23 @@ test("source review: canonical buffer admission fails before descriptor read and
   } });
   try {
     const prepared = await prepareFileInput({ ...subject.context, fs }, "/input", subject.budget);
-    await assert.rejects(prepared.source[Symbol.asyncIterator]().next(), error => error instanceof ShellLimitError && error.limit === "maxExpansionBytes");
+    const NativeBytes = Uint8Array;
+    const failure = new Error("canonical buffer allocation failure");
+    let attempts = 0;
+    context.mock.method(globalThis, "Uint8Array", new Proxy(NativeBytes, { construct(target, args, receiver) {
+      if (typeof args[0] === "number") {
+        attempts++;
+        assert.equal(args[0], 3);
+        assert.deepEqual(inputBufferUsage(subject.budget), { bytes: 3, buffers: 1 });
+        throw failure;
+      }
+      return Reflect.construct(target, args, receiver);
+    } }));
+    await assert.rejects(prepared.source[Symbol.asyncIterator]().next(), error => error === failure);
+    assert.equal(attempts, 1);
     assert.equal(reads, 0);
     assert.equal(closes, 1);
     assert.deepEqual(subject.budget.values.usage, { bytes: 0, slots: 0 });
-  } finally { await subject.close(); }
+    assert.deepEqual(inputBufferUsage(subject.budget), { bytes: 0, buffers: 0 });
+  } finally { context.mock.restoreAll(); await subject.close(); }
 });

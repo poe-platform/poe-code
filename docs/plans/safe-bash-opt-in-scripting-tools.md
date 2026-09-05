@@ -686,6 +686,30 @@ this request to keep additions out of the default package.
   prerequisites. This qualifies the native witness only, not virtual jobs.
   Both package dry-run inventories retain zero optional artifact leaks, with
   1,054 workspace and 4,645 root files after the explicit optional build.
+- Native interrupted-wait qualification is locally committed as `d945d4f4f`.
+  Input-budget review approves the three accounting-domain migrations but finds
+  two new extent-integrity failures: a shadowed Uint8Array byteLength can bypass
+  admission or turn nonempty input into EOF. The 32-case independent review
+  passes 30 cases; the full arrays cohort passes 555/557. The input owner is
+  assigned intrinsic-extent admission while review tests remain frozen. Root
+  reproduces both defects through the compiled public API: eight other cases
+  pass and the two new extent cases fail. The earlier public pass is not
+  acceptance of this newly tested behavior.
+- Guarded lint twenty-one completes with exit zero for its observed snapshot.
+  The later extent-repair candidate and newly added public extent cases still
+  require their own final validation; this is not a prospective clean claim.
+- Input-budget repair receives independent approval at source SHA
+  `8c4140f9f133644213964f819f67ec828c5791b4390b5091ca350da568d22475`.
+  Captured intrinsic typed-array extent fixes both new admission failures without
+  changing per-input allowances. Independent budget/readiness reviews pass
+  32/32 and 26/26; the reviewer also passes all 557 array cases, four original
+  inline-limit cases and 141 retained read cases. Root passes 310 combined source
+  cases, nine strict type roots and eight discovery checks. A fresh optional
+  build passes 21/21 compiled public input cases, including both repaired extent
+  witnesses; the new actual-runtime screenshot is inspected. Public/source
+  construction checks still include the separately pending runtime wiring.
+  The helper commit includes no optional read/mapfile implementation or source
+  construction files and does not claim complete command or shell parity.
 
 - First implementation wave: cmp, yes, shuf and virtual devices in disjoint leaf
   directories. Root is qualifying native oracles and the opt-in delivery boundary.

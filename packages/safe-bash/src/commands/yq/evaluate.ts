@@ -7,6 +7,14 @@ function value(node: Node, yaml: YamlModule): string | number | bigint | boolean
   if (!yaml.isScalar(node)) throw new MikeError("expected a scalar value");
   const result: unknown = node.value;
   if (result == null) return null;
+  if (typeof result === "string" && node.tag && !node.tag.startsWith("tag:yaml.org,2002:")) {
+    if (/^[+-]?[0-9]+$/u.test(result)) return BigInt(result);
+    if (/^[+-]?0[xX][0-9a-fA-F]+$/u.test(result)) {
+      if (result[0] === "+" || result[0] === "-") throw new MikeError(`strconv.ParseInt: parsing ${JSON.stringify(result)}: invalid syntax`);
+      return BigInt(result);
+    }
+    if (/^[+-]?(?:[0-9]+(?:\.[0-9]*)?|\.[0-9]+)(?:[eE][+-]?[0-9]+)?$/u.test(result)) return Number(result);
+  }
   if (typeof result === "string" && node.tag === "tag:yaml.org,2002:int") {
     try { return BigInt(result); }
     catch { throw new MikeError(`invalid integer value ${JSON.stringify(result)}`); }
@@ -25,6 +33,27 @@ function scalarText(node: Node, yaml: YamlModule): string {
 export class Evaluator {
   #warnedMerge = false;
   constructor(readonly yaml: YamlModule, readonly work: NativeWork, readonly mergeSpec = false) {}
+
+  async match(first: string, pattern: string): Promise<boolean> {
+    await this.work.tick(first.length + pattern.length);
+    const name = Buffer.from(first);
+    const glob = Buffer.from(pattern);
+    let nameIndex = 0;
+    let patternIndex = 0;
+    let restartPattern = 0;
+    let restartName = 0;
+    while (patternIndex < glob.length || nameIndex < name.length) {
+      await this.work.tick();
+      if (patternIndex < glob.length) {
+        const character = glob[patternIndex];
+        if (character === 42) { restartPattern = patternIndex; restartName = nameIndex + 1; patternIndex++; continue; }
+        if (nameIndex < name.length && (character === 63 || character === name[nameIndex])) { patternIndex++; nameIndex++; continue; }
+      }
+      if (restartName > 0 && restartName <= name.length) { patternIndex = restartPattern; nameIndex = restartName; continue; }
+      return false;
+    }
+    return true;
+  }
 
   child(node: Node, parent: Candidate, collection?: YAMLMap | YAMLSeq, slot?: number): Candidate {
     this.work.node();
@@ -101,8 +130,9 @@ export class Evaluator {
       if (!Number.isSafeInteger(index)) throw new MikeError(`cannot index array with '${String(key)}' (strconv.ParseInt: parsing ${JSON.stringify(String(key))}: invalid syntax)`);
       if (index < 0) index += node.items.length;
       if (index < 0) throw new MikeError(`index [${String(key)}] out of range, array size is ${node.items.length}`);
-      if (create) {
+      if (index >= node.items.length) {
         if (index >= this.work.limits.maxNodes) throw new MikeError("yq limit exceeded: maxNodes");
+        if (!node.items.length) node.flow = false;
         while (node.items.length <= index) { node.items.push(scalar(this.yaml, this.work, null)); await this.work.tick(); }
       }
       return [index < node.items.length ? this.child(node.items[index] as Node, base, node, index) : this.child(scalar(this.yaml, this.work, null), base)];
@@ -125,9 +155,11 @@ export class Evaluator {
       }
       return output;
     }
-    if (operator === "+" && yaml.isSeq(left) && yaml.isSeq(right)) {
+    if (operator === "+" && yaml.isSeq(left)) {
       const result = await cloneNode(left, yaml, this.work) as YAMLSeq;
-      for (const node of right.items) result.items.push(await cloneNode(node as Node, yaml, this.work));
+      if (!result.items.length) result.flow = false;
+      const members = yaml.isSeq(right) ? right.items : nodeTag(right, yaml) === "!!null" ? [] : [right];
+      for (const node of members) result.items.push(await cloneNode(node as Node, yaml, this.work));
       return result;
     }
     if (operator === "==" || operator === "!=") {
@@ -136,14 +168,18 @@ export class Evaluator {
       else if (yaml.isScalar(left) && yaml.isScalar(right)) {
         const first = scalarText(left, yaml);
         const second = scalarText(right, yaml);
-        await this.work.tick(first.length + second.length);
-        equal = first === second;
+        equal = await this.match(first, second);
       }
       return scalar(yaml, this.work, operator === "==" ? equal : !equal);
     }
     const first = value(left, yaml);
     const second = value(right, yaml);
-    if (operator === "+" && typeof first === "string" && typeof second === "string") return scalar(yaml, this.work, first + second);
+    if (operator === "+" && (typeof first === "string" || typeof second === "string")) {
+      const text = scalarText(left, yaml) + (typeof first === "string" && second === null ? "" : scalarText(right, yaml));
+      const result = scalar(yaml, this.work, text);
+      if (yaml.isScalar(result) && yaml.isScalar(left) && left.type !== undefined) result.type = left.type;
+      return result;
+    }
     if ([">", "<", ">=", "<="].includes(operator)) {
       if (first === null || second === null) return scalar(yaml, this.work, false);
       return scalar(yaml, this.work, operator === ">" ? first > second : operator === "<" ? first < second : operator === ">=" ? first >= second : first <= second);
@@ -151,7 +187,17 @@ export class Evaluator {
     if ((typeof first !== "number" && typeof first !== "bigint") || (typeof second !== "number" && typeof second !== "bigint")) throw new MikeError(`cannot ${operator} ${nodeTag(left, yaml)} with ${nodeTag(right, yaml)}`);
     if (typeof first === "bigint" && typeof second === "bigint" && operator !== "/") {
       if (first !== BigInt.asIntN(64, first) || second !== BigInt.asIntN(64, second)) throw new MikeError("integer arithmetic operand is outside int64 range");
-      if (operator === "+") return scalar(yaml, this.work, BigInt.asIntN(64, first + second));
+      if (operator === "+") {
+        const sum = BigInt.asIntN(64, first + second);
+        const result = await cloneNode(left, yaml, this.work);
+        if (yaml.isScalar(result)) {
+          result.value = sum;
+          result.source = sum.toString();
+          const spelling = scalarText(left, yaml);
+          if (spelling.startsWith("0x") || spelling.startsWith("0X")) { result.format = "HEX"; result.source = `0x${sum.toString(16).toUpperCase()}`; }
+        }
+        return result;
+      }
       if (operator === "-") return scalar(yaml, this.work, BigInt.asIntN(64, first - second));
       if (operator === "*") return scalar(yaml, this.work, BigInt.asIntN(64, first * second));
       if (operator === "%" && second !== 0n) return scalar(yaml, this.work, first % second);
@@ -167,6 +213,7 @@ export class Evaluator {
     const next = (body: Expression, values = inputs, writable = create, readOnly = omitMissing) => this.run(body, values, writable, depth + 1, readOnly);
     const yaml = this.yaml;
     if (expression.kind === "identity") return inputs;
+    if (expression.kind === "group") return next(expression.body);
     if (expression.kind === "literal") return inputs.map(input => this.child(scalar(yaml, this.work, expression.value), input));
     if (expression.kind === "field") {
       const output: Candidate[] = [];
@@ -205,7 +252,7 @@ export class Evaluator {
             position++;
           }
           const node = await cloneNode(base.node, yaml, this.work);
-          if (yaml.isScalar(node)) node.value = selected.join("");
+          if (yaml.isScalar(node)) { node.value = selected.join(""); node.source = node.value as string; }
           output.push(this.child(node, base));
         } else {
           const members: Node[] = [];
@@ -280,7 +327,7 @@ export class Evaluator {
               if (attribute === "tag") {
                 if (!target.node.tag || this.work.implicitTags.has(target.node)) this.work.implicitTags.add(target.node);
                 target.node.tag = text.startsWith("!!") ? `tag:yaml.org,2002:${text.slice(2)}` : text;
-                if (yaml.isScalar(target.node) && text === "!!str") { target.node.value = String(target.node.value); target.node.type = "QUOTE_DOUBLE"; }
+                if (yaml.isScalar(target.node) && text === "!!str") target.node.value = scalarText(target.node, yaml);
               } else {
                 if (!["", "single", "double", "literal", "folded", "flow", "tagged"].includes(text)) throw new MikeError(`unknown style ${text}`);
                 if (yaml.isScalar(target.node)) target.node.type = text === "single" ? "QUOTE_SINGLE" : text === "double" ? "QUOTE_DOUBLE" : text === "literal" ? "BLOCK_LITERAL" : text === "folded" ? "BLOCK_FOLDED" : "PLAIN";

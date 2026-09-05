@@ -29,7 +29,7 @@ export async function encodeNative(candidate: Candidate, options: EncodeOptions,
   if (options.format === "yaml" && yaml.isScalar(candidate.node) && candidate.node.value === null && (candidate.node.source === "" || candidate.document.filename === "")) {
     return candidate.document.doc.directives?.docStart && candidate.node === candidate.document.doc.contents ? "---\n" : "\n";
   }
-  if (options.unwrap && yaml.isScalar(candidate.node)) return `${primitive(candidate.node)}\n`;
+  if (options.unwrap && yaml.isScalar(candidate.node)) return `${candidate.node.source ?? primitive(candidate.node)}\n`;
   if (options.format === "json") {
     const write = async (current: Candidate, depth: number): Promise<void> => {
       await work.tick(); work.depth(depth);
@@ -47,7 +47,8 @@ export async function encodeNative(candidate: Candidate, options: EncodeOptions,
           else if (/^[+-]?[0-9]+\.[0-9]+$/u.test(text)) append(JSON.stringify(Number(text)));
           else if (["true", "false", "null"].includes(text)) append(text);
           else throw new MikeError(`cannot encode ${node.tag} value as JSON`);
-        } else append(typeof node.value === "string" ? JSON.stringify(node.value) : primitive(node));
+        } else if (typeof node.value === "number" && node.tag === "tag:yaml.org,2002:float" && node.source && /^-?(?:0|[1-9][0-9]*)(?:\.[0-9]+)?(?:[eE][+-]?[0-9]+)?$/u.test(node.source)) append(node.source);
+        else append(typeof node.value === "string" ? JSON.stringify(node.value) : primitive(node));
         return;
       }
       if (yaml.isAlias(node)) throw new MikeError("cyclic YAML alias");
@@ -92,6 +93,7 @@ export async function encodeNative(candidate: Candidate, options: EncodeOptions,
     const original = tag.stringify;
     const stringify: NonNullable<import("yaml").ScalarTag["stringify"]> = (item, context, onComment, onChompKeep) => {
       const node: Node = item;
+      if (yaml.isScalar(node) && typeof node.value !== "string" && node.source) return node.source;
       return yaml.isCollection(node) ? node.toString(context, onComment, onChompKeep) : original(item, context, onComment, onChompKeep);
     };
     return { ...tag, stringify };
@@ -102,7 +104,7 @@ export async function encodeNative(candidate: Candidate, options: EncodeOptions,
     const node = formatting.pop()!;
     await work.tick();
     if (work.implicitTags.has(node) && node.tag?.startsWith("tag:yaml.org,2002:")) delete node.tag;
-    if (yaml.isScalar(node) && (node.type === "QUOTE_DOUBLE" || node.type === "QUOTE_SINGLE")) node.value = String(node.value);
+    if (yaml.isScalar(node) && (node.type === "QUOTE_DOUBLE" || node.type === "QUOTE_SINGLE")) node.value = node.source ?? String(node.value);
     else if (yaml.isMap(node)) for (const pair of node.items) { if (yaml.isNode(pair.key)) formatting.push(pair.key); if (yaml.isNode(pair.value)) formatting.push(pair.value); }
     else if (yaml.isSeq(node)) for (const child of node.items) if (yaml.isNode(child)) formatting.push(child);
   }

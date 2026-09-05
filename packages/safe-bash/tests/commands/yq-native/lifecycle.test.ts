@@ -77,6 +77,47 @@ test("late staging-file admission is cleaned after concurrent invocation close",
   assert.equal(Buffer.from(await fs.readFile("/input")).toString(), "a: 1\n");
 });
 
+test("JSON containers never materialize through plain-object JSON.parse", async context => {
+  const parse = JSON.parse;
+  let parsedScalars = 0;
+  context.mock.method(JSON, "parse", (text: string) => {
+    assert.ok(!text.startsWith("{") && !text.startsWith("["));
+    parsedScalars++;
+    return parse(text);
+  });
+  assert.deepEqual(await run(["-p=json", "-o=json", "-I0", "."], '{"a":1,"a":2,"items":[true,null]}'), { status: 0, stdout: '{"a":1,"a":2,"items":[true,null]}\n', stderr: "" });
+  assert.ok(parsedScalars > 0);
+});
+
+test("duplicate JSON member admission is bounded before output", async () => {
+  const result = await run(["-p=json", "-o=json", "."], '{"a":1,"a":2,"a":3}', {}, { limits: { maxParserNodes: 4 } });
+  assert.equal(result.status, 1);
+  assert.equal(result.stdout, "");
+  assert.match(result.stderr, /maxParserNodes/u);
+});
+
+test("quoted-indentation workspace refusal preserves the original in-place file", async () => {
+  const fs = createMemoryFileSystem();
+  const input = 'a: "one\ntwo"\n';
+  await fs.writeFile("/input", Buffer.from(input));
+  const result = await run(["-i", ".", "/input"], "", { fs }, { limits: { maxDocumentBytes: Buffer.byteLength(input) } });
+  assert.equal(result.status, 1);
+  assert.match(result.stderr, /maxDocumentBytes/u);
+  assert.equal(Buffer.from(await fs.readFile("/input")).toString(), input);
+  assert.deepEqual((await fs.readdir("/")).map(entry => entry.name), ["input"]);
+});
+
+test("a known first quote error does not allocate later document error records", async () => {
+  assert.deepEqual(await run(["."], 'a: "bad\n---\n'.repeat(80), {}, { limits: { maxNodes: 64 } }), { status: 1, stdout: "", stderr: "Error: bad file '-': yaml: while scanning a quoted scalar at line 1, column 4: line 2: found unexpected document indicator\n" });
+});
+
+test("wildcard backtracking consumes the configured work budget", async () => {
+  const result = await run([`.a == "*${"a".repeat(64)}b"`], `a: ${"a".repeat(1024)}\n`, {}, { limits: { maxSteps: 20_000 } });
+  assert.equal(result.status, 1);
+  assert.equal(result.stdout, "");
+  assert.match(result.stderr, /maxSteps/u);
+});
+
 for (const phase of ["wx", "w"] as const) for (const reason of [false, new Error("writer cancellation")]) test(`direct execute drains ${phase} writer without external cleanup: ${String(reason)}`, async context => {
   const fs = createMemoryFileSystem();
   await fs.writeFile("/input", Buffer.from("a: 1\n"));

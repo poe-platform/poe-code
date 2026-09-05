@@ -3,6 +3,7 @@ import { MikeError } from "./native-work.js";
 export type Expression =
   | { kind: "identity" | "iterate" | "recursive" }
   | { kind: "literal"; value: string | boolean | bigint | number | null }
+  | { kind: "group"; body: Expression }
   | { kind: "field"; base: Expression; key: Expression }
   | { kind: "slice"; base: Expression; start: Expression; end: Expression }
   | { kind: "pipe" | "binary"; operator: string; left: Expression; right: Expression }
@@ -55,7 +56,7 @@ export function compileExpression(source: string): Expression {
       result = { kind: "identity" };
       if (peek().kind === "name" || peek().kind === "string") { const key = take(); result = { kind: "field", base: result, key: literal(key.kind === "string" ? JSON.parse(key.text) as string : key.text) }; }
     } else if (token.text === "..") result = { kind: "recursive" };
-    else if (token.text === "(") { result = parse(); expect(")"); }
+    else if (token.text === "(") { result = { kind: "group", body: parse() }; expect(")"); }
     else if (token.text === "[") { result = peek().text === "]" ? { kind: "array" } : { kind: "array", body: parse() }; expect("]"); }
     else if (token.text === "{") {
       const fields: { key: Expression; value: Expression }[] = [];
@@ -108,6 +109,7 @@ export function compileExpression(source: string): Expression {
       const priority = priorities[operator];
       if (priority === undefined || priority < minimum) break;
       take();
+      if (operator === "//" && peek().text === "=") throw new MikeError("'//' expects 2 args but there is 1");
       result = { kind: operator === "|" ? "pipe" : "binary", operator, left: result, right: parse(priority + (priority === 3 ? 0 : 1)) };
     }
     nesting--;

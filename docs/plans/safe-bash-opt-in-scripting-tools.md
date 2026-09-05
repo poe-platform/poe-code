@@ -448,6 +448,40 @@ this request to keep additions out of the default package.
   Native filesystem QA records memory 11/11 and rooted-real 9/11, with two
   explicitly unsupported sparse-append combinations. These and documented
   platform/flag/recovery gaps remain open; this is not universal GNU parity.
+- DD is locally committed as `77b17a4ea`. The next yq independent review finds
+  seven additional native mismatches (29/36 cases pass): JSON integer and exponent
+  formatting, permissive missing-comma parsing, surrogate normalization, custom
+  tagged exponent/hexadecimal arithmetic, and multiline-key diagnostics. Root
+  captures the pinned native outputs and reproduces all seven through the old
+  compiled public runtime: five prior cases pass and seven new ones fail. The
+  author repairs them without altering reviewer assertions, preserving these reds.
+- Root's repaired yq replay passes 322 native-profile cases, zero skips. The
+  rebuilt optional runtime passes all twelve public cases, including the seven
+  reproduced failures; four strict source/public test roots have zero diagnostics.
+  Eight discovery/isolation checks pass, and actual numeric-output/diagnostic
+  rendering is inspected in `yq-next-public-final-visual.png`. Independent final
+  review and guarded lint remain required before this repair is committed.
+- The previously delivered native zero-I/O capture is recovered after a truncated
+  handoff: `/tmp/safe-fs-descriptor-position-native.xh7t4Q/`, Darwin 25.4 arm64,
+  September 4, 2026. All 32 zero-length read/write/pread/pwrite observations return
+  zero and preserve cursor, size and read buffers; an append cursor stays two
+  after independent growth increases size to five. Compilation and execution
+  stderr are empty, exit zero. Root verifies the saved output and source/binary
+  hashes without rerunning it. Source SHA-256 is
+  `557bef15c73c739ef3ff97723606660f32b452ce10d681d54efbf571eba945e3`;
+  executable SHA-256 is
+  `ac20fd5bcb87ed10af74ffd6d5198802e1c4eadb9757da6af46e8947e5d03b87`.
+  Native positioned append writes succeeding remains distinct from the canonical
+  descriptor's intentional refusal; this evidence does not erase that gap.
+- Independent yq final review approves the unchanged seven-file repair after
+  36 reviewer and 322 combined native cases, zero skips, with zero diagnostics
+  across seven strict type roots. Root verifies all seven frozen source/test/doc
+  hashes again. Guarded lint's thirteenth run completes with two findings in
+  concurrently implemented read/incremental-writer files, not yq; narrow owner
+  fixes precede a separate fourteenth run. The thirteenth run is not clean.
+- Guarded lint's fourteenth run completes cleanly with exit zero. The reviewed
+  yq repair is ready for its own scoped commit; optional packaging, explicit
+  activation and the documented broader compatibility gaps remain unchanged.
 
 - First implementation wave: cmp, yes, shuf and virtual devices in disjoint leaf
   directories. Root is qualifying native oracles and the opt-in delivery boundary.

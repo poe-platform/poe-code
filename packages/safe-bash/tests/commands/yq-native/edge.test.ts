@@ -240,3 +240,65 @@ for (const entry of nextPhaseCases) test(`next-phase regression: ${entry.name}`,
 test("live oracle confirms all seventeen next-phase observations", nativeOptions, async () => {
   for (const entry of nextPhaseCases) assert.deepEqual(await native(entry.args, entry.input), entry.expected, entry.name);
 });
+
+const quoteBoundaries = [
+  ["a: 'hello\nworld'\n", "a: 'hello world'\n"],
+  ['a:\n  b: "hello\nworld"\n', 'a:\n  b: "hello world"\n'],
+  ['a: "hello\nworld" # tail\nb: 2\n', 'a: "hello world" # tail\nb: 2\n'],
+  ['{a: "hello\nworld", b: 2}\n', '{a: "hello world", b: 2}\n'],
+  ["a: 'one''two\nthree'\n", "a: 'one''two three'\n"],
+  ['a: "hello\n\nworld"\n', 'a: "hello\\nworld"\n'],
+  ['a: |\n  "hello\n  world"\n', 'a: |\n  "hello\n  world"\n'],
+] as const;
+for (const [input, stdout] of quoteBoundaries) test(`quoted continuation boundary: ${JSON.stringify(input)}`, async () => {
+  assert.deepEqual(await run(["."], input), { status: 0, stdout, stderr: "" });
+});
+test("a quoted continuation cannot consume a document indicator", async () => {
+  assert.deepEqual(await run(["."], 'a: "hello\n---\nworld"\n'), { status: 1, stdout: "", stderr: "Error: bad file '-': yaml: while scanning a quoted scalar at line 1, column 4: line 2: found unexpected document indicator\n" });
+});
+test("live oracle confirms quoted continuation boundaries", nativeOptions, async () => {
+  for (const [input, stdout] of quoteBoundaries) assert.deepEqual(await native(["."], input), { status: 0, stdout, stderr: "" });
+  assert.deepEqual(await native(["."], 'a: "hello\n---\nworld"\n'), { status: 1, stdout: "", stderr: "Error: bad file '-': yaml: while scanning a quoted scalar at line 1, column 4: line 2: found unexpected document indicator\n" });
+});
+
+test("a later quoted-document error retains earlier eval output", async () => {
+  assert.deepEqual(await run(["."], 'a: 1\n---\nb: "hello\n---\nworld"\n'), { status: 1, stdout: "a: 1\n", stderr: "Error: bad file '-': yaml: while scanning a quoted scalar at line 3, column 4: line 4: found unexpected document indicator\n" });
+});
+test("double-quote styling retains the original scalar spelling", async () => {
+  assert.deepEqual(await run(['.a style="double"'], "a: TRUE\n"), { status: 0, stdout: 'a: "TRUE"\n', stderr: "" });
+});
+test("live oracle confirms late quote failure and scalar styling", nativeOptions, async () => {
+  assert.deepEqual(await native(["."], 'a: 1\n---\nb: "hello\n---\nworld"\n'), { status: 1, stdout: "a: 1\n", stderr: "Error: bad file '-': yaml: while scanning a quoted scalar at line 3, column 4: line 4: found unexpected document indicator\n" });
+  assert.deepEqual(await native(['.a style="double"'], "a: TRUE\n"), { status: 0, stdout: 'a: "TRUE"\n', stderr: "" });
+});
+
+const repairedOperatorControls = [
+  { args: ["-p=json", ".a"], input: '{"a":1,"a":2}', stdout: "2\n" },
+  { args: ["-p=json", "-o=json", ".a=3"], input: '{"a":1,"a":2}', stdout: '{\n  "a": 1,\n  "a": 3\n}\n' },
+  { args: ["-p=json", "-o=json", "."], input: '{"__proto__":{"a":1},"x":{"a":1,"a":2},"constructor":0}', stdout: '{\n  "__proto__": {\n    "a": 1\n  },\n  "x": {\n    "a": 1,\n    "a": 2\n  },\n  "constructor": 0\n}\n' },
+  { args: ['.a == "*"'], input: 'a: ""\n', stdout: "true\n" },
+  { args: ['.a == "f?o"'], input: "a: f😀o\n", stdout: "false\n" },
+  { args: ['.a == "f????o"'], input: "a: f😀o\n", stdout: "true\n" },
+  { args: ['.a tag="!!str"'], input: "a: TRUE\n", stdout: 'a: "TRUE"\n' },
+] as const;
+for (const entry of repairedOperatorControls) test(`repaired operator control: ${JSON.stringify(entry.args)} ${entry.input}`, async () => {
+  assert.deepEqual(await run(entry.args, entry.input), { status: 0, stdout: entry.stdout, stderr: "" });
+});
+test("live oracle confirms duplicate-member and byte-wildcard controls", nativeOptions, async () => {
+  for (const entry of repairedOperatorControls) assert.deepEqual(await native(entry.args, entry.input), { status: 0, stdout: entry.stdout, stderr: "" });
+});
+
+const followupReviewCases = [
+  { name: "multiline key diagnostic identifies colon after whitespace", args: ["."], input: '"one\ntwo"  : 3\n', expected: { status: 1, stdout: "", stderr: "Error: bad file '-': yaml: line 2, column 7: mapping values are not allowed in this context\n" } },
+  { name: "signed YAML float cannot inject a non-JSON numeric spelling", args: ["-o=json", "-I0", "."], input: "a: !!float +1.5\n", expected: { status: 0, stdout: '{"a":1.5}\n', stderr: "" } },
+  { name: "signed custom hexadecimal arithmetic retains native parse refusal", args: [".a + .b"], input: "a: !number -0x10\nb: 1\n", expected: { status: 1, stdout: "", stderr: 'Error: strconv.ParseInt: parsing "-0x10": invalid syntax\n' } },
+  { name: "surrogate replacement preserves valid pairs and member order", args: ["-p=json", "-o=json", "-I0", "."], input: '{"\\ud800":"\\udc00","pair":"\\ud83d\\ude00"}', expected: { status: 0, stdout: '{"�":"�","pair":"😀"}\n', stderr: "" } },
+  { name: "native omitted object commas do not require whitespace", args: ["-p=json", "-o=json", "-I0", "."], input: '{"a":1"b":{"x":true "y":false}}', expected: { status: 0, stdout: '{"a":1,"b":{"x":true,"y":false}}\n', stderr: "" } },
+  { name: "pinned int64 conversion and exponent thresholds", args: ["-p=json", "-o=json", "-I0", "."], input: '[9223372036854775807,9223372036854775808,9223372036854777856,-9223372036854775809,1e20,1e-4,1e-5,1e-6,1e-7]', expected: { status: 0, stdout: '[9223372036854775807,9223372036854775807,9.223372036854778e+18,-9223372036854775808,1e+20,0.0001,1e-05,1e-06,1e-07]\n', stderr: "" } },
+] as const;
+for (const entry of followupReviewCases) test(`review repair boundary: ${entry.name}`, async () => {
+  assert.deepEqual(await run(entry.args, entry.input), entry.expected);
+});
+test("live oracle confirms review repair boundaries", nativeOptions, async () => {
+  for (const entry of followupReviewCases) assert.deepEqual(await native(entry.args, entry.input), entry.expected, entry.name);
+});

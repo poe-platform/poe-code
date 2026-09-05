@@ -9,14 +9,29 @@ and `mikeYqCommands` as `createYqCommand`, `createYqCommands`, and `yqCommands`.
 It exports their options and limits as `YqCommandsOptions` and `YqLimits`.
 The old `src/commands/yq/index.ts` retains its distinct restricted dialect.
 
-Independent and root native-profile runs pass 236 tests with zero skips. The
-actual compiled/public-host suite passes 21 tests, including commented in-place
+The earlier independent and root native-profile cohort passed 236 tests with
+zero skips. Its actual compiled/public-host suite passed 21 tests, including commented in-place
 updates, compact JSON, shared output-limit rejection, source preservation and
 temporary-file cleanup. Strict consumer types pass. Initial declaration emit
 failed on an inferred public AbortSignal type; an explicit annotation repairs it
 without changing execution. Two initial public directory-list expectations used
 strings instead of the filesystem contract's entries; those test-facade errors
-were corrected without product changes. Native compatibility limits below remain.
+were corrected without product changes. Those checks do not qualify later source
+changes or the additional cases described below. Native compatibility limits remain.
+
+Commit `3c9bcfe60` also captured a prepared 31-line addition to `edge.test.ts`
+during the root stage/`--only` commit window: 17 next-phase observations and one
+live native confirmation. Its post-commit cohort was 254 tests: 241 passed and
+13 failed, with zero skips. This was an integration-coordination error in the
+milestone boundary, not a regression of the earlier 236 tests. The committed
+tests and history are preserved; no amend, revert or assertion weakening was used.
+The first repair cohort passed all 279 tests with the explicit pinned oracle.
+Root subsequently reported native/public and build/optional-compile passes for
+that boundary. Carver's next independent review added 36 tests: 29 passed and
+seven failed before the corrections recorded below. The current combined cohort
+passes 322 tests, including seven further boundary tests. Root compiled/public,
+package and independent-review gates must qualify these latest source corrections
+separately. Full requested yq compatibility remains unfinished.
 
 ## Identity and dependency boundary
 
@@ -102,6 +117,11 @@ The native executable is a test oracle only; tests never create host fixture fil
 - Assignments retain tested comments, quote styles, anchors and tags. YAML
   integers retain precision; tested int64 arithmetic wraps as native. Explicit
   JSON input follows the native float64 rounding behavior for tested unsafe ints.
+  Its integer classification also reproduces the pinned Darwin-arm64 int64
+  conversion boundary: rounded 2^63 becomes 9223372036854775807, while larger
+  distinct float64 values remain floats. This is not arbitrary-precision JSON
+  preservation or a qualification of other native architectures. Float spelling
+  uses the tested Go-style exponent threshold and two-digit exponent minimum.
   JSON output retains ordered/duplicate map entries in the tested cases.
 - Default YAML scalar unwrapping and JSON quoting, indentation, document
   separators, empty streams/documents, `-e` no-match/false/null behavior, selected
@@ -135,10 +155,29 @@ input lines are also bounded by maxScalarBytes. Limit refusals are explicit stat
 diagnostics, not silent truncation or claimed native capacity parity.
 
 YAML input is lexed in bounded fragments with CST/depth/node admission before
-recursive composition. JSON framing/depth/byte admission precedes JSON.parse;
-logical node/scalar admission precedes recursive YAML-node construction. Work
-yields periodically during scans/evaluation, including empty byte-source chunks.
-Library composition, JSON.parse, clone and stringify still have synchronous
+recursive composition. A lexical quote-continuation adapter supplies required
+indentation for the pinned native parser's accepted outdented quoted scalars;
+literal/block content is not rewritten as quoted content. Added workspace is
+admitted against input/document/node/work limits before parser materialization.
+Thus an original document that exactly fits a limit can explicitly fail if the
+adapted parser workspace exceeds it; this is not silent output truncation.
+Source offsets are mapped back for diagnostics. Document-indicator errors are
+reported at document acceptance, preserving earlier eval output.
+
+JSON framing/depth/byte admission precedes a cooperative ordered-node reader.
+Objects become YAMLMap pair sequences directly, never ordinary JavaScript
+objects; duplicate members and numeric-looking key order survive. Node admission
+precedes container/key/value construction. JSON.parse is restricted to bounded
+scalar tokens, with decoded string-byte admission before node construction.
+Decoded JSON strings replace unpaired UTF-16 surrogates with U+FFFD, preserving
+valid pairs. Native object decoding accepts omitted commas between successive
+quoted keys, even without whitespace; the ordered reader reproduces this without
+accepting omitted array commas or constructing ordinary host objects. JSON numeric
+source spelling is emitted only after JSON-number grammar validation, so a YAML
+float such as `!!float +1.5` cannot introduce invalid JSON syntax.
+Work yields periodically during scans/evaluation, including empty input chunks
+and byte-oriented wildcard matching. Library composition, scalar JSON.parse,
+clone and stringify still have synchronous
 regions. Their admitted input/node/depth/serialized-size bounds do not make those
 library calls asynchronously preemptible or establish a hard RSS/wall-time limit.
 Before YAML stringify, a conservative hard 16 MiB projection bounds allocation;
@@ -206,9 +245,10 @@ the command waits for it and cleans staging, but does not claim rollback.
 
 ## Open compatibility boundaries
 
-Full requested yq remains open. Preserved boundary cases 0, 1 and 4 demonstrate:
-native acceptance of unindented multiline quotes rejected by yaml2.9, non-native
-malformed-JSON diagnostics (earlier JSON results now publish), native negative YAML
+Full requested yq remains open. Preserved boundary case 0 (outdented multiline
+quotes) is now repaired by the admitted lexical adapter; its old mismatch capture
+remains unchanged. Cases 1 and 4 still demonstrate non-native malformed-JSON
+diagnostics for `1\n{bad` (earlier JSON results publish), and a native negative YAML
 indent panic versus a controlled product error.
 Native panic addresses/stack bytes are retained as evidence, not imitated.
 
@@ -223,10 +263,15 @@ fallback, implicit network capability, or published/full-dialect claim is made.
 Review repairs distinguish absent read-only assignment matches from explicit null,
 copy the right operand for null-left addition, compare scalar lexical text rather
 than JavaScript types, and measure scalar length in UTF-8 bytes (including numeric
-spellings). Equality wildcard matching remains unimplemented. An additional native
-probe found `.a = .items[2]` on `a: 1\nitems: []\n` grows the native array with nulls
-even in read-only traversal; this candidate still lacks that native side effect.
-These are explicit remaining gaps, not assertions of full expression parity.
+spellings). The next-phase repairs add byte-oriented `*`/`?` equality matching,
+including the native four-question-mark treatment of a four-byte Unicode scalar;
+brackets remain literal. Existing-array reads now grow out-of-range positive
+indices with nulls under node/work admission, including read-only assignment RHS.
+String/numeric and sequence/scalar addition, the tested custom integer tag, and
+hexadecimal addition spelling have native regressions. Parenthesized computed
+tag assignment remains detached rather than becoming a tag mutation; direct tag
+assignment and explicit quote styling preserve scalar spelling. These verified
+operations do not establish full expression, tag-coercion or parser compatibility.
 
 ## TDD record
 
@@ -251,7 +296,38 @@ The evaluator repairs make these and all four reviewer expression cases pass.
 The four direct writer-drain tests were green when added; they establish additional
 coverage, not an invented additional defect or red phase.
 
-Current leaf plus independent review run: 236 passed with the explicit pinned
-oracle and zero skips; without prerequisites, 224 passed and 12 live-only skips.
-Strict source/test types pass. These are not a whole-package build, root lint or
-release gate. Reviewer assertions, shared helpers and sealed captures are unchanged.
+The earlier 236-test cohort passed with the explicit pinned oracle; without
+prerequisites it had 224 passes and 12 live-only skips. The additional committed
+18-test cohort ran red with five passes (four controls and live confirmation) and
+13 failures. Repairs address all 13 without modifying their expected results.
+Nine quote-boundary tests then ran with three passes and six failures before the
+adapter repair. Two further failures exposed premature later-document diagnostics
+and case loss under quote styling; their native confirmation passed. Both were
+repaired. Eight ordered-member/wildcard controls and four resource-admission tests
+passed when added; no fabricated additional defect is attributed to that coverage.
+One further safety regression ran red when repeated malformed quoted documents
+allocated later diagnostic records until maxNodes replaced the known first syntax
+error. The adapter now stops at the first known quote error and defers its delivery
+to document acceptance; the regression passes without losing earlier output.
+
+The first frozen repair boundary passed 279 tests with the pinned oracle and zero
+skips; without prerequisites it passed 263 with 16 live-only skips. Carver's next
+unchanged 36-test review reproduced seven failures: int64-boundary JSON output,
+exponent spelling, omitted object-comma acceptance, unpaired surrogate decoding,
+custom-tag exponent and hexadecimal addition, and multiline-key diagnostics.
+Those repairs passed 36/36 independently and 315/315 with the earlier cohort.
+
+Six additional boundary tests initially passed four and failed two: signed YAML
+float output exposed unsafe raw numeric spelling, and signed custom hexadecimal
+addition exposed over-permissive coercion. Both were repaired. A seventh test
+then exposed a multiline-key diagnostic pointing before whitespace rather than
+at its colon; it also ran red before the position correction. These controls
+include explicit native confirmation, int64/exponent thresholds, valid surrogate
+pairs, and nested ordered objects without commas. No review assertion changed.
+
+Current leaf plus both unchanged independent review files: 322 passed with the
+pinned oracle and zero skips; without prerequisites, 279 passed and 43 live-only
+skips. Source and all seven test files pass strict types; declaration-only emission
+into memory succeeds for all eight native-profile modules. These are not a new root compiled/public, whole-package,
+lint or release gate. Reviewer assertions, shared helpers and sealed captures are
+unchanged. The complete user-requested yq remains the goal, not this tested subset.

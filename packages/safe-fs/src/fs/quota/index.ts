@@ -2,9 +2,12 @@ import type { FileStat, FileSystem, FsOptions } from "../../contracts/filesystem
 import { FsError } from "../../contracts/errors.js";
 import type { ByteSource } from "../../contracts/io.js";
 import { quotaCapabilities } from "../capabilities.js";
+import { admitDirectoryEntries } from "../directory-admission.js";
 
 export interface FileSystemQuotaOptions {
   readonly maxBytes: number;
+  readonly maxScanEntries?: number;
+  readonly maxScanDepth?: number;
 }
 
 export class FileSystemQuotaError extends Error {
@@ -14,17 +17,35 @@ export class FileSystemQuotaError extends Error {
   }
 }
 
-async function usedBytes(fs: FileSystem, options?: FsOptions, change?: { path: string; stat: FileStat; delta: number }): Promise<number> {
+async function usedBytes(fs: FileSystem, limits: { maxScanEntries: number; maxScanDepth: number }, options?: FsOptions, change?: { path: string; stat: FileStat; delta: number }): Promise<number> {
   let total = 0;
   let possibleAliases = 0;
-  const pending = ["/"];
+  let remaining = limits.maxScanEntries;
+  const pending = [{ path: "/", depth: 0 }];
   while (pending.length) {
     options?.signal?.throwIfAborted();
-    const directory = pending.pop()!;
-    for (const entry of await fs.readdir(directory, options)) {
+    const directory = pending.pop();
+    if (!directory) break;
+    const signal = options?.signal;
+    const entries = await fs.readdir(directory.path, { ...options, ...(signal ? { signal } : {}), maxEntries: remaining });
+    options?.signal?.throwIfAborted();
+    const count = entries.length;
+    admitDirectoryEntries(count, remaining, directory.path);
+    remaining -= count;
+    let processed = 0;
+    for (const entry of entries) {
       options?.signal?.throwIfAborted();
-      const path = `${directory === "/" ? "" : directory}/${entry.name}`;
-      if (entry.type === "directory") pending.push(path);
+      if (processed >= count) {
+        admitDirectoryEntries(1, remaining, directory.path);
+        remaining--;
+      }
+      processed++;
+      const path = `${directory.path === "/" ? "" : directory.path}/${entry.name}`;
+      if (entry.type === "directory") {
+        const depth = directory.depth + 1;
+        if (depth > limits.maxScanDepth) throw new FsError("EFBIG", { syscall: "readdir", path, message: "quota scan depth limit exceeded" });
+        pending.push({ path, depth });
+      }
       else {
         const stat = await fs.lstat(path, options);
         total += stat.size;
@@ -59,6 +80,13 @@ async function existingBytes(fs: FileSystem, path: string, options?: FsOptions):
 
 export function withFileSystemQuota(fs: FileSystem, options: FileSystemQuotaOptions): FileSystem {
   if (!Number.isSafeInteger(options.maxBytes) || options.maxBytes < 0) throw new RangeError("maxBytes must be a nonnegative safe integer");
+  const scanLimits = {
+    maxScanEntries: options.maxScanEntries === undefined ? 4096 : options.maxScanEntries,
+    maxScanDepth: options.maxScanDepth === undefined ? 64 : options.maxScanDepth,
+  };
+  for (const [name, value] of Object.entries(scanLimits)) {
+    if (!Number.isSafeInteger(value) || value < 0) throw new RangeError(`${name} must be a nonnegative safe integer`);
+  }
   let queue: Promise<unknown> = Promise.resolve();
   const mutate = <Result>(operation: () => Promise<Result>): Promise<Result> => {
     const result = queue.then(operation);
@@ -73,8 +101,8 @@ export function withFileSystemQuota(fs: FileSystem, options: FileSystemQuotaOpti
       if (!(error instanceof Error && "code" in error && error.code === "ENOENT")) throw error;
     }
     const projected = current?.type === "file" && nextBytes > current.size
-      ? await usedBytes(fs, fsOptions, { path, stat: current, delta: nextBytes - current.size })
-      : await usedBytes(fs, fsOptions) - (current?.type === "directory" ? 0 : current?.size ?? 0) + nextBytes;
+      ? await usedBytes(fs, scanLimits, fsOptions, { path, stat: current, delta: nextBytes - current.size })
+      : await usedBytes(fs, scanLimits, fsOptions) - (current?.type === "directory" ? 0 : current?.size ?? 0) + nextBytes;
     fsOptions?.signal?.throwIfAborted();
     if (projected > options.maxBytes) throw new FileSystemQuotaError(options.maxBytes);
   };

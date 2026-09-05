@@ -27,25 +27,29 @@ function spanOrder(left: EreSpan | null, right: EreSpan | null): number {
   return length === 0 ? right.start - left.start : length;
 }
 
+async function historySpans(history: History, ledger: EreLedger, signal?: AbortSignal): Promise<readonly EreSpan[]> {
+  ledger.charge("work", history.count, signal);
+  ledger.charge("allocationUnits", history.count + 1, signal);
+  await ledger.checkpoint(signal);
+  const spans = new Array<EreSpan>(history.count);
+  for (let entry: History | null = history; entry !== null; entry = entry.previous) {
+    ledger.charge("work", 1, signal);
+    await ledger.checkpoint(signal);
+    spans[entry.count - 1] = entry.span;
+  }
+  return spans;
+}
+
 async function historyOrder(left: History | null, right: History | null, ledger: EreLedger, signal?: AbortSignal): Promise<number> {
   const leftCount = left?.count ?? 0;
   const rightCount = right?.count ?? 0;
-  for (let ordinal = 1; ordinal <= Math.min(leftCount, rightCount); ordinal++) {
+  if (left === null || right === null) return leftCount - rightCount;
+  const leftSpans = await historySpans(left, ledger, signal);
+  const rightSpans = await historySpans(right, ledger, signal);
+  for (let ordinal = 0; ordinal < Math.min(leftCount, rightCount); ordinal++) {
     ledger.charge("work", 1, signal);
     await ledger.checkpoint(signal);
-    let leftEntry = left!;
-    let rightEntry = right!;
-    for (let remaining = leftCount; remaining > ordinal; remaining--) {
-      ledger.charge("work", 1, signal);
-      await ledger.checkpoint(signal);
-      leftEntry = leftEntry.previous!;
-    }
-    for (let remaining = rightCount; remaining > ordinal; remaining--) {
-      ledger.charge("work", 1, signal);
-      await ledger.checkpoint(signal);
-      rightEntry = rightEntry.previous!;
-    }
-    const compared = spanOrder(leftEntry.span, rightEntry.span);
+    const compared = spanOrder(leftSpans[ordinal]!, rightSpans[ordinal]!);
     if (compared !== 0) return compared;
   }
   return leftCount - rightCount;
@@ -55,6 +59,7 @@ async function preferred(candidate: State, incumbent: State, ledger: EreLedger, 
   if (candidate.position !== incumbent.position) return candidate.position > incumbent.position;
   for (let group = 1; group < candidate.captures.length; group++) {
     ledger.charge("work", 1, signal);
+    await ledger.checkpoint(signal);
     const compared = await historyOrder(candidate.histories[group]!, incumbent.histories[group]!, ledger, signal);
     if (compared !== 0) return compared > 0;
   }
@@ -62,7 +67,9 @@ async function preferred(candidate: State, incumbent: State, ledger: EreLedger, 
 }
 
 async function resetDescendants(node: EreNode, previous: readonly (EreSpan | null)[], ledger: EreLedger, signal?: AbortSignal): Promise<readonly (EreSpan | null)[]> {
+  ledger.charge("work", previous.length, signal);
   ledger.charge("allocationUnits", previous.length + 3, signal);
+  await ledger.checkpoint(signal);
   const captures = previous.slice();
   const pending: EreNode[] = [node];
   while (pending.length > 0) {
@@ -95,7 +102,9 @@ export async function matchEre(program: EreProgram, subject: string, ledger: Ere
   ledger.admitInput("subjectBytes", subject.length, signal);
   await admitAscii(subject, ledger, signal);
   const width = program.groups + 1;
+  ledger.charge("work", width * 2, signal);
   ledger.charge("allocationUnits", width * 2 + 1, signal);
+  await ledger.checkpoint(signal);
   const emptyCaptures: readonly (EreSpan | null)[] = Object.freeze(new Array<EreSpan | null>(width).fill(null));
   const emptyHistories: readonly (History | null)[] = Object.freeze(new Array<History | null>(width).fill(null));
   const pending: State[] = [];
@@ -121,7 +130,9 @@ export async function matchEre(program: EreProgram, subject: string, ledger: Ere
         continue;
       }
       if (current.kind === "close") {
+        ledger.charge("work", width * 2, signal);
         ledger.charge("allocationUnits", width * 2 + 6, signal);
+        await ledger.checkpoint(signal);
         const span = Object.freeze({ start: current.start, end: state.position });
         const captures = state.captures.slice();
         captures[current.group] = span;
@@ -189,14 +200,23 @@ export async function matchEre(program: EreProgram, subject: string, ledger: Ere
       let bytes = best.position - start;
       for (let group = 1; group < width; group++) {
         ledger.charge("work", 1, signal);
+        await ledger.checkpoint(signal);
         const span = best.captures[group];
         if (span) bytes += span.end - span.start;
       }
       ledger.charge("captureBytes", bytes, signal);
+      ledger.charge("work", width * 2 + bytes, signal);
       ledger.charge("allocationUnits", width * 2 + bytes + 4, signal);
+      await ledger.checkpoint(signal);
       const captures = best.captures.slice();
       captures[0] = Object.freeze({ start, end: best.position });
-      const values = captures.map(span => span === null ? "" : subject.slice(span.start, span.end));
+      const values = new Array<string>(width);
+      for (let group = 0; group < width; group++) {
+        ledger.charge("work", 1, signal);
+        await ledger.checkpoint(signal);
+        const span = captures[group]!;
+        values[group] = span === null ? "" : subject.slice(span.start, span.end);
+      }
       ledger.check(signal);
       return Object.freeze({ matched: true, captures: Object.freeze(captures), values: Object.freeze(values) });
     }

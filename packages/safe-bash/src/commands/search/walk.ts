@@ -4,20 +4,38 @@ import { Glob, ignoreRules, matchGlobs, type IgnoreRule } from "./glob.js";
 import { SearchError, type Arguments } from "./options.js";
 import { Limits, pathFor } from "./shared.js";
 import { assertPathRequirements, searchRequirements } from "./requirements.js";
+import { defaultFileTypes } from "./file-types.js";
 
 export interface FileTarget { readonly path: string; readonly label: string; readonly explicit: boolean; readonly recursive: boolean }
 
 export class Walker {
   private readonly globs: { glob: Glob; include: boolean }[];
   private readonly hasPositive: boolean;
+  private readonly typeGlobs: { glob: Glob; include: boolean }[] = [];
+  private readonly hasPositiveType: boolean;
   private readonly cache = new Map<string, { rules: IgnoreRule[]; repository: boolean; root: boolean }>();
   constructor(private readonly context: CommandContext, private readonly args: Arguments, private readonly limits: Limits, private readonly report: (error: unknown) => Promise<void>, private readonly session: RegexSession) {
     if (args.globs.length > 1024) throw new SearchError("glob count limit exceeded");
     this.globs = args.globs.map(({ source, insensitive }) => ({ glob: new Glob(source.startsWith("!") ? source.slice(1) : source, insensitive), include: !source.startsWith("!") }));
     this.hasPositive = this.globs.some(rule => rule.include);
+    this.hasPositiveType = args.types.some(rule => rule.include);
   }
   async validate(): Promise<void> {
     await matchGlobs(this.globs.map(rule => rule.glob), [], this.session);
+    const selected = new Map<string, boolean>();
+    for (const selection of this.args.types) {
+      const names = selection.name === "all" ? Object.keys(defaultFileTypes) : [selection.name];
+      for (const name of names) {
+        await this.limits.tick();
+        for (const pattern of defaultFileTypes[name]!) {
+          await this.limits.tick();
+          selected.delete(pattern);
+          selected.set(pattern, selection.include);
+        }
+      }
+    }
+    for (const [source, include] of selected) this.typeGlobs.push({ glob: new Glob(source), include });
+    await matchGlobs(this.typeGlobs.map(rule => rule.glob), [], this.session);
   }
   private async exists(path: string): Promise<boolean> {
     try {
@@ -75,6 +93,14 @@ export class Walker {
       for (let index = 0; index < matches.length; index++) if (matches[index]) {
         priority = groupPriority; include = group[index]!.include;
       }
+    }
+    if (include === false) return false;
+    if (!directory && this.typeGlobs.length) {
+      const matches = await matchGlobs(this.typeGlobs.map(rule => rule.glob), this.typeGlobs.map(() => ({ path: name, directory: false, ancestors: false })), this.session);
+      let selected: boolean | undefined;
+      for (let index = 0; index < matches.length; index++) if (matches[index]) selected = this.typeGlobs[index]!.include;
+      if (selected !== undefined) return selected;
+      if (this.hasPositiveType) return false;
     }
     if (include !== undefined) return include;
     return this.args.hidden || !name.startsWith(".");

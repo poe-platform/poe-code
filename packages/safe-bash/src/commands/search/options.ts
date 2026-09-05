@@ -1,4 +1,5 @@
 import type { RegexExecutionOptions } from "../regex-execution/protocol.js";
+import { defaultFileTypes } from "./file-types.js";
 
 export interface SearchOptions {
   readonly replace?: boolean;
@@ -49,6 +50,7 @@ export interface Arguments {
   maxCount: number;
   maxDepth: number;
   globs: { source: string; insensitive: boolean }[];
+  types: { name: string; include: boolean }[];
 }
 
 export function count(value: string, flag: string): number {
@@ -63,7 +65,7 @@ export function parse(args: readonly string[]): Arguments {
     onlyMatching: false, quiet: false, hidden: false, follow: false, ignore: true, ignoreVcs: true,
     ignoreDot: true, ignoreParent: true, requireGit: true, binary: "auto", nullPath: false, nullData: false,
     crlf: false, includeZero: false, messages: true, heading: false, before: 0, after: 0, separator: "--",
-    maxCount: Infinity, maxDepth: 128, globs: [],
+    maxCount: Infinity, maxDepth: 128, globs: [], types: [],
   };
   const operands: string[] = [];
   let unrestricted = 0;
@@ -93,6 +95,13 @@ export function parse(args: readonly string[]): Arguments {
         case "f": case "file": result.explicitPatterns = true; result.patternFiles.push(value()); break;
         case "g": case "glob": result.globs.push({ source: value(), insensitive: false }); break;
         case "iglob": result.globs.push({ source: value(), insensitive: true }); break;
+        case "t": case "type": case "T": case "type-not": {
+          const name = value();
+          if (result.types.length >= 1024) throw new SearchError("file type selection limit exceeded");
+          if (name !== "all" && !Object.hasOwn(defaultFileTypes, name)) throw new SearchError(`unrecognized file type: ${name}`);
+          result.types.push({ name, include: flag === "t" || flag === "type" });
+          break;
+        }
         case "n": case "line-number": result.lineNumber = true; explicitLineNumber = true; break;
         case "N": case "no-line-number": result.lineNumber = false; explicitLineNumber = true; break;
         case "H": case "with-filename": result.filename = true; break;

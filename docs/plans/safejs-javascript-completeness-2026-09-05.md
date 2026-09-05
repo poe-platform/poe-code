@@ -1908,7 +1908,7 @@ run 33959023817 are monitored separately; neither is yet a publication receipt.
 Scoped run 33959023752/job 101287476034 published SafeJS 0.1.122 at 09:54:08 UTC
 on September 5. The CLI validation is still monitored independently.
 
-### 37. Converted matching input retention — fixed; delivery pending
+### 37. Converted matching input retention — delivered and released
 
 After input coercion produces a 4,000-character nonmatching string, a cursor
 valueOf hook allocates another 4,000-character temporary. With dataSize 6,000,
@@ -1954,7 +1954,16 @@ Final maintained root lint passed all 9,757 configured files with zero errors
 or warnings, then types and workflows passed. This fix is qualified for its
 own commit and push. The unrelated staged Safe Bash patch remains unchanged.
 
-### 38. Receiver retention before member operations — validated open budget gap
+Committed and independently verified on remote main as
+3cc1173d3e8d95683b5619d4aca91bd04973233b. Close this finding at delivery.
+Scoped run 33959496560/job 101288757999 published SafeJS 0.1.123 at
+10:04:27 UTC on September 5. CLI run 33959496680/job 101289833660 published
+poe-code 14.0.57 at 10:11:33 UTC; its remote tag points to that exact commit.
+This CLI release also contains the cursor and flag-read fixes in sections 35–36.
+The flag-read CLI workflow succeeded without publishing because main had moved;
+do not count that green run as a separate release.
+
+### 38. Receiver retention before member operations — qualified; delivery pending
 
 Temporary String receivers disappear from accounting while argument expressions
 run (match and indexOf), as do Array receivers (includes and join). Computed
@@ -1970,3 +1979,114 @@ Object and Map all return the marker at dataSize 6,000, proving the allocation
 completed while the live receiver was unaccounted for. The Object method body
 reads this.payload, so do not infer that its receiver can be discarded early.
 Address this interpreter-level lifetime separately from matching-hook retention.
+
+The phase-isolated regression matrix reproduces 21 failures across String,
+Array, Map, Set and ordinary-object argument evaluation, computed-key
+evaluation/coercion, optional access/calls, assignment RHS, compound/logical
+assignment, update and deletion. Keep the evaluated receiver and raw key rooted
+through one member-access consumer callback, including abrupt completion; do
+not alter coercion order as part of this lifetime fix. All five member-operation
+callers use that lifetime. Low-budget failures remain fatal and high-budget
+controls reach the catchable allocation marker; both release their roots.
+
+Generator lifecycle tests exposed a regression in the initial implementation:
+a generator abandoned while suspended inside a member operand never reaches
+its finally block, leaving its receiver rooted after run end or realm close.
+Two initial realm fixtures used an invalid zero cleanup quota; correcting them
+to a positive quota with its sole slot occupied by an extension isolated three
+actual cleanup failures. An initial signal-based release registry cleared those
+roots and passed 474 focused lifecycle/generator/realm/matching checks, but the
+broader cancellation suite subsequently invalidated that design: cancellation
+is intentionally catchable, and catch/finally code must retain its normal guest
+semantics while new host effects remain forbidden. The full shared stage
+reported 16 failures across four files. The strengthened low-budget catch
+regression and identity cohort reproduced three failures with 101 controls.
+
+Use an internal reference-release set owned by run/realm resources instead.
+Normal member completion unregisters its reference; actual run/realm disposal
+releases abandoned references. Do not use cancellation listeners or consume
+the public cleanup quota. The realm owns the same set across evaluations and
+callback invocations. Paused references remain live until resume or disposal,
+including while a caught cancellation evaluates more guest code. The new catch
+allocation test must fail on dataSize, not because member access itself rejects
+the cancellation. The corrected cancellation/lifecycle cohort passes 262 checks.
+
+The first full maintained npm test route passed, but its shared stage preceded
+the lifecycle refinement; it is not the final qualification of that refinement.
+The normal maintained npm run build passed afterward. That attempted final
+full route found the cancellation regression described above; rebuild and rerun
+after the disposal correction before qualification. Before that correction,
+built root/core passed 12 low-budget failures, 12 raised-budget checkpoint
+recoveries without repeating completed effects, and eight native behavior
+comparisons. An initial native comparison JSON-normalized undefined array
+entries into null; use structuredClone for the native oracle instead. This
+was a probe-fixture error, not a SafeJS mismatch.
+
+After the disposal correction, all 311 checks in the expanded nine-file cohort
+pass, including all four files that failed the attempted full route. The normal
+maintained build passes. The real schema-only CLI pair passes after 70 uncached
+predev builds with zero spawns; its inspected screenshot shows result 2001 and
+argument-before-method order. The same built CLI rejects dataSize 6,000 with
+reported usage 7,855 and exit 1, using a temporary failure snapshot path.
+Fresh built root/core again pass 12 budget failures, 12 raised-budget checkpoint
+recoveries without repeated effects, eight native comparisons and two
+cancellation controls (allowed catch/finally and budget enforcement inside
+catch). A fresh full npm test is running against this corrected code.
+Its shared stage passes 31,966 tests with 43 skips across 1,169 passing files
+and three skipped files; the Python checks and all 279 native runner prechecks
+also pass. Remaining maintained workspace/native tasks are still running.
+Forty additional built sequential success/failure runs with abandoned generators
+pass disposal and budget-reset/reuse checks. With builds finished and source
+outputs frozen, maintained root lint passes all 9,758 configured files with
+zero errors or warnings, then types and workflows pass. No source/build edits
+were made during that gate; the remaining native unit stage is still running.
+The final maintained npm test route subsequently completed successfully:
+19,981 native Bash tests pass with 63 skips, terminal-pilot passes 288 tests,
+and both root posttest lint-stress checks pass. Its declaration-derived receipt
+reports 71 workspaces, two required builds, 40 unit tasks, no exclusions and
+uncached execution. Missing optional comparator cases remain pending and
+workspaces without declared tests are not counted as passes. This receiver
+lifetime fix is qualified for its own commit and push; the staged Safe Bash
+patch remains byte-for-byte unchanged.
+
+### 39. Repeated object-valued member-key conversion — validated open gap
+
+A native comparison with an object key whose toString records calls shows
+three conversions across o[key]++ followed by delete o[key], but SafeJS performs
+two. The update path caches its first normalized key for the later write. The
+receiver-retention cohort initially included this independent semantic mismatch;
+replace that control with an explicitly called string-returning key function to
+test expression evaluation order without claiming the object-key gap is fixed.
+Before implementation, expand validation to keys that change between conversions,
+conversion failures, compound/logical assignment, prefix/postfix updates and
+short-circuit controls. Deliver any correction as its own atomic commit/push.
+
+A built/native probe confirms observable wrong writes, not just hook counts:
+with a key returning x on its first conversion and y on its second, postfix,
+prefix, += and truthy &&= all write x in SafeJS but y in native JavaScript.
+Non-taking ||= and ??=, plain assignment and deletion remain passing controls.
+The expanded native/built matrix has 40 mismatches and five short-circuit
+controls across all 15 compound/logical operators and initial values 0, 2 and
+null. Throwing on the second key conversion also shows prefix, postfix, += and
+taking &&= incorrectly write instead of throwing without a write.
+
+### 40. Intermediate operand retention — validated open budget gaps
+
+Separate built probes show three more live values disappear from data accounting:
+an assignment RHS while its object-valued key is coerced, an earlier call
+argument while a later argument runs, and an earlier array-literal element while
+a later element runs. In each case the first value is a temporary 2,000-character
+string and the later operation allocates 5,000 characters before throwing a
+catchable marker. Both dataSize 6,000 and 14,000 incorrectly reach that marker.
+Binding the first value to a named const makes all three reject at 6,000, while
+allocating only the 5,000-character temporary succeeds at 6,000. These controls
+isolate missing intermediate roots rather than an intrinsically oversized
+allocation. This is not receiver retention and is not fixed by section 38.
+Add focused failing tests and investigate related argument/literal/operand
+lifetimes before a separate correction; preserve cancellation, generator,
+resource-disposal and snapshot behavior established by section 38.
+Additional built low/high-budget probes reproduce the same marker escape for
+an earlier object-literal field, binary left operand, template substitution,
+computed object-literal key, spread call argument, spread array element and
+constructor argument. These observations expand the investigation; none is
+claimed fixed by the receiver-only change.

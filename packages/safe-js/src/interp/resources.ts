@@ -2,6 +2,8 @@ import { AsyncLocalStorage } from "node:async_hooks";
 
 export type RunResources = {
   signal: AbortSignal;
+  // Cancellation is catchable; suspended references survive until disposal.
+  referenceReleases: Set<() => void>;
   add(close: () => Promise<void>): void;
 };
 
@@ -16,6 +18,7 @@ export async function withRunResources<Result>(
   const cleanups = new Set<() => Promise<void>>();
   const resources: RunResources = {
     signal: controller.signal,
+    referenceReleases: new Set(),
     add(close) {
       cleanups.add(close);
     }
@@ -32,6 +35,8 @@ export async function withRunResources<Result>(
   } finally {
     signal?.removeEventListener("abort", cancel);
     controller.abort(new Error("SafeJS run finished."));
+    for (const release of resources.referenceReleases) release();
+    resources.referenceReleases.clear();
     const outcomes = await Promise.allSettled(
       [...cleanups].map((close) => Promise.resolve().then(close))
     );

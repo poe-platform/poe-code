@@ -121,6 +121,7 @@ class RealmState {
   readonly extensions: readonly SafeJSExtension[];
   readonly consoleExtension?: string;
   readonly cleanups: Array<() => void | Promise<void>> = [];
+  readonly referenceReleases = new Set<() => void>();
   readonly callbacks = new Map<Callback, SandboxClosure>();
   readonly pendingCallbacks = new Set<{ closure: SandboxClosure; promise?: Promise<unknown> }>();
   readonly callbackCache = new WeakMap<SandboxClosure, Callback>();
@@ -584,7 +585,7 @@ class RealmState {
     try {
       const active = this.active !== undefined;
       const pending = withSandboxPromiseRejectionTracker(this.tracker, () =>
-        runResources.run({ signal: this.controller.signal, add: this.onCleanup }, () =>
+        runResources.run({ signal: this.controller.signal, referenceReleases: this.referenceReleases, add: this.onCleanup }, () =>
           withCancellationSignal(this.controller.signal, () =>
             active && this.phase.getStore()?.active ? runAsyncPrefix(invoke) : this.queue.run(invoke)
           )
@@ -802,7 +803,7 @@ class RealmState {
     if (this.active !== undefined) throw new SandboxError("reentry");
     const pending = Promise.resolve().then(() =>
       withSandboxPromiseRejectionTracker(this.tracker, () =>
-        runResources.run({ signal: this.controller.signal, add: this.onCleanup }, () =>
+        runResources.run({ signal: this.controller.signal, referenceReleases: this.referenceReleases, add: this.onCleanup }, () =>
           withCancellationSignal(this.controller.signal, task)
         )
       )
@@ -861,6 +862,8 @@ class RealmState {
     this.hostObjects.clear();
     for (const reference of this.guestReferences.keys()) revokeGuestReference(reference, this);
     this.guestReferences.clear();
+    for (const release of this.referenceReleases) release();
+    this.referenceReleases.clear();
     this.budget.setRetainedValues(this, undefined);
     releaseObjectPrototype(this.budget);
     this.disposal = (async () => {

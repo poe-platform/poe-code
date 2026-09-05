@@ -1919,9 +1919,9 @@ class Parser {
     }
 
     const token = this.currentToken();
-    if (token.type === "identifier") {
+    if (token.type === "identifier" || token.type === "keyword") {
       this.index += 1;
-      const key = createIdentifier(token);
+      const key = createIdentifierName(token);
       if (this.consumePunctuator(":") !== undefined) {
         const value = this.parseBindingElement();
         if (value.type === "RestElement") {
@@ -1937,6 +1937,7 @@ class Parser {
         };
       }
 
+      if (!isIdentifierLikeToken(token)) throw unexpectedTokenError(token);
       let value: AssignmentPattern | ArrayPattern | Identifier | ObjectPattern = key;
       if (this.consumePunctuator("=") !== undefined) {
         const right = this.parseExpression().node;
@@ -2196,9 +2197,9 @@ class Parser {
     }
 
     const token = this.currentToken();
-    if (token.type === "identifier") {
+    if (token.type === "identifier" || token.type === "keyword") {
       this.index += 1;
-      const key = createIdentifier(token);
+      const key = createIdentifierName(token);
       if (this.consumePunctuator(":") !== undefined) {
         const value = this.parseAssignmentPatternElement();
         if (value.type === "RestElement") {
@@ -2214,6 +2215,7 @@ class Parser {
         };
       }
 
+      if (!isIdentifierLikeToken(token)) throw unexpectedTokenError(token);
       let value: AssignmentPattern | ArrayPattern | Identifier | MemberExpression | ObjectPattern =
         key;
       if (this.consumePunctuator("=") !== undefined) {
@@ -2986,14 +2988,9 @@ class Parser {
     }
 
     const token = this.currentToken();
-    if (
-      isIdentifierLikeToken(token) ||
-      (token.type === "keyword" &&
-        this.peekToken(1).type === "punctuator" &&
-        this.peekToken(1).value === "(")
-    ) {
+    if (token.type === "identifier" || token.type === "keyword") {
       this.index += 1;
-      const key = createIdentifier(token);
+      const key = createIdentifierName(token);
       if (this.currentToken().type === "punctuator" && this.currentToken().value === "(") {
         const value = this.parseObjectMethod(asyncToken, key.span.start);
         return {
@@ -3006,6 +3003,7 @@ class Parser {
         };
       }
       if (this.consumePunctuator(":") === undefined) {
+        if (!isIdentifierLikeToken(token)) throw unexpectedTokenError(token);
         assertAllowedIdentifierReference(token);
         return {
           type: "Property",
@@ -4814,17 +4812,7 @@ function rebasePosition(position: Position, base: Position): Position {
 }
 
 function isLiteralPropertyKey(token: Token): boolean {
-  if (token.type === "numeric" || token.type === "string") {
-    return true;
-  }
-
-  return (
-    token.type === "keyword" &&
-    (token.value === "true" ||
-      token.value === "false" ||
-      token.value === "null" ||
-      token.value === "undefined")
-  );
+  return token.type === "numeric" || token.type === "string";
 }
 
 function isIdentifierLikeToken(token: Token): boolean {

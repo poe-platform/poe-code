@@ -623,12 +623,8 @@ describe("snapshot restore", () => {
 
     const reset = (service.value as { reset?: { call?: (args: unknown[]) => unknown } }).reset;
     const result = reset?.call?.([]);
-    expect(isSandboxPromise(result)).toBe(true);
-    if (!isSandboxPromise(result)) {
-      return;
-    }
-
-    await expect(result.promise).resolves.toBe(5);
+    expect(isSandboxPromise(result)).toBe(false);
+    await expect(result).resolves.toBe(5);
   });
 
   it("round-trips an arrow capturing a method this binding", async () => {
@@ -678,12 +674,8 @@ describe("snapshot restore", () => {
       stack: [],
       thisValue: { value: 99 }
     });
-    expect(isSandboxPromise(result)).toBe(true);
-    if (!isSandboxPromise(result)) {
-      return;
-    }
-
-    await expect(result.promise).resolves.toBe(7);
+    expect(isSandboxPromise(result)).toBe(false);
+    await expect(result).resolves.toBe(7);
   });
 
   it.each([
@@ -866,11 +858,8 @@ describe("snapshot restore", () => {
     }
 
     const result = add.value.call?.([2]);
-    expect(isSandboxPromise(result)).toBe(true);
-    if (!isSandboxPromise(result)) {
-      return;
-    }
-    await expect(result.promise).resolves.toBe(42);
+    expect(isSandboxPromise(result)).toBe(false);
+    await expect(result).resolves.toBe(42);
   });
 
   it("binds destructured parameters in restored async closures", async () => {

@@ -16,6 +16,7 @@ import {
   createSandboxRegex,
   createSandboxSet,
   reconcileCompiledValues,
+  type SandboxCallContext,
   type SandboxClosure,
   type SandboxGenerator,
   type SandboxPromise,
@@ -642,7 +643,8 @@ function restoreClosureValue(
   }
 
   const baseClosure = createSandboxClosure({
-    async: true,
+    async: node.async,
+    sandbox: true,
     length: getFunctionLength(node.params),
     ...(node.type === "ArrowFunctionExpression" || node.id === undefined ? {} : { name: node.id.name }),
     ...(node.type !== "ArrowFunctionExpression" &&
@@ -650,7 +652,7 @@ function restoreClosureValue(
     !node.generator &&
     !node.async
       ? {
-          construct: async (args: readonly SandboxValue[]) => {
+          construct: async (args: readonly SandboxValue[], callContext?: SandboxCallContext) => {
             const thisValue = {};
             const prototype = getGuestFunctionProperty(restoredClosure, "prototype");
             if (typeof prototype === "object" && prototype !== null) {
@@ -662,23 +664,25 @@ function restoreClosureValue(
               restoredClosure,
               args,
               thisValue,
-              state
+              state,
+              callContext
             );
             return typeof result === "object" && result !== null ? result : thisValue;
           }
         }
       : {}),
-    call: (args, callContext) =>
-      createSandboxPromise(
-        executeRestoredClosure(
-          node,
-          capturedScopeId,
-          restoredClosure,
-          args,
-          callContext?.thisValue,
-          state
-        )
-      )
+    call: (args, callContext) => {
+      const result = executeRestoredClosure(
+        node,
+        capturedScopeId,
+        restoredClosure,
+        args,
+        callContext?.thisValue,
+        state,
+        callContext
+      );
+      return node.async ? createSandboxPromise(result) : result;
+    }
   });
 
   const restoredClosure: SandboxClosure & {
@@ -712,10 +716,12 @@ async function executeRestoredClosure(
   closure: SandboxClosure,
   args: readonly SandboxValue[],
   thisValue: SandboxValue,
-  state: RestoreState
+  state: RestoreState,
+  callContext?: SandboxCallContext
 ): Promise<SandboxValue> {
-  const operation = state.budget.acquireCompileOwner(false, state.compilation.owner);
-  const compilation = new CompileScope(operation.owner);
+  const parent = callContext?.compilation ?? state.compilation;
+  const operation = state.budget.acquireCompileOwner(false, parent.owner);
+  const compilation = new CompileScope(operation.owner, parent);
   state = { ...state, compilation };
   try {
     const capturedScope =
@@ -748,6 +754,7 @@ async function executeRestoredClosure(
               budget: state.budget,
               compilation,
               scope,
+              nested: true,
               useScopeDirectly: true
             });
             return result.ok
@@ -777,6 +784,7 @@ async function executeRestoredClosure(
             budget: state.budget,
             compilation,
             scope,
+            nested: true,
             useScopeDirectly: true
           });
           return result.ok
@@ -801,6 +809,7 @@ async function executeRestoredClosure(
     const result = await interpret(node.body, {
       budget: state.budget,
       compilation,
+      nested: true,
       scope
     });
 
@@ -811,7 +820,9 @@ async function executeRestoredClosure(
     reconcileCompiledValues(
       state.budget,
       [...scope.retainedValues(), ...state.budget.retainedValues(), result.returnValue],
-      compilation
+      compilation,
+      parent,
+      [result.returnValue]
     );
     return result.returnValue;
   } finally {

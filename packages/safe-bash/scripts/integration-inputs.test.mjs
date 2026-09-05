@@ -406,6 +406,7 @@ function assertSource7Discovery(files) {
   assert.ok(files.includes("tests/commands/copy-preflight-canonicalization.test.ts"));
   assert.ok(files.includes("tests/commands/join-render-budget.test.ts"));
   assert.ok(files.includes("tests/commands/ere-work-accounting.test.ts"));
+  assert.ok(files.includes("tests/commands/find-time-delete.test.ts"));
   assert.ok(files.includes("tests/shell/source-line-nested.test.ts"));
   assert.ok(files.includes("tests/shell/arithmetic-admission.test.ts"));
   assert.ok(files.includes("tests/shell/string-operations.test.ts"));

@@ -201,6 +201,7 @@ async function execute(nonTerminalInput: boolean, context: ShellExtensionContext
       await context.diagnostic("read: indexed writer unavailable through this extension API");
       return 1;
     }
+    const ifs = options.exact ? "" : context.bindings.get("IFS") ?? " \t\n";
     select(options.descriptor);
     check();
     const inherited = options.timeout === undefined && options.count !== 0 ? context.bindings.get("TMOUT") : undefined;
@@ -245,7 +246,6 @@ async function execute(nonTerminalInput: boolean, context: ShellExtensionContext
     });
     check();
     const status = timedOut || record?.reason === "timeout" ? 142 : record?.terminated ? 0 : 1;
-    const ifs = options.exact ? "" : context.bindings.get("IFS") ?? " \t\n";
     if (options.array !== undefined) {
       const name = shellValueText(options.array);
       if (!identifier(name)) return invalidName(options.array);

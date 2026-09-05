@@ -2652,3 +2652,68 @@ native/current output and assigns shared effective-IFS lookup/restoration work;
 the restriction is not accepted as parity and will not be hidden by a private
 read implementation or a blanket control-name admission change. Background
 execution/wait, fuller arrays and previously recorded tool gaps remain open.
+
+## Indexed IFS evidence and separator timing, September 5, 2026
+
+The preceding extended-read increment is locally committed as
+`3fb4ae2c85c079d41545cc21617cf2314e27b09c`; all31 committed blobs match its
+validated inputs. Guarded lint completed with9949 configured/linted inputs,
+zero errors or warnings,25 boundary receipts and30 stable candidate files.
+The commit receipt is `/tmp/read-commit-root-VBy7TQ/verified.json`. There is no
+push or release.
+
+The bounded indexed-IFS investigation completed exactly20 authorized Bash5.3
+launches, with3131 total output bytes, zero launch/time/output failures and no
+remaining child handle. It used owned stdin and Bash builtins only: no device
+operations, external commands or native regular-file fixtures. Raw programs,
+input/output bytes, source/executable admissions and all outcomes remain at
+`/tmp/read-ifs-native-IIjORg`; `handoff.json` has SHA256
+`11a3a65644b5f6ee716f8778e1e446aa1e8ab2f61cfc726387d8152f9629b87e`.
+These are twenty native observations, not twenty passing product tests.
+
+The original witness repeats identically three times, but other controls expose
+control-byte and corrupted joining results. Inspection of the authenticated
+native source finds scalar-to-array conversion freeing storage still referenced
+by cached `ifs_value`, and ordinary array assignment passing raw array storage
+to the IFS cache. This is source-backed apparent dangling-cache/type-confusion
+analysis, not a sanitizer finding or proof of allocator-independent behavior.
+Neither blindly retaining the old scalar nor selecting element zero reproduces
+the complete captured output. The earlier one-value effective-IFS proposal is
+therefore withdrawn pending an explicit deterministic policy; native allocation
+artifacts will not be hardcoded as language semantics. Required canonical IFS
+assignment and its downstream behavior remain unresolved, not waived.
+
+A separate, well-defined defect can be repaired without choosing that policy:
+the native read builtin captures its separator string before its input loop,
+whereas the pre-repair optional leaf looked up IFS after awaiting the input record.
+An actual public-shell wrapper changing scalar IFS during input acquisition
+reproduces this ordering error. The initial eight public controls have two passes
+and six failures at `/tmp/read-separator-public-red-root-N4lRqR`; they distinguish
+scalar/array fields, unset/empty separators, raw bytes, REPLY, exact count and
+zero-timeout behavior. These are source-backed lifecycle instrumentation checks,
+not identical-program native replays. Indexed-IFS admission and default shell
+behavior are not part of the leaf-only timing repair.
+
+The repair moves the existing separator capture before input borrowing; source
+SHA256 is `f1b2ff3c672d5612b69f528facca2e0ba66e539145dd476cefb25941783eb2df`.
+The generic getter already holds raw values within invocation ownership, so no
+new copying or lifetime API is introduced. The author preserves the original
+18-case red with4 passes/14 failures and a second behavior-focused red, moves
+release assertions outside cleanup to expose wrong field bytes directly, and
+adds two input-tail controls. The zsh readonly-`status` reporting failure is
+separate from those product failures. Evidence remains at
+`/private/tmp/read-separator-snapshot-kMqXP7`.
+
+Independent review confirms the exact relocation and passes the final20 new
+source controls plus the unchanged659-case baseline, with actual-options strict
+20 roots/zero diagnostics and558 stable inputs:
+`/tmp/read-separator-source-independent-N61EF7/source-approval.json`. It also
+checks canonical ownership, pre-borrow admission and falsey failure behavior.
+After optional compilation, root public tests pass8/8 at
+`/tmp/read-separator-public-green-root-6psKpO`, retained read public tests pass40/40
+at `/tmp/read-separator-retained-public-root-wx9y0K`, and the broader cohort
+passes140/140 at `/tmp/read-separator-broad-root-pf6gtq`. Three root strict inputs
+pass with375 stable compiler inputs at `/tmp/scripting-public-types-root-TCOlVR`.
+Actual public output is visually inspected at
+`/tmp/read-separator-visual-root-ExNLyN/read.png`; its capture has464 stable inputs
+at `/tmp/read-separator-visual-capture-root-KP3dRX`.

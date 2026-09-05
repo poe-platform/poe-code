@@ -45,6 +45,11 @@ the leaf never infers regular/pollable provenance itself.
   UTF-8 fields remain distinct. Delimiters select the original first argument
   byte, including attached invalid UTF-8 arguments. No byte payload is rebuilt
   from replacement-character display strings.
+- Except for exact-count and zero-timeout modes, the separator value is captured
+  before borrowing input or awaiting input readiness. Replacing scalar IFS while
+  input is pending does not change that invocation's field splitting. The generic
+  binding getter retains raw values in the invocation allocation scope; this
+  leaf adds neither a separate byte copy nor an unaccounted snapshot owner.
 - Diagnostic operands retain their original `ShellValue`, including scalar/array
   names, invalid option bytes, and separated/attached numeric arguments. Attached
   byte arguments are sliced by byte offset; decoding is used only for validation
@@ -113,6 +118,16 @@ indexed IFS value. Removing only that restriction would leave scalar-only IFS
 consumers incorrect. Effective indexed IFS lookup, splitting/joining and scope
 restoration require shared-runtime work; this remains a required behavior gap,
 not an accepted parity exception.
+
+Further pinned Bash5.3 controls expose corrupted joining bytes when IFS is
+indexed. Native source inspection identifies a cached pointer to freed scalar
+storage after read-array conversion, and raw array storage used by other IFS
+cache refresh paths. These are source-backed apparent native defects, not a
+sanitizer result or a portable deterministic contract. Neither element-zero nor
+retained-scalar effective separators match all captured output. The twenty
+bounded observations at `/tmp/read-ifs-native-IIjORg` remain separate from product
+acceptance; selecting an effective indexed-IFS policy is unresolved. The scalar
+separator timing repair does not select such a policy or admit indexed IFS.
 
 ## Resource and error ownership
 

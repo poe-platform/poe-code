@@ -608,11 +608,13 @@ function assertSource7Discovery(files) {
     "tests/shell/extensions/read/read.test.ts",
     "tests/shell/extensions/read/readiness-precedence.test.ts",
     "tests/shell/extensions/read/retained-eof.test.ts",
+    "tests/shell/extensions/read/separator-snapshot.test.ts",
     "tests/shell/extensions/read/review.test.ts",
     "tests/shell/extensions/read/timed-native.test.ts",
     "tests/shell/extensions/read/timed-review.test.ts",
     "tests/shell/extensions/read/timed.test.ts",
     "tests/plugins/read-runtime.test.ts",
+    "tests/plugins/read-separator-runtime.test.ts",
   ]) assert.ok(files.includes(path), "optional read test is missing: " + path);
   for (const path of [
     "tests/shell/extensions/core/syntax.test.ts",

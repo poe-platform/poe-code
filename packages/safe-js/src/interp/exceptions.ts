@@ -33,6 +33,7 @@ import { HostCallResumabilityError } from "./host-call.js";
 import { withFatalPromiseCleanup } from "./promise-tracker.js";
 import type { Scope } from "./scope.js";
 import { deepCopyToSandbox, type SandboxObject, type SandboxValue } from "./values.js";
+import { toPropertyKey } from "./property-key.js";
 
 const capturedExceptionBrand = Symbol("CapturedException");
 export type { SandboxErrorName } from "../error/shape.js";
@@ -76,6 +77,7 @@ type ExceptionContext = {
   budget: Budget;
   callStack: readonly string[];
   scope: Scope;
+  toPropertyKey?: (value: SandboxValue) => Promise<string>;
 };
 
 type EvaluateExceptionNode<TContext, TError> = (
@@ -669,13 +671,13 @@ async function resolvePatternPropertyKey<TContext extends ExceptionContext, TErr
     };
   }
 
-  if (typeof computedKey.value !== "string" && typeof computedKey.value !== "number") {
-    throw new TypeError("Computed catch binding keys must evaluate to a string or number.");
-  }
-
   return {
     ok: true,
-    value: computedKey.value
+    value: await (context.toPropertyKey?.(computedKey.value) ?? toPropertyKey(
+      computedKey.value,
+      context.budget,
+      { stack: context.callStack, thisValue: undefined }
+    ))
   };
 }
 

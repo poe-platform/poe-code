@@ -1,6 +1,6 @@
 import { promiseReplayContext } from "./promise-replay.js";
 import { deleteHostObjectMember, getHostObjectKeys, getHostObjectMember, hasHostObjectMember, isGuestHostObject, setHostObjectMember } from "./host-capabilities.js";
-import { sandboxString } from "./string-coercion.js";
+import { toPropertyKey } from "./property-key.js";
 import { assertPromiseExecutionAllowed } from "./promise-tracker.js";
 import { SandboxJobQueue, runAsyncPrefix, suspendJob } from "./jobs.js";
 import { withCancellationSignal } from "./cancel.js";
@@ -150,6 +150,7 @@ import {
   reconcileCompiledValues,
   type SandboxArray,
   type SandboxClosure,
+  type SandboxCallContext,
   type SandboxMap,
   type SandboxObject,
   type SandboxPrimitive,
@@ -840,7 +841,7 @@ async function evaluateBinaryExpression(
     if (typeof right.value !== "object" || right.value === null) {
       throw new TypeError("Right-hand side of 'in' must be an object.");
     }
-    leftValue = await toPropertyKey(leftValue, context);
+    leftValue = await toPropertyKey(leftValue, context.budget, createCoercionContext(context));
   }
   const value = applyBinaryOperator(node, leftValue, right.value, context);
 
@@ -958,8 +959,15 @@ async function evaluateMemberAssignmentExpression(
   if (member.kind === "nullish") {
     throw new TypeError("Cannot assign properties of null or undefined.");
   }
-  const current =
-    node.operator === "=" ? undefined : getPropertyValue(member.object, member.property, context);
+  let property: string | undefined;
+  let current: SandboxValue = undefined;
+  if (node.operator !== "=") {
+    if (member.object === null || member.object === undefined) {
+      throw new TypeError("Cannot assign properties of null or undefined.");
+    }
+    property = await toPropertyKey(member.property, context.budget, createCoercionContext(context));
+    current = getPropertyValue(member.object, property, context);
+  }
 
   if (node.operator === "&&=" && !isTruthy(current)) {
     return {
@@ -998,7 +1006,11 @@ async function evaluateMemberAssignmentExpression(
       ? right.value
       : await applyCompoundAssignmentOperator(node.operator, current, right.value, context);
 
-  setSandboxProperty(member.object, member.property, value, context.budget);
+  if (member.object === null || member.object === undefined) {
+    throw new TypeError("Cannot assign properties of null or undefined.");
+  }
+  property ??= await toPropertyKey(member.property, context.budget, createCoercionContext(context));
+  setSandboxProperty(member.object, property, value, context.budget);
 
   return {
     kind: "normal",
@@ -2266,7 +2278,10 @@ async function evaluateTryStatement(
   node: TryStatement,
   context: EvaluationContext
 ): Promise<EvaluationResult> {
-  return evaluateTryStatementResult(node, context, evaluateNode);
+  return evaluateTryStatementResult(node, {
+    ...context,
+    toPropertyKey: (value: SandboxValue) => toPropertyKey(value, context.budget, createCoercionContext(context))
+  }, evaluateNode);
 }
 
 async function evaluateUnaryExpression(
@@ -2329,8 +2344,8 @@ async function evaluateDeleteExpression(
     return member.result;
   }
 
-  if (member.kind === "nullish") {
-    if (node.argument.optional) {
+  if (member.kind === "nullish" || member.object === null || member.object === undefined) {
+    if (member.kind === "nullish" && node.argument.optional) {
       return {
         kind: "normal",
         hasValue: true,
@@ -2345,7 +2360,8 @@ async function evaluateDeleteExpression(
     throw new TypeError("Unary operator 'delete' requires a sandbox object property.");
   }
 
-  const deleted = deleteSandboxProperty(member.object, member.property);
+  const property = await toPropertyKey(member.property, context.budget, createCoercionContext(context));
+  const deleted = deleteSandboxProperty(member.object, property);
 
   return {
     kind: "normal",
@@ -2411,14 +2427,15 @@ async function evaluateMemberUpdateExpression(
   if (member.kind === "completion") {
     return member.result;
   }
-  if (member.kind === "nullish") {
+  if (member.kind === "nullish" || member.object === null || member.object === undefined) {
     throw new TypeError("Cannot update properties of null or undefined.");
   }
+  const property = await toPropertyKey(member.property, context.budget, createCoercionContext(context));
   const current = toNumber(
-    await toNumericPrimitive(getPropertyValue(member.object, member.property, context), context)
+    await toNumericPrimitive(getPropertyValue(member.object, property, context), context)
   );
   const next = node.operator === "++" ? current + 1 : current - 1;
-  setSandboxProperty(member.object, member.property, next, context.budget);
+  setSandboxProperty(member.object, property, next, context.budget);
 
   return {
     kind: "normal",
@@ -2434,14 +2451,14 @@ async function evaluateMemberExpression(
   const member = await evaluateMemberAccess(node, context);
   if (member.kind === "error") return member;
   if (member.kind === "completion") return member.result;
-  if (member.kind === "nullish") {
-    if (node.optional) return { kind: "normal", hasValue: true, value: undefined };
+  if (member.kind === "nullish" || member.object === null || member.object === undefined) {
+    if (member.kind === "nullish" && node.optional) return { kind: "normal", hasValue: true, value: undefined };
     throw new TypeError("Cannot read properties of null or undefined.");
   }
   return {
     kind: "normal",
     hasValue: true,
-    value: getPropertyValue(member.object, member.property, context)
+    value: getPropertyValue(member.object, await toPropertyKey(member.property, context.budget, createCoercionContext(context)), context)
   };
 }
 
@@ -2472,6 +2489,7 @@ export function createPatternContext(context: AsyncEvaluationContext, scope = co
   const evaluationContext = { ...context, scope };
   return {
     evaluate: node => evaluate(node, evaluationContext),
+    toPropertyKey: value => toPropertyKey(value, context.budget, createCoercionContext(evaluationContext)),
     getProperty: (value, key) => getPropertyValue(value, key, evaluationContext),
     setProperty: (target, key, value) => setSandboxProperty(target, key, value, context.budget)
   };
@@ -2597,7 +2615,7 @@ async function evaluateMemberAccess(
   | {
       kind: "resolved";
       object: InterpreterValue;
-      property: string | number;
+      property: SandboxValue;
     }
 > {
   const object = await evaluateNode(node.object, context);
@@ -2614,26 +2632,10 @@ async function evaluateMemberAccess(
     };
   }
 
-  const property: HelperResult<string | number> = node.computed
-    ? await evaluateMemberProperty(node.property, context)
-    : { ok: true, value: getStaticPropertyName(node.property) };
-  if (!property.ok) {
-    return property.result.kind === "error"
-      ? {
-          kind: "error",
-          error: property.result.error
-        }
-      : {
-          kind: "completion",
-          result: property.result
-        };
-  }
-
-  if (object.value === null || object.value === undefined) {
-    return {
-      kind: "nullish"
-    };
-  }
+  const property = node.computed
+    ? await evaluateNode(node.property, context)
+    : { kind: "normal" as const, value: getStaticPropertyName(node.property) };
+  if (property.kind !== "normal") return { kind: "completion", result: property };
 
   return {
     kind: "resolved",
@@ -2654,14 +2656,10 @@ async function evaluateMemberProperty(
     };
   }
 
-  if (typeof property.value === "string" || typeof property.value === "number") {
-    return {
-      ok: true,
-      value: property.value
-    };
-  }
-
-  throw new TypeError("Computed property access requires a string or number key.");
+  return {
+    ok: true,
+    value: await toPropertyKey(property.value, context.budget, createCoercionContext(context))
+  };
 }
 
 async function evaluateObjectPropertyKey(
@@ -2698,16 +2696,16 @@ async function evaluateMemberCallExpression(
     throw new TypeError("Expected member call expression.");
   }
 
-  const member = await evaluateMemberAccess(node.callee, context);
-  if (member.kind === "error") {
-    return member;
+  const reference = await evaluateMemberAccess(node.callee, context);
+  if (reference.kind === "error") {
+    return reference;
   }
-  if (member.kind === "completion") {
-    return member.result;
+  if (reference.kind === "completion") {
+    return reference.result;
   }
 
-  if (member.kind === "nullish") {
-    if (node.optional || node.callee.optional) {
+  if (reference.kind === "nullish" || reference.object === null || reference.object === undefined) {
+    if (reference.kind === "nullish") {
       return {
         kind: "normal",
         hasValue: true,
@@ -2717,6 +2715,11 @@ async function evaluateMemberCallExpression(
 
     throw new TypeError("Cannot read properties of null or undefined.");
   }
+
+  const member = {
+    ...reference,
+    property: await toPropertyKey(reference.property, context.budget, createCoercionContext(context))
+  };
 
   if (typeof member.object === "string" && isStringMethodName(member.property)) {
     return evaluateStringMethodCall(node, member.object, member.property, context);
@@ -3128,25 +3131,14 @@ function applyBinaryOperator(
   }
 }
 
-async function toPropertyKey(value: SandboxValue, context: EvaluationContext): Promise<string> {
-  if (isPlainSandboxObject(value) && !isSandboxDate(value) && !isFloat32Array(value) &&
-      !isSandboxGenerator(value) && !isGuestHostObject(value)) {
-    for (const name of ["toString", "valueOf"] as const) {
-      const method = getMemberValue(value, name, context);
-      if (!isSandboxClosure(method)) continue;
-      const primitive = await invokeSandboxClosure(method, [], context, context.callStack, undefined, value);
-      if (primitive === null || typeof primitive !== "object") {
-        return context.budget.allocateString(String(primitive));
-      }
-    }
-    throw new TypeError("Cannot convert object to primitive value.");
-  }
-  return sandboxString(value, context.budget, {
+function createCoercionContext(context: EvaluationContext): SandboxCallContext {
+  return {
     stack: context.callStack,
     thisValue: undefined,
+    compilation: context.compilation,
     invokeClosure: (closure, args, thisValue) =>
       invokeSandboxClosure(closure, args, context, context.callStack, undefined, thisValue)
-  });
+  };
 }
 
 function hasSandboxProperty(value: SandboxValue, key: string, context: EvaluationContext): boolean {

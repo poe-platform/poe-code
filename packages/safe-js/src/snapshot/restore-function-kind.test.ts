@@ -43,6 +43,14 @@ function fixture(declaration: string, nodeType: ParseResult["type"], bindings = 
 }
 
 describe("restored function execution kind", () => {
+  it.each(["", "async "])("coerces restored computed parameter keys: %s", async (prefix) => {
+    const { target } = fixture(
+      `${prefix}function target({ [{ toString() { return "x"; } }]: value }) { return value; }`,
+      "FunctionDeclaration"
+    );
+    const result = target.call([{ x: 7 }]);
+    expect(await (isSandboxPromise(result) ? result.promise : result)).toBe(7);
+  });
   it.each([
     ["function target(value) { return value + 1; }", "FunctionDeclaration"],
     ["const target = value => value + 1;", "ArrowFunctionExpression"],

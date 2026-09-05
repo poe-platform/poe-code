@@ -433,6 +433,9 @@ async function evaluateCatchClause<TContext extends ExceptionContext, TError>(
   };
 
   if (node.param !== undefined) {
+    for (const name of getPatternBindingNames(node.param)) {
+      scope.predeclare(name, "let");
+    }
     const binding = await bindPattern(node.param, thrownValue, catchContext, evaluateNode);
     if (!binding.ok) {
       return binding.result;

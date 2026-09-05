@@ -437,8 +437,8 @@ errors/warnings, plus root TypeScript and workflow checks. Committed and
 verified on remote main as `d7b307fc47e496f6fe26dd252fe5402a589ab051`.
 Scoped workflow `33942502800` succeeded; publisher job `101242506103`
 confirms `@poe-platform/safe-js@0.1.92` published September 5, 2026,
-03:44:28 UTC. CLI workflow `33942503019` is still monitored separately
-from that completed push.
+03:44:28 UTC. CLI workflow `33942503019` was canceled by the next push;
+its changes remain on main and are included in the newer monitored release.
 
 The first broad regression matrix also exposed two independent property
 model gaps: `const fn=()=>7; return fn.name` produces `""`, not `"fn"`, and
@@ -492,8 +492,11 @@ empty exclusions, unchanged object spread, and a throw-on-second-read getter.
 Final validation passed: the selected SafeJS dependency build closure,
 16 built root/core entrypoint checks, 10,355 SafeJS tests with 41 skipped,
 and full root lint with 9,718 configured files linted and zero errors/warnings,
-plus root TypeScript and workflow checks. Delivery and releases are reported
-separately from these local results.
+plus root TypeScript and workflow checks. Committed and verified on remote
+main as `b1756fcec4dbac73a4d4a2ee8567b0cbc0ec5f81`. Scoped workflow
+`33942895637` succeeded; publisher job `101243585832` confirms
+`@poe-platform/safe-js@0.1.93` published September 5, 2026, 03:53:08 UTC.
+CLI workflow `33942895740` is still being monitored.
 
 Follow-up native controls also validate a separate catch-completion gap:
 `try { throw null; } catch ({x}) {} finally { ... }` skips the finalizer
@@ -504,3 +507,52 @@ surrounding try evaluator. Separately, an unbound name in a catch default
 produces an uncatchable UNBOUND_IDENTIFIER diagnostic rather than a
 catchable ReferenceError. These require distinct exception-flow work;
 they are not fixed by property enumeration or catch TDZ predeclaration.
+
+### 10. Catch-binding temporal dead zones — resolved and validated
+
+Fresh public-runner regressions reproduced 16 failures, with eight passing
+controls. Catch bindings were declared only as each value was initialized,
+allowing self/later defaults, computed keys, and assignments to resolve a
+same-named outer binding. All bound names are now predeclared in the catch
+scope before binding initialization, using the existing Scope machinery.
+This follows ECMAScript 2026 CatchClauseEvaluation, section 14.15.2.
+
+The focused cohort passes 91 tests across catch scope, catch properties,
+exceptions, and Scope. It covers self/later reads, typeof, object/array/nested
+and rest patterns, computed keys, deferred closures, async defaults, earlier
+initialized bindings, mutable catch bindings, simple/no-parameter catches,
+existing simple-catch var behavior, outer-state preservation, finally after
+a TDZ default failure, persistent evaluations, completed replay, and fatal
+budget failures. Final validation passed: the selected SafeJS dependency
+build closure, 16 built root/core entrypoint checks, 10,379 SafeJS tests with
+41 skipped, and full root lint with 9,719 configured files linted and zero
+errors/warnings, plus root TypeScript and workflow checks. Commit/push/release
+status is reported separately from these local checks.
+
+The separately reproduced direct binding/coercion failure path that skips
+finally remains open. A TDZ default failure already travels through normal
+expression completion handling; fixing its scope does not silently solve
+the different direct-helper exception path or general unbound diagnostics.
+
+### Broader receiver and array-like follow-up audit
+
+Fresh bounded native/public-entrypoint controls confirm these remaining gaps:
+
+- `a.call.call(b, null)` calls `a`, not `b`, when the functions return different
+  values. Function.call/apply/bind members also capture the function at lookup
+  instead of using their own actual receiver.
+- `f.apply(null, {0:7,length:1})` throws TypeError instead of passing argument 7.
+- `Array.from(values, mapper)` eagerly copies an array before mapping: changing
+  `values[1]` from 2 to 9 in the first callback yields `[1,2]`, not `[1,9]`.
+- `Array.from(Object.create({0:7,length:1}))` yields `[]`, not `[7]`, because
+  its native fallback does not read the guest prototype graph.
+- `Array.from.call(Output, {0:7,length:1})` ignores the supplied constructor;
+  the result is not an Output instance even though the native result is.
+- Function.call member identity is unstable; Array.prototype and the Function
+  intrinsic are absent. These are prototype/intrinsic-model gaps, not repaired
+  merely by accepting one more receiver type.
+
+These findings extend the open generic array-like and built-in receiver work.
+They require active guest property/coercion/call operations, live iteration,
+and constructor semantics; do not substitute native-object copies for the
+guest model or present a partial receiver patch as full JavaScript parity.

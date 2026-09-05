@@ -2116,8 +2116,18 @@ all existing computed-key and retention tests remain intact. Maintained root
 lint passes 9,760 configured files with zero errors/warnings, followed by types
 and workflows. This is a test/documentation correction, not a runtime fix;
 it has no CLI-visible change requiring a new screenshot or production build.
+Committed and independently verified on remote main as
+53db37dd833ddb3c680e7b025c64f5431ae94f80. The false-positive finding is closed.
+Scoped run 33962961941 and CLI run 33962962127 are monitored separately;
+neither is yet a publication receipt. Proceed with section 41 while they run.
+Scoped run 33962961941/job 101297955623 published
+@poe-platform/safe-js 0.1.126 at 11:22:41 UTC on September 5. The CLI route is
+still monitored separately.
+CLI run 33962962127/job 101299019949 completed successfully. At 11:28:21 UTC
+semantic-release reported no release-relevant changes for this test-only
+commit, so no new CLI version was published. Do not count green as publication.
 
-### 40. Intermediate operand retention — delivered; release monitored
+### 40. Intermediate operand retention — delivered and released
 
 Separate built probes show three more live values disappear from data accounting:
 an assignment RHS while its object-valued key is coerced, an earlier call
@@ -2213,8 +2223,12 @@ findings while monitoring releases.
 Scoped run 33962313424/job 101296205103 published
 @poe-platform/safe-js 0.1.125 at 11:07:13 UTC on September 5. The separate CLI
 run has reached release-stable/job 101297560669 and is still monitored.
+CLI run 33962313552/job 101297560669 subsequently published poe-code 14.0.59
+at 11:17:31 UTC on September 5. Its remote tag independently resolves to
+b2e90f90. Intermediate retention is now delivered and released through both
+publication routes.
 
-### 41. Generator context inside template substitutions — validated open syntax gap
+### 41. Generator context inside template substitutions — qualified; delivery pending
 
 The new lifecycle matrix exposed eight failures before runtime: yield inside
 ordinary and tagged template substitutions is rejected as outside a generator.
@@ -2224,6 +2238,74 @@ Keep this parser-context fix separate. Remove those unsupported forms from the
 current generator-lifecycle fixture and validate template suspension using
 supported async substitutions instead; do not claim synchronous template yield
 is covered or fixed. Add focused parser/runtime regressions before its own fix.
+
+Specification revalidation: ECMAScript 2026 section 13.2.8 passes ?Yield into
+each template substitution, including tagged and nested templates. Source:
+`https://tc39.es/ecma262/2026/multipage/ecmascript-language-expressions.html`.
+Seven built/native parser mismatches confirm five valid forms are rejected
+and await in ordinary/tagged templates incorrectly bypasses the synchronous
+generator restriction. Seven boundary controls pass, including nested ordinary
+functions/arrows and generator parameter defaults. This is not based solely
+on a Node differential: the grammar explicitly requires context propagation.
+
+The failing test cohort confirms 27 failures and 15 controls before the fix.
+Carry the existing generatorBody flag through template parsing into the
+embedded-expression Parser. Preserve normal nested-function resets, token
+rebasing, compilation budget and AST node-id assignment; remove the obsolete
+single-call proxy instead of adding a new wrapper. No runtime evaluator changes
+are needed. The five-file cohort now passes 138 tests, including ordinary,
+tagged and nested substitutions, bare/delegated yields, multiple substitution
+order, injected throw/return, run/realm disposal, retained prefixes and replay.
+
+Manual QA: run the actual schema-only pair
+`/tmp/poe-safejs-generator-templates.Rd7fJP/generator-templates.md` with the
+adjacent .ajs, zero capabilities and zero spawns. Assert the ordinary result
+hello world!, tagged result [1:2], and tag invocation only after both yields.
+Inspect its CLI screenshot. Build before package checks and freeze source/build
+outputs for maintained root lint; deliver this parser correction independently.
+The normal maintained build and real CLI pair pass. The inspected screenshot
+shows hello world!, [1:2], the single tag event and zero spawns after 70 uncached
+predev builds. The expanded five-file cohort passes 140 tests. Checkpoint tests
+assert the generator is suspended and pendingAwaits points to the first template
+yield before restoring it. Low/high-budget realm controls preserve the suspended
+prefix. Their initial fixture kept its temporary in a top-level binding and hit
+a later serialization budget; use a local allocation followed by a catchable
+numeric marker to isolate allocation-time retention. No runtime correction was
+needed for that fixture error. Run the maintained SafeJS package route and root
+lint against frozen source/build outputs before the separate parser commit.
+That first package route passes 12,256 tests with 41 skips, and root lint passes
+9,761 configured files plus types/workflows. A subsequent boundary audit found
+that nested function parameter initializers inherit generator-body permission;
+the initial template-context fix exposes that existing weakness in templates.
+Do not qualify the first candidate as final merely because those gates passed.
+
+The expanded TDD matrix confirms 18 parameter-boundary failures and 48 passing
+controls: nested function/arrow/method/generator defaults and destructuring keys
+admit yield, while ordinary/async/arrow/generator defaults admit direct await.
+ECMAScript 2026 function grammar and sections 15.3.1/15.5.1 prohibit these direct
+suspension expressions in formal parameters; nested function bodies remain
+separate contexts. Source:
+`https://tc39.es/ecma262/2026/multipage/ecmascript-language-functions-and-classes.html`.
+Use one three-state function context (normal, generator, parameters), shared by
+embedded template parsers, rather than independent booleans. Parameter parsing
+enters/restores its own context, and nested bodies enter their normal/generator
+context. Direct await in parameters receives a targeted error. This boundary
+guard is necessary to avoid shipping the newly exposed template regression.
+The seven-file cohort passes 274 checks, including positive nested generator/
+async-function parameter values. Rebuild and rerun the real CLI pair, package
+checks and maintained root lint before delivering this final parser version.
+The final normal maintained build passes. The actual CLI pair passes after
+70 uncached predev builds; the inspected screenshot shows hello world!, [1:2],
+the allowed nested generator result and zero spawns. Its intentionally single-
+substitution fixture produces the expected informational AS-NEEDLESS-TEMPLATE
+diagnostic, not a failure. Built root/core reject all 26 invalid-context checks
+and pass two recoveries from checkpoints verified at the first template yield.
+Final maintained package checks pass 12,278 SafeJS tests with 41 explicit skips
+and all 163 agent-harness consumer tests. Maintained root lint completes all
+9,761 configured files with zero errors/warnings, then types and workflows pass.
+No source/build changes occurred during that final lint gate. This qualifies the
+parser-context change, including the required parameter-boundary guard, for its
+own commit and push; unrelated staged Safe Bash changes remain unchanged.
 
 ### 42. Ordinary template substitution coercion — validated open semantic gap
 
@@ -2237,3 +2319,31 @@ object identity are passing controls. evaluateTemplateLiteral currently calls
 host String on sandbox values; investigate the maintained sandboxString path
 with prefix/input retention and hook order/error/budget tests. Keep this
 semantic correction separate from the intermediate-retention change.
+Fresh built probes after the parser work confirm ten failures and four controls,
+including inherited hooks, thrown-value identity and left-to-right hook order.
+Invalid Date, ordinary arrays, primitive values and tagged substitution identity
+are passing controls. ECMAScript 2026 sections 13.2.8.6 and 7.1.17 require ToString
+with string-hint ToPrimitive for ordinary substitutions; this agrees with the
+native differential rather than relying on it alone. No coercion fix is applied
+as part of the parser-context change.
+Additional contrasts with explicit String confirm the helper already handles
+ordinary objects, fallback hooks, generator instances and Error values while
+ordinary templates do not. Promise conversion and null-prototype rejection are
+passing controls. An initial object-shaped error comparison differed only in
+host/sandbox prototypes; comparing error.name confirms matching TypeError, not
+a runtime defect. Function display is independently unsupported as section 43
+records; merely wiring the helper into templates does not fix that broader gap.
+
+### 43. Function stringification — validated open built-in gap
+
+Five built/native probes cover named, arrow, async, generator and builtin
+functions. value.toString() rejects with Function#toString is not a supported
+method, and String(value) returns [object Object]. Native guest functions return
+their source text; the builtin returns native-function syntax. ECMAScript 2026
+section 20.2.3.5 defines Function.prototype.toString, with source text when
+available and native-function syntax otherwise. Source:
+`https://tc39.es/ecma262/2026/multipage/fundamental-objects.html`.
+This is distinct from ordinary template coercion: explicit String already
+fails too. Validate source metadata, overrides, bound/builtin functions,
+budgets, realms and snapshot/replay before its own implementation and delivery.
+Do not expose host implementation source or add native eval as a workaround.

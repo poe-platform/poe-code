@@ -132,4 +132,92 @@ describe("generator parsing", () => {
       }
     });
   });
+
+  it.each([
+    "`${yield 1}`",
+    "tag`${yield 1}`",
+    "`${`${yield 1}`}`",
+    "tag`${`${yield 1}`}`",
+    "`${tag`${yield 1}`}`",
+    "`${yield* [1, 2]}`",
+    "`${yield}`",
+    "`${yield 1}${yield 2}`"
+  ])("inherits generator context in %s", (expression) => {
+    // ECMAScript 2026 13.2.8 passes ?Yield into every substitution.
+    expect(() => parse(`function* values() { return ${expression}; }`)).not.toThrow();
+  });
+
+  it.each([
+    "`${yield 1}`",
+    "function regular() { return `${yield 1}`; }",
+    "function* outer() { return `${(() => yield 1)()}`; }",
+    "function* outer() { return `${(function() { return yield 1; })()}`; }",
+    "function* outer() { return `${({ method() { return yield 1; } }).method()}`; }",
+    "function* values(input = `${yield 1}`) {}",
+    "function* values() { return `${await task()}`; }",
+    "function* values() { return tag`${await task()}`; }",
+    "function* values() { return `${`${await task()}`}`; }"
+  ])("does not bypass function boundaries through templates: %s", (source) => {
+    expect(() => parse(source)).toThrow();
+  });
+
+  it.each([
+    "function* values() { return `${(async () => await task())()}`; }",
+    "function* values() { return `${(async function() { return await task(); })()}`; }",
+    "function regular() { return `${(function*() { yield 1; })().next().value}`; }",
+    "function* values() { return `${(() => 1)()}${yield 2}`; }"
+  ])("restores context after a nested function: %s", (source) => {
+    expect(() => parse(source)).not.toThrow();
+  });
+
+  it("rebases template yield spans and assigns node ids", () => {
+    expect(parseModule("function* values() {\n  return `${yield 1}`;\n}").body[0]).toMatchObject({
+      body: {
+        body: [{
+          argument: {
+            type: "TemplateLiteral",
+            expressions: [{
+              type: "YieldExpression",
+              nodeId: expect.any(Number),
+              span: { start: { line: 2, column: 13 }, end: { line: 2, column: 20 } }
+            }]
+          }
+        }]
+      }
+    });
+  });
+
+  it.each([
+    "function(value = yield 1) {}",
+    "(value = yield 1) => value",
+    "({ method(value = yield 1) {} })",
+    "function* nested(value = yield 1) {}",
+    "function({ [yield 1]: value }) {}",
+    "function(value = `${yield 1}`) {}"
+  ].flatMap(expression => [false, true].map(template => ({ expression, template }))))(
+    "rejects parameter yield in $expression, template=$template", ({ expression, template }) => {
+      const value = template ? "`${" + expression + "}`" : expression;
+      expect(() => parse(`function* outer() { const value = ${value}; }`)).toThrow();
+    }
+  );
+
+  it.each([
+    "function f(value = await 1) {}",
+    "async function f(value = await 1) {}",
+    "const f = (value = await 1) => value",
+    "const f = async (value = await 1) => value",
+    "function* f(value = await 1) {}",
+    "function f(value = `${await 1}`) {}"
+  ])("rejects direct await in function parameters: %s", source => {
+    expect(() => parse(source)).toThrow();
+  });
+
+  it.each([
+    "function f(value = function*() { yield 1; }) {}",
+    "function f(value = async () => await 1) {}",
+    "function* outer() { const f = (value = function*() { return `${yield 1}`; }) => value; yield 2; }",
+    "function* outer() { return `${function(value = async () => await 1) {}}`; }"
+  ])("allows nested function bodies inside parameters: %s", source => {
+    expect(() => parse(source)).not.toThrow();
+  });
 });

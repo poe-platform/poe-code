@@ -645,12 +645,9 @@ function parseModuleTokens(tokens: Token[], compilation?: CompileScope): Module 
   return new Parser(tokens, compilation).parseModule();
 }
 
-function parseExpressionTokens(tokens: Token[], compilation?: CompileScope): Expression {
-  return new Parser(tokens, compilation).parseExpressionOnly();
-}
-
 type ParserBindingKind = "lexical" | "function" | "parameter" | "catch";
 type ParserScope = Map<string, ParserBindingKind>;
+type FunctionParseContext = "normal" | "generator" | "parameters";
 
 class Parser {
   private index = 0;
@@ -658,14 +655,14 @@ class Parser {
   private conditionalExpressionDepth = 0;
   private ifStatementDepth = 0;
   private loopDepth = 0;
-  private generatorBody = false;
   private readonly scopes: ParserScope[] = [new Map()];
   private readonly functionScopes = new WeakSet<ParserScope>();
   private readonly varNames = new WeakMap<ParserScope, Set<string>>();
 
   constructor(
     private readonly tokens: Token[],
-    private readonly compilation?: CompileScope
+    private readonly compilation?: CompileScope,
+    private functionContext: FunctionParseContext = "normal"
   ) {
     this.functionScopes.add(this.scopes[0]!);
   }
@@ -894,10 +891,10 @@ class Parser {
     params: ArrowFunctionExpression["params"]
   ): BlockStatement | Expression {
     if (this.currentToken().type === "punctuator" && this.currentToken().value === "{") {
-      return this.withFunctionContext(false, () => this.parseBlockStatement(params));
+      return this.withFunctionContext("normal", () => this.parseBlockStatement(params));
     }
 
-    return this.withFunctionContext(false, () => this.parseExpression().node);
+    return this.withFunctionContext("normal", () => this.parseExpression().node);
   }
 
   private parseBlockStatement(
@@ -1649,7 +1646,7 @@ class Parser {
       return parsedParams;
     });
     const generator = generatorToken !== undefined;
-    const body = this.withFunctionContext(generator, () => this.parseBlockStatement(params));
+    const body = this.withFunctionContext(generator ? "generator" : "normal", () => this.parseBlockStatement(params));
 
     return {
       type: "FunctionDeclaration",
@@ -1691,38 +1688,40 @@ class Parser {
   }
 
   private parseArrowParameters(): ArrowFunctionExpression["params"] {
-    this.expectPunctuator("(");
-    const params: ArrowFunctionExpression["params"] = [];
+    return this.withFunctionContext("parameters", () => {
+      this.expectPunctuator("(");
+      const params: ArrowFunctionExpression["params"] = [];
 
-    if (this.consumePunctuator(")") !== undefined) {
-      return params;
-    }
-
-    while (true) {
-      const param = this.parseBindingElement();
-      params.push(param);
-
-      const comma = this.consumePunctuator(",");
-      if (comma === undefined) {
-        break;
+      if (this.consumePunctuator(")") !== undefined) {
+        return params;
       }
 
-      if (param.type === "RestElement") {
-        if (this.currentToken().type === "punctuator" && this.currentToken().value === ")") {
-          throw unexpectedTokenError(comma);
+      while (true) {
+        const param = this.parseBindingElement();
+        params.push(param);
+
+        const comma = this.consumePunctuator(",");
+        if (comma === undefined) {
+          break;
         }
-        throw new Error(
-          `Rest element must be the last parameter at line ${comma.start.line}, column ${comma.start.column}.`
-        );
+
+        if (param.type === "RestElement") {
+          if (this.currentToken().type === "punctuator" && this.currentToken().value === ")") {
+            throw unexpectedTokenError(comma);
+          }
+          throw new Error(
+            `Rest element must be the last parameter at line ${comma.start.line}, column ${comma.start.column}.`
+          );
+        }
+
+        if (this.currentToken().type === "punctuator" && this.currentToken().value === ")") {
+          break;
+        }
       }
 
-      if (this.currentToken().type === "punctuator" && this.currentToken().value === ")") {
-        break;
-      }
-    }
-
-    this.expectPunctuator(")");
-    return params;
+      this.expectPunctuator(")");
+      return params;
+    });
   }
 
   private parseBindingElement():
@@ -2382,7 +2381,7 @@ class Parser {
     }
 
     if (token.type === "keyword" && token.value === "yield") {
-      if (!this.generatorBody) {
+      if (this.functionContext !== "generator") {
         throw new Error(
           `yield is only valid inside a generator body at line ${token.start.line}, column ${token.start.column}.`
         );
@@ -2419,9 +2418,14 @@ class Parser {
     }
 
     if (token.type === "keyword" && token.value === "await") {
-      if (this.generatorBody) {
+      if (this.functionContext === "generator") {
         throw new Error(
           `generators cannot await; use a regular async function at line ${token.start.line}, column ${token.start.column}.`
+        );
+      }
+      if (this.functionContext === "parameters") {
+        throw new Error(
+          `await is not valid in function parameters at line ${token.start.line}, column ${token.start.column}.`
         );
       }
       this.index += 1;
@@ -2565,7 +2569,7 @@ class Parser {
       if (this.currentToken().type === "template") {
         const quasi = createTemplateLiteral(
           this.currentToken(),
-          { allowMalformedEscapes: true },
+          { allowMalformedEscapes: true, functionContext: this.functionContext },
           this.compilation
         );
         this.index += 1;
@@ -2671,7 +2675,11 @@ class Parser {
     if (token.type === "template") {
       this.index += 1;
       return {
-        node: createTemplateLiteral(token, { allowMalformedEscapes: false }, this.compilation),
+        node: createTemplateLiteral(
+          token,
+          { allowMalformedEscapes: false, functionContext: this.functionContext },
+          this.compilation
+        ),
         parenthesized: false
       };
     }
@@ -2803,7 +2811,7 @@ class Parser {
       return parsedParams;
     });
     const generator = generatorToken !== undefined;
-    const body = this.withFunctionContext(generator, () => this.parseBlockStatement(params));
+    const body = this.withFunctionContext(generator ? "generator" : "normal", () => this.parseBlockStatement(params));
 
     return {
       type: "FunctionExpression",
@@ -3099,7 +3107,7 @@ class Parser {
       }
       return parsedParams;
     });
-    const body = this.withFunctionContext(false, () => this.parseBlockStatement(params));
+    const body = this.withFunctionContext("normal", () => this.parseBlockStatement(params));
 
     return {
       type: "FunctionExpression",
@@ -3645,19 +3653,19 @@ class Parser {
     );
   }
 
-  private withFunctionContext<T>(generatorBody: boolean, callback: () => T): T {
+  private withFunctionContext<T>(functionContext: FunctionParseContext, callback: () => T): T {
     const previousBreakableDepth = this.breakableDepth;
     const previousLoopDepth = this.loopDepth;
-    const previousGeneratorBody = this.generatorBody;
+    const previousFunctionContext = this.functionContext;
     this.breakableDepth = 0;
     this.loopDepth = 0;
-    this.generatorBody = generatorBody;
+    this.functionContext = functionContext;
     try {
       return callback();
     } finally {
       this.breakableDepth = previousBreakableDepth;
       this.loopDepth = previousLoopDepth;
-      this.generatorBody = previousGeneratorBody;
+      this.functionContext = previousFunctionContext;
     }
   }
 
@@ -4209,7 +4217,7 @@ function createLiteralFromToken(
 
 function createTemplateLiteral(
   token: Token,
-  options: { allowMalformedEscapes: boolean } = { allowMalformedEscapes: false },
+  options: { allowMalformedEscapes: boolean; functionContext: FunctionParseContext },
   compilation?: CompileScope
 ): TemplateLiteral {
   const raw = token.value;
@@ -4234,6 +4242,7 @@ function createTemplateLiteral(
         parseEmbeddedExpression(
           raw.slice(expressionStart, expressionEnd),
           positionWithinRaw(token.start, raw, expressionStart),
+          options.functionContext,
           compilation
         )
       );
@@ -4701,6 +4710,7 @@ function decodeHexEscape(value: string, start: number): { value: string; end: nu
 function parseEmbeddedExpression(
   source: string,
   base: Position,
+  functionContext: FunctionParseContext,
   compilation?: CompileScope
 ): Expression {
   const tokens = tokenize(source, { allowRegexLiterals: true, compilation }).map((token) => ({
@@ -4708,7 +4718,7 @@ function parseEmbeddedExpression(
     start: rebasePosition(token.start, base),
     end: rebasePosition(token.end, base)
   }));
-  return parseExpressionTokens(tokens, compilation);
+  return new Parser(tokens, compilation, functionContext).parseExpressionOnly();
 }
 
 export function findRegexLiteral(node: unknown): RegexLiteral | undefined {

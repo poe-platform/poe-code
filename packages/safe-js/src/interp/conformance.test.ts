@@ -487,7 +487,7 @@ async function run(source: string): Promise<InterpreterValue | undefined> {
       ...createObjectArrayGlobals({ budget }),
       ...createMiscGlobals({ budget }),
       ...createPromiseGlobals({ budget }),
-      ...createRegexGlobals()
+      ...createRegexGlobals({ budget })
     },
     budget
   });

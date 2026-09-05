@@ -23,6 +23,6 @@ export function createBuiltinBindings(
     ...createObjectArrayGlobals(options),
     ...createMiscGlobals(options),
     ...createPromiseGlobals(options),
-    ...createRegexGlobals(options.compileOwner)
+    ...createRegexGlobals(options)
   };
 }

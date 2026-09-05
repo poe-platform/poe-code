@@ -1557,7 +1557,7 @@ was published on September 5 at 08:46:19 UTC. The remote v14.0.54 tag resolves
 to the exact delivered commit. The next goal turn revalidated main and the
 unchanged user staging before starting pattern construction.
 
-### 29. String search pattern construction — validated open gap
+### 29. String search pattern construction — delivered; release monitored
 
 Native ' Otter '.search('t') returns 2; SafeJS throws its explicit regex-only
 TypeError. This also affected five borrowed receiver fixtures before their input
@@ -1621,7 +1621,16 @@ Final root lint passed all 9,752 configured files with zero errors/warnings;
 types and workflows also passed. The final source is qualified for its atomic
 commit and main push. Delivery and publication are verified separately.
 
-### 30. RegExp constructor input semantics — validated open gap
+Delivered and closed: f54dbc1b6cb6162f7452fbe725d6a778fcecc50f was committed,
+pushed and verified against remote main. Scoped release run 33956590050 and
+CLI release run 33956590155 are monitored while the next constructor repair is
+implemented. User SafeBash staging remains unchanged.
+
+Scoped run 33956590050 and publish job 101280918830 succeeded, publishing
+@poe-platform/safe-js 0.1.118 on September 5 at 09:00:24 UTC. CLI publication
+from run 33956590155 remains separately monitored.
+
+### 30. RegExp constructor input semantics — validated repair in progress
 
 Three built native comparisons fail: null becomes an empty pattern instead of
 the string 'null'; guest pattern/flags coercion throws rather than running the
@@ -1637,6 +1646,42 @@ identity, and guest flags coercion failing before its hook can run on an invalid
 pattern. Empty construction is another passing control. Preserve owner rejection
 before guest effects when adding constructor coercion; the pattern-method repair
 above exposed why this order matters.
+
+The 94-test native constructor matrix failed 52 cases with 42 passing controls.
+Implement constructor input semantics through sandbox string coercion and the
+guarded regex engine, preserving ordinary-call identity, clone cursor reset,
+explicit flags, undefined defaults and pattern-before-flags coercion. Share the
+caller Budget explicitly instead of coercing guest records with host String.
+Compile ownership is acquired before any guest hook or identity shortcut.
+The first four-file cohort passes 277 tests.
+
+Ten admission tests then fail with 100 passing controls: inputs needed by
+fallback coercion and a produced pattern needed during flags coercion disappear
+from live-data accounting. Retain input arguments and the produced source until
+finally; check success/failure cleanup, pre-hook owner rejection, fatal steps,
+compile syntax and string limits. All 293 tests in the four-file cohort now pass.
+The selected maintained build and full package gate follow. A schema-only paired
+CLI fixture will check cloning, coercion order and null flags; built root/core
+comparisons, data admission, pending-effect replay and root lint must pass before
+this repair's own atomic push. Missing RegExp intrinsic properties, overridden
+constructors, unsupported flags, and method receivers are not claimed fixed.
+
+The selected build passed all 23 workspace builds and four fresh ESM import
+checks. The full SafeJS package passed 11,600 tests with 41 skips. Built root/core
+passed 16 native comparisons, 12 retained-data checks, four ownership checks and
+two pending-effect replays (one each in pattern and flags coercion). The paired
+CLI run and screenshot inspection precede the final maintained root lint gate.
+
+The schema-only zero-capability CLI pair passed after 70 uncached builds and
+the resulting screenshot was visually inspected: successful harness output,
+coherent layout and zero spawns. Final maintained root lint runs with source
+and build outputs frozen; commit and push only this constructor improvement.
+
+Final root lint passed all 9,753 configured files with zero errors/warnings,
+then types and workflows passed. An additional 48 built comparisons passed for
+empty/escaped/slash/line-terminator sources, flag combinations, identity and
+clone cursor behavior. This constructor repair is qualified for its own commit
+and main push; remote delivery and publication remain separate checks.
 
 ### 31. String matchAll iterator protocol — validated open gap
 
@@ -1664,6 +1709,14 @@ Keep receiver branding, extracted invocation, cursor ownership and input coercio
 as subsequent repairs, separate from String pattern construction and RegExp
 constructor inputs.
 
+Further native probes distinguish the two methods: test can dispatch to an
+ordinary object's custom exec, passes it the string input with the correct this,
+and rejects a primitive exec result. SafeJS instead uses the original regex and
+skips that hook. For an ordinary receiver without exec, native test coerces the
+input before failing; native exec rejects that receiver before coercion. Three
+comparisons fail and the exec rejection-order control passes. Do not implement
+a blanket regex-brand check for test: that would preserve another real gap.
+
 ### 34. RegExp intrinsic properties — validated open gaps
 
 For /a/gims, global, ignoreCase, multiline and dotAll are undefined instead of
@@ -1673,3 +1726,13 @@ also throws, whereas native allows it and makes RegExp(pattern) clone. This
 intrinsic/object-model work remains distinct from supported constructor inputs.
 RegExp.escape was undefined in both this Node runtime and SafeJS: that probe is
 not evidence of a native-parity failure.
+
+### 35. RegExp lastIndex storage and deferred coercion — validated open gap
+
+Native lastIndex assignment stores an object unchanged without invoking its
+valueOf; execution coerces that cursor later. SafeJS calls host Number during
+assignment and throws for the guest object. Two built comparisons reproduce
+the storage and execution failures. A third shows a string cursor becoming a
+number immediately, while native retains the string. Numeric clone reset is a
+passing constructor control, not a repair for arbitrary cursor storage. This
+requires separate coercion, retention, regex value types and snapshot work.

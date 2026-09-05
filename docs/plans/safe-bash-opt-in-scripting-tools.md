@@ -946,6 +946,15 @@ this request to keep additions out of the default package.
   The mapfile review's no-yield guard is repaired without weakening its rejection
   on direct input pull. Guarded lint twenty-seven is running; no push or release
   is requested or performed.
+- Redirected-input fixture coverage is locally committed as `05554dd9a`.
+  The namespace fixture repair is independently checked against the actual
+  TypeScript-parsed helper in memory: unsupported virtual/native character
+  nodes and native FIFO nodes reject before payload reads or descent, while
+  supported traversal, binary contents, symlink targets and metadata agree.
+  The frozen fixture SHA is
+  `a62e60c75c7fe51acfc4f830c95e2656ca0cbe93b60d66e6c4ce7e9fa6085fdf`.
+  Only the three device-type errors are repaired; its separate missing oracle
+  import and the 24 remaining maintained typecheck diagnostics are not hidden.
 
 - First implementation wave: cmp, yes, shuf and virtual devices in disjoint leaf
   directories. Root is qualifying native oracles and the opt-in delivery boundary.

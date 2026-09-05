@@ -23,7 +23,9 @@ async function namespace(root: string | MemoryFileSystem): Promise<Entry[]> {
   const entries: Entry[] = [];
   async function visit(path: string) {
     const stat = typeof root === "string" ? await lstat(join(root, path)) : await root.lstat(path);
-    const type = "type" in stat ? stat.type : stat.isSymbolicLink() ? "symlink" : stat.isDirectory() ? "directory" : "file";
+    const type = "type" in stat ? stat.type : stat.isSymbolicLink() ? "symlink" : stat.isDirectory() ? "directory"
+      : stat.isFile() ? "file" : stat.isCharacterDevice() ? "character" : "unsupported";
+    if (type !== "file" && type !== "directory" && type !== "symlink") throw new Error(`Unsupported namespace fixture type at ${path}: ${type}`);
     const entry = { path, type, mode: stat.mode & 0o7777, ino: stat.ino, dev: stat.dev, nlink: stat.nlink };
     if (type === "file") entries.push({ ...entry, hex: Buffer.from(typeof root === "string" ? await readFile(join(root, path)) : await root.readFile(path)).toString("hex") });
     else if (type === "symlink") entries.push({ ...entry, target: typeof root === "string" ? await readlink(join(root, path)) : await root.readlink(path) });

@@ -64,7 +64,6 @@ import type { YieldExpression } from "../parse/parser.js";
 import {
   attachErrorSpan,
   formatErrorStack,
-  readErrorSpan,
   replaceErrorStack
 } from "../error/shape.js";
 import {
@@ -80,14 +79,15 @@ import {
 } from "./async.js";
 import type { GeneratorCompletion } from "./generator.js";
 import { HostCallResumabilityError } from "./host-call.js";
-import { Budget, SandboxError, type CompileOwner } from "./budget.js";
+import { Budget, isFatalSandboxError, SandboxError, type CompileOwner } from "./budget.js";
 import { CompileScope, RegexCompileGuard } from "./regex/compile-guard.js";
 import {
-  coerceThrownValue,
   createCapturedException,
+  createThrowCompletion,
   evaluateThrowStatement as evaluateThrowStatementResult,
   evaluateTryStatement as evaluateTryStatementResult,
   isCapturedException,
+  isInterpreterError,
   surfaceThrownValue
 } from "./exceptions.js";
 import {
@@ -493,26 +493,18 @@ async function evaluateNode(
       };
     }
 
-    const exception = isCapturedException(error)
-      ? coerceThrownValue(error.reason, context.budget, error.stackFrames, node.span, error.sandbox)
-      : coerceThrownValue(error, context.budget, context.callStack, node.span, true);
+    const completion = createThrowCompletion(error, context.budget, context.callStack, node.span);
 
     reconcileDataBudget(
       context.budget,
       context.stats,
       context.scope,
-      exception,
+      completion.value,
       compilation,
       context.compilation
     );
 
-    return {
-      kind: "throw",
-      hasValue: true,
-      span: readErrorSpan(exception) ?? node.span,
-      stackFrames: isCapturedException(error) ? error.stackFrames : context.callStack,
-      value: exception
-    };
+    return completion;
   } finally {
     compilation.dispose();
   }
@@ -3845,25 +3837,6 @@ function defineSandboxProperty(
   });
 }
 
-function isInterpreterError(value: unknown): value is InterpreterError {
-  return (
-    typeof value === "object" &&
-    value !== null &&
-    hasOwnProperty(value, "code") &&
-    hasOwnProperty(value, "message") &&
-    hasOwnProperty(value, "nodeType") &&
-    hasOwnProperty(value, "span") &&
-    (value.code === "UNBOUND_IDENTIFIER" || value.code === "UNSUPPORTED_NODE")
-  );
-}
-
-function hasOwnProperty<Name extends PropertyKey>(
-  value: object,
-  name: Name
-): value is Record<Name, unknown> {
-  return Object.prototype.hasOwnProperty.call(value, name);
-}
-
 function wrapHostResult(
   result: InterpreterValue | Promise<InterpreterValue> | PromiseLike<InterpreterValue>,
   stack: readonly string[],
@@ -3886,12 +3859,6 @@ function wrapHostResult(
 
 function captureException(error: unknown, stack: readonly string[], sandbox: boolean) {
   return isCapturedException(error) ? error : createCapturedException(error, stack, sandbox);
-}
-
-function isFatalSandboxError(error: unknown): error is SandboxError {
-  return (
-    error instanceof SandboxError && (error.code === "budgetExceeded" || error.code === "reentry")
-  );
 }
 
 function isPromiseLikeResult(

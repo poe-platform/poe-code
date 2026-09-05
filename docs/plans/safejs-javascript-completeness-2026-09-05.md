@@ -496,7 +496,8 @@ plus root TypeScript and workflow checks. Committed and verified on remote
 main as `b1756fcec4dbac73a4d4a2ee8567b0cbc0ec5f81`. Scoped workflow
 `33942895637` succeeded; publisher job `101243585832` confirms
 `@poe-platform/safe-js@0.1.93` published September 5, 2026, 03:53:08 UTC.
-CLI workflow `33942895740` is still being monitored.
+CLI workflow `33942895740` was canceled by its successor; newer release
+workflows include this delivered change.
 
 Follow-up native controls also validate a separate catch-completion gap:
 `try { throw null; } catch ({x}) {} finally { ... }` skips the finalizer
@@ -526,8 +527,15 @@ a TDZ default failure, persistent evaluations, completed replay, and fatal
 budget failures. Final validation passed: the selected SafeJS dependency
 build closure, 16 built root/core entrypoint checks, 10,379 SafeJS tests with
 41 skipped, and full root lint with 9,719 configured files linted and zero
-errors/warnings, plus root TypeScript and workflow checks. Commit/push/release
-status is reported separately from these local checks.
+errors/warnings, plus root TypeScript and workflow checks. Committed and
+verified on remote main as `4827e5fb4702a534d2753601856693d0c3b35799`.
+Scoped workflow `33943228838`, publisher job `101244506042`, succeeded:
+`@poe-platform/safe-js@0.1.94` published September 5, 2026, 04:01:03 UTC.
+CLI workflow `33943228964` was canceled after another worker's Safe Bash-only
+source-index repair advanced main to `a31e6943baf46d88e27c9ae33a934dbd16e6ba39`.
+Its descendant scoped/CLI workflows are `33943450152` and `33943450283`.
+Both descendant workflows succeeded: SafeJS 0.1.95 published September 5,
+2026, 04:07:21 UTC, and poe-code 14.0.45 published at 04:14:23 UTC.
 
 The separately reproduced direct binding/coercion failure path that skips
 finally remains open. A TDZ default failure already travels through normal
@@ -556,3 +564,45 @@ These findings extend the open generic array-like and built-in receiver work.
 They require active guest property/coercion/call operations, live iteration,
 and constructor semantics; do not substitute native-object copies for the
 guest model or present a partial receiver patch as full JavaScript parity.
+
+### 11. Finally after catch-binding failures — validated, ready for delivery
+
+The catch evaluator awaited binding initialization outside the path that
+turns ordinary errors into throw completions. Thus binding TypeErrors,
+computed-key coercion failures, and live host-property failures escaped
+before finally could run. The initial regression suite reproduced 23
+failures, while two fatal-error controls passed.
+
+Ordinary catch-binding errors now use the same throw-completion construction
+as expression evaluation. The original thrown value, identity, span, and
+stack metadata are preserved; finally can complete normally or override the
+pending failure with return/throw/break/continue. Existing fatal sandbox,
+interpreter-diagnostic, and host-resumability classifications are preserved.
+The shared classification helpers were moved, not broadened.
+
+The pending normalized value remains a budget root during finalization and
+is released afterward. A targeted control removing that root made the new
+data-budget regression fail by incorrectly succeeding at a 5,000-unit limit.
+With the root restored, that run fails the data budget, while a 10,000-unit
+limit succeeds; an unbounded measurement reported a peak of 8,008 units.
+The otherwise equivalent finalizer without a pending value succeeds at 5,000.
+
+The focused cohort passes 116 tests, including native completion ordering,
+primitive/object/Error identity, nested and async finalizers, live named/rest
+host reads, compiled RegExp survival, fatal reentry/budget controls, replay,
+and data/deadline budgets. Final validation passed: 10,405 SafeJS tests with
+41 skipped, the selected SafeJS dependency build closure, the full maintained
+root build, 16 built root/core checks, and full root lint (9,723 configured
+files, zero errors/warnings), including TypeScript and workflow checks.
+General unbound diagnostics and fatal catch-time deadline policy remain
+separate concerns; this fix does not silently change their classifications.
+
+Remote main advanced with unrelated Safe Bash source-index changes during
+this work. The local implementation checkpoint was rebased onto
+`a31e6943baf46d88e27c9ae33a934dbd16e6ba39` before final validation, preserving
+the user's staged cut changes. The initial focused source-index check could
+not load the root safe-fs bundle, which the selected SafeJS build does not
+produce; the maintained full root build supplied it, and all 26 source-index
+integration tests then passed. This was a build prerequisite, not a source
+regression. Delivery remains one atomic commit; remote push and release must
+still be verified separately.

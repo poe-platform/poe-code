@@ -74,6 +74,12 @@ type BudgetLimits = {
   dataSize?: number;
 };
 
+export function isFatalSandboxError(error: unknown): error is SandboxError {
+  return (
+    error instanceof SandboxError && (error.code === "budgetExceeded" || error.code === "reentry")
+  );
+}
+
 export type CompileOwner = {
   readonly budget: Budget;
   readonly generation: number;

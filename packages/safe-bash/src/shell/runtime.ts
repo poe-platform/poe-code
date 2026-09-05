@@ -12,13 +12,14 @@ import type { CommandArguments } from "../contracts/command.js";
 import { ValueArena } from "./value-state.js";
 import type { HeldValue, ValueScope, ValueStore } from "./value-state.js";
 import type { Command, HereDocument, Pipeline, Redirect, Script, Word, WordPart } from "./parser.js";
-import { HereDocumentSyntaxError, hereDocumentWords, parseShellInputUnit, parseShellUnit } from "./parser.js";
+import { compoundEntryWords, HereDocumentSyntaxError, hereDocumentWords, parseShellInputUnit, parseShellUnit } from "./parser.js";
 import { SourceLineIndex } from "./source-line-index.js";
 import { ShellLimitError, ShellSyntaxError } from "./types.js";
 import type { ShellCommandContext, ShellInvokeOptions, ShellLimits } from "./types.js";
 import { fileInput, ShellInput } from "./input.js";
 import { evaluateArithmetic, prepareArithmetic } from "./arithmetic.js";
 import { defaultMaxParseUnits, ParseBudget } from "./parse-budget.js";
+import { BraceExpansionFailure, expandBraces } from "./brace-expansion.js";
 import { evaluatePositionalArithmetic } from "./arithmetic-parameters.js";
 import { compilePattern, matchesPattern } from "./pattern.js";
 import { nextCodePointOffset, previousCodePointOffset, scanString, stringCheckpoint } from "./string-operations.js";
@@ -80,7 +81,7 @@ const shellBuiltinNames = new Set([
 const implementedBuiltins = new Set([...shellBuiltinNames].filter(name => !["echo", "printf", "test", "["].includes(name)));
 const specialBuiltinNames = new Set([":", ".", "break", "continue", "eval", "exit", "export", "readonly", "return", "set", "shift", "unset"]);
 const unsupportedSetOptionNames = new Set([
-  "allexport", "braceexpand", "emacs", "errtrace", "functrace", "hashall", "histexpand", "history",
+  "allexport", "emacs", "errtrace", "functrace", "hashall", "histexpand", "history",
   "ignoreeof", "interactive-comments", "keyword", "monitor", "noclobber", "noexec", "noglob", "nolog",
   "notify", "onecmd", "physical", "posix", "privileged", "verbose", "vi", "xtrace",
 ]);
@@ -313,6 +314,7 @@ export interface State {
   directoryStack?: { readonly entries: readonly string[]; readonly bytes: number };
   directoryStackCwdPublication?: symbol;
   dotglob?: boolean;
+  braceexpand?: boolean;
   pipefail: boolean;
   errexit?: boolean;
   nounset?: boolean;
@@ -1630,6 +1632,17 @@ export class Runtime {
         if (assignment.append) value = await this.arrayJoin(operation, [staged.get(index) ?? "", value], "");
         await insert(index, value);
       } else for (const entry of assignment.entries) {
+        const original = compoundEntryWords.get(entry);
+        if (entry.index && original && state.braceexpand !== false && original.parts.some(part => part.kind === "text" && !part.quoted && part.value.includes("{"))) {
+          let expandedEntry = false;
+          for await (const expanded of expandBraces(original, this.budget, this.signal)) {
+            if (expanded === original) break;
+            expandedEntry = true;
+            const values = await this.valueWord(expanded, state, io, true, false, false, false, undefined, false);
+            for (const value of values) { await insert(cursor, shellValueText(value)); cursor++; }
+          }
+          if (expandedEntry) continue;
+        }
         const fields = await this.word(entry.value, state, io, entry.index === undefined);
         if (entry.index) {
           const index = numericIndex(entry.index)!;
@@ -1915,7 +1928,7 @@ export class Runtime {
             work: { remaining: this.budget.limits.maxExpansionBytes, signal: this.signal, exhausted: (): never => this.budget.fail("maxExpansionBytes") },
             expand: async (word, pattern = false) => (await this.word(word, state, io, false, pattern, false, pattern)).join(""),
             regex: (subject, pattern) => this.ere(subject, pattern, state, io),
-            option: name => name === "errexit" ? !!state.errexit : name === "nounset" ? !!state.nounset : name === "pipefail" ? state.pipefail : false,
+            option: name => name === "braceexpand" ? state.braceexpand !== false : name === "errexit" ? !!state.errexit : name === "nounset" ? !!state.nounset : name === "pipefail" ? state.pipefail : false,
             present: name => {
               const match = /^([a-zA-Z_][a-zA-Z_0-9]*)(?:\[(0|[1-9][0-9]*|[@*])\])?$/u.exec(name);
               if (!match) throw new ConditionalUnsupported("[[ variable selector: unsupported conditional profile");
@@ -2059,7 +2072,7 @@ export class Runtime {
         try { await writeText(io.stderr, `${io.scriptName ?? "shell"}: line ${line}: ${diagnostic ?? message(error)}\n`); }
         catch { this.signal.throwIfAborted(); }
       }
-      if (error instanceof ExpansionFailure) throw completedExit(error instanceof ParameterExpansionFailure && !state.isolated ? 127 : 1);
+      if (error instanceof ExpansionFailure || error instanceof BraceExpansionFailure) throw completedExit(error instanceof ParameterExpansionFailure && !state.isolated ? 127 : 1);
       if (error instanceof FatalCommandFailure) throw completedExit(error.status);
       const status = error instanceof CommandFailure ? error.status : 1;
       if (command.kind !== "simple" && command.kind !== "subshell" && command.kind !== "arithmetic" && command.kind !== "conditional") this.errexit(status, state, io);
@@ -2843,18 +2856,26 @@ export class Runtime {
     let commandString = false;
     let standardInput = false;
     let errexit = false;
+    let braceexpand = true;
     while (args.length && /^[+-]/u.test(args[0]!)) {
       const option = args.shift()!;
       if (option === "--" || option === "-") break;
-      if (!/^-[cse]+$|^\+e+$/u.test(option)) {
-        await writeText(context.stderr, `${context.command}: ${option}: unsupported option; supported flags are -c, -s, -e and +e\n`);
+      if ((option === "-o" || option === "+o") && args[0] === "braceexpand") {
+        braceexpand = option === "-o";
+        args.shift();
+        continue;
+      }
+      const flags = option.slice(1);
+      if (!flags.length || [...flags].some(flag => !(option[0] === "-" ? "cseB" : "eB").includes(flag))) {
+        await writeText(context.stderr, `${context.command}: ${option}: unsupported option; supported flags are -c, -s, -e, +e, -B, +B and +/-o braceexpand\n`);
         return 2;
       }
       commandString ||= option.includes("c");
       standardInput ||= option.includes("s");
       if (option.includes("e")) errexit = option.startsWith("-");
+      if (option.includes("B")) braceexpand = option.startsWith("-");
     }
-    if (!commandString && !standardInput && args.length) return this.scriptFile(context, state, io, args[0]!, args.slice(1), false, errexit, loadedSource);
+    if (!commandString && !standardInput && args.length) return this.scriptFile(context, state, io, args[0]!, args.slice(1), false, errexit, loadedSource, braceexpand);
     const source = commandString ? args.shift() : undefined;
     if (commandString && source === undefined) {
       await writeText(context.stderr, `${context.command}: -c: option requires an argument\n`);
@@ -2863,6 +2884,7 @@ export class Runtime {
     const arg0 = commandString ? args.shift() ?? context.command : context.command;
     const child = this.processState(context, state, arg0, args);
     child.errexit = errexit;
+    child.braceexpand = braceexpand;
     const childIO = isolateIO({ ...io, ...context, execution: { ignoreErrexit: false }, diagnosticLine: 1, diagnosticOffset: 0, scriptName: arg0 });
     if (source !== undefined) {
       this.budget.source(Buffer.byteLength(source));
@@ -3139,7 +3161,7 @@ export class Runtime {
       runtime.shebangTarget(forwarded, child, childIO, command, arguments_, options, target, loadedSource));
   }
 
-  async scriptFile(context: CommandContext, state: State, io: IO, target: string, args: readonly string[], direct: boolean, errexit = false, loadedSource?: { path: string; source: string }): Promise<number> {
+  async scriptFile(context: CommandContext, state: State, io: IO, target: string, args: readonly string[], direct: boolean, errexit = false, loadedSource?: { path: string; source: string }, braceexpand = true): Promise<number> {
     if (target === "") throw new CommandFailure(`${context.command}: : No such file or directory`, 127);
     if (state.depth >= this.budget.limits.maxSubstitutionDepth) this.budget.fail("maxSubstitutionDepth");
     const path = resolvePath(state.cwd, target);
@@ -3195,6 +3217,7 @@ export class Runtime {
     }
     const child = this.processState(context, state, target, args);
     child.errexit = errexit;
+    child.braceexpand = braceexpand;
     if (direct) child.profile = interpreterProfile ?? state.profile ?? "bash";
     const childIO = isolateIO({ ...io, ...context, execution: { ignoreErrexit: false }, diagnosticLine: 1, diagnosticOffset: 0, scriptName: target });
     let status = 0;
@@ -3438,15 +3461,17 @@ export class Runtime {
         const flag = option[position];
         if (flag === "e") state.errexit = enabled;
         else if (flag === "u") state.nounset = enabled;
+        else if (flag === "B") state.braceexpand = enabled;
         else if (flag === "o" && position === option.length - 1) {
           const name = args[index + 1];
           if (name === undefined) {
-            const options = [["errexit", !!state.errexit], ["nounset", !!state.nounset], ["pipefail", state.pipefail]] as const;
+            const options = [["braceexpand", state.braceexpand !== false], ["errexit", !!state.errexit], ["nounset", !!state.nounset], ["pipefail", state.pipefail]] as const;
             for (const [name, active] of options) await writeText(stdout, enabled ? `${name}\t${active ? "on" : "off"}\n` : `set ${active ? "-" : "+"}o ${name}\n`);
           } else {
             if (name === "errexit") state.errexit = enabled;
             else if (name === "nounset") state.nounset = enabled;
             else if (name === "pipefail") state.pipefail = enabled;
+            else if (name === "braceexpand") state.braceexpand = enabled;
             else {
               const unsupported = unsupportedSetOptionNames.has(name);
               await this.diagnostic(context, `set: ${name}: ${unsupported ? "unsupported shell option" : "invalid option name"}`);
@@ -3457,7 +3482,7 @@ export class Runtime {
         } else valid = false;
       }
       if (!valid) {
-        await writeText(stderr, "set: unsupported shell option; supported forms are +/- e/u clusters, -- arguments and terminal o with pipefail, errexit or nounset\n");
+        await writeText(stderr, "set: unsupported shell option; supported forms are +/- e/u/B clusters, -- arguments and terminal o with braceexpand, pipefail, errexit or nounset\n");
         return 1;
       }
       index++;
@@ -4297,8 +4322,9 @@ export class Runtime {
   private async valueWords(words: readonly Word[], state: State, io: IO, declaration = false): Promise<ShellValue[]> {
     const fields: ShellValue[] = [];
     for (const word of words) {
-      fields.push(...await this.valueWord(word, state, io, !(declaration && this.assignment(word))));
-      if (fields.length > this.budget.limits.maxExpansionFields) this.budget.fail("maxExpansionFields");
+      const values = await this.valueWord(word, state, io, !(declaration && this.assignment(word)), false, false, false, undefined, true);
+      if (values.length > this.budget.limits.maxExpansionFields - fields.length) this.budget.fail("maxExpansionFields");
+      for (const value of values) fields.push(value);
     }
     return fields;
   }
@@ -4403,7 +4429,7 @@ export class Runtime {
       return this.arrayJoin(store.owner, values, Array.from(state.variables.IFS ?? " ")[0] ?? "");
     }
     let value = part.name === "?" ? String(state.status)
-      : part.name === "-" ? `${state.errexit ? "e" : ""}${state.nounset ? "u" : ""}`
+      : part.name === "-" ? `${state.errexit ? "e" : ""}${state.nounset ? "u" : ""}${state.braceexpand !== false ? "B" : ""}`
       : part.name === "#" ? String(state.positional.length)
       : part.name === "@" || part.name === "*" ? state.positional.join(hereString && (part.name === "@" || !part.quoted) ? " " : Array.from(state.variables.IFS ?? " ")[0] ?? "")
       : /^0+$/u.test(part.name) ? state.arg0 ?? "virtual-bash"
@@ -4658,7 +4684,23 @@ export class Runtime {
     return (await this.valueWord(word, state, io, split, pattern, hereString, conditionalPattern, regexAppend)).map(shellValueText);
   }
 
-  private async valueWord(word: Word, state: State, io: IO, split = true, pattern = false, hereString = false, conditionalPattern = false, regexAppend?: (text: string, literal: boolean) => void): Promise<ShellValue[]> {
+  private async valueWord(word: Word, state: State, io: IO, split = true, pattern = false, hereString = false, conditionalPattern = false, regexAppend?: (text: string, literal: boolean) => void, braces = split && !pattern && !hereString): Promise<ShellValue[]> {
+    if (braces && state.braceexpand !== false && word.parts.some(part => part.kind === "text" && !part.quoted && part.value.includes("{"))) {
+      const fields: ShellValue[] = [];
+      let bytes = 0;
+      for await (const expanded of expandBraces(word, this.budget, this.signal)) {
+        const values = await this.valueWord(expanded, state, io, split, pattern, hereString, conditionalPattern, regexAppend, false);
+        if (values.length > this.budget.limits.maxExpansionFields - fields.length) this.budget.fail("maxExpansionFields");
+        for (const value of values) {
+          const size = shellValueByteLength(value);
+          if (size > this.budget.limits.maxExpansionBytes - bytes) this.budget.fail("maxExpansionBytes");
+          bytes += size;
+          io[valueScope]?.reserve(32 + (typeof value === "string" ? value.length * 2 : 0), 0);
+          fields.push(value);
+        }
+      }
+      return fields;
+    }
     const arrayOwned = word.parts.some(part => part.kind === "variable" && (getArraySelector(part) !== undefined || arrayStore(state)?.get(part.name) !== undefined));
     const owner = arrayOwned ? requireArrays(state).owner : undefined;
     const holding = owner?.hold();

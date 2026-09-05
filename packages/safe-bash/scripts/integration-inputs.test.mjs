@@ -402,6 +402,8 @@ function assertSource7Discovery(files) {
   assert.ok(files.includes("tests/shell/child-dispatch-retirement.test.ts"));
   assert.ok(files.includes("tests/shell/inline-input-retirement.test.ts"));
   assert.ok(files.includes("tests/shell/printf-variable.test.ts"));
+  assert.ok(files.includes("tests/shell/brace-expansion.test.ts"));
+  assert.ok(files.includes("tests/shell/brace-expansion-differential.test.ts"));
   assert.ok(files.includes("tests/shell/xargs-parallel-lifecycle.test.ts"));
   assert.ok(files.includes("tests/commands/tee-target-admission.test.ts"));
   assert.ok(files.includes("tests/commands/xargs-parallel.test.ts"));

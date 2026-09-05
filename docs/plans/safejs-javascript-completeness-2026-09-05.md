@@ -703,9 +703,11 @@ included in this prerequisite commit; they will resume after its atomic
 push. Committed and pushed as `107fb94c6add617c05f2e3c935ca23c2e02e10b5`,
 verified against remote main. Scoped workflow `33945998128`, publisher job
 `101252076877`, succeeded: SafeJS 0.1.99 published September 5, 2026,
-05:03:37 UTC. CLI workflow `33945998235` remains monitored separately.
+05:03:37 UTC. CLI workflow `33945998235` succeeded, but release-stable job
+`101253169060` skipped publication because remote main had advanced. That is
+not a new CLI release; the newer descendant workflow is monitored separately.
 
-### 14. Array.from guest construction — implemented and validated
+### 14. Array.from guest construction — delivered and released
 
 The initial native/public regression suite reproduced 32 failures with nine
 passing controls. Array.from now maps while consuming its input, preserves
@@ -749,7 +751,11 @@ lint (9,728 configured files, zero errors/warnings), including TypeScript and
 workflow checks. An additional bounded native comparison matrix passed 144
 construction combinations, and nine mutation/cleanup controls also matched
 native behavior. Atomic push and release are tracked separately from these
-local checks.
+local checks. Committed and pushed as
+`f4e4189fa81dd0cc93cf4168c4cf3ec26353b1af`, verified against remote main.
+Scoped workflow `33946434003`, publisher job `101253261047`, succeeded:
+SafeJS 0.1.100 published September 5, 2026, 05:13:16 UTC. CLI workflow
+`33946434242` remains monitored separately.
 
 An initial implementation used the public descriptor helper for ordinary
 element creation, incorrectly marking arrays as custom-descriptor objects and
@@ -785,3 +791,35 @@ Bounded native/public built-entrypoint probes confirmed these separate gaps:
 
 These findings are not included in the Array.from implementation. Each repair
 requires its own failing regressions, focused implementation, checks, and push.
+
+### 15. Number guest conversion — implemented and validated
+
+The new native/public-source suite reproduced 21 failures with five passing
+controls. Number now uses the existing number-hint guest conversion helper,
+preserving active invocation context and the valueOf-before-toString order.
+The no-argument call supplies zero, while explicit undefined remains NaN.
+The redundant Date special case is removed because the shared helper already
+preserves Date value conversion. No new coercion API or helper is added.
+
+The six-file focused cohort passes 217 tests, including the 26 new conversion
+cases, existing String and Array.from behavior, numeric receiver tests, and
+promise ordering. The new suite covers inherited hooks, function/array hooks,
+falsey primitives, negative zero, thrown-value identity, async prefixes without
+adopting guest promise results, realm evaluations, completed replay, and fatal
+step/call-depth budgets. Static Number predicates remain non-coercing. Boxed
+Number objects, BigInt/Symbol conversion, arithmetic operators, numeric method
+argument coercion, and parseInt/parseFloat remain outside this focused fix.
+Final validation passes: the selected SafeJS dependency build closure, 10,517
+package tests with 41 skipped, 18 built root/core checks, and full root lint
+(9,729 configured files, zero errors/warnings), including TypeScript and
+workflow checks. Four queued-microtask controls pass, as do direct-helper
+fallback/call-depth cleanup and compiled thrown-value controls. Atomic push
+and release remain separate from these local checks.
+
+Further bounded native/public probes confirmed guest-coercion gaps in global
+parseInt, Number.parseFloat, Math.abs, String.fromCharCode, array slice indices,
+and Number.prototype.toFixed precision arguments. They are not fixed by
+changing Number itself. Intrinsic function arity is also absent: Number,
+String, Array.from, Object.fromEntries, parseInt, and Math.abs expose undefined
+lengths rather than native lengths 1/1/1/1/2/1. These are explicit follow-up
+findings, not silently included in this repair.

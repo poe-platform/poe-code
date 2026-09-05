@@ -1,7 +1,7 @@
 import { isFatalSandboxError, type Budget, type CompileOwner } from "../budget.js";
 import { invokeBuiltinClosure } from "../builtin-call.js";
 import { isCapturedException } from "../exceptions.js";
-import { dateTime, isSandboxDate } from "../date.js";
+import { isSandboxDate } from "../date.js";
 import { getDatePrototype } from "./date.js";
 import { createObjectGlobal, hasOwnSandboxProperty } from "./object.js";
 import { getHostObjectKeys, isGuestHostObject } from "../host-capabilities.js";
@@ -236,7 +236,7 @@ export function createObjectArrayGlobals(options: { budget: Budget; compileOwner
     }),
     Number: createSandboxClosure({
       sandbox: true,
-      call: ([value]) => isSandboxDate(value) ? dateTime(value) : Number(value),
+      call: (args, context) => sandboxNumber(args.length === 0 ? 0 : args[0], options.budget, context),
       name: "Number",
       properties: {
         isFinite: createSandboxClosure({

@@ -113,6 +113,21 @@ values; root cancellation retains its existing precedence. Public execution stil
 awaits owned cleanup. A subshell's exit and drain belong to that child frame and
 do not terminate its enclosing evaluator.
 
+## Function diagnostic origins
+
+Function diagnostics use the source identity and effective line base captured
+when the function is defined. An evaluator's later call site must not rename or
+rebase an existing function. Command-text, stdin and file/source entry modes
+establish that definition context independently from their top-level diagnostic
+labels; a filename that happens to equal a shell label is still a filename.
+Command substitution also accounts for Bash's reprinted command layout; physical
+input line numbers alone do not determine the resulting function diagnostics.
+
+Invocation keeps the caller's descriptors, cancellation, budgets and control
+scope. Returning from the function restores the caller's diagnostic context.
+This provenance rule does not establish additional debugger variables or full
+function-stack introspection.
+
 ## Internal input readiness and deadlines
 
 The internal `ShellInput` constructor accepts explicit source provenance and an

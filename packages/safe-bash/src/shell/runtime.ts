@@ -12,7 +12,7 @@ import type { CommandArguments } from "../contracts/command.js";
 import { ValueArena } from "./value-state.js";
 import type { HeldValue, ValueScope, ValueStore } from "./value-state.js";
 import type { Command, HereDocument, Pipeline, Redirect, Script, Word, WordPart } from "./parser.js";
-import { HereDocumentSyntaxError, hereDocumentWords, parseShellInputUnit, parseShellUnit } from "./parser.js";
+import { HereDocumentSyntaxError, functionReprintedLines, hereDocumentWords, parseShellInputUnit, parseShellUnit } from "./parser.js";
 import { ShellLimitError, ShellSyntaxError } from "./types.js";
 import type { ShellCommandContext, ShellInvokeOptions, ShellLimits } from "./types.js";
 import { forkExtensions } from "./extensions.js";
@@ -315,6 +315,7 @@ interface TypedSavedVariable {
 const typedSavedVariables = new WeakMap<SavedVariable, TypedSavedVariable>();
 const valueScope = Symbol("shell value allocation scope");
 const invokedValues = new WeakMap<WordPart, ShellValue>();
+const functionDiagnostics = new WeakMap<Command, Readonly<{ offset: number; lines?: ReadonlyMap<Command, number> }>>();
 
 export interface State {
   extensions?: ShellExtensionState | undefined;
@@ -356,6 +357,8 @@ interface IO {
   readonly stderr: ByteSink;
   readonly diagnosticLine?: number;
   readonly diagnosticOffset?: number;
+  readonly functionCommandLines?: ReadonlyMap<Command, number> | undefined;
+  readonly diagnosticCommandLines?: ReadonlyMap<Command, number> | undefined;
   readonly substitutionDiagnosticLine?: number;
   readonly substitutionDiagnosticLines?: ReadonlyMap<Command, number>;
   readonly scriptName?: string;
@@ -2365,7 +2368,7 @@ export class Runtime {
   async command(command: Command, state: State, io: IO, fileShortcut = false, publicationNegate = false): Promise<number> {
     io[invocationScope].assertOpen();
     if (state.extensions && (command.kind === "simple" || command.kind === "arithmetic" || command.kind === "conditional")) {
-      io = { ...io, diagnosticLine: (command.line ?? 1) + (io.diagnosticOffset ?? 0) };
+      io = { ...io, diagnosticLine: io.diagnosticCommandLines?.get(command) ?? (command.line ?? 1) + (io.diagnosticOffset ?? 0) };
       const description = commandSpelling(command);
       if (!state.extensions.eventDepth) this.writeVariable(state, "BASH_COMMAND", description);
       if (await this.extensionEvent("command", state, io, state.status, description)) return state.status;
@@ -2396,7 +2399,7 @@ export class Runtime {
       [0, { input: originalIO.stdin, ...(originalIO.stdinIsDefault === undefined ? {} : { stdinIsDefault: originalIO.stdinIsDefault }) }],
       [1, { output: originalIO.stdout }], [2, { output: originalIO.stderr }],
     ]);
-    const diagnosticLine = (command.line ?? 1) + (originalIO.diagnosticOffset ?? 0);
+    const diagnosticLine = originalIO.diagnosticCommandLines?.get(command) ?? (command.line ?? 1) + (originalIO.diagnosticOffset ?? 0);
     originalIO = { ...originalIO, diagnosticLine, substitutionDiagnosticLine: originalIO.substitutionDiagnosticLines?.get(command) ?? diagnosticLine };
     if (command.kind === "subshell") originalIO = isolateIO(originalIO);
     this.budget.tick();
@@ -2421,7 +2424,12 @@ export class Runtime {
           await this.diagnostic(io, `\`${command.name}': is a special builtin`);
           throw new Flow("exit", 2);
         }
-        state.functions.set(command.name, { ...command.body, sourceName: io.scriptName ?? "shell" });
+        const body = { ...command.body, sourceName: io.scriptName ?? "shell" };
+        const offset = io.diagnosticOffset ?? 0;
+        const bodyLine = io.functionCommandLines?.get(command.body);
+        if (bodyLine !== undefined) body.line = bodyLine - offset;
+        functionDiagnostics.set(body, { offset, ...(bodyLine === undefined ? {} : { lines: io.functionCommandLines! }) });
+        state.functions.set(command.name, body);
         return 0;
       }
       if (command.kind === "simple") return await this.simple(command, state, originalIO, inputs, outputs, fileShortcut);
@@ -2678,6 +2686,8 @@ export class Runtime {
         ...(io.execution === undefined ? {} : { execution: io.execution }),
         ...(io.diagnosticLine === undefined ? {} : { diagnosticLine: io.diagnosticLine }),
         ...(io.diagnosticOffset === undefined ? {} : { diagnosticOffset: io.diagnosticOffset }),
+        ...(io.functionCommandLines === undefined ? {} : { functionCommandLines: io.functionCommandLines }),
+        ...(io.diagnosticCommandLines === undefined ? {} : { diagnosticCommandLines: io.diagnosticCommandLines }),
         ...(io.scriptName === undefined ? {} : { scriptName: io.scriptName }),
         ...(io.substitutionDiagnosticLine === undefined ? {} : { substitutionDiagnosticLine: io.substitutionDiagnosticLine }),
         ...(io.substitutionDiagnosticLines === undefined ? {} : { substitutionDiagnosticLines: io.substitutionDiagnosticLines }),
@@ -3171,7 +3181,12 @@ export class Runtime {
           try {
             await this.extensionEvent("function-enter", state, io, state.status);
             if (await this.extensionEvent("command", state, { ...io, ...context }, state.status, context.command)) return { exitCode: state.status };
-            const status = await this.command(body, state, { ...io, ...context, scriptName: body.sourceName ?? io.scriptName ?? "shell" });
+            const diagnostic = functionDiagnostics.get(body);
+            const status = await this.command(body, state, {
+              ...io, ...context, scriptName: body.sourceName ?? io.scriptName ?? "shell",
+              diagnosticOffset: diagnostic?.offset ?? 0,
+              functionCommandLines: diagnostic?.lines, diagnosticCommandLines: diagnostic?.lines,
+            });
             return { exitCode: await this.finishReturn("function-return", state, { ...io, ...context }, status) };
           }
           catch (error) {
@@ -4831,7 +4846,13 @@ export class Runtime {
       const substitutionDiagnosticLines = new Map<Command, number>();
       for (const [command, line] of part.script.printedLines ?? []) substitutionDiagnosticLines.set(command,
         part.sourceLine === undefined ? warningLine + (command.line ?? part.line) - part.line : warningLine + line - 1);
-      const captureIO = { ...isolateIO(io), substitutionDiagnosticLines, diagnosticOffset: (io.diagnosticLine ?? part.line) - (part.sourceLine ?? part.line), stdout: this.budget.sink(capture, this.signal) };
+      const reprintedLines = part.sourceLine === undefined ? undefined : functionReprintedLines(part.script);
+      const functionCommandLines = reprintedLines && new Map([...reprintedLines].map(([command, line]) => [command, warningLine + line - 1]));
+      const captureIO = {
+        ...isolateIO(io), substitutionDiagnosticLines,
+        diagnosticOffset: (io.diagnosticLine ?? part.line) - (part.sourceLine ?? part.line),
+        functionCommandLines, diagnosticCommandLines: undefined, stdout: this.budget.sink(capture, this.signal),
+      };
       try { state.substitutionStatus = fileShortcut ? await this.runCommandIsolated(command, child, captureIO, true) : await this.run(part.script, child, captureIO); }
       finally { stateMonitor(child)?.closeValues(); }
       state.status = state.substitutionStatus;

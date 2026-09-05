@@ -149,6 +149,135 @@ export interface Script {
   readonly printedNewlines?: number;
 }
 
+const scriptSeparators = new WeakMap<readonly AndOr[], readonly boolean[]>();
+const functionLayouts = new WeakMap<Script, ReadonlyMap<Command, number> | undefined>();
+
+export function functionReprintedLines(script: Script): ReadonlyMap<Command, number> | undefined {
+  if (functionLayouts.has(script)) return functionLayouts.get(script);
+  const lines = new Map<Command, number>();
+  let line = 1;
+  let found = false;
+  let endedWithDocument = false;
+  function words(values: readonly Word[]): boolean {
+    for (const word of values) {
+      if (word.printedNewlines === undefined) return false;
+      line += word.printedNewlines;
+    }
+    return true;
+  }
+  function redirects(values: readonly Redirect[]): boolean {
+    if (!values.length) return true;
+    endedWithDocument = false;
+    if (!words(values.map(redirect => redirect.target))) return false;
+    const documents = values.flatMap(redirect => redirect.document ? [redirect.document] : []);
+    if (documents.length) {
+      line++;
+      for (const document of documents) {
+        line += document.body.split("\n").length - 1 + document.delimiter.split("\n").length;
+      }
+      endedWithDocument = true;
+    }
+    return true;
+  }
+  function commands(body: Script, inFunction: boolean): boolean {
+    const separators = scriptSeparators.get(body.lists);
+    if (!separators) return false;
+    for (let index = 0; index < body.lists.length; index++) {
+      for (const pipeline of body.lists[index]!.pipelines) {
+        for (const command of pipeline.commands) if (!visit(command, inFunction)) return false;
+      }
+      if (index < body.lists.length - 1) {
+        line += endedWithDocument ? Number(inFunction || separators[index]) : Number(separators[index]) + Number(inFunction);
+        endedWithDocument = false;
+      }
+    }
+    return true;
+  }
+  function conditional(expression: ConditionalExpression): boolean {
+    switch (expression.kind) {
+      case "nonempty": case "unary": return words([expression.operand]);
+      case "binary": return words([expression.left, expression.right]);
+      case "not": return conditional(expression.operand);
+      case "and": case "or": return conditional(expression.left) && conditional(expression.right);
+    }
+  }
+  function visit(command: Command, inFunction: boolean): boolean {
+    lines.set(command, line);
+    if (command.kind === "simple") {
+      if (command.words.length) {
+        const firstNewlines = command.words[0]!.printedNewlines;
+        if (firstNewlines === undefined) return false;
+        lines.set(command, line + firstNewlines);
+      }
+      if (!words(command.words)) return false;
+    } else if (command.kind === "function") {
+      found = true;
+      line += 2;
+      if (command.body.kind === "group") {
+        lines.set(command.body, line - 1);
+        if (!commands(command.body.body, true)) return false;
+        line++;
+        endedWithDocument = false;
+        if (!redirects(command.body.redirects)) return false;
+      } else {
+        if (!visit(command.body, true)) return false;
+        line++;
+        endedWithDocument = false;
+      }
+    } else if (command.kind === "group" || command.kind === "subshell") {
+      const expanded = inFunction && command.kind === "group";
+      line += Number(expanded);
+      if (!commands(command.body, inFunction)) return false;
+      line += Number(expanded);
+      endedWithDocument = false;
+    } else if (command.kind === "if") {
+      for (let index = 0; index < command.branches.length; index++) {
+        if (index) line += 2;
+        const branch = command.branches[index]!;
+        if (!commands(branch.condition, inFunction)) return false;
+        line++;
+        endedWithDocument = false;
+        if (!commands(branch.body, inFunction)) return false;
+      }
+      if (command.otherwise) {
+        line += 2;
+        if (!commands(command.otherwise, inFunction)) return false;
+      }
+      line += command.branches.length;
+    } else if (command.kind === "for") {
+      if (command.words && !words(command.words)) return false;
+      line += 2;
+      if (!commands(command.body, inFunction)) return false;
+      line++;
+    } else if (command.kind === "while" || command.kind === "until") {
+      if (!commands(command.condition, inFunction)) return false;
+      line++;
+      endedWithDocument = false;
+      if (!commands(command.body, inFunction)) return false;
+      line++;
+    } else if (command.kind === "arithmetic") {
+      line += command.source.split("\n").length - 1;
+    } else if (command.kind === "conditional") {
+      if (!conditional(command.expression)) return false;
+    } else if (command.kind === "case") {
+      if (!words([command.subject])) return false;
+      for (let index = 0; index < command.clauses.length; index++) {
+        if (index) line++;
+        const clause = command.clauses[index]!;
+        if (!words(clause.patterns)) return false;
+        line++;
+        if (!commands(clause.body, inFunction)) return false;
+        line++;
+      }
+      line++;
+    } else return false;
+    return redirects(command.redirects);
+  }
+  const result = commands(script, false) && found ? lines : undefined;
+  functionLayouts.set(script, result);
+  return result;
+}
+
 function printedSimpleLines(lists: readonly AndOr[], separators: readonly boolean[]): Pick<Script, "printedLines" | "printedNewlines"> {
   const printedLines = new Map<Command, number>();
   let line = 1;
@@ -684,6 +813,7 @@ class Parser {
       } else if (!this.isEnd() && !this.is(")") && !(stops.has(this.current.value) && [";;", ";&", ";;&"].includes(this.current.value))) this.error("Expected command separator");
     }
     const printed = printedSimpleLines(lists, separators);
+    scriptSeparators.set(lists, Object.freeze(separators));
     return { lists, line, ...printed };
   }
 

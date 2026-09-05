@@ -1122,6 +1122,38 @@ this request to keep additions out of the default package.
   differences. Evidence is `/tmp/bash53-read-endpoints.LyAqXL/EVIDENCE.md`.
   This does not repair virtual endpoint ownership, prove Linux/TTY/socket
   semantics or qualify the still-incomplete extended-read leaf.
+- The revised function-coordinate increment captures each definition's effective
+  diagnostic base and carries reprinted command coordinates through substitution
+  and function invocation. It preserves the established 5.3 source-name policy.
+  The independent eight-case suite progresses from 4/8 to 8/8; all 31 earlier
+  primary cases and 71 author cases pass. Independent live 5.3 replay verifies
+  every one of the 63 author native goldens, including 39 new compound/heredoc
+  controls; the 13 mapfile callback-diagnostic comparisons remain exact.
+- Final root validation of this increment passes 1,847 tests across 56 unique
+  files with zero skips and stable watched source/test/compiled hashes. The nine
+  compiled public cases include the four reviewed compound-layout regressions,
+  which first reproduced as 5 passes/4 failures against the earlier build.
+  Sequential maintained default and optional builds succeed; exact-package strict
+  checking of eight roots reports zero diagnostics, and discovery passes 98/98.
+  The actual compiled diagnostic is visually inspected in
+  `function-coordinate-final-public-exact-visual.png`, with exact input and
+  byte-output evidence in the adjacent `function-coordinate-final-public-visual.json`.
+- Guarded root lint 29 completes with exit 0, no supervisor stop and all 80
+  watched input hashes unchanged. Its 5,309,404 child-output bytes are preserved.
+  The supervisor merged stdout/stderr, interleaving the two JSON streams; later
+  JSON-summary parsing fails and is not claimed as a parsed diagnostic inventory.
+  The runner exit and source-hash observations remain valid. This scoped strict
+  evidence does not clear the separately recorded maintained-typecheck failures.
+- Independent coordinate review finds no introduced regressions among 12 fresh
+  holdouts: eight match and four retain the exact earlier `4a516d970` failures.
+  Compound/function-containing substitution arguments, a parameter-default
+  compound substitution, and an unreached unsupported word still disable the
+  outer function layout map. Their candidate/native line pairs are 2/7, 2/8,
+  2/7 and 2/4. They remain required follow-up work, not accepted full parity;
+  separate command-name quoting failures also remain open. Tested simple and
+  multiline backticks match, without establishing universal backtick support.
+  Full review evidence is in the temporary
+  `function-compound-review.cgyUtQ/handoff.json` under the scripting-oracle root.
 
 - First implementation wave: cmp, yes, shuf and virtual devices in disjoint leaf
   directories. Root is qualifying native oracles and the opt-in delivery boundary.

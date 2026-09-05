@@ -1,0 +1,550 @@
+{
+  "profile": "primary-5.3",
+  "capturedAt": "2026-09-05T05:44:03.395Z",
+  "executable": "/tmp/safe-bash-gnu-5.3-adjudication.0zMRKT/bash-5.3/bash",
+  "executableSha256": "a0cfc1af0ff50f6b6e67c638979e2604f1c276c90116937fbaafcabb62ee2b40",
+  "version": "GNU bash, version 5.3.0(1)-release (aarch64-apple-darwin25.4.0)",
+  "originalTestSha256": "3463b4e6086fbbde83d8f3b29405675f4baf22b97f9fa53ee38c3fac52e76ebe",
+  "originalTestArchive": "/tmp/function-diagnostic-runtime-5.2-original-3463b4e6086fbbde83d8f3b29405675f4baf22b97f9fa53ee38c3fac52e76ebe.test.ts",
+  "records": [
+    {
+      "name": "nested eval declarations retain both effective line bases",
+      "source": ":\n:\neval ':\neval '\\''origin_fn() {\n:\norigin_missing;\n}\n'\\''\n'\n:\neval origin_fn",
+      "nativeSource": ":\n:\neval ':\neval '\\''origin_fn() {\n:\norigin_missing;\n}\n'\\''\n'\n:\neval origin_fn",
+      "status": 127,
+      "stdoutBase64": "",
+      "stderrBase64": "c2hlbGw6IGxpbmUgNjogb3JpZ2luX21pc3Npbmc6IGNvbW1hbmQgbm90IGZvdW5kCg=="
+    },
+    {
+      "name": "callback declarations retain effective nested eval lines",
+      "source": ":\n:\norigin_eval ':\neval '\\''origin_fn() {\n:\norigin_missing;\n}\n'\\''\n'\n:\norigin_eval origin_fn",
+      "nativeSource": ":\n:\neval ':\neval '\\''origin_fn() {\n:\norigin_missing;\n}\n'\\''\n'\n:\neval origin_fn",
+      "status": 127,
+      "stdoutBase64": "",
+      "stderrBase64": "c2hlbGw6IGxpbmUgNjogb3JpZ2luX21pc3Npbmc6IGNvbW1hbmQgbm90IGZvdW5kCg=="
+    },
+    {
+      "name": "eval declaration inside sourced input retains source path",
+      "source": ". /dev/fd/3 3<<'ORIGIN_FILE'\n:\n:\neval 'origin_fn() {\n:\norigin_missing;\n}\n'\nORIGIN_FILE\n:\n:\norigin_eval origin_fn",
+      "nativeSource": ". /dev/fd/3 3<<'ORIGIN_FILE'\n:\n:\neval 'origin_fn() {\n:\norigin_missing;\n}\n'\nORIGIN_FILE\n:\n:\neval origin_fn",
+      "file": ":\n:\neval 'origin_fn() {\n:\norigin_missing;\n}\n'\n",
+      "status": 127,
+      "stdoutBase64": "",
+      "stderrBase64": "L2Rldi9mZC8zOiBsaW5lIDU6IG9yaWdpbl9taXNzaW5nOiBjb21tYW5kIG5vdCBmb3VuZAo="
+    },
+    {
+      "name": "sourced declaration called in substitution retains source path",
+      "source": ". /dev/fd/3 3<<'ORIGIN_FILE'\norigin_fn() {\n:\norigin_missing;\n}\nORIGIN_FILE\n:\n:\nprintf '%s' \"$(origin_fn)\"",
+      "nativeSource": ". /dev/fd/3 3<<'ORIGIN_FILE'\norigin_fn() {\n:\norigin_missing;\n}\nORIGIN_FILE\n:\n:\nprintf '%s' \"$(origin_fn)\"",
+      "file": "origin_fn() {\n:\norigin_missing;\n}\n",
+      "status": 0,
+      "stdoutBase64": "",
+      "stderrBase64": "L2Rldi9mZC8zOiBsaW5lIDM6IG9yaWdpbl9taXNzaW5nOiBjb21tYW5kIG5vdCBmb3VuZAo="
+    },
+    {
+      "name": "sourced declaration in subshell retains source path",
+      "source": ". /dev/fd/3 3<<'ORIGIN_FILE'\norigin_fn() {\n:\norigin_missing;\n}\nORIGIN_FILE\n:\n:\n(eval origin_fn)",
+      "nativeSource": ". /dev/fd/3 3<<'ORIGIN_FILE'\norigin_fn() {\n:\norigin_missing;\n}\nORIGIN_FILE\n:\n:\n(eval origin_fn)",
+      "file": "origin_fn() {\n:\norigin_missing;\n}\n",
+      "status": 127,
+      "stdoutBase64": "",
+      "stderrBase64": "L2Rldi9mZC8zOiBsaW5lIDM6IG9yaWdpbl9taXNzaW5nOiBjb21tYW5kIG5vdCBmb3VuZAo="
+    },
+    {
+      "name": "subshell redefinition does not overwrite parent origin",
+      "source": "origin_fn() {\n:\norigin_missing;\n}\n(eval ':\n:\norigin_fn() {\n:\norigin_missing;\n}\n'; origin_fn); origin_fn",
+      "nativeSource": "origin_fn() {\n:\norigin_missing;\n}\n(eval ':\n:\norigin_fn() {\n:\norigin_missing;\n}\n'; origin_fn); origin_fn",
+      "status": 127,
+      "stdoutBase64": "",
+      "stderrBase64": "c2hlbGw6IGxpbmUgOTogb3JpZ2luX21pc3Npbmc6IGNvbW1hbmQgbm90IGZvdW5kCnNoZWxsOiBsaW5lIDM6IG9yaWdpbl9taXNzaW5nOiBjb21tYW5kIG5vdCBmb3VuZAo="
+    },
+    {
+      "name": "nested function declaration retains containing eval origin",
+      "source": ":\n:\neval 'outer() {\norigin_fn() {\n:\norigin_missing;\n}\n}\n'; outer; eval origin_fn",
+      "nativeSource": ":\n:\neval 'outer() {\norigin_fn() {\n:\norigin_missing;\n}\n}\n'; outer; eval origin_fn",
+      "status": 127,
+      "stdoutBase64": "",
+      "stderrBase64": "c2hlbGw6IGxpbmUgNjogb3JpZ2luX21pc3Npbmc6IGNvbW1hbmQgbm90IGZvdW5kCg=="
+    },
+    {
+      "name": "redirection context retains definition provenance",
+      "source": "{ origin_fn() {\n:\norigin_missing;\n}\n} 2>&1; origin_fn",
+      "nativeSource": "{ origin_fn() {\n:\norigin_missing;\n}\n} 2>&1; origin_fn",
+      "status": 127,
+      "stdoutBase64": "",
+      "stderrBase64": "c2hlbGw6IGxpbmUgMzogb3JpZ2luX21pc3Npbmc6IGNvbW1hbmQgbm90IGZvdW5kCg=="
+    },
+    {
+      "name": "command substitution declaration retains definition provenance",
+      "source": ":\n:\nprintf '%s' \"$(origin_fn() {\n:\norigin_missing;\n}\norigin_fn)\"",
+      "nativeSource": ":\n:\nprintf '%s' \"$(origin_fn() {\n:\norigin_missing;\n}\norigin_fn)\"",
+      "status": 0,
+      "stdoutBase64": "",
+      "stderrBase64": "c2hlbGw6IGxpbmUgNzogb3JpZ2luX21pc3Npbmc6IGNvbW1hbmQgbm90IGZvdW5kCg=="
+    },
+    {
+      "name": "function execution restores caller diagnostic identity",
+      "source": "origin_fn() {\n:\norigin_missing;\n}\norigin_fn;\norigin_missing",
+      "nativeSource": "origin_fn() {\n:\norigin_missing;\n}\norigin_fn;\norigin_missing",
+      "status": 127,
+      "stdoutBase64": "",
+      "stderrBase64": "c2hlbGw6IGxpbmUgMzogb3JpZ2luX21pc3Npbmc6IGNvbW1hbmQgbm90IGZvdW5kCnNoZWxsOiBsaW5lIDY6IG9yaWdpbl9taXNzaW5nOiBjb21tYW5kIG5vdCBmb3VuZAo="
+    },
+    {
+      "name": "sourced definition does not overwrite caller identity",
+      "source": ". /dev/fd/3 3<<'ORIGIN_FILE'\norigin_fn() {\n:\norigin_missing;\n}\nORIGIN_FILE\norigin_fn;\norigin_missing",
+      "nativeSource": ". /dev/fd/3 3<<'ORIGIN_FILE'\norigin_fn() {\n:\norigin_missing;\n}\nORIGIN_FILE\norigin_fn;\norigin_missing",
+      "file": "origin_fn() {\n:\norigin_missing;\n}\n",
+      "status": 127,
+      "stdoutBase64": "",
+      "stderrBase64": "L2Rldi9mZC8zOiBsaW5lIDM6IG9yaWdpbl9taXNzaW5nOiBjb21tYW5kIG5vdCBmb3VuZApzaGVsbDogbGluZSA4OiBvcmlnaW5fbWlzc2luZzogY29tbWFuZCBub3QgZm91bmQK"
+    },
+    {
+      "name": "command-string child uses function origin independent of argv zero",
+      "source": "bash -c 'origin_fn() {\n:\norigin_missing;\n}\neval origin_fn; origin_missing' custom-zero",
+      "nativeSource": "\"$BASH\" -c 'origin_fn() {\n:\norigin_missing;\n}\neval origin_fn; origin_missing' custom-zero",
+      "status": 127,
+      "stdoutBase64": "",
+      "stderrBase64": "Y3VzdG9tLXplcm86IGxpbmUgMzogb3JpZ2luX21pc3Npbmc6IGNvbW1hbmQgbm90IGZvdW5kCmN1c3RvbS16ZXJvOiBsaW5lIDU6IG9yaWdpbl9taXNzaW5nOiBjb21tYW5kIG5vdCBmb3VuZAo="
+    },
+    {
+      "name": "stdin incremental units retain child name and absolute declaration line",
+      "source": "printf '%s' ':\n:\norigin_fn() {\n:\norigin_missing;\n}\n:\n:\neval origin_fn' | bash",
+      "nativeSource": "printf '%s' ':\n:\norigin_fn() {\n:\norigin_missing;\n}\n:\n:\neval origin_fn' | (exec -a bash \"$BASH\")",
+      "status": 127,
+      "stdoutBase64": "",
+      "stderrBase64": "YmFzaDogbGluZSA1OiBvcmlnaW5fbWlzc2luZzogY29tbWFuZCBub3QgZm91bmQK"
+    },
+    {
+      "name": "script-file child retains target origin",
+      "source": "bash /dev/fd/3",
+      "nativeSource": "\"$BASH\" /dev/fd/3 3<<'ORIGIN_FILE'\n:\norigin_fn() {\n:\norigin_missing;\n}\n:\neval origin_fn\nORIGIN_FILE",
+      "file": ":\norigin_fn() {\n:\norigin_missing;\n}\n:\neval origin_fn",
+      "status": 127,
+      "stdoutBase64": "",
+      "stderrBase64": "L2Rldi9mZC8zOiBsaW5lIDQ6IG9yaWdpbl9taXNzaW5nOiBjb21tYW5kIG5vdCBmb3VuZAo="
+    },
+    {
+      "name": "function reprint layout \"origin_fn(){ origin_missing; }; origin_fn\"",
+      "source": ":\nprintf '%s' \"$(origin_fn(){ origin_missing; }; origin_fn)\"",
+      "nativeSource": ":\nprintf '%s' \"$(origin_fn(){ origin_missing; }; origin_fn)\"",
+      "status": 0,
+      "stdoutBase64": "",
+      "stderrBase64": "c2hlbGw6IGxpbmUgNDogb3JpZ2luX21pc3Npbmc6IGNvbW1hbmQgbm90IGZvdW5kCg=="
+    },
+    {
+      "name": "function reprint layout \"origin_fn()\\n{\\norigin_missing;\\n}\\norigin_fn\"",
+      "source": ":\nprintf '%s' \"$(origin_fn()\n{\norigin_missing;\n}\norigin_fn)\"",
+      "nativeSource": ":\nprintf '%s' \"$(origin_fn()\n{\norigin_missing;\n}\norigin_fn)\"",
+      "status": 0,
+      "stdoutBase64": "",
+      "stderrBase64": "c2hlbGw6IGxpbmUgNDogb3JpZ2luX21pc3Npbmc6IGNvbW1hbmQgbm90IGZvdW5kCg=="
+    },
+    {
+      "name": "function reprint layout \"origin_fn(){ origin_first; origin_second; }; origin_fn\"",
+      "source": ":\nprintf '%s' \"$(origin_fn(){ origin_first; origin_second; }; origin_fn)\"",
+      "nativeSource": ":\nprintf '%s' \"$(origin_fn(){ origin_first; origin_second; }; origin_fn)\"",
+      "status": 0,
+      "stdoutBase64": "",
+      "stderrBase64": "c2hlbGw6IGxpbmUgNDogb3JpZ2luX2ZpcnN0OiBjb21tYW5kIG5vdCBmb3VuZApzaGVsbDogbGluZSA1OiBvcmlnaW5fc2Vjb25kOiBjb21tYW5kIG5vdCBmb3VuZAo="
+    },
+    {
+      "name": "function reprint layout \"origin_fn(){\\norigin_first\\norigin_second\\n}; origin_fn\"",
+      "source": ":\nprintf '%s' \"$(origin_fn(){\norigin_first\norigin_second\n}; origin_fn)\"",
+      "nativeSource": ":\nprintf '%s' \"$(origin_fn(){\norigin_first\norigin_second\n}; origin_fn)\"",
+      "status": 0,
+      "stdoutBase64": "",
+      "stderrBase64": "c2hlbGw6IGxpbmUgNDogb3JpZ2luX2ZpcnN0OiBjb21tYW5kIG5vdCBmb3VuZApzaGVsbDogbGluZSA2OiBvcmlnaW5fc2Vjb25kOiBjb21tYW5kIG5vdCBmb3VuZAo="
+    },
+    {
+      "name": "function reprint layout \"origin_fn(){ origin_first;\\n\\norigin_second; }; origin_fn\"",
+      "source": ":\nprintf '%s' \"$(origin_fn(){ origin_first;\n\norigin_second; }; origin_fn)\"",
+      "nativeSource": ":\nprintf '%s' \"$(origin_fn(){ origin_first;\n\norigin_second; }; origin_fn)\"",
+      "status": 0,
+      "stdoutBase64": "",
+      "stderrBase64": "c2hlbGw6IGxpbmUgNDogb3JpZ2luX2ZpcnN0OiBjb21tYW5kIG5vdCBmb3VuZApzaGVsbDogbGluZSA1OiBvcmlnaW5fc2Vjb25kOiBjb21tYW5kIG5vdCBmb3VuZAo="
+    },
+    {
+      "name": "function reprint layout \"outer(){ origin_fn(){ origin_missing; }; }; outer; origin_fn\"",
+      "source": ":\nprintf '%s' \"$(outer(){ origin_fn(){ origin_missing; }; }; outer; origin_fn)\"",
+      "nativeSource": ":\nprintf '%s' \"$(outer(){ origin_fn(){ origin_missing; }; }; outer; origin_fn)\"",
+      "status": 0,
+      "stdoutBase64": "",
+      "stderrBase64": "c2hlbGw6IGxpbmUgNjogb3JpZ2luX21pc3Npbmc6IGNvbW1hbmQgbm90IGZvdW5kCg=="
+    },
+    {
+      "name": "function reprint layout \"origin_fn(){ { origin_missing; }; }; origin_fn\"",
+      "source": ":\nprintf '%s' \"$(origin_fn(){ { origin_missing; }; }; origin_fn)\"",
+      "nativeSource": ":\nprintf '%s' \"$(origin_fn(){ { origin_missing; }; }; origin_fn)\"",
+      "status": 0,
+      "stdoutBase64": "",
+      "stderrBase64": "c2hlbGw6IGxpbmUgNTogb3JpZ2luX21pc3Npbmc6IGNvbW1hbmQgbm90IGZvdW5kCg=="
+    },
+    {
+      "name": "function reprint layout \"origin_fn() (origin_missing); origin_fn\"",
+      "source": ":\nprintf '%s' \"$(origin_fn() (origin_missing); origin_fn)\"",
+      "nativeSource": ":\nprintf '%s' \"$(origin_fn() (origin_missing); origin_fn)\"",
+      "status": 0,
+      "stdoutBase64": "",
+      "stderrBase64": "c2hlbGw6IGxpbmUgNDogb3JpZ2luX21pc3Npbmc6IGNvbW1hbmQgbm90IGZvdW5kCg=="
+    },
+    {
+      "name": "function reprint layout \":\\n\\norigin_fn(){\\norigin_missing;\\n};\\n\\norigin_fn\"",
+      "source": ":\nprintf '%s' \"$(:\n\norigin_fn(){\norigin_missing;\n};\n\norigin_fn)\"",
+      "nativeSource": ":\nprintf '%s' \"$(:\n\norigin_fn(){\norigin_missing;\n};\n\norigin_fn)\"",
+      "status": 0,
+      "stdoutBase64": "",
+      "stderrBase64": "c2hlbGw6IGxpbmUgNTogb3JpZ2luX21pc3Npbmc6IGNvbW1hbmQgbm90IGZvdW5kCg=="
+    },
+    {
+      "name": "function reprint layout \"origin_fn(){ printf '%s' 'first\\nlast'; origin_missing; }; origin_fn\"",
+      "source": ":\nprintf '%s' \"$(origin_fn(){ printf '%s' 'first\nlast'; origin_missing; }; origin_fn)\"",
+      "nativeSource": ":\nprintf '%s' \"$(origin_fn(){ printf '%s' 'first\nlast'; origin_missing; }; origin_fn)\"",
+      "status": 0,
+      "stdoutBase64": "Zmlyc3QKbGFzdA==",
+      "stderrBase64": "c2hlbGw6IGxpbmUgNjogb3JpZ2luX21pc3Npbmc6IGNvbW1hbmQgbm90IGZvdW5kCg=="
+    },
+    {
+      "name": "compound function layout \"origin_fn(){ if true; then origin_missing; fi; }; origin_fn\"",
+      "source": ":\nprintf '%s' \"$(origin_fn(){ if true; then origin_missing; fi; }; origin_fn)\"",
+      "nativeSource": ":\nprintf '%s' \"$(origin_fn(){ if true; then origin_missing; fi; }; origin_fn)\"",
+      "status": 0,
+      "stdoutBase64": "",
+      "stderrBase64": "c2hlbGw6IGxpbmUgNTogb3JpZ2luX21pc3Npbmc6IGNvbW1hbmQgbm90IGZvdW5kCg=="
+    },
+    {
+      "name": "compound function layout \"origin_fn(){ if false; then :; elif true; then origin_missing; else :; fi; }; origin_fn\"",
+      "source": ":\nprintf '%s' \"$(origin_fn(){ if false; then :; elif true; then origin_missing; else :; fi; }; origin_fn)\"",
+      "nativeSource": ":\nprintf '%s' \"$(origin_fn(){ if false; then :; elif true; then origin_missing; else :; fi; }; origin_fn)\"",
+      "status": 0,
+      "stdoutBase64": "",
+      "stderrBase64": "c2hlbGw6IGxpbmUgODogb3JpZ2luX21pc3Npbmc6IGNvbW1hbmQgbm90IGZvdW5kCg=="
+    },
+    {
+      "name": "compound function layout \"origin_fn(){ if false; then :; elif false; then :; else origin_missing; fi; }; origin_fn\"",
+      "source": ":\nprintf '%s' \"$(origin_fn(){ if false; then :; elif false; then :; else origin_missing; fi; }; origin_fn)\"",
+      "nativeSource": ":\nprintf '%s' \"$(origin_fn(){ if false; then :; elif false; then :; else origin_missing; fi; }; origin_fn)\"",
+      "status": 0,
+      "stdoutBase64": "",
+      "stderrBase64": "c2hlbGw6IGxpbmUgMTA6IG9yaWdpbl9taXNzaW5nOiBjb21tYW5kIG5vdCBmb3VuZAo="
+    },
+    {
+      "name": "compound function layout \"origin_fn(){ if origin_guard; then :; else origin_missing; fi; }; origin_fn\"",
+      "source": ":\nprintf '%s' \"$(origin_fn(){ if origin_guard; then :; else origin_missing; fi; }; origin_fn)\"",
+      "nativeSource": ":\nprintf '%s' \"$(origin_fn(){ if origin_guard; then :; else origin_missing; fi; }; origin_fn)\"",
+      "status": 0,
+      "stdoutBase64": "",
+      "stderrBase64": "c2hlbGw6IGxpbmUgNDogb3JpZ2luX2d1YXJkOiBjb21tYW5kIG5vdCBmb3VuZApzaGVsbDogbGluZSA3OiBvcmlnaW5fbWlzc2luZzogY29tbWFuZCBub3QgZm91bmQK"
+    },
+    {
+      "name": "compound function layout \"origin_fn(){ if true\\nthen\\norigin_first\\norigin_second\\nfi; }; origin_fn\"",
+      "source": ":\nprintf '%s' \"$(origin_fn(){ if true\nthen\norigin_first\norigin_second\nfi; }; origin_fn)\"",
+      "nativeSource": ":\nprintf '%s' \"$(origin_fn(){ if true\nthen\norigin_first\norigin_second\nfi; }; origin_fn)\"",
+      "status": 0,
+      "stdoutBase64": "",
+      "stderrBase64": "c2hlbGw6IGxpbmUgNTogb3JpZ2luX2ZpcnN0OiBjb21tYW5kIG5vdCBmb3VuZApzaGVsbDogbGluZSA3OiBvcmlnaW5fc2Vjb25kOiBjb21tYW5kIG5vdCBmb3VuZAo="
+    },
+    {
+      "name": "compound function layout \"origin_fn(){ for item in one; do origin_missing; done; }; origin_fn\"",
+      "source": ":\nprintf '%s' \"$(origin_fn(){ for item in one; do origin_missing; done; }; origin_fn)\"",
+      "nativeSource": ":\nprintf '%s' \"$(origin_fn(){ for item in one; do origin_missing; done; }; origin_fn)\"",
+      "status": 0,
+      "stdoutBase64": "",
+      "stderrBase64": "c2hlbGw6IGxpbmUgNjogb3JpZ2luX21pc3Npbmc6IGNvbW1hbmQgbm90IGZvdW5kCg=="
+    },
+    {
+      "name": "compound function layout \"origin_fn(){ for item in 'first\\nlast'; do origin_missing; done; }; origin_fn\"",
+      "source": ":\nprintf '%s' \"$(origin_fn(){ for item in 'first\nlast'; do origin_missing; done; }; origin_fn)\"",
+      "nativeSource": ":\nprintf '%s' \"$(origin_fn(){ for item in 'first\nlast'; do origin_missing; done; }; origin_fn)\"",
+      "status": 0,
+      "stdoutBase64": "",
+      "stderrBase64": "c2hlbGw6IGxpbmUgNzogb3JpZ2luX21pc3Npbmc6IGNvbW1hbmQgbm90IGZvdW5kCg=="
+    },
+    {
+      "name": "compound function layout \"origin_fn(){ for item; do origin_missing; done; }; origin_fn one\"",
+      "source": ":\nprintf '%s' \"$(origin_fn(){ for item; do origin_missing; done; }; origin_fn one)\"",
+      "nativeSource": ":\nprintf '%s' \"$(origin_fn(){ for item; do origin_missing; done; }; origin_fn one)\"",
+      "status": 0,
+      "stdoutBase64": "",
+      "stderrBase64": "c2hlbGw6IGxpbmUgNjogb3JpZ2luX21pc3Npbmc6IGNvbW1hbmQgbm90IGZvdW5kCg=="
+    },
+    {
+      "name": "compound function layout \"origin_fn(){ while true; do origin_missing; break; done; }; origin_fn\"",
+      "source": ":\nprintf '%s' \"$(origin_fn(){ while true; do origin_missing; break; done; }; origin_fn)\"",
+      "nativeSource": ":\nprintf '%s' \"$(origin_fn(){ while true; do origin_missing; break; done; }; origin_fn)\"",
+      "status": 0,
+      "stdoutBase64": "",
+      "stderrBase64": "c2hlbGw6IGxpbmUgNTogb3JpZ2luX21pc3Npbmc6IGNvbW1hbmQgbm90IGZvdW5kCg=="
+    },
+    {
+      "name": "compound function layout \"origin_fn(){ until false; do origin_missing; break; done; }; origin_fn\"",
+      "source": ":\nprintf '%s' \"$(origin_fn(){ until false; do origin_missing; break; done; }; origin_fn)\"",
+      "nativeSource": ":\nprintf '%s' \"$(origin_fn(){ until false; do origin_missing; break; done; }; origin_fn)\"",
+      "status": 0,
+      "stdoutBase64": "",
+      "stderrBase64": "c2hlbGw6IGxpbmUgNTogb3JpZ2luX21pc3Npbmc6IGNvbW1hbmQgbm90IGZvdW5kCg=="
+    },
+    {
+      "name": "compound function layout \"origin_fn(){ while origin_guard; do :; done; origin_missing; }; origin_fn\"",
+      "source": ":\nprintf '%s' \"$(origin_fn(){ while origin_guard; do :; done; origin_missing; }; origin_fn)\"",
+      "nativeSource": ":\nprintf '%s' \"$(origin_fn(){ while origin_guard; do :; done; origin_missing; }; origin_fn)\"",
+      "status": 0,
+      "stdoutBase64": "",
+      "stderrBase64": "c2hlbGw6IGxpbmUgNDogb3JpZ2luX2d1YXJkOiBjb21tYW5kIG5vdCBmb3VuZApzaGVsbDogbGluZSA3OiBvcmlnaW5fbWlzc2luZzogY29tbWFuZCBub3QgZm91bmQK"
+    },
+    {
+      "name": "compound function layout \"origin_fn(){ for item in one; do if true; then origin_first; fi; origin_second; done; origin_last; }; origin_fn\"",
+      "source": ":\nprintf '%s' \"$(origin_fn(){ for item in one; do if true; then origin_first; fi; origin_second; done; origin_last; }; origin_fn)\"",
+      "nativeSource": ":\nprintf '%s' \"$(origin_fn(){ for item in one; do if true; then origin_first; fi; origin_second; done; origin_last; }; origin_fn)\"",
+      "status": 0,
+      "stdoutBase64": "",
+      "stderrBase64": "c2hlbGw6IGxpbmUgNzogb3JpZ2luX2ZpcnN0OiBjb21tYW5kIG5vdCBmb3VuZApzaGVsbDogbGluZSA5OiBvcmlnaW5fc2Vjb25kOiBjb21tYW5kIG5vdCBmb3VuZApzaGVsbDogbGluZSAxMTogb3JpZ2luX2xhc3Q6IGNvbW1hbmQgbm90IGZvdW5kCg=="
+    },
+    {
+      "name": "compound function layout \"if true; then :; fi; origin_fn(){ origin_missing; }; origin_fn\"",
+      "source": ":\nprintf '%s' \"$(if true; then :; fi; origin_fn(){ origin_missing; }; origin_fn)\"",
+      "nativeSource": ":\nprintf '%s' \"$(if true; then :; fi; origin_fn(){ origin_missing; }; origin_fn)\"",
+      "status": 0,
+      "stdoutBase64": "",
+      "stderrBase64": "c2hlbGw6IGxpbmUgNjogb3JpZ2luX21pc3Npbmc6IGNvbW1hbmQgbm90IGZvdW5kCg=="
+    },
+    {
+      "name": "compound function layout \"for item in one; do :; done; origin_fn(){ origin_missing; }; origin_fn\"",
+      "source": ":\nprintf '%s' \"$(for item in one; do :; done; origin_fn(){ origin_missing; }; origin_fn)\"",
+      "nativeSource": ":\nprintf '%s' \"$(for item in one; do :; done; origin_fn(){ origin_missing; }; origin_fn)\"",
+      "status": 0,
+      "stdoutBase64": "",
+      "stderrBase64": "c2hlbGw6IGxpbmUgNzogb3JpZ2luX21pc3Npbmc6IGNvbW1hbmQgbm90IGZvdW5kCg=="
+    },
+    {
+      "name": "compound function layout \"while false; do :; done; origin_fn(){ origin_missing; }; origin_fn\"",
+      "source": ":\nprintf '%s' \"$(while false; do :; done; origin_fn(){ origin_missing; }; origin_fn)\"",
+      "nativeSource": ":\nprintf '%s' \"$(while false; do :; done; origin_fn(){ origin_missing; }; origin_fn)\"",
+      "status": 0,
+      "stdoutBase64": "",
+      "stderrBase64": "c2hlbGw6IGxpbmUgNjogb3JpZ2luX21pc3Npbmc6IGNvbW1hbmQgbm90IGZvdW5kCg=="
+    },
+    {
+      "name": "compound function layout \"if true; then origin_fn(){ origin_missing; }; fi; origin_fn\"",
+      "source": ":\nprintf '%s' \"$(if true; then origin_fn(){ origin_missing; }; fi; origin_fn)\"",
+      "nativeSource": ":\nprintf '%s' \"$(if true; then origin_fn(){ origin_missing; }; fi; origin_fn)\"",
+      "status": 0,
+      "stdoutBase64": "",
+      "stderrBase64": "c2hlbGw6IGxpbmUgNTogb3JpZ2luX21pc3Npbmc6IGNvbW1hbmQgbm90IGZvdW5kCg=="
+    },
+    {
+      "name": "compound function layout \"origin_fn(){ if (( 1 )); then origin_missing; fi; }; origin_fn\"",
+      "source": ":\nprintf '%s' \"$(origin_fn(){ if (( 1 )); then origin_missing; fi; }; origin_fn)\"",
+      "nativeSource": ":\nprintf '%s' \"$(origin_fn(){ if (( 1 )); then origin_missing; fi; }; origin_fn)\"",
+      "status": 0,
+      "stdoutBase64": "",
+      "stderrBase64": "c2hlbGw6IGxpbmUgNTogb3JpZ2luX21pc3Npbmc6IGNvbW1hbmQgbm90IGZvdW5kCg=="
+    },
+    {
+      "name": "compound function layout \"origin_fn(){ if [[ x = x ]]; then origin_missing; fi; }; origin_fn\"",
+      "source": ":\nprintf '%s' \"$(origin_fn(){ if [[ x = x ]]; then origin_missing; fi; }; origin_fn)\"",
+      "nativeSource": ":\nprintf '%s' \"$(origin_fn(){ if [[ x = x ]]; then origin_missing; fi; }; origin_fn)\"",
+      "status": 0,
+      "stdoutBase64": "",
+      "stderrBase64": "c2hlbGw6IGxpbmUgNTogb3JpZ2luX21pc3Npbmc6IGNvbW1hbmQgbm90IGZvdW5kCg=="
+    },
+    {
+      "name": "compound function layout \"origin_fn(){ if [[ 'first\\nlast' = 'first\\nlast' ]]; then origin_missing; fi; }; origin_fn\"",
+      "source": ":\nprintf '%s' \"$(origin_fn(){ if [[ 'first\nlast' = 'first\nlast' ]]; then origin_missing; fi; }; origin_fn)\"",
+      "nativeSource": ":\nprintf '%s' \"$(origin_fn(){ if [[ 'first\nlast' = 'first\nlast' ]]; then origin_missing; fi; }; origin_fn)\"",
+      "status": 0,
+      "stdoutBase64": "",
+      "stderrBase64": "c2hlbGw6IGxpbmUgNzogb3JpZ2luX21pc3Npbmc6IGNvbW1hbmQgbm90IGZvdW5kCg=="
+    },
+    {
+      "name": "compound function layout \"origin_fn(){ if ((\\n1\\n)); then origin_missing; fi; }; origin_fn\"",
+      "source": ":\nprintf '%s' \"$(origin_fn(){ if ((\n1\n)); then origin_missing; fi; }; origin_fn)\"",
+      "nativeSource": ":\nprintf '%s' \"$(origin_fn(){ if ((\n1\n)); then origin_missing; fi; }; origin_fn)\"",
+      "status": 0,
+      "stdoutBase64": "",
+      "stderrBase64": "c2hlbGw6IGxpbmUgNzogb3JpZ2luX21pc3Npbmc6IGNvbW1hbmQgbm90IGZvdW5kCg=="
+    },
+    {
+      "name": "compound function layout \"origin_fn(){ case one in one) origin_missing;; esac; }; origin_fn\"",
+      "source": ":\nprintf '%s' \"$(origin_fn(){ case one in one) origin_missing;; esac; }; origin_fn)\"",
+      "nativeSource": ":\nprintf '%s' \"$(origin_fn(){ case one in one) origin_missing;; esac; }; origin_fn)\"",
+      "status": 0,
+      "stdoutBase64": "",
+      "stderrBase64": "c2hlbGw6IGxpbmUgNTogb3JpZ2luX21pc3Npbmc6IGNvbW1hbmQgbm90IGZvdW5kCg=="
+    },
+    {
+      "name": "compound function layout \"origin_fn(){ case two in one) :;; two) origin_missing;; esac; origin_last; }; origin_fn\"",
+      "source": ":\nprintf '%s' \"$(origin_fn(){ case two in one) :;; two) origin_missing;; esac; origin_last; }; origin_fn)\"",
+      "nativeSource": ":\nprintf '%s' \"$(origin_fn(){ case two in one) :;; two) origin_missing;; esac; origin_last; }; origin_fn)\"",
+      "status": 0,
+      "stdoutBase64": "",
+      "stderrBase64": "c2hlbGw6IGxpbmUgODogb3JpZ2luX21pc3Npbmc6IGNvbW1hbmQgbm90IGZvdW5kCnNoZWxsOiBsaW5lIDExOiBvcmlnaW5fbGFzdDogY29tbWFuZCBub3QgZm91bmQK"
+    },
+    {
+      "name": "compound function layout \"origin_fn(){ case 'first\\nlast' in 'first\\nlast') origin_missing;; esac; }; origin_fn\"",
+      "source": ":\nprintf '%s' \"$(origin_fn(){ case 'first\nlast' in 'first\nlast') origin_missing;; esac; }; origin_fn)\"",
+      "nativeSource": ":\nprintf '%s' \"$(origin_fn(){ case 'first\nlast' in 'first\nlast') origin_missing;; esac; }; origin_fn)\"",
+      "status": 0,
+      "stdoutBase64": "",
+      "stderrBase64": "c2hlbGw6IGxpbmUgNzogb3JpZ2luX21pc3Npbmc6IGNvbW1hbmQgbm90IGZvdW5kCg=="
+    },
+    {
+      "name": "compound function layout \"case one in one) :;; esac; origin_fn(){ origin_missing; }; origin_fn\"",
+      "source": ":\nprintf '%s' \"$(case one in one) :;; esac; origin_fn(){ origin_missing; }; origin_fn)\"",
+      "nativeSource": ":\nprintf '%s' \"$(case one in one) :;; esac; origin_fn(){ origin_missing; }; origin_fn)\"",
+      "status": 0,
+      "stdoutBase64": "",
+      "stderrBase64": "c2hlbGw6IGxpbmUgNzogb3JpZ2luX21pc3Npbmc6IGNvbW1hbmQgbm90IGZvdW5kCg=="
+    },
+    {
+      "name": "heredoc function layout \"origin_fn(){ : <<'END'\\npayload\\nEND\\norigin_missing; }; origin_fn\"",
+      "source": ":\nprintf '%s' \"$(origin_fn(){ : <<'END'\npayload\nEND\norigin_missing; }; origin_fn)\"",
+      "nativeSource": ":\nprintf '%s' \"$(origin_fn(){ : <<'END'\npayload\nEND\norigin_missing; }; origin_fn)\"",
+      "status": 0,
+      "stdoutBase64": "",
+      "stderrBase64": "c2hlbGw6IGxpbmUgODogb3JpZ2luX21pc3Npbmc6IGNvbW1hbmQgbm90IGZvdW5kCg=="
+    },
+    {
+      "name": "heredoc function layout \": <<'END'\\npayload\\nEND\\norigin_fn(){ origin_missing; }; origin_fn\"",
+      "source": ":\nprintf '%s' \"$(: <<'END'\npayload\nEND\norigin_fn(){ origin_missing; }; origin_fn)\"",
+      "nativeSource": ":\nprintf '%s' \"$(: <<'END'\npayload\nEND\norigin_fn(){ origin_missing; }; origin_fn)\"",
+      "status": 0,
+      "stdoutBase64": "",
+      "stderrBase64": "c2hlbGw6IGxpbmUgODogb3JpZ2luX21pc3Npbmc6IGNvbW1hbmQgbm90IGZvdW5kCg=="
+    },
+    {
+      "name": "heredoc function layout \"origin_fn(){ origin_missing; } <<'END'\\npayload\\nEND\\norigin_fn\"",
+      "source": ":\nprintf '%s' \"$(origin_fn(){ origin_missing; } <<'END'\npayload\nEND\norigin_fn)\"",
+      "nativeSource": ":\nprintf '%s' \"$(origin_fn(){ origin_missing; } <<'END'\npayload\nEND\norigin_fn)\"",
+      "status": 0,
+      "stdoutBase64": "",
+      "stderrBase64": "c2hlbGw6IGxpbmUgNDogb3JpZ2luX21pc3Npbmc6IGNvbW1hbmQgbm90IGZvdW5kCg=="
+    },
+    {
+      "name": "heredoc function layout \"origin_fn(){ if : <<'END'\\npayload\\nEND\\nthen origin_missing; fi; }; origin_fn\"",
+      "source": ":\nprintf '%s' \"$(origin_fn(){ if : <<'END'\npayload\nEND\nthen origin_missing; fi; }; origin_fn)\"",
+      "nativeSource": ":\nprintf '%s' \"$(origin_fn(){ if : <<'END'\npayload\nEND\nthen origin_missing; fi; }; origin_fn)\"",
+      "status": 0,
+      "stdoutBase64": "",
+      "stderrBase64": "c2hlbGw6IGxpbmUgODogb3JpZ2luX21pc3Npbmc6IGNvbW1hbmQgbm90IGZvdW5kCg=="
+    },
+    {
+      "name": "heredoc function layout \"origin_fn(){ while : <<'END'\\npayload\\nEND\\ndo origin_missing; break; done; }; origin_fn\"",
+      "source": ":\nprintf '%s' \"$(origin_fn(){ while : <<'END'\npayload\nEND\ndo origin_missing; break; done; }; origin_fn)\"",
+      "nativeSource": ":\nprintf '%s' \"$(origin_fn(){ while : <<'END'\npayload\nEND\ndo origin_missing; break; done; }; origin_fn)\"",
+      "status": 0,
+      "stdoutBase64": "",
+      "stderrBase64": "c2hlbGw6IGxpbmUgODogb3JpZ2luX21pc3Npbmc6IGNvbW1hbmQgbm90IGZvdW5kCg=="
+    },
+    {
+      "name": "heredoc function layout \"origin_fn(){ : <<FIRST <<SECOND\\none\\nFIRST\\ntwo\\nSECOND\\norigin_missing; }; origin_fn\"",
+      "source": ":\nprintf '%s' \"$(origin_fn(){ : <<FIRST <<SECOND\none\nFIRST\ntwo\nSECOND\norigin_missing; }; origin_fn)\"",
+      "nativeSource": ":\nprintf '%s' \"$(origin_fn(){ : <<FIRST <<SECOND\none\nFIRST\ntwo\nSECOND\norigin_missing; }; origin_fn)\"",
+      "status": 0,
+      "stdoutBase64": "",
+      "stderrBase64": "c2hlbGw6IGxpbmUgMTA6IG9yaWdpbl9taXNzaW5nOiBjb21tYW5kIG5vdCBmb3VuZAo="
+    },
+    {
+      "name": "heredoc function layout \"origin_fn(){ : <<END | :\\npayload\\nEND\\norigin_missing; }; origin_fn\"",
+      "source": ":\nprintf '%s' \"$(origin_fn(){ : <<END | :\npayload\nEND\norigin_missing; }; origin_fn)\"",
+      "nativeSource": ":\nprintf '%s' \"$(origin_fn(){ : <<END | :\npayload\nEND\norigin_missing; }; origin_fn)\"",
+      "status": 0,
+      "stdoutBase64": "",
+      "stderrBase64": "c2hlbGw6IGxpbmUgODogb3JpZ2luX21pc3Npbmc6IGNvbW1hbmQgbm90IGZvdW5kCg=="
+    },
+    {
+      "name": "heredoc function layout \"origin_fn(){ : <<END\\n$(printf '%s' value)\\nEND\\norigin_missing; }; origin_fn\"",
+      "source": ":\nprintf '%s' \"$(origin_fn(){ : <<END\n$(printf '%s' value)\nEND\norigin_missing; }; origin_fn)\"",
+      "nativeSource": ":\nprintf '%s' \"$(origin_fn(){ : <<END\n$(printf '%s' value)\nEND\norigin_missing; }; origin_fn)\"",
+      "status": 0,
+      "stdoutBase64": "",
+      "stderrBase64": "c2hlbGw6IGxpbmUgODogb3JpZ2luX21pc3Npbmc6IGNvbW1hbmQgbm90IGZvdW5kCg=="
+    },
+    {
+      "name": "heredoc function layout \"origin_fn(){ : <<-END\\n\\tpayload\\n\\tEND\\norigin_missing; }; origin_fn\"",
+      "source": ":\nprintf '%s' \"$(origin_fn(){ : <<-END\n\tpayload\n\tEND\norigin_missing; }; origin_fn)\"",
+      "nativeSource": ":\nprintf '%s' \"$(origin_fn(){ : <<-END\n\tpayload\n\tEND\norigin_missing; }; origin_fn)\"",
+      "status": 0,
+      "stdoutBase64": "",
+      "stderrBase64": "c2hlbGw6IGxpbmUgODogb3JpZ2luX21pc3Npbmc6IGNvbW1hbmQgbm90IGZvdW5kCg=="
+    },
+    {
+      "name": "heredoc function layout \"origin_fn(){ : <<END | origin_pipe\\npayload\\nEND\\norigin_missing; }; origin_fn\"",
+      "source": ":\nprintf '%s' \"$(origin_fn(){ : <<END | origin_pipe\npayload\nEND\norigin_missing; }; origin_fn)\"",
+      "nativeSource": ":\nprintf '%s' \"$(origin_fn(){ : <<END | origin_pipe\npayload\nEND\norigin_missing; }; origin_fn)\"",
+      "status": 0,
+      "stdoutBase64": "",
+      "stderrBase64": "c2hlbGw6IGxpbmUgNzogb3JpZ2luX3BpcGU6IGNvbW1hbmQgbm90IGZvdW5kCnNoZWxsOiBsaW5lIDg6IG9yaWdpbl9taXNzaW5nOiBjb21tYW5kIG5vdCBmb3VuZAo="
+    },
+    {
+      "name": "heredoc function layout \"origin_fn(){ if true; then : <<END\\npayload\\nEND\\nfi\\norigin_missing; }; origin_fn\"",
+      "source": ":\nprintf '%s' \"$(origin_fn(){ if true; then : <<END\npayload\nEND\nfi\norigin_missing; }; origin_fn)\"",
+      "nativeSource": ":\nprintf '%s' \"$(origin_fn(){ if true; then : <<END\npayload\nEND\nfi\norigin_missing; }; origin_fn)\"",
+      "status": 0,
+      "stdoutBase64": "",
+      "stderrBase64": "c2hlbGw6IGxpbmUgMTA6IG9yaWdpbl9taXNzaW5nOiBjb21tYW5kIG5vdCBmb3VuZAo="
+    },
+    {
+      "name": "heredoc function layout \"origin_fn(){ case one in one) : <<END\\npayload\\nEND\\n;; esac\\norigin_missing; }; origin_fn\"",
+      "source": ":\nprintf '%s' \"$(origin_fn(){ case one in one) : <<END\npayload\nEND\n;; esac\norigin_missing; }; origin_fn)\"",
+      "nativeSource": ":\nprintf '%s' \"$(origin_fn(){ case one in one) : <<END\npayload\nEND\n;; esac\norigin_missing; }; origin_fn)\"",
+      "status": 0,
+      "stdoutBase64": "",
+      "stderrBase64": "c2hlbGw6IGxpbmUgMTE6IG9yaWdpbl9taXNzaW5nOiBjb21tYW5kIG5vdCBmb3VuZAo="
+    },
+    {
+      "name": "heredoc function layout \"origin_fn(){ : <<END\\nEND\\norigin_missing; }; origin_fn\"",
+      "source": ":\nprintf '%s' \"$(origin_fn(){ : <<END\nEND\norigin_missing; }; origin_fn)\"",
+      "nativeSource": ":\nprintf '%s' \"$(origin_fn(){ : <<END\nEND\norigin_missing; }; origin_fn)\"",
+      "status": 0,
+      "stdoutBase64": "",
+      "stderrBase64": "c2hlbGw6IGxpbmUgNzogb3JpZ2luX21pc3Npbmc6IGNvbW1hbmQgbm90IGZvdW5kCg=="
+    },
+    {
+      "name": "heredoc function layout \"origin_fn(){ : 'first\\nlast' <<END\\npayload\\nEND\\norigin_missing; }; origin_fn\"",
+      "source": ":\nprintf '%s' \"$(origin_fn(){ : 'first\nlast' <<END\npayload\nEND\norigin_missing; }; origin_fn)\"",
+      "nativeSource": ":\nprintf '%s' \"$(origin_fn(){ : 'first\nlast' <<END\npayload\nEND\norigin_missing; }; origin_fn)\"",
+      "status": 0,
+      "stdoutBase64": "",
+      "stderrBase64": "c2hlbGw6IGxpbmUgOTogb3JpZ2luX21pc3Npbmc6IGNvbW1hbmQgbm90IGZvdW5kCg=="
+    },
+    {
+      "name": "heredoc function layout \"origin_fn(){ : <<END\\nfirst\\\\\\nlast\\nEND\\norigin_missing; }; origin_fn\"",
+      "source": ":\nprintf '%s' \"$(origin_fn(){ : <<END\nfirst\\\nlast\nEND\norigin_missing; }; origin_fn)\"",
+      "nativeSource": ":\nprintf '%s' \"$(origin_fn(){ : <<END\nfirst\\\nlast\nEND\norigin_missing; }; origin_fn)\"",
+      "status": 0,
+      "stdoutBase64": "",
+      "stderrBase64": "c2hlbGw6IGxpbmUgODogb3JpZ2luX21pc3Npbmc6IGNvbW1hbmQgbm90IGZvdW5kCg=="
+    }
+  ],
+  "nativeBindingCorrection": {
+    "reason": "Explicit child argv0 bash matches virtual bash invocation; no diagnostic output normalization.",
+    "previousRecord": {
+      "name": "stdin incremental units retain main origin and absolute declaration line",
+      "source": "printf '%s' ':\n:\norigin_fn() {\n:\norigin_missing;\n}\n:\n:\neval origin_fn' | bash",
+      "nativeSource": "printf '%s' ':\n:\norigin_fn() {\n:\norigin_missing;\n}\n:\n:\neval origin_fn' | \"$BASH\"",
+      "status": 127,
+      "stdoutBase64": "",
+      "stderrBase64": "L3RtcC9zYWZlLWJhc2gtZ251LTUuMy1hZGp1ZGljYXRpb24uMHpNUktUL2Jhc2gtNS4zL2Jhc2g6IGxpbmUgNTogb3JpZ2luX21pc3Npbmc6IGNvbW1hbmQgbm90IGZvdW5kCg=="
+    },
+    "capturedAt": "2026-09-05T05:45:24.790Z"
+  },
+  "compoundCapture": {
+    "capturedAt": "2026-09-05T06:03:36.007Z",
+    "added": 20,
+    "source": "authenticated primary 5.3; native print_cmd.c structural layout controls"
+  },
+  "caseCapture": {
+    "capturedAt": "2026-09-05T06:04:35.578Z",
+    "added": 4,
+    "source": "authenticated primary 5.3; case clauses before and inside declarations"
+  },
+  "heredocCapture": {
+    "capturedAt": "2026-09-05T06:05:20.812Z",
+    "added": 9
+  },
+  "heredocBoundaryCapture": {
+    "capturedAt": "2026-09-05T06:07:21.739Z",
+    "added": 6
+  }
+}

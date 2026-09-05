@@ -528,6 +528,13 @@ function assertSource7Discovery(files) {
     "tests/plugins/extension-evaluation-runtime.test.ts",
   ]) assert.ok(files.includes(path), "extension evaluation exit test is missing: " + path);
   for (const path of [
+    "tests/shell/extensions/core/function-coordinate-review.test.ts",
+    "tests/shell/extensions/core/function-diagnostic-origin.test.ts",
+    "tests/shell/extensions/core/function-diagnostic-runtime.test.ts",
+    "tests/shell/extensions/core/function-origin-review.test.ts",
+    "tests/plugins/function-diagnostic-runtime.test.ts",
+  ]) assert.ok(files.includes(path), "function diagnostic origin test is missing: " + path);
+  for (const path of [
     "tests/shell/extensions/core/syntax.test.ts",
     "tests/shell/extensions/core/syntax-review.test.ts",
   ]) assert.ok(files.includes(path), "opt-in parser syntax test is missing: " + path);

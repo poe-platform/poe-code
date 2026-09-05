@@ -1111,7 +1111,7 @@ publisher `101263700253`, published SafeJS 0.1.111 on September 5, 2026,
 published poe-code 14.0.50 at 06:49:14 UTC and its GitHub release at 06:49:15 UTC.
 The descendant CLI also includes the preceding Map and Set constructor repairs.
 
-### 23. Live collection method iterators — delivered; release pending
+### 23. Live collection method iterators — delivered and released
 
 The initial 39 native-behavior tests reproduced 35 failures with four passing
 controls. Map/Set method iterators now have separately branded, hidden cursor
@@ -1249,7 +1249,7 @@ on remote main. The implementation finding is closed after delivery, without
 waiting for publication. Scoped release 33952547645 and CLI release 33952547762
 are monitored separately; their initial running state is not release success.
 
-### 24. SafeJS skill accuracy — validated documentation correction
+### 24. SafeJS skill accuracy — delivered and released
 
 Actual CLI probes and current loader/registry source contradict the skill's claim
 that the standalone stub validates schema-based Markdown/JavaScript harness pairs.
@@ -1272,3 +1272,113 @@ passed. Fresh built CLI checks again passed for the standalone .safejs probe and
 the paired real harness with zero spawns. The correction changes Markdown only;
 the preceding integrated full build, unit, and lint gates cover unchanged runtime
 code. Diff checks pass, and the skill's invocation policy is unchanged.
+
+Documentation commit 0907b00b3cf11f34988b0298a190b1e1a4388e34 is pushed and
+verified on remote main, closing the documentation finding before publication.
+Scoped release 33952613841 and CLI release 33952613932 are monitored; the latter
+supersedes the iterator commit's canceled CLI validation, so that canceled run
+is not claimed as a release. Publication still requires terminal publisher proof.
+
+Publication is now verified in terminal publisher logs. The iterator scoped run
+published SafeJS 0.1.112 on September 5, 2026 at 07:30:50 UTC. The documentation
+descendant's scoped run 33952613841, publisher 101270522661, published SafeJS
+0.1.113 at 07:35:01 UTC. Its successful CLI run 33952613932, release-stable job
+101271199994, published poe-code 14.0.52 at 07:38:29 UTC and the GitHub release
+at 07:38:30 UTC. That descendant CLI contains both atomic improvements.
+
+### 25. Array method receivers — validated repair
+
+Built comparisons reproduced borrowed push, map, and slice acting on the lookup
+array instead of the supplied receiver, beside two passing direct-call controls.
+A new native-comparison cohort covers all 33 exposed Array methods: ordinary
+arrays, sparse array-like records, null/undefined receivers, and direct calls.
+Before implementation, 125 of 165 tests fail and 40 pass. Additional cases cover
+call/apply/bind, detached invocation, callback thisArg/receiver identity, shadowed
+method names, inherited elements, length coercion, and readonly/deletion failures.
+
+The member factory captures the lookup array. Several operation bodies also call
+array instance methods directly, assume a numeric array length, or access raw
+properties instead of the guest property model. A receiver-only substitution is
+therefore insufficient for generic array-like records. Repair must preserve
+callback identity, holes, mutation effects and partial failures, budget accounting,
+and snapshot/replay behavior. Validate those with native comparisons before
+claiming the repair. Primitive boxing and complete built-in prototype graphs
+remain explicit broader language gaps, not assumptions of native parity.
+
+The expanded native cohort reproduced 136 failures with 41 passing controls.
+The implementation now honors the supplied receiver. Generic array-like reads,
+presence checks, assignments, and deletion use an internal view of the guest
+property model; callbacks and returned values retain the original guest object,
+not that internal view. Length is converted once for the operation. Mutation
+helpers no longer call potentially shadowed receiver methods. Primitive boxing
+is still unsupported rather than represented by a fake ordinary-object wrapper.
+
+The first focused implementation passed 197 tests. Six additional admission/read
+order regressions then failed with 178 controls passing. Two argument-coercion
+regressions extended that evidence to eight failures with 179 passing controls.
+Slice and copying methods now check output capacity before element access,
+preserve captured length across coercion, skip removed toSpliced elements, and
+read toReversed elements in reverse order. Four callable/typed-receiver failures
+then showed where raw host property operations missed guest state; those paths
+now use the interpreter's property operations, including callback identity and
+partial deletion before readonly-length failures.
+
+The first package run found an introduced with regression: a raw inherited host
+entry became visible. Its existing quarantine test was preserved and the boundary
+restored, while generic guest-prototype reads remain supported. Two new missing-
+property probe tests reproduced uncharged indexOf/lastIndexOf scans; reverse was
+a passing control, not another reproduced failure. The combined three-file
+cohort now passes 256 tests. An early TypeScript build exposed the array-like
+type's missing explicit numeric index signature; that is fixed, and a subsequent
+23-workspace selected build with four native ESM checks passed. Fresh final
+build/package gates are running after the last safety corrections.
+
+Manual CLI validation plan: use a temporary schema-only harness pair with no
+agent, filesystem, MCP, or environment capabilities. Borrow map/push/pop onto a
+sparse record, assert the lookup array remains unchanged, and return a readable
+JSON summary. Run the maintained screenshot route, verify zero spawns and success,
+and inspect the PNG. Temporary fixture files are manual QA artifacts, not unit
+test disk writes. Final lint, built API/replay checks, atomic commit/push, and
+release qualification remain required; this Array finding is not closed yet.
+
+The first final gates passed: 23 selected builds, four fresh-process import tests,
+11,029 package tests with 41 skipped, and root lint over 9,748 configured files
+with zero errors/warnings plus type/workflow checks. The no-spawn screenshot
+passed and was visually inspected. Built root/core comparisons passed 24 cases;
+two pending replays, two completed replays, and two capacity/step checks passed.
+The first pending probe incorrectly requested capture mode during a host call;
+the existing reentry guard correctly rejected it. Explicit replay mode fixed
+that probe without a runtime change.
+
+Subsequent live-data review reproduced a retained-receiver accounting gap for
+both arrays and generic records: clearing the guest binding during a callback
+left the method's still-live source uncounted. Four new tests failed with 195
+controls passing. A per-call retained root now holds the receiver across coercion
+and callbacks and is released in finally on success or failure. The three-file
+cohort passes 260 tests, including rejection at dataSize 7,000 and success at
+10,000. The earlier broad gates do not qualify this final source change; fresh
+build, package, screenshot, and lint gates are required before delivery.
+
+Fresh final gates after the retained-root change pass: all 23 declared builds in
+the selected SafeJS closure, four fresh-process ESM checks, and the full package
+suite with 11,033 passed tests and 41 skipped. The rebuilt no-spawn harness again
+passed and its screenshot was visually verified. After screenshot preparation
+finished, built root/core probes passed 12 native comparisons, four live-data
+checks, and a pending async-callback replay with its receiver retained after the
+guest binding was cleared. Final root lint passed all 9,748 configured files with
+zero errors/warnings, followed by successful type and workflow checks. These
+qualify the Array receiver repair for its own atomic commit and push; delivery
+and publication remain separate steps. Primitive boxing below is not included
+or claimed complete.
+
+### 26. Primitive boxing — validated open gap
+
+Eight built native comparisons fail: Object boxing of number/string/boolean,
+new Number/String/Boolean wrappers, Array.map on a string primitive, and
+Array.slice on a number primitive. Ordinary Object identity and the three
+primitive conversion calls pass as two controls. Wrapper construction and
+boxing are therefore a concrete next capability, not a speculative limitation.
+The repair must preserve boxed value identity, coercion, string indexing and
+readonly properties, method receivers, budgets, and snapshot/host boundaries;
+an ordinary record pretending to be a boxed primitive is not a complete repair.
+No implementation or completion claim is made for this gap yet.

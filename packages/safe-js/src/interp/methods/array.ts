@@ -6,12 +6,18 @@ import {
   isSandboxPromise,
   isSandboxSet,
   type SandboxArray,
+  type SandboxCallContext,
   type SandboxClosure,
+  type SandboxObject,
   type SandboxValue
 } from "../values.js";
 import { assertCollectionMutable, enterRunningState } from "../running-state.js";
+import { getSandboxDataProperty, getSandboxPrototype } from "../object-model.js";
+import { sandboxNumber } from "../string-coercion.js";
 
-const activeArrayCallbacks = new WeakMap<SandboxArray, { depth: number; leave: () => void }>();
+type ArrayLikeValue = SandboxArray | (SandboxObject & { [index: number]: SandboxValue; length: number });
+const arrayLikeSources = new WeakMap<object, SandboxValue & object>();
+const activeArrayCallbacks = new WeakMap<object, { depth: number; leave: () => void }>();
 
 export type ArrayMethodName =
   | "map"
@@ -50,6 +56,10 @@ export type ArrayMethodName =
 
 export type ArrayMethodOptions = {
   budget: Budget;
+  context?: SandboxCallContext;
+  hasProperty?: (value: SandboxValue, property: string) => boolean;
+  setProperty?: (value: SandboxValue, property: string, entry: SandboxValue) => void;
+  deleteProperty?: (value: SandboxValue, property: string | number) => boolean;
   callClosure: (
     closure: SandboxClosure,
     args: readonly SandboxValue[],
@@ -95,7 +105,7 @@ const arrayMethodNames = new Set<ArrayMethodName>([
 ]);
 
 export function getArrayMember(
-  value: SandboxArray,
+  value: ArrayLikeValue,
   property: string | number,
   options: ArrayMethodOptions
 ): SandboxValue | undefined {
@@ -116,7 +126,7 @@ export function getArrayMember(
     return createSandboxClosure({
       sandbox: true,
       name: `Array#${property}`,
-      call: (args, context) => callArrayMethod(value, property, args, options, context?.stack ?? [])
+      call: (args, context) => callArrayMethod(context?.thisValue, property, args, { ...options, context }, context?.stack ?? [])
     });
   }
 
@@ -142,39 +152,94 @@ export function isArrayMethodName(property: string | number): property is ArrayM
 }
 
 export async function callArrayMethod(
-  value: SandboxArray,
+  receiver: SandboxValue,
   methodName: ArrayMethodName,
   args: readonly SandboxValue[],
   options: ArrayMethodOptions,
   stack: readonly string[] = []
 ): Promise<SandboxValue> {
-  if (isMutatingArrayMethod(methodName)) {
-    assertCollectionMutable(value);
-  }
-
-  if (isCallbackArrayMethod(methodName)) {
-    let callbackState = activeArrayCallbacks.get(value);
-    if (callbackState === undefined) {
-      callbackState = { depth: 0, leave: enterRunningState(value) };
-      activeArrayCallbacks.set(value, callbackState);
+  if (receiver === null || receiver === undefined) throw new TypeError("Array method requires a receiver.");
+  if (typeof receiver !== "object") throw new TypeError("Object primitive boxing is not supported.");
+  const retainedReceiver = {};
+  options.budget.setRetainedValues(retainedReceiver, () => [receiver]);
+  try {
+    const value = Array.isArray(receiver) || methodName === "concat"
+      ? receiver as ArrayLikeValue
+      : await arrayLikeView(receiver, options);
+    if (isMutatingArrayMethod(methodName)) {
+      assertCollectionMutable(receiver);
     }
-    callbackState.depth += 1;
-    try {
-      return await callArrayMethodUnlocked(value, methodName, args, options, stack);
-    } finally {
-      callbackState.depth -= 1;
-      if (callbackState.depth === 0) {
-        activeArrayCallbacks.delete(value);
-        callbackState.leave();
+
+    if (isCallbackArrayMethod(methodName)) {
+      let callbackState = activeArrayCallbacks.get(receiver);
+      if (callbackState === undefined) {
+        callbackState = { depth: 0, leave: enterRunningState(receiver) };
+        activeArrayCallbacks.set(receiver, callbackState);
+      }
+      callbackState.depth += 1;
+      try {
+        const result = await callArrayMethodUnlocked(value, methodName, args, options, stack);
+        return result === value ? receiver : result;
+      } finally {
+        callbackState.depth -= 1;
+        if (callbackState.depth === 0) {
+          activeArrayCallbacks.delete(receiver);
+          callbackState.leave();
+        }
       }
     }
-  }
 
-  return callArrayMethodUnlocked(value, methodName, args, options, stack);
+    const result = await callArrayMethodUnlocked(value, methodName, args, options, stack);
+    return result === value ? receiver : result;
+  } finally {
+    options.budget.setRetainedValues(retainedReceiver, undefined);
+  }
+}
+
+async function arrayLikeView(receiver: SandboxValue & object, options: ArrayMethodOptions): Promise<ArrayLikeValue> {
+  const rawLength = options.context?.getProperty !== undefined
+    ? options.context.getProperty(receiver, "length")
+    : getSandboxDataProperty(receiver, "length", options.budget);
+  const number = await sandboxNumber(rawLength, options.budget, options.context);
+  const length = Number.isNaN(number) || number <= 0 ? 0 : Math.min(Math.trunc(number), Number.MAX_SAFE_INTEGER);
+  // The view is internal only: callbacks, results, and accounting keep the guest receiver.
+  const view = new Proxy(Object.create(null) as SandboxObject & { [index: number]: SandboxValue; length: number }, {
+    get: (_target, key) => {
+      options.budget.visitNode();
+      if (key === "length") return length;
+      if (typeof key !== "string") return undefined;
+      return options.context?.getProperty !== undefined
+        ? options.context.getProperty(receiver, key)
+        : getSandboxDataProperty(receiver, key, options.budget);
+    },
+    has: (_target, key) => {
+      options.budget.visitNode();
+      if (typeof key === "string" && options.hasProperty !== undefined) return options.hasProperty(receiver, key);
+      for (let current: object | null = receiver; current !== null; current = getSandboxPrototype(current, options.budget)) {
+        options.budget.visitNode();
+        if (Object.hasOwn(current, key)) return true;
+      }
+      return false;
+    },
+    set: (_target, key, entry: SandboxValue) => {
+      options.budget.visitNode();
+      if (typeof key !== "string") throw new TypeError("Array indices must be string keys.");
+      if (options.setProperty !== undefined) options.setProperty(receiver, key, entry);
+      else if (!Reflect.set(receiver, key, entry)) throw new TypeError(`Cannot assign property '${key}'.`);
+      return true;
+    },
+    deleteProperty: (_target, key) => {
+      options.budget.visitNode();
+      if (typeof key === "string" && options.deleteProperty !== undefined) return options.deleteProperty(receiver, key);
+      return Reflect.deleteProperty(receiver, key);
+    }
+  });
+  arrayLikeSources.set(view, receiver);
+  return view;
 }
 
 async function callArrayMethodUnlocked(
-  value: SandboxArray,
+  value: ArrayLikeValue,
   methodName: ArrayMethodName,
   args: readonly SandboxValue[],
   options: ArrayMethodOptions,
@@ -290,11 +355,21 @@ async function callArrayMethodUnlocked(
       return Reflect.apply(Array.prototype.lastIndexOf, value, [...args]);
     case "join":
       return options.budget.allocateString(Reflect.apply(Array.prototype.join, value, [...args]));
-    case "slice":
-      return budgetProducedValue(
-        Reflect.apply(Array.prototype.slice, value, [...args]),
-        options.budget
-      );
+    case "slice": {
+      const length = value.length;
+      const start = toIntegerOrInfinity(await sandboxNumber(args[0], options.budget, options.context));
+      const end = args[1] === undefined ? length : toIntegerOrInfinity(await sandboxNumber(args[1], options.budget, options.context));
+      const first = start < 0 ? Math.max(length + start, 0) : Math.min(start, length);
+      const final = end < 0 ? Math.max(length + end, 0) : Math.min(end, length);
+      const count = Math.max(final - first, 0);
+      options.budget.allocateArrayLength(count);
+      const result = new Array(count) as SandboxArray;
+      for (let index = 0; index < count; index += 1) {
+        options.budget.visitNode();
+        if (first + index in value) result[index] = value[first + index];
+      }
+      return budgetProducedValue(result, options.budget);
+    }
     case "concat":
       return budgetProducedValue(
         Reflect.apply(Array.prototype.concat, value, [...args]),
@@ -321,7 +396,7 @@ async function callArrayMethodUnlocked(
       );
     case "sort":
       if (args[0] === undefined) {
-        value.sort();
+        Reflect.apply(Array.prototype.sort, value, []);
         budgetProducedValue(value, options.budget);
         return value;
       }
@@ -330,11 +405,17 @@ async function callArrayMethodUnlocked(
       budgetProducedValue(value, options.budget);
       return value;
     case "reverse":
-      value.reverse();
+      Reflect.apply(Array.prototype.reverse, value, []);
       budgetProducedValue(value, options.budget);
       return value;
     case "toSorted": {
-      const result = Array.from(value) as SandboxArray;
+      const length = value.length;
+      options.budget.allocateArrayLength(length);
+      const result = new Array(length) as SandboxArray;
+      for (let index = 0; index < length; index += 1) {
+        options.budget.visitNode();
+        result[index] = value[index];
+      }
       if (args[0] === undefined) {
         result.sort();
       } else {
@@ -344,13 +425,32 @@ async function callArrayMethodUnlocked(
       return budgetProducedValue(result, options.budget);
     }
     case "toReversed": {
-      const result = Array.from(value) as SandboxArray;
-      result.reverse();
+      const length = value.length;
+      options.budget.allocateArrayLength(length);
+      const result = new Array(length) as SandboxArray;
+      for (let index = 0; index < length; index += 1) {
+        options.budget.visitNode();
+        result[index] = value[length - index - 1];
+      }
       return budgetProducedValue(result, options.budget);
     }
     case "toSpliced": {
-      const result = Array.from(value) as SandboxArray;
-      Reflect.apply(Array.prototype.splice, result, [...args]);
+      const length = value.length;
+      const start = toIntegerOrInfinity(await sandboxNumber(args[0], options.budget, options.context));
+      const first = start < 0 ? Math.max(length + start, 0) : Math.min(start, length);
+      const inserted = Math.max(args.length - 2, 0);
+      const deleted = args.length === 0 ? 0 : args.length === 1 ? length - first
+        : Math.min(Math.max(toIntegerOrInfinity(await sandboxNumber(args[1], options.budget, options.context)), 0), length - first);
+      const resultLength = length + inserted - deleted;
+      if (resultLength > Number.MAX_SAFE_INTEGER) throw new TypeError("Array-like length exceeds the safe integer limit.");
+      options.budget.allocateArrayLength(resultLength);
+      const result = new Array(resultLength) as SandboxArray;
+      for (let index = 0; index < resultLength; index += 1) {
+        options.budget.visitNode();
+        result[index] = index < first ? value[index]
+          : index < first + inserted ? args[index - first + 2]
+          : value[index - inserted + deleted];
+      }
       return budgetProducedValue(result, options.budget);
     }
     case "with": {
@@ -369,45 +469,48 @@ async function callArrayMethodUnlocked(
         result[position] =
           position === actualIndex
             ? args[1]
-            : Object.hasOwn(value, position)
-              ? value[position]
-              : undefined;
+            : Array.isArray(value) && !Object.hasOwn(value, position)
+              ? undefined
+              : value[position];
       }
 
       return budgetProducedValue(result, options.budget);
     }
     case "push": {
-      appendArrayValues(value, args);
-      const nextLength = value.length;
+      const nextLength = appendArrayValues(value, args);
       budgetProducedValue(value, options.budget);
       return nextLength;
     }
     case "pop":
-      return budgetProducedValue(value.pop(), options.budget);
+      return budgetProducedValue(Reflect.apply(Array.prototype.pop, value, []), options.budget);
     case "shift":
-      return budgetProducedValue(value.shift(), options.budget);
+      return budgetProducedValue(Reflect.apply(Array.prototype.shift, value, []), options.budget);
     case "unshift": {
-      prependArrayValues(value, args);
-      const nextLength = value.length;
+      const nextLength = prependArrayValues(value, args);
       budgetProducedValue(value, options.budget);
       return nextLength;
     }
   }
 }
 
-function appendArrayValues(target: SandboxArray, values: readonly SandboxValue[]): void {
+function appendArrayValues(target: ArrayLikeValue, values: readonly SandboxValue[]): number {
+  let length = target.length;
+  if (length + values.length > Number.MAX_SAFE_INTEGER) throw new TypeError("Array-like length exceeds the safe integer limit.");
   for (const value of values) {
-    target.push(value);
+    target[length++] = value;
   }
+  target.length = length;
+  return length;
 }
 
-function prependArrayValues(target: SandboxArray, values: readonly SandboxValue[]): void {
+function prependArrayValues(target: ArrayLikeValue, values: readonly SandboxValue[]): number {
   const originalLength = target.length;
-  target.length = originalLength + values.length;
+  const length = originalLength + values.length;
+  if (length > Number.MAX_SAFE_INTEGER) throw new TypeError("Array-like length exceeds the safe integer limit.");
 
-  for (let index = originalLength - 1; index >= 0; index -= 1) {
+  for (let index = values.length === 0 ? -1 : originalLength - 1; index >= 0; index -= 1) {
     const targetIndex = index + values.length;
-    if (Object.hasOwn(target, index)) {
+    if (index in target) {
       target[targetIndex] = target[index];
     } else {
       delete target[targetIndex];
@@ -417,6 +520,8 @@ function prependArrayValues(target: SandboxArray, values: readonly SandboxValue[
   for (let index = 0; index < values.length; index += 1) {
     target[index] = values[index];
   }
+  target.length = length;
+  return length;
 }
 
 function isCallbackArrayMethod(methodName: ArrayMethodName): boolean {
@@ -463,13 +568,14 @@ function getRequiredCallback(
 }
 
 async function mapArray(
-  value: SandboxArray,
+  value: ArrayLikeValue,
   callback: SandboxClosure,
   options: ArrayMethodOptions,
   stack: readonly string[],
   thisValue: SandboxValue
 ): Promise<SandboxArray> {
   const length = value.length;
+  options.budget.allocateArrayLength(length);
   const result = new Array(length) as SandboxArray;
   options.budget.setRetainedValues(result, () => [result]);
 
@@ -498,7 +604,7 @@ async function mapArray(
 }
 
 async function filterArray(
-  value: SandboxArray,
+  value: ArrayLikeValue,
   callback: SandboxClosure,
   options: ArrayMethodOptions,
   stack: readonly string[],
@@ -528,7 +634,7 @@ async function filterArray(
 }
 
 async function findInArray(
-  value: SandboxArray,
+  value: ArrayLikeValue,
   callback: SandboxClosure,
   options: ArrayMethodOptions,
   stack: readonly string[],
@@ -548,7 +654,7 @@ async function findInArray(
 }
 
 async function findIndexInArray(
-  value: SandboxArray,
+  value: ArrayLikeValue,
   callback: SandboxClosure,
   options: ArrayMethodOptions,
   stack: readonly string[],
@@ -568,7 +674,7 @@ async function findIndexInArray(
 }
 
 async function findLastInArray(
-  value: SandboxArray,
+  value: ArrayLikeValue,
   callback: SandboxClosure,
   options: ArrayMethodOptions,
   stack: readonly string[],
@@ -588,7 +694,7 @@ async function findLastInArray(
 }
 
 async function findLastIndexInArray(
-  value: SandboxArray,
+  value: ArrayLikeValue,
   callback: SandboxClosure,
   options: ArrayMethodOptions,
   stack: readonly string[],
@@ -608,7 +714,7 @@ async function findLastIndexInArray(
 }
 
 async function someInArray(
-  value: SandboxArray,
+  value: ArrayLikeValue,
   callback: SandboxClosure,
   options: ArrayMethodOptions,
   stack: readonly string[],
@@ -631,7 +737,7 @@ async function someInArray(
 }
 
 async function everyInArray(
-  value: SandboxArray,
+  value: ArrayLikeValue,
   callback: SandboxClosure,
   options: ArrayMethodOptions,
   stack: readonly string[],
@@ -656,7 +762,7 @@ async function everyInArray(
 }
 
 async function reduceArray(
-  value: SandboxArray,
+  value: ArrayLikeValue,
   callback: SandboxClosure,
   hasInitialValue: boolean,
   initialValue: SandboxValue | undefined,
@@ -678,7 +784,7 @@ async function reduceArray(
 }
 
 async function reduceRightArray(
-  value: SandboxArray,
+  value: ArrayLikeValue,
   callback: SandboxClosure,
   hasInitialValue: boolean,
   initialValue: SandboxValue | undefined,
@@ -700,7 +806,7 @@ async function reduceRightArray(
 }
 
 async function reduceFromLeft(
-  value: SandboxArray,
+  value: ArrayLikeValue,
   callback: SandboxClosure,
   accumulator: SandboxValue,
   startIndex: number,
@@ -719,7 +825,7 @@ async function reduceFromLeft(
         continue;
       }
 
-      current = await options.callClosure(callback, [current, value[index], index, value], stack);
+      current = await options.callClosure(callback, [current, value[index], index, arrayLikeSources.get(value) ?? value], stack);
     }
 
     return current;
@@ -729,7 +835,7 @@ async function reduceFromLeft(
 }
 
 async function reduceFromRight(
-  value: SandboxArray,
+  value: ArrayLikeValue,
   callback: SandboxClosure,
   accumulator: SandboxValue,
   startIndex: number,
@@ -748,7 +854,7 @@ async function reduceFromRight(
         continue;
       }
 
-      current = await options.callClosure(callback, [current, value[index], index, value], stack);
+      current = await options.callClosure(callback, [current, value[index], index, arrayLikeSources.get(value) ?? value], stack);
     }
 
     return current;
@@ -758,7 +864,7 @@ async function reduceFromRight(
 }
 
 async function forEachArray(
-  value: SandboxArray,
+  value: ArrayLikeValue,
   callback: SandboxClosure,
   options: ArrayMethodOptions,
   stack: readonly string[],
@@ -777,7 +883,7 @@ async function forEachArray(
 }
 
 async function flatMapArray(
-  value: SandboxArray,
+  value: ArrayLikeValue,
   callback: SandboxClosure,
   options: ArrayMethodOptions,
   stack: readonly string[],
@@ -827,14 +933,14 @@ async function flatMapArray(
   }
 }
 
-function flattenArray(value: SandboxArray, depth: number, budget: Budget): SandboxArray {
+function flattenArray(value: ArrayLikeValue, depth: number, budget: Budget): SandboxArray {
   const result: SandboxArray = [];
   appendFlattenedEntries(value, depth, result, budget);
   return result;
 }
 
 function appendFlattenedEntries(
-  value: SandboxArray,
+  value: ArrayLikeValue,
   depth: number,
   result: SandboxArray,
   budget: Budget
@@ -856,7 +962,7 @@ function appendFlattenedEntries(
 }
 
 async function sortArray(
-  value: SandboxArray,
+  value: ArrayLikeValue,
   comparator: SandboxClosure,
   options: ArrayMethodOptions,
   stack: readonly string[]
@@ -932,16 +1038,16 @@ async function callArrayCallback(
   callback: SandboxClosure,
   value: SandboxValue,
   index: number,
-  array: SandboxArray,
+  array: ArrayLikeValue,
   options: ArrayMethodOptions,
   stack: readonly string[],
   thisValue: SandboxValue
 ): Promise<SandboxValue> {
-  return options.callClosure(callback, [value, index, array], stack, thisValue);
+  return options.callClosure(callback, [value, index, arrayLikeSources.get(array) ?? array], stack, thisValue);
 }
 
 function findNextDefinedIndex(
-  value: SandboxArray,
+  value: ArrayLikeValue,
   startIndex: number,
   direction: 1 | -1,
   length: number,
@@ -958,6 +1064,7 @@ function findNextDefinedIndex(
 }
 
 function budgetProducedValue(value: SandboxValue, budget: Budget): SandboxValue {
+  if (typeof value === "object" && value !== null) value = arrayLikeSources.get(value) ?? value;
   allocateProducedValue(value, budget, new WeakSet());
   return value;
 }

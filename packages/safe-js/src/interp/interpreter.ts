@@ -3519,7 +3519,7 @@ export function setSandboxProperty(
 }
 
 function deleteSandboxProperty(
-  target: SandboxArray | SandboxObject,
+  target: SandboxValue,
   property: string | number
 ): boolean {
   if (isGuestHostObject(target)) return deleteHostObjectMember(target, String(property));
@@ -3604,6 +3604,10 @@ async function evaluateNumberMethodCall(
 function createArrayMethodOptions(context: EvaluationContext): ArrayMethodOptions {
   return {
     budget: context.budget,
+    context: createCoercionContext(context),
+    hasProperty: (value, property) => hasSandboxProperty(value, property, context),
+    setProperty: (value, property, entry) => setSandboxProperty(value, property, entry, context.budget),
+    deleteProperty: deleteSandboxProperty,
     callClosure: (
       closure: Extract<InterpreterValue, { kind: "fn" }>,
       args: readonly SandboxValue[],

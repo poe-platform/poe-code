@@ -6,9 +6,10 @@ import { splitString } from "./split.js";
 import { binary, compare, contains, describe, entries, equal, indexValue, sliceValue, stringCompare, type } from "./values.js";
 
 type Path = (string | number)[];
+interface Frame { readonly name: string; readonly value: Json; readonly parent: Frame | undefined; readonly depth: number }
 const deleted = Symbol("deleted");
 export class Interpreter {
-  constructor(readonly budget: Budget, readonly variables: ReadonlyMap<string, Json>) {}
+  constructor(readonly budget: Budget, readonly variables: ReadonlyMap<string, Json>, private readonly frame?: Frame) {}
   async collect(ast: Ast, input: Json): Promise<Json[]> {
     const result: Json[] = [];
     let bytes = 2;
@@ -26,7 +27,46 @@ export class Interpreter {
     switch (ast.kind) {
       case "identity": yield input; return;
       case "literal": yield ast.value; return;
-      case "variable": yield this.variables.get(ast.name)!; return;
+      case "variable": {
+        for (let frame = this.frame; frame; frame = frame.parent) {
+          await this.budget.tick();
+          if (frame.name === ast.name) { yield frame.value; return; }
+        }
+        yield this.variables.get(ast.name)!; return;
+      }
+      case "descend": yield* this.descend(input); return;
+      case "try":
+        try { yield* this.run(ast.body, input); }
+        catch (error) {
+          if (!(error instanceof JqError) || error instanceof JqLimitError || this.budget.signal.aborted) throw error;
+          if (ast.handler) yield* this.run(ast.handler, error.message);
+        }
+        return;
+      case "reduce":
+      case "foreach": {
+        const depth = (this.frame?.depth ?? 0) + 1;
+        if (depth > this.budget.limits.maxAstDepth) throw new JqLimitError("maxAstDepth");
+        let sourceInput = input;
+        for await (const initial of this.run(ast.init, input)) {
+          let accumulator = initial;
+          for await (const value of this.run(ast.source, sourceInput)) {
+            await this.budget.tick();
+            const scope = new Interpreter(this.budget, this.variables, { name: ast.name, value, parent: this.frame, depth });
+            const previous = accumulator;
+            accumulator = null;
+            for await (const updated of scope.run(ast.update, previous)) {
+              await this.budget.tick();
+              accumulator = updated;
+              if (ast.kind === "foreach") {
+                if (ast.extract) yield* scope.run(ast.extract, updated);
+                else yield updated;
+              }
+            }
+          }
+          if (ast.kind === "reduce") { sourceInput = null; yield accumulator; }
+        }
+        return;
+      }
       case "unary":
         for await (const value of this.run(ast.operand, input)) {
           if (!isNumber(value)) throw new JqError("negation requires a number");
@@ -93,6 +133,21 @@ export class Interpreter {
         return;
       }
       case "call": yield* this.call(ast.name, ast.args, input); return;
+    }
+  }
+  async *descend(input: Json, depth = 0): AsyncGenerator<Json> {
+    await this.budget.tick();
+    if (depth > this.budget.limits.maxDepth) throw new JqLimitError("maxDepth");
+    yield input;
+    if (Array.isArray(input)) {
+      if (depth + 1 > this.budget.limits.maxDepth) throw new JqLimitError("maxDepth");
+      this.budget.collection(input.length);
+      for (const value of input) yield* this.descend(value, depth + 1);
+    } else if (isObject(input)) {
+      if (depth + 1 > this.budget.limits.maxDepth) throw new JqLimitError("maxDepth");
+      const keys = objectKeys(input);
+      this.budget.collection(keys.length);
+      for (const key of keys) yield* this.descend(input[key]!, depth + 1);
     }
   }
   async *field(field: { key: Ast; value: Ast }, previous: Record<string, Json>, input: Json): AsyncGenerator<Record<string, Json>> {

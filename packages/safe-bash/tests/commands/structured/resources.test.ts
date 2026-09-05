@@ -52,9 +52,20 @@ test("depth limits cover inputs, constructed outputs, and source AST", async () 
   }
   const source = "[".repeat(9) + "0" + "]".repeat(9);
   assert.match((await run(["-nc", source], "", { limits: { maxDepth: 8 } })).stderr, /maxDepth/);
-  for (const filter of ["(".repeat(1000) + "0" + ")".repeat(1000), Array(1000).fill(".").join("|"), "." + ".a".repeat(1000)]) {
-    const result = await run(["-nc", filter]); assert.match(result.stderr, /maxAstDepth|expected property/); assert.doesNotMatch(result.stderr, /RangeError|call stack/);
+  for (const filter of ["(".repeat(1000) + "0" + ")".repeat(1000), Array(1000).fill(".").join("|"), ".a".repeat(1000)]) {
+    const result = await run(["-nc", filter]);
+    assert.equal(result.exitCode, 5);
+    assert.equal(result.stdout, "");
+    assert.match(result.stderr, /maxAstDepth/);
+    assert.doesNotMatch(result.stderr, /RangeError|call stack/);
   }
+});
+
+test("malformed recursive descent property syntax retains the current compile diagnostic", async () => {
+  const result = await run(["-nc", "..a"]);
+  assert.equal(result.exitCode, 3);
+  assert.equal(result.stdout, "");
+  assert.equal(result.stderr, "jq: error: syntax error, unexpected IDENT, expecting end of file (Unix shell quoting issues?) at <top-level>, line 1:\n..a  \njq: 1 compile error\n");
 });
 
 test("limits protect hidden Cartesian expansion, collections, and emitted results", async () => {

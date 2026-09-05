@@ -3,6 +3,8 @@ export { createYesCommand, createYesCommands, yesCommands } from "./commands/yes
 export type { YesCommandOptions, YesCommandsOptions } from "./commands/yes/index.js";
 export { createCmpCommand, createCmpCommands, cmpCommands } from "./commands/cmp/index.js";
 export type { CmpCommandsOptions, CmpLimits } from "./commands/cmp/index.js";
+export { createDdCommand, createDdCommands, ddCommands } from "./commands/dd/index.js";
+export type { DdCommandsOptions, DdFileHandle, DdFileOpener, DdFileRequest } from "./commands/dd/index.js";
 export { createShufCommand, createShufCommands, shufCommands } from "./commands/shuf/index.js";
 export type { ShufCommandsOptions } from "./commands/shuf/index.js";
 export { createTruncateCommand, createTruncateCommands, truncateCommands } from "./commands/truncate/index.js";

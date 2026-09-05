@@ -435,6 +435,19 @@ this request to keep additions out of the default package.
   cases successfully. The reviewed forwarding source has SHA-256
   `76a51a171ea761c02634b6255e08d9314e50d132ad7a369a160f6817ed012a65`;
   its existing acknowledgement behavior is preserved.
+- Command cursor forwarding is locally committed as `f14e57093`. DD's frozen
+  source/test manifest is reauthenticated unchanged across all 16 entries before
+  integration. Independent and root replays each pass 145 DD cases with the clean
+  authenticated GNU 9.7 oracle and zero skips. Root additionally passes 64 current
+  public/default-aggregate checks and eight discovery/isolation checks. Both pack
+  dry runs, after explicit builds and with lifecycle scripts disabled, retain
+  zero optional implementation leaks (1,054 workspace and 4,645 root files).
+  `dd-precommit-final-visual.png` shows actual compiled sparse-append bytes and
+  a mounted zero-device pipeline and is inspected. The optional source entry
+  exports DD factories, plugin and configuration types; defaults remain unchanged.
+  Native filesystem QA records memory 11/11 and rooted-real 9/11, with two
+  explicitly unsupported sparse-append combinations. These and documented
+  platform/flag/recovery gaps remain open; this is not universal GNU parity.
 
 - First implementation wave: cmp, yes, shuf and virtual devices in disjoint leaf
   directories. Root is qualifying native oracles and the opt-in delivery boundary.

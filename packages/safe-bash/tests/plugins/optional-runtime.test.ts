@@ -16,12 +16,14 @@ type OptionalRuntime = {
   createTruncateCommand(): PublishedDefinition;
   createInstallCommand(): PublishedDefinition;
   createYqCommand(): PublishedDefinition;
+  createDdCommand(): PublishedDefinition;
   yesCommands(): import("poe-code/safe-bash").VirtualShellPlugin;
   shufCommands(): import("poe-code/safe-bash").VirtualShellPlugin;
   truncateCommands(): import("poe-code/safe-bash").VirtualShellPlugin;
   cmpCommands(): import("poe-code/safe-bash").VirtualShellPlugin;
   installCommands(): import("poe-code/safe-bash").VirtualShellPlugin;
   yqCommands(): import("poe-code/safe-bash").VirtualShellPlugin;
+  ddCommands(): import("poe-code/safe-bash").VirtualShellPlugin;
   createDeviceFileSystem(): import("poe-code/safe-fs").FileSystem;
   trapExtension(): NonNullable<import("poe-code/safe-bash").ShellOptions["extensions"]>[number];
 };
@@ -124,6 +126,7 @@ describe("explicit coherent optional build", { skip: selected === undefined ? "R
       'import { createTruncateCommand, truncateCommands } from "../../dist/optional.js";',
       'import { createInstallCommand, installCommands, type InstallCommandsOptions, type InstallModeRequest, type InstallContextRequest } from "../../dist/optional.js";',
       'import { createYqCommand, yqCommands, type YqCommandsOptions, type YqLimits } from "../../dist/optional.js";',
+      'import { createDdCommand, ddCommands, type DdCommandsOptions, type DdFileOpener, type DdFileRequest, type DdFileHandle } from "../../dist/optional.js";',
       'import type { YesCommandOptions, YesCommandsOptions, CmpCommandsOptions, CmpLimits, ShufCommandsOptions, TruncateCommandsOptions, DeviceFileSystem } from "../../dist/optional.js";',
       'import { trapExtension, type TrapExtensionOptions, type ShellExtension } from "../../dist/optional.js";',
       'const yesOptions: YesCommandOptions = {}; const yesPluginOptions: YesCommandsOptions = {};',
@@ -139,6 +142,8 @@ describe("explicit coherent optional build", { skip: selected === undefined ? "R
       'new Shell({ fs: createMemoryFileSystem() }).use(installCommands());',
       'const yqLimits: Partial<YqLimits> = { maxInputBytes: 1024 }; const yqOptions: YqCommandsOptions = { limits: yqLimits };',
       'new CommandRegistry([createYqCommand(yqOptions)]); new Shell({ fs: createMemoryFileSystem() }).use(yqCommands(yqOptions));',
+      'const ddOptions: DdCommandsOptions = { maxBlockBytes: 1024 }; type DdHost = { open: DdFileOpener; request: DdFileRequest; handle: DdFileHandle };',
+      'new CommandRegistry([createDdCommand(ddOptions)]); new Shell({ fs: createMemoryFileSystem() }).use(ddCommands(ddOptions));',
     ].join("\n");
     const options: ts.CompilerOptions = {
       noEmit: true, strict: true, exactOptionalPropertyTypes: true,
@@ -404,4 +409,68 @@ describe("explicit coherent optional build", { skip: selected === undefined ? "R
       assert.deepEqual(await fs.readdir("/"), [{ name: "settings.yaml", type: "file" }]);
     } finally { await shell.dispose(); }
   });
+
+  test("compiled dd copies binary records into a retained named output", async () => {
+    const { published, optional } = await runtimes();
+    const fs = createMemoryFileSystem();
+    const input = Uint8Array.of(255, 0, 128, 65, 66, 67, 68, 69);
+    await fs.writeFile("/input", input);
+    await fs.writeFile("/output", Buffer.from("abcdefgh"));
+    const shell = new published.Shell({ fs }).use(optional.ddCommands());
+    try {
+      const definition = optional.createDdCommand();
+      assert.equal(definition.runtimeIdentity, published.commandRuntimeIdentity);
+      const result = await shell.exec("dd if=/input of=/output bs=2 count=3 conv=notrunc status=none");
+      assert.equal(result.exitCode, 0, result.stderr);
+      assert.equal(result.stdout, "");
+      assert.equal(result.stderr, "");
+      assert.deepEqual(await fs.readFile("/output"), Uint8Array.of(255, 0, 128, 65, 66, 67, 103, 104));
+      assert.deepEqual(await fs.readFile("/input"), input);
+    } finally { await shell.dispose(); }
+  });
+
+  test("compiled dd streams explicitly mounted zero and random devices", async () => {
+    const { published, optional } = await runtimes();
+    const root = createMemoryFileSystem();
+    const fs = createMountFileSystem({ root, mounts: { "/dev": optional.createDeviceFileSystem() } });
+    const shell = new published.Shell({ fs }).use(published.agentCommands()).use(optional.ddCommands());
+    try {
+      const zero = await shell.exec("dd if=/dev/zero of=/zeros bs=4 count=2 status=none");
+      assert.equal(zero.exitCode, 0, zero.stderr);
+      assert.equal(zero.stderr, "");
+      assert.deepEqual(await root.readFile("/zeros"), new Uint8Array(8));
+      const random = await shell.exec("dd if=/dev/urandom bs=16 count=1 status=none | wc -c");
+      assert.equal(random.exitCode, 0, random.stderr);
+      assert.equal(random.stdout.trim(), "16");
+      assert.equal(random.stderr, "");
+    } finally { await shell.dispose(); }
+  });
+
+  test("compiled dd named writes share the public host output budget", async () => {
+    const { published, optional } = await runtimes();
+    const fs = createMemoryFileSystem();
+    await fs.writeFile("/input", Buffer.from("abcdefgh"));
+    const shell = new published.Shell({ fs, limits: { maxOutputBytes: 3 } }).use(optional.ddCommands());
+    try {
+      await assert.rejects(shell.exec("dd if=/input of=/output bs=2 status=none"), error => error instanceof published.ShellLimitError && error.limit === "maxOutputBytes");
+      assert.deepEqual(await fs.readFile("/output"), Uint8Array.of(97, 98));
+    } finally { await shell.dispose(); }
+  });
+
+  for (const input of [Uint8Array.of(88, 89, 0, 0), Uint8Array.of(0, 0, 88, 89, 0, 0)]) {
+    test(`compiled dd sparse append retains the actual cursor for ${input.length} input bytes`, async () => {
+      const { published, optional } = await runtimes();
+      const fs = createMemoryFileSystem();
+      await fs.writeFile("/input", input);
+      await fs.writeFile("/output", Buffer.from("abcdef"));
+      const shell = new published.Shell({ fs }).use(optional.ddCommands());
+      try {
+        const result = await shell.exec("dd if=/input of=/output bs=2 seek=1 oflag=append conv=notrunc,sparse status=none");
+        assert.equal(result.exitCode, 0, result.stderr);
+        assert.equal(result.stdout, "");
+        assert.equal(result.stderr, "");
+        assert.deepEqual(await fs.readFile("/output"), Uint8Array.of(97, 98, 99, 100, 101, 102, 88, 89, 0, 0));
+      } finally { await shell.dispose(); }
+    });
+  }
 });

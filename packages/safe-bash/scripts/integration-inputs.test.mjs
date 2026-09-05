@@ -514,6 +514,15 @@ function assertSource7Discovery(files) {
   ]) assert.ok(files.includes(path), "descriptor acknowledgement test is missing: " + path);
   assert.ok(files.includes("tests/plugins/descriptor-position-runtime.test.ts"), "public descriptor position test is missing");
   for (const path of [
+    "tests/commands/dd/dd.test.ts",
+    "tests/commands/dd/descriptor.test.ts",
+    "tests/commands/dd/io.test.ts",
+    "tests/commands/dd/native.test.ts",
+    "tests/commands/dd/oracle-hygiene.test.ts",
+    "tests/commands/dd/report.test.ts",
+    "tests/commands/dd/review.test.ts",
+  ]) assert.ok(files.includes(path), "optional dd test is missing: " + path);
+  for (const path of [
     "tests/fs/devices/devices.test.ts",
     "tests/fs/devices/native.test.ts",
     "tests/fs/devices/review.test.ts",

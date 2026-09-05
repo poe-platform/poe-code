@@ -1084,6 +1084,44 @@ this request to keep additions out of the default package.
   Five separate source/native mapfile public-fixture comparisons match the new
   5.3 oracle, including NUL records, sparse uint32 cells and callback EXIT locals.
   These do not constitute compiled mapfile delivery or its complete acceptance.
+- Primary-profile reconciliation preserves the original 5.2 fixtures and captures
+  in the temporary `function-origin-primary-migration.wzHxto` directory. The
+  31 independent origin cases now consume authenticated, program-bound 5.3
+  observations without requiring a native executable during canonical tests.
+  Against immutable `4a516d970`, they reproduce 16 line-number failures and 15
+  passes; the original 5.2 run remains separately recorded as 8 passes/23 failures.
+  The author's further 5.3 fixtures and the five compiled public fixtures use
+  the same primary profile. This changes oracle expectations, not fixture
+  programs or raw-output comparisons, and does not globally retarget the older
+  trap/array oracle helper.
+- The first definition-coordinate candidate passes 1,796 root-run tests across
+  55 unique retained/current files, with unchanged watched source/test hashes,
+  zero skips and successful sequential default/optional builds. Discovery passes
+  98/98 and seven exact-package strict roots report no diagnostics. Independent
+  native review nevertheless finds four remaining conditional/loop layout
+  discrepancies among eight fresh controls. These are retained as a new
+  eight-case canonical regression suite before further parser changes. The
+  green retained cohort is not coordinate-completeness evidence. A separate pair
+  of command-name quoting failures remains outside the line-coordinate repair.
+- The mapfile public entry has a genuine missing-export red run (1/7 passes),
+  followed by 7/7 compiled passes after the explicit optional export and rebuild.
+  Its sparse uint32 output is visually inspected in
+  `mapfile-public-entry-visual.png`; the adjacent JSON binds the compiled inputs.
+  Independent full-profile replay of the frozen leaf gives 234/241 passes with
+  Bash 5.2 and 218/241 with Bash 5.3: twenty numeric trailing-whitespace cases
+  change dialect, four function-label differences disappear, and three actual
+  source-callback coordinate failures remain. All 24 callback-buffer boundary
+  cases agree with both versions. Primary-profile migration and the numeric
+  repair are required before committing the tool; these replays are not release
+  gates or complete mapfile acceptance.
+- Read endpoint comparison against the fresh 5.3 oracle preserves all 32 native
+  pipe/FIFO statuses, data and readiness observations plus 16 alias controls.
+  Four complete records differ only in EBADF word order: 5.3 uses
+  `read: 3: read error: Bad file descriptor`. Eighteen additional small controls
+  preserve assignment and unread-input behavior, with six corresponding wording
+  differences. Evidence is `/tmp/bash53-read-endpoints.LyAqXL/EVIDENCE.md`.
+  This does not repair virtual endpoint ownership, prove Linux/TTY/socket
+  semantics or qualify the still-incomplete extended-read leaf.
 
 - First implementation wave: cmp, yes, shuf and virtual devices in disjoint leaf
   directories. Root is qualifying native oracles and the opt-in delivery boundary.

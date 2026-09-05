@@ -755,7 +755,8 @@ local checks. Committed and pushed as
 `f4e4189fa81dd0cc93cf4168c4cf3ec26353b1af`, verified against remote main.
 Scoped workflow `33946434003`, publisher job `101253261047`, succeeded:
 SafeJS 0.1.100 published September 5, 2026, 05:13:16 UTC. CLI workflow
-`33946434242` remains monitored separately.
+`33946434242` was canceled. Its changes are included in descendant CLI release
+14.0.48, published September 5, 2026, 05:26:50 UTC.
 
 An initial implementation used the public descriptor helper for ordinary
 element creation, incorrectly marking arrays as custom-descriptor objects and
@@ -792,7 +793,7 @@ Bounded native/public built-entrypoint probes confirmed these separate gaps:
 These findings are not included in the Array.from implementation. Each repair
 requires its own failing regressions, focused implementation, checks, and push.
 
-### 15. Number guest conversion — implemented and validated
+### 15. Number guest conversion — delivered and released
 
 The new native/public-source suite reproduced 21 failures with five passing
 controls. Number now uses the existing number-hint guest conversion helper,
@@ -814,7 +815,12 @@ package tests with 41 skipped, 18 built root/core checks, and full root lint
 (9,729 configured files, zero errors/warnings), including TypeScript and
 workflow checks. Four queued-microtask controls pass, as do direct-helper
 fallback/call-depth cleanup and compiled thrown-value controls. Atomic push
-and release remain separate from these local checks.
+and release remain separate from these local checks. Committed, pushed, and
+verified on remote main as `458d1a95d2582ca887114d2ef87b71a8306306b6`.
+Scoped workflow `33946697934`, publisher job `101253986926`, succeeded:
+SafeJS 0.1.101 published September 5, 2026, 05:18:58 UTC. CLI workflow
+`33946698029`, release-stable job `101255176100`, succeeded: poe-code 14.0.48
+published September 5, 2026, 05:26:50 UTC (GitHub release at 05:26:51 UTC).
 
 Further bounded native/public probes confirmed guest-coercion gaps in global
 parseInt, Number.parseFloat, Math.abs, String.fromCharCode, array slice indices,
@@ -823,3 +829,35 @@ changing Number itself. Intrinsic function arity is also absent: Number,
 String, Array.from, Object.fromEntries, parseInt, and Math.abs expose undefined
 lengths rather than native lengths 1/1/1/1/2/1. These are explicit follow-up
 findings, not silently included in this repair.
+
+### 16. Remaining duplicate retained-root callers — validated prerequisite
+
+Object.fromEntries development exposed an unexpected extra 2,000-unit charge
+at closure completion. Initial fixture adjustments did not remove it. A trace
+identified executeClosure passing registered roots to reconcileCompiledValues,
+which already collects them. The complete caller audit found the same defect
+in final run reconciliation, initial snapshot restoration, and restored-function
+completion. Only the shared reconciler now collects registered budget roots;
+scope, return-value, pending-promise, and compilation ownership roots remain.
+
+Ten new regressions validate all four callers. Closure cases cover arrows,
+named/async functions, and conversion hooks; restored functions cover both
+synchronous and asynchronous forms. A 300-unit root incorrectly produced
+600–618-unit closure charges before the fix. Public-run fixtures register
+their 2,000-unit root through a host callback after setup (run setup resets
+earlier registrations); before the fix, final charges were 4,977–4,982 units
+against a 3,500-unit limit. Fixtures allow the unrelated initialization and
+snapshot bookkeeping costs rather than treating those costs as this defect.
+
+The eight-file focused cohort passes 265 tests. The existing distinct-root,
+equal-primitive registration, and genuine over-limit controls remain intact.
+Source audit finds registered-root collection only in the shared reconciler.
+Final validation passes after fast-forward integration of remote main
+`eaa2f5aec955016ad338afb302467a5c44a846fc`: the full root build, 10,527 SafeJS
+package tests with 41 skipped, 20 built-entrypoint/restoration checks, and full
+root lint (9,732 configured files, zero errors/warnings), including TypeScript
+and workflow checks. Integrated upstream changes also passed 288 terminal-pilot
+tests and all 20 focused SafeBash substitution-admission tests with no skips.
+The earlier lint run was canceled for integration and is not final evidence.
+Atomic delivery remains separate from these local checks. Object.fromEntries
+changes are preserved separately and are not part of this prerequisite commit.

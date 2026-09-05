@@ -358,7 +358,7 @@ async function executeClosure(
     const value = "hasValue" in result && result.hasValue ? result.value : undefined;
     reconcileCompiledValues(
       context.budget,
-      [...scope.retainedValues(), ...context.budget.retainedValues(), value],
+      [...scope.retainedValues(), value],
       compilation,
       parent,
       [value]

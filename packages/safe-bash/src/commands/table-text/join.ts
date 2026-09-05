@@ -134,16 +134,23 @@ export function createJoinCommand(factory: TableTextCommandsOptions = {}): Comma
         const pair = [left, right], fields: Uint8Array[] = [];
         const key = (left ?? right)?.key ?? empty;
         if (Array.isArray(options.format)) {
-          for (const field of options.format) fields.push(field.file === 0 ? key : pair[field.file - 1]?.fields[field.index] ?? empty);
+          for (const field of options.format) {
+            await budget.step();
+            fields.push(field.file === 0 ? key : pair[field.file - 1]?.fields[field.index] ?? empty);
+          }
         } else {
           fields.push(key);
           for (let file = 0; file < 2; file++) {
             const count = options.format === "auto" ? counts[file]! : pair[file]?.fields.length ?? 0;
-            for (let index = 0; index < count; index++) if (index !== options.fields[file]) fields.push(pair[file]?.fields[index] ?? empty);
+            for (let index = 0; index < count; index++) {
+              await budget.step();
+              if (index !== options.fields[file]) fields.push(pair[file]?.fields[index] ?? empty);
+            }
           }
         }
         const parts: Uint8Array[] = [];
         for (let index = 0; index < fields.length; index++) {
+          await budget.step();
           if (index) parts.push(delimiter);
           parts.push(fields[index]!.length ? fields[index]! : options.replacement);
         }

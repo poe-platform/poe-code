@@ -1399,7 +1399,7 @@ job 101276302770. That job explicitly skipped publishing because its local main
 was behind remote main. There is no standalone CLI publication from this run;
 verify a published descendant containing the Array commit instead.
 
-### 26. Primitive boxing — qualified locally; main delivery pending
+### 26. Primitive boxing — closed at verified main delivery; release pending
 
 Eight built native comparisons fail: Object boxing of number/string/boolean,
 new Number/String/Boolean wrappers, Array.map on a string primitive, and
@@ -1523,6 +1523,16 @@ guest promise jobs before Promise.all, Set, spread or Array.from completes its
 synchronous prefix. Public budget-recovery probes retain converted binary and
 compound operands before host effects and replay completed effects only once.
 This is ready for its own commit and push; publication is not yet claimed.
+Delivered as 601fc1394216ea9035c4809c152d85a0b7493285 and independently verified
+on remote refs/heads/main September 5. Close the finding at main delivery.
+Scoped release run 33985896644 and CLI release run 33985896714 are monitored
+separately; neither publication is claimed yet. The preceding instruction-only
+commit 5925bd4bd2e25e9dec40af55427d6058aae31576 was also pushed and independently
+verified before this atomic implementation commit. Its canceled CLI run is not
+a publication receipt; the delivered descendant contains both commits.
+Scoped run 33985896644/job 101359199026 succeeded and explicitly published
+@poe-platform/safe-js 0.1.134 September 5 at 19:06:41 UTC; its watcher exited zero.
+The CLI release remains separately monitored and is not yet claimed published.
 
 ### 27. Number formatting coercion — delivered and released
 
@@ -2867,3 +2877,49 @@ CLI run 33968267176 succeeded and explicitly published poe-code@14.0.62 to lates
 September 5 at 13:24:44 UTC. The remote v14.0.62 tag independently resolves to
 a66cc1f327da9599dbac1039425d1869742e8bb9, also covering the earlier function-source
 and numeric-parser commits whose individual CLI runs were canceled.
+
+### 48. JSON.parse input conversion — qualified locally; main delivery pending
+
+After boxing delivery, four built/native probes validate the next bounded gap:
+JSON.parse ignores ordinary-object toString hooks, rejects boxed String input,
+ignores an array's overridden toString, and loses a hook's thrown marker identity.
+Number and ordinary-array controls agree with native execution. The current
+implementation recursively formats arrays and substitutes a fixed object tag,
+instead of using guest ToString. ECMAScript 2026 §25.5.1 requires ToString before
+parsing: https://tc39.es/ecma262/2026/multipage/structured-data.html#sec-json.parse.
+
+The initial 32-case TDD suite reports 29 failures and three controls. One failed
+fixture assigns a Date own property, which is independently unsupported before
+JSON.parse runs; this is not evidence for the parsing defect. Replace it with a
+default-Date syntax-error control. The remaining reproductions validate parsing
+coercion, inherited/async hooks, boxed inputs, thrown identity, cyclic arrays,
+synchronous job ordering, persistent realms, replay, fatal steps and recursion.
+Route input through maintained sandboxString with the current call context and
+remove the duplicate recursive formatter. Preserve the synchronous primitive
+path and existing parsed-value copy/budget checks. All 53 focused JSON tests pass.
+Revivers and JSON.stringify breadth remain separate work; no claim of full JSON
+parity is made here.
+
+Manual QA: run the schema-only json-parse-coercion.md/.ajs fixture with zero
+capabilities/spawns. Check string-before-value conversion order, boxed input,
+array override and thrown marker identity, then inspect its CLI screenshot.
+Run the maintained SafeJS/harness tests, normal build and root lint. Check built
+public recovery/cleanup before this fix's own commit and main push. Boxing's
+scoped and CLI releases continue in parallel with this validated issue.
+
+Final code qualification passes: 32 new regression/control tests, the maintained
+SafeJS suite with 12,734 passes and 41 skips, the 163-test harness suite, normal
+build, and root lint covering 9,779 files with zero errors/warnings plus TypeScript
+and workflow checks. Built root/core probes pass two fatal-step checkpoint
+recoveries without repeating completed effects, twenty persistent-realm cleanup
+cycles, and twenty cancellations before a second host effect in the conversion
+hook. Native comparison also confirms that conversion does not prematurely drain
+guest promise jobs. No runtime cancellation behavior was changed: preliminary
+probes incorrectly expected a Promise returned by synchronous toString to be
+awaited, or an abort with no subsequent host/await boundary to force rejection.
+Those expectations were corrected instead of treating them as JSON defects.
+The actual zero-spawn CLI fixture passes; its inspected screenshot shows values
+[7, 9, 8], string-before-value hook order and preserved thrown identity. The
+presentation-only rerun changes only the temporary fixture's returned summary;
+the qualified repository source remains unchanged. Ready for this improvement's
+separate commit and verified main push, not yet a publication claim.

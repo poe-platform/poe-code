@@ -39,7 +39,13 @@ export function createConsoleJsonGlobals(
     JSON: {
       parse: createSandboxClosure({
         sandbox: true,
-        call: async ([text]) => parseJson(text, options.budget),
+        call: async ([text], context) => {
+          const converted = sandboxString(text, options.budget, context);
+          return copyJsonToSandbox(
+            JSON.parse(converted instanceof Promise ? await converted : converted),
+            options.budget
+          );
+        },
         name: "parse"
       }),
       stringify: createSandboxClosure({
@@ -110,12 +116,6 @@ export function createConsoleJsonGlobals(
   };
 }
 
-function parseJson(input: SandboxValue, budget: Budget): SandboxValue {
-  const text = budget.allocateString(toJsonParseText(input));
-
-  return copyJsonToSandbox(JSON.parse(text), budget);
-}
-
 async function stringifyJson(
   value: SandboxValue,
   replacer: SandboxValue,
@@ -150,20 +150,6 @@ async function stringifyJson(
   }
 
   return budget.allocateString(output);
-}
-
-function toJsonParseText(input: SandboxValue): string {
-  if (Array.isArray(input)) {
-    return input
-      .map((entry) => (entry === null || entry === undefined ? "" : toJsonParseText(entry)))
-      .join(",");
-  }
-
-  if (typeof input === "object" && input !== null) {
-    return "[object Object]";
-  }
-
-  return String(input);
 }
 
 type StringifyState = {

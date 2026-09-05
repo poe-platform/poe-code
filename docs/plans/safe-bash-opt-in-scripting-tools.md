@@ -988,6 +988,68 @@ this request to keep additions out of the default package.
   are predeclared in the maintained build/lint/pack configuration, but that
   uncommitted implementation and configuration are not qualified by the earlier
   gate. Broader arrays, read descriptor semantics and background/wait remain open.
+- The first array-key candidate passes the root's 208 authored cases, 1,206
+  previously committed core/array cases, and 77 compiled/public/default cases.
+  Independent review nevertheless withholds approval: four legacy metadata
+  validation-order regressions and three raw heredoc byte-loss cases remain.
+  Its 24-case suite passes 17, with all seven candidate source hashes unchanged.
+  Native key heredocs use spaces regardless of IFS; that suspected separator
+  issue is disproved, not patched. The mixed payload failures instead retain
+  the pre-existing document path's lossy conversion. Root public coverage grows
+  from 13 to 17 cases and independently reproduces four failures. These are
+  preserved red baselines, not a completed feature or an integrated green gate.
+- Original array author evidence is 44/107 before implementation, after the
+  approved duplicate-capability union correction. Subsequent fixture corrections
+  fix a `readBytes` signal argument and an incorrect raw-IFS heredoc expectation;
+  neither is counted as a product repair. Native-confirmed here-string and
+  heredoc fixes precede the author's final 208/208 (81 native, 127 independent
+  of the oracle). Root logs are retained under the existing temporary evidence
+  directory; the author supplied terminal evidence, not named raw log files.
+- Mapfile now directly declares the shared array-key syntax capability without
+  importing the array factory. Its new seven-case syntax suite moves from 3/7
+  to 7/7; the full current mapfile cohort moves from 229/241 to 234/241. Seven
+  function diagnostic-origin failures remain. A separate core-only 20-case
+  native suite isolates 15 failures, and five compiled public cases fail too:
+  functions require definition-owned diagnostic names and effective line bases,
+  rather than inherited evaluator caller offsets. No mapfile/read optional
+  export or tool commit is implied by this progress.
+- Retained-endpoint investigation authenticates 32 native observations using
+  actual C-created FIFO descriptors, not Node sockets. Buffered bytes do not
+  make a write endpoint read-ready while a reader survives; closing the last
+  peer alias changes readiness. The evidence is in
+  `/tmp/bash-read-endpoints.Vehn4u/EVIDENCE.md`. Existing transport abort signals
+  conflate cancellation, failure and closure and cannot establish this lifetime.
+  Runtime descriptor ownership and retained output acquisition remain required;
+  no readiness API, pathname inference or stage-lifetime approximation is
+  accepted as the implementation. Read's 54 descriptor-order failures stay open.
+- The current optional build succeeds; root/workspace dry packs contain
+  4,645/1,054 files with no optional artifacts, including the new arrays leaf.
+  The actual compiled array output screenshot is inspected. The maintained
+  typecheck still exits two with 24 earlier diagnostics; all 25 current consumer
+  groups pass. These observations qualify their candidate snapshot, not future
+  review repairs, a release, or complete scripting compatibility.
+- The seven array review failures are repaired without changing the review
+  assertions. Syntax-only preparse capture preserves legacy validation order;
+  canonical heredoc fragments avoid decoding raw payloads. The author reaches
+  221/221 and the reviewer file 24/24. A retained heredoc fixture still expects
+  the old lossy bytes. Root reproduces that failure and authenticates the exact
+  fixture's native payload, `ffc3a9800ac3a90a`, using equivalent byte-producing
+  and byte-copy helpers. The expected bytes are corrected while preserving the
+  script and adding an explicit assertion for the unchanged decoded string.
+  The native helper adds a source line, so its warning line number is not claimed
+  identical to the unprefixed virtual fixture. Independent re-review remains
+  required before committing the feature.
+- Independent re-review approves the seven repairs with unchanged assertions:
+  245/245 authored/reviewer cases plus six separately recorded lifecycle and
+  budget controls. Root's final 51-file scoped run passes 1,728 tests with zero
+  skips; the six watched implementation hashes remain unchanged. Five strict
+  roots have zero diagnostics, canonical discovery passes 98 cases, and the
+  selected normal workspace build closure and subsequent optional build pass.
+  Final workspace/root dry packs retain 1,054/4,645 files with no optional leaks.
+  The repaired public output screenshot is inspected. Guarded lint twenty-eight
+  completes with exit zero and unchanged hashes for all 15 watched inputs.
+  Broader maintained type checking still has 24 diagnostics. This qualifies the
+  opt-in indexed-key increment, not fuller arrays, mapfile/read delivery or jobs.
 
 - First implementation wave: cmp, yes, shuf and virtual devices in disjoint leaf
   directories. Root is qualifying native oracles and the opt-in delivery boundary.

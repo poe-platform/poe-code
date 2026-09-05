@@ -9,11 +9,13 @@ import { shellValueFromBytes, shellValueText } from "../contracts/value.js";
 import type { ByteShellValue, ShellValue } from "../contracts/value.js";
 
 export interface ShellSyntaxDeclarations {
+  readonly arrayKeys?: true;
   readonly listTerminators?: readonly { readonly operator: string }[];
   readonly specialParameters?: readonly { readonly name: string }[];
 }
 
 export interface CapturedShellSyntax {
+  readonly arrayKeys?: true;
   readonly listTerminators: readonly Readonly<{ operator: "&" }>[];
   readonly specialParameters: readonly Readonly<{ name: "!" }>[];
 }
@@ -43,11 +45,13 @@ export function captureShellSyntax(declarations: ShellSyntaxDeclarations = defau
   const prototype: unknown = Object.getPrototypeOf(declarations);
   if (prototype !== null && prototype !== Object.prototype) throw new TypeError("Invalid shell syntax declarations");
   const properties = Object.getOwnPropertyDescriptors(declarations);
-  if (Reflect.ownKeys(properties).some(key => key !== "listTerminators" && key !== "specialParameters")
+  if (Reflect.ownKeys(properties).some(key => key !== "listTerminators" && key !== "specialParameters" && key !== "arrayKeys")
     || Object.values(properties).some(property => !("value" in property))) throw new TypeError("Invalid shell syntax declarations");
+  if (properties.arrayKeys && properties.arrayKeys.value !== true) throw new TypeError("Invalid shell syntax capability");
   const syntax: CapturedShellSyntax = Object.freeze({
     listTerminators: syntaxEntries(properties.listTerminators?.value, "operator", "&"),
     specialParameters: syntaxEntries(properties.specialParameters?.value, "name", "!"),
+    ...(properties.arrayKeys ? { arrayKeys: true as const } : {}),
   });
   capturedSyntax.add(syntax);
   return syntax;
@@ -553,6 +557,8 @@ class Lexer {
     } else if (this.source[this.position] === "{") {
       this.position++;
       const parameterStart = this.position - 2;
+      const keys = this.syntax.arrayKeys === true && this.source[this.position] === "!";
+      if (keys) this.position++;
       const length = this.source[this.position] === "#" && (/[a-zA-Z_0-9]/u.test(this.source[this.position + 1] ?? "")
         || this.syntax.specialParameters.some(parameter => parameter.name === this.source[this.position + 1]));
       if (length) this.position++;
@@ -569,6 +575,10 @@ class Lexer {
         selector = arraySelector(this.source.slice(start, end), start);
         this.position = end + 1;
         if (this.source[this.position] !== "}") this.error("Unsupported indexed-array operator");
+      }
+      if (keys) {
+        if (length || selector?.kind !== "members") this.error("Unsupported array-key expansion");
+        selector = { kind: "keys", separator: selector.separator };
       }
       const operator = /^(?::[-=+?]|##|%%|\/\/|\/[#%]?|[-=+?#%])/u.exec(this.source.slice(this.position))?.[0];
       let alternate: Word | undefined;

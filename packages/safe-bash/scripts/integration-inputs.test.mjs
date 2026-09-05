@@ -495,6 +495,11 @@ function assertSource7Discovery(files) {
     "tests/plugins/byte-array-runtime.test.ts",
   ]) assert.ok(files.includes(path), "byte-array foundation test is missing: " + path);
   for (const path of [
+    "tests/shell/extensions/arrays/keys.test.ts",
+    "tests/shell/extensions/arrays/keys-review.test.ts",
+    "tests/plugins/array-keys-runtime.test.ts",
+  ]) assert.ok(files.includes(path), "opt-in array keys test is missing: " + path);
+  for (const path of [
     "tests/shell/extensions/core/bindings.test.ts",
     "tests/shell/extensions/core/declarations.test.ts",
     "tests/shell/extensions/core/input.test.ts",

@@ -16,6 +16,7 @@ export type { MikeYqOptions as YqCommandsOptions } from "./commands/yq/mike.js";
 export type { MikeLimits as YqLimits } from "./commands/yq/native-work.js";
 export { createDeviceFileSystem } from "./fs/devices/index.js";
 export type { DeviceFileSystem } from "./fs/devices/index.js";
+export { arraysExtension } from "./shell/extensions/arrays/index.js";
 export { trapExtension } from "./shell/extensions/trap/index.js";
 export type { TrapExtensionOptions, TrapSignalHost } from "./shell/extensions/trap/index.js";
 export type { ShellExtension, ShellExtensionBuiltin, ShellExtensionContext, ShellExtensionEvent, ShellExtensionInstance, ShellExtensionOption, ShellExtensionScope } from "./shell/extensions.js";

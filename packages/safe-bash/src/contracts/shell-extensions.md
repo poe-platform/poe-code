@@ -10,6 +10,30 @@ extension builtin names still reject, even when replacement is requested.
 Direct dispatch and the `command`, `builtin` and `type` lookup paths honor the
 installed replacement without enabling optional command implementations.
 
+## Optional syntax
+
+An extension may declare `syntax: { arrayKeys: true }` to enable indexed-key
+expansions, `${!name[@]}` and `${!name[*]}`. The declaration is captured before
+the first parse without instantiating the extension. Factories still run after
+successful initial parsing. Captured syntax follows subsequent parsing and
+forks; mutating the original declaration from a factory cannot change it.
+Preparse syntax capture does not move existing name, factory or runtime-identity
+validation ahead of its ordinary postparse initialization point.
+
+Syntax declarations contain only supported own data properties in a plain
+object. `arrayKeys` must be `true` when present. Different extensions can declare
+the same capability; this does not relax duplicate extension or builtin checks.
+The runtime does not admit background-job syntax through this declaration.
+
+The optional `arraysExtension()` factory declares that capability and matching
+runtime identity, with no builtins. It is absent from default registration and
+package artifacts. Keys use canonical numeric ordering and the existing shared
+allocation limits; this does not widen ordinary assignment bounds or implement
+associative arrays. The optional leaf's semantics document records the qualified
+expansion contexts and remaining limits.
+
+## Bindings and input
+
 An invocation's `bindings` interface reads canonical `ShellValue` values, not
 reconstructed display text. `describe` distinguishes unset, scalar and indexed
 bindings and reports readonly/export attributes. `assign` uses ordinary shell

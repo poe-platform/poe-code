@@ -2,6 +2,8 @@ import type { ByteSink, ByteSource } from "../contracts/io.js";
 import type { ShellValue } from "../contracts/value.js";
 import { commandRuntimeIdentity } from "../contracts/command.js";
 import type { InputReadiness, RawRecord, RawRecordOptions, ReadLine, ReadLineOptions } from "./input.js";
+import { captureShellSyntax } from "./parser.js";
+import type { CapturedShellSyntax, ShellSyntaxDeclarations } from "./parser.js";
 
 export interface ShellBindingDescription {
   readonly kind: "unset" | "scalar" | "indexed";
@@ -94,10 +96,12 @@ export interface ShellExtensionOption {
 export interface ShellExtension {
   readonly name: string;
   readonly runtimeIdentity?: object;
+  readonly syntax?: ShellSyntaxDeclarations;
   create(): ShellExtensionInstance;
 }
 
 export interface ShellExtensionState {
+  readonly syntax: CapturedShellSyntax;
   readonly entries: readonly { readonly definition: ShellExtension; readonly instance: ShellExtensionInstance }[];
   readonly builtins: ReadonlyMap<string, ShellExtensionBuiltin>;
   readonly options: ReadonlyMap<string, ShellExtensionOption>;
@@ -109,22 +113,53 @@ export interface ShellExtensionState {
   readonly cleanup: (() => Promise<void>)[];
 }
 
+const capturedDefinitions = new WeakSet<ShellExtension>();
+
+interface CapturedShellExtensions {
+  readonly definitions: readonly ShellExtension[];
+  readonly declarations: readonly CapturedShellSyntax[];
+  readonly syntax: CapturedShellSyntax;
+}
+
+const capturedDeclarations = new WeakMap<readonly ShellExtension[], CapturedShellExtensions>();
+
+export function captureShellExtensions(definitions: readonly ShellExtension[]): CapturedShellExtensions {
+  const previous = capturedDeclarations.get(definitions);
+  if (previous) return previous;
+  const declarations: CapturedShellSyntax[] = [];
+  let arrayKeys = false;
+  const captured = Array.from(definitions, definition => {
+    const syntax = captureShellSyntax(definition?.syntax);
+    if (syntax.listTerminators.length || syntax.specialParameters.length) throw new TypeError("Unsupported runtime shell syntax declarations");
+    arrayKeys ||= syntax.arrayKeys === true;
+    declarations.push(syntax);
+    return definition;
+  });
+  const result = Object.freeze({ definitions: Object.freeze(captured), declarations: Object.freeze(declarations), syntax: captureShellSyntax(arrayKeys ? { arrayKeys: true } : {}) });
+  capturedDeclarations.set(result.definitions, result);
+  return result;
+}
+
 export function extensionState(definitions: readonly ShellExtension[], parent?: ShellExtensionState, scope?: ShellExtensionScope): ShellExtensionState | undefined {
   if (!definitions.length) return undefined;
+  const captured = captureShellExtensions(definitions);
   const names = new Set<string>();
-  const captured = Array.from(definitions, definition => {
+  const snapshots = captured.definitions.map((definition, index) => {
     if (!definition) throw new TypeError("Invalid shell extension");
     const { name, create, runtimeIdentity } = definition;
     if (typeof name !== "string" || !name || names.has(name) || typeof create !== "function") throw new TypeError("Invalid or duplicate shell extension");
     if (runtimeIdentity !== undefined && runtimeIdentity !== commandRuntimeIdentity) throw new TypeError("Shell extension requires its matching shell runtime; do not mix source and compiled runtime modules");
     names.add(name);
-    return Object.freeze({ name, create: create.bind(definition), ...(runtimeIdentity === undefined ? {} : { runtimeIdentity }) });
+    if (capturedDefinitions.has(definition)) return definition;
+    const snapshot = Object.freeze({ name, create: create.bind(definition), syntax: captured.declarations[index]!, ...(runtimeIdentity === undefined ? {} : { runtimeIdentity }) });
+    capturedDefinitions.add(snapshot);
+    return snapshot;
   });
   const builtins = new Map<string, ShellExtensionBuiltin>();
   const options = new Map<string, ShellExtensionOption>();
   const shoptOptions = new Map<string, ShellExtensionOption>();
   const flags = new Set(["e", "u", "o"]);
-  const entries = captured.map((definition, index) => {
+  const entries = snapshots.map((definition, index) => {
     const previous = parent?.entries[index]?.instance;
     const instance = previous?.fork && scope ? previous.fork(scope) : definition.create();
     if (!instance || !Array.isArray(instance.builtins)) throw new TypeError("Shell extension requires builtin definitions");
@@ -147,7 +182,7 @@ export function extensionState(definitions: readonly ShellExtension[], parent?: 
     }
     return { definition, instance };
   });
-  return { entries, builtins, options, shoptOptions, cleanup: [] };
+  return { entries, syntax: captured.syntax, builtins, options, shoptOptions, cleanup: [] };
 }
 
 export function forkExtensions(parent: ShellExtensionState | undefined, scope: ShellExtensionScope): ShellExtensionState | undefined {

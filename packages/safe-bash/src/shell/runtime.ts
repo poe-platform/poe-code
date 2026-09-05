@@ -1640,7 +1640,7 @@ export class Runtime {
         } else {
           const quotedScalar = (part: WordPart): boolean => {
             const selector = getArraySelector(part);
-            return part.quoted && !(part.kind === "variable" && (part.name === "@" || selector?.kind === "members" && selector.separator === "@"));
+            return part.quoted && !(part.kind === "variable" && (part.name === "@" || selector && selector.kind !== "element" && selector.separator === "@"));
           };
           const certain = entry.value.parts.every(part => part.kind === "text" ? part.quoted || !/[*?[]/u.test(part.value) : quotedScalar(part));
           const demanded = entry.value.parts.some(part => part.kind === "text" ? part.quoted || part.value.length > 0 : quotedScalar(part));
@@ -2614,26 +2614,39 @@ export class Runtime {
     }
   }
 
-  async document(document: HereDocument, state: State, io: IO, line = document.endLine): Promise<string> {
+  async document(document: HereDocument, state: State, io: IO, line = document.endLine): Promise<ShellValue> {
     this.signal.throwIfAborted();
     let value = "";
+    let fragments: ShellValue[] | undefined;
+    const allocation = this.budget.values.scope();
     let size = 0;
     let words = 0;
     const warnings: string[] = [];
     try {
-      for (const word of hereDocumentWords(document, line, byteLocale(state.variables), warnings)) {
+      for (const word of hereDocumentWords(document, line, byteLocale(state.variables), warnings, state.extensions?.syntax)) {
         this.signal.throwIfAborted();
         for (const warning of warnings.splice(0)) await writeText(io.stderr, `shell: warning: ${warning}\n`);
         if (++words % 128 === 0) await yieldTurn(this.signal);
-        const part = (await this.word(word, state, io, false)).join("");
-        size += Buffer.byteLength(part);
-        if (size > this.budget.limits.maxExpansionBytes) this.budget.fail("maxExpansionBytes");
-        value += part;
+        for (const part of await this.valueWord(word, state, io, false, false, false, false, undefined, true)) {
+          size += shellValueByteLength(part);
+          if (size > this.budget.limits.maxExpansionBytes) this.budget.fail("maxExpansionBytes");
+          if (!fragments && typeof part === "string") value += part;
+          else {
+            if (!fragments) {
+              allocation.reserve(64, 2);
+              fragments = [value];
+            }
+            allocation.reserve(32, 1);
+            fragments.push(part);
+          }
+        }
       }
+      return fragments ? concatShellValues(fragments, io[valueScope] ?? allocation) : value;
     } finally {
-      for (const warning of warnings.splice(0)) await writeText(io.stderr, `shell: warning: ${warning}\n`);
+      try {
+        for (const warning of warnings.splice(0)) await writeText(io.stderr, `shell: warning: ${warning}\n`);
+      } finally { allocation.close(); }
     }
-    return value;
   }
 
   async redirect(redirects: readonly Redirect[], state: State, io: IO, inputs: Set<{ close(): void | Promise<void> }>, outputs: Set<(completion: OutputCompletion) => void | Promise<void>>, isolatedInlineInput = false, persistMoves = false, fileShortcut = false, line?: number): Promise<IO> {
@@ -2679,8 +2692,8 @@ export class Runtime {
       replaced.add(redirect.descriptor);
       if (redirect.document || redirect.operator === "<<<") {
         const hereString = redirect.operator === "<<<";
-        let value: string;
-        try { value = redirect.document ? await this.document(redirect.document, state, currentIO(), line) : (await this.word(redirect.target, state, currentIO(), false, false, hereString)).join(""); }
+        let value: ShellValue;
+        try { value = redirect.document ? await this.document(redirect.document, state, currentIO(), line) : concatShellValues(await this.valueWord(redirect.target, state, currentIO(), false, false, hereString), io[valueScope]); }
         catch (error) {
           if (error instanceof NounsetFailure) throw error;
           if (error instanceof ParameterExpansionFailure && !isolatedInlineInput) throw error;
@@ -2689,10 +2702,10 @@ export class Runtime {
           throw error;
         }
         if (hereString) {
-          if (Buffer.byteLength(value) >= this.budget.limits.maxExpansionBytes) this.budget.fail("maxExpansionBytes");
-          value += "\n";
+          if (shellValueByteLength(value) >= this.budget.limits.maxExpansionBytes) this.budget.fail("maxExpansionBytes");
+          value = concatShellValues([value, "\n"], io[valueScope]);
         }
-        const prepared = prepareBytesInput(value, this.budget);
+        const prepared = prepareBytesInput(typeof value === "string" ? value : shellValueBytes(value, io[valueScope]), this.budget);
         inputs.add(prepared);
         io[invocationScope].register(prepared.close);
         const input = new ShellInput(prepared.source, this.budget, this.signal, prepared.options);
@@ -3467,7 +3480,7 @@ export class Runtime {
     try {
       do {
         this.signal.throwIfAborted();
-        const unit = parseShellUnit(source, position, byteLocale(state.variables));
+        const unit = parseShellUnit(source, position, byteLocale(state.variables), false, state.extensions?.syntax);
         for (const warning of unit.script.warnings ?? []) await writeText(io.stderr, `${io.scriptName}: warning: ${warning}\n`);
         if (unit.script.lists.length) {
           const result = await this.runUnit(unit.script, state, io);
@@ -3502,7 +3515,7 @@ export class Runtime {
       if (bytes) source += this.sourceText(bytes, io.scriptName ?? "shell");
       const unitIO = { ...io, diagnosticOffset: offset };
       try {
-        const unit = eof ? parseShellUnit(source, 0, byteLocale(state.variables)) : parseShellInputUnit(source, byteLocale(state.variables));
+        const unit = eof ? parseShellUnit(source, 0, byteLocale(state.variables), false, state.extensions?.syntax) : parseShellInputUnit(source, byteLocale(state.variables), state.extensions?.syntax);
         if (unit) {
           for (const warning of unit.script.warnings ?? []) await writeText(io.stderr, `${io.scriptName}: warning: ${warning}\n`);
           if (unit.script.lists.length) {
@@ -3750,7 +3763,7 @@ export class Runtime {
       let position = 0;
       do {
         this.signal.throwIfAborted();
-        const unit = parseShellUnit(source, position, byteLocale(context.env));
+        const unit = parseShellUnit(source, position, byteLocale(context.env), false, state.extensions?.syntax);
         units.push(unit.script);
         position = unit.next;
       } while (position < source.length);
@@ -3782,7 +3795,7 @@ export class Runtime {
     try {
       do {
         this.signal.throwIfAborted();
-        const unit = parseShellUnit(source, position, byteLocale(state.variables), byteSource);
+        const unit = parseShellUnit(source, position, byteLocale(state.variables), byteSource, state.extensions?.syntax);
         for (const warning of unit.script.warnings ?? []) await writeText(io.stderr, `${io.scriptName ?? "shell"}: warning: ${warning}\n`);
         if (unit.script.lists.length) {
           status = await this.script(unit.script, state, io);
@@ -4764,21 +4777,21 @@ export class Runtime {
     return shellValueText(await this.valuePart(part, state, io, hereString));
   }
 
-  private async valuePart(part: Exclude<WordPart, { kind: "text" }>, state: State, io: IO, hereString = false): Promise<ShellValue> {
+  private async valuePart(part: Exclude<WordPart, { kind: "text" }>, state: State, io: IO, hereString = false, split = false, hereDocument = false): Promise<ShellValue> {
     const binding = part.kind === "variable" ? arrayStore(state)?.get(part.name) : undefined;
     const holding = binding ? requireArrays(state).owner.hold() : undefined;
     const selector = getArraySelector(part);
     const index = selector?.kind === "element" ? numericIndex(selector.index, 4294967295) : 0;
-    const token = index === undefined || selector?.kind === "members" ? undefined : binding?.values.get(index)?.text;
+    const token = index === undefined || selector && selector.kind !== "element" ? undefined : binding?.values.get(index)?.text;
     token?.retain();
     try {
-      const value = await this.partValue(part, state, io, hereString);
+      const value = await this.partValue(part, state, io, hereString, split, hereDocument);
       if (binding) await textToken(requireArrays(state).owner, value, this.signal);
       return value;
     } finally { token?.release(); holding?.release(); }
   }
 
-  private async partValue(part: Exclude<WordPart, { kind: "text" }>, state: State, io: IO, hereString: boolean): Promise<ShellValue> {
+  private async partValue(part: Exclude<WordPart, { kind: "text" }>, state: State, io: IO, hereString: boolean, split: boolean, hereDocument: boolean): Promise<ShellValue> {
     if (part.kind === "failed-substitution") {
       if (state.depth >= this.budget.limits.maxSubstitutionDepth) this.budget.fail("maxSubstitutionDepth");
       await writeText(io.stderr, part.diagnostic);
@@ -4846,8 +4859,11 @@ export class Runtime {
         return part.length ? this.valueLength(value ?? "", state, io) : value ?? "";
       }
       if (part.length) return String(binding?.values.size ?? (state.variables[part.name] === undefined ? 0 : 1));
-      const values = await this.arrayMembers(part.name, state);
-      return this.arrayJoin(store.owner, values, this.ifsSeparator(state, io));
+      const values = await this.arrayMembers(part.name, state, selector.kind === "keys");
+      const space = selector.kind === "keys" && (hereDocument || (selector.separator === "@"
+        ? !part.quoted && !split || state.variables.IFS === ""
+        : !part.quoted && split && state.variables.IFS === ""));
+      return this.arrayJoin(store.owner, values, space ? " " : this.ifsSeparator(state, io));
     }
     let value = part.name === "?" ? String(state.status)
       : part.name === "-" ? `${state.errexit ? "e" : ""}${state.nounset ? "u" : ""}`
@@ -4883,13 +4899,13 @@ export class Runtime {
         if (operator === "=" && arrayStore(state)?.get(part.name)) {
           alternate = "";
           await this.arrayZero(state, part.name, async () => {
-            retained = await this.arrayJoin(requireArrays(state).owner, await this.valueWord(part.alternate!, state, io, false, false, hereString), "");
+            retained = await this.arrayJoin(requireArrays(state).owner, await this.valueWord(part.alternate!, state, io, false, false, hereString, false, undefined, hereDocument), "");
             return retained;
           });
           value = shellValueText(retained!);
           return part.length ? this.valueLength(retained!, state, io) : retained!;
         }
-        retained = concatShellValues(await this.valueWord(part.alternate!, state, io, false, false, hereString), io[valueScope]);
+        retained = concatShellValues(await this.valueWord(part.alternate!, state, io, false, false, hereString, false, undefined, hereDocument), io[valueScope]);
         alternate = shellValueText(retained);
         if (operator === "?") throw new ParameterExpansionFailure(`${part.name}: ${alternate || (part.operator.startsWith(":") ? "parameter null or not set" : "parameter not set")}`, io.diagnosticLine ?? part.line);
         if (operator === "=") {
@@ -5063,7 +5079,7 @@ export class Runtime {
     return (await this.valueWord(word, state, io, split, pattern, hereString, conditionalPattern, regexAppend)).map(shellValueText);
   }
 
-  private async valueWord(word: Word, state: State, io: IO, split = true, pattern = false, hereString = false, conditionalPattern = false, regexAppend?: (text: string, literal: boolean) => void): Promise<ShellValue[]> {
+  private async valueWord(word: Word, state: State, io: IO, split = true, pattern = false, hereString = false, conditionalPattern = false, regexAppend?: (text: string, literal: boolean) => void, hereDocument = false): Promise<ShellValue[]> {
     const arrayOwned = word.parts.some(part => part.kind === "variable" && (getArraySelector(part) !== undefined || arrayStore(state)?.get(part.name) !== undefined));
     const owner = arrayOwned ? requireArrays(state).owner : undefined;
     const holding = owner?.hold();
@@ -5105,8 +5121,9 @@ export class Runtime {
         }
       }
       const selector = getArraySelector(part);
-      if (part.kind === "variable" && selector?.kind === "members" && !part.length && split && (!part.quoted || selector.separator === "@")) {
-        const members = await this.arrayMembers(part.name, state);
+      if (part.kind === "variable" && selector && selector.kind !== "element" && !part.length && split
+        && (selector.kind === "members" ? !part.quoted || selector.separator === "@" : selector.separator === "@" && (part.quoted || state.variables.IFS === ""))) {
+        const members = await this.arrayMembers(part.name, state, selector.kind === "keys");
         for (let position = 0; position < members.length; position++) {
           if (position > 0) {
             owner?.reserve({ metadata: 32, allocatedSlots: 1, work: 3 });
@@ -5145,7 +5162,7 @@ export class Runtime {
         }
         if (state.positional.length === 0 && word.parts.every((entry) => (entry.kind === "text" && entry.value === "") || entry === part)) fields[0]!.present = false;
       } else {
-        const value = part.kind === "text" ? part.byteValue ?? part.value : await this.valuePart(part, state, io, hereString);
+        const value = part.kind === "text" ? part.byteValue ?? part.value : await this.valuePart(part, state, io, hereString, split, hereDocument);
         if (part.quoted || !split || state.variables.IFS === "") append(value, !part.quoted, quotedPresence || !split || shellValueByteLength(value) > 0);
         else {
           const separators = stateMonitor(state)?.values.get("IFS", state.variables.IFS ?? " \t\n") ?? state.variables.IFS ?? " \t\n";
@@ -5249,7 +5266,7 @@ export class Runtime {
     return createCommandArguments(values, allocation);
   }
 
-  async arrayMembers(name: string, state: State): Promise<ShellValue[]> {
+  async arrayMembers(name: string, state: State, keys = false): Promise<ShellValue[]> {
     const store = requireArrays(state);
     const holding = store.owner.hold();
     try {
@@ -5257,7 +5274,7 @@ export class Runtime {
     store.owner.reserve({ metadata: 64, work: 3 });
     if (!binding) {
       const text = state.variables[name];
-      const value = text === undefined ? undefined : stateMonitor(state)?.values.get(name, text) ?? text;
+      const value = text === undefined ? undefined : keys ? "0" : stateMonitor(state)?.values.get(name, text) ?? text;
       if (value === undefined) return [];
       store.owner.reserve({ metadata: 32, allocatedSlots: 1, work: 3 });
       await textToken(store.owner, value, this.signal);
@@ -5269,7 +5286,7 @@ export class Runtime {
       const values: ShellValue[] = [];
       for (const index of indices) {
         store.owner.reserve({ metadata: 32, allocatedSlots: 1, work: 4 });
-        const value = binding.getValue(index)!;
+        const value = keys ? String(index) : binding.getValue(index)!;
         await textToken(store.owner, value, this.signal);
         values.push(value);
         await store.owner.ledger.checkpoint(this.signal);

@@ -7,6 +7,7 @@ export interface LiteralIndex {
 
 export type ArraySelector =
   | { readonly kind: "element"; readonly index: LiteralIndex }
+  | { readonly kind: "keys"; readonly separator: "@" | "*" }
   | { readonly kind: "members"; readonly separator: "@" | "*" };
 
 export interface ArrayEntry {

@@ -5,7 +5,7 @@ import type {
 } from "../contracts/index.js";
 import { warnIfHostProcessEnv } from "./env-warning.js";
 import { parseShellUnit } from "./parser.js";
-import { extensionState } from "./extensions.js";
+import { captureShellExtensions, extensionState } from "./extensions.js";
 import { prepareBytesInput, ShellInput, type PreparedShellInput } from "./input.js";
 import { byteLocale } from "./locale.js";
 import { Budget, Capture, interruptible, resolveLimits, Runtime, RuntimeCancellationState } from "./runtime.js";
@@ -247,7 +247,8 @@ export class Shell implements PluginHost {
     let failed = false;
     try {
       try {
-        let unit = parseShellUnit(source, 0, byteLocale({ ...this.#options.env, ...options.env }));
+        const extensions = captureShellExtensions(this.#options.extensions ?? []);
+        let unit = parseShellUnit(source, 0, byteLocale({ ...this.#options.env, ...options.env }), false, extensions.syntax);
         if (options.stdin === undefined || typeof options.stdin === "string" || options.stdin instanceof Uint8Array) {
           preparedInput = prepareBytesInput(options.stdin ?? "", budget);
           stdin = new ShellInput(preparedInput.source, budget, budget.signal, preparedInput.options);
@@ -263,7 +264,7 @@ export class Shell implements PluginHost {
         variables.OPTIND = "1";
         variables.OPTERR = "1";
         state = {
-          extensions: extensionState(this.#options.extensions ?? []),
+          extensions: extensionState(extensions.definitions),
           cwd, variables, exported, functions: new Map(), positional: [], getopts: { cursor: { index: 0 }, integer: true },
           directoryStack: { entries: [], bytes: 0 },
           dotglob: false,
@@ -295,7 +296,7 @@ export class Shell implements PluginHost {
           }
           if (unit.next >= source.length) break;
           budget.signal.throwIfAborted();
-          unit = parseShellUnit(source, unit.next, byteLocale(state.variables));
+          unit = parseShellUnit(source, unit.next, byteLocale(state.variables), false, extensions.syntax);
         }
       } catch (error) {
         if (!(error instanceof ShellSyntaxError)) throw error;

@@ -347,6 +347,7 @@
     "!packages/safe-bash/dist/commands/yes",
     "!packages/safe-bash/dist/commands/yq",
     "!packages/safe-bash/dist/fs/devices",
+    "!packages/safe-bash/dist/shell/extensions/arrays",
     "!packages/safe-bash/dist/shell/extensions/trap",
     "!packages/safe-bash/dist/shell/extensions/jobs",
     "!packages/safe-bash/dist/shell/extensions/mapfile",

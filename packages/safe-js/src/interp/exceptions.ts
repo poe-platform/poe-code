@@ -618,7 +618,10 @@ async function bindAssignmentPattern<TContext extends ExceptionContext, TError>(
   let nextValue = value;
 
   if (nextValue === undefined) {
-    const defaultValue = await evaluateNode(pattern.right, context);
+    const defaultValue = await evaluateNode(pattern.right, {
+      ...context,
+      inferredName: pattern.left.type === "Identifier" ? pattern.left.name : undefined
+    });
     if (defaultValue.kind !== "normal") {
       return {
         ok: false,

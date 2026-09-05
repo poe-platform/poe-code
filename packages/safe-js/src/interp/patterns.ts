@@ -29,7 +29,7 @@ export type PatternTarget = { kind: VariableDeclarationKind; initialize?: true }
 
 export type PatternContext = {
   budget?: Budget;
-  evaluate(node: ParseResult): Promise<AsyncEvaluationResult>;
+  evaluate(node: ParseResult, inferredName?: string): Promise<AsyncEvaluationResult>;
   toPropertyKey(value: SandboxValue): Promise<string>;
   getProperty(value: SandboxValue, key: string | number): SandboxValue;
   setProperty(target: SandboxValue, key: string | number, value: SandboxValue): void;
@@ -103,7 +103,10 @@ async function bindAssignmentPattern(
     return bindPattern(pattern.left, value, target, scope, context);
   }
 
-  const defaultValue = await context.evaluate(pattern.right);
+  const defaultValue = await context.evaluate(
+    pattern.right,
+    pattern.left.type === "Identifier" ? pattern.left.name : undefined
+  );
   if (defaultValue.kind !== "normal") {
     return { ok: false, result: defaultValue };
   }

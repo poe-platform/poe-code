@@ -2564,7 +2564,7 @@ export function createPatternContext(context: AsyncEvaluationContext, scope = co
   const evaluationContext = { ...context, scope };
   return {
     budget: context.budget,
-    evaluate: node => evaluate(node, evaluationContext),
+    evaluate: (node, inferredName) => evaluate(node, { ...evaluationContext, inferredName }),
     toPropertyKey: value => toPropertyKey(value, context.budget, createCoercionContext(evaluationContext)),
     getProperty: (value, key) => getPropertyValue(value, key, evaluationContext),
     setProperty: (target, key, value) => setSandboxProperty(target, key, value, context.budget)

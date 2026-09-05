@@ -3023,7 +3023,7 @@ Publication verified independently: scoped run 33995164123 published
 completed successfully, and remote tag `v14.0.64` resolves exactly to
 916fcddeb6b9517ea1104e5791fd2097a7ae7079.
 
-### 51. Public class construction and elements
+### 51. Public class construction and elements — closed at verified main delivery
 
 The full class gap remains open. The first 72 native runtime comparisons produced 71
 failures and one passing ordinary-constructor control before implementation.
@@ -3086,6 +3086,16 @@ This public-class increment is qualified for its own commit and main delivery;
 private elements, accessors, full intrinsic graphs and snapshot portability
 remain open requirements of the overall goal.
 
+Committed and pushed as 49ce01a1ede4b3c20f83099b58ae7cd2dd1564ab on September 5;
+remote `refs/heads/main` independently matches that commit. Close this public
+class increment at verified main delivery. CLI run 33997517489 and scoped-package
+run 33997517429 are being monitored; no publication claim yet. Work on the next
+validated default-name issue continues during these builds.
+
+Scoped publication is verified: run 33997517429 completed successfully and
+published `@poe-platform/safe-js@0.1.137` at 23:05:31 UTC on September 5. The CLI
+run remains independently monitored; scoped publication is not a CLI release.
+
 ### 52. Anonymous class names in binding defaults — confirmed gap
 
 Read-only source/native comparisons confirm that object-destructuring defaults,
@@ -3094,3 +3104,41 @@ array-destructuring defaults, and ordinary function parameter defaults evaluate
 The class-field initializer control correctly uses its field name. This has not
 been fixed or claimed delivered with the public-class increment; add focused
 regressions and fix the default-binding named-evaluation path next.
+
+Sixteen native-comparison cases reproduce eleven failures with five passing
+controls (explicit names, conditional expressions, member targets, supplied
+values, and field initializers). Pass the identifier binding name through the
+shared pattern evaluator before evaluating a default initializer. The first fix
+left the separately implemented catch-pattern binder failing; applying the same
+named-evaluation context there brings all sixteen cases green. The related class,
+pattern, and exception suites pass 132 tests. This change does not rename a
+supplied class or infer a name through a conditional/member target.
+
+Manual QA: run the schema-only `class-default-names.md`/`.ajs` fixture through
+the real harness with zero capabilities/spawns and inspect the screenshot for
+`ObjectDefault`, `ParameterDefault`, and `CatchDefault`. Build before the CLI
+check, then run the maintained SafeJS and agent-harness package tests and root
+lint. This is a focused SafeJS initializer-metadata change, not another parser/
+workspace-wide infrastructure change; those package routes cover the modified
+binding paths and their harness consumer. Commit and push it separately from
+the public-class feature, and monitor publication without delaying the next
+validated issue.
+
+Default-name qualification passes: sixteen native comparisons, 132 related
+focused tests, 12,949 maintained SafeJS package tests (41 skips), and 163
+agent-harness tests. The normal build and real CLI screenshot pass; the screenshot
+shows `ObjectDefault`, `ParameterDefault`, and `CatchDefault`, with zero spawns.
+The screenshot build completed before package checks and root lint. Root lint
+covers 9,786 configured files with zero errors/warnings; TypeScript and workflow
+checks pass. This focused fix is ready for its own commit and verified main push.
+
+### 53. Accessor descriptors and class getter/setter syntax — confirmed gap
+
+Native/current-source comparisons return 7 natively for a descriptor getter
+reading `this.base`, while SafeJS throws `TypeError: Only data property
+descriptors are supported.` A class getter returning 7 fails with the explicit
+`class accessor` disallowed-syntax error. An ordinary data-descriptor control
+returns 8 in both engines. These are reproduced implementation limitations,
+not inferred issue reports. The next substantial work is the accessor property
+model and its consumers, followed by class/object accessor syntax; getters must
+not be implemented by exposing native host execution or silently dropping state.

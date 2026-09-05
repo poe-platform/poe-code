@@ -5,12 +5,15 @@ import { streamCommands } from "./streams.js";
 import { textCommands } from "./text.js";
 import { grepCommands } from "./grep.js";
 import { predicateCommands } from "./predicates.js";
-import { directExecutor, executionCommands } from "./execution.js";
+import { directExecutor, executionCommands, type ExecutionCommandsOptions } from "./execution.js";
 import { findCommands } from "./find.js";
 import { diagnostic } from "./internal.js";
 import type { RegexExecutionOptions } from "./regex-execution/protocol.js";
 
+export type { ExecutionCommandsOptions } from "./execution.js";
+
 export interface StandardCommandsOptions {
+  readonly execution?: ExecutionCommandsOptions;
   readonly execute?: CommandHandler;
   readonly replace?: boolean;
   readonly regex?: RegexExecutionOptions;
@@ -26,7 +29,7 @@ export function createStandardCommands(options: StandardCommandsOptions = {}): r
     await diagnostic(context, new Error("command not found"));
     return { exitCode: 127 };
   }));
-  commands.push(...basicCommands(), ...filesystemCommands(options.maxDirectoryEntries), ...streamCommands(options.maxTeeTargets), ...textCommands(), ...grepCommands(options.regex), ...predicateCommands(), ...executionCommands(execute), ...findCommands(execute, options.maxDirectoryEntries));
+  commands.push(...basicCommands(), ...filesystemCommands(options.maxDirectoryEntries), ...streamCommands(options.maxTeeTargets), ...textCommands(), ...grepCommands(options.regex), ...predicateCommands(), ...executionCommands(execute, options.execution), ...findCommands(execute, options.maxDirectoryEntries));
   return commands;
 }
 

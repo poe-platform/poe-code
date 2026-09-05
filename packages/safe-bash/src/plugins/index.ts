@@ -1,5 +1,5 @@
 import { CommandRegistry, type CommandDefinition, type CommandHandler, type VirtualShellPlugin } from "../contracts/index.js";
-import { createStandardCommands } from "../commands/index.js";
+import { createStandardCommands, type ExecutionCommandsOptions } from "../commands/index.js";
 import { diagnostic } from "../commands/internal.js";
 import { createTextProgramCommands, type TextProgramOptions } from "../commands/text-programs/index.js";
 import { createStructuredCommands, type StructuredCommandsOptions } from "../commands/structured/index.js";
@@ -26,6 +26,7 @@ import { createApplyPatchCommands, type ApplyPatchCommandsOptions } from "../com
 import type { RegexExecutionOptions } from "../commands/regex-execution/protocol.js";
 
 export interface AgentCommandsOptions {
+  readonly execution?: ExecutionCommandsOptions;
   readonly bytes?: Omit<ByteCommandsOptions, "replace">;
   readonly applyPatch?: Omit<ApplyPatchCommandsOptions, "replace">;
   readonly timeout?: Omit<TimeoutCommandsOptions, "replace">;
@@ -70,7 +71,7 @@ export function createAgentCommands(options: AgentCommandsOptions = {}): readonl
   const timeoutOptions = options.timeout;
   const applyPatchLimits = options.applyPatch?.limits;
   commands.push(
-    ...createStandardCommands({ execute: options.execute ?? executor(name => commands.find(command => command.name === name)), ...(options.regex === undefined ? {} : { regex: options.regex }), ...(options.maxDirectoryEntries === undefined ? {} : { maxDirectoryEntries: options.maxDirectoryEntries }), ...(options.maxTeeTargets === undefined ? {} : { maxTeeTargets: options.maxTeeTargets }) }),
+    ...createStandardCommands({ execute: options.execute ?? executor(name => commands.find(command => command.name === name)), ...(options.execution === undefined ? {} : { execution: options.execution }), ...(options.regex === undefined ? {} : { regex: options.regex }), ...(options.maxDirectoryEntries === undefined ? {} : { maxDirectoryEntries: options.maxDirectoryEntries }), ...(options.maxTeeTargets === undefined ? {} : { maxTeeTargets: options.maxTeeTargets }) }),
     ...createTextProgramCommands({ ...options.text }),
     ...createStructuredCommands({ ...options.structured }),
     ...createSearchCommands({ ...options.search }),

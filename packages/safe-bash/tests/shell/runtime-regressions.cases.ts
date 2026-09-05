@@ -68,6 +68,7 @@ test("broken-pipe writes cancel signal-waiting upstream commands", { timeout: 20
 test("redirected input resources close after partial, zero and failed consumption", async () => {
   for (const script of ["first < input", "true < input", "true < input < missing", "true < input 0<&-"]) {
     const { shell, fs, commands } = setup();
+    Object.defineProperty(fs, "open", { value: undefined });
     await fs.writeFile("/input", new Uint8Array([1, 2, 3]));
     let returned = 0;
     fs.readStream = () => ({ [Symbol.asyncIterator]() {
@@ -78,6 +79,34 @@ test("redirected input resources close after partial, zero and failed consumptio
     assert.equal(returned, 1, script);
   }
 });
+
+for (const script of ["first < input", "true < input", "true < input < missing", "true < input 0<&-"]) {
+  test(`canonical redirected input closes its sole descriptor: ${script}`, async () => {
+    const { shell, fs, commands } = setup();
+    await fs.writeFile("/input", Uint8Array.of(1, 2, 3));
+    const open = fs.open.bind(fs);
+    let opens = 0, reads = 0, closes = 0;
+    fs.open = async (...args) => {
+      const descriptor = await open(...args);
+      opens++;
+      const read = descriptor.read.bind(descriptor);
+      const close = descriptor.close.bind(descriptor);
+      descriptor.read = async (...readArgs) => { reads++; return read(...readArgs); };
+      descriptor.close = async () => { closes++; await close(); };
+      return descriptor;
+    };
+    fs.readStream = () => { throw new Error("Canonical redirected input must not use readStream"); };
+    commands.register({ name: "first", async execute({ stdin }) { for await (const ignoredChunk of stdin) break; return { exitCode: 0 }; } });
+    try {
+      const result = await shell.exec(script);
+      assert.equal(result.exitCode, script === "true < input < missing" ? 1 : 0);
+      assert.equal(result.stdout, "");
+      if (script !== "true < input < missing") assert.equal(result.stderr, "");
+      assert.deepEqual({ opens, reads, closes }, { opens: 1, reads: script === "first < input" ? 1 : 0, closes: 1 });
+    } finally { await shell.dispose(); }
+    assert.equal(closes, 1, "disposal must not repeat descriptor close");
+  });
+}
 
 test("independent truncate descriptors maintain offsets, duplicated descriptors share them", async () => {
   const { shell, fs, commands } = setup();

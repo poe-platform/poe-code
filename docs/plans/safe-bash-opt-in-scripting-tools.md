@@ -938,6 +938,14 @@ this request to keep additions out of the default package.
   repaired. Historical, three source-consumer and all 25 current-consumer groups
   pass, and temporary cleanup completes. The full typecheck remains failed;
   source/test compilation and runtime/native acceptance are not interchangeable.
+- Evaluator ownership repair is locally committed as `ae07b883f`. The separate
+  redirected-input fixture repair is ready after independent root review and
+  181 maintained language tests. Its SHA is
+  `c3a1b1a5026637383ddc30f353b23b5204799046ab83ebf57d526cd1da648d50`;
+  it changes no product behavior and retains the original legacy assertions.
+  The mapfile review's no-yield guard is repaired without weakening its rejection
+  on direct input pull. Guarded lint twenty-seven is running; no push or release
+  is requested or performed.
 
 - First implementation wave: cmp, yes, shuf and virtual devices in disjoint leaf
   directories. Root is qualifying native oracles and the opt-in delivery boundary.

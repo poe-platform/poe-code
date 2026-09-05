@@ -4579,10 +4579,34 @@ export class Runtime {
       field.present ||= present;
     };
     const appendSplit = async (value: ShellValue): Promise<void> => {
+      this.budget.cpuCheckpoint();
+      if (shellValueByteLength(value) === 0) return;
       const separators = state.variables.IFS ?? " \t\n";
+      const separatorScope = this.budget.values.scope();
+      try {
+      separatorScope.reserve(64, 0);
+      const points = new Set<number>();
+      const addSeparator = (point: number): void => {
+        if (points.has(point)) return;
+        separatorScope.reserve(32, 0);
+        points.add(point);
+      };
+      let asciiSeparators = true;
+      const work = this.splitWork ??= { scanned: 0 };
+      for (let index = 0; index < separators.length; index++) {
+        const unit = separators.charCodeAt(index);
+        asciiSeparators &&= unit <= 127;
+        addSeparator(unit);
+        addSeparator(separators.codePointAt(index)!);
+        if (++work.scanned >= 4096) {
+          work.scanned = 0;
+          await yieldTurn(this.signal);
+        }
+      }
       let boundary = false;
-      for await (const piece of this.splitValue(value, separators, io, scratch)) {
-        if (typeof piece === "string" && separators.includes(piece)) {
+      for await (const piece of this.splitValue(value, points, asciiSeparators, io, scratch)) {
+        const point = typeof piece === "string" ? piece.codePointAt(0) : undefined;
+        if (typeof piece === "string" && point !== undefined && piece.length === (point > 0xffff ? 2 : 1) && points.has(point)) {
           if (!" \t\n".includes(piece)) {
             fields.at(-1)!.present = true;
             addField();
@@ -4594,6 +4618,7 @@ export class Runtime {
         }
       }
       if (boundary) addField();
+      } finally { separatorScope.close(); }
     };
     const parts = word.parts.map((part) => ({ part, splitText: false, io }));
     for (let index = 0; index < parts.length; index++) {
@@ -4670,10 +4695,10 @@ export class Runtime {
 
   private splitWork?: { scanned: number };
 
-  private async *splitValue(value: ShellValue, separators: string, io: IO, scratch?: ValueScope): AsyncGenerator<ShellValue> {
+  private async *splitValue(value: ShellValue, separators: ReadonlySet<number>, asciiSeparators: boolean, io: IO, scratch?: ValueScope): AsyncGenerator<ShellValue> {
     this.budget.cpuCheckpoint();
     const work = this.splitWork ??= { scanned: 0 };
-    if (typeof value === "string" || Array.from(separators).some(character => character.charCodeAt(0) > 127)) {
+    if (typeof value === "string" || !asciiSeparators) {
       const text = shellValueText(value);
       const slice = (start: number, end: number): string => {
         if (start === 0 && end === text.length) return text;
@@ -4682,9 +4707,10 @@ export class Runtime {
       };
       let start = 0;
       for (let index = 0; index < text.length;) {
-        const character = String.fromCodePoint(text.codePointAt(index)!);
+        const point = text.codePointAt(index)!;
+        const character = String.fromCodePoint(point);
         const end = index + character.length;
-        if (separators.includes(character)) {
+        if (separators.has(point)) {
           if (start < index) yield slice(start, index);
           yield character;
           start = end;
@@ -4710,7 +4736,7 @@ export class Runtime {
         await yieldTurn(this.signal);
       }
       const byte = bytes[index]!;
-      if (byte > 127 || !separators.includes(String.fromCharCode(byte))) continue;
+      if (byte > 127 || !separators.has(byte)) continue;
       if (start < index) yield shellValueFromBytes(bytes.subarray(start, index), io[valueScope]);
       yield String.fromCharCode(byte);
       start = index + 1;

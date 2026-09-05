@@ -1050,6 +1050,40 @@ this request to keep additions out of the default package.
   completes with exit zero and unchanged hashes for all 15 watched inputs.
   Broader maintained type checking still has 24 diagnostics. This qualifies the
   opt-in indexed-key increment, not fuller arrays, mapfile/read delivery or jobs.
+- The array increment is locally committed as `4a516d970`; no push or release
+  occurs. The following function-diagnostic investigation exposes a target
+  mismatch, not permission to downgrade established default behavior. Retained
+  default diagnostic fixtures explicitly use GNU Bash 5.3, whereas the new
+  modern-shell witnesses selected 5.2.37. Their differences must be adjudicated
+  before treating every red comparison as a product defect.
+- The original retained 5.3 executable is no longer present. An initial replay
+  fails admission and leaves no preserved observations; its empty output is not
+  a successful capture. Root builds a separate fresh GNU Bash 5.3.0 from the
+  official release archive in `/tmp/safe-bash-gnu-5.3-adjudication.0zMRKT`.
+  Archive SHA-256 is
+  `0d5cd86965f869a26cf64f4b71be7b96f90a3ba8b3d74e27e8e9d9d5550f31ba`;
+  executable SHA-256 is
+  `a0cfc1af0ff50f6b6e67c638979e2604f1c276c90116937fbaafcabb62ee2b40`.
+  This is a newly built oracle, not the missing historical executable or a
+  latest-version claim. No new tarball-signature verification is claimed.
+- Ten subsequently preserved, hash-bound native observations distinguish 5.2
+  from 5.3 for ordinary function errors as well as NUL warnings and evaluated
+  definition lines. The 5.2 `environment`/`main` prefixes are not the retained
+  default's 5.3 program/argv-zero labels. Evidence is
+  `function-origin-version-adjudication-v2.jsonl` under the existing temporary
+  oracle directory. The author freezes the uncommitted 5.2-driven prototype;
+  it is not approved for default integration. Independent 5.3 adjudication must
+  separate genuine declaration-line defects from version-only differences.
+  Existing 5.3 snapshots and original 5.2 observations remain unchanged.
+- The author archives the rejected prototype and removes only its own three
+  uncommitted product edits with `apply_patch`. Runtime, shell and parser match
+  `4a516d970` byte-for-byte again; unrelated work and all exploratory tests/logs
+  remain untouched. The patch and manifest are retained under
+  `/tmp/safe-bash-rejected-5.2-prototype-6e041309-2c3d-4b84-8f68-50948ce241a9`.
+  Root's restored-default diagnostics and compiled-array checks pass 80/80.
+  Five separate source/native mapfile public-fixture comparisons match the new
+  5.3 oracle, including NUL records, sparse uint32 cells and callback EXIT locals.
+  These do not constitute compiled mapfile delivery or its complete acceptance.
 
 - First implementation wave: cmp, yes, shuf and virtual devices in disjoint leaf
   directories. Root is qualifying native oracles and the opt-in delivery boundary.

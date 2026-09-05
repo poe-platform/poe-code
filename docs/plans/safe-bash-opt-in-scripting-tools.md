@@ -955,6 +955,39 @@ this request to keep additions out of the default package.
   `a62e60c75c7fe51acfc4f830c95e2656ca0cbe93b60d66e6c4ce7e9fa6085fdf`.
   Only the three device-type errors are repaired; its separate missing oracle
   import and the 24 remaining maintained typecheck diagnostics are not hidden.
+- Namespace fixture repair is locally committed as `47514de04`. Read's raw-byte
+  diagnostic repair receives separate independent approval: 24 new cases and
+  133 selected combined cases pass with strict types. New descriptor-order tests
+  then preserve 54 virtual failures in a 59-case authenticated cohort; all native
+  expected-result assertions pass. Root's complete current read directory has
+  462/516 passing cases, zero skips. These are descriptor admission, readiness,
+  timeout and zero-count ordering gaps, not a completed read implementation.
+  The new test SHA is
+  `5735c4ccd567d47e5c69403697aaae9e2dee53181ffdb63150165cd40d8c7489`.
+- Independent mapfile review exposes twenty trailing-numeric-whitespace cases
+  and signed callback-index mismatches. The first repair reaches 189/191 across
+  the combined cohort, retaining array-key expansion and a native callback-buffer
+  boundary mismatch. Root inspects pinned Bash 5.2.37 `run_callback`: its buffer
+  reserves ten index characters although signed presentation can require eleven,
+  truncating the final quoted-source byte. The compatibility decision is to
+  reproduce the observed target's source construction, with boundary/byte tests,
+  rather than silently repair native behavior or fabricate an expected diagnostic.
+  This is a pinned-target behavior, not a claim about every Bash version/platform.
+  Mapfile and read remain uncommitted leaves without public optional exports.
+- Mapfile's callback-capacity repair passes all 24 new boundary cases and all
+  52 unchanged reviewer cases; the complete cohort is 214/215, retaining only the
+  known array-key expansion case. The frozen source SHA is
+  `29d7e2a959612901041d090ab48e26ce2f2ea674fb12e5d7e9a0a5b643dafdb8`.
+  Exact-source reapproval, including nested diagnostic-source behavior, remains
+  pending. This is not tool delivery or a universal Bash compatibility claim.
+- Guarded lint twenty-seven completes with exit zero. Watched evaluator, legacy
+  input fixture, namespace fixture and repaired mapfile reviewer hashes remain
+  unchanged before/after. The four local commits are verified separately from
+  delivery; no push or release occurs. Work then advances to explicitly opt-in
+  array-key expansion. Its new leaf path and default-package directory exclusion
+  are predeclared in the maintained build/lint/pack configuration, but that
+  uncommitted implementation and configuration are not qualified by the earlier
+  gate. Broader arrays, read descriptor semantics and background/wait remain open.
 
 - First implementation wave: cmp, yes, shuf and virtual devices in disjoint leaf
   directories. Root is qualifying native oracles and the opt-in delivery boundary.

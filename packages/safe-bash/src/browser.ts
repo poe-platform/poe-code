@@ -22,12 +22,13 @@ export * from "./commands/regex-execution/public.js";
 export interface BrowserCommandsOptions {
   readonly replace?: boolean;
   readonly maxDirectoryEntries?: number;
+  readonly maxTeeTargets?: number;
 }
 
 export function createBrowserCommands(options: BrowserCommandsOptions = {}): readonly CommandDefinition[] {
   return [
     ...basicCommands(), ...filesystemCommands(options.maxDirectoryEntries), ...predicateCommands(),
-    ...streamCommands(), ...textCommands(),
+    ...streamCommands(options.maxTeeTargets), ...textCommands(),
   ];
 }
 

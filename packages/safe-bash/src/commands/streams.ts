@@ -208,7 +208,10 @@ function characterSet(specification: string): number[] {
   return result;
 }
 
-export function streamCommands(): CommandDefinition[] {
+export function streamCommands(maxTeeTargets = 64): CommandDefinition[] {
+  if (!Number.isSafeInteger(maxTeeTargets) || maxTeeTargets < 0) {
+    throw new RangeError("maxTeeTargets must be a nonnegative safe integer");
+  }
   return [
     define("cat", async context => {
       const parsed = options(context.args, "nbsvETAute", { number: "n", "number-nonblank": "b", "squeeze-blank": "s", "show-ends": "E", "show-tabs": "T", "show-nonprinting": "v", "show-all": "A" });
@@ -324,6 +327,9 @@ export function streamCommands(): CommandDefinition[] {
     }),
     define("tee", async context => {
       const parsed = options(context.args, "a", { append: "a" });
+      if (parsed.operands.length > maxTeeTargets) {
+        throw new UsageError(`too many tee targets (limit ${maxTeeTargets})`);
+      }
       const targets = new Set<FileOutput>();
       let exitCode = 0;
       try {

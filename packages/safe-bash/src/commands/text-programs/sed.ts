@@ -1,7 +1,7 @@
 import { FsError, writeBytes, type CommandContext, type CommandDefinition } from "../../contracts/index.js";
 import { writeFileOutput } from "../../contracts/filesystem-output.js";
 import { Pattern, substitute } from "./regex.js";
-import { Budget, ProgramError, byteString, bytes, command, lineRecords, readProgram, virtualPath, write, type RecordLine, type TextProgramOptions } from "./shared.js";
+import { Budget, ProgramError, byteString, bytes, command, input, lineRecords, readProgram, virtualPath, write, type RecordLine, type TextProgramOptions } from "./shared.js";
 import { assertPathRequirements, requiredFileInput, sedRequirements } from "../search/requirements.js";
 
 type Address = { kind: "number"; number: number } | { kind: "last" } | { kind: "regex"; pattern: Pattern | undefined };
@@ -22,7 +22,12 @@ interface Instruction {
   translation?: Map<string, string>;
 }
 
-function parse(source: string, extended: boolean): Instruction[] {
+interface OutputState {
+  stdoutUnterminated: boolean;
+  readonly unterminatedFiles: Set<string>;
+}
+
+function parse(source: string, extended: boolean, separator: string): Instruction[] {
   if (source.length > 1024 * 1024) throw new ProgramError("sed program exceeds 1 MiB");
   const result: Instruction[] = [];
   const groups: number[] = [];
@@ -75,7 +80,7 @@ function parse(source: string, extended: boolean): Instruction[] {
     if (text && !/^[A-Za-z_][A-Za-z0-9_.-]*$/u.test(text)) throw new ProgramError(`invalid branch label '${text}'`);
     return text;
   };
-  const textArgument = (): string => {
+  const textArgument = (terminator: string): string => {
     horizontal();
     if (source[offset] === "\\") {
       offset++;
@@ -89,7 +94,7 @@ function parse(source: string, extended: boolean): Instruction[] {
         text += next === "n" ? "\n" : next === "t" ? "\t" : next;
       } else text += character;
     }
-    return text + "\n";
+    return text + terminator;
   };
   const fileArgument = (): string => {
     horizontal();
@@ -148,7 +153,7 @@ function parse(source: string, extended: boolean): Instruction[] {
     } else if (kind === "r" || kind === "w") {
       if (kind === "r" && second) throw new ProgramError("read accepts at most one address");
       instruction.file = fileArgument();
-    } else if (kind === "a" || kind === "i" || kind === "c") instruction.text = textArgument();
+    } else if (kind === "a" || kind === "i" || kind === "c") instruction.text = textArgument(kind === "a" ? "\n" : separator);
     else if (kind === "b" || kind === "t" || kind === "T" || kind === ":") {
       instruction.text = label();
       if (first && kind === ":") throw new ProgramError("labels cannot have addresses");
@@ -183,8 +188,31 @@ function parse(source: string, extended: boolean): Instruction[] {
   return result;
 }
 
-async function execute(program: readonly Instruction[], context: CommandContext, files: readonly string[], quiet: boolean, budget: Budget): Promise<{ status: number; quit: boolean }> {
-  const source = lineRecords(context, files, budget);
+async function* nullRecords(context: CommandContext, files: readonly string[], budget: Budget): AsyncGenerator<RecordLine> {
+  const names = files.length ? files : ["-"];
+  for (let fileIndex = 0; fileIndex < names.length; fileIndex++) {
+    const file = names[fileIndex]!;
+    let pending = "";
+    for await (const chunk of input(context, file)) {
+      budget.step();
+      let start = 0;
+      while (start < chunk.byteLength) {
+        const end = chunk.indexOf(0, start);
+        const stop = end < 0 ? chunk.byteLength : end;
+        if (pending.length + stop - start > budget.maxBufferBytes) throw new ProgramError("text buffer limit exceeded");
+        pending += Buffer.from(chunk.subarray(start, stop)).toString("latin1");
+        if (end < 0) break;
+        yield { text: pending, terminated: true, file, fileIndex };
+        pending = "";
+        start = end + 1;
+      }
+    }
+    if (pending) yield { text: pending, terminated: false, file, fileIndex };
+  }
+}
+
+async function execute(program: readonly Instruction[], context: CommandContext, files: readonly string[], quiet: boolean, budget: Budget, separator: string, outputState: OutputState): Promise<{ status: number; quit: boolean }> {
+  const source = separator === "\0" ? nullRecords(context, files, budget) : lineRecords(context, files, budget);
   let current = await source.next();
   let following: IteratorResult<RecordLine, void> | undefined;
   const peekNext = async (): Promise<IteratorResult<RecordLine, void>> => following ??= await source.next();
@@ -200,6 +228,15 @@ async function execute(program: readonly Instruction[], context: CommandContext,
   };
   let number = 0;
   let hold = "";
+  let holdTerminated = true;
+  const joinSpace = (left: string, right: string): string => {
+    if (left.length + separator.length + right.length > budget.maxBufferBytes) throw new ProgramError("text buffer limit exceeded");
+    return left + separator + right;
+  };
+  const emit = async (text: string, terminated = true): Promise<void> => {
+    await write(context, (outputState.stdoutUnterminated ? separator : "") + text);
+    outputState.stdoutUnterminated = separator === "\0" && !terminated;
+  };
   let lastPattern: Pattern | undefined;
   const active = new Set<number>();
   const getPattern = (pattern: Pattern | undefined) => {
@@ -223,10 +260,14 @@ async function execute(program: readonly Instruction[], context: CommandContext,
       let deleted = false;
       let quit = false;
       let status = 0;
-      const print = () => write(context, pattern + (record.terminated ? "\n" : ""));
-      const flush = async () => {
+      const print = () => emit(pattern + (record.terminated ? separator : ""), record.terminated);
+      const flush = async (printPattern = true) => {
         await assertPathRequirements(context, sedRequirements, ["script-read"], appended.flatMap(item => item.file === undefined ? [] : [item.file]));
-        if (!quiet && !deleted) await print();
+        if (printPattern && !quiet && !deleted) await print();
+        if (outputState.stdoutUnterminated && (appended.length || quit)) {
+          await write(context, separator);
+          outputState.stdoutUnterminated = false;
+        }
         for (const item of appended) {
           if (item.text !== undefined) { await write(context, item.text); continue; }
           const path = virtualPath(context, item.file!);
@@ -244,7 +285,12 @@ async function execute(program: readonly Instruction[], context: CommandContext,
         appended.length = 0; appendedSize = 0;
       };
       const writeFile = async (file: string): Promise<void> => {
-        await writeFileOutput(context, bytes(pattern + "\n"), chunk => context.fs.appendFile(virtualPath(context, file), chunk, { signal: context.signal }));
+        const path = virtualPath(context, file);
+        const terminated = record.terminated || separator === "\n";
+        const text = (outputState.unterminatedFiles.has(path) ? separator : "") + pattern + (terminated ? separator : "");
+        await writeFileOutput(context, bytes(text), chunk => context.fs.appendFile(path, chunk, { signal: context.signal }));
+        if (terminated) outputState.unterminatedFiles.delete(path);
+        else outputState.unterminatedFiles.add(path);
       };
       const matches = async (address: Address): Promise<boolean> => address.kind === "number" ? number === address.number : address.kind === "last" ? (await peekNext()).done === true : getPattern(address.pattern).find(pattern, budget) !== undefined;
       for (let pc = 0; pc < program.length;) {
@@ -272,27 +318,28 @@ async function execute(program: readonly Instruction[], context: CommandContext,
         switch (instruction.kind) {
           case "p": await print(); break;
           case "P": {
-            const end = pattern.indexOf("\n");
-            await write(context, end < 0 ? pattern + (record.terminated ? "\n" : "") : pattern.slice(0, end + 1)); break;
+            const end = pattern.indexOf(separator);
+            await emit(end < 0 ? pattern + (record.terminated ? separator : "") : pattern.slice(0, end + 1), end >= 0 || record.terminated); break;
           }
-          case "=": await write(context, `${number}\n`); break;
+          case "=": await emit(`${number}${separator}`); break;
           case "l": {
             const escapes: Record<string, string> = { "\x07": "\\a", "\b": "\\b", "\f": "\\f", "\n": "\\n", "\r": "\\r", "\t": "\\t", "\v": "\\v", "\\": "\\\\" };
             let line = "";
             for (let offset = 0; offset <= pattern.length; offset++) {
               budget.step(); await budget.checkpoint();
               const character = pattern[offset];
-              const token = character === undefined || character === "\n" ? "$" : escapes[character] ?? (character.charCodeAt(0) < 32 || character.charCodeAt(0) >= 127 ? `\\${character.charCodeAt(0).toString(8).padStart(3, "0")}` : character);
-              if (line.length + token.length >= 60) { await write(context, line + "\\\n"); line = ""; }
+              const lineEnd = character === "\n" && separator === "\n";
+              const token = character === undefined || lineEnd ? "$" : escapes[character] ?? (character.charCodeAt(0) < 32 || character.charCodeAt(0) >= 127 ? `\\${character.charCodeAt(0).toString(8).padStart(3, "0")}` : character);
+              if (line.length + token.length >= 60) { await emit(line + "\\" + separator); line = ""; }
               line = budget.check(line + token);
-              if (character === "\n") { await write(context, line + "\n"); line = ""; }
+              if (lineEnd) { await emit(line + separator); line = ""; }
             }
-            await write(context, line + "\n");
+            await emit(line + separator);
             break;
           }
           case "d": deleted = true; pc = program.length; continue;
           case "D": {
-            const end = pattern.indexOf("\n");
+            const end = pattern.indexOf(separator);
             if (end < 0) { deleted = true; pc = program.length; }
             else { pattern = pattern.slice(end + 1); pc = 0; }
             continue;
@@ -301,15 +348,28 @@ async function execute(program: readonly Instruction[], context: CommandContext,
           case "a": append({ text: instruction.text! }); break;
           case "r": append({ file: instruction.file! }); break;
           case "w": await writeFile(instruction.file!); break;
-          case "i": await write(context, instruction.text!); break;
+          case "i": await emit(instruction.text!); break;
           case "c":
-            if (!instruction.second || ending || instruction.negate || (await peekNext()).done) await write(context, instruction.text!);
+            if (!instruction.second || ending || instruction.negate || (await peekNext()).done) await emit(instruction.text!);
             deleted = true; pc = program.length; continue;
-          case "h": hold = pattern; break;
-          case "H": hold = budget.check(hold + "\n" + pattern); break;
-          case "g": pattern = hold; break;
-          case "G": pattern = budget.check(pattern + "\n" + hold); break;
-          case "x": [pattern, hold] = [hold, pattern]; break;
+          case "h": hold = pattern; holdTerminated = record.terminated; break;
+          case "H": hold = joinSpace(hold, pattern); holdTerminated = record.terminated; break;
+          case "g":
+            pattern = hold;
+            if (separator === "\0") record = { ...record, terminated: holdTerminated };
+            break;
+          case "G":
+            pattern = joinSpace(pattern, hold);
+            if (separator === "\0") record = { ...record, terminated: holdTerminated };
+            break;
+          case "x":
+            [pattern, hold] = [hold, pattern];
+            if (separator === "\0") {
+              const terminated = record.terminated;
+              record = { ...record, terminated: holdTerminated };
+              holdTerminated = terminated;
+            }
+            break;
           case "s": {
             const changed = await substitute(pattern, getPattern(instruction.pattern), instruction.replacement!, budget, instruction.global ?? false, instruction.occurrence ?? 1);
             pattern = changed.text;
@@ -336,10 +396,11 @@ async function execute(program: readonly Instruction[], context: CommandContext,
           }
           case "n": case "N": {
             if (instruction.kind === "n") await flush();
+            else if (separator === "\0" && !(await peekNext()).done) await flush(false);
             const next = await readNext();
             if (next.done) { if (instruction.kind === "N") await flush(); return { status: 0, quit: false }; }
             record = await prepareRecord(next.value); number++;
-            pattern = instruction.kind === "N" ? budget.check(pattern + "\n" + record.text) : record.text;
+            pattern = instruction.kind === "N" ? joinSpace(pattern, record.text) : record.text;
             substituted = false;
             break;
           }
@@ -362,16 +423,19 @@ export function sedCommand(options: TextProgramOptions = {}): CommandDefinition 
     let quiet = false;
     let extended = false;
     let separate = false;
+    let separator = "\n";
     let inPlace: string | undefined;
     let ended = false;
     for (let index = 0; index < context.args.length; index++) {
       const argument = context.args[index]!;
       if (ended || argument === "-" || !argument.startsWith("-")) { files.push(argument); continue; }
       if (argument === "--") { ended = true; continue; }
+      if (argument === "--null-data") { separator = "\0"; continue; }
       if (argument.startsWith("--")) throw new ProgramError(`unsupported option '${argument}'`);
       for (let position = 1; position < argument.length; position++) {
         const flag = argument[position]!;
         if (flag === "n") quiet = true;
+        else if (flag === "z") separator = "\0";
         else if (flag === "E" || flag === "r") extended = true;
         else if (flag === "s") separate = true;
         else if (flag === "i") {
@@ -392,7 +456,7 @@ export function sedCommand(options: TextProgramOptions = {}): CommandDefinition 
       sources.push(byteString(files.shift()!));
     }
     if (sources[0]?.startsWith("#n")) quiet = true;
-    const program = parse(sources.join("\n"), extended);
+    const program = parse(sources.join("\n"), extended, separator);
     const outputFiles = program.flatMap(instruction => instruction.kind !== "r" && instruction.file !== undefined ? [instruction.file] : []);
     await assertPathRequirements(context, sedRequirements, ["script-output"], outputFiles);
     if (inPlace !== undefined || outputFiles.length) {
@@ -404,6 +468,7 @@ export function sedCommand(options: TextProgramOptions = {}): CommandDefinition 
       const paths = new Set(outputFiles.map(file => virtualPath(context, file)));
       for (const path of paths) await writeFileOutput(context, new Uint8Array(), chunk => context.fs.writeFile(path, chunk, { signal: context.signal }));
     };
+    const outputState: OutputState = { stdoutUnterminated: false, unterminatedFiles: new Set() };
     if (inPlace !== undefined) {
       if (!files.length || files.includes("-")) throw new ProgramError("in-place editing requires named files");
       if (inPlace.includes("/") || inPlace.includes("\0")) throw new ProgramError("backup suffix cannot contain '/' or NUL");
@@ -417,7 +482,8 @@ export function sedCommand(options: TextProgramOptions = {}): CommandDefinition 
       for (const file of files) {
         let rewritten = "";
         const child = { ...context, stdout: { async write(chunk: Uint8Array) { rewritten = budget.check(rewritten + Buffer.from(chunk).toString("latin1")); } } };
-        const result = await execute(program, child, [file], quiet, budget);
+        outputState.stdoutUnterminated = false;
+        const result = await execute(program, child, [file], quiet, budget, separator, outputState);
         const path = virtualPath(context, file);
         if (inPlace) await context.fs.copyFile(path, path + inPlace, { signal: context.signal });
         await writeFileOutput(context, bytes(rewritten), chunk => context.fs.writeFile(path, chunk, { signal: context.signal }));
@@ -427,10 +493,10 @@ export function sedCommand(options: TextProgramOptions = {}): CommandDefinition 
     }
     await prepareOutputs();
     if (separate) {
-      for (const file of files.length ? files : ["-"]) { const result = await execute(program, context, [file], quiet, budget); if (result.quit || result.status) return result.status; }
+      for (const file of files.length ? files : ["-"]) { const result = await execute(program, context, [file], quiet, budget, separator, outputState); if (result.quit || result.status) return result.status; }
       return 0;
     }
-    return (await execute(program, context, files, quiet, budget)).status;
+    return (await execute(program, context, files, quiet, budget, separator, outputState)).status;
   });
   return { ...definition, filesystemRequirements: sedRequirements };
 }

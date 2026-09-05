@@ -238,18 +238,24 @@ export function createSandboxClosure(input: {
   return Object.freeze(closure);
 }
 
-export function ownEnumerableSandboxEntries(value: SandboxValue): Array<[string, SandboxValue]> {
+export function ownEnumerableSandboxEntries(
+  value: SandboxValue,
+  excludedKeys?: ReadonlySet<string>
+): Array<[string, SandboxValue]> {
   if (isGuestHostObject(value)) {
     const entries: Array<[string, SandboxValue]> = [];
     for (const key of getHostObjectKeys(value)) {
+      if (excludedKeys?.has(key)) continue;
       if (hasHostObjectMember(value, key, true)) entries.push([key, getHostObjectMember(value, key)]);
     }
     return entries;
   }
   if (value === null || value === undefined) throw new TypeError("Cannot convert undefined or null to object.");
-  if (isGuestClosure(value)) return Object.entries(value.properties ?? {}) as Array<[string, SandboxValue]>;
-  if (isSandboxClosure(value) || isSandboxGenerator(value) || isSandboxMap(value) || isSandboxSet(value) || isSandboxPromise(value) || isSandboxRegex(value)) return [];
-  return Object.entries(Object(value)) as Array<[string, SandboxValue]>;
+  let entries: Array<[string, SandboxValue]>;
+  if (isGuestClosure(value)) entries = Object.entries(value.properties ?? {});
+  else if (isSandboxClosure(value) || isSandboxGenerator(value) || isSandboxMap(value) || isSandboxSet(value) || isSandboxPromise(value) || isSandboxRegex(value)) return [];
+  else entries = Object.entries(Object(value)) as Array<[string, SandboxValue]>;
+  return excludedKeys === undefined ? entries : entries.filter(([key]) => !excludedKeys.has(key));
 }
 
 export function createSandboxPromise(

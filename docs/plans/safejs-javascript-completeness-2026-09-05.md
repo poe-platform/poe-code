@@ -298,7 +298,9 @@ and workflow checks. Committed and verified on remote main as
 `cad3deeeb40c1da7acd94636a692b078ce5bc18c`. Scoped workflow `33941378185`,
 publisher job `101239359387`, succeeded; its log confirms
 `@poe-platform/safe-js@0.1.90` published September 5, 2026, 03:20:23 UTC.
-CLI workflow `33941378321` is still being monitored. The remote advanced
+CLI workflow `33941378321`, publisher job `101240740706`, succeeded; its log
+confirms `poe-code@14.0.43` published September 5, 2026, 03:28:36 UTC.
+The remote advanced
 with a terminal-only repair before delivery; rebasing preserved the exact
 SafeJS tree, and the selected terminal build plus 253 terminal tests passed.
 Callable source text, full exotic prototype graphs, symbols,
@@ -311,9 +313,11 @@ than treating the local Node v22.23.2 behavior as an infallible oracle: it
 coerces compound/update keys twice, unlike the specified retained key. The
 normative history is TC39 ecma262 issue 3295 and merged PR 3307.
 
-### Additional validated gaps, not implemented
+### Additional validated findings (delivery status tracked below)
 
-Built public-entrypoint probes reproduce built-in receiver defects:
+Original built public-entrypoint probes reproduced these built-in receiver
+defects. Number receivers are now delivered in item 7; the remaining receiver
+families are still open:
 
 | Probe | Native JavaScript | Current SafeJS |
 | --- | --- | --- |
@@ -348,13 +352,13 @@ parameter's temporal dead zone. These are separately validated internal scope
 gaps, not additional claims about public replay. Keep them queued while
 prioritizing the public computed-key and built-in receiver defects.
 
-A public catch-pattern probe also confirms inherited reads are missing:
+A public catch-pattern probe originally confirmed inherited reads were missing:
 `try { throw Object.create({ x: 7 }); } catch ({ x }) { return x; }` returns
 undefined instead of 7. Catch binding currently uses separate property-read
-logic from ordinary destructuring; keep that independently validated defect
-in the queue.
+logic from ordinary destructuring; that independently validated defect is
+addressed in item 8 below.
 
-### 7. Number-method receivers — validated, delivery pending
+### 7. Number-method receivers — delivered, releases monitored
 
 The public reproducer `(1).toFixed.call(2, 1)` returns `"1.0"` instead of
 `"2.0"`. Each intercepted number member closes over the number from lookup
@@ -378,7 +382,11 @@ overlapping build/test run hit three missing tiny-mcp-client dist imports;
 rerunning the full suite after the build completed passed. Do not overlap
 dependency-dist replacement with this suite's integration children.
 Full root lint passed: 9,716 configured files linted, zero errors or warnings,
-plus root TypeScript and workflow checks. Commit/push/release pending.
+plus root TypeScript and workflow checks. Committed and verified on remote
+main as `eac430cbb103fecd6adc41fa258501a9ce5e19eb`; scoped workflow
+`33941942279` succeeded. Publisher job `101240971024` confirms
+`@poe-platform/safe-js@0.1.91` published September 5, 2026, 03:32:49 UTC.
+CLI workflow `33941942363` is still being monitored.
 
 This is one atomic part of the receiver audit, not completion of array-like
 objects, string/collection/regex receivers, method identity, or number-object
@@ -397,3 +405,61 @@ failures were compared with bounded native controls; the next catch-property
 fix must use guest property reads and guest enumerable entries, not raw
 implementation objects. Primitive boxing and full accessor semantics remain
 separate from fixing observable property reads.
+
+### 8. Catch-binding guest properties — resolved and validated
+
+Object catch patterns use raw implementation indexing and Object.entries,
+unlike ordinary guest property reads. Bounded native controls and public
+runner regressions reproduce 20 failures before implementation (four
+controls passed). Named reads now use the interpreter's guest property
+reader, and rest bindings reuse guest enumerable entries. Null and undefined
+remain invalid, while implemented primitive properties are readable.
+The redundant raw-indexing proxy function was removed.
+
+The focused cohort passes 150 tests: catch properties, exceptions,
+computed keys, guest function properties, and realms. Cases cover inherited/own/shadowed/default/nested/computed
+properties, function properties and non-enumerable name/length, Map/Set size,
+RegExp display, representation hiding for functions/regex/promises/generators,
+primitive reads and rest, nullish rejection, abrupt defaults, realm reuse,
+completed replay, and fatal traversal budgets. A live-host follow-up probe
+and failing regression exposed duplicate reads of an excluded rest key:
+`x,x,y` rather than `x,y`. The shared enumerable-entry helper now accepts
+excluded keys and skips those host reads before they execute; catch rest
+uses that option. This preserves the capability boundary's observable
+access order instead of filtering only after fetching every value.
+The first full suite passed 10,343 tests, with 41 skipped, before that final
+edge fix. Its in-flight lint run was intentionally stopped. Final validation
+passed: the selected SafeJS dependency build closure, 18 built root/core
+entrypoint checks (including live getter ordering), 10,344 SafeJS tests with
+41 skipped, and full root lint with 9,717 configured files linted and zero
+errors/warnings, plus root TypeScript and workflow checks. Commit, verified
+remote-main delivery, and releases are reported separately.
+
+The first broad regression matrix also exposed two independent property
+model gaps: `const fn=()=>7; return fn.name` produces `""`, not `"fn"`, and
+`Object.keys(new Error("message"))` produces `name`, `message`, and `stack`,
+not an empty array. Both were reconfirmed outside catch syntax. Named
+function expressions and Error name/message reads isolate catch binding
+behavior without pretending to fix function-name inference or Error
+descriptor semantics. Those independent improvements need their own tests,
+commits, and pushes; changing Error descriptors also requires checking the
+separate public error projection contract.
+
+This does not claim complete primitive boxing, accessor support, catch array
+iterator semantics, full prototype graphs, or parity for every declaration
+destructuring path. In particular, declaration object patterns still reject
+primitives; they are a separately validated integration gap.
+
+An additional bounded control isolates catch binding scope independently of
+property lookup: with outer `b = 9`, `catch ({ a = b, b = 2 })` returns 9
+instead of throwing ReferenceError. Catch parameter names are not all
+predeclared before defaults execute. Keep that temporal-dead-zone repair
+separate from this guest property integration.
+
+The same live-host probe confirms that ordinary declaration rest still reads
+`x,x,y`: its separate pattern helper does not yet pass excluded keys to the
+shared enumeration helper. Declaration, parameter, and assignment object
+patterns also reject `"ab"` where native `{0:first,length}` yields `["a",2]`.
+These are next atomic integrations, not silently included in this catch fix.
+Regular public function-parameter TDZ and var redeclaration controls pass;
+do not conflate those with the separately recorded internal restoration gaps.

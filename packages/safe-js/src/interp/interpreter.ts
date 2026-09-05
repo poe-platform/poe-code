@@ -2280,7 +2280,8 @@ async function evaluateTryStatement(
 ): Promise<EvaluationResult> {
   return evaluateTryStatementResult(node, {
     ...context,
-    toPropertyKey: (value: SandboxValue) => toPropertyKey(value, context.budget, createCoercionContext(context))
+    toPropertyKey: (value: SandboxValue) => toPropertyKey(value, context.budget, createCoercionContext(context)),
+    getProperty: (value: SandboxValue, key: string | number) => getPropertyValue(value, key, context)
   }, evaluateNode);
 }
 

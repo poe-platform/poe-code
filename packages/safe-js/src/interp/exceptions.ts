@@ -32,7 +32,8 @@ import { SandboxError, type Budget } from "./budget.js";
 import { HostCallResumabilityError } from "./host-call.js";
 import { withFatalPromiseCleanup } from "./promise-tracker.js";
 import type { Scope } from "./scope.js";
-import { deepCopyToSandbox, type SandboxObject, type SandboxValue } from "./values.js";
+import { deepCopyToSandbox, ownEnumerableSandboxEntries, type SandboxObject, type SandboxValue } from "./values.js";
+import { getSandboxDataProperty } from "./object-model.js";
 import { toPropertyKey } from "./property-key.js";
 
 const capturedExceptionBrand = Symbol("CapturedException");
@@ -78,6 +79,7 @@ type ExceptionContext = {
   callStack: readonly string[];
   scope: Scope;
   toPropertyKey?: (value: SandboxValue) => Promise<string>;
+  getProperty?: (value: SandboxValue, key: string | number) => SandboxValue;
 };
 
 type EvaluateExceptionNode<TContext, TError> = (
@@ -605,8 +607,8 @@ async function bindObjectPattern<TContext extends ExceptionContext, TError>(
   context: TContext,
   evaluateNode: EvaluateExceptionNode<TContext, TError>
 ): Promise<PatternBindingResult<TError>> {
-  if ((typeof value !== "object" && !Array.isArray(value)) || value === null) {
-    throw new TypeError("Object catch bindings require a non-null object value.");
+  if (value === null || value === undefined) {
+    throw new TypeError("Object catch bindings require a non-nullish value.");
   }
 
   const excludedKeys = new Set<string>();
@@ -630,7 +632,9 @@ async function bindObjectPattern<TContext extends ExceptionContext, TError>(
     excludedKeys.add(String(key.value));
     const binding = await bindPattern(
       property.value,
-      getObjectPatternValue(value, key.value),
+      context.getProperty === undefined
+        ? getSandboxDataProperty(value, key.value, context.budget)
+        : context.getProperty(value, key.value),
       context,
       evaluateNode
     );
@@ -693,24 +697,13 @@ function getStaticPropertyKey(property: AssignmentProperty["key"]): string | num
   }
 }
 
-function getObjectPatternValue(
-  value: Exclude<SandboxValue, null | undefined>,
-  key: string | number
-): SandboxValue {
-  return (value as Record<string | number, SandboxValue>)[key];
-}
-
 function copyObjectRest(
   value: Exclude<SandboxValue, null | undefined>,
   excludedKeys: ReadonlySet<string>
 ): SandboxObject {
   const rest = Object.create(null) as SandboxObject;
 
-  for (const [key, entryValue] of Object.entries(value)) {
-    if (excludedKeys.has(key)) {
-      continue;
-    }
-
+  for (const [key, entryValue] of ownEnumerableSandboxEntries(value, excludedKeys)) {
     rest[key] = entryValue;
   }
 

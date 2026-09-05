@@ -830,7 +830,7 @@ String, Array.from, Object.fromEntries, parseInt, and Math.abs expose undefined
 lengths rather than native lengths 1/1/1/1/2/1. These are explicit follow-up
 findings, not silently included in this repair.
 
-### 16. Remaining duplicate retained-root callers — validated prerequisite
+### 16. Remaining duplicate retained-root callers — delivered and released
 
 Object.fromEntries development exposed an unexpected extra 2,000-unit charge
 at closure completion. Initial fixture adjustments did not remove it. A trace
@@ -861,3 +861,52 @@ tests and all 20 focused SafeBash substitution-admission tests with no skips.
 The earlier lint run was canceled for integration and is not final evidence.
 Atomic delivery remains separate from these local checks. Object.fromEntries
 changes are preserved separately and are not part of this prerequisite commit.
+Committed and pushed as `e219cd412f95cbbd67787d382a4d8be6a9673743`, verified
+against remote main. Scoped workflow `33947671901`, publisher `101256602322`,
+succeeded: SafeJS 0.1.103 published September 5, 2026, 05:40:55 UTC. CLI workflow
+`33947671974` remains monitored separately.
+
+### 17. Object.fromEntries guest construction — validated repair
+
+The initial native/public-source cohort reproduced 25 failures with 18 passing
+controls. Guest execution now reads inherited and function-entry fields through
+the sandbox property model, reads both entry fields before converting the key,
+and uses string-hint guest conversion. It preserves supplied value identity and
+consumes arrays, collections, and generators live rather than precollecting them.
+Entry/conversion failures close the iterator and retain the original thrown
+value against ordinary cleanup failures; fatal cleanup budgets remain fatal.
+
+The partially built output and already-read entry value remain registered roots
+during generator advancement and key conversion. Removing either root made its
+targeted test incorrectly succeed at 5,000 data units. With both restored, the
+cases reject at 5,000 and succeed at 7,000 (built peaks 6,041 and 6,050). These
+checks required the separately delivered retained-root accounting prerequisite.
+
+Bounded per-property growth estimates reuse Array.from's checkpoint helper;
+Array.from's behavior is unchanged. An intermediate implementation forced 1,012
+full scans for 1,000 already-rooted object entries. Its regression now passes:
+built primitive and object-value cases each perform 12 scans. Unlimited data
+budgets do not incur the added-value graph measurement. Existing work, allocation,
+and fatal-cleanup controls remain active.
+
+The first full suite exposed 15 adapter regressions and an unhandled rejection:
+an unconditional async path changed direct host helper timing and native hooks.
+The existing context-free synchronous adapter is preserved, while active guest
+calls use the sandbox-aware path. All 210 tests in the affected six-file cohort
+pass after that correction; no existing assertions were weakened. The earlier
+lint run was canceled and is not final evidence.
+
+Final validation passes: selected SafeJS dependency build closure, 10,571 package
+tests with 41 skipped, and full root lint (9,733 configured files, zero errors or
+warnings), including TypeScript and workflows. Built checks cover 48 native key/
+iterator combinations through root and core exports, four accounting-scan cases,
+six retention/work/realm checks, and five nested/microtask/cleanup controls. A
+separate recursive-key check verifies maxCallDepth; an earlier probe misspelled
+that option and only exercised its maxSteps fallback. Atomic delivery and release
+remain separate from these local checks. Symbols and custom guest iterators are
+still broader open gaps, not claimed as fixed here.
+
+Read-only follow-up validation confirms Map(null) and Set(null) reject in both
+public runs and realms, while undefined and empty-array controls pass. Array.from
+also still performs 210 full reconciliations for 200 object values versus 10 for
+200 primitive values. These are separate repairs, not part of this commit.

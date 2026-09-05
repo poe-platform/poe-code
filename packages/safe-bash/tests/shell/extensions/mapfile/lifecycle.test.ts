@@ -45,6 +45,7 @@ function setup(args: readonly ShellValue[] = ["-t"]) {
       describe: () => ({ kind: "unset", readonly: false, exported: false }),
       get: (ignoredName, index = 0) => cells.get(index),
       async assign() { throw new Error("scalar assignment must not be used"); },
+      async prepareReference() { throw new Error("reference binding must not be used"); },
       async prepare() { throw new Error("one-shot transaction must not be used"); },
       async openIndexed() { assert.equal(cleanups.length, 1); return writer; },
     },

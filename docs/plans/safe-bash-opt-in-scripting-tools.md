@@ -3279,3 +3279,422 @@ or drift. All three current reference-file hashes are bound in the approval.
 The retry uses a new validation manifest rather than changing the failed
 attempt's sealed input snapshot. Product, grammar and extended-reference
 approvals remain separate and unchanged; full-goal acceptance remains open.
+
+## Local jobs delivery and next wait qualification
+
+The exact-path retry commits
+`5bd476ddd8667ae0e8c6e60c87d266aac0914335`,
+`feat(safe-bash): add opt-in background jobs and wait`. Verification at
+`/tmp/jobs-commit-root-V8h3zF/verified.json` checks all forty-one committed blobs
+against the sealed current inputs, unchanged owned working bytes, the expected
+parent, exact changed-path membership, and unchanged unrelated index entries.
+The sealed retry manifest is `/tmp/jobs-commit-validation-root-v2.json`, SHA256
+`09fbdb0b45006e94634f9531f0c6604d6bea2f21d7967bcb239a131122d7b86a`.
+This is verified local delivery only: no push or release occurred. The remaining
+safe-js edits and unrelated command/default-path and filesystem evidence files
+are not included.
+
+The next increment retains the requested advanced wait behavior rather than
+treating the ordinary-job milestone as completion. The read-only audit at
+`/tmp/jobs-next-wait-audit-P4wehz/audit.json` identifies missing `-n`/`-p`
+parsing, early destination unsetting, canonical assignment-reference handling,
+saved-status versus active-job selection, and winner process-identity mapping.
+The proposed eighteen-program cohort remains unexecuted; its control marker
+`WAIT_READY` does not prove the shell has entered wait, so timing-dependent
+diagnostics cannot be promoted to fixed semantic expectations. An independent
+subject review and separately prepared bounded native controller precede any
+new exact-seal launch approval. Core and leaf production remain unchanged while
+that qualification and the generic binding-interface design are prepared.
+Stopped/continued jobs, meaningful job-control `-f`, job specifications,
+trapped-signal interruption and the other unfinished requirements remain open.
+
+The independent subject review at
+`/tmp/jobs-next-wait-independent-xap8f6/controller-review.json`, SHA256
+`147b45c039749eeff7c48cc2b9b97de5ac0acf6538532e648db850e7e9864539`,
+adds missing option-precedence and destination-state controls. Root selects a
+preparation-only twenty-five-program profile: the original eighteen remain
+byte-exact, including explicitly exploratory case12; exact reviewer programs
+R1 through R7 become cases19 through25. The follow-up source proposal SHA256 is
+`6829b9b6e4708f9350f4afe081dd4c3f031bf07b8d2a9de470047ee6da806729`.
+R8 remains required as a separate diagnostic-gated selected-list witness after
+case25's diagnostic framing has actually been observed. Its gate must stay open
+but unwritten until the authenticated trailing-invalid diagnostic; neither a
+pre-command marker nor a sleep proves that registration boundary. Even that
+witness would not prove blocking-syscall entry or unfiltered-next scheduling.
+
+Code review of the unexecuted eighteen-case controller draft identifies two
+safety issues before any new native launch. NC1 marks final owner release before
+fallible send preflight, incorrectly losing cleanup authority on a pre-send
+failure. NC2 permits subject dispatch before the parent confirms the anchor.
+The preserved review is
+`/tmp/jobs-next-wait-controller-independent-9TR5T1/provisional-review.json`,
+SHA256 `c2939c624be60b2b73d88900e80794480bb2c0bd46327b2294edd0a1ab0f71e0`.
+Root requires preflight-before-release publication and a separate confirmed
+START handshake on privateFD8 before subject dispatch. Once final release may
+be published, signal authority must never be restored. ClosingFD8 on unconfirmed
+startup prevents subject dispatch; it does not itself prove anchor exit or
+bounded reaping. Actual child-close evidence remains necessary, and unresolved
+ownership must fail rather than count as an all-closed result. Drafts and
+original observations remain intact; final controller approval and an exact
+root execution seal are still pending.
+
+The core-binding source audit also corrects its earlier path description:
+pinned wait calls `builtin_unbind_variable`, then `unbind_variable` and
+`makunbound`, not `unbind_variable_noref` directly. Its early whole-name path
+does not decompose bracketed text like builtin `unset`; successful indexed
+winner assignment therefore cannot establish early element removal. Ordinary
+`-p` binding depends on final `pstat.pid`, not the last successful operand.
+Supporting audit `/tmp/jobs-binding-interface-audit-y4PW34/interface-proposal-v2.json`
+has SHA256 `53fd2faceae5eb73274ecfa300de746647a07a5ff930249c25af78045ea366b6`.
+The proposed generic reference interface and fifteen TDD cases are not yet
+approved implementation contracts. Cases23 and24, plus further reference/
+attribute observations where necessary, must qualify those choices before
+production changes. No new native wait-option program has been executed.
+
+## September 5 native wait-option observations
+
+The repaired controller receives independent code-review approval at
+`/tmp/jobs-next25-controller-independent-ZjTcNi/approval.json`, SHA256
+`8fc28f3b7e8a3dc99f12e27c4c4eca1a048c54848e243488bf885c01af8ffce3`.
+The detailed receipt SHA256 is
+`0adc90c8d5aa1273f0c533e2e1c93696d98442e747b0decaa3c80ab7ac91d878`.
+The reviewer authenticates the author's13 passing isolated controller mocks
+against the exact repaired code; this is not an independent mock execution or
+native launch. Earlier mock results remain5/8, then5/13 on the expanded old
+controller, before13/13 on the correction. Native launch authority remains root's.
+
+Root authenticates seventeen preparation artifacts and all eleven execution
+bindings with twenty opened/closed held descriptors at
+`/tmp/jobs-wait25-admission-root-G4Ftah/verified.json`. All twenty-five source
+programs match the original eighteen plus the seven selected follow-ups. The
+final exact execution seal is
+`/private/tmp/jobs53-next-wait-v2-repaired-td8KJF/seal.json`, SHA256
+`05422c0c135117a070dc57582342d77f0a5183226adbbd2ce1ffa11c512ead81`.
+Root runs that outer entry exactly once with the pinned Node executable and
+a closed launch environment. Tool session81489 reaches terminal exit0; no
+observation timeout, retry or duplicate launch is used.
+
+The native cohort records twenty-five subjects and twenty-five supervisors,
+all with final status0. These are observation-program completion statuses,
+not the wait statuses printed within them and not twenty-five product passes.
+Root's bounded post-capture verification at
+`/tmp/jobs-next25-observation-root-GMeh6Z/verified.json` compares every per-case
+result and eleven-member post-case input inventory, the final inventory and
+aggregate observations. Its58 read descriptors all close. All250 case pipes
+and twelve outer admission handles are recorded closed; every START and final
+release is acknowledged, no pending writes or unresolved owned handles remain,
+and no signal or deadline attempt occurs. Outgoing bytes total422, including
+nine child-gate writes; combined measured received/attempted bytes total4461.
+Maximum observed case duration is45.183ms. The four-Bash bound remains a
+structural profile limit, not an independently sampled process census or an
+unconditional OS-level process-tree-reaping guarantee.
+
+The first root post-capture verifier incorrectly treated the final direct
+binding map as if it had the initial inventory's `bindings` wrapper. That
+verifier-only schema failure and original script are preserved at
+`/tmp/jobs-next25-observation-root-NWzPZA`. The corrected verifier compares the
+exact eleven direct members and all per-case inventories. No native capture or
+product test is rerun to repair that reader mistake.
+
+Several observations change the next implementation decision:
+
+- Case13 prints ordinary wait7, then explicit next-wait127, then unfiltered127.
+- Case15 prints next-wait statuses127,7,7 for successive operand variants on
+  the same child; this sequence does not isolate whitespace from status lifetime.
+- Case18's second-first operand list returns7 with the first child's identity,
+  not the second child's9; the following first-second list also returns7.
+- Case23 leaves the indexed destination element present and unchanged on the
+  no-result path. Indexed success alone must not be used to implement early
+  element unsetting.
+- Case24 confirms that trailing invalid operands leave the destination unset,
+  whereas a final successful ordinary operand assigns its process identity.
+- Calibration25 emits two stderr lines: a missing-leading-percent job-spec
+  warning and the final not-a-pid-or-valid-job-spec diagnostic. It does not emit
+  the previously proposed no-such-job wording.
+
+Cases13,15 and18 require active/notified-job versus saved-PID lifetime source
+adjudication before implementation; the proposal labels are not expectations
+to force onto the real tool. Case12 remains exploratory. R8 has not been
+executed and still requires exact two-line framing, owned-identity gating and
+a separately reviewed controller/seal. No new product implementation or
+canonical wait-option golden fixture is inferred from this capture. The
+subsequent worker capacity errors are terminal worker failures, not live native
+sessions; the completed capture is preserved and root continues evidence
+verification without switching models or repeating native work.
+
+## September 5 status lifetime and reference-binding qualification
+
+The source reconciliation at
+`/tmp/jobs-next25-lifetime-audit-L3GsaG/reconciliation.json`, SHA256
+`9d8080fdd8240afef1190ca445ecaa1af515c216a5622199c78f5799663cc4d3`,
+distinguishes active eligible, active notified, archived and forgotten statuses.
+Ordinary wait cleans existing notified jobs before marking its own selected
+job notified. The first explicit next-wait can therefore recognize an active
+job without selecting it. The `for` execution checkpoint then retires that
+notified job, exposing its saved PID status on later iterations. Case15 does
+not establish numeric-spelling-dependent results. Case18 likewise does not
+establish a universal operand-order winner: the earlier ordinary-wait target
+has been archived while the later target remains active/notified. These are
+source-backed explanations, not captured internal state traces. Neither
+archiving every completion nor reaping after every command is authorized.
+
+Two unchanged counterfactual sources, L1 and L2, hold PID spelling constant
+across loop iterations and reverse ordinary-wait order respectively. Together
+with R8 they form the separately prepared three-case candidate at
+`/private/tmp/jobs53-wait-R8-L1-L2-draft-RZ2pWo`. Its checkpoint SHA256 is
+`c49537141d0c8b1e2e16e68a9c701529d4665bfea703d05bffda5b4172a5de7a`.
+Root authenticates23 preparation artifacts,18 execution bindings and all three
+exact source programs at `/tmp/jobs-native3-admission-root-khKmlh/verified.json`;
+all26 read descriptors close. This admission is not controller approval or
+launch authority. The original admission-reader failure is preserved at
+`/tmp/jobs-native3-admission-root-c0U2sT`: it used `frameHex` instead of the
+calibration record's actual `stderrHex` field. Correcting that reader requires
+no native execution. The candidate remains unexecuted at this checkpoint.
+
+Root separately adds24 generic reference-binding consumer cases, eight each
+through inline execution and actual VFS `bash`/`sh` script files. They exercise
+the public Shell and filesystem imports with optional arrays/read setup and a
+synthetic, command-independent extension. They are not unchanged native wait
+program replays. The first two red captures are preserved at
+`/tmp/jobs-binding-public-red-root-oNz6sh` and
+`/tmp/jobs-binding-public-qualified-red-root-wBeKDt`: unsupported array-literal
+setup and indexed parameter-operator syntax respectively mixed setup failures
+with the missing API. The latter directory name does not make it an isolated
+red. Qualified setup uses existing `read -a` plus ordinary indexed expansion
+and canonical binding-kind inspection.
+
+The corrected isolated public red at
+`/tmp/jobs-binding-public-isolated-red-root-N1mE7n` fails24/24 with1649 stable
+compiled inputs, no skips/cancellations, and only missing `prepareReference`
+diagnostics rather than syntax/command-not-found errors. It qualifies the old
+compiled artifact, not the changing producer source. The actual declaration
+consumer red at `/tmp/jobs-binding-declarations-red-root-6c6OQJ` fails its one
+selected test with1666 stable inputs: both reference/result types and the
+published binding method are missing. Root adds type-only optional exports;
+the producer remains separately owned and has not yet been rebuilt here.
+Literal discovery enrollment passes98/98 at
+`/tmp/jobs-binding-literal-root-0ZN7fu`, with both watched inputs stable.
+Public runtime green, declarations, core review and current build/lint gates
+remain required; none is inferred from discovery or the earlier jobs commit.
+
+The subsequent inventory-only response makes no implementation progress and
+does not expand the original goal with its speculative flock/ZIP suggestions.
+On continuation root polls the existing literal-test handle to terminal0,
+revalidates the active assignments and continues the original opt-in scope.
+
+Independent native3 controller review then refuses execution with NC3 at
+`/tmp/jobs-three-controller-independent-FsvFtQ/final.json`, SHA256
+`bb1d816eab431428597e0800fe5092f0fc2067e5fc6d186df66f2ce2e1e60ca8`.
+The private lifecycle parser decodes tags with ASCII high-bit masking, allowing
+the malformed raw tag `c14e43484f523a313030310a` to match `ANCHOR:1001` for a
+matching owned PID. This is a pure decoding/predicate counterexample, not an
+observed native failure. The literal-ASCII historical supervisor outputs are
+not retroactively declared malformed. The rejected candidate stays unchanged
+and unexecuted; a new preserved candidate and isolated actual-code red/green
+controls are assigned before any final seal.
+
+The generic reference producer freezes at
+`/tmp/binding-reference-author-20260905/final.json`, SHA256
+`0c1f5c9101f1908de0adf08e91ca69e8bf7c1448882768aab4388468eae2894f`.
+Its new41-case cohort passes; broader source coverage passes648 with26 native
+cases not activated, not passes. Four actual strict missing-method errors in
+standalone read/mapfile mocks remain an assigned test-contract adaptation,
+not waived failures. The receipt's older public indexed-operator concern is
+superseded by the root's corrected fixtures and isolated red above.
+
+On that frozen producer, root's maintained selected workspace build exits0 at
+`/tmp/jobs-binding-selected-build-root-VwzM8u` with390 watched inputs stable;
+the explicit optional build exits0 at
+`/tmp/jobs-binding-optional-build-root-X3LTnQ` with386 stable. The public reference
+suite now passes24/24 at `/tmp/jobs-binding-public-green-root-QG0kZs`, with1649
+compiled inputs stable, no skips or cancellations. The same selected declaration
+consumer passes1/1 at `/tmp/jobs-binding-declarations-green-root-wbr5no`, with1666
+inputs stable. Actual-config strict checking of the two public test roots has
+zero diagnostics,362 source files and372 stable watched inputs at
+`/tmp/scripting-public-types-root-r3fGM9`.
+
+The compiled default inventory at `/tmp/jobs-binding-default-root-42i2J7`
+retains79 agent commands,28 browser commands, the existing date result and no
+optional registrations. This does not establish packed exclusion, a release,
+full native reference compatibility or all remaining wait options. Independent
+core/consumer review and current final gates remain pending. The generic
+contract documentation now states literal-index limits and distinguishes
+reference operation coverage from full `wait -p` delivery.
+
+Root subsequently rechecks the preserved first public red's actual fixture and
+failure output. Its indexed-assignment case already evaluates
+`values=(left right)` and produces `left:right` before the missing API can
+replace the second slot. The earlier attribution to unsupported array-literal
+setup was too broad: this evidence does not show compound literals failing.
+The first and second mixed reds both contain unsupported indexed `+x`
+assertions. Replacing the initial array setup with `read -a` did not isolate
+that syntax issue; removing the indexed presence operator did. The existing
+mixed-red artifacts and their history remain intact. The current public cases
+retain valid `read -a` setup, but no compound-literal incompatibility is inferred
+from that choice or counted as a separately reproduced defect.
+
+## September 5 reference bridge review and retained integration
+
+Independent producer approval is recorded at
+`/tmp/binding-reference-independent-ESMasf/approval.json`, SHA256
+`907e5ccd21d7c362faa8e443d635a6b7e41a2d7149e459ad6d622c5efee57b7f`.
+It binds the two production files, author41 tests, eleven independent tests
+and contract documentation. Focused coverage passes52/52; retained coverage
+passes125 with eight explicit native skips, not passes. Actual-config strict
+checks14 roots/323 sources without diagnostics. The independent test is
+literally enrolled; discovery passes98/98 at
+`/tmp/jobs-binding-final-literal-root-rfZj8C`. The subsequent selected and
+optional builds pass at `/tmp/jobs-binding-enrolled-build-root-eKpe2z` and
+`/tmp/jobs-binding-enrolled-optional-build-root-Vp6Kel`, preserving390 and386
+watched inputs respectively.
+
+Independent public-consumer source approval at
+`/private/tmp/jobs-binding-consumer-approval-LJcaC0/approval.json`, SHA256
+`9c798ee8a17690e63d18f8f828e35ce0748aec31fae2cbb14ce3bd9d12fe5ec8`,
+authenticates the root runtime/declaration greens without claiming independent
+execution of them. Its detailed receipt SHA256 is
+`9236cc39e5f215989b54e7850692224356fc0b3639f16b055e2037c94a6fd30d`.
+The additive enrollment change was observed and reviewed, not silently called
+an unchanged four-file snapshot.
+
+The four mock methods repair the actual missing-interface strict errors, but
+initially expose the mapfile reference guard's changed-file rejection. The
+first adaptation preserves its earlier insertion and adds authenticated inverse
+reconstruction of the new method; guard25 and focused205 tests pass. The wider
+354-case cohort then exposes an obsolete assertion equating all arrays and
+mapfile syntax metadata. The earlier in-goal readonly-array implementation
+expanded arrays metadata, while mapfile correctly retains only array keys.
+The correction compares the shared capability while preserving mapfile's exact
+literal metadata assertion; it does not expand mapfile or remove readonly.
+
+The consolidated author receipt at
+`/tmp/mapfile-syntax-revision-p6ncj9/final.json`, SHA256
+`918b67dfa4ff2e4142879a66f19568652eb21709873c47fcec2bbe3d03ed6c31`,
+records the nine-file adaptation and exact inverse proofs. Guard tests progress
+from37/41 to41/41; full retained coverage, including nine added guard cases,
+passes363/363 with zero skips or cancellations. Actual-config strict checking
+of18 roots/290 inputs has zero diagnostics. The native mapfile reference stays
+byte-identical at107229 bytes and170 records, SHA256
+`8b36b77a1a9e1d922dc7c69976c33da779a275251341bc5c8a96a532f48b3e6f`.
+Earlier guard receipts and failed cohorts remain preserved. Independent
+adaptation review remains required rather than treating a changed helper as
+unchanged historical coverage.
+
+Root's expanded compiled-public cohort passes294/294 at
+`/tmp/jobs-binding-all-public-root-3Otus9`, with1412 watched inputs stable and
+zero skips/cancellations. It retains the earlier270 cases and adds the24 generic
+reference consumers; its inventory additionally covers mapfile reference inputs
+and safe-fs declarations. Root's actual-config strict check of all fifteen
+changed TypeScript roots passes with660 sources/671 stable inputs at
+`/tmp/scripting-public-types-root-mIFpa2`.
+
+Actual scripts-disabled workspace/root packing at
+`/tmp/jobs-binding-pack-root-Fqw9lZ` verifies1070/4661 tar entries, matching
+manifests and zero optional implementation artifacts. The inner receipt is
+`/tmp/jobs-pack-isolation-root-aiHgJ2`. This is current-dist exclusion evidence,
+not an installed-tar compatibility test, full-root build or release. Generic
+binding APIs do not introduce a command, change CLI rendering or enable an
+optional shell extension by default.
+
+The preserved NC3 repair candidate is
+`/private/tmp/jobs53-wait-R8-L1-L2-NC3-9OG332`, checkpoint SHA256
+`fc3a04ed6bd676e1c349945048aeb66d23668b73fec87a69595e42bee6deb276`.
+All four private lifecycle tags are checked as raw bytes before decoding or
+state updates. Actual-controller isolated mocks progress from73 pass/36 fail
+to109/109; retained NC1/NC2 controls pass13/13 without native launches or real
+signals. Root authenticates24 artifacts,18 execution bindings and unchanged
+R8/L1/L2 sources at `/tmp/jobs-native3-NC3-admission-root-6eA7T7/verified.json`,
+with all27 read descriptors closed. The old candidate remains unexecuted and
+unchanged. Independent repair approval and root's final seal are still required
+before the new native3 capture; no observation is inferred from these mocks.
+
+## September 5 native3 capture and final bridge gates
+
+Independent NC3 repair approval is
+`/tmp/jobs-NC3-independent-a84A34/approval.json`, SHA256
+`f2f7ae2716395e93c0cce7aab42d8520fdc1a2d5df229068a537f96a7a9033e3`;
+its detailed receipt SHA256 is
+`47d4bd3598b95ac88ebf295eb46cb2eb8e943d5256dd6cc6710b3226d3099956`.
+Root reauthenticates the25 reviewed text bindings and writes the separate final
+seal, SHA256 `e6667b23474604b675c2b96eedc57e4e2303261843a929f83797dbe0a9fdf3a7`,
+at `/private/tmp/jobs53-wait-R8-L1-L2-NC3-9OG332/seal.json`. The sealer receipt
+at `/tmp/jobs-native3-NC3-seal-root-QvUxOq` records28 opened/closed read handles
+and no native launch. Root then invokes the exact pinned outer entry once with
+the final digest and a closed environment. The command reaches terminal0;
+the runner is closed, its bindings remain stable and no retry occurs.
+
+Aggregate observations at
+`/private/tmp/jobs53-wait-R8-L1-L2-NC3-9OG332/results.json` have SHA256
+`855b2afc72a8e4fb57132d20fd002c93a3be8f1c496ca8584f819a1d637d91a9`:
+
+- R8 returns wait status7, destination present and matching the child. Its
+  stderr is the exact calibrated130-byte two-line frame. Release follows the
+  complete frame and owned identity/readiness records; this establishes selected
+  registration, not entry into a particular blocking syscall.
+- L1 uses identical PID spelling and prints `first:127::1`, `second:7:x:0`,
+  `third:7:x:0`. Numeric formatting is not the cause of the earlier127/7/7 sequence.
+- L2 reverses ordinary-wait order and returns9 with the second child's identity
+  for both later operand orders. Latest-PID retention is not an unconditional
+  rule that overrides notification/retirement ordering.
+
+Root verification at `/tmp/jobs-native3-NC3-observation-root-smE8Vm/verified.json`,
+SHA256 `eb6ef929a70b0b8d5fd47203d72487855f81fc562b00f2f97e0cd74c14f594d6`,
+compares each case and its post-case inventory with the aggregate and original
+eighteen bindings. All three subjects/supervisors exit0, all30 case pipes and19
+outer admission handles close, and the verifier's14 descriptors close. Outgoing
+bytes total50; combined measured received/attempted bytes total475. Exactly one
+child gate is written; maximum observed duration is32.999333ms. No signal,
+deadline, pending write or unresolved owned handle is recorded. These are native
+observations and bounded owned-resource evidence, not three product passes or
+an unconditional OS process-tree-reaping guarantee.
+
+The nine-file fixture/mock adaptation receives separate independent approval at
+`/private/tmp/mapfile-fixture-independent-K8s2YS/final.json`, SHA256
+`b69c56719108d23233341bcbf2ae46a49a3665f91e2cd0b52915e76a167b9c2c`.
+The detailed receipt SHA256 is
+`56827844a202455ed0e88128277644ae77a31c79ed816be31f5ce88e6d2db3c9`.
+Independent guards pass34/34; strict checking of eight roots has zero diagnostics
+and271 stable inputs. Author363-pass coverage is authenticated separately, not
+claimed as an independent rerun.
+
+Guarded root ESLint completes9977 configured/linted inputs at
+`/tmp/jobs-binding-lint-root-WNaFLG` but exits1 for one `no-this-alias` finding
+in the new core reference test at line377. All52 watched inputs remain stable.
+The author is assigned the minimal observer-holder correction and a new test
+freeze; no rule suppression or gate waiver is authorized. No bridge commit is
+made before that correction, narrow review and a successful current lint gate.
+
+The holder-only correction is frozen at
+`/tmp/binding-reference-holder-TGVogN/final.json`. Five exact edits replace the
+test's local `this` alias with an observer holder; inverse reconstruction
+preserves the original41 assertions. Author and independent cases pass52/52,
+and actual-config strict checking of four roots/271 inputs has zero diagnostics.
+Production and the independent test are byte-unchanged. Narrow independent
+approval at `/tmp/binding-holder-independent-4sl09q/approval.json`, SHA256
+`a1d52833cf0a48044d99d473a3408cf04dfd1fa59ee7b9c078116dcc0bbae656`,
+binds the corrected test SHA256
+`7ed673c875728661f291771b09d28761c9faa212264592b0aa12aeef459d5913`
+and the other four unchanged core/doc inputs. The original approval and lint
+failure remain preserved; the new detailed receipt SHA256 is
+`0ac595e55b611b76678ead8901489ad2512d3a440faa4ca5391c7658c4166d49`.
+Root's repeated fifteen-root strict check has zero diagnostics and671 stable
+inputs at `/tmp/scripting-public-types-root-qjRNNy`. The full guarded lint rerun
+is separately required; no targeted lint invocation substitutes for it.
+
+The repeated guarded root ESLint gate completes successfully at
+`/tmp/jobs-binding-final-lint-root-iCXEVz`:9977 configured/linted inputs,
+25 receipt boundaries, zero errors/warnings and52 watched inputs unchanged.
+Together with the current three independent approvals,294 compiled-public
+passes, corrected52 core cases,363 retained input/fixture cases, final strict
+and discovery gates, this qualifies the generic reference-bridge increment for
+its separate local commit. It does not discharge nonliteral references,
+advanced wait options, retirement hooks or the original plan's other open scope.
+
+The raw native3 handoff is
+`/private/tmp/jobs-native3-NC3-handoff-fHzgE0/handoff.json`, SHA256
+`1740662dff25dc49fa049298cfb6a6d8870deeaeb2b844c248f6307d6dd32bd8`.
+Its330159 bytes retain88 bound receipts and17 embedded artifacts, exact sources
+and raw hex, final approval/seal, rejection history and resource limitations.
+The author preserves an initial auditor metadata-shape failure beside the
+corrected receipt; no native rerun or existing-artifact modification repairs it.
+No canonical product fixture is inferred merely by assembling this handoff.

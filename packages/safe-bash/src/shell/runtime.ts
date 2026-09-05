@@ -16,7 +16,7 @@ import { HereDocumentSyntaxError, functionReprintedLines, hereDocumentWords, par
 import { ShellLimitError, ShellSyntaxError } from "./types.js";
 import type { ShellCommandContext, ShellInvokeOptions, ShellLimits } from "./types.js";
 import { forkExtensions } from "./extensions.js";
-import type { PreparedShellChild, ShellChildPreparation, ShellExtensionBindings, ShellExtensionContext, ShellExtensionEvent, ShellExtensionInput, ShellExtensionState, ShellIndexedWriter } from "./extensions.js";
+import type { PreparedShellChild, ShellBindingReference, ShellBindingResult, ShellChildPreparation, ShellExtensionBindings, ShellExtensionContext, ShellExtensionEvent, ShellExtensionInput, ShellExtensionState, ShellIndexedWriter } from "./extensions.js";
 import { prepareBytesInput, prepareFileInput, ShellInput } from "./input.js";
 import { observeDescriptor, PipeDescriptorFrame, pipeObservation, type PipeDescriptorReference } from "./descriptors.js";
 import { evaluateArithmetic, prepareArithmetic } from "./arithmetic.js";
@@ -1940,7 +1940,11 @@ export class Runtime {
     const scope = io[invocationScope];
     scope.assertOpen();
     const allocation = this.budget.values.scope();
-    scope.register(() => allocation.close());
+    const references = new Set<() => Promise<void>>();
+    scope.register(async () => {
+      try { await Promise.all([...references].map(close => close())); }
+      finally { allocation.close(); }
+    });
     const assertOpen = (): void => { this.signal.throwIfAborted(); scope.assertOpen(); allocation.assertOpen(); };
     const checkName = (name: string): void => {
       assertOpen();
@@ -1970,6 +1974,83 @@ export class Runtime {
         checkName(name);
         await scope.run(() => this.assignVariable(state, name, value));
         assertOpen();
+      },
+      prepareReference: async (reference: ShellValue): Promise<ShellBindingResult<ShellBindingReference>> => {
+        assertOpen();
+        let owned: ValueScope | undefined;
+        let closed = false;
+        let completion: Promise<void> | undefined;
+        const work = new Set<Promise<unknown>>();
+        const close = (): Promise<void> => {
+          closed = true;
+          return completion ??= Promise.resolve().then(async () => {
+            await Promise.allSettled([...work]);
+            try { owned?.close(); }
+            finally { references.delete(close); }
+          });
+        };
+        references.add(close);
+        const failure = (value: ShellValue, suffix: string, prefix = ""): ShellBindingResult<never> => {
+          const diagnostic = concatShellValues([prefix, value, suffix], allocation);
+          allocation.hold(diagnostic);
+          return Object.freeze({ ok: false, diagnostic });
+        };
+        try {
+          owned = this.budget.values.scope();
+          owned.hold(reference);
+          const text = shellValueText(reference);
+          const match = /^([a-zA-Z_][a-zA-Z_0-9]*)(?:\[([^\[\]]+)\])?$/u.exec(text);
+          if (!match) {
+            const result = failure(reference, "': not a valid identifier", "`");
+            await close();
+            return result;
+          }
+          const name = match[1]!;
+          const subscript = match[2];
+          const reservation = owned.reserve(128 + text.length * 2, 1);
+          const run = (action: () => Promise<ShellBindingResult<void>>): Promise<ShellBindingResult<void>> => {
+            try {
+              assertOpen();
+              if (closed) throw new Error("Binding reference is closed");
+              if (work.size) throw new Error("Binding reference is busy");
+              const pending = scope.run(() => Promise.resolve().then(() => {
+                this.signal.throwIfAborted();
+                return action();
+              }));
+              work.add(pending);
+              void pending.then(() => { work.delete(pending); }, () => { work.delete(pending); });
+              return pending;
+            } catch (error) { return Promise.reject(error); }
+          };
+          const handle: ShellBindingReference = Object.freeze({
+            unbindName: () => run(async () => {
+              if (state.readonlyVariables?.has(text)) return failure(reference, ": cannot unset: readonly variable");
+              if (arrayStore(state)?.get(text)) await this.unsetIndexed(state, text);
+              else this.unsetVariable(state, text);
+              return Object.freeze({ ok: true, value: undefined });
+            }),
+            assignInteger: (value: number) => run(async () => {
+              if (!Number.isSafeInteger(value)) throw new TypeError("Binding integer must be a safe integer");
+              if (state.readonlyVariables?.has(name)) return failure(name, ": readonly variable");
+              if (subscript === undefined) await this.assignVariable(state, name, String(value));
+              else {
+                const index = literalIndex(subscript, name.length + 1);
+                await this.arrayAssignment({
+                  kind: "element", name, index, append: false,
+                  value: { offset: 0, parts: [{ kind: "text", value: String(value), quoted: true }] },
+                }, state, io);
+              }
+              return Object.freeze({ ok: true, value: undefined });
+            }),
+            close,
+          });
+          reservation.commit(handle);
+          return Object.freeze({ ok: true, value: handle });
+        } catch (error) {
+          try { await close(); }
+          catch (cleanup) { scope.failures.push(cleanup); }
+          throw error;
+        }
       },
       openIndexed: async (name: string, options: { readonly clear?: boolean } = {}) => {
         checkName(name);

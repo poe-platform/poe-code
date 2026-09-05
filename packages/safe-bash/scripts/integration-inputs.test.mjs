@@ -659,6 +659,11 @@ function assertSource7Discovery(files) {
     "tests/plugins/incremental-bindings-runtime.test.ts",
   ]) assert.ok(files.includes(path), "incremental indexed writer test is missing: " + path);
   for (const path of [
+    "tests/shell/extensions/core/binding-reference.test.ts",
+    "tests/shell/extensions/core/binding-reference-independent.test.ts",
+    "tests/plugins/binding-reference-runtime.test.ts",
+  ]) assert.ok(files.includes(path), "generic reference binding test is missing: " + path);
+  for (const path of [
     "tests/shell/extensions/jobs/state.test.ts",
     "tests/shell/extensions/jobs/review.test.ts",
   ]) assert.ok(files.includes(path), "optional jobs-state test is missing: " + path);

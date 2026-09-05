@@ -24,10 +24,21 @@ export interface ShellIndexedWriter {
   close(): Promise<void>;
 }
 
+export type ShellBindingResult<Value> =
+  | Readonly<{ ok: true; value: Value }>
+  | Readonly<{ ok: false; diagnostic: ShellValue }>;
+
+export interface ShellBindingReference {
+  unbindName(): Promise<ShellBindingResult<void>>;
+  assignInteger(value: number): Promise<ShellBindingResult<void>>;
+  close(): Promise<void>;
+}
+
 export interface ShellExtensionBindings {
   describe(name: string): ShellBindingDescription;
   get(name: string, index?: number): ShellValue | undefined;
   assign(name: string, value: ShellValue): Promise<void>;
+  prepareReference(reference: ShellValue): Promise<ShellBindingResult<ShellBindingReference>>;
   openIndexed(name: string, options?: { readonly clear?: boolean }): Promise<ShellIndexedWriter>;
   prepare(name: string, options: { readonly kind: "indexed"; readonly clear?: boolean }): Promise<ShellBindingTransaction>;
 }

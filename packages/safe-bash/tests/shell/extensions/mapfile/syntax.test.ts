@@ -9,7 +9,7 @@ import { primaryReference } from "./primary-reference.js";
 
 test("mapfile declares the generic array-key syntax directly", () => {
   assert.deepEqual(mapfileExtension().syntax, { arrayKeys: true });
-  assert.deepEqual(mapfileExtension().syntax, arraysExtension().syntax);
+  assert.deepEqual(mapfileExtension().syntax?.arrayKeys, arraysExtension().syntax?.arrayKeys);
   assert.deepEqual(mapfileExtension().create().builtins.map(builtin => builtin.name), ["mapfile", "readarray"]);
 });
 

@@ -104,6 +104,33 @@ reconstructed display text. `describe` distinguishes unset, scalar and indexed
 bindings and reports readonly/export attributes. `assign` uses ordinary shell
 assignment rules, including element zero for an existing indexed binding.
 
+`prepareReference(reference)` retains canonical reference syntax for operations
+within the invocation's shell state, rather than snapshotting the old binding.
+It returns `ShellBindingResult<ShellBindingReference>`: success carries `value`;
+ordinary refusal carries an immutable, command-independent `diagnostic` body.
+The caller chooses its command prefix and status. Cancellation, allocation
+limits and escaping execution failures remain rejected operations with their
+original identity, not ordinary diagnostic results.
+
+The reference's `unbindName()` unsets the entire textual name. In particular,
+`values[1]` is not decomposed into an element removal on that path.
+`assignInteger(value)` requires a finite safe integer and resolves the current
+target through canonical scalar/indexed assignment when called. Readonly
+attributes are checked at operation time; local restoration, exports and
+copy-on-write accounting remain the canonical shell's responsibility. This is
+not a staged transaction and does not invalidate merely because the target was
+replaced between preparation and assignment. Current indexed assignment accepts
+the existing literal-index profile `0..2147483647`; arithmetic, nested and
+negative subscripts, associative references and namerefs are not qualified by
+this interface's initial implementation.
+
+Reference operations are sequential; overlapping operations are rejected.
+`close()` immediately closes admission, shares completion across repeated calls,
+drains admitted cooperative work and releases retained reference accounting
+without undoing mutations. Invocation cleanup also closes outstanding references.
+An explicitly closed reference cannot be used for further operations. Neither
+this generic API nor its consumer tests establish full `wait -p` compatibility.
+
 `prepare(name, { kind: "indexed", clear? })` creates a one-shot staged transaction.
 It preserves the prior binding unless `clear` is true. Staged edits are invisible
 until `commit`; commit closes publication. `close` is idempotent, drains admitted

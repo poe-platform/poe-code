@@ -95,6 +95,7 @@ function owner(openIndexed: ShellExtensionContext["bindings"]["openIndexed"]) {
     stdout: { write: async () => {} }, stderr: { write: async () => {} }, scope: {}, signal: controller.signal,
     bindings: { describe: () => ({ kind: "scalar", readonly: false, exported: true }), get: () => undefined,
       assign: async () => { throw new Error("unexpected scalar assignment"); },
+      prepareReference: async () => { throw new Error("unexpected reference binding"); },
       prepare: async () => { throw new Error("unexpected transaction"); }, openIndexed,
     },
     input: { observe() { throw new Error("Unexpected descriptor observation"); }, validateOpen(descriptor) { controller.signal.throwIfAborted(); assert.equal(descriptor, 0); }, borrow() {

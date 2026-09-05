@@ -1,9 +1,44 @@
 {
-  "schemaVersion": 1,
+  "schemaVersion": 3,
   "referenceSHA256": "8b36b77a1a9e1d922dc7c69976c33da779a275251341bc5c8a96a532f48b3e6f",
-  "fixture": "review.test.ts",
-  "originalSHA256": "c7945003e742e9062875ae64e8c3dfba73616bae71e0f7323419f30c4eb9e0e3",
-  "currentSHA256": "429f5d09ff457cc535a5afdc471abc31069d1bf2ab2e8b00fd161b2918c440a3",
-  "offset": 6884,
-  "insertion": "      observe() { throw new Error(\"Mapfile must not acquire a descriptor observer\"); },\n"
+  "fixtures": [
+    {
+      "fixture": "review.test.ts",
+      "originalSHA256": "c7945003e742e9062875ae64e8c3dfba73616bae71e0f7323419f30c4eb9e0e3",
+      "currentSHA256": "b47a4a59aedacda091505ea02db99853f2b8a76ca467e8013ad392d52de8d8ee",
+      "insertions": [
+        {
+          "beforeSHA256": "c7945003e742e9062875ae64e8c3dfba73616bae71e0f7323419f30c4eb9e0e3",
+          "afterSHA256": "429f5d09ff457cc535a5afdc471abc31069d1bf2ab2e8b00fd161b2918c440a3",
+          "offset": 6884,
+          "insertion": "      observe() { throw new Error(\"Mapfile must not acquire a descriptor observer\"); },\n"
+        },
+        {
+          "beforeSHA256": "429f5d09ff457cc535a5afdc471abc31069d1bf2ab2e8b00fd161b2918c440a3",
+          "afterSHA256": "b47a4a59aedacda091505ea02db99853f2b8a76ca467e8013ad392d52de8d8ee",
+          "offset": 6677,
+          "insertion": "      async prepareReference() { throw new Error(\"unexpected reference binding\"); },\n"
+        }
+      ]
+    },
+    {
+      "fixture": "syntax.test.ts",
+      "originalSHA256": "0d4163923fced16800c991e8ba5d3079cd9262019801139f8e94aef32d5e5911",
+      "currentSHA256": "4513f0afea52aa8fbe5b593bf7fc6af1a70dcdb8190cdab09b2c4a6fe7fd1205",
+      "insertions": [
+        {
+          "beforeSHA256": "0d4163923fced16800c991e8ba5d3079cd9262019801139f8e94aef32d5e5911",
+          "afterSHA256": "d7f11a817af67861b18ce2368ef7f8c5f83c58c721180957d2c1a5cfd58940eb",
+          "offset": 684,
+          "insertion": "?.arrayKeys"
+        },
+        {
+          "beforeSHA256": "d7f11a817af67861b18ce2368ef7f8c5f83c58c721180957d2c1a5cfd58940eb",
+          "afterSHA256": "4513f0afea52aa8fbe5b593bf7fc6af1a70dcdb8190cdab09b2c4a6fe7fd1205",
+          "offset": 721,
+          "insertion": "?.arrayKeys"
+        }
+      ]
+    }
+  ]
 }

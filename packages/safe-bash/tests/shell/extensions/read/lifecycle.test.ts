@@ -26,6 +26,7 @@ function harness(input: Pick<ShellInputBorrow, "read" | "release">, args: readon
       describe: () => ({ kind: "unset", readonly: false, exported: false }),
       get: () => undefined,
       assign: async name => { assignments.push(name); },
+      prepareReference: async () => { throw new Error("Unexpected reference binding"); },
       prepare: async () => { throw new Error("Unexpected array preparation"); },
       openIndexed: async () => { throw new Error("Unexpected incremental indexed admission"); },
     },

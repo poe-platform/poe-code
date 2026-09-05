@@ -92,6 +92,7 @@ function fixture(args: readonly ShellValue[]) {
       describe() { events.push("describe"); return { kind: "indexed", readonly: false, exported: false }; },
       get: (name, index = 0) => cells.get(index),
       async assign() { throw new Error("unexpected scalar assignment"); },
+      async prepareReference() { throw new Error("unexpected reference binding"); },
       async prepare() { throw new Error("unexpected transaction"); },
       async openIndexed(name, options) { events.push("writer"); if (options?.clear) cells.clear(); return writer; },
     },

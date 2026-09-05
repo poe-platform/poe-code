@@ -39,7 +39,7 @@ for (const fixture of reference.fixtures) {
   const stat = lstatSync(file);
   assert.ok(stat.isFile() && stat.size <= 64 * 1024, "Primary fixture must be a bounded regular file");
   const current = readFileSync(file);
-  if (fixture.file === "review.test.ts") verifyMapfileFixtureRevision(fixture, current, referenceSHA256, revisionBytes);
+  if (fixture.file === "review.test.ts" || fixture.file === "syntax.test.ts") verifyMapfileFixtureRevision(fixture, current, referenceSHA256, revisionBytes);
   else assert.equal(createHash("sha256").update(current).digest("hex"), fixture.sha256);
 }
 

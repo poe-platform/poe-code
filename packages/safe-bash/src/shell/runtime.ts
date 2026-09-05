@@ -1343,8 +1343,14 @@ export class Runtime {
     if (this.outcomeFrame) this.outcomeFrame.report = undefined;
   }
 
-  diagnostic(io: IO, text: string): Promise<void> {
-    return writeText(io.stderr, `${io.scriptName ?? "shell"}: line ${io.diagnosticLine ?? 1}: ${text}\n`);
+  async diagnostic(io: IO, text: ShellValue): Promise<void> {
+    const prefix = `${io.scriptName ?? "shell"}: line ${io.diagnosticLine ?? 1}: `;
+    if (typeof text === "string") return writeText(io.stderr, `${prefix}${text}\n`);
+    const allocation = this.budget.values.scope();
+    try {
+      const value = concatShellValues([prefix, text, "\n"], allocation);
+      await io.stderr.write(shellValueBytes(value, allocation));
+    } finally { allocation.close(); }
   }
 
   writeVariable(state: State, name: string, value: ShellValue, origin: "assignment" | "arithmetic" | "getopts" = "assignment"): void {
@@ -2011,9 +2017,18 @@ export class Runtime {
     const scope = io[invocationScope];
     const assertOpen = (): void => { this.signal.throwIfAborted(); scope.assertOpen(); };
     assertOpen();
-    return Object.freeze({ borrow: (descriptor: number) => {
+    const checkDescriptor = (descriptor: number): void => {
       assertOpen();
       if (!Number.isSafeInteger(descriptor) || descriptor < 0) throw new RangeError("Invalid input descriptor");
+    };
+    return Object.freeze({ validateOpen: (descriptor: number): void => {
+      checkDescriptor(descriptor);
+      const entry = io.descriptors?.get(descriptor);
+      const input = entry?.input ?? (!io.descriptors && descriptor === 0 ? io.stdin : undefined);
+      const output = entry?.output ?? (!io.descriptors ? descriptor === 1 ? io.stdout : descriptor === 2 ? io.stderr : undefined : undefined);
+      if (entry?.closed || (!input || input === closedSource) && (!output || output === closedSink)) throw new FsError("EBADF", { message: "Closed input descriptor" });
+    }, borrow: (descriptor: number) => {
+      checkDescriptor(descriptor);
       const entry = io.descriptors?.get(descriptor);
       const source = entry?.closed ? undefined : entry?.input ?? (descriptor === 0 && !io.descriptors ? io.stdin : undefined);
       if (!source) throw new FsError("EBADF", { message: "Unreadable input descriptor" });

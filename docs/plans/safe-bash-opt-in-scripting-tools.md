@@ -844,6 +844,53 @@ this request to keep additions out of the default package.
   failures. Read/mapfile leaf completion and background execution remain pending,
   and the last maintained workspace typecheck is not a clean full gate. The clean
   lint result does not prospectively qualify the next uncommitted core changes.
+- Generic extension diagnostics now retain canonical payload bytes through the
+  existing prefixed, awaited and budgeted stderr path. Synchronous
+  `input.validateOpen` distinguishes an open descriptor from a readable borrow,
+  without acquiring or consuming a source. Independent red tests move from
+  24/44 to 44/44; author red tests move from 12/24 to 24/24. The separate review
+  adds 34 passing cases, including retained-capability cancellation, falsey sink
+  failures, zero/one-byte budgets and non-atomic sink behavior. The unchanged
+  78-case independent cohort includes twelve pinned Bash witnesses.
+- Root repeats all 102 new core cases and 366 committed core regressions with
+  zero skips. The rebuilt public runtime passes 97 selected tests, including ten
+  new direct/command/builtin diagnostic and descriptor cases that all failed on
+  the previous compiled runtime. Five actual-package-tsconfig roots report zero
+  diagnostics, with watched source/test hashes unchanged before and after.
+  Maintained discovery passes 98 tests. Actual compiled output is inspected in
+  `diagnostic-descriptor-public-visual.png`; raw diagnostic bytes end in
+  `fffe0a`, write-only validation leaves the output file empty, and execution
+  exits zero. Extensions source SHA is
+  `ea64957c8504f055bf6d32bf6fae796e96467b05c9ee9b0a45b24753b4ec1c58`;
+  runtime source SHA is
+  `3147b0abe23213a346a79467497c7e5ead0e2e1035def810be9403f9df74351b`.
+  Both receive exact-source independent approval. This generic core change does
+  not install read/mapfile or resolve their remaining leaf and callback-exit
+  defects. New required input-method and diagnostic typing migrations in their
+  uncommitted mocks are separate owner work; no full-workspace typecheck pass is
+  claimed. Fresh dry-run packs contain 1,054 workspace and 4,645 root files, with
+  no optional command, device, extension or optional-entry artifacts in either
+  default package. Guarded lint twenty-five completes with exit zero; its clean
+  result does not qualify subsequent read/mapfile edits.
+- The resumed maintained typecheck exits two with 35 source/test diagnostics:
+  the mapfile diagnostic-value type error is gone, eight new read/mapfile mock
+  migration errors are visible, and 27 earlier diagnostics remain. This is not
+  a clean gate. Reinspection attributes three of those earlier errors in the
+  diff/patch namespace fixture to this goal's `FileType` character-device
+  addition (`209190556`); they must not all be dismissed as unrelated history.
+  The same fixture also has a separately missing oracle import. No compiler
+  options, test membership or unavailable native profiles are relaxed.
+- A bounded read-only native investigation records 160 authenticated Bash
+  write-only-descriptor observations in `read-writeonly-native-np0hXM` under the
+  temporary oracle directory. `read -t0` succeeds without consuming on write-only
+  regular files and `/dev/null`, but reports not-ready on an empty write-only pipe
+  with its reader held open. Positive pipe deadlines time out and then perform
+  assignment; regular/device read errors and zero-count assignment have different
+  ordering. Descriptor openness alone therefore cannot substitute for readiness.
+  Root verifies both retained result-file hashes and completion records; regular
+  file witnesses remain ad-hoc native QA, not disk-writing canonical unit tests.
+  Read-only borrowing is deliberately unchanged. A separate descriptor-level
+  readiness/deadline integration remains necessary for full read parity.
 
 - First implementation wave: cmp, yes, shuf and virtual devices in disjoint leaf
   directories. Root is qualifying native oracles and the opt-in delivery boundary.

@@ -44,6 +44,20 @@ widen the existing one-shot transaction or ordinary assignment limits. Admission
 also binds the local declaration identity: a deeper local shadow is not the
 original target, even if its name matches, and cannot receive that writer's edits.
 
+`diagnostic(message)` accepts a canonical `ShellValue`, retaining raw payload
+bytes between the ordinary script/line prefix and trailing newline. It awaits
+the invocation's existing stderr sink, including redirections, output budgets,
+cancellation and sink failures. It does not bypass output accounting or promise
+an atomic write to arbitrary sinks. String diagnostics retain their existing
+formatting; byte-valued assembly uses the existing shell-value allocation budget.
+
+`input.validateOpen(fd)` synchronously checks whether the invocation has an open
+descriptor, including write-only descriptors and aliases. It does not borrow,
+read, reopen or consume input. Missing and closed descriptors fail with `EBADF`;
+invalid numeric descriptors fail with `RangeError`, as with `borrow`. Invocation
+lifetime and root cancellation checks apply to retained input capabilities too.
+Successful validation does not establish readability or polling support.
+
 `input.borrow(fd)` borrows an enrolled readable descriptor's shared cursor.
 Descriptor aliases and subsequent consumers see the same consumed position.
 Releasing a borrow does not close the underlying descriptor. A borrow is scoped

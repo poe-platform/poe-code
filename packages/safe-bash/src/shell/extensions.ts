@@ -39,6 +39,7 @@ export interface ShellInputBorrow {
 }
 
 export interface ShellExtensionInput {
+  validateOpen(descriptor: number): void;
   borrow(descriptor: number): ShellInputBorrow;
 }
 
@@ -63,7 +64,7 @@ export interface ShellExtensionContext {
   evaluate(source: ShellValue, options?: { readonly name?: string }): Promise<number>;
   variable(name: string): string | undefined;
   accountSource(source: ShellValue): void;
-  diagnostic(message: string): Promise<void>;
+  diagnostic(message: ShellValue): Promise<void>;
   registerCleanup(cleanup: () => void | Promise<void>): void;
 }
 

@@ -510,6 +510,13 @@ function assertSource7Discovery(files) {
     "tests/plugins/extension-input-runtime.test.ts",
   ]) assert.ok(files.includes(path), "extension input bridge test is missing: " + path);
   for (const path of [
+    "tests/shell/extensions/core/diagnostic-bytes.test.ts",
+    "tests/shell/extensions/core/descriptor-access.test.ts",
+    "tests/shell/extensions/core/diagnostic-descriptor-runtime.test.ts",
+    "tests/shell/extensions/core/diagnostic-descriptor-review.test.ts",
+    "tests/plugins/extension-descriptor-runtime.test.ts",
+  ]) assert.ok(files.includes(path), "extension diagnostic/descriptor test is missing: " + path);
+  for (const path of [
     "tests/shell/extensions/core/syntax.test.ts",
     "tests/shell/extensions/core/syntax-review.test.ts",
   ]) assert.ok(files.includes(path), "opt-in parser syntax test is missing: " + path);

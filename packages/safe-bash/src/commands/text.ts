@@ -183,19 +183,23 @@ async function admitTextOutput(context: CommandContext, destination: string | un
 function compareBytes(left: Uint8Array, right: Uint8Array): number { return Buffer.compare(left, right); }
 function fold(bytes: Uint8Array): Uint8Array { return bytes.map(byte => byte >= 97 && byte <= 122 ? byte - 32 : byte); }
 
-interface NumericValue { whole: string; fraction: string; negative: boolean }
+interface NumericValue { whole: string; fraction: string; negative: boolean; suffixRank: number }
 
-async function parseNumeric(bytes: Uint8Array, work: SortWork): Promise<NumericValue> {
+async function parseNumeric(bytes: Uint8Array, work: SortWork, human = false): Promise<NumericValue> {
   await work.charge(bytes.length);
   const match = /^[ \t]*(-?)([0-9]*)(?:\.([0-9]*))?/u.exec(Buffer.from(bytes).toString("latin1"))!;
   const whole = (match[2] ?? "").replace(/^0+/u, "") || "0";
   const fraction = (match[3] ?? "").replace(/0+$/u, "");
-  return { whole, fraction, negative: match[1] === "-" && (whole !== "0" || fraction !== "") };
+  const nonzero = whole !== "0" || fraction !== "";
+  const suffix = bytes[match[0].length];
+  const suffixRank = human && nonzero ? "KMGTPEZYRQ".indexOf(String.fromCharCode(suffix === 107 ? 75 : suffix ?? 0)) + 1 : 0;
+  return { whole, fraction, negative: match[1] === "-" && nonzero, suffixRank };
 }
 
 async function compareNumericValues(first: NumericValue, second: NumericValue, work: SortWork): Promise<number> {
   if (first.negative !== second.negative) return first.negative ? -1 : 1;
-  let compared = first.whole.length - second.whole.length;
+  let compared = first.suffixRank - second.suffixRank;
+  if (!compared) compared = first.whole.length - second.whole.length;
   if (!compared) {
     for (let offset = 0; offset < first.whole.length && !compared; offset += 1024) {
       const end = Math.min(offset + 1024, first.whole.length);
@@ -221,7 +225,7 @@ async function compareNumericValues(first: NumericValue, second: NumericValue, w
 interface SortKey { start: number; startCharacter: number; end?: number; endCharacter?: number; flags: Set<string> }
 
 function sortKey(specification: string): SortKey {
-  const match = /^([0-9]+)(?:\.([0-9]+))?([bfnr]*)(?:,([0-9]+)(?:\.([0-9]+))?([bfnr]*))?$/u.exec(specification);
+  const match = /^([0-9]+)(?:\.([0-9]+))?([bfhnr]*)(?:,([0-9]+)(?:\.([0-9]+))?([bfhnr]*))?$/u.exec(specification);
   if (!match) throw new UsageError(`invalid key '${specification}'`);
   return {
     start: integer(match[1]!, 1), startCharacter: integer(match[2] ?? "1", 1),
@@ -309,27 +313,31 @@ async function collectSortRecords(
 export function textCommands(): CommandDefinition[] {
   return [
     define("sort", async context => {
-      const parsed = options(context.args, "nrfbuszt:k:o:c", { "numeric-sort": "n", reverse: "r", "ignore-case": "f", "ignore-leading-blanks": "b", unique: "u", stable: "s", "zero-terminated": "z", "field-separator": "t", key: "k", output: "o", check: "c" });
+      const parsed = options(context.args, "hnrfbuszt:k:o:c", { "human-numeric-sort": "h", "numeric-sort": "n", reverse: "r", "ignore-case": "f", "ignore-leading-blanks": "b", unique: "u", stable: "s", "zero-terminated": "z", "field-separator": "t", key: "k", output: "o", check: "c" });
       await assertInputRequirements(context, parsed.operands);
       if (!parsed.flags.has("c")) await admitTextOutput(context, value(parsed, "o"));
       const separatorText = value(parsed, "t");
       if (separatorText !== undefined && encoder.encode(separatorText).length !== 1) throw new UsageError("field separator must be one byte");
       const separator = separatorText === undefined ? undefined : encoder.encode(separatorText)[0];
       const keys = (parsed.values.get("k") ?? []).map(sortKey);
-      const simple = !keys.length && !["b", "f", "n"].some(flag => parsed.flags.has(flag));
+      for (const key of keys.length ? keys : [undefined]) {
+        const flags = key?.flags.size ? key.flags : parsed.flags;
+        if (flags.has("h") && flags.has("n")) throw new UsageError("options '-hn' are incompatible");
+      }
+      const simple = !keys.length && !["b", "f", "h", "n"].some(flag => parsed.flags.has(flag));
       const direction = parsed.flags.has("r") ? -1 : 1;
       const work = new SortWork(context.signal);
-      let compareNumeric = async (left: Uint8Array, right: Uint8Array) => compareNumericValues(await parseNumeric(left, work), await parseNumeric(right, work), work);
-      if (!keys.length && parsed.flags.has("n") && !["b", "f", "c"].some(flag => parsed.flags.has(flag))) {
+      let compareNumeric = async (left: Uint8Array, right: Uint8Array, human: boolean) => compareNumericValues(await parseNumeric(left, work, human), await parseNumeric(right, work, human), work);
+      if (!keys.length && (parsed.flags.has("n") || parsed.flags.has("h")) && !["b", "f", "c"].some(flag => parsed.flags.has(flag))) {
         const numericValues = new Map<Uint8Array, NumericValue>();
         let retainedBytes = 0;
         const numericValue = async (bytes: Uint8Array): Promise<NumericValue> => {
           const cached = numericValues.get(bytes);
           if (cached !== undefined) return cached;
           context.signal.throwIfAborted();
-          const charge = 6 * bytes.length + 2;
-          if (numericValues.size >= 16_384 || charge > 1_048_576 - retainedBytes) return parseNumeric(bytes, work);
-          const parsedValue = await parseNumeric(bytes, work);
+          const charge = 6 * bytes.length + 10;
+          if (numericValues.size >= 16_384 || charge > 1_048_576 - retainedBytes) return parseNumeric(bytes, work, parsed.flags.has("h"));
+          const parsedValue = await parseNumeric(bytes, work, parsed.flags.has("h"));
           numericValues.set(bytes, parsedValue);
           retainedBytes += charge;
           return parsedValue;
@@ -357,7 +365,7 @@ export function textCommands(): CommandDefinition[] {
             first = await trim(first); second = await trim(second);
           }
           if (flags.has("f")) { first = await foldSortBytes(first, work); second = await foldSortBytes(second, work); }
-          let result = flags.has("n") ? await compareNumeric(first, second) : await compareSortBytes(first, second, work);
+          let result = flags.has("n") || flags.has("h") ? await compareNumeric(first, second, flags.has("h")) : await compareSortBytes(first, second, work);
           if (flags.has("r")) result = -result;
           if (result) return result;
         }
@@ -365,7 +373,7 @@ export function textCommands(): CommandDefinition[] {
       };
       const numericKey = keys.length === 1 ? keys[0] : undefined;
       const numericKeyFlags = numericKey?.flags.size ? numericKey.flags : parsed.flags;
-      if (numericKey && numericKeyFlags.has("n") && !["b", "f"].some(flag => numericKeyFlags.has(flag)) && !parsed.flags.has("c")) {
+      if (numericKey && (numericKeyFlags.has("n") || numericKeyFlags.has("h")) && !["b", "f"].some(flag => numericKeyFlags.has(flag)) && !parsed.flags.has("c")) {
         const keyedNumericValues = new Map<Uint8Array, NumericValue>();
         let retainedKeyBytes = 0;
         const keyedNumericValue = async (record: Uint8Array): Promise<NumericValue> => {
@@ -373,9 +381,9 @@ export function textCommands(): CommandDefinition[] {
           if (cached !== undefined) return cached;
           context.signal.throwIfAborted();
           const bytes = await keyBytes(record, numericKey, separator, false, work);
-          const charge = 6 * bytes.length + 2;
-          if (keyedNumericValues.size >= 16_384 || charge > 1_048_576 - retainedKeyBytes) return parseNumeric(bytes, work);
-          const parsedValue = await parseNumeric(bytes, work);
+          const charge = 6 * bytes.length + 10;
+          if (keyedNumericValues.size >= 16_384 || charge > 1_048_576 - retainedKeyBytes) return parseNumeric(bytes, work, numericKeyFlags.has("h"));
+          const parsedValue = await parseNumeric(bytes, work, numericKeyFlags.has("h"));
           keyedNumericValues.set(record, parsedValue);
           retainedKeyBytes += charge;
           return parsedValue;

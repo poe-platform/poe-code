@@ -80,6 +80,24 @@ This capability and its borrowed-input forwarding do not themselves add shell
 `read -t` or infer host stream readiness. Owning-source construction and optional
 builtin installation must supply those separate integrations.
 
+## Prepared input sources
+
+Internal `prepareBytesInput(value, budget)` captures finite input into owned,
+budgeted bytes. Its result supplies a source, cursor options and idempotent
+cleanup. Callers must enroll that cleanup before constructing a cursor.
+`prepareFileInput(context, path, budget)` enrolls cleanup before acquisition,
+classifies and reads the same canonical descriptor, and preserves the original
+cleanup-registration receiver. Regular descriptors ignore positive deadlines;
+character descriptors allow deadlines without inventing nonblocking readiness.
+Only an unsupported canonical open permits the legacy source fallback, whose
+provenance remains unknown. Queued reads observe established EOF consistently.
+
+`createBytePipe().readiness()` is a detachable, nonconsuming poll for buffered
+bytes, drained EOF or blocked input. Empty writes do not make the pipe ready,
+and failed pipes throw their original failure reason. Input-source construction
+must explicitly thread these owned capabilities into the shared cursor; these
+helpers do not infer capabilities for arbitrary host iterables.
+
 ## Internal raw input records
 
 `ShellInput.record({ delimiter? })` reads through a byte delimiter, defaulting to

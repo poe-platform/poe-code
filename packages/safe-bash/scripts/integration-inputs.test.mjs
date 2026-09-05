@@ -518,6 +518,11 @@ function assertSource7Discovery(files) {
     "tests/shell/extensions/arrays/input-deadlines-review.test.ts",
   ]) assert.ok(files.includes(path), "input deadline test is missing: " + path);
   for (const path of [
+    "tests/shell/extensions/arrays/source-readiness.test.ts",
+    "tests/shell/extensions/arrays/source-readiness-review.test.ts",
+    "tests/plugins/input-readiness-runtime.test.ts",
+  ]) assert.ok(files.includes(path), "owned source readiness test is missing: " + path);
+  for (const path of [
     "tests/shell/extensions/arrays/raw-records.test.ts",
     "tests/shell/extensions/arrays/raw-records-review.test.ts",
   ]) assert.ok(files.includes(path), "raw input record test is missing: " + path);

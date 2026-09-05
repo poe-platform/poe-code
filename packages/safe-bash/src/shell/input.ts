@@ -5,6 +5,176 @@ import { Budget, interruptible } from "./runtime.js";
 import { shellValueBytes, shellValueFromBytes, shellValueText } from "../contracts/value.js";
 import type { ShellValue, ValueReservation } from "../contracts/value.js";
 import type { ValueScope } from "./value-state.js";
+import type { CommandContext } from "../contracts/command.js";
+import { openCommandFile, type CommandFileDescriptor } from "../contracts/filesystem-descriptor.js";
+
+export interface PreparedShellInput {
+  readonly source: ByteSource;
+  readonly options: Pick<ShellInputOptions, "provenance" | "poll">;
+  close(): Promise<void>;
+}
+
+export function prepareBytesInput(value: string | Uint8Array, budget: Budget): PreparedShellInput {
+  budget.signal.throwIfAborted();
+  if (typeof value !== "string" && !(value instanceof Uint8Array)) throw new TypeError("Shell input must be a string or Uint8Array");
+  const length = typeof value === "string" ? Buffer.byteLength(value) : value.byteLength;
+  if (length > budget.limits.maxInputBytes) throw new FsError("EFBIG", { syscall: "read" });
+  const scope = budget.values.scope();
+  let bytes: Uint8Array | undefined;
+  let sent = false;
+  let closed = false;
+  let closing: Promise<void> | undefined;
+  const close = (): Promise<void> => {
+    closed = true;
+    bytes = undefined;
+    scope.close();
+    return closing ??= Promise.resolve();
+  };
+  try {
+    if (length) {
+      const reservation = scope.reserve(length, 1);
+      bytes = typeof value === "string" ? new TextEncoder().encode(value) : new Uint8Array(value);
+      reservation.commit(bytes);
+    }
+    const source: AsyncIterableIterator<Uint8Array> = {
+      [Symbol.asyncIterator]() { return this; },
+      async next() {
+        budget.signal.throwIfAborted();
+        if (closed || sent || !bytes?.byteLength) return { done: true, value: undefined };
+        sent = true;
+        return { done: false, value: bytes };
+      },
+      async return() { await close(); return { done: true, value: undefined }; },
+    };
+    return Object.freeze({ source, close, options: Object.freeze({ provenance: "stream", poll: () => {
+      budget.signal.throwIfAborted();
+      if (closed) throw new Error("Prepared input is closed");
+      return !sent && length ? "ready" : "eof";
+    } }) });
+  } catch (error) { void close(); throw error; }
+}
+
+export async function prepareFileInput(
+  context: Pick<CommandContext, "fs" | "signal"> & Required<Pick<CommandContext, "registerCleanup">>,
+  path: string,
+  budget: Budget,
+): Promise<PreparedShellInput> {
+  const { fs, signal: parent, registerCleanup: register } = context;
+  const registerCleanup = register.bind(context);
+  const signal = AbortSignal.any([parent, budget.signal]);
+  const readerController = new AbortController();
+  const readSignal = AbortSignal.any([signal, readerController.signal]);
+  let descriptor: CommandFileDescriptor | undefined;
+  let legacy: AsyncIterator<Uint8Array> | undefined;
+  let accepting = true;
+  let ended = false;
+  let buffer: Uint8Array | undefined;
+  let size = 0;
+  let work: Promise<void> = Promise.resolve();
+  let admitted!: () => void;
+  const acquisition = new Promise<void>(resolve => { admitted = resolve; });
+  const scope = budget.values.scope();
+  let closing: Promise<void> | undefined;
+  const close = (): Promise<void> => {
+    accepting = false;
+    if (!readerController.signal.aborted) readerController.abort(new FsError("EBADF", { syscall: "read", path }));
+    closing ??= (async () => {
+      await acquisition;
+      await work;
+      try {
+        if (descriptor) await descriptor.close();
+        else await legacy?.return?.();
+      } catch (error) {
+        signal.throwIfAborted();
+        throw error;
+      } finally {
+        descriptor = undefined;
+        legacy = undefined;
+        buffer = undefined;
+        scope.close();
+        signal.removeEventListener("abort", aborted);
+      }
+      signal.throwIfAborted();
+    })();
+    void closing.catch(() => {});
+    return closing;
+  };
+  const aborted = (): void => { void close().catch(() => {}); };
+  const check = (): void => {
+    signal.throwIfAborted();
+    if (!accepting) throw new FsError("EBADF", { syscall: "read", path });
+  };
+  try {
+    registerCleanup(close);
+    signal.addEventListener("abort", aborted, { once: true });
+    check();
+    let provenance: NonNullable<ShellInputOptions["provenance"]> = "unknown";
+    try { descriptor = await openCommandFile({ fs, signal, registerCleanup }, path, { access: "read", signal }); }
+    catch (error) {
+      check();
+      if (!(error instanceof FsError) || error.code !== "ENOTSUP") throw error;
+      const source = await fileInput(fs, path, budget.limits.maxInputBytes, readSignal);
+      legacy = source[Symbol.asyncIterator]();
+    }
+    check();
+    if (descriptor) {
+      const stat = await descriptor.stat({ signal });
+      check();
+      if (stat.type === "directory") throw new FsError("EISDIR", { syscall: "read", path });
+      provenance = stat.type === "file" ? "regular" : stat.type === "character" ? "stream" : "unknown";
+    }
+    const source: AsyncIterableIterator<Uint8Array> = {
+      [Symbol.asyncIterator]() { return this; },
+      next() {
+        try { signal.throwIfAborted(); if (ended) return Promise.resolve({ done: true, value: undefined }); check(); }
+        catch (error) { return Promise.reject(error); }
+        const operation = work.then(async (): Promise<IteratorResult<Uint8Array>> => {
+          signal.throwIfAborted();
+          if (ended) return { done: true, value: undefined };
+          check();
+          if (legacy) {
+            const result = await legacy.next();
+            check();
+            ended = result.done === true;
+            return result;
+          }
+          if (!buffer) {
+            const capacity = Math.min(64 * 1024, budget.limits.maxInputBytes) || 1;
+            const reservation = scope.reserve(capacity, 1);
+            buffer = new Uint8Array(capacity);
+            reservation.commit(buffer);
+          }
+          const chunk = buffer.subarray(0, Math.min(buffer.length, budget.limits.maxInputBytes - size + 1));
+          const length = await descriptor!.read(chunk, null, { signal: readSignal });
+          check();
+          if (!Number.isSafeInteger(length) || length < 0 || length > chunk.length) throw new FsError("EIO", { syscall: "read", path });
+          if (length > budget.limits.maxInputBytes - size) throw new FsError("EFBIG", { syscall: "read", path });
+          size += length;
+          ended = length === 0;
+          return ended ? { done: true, value: undefined } : { done: false, value: chunk.subarray(0, length) };
+        });
+        work = operation.then(() => {}, () => {});
+        return operation.then(async result => {
+          if (result.done) await close();
+          signal.throwIfAborted();
+          return result;
+        }, async error => {
+          try { await close(); } catch {}
+          signal.throwIfAborted();
+          throw error;
+        });
+      },
+      async return() { await close(); return { done: true, value: undefined }; },
+    };
+    admitted();
+    return Object.freeze({ source, close, options: Object.freeze({ provenance }) });
+  } catch (error) {
+    admitted();
+    try { await close(); } catch {}
+    signal.throwIfAborted();
+    throw error;
+  }
+}
 
 export async function fileInput(fs: FileSystem, path: string, maxBytes: number, signal: AbortSignal): Promise<ByteSource> {
   signal.throwIfAborted();
@@ -174,6 +344,7 @@ class InputCursor {
     if (this.#provenance === "regular") return "ready";
     const readiness = this.#poll?.() ?? "unknown";
     if (!["ready", "eof", "blocked", "unknown"].includes(readiness)) throw new TypeError("Invalid input readiness");
+    if (readiness === "eof" && this.#read && !this.#readSettled) return "unknown";
     return readiness;
   }
 

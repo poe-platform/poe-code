@@ -571,6 +571,19 @@ this request to keep additions out of the default package.
   Final root bridge replay passes 83 author/reviewer/retained boundary cases;
   five strict type roots have zero diagnostics and eight focused maintained
   discovery checks pass. The pending guarded lint rerun is not counted as a pass.
+- The generic builtin/input bridge is locally committed as `1c9f9abae`.
+  Source-readiness review reproduced two defects: a detached cleanup receiver
+  and queued empty-file reads incorrectly receiving EBADF after EOF closure.
+  Both are repaired against unchanged independent assertions. Review passes
+  26/26, combined source-helper tests pass 73/73, and the independent retained
+  cohort passes 813/813 without skips; these counts overlap rather than add.
+  Root passes 140 helper/deadline cases, five compiled byte-pipe readiness
+  checks and three source-inclusive strict type roots with zero diagnostics.
+  Helpers remain distinct from actual Shell source-construction wiring, which
+  currently has concrete failing integration witnesses awaiting implementation.
+  A fresh explicit optional build succeeds; 28 compiled public pipe/bridge/
+  binding/writer cases pass together. Eight focused maintained discovery checks
+  also pass. Guarded lint eighteen is still running, not a completed clean gate.
 
 - First implementation wave: cmp, yes, shuf and virtual devices in disjoint leaf
   directories. Root is qualifying native oracles and the opt-in delivery boundary.

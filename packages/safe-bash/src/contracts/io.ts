@@ -19,6 +19,7 @@ export interface ByteSink {
 export interface BytePipe {
   readonly readable: ByteSource;
   readonly writable: ByteSink;
+  readiness(): "ready" | "eof" | "blocked";
   close(): Promise<void>;
   abort(reason?: unknown): Promise<void>;
 }
@@ -34,8 +35,16 @@ export function createBytePipe(options: BytePipeOptions = {}): BytePipe {
   if (!Number.isSafeInteger(highWaterMark) || highWaterMark < 1) {
     throw new RangeError("highWaterMark must be a positive safe integer");
   }
+  let availableBytes = 0;
+  let flushed = false;
   const stream = new TransformStream<Uint8Array, Uint8Array>(
-    undefined,
+    {
+      transform(chunk, controller) {
+        controller.enqueue(chunk);
+        availableBytes += chunk.byteLength;
+      },
+      flush() { flushed = true; },
+    },
     { highWaterMark: 1 },
     { highWaterMark, size: (chunk) => chunk.byteLength },
   );
@@ -74,6 +83,7 @@ export function createBytePipe(options: BytePipeOptions = {}): BytePipe {
           finished = true;
           return;
         }
+        availableBytes -= result.value.byteLength;
         yield result.value;
       }
     } finally {
@@ -109,6 +119,10 @@ export function createBytePipe(options: BytePipeOptions = {}): BytePipe {
   };
   return {
     readable,
+    readiness() {
+      if (failed) throw failure;
+      return availableBytes > 0 ? "ready" : flushed ? "eof" : "blocked";
+    },
     writable: {
       write,
       [outputFailure]: abort,

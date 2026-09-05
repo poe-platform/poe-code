@@ -2,7 +2,7 @@ import assert from "node:assert/strict";
 import { describe, test } from "node:test";
 import { fileURLToPath } from "node:url";
 import ts from "typescript";
-import { createMemoryFileSystem, createMountFileSystem } from "poe-code/safe-fs";
+import { createMemoryFileSystem, createMountFileSystem, FsError } from "poe-code/safe-fs";
 import { createYesCommand as sourceYesCommand } from "../../src/commands/yes/index.js";
 import { CommandRegistry as SourceRegistry } from "../../src/contracts/command.js";
 import { trapExtension as sourceTrapExtension } from "../../src/shell/extensions/trap/index.js";
@@ -14,10 +14,12 @@ type OptionalRuntime = {
   createCmpCommand(): PublishedDefinition;
   createShufCommand(): PublishedDefinition;
   createTruncateCommand(): PublishedDefinition;
+  createInstallCommand(): PublishedDefinition;
   yesCommands(): import("poe-code/safe-bash").VirtualShellPlugin;
   shufCommands(): import("poe-code/safe-bash").VirtualShellPlugin;
   truncateCommands(): import("poe-code/safe-bash").VirtualShellPlugin;
   cmpCommands(): import("poe-code/safe-bash").VirtualShellPlugin;
+  installCommands(): import("poe-code/safe-bash").VirtualShellPlugin;
   createDeviceFileSystem(): import("poe-code/safe-fs").FileSystem;
   trapExtension(): NonNullable<import("poe-code/safe-bash").ShellOptions["extensions"]>[number];
 };
@@ -35,7 +37,7 @@ describe("explicit coherent optional build", { skip: selected === undefined ? "R
   test("optional factories and public host share the actual contract instance", async () => {
     const { published, optional } = await runtimes();
     assert.equal(optional.Shell, published.Shell);
-    for (const command of [optional.createYesCommand(), optional.createCmpCommand(), optional.createShufCommand(), optional.createTruncateCommand()]) {
+    for (const command of [optional.createYesCommand(), optional.createCmpCommand(), optional.createShufCommand(), optional.createTruncateCommand(), optional.createInstallCommand()]) {
       assert.equal(command.runtimeIdentity, published.commandRuntimeIdentity);
       assert.equal(new published.CommandRegistry([command]).has(command.name), true);
     }
@@ -118,6 +120,7 @@ describe("explicit coherent optional build", { skip: selected === undefined ? "R
       'import { createMemoryFileSystem } from "poe-code/safe-fs";',
       'import { createYesCommand, yesCommands, createShufCommand, shufCommands } from "../../dist/optional.js";',
       'import { createTruncateCommand, truncateCommands } from "../../dist/optional.js";',
+      'import { createInstallCommand, installCommands, type InstallCommandsOptions, type InstallModeRequest, type InstallContextRequest } from "../../dist/optional.js";',
       'import type { YesCommandOptions, YesCommandsOptions, CmpCommandsOptions, CmpLimits, ShufCommandsOptions, TruncateCommandsOptions, DeviceFileSystem } from "../../dist/optional.js";',
       'import { trapExtension, type TrapExtensionOptions, type ShellExtension } from "../../dist/optional.js";',
       'const yesOptions: YesCommandOptions = {}; const yesPluginOptions: YesCommandsOptions = {};',
@@ -128,6 +131,9 @@ describe("explicit coherent optional build", { skip: selected === undefined ? "R
       'new CommandRegistry([createYesCommand(), createShufCommand(), createTruncateCommand()]);',
       'new Shell({ fs: createMemoryFileSystem() }).use(yesCommands()).use(shufCommands()).use(truncateCommands());',
       'new Shell({ fs: createMemoryFileSystem(), extensions: [trap] });',
+      'const installOptions: InstallCommandsOptions = { setMode(request: InstallModeRequest) {}, securityContext: { enabled: true, apply(request: InstallContextRequest) {} } };',
+      'new CommandRegistry([createInstallCommand(installOptions)]);',
+      'new Shell({ fs: createMemoryFileSystem() }).use(installCommands());',
     ].join("\n");
     const options: ts.CompilerOptions = {
       noEmit: true, strict: true, exactOptionalPropertyTypes: true,
@@ -275,6 +281,80 @@ describe("explicit coherent optional build", { skip: selected === undefined ? "R
       assert.equal(result.stderr, "");
       assert.deepEqual(result.stdoutBytes, Uint8Array.of(255));
     } finally { await shell.dispose(); }
+  });
+
+  test("compiled install copies binary files and preserves explicit metadata through the public host", async () => {
+    const { published, optional } = await runtimes();
+    const fs = createMemoryFileSystem();
+    const bytes = Uint8Array.of(255, 0, 128, 65);
+    await fs.writeFile("/source", bytes);
+    await fs.utimes("/source", 1000.75, 2000.5);
+    const shell = new published.Shell({ fs }).use(optional.installCommands()).use(optional.cmpCommands());
+    try {
+      const result = await shell.exec("install -p -D -m 640 /source /nested/target && cmp /source /nested/target");
+      assert.equal(result.exitCode, 0, result.stderr);
+      assert.equal(result.stdout, "");
+      assert.equal(result.stderr, "");
+      assert.deepEqual(await fs.readFile("/nested/target"), bytes);
+      const stat = await fs.stat("/nested/target");
+      assert.equal(stat.mode & 0o7777, 0o640);
+      assert.equal(stat.mtimeMs, 2000.5);
+    } finally { await shell.dispose(); }
+  });
+
+  test("compiled install respects the public host named-file output budget", async () => {
+    const { published, optional } = await runtimes();
+    const fs = createMemoryFileSystem();
+    await fs.writeFile("/source", Uint8Array.of(1, 2, 3, 4));
+    const shell = new published.Shell({ fs, limits: { maxOutputBytes: 2 } }).use(optional.installCommands());
+    try {
+      await assert.rejects(shell.exec("install /source /target"), error => error instanceof published.ShellLimitError && error.limit === "maxOutputBytes");
+      const bytes = await fs.readFile("/target").catch(error => {
+        if (error instanceof FsError && error.code === "ENOENT") return new Uint8Array();
+        throw error;
+      });
+      assert.ok(bytes.byteLength <= 2);
+    } finally { await shell.dispose(); }
+  });
+
+  for (const execution of ["standalone", "Shell"]) test(`compiled ${execution} install drains its buffered writer before rejecting cancellation`, { timeout: 2000 }, async () => {
+    const { published, optional } = await runtimes();
+    const base = createMemoryFileSystem();
+    await base.writeFile("/source", Uint8Array.of(1, 2, 3, 4));
+    let entered!: () => void;
+    const writing = new Promise<void>(resolve => { entered = resolve; });
+    let release!: () => void;
+    const held = new Promise<void>(resolve => { release = resolve; });
+    const fs = new Proxy(base, { get(target, key) {
+      if (key === "writeStream") return undefined;
+      if (key === "writeFile") return async (...args: Parameters<typeof base.writeFile>) => {
+        entered();
+        await held;
+        await base.writeFile(...args);
+      };
+      const value: unknown = Reflect.get(target, key, target);
+      return typeof value === "function" ? value.bind(target) : value;
+    } });
+    const controller = new AbortController();
+    const shell = execution === "Shell" ? new published.Shell({ fs }).use(optional.installCommands()) : undefined;
+    let settled = false;
+    const operation = Promise.resolve(shell ? shell.exec("install /source /target", { signal: controller.signal }) : optional.createInstallCommand().execute({
+      command: "install", args: ["/source", "/target"], cwd: "/", env: {}, fs,
+      signal: controller.signal, stdin: published.toByteSource(new Uint8Array()),
+      stdout: { async write() {} }, stderr: { async write() {} },
+    }));
+    const checked = assert.rejects(operation, error => error === false);
+    void operation.then(() => { settled = true; }, () => { settled = true; });
+    try {
+      await writing;
+      controller.abort(false);
+      await new Promise<void>(resolve => setImmediate(resolve));
+      assert.equal(settled, false, `${execution} completion must join its admitted writer`);
+    } finally {
+      release();
+      await checked;
+      await shell?.dispose();
+    }
   });
 
   test("compiled trap preserves runtime affinity and separate actions when forking", async () => {

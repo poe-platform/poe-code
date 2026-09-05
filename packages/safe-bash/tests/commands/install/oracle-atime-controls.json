@@ -1,0 +1,2276 @@
+{
+  "kind": "Preserved manual timestamp-causality controls. No unit disk fixtures or product runtime behavior changes.",
+  "minimal": {
+    "kind": "Minimal synchronous native-only fixture. No source content read between ancient utimes and native launch in no-read/read-then-reset profiles. Metadata-only source AND target snapshots immediately before and after launch, before all content verification. reset-then-read is an intentional positive control for harness-induced atime change.",
+    "binary": "/tmp/safe-bash-scripting-oracles-20260904/coreutils-9.7-clean/src/ginstall",
+    "sha256": "efd5c3373a8b3d8fdc4edc7c506bc1cc3ee215ed27fdd8eca151e70e8fa1893a",
+    "rows": [
+      {
+        "setup": "no-read",
+        "repeat": 0,
+        "before": {
+          "source": {
+            "atimeMs": 1000,
+            "mtimeMs": 2000,
+            "ctimeMs": 1788564697416.4116,
+            "ino": 237266021,
+            "dev": 16777234,
+            "uid": 501,
+            "gid": 0,
+            "mode": 33188,
+            "size": 5
+          },
+          "target": null
+        },
+        "result": {
+          "exitCode": 0,
+          "stdout": "",
+          "stderr": ""
+        },
+        "after": {
+          "source": {
+            "atimeMs": 1788564697423.899,
+            "mtimeMs": 2000,
+            "ctimeMs": 1788564697416.4116,
+            "ino": 237266021,
+            "dev": 16777234,
+            "uid": 501,
+            "gid": 0,
+            "mode": 33188,
+            "size": 5
+          },
+          "target": {
+            "atimeMs": 1788564697423.899,
+            "mtimeMs": 2000,
+            "ctimeMs": 1788564697424.1458,
+            "ino": 237266022,
+            "dev": 16777234,
+            "uid": 501,
+            "gid": 0,
+            "mode": 33261,
+            "size": 5
+          }
+        },
+        "sourceHex": "ff0080410a",
+        "targetHex": "ff0080410a",
+        "afterReads": {
+          "source": {
+            "atimeMs": 1788564697423.899,
+            "mtimeMs": 2000,
+            "ctimeMs": 1788564697416.4116,
+            "ino": 237266021,
+            "dev": 16777234,
+            "uid": 501,
+            "gid": 0,
+            "mode": 33188,
+            "size": 5
+          },
+          "target": {
+            "atimeMs": 1788564697423.899,
+            "mtimeMs": 2000,
+            "ctimeMs": 1788564697424.1458,
+            "ino": 237266022,
+            "dev": 16777234,
+            "uid": 501,
+            "gid": 0,
+            "mode": 33261,
+            "size": 5
+          }
+        }
+      },
+      {
+        "setup": "no-read",
+        "repeat": 1,
+        "before": {
+          "source": {
+            "atimeMs": 1000,
+            "mtimeMs": 2000,
+            "ctimeMs": 1788564697425.6904,
+            "ino": 237266024,
+            "dev": 16777234,
+            "uid": 501,
+            "gid": 0,
+            "mode": 33188,
+            "size": 5
+          },
+          "target": null
+        },
+        "result": {
+          "exitCode": 0,
+          "stdout": "",
+          "stderr": ""
+        },
+        "after": {
+          "source": {
+            "atimeMs": 1788564697430.3606,
+            "mtimeMs": 2000,
+            "ctimeMs": 1788564697425.6904,
+            "ino": 237266024,
+            "dev": 16777234,
+            "uid": 501,
+            "gid": 0,
+            "mode": 33188,
+            "size": 5
+          },
+          "target": {
+            "atimeMs": 1788564697430.3606,
+            "mtimeMs": 2000,
+            "ctimeMs": 1788564697430.6226,
+            "ino": 237266025,
+            "dev": 16777234,
+            "uid": 501,
+            "gid": 0,
+            "mode": 33261,
+            "size": 5
+          }
+        },
+        "sourceHex": "ff0080410a",
+        "targetHex": "ff0080410a",
+        "afterReads": {
+          "source": {
+            "atimeMs": 1788564697430.3606,
+            "mtimeMs": 2000,
+            "ctimeMs": 1788564697425.6904,
+            "ino": 237266024,
+            "dev": 16777234,
+            "uid": 501,
+            "gid": 0,
+            "mode": 33188,
+            "size": 5
+          },
+          "target": {
+            "atimeMs": 1788564697430.3606,
+            "mtimeMs": 2000,
+            "ctimeMs": 1788564697430.6226,
+            "ino": 237266025,
+            "dev": 16777234,
+            "uid": 501,
+            "gid": 0,
+            "mode": 33261,
+            "size": 5
+          }
+        }
+      },
+      {
+        "setup": "no-read",
+        "repeat": 2,
+        "before": {
+          "source": {
+            "atimeMs": 1000,
+            "mtimeMs": 2000,
+            "ctimeMs": 1788564697431.9895,
+            "ino": 237266027,
+            "dev": 16777234,
+            "uid": 501,
+            "gid": 0,
+            "mode": 33188,
+            "size": 5
+          },
+          "target": null
+        },
+        "result": {
+          "exitCode": 0,
+          "stdout": "",
+          "stderr": ""
+        },
+        "after": {
+          "source": {
+            "atimeMs": 1788564697437.1184,
+            "mtimeMs": 2000,
+            "ctimeMs": 1788564697431.9895,
+            "ino": 237266027,
+            "dev": 16777234,
+            "uid": 501,
+            "gid": 0,
+            "mode": 33188,
+            "size": 5
+          },
+          "target": {
+            "atimeMs": 1788564697437.1184,
+            "mtimeMs": 2000,
+            "ctimeMs": 1788564697437.4363,
+            "ino": 237266028,
+            "dev": 16777234,
+            "uid": 501,
+            "gid": 0,
+            "mode": 33261,
+            "size": 5
+          }
+        },
+        "sourceHex": "ff0080410a",
+        "targetHex": "ff0080410a",
+        "afterReads": {
+          "source": {
+            "atimeMs": 1788564697437.1184,
+            "mtimeMs": 2000,
+            "ctimeMs": 1788564697431.9895,
+            "ino": 237266027,
+            "dev": 16777234,
+            "uid": 501,
+            "gid": 0,
+            "mode": 33188,
+            "size": 5
+          },
+          "target": {
+            "atimeMs": 1788564697437.1184,
+            "mtimeMs": 2000,
+            "ctimeMs": 1788564697437.4363,
+            "ino": 237266028,
+            "dev": 16777234,
+            "uid": 501,
+            "gid": 0,
+            "mode": 33261,
+            "size": 5
+          }
+        }
+      },
+      {
+        "setup": "no-read",
+        "repeat": 3,
+        "before": {
+          "source": {
+            "atimeMs": 1000,
+            "mtimeMs": 2000,
+            "ctimeMs": 1788564697439.0586,
+            "ino": 237266030,
+            "dev": 16777234,
+            "uid": 501,
+            "gid": 0,
+            "mode": 33188,
+            "size": 5
+          },
+          "target": null
+        },
+        "result": {
+          "exitCode": 0,
+          "stdout": "",
+          "stderr": ""
+        },
+        "after": {
+          "source": {
+            "atimeMs": 1788564697443.8718,
+            "mtimeMs": 2000,
+            "ctimeMs": 1788564697439.0586,
+            "ino": 237266030,
+            "dev": 16777234,
+            "uid": 501,
+            "gid": 0,
+            "mode": 33188,
+            "size": 5
+          },
+          "target": {
+            "atimeMs": 1788564697443.8718,
+            "mtimeMs": 2000,
+            "ctimeMs": 1788564697444.1245,
+            "ino": 237266031,
+            "dev": 16777234,
+            "uid": 501,
+            "gid": 0,
+            "mode": 33261,
+            "size": 5
+          }
+        },
+        "sourceHex": "ff0080410a",
+        "targetHex": "ff0080410a",
+        "afterReads": {
+          "source": {
+            "atimeMs": 1788564697443.8718,
+            "mtimeMs": 2000,
+            "ctimeMs": 1788564697439.0586,
+            "ino": 237266030,
+            "dev": 16777234,
+            "uid": 501,
+            "gid": 0,
+            "mode": 33188,
+            "size": 5
+          },
+          "target": {
+            "atimeMs": 1788564697443.8718,
+            "mtimeMs": 2000,
+            "ctimeMs": 1788564697444.1245,
+            "ino": 237266031,
+            "dev": 16777234,
+            "uid": 501,
+            "gid": 0,
+            "mode": 33261,
+            "size": 5
+          }
+        }
+      },
+      {
+        "setup": "no-read",
+        "repeat": 4,
+        "before": {
+          "source": {
+            "atimeMs": 1000,
+            "mtimeMs": 2000,
+            "ctimeMs": 1788564697445.3684,
+            "ino": 237266033,
+            "dev": 16777234,
+            "uid": 501,
+            "gid": 0,
+            "mode": 33188,
+            "size": 5
+          },
+          "target": null
+        },
+        "result": {
+          "exitCode": 0,
+          "stdout": "",
+          "stderr": ""
+        },
+        "after": {
+          "source": {
+            "atimeMs": 1788564697449.8613,
+            "mtimeMs": 2000,
+            "ctimeMs": 1788564697445.3684,
+            "ino": 237266033,
+            "dev": 16777234,
+            "uid": 501,
+            "gid": 0,
+            "mode": 33188,
+            "size": 5
+          },
+          "target": {
+            "atimeMs": 1000,
+            "mtimeMs": 2000,
+            "ctimeMs": 1788564697449.8848,
+            "ino": 237266034,
+            "dev": 16777234,
+            "uid": 501,
+            "gid": 0,
+            "mode": 33261,
+            "size": 5
+          }
+        },
+        "sourceHex": "ff0080410a",
+        "targetHex": "ff0080410a",
+        "afterReads": {
+          "source": {
+            "atimeMs": 1788564697449.8613,
+            "mtimeMs": 2000,
+            "ctimeMs": 1788564697445.3684,
+            "ino": 237266033,
+            "dev": 16777234,
+            "uid": 501,
+            "gid": 0,
+            "mode": 33188,
+            "size": 5
+          },
+          "target": {
+            "atimeMs": 1788564697450.4175,
+            "mtimeMs": 2000,
+            "ctimeMs": 1788564697449.8848,
+            "ino": 237266034,
+            "dev": 16777234,
+            "uid": 501,
+            "gid": 0,
+            "mode": 33261,
+            "size": 5
+          }
+        }
+      },
+      {
+        "setup": "no-read",
+        "repeat": 5,
+        "before": {
+          "source": {
+            "atimeMs": 1000,
+            "mtimeMs": 2000,
+            "ctimeMs": 1788564697451.1643,
+            "ino": 237266036,
+            "dev": 16777234,
+            "uid": 501,
+            "gid": 0,
+            "mode": 33188,
+            "size": 5
+          },
+          "target": null
+        },
+        "result": {
+          "exitCode": 0,
+          "stdout": "",
+          "stderr": ""
+        },
+        "after": {
+          "source": {
+            "atimeMs": 1788564697455.547,
+            "mtimeMs": 2000,
+            "ctimeMs": 1788564697451.1643,
+            "ino": 237266036,
+            "dev": 16777234,
+            "uid": 501,
+            "gid": 0,
+            "mode": 33188,
+            "size": 5
+          },
+          "target": {
+            "atimeMs": 1788564697455.547,
+            "mtimeMs": 2000,
+            "ctimeMs": 1788564697455.791,
+            "ino": 237266037,
+            "dev": 16777234,
+            "uid": 501,
+            "gid": 0,
+            "mode": 33261,
+            "size": 5
+          }
+        },
+        "sourceHex": "ff0080410a",
+        "targetHex": "ff0080410a",
+        "afterReads": {
+          "source": {
+            "atimeMs": 1788564697455.547,
+            "mtimeMs": 2000,
+            "ctimeMs": 1788564697451.1643,
+            "ino": 237266036,
+            "dev": 16777234,
+            "uid": 501,
+            "gid": 0,
+            "mode": 33188,
+            "size": 5
+          },
+          "target": {
+            "atimeMs": 1788564697455.547,
+            "mtimeMs": 2000,
+            "ctimeMs": 1788564697455.791,
+            "ino": 237266037,
+            "dev": 16777234,
+            "uid": 501,
+            "gid": 0,
+            "mode": 33261,
+            "size": 5
+          }
+        }
+      },
+      {
+        "setup": "no-read",
+        "repeat": 6,
+        "before": {
+          "source": {
+            "atimeMs": 1000,
+            "mtimeMs": 2000,
+            "ctimeMs": 1788564697457.121,
+            "ino": 237266039,
+            "dev": 16777234,
+            "uid": 501,
+            "gid": 0,
+            "mode": 33188,
+            "size": 5
+          },
+          "target": null
+        },
+        "result": {
+          "exitCode": 0,
+          "stdout": "",
+          "stderr": ""
+        },
+        "after": {
+          "source": {
+            "atimeMs": 1788564697461.5605,
+            "mtimeMs": 2000,
+            "ctimeMs": 1788564697457.121,
+            "ino": 237266039,
+            "dev": 16777234,
+            "uid": 501,
+            "gid": 0,
+            "mode": 33188,
+            "size": 5
+          },
+          "target": {
+            "atimeMs": 1000,
+            "mtimeMs": 2000,
+            "ctimeMs": 1788564697461.5896,
+            "ino": 237266040,
+            "dev": 16777234,
+            "uid": 501,
+            "gid": 0,
+            "mode": 33261,
+            "size": 5
+          }
+        },
+        "sourceHex": "ff0080410a",
+        "targetHex": "ff0080410a",
+        "afterReads": {
+          "source": {
+            "atimeMs": 1788564697461.5605,
+            "mtimeMs": 2000,
+            "ctimeMs": 1788564697457.121,
+            "ino": 237266039,
+            "dev": 16777234,
+            "uid": 501,
+            "gid": 0,
+            "mode": 33188,
+            "size": 5
+          },
+          "target": {
+            "atimeMs": 1788564697462.0745,
+            "mtimeMs": 2000,
+            "ctimeMs": 1788564697461.5896,
+            "ino": 237266040,
+            "dev": 16777234,
+            "uid": 501,
+            "gid": 0,
+            "mode": 33261,
+            "size": 5
+          }
+        }
+      },
+      {
+        "setup": "no-read",
+        "repeat": 7,
+        "before": {
+          "source": {
+            "atimeMs": 1000,
+            "mtimeMs": 2000,
+            "ctimeMs": 1788564697462.8635,
+            "ino": 237266042,
+            "dev": 16777234,
+            "uid": 501,
+            "gid": 0,
+            "mode": 33188,
+            "size": 5
+          },
+          "target": null
+        },
+        "result": {
+          "exitCode": 0,
+          "stdout": "",
+          "stderr": ""
+        },
+        "after": {
+          "source": {
+            "atimeMs": 1788564697467.2961,
+            "mtimeMs": 2000,
+            "ctimeMs": 1788564697462.8635,
+            "ino": 237266042,
+            "dev": 16777234,
+            "uid": 501,
+            "gid": 0,
+            "mode": 33188,
+            "size": 5
+          },
+          "target": {
+            "atimeMs": 1788564697467.2961,
+            "mtimeMs": 2000,
+            "ctimeMs": 1788564697467.7197,
+            "ino": 237266043,
+            "dev": 16777234,
+            "uid": 501,
+            "gid": 0,
+            "mode": 33261,
+            "size": 5
+          }
+        },
+        "sourceHex": "ff0080410a",
+        "targetHex": "ff0080410a",
+        "afterReads": {
+          "source": {
+            "atimeMs": 1788564697467.2961,
+            "mtimeMs": 2000,
+            "ctimeMs": 1788564697462.8635,
+            "ino": 237266042,
+            "dev": 16777234,
+            "uid": 501,
+            "gid": 0,
+            "mode": 33188,
+            "size": 5
+          },
+          "target": {
+            "atimeMs": 1788564697467.2961,
+            "mtimeMs": 2000,
+            "ctimeMs": 1788564697467.7197,
+            "ino": 237266043,
+            "dev": 16777234,
+            "uid": 501,
+            "gid": 0,
+            "mode": 33261,
+            "size": 5
+          }
+        }
+      },
+      {
+        "setup": "read-then-reset",
+        "repeat": 0,
+        "before": {
+          "source": {
+            "atimeMs": 1000,
+            "mtimeMs": 2000,
+            "ctimeMs": 1788564697468.9307,
+            "ino": 237266045,
+            "dev": 16777234,
+            "uid": 501,
+            "gid": 0,
+            "mode": 33188,
+            "size": 5
+          },
+          "target": null
+        },
+        "result": {
+          "exitCode": 0,
+          "stdout": "",
+          "stderr": ""
+        },
+        "after": {
+          "source": {
+            "atimeMs": 1788564697473.3848,
+            "mtimeMs": 2000,
+            "ctimeMs": 1788564697468.9307,
+            "ino": 237266045,
+            "dev": 16777234,
+            "uid": 501,
+            "gid": 0,
+            "mode": 33188,
+            "size": 5
+          },
+          "target": {
+            "atimeMs": 1788564697473.3848,
+            "mtimeMs": 2000,
+            "ctimeMs": 1788564697473.601,
+            "ino": 237266046,
+            "dev": 16777234,
+            "uid": 501,
+            "gid": 0,
+            "mode": 33261,
+            "size": 5
+          }
+        },
+        "sourceHex": "ff0080410a",
+        "targetHex": "ff0080410a",
+        "afterReads": {
+          "source": {
+            "atimeMs": 1788564697473.3848,
+            "mtimeMs": 2000,
+            "ctimeMs": 1788564697468.9307,
+            "ino": 237266045,
+            "dev": 16777234,
+            "uid": 501,
+            "gid": 0,
+            "mode": 33188,
+            "size": 5
+          },
+          "target": {
+            "atimeMs": 1788564697473.3848,
+            "mtimeMs": 2000,
+            "ctimeMs": 1788564697473.601,
+            "ino": 237266046,
+            "dev": 16777234,
+            "uid": 501,
+            "gid": 0,
+            "mode": 33261,
+            "size": 5
+          }
+        }
+      },
+      {
+        "setup": "read-then-reset",
+        "repeat": 1,
+        "before": {
+          "source": {
+            "atimeMs": 1000,
+            "mtimeMs": 2000,
+            "ctimeMs": 1788564697474.9395,
+            "ino": 237266048,
+            "dev": 16777234,
+            "uid": 501,
+            "gid": 0,
+            "mode": 33188,
+            "size": 5
+          },
+          "target": null
+        },
+        "result": {
+          "exitCode": 0,
+          "stdout": "",
+          "stderr": ""
+        },
+        "after": {
+          "source": {
+            "atimeMs": 1788564697482.1567,
+            "mtimeMs": 2000,
+            "ctimeMs": 1788564697474.9395,
+            "ino": 237266048,
+            "dev": 16777234,
+            "uid": 501,
+            "gid": 0,
+            "mode": 33188,
+            "size": 5
+          },
+          "target": {
+            "atimeMs": 1788564697482.1567,
+            "mtimeMs": 2000,
+            "ctimeMs": 1788564697482.4329,
+            "ino": 237266049,
+            "dev": 16777234,
+            "uid": 501,
+            "gid": 0,
+            "mode": 33261,
+            "size": 5
+          }
+        },
+        "sourceHex": "ff0080410a",
+        "targetHex": "ff0080410a",
+        "afterReads": {
+          "source": {
+            "atimeMs": 1788564697482.1567,
+            "mtimeMs": 2000,
+            "ctimeMs": 1788564697474.9395,
+            "ino": 237266048,
+            "dev": 16777234,
+            "uid": 501,
+            "gid": 0,
+            "mode": 33188,
+            "size": 5
+          },
+          "target": {
+            "atimeMs": 1788564697482.1567,
+            "mtimeMs": 2000,
+            "ctimeMs": 1788564697482.4329,
+            "ino": 237266049,
+            "dev": 16777234,
+            "uid": 501,
+            "gid": 0,
+            "mode": 33261,
+            "size": 5
+          }
+        }
+      },
+      {
+        "setup": "read-then-reset",
+        "repeat": 2,
+        "before": {
+          "source": {
+            "atimeMs": 1000,
+            "mtimeMs": 2000,
+            "ctimeMs": 1788564697483.8137,
+            "ino": 237266051,
+            "dev": 16777234,
+            "uid": 501,
+            "gid": 0,
+            "mode": 33188,
+            "size": 5
+          },
+          "target": null
+        },
+        "result": {
+          "exitCode": 0,
+          "stdout": "",
+          "stderr": ""
+        },
+        "after": {
+          "source": {
+            "atimeMs": 1788564697488.3123,
+            "mtimeMs": 2000,
+            "ctimeMs": 1788564697483.8137,
+            "ino": 237266051,
+            "dev": 16777234,
+            "uid": 501,
+            "gid": 0,
+            "mode": 33188,
+            "size": 5
+          },
+          "target": {
+            "atimeMs": 1788564697488.3123,
+            "mtimeMs": 2000,
+            "ctimeMs": 1788564697488.5686,
+            "ino": 237266052,
+            "dev": 16777234,
+            "uid": 501,
+            "gid": 0,
+            "mode": 33261,
+            "size": 5
+          }
+        },
+        "sourceHex": "ff0080410a",
+        "targetHex": "ff0080410a",
+        "afterReads": {
+          "source": {
+            "atimeMs": 1788564697488.3123,
+            "mtimeMs": 2000,
+            "ctimeMs": 1788564697483.8137,
+            "ino": 237266051,
+            "dev": 16777234,
+            "uid": 501,
+            "gid": 0,
+            "mode": 33188,
+            "size": 5
+          },
+          "target": {
+            "atimeMs": 1788564697488.3123,
+            "mtimeMs": 2000,
+            "ctimeMs": 1788564697488.5686,
+            "ino": 237266052,
+            "dev": 16777234,
+            "uid": 501,
+            "gid": 0,
+            "mode": 33261,
+            "size": 5
+          }
+        }
+      },
+      {
+        "setup": "read-then-reset",
+        "repeat": 3,
+        "before": {
+          "source": {
+            "atimeMs": 1000,
+            "mtimeMs": 2000,
+            "ctimeMs": 1788564697489.7583,
+            "ino": 237266054,
+            "dev": 16777234,
+            "uid": 501,
+            "gid": 0,
+            "mode": 33188,
+            "size": 5
+          },
+          "target": null
+        },
+        "result": {
+          "exitCode": 0,
+          "stdout": "",
+          "stderr": ""
+        },
+        "after": {
+          "source": {
+            "atimeMs": 1788564697494.1768,
+            "mtimeMs": 2000,
+            "ctimeMs": 1788564697489.7583,
+            "ino": 237266054,
+            "dev": 16777234,
+            "uid": 501,
+            "gid": 0,
+            "mode": 33188,
+            "size": 5
+          },
+          "target": {
+            "atimeMs": 1788564697494.1768,
+            "mtimeMs": 2000,
+            "ctimeMs": 1788564697494.37,
+            "ino": 237266055,
+            "dev": 16777234,
+            "uid": 501,
+            "gid": 0,
+            "mode": 33261,
+            "size": 5
+          }
+        },
+        "sourceHex": "ff0080410a",
+        "targetHex": "ff0080410a",
+        "afterReads": {
+          "source": {
+            "atimeMs": 1788564697494.1768,
+            "mtimeMs": 2000,
+            "ctimeMs": 1788564697489.7583,
+            "ino": 237266054,
+            "dev": 16777234,
+            "uid": 501,
+            "gid": 0,
+            "mode": 33188,
+            "size": 5
+          },
+          "target": {
+            "atimeMs": 1788564697494.1768,
+            "mtimeMs": 2000,
+            "ctimeMs": 1788564697494.37,
+            "ino": 237266055,
+            "dev": 16777234,
+            "uid": 501,
+            "gid": 0,
+            "mode": 33261,
+            "size": 5
+          }
+        }
+      },
+      {
+        "setup": "read-then-reset",
+        "repeat": 4,
+        "before": {
+          "source": {
+            "atimeMs": 1000,
+            "mtimeMs": 2000,
+            "ctimeMs": 1788564697495.672,
+            "ino": 237266057,
+            "dev": 16777234,
+            "uid": 501,
+            "gid": 0,
+            "mode": 33188,
+            "size": 5
+          },
+          "target": null
+        },
+        "result": {
+          "exitCode": 0,
+          "stdout": "",
+          "stderr": ""
+        },
+        "after": {
+          "source": {
+            "atimeMs": 1788564697500.7678,
+            "mtimeMs": 2000,
+            "ctimeMs": 1788564697495.672,
+            "ino": 237266057,
+            "dev": 16777234,
+            "uid": 501,
+            "gid": 0,
+            "mode": 33188,
+            "size": 5
+          },
+          "target": {
+            "atimeMs": 1788564697500.7678,
+            "mtimeMs": 2000,
+            "ctimeMs": 1788564697501.0137,
+            "ino": 237266058,
+            "dev": 16777234,
+            "uid": 501,
+            "gid": 0,
+            "mode": 33261,
+            "size": 5
+          }
+        },
+        "sourceHex": "ff0080410a",
+        "targetHex": "ff0080410a",
+        "afterReads": {
+          "source": {
+            "atimeMs": 1788564697500.7678,
+            "mtimeMs": 2000,
+            "ctimeMs": 1788564697495.672,
+            "ino": 237266057,
+            "dev": 16777234,
+            "uid": 501,
+            "gid": 0,
+            "mode": 33188,
+            "size": 5
+          },
+          "target": {
+            "atimeMs": 1788564697500.7678,
+            "mtimeMs": 2000,
+            "ctimeMs": 1788564697501.0137,
+            "ino": 237266058,
+            "dev": 16777234,
+            "uid": 501,
+            "gid": 0,
+            "mode": 33261,
+            "size": 5
+          }
+        }
+      },
+      {
+        "setup": "read-then-reset",
+        "repeat": 5,
+        "before": {
+          "source": {
+            "atimeMs": 1000,
+            "mtimeMs": 2000,
+            "ctimeMs": 1788564697502.483,
+            "ino": 237266060,
+            "dev": 16777234,
+            "uid": 501,
+            "gid": 0,
+            "mode": 33188,
+            "size": 5
+          },
+          "target": null
+        },
+        "result": {
+          "exitCode": 0,
+          "stdout": "",
+          "stderr": ""
+        },
+        "after": {
+          "source": {
+            "atimeMs": 1788564697507.285,
+            "mtimeMs": 2000,
+            "ctimeMs": 1788564697502.483,
+            "ino": 237266060,
+            "dev": 16777234,
+            "uid": 501,
+            "gid": 0,
+            "mode": 33188,
+            "size": 5
+          },
+          "target": {
+            "atimeMs": 1788564697507.285,
+            "mtimeMs": 2000,
+            "ctimeMs": 1788564697507.559,
+            "ino": 237266061,
+            "dev": 16777234,
+            "uid": 501,
+            "gid": 0,
+            "mode": 33261,
+            "size": 5
+          }
+        },
+        "sourceHex": "ff0080410a",
+        "targetHex": "ff0080410a",
+        "afterReads": {
+          "source": {
+            "atimeMs": 1788564697507.285,
+            "mtimeMs": 2000,
+            "ctimeMs": 1788564697502.483,
+            "ino": 237266060,
+            "dev": 16777234,
+            "uid": 501,
+            "gid": 0,
+            "mode": 33188,
+            "size": 5
+          },
+          "target": {
+            "atimeMs": 1788564697507.285,
+            "mtimeMs": 2000,
+            "ctimeMs": 1788564697507.559,
+            "ino": 237266061,
+            "dev": 16777234,
+            "uid": 501,
+            "gid": 0,
+            "mode": 33261,
+            "size": 5
+          }
+        }
+      },
+      {
+        "setup": "read-then-reset",
+        "repeat": 6,
+        "before": {
+          "source": {
+            "atimeMs": 1000,
+            "mtimeMs": 2000,
+            "ctimeMs": 1788564697509.196,
+            "ino": 237266063,
+            "dev": 16777234,
+            "uid": 501,
+            "gid": 0,
+            "mode": 33188,
+            "size": 5
+          },
+          "target": null
+        },
+        "result": {
+          "exitCode": 0,
+          "stdout": "",
+          "stderr": ""
+        },
+        "after": {
+          "source": {
+            "atimeMs": 1788564697513.77,
+            "mtimeMs": 2000,
+            "ctimeMs": 1788564697509.196,
+            "ino": 237266063,
+            "dev": 16777234,
+            "uid": 501,
+            "gid": 0,
+            "mode": 33188,
+            "size": 5
+          },
+          "target": {
+            "atimeMs": 1788564697513.77,
+            "mtimeMs": 2000,
+            "ctimeMs": 1788564697513.977,
+            "ino": 237266064,
+            "dev": 16777234,
+            "uid": 501,
+            "gid": 0,
+            "mode": 33261,
+            "size": 5
+          }
+        },
+        "sourceHex": "ff0080410a",
+        "targetHex": "ff0080410a",
+        "afterReads": {
+          "source": {
+            "atimeMs": 1788564697513.77,
+            "mtimeMs": 2000,
+            "ctimeMs": 1788564697509.196,
+            "ino": 237266063,
+            "dev": 16777234,
+            "uid": 501,
+            "gid": 0,
+            "mode": 33188,
+            "size": 5
+          },
+          "target": {
+            "atimeMs": 1788564697513.77,
+            "mtimeMs": 2000,
+            "ctimeMs": 1788564697513.977,
+            "ino": 237266064,
+            "dev": 16777234,
+            "uid": 501,
+            "gid": 0,
+            "mode": 33261,
+            "size": 5
+          }
+        }
+      },
+      {
+        "setup": "read-then-reset",
+        "repeat": 7,
+        "before": {
+          "source": {
+            "atimeMs": 1000,
+            "mtimeMs": 2000,
+            "ctimeMs": 1788564697515.3337,
+            "ino": 237266066,
+            "dev": 16777234,
+            "uid": 501,
+            "gid": 0,
+            "mode": 33188,
+            "size": 5
+          },
+          "target": null
+        },
+        "result": {
+          "exitCode": 0,
+          "stdout": "",
+          "stderr": ""
+        },
+        "after": {
+          "source": {
+            "atimeMs": 1788564697519.686,
+            "mtimeMs": 2000,
+            "ctimeMs": 1788564697515.3337,
+            "ino": 237266066,
+            "dev": 16777234,
+            "uid": 501,
+            "gid": 0,
+            "mode": 33188,
+            "size": 5
+          },
+          "target": {
+            "atimeMs": 1788564697519.686,
+            "mtimeMs": 2000,
+            "ctimeMs": 1788564697519.9111,
+            "ino": 237266067,
+            "dev": 16777234,
+            "uid": 501,
+            "gid": 0,
+            "mode": 33261,
+            "size": 5
+          }
+        },
+        "sourceHex": "ff0080410a",
+        "targetHex": "ff0080410a",
+        "afterReads": {
+          "source": {
+            "atimeMs": 1788564697519.686,
+            "mtimeMs": 2000,
+            "ctimeMs": 1788564697515.3337,
+            "ino": 237266066,
+            "dev": 16777234,
+            "uid": 501,
+            "gid": 0,
+            "mode": 33188,
+            "size": 5
+          },
+          "target": {
+            "atimeMs": 1788564697519.686,
+            "mtimeMs": 2000,
+            "ctimeMs": 1788564697519.9111,
+            "ino": 237266067,
+            "dev": 16777234,
+            "uid": 501,
+            "gid": 0,
+            "mode": 33261,
+            "size": 5
+          }
+        }
+      },
+      {
+        "setup": "reset-then-read",
+        "repeat": 0,
+        "before": {
+          "source": {
+            "atimeMs": 1788564697521.7576,
+            "mtimeMs": 2000,
+            "ctimeMs": 1788564697521.6716,
+            "ino": 237266069,
+            "dev": 16777234,
+            "uid": 501,
+            "gid": 0,
+            "mode": 33188,
+            "size": 5
+          },
+          "target": null
+        },
+        "result": {
+          "exitCode": 0,
+          "stdout": "",
+          "stderr": ""
+        },
+        "after": {
+          "source": {
+            "atimeMs": 1788564697521.7576,
+            "mtimeMs": 2000,
+            "ctimeMs": 1788564697521.6716,
+            "ino": 237266069,
+            "dev": 16777234,
+            "uid": 501,
+            "gid": 0,
+            "mode": 33188,
+            "size": 5
+          },
+          "target": {
+            "atimeMs": 1788564697521.7576,
+            "mtimeMs": 2000,
+            "ctimeMs": 1788564697526.9006,
+            "ino": 237266070,
+            "dev": 16777234,
+            "uid": 501,
+            "gid": 0,
+            "mode": 33261,
+            "size": 5
+          }
+        },
+        "sourceHex": "ff0080410a",
+        "targetHex": "ff0080410a",
+        "afterReads": {
+          "source": {
+            "atimeMs": 1788564697521.7576,
+            "mtimeMs": 2000,
+            "ctimeMs": 1788564697521.6716,
+            "ino": 237266069,
+            "dev": 16777234,
+            "uid": 501,
+            "gid": 0,
+            "mode": 33188,
+            "size": 5
+          },
+          "target": {
+            "atimeMs": 1788564697521.7576,
+            "mtimeMs": 2000,
+            "ctimeMs": 1788564697526.9006,
+            "ino": 237266070,
+            "dev": 16777234,
+            "uid": 501,
+            "gid": 0,
+            "mode": 33261,
+            "size": 5
+          }
+        }
+      },
+      {
+        "setup": "reset-then-read",
+        "repeat": 1,
+        "before": {
+          "source": {
+            "atimeMs": 1788564697528.26,
+            "mtimeMs": 2000,
+            "ctimeMs": 1788564697528.1914,
+            "ino": 237266072,
+            "dev": 16777234,
+            "uid": 501,
+            "gid": 0,
+            "mode": 33188,
+            "size": 5
+          },
+          "target": null
+        },
+        "result": {
+          "exitCode": 0,
+          "stdout": "",
+          "stderr": ""
+        },
+        "after": {
+          "source": {
+            "atimeMs": 1788564697528.26,
+            "mtimeMs": 2000,
+            "ctimeMs": 1788564697528.1914,
+            "ino": 237266072,
+            "dev": 16777234,
+            "uid": 501,
+            "gid": 0,
+            "mode": 33188,
+            "size": 5
+          },
+          "target": {
+            "atimeMs": 1788564697528.26,
+            "mtimeMs": 2000,
+            "ctimeMs": 1788564697533.0476,
+            "ino": 237266073,
+            "dev": 16777234,
+            "uid": 501,
+            "gid": 0,
+            "mode": 33261,
+            "size": 5
+          }
+        },
+        "sourceHex": "ff0080410a",
+        "targetHex": "ff0080410a",
+        "afterReads": {
+          "source": {
+            "atimeMs": 1788564697528.26,
+            "mtimeMs": 2000,
+            "ctimeMs": 1788564697528.1914,
+            "ino": 237266072,
+            "dev": 16777234,
+            "uid": 501,
+            "gid": 0,
+            "mode": 33188,
+            "size": 5
+          },
+          "target": {
+            "atimeMs": 1788564697528.26,
+            "mtimeMs": 2000,
+            "ctimeMs": 1788564697533.0476,
+            "ino": 237266073,
+            "dev": 16777234,
+            "uid": 501,
+            "gid": 0,
+            "mode": 33261,
+            "size": 5
+          }
+        }
+      },
+      {
+        "setup": "reset-then-read",
+        "repeat": 2,
+        "before": {
+          "source": {
+            "atimeMs": 1788564697534.333,
+            "mtimeMs": 2000,
+            "ctimeMs": 1788564697534.283,
+            "ino": 237266075,
+            "dev": 16777234,
+            "uid": 501,
+            "gid": 0,
+            "mode": 33188,
+            "size": 5
+          },
+          "target": null
+        },
+        "result": {
+          "exitCode": 0,
+          "stdout": "",
+          "stderr": ""
+        },
+        "after": {
+          "source": {
+            "atimeMs": 1788564697534.333,
+            "mtimeMs": 2000,
+            "ctimeMs": 1788564697534.283,
+            "ino": 237266075,
+            "dev": 16777234,
+            "uid": 501,
+            "gid": 0,
+            "mode": 33188,
+            "size": 5
+          },
+          "target": {
+            "atimeMs": 1788564697534.333,
+            "mtimeMs": 2000,
+            "ctimeMs": 1788564697539.5273,
+            "ino": 237266076,
+            "dev": 16777234,
+            "uid": 501,
+            "gid": 0,
+            "mode": 33261,
+            "size": 5
+          }
+        },
+        "sourceHex": "ff0080410a",
+        "targetHex": "ff0080410a",
+        "afterReads": {
+          "source": {
+            "atimeMs": 1788564697534.333,
+            "mtimeMs": 2000,
+            "ctimeMs": 1788564697534.283,
+            "ino": 237266075,
+            "dev": 16777234,
+            "uid": 501,
+            "gid": 0,
+            "mode": 33188,
+            "size": 5
+          },
+          "target": {
+            "atimeMs": 1788564697534.333,
+            "mtimeMs": 2000,
+            "ctimeMs": 1788564697539.5273,
+            "ino": 237266076,
+            "dev": 16777234,
+            "uid": 501,
+            "gid": 0,
+            "mode": 33261,
+            "size": 5
+          }
+        }
+      },
+      {
+        "setup": "reset-then-read",
+        "repeat": 3,
+        "before": {
+          "source": {
+            "atimeMs": 1788564697540.889,
+            "mtimeMs": 2000,
+            "ctimeMs": 1788564697540.8264,
+            "ino": 237266078,
+            "dev": 16777234,
+            "uid": 501,
+            "gid": 0,
+            "mode": 33188,
+            "size": 5
+          },
+          "target": null
+        },
+        "result": {
+          "exitCode": 0,
+          "stdout": "",
+          "stderr": ""
+        },
+        "after": {
+          "source": {
+            "atimeMs": 1788564697540.889,
+            "mtimeMs": 2000,
+            "ctimeMs": 1788564697540.8264,
+            "ino": 237266078,
+            "dev": 16777234,
+            "uid": 501,
+            "gid": 0,
+            "mode": 33188,
+            "size": 5
+          },
+          "target": {
+            "atimeMs": 1788564697540.889,
+            "mtimeMs": 2000,
+            "ctimeMs": 1788564697545.9824,
+            "ino": 237266079,
+            "dev": 16777234,
+            "uid": 501,
+            "gid": 0,
+            "mode": 33261,
+            "size": 5
+          }
+        },
+        "sourceHex": "ff0080410a",
+        "targetHex": "ff0080410a",
+        "afterReads": {
+          "source": {
+            "atimeMs": 1788564697540.889,
+            "mtimeMs": 2000,
+            "ctimeMs": 1788564697540.8264,
+            "ino": 237266078,
+            "dev": 16777234,
+            "uid": 501,
+            "gid": 0,
+            "mode": 33188,
+            "size": 5
+          },
+          "target": {
+            "atimeMs": 1788564697540.889,
+            "mtimeMs": 2000,
+            "ctimeMs": 1788564697545.9824,
+            "ino": 237266079,
+            "dev": 16777234,
+            "uid": 501,
+            "gid": 0,
+            "mode": 33261,
+            "size": 5
+          }
+        }
+      },
+      {
+        "setup": "reset-then-read",
+        "repeat": 4,
+        "before": {
+          "source": {
+            "atimeMs": 1788564697547.4268,
+            "mtimeMs": 2000,
+            "ctimeMs": 1788564697547.3477,
+            "ino": 237266081,
+            "dev": 16777234,
+            "uid": 501,
+            "gid": 0,
+            "mode": 33188,
+            "size": 5
+          },
+          "target": null
+        },
+        "result": {
+          "exitCode": 0,
+          "stdout": "",
+          "stderr": ""
+        },
+        "after": {
+          "source": {
+            "atimeMs": 1788564697547.4268,
+            "mtimeMs": 2000,
+            "ctimeMs": 1788564697547.3477,
+            "ino": 237266081,
+            "dev": 16777234,
+            "uid": 501,
+            "gid": 0,
+            "mode": 33188,
+            "size": 5
+          },
+          "target": {
+            "atimeMs": 1788564697547.4268,
+            "mtimeMs": 2000,
+            "ctimeMs": 1788564697552.1194,
+            "ino": 237266082,
+            "dev": 16777234,
+            "uid": 501,
+            "gid": 0,
+            "mode": 33261,
+            "size": 5
+          }
+        },
+        "sourceHex": "ff0080410a",
+        "targetHex": "ff0080410a",
+        "afterReads": {
+          "source": {
+            "atimeMs": 1788564697547.4268,
+            "mtimeMs": 2000,
+            "ctimeMs": 1788564697547.3477,
+            "ino": 237266081,
+            "dev": 16777234,
+            "uid": 501,
+            "gid": 0,
+            "mode": 33188,
+            "size": 5
+          },
+          "target": {
+            "atimeMs": 1788564697547.4268,
+            "mtimeMs": 2000,
+            "ctimeMs": 1788564697552.1194,
+            "ino": 237266082,
+            "dev": 16777234,
+            "uid": 501,
+            "gid": 0,
+            "mode": 33261,
+            "size": 5
+          }
+        }
+      },
+      {
+        "setup": "reset-then-read",
+        "repeat": 5,
+        "before": {
+          "source": {
+            "atimeMs": 1788564697553.29,
+            "mtimeMs": 2000,
+            "ctimeMs": 1788564697553.2388,
+            "ino": 237266084,
+            "dev": 16777234,
+            "uid": 501,
+            "gid": 0,
+            "mode": 33188,
+            "size": 5
+          },
+          "target": null
+        },
+        "result": {
+          "exitCode": 0,
+          "stdout": "",
+          "stderr": ""
+        },
+        "after": {
+          "source": {
+            "atimeMs": 1788564697553.29,
+            "mtimeMs": 2000,
+            "ctimeMs": 1788564697553.2388,
+            "ino": 237266084,
+            "dev": 16777234,
+            "uid": 501,
+            "gid": 0,
+            "mode": 33188,
+            "size": 5
+          },
+          "target": {
+            "atimeMs": 1788564697553.29,
+            "mtimeMs": 2000,
+            "ctimeMs": 1788564697557.8672,
+            "ino": 237266085,
+            "dev": 16777234,
+            "uid": 501,
+            "gid": 0,
+            "mode": 33261,
+            "size": 5
+          }
+        },
+        "sourceHex": "ff0080410a",
+        "targetHex": "ff0080410a",
+        "afterReads": {
+          "source": {
+            "atimeMs": 1788564697553.29,
+            "mtimeMs": 2000,
+            "ctimeMs": 1788564697553.2388,
+            "ino": 237266084,
+            "dev": 16777234,
+            "uid": 501,
+            "gid": 0,
+            "mode": 33188,
+            "size": 5
+          },
+          "target": {
+            "atimeMs": 1788564697553.29,
+            "mtimeMs": 2000,
+            "ctimeMs": 1788564697557.8672,
+            "ino": 237266085,
+            "dev": 16777234,
+            "uid": 501,
+            "gid": 0,
+            "mode": 33261,
+            "size": 5
+          }
+        }
+      },
+      {
+        "setup": "reset-then-read",
+        "repeat": 6,
+        "before": {
+          "source": {
+            "atimeMs": 1788564697559.1172,
+            "mtimeMs": 2000,
+            "ctimeMs": 1788564697559.0518,
+            "ino": 237266087,
+            "dev": 16777234,
+            "uid": 501,
+            "gid": 0,
+            "mode": 33188,
+            "size": 5
+          },
+          "target": null
+        },
+        "result": {
+          "exitCode": 0,
+          "stdout": "",
+          "stderr": ""
+        },
+        "after": {
+          "source": {
+            "atimeMs": 1788564697559.1172,
+            "mtimeMs": 2000,
+            "ctimeMs": 1788564697559.0518,
+            "ino": 237266087,
+            "dev": 16777234,
+            "uid": 501,
+            "gid": 0,
+            "mode": 33188,
+            "size": 5
+          },
+          "target": {
+            "atimeMs": 1788564697559.1172,
+            "mtimeMs": 2000,
+            "ctimeMs": 1788564697563.9053,
+            "ino": 237266088,
+            "dev": 16777234,
+            "uid": 501,
+            "gid": 0,
+            "mode": 33261,
+            "size": 5
+          }
+        },
+        "sourceHex": "ff0080410a",
+        "targetHex": "ff0080410a",
+        "afterReads": {
+          "source": {
+            "atimeMs": 1788564697559.1172,
+            "mtimeMs": 2000,
+            "ctimeMs": 1788564697559.0518,
+            "ino": 237266087,
+            "dev": 16777234,
+            "uid": 501,
+            "gid": 0,
+            "mode": 33188,
+            "size": 5
+          },
+          "target": {
+            "atimeMs": 1788564697559.1172,
+            "mtimeMs": 2000,
+            "ctimeMs": 1788564697563.9053,
+            "ino": 237266088,
+            "dev": 16777234,
+            "uid": 501,
+            "gid": 0,
+            "mode": 33261,
+            "size": 5
+          }
+        }
+      },
+      {
+        "setup": "reset-then-read",
+        "repeat": 7,
+        "before": {
+          "source": {
+            "atimeMs": 1788564697565.1287,
+            "mtimeMs": 2000,
+            "ctimeMs": 1788564697565.0747,
+            "ino": 237266090,
+            "dev": 16777234,
+            "uid": 501,
+            "gid": 0,
+            "mode": 33188,
+            "size": 5
+          },
+          "target": null
+        },
+        "result": {
+          "exitCode": 0,
+          "stdout": "",
+          "stderr": ""
+        },
+        "after": {
+          "source": {
+            "atimeMs": 1788564697565.1287,
+            "mtimeMs": 2000,
+            "ctimeMs": 1788564697565.0747,
+            "ino": 237266090,
+            "dev": 16777234,
+            "uid": 501,
+            "gid": 0,
+            "mode": 33188,
+            "size": 5
+          },
+          "target": {
+            "atimeMs": 1788564697565.1287,
+            "mtimeMs": 2000,
+            "ctimeMs": 1788564697569.959,
+            "ino": 237266091,
+            "dev": 16777234,
+            "uid": 501,
+            "gid": 0,
+            "mode": 33261,
+            "size": 5
+          }
+        },
+        "sourceHex": "ff0080410a",
+        "targetHex": "ff0080410a",
+        "afterReads": {
+          "source": {
+            "atimeMs": 1788564697565.1287,
+            "mtimeMs": 2000,
+            "ctimeMs": 1788564697565.0747,
+            "ino": 237266090,
+            "dev": 16777234,
+            "uid": 501,
+            "gid": 0,
+            "mode": 33188,
+            "size": 5
+          },
+          "target": {
+            "atimeMs": 1788564697565.1287,
+            "mtimeMs": 2000,
+            "ctimeMs": 1788564697569.959,
+            "ino": 237266091,
+            "dev": 16777234,
+            "uid": 501,
+            "gid": 0,
+            "mode": 33261,
+            "size": 5
+          }
+        }
+      }
+    ]
+  },
+  "launch": {
+    "kind": "Native launch causality controls; no source reads between utimes and invocation. Metadata-only snapshots.",
+    "rows": [
+      {
+        "executable": "/usr/bin/true",
+        "args": [],
+        "repeat": 0,
+        "before": 1000,
+        "after": 1788564753145.3376,
+        "exitCode": 0
+      },
+      {
+        "executable": "/usr/bin/true",
+        "args": [],
+        "repeat": 1,
+        "before": 1000,
+        "after": 1788564753149.584,
+        "exitCode": 0
+      },
+      {
+        "executable": "/usr/bin/true",
+        "args": [],
+        "repeat": 2,
+        "before": 1000,
+        "after": 1788564753153.6697,
+        "exitCode": 0
+      },
+      {
+        "executable": "/usr/bin/true",
+        "args": [
+          "source"
+        ],
+        "repeat": 0,
+        "before": 1000,
+        "after": 1788564753158.277,
+        "exitCode": 0
+      },
+      {
+        "executable": "/usr/bin/true",
+        "args": [
+          "source"
+        ],
+        "repeat": 1,
+        "before": 1000,
+        "after": 1788564753163.927,
+        "exitCode": 0
+      },
+      {
+        "executable": "/usr/bin/true",
+        "args": [
+          "source"
+        ],
+        "repeat": 2,
+        "before": 1000,
+        "after": 1788564753169.2236,
+        "exitCode": 0
+      },
+      {
+        "executable": "/bin/echo",
+        "args": [
+          "source"
+        ],
+        "repeat": 0,
+        "before": 1000,
+        "after": 1788564753174.849,
+        "exitCode": 0
+      },
+      {
+        "executable": "/bin/echo",
+        "args": [
+          "source"
+        ],
+        "repeat": 1,
+        "before": 1000,
+        "after": 1788564753179.8599,
+        "exitCode": 0
+      },
+      {
+        "executable": "/bin/echo",
+        "args": [
+          "source"
+        ],
+        "repeat": 2,
+        "before": 1000,
+        "after": 1788564753184.3206,
+        "exitCode": 0
+      },
+      {
+        "executable": "/usr/bin/stat",
+        "args": [
+          "-f",
+          "%a",
+          "source"
+        ],
+        "repeat": 0,
+        "before": 1000,
+        "after": 1788564753189.0046,
+        "exitCode": 0,
+        "stdout": "1788564753\n"
+      },
+      {
+        "executable": "/usr/bin/stat",
+        "args": [
+          "-f",
+          "%a",
+          "source"
+        ],
+        "repeat": 1,
+        "before": 1000,
+        "after": 1788564753193.741,
+        "exitCode": 0,
+        "stdout": "1788564753\n"
+      },
+      {
+        "executable": "/usr/bin/stat",
+        "args": [
+          "-f",
+          "%a",
+          "source"
+        ],
+        "repeat": 2,
+        "before": 1000,
+        "after": 1788564753198.382,
+        "exitCode": 0,
+        "stdout": "1788564753\n"
+      },
+      {
+        "executable": "/tmp/safe-bash-scripting-oracles-20260904/coreutils-9.7-clean/src/ginstall",
+        "args": [
+          "--help",
+          "source"
+        ],
+        "repeat": 0,
+        "before": 1000,
+        "after": 1788564753369.989,
+        "exitCode": 0
+      },
+      {
+        "executable": "/tmp/safe-bash-scripting-oracles-20260904/coreutils-9.7-clean/src/ginstall",
+        "args": [
+          "--help",
+          "source"
+        ],
+        "repeat": 1,
+        "before": 1000,
+        "after": 1788564753376.0374,
+        "exitCode": 0
+      },
+      {
+        "executable": "/tmp/safe-bash-scripting-oracles-20260904/coreutils-9.7-clean/src/ginstall",
+        "args": [
+          "--help",
+          "source"
+        ],
+        "repeat": 2,
+        "before": 1000,
+        "after": 1788564753381.442,
+        "exitCode": 0
+      },
+      {
+        "executable": "/tmp/safe-bash-scripting-oracles-20260904/coreutils-9.7-clean/src/ginstall",
+        "args": [
+          "-p",
+          "source",
+          "target"
+        ],
+        "repeat": 0,
+        "before": 1000,
+        "after": 1788564753386.9587,
+        "exitCode": 0
+      },
+      {
+        "executable": "/tmp/safe-bash-scripting-oracles-20260904/coreutils-9.7-clean/src/ginstall",
+        "args": [
+          "-p",
+          "source",
+          "target"
+        ],
+        "repeat": 1,
+        "before": 1000,
+        "after": 1788564753392.6912,
+        "exitCode": 0
+      },
+      {
+        "executable": "/tmp/safe-bash-scripting-oracles-20260904/coreutils-9.7-clean/src/ginstall",
+        "args": [
+          "-p",
+          "source",
+          "target"
+        ],
+        "repeat": 2,
+        "before": 1000,
+        "after": 1788564753398.3953,
+        "exitCode": 0
+      }
+    ]
+  },
+  "delay": {
+    "kind": "No-process delay and launch controls; waits before resetting timestamps versus no-settle controls. No content reads after utimes before metadata snapshots.",
+    "rows": [
+      {
+        "settle": 0,
+        "action": "no-process",
+        "repeat": 0,
+        "before": 1000,
+        "after": 1788564770810.848,
+        "target": null
+      },
+      {
+        "settle": 0,
+        "action": "no-process",
+        "repeat": 1,
+        "before": 1000,
+        "after": 1788564770832.411,
+        "target": null
+      },
+      {
+        "settle": 0,
+        "action": "no-process",
+        "repeat": 2,
+        "before": 1000,
+        "after": 1788564770863.2554,
+        "target": null
+      },
+      {
+        "settle": 0,
+        "action": "true",
+        "repeat": 0,
+        "before": 1000,
+        "after": 1788564770867.72,
+        "target": null,
+        "exitCode": 0
+      },
+      {
+        "settle": 0,
+        "action": "true",
+        "repeat": 1,
+        "before": 1000,
+        "after": 1788564770871.5496,
+        "target": null,
+        "exitCode": 0
+      },
+      {
+        "settle": 0,
+        "action": "true",
+        "repeat": 2,
+        "before": 1000,
+        "after": 1788564770875.4707,
+        "target": null,
+        "exitCode": 0
+      },
+      {
+        "settle": 0,
+        "action": "install",
+        "repeat": 0,
+        "before": 1000,
+        "after": 1788564770881.2095,
+        "target": 1788564770881.2095,
+        "exitCode": 0
+      },
+      {
+        "settle": 0,
+        "action": "install",
+        "repeat": 1,
+        "before": 1000,
+        "after": 1788564770887.3916,
+        "target": 1788564770887.3916,
+        "exitCode": 0
+      },
+      {
+        "settle": 0,
+        "action": "install",
+        "repeat": 2,
+        "before": 1000,
+        "after": 1788564770893.4985,
+        "target": 1788564770893.4985,
+        "exitCode": 0
+      },
+      {
+        "settle": 10,
+        "action": "no-process",
+        "repeat": 0,
+        "before": 1000,
+        "after": 1000,
+        "target": null
+      },
+      {
+        "settle": 10,
+        "action": "no-process",
+        "repeat": 1,
+        "before": 1000,
+        "after": 1000,
+        "target": null
+      },
+      {
+        "settle": 10,
+        "action": "no-process",
+        "repeat": 2,
+        "before": 1000,
+        "after": 1000,
+        "target": null
+      },
+      {
+        "settle": 10,
+        "action": "true",
+        "repeat": 0,
+        "before": 1000,
+        "after": 1000,
+        "target": null,
+        "exitCode": 0
+      },
+      {
+        "settle": 10,
+        "action": "true",
+        "repeat": 1,
+        "before": 1000,
+        "after": 1000,
+        "target": null,
+        "exitCode": 0
+      },
+      {
+        "settle": 10,
+        "action": "true",
+        "repeat": 2,
+        "before": 1000,
+        "after": 1788564771060.9448,
+        "target": null,
+        "exitCode": 0
+      },
+      {
+        "settle": 10,
+        "action": "install",
+        "repeat": 0,
+        "before": 1000,
+        "after": 1788564771082.2256,
+        "target": 1788564771082.2256,
+        "exitCode": 0
+      },
+      {
+        "settle": 10,
+        "action": "install",
+        "repeat": 1,
+        "before": 1000,
+        "after": 1788564771108.838,
+        "target": 1788564771108.838,
+        "exitCode": 0
+      },
+      {
+        "settle": 10,
+        "action": "install",
+        "repeat": 2,
+        "before": 1000,
+        "after": 1788564771135.7546,
+        "target": 1788564771135.7546,
+        "exitCode": 0
+      },
+      {
+        "settle": 100,
+        "action": "no-process",
+        "repeat": 0,
+        "before": 1000,
+        "after": 1000,
+        "target": null
+      },
+      {
+        "settle": 100,
+        "action": "no-process",
+        "repeat": 1,
+        "before": 1000,
+        "after": 1788564771393.9,
+        "target": null
+      },
+      {
+        "settle": 100,
+        "action": "no-process",
+        "repeat": 2,
+        "before": 1000,
+        "after": 1000,
+        "target": null
+      },
+      {
+        "settle": 100,
+        "action": "true",
+        "repeat": 0,
+        "before": 1000,
+        "after": 1788564771650.0798,
+        "target": null,
+        "exitCode": 0
+      },
+      {
+        "settle": 100,
+        "action": "true",
+        "repeat": 1,
+        "before": 1000,
+        "after": 1000,
+        "target": null,
+        "exitCode": 0
+      },
+      {
+        "settle": 100,
+        "action": "true",
+        "repeat": 2,
+        "before": 1000,
+        "after": 1000,
+        "target": null,
+        "exitCode": 0
+      },
+      {
+        "settle": 100,
+        "action": "install",
+        "repeat": 0,
+        "before": 1000,
+        "after": 1788564771998.8276,
+        "target": 1000,
+        "exitCode": 0
+      },
+      {
+        "settle": 100,
+        "action": "install",
+        "repeat": 1,
+        "before": 1000,
+        "after": 1788564772119.8196,
+        "target": 1000,
+        "exitCode": 0
+      },
+      {
+        "settle": 100,
+        "action": "install",
+        "repeat": 2,
+        "before": 1000,
+        "after": 1788564772239.3516,
+        "target": 1000,
+        "exitCode": 0
+      },
+      {
+        "settle": 500,
+        "action": "no-process",
+        "repeat": 0,
+        "before": 1000,
+        "after": 1000,
+        "target": null
+      },
+      {
+        "settle": 500,
+        "action": "no-process",
+        "repeat": 1,
+        "before": 1000,
+        "after": 1000,
+        "target": null
+      },
+      {
+        "settle": 500,
+        "action": "no-process",
+        "repeat": 2,
+        "before": 1000,
+        "after": 1000,
+        "target": null
+      },
+      {
+        "settle": 500,
+        "action": "true",
+        "repeat": 0,
+        "before": 1000,
+        "after": 1000,
+        "target": null,
+        "exitCode": 0
+      },
+      {
+        "settle": 500,
+        "action": "true",
+        "repeat": 1,
+        "before": 1000,
+        "after": 1000,
+        "target": null,
+        "exitCode": 0
+      },
+      {
+        "settle": 500,
+        "action": "true",
+        "repeat": 2,
+        "before": 1000,
+        "after": 1000,
+        "target": null,
+        "exitCode": 0
+      },
+      {
+        "settle": 500,
+        "action": "install",
+        "repeat": 0,
+        "before": 1000,
+        "after": 1788564775875.2112,
+        "target": 1000,
+        "exitCode": 0
+      },
+      {
+        "settle": 500,
+        "action": "install",
+        "repeat": 1,
+        "before": 1000,
+        "after": 1788564776397.4934,
+        "target": 1000,
+        "exitCode": 0
+      },
+      {
+        "settle": 500,
+        "action": "install",
+        "repeat": 2,
+        "before": 1000,
+        "after": 1788564776917.624,
+        "target": 1000,
+        "exitCode": 0
+      }
+    ]
+  }
+}

@@ -1,0 +1,3347 @@
+{
+  "kind": "Preserved diagnostic interposition and transparent source-adapter sampling, distinct from uninstrumented acceptance.",
+  "unsettled": {
+    "kind": "Native-only diagnostic interposition on clean GNU binary; logs actual stat/lstat/fstatat/fstat/open/read/futimens requests on fd3, preserving return/errno. Metadata first, no content reads after ancient utimes and before launch. Not acceptance or product native fallback.",
+    "binary": "/tmp/safe-bash-scripting-oracles-20260904/coreutils-9.7-clean/src/ginstall",
+    "library": "/tmp/safe-bash-scripting-oracles-20260904/install-atime-trace-s9TPRi/trace.dylib",
+    "librarySha256": "451c11247d65fff70af7cff3514c10bce98a6f0dea722f00cb1fff42214b0482",
+    "rows": [
+      {
+        "sourceBefore": {
+          "dev": 16777234,
+          "mode": 33188,
+          "nlink": 1,
+          "uid": 501,
+          "gid": 0,
+          "rdev": 0,
+          "blksize": 4096,
+          "ino": 237266493,
+          "size": 3,
+          "blocks": 8,
+          "atimeMs": 1000,
+          "mtimeMs": 2000,
+          "ctimeMs": 1788564733530.6345,
+          "birthtimeMs": 2000
+        },
+        "sourceAfter": {
+          "dev": 16777234,
+          "mode": 33188,
+          "nlink": 1,
+          "uid": 501,
+          "gid": 0,
+          "rdev": 0,
+          "blksize": 4096,
+          "ino": 237266493,
+          "size": 3,
+          "blocks": 8,
+          "atimeMs": 1788564733837.4077,
+          "mtimeMs": 2000,
+          "ctimeMs": 1788564733530.6345,
+          "birthtimeMs": 2000
+        },
+        "targetAfter": {
+          "dev": 16777234,
+          "mode": 33261,
+          "nlink": 1,
+          "uid": 501,
+          "gid": 0,
+          "rdev": 0,
+          "blksize": 4096,
+          "ino": 237266496,
+          "size": 3,
+          "blocks": 8,
+          "atimeMs": 1788564733837.4077,
+          "mtimeMs": 2000,
+          "ctimeMs": 1788564733837.747,
+          "birthtimeMs": 2000
+        },
+        "result": {
+          "exitCode": 0,
+          "stdout": "",
+          "stderr": ""
+        },
+        "trace": [
+          {
+            "op": "fstat",
+            "path": "",
+            "fd": 4,
+            "status": 0,
+            "errno": 2,
+            "atimeSec": 0,
+            "atimeNs": 0,
+            "mtimeSec": 0,
+            "mtimeNs": 0,
+            "ino": 0
+          },
+          {
+            "op": "open",
+            "path": "/private/tmp/safe-bash-scripting-oracles-20260904/coreutils-9.7-clean/src",
+            "flags": 0,
+            "fd": 4,
+            "errno": 102
+          },
+          {
+            "op": "fstat",
+            "path": "",
+            "fd": 4,
+            "status": 0,
+            "errno": 102,
+            "atimeSec": 1788556992,
+            "atimeNs": 344236179,
+            "mtimeSec": 1788556992,
+            "mtimeNs": 324768274,
+            "ino": 237004054
+          },
+          {
+            "op": "open",
+            "path": "/private/tmp/safe-bash-scripting-oracles-20260904/coreutils-9.7-clean/src/Info.plist",
+            "flags": 0,
+            "fd": -1,
+            "errno": 2
+          },
+          {
+            "op": "open",
+            "path": "target",
+            "flags": 1074790400,
+            "fd": -1,
+            "errno": 2
+          },
+          {
+            "op": "stat",
+            "path": "source",
+            "fd": -1,
+            "status": 0,
+            "errno": 2,
+            "atimeSec": 1788564733,
+            "atimeNs": 837407629,
+            "mtimeSec": 2,
+            "mtimeNs": 0,
+            "ino": 237266493
+          },
+          {
+            "op": "fstatat",
+            "path": "source",
+            "fd": -2,
+            "status": 0,
+            "errno": 2,
+            "atimeSec": 1788564733,
+            "atimeNs": 837407629,
+            "mtimeSec": 2,
+            "mtimeNs": 0,
+            "ino": 237266493
+          },
+          {
+            "op": "fstatat",
+            "path": "target",
+            "fd": -2,
+            "status": -1,
+            "errno": 2,
+            "atimeSec": 0,
+            "atimeNs": 0,
+            "mtimeSec": 0,
+            "mtimeNs": 0,
+            "ino": 0
+          },
+          {
+            "op": "open",
+            "path": "source",
+            "flags": 0,
+            "fd": 4,
+            "errno": 2
+          },
+          {
+            "op": "fstat",
+            "path": "",
+            "fd": 4,
+            "status": 0,
+            "errno": 2,
+            "atimeSec": 1788564733,
+            "atimeNs": 837407629,
+            "mtimeSec": 2,
+            "mtimeNs": 0,
+            "ino": 237266493
+          },
+          {
+            "op": "fstat",
+            "path": "",
+            "fd": 5,
+            "status": 0,
+            "errno": 45,
+            "atimeSec": 1788564733,
+            "atimeNs": 837534963,
+            "mtimeSec": 1788564733,
+            "mtimeNs": 837534963,
+            "ino": 237266496
+          },
+          {
+            "op": "read",
+            "fd": 4,
+            "count": 3,
+            "errno": 0
+          },
+          {
+            "op": "read",
+            "fd": 4,
+            "count": 0,
+            "errno": 0
+          },
+          {
+            "op": "futimens-request",
+            "fd": 5,
+            "atimeSec": 1788564733,
+            "atimeNs": 837407629,
+            "mtimeSec": 2,
+            "mtimeNs": 0
+          }
+        ]
+      },
+      {
+        "sourceBefore": {
+          "dev": 16777234,
+          "mode": 33188,
+          "nlink": 1,
+          "uid": 501,
+          "gid": 0,
+          "rdev": 0,
+          "blksize": 4096,
+          "ino": 237266498,
+          "size": 3,
+          "blocks": 8,
+          "atimeMs": 1000,
+          "mtimeMs": 2000,
+          "ctimeMs": 1788564733839.7278,
+          "birthtimeMs": 2000
+        },
+        "sourceAfter": {
+          "dev": 16777234,
+          "mode": 33188,
+          "nlink": 1,
+          "uid": 501,
+          "gid": 0,
+          "rdev": 0,
+          "blksize": 4096,
+          "ino": 237266498,
+          "size": 3,
+          "blocks": 8,
+          "atimeMs": 1788564733851.6636,
+          "mtimeMs": 2000,
+          "ctimeMs": 1788564733839.7278,
+          "birthtimeMs": 2000
+        },
+        "targetAfter": {
+          "dev": 16777234,
+          "mode": 33261,
+          "nlink": 1,
+          "uid": 501,
+          "gid": 0,
+          "rdev": 0,
+          "blksize": 4096,
+          "ino": 237266499,
+          "size": 3,
+          "blocks": 8,
+          "atimeMs": 1788564733851.6636,
+          "mtimeMs": 2000,
+          "ctimeMs": 1788564733851.9797,
+          "birthtimeMs": 2000
+        },
+        "result": {
+          "exitCode": 0,
+          "stdout": "",
+          "stderr": ""
+        },
+        "trace": [
+          {
+            "op": "fstat",
+            "path": "",
+            "fd": 4,
+            "status": 0,
+            "errno": 2,
+            "atimeSec": 0,
+            "atimeNs": 0,
+            "mtimeSec": 0,
+            "mtimeNs": 0,
+            "ino": 0
+          },
+          {
+            "op": "open",
+            "path": "/private/tmp/safe-bash-scripting-oracles-20260904/coreutils-9.7-clean/src",
+            "flags": 0,
+            "fd": 4,
+            "errno": 102
+          },
+          {
+            "op": "fstat",
+            "path": "",
+            "fd": 4,
+            "status": 0,
+            "errno": 102,
+            "atimeSec": 1788556992,
+            "atimeNs": 344236179,
+            "mtimeSec": 1788556992,
+            "mtimeNs": 324768274,
+            "ino": 237004054
+          },
+          {
+            "op": "open",
+            "path": "/private/tmp/safe-bash-scripting-oracles-20260904/coreutils-9.7-clean/src/Info.plist",
+            "flags": 0,
+            "fd": -1,
+            "errno": 2
+          },
+          {
+            "op": "open",
+            "path": "target",
+            "flags": 1074790400,
+            "fd": -1,
+            "errno": 2
+          },
+          {
+            "op": "stat",
+            "path": "source",
+            "fd": -1,
+            "status": 0,
+            "errno": 2,
+            "atimeSec": 1788564733,
+            "atimeNs": 851663675,
+            "mtimeSec": 2,
+            "mtimeNs": 0,
+            "ino": 237266498
+          },
+          {
+            "op": "fstatat",
+            "path": "source",
+            "fd": -2,
+            "status": 0,
+            "errno": 2,
+            "atimeSec": 1788564733,
+            "atimeNs": 851663675,
+            "mtimeSec": 2,
+            "mtimeNs": 0,
+            "ino": 237266498
+          },
+          {
+            "op": "fstatat",
+            "path": "target",
+            "fd": -2,
+            "status": -1,
+            "errno": 2,
+            "atimeSec": 0,
+            "atimeNs": 0,
+            "mtimeSec": 0,
+            "mtimeNs": 0,
+            "ino": 0
+          },
+          {
+            "op": "open",
+            "path": "source",
+            "flags": 0,
+            "fd": 4,
+            "errno": 2
+          },
+          {
+            "op": "fstat",
+            "path": "",
+            "fd": 4,
+            "status": 0,
+            "errno": 2,
+            "atimeSec": 1788564733,
+            "atimeNs": 851663675,
+            "mtimeSec": 2,
+            "mtimeNs": 0,
+            "ino": 237266498
+          },
+          {
+            "op": "fstat",
+            "path": "",
+            "fd": 5,
+            "status": 0,
+            "errno": 45,
+            "atimeSec": 1788564733,
+            "atimeNs": 851771634,
+            "mtimeSec": 1788564733,
+            "mtimeNs": 851771634,
+            "ino": 237266499
+          },
+          {
+            "op": "read",
+            "fd": 4,
+            "count": 3,
+            "errno": 0
+          },
+          {
+            "op": "read",
+            "fd": 4,
+            "count": 0,
+            "errno": 0
+          },
+          {
+            "op": "futimens-request",
+            "fd": 5,
+            "atimeSec": 1788564733,
+            "atimeNs": 851663675,
+            "mtimeSec": 2,
+            "mtimeNs": 0
+          }
+        ]
+      },
+      {
+        "sourceBefore": {
+          "dev": 16777234,
+          "mode": 33188,
+          "nlink": 1,
+          "uid": 501,
+          "gid": 0,
+          "rdev": 0,
+          "blksize": 4096,
+          "ino": 237266501,
+          "size": 3,
+          "blocks": 8,
+          "atimeMs": 1000,
+          "mtimeMs": 2000,
+          "ctimeMs": 1788564733853.4043,
+          "birthtimeMs": 2000
+        },
+        "sourceAfter": {
+          "dev": 16777234,
+          "mode": 33188,
+          "nlink": 1,
+          "uid": 501,
+          "gid": 0,
+          "rdev": 0,
+          "blksize": 4096,
+          "ino": 237266501,
+          "size": 3,
+          "blocks": 8,
+          "atimeMs": 1788564733863.4312,
+          "mtimeMs": 2000,
+          "ctimeMs": 1788564733853.4043,
+          "birthtimeMs": 2000
+        },
+        "targetAfter": {
+          "dev": 16777234,
+          "mode": 33261,
+          "nlink": 1,
+          "uid": 501,
+          "gid": 0,
+          "rdev": 0,
+          "blksize": 4096,
+          "ino": 237266502,
+          "size": 3,
+          "blocks": 8,
+          "atimeMs": 1788564733863.4312,
+          "mtimeMs": 2000,
+          "ctimeMs": 1788564733863.7388,
+          "birthtimeMs": 2000
+        },
+        "result": {
+          "exitCode": 0,
+          "stdout": "",
+          "stderr": ""
+        },
+        "trace": [
+          {
+            "op": "fstat",
+            "path": "",
+            "fd": 4,
+            "status": 0,
+            "errno": 2,
+            "atimeSec": 0,
+            "atimeNs": 0,
+            "mtimeSec": 0,
+            "mtimeNs": 0,
+            "ino": 0
+          },
+          {
+            "op": "open",
+            "path": "/private/tmp/safe-bash-scripting-oracles-20260904/coreutils-9.7-clean/src",
+            "flags": 0,
+            "fd": 4,
+            "errno": 102
+          },
+          {
+            "op": "fstat",
+            "path": "",
+            "fd": 4,
+            "status": 0,
+            "errno": 102,
+            "atimeSec": 1788556992,
+            "atimeNs": 344236179,
+            "mtimeSec": 1788556992,
+            "mtimeNs": 324768274,
+            "ino": 237004054
+          },
+          {
+            "op": "open",
+            "path": "/private/tmp/safe-bash-scripting-oracles-20260904/coreutils-9.7-clean/src/Info.plist",
+            "flags": 0,
+            "fd": -1,
+            "errno": 2
+          },
+          {
+            "op": "open",
+            "path": "target",
+            "flags": 1074790400,
+            "fd": -1,
+            "errno": 2
+          },
+          {
+            "op": "stat",
+            "path": "source",
+            "fd": -1,
+            "status": 0,
+            "errno": 2,
+            "atimeSec": 1788564733,
+            "atimeNs": 863431199,
+            "mtimeSec": 2,
+            "mtimeNs": 0,
+            "ino": 237266501
+          },
+          {
+            "op": "fstatat",
+            "path": "source",
+            "fd": -2,
+            "status": 0,
+            "errno": 2,
+            "atimeSec": 1788564733,
+            "atimeNs": 863431199,
+            "mtimeSec": 2,
+            "mtimeNs": 0,
+            "ino": 237266501
+          },
+          {
+            "op": "fstatat",
+            "path": "target",
+            "fd": -2,
+            "status": -1,
+            "errno": 2,
+            "atimeSec": 0,
+            "atimeNs": 0,
+            "mtimeSec": 0,
+            "mtimeNs": 0,
+            "ino": 0
+          },
+          {
+            "op": "open",
+            "path": "source",
+            "flags": 0,
+            "fd": 4,
+            "errno": 2
+          },
+          {
+            "op": "fstat",
+            "path": "",
+            "fd": 4,
+            "status": 0,
+            "errno": 2,
+            "atimeSec": 1788564733,
+            "atimeNs": 863431199,
+            "mtimeSec": 2,
+            "mtimeNs": 0,
+            "ino": 237266501
+          },
+          {
+            "op": "fstat",
+            "path": "",
+            "fd": 5,
+            "status": 0,
+            "errno": 45,
+            "atimeSec": 1788564733,
+            "atimeNs": 863533700,
+            "mtimeSec": 1788564733,
+            "mtimeNs": 863533700,
+            "ino": 237266502
+          },
+          {
+            "op": "read",
+            "fd": 4,
+            "count": 3,
+            "errno": 0
+          },
+          {
+            "op": "read",
+            "fd": 4,
+            "count": 0,
+            "errno": 0
+          },
+          {
+            "op": "futimens-request",
+            "fd": 5,
+            "atimeSec": 1788564733,
+            "atimeNs": 863431199,
+            "mtimeSec": 2,
+            "mtimeNs": 0
+          }
+        ]
+      },
+      {
+        "sourceBefore": {
+          "dev": 16777234,
+          "mode": 33188,
+          "nlink": 1,
+          "uid": 501,
+          "gid": 0,
+          "rdev": 0,
+          "blksize": 4096,
+          "ino": 237266504,
+          "size": 3,
+          "blocks": 8,
+          "atimeMs": 1000,
+          "mtimeMs": 2000,
+          "ctimeMs": 1788564733865.108,
+          "birthtimeMs": 2000
+        },
+        "sourceAfter": {
+          "dev": 16777234,
+          "mode": 33188,
+          "nlink": 1,
+          "uid": 501,
+          "gid": 0,
+          "rdev": 0,
+          "blksize": 4096,
+          "ino": 237266504,
+          "size": 3,
+          "blocks": 8,
+          "atimeMs": 1788564733875.14,
+          "mtimeMs": 2000,
+          "ctimeMs": 1788564733865.108,
+          "birthtimeMs": 2000
+        },
+        "targetAfter": {
+          "dev": 16777234,
+          "mode": 33261,
+          "nlink": 1,
+          "uid": 501,
+          "gid": 0,
+          "rdev": 0,
+          "blksize": 4096,
+          "ino": 237266505,
+          "size": 3,
+          "blocks": 8,
+          "atimeMs": 1788564733875.14,
+          "mtimeMs": 2000,
+          "ctimeMs": 1788564733875.4775,
+          "birthtimeMs": 2000
+        },
+        "result": {
+          "exitCode": 0,
+          "stdout": "",
+          "stderr": ""
+        },
+        "trace": [
+          {
+            "op": "fstat",
+            "path": "",
+            "fd": 4,
+            "status": 0,
+            "errno": 2,
+            "atimeSec": 0,
+            "atimeNs": 0,
+            "mtimeSec": 0,
+            "mtimeNs": 0,
+            "ino": 0
+          },
+          {
+            "op": "open",
+            "path": "/private/tmp/safe-bash-scripting-oracles-20260904/coreutils-9.7-clean/src",
+            "flags": 0,
+            "fd": 4,
+            "errno": 102
+          },
+          {
+            "op": "fstat",
+            "path": "",
+            "fd": 4,
+            "status": 0,
+            "errno": 102,
+            "atimeSec": 1788556992,
+            "atimeNs": 344236179,
+            "mtimeSec": 1788556992,
+            "mtimeNs": 324768274,
+            "ino": 237004054
+          },
+          {
+            "op": "open",
+            "path": "/private/tmp/safe-bash-scripting-oracles-20260904/coreutils-9.7-clean/src/Info.plist",
+            "flags": 0,
+            "fd": -1,
+            "errno": 2
+          },
+          {
+            "op": "open",
+            "path": "target",
+            "flags": 1074790400,
+            "fd": -1,
+            "errno": 2
+          },
+          {
+            "op": "stat",
+            "path": "source",
+            "fd": -1,
+            "status": 0,
+            "errno": 2,
+            "atimeSec": 1788564733,
+            "atimeNs": 875139889,
+            "mtimeSec": 2,
+            "mtimeNs": 0,
+            "ino": 237266504
+          },
+          {
+            "op": "fstatat",
+            "path": "source",
+            "fd": -2,
+            "status": 0,
+            "errno": 2,
+            "atimeSec": 1788564733,
+            "atimeNs": 875139889,
+            "mtimeSec": 2,
+            "mtimeNs": 0,
+            "ino": 237266504
+          },
+          {
+            "op": "fstatat",
+            "path": "target",
+            "fd": -2,
+            "status": -1,
+            "errno": 2,
+            "atimeSec": 0,
+            "atimeNs": 0,
+            "mtimeSec": 0,
+            "mtimeNs": 0,
+            "ino": 0
+          },
+          {
+            "op": "open",
+            "path": "source",
+            "flags": 0,
+            "fd": 4,
+            "errno": 2
+          },
+          {
+            "op": "fstat",
+            "path": "",
+            "fd": 4,
+            "status": 0,
+            "errno": 2,
+            "atimeSec": 1788564733,
+            "atimeNs": 875139889,
+            "mtimeSec": 2,
+            "mtimeNs": 0,
+            "ino": 237266504
+          },
+          {
+            "op": "fstat",
+            "path": "",
+            "fd": 5,
+            "status": 0,
+            "errno": 45,
+            "atimeSec": 1788564733,
+            "atimeNs": 875253432,
+            "mtimeSec": 1788564733,
+            "mtimeNs": 875253432,
+            "ino": 237266505
+          },
+          {
+            "op": "read",
+            "fd": 4,
+            "count": 3,
+            "errno": 0
+          },
+          {
+            "op": "read",
+            "fd": 4,
+            "count": 0,
+            "errno": 0
+          },
+          {
+            "op": "futimens-request",
+            "fd": 5,
+            "atimeSec": 1788564733,
+            "atimeNs": 875139889,
+            "mtimeSec": 2,
+            "mtimeNs": 0
+          }
+        ]
+      }
+    ]
+  },
+  "settled": {
+    "kind": "Diagnostic native call trace with 500ms settling BEFORE ancient utimes; no content reads after reset before launch; both source and target metadata captured before verification.",
+    "rows": [
+      {
+        "sourceBefore": {
+          "dev": 16777234,
+          "mode": 33188,
+          "nlink": 1,
+          "uid": 501,
+          "gid": 0,
+          "rdev": 0,
+          "blksize": 4096,
+          "ino": 237268794,
+          "size": 3,
+          "blocks": 8,
+          "atimeMs": 1000,
+          "mtimeMs": 2000,
+          "ctimeMs": 1788564861049.4485,
+          "birthtimeMs": 2000
+        },
+        "sourceAfter": {
+          "dev": 16777234,
+          "mode": 33188,
+          "nlink": 1,
+          "uid": 501,
+          "gid": 0,
+          "rdev": 0,
+          "blksize": 4096,
+          "ino": 237268794,
+          "size": 3,
+          "blocks": 8,
+          "atimeMs": 1788564861066.5688,
+          "mtimeMs": 2000,
+          "ctimeMs": 1788564861049.4485,
+          "birthtimeMs": 2000
+        },
+        "targetAfter": {
+          "dev": 16777234,
+          "mode": 33261,
+          "nlink": 1,
+          "uid": 501,
+          "gid": 0,
+          "rdev": 0,
+          "blksize": 4096,
+          "ino": 237268801,
+          "size": 3,
+          "blocks": 8,
+          "atimeMs": 1000,
+          "mtimeMs": 2000,
+          "ctimeMs": 1788564861066.6196,
+          "birthtimeMs": 2000
+        },
+        "result": {
+          "exitCode": 0,
+          "stdout": "",
+          "stderr": ""
+        },
+        "trace": [
+          {
+            "op": "fstat",
+            "path": "",
+            "fd": 4,
+            "status": 0,
+            "errno": 2,
+            "atimeSec": 0,
+            "atimeNs": 0,
+            "mtimeSec": 0,
+            "mtimeNs": 0,
+            "ino": 0
+          },
+          {
+            "op": "open",
+            "path": "/private/tmp/safe-bash-scripting-oracles-20260904/coreutils-9.7-clean/src",
+            "flags": 0,
+            "fd": 4,
+            "errno": 102
+          },
+          {
+            "op": "fstat",
+            "path": "",
+            "fd": 4,
+            "status": 0,
+            "errno": 102,
+            "atimeSec": 1788556992,
+            "atimeNs": 344236179,
+            "mtimeSec": 1788556992,
+            "mtimeNs": 324768274,
+            "ino": 237004054
+          },
+          {
+            "op": "open",
+            "path": "/private/tmp/safe-bash-scripting-oracles-20260904/coreutils-9.7-clean/src/Info.plist",
+            "flags": 0,
+            "fd": -1,
+            "errno": 2
+          },
+          {
+            "op": "open",
+            "path": "target",
+            "flags": 1074790400,
+            "fd": -1,
+            "errno": 2
+          },
+          {
+            "op": "stat",
+            "path": "source",
+            "fd": -1,
+            "status": 0,
+            "errno": 2,
+            "atimeSec": 1,
+            "atimeNs": 0,
+            "mtimeSec": 2,
+            "mtimeNs": 0,
+            "ino": 237268794
+          },
+          {
+            "op": "fstatat",
+            "path": "source",
+            "fd": -2,
+            "status": 0,
+            "errno": 2,
+            "atimeSec": 1,
+            "atimeNs": 0,
+            "mtimeSec": 2,
+            "mtimeNs": 0,
+            "ino": 237268794
+          },
+          {
+            "op": "fstatat",
+            "path": "target",
+            "fd": -2,
+            "status": -1,
+            "errno": 2,
+            "atimeSec": 0,
+            "atimeNs": 0,
+            "mtimeSec": 0,
+            "mtimeNs": 0,
+            "ino": 0
+          },
+          {
+            "op": "open",
+            "path": "source",
+            "flags": 0,
+            "fd": 4,
+            "errno": 2
+          },
+          {
+            "op": "fstat",
+            "path": "",
+            "fd": 4,
+            "status": 0,
+            "errno": 2,
+            "atimeSec": 1,
+            "atimeNs": 0,
+            "mtimeSec": 2,
+            "mtimeNs": 0,
+            "ino": 237268794
+          },
+          {
+            "op": "fstat",
+            "path": "",
+            "fd": 5,
+            "status": 0,
+            "errno": 45,
+            "atimeSec": 1788564861,
+            "atimeNs": 66384569,
+            "mtimeSec": 1788564861,
+            "mtimeNs": 66384569,
+            "ino": 237268801
+          },
+          {
+            "op": "read",
+            "fd": 4,
+            "count": 3,
+            "errno": 0
+          },
+          {
+            "op": "read",
+            "fd": 4,
+            "count": 0,
+            "errno": 0
+          },
+          {
+            "op": "futimens-request",
+            "fd": 5,
+            "atimeSec": 1,
+            "atimeNs": 0,
+            "mtimeSec": 2,
+            "mtimeNs": 0
+          }
+        ]
+      },
+      {
+        "sourceBefore": {
+          "dev": 16777234,
+          "mode": 33188,
+          "nlink": 1,
+          "uid": 501,
+          "gid": 0,
+          "rdev": 0,
+          "blksize": 4096,
+          "ino": 237268803,
+          "size": 3,
+          "blocks": 8,
+          "atimeMs": 1000,
+          "mtimeMs": 2000,
+          "ctimeMs": 1788564861572.674,
+          "birthtimeMs": 2000
+        },
+        "sourceAfter": {
+          "dev": 16777234,
+          "mode": 33188,
+          "nlink": 1,
+          "uid": 501,
+          "gid": 0,
+          "rdev": 0,
+          "blksize": 4096,
+          "ino": 237268803,
+          "size": 3,
+          "blocks": 8,
+          "atimeMs": 1788564861586.2488,
+          "mtimeMs": 2000,
+          "ctimeMs": 1788564861572.674,
+          "birthtimeMs": 2000
+        },
+        "targetAfter": {
+          "dev": 16777234,
+          "mode": 33261,
+          "nlink": 1,
+          "uid": 501,
+          "gid": 0,
+          "rdev": 0,
+          "blksize": 4096,
+          "ino": 237268807,
+          "size": 3,
+          "blocks": 8,
+          "atimeMs": 1000,
+          "mtimeMs": 2000,
+          "ctimeMs": 1788564861586.2876,
+          "birthtimeMs": 2000
+        },
+        "result": {
+          "exitCode": 0,
+          "stdout": "",
+          "stderr": ""
+        },
+        "trace": [
+          {
+            "op": "fstat",
+            "path": "",
+            "fd": 4,
+            "status": 0,
+            "errno": 2,
+            "atimeSec": 0,
+            "atimeNs": 0,
+            "mtimeSec": 0,
+            "mtimeNs": 0,
+            "ino": 0
+          },
+          {
+            "op": "open",
+            "path": "/private/tmp/safe-bash-scripting-oracles-20260904/coreutils-9.7-clean/src",
+            "flags": 0,
+            "fd": 4,
+            "errno": 102
+          },
+          {
+            "op": "fstat",
+            "path": "",
+            "fd": 4,
+            "status": 0,
+            "errno": 102,
+            "atimeSec": 1788556992,
+            "atimeNs": 344236179,
+            "mtimeSec": 1788556992,
+            "mtimeNs": 324768274,
+            "ino": 237004054
+          },
+          {
+            "op": "open",
+            "path": "/private/tmp/safe-bash-scripting-oracles-20260904/coreutils-9.7-clean/src/Info.plist",
+            "flags": 0,
+            "fd": -1,
+            "errno": 2
+          },
+          {
+            "op": "open",
+            "path": "target",
+            "flags": 1074790400,
+            "fd": -1,
+            "errno": 2
+          },
+          {
+            "op": "stat",
+            "path": "source",
+            "fd": -1,
+            "status": 0,
+            "errno": 2,
+            "atimeSec": 1,
+            "atimeNs": 0,
+            "mtimeSec": 2,
+            "mtimeNs": 0,
+            "ino": 237268803
+          },
+          {
+            "op": "fstatat",
+            "path": "source",
+            "fd": -2,
+            "status": 0,
+            "errno": 2,
+            "atimeSec": 1,
+            "atimeNs": 0,
+            "mtimeSec": 2,
+            "mtimeNs": 0,
+            "ino": 237268803
+          },
+          {
+            "op": "fstatat",
+            "path": "target",
+            "fd": -2,
+            "status": -1,
+            "errno": 2,
+            "atimeSec": 0,
+            "atimeNs": 0,
+            "mtimeSec": 0,
+            "mtimeNs": 0,
+            "ino": 0
+          },
+          {
+            "op": "open",
+            "path": "source",
+            "flags": 0,
+            "fd": 4,
+            "errno": 2
+          },
+          {
+            "op": "fstat",
+            "path": "",
+            "fd": 4,
+            "status": 0,
+            "errno": 2,
+            "atimeSec": 1,
+            "atimeNs": 0,
+            "mtimeSec": 2,
+            "mtimeNs": 0,
+            "ino": 237268803
+          },
+          {
+            "op": "fstat",
+            "path": "",
+            "fd": 5,
+            "status": 0,
+            "errno": 45,
+            "atimeSec": 1788564861,
+            "atimeNs": 586043973,
+            "mtimeSec": 1788564861,
+            "mtimeNs": 586043973,
+            "ino": 237268807
+          },
+          {
+            "op": "read",
+            "fd": 4,
+            "count": 3,
+            "errno": 0
+          },
+          {
+            "op": "read",
+            "fd": 4,
+            "count": 0,
+            "errno": 0
+          },
+          {
+            "op": "futimens-request",
+            "fd": 5,
+            "atimeSec": 1,
+            "atimeNs": 0,
+            "mtimeSec": 2,
+            "mtimeNs": 0
+          }
+        ]
+      },
+      {
+        "sourceBefore": {
+          "dev": 16777234,
+          "mode": 33188,
+          "nlink": 1,
+          "uid": 501,
+          "gid": 0,
+          "rdev": 0,
+          "blksize": 4096,
+          "ino": 237268809,
+          "size": 3,
+          "blocks": 8,
+          "atimeMs": 1000,
+          "mtimeMs": 2000,
+          "ctimeMs": 1788564862088.0334,
+          "birthtimeMs": 2000
+        },
+        "sourceAfter": {
+          "dev": 16777234,
+          "mode": 33188,
+          "nlink": 1,
+          "uid": 501,
+          "gid": 0,
+          "rdev": 0,
+          "blksize": 4096,
+          "ino": 237268809,
+          "size": 3,
+          "blocks": 8,
+          "atimeMs": 1788564862102.939,
+          "mtimeMs": 2000,
+          "ctimeMs": 1788564862088.0334,
+          "birthtimeMs": 2000
+        },
+        "targetAfter": {
+          "dev": 16777234,
+          "mode": 33261,
+          "nlink": 1,
+          "uid": 501,
+          "gid": 0,
+          "rdev": 0,
+          "blksize": 4096,
+          "ino": 237268814,
+          "size": 3,
+          "blocks": 8,
+          "atimeMs": 1000,
+          "mtimeMs": 2000,
+          "ctimeMs": 1788564862102.9858,
+          "birthtimeMs": 2000
+        },
+        "result": {
+          "exitCode": 0,
+          "stdout": "",
+          "stderr": ""
+        },
+        "trace": [
+          {
+            "op": "fstat",
+            "path": "",
+            "fd": 4,
+            "status": 0,
+            "errno": 2,
+            "atimeSec": 0,
+            "atimeNs": 0,
+            "mtimeSec": 0,
+            "mtimeNs": 0,
+            "ino": 0
+          },
+          {
+            "op": "open",
+            "path": "/private/tmp/safe-bash-scripting-oracles-20260904/coreutils-9.7-clean/src",
+            "flags": 0,
+            "fd": 4,
+            "errno": 102
+          },
+          {
+            "op": "fstat",
+            "path": "",
+            "fd": 4,
+            "status": 0,
+            "errno": 102,
+            "atimeSec": 1788556992,
+            "atimeNs": 344236179,
+            "mtimeSec": 1788556992,
+            "mtimeNs": 324768274,
+            "ino": 237004054
+          },
+          {
+            "op": "open",
+            "path": "/private/tmp/safe-bash-scripting-oracles-20260904/coreutils-9.7-clean/src/Info.plist",
+            "flags": 0,
+            "fd": -1,
+            "errno": 2
+          },
+          {
+            "op": "open",
+            "path": "target",
+            "flags": 1074790400,
+            "fd": -1,
+            "errno": 2
+          },
+          {
+            "op": "stat",
+            "path": "source",
+            "fd": -1,
+            "status": 0,
+            "errno": 2,
+            "atimeSec": 1,
+            "atimeNs": 0,
+            "mtimeSec": 2,
+            "mtimeNs": 0,
+            "ino": 237268809
+          },
+          {
+            "op": "fstatat",
+            "path": "source",
+            "fd": -2,
+            "status": 0,
+            "errno": 2,
+            "atimeSec": 1,
+            "atimeNs": 0,
+            "mtimeSec": 2,
+            "mtimeNs": 0,
+            "ino": 237268809
+          },
+          {
+            "op": "fstatat",
+            "path": "target",
+            "fd": -2,
+            "status": -1,
+            "errno": 2,
+            "atimeSec": 0,
+            "atimeNs": 0,
+            "mtimeSec": 0,
+            "mtimeNs": 0,
+            "ino": 0
+          },
+          {
+            "op": "open",
+            "path": "source",
+            "flags": 0,
+            "fd": 4,
+            "errno": 2
+          },
+          {
+            "op": "fstat",
+            "path": "",
+            "fd": 4,
+            "status": 0,
+            "errno": 2,
+            "atimeSec": 1,
+            "atimeNs": 0,
+            "mtimeSec": 2,
+            "mtimeNs": 0,
+            "ino": 237268809
+          },
+          {
+            "op": "fstat",
+            "path": "",
+            "fd": 5,
+            "status": 0,
+            "errno": 45,
+            "atimeSec": 1788564862,
+            "atimeNs": 102726100,
+            "mtimeSec": 1788564862,
+            "mtimeNs": 102726100,
+            "ino": 237268814
+          },
+          {
+            "op": "read",
+            "fd": 4,
+            "count": 3,
+            "errno": 0
+          },
+          {
+            "op": "read",
+            "fd": 4,
+            "count": 0,
+            "errno": 0
+          },
+          {
+            "op": "futimens-request",
+            "fd": 5,
+            "atimeSec": 1,
+            "atimeNs": 0,
+            "mtimeSec": 2,
+            "mtimeNs": 0
+          }
+        ]
+      },
+      {
+        "sourceBefore": {
+          "dev": 16777234,
+          "mode": 33188,
+          "nlink": 1,
+          "uid": 501,
+          "gid": 0,
+          "rdev": 0,
+          "blksize": 4096,
+          "ino": 237268816,
+          "size": 3,
+          "blocks": 8,
+          "atimeMs": 1000,
+          "mtimeMs": 2000,
+          "ctimeMs": 1788564862606.186,
+          "birthtimeMs": 2000
+        },
+        "sourceAfter": {
+          "dev": 16777234,
+          "mode": 33188,
+          "nlink": 1,
+          "uid": 501,
+          "gid": 0,
+          "rdev": 0,
+          "blksize": 4096,
+          "ino": 237268816,
+          "size": 3,
+          "blocks": 8,
+          "atimeMs": 1788564862620.2344,
+          "mtimeMs": 2000,
+          "ctimeMs": 1788564862606.186,
+          "birthtimeMs": 2000
+        },
+        "targetAfter": {
+          "dev": 16777234,
+          "mode": 33261,
+          "nlink": 1,
+          "uid": 501,
+          "gid": 0,
+          "rdev": 0,
+          "blksize": 4096,
+          "ino": 237268822,
+          "size": 3,
+          "blocks": 8,
+          "atimeMs": 1000,
+          "mtimeMs": 2000,
+          "ctimeMs": 1788564862620.2825,
+          "birthtimeMs": 2000
+        },
+        "result": {
+          "exitCode": 0,
+          "stdout": "",
+          "stderr": ""
+        },
+        "trace": [
+          {
+            "op": "fstat",
+            "path": "",
+            "fd": 4,
+            "status": 0,
+            "errno": 2,
+            "atimeSec": 0,
+            "atimeNs": 0,
+            "mtimeSec": 0,
+            "mtimeNs": 0,
+            "ino": 0
+          },
+          {
+            "op": "open",
+            "path": "/private/tmp/safe-bash-scripting-oracles-20260904/coreutils-9.7-clean/src",
+            "flags": 0,
+            "fd": 4,
+            "errno": 102
+          },
+          {
+            "op": "fstat",
+            "path": "",
+            "fd": 4,
+            "status": 0,
+            "errno": 102,
+            "atimeSec": 1788556992,
+            "atimeNs": 344236179,
+            "mtimeSec": 1788556992,
+            "mtimeNs": 324768274,
+            "ino": 237004054
+          },
+          {
+            "op": "open",
+            "path": "/private/tmp/safe-bash-scripting-oracles-20260904/coreutils-9.7-clean/src/Info.plist",
+            "flags": 0,
+            "fd": -1,
+            "errno": 2
+          },
+          {
+            "op": "open",
+            "path": "target",
+            "flags": 1074790400,
+            "fd": -1,
+            "errno": 2
+          },
+          {
+            "op": "stat",
+            "path": "source",
+            "fd": -1,
+            "status": 0,
+            "errno": 2,
+            "atimeSec": 1,
+            "atimeNs": 0,
+            "mtimeSec": 2,
+            "mtimeNs": 0,
+            "ino": 237268816
+          },
+          {
+            "op": "fstatat",
+            "path": "source",
+            "fd": -2,
+            "status": 0,
+            "errno": 2,
+            "atimeSec": 1,
+            "atimeNs": 0,
+            "mtimeSec": 2,
+            "mtimeNs": 0,
+            "ino": 237268816
+          },
+          {
+            "op": "fstatat",
+            "path": "target",
+            "fd": -2,
+            "status": -1,
+            "errno": 2,
+            "atimeSec": 0,
+            "atimeNs": 0,
+            "mtimeSec": 0,
+            "mtimeNs": 0,
+            "ino": 0
+          },
+          {
+            "op": "open",
+            "path": "source",
+            "flags": 0,
+            "fd": 4,
+            "errno": 2
+          },
+          {
+            "op": "fstat",
+            "path": "",
+            "fd": 4,
+            "status": 0,
+            "errno": 2,
+            "atimeSec": 1,
+            "atimeNs": 0,
+            "mtimeSec": 2,
+            "mtimeNs": 0,
+            "ino": 237268816
+          },
+          {
+            "op": "fstat",
+            "path": "",
+            "fd": 5,
+            "status": 0,
+            "errno": 45,
+            "atimeSec": 1788564862,
+            "atimeNs": 619995440,
+            "mtimeSec": 1788564862,
+            "mtimeNs": 619995440,
+            "ino": 237268822
+          },
+          {
+            "op": "read",
+            "fd": 4,
+            "count": 3,
+            "errno": 0
+          },
+          {
+            "op": "read",
+            "fd": 4,
+            "count": 0,
+            "errno": 0
+          },
+          {
+            "op": "futimens-request",
+            "fd": 5,
+            "atimeSec": 1,
+            "atimeNs": 0,
+            "mtimeSec": 2,
+            "mtimeNs": 0
+          }
+        ]
+      }
+    ]
+  },
+  "paired": {
+    "kind": "Paired diagnostic sampling trace, not uninstrumented acceptance. Native logs actual source stat/open/fstat/read and futimens request; source adapter wraps canonical descriptor.stat and utimes only to record returned/requested metadata, preserving operations. Metadata before all fixture content reads, both source and target.",
+    "binary": "/tmp/safe-bash-scripting-oracles-20260904/coreutils-9.7-clean/src/ginstall",
+    "library": "/tmp/safe-bash-scripting-oracles-20260904/install-atime-trace-s9TPRi/trace.dylib",
+    "rows": [
+      {
+        "repeat": 0,
+        "settleMs": 0,
+        "native": {
+          "before": {
+            "source": {
+              "atimeMs": 1000,
+              "mtimeMs": 2000,
+              "ino": 237272123,
+              "dev": 16777234,
+              "uid": 501,
+              "gid": 0,
+              "mode": 33188,
+              "size": 5
+            },
+            "target": null
+          },
+          "result": {
+            "exitCode": 0,
+            "stdout": "",
+            "stderr": ""
+          },
+          "trace": [
+            {
+              "op": "fstat",
+              "path": "",
+              "fd": 4,
+              "status": 0,
+              "errno": 2,
+              "atimeSec": 0,
+              "atimeNs": 0,
+              "mtimeSec": 0,
+              "mtimeNs": 0,
+              "ino": 0
+            },
+            {
+              "op": "open",
+              "path": "/private/tmp/safe-bash-scripting-oracles-20260904/coreutils-9.7-clean/src",
+              "flags": 0,
+              "fd": 4,
+              "errno": 102
+            },
+            {
+              "op": "fstat",
+              "path": "",
+              "fd": 4,
+              "status": 0,
+              "errno": 102,
+              "atimeSec": 1788556992,
+              "atimeNs": 344236179,
+              "mtimeSec": 1788556992,
+              "mtimeNs": 324768274,
+              "ino": 237004054
+            },
+            {
+              "op": "open",
+              "path": "/private/tmp/safe-bash-scripting-oracles-20260904/coreutils-9.7-clean/src/Info.plist",
+              "flags": 0,
+              "fd": -1,
+              "errno": 2
+            },
+            {
+              "op": "open",
+              "path": "target",
+              "flags": 1074790400,
+              "fd": -1,
+              "errno": 2
+            },
+            {
+              "op": "stat",
+              "path": "source",
+              "fd": -1,
+              "status": 0,
+              "errno": 2,
+              "atimeSec": 1788565013,
+              "atimeNs": 675218249,
+              "mtimeSec": 2,
+              "mtimeNs": 0,
+              "ino": 237272123
+            },
+            {
+              "op": "fstatat",
+              "path": "source",
+              "fd": -2,
+              "status": 0,
+              "errno": 2,
+              "atimeSec": 1788565013,
+              "atimeNs": 675218249,
+              "mtimeSec": 2,
+              "mtimeNs": 0,
+              "ino": 237272123
+            },
+            {
+              "op": "fstatat",
+              "path": "target",
+              "fd": -2,
+              "status": -1,
+              "errno": 2,
+              "atimeSec": 0,
+              "atimeNs": 0,
+              "mtimeSec": 0,
+              "mtimeNs": 0,
+              "ino": 0
+            },
+            {
+              "op": "open",
+              "path": "source",
+              "flags": 0,
+              "fd": 4,
+              "errno": 2
+            },
+            {
+              "op": "fstat",
+              "path": "",
+              "fd": 4,
+              "status": 0,
+              "errno": 2,
+              "atimeSec": 1788565013,
+              "atimeNs": 675218249,
+              "mtimeSec": 2,
+              "mtimeNs": 0,
+              "ino": 237272123
+            },
+            {
+              "op": "fstat",
+              "path": "",
+              "fd": 5,
+              "status": 0,
+              "errno": 45,
+              "atimeSec": 1788565013,
+              "atimeNs": 675286249,
+              "mtimeSec": 1788565013,
+              "mtimeNs": 675286249,
+              "ino": 237272124
+            },
+            {
+              "op": "read",
+              "fd": 4,
+              "count": 5,
+              "errno": 0
+            },
+            {
+              "op": "read",
+              "fd": 4,
+              "count": 0,
+              "errno": 0
+            },
+            {
+              "op": "futimens-request",
+              "fd": 5,
+              "atimeSec": 1788565013,
+              "atimeNs": 675218249,
+              "mtimeSec": 2,
+              "mtimeNs": 0
+            }
+          ],
+          "after": {
+            "source": {
+              "atimeMs": 1788565013675.2183,
+              "mtimeMs": 2000,
+              "ino": 237272123,
+              "dev": 16777234,
+              "uid": 501,
+              "gid": 0,
+              "mode": 33188,
+              "size": 5
+            },
+            "target": {
+              "atimeMs": 1788565013675.2183,
+              "mtimeMs": 2000,
+              "ino": 237272124,
+              "dev": 16777234,
+              "uid": 501,
+              "gid": 0,
+              "mode": 33261,
+              "size": 5
+            }
+          },
+          "sourceHex": "ff0080410a",
+          "targetHex": "ff0080410a",
+          "afterReads": {
+            "source": {
+              "atimeMs": 1788565013675.2183,
+              "mtimeMs": 2000,
+              "ino": 237272123,
+              "dev": 16777234,
+              "uid": 501,
+              "gid": 0,
+              "mode": 33188,
+              "size": 5
+            },
+            "target": {
+              "atimeMs": 1788565013675.2183,
+              "mtimeMs": 2000,
+              "ino": 237272124,
+              "dev": 16777234,
+              "uid": 501,
+              "gid": 0,
+              "mode": 33261,
+              "size": 5
+            }
+          }
+        },
+        "source-adapter": {
+          "before": {
+            "source": {
+              "atimeMs": 1000,
+              "mtimeMs": 2000,
+              "ino": 237272126,
+              "dev": 16777234,
+              "uid": 501,
+              "gid": 0,
+              "mode": 33188,
+              "size": 5
+            },
+            "target": null
+          },
+          "result": {
+            "exitCode": 0,
+            "stdout": "",
+            "stderr": ""
+          },
+          "trace": [
+            {
+              "op": "fstat",
+              "path": "/source",
+              "atimeMs": 1000,
+              "mtimeMs": 2000,
+              "ino": 237272126,
+              "dev": 16777234,
+              "uid": 501,
+              "gid": 0,
+              "mode": 33188,
+              "size": 5
+            },
+            {
+              "op": "utimes-request",
+              "path": "/target",
+              "atimeMs": 1000,
+              "mtimeMs": 2000
+            },
+            {
+              "op": "stat-after-utimes",
+              "path": "/target",
+              "atimeMs": 1000,
+              "mtimeMs": 2000,
+              "ino": 237272127,
+              "dev": 16777234,
+              "uid": 501,
+              "gid": 0,
+              "mode": 33152,
+              "size": 5
+            }
+          ],
+          "after": {
+            "source": {
+              "atimeMs": 1788565013681.7332,
+              "mtimeMs": 2000,
+              "ino": 237272126,
+              "dev": 16777234,
+              "uid": 501,
+              "gid": 0,
+              "mode": 33188,
+              "size": 5
+            },
+            "target": {
+              "atimeMs": 1788565013682.2515,
+              "mtimeMs": 2000,
+              "ino": 237272127,
+              "dev": 16777234,
+              "uid": 501,
+              "gid": 0,
+              "mode": 33261,
+              "size": 5
+            }
+          },
+          "sourceHex": "ff0080410a",
+          "targetHex": "ff0080410a",
+          "afterReads": {
+            "source": {
+              "atimeMs": 1788565013681.7332,
+              "mtimeMs": 2000,
+              "ino": 237272126,
+              "dev": 16777234,
+              "uid": 501,
+              "gid": 0,
+              "mode": 33188,
+              "size": 5
+            },
+            "target": {
+              "atimeMs": 1788565013682.2515,
+              "mtimeMs": 2000,
+              "ino": 237272127,
+              "dev": 16777234,
+              "uid": 501,
+              "gid": 0,
+              "mode": 33261,
+              "size": 5
+            }
+          }
+        }
+      },
+      {
+        "repeat": 1,
+        "settleMs": 0,
+        "native": {
+          "before": {
+            "source": {
+              "atimeMs": 1000,
+              "mtimeMs": 2000,
+              "ino": 237272129,
+              "dev": 16777234,
+              "uid": 501,
+              "gid": 0,
+              "mode": 33188,
+              "size": 5
+            },
+            "target": null
+          },
+          "result": {
+            "exitCode": 0,
+            "stdout": "",
+            "stderr": ""
+          },
+          "trace": [
+            {
+              "op": "fstat",
+              "path": "",
+              "fd": 4,
+              "status": 0,
+              "errno": 2,
+              "atimeSec": 0,
+              "atimeNs": 0,
+              "mtimeSec": 0,
+              "mtimeNs": 0,
+              "ino": 0
+            },
+            {
+              "op": "open",
+              "path": "/private/tmp/safe-bash-scripting-oracles-20260904/coreutils-9.7-clean/src",
+              "flags": 0,
+              "fd": 4,
+              "errno": 102
+            },
+            {
+              "op": "fstat",
+              "path": "",
+              "fd": 4,
+              "status": 0,
+              "errno": 102,
+              "atimeSec": 1788556992,
+              "atimeNs": 344236179,
+              "mtimeSec": 1788556992,
+              "mtimeNs": 324768274,
+              "ino": 237004054
+            },
+            {
+              "op": "open",
+              "path": "/private/tmp/safe-bash-scripting-oracles-20260904/coreutils-9.7-clean/src/Info.plist",
+              "flags": 0,
+              "fd": -1,
+              "errno": 2
+            },
+            {
+              "op": "open",
+              "path": "target",
+              "flags": 1074790400,
+              "fd": -1,
+              "errno": 2
+            },
+            {
+              "op": "stat",
+              "path": "source",
+              "fd": -1,
+              "status": 0,
+              "errno": 2,
+              "atimeSec": 1,
+              "atimeNs": 0,
+              "mtimeSec": 2,
+              "mtimeNs": 0,
+              "ino": 237272129
+            },
+            {
+              "op": "fstatat",
+              "path": "source",
+              "fd": -2,
+              "status": 0,
+              "errno": 2,
+              "atimeSec": 1,
+              "atimeNs": 0,
+              "mtimeSec": 2,
+              "mtimeNs": 0,
+              "ino": 237272129
+            },
+            {
+              "op": "fstatat",
+              "path": "target",
+              "fd": -2,
+              "status": -1,
+              "errno": 2,
+              "atimeSec": 0,
+              "atimeNs": 0,
+              "mtimeSec": 0,
+              "mtimeNs": 0,
+              "ino": 0
+            },
+            {
+              "op": "open",
+              "path": "source",
+              "flags": 0,
+              "fd": 4,
+              "errno": 2
+            },
+            {
+              "op": "fstat",
+              "path": "",
+              "fd": 4,
+              "status": 0,
+              "errno": 2,
+              "atimeSec": 1,
+              "atimeNs": 0,
+              "mtimeSec": 2,
+              "mtimeNs": 0,
+              "ino": 237272129
+            },
+            {
+              "op": "fstat",
+              "path": "",
+              "fd": 5,
+              "status": 0,
+              "errno": 45,
+              "atimeSec": 1788565013,
+              "atimeNs": 692055486,
+              "mtimeSec": 1788565013,
+              "mtimeNs": 692055486,
+              "ino": 237272130
+            },
+            {
+              "op": "read",
+              "fd": 4,
+              "count": 5,
+              "errno": 0
+            },
+            {
+              "op": "read",
+              "fd": 4,
+              "count": 0,
+              "errno": 0
+            },
+            {
+              "op": "futimens-request",
+              "fd": 5,
+              "atimeSec": 1,
+              "atimeNs": 0,
+              "mtimeSec": 2,
+              "mtimeNs": 0
+            }
+          ],
+          "after": {
+            "source": {
+              "atimeMs": 1788565013692.209,
+              "mtimeMs": 2000,
+              "ino": 237272129,
+              "dev": 16777234,
+              "uid": 501,
+              "gid": 0,
+              "mode": 33188,
+              "size": 5
+            },
+            "target": {
+              "atimeMs": 1000,
+              "mtimeMs": 2000,
+              "ino": 237272130,
+              "dev": 16777234,
+              "uid": 501,
+              "gid": 0,
+              "mode": 33261,
+              "size": 5
+            }
+          },
+          "sourceHex": "ff0080410a",
+          "targetHex": "ff0080410a",
+          "afterReads": {
+            "source": {
+              "atimeMs": 1788565013692.209,
+              "mtimeMs": 2000,
+              "ino": 237272129,
+              "dev": 16777234,
+              "uid": 501,
+              "gid": 0,
+              "mode": 33188,
+              "size": 5
+            },
+            "target": {
+              "atimeMs": 1788565013692.9307,
+              "mtimeMs": 2000,
+              "ino": 237272130,
+              "dev": 16777234,
+              "uid": 501,
+              "gid": 0,
+              "mode": 33261,
+              "size": 5
+            }
+          }
+        },
+        "source-adapter": {
+          "before": {
+            "source": {
+              "atimeMs": 1000,
+              "mtimeMs": 2000,
+              "ino": 237272132,
+              "dev": 16777234,
+              "uid": 501,
+              "gid": 0,
+              "mode": 33188,
+              "size": 5
+            },
+            "target": null
+          },
+          "result": {
+            "exitCode": 0,
+            "stdout": "",
+            "stderr": ""
+          },
+          "trace": [
+            {
+              "op": "fstat",
+              "path": "/source",
+              "atimeMs": 1788565013695.82,
+              "mtimeMs": 2000,
+              "ino": 237272132,
+              "dev": 16777234,
+              "uid": 501,
+              "gid": 0,
+              "mode": 33188,
+              "size": 5
+            },
+            {
+              "op": "utimes-request",
+              "path": "/target",
+              "atimeMs": 1788565013695.82,
+              "mtimeMs": 2000
+            },
+            {
+              "op": "stat-after-utimes",
+              "path": "/target",
+              "atimeMs": 1788565013694.999,
+              "mtimeMs": 2000,
+              "ino": 237272133,
+              "dev": 16777234,
+              "uid": 501,
+              "gid": 0,
+              "mode": 33152,
+              "size": 5
+            }
+          ],
+          "after": {
+            "source": {
+              "atimeMs": 1788565013695.82,
+              "mtimeMs": 2000,
+              "ino": 237272132,
+              "dev": 16777234,
+              "uid": 501,
+              "gid": 0,
+              "mode": 33188,
+              "size": 5
+            },
+            "target": {
+              "atimeMs": 1788565013694.999,
+              "mtimeMs": 2000,
+              "ino": 237272133,
+              "dev": 16777234,
+              "uid": 501,
+              "gid": 0,
+              "mode": 33261,
+              "size": 5
+            }
+          },
+          "sourceHex": "ff0080410a",
+          "targetHex": "ff0080410a",
+          "afterReads": {
+            "source": {
+              "atimeMs": 1788565013695.82,
+              "mtimeMs": 2000,
+              "ino": 237272132,
+              "dev": 16777234,
+              "uid": 501,
+              "gid": 0,
+              "mode": 33188,
+              "size": 5
+            },
+            "target": {
+              "atimeMs": 1788565013694.999,
+              "mtimeMs": 2000,
+              "ino": 237272133,
+              "dev": 16777234,
+              "uid": 501,
+              "gid": 0,
+              "mode": 33261,
+              "size": 5
+            }
+          }
+        }
+      },
+      {
+        "repeat": 2,
+        "settleMs": 500,
+        "native": {
+          "before": {
+            "source": {
+              "atimeMs": 1000,
+              "mtimeMs": 2000,
+              "ino": 237272135,
+              "dev": 16777234,
+              "uid": 501,
+              "gid": 0,
+              "mode": 33188,
+              "size": 5
+            },
+            "target": null
+          },
+          "result": {
+            "exitCode": 0,
+            "stdout": "",
+            "stderr": ""
+          },
+          "trace": [
+            {
+              "op": "fstat",
+              "path": "",
+              "fd": 4,
+              "status": 0,
+              "errno": 2,
+              "atimeSec": 0,
+              "atimeNs": 0,
+              "mtimeSec": 0,
+              "mtimeNs": 0,
+              "ino": 0
+            },
+            {
+              "op": "open",
+              "path": "/private/tmp/safe-bash-scripting-oracles-20260904/coreutils-9.7-clean/src",
+              "flags": 0,
+              "fd": 4,
+              "errno": 102
+            },
+            {
+              "op": "fstat",
+              "path": "",
+              "fd": 4,
+              "status": 0,
+              "errno": 102,
+              "atimeSec": 1788556992,
+              "atimeNs": 344236179,
+              "mtimeSec": 1788556992,
+              "mtimeNs": 324768274,
+              "ino": 237004054
+            },
+            {
+              "op": "open",
+              "path": "/private/tmp/safe-bash-scripting-oracles-20260904/coreutils-9.7-clean/src/Info.plist",
+              "flags": 0,
+              "fd": -1,
+              "errno": 2
+            },
+            {
+              "op": "open",
+              "path": "target",
+              "flags": 1074790400,
+              "fd": -1,
+              "errno": 2
+            },
+            {
+              "op": "stat",
+              "path": "source",
+              "fd": -1,
+              "status": 0,
+              "errno": 2,
+              "atimeSec": 1,
+              "atimeNs": 0,
+              "mtimeSec": 2,
+              "mtimeNs": 0,
+              "ino": 237272135
+            },
+            {
+              "op": "fstatat",
+              "path": "source",
+              "fd": -2,
+              "status": 0,
+              "errno": 2,
+              "atimeSec": 1,
+              "atimeNs": 0,
+              "mtimeSec": 2,
+              "mtimeNs": 0,
+              "ino": 237272135
+            },
+            {
+              "op": "fstatat",
+              "path": "target",
+              "fd": -2,
+              "status": -1,
+              "errno": 2,
+              "atimeSec": 0,
+              "atimeNs": 0,
+              "mtimeSec": 0,
+              "mtimeNs": 0,
+              "ino": 0
+            },
+            {
+              "op": "open",
+              "path": "source",
+              "flags": 0,
+              "fd": 4,
+              "errno": 2
+            },
+            {
+              "op": "fstat",
+              "path": "",
+              "fd": 4,
+              "status": 0,
+              "errno": 2,
+              "atimeSec": 1,
+              "atimeNs": 0,
+              "mtimeSec": 2,
+              "mtimeNs": 0,
+              "ino": 237272135
+            },
+            {
+              "op": "fstat",
+              "path": "",
+              "fd": 5,
+              "status": 0,
+              "errno": 45,
+              "atimeSec": 1788565014,
+              "atimeNs": 206331340,
+              "mtimeSec": 1788565014,
+              "mtimeNs": 206331340,
+              "ino": 237272140
+            },
+            {
+              "op": "read",
+              "fd": 4,
+              "count": 5,
+              "errno": 0
+            },
+            {
+              "op": "read",
+              "fd": 4,
+              "count": 0,
+              "errno": 0
+            },
+            {
+              "op": "futimens-request",
+              "fd": 5,
+              "atimeSec": 1,
+              "atimeNs": 0,
+              "mtimeSec": 2,
+              "mtimeNs": 0
+            }
+          ],
+          "after": {
+            "source": {
+              "atimeMs": 1788565014206.5352,
+              "mtimeMs": 2000,
+              "ino": 237272135,
+              "dev": 16777234,
+              "uid": 501,
+              "gid": 0,
+              "mode": 33188,
+              "size": 5
+            },
+            "target": {
+              "atimeMs": 1000,
+              "mtimeMs": 2000,
+              "ino": 237272140,
+              "dev": 16777234,
+              "uid": 501,
+              "gid": 0,
+              "mode": 33261,
+              "size": 5
+            }
+          },
+          "sourceHex": "ff0080410a",
+          "targetHex": "ff0080410a",
+          "afterReads": {
+            "source": {
+              "atimeMs": 1788565014206.5352,
+              "mtimeMs": 2000,
+              "ino": 237272135,
+              "dev": 16777234,
+              "uid": 501,
+              "gid": 0,
+              "mode": 33188,
+              "size": 5
+            },
+            "target": {
+              "atimeMs": 1788565014207.3982,
+              "mtimeMs": 2000,
+              "ino": 237272140,
+              "dev": 16777234,
+              "uid": 501,
+              "gid": 0,
+              "mode": 33261,
+              "size": 5
+            }
+          }
+        },
+        "source-adapter": {
+          "before": {
+            "source": {
+              "atimeMs": 1000,
+              "mtimeMs": 2000,
+              "ino": 237272142,
+              "dev": 16777234,
+              "uid": 501,
+              "gid": 0,
+              "mode": 33188,
+              "size": 5
+            },
+            "target": null
+          },
+          "result": {
+            "exitCode": 0,
+            "stdout": "",
+            "stderr": ""
+          },
+          "trace": [
+            {
+              "op": "fstat",
+              "path": "/source",
+              "atimeMs": 1000,
+              "mtimeMs": 2000,
+              "ino": 237272142,
+              "dev": 16777234,
+              "uid": 501,
+              "gid": 0,
+              "mode": 33188,
+              "size": 5
+            },
+            {
+              "op": "utimes-request",
+              "path": "/target",
+              "atimeMs": 1000,
+              "mtimeMs": 2000
+            },
+            {
+              "op": "stat-after-utimes",
+              "path": "/target",
+              "atimeMs": 1000,
+              "mtimeMs": 2000,
+              "ino": 237272151,
+              "dev": 16777234,
+              "uid": 501,
+              "gid": 0,
+              "mode": 33152,
+              "size": 5
+            }
+          ],
+          "after": {
+            "source": {
+              "atimeMs": 1788565014711.7822,
+              "mtimeMs": 2000,
+              "ino": 237272142,
+              "dev": 16777234,
+              "uid": 501,
+              "gid": 0,
+              "mode": 33188,
+              "size": 5
+            },
+            "target": {
+              "atimeMs": 1000,
+              "mtimeMs": 2000,
+              "ino": 237272151,
+              "dev": 16777234,
+              "uid": 501,
+              "gid": 0,
+              "mode": 33261,
+              "size": 5
+            }
+          },
+          "sourceHex": "ff0080410a",
+          "targetHex": "ff0080410a",
+          "afterReads": {
+            "source": {
+              "atimeMs": 1788565014711.7822,
+              "mtimeMs": 2000,
+              "ino": 237272142,
+              "dev": 16777234,
+              "uid": 501,
+              "gid": 0,
+              "mode": 33188,
+              "size": 5
+            },
+            "target": {
+              "atimeMs": 1788565014712.416,
+              "mtimeMs": 2000,
+              "ino": 237272151,
+              "dev": 16777234,
+              "uid": 501,
+              "gid": 0,
+              "mode": 33261,
+              "size": 5
+            }
+          }
+        }
+      },
+      {
+        "repeat": 3,
+        "settleMs": 500,
+        "native": {
+          "before": {
+            "source": {
+              "atimeMs": 1000,
+              "mtimeMs": 2000,
+              "ino": 237272153,
+              "dev": 16777234,
+              "uid": 501,
+              "gid": 0,
+              "mode": 33188,
+              "size": 5
+            },
+            "target": null
+          },
+          "result": {
+            "exitCode": 0,
+            "stdout": "",
+            "stderr": ""
+          },
+          "trace": [
+            {
+              "op": "fstat",
+              "path": "",
+              "fd": 4,
+              "status": 0,
+              "errno": 2,
+              "atimeSec": 0,
+              "atimeNs": 0,
+              "mtimeSec": 0,
+              "mtimeNs": 0,
+              "ino": 0
+            },
+            {
+              "op": "open",
+              "path": "/private/tmp/safe-bash-scripting-oracles-20260904/coreutils-9.7-clean/src",
+              "flags": 0,
+              "fd": 4,
+              "errno": 102
+            },
+            {
+              "op": "fstat",
+              "path": "",
+              "fd": 4,
+              "status": 0,
+              "errno": 102,
+              "atimeSec": 1788556992,
+              "atimeNs": 344236179,
+              "mtimeSec": 1788556992,
+              "mtimeNs": 324768274,
+              "ino": 237004054
+            },
+            {
+              "op": "open",
+              "path": "/private/tmp/safe-bash-scripting-oracles-20260904/coreutils-9.7-clean/src/Info.plist",
+              "flags": 0,
+              "fd": -1,
+              "errno": 2
+            },
+            {
+              "op": "open",
+              "path": "target",
+              "flags": 1074790400,
+              "fd": -1,
+              "errno": 2
+            },
+            {
+              "op": "stat",
+              "path": "source",
+              "fd": -1,
+              "status": 0,
+              "errno": 2,
+              "atimeSec": 1,
+              "atimeNs": 0,
+              "mtimeSec": 2,
+              "mtimeNs": 0,
+              "ino": 237272153
+            },
+            {
+              "op": "fstatat",
+              "path": "source",
+              "fd": -2,
+              "status": 0,
+              "errno": 2,
+              "atimeSec": 1,
+              "atimeNs": 0,
+              "mtimeSec": 2,
+              "mtimeNs": 0,
+              "ino": 237272153
+            },
+            {
+              "op": "fstatat",
+              "path": "target",
+              "fd": -2,
+              "status": -1,
+              "errno": 2,
+              "atimeSec": 0,
+              "atimeNs": 0,
+              "mtimeSec": 0,
+              "mtimeNs": 0,
+              "ino": 0
+            },
+            {
+              "op": "open",
+              "path": "source",
+              "flags": 0,
+              "fd": 4,
+              "errno": 2
+            },
+            {
+              "op": "fstat",
+              "path": "",
+              "fd": 4,
+              "status": 0,
+              "errno": 2,
+              "atimeSec": 1,
+              "atimeNs": 0,
+              "mtimeSec": 2,
+              "mtimeNs": 0,
+              "ino": 237272153
+            },
+            {
+              "op": "fstat",
+              "path": "",
+              "fd": 5,
+              "status": 0,
+              "errno": 45,
+              "atimeSec": 1788565015,
+              "atimeNs": 221584179,
+              "mtimeSec": 1788565015,
+              "mtimeNs": 221584179,
+              "ino": 237272156
+            },
+            {
+              "op": "read",
+              "fd": 4,
+              "count": 5,
+              "errno": 0
+            },
+            {
+              "op": "read",
+              "fd": 4,
+              "count": 0,
+              "errno": 0
+            },
+            {
+              "op": "futimens-request",
+              "fd": 5,
+              "atimeSec": 1,
+              "atimeNs": 0,
+              "mtimeSec": 2,
+              "mtimeNs": 0
+            }
+          ],
+          "after": {
+            "source": {
+              "atimeMs": 1788565015221.7532,
+              "mtimeMs": 2000,
+              "ino": 237272153,
+              "dev": 16777234,
+              "uid": 501,
+              "gid": 0,
+              "mode": 33188,
+              "size": 5
+            },
+            "target": {
+              "atimeMs": 1000,
+              "mtimeMs": 2000,
+              "ino": 237272156,
+              "dev": 16777234,
+              "uid": 501,
+              "gid": 0,
+              "mode": 33261,
+              "size": 5
+            }
+          },
+          "sourceHex": "ff0080410a",
+          "targetHex": "ff0080410a",
+          "afterReads": {
+            "source": {
+              "atimeMs": 1788565015221.7532,
+              "mtimeMs": 2000,
+              "ino": 237272153,
+              "dev": 16777234,
+              "uid": 501,
+              "gid": 0,
+              "mode": 33188,
+              "size": 5
+            },
+            "target": {
+              "atimeMs": 1788565015222.4058,
+              "mtimeMs": 2000,
+              "ino": 237272156,
+              "dev": 16777234,
+              "uid": 501,
+              "gid": 0,
+              "mode": 33261,
+              "size": 5
+            }
+          }
+        },
+        "source-adapter": {
+          "before": {
+            "source": {
+              "atimeMs": 1000,
+              "mtimeMs": 2000,
+              "ino": 237272158,
+              "dev": 16777234,
+              "uid": 501,
+              "gid": 0,
+              "mode": 33188,
+              "size": 5
+            },
+            "target": null
+          },
+          "result": {
+            "exitCode": 0,
+            "stdout": "",
+            "stderr": ""
+          },
+          "trace": [
+            {
+              "op": "fstat",
+              "path": "/source",
+              "atimeMs": 1000,
+              "mtimeMs": 2000,
+              "ino": 237272158,
+              "dev": 16777234,
+              "uid": 501,
+              "gid": 0,
+              "mode": 33188,
+              "size": 5
+            },
+            {
+              "op": "utimes-request",
+              "path": "/target",
+              "atimeMs": 1000,
+              "mtimeMs": 2000
+            },
+            {
+              "op": "stat-after-utimes",
+              "path": "/target",
+              "atimeMs": 1000,
+              "mtimeMs": 2000,
+              "ino": 237272163,
+              "dev": 16777234,
+              "uid": 501,
+              "gid": 0,
+              "mode": 33152,
+              "size": 5
+            }
+          ],
+          "after": {
+            "source": {
+              "atimeMs": 1788565015724.8716,
+              "mtimeMs": 2000,
+              "ino": 237272158,
+              "dev": 16777234,
+              "uid": 501,
+              "gid": 0,
+              "mode": 33188,
+              "size": 5
+            },
+            "target": {
+              "atimeMs": 1000,
+              "mtimeMs": 2000,
+              "ino": 237272163,
+              "dev": 16777234,
+              "uid": 501,
+              "gid": 0,
+              "mode": 33261,
+              "size": 5
+            }
+          },
+          "sourceHex": "ff0080410a",
+          "targetHex": "ff0080410a",
+          "afterReads": {
+            "source": {
+              "atimeMs": 1788565015724.8716,
+              "mtimeMs": 2000,
+              "ino": 237272158,
+              "dev": 16777234,
+              "uid": 501,
+              "gid": 0,
+              "mode": 33188,
+              "size": 5
+            },
+            "target": {
+              "atimeMs": 1788565015725.5723,
+              "mtimeMs": 2000,
+              "ino": 237272163,
+              "dev": 16777234,
+              "uid": 501,
+              "gid": 0,
+              "mode": 33261,
+              "size": 5
+            }
+          }
+        }
+      },
+      {
+        "repeat": 4,
+        "settleMs": 500,
+        "native": {
+          "before": {
+            "source": {
+              "atimeMs": 1000,
+              "mtimeMs": 2000,
+              "ino": 237272165,
+              "dev": 16777234,
+              "uid": 501,
+              "gid": 0,
+              "mode": 33188,
+              "size": 5
+            },
+            "target": null
+          },
+          "result": {
+            "exitCode": 0,
+            "stdout": "",
+            "stderr": ""
+          },
+          "trace": [
+            {
+              "op": "fstat",
+              "path": "",
+              "fd": 4,
+              "status": 0,
+              "errno": 2,
+              "atimeSec": 0,
+              "atimeNs": 0,
+              "mtimeSec": 0,
+              "mtimeNs": 0,
+              "ino": 0
+            },
+            {
+              "op": "open",
+              "path": "/private/tmp/safe-bash-scripting-oracles-20260904/coreutils-9.7-clean/src",
+              "flags": 0,
+              "fd": 4,
+              "errno": 102
+            },
+            {
+              "op": "fstat",
+              "path": "",
+              "fd": 4,
+              "status": 0,
+              "errno": 102,
+              "atimeSec": 1788556992,
+              "atimeNs": 344236179,
+              "mtimeSec": 1788556992,
+              "mtimeNs": 324768274,
+              "ino": 237004054
+            },
+            {
+              "op": "open",
+              "path": "/private/tmp/safe-bash-scripting-oracles-20260904/coreutils-9.7-clean/src/Info.plist",
+              "flags": 0,
+              "fd": -1,
+              "errno": 2
+            },
+            {
+              "op": "open",
+              "path": "target",
+              "flags": 1074790400,
+              "fd": -1,
+              "errno": 2
+            },
+            {
+              "op": "stat",
+              "path": "source",
+              "fd": -1,
+              "status": 0,
+              "errno": 2,
+              "atimeSec": 1,
+              "atimeNs": 0,
+              "mtimeSec": 2,
+              "mtimeNs": 0,
+              "ino": 237272165
+            },
+            {
+              "op": "fstatat",
+              "path": "source",
+              "fd": -2,
+              "status": 0,
+              "errno": 2,
+              "atimeSec": 1,
+              "atimeNs": 0,
+              "mtimeSec": 2,
+              "mtimeNs": 0,
+              "ino": 237272165
+            },
+            {
+              "op": "fstatat",
+              "path": "target",
+              "fd": -2,
+              "status": -1,
+              "errno": 2,
+              "atimeSec": 0,
+              "atimeNs": 0,
+              "mtimeSec": 0,
+              "mtimeNs": 0,
+              "ino": 0
+            },
+            {
+              "op": "open",
+              "path": "source",
+              "flags": 0,
+              "fd": 4,
+              "errno": 2
+            },
+            {
+              "op": "fstat",
+              "path": "",
+              "fd": 4,
+              "status": 0,
+              "errno": 2,
+              "atimeSec": 1,
+              "atimeNs": 0,
+              "mtimeSec": 2,
+              "mtimeNs": 0,
+              "ino": 237272165
+            },
+            {
+              "op": "fstat",
+              "path": "",
+              "fd": 5,
+              "status": 0,
+              "errno": 45,
+              "atimeSec": 1788565016,
+              "atimeNs": 235078584,
+              "mtimeSec": 1788565016,
+              "mtimeNs": 235078584,
+              "ino": 237272168
+            },
+            {
+              "op": "read",
+              "fd": 4,
+              "count": 5,
+              "errno": 0
+            },
+            {
+              "op": "read",
+              "fd": 4,
+              "count": 0,
+              "errno": 0
+            },
+            {
+              "op": "futimens-request",
+              "fd": 5,
+              "atimeSec": 1,
+              "atimeNs": 0,
+              "mtimeSec": 2,
+              "mtimeNs": 0
+            }
+          ],
+          "after": {
+            "source": {
+              "atimeMs": 1788565016235.2576,
+              "mtimeMs": 2000,
+              "ino": 237272165,
+              "dev": 16777234,
+              "uid": 501,
+              "gid": 0,
+              "mode": 33188,
+              "size": 5
+            },
+            "target": {
+              "atimeMs": 1000,
+              "mtimeMs": 2000,
+              "ino": 237272168,
+              "dev": 16777234,
+              "uid": 501,
+              "gid": 0,
+              "mode": 33261,
+              "size": 5
+            }
+          },
+          "sourceHex": "ff0080410a",
+          "targetHex": "ff0080410a",
+          "afterReads": {
+            "source": {
+              "atimeMs": 1788565016235.2576,
+              "mtimeMs": 2000,
+              "ino": 237272165,
+              "dev": 16777234,
+              "uid": 501,
+              "gid": 0,
+              "mode": 33188,
+              "size": 5
+            },
+            "target": {
+              "atimeMs": 1788565016236.2097,
+              "mtimeMs": 2000,
+              "ino": 237272168,
+              "dev": 16777234,
+              "uid": 501,
+              "gid": 0,
+              "mode": 33261,
+              "size": 5
+            }
+          }
+        },
+        "source-adapter": {
+          "before": {
+            "source": {
+              "atimeMs": 1000,
+              "mtimeMs": 2000,
+              "ino": 237272170,
+              "dev": 16777234,
+              "uid": 501,
+              "gid": 0,
+              "mode": 33188,
+              "size": 5
+            },
+            "target": null
+          },
+          "result": {
+            "exitCode": 0,
+            "stdout": "",
+            "stderr": ""
+          },
+          "trace": [
+            {
+              "op": "fstat",
+              "path": "/source",
+              "atimeMs": 1000,
+              "mtimeMs": 2000,
+              "ino": 237272170,
+              "dev": 16777234,
+              "uid": 501,
+              "gid": 0,
+              "mode": 33188,
+              "size": 5
+            },
+            {
+              "op": "utimes-request",
+              "path": "/target",
+              "atimeMs": 1000,
+              "mtimeMs": 2000
+            },
+            {
+              "op": "stat-after-utimes",
+              "path": "/target",
+              "atimeMs": 1000,
+              "mtimeMs": 2000,
+              "ino": 237272178,
+              "dev": 16777234,
+              "uid": 501,
+              "gid": 0,
+              "mode": 33152,
+              "size": 5
+            }
+          ],
+          "after": {
+            "source": {
+              "atimeMs": 1788565016740.656,
+              "mtimeMs": 2000,
+              "ino": 237272170,
+              "dev": 16777234,
+              "uid": 501,
+              "gid": 0,
+              "mode": 33188,
+              "size": 5
+            },
+            "target": {
+              "atimeMs": 1000,
+              "mtimeMs": 2000,
+              "ino": 237272178,
+              "dev": 16777234,
+              "uid": 501,
+              "gid": 0,
+              "mode": 33261,
+              "size": 5
+            }
+          },
+          "sourceHex": "ff0080410a",
+          "targetHex": "ff0080410a",
+          "afterReads": {
+            "source": {
+              "atimeMs": 1788565016740.656,
+              "mtimeMs": 2000,
+              "ino": 237272170,
+              "dev": 16777234,
+              "uid": 501,
+              "gid": 0,
+              "mode": 33188,
+              "size": 5
+            },
+            "target": {
+              "atimeMs": 1788565016741.408,
+              "mtimeMs": 2000,
+              "ino": 237272178,
+              "dev": 16777234,
+              "uid": 501,
+              "gid": 0,
+              "mode": 33261,
+              "size": 5
+            }
+          }
+        }
+      },
+      {
+        "repeat": 5,
+        "settleMs": 500,
+        "native": {
+          "before": {
+            "source": {
+              "atimeMs": 1000,
+              "mtimeMs": 2000,
+              "ino": 237272180,
+              "dev": 16777234,
+              "uid": 501,
+              "gid": 0,
+              "mode": 33188,
+              "size": 5
+            },
+            "target": null
+          },
+          "result": {
+            "exitCode": 0,
+            "stdout": "",
+            "stderr": ""
+          },
+          "trace": [
+            {
+              "op": "fstat",
+              "path": "",
+              "fd": 4,
+              "status": 0,
+              "errno": 2,
+              "atimeSec": 0,
+              "atimeNs": 0,
+              "mtimeSec": 0,
+              "mtimeNs": 0,
+              "ino": 0
+            },
+            {
+              "op": "open",
+              "path": "/private/tmp/safe-bash-scripting-oracles-20260904/coreutils-9.7-clean/src",
+              "flags": 0,
+              "fd": 4,
+              "errno": 102
+            },
+            {
+              "op": "fstat",
+              "path": "",
+              "fd": 4,
+              "status": 0,
+              "errno": 102,
+              "atimeSec": 1788556992,
+              "atimeNs": 344236179,
+              "mtimeSec": 1788556992,
+              "mtimeNs": 324768274,
+              "ino": 237004054
+            },
+            {
+              "op": "open",
+              "path": "/private/tmp/safe-bash-scripting-oracles-20260904/coreutils-9.7-clean/src/Info.plist",
+              "flags": 0,
+              "fd": -1,
+              "errno": 2
+            },
+            {
+              "op": "open",
+              "path": "target",
+              "flags": 1074790400,
+              "fd": -1,
+              "errno": 2
+            },
+            {
+              "op": "stat",
+              "path": "source",
+              "fd": -1,
+              "status": 0,
+              "errno": 2,
+              "atimeSec": 1,
+              "atimeNs": 0,
+              "mtimeSec": 2,
+              "mtimeNs": 0,
+              "ino": 237272180
+            },
+            {
+              "op": "fstatat",
+              "path": "source",
+              "fd": -2,
+              "status": 0,
+              "errno": 2,
+              "atimeSec": 1,
+              "atimeNs": 0,
+              "mtimeSec": 2,
+              "mtimeNs": 0,
+              "ino": 237272180
+            },
+            {
+              "op": "fstatat",
+              "path": "target",
+              "fd": -2,
+              "status": -1,
+              "errno": 2,
+              "atimeSec": 0,
+              "atimeNs": 0,
+              "mtimeSec": 0,
+              "mtimeNs": 0,
+              "ino": 0
+            },
+            {
+              "op": "open",
+              "path": "source",
+              "flags": 0,
+              "fd": 4,
+              "errno": 2
+            },
+            {
+              "op": "fstat",
+              "path": "",
+              "fd": 4,
+              "status": 0,
+              "errno": 2,
+              "atimeSec": 1,
+              "atimeNs": 0,
+              "mtimeSec": 2,
+              "mtimeNs": 0,
+              "ino": 237272180
+            },
+            {
+              "op": "fstat",
+              "path": "",
+              "fd": 5,
+              "status": 0,
+              "errno": 45,
+              "atimeSec": 1788565017,
+              "atimeNs": 250413923,
+              "mtimeSec": 1788565017,
+              "mtimeNs": 250413923,
+              "ino": 237272183
+            },
+            {
+              "op": "read",
+              "fd": 4,
+              "count": 5,
+              "errno": 0
+            },
+            {
+              "op": "read",
+              "fd": 4,
+              "count": 0,
+              "errno": 0
+            },
+            {
+              "op": "futimens-request",
+              "fd": 5,
+              "atimeSec": 1,
+              "atimeNs": 0,
+              "mtimeSec": 2,
+              "mtimeNs": 0
+            }
+          ],
+          "after": {
+            "source": {
+              "atimeMs": 1788565017250.8677,
+              "mtimeMs": 2000,
+              "ino": 237272180,
+              "dev": 16777234,
+              "uid": 501,
+              "gid": 0,
+              "mode": 33188,
+              "size": 5
+            },
+            "target": {
+              "atimeMs": 1000,
+              "mtimeMs": 2000,
+              "ino": 237272183,
+              "dev": 16777234,
+              "uid": 501,
+              "gid": 0,
+              "mode": 33261,
+              "size": 5
+            }
+          },
+          "sourceHex": "ff0080410a",
+          "targetHex": "ff0080410a",
+          "afterReads": {
+            "source": {
+              "atimeMs": 1788565017250.8677,
+              "mtimeMs": 2000,
+              "ino": 237272180,
+              "dev": 16777234,
+              "uid": 501,
+              "gid": 0,
+              "mode": 33188,
+              "size": 5
+            },
+            "target": {
+              "atimeMs": 1788565017251.5962,
+              "mtimeMs": 2000,
+              "ino": 237272183,
+              "dev": 16777234,
+              "uid": 501,
+              "gid": 0,
+              "mode": 33261,
+              "size": 5
+            }
+          }
+        },
+        "source-adapter": {
+          "before": {
+            "source": {
+              "atimeMs": 1000,
+              "mtimeMs": 2000,
+              "ino": 237272185,
+              "dev": 16777234,
+              "uid": 501,
+              "gid": 0,
+              "mode": 33188,
+              "size": 5
+            },
+            "target": null
+          },
+          "result": {
+            "exitCode": 0,
+            "stdout": "",
+            "stderr": ""
+          },
+          "trace": [
+            {
+              "op": "fstat",
+              "path": "/source",
+              "atimeMs": 1000,
+              "mtimeMs": 2000,
+              "ino": 237272185,
+              "dev": 16777234,
+              "uid": 501,
+              "gid": 0,
+              "mode": 33188,
+              "size": 5
+            },
+            {
+              "op": "utimes-request",
+              "path": "/target",
+              "atimeMs": 1000,
+              "mtimeMs": 2000
+            },
+            {
+              "op": "stat-after-utimes",
+              "path": "/target",
+              "atimeMs": 1000,
+              "mtimeMs": 2000,
+              "ino": 237272211,
+              "dev": 16777234,
+              "uid": 501,
+              "gid": 0,
+              "mode": 33152,
+              "size": 5
+            }
+          ],
+          "after": {
+            "source": {
+              "atimeMs": 1788565017755.0251,
+              "mtimeMs": 2000,
+              "ino": 237272185,
+              "dev": 16777234,
+              "uid": 501,
+              "gid": 0,
+              "mode": 33188,
+              "size": 5
+            },
+            "target": {
+              "atimeMs": 1000,
+              "mtimeMs": 2000,
+              "ino": 237272211,
+              "dev": 16777234,
+              "uid": 501,
+              "gid": 0,
+              "mode": 33261,
+              "size": 5
+            }
+          },
+          "sourceHex": "ff0080410a",
+          "targetHex": "ff0080410a",
+          "afterReads": {
+            "source": {
+              "atimeMs": 1788565017755.0251,
+              "mtimeMs": 2000,
+              "ino": 237272185,
+              "dev": 16777234,
+              "uid": 501,
+              "gid": 0,
+              "mode": 33188,
+              "size": 5
+            },
+            "target": {
+              "atimeMs": 1788565017756.1165,
+              "mtimeMs": 2000,
+              "ino": 237272211,
+              "dev": 16777234,
+              "uid": 501,
+              "gid": 0,
+              "mode": 33261,
+              "size": 5
+            }
+          }
+        }
+      }
+    ]
+  }
+}

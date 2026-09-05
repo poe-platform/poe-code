@@ -7,6 +7,8 @@ export { createShufCommand, createShufCommands, shufCommands } from "./commands/
 export type { ShufCommandsOptions } from "./commands/shuf/index.js";
 export { createTruncateCommand, createTruncateCommands, truncateCommands } from "./commands/truncate/index.js";
 export type { TruncateCommandsOptions } from "./commands/truncate/index.js";
+export { createInstallCommand, createInstallCommands, installCommands } from "./commands/install/index.js";
+export type { InstallCommandsOptions, InstallModeRequest, InstallContextRequest } from "./commands/install/options.js";
 export { createDeviceFileSystem } from "./fs/devices/index.js";
 export type { DeviceFileSystem } from "./fs/devices/index.js";
 export { trapExtension } from "./shell/extensions/trap/index.js";

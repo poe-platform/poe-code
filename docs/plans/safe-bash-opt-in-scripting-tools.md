@@ -241,11 +241,22 @@ this request to keep additions out of the default package.
   requires a second charge. These are open author fixes, not qualified passes.
 - Independent review approves the shared exclusive-output extension; the root
   replay passes all 113 contract/runtime cases, including four new independent
-  tests. A separate install regression still fails (129/130): direct execution
-  can settle cancellation before its admitted buffered writer drains. Passing
-  public Shell tests do not waive direct-command cleanup; this remains an open
+  tests. A separate install regression still fails (129/130): buffered Shell
+  execution can settle cancellation before its admitted writer drains. Passing
+  other public tests does not waive buffered-writer cleanup; this remains an open
   author fix. The shared helper is ready for its own commit without claiming
   install completion.
+- Shared exclusive output is locally committed as `a7dc981ff`. Install's final
+  writer-ownership fix now passes independent review and root replay: 132 source
+  tests and nineteen actual compiled/public tests, zero failures/skips, plus
+  strict source/consumer types. The new public direct-execution control passed
+  before the repair; its buffered Shell counterpart reproduced the real failure
+  and passes only after rebuilding the repair. Both profiles remain covered.
+  The separate opt-in install milestone is ready for commit, with factory/options
+  exports confined to the local optional entry and five literal canonical tests.
+  This does not erase the six documented foreign-group backend differences.
+  Guarded lint's ninth run completes with exit 0 and one unused-import warning in
+  the in-flight jobs test; no install finding is reported.
 
 - First implementation wave: cmp, yes, shuf and virtual devices in disjoint leaf
   directories. Root is qualifying native oracles and the opt-in delivery boundary.

@@ -1,0 +1,102 @@
+{
+  "kind": "Fresh explicit manual temporary-disk native capture after TDD hardlink-backup fix. Complete final bytes, not unit disk fixtures.",
+  "binary": "/tmp/safe-bash-scripting-oracles-20260904/coreutils-9.7-clean/src/ginstall",
+  "rows": [
+    {
+      "args": [
+        "-b",
+        "target~",
+        "target"
+      ],
+      "native": {
+        "exitCode": 1,
+        "stdout": "",
+        "stderr": "install: backing up 'target' might destroy source;  'target~' not copied\n"
+      },
+      "virtual": {
+        "exitCode": 1,
+        "stdout": "",
+        "stderr": "install: backing up 'target' might destroy source;  'target~' not copied\n"
+      },
+      "bytes": {
+        "source": {
+          "native": "ff0080410a",
+          "virtual": "ff0080410a"
+        },
+        "target": {
+          "native": "09",
+          "virtual": "09"
+        },
+        "target~": {
+          "native": "07",
+          "virtual": "07"
+        }
+      },
+      "exactOutput": true
+    },
+    {
+      "args": [
+        "-b",
+        "source",
+        "target"
+      ],
+      "native": {
+        "exitCode": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "virtual": {
+        "exitCode": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "bytes": {
+        "source": {
+          "native": "ff0080410a",
+          "virtual": "ff0080410a"
+        },
+        "target": {
+          "native": "ff0080410a",
+          "virtual": "ff0080410a"
+        },
+        "target~": {
+          "native": "09",
+          "virtual": "09"
+        }
+      },
+      "exactOutput": true
+    },
+    {
+      "args": [
+        "-b",
+        "source",
+        "target"
+      ],
+      "native": {
+        "exitCode": 1,
+        "stdout": "",
+        "stderr": "install: cannot backup 'target': Is a directory\n"
+      },
+      "virtual": {
+        "exitCode": 1,
+        "stdout": "",
+        "stderr": "install: cannot backup 'target': Is a directory\n"
+      },
+      "bytes": {
+        "source": {
+          "native": "ff0080410a",
+          "virtual": "ff0080410a"
+        },
+        "target": {
+          "native": "09",
+          "virtual": "09"
+        },
+        "target~": {
+          "nativeType": "directory",
+          "virtualType": "directory"
+        }
+      },
+      "exactOutput": true
+    }
+  ]
+}

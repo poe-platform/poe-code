@@ -483,6 +483,14 @@ function assertSource7Discovery(files) {
     "tests/commands/yq-native/review.test.ts",
   ]) assert.ok(files.includes(path), "native-profile yq test is missing: " + path);
   for (const path of [
+    "tests/shell/extensions/arrays/cells.test.ts",
+    "tests/shell/extensions/arrays/input-bytes.test.ts",
+    "tests/shell/extensions/arrays/process-bytes.test.ts",
+    "tests/shell/extensions/arrays/runtime-bytes.test.ts",
+    "tests/shell/extensions/arrays/review.test.ts",
+    "tests/plugins/byte-array-runtime.test.ts",
+  ]) assert.ok(files.includes(path), "byte-array foundation test is missing: " + path);
+  for (const path of [
     "tests/fs/devices/devices.test.ts",
     "tests/fs/devices/native.test.ts",
     "tests/fs/devices/review.test.ts",

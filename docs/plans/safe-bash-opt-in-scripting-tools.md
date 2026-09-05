@@ -281,6 +281,32 @@ this request to keep additions out of the default package.
   after the build and explicit optional rebuild completed, all 21 tests passed.
   An earlier public invocation omitted the explicit profile variable and ran no
   tests; that capture is not counted as a pass.
+- Local yq commit `3c9bcfe60` also captured the next native-backed regression
+  cases added after root's staged snapshot: `git commit --only` takes the current
+  worktree files. Postcommit verification therefore runs 254 tests, with 241
+  passing and thirteen concrete parity failures. The preceding 236-test result
+  describes the earlier cohort, not a green committed tree. Preserve these new
+  regressions and repair them in the next yq commit; no history rewrite or test
+  weakening is authorized. Root has released the author to fix the mismatches.
+- Byte-array/read foundation independent review first found eight failures in
+  five runtime behaviors: child arg0, locale-aware array lengths, C-locale joins,
+  raw positional-star separators and isolated UTF-8 IFS components. The repaired
+  runtime passes all 36 unchanged independent assertions. Independent and root
+  arrays/read/value runs pass 416 tests; independent full trap coverage passes
+  184. Root additionally verifies six compiled public-runtime cases and strict
+  source/test types. The earlier approved corrections to two read expectations
+  are backed by native C and UTF-8 observations, not relaxed failure assertions.
+  These changes preserve immutable bytes through cells, owned input records,
+  local restoration and child argv; they do not yet implement fuller array
+  grammar, mapfile/readarray, descriptor/deadline options or background jobs.
+  A separately reproduced parser gap rejects positional length `${#1}`.
+  Actual raw array/child/IFS byte output is visually inspected in
+  `arrays-public-final-visual.png`. The preceding image is preserved as a harness
+  mistake: it assumed variables persist between separate exec invocations; the
+  corrected capture initializes every independent invocation and asserts bytes.
+- Guarded root lint's tenth run completes with exit 0 and no warnings. This
+  precedes the final runtime byte repairs and subsequent dd/public additions;
+  it is not a lint claim for those later edits.
 
 - First implementation wave: cmp, yes, shuf and virtual devices in disjoint leaf
   directories. Root is qualifying native oracles and the opt-in delivery boundary.

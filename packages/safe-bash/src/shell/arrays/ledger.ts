@@ -203,6 +203,25 @@ export class ArrayOwner {
     return admission;
   }
 
+  share(admission: Admission): void {
+    this.assertOpen();
+    const source = admission.owner;
+    if (admission.released || !source || admission.ledger !== this.ledger || source.root() !== this.root()) {
+      throw new ArrayFailure("cell ownership is not shareable");
+    }
+    source.assertOpen();
+    for (let destination: ArrayOwner | undefined = source; destination; destination = destination.parent) {
+      let common = destination === this;
+      for (let ancestor = this.parent; ancestor && !common; ancestor = ancestor.parent) {
+        common = destination === ancestor;
+      }
+      if (common) {
+        if (source !== destination) destination.adopt(admission);
+        return;
+      }
+    }
+  }
+
   private root(): ArrayOwner {
     let root: ArrayOwner = this;
     while (root.parent) root = root.parent;

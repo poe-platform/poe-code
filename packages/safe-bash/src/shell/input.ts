@@ -2,6 +2,9 @@ import { FsError, toByteSource } from "../contracts/index.js";
 import type { ByteSource, FileSystem } from "../contracts/index.js";
 import { yieldTurn } from "../contracts/yield.js";
 import { Budget, interruptible } from "./runtime.js";
+import { shellValueBytes, shellValueFromBytes, shellValueText } from "../contracts/value.js";
+import type { ShellValue, ValueReservation } from "../contracts/value.js";
+import type { ValueScope } from "./value-state.js";
 
 export async function fileInput(fs: FileSystem, path: string, maxBytes: number, signal: AbortSignal): Promise<ByteSource> {
   signal.throwIfAborted();
@@ -106,7 +109,7 @@ class InputCursor {
       this.#read = Promise.resolve().then(() => this.#closed ? { value: undefined, done: true as const } : this.#iterator.next()).then((result) => {
         if (result.done) return { value: undefined, done: true };
         if (!(result.value instanceof Uint8Array)) throw new TypeError("Shell stdin must yield Uint8Array");
-        return { value: new Uint8Array(result.value), done: false };
+        return { value: result.value, done: false };
       });
       void this.#read.then(() => { this.#readSettled = true; }, () => { this.#readSettled = true; });
     }
@@ -137,20 +140,71 @@ class InputCursor {
   }
 }
 
-class ReadText {
-  readonly #chunks: string[] = [];
-  readonly #pending: string[] = [];
+export interface ReadLineOptions {
+  readonly count?: number;
+  readonly delimiter?: number;
+  readonly byteCount?: boolean;
+  readonly exact?: boolean;
+}
 
-  append(value: string): void {
-    if (!value) return;
-    this.#pending.push(value);
-    if (this.#pending.length === 1024) {
-      this.#chunks.push(this.#pending.join(""));
-      this.#pending.length = 0;
+export interface ReadField {
+  readonly start: number;
+  readonly end: number;
+  readonly value: ShellValue;
+}
+
+export interface ReadLine {
+  readonly value: string;
+  readonly shellValue: ShellValue;
+  readonly escaped: ReadonlySet<number>;
+  readonly escapedByteOffsets: readonly number[];
+  readonly terminated: boolean;
+  fields(ifs: ShellValue, maximum?: number): Promise<readonly ReadField[]>;
+  release(): Promise<void>;
+}
+
+class ReadBuffer {
+  #buffer: Uint8Array = new Uint8Array();
+  #reservation: ValueReservation | undefined;
+  length = 0;
+
+  constructor(readonly scope: ValueScope, readonly maximum: number) {}
+
+  append(byte: number): void {
+    if (this.length === this.#buffer.length) {
+      const capacity = Math.min(this.maximum, Math.max(64, this.#buffer.length * 2));
+      const reservation = this.scope.reserve(capacity + 64, 1);
+      try {
+        const buffer = new Uint8Array(capacity);
+        buffer.set(this.#buffer);
+        reservation.commit(buffer);
+        this.#reservation?.release();
+        this.#reservation = reservation;
+        this.#buffer = buffer;
+      } catch (error) { reservation.release(); throw error; }
     }
+    this.#buffer[this.length++] = byte;
   }
 
-  finish(): string { return this.#chunks.join("") + this.#pending.join(""); }
+  bytes(): Uint8Array { return this.#buffer.subarray(0, this.length); }
+}
+
+function utf8Length(first: number): number {
+  return first >= 0xc2 && first <= 0xdf ? 2 : first >= 0xe0 && first <= 0xef ? 3 : first >= 0xf0 && first <= 0xf4 ? 4 : 1;
+}
+
+function utf8Continuation(first: number, position: number, byte: number): boolean {
+  if (byte < 0x80 || byte > 0xbf) return false;
+  return position !== 1 || (first !== 0xe0 || byte >= 0xa0) && (first !== 0xed || byte < 0xa0)
+    && (first !== 0xf0 || byte >= 0x90) && (first !== 0xf4 || byte < 0x90);
+}
+
+function displayWidth(bytes: Uint8Array, offset: number): number {
+  const first = bytes[offset]!;
+  const width = utf8Length(first);
+  let consumed = 1;
+  while (consumed < width && offset + consumed < bytes.length && utf8Continuation(first, consumed, bytes[offset + consumed]!)) consumed++;
+  return consumed;
 }
 
 export class ShellInput implements ByteSource {
@@ -159,6 +213,7 @@ export class ShellInput implements ByteSource {
   readonly #lifetime = new AbortController();
   readonly #cleanupSignal: AbortSignal;
   readonly signal: AbortSignal;
+  readonly #reads = new Set<() => Promise<void>>();
   #closing: Promise<void> | undefined;
 
   constructor(source: ByteSource, readonly budget: Budget, signal = budget.signal) {
@@ -192,7 +247,7 @@ export class ShellInput implements ByteSource {
         const end = newline < 0 ? result.value.length : newline + 1;
         if (end < result.value.length) this.#cursor.remainder = result.value.subarray(end);
         this.budget.source(end);
-        if (end) chunks.push(result.value.subarray(0, end));
+        if (end) chunks.push(new Uint8Array(result.value.subarray(0, end)));
         length += end;
         if (newline >= 0) break;
       }
@@ -203,130 +258,200 @@ export class ShellInput implements ByteSource {
     });
   }
 
-  line(raw: boolean, options?: { count?: number; delimiter?: number; byteCount?: boolean; exact?: boolean }): Promise<{ value: string; escaped: ReadonlySet<number>; terminated: boolean }> {
-    return this.#cursor.consume(this.signal, () => options ? this.readBounded(raw, options) : this.readLine(raw));
-  }
-
-  private async readBounded(raw: boolean, options: { count?: number; delimiter?: number; byteCount?: boolean; exact?: boolean }): Promise<{ value: string; escaped: ReadonlySet<number>; terminated: boolean }> {
-    const text = new ReadText();
-    let characters = 0;
-    const escaped = new Set<number>();
-    const decoder = new TextDecoder("utf-8", { fatal: true });
-    const delimiter = options.delimiter ?? 10;
-    let chunk: Uint8Array = new Uint8Array();
-    let offset = 0;
-    let length = 0;
-    let escaping = false;
-    let escapedCharacter = false;
-    let units = 0;
-    let pulls = 0;
-    let terminated = options.count === 0;
-    try {
-      while (!terminated) {
-        if (offset === chunk.length) {
-          if (++pulls % 128 === 0) await yieldTurn(this.signal);
-          const result = await this.#cursor.take(this.signal);
-          if (result.done) {
+  line(raw: boolean, options: ReadLineOptions = {}): Promise<ReadLine> {
+    const { count, delimiter = 10, byteCount = false, exact = false } = options;
+    if (count !== undefined && (!Number.isSafeInteger(count) || count < 0)) throw new RangeError("Invalid read count");
+    if (!Number.isInteger(delimiter) || delimiter < 0 || delimiter > 255) throw new RangeError("Invalid read delimiter");
+    return this.#cursor.consume(this.signal, async () => {
+      const scope = this.budget.values.scope();
+      let active = 1;
+      let closed = false;
+      let completion: Promise<void> | undefined;
+      let resolve!: () => void;
+      const finish = (): void => {
+        if (!closed || active) return;
+        this.#reads.delete(release);
+        scope.close();
+        resolve();
+      };
+      const release = (): Promise<void> => {
+        if (!completion) {
+          completion = new Promise(done => { resolve = done; });
+          closed = true;
+          finish();
+        }
+        return completion;
+      };
+      const assertOpen = (): void => {
+        this.signal.throwIfAborted();
+        if (closed) throw new Error("Read result is closed");
+        scope.assertOpen();
+      };
+      let chunk: Uint8Array = new Uint8Array();
+      let offset = 0;
+      try {
+        scope.reserve(256, 3);
+        this.#reads.add(release);
+        const buffer = new ReadBuffer(scope, this.budget.limits.maxOutputBytes);
+        const escapedByteOffsets: number[] = [];
+        let escaping = false;
+        let visible = true;
+        let units = 0;
+        let consumed = 0;
+        let checkpoint = 0;
+        let pulls = 0;
+        let terminated = count === 0;
+        const nextByte = async (): Promise<number | undefined> => {
+          while (offset === chunk.length) {
+            if (++pulls % 128 === 0) await yieldTurn(this.signal);
+            const result = await this.#cursor.take(this.signal);
+            if (result.done) return undefined;
+            chunk = result.value;
+            offset = 0;
+          }
+          this.signal.throwIfAborted();
+          return chunk[offset++]!;
+        };
+        const account = (): void => {
+          if (++consumed > this.budget.limits.maxOutputBytes) this.budget.fail("maxOutputBytes");
+        };
+        while (!terminated) {
+          if (consumed - checkpoint >= 1024) { checkpoint = consumed; await yieldTurn(this.signal); }
+          const first = await nextByte();
+          if (first === undefined) {
+            if (escaping && visible && !buffer.length) buffer.append(1);
             break;
           }
-          chunk = result.value;
-          offset = 0;
-          if (!chunk.length) continue;
-        }
-        const byte = chunk[offset++]!;
-        if (!options.exact && !escaping && byte === delimiter) { terminated = true; break; }
-        if (++length > this.budget.limits.maxOutputBytes) this.budget.fail("maxOutputBytes");
-        if (length % 1024 === 0) {
-          await yieldTurn(this.signal);
-          this.signal.throwIfAborted();
-        }
-        if (byte === 0) continue;
-        if (!raw && !escaping && byte === 92) { escaping = true; continue; }
-        if (escaping) {
+          const quoted = escaping;
           escaping = false;
-          if (byte === 10) continue;
-          escapedCharacter = true;
-        }
-        const decoded = decoder.decode(Uint8Array.of(byte), { stream: true });
-        let decodedCharacters = 0;
-        for (const character of decoded) {
-          if (escapedCharacter) {
-            escapedCharacter = false;
-            escaped.add(characters);
+          if (quoted && first === 10) { account(); continue; }
+          if (!quoted && !raw && first === 92) { account(); escaping = true; continue; }
+          if (!quoted && !exact && first === delimiter) { terminated = true; break; }
+          account();
+          if (!quoted && first === 0) continue;
+          if (quoted && visible && first !== 0) {
+            scope.reserve(64, 2);
+            escapedByteOffsets.push(buffer.length);
           }
-          text.append(character);
-          characters++;
-          decodedCharacters++;
-        }
-        units += options.byteCount ? 1 : decodedCharacters;
-        if (units === options.count) terminated = true;
-      }
-      decoder.decode();
-      return { value: text.finish(), escaped, terminated };
-    } catch (error) {
-      if (error instanceof TypeError && error.message.includes("encoded data")) throw new Error("read: unsupported non-UTF-8 text boundary");
-      throw error;
-    } finally {
-      if (offset < chunk.length) this.#cursor.remainder = chunk.subarray(offset);
-    }
-  }
-
-  private async readLine(raw: boolean): Promise<{ value: string; escaped: ReadonlySet<number>; terminated: boolean }> {
-    const chunks: Uint8Array[] = [];
-    let length = 0;
-    let terminated = false;
-    while (true) {
-      const result = await this.#cursor.take(this.signal);
-      if (result.done) break;
-      const newline = result.value.indexOf(10);
-      const chunk = newline < 0 ? result.value : result.value.subarray(0, newline);
-      if (chunk.byteLength > this.budget.limits.maxOutputBytes - length) this.budget.fail("maxOutputBytes");
-      chunks.push(new Uint8Array(chunk));
-      length += chunk.byteLength;
-      if (newline >= 0) {
-        if (newline + 1 < result.value.length) this.#cursor.remainder = result.value.subarray(newline + 1);
-        let slashes = 0;
-        if (!raw) {
-          for (let chunkIndex = chunks.length - 1; chunkIndex >= 0; chunkIndex--) {
-            const bytes = chunks[chunkIndex]!;
-            let offset = bytes.length - 1;
-            while (offset >= 0 && bytes[offset] === 92) { slashes++; offset--; }
-            if (offset >= 0) break;
+          if (visible && first === 0) {
+            if (quoted && !buffer.length) buffer.append(1);
+            visible = false;
+          } else if (visible) buffer.append(first);
+          const width = byteCount ? 1 : utf8Length(first);
+          for (let position = 1; position < width; position++) {
+            const next = await nextByte();
+            if (next === undefined) break;
+            account();
+            if (next === 0) visible = false;
+            else if (visible) buffer.append(next);
+            if (!utf8Continuation(first, position, next)) break;
           }
+          units++;
+          if (units === count) terminated = true;
+          if (units % 1024 === 0) await yieldTurn(this.signal);
         }
-        if (slashes % 2 === 1) {
-          while (chunks.at(-1)?.length === 0) chunks.pop();
-          chunks[chunks.length - 1] = chunks.at(-1)!.subarray(0, -1);
-          length--;
-        } else { terminated = true; break; }
+        this.signal.throwIfAborted();
+        const bytes = buffer.bytes();
+        const shellValue = shellValueFromBytes(bytes, scope);
+        const escaped = new Set<number>();
+        let escapeIndex = 0;
+        let characters = 0;
+        for (let start = 0; start < bytes.length; start += displayWidth(bytes, start)) {
+          if (escapedByteOffsets[escapeIndex] === start) { escaped.add(characters); escapeIndex++; }
+          if (++characters % 1024 === 0) await yieldTurn(this.signal);
+        }
+        Object.freeze(escapedByteOffsets);
+        const result: ReadLine = {
+          value: shellValueText(shellValue), shellValue, escaped, escapedByteOffsets, terminated, release,
+          fields: async (ifs, maximum) => {
+            assertOpen();
+            active++;
+            try {
+            if (maximum !== undefined && (!Number.isSafeInteger(maximum) || maximum < 0)) throw new RangeError("Invalid read field count");
+            const separators = shellValueBytes(ifs, scope);
+            scope.reserve(128, 2);
+            const keys = new Set<number>();
+            const escapedStart = (start: number): boolean => {
+              let lower = 0;
+              let upper = escapedByteOffsets.length;
+              while (lower < upper) {
+                const middle = lower + Math.floor((upper - lower) / 2);
+                const offset = escapedByteOffsets[middle]!;
+                if (offset === start) return true;
+                if (offset < start) lower = middle + 1;
+                else upper = middle;
+              }
+              return false;
+            };
+            const width = (input: Uint8Array, start: number): number => {
+              if (byteCount || input === bytes && escapedStart(start)) return 1;
+              const length = displayWidth(input, start);
+              return length === utf8Length(input[start]!) ? length : 1;
+            };
+            const key = (input: Uint8Array, start: number): number => {
+              let value = 1;
+              for (let position = start, end = start + width(input, start); position < end; position++) value = value * 257 + input[position]!;
+              return value;
+            };
+            let steps = 0;
+            for (let start = 0; start < separators.length; start += width(separators, start)) {
+              const value = key(separators, start);
+              if (!keys.has(value)) { scope.reserve(32, 1); keys.add(value); }
+              for (let position = start, end = start + width(separators, start); position < end; position++) {
+                const byteKey = 257 + separators[position]!;
+                if (!keys.has(byteKey)) { scope.reserve(32, 1); keys.add(byteKey); }
+              }
+              if (++steps % 1024 === 0) { await yieldTurn(this.signal); assertOpen(); }
+            }
+            const separator = (start: number): boolean => !escapedStart(start) && keys.has(key(bytes, start));
+            const whitespace = (start: number): boolean => (bytes[start] === 32 || bytes[start] === 9 || bytes[start] === 10) && separator(start);
+            let end = 0;
+            for (let start = 0; start < bytes.length; start += width(bytes, start)) {
+              if (!whitespace(start)) end = start + width(bytes, start);
+              if (++steps % 1024 === 0) { await yieldTurn(this.signal); assertOpen(); }
+            }
+            let position = 0;
+            const advance = (): Promise<void> | undefined => {
+              assertOpen();
+              position += width(bytes, position);
+              if (++steps % 1024 === 0) return yieldTurn(this.signal);
+              return undefined;
+            };
+            const fields: ReadField[] = [];
+            while (position < end && whitespace(position)) { const pending = advance(); if (pending) await pending; }
+            while (position < end && fields.length < (maximum ?? Number.MAX_SAFE_INTEGER)) {
+              const start = position;
+              while (position < end && !separator(position)) { const pending = advance(); if (pending) await pending; }
+              let fieldEnd = position;
+              while (position < end && whitespace(position)) { const pending = advance(); if (pending) await pending; }
+              if (position < end && separator(position)) { const pending = advance(); if (pending) await pending; }
+              while (position < end && whitespace(position)) { const pending = advance(); if (pending) await pending; }
+              if (maximum !== undefined && fields.length === maximum - 1 && position < end) fieldEnd = end;
+              scope.reserve(64, 1);
+              fields.push(Object.freeze({ start, end: fieldEnd, value: shellValueFromBytes(bytes.subarray(start, fieldEnd), scope) }));
+            }
+            assertOpen();
+            return Object.freeze(fields);
+            } finally { active--; finish(); }
+          },
+        };
+        assertOpen();
+        return Object.freeze(result);
+      } catch (error) { void release(); throw error; }
+      finally {
+        if (offset < chunk.length) this.#cursor.remainder = chunk.subarray(offset);
+        active--;
+        finish();
       }
-    }
-    const bytes = new Uint8Array(length);
-    let offset = 0;
-    for (const chunk of chunks) { bytes.set(chunk, offset); offset += chunk.length; }
-    const value = new TextDecoder().decode(bytes).replace(/\0/gu, "");
-    const escaped = new Set<number>();
-    if (raw || !value.includes("\\")) return { value, escaped, terminated };
-    const text = new ReadText();
-    let characters = 0;
-    for (let index = 0; index < value.length;) {
-      const slash = value.indexOf("\\", index);
-      const span = value.slice(index, slash < 0 ? value.length : slash);
-      text.append(span);
-      for (let pointOffset = 0; pointOffset < span.length; pointOffset += span.codePointAt(pointOffset)! > 0xffff ? 2 : 1) characters++;
-      if (slash < 0 || slash + 1 === value.length) break;
-      const character = String.fromCodePoint(value.codePointAt(slash + 1)!);
-      escaped.add(characters++);
-      text.append(character);
-      index = slash + 1 + character.length;
-    }
-    return { value: text.finish(), escaped, terminated };
+    });
   }
 
   close(): Promise<void> {
     if (!this.#closing) {
       this.#lifetime.abort(new Error("Shell input view closed"));
-      this.#closing = this.#owned ? this.#cursor.close(this.#cleanupSignal) : Promise.resolve();
+      const pending = [...this.#reads].map(release => release());
+      if (this.#owned) pending.push(this.#cursor.close(this.#cleanupSignal));
+      this.#closing = Promise.all(pending).then(() => undefined);
     }
     return this.#closing;
   }

@@ -1,5 +1,7 @@
 import { Admission, ArrayFailure, ArrayOwner, exactSum } from "./ledger.js";
 import type { Tickets } from "./ledger.js";
+import { shellValueByteLength, shellValueRetainedBytes, shellValueText } from "../../contracts/value.js";
+import type { ShellValue } from "../../contracts/value.js";
 
 export const controlNames: ReadonlySet<string> = new Set([
   "PATH", "PWD", "OLDPWD", "HOME", "CDPATH", "IFS", "OPTIND", "OPTERR", "OPTARG", "REPLY", "LANG", "LC_ALL", "LC_CTYPE",
@@ -8,20 +10,33 @@ export const controlNames: ReadonlySet<string> = new Set([
 export class OwnedText {
   references = 1;
 
-  constructor(readonly value: string, readonly bytes: number, readonly admission: Admission) {}
+  constructor(readonly shellValue: ShellValue, readonly bytes: number, readonly admission: Admission) {}
+
+  get value(): string { return shellValueText(this.shellValue); }
 
   retain(): this {
+    if (!this.references || this.admission.released) throw new ArrayFailure("cell ownership is released");
     if (this.references === Number.MAX_SAFE_INTEGER) throw new ArrayFailure("reference capacity is not representable");
     this.references++;
     return this;
   }
 
   release(): void {
-    if (--this.references === 0) this.admission.release();
+    if (this.references && --this.references === 0) this.admission.release();
   }
 }
 
-export async function textToken(owner: ArrayOwner, value: string, signal: AbortSignal): Promise<OwnedText> {
+export async function textToken(owner: ArrayOwner, value: ShellValue, signal: AbortSignal): Promise<OwnedText> {
+  signal.throwIfAborted();
+  owner.assertOpen();
+  if (typeof value !== "string") {
+    const bytes = shellValueByteLength(value);
+    const metadata = exactSum(32, shellValueRetainedBytes(value) - bytes);
+    await owner.ledger.checkpoint(signal, 4);
+    signal.throwIfAborted();
+    const admission = owner.reserve({ payload: bytes, metadata, work: 4 });
+    return new OwnedText(value, bytes, admission);
+  }
   let bytes = 0;
   for (let offset = 0; offset < value.length;) {
     const end = Math.min(value.length, offset + 64);
@@ -33,6 +48,7 @@ export async function textToken(owner: ArrayOwner, value: string, signal: AbortS
     }
     await owner.ledger.checkpoint(signal, 64);
   }
+  signal.throwIfAborted();
   const admission = owner.reserve({ payload: bytes, metadata: 32, work: 4 });
   return new OwnedText(value, bytes, admission);
 }
@@ -64,19 +80,27 @@ export class IndexedBinding {
 
   get(index: number): string | undefined { return this.values.get(index)?.text.value; }
 
+  getValue(index: number): ShellValue | undefined { return this.values.get(index)?.text.shellValue; }
+
   retain(): this {
+    this.owner.assertOpen();
+    if (!this.references) throw new ArrayFailure("binding ownership is released");
     if (this.references === Number.MAX_SAFE_INTEGER) throw new ArrayFailure("reference capacity is not representable");
     this.references++;
     return this;
   }
 
   release(): Promise<void> | undefined {
+    if (!this.references) return this.owner.completion;
     if (--this.references === 0) return this.owner.close();
     return undefined;
   }
 
   insert(index: number, text: OwnedText): void {
+    if (!text.references || text.admission.released) throw new ArrayFailure("cell ownership is released");
     const slot = this.owner.reserve({ slots: 1, metadata: 32, work: 5 });
+    try { this.owner.share(text.admission); }
+    catch (error) { slot.release(); throw error; }
     const previous = this.values.get(index);
     const element = { text, slot };
     slot.cleanup = () => {
@@ -89,21 +113,22 @@ export class IndexedBinding {
   }
 
   async copy(signal: AbortSignal): Promise<IndexedBinding> {
-    const copy = IndexedBinding.create(this.owner.parent!);
+    signal.throwIfAborted();
+    this.owner.assertOpen();
     this.retain();
+    let copy: IndexedBinding | undefined;
     try {
+      copy = IndexedBinding.create(this.owner.parent!);
       for (const [index, element] of this.values) {
         copy.owner.reserve({ work: 2 }).release();
-        const slot = copy.owner.reserve({ slots: 1, metadata: 32, work: 5 });
         const text = element.text.retain();
-        const cloned = { text, slot };
-        slot.cleanup = () => { if (copy.values.get(index) === cloned) copy.values.delete(index); text.release(); };
-        copy.values.set(index, cloned);
-        if (index > copy.maximum) copy.maximum = index;
+        try { copy.insert(index, text); }
+        catch (error) { text.release(); throw error; }
         await copy.owner.ledger.checkpoint(signal, 2);
       }
+      signal.throwIfAborted();
       return copy;
-    } catch (error) { await copy.release(); throw error; }
+    } catch (error) { await copy?.release(); throw error; }
     finally { await this.release(); }
   }
 
@@ -173,6 +198,14 @@ interface NamedBinding {
   readonly admission: Admission;
 }
 
+export interface PreparedBinding {
+  readonly binding: IndexedBinding;
+  readonly tickets: Tickets;
+  validate(): void;
+  publish(): Promise<void> | undefined;
+  close(): Promise<void>;
+}
+
 export class BindingStore {
   readonly bindings = new Map<string, NamedBinding>();
   readonly watches = new Map<string, Watch>();
@@ -186,6 +219,60 @@ export class BindingStore {
   }
 
   get(name: string): IndexedBinding | undefined { return this.bindings.get(name)?.binding; }
+
+  async prepare(name: string, signal: AbortSignal, copy = true): Promise<PreparedBinding> {
+    signal.throwIfAborted();
+    const owner = this.owner;
+    const operation = ArrayOwner.create(owner.ledger, owner);
+    let holding: Admission | undefined;
+    let binding: IndexedBinding | undefined;
+    let retirement: Promise<void> | undefined;
+    let published = false;
+    let closed = false;
+    let completion: Promise<void> | undefined;
+    const close = (): Promise<void> => {
+      if (completion) return completion;
+      closed = true;
+      completion = (async () => {
+        try { if (published) await retirement; else await binding?.release(); }
+        finally {
+          try { await operation.close(); }
+          finally { holding?.release(); }
+        }
+      })();
+      return completion;
+    };
+    try {
+      holding = owner.hold();
+      operation.reserve({ metadata: 192, work: 12 });
+      const watch = await this.watch(name, operation, signal);
+      const tickets = operation.adopt(this.tickets(name));
+      const previous = this.get(name);
+      binding = copy && previous ? await previous.copy(signal) : IndexedBinding.create(owner);
+      const staged = binding;
+      const prepared = await this.prepareName(name, operation, signal);
+      const validate = (): void => {
+        signal.throwIfAborted();
+        if (closed || published) throw new ArrayFailure("binding publication is closed");
+        owner.assertOpen();
+        staged.owner.assertOpen();
+        if (this.owner !== owner || !watch.valid()) throw new ArrayFailure("binding changed during preparation");
+      };
+      validate();
+      return Object.freeze({
+        binding: staged,
+        tickets,
+        validate,
+        publish: (): Promise<void> | undefined => {
+          validate();
+          retirement = this.publish(name, staged, tickets, prepared);
+          published = true;
+          return retirement;
+        },
+        close,
+      });
+    } catch (error) { await close(); throw error; }
+  }
 
   async watch(name: string, operation: ArrayOwner, signal: AbortSignal, owner = this.owner): Promise<BindingWatch> {
     let watch = this.watches.get(name);

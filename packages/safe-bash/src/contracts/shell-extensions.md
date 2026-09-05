@@ -117,6 +117,15 @@ zero. Materializing retained shell values still uses the existing expansion
 budget. This separation does not introduce an aggregate memory limit or an RSS
 guarantee.
 
+Shell execution prepares finite supplied/default stdin and inline redirections,
+and file redirections prepare their canonical descriptor before constructing the
+cursor. Pipeline input carries its own nonconsuming pipe poll. Transparent
+evaluation, source and interpreter invocation retain the enrolled shared cursor;
+arbitrary host iterables retain unknown provenance. Source cleanup is enrolled
+before acquisition and remains required even when cursor construction fails.
+These integrations do not install optional builtins or make arbitrary host input
+pollable.
+
 ## Internal raw input records
 
 `ShellInput.record({ delimiter? })` reads through a byte delimiter, defaulting to

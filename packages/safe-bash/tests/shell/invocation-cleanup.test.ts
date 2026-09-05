@@ -209,6 +209,7 @@ test("closed descriptor return awaits its value and serializes later reads", { t
 
 test("all redirected inputs close and retain both falsey failures", { timeout: 2000 }, async context => {
   const { shell, fs } = setup();
+  Object.defineProperty(fs, "open", { value: undefined });
   await fs.writeFile("/first", new Uint8Array());
   await fs.writeFile("/second", new Uint8Array());
   const entered = deferred(), release = deferred();

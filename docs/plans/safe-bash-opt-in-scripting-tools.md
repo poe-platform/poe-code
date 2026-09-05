@@ -710,6 +710,18 @@ this request to keep additions out of the default package.
   construction checks still include the separately pending runtime wiring.
   The helper commit includes no optional read/mapfile implementation or source
   construction files and does not claim complete command or shell parity.
+- The input-budget helper is locally committed as `741484793`. The separately
+  frozen source-construction candidate can now integrate without the original
+  inline-limit regression. Runtime SHA remains
+  `07da0b9073cef933f9b3614031d4e9b1e821e48a29655b2fba3138c5db850ea3`
+  and shell SHA remains
+  `2ed6fc10d2fc19c1b733760606e590f06580a58a0c94f5492699b2b60ec4e04d`.
+  Its author 46 and independent 14 cases are included in root's 310-case passing
+  source gate; ten new public construction cases are included in the passing
+  21-case compiled gate. Legacy-read fixtures explicitly disable canonical open
+  without changing assertions. Default commands remain unchanged; no optional
+  builtin is installed by this integration. A fresh guarded lint run remains
+  required after the final integration/discovery edits.
 
 - First implementation wave: cmp, yes, shuf and virtual devices in disjoint leaf
   directories. Root is qualifying native oracles and the opt-in delivery boundary.

@@ -1,6 +1,6 @@
 import { cancelTurn, monotonicNow, registerYieldCheckpoint, scheduleTurn, yieldTurn, type TurnHandle } from "../contracts/yield.js";
 import {
-  ACCESS_MODES, FsError, composeMiddleware, createBytePipe, pipeBytes, resolvePath, toByteSource, validateExitCode, writeText,
+  ACCESS_MODES, FsError, composeMiddleware, createBytePipe, pipeBytes, resolvePath, validateExitCode, writeText,
 } from "../contracts/index.js";
 import type {
   ByteSink, ByteSource, CommandContext, CommandInvoker, CommandRegistry, CommandResult, FileSystem, Middleware,
@@ -17,7 +17,7 @@ import { ShellLimitError, ShellSyntaxError } from "./types.js";
 import type { ShellCommandContext, ShellInvokeOptions, ShellLimits } from "./types.js";
 import { forkExtensions } from "./extensions.js";
 import type { ShellExtensionBindings, ShellExtensionContext, ShellExtensionEvent, ShellExtensionInput, ShellExtensionState, ShellIndexedWriter } from "./extensions.js";
-import { fileInput, ShellInput } from "./input.js";
+import { prepareBytesInput, prepareFileInput, ShellInput } from "./input.js";
 import { evaluateArithmetic, prepareArithmetic } from "./arithmetic.js";
 import { evaluatePositionalArithmetic } from "./arithmetic-parameters.js";
 import { compilePattern, matchesPattern } from "./pattern.js";
@@ -2220,7 +2220,9 @@ export class Runtime {
             boundary.deliverySignal, boundary, this.cancellationState, owner,
             childDepth, this.cancellationMaxDepth, frame,
           );
-          const input = new ShellInput(incoming?.readable ?? io.stdin, this.budget, signal);
+          const input = incoming
+            ? new ShellInput(incoming.readable, this.budget, signal, { provenance: "stream", poll: () => incoming.readiness() })
+            : new ShellInput(io.stdin, this.budget, signal);
           const pipeOutput: ByteSink | undefined = outgoing && { [outputFailure]: outgoing.abort, ownedOutput: outgoing.writable.ownedOutput!, write: async (chunk) => {
             try {
               await outgoing.writable.write(chunk);
@@ -2372,7 +2374,7 @@ export class Runtime {
     this.budget.tick();
     if (this.budget.commands % 128 === 0) await yieldTurn(this.signal);
     this.signal.throwIfAborted();
-    const inputs = new Set<ShellInput>();
+    const inputs = new Set<{ close(): void | Promise<void> }>();
     const outputs = new Set<(completion: OutputCompletion) => void | Promise<void>>();
     const finishOutputs = async (status: number): Promise<void> => {
       const pending = [...outputs];
@@ -2606,7 +2608,7 @@ export class Runtime {
     return value;
   }
 
-  async redirect(redirects: readonly Redirect[], state: State, io: IO, inputs: Set<ShellInput>, outputs: Set<(completion: OutputCompletion) => void | Promise<void>>, isolatedInlineInput = false, persistMoves = false, fileShortcut = false, line?: number): Promise<IO> {
+  async redirect(redirects: readonly Redirect[], state: State, io: IO, inputs: Set<{ close(): void | Promise<void> }>, outputs: Set<(completion: OutputCompletion) => void | Promise<void>>, isolatedInlineInput = false, persistMoves = false, fileShortcut = false, line?: number): Promise<IO> {
     this.signal.throwIfAborted();
     if (redirects.length > this.budget.limits.maxRedirects) this.budget.fail("maxRedirects");
     io.descriptors ??= new Map<number, Descriptor>([
@@ -2662,7 +2664,10 @@ export class Runtime {
           if (Buffer.byteLength(value) >= this.budget.limits.maxExpansionBytes) this.budget.fail("maxExpansionBytes");
           value += "\n";
         }
-        const input = new ShellInput(toByteSource(value), this.budget, this.signal);
+        const prepared = prepareBytesInput(value, this.budget);
+        inputs.add(prepared);
+        io[invocationScope].register(prepared.close);
+        const input = new ShellInput(prepared.source, this.budget, this.signal, prepared.options);
         inputs.add(input);
         descriptors.set(redirect.descriptor, { input, stdinIsDefault: false });
         continue;
@@ -2693,10 +2698,28 @@ export class Runtime {
           await interruptible(this.fs.access(path, 4, options), this.signal);
           const stat = await interruptible(this.fs.stat(path, options), this.signal);
           if (stat.type === "directory" && !fileShortcut) throw new Error(`${target}: Is a directory`);
-          const source = stat.type === "directory" ? toByteSource("")
-            : await fileInput(this.fs, path, this.budget.limits.maxInputBytes, this.signal);
-          const input = new ShellInput(source, this.budget, this.signal);
-          inputs.add(input);
+          const inputOwner: { input?: ShellInput } = {};
+          let closing: Promise<void> | undefined;
+          const cleanups: (() => void | Promise<void>)[] = [];
+          const close = (): Promise<void> => closing ??= (async () => {
+            const failures: unknown[] = [];
+            try { await inputOwner.input?.close(); } catch (error) { failures.push(error); }
+            for (const cleanup of cleanups) {
+              try { await cleanup(); }
+              catch (error) { if (!failures.some(failure => Object.is(failure, error))) failures.push(error); }
+            }
+            throwCleanupFailures(failures);
+          })();
+          inputs.add({ close });
+          io[invocationScope].register(close);
+          const prepared = stat.type === "directory" ? prepareBytesInput("", this.budget)
+            : await prepareFileInput({ fs: this.fs, signal: this.signal, registerCleanup: close => {
+              cleanups.push(close);
+            } }, path, this.budget);
+          if (!cleanups.includes(prepared.close)) cleanups.push(prepared.close);
+          io[invocationScope].assertOpen();
+          const input = new ShellInput(prepared.source, this.budget, this.signal, prepared.options);
+          inputOwner.input = input;
           descriptors.set(redirect.descriptor, { input, stdinIsDefault: false });
         } else {
           const append = redirect.operator === ">>";
@@ -2801,7 +2824,7 @@ export class Runtime {
     return { name: match[1]!, append: match[2] === "+", value: { offset: word.offset, parts: [{ ...first, value: first.value.slice(match[0].length) }, ...word.parts.slice(1)] } };
   }
 
-  async simple(command: Extract<Command, { kind: "simple" }>, state: State, originalIO: IO, inputs: Set<ShellInput>, outputs: Set<(completion: OutputCompletion) => void | Promise<void>>, fileShortcut = false): Promise<number> {
+  async simple(command: Extract<Command, { kind: "simple" }>, state: State, originalIO: IO, inputs: Set<{ close(): void | Promise<void> }>, outputs: Set<(completion: OutputCompletion) => void | Promise<void>>, fileShortcut = false): Promise<number> {
     state.substitutionStatus = 0;
     const assignments: ({ name: string; value: Word; append: boolean; kind?: undefined } | ArrayAssignment)[] = [];
     let wordIndex = 0;

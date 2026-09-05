@@ -6,7 +6,7 @@ import type {
 import { warnIfHostProcessEnv } from "./env-warning.js";
 import { parseShellUnit } from "./parser.js";
 import { extensionState } from "./extensions.js";
-import { ShellInput } from "./input.js";
+import { prepareBytesInput, ShellInput, type PreparedShellInput } from "./input.js";
 import { byteLocale } from "./locale.js";
 import { Budget, Capture, interruptible, resolveLimits, Runtime, RuntimeCancellationState } from "./runtime.js";
 import type { State } from "./runtime.js";
@@ -226,6 +226,15 @@ export class Shell implements PluginHost {
       },
     });
     let stdin: ShellInput | undefined;
+    let preparedInput: PreparedShellInput | undefined;
+    const closeInput = async (): Promise<void> => {
+      try { await stdin?.close(); }
+      finally { await preparedInput?.close(); }
+    };
+    scope.register(async () => {
+      try { await closeInput(); }
+      catch (error) { if (!budget.signal.aborted || !Object.is(error, budget.signal.reason)) throw error; }
+    });
     const io = {
       [invocationScope]: scope,
       stdin: toByteSource(""),
@@ -239,7 +248,10 @@ export class Shell implements PluginHost {
     try {
       try {
         let unit = parseShellUnit(source, 0, byteLocale({ ...this.#options.env, ...options.env }));
-        stdin = new ShellInput(typeof options.stdin === "string" || options.stdin instanceof Uint8Array ? toByteSource(options.stdin) : options.stdin ?? toByteSource(""), budget);
+        if (options.stdin === undefined || typeof options.stdin === "string" || options.stdin instanceof Uint8Array) {
+          preparedInput = prepareBytesInput(options.stdin ?? "", budget);
+          stdin = new ShellInput(preparedInput.source, budget, budget.signal, preparedInput.options);
+        } else stdin = new ShellInput(options.stdin, budget);
         io.stdin = stdin;
         await interruptible(this.#ready, budget.signal);
         const cwd = resolvePath("/", options.cwd ?? this.#options.cwd ?? "/");
@@ -302,8 +314,8 @@ export class Shell implements PluginHost {
       if (runtime && state) exitCode = await runtime.finishShell(state, io, exitCode);
     } catch (error) { failed = true; throw error; }
     finally {
-      if (failed) await stdin?.close().catch(() => {});
-      else await stdin?.close();
+      if (failed) await closeInput().catch(() => {});
+      else await closeInput();
     }
     const stdoutBytes = stdout.takeBytes();
     const stderrBytes = stderr.takeBytes();

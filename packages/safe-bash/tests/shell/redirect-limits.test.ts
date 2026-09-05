@@ -131,6 +131,7 @@ test("below-cap redirects preserve left-to-right effects and stop after the firs
 test("below-cap buffered inputs retain eager timing and independent byte allowances", async t => {
   const { shell, fs } = fixture(t, { maxRedirects: 3, maxInputBytes: 8 });
   await fs.writeFile("/input", new Uint8Array(8));
+  Object.defineProperty(fs, "open", { value: undefined });
   Object.defineProperty(fs, "readStream", { value: undefined });
   const read = t.mock.method(fs, "readFile");
   assert.equal((await shell.exec(": 3<input 3<input 3<input")).exitCode, 0);

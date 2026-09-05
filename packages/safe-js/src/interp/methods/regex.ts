@@ -1,11 +1,17 @@
 import {
   createSandboxClosure,
   getSandboxRegexPattern,
+  isSandboxClosure,
+  isSandboxRegex,
+  type SandboxCallContext,
   type SandboxRegex,
   type SandboxValue
 } from "../values.js";
 import { matchRegex, type RegexMatch } from "../regex/engine.js";
 import type { Budget } from "../budget.js";
+import { invokeBuiltinClosure } from "../builtin-call.js";
+import { getSandboxDataProperty } from "../object-model.js";
+import { sandboxString } from "../string-coercion.js";
 
 export type RegexMethodName = "exec" | "test";
 
@@ -18,7 +24,7 @@ export function isRegexMethodName(property: string | number): property is RegexM
 export function getRegexMember(
   target: SandboxRegex,
   property: string | number,
-  budget?: Budget
+  budget: Budget
 ): SandboxValue | undefined {
   if (property === "source") return escapeRegexSource(target.source, budget);
   if (property === "flags") {
@@ -32,7 +38,7 @@ export function getRegexMember(
   return createSandboxClosure({
     sandbox: true,
     name: `RegExp#${property}`,
-    call: (args) => callRegexMethod(target, property, args)
+    call: (args, context) => callRegexMethod(context?.thisValue, property, args, budget, context)
   });
 }
 
@@ -81,13 +87,37 @@ export function setRegexMember(
   target.lastIndex = Number(value);
 }
 
-export function callRegexMethod(
-  target: SandboxRegex,
+export async function callRegexMethod(
+  target: SandboxValue,
   methodName: RegexMethodName,
-  args: readonly SandboxValue[]
-): SandboxValue {
-  const match = executeRegex(target, String(args[0]));
-  return methodName === "test" ? match !== null : toMatchArray(match, String(args[0]));
+  args: readonly SandboxValue[],
+  budget: Budget,
+  context?: SandboxCallContext
+): Promise<SandboxValue> {
+  if (target === null || typeof target !== "object" || (methodName === "exec" && !isSandboxRegex(target))) {
+    throw new TypeError(`RegExp#${methodName} requires ${methodName === "exec" ? "a regex" : "an object"} receiver.`);
+  }
+  const retained = {};
+  budget.setRetainedValues(retained, () => [target, ...args]);
+  try {
+    const input = await sandboxString(args[0], budget, context);
+    if (methodName === "test") {
+      const exec = context?.getProperty === undefined
+        ? getSandboxDataProperty(target, "exec", budget) : context.getProperty(target, "exec");
+      if (isSandboxClosure(exec)) {
+        const result = await invokeBuiltinClosure(exec, [input], budget, context, target);
+        if (result !== null && typeof result !== "object") {
+          throw new TypeError("RegExp#test exec must return an object or null.");
+        }
+        return result !== null;
+      }
+    }
+    if (!isSandboxRegex(target)) throw new TypeError("RegExp execution requires a regex receiver.");
+    const match = executeRegex(target, input);
+    return methodName === "test" ? match !== null : toMatchArray(match, input);
+  } finally {
+    budget.setRetainedValues(retained, undefined);
+  }
 }
 
 export function executeRegex(target: SandboxRegex, input: string): RegexMatch | null {

@@ -1630,7 +1630,7 @@ Scoped run 33956590050 and publish job 101280918830 succeeded, publishing
 @poe-platform/safe-js 0.1.118 on September 5 at 09:00:24 UTC. CLI publication
 from run 33956590155 remains separately monitored.
 
-### 30. RegExp constructor input semantics — validated repair in progress
+### 30. RegExp constructor input semantics — delivered; release monitored
 
 Three built native comparisons fail: null becomes an empty pattern instead of
 the string 'null'; guest pattern/flags coercion throws rather than running the
@@ -1683,6 +1683,17 @@ empty/escaped/slash/line-terminator sources, flag combinations, identity and
 clone cursor behavior. This constructor repair is qualified for its own commit
 and main push; remote delivery and publication remain separate checks.
 
+Delivered and closed: b939a8af594418e90d2650b6bc7b0ee75f47d48e was committed,
+pushed and verified on remote main. Scoped run 33957033340 and CLI run
+33957033522 are monitored. The previous String-pattern CLI run 33956590155
+was cancelled during unit validation and its release job was skipped: do not
+claim CLI publication for it. Release validation uses cancel-in-progress on
+main, so follow the constructor descendant for delivery of both changes.
+
+Scoped run 33957033340 and publish job 101282112459 succeeded, publishing
+@poe-platform/safe-js 0.1.119 on September 5 at 09:09:34 UTC. The CLI release
+remains separately monitored; scoped publication is not proof of CLI publication.
+
 ### 31. String matchAll iterator protocol — validated open gap
 
 Two built native comparisons fail: native matchAll returns a non-array with a
@@ -1717,6 +1728,45 @@ input before failing; native exec rejects that receiver before coercion. Three
 comparisons fail and the exec rejection-order control passes. Do not implement
 a blanket regex-brand check for test: that would preserve another real gap.
 
+Fresh native comparisons on delivered main reproduce the failures. The 87-case
+method matrix fails 62 cases with 25 passing controls. Repair actual receiver
+selection, once-only sandbox input coercion, custom exec lookup after coercion,
+custom receiver/argument dispatch, object-or-null result validation, and async
+custom exec object results without awaiting their guest promise. Keep exec's
+regex brand check distinct from test's object requirement. The behavioral matrix
+then passes all 87 cases.
+
+Budget probes reproduce loss of a receiver or fallback-coercion input when the
+guest clears its binding. Retain receiver and arguments through method execution
+and release them in finally. The produced-input budget already works and remains
+a passing control. The admission cohort initially has five failures with 89
+passes; one of those failures was an incomplete expected match-array shape in
+the new success-cleanup fixture, not a runtime defect. Correct that fixture to
+include index/input/groups metadata. Existing low-level fixtures now supply the
+actual receiver and Budget, and await the coercion-capable internal call; their
+cursor and metadata assertions are unchanged. The five-file focused cohort
+passes all 512 tests. Build, package, built replay/budget checks, paired CLI
+screenshot QA and maintained root lint precede this repair's own atomic push.
+
+The maintained selected build passed 23 workspaces and four fresh ESM import
+checks. The full SafeJS package passed 11,694 tests with 41 skips. Built root/core
+passed 16 native comparisons, 16 data-admission checks and two pending-effect
+replays (input coercion with an extracted exec, and a custom exec callback).
+The schema-only zero-capability CLI pair validates actual receivers, once-only
+input coercion, custom exec dispatch and detached-call rejection before visual
+inspection and final maintained lint.
+
+The paired CLI run passed after 70 uncached builds. Its screenshot was visually
+inspected: readable successful result, expected capture/index/custom result and
+detached-call rejection, with zero spawns. Run final maintained root lint with
+source and build outputs frozen before this method repair's commit and push.
+
+Final maintained lint passed all 9,754 configured files with zero errors or
+warnings, then types and workflows passed. Four further built comparisons pass
+for Array callbacks with explicit regex receivers, global cursor transitions,
+nested custom exec and bound receiver precedence. The method repair is qualified
+for its own commit/push; publication remains a separate monitored outcome.
+
 ### 34. RegExp intrinsic properties — validated open gaps
 
 For /a/gims, global, ignoreCase, multiline and dotAll are undefined instead of
@@ -1736,3 +1786,11 @@ the storage and execution failures. A third shows a string cursor becoming a
 number immediately, while native retains the string. Numeric clone reset is a
 passing constructor control, not a repair for arbitrary cursor storage. This
 requires separate coercion, retention, regex value types and snapshot work.
+
+A fresh Infinity cursor comparison also fails: native /a/g with lastIndex set
+to Infinity produces no match and resets to zero; SafeJS instead matches from
+zero and ends at one. Include ToLength saturation in the deferred-coercion work.
+A public negative-cursor run and snapshot restore passed, so do not label that
+path broken based only on the legacy snapshot validator's numeric restrictions.
+Audit graph traversal, copying, legacy and replay snapshots when adding object
+cursors, rather than changing assignment alone.

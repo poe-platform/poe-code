@@ -82,7 +82,7 @@ describe("STR-04 regex cursor semantics", () => {
       const regex = createSandboxRegex("a", flags, lastIndex);
       const actual =
         method === "exec" || method === "test"
-          ? callRegexMethod(regex, method, ["aba"])
+          ? await callRegexMethod(regex, method, ["aba"], new Budget())
           : await callStringMethod(
               "aba",
               method,

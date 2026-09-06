@@ -669,7 +669,13 @@ async function evaluateObjectExpression(
       const releaseKey = retainValues(context.budget, () => [key.value]);
       let value: EvaluationResult;
       try {
-        value = await evaluateNode(property.value, { ...context, inferredName: String(key.value) });
+        value = await evaluateNode(property.value, {
+          ...context,
+          inferredName: String(key.value),
+          ...(property.value.type === "FunctionExpression" && property.value.method === true
+            ? { functionEnvironment: { homeObject: object } }
+            : {})
+        });
       } finally {
         releaseKey();
       }

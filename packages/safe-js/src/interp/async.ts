@@ -135,7 +135,12 @@ export async function evaluateFunctionExpression(
     return {
       kind: "normal",
       hasValue: true,
-      value: createInterpretedClosure(node, context, evaluateNode)
+      value: createInterpretedClosure(
+        node,
+        context,
+        evaluateNode,
+        node.method === true ? context.functionEnvironment?.homeObject : undefined
+      )
     };
   }
 

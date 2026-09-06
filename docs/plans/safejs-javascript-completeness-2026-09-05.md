@@ -3149,7 +3149,7 @@ Both publications are now verified. Scoped run 33998004033 published
 018e020567c503c3ef70a31ba3f5f460bf3dedd4. This CLI release also includes the
 public-class ancestor. The accessor work remains local and unreleased.
 
-### 53. Accessor descriptors and class getter/setter syntax — confirmed gap
+### 53. Accessor descriptors — closed at verified main delivery
 
 Native/current-source comparisons return 7 natively for a descriptor getter
 reading `this.base`, while SafeJS throws `TypeError: Only data property
@@ -3238,7 +3238,7 @@ main delivery. Scoped release 34001679145 and CLI release 34001679251 are being
 monitored in the background; no publication is claimed yet. The user's staged
 Bash patch hash remains unchanged. Class syntax proceeds without a release wait.
 
-### 54. Class getter/setter syntax — validated, implementation pending
+### 54. Class getter/setter syntax — closed at verified main delivery
 
 The just-built public API rejects class getters, setters, computed pairs and
 static getters with the explicit class-accessor syntax error. Native JavaScript
@@ -3277,3 +3277,47 @@ retained roots after close. The skill support note was updated from its template
 synced and validated. This class-syntax increment is ready for its own commit
 and main push; object syntax, private elements and portable accessor snapshots
 are not claimed complete.
+
+Class-accessor delivery is verified on remote main as
+2be978c604ed97fb77806c626dfd1bc77b1c5222 on September 6 UTC. Close the class
+syntax issue at main delivery. Scoped workflow 34002139353 and CLI workflow
+34002139452 are monitored in the background. The predecessor descriptor CLI
+workflow 34001679251 completed green but explicitly skipped publication at
+00:46:11 UTC because main had advanced. It is not a published CLI version;
+the newer release must cover both commits.
+
+Class accessor scoped publication is verified: workflow 34002139353 published
+`@poe-platform/safe-js@0.1.140` at 00:50:05 UTC on September 6. The corresponding
+CLI release remains under observation while object-method work continues.
+
+### 55. Object method home objects and super — confirmed prerequisite gap
+
+On the current built API, an object method reading super.x fails with the
+explicit super syntax error; native JavaScript returns 7. An ordinary this.x
+method is a passing control. Object-literal getters and setters independently
+remain rejected. Establish method home-object semantics before adding those
+accessors, including borrowed receivers, live prototype changes, arrows, async
+methods, resource retention and snapshot implications. This is a separately
+validated improvement, not part of the already delivered class syntax.
+
+A further independent probe confirms that an ordinary method named __proto__
+is incorrectly treated as a prototype declaration: native owns a function-valued
+property, while SafeJS reports no own property and undefined. Track that defect
+for its own atomic fix; do not silently mix it into method-super support.
+
+The method-super suite reproduced 24 failures with nine passing controls.
+Object shorthand methods now capture their defining object's home identity;
+ordinary function-valued properties and nested functions still reject super.
+The initial 33 tests pass. Three additional checkpoint cases pass without any
+snapshot change, including ordinary methods, async methods and an escaped
+method observing a home-prototype change after resume. The maintained package
+and harness checks are running before a separate commit/main push.
+
+Qualification passed: 13,237 maintained SafeJS tests (41 skipped), 163 harness
+tests, focused ESLint and package/root TypeScript. The normal build and real
+schema-only harness passed. Its inspected screenshot shows value 8, stored 7,
+borrowed receiver 9, arrow result 7, async result 7 and zero spawns. Built API
+checks cover direct/borrowed/async super calls and twenty persistent home-object
+prototype-change/cleanup cycles with no retained roots after close. This
+method-super increment is ready for its own commit and main push. The separate
+__proto__ method classification and object accessor syntax gaps remain open.

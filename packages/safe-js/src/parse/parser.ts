@@ -3337,7 +3337,10 @@ class Parser {
     asyncToken: Token | undefined,
     methodStart: Position
   ): FunctionExpression {
-    const { params, body } = this.parseFunctionParts(false, ordinaryFunctionContext);
+    const { params, body } = this.parseFunctionParts(false, {
+      ...ordinaryFunctionContext,
+      superProperty: true
+    });
 
     return this.withFunctionSource({
       type: "FunctionExpression",

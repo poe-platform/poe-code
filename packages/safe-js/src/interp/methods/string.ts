@@ -7,6 +7,7 @@ import { normalizeLastIndex } from "../regex/engine.js";
 import { sandboxNumber, sandboxString } from "../string-coercion.js";
 import { retainValues } from "../resources.js";
 import { getSandboxDataProperty, getSandboxPropertyDescriptor } from "../object-model.js";
+import { readPropertyDescriptor } from "../accessors.js";
 import {
   createSandboxClosure,
   createSandboxRegex,
@@ -18,7 +19,7 @@ import {
   type SandboxRegex,
   type SandboxValue
 } from "../values.js";
-import { executeRegex, toMatchArray } from "./regex.js";
+import { executeRegex, getRegexMember, toMatchArray } from "./regex.js";
 import { restoreSandboxRegExpIterator } from "../regexp-iterator.js";
 
 type StringMethodName =
@@ -191,7 +192,7 @@ export function callStringMethod(
   const readProperty = (key: PropertyKey) => context?.getProperty !== undefined
     ? context.getProperty(pattern, key)
     : key === "flags" && isSandboxRegex(pattern) && getSandboxPropertyDescriptor(pattern, key, budget) === undefined
-      ? pattern.flags : getSandboxDataProperty(pattern, key, budget);
+      ? getRegexMember(pattern, key, budget, context) : getSandboxDataProperty(pattern, key, budget);
   const dispatch = () => {
     const overriddenRegex = isSandboxRegex(pattern) && getSandboxPropertyDescriptor(pattern, symbol, budget) !== undefined;
     const applyHook = (hook: SandboxValue) => {
@@ -273,9 +274,9 @@ function callStringMethodBody(
   }
 
   const regex = args[0];
-  if (isSandboxRegex(regex) && regex.lastIndex !== null && typeof regex.lastIndex === "object" &&
-      ((methodName === "match" && !regex.flags.includes("g")) ||
-       methodName === "matchAll")) {
+  if (isSandboxRegex(regex) && (methodName === "matchAll" ||
+      (methodName === "match" && !regex.flags.includes("g") &&
+       regex.lastIndex !== null && typeof regex.lastIndex === "object"))) {
     return callStringRegexCursor(value, methodName, regex, budget, parent, context);
   }
 
@@ -716,26 +717,69 @@ async function callStringPattern(
   }
 }
 
-async function callStringRegexCursor(
+function callStringRegexCursor(
   value: string,
   methodName: "match" | "matchAll",
   regex: SandboxRegex,
   budget: Budget,
   parent: CompileScope | undefined,
   context: SandboxCallContext | undefined
-): Promise<SandboxValue> {
+): SandboxValue | Promise<SandboxValue> {
   const operation = budget.acquireCompileOwner(false, parent?.owner);
   const compilation = new CompileScope(operation.owner);
-  const cursor = regex.lastIndex;
+  let cursor: SandboxValue;
+  let flagsValue: SandboxValue;
+  let flags: string | undefined;
+  let matcher: SandboxRegex | undefined;
   const retained = {};
-  budget.setRetainedValues(retained, () => [value, regex, cursor]);
-  try {
-    const lastIndex = await sandboxNumber(cursor, budget, context);
-    return callMatchLikeMethod(value, methodName, [regex], compilation, lastIndex);
-  } finally {
+  budget.setRetainedValues(retained, () => [value, regex, cursor, flagsValue, flags, matcher]);
+  const release = () => {
     budget.setRetainedValues(retained, undefined);
     compilation.dispose();
     operation.release();
+  };
+  const readCursor = () => {
+    cursor = regex.lastIndex;
+    const finish = (lastIndex: number) => {
+      if (matcher !== undefined) {
+        matcher.lastIndex = normalizeLastIndex(lastIndex);
+        return restoreSandboxRegExpIterator({ matcher, input: value, exhausted: false });
+      }
+      return callMatchLikeMethod(value, methodName, [regex], compilation, lastIndex);
+    };
+    const lastIndex = sandboxNumber(cursor, budget, context);
+    return lastIndex instanceof Promise ? lastIndex.then(finish) : finish(lastIndex);
+  };
+  const clone = (text: string) => {
+    flags = text;
+    flagsValue = undefined;
+    matcher = createSandboxRegex(regex.source, flags, 0, compilation);
+    flags = undefined;
+    return readCursor();
+  };
+  const convertFlags = (value: SandboxValue) => {
+    flagsValue = value;
+    const text = sandboxString(value, budget, context);
+    return text instanceof Promise ? text.then(clone) : clone(text);
+  };
+  try {
+    let result: SandboxValue | Promise<SandboxValue>;
+    if (methodName === "matchAll") {
+      const descriptor = context?.getProperty === undefined
+        ? getSandboxPropertyDescriptor(regex, "flags", budget) : undefined;
+      const value = context?.getProperty !== undefined
+        ? context.getProperty(regex, "flags")
+        : descriptor !== undefined
+          ? readPropertyDescriptor(descriptor, regex, context)
+          : getRegexMember(regex, "flags", budget, context);
+      result = value instanceof Promise ? value.then(convertFlags) : convertFlags(value);
+    } else result = readCursor();
+    if (result instanceof Promise) return result.finally(release);
+    release();
+    return result;
+  } catch (error) {
+    release();
+    throw error;
   }
 }
 

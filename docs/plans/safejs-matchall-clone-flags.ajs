@@ -1,0 +1,21 @@
+import { S } from "schema";
+
+export const schema = S.Object({ title: S.String() });
+
+export default async function main(frontmatter) {
+  const order = [];
+  const regex = /a/g;
+  Object.defineProperty(regex, 'flags', {
+    get() { order.push('flags'); return order.length === 1 ? 'g' : 'i'; }
+  });
+  regex.lastIndex = { valueOf() { order.push('cursor'); return 0; } };
+  const matches = Array.from('AA'.matchAll(regex), match => match[0]);
+  if (matches.join('|') !== 'A' || order.join('|') !== 'flags|flags|cursor')
+    throw new Error('Observable clone flags failed');
+  const overridden = /a/g;
+  Object.defineProperty(overridden, 'ignoreCase', { value: true });
+  const insensitive = Array.from('A'.matchAll(overridden), match => match[0]);
+  if (insensitive.join('|') !== 'A') throw new Error('Flag property override failed');
+  await 0;
+  return { ok: true, title: frontmatter.title, matches, order, insensitive };
+}

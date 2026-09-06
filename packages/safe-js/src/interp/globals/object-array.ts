@@ -332,14 +332,12 @@ export function createObjectArrayGlobals(options: {
           }),
           fromCharCode: createSandboxClosure({
             sandbox: true,
-            call: (args) =>
-              options.budget.allocateString(Reflect.apply(String.fromCharCode, String, [...args])),
+            call: (args, context) => stringFromCodes(args, String.fromCharCode, options.budget, context),
             name: "fromCharCode"
           }),
           fromCodePoint: createSandboxClosure({
             sandbox: true,
-            call: (args) =>
-              options.budget.allocateString(Reflect.apply(String.fromCodePoint, String, [...args])),
+            call: (args, context) => stringFromCodes(args, String.fromCodePoint, options.budget, context),
             name: "fromCodePoint"
           })
         }
@@ -840,6 +838,39 @@ function budgetSandboxValue(value: unknown, budget: Budget): SandboxValue {
   const sandboxValue = deepCopyToSandbox(value);
 
   return allocateProducedSandboxValue(sandboxValue, budget);
+}
+
+function stringFromCodes(
+  args: readonly SandboxValue[],
+  convert: (value: number) => string,
+  budget: Budget,
+  context?: SandboxCallContext
+): string | Promise<string> {
+  let result = "";
+  let index = 0;
+  const release = retainValues(budget, () => [...args, result]);
+  try {
+    const output = advance();
+    if (typeof output !== "string") return output.finally(release);
+    release();
+    return output;
+  } catch (error) {
+    release();
+    throw error;
+  }
+
+  function advance(): string | Promise<string> {
+    while (index < args.length) {
+      budget.visitNode();
+      const number = sandboxNumber(args[index++], budget, context);
+      if (number instanceof Promise) return number.then(value => {
+        result = budget.allocateString(result + convert(value));
+        return advance();
+      });
+      result = budget.allocateString(result + convert(number));
+    }
+    return result;
+  }
 }
 
 function stringRaw(

@@ -1,7 +1,7 @@
 import type { Budget, CompileOwner } from "../budget.js";
 import { retainValues } from "../resources.js";
 import { readPropertyDescriptor } from "../accessors.js";
-import { getSandboxPropertyDescriptor } from "../object-model.js";
+import { getBoxedPrototype, getSandboxPropertyDescriptor } from "../object-model.js";
 import { isSandboxDate } from "../date.js";
 import { dateToJSON } from "./date.js";
 import { boxedValue, isSandboxBox } from "../boxed.js";
@@ -175,7 +175,7 @@ async function stringifyProperty(
   try {
     if (isSandboxDate(value) && getSandboxPropertyDescriptor(value, "toJSON", state.budget) === undefined) {
       value = await dateToJSON(value, state.budget, state.context);
-    } else if (isStringifyContainer(value)) {
+    } else if (typeof value === "bigint" || isStringifyContainer(value)) {
       const toJSON = await getStringifyProperty(value, "toJSON", state);
       if (isSandboxClosure(toJSON)) {
         value = await callStringifyClosure(toJSON, [key], value, state);
@@ -396,12 +396,13 @@ function toSandboxValue(value: unknown): SandboxValue {
 }
 
 function getStringifyProperty(
-  target: SandboxArray | SandboxObject,
+  target: SandboxArray | SandboxObject | bigint,
   key: string,
   state: StringifyState
 ): SandboxValue | Promise<SandboxValue> {
   if (state.context?.getProperty !== undefined) return state.context.getProperty(target, key);
-  const descriptor = getSandboxPropertyDescriptor(target, key, state.budget);
+  const object = typeof target === "bigint" ? getBoxedPrototype(target, state.budget) : target;
+  const descriptor = object === undefined ? undefined : getSandboxPropertyDescriptor(object, key, state.budget);
   return descriptor === undefined
     ? undefined
     : readPropertyDescriptor(descriptor, target, state.context);

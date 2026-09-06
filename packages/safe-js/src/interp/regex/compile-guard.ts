@@ -177,13 +177,17 @@ function measureNode(node: RegexNode): number {
       return 3;
     case "characterClass": {
       let usage = 5 + node.items.length;
+      if (node.operation !== undefined) usage += 1 + node.operation.length;
+      if (node.strings !== undefined) usage += 1;
       for (const item of node.items) {
         usage +=
           item.type === "character"
             ? 3 + item.value.length
             : item.type === "range"
               ? 4 + item.from.length + item.to.length
-              : item.type === "property" ? 4 + item.value.length : 4;
+              : item.type === "property" ? 4 + item.value.length + (item.strings === undefined ? 0 : 1)
+                : item.type === "set" ? 3 + measureNode({ type: "characterClass", ...item.value })
+                  : item.type === "strings" ? 4 + item.values.reduce((total, value) => total + 1 + value.length, 0) : 4;
       }
       return usage;
     }

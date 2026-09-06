@@ -3338,8 +3338,8 @@ describe("parse", () => {
   });
 
   it("locates invalid regex flags in parser diagnostics", () => {
-    expect(() => parseModule("const pattern = /a/v;")).toThrowError(
-      "Unsupported regex flag 'v' at line 1, column 20."
+    expect(() => parseModule("const pattern = /a/z;")).toThrowError(
+      "Unsupported regex flag 'z' at line 1, column 20."
     );
   });
 

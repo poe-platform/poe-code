@@ -816,7 +816,7 @@ function splitNormalized(
       while (result.length < limit) {
         const match = executeRegex(splitter, value, Number(splitter.lastIndex));
         if (match === null) break;
-        if (match.text.length === 0) splitter.lastIndex = advanceStringIndex(value, match.index, splitter.flags.includes("u"));
+        if (match.text.length === 0) splitter.lastIndex = advanceStringIndex(value, match.index, splitter.flags.includes("u") || splitter.flags.includes("v"));
         endedWithZeroWidthMatch = match.text.length === 0 && match.index === value.length;
         if (
           match.text.length === 0 &&
@@ -1034,7 +1034,7 @@ function collectRegexMatches(regex: SandboxRegex, value: string, all: boolean, b
     budget?.allocateArrayLength(matches.length + 1);
     matches.push(match);
     lastIndex = match.index + match.text.length;
-    if (all && match.text.length === 0) regex.lastIndex = lastIndex = advanceStringIndex(value, lastIndex, regex.flags.includes("u"));
+    if (all && match.text.length === 0) regex.lastIndex = lastIndex = advanceStringIndex(value, lastIndex, regex.flags.includes("u") || regex.flags.includes("v"));
   } while (all);
   return matches;
 }

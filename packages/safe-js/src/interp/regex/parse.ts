@@ -8,6 +8,7 @@ export type RegexFlags = {
   global: boolean;
   sticky: boolean;
   unicode: boolean;
+  unicodeSets: boolean;
   ignoreCase: boolean;
   multiline: boolean;
   dotAll: boolean;
@@ -19,7 +20,16 @@ export type CharacterClassItem =
   | { type: "character"; value: string }
   | { type: "range"; from: string; to: string }
   | { type: "kind"; kind: CharacterKind; negated: boolean }
-  | { type: "property"; value: string; negated: boolean };
+  | { type: "property"; value: string; negated: boolean; strings?: boolean }
+  | { type: "strings"; values: string[] }
+  | { type: "set"; value: CharacterSet };
+
+export type CharacterSet = {
+  negated: boolean;
+  items: CharacterClassItem[];
+  operation?: "intersection" | "subtraction";
+  strings?: boolean;
+};
 
 export type RegexNode =
   | { type: "empty" }
@@ -29,7 +39,7 @@ export type RegexNode =
   | { type: "dot" }
   | { type: "anchor"; kind: "start" | "end" }
   | { type: "wordBoundary"; negated: boolean }
-  | { type: "characterClass"; negated: boolean; items: CharacterClassItem[] }
+  | ({ type: "characterClass" } & CharacterSet)
   | { type: "sequence"; elements: RegexNode[] }
   | { type: "alternation"; alternatives: RegexNode[] }
   | { type: "group"; capturing: boolean; index?: number; name?: string; body: RegexNode }
@@ -57,7 +67,7 @@ export function parseRegex(
     guard.checkLength(flags.length, true);
     guard.allocate(5 + valueUnits);
     const parsedFlags = parseFlags(flags, guard);
-    const parser = new RegexParser(source, guard, parsedFlags.unicode);
+    const parser = new RegexParser(source, guard, parsedFlags.unicode || parsedFlags.unicodeSets, parsedFlags.unicodeSets);
     const body = parser.parse();
     guard.allocate(5 + source.length);
     const pattern: RegexPattern = { source, flags: parsedFlags, captureCount: parser.captureCount, body };
@@ -79,7 +89,8 @@ class RegexParser {
   constructor(
     private readonly source: string,
     private readonly guard: RegexCompileGuard,
-    private readonly unicode: boolean
+    private readonly unicode: boolean,
+    private readonly unicodeSets: boolean
   ) {}
 
   private get position(): number {
@@ -245,6 +256,7 @@ class RegexParser {
   }
 
   private parseCharacterClass(start: number): RegexNode {
+    if (this.unicodeSets) return { type: "characterClass", ...this.parseUnicodeSet(start) };
     const negated = this.peek() === "^";
     if (negated) {
       this.position += 1;
@@ -303,6 +315,99 @@ class RegexParser {
     return { type: "character", value: this.takeCharacter() };
   }
 
+  private parseUnicodeSet(start: number): CharacterSet {
+    this.guard.enterGroup();
+    try {
+      const negated = this.peek() === "^";
+      if (negated) this.position++;
+      this.guard.allocate(5);
+      const items: CharacterClassItem[] = [];
+      let operation: CharacterSet["operation"];
+      while (!this.atEnd() && this.peek() !== "]") {
+        this.guard.array(items.length + 1);
+        let item = this.parseUnicodeSetItem(start);
+        if (this.peek() === "-" && this.source[this.position + 1] !== "-") {
+          this.position++;
+          const right = this.parseUnicodeSetItem(start);
+          if (item.type !== "character" || right.type !== "character") this.fail("Invalid set range", start);
+          if (item.value.codePointAt(0)! > right.value.codePointAt(0)!) this.fail("Set range is out of order", start);
+          this.guard.allocate(4 + item.value.length + right.value.length);
+          item = { type: "range", from: item.value, to: right.value };
+        }
+        if (operation !== undefined && item.type === "range") this.fail("Set operations require nested ranges", start);
+        items.push(item);
+        const operator = this.source.slice(this.position, this.position + 2);
+        if (operator === "&&" || operator === "--") {
+          const next = operator === "&&" ? "intersection" : "subtraction";
+          if ((operation === undefined && (items.length !== 1 || item.type === "range")) ||
+              (operation !== undefined && operation !== next)) this.fail("Mixed set operations", start);
+          if (operation === undefined) this.guard.allocate(1 + next.length);
+          operation = next;
+          this.position += 2;
+          if (this.peek() === "]" || this.atEnd()) this.fail("Missing set operand", start);
+        } else if (operation !== undefined && this.peek() !== "]") this.fail("Missing set operator", start);
+      }
+      if (this.take() !== "]") this.fail("Unterminated character set", start);
+      const mayContainStrings = (item: CharacterClassItem): boolean => {
+        if (item.type === "set") return item.value.strings === true;
+        if (item.type === "property") return item.strings === true;
+        if (item.type === "strings") return item.values.some(value => value.length !== ((value.codePointAt(0) ?? 0) > 0xffff ? 2 : 1));
+        return false;
+      };
+      const strings = operation === "intersection" ? items.every(mayContainStrings)
+        : operation === "subtraction" ? mayContainStrings(items[0]) : items.some(mayContainStrings);
+      if (negated && strings) this.fail("Cannot complement a set containing strings", start);
+      if (strings) this.guard.allocate(1);
+      return { negated, items, ...(operation === undefined ? {} : { operation }), ...(strings ? { strings: true } : {}) };
+    } finally { this.guard.leaveGroup(); }
+  }
+
+  private parseUnicodeSetItem(start: number): CharacterClassItem {
+    if (this.peek() === "[") {
+      this.position++;
+      this.guard.allocate(3);
+      return { type: "set", value: this.parseUnicodeSet(start) };
+    }
+    if (this.source.startsWith("\\q{", this.position)) {
+      this.position += 3;
+      this.guard.allocate(4);
+      const values: string[] = [];
+      let value = "";
+      while (!this.atEnd()) {
+        if (this.peek() === "|" || this.peek() === "}") {
+          this.guard.array(values.length + 1);
+          this.guard.allocate(1);
+          values.push(value);
+          value = "";
+          if (this.take() === "}") return { type: "strings", values };
+        } else {
+          const item = this.parseSetCharacter(start);
+          this.guard.allocate(item.length);
+          value += item;
+        }
+      }
+      this.fail("Unterminated class string", start);
+    }
+    if (this.peek() === "\\") return this.parseClassItem(start);
+    const value = this.parseSetCharacter(start);
+    this.guard.allocate(3 + value.length);
+    return { type: "character", value };
+  }
+
+  private parseSetCharacter(start: number): string {
+    if (this.peek() === "\\") {
+      this.position++;
+      const node = this.parseEscape(true, start);
+      if (node.type !== "literal") this.fail("Class strings require literal characters", start);
+      return node.value;
+    }
+    const character = this.takeCharacter();
+    if (!character || "()[]{}/-|".includes(character) ||
+        ("!#$%&*+,.:;<=>?@^`~".includes(character) && this.peek() === character))
+      this.fail("Invalid character in Unicode set", start);
+    return character;
+  }
+
   private parseEscape(inCharacterClass: boolean, start: number): RegexNode {
     if (this.atEnd()) {
       this.fail("Trailing escape", start);
@@ -358,10 +463,15 @@ class RegexParser {
       const value = this.source.slice(begin, this.position);
       if (this.take() !== "}") this.fail("Unterminated Unicode property escape", start);
       // Only a validated property token reaches the host's single-character classifier.
-      try { new RegExp(`\\p{${value}}`, "u"); }
+      try { new RegExp(`\\${escaped}{${value}}`, this.unicodeSets ? "v" : "u"); }
       catch { this.fail("Unknown Unicode property", start); }
+      let strings = false;
+      if (this.unicodeSets) {
+        try { new RegExp(`\\p{${value}}`, "u"); }
+        catch { strings = true; }
+      }
       this.guard.array(1);
-      return { type: "characterClass", negated: false, items: [{ type: "property", value, negated: escaped === "P" }] };
+      return { type: "characterClass", negated: false, items: [{ type: "property", value, negated: escaped === "P", ...(strings ? { strings: true } : {}) }] };
     }
     if (escaped === "x") {
       this.guard.allocate(4);
@@ -433,7 +543,8 @@ class RegexParser {
       return { type: "literal", value: String.fromCharCode(letter.charCodeAt(0) % 32) };
     }
     if (this.unicode && controls[escaped] === undefined &&
-        !"^$\\.*+?()[]{}|/".includes(escaped) && !(inCharacterClass && escaped === "-"))
+        !"^$\\.*+?()[]{}|/".includes(escaped) && !(inCharacterClass && (escaped === "-" ||
+          (this.unicodeSets && "!#$%&+,.:;<=>?@`~".includes(escaped)))))
       this.fail("Invalid identity escape", start);
     this.guard.allocate(4);
     return { type: "literal", value: controls[escaped] ?? escaped };
@@ -624,6 +735,7 @@ function parseFlags(flags: string, guard: RegexCompileGuard): RegexFlags {
     global: false,
     sticky: false,
     unicode: false,
+    unicodeSets: false,
     ignoreCase: false,
     multiline: false,
     dotAll: false
@@ -635,7 +747,8 @@ function parseFlags(flags: string, guard: RegexCompileGuard): RegexFlags {
     m: "multiline",
     s: "dotAll",
     y: "sticky",
-    u: "unicode"
+    u: "unicode",
+    v: "unicodeSets"
   };
 
   for (let position = 0; position < flags.length; position += 1) {
@@ -651,6 +764,7 @@ function parseFlags(flags: string, guard: RegexCompileGuard): RegexFlags {
     parsed[name] = true;
   }
 
+  if (parsed.unicode && parsed.unicodeSets) throw new SyntaxError("Unicode flags u and v cannot be combined");
   return parsed;
 }
 

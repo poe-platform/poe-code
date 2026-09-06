@@ -1,5 +1,5 @@
 import { allocateRegexSteps } from "../budget.js";
-import type { CharacterClassItem, RegexFlags, RegexNode, RegexPattern } from "./parse.js";
+import type { CharacterClassItem, CharacterSet, RegexFlags, RegexNode, RegexPattern } from "./parse.js";
 
 export type RegexMatch = {
   index: number;
@@ -28,10 +28,11 @@ export function matchRegexFrom(
     return null;
   }
 
-  if (pattern.flags.unicode && startIndex > 0 && startIndex < input.length &&
+  const unicode = pattern.flags.unicode || pattern.flags.unicodeSets;
+  if (unicode && startIndex > 0 && startIndex < input.length &&
       input.charCodeAt(startIndex) >= 0xdc00 && input.charCodeAt(startIndex) <= 0xdfff &&
       input.charCodeAt(startIndex - 1) >= 0xd800 && input.charCodeAt(startIndex - 1) <= 0xdbff) startIndex--;
-  for (let attempt = startIndex; attempt <= input.length; attempt = advanceStringIndex(input, attempt, pattern.flags.unicode)) {
+  for (let attempt = startIndex; attempt <= input.length; attempt = advanceStringIndex(input, attempt, unicode)) {
     const context: MatchContext = { input, flags: pattern.flags, groups: pattern.groups, direction: 1, work: { steps: 0 } };
     charge(context);
     const initialState: MatchState = {
@@ -54,14 +55,15 @@ function* matchNode(
   context: MatchContext
 ): Generator<MatchState> {
   charge(context);
-  const character = readCharacter(context.input, state.position, context.direction, context.flags.unicode);
+  const unicode = context.flags.unicode || context.flags.unicodeSets;
+  const character = readCharacter(context.input, state.position, context.direction, unicode);
 
   switch (node.type) {
     case "empty":
       yield state;
       return;
     case "literal":
-      if (charactersEqual(character, node.value, context.flags.ignoreCase, context.flags.unicode)) {
+      if (charactersEqual(character, node.value, context.flags.ignoreCase, unicode)) {
         yield { ...state, position: state.position + context.direction * character!.length };
       }
       return;
@@ -84,9 +86,9 @@ function* matchNode(
       const end = context.direction === 1 ? capture.end : capture.start;
       while (reference !== end) {
         charge(context);
-        const expected = readCharacter(context.input, reference, context.direction, context.flags.unicode)!;
-        const actual = readCharacter(context.input, position, context.direction, context.flags.unicode);
-        if (!charactersEqual(actual, expected, context.flags.ignoreCase, context.flags.unicode)) return;
+        const expected = readCharacter(context.input, reference, context.direction, unicode)!;
+        const actual = readCharacter(context.input, position, context.direction, unicode);
+        if (!charactersEqual(actual, expected, context.flags.ignoreCase, unicode)) return;
         reference += context.direction * expected.length;
         position += context.direction * actual!.length;
       }
@@ -107,15 +109,23 @@ function* matchNode(
       }
       return;
     case "wordBoundary": {
-      const previousWord = state.position > 0 && matchesCharacterClassItem(context.input[state.position - 1], { type: "kind", kind: "word", negated: false }, context.flags.ignoreCase, context.flags.unicode);
+      const previousWord = state.position > 0 && matchesCharacterClassItem(context.input[state.position - 1], { type: "kind", kind: "word", negated: false }, context.flags.ignoreCase, unicode);
       const nextWord =
-        state.position < context.input.length && matchesCharacterClassItem(context.input[state.position], { type: "kind", kind: "word", negated: false }, context.flags.ignoreCase, context.flags.unicode);
+        state.position < context.input.length && matchesCharacterClassItem(context.input[state.position], { type: "kind", kind: "word", negated: false }, context.flags.ignoreCase, unicode);
       if ((previousWord !== nextWord) !== node.negated) {
         yield state;
       }
       return;
     }
     case "characterClass": {
+      if (context.flags.unicodeSets) {
+        const lengths = [...matchUnicodeSet(node, state.position, context)].sort((a, b) => b - a);
+        for (const length of lengths) {
+          charge(context);
+          yield { ...state, position: state.position + context.direction * length };
+        }
+        return;
+      }
       if (
         character !== undefined &&
         matchesCharacterClass(character, node.items, node.negated, context)
@@ -246,8 +256,10 @@ function matchesCharacterClassItem(
   character: string,
   item: CharacterClassItem,
   ignoreCase: boolean,
-  unicode: boolean
+  unicode: boolean,
+  unicodeSets = false
 ): boolean {
+  if (item.type === "strings" || item.type === "set") return false;
   if (unicode) {
     // Generated atoms only: the host classifies one code point, never executes a guest pattern.
     const hex = (value: string) => `\\u{${value.codePointAt(0)!.toString(16)}}`;
@@ -259,7 +271,7 @@ function matchesCharacterClassItem(
       const kind = item.kind === "digit" ? "d" : item.kind === "word" ? "w" : "s";
       atom = `\\${item.negated ? kind.toUpperCase() : kind}`;
     }
-    return new RegExp(`^(?:${atom})$`, ignoreCase ? "iu" : "u").test(character);
+    return new RegExp(`^(?:${atom})$`, (ignoreCase ? "i" : "") + (unicodeSets ? "v" : "u")).test(character);
   }
   if (item.type === "property") return false;
   if (item.type === "character") {
@@ -289,6 +301,77 @@ function matchesCharacterClassItem(
         ? isWordCharacter(character)
         : isSpaceCharacter(character);
   return item.negated ? !matched : matched;
+}
+
+function matchUnicodeSet(set: CharacterSet, position: number, context: MatchContext): Set<number> {
+  charge(context);
+  let lengths = new Set<number>();
+  for (let index = 0; index < set.items.length; index++) {
+    const next = matchUnicodeSetItem(set.items[index], position, context);
+    if (index === 0) lengths = next;
+    else if (set.operation === undefined) {
+      for (const length of next) { charge(context); lengths.add(length); }
+    } else {
+      for (const length of lengths) {
+        charge(context);
+        if (set.operation === "intersection" ? !next.has(length) : next.has(length)) lengths.delete(length);
+      }
+    }
+  }
+  if (set.negated) {
+    const character = readCharacter(context.input, position, context.direction, true);
+    return new Set(character !== undefined && !lengths.has(character.length) ? [character.length] : []);
+  }
+  return lengths;
+}
+
+function matchUnicodeSetItem(item: CharacterClassItem, position: number, context: MatchContext): Set<number> {
+  charge(context);
+  if (item.type === "set") return matchUnicodeSet(item.value, position, context);
+  const lengths = new Set<number>();
+  if (item.type === "strings") {
+    for (const value of item.values) {
+      charge(context);
+      let reference = context.direction === 1 ? 0 : value.length;
+      let cursor = position;
+      const end = context.direction === 1 ? value.length : 0;
+      while (reference !== end) {
+        charge(context);
+        const expected = readCharacter(value, reference, context.direction, true)!;
+        const actual = readCharacter(context.input, cursor, context.direction, true);
+        if (!charactersEqual(actual, expected, context.flags.ignoreCase, true)) break;
+        reference += context.direction * expected.length;
+        cursor += context.direction * actual!.length;
+      }
+      if (reference === end) lengths.add(Math.abs(cursor - position));
+    }
+    return lengths;
+  }
+  if (item.type === "property" && item.strings) {
+    // A validated property atom denotes a finite Unicode string set. The host
+    // finds its longest member only; guest alternation/backtracking stays here.
+    const atom = `\\p{${item.value}}`;
+    const flags = (context.flags.ignoreCase ? "i" : "") + "v";
+    const matcher = new RegExp(context.direction === 1 ? atom : `(?<=(${atom}))`, flags + "y");
+    matcher.lastIndex = position;
+    const match = matcher.exec(context.input);
+    if (match === null) return lengths;
+    const longest = context.direction === 1 ? match[0] : match[1];
+    const member = new RegExp(`^(?:${atom})$`, flags);
+    let consumed = 0;
+    while (consumed < longest.length) {
+      charge(context);
+      const cursor = context.direction === 1 ? consumed : longest.length - consumed;
+      consumed += readCharacter(longest, cursor, context.direction, true)!.length;
+      const candidate = context.direction === 1 ? longest.slice(0, consumed) : longest.slice(longest.length - consumed);
+      if (member.test(candidate)) lengths.add(consumed);
+    }
+    return lengths;
+  }
+  const character = readCharacter(context.input, position, context.direction, true);
+  if (character !== undefined && matchesCharacterClassItem(character, item, context.flags.ignoreCase, true, true))
+    lengths.add(character.length);
+  return lengths;
 }
 
 function toRegexMatch(input: string, start: number, state: MatchState, hasIndices: boolean, groups?: Record<string, number[]>): RegexMatch {

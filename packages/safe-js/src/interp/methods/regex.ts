@@ -19,7 +19,7 @@ import { sandboxNumber, sandboxString } from "../string-coercion.js";
 export type RegexMethodName = "exec" | "test" | "toString";
 
 const regexMethodNames = new Set<RegexMethodName>(["exec", "test", "toString"]);
-const regexFlagProperties: Readonly<Record<string, string>> = {
+export const regexFlagProperties: Readonly<Record<string, string>> = {
   hasIndices: "d", global: "g", ignoreCase: "i", multiline: "m",
   dotAll: "s", unicode: "u", unicodeSets: "v", sticky: "y"
 };

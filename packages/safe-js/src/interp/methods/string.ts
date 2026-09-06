@@ -19,7 +19,7 @@ import {
   type SandboxRegex,
   type SandboxValue
 } from "../values.js";
-import { executeRegex, getRegexMember, regexExec, toMatchArray } from "./regex.js";
+import { executeRegex, getRegexMember, regexExec, regexFlagProperties, toMatchArray } from "./regex.js";
 import { restoreSandboxRegExpIterator } from "../regexp-iterator.js";
 
 type StringMethodName =
@@ -278,8 +278,9 @@ function callStringMethodBody(
       getSandboxPropertyDescriptor(regex, "exec", budget) !== undefined)
     return callCustomRegexSearch(value, regex, budget, context);
   if (methodName === "match" && isSandboxRegex(regex) &&
-      getSandboxPropertyDescriptor(regex, "exec", budget) !== undefined)
-    return callCustomRegexMatch(value, regex, budget, context);
+      ["exec", "flags", ...Object.keys(regexFlagProperties)].some(key =>
+        getSandboxPropertyDescriptor(regex, key, budget) !== undefined))
+    return callObservableRegexMatch(value, regex, budget, context);
   if (isSandboxRegex(regex) && (methodName === "matchAll" ||
       (methodName === "match" && !regex.flags.includes("g") &&
        regex.lastIndex !== null && typeof regex.lastIndex === "object"))) {
@@ -745,7 +746,7 @@ async function callCustomRegexSearch(
   }
 }
 
-async function callCustomRegexMatch(
+async function callObservableRegexMatch(
   value: string,
   regex: SandboxRegex,
   budget: Budget,

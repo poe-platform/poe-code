@@ -2047,7 +2047,7 @@ function forInKeys(object: object, budget: Budget): string[] {
   for (let current: object | null = object; current !== null; current = getSandboxPrototype(current, budget)) {
     if (depth > 0) budget.visitNode();
     assertSandboxDataDepth(depth++);
-    const properties = isGuestClosure(current) ? materializeFunctionProperties(current) : isSandboxClosure(current) ? current.properties ?? {} : isSandboxMap(current) || isSandboxSet(current) ? getCollectionProperties(current) : current;
+    const properties = isGuestClosure(current) ? materializeFunctionProperties(current) : isSandboxClosure(current) ? current.properties ?? {} : isSandboxRegex(current) ? getRegexProperties(current) : isSandboxMap(current) || isSandboxSet(current) ? getCollectionProperties(current) : current;
     for (const key of Object.getOwnPropertyNames(properties)) {
       if (seen.has(key)) continue;
       seen.add(key);
@@ -2064,7 +2064,7 @@ function hasForInProperty(object: object, key: string, budget: Budget): boolean 
   for (let current: object | null = object; current !== null; current = getSandboxPrototype(current, budget)) {
     if (depth > 0) budget.visitNode();
     assertSandboxDataDepth(depth++);
-    const properties = isGuestClosure(current) ? materializeFunctionProperties(current) : isSandboxClosure(current) ? current.properties ?? {} : isSandboxMap(current) || isSandboxSet(current) ? getCollectionProperties(current) : current;
+    const properties = isGuestClosure(current) ? materializeFunctionProperties(current) : isSandboxClosure(current) ? current.properties ?? {} : isSandboxRegex(current) ? getRegexProperties(current) : isSandboxMap(current) || isSandboxSet(current) ? getCollectionProperties(current) : current;
     if (Object.hasOwn(properties, key)) return true;
   }
   return false;

@@ -1,0 +1,18 @@
+import { S } from "schema";
+
+export const schema = S.Object({ title: S.String() });
+
+export default async (frontmatter) => {
+  const prototype=/x/;
+  prototype.answer=42;
+  const value=Object.create(prototype);
+  const keys=[];
+  for(const key in value) keys.push(key);
+  if(value.answer!==42 || keys.join(",")!=="answer") {
+    throw new Error("Regex prototype properties were not inherited");
+  }
+  let rejected=false;
+  try {value.exec("x")} catch(error){rejected=error instanceof TypeError}
+  if(!rejected) throw new Error("Regex internal slots were inherited");
+  return {title:frontmatter.title,ok:true,answer:value.answer,keys};
+};

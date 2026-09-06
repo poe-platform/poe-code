@@ -347,7 +347,7 @@ export function setSandboxPrototype(
   }
   if (
     (!Array.isArray(value) && !isSandboxRegex(value) && !isSandboxMap(value) && !isSandboxSet(value) && !isPrototypeRecord(value)) ||
-    (prototype !== null && !Array.isArray(prototype) && !isSandboxMap(prototype) && !isSandboxSet(prototype) && !isPrototypeRecord(prototype))
+    (prototype !== null && !Array.isArray(prototype) && !isSandboxRegex(prototype) && !isSandboxMap(prototype) && !isSandboxSet(prototype) && !isPrototypeRecord(prototype))
   ) {
     throw new TypeError(
       "Prototype links require supported sandbox objects."

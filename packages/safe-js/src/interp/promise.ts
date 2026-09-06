@@ -306,21 +306,24 @@ function getPromisePrototype(budget: Budget): SandboxObject {
         const target = context?.thisValue;
         if (!isSandboxPromise(target))
           throw new TypeError("Promise.then requires a promise receiver.");
-        validatePromiseConstructorProperty(target, prototype);
-        observeSandboxPromise(target);
-        const chained = createSandboxPromise(
-          target.promise.then(
-            (value) => {
-              consumeSettledHostCall(target);
-              return runPromiseReaction(onFulfilled, value, "fulfilled", budget, chained, context);
-            },
-            (reason: SandboxValue) => {
-              consumeSettledHostCall(target);
-              return runPromiseReaction(onRejected, reason, "rejected", budget, chained, context);
-            }
-          )
-        );
-        return chained;
+        const finish = () => {
+          observeSandboxPromise(target);
+          const chained = createSandboxPromise(
+            target.promise.then(
+              (value) => {
+                consumeSettledHostCall(target);
+                return runPromiseReaction(onFulfilled, value, "fulfilled", budget, chained, context);
+              },
+              (reason: SandboxValue) => {
+                consumeSettledHostCall(target);
+                return runPromiseReaction(onRejected, reason, "rejected", budget, chained, context);
+              }
+            )
+          );
+          return chained;
+        };
+        const validation = validatePromiseConstructorProperty(target, prototype, budget, context);
+        return validation instanceof Promise ? validation.then(finish) : finish();
       },
       name: "then"
     }),
@@ -412,7 +415,7 @@ function getPromisePrototype(budget: Budget): SandboxObject {
             : readPropertyDescriptor(descriptor, target, context, true);
           return then instanceof Promise ? then.then(invoke) : invoke(then);
         };
-        const validation = validatePromiseConstructorProperty(target, prototype, context);
+        const validation = validatePromiseConstructorProperty(target, prototype, budget, context);
         return validation instanceof Promise ? validation.then(finish) : finish();
       },
       name: "finally"
@@ -448,13 +451,17 @@ function readPromiseReceiverProperty(
 function validatePromiseConstructorProperty(
   receiver: SandboxValue,
   prototype: SandboxObject,
+  budget: Budget,
   context?: SandboxCallContext
 ): void | Promise<void> {
   const validate = (constructor: SandboxValue) => {
     if (constructor !== undefined && (typeof constructor !== "object" || constructor === null))
       throw new TypeError("Promise constructor property must be an object.");
   };
-  const constructor = readPromiseReceiverProperty(receiver, "constructor", prototype, context);
+  const descriptor = getSandboxPropertyDescriptor(receiver, "constructor", budget);
+  const constructor = descriptor === undefined
+    ? readPromiseReceiverProperty(receiver, "constructor", prototype, context)
+    : readPropertyDescriptor(descriptor, receiver, context, true);
   return constructor instanceof Promise ? constructor.then(validate) : validate(constructor);
 }
 

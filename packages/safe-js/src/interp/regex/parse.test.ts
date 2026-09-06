@@ -44,8 +44,8 @@ describe("parseRegex", () => {
     ["(?<=a", "", "Unterminated group at position 0"],
     ["(?<!a", "", "Unterminated group at position 0"],
     ["(?<name>a", "", "Unterminated group at position 0"],
-    ["\\p{Letter}", "", "Unicode property escapes are not supported at position 0"],
-    ["\\P{Letter}", "", "Unicode property escapes are not supported at position 0"]
+    ["\\p{Not_A_Property}", "u", "Unknown Unicode property at position 0"],
+    ["\\P{Not_A_Property}", "u", "Unknown Unicode property at position 0"]
   ])("rejects %s", (source, flags, message) => {
     expect(() => parseRegex(source, flags)).toThrow(message);
   });
@@ -54,10 +54,12 @@ describe("parseRegex", () => {
     ["(", "Unterminated group at position 0"],
     ["[a-", "Unterminated character class at position 0"],
     ["a{3,2}", "Quantifier range is out of order at position 1"],
-    ["*a", "Nothing to repeat at position 0"],
-    ["\\x0", "Invalid hexadecimal escape at position 0"],
-    ["\\u000", "Invalid Unicode escape at position 0"]
+    ["*a", "Nothing to repeat at position 0"]
   ])("reports malformed pattern %s", (source, message) => {
     expect(() => parseRegex(source)).toThrow(message);
+  });
+
+  it.each(["\\x0", "\\u000"])("rejects malformed escapes in Unicode mode: %s", source => {
+    expect(() => parseRegex(source, "u")).toThrow(SyntaxError);
   });
 });

@@ -150,8 +150,13 @@ class RegexParser {
   private parseQuantifiedAtom(): RegexNode {
     const quantifierStart = this.position;
     const current = this.peek();
-    if (current === "*" || current === "+" || current === "?" || current === "{") {
+    if (current === "*" || current === "+" || current === "?" || (current === "{" && this.unicode)) {
       this.fail("Nothing to repeat", quantifierStart);
+    }
+    if (current === "{") {
+      const quantifier = this.parseQuantifier();
+      this.position = quantifierStart;
+      if (quantifier !== undefined) this.fail("Nothing to repeat", quantifierStart);
     }
 
     const body = this.parseAtom();
@@ -301,7 +306,11 @@ class RegexParser {
         this.position += 1;
         const right = this.parseClassItem(start);
         if (left.type !== "character" || right.type !== "character") {
-          this.fail("Character class ranges require literal endpoints", rangePosition);
+          if (this.unicode) this.fail("Character class ranges require literal endpoints", rangePosition);
+          this.guard.array(items.length + 3);
+          this.guard.allocate(4);
+          items.push(left, { type: "character", value: "-" }, right);
+          continue;
         }
         if (left.value.codePointAt(0)! > right.value.codePointAt(0)!) {
           this.fail("Character class range is out of order", rangePosition);
@@ -472,8 +481,7 @@ class RegexParser {
       }
       return { type: "literal", value: String.fromCharCode(code) };
     }
-    if (escaped === "p" || escaped === "P") {
-      if (!this.unicode) this.fail("Unicode property escapes are not supported", start);
+    if (this.unicode && (escaped === "p" || escaped === "P")) {
       if (this.take() !== "{") this.fail("Invalid Unicode property escape", start);
       const begin = this.position;
       while (!this.atEnd() && this.peek() !== "}") {
@@ -498,7 +506,7 @@ class RegexParser {
     }
     if (escaped === "x") {
       this.guard.allocate(4);
-      return { type: "literal", value: this.parseHexEscape(2, "hexadecimal", start) };
+      return { type: "literal", value: this.parseHexEscape(2, "hexadecimal", start, this.unicode ? undefined : "x") };
     }
     if (escaped === "u") {
       this.guard.allocate(4);
@@ -513,7 +521,7 @@ class RegexParser {
           this.fail("Invalid Unicode escape", start);
         return { type: "literal", value: String.fromCodePoint(point) };
       }
-      let value = this.parseHexEscape(4, "Unicode", start);
+      let value = this.parseHexEscape(4, "Unicode", start, this.unicode ? undefined : "u");
       if (this.unicode && value.charCodeAt(0) >= 0xd800 && value.charCodeAt(0) <= 0xdbff &&
           this.source.startsWith("\\u", this.position)) {
         const digits = this.source.slice(this.position + 2, this.position + 6);
@@ -558,12 +566,19 @@ class RegexParser {
       v: "\v",
       "0": "\0"
     };
-    if (escaped === "c" && this.unicode) {
-      const letter = this.take();
-      if (!(letter >= "a" && letter <= "z") && !(letter >= "A" && letter <= "Z"))
-        this.fail("Invalid control escape", start);
+    if (escaped === "c") {
+      const letter = this.peek();
       this.guard.allocate(4);
-      return { type: "literal", value: String.fromCharCode(letter.charCodeAt(0) % 32) };
+      if ((letter >= "a" && letter <= "z") || (letter >= "A" && letter <= "Z") ||
+          (!this.unicode && inCharacterClass && (isDecimalDigit(letter) || letter === "_"))) {
+        this.position++;
+        return { type: "literal", value: String.fromCharCode(letter.charCodeAt(0) % 32) };
+      }
+      if (this.unicode) this.fail("Invalid control escape", start);
+      // The unmatched backslash is literal; leave c as the next atom so a
+      // following quantifier binds to c rather than to the pair.
+      this.position--;
+      return { type: "literal", value: "\\" };
     }
     if (this.unicode && controls[escaped] === undefined &&
         !"^$\\.*+?()[]{}|/".includes(escaped) && !(inCharacterClass && (escaped === "-" ||
@@ -573,12 +588,13 @@ class RegexParser {
     return { type: "literal", value: controls[escaped] ?? escaped };
   }
 
-  private parseHexEscape(length: number, name: string, start: number): string {
+  private parseHexEscape(length: number, name: string, start: number, identity?: string): string {
     const end = this.position + length;
     this.guard.allocate(Math.min(length, this.source.length - this.position));
     this.guard.work(Math.min(length, this.source.length - this.position));
     const digits = this.source.slice(this.position, end);
     if (digits.length !== length || !allHexDigits(digits)) {
+      if (identity !== undefined) return identity;
       this.fail(`Invalid ${name} escape`, start);
     }
     this.position = end;
@@ -688,18 +704,23 @@ class RegexParser {
 
     if (this.peek() === "}") {
       this.position += 1;
+      if (!Number.isSafeInteger(min)) this.fail("Quantifier is too large", start);
       this.guard.allocate(3);
       return { min, max: min };
     }
     if (this.peek() !== ",") {
+      if (!this.unicode) { this.position = start; return undefined; }
       this.fail("Invalid quantifier", start);
     }
     this.position += 1;
     const max = this.parseDecimal();
     if (this.peek() !== "}") {
+      if (!this.unicode) { this.position = start; return undefined; }
       this.fail("Unterminated quantifier", start);
     }
     this.position += 1;
+    if (!Number.isSafeInteger(min) || (max !== undefined && !Number.isSafeInteger(max)))
+      this.fail("Quantifier is too large", start);
     if (max !== undefined && min > max) {
       this.fail("Quantifier range is out of order", start);
     }
@@ -718,11 +739,7 @@ class RegexParser {
 
     this.guard.allocate(this.position - start);
     this.guard.work(this.position - start);
-    const value = Number(this.source.slice(start, this.position));
-    if (!Number.isSafeInteger(value)) {
-      this.fail("Quantifier is too large", start);
-    }
-    return value;
+    return Number(this.source.slice(start, this.position));
   }
 
   private peek(): string {

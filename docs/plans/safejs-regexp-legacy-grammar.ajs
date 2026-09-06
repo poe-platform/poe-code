@@ -1,0 +1,17 @@
+import { S } from "schema";
+
+export const schema = S.Object({ title: S.String() });
+
+export default async function main(frontmatter) {
+  if (!/a{b}/.test('a{b}') || !/\p{L}/.test('p{L}') || !/\xZ/.test('xZ'))
+    throw new Error('Legacy literal parsing failed');
+  if (!/[\d-a]/.test('-') || !/\cA/.test(String.fromCharCode(1)))
+    throw new Error('Legacy class or control escape failed');
+  const text = '\\ccc';
+  if (/\c+/.exec(text)[0] !== text) throw new Error('Control escape quantifier bound incorrectly');
+  let strict = false;
+  try { new RegExp('a{b}', 'u'); } catch (error) { strict = error.name === 'SyntaxError'; }
+  if (!strict) throw new Error('Unicode grammar was weakened');
+  await 0;
+  return { ok: true, title: frontmatter.title, strict, control: text };
+}

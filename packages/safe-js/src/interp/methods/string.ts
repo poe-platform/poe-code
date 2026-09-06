@@ -21,8 +21,6 @@ import {
 import { executeRegex, toMatchArray } from "./regex.js";
 import { restoreSandboxRegExpIterator } from "../regexp-iterator.js";
 
-const SPLIT_STRING_MESSAGE = "String#split only supports string separator values.";
-
 type StringMethodName =
   | "at"
   | "charAt"
@@ -272,6 +270,7 @@ function callStringMethodBody(
   if (methodName === "replace" || methodName === "replaceAll") {
     return callReplaceLikeMethod(value, methodName, args, budget, callClosure, context);
   }
+  if (methodName === "split") return callSplit(value, args, budget, parent, context);
 
   const regex = args[0];
   if (isSandboxRegex(regex) && regex.lastIndex !== null && typeof regex.lastIndex === "object" &&
@@ -287,10 +286,6 @@ function callStringMethodBody(
   const operation = budget.acquireCompileOwner(false, parent?.owner);
   const compilation = new CompileScope(operation.owner);
   try {
-    if (methodName === "split") {
-      return callSplit(value, args, budget, compilation);
-    }
-
     if (methodName === "match" || methodName === "matchAll" || methodName === "search") {
       return callMatchLikeMethod(value, methodName, args, compilation);
     }
@@ -613,46 +608,81 @@ function callSplit(
   value: string,
   args: readonly SandboxValue[],
   budget: Budget,
-  compilation: CompileScope
-): SandboxValue[] {
-  if (args.some(isSandboxClosure))
-    throw new TypeError("String#split does not support function arguments.");
-  if (isSandboxRegex(args[0])) {
-    const regex = args[0];
-    const splitter = createSandboxRegex(
-      regex.source,
-      regex.flags.includes("g") ? regex.flags : `${regex.flags}g`,
-      0,
-      compilation
-    );
-    const limit = asNumberOrUndefined(args[1]) ?? 2 ** 32 - 1;
-    const result: SandboxValue[] = [];
-    let copiedThrough = 0;
-    let endedWithZeroWidthMatch = false;
-    for (const match of collectRegexMatches(splitter, value, true)) {
-      endedWithZeroWidthMatch = match.text.length === 0 && match.index === value.length;
-      if (
-        match.text.length === 0 &&
-        (match.index === copiedThrough || match.index === value.length)
-      )
-        continue;
-      if (result.length >= limit) break;
-      result.push(budget.allocateString(value.slice(copiedThrough, match.index)));
-      for (const capture of match.captures) {
-        if (result.length >= limit) break;
-        result.push(capture === undefined ? undefined : budget.allocateString(capture));
-      }
-      copiedThrough = match.index + match.text.length;
-    }
-    if (result.length < limit && (value.length > 0 || !endedWithZeroWidthMatch))
-      result.push(budget.allocateString(value.slice(copiedThrough)));
-    budget.allocateArrayLength(result.length);
+  parent?: CompileScope,
+  context?: SandboxCallContext
+): SandboxValue[] | Promise<SandboxValue[]> {
+  const pattern = args[0];
+  const useRegex = isSandboxRegex(pattern) && getSandboxPropertyDescriptor(pattern, Symbol.split, budget) === undefined;
+  let separator: string | SandboxRegex | undefined;
+  const release = retainValues(budget, () => [value, ...args, separator]);
+  const withLimit = (number: number): SandboxValue[] | Promise<SandboxValue[]> => {
+    const limit = number >>> 0;
+    const converted = useRegex || pattern === undefined ? pattern : sandboxString(pattern, budget, context);
+    const split = (converted: string | SandboxRegex | undefined) => {
+      separator = converted;
+      return splitNormalized(value, converted, limit, budget, parent);
+    };
+    return converted instanceof Promise ? converted.then(split) : split(converted as string | SandboxRegex | undefined);
+  };
+  try {
+    const limit = args[1] === undefined ? 2 ** 32 - 1 : sandboxNumber(args[1], budget, context);
+    const result = limit instanceof Promise ? limit.then(withLimit) : withLimit(limit);
+    if (result instanceof Promise) return result.finally(release);
+    release();
     return result;
+  } catch (error) {
+    release();
+    throw error;
   }
-  if (args[0] !== undefined && typeof args[0] !== "string")
-    throw new TypeError(SPLIT_STRING_MESSAGE);
-  const limit = asNumberOrUndefined(args[1]);
-  const result = splitString(value, args[0], limit).map((part) => budget.allocateString(part));
+}
+
+function splitNormalized(
+  value: string,
+  separator: string | SandboxRegex | undefined,
+  limit: number,
+  budget: Budget,
+  parent?: CompileScope
+): SandboxValue[] {
+  if (limit === 0) return [];
+  if (isSandboxRegex(separator)) {
+    const regex = separator;
+    const operation = budget.acquireCompileOwner(false, parent?.owner);
+    const compilation = new CompileScope(operation.owner);
+    try {
+      const splitter = createSandboxRegex(
+        regex.source,
+        regex.flags.includes("g") ? regex.flags : `${regex.flags}g`,
+        0,
+        compilation
+      );
+      const result: SandboxValue[] = [];
+      let copiedThrough = 0;
+      let endedWithZeroWidthMatch = false;
+      for (const match of collectRegexMatches(splitter, value, true)) {
+        endedWithZeroWidthMatch = match.text.length === 0 && match.index === value.length;
+        if (
+          match.text.length === 0 &&
+          (match.index === copiedThrough || match.index === value.length)
+        )
+          continue;
+        if (result.length >= limit) break;
+        result.push(budget.allocateString(value.slice(copiedThrough, match.index)));
+        for (const capture of match.captures) {
+          if (result.length >= limit) break;
+          result.push(capture === undefined ? undefined : budget.allocateString(capture));
+        }
+        copiedThrough = match.index + match.text.length;
+      }
+      if (result.length < limit && (value.length > 0 || !endedWithZeroWidthMatch))
+        result.push(budget.allocateString(value.slice(copiedThrough)));
+      budget.allocateArrayLength(result.length);
+      return result;
+    } finally {
+      compilation.dispose();
+      operation.release();
+    }
+  }
+  const result = splitString(value, separator, limit).map((part) => budget.allocateString(part));
   budget.allocateArrayLength(result.length);
   return result;
 }

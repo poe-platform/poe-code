@@ -1,0 +1,28 @@
+import { S } from "schema";
+
+export const schema = S.Object({ title: S.String() });
+
+export default async function destructuring(frontmatter) {
+  const log = [];
+  function* values() {
+    try { yield 7; yield 8; }
+    finally { log.push("closed"); }
+  }
+  const [first] = values();
+  if (first !== 7 || log.join(",") !== "closed")
+    throw new Error("Generator destructuring did not close");
+  const source = {
+    [Symbol.iterator]() {
+      let index = 0;
+      return { next() { return { done: index === 3, value: index++ }; } };
+    }
+  };
+  const [, second, ...rest] = source;
+  if (second !== 1 || rest.join(",") !== "2")
+    throw new Error("Custom iterator destructuring failed");
+  const promise = Promise.resolve(9);
+  function* promised() { yield promise; }
+  const [unchanged] = promised();
+  if (unchanged !== promise) throw new Error("Destructuring unwrapped a promise");
+  return { title: frontmatter.title, first, second, rest, promised: await unchanged, log };
+}

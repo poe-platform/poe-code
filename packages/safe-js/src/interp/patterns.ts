@@ -12,13 +12,12 @@ import type {
 } from "../parse.js";
 import type { AsyncEvaluationResult } from "./async.js";
 import type { Scope } from "./scope.js";
-import type { Budget } from "./budget.js";
+import { Budget, isFatalSandboxError } from "./budget.js";
 import { retainValues } from "./resources.js";
 import { hasOwnSandboxProperty } from "./globals/object.js";
-import { isSandboxCollectionIterator, nextCollectionIterator } from "./collection-iterator.js";
+import { acquireSandboxIterator, closeIterator, readIteratorResult } from "./iteration.js";
 import {
-  isSandboxMap,
-  isSandboxSet,
+  type SandboxCallContext,
   ownEnumerableSandboxKeys,
   type SandboxArray,
   type SandboxObject,
@@ -31,6 +30,7 @@ export type PatternTarget = { kind: VariableDeclarationKind; initialize?: true }
 
 export type PatternContext = {
   budget?: Budget;
+  callContext?: SandboxCallContext;
   evaluate(node: ParseResult, inferredName?: string): Promise<AsyncEvaluationResult>;
   toPropertyKey(value: SandboxValue): string | symbol | Promise<string | symbol>;
   getProperty(value: SandboxValue, key: PropertyKey): SandboxValue | Promise<SandboxValue>;
@@ -123,44 +123,77 @@ async function bindArrayPattern(
   scope: Scope,
   context: PatternContext
 ): Promise<BindPatternResult> {
-  const iterator = isSandboxCollectionIterator(value) ? value : undefined;
-  const values = iterator === undefined ? getArrayPatternValues(value) : undefined;
-  let cursor = 0;
+  const budget = context.budget ?? new Budget();
+  const iterator = await acquireSandboxIterator(
+    value,
+    budget,
+    context.callContext ?? {
+      stack: [],
+      thisValue: undefined,
+      getProperty: context.getProperty
+    }
+  );
+  if (iterator === undefined) throw new TypeError("Array destructuring requires an iterable.");
   let done = false;
-  const next = async (): Promise<IteratorResult<SandboxValue>> => {
-    if (iterator !== undefined) return nextCollectionIterator(iterator, context.budget);
-    if (done || cursor >= values!.length) {
+  const next = async (readValue = true): Promise<{ value: SandboxValue }> => {
+    if (done) return { value: undefined };
+    try {
+      const result = await iterator.next();
+      if ((typeof result !== "object" && typeof result !== "function") || result === null)
+        throw new TypeError("Iterator result must be an object.");
+      done = Boolean((await readIteratorResult(iterator, result, "done")).value);
+      return done || !readValue
+        ? { value: undefined }
+        : await readIteratorResult(iterator, result, "value");
+    } catch (error) {
       done = true;
-      return { done: true, value: undefined };
+      throw error;
     }
-    return { done: false, value: await context.getProperty(values!, cursor++) };
   };
-
-  for (let index = 0; index < pattern.elements.length; index += 1) {
-    const element = pattern.elements[index];
-    if (element === null) {
-      await next();
-      continue;
-    }
-
-    let elementValue: SandboxValue;
-    if (element.type === "RestElement") {
-      const rest: SandboxValue[] = [];
-      for (let entry = await next(); !entry.done; entry = await next()) {
-        context.budget?.allocateArrayLength(rest.length + 1);
-        rest.push(entry.value);
+  let retained: SandboxValue;
+  const release = retainValues(budget, () => [value, iterator.retainedValue, retained]);
+  try {
+    for (let index = 0; index < pattern.elements.length; index += 1) {
+      const element = pattern.elements[index];
+      if (element === null) {
+        await next(false);
+        continue;
       }
-      elementValue = rest;
-    } else {
-      elementValue = (await next()).value;
-    }
-    const binding = await bindPattern(element, elementValue, target, scope, context);
-    if (!binding.ok) {
-      return binding;
-    }
-  }
 
-  return { ok: true };
+      let elementValue: SandboxValue;
+      if (element.type === "RestElement") {
+        const rest: SandboxValue[] = [];
+        retained = rest;
+        for (let entry = await next(); !done; entry = await next()) {
+          budget.allocateArrayLength(rest.length + 1);
+          rest.push(entry.value);
+        }
+        elementValue = rest;
+      } else {
+        elementValue = (await next()).value;
+      }
+      retained = elementValue;
+      const binding = await bindPattern(element, elementValue, target, scope, context);
+      if (!binding.ok) {
+        if (!done) {
+          done = true;
+          await closeIterator(iterator, binding.result.kind === "throw");
+        }
+        return binding;
+      }
+    }
+
+    if (!done) {
+      done = true;
+      await closeIterator(iterator);
+    }
+    return { ok: true };
+  } catch (error) {
+    if (!done && !isFatalSandboxError(error)) await closeIterator(iterator, true);
+    throw error;
+  } finally {
+    release();
+  }
 }
 
 async function bindObjectPattern(
@@ -266,43 +299,6 @@ function getStaticPropertyName(property: MemberExpression["property"]): string |
     return property.value;
   }
   throw new TypeError(`Unsupported static property node '${property.type}'.`);
-}
-
-function getArrayPatternValues(value: unknown): SandboxArray {
-  if (Array.isArray(value)) {
-    return value as SandboxArray;
-  }
-  if (typeof value === "string") {
-    return Array.from(value);
-  }
-  if (isSandboxMap(value)) {
-    return Array.from(value.entries, ([key, entry]) => [key, entry] as SandboxArray);
-  }
-  if (isSandboxSet(value)) {
-    return [...value.values];
-  }
-  if (isIterableValue(value)) {
-    throw new TypeError(
-      `Array destructuring declarations support only arrays and strings; received ${describeRuntimeValue(value)}.`
-    );
-  }
-  throw new TypeError("Array destructuring declarations require an array or string iterable.");
-}
-
-function isIterableValue(value: unknown): value is Iterable<unknown> {
-  return (
-    typeof value === "object" &&
-    value !== null &&
-    Symbol.iterator in value &&
-    typeof value[Symbol.iterator] === "function"
-  );
-}
-
-function describeRuntimeValue(value: unknown): string {
-  if (value === null) return "null";
-  if (value === undefined) return "undefined";
-  if (typeof value === "object") return value.constructor?.name ?? "Object";
-  return typeof value;
 }
 
 async function copyObjectRestValue(

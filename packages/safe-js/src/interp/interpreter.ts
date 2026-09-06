@@ -2683,6 +2683,7 @@ export function createPatternContext(
   const evaluationContext = { ...context, scope };
   return {
     budget: context.budget,
+    callContext: createCoercionContext(evaluationContext),
     evaluate: (node, inferredName) => evaluate(node, { ...evaluationContext, inferredName }),
     toPropertyKey: (value) =>
       toPropertyKey(value, context.budget, createCoercionContext(evaluationContext)),

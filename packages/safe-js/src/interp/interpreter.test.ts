@@ -1189,20 +1189,20 @@ describe("interpret", () => {
   it("throws a TypeError-shaped sandbox error for array destructuring from null", async () => {
     await expect(interpret(parse("const [x] = null;"))).rejects.toMatchObject({
       name: "TypeError",
-      message: "Array destructuring declarations require an array or string iterable."
+      message: "Array destructuring requires an iterable."
     });
   });
 
-  it("throws a TypeError-shaped sandbox error for array destructuring from unsupported iterables", async () => {
+  it("destructures caller-provided native iterables", async () => {
     await expect(
       interpret(block(parse("const [a, b] = values"), parse("return a + b")), {
         bindings: {
           values: new Set([1, 2]) as never
         }
       })
-    ).rejects.toMatchObject({
-      name: "TypeError",
-      message: "Array destructuring declarations support only arrays and strings; received Set."
+    ).resolves.toMatchObject({
+      ok: true,
+      returnValue: 3
     });
   });
 

@@ -101,7 +101,7 @@ describe("bindPattern", () => {
     expect(patternContext.evaluate).toHaveBeenCalledOnce();
   });
 
-  it("supports string array destructuring and rejects unsupported iterables", async () => {
+  it("supports string and native iterable array destructuring", async () => {
     const scope = new Scope();
     const pattern = declarationPattern("const [first, ...remaining] = source");
 
@@ -109,11 +109,10 @@ describe("bindPattern", () => {
 
     expect(scope.lookup("first")).toMatchObject({ found: true, value: "a" });
     expect(scope.lookup("remaining")).toMatchObject({ found: true, value: ["b", "c"] });
-    await expect(
-      bindPattern(pattern, new Set([1, 2]) as never, { kind: "const" }, new Scope(), context())
-    ).rejects.toThrow(
-      "Array destructuring declarations support only arrays and strings; received Set."
-    );
+    const setScope = new Scope();
+    await bindPattern(pattern, new Set([1, 2]) as never, { kind: "const" }, setScope, context());
+    expect(setScope.lookup("first")).toMatchObject({ found: true, value: 1 });
+    expect(setScope.lookup("remaining")).toMatchObject({ found: true, value: [2] });
   });
 
   it("evaluates computed object keys and excludes them from object rest", async () => {

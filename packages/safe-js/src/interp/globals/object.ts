@@ -1,4 +1,6 @@
 import { assertSandboxDataDepth } from "../../graph-depth.js";
+import { readPropertyDescriptor } from "../accessors.js";
+import { isSandboxArguments } from "../arguments.js";
 import type { Budget } from "../budget.js";
 import { isSandboxDate } from "../date.js";
 import { boxedValue, createSandboxBox, isSandboxBox } from "../boxed.js";
@@ -8,6 +10,8 @@ import { hasHostObjectMember, isGuestHostObject } from "../host-capabilities.js"
 import { collectionIteratorState, isSandboxCollectionIterator } from "../collection-iterator.js";
 import {
   getSandboxPrototype,
+  getSandboxPropertyDescriptor,
+  hasExplicitSandboxPrototype,
   installObjectPrototype,
   isGuestClosure,
   markDescriptorObject,
@@ -72,7 +76,18 @@ export function createObjectGlobal(methods: SandboxObject, budget: Budget): Sand
       sandbox: true,
       name: "toString",
       length: 0,
-      call: (_args, context) => budget.allocateString(`[object ${typeTag(context?.thisValue)}]`)
+      call: (_args, context) => {
+        const receiver = context?.thisValue;
+        if (receiver === undefined || receiver === null)
+          return budget.allocateString(`[object ${typeTag(receiver)}]`);
+        const object = construct([receiver]);
+        const descriptor = isGuestHostObject(object) ? undefined : getSandboxPropertyDescriptor(object, Symbol.toStringTag, budget);
+        const fallback = typeTag(object, descriptor !== undefined || hasExplicitSandboxPrototype(object as object));
+        const finish = (tag: SandboxValue) => budget.allocateString(`[object ${typeof tag === "string" ? tag : fallback}]`);
+        if (descriptor === undefined) return finish(undefined);
+        const tag = readPropertyDescriptor(descriptor, object, context, true);
+        return tag instanceof Promise ? tag.then(finish) : finish(tag);
+      }
     }),
     valueOf: createSandboxClosure({
       sandbox: true,
@@ -165,14 +180,16 @@ export function hasOwnSandboxProperty(
   return descriptor !== undefined && (!enumerable || descriptor.enumerable === true);
 }
 
-function typeTag(value: SandboxValue): string {
+function typeTag(value: SandboxValue, builtinOnly = false): string {
   if (isSandboxBox(value)) value = boxedValue(value);
   if (value === undefined) return "Undefined";
   if (value === null) return "Null";
   if (typeof value === "string") return "String";
   if (typeof value === "number") return "Number";
   if (typeof value === "boolean") return "Boolean";
+  if (isSandboxArguments(value)) return "Arguments";
   if (isSandboxClosure(value)) {
+    if (builtinOnly) return "Function";
     while (value.boundTarget !== undefined) value = value.boundTarget;
     return value.generator ? "GeneratorFunction" : value.async ? "AsyncFunction" : "Function";
   }
@@ -180,6 +197,7 @@ function typeTag(value: SandboxValue): string {
   if (isSandboxDate(value)) return "Date";
   if (isSandboxErrorConstructorInstance(value, "Error")) return "Error";
   if (isSandboxRegex(value)) return "RegExp";
+  if (builtinOnly) return "Object";
   if (isSandboxMap(value)) return "Map";
   if (isSandboxSet(value)) return "Set";
   if (isSandboxCollectionIterator(value)) return collectionIteratorState(value).collectionKind === "map" ? "Map Iterator" : "Set Iterator";

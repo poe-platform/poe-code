@@ -3,6 +3,12 @@ import { S } from "schema";
 export const schema = S.Object({ title: S.String() });
 
 export default async function symbolFoundation(frontmatter) {
+  let tagReads = 0;
+  const tagged = { get [Symbol.toStringTag]() { tagReads++; return "Tagged"; } };
+  if (Object.prototype.toString.call(tagged) !== "[object Tagged]" || tagReads !== 1)
+    throw new Error("Custom tag lookup failed");
+  if (String({ [Symbol.toStringTag]: "Converted" }) !== "[object Converted]")
+    throw new Error("Custom tag conversion failed");
   for (const name of ["prototype", "iterator", "asyncIterator"]) {
     const descriptor = Object.getOwnPropertyDescriptor(Symbol, name);
     if (descriptor.writable || descriptor.enumerable || descriptor.configurable)

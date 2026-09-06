@@ -19,7 +19,7 @@ import {
   type SandboxRegex,
   type SandboxValue
 } from "../values.js";
-import { executeRegex, getRegexMember, toMatchArray } from "./regex.js";
+import { executeRegex, getRegexMember, regexExec, toMatchArray } from "./regex.js";
 import { restoreSandboxRegExpIterator } from "../regexp-iterator.js";
 
 type StringMethodName =
@@ -274,6 +274,9 @@ function callStringMethodBody(
   }
 
   const regex = args[0];
+  if (methodName === "match" && isSandboxRegex(regex) &&
+      getSandboxPropertyDescriptor(regex, "exec", budget) !== undefined)
+    return callCustomRegexMatch(value, regex, budget, context);
   if (isSandboxRegex(regex) && (methodName === "matchAll" ||
       (methodName === "match" && !regex.flags.includes("g") &&
        regex.lastIndex !== null && typeof regex.lastIndex === "object"))) {
@@ -714,6 +717,57 @@ async function callStringPattern(
     budget.setRetainedValues(retainedPattern, undefined);
     compilation.dispose();
     operation.release();
+  }
+}
+
+async function callCustomRegexMatch(
+  value: string,
+  regex: SandboxRegex,
+  budget: Budget,
+  context?: SandboxCallContext
+): Promise<SandboxValue> {
+  const matches: SandboxValue[] = [];
+  let result: SandboxValue;
+  let matched: SandboxValue;
+  let cursor: SandboxValue;
+  let flagsValue: SandboxValue;
+  let flags: string | undefined;
+  const release = retainValues(budget, () => [value, regex, matches, result, matched, cursor, flagsValue, flags]);
+  try {
+    const descriptor = context?.getProperty === undefined
+      ? getSandboxPropertyDescriptor(regex, "flags", budget) : undefined;
+    flagsValue = await (context?.getProperty !== undefined ? context.getProperty(regex, "flags")
+      : descriptor === undefined ? getRegexMember(regex, "flags", budget, context)
+        : readPropertyDescriptor(descriptor, regex, context));
+    flags = await sandboxString(flagsValue, budget, context);
+    flagsValue = undefined;
+    if (!flags.includes("g")) return await regexExec(regex, value, budget, context);
+    const fullUnicode = flags.includes("u") || flags.includes("v");
+    flags = undefined;
+    regex.lastIndex = 0;
+    while (true) {
+      budget.visitNode();
+      result = await regexExec(regex, value, budget, context);
+      if (result === null) return matches.length === 0 ? null : matches;
+      const descriptor = context?.getProperty === undefined
+        ? getSandboxPropertyDescriptor(result, "0", budget) : undefined;
+      matched = await (context?.getProperty !== undefined ? context.getProperty(result, "0")
+        : descriptor === undefined ? undefined : readPropertyDescriptor(descriptor, result, context));
+      const text = await sandboxString(matched, budget, context);
+      matched = undefined;
+      budget.allocateArrayLength(matches.length + 1);
+      matches.push(text);
+      if (text.length === 0) {
+        cursor = regex.lastIndex;
+        const index = normalizeLastIndex(await sandboxNumber(cursor, budget, context));
+        const point = fullUnicode ? value.codePointAt(index) : undefined;
+        regex.lastIndex = index + (point !== undefined && point > 0xffff ? 2 : 1);
+        cursor = undefined;
+      }
+      result = undefined;
+    }
+  } finally {
+    release();
   }
 }
 

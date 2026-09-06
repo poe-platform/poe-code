@@ -11,7 +11,7 @@ import {
 import { matchRegex, type RegexMatch } from "../regex/engine.js";
 import type { Budget } from "../budget.js";
 import { invokeBuiltinClosure } from "../builtin-call.js";
-import { getSandboxDataProperty, getSandboxPropertyDescriptor } from "../object-model.js";
+import { getSandboxPropertyDescriptor } from "../object-model.js";
 import { readPropertyDescriptor } from "../accessors.js";
 import { retainValues } from "../resources.js";
 import { sandboxNumber, sandboxString } from "../string-coercion.js";
@@ -143,24 +143,42 @@ export async function callRegexMethod(
   try {
     const input = await sandboxString(args[0], budget, context);
     if (methodName === "test") {
-      const exec = context?.getProperty === undefined
-        ? getSandboxDataProperty(target, "exec", budget) : await context.getProperty(target, "exec");
-      if (isSandboxClosure(exec)) {
-        const result = await invokeBuiltinClosure(exec, [input], budget, context, target);
-        if (result !== null && typeof result !== "object") {
-          throw new TypeError("RegExp#test exec must return an object or null.");
-        }
-        return result !== null;
-      }
+      budget.setRetainedValues(retained, undefined);
+      return await regexExec(target, input, budget, context) !== null;
     }
-    if (!isSandboxRegex(target)) throw new TypeError("RegExp execution requires a regex receiver.");
     if (typeof args[0] !== "string") convertedInput = input;
+    if (!isSandboxRegex(target)) throw new TypeError("RegExp execution requires a regex receiver.");
     cursor = target.lastIndex;
     const lastIndex = await sandboxNumber(cursor, budget, context);
     const match = executeRegex(target, input, lastIndex);
-    return methodName === "test" ? match !== null : toMatchArray(match, input);
+    return toMatchArray(match, input);
   } finally {
     budget.setRetainedValues(retained, undefined);
+  }
+}
+
+export async function regexExec(
+  target: SandboxValue,
+  input: string,
+  budget: Budget,
+  context?: SandboxCallContext
+): Promise<SandboxValue> {
+  let exec: SandboxValue;
+  const release = retainValues(budget, () => [target, input, exec]);
+  try {
+    const descriptor = context?.getProperty === undefined
+      ? getSandboxPropertyDescriptor(target, "exec", budget) : undefined;
+    exec = await (context?.getProperty !== undefined ? context.getProperty(target, "exec")
+      : descriptor === undefined ? undefined : readPropertyDescriptor(descriptor, target, context));
+    if (isSandboxClosure(exec)) {
+      const result = await invokeBuiltinClosure(exec, [input], budget, context, target);
+      if (result !== null && typeof result !== "object")
+        throw new TypeError("RegExp exec must return an object or null.");
+      return result;
+    }
+    return await callRegexMethod(target, "exec", [input], budget, context);
+  } finally {
+    release();
   }
 }
 

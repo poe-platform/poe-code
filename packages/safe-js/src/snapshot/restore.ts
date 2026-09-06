@@ -4,6 +4,8 @@ import { createInterpretedClosure, executeAsyncFunction, type AsyncEvaluationCon
 import { createBuiltinBindings } from "../interp/globals.js";
 import { resolveIntrinsicIdentity } from "../interp/intrinsics.js";
 import { allocateGuestScopes, hydrateGuestScopes } from "./scope-frames.js";
+import { registerTemplateObject } from "../interp/template-objects.js";
+import type { SandboxArray } from "../interp/values.js";
 import { restorePropertyDescriptors } from "./property-descriptors.js";
 import { registerGeneratorOrigin } from "../interp/closure-origin.js";
 import { awaitSandboxValue } from "../interp/cancel.js";
@@ -736,6 +738,8 @@ function restoreHeapValue(id: number, state: RestoreState): RuntimeSnapshotValue
     } else value = serialized.kind === "guest-array" ? [] : Object.create(null) as Record<string, RuntimeSnapshotValue>;
     state.heapValueById.set(id, value);
     const objectState = serialized.state;
+    if (serialized.kind === "guest-array" && serialized.templateOwner !== undefined)
+      deserializeValue(serialized.templateOwner, state);
     if (objectState !== undefined) state.initializeIterators.push(() => {
       const intrinsicProperties = isSandboxClosure(value) ? value.properties : undefined;
       const target = isSandboxClosure(value)
@@ -745,6 +749,11 @@ function restoreHeapValue(id: number, state: RestoreState): RuntimeSnapshotValue
       if (objectState.prototype !== undefined)
         setSandboxPrototype(value as object, deserializeValue(objectState.prototype, state) as object | null, state.budget);
       restorePropertyDescriptors(target, objectState.properties, entry => deserializeValue(entry as SerializedSnapshotValue, state));
+      if (serialized.kind === "guest-array" && serialized.templateNodeId !== undefined) {
+        const node = state.nodeById.get(serialized.templateNodeId);
+        if (node?.type !== "TemplateLiteral") throw new TypeError("Invalid template source identity.");
+        state.initializeIterators.push(() => registerTemplateObject(node, value as SandboxArray, state.budget));
+      }
     });
     return value;
   }

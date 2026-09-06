@@ -3,6 +3,7 @@ import { getIntrinsicIdentity } from "../interp/intrinsics.js";
 import { getSandboxPrototype, hasExplicitSandboxPrototype, hasGuestObjectState, isGuestClosure, materializeFunctionProperties } from "../interp/object-model.js";
 import { isLiveCapability } from "../interp/host-capabilities.js";
 import { retainedAccessorClosures } from "../interp/accessors.js";
+import { templateOrigins, templateCookedArrays } from "../interp/template-objects.js";
 import { isSandboxBox } from "../interp/boxed.js";
 import { isSandboxDate } from "../interp/date.js";
 import { isSandboxCollectionIterator } from "../interp/collection-iterator.js";
@@ -29,7 +30,7 @@ export type GuestHeapNode<T> =
       sent: Array<{ type: "normal" | "return" | "throw"; value: T }>;
       environment?: { homeObject?: T; newTarget?: T } }
   | { kind: "guest-object"; state: GuestObjectState<T> }
-  | { kind: "guest-array"; state: GuestObjectState<T> }
+  | { kind: "guest-array"; state: GuestObjectState<T>; templateNodeId?: number; templateOwner?: T }
   | { kind: "intrinsic"; id: string; state?: GuestObjectState<T> }
   | { kind: "guest-function"; astNodeId: number; scope: T; name?: string; state: GuestObjectState<T>;
       environment?: { homeObject?: T; newTarget?: T } }
@@ -109,7 +110,13 @@ export function captureGuestHeapNode<T>(value: object, encode: (value: unknown) 
           const descriptor = Object.getOwnPropertyDescriptor(value, key)!;
           return key === "length" ? descriptor.writable !== true
             : !("value" in descriptor) || !descriptor.enumerable || !descriptor.configurable || !descriptor.writable;
-        }))) return { kind: "guest-array", state: captureObjectState(value, encode)! };
+        }))) {
+      const templateNodeId = templateOrigins.get(value)?.nodeId;
+      const templateOwner = templateCookedArrays.get(value);
+      return { kind: "guest-array", state: captureObjectState(value, encode)!,
+        ...(templateNodeId === undefined ? {} : { templateNodeId }),
+        ...(templateOwner === undefined ? {} : { templateOwner: encode(templateOwner) }) };
+    }
     if (isLiveCapability(value) || isSandboxClosure(value) || isSandboxBox(value) || isSandboxDate(value) ||
         isSandboxRegex(value) || isSandboxMap(value) || isSandboxSet(value) || isSandboxPromise(value) ||
         isSandboxGenerator(value) || isSandboxArguments(value) || isSandboxCollectionIterator(value) ||

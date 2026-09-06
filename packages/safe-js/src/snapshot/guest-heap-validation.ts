@@ -101,7 +101,10 @@ export function validateGuestHeapNode(raw: unknown, heap: Record<string, unknown
     if (typeof node.id !== "string" || !intrinsicCatalogue().has(node.id)) throw new TypeError("Unknown intrinsic identity.");
     if (Object.hasOwn(node, "state")) state(node.state);
   } else if (node.kind === "guest-object" || node.kind === "guest-array") {
-    fields(node, ["kind", "state"]);
+    fields(node, ["kind", "state"], node.kind === "guest-array" ? ["templateNodeId", "templateOwner"] : []);
+    if (Object.hasOwn(node, "templateOwner")) reference(node.templateOwner, ["guest-array"]);
+    if (Object.hasOwn(node, "templateNodeId") && integer(node.templateNodeId) < 1)
+      throw new TypeError("Invalid template source identity.");
     state(node.state);
     if (node.kind === "guest-array") {
       const properties = array(record(record(node.state).properties).properties).map(entry => array(entry));

@@ -1,5 +1,6 @@
 import { assertSandboxDataDepth } from "../graph-depth.js";
 import { registerBuiltinIdentities, releaseIntrinsicIdentities } from "./intrinsics.js";
+import { releaseTemplateObjects } from "./template-objects.js";
 import { isSandboxDate } from "./date.js";
 import { retainedAccessorClosures } from "./accessors.js";
 import { getHostObjectMember, isGuestHostObject, isLiveCapability } from "./host-capabilities.js";
@@ -200,6 +201,7 @@ function registerIntrinsicPrototype(
 }
 
 export function releaseObjectPrototype(budget: Budget): void {
+  releaseTemplateObjects(budget);
   releaseIntrinsicIdentities(budget);
   for (const prototype of intrinsicPrototypeRoots.get(budget) ?? []) budget.setRetainedValues(prototype, undefined);
   intrinsicPrototypeRoots.delete(budget);

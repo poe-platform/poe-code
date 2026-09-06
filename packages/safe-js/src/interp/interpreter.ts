@@ -7,6 +7,7 @@ import { assertPromiseExecutionAllowed } from "./promise-tracker.js";
 import { SandboxJobQueue, runAsyncPrefix, suspendJob } from "./jobs.js";
 import { awaitSandboxValue, withCancellationSignal } from "./cancel.js";
 import { retainValues } from "./resources.js";
+import { templateObject, templateRawArrays } from "./template-objects.js";
 import { evaluateClass } from "./classes.js";
 import { defineDataProperty } from "./globals/object-array.js";
 import { objectToPrimitive, sandboxString } from "./string-coercion.js";
@@ -248,8 +249,6 @@ export type InterpretOptions = {
 type EvaluationContext = AsyncEvaluationContext;
 
 type EvaluationResult = AsyncEvaluationResult;
-
-const taggedTemplateRawArrays = new WeakMap<SandboxArray, SandboxArray>();
 
 type HelperResult<TValue> =
   | {
@@ -831,7 +830,7 @@ async function evaluateTaggedTemplateExpression(
       return {
         kind: "normal", hasValue: true,
         value: await invokeSandboxClosure(tag,
-          [createTaggedTemplateStrings(node.quasi, context), ...values.value], context,
+          [templateObject(node.quasi, context.budget), ...values.value], context,
           [...context.callStack, formatStackFrame(node, tag.name)], node.span, receiver)
       };
     } finally { release(); }
@@ -850,32 +849,6 @@ async function evaluateTaggedTemplateExpression(
   });
   const tag = await evaluateNode(node.tag, context);
   return tag.kind === "normal" ? invokeTag(tag.value, undefined) : tag;
-}
-
-function createTaggedTemplateStrings(
-  node: TemplateLiteral,
-  context: EvaluationContext
-): SandboxArray {
-  context.budget.allocateArrayLength(node.quasis.length);
-  const strings = node.quasis.map((quasi) =>
-    quasi.value.cooked === undefined ? undefined : context.budget.allocateString(quasi.value.cooked)
-  ) as SandboxArray;
-
-  context.budget.allocateArrayLength(node.quasis.length);
-  const raw = node.quasis.map((quasi) =>
-    context.budget.allocateString(quasi.value.raw)
-  ) as SandboxArray;
-  Object.defineProperty(strings, "raw", {
-    configurable: false,
-    enumerable: false,
-    value: raw,
-    writable: false
-  });
-  taggedTemplateRawArrays.set(strings, raw);
-  Object.freeze(raw);
-  Object.freeze(strings);
-
-  return strings;
 }
 
 async function evaluateArrowFunction(
@@ -3771,8 +3744,8 @@ function getArrayMemberValue(
   context: EvaluationContext
 ): SandboxValue | undefined {
   if (hasExplicitSandboxPrototype(target)) return undefined;
-  if (property === "raw" && taggedTemplateRawArrays.has(target)) {
-    return taggedTemplateRawArrays.get(target);
+  if (property === "raw" && templateRawArrays.has(target)) {
+    return templateRawArrays.get(target);
   }
 
   return getArrayMember(target, property, createArrayMethodOptions(context));

@@ -1,4 +1,5 @@
 import { replaceErrorStack } from "../error/shape.js";
+import { releaseTemplateObjects } from "./template-objects.js";
 
 export type BudgetName =
   | "steps"
@@ -377,6 +378,7 @@ export class Budget {
 
   reset(): void {
     if (this.compileUses !== 0) throw new SandboxError("reentry");
+    releaseTemplateObjects(this);
     this.compileGeneration += 1;
     this.defaultCompileOwner = undefined;
     this.provisionalScopes = 0;

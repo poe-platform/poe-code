@@ -13,6 +13,7 @@ import { validateBoxedProperties } from "./boxed.js";
 import { hasGuestObjectState } from "../interp/object-model.js";
 import { validateGuestHeapNode, validateGuestScopeParents } from "./guest-heap-validation.js";
 import { validateGuestFunctionAst } from "./guest-ast-validation.js";
+import { validateTemplateObjects } from "./template-validation.js";
 
 const DEFAULT_MAX_DEPTH = MAX_DATA_DEPTH;
 const DEFAULT_MAX_ENTRIES = 100_000;
@@ -398,6 +399,8 @@ export function validateInterpreterSnapshot(
       catch (error) { fail("invalidValue", `$.heap${formatKey(key)}`, String(error)); }
     }
   }
+  try { validateTemplateObjects(heap, nodeById.values()); }
+  catch (error) { fail("invalidValue", "$.heap", String(error)); }
 }
 
 function validatePendingHostCall(

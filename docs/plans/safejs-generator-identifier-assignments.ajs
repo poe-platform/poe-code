@@ -1,0 +1,19 @@
+import { S } from "schema";
+
+export const schema = S.Object({ title: S.String() });
+
+export default async frontmatter => {
+  function* values() {
+    let value = 2;
+    value += (value = 10, yield 1);
+    return value;
+  }
+  const iterator = values();
+  const first = iterator.next();
+  await 0;
+  const last = iterator.next(4);
+  if (first.value !== 1 || first.done || !last.done || last.value !== 6) {
+    throw new Error("Identifier assignment changed");
+  }
+  return { title: frontmatter.title, ok: true, value: last.value };
+};

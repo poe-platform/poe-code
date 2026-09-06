@@ -852,6 +852,7 @@ function restoreGuestGenerator(
     for (const [id, expression] of Object.entries(serialized.expressionStates ?? {})) {
       expressions.set(Number(id), expression.kind === "binary"
         ? { kind: "binary", left: deserializeValue(expression.left, state) as SandboxValue }
+        : expression.kind === "identifier-assignment" ? { kind: "identifier-assignment", current: deserializeValue(expression.current, state) as SandboxValue }
         : expression.kind === "member-assignment" ? { kind: "member-assignment", object: deserializeValue(expression.object, state) as SandboxValue,
           property: deserializeValue(expression.property, state) as SandboxValue, current: deserializeValue(expression.current, state) as SandboxValue,
           ...(Object.hasOwn(expression, "key") ? { key: deserializeValue(expression.key!, state) as SandboxValue } : {}),

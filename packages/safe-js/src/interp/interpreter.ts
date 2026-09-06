@@ -986,11 +986,14 @@ async function evaluateAssignmentExpression(
     };
   }
 
-  const binding = node.operator === "=" ? undefined : context.scope.lookup(node.left.name);
+  const restored = context.generatorResume === undefined || node.nodeId === undefined
+    ? undefined : context.restoredGeneratorExpressionStates?.get(node.nodeId);
+  if (restored !== undefined && restored.kind !== "identifier-assignment") throw new TypeError("Invalid identifier assignment continuation.");
+  const binding = node.operator === "=" || restored !== undefined ? undefined : context.scope.lookup(node.left.name);
   if (binding?.found === false) {
     throw new ReferenceError(`Cannot assign to undeclared binding '${node.left.name}'.`);
   }
-  const current = binding?.value;
+  const current = restored === undefined ? binding?.value : restored.current;
 
   if (node.operator === "&&=" && !isTruthy(current)) {
     return {
@@ -1016,26 +1019,35 @@ async function evaluateAssignmentExpression(
     };
   }
 
-  const right = await evaluateNode(node.right, { ...context, inferredName: node.left.type === "Identifier" ? node.left.name : undefined });
-  if (right.kind !== "normal") {
-    return right;
+  if (context.generatorYield !== undefined && node.nodeId !== undefined) {
+    context = { ...context, generatorExpressionStates: new Map([...(context.generatorExpressionStates ?? []),
+      [node.nodeId, { kind: "identifier-assignment", current }]]) };
   }
+  const release = retainValues(context.budget, () => [current]);
+  try {
+    const right = await evaluateNode(node.right, { ...context, inferredName: node.left.name });
+    if (right.kind !== "normal") {
+      return right;
+    }
 
-  const value =
-    node.operator === "=" ||
-    node.operator === "&&=" ||
-    node.operator === "||=" ||
-    node.operator === "??="
-      ? right.value
-      : await applyCompoundAssignmentOperator(node.operator, current, right.value, context);
+    const value =
+      node.operator === "=" ||
+      node.operator === "&&=" ||
+      node.operator === "||=" ||
+      node.operator === "??="
+        ? right.value
+        : await applyCompoundAssignmentOperator(node.operator, current, right.value, context);
 
-  context.scope.assign(node.left.name, value);
+    context.scope.assign(node.left.name, value);
 
-  return {
-    kind: "normal",
-    hasValue: true,
-    value
-  };
+    return {
+      kind: "normal",
+      hasValue: true,
+      value
+    };
+  } finally {
+    release();
+  }
 }
 
 async function evaluateMemberAssignmentExpression(

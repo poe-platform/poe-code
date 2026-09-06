@@ -10,7 +10,7 @@ export function validateGuestFunctionAst(record: Record<string, unknown>, origin
 
   let yieldBlocks: ReadonlySet<number> | undefined;
   let yieldFinalizers: ReadonlySet<number> | undefined;
-  type ExpressionPosition = { kind: "binary" } | { kind: "member"; superReceiver: boolean }
+  type ExpressionPosition = { kind: "binary" } | { kind: "identifier-assignment" } | { kind: "member"; superReceiver: boolean }
     | { kind: "member-assignment"; superReceiver: boolean; key: boolean }
     | { kind: "array" | "call" | "new" | "template" | "tagged"; index: number; member?: boolean }
     | { kind: "object"; index: number; key: boolean };
@@ -67,6 +67,9 @@ export function validateGuestFunctionAst(record: Record<string, unknown>, origin
         expressions: node.type === "BinaryExpression" && key === "right" && typeof node.nodeId === "number"
           ? new Map([...frame.expressions, [node.nodeId, { kind: "binary" }]])
           : node.type === "AssignmentExpression" && key === "right" && typeof node.nodeId === "number" &&
+              (node.left as Record<string, unknown>).type === "Identifier"
+            ? new Map([...frame.expressions, [node.nodeId, { kind: "identifier-assignment" }]])
+          : node.type === "AssignmentExpression" && key === "right" && typeof node.nodeId === "number" &&
               (node.left as Record<string, unknown>).type === "MemberExpression"
             ? new Map([...frame.expressions, [node.nodeId, { kind: "member-assignment", key: node.operator !== "=",
               superReceiver: ((node.left as Record<string, unknown>).object as Record<string, unknown>).type === "Super" }]])
@@ -100,7 +103,7 @@ export function validateGuestFunctionAst(record: Record<string, unknown>, origin
     const compatibleKind = expected?.kind === expression.kind ||
       (expected?.kind === "call" && expected.member === true && expression.kind === "array-call");
     if (expected === undefined || !compatibleKind ||
-        (expected.kind !== "binary" && expected.kind !== "member" && expected.kind !== "member-assignment" && expected.index !== expression.index) ||
+        (expected.kind !== "binary" && expected.kind !== "identifier-assignment" && expected.kind !== "member" && expected.kind !== "member-assignment" && expected.index !== expression.index) ||
         (expected.kind === "member-assignment" && (expected.key !== Object.hasOwn(expression, "key") ||
           expected.superReceiver !== Object.hasOwn(expression, "superReceiver"))) ||
         (expected.kind === "member" && expected.superReceiver !== Object.hasOwn(expression, "superReceiver")) ||

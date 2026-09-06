@@ -2,6 +2,7 @@ import type { SandboxValue } from "./values.js";
 
 export type GeneratorExpressionState<T = SandboxValue> =
   | { kind: "binary"; left: T }
+  | { kind: "identifier-assignment"; current: T }
   | { kind: "member"; object: T; superReceiver?: T }
   | { kind: "member-assignment"; object: T; property: T; current: T; key?: T; superReceiver?: T }
   | { kind: "template"; prefix: string; index: number }

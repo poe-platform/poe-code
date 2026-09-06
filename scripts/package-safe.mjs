@@ -4,6 +4,7 @@ import { builtinModules } from "node:module";
 import { fileURLToPath } from "node:url";
 import { parseArgs } from "node:util";
 import semver from "semver";
+import glob from "fast-glob";
 import ts from "typescript";
 import { build } from "esbuild";
 import { resolveBundleGraph } from "./bundle-graph.mjs";
@@ -66,6 +67,27 @@ export async function packageSafeLibraries({ rootDir, outDir, version, files = f
     if (pkg.private) privateNames.add(pkg.name);
     for (const [name, range] of Object.entries(pkg.dependencies ?? {})) ranges[name] ??= range;
   }
+  const exclusionPolicies = new Map();
+  const excluded = filename => {
+    const absolute = path.resolve(filename);
+    const ownerName = path.relative(path.resolve(rootDir, "packages"), absolute).split(path.sep)[0];
+    const owner = workspaces.find(workspace => workspace.dir === ownerName);
+    if (!owner) return false;
+    let excludedPaths = exclusionPolicies.get(ownerName);
+    if (!excludedPaths) {
+      const packageDir = path.resolve(rootDir, "packages", ownerName);
+      excludedPaths = (owner.pkg.files ?? []).filter(entry => entry.startsWith("!")).map(entry => {
+        const relative = entry.slice(1);
+        const target = path.resolve(packageDir, relative);
+        if (!relative || path.isAbsolute(relative) || glob.isDynamicPattern(relative) || !target.startsWith(packageDir + path.sep)) {
+          throw new Error(`Unsupported package file exclusion: ${entry}`);
+        }
+        return target;
+      });
+      exclusionPolicies.set(ownerName, excludedPaths);
+    }
+    return excludedPaths.some(omitted => absolute === omitted || absolute.startsWith(omitted + path.sep));
+  };
   const results = [];
   const fsManifest = workspaces.find(workspace => workspace.dir === "safe-fs").pkg;
   for (const name of ["safe-fs", "safe-js", "safe-bash"]) {
@@ -121,6 +143,7 @@ export async function packageSafeLibraries({ rootDir, outDir, version, files = f
       const walk = async directory => {
         for (const entry of await files.readdir(directory, { withFileTypes: true })) {
           const filename = path.join(directory, entry.name);
+          if (excluded(filename)) continue;
           if (entry.isDirectory()) await walk(filename);
           else if (!entry.name.endsWith(".map") && !(name === "safe-fs" && entry.name === "package.json")) pending.push(filename);
         }
@@ -138,9 +161,10 @@ export async function packageSafeLibraries({ rootDir, outDir, version, files = f
     };
     while (pending.length) {
       const filename = pending.pop();
+      if (excluded(filename)) throw new Error(`Excluded package file referenced: ${path.relative(packageDir, filename)}`);
       if (copied.has(filename)) continue;
       copied.add(filename);
-      if (bundled.has(filename + ".map") || await exists(filename + ".map")) pending.push(filename + ".map");
+      if (!excluded(filename + ".map") && (bundled.has(filename + ".map") || await exists(filename + ".map"))) pending.push(filename + ".map");
       const destination = path.join(directory, artifactPath(rootDir, filename));
       let contents = bundled.has(filename) ? Buffer.from(bundled.get(filename)) : await files.readFile(filename);
       if (filename.endsWith(".js") || filename.endsWith(".mjs") || filename.endsWith(".ts")) {

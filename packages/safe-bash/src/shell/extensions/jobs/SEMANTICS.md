@@ -50,7 +50,7 @@ the observed raw status; `pipefail` still selects the pipeline result, and an
 explicit exit is not logically inverted. These selected programs do not establish
 every combination of traps, functions, redirections, and pipeline syntax.
 
-Numeric operands must begin with an ASCII digit. Trailing C whitespace is
+Ordinary numeric operands must begin with an ASCII digit. Trailing C whitespace is
 accepted, but leading whitespace, signs, and embedded nontrailing whitespace
 are not. The qualified profile accepts numeric values through 2147483647;
 larger values fail operand validation. This is the observed reference boundary,
@@ -62,11 +62,63 @@ operands to determine the final status. `--` ends option processing. `-f` is
 recognized for the current termination-only execution model. Unknown option
 diagnostics preserve the single original option byte, including invalid UTF-8.
 
-The reference usage line advertises options which are not all implemented here.
-Full `wait -n`, `wait -p`, stopped-job semantics, job specifications, foreground
-job control, notifications, signal delivery, and trapped-signal interruption of
-wait remain unfinished work. Recognizing `-f` is not qualification of those
-behaviors.
+## Next wait and destination publication
+
+`-n` selects an eligible active, unnotified child. Explicit operands first search
+saved numeric statuses, in operand order, before validating active targets or
+writing their diagnostics. This prepass can return a previously saved status
+repeatedly. Bare `wait -n` does not search saved statuses. An explicit active but
+already-notified child is known, but not eligible: a selection with no eligible
+child returns127 without treating that child as unknown. A successful next wait
+saves its selected numeric status after the child's owned cleanup completes.
+
+The explicit next-wait numeric path accepts C leading/trailing whitespace and
+signs, unlike ordinary wait's digit-leading dispatch. Spelling does not cause
+retirement. Negative numeric values cannot identify the positive virtual child
+tokens. Unknown operands retain raw diagnostic bytes; job-specification lookup
+is not implemented merely because its diagnostics are recognized.
+
+`-p` accepts an attached argument or the next argument, including option-looking
+text. Only the last destination is prepared, after all option parsing succeeds.
+The generic reference bridge validates captured reference syntax and performs
+early whole-name unbinding, then later assigns the selected integer process ID
+against the current canonical binding. Bracketed whole-name unbinding does not
+remove an indexed element. Scalar, local, readonly-unset, and literal indexed
+effects have selected primary observations; this is not full arithmetic,
+nameref, declaration-attribute, or late-readonly reference qualification.
+
+An interrupted or unsuccessful selection leaves an early-unbound scalar unset;
+bare ordinary wait does not publish a PID. For ordinary operand lists, a trailing
+invalid operand clears the final publication candidate rather than publishing
+the last earlier valid PID. Reference cleanup is awaited, and a secondary close
+failure does not replace an escaping primary failure, including falsey reasons.
+
+## Status residence and remaining integration
+
+The registry distinguishes active-unnotified, active-notified, saved, and
+forgotten records. Ordinary waiting cleans already-notified completed records
+before marking its current active target notified. The captured generic
+`loop-body-complete` checkpoint archives notified numeric completions; starting
+another background job also cleans prior notified records. Neither arbitrary
+simple-command completion nor repeated next-wait spelling triggers retirement.
+Bare ordinary wait forgets collected records. Failed tasks are never converted
+to numeric saved statuses. Active and saved records share the existing bounded
+job admission limit; this does not emulate native CHILD_MAX pruning or PID reuse.
+
+Foreground retirement remains a concrete integration gap. Four authenticated
+Bash5.3 observations place an intervening colon, subshell, pipeline, or command
+substitution after ordinary wait. The colon leaves explicit next wait at127;
+the other three return the saved7. Current leaf-only integration matches the
+colon and still returns127 for the other three. It needs explicitly approved
+generic core cleanup boundaries, not reaping after every command or inferring
+native job-table membership from the substitution's output. No foreground core
+hook is implemented by this leaf increment.
+
+Stopped-job semantics, job specifications, foreground job control, notifications,
+signal delivery, trapped-signal interruption of wait, POSIX-mode saved-status
+deletion, and remaining reference forms are unfinished. Recognizing `-f` in the
+termination-only model is not stopped-job qualification. The next-wait and
+destination work is therefore not full jobs/wait completion.
 
 ## Descriptor and cleanup ownership
 
@@ -100,3 +152,16 @@ both interpreters. Dynamic native PIDs and script diagnostic labels have only
 explicit, narrow mappings; raw option bytes, other output, and exit statuses
 are not normalized. The plan records the exact snapshots, remaining findings,
 independent reviews, and packaging gates for each increment.
+
+The next53 capsule retains106 authenticated artifacts and28 observations. Its
+case12 is exploratory, not a golden; case25 is diagnostic-frame calibration,
+not a product replay. R8 gates release on the complete calibrated diagnostic
+frame and proves selected registration, not kernel wait entry. The new leaf
+cohort compares26 selected observations:13 exact original-source replays and13
+explicit adaptations. Twelve adaptations provide owned VFS control/input
+descriptors; indexed case17 additionally uses canonical binding fixtures.
+Case23 also adapts indexed setup/observation. The original indexed17/23 programs
+currently fail before wait on unsupported indexed parameter operators; their
+unaltered failures remain evidence, not passes. Adaptations preserve compared
+status and output bytes, with only the declared case14 PID-diagnostic mapping.
+They do not certify unsupported array grammar or identical native control IPC.

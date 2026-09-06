@@ -97,6 +97,50 @@ Cancellation and escaping failures retain their existing outcome precedence;
 registered cooperative work is cancelled as appropriate and joined rather than
 detached. Opaque uncooperative host work is not forcibly preempted.
 
+### Execution checkpoints
+
+An extension instance may supply an own-data `checkpoint(point, context)`
+observer. The callback and its instance receiver are captured at admission and
+independently for each fork; later method replacement does not change an admitted
+observer. `ShellExecutionCheckpoint` includes `loop-body-complete`,
+`child-job-install` and `source-input-read`. These are separate from lifecycle
+`event` and do not add a trap event or syntax.
+
+For ordinary for, while and until loops, this checkpoint follows an executed
+body's normal return or break/continue transfer, before that transfer propagates
+through enclosing loop bodies. A false initial condition or zero-iteration loop has no
+completed body. Return, exit, discard, fatal failure and cancellation do not
+acquire the checkpoint through an unconditional finally. Arithmetic-for and
+select are not qualified by this point.
+
+`child-job-install` observes the parent after successful foreground subshell or
+pipeline preparation, once per aggregate and before child execution. With an
+enrolled observer, all pipeline stages must prepare successfully before the
+checkpoint and execution admission. Mixed preparation failure prevents prepared
+peers from starting, emits no installation checkpoint and drains owned resources.
+This observer-admission contract does not assert native fork-failure equivalence.
+
+`source-input-read` observes the parent for an active explicit dollar-parenthesis
+command substitution after depth and cancellation admission, before capture
+allocation and child-state cloning or extension forking. It is not inferred from
+display source text or dispatched at capture EOF. Empty or optimized substitutions,
+backticks, nested grammar and source/eval parser-refill timing are not newly
+native-qualified by this point.
+
+Checkpoint callbacks complete in enrollment order. Their resolved values are
+ignored, including action-shaped objects: this is not a skip, return or status
+control channel. Thrown/rejected failures and cancellation retain the ordinary
+execution ownership rules. Callbacks use the existing invocation context and
+must register cooperative cleanup before acquiring resources. The dispatcher
+does not itself rewrite shell status, PIPESTATUS or BASH_COMMAND; deliberate
+callback evaluation or binding changes remain explicit canonical effects, not
+transactions to roll back.
+
+Without an enrolled observer there is no additional asynchronous checkpoint
+dispatch or aggregate preparation barrier. Ordinary command, function, source or
+eval completion does not become a checkpoint. This facility alone does not establish native foreground-job
+retirement, signal/trap interruption, or full wait-option compatibility.
+
 ## Bindings and input
 
 An invocation's `bindings` interface reads canonical `ShellValue` values, not

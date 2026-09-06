@@ -16,7 +16,7 @@ import { HereDocumentSyntaxError, functionReprintedLines, hereDocumentWords, par
 import { ShellLimitError, ShellSyntaxError } from "./types.js";
 import type { ShellCommandContext, ShellInvokeOptions, ShellLimits } from "./types.js";
 import { forkExtensions } from "./extensions.js";
-import type { PreparedShellChild, ShellBindingReference, ShellBindingResult, ShellChildPreparation, ShellExtensionBindings, ShellExtensionContext, ShellExtensionEvent, ShellExtensionInput, ShellExtensionState, ShellIndexedWriter } from "./extensions.js";
+import type { PreparedShellChild, ShellBindingReference, ShellBindingResult, ShellChildPreparation, ShellExecutionCheckpoint, ShellExtensionBindings, ShellExtensionContext, ShellExtensionEvent, ShellExtensionInput, ShellExtensionState, ShellIndexedWriter } from "./extensions.js";
 import { prepareBytesInput, prepareFileInput, ShellInput } from "./input.js";
 import { observeDescriptor, PipeDescriptorFrame, pipeObservation, type PipeDescriptorReference } from "./descriptors.js";
 import { evaluateArithmetic, prepareArithmetic } from "./arithmetic.js";
@@ -616,6 +616,8 @@ class NounsetFailure extends ExpansionFailure {}
 class NounsetDiagnosticFailure extends Flow {
   constructor(readonly reason: unknown) { super("exit", 1); }
 }
+
+class ExtensionCheckpointFailure extends NounsetDiagnosticFailure {}
 
 class PipelineClosed extends Error {
   readonly code = "EPIPE";
@@ -2401,6 +2403,23 @@ export class Runtime {
     }
   }
 
+  private async extensionCheckpoint(point: ShellExecutionCheckpoint, state: State, io: IO): Promise<void> {
+    try {
+      for (const checkpoint of state.extensions!.checkpoints) {
+        await io[invocationScope].run(() => Promise.resolve().then(async () => {
+          const context = this.extensionContext(state, io);
+          context.signal.throwIfAborted();
+          await checkpoint(point, context);
+          context.signal.throwIfAborted();
+        }));
+      }
+    } catch (reason) {
+      this.signal.throwIfAborted();
+      if (reason instanceof Flow) throw reason;
+      throw new ExtensionCheckpointFailure(reason);
+    }
+  }
+
   private async beginShellExit(state: State, io: IO, status: number): Promise<number> {
     const frame = state.extensions;
     if (!frame || frame.exiting) return status;
@@ -2410,7 +2429,7 @@ export class Runtime {
     frame.exiting = true;
     try {
       try { await this.extensionEvent("exit", state, io, status); }
-      catch (error) { if (error instanceof Flow && error.kind === "exit") { if (!error.expansionFailure) status = error.status; } else throw error; }
+      catch (error) { if (error instanceof Flow && error.kind === "exit" && !(error instanceof ExtensionCheckpointFailure)) { if (!error.expansionFailure) status = error.status; } else throw error; }
       this.signal.throwIfAborted();
     } catch (reason) { extensionExitFailures.set(frame, { reason }); }
     finally { frame.exiting = false; }
@@ -2429,11 +2448,14 @@ export class Runtime {
     try { await this.releaseExtensions(state); }
     catch (cleanup) {
       this.signal.throwIfAborted();
-      if (failure) throw new AggregateError([failure.reason, cleanup], "Shell completion and extension cleanup failed");
-      throw cleanup;
+      if (failure?.reason instanceof ExtensionCheckpointFailure) io[invocationScope].failures.push(cleanup);
+      else {
+        if (failure) throw new AggregateError([failure.reason, cleanup], "Shell completion and extension cleanup failed");
+        throw cleanup;
+      }
     }
     this.signal.throwIfAborted();
-    if (failure) throw failure.reason;
+    if (failure) throw failure.reason instanceof ExtensionCheckpointFailure && !state.isolated ? failure.reason.reason : failure.reason;
     return status;
   }
 
@@ -2447,6 +2469,7 @@ export class Runtime {
     while (true) {
       try { await this.extensionEvent(event, state, io, previous); return status; }
       catch (error) {
+        if (error instanceof ExtensionCheckpointFailure) throw error;
         if (error instanceof Flow && error.kind === "return") { status = error.status; previous = error.previousStatus ?? status; continue; }
         if (error instanceof Flow && error.kind === "exit") throw new Flow("exit", await this.beginShellExit(state, io, error.status), 1, error.previousStatus);
         throw error;
@@ -2635,6 +2658,20 @@ export class Runtime {
         const retireBaseline = terminal ? transfer.then(() => terminal.frame.reconcile(new Map())) : Promise.resolve();
         retain(retireBaseline);
         void retireBaseline.catch(() => undefined);
+        let preparedStages = 0;
+        let acceptPreparation: (() => void) | undefined;
+        let rejectPreparation: ((reason: unknown) => void) | undefined;
+        const installation = state.extensions?.checkpoints.length ? new Promise<void>((resolve, reject) => {
+          acceptPreparation = () => { if (++preparedStages === pipeline.commands.length) resolve(); };
+          rejectPreparation = reject;
+        }).then(async () => {
+          await retireBaseline;
+          await this.extensionCheckpoint("child-job-install", state, io);
+        }) : undefined;
+        if (installation) {
+          retain(installation);
+          void installation.catch(() => undefined);
+        }
         const tasks = pipeline.commands.map(async (command, index) => {
           let admitted = false;
           const admit = (): void => {
@@ -2666,8 +2703,14 @@ export class Runtime {
             boundary.deliverySignal, boundary, this.cancellationState, owner,
             childDepth, this.cancellationMaxDepth, frame,
           );
+          let captured: CapturedCancellationOutcome<CommandResult>;
+          const preparationCleanup: (() => void | Promise<void>)[] = [];
+          let stageOwnsCleanup = false;
+          try {
           const references = new PipeDescriptorFrame(io[invocationScope]);
+          preparationCleanup.push(() => references.close());
           const descriptorFrame = new PreparedDescriptorFrame(references, this.budget);
+          preparationCleanup.push(() => descriptorFrame.close());
           const reading = incoming?.endpoints?.read;
           const writing = outgoing?.endpoints?.write;
           const readReference = reading && references.open(reading, this.budget);
@@ -2675,6 +2718,7 @@ export class Runtime {
           const input = incoming
             ? new ShellInput(reading?.readable ?? incoming.readable, this.budget, signal, { provenance: "stream", poll: () => incoming.readiness() })
             : new ShellInput(io.stdin, this.budget, signal);
+          preparationCleanup.push(() => input.close());
           const writable = writing?.writable ?? outgoing?.writable;
           const failOutput = writable?.[outputFailure]?.bind(writable);
           const pipeOutput: ByteSink | undefined = outgoing && { ...(failOutput ? { [outputFailure]: failOutput } : {}), ownedOutput: writable!.ownedOutput!, write: async (chunk) => {
@@ -2692,10 +2736,17 @@ export class Runtime {
             }
           } };
           const executeStage = async (): Promise<CommandResult> => {
+            let preparedChild: State | undefined;
+            let preparationFailed = false;
+            let started = false;
+            let checkpointFailure: ExtensionCheckpointFailure | undefined;
+            let outcome: CapturedCancellationOutcome<CommandResult>;
             try {
               let exitCode: number;
               try {
                 const child = await cloneState(state, this.signal);
+                preparedChild = child;
+                child.extensions = undefined;
                 child.extensions = forkExtensions(state.extensions, "pipeline");
                 child.isolated = true;
                 const inherited = isolateIO(io, references);
@@ -2715,20 +2766,50 @@ export class Runtime {
                 childIO.descriptors = descriptors;
                 descriptorFrame.acquire(descriptors);
                 admit();
+                acceptPreparation?.();
                 await retireBaseline;
-                const work = runtime.runCommandIsolated(command, child, childIO).then(status => runtime.finishShell(child, childIO, status)).finally(async () => {
+                if (installation) {
+                  await installation;
+                  signal.throwIfAborted();
+                }
+                const execution = runtime.runCommandIsolated(command, child, childIO).then(status => runtime.finishShell(child, childIO, status));
+                const work = (child.extensions?.checkpoints.length ? execution.catch(reason => {
+                  if (reason instanceof ExtensionCheckpointFailure) checkpointFailure = reason;
+                  throw reason;
+                }) : execution).finally(async () => {
                   try { await runtime.releaseExtensions(child); }
+                  catch (cleanup) {
+                    if (checkpointFailure) io[invocationScope].failures.push(cleanup);
+                    else throw cleanup;
+                  }
                   finally { stateMonitor(child)?.closeValues(); }
                 });
+                preparedChild = undefined;
+                started = true;
                 retain(work);
                 exitCode = await interruptible(work, signal);
               } catch (error) {
+                if (error instanceof ExtensionCheckpointFailure) checkpointFailure = error;
+                if (!started) {
+                  preparationFailed = true;
+                  rejectPreparation?.(error);
+                }
                 if (!(error instanceof PipelineClosed)) throw error;
                 exitCode = 141;
               }
-              return { exitCode };
+              outcome = { kind: "return", value: { exitCode } };
+            } catch (reason) {
+              outcome = { kind: "throw", reason };
             } finally {
               admit();
+              const cleanupFailures: unknown[] = [];
+              if (preparedChild) {
+                const child = preparedChild;
+                await io[invocationScope].cleanup(async () => {
+                  try { await runtime.releaseExtensions(child); }
+                  finally { stateMonitor(child)?.closeValues(); }
+                });
+              }
               completed.add(index);
               if (incoming && !reading) {
                 const upstream = index - 1;
@@ -2737,17 +2818,30 @@ export class Runtime {
                   if (written.has(upstream) && !completed.has(upstream)) controllers[upstream]!.abort(new PipelineClosed());
                 });
                 closing.add(close);
-                await incoming.abort();
+                try { await incoming.abort(); }
+                catch (reason) { cleanupFailures.push(reason); }
               }
-              await input.close().catch((error: unknown) => { if (!(error instanceof PipelineClosed)) throw error; });
-              await descriptorFrame.close();
-              await references.close();
+              try { await input.close().catch((error: unknown) => { if (!(error instanceof PipelineClosed)) throw error; }); }
+              catch (reason) { cleanupFailures.push(reason); }
+              try { await descriptorFrame.close(); }
+              catch (reason) { cleanupFailures.push(reason); }
+              try { await references.close(); }
+              catch (reason) { cleanupFailures.push(reason); }
               if (outgoing && !writing) await outgoing.close().catch(() => undefined);
+              if (checkpointFailure || installation && preparationFailed) io[invocationScope].failures.push(...cleanupFailures);
+              else if (cleanupFailures.length) {
+                io[invocationScope].failures.push(...cleanupFailures.slice(1));
+                outcome = { kind: "throw", reason: cleanupFailures[0] };
+              }
             }
+            if (outcome.kind === "throw") throw outcome.reason;
+            return outcome.value;
           };
-          let captured: CapturedCancellationOutcome<CommandResult>;
-          try { captured = { kind: "return", value: await executeStage() }; }
-          catch (reason) {
+          stageOwnsCleanup = true;
+          captured = { kind: "return", value: await executeStage() };
+          } catch (reason) {
+            rejectPreparation?.(reason);
+            if (!stageOwnsCleanup) await Promise.all(preparationCleanup.map(cleanup => io[invocationScope].cleanup(cleanup)));
             captured = frame.report && Object.is(frame.report.origin.signal.reason, reason)
               ? { kind: "throw", reason, report: frame.report }
               : { kind: "throw", reason };
@@ -2755,6 +2849,9 @@ export class Runtime {
           const selection = await owner.finish(Promise.resolve(), captured);
           if (selection.outcome.kind === "throw") throw selection.outcome.reason;
           return selection.outcome.value.exitCode;
+          } catch (reason) {
+            rejectPreparation?.(reason);
+            throw reason;
           } finally { admit(); }
         });
         for (const task of tasks) retain(task);
@@ -2964,11 +3061,20 @@ export class Runtime {
       }
       if (command.kind === "subshell") {
         const child = await cloneState(state, this.signal);
-        child.extensions = forkExtensions(state.extensions, "subshell");
-        child.isolated = true;
-        child.loopDepth = 0;
-        try { return await this.run(command.body, child, io); }
-        finally { stateMonitor(child)?.closeValues(); }
+        child.extensions = undefined;
+        let started = false;
+        try {
+          child.extensions = forkExtensions(state.extensions, "subshell");
+          child.isolated = true;
+          child.loopDepth = 0;
+          if (state.extensions?.checkpoints.length) await this.extensionCheckpoint("child-job-install", state, io);
+          started = true;
+          return await this.run(command.body, child, io);
+        } finally {
+          try {
+            if (!started && child.extensions?.cleanup.length) await io[invocationScope].cleanup(() => this.releaseExtensions(child));
+          } finally { stateMonitor(child)?.closeValues(); }
+        }
       }
       if (command.kind === "group") return await this.script(command.body, state, io);
       if (command.kind === "if") {
@@ -3119,12 +3225,16 @@ export class Runtime {
   }
 
   async loopBody(body: Script, state: State, io: IO): Promise<{ status: number; stop: boolean }> {
-    try { return { status: await this.script(body, state, io), stop: false }; }
+    let status = 0;
+    let control: Flow | undefined;
+    try { status = await this.script(body, state, io); }
     catch (error) {
       if (!(error instanceof Flow) || (error.kind !== "break" && error.kind !== "continue")) throw error;
-      if (--error.levels > 0) throw error;
-      return { status: 0, stop: error.kind === "break" };
+      control = error;
     }
+    if (state.extensions?.checkpoints.length) await this.extensionCheckpoint("loop-body-complete", state, io);
+    if (control && --control.levels > 0) throw control;
+    return { status, stop: control?.kind === "break" };
   }
 
   async document(document: HereDocument, state: State, io: IO, line = document.endLine): Promise<ShellValue> {
@@ -3722,29 +3832,47 @@ export class Runtime {
               if (!typed && !previous.readOnly) state.readonlyVariables?.delete(name);
             });
           };
+          let primaryFailure = false;
+          let outcome: CapturedCancellationOutcome<CommandResult>;
+          let checkpointFailure: ExtensionCheckpointFailure | undefined;
           try {
-            await this.extensionEvent("function-enter", state, io, state.status);
-            if (await this.extensionEvent("command", state, { ...io, ...context }, state.status, context.command)) return { exitCode: state.status };
-            const diagnostic = functionDiagnostics.get(body);
-            const status = await this.command(body, state, {
-              ...io, ...context, scriptName: body.sourceName ?? io.scriptName ?? "shell",
-              diagnosticOffset: diagnostic?.offset ?? 0,
-              assignmentDiagnosticContext: { name: context.command },
-              functionCommandLines: diagnostic?.lines, diagnosticCommandLines: diagnostic?.lines,
-            });
-            return { exitCode: await this.finishReturn("function-return", state, { ...io, ...context }, status) };
-          }
-          catch (error) {
-            if (error instanceof Flow && error.kind === "return") {
-              return { exitCode: await this.finishReturn("function-return", state, { ...io, ...context }, error.status, error.previousStatus) };
+            try {
+              await this.extensionEvent("function-enter", state, io, state.status);
+              if (await this.extensionEvent("command", state, { ...io, ...context }, state.status, context.command)) outcome = { kind: "return", value: { exitCode: state.status } };
+              else {
+                const diagnostic = functionDiagnostics.get(body);
+                const status = await this.command(body, state, {
+                  ...io, ...context, scriptName: body.sourceName ?? io.scriptName ?? "shell",
+                  diagnosticOffset: diagnostic?.offset ?? 0,
+                  assignmentDiagnosticContext: { name: context.command },
+                  functionCommandLines: diagnostic?.lines, diagnosticCommandLines: diagnostic?.lines,
+                });
+                outcome = { kind: "return", value: { exitCode: await this.finishReturn("function-return", state, { ...io, ...context }, status) } };
+              }
             }
-            if (error instanceof Flow && error.kind === "exit" && state.extensions) {
-              if (error.previousStatus === undefined) await restoreLocals();
-              throw new Flow("exit", await this.beginShellExit(state, { ...io, ...context }, error.status));
+            catch (error) {
+              if (error instanceof NounsetDiagnosticFailure) throw error;
+              if (error instanceof Flow && error.kind === "return") {
+                outcome = { kind: "return", value: { exitCode: await this.finishReturn("function-return", state, { ...io, ...context }, error.status, error.previousStatus) } };
+              } else {
+                if (error instanceof Flow && error.kind === "exit" && state.extensions) {
+                  if (error.previousStatus === undefined) await restoreLocals();
+                  throw new Flow("exit", await this.beginShellExit(state, { ...io, ...context }, error.status));
+                }
+                throw error;
+              }
             }
-            throw error;
+          } catch (error) {
+            primaryFailure = !(error instanceof Flow) || error instanceof NounsetDiagnosticFailure;
+            outcome = { kind: "throw", reason: error };
           } finally {
-            await scope.cleanup(async () => { if (!this.signal.aborted) await this.extensionEvent("function-leave", state, io, state.status); });
+            await scope.cleanup(async () => {
+              try { if (!this.signal.aborted) await this.extensionEvent("function-leave", state, io, state.status); }
+              catch (error) {
+                if (error instanceof ExtensionCheckpointFailure && !primaryFailure) checkpointFailure = error;
+                else throw error;
+              }
+            });
             const restoreControls = () => {
               stateMonitor(state)!.positionals.restore(savedPositionals, () => { state.positional = positional; });
               savedPositionals.close();
@@ -3769,6 +3897,12 @@ export class Runtime {
             await scope.cleanup(() => getoptsRestoration?.close());
             await scope.cleanup(() => functionRestoration?.close());
           }
+          if (checkpointFailure) {
+            this.signal.throwIfAborted();
+            throw checkpointFailure;
+          }
+          if (outcome.kind === "throw") throw outcome.reason;
+          return outcome.value;
         }
         if (selected?.kind === "builtin") {
           const extensionBuiltin = state.extensions?.builtins.get(context.command);
@@ -4498,15 +4632,28 @@ export class Runtime {
         tickets.release();
       } else entry();
     } catch (error) { savedPositionals?.close(); restoration?.close(); throw error; }
+    let primaryFailure = false;
+    let outcome: CapturedCancellationOutcome<number>;
+    let leaveFailure: { reason: unknown } | undefined;
     try {
-      await this.extensionEvent("source-enter", state, io, state.status);
-      const status = await this.runCurrentText(source, state, { ...io, scriptName: target, diagnosticOffset: 0, diagnosticLine: 1, assignmentDiagnosticContext: undefined }, special);
-      return await this.finishReturn("source-return", state, io, status);
+      try {
+        await this.extensionEvent("source-enter", state, io, state.status);
+        const status = await this.runCurrentText(source, state, { ...io, scriptName: target, diagnosticOffset: 0, diagnosticLine: 1, assignmentDiagnosticContext: undefined }, special);
+        outcome = { kind: "return", value: await this.finishReturn("source-return", state, io, status) };
+      } catch (error) {
+        if (error instanceof Flow && error.kind === "return") outcome = { kind: "return", value: await this.finishReturn("source-return", state, io, error.status, error.previousStatus) };
+        else throw error;
+      }
     } catch (error) {
-      if (error instanceof Flow && error.kind === "return") return await this.finishReturn("source-return", state, io, error.status, error.previousStatus);
-      throw error;
+      primaryFailure = !(error instanceof Flow) || error instanceof NounsetDiagnosticFailure;
+      outcome = { kind: "throw", reason: error instanceof Flow ? error : new NounsetDiagnosticFailure(error) };
     } finally {
-      if (!this.signal.aborted) await this.extensionEvent("source-leave", state, io, state.status);
+      const scope = io[invocationScope];
+      try { if (!this.signal.aborted) await this.extensionEvent("source-leave", state, io, state.status); }
+      catch (reason) {
+        if (primaryFailure) scope.failures.push(reason);
+        else leaveFailure = { reason };
+      }
       const restore = () => {
         state.depth--;
         state.sourceDepth = sourceDepth;
@@ -4520,8 +4667,18 @@ export class Runtime {
       try {
         if (restoration) restoration.apply(restore);
         else restore();
-      } finally { savedPositionals?.close(); }
+      } catch (error) { scope.failures.push(error); }
+      try { savedPositionals?.close(); }
+      catch (error) { scope.failures.push(error); }
+      try { restoration?.close(); }
+      catch (error) { scope.failures.push(error); }
     }
+    if (leaveFailure) {
+      this.signal.throwIfAborted();
+      throw leaveFailure.reason instanceof Flow ? leaveFailure.reason : new NounsetDiagnosticFailure(leaveFailure.reason);
+    }
+    if (outcome.kind === "throw") throw outcome.reason;
+    return outcome.value;
   }
 
   invoke(name: string, args: readonly string[], options: ShellInvokeOptions = {}, context: ShellCommandContext, state: State, parent: InvocationScope): Promise<{ exitCode: number }> {
@@ -5504,6 +5661,8 @@ export class Runtime {
     }
     if (part.kind === "substitution") {
       if (state.depth >= this.budget.limits.maxSubstitutionDepth) this.budget.fail("maxSubstitutionDepth");
+      this.signal.throwIfAborted();
+      if (part.form === "dollar-parenthesis" && state.extensions?.checkpoints.length) await this.extensionCheckpoint("source-input-read", state, io);
       const capture = new Capture();
       const child = await cloneState(state, this.signal);
       child.isolated = true;

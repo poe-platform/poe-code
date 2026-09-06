@@ -4,9 +4,9 @@
 
 The September 4, 2026 request is to add all missing items identified in the
 scripting inventory, subject them to native-tool scrutiny, keep them out of the
-default package, and commit each tool separately. Work remains on main. There
-is no request to push or release. Existing unrelated edits are not part of this
-work.
+default package, and commit each tool separately. Work remains on main. The later
+request authorizes incremental releases without blocking implementation. Existing
+unrelated edits are not part of this work.
 
 New command families must remain explicit opt-ins: no registration in
 `agentCommands`, `standardCommands`, or `browserCommands`, no root-barrel export,
@@ -48,7 +48,9 @@ this request to keep additions out of the default package.
    interfaces change. Visually inspect output for user-visible command changes.
 6. Commit each tool separately with relevant tests, semantics/evidence and plan
    updates. Never commit unrelated changes or bypass hooks. Report local commits
-   separately from remote delivery and releases, neither of which is requested.
+   separately from remote delivery and releases. The user now requests incremental
+   releases without blocking ongoing implementation; deliver validated increments
+   and monitor their releases while other work continues.
 7. Do not declare the objective complete until every scope item has current
    source, behavioral, integration and delivery evidence. A partial wave remains
    partial even when its own tests pass.
@@ -3698,3 +3700,775 @@ and raw hex, final approval/seal, rejection history and resource limitations.
 The author preserves an initial auditor metadata-shape failure beside the
 corrected receipt; no native rerun or existing-artifact modification repairs it.
 No canonical product fixture is inferred merely by assembling this handoff.
+
+## September 5 local reference-bridge delivery and next wait increment
+
+The reference bridge is locally committed as
+`8dec95a6af68f364b24489a9a24a7406c1fa2dfc`
+(`feat(safe-bash): add extension binding references`). Root's guarded receipt at
+`/tmp/jobs-binding-commit-root-8fdWUC/verified.json` verifies the exact19 owned
+paths, committed blob hashes and unchanged unrelated index entries against
+parent `5bd476ddd8667ae0e8c6e60c87d266aac0914335`. The sealed validation manifest
+at `/tmp/jobs-binding-commit-validation-root.json` has SHA256
+`34180566dd99deb4216afca576e71883a01978611d867059f1f44286f0068433`.
+No push, remote-main verification or release occurred. All owned working bytes
+matched the commit at that checkpoint; unrelated edits remain untouched.
+
+The next increment keeps the original wait-option scope intact. A separate
+source audit reconciles the new L1/L2 observations and proposes generic runtime
+retirement checkpoints without command-name branches or reaping after every
+command. A disjoint author prepares self-contained canonical native25/native3
+observation data and exact-request helper guards under `next53-reference`.
+Case12 remains explicitly exploratory and calibration25 is not a product
+expectation. These artifact guards are not wait implementation passes; leaf
+replays and production changes still require their own red/green qualification.
+
+Root adds six actual compiled-public inline replays from native25 cases1,2,4,
+5,6 and20 in `tests/plugins/wait-options-runtime.test.ts`. Each source, stdin,
+final subject status and stdout/stderr hex is copied without normalization from
+the authenticated native aggregate; per-case source hashes remain asserted.
+These cases have no asynchronous children or dynamic PID substitution. Their
+printed wait statuses differ from the final printf/program status0.
+
+The first file-generation tool request was rejected before process creation
+because its command argument contained a NUL; it created no files or test run.
+The corrected request uses ordinary text and `apply_patch`. The actual public
+red at `/tmp/jobs-wait-options-public-red-root-d3kdXz` fails6/6 with1649 stable
+compiled inputs, zero skips/cancellations, and the expected currently unsupported
+`-n`/`-p` diagnostics rather than missing APIs or syntax/setup failures. Strict
+checking of the one public test root has zero diagnostics with312 sources/322
+stable inputs at `/tmp/scripting-public-types-root-Sqv7Ok`. Literal enrollment
+passes98/98 at `/tmp/jobs-wait-options-literal-root-iAtv0n`. This is next-increment
+TDD evidence, not a regression attributed to the committed reference bridge or
+permission to implement only the no-child paths to satisfy these six cases.
+
+Independent review of those six public replays approves their exact native
+source/input/status/output correspondence and public ownership boundaries at
+`/tmp/wait-options-public-independent-Gk02HK/approval.json`, SHA256
+`80dd3636de64c53469c5515859a815bba2e0665cd03ada567ac23f83b3dfd9a5`.
+This approves the fixtures, not the still-red wait implementation.
+
+The source reconciliation at
+`/tmp/jobs-native3-checkpoint-audit-6mfOUm/final.json`, SHA256
+`d3faf12546aa03edd3f9cc577a49ccf406fa269d4cbb85b5d308ae18458734f7`,
+authenticates all18 native3 seal bindings and preserves the distinction between
+observed outputs and inferred internal transitions. Root accepts a separate
+optional `checkpoint` callback with the initial `loop-body-complete` point for
+generic core implementation. It is not added to `event`, whose trap fallback
+would misinterpret an unknown event as RETURN. Dispatch belongs after normal
+body completion or caught break/continue, before multilevel propagation, never
+an unconditional finally on return/exit/fatal/cancellation. No hook means no new
+asynchronous dispatch; no jobs-name branch or optional import enters core.
+Explicit callback side effects are not promised transactional rollback.
+
+Foreground installation/join requires actual child-job ownership, not arbitrary
+registry/function/source/eval completion. Four exact colon/subshell/pipeline/
+substitution counterfactuals are assigned for separately reviewed preparation
+only, with no new native execution authorized. Loop retirement by itself remains
+insufficient for full wait semantics; arithmetic-for/select placement and the
+other signal, reference, capacity and POSIX gaps remain open.
+
+Root's generic checkpoint consumer tests cover nine contracts across inline,
+actual VFS bash and sh routes. The old compiled public artifact passes twelve
+negative controls and fails fifteen expected callback-delivery assertions at
+`/tmp/jobs-checkpoint-public-red-root-ORSMP3`, with1649 inputs stable and no skips
+or cancellations. These27 cases are generic API contracts, not new native
+goldens. Strict checking at `/tmp/scripting-public-types-root-YLhZyU` reports
+exactly the missing published checkpoint property. The actual optional
+declaration consumer at `/tmp/jobs-checkpoint-declarations-red-root-A7Le4C`
+reports only the missing `ShellExecutionCheckpoint` export and callback property,
+with1666 stable inputs. Root adds the type-only optional export and consumer
+enrollment; no new build or green claim precedes the producer freeze.
+
+The initial native observation helper freezes at
+`/private/tmp/jobs-next53-reference-ncvI2L/freeze.json`, SHA256
+`d46833f00c9d961006e40c4f115a75edb2b59b886a4006527c4fdf0f78831cc2`.
+Its1568282-byte JSON capsule preserves106 immutable artifacts and28 observations;
+the capsule SHA256 is
+`36db38dc7603edd35966c7450a8016371a2d6f4e318fc5ebc7608b548baf78ea`.
+Admission binds native artifact/request bytes, not mutable current TS consumer
+hashes. Canonical execution reads only its local static capsule, never historical
+temporary paths or embedded oracle programs. First test-only and initial
+implementation runs fail63/63; the latter reveals a numeric-zero versus boolean
+handoff-schema distinction. The corrected author guard cohort passes63/63 and
+retained fixture coverage157/157, with zero skips; these are artifact guards,
+not product wait passes.
+
+Root source review then requests injected regressions for pre-open nonregular
+file admission and combined primary/close failure identity. The initial helper
+opens before its first regular-file check and uses a finally close that can mask
+a prior thrown reason. No native FIFO, device or failing host descriptor is
+created to investigate these paths. The author must preserve the original
+evidence, reproduce the cases with injected/memfs controls, and repair only the
+helper/tests without changing the authenticated capsule. Independent acceptance
+of this helper remains pending rather than inferred from its initial green run.
+
+### Checkpoint and fixture integration continuation, September 5, 2026
+
+The resumed root polls the previously live literal-enrollment process rather than
+restarting it. Its terminal receipt at
+`/tmp/jobs-next-integration-literal-root-DFl0kH` reports98/98 with both watched
+inputs unchanged. The intervening command-inventory answer was a source review,
+not implementation, acceptance, or a change to this plan's original scope.
+
+The generic checkpoint author freezes three owned files at
+`/tmp/checkpoint-author-epnb5V/final.json`, SHA256
+`d25c531f644d6a5a5184011de757498e03db92c14e1d05f75a45195d3ac243ff`.
+Root authenticates the receipt and all three current hashes before starting the
+selected workspace build. Author evidence reports68/68 focused and429/429
+retained tests, no skips or cancellations, and actual-config strict checking of
+17 roots/324 inputs without diagnostics or drift. These are generic observer
+contracts, not native job-retirement acceptance. The source, new failure carrier,
+consumer tests and contract documentation are assigned to a different reviewer;
+public integration and independent acceptance remain pending.
+
+The observation-helper repair freezes at
+`/private/tmp/jobs-next53-admission-zR27Qp/freeze.json`, SHA256
+`d3301578428fc7bca1db2084c8a4b5042c087242dee0a7c681b4ada335d32803`.
+Its author reports preserved63-pass/16-fail and79-pass/30-fail regressions, then
+123/123 focused and217/217 retained guards with no skips, plus strict checking
+without diagnostics. The106-artifact capsule remains unchanged. Pre-open
+admission requires a stable trusted checkout, not hostile-namespace isolation;
+a failed close is an attempted release, never proof of closure or permission to
+retry an ambiguous descriptor. Independent source/evidence review is assigned
+separately; root does not count these guard results as product wait passes.
+
+The four foreground-retirement counterfactuals have a frozen, unexecuted draft
+at `/private/tmp/jobs53-foreground-retirement-draft-HUwgqZ/prepared-checkpoint-v2.json`,
+SHA256 `bd824e96eb9b961d5a4dd2d328fefe98db965c904a9f1f55ac96fadce82224ea`.
+Its preparation receipt SHA256 is
+`39a6a51fb7ad21882be78cad080bdfbe527e40cc42c108859a4ea0a3d9b44e92`.
+The author reports138/138 isolated mocks and no native launches or live handles.
+Independent controller review, root admission and a separate final seal are
+still required before any execution. The existing public wait-option six-case
+red remains open; neither checkpoint integration nor fixture hardening resolves
+the full wait implementation or the remaining original tool scope.
+
+The frozen checkpoint producer passes the selected workspace build at
+`/tmp/jobs-checkpoint-selected-build-root-WcPlan` with390 stable inputs and the
+explicit optional build at `/tmp/jobs-checkpoint-optional-build-root-cRgbPn`
+with386 stable inputs. The previously red public checkpoint cohort now passes
+27/27 at `/tmp/jobs-checkpoint-public-green-root-KZ7WV7`; the actual optional
+declaration consumer passes1/1 at
+`/tmp/jobs-checkpoint-declarations-green-root-xpvxLm`. Their1649 and1666 watched
+inputs respectively remain unchanged, with no skips or cancellations. Strict
+checking of the checkpoint, optional-declaration and wait-option public roots
+reports zero diagnostics across363 source files/373 watched inputs at
+`/tmp/scripting-public-types-root-PDL8aw`.
+
+The retained294 public tests plus the27 checkpoint cases pass321/321 at
+`/tmp/jobs-checkpoint-retained-public-root-wXK5QJ`, with1413 stable inputs and no
+skips or cancellations. This explicitly selected cohort does not include the
+still-red wait-option tests. The compiled inventory check at
+`/tmp/jobs-checkpoint-default-root-NoH5V6` preserves79 default/28 browser commands,
+the epoch date result and absent opt-ins. These observations concern the frozen
+checkpoint build, not subsequent jobs-leaf edits or complete Bash parity.
+
+Root adds an exact-source L1 public replay across inline and actual VFS bash/sh
+routes in `tests/plugins/wait-retirement-runtime.test.ts`. It binds the source
+SHA256 `8387ad640e0d4b41130bd7a7aba5ec98c4ff1de70b56a188f94055f4e6c2cbaa`
+and authenticates the unchanged native3 observation through the capsule helper.
+The first ordinary wait completes the child before the loop; all three iterations
+use the same operand. Expected output preserves127,7,7 rather than a spelling
+heuristic, with no dynamic PID substitution or timing gate. The original capsule
+classification remains raw observation; this selected product replay does not
+promote the other27 observations, exploratory12, or an internal-state hypothesis
+to deterministic goldens. At
+`/tmp/jobs-wait-retirement-public-red-root-zLeYZD` all three cases fail only at the
+expected unsupported `-n` behavior;1651 inputs are stable, with no skips or
+cancellations. Source hash, request admission and script setup succeed. Strict
+checking at `/tmp/scripting-public-types-root-IekE5c` reports zero diagnostics
+across313 sources/323 stable inputs. Independent replay review is requested.
+
+Root's separate foreground4 admission at
+`/tmp/jobs-foreground4-admission-root-Hc18FO/verified.json` authenticates24 frozen
+text artifacts and16 seal bindings, including streamed binary hashes and exact
+four-source/audit correspondence. All27 opened descriptors close successfully.
+The admission script neither executes native code nor approves the controller;
+there is still no final seal or native foreground4 observation. The next jobs
+leaf assignment requires substantive `-n`/`-p`, destination and status-lifetime
+behavior using the generic bridges, not merely the no-child public tests. Any
+foreground boundary must await the separately reviewed evidence and an explicit
+generic-core integration decision.
+
+After the checkpoint rebuild, the original six public wait-option cases remain
+red6/6 at `/tmp/jobs-checkpoint-wait-options-red-root-ZhWT0X` with1649 unchanged
+inputs and no skips/cancellations. They are not folded into the321-pass retained
+cohort. The added L1 test's literal enrollment passes98/98 at
+`/tmp/jobs-wait-retirement-literal-root-NeeQ3C`, with both watched inputs stable.
+
+Actual script-disabled workspace/root packs at
+`/tmp/jobs-checkpoint-pack-root-m9rO0I` contain1070/4661 entries, each with zero
+optional implementation artifacts and exact manifest/tar agreement. The inner
+receipt is `/tmp/jobs-pack-isolation-root-z9ABW6`; workspace archive SHA256 is
+`7fedeea2e58526c134341b344575814565f705379ab986d822b4d7c2bfbc914f`
+and root archive SHA256 is
+`3f80334eba769df86bdacb158788b9a21439dd8f6197a1014489b74b4dc77b2e`.
+All615 captured package inputs remain unchanged. These are packaging-isolation
+checks, not a full root build, installed-tar consumer gate, publish or release.
+No new local commit is made while independent review and substantive wait
+integration remain incomplete; existing unrelated changes remain untouched.
+
+### Four foreground counterfactuals captured, September 5, 2026
+
+Independent controller review approves root sealing, not execution, at
+`/private/tmp/jobs-foreground-independent-yPxLgq/approval.json`, SHA256
+`cdc4c5ff3412d19870d7ea2ef84c3d1789f56b916161c02b822113c6893607e1`.
+The detailed receipt SHA256 is
+`9102bd812f2c51782b13546dca6f0cc9770202d3370ce4a34736c383ea10aa7f`.
+It authenticates the exact four scripts and parent/controller changes, preserves
+NC1/NC2/NC3, and independently runs28 pure controls successfully; the author's
+138 mocks are authenticated rather than reported as independent reruns.
+
+Root separately reauthenticates the checkpoint,24 artifacts,16 bindings,
+independent approval and earlier admission before generating the final seal.
+All30 reads close at `/tmp/jobs-foreground4-seal-root-xCFsVn`. The approved bytes
+are installed with apply_patch, yielding final seal SHA256
+`cdc0c2d1052247fc3bcac1c303a428b728705c78a4d540180bbbad941ca9cc3b`.
+The exact outer entrypoint is then launched once with the pinned Node binary,
+explicit closed environment and `/private/tmp` working directory. It exits0 with
+the runner closed,135 stdout bytes, zero stderr bytes and stable identities. The
+tool returns terminal status immediately; there is no live session to restart.
+
+The resulting34577-byte `results.json` at
+`/private/tmp/jobs53-foreground-retirement-draft-HUwgqZ` has SHA256
+`14b1176ee7486c107d0a7a44494500b3c5e713b01a1cb9cc17f607b8a260e0f4`.
+Root verification at `/tmp/jobs-foreground4-observation-root-aibDR6/verified.json`,
+SHA256 `19ba639fb6a5a529c4f6fef6e4d6eefa3da2760bf0ed0e4ceb043c29ce515721`,
+confirms four subjects/four supervisors completed,40 pipes and17 outer admission
+handles closed,20 verifier reads closed,56 outgoing bytes and341 combined bytes.
+Maximum recorded case duration is30.514458999999988ms. There are no gates,
+signals, retries, pending writes or unresolved owned handles. This is bounded
+capture ownership evidence, not unconditional process-tree reaping or product
+test success.
+
+All four programs finish with status0 and empty stderr. Their exact stdout is:
+
+| Intervening construct | Printed wait result |
+| --- | --- |
+| `:` | `status:127;set:` followed by newline |
+| `(:)` | `status:7;set:x` followed by newline |
+| `: \| :` | `status:7;set:x` followed by newline |
+| `value=$(:)` | `status:7;set:x` followed by newline |
+
+Command substitution also changes the later wait outcome. This observation
+requires pinned-source reconciliation before choosing a generic core boundary;
+output alone does not establish job-table membership or an internal branch
+trace. The leaf owner receives these results without permission to guess a
+reap-every-command hook or launch further native cases.
+
+Root preserves these four exact requests/statuses/output bytes in the new
+`tests/plugins/wait-foreground-runtime.test.ts`, with inline and actual VFS bash/sh
+routes. The first generation request is rejected before process creation because
+its command data contains a NUL placeholder; no files, tests or native launches
+result from that request. Ordinary-text generation then succeeds via apply_patch
+without changing or repeating the native capture. The public red at
+`/tmp/jobs-wait-foreground-public-red-root-2KP03v` fails12/12 solely at unsupported
+`-n`, with1649 stable compiled inputs and no skips/cancellations. Source hashes
+and script setup succeed. Strict checking of foreground and L1 public roots at
+`/tmp/scripting-public-types-root-8xOifQ` reports zero diagnostics across314
+sources/324 unchanged inputs. Independent replay review and committed reference
+packaging remain separate pending work; these reds are not part of the321-pass
+checkpoint cohort.
+
+The foreground replay's literal enrollment passes98/98 at
+`/tmp/jobs-wait-foreground-literal-root-T4cNt5`, with both watched inputs stable.
+Root also enrolls the newly authored checkpoint-independent and jobs wait-option
+tests by exact paths; their implementation/review results remain separate from
+test discovery. Jobs index/state are now author WIP. No rebuild or current-source
+compatibility claim is based on the earlier frozen checkpoint artifacts.
+
+### Independent checkpoint blockers
+
+The independent checkpoint receipt at
+`/tmp/checkpoint-independent-MmRF7M/final.json`, SHA256
+`bc9eb01d10e194cf6231a026e635f58f5c79fa06850e159697cec5ad6cdda3c0`,
+denies approval despite the scoped public greens. CPR1 reproduces mutable
+callback `.bind` lookup at both root and fork admission. CPR2 reproduces
+function-leave evaluation leaking the internal checkpoint-failure carrier instead
+of the exact original false, zero or null reason. The selected independent
+cohort is11 tests:6 pass and5 fail, with534 inputs stable and no skips or
+cancellations. Actual-options strict checking has zero diagnostics across four
+roots/250 sources/259 inputs. Reviewer test freeze SHA256 is
+`dff7e68e08e510b7d04b3e6b3688d58bb9d36999120f2a872efe4f42a72ed367`.
+
+The same review separately reproduces a source-leave failure/drain gap without a
+checkpoint hook: the baseline test is cancelled for unresolved execution, not a
+pass. Three source-leave checkpoint failure cases and that baseline are excluded
+from the final selected11, not from required acceptance. The preserved earlier
+combined82 run has68 passes,5 failures and9 cancellations. An initial test-name
+selector mistake and host-JavaScript PIPESTATUS interpolation mistakes are
+documented as harness corrections, not product findings or weakened assertions.
+
+Root assigns the reviewer a bounded TDD repair of extensions.ts/runtime.ts and
+retains separate jobs-leaf ownership. The initial producer author does not edit
+those core files concurrently. The four source-leave cases must not be dropped,
+skipped or counted as passes to make the canonical suite green; any shared causal
+dependency requires an explicit minimal diagnosis and integration decision.
+The repair needs a different reviewer before acceptance. A separate read-only
+worker reconciles the completed foreground4 observations with pinned Bash source,
+especially command substitution, without implementing a guessed boundary or
+launching new native subjects. No new commit, push or release is claimed.
+
+### Continued implementation and incremental delivery
+
+The prior goal turn made concrete progress: new exact-source public regressions,
+completed foreground4 capture/closure verification, and independent checkpoint
+failures that change the next implementation action. There is no blocked-goal
+condition. The subsequent continuation authenticates the next53 helper's
+independent receipt at `/tmp/next53-independent-aSiWnI/final.json`, SHA256
+`2c82036e548df59d4fc78f0372ec058844da66948b006dda83142ff9f3705dff`.
+Its123 author guards and62 independent controls pass; strict checking of two
+roots/249 inputs has zero diagnostics. This is bounded fixture-admission approval,
+not wait compatibility acceptance.
+
+The wait leaf freezes four owned files at
+`/tmp/wait-options-author-mgkhFQ/final.json`, SHA256
+`c89a27c036e74fefebdde0f148b290004bfcae641f60a10d5763dfad0feee6a2`.
+The preserved baseline is1 pass/34 failures; focused tests then pass56/56. The
+retained cohort has537 passes and two explicitly unavailable historical-native
+skips, not539 passes. Actual-options strict checking reports zero diagnostics
+for16 roots/385 source inputs, with394 watched inputs stable. Foreground4 remains
+one matching case and three failures pending core integration. Indexed17/23
+canonical-binding adaptations are explicitly not original-program passes.
+Root assigns a different reviewer to inspect and stress this frozen leaf while
+checkpoint repair, foreground evidence packaging and delivery work proceed.
+
+Root adds four exact native25 destination/option cases3,19,21,22 in
+`tests/plugins/wait-destination-runtime.test.ts`, preserving the original six-case
+public file. The authenticated capsule binds source/input/status/raw output;
+invalid option bytes, missing later option arguments, last-target validation and
+option-looking/empty destinations remain distinct assertions. Against the prior
+compiled checkpoint build, `/tmp/jobs-wait-destination-public-baseline-root-Q8sROy`
+fails4/4 solely at unsupported `-p`/`-n`, with1651 stable inputs and no skips or
+cancellations. This is baseline evidence, not a test of the newer unbuilt leaf.
+Strict checking at `/tmp/scripting-public-types-root-C02B0L` has zero diagnostics
+across313 sources/323 stable inputs.
+
+The source reconciliation at
+`/tmp/jobs-foreground4-source-reconciliation-a014ab2d976d4218.json`, SHA256
+`a014ab2d976d421888f7555fc065718f4a7f880774a74f1c886005101ca3bb67`,
+distinguishes successful child-job installation from parent parser-input refill.
+It attributes the observed dollar-parenthesis substitution effect to parent
+reparsing before child creation, not capture completion or disposal. Proposed
+`child-job-install` and `source-input-read` points remain proposals requiring
+explicit core/input-provenance design; runtime mappings are snapshot-bound with
+recorded drift. A reported pre-preparation retirement in the frozen jobs state
+is assigned for independent deterministic reproduction, not assumed a new pass
+or changed without evidence.
+
+The user asks whether every change is being released and says not to get blocked
+by releasing. Root confirms that these recent safe-bash commits are still local,
+then checks actual remote state rather than assuming the cached branch is current.
+After fetch, local `8dec95a6af68f364b24489a9a24a7406c1fa2dfc` and remote-main
+`018e020567c503c3ef70a31ba3f5f460bf3dedd4` diverge by74 local/119 remote commits,
+with merge base `25b940bd7293e3725cbb25f6ae3f776c0147feb4`. Remote Release run
+33998004115 succeeds for the remote SHA, and v14.0.65 is published at
+2026-09-05T23:22:46Z; neither establishes delivery of the local safe-bash work.
+Root assigns a separate read-only delivery/reconciliation assessment using the
+committed candidate and maintained gates. No force-push, overwrite, reset, stash,
+live-WIP merge, hook bypass or branch creation is authorized. Validated prior
+increments should be integrated and released independently of unfinished wait
+work, with successful remote delivery and release verified separately. The
+implementation workers continue; release reconciliation does not pause them.
+
+The destination-test enrollment passes98/98 at
+`/tmp/jobs-wait-destination-literal-root-i8eaAd`, with both watched inputs stable.
+
+The delivery assessment at `/tmp/jobs-release-readiness-66pLGS/final.json`, SHA256
+`78249fc4d5d74d7fcf448e4245650b9b07c71674ebe3d02583331d89211c5ca7`,
+finds13 overlapping committed paths and29 conflict hunks in parser.ts,
+runtime.ts and shell.ts. The19-file prior commit receipt and three approvals
+remain authentic, but do not validate a combined candidate. Root authorizes a
+separate clean clone on existing main, fetching only the exact committed local
+head, preserving both histories, and preparing an ordinary uncommitted merge.
+The live working tree, index, HEAD and unrelated edits must remain untouched.
+Manual conflict resolution must retain both remote resource/parser budgets and
+local byte/syntax/lifecycle behavior; automatic overlaps also require review.
+Fresh maintained candidate gates and different-agent review precede any root
+commit or normal push. No push or release has occurred from this assignment.
+
+Checkpoint CPR1/CPR2 repair freezes at
+`/tmp/checkpoint-cpr-repair-pejYGG/partial-freeze.json`, SHA256
+`cb4d292c4a9875471769c94f430747cfb919d334ff5ad078cb78afa29c93d609`.
+The complete83-case author/reviewer cohort now has79 passes and four explicit
+bounded source-leave failures, zero skips/cancellations; secondary-cleanup
+controls pass6/6 and retained tests220/220. The source-leave proposal SHA256 is
+`c754bb593ce22117c545ff3fa2d336d00eb271242fe572046ed5cec37765554b`.
+It identifies a retained restoration hold: a throwing source-leave event skips
+frame/positional release, preventing root drain. Root explicitly authorizes the
+minimal runtime source-leave restoration/error-precedence repair as a required
+dependency of checkpoint settlement, with all four regressions retained. This
+does not authorize unrelated array-ledger or global cleanup changes.
+
+A separate parser-only TDD assignment adds explicit substitution syntax-form
+provenance before any new source-input checkpoint can be designed. It must not
+use diagnostic sourceLine as a lifecycle discriminator, reparse generated text,
+dispatch hooks, or change runtime/default registrations. Runtime/checkpoint,
+parser, jobs review, foreground fixtures and isolated delivery remain disjoint
+assignments. The full requested tool scope and release acceptance remain open.
+
+Root independently approves the frozen foreground53 fixture at
+`/tmp/jobs-foreground-reference-root-review-wLWhj6/approval.json`, SHA256
+`713e10cb4eaae12898b4e16ea3517f7bd9ce518bf102ccaa66d95f62878dbde6`.
+All42 embedded artifacts match their original inert regular-file bytes and the
+three author-frozen files match their hashes. Root reruns the99 author-written
+guards successfully; these are not independently authored controls. Strict
+checking covers three roots with zero diagnostics and392 stable watched inputs.
+The compiled foreground consumer now authenticates its four exact requests with
+this helper; removing only the import and lookup/comparisons restores its prior
+independently approved hash. All12 route cases remain explicit baseline failures
+against the old compiled build, not current-source conformance results.
+
+Canonical enrollment now explicitly retains both new fixture guards, independent
+wait-state controls and substitution-provenance tests. The maintained literal
+suite passes98/98 with two stable watched inputs at
+`/tmp/jobs-current-enrollment-root-51zKQY`. No native launch, commit, push or release
+is performed by these checks; the isolated delivery and implementation workers
+continue independently.
+
+Wait-state preparation/admission repair freezes at
+`/tmp/wait-options-repair-l7cmAT/final.json`, SHA256
+`0b6ab868c803ee950a258d02b1f199815b460035e6d5f33d4a437c15d6c99a74`.
+Root independently approves its narrow boundary repair at
+`/tmp/jobs-admission-independent-root-AQPanD/approval.json`, SHA256
+`1b62df82cb56e24ee27a0cccb2a9c346c30efac3f49f2fdd2af876e872bcdd5d`.
+Preparing jobs reserve identity and quota without publishing numeric lookup or
+retiring earlier notified jobs. Successful callable-runner preparation, including
+the post-getter cancellation check, precedes retirement and publication. Root
+authenticates19 evidence artifacts and reruns89 tests: seven independently
+authored getter/receiver/reentrant-admission controls,26 repair-author controls
+and56 original wait-option cases. All pass with562 stable watched inputs; scoped
+strict checking has zero diagnostics across287 sources/297 stable inputs. This
+does not establish compiled public, broader foreground/core or release acceptance.
+
+The CPR3 checkpoint repair is frozen for a different-agent review at
+`/tmp/checkpoint-cpr-repair-pejYGG/cpr3-freeze.json`, SHA256
+`0c4a3a6fd3bf634c01c414a3e19ca9c00c080e356f656733e78f5b6ff251e229`.
+Its author reports98 focused and220 retained passes, but the expanded cohort is
+611/612: a redirected-input cleanup failure remains explicit even though the
+author reproduces it with pre-repair sources. Independent review must assess
+that failure and error/cleanup precedence before additional checkpoint work.
+
+The isolated release candidate is prepared at
+`/private/tmp/poe-delivery-8dec-IfvSvA/repo`, preserving remote018e and committed
+local8dec as merge parents. Its first full maintained build passes; current-source
+rebuild and remaining full gates are owned by the delivery worker. The reported
+focused merged cohort has861 passes,107 explicitly unavailable native comparisons
+and no failures. Nine earlier operand-depth/cancellation failures remain recorded;
+the repaired depth suite passes26/26. These author reports are not independent
+candidate approval. Separate reviewers inspect the three manual conflict
+resolutions and ten automatic overlaps, including two necessary repairs to the
+filesystem-output budget access/import and duplicate quota FsError import. No
+local release merge commit, remote push or new release has occurred yet.
+
+Parser substitution provenance is independently approved as metadata only at
+`/tmp/jobs-parser-provenance-review-root-TOpLFV/approval.json`, SHA256
+`91c18f933f3fbd8b4a5af69034d20584fc4df7006796680c8c0a4da0efe89950`.
+Root verifies that removing the optional structural field and its two constructor
+assignments restores the exact prior parser bytes, authenticates nine author
+artifacts, reruns22 tests with450 stable watched inputs, and checks two strict
+roots with zero diagnostics/253 stable watched inputs. Parser-produced forms are
+explicit; manually omitted form remains unknown, not inferred from sourceLine.
+No new execution checkpoints or native behavior follows from metadata alone.
+A separate tests-only assignment now establishes the proposed foreground/input
+checkpoint contract before any runtime implementation is authorized.
+
+Root rebuilds the frozen current sources through the maintained selected
+workspace build and explicit optional build. Both succeed with zero input drift:
+`/tmp/jobs-wait-current-selected-build-root-XRxi38` watches390 inputs and
+`/tmp/jobs-wait-current-optional-build-root-a9RUQI` watches386. The current compiled
+wait cohort at `/tmp/jobs-wait-current-public-root-WyCOyv` improves from the old
+artifact's25 failures to16 passes/nine failures, with1656 stable watched inputs.
+The remaining failures are exactly native foreground4 cases2/3/4 across inline,
+bash and sh: output remains `status:127;set:` instead of `status:7;set:x`.
+Option/destination cases, the same-operand loop-retirement case and ordinary
+colon controls pass. No native programs are relaunched.
+
+The previously retained321 compiled cases all pass against these current builds
+at `/tmp/jobs-wait-current-retained-public-root-8S0GHD`, with1413 stable inputs.
+Root then adds three generic execution-checkpoint cases across the same three
+public routes, keeping the original27 expectations. The newly expanded36-case
+checkpoint file is explicitly27-pass/nine-fail at
+`/tmp/jobs-execution-checkpoint-public-red-root-hRTcZc`, with1649 stable inputs.
+Those reds require one parent foreground child-job installation checkpoint for
+subshell/pipeline and a distinct active dollar-parenthesis input checkpoint;
+they are generic API contracts, not additional native observation claims. The
+new source-level contract cohort and independent cleanup review remain underway.
+
+The expanded public checkpoint test also passes actual-options strict checking
+with zero diagnostics/322 stable watched inputs at
+`/tmp/scripting-public-types-root-24PNxa`; its nine behavioral reds remain open.
+
+Independent source review approves the ten automatic release-overlap paths at
+`/tmp/jobs-auto-overlap-review-GS9JX8/final.json`, SHA256
+`e563efa76a6fb959e1c2d9f0e65b2217e093c0c7767b5bd9bb32c3fd6dafe13c`.
+Root reauthenticates those ten current candidate files and eight supporting
+interfaces at `/tmp/jobs-release-auto-root-w256xM/verified.json`, SHA256
+`9faadb20f727da2b70510b0b8fe206fb30f4e4bd4ea32c6b20baad1f368b19a1`.
+This preserves both parents' package/test/filesystem changes and the two repaired
+automatic overlaps at their exact reviewed bytes. Three manual conflict
+resolutions, full candidate gates, commit, ordinary push and release verification
+remain separate outstanding requirements; no whole-candidate approval is implied.
+
+The new source-level foreground checkpoint test is now explicitly enrolled;
+maintained membership passes98/98 with two stable watched inputs at
+`/tmp/jobs-foreground-checkpoint-enrollment-root-sx8Uxi`.
+
+Independent CPR3 review at
+`/private/tmp/checkpoint-cpr-independent-CT0Gnr/review.json`, SHA256
+`98694bf73757a86eba8182aec40ace5cc6d01de8ea5106364d3935d628bc3a82`,
+reruns98 focused cases successfully but identifies twelve additional nested
+source-enter/source-leave host-failure controls that resolve status1 instead of
+rejecting with the original falsey/object reason. Function exit-flow conversion
+preserves only the checkpoint subtype, losing the broader diagnostic-failure
+carrier. Root authorizes the narrow carrier-preservation correction with all
+twelve regressions migrated into the canonical independent test. Ordinary shell
+exit/return and cancellation semantics must remain distinct.
+
+The same review independently explains the retained redirected-input cleanup
+failure: the fixture shadows open with undefined while advertising open:true,
+so canonical acquisition diagnoses ENOTSUP before stream admission. A truthful
+stream-only control preserves both exact falsey cleanup errors, drains held
+cleanup and recovers. Root separately authorizes correcting the fixture's
+capability declaration, keeping original programs and assertions and adding
+positive acquisition/early-settlement checks. The original red remains preserved;
+no product fallback, weakened assertion or dismissal as pre-existing is permitted.
+Both repairs require a new freeze and different-agent review before generic
+foreground checkpoint implementation proceeds. The release owner receives the
+fixture finding for separate candidate reproduction, not permission to copy WIP.
+
+The nested-source/fixture repair freezes at
+`/private/tmp/checkpoint-cpr-nested-repair-KcJ9Te/freeze.json`, SHA256
+`1c604499f2c1747ee57ff1ef06785bdcdb0ad6fc6d32d22237c3b2fd22f8fb39`.
+Its author records13 targeted reds becoming green,110 focused passes,44 unchanged
+challenge passes and624/624 expanded passes. Root independently approves the
+exact one-line carrier replacement and truthful fixture correction at
+`/tmp/checkpoint-nested-independent-root-okuP2o/approval.json`, SHA256
+`16bd35b79cbd46ab9581f7a3816645e38069a36ae67f3d616bc9abfc585e43c4`.
+All47 artifacts authenticate; prior independent-test bytes remain an exact prefix.
+Root runs133/133 (127 canonical plus six newly authored nested-function/subshell/
+substitution host-failure controls) with452 stable watched inputs and scoped
+strict zero diagnostics/262 stable inputs. An initial temporary .ts harness ran
+under CommonJS and failed export resolution before its six controls; that failure
+is preserved separately, then corrected with an explicit .mts harness. It is not
+a product failure or a six-test pass.
+
+Foreground checkpoint TDD now has34 cases:26 reds/eight passing controls, frozen
+at `/tmp/safe-bash-foreground-mixed-red-pqjmHL/receipt.json`, SHA256
+`5a840b0da2ee848e0bbf72aa34dbc2055bb7eda5c28a6c8f14d347bcc947c07e`.
+Both mixed-preparation orderings prove that an already prepared peer currently
+executes. For enrolled observers, the new aggregate-admission contract prevents
+peer execution on failed preparation, emits no installation callback, and drains
+admitted resources; this is not a native fork-failure assertion. Without observers,
+existing default scheduling must remain unchanged. Root transfers runtime and
+extension-interface ownership to the foreground implementation worker after the
+independent cleanup approval, preserving the repaired801b4d runtime baseline.
+
+Root also adds an explicit three-point optional/public declaration consumer.
+The old compiled declarations produce exactly two missing-literal diagnostics at
+`/tmp/jobs-foreground-checkpoint-declarations-red-root-y2Oqse` (one failing test,
+1666 stable inputs). Runtime/type/public rebuild acceptance remains outstanding.
+
+Release conflict review remains unapproved: independent receipt
+`/tmp/delivery-three-independent-GwBOPE/final.json`, SHA256
+`c41ca75b319d5a4f861dfa61046af53e329b3d8c5da56e4a17dcab1a99032982`,
+confirms two failing foreign-realm parse-budget-only options controls among20.
+Root authorizes distinguishing absent syntax declarations from ordinary budget
+options without relaxing actual syntax/accessor validation. The candidate owner
+must repair, refreeze and obtain renewed review/gates; the live parser is not
+changed by this release assignment. Implementation continues independently.
+
+### September 6 release reconciliation and ongoing checkpoints
+
+Root independently closes DCR1 and reviews the candidate's added parser tests,
+stream-only fixture correction and clone-only integration entry at
+`/tmp/release-parser-v2-root-approval-AgRKfU/approval.json`, SHA256
+`1b1091839ea809921d8ab6363f98b83b3c35f995171f741c01f766105dbe6dcb`.
+All61 selected cases pass (20 unchanged independent interaction controls,
+18 parser cases,23 cleanup cases), with460 stable inputs. Actual-options strict
+checking has zero diagnostics across five roots/264 stable inputs. Runtime and
+shell remain byte-identical to the prior three-conflict review; deleting the
+five new parser cases and VM import restores the exact old test bytes. This is
+bounded source/fixture approval, not full candidate acceptance.
+
+The candidate's historical-type-model admission failure is a stale current-caller
+pin: committed local47514de04 intentionally tightens lab.ts namespace rejection,
+while the remote helper still pins its earlier size/hash. Root confirms that
+exact parent diff and assigns a narrow reconciliation of the caller binding,
+preserving the six callers, two declaration-only models, historical provenance,
+all negative admission checks and unchanged lab/oracle bytes. No native lab is
+authorized to execute, and no test retirement or hash-check waiver is allowed.
+The explicit optional-build profile is authorized only for the accepted8dec
+compiled-public/declaration cohort, never as a blanket native/unit profile.
+
+Fresh remote observation finds main at
+`2f69c910dedef3f5e6fa2b86d55ef51504890294`, with Release34003054179 successful.
+Its four commits after018e change29 safe-js-related paths; this is not delivery
+of the local safe-bash work. Root fetches that remote only in the isolated clone,
+leaving its HEAD, pending merge and original checkout untouched. A reviewed
+integration commit and ordinary subsequent remote merge must preserve both
+histories before final fresh full gates and normal push. No reset, stash, force
+push or replacement of another worker's changes is authorized. The prior600s
+lint deadline remains incomplete; ownership/termination and cause must be checked
+before a bounded retry, rather than interpreting timeout as a clean result.
+
+The public checkpoint preservation review is
+`/tmp/checkpoint-public-preservation-review-SrbaNJ/final.json`, SHA256
+`7246c2690cb12ba7496f351ca41030972b9f88b37c488be5082dc624b97788c1`;
+it explicitly uses reconstructed original bytes authenticated against their
+earlier hash, not a fabricated contemporaneous snapshot. The three-line type
+consumer review at `/tmp/checkpoint-declaration-consumer-review-A9YJ6V/final.json`,
+SHA256 `305b787f62d1f988093de556ac7d8a5b5da42dd8d39520c02a683c3b0a1fefc9`,
+accepts that bounded positive-admission regression while retaining its exact two
+missing-literal diagnostics. Runtime placement, new declaration green, full wait
+qualification and release remain outstanding; source implementation continues.
+
+### September 6 foreground integration checks
+
+Foreground checkpoint implementation freezes at
+`/tmp/safe-bash-foreground-implementation-z1uVPs/receipt.json`, SHA256
+`711ee9b82f007716f6917f004e3a2d98789ed4a86940a75e94aab82b52363b26`.
+The author records38 owned and385 retained passes, with five old core expectations
+requiring explicit new parent events. Root adds those parent events to the three
+receiver/owner assertions. The two pipeline-state cases separately assert all four
+enrollment-ordered point labels while retaining their original loop-state and
+baseline byte comparisons. No production change is made during this adaptation.
+
+Root's combined source checks pass171/171 without skips at
+`/tmp/checkpoint-foreground-root-review-s3p6M5`, with454 stable inputs. Actual-options
+strict checking passes four roots with zero diagnostics/377 stable inputs at
+`/tmp/scripting-public-types-root-RTMweb`. The maintained selected workspace build
+passes at `/tmp/jobs-foreground-selected-build-root-A1hR2L`, with390 stable inputs.
+Independent implementation and expectation/contract reviews remain separate;
+compiled public and wait checks must qualify these rebuilt sources before commit.
+
+Release work continues in the isolated clone, not by mixing live WIP into its
+candidate. The reviewed local integration merge is
+`bf8b7747e9bcadc32dcb3dcf61aa943770dd5c90`, verified at
+`/tmp/release-integration-commit-root-P7RnSS/verified.json`. This is a local commit,
+not remote delivery or a release. A subsequent ordinary pending merge joins
+remote `9bb3db5d3907f8637fc69d491c0b4dccdb8593f7`; the NUL-delimited inventory proof
+at `/tmp/release-remote-join-root-h3mAmu/verified.json` finds zero overlap between
+442 local and38 remote changed paths and verifies the combined tree composition.
+Fresh sequential full gates precede any normal push. Remote advancement must be
+checked again before delivery, and successful GitHub release remains a separate
+requirement. Implementation does not wait for those release gates.
+
+The explicit optional build also passes with386 stable inputs at
+`/tmp/jobs-foreground-optional-build-root-Sj4rnz`. Rebuilt public acceptance is
+36/36 generic checkpoints at `/tmp/jobs-foreground-checkpoint-public-root-2wZUbf`,
+25/25 wait cases at `/tmp/jobs-foreground-wait-public-root-kXcjYN`, the three-point
+declaration consumer1/1 at `/tmp/jobs-foreground-declarations-root-AirXLd`, and
+330/330 retained public cases at `/tmp/jobs-foreground-retained-public-root-VF9bJr`.
+Every run has zero skips and zero watched-input drift. The prior nine foreground
+wait failures and nine new generic-point failures are now green; their original
+red captures remain preserved. This does not broaden the native observations.
+
+Default inventory remains79 commands and browser28, all requested opt-ins absent,
+with the retained epoch date output passing at
+`/tmp/jobs-foreground-default-inventory-root-nBDlL5`. Workspace and root packed
+archives have1070 and4661 entries respectively, no optional implementations, and
+exact manifest/tar agreement at `/tmp/jobs-foreground-pack-isolation-root-DGABuD`.
+These are current live integration checks, not proof of remote delivery, full
+release validation or universal native parity.
+
+Independent foreground review blocks this candidate at
+`/private/tmp/foreground-checkpoint-independent-J853n5/review.json`, SHA256
+`895542c31b8bd24ed300c75b6950fe9e13165c0f9bde23fca86492701b3d5362`.
+The reviewer independently reruns38 owned and385 retained passes, then adds21
+controls:16 pass and five fail. In an already-started pipeline stage, an injected
+input-close rejection replaces an earlier source-input-read checkpoint failure
+for each of undefined, null, false, zero and empty string. Original input close
+and registered cleanup execute once; the finding is exact error-precedence loss,
+not demonstrated native-backend leakage. Root authorizes canonical fault controls
+and a narrow complete-stage cleanup repair before renewed independent review.
+The passing compiled cohorts do not waive this blocker or establish acceptance.
+
+The started-stage cleanup repair freezes at
+`/tmp/safe-bash-started-stage-cleanup-SRYVWH/receipt.json`, SHA256
+`de3b3dcf90e96a9e4760567effdefdbeaa9d2f3c7747ce1754755a7ea0839cef`.
+Its canonical red run has18 failures among59 cases:15 exact-primary failures and
+three skipped-close controls. The author then reports59/59 owned,192/192 expanded,
+21/21 unchanged reviewer controls and385/385 retained passes. Root independently
+reruns192/192 with454 stable inputs at
+`/tmp/checkpoint-started-cleanup-root-review-Z2Stue` and four-root strict checking
+with zero diagnostics/377 stable inputs at `/tmp/scripting-public-types-root-YkPmcF`.
+Independent semantic approval still remains necessary.
+
+The current guarded root ESLint run completes at
+`/tmp/jobs-checkpoint-final-lint-root-YRD6Oi` with exit1, no timeout and349 stable
+watched inputs. It identifies nine current owned findings: three intentional
+rethrows inside finally blocks and six prefer-const declarations. Root fixes the
+single owned acquisition declaration while preserving cleanup registration before
+acquisition. The runtime owner must move the three rethrows outside finally while
+retaining exact error/cancellation precedence, and fix its five declarations.
+No rule suppression, configuration relaxation or claim of clean lint is permitted;
+the final refreeze requires renewed review, tests and the maintained lint route.
+
+The isolated delivery clone moves to
+`/Users/kjopek/Workspace/poe-release-delivery-SwXzGd/repo` after the actual guard
+diagnostic identifies repeated enumeration of6243 temporary-parent entries.
+`evidence/relocation.verified.json` authenticates unchanged contents, Git state and
+dependency links across the move; the old evidence remains at its original paths.
+Fresh maintained build and full lint pass at the new location, with lint taking
+218 seconds under unchanged limits. Full maintained unit tests and subsequent
+gates continue sequentially. This optimization does not waive any gate or establish
+push/release completion.
+
+The relocated candidate's full maintained test run ends with a concrete failure,
+not a timeout or release clearance. Shared tests report33760 passes/43 skips;
+the Bash runner reports411/411 passes; Bash source tests report25301 passes,
+75 failures,26 cancellations and727 skips. The20 affected files and original
+diagnostics are preserved in the delivery evidence summary, SHA256
+`6405550821f7f6dc063ef15b557157308c9e9935bc9cad1adc192a7cc9403661`, and its
+`joined-test-failure-blocks.json`. Both streams and owned processes close.
+
+Root assigns disjoint clone-only repairs: archive/export admission; eight
+representation, capability and syntax tests; and ten input/lifecycle/array/close
+test groups with their necessary production boundaries. Each owner must reproduce
+and distinguish actual product defects from concretely justified contract
+migrations before editing. No assertion weakening, timeout increase, historical
+artifact rewrite or optional-profile inflation is authorized. The original live
+checkpoint work remains separate. This batch has not been pushed or released;
+fresh combined gates and verified GitHub release remain required after repairs.
+
+### September 6 wait/checkpoint local acceptance
+
+The lint-compliant refactor freezes at
+`/tmp/safe-bash-finally-refactor-YePwlR/receipt.json`, SHA256
+`fe38316097518394bc8134b2297e7ff8897c4ef02421a6d82af9bb9e7147dc7c`.
+The three boundaries capture outcomes and select them after cleanup rather than
+throwing inside finally; there are no suppression or Promise.reject workarounds.
+Independent approval at `/private/tmp/finally-delta-independent-vhB5nH/approval.json`,
+SHA256 `f7eb43f9113a42765ac2fe16b35a4af9b1e087cff763635063ead3912dec1aa3`,
+closes the P1 blocker against runtime960091a1. It verifies all139 existing assertion
+texts and the exact declaration changes, reruns548 canonical and41 independent
+controls without skips, and reports zero strict diagnostics. The original external
+fixture's TS5097 errors remain recorded; a separately named NodeNext consumer
+qualifies the corrected harness without rewriting the old evidence.
+
+Root reruns192/192 source checks at `/tmp/checkpoint-finally-root-review-vkanK5`,
+with454 stable inputs, and four-root strict checking at
+`/tmp/scripting-public-types-root-VIVU1x`, zero diagnostics/377 stable inputs.
+The second maintained guarded root lint passes at
+`/tmp/jobs-checkpoint-final-lint-v2-root-Vpn2aE`, with349 stable inputs; the original
+nine findings remain preserved. Selected and optional builds pass at
+`/tmp/jobs-checkpoint-final-selected-build-root-H7Ax0W` and
+`/tmp/jobs-checkpoint-final-optional-build-root-IQNvZx`.
+
+Fresh rebuilt checks pass36/36 checkpoint public cases,25/25 wait public cases,
+1/1 declaration consumer and330/330 retained public cases respectively at
+`/tmp/jobs-checkpoint-final-public-root-SpYQSR`,
+`/tmp/jobs-checkpoint-final-wait-root-yAbbO8`,
+`/tmp/jobs-checkpoint-final-declarations-root-PWn9xP` and
+`/tmp/jobs-checkpoint-final-retained-root-0UamYQ`. Literal enrollment passes98/98 at
+`/tmp/jobs-checkpoint-final-literal-root-9nqHxG`. Default inventory and actual packed
+archive isolation pass at `/tmp/jobs-checkpoint-final-default-root-kDqGYA` and
+`/tmp/jobs-checkpoint-final-pack-root-FToyYM`. All captures have zero watched drift
+and no skipped cases in these selected test cohorts.
+
+Root approves the29 owned-file wait/checkpoint follow-up for a local atomic commit,
+including this plan, but not a push or release. The separate joined release
+candidate's full-test failures remain open; no original-worktree WIP is copied
+into that candidate, and no successful release is inferred from local acceptance.

@@ -70,6 +70,7 @@ export interface ShellExtensionInput {
 }
 
 export type ShellExtensionScope = "process" | "subshell" | "substitution" | "pipeline" | "invocation";
+export type ShellExecutionCheckpoint = "loop-body-complete" | "child-job-install" | "source-input-read";
 export type ShellExtensionEvent = "exit" | "error" | "command" | "function-enter" | "function-return" | "function-leave" | "source-enter" | "source-return" | "source-leave";
 export type ShellExtensionEventResult = void | { readonly action: "skip" } | { readonly action: "return"; readonly status: number };
 
@@ -137,6 +138,7 @@ export interface ShellExtensionInstance {
   start?(context: ShellExtensionContext): void | Promise<void>;
   fork?(scope: ShellExtensionScope): ShellExtensionInstance;
   event?(event: ShellExtensionEvent, context: ShellExtensionContext): ShellExtensionEventResult | Promise<ShellExtensionEventResult>;
+  checkpoint?(point: ShellExecutionCheckpoint, context: ShellExtensionContext): void | Promise<void>;
 }
 
 export interface ShellExtensionOption {
@@ -160,6 +162,7 @@ export interface ShellExtensionState {
   readonly shoptOptions: ReadonlyMap<string, ShellExtensionOption>;
   readonly listTerminators: ReadonlyMap<string, ShellListTerminatorHook>;
   readonly specialParameters: ReadonlyMap<string, ShellSpecialParameterHook>;
+  readonly checkpoints: readonly NonNullable<ShellExtensionInstance["checkpoint"]>[];
   exitStatus?: number;
   exiting?: boolean;
   started?: boolean;
@@ -246,11 +249,17 @@ export function extensionState(definitions: readonly ShellExtension[], parent?: 
   const shoptOptions = new Map<string, ShellExtensionOption>();
   const listTerminators = new Map<string, ShellListTerminatorHook>();
   const specialParameters = new Map<string, ShellSpecialParameterHook>();
+  const checkpoints: NonNullable<ShellExtensionInstance["checkpoint"]>[] = [];
   const flags = new Set(["e", "u", "o"]);
   const entries = snapshots.map((definition, index) => {
     const previous = parent?.entries[index]?.instance;
     const instance = previous?.fork && scope ? previous.fork(scope) : definition.create();
     if (!instance || !Array.isArray(instance.builtins)) throw new TypeError("Shell extension requires builtin definitions");
+    const checkpoint = Object.getOwnPropertyDescriptor(instance, "checkpoint");
+    if (checkpoint) {
+      if (!("value" in checkpoint) || checkpoint.value !== undefined && typeof checkpoint.value !== "function") throw new TypeError("Shell checkpoint requires an own callable data property");
+      if (checkpoint.value !== undefined) checkpoints.push(Reflect.apply(Function.prototype.bind, checkpoint.value, [instance]) as NonNullable<ShellExtensionInstance["checkpoint"]>);
+    }
     for (const hook of captureHooks(instance, "listTerminators", definition.syntax?.listTerminators?.map(entry => entry.operator) ?? [])) {
       if (listTerminators.has(hook.key)) throw new TypeError("Duplicate shell list terminator");
       listTerminators.set(hook.key, Object.freeze({ operator: hook.key, execute: hook.callback as ShellListTerminatorHook["execute"] }));
@@ -278,7 +287,7 @@ export function extensionState(definitions: readonly ShellExtension[], parent?: 
     }
     return { definition, instance };
   });
-  return { entries, syntax: captured.syntax, builtins, options, shoptOptions, listTerminators, specialParameters, cleanup: [] };
+  return { entries, syntax: captured.syntax, builtins, options, shoptOptions, listTerminators, specialParameters, checkpoints: Object.freeze(checkpoints), cleanup: [] };
 }
 
 export function forkExtensions(parent: ShellExtensionState | undefined, scope: ShellExtensionScope): ShellExtensionState | undefined {

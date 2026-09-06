@@ -79,7 +79,7 @@ export type WordPart =
   | { kind: "arithmetic"; expression: ArithmeticProgram; source: string; line: number; quoted: boolean }
   | { kind: "variable"; name: string; quoted: boolean; line?: number; specialParameter?: CapturedShellSyntax["specialParameters"][number]; length?: boolean; operator?: string; alternate?: Word; replacement?: Word; substring?: { offset: Word; length?: Word; source: string } }
   | { kind: "failed-substitution"; diagnostic: string; quoted: boolean }
-  | { kind: "substitution"; script: Script; line: number; sourceLine?: number; quoted: boolean };
+  | { kind: "substitution"; form?: "backtick" | "dollar-parenthesis"; script: Script; line: number; sourceLine?: number; quoted: boolean };
 
 export interface Word {
   readonly parts: WordPart[];
@@ -660,7 +660,7 @@ class Lexer {
       }
       if (this.source[this.position] !== "`") this.error("Unterminated command substitution");
       this.position++;
-      try { parts.push({ kind: "substitution", script: parseSource(source, this.depth + 1, this.warnings, line - 1, this.byteLocale, this.byteSource, this.syntax), line, quoted }); }
+      try { parts.push({ kind: "substitution", form: "backtick", script: parseSource(source, this.depth + 1, this.warnings, line - 1, this.byteLocale, this.byteSource, this.syntax), line, quoted }); }
       catch (error) {
         if (this.documentLine === undefined || !(error instanceof ShellSyntaxError) || /nesting|exceeds/u.test(error.reason)) throw error;
         parts.push({ kind: "failed-substitution", diagnostic: this.documentSubstitutionError(source, error, true).diagnostic, quoted });
@@ -697,7 +697,7 @@ class Lexer {
       this.position += nested.current.end + 1;
       if (script.printedNewlines === undefined) this.unprintedWords++;
       else this.printedNewlineReduction += this.source.slice(start, this.position - 1).split("\n").length - 1 - script.printedNewlines;
-      parts.push({ kind: "substitution", script, line, sourceLine: script.line ?? line, quoted });
+      parts.push({ kind: "substitution", form: "dollar-parenthesis", script, line, sourceLine: script.line ?? line, quoted });
     } else if (this.source[this.position] === "{") {
       this.position++;
       const parameterStart = this.position - 2;

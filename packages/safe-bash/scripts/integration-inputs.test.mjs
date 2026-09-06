@@ -663,6 +663,21 @@ function assertSource7Discovery(files) {
     "tests/shell/extensions/core/binding-reference-independent.test.ts",
     "tests/plugins/binding-reference-runtime.test.ts",
   ]) assert.ok(files.includes(path), "generic reference binding test is missing: " + path);
+  assert.ok(files.includes("tests/plugins/wait-options-runtime.test.ts"), "compiled wait-option test is missing");
+  assert.ok(files.includes("tests/plugins/wait-destination-runtime.test.ts"), "compiled wait-destination test is missing");
+  assert.ok(files.includes("tests/plugins/wait-retirement-runtime.test.ts"), "compiled wait-retirement test is missing");
+  assert.ok(files.includes("tests/plugins/wait-foreground-runtime.test.ts"), "compiled wait-foreground test is missing");
+  for (const path of [
+    "tests/shell/extensions/core/checkpoint.test.ts",
+    "tests/shell/extensions/core/checkpoint-independent.test.ts",
+    "tests/shell/extensions/core/foreground-checkpoint.test.ts",
+    "tests/plugins/checkpoint-runtime.test.ts",
+  ]) assert.ok(files.includes(path), "loop-checkpoint test is missing: " + path);
+  assert.ok(files.includes("tests/shell/extensions/jobs/next53-reference.test.ts"), "wait-option reference guard test is missing");
+  assert.ok(files.includes("tests/shell/extensions/jobs/foreground53-reference.test.ts"), "foreground wait reference guard test is missing");
+  assert.ok(files.includes("tests/shell/extensions/jobs/wait-options.test.ts"), "wait-option implementation test is missing");
+  assert.ok(files.includes("tests/shell/extensions/jobs/wait-options-independent.test.ts"), "independent wait-option test is missing");
+  assert.ok(files.includes("tests/shell/substitution-provenance.test.ts"), "substitution provenance test is missing");
   for (const path of [
     "tests/shell/extensions/jobs/state.test.ts",
     "tests/shell/extensions/jobs/review.test.ts",

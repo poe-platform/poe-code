@@ -27,6 +27,7 @@ export interface JobSnapshot {
   readonly handle: JobHandle;
   readonly listed: boolean;
   readonly notified: boolean;
+  readonly residency: "active-unnotified" | "active-notified" | "saved";
   readonly state: "preparing" | "running" | "done";
   readonly outcome?: JobOutcome;
 }
@@ -42,6 +43,8 @@ export interface JobStateOptions {
 export interface JobState {
   start(prepare: (context: JobTaskContext) => PreparedJob | Promise<PreparedJob>): Promise<JobHandle>;
   snapshot(): readonly JobSnapshot[];
+  retireNotified(): void;
+  savedStatus(handle: JobHandle): number | undefined;
   wait(targets?: readonly JobTarget[], options?: JobWaitOptions): Promise<JobWaitResult>;
   waitNext(targets?: readonly JobTarget[], options?: JobWaitOptions): Promise<JobWaitResult>;
   finish(): Promise<void>;
@@ -56,6 +59,7 @@ interface JobRecord {
   readonly complete: (outcome: JobOutcome) => void;
   listed: boolean;
   notified: boolean;
+  saved: boolean;
   state: JobSnapshot["state"];
   outcome?: JobOutcome;
   cleaning?: Promise<void>;
@@ -92,18 +96,17 @@ class JobRegistry implements JobState {
     if (!this.#accepting) throw new Error("job state is closed to admission");
     if (typeof prepare !== "function") throw new TypeError("job preparation must be a function");
     if (this.#records.size >= this.limits.maxJobs) throw new Error("job limit exceeded: maxJobs");
-    for (const record of this.#jobs.values()) if (record.state === "done" && record.notified) this.#unlist(record);
-    const jobId = Math.max(0, ...this.#jobs.keys()) + 1;
+    const occupied = [...this.#records.values()].filter(record => record.state === "preparing" || record.listed && !this.#canRetire(record));
+    const jobId = Math.max(0, ...occupied.map(record => record.handle.jobId)) + 1;
     if (!Number.isSafeInteger(jobId)) throw new Error("job ID exhausted");
     let complete!: (outcome: JobOutcome) => void;
     const completion = new Promise<JobOutcome>(resolve => { complete = resolve; });
     const handle = Object.freeze({ jobId, completion });
     const record: JobRecord = {
       handle, complete, controller: new AbortController(), cleanups: [], cleanupFailures: [],
-      listed: true, notified: false, state: "preparing",
+      listed: false, notified: false, saved: false, state: "preparing",
     };
     this.#records.set(handle, record);
-    this.#jobs.set(jobId, record);
     this.#notify();
     const context: JobTaskContext = Object.freeze({
       signal: record.controller.signal,
@@ -129,6 +132,10 @@ class JobRegistry implements JobState {
       this.#forget(record);
       throw (record.outcome as Extract<JobOutcome, { kind: "failure" }>).reason;
     }
+    this.retireNotified();
+    record.listed = true;
+    this.#jobs.set(jobId, record);
+    this.#notify();
     queueMicrotask(() => { void this.#execute(record, run!); });
     return handle;
   }
@@ -190,8 +197,30 @@ class JobRegistry implements JobState {
   snapshot(): readonly JobSnapshot[] {
     return Object.freeze([...this.#records.values()].map(record => Object.freeze({
       handle: record.handle, listed: record.listed, notified: record.notified, state: record.state,
+      residency: record.saved ? "saved" as const : record.notified ? "active-notified" as const : "active-unnotified" as const,
       ...(record.outcome === undefined ? {} : { outcome: record.outcome }),
     })));
+  }
+
+  #canRetire(record: JobRecord): boolean {
+    return !record.saved && record.state === "done" && record.notified && record.outcome?.kind === "status";
+  }
+
+  retireNotified(): void {
+    let changed = false;
+    for (const record of this.#records.values()) {
+      if (this.#canRetire(record)) {
+        record.saved = true;
+        this.#unlist(record);
+        changed = true;
+      }
+    }
+    if (changed) this.#notify();
+  }
+
+  savedStatus(handle: JobHandle): number | undefined {
+    const record = this.#records.get(handle);
+    return record?.saved && record.outcome?.kind === "status" ? record.outcome.status : undefined;
   }
 
   #targets(targets: readonly JobTarget[] | undefined): readonly JobTarget[] | undefined {
@@ -259,6 +288,7 @@ class JobRegistry implements JobState {
         }
         while (record.state !== "done") { signal?.throwIfAborted(); await this.#changed(signal); }
         signal?.throwIfAborted();
+        if (!record.saved) this.retireNotified();
         record.notified = true;
         if ("handle" in target) this.#unlist(record);
         outcome = record.outcome!;
@@ -276,19 +306,22 @@ class JobRegistry implements JobState {
     this.#waiters++;
     const unknown: JobTarget[] = [];
     const records = new Set<JobRecord>();
-    if (selected === undefined) for (const record of this.#jobs.values()) records.add(record);
+    if (selected === undefined) {
+      for (const record of this.#records.values()) if (!record.saved) records.add(record);
+    }
     else for (const target of selected) {
       const record = this.#lookup(target);
-      if (!record || !record.listed) unknown.push(target);
+      if (!record || record.saved) unknown.push(target);
       else records.add(record);
     }
     try {
       for (;;) {
         signal?.throwIfAborted();
-        const eligible = [...records].filter(record => record.listed && !record.notified).sort((first, second) => first.handle.jobId - second.handle.jobId);
+        const eligible = [...records].filter(record => !record.saved && !record.notified).sort((first, second) => first.handle.jobId - second.handle.jobId);
         const ready = eligible.find(record => record.state === "done");
         if (ready) {
           ready.notified = true;
+          ready.saved = ready.outcome!.kind === "status";
           this.#unlist(ready);
           this.#notify();
           return Object.freeze({ outcome: ready.outcome!, handle: ready.handle, unknown: Object.freeze(unknown) });

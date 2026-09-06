@@ -210,11 +210,13 @@ test("closed descriptor return awaits its value and serializes later reads", { t
 test("all redirected inputs close and retain both falsey failures", { timeout: 2000 }, async context => {
   const { shell, fs } = setup();
   Object.defineProperty(fs, "open", { value: undefined });
+  Object.defineProperty(fs, "capabilities", { value: { ...fs.capabilities, open: false } });
   await fs.writeFile("/first", new Uint8Array());
   await fs.writeFile("/second", new Uint8Array());
   const entered = deferred(), release = deferred();
+  const acquired: string[] = [];
   const returned: string[] = [];
-  context.mock.method(fs, "readStream", (path: string) => ({ [Symbol.asyncIterator]() { return {
+  context.mock.method(fs, "readStream", (path: string) => ({ [Symbol.asyncIterator]() { acquired.push(path); return {
     async next() { return { done: true, value: undefined }; },
     async return() {
       returned.push(path);
@@ -229,14 +231,20 @@ test("all redirected inputs close and retain both falsey failures", { timeout: 2
     assert.deepEqual(error.errors, [undefined, null]);
     return true;
   });
+  void checked.catch(() => {});
+  const premature = (): never => { throw new Error("Execution settled before redirected input cleanup admission"); };
   try {
-    await entered.promise;
-    await turn();
-    assert.equal(settled, false);
+    try {
+      await Promise.race([entered.promise, pending.then(premature, premature)]);
+      await turn();
+      assert.equal(settled, false);
+      assert.deepEqual(acquired, ["/first", "/second"]);
+      assert.deepEqual(returned, ["/first", "/second"]);
+    } finally { release.resolve(); }
+    await checked;
+    assert.deepEqual(acquired, ["/first", "/second"]);
     assert.deepEqual(returned, ["/first", "/second"]);
-  } finally { release.resolve(); }
-  try { await checked; }
-  finally { await shell.dispose(); }
+  } finally { await shell.dispose(); }
 });
 
 test("all cleanup failures survive undefined and null without hiding nonzero results", { timeout: 2000 }, async () => {

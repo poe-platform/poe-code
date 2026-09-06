@@ -1,0 +1,18 @@
+import { S } from "schema";
+
+export const schema = S.Object({ title: S.String() });
+
+export default async function instanceHooks(frontmatter) {
+  await 0;
+  const matcher = { [Symbol.hasInstance](value) { return value === 7; } };
+  if (!(7 instanceof matcher) || 8 instanceof matcher)
+    throw new Error("Custom matcher failed");
+  function Box() {}
+  const ordinary = new Box();
+  if (!(ordinary instanceof Box)) throw new Error("Ordinary fallback failed");
+  Object.defineProperty(Box, Symbol.hasInstance, { value(value) { return value === 9; } });
+  const Bound = Box.bind(null);
+  if (!(9 instanceof Bound) || ordinary instanceof Bound)
+    throw new Error("Bound target hook failed");
+  return { title: frontmatter.title, custom: true, fallback: true, bound: true };
+}

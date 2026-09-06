@@ -16,3 +16,27 @@ it.each(["value", "alias", "intrinsic"])("detects changed legacy %s observations
   else snapshot.heap[1].id = '["Boolean"]';
   expect(() => expectLegacyDumpGraph(snapshot, legacy)).toThrow();
 });
+
+const taggedNamespace = () => ({
+  bindings: { JSON: { kind: "ref", id: 1 } },
+  heap: {
+    1: { kind: "intrinsic", id: '["JSON"]', state: { properties: { properties: [
+      [{kind:"ref",id:2},{kind:"data",value:"JSON"}]
+    ] } } },
+    2: { kind: "symbol", wellKnown: "toStringTag" }
+  }
+});
+const expectedNamespace = {bindings:{JSON:{[Symbol.toStringTag]:"JSON"}},heap:{}};
+
+it("compares explicitly declared symbol additions",()=>{
+  expectLegacyDumpGraph(taggedNamespace(),expectedNamespace);
+});
+
+it.each(["value","symbol","unexpected","duplicate"])("rejects corrupted symbol additions: %s",corruption=>{
+  const snapshot=taggedNamespace();
+  if(corruption==="value") snapshot.heap[1].state.properties.properties[0][1].value="Changed";
+  if(corruption==="symbol") snapshot.heap[2].wellKnown="iterator";
+  if(corruption==="duplicate") snapshot.heap[1].state.properties.properties.push(snapshot.heap[1].state.properties.properties[0]);
+  const expected=corruption==="unexpected"?{bindings:{JSON:{}},heap:{}}:expectedNamespace;
+  expect(()=>expectLegacyDumpGraph(snapshot,expected)).toThrow();
+});

@@ -151,6 +151,7 @@ describe("compile checkpoint hash compatibility", () => {
         Object: { kind: "fn", name: "Object" },
         JSON: {
           ...capture.completed.bindings.JSON,
+          [Symbol.toStringTag]: "JSON",
           rawJSON: { kind: "fn", name: "rawJSON" },
           isRawJSON: { kind: "fn", name: "isRawJSON" }
         },

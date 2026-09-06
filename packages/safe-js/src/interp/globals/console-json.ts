@@ -3,7 +3,7 @@ import { retainValues } from "../resources.js";
 import { parseJsonWithReviver } from "./json-parse.js";
 import { createRawJson, isRawJson } from "../raw-json.js";
 import { readPropertyDescriptor } from "../accessors.js";
-import { getBoxedPrototype, getSandboxPropertyDescriptor, registerIntrinsicFunction } from "../object-model.js";
+import { getBoxedPrototype, getSandboxPropertyDescriptor, registerIntrinsicFunction, registerIntrinsicObject } from "../object-model.js";
 import { registerBuiltinIdentities } from "../intrinsics.js";
 import { isSandboxDate } from "../date.js";
 import { dateToJSON } from "./date.js";
@@ -147,8 +147,14 @@ export function createConsoleJsonGlobals(
             }
           )
   };
+  const jsonMethods = Object.entries(globals.JSON);
+  for (const [name] of jsonMethods) {
+    Object.defineProperty(globals.JSON, name, { enumerable: false });
+  }
+  Object.defineProperty(globals.JSON, Symbol.toStringTag, { value: "JSON", configurable: true });
   registerBuiltinIdentities(options.budget, { JSON: globals.JSON });
-  for (const method of Object.values(globals.JSON)) registerIntrinsicFunction(options.budget, method);
+  for (const [, method] of jsonMethods) registerIntrinsicFunction(options.budget, method);
+  registerIntrinsicObject(options.budget, globals.JSON);
   return globals;
 }
 

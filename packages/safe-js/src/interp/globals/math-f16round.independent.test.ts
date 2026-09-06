@@ -219,6 +219,7 @@ describe("Math.f16round independent review", () => {
         Object: { kind: "fn", name: "Object" },
         JSON: {
           ...capture.completed.bindings.JSON,
+          [Symbol.toStringTag]: "JSON",
           rawJSON: { kind: "fn", name: "rawJSON" },
           isRawJSON: { kind: "fn", name: "isRawJSON" }
         },

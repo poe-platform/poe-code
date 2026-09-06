@@ -1,0 +1,15 @@
+import { S } from "schema";
+
+export const schema = S.Object({ title: S.String() });
+
+export default async (frontmatter) => {
+  const tag = Object.prototype.toString.call(JSON);
+  if (tag !== "[object JSON]" || Object.keys(JSON).length !== 0) {
+    throw new Error("JSON namespace validation failed");
+  }
+  const descriptor = Object.getOwnPropertyDescriptor(JSON, "parse");
+  if (descriptor.enumerable || !descriptor.writable || !descriptor.configurable) {
+    throw new Error("JSON method property validation failed");
+  }
+  return { title: frontmatter.title, ok: true, tag };
+};

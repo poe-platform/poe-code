@@ -1,4 +1,5 @@
 import { expect } from "vitest";
+import { wellKnownSymbols } from "../../src/interp/symbols.js";
 
 type RecordValue = Record<string, unknown>;
 
@@ -39,13 +40,23 @@ export function expectLegacyDumpGraph(actual: RecordValue, legacy: RecordValue):
       }
       const state = node.state as { properties: { properties: Array<[unknown, RecordValue]> } };
       expect(state).toBeDefined();
-      const entries = state.properties.properties;
+      const entries = state.properties.properties.map(([key, descriptor]): [PropertyKey, RecordValue] => {
+        if (typeof key === "string") return [key, descriptor];
+        expect(key).toMatchObject({kind:"ref",id:expect.any(Number)});
+        const symbol = actualHeap[(key as {id:number}).id];
+        expect(symbol.kind).toBe("symbol");
+        expect(Object.hasOwn(wellKnownSymbols, String(symbol.wellKnown))).toBe(true);
+        expect(Object.keys(symbol).sort()).toEqual(["kind","wellKnown"]);
+        return [wellKnownSymbols[symbol.wellKnown as keyof typeof wellKnownSymbols], descriptor];
+      });
       // The old object comparison did not constrain built-in key order, and
       // explicitly added intrinsics need not be appended by the new writer.
-      expect(entries.map(([key]) => key).sort()).toEqual(Object.keys(old).sort());
+      const expectedKeys = Reflect.ownKeys(old);
+      expect(entries).toHaveLength(expectedKeys.length);
+      expect(new Set(entries.map(([key]) => key))).toEqual(new Set(expectedKeys));
       for (const [key, descriptor] of entries) {
         expect(descriptor.kind).toBe("data");
-        compare(descriptor.value, old[key as string], [...path, key as string]);
+        compare(descriptor.value, (old as Record<PropertyKey,unknown>)[key], [...path, String(key)]);
       }
       return;
     }

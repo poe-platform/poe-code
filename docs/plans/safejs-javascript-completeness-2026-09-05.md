@@ -3951,7 +3951,7 @@ Delivered and closed at verified remote main
 3b581921a79597e6bbe37306a995d57d4b3ef674. The user-staged patch remains unchanged.
 Monitor publication independently while proceeding to for-await.
 
-## 66. For-await iteration (in progress)
+## 66. For-await iteration (delivered)
 
 Five built-core probes reject native-valid for-await loops at parsing: arrays,
 promised values, synchronous generators, async generators and early-break cleanup.
@@ -4030,3 +4030,41 @@ The clean final `npm test` run completed successfully without overlapping builds
 Together with the completed root lint, normal build and inspected real harness,
 this qualifies the for-await increment for its separate commit and push.
 The earlier failed run remains documented as a build/test race, not a pass.
+
+Delivered and closed at verified remote main
+16d5eb34bc532b0a377d26578edd9bbcc34f17f5. Protected user-staged changes remain
+unchanged. Scoped release 34019875521 and CLI release 34019875721 are running;
+continue with async delegation without waiting for publication.
+
+## 67. General async-iterator delegation (in progress)
+
+The four native-backed tests for async iterator next/return/throw delegation and
+completed promise identity fail against the delivered main implementation.
+Promise identity avoids conflating protocol behavior with the separate raw host
+Promise property-access boundary. ECMAScript 2026 15.5.5 and 27.6.3.8 require
+preserving raw async delegate values rather than eagerly unwrapping them;
+synchronous fallback still uses AsyncFromSyncIterator value unwrapping.
+
+The implementation now selects the shared async iterator adapter for async
+delegation and removes redundant value awaiting. Ordinary async `yield` still
+awaits its value; delegated async values are already normalized according to
+their protocol. All 167 focused tests pass, including 13 dedicated protocol
+tests, existing generator/for-await regressions, missing-throw cleanup and
+cancellation. Package TypeScript and scoped ESLint pass. Maintained package and
+harness tests are running before build/real harness validation; do not overlap
+builds with those tests.
+
+An isolated lower-level host-boundary probe found that reading a raw native
+Promise through an object property does not preserve its identity, independently
+of generators. Managed SandboxPromise controls preserve identity. Keep this
+separate boundary gap recorded at
+`/tmp/poe-safejs-raw-promise-member-audit.log`; protocol tests use managed inputs
+for property reads and directly verify raw promise identity at the generator
+iterator boundary, avoiding a misleading delegation diagnosis.
+
+Final focused qualification passed: 13,685 maintained SafeJS tests (41 skipped),
+163 harness tests, package TypeScript and scoped ESLint. The normal build and
+real async-delegation harness passed; the inspected screenshot shows successful
+return cleanup and synchronous fallback with zero spawns. This localized runtime
+change uses the maintained package/harness checks; the full repository gate is
+the separately recorded preceding for-await run, not a claim of a new full run.

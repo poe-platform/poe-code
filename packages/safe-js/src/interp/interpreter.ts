@@ -115,7 +115,7 @@ import {
 } from "./methods/map.js";
 import { callNumberMethod, getNumberMember, isNumberMethodName } from "./methods/number.js";
 import { getPromiseMember, isSandboxPromiseConstructor } from "./promise.js";
-import { closeIterator, generatorIterator, getSandboxAsyncIterator, getSandboxIterator } from "./iteration.js";
+import { closeIterator, getSandboxAsyncIterator, getSandboxIterator } from "./iteration.js";
 import { assertCollectionMutable } from "./running-state.js";
 import { getGeneratorMember } from "./methods/generator.js";
 import { getRegexMember, isRegexMethodName, setRegexMember } from "./methods/regex.js";
@@ -2335,7 +2335,7 @@ async function evaluateYieldExpression(
 }
 
 async function yieldGeneratorValue(value: SandboxValue, node: YieldExpression, context: EvaluationContext): Promise<GeneratorCompletion> {
-  if (context.asyncGenerator) value = await suspendJob(awaitSandboxValue(value, context.signal, context.budget));
+  if (context.asyncGenerator && !node.delegate) value = await suspendJob(awaitSandboxValue(value, context.signal, context.budget));
   const completionPromise = context.generatorYield!(allocateProducedSandboxValue(value, context.budget), node.nodeId);
   emitResumeBreakpoint(context, {
     kind: "generator-yield",
@@ -2361,10 +2361,9 @@ async function evaluateYieldDelegate(
   if (argument.kind !== "normal") {
     return argument;
   }
-  const asyncDelegate = context.asyncGenerator && isSandboxGenerator(argument.value) && argument.value.async
-    ? argument.value : undefined;
-  const iterator = asyncDelegate
-    ? generatorIterator(asyncDelegate, context.budget) : getSandboxIterator(
+  const iterator = context.asyncGenerator
+    ? getSandboxAsyncIterator(argument.value, context.budget, createCoercionContext(context), context.signal)
+    : getSandboxIterator(
     argument.value,
     context.budget,
     createCoercionContext(context)
@@ -2400,16 +2399,7 @@ async function evaluateYieldDelegate(
         throw new TypeError("Iterator result must be an object.");
       }
       const done = result.done;
-      let value = result.value;
-      if (context.asyncGenerator) {
-        try {
-          value = await suspendJob(awaitSandboxValue(value, context.signal, context.budget));
-        } catch (error) {
-          if (isFatalSandboxError(error) || error instanceof HostCallResumabilityError) throw error;
-          if (!asyncDelegate && !done && method !== "return") await closeIterator(iterator, true);
-          throw error;
-        }
-      }
+      const value = result.value;
       if (done) {
         if (completion.type === "return") {
           return generatorCompletionResult({ type: "return", value });

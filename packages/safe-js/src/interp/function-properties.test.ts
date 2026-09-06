@@ -238,13 +238,9 @@ describe("guest function budgets", () => {
   it.each([
     "Object.setPrototypeOf([], {});",
     "function Counter() {} Counter.prototype = []; new Counter();"
-  ])("explicitly rejects unsupported exotic prototype links: %s", async (source) => {
-    const result = await run(
-      `try { ${source} return false; } catch (error) { return error.message; }`,
-      { budget: new Budget() }
-    );
-    expect(result.ok).toBe(true);
-    if (result.ok) expect(result.returnValue).toMatch(/ordinary sandbox objects/);
+  ])("supports explicit array prototype links: %s", async (source) => {
+    expect(await run(`${source} return true;`, { budget: new Budget() }))
+      .toMatchObject({ ok: true, returnValue: true });
   });
 
   it("rejects a non-callable instanceof operand", async () => {

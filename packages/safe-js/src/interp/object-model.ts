@@ -260,9 +260,12 @@ export function setSandboxPrototype(
   if (budget !== undefined && intrinsicPrototypes.get(budget) === value && prototype !== null) {
     throw new TypeError("Object.prototype has an immutable null prototype.");
   }
-  if (!isPrototypeRecord(value) || (prototype !== null && !isPrototypeRecord(prototype))) {
+  if (
+    (!Array.isArray(value) && !isPrototypeRecord(value)) ||
+    (prototype !== null && !Array.isArray(prototype) && !isPrototypeRecord(prototype))
+  ) {
     throw new TypeError(
-      "Prototype links require ordinary sandbox objects or guest functions."
+      "Prototype links require ordinary sandbox objects, arrays, or guest functions."
     );
   }
   if (prototypes.has(value) && getSandboxPrototype(value, budget) === prototype) return;

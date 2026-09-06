@@ -18,7 +18,7 @@ import { awaitSandboxValue, awaitWithSignal } from "./cancel.js";
 import { HostCallResumabilityError } from "./host-call.js";
 import { suspendJob } from "./jobs.js";
 import { invokeBuiltinClosure } from "./builtin-call.js";
-import { getSandboxPropertyDescriptor } from "./object-model.js";
+import { getSandboxPropertyDescriptor, hasExplicitSandboxPrototype } from "./object-model.js";
 
 export type SandboxIterator = {
   readonly asyncProtocol?: true;
@@ -312,6 +312,7 @@ export function getSandboxIterator(
     return collectionIterator(value.values);
   }
 
+  if (Array.isArray(value) && hasExplicitSandboxPrototype(value)) return undefined;
   if (Array.isArray(value) && context?.getProperty !== undefined) {
     let index = 0;
     return {

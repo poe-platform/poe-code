@@ -2924,6 +2924,9 @@ async function evaluateMemberCallExpression(
     if (typeof member.property === "symbol")
       return evaluateResolvedCallExpression(node, await getPropertyValue(member.object, member.property, context), context, member.object);
 
+    if (Array.isArray(member.object) && hasExplicitSandboxPrototype(member.object))
+      return evaluateResolvedCallExpression(node, await getPropertyValue(member.object, member.property, context), context, member.object);
+
     if ((typeof member.object === "string" || typeof member.object === "number" || typeof member.object === "boolean" || typeof member.object === "symbol") &&
         getBoxedPrototype(member.object, context.budget) !== undefined) {
       if (isDefaultBoxedMethod(member.object, member.property, context.budget)) {
@@ -3385,7 +3388,7 @@ function hasSandboxProperty(value: SandboxValue, key: PropertyKey, context: Eval
   while (typeof current === "object" && current !== null) {
     if (isGuestHostObject(current)) return typeof key === "symbol" ? false : hasHostObjectMember(current, String(key));
     if (hasOwnSandboxProperty(current, key, false)) return true;
-    if (!(isGuestClosure(current) && hasExplicitSandboxPrototype(current)) &&
+    if (!((isGuestClosure(current) || Array.isArray(current)) && hasExplicitSandboxPrototype(current)) &&
         (Array.isArray(current) || !isPlainSandboxObject(current) ||
         isSandboxDate(current) || isFloat32Array(current) || isSandboxGenerator(current) || isSandboxCollectionIterator(current))) {
       return getPropertyValue(current, key, context) !== undefined;
@@ -3681,6 +3684,7 @@ function getArrayMemberValue(
   property: string | number,
   context: EvaluationContext
 ): SandboxValue | undefined {
+  if (hasExplicitSandboxPrototype(target)) return undefined;
   if (property === "raw" && taggedTemplateRawArrays.has(target)) {
     return taggedTemplateRawArrays.get(target);
   }

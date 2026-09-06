@@ -1,0 +1,24 @@
+import { S } from "schema";
+
+export const schema = S.Object({ title: S.String() });
+
+export default async function arrayLinks(frontmatter) {
+  await 0;
+  let reads = 0;
+  const value = [7];
+  const prototype = {
+    extra: undefined,
+    get counted() { reads++; return 8; },
+    map() { return this[0] + 1; },
+    *[Symbol.iterator]() { yield this[0] + 2; }
+  };
+  Object.setPrototypeOf(value, prototype);
+  if (!("extra" in value) || !("counted" in value) || reads !== 0)
+    throw new Error("Inherited existence check failed");
+  if (value.map() !== 8 || [...value][0] !== 9)
+    throw new Error("Custom method or iterator failed");
+  Object.setPrototypeOf(value, null);
+  if (typeof value.map !== "undefined" || typeof value[Symbol.iterator] !== "undefined")
+    throw new Error("Implicit prototype fallback survived replacement");
+  return { title: frontmatter.title, inherited: true, methods: true, iteration: true };
+}

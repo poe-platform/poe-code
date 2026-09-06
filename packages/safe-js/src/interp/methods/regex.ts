@@ -31,12 +31,40 @@ export function isRegexMethodName(property: string | number): property is RegexM
 export function getRegexMember(
   target: SandboxRegex,
   property: string | number,
-  budget: Budget
-): SandboxValue | undefined {
+  budget: Budget,
+  context?: SandboxCallContext
+): SandboxValue | Promise<SandboxValue> {
   if (property === "source") return escapeRegexSource(target.source, budget);
   if (property === "flags") {
-    const flags = [..."gims"].filter((flag) => target.flags.includes(flag)).join("");
-    return budget === undefined ? flags : budget.allocateString(flags);
+    let flags = "";
+    const entries = Object.entries(regexFlagProperties);
+    const release = retainValues(budget, () => [target, flags]);
+    const read = (index: number): string | Promise<string> => {
+      if (index === entries.length) return budget.allocateString(flags);
+      budget.visitNode();
+      const [key, flag] = entries[index];
+      const descriptor = context?.getProperty === undefined
+        ? getSandboxPropertyDescriptor(target, key, budget) : undefined;
+      const value = context?.getProperty !== undefined
+        ? context.getProperty(target, key)
+        : descriptor !== undefined
+          ? readPropertyDescriptor(descriptor, target, context)
+          : target.flags.includes(flag);
+      const append = (value: SandboxValue): string | Promise<string> => {
+        if (value) flags += flag;
+        return read(index + 1);
+      };
+      return value instanceof Promise ? value.then(append) : append(value);
+    };
+    try {
+      const result = read(0);
+      if (result instanceof Promise) return result.finally(release);
+      release();
+      return result;
+    } catch (error) {
+      release();
+      throw error;
+    }
   }
   if (property === "lastIndex") return target.lastIndex;
   if (Object.hasOwn(regexFlagProperties, property)) return target.flags.includes(regexFlagProperties[property]);
@@ -147,7 +175,7 @@ export async function regexToString(
     if (context?.getProperty !== undefined) return context.getProperty(target, key);
     const descriptor = getSandboxPropertyDescriptor(target, key, budget);
     if (descriptor !== undefined) return readPropertyDescriptor(descriptor, target, context);
-    return isSandboxRegex(target) ? getRegexMember(target, key, budget) : undefined;
+    return isSandboxRegex(target) ? getRegexMember(target, key, budget, context) : undefined;
   };
   let sourceValue: SandboxValue;
   let flagsValue: SandboxValue;

@@ -1,0 +1,22 @@
+import { S } from "schema";
+
+export const schema = S.Object({ title: S.String() });
+
+export default async function main(frontmatter) {
+  const keys = ['hasIndices', 'global', 'ignoreCase', 'multiline', 'dotAll', 'unicode', 'unicodeSets', 'sticky'];
+  const order = [];
+  const regex = /a/;
+  for (const key of keys) {
+    Object.defineProperty(regex, key, { get() { order.push(key); return true; } });
+  }
+  const flags = regex.flags;
+  if (flags !== 'dgimsuvy' || order.join('|') !== keys.join('|'))
+    throw new Error('Flag property order failed');
+  const globalRegex = /a/g;
+  Object.defineProperty(globalRegex, 'global', { value: false });
+  let rejected = false;
+  try { 'a'.matchAll(globalRegex); } catch (error) { rejected = error.name === 'TypeError'; }
+  if (!rejected || String(globalRegex) !== '/a/') throw new Error('Global override failed');
+  await 0;
+  return { ok: true, title: frontmatter.title, flags, order, rejected };
+}

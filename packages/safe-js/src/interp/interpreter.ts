@@ -2673,7 +2673,7 @@ function getPropertyValue(
   if (isSandboxGenerator(target)) return getGeneratorMember(target, property, context.budget);
   if (isSandboxClosure(target)) return getClosureMemberValue(target, property, context);
   if (isSandboxPromise(target)) return getPromiseMember(property, context.budget);
-  if (isSandboxRegex(target)) return getRegexMember(target, property, context.budget);
+  if (isSandboxRegex(target)) return getRegexMember(target, property, context.budget, createCoercionContext(context));
   if (!isIndexableSandboxValue(target)) {
     throw new TypeError("Attempted to read a property from a non-object value.");
   }

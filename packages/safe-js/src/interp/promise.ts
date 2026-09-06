@@ -197,6 +197,28 @@ export function createPromiseGlobals(options: { budget: Budget }): PromiseGlobal
         },
         guest: true, name: "reject", length: 1
       }),
+      try: createSandboxClosure({
+        sandbox: true, guest: true, name: "try", length: 1,
+        call: async ([callback, ...args], context) => {
+          const capability = await createPromiseCapability(
+            context === undefined ? promiseConstructor : context.thisValue, options.budget, context
+          );
+          let result: SandboxValue;
+          let rejected = false;
+          try {
+            if (!isSandboxClosure(callback)) throw new TypeError("Promise.try callback must be callable.");
+            result = await callPromiseClosure(callback, args, undefined, options.budget, context);
+          } catch (error) {
+            if (error instanceof SandboxError && (error.code === "budgetExceeded" || error.code === "reentry")) throw error;
+            rejected = true;
+            result = error as SandboxValue;
+          }
+          await callPromiseClosure(
+            rejected ? capability.reject : capability.resolve, [result], undefined, options.budget, context
+          );
+          return capability.promise;
+        }
+      }),
       withResolvers: createSandboxClosure({
         sandbox: true,
         guest: true,

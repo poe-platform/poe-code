@@ -1,0 +1,18 @@
+import { S } from "schema";
+
+export const schema = S.Object({ title: S.String() });
+
+export default async (frontmatter) => {
+  const events = [];
+  class Child extends Promise {}
+  const pending = Child.try((left, right) => {
+    events.push("callback");
+    return left + right;
+  }, 20, 22);
+  events.push("after");
+  const answer = await pending;
+  if (!(pending instanceof Child) || answer !== 42 || events.join(",") !== "callback,after") {
+    throw new Error("Promise.try callback or capability failed");
+  }
+  return { title: frontmatter.title, ok: true, answer };
+};

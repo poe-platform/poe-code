@@ -1878,7 +1878,11 @@ async function evaluateForInStatement(
   node: ForInStatement,
   context: EvaluationContext
 ): Promise<EvaluationResult> {
-  const right = await evaluateNode(node.right, context);
+  const restored = context.generatorResume === undefined || node.nodeId === undefined
+    ? undefined : context.restoredGeneratorExpressionStates?.get(node.nodeId);
+  if (restored !== undefined && restored.kind !== "for-in") throw new TypeError("Invalid for-in continuation.");
+  const right = restored === undefined ? await evaluateNode(node.right, context)
+    : { kind: "normal" as const, value: restored.object };
   if (right.kind !== "normal") {
     return right;
   }
@@ -1889,27 +1893,36 @@ async function evaluateForInStatement(
   }
 
   const restoredIteration = consumeRestoredLoopIteration(node, context);
-  const keys =
+  const keys = restored?.keys ?? (
     restoredIteration === undefined || typeof restoredIteration === "number"
       ? forInKeys(object, context.budget)
-      : restoredIteration.values.map(String);
-  const restoredIndex =
-    typeof restoredIteration === "number" ? restoredIteration : (restoredIteration?.index ?? 0);
+      : restoredIteration.values.map(String));
+  const restoredIndex = restored?.index ?? (
+    typeof restoredIteration === "number" ? restoredIteration : (restoredIteration?.index ?? 0));
   for (let index = restoredIndex; index < keys.length; index += 1) {
     context.activeLoopIterations.set(node.nodeId ?? -1, { index, values: keys });
     const key = keys[index]!;
-    if (!hasForInProperty(object, key, context.budget)) {
+    const resuming = restored !== undefined && index === restored.index;
+    if (!resuming && !hasForInProperty(object, key, context.budget)) {
       continue;
     }
 
-    const scope = context.scope.child();
-    const binding = await bindForInLoopVariable(node.left, key, scope, context);
-    if (!binding.ok) {
-      context.activeLoopIterations.delete(node.nodeId ?? -1);
-      return binding.result;
+    const scope = resuming ? restored.scope : context.scope.child();
+    if (!resuming) {
+      const binding = await bindForInLoopVariable(node.left, key, scope, context);
+      if (!binding.ok) {
+        context.activeLoopIterations.delete(node.nodeId ?? -1);
+        return binding.result;
+      }
     }
 
-    const iterationContext = createLoopIterationContext(context, scope);
+    const iterationContext = createLoopIterationContext({
+      ...context,
+      ...(context.generatorYield === undefined || node.nodeId === undefined ? {} : {
+        generatorExpressionStates: new Map([...(context.generatorExpressionStates ?? []),
+          [node.nodeId, { kind: "for-in", object: right.value, keys, index, scope }]])
+      })
+    }, scope);
     emitLoopIterationBreakpoint(node, iterationContext);
     const result = await evaluateNode(node.body, iterationContext);
     if (isMatchingBreak(result, loopLabels(node))) {

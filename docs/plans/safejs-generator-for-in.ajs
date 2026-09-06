@@ -1,0 +1,23 @@
+import { S } from "schema";
+
+export const schema = S.Object({ title: S.String() });
+
+export default async frontmatter => {
+  function* values() {
+    const object = { a: 1, b: 2, c: 3 };
+    for (const key in object) {
+      delete object[key];
+      yield key;
+    }
+    return 9;
+  }
+  const iterator = values();
+  const seen = [];
+  for (let index = 0; index < 3; index++) {
+    seen.push(iterator.next().value);
+    await 0;
+  }
+  const last = iterator.next();
+  if (seen.join() !== "a,b,c" || !last.done || last.value !== 9) throw new Error("Enumeration changed");
+  return { title: frontmatter.title, ok: true, seen };
+};

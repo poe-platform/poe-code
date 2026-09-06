@@ -852,6 +852,8 @@ function restoreGuestGenerator(
     for (const [id, expression] of Object.entries(serialized.expressionStates ?? {})) {
       expressions.set(Number(id), expression.kind === "binary"
         ? { kind: "binary", left: deserializeValue(expression.left, state) as SandboxValue }
+        : expression.kind === "for-in" ? { ...expression, keys: [...expression.keys], object: deserializeValue(expression.object, state) as SandboxValue,
+          scope: state.guestScopes.get((expression.scope as SerializedReferenceValue).id)! }
         : expression.kind === "for" ? { kind: "for", phase: expression.phase,
           loopScope: state.guestScopes.get((expression.loopScope as SerializedReferenceValue).id)!,
           activeScope: state.guestScopes.get((expression.activeScope as SerializedReferenceValue).id)! }

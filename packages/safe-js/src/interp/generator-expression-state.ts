@@ -2,6 +2,7 @@ import type { SandboxValue } from "./values.js";
 import type { Scope } from "./scope.js";
 
 export type GeneratorExpressionState<T = SandboxValue, S = Scope> =
+  | { kind: "for-in"; object: T; keys: string[]; index: number; scope: S }
   | { kind: "for"; phase: "init" | "test" | "body" | "update"; loopScope: S; activeScope: S }
   | { kind: "binary"; left: T }
   | { kind: "identifier-assignment"; current: T }

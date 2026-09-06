@@ -993,6 +993,7 @@ function copyToSandbox(
     for (const [key, descriptor] of dateDataProperties(value)) {
       Object.defineProperty(copy, key, { ...descriptor, value: copyToSandbox(descriptor.value, state, joinPath(path, key), cloneSandboxCollections, depth + 1) });
     }
+    if (!state.structuredClone && !Object.isExtensible(value)) Object.preventExtensions(copy);
     return copy;
   }
 
@@ -1215,6 +1216,7 @@ function copyFromSandbox(
     for (const [key, descriptor] of dateDataProperties(value)) {
       Object.defineProperty(copy, key, { ...descriptor, value: copyFromSandbox(descriptor.value, state, joinPath(path, key), options, depth + 1) });
     }
+    if (!Object.isExtensible(value)) Object.preventExtensions(copy);
     return copy;
   }
 

@@ -1,9 +1,39 @@
 import { describe, expect, it } from "vitest";
 import { run } from "../core.js";
 import { createSandboxDate } from "./date.js";
-import { deepCopyFromSandbox, deepCopyToSandbox, measureSandboxData } from "./values.js";
+import { cloneSandboxValue, deepCopyFromSandbox, deepCopyToSandbox, measureSandboxData } from "./values.js";
 
 describe("Date own properties", () => {
+  it.each(["preventExtensions", "seal", "freeze"] as const)("preserves %s on imported and internally cloned Dates", integrity => {
+    const source = new Date(7);
+    const key = Symbol("self");
+    Object.defineProperty(source, key, { value: source, writable: true, enumerable: true, configurable: true });
+    Object[integrity](source);
+    const imported = deepCopyToSandbox(source);
+    for (const value of [imported, cloneSandboxValue(imported), deepCopyFromSandbox(imported)]) {
+      expect(Object.isExtensible(value)).toBe(false);
+      expect(Object.isSealed(value)).toBe(Object.isSealed(source));
+      expect(Object.isFrozen(value)).toBe(Object.isFrozen(source));
+      expect(Object.getOwnPropertyDescriptor(value, key)).toEqual({ ...Object.getOwnPropertyDescriptor(source, key), value });
+      expect(Date.prototype.getTime.call(value)).toBe(7);
+    }
+    expect(Object.isExtensible(cloneSandboxValue(imported, { structuredClone: true }))).toBe(true);
+  });
+  it.each(["preventExtensions", "seal", "freeze"] as const)("preserves %s on exported Dates", async integrity => {
+    const result = await run(`const date=new Date(7);date.label={text:'epoch'};Object.${integrity}(date);return date;`);
+    if (!result.ok) throw new Error("Expected guest Date");
+    const exported = deepCopyFromSandbox(result.returnValue);
+    const expected = new Date(7);
+    Object.defineProperty(expected, "label", { value: { text: "epoch" }, writable: true, enumerable: true, configurable: true });
+    Object[integrity](expected);
+    expect(Object.isExtensible(exported)).toBe(Object.isExtensible(expected));
+    expect(Object.isSealed(exported)).toBe(Object.isSealed(expected));
+    expect(Object.isFrozen(exported)).toBe(Object.isFrozen(expected));
+    expect(Object.getOwnPropertyDescriptor(exported, "label")).toEqual(Object.getOwnPropertyDescriptor(expected, "label"));
+    expect(Reflect.defineProperty(exported as object, "extra", { value: 1 })).toBe(false);
+    // Freezing a Date does not freeze its internal time slot.
+    expect(Date.prototype.setTime.call(exported, 9)).toBe(9);
+  });
   it("rejects Date accessors at the copy boundary without invoking getters", () => {
     let reads = 0;
     const date = new Date(0);

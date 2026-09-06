@@ -17,6 +17,8 @@ export const sandboxErrorNames = [
   "RangeError",
   "ReferenceError",
   "SyntaxError",
+  "URIError",
+  "EvalError",
   "AbortError",
   "AggregateError",
   "HarnessFailure"

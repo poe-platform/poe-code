@@ -20,6 +20,8 @@ const errorNames = [
   "RangeError",
   "ReferenceError",
   "SyntaxError",
+  "URIError",
+  "EvalError",
   "AggregateError"
 ] as const;
 

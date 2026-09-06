@@ -5,6 +5,7 @@ export const KNOWN_RUNTIME_GLOBALS = [
   "BigInt",
   "Date",
   "Error",
+  "EvalError",
   "Infinity",
   "isFinite",
   "isNaN",
@@ -27,5 +28,6 @@ export const KNOWN_RUNTIME_GLOBALS = [
   "structuredClone",
   "SyntaxError",
   "TypeError",
+  "URIError",
   "console"
 ] as const;

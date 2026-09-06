@@ -1,0 +1,13 @@
+import { S } from "schema";
+
+export const schema = S.Object({ title: S.String() });
+
+export default async (frontmatter) => {
+  const uri = new URIError("invalid URI", { cause: 7 });
+  const evaluation = EvalError("evaluation failed");
+  if (!(uri instanceof URIError) || !(uri instanceof Error) || uri.cause !== 7 ||
+      !(evaluation instanceof EvalError) || !(evaluation instanceof Error)) {
+    throw new Error("Standard error constructors lost their identity");
+  }
+  return { title: frontmatter.title, ok: true, names: [uri.name, evaluation.name] };
+};

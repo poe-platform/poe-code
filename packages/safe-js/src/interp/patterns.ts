@@ -25,6 +25,7 @@ import {
 } from "./values.js";
 
 type Pattern = VariableDeclarator["id"] | AssignmentPattern | MemberExpression | RestElement;
+type AssignmentReference = { object: SandboxValue; key: PropertyKey };
 
 export type PatternTarget = { kind: VariableDeclarationKind; initialize?: true } | { assign: true };
 
@@ -49,7 +50,8 @@ export async function bindPattern(
   value: SandboxValue,
   target: PatternTarget,
   scope: Scope,
-  context: PatternContext
+  context: PatternContext,
+  reference?: AssignmentReference
 ): Promise<BindPatternResult> {
   switch (pattern.type) {
     case "Identifier":
@@ -59,15 +61,15 @@ export async function bindPattern(
       if ("kind" in target) {
         throw new TypeError("Destructuring declarations cannot bind to member expressions.");
       }
-      return bindMemberExpression(pattern, value, scope, context);
+      return bindMemberExpression(pattern, value, context, reference);
     case "AssignmentPattern":
-      return bindAssignmentPattern(pattern, value, target, scope, context);
+      return bindAssignmentPattern(pattern, value, target, scope, context, reference);
     case "ArrayPattern":
       return bindArrayPattern(pattern, value, target, scope, context);
     case "ObjectPattern":
       return bindObjectPattern(pattern, value, target, scope, context);
     case "RestElement":
-      return bindPattern(pattern.argument, value, target, scope, context);
+      return bindPattern(pattern.argument, value, target, scope, context, reference);
   }
 }
 
@@ -99,10 +101,11 @@ async function bindAssignmentPattern(
   value: SandboxValue,
   target: PatternTarget,
   scope: Scope,
-  context: PatternContext
+  context: PatternContext,
+  reference?: AssignmentReference
 ): Promise<BindPatternResult> {
   if (value !== undefined) {
-    return bindPattern(pattern.left, value, target, scope, context);
+    return bindPattern(pattern.left, value, target, scope, context, reference);
   }
 
   const defaultValue = await context.evaluate(
@@ -113,7 +116,36 @@ async function bindAssignmentPattern(
     return { ok: false, result: defaultValue };
   }
 
-  return bindPattern(pattern.left, defaultValue.value, target, scope, context);
+  return bindPattern(pattern.left, defaultValue.value, target, scope, context, reference);
+}
+
+async function bindPatternValue(
+  pattern: Pattern,
+  readValue: () => Promise<{ value: SandboxValue }>,
+  target: PatternTarget,
+  scope: Scope,
+  context: PatternContext
+): Promise<BindPatternResult> {
+  let member = pattern;
+  while (member.type === "AssignmentPattern" || member.type === "RestElement")
+    member = member.type === "AssignmentPattern" ? member.left : member.argument;
+  let reference: AssignmentReference | undefined;
+  if ("assign" in target && member.type === "MemberExpression") {
+    const prepared = await prepareMemberReference(member, context);
+    if (!prepared.ok) return prepared;
+    reference = prepared.reference;
+  }
+  let value: SandboxValue;
+  const release =
+    context.budget === undefined
+      ? () => undefined
+      : retainValues(context.budget, () => [reference?.object, reference?.key, value]);
+  try {
+    value = (await readValue()).value;
+    return await bindPattern(pattern, value, target, scope, context, reference);
+  } finally {
+    release();
+  }
 }
 
 async function bindArrayPattern(
@@ -160,20 +192,22 @@ async function bindArrayPattern(
         continue;
       }
 
-      let elementValue: SandboxValue;
-      if (element.type === "RestElement") {
-        const rest: SandboxValue[] = [];
-        retained = rest;
-        for (let entry = await next(); !done; entry = await next()) {
-          budget.allocateArrayLength(rest.length + 1);
-          rest.push(entry.value);
-        }
-        elementValue = rest;
-      } else {
-        elementValue = (await next()).value;
-      }
-      retained = elementValue;
-      const binding = await bindPattern(element, elementValue, target, scope, context);
+      const binding = await bindPatternValue(
+        element,
+        async () => {
+          if (element.type !== "RestElement") return next();
+          const rest: SandboxValue[] = [];
+          retained = rest;
+          for (let entry = await next(); !done; entry = await next()) {
+            budget.allocateArrayLength(rest.length + 1);
+            rest.push(entry.value);
+          }
+          return { value: rest };
+        },
+        target,
+        scope,
+        context
+      );
       if (!binding.ok) {
         if (!done) {
           done = true;
@@ -210,9 +244,9 @@ async function bindObjectPattern(
   const excludedKeys = new Set<PropertyKey>();
   for (const property of pattern.properties) {
     if (property.type === "RestElement") {
-      const binding = await bindPattern(
+      const binding = await bindPatternValue(
         property,
-        await copyObjectRestValue(value, excludedKeys, context),
+        async () => ({ value: await copyObjectRestValue(value, excludedKeys, context) }),
         target,
         scope,
         context
@@ -229,9 +263,9 @@ async function bindObjectPattern(
     }
 
     excludedKeys.add(typeof key.value === "symbol" ? key.value : String(key.value));
-    const binding = await bindPattern(
+    const binding = await bindPatternValue(
       property.value,
-      await context.getProperty(value, key.value),
+      async () => ({ value: await context.getProperty(value, key.value) }),
       target,
       scope,
       context
@@ -247,9 +281,30 @@ async function bindObjectPattern(
 async function bindMemberExpression(
   pattern: MemberExpression,
   value: SandboxValue,
-  scope: Scope,
-  context: PatternContext
+  context: PatternContext,
+  reference?: AssignmentReference
 ): Promise<BindPatternResult> {
+  if (reference === undefined) {
+    const prepared = await prepareMemberReference(pattern, context);
+    if (!prepared.ok) return prepared;
+    reference = prepared.reference;
+  }
+  if (reference.object === null || reference.object === undefined) {
+    throw new TypeError("Cannot assign properties of null or undefined.");
+  }
+  if (!isIndexableValue(reference.object)) {
+    throw new TypeError("Assignment expressions require a sandbox object property.");
+  }
+  await context.setProperty(reference.object, reference.key, value);
+  return { ok: true };
+}
+
+async function prepareMemberReference(
+  pattern: MemberExpression,
+  context: PatternContext
+): Promise<
+  { ok: true; reference: AssignmentReference } | { ok: false; result: AsyncEvaluationResult }
+> {
   const object = await context.evaluate(pattern.object);
   if (object.kind !== "normal") {
     return { ok: false, result: object };
@@ -260,15 +315,10 @@ async function bindMemberExpression(
   if (property.kind !== "normal") {
     return { ok: false, result: property };
   }
-  if (object.value === null || object.value === undefined) {
-    throw new TypeError("Cannot assign properties of null or undefined.");
-  }
-  if (!isIndexableValue(object.value)) {
-    throw new TypeError("Assignment expressions require a sandbox object property.");
-  }
-
-  await context.setProperty(object.value, await context.toPropertyKey(property.value), value);
-  return { ok: true };
+  return {
+    ok: true,
+    reference: { object: object.value, key: await context.toPropertyKey(property.value) }
+  };
 }
 
 async function evaluatePatternKey(

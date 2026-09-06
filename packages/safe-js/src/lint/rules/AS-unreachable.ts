@@ -49,6 +49,7 @@ export function AS_UNREACHABLE(source: string, options: { filename?: string } = 
 
 class ASUnreachableScanner {
   private readonly diagnostics: Diagnostic[] = [];
+  private breakTargets = new Map<string, { reached: boolean }>();
 
   constructor(private readonly filename: string) {}
 
@@ -124,6 +125,11 @@ class ASUnreachableScanner {
         this.visitThrowStatement(node);
         return true;
       case "BreakStatement":
+        if (node.label !== undefined) {
+          const target = this.breakTargets.get(node.label);
+          if (target !== undefined) target.reached = true;
+        }
+        return true;
       case "ContinueStatement":
         return true;
       case "ExportNamedDeclaration":
@@ -140,7 +146,11 @@ class ASUnreachableScanner {
   }
 
   private visitBlock(node: BlockStatement): boolean {
-    return this.visitStatements(node.body);
+    const target = { reached: false };
+    for (const label of node.labels ?? []) this.breakTargets.set(label, target);
+    const terminated = this.visitStatements(node.body);
+    for (const label of node.labels ?? []) this.breakTargets.delete(label);
+    return terminated && !target.reached;
   }
 
   private visitIfStatement(node: IfStatement): boolean {
@@ -295,12 +305,18 @@ class ASUnreachableScanner {
   }
 
   private visitArrowFunction(node: FunctionNode): void {
-    if (node.body.type === "BlockStatement") {
-      this.visitBlock(node.body);
-      return;
-    }
+    const outerTargets = this.breakTargets;
+    this.breakTargets = new Map();
+    try {
+      if (node.body.type === "BlockStatement") {
+        this.visitBlock(node.body);
+        return;
+      }
 
-    this.visitExpression(node.body);
+      this.visitExpression(node.body);
+    } finally {
+      this.breakTargets = outerTargets;
+    }
   }
 
   private visitArrayExpression(node: ArrayExpression): void {

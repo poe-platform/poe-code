@@ -47,14 +47,15 @@ test("memory metadata, hardlinks, and truncate operate through the bridge", asyn
   assert.equal(stats.nlink, 2);
 });
 
-test("concrete Shell accepts the structural adapter and uses its exact VFS for pipes and redirection", { timeout: 3000 }, async () => {
+test("concrete Shell accepts the structural adapter and preserves its VFS backing through execution views", { timeout: 3000 }, async () => {
   const fs = new MemoryFileSystem();
   const otherFs = new MemoryFileSystem();
   const shell = new Shell({ fs: otherFs });
   shell.register({
     name: "relay",
     async execute(context) {
-      assert.equal(context.fs, fs);
+      assert.notEqual(context.fs, fs);
+      assert.equal(await context.fs.compareEntry!("/input", fs, "/input"), "same");
       for await (const bytes of context.stdin) await context.stdout.write(bytes);
       return { exitCode: 0 };
     },

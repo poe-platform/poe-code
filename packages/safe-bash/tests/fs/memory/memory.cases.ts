@@ -569,8 +569,9 @@ test("terminal dot components do not remove or move their containing directory",
 });
 
 test("deep recursive removal uses bounded call-stack space", async () => {
-  const filesystem = new MemoryFileSystem();
-  const path = `/${Array.from({ length: 12000 }, () => "deep").join("/")}`;
+  const depth = 12000;
+  const filesystem = new MemoryFileSystem({ maxMetadataUnits: depth * 2 + 3 });
+  const path = `/${Array.from({ length: depth }, () => "deep").join("/")}`;
   await filesystem.mkdir(path, { recursive: true });
   await filesystem.writeFile(`${path}/file`, bytes("value"));
   await filesystem.rm("/deep", { recursive: true });

@@ -1,5 +1,6 @@
 import type { FileReadHandle, FileSystem, FsOptions } from "../contracts/filesystem.js";
 import type { ByteSource } from "../contracts/io.js";
+import { finishCleanup } from "../contracts/cleanup.js";
 import { registerEntryView } from "./mount/comparison.js";
 
 const originals = new WeakMap<FileSystem, FileSystem>();
@@ -27,14 +28,30 @@ export function scopeFileSystem(filesystem: FileSystem, charge: () => void, sign
     close: handle.close.bind(handle),
   });
   const wrapStream = (source: ByteSource, options?: FsOptions): ByteSource => ({
-    async *[Symbol.asyncIterator]() {
+    [Symbol.asyncIterator]() {
       assertOpen(options);
-      for await (const chunk of source) {
-        assertOpen(options);
-        yield chunk;
-        assertOpen(options);
-      }
-      assertOpen(options);
+      const iterator = source[Symbol.asyncIterator]();
+      let closing: Promise<IteratorResult<Uint8Array>> | undefined;
+      const close = (value?: unknown): Promise<IteratorResult<Uint8Array>> => closing ??= Promise.resolve().then(
+        () => iterator.return ? iterator.return(value) : { done: true, value: undefined },
+      );
+      const advance = async (operation: () => Promise<IteratorResult<Uint8Array>>): Promise<IteratorResult<Uint8Array>> => {
+        try {
+          assertOpen(options);
+          if (closing) return { done: true, value: undefined };
+          const result = await operation();
+          assertOpen(options);
+          return closing ? { done: true, value: undefined } : result;
+        } catch (error) {
+          await finishCleanup(close, true);
+          throw error;
+        }
+      };
+      return {
+        next: () => advance(() => iterator.next()),
+        return: close,
+        ...(iterator.throw ? { throw: (error?: unknown) => advance(() => iterator.throw!(error)) } : {}),
+      };
     },
   });
   const view = new Proxy(Object.create(original) as FileSystem, {

@@ -67,3 +67,9 @@ uses 10,000. Children share it; a later execution receives a fresh work allowanc
 without resetting this Memory store. Resource cleanup remains possible after
 admission is exhausted. Backend-internal subcalls and delivered stream chunks
 are not invented additional filesystem API calls.
+
+Command handlers receive a metered filesystem view, not the original object's
+reference. The view forwards operations to the same borrowed backing store with
+the original method receiver and entry-comparison authority. It does not clone
+files or replace host storage policy. Code needing to verify shared entries
+should use the filesystem comparison contract rather than object equality.

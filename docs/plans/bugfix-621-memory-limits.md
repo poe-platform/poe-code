@@ -117,3 +117,38 @@ unit. Three fresh regressions failed alongside eight passing scope controls.
 Using an async generator's `for await` cleanup changed that selection to 11/11,
 including pre/post-next cancellation and preservation of a primary falsey reason
 when cleanup itself fails. This is a resource-reclamation fix, not a heap claim.
+
+The first full cross-workspace run passed 36,052 shared tests (42 skipped) and
+279 Bash runner controls, then exposed further Bash regressions before delivery.
+The async-generator scope wrapper serialized cleanup behind an opaque pending
+read and did not forward cleanup for unstarted inputs; existing column and
+redirected-input lifecycle contracts must remain unchanged. The stream owner
+is correcting those paths with independent, idempotent iterator return.
+
+The existing sort buffer-failure fixture requires a file one byte above 32 MiB,
+which now exceeds the intended default 16 MiB file ceiling. Its fresh 9-pass /
+1-fail reproduction became 10/10 after giving only that fixture an explicit
+finite file ceiling; all input bytes, buffer-failure and no-partial-replacement
+assertions remain unchanged.
+
+An existing bridge test compared the command filesystem object's reference.
+Metering intentionally introduces an execution view, not a different store.
+That observable identity change is documented in the resource contract. The
+test now explicitly requires a distinct view with genuine `same` entry authority,
+and retains all original pipe/redirection bytes and isolation checks; its
+2-pass / 1-fail reproduction became 3/3. This is not a claim of unchanged object
+identity or universal compatibility.
+
+The completed first full run had 21,478 Bash passes, six failures, one cancelled
+test and 63 skips. Its other failures were the same stream-lifetime regression
+in ordinary and hard-timeout cleanup cohorts, plus the 12,000-directory native
+stack-safety fixture exceeding the default metadata ceiling. That fixture keeps
+its full depth and assertions with an explicit 24,003-unit ceiling; its focused
+104-pass / 1-fail reproduction became 105/105.
+
+The stream owner added five focused pending-read, unstarted-iterator and cleanup
+controls: 11 passed / five failed before the repair, then 16/16 passed. Manual
+forwarding starts one shared, unmetered return independently of pending next,
+automatically closes on admission failure and preserves primary falsey reasons.
+All earlier reclamation controls remain active. The unchanged public lifecycle
+cohorts and a fresh full cross-workspace run remain required after rebuilding.

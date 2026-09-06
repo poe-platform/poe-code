@@ -134,3 +134,69 @@ test("cancelled stream cleanup preserves its primary falsey reason", async () =>
   }, error => error === false);
   assert.equal(returned, 1);
 });
+
+test("return starts and drains independently of an opaque pending next", async () => {
+  let completeNext!: (value: IteratorResult<Uint8Array>) => void;
+  let releaseClose!: () => void;
+  let returns = 0;
+  const next = new Promise<IteratorResult<Uint8Array>>(resolve => { completeNext = resolve; });
+  const close = new Promise<void>(resolve => { releaseClose = resolve; });
+  const controller = new AbortController();
+  const original = {
+    capabilities: {},
+    readStream: () => ({ [Symbol.asyncIterator]() { return {
+      next: () => next,
+      async return() { returns++; await close; return { done: true, value: undefined }; },
+    }; } }),
+  } as unknown as FileSystem;
+  let charges = 0;
+  const iterator = scopeFileSystem(original, () => { charges++; }, controller.signal).readStream!("/")[Symbol.asyncIterator]();
+  const pending = iterator.next();
+  const observed = pending.then(value => ({ value }), error => ({ error }));
+  controller.abort(false);
+  const closing = iterator.return!();
+  const secondClose = iterator.return!();
+  let settled = false;
+  void closing.then(() => { settled = true; });
+  try {
+    await new Promise<void>(resolve => setImmediate(resolve));
+    assert.equal(returns, 1);
+    assert.equal(closing, secondClose);
+    assert.equal(settled, false);
+    releaseClose();
+    await closing;
+    assert.equal(settled, true);
+    assert.equal(charges, 1);
+  } finally {
+    releaseClose();
+    completeNext({ done: false, value: new Uint8Array([7]) });
+    await Promise.allSettled([closing, secondClose]);
+    await observed;
+  }
+  assert.deepEqual(await observed, { error: false });
+  assert.equal(returns, 1);
+});
+
+for (const started of [false, true]) for (const reason of [undefined, null]) {
+  test(`return preserves cleanup failure ${String(reason)} with started=${started}`, async () => {
+    let acquired = 0;
+    let returned = 0;
+    const original = {
+      capabilities: {},
+      readStream: () => ({ [Symbol.asyncIterator]() {
+        acquired++;
+        return {
+          async next() { return { done: true, value: undefined }; },
+          async return() { returned++; throw reason; },
+        };
+      } }),
+    } as unknown as FileSystem;
+    const iterator = scopeFileSystem(original, () => {}, new AbortController().signal).readStream!("/")[Symbol.asyncIterator]();
+    if (started) assert.equal((await iterator.next()).done, true);
+    const closing = iterator.return!();
+    await assert.rejects(closing, error => error === reason);
+    assert.equal(iterator.return!(), closing);
+    assert.equal(acquired, 1);
+    assert.equal(returned, 1);
+  });
+}

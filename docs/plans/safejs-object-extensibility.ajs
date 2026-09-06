@@ -1,0 +1,18 @@
+import { S } from "schema";
+
+export const schema = S.Object({ title: S.String() });
+
+export default async function objectIntegrity(frontmatter) {
+  await 0;
+  const value = { count: 1 };
+  if (Object.preventExtensions(value) !== value || Object.isExtensible(value))
+    throw new Error("Extensibility transition failed");
+  value.count = 2;
+  if (Object.seal(value) !== value || !Object.isSealed(value) || Object.isFrozen(value))
+    throw new Error("Sealing state failed");
+  function callback() { return 7; }
+  Object.seal(callback);
+  if (!Object.isSealed(callback) || Object.isExtensible(callback) || callback() !== 7)
+    throw new Error("Guest function sealing failed");
+  return { title: frontmatter.title, extensibility: true, sealing: true, functions: true };
+}

@@ -232,6 +232,38 @@ export function createObjectArrayGlobals(options: {
           },
           name: "fromEntries"
         }),
+        preventExtensions: createSandboxClosure({
+          sandbox: true,
+          call: ([value]) => {
+            if (isGuestHostObject(value))
+              throw new TypeError("Live host objects cannot be made non-extensible.");
+            Object.preventExtensions(isGuestClosure(value) ? materializeFunctionProperties(value) : value);
+            return value;
+          },
+          name: "preventExtensions"
+        }),
+        isExtensible: createSandboxClosure({
+          sandbox: true,
+          call: ([value]) =>
+            Object.isExtensible(isGuestClosure(value) ? materializeFunctionProperties(value) : value),
+          name: "isExtensible"
+        }),
+        seal: createSandboxClosure({
+          sandbox: true,
+          call: ([value]) => {
+            if (isGuestHostObject(value))
+              throw new TypeError("Live host objects cannot be sealed.");
+            Object.seal(isGuestClosure(value) ? materializeFunctionProperties(value) : value);
+            return value;
+          },
+          name: "seal"
+        }),
+        isSealed: createSandboxClosure({
+          sandbox: true,
+          call: ([value]) =>
+            Object.isSealed(isGuestClosure(value) ? materializeFunctionProperties(value) : value),
+          name: "isSealed"
+        }),
         freeze: createSandboxClosure({
           sandbox: true,
           call: ([value]) => {

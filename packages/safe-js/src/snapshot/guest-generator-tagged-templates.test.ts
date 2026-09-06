@@ -7,6 +7,8 @@ import { restore } from "./restore.js";
 import { serialize, type RuntimeSnapshotValue } from "./serialize.js";
 
 const bodies = [
+  'try{(42)`${count++}:${yield 1}`}catch(error){return [count,error.name]}',
+  'try{({}).missing`${count++}:${yield 1}:${yield 2}`}catch(error){return [count,error.name]}',
   'function tag(parts,a,b){return [a,b]}const value=tag`${count++}:${yield 1}`;return [count,value]',
   'function tag(parts,a,b){return [a,b]}function select(){count++;return tag}const value=select()`${count++}:${yield 1}`;return [count,value]',
   'const receiver={id:7,get tag(){count++;return function(parts,a,b){return [this.id,a,b]}}};const value=receiver.tag`${count++}:${yield 1}`;return [count,value]',

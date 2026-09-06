@@ -821,13 +821,13 @@ async function evaluateTaggedTemplateExpression(
   context: EvaluationContext
 ): Promise<EvaluationResult> {
   const invokeTag = async (tag: SandboxValue, receiver: SandboxValue): Promise<EvaluationResult> => {
-    if (!isSandboxClosure(tag)) throw new TypeError("Tagged template tag must be a function.");
     const call = createCallContinuation(node, tag, context, receiver);
     context = call.context;
     const release = retainValues(context.budget, () => [tag, receiver]);
     try {
       const values = await evaluateCallArguments(node.quasi.expressions, context, call.state);
       if (!values.ok) return values.result;
+      if (!isSandboxClosure(tag)) throw new TypeError("Tagged template tag must be a function.");
       return {
         kind: "normal", hasValue: true,
         value: await invokeSandboxClosure(tag,

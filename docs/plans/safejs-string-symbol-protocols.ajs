@@ -1,0 +1,23 @@
+import { S } from "schema";
+
+export const schema = S.Object({ title: S.String() });
+
+export default async function stringProtocols(frontmatter) {
+  await 0;
+  const receiver = { toString() { throw new Error("Receiver coerced before hook"); } };
+  let reads = 0;
+  const pattern = {
+    get [Symbol.match]() {
+      reads++;
+      return function(value) { return this === pattern && value === receiver; };
+    }
+  };
+  if (!"".match.call(receiver, pattern) || reads !== 1)
+    throw new Error("Match hook order or receiver failed");
+  const limit = {};
+  const splitter = { [Symbol.split](value, count) { return value === "text" && count === limit; } };
+  if (!"text".split(splitter, limit)) throw new Error("Split arguments changed");
+  const searcher = { [Symbol.search](value) { return value + "!"; } };
+  if ("text".search(searcher) !== "text!") throw new Error("Search hook failed");
+  return { title: frontmatter.title, match: true, search: true, split: true };
+}

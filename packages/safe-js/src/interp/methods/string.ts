@@ -5,6 +5,7 @@ import { CompileScope } from "../regex/compile-guard.js";
 import { normalizeLastIndex } from "../regex/engine.js";
 import { sandboxNumber, sandboxString } from "../string-coercion.js";
 import { retainValues } from "../resources.js";
+import { getSandboxDataProperty } from "../object-model.js";
 import {
   createSandboxClosure,
   createSandboxRegex,
@@ -118,9 +119,8 @@ export function getStringMember(
       const retainedReceiver = {};
       budget.setRetainedValues(retainedReceiver, () => [receiver]);
       try {
-        const string = await sandboxString(receiver, budget, context);
         return await callStringMethod(
-          string,
+          receiver,
           property,
           args,
           budget,
@@ -154,6 +154,39 @@ export function validateStringMethodArguments(
 ): void {}
 
 export function callStringMethod(
+  value: SandboxValue,
+  methodName: StringMethodName,
+  args: readonly SandboxValue[],
+  budget: Budget,
+  callClosure: (
+    closure: SandboxClosure,
+    args: readonly SandboxValue[]
+  ) => Promise<SandboxValue> = async (closure, closureArgs) => await closure.call(closureArgs),
+  parent?: CompileScope,
+  context?: SandboxCallContext
+): SandboxValue | Promise<SandboxValue> {
+  if (value === null || value === undefined)
+    throw new TypeError(`String#${methodName} requires a non-null receiver.`);
+  const fallback = () => typeof value === "string"
+    ? callStringMethodBody(value, methodName, args, budget, callClosure, parent, context)
+    : Promise.resolve(sandboxString(value, budget, context)).then(string =>
+      callStringMethodBody(string, methodName, args, budget, callClosure, parent, context));
+  const symbol = methodName === "match" ? Symbol.match
+    : methodName === "search" ? Symbol.search
+    : methodName === "split" ? Symbol.split : undefined;
+  const pattern = args[0];
+  if (symbol === undefined || pattern === null || pattern === undefined) return fallback();
+  const applyHook = (hook: SandboxValue) => {
+    if (hook === null || hook === undefined) return fallback();
+    if (!isSandboxClosure(hook)) throw new TypeError(`String#${methodName} symbol hook must be callable.`);
+    return invokeBuiltinClosure(hook, methodName === "split" ? [value, args[1]] : [value], budget, context, pattern);
+  };
+  return context?.getProperty !== undefined
+    ? Promise.resolve(context.getProperty(pattern, symbol)).then(applyHook)
+    : applyHook(getSandboxDataProperty(pattern, symbol, budget));
+}
+
+function callStringMethodBody(
   value: string,
   methodName: StringMethodName,
   args: readonly SandboxValue[],

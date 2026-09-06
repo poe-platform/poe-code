@@ -60,6 +60,22 @@ function* matchNode(
         yield { ...state, position: state.position + context.direction };
       }
       return;
+    case "backreference": {
+      const capture = state.captures[node.index - 1];
+      if (capture === undefined) {
+        yield state;
+        return;
+      }
+      const length = capture.end - capture.start;
+      const start = context.direction === 1 ? state.position : state.position - length;
+      if (start < 0 || start + length > context.input.length) return;
+      for (let offset = 0; offset < length; offset++) {
+        charge(context);
+        if (!charactersEqual(context.input[start + offset], context.input[capture.start + offset], context.flags.ignoreCase)) return;
+      }
+      yield { ...state, position: state.position + context.direction * length };
+      return;
+    }
     case "dot":
       if (
         characterIndex >= 0 && characterIndex < context.input.length &&

@@ -162,6 +162,7 @@ function measureNode(node: RegexNode): number {
       return 3 + node.value.length;
     case "anchor":
     case "wordBoundary":
+    case "backreference":
       return 3;
     case "characterClass": {
       let usage = 5 + node.items.length;

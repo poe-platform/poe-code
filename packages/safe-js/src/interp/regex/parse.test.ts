@@ -36,7 +36,7 @@ describe("parseRegex", () => {
   it.each([
     ["a", "u", "Unsupported regex flag 'u' at position 0"],
     ["a", "gg", "Duplicate regex flag 'g' at position 1"],
-    ["(a)\\1", "", "Backreferences are not supported at position 3"],
+    ["(a)\\1{2,1}", "", "Quantifier range is out of order at position 5"],
     ["(?=a", "", "Unterminated group at position 0"],
     ["(?!a", "", "Unterminated group at position 0"],
     ["(?<=a", "", "Unterminated group at position 0"],

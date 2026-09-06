@@ -19,6 +19,7 @@ export type CharacterClassItem =
 export type RegexNode =
   | { type: "empty" }
   | { type: "literal"; value: string }
+  | { type: "backreference"; index: number }
   | { type: "dot" }
   | { type: "anchor"; kind: "start" | "end" }
   | { type: "wordBoundary"; negated: boolean }
@@ -63,6 +64,7 @@ export function parseRegex(
 class RegexParser {
   captureCount = 0;
   private cursor = 0;
+  private totalCaptureCount?: number;
 
   constructor(
     private readonly source: string,
@@ -285,8 +287,29 @@ class RegexParser {
     }
 
     const escaped = this.take();
-    if (escaped >= "1" && escaped <= "9") {
-      this.fail("Backreferences are not supported", start);
+    if (isDecimalDigit(escaped)) {
+      if (!inCharacterClass && escaped !== "0") {
+        let end = this.position;
+        let index = Number(escaped);
+        while (isDecimalDigit(this.source[end] ?? "")) {
+          this.guard.work(1);
+          index = index * 10 + Number(this.source[end++]);
+        }
+        this.totalCaptureCount ??= this.countAllCaptures();
+        if (index <= this.totalCaptureCount) {
+          this.position = end;
+          this.guard.allocate(3);
+          return { type: "backreference", index };
+        }
+      }
+      this.guard.allocate(4);
+      if (escaped === "8" || escaped === "9") return { type: "literal", value: escaped };
+      let code = Number(escaped);
+      const maximum = escaped <= "3" ? 3 : 2;
+      for (let digits = 1; digits < maximum && this.peek() >= "0" && this.peek() <= "7"; digits++) {
+        code = code * 8 + Number(this.take());
+      }
+      return { type: "literal", value: String.fromCharCode(code) };
     }
     if (escaped === "p" || escaped === "P") {
       this.fail("Unicode property escapes are not supported", start);
@@ -344,6 +367,22 @@ class RegexParser {
     }
     this.position = end;
     return String.fromCharCode(Number.parseInt(digits, 16));
+  }
+
+  private countAllCaptures(): number {
+    let count = 0;
+    let escaped = false;
+    let characterClass = false;
+    for (let index = 0; index < this.source.length; index++) {
+      this.guard.work(1);
+      const character = this.source[index];
+      if (escaped) escaped = false;
+      else if (character === "\\") escaped = true;
+      else if (character === "[") characterClass = true;
+      else if (character === "]") characterClass = false;
+      else if (!characterClass && character === "(" && this.source[index + 1] !== "?") count++;
+    }
+    return count;
   }
 
   private parseQuantifier(): { min: number; max?: number } | undefined {

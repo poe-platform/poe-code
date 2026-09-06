@@ -683,26 +683,9 @@ describe("@poe-code/safe-js public exports", () => {
     ]);
   });
 
-  it("includes forbidden property access diagnostics in lint results", () => {
+  it("permits ordinary guest constructor property access in lint results", () => {
     const source = ["({ safe: 1 }).safe;", '({ safe: 1 })["constructor"];'].join("\n");
 
-    expect(lint(source, { filename: "rule.js" })).toEqual([
-      {
-        code: "AS011",
-        severity: "error",
-        message: "Property access to '__proto__', 'prototype', and 'constructor' is not allowed.",
-        filename: "rule.js",
-        line: 2,
-        column: 15,
-        span: {
-          start: { line: 2, column: 15, offset: source.indexOf('"constructor"') },
-          end: {
-            line: 2,
-            column: 28,
-            offset: source.indexOf('"constructor"') + '"constructor"'.length
-          }
-        }
-      }
-    ]);
+    expect(lint(source, { filename: "rule.js" })).toEqual([]);
   });
 });

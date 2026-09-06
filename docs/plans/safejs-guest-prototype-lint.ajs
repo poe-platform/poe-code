@@ -1,0 +1,20 @@
+import { S } from "schema";
+
+export const schema = S.Object({ title: S.String() });
+
+export default async function prototypeAccess(frontmatter) {
+  await 0;
+  function Box() {}
+  Object.defineProperty(Box.prototype, "value", { value: 7 });
+  const instance = new Box();
+  if (instance.value !== 7 || instance.constructor !== Box)
+    throw new Error("Guest prototype lookup failed");
+  if (Object.prototype.hasOwnProperty.call(instance, "value"))
+    throw new Error("Inherited field was treated as own data");
+  if (Object.prototype.constructor !== Object)
+    throw new Error("Intrinsic constructor lookup failed");
+  const data = { ["__proto__"]: 7, constructor: 9 };
+  if (data.__proto__ !== 7 || data.constructor !== 9)
+    throw new Error("Ordinary data property lookup failed");
+  return { title: frontmatter.title, prototypes: true, ownData: true };
+}

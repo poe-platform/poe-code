@@ -216,6 +216,10 @@ export function hasExplicitSandboxPrototype(value: object): boolean {
   return prototypes.has(value);
 }
 
+export function hasNullObjectPrototype(value: object): boolean {
+  return prototypes.get(value) === null && !Array.isArray(value) && !isSandboxClosure(value) && !isSandboxRegex(value);
+}
+
 export function getSandboxPropertyDescriptor(
   value: SandboxValue,
   key: PropertyKey,
@@ -341,7 +345,7 @@ export function hasGuestObjectState(value: object): boolean {
   const intrinsicUnchanged = intrinsicConstructors.get(value);
   if (intrinsicUnchanged !== undefined) return !intrinsicUnchanged();
   if (isLiveCapability(value)) return true;
-  if (functionProperties.has(value) || prototypes.has(value)) return true;
+  if (functionProperties.has(value) || (prototypes.has(value) && !hasNullObjectPrototype(value))) return true;
   if (isSandboxBox(value) || isSandboxDate(value)) return false;
   return (
     descriptorObjects.has(value) &&

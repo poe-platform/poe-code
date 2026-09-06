@@ -4,7 +4,7 @@ import { wellKnownSymbols } from "../interp/symbols.js";
 import { symbolData, serializeSymbolProperties, type SerializedSymbol, type SerializedSymbolProperty } from "./symbols.js";
 import { isSandboxCollectionIterator, restoreSandboxCollectionIterator, snapshotCollectionIterator, type CollectionIterationMethod } from "../interp/collection-iterator.js";
 import { isSandboxRegExpIterator, regexpIteratorState, restoreSandboxRegExpIterator } from "../interp/regexp-iterator.js";
-import { hasGuestObjectState } from "../interp/object-model.js";
+import { hasGuestObjectState, hasNullObjectPrototype, setSandboxPrototype } from "../interp/object-model.js";
 import { CompileScope } from "../interp/regex/compile-guard.js";
 import { float32DataProperties, isFloat32Array } from "../interp/float32.js";
 import { decodeFloat32Storage, encodeFloat32Storage, type Float32Data } from "./float32array.js";
@@ -60,6 +60,7 @@ type DataNode =
       symbolProperties?: Array<SerializedSymbolProperty<Atom>>;
       extensible: boolean;
       nullPrototype: boolean;
+      sandboxNullPrototype?: true;
       errorType?: SandboxErrorName;
     }
   | { kind: "arguments"; data: SerializedArguments<Atom> }
@@ -239,6 +240,7 @@ export function encodeReplayData(
       nodes[id] = {
         kind: Array.isArray(entry) ? "array" : "object",
         nullPrototype: prototype === null,
+        ...(hasNullObjectPrototype(entry) ? { sandboxNullPrototype: true as const } : {}),
         ...(errorType === undefined ? {} : { errorType }),
         extensible: Object.isExtensible(entry),
         properties,
@@ -487,6 +489,10 @@ export function decodeReplayData(
       }
       const result =
         kind === "array" ? [] : Object.create(node.nullPrototype ? null : Object.prototype);
+      if (Object.hasOwn(node, "sandboxNullPrototype")) {
+        if (kind !== "object" || node.sandboxNullPrototype !== true) throw new TypeError("Invalid replay object prototype.");
+        setSandboxPrototype(result, null);
+      }
       if (Object.hasOwn(node, "errorType")) {
         sandboxErrorTypes.set(result, node.errorType as SandboxErrorName);
       }

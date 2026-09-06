@@ -4,7 +4,7 @@ import { isSandboxRegExpIterator, regexpIteratorState } from "../interp/regexp-i
 import { hasCustomRegexProperties, serializeRegexProperties, type RegexPropertyData } from "./regexp-properties.js";
 export const EXECUTION_SEMANTICS = "jobs-v8";
 import { assertSnapshotGraphDepth } from "../graph-depth.js";
-import { hasGuestObjectState } from "../interp/object-model.js";
+import { hasGuestObjectState, hasNullObjectPrototype } from "../interp/object-model.js";
 import { sandboxErrorTypes, type SandboxErrorName } from "../error/shape.js";
 import { getSandboxArgumentEntries, isSandboxArguments } from "../interp/arguments.js";
 import { serializeArguments, type SerializedArguments } from "./arguments.js";
@@ -39,6 +39,7 @@ type DumpHeapValue =
   | SerializedArray<DumpValue>
   | {
       kind: "object";
+      sandboxNullPrototype?: true;
       entries: Record<string, DumpValue>;
       symbolEntries?: Array<SerializedSymbolProperty<DumpValue>>;
       errorType?: SandboxErrorName;
@@ -261,6 +262,7 @@ function serializeHeapReference(
       });
       state.heap[String(id)] = {
         kind: "object",
+        ...(hasNullObjectPrototype(value) ? { sandboxNullPrototype: true as const } : {}),
         entries: serializeObjectEntries(value, path, state),
         ...(symbolEntries.length === 0 ? {} : { symbolEntries }),
         ...(errorType === undefined ? {} : { errorType })
@@ -309,6 +311,7 @@ function indexHeapContainers(snapshot: DumpableSnapshot): Map<object | symbol, n
     if (
       stat.count > 1 ||
       stat.cyclic ||
+      hasNullObjectPrototype(value) ||
       ownSerializableSymbolKeys(value).length > 0 ||
       isSandboxBox(value) ||
       isSandboxRegExpIterator(value) ||

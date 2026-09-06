@@ -678,6 +678,10 @@ function restoreHeapValue(id: number, state: RestoreState): RuntimeSnapshotValue
 
   const object = Object.create(null) as Record<string, RuntimeSnapshotValue>;
   state.heapValueById.set(id, object);
+  if (Object.hasOwn(serialized, "sandboxNullPrototype")) {
+    if (serialized.sandboxNullPrototype !== true) throw new TypeError("Invalid object prototype.");
+    setSandboxPrototype(object, null);
+  }
   if (serialized.errorType !== undefined) sandboxErrorTypes.set(object, serialized.errorType);
 
   for (const [key, entry] of Object.entries(serialized.entries)) {

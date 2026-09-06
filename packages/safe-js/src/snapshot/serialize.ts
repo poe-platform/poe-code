@@ -3,7 +3,7 @@ import { hasCustomRegexProperties, serializeRegexProperties, type RegexPropertyD
 import { ownSerializableSymbolKeys, serializeSymbol, serializeSymbolProperties, type SerializedSymbol, type SerializedSymbolProperty } from "./symbols.js";
 import { collectionIteratorState, isSandboxCollectionIterator, snapshotCollectionIterator, type CollectionIterationMethod, type SandboxCollectionIterator } from "../interp/collection-iterator.js";
 import { isSandboxRegExpIterator, regexpIteratorState, type SandboxRegExpIterator } from "../interp/regexp-iterator.js";
-import { hasGuestObjectState } from "../interp/object-model.js";
+import { hasGuestObjectState, hasNullObjectPrototype } from "../interp/object-model.js";
 import { sandboxErrorTypes, type SandboxErrorName } from "../error/shape.js";
 import { assertSnapshotGraphDepth } from "../graph-depth.js";
 import { serializeArguments, type SerializedArguments } from "./arguments.js";
@@ -86,6 +86,7 @@ export type SerializedHeapValue =
   | SerializedArray<SerializedSnapshotValue>
   | {
       kind: "object";
+      sandboxNullPrototype?: true;
       entries: Record<string, SerializedSnapshotValue>;
       symbolEntries?: Array<SerializedSymbolProperty<SerializedSnapshotValue>>;
       errorType?: SandboxErrorName;
@@ -536,6 +537,7 @@ function serializeHeapReference(
       const errorType = sandboxErrorTypes.get(value);
       const serializedObject: Extract<SerializedHeapValue, { kind: "object" }> = {
         kind: "object",
+        ...(hasNullObjectPrototype(value) ? { sandboxNullPrototype: true as const } : {}),
         entries,
         ...(errorType === undefined ? {} : { errorType })
       };
@@ -645,6 +647,7 @@ function indexHeapContainers(input: SerializeInput): Map<object | symbol, number
     if (
       stat.count > 1 ||
       stat.cyclic ||
+      hasNullObjectPrototype(value) ||
       ownSerializableSymbolKeys(value).length > 0 ||
       (isSandboxRegex(value) && (hasCustomRegexProperties(value) || !Number.isSafeInteger(value.lastIndex) ||
         (typeof value.lastIndex === "number" && value.lastIndex < 0) || Object.is(value.lastIndex, -0))) ||

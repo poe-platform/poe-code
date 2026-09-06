@@ -155,6 +155,8 @@ function validateDumpHeap(root: Record<string, unknown>, state: ValidationState)
       continue;
     }
     if (entry.kind === "object") {
+      if (Object.hasOwn(entry, "sandboxNullPrototype") && entry.sandboxNullPrototype !== true)
+        fail("invalidValue", `${path}.sandboxNullPrototype`, "invalid object prototype");
       requireRecord(entry.entries, `${path}.entries`);
       continue;
     }
@@ -488,7 +490,11 @@ function validateTaggedValue(
       return;
     case "array":
     case "arguments":
+      return;
     case "object":
+      if (Object.hasOwn(record, "sandboxNullPrototype") && record.sandboxNullPrototype !== true)
+        fail("invalidValue", `${path}.sandboxNullPrototype`, "invalid object prototype");
+      return;
     case "map":
     case "set":
     case "collection-iterator":

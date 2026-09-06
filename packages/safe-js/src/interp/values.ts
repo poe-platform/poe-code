@@ -30,7 +30,7 @@ import {
 import { parseRegex, type RegexPattern } from "./regex/parse.js";
 import { assertSandboxDataDepth } from "../graph-depth.js";
 import { sandboxErrorTypes } from "../error/shape.js";
-import { getGuestFunctionProperties, getSandboxPrototype, hasGuestObjectState, hasManagedDescriptors, isGuestClosure, isIntrinsicConstructor, registerGuestClosure } from "./object-model.js";
+import { getGuestFunctionProperties, getSandboxPrototype, hasGuestObjectState, hasManagedDescriptors, hasNullObjectPrototype, isGuestClosure, isIntrinsicConstructor, registerGuestClosure, setSandboxPrototype } from "./object-model.js";
 import type { FunctionSource } from "../parse/function-source.js";
 import {
   copySandboxArgumentProperties,
@@ -1041,6 +1041,7 @@ function copyToSandbox(
     const copy = createPlainObject(
       !cloneSandboxCollections || Object.getPrototypeOf(value) === null
     );
+    if (!state.structuredClone && hasNullObjectPrototype(value)) setSandboxPrototype(copy, null);
     state.seen.set(value, copy);
     const errorType = sandboxErrorTypes.get(value);
     if (errorType !== undefined) sandboxErrorTypes.set(copy, errorType);
@@ -1281,7 +1282,7 @@ function copyFromSandbox(
       return existing;
     }
 
-    const copy = createPlainObject(Object.getPrototypeOf(value) === null) as Record<
+    const copy = createPlainObject(hasNullObjectPrototype(value) || Object.getPrototypeOf(value) === null) as Record<
       string,
       unknown
     >;

@@ -108,6 +108,7 @@ export function createDateGlobal(
           if (!isSandboxDate(receiver))
             throw new TypeError(`Date#${name} requires a Date receiver.`);
           options.budget.visitNode();
+          if (name.startsWith("set")) return coerceDateSetter(name, receiver, args, options.budget, context);
           const value = method.invoke(receiver, args);
           return typeof value === "string"
             ? options.budget.allocateString(value)
@@ -141,6 +142,17 @@ async function coerceDateParts(args: readonly SandboxValue[], utc: boolean, budg
   const parts: number[] = [];
   for (const value of args.slice(0, 7)) parts.push(await sandboxNumber(value, budget, context));
   return dateFromParts(parts, utc);
+}
+
+async function coerceDateSetter(name: string, receiver: Date, args: readonly SandboxValue[], budget: Budget, context?: SandboxCallContext): Promise<number> {
+  const method = dateMethods.get(name)!;
+  const initialTime = dateTime(receiver);
+  const converted: number[] = [];
+  for (const value of args.slice(0, method.length)) converted.push(await sandboxNumber(value, budget, context));
+  // Invalid component setters return without overwriting coercion side effects.
+  if (Number.isNaN(initialTime) && name !== "setTime" && !name.endsWith("FullYear")) return NaN;
+  const result = method.invoke(createSandboxDate(initialTime), converted) as number;
+  return dateMethods.get("setTime")!.invoke(receiver, [result]) as number;
 }
 
 export async function dateToJSON(receiver: SandboxValue, budget: Budget, context?: SandboxCallContext): Promise<SandboxValue> {

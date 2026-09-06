@@ -129,11 +129,13 @@ export class MountFileSystem implements FileSystem {
     const common = (capability: string): boolean | undefined => {
       const optional: Record<string, readonly (keyof FileSystem)[]> = {
         symlinks: ["symlink", "readlink"], hardlinks: ["link"], permissions: ["chmod"], timestamps: ["utimes"], readlink: ["readlink"],
+        descriptorWriteStream: ["writeStream"],
       };
       const values = mounts.map(({ backend }) => {
         if (backend.capabilities.readOnly === true
           && !["read", "stat", "readdir", "realpath", "access", "readlink", "explicitDirectories", "implicitDirectories"].includes(capability)) return false;
         const declared = backend.capabilities[capability];
+        if (capability === "descriptorWriteStream" && backend.capabilities.streamingWrite === false) return false;
         return declared === true && optional[capability]?.some(method => typeof backend[method] !== "function") ? false : declared;
       });
       if (["rename", "copy", "exclusiveCopy"].includes(capability) && mounts.length > 1) return undefined;
@@ -143,7 +145,7 @@ export class MountFileSystem implements FileSystem {
       "read", "stat", "readdir", "realpath", "access",
       "write", "append", "exclusiveCreate", "explicitDirectories", "implicitDirectories", "mkdir", "recursiveMkdir",
       "remove", "removeDirectory", "recursiveRemove", "rename", "copy", "exclusiveCopy", "readlink", "truncate",
-      "streamingAppend", "randomAccessWrite", "symlinks", "hardlinks", "permissions", "timestamps",
+      "streamingAppend", "randomAccessWrite", "descriptorWriteStream", "symlinks", "hardlinks", "permissions", "timestamps",
     ].map(capability => [capability, common(capability)]).filter(([, value]) => value !== undefined));
     this.capabilities = Object.freeze({
       get snapshotRmdir() { return mounts.some(({ backend }) => backend.capabilities.snapshotRmdir === true); },
@@ -164,8 +166,11 @@ export class MountFileSystem implements FileSystem {
   async capabilitiesFor(path: string, options: FsOptions = {}): Promise<FileSystemCapabilities> {
     return this.operation("capabilitiesFor", path, options, async () => {
       const location = await this.resolve(path, options, { allowMissing: true });
-      const declared = await location.mount.backend.capabilitiesFor?.(location.local, options)
+      const observed = await location.mount.backend.capabilitiesFor?.(location.local, options)
         ?? location.mount.backend.capabilities;
+      const declared = observed.descriptorWriteStream === true
+        && (typeof location.mount.backend.writeStream !== "function" || observed.readOnly === true || observed.streamingWrite === false)
+        ? { ...observed, descriptorWriteStream: false } : observed;
       const capabilities = location.synthetic ? { ...declared, retainedRead: false }
         : retainedReadCapabilities(location.mount.backend, declared);
       if (location.synthetic) return readOnlyCapabilities(capabilities);

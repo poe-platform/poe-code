@@ -26,6 +26,7 @@ establish support. `readOnly: true` takes precedence over all mutation flags.
 | `exclusiveCreate` | Exclusive file creation (`wx`/`ax`), not ordinary overwrite |
 | `streamingWrite` | `writeStream` write/truncate route |
 | `streamingAppend` | `writeStream` append (`a`) route, independent of `append` |
+| `descriptorWriteStream` | Optional stronger incremental, pinned-resource descriptor semantics for `writeStream`; never inferred from ordinary streaming or random-access eligibility |
 | `truncate` | Explicit `truncate(path, length)` resizing, distinct from `w` |
 | `explicitDirectories` | Explicit/empty directory entries are representable |
 | `implicitDirectories` | Directory views can arise from existing file prefixes |
@@ -48,6 +49,67 @@ existing shell strategy that observes current bytes and writes an offset-adjuste
 replacement; it must not be inferred from `write`, `append`, or `streamingWrite`.
 Memory and real adapters advertise it; atomic/sequential object adapters do not.
 This does not add a new emulation route or promise concurrent-writer isolation.
+
+## Descriptor write streams
+
+`descriptorWriteStream?: boolean` is an additive optional capability, not a new
+writer method or stream mode. A positive claim requires a callable `writeStream`
+and compatible write/append stream support; `readOnly: true` still takes
+precedence. Unknown and false claims must not select this stronger profile.
+
+The profile opens one resource per stream. `w`/`wx` truncate on open and use an
+independent positional cursor, advancing only after a successful nonempty chunk.
+`a`/`ax` write each chunk at that opened resource's current EOF, including after
+another writer appends or truncates. Rename, unlink and name replacement do not
+retarget the opened stream. Concurrent independent opens have independent
+cursors. This is not a transaction across chunks or protection from interleaved
+external effects.
+
+Each completed chunk is visible before the stream requests its next input.
+Bytes retained in the file are owned independently of the producer's buffer;
+the producer may reuse its buffer after that acknowledgement. This does not
+authorize delaying visible writes until a batching threshold or stream EOF.
+An empty chunk neither extends the file nor advances the cursor. Writing past
+EOF after a truncation zero-fills the gap; positional overwrites preserve the
+unaffected current suffix, rather than rebuilding it from a stale file image.
+Source failure and cancellation preserve already published prefixes and do not
+turn them into an atomic stream publication.
+
+Stock Memory implements this profile with its existing pinned node, geometric
+storage growth, and direct synchronous copying from each input chunk into owned
+storage. No extra full-file mirror or intermediate owned chunk copy is required.
+Input validation, acquisition, exclusive-create errors and per-chunk cancellation
+remain observable. Its optional capability is a guarded getter: an inherited
+subclass, substituted root/capability object, or replaced relevant write,
+metadata, access, resolution or allocation method withdraws the stock claim.
+Accessor overrides are inspected as descriptors rather than executed. This is
+a conservative stock enrollment check, not a host-JavaScript sandbox; an
+explicit custom host declaration must itself be truthful. A copied capability
+snapshot is not ongoing authentication of a wrapper's future methods.
+
+Compatibility change: Memory previously appended every `writeStream` chunk even
+for `w`/`wx`. Non-append streams now retain their positional cursor under external
+interference. For example, after `AAAAAAAA`, an external append of `X`, then
+`BBBBBBBB` from the original non-append stream produces `AAAAAAAABBBBBBBB`, not
+`AAAAAAAAXBBBBBBBB`. Direct Memory stream consumers also observe this change;
+there is no extra opt-in mode preserving the former append-like `w` behavior.
+Ordinary non-interfered streams and current-EOF append semantics are preserved.
+
+Readonly, Quota and Overlay explicitly report `descriptorWriteStream: false`.
+Quota's replacement stream is append-based, and Overlay's staged publication
+does not establish this incremental descriptor contract. Neither may inherit a
+positive claim from an underlying backend. Mount forwards the selected backing
+stream and path capability, rejects readonly/disabled/missing-stream positive
+claims, and preserves its existing namespace rules. Its global capabilities are
+construction-time summaries; use `capabilitiesFor` for current path admission,
+including after a Memory policy method changes. A query is not a lease across
+later host mutations.
+
+Real, S3 and WebDAV do not opt in in this slice. Their existing stream and direct
+append implementations are unchanged. In particular, non-streaming remote
+append fallback costs are not repaired by this capability. There is no new
+global allocation limit, heap amplification claim, OOM protection, or arbitrary
+host deadline/preemption guarantee.
 
 ## Adapter and wrapper declarations
 

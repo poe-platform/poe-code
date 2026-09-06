@@ -1811,6 +1811,7 @@ test("default normal runner passes every discovered active file to serial Node e
   assert.ok(files.includes("tests/commands/filesystem-output.test.ts"));
   assert.ok(files.includes("tests/contracts/filesystem-output.test.ts"));
   assert.ok(files.includes("tests/contracts/filesystem-output-task-reactions.test.ts"));
+  assert.ok(files.includes("tests/contracts/filesystem-output-descriptor-stream.test.ts"));
   assert.ok(files.includes("tests/commands/regex-execution/portable.test.ts"));
   assert.ok(files.includes("tests/commands/regex-execution/provider.test.ts"));
   assert.ok(files.includes("tests/commands/regex-execution/bounded-provider.test.ts"));

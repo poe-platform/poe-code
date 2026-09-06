@@ -55,7 +55,7 @@ interface ResolveOptions {
 
 const typeModes = { file: 0o100000, directory: 0o040000, symlink: 0o120000 } as const;
 const ownedStats = new WeakMap<FileStat, { filesystem: FileSystem; path: string; root: DirectoryNode }>();
-const ownedStores = new WeakMap<FileSystem, { root: DirectoryNode; intact: () => boolean }>();
+const ownedStores = new WeakMap<FileSystem, { root: DirectoryNode; capabilities: FileSystem["capabilities"]; intact: () => boolean }>();
 const registeredAuthorities = new WeakSet<FileSystem>();
 const compareOwnedMemory: EntryAuthority = async (own, peer, options) => {
   options.signal?.throwIfAborted();
@@ -93,22 +93,25 @@ const compareOwnedMemory: EntryAuthority = async (own, peer, options) => {
 };
 
 export class MemoryFileSystem implements FileSystem {
-  readonly capabilities = Object.freeze({
-    read: true, stat: true, readdir: true, realpath: true, access: true,
-    write: true, append: true, exclusiveCreate: true, explicitDirectories: true, implicitDirectories: false,
-    mkdir: true, recursiveMkdir: true, remove: true, removeDirectory: true, recursiveRemove: true,
-    rename: true, copy: true, exclusiveCopy: true, readlink: true, truncate: true,
-    streamingAppend: true, randomAccessWrite: true,
-    readOnly: false,
-    symlinks: true,
-    hardlinks: true,
-    permissions: true,
-    timestamps: true,
-    atomicRename: true,
-    streamingRead: true,
-    retainedRead: true,
-    streamingWrite: true,
-  });
+  readonly capabilities = ((filesystem: MemoryFileSystem) => {
+    return Object.freeze({
+      read: true, stat: true, readdir: true, realpath: true, access: true,
+      write: true, append: true, exclusiveCreate: true, explicitDirectories: true, implicitDirectories: false,
+      mkdir: true, recursiveMkdir: true, remove: true, removeDirectory: true, recursiveRemove: true,
+      rename: true, copy: true, exclusiveCopy: true, readlink: true, truncate: true,
+      streamingAppend: true, randomAccessWrite: true,
+      readOnly: false,
+      symlinks: true,
+      hardlinks: true,
+      permissions: true,
+      timestamps: true,
+      atomicRename: true,
+      streamingRead: true,
+      retainedRead: true,
+      streamingWrite: true,
+      get descriptorWriteStream() { return stockDescriptorWrite(filesystem); },
+    });
+  })(this);
 
   private readonly identityScope = Symbol();
   private nextInode = 1;
@@ -118,6 +121,7 @@ export class MemoryFileSystem implements FileSystem {
     const root = this.root;
     ownedStores.set(this, {
       root,
+      capabilities: this.capabilities,
       intact: () => this.root === root,
     });
     if (this.compareEntry === memoryImplementation.compareEntry?.value) {
@@ -294,8 +298,14 @@ export class MemoryFileSystem implements FileSystem {
     return node;
   }
 
-  private append(node: FileNode, data: Uint8Array, syscall: string, path: string): void {
-    const length = node.data.byteLength + data.byteLength;
+  private writeAt(node: FileNode, data: Uint8Array, position: number, syscall: string, path: string): void {
+    if (data.byteLength === 0) {
+      this.changed(node);
+      return;
+    }
+    const end = position + data.byteLength;
+    if (!Number.isSafeInteger(end)) this.fail("EFBIG", syscall, path);
+    const length = Math.max(node.data.byteLength, end);
     let storage: Uint8Array;
     if (length <= node.data.buffer.byteLength) {
       storage = new Uint8Array(node.data.buffer);
@@ -303,7 +313,8 @@ export class MemoryFileSystem implements FileSystem {
       storage = this.allocate(Math.max(length, node.data.byteLength * 2, 64), syscall, path);
       storage.set(node.data);
     }
-    storage.set(data, node.data.byteLength);
+    if (position > node.data.byteLength) storage.fill(0, node.data.byteLength, position);
+    storage.set(data, position);
     node.data = storage.subarray(0, length);
     this.changed(node);
   }
@@ -322,7 +333,7 @@ export class MemoryFileSystem implements FileSystem {
     options.signal?.throwIfAborted();
     const copied = this.bytes(data);
     const node = this.openWrite(path, options, "writeFile");
-    if (options.flag === "a" || options.flag === "ax") this.append(node, copied, "writeFile", path);
+    if (options.flag === "a" || options.flag === "ax") this.writeAt(node, copied, node.data.byteLength, "writeFile", path);
     else {
       node.data = copied;
       this.changed(node);
@@ -332,7 +343,8 @@ export class MemoryFileSystem implements FileSystem {
   async appendFile(path: string, data: Uint8Array, options: AppendFileOptions = {}): Promise<void> {
     options.signal?.throwIfAborted();
     const copied = this.bytes(data);
-    this.append(this.openWrite(path, { ...options, flag: "a" }, "appendFile"), copied, "appendFile", path);
+    const node = this.openWrite(path, { ...options, flag: "a" }, "appendFile");
+    this.writeAt(node, copied, node.data.byteLength, "appendFile", path);
   }
 
   async stat(path: string, options: FsOptions = {}): Promise<FileStat> {
@@ -610,19 +622,37 @@ export class MemoryFileSystem implements FileSystem {
   async writeStream(path: string, source: ByteSource, options: WriteFileOptions = {}): Promise<void> {
     options.signal?.throwIfAborted();
     const node = this.openWrite(path, options, "writeStream");
-    if (options.flag !== "a" && options.flag !== "ax") {
+    const append = options.flag === "a" || options.flag === "ax";
+    let position = 0;
+    if (!append) {
       node.data = new Uint8Array();
       this.changed(node);
     }
     for await (const chunk of source) {
       options.signal?.throwIfAborted();
-      this.append(node, this.bytes(chunk), "writeStream", path);
+      if (!(chunk instanceof Uint8Array)) throw new TypeError("Memory files require Uint8Array data");
+      this.writeAt(node, chunk, append ? node.data.byteLength : position, "writeStream", path);
+      if (!append) position += chunk.byteLength;
     }
     options.signal?.throwIfAborted();
   }
 }
 
 const memoryImplementation = Object.getOwnPropertyDescriptors(MemoryFileSystem.prototype);
+
+function stockDescriptorWrite(filesystem: MemoryFileSystem): boolean {
+  if (Object.getPrototypeOf(filesystem) !== MemoryFileSystem.prototype) return false;
+  const owner = ownedStores.get(filesystem);
+  if (!owner || Object.getOwnPropertyDescriptor(filesystem, "root")?.value !== owner.root
+    || Object.getOwnPropertyDescriptor(filesystem, "capabilities")?.value !== owner.capabilities) return false;
+  for (const name of ["writeStream", "writeFile", "appendFile", "access", "stat", "lstat", "realpath",
+    "openWrite", "resolve", "permission", "validatePath", "mode", "bytes", "allocate", "changed", "metadata", "integer", "writeAt", "fail"]) {
+    const descriptor = Object.getOwnPropertyDescriptor(filesystem, name)
+      ?? Object.getOwnPropertyDescriptor(MemoryFileSystem.prototype, name);
+    if (!descriptor || !("value" in descriptor) || descriptor.value !== memoryImplementation[name]?.value) return false;
+  }
+  return true;
+}
 
 export function createMemoryFileSystem(): MemoryFileSystem {
   return new MemoryFileSystem();

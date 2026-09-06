@@ -169,6 +169,7 @@ export class OverlayFileSystem implements FileSystem {
       ...(upper.readOnly === undefined ? {} : { readOnly: upper.readOnly }),
       ...(effectiveAppend === undefined ? {} : { append: effectiveAppend }),
       atomicRename: false,
+      descriptorWriteStream: false,
       hardlinks: false,
       symlinks: writable && this.#upper.capabilities.symlinks === true
         && typeof this.#upper.symlink === "function" && typeof this.#upper.readlink === "function"

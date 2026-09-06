@@ -58,6 +58,7 @@ export interface FileSystemCapabilities {
   readonly streamingRead?: boolean;
   readonly retainedRead?: boolean;
   readonly streamingWrite?: boolean;
+  readonly descriptorWriteStream?: boolean;
   readonly [capability: string]: boolean | undefined;
 }
 

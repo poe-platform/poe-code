@@ -113,7 +113,7 @@ export async function openFileOutput(context: FileOutputContext, path: string, f
       }
       signal.throwIfAborted();
       const streaming = flag === "a" ? capabilities.streamingAppend ?? capabilities.streamingWrite : capabilities.streamingWrite;
-      if (!incremental && streaming !== false && fs.writeStream) {
+      if ((!incremental || capabilities.descriptorWriteStream === true) && streaming !== false && fs.writeStream) {
         try {
           await fs.writeStream(path, source, { flag, signal });
           if (!ended) throw new FsError("EIO", { path, message: "Streaming writer returned before consuming output" });

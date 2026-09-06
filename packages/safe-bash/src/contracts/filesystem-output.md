@@ -40,9 +40,13 @@ writer and admitted writes. It is not a separate invocation lifecycle.
   access where available. `ENOENT` permits creation; `ENOTSUP` means that this
   optional policy probe cannot establish permission. Other probe failures remain
   errors. The selected filesystem writer still owns authoritative authorization.
-- Prefer `writeStream(path, source, { flag, signal })` unless streaming writes are
-  explicitly disabled. For append, `streamingAppend: false` disables that mode;
-  `append: false` alone does not disable streaming append.
+- Without a supplied descriptor fallback, prefer
+  `writeStream(path, source, { flag, signal })` unless streaming writes are
+  explicitly disabled. With that fallback, prefer the stream only when the
+  effective capabilities positively advertise `descriptorWriteStream: true`.
+  Missing/false descriptor admission retains the supplied fallback. The stream
+  method must still be present. For append, `streamingAppend: false` disables
+  that mode; `append: false` alone does not disable streaming append.
 - `write: false` disables ordinary overwrite, not streaming overwrite. Fallback
   checks ordinary write and incremental append capabilities before creating or
   truncating the target. No helper-side complete-file buffering substitutes for
@@ -98,12 +102,27 @@ not roll back another successfully completed target.
 
 ## Redirection descriptors and visibility
 
-Filesystems explicitly advertising `randomAccessWrite: true` retain the existing
-redirection offset implementation. Independent opens have independent offsets,
+Filesystems explicitly advertising `randomAccessWrite: true` supply the existing
+redirection offset fallback. Independent opens have independent offsets,
 duplicates share their descriptor, nested truncation preserves an outer offset,
-and reads can observe completed incremental writes. This profile retains the
-existing budget-bounded byte image used for offset emulation; it is not the
-generic sequential streaming path.
+and reads can observe completed incremental writes. Without positive descriptor
+stream admission this profile retains the existing budget-bounded byte image
+used for offset emulation; it is not the generic sequential streaming path.
+
+`descriptorWriteStream: true` permits the adapter's stream to implement that
+descriptor directly, bypassing construction of the supplied incremental sink.
+The adapter MUST preserve per-open positional overwrite cursors, append at the
+current retained-resource EOF, resource pinning across rename/unlink, and
+visibility/owned storage for completed chunks. The output helper adds no private
+file image or per-chunk metadata probe on this path. Positively admitted streams
+still share the same output budget, acknowledgement protocol and cleanup owner.
+The capability does not override read-only/access policy, disabled streaming
+modes, or the Shell's separate simultaneous-descriptor admission rules.
+
+Stock Memory admits this capability only while its guarded implementation is
+intact. Unsupported, unknown or explicitly masked wrapper capability results
+must not be promoted by the Bash helper. Selected-path capabilities remain
+authoritative; a global mount snapshot is not sufficient to override them.
 
 Other filesystems use one sequential stream per opened redirection. Duplicated
 descriptors share that stream, including throughout a compound command. A second
@@ -152,6 +171,59 @@ an independent policy limiting stored size rather than cumulative write traffic.
 Existing sed backup-copy operations retain their separate filesystem semantics
 and backup-before-replacement ordering; this extension accounts assembled output
 bytes, not every filesystem mutation or copy operation.
+
+## Descriptor-stream validation evidence (#616)
+
+On September 6, 2026 the current open issue was read through `gh` from
+`poe-platform/poe-code`; its author is `kamilio`. The validated scope is the
+per-chunk Memory EOF-stat/append path and Shell-side mirror traffic. The reported
+85-times heap amplification, fatal OOM and inferred remote-provider impact are
+not established by these controls. S3/WebDAV's `randomAccessWrite: false` profile
+does not select the affected Shell EOF-probe path; generic sequential-stream
+controls remain separate from live provider measurements.
+
+The Bash production change is restricted to positive descriptor-stream selection
+in `openFileOutput`. It does not edit Runtime, change fallback implementation,
+batch acknowledged output, replay consumed prefixes, or add task subscriptions.
+The complementary capability, Memory and wrapper implementation belongs to the
+SafeFS owner and the root-owned integration/build process.
+
+`tests/contracts/filesystem-output-descriptor-stream.test.ts` supplies tiny,
+deterministic mock and genuine source-Memory controls. Memory public operations
+are observed through a faithful bound-method proxy; stock method guards are not
+disabled or bypassed. The source import lets the focused controls use the
+parallel SafeFS implementation without rebuilding shared bundles. This is not
+public-package or combined-build qualification.
+
+- Fresh RED before changing Bash selection: 28 tests, 5 pass / 23 fail, no
+  skipped/cancelled cases, 252.280709 ms. Positive-cap mocks independently expose
+  the ignored descriptor admission; Memory controls also depend on the SafeFS
+  implementation. After both source changes, the first cohort passed 28/28.
+- Expanded descriptor controls plus unchanged filesystem-output and #613
+  task-reaction controls: 101/101 pass, no skipped/cancelled cases,
+  594.864222 ms, normal `node:test` child isolation on Node 22.22.0.
+- Equal 32-byte Shell payloads, using 32 one-byte writes: forced legacy admission
+  made 32 stat, 32 appendFile and one writeFile call; admitted descriptors made
+  zero of those calls and one writeStream call. Observed copied bytes fell from
+  176 to 64.
+- The same payload using four eight-byte writes: legacy made four stat, four
+  appendFile and one writeFile call; descriptors again made zero of those calls
+  and one writeStream call. Observed copied bytes fell from 180 to 64.
+
+Copy observations count instrumented Uint8Array constructor/set/slice traffic
+within the tiny Shell executions, not heap, retained backing-store size, RSS,
+provider billing, or a general amplification factor. Producer buffers are reused
+only after awaited acknowledgements. Other controls cover external append,
+truncate and rename, duplicate/nested descriptor offsets, per-path admission,
+disabled/unknown capabilities, pre-read ENOTSUP fallback, no replay after reading,
+falsey failures/cancellation, held writer cleanup, downstream consumer closure,
+and one startup writer-task subscription with no per-chunk reactions.
+
+No OOM experiment, live benchmark, host product subprocess, remote-provider test,
+shared build, Git mutation, registry edit or lint/full guard was run by the Bash
+owner. Root owns literal test registration, the readonly capability fixture
+update, combined qualification and delivery. SafeFS's owner maintains
+`docs/plans/bugfix-616-descriptor-write-stream.md` with the combined evidence.
 
 ## Test and validation matrix
 

@@ -106,6 +106,7 @@ export class Budget {
   private readonly retainedValueSources = new Map<object, () => Iterable<unknown>>();
   private compileGeneration = 0;
   private activeCompileOwner?: CompileOwner;
+  private defaultCompileOwner?: CompileOwner;
   private compileUses = 0;
   private provisionalScopes = 0;
   private readonly compileTickets = new Map<CompileTicket, number>();
@@ -224,7 +225,7 @@ export class Budget {
       throw new SandboxError("reentry");
     }
     if (reset) this.reset();
-    const selected = owner ?? Object.freeze({ budget: this, generation: this.compileGeneration });
+    const selected = owner ?? (this.defaultCompileOwner ??= Object.freeze({ budget: this, generation: this.compileGeneration }));
     this.activeCompileOwner = selected;
     this.compileUses += 1;
     let released = false;
@@ -377,6 +378,7 @@ export class Budget {
   reset(): void {
     if (this.compileUses !== 0) throw new SandboxError("reentry");
     this.compileGeneration += 1;
+    this.defaultCompileOwner = undefined;
     this.provisionalScopes = 0;
     this.compileTickets.clear();
     this.completedCompileTickets.clear();

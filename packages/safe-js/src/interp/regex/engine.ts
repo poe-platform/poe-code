@@ -99,6 +99,15 @@ function* matchNode(
         yield* matchNode(alternative, cloneState(state), context);
       }
       return;
+    case "lookahead": {
+      const result = matchNode(node.body, cloneState(state), context).next();
+      if (node.negated) {
+        if (result.done) yield state;
+      } else if (!result.done) {
+        yield { position: state.position, captures: result.value.captures };
+      }
+      return;
+    }
     case "group":
       for (const result of matchNode(node.body, cloneState(state), context)) {
         if (!node.capturing || node.index === undefined) {
@@ -272,7 +281,7 @@ function clearNodeCaptures(node: RegexNode, captures: Capture[]): void {
     }
     return;
   }
-  if (node.type === "quantifier") {
+  if (node.type === "quantifier" || node.type === "lookahead") {
     clearNodeCaptures(node.body, captures);
   }
 }

@@ -26,6 +26,7 @@ export type RegexNode =
   | { type: "sequence"; elements: RegexNode[] }
   | { type: "alternation"; alternatives: RegexNode[] }
   | { type: "group"; capturing: boolean; index?: number; body: RegexNode }
+  | { type: "lookahead"; negated: boolean; body: RegexNode }
   | { type: "quantifier"; body: RegexNode; min: number; max?: number; greedy: boolean };
 
 export type RegexPattern = {
@@ -171,6 +172,7 @@ class RegexParser {
 
   private parseGroup(start: number): RegexNode {
     let capturing = true;
+    let lookahead: boolean | undefined;
     if (this.peek() === "?") {
       this.guard.allocate(Math.min(3, this.source.length - this.position));
       this.guard.work(Math.min(3, this.source.length - this.position));
@@ -179,7 +181,9 @@ class RegexParser {
         capturing = false;
         this.position += 2;
       } else if (extension.startsWith("?=") || extension.startsWith("?!")) {
-        this.fail("Lookahead is not supported", start);
+        capturing = false;
+        lookahead = extension.startsWith("?!");
+        this.position += 2;
       } else if (extension.startsWith("?<=") || extension.startsWith("?<!")) {
         this.fail("Lookbehind is not supported", start);
       } else if (extension.startsWith("?<")) {
@@ -203,6 +207,10 @@ class RegexParser {
     }
     this.position += 1;
 
+    if (lookahead !== undefined) {
+      this.guard.allocate(4);
+      return { type: "lookahead", negated: lookahead, body };
+    }
     this.guard.allocate(5);
     return { type: "group", capturing, index, body };
   }

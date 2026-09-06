@@ -28,6 +28,10 @@ beforeEach(() => {
 });
 
 describe("compile policy drafts", () => {
+  it("counts lookahead nesting toward the compilation depth limit", () => {
+    expect(parseRegex("(?=(?=a))").captureCount).toBe(0);
+    expect(() => parseRegex("(?=(?=(?=a)))")).toThrow(SandboxError);
+  });
   it("guards admitted snapshot regex reconstruction and releases the owner for positive restore", () => {
     const source = "await task()";
     const statement = parseModule(source).body[0];

@@ -223,7 +223,7 @@ describe("createConsoleJsonGlobals", () => {
     expect(sink.log).toHaveBeenCalledWith(undefined, null, NaN, Infinity);
   });
 
-  it("rejects invalid JSON.parse and JSON.stringify arguments", async () => {
+  it("rejects malformed JSON and ignores inapplicable stringify options", async () => {
     const globals = createConsoleJsonGlobals({
       budget: new Budget()
     });
@@ -232,9 +232,7 @@ describe("createConsoleJsonGlobals", () => {
 
     await expect(parseJson.call(["{"])).rejects.toThrow(SyntaxError);
     await expect(stringifyJson.call([{ ok: true }, "x"])).resolves.toBe('{"ok":true}');
-    await expect(stringifyJson.call([{ ok: true }, null, false])).rejects.toThrow(
-      "JSON.stringify(value, replacer, indent) requires indent to be a string, number, or undefined."
-    );
+    await expect(stringifyJson.call([{ ok: true }, null, false])).resolves.toBe('{"ok":true}');
   });
 
   it("rejects JSON.parse input that exceeds the string-length budget", async () => {

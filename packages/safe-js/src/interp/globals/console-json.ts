@@ -152,10 +152,10 @@ async function stringifyJson(
       }
     }
 
-    if (indent !== undefined && typeof indent !== "number" && typeof indent !== "string") {
-      throw new TypeError(
-        "JSON.stringify(value, replacer, indent) requires indent to be a string, number, or undefined."
-      );
+    if (isSandboxBox(indent)) {
+      const primitive = boxedValue(indent);
+      if (typeof primitive === "number") indent = await sandboxNumber(indent, budget, context);
+      else if (typeof primitive === "string") indent = await sandboxString(indent, budget, context);
     }
 
     const holder: SandboxObject = {};

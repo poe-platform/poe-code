@@ -1,0 +1,19 @@
+import { S } from "schema";
+
+export const schema = S.Object({ title: S.String() });
+
+export default async (frontmatter) => {
+  Date.now.label = 1;
+  Date.parse.label = 2;
+  Date.UTC.label = 3;
+  Object.freeze(Date.parse);
+  await 0;
+  const now = Date.now(Object.create({ ignored: true }));
+  if (typeof now !== "number" || Date.now.name !== "now" || Date.now.length !== 0 ||
+      Date.parse.name !== "parse" || Date.UTC.length !== 7 ||
+      !Object.isFrozen(Date.parse) || Date.now.label + Date.parse.label + Date.UTC.label !== 6 ||
+      Date.parse("1970-01-01T00:00:00.007Z") !== 7 || Date.UTC(1970, 0, 1, 0, 0, 0, 7) !== 7) {
+    throw new Error("Date static function properties failed");
+  }
+  return { title: frontmatter.title, ok: true };
+};

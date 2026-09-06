@@ -42,7 +42,7 @@ export function createDateGlobal(
       }
     }
   );
-  const now = wrapCallerInjectedBindings({ now: readNow }, { ...options, moduleId: "<Date>" })
+  const clock = wrapCallerInjectedBindings({ now: readNow }, { ...options, moduleId: "<Date>" })
     .now as SandboxClosure;
   const prototype = Object.create(null) as SandboxObject;
   const constructor = createSandboxClosure({
@@ -52,11 +52,11 @@ export function createDateGlobal(
     length: 7,
     call: async (_args, context) =>
       options.budget.allocateString(
-        dateString(createSandboxDate(Number(await now.call([], context))))
+        dateString(createSandboxDate(Number(await clock.call([], context))))
       ),
     construct: async (args, context) => {
       let time: number;
-      if (args.length === 0) time = Number(await now.call([], context));
+      if (args.length === 0) time = Number(await clock.call([], context));
       else if (args.length > 1) time = await coerceDateParts(args, false, options.budget, context);
       else if (isSandboxDate(args[0])) time = dateTime(args[0]);
       else {
@@ -78,15 +78,25 @@ export function createDateGlobal(
     }
   });
   const staticProperties = {
-    now,
+    now: createSandboxClosure({
+      guest: true,
+      sandbox: true,
+      name: "now",
+      length: 0,
+      retainedValues: () => [clock],
+      // Date.now ignores arguments; none may enter the host copy boundary.
+      call: (_args, context) => clock.call([], context)
+    }),
     prototype,
     parse: createSandboxClosure({
+      guest: true,
       sandbox: true,
       name: "parse",
       length: 1,
       call: async ([value], context) => parseDate(await sandboxString(value, options.budget, context), options.budget)
     }),
     UTC: createSandboxClosure({
+      guest: true,
       sandbox: true,
       name: "UTC",
       length: 7,

@@ -417,6 +417,7 @@ export type ForStatement = BaseNode & {
 
 export type ForOfStatement = BaseNode & {
   type: "ForOfStatement";
+  await?: boolean;
   left: PatternTarget | VariableDeclaration;
   right: Expression;
   body: Statement;
@@ -693,7 +694,7 @@ export function parseExecutableModule(
 
 type ParserBindingKind = "lexical" | "function" | "parameter" | "catch";
 type ParserScope = Map<string, ParserBindingKind>;
-type FunctionParseContext = "normal" | "generator" | "async-generator" | "parameters";
+type FunctionParseContext = "top-level" | "normal" | "async" | "generator" | "async-generator" | "parameters";
 type LexicalParseContext = {
   newTarget: boolean;
   superProperty: boolean;
@@ -722,7 +723,7 @@ class Parser {
     private readonly tokens: Token[],
     private readonly source: string,
     private readonly compilation?: CompileScope,
-    private functionContext: FunctionParseContext = "normal",
+    private functionContext: FunctionParseContext = "top-level",
     private lexicalContext: LexicalParseContext = { ...ordinaryFunctionContext, newTarget: false }
   ) {
     this.functionScopes.add(this.scopes[0]!);
@@ -915,7 +916,7 @@ class Parser {
     this.expectPunctuator("=>");
     const body = this.withLexicalContext({
       ...this.lexicalContext, return: true, await: isAsync || this.lexicalContext.strictAwait !== true
-    }, () => this.parseArrowFunctionBody(params));
+    }, () => this.parseArrowFunctionBody(params, isAsync));
     return this.withFunctionSource({
       type: "ArrowFunctionExpression",
       async: isAsync,
@@ -960,13 +961,14 @@ class Parser {
   }
 
   private parseArrowFunctionBody(
-    params: ArrowFunctionExpression["params"]
+    params: ArrowFunctionExpression["params"],
+    async: boolean
   ): BlockStatement | Expression {
     if (this.currentToken().type === "punctuator" && this.currentToken().value === "{") {
-      return this.withFunctionContext("normal", () => this.parseBlockStatement(params));
+      return this.withFunctionContext(async ? "async" : "normal", () => this.parseBlockStatement(params));
     }
 
-    return this.withFunctionContext("normal", () => this.parseExpression().node);
+    return this.withFunctionContext(async ? "async" : "normal", () => this.parseExpression().node);
   }
 
   private parseBlockStatement(
@@ -1314,9 +1316,17 @@ class Parser {
 
   private parseForStatement(labels?: string[]): ForInStatement | ForOfStatement | ForStatement {
     const forToken = this.expectKeyword("for");
+    const awaitToken = this.consumeKeyword("await");
+    if (awaitToken !== undefined && this.functionContext !== "top-level" &&
+        this.functionContext !== "async" && this.functionContext !== "async-generator") {
+      throw new Error("for await is only valid at top level or inside an async function.");
+    }
     return this.withScope(() => {
       this.expectPunctuator("(");
       const iterationOperator = this.findTopLevelForIterationOperator(this.index);
+      if (awaitToken !== undefined && iterationOperator?.value !== "of") {
+        throw new Error("for await requires an of loop.");
+      }
 
       if (iterationOperator?.value === "in") {
         const left = this.parseForInLeft();
@@ -1342,6 +1352,7 @@ class Parser {
         const body = this.withLoopContext(() => this.parseStatement());
         return {
           type: "ForOfStatement",
+          ...(awaitToken === undefined ? {} : { await: true }),
           left,
           right,
           body,
@@ -1783,7 +1794,7 @@ class Parser {
       if (accessor === "set" && (params.length !== 1 || params[0]?.type === "RestElement"))
         throw new Error("A setter must have exactly one non-rest parameter.");
       const bodyTokenIndex = this.index;
-      const body = this.withFunctionContext(generator ? async ? "async-generator" : "generator" : "normal", () => this.parseBlockStatement(params));
+      const body = this.withFunctionContext(generator ? async ? "async-generator" : "generator" : async ? "async" : "normal", () => this.parseBlockStatement(params));
       if (accessor === "set" && params[0]?.type !== "Identifier") {
         let directiveTokenIndex = bodyTokenIndex + 1;
         for (const statement of body.body) {

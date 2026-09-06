@@ -115,7 +115,7 @@ import {
 } from "./methods/map.js";
 import { callNumberMethod, getNumberMember, isNumberMethodName } from "./methods/number.js";
 import { getPromiseMember, isSandboxPromiseConstructor } from "./promise.js";
-import { generatorIterator, getSandboxIterator, type SandboxIterator } from "./iteration.js";
+import { closeIterator, generatorIterator, getSandboxAsyncIterator, getSandboxIterator } from "./iteration.js";
 import { assertCollectionMutable } from "./running-state.js";
 import { getGeneratorMember } from "./methods/generator.js";
 import { getRegexMember, isRegexMethodName, setRegexMember } from "./methods/regex.js";
@@ -1689,7 +1689,7 @@ async function evaluateForOfStatement(
     const restored = context.scope.consumeRestoredBinding(restoredIteration.values[0]);
     if (restored.found && Array.isArray(restored.value)) {
       restoredEntry = { done: false, value: restored.value[1] };
-      if (isSandboxMap(restored.value[0]) || isSandboxSet(restored.value[0]) || isSandboxCollectionIterator(restored.value[0])) {
+      if (Array.isArray(restored.value[0]) || isSandboxMap(restored.value[0]) || isSandboxSet(restored.value[0]) || isSandboxCollectionIterator(restored.value[0])) {
         return evaluateForOfIterator(node, restored.value[0], context, restoredEntry);
       }
     }
@@ -1699,7 +1699,7 @@ async function evaluateForOfStatement(
     return iterable;
   }
 
-  const values = snapshotableIterationValues(iterable.value);
+  const values = node.await ? undefined : snapshotableIterationValues(iterable.value);
   if (values === undefined) {
     return evaluateForOfIterator(node, iterable.value, context, restoredEntry);
   }
@@ -1752,17 +1752,31 @@ async function evaluateForOfIterator(
   context: EvaluationContext,
   restoredEntry?: IteratorResult<SandboxValue>
 ): Promise<EvaluationResult> {
-  const iterator = getSandboxIterator(value, context.budget, createCoercionContext(context));
+  const iterator = node.await
+    ? getSandboxAsyncIterator(value, context.budget, createCoercionContext(context), context.signal)
+    : getSandboxIterator(value, context.budget, createCoercionContext(context));
   if (iterator === undefined) {
     throw new TypeError(`${String(value)} is not a supported iterable`);
   }
+
+  const nextIteration = async () => {
+    const pending = Promise.resolve(iterator.next());
+    if (!node.await) return pending;
+    context.onSuspend?.();
+    const leaveAwait = context.budget.enterAwait();
+    try {
+      return await suspendJob(pending);
+    } finally {
+      leaveAwait();
+    }
+  };
 
   const releaseIterator = retainValues(context.budget, () => [value, iterator.retainedValue]);
   try {
     const nodeId = node.nodeId ?? -1;
     let index = consumeRestoredLoopIterationIndex(node, context);
     for (let skipped = 0; skipped < index; skipped += 1) {
-      const skippedIteration = await iterator.next();
+      const skippedIteration = await nextIteration();
       if (typeof skippedIteration !== "object" || skippedIteration === null) {
         throw new TypeError("Iterator result must be an object.");
       }
@@ -1772,7 +1786,7 @@ async function evaluateForOfIterator(
     }
 
     while (true) {
-      const iteration = restoredEntry ?? (await iterator.next());
+      const iteration = restoredEntry ?? (await nextIteration());
       restoredEntry = undefined;
       if (typeof iteration !== "object" || iteration === null) {
         throw new TypeError("Iterator result must be an object.");
@@ -2144,7 +2158,7 @@ function createLoopIterationContext(context: EvaluationContext, scope: Scope): E
       for (const [nodeId, iteration] of context.activeLoopIterations) {
         if (
           typeof iteration !== "number" &&
-          (isSandboxMap(iteration.values[0]) || isSandboxSet(iteration.values[0]) || isSandboxCollectionIterator(iteration.values[0]))
+          (Array.isArray(iteration.values[0]) || isSandboxMap(iteration.values[0]) || isSandboxSet(iteration.values[0]) || isSandboxCollectionIterator(iteration.values[0]))
         ) {
           const bindingName = `#for-of:${nodeId}`;
           snapshot.bindings[bindingName] = iteration.values;
@@ -4124,22 +4138,6 @@ function describeObjectSpreadValue(value: SandboxValue): string {
   }
 
   return typeof value;
-}
-
-async function closeIterator(iterator: SandboxIterator, preserveThrow = false): Promise<void> {
-  try {
-    const close = iterator.return;
-    if (close === undefined) return;
-    const returned = close();
-    const result = iterator.generator || iterator.asynchronous ? await returned : returned;
-    if ((typeof result !== "object" && typeof result !== "function") || result === null) {
-      throw new TypeError("Iterator return result must be an object.");
-    }
-  } catch (error) {
-    if (!preserveThrow || isFatalSandboxError(error) || error instanceof HostCallResumabilityError) {
-      throw error;
-    }
-  }
 }
 
 function defineSandboxProperty(

@@ -8,6 +8,15 @@ function codes(source: string): string[] {
 
 describe("AS_ASYNC_NOT_NEEDED", () => {
   it.each([
+    "async function read(){for await(const value of []){}}",
+    "const read=async()=>{for await(const value of []){}};",
+    "const object={async read(){for await(const value of []){}}};",
+    "class Box{async read(){for await(const value of []){}}}"
+  ])("counts for-await as an await: %s", source => {
+    expect(codes(source)).toEqual([]);
+    expect(fixASAsyncNotNeeded(source)).toBe(source);
+  });
+  it.each([
     "async function* items(){yield 1}",
     "const items=async function*(){return 1};",
     "const object={async *items(){yield 1}};",

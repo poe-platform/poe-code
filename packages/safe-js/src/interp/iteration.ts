@@ -11,11 +11,14 @@ import { isFloat32Array } from "./float32.js";
 import { boxedValue, isSandboxBox } from "./boxed.js";
 import { getHostObjectIterator, isGuestHostObject } from "./host-capabilities.js";
 import { isSandboxCollectionIterator, nextCollectionIterator } from "./collection-iterator.js";
-import { Budget } from "./budget.js";
+import { Budget, isFatalSandboxError } from "./budget.js";
 import { sandboxString } from "./string-coercion.js";
-import { awaitSandboxValue } from "./cancel.js";
+import { awaitSandboxValue, awaitWithSignal } from "./cancel.js";
+import { HostCallResumabilityError } from "./host-call.js";
+import { suspendJob } from "./jobs.js";
 
 export type SandboxIterator = {
+  readonly asyncProtocol?: true;
   readonly generator?: true;
   readonly asynchronous?: true;
   readonly retainedValue?: SandboxValue;
@@ -28,6 +31,103 @@ export type SandboxIterator = {
     error?: SandboxValue
   ): IteratorResult<SandboxValue> | Promise<IteratorResult<SandboxValue>>;
 };
+
+export function getSandboxAsyncIterator(
+  value: SandboxValue,
+  budget: Budget,
+  context?: SandboxCallContext,
+  signal?: AbortSignal
+): SandboxIterator | undefined {
+  if (isSandboxGenerator(value) && value.async) {
+    return { ...generatorIterator(value, budget), asyncProtocol: true };
+  }
+  if (value !== null && (typeof value === "object" || typeof value === "function") && !isGuestHostObject(value)) {
+    const method = (value as { [Symbol.asyncIterator]?: unknown })[Symbol.asyncIterator];
+    if (method !== undefined && method !== null) {
+      if (typeof method !== "function") throw new TypeError("Async iterator method must be callable.");
+      const iterator = Reflect.apply(method, value, []) as Record<string, unknown>;
+      if ((typeof iterator !== "object" && typeof iterator !== "function") || iterator === null) {
+        throw new TypeError("Async iterator must be an object.");
+      }
+      const next = iterator.next;
+      const invoke = async (operation: unknown, args: readonly SandboxValue[]): Promise<IteratorResult<SandboxValue>> => {
+        if (typeof operation !== "function") throw new TypeError("Async iterator operation must be callable.");
+        const pending = Promise.resolve(Reflect.apply(operation, iterator, args)).then(result => ({result}));
+        const { result } = await awaitWithSignal(pending, signal);
+        if ((typeof result !== "object" && typeof result !== "function") || result === null) {
+          throw new TypeError("Iterator result must be an object.");
+        }
+        // Keep protocol reads lazy without re-assimilating the result's `then` property.
+        return {
+          get done() { return result.done; },
+          get value() { return result.value; }
+        };
+      };
+      return {
+        asyncProtocol: true,
+        retainedValue: value,
+        next: (...args) => invoke(next, args),
+        get return() {
+          const operation = iterator.return;
+          return operation === undefined || operation === null ? undefined : (...args: [value?: SandboxValue]) => invoke(operation, args);
+        },
+        get throw() {
+          const operation = iterator.throw;
+          return operation === undefined || operation === null ? undefined : (...args: [value?: SandboxValue]) => invoke(operation, args);
+        }
+      };
+    }
+  }
+  const iterator = getSandboxIterator(value, budget, context);
+  if (iterator === undefined) return undefined;
+  const invoke = async (method: "next" | "return" | "throw", args: [value?: SandboxValue]): Promise<IteratorResult<SandboxValue>> => {
+    const operation = iterator[method];
+    if (operation === undefined) {
+      if (method === "throw") {
+        await closeIterator(iterator);
+        throw new TypeError("Delegated iterator does not provide a throw method.");
+      }
+      return {done:true,value:args[0]};
+    }
+    const returned = operation(...args);
+    const result = iterator.generator || iterator.asynchronous ? await returned : returned as IteratorResult<SandboxValue>;
+    if ((typeof result !== "object" && typeof result !== "function") || result === null) {
+      throw new TypeError("Iterator result must be an object.");
+    }
+    const done = Boolean(result.done);
+    const resultValue = result.value;
+    try {
+      return {done,value:await awaitSandboxValue(resultValue, signal, budget)};
+    } catch (error) {
+      if (isFatalSandboxError(error) || error instanceof HostCallResumabilityError) throw error;
+      if (!done && method !== "return") await closeIterator(iterator, true);
+      throw error;
+    }
+  };
+  return {
+    asyncProtocol: true,
+    snapshotIndex: iterator.snapshotIndex,
+    get retainedValue() { return iterator.retainedValue; },
+    next: (...args) => invoke("next", args),
+    return: (...args) => invoke("return", args),
+    throw: (...args) => invoke("throw", args)
+  };
+}
+
+export async function closeIterator(iterator: SandboxIterator, preserveThrow = false): Promise<void> {
+  try {
+    const close = iterator.return;
+    if (close === undefined) return;
+    const returned = close();
+    const result = iterator.asyncProtocol ? await suspendJob(Promise.resolve(returned))
+      : iterator.generator || iterator.asynchronous ? await returned : returned;
+    if ((typeof result !== "object" && typeof result !== "function") || result === null) {
+      throw new TypeError("Iterator return result must be an object.");
+    }
+  } catch (error) {
+    if (!preserveThrow || isFatalSandboxError(error) || error instanceof HostCallResumabilityError) throw error;
+  }
+}
 
 export function getSandboxIterator(value: SandboxValue, budget?: Budget, context?: SandboxCallContext): SandboxIterator | undefined {
   if (isSandboxBox(value) && typeof boxedValue(value) === "string") {

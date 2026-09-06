@@ -3848,7 +3848,7 @@ Delivered and closed at verified remote main
 dcad3387a6f8ab01ee51860853ee1b4f1c8625d5. User-staged changes remain untouched.
 Publication monitoring continues independently while async iteration work starts.
 
-## 65. Async generators and iteration (in progress)
+## 65. Async generators — delivered; for-await follows
 
 Current source rejects async generator declarations, expressions and object/class
 methods, as well as for-await loops. Native controls establish the missing
@@ -3946,3 +3946,87 @@ real harness screenshot passed again after the standards correction, with no
 lint diagnostics and zero spawns. The 77 async-generator tests include the
 standards-backed cleanup cases. This increment is ready for its separate main
 commit and push; publication is still a separate event.
+
+Delivered and closed at verified remote main
+3b581921a79597e6bbe37306a995d57d4b3ef674. The user-staged patch remains unchanged.
+Monitor publication independently while proceeding to for-await.
+
+## 66. For-await iteration (in progress)
+
+Five built-core probes reject native-valid for-await loops at parsing: arrays,
+promised values, synchronous generators, async generators and early-break cleanup.
+Further native controls cover member/destructuring targets, continue, body await,
+and throw-versus-close precedence. Use ECMAScript 2026 expectations for rejected
+synchronous yielded values; Node 22 cleanup is stale, as established in section 65.
+
+Distinguish top-level/async function grammar from ordinary functions and static
+blocks. Introduce an explicit async-loop marker and select the async protocol
+with synchronous fallback, without confusing internal asynchronous iterator
+operations with the ECMAScript async-iterator protocol. Sync-fallback promised
+values unwrap; a general async iterator's value need not unwrap. Preserve
+scheduler ownership, abrupt completion precedence, budgets/cancellation and
+checkpoint effects. Include for-await in lint's await detection. Symbols and
+general guest-defined protocol keys remain explicitly tracked work.
+
+Qualification now includes 52 dedicated for-await cases: native protocol
+acquisition/fallback and receiver identity, callable result objects, lazy
+done/value reads, single thenable assimilation, cancellation, abrupt cleanup,
+async function suspension, and public checkpoint restoration. A failing depth
+budget test showed implicit awaits bypassed `enterAwait`; the fix accounts for
+each pull and releases depth in a finally block. The explicit-await control and
+all 148 focused iterator regressions passed, followed by all 52 dedicated cases.
+Package TypeScript and scoped ESLint passed before the last six acquisition
+tests. Maintained package qualification remains running; this scope is not yet
+committed or delivered.
+
+Remote main advanced independently to 5cdceaa6f82187edeb769915dde37193d3b45726;
+it was fast-forwarded without altering the protected user-staged patch
+d770ec782b2a4ae7e2580e63ded765933890a1c5. Async-generator publication is confirmed
+as @poe-platform/safe-js@0.1.154; its CLI run was superseded, and the descendant
+CLI release 34018667936 remains in progress. Publication does not block this work.
+
+Maintained SafeJS qualification passed 13,672 tests (41 skipped). Repository
+ESLint completed 9,833 files with zero errors/warnings; root TypeScript and
+workflow lint passed. The shared root unit phase passed 33,771 tests (43 skipped),
+followed by 29 Python tests and 279 Bash runner tests. The remaining Bash unit
+phase is still running, so the full root command is not yet claimed successful.
+The skill template now documents for-await; all six installed copies were synced
+and the skill validator passed. Real harness QA is prepared at
+`/tmp/poe-safejs-template-coercion.IqBShC/for-await.md`, pending the normal build
+and inspected screenshot.
+
+The descendant scoped release published @poe-platform/safe-js@0.1.155 at
+2026-09-06 07:21:13.9495137 UTC. This contains the delivered async-generator work,
+not the current uncommitted for-await changes.
+
+### Next validated protocol gap
+
+Native async `yield*` accepts a host-supplied `Symbol.asyncIterator` object and
+returns `{value:7,done:false}`; the current interpreter instead raises TypeError
+because it only selects intrinsic async generators or synchronous iterables.
+Evidence: `/tmp/poe-safejs-async-delegation-protocol-audit.log`. ECMAScript 2026
+15.5.5 requires GetIterator with the generator kind. Native controls also show
+that a completed raw-async result's promised value remains a promise inside the
+generator, and missing throw awaits close before TypeError. Keep this a separate
+atomic change after for-await delivery; do not conflate it with guest Symbol
+support or assume all completion values should be eagerly unwrapped.
+
+Normal build and real for-await harness QA passed; the inspected screenshot
+shows a successful result with zero spawns and no lint diagnostics. The first
+root-test run was invalidated by overlapping builds: SafeJS dist removal caused
+Bash fixture imports of `dist/safe-fs.js` to fail. Retain that failing log; rerun
+without overlapping builds rather than count its earlier partial passes as a
+successful root command. Four independent async-delegation regression tests
+were confirmed red and saved for the next scope; they are not part of this
+for-await change.
+
+CLI workflow 34018667936 published poe-code@14.0.69 to latest at
+2026-09-06 07:28:17.4496795 UTC. This confirms publication of the preceding
+remote-main async-generator work while for-await validation continues.
+
+The clean final `npm test` run completed successfully without overlapping builds:
+33,771 shared tests (43 skipped), 29 Python tests, 279 Bash runner tests,
+21,152 Bash tests (86 skipped), 288 shell stress tests and 2 lint stress tests.
+Together with the completed root lint, normal build and inspected real harness,
+this qualifies the for-await increment for its separate commit and push.
+The earlier failed run remains documented as a build/test race, not a pass.

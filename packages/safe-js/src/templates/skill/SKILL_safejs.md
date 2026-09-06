@@ -84,7 +84,7 @@ functions), synchronous and async generators (including object/class methods), c
 `async`/`await`, regex literals, sandbox constructor calls, `const`/`let`/`var`,
 destructuring, spread, optional chaining, nullish coalescing, template
 literals, assignments/member assignment, `if`/`else`, `for`, `for...in`,
-`for...of`, `while`, `do...while`, labels, `try`/`catch`/`finally`, `throw`,
+`for...of`, `for await...of`, `while`, `do...while`, labels, `try`/`catch`/`finally`, `throw`,
 `switch`, `this`, and `return`.
 
 Public classes support constructors, instance/static methods and fields, static
@@ -101,9 +101,11 @@ Top-level `await` also works inside control-flow blocks. `new Map(...)`,
 
 Async generators expose promise-returning `next`, `return`, and `throw` methods,
 queue requests in order, and support `yield*` delegation to synchronous or async
-generators. Consume them explicitly with `await iterator.next()` for now.
+generators. Consume them with `for await...of` or explicit `await iterator.next()`.
+For-await also consumes synchronous iterables and unwraps their promised values;
+it is valid at top level and inside async functions, not ordinary functions.
 
-Not supported: `for await...of`, `eval`, `Function`, dynamic
+Not supported: `eval`, `Function`, dynamic
 imports, BigInt literals, and Node/browser globals such as `process`, `fetch`,
 `setTimeout`, or `globalThis`.
 

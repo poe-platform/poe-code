@@ -563,6 +563,7 @@ function statementContainsAwait(node: Statement): boolean {
     case "ForInStatement":
     case "ForOfStatement":
       return (
+        (node.type === "ForOfStatement" && node.await === true) ||
         (node.left.type === "VariableDeclaration" && variableDeclarationContainsAwait(node.left)) ||
         (node.left.type !== "VariableDeclaration" && assignmentTargetContainsAwait(node.left)) ||
         expressionContainsAwait(node.right) ||

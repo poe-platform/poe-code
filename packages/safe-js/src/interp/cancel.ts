@@ -174,7 +174,7 @@ export function awaitSandboxValue(
   return isSandboxPromise(value) ? pending : interruptOnFatalPromiseRejection(pending);
 }
 
-function awaitWithSignal<T>(promise: PromiseLike<T>, signal?: AbortSignal): Promise<T> {
+export function awaitWithSignal<T>(promise: PromiseLike<T>, signal?: AbortSignal): Promise<T> {
   if (signal === undefined) return Promise.resolve(promise);
   if (signal.aborted) {
     void Promise.resolve(promise).catch(() => undefined);

@@ -8,12 +8,16 @@ import {
   readIteratorResult,
   type SandboxIterator
 } from "../iteration.js";
-import { getSandboxDataProperty } from "../object-model.js";
+import { getSandboxDataProperty, getSandboxPropertyDescriptor } from "../object-model.js";
+import { readPropertyDescriptor } from "../accessors.js";
+import { invokeBuiltinClosure } from "../builtin-call.js";
+import { getIntrinsicIdentity } from "../intrinsics.js";
 import { installCollectionPrototypes } from "./collection-prototypes.js";
 import {
   createSandboxClosure,
   createSandboxMap,
   createSandboxSet,
+  isSandboxClosure,
   measureSandboxData,
   type SandboxCallContext,
   type SandboxClosure,
@@ -47,11 +51,16 @@ export function createCollectionGlobals(options: { budget: Budget }): Collection
         budget: options.budget,
         context,
         retainedValues: () => [key, value],
-        append: (entry) => {
+        append: (entry, adder) => {
           if (typeof entry !== "object" || entry === null)
             throw new TypeError("Map constructor requires entry objects.");
           const store = (entryValue: SandboxValue) => {
             value = entryValue;
+            if (adder !== undefined)
+              return invokeBuiltinClosure(adder, [key, value], options.budget, context, map).then(() => {
+                key = value = undefined;
+                return 0;
+              });
             const added = map.entries.has(key) ? 0 : 1;
             const growth =
               added +
@@ -92,7 +101,9 @@ export function createCollectionGlobals(options: { budget: Budget }): Collection
         name: "Set",
         budget: options.budget,
         context,
-        append: (value) => {
+        append: (value, adder) => {
+          if (adder !== undefined)
+            return invokeBuiltinClosure(adder, [value], options.budget, context, set).then(() => 0);
           const added = set.values.has(value) ? 0 : 1;
           const growth =
             added +
@@ -137,12 +148,13 @@ function populateCollection<T extends SandboxMap | SandboxSet>(
     name: "Map" | "Set";
     budget: Budget;
     context?: SandboxCallContext;
-    append: (value: SandboxValue) => number | Promise<number>;
+    append: (value: SandboxValue, adder?: SandboxClosure) => number | Promise<number>;
     retainedValues?: () => Iterable<SandboxValue>;
   }
 ): T | Promise<T> {
   budget.allocateCollectionEntries(0);
   if (source === undefined || source === null) return collection;
+  let adder: SandboxClosure | undefined;
   const populate = (iterator: SandboxIterator | undefined): T | Promise<T> => {
     if (iterator === undefined) throw new TypeError(`${name} constructor requires an iterable.`);
     let entry: SandboxValue;
@@ -152,6 +164,7 @@ function populateCollection<T extends SandboxMap | SandboxSet>(
       source,
       iterator.retainedValue,
       collection,
+      adder,
       entry,
       failure,
       ...(retainedValues?.() ?? [])
@@ -185,7 +198,7 @@ function populateCollection<T extends SandboxMap | SandboxSet>(
       entry = result.value;
       try {
         budget.visitNode();
-        const growth = append(entry);
+        const growth = append(entry, adder);
         if (growth instanceof Promise)
           return growth
             .then((size) => {
@@ -201,7 +214,7 @@ function populateCollection<T extends SandboxMap | SandboxSet>(
       }
       return false;
     };
-    if (iterator.generator || iterator.asynchronous || context !== undefined) {
+    if (iterator.generator || iterator.asynchronous || context !== undefined || adder !== undefined) {
       return (async () => {
         try {
           checkData(collection, 0, true);
@@ -231,9 +244,18 @@ function populateCollection<T extends SandboxMap | SandboxSet>(
       budget.setRetainedValues(retained, undefined);
     }
   };
-  const iterator =
-    context === undefined
+  const method = name === "Map" ? "set" : "add";
+  const start = (candidate: SandboxValue): T | Promise<T> => {
+    if (!isSandboxClosure(candidate)) throw new TypeError(`${name} constructor adder must be callable.`);
+    if (getIntrinsicIdentity(candidate) !== JSON.stringify([name, "prototype", method])) adder = candidate;
+    const iterator = context === undefined
       ? getSandboxIterator(source, budget)
       : acquireSandboxIterator(source, budget, context);
-  return iterator instanceof Promise ? iterator.then(populate) : populate(iterator);
+    return iterator instanceof Promise ? iterator.then(populate) : populate(iterator);
+  };
+  const descriptor = getSandboxPropertyDescriptor(collection, method, budget);
+  const candidate = context?.getProperty !== undefined
+    ? context.getProperty(collection, method)
+    : descriptor === undefined ? undefined : readPropertyDescriptor(descriptor, collection, context);
+  return candidate instanceof Promise ? candidate.then(start) : start(candidate);
 }

@@ -1,0 +1,17 @@
+import { S } from "schema";
+
+export const schema = S.Object({ title: S.String() });
+
+export default async (frontmatter) => {
+  const calls = [];
+  const set = Map.prototype.set;
+  Map.prototype.set = function (key, value) {
+    calls.push([key, value]);
+    return set.call(this, key, value);
+  };
+  const map = new Map([["answer", 42]]);
+  if (calls.length !== 1 || map.get("answer") !== 42) {
+    throw new Error("Map constructor did not invoke the overridden adder");
+  }
+  return { title: frontmatter.title, ok: true, calls, size: map.size };
+};

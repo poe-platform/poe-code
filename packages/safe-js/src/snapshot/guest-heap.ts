@@ -81,7 +81,9 @@ export function captureGuestHeapNode<T>(value: object, encode: (value: unknown) 
       ...(value.state !== "suspended" || origin.expressionStates === undefined ? {} : {
         expressionStates: Object.fromEntries([...origin.expressionStates].map(([id, expression]) => [String(id),
           expression.kind === "binary" ? { kind: "binary", left: encode(expression.left) }
-            : { kind: "array", values: encode(expression.values), index: expression.index }]))
+            : expression.kind === "array" ? { kind: "array", values: encode(expression.values), index: expression.index }
+            : expression.kind === "array-call" ? { kind: "array-call", target: encode(expression.target), method: expression.method, args: encode(expression.args), index: expression.index }
+            : { kind: expression.kind, callee: encode(expression.callee), thisValue: encode(expression.thisValue), args: encode(expression.args), index: expression.index }]))
       }),
       sent: channel.sent.map(completion => ({ type: completion.type, value: encode(completion.value) })),
       ...(origin.environment === undefined ? {} : { environment: {

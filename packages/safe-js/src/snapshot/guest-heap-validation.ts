@@ -138,6 +138,16 @@ export function validateGuestHeapNode(raw: unknown, heap: Record<string, unknown
           fields(expression, ["kind", "values", "index"]);
           integer(expression.index);
           reference(expression.values, ["array"]);
+        } else if (expression.kind === "call" || expression.kind === "new") {
+          fields(expression, ["kind", "callee", "thisValue", "args", "index"]);
+          integer(expression.index);
+          reference(expression.args, ["array"]);
+        } else if (expression.kind === "array-call") {
+          fields(expression, ["kind", "target", "method", "args", "index"]);
+          if (typeof expression.method !== "string") throw new TypeError("Invalid array method.");
+          integer(expression.index);
+          reference(expression.args, ["array"]);
+          reference(expression.target, ["array"]);
         } else throw new TypeError("Invalid expression continuation.");
       }
     }

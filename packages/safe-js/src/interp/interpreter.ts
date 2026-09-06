@@ -2724,6 +2724,13 @@ async function evaluateCallExpression(
   node: CallExpression,
   context: EvaluationContext
 ): Promise<EvaluationResult> {
+  const restored = context.generatorResume === undefined || node.nodeId === undefined
+    ? undefined : context.restoredGeneratorExpressionStates?.get(node.nodeId);
+  if (restored?.kind === "call") return evaluateResolvedCallExpression(node, restored.callee, context, restored.thisValue);
+  if (restored?.kind === "array-call") {
+    if (!Array.isArray(restored.target) || !isArrayMethodName(restored.method)) throw new TypeError("Invalid array call continuation.");
+    return evaluateArrayMethodCall(node, restored.target, restored.method, context);
+  }
   if (node.callee.type === "Super") {
     const construction = context.functionEnvironment?.construction;
     if (construction === undefined)
@@ -2750,13 +2757,18 @@ async function evaluateNewExpression(
   node: NewExpression,
   context: EvaluationContext
 ): Promise<EvaluationResult> {
-  const callee = await evaluateNode(node.callee, context);
+  const restored = context.generatorResume === undefined || node.nodeId === undefined
+    ? undefined : context.restoredGeneratorExpressionStates?.get(node.nodeId);
+  const callee = restored?.kind === "new" ? { kind: "normal" as const, value: restored.callee }
+    : await evaluateNode(node.callee, context);
   if (callee.kind !== "normal") {
     return callee;
   }
 
   const name = getConstructorName(node.callee);
-  const args = await evaluateCallArguments(node.arguments, context);
+  const call = createCallContinuation(node, callee.value, context);
+  context = call.context;
+  const args = await evaluateCallArguments(node.arguments, context, call.state);
   if (!args.ok) {
     return args.result;
   }
@@ -2938,6 +2950,14 @@ async function evaluateMemberCallExpression(
       ...reference,
       property: await toPropertyKey(reference.property, context.budget, createCoercionContext(context))
     };
+
+    if (context.generatorYield !== undefined && node.arguments.some(argument => containsResumeTarget(argument.type === "SpreadElement" ? argument.argument : argument))) {
+      if (Array.isArray(member.object) && !hasExplicitSandboxPrototype(member.object) &&
+          typeof member.property !== "symbol" && isArrayMethodName(member.property) && !Object.hasOwn(member.object, member.property))
+        return evaluateArrayMethodCall(node, member.object, member.property, context);
+      const receiver = member.superReceiver?.value ?? member.object;
+      return evaluateResolvedCallExpression(node, await getPropertyValue(member.object, member.property, context, receiver), context, receiver);
+    }
 
     if (member.superReceiver !== undefined)
       return evaluateResolvedCallExpression(node, await getPropertyValue(member.object, member.property, context, member.superReceiver.value), context, member.superReceiver.value);
@@ -3154,7 +3174,17 @@ async function evaluateArrayMethodCall(
   methodName: ArrayMethodName,
   context: EvaluationContext
 ): Promise<EvaluationResult> {
-  const args = await evaluateCallArguments(node.arguments, context);
+  const restored = context.generatorResume === undefined || node.nodeId === undefined
+    ? undefined : context.restoredGeneratorExpressionStates?.get(node.nodeId);
+  if (restored !== undefined && (restored.kind !== "array-call" || !Array.isArray(restored.args)))
+    throw new TypeError("Invalid array call continuation.");
+  const state = { kind: "array-call" as const, target, method: methodName,
+    args: restored?.kind === "array-call" ? restored.args as SandboxValue[] : [],
+    index: restored?.kind === "array-call" ? restored.index : 0 };
+  if (context.generatorYield !== undefined && node.nodeId !== undefined) context = {
+    ...context, generatorExpressionStates: new Map([...(context.generatorExpressionStates ?? []), [node.nodeId, state]])
+  };
+  const args = await evaluateCallArguments(node.arguments, context, state);
   if (!args.ok) {
     return args.result;
   }
@@ -3873,7 +3903,9 @@ async function evaluateResolvedCallExpression(
     };
   }
 
-  const args = await evaluateCallArguments(node.arguments, context);
+  const call = createCallContinuation(node, callee, context, thisValue);
+  context = call.context;
+  const args = await evaluateCallArguments(node.arguments, context, call.state);
   if (!args.ok) {
     return args.result;
   }
@@ -4020,14 +4052,36 @@ async function invokeSandboxClosure(
   }
 }
 
+function createCallContinuation(
+  node: CallExpression | NewExpression,
+  callee: SandboxValue,
+  context: EvaluationContext,
+  thisValue: SandboxValue = undefined
+) {
+  const kind: "new" | "call" = node.type === "NewExpression" ? "new" : "call";
+  const restored = context.generatorResume === undefined || node.nodeId === undefined
+    ? undefined : context.restoredGeneratorExpressionStates?.get(node.nodeId);
+  if (restored !== undefined && ((restored.kind !== "call" && restored.kind !== "new") || restored.kind !== kind || !Array.isArray(restored.args)))
+    throw new TypeError("Invalid call expression continuation.");
+  const state = { kind, callee, thisValue,
+    args: restored?.kind === "call" || restored?.kind === "new" ? restored.args as SandboxValue[] : [],
+    index: restored?.kind === "call" || restored?.kind === "new" ? restored.index : 0 };
+  return { state, context: context.generatorYield === undefined || node.nodeId === undefined ? context : {
+    ...context, generatorExpressionStates: new Map([...(context.generatorExpressionStates ?? []), [node.nodeId, state]])
+  } };
+}
+
 async function evaluateCallArguments(
   args: CallExpression["arguments"],
-  context: EvaluationContext
+  context: EvaluationContext,
+  continuation?: { args: SandboxValue[]; index: number }
 ): Promise<HelperResult<SandboxValue[]>> {
-  const values: SandboxValue[] = [];
+  const values: SandboxValue[] = continuation?.args ?? [];
   const release = retainValues(context.budget, () => values);
   try {
-    for (const arg of args) {
+    for (let index = continuation?.index ?? 0; index < args.length; index++) {
+      if (continuation !== undefined) continuation.index = index;
+      const arg = args[index];
       if (arg.type === "SpreadElement") {
         const spreadValues = await evaluateSpreadElement(arg, context);
         if (!spreadValues.ok) {

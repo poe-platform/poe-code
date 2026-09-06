@@ -1,0 +1,29 @@
+import { S } from "schema";
+
+export const schema = S.Object({ title: S.String() });
+
+export default async (frontmatter) => {
+  function* call() {
+    let count = 0;
+    const result = ((a, b) => [a, b])(count++, yield 1);
+    return { count, result };
+  }
+  function* arrayCall() {
+    let count = 0;
+    const result = [];
+    result.push(count++, yield 1);
+    return { count, result };
+  }
+  const results = [];
+  for (const iterator of [call(), arrayCall()]) {
+    const first = iterator.next();
+    await 0;
+    const last = iterator.next(4);
+    if (first.value !== 1 || first.done || !last.done || last.value.count !== 1 ||
+        last.value.result[0] !== 0 || last.value.result[1] !== 4) {
+      throw new Error("Call continuation changed");
+    }
+    results.push(last.value.result);
+  }
+  return { title: frontmatter.title, ok: true, results };
+};

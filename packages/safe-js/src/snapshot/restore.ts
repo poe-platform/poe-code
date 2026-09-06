@@ -843,7 +843,12 @@ function restoreGuestGenerator(
     for (const [id, expression] of Object.entries(serialized.expressionStates ?? {})) {
       expressions.set(Number(id), expression.kind === "binary"
         ? { kind: "binary", left: deserializeValue(expression.left, state) as SandboxValue }
-        : { kind: "array", values: deserializeValue(expression.values, state) as SandboxValue, index: expression.index });
+        : expression.kind === "array" ? { kind: "array", values: deserializeValue(expression.values, state) as SandboxValue, index: expression.index }
+        : expression.kind === "array-call" ? { kind: "array-call", target: deserializeValue(expression.target, state) as SandboxValue,
+          method: expression.method, args: deserializeValue(expression.args, state) as SandboxValue, index: expression.index }
+        : { kind: expression.kind, callee: deserializeValue(expression.callee, state) as SandboxValue,
+          thisValue: deserializeValue(expression.thisValue, state) as SandboxValue,
+          args: deserializeValue(expression.args, state) as SandboxValue, index: expression.index });
     }
     context.restoredGeneratorExpressionStates = expressions;
     origin.expressionStates = expressions;

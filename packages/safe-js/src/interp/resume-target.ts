@@ -1,7 +1,8 @@
 import type { ParseResult } from "../parse.js";
 
-export function containsResumeTarget(node: ParseResult, targetNodeIds: ReadonlySet<number>): boolean {
-  if (node.nodeId !== undefined && targetNodeIds.has(node.nodeId)) {
+// Without an explicit target, find any yield belonging to this function.
+export function containsResumeTarget(node: ParseResult, targetNodeIds?: ReadonlySet<number>): boolean {
+  if (targetNodeIds === undefined ? node.type === "YieldExpression" : node.nodeId !== undefined && targetNodeIds.has(node.nodeId)) {
     return true;
   }
   if (

@@ -10,7 +10,7 @@ export function validateGuestFunctionAst(record: Record<string, unknown>, origin
 
   let yieldBlocks: ReadonlySet<number> | undefined;
   let yieldFinalizers: ReadonlySet<number> | undefined;
-  type ExpressionPosition = { kind: "binary" } | { kind: "array"; index: number };
+  type ExpressionPosition = { kind: "binary" } | { kind: "array" | "call" | "new"; index: number; member?: boolean };
   let yieldExpressions: ReadonlyMap<number, ExpressionPosition> | undefined;
   const pending: Array<{ value: unknown; blocks: ReadonlySet<number>; finalizers: ReadonlySet<number>; expressions: ReadonlyMap<number, ExpressionPosition> }> = [
     { value: functionNode.body, blocks: new Set(), finalizers: new Set(), expressions: new Map() }
@@ -28,9 +28,13 @@ export function validateGuestFunctionAst(record: Record<string, unknown>, origin
       yieldExpressions = frame.expressions;
     }
     for (const [key, value] of Object.entries(node)) {
-      if (node.type === "ArrayExpression" && key === "elements" && typeof node.nodeId === "number" && Array.isArray(value)) {
+      if (((node.type === "ArrayExpression" && key === "elements") ||
+          ((node.type === "CallExpression" || node.type === "NewExpression") && key === "arguments")) &&
+          typeof node.nodeId === "number" && Array.isArray(value)) {
+        const kind = node.type === "ArrayExpression" ? "array" : node.type === "CallExpression" ? "call" : "new";
         value.forEach((element, index) => pending.push({ value: element, blocks, finalizers: frame.finalizers,
-          expressions: new Map([...frame.expressions, [node.nodeId as number, { kind: "array", index }]]) }));
+          expressions: new Map([...frame.expressions, [node.nodeId as number, { kind, index,
+            member: kind === "call" && (node.callee as Record<string, unknown>)?.type === "MemberExpression" }]]) }));
         continue;
       }
       pending.push({ value, blocks,
@@ -60,8 +64,10 @@ export function validateGuestFunctionAst(record: Record<string, unknown>, origin
     throw new TypeError("Invalid generator AST identity: missing expression continuation");
   for (const [id, expression] of expressions) {
     const expected = yieldExpressions?.get(Number(id));
-    if (expected === undefined || expected.kind !== expression.kind ||
-        (expected.kind === "array" && expected.index !== expression.index))
+    const compatibleKind = expected?.kind === expression.kind ||
+      (expected?.kind === "call" && expected.member === true && expression.kind === "array-call");
+    if (expected === undefined || !compatibleKind ||
+        (expected.kind !== "binary" && expected.index !== expression.index))
       throw new TypeError("Invalid generator AST identity: unrelated expression continuation");
   }
 }

@@ -5,6 +5,7 @@ import { createErrorGlobals } from "./globals/error.js";
 import { createMathGlobals } from "./globals/math.js";
 import { createRegexGlobals } from "./globals/regex.js";
 import { createMiscGlobals } from "./globals/misc.js";
+import { createUriGlobals } from "./globals/uri.js";
 import { createObjectArrayGlobals } from "./globals/object-array.js";
 import { createPromiseGlobals } from "./promise.js";
 import { createDateGlobal } from "./globals/date.js";
@@ -27,6 +28,7 @@ export function createBuiltinBindings(
     ...createMathGlobals({ random: options.random }),
     ...createObjectArrayGlobals(options),
     ...createMiscGlobals(options),
+    ...createUriGlobals(options.budget),
     ...createPromiseGlobals(options),
     ...createRegexGlobals(options)
   };

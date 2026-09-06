@@ -1,0 +1,18 @@
+import { S } from "schema";
+
+export const schema = S.Object({ title: S.String() });
+
+export default async (frontmatter) => {
+  const source = "a b/🍋";
+  const uri = encodeURI(source);
+  const component = encodeURIComponent(source);
+  if (decodeURI(uri) !== source || decodeURIComponent(component) !== source ||
+      uri === component || decodeURI("%2F") !== "%2F" || decodeURIComponent("%2F") !== "/") {
+    throw new Error("URI conversion round trip failed");
+  }
+  let rejected = false;
+  try { decodeURIComponent("%ED%A0%80"); }
+  catch (error) { rejected = error instanceof URIError; }
+  if (!rejected) throw new Error("Malformed URI input was accepted");
+  return { title: frontmatter.title, ok: true, uri, component };
+};

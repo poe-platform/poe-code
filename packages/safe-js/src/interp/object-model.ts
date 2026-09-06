@@ -26,7 +26,7 @@ const intrinsicPrototypes = new WeakMap<Budget, SandboxObject>();
 const boxedPrototypes = new WeakMap<Budget, Map<BoxedKind, SandboxObject>>();
 const regexPrototypes = new WeakMap<Budget, SandboxObject>();
 const initialRegexDescriptors = new WeakMap<Budget, PropertyDescriptorMap>();
-const intrinsicPrototypeRoots = new WeakMap<Budget, Set<SandboxObject>>();
+const intrinsicPrototypeRoots = new WeakMap<Budget, Set<object>>();
 const intrinsicConstructors = new WeakMap<object, () => boolean>();
 const intrinsicFunctions = new WeakSet<object>();
 const initialBoxedMethods = new WeakMap<object, Map<string, SandboxValue>>();
@@ -141,13 +141,28 @@ function registerIntrinsicPrototype(
 ): void {
   if (constructor.name === undefined) throw new TypeError("Intrinsic constructors require an installation name.");
   registerBuiltinIdentities(budget, { [constructor.name]: constructor });
-  let roots = intrinsicPrototypeRoots.get(budget);
-  if (roots === undefined) intrinsicPrototypeRoots.set(budget, (roots = new Set()));
-  roots.add(prototype);
   const methods = [prototype, materializeFunctionProperties(constructor)]
     .flatMap(owner => Reflect.ownKeys(owner).map(key => Object.getOwnPropertyDescriptor(owner, key)?.value))
     .filter(isGuestClosure);
-  const records = [...new Set([prototype, constructor, ...methods])]
+  trackIntrinsicState(budget, prototype, constructor, [prototype, constructor, ...methods]);
+}
+
+export function registerIntrinsicFunction(budget: Budget, closure: SandboxClosure): void {
+  if (closure.name === undefined) throw new TypeError("Intrinsic functions require an installation name.");
+  registerBuiltinIdentities(budget, { [closure.name]: closure });
+  trackIntrinsicState(budget, closure, closure, [closure]);
+}
+
+function trackIntrinsicState(
+  budget: Budget,
+  root: object,
+  owner: SandboxClosure,
+  targets: Array<SandboxObject | SandboxClosure>
+): void {
+  let roots = intrinsicPrototypeRoots.get(budget);
+  if (roots === undefined) intrinsicPrototypeRoots.set(budget, (roots = new Set()));
+  roots.add(root);
+  const records = [...new Set(targets)]
     .map((target) => ({
       target,
       value: isGuestClosure(target) ? materializeFunctionProperties(target) : target,
@@ -173,7 +188,7 @@ function registerIntrinsicPrototype(
     before.writable === after.writable &&
     before.configurable === after.configurable &&
     before.enumerable === after.enumerable;
-  intrinsicConstructors.set(constructor, () =>
+  intrinsicConstructors.set(owner, () =>
     records.every(({ target, value, descriptors, prototype: parent, explicit, extensible }) => {
       const current = Object.getOwnPropertyDescriptors(value);
       return (
@@ -185,7 +200,7 @@ function registerIntrinsicPrototype(
       );
     })
   );
-  budget.setRetainedValues(prototype, () =>
+  budget.setRetainedValues(root, () =>
     records.flatMap(({ target, value, descriptors, prototype: parent }) => [
       ...(getSandboxPrototype(target) === parent
         ? []

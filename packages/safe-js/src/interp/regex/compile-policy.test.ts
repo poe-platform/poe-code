@@ -144,6 +144,10 @@ describe("compile checkpoint hash compatibility", () => {
         Date: { kind: "fn", name: "Date" },
         URIError: { kind: "fn", name: "URIError" },
         EvalError: { kind: "fn", name: "EvalError" },
+        encodeURI: { kind: "fn", name: "encodeURI" },
+        encodeURIComponent: { kind: "fn", name: "encodeURIComponent" },
+        decodeURI: { kind: "fn", name: "decodeURI" },
+        decodeURIComponent: { kind: "fn", name: "decodeURIComponent" },
         Object: { kind: "fn", name: "Object" },
         Math: {
           ...capture.completed.bindings.Math,

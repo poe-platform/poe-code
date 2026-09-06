@@ -1,5 +1,5 @@
 import { isFatalSandboxError, type Budget, type CompileOwner } from "../budget.js";
-import { accessorAdapter, accessorClosure, retainedAccessorClosures } from "../accessors.js";
+import { accessorAdapter, accessorClosure, readPropertyDescriptor, retainedAccessorClosures } from "../accessors.js";
 import { invokeBuiltinClosure } from "../builtin-call.js";
 import { createDataCheckpoint } from "../data-checkpoint.js";
 import { retainValues } from "../resources.js";
@@ -503,8 +503,15 @@ function assignSandboxValues(
   if (context === undefined) {
     for (const source of sources) {
       if (source === null || source === undefined) continue;
-      for (const [key, value] of getDirectEntries(source))
+      const properties = isGuestHostObject(source) ? undefined : reflectionProperties(source);
+      const keys = properties === undefined ? getOwnEnumerableKeys(source, true)
+        : [...Object.getOwnPropertyNames(properties), ...ownSandboxSymbolKeys(source)];
+      for (const key of keys) {
+        if (!hasOwnSandboxProperty(source, key, true)) continue;
+        const value = properties === undefined ? getSandboxDataProperty(source, key, budget)
+          : Reflect.get(properties, key, source) as SandboxValue;
         setSandboxProperty(target, key, value, budget);
+      }
     }
     return target;
   }
@@ -513,11 +520,15 @@ function assignSandboxValues(
     try {
       for (const source of sources) {
         if (source === null || source === undefined) continue;
-        for (const key of getOwnEnumerableKeys(source)) {
+        const properties = isGuestHostObject(source) ? undefined : reflectionProperties(source);
+        const keys = properties === undefined ? getOwnEnumerableKeys(source, true)
+          : [...Object.getOwnPropertyNames(properties), ...ownSandboxSymbolKeys(source)];
+        for (const key of keys) {
           if (!hasOwnSandboxProperty(source, key, true)) continue;
-          const value = await (context.getProperty !== undefined
+          const value = await (context?.getProperty !== undefined
             ? context.getProperty(source, key)
-            : getSandboxDataProperty(source, key, budget));
+            : isGuestHostObject(source) ? getSandboxDataProperty(source, key, budget)
+              : readPropertyDescriptor(Object.getOwnPropertyDescriptor(properties!, key)!, source, context, true));
           await setSandboxProperty(target, key, value, budget, true, context);
         }
       }

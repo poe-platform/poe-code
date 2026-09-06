@@ -10,7 +10,8 @@ export function validateGuestFunctionAst(record: Record<string, unknown>, origin
 
   let yieldBlocks: ReadonlySet<number> | undefined;
   let yieldFinalizers: ReadonlySet<number> | undefined;
-  type ExpressionPosition = { kind: "binary" } | { kind: "array" | "call" | "new"; index: number; member?: boolean };
+  type ExpressionPosition = { kind: "binary" } | { kind: "array" | "call" | "new"; index: number; member?: boolean }
+    | { kind: "object"; index: number; key: boolean };
   let yieldExpressions: ReadonlyMap<number, ExpressionPosition> | undefined;
   const pending: Array<{ value: unknown; blocks: ReadonlySet<number>; finalizers: ReadonlySet<number>; expressions: ReadonlyMap<number, ExpressionPosition> }> = [
     { value: functionNode.body, blocks: new Set(), finalizers: new Set(), expressions: new Map() }
@@ -28,6 +29,19 @@ export function validateGuestFunctionAst(record: Record<string, unknown>, origin
       yieldExpressions = frame.expressions;
     }
     for (const [key, value] of Object.entries(node)) {
+      if (node.type === "ObjectExpression" && key === "properties" && typeof node.nodeId === "number" && Array.isArray(value)) {
+        const id = node.nodeId;
+        value.forEach((property: Record<string, unknown>, index) => {
+          if (property.type === "SpreadElement") {
+            pending.push({ value: property.argument, blocks, finalizers: frame.finalizers,
+              expressions: new Map([...frame.expressions, [id, { kind: "object", index, key: false }]]) });
+          } else {
+            for (const part of ["key", "value"]) pending.push({ value: property[part], blocks, finalizers: frame.finalizers,
+              expressions: new Map([...frame.expressions, [id, { kind: "object", index, key: part === "value" }]]) });
+          }
+        });
+        continue;
+      }
       if (((node.type === "ArrayExpression" && key === "elements") ||
           ((node.type === "CallExpression" || node.type === "NewExpression") && key === "arguments")) &&
           typeof node.nodeId === "number" && Array.isArray(value)) {
@@ -67,7 +81,8 @@ export function validateGuestFunctionAst(record: Record<string, unknown>, origin
     const compatibleKind = expected?.kind === expression.kind ||
       (expected?.kind === "call" && expected.member === true && expression.kind === "array-call");
     if (expected === undefined || !compatibleKind ||
-        (expected.kind !== "binary" && expected.index !== expression.index))
+        (expected.kind !== "binary" && expected.index !== expression.index) ||
+        (expected.kind === "object" && expected.key !== Object.hasOwn(expression, "key")))
       throw new TypeError("Invalid generator AST identity: unrelated expression continuation");
   }
 }

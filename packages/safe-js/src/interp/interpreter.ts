@@ -675,10 +675,30 @@ async function evaluateObjectExpression(
   node: ObjectExpression,
   context: EvaluationContext
 ): Promise<EvaluationResult> {
-  const object = Object.create(null) as SandboxObject;
+  const restored = context.generatorResume === undefined || node.nodeId === undefined
+    ? undefined : context.restoredGeneratorExpressionStates?.get(node.nodeId);
+  if (restored !== undefined && (restored.kind !== "object" || restored.value === null ||
+      typeof restored.value !== "object" || Array.isArray(restored.value)))
+    throw new TypeError("Invalid object expression continuation.");
+  const object = restored?.kind === "object" ? restored.value as SandboxObject : Object.create(null) as SandboxObject;
+  const state: { kind: "object"; value: SandboxObject; index: number; key?: PropertyKey } = {
+    kind: "object", value: object, index: restored?.kind === "object" ? restored.index : 0
+  };
+  if (restored?.kind === "object" && Object.hasOwn(restored, "key")) {
+    if (typeof restored.key !== "string" && typeof restored.key !== "number" && typeof restored.key !== "symbol")
+      throw new TypeError("Invalid object expression key.");
+    state.key = restored.key;
+  }
+  if (context.generatorYield !== undefined && node.nodeId !== undefined) context = {
+    ...context, generatorExpressionStates: new Map([...(context.generatorExpressionStates ?? []), [node.nodeId, state]])
+  };
   const release = retainValues(context.budget, () => [object]);
   try {
-    for (const property of node.properties) {
+    const startIndex = state.index;
+    for (let index = startIndex; index < node.properties.length; index++) {
+      state.index = index;
+      if (index !== startIndex) delete state.key;
+      const property = node.properties[index];
       if (property.type === "SpreadElement") {
         const spreadEntries = await evaluateObjectSpread(property, context);
         if (!spreadEntries.ok) {
@@ -691,10 +711,12 @@ async function evaluateObjectExpression(
         continue;
       }
 
-      const key = await evaluateObjectPropertyKey(property, context);
+      const key = Object.hasOwn(state, "key") ? { ok: true as const, value: state.key! }
+        : await evaluateObjectPropertyKey(property, context);
       if (!key.ok) {
         return key.result;
       }
+      state.key = key.value;
 
       const releaseKey = retainValues(context.budget, () => [key.value]);
       let value: EvaluationResult;

@@ -1666,54 +1666,75 @@ async function evaluateSwitchStatement(
   node: SwitchStatement,
   context: EvaluationContext
 ): Promise<EvaluationResult> {
-  const discriminant = await evaluateNode(node.discriminant, context);
+  const saved = context.generatorResume === undefined || node.nodeId === undefined
+    ? undefined : context.restoredGeneratorExpressionStates?.get(node.nodeId);
+  if (saved !== undefined && saved.kind !== "switch") throw new TypeError("Invalid switch continuation.");
+  const discriminant = saved === undefined ? await evaluateNode(node.discriminant, context)
+    : { kind: "normal" as const, value: saved.value };
   if (discriminant.kind !== "normal") {
     return discriminant;
   }
 
-  const switchContext = { ...context, scope: context.scope.child() };
-  predeclareStatementListBindings(
+  const progress: Extract<GeneratorExpressionState, { kind: "switch" }> = saved === undefined
+    ? { kind: "switch", phase: "test", index: 0, statementIndex: 0, value: discriminant.value, scope: context.scope.child() }
+    : { ...saved };
+  const switchContext: EvaluationContext = { ...context, scope: progress.scope,
+    ...(context.generatorYield === undefined || node.nodeId === undefined ? {} : {
+      generatorExpressionStates: new Map([...(context.generatorExpressionStates ?? []), [node.nodeId, progress]])
+    }) };
+  if (saved === undefined) predeclareStatementListBindings(
     node.cases.flatMap((switchCase) => switchCase.consequent),
     switchContext
   );
 
-  let defaultIndex: number | undefined;
-  let startIndex: number | undefined;
-  for (let index = 0; index < node.cases.length; index += 1) {
-    const switchCase = node.cases[index]!;
-    if (switchCase.test === undefined) {
-      defaultIndex = index;
-      continue;
+  const release = retainValues(context.budget, () => [progress.value]);
+  try {
+    const defaultIndex = node.cases.findIndex(entry => entry.test === undefined);
+    let startIndex: number | undefined = saved?.phase === "body" ? saved.index : undefined;
+    for (let index = progress.index; startIndex === undefined && index < node.cases.length; index += 1) {
+      const switchCase = node.cases[index]!;
+      if (switchCase.test === undefined) {
+        continue;
+      }
+
+      progress.index = index;
+      const test = await evaluateNode(switchCase.test, switchContext);
+      if (test.kind !== "normal") {
+        return test;
+      }
+      if (discriminant.value === test.value) {
+        startIndex = index;
+        break;
+      }
     }
 
-    const test = await evaluateNode(switchCase.test, switchContext);
-    if (test.kind !== "normal") {
-      return test;
+    startIndex ??= defaultIndex < 0 ? undefined : defaultIndex;
+    if (startIndex === undefined) {
+      return normalEmptyResult();
     }
-    if (discriminant.value === test.value) {
-      startIndex = index;
-      break;
-    }
-  }
 
-  startIndex ??= defaultIndex;
-  if (startIndex === undefined) {
+    for (let caseIndex = startIndex; caseIndex < node.cases.length; caseIndex += 1) {
+      progress.phase = "body";
+      progress.index = caseIndex;
+      const statements = node.cases[caseIndex]!.consequent;
+      for (let statementIndex = saved?.phase === "body" && caseIndex === saved.index ? saved.statementIndex : 0;
+        statementIndex < statements.length; statementIndex++) {
+        progress.statementIndex = statementIndex;
+        const statement = statements[statementIndex]!;
+        const result = await evaluateNode(statement, switchContext);
+        if (result.kind === "break" && result.label === undefined) {
+          return normalEmptyResult();
+        }
+        if (result.kind !== "normal") {
+          return result;
+        }
+      }
+    }
+
     return normalEmptyResult();
+  } finally {
+    release();
   }
-
-  for (let caseIndex = startIndex; caseIndex < node.cases.length; caseIndex += 1) {
-    for (const statement of node.cases[caseIndex]!.consequent) {
-      const result = await evaluateNode(statement, switchContext);
-      if (result.kind === "break" && result.label === undefined) {
-        return normalEmptyResult();
-      }
-      if (result.kind !== "normal") {
-        return result;
-      }
-    }
-  }
-
-  return normalEmptyResult();
 }
 
 async function evaluateIfStatement(

@@ -11,6 +11,7 @@ export function validateGuestFunctionAst(record: Record<string, unknown>, origin
   let yieldBlocks: ReadonlySet<number> | undefined;
   let yieldFinalizers: ReadonlySet<number> | undefined;
   type ExpressionPosition = { kind: "binary" } | { kind: "pattern-source" } | { kind: "identifier-assignment" } | { kind: "member"; superReceiver: boolean }
+    | { kind: "switch"; phase: "test" | "body"; index: number; statementIndex: number }
     | { kind: "for"; phase: string }
     | { kind: "for-in"; phase: string }
     | { kind: "for-of"; phase: string; async: boolean }
@@ -40,6 +41,16 @@ export function validateGuestFunctionAst(record: Record<string, unknown>, origin
         : frame.expressions;
     }
     for (const [key, value] of Object.entries(node)) {
+      if (node.type === "SwitchStatement" && key === "cases" && typeof node.nodeId === "number" && Array.isArray(value)) {
+        const id = node.nodeId;
+        value.forEach((entry: Record<string, unknown>, index) => {
+          pending.push({ value: entry.test, blocks, finalizers: frame.finalizers,
+            expressions: new Map([...frame.expressions, [id, { kind: "switch", phase: "test", index, statementIndex: 0 }]]) });
+          (entry.consequent as unknown[]).forEach((statement, statementIndex) => pending.push({ value: statement, blocks, finalizers: frame.finalizers,
+            expressions: new Map([...frame.expressions, [id, { kind: "switch", phase: "body", index, statementIndex }]]) }));
+        });
+        continue;
+      }
       if (node.type === "VariableDeclaration" && key === "declarations" && typeof node.nodeId === "number" && Array.isArray(value)) {
         value.forEach((declarator, index) => pending.push({ value: declarator, blocks, finalizers: frame.finalizers,
           expressions: new Map([...frame.expressions, [node.nodeId as number, { kind: "declaration", index }]]) }));
@@ -140,6 +151,7 @@ export function validateGuestFunctionAst(record: Record<string, unknown>, origin
     if (expected === undefined || !compatibleKind ||
         (expected.kind !== "binary" && expected.kind !== "yield-delegate" && expected.kind !== "pattern-source" && expected.kind !== "identifier-assignment" && expected.kind !== "member" && expected.kind !== "member-assignment" && expected.kind !== "for" && expected.kind !== "for-in" && expected.kind !== "for-of" && expected.index !== expression.index) ||
         (expected.kind === "yield-delegate" && expected.async !== expression.async) ||
+        (expected.kind === "switch" && (expected.phase !== expression.phase || expected.statementIndex !== expression.statementIndex)) ||
         ((expected.kind === "for" || expected.kind === "for-of") && expected.phase !== expression.phase) ||
         (expected.kind === "for-in" && expected.phase !== (expression.phase ?? "body")) ||
         (expected.kind === "object-pattern" && expected.key !== (expression.phase === "key")) ||

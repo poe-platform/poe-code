@@ -86,6 +86,7 @@ export function captureGuestHeapNode<T>(value: object, encode: (value: unknown) 
         expressionStates: Object.fromEntries([...origin.expressionStates].map(([id, expression]) => [String(id),
           expression.kind === "binary" ? { kind: "binary", left: encode(expression.left) }
             : expression.kind === "declaration" ? { ...expression }
+            : expression.kind === "switch" ? { ...expression, value: encode(expression.value), scope: encode(expression.scope) }
             : expression.kind === "yield-delegate" ? { ...expression, value: encode(expression.value), current: encode(expression.current),
               iterator: mapIteratorSnapshot("kind" in expression.iterator ? expression.iterator : expression.iterator.snapshot?.() ?? { kind: "unsupported" }, encode) }
             : expression.kind === "pattern-source" ? { kind: "pattern-source", value: encode(expression.value) }

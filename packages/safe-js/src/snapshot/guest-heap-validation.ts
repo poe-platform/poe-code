@@ -226,6 +226,13 @@ export function validateGuestHeapNode(raw: unknown, heap: Record<string, unknown
           if (array(expression.keys).some(key => typeof key !== "string") ||
               integer(expression.index) >= array(expression.keys).length) throw new TypeError("Invalid for-in continuation.");
           reference(expression.scope, ["scope-frame"]);
+        } else if (expression.kind === "switch") {
+          fields(expression, ["kind", "phase", "index", "statementIndex", "value", "scope"]);
+          if (!["test", "body"].includes(String(expression.phase))) throw new TypeError("Invalid switch phase.");
+          integer(expression.index);
+          integer(expression.statementIndex);
+          if (expression.phase === "test" && expression.statementIndex !== 0) throw new TypeError("Invalid switch test position.");
+          reference(expression.scope, ["scope-frame"]);
         } else if (expression.kind === "for") {
           fields(expression, ["kind", "phase", "loopScope", "activeScope"]);
           if (!["init", "test", "body", "update"].includes(String(expression.phase))) throw new TypeError("Invalid for-loop phase.");

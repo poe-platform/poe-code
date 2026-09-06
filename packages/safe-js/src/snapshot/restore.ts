@@ -854,6 +854,8 @@ function restoreGuestGenerator(
       expressions.set(Number(id), expression.kind === "binary"
         ? { kind: "binary", left: deserializeValue(expression.left, state) as SandboxValue }
         : expression.kind === "declaration" ? { ...expression }
+        : expression.kind === "switch" ? { ...expression, value: deserializeValue(expression.value, state) as SandboxValue,
+          scope: state.guestScopes.get((expression.scope as SerializedReferenceValue).id)! }
         : expression.kind === "yield-delegate" ? { ...expression, value: deserializeValue(expression.value, state) as SandboxValue,
           current: deserializeValue(expression.current, state) as SandboxValue,
           iterator: mapIteratorSnapshot(expression.iterator, value => deserializeValue(value, state) as SandboxValue) }

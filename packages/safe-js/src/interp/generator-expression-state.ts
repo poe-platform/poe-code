@@ -3,6 +3,7 @@ import type { SandboxValue } from "./values.js";
 export type GeneratorExpressionState<T = SandboxValue> =
   | { kind: "binary"; left: T }
   | { kind: "member"; object: T; superReceiver?: T }
+  | { kind: "member-assignment"; object: T; property: T; current: T; key?: T; superReceiver?: T }
   | { kind: "template"; prefix: string; index: number }
   | { kind: "object"; value: T; index: number; key?: T }
   | { kind: "call" | "new" | "tagged"; callee: T; thisValue: T; args: T; index: number }

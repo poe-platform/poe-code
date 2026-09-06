@@ -249,6 +249,9 @@ export type InterpretOptions = {
 type EvaluationContext = AsyncEvaluationContext;
 
 type EvaluationResult = AsyncEvaluationResult;
+type MemberReference = { kind: "nullish" } | {
+  kind: "resolved"; object: InterpreterValue; property: SandboxValue; superReceiver?: { value: SandboxValue };
+};
 
 type HelperResult<TValue> =
   | {
@@ -1043,13 +1046,16 @@ async function evaluateMemberAssignmentExpression(
     throw new TypeError("Expected member assignment target.");
   }
 
-  return evaluateMemberAccess(node.left, context, async (member) => {
+  const restored = context.generatorResume === undefined || node.nodeId === undefined
+    ? undefined : context.restoredGeneratorExpressionStates?.get(node.nodeId);
+  if (restored !== undefined && restored.kind !== "member-assignment") throw new TypeError("Invalid assignment continuation.");
+  const assign = async (member: MemberReference): Promise<EvaluationResult> => {
     if (member.kind === "nullish") {
       throw new TypeError("Cannot assign properties of null or undefined.");
     }
-    let property: PropertyKey | undefined;
-    let current: SandboxValue = undefined;
-    if (node.operator !== "=") {
+    let property = restored?.key as PropertyKey | undefined;
+    let current: SandboxValue = restored?.current;
+    if (node.operator !== "=" && restored === undefined) {
       if (member.object === null || member.object === undefined) {
         throw new TypeError("Cannot assign properties of null or undefined.");
       }
@@ -1090,7 +1096,13 @@ async function evaluateMemberAssignmentExpression(
       };
     }
 
-    let operands: SandboxValue[] = [current, property];
+    if (context.generatorYield !== undefined && node.nodeId !== undefined) {
+      const state = { kind: "member-assignment" as const, object: member.object, property: member.property, current,
+        ...(property === undefined ? {} : { key: property }),
+        ...(member.superReceiver === undefined ? {} : { superReceiver: member.superReceiver.value }) };
+      context = { ...context, generatorExpressionStates: new Map([...(context.generatorExpressionStates ?? []), [node.nodeId, state]]) };
+    }
+    let operands: SandboxValue[] = [current, property, member.object, member.property, member.superReceiver?.value];
     const release = retainValues(context.budget, () => operands);
     try {
       const right = await evaluateNode(node.right, context);
@@ -1110,7 +1122,7 @@ async function evaluateMemberAssignmentExpression(
       if (member.object === null || member.object === undefined) {
         throw new TypeError("Cannot assign properties of null or undefined.");
       }
-      operands = [value];
+      operands = [value, member.object, member.property, member.superReceiver?.value];
       property ??= await toPropertyKey(
         member.property,
         context.budget,
@@ -1136,7 +1148,10 @@ async function evaluateMemberAssignmentExpression(
     } finally {
       release();
     }
-  });
+  };
+  if (restored !== undefined) return assign({ kind: "resolved", object: restored.object, property: restored.property,
+    ...(Object.hasOwn(restored, "superReceiver") ? { superReceiver: { value: restored.superReceiver } } : {}) });
+  return evaluateMemberAccess(node.left, context, assign);
 }
 
 async function evaluateLogicalExpression(
@@ -2831,17 +2846,7 @@ function attachFatalSandboxErrorContext(
 async function evaluateMemberAccess(
   node: MemberExpression,
   context: EvaluationContext,
-  consume: (member:
-    | {
-      kind: "nullish";
-    }
-    | {
-      kind: "resolved";
-      object: InterpreterValue;
-      property: SandboxValue;
-      superReceiver?: { value: SandboxValue };
-    }
-  ) => Promise<EvaluationResult>
+  consume: (member: MemberReference) => Promise<EvaluationResult>
 ): Promise<EvaluationResult> {
   const restored = context.generatorResume === undefined || node.nodeId === undefined
     ? undefined : context.restoredGeneratorExpressionStates?.get(node.nodeId);

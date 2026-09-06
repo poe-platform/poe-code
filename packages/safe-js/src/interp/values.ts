@@ -1266,6 +1266,7 @@ function copyFromSandbox(
         value: copyFromSandbox(descriptor.value, state, `${path}.<property>`, options, depth + 1)
       });
     }
+    if (hasNullObjectPrototype(value)) Object.setPrototypeOf(copy, null);
     if (!Object.isExtensible(properties)) Object.preventExtensions(copy);
     return copy;
   }

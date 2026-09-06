@@ -1,6 +1,6 @@
 import { SandboxError, type Budget } from "./budget.js";
 import { accessorAdapter, accessorClosure, readPropertyDescriptor } from "./accessors.js";
-import { getSandboxPropertyDescriptor, installPromisePrototype, materializeFunctionProperties, registerIntrinsicFunction } from "./object-model.js";
+import { getSandboxPropertyDescriptor, hasExplicitSandboxPrototype, installPromisePrototype, materializeFunctionProperties, registerIntrinsicFunction } from "./object-model.js";
 import { coerceThrownValue, createSubsetErrorValue } from "./exceptions.js";
 import { acquireSandboxIterator, closeIterator, getSandboxIterator, readIteratorResult } from "./iteration.js";
 import { retainValues } from "./resources.js";
@@ -178,7 +178,7 @@ export function createPromiseGlobals(options: { budget: Budget }): PromiseGlobal
           if (!isSandboxPromise(value)) return finish(undefined);
           const descriptor = getSandboxPropertyDescriptor(value, "constructor", options.budget);
           const actualConstructor = descriptor === undefined
-            ? getPromiseMember("constructor", options.budget)
+            ? hasExplicitSandboxPrototype(value) ? undefined : getPromiseMember("constructor", options.budget)
             : readPropertyDescriptor(descriptor, value, context, true);
           return actualConstructor instanceof Promise
             ? actualConstructor.then(finish) : finish(actualConstructor);
@@ -476,6 +476,7 @@ function readPromiseReceiverProperty(
   prototype: SandboxObject,
   context?: SandboxCallContext
 ): SandboxValue | Promise<SandboxValue> {
+  if (isSandboxPromise(receiver) && hasExplicitSandboxPrototype(receiver)) return undefined;
   if (!isSandboxPromise(receiver) && context?.getProperty !== undefined)
     return context.getProperty(receiver, property);
   const properties = isSandboxPromise(receiver)
@@ -1035,6 +1036,7 @@ function isSelfResolution(result: SandboxValue, self: SandboxPromise | undefined
 
 function hasCustomPromiseThen(value: SandboxValue, budget?: Budget): boolean {
   const descriptor = getSandboxPropertyDescriptor(value, "then", budget);
+  if (descriptor === undefined && isSandboxPromise(value) && hasExplicitSandboxPrototype(value)) return true;
   return descriptor !== undefined &&
     (!isSandboxClosure(descriptor.value) || !intrinsicPromiseThenMethods.has(descriptor.value));
 }

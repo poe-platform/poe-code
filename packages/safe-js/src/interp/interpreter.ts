@@ -2809,7 +2809,8 @@ function getPropertyValue(
     return getCollectionIteratorMember(target, property, context.budget);
   if (isSandboxGenerator(target)) return getGeneratorMember(target, property, context.budget);
   if (isSandboxClosure(target)) return getClosureMemberValue(target, property, context);
-  if (isSandboxPromise(target)) return getPromiseMember(property, context.budget);
+  if (isSandboxPromise(target)) return hasExplicitSandboxPrototype(target)
+    ? undefined : getPromiseMember(property, context.budget);
   if (isSandboxRegex(target)) return hasExplicitSandboxPrototype(target) || getSandboxPrototype(target, context.budget) !== null
     ? undefined : getRegexMember(target, property, context.budget, createCoercionContext(context));
   if (!isIndexableSandboxValue(target)) {

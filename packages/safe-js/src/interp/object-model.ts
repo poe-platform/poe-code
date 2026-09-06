@@ -356,8 +356,8 @@ export function setSandboxPrototype(
     throw new TypeError("Object.prototype has an immutable null prototype.");
   }
   if (
-    (!Array.isArray(value) && !isSandboxRegex(value) && !isSandboxMap(value) && !isSandboxSet(value) && !isPrototypeRecord(value)) ||
-    (prototype !== null && !Array.isArray(prototype) && !isSandboxRegex(prototype) && !isSandboxMap(prototype) && !isSandboxSet(prototype) && !isPrototypeRecord(prototype))
+    (!Array.isArray(value) && !isSandboxPromise(value) && !isSandboxRegex(value) && !isSandboxMap(value) && !isSandboxSet(value) && !isPrototypeRecord(value)) ||
+    (prototype !== null && !Array.isArray(prototype) && !isSandboxPromise(prototype) && !isSandboxRegex(prototype) && !isSandboxMap(prototype) && !isSandboxSet(prototype) && !isPrototypeRecord(prototype))
   ) {
     throw new TypeError(
       "Prototype links require supported sandbox objects."
@@ -368,7 +368,7 @@ export function setSandboxPrototype(
     if (prototype === null) prototypes.set(value, null);
     return;
   }
-  if (!Object.isExtensible(isGuestClosure(value) ? materializeFunctionProperties(value) : isSandboxRegex(value) ? getRegexProperties(value) : isSandboxMap(value) || isSandboxSet(value) ? getCollectionProperties(value) : value)) {
+  if (!Object.isExtensible(isGuestClosure(value) ? materializeFunctionProperties(value) : isSandboxPromise(value) ? getPromiseProperties(value) : isSandboxRegex(value) ? getRegexProperties(value) : isSandboxMap(value) || isSandboxSet(value) ? getCollectionProperties(value) : value)) {
     throw new TypeError("Cannot change the prototype of a non-extensible object.");
   }
   let depth = 0;

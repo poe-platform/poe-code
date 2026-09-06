@@ -26,7 +26,7 @@ export function createBuiltinBindings(
     Symbol: createSymbolGlobal(options.budget),
     BigInt: createBigIntGlobal(options.budget),
     ...createErrorGlobals(options),
-    ...createMathGlobals({ random: options.random }),
+    ...createMathGlobals({ random: options.random, budget: options.budget }),
     ...createObjectArrayGlobals(options),
     ...createMiscGlobals(options),
     ...createUriGlobals(options.budget),

@@ -1,0 +1,17 @@
+import { S } from "schema";
+
+export const schema = S.Object({ title: S.String() });
+
+export default async (frontmatter) => {
+  const calls = [];
+  const first = { valueOf() { calls.push(1); return 2; } };
+  const second = { [Symbol.toPrimitive](hint) {
+    if (hint !== "number") throw new Error("Unexpected coercion hint");
+    calls.push(2); return 3;
+  } };
+  const value = Math.pow(first, second);
+  if (value !== 8 || calls.join(",") !== "1,2") {
+    throw new Error("Math guest conversion validation failed");
+  }
+  return { title: frontmatter.title, ok: true, value, calls };
+};

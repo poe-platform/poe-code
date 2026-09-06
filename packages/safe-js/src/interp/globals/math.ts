@@ -1,4 +1,7 @@
-import { createSandboxClosure, type SandboxObject } from "../values.js";
+import { createSandboxClosure, type SandboxObject, type SandboxValue, type SandboxCallContext } from "../values.js";
+import { Budget } from "../budget.js";
+import { sandboxNumber } from "../string-coercion.js";
+import { retainValues } from "../resources.js";
 
 const mathMethods = {
   abs: Math.abs,
@@ -72,6 +75,7 @@ export type SeededRandom = {
 
 export type MathGlobalsOptions = {
   random?: () => number;
+  budget?: Budget;
 };
 
 export type MathGlobals = {
@@ -82,6 +86,7 @@ export type MathGlobals = {
 
 export function createMathGlobals(options: MathGlobalsOptions = {}): MathGlobals {
   const random = options.random ?? Math.random;
+  const budget = options.budget ?? new Budget();
   const mathObject: SandboxObject = {
     E: Math.E,
     LN2: Math.LN2,
@@ -95,9 +100,10 @@ export function createMathGlobals(options: MathGlobalsOptions = {}): MathGlobals
   };
 
   for (const [name, method] of Object.entries(mathMethods)) {
+    const variadic = method === Math.max || method === Math.min || method === Math.hypot;
     mathObject[name] = createSandboxClosure({
       sandbox: true,
-      call: (args) => Reflect.apply(method, Math, args as number[]),
+      call: (args, context) => callNumericMethod(method, args, variadic, budget, context),
       name
     });
   }
@@ -117,6 +123,43 @@ export function createMathGlobals(options: MathGlobalsOptions = {}): MathGlobals
     Math: mathObject,
     NaN: Number.NaN
   };
+}
+
+function callNumericMethod(
+  method: (...args: number[]) => number,
+  args: readonly SandboxValue[],
+  variadic: boolean,
+  budget: Budget,
+  context?: SandboxCallContext
+): number | Promise<number> {
+  const count = variadic ? args.length : Math.min(args.length, method.length);
+  const numbers: number[] = [];
+  const release = retainValues(budget, () => [...args, numbers]);
+  try {
+    const result = advance();
+    if (result instanceof Promise) return result.finally(release);
+    release();
+    return result;
+  } catch (error) {
+    release();
+    throw error;
+  }
+
+  function advance(): number | Promise<number> {
+    while (numbers.length < count) {
+      budget.visitNode();
+      const input = args[numbers.length];
+      const number = context === undefined
+        ? +(input as number)
+        : sandboxNumber(input, budget, context);
+      if (number instanceof Promise) return number.then(value => {
+        numbers.push(value);
+        return advance();
+      });
+      numbers.push(number);
+    }
+    return Reflect.apply(method, Math, numbers);
+  }
 }
 
 export function createSeededRandom(seed: number): SeededRandom {

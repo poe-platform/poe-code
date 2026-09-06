@@ -73,7 +73,7 @@ describe("guest function objects through the public core", () => {
 
   it("keeps host constructors and internal closure fields inaccessible", async () => {
     const result = await run(
-      "function Counter() {} let denied = false; try { Math.abs.label = 'changed'; } catch (error) { denied = true; } return denied && Counter.constructor === undefined && Counter.kind === undefined && Counter.properties === undefined && Math.abs.constructor === undefined;",
+      "function Counter() {} Math.abs.label = 'changed'; return Math.abs.label === 'changed' && Counter.constructor === undefined && Counter.kind === undefined && Counter.properties === undefined && Math.abs.constructor === undefined && Math.abs.kind === undefined && Math.abs.properties === undefined;",
       { budget: new Budget() }
     );
     expect(result).toMatchObject({ ok: true, returnValue: true });

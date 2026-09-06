@@ -1,7 +1,9 @@
-import { createSandboxClosure, type SandboxObject, type SandboxValue, type SandboxCallContext } from "../values.js";
+import { createSandboxClosure, isSandboxClosure, type SandboxObject, type SandboxValue, type SandboxCallContext } from "../values.js";
 import { Budget } from "../budget.js";
 import { sandboxNumber } from "../string-coercion.js";
 import { retainValues } from "../resources.js";
+import { registerBuiltinIdentities } from "../intrinsics.js";
+import { registerIntrinsicFunction, registerIntrinsicObject } from "../object-model.js";
 
 const mathMethods = {
   abs: Math.abs,
@@ -96,13 +98,15 @@ export function createMathGlobals(options: MathGlobalsOptions = {}): MathGlobals
     PI: Math.PI,
     SQRT1_2: Math.SQRT1_2,
     SQRT2: Math.SQRT2,
-    random: createSandboxClosure({ sandbox: true, call: () => random(), name: "random" })
+    random: createSandboxClosure({ sandbox: true, guest: true, call: () => random(), name: "random", length: 0 })
   };
 
   for (const [name, method] of Object.entries(mathMethods)) {
     const variadic = method === Math.max || method === Math.min || method === Math.hypot;
     mathObject[name] = createSandboxClosure({
       sandbox: true,
+      guest: true,
+      length: method.length,
       call: (args, context) => callNumericMethod(method, args, variadic, budget, context),
       name
     });
@@ -117,6 +121,11 @@ export function createMathGlobals(options: MathGlobalsOptions = {}): MathGlobals
     });
   }
   Object.defineProperty(mathObject, Symbol.toStringTag, { value: "Math", configurable: true });
+  registerBuiltinIdentities(budget, { Math: mathObject });
+  for (const descriptor of Object.values(Object.getOwnPropertyDescriptors(mathObject))) {
+    if (isSandboxClosure(descriptor.value)) registerIntrinsicFunction(budget, descriptor.value);
+  }
+  registerIntrinsicObject(budget, mathObject);
 
   return {
     Infinity,

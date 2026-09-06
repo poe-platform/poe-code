@@ -1,0 +1,14 @@
+import { S } from "schema";
+
+export const schema = S.Object({ title: S.String() });
+
+export default async function objectRestTargets(frontmatter) {
+  await 0;
+  const target = {};
+  let first;
+  ({ first, ...target.rest } = { first: 7, second: 8 });
+  ({ ...target["computed"] } = { third: 9 });
+  if (first !== 7 || target.rest.second !== 8 || target.computed.third !== 9)
+    throw new Error("Object rest member assignment failed");
+  return { title: frontmatter.title, first, target };
+}

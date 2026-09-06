@@ -717,6 +717,7 @@ class Parser {
   private loopDepth = 0;
   private readonly scopes: ParserScope[] = [new Map()];
   private readonly functionScopes = new WeakSet<ParserScope>();
+  private readonly parenthesizedNodes = new WeakSet<Expression>();
   private readonly varNames = new WeakMap<ParserScope, Set<string>>();
 
   constructor(
@@ -2393,13 +2394,13 @@ class Parser {
   private parseAssignmentObjectPatternProperty(): AssignmentProperty | RestElement {
     if (this.consumePunctuator("...") !== undefined) {
       const start = this.previousToken().start;
-      const token = this.currentToken();
-      if (token.type !== "identifier") {
+      const argument = this.parseAssignmentTarget();
+      if (argument.type !== "Identifier" &&
+          (argument.type !== "MemberExpression" || this.hasOptionalAssignmentChain(argument))) {
         throw new Error(
-          `Object rest element must bind to an identifier at line ${token.start.line}, column ${token.start.column}.`
+          `Object rest assignment requires an identifier or member target at line ${argument.span.start.line}, column ${argument.span.start.column}.`
         );
       }
-      const argument = this.parseBindingIdentifier();
       return {
         type: "RestElement",
         argument,
@@ -2957,6 +2958,7 @@ class Parser {
       const expression = this.parseExpression({ allowSequence: true });
       const end = this.expectPunctuator(")");
       expression.node.span = createSpan(start.start, end.end);
+      this.parenthesizedNodes.add(expression.node);
       return {
         node: expression.node,
         parenthesized: true
@@ -3617,9 +3619,10 @@ class Parser {
     property: Property | SpreadElement
   ): AssignmentProperty | RestElement {
     if (property.type === "SpreadElement") {
-      if (property.argument.type !== "Identifier") {
+      if (property.argument.type !== "Identifier" &&
+          (property.argument.type !== "MemberExpression" || this.hasOptionalAssignmentChain(property.argument))) {
         throw new Error(
-          `Object rest element must bind to an identifier at line ${property.argument.span.start.line}, column ${property.argument.span.start.column}.`
+          `Object rest assignment requires an identifier or member target at line ${property.argument.span.start.line}, column ${property.argument.span.start.column}.`
         );
       }
 
@@ -3643,6 +3646,16 @@ class Parser {
       value,
       span: property.span
     };
+  }
+
+  private hasOptionalAssignmentChain(node: Expression): boolean {
+    while (node.type === "MemberExpression" || node.type === "CallExpression") {
+      if (node.optional) return true;
+      const base = node.type === "MemberExpression" ? node.object : node.callee;
+      if (this.parenthesizedNodes.has(base)) return false;
+      node = base;
+    }
+    return false;
   }
 
   private toObjectPropertyValue(

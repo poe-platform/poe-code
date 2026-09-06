@@ -125,7 +125,7 @@ or rely on runtime imports during schema extraction.
 - Ordinary user constructors expose `.prototype` and support `instanceof`.
   Built-in prototype graphs remain incomplete, and custom prototype-linked
   values still have copy/snapshot restrictions.
-- `for...in` rejects destructuring in the loop head. Destructure in the body.
+- `for...in` supports identifier, member and destructuring targets in the loop head.
 - Bare function calls set `this` to `undefined` (strict semantics).
 - Synchronous generators cannot `await`; async generators can.
 - Suspended synchronous generators can cross snapshot boundaries when their

@@ -434,7 +434,7 @@ export type ForOfStatement = BaseNode & {
 
 export type ForInStatement = BaseNode & {
   type: "ForInStatement";
-  left: Identifier | VariableDeclaration;
+  left: PatternTarget | VariableDeclaration;
   right: Expression;
   body: Statement;
   label?: string;
@@ -1344,7 +1344,7 @@ class Parser {
       }
 
       if (iterationOperator?.value === "in") {
-        const left = this.parseForInLeft();
+        const left = this.parseForOfLeft();
         this.expectKeyword("in");
         const right = this.parseExpression().node;
         this.expectPunctuator(")");
@@ -1411,15 +1411,6 @@ class Parser {
         span: createSpan(forToken.start, body.span.end)
       };
     });
-  }
-
-  private parseForInLeft(): Identifier | VariableDeclaration {
-    const left = this.parseForOfLeft();
-    const target = left.type === "VariableDeclaration" ? left.declarations[0]?.id : left;
-    if (target?.type !== "Identifier") {
-      throw new Error("for...in keys are strings; destructure inside the body");
-    }
-    return left as Identifier | VariableDeclaration;
   }
 
   private parseForOfLeft(): PatternTarget | VariableDeclaration {

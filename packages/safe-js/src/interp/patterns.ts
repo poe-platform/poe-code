@@ -15,7 +15,8 @@ import type { Scope } from "./scope.js";
 import { Budget, isFatalSandboxError } from "./budget.js";
 import { retainValues } from "./resources.js";
 import { hasOwnSandboxProperty } from "./globals/object.js";
-import { acquireSandboxIterator, closeIterator, readIteratorResult } from "./iteration.js";
+import { acquireSandboxIterator, closeIterator, readIteratorResult, restoreSandboxIterator } from "./iteration.js";
+import type { GeneratorExpressionState } from "./generator-expression-state.js";
 import {
   type SandboxCallContext,
   ownEnumerableSandboxKeys,
@@ -30,6 +31,8 @@ export type AssignmentReference = { object: SandboxValue; key: PropertyKey };
 export type PatternTarget = { kind: VariableDeclarationKind; initialize?: true } | { assign: true };
 
 export type PatternContext = {
+  restoredPatternState?(id: number): GeneratorExpressionState | undefined;
+  withPatternState?(id: number, state: GeneratorExpressionState): PatternContext;
   prepareMemberReference?(pattern: MemberExpression): Promise<
     { ok: true; reference: AssignmentReference } | { ok: false; result: AsyncEvaluationResult }
   >;
@@ -127,7 +130,8 @@ async function bindPatternValue(
   readValue: () => Promise<{ value: SandboxValue }>,
   target: PatternTarget,
   scope: Scope,
-  context: PatternContext
+  context: PatternContext,
+  onRead?: (value: SandboxValue, reference?: AssignmentReference) => void
 ): Promise<BindPatternResult> {
   let member = pattern;
   while (member.type === "AssignmentPattern" || member.type === "RestElement")
@@ -145,6 +149,7 @@ async function bindPatternValue(
       : retainValues(context.budget, () => [reference?.object, reference?.key, value]);
   try {
     value = (await readValue()).value;
+    onRead?.(value, reference);
     return await bindPattern(pattern, value, target, scope, context, reference);
   } finally {
     release();
@@ -159,7 +164,10 @@ async function bindArrayPattern(
   context: PatternContext
 ): Promise<BindPatternResult> {
   const budget = context.budget ?? new Budget();
-  const iterator = await acquireSandboxIterator(
+  const saved = pattern.nodeId === undefined ? undefined : context.restoredPatternState?.(pattern.nodeId);
+  if (saved !== undefined && saved.kind !== "array-pattern") throw new TypeError("Invalid array pattern continuation.");
+  const callContext = context.callContext ?? { stack: [], thisValue: undefined, getProperty: context.getProperty };
+  const iterator = saved === undefined ? await acquireSandboxIterator(
     value,
     budget,
     context.callContext ?? {
@@ -167,9 +175,9 @@ async function bindArrayPattern(
       thisValue: undefined,
       getProperty: context.getProperty
     }
-  );
+  ) : "kind" in saved.iterator ? await restoreSandboxIterator(saved.iterator, budget, callContext) : saved.iterator;
   if (iterator === undefined) throw new TypeError("Array destructuring requires an iterable.");
-  let done = false;
+  let done = saved?.done ?? false;
   const next = async (readValue = true): Promise<{ value: SandboxValue }> => {
     if (done) return { value: undefined };
     try {
@@ -186,16 +194,28 @@ async function bindArrayPattern(
     }
   };
   let retained: SandboxValue;
-  const release = retainValues(budget, () => [value, iterator.retainedValue, retained]);
+  let continuation: Extract<GeneratorExpressionState, { kind: "array-pattern" }> | undefined;
+  const release = retainValues(budget, () => [value, iterator.retainedValue, retained,
+    continuation?.current, continuation?.referenceObject, continuation?.referenceKey]);
   try {
-    for (let index = 0; index < pattern.elements.length; index += 1) {
+    for (let index = saved?.index ?? 0; index < pattern.elements.length; index += 1) {
       const element = pattern.elements[index];
       if (element === null) {
         await next(false);
         continue;
       }
 
-      const binding = await bindPatternValue(
+      const resuming = saved !== undefined && index === saved.index;
+      const state: Extract<GeneratorExpressionState, { kind: "array-pattern" }> = {
+        kind: "array-pattern", phase: "reference", index, done, current: undefined, iterator
+      };
+      if (resuming) Object.assign(state, saved, { iterator });
+      continuation = state;
+      const elementContext = pattern.nodeId === undefined ? context : context.withPatternState?.(pattern.nodeId, state) ?? context;
+      const binding = resuming && saved.phase === "binding"
+        ? await bindPattern(element, saved.current, target, scope, elementContext,
+          Object.hasOwn(saved, "referenceObject") ? { object: saved.referenceObject, key: saved.referenceKey as PropertyKey } : undefined)
+        : await bindPatternValue(
         element,
         async () => {
           if (element.type !== "RestElement") return next();
@@ -209,7 +229,13 @@ async function bindArrayPattern(
         },
         target,
         scope,
-        context
+        elementContext,
+        (current, reference) => {
+          state.phase = "binding"; state.current = current; state.done = done;
+          if (reference !== undefined) {
+            state.referenceObject = reference.object; state.referenceKey = reference.key;
+          }
+        }
       );
       if (!binding.ok) {
         if (!done) {

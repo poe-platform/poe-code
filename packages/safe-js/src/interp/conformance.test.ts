@@ -416,6 +416,11 @@ describe("JavaScript conformance matrix", () => {
   });
 
   describe("destructuring", () => {
+    it("destructures property names in for-in heads", async () => {
+      await expect(run("const keys=[];for(const [first,second] in {ab:1,cd:2})keys.push(first+second);return keys"))
+        .resolves.toEqual(["ab", "cd"]);
+    });
+
     it("only applies defaults to undefined and permits earlier default bindings", async () => {
       await expect(
         run(
@@ -455,12 +460,6 @@ describe("JavaScript conformance matrix", () => {
         "[object Object]",
         undefined
       ]);
-    });
-
-    it("rejects destructuring heads in for-in", () => {
-      expect(() => parse("for (const [key] in value) {}")).toThrow(
-        "for...in keys are strings; destructure inside the body"
-      );
     });
 
     it("rejects await inside generators", () => {

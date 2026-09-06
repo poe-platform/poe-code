@@ -3461,12 +3461,12 @@ describe("parse", () => {
       ]
     });
 
-    expect(() => parseModule("for (const [key] in obj) {}")).toThrowError(
-      "for...in keys are strings; destructure inside the body"
-    );
-    expect(() => parseModule("for ({ key } in obj) {}")).toThrowError(
-      "for...in keys are strings; destructure inside the body"
-    );
+    expect(parseModule("for (const [key] in obj) {}")).toMatchObject({
+      body: [{ type: "ForInStatement", left: { type: "VariableDeclaration", declarations: [{ id: { type: "ArrayPattern" } }] } }]
+    });
+    expect(parseModule("for ({ key } in obj) {}")).toMatchObject({
+      body: [{ type: "ForInStatement", left: { type: "ObjectPattern" } }]
+    });
 
     expect(() => parseModule("break;")).toThrowError(
       "Illegal break statement outside a loop or switch at line 1, column 1."

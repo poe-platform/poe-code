@@ -1,8 +1,11 @@
-# For-in assignment targets: confirmed remaining gap
+# For-in assignment targets: validated fix
 
-The parser currently rejects `for(target[yield 1] in {a:1,b:2})` inside a
+The parser previously rejected `for(target[yield 1] in {a:1,b:2})` inside a
 generator, reporting that for-in keys must be destructured in the body.
 The same construct is valid JavaScript. This was found while testing for-in
 restoration, but requires its own parser, binding and continuation change.
-Do not report member or destructuring targets as supported until those paths
-have failing regressions, implementation and full scoped verification.
+Failing regressions now cover member, array and object targets. The fix uses
+the shared iteration binding path and preserves left/body phases. Array
+destructuring additionally needs partial binding state to avoid repeated
+effects after yielding; see `safejs-array-pattern-continuations.md` for the
+implementation and verification record.

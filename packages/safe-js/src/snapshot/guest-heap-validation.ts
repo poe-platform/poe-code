@@ -152,12 +152,19 @@ export function validateGuestHeapNode(raw: unknown, heap: Record<string, unknown
         const expression = record(raw);
         if (expression.kind === "binary") {
           fields(expression, ["kind", "left"]);
-        } else if (expression.kind === "for-of-array" || expression.kind === "for-of-iterator") {
-          fields(expression, ["kind", "phase", "current", "index", "scope",
+        } else if (expression.kind === "for-of-array" || expression.kind === "for-of-iterator" || expression.kind === "array-pattern") {
+          if (expression.kind === "array-pattern") {
+            fields(expression, ["kind", "phase", "index", "done", "current", "iterator"], ["referenceObject", "referenceKey"]);
+            if (!["reference", "binding"].includes(String(expression.phase)) || typeof expression.done !== "boolean" ||
+                Object.hasOwn(expression, "referenceObject") !== Object.hasOwn(expression, "referenceKey")) throw new TypeError("Invalid array pattern state.");
+            if (Object.hasOwn(expression, "referenceKey") && typeof expression.referenceKey !== "string") reference(expression.referenceKey, ["symbol"]);
+          } else {
+            fields(expression, ["kind", "phase", "current", "index", "scope",
             ...(expression.kind === "for-of-array" ? ["values"] : ["value", "iterator", "async"])]);
-          if (!["left", "body"].includes(String(expression.phase))) throw new TypeError("Invalid for-of phase.");
+            if (!["left", "body"].includes(String(expression.phase))) throw new TypeError("Invalid for-of phase.");
+            reference(expression.scope, ["scope-frame"]);
+          }
           integer(expression.index);
-          reference(expression.scope, ["scope-frame"]);
           if (expression.kind === "for-of-array") reference(expression.values, ["array", "guest-array"]);
           else {
             let iterator = record(expression.iterator);
@@ -194,10 +201,11 @@ export function validateGuestHeapNode(raw: unknown, heap: Record<string, unknown
                 }
               }
             } else throw new TypeError("Invalid iterator continuation.");
-            if (expression.async !== protocol) throw new TypeError("Invalid for-of iterator protocol.");
+            if ((expression.kind === "array-pattern" ? false : expression.async) !== protocol) throw new TypeError("Invalid iterator protocol.");
           }
         } else if (expression.kind === "for-in") {
-          fields(expression, ["kind", "object", "keys", "index", "scope"]);
+          fields(expression, ["kind", "object", "keys", "index", "scope"], ["phase"]);
+          if (Object.hasOwn(expression, "phase") && !["left", "body"].includes(String(expression.phase))) throw new TypeError("Invalid for-in phase.");
           if (array(expression.keys).some(key => typeof key !== "string") ||
               integer(expression.index) >= array(expression.keys).length) throw new TypeError("Invalid for-in continuation.");
           reference(expression.scope, ["scope-frame"]);

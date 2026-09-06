@@ -12,8 +12,9 @@ export function validateGuestFunctionAst(record: Record<string, unknown>, origin
   let yieldFinalizers: ReadonlySet<number> | undefined;
   type ExpressionPosition = { kind: "binary" } | { kind: "identifier-assignment" } | { kind: "member"; superReceiver: boolean }
     | { kind: "for"; phase: string }
-    | { kind: "for-in" }
+    | { kind: "for-in"; phase: string }
     | { kind: "for-of"; phase: string; async: boolean }
+    | { kind: "array-pattern"; index: number }
     | { kind: "member-assignment"; superReceiver: boolean; key: boolean }
     | { kind: "array" | "call" | "new" | "template" | "tagged"; index: number; member?: boolean }
     | { kind: "object"; index: number; key: boolean };
@@ -55,11 +56,11 @@ export function validateGuestFunctionAst(record: Record<string, unknown>, origin
         });
         continue;
       }
-      if (((node.type === "ArrayExpression" && key === "elements") ||
+      if ((((node.type === "ArrayExpression" || node.type === "ArrayPattern") && key === "elements") ||
           (node.type === "TemplateLiteral" && key === "expressions") ||
           ((node.type === "CallExpression" || node.type === "NewExpression") && key === "arguments")) &&
           typeof node.nodeId === "number" && Array.isArray(value)) {
-        const kind = node.type === "ArrayExpression" ? "array" : node.type === "TemplateLiteral" ? "template"
+        const kind = node.type === "ArrayPattern" ? "array-pattern" : node.type === "ArrayExpression" ? "array" : node.type === "TemplateLiteral" ? "template"
           : node.type === "CallExpression" ? "call" : "new";
         value.forEach((element, index) => pending.push({ value: element, blocks, finalizers: frame.finalizers,
           expressions: new Map([...frame.expressions, [node.nodeId as number, { kind, index,
@@ -69,8 +70,8 @@ export function validateGuestFunctionAst(record: Record<string, unknown>, origin
       pending.push({ value, blocks,
         expressions: node.type === "ForOfStatement" && ["left", "body"].includes(key) && typeof node.nodeId === "number"
           ? new Map([...frame.expressions, [node.nodeId, { kind: "for-of", phase: key, async: node.await === true }]])
-          : node.type === "ForInStatement" && key === "body" && typeof node.nodeId === "number"
-          ? new Map([...frame.expressions, [node.nodeId, { kind: "for-in" }]])
+          : node.type === "ForInStatement" && ["left", "body"].includes(key) && typeof node.nodeId === "number"
+          ? new Map([...frame.expressions, [node.nodeId, { kind: "for-in", phase: key }]])
           : node.type === "ForStatement" && ["init", "test", "body", "update"].includes(key) && typeof node.nodeId === "number"
           ? new Map([...frame.expressions, [node.nodeId, { kind: "for", phase: key }]])
           : node.type === "BinaryExpression" && key === "right" && typeof node.nodeId === "number"
@@ -115,6 +116,7 @@ export function validateGuestFunctionAst(record: Record<string, unknown>, origin
     if (expected === undefined || !compatibleKind ||
         (expected.kind !== "binary" && expected.kind !== "identifier-assignment" && expected.kind !== "member" && expected.kind !== "member-assignment" && expected.kind !== "for" && expected.kind !== "for-in" && expected.kind !== "for-of" && expected.index !== expression.index) ||
         ((expected.kind === "for" || expected.kind === "for-of") && expected.phase !== expression.phase) ||
+        (expected.kind === "for-in" && expected.phase !== (expression.phase ?? "body")) ||
         (expected.kind === "for-of" && expression.kind === "for-of-iterator" && expected.async !== expression.async) ||
         (expected.kind === "member-assignment" && (expected.key !== Object.hasOwn(expression, "key") ||
           expected.superReceiver !== Object.hasOwn(expression, "superReceiver"))) ||

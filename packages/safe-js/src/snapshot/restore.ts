@@ -853,6 +853,10 @@ function restoreGuestGenerator(
     for (const [id, expression] of Object.entries(serialized.expressionStates ?? {})) {
       expressions.set(Number(id), expression.kind === "binary"
         ? { kind: "binary", left: deserializeValue(expression.left, state) as SandboxValue }
+        : expression.kind === "array-pattern" ? { kind: "array-pattern", phase: expression.phase, index: expression.index, done: expression.done, current: deserializeValue(expression.current, state) as SandboxValue,
+          iterator: mapIteratorSnapshot(expression.iterator, value => deserializeValue(value, state) as SandboxValue),
+          ...(Object.hasOwn(expression, "referenceObject") ? { referenceObject: deserializeValue(expression.referenceObject!, state) as SandboxValue,
+            referenceKey: deserializeValue(expression.referenceKey!, state) as SandboxValue } : {}) }
         : expression.kind === "for-of-array" ? { ...expression, values: deserializeValue(expression.values, state) as SandboxValue,
           current: deserializeValue(expression.current, state) as SandboxValue, scope: state.guestScopes.get((expression.scope as SerializedReferenceValue).id)! }
         : expression.kind === "for-of-iterator" ? { ...expression, value: deserializeValue(expression.value, state) as SandboxValue,

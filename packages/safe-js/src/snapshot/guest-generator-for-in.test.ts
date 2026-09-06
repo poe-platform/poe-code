@@ -19,7 +19,10 @@ const bodies = [
   "for(const key in {a:1,b:2}){try{continue}finally{yield key}}return 9",
   "for(const key in (yield 1)){yield key}return 9",
   "for(const outer in {a:1,b:2}){for(const inner in {x:1,y:2})yield [outer,inner]}return 9",
-  "const object={a:1,b:2};for(const key in object){object.c=3;yield key}return 9"
+  "const object={a:1,b:2};for(const key in object){object.c=3;yield key}return 9",
+  "const target={};for(target[yield 1] in {a:1,b:2}){yield target.x}return target",
+  "for(const [first,second=yield 1] in {a:1,b:2}){yield [first,second]}return 9",
+  "for(const {missing=yield 1} in {a:1,b:2}){yield missing}return 9"
 ];
 
 it.each(bodies.flatMap(body => [false, true].map(async => ({ body, async }))))(

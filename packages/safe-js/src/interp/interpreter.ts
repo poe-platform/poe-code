@@ -1753,7 +1753,7 @@ async function evaluateForOfStatement(
           [node.nodeId, { kind: "for-of-array", phase, values, current, index, scope }]])
       }) });
     if (!resuming || saved.phase === "left") {
-      const binding = await bindForOfLoopVariable(node.left, current, scope, phaseContext("left"));
+      const binding = await bindIterationVariable(node.left, current, scope, phaseContext("left"));
       if (!binding.ok) return binding.result;
     }
 
@@ -1865,7 +1865,7 @@ async function evaluateForOfIterator(
         }) });
       let binding: BindPatternResult;
       try {
-        binding = resuming && saved!.phase === "body" ? { ok: true } : await bindForOfLoopVariable(node.left, nextValue, scope, phaseContext("left"));
+        binding = resuming && saved!.phase === "body" ? { ok: true } : await bindIterationVariable(node.left, nextValue, scope, phaseContext("left"));
       } catch (error) {
         if (isFatalSandboxError(error) || error instanceof HostCallResumabilityError) throw error;
         await closeIterator(iterator, true);
@@ -1934,21 +1934,22 @@ async function evaluateForInStatement(
     }
 
     const scope = resuming ? restored.scope : context.scope.child();
-    if (!resuming) {
-      const binding = await bindForInLoopVariable(node.left, key, scope, context);
+    const phaseContext = (phase: "left" | "body"): EvaluationContext => ({
+      ...context,
+      ...(context.generatorYield === undefined || node.nodeId === undefined ? {} : {
+        generatorExpressionStates: new Map([...(context.generatorExpressionStates ?? []),
+          [node.nodeId, { kind: "for-in", phase, object: right.value, keys, index, scope }]])
+      })
+    });
+    if (!resuming || restored.phase === "left") {
+      const binding = await bindIterationVariable(node.left, key, scope, phaseContext("left"));
       if (!binding.ok) {
         context.activeLoopIterations.delete(node.nodeId ?? -1);
         return binding.result;
       }
     }
 
-    const iterationContext = createLoopIterationContext({
-      ...context,
-      ...(context.generatorYield === undefined || node.nodeId === undefined ? {} : {
-        generatorExpressionStates: new Map([...(context.generatorExpressionStates ?? []),
-          [node.nodeId, { kind: "for-in", object: right.value, keys, index, scope }]])
-      })
-    }, scope);
+    const iterationContext = createLoopIterationContext(phaseContext("body"), scope);
     emitLoopIterationBreakpoint(node, iterationContext);
     const result = await evaluateNode(node.body, iterationContext);
     if (isMatchingBreak(result, loopLabels(node))) {
@@ -2026,23 +2027,6 @@ function isPlainForInObject(value: unknown): value is Record<string, SandboxValu
   }
   const prototype = Object.getPrototypeOf(value);
   return prototype === Object.prototype || prototype === null;
-}
-
-async function bindForInLoopVariable(
-  left: ForInStatement["left"],
-  key: string,
-  scope: Scope,
-  context: EvaluationContext
-): Promise<BindPatternResult> {
-  if (left.type === "Identifier") {
-    return bindPattern(left, key, { assign: true }, scope, createPatternContext(context, scope));
-  }
-
-  const [declarator] = left.declarations;
-  if (left.declarations.length !== 1 || declarator?.id.type !== "Identifier") {
-    throw new TypeError("for...in keys are strings; destructure inside the body");
-  }
-  return bindPattern(declarator.id, key, { kind: left.kind }, scope, createPatternContext(context, scope));
 }
 
 function normalEmptyResult(): EvaluationResult {
@@ -2287,7 +2271,7 @@ function hasLoopLabel(labels: string[] | string | undefined, target: string): bo
   return Array.isArray(labels) ? labels.includes(target) : labels === target;
 }
 
-async function bindForOfLoopVariable(
+async function bindIterationVariable(
   left: ForOfStatement["left"],
   value: SandboxValue,
   scope: Scope,
@@ -2753,6 +2737,9 @@ export function createPatternContext(
 ): PatternContext {
   const evaluationContext = { ...context, scope };
   return {
+    restoredPatternState: id => context.generatorResume === undefined ? undefined : context.restoredGeneratorExpressionStates?.get(id),
+    withPatternState: (id, state) => context.generatorYield === undefined ? createPatternContext(context, scope, evaluate)
+      : createPatternContext({ ...context, generatorExpressionStates: new Map([...(context.generatorExpressionStates ?? []), [id, state]]) }, scope, evaluate),
     prepareMemberReference: async pattern => {
       let reference: import("./patterns.js").AssignmentReference | undefined;
       const result = await evaluateMemberAccess(pattern, evaluationContext, async member => {

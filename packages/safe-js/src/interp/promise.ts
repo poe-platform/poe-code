@@ -406,7 +406,10 @@ function getPromisePrototype(budget: Budget): SandboxObject {
           });
         };
         const finish = () => {
-          const then = readPromiseReceiverProperty(target, "then", prototype, context);
+          const descriptor = getSandboxPropertyDescriptor(target, "then", budget);
+          const then = descriptor === undefined
+            ? readPromiseReceiverProperty(target, "then", prototype, context)
+            : readPropertyDescriptor(descriptor, target, context, true);
           return then instanceof Promise ? then.then(invoke) : invoke(then);
         };
         const validation = validatePromiseConstructorProperty(target, prototype, context);

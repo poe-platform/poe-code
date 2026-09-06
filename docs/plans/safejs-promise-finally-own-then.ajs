@@ -1,0 +1,24 @@
+import { S } from "schema";
+
+export const schema = S.Object({ title: S.String() });
+
+export default async (frontmatter) => {
+  const value = Promise.resolve(1);
+  const events = [];
+  Object.defineProperty(value, "then", {
+    get() {
+      if (this !== value) throw new Error("Wrong getter receiver");
+      events.push("get");
+      return function(onFulfilled, onRejected) {
+        events.push("call");
+        return this === value && onFulfilled === 42 && onRejected === 42;
+      };
+    }
+  });
+  const result = value.finally(42);
+  events.push("after");
+  if (result !== true || events.join(",") !== "get,call,after") {
+    throw new Error("Promise finally own then lookup failed");
+  }
+  return { title: frontmatter.title, ok: true, events };
+};

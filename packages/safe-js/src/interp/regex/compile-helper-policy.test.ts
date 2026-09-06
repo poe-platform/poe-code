@@ -151,7 +151,7 @@ describe("compile policy drafts", () => {
     expect(parseRegex("((a))").captureCount).toBe(2);
     expect(() => parseRegex("(((a)))")).toThrow(SandboxError);
     expect(parseRegex("a", "y").flags.sticky).toBe(true);
-    expect(() => parseRegex("a", "u")).toThrow(SyntaxError);
+    expect(parseRegex("a", "u").flags.unicode).toBe(true);
   });
 
   it("checks cumulative allocation before another sequence node", () => {

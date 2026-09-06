@@ -28,7 +28,10 @@ export function matchRegexFrom(
     return null;
   }
 
-  for (let attempt = startIndex; attempt <= input.length; attempt += 1) {
+  if (pattern.flags.unicode && startIndex > 0 && startIndex < input.length &&
+      input.charCodeAt(startIndex) >= 0xdc00 && input.charCodeAt(startIndex) <= 0xdfff &&
+      input.charCodeAt(startIndex - 1) >= 0xd800 && input.charCodeAt(startIndex - 1) <= 0xdbff) startIndex--;
+  for (let attempt = startIndex; attempt <= input.length; attempt = advanceStringIndex(input, attempt, pattern.flags.unicode)) {
     const context: MatchContext = { input, flags: pattern.flags, groups: pattern.groups, direction: 1, work: { steps: 0 } };
     charge(context);
     const initialState: MatchState = {
@@ -51,15 +54,15 @@ function* matchNode(
   context: MatchContext
 ): Generator<MatchState> {
   charge(context);
-  const characterIndex = context.direction === 1 ? state.position : state.position - 1;
+  const character = readCharacter(context.input, state.position, context.direction, context.flags.unicode);
 
   switch (node.type) {
     case "empty":
       yield state;
       return;
     case "literal":
-      if (charactersEqual(context.input[characterIndex], node.value, context.flags.ignoreCase)) {
-        yield { ...state, position: state.position + context.direction };
+      if (charactersEqual(character, node.value, context.flags.ignoreCase, context.flags.unicode)) {
+        yield { ...state, position: state.position + context.direction * character!.length };
       }
       return;
     case "backreference":
@@ -76,22 +79,26 @@ function* matchNode(
         yield state;
         return;
       }
-      const length = capture.end - capture.start;
-      const start = context.direction === 1 ? state.position : state.position - length;
-      if (start < 0 || start + length > context.input.length) return;
-      for (let offset = 0; offset < length; offset++) {
+      let position = state.position;
+      let reference = context.direction === 1 ? capture.start : capture.end;
+      const end = context.direction === 1 ? capture.end : capture.start;
+      while (reference !== end) {
         charge(context);
-        if (!charactersEqual(context.input[start + offset], context.input[capture.start + offset], context.flags.ignoreCase)) return;
+        const expected = readCharacter(context.input, reference, context.direction, context.flags.unicode)!;
+        const actual = readCharacter(context.input, position, context.direction, context.flags.unicode);
+        if (!charactersEqual(actual, expected, context.flags.ignoreCase, context.flags.unicode)) return;
+        reference += context.direction * expected.length;
+        position += context.direction * actual!.length;
       }
-      yield { ...state, position: state.position + context.direction * length };
+      yield { ...state, position };
       return;
     }
     case "dot":
       if (
-        characterIndex >= 0 && characterIndex < context.input.length &&
-        (context.flags.dotAll || !isLineTerminator(context.input[characterIndex]))
+        character !== undefined &&
+        (context.flags.dotAll || !isLineTerminator(character))
       ) {
-        yield { ...state, position: state.position + context.direction };
+        yield { ...state, position: state.position + context.direction * character.length };
       }
       return;
     case "anchor":
@@ -100,21 +107,20 @@ function* matchNode(
       }
       return;
     case "wordBoundary": {
-      const previousWord = state.position > 0 && isWordCharacter(context.input[state.position - 1]);
+      const previousWord = state.position > 0 && matchesCharacterClassItem(context.input[state.position - 1], { type: "kind", kind: "word", negated: false }, context.flags.ignoreCase, context.flags.unicode);
       const nextWord =
-        state.position < context.input.length && isWordCharacter(context.input[state.position]);
+        state.position < context.input.length && matchesCharacterClassItem(context.input[state.position], { type: "kind", kind: "word", negated: false }, context.flags.ignoreCase, context.flags.unicode);
       if ((previousWord !== nextWord) !== node.negated) {
         yield state;
       }
       return;
     }
     case "characterClass": {
-      const character = context.input[characterIndex];
       if (
         character !== undefined &&
-        matchesCharacterClass(character, node.items, node.negated, context.flags.ignoreCase)
+        matchesCharacterClass(character, node.items, node.negated, context)
       ) {
-        yield { ...state, position: state.position + context.direction };
+        yield { ...state, position: state.position + context.direction * character.length };
       }
       return;
     }
@@ -227,17 +233,35 @@ function matchesCharacterClass(
   character: string,
   items: CharacterClassItem[],
   negated: boolean,
-  ignoreCase: boolean
+  context: MatchContext
 ): boolean {
-  const matched = items.some((item) => matchesCharacterClassItem(character, item, ignoreCase));
+  const matched = items.some((item) => {
+    if (context.flags.unicode) charge(context);
+    return matchesCharacterClassItem(character, item, context.flags.ignoreCase, context.flags.unicode);
+  });
   return negated ? !matched : matched;
 }
 
 function matchesCharacterClassItem(
   character: string,
   item: CharacterClassItem,
-  ignoreCase: boolean
+  ignoreCase: boolean,
+  unicode: boolean
 ): boolean {
+  if (unicode) {
+    // Generated atoms only: the host classifies one code point, never executes a guest pattern.
+    const hex = (value: string) => `\\u{${value.codePointAt(0)!.toString(16)}}`;
+    let atom: string;
+    if (item.type === "character") atom = hex(item.value);
+    else if (item.type === "range") atom = `[${hex(item.from)}-${hex(item.to)}]`;
+    else if (item.type === "property") atom = `\\${item.negated ? "P" : "p"}{${item.value}}`;
+    else {
+      const kind = item.kind === "digit" ? "d" : item.kind === "word" ? "w" : "s";
+      atom = `\\${item.negated ? kind.toUpperCase() : kind}`;
+    }
+    return new RegExp(`^(?:${atom})$`, ignoreCase ? "iu" : "u").test(character);
+  }
+  if (item.type === "property") return false;
   if (item.type === "character") {
     return charactersEqual(character, item.value, ignoreCase);
   }
@@ -338,8 +362,23 @@ export function normalizeLastIndex(lastIndex: number): number {
   return Math.min(Math.floor(lastIndex), Number.MAX_SAFE_INTEGER);
 }
 
-function charactersEqual(left: string | undefined, right: string, ignoreCase: boolean): boolean {
+function charactersEqual(left: string | undefined, right: string, ignoreCase: boolean, unicode = false): boolean {
+  if (unicode && ignoreCase && left !== undefined)
+    return new RegExp(`^\\u{${right.codePointAt(0)!.toString(16)}}$`, "iu").test(left);
   return left !== undefined && foldCharacter(left, ignoreCase) === foldCharacter(right, ignoreCase);
+}
+
+export function advanceStringIndex(input: string, index: number, unicode: boolean): number {
+  return index + (unicode && (input.codePointAt(index) ?? 0) > 0xffff ? 2 : 1);
+}
+
+function readCharacter(input: string, position: number, direction: 1 | -1, unicode: boolean): string | undefined {
+  let index = direction === 1 ? position : position - 1;
+  if (index < 0 || index >= input.length) return undefined;
+  if (unicode && direction === -1 && index > 0 &&
+      input.charCodeAt(index) >= 0xdc00 && input.charCodeAt(index) <= 0xdfff &&
+      input.charCodeAt(index - 1) >= 0xd800 && input.charCodeAt(index - 1) <= 0xdbff) index--;
+  return unicode ? String.fromCodePoint(input.codePointAt(index)!) : input[index];
 }
 
 function foldCharacter(character: string, ignoreCase: boolean): string {

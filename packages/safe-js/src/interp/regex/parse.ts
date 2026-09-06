@@ -7,6 +7,7 @@ export type RegexFlags = {
   hasIndices: boolean;
   global: boolean;
   sticky: boolean;
+  unicode: boolean;
   ignoreCase: boolean;
   multiline: boolean;
   dotAll: boolean;
@@ -17,7 +18,8 @@ export type CharacterKind = "digit" | "word" | "space";
 export type CharacterClassItem =
   | { type: "character"; value: string }
   | { type: "range"; from: string; to: string }
-  | { type: "kind"; kind: CharacterKind; negated: boolean };
+  | { type: "kind"; kind: CharacterKind; negated: boolean }
+  | { type: "property"; value: string; negated: boolean };
 
 export type RegexNode =
   | { type: "empty" }
@@ -55,7 +57,7 @@ export function parseRegex(
     guard.checkLength(flags.length, true);
     guard.allocate(5 + valueUnits);
     const parsedFlags = parseFlags(flags, guard);
-    const parser = new RegexParser(source, guard);
+    const parser = new RegexParser(source, guard, parsedFlags.unicode);
     const body = parser.parse();
     guard.allocate(5 + source.length);
     const pattern: RegexPattern = { source, flags: parsedFlags, captureCount: parser.captureCount, body };
@@ -76,7 +78,8 @@ class RegexParser {
 
   constructor(
     private readonly source: string,
-    private readonly guard: RegexCompileGuard
+    private readonly guard: RegexCompileGuard,
+    private readonly unicode: boolean
   ) {}
 
   private get position(): number {
@@ -96,7 +99,7 @@ class RegexParser {
       }
       this.fail(`Unexpected character '${this.peek()}'`);
     }
-    if (Object.keys(this.namedGroups).length > 0) this.validateNamedGroups(body);
+    if (this.unicode || Object.keys(this.namedGroups).length > 0) this.validateNamedGroups(body);
     return body;
   }
 
@@ -145,7 +148,8 @@ class RegexParser {
       return body;
     }
 
-    if (body.type === "anchor" || body.type === "wordBoundary" || body.type === "lookbehind") {
+    if (body.type === "anchor" || body.type === "wordBoundary" || body.type === "lookbehind" ||
+        (this.unicode && body.type === "lookahead")) {
       this.fail("Invalid quantifier target", quantifierStart);
     }
 
@@ -159,7 +163,7 @@ class RegexParser {
   }
 
   private parseAtom(): RegexNode {
-    const character = this.take();
+    const character = this.takeCharacter();
     switch (character) {
       case ".":
         this.guard.allocate(2);
@@ -177,6 +181,7 @@ class RegexParser {
       case "\\":
         return this.parseEscape(false, this.position - 1);
       default:
+        if (this.unicode && (character === "]" || character === "}")) this.fail("Invalid Unicode pattern character");
         this.guard.allocate(3 + character.length);
         return { type: "literal", value: character };
     }
@@ -263,7 +268,7 @@ class RegexParser {
         if (left.type !== "character" || right.type !== "character") {
           this.fail("Character class ranges require literal endpoints", rangePosition);
         }
-        if (left.value.charCodeAt(0) > right.value.charCodeAt(0)) {
+        if (left.value.codePointAt(0)! > right.value.codePointAt(0)!) {
           this.fail("Character class range is out of order", rangePosition);
         }
         this.guard.allocate(4 + left.value.length + right.value.length);
@@ -295,7 +300,7 @@ class RegexParser {
     }
 
     this.guard.allocate(4);
-    return { type: "character", value: this.take() };
+    return { type: "character", value: this.takeCharacter() };
   }
 
   private parseEscape(inCharacterClass: boolean, start: number): RegexNode {
@@ -306,7 +311,7 @@ class RegexParser {
     const escaped = this.take();
     if (escaped === "k") {
       this.totalCaptureCount ??= this.countAllCaptures();
-      if (this.hasNamedCaptures) {
+      if (this.unicode || this.hasNamedCaptures) {
         if (inCharacterClass || this.take() !== "<") this.fail("Invalid named backreference", start);
         const name = this.parseGroupName(start);
         this.guard.allocate(3 + name.length);
@@ -328,6 +333,8 @@ class RegexParser {
           return { type: "backreference", index };
         }
       }
+      if (this.unicode && (escaped !== "0" || isDecimalDigit(this.peek())))
+        this.fail("Invalid decimal escape", start);
       this.guard.allocate(4);
       if (escaped === "8" || escaped === "9") return { type: "literal", value: escaped };
       let code = Number(escaped);
@@ -338,7 +345,23 @@ class RegexParser {
       return { type: "literal", value: String.fromCharCode(code) };
     }
     if (escaped === "p" || escaped === "P") {
-      this.fail("Unicode property escapes are not supported", start);
+      if (!this.unicode) this.fail("Unicode property escapes are not supported", start);
+      if (this.take() !== "{") this.fail("Invalid Unicode property escape", start);
+      const begin = this.position;
+      while (!this.atEnd() && this.peek() !== "}") {
+        const character = this.take();
+        if (!isDecimalDigit(character) && !(character >= "a" && character <= "z") &&
+            !(character >= "A" && character <= "Z") && character !== "_" && character !== "=")
+          this.fail("Invalid Unicode property escape", start);
+      }
+      this.guard.allocate(this.position - begin + 9);
+      const value = this.source.slice(begin, this.position);
+      if (this.take() !== "}") this.fail("Unterminated Unicode property escape", start);
+      // Only a validated property token reaches the host's single-character classifier.
+      try { new RegExp(`\\p{${value}}`, "u"); }
+      catch { this.fail("Unknown Unicode property", start); }
+      this.guard.array(1);
+      return { type: "characterClass", negated: false, items: [{ type: "property", value, negated: escaped === "P" }] };
     }
     if (escaped === "x") {
       this.guard.allocate(4);
@@ -346,7 +369,30 @@ class RegexParser {
     }
     if (escaped === "u") {
       this.guard.allocate(4);
-      return { type: "literal", value: this.parseHexEscape(4, "Unicode", start) };
+      if (this.unicode && this.peek() === "{") {
+        this.position++;
+        const begin = this.position;
+        while (!this.atEnd() && this.peek() !== "}") this.position++;
+        this.guard.allocate(this.position - begin);
+        const digits = this.source.slice(begin, this.position);
+        const point = Number.parseInt(digits, 16);
+        if (this.take() !== "}" || digits.length === 0 || !allHexDigits(digits) || point > 0x10ffff)
+          this.fail("Invalid Unicode escape", start);
+        return { type: "literal", value: String.fromCodePoint(point) };
+      }
+      let value = this.parseHexEscape(4, "Unicode", start);
+      if (this.unicode && value.charCodeAt(0) >= 0xd800 && value.charCodeAt(0) <= 0xdbff &&
+          this.source.startsWith("\\u", this.position)) {
+        const digits = this.source.slice(this.position + 2, this.position + 6);
+        const point = Number.parseInt(digits, 16);
+        this.guard.work(digits.length);
+        this.guard.allocate(digits.length);
+        if (digits.length === 4 && allHexDigits(digits) && point >= 0xdc00 && point <= 0xdfff) {
+          value += String.fromCharCode(point);
+          this.position += 6;
+        }
+      }
+      return { type: "literal", value };
     }
 
     this.guard.allocate(25);
@@ -379,6 +425,16 @@ class RegexParser {
       v: "\v",
       "0": "\0"
     };
+    if (escaped === "c" && this.unicode) {
+      const letter = this.take();
+      if (!(letter >= "a" && letter <= "z") && !(letter >= "A" && letter <= "Z"))
+        this.fail("Invalid control escape", start);
+      this.guard.allocate(4);
+      return { type: "literal", value: String.fromCharCode(letter.charCodeAt(0) % 32) };
+    }
+    if (this.unicode && controls[escaped] === undefined &&
+        !"^$\\.*+?()[]{}|/".includes(escaped) && !(inCharacterClass && escaped === "-"))
+      this.fail("Invalid identity escape", start);
     this.guard.allocate(4);
     return { type: "literal", value: controls[escaped] ?? escaped };
   }
@@ -545,6 +601,13 @@ class RegexParser {
     return character;
   }
 
+  private takeCharacter(): string {
+    if (!this.unicode || this.atEnd()) return this.take();
+    const character = String.fromCodePoint(this.source.codePointAt(this.position)!);
+    this.position += character.length;
+    return character;
+  }
+
   private atEnd(): boolean {
     return this.position >= this.source.length;
   }
@@ -560,6 +623,7 @@ function parseFlags(flags: string, guard: RegexCompileGuard): RegexFlags {
     hasIndices: false,
     global: false,
     sticky: false,
+    unicode: false,
     ignoreCase: false,
     multiline: false,
     dotAll: false
@@ -570,7 +634,8 @@ function parseFlags(flags: string, guard: RegexCompileGuard): RegexFlags {
     i: "ignoreCase",
     m: "multiline",
     s: "dotAll",
-    y: "sticky"
+    y: "sticky",
+    u: "unicode"
   };
 
   for (let position = 0; position < flags.length; position += 1) {

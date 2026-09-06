@@ -183,7 +183,7 @@ function measureNode(node: RegexNode): number {
             ? 3 + item.value.length
             : item.type === "range"
               ? 4 + item.from.length + item.to.length
-              : 4;
+              : item.type === "property" ? 4 + item.value.length : 4;
       }
       return usage;
     }

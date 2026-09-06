@@ -3,7 +3,7 @@ import { types } from "node:util";
 import { Budget } from "../budget.js";
 import { invokeBuiltinClosure } from "../builtin-call.js";
 import { CompileScope } from "../regex/compile-guard.js";
-import { normalizeLastIndex } from "../regex/engine.js";
+import { advanceStringIndex, normalizeLastIndex } from "../regex/engine.js";
 import { sandboxNumber, sandboxString } from "../string-coercion.js";
 import { retainValues } from "../resources.js";
 import { getSandboxDataProperty, getSandboxPropertyDescriptor, hasRegexPropertyOverride } from "../object-model.js";
@@ -816,7 +816,7 @@ function splitNormalized(
       while (result.length < limit) {
         const match = executeRegex(splitter, value, Number(splitter.lastIndex));
         if (match === null) break;
-        if (match.text.length === 0) splitter.lastIndex = match.index + 1;
+        if (match.text.length === 0) splitter.lastIndex = advanceStringIndex(value, match.index, splitter.flags.includes("u"));
         endedWithZeroWidthMatch = match.text.length === 0 && match.index === value.length;
         if (
           match.text.length === 0 &&
@@ -1034,7 +1034,7 @@ function collectRegexMatches(regex: SandboxRegex, value: string, all: boolean, b
     budget?.allocateArrayLength(matches.length + 1);
     matches.push(match);
     lastIndex = match.index + match.text.length;
-    if (all && match.text.length === 0) regex.lastIndex = ++lastIndex;
+    if (all && match.text.length === 0) regex.lastIndex = lastIndex = advanceStringIndex(value, lastIndex, regex.flags.includes("u"));
   } while (all);
   return matches;
 }

@@ -12,6 +12,7 @@ describe("parseRegex", () => {
       hasIndices: false,
       global: true,
       sticky: false,
+      unicode: false,
       ignoreCase: true,
       multiline: true,
       dotAll: true
@@ -34,7 +35,7 @@ describe("parseRegex", () => {
   });
 
   it.each([
-    ["a", "u", "Unsupported regex flag 'u' at position 0"],
+    ["a", "v", "Unsupported regex flag 'v' at position 0"],
     ["a", "gg", "Duplicate regex flag 'g' at position 1"],
     ["(a)\\1{2,1}", "", "Quantifier range is out of order at position 5"],
     ["(?=a", "", "Unterminated group at position 0"],

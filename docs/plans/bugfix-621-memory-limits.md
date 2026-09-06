@@ -152,3 +152,20 @@ forwarding starts one shared, unmetered return independently of pending next,
 automatically closes on admission failure and preserves primary falsey reasons.
 All earlier reclamation controls remain active. The unchanged public lifecycle
 cohorts and a fresh full cross-workspace run remain required after rebuilding.
+
+That corrected full `npm test` run completed successfully: 36,210 shared tests
+passed (42 skipped), Python 29 passed, Bash runner 279 passed, Bash 21,485 passed
+(63 skipped), terminal-pilot 288 passed and posttest two passed. It qualifies
+the recorded corrected tested commit, not subsequent source changes.
+
+Final independent review then reproduced a narrow remaining iterator barrier:
+synthetic EOF could settle before an already-started close. Both EOF branches
+now join the shared close promise. Fourteen fresh controls failed alongside the
+previous 16 passes, then all 30 passed, including exact falsey close failures.
+This follow-up changes only the existing scoped iterator's settlement behavior,
+not storage policy, exported signatures or workspace orchestration. Delivery
+validation repeats the complete filesystem selection, the 434 affected public
+Shell/lifecycle controls, build, maintained types and root lint. Upstream-only
+SafeJS changes are checked separately after rebase. This is a full-base plus
+focused-final-delta qualification, not a claim that the earlier full run tested
+the later barrier fix.

@@ -38,10 +38,11 @@ export function scopeFileSystem(filesystem: FileSystem, charge: () => void, sign
       const advance = async (operation: () => Promise<IteratorResult<Uint8Array>>): Promise<IteratorResult<Uint8Array>> => {
         try {
           assertOpen(options);
-          if (closing) return { done: true, value: undefined };
+          if (closing) { await closing; return { done: true, value: undefined }; }
           const result = await operation();
           assertOpen(options);
-          return closing ? { done: true, value: undefined } : result;
+          if (closing) { await closing; return { done: true, value: undefined }; }
+          return result;
         } catch (error) {
           await finishCleanup(close, true);
           throw error;

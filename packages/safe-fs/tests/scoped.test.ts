@@ -200,3 +200,55 @@ for (const started of [false, true]) for (const reason of [undefined, null]) {
     assert.equal(returned, 1);
   });
 }
+
+const closeOutcomes = [
+  { failed: false, reason: undefined },
+  ...[undefined, null, false, 0, "", NaN].map(reason => ({ failed: true, reason })),
+];
+
+for (const branch of ["before", "after"]) for (const outcome of closeOutcomes) {
+  test(`synthetic EOF ${branch} next awaits ${outcome.failed ? `failed close ${String(outcome.reason)}` : "successful close"}`, async () => {
+    let completeNext!: (value: IteratorResult<Uint8Array>) => void;
+    let releaseClose!: () => void;
+    let advances = 0;
+    let returns = 0;
+    let charges = 0;
+    const next = new Promise<IteratorResult<Uint8Array>>(resolve => { completeNext = resolve; });
+    const close = new Promise<void>(resolve => { releaseClose = resolve; });
+    const original = {
+      capabilities: {},
+      readStream: () => ({ [Symbol.asyncIterator]() { return {
+        next() { advances++; return next; },
+        async return() {
+          returns++;
+          await close;
+          if (outcome.failed) throw outcome.reason;
+          return { done: true, value: undefined };
+        },
+      }; } }),
+    } as unknown as FileSystem;
+    const iterator = scopeFileSystem(original, () => { charges++; }, new AbortController().signal).readStream!("/")[Symbol.asyncIterator]();
+    let pending = branch === "after" ? iterator.next() : undefined;
+    const closing = iterator.return!();
+    const closeObserved = closing.then(value => ({ value }), error => ({ error }));
+    pending ??= iterator.next();
+    let settled = false;
+    const observed = pending.then(value => { settled = true; return { value }; }, error => { settled = true; return { error }; });
+    completeNext({ done: false, value: new Uint8Array([7]) });
+    try {
+      await new Promise<void>(resolve => setImmediate(resolve));
+      assert.equal(returns, 1);
+      assert.equal(advances, branch === "after" ? 1 : 0);
+      assert.equal(settled, false);
+      assert.equal(iterator.return!(), closing);
+      assert.equal(charges, 1);
+    } finally {
+      releaseClose();
+      await Promise.all([observed, closeObserved]);
+    }
+    const expected = outcome.failed ? { error: outcome.reason } : { value: { done: true, value: undefined } };
+    assert.deepEqual(await observed, expected);
+    assert.deepEqual(await closeObserved, expected);
+    assert.equal(returns, 1);
+  });
+}

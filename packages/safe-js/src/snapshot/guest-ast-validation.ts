@@ -10,7 +10,7 @@ export function validateGuestFunctionAst(record: Record<string, unknown>, origin
 
   let yieldBlocks: ReadonlySet<number> | undefined;
   let yieldFinalizers: ReadonlySet<number> | undefined;
-  type ExpressionPosition = { kind: "binary" } | { kind: "array" | "call" | "new"; index: number; member?: boolean }
+  type ExpressionPosition = { kind: "binary" } | { kind: "array" | "call" | "new" | "template"; index: number; member?: boolean }
     | { kind: "object"; index: number; key: boolean };
   let yieldExpressions: ReadonlyMap<number, ExpressionPosition> | undefined;
   const pending: Array<{ value: unknown; blocks: ReadonlySet<number>; finalizers: ReadonlySet<number>; expressions: ReadonlyMap<number, ExpressionPosition> }> = [
@@ -29,6 +29,12 @@ export function validateGuestFunctionAst(record: Record<string, unknown>, origin
       yieldExpressions = frame.expressions;
     }
     for (const [key, value] of Object.entries(node)) {
+      // Tagged templates evaluate substitutions as arguments, not string prefixes.
+      if (node.type === "TaggedTemplateExpression" && key === "quasi") {
+        pending.push({ value: (value as Record<string, unknown>).expressions, blocks,
+          finalizers: frame.finalizers, expressions: frame.expressions });
+        continue;
+      }
       if (node.type === "ObjectExpression" && key === "properties" && typeof node.nodeId === "number" && Array.isArray(value)) {
         const id = node.nodeId;
         value.forEach((property: Record<string, unknown>, index) => {
@@ -43,9 +49,11 @@ export function validateGuestFunctionAst(record: Record<string, unknown>, origin
         continue;
       }
       if (((node.type === "ArrayExpression" && key === "elements") ||
+          (node.type === "TemplateLiteral" && key === "expressions") ||
           ((node.type === "CallExpression" || node.type === "NewExpression") && key === "arguments")) &&
           typeof node.nodeId === "number" && Array.isArray(value)) {
-        const kind = node.type === "ArrayExpression" ? "array" : node.type === "CallExpression" ? "call" : "new";
+        const kind = node.type === "ArrayExpression" ? "array" : node.type === "TemplateLiteral" ? "template"
+          : node.type === "CallExpression" ? "call" : "new";
         value.forEach((element, index) => pending.push({ value: element, blocks, finalizers: frame.finalizers,
           expressions: new Map([...frame.expressions, [node.nodeId as number, { kind, index,
             member: kind === "call" && (node.callee as Record<string, unknown>)?.type === "MemberExpression" }]]) }));

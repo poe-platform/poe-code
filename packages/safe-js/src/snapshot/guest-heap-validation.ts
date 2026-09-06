@@ -134,6 +134,10 @@ export function validateGuestHeapNode(raw: unknown, heap: Record<string, unknown
         const expression = record(raw);
         if (expression.kind === "binary") {
           fields(expression, ["kind", "left"]);
+        } else if (expression.kind === "template") {
+          fields(expression, ["kind", "prefix", "index"]);
+          integer(expression.index);
+          if (typeof expression.prefix !== "string") throw new TypeError("Invalid template prefix.");
         } else if (expression.kind === "object") {
           fields(expression, ["kind", "value", "index"], ["key"]);
           integer(expression.index);

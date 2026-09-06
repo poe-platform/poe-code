@@ -777,11 +777,20 @@ async function evaluateTemplateLiteral(
   node: TemplateLiteral,
   context: EvaluationContext
 ): Promise<EvaluationResult> {
-  let value = context.budget.allocateString(node.quasis[0]?.value.cooked ?? "");
+  const restored = context.generatorResume === undefined || node.nodeId === undefined
+    ? undefined : context.restoredGeneratorExpressionStates?.get(node.nodeId);
+  if (restored !== undefined && restored.kind !== "template") throw new TypeError("Invalid template continuation.");
+  const state = { kind: "template" as const, prefix: restored?.prefix ?? "", index: restored?.index ?? 0 };
+  let value = context.budget.allocateString(restored?.prefix ?? node.quasis[0]?.value.cooked ?? "");
+  if (context.generatorYield !== undefined && node.nodeId !== undefined) context = {
+    ...context, generatorExpressionStates: new Map([...(context.generatorExpressionStates ?? []), [node.nodeId, state]])
+  };
   let input: SandboxValue = undefined;
   const release = retainValues(context.budget, () => [value, input]);
   try {
-    for (let index = 0; index < node.expressions.length; index += 1) {
+    for (let index = state.index; index < node.expressions.length; index += 1) {
+      state.index = index;
+      state.prefix = value;
       const expression = await evaluateNode(node.expressions[index], context);
       if (expression.kind !== "normal") {
         return expression;

@@ -1,0 +1,20 @@
+import { S } from "schema";
+
+export const schema = S.Object({ title: S.String() });
+
+export default async frontmatter => {
+  function* values() {
+    let count = 0;
+    const value = `${count++}:${yield 1}`;
+    return { count, value };
+  }
+  const iterator = values();
+  const first = iterator.next();
+  await 0;
+  const last = iterator.next(4);
+  if (first.value !== 1 || first.done || !last.done ||
+      last.value.count !== 1 || last.value.value !== "0:4") {
+    throw new Error("Template continuation changed");
+  }
+  return { title: frontmatter.title, ok: true, result: last.value };
+};

@@ -23,14 +23,27 @@ type ScopeOptions = {
   chargeData?: boolean;
 };
 
+export type ScopeFrame = {
+  parent?: Scope;
+  importMeta?: InterpreterValue;
+  functionBoundary: boolean;
+  chargeData: boolean;
+  bindings: Array<[string, number]>;
+  cells: Array<{ kind: VariableDeclarationKind } & (
+    { initialized: false } | { initialized: true; value: InterpreterValue }
+  )>;
+  restoredBindings?: Array<[string, InterpreterValue]>;
+};
+
 export class Scope {
   readonly #bindings = new Map<string, ScopeBinding>();
   readonly #restoredBindings: Map<string, InterpreterValue>;
+  #frameHydrated = false;
 
   constructor(
     bindings: Record<string, InterpreterValue> = {},
     private readonly parent?: Scope,
-    private readonly importMeta?: InterpreterValue,
+    private importMeta?: InterpreterValue,
     private readonly options: ScopeOptions = {
       functionBoundary: parent === undefined
     },
@@ -238,6 +251,63 @@ export class Scope {
     return {
       bindings
     };
+  }
+
+  captureFrame(): ScopeFrame {
+    const ids = new Map<ScopeBinding, number>();
+    const cells: ScopeFrame["cells"] = [];
+    const bindings: ScopeFrame["bindings"] = [];
+    for (const [name, binding] of this.#bindings) {
+      let id = ids.get(binding);
+      if (id === undefined) {
+        id = cells.length;
+        ids.set(binding, id);
+        cells.push(binding.value === uninitialized
+          ? { kind: binding.kind, initialized: false }
+          : { kind: binding.kind, initialized: true, value: binding.value });
+      }
+      bindings.push([name, id]);
+    }
+    return {
+      parent: this.parent,
+      importMeta: this.importMeta,
+      functionBoundary: this.isFunctionBoundary(),
+      chargeData: this.options.chargeData !== false,
+      bindings,
+      cells,
+      ...(this.parent === undefined ? { restoredBindings: [...this.#restoredBindings] } : {})
+    };
+  }
+
+  hydrateFrame(frame: ScopeFrame): void {
+    if (this.#frameHydrated || this.#bindings.size !== 0 || this.importMeta !== undefined ||
+        (this.parent === undefined && this.#restoredBindings.size !== 0))
+      throw new TypeError("Frame hydration requires a fresh scope.");
+    if (frame.parent !== this.parent || frame.functionBoundary !== this.isFunctionBoundary() ||
+        frame.chargeData !== (this.options.chargeData !== false))
+      throw new TypeError("Scope frame does not match its allocation.");
+    if (this.parent !== undefined && frame.restoredBindings !== undefined)
+      throw new TypeError("Only root scopes own restored bindings.");
+    const cells: ScopeBinding[] = frame.cells.map(cell => ({
+      kind: cell.kind,
+      value: cell.initialized ? cell.value : uninitialized
+    }));
+    const bindings = new Map<string, ScopeBinding>();
+    const referenced = new Set<number>();
+    for (const [name, id] of frame.bindings) {
+      if (typeof name !== "string" || bindings.has(name) || !Number.isSafeInteger(id) || id < 0 || id >= cells.length)
+        throw new TypeError("Invalid scope binding cell.");
+      bindings.set(name, cells[id]);
+      referenced.add(id);
+    }
+    if (referenced.size !== cells.length) throw new TypeError("Unreferenced scope binding cell.");
+    const restored = new Map(frame.restoredBindings ?? []);
+    if (restored.size !== (frame.restoredBindings?.length ?? 0)) throw new TypeError("Duplicate restored binding.");
+    this.importMeta = frame.importMeta;
+    for (const [name, binding] of bindings) this.#bindings.set(name, binding);
+    if (this.parent === undefined)
+      for (const [name, value] of restored) this.#restoredBindings.set(name, value);
+    this.#frameHydrated = true;
   }
 
   copyInitializedBindingsFrom(source: Scope, names: readonly string[]): void {

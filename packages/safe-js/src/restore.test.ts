@@ -76,7 +76,7 @@ describe("restore", () => {
 
   it.each([
     ["missing version", { sourceHash: hashSource("1 + 2") }, "$.version"],
-    ["unknown version", { version: 2, sourceHash: hashSource("1 + 2") }, "$.version"],
+    ["unknown version", { version: 3, sourceHash: hashSource("1 + 2") }, "$.version"],
     ["missing hash", { version: 1 }, "$.sourceHash"],
     [
       "unsafe clock cursor",
@@ -147,7 +147,7 @@ describe("restore", () => {
 
   it("does not expose host stack frames", () => {
     try {
-      restore({ version: 2, sourceHash: "bad" }, { source: "1 + 2" });
+      restore({ version: 3, sourceHash: "bad" }, { source: "1 + 2" });
     } catch (error) {
       expect(error).toBeInstanceOf(SnapshotValidationError);
       expect((error as Error).stack).toBe(

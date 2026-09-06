@@ -1,6 +1,7 @@
 import { describe, expect, it, vi } from "vitest";
 
 import capture from "../../../test/fixtures/regexp-compile-hash-ea469.json" with { type: "json" };
+import { expectLegacyDumpGraph } from "../../../test/helpers/legacy-dump-graph.js";
 import { dump } from "../../dump.js";
 import { parse } from "../../parse.js";
 import { hashSource } from "../../parse/hash.js";
@@ -243,7 +244,13 @@ describe("Math.f16round independent review", () => {
       if (!Array.isArray(pair)) throw new Error("Missing regex alias pair");
       expect(pair[0]).toBe(regex);
       expect(pair[1]).toBe(regex);
-      expect(JSON.parse(await dump(result)), kind).toStrictEqual(expected);
+      const serialized = JSON.parse(await dump(result));
+      expect(restore(serialized, { source: capture.source })).toBe(serialized);
+      expectLegacyDumpGraph(serialized, expected);
+      const { version: ignoredVersion, bindings: ignoredBindings, heap: ignoredHeap, ...legacyMetadata } = expected;
+      const { version, bindings: ignoredNewBindings, heap: ignoredNewHeap, ...metadata } = serialized;
+      expect(version).toBe(2);
+      expect(metadata, kind).toStrictEqual(legacyMetadata);
       expect(waitCalls).toHaveBeenCalledTimes(kind === "pending" ? 1 : 0);
       expect(provider).not.toHaveBeenCalled();
       expect(JSON.stringify(snapshot)).toBe(before);

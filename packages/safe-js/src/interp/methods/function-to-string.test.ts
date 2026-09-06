@@ -117,7 +117,8 @@ describe("Function string conversion", () => {
     const source = `const fn=(${definition});await 0;return fn.toString()`;
     const execution = run(source);
     const checkpoint = JSON.parse(await dump(execution));
-    expect(checkpoint.bindings.fn).toMatchObject({ kind: "fn" });
+    expect(checkpoint.bindings.fn).toMatchObject({ kind: "ref" });
+    expect(checkpoint.heap[checkpoint.bindings.fn.id]).toMatchObject({ kind: "guest-function" });
     const expected = await runInNewContext(`(async()=>{'use strict';${source}})()`);
     expect(await execution).toMatchObject({ ok: true, returnValue: expected });
     expect(await run(source, { snapshot: restore(checkpoint, { source }) })).toMatchObject({

@@ -353,22 +353,26 @@ export function createObjectArrayGlobals(options: {
         name: "Number",
         properties: {
           isFinite: createSandboxClosure({
+            guest: true,
             sandbox: true,
             call: ([value]) => typeof value === "number" && Number.isFinite(value),
             name: "isFinite"
           }),
           isNaN: createSandboxClosure({
+            guest: true,
             sandbox: true,
             call: ([value]) => typeof value === "number" && Number.isNaN(value),
             name: "isNaN"
           }),
           isInteger: createSandboxClosure({
+            guest: true,
             sandbox: true,
             call: ([value]) => typeof value === "number" && Number.isInteger(value),
             name: "isInteger"
           }),
           ...createNumericParsers(options.budget),
           isSafeInteger: createSandboxClosure({
+            guest: true,
             sandbox: true,
             call: ([value]) => typeof value === "number" && Number.isSafeInteger(value),
             name: "isSafeInteger"

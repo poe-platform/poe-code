@@ -57,7 +57,7 @@ describe.each(["interpreter", "dump"])("NUM → OBJ002 combined %s restoration",
           bindings: input.scopeChain[0]!.bindings
         })
       );
-      expect(envelope.version).toBe(1);
+      expect(envelope.version).toBe(2);
       const validated = restoreDump(envelope, { source });
       encoded = {
         ...encoded,

@@ -5,7 +5,9 @@ import { collectionIteratorState, isSandboxCollectionIterator, snapshotCollectio
 import { isSandboxRegExpIterator, regexpIteratorState, type SandboxRegExpIterator } from "../interp/regexp-iterator.js";
 import { hasGuestObjectState, hasNullObjectPrototype } from "../interp/object-model.js";
 import { sandboxErrorTypes, type SandboxErrorName } from "../error/shape.js";
-import { assertSnapshotGraphDepth } from "../graph-depth.js";
+import { assertSnapshotDataDepth, assertSnapshotGraphDepth } from "../graph-depth.js";
+import { captureGuestHeapNode, type GuestHeapNode } from "./guest-heap.js";
+import { getGeneratorOrigin } from "../interp/closure-origin.js";
 import { serializeArguments, type SerializedArguments } from "./arguments.js";
 import { requiresArrayEntries, serializeArray, type SerializedArray } from "./arrays.js";
 import { float32DataProperties, isFloat32Array } from "../interp/float32.js";
@@ -22,6 +24,7 @@ import {
   getRegexProperties,
   isSandboxSet,
   type SandboxMap,
+  type SandboxClosure,
   type SandboxGenerator,
   type SandboxRegex,
   type SandboxSet
@@ -75,6 +78,7 @@ export type SerializedReferenceValue = {
 };
 
 export type SerializedHeapValue =
+  | GuestHeapNode<SerializedSnapshotValue>
   | { kind: "regexp-iterator"; matcher: SerializedSnapshotValue; input: SerializedSnapshotValue; exhausted: boolean; global?: boolean; unicode?: boolean; entries: Record<string, SerializedSnapshotValue>; symbolEntries?: Array<SerializedSymbolProperty<SerializedSnapshotValue>> }
   | SerializedSymbol
   | BoxedData<SerializedSnapshotValue>
@@ -142,6 +146,7 @@ export type RuntimeSnapshotValue =
   | string
   | undefined
   | RuntimeClosureValue
+  | SandboxClosure
   | SandboxGenerator
   | SandboxCollectionIterator
   | SandboxRegExpIterator
@@ -209,6 +214,7 @@ type SerializationState = {
   ancestors: WeakMap<object, string>;
   heap: Record<string, SerializedHeapValue>;
   heapIds: Map<object | symbol, number>;
+  guestValues: Set<object>;
   serializedHeapIds: Set<number>;
 };
 
@@ -241,7 +247,7 @@ export function serialize(input: SerializeInput): SerializedSnapshot {
     float32Buffers: new WeakMap(),
     ancestors: new WeakMap(),
     heap: Object.create(null) as Record<string, SerializedHeapValue>,
-    heapIds: indexHeapContainers(input),
+    ...indexHeapContainers(input),
     serializedHeapIds: new Set()
   };
 
@@ -317,6 +323,16 @@ function serializeValue(
   state: SerializationState
 ): SerializedSnapshotValue {
   if (typeof value === "symbol") return serializeSymbol(value, state.heapIds, state.heap);
+  if (typeof value === "object" && value !== null && state.guestValues.has(value)) {
+    const id = state.heapIds.get(value)!;
+    if (!state.serializedHeapIds.has(id)) {
+      state.serializedHeapIds.add(id);
+      const node = captureGuestHeapNode(value, entry => serializeValue(entry as RuntimeSnapshotValue, `${path}.<guest>`, state));
+      if (node === undefined) throw new TypeError(`Missing guest heap state at ${path}.`);
+      state.heap[String(id)] = node;
+    }
+    return { kind: "ref", id };
+  }
   if (typeof value === "object" && value !== null && hasGuestObjectState(value)) {
     throw new TypeError("Guest function properties and prototype links cannot be serialized.");
   }
@@ -617,20 +633,22 @@ function withSerializableContainer<TValue>(
   }
 }
 
-function indexHeapContainers(input: SerializeInput): Map<object | symbol, number> {
+function indexHeapContainers(input: SerializeInput): Pick<SerializationState, "heapIds" | "guestValues"> {
   const stats = new Map<
     object,
     {
       count: number;
       cyclic: boolean;
       expanded: boolean;
+      forceHeap?: boolean;
     }
   >();
   const ancestors = new WeakSet<object>();
+  const guestValues = new Set<object>();
 
   for (const scope of input.scopeChain) {
     for (const value of Object.values(scope.bindings)) {
-      collectContainerStats(value, stats, ancestors);
+      collectContainerStats(value, stats, ancestors, guestValues);
     }
   }
 
@@ -640,7 +658,7 @@ function indexHeapContainers(input: SerializeInput): Map<object | symbol, number
         continue;
       }
 
-      collectContainerStats(value as RuntimeSnapshotValue, stats, ancestors);
+      collectContainerStats(value as RuntimeSnapshotValue, stats, ancestors, guestValues);
     }
   }
 
@@ -649,6 +667,8 @@ function indexHeapContainers(input: SerializeInput): Map<object | symbol, number
   for (const [value, stat] of stats.entries()) {
     if (
       stat.count > 1 ||
+      stat.forceHeap === true ||
+      guestValues.has(value) ||
       stat.cyclic ||
       hasNullObjectPrototype(value) ||
       ownSerializableSymbolKeys(value).length > 0 ||
@@ -670,37 +690,27 @@ function indexHeapContainers(input: SerializeInput): Map<object | symbol, number
     }
   }
 
-  return heapIds;
+  return { heapIds, guestValues };
 }
 
 function collectContainerStats(
-  value: RuntimeSnapshotValue,
-  stats: Map<object, { count: number; cyclic: boolean; expanded: boolean }>,
-  ancestors: WeakSet<object>
+  value: unknown,
+  stats: Map<object, { count: number; cyclic: boolean; expanded: boolean; forceHeap?: boolean }>,
+  ancestors: WeakSet<object>,
+  guestValues: Set<object>,
+  depth = 0
 ): void {
   if (
     value === null ||
     typeof value !== "object" ||
     isRuntimeClosureValue(value) ||
     isRuntimePromiseValue(value) ||
-    isSandboxGenerator(value)
+    (isSandboxGenerator(value) && getGeneratorOrigin(value) === undefined)
   ) {
     return;
   }
 
-  if (
-    !Array.isArray(value) &&
-    !isPlainObject(value) &&
-    !isSandboxDate(value) &&
-    !isFloat32Array(value) &&
-    !isSandboxMap(value) &&
-    !isSandboxCollectionIterator(value) &&
-    !isSandboxRegExpIterator(value) &&
-    !isSandboxSet(value)
-  ) {
-    return;
-  }
-
+  assertSnapshotDataDepth(depth, "<snapshot-heap>");
   let stat = stats.get(value);
   if (stat === undefined) {
     stat = {
@@ -725,6 +735,28 @@ function collectContainerStats(
   stat.expanded = true;
   ancestors.add(value);
 
+  const guestEntries: unknown[] = [];
+  const guest = captureGuestHeapNode(value, entry => { guestEntries.push(entry); return null; });
+  if (guest !== undefined) {
+    guestValues.add(value);
+    for (const entry of guestEntries) {
+      collectContainerStats(entry, stats, ancestors, guestValues, depth + 1);
+      if (entry !== null && typeof entry === "object") {
+        const entryStat = stats.get(entry);
+        if (entryStat !== undefined) entryStat.forceHeap = true;
+      }
+    }
+    ancestors.delete(value);
+    return;
+  }
+
+  if (!Array.isArray(value) && !isPlainObject(value) && !isSandboxDate(value) &&
+      !isFloat32Array(value) && !isSandboxMap(value) && !isSandboxCollectionIterator(value) &&
+      !isSandboxRegExpIterator(value) && !isSandboxSet(value)) {
+    ancestors.delete(value);
+    return;
+  }
+
   const entries = isSandboxRegex(value)
     ? Reflect.ownKeys(getRegexProperties(value)).flatMap(key => {
       const descriptor = Object.getOwnPropertyDescriptor(getRegexProperties(value), key)!;
@@ -748,12 +780,12 @@ function collectContainerStats(
         ? [...value.values]
         : Object.values(value);
   for (const entry of entries) {
-    collectContainerStats(entry as RuntimeSnapshotValue, stats, ancestors);
+    collectContainerStats(entry, stats, ancestors, guestValues, depth + 1);
   }
   for (const key of ownSerializableSymbolKeys(value)) {
     const descriptor = Object.getOwnPropertyDescriptor(value, key)!;
     if ("value" in descriptor)
-      collectContainerStats(descriptor.value, stats, ancestors);
+      collectContainerStats(descriptor.value, stats, ancestors, guestValues, depth + 1);
   }
 
   ancestors.delete(value);

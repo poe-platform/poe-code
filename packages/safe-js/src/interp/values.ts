@@ -30,7 +30,7 @@ import {
 import { parseRegex, type RegexPattern } from "./regex/parse.js";
 import { assertSandboxDataDepth } from "../graph-depth.js";
 import { sandboxErrorTypes } from "../error/shape.js";
-import { getGuestFunctionProperties, getSandboxPrototype, hasGuestObjectState, hasManagedDescriptors, hasNullObjectPrototype, isGuestClosure, isIntrinsicConstructor, registerGuestClosure, setSandboxPrototype } from "./object-model.js";
+import { getGuestFunctionProperties, getSandboxPrototype, hasGuestObjectState, hasManagedDescriptors, hasNullObjectPrototype, isGuestClosure, isIntrinsicFunction, registerGuestClosure, setSandboxPrototype } from "./object-model.js";
 import type { FunctionSource } from "../parse/function-source.js";
 import {
   copySandboxArgumentProperties,
@@ -646,7 +646,7 @@ export function measureSandboxData(
     if (isSandboxClosure(value)) {
       if (options.ignoreClosures) return;
       if (value.properties !== undefined) {
-        if (isIntrinsicConstructor(value)) {
+        if (isIntrinsicFunction(value)) {
           for (const [key, descriptor] of Object.entries(Object.getOwnPropertyDescriptors(value.properties))) {
             if (key === "prototype" || key === "name" || key === "length") continue;
             usage += key.length + 1;

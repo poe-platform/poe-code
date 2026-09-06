@@ -1,9 +1,10 @@
-export const DUMP_FORMAT_VERSION = 1;
+export const DUMP_FORMAT_VERSION = 2;
 import { getRegexProperties, isSandboxRegex } from "../interp/values.js";
 import { isSandboxRegExpIterator, regexpIteratorState } from "../interp/regexp-iterator.js";
 import { hasCustomRegexProperties, serializeRegexProperties, type RegexPropertyData } from "./regexp-properties.js";
 export const EXECUTION_SEMANTICS = "jobs-v8";
-import { assertSnapshotGraphDepth } from "../graph-depth.js";
+import { assertSnapshotGraphDepth, assertSnapshotDataDepth } from "../graph-depth.js";
+import { captureGuestHeapNode, type GuestHeapNode } from "./guest-heap.js";
 import { hasGuestObjectState, hasNullObjectPrototype } from "../interp/object-model.js";
 import { sandboxErrorTypes, type SandboxErrorName } from "../error/shape.js";
 import { getSandboxArgumentEntries, isSandboxArguments } from "../interp/arguments.js";
@@ -29,6 +30,7 @@ type DumpValue =
     };
 
 type DumpHeapValue =
+  | GuestHeapNode<DumpValue>
   | { kind: "regexp-iterator"; matcher: DumpValue; input: DumpValue; exhausted: boolean; global?: boolean; unicode?: boolean; entries: Record<string, DumpValue>; symbolEntries?: Array<SerializedSymbolProperty<DumpValue>> }
   | ({ kind: "regex-object"; source: string; flags: string; lastIndex: DumpValue } & RegexPropertyData<DumpValue>)
   | SerializedSymbol
@@ -50,12 +52,14 @@ type DumpState = {
   heap: Record<string, DumpHeapValue>;
   heapIds: Map<object | symbol, number>;
   serializedHeapIds: Set<number>;
+  guestValues: Set<object>;
 };
 
 type ContainerStat = {
   count: number;
   cyclic: boolean;
   expanded: boolean;
+  forceHeap?: boolean;
 };
 
 export type DumpableSnapshot = {
@@ -84,7 +88,7 @@ function createDumpFile(snapshot: DumpableSnapshot): Record<string, DumpValue> {
   const state: DumpState = {
     float32Buffers: new WeakMap(),
     heap: {},
-    heapIds: indexHeapContainers(snapshot),
+    ...indexHeapContainers(snapshot),
     serializedHeapIds: new Set()
   };
   const dumped: Record<string, DumpValue> = {
@@ -138,6 +142,22 @@ function serializeDumpValue(
 
   if (typeof value !== "object") {
     return SKIP_VALUE;
+  }
+
+  if (state.guestValues.has(value)) {
+    const id = state.heapIds.get(value)!;
+    if (!state.serializedHeapIds.has(id)) {
+      state.serializedHeapIds.add(id);
+      const node = captureGuestHeapNode(value, entry => {
+        if (entry === undefined) return { kind: "undefined" };
+        const serialized = serializeDumpValue(entry, `${path}.<guest>`, state);
+        if (serialized === SKIP_VALUE) throw new TypeError(`Unsupported guest graph value at ${path}.`);
+        return serialized;
+      });
+      if (node === undefined) throw new TypeError(`Missing guest heap node at ${path}.`);
+      state.heap[String(id)] = node;
+    }
+    return { kind: "ref", id };
   }
 
   if (hasGuestObjectState(value)) {
@@ -294,16 +314,17 @@ function serializeObjectEntries(
   return serialized;
 }
 
-function indexHeapContainers(snapshot: DumpableSnapshot): Map<object | symbol, number> {
+function indexHeapContainers(snapshot: DumpableSnapshot): Pick<DumpState, "heapIds" | "guestValues"> {
   const stats = new Map<object, ContainerStat>();
   const ancestors = new WeakSet<object>();
+  const guestValues = new Set<object>();
 
   for (const [key, value] of getEnumerableDataEntries(snapshot)) {
     if (key === "version" || key === "sourceHash" || key === "heap") {
       continue;
     }
 
-    collectContainerStats(value, stats, ancestors);
+    collectContainerStats(value, stats, ancestors, guestValues);
   }
 
   const heapIds = new Map<object | symbol, number>();
@@ -311,6 +332,8 @@ function indexHeapContainers(snapshot: DumpableSnapshot): Map<object | symbol, n
   for (const [value, stat] of stats.entries()) {
     if (
       stat.count > 1 ||
+      stat.forceHeap === true ||
+      guestValues.has(value) ||
       stat.cyclic ||
       hasNullObjectPrototype(value) ||
       ownSerializableSymbolKeys(value).length > 0 ||
@@ -328,21 +351,21 @@ function indexHeapContainers(snapshot: DumpableSnapshot): Map<object | symbol, n
     }
   }
 
-  return heapIds;
+  return { heapIds, guestValues };
 }
 
 function collectContainerStats(
   value: unknown,
   stats: Map<object, ContainerStat>,
-  ancestors: WeakSet<object>
+  ancestors: WeakSet<object>,
+  guestValues: Set<object>,
+  depth = 0
 ): void {
   if (value === null || typeof value !== "object") {
     return;
   }
 
-  if (!Array.isArray(value) && !isPlainObject(value) && !isFloat32Array(value) && !isSandboxDate(value)) {
-    return;
-  }
+  assertSnapshotDataDepth(depth, "<snapshot-heap>");
 
   let stat = stats.get(value);
   if (stat === undefined) {
@@ -368,6 +391,22 @@ function collectContainerStats(
   stat.expanded = true;
   ancestors.add(value);
 
+  const guestEntries: unknown[] = [];
+  const guest = captureGuestHeapNode(value, entry => { guestEntries.push(entry); return null; });
+  if (guest !== undefined) {
+    guestValues.add(value);
+    for (const entry of guestEntries) {
+      collectContainerStats(entry, stats, ancestors, guestValues, depth + 1);
+      if (entry !== null && typeof entry === "object") stats.get(entry)!.forceHeap = true;
+    }
+    ancestors.delete(value);
+    return;
+  }
+  if (!Array.isArray(value) && !isPlainObject(value) && !isFloat32Array(value) && !isSandboxDate(value)) {
+    ancestors.delete(value);
+    return;
+  }
+
   const entries = isSandboxRegex(value)
     ? Reflect.ownKeys(getRegexProperties(value)).flatMap(key => {
       const descriptor = Object.getOwnPropertyDescriptor(getRegexProperties(value), key)!;
@@ -381,12 +420,12 @@ function collectContainerStats(
     ? getSandboxArgumentEntries(value).map(([, entry]) => entry)
     : getEnumerableDataValues(value);
   for (const entry of entries) {
-    collectContainerStats(entry, stats, ancestors);
+    collectContainerStats(entry, stats, ancestors, guestValues, depth + 1);
   }
   for (const key of ownSerializableSymbolKeys(value)) {
     const descriptor = Object.getOwnPropertyDescriptor(value, key)!;
     if ("value" in descriptor)
-      collectContainerStats(descriptor.value, stats, ancestors);
+      collectContainerStats(descriptor.value, stats, ancestors, guestValues, depth + 1);
   }
 
   ancestors.delete(value);

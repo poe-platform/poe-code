@@ -39,6 +39,7 @@ import { retainValues } from "./resources.js";
 import { getSandboxDataProperty } from "./object-model.js";
 import { toPropertyKey } from "./property-key.js";
 import { internalSymbols } from "./internal-symbols.js";
+import { containsResumeTarget } from "./resume-target.js";
 
 const capturedExceptionBrand = Symbol("CapturedException");
 internalSymbols.add(capturedExceptionBrand);
@@ -83,6 +84,12 @@ type ExceptionContext = {
   budget: Budget;
   callStack: readonly string[];
   scope: Scope;
+  generatorYield?: unknown;
+  generatorResume?: { yieldNodeId: number; completed?: boolean };
+  generatorBlockScopes?: ReadonlyMap<number, Scope>;
+  restoredGeneratorBlockScopes?: ReadonlyMap<number, Scope>;
+  finallyCompletions?: ReadonlyMap<number, CompletionResult>;
+  restoredFinallyCompletions?: ReadonlyMap<number, CompletionResult>;
   toPropertyKey?: (value: SandboxValue) => string | symbol | Promise<string | symbol>;
   getProperty?: (value: SandboxValue, key: PropertyKey) => SandboxValue | Promise<SandboxValue>;
 };
@@ -118,9 +125,17 @@ export async function evaluateTryStatement<TContext extends ExceptionContext, TE
 ): Promise<EvaluationResult<TError>> {
   let fatalBudgetError: SandboxError | undefined;
   let tryResult: EvaluationResult<TError>;
+  const resume = context.generatorResume;
+  const resumeInCatch = resume !== undefined && resume.completed !== true && node.handler !== undefined &&
+    containsResumeTarget(node.handler.body, new Set([resume.yieldNodeId]));
+  const resumeInFinally = resume !== undefined && resume.completed !== true && node.finalizer !== undefined &&
+    containsResumeTarget(node.finalizer, new Set([resume.yieldNodeId]));
+  const pendingCompletion = node.nodeId === undefined ? undefined : context.restoredFinallyCompletions?.get(node.nodeId);
+  if (resumeInFinally && pendingCompletion === undefined) throw new TypeError("Missing pending finally completion.");
 
   try {
-    tryResult = await evaluateBlockCompletion(node.block, context, evaluateNode);
+    tryResult = resumeInFinally ? pendingCompletion! : resumeInCatch ? { kind: "normal", hasValue: false, value: undefined }
+      : await evaluateBlockCompletion(node.block, context, evaluateNode);
   } catch (error) {
     if (!isBudgetExceeded(error) || node.finalizer === undefined) {
       throw error;
@@ -136,9 +151,9 @@ export async function evaluateTryStatement<TContext extends ExceptionContext, TE
 
   let tryOrCatchResult = tryResult;
   let catchFailure: CompletionResult | undefined;
-  if (fatalBudgetError === undefined && tryResult.kind === "throw" && node.handler !== undefined) {
+  if (!resumeInFinally && fatalBudgetError === undefined && (resumeInCatch || tryResult.kind === "throw") && node.handler !== undefined) {
     try {
-      tryOrCatchResult = await evaluateCatchClause(node.handler, tryResult.value, context, evaluateNode);
+      tryOrCatchResult = await evaluateCatchClause(node.handler, "value" in tryResult ? tryResult.value : undefined, context, evaluateNode);
     } catch (error) {
       if (isFatalSandboxError(error) || isInterpreterError(error) || error instanceof HostCallResumabilityError) {
         throw error;
@@ -152,12 +167,16 @@ export async function evaluateTryStatement<TContext extends ExceptionContext, TE
     return tryOrCatchResult;
   }
 
+  const finalizerContext = node.nodeId === undefined || context.generatorYield === undefined ? context : {
+    ...context,
+    finallyCompletions: new Map([...(context.finallyCompletions ?? []), [node.nodeId, tryOrCatchResult]])
+  };
   const evaluateFinalizer = () =>
     fatalBudgetError?.budget === "deadline"
       ? evaluateWithoutDeadlineChecks(context, () =>
-          evaluateBlockCompletion(node.finalizer as BlockStatement, context, evaluateNode)
+          evaluateBlockCompletion(node.finalizer as BlockStatement, finalizerContext, evaluateNode)
         )
-      : evaluateBlockCompletion(node.finalizer as BlockStatement, context, evaluateNode);
+      : evaluateBlockCompletion(node.finalizer as BlockStatement, finalizerContext, evaluateNode);
   if (catchFailure !== undefined) {
     const value = catchFailure.value;
     context.budget.setRetainedValues(catchFailure, () => [value]);
@@ -485,6 +504,9 @@ async function evaluateCatchClause<TContext extends ExceptionContext, TError>(
   context: TContext,
   evaluateNode: EvaluateExceptionNode<TContext, TError>
 ): Promise<EvaluationResult<TError>> {
+  if (context.generatorResume !== undefined && context.generatorResume.completed !== true &&
+      node.body.nodeId !== undefined && context.restoredGeneratorBlockScopes?.has(node.body.nodeId))
+    return evaluateBlockCompletion(node.body, context, evaluateNode);
   const scope = context.scope.child();
   const catchContext = {
     ...context,
@@ -509,18 +531,28 @@ async function evaluateBlockCompletion<TContext extends ExceptionContext, TError
   context: TContext,
   evaluateNode: EvaluateExceptionNode<TContext, TError>
 ): Promise<EvaluationResult<TError>> {
+  const restoredScope = context.generatorResume === undefined || context.generatorResume.completed === true || node.nodeId === undefined
+    ? undefined : context.restoredGeneratorBlockScopes?.get(node.nodeId);
+  const scope = restoredScope ?? context.scope.child();
   const blockContext = {
     ...context,
-    scope: context.scope.child()
+    scope,
+    ...(context.generatorYield === undefined || node.nodeId === undefined ? {} : {
+      generatorBlockScopes: new Map([...(context.generatorBlockScopes ?? []), [node.nodeId, scope]])
+    })
   };
-  predeclareBlockBindings(node, blockContext.scope);
+  if (restoredScope === undefined) predeclareBlockBindings(node, blockContext.scope);
   let result: EvaluationResult<TError> = {
     kind: "normal",
     hasValue: false,
     value: undefined
   };
 
-  for (const statement of node.body) {
+  const resume = context.generatorResume;
+  const resumeIndex = resume === undefined || resume.completed === true ? -1
+    : node.body.findIndex(statement => containsResumeTarget(statement, new Set([resume.yieldNodeId])));
+  for (let index = Math.max(0, resumeIndex); index < node.body.length; index++) {
+    const statement = node.body[index];
     result = await evaluateNode(statement, blockContext);
     if (result.kind !== "normal") {
       return result;

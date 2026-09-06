@@ -205,7 +205,7 @@ describe("run", () => {
   it("includes the current dump format version in in-memory snapshots", async () => {
     const result = await run("return true");
 
-    expect(result.snapshot.version).toBe(1);
+    expect(result.snapshot.version).toBe(2);
   });
 
   it("lets scripts read only allow-listed environment variables through the env module", async () => {

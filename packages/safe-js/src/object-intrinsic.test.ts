@@ -144,14 +144,21 @@ describe("sandbox Object intrinsic", () => {
     await expect(run("Object.prototype = {};")).rejects.toMatchObject({ name: "TypeError" });
   });
 
-  it("preserves source replay but rejects mutated intrinsic checkpoint data", async () => {
+  it("preserves mutated intrinsic checkpoint data while rejecting lossy plain data copies", async () => {
     const source = "return ({}).toString.call([]);";
     const first = await run(source);
     expect(
       await run(source, { snapshot: restore(JSON.parse(await dump(first)), { source }) })
     ).toMatchObject({ returnValue: "[object Array]" });
-    const mutated = await run("Object.prototype.changed = 1;");
-    await expect(dump(mutated)).rejects.toThrow(/prototype/);
+    const mutatedSource = "Object.prototype.changed = 1;return ({}).changed;";
+    const mutated = await run(mutatedSource);
+    expect(mutated).toMatchObject({ ok: true, returnValue: 1 });
+    const snapshot = JSON.parse(await dump(mutated));
+    const resumed = await run(mutatedSource, { snapshot: restore(snapshot, { source: mutatedSource }) });
+    expect(resumed).toMatchObject({ ok: true, returnValue: 1 });
+    const recaptured = JSON.parse(await dump(resumed));
+    expect(recaptured.heap).toEqual(snapshot.heap);
+    expect(recaptured.bindings).toEqual(snapshot.bindings);
     const linked = await run("return Object.create({ inherited: 1 });");
     expect(() => deepCopyFromSandbox(linked.returnValue as never)).toThrow(/prototype/);
   });

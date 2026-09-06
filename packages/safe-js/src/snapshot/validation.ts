@@ -11,6 +11,8 @@ import { validateFloat32Storage } from "./float32array.js";
 import { restoreDateTime } from "../interp/date.js";
 import { validateBoxedProperties } from "./boxed.js";
 import { hasGuestObjectState } from "../interp/object-model.js";
+import { validateGuestHeapNode, validateGuestScopeParents } from "./guest-heap-validation.js";
+import { validateGuestFunctionAst } from "./guest-ast-validation.js";
 
 const DEFAULT_MAX_DEPTH = MAX_DATA_DEPTH;
 const DEFAULT_MAX_ENTRIES = 100_000;
@@ -92,7 +94,7 @@ export function validateDumpEnvelope(
 ): asserts snapshot is Record<string, unknown> {
   const limits = defaultLimits();
   const root = requireRecord(snapshot, "$");
-  if (root.version !== DUMP_FORMAT_VERSION) {
+  if (root.version !== 1 && root.version !== DUMP_FORMAT_VERSION) {
     fail("unsupportedVersion", "$.version", `expected ${DUMP_FORMAT_VERSION}`);
   }
   requireNonEmptyString(root.sourceHash, "$.sourceHash", limits);
@@ -126,6 +128,15 @@ function validateDumpHeap(root: Record<string, unknown>, state: ValidationState)
     const entry = requireRecord(value, path);
     validateErrorType(entry, path);
     validateSymbolEntries(entry, path, state, heap);
+    try {
+      if (validateGuestHeapNode(entry, heap)) {
+        if (root.version !== 2) fail("unsupportedVersion", path, "guest heap records require dump version 2");
+        continue;
+      }
+    } catch (error) {
+      if (error instanceof SnapshotValidationError) throw error;
+      fail("invalidValue", path, error instanceof Error ? error.message : "invalid guest heap record");
+    }
     if (entry.kind === "regexp-iterator") {
       validateHeapValue(entry, path, state, heap);
       continue;
@@ -168,7 +179,9 @@ function validateDumpHeap(root: Record<string, unknown>, state: ValidationState)
     fail("unknownTag", `${path}.kind`, "unknown dump heap tag");
   }
 
-  validateDumpReferences(root, "$", 0, state, heapIds);
+  validateDumpReferences(root, "$", 0, state, heapIds, heap, "root");
+  try { validateGuestScopeParents(heap); }
+  catch (error) { fail("invalidCycle", "$.heap", error instanceof Error ? error.message : "invalid guest scope parent graph"); }
 }
 
 function validateDumpReferences(
@@ -176,14 +189,17 @@ function validateDumpReferences(
   path: string,
   depth: number,
   state: ValidationState,
-  heapIds: Set<number>
+  heapIds: Set<number>,
+  heap: Record<string, unknown>,
+  role: "root" | "heap" | "heap-node" | "scope-map" | "data" = "data",
+  allowScopeReference = false
 ): void {
   if (value === null || typeof value !== "object") return;
   if (depth > state.limits.maxDepth)
     fail("budgetExceeded", path, `exceeds nesting limit ${state.limits.maxDepth}`);
   if (Array.isArray(value)) {
     value.forEach((entry, index) =>
-      validateDumpReferences(entry, `${path}[${index}]`, depth + 1, state, heapIds)
+      validateDumpReferences(entry, `${path}[${index}]`, depth + 1, state, heapIds, heap)
     );
     return;
   }
@@ -192,9 +208,18 @@ function validateDumpReferences(
   if (record.kind === "ref") {
     const id = requireSafeInteger(record.id, `${path}.id`, 1);
     if (!heapIds.has(id)) fail("danglingReference", `${path}.id`, `unknown heap value ${id}`);
+    if ((heap[String(id)] as Record<string, unknown>).kind === "scope-frame" && !allowScopeReference)
+      fail("invalidValue", path, "Internal scopes cannot be guest data");
   }
   for (const [key, entry] of Object.entries(record)) {
-    validateDumpReferences(entry, `${path}${formatKey(key)}`, depth + 1, state, heapIds);
+    const childRole = role === "root" && key === "heap" ? "heap" : role === "heap" ? "heap-node"
+      : role === "heap-node" && record.kind === "guest-generator" && key === "blockScopes" ? "scope-map" : "data";
+    const scopeField = role === "scope-map" || role === "heap-node" && (
+      (record.kind === "scope-frame" && key === "parent") ||
+      (record.kind === "guest-function" && key === "scope") ||
+      (record.kind === "guest-generator" && ["scope", "closureScope", "suspendedScope"].includes(key))
+    );
+    validateDumpReferences(entry, `${path}${formatKey(key)}`, depth + 1, state, heapIds, heap, childRole, scopeField);
   }
 }
 
@@ -361,6 +386,18 @@ export function validateInterpreterSnapshot(
     validateSymbolEntries(requireRecord(value, `$.heap${formatKey(key)}`), `$.heap${formatKey(key)}`, state, heap);
   }
   validateReferences(root, "$", 0, state, { heapIds, nodeById, promiseIds, scopeIds });
+  validateDumpReferences(root, "$", 0, state, heapIds, heap, "root");
+  try { validateGuestScopeParents(heap); }
+  catch (error) { fail("invalidValue", "$.heap", String(error)); }
+  for (const [key, value] of Object.entries(heap)) {
+    const record = value as Record<string, unknown>;
+    if (record.kind === "guest-function" || record.kind === "guest-generator") {
+      const id = requireNodeId(record.astNodeId, `$.heap${formatKey(key)}.astNodeId`, nodeById);
+      const node = nodeById.get(id);
+      try { validateGuestFunctionAst(record, node); }
+      catch (error) { fail("invalidValue", `$.heap${formatKey(key)}`, String(error)); }
+    }
+  }
 }
 
 function validatePendingHostCall(
@@ -560,6 +597,15 @@ function validateGeneratorShape(
 
 function validateHeapValue(value: unknown, path: string, state: ValidationState, heap: Record<string, unknown>): void {
   const record = requireRecord(value, path);
+  try {
+    if (validateGuestHeapNode(record, heap)) {
+      const tagged = state.validateTaggedPayloads;
+      state.validateTaggedPayloads = false;
+      try { validateValue(record, path, 1, state); }
+      finally { state.validateTaggedPayloads = tagged; }
+      return;
+    }
+  } catch (error) { fail("invalidValue", path, String(error)); }
   validateErrorType(record, path);
   if (!["symbol", "arguments", "array", "object", "map", "set", "float32array", "date", "boxed", "collection-iterator", "regexp-iterator", "regex-object"].includes(String(record.kind)))
     fail("unknownTag", `${path}.kind`, "unknown heap tag");

@@ -2,6 +2,7 @@ import { runInNewContext } from "node:vm";
 import { describe, expect, it } from "vitest";
 import { Budget, createRealm, run } from "../core.js";
 import { dump } from "../dump.js";
+import { restore } from "../restore.js";
 
 describe("string conversion across guest prototypes and built-ins", () => {
   it.each([
@@ -71,12 +72,16 @@ describe("string conversion across guest prototypes and built-ins", () => {
     }
   });
 
-  it("does not bypass the existing portability restriction on retained custom prototypes", async () => {
-    const result = await run(
-      'const value=Object.create({toString(){return "x"}}); return String(value);'
-    );
+  it("preserves retained custom prototypes through checkpoint replay", async () => {
+    const source = 'const value=Object.create({toString(){return "x"}}); return String(value);';
+    const result = await run(source);
     expect(result).toMatchObject({ ok: true, returnValue: "x" });
-    await expect(dump(result)).rejects.toThrow("prototype links cannot be serialized");
+    const snapshot = JSON.parse(await dump(result));
+    const resumed = await run(source, { snapshot: restore(snapshot, { source }) });
+    expect(resumed).toMatchObject({ ok: true, returnValue: "x" });
+    const recaptured = JSON.parse(await dump(resumed));
+    expect(recaptured.heap).toEqual(snapshot.heap);
+    expect(recaptured.bindings).toEqual(snapshot.bindings);
   });
 
   it("charges inherited lookup and generated strings to the budget", async () => {

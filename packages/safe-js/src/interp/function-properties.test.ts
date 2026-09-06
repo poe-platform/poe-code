@@ -4,6 +4,8 @@ import { readFileSync } from "node:fs";
 import { Budget, run } from "../core.js";
 import { dump } from "../snapshot/dump.js";
 import { serialize, type RuntimeSnapshotValue } from "../snapshot/serialize.js";
+import { restore as restoreInterpreterSnapshot } from "../snapshot/restore.js";
+import { restore as restoreDump } from "../restore.js";
 import { encodeReplayData } from "../snapshot/replay-data.js";
 import {
   deepCopyFromSandbox,
@@ -121,9 +123,15 @@ describe("guest function objects through the public core", () => {
     "function Parent() {} function Child() {} Object.setPrototypeOf(Child, Parent); return 1;",
     "Object.setPrototypeOf(Number, { value: 7 }); return 1;",
     "Object.setPrototypeOf(Number, null); return 1;"
-  ])("rejects unsupported snapshots rather than dropping function state: %s", async (source) => {
+  ])("preserves the complete guest heap through public dump and replay: %s", async (source) => {
     const result = await run(source, { budget: new Budget() });
-    await expect(dump(result)).rejects.toThrow(/function properties|prototype links/i);
+    expect(result).toMatchObject({ ok: true, returnValue: 1 });
+    const snapshot = JSON.parse(await dump(result));
+    const replayed = await run(source, { snapshot: restoreDump(snapshot, { source }), budget: new Budget() });
+    expect(replayed).toMatchObject({ ok: true, returnValue: 1 });
+    const recaptured = JSON.parse(await dump(replayed));
+    expect(recaptured.heap).toEqual(snapshot.heap);
+    expect(recaptured.bindings).toEqual(snapshot.bindings);
   });
 
   it("rejects data copies that would discard guest prototype identity", async () => {
@@ -160,22 +168,28 @@ describe("guest function objects through the public core", () => {
     "function Parent() {} function Child() {} Object.setPrototypeOf(Child, Parent); return Child;",
     "Object.setPrototypeOf(Number, { value: 7 }); return Number;",
     "Object.setPrototypeOf(Number, null); return Number;"
-  ])("refuses unsupported state in each serialization path: %s", async (source) => {
+  ])("preserves guest state in heap snapshots while refusing unsupported replay-data encoding: %s", async (source) => {
     const result = await run(source, { budget: new Budget() });
     if (!result.ok) throw new Error("Guest evaluation failed");
     expect(() => encodeReplayData(result.returnValue as SandboxValue)).toThrow(
       /function properties|prototype links/i
     );
-    expect(() =>
-      serialize({
+    const snapshot = serialize({
         source,
         currentAstNodeId: 1,
         scopeChain: [{ id: 1, bindings: { value: result.returnValue as RuntimeSnapshotValue } }],
         callStack: [],
         pendingPromises: [],
         moduleBindings: {}
-      })
-    ).toThrow(/function properties|prototype links/i);
+      });
+    const restored = restoreInterpreterSnapshot(JSON.parse(JSON.stringify(snapshot)), { source });
+    const binding = restored.currentScope.lookup("value");
+    if (!binding.found) throw new Error("Missing restored guest value");
+    expect(binding.value).not.toBe(result.returnValue);
+    const recaptured = serialize({ source, currentAstNodeId: 1,
+      scopeChain: [{ id: 1, bindings: { value: binding.value as RuntimeSnapshotValue } }],
+      callStack: [], pendingPromises: [], moduleBindings: {} });
+    expect(JSON.parse(JSON.stringify(recaptured))).toEqual(JSON.parse(JSON.stringify(snapshot)));
     await expect(
       run(source, { snapshot: result.snapshot, budget: new Budget() })
     ).rejects.toThrow();

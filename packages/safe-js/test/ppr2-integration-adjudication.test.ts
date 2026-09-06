@@ -108,7 +108,7 @@ describe("independent ordered PPR2 fresh writer continuations", () => {
       for (const [index, bytes] of captures.entries()) {
         const snapshot = restore(JSON.parse(bytes), { source: scenario.source });
         expect(snapshot.executionSemantics).toBe(expectedFresh);
-        expect(snapshot.version).toBe(1);
+        expect(snapshot.version).toBe(2);
         const before = JSON.stringify(snapshot);
         const rebound = makeFixture(scenario.id, false, scenario.policy);
         const requests: HostCallResumeRequest[] = [];
@@ -255,7 +255,7 @@ function roundtrip(bindings: Record<string, RuntimeSnapshotValue>) {
     })
   );
   expect(envelope.executionSemantics).toBe(expectedFresh);
-  expect(envelope.version).toBe(1);
+  expect(envelope.version).toBe(2);
   const validated = restore(envelope, { source });
   const encoded = serialize({
     source,

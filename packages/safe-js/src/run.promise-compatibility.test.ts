@@ -88,7 +88,7 @@ describe("genuine v6 checkpoint compatibility", () => {
       expect(readValue).not.toHaveBeenCalled();
       expect(provider).not.toHaveBeenCalled();
       expect(result.snapshot).toMatchObject({
-        version: 1,
+        version: 2,
         executionSemantics: "jobs-v6",
         initialInputs: completed.initialInputs,
         promiseReplay: completed.promiseReplay
@@ -122,7 +122,7 @@ describe("genuine v6 checkpoint compatibility", () => {
         expect(repeated.snapshot.replay).toStrictEqual(expectedReplay);
         expect(repeated.snapshot.initialInputs).toStrictEqual(completed.initialInputs);
         expect(repeated.snapshot.promiseReplay).toStrictEqual(completed.promiseReplay);
-        expect(repeated.snapshot.version).toBe(1);
+        expect(repeated.snapshot.version).toBe(2);
         expect(boundary).not.toHaveBeenCalled();
         expect(readValue).not.toHaveBeenCalled();
         expect(provider).not.toHaveBeenCalled();

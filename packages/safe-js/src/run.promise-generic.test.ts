@@ -290,14 +290,16 @@ describe("generic Promise operations", () => {
     });
     let result = await run(source, { signal: new AbortController().signal });
     expect(result).toMatchObject({ ok: true, returnValue: expected });
-    if ("prototypeState" in testCase && testCase.prototypeState) {
-      await expect(dump(result)).rejects.toThrow(/function properties|prototype links/);
-      return;
-    }
+    const snapshot = JSON.parse(await dump(result));
     result = await run(source, {
       signal: new AbortController().signal,
-      snapshot: JSON.parse(await dump(result))
+      snapshot
     });
     expect(result).toMatchObject({ ok: true, returnValue: expected });
+    if ("prototypeState" in testCase && testCase.prototypeState) {
+      const recaptured = JSON.parse(await dump(result));
+      expect(recaptured.heap).toEqual(snapshot.heap);
+      expect(recaptured.bindings).toEqual(snapshot.bindings);
+    }
   });
 });

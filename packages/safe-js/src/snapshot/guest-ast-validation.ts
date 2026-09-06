@@ -1,0 +1,67 @@
+// Schema validation precedes this source-ownership check in both restore paths.
+export function validateGuestFunctionAst(record: Record<string, unknown>, origin: unknown): void {
+  if (origin === null || typeof origin !== "object" ||
+      !["ArrowFunctionExpression", "FunctionExpression", "FunctionDeclaration"].includes(String((origin as Record<string, unknown>).type)))
+    throw new TypeError("Unknown guest function AST identity");
+  if (record.kind !== "guest-generator") return;
+  const functionNode = origin as Record<string, unknown>;
+  if (functionNode.generator !== true || (functionNode.async === true) !== record.async)
+    throw new TypeError("Invalid generator AST identity");
+
+  let yieldBlocks: ReadonlySet<number> | undefined;
+  let yieldFinalizers: ReadonlySet<number> | undefined;
+  type ExpressionPosition = { kind: "binary" } | { kind: "array"; index: number };
+  let yieldExpressions: ReadonlyMap<number, ExpressionPosition> | undefined;
+  const pending: Array<{ value: unknown; blocks: ReadonlySet<number>; finalizers: ReadonlySet<number>; expressions: ReadonlyMap<number, ExpressionPosition> }> = [
+    { value: functionNode.body, blocks: new Set(), finalizers: new Set(), expressions: new Map() }
+  ];
+  while (pending.length > 0) {
+    const frame = pending.pop()!;
+    if (frame.value === null || typeof frame.value !== "object") continue;
+    const node = frame.value as Record<string, unknown>;
+    if (["ArrowFunctionExpression", "FunctionExpression", "FunctionDeclaration"].includes(String(node.type))) continue;
+    let blocks = frame.blocks;
+    if (node.type === "BlockStatement" && typeof node.nodeId === "number") blocks = new Set([...blocks, node.nodeId]);
+    if (node.type === "YieldExpression" && node.nodeId === record.yieldNodeId) {
+      yieldBlocks = blocks;
+      yieldFinalizers = frame.finalizers;
+      yieldExpressions = frame.expressions;
+    }
+    for (const [key, value] of Object.entries(node)) {
+      if (node.type === "ArrayExpression" && key === "elements" && typeof node.nodeId === "number" && Array.isArray(value)) {
+        value.forEach((element, index) => pending.push({ value: element, blocks, finalizers: frame.finalizers,
+          expressions: new Map([...frame.expressions, [node.nodeId as number, { kind: "array", index }]]) }));
+        continue;
+      }
+      pending.push({ value, blocks,
+        expressions: node.type === "BinaryExpression" && key === "right" && typeof node.nodeId === "number"
+          ? new Map([...frame.expressions, [node.nodeId, { kind: "binary" }]]) : frame.expressions,
+        finalizers: node.type === "TryStatement" && key === "finalizer" && typeof node.nodeId === "number"
+          ? new Set([...frame.finalizers, node.nodeId]) : frame.finalizers });
+    }
+  }
+  if (record.yieldNodeId !== undefined && yieldBlocks === undefined)
+    throw new TypeError("Invalid generator AST identity");
+  if (record.state === "suspended" && Object.keys((record.blockScopes ?? {}) as object).length !== yieldBlocks?.size)
+    throw new TypeError(`Invalid generator AST identity: expected blocks ${[...(yieldBlocks ?? [])]}, received ${Object.keys((record.blockScopes ?? {}) as object)}.`);
+  if (record.blockScopes !== undefined) {
+    for (const id of Object.keys(record.blockScopes as object)) {
+      if (!yieldBlocks?.has(Number(id))) throw new TypeError("Invalid generator AST identity");
+    }
+  }
+  const completions = Object.keys((record.finallyCompletions ?? {}) as object);
+  if (record.state === "suspended" && completions.length !== yieldFinalizers?.size)
+    throw new TypeError("Invalid generator AST identity: missing finally completion");
+  for (const id of completions) {
+    if (!yieldFinalizers?.has(Number(id))) throw new TypeError("Invalid generator AST identity: unrelated finally completion");
+  }
+  const expressions = Object.entries((record.expressionStates ?? {}) as Record<string, Record<string, unknown>>);
+  if (record.state === "suspended" && expressions.length !== yieldExpressions?.size)
+    throw new TypeError("Invalid generator AST identity: missing expression continuation");
+  for (const [id, expression] of expressions) {
+    const expected = yieldExpressions?.get(Number(id));
+    if (expected === undefined || expected.kind !== expression.kind ||
+        (expected.kind === "array" && expected.index !== expression.index))
+      throw new TypeError("Invalid generator AST identity: unrelated expression continuation");
+  }
+}

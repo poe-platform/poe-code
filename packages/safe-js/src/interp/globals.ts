@@ -11,11 +11,12 @@ import { createDateGlobal } from "./globals/date.js";
 import { createSymbolGlobal } from "./globals/symbol.js";
 import { createBigIntGlobal } from "./globals/bigint.js";
 import type { RunClock } from "../run.js";
+import { registerBuiltinIdentities } from "./intrinsics.js";
 
 export function createBuiltinBindings(
   options: Parameters<typeof createConsoleJsonGlobals>[0] & { random?: () => number; clock?: RunClock }
 ) {
-  return {
+  const bindings = {
     ...createConsoleJsonGlobals(options),
     ...createCollectionGlobals(options),
     Float32Array: createFloat32ArrayGlobal(options.budget),
@@ -29,4 +30,6 @@ export function createBuiltinBindings(
     ...createPromiseGlobals(options),
     ...createRegexGlobals(options)
   };
+  registerBuiltinIdentities(options.budget, bindings);
+  return bindings;
 }

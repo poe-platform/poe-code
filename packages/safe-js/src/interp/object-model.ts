@@ -1,4 +1,5 @@
 import { assertSandboxDataDepth } from "../graph-depth.js";
+import { registerBuiltinIdentities, releaseIntrinsicIdentities } from "./intrinsics.js";
 import { isSandboxDate } from "./date.js";
 import { retainedAccessorClosures } from "./accessors.js";
 import { getHostObjectMember, isGuestHostObject, isLiveCapability } from "./host-capabilities.js";
@@ -26,6 +27,7 @@ const regexPrototypes = new WeakMap<Budget, SandboxObject>();
 const initialRegexDescriptors = new WeakMap<Budget, PropertyDescriptorMap>();
 const intrinsicPrototypeRoots = new WeakMap<Budget, Set<SandboxObject>>();
 const intrinsicConstructors = new WeakMap<object, () => boolean>();
+const intrinsicFunctions = new WeakSet<object>();
 const initialBoxedMethods = new WeakMap<object, Map<string, SandboxValue>>();
 const descriptorObjects = new WeakSet<object>();
 
@@ -127,8 +129,8 @@ export function isDefaultBoxedMethod(value: BoxedPrimitive, key: string, budget:
     Object.getOwnPropertyDescriptor(prototype, key)?.value === initialBoxedMethods.get(prototype)?.get(key);
 }
 
-export function isIntrinsicConstructor(value: object): boolean {
-  return intrinsicConstructors.has(value);
+export function isIntrinsicFunction(value: object): boolean {
+  return intrinsicFunctions.has(value);
 }
 
 function registerIntrinsicPrototype(
@@ -136,11 +138,13 @@ function registerIntrinsicPrototype(
   prototype: SandboxObject,
   constructor: SandboxClosure
 ): void {
+  if (constructor.name === undefined) throw new TypeError("Intrinsic constructors require an installation name.");
+  registerBuiltinIdentities(budget, { [constructor.name]: constructor });
   let roots = intrinsicPrototypeRoots.get(budget);
   if (roots === undefined) intrinsicPrototypeRoots.set(budget, (roots = new Set()));
   roots.add(prototype);
-  const methods = Reflect.ownKeys(prototype)
-    .map(key => Object.getOwnPropertyDescriptor(prototype, key)?.value)
+  const methods = [prototype, materializeFunctionProperties(constructor)]
+    .flatMap(owner => Reflect.ownKeys(owner).map(key => Object.getOwnPropertyDescriptor(owner, key)?.value))
     .filter(isGuestClosure);
   const records = [...new Set([prototype, constructor, ...methods])]
     .map((target) => ({
@@ -151,8 +155,11 @@ function registerIntrinsicPrototype(
     }))
     .map((record) => ({
       ...record,
+      extensible: Object.isExtensible(record.value),
       descriptors: new Map(Reflect.ownKeys(record.value).map(key => [key, Object.getOwnPropertyDescriptor(record.value, key)!]))
     }));
+  for (const { target } of records)
+    if (isGuestClosure(target)) intrinsicFunctions.add(target);
   const unchanged = (
     before: PropertyDescriptor | undefined,
     after: PropertyDescriptor | undefined
@@ -166,10 +173,11 @@ function registerIntrinsicPrototype(
     before.configurable === after.configurable &&
     before.enumerable === after.enumerable;
   intrinsicConstructors.set(constructor, () =>
-    records.every(({ target, value, descriptors, prototype: parent, explicit }) => {
+    records.every(({ target, value, descriptors, prototype: parent, explicit, extensible }) => {
       const current = Object.getOwnPropertyDescriptors(value);
       return (
         getSandboxPrototype(target) === parent &&
+        Object.isExtensible(value) === extensible &&
         hasExplicitSandboxPrototype(target) === explicit &&
         Reflect.ownKeys(current).length === descriptors.size &&
         Reflect.ownKeys(value).every((key) => unchanged(descriptors.get(key), Object.getOwnPropertyDescriptor(value, key)))
@@ -192,6 +200,7 @@ function registerIntrinsicPrototype(
 }
 
 export function releaseObjectPrototype(budget: Budget): void {
+  releaseIntrinsicIdentities(budget);
   for (const prototype of intrinsicPrototypeRoots.get(budget) ?? []) budget.setRetainedValues(prototype, undefined);
   intrinsicPrototypeRoots.delete(budget);
   boxedPrototypes.delete(budget);

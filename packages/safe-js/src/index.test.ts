@@ -196,7 +196,7 @@ describe("@poe-code/safe-js public exports", () => {
     ).resolves.toBe(
       JSON.stringify(
         {
-          version: 1,
+          version: 2,
           sourceHash: hashSource("1")
         },
         null,

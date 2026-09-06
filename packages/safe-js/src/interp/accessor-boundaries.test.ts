@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { Budget, createRealm, run } from "../core.js";
 import { dump } from "../dump.js";
+import { restore } from "../restore.js";
 import {
   createSandboxClosure,
   deepCopyFromSandbox,
@@ -201,18 +202,30 @@ describe("accessor execution boundaries", () => {
   });
 
   it.each(["{}", "[]", "new Number(7)"])(
-    "rejects data copies and snapshots of accessor state: %s",
+    "rejects lossy data copies and preserves supported accessor snapshots: %s",
     async (target) => {
-      const result = await run(
-        `const o=${target};Object.defineProperty(o,"x",{get(){return 7},enumerable:true,configurable:true});return o;`
-      );
+      const source = `const o=${target};Object.defineProperty(o,"x",{get(){return 7},enumerable:true,configurable:true});return o;`;
+      const result = await run(source);
       expect(result.ok).toBe(true);
       if (!result.ok) throw new Error("Accessor fixture failed");
       expect(() => deepCopyToSandbox(result.returnValue)).toThrow(/descriptor|accessor/i);
       expect(() => deepCopyFromSandbox(result.returnValue as SandboxValue)).toThrow(
         /descriptor|accessor/i
       );
-      await expect(dump(result)).rejects.toThrow(/descriptor|accessor|prototype/i);
+      if (target === "{}") {
+        const snapshot = JSON.parse(await dump(result));
+        const resumed = await run(source, { snapshot: restore(snapshot, { source }) });
+        expect(resumed.ok).toBe(true);
+        if (!resumed.ok) throw new Error("Accessor replay failed");
+        expect(Object.getOwnPropertyDescriptor(resumed.returnValue, "x")).toMatchObject({
+          get: expect.any(Function), set: undefined, enumerable: true, configurable: true
+        });
+        const recaptured = JSON.parse(await dump(resumed));
+        expect(recaptured.heap).toEqual(snapshot.heap);
+        expect(recaptured.bindings).toEqual(snapshot.bindings);
+      } else {
+        await expect(dump(result)).rejects.toThrow(/descriptor|accessor|prototype/i);
+      }
     }
   );
 

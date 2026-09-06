@@ -7,6 +7,9 @@ import { AS003 } from "../lint/rules/AS003.js";
 import { AS_UNBOUNDED_LOOP } from "../lint/rules/AS-unbounded-loop.js";
 import { dump } from "../dump.js";
 import { deepCopyToSandbox } from "./values.js";
+import { serialize, type RuntimeSnapshotValue } from "../snapshot/serialize.js";
+import { restore } from "../snapshot/restore.js";
+import { interpret } from "./interpreter.js";
 
 describe("object literal accessors", () => {
   it.each([
@@ -210,11 +213,26 @@ describe("object literal accessors", () => {
       )
     ).rejects.toMatchObject({ code: "budgetExceeded" });
   });
-  it("rejects portable accessor output rather than dropping descriptors", async () => {
-    const result = await run("const o={get x(){return 7}};return o;");
+  it("preserves callable accessor descriptors in snapshots while rejecting lossy data copies", async () => {
+    const source = "let calls=0;const o={get x(){calls++;return 7}};return o;";
+    const result = await run(source);
     expect(result.ok).toBe(true);
     if (!result.ok) throw new Error("Accessor fixture failed");
     expect(() => deepCopyToSandbox(result.returnValue)).toThrow(/descriptor|accessor|prototype/i);
-    await expect(dump(result)).rejects.toThrow(/descriptor|accessor|prototype/i);
+    const dumped = JSON.parse(await dump(result));
+    const encoded = serialize({ source, currentAstNodeId: 1,
+      scopeChain: [{ id: "external", bindings: { value: result.returnValue as RuntimeSnapshotValue } }],
+      callStack: [], pendingPromises: [], moduleBindings: {} });
+    const restored = restore(JSON.parse(JSON.stringify(encoded)), { source });
+    const binding = restored.currentScope.lookup("value");
+    if (!binding.found) throw new Error("Missing restored accessor object");
+    const descriptor = Object.getOwnPropertyDescriptor(binding.value, "x")!;
+    expect(descriptor).toMatchObject({ enumerable: true, configurable: true, get: expect.any(Function), set: undefined });
+    expect(await interpret(parseModule("{return value.x}").body[0], {
+      budget: restored.budget, bindings: { value: binding.value }
+    })).toMatchObject({ ok: true, returnValue: 7 });
+    const originalCalls = result.snapshot.bindings.calls;
+    expect(originalCalls).toBe(0);
+    expect(dumped.heap).toBeDefined();
   });
 });

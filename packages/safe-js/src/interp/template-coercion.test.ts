@@ -81,7 +81,8 @@ describe("ordinary template substitution coercion", () => {
     const expected = runInNewContext(`(()=>{'use strict';${source}})()`);
     const execution = run(source);
     const snapshot = JSON.parse(await dump(execution));
-    expect(snapshot.bindings.gen).toMatchObject({ kind: "generator", state: "suspended" });
+    expect(snapshot.bindings.gen).toMatchObject({ kind: "ref" });
+    expect(snapshot.heap[snapshot.bindings.gen.id]).toMatchObject({ kind: "guest-generator", state: "suspended" });
     expect(snapshot.pendingAwaits[0].span.start.offset).toBe(source.indexOf("yield 'pause'"));
     expect(await execution).toMatchObject({ ok: true, returnValue: expected });
     expect(await run(source, { snapshot: restore(snapshot, { source }) })).toMatchObject({ ok: true, returnValue: expected });

@@ -26,6 +26,7 @@ import { hoistVarDeclarations } from "./var-hoist.js";
 import { createPatternContext } from "./interpreter.js";
 import { getGuestFunctionProperty, setSandboxPrototype } from "./object-model.js";
 import { functionSources } from "../parse/function-source.js";
+import { registerClosureOrigin, registerGeneratorOrigin } from "./closure-origin.js";
 import {
   boundIdentifiers,
   containsParameterExpression,
@@ -94,7 +95,15 @@ export type AsyncEvaluationContext = {
   };
   generatorYield?: (value?: SandboxValue, yieldNodeId?: number) => Promise<GeneratorCompletion>;
   asyncGenerator?: boolean;
+  captureGeneratorScope?: (scope: Scope, blocks?: ReadonlyMap<number, Scope>, completions?: ReadonlyMap<number, import("./exceptions.js").CompletionResult>, expressions?: ReadonlyMap<number, import("./generator-expression-state.js").GeneratorExpressionState>) => void;
+  generatorExpressionStates?: ReadonlyMap<number, import("./generator-expression-state.js").GeneratorExpressionState>;
+  restoredGeneratorExpressionStates?: ReadonlyMap<number, import("./generator-expression-state.js").GeneratorExpressionState>;
+  finallyCompletions?: ReadonlyMap<number, import("./exceptions.js").CompletionResult>;
+  restoredFinallyCompletions?: ReadonlyMap<number, import("./exceptions.js").CompletionResult>;
+  generatorBlockScopes?: ReadonlyMap<number, Scope>;
+  restoredGeneratorBlockScopes?: ReadonlyMap<number, Scope>;
   generatorResume?: {
+    completed?: boolean;
     sent: GeneratorCompletion[];
     yieldNodeId: number;
   };
@@ -232,6 +241,7 @@ export function createInterpretedClosure(
       );
     }
   });
+  registerClosureOrigin(closure, node, context);
   return closure;
 }
 
@@ -277,7 +287,7 @@ function createGeneratorClosure(
   context: AsyncEvaluationContext,
   evaluateNode: EvaluateAsyncNode
 ) {
-  return createSandboxClosure({
+  const closure = createSandboxClosure({
     sourceRange: functionSources.get(node),
     guest: true,
     generator: true,
@@ -304,6 +314,14 @@ function createGeneratorClosure(
             ...closureContext,
             functionBody: node.body,
             asyncGenerator: node.async,
+            generatorBlockScopes: new Map(),
+            generatorExpressionStates: new Map(),
+            captureGeneratorScope: (suspendedScope, blocks, completions, expressions) => {
+              origin.suspendedScope = suspendedScope;
+              origin.blockScopes = blocks;
+              origin.finallyCompletions = completions;
+              origin.expressionStates = expressions;
+            },
             generatorYield: (value, yieldNodeId) => {
               generator.state = "suspended";
               return generatorYield(value, yieldNodeId);
@@ -322,9 +340,12 @@ function createGeneratorClosure(
         return node.async ? runAsyncPrefix(execute) : execute();
       });
       const generator = createSandboxGenerator(channel, { async: node.async });
+      const origin = registerGeneratorOrigin(generator, node, scope, closureContext);
       return generator;
     }
   });
+  registerClosureOrigin(closure, node, context);
+  return closure;
 }
 
 function isConstructResult(value: SandboxValue): boolean {

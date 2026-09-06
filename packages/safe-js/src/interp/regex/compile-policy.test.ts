@@ -19,6 +19,7 @@ import { dump } from "../../dump.js";
 import { restore, type SafeJSSnapshot } from "../../restore.js";
 import { declareHostOperation } from "../host-bridge.js";
 import capture from "../../../test/fixtures/regexp-compile-hash-ea469.json" with { type: "json" };
+import { expectLegacyDumpGraph } from "../../../test/helpers/legacy-dump-graph.js";
 
 const limits = vi.hoisted(() => ({ sourceLength: 32, flagsLength: 4, depth: 2, allocations: 256 }));
 vi.mock("../budget.js", async (importOriginal) => ({
@@ -182,9 +183,9 @@ describe("compile checkpoint hash compatibility", () => {
       expect(pair[0]).toBe(regex);
       expect(pair[1]).toBe(regex);
       const serialized: SafeJSSnapshot = JSON.parse(await dump(result));
+      expect(restore(serialized, { source })).toBe(serialized);
+      expectLegacyDumpGraph(serialized, expectedCompleted);
       for (const field of [
-        "bindings",
-        "heap",
         "hostCalls",
         "replay",
         "promiseReplay",

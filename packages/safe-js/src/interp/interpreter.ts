@@ -87,6 +87,7 @@ import type { GeneratorCompletion } from "./generator.js";
 import { HostCallResumabilityError } from "./host-call.js";
 import { Budget, isFatalSandboxError, SandboxError, type CompileOwner } from "./budget.js";
 import { CompileScope, RegexCompileGuard } from "./regex/compile-guard.js";
+import { containsResumeTarget } from "./resume-target.js";
 import {
   createCapturedException,
   createThrowCompletion,
@@ -464,11 +465,12 @@ export async function interpret(
 
 export { Scope } from "./scope.js";
 
-async function evaluateNode(
+export async function evaluateNode(
   node: ParseResult,
   context: EvaluationContext
 ): Promise<EvaluationResult> {
   context.assertActive?.();
+  if (context.generatorResume?.completed === true) context.generatorResume = undefined;
   if (context.inferredName !== undefined && node.type !== "ClassExpression" &&
       node.type !== "FunctionExpression" && node.type !== "ArrowFunctionExpression") context = { ...context, inferredName: undefined };
   const replayWait = promiseReplayContext.getStore()?.beforeNode(node.nodeId);
@@ -619,10 +621,20 @@ async function evaluateArrayExpression(
   node: ArrayExpression,
   context: EvaluationContext
 ): Promise<EvaluationResult> {
-  const values: SandboxArray = [];
+  const restored = context.generatorResume === undefined || node.nodeId === undefined
+    ? undefined : context.restoredGeneratorExpressionStates?.get(node.nodeId);
+  if (restored !== undefined && (restored.kind !== "array" || !Array.isArray(restored.values)))
+    throw new TypeError("Invalid array expression continuation.");
+  const values: SandboxArray = restored?.kind === "array" ? restored.values as SandboxArray : [];
+  const expressionState = { kind: "array" as const, values, index: restored?.kind === "array" ? restored.index : 0 };
+  if (context.generatorYield !== undefined && node.nodeId !== undefined) context = {
+    ...context, generatorExpressionStates: new Map([...(context.generatorExpressionStates ?? []), [node.nodeId, expressionState]])
+  };
   const release = retainValues(context.budget, () => [values]);
   try {
-    for (const element of node.elements) {
+    for (let index = expressionState.index; index < node.elements.length; index++) {
+      expressionState.index = index;
+      const element = node.elements[index];
       if (element.type === "UndefinedLiteral" && element.elision === true) {
         values.length += 1;
         context.budget.allocateArrayLength(values.length);
@@ -898,12 +910,20 @@ async function evaluateBinaryExpression(
   node: BinaryExpression,
   context: EvaluationContext
 ): Promise<EvaluationResult> {
-  const left = await evaluateNode(node.left, context);
+  const restored = context.generatorResume === undefined || node.nodeId === undefined
+    ? undefined : context.restoredGeneratorExpressionStates?.get(node.nodeId);
+  if (restored !== undefined && restored.kind !== "binary") throw new TypeError("Invalid binary expression continuation.");
+  const left = restored?.kind === "binary"
+    ? { kind: "normal" as const, hasValue: true, value: restored.left }
+    : await evaluateNode(node.left, context);
   if (left.kind !== "normal") {
     return left;
   }
 
   let leftValue = left.value;
+  if (context.generatorYield !== undefined && node.nodeId !== undefined) context = {
+    ...context, generatorExpressionStates: new Map([...(context.generatorExpressionStates ?? []), [node.nodeId, { kind: "binary", left: leftValue }]])
+  };
   let rightValue: SandboxValue;
   const release = retainValues(context.budget, () => [leftValue, rightValue]);
   try {
@@ -1173,7 +1193,11 @@ async function evaluateSequenceExpression(
     value: undefined
   };
 
-  for (const expression of node.expressions) {
+  const resumeIndex = context.generatorResume === undefined ? -1 : node.expressions.findIndex(expression =>
+    containsResumeTarget(expression, new Set([context.generatorResume!.yieldNodeId]))
+  );
+  for (let index = Math.max(0, resumeIndex); index < node.expressions.length; index++) {
+    const expression = node.expressions[index];
     result = await evaluateNode(expression, context);
     if (result.kind !== "normal") {
       return result;
@@ -1502,54 +1526,21 @@ function findResumeStatementIndex(
   return index === -1 ? undefined : index;
 }
 
-function containsResumeTarget(node: ParseResult, targetNodeIds: ReadonlySet<number>): boolean {
-  if (node.nodeId !== undefined && targetNodeIds.has(node.nodeId)) {
-    return true;
-  }
-  if (
-    node.type === "ArrowFunctionExpression" ||
-    node.type === "FunctionDeclaration" ||
-    node.type === "FunctionExpression"
-  ) {
-    return false;
-  }
-
-  for (const value of Object.values(node)) {
-    if (Array.isArray(value)) {
-      if (
-        value.some((entry) => isParseResult(entry) && containsResumeTarget(entry, targetNodeIds))
-      ) {
-        return true;
-      }
-      continue;
-    }
-    if (isParseResult(value) && containsResumeTarget(value, targetNodeIds)) {
-      return true;
-    }
-  }
-
-  return false;
-}
-
-function isParseResult(value: unknown): value is ParseResult {
-  return (
-    typeof value === "object" &&
-    value !== null &&
-    typeof (value as { type?: unknown }).type === "string" &&
-    Object.hasOwn(value, "span")
-  );
-}
-
 function createBlockContext(node: BlockStatement, context: EvaluationContext): EvaluationContext {
+  const restoredScope = context.generatorResume === undefined || node.nodeId === undefined
+    ? undefined : context.restoredGeneratorBlockScopes?.get(node.nodeId);
   const scope =
-    node === context.rootNode ||
+    restoredScope ?? (node === context.rootNode ||
     node === context.functionBody ||
     context.generatorResume !== undefined
       ? context.scope
-      : context.scope.child();
+      : context.scope.child());
   const blockContext = {
     ...context,
-    scope
+    scope,
+    ...(context.generatorYield === undefined || node.nodeId === undefined ? {} : {
+      generatorBlockScopes: new Map([...(context.generatorBlockScopes ?? []), [node.nodeId, scope]])
+    })
   };
   if (context.generatorResume === undefined) {
     predeclareBlockBindings(node, blockContext);
@@ -2080,19 +2071,15 @@ async function evaluateWhileStatement(
   node: WhileStatement,
   context: EvaluationContext
 ): Promise<EvaluationResult> {
+  let resumeBody = context.generatorResume !== undefined && context.generatorResume.completed !== true &&
+    containsResumeTarget(node.body, new Set([context.generatorResume.yieldNodeId]));
   while (true) {
-    const test = await evaluateNode(node.test, context);
-    if (test.kind !== "normal") {
-      return test;
+    if (!resumeBody) {
+      const test = await evaluateNode(node.test, context);
+      if (test.kind !== "normal") return test;
+      if (!isTruthy(test.value)) return { kind: "normal", hasValue: false, value: undefined };
     }
-
-    if (!isTruthy(test.value)) {
-      return {
-        kind: "normal",
-        hasValue: false,
-        value: undefined
-      };
-    }
+    resumeBody = false;
 
     const iterationContext = createLoopIterationContext(context, context.scope);
     emitLoopIterationBreakpoint(node, iterationContext);
@@ -2346,12 +2333,14 @@ async function evaluateYieldExpression(
   }
 
   const completion = await yieldGeneratorValue(argument.value, node, context);
+  if (context.generatorResume !== undefined) context.generatorResume.completed = true;
   context.generatorResume = undefined;
   return generatorCompletionResult(completion);
 }
 
 async function yieldGeneratorValue(value: SandboxValue, node: YieldExpression, context: EvaluationContext): Promise<GeneratorCompletion> {
   if (context.asyncGenerator && !node.delegate) value = await suspendJob(awaitSandboxValue(value, context.signal, context.budget));
+  context.captureGeneratorScope?.(context.scope, context.generatorBlockScopes, context.finallyCompletions, context.generatorExpressionStates);
   const completionPromise = context.generatorYield!(allocateProducedSandboxValue(value, context.budget), node.nodeId);
   emitResumeBreakpoint(context, {
     kind: "generator-yield",

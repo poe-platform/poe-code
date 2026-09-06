@@ -421,7 +421,7 @@ describe("independent AR-001 original workflows", () => {
       ]) {
         const restored = restore(JSON.parse(serialized!), { source: scenario.source });
         expect(restored.executionSemantics).toBe("jobs-v8");
-        expect(restored.version).toBe(1);
+        expect(restored.version).toBe(2);
         const rebound = makeFixture(scenario.id, false, scenario.policy);
         const requests: HostCallResumeRequest[] = [];
         const resumed = await run(scenario.source, {
@@ -540,7 +540,7 @@ return { same: shared === alias, closures: readers[0]() === readers[1](), count:
             other: async () => JSON.parse(await dump(waiting, { mode: "replay" })).version
           }
         })
-      ).resolves.toMatchObject({ ok: true, returnValue: 1 });
+      ).resolves.toMatchObject({ ok: true, returnValue: 2 });
       expect(host.isHeld()).toBe(true);
     } finally {
       host.release();

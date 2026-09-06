@@ -15,7 +15,8 @@ import { sandboxString } from "../string-coercion.js";
 import { getSandboxPropertyDescriptor, installRegexPrototype, materializeFunctionProperties, setSandboxPrototype } from "../object-model.js";
 import { accessorAdapter, readPropertyDescriptor } from "../accessors.js";
 import { callRegexMethod, getRegexMember, regexFlagProperties, regexSearch, type RegexMethodName } from "../methods/regex.js";
-import { regexMatch } from "../methods/string.js";
+import { regexMatch, regexReplace } from "../methods/string.js";
+import { invokeBuiltinClosure } from "../builtin-call.js";
 
 export function createRegexGlobals(options: { budget: Budget; compileOwner?: CompileOwner }): { RegExp: SandboxClosure } {
   const invoke = (construct: boolean) => async (args: readonly SandboxValue[], context?: SandboxCallContext) => {
@@ -94,6 +95,12 @@ export function createRegexGlobals(options: { budget: Budget; compileOwner?: Com
   Object.defineProperty(prototype, Symbol.match, {
     value: createSandboxClosure({ guest: true, sandbox: true, name: "[Symbol.match]", length: 1,
       call: (args, context) => regexMatch(args[0], context?.thisValue, options.budget, context) }),
+    writable: true, configurable: true
+  });
+  Object.defineProperty(prototype, Symbol.replace, {
+    value: createSandboxClosure({ guest: true, sandbox: true, name: "[Symbol.replace]", length: 2,
+      call: (args, context) => regexReplace(args[0], context?.thisValue, args[1], options.budget,
+        (closure, values) => invokeBuiltinClosure(closure, values, options.budget, context, undefined), context) }),
     writable: true, configurable: true
   });
   for (const name of ["exec", "test", "toString"] as RegexMethodName[]) {

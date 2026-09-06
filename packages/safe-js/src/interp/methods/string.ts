@@ -496,7 +496,7 @@ async function replaceRegex(
   context?: SandboxCallContext
 ): Promise<string> {
   if (hasRegexPropertyOverride(regex, ["exec", "flags", ...Object.keys(regexFlagProperties)], budget))
-    return replaceObservableRegex(value, regex, replacement, budget, callClosure, context);
+    return regexReplace(value, regex, replacement, budget, callClosure, context);
   if (regex.flags.includes("g")) regex.lastIndex = 0;
   const cursor = regex.lastIndex;
   let result = "";
@@ -532,14 +532,17 @@ function readReplacementProperty(target: SandboxValue, key: string, budget: Budg
   return isSandboxRegex(target) ? getRegexMember(target, key, budget, context) : undefined;
 }
 
-async function replaceObservableRegex(
-  value: string,
-  regex: SandboxRegex,
-  replacement: string | SandboxClosure,
+export async function regexReplace(
+  input: SandboxValue,
+  regex: SandboxValue,
+  replacementInput: SandboxValue,
   budget: Budget,
   callClosure: (closure: SandboxClosure, args: readonly SandboxValue[]) => Promise<SandboxValue>,
   context?: SandboxCallContext
 ): Promise<string> {
+  if (regex === null || typeof regex !== "object") throw new TypeError("RegExp replace requires an object receiver.");
+  let value: string | undefined;
+  let replacement: string | SandboxClosure | undefined;
   const matches: SandboxValue[] = [];
   let current: SandboxValue;
   let field: SandboxValue;
@@ -548,15 +551,23 @@ async function replaceObservableRegex(
   let captures: (string | undefined)[] = [];
   let result = "";
   let flags: string | undefined;
-  const release = retainValues(budget, () => [value, regex, replacement, matches, current, field, groups, matched, captures, result, flags]);
+  const release = retainValues(budget, () => [input, value, regex, replacementInput, replacement, matches, current, field, groups, matched, captures, result, flags]);
   try {
+    value = await sandboxString(input, budget, context);
+    input = undefined;
+    replacement = isSandboxClosure(replacementInput) ? replacementInput : await sandboxString(replacementInput, budget, context);
+    replacementInput = undefined;
+    if (isSandboxRegex(regex) && !hasRegexPropertyOverride(regex, ["exec", "flags", ...Object.keys(regexFlagProperties)], budget)) {
+      release();
+      return await replaceRegex(value, regex, replacement, budget, callClosure, context);
+    }
     field = await readReplacementProperty(regex, "flags", budget, context);
     flags = await sandboxString(field, budget, context);
     field = undefined;
     const global = flags.includes("g");
     const fullUnicode = flags.includes("u") || flags.includes("v");
     flags = undefined;
-    if (global) regex.lastIndex = 0;
+    if (global) await setSandboxProperty(regex, "lastIndex", 0, budget, true, context);
     while (true) {
       budget.visitNode();
       current = await regexExec(regex, value, budget, context);
@@ -568,10 +579,10 @@ async function replaceObservableRegex(
       matched = await sandboxString(field, budget, context);
       field = undefined;
       if (matched.length === 0) {
-        field = regex.lastIndex;
+        field = await readReplacementProperty(regex, "lastIndex", budget, context);
         const index = normalizeLastIndex(await sandboxNumber(field, budget, context));
         const point = fullUnicode ? value.codePointAt(index) : undefined;
-        regex.lastIndex = index + (point !== undefined && point > 0xffff ? 2 : 1);
+        await setSandboxProperty(regex, "lastIndex", index + (point !== undefined && point > 0xffff ? 2 : 1), budget, true, context);
         field = undefined;
       }
       matched = undefined;

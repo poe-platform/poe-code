@@ -1,0 +1,17 @@
+import { S } from "schema";
+
+export const schema = S.Object({ title: S.String() });
+
+export default async (frontmatter) => {
+  class Child extends Date {}
+  const date = new Child(NaN);
+  date.setYear({ valueOf() { return 99; } });
+  await 0;
+  if (date.getYear() !== 99 || date.getFullYear() !== 1999 ||
+      Date.prototype.toGMTString !== Date.prototype.toUTCString ||
+      date.toGMTString() !== date.toUTCString() ||
+      Date.prototype.toGMTString.name !== "toUTCString") {
+    throw new Error("Legacy Date methods failed");
+  }
+  return { title: frontmatter.title, ok: true, year: date.getFullYear() };
+};

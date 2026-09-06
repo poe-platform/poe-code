@@ -75,6 +75,7 @@ const methodNames = [
   "getDate",
   "getDay",
   "getFullYear",
+  "getYear",
   "getHours",
   "getMilliseconds",
   "getMinutes",
@@ -92,6 +93,7 @@ const methodNames = [
   "setTime",
   "setDate",
   "setFullYear",
+  "setYear",
   "setHours",
   "setMilliseconds",
   "setMinutes",
@@ -117,7 +119,8 @@ export const dateMethods = new Map<
   { length: number; invoke: (date: Date, args: readonly unknown[]) => unknown }
 >(
   methodNames.map((name) => {
-    const native = NativeDate.prototype[name];
+    const native = Object.getOwnPropertyDescriptor(NativeDate.prototype, name)!.value as
+      (...args: number[]) => number | string | null;
     return [
       name,
       {

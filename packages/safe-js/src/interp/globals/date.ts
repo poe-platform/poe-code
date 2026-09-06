@@ -126,6 +126,7 @@ export function createDateGlobal(
         }
       })
     );
+  methods.set("toGMTString", methods.get("toUTCString")!);
   methods.set(Symbol.toPrimitive, createSandboxClosure({
     guest: true,
     sandbox: true,
@@ -160,7 +161,7 @@ async function coerceDateSetter(name: string, receiver: Date, args: readonly San
   const converted: number[] = [];
   for (const value of args.slice(0, method.length)) converted.push(await sandboxNumber(value, budget, context));
   // Invalid component setters return without overwriting coercion side effects.
-  if (Number.isNaN(initialTime) && name !== "setTime" && !name.endsWith("FullYear")) return NaN;
+  if (Number.isNaN(initialTime) && name !== "setTime" && name !== "setYear" && !name.endsWith("FullYear")) return NaN;
   const result = method.invoke(createSandboxDate(initialTime), converted) as number;
   return dateMethods.get("setTime")!.invoke(receiver, [result]) as number;
 }

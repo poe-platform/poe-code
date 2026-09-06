@@ -63,6 +63,10 @@
       "types": "./packages/safe-bash/dist/index.d.ts",
       "import": "./packages/safe-bash/dist/index.js"
     },
+    "./safe-bash/optional-host": {
+      "types": "./packages/safe-bash/dist/optional-host.d.ts",
+      "import": "./packages/safe-bash/dist/optional-host.js"
+    },
     "./safe-bash/contracts": {
       "types": "./packages/safe-bash/dist/contracts/index.d.ts",
       "import": "./packages/safe-bash/dist/contracts/index.js"

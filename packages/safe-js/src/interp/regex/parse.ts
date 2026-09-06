@@ -2,6 +2,7 @@ import { RegexCompileGuard, type CompileScope } from "./compile-guard.js";
 
 export type RegexFlags = {
   global: boolean;
+  sticky: boolean;
   ignoreCase: boolean;
   multiline: boolean;
   dotAll: boolean;
@@ -422,6 +423,7 @@ function parseFlags(flags: string, guard: RegexCompileGuard): RegexFlags {
   guard.allocate(10);
   const parsed: RegexFlags = {
     global: false,
+    sticky: false,
     ignoreCase: false,
     multiline: false,
     dotAll: false
@@ -430,7 +432,8 @@ function parseFlags(flags: string, guard: RegexCompileGuard): RegexFlags {
     g: "global",
     i: "ignoreCase",
     m: "multiline",
-    s: "dotAll"
+    s: "dotAll",
+    y: "sticky"
   };
 
   for (let position = 0; position < flags.length; position += 1) {

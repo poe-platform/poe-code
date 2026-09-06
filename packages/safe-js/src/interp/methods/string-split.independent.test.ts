@@ -179,7 +179,7 @@ describe("independent STR-05 typed split validation", () => {
     expect(structuredClone(actual.returnValue)).toStrictEqual(expected);
   });
 
-  it.each(["u", "y", "gy", "gu", "d", "v"])("does not add unsupported %s flags", async (flags) => {
+  it.each(["u", "gu", "d", "v"])("does not add unsupported %s flags", async (flags) => {
     await expect(
       run(`return "ab".split(new RegExp("()", ${JSON.stringify(flags)}));`, { modules: {} })
     ).rejects.toThrow("Unsupported regex flag");

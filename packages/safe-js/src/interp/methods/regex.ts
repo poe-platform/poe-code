@@ -243,7 +243,7 @@ export async function regexToString(
 export function executeRegex(target: SandboxRegex, input: string, lastIndex: number): RegexMatch | null {
   const pattern = getSandboxRegexPattern(target);
   const match = matchRegex(pattern, input, lastIndex);
-  if (pattern.flags.global) {
+  if (pattern.flags.global || pattern.flags.sticky) {
     target.lastIndex = match === null ? 0 : match.index + match.text.length;
   }
   return match;

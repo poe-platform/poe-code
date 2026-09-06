@@ -12,7 +12,7 @@ type MatchState = { position: number; captures: Capture[] };
 type MatchContext = { input: string; flags: RegexFlags; steps: number };
 
 export function matchRegex(pattern: RegexPattern, input: string, lastIndex = 0): RegexMatch | null {
-  const startIndex = pattern.flags.global ? normalizeLastIndex(lastIndex) : 0;
+  const startIndex = pattern.flags.global || pattern.flags.sticky ? normalizeLastIndex(lastIndex) : 0;
   return matchRegexFrom(pattern, input, startIndex);
 }
 
@@ -36,6 +36,7 @@ export function matchRegexFrom(
     if (!result.done) {
       return toRegexMatch(input, attempt, result.value);
     }
+    if (pattern.flags.sticky) break;
   }
 
   return null;

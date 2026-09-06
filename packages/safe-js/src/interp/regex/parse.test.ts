@@ -10,6 +10,7 @@ describe("parseRegex", () => {
 
     expect(pattern.flags).toEqual({
       global: true,
+      sticky: false,
       ignoreCase: true,
       multiline: true,
       dotAll: true

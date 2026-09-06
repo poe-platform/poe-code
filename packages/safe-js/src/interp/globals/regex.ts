@@ -22,6 +22,7 @@ import { restoreSandboxRegExpIterator } from "../regexp-iterator.js";
 import { normalizeLastIndex } from "../regex/engine.js";
 import { retainValues } from "../resources.js";
 import { setSandboxProperty } from "../interpreter.js";
+import { regexSplit } from "../methods/regex-split.js";
 
 export function createRegexGlobals(options: { budget: Budget; compileOwner?: CompileOwner }): { RegExp: SandboxClosure } {
   const invoke = (construct: boolean) => async (args: readonly SandboxValue[], context?: SandboxCallContext) => {
@@ -155,6 +156,11 @@ export function createRegexGlobals(options: { budget: Budget; compileOwner?: Com
           release();
         }
       } }),
+    writable: true, configurable: true
+  });
+  Object.defineProperty(prototype, Symbol.split, {
+    value: createSandboxClosure({ guest: true, sandbox: true, name: "[Symbol.split]", length: 2,
+      call: (args, context) => regexSplit(context?.thisValue, args[0], args[1], constructor, options.budget, context) }),
     writable: true, configurable: true
   });
   for (const name of ["exec", "test", "toString"] as RegexMethodName[]) {

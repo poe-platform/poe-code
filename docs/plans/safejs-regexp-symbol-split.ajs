@@ -1,0 +1,23 @@
+import { S } from "schema";
+
+export const schema = S.Object({ title: S.String() });
+
+export default async function main(frontmatter) {
+  const marker = { value: 1 };
+  const matcher = {
+    lastIndex: 0,
+    exec() {
+      if (this.lastIndex !== 1) return null;
+      this.lastIndex = 2;
+      return { 1: marker, length: 2 };
+    }
+  };
+  const target = { flags: '', constructor: { [Symbol.species]: function () { return matcher; } } };
+  const result = RegExp.prototype[Symbol.split].call(target, 'abc');
+  if (result[0] !== 'a' || result[1] !== marker || result[2] !== 'c')
+    throw new Error('Species splitting lost capture identity');
+  const ordinary = 'banana'.split(/a/);
+  if (ordinary.join('|') !== 'b|n|n|') throw new Error('Default splitting failed');
+  await 0;
+  return { ok: true, title: frontmatter.title, ordinary };
+}

@@ -436,7 +436,7 @@ describe("compile preimage policy", () => {
   it("CONTROL supported grammar, captures, isolated cursor data and native aliases", () => {
     expect(parseRegex("(a)", "g").captureCount).toBe(1);
     expect(() => parseRegex("a", "u")).toThrow(SyntaxError);
-    expect(() => parseRegex("a", "y")).toThrow(SyntaxError);
+    expect(parseRegex("a", "y").flags.sticky).toBe(true);
     const regex = createSandboxRegex("a", "g", 2);
     const cursor = { [Symbol.toPrimitive]: 7 };
     Object.defineProperty(regex, "lastIndex", { value: cursor });

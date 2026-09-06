@@ -218,7 +218,7 @@ describe("STR-04 regex cursor semantics", () => {
     await expect(run(source)).resolves.toMatchObject({ ok: true, returnValue: expected });
   });
 
-  it.each(["y", "gy"])("keeps unsupported %s flags outside the accepted subset", (flags) => {
-    expect(() => createSandboxRegex("a", flags)).toThrow("Unsupported regex flag 'y'");
+  it.each(["y", "gy"])("accepts sticky %s flags", (flags) => {
+    expect(createSandboxRegex("a", flags).flags).toBe(flags);
   });
 });

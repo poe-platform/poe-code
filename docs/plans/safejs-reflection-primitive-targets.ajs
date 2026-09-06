@@ -1,0 +1,13 @@
+import { S } from "schema";
+
+export const schema = S.Object({ title: S.String() });
+
+export default async (frontmatter) => {
+  const names=Object.getOwnPropertyNames("abc");
+  const descriptor=Object.getOwnPropertyDescriptor("abc","0");
+  const descriptors=Object.getOwnPropertyDescriptors("abc");
+  if(names.join(",")!=="0,1,2,length" || descriptor.value!=="a" || descriptor.writable || descriptors.length.value!==3) {
+    throw new Error("Primitive string reflection failed");
+  }
+  return {title:frontmatter.title,ok:true,names,value:descriptor.value};
+};

@@ -111,7 +111,7 @@ export function createObjectArrayGlobals(options: {
           sandbox: true,
           call: async ([value, key], context) => {
             const descriptor = Object.getOwnPropertyDescriptor(
-              objectProperties(value),
+              reflectionProperties(value),
               await toPropertyKey(key, options.budget, context)
             );
             if (descriptor === undefined) return undefined;
@@ -126,7 +126,7 @@ export function createObjectArrayGlobals(options: {
           sandbox: true,
           call: ([value]) => {
             const descriptors = Object.create(null) as SandboxObject;
-            const properties = objectProperties(value);
+            const properties = reflectionProperties(value);
             for (const key of [...Object.getOwnPropertyNames(properties), ...ownSandboxSymbolKeys(value)])
               defineOwnDataProperty(descriptors, key, exposePropertyDescriptor(Object.getOwnPropertyDescriptor(properties, key)!));
             return allocateProducedSandboxValue(descriptors, options.budget);
@@ -136,7 +136,7 @@ export function createObjectArrayGlobals(options: {
         getOwnPropertyNames: createSandboxClosure({
           sandbox: true,
           call: ([value]) =>
-            budgetSandboxValue(Object.getOwnPropertyNames(objectProperties(value)), options.budget),
+            budgetSandboxValue(Object.getOwnPropertyNames(reflectionProperties(value)), options.budget),
           name: "getOwnPropertyNames"
         }),
         getOwnPropertySymbols: createSandboxClosure({
@@ -527,6 +527,12 @@ function assignSandboxValues(
       release();
     }
   })();
+}
+
+function reflectionProperties(value: SandboxValue): SandboxObject | SandboxArray {
+  if (value !== null && value !== undefined && typeof value !== "object")
+    value = createSandboxBox(value);
+  return objectProperties(value);
 }
 
 function objectProperties(value: SandboxValue, mutable = false): SandboxObject | SandboxArray {

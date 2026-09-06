@@ -658,24 +658,29 @@ function splitNormalized(
       const result: SandboxValue[] = [];
       let copiedThrough = 0;
       let endedWithZeroWidthMatch = false;
-      for (const match of collectRegexMatches(splitter, value, true)) {
+      while (result.length < limit) {
+        const match = executeRegex(splitter, value, Number(splitter.lastIndex));
+        if (match === null) break;
+        if (match.text.length === 0) splitter.lastIndex = match.index + 1;
         endedWithZeroWidthMatch = match.text.length === 0 && match.index === value.length;
         if (
           match.text.length === 0 &&
           (match.index === copiedThrough || match.index === value.length)
         )
           continue;
-        if (result.length >= limit) break;
+        budget.allocateArrayLength(result.length + 1);
         result.push(budget.allocateString(value.slice(copiedThrough, match.index)));
         for (const capture of match.captures) {
           if (result.length >= limit) break;
+          budget.allocateArrayLength(result.length + 1);
           result.push(capture === undefined ? undefined : budget.allocateString(capture));
         }
         copiedThrough = match.index + match.text.length;
       }
-      if (result.length < limit && (value.length > 0 || !endedWithZeroWidthMatch))
+      if (result.length < limit && (value.length > 0 || !endedWithZeroWidthMatch)) {
+        budget.allocateArrayLength(result.length + 1);
         result.push(budget.allocateString(value.slice(copiedThrough)));
-      budget.allocateArrayLength(result.length);
+      }
       return result;
     } finally {
       compilation.dispose();

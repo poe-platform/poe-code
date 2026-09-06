@@ -9,6 +9,7 @@ import { retainValues } from "../resources.js";
 import { getSandboxDataProperty, getSandboxPropertyDescriptor, hasRegexPropertyOverride } from "../object-model.js";
 import { readPropertyDescriptor } from "../accessors.js";
 import { createSandboxBox } from "../boxed.js";
+import { setSandboxProperty } from "../interpreter.js";
 import {
   createSandboxClosure,
   createSandboxRegex,
@@ -281,7 +282,7 @@ function callStringMethodBody(
     return regexSearch(regex, value, budget, context);
   if (methodName === "match" && isSandboxRegex(regex) &&
       hasRegexPropertyOverride(regex, ["exec", "flags", ...Object.keys(regexFlagProperties)], budget))
-    return callObservableRegexMatch(value, regex, budget, context);
+    return regexMatch(value, regex, budget, context);
   if (isSandboxRegex(regex) && (methodName === "matchAll" ||
       (methodName === "match" && !regex.flags.includes("g") &&
        regex.lastIndex !== null && typeof regex.lastIndex === "object"))) {
@@ -857,31 +858,40 @@ async function callStringPattern(
   }
 }
 
-async function callObservableRegexMatch(
-  value: string,
-  regex: SandboxRegex,
+export async function regexMatch(
+  input: SandboxValue,
+  regex: SandboxValue,
   budget: Budget,
   context?: SandboxCallContext
 ): Promise<SandboxValue> {
+  if (regex === null || typeof regex !== "object") throw new TypeError("RegExp match requires an object receiver.");
+  let value: string | undefined;
   const matches: SandboxValue[] = [];
   let result: SandboxValue;
   let matched: SandboxValue;
   let cursor: SandboxValue;
   let flagsValue: SandboxValue;
   let flags: string | undefined;
-  const release = retainValues(budget, () => [value, regex, matches, result, matched, cursor, flagsValue, flags]);
+  const release = retainValues(budget, () => [input, value, regex, matches, result, matched, cursor, flagsValue, flags]);
+  const read = (target: SandboxValue, key: PropertyKey) => {
+    if (context?.getProperty !== undefined) return context.getProperty(target, key);
+    const descriptor = getSandboxPropertyDescriptor(target, key, budget);
+    return descriptor === undefined ? undefined : readPropertyDescriptor(descriptor, target, context);
+  };
   try {
-    const descriptor = context?.getProperty === undefined
-      ? getSandboxPropertyDescriptor(regex, "flags", budget) : undefined;
-    flagsValue = await (context?.getProperty !== undefined ? context.getProperty(regex, "flags")
-      : descriptor === undefined ? getRegexMember(regex, "flags", budget, context)
-        : readPropertyDescriptor(descriptor, regex, context));
+    value = await sandboxString(input, budget, context);
+    input = undefined;
+    if (isSandboxRegex(regex) && !hasRegexPropertyOverride(regex, ["exec", "flags", ...Object.keys(regexFlagProperties)], budget)) {
+      release();
+      return await callStringMethodBody(value, "match", [regex], budget, context?.compilation, context);
+    }
+    flagsValue = await read(regex, "flags");
     flags = await sandboxString(flagsValue, budget, context);
     flagsValue = undefined;
     if (!flags.includes("g")) return await regexExec(regex, value, budget, context);
     const fullUnicode = flags.includes("u") || flags.includes("v");
     flags = undefined;
-    regex.lastIndex = 0;
+    await setSandboxProperty(regex, "lastIndex", 0, budget, true, context);
     while (true) {
       budget.visitNode();
       result = await regexExec(regex, value, budget, context);
@@ -895,10 +905,10 @@ async function callObservableRegexMatch(
       budget.allocateArrayLength(matches.length + 1);
       matches.push(text);
       if (text.length === 0) {
-        cursor = regex.lastIndex;
+        cursor = await read(regex, "lastIndex");
         const index = normalizeLastIndex(await sandboxNumber(cursor, budget, context));
         const point = fullUnicode ? value.codePointAt(index) : undefined;
-        regex.lastIndex = index + (point !== undefined && point > 0xffff ? 2 : 1);
+        await setSandboxProperty(regex, "lastIndex", index + (point !== undefined && point > 0xffff ? 2 : 1), budget, true, context);
         cursor = undefined;
       }
       result = undefined;

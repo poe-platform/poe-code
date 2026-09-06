@@ -1780,6 +1780,7 @@ async function evaluateForOfIterator(
         return normalEmptyResult();
       }
 
+      const nextValue = iteration.value;
       context.activeLoopIterations.set(
         nodeId,
         iterator.snapshotIndex === undefined
@@ -1788,12 +1789,20 @@ async function evaluateForOfIterator(
               get index() {
                 return iterator.snapshotIndex!();
               },
-              values: [value, iteration.value]
+              values: [value, nextValue]
             }
       );
       const scope = context.scope.child();
-      const binding = await bindForOfLoopVariable(node.left, iteration.value, scope, context);
+      let binding: BindPatternResult;
+      try {
+        binding = await bindForOfLoopVariable(node.left, nextValue, scope, context);
+      } catch (error) {
+        if (isFatalSandboxError(error) || error instanceof HostCallResumabilityError) throw error;
+        await closeIterator(iterator, true);
+        throw error;
+      }
       if (!binding.ok) {
+        await closeIterator(iterator, binding.result.kind === "throw");
         return binding.result;
       }
 
@@ -1811,7 +1820,7 @@ async function evaluateForOfIterator(
       }
       if (result.kind !== "normal") {
         context.activeLoopIterations.delete(nodeId);
-        await closeIterator(iterator);
+        await closeIterator(iterator, result.kind === "throw");
         return result;
       }
       index += 1;
@@ -4097,9 +4106,19 @@ function describeObjectSpreadValue(value: SandboxValue): string {
   return typeof value;
 }
 
-async function closeIterator(iterator: SandboxIterator): Promise<void> {
-  if (iterator.generator && iterator.return !== undefined) {
-    await iterator.return();
+async function closeIterator(iterator: SandboxIterator, preserveThrow = false): Promise<void> {
+  try {
+    const close = iterator.return;
+    if (close === undefined) return;
+    const returned = close();
+    const result = iterator.generator || iterator.asynchronous ? await returned : returned;
+    if ((typeof result !== "object" && typeof result !== "function") || result === null) {
+      throw new TypeError("Iterator return result must be an object.");
+    }
+  } catch (error) {
+    if (!preserveThrow || isFatalSandboxError(error) || error instanceof HostCallResumabilityError) {
+      throw error;
+    }
   }
 }
 

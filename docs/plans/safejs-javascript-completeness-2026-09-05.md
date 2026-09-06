@@ -3649,7 +3649,7 @@ CLI workflow 34014887196 published poe-code@14.0.67 to latest at
 2e3c7c5cee27c1d741e9b0bb2757c853596f95f7. This closes the outstanding
 CLI publication requirement for the preceding delivered changes.
 
-## 62. Default function declaration semantics (in progress)
+## 62. Default function declaration semantics (delivered)
 
 Native ESM comparisons validated missing named outer bindings, hoisting, live
 default bindings, and invalid bare call/member suffixes. The first regression
@@ -3720,6 +3720,15 @@ Normal build, built public-core assertions and the inspected real zero-spawn
 harness screenshot also passed. This atomic default-function declaration fix is
 ready for its own direct-main commit and push; release verification is separate.
 
+Delivered and closed at verified remote main
+c0510b2e14fdb2fe599ddc112715cb502b8ef9da. User-staged patch identity remains
+unchanged. Release workflows are monitored independently while iterator cleanup
+work proceeds; this delivery receipt does not assert publication.
+
+Scoped workflow 34016442573 published SafeJS 0.1.151 at
+2026-09-06T06:28:46.6328928Z; SafeFS and Safe Bash also published 0.1.151.
+CLI workflow 34016442714 remains independently monitored.
+
 ### Next validated gaps: iterator cleanup and async iteration
 
 Read-only probes against current source confirm that object/array destructuring
@@ -3761,3 +3770,40 @@ These probes establish syntax gaps, not runtime conformance beyond parsing.
 Implementing them also requires promise-returning iterator methods, request
 ordering, awaited values, cleanup, budgets, and checkpoint treatment; merely
 removing parser restrictions is insufficient.
+
+## 63. For-of iterator closing (in progress)
+
+Native comparisons and the initial regression suite reproduce 14 failures with
+nine controls passing: binding failures skip closing, ordinary supported iterators
+are never closed, and generator cleanup errors replace body errors (including
+falsey thrown values and nested loops). Fix closing at the binding/body boundary,
+preserve throw-completion precedence, validate return results, and retain fatal
+budget/reentry and resumability failures. Do not await synchronous return values.
+
+The first implementation's value-getter control caught an overbroad cleanup
+boundary; read IteratorValue before binding cleanup handling. Further return-shape
+controls require callable objects to be accepted and thenables not to be awaited.
+The old interpreter assertion that return() is not called on early return is
+corrected, not retained as desired semantics. Native sources and controls remain
+the basis of these changes, not speculative cleanup edits.
+
+Focused validation now passes 502 interpreter tests, including 25 dedicated
+tests with additional return-shape matrices, checkpoint/resume, cancellation and
+fatal-error controls. Maintained SafeJS/harness tests, scoped lint/types, normal
+build and inspected zero-spawn harness QA must pass before a separate main push.
+Member/array/object for-of assignment targets remain a separate validated gap.
+
+QA: use a named default async harness; run a destructuring binding failure and a
+body throw with a throwing generator finally. Assert cleanup occurred and the
+original body value won, return the observations, and inspect the CLI screenshot.
+Use no host capabilities or agent spawns. Close this scope at verified remote main
+and monitor publication while implementing the next validated gap.
+
+Qualification passed: 13,508 maintained SafeJS tests (41 skipped), 163 harness
+tests, focused ESLint and package TypeScript. Normal build and the real zero-spawn
+harness passed; its screenshot was inspected. The harness asserts binding cleanup
+and winning body value 7, not merely successful execution. Additional bounded
+native controls confirm that finally blocks yielding during return are not
+drained beyond the single close request. This internal interpreter change uses
+the maintained package checks; the preceding broad root gate remains recorded
+separately. Ready for the atomic main push.

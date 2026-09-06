@@ -3525,7 +3525,7 @@ describe("interpret", () => {
     });
   });
 
-  it("does not call iterator return when return exits a for...of loop", async () => {
+  it("calls iterator return when return exits a for...of loop", async () => {
     const iteratorReturn = vi.fn(() => ({
       done: true,
       value: undefined
@@ -3550,7 +3550,7 @@ describe("interpret", () => {
       ok: true,
       returnValue: 1
     });
-    expect(iteratorReturn).not.toHaveBeenCalled();
+    expect(iteratorReturn).toHaveBeenCalledTimes(1);
   });
 
   it("visits array elements pushed before a for...of iterator advances", async () => {

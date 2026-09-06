@@ -166,8 +166,11 @@ export function validateGuestHeapNode(raw: unknown, heap: Record<string, unknown
           if (!absent(expression.key) && typeof expression.key !== "string") reference(expression.key, ["symbol"]);
           if (Object.hasOwn(expression, "referenceObject") && expression.phase !== "binding") throw new TypeError("Invalid prepared object pattern reference.");
           if (Object.hasOwn(expression, "referenceKey") && typeof expression.referenceKey !== "string") reference(expression.referenceKey, ["symbol"]);
-        } else if (expression.kind === "for-of-array" || expression.kind === "for-of-iterator" || expression.kind === "array-pattern") {
-          if (expression.kind === "array-pattern") {
+        } else if (expression.kind === "for-of-array" || expression.kind === "for-of-iterator" || expression.kind === "array-pattern" || expression.kind === "yield-delegate") {
+          if (expression.kind === "yield-delegate") {
+            fields(expression, ["kind", "async", "value", "current", "iterator"]);
+            if (typeof expression.async !== "boolean") throw new TypeError("Invalid delegated yield protocol.");
+          } else if (expression.kind === "array-pattern") {
             fields(expression, ["kind", "phase", "index", "done", "current", "iterator"], ["referenceObject", "referenceKey"]);
             if (!["reference", "binding"].includes(String(expression.phase)) || typeof expression.done !== "boolean" ||
                 Object.hasOwn(expression, "referenceObject") !== Object.hasOwn(expression, "referenceKey")) throw new TypeError("Invalid array pattern state.");
@@ -178,7 +181,7 @@ export function validateGuestHeapNode(raw: unknown, heap: Record<string, unknown
             if (!["left", "body"].includes(String(expression.phase))) throw new TypeError("Invalid for-of phase.");
             reference(expression.scope, ["scope-frame"]);
           }
-          integer(expression.index);
+          if (expression.kind !== "yield-delegate") integer(expression.index);
           if (expression.kind === "for-of-array") reference(expression.values, ["array", "guest-array"]);
           else {
             let iterator = record(expression.iterator);

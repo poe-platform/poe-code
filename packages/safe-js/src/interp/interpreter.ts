@@ -119,6 +119,7 @@ import {
 import { callNumberMethod, getNumberMember, isNumberMethodName } from "./methods/number.js";
 import { getPromiseMember, isSandboxPromiseConstructor } from "./promise.js";
 import { acquireSandboxIterator, closeIterator, readIteratorResult, restoreSandboxIterator } from "./iteration.js";
+import type { GeneratorExpressionState } from "./generator-expression-state.js";
 import { assertCollectionMutable } from "./running-state.js";
 import { getGeneratorMember } from "./methods/generator.js";
 import { getRegexMember, setRegexMember } from "./methods/regex.js";
@@ -2436,32 +2437,50 @@ async function evaluateYieldDelegate(
   node: YieldExpression,
   context: EvaluationContext
 ): Promise<EvaluationResult> {
-  const argument = await evaluateNode(node.argument!, context);
+  const saved = context.generatorResume === undefined || node.nodeId === undefined
+    ? undefined : context.restoredGeneratorExpressionStates?.get(node.nodeId);
+  if (saved !== undefined && saved.kind !== "yield-delegate") throw new TypeError("Invalid delegated yield continuation.");
+  const argument = saved === undefined ? await evaluateNode(node.argument!, context)
+    : { kind: "normal" as const, hasValue: true as const, value: saved.value };
   if (argument.kind !== "normal") {
     return argument;
   }
-  const iterator = await acquireSandboxIterator(
+  const iterator = saved === undefined ? await acquireSandboxIterator(
     argument.value,
     context.budget,
     createCoercionContext(context),
     context.asyncGenerator,
     context.signal
-  );
+  ) : "kind" in saved.iterator
+    ? await restoreSandboxIterator(saved.iterator, context.budget, createCoercionContext(context), context.signal)
+    : saved.iterator;
   if (iterator === undefined) {
     throw new TypeError(`${String(argument.value)} is not a supported iterable`);
   }
 
+  const state: Extract<GeneratorExpressionState, { kind: "yield-delegate" }> = {
+    kind: "yield-delegate", async: context.asyncGenerator === true,
+    value: argument.value, current: saved?.current, iterator
+  };
+  if (node.nodeId !== undefined) context = { ...context,
+    generatorExpressionStates: new Map([...(context.generatorExpressionStates ?? []), [node.nodeId, state]]) };
   const releaseIterator = retainValues(context.budget, () => [
     argument.value,
-    iterator.retainedValue
+    iterator.retainedValue,
+    state.current
   ]);
   try {
     let completion: { type: "normal" | "return" | "throw"; value: SandboxValue } = {
       type: "normal",
       value: undefined
     };
-    const replay = context.generatorResume?.sent ?? [];
+    const replay = saved === undefined ? context.generatorResume?.sent ?? [] : [];
     let replayIndex = 0;
+    if (saved !== undefined) {
+      completion = (await yieldGeneratorValue(saved.current, node, context)) as typeof completion;
+      if (context.generatorResume !== undefined) context.generatorResume.completed = true;
+      context.generatorResume = undefined;
+    }
     while (true) {
       const method = completion.type === "normal" ? "next" : completion.type;
       const iteratorMethod = iterator.getOperation === undefined ? iterator[method] : await iterator.getOperation(method);
@@ -2494,6 +2513,7 @@ async function evaluateYieldDelegate(
         replayIndex += 1;
         continue;
       }
+      state.current = value;
       completion = (await yieldGeneratorValue(value, node, context)) as typeof completion;
       context.generatorResume = undefined;
     }

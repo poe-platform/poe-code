@@ -854,6 +854,9 @@ function restoreGuestGenerator(
       expressions.set(Number(id), expression.kind === "binary"
         ? { kind: "binary", left: deserializeValue(expression.left, state) as SandboxValue }
         : expression.kind === "declaration" ? { ...expression }
+        : expression.kind === "yield-delegate" ? { ...expression, value: deserializeValue(expression.value, state) as SandboxValue,
+          current: deserializeValue(expression.current, state) as SandboxValue,
+          iterator: mapIteratorSnapshot(expression.iterator, value => deserializeValue(value, state) as SandboxValue) }
         : expression.kind === "pattern-source" ? { kind: "pattern-source", value: deserializeValue(expression.value, state) as SandboxValue }
         : expression.kind === "object-pattern" ? { kind: "object-pattern", phase: expression.phase, index: expression.index,
           excludedKeys: expression.excludedKeys.map(value => deserializeValue(value, state) as SandboxValue),

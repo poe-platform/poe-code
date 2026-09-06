@@ -46,3 +46,4 @@ Delegated `yield*` initially resumes at the correct yielded element but repeats
 its source expression on every restoration. An iterator over `input()` yielding
 2 and 3 finished with a call count of 3 after two restorations; native execution
 finished with 1. Retaining the delegated iterator/source needs a separate fix.
+That follow-up is tracked in `safejs-yield-delegate-continuations.md`.

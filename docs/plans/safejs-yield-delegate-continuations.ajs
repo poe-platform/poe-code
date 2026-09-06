@@ -1,0 +1,19 @@
+import { S } from "schema";
+
+export const schema = S.Object({ title: S.String() });
+
+export default async frontmatter => {
+  async function* values() {
+    let count = 0;
+    function* input() { count++; yield 2; yield 3; return 9; }
+    const result = yield* input();
+    return [count, result];
+  }
+  const iterator = values();
+  const first = await iterator.next();
+  const second = await iterator.next();
+  const final = await iterator.next();
+  if (first.value !== 2 || second.value !== 3 || !final.done || final.value.join() !== "1,9")
+    throw new Error("Delegated yield check failed");
+  return { title: frontmatter.title, ok: true, result: final.value };
+};

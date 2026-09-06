@@ -23,8 +23,8 @@ export function getGeneratorMember(
   return createSandboxClosure({
     sandbox: true,
     name: property,
-    call: ([value]) => {
-      const iterator = generatorIterator(target, budget);
+    call: ([value], context) => {
+      const iterator = generatorIterator(target, budget, context);
       const result = Promise.resolve(iterator[property as GeneratorMethodName]!(value)).then(result => allocateProducedSandboxValue(
         { value: result.value, done: result.done === true },
         budget

@@ -2407,7 +2407,7 @@ async function evaluateReturnStatement(
     kind: "return",
     hasValue: argument.hasValue,
     value: context.asyncGenerator
-      ? await suspendJob(awaitSandboxValue(argument.value, context.signal, context.budget))
+      ? await suspendJob(awaitSandboxValue(argument.value, context.signal, context.budget, createCoercionContext(context)))
       : argument.value
   };
 }
@@ -2448,7 +2448,7 @@ async function evaluateYieldExpression(
 }
 
 async function yieldGeneratorValue(value: SandboxValue, node: YieldExpression, context: EvaluationContext): Promise<GeneratorCompletion> {
-  if (context.asyncGenerator && !node.delegate) value = await suspendJob(awaitSandboxValue(value, context.signal, context.budget));
+  if (context.asyncGenerator && !node.delegate) value = await suspendJob(awaitSandboxValue(value, context.signal, context.budget, createCoercionContext(context)));
   context.captureGeneratorScope?.(context.scope, context.generatorBlockScopes, context.finallyCompletions, context.generatorExpressionStates);
   const completionPromise = context.generatorYield!(allocateProducedSandboxValue(value, context.budget), node.nodeId);
   emitResumeBreakpoint(context, {
@@ -2459,7 +2459,7 @@ async function yieldGeneratorValue(value: SandboxValue, node: YieldExpression, c
   const completion = await (context.asyncGenerator ? suspendJob(completionPromise) : completionPromise);
   if (context.asyncGenerator && completion.type === "return") {
     try {
-      return { type: "return", value: await suspendJob(awaitSandboxValue(completion.value as SandboxValue, context.signal, context.budget)) };
+      return { type: "return", value: await suspendJob(awaitSandboxValue(completion.value as SandboxValue, context.signal, context.budget, createCoercionContext(context))) };
     } catch (error) {
       return { type: "throw", value: error };
     }
@@ -3568,15 +3568,15 @@ async function evaluateInstanceof(
   return false;
 }
 
-function createCoercionContext(context: EvaluationContext): SandboxCallContext {
+export function createCoercionContext(context: EvaluationContext): SandboxCallContext {
   return {
     stack: context.callStack,
     thisValue: undefined,
     compilation: context.compilation,
     getProperty: (value, property) => getPropertyValue(value, property, context),
     reconcileData: value => reconcileDataBudget(context.budget, context.stats, context.scope, value, context.compilation, context.compilation?.parent),
-    invokeClosure: (closure, args, thisValue, construct) =>
-      invokeSandboxClosure(closure, args, context, context.callStack, undefined, thisValue, construct)
+    invokeClosure: (closure, args, thisValue, construct, newTarget) =>
+      invokeSandboxClosure(closure, args, context, context.callStack, undefined, thisValue, construct, newTarget)
   };
 }
 

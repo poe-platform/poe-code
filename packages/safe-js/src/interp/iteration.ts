@@ -60,7 +60,7 @@ export function mapIteratorSnapshot<T, U>(snapshot: IteratorSnapshot<T>, map: (v
 export async function restoreSandboxIterator(snapshot: IteratorSnapshot, budget: Budget, context: SandboxCallContext, signal?: AbortSignal): Promise<SandboxIterator> {
   if (snapshot.kind === "unsupported") throw new TypeError("Host-owned iterator cannot be restored.");
   if (snapshot.kind === "guest") return guestIterator(snapshot.value, snapshot.next, snapshot.async, budget, context, signal);
-  if (snapshot.kind === "async-from-sync") return asyncFromSyncIterator(await restoreSandboxIterator(snapshot.inner, budget, context, signal), budget, signal);
+  if (snapshot.kind === "async-from-sync") return asyncFromSyncIterator(await restoreSandboxIterator(snapshot.inner, budget, context, signal), budget, signal, context);
   if (Array.isArray(snapshot.value)) return arrayIterator(snapshot.value, context, budget, snapshot.index);
   const iterator = isSandboxGenerator(snapshot.value) && snapshot.value.async
     ? getSandboxAsyncIterator(snapshot.value, budget, context, signal)
@@ -89,7 +89,7 @@ export async function acquireSandboxIterator(
     if (isSandboxGenerator(value) && value.async)
       return getSandboxAsyncIterator(value, budget, context, signal);
     const iterator = await acquireSandboxIterator(value, budget, context);
-    return iterator === undefined ? undefined : asyncFromSyncIterator(iterator, budget, signal);
+    return iterator === undefined ? undefined : asyncFromSyncIterator(iterator, budget, signal, context);
   }
   const factory = await context.getProperty(value, key);
   if (!asyncProtocol && (isSandboxMap(value) || isSandboxSet(value)) &&
@@ -101,7 +101,7 @@ export async function acquireSandboxIterator(
   if (factory === null || factory === undefined) {
     if (!asyncProtocol) return undefined;
     const iterator = await acquireSandboxIterator(value, budget, context);
-    return iterator === undefined ? undefined : asyncFromSyncIterator(iterator, budget, signal);
+    return iterator === undefined ? undefined : asyncFromSyncIterator(iterator, budget, signal, context);
   }
   if (!isSandboxClosure(factory)) {
     if (typeof factory !== "function") throw new TypeError("Iterator method must be callable.");
@@ -125,7 +125,7 @@ function guestIterator(iterator: SandboxValue, next: SandboxValue, asyncProtocol
   ): Promise<IteratorResult<SandboxValue>> => {
     if (!isSandboxClosure(operation)) throw new TypeError("Iterator operation must be callable.");
     const returned = await invokeBuiltinClosure(operation, args, budget, context, iterator);
-    const result = asyncProtocol ? await awaitSandboxValue(returned, signal, budget) : returned;
+    const result = asyncProtocol ? await awaitSandboxValue(returned, signal, budget, context) : returned;
     if ((typeof result !== "object" && typeof result !== "function") || result === null)
       throw new TypeError("Iterator result must be an object.");
     return result as unknown as IteratorResult<SandboxValue>;
@@ -166,7 +166,7 @@ export function getSandboxAsyncIterator(
   signal?: AbortSignal
 ): SandboxIterator | undefined {
   if (isSandboxGenerator(value) && value.async) {
-    return { ...generatorIterator(value, budget), asyncProtocol: true };
+    return { ...generatorIterator(value, budget, context), asyncProtocol: true };
   }
   if (
     value !== null &&
@@ -179,7 +179,7 @@ export function getSandboxAsyncIterator(
     }
   }
   const iterator = getSandboxIterator(value, budget, context);
-  return iterator === undefined ? undefined : asyncFromSyncIterator(iterator, budget, signal);
+  return iterator === undefined ? undefined : asyncFromSyncIterator(iterator, budget, signal, context);
 }
 
 function nativeAsyncIterator(
@@ -238,7 +238,8 @@ function nativeAsyncIterator(
 function asyncFromSyncIterator(
   iterator: SandboxIterator,
   budget: Budget,
-  signal?: AbortSignal
+  signal?: AbortSignal,
+  context?: SandboxCallContext
 ): SandboxIterator {
   const invoke = async (
     method: "next" | "return" | "throw",
@@ -264,7 +265,7 @@ function asyncFromSyncIterator(
     const done = Boolean((await readIteratorResult(iterator, result, "done")).value);
     const resultValue = (await readIteratorResult(iterator, result, "value")).value;
     try {
-      return { done, value: await awaitSandboxValue(resultValue, signal, budget) };
+      return { done, value: await awaitSandboxValue(resultValue, signal, budget, context) };
     } catch (error) {
       if (isFatalSandboxError(error) || error instanceof HostCallResumabilityError) throw error;
       if (!done && method !== "return") await closeIterator(iterator, true);
@@ -440,7 +441,7 @@ function collectionIterator(
 
 const asyncGeneratorRequests = new WeakMap<SandboxGenerator, Promise<unknown>>();
 
-export function generatorIterator(generator: SandboxGenerator, budget?: Budget): SandboxIterator {
+export function generatorIterator(generator: SandboxGenerator, budget?: Budget, context?: SandboxCallContext): SandboxIterator {
   const invoke = async (
     method: "next" | "return" | "throw",
     value?: SandboxValue
@@ -455,7 +456,7 @@ export function generatorIterator(generator: SandboxGenerator, budget?: Budget):
         (initialState === "start" || initialState === "done")
       ) {
         if (initialState === "start") await generator.channel.return();
-        value = await awaitSandboxValue(value, undefined, budget);
+        value = await awaitSandboxValue(value, undefined, budget, context);
       }
       const result = (await generator.channel[method](value)) as IteratorResult<SandboxValue>;
       generator.state = result.done ? "done" : "suspended";

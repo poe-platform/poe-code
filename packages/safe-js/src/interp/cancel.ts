@@ -138,7 +138,8 @@ function registerCancelablePromises(value: SandboxValue, signal: AbortSignal): v
 export function awaitSandboxValue(
   value: SandboxValue,
   signal?: AbortSignal,
-  budget?: Budget
+  budget?: Budget,
+  context?: SandboxCallContext
 ): Promise<SandboxValue> {
   let resolved: Promise<SandboxValue>;
   if (isSandboxPromise(value)) {
@@ -165,7 +166,7 @@ export function awaitSandboxValue(
       );
     });
   } else {
-    resolved = resolveSandboxValue(value, { budget });
+    resolved = resolveSandboxValue(value, { budget, context });
   }
   const pending =
     isSandboxPromise(value) &&

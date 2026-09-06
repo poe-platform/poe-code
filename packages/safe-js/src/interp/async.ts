@@ -23,7 +23,7 @@ import { CompileScope } from "./regex/compile-guard.js";
 import { awaitSandboxValue } from "./cancel.js";
 import type { Scope } from "./scope.js";
 import { hoistVarDeclarations } from "./var-hoist.js";
-import { createPatternContext } from "./interpreter.js";
+import { createCoercionContext, createPatternContext } from "./interpreter.js";
 import { getGuestFunctionProperty, setSandboxPrototype } from "./object-model.js";
 import { functionSources } from "../parse/function-source.js";
 import { registerClosureOrigin, registerGeneratorOrigin } from "./closure-origin.js";
@@ -237,7 +237,8 @@ export function createInterpretedClosure(
             evaluateNode
           ),
         context.budget,
-        context.signal
+        context.signal,
+        callContext
       );
     }
   });
@@ -248,7 +249,8 @@ export function createInterpretedClosure(
 export function executeAsyncFunction(
   execute: (onSuspend: () => void) => Promise<SandboxValue>,
   budget: Budget,
-  signal?: AbortSignal
+  signal?: AbortSignal,
+  callContext?: SandboxCallContext
 ) {
   let completePrefix!: () => void;
   const synchronousPrefix = new Promise<void>((resolve) => {
@@ -261,7 +263,7 @@ export function executeAsyncFunction(
         resolve(
           requiresPromiseResolution(value, budget)
             ? awaitSandboxValue(
-                createSandboxPromise(resolveSandboxValue(value, { budget }), {
+                createSandboxPromise(resolveSandboxValue(value, { budget, context: callContext }), {
                   trackReplay: false
                 }),
                 signal,
@@ -335,7 +337,7 @@ function createGeneratorClosure(
             throw result.value;
           }
           const value = result.hasValue ? result.value : undefined;
-          return node.async ? awaitSandboxValue(value, context.signal, context.budget) : value;
+          return node.async ? awaitSandboxValue(value, context.signal, context.budget, createCoercionContext(context)) : value;
         };
         return node.async ? runAsyncPrefix(execute) : execute();
       });
@@ -381,7 +383,7 @@ export async function evaluateAwaitExpression(
     return {
       kind: "normal",
       hasValue: true,
-      value: await suspendJob(awaitSandboxValue(argument.value, context.signal, context.budget))
+      value: await suspendJob(awaitSandboxValue(argument.value, context.signal, context.budget, createCoercionContext(context)))
     };
   } finally {
     leaveAwait();

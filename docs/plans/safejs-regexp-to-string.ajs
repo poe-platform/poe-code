@@ -1,0 +1,21 @@
+import { S } from "schema";
+
+export const schema = S.Object({ title: S.String() });
+
+export default async function main(frontmatter) {
+  const order = [];
+  const regex = /a/g;
+  Object.defineProperty(regex, 'source', {
+    get() { order.push('source'); return { toString() { order.push('source string'); return 'b'; } }; }
+  });
+  Object.defineProperty(regex, 'flags', {
+    get() { order.push('flags'); return { toString() { order.push('flags string'); return 'i'; } }; }
+  });
+  const text = String(regex);
+  if (text !== '/b/i' || order.join('|') !== 'source|source string|flags|flags string')
+    throw new Error('RegExp conversion order failed');
+  const borrowed = /a/.toString.call({ source: 'c', flags: 'm' });
+  await 0;
+  if (borrowed !== '/c/m') throw new Error('Generic RegExp toString failed');
+  return { ok: true, title: frontmatter.title, text, borrowed, order };
+}

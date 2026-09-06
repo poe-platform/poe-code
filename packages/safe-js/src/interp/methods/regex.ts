@@ -11,12 +11,14 @@ import {
 import { matchRegex, type RegexMatch } from "../regex/engine.js";
 import type { Budget } from "../budget.js";
 import { invokeBuiltinClosure } from "../builtin-call.js";
-import { getSandboxDataProperty } from "../object-model.js";
+import { getSandboxDataProperty, getSandboxPropertyDescriptor } from "../object-model.js";
+import { readPropertyDescriptor } from "../accessors.js";
+import { retainValues } from "../resources.js";
 import { sandboxNumber, sandboxString } from "../string-coercion.js";
 
-export type RegexMethodName = "exec" | "test";
+export type RegexMethodName = "exec" | "test" | "toString";
 
-const regexMethodNames = new Set<RegexMethodName>(["exec", "test"]);
+const regexMethodNames = new Set<RegexMethodName>(["exec", "test", "toString"]);
 const regexFlagProperties: Readonly<Record<string, string>> = {
   hasIndices: "d", global: "g", ignoreCase: "i", multiline: "m",
   dotAll: "s", unicode: "u", unicodeSets: "v", sticky: "y"
@@ -43,7 +45,7 @@ export function getRegexMember(
   }
   return createSandboxClosure({
     sandbox: true,
-    name: `RegExp#${property}`,
+    name: property === "toString" ? "toString" : `RegExp#${property}`,
     call: (args, context) => callRegexMethod(context?.thisValue, property, args, budget, context)
   });
 }
@@ -102,6 +104,7 @@ export async function callRegexMethod(
   budget: Budget,
   context?: SandboxCallContext
 ): Promise<SandboxValue> {
+  if (methodName === "toString") return regexToString(target, budget, context);
   if (target === null || typeof target !== "object" || (methodName === "exec" && !isSandboxRegex(target))) {
     throw new TypeError(`RegExp#${methodName} requires ${methodName === "exec" ? "a regex" : "an object"} receiver.`);
   }
@@ -130,6 +133,37 @@ export async function callRegexMethod(
     return methodName === "test" ? match !== null : toMatchArray(match, input);
   } finally {
     budget.setRetainedValues(retained, undefined);
+  }
+}
+
+export async function regexToString(
+  target: SandboxValue,
+  budget: Budget,
+  context?: SandboxCallContext
+): Promise<string> {
+  if (target === null || typeof target !== "object")
+    throw new TypeError("RegExp#toString requires an object receiver.");
+  const read = (key: "source" | "flags") => {
+    if (context?.getProperty !== undefined) return context.getProperty(target, key);
+    const descriptor = getSandboxPropertyDescriptor(target, key, budget);
+    if (descriptor !== undefined) return readPropertyDescriptor(descriptor, target, context);
+    return isSandboxRegex(target) ? getRegexMember(target, key, budget) : undefined;
+  };
+  let sourceValue: SandboxValue;
+  let flagsValue: SandboxValue;
+  let source: string | undefined;
+  let flags: string | undefined;
+  const release = retainValues(budget, () => [target, sourceValue, flagsValue, source, flags]);
+  try {
+    sourceValue = await read("source");
+    source = await sandboxString(sourceValue, budget, context);
+    sourceValue = undefined;
+    flagsValue = await read("flags");
+    flags = await sandboxString(flagsValue, budget, context);
+    flagsValue = undefined;
+    return budget.allocateString(`/${source}/${flags}`);
+  } finally {
+    release();
   }
 }
 

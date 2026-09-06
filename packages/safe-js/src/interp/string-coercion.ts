@@ -15,7 +15,7 @@ import {
   hasExplicitSandboxPrototype,
   isGuestClosure
 } from "./object-model.js";
-import { getRegexMember } from "./methods/regex.js";
+import { regexToString } from "./methods/regex.js";
 import { retainValues } from "./resources.js";
 import { functionString } from "./function-string.js";
 import { boxedValue, isSandboxBox } from "./boxed.js";
@@ -202,11 +202,7 @@ async function defaultToString(
       ? "[object Map Iterator]"
       : "[object Set Iterator]";
   if (isSandboxGenerator(value)) return "[object Generator]";
-  if (isSandboxRegex(value)) {
-    return budget.allocateString(
-      `/${String(getRegexMember(value, "source", budget))}/${String(getRegexMember(value, "flags", budget))}`
-    );
-  }
+  if (isSandboxRegex(value)) return regexToString(value, budget, context);
   if (isSandboxDate(value)) return budget.allocateString(dateString(value));
   if (Array.isArray(value) || isFloat32Array(value)) {
     if (Object.hasOwn(value, "join")) {

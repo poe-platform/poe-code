@@ -3394,7 +3394,7 @@ function hasSandboxProperty(value: SandboxValue, key: PropertyKey, context: Eval
   while (typeof current === "object" && current !== null) {
     if (isGuestHostObject(current)) return typeof key === "symbol" ? false : hasHostObjectMember(current, String(key));
     if (hasOwnSandboxProperty(current, key, false)) return true;
-    if (!((isGuestClosure(current) || Array.isArray(current)) && hasExplicitSandboxPrototype(current)) &&
+    if (!isSandboxRegex(current) && !((isGuestClosure(current) || Array.isArray(current)) && hasExplicitSandboxPrototype(current)) &&
         (Array.isArray(current) || !isPlainSandboxObject(current) ||
         isSandboxDate(current) || isFloat32Array(current) || isSandboxGenerator(current) || isSandboxCollectionIterator(current) || isSandboxRegExpIterator(current))) {
       return getPropertyValue(current, key, context) !== undefined;

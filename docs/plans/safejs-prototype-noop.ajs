@@ -1,0 +1,20 @@
+import { S } from "schema";
+
+export const schema = S.Object({ title: S.String() });
+
+export default async (frontmatter) => {
+  let checked = 0;
+  for (const value of [new Map(), new Set(), {}, [], /x/, Object.create(null)]) {
+    const prototype = Object.getPrototypeOf(value);
+    Object.freeze(value);
+    if (Object.setPrototypeOf(value, prototype) !== value) {
+      throw new Error("Prototype no-op changed identity");
+    }
+    let rejected = false;
+    try { Object.setPrototypeOf(value, {}); }
+    catch (error) { rejected = error instanceof TypeError; }
+    if (!rejected) throw new Error("Frozen prototype mutation accepted");
+    checked++;
+  }
+  return { title: frontmatter.title, ok: true, checked };
+};

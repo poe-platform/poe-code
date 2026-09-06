@@ -353,7 +353,11 @@ export function setSandboxPrototype(
       "Prototype links require ordinary sandbox objects, arrays, or guest functions."
     );
   }
-  if (prototypes.has(value) && getSandboxPrototype(value, budget) === prototype) return;
+  if (getSandboxPrototype(value, budget) === prototype) {
+    // Null is also the budget-free fallback; retain an explicit null link for snapshots.
+    if (prototype === null) prototypes.set(value, null);
+    return;
+  }
   if (!Object.isExtensible(isGuestClosure(value) ? materializeFunctionProperties(value) : isSandboxRegex(value) ? getRegexProperties(value) : isSandboxMap(value) || isSandboxSet(value) ? getCollectionProperties(value) : value)) {
     throw new TypeError("Cannot change the prototype of a non-extensible object.");
   }

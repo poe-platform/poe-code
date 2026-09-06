@@ -22,6 +22,7 @@ export interface ShellLimits {
   readonly maxInputBytes?: number;
   readonly maxOutputBytes?: number;
   readonly maxCommands?: number;
+  readonly maxFileSystemOperations?: number;
   /** Maximum redirects per executed command, including implicit |&; defaults to 64.
    * Zero permits only redirect-free commands. Not a global byte or filesystem-call budget. */
   readonly maxRedirects?: number;

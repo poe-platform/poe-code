@@ -1,1 +1,4 @@
-export { createMemoryFileSystem, MemoryFileSystem } from "poe-code/safe-fs";
+export {
+  createMemoryFileSystem, defaultMemoryFileSystemLimits, MemoryFileSystem,
+  type MemoryFileSystemLimits, type MemoryFileSystemOptions,
+} from "poe-code/safe-fs";

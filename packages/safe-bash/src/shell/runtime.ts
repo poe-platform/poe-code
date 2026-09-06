@@ -17,6 +17,7 @@ import { compoundEntryWords, HereDocumentSyntaxError, hereDocumentWords, parseSh
 import { SourceLineIndex } from "./source-line-index.js";
 import { ShellLimitError, ShellSyntaxError } from "./types.js";
 import type { ShellCommandContext, ShellInvokeOptions, ShellLimits } from "./types.js";
+import { scopeFileSystem } from "poe-code/safe-fs";
 import { fileInput, ShellInput } from "./input.js";
 import { evaluateArithmetic, prepareArithmetic } from "./arithmetic.js";
 import { defaultMaxParseUnits, ParseBudget } from "./parse-budget.js";
@@ -62,6 +63,7 @@ export const defaultLimits: Required<ShellLimits> = {
   maxInputBytes: 32 * 1024 * 1024,
   maxOutputBytes: 16 * 1024 * 1024,
   maxCommands: 10_000,
+  maxFileSystemOperations: 100_000,
   maxRedirects: 64,
   maxPipelineStages: 64,
   maxLoopIterations: 10_000,
@@ -113,6 +115,7 @@ export class Budget {
   #wallClockTimer: ReturnType<typeof setTimeout> | undefined;
   #wallClockDeadline = 0;
   #pipelineStages = 0;
+  #fileSystemOperations = 0;
   readonly #cpuStarted = monotonicNow();
 
   constructor(readonly limits: Required<ShellLimits>, signal?: AbortSignal) {
@@ -154,6 +157,12 @@ export class Budget {
     this.cpuCheckpoint();
     this.signal.throwIfAborted();
     if (++this.commands > this.limits.maxCommands) this.fail("maxCommands");
+  }
+
+  fileSystemOperation(): void {
+    this.cpuCheckpoint();
+    if (this.#fileSystemOperations >= this.limits.maxFileSystemOperations) this.fail("maxFileSystemOperations");
+    this.#fileSystemOperations++;
   }
 
   reservePipelineStages(count: number): () => void {
@@ -1080,6 +1089,7 @@ export class Runtime {
     readonly cancellationMaxDepth: number,
     readonly outcomeFrame: RuntimeOutcomeFrame | undefined = undefined,
   ) {
+    this.fs = scopeFileSystem(fs, () => budget.fileSystemOperation(), signal);
     const checkpoint = () => budget.cpuCheckpoint();
     registerYieldCheckpoint(signal, checkpoint);
     registerYieldCheckpoint(commandSignal, checkpoint);

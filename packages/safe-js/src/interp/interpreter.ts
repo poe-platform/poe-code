@@ -4,7 +4,7 @@ import { deleteHostObjectMember, getHostObjectKeys, getHostObjectMember, hasHost
 import { toPropertyKey } from "./property-key.js";
 import { assertPromiseExecutionAllowed } from "./promise-tracker.js";
 import { SandboxJobQueue, runAsyncPrefix, suspendJob } from "./jobs.js";
-import { withCancellationSignal } from "./cancel.js";
+import { awaitSandboxValue, withCancellationSignal } from "./cancel.js";
 import { retainValues } from "./resources.js";
 import { evaluateClass } from "./classes.js";
 import { defineDataProperty } from "./globals/object-array.js";
@@ -115,7 +115,7 @@ import {
 } from "./methods/map.js";
 import { callNumberMethod, getNumberMember, isNumberMethodName } from "./methods/number.js";
 import { getPromiseMember, isSandboxPromiseConstructor } from "./promise.js";
-import { getSandboxIterator, type SandboxIterator } from "./iteration.js";
+import { generatorIterator, getSandboxIterator, type SandboxIterator } from "./iteration.js";
 import { assertCollectionMutable } from "./running-state.js";
 import { getGeneratorMember } from "./methods/generator.js";
 import { getRegexMember, isRegexMethodName, setRegexMember } from "./methods/regex.js";
@@ -232,6 +232,7 @@ export type InterpretOptions = {
   surfaceUnhandledThrows?: boolean;
   useScopeDirectly?: boolean;
   generatorYield?: (value?: SandboxValue, yieldNodeId?: number) => Promise<GeneratorCompletion>;
+  asyncGenerator?: boolean;
   generatorResume?: {
     sent: GeneratorCompletion[];
     yieldNodeId: number;
@@ -377,6 +378,7 @@ export async function interpret(
       ),
       generatorResume: options.generatorResume,
       generatorYield: options.generatorYield,
+      asyncGenerator: options.asyncGenerator,
       resumeTarget: { nodeId: options.snapshot?.resumeNodeId }
     };
     const evaluation = await withCancellationSignal(options.signal, () =>
@@ -2280,7 +2282,9 @@ async function evaluateReturnStatement(
   return {
     kind: "return",
     hasValue: argument.hasValue,
-    value: argument.value
+    value: context.asyncGenerator
+      ? await suspendJob(awaitSandboxValue(argument.value, context.signal, context.budget))
+      : argument.value
   };
 }
 
@@ -2311,18 +2315,28 @@ async function evaluateYieldExpression(
     return argument;
   }
 
-  const completionPromise = context.generatorYield(
-    allocateProducedSandboxValue(argument.value, context.budget),
-    node.nodeId
-  );
+  const completion = await yieldGeneratorValue(argument.value, node, context);
+  context.generatorResume = undefined;
+  return generatorCompletionResult(completion);
+}
+
+async function yieldGeneratorValue(value: SandboxValue, node: YieldExpression, context: EvaluationContext): Promise<GeneratorCompletion> {
+  if (context.asyncGenerator) value = await suspendJob(awaitSandboxValue(value, context.signal, context.budget));
+  const completionPromise = context.generatorYield!(allocateProducedSandboxValue(value, context.budget), node.nodeId);
   emitResumeBreakpoint(context, {
     kind: "generator-yield",
     nodeId: node.nodeId,
     span: node.span
   });
-  const completion = await completionPromise;
-  context.generatorResume = undefined;
-  return generatorCompletionResult(completion);
+  const completion = await (context.asyncGenerator ? suspendJob(completionPromise) : completionPromise);
+  if (context.asyncGenerator && completion.type === "return") {
+    try {
+      return { type: "return", value: await suspendJob(awaitSandboxValue(completion.value as SandboxValue, context.signal, context.budget)) };
+    } catch (error) {
+      return { type: "throw", value: error };
+    }
+  }
+  return completion;
 }
 
 async function evaluateYieldDelegate(
@@ -2333,7 +2347,10 @@ async function evaluateYieldDelegate(
   if (argument.kind !== "normal") {
     return argument;
   }
-  const iterator = getSandboxIterator(
+  const asyncDelegate = context.asyncGenerator && isSandboxGenerator(argument.value) && argument.value.async
+    ? argument.value : undefined;
+  const iterator = asyncDelegate
+    ? generatorIterator(asyncDelegate, context.budget) : getSandboxIterator(
     argument.value,
     context.budget,
     createCoercionContext(context)
@@ -2358,19 +2375,35 @@ async function evaluateYieldDelegate(
       const iteratorMethod = iterator[method];
       if (iteratorMethod === undefined) {
         if (completion.type === "throw") {
-          throw completion.value;
+          await closeIterator(iterator);
+          throw new TypeError("Delegated iterator does not provide a throw method.");
         }
         return generatorCompletionResult(completion);
       }
-      const result = await iteratorMethod(completion.value);
-      if (result.done) {
+      const pendingResult = Promise.resolve(iteratorMethod(completion.value));
+      const result = await (context.asyncGenerator ? suspendJob(pendingResult) : pendingResult);
+      if ((typeof result !== "object" && typeof result !== "function") || result === null) {
+        throw new TypeError("Iterator result must be an object.");
+      }
+      const done = result.done;
+      let value = result.value;
+      if (context.asyncGenerator) {
+        try {
+          value = await suspendJob(awaitSandboxValue(value, context.signal, context.budget));
+        } catch (error) {
+          if (isFatalSandboxError(error) || error instanceof HostCallResumabilityError) throw error;
+          if (!asyncDelegate && !done && method !== "return") await closeIterator(iterator, true);
+          throw error;
+        }
+      }
+      if (done) {
         if (completion.type === "return") {
-          return generatorCompletionResult({ type: "return", value: result.value });
+          return generatorCompletionResult({ type: "return", value });
         }
         return {
           kind: "normal",
           hasValue: true,
-          value: result.value
+          value
         };
       }
       if (replayIndex < replay.length - 1) {
@@ -2378,16 +2411,7 @@ async function evaluateYieldDelegate(
         replayIndex += 1;
         continue;
       }
-      const completionPromise = context.generatorYield!(
-        allocateProducedSandboxValue(result.value, context.budget),
-        node.nodeId
-      );
-      emitResumeBreakpoint(context, {
-        kind: "generator-yield",
-        nodeId: node.nodeId,
-        span: node.span
-      });
-      completion = (await completionPromise) as typeof completion;
+      completion = (await yieldGeneratorValue(value, node, context)) as typeof completion;
       context.generatorResume = undefined;
     }
   } finally {

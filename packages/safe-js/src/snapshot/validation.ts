@@ -483,6 +483,9 @@ function validateGeneratorShape(
   path: string,
   state: ValidationState
 ): void {
+  if (record.async !== undefined && typeof record.async !== "boolean") {
+    fail("invalidType", `${path}.async`, "generator async flag must be a boolean");
+  }
   if (!["start", "suspended", "done"].includes(String(record.state))) {
     fail("invalidState", `${path}.state`, "unknown generator state");
   }

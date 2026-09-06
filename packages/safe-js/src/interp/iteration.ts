@@ -13,6 +13,7 @@ import { getHostObjectIterator, isGuestHostObject } from "./host-capabilities.js
 import { isSandboxCollectionIterator, nextCollectionIterator } from "./collection-iterator.js";
 import { Budget } from "./budget.js";
 import { sandboxString } from "./string-coercion.js";
+import { awaitSandboxValue } from "./cancel.js";
 
 export type SandboxIterator = {
   readonly generator?: true;
@@ -53,7 +54,7 @@ export function getSandboxIterator(value: SandboxValue, budget?: Budget, context
     return syncIterator(Float32Array.prototype.values.call(value));
   }
   if (isSandboxGenerator(value)) {
-    return generatorIterator(value);
+    return value.async ? undefined : generatorIterator(value);
   }
 
   if (typeof value === "string") {
@@ -119,14 +120,21 @@ function collectionIterator(
   };
 }
 
-function generatorIterator(generator: SandboxGenerator): SandboxIterator {
+const asyncGeneratorRequests = new WeakMap<SandboxGenerator, Promise<unknown>>();
+
+export function generatorIterator(generator: SandboxGenerator, budget?: Budget): SandboxIterator {
   const invoke = async (
     method: "next" | "return" | "throw",
     value?: SandboxValue
   ): Promise<IteratorResult<SandboxValue>> => {
     const leaveRunning = enterRunningState(generator);
+    const initialState = generator.state;
     generator.state = "running";
     try {
+      if (generator.async && method === "return" && (initialState === "start" || initialState === "done")) {
+        if (initialState === "start") await generator.channel.return();
+        value = await awaitSandboxValue(value, undefined, budget);
+      }
       const result = (await generator.channel[method](value)) as IteratorResult<SandboxValue>;
       generator.state = result.done ? "done" : "suspended";
       return result;
@@ -138,11 +146,19 @@ function generatorIterator(generator: SandboxGenerator): SandboxIterator {
     }
   };
 
+  const request = (method: "next" | "return" | "throw", value?: SandboxValue) => {
+    if (!generator.async) return invoke(method, value);
+    const previous = asyncGeneratorRequests.get(generator) ?? Promise.resolve();
+    const result = previous.then(() => invoke(method, value));
+    asyncGeneratorRequests.set(generator, result.catch(() => undefined));
+    return result;
+  };
+
   return {
     generator: true,
-    next: (value) => invoke("next", value),
-    return: (value) => invoke("return", value),
-    throw: (error) => invoke("throw", error)
+    next: (value) => request("next", value),
+    return: (value) => request("return", value),
+    throw: (error) => request("throw", error)
   };
 }
 

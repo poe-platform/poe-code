@@ -334,7 +334,7 @@ class ASAsyncNotNeededScanner {
     node: FunctionExpression | FunctionDeclaration,
     isDefaultExport = false
   ): void {
-    if (node.async && !isDefaultExport && !bodyContainsAwait(node.body)) {
+    if (node.async && !node.generator && !isDefaultExport && !bodyContainsAwait(node.body)) {
       this.report(createAsyncKeywordSpan(node.span));
     }
 

@@ -693,7 +693,7 @@ export function parseExecutableModule(
 
 type ParserBindingKind = "lexical" | "function" | "parameter" | "catch";
 type ParserScope = Map<string, ParserBindingKind>;
-type FunctionParseContext = "normal" | "generator" | "parameters";
+type FunctionParseContext = "normal" | "generator" | "async-generator" | "parameters";
 type LexicalParseContext = {
   newTarget: boolean;
   superProperty: boolean;
@@ -1709,16 +1709,11 @@ class Parser {
     const asyncToken = this.consumeKeyword("async");
     const functionToken = this.expectKeyword("function");
     const generatorToken = this.consumePunctuator("*");
-    if (asyncToken !== undefined && generatorToken !== undefined) {
-      throw new Error(
-        `async function* is not supported at line ${asyncToken.start.line}, column ${asyncToken.start.column}.`
-      );
-    }
     const id = defaultExport && this.currentToken().value === "("
       ? undefined : this.parseBindingIdentifier();
     if (id !== undefined) this.declareBinding(id, defaultExport ? "lexical" : "function");
     const generator = generatorToken !== undefined;
-    const { params, body } = this.parseFunctionParts(generator, ordinaryFunctionContext);
+    const { params, body } = this.parseFunctionParts(generator, ordinaryFunctionContext, undefined, asyncToken !== undefined);
 
     return this.withFunctionSource({
       type: "FunctionDeclaration",
@@ -1770,7 +1765,8 @@ class Parser {
   private parseFunctionParts(
     generator: boolean,
     lexicalContext: LexicalParseContext,
-    accessor?: "get" | "set"
+    accessor?: "get" | "set",
+    async = false
   ): {
     params: ArrowFunctionExpression["params"];
     body: BlockStatement;
@@ -1787,7 +1783,7 @@ class Parser {
       if (accessor === "set" && (params.length !== 1 || params[0]?.type === "RestElement"))
         throw new Error("A setter must have exactly one non-rest parameter.");
       const bodyTokenIndex = this.index;
-      const body = this.withFunctionContext(generator ? "generator" : "normal", () => this.parseBlockStatement(params));
+      const body = this.withFunctionContext(generator ? async ? "async-generator" : "generator" : "normal", () => this.parseBlockStatement(params));
       if (accessor === "set" && params[0]?.type !== "Identifier") {
         let directiveTokenIndex = bodyTokenIndex + 1;
         for (const statement of body.body) {
@@ -1832,7 +1828,6 @@ class Parser {
       async = true;
     }
     const generator = this.consumePunctuator("*") !== undefined;
-    if (async && generator) throw new DisallowedSyntaxError("async generator", methodStart.start);
     let accessor: "get" | "set" | undefined;
     const modifier = this.currentToken();
     if ((modifier.value === "get" || modifier.value === "set") && this.isObjectMethodStart()) {
@@ -1859,7 +1854,7 @@ class Parser {
       const { params, body } = this.parseFunctionParts(generator, {
         newTarget: true, superProperty: true, superCall: constructor && derived,
         arguments: true, return: true, await: async, strictAwait: true
-      }, accessor);
+      }, accessor, async);
       const value = this.withFunctionSource({
         type: "FunctionExpression", async, generator, method: true, params, body,
         span: createSpan(methodStart.start, body.span.end)
@@ -2605,7 +2600,7 @@ class Parser {
     }
 
     if (token.type === "keyword" && token.value === "yield") {
-      if (this.functionContext !== "generator") {
+      if (this.functionContext !== "generator" && this.functionContext !== "async-generator") {
         throw new Error(
           `yield is only valid inside a generator body at line ${token.start.line}, column ${token.start.column}.`
         );
@@ -3047,16 +3042,11 @@ class Parser {
     const asyncToken = this.consumeKeyword("async");
     const functionToken = this.expectKeyword("function");
     const generatorToken = this.consumePunctuator("*");
-    if (asyncToken !== undefined && generatorToken !== undefined) {
-      throw new Error(
-        `async function* is not supported at line ${asyncToken.start.line}, column ${asyncToken.start.column}.`
-      );
-    }
     const id = isIdentifierLikeToken(this.currentToken())
       ? this.parseBindingIdentifier()
       : undefined;
     const generator = generatorToken !== undefined;
-    const { params, body } = this.parseFunctionParts(generator, ordinaryFunctionContext);
+    const { params, body } = this.parseFunctionParts(generator, ordinaryFunctionContext, undefined, asyncToken !== undefined);
 
     return this.withFunctionSource({
       type: "FunctionExpression",
@@ -3182,10 +3172,11 @@ class Parser {
             this.peekToken(1).value === "*"
           ? this.peekToken(1)
           : undefined;
-    if (generatorToken !== undefined && this.currentToken().value !== "*") {
-      throw new Error(
-        `Generator shorthand methods are not supported at line ${generatorToken.start.line}, column ${generatorToken.start.column}.`
-      );
+    const asyncGeneratorToken = generatorToken !== undefined && this.currentToken().value === "async"
+      ? this.currentToken() : undefined;
+    if (asyncGeneratorToken !== undefined) {
+      if (hasLineBreakBetween(asyncGeneratorToken, generatorToken!)) throw unexpectedTokenError(generatorToken!);
+      this.index++;
     }
     if (generatorToken !== undefined) this.index++;
 
@@ -3206,7 +3197,7 @@ class Parser {
     }
 
     const modifierToken = this.currentToken();
-    const asyncToken =
+    const asyncToken = asyncGeneratorToken ?? (
       generatorToken === undefined &&
       modifierToken.type === "keyword" &&
       modifierToken.value === "async" &&
@@ -3214,8 +3205,8 @@ class Parser {
       this.isObjectMethodStart() &&
       !hasLineBreakBetween(modifierToken, this.peekToken(1))
         ? modifierToken
-        : undefined;
-    if (asyncToken !== undefined) {
+        : undefined);
+    if (asyncToken !== undefined && asyncGeneratorToken === undefined) {
       this.index += 1;
     }
 
@@ -3361,7 +3352,7 @@ class Parser {
       ...ordinaryFunctionContext,
       superProperty: true,
       ...(accessor === undefined ? {} : { await: false, strictAwait: true })
-    }, accessor);
+    }, accessor, asyncToken !== undefined);
 
     return this.withFunctionSource({
       type: "FunctionExpression",

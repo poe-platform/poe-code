@@ -7,6 +7,15 @@ function codes(source: string): string[] {
 }
 
 describe("AS_ASYNC_NOT_NEEDED", () => {
+  it.each([
+    "async function* items(){yield 1}",
+    "const items=async function*(){return 1};",
+    "const object={async *items(){yield 1}};",
+    "class Box{async *items(){yield 1}}"
+  ])("preserves required async generator semantics: %s", source => {
+    expect(codes(source)).toEqual([]);
+    expect(fixASAsyncNotNeeded(source)).toBe(source);
+  });
   it("reports async arrow functions without await in the body", () => {
     const source = "const f = async () => 1;";
 

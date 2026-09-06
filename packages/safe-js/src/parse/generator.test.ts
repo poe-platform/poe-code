@@ -100,13 +100,9 @@ describe("generator parsing", () => {
     expect(() => parse("function* values() { await task(); }")).toThrowError(
       "generators cannot await; use a regular async function"
     );
-    expect(() => parse("async function* values() {}")).toThrowError(
-      "async function* is not supported"
-    );
+    expect(() => parse("async function* values() {}")).not.toThrow();
     expect(() => parse("({ *values() {} })")).not.toThrow();
-    expect(() => parse("({ async *values() {} })")).toThrowError(
-      "Generator shorthand methods are not supported"
-    );
+    expect(() => parse("({ async *values() {} })")).not.toThrow();
     expect(() => parse("*() => 1")).toThrow();
   });
 

@@ -3817,7 +3817,7 @@ Scoped workflow 34016698993 published SafeJS 0.1.152 at
 2026-09-06T06:35:15.5153886Z; SafeFS and Safe Bash also published 0.1.152.
 CLI workflow 34016699087 remains independently monitored.
 
-## 64. For-of assignment targets (in progress)
+## 64. For-of assignment targets (delivered)
 
 The parser already admits member, array and object assignment targets, but the
 loop binder accepted only identifiers or declarations. Native comparisons
@@ -3843,3 +3843,106 @@ tests, package TypeScript and scoped ESLint. Normal build and real zero-spawn
 harness execution passed; the screenshot was inspected. The harness asserts
 member value 7, nested value 8, rest [9, 10], and exact target/key/body order.
 This scoped internal change is ready for its own main push.
+
+Delivered and closed at verified remote main
+dcad3387a6f8ab01ee51860853ee1b4f1c8625d5. User-staged changes remain untouched.
+Publication monitoring continues independently while async iteration work starts.
+
+## 65. Async generators and iteration (in progress)
+
+Current source rejects async generator declarations, expressions and object/class
+methods, as well as for-await loops. Native controls establish the missing
+semantics. Extend the actual generator/iterator model, not just its parser:
+promise-returning methods, ordered requests, awaited yielded/returned values,
+normal/return/throw resumption, delegation and cleanup all require coverage.
+Then integrate for-await over asynchronous iterators and synchronous fallbacks.
+Preserve synchronous generator behavior, budgets, cancellation and effect ownership.
+Qualify checkpoint behavior explicitly; unsupported states are not passing cases.
+Symbol/prototype breadth remains independently tracked and must not disappear
+from the completeness inventory. Deliver coherent atomic increments, with each
+scope's exact supported behavior and remaining work stated, rather than claiming
+complete async iteration from direct next() examples.
+
+Async-generator TDD began with 27 failing native-comparison cases and two passing
+controls. The implementation now admits declarations, expressions and object/class
+methods; methods return promises, requests queue in order, yielded/returned values
+are awaited, and return/throw/delegation follow the tested native behavior.
+An initial scheduler stall was reproduced and fixed by separating generator jobs
+and releasing execution while suspended. Extended native cases exposed return
+promise rejection/finally ordering, now handled at the return statement.
+
+Public replay tests for start/suspended/done states passed without a restoration
+change. Direct snapshot serialization independently demonstrated lost async
+identity; serialization/restoration now preserve it, and restored thenable yields
+are tested. Invalid async snapshot flags are rejected. Step-budget, cancellation,
+ordinary-function boundary and invalid-grammar controls pass. The first maintained
+package run found only the direct snapshot gap and three old unsupported-syntax
+expectations; these have been addressed. Final full checks and real harness QA
+remain required before this atomic async-generator increment can be pushed.
+For-await loops and general Symbol-based async iteration remain the next scope,
+not implied complete by these results.
+
+QA: run a zero-spawn harness with an async generator that yields promised values,
+accepts queued next/return requests, executes a finally yield and delegates to an
+inner async generator. Assert returned values and ordering, then inspect the real
+CLI screenshot. No host capabilities or agent spawns are needed.
+
+Release receipt for section 64: scoped workflow 34016941878 published
+@poe-platform/safe-js@0.1.153 at 2026-09-06 06:40:49.9545500 UTC. CLI workflow
+34016942057 remains independently monitored; no CLI publication is claimed yet.
+
+Real harness QA passed after correcting the fixture's required frontmatter
+parameter. It also exposed misleading AS-ASYNC-NOT-NEEDED advice for generators;
+four failing lint/autofix regressions now protect the required async keyword.
+Final protocol review reproduced mutation of getter-only delegate results and
+incorrect acceptance of primitive next/return/throw results. Native-oracle tests
+cover property read order, immutable results, and all three operations: nine
+primitive-result failures and six controls preceded the validation fix.
+The earlier full gate was intentionally interrupted for this confirmed defect;
+it is not a successful verification receipt. Restart the full checks on the final
+source, without concurrent source edits or builds during guarded lint.
+
+Full repository qualification completed successfully: 33,511 shared-workspace
+tests (43 skipped), 279 Bash runner tests, 21,053 Bash tests (86 skipped), 288
+shell stress tests and two lint-stress tests. Repository ESLint covered 9,826
+configured files with zero warnings/errors; root types and workflow lint passed.
+Final normal build and zero-spawn harness screenshot passed and were inspected.
+
+The standards cross-check then identified two stale native-oracle expectations:
+Node 22.23.2 does not implement the current async-from-sync cleanup rules. The
+[ECMAScript 2026 algorithms](https://tc39.es/ecma262/2026/multipage/control-abstraction-objects.html#sec-asyncfromsynciteratorprototype-throw)
+require closing a delegate with no throw method before a TypeError, and
+[close-on-rejection](https://tc39.es/ecma262/2026/multipage/control-abstraction-objects.html#sec-asyncfromsynciteratorcontinuation)
+for rejected yielded values on next/throw, but not after completion or return.
+Three standards-backed failures preceded the correction; four further operation
+and completion controls pass. Remove the two stale native comparisons rather
+than enshrining Node 22 behavior as current JavaScript. The same finding applies
+to upcoming for-await cleanup tests: its Node 22 cleanup observations are recorded
+versioned evidence, not normative expectations. The final localized interpreter
+correction is being requalified with maintained SafeJS/harness tests, scoped
+lint/types, and build/real-harness checks; the broad parser/snapshot changes above
+remain covered by the completed repository-wide run.
+
+A public dump/restore probe with three queued next requests also returned the
+same 1/2/3 results and one logical body execution before and after restoration.
+Its wait binding was side-effect-free; this is not a claim about arbitrary
+pending host-effect reconciliation.
+
+The section 64 CLI release is now confirmed: workflow 34016942057 published
+poe-code@14.0.68 at 2026-09-06 06:49:46.7710847 UTC; remote tag v14.0.68 points
+to dcad3387a6f8ab01ee51860853ee1b4f1c8625d5.
+
+### Remaining-gap audit on September 6
+
+Bounded native controls versus the current built core reconfirm missing Symbol,
+BigInt literals, private fields, Uint8Array/ArrayBuffer, Reflect/Proxy, weak
+collections and weak references. Regex named groups, lookbehind, backreferences,
+and y/d/u flags still reject representative native-valid programs. These remain
+open work, not completed conformance or silently waived restrictions.
+
+Final localized qualification passed: 13,616 maintained SafeJS tests (41 skipped),
+163 harness tests, package TypeScript and scoped ESLint. The normal build and
+real harness screenshot passed again after the standards correction, with no
+lint diagnostics and zero spawns. The 77 async-generator tests include the
+standards-backed cleanup cases. This increment is ready for its separate main
+commit and push; publication is still a separate event.

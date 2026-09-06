@@ -166,21 +166,8 @@ describe("AS001", () => {
     expect(AS001(source)).toEqual([]);
   });
 
-  it("reports async generator shorthand methods", () => {
-    expect(AS001("const object = { async *items() {} };")).toEqual([
-      {
-        code: "AS001",
-        severity: "error",
-        message: "Disallowed syntax: generator.",
-        filename: "<input>",
-        line: 1,
-        column: 24,
-        span: {
-          start: { line: 1, column: 24, offset: 23 },
-          end: { line: 1, column: 25, offset: 24 }
-        }
-      }
-    ]);
+  it("admits async generator shorthand methods", () => {
+    expect(AS001("const object = { async *items() {} };")).toEqual([]);
   });
 
   it("ignores disallowed identifiers when they are only member names", () => {

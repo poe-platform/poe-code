@@ -438,7 +438,7 @@ function restoreGeneratorValue(
   state: RestoreState
 ): SandboxGenerator {
   if (value.state === "done") {
-    const generator = createSandboxGenerator(createGeneratorChannel(async () => undefined));
+    const generator = createSandboxGenerator(createGeneratorChannel(async () => undefined), { async: value.async });
     generator.state = "done";
     return generator;
   }
@@ -467,6 +467,7 @@ function restoreGeneratorValue(
           }
         : {}),
       generatorYield,
+      asyncGenerator: node.async,
       scope: capturedScope,
       useScopeDirectly: true
     });
@@ -485,7 +486,8 @@ function restoreGeneratorValue(
 
   const generator = createSandboxGenerator(channel, {
     astNodeId: value.astNodeId,
-    capturedScopeId: value.capturedScopeId
+    capturedScopeId: value.capturedScopeId,
+    async: node.async
   });
   generator.state = value.state;
   return generator;

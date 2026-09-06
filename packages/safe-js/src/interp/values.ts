@@ -151,6 +151,7 @@ export type SandboxPromise = {
 
 export type SandboxGenerator = {
   readonly kind: "generator";
+  readonly async?: boolean;
   state: "start" | "running" | "suspended" | "done";
   readonly channel: GeneratorChannel;
   readonly astNodeId?: number;
@@ -343,7 +344,7 @@ export function createSandboxPromise(
 
 export function createSandboxGenerator(
   channel: GeneratorChannel,
-  metadata: { astNodeId: number; capturedScopeId: number | string } | undefined = undefined
+  metadata: { astNodeId?: number; capturedScopeId?: number | string; async?: boolean } | undefined = undefined
 ): SandboxGenerator {
   const generator = {
     kind: "generator" as const,

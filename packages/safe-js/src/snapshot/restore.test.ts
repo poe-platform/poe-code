@@ -378,6 +378,11 @@ describe("snapshot restore", () => {
       "$.scopeChain[0].bindings.gen.sent[0].type"
     ],
     [
+      "invalid async generator flag",
+      (snapshot: any) => (snapshot.scopeChain[0].bindings.gen = { kind: "generator", state: "done", async: "yes" }),
+      "$.scopeChain[0].bindings.gen.async"
+    ],
+    [
       "malformed map entry",
       (snapshot: any) => {
         snapshot.heap = { "1": { kind: "map", entries: [[1]] } };
@@ -456,18 +461,19 @@ describe("snapshot restore", () => {
     );
     expect(wrapped).not.toHaveBeenCalled();
   });
-  it("round-trips start and done generators", async () => {
-    const source = "function* values() { yield 1; return 2; } await task();";
+  it.each([false, true])("round-trips start and done generators (async=%s)", async async => {
+    const source = `${async ? "async " : ""}function* values() { yield ${async ? "{then(resolve){resolve(1)}}" : "1"}; return 2; } await task();`;
     const module = parseModule(source);
     const generatorNodeId = getNodeIdByType(module, "FunctionDeclaration");
     const startGenerator = createSandboxGenerator(
       createGeneratorChannel(async () => undefined),
       {
         astNodeId: generatorNodeId,
-        capturedScopeId: "module"
+        capturedScopeId: "module",
+        async
       }
     );
-    const doneGenerator = createSandboxGenerator(createGeneratorChannel(async () => undefined));
+    const doneGenerator = createSandboxGenerator(createGeneratorChannel(async () => undefined), { async });
     doneGenerator.state = "done";
     const serialized = serialize({
       source,
@@ -500,6 +506,8 @@ describe("snapshot restore", () => {
       return;
     }
 
+    expect(start.value.async === true).toBe(async);
+    expect(done.value.async === true).toBe(async);
     await expect(start.value.channel.next()).resolves.toEqual({ value: 1, done: false });
     await expect(start.value.channel.next()).resolves.toEqual({ value: 2, done: true });
     await expect(done.value.channel.next()).resolves.toEqual({ value: undefined, done: true });

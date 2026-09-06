@@ -267,15 +267,6 @@ class AS001Scanner {
         continue;
       }
 
-      if (
-        token.type === "punctuator" &&
-        token.value === "*" &&
-        previousToken?.value === "async" &&
-        isGeneratorMemberToken(previousToken, previousPreviousToken, braceContextStack)
-      ) {
-        this.report("generator", token.start, token.end);
-      }
-
       lastClosedControlParenthesis =
         token.type === "punctuator"
           ? updateGroupingState(groupingStack, previousToken, token.value)
@@ -684,30 +675,6 @@ function isMemberNameToken(
   }
 
   return previousToken?.type === "punctuator" && previousToken.value === "*";
-}
-
-function isGeneratorMemberToken(
-  previousToken: Token | undefined,
-  previousPreviousToken: Token | undefined,
-  braceContextStack: BraceContext[]
-): boolean {
-  const memberContext = braceContextStack.at(-1);
-  if (memberContext === undefined) {
-    return false;
-  }
-
-  if (memberContext.kind !== "class" && memberContext.kind !== "object") {
-    return false;
-  }
-
-  if (isMemberEntryStart(previousToken, memberContext.kind)) {
-    return true;
-  }
-
-  return (
-    isMemberModifierToken(previousToken) &&
-    isMemberEntryStart(previousPreviousToken, memberContext.kind)
-  );
 }
 
 function isMemberEntryStart(token: Token | undefined, kind: BraceContext["kind"]): boolean {

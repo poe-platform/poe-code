@@ -475,7 +475,6 @@ describe("parse", () => {
   });
 
   it.each([
-    ["async generator", "{ async *gen() {} }", "Generator shorthand methods are not supported"],
     ["getter", "{ get value(next) { return 1; } }", "A getter cannot have parameters"],
     ["computed getter", "{ get [value](next) {} }", "A getter cannot have parameters"],
     ["setter", "{ set value() {} }", "A setter must have exactly one non-rest parameter"],
@@ -3653,15 +3652,15 @@ describe("parse", () => {
     );
   });
 
-  it("parses sync generator declarations and rejects async generators", () => {
+  it("parses sync and async generator declarations", () => {
     expect(parse("function* values() {}")).toMatchObject({
       type: "FunctionDeclaration",
       async: false,
       generator: true
     });
-    expect(() => parse("async function* values() {}")).toThrowError(
-      "async function* is not supported"
-    );
+    expect(parse("async function* values() {} ")).toMatchObject({
+      type: "FunctionDeclaration", async: true, generator: true
+    });
   });
 
   it("does not treat async followed by a line break as an async function declaration", () => {

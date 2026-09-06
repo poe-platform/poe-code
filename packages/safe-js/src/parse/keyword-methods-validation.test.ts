@@ -128,11 +128,8 @@ const additionalMethodPrograms = [
   "return { set ['return'](value) {} };",
   "return { get 'return'() { return 1; } };",
   "return { set 2(value) {} };",
-  "return { *return() { yield 1; } };"
-];
-
-const unsupportedPrograms: [string, string][] = [
-  ["return { async *['return']() { yield 1; } };", "Generator shorthand methods are not supported"]
+  "return { *return() { yield 1; } };",
+  "return { async *['return']() { yield 1; } };"
 ];
 
 describe("IP-002 independent keyword and async-computed method validation", () => {
@@ -175,10 +172,6 @@ describe("IP-002 independent keyword and async-computed method validation", () =
     expect(() => parse(source)).toThrow();
   });
 
-  it.each(unsupportedPrograms)("retains explicit unsupported grammar: %s", (source, message) => {
-    expect(() => new Script(`(async function () { ${source} })()`)).not.toThrow();
-    expect(() => parse(source)).toThrow(message);
-  });
 
   it.each([
     ["return() {}", false, false],

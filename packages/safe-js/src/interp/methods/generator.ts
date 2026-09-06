@@ -1,7 +1,8 @@
-import { getSandboxIterator } from "../iteration.js";
+import { generatorIterator } from "../iteration.js";
 import {
   allocateProducedSandboxValue,
   createSandboxClosure,
+  createSandboxPromise,
   type SandboxGenerator,
   type SandboxValue
 } from "../values.js";
@@ -22,13 +23,13 @@ export function getGeneratorMember(
   return createSandboxClosure({
     sandbox: true,
     name: property,
-    call: async ([value]) => {
-      const iterator = getSandboxIterator(target)!;
-      const result = await iterator[property as GeneratorMethodName]!(value);
-      return allocateProducedSandboxValue(
+    call: ([value]) => {
+      const iterator = generatorIterator(target, budget);
+      const result = Promise.resolve(iterator[property as GeneratorMethodName]!(value)).then(result => allocateProducedSandboxValue(
         { value: result.value, done: result.done === true },
         budget
-      );
+      ));
+      return target.async ? createSandboxPromise(result) : result;
     }
   });
 }

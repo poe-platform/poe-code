@@ -93,6 +93,7 @@ export type AsyncEvaluationContext = {
     peakDataSize: number;
   };
   generatorYield?: (value?: SandboxValue, yieldNodeId?: number) => Promise<GeneratorCompletion>;
+  asyncGenerator?: boolean;
   generatorResume?: {
     sent: GeneratorCompletion[];
     yieldNodeId: number;
@@ -297,25 +298,30 @@ function createGeneratorClosure(
         closureContext,
         evaluateNode
       );
-      const channel = createGeneratorChannel(async (generatorYield) => {
-        const result = await evaluateNode(node.body, {
-          ...closureContext,
-          functionBody: node.body,
-          generatorYield: (value, yieldNodeId) => {
-            generator.state = "suspended";
-            return generatorYield(value, yieldNodeId);
-          },
-          scope
-        });
-        if (result.kind === "error") {
-          throw result.error;
-        }
-        if (result.kind === "throw") {
-          throw result.value;
-        }
-        return result.hasValue ? result.value : undefined;
+      const channel = createGeneratorChannel((generatorYield) => {
+        const execute = async () => {
+          const result = await evaluateNode(node.body, {
+            ...closureContext,
+            functionBody: node.body,
+            asyncGenerator: node.async,
+            generatorYield: (value, yieldNodeId) => {
+              generator.state = "suspended";
+              return generatorYield(value, yieldNodeId);
+            },
+            scope
+          });
+          if (result.kind === "error") {
+            throw result.error;
+          }
+          if (result.kind === "throw") {
+            throw result.value;
+          }
+          const value = result.hasValue ? result.value : undefined;
+          return node.async ? awaitSandboxValue(value, context.signal, context.budget) : value;
+        };
+        return node.async ? runAsyncPrefix(execute) : execute();
       });
-      const generator = createSandboxGenerator(channel);
+      const generator = createSandboxGenerator(channel, { async: node.async });
       return generator;
     }
   });
@@ -377,6 +383,7 @@ export async function executeClosure(
 
     const result = await evaluateNode(node.body, {
       ...context,
+      asyncGenerator: false,
       functionBody: node.body.type === "BlockStatement" ? node.body : undefined,
       scope
     });

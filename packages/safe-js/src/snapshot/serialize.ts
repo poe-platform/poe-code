@@ -40,7 +40,7 @@ export type SerializedClosureValue = {
 };
 
 export type SerializedGeneratorValue =
-  | {
+  { async?: boolean } & ({
       kind: "generator";
       state: "start";
       astNodeId: number;
@@ -57,7 +57,7 @@ export type SerializedGeneratorValue =
   | {
       kind: "generator";
       state: "done";
-    };
+    });
 
 export type SerializedPromiseValue = {
   kind: "promise";
@@ -356,7 +356,8 @@ function serializeValue(
     if (value.state === "done") {
       return {
         kind: "generator",
-        state: "done"
+        state: "done",
+        ...(value.async ? { async: true } : {})
       };
     }
 
@@ -371,6 +372,7 @@ function serializeValue(
       return {
         kind: "generator",
         state: "suspended",
+        ...(value.async ? { async: true } : {}),
         astNodeId: value.astNodeId,
         capturedScopeId: value.capturedScopeId,
         yieldNodeId: continuation.yieldNodeId,
@@ -385,6 +387,7 @@ function serializeValue(
     return {
       kind: "generator",
       state: "start",
+      ...(value.async ? { async: true } : {}),
       astNodeId: value.astNodeId,
       capturedScopeId: value.capturedScopeId
     };

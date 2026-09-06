@@ -80,7 +80,7 @@ Frontmatter never grants access. Checkpoints and output may contain granted
 secrets, including historical values retained during replay.
 
 Linted harness files support arrows, ordinary functions (including async
-functions), synchronous generators (including object methods), closures over `const`, `let`, parameters, and imports,
+functions), synchronous and async generators (including object/class methods), closures over `const`, `let`, parameters, and imports,
 `async`/`await`, regex literals, sandbox constructor calls, `const`/`let`/`var`,
 destructuring, spread, optional chaining, nullish coalescing, template
 literals, assignments/member assignment, `if`/`else`, `for`, `for...in`,
@@ -99,7 +99,11 @@ built-in inheritance and portable custom-prototype snapshots remain incomplete.
 Top-level `await` also works inside control-flow blocks. `new Map(...)`,
 `new Set(...)`, and `new Promise(executor)` do not require lint suppressions.
 
-Not supported: async generators, `eval`, `Function`, dynamic
+Async generators expose promise-returning `next`, `return`, and `throw` methods,
+queue requests in order, and support `yield*` delegation to synchronous or async
+generators. Consume them explicitly with `await iterator.next()` for now.
+
+Not supported: `for await...of`, `eval`, `Function`, dynamic
 imports, BigInt literals, and Node/browser globals such as `process`, `fetch`,
 `setTimeout`, or `globalThis`.
 
@@ -121,7 +125,7 @@ or rely on runtime imports during schema extraction.
   values still have copy/snapshot restrictions.
 - `for...in` rejects destructuring in the loop head. Destructure in the body.
 - Bare function calls set `this` to `undefined` (strict semantics).
-- Generators cannot `await`.
+- Synchronous generators cannot `await`; async generators can.
 - Suspended synchronous generators can cross snapshot boundaries when their
   captured state is snapshotable. Pending host effects still need reconciliation.
 - Schema extraction only sees `schema`; runtime imports are irrelevant there.

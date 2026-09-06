@@ -168,16 +168,11 @@ describe("async object method property-name composition", () => {
     "({ get return() {} })",
     "({ set return(value) {} })",
     '({ get ["read"]() {} })',
-    "({ *return() {} })"
+    "({ *return() {} })",
+    '({ async *["read"]() {} })'
   ])("accepts accessor and generator property names: %s", (source) => {
     expect(() => runInNewContext(source, {}, { timeout: 1_000 })).not.toThrow();
     expect(() => parse(source)).not.toThrow();
   });
 
-  it.each([
-    ['({ async *["read"]() {} })', "Generator shorthand methods are not supported"]
-  ])("keeps unsupported shorthand rejected: %s", (source, message) => {
-    expect(() => runInNewContext(source, {}, { timeout: 1_000 })).not.toThrow();
-    expect(() => parse(source)).toThrow(message);
-  });
 });

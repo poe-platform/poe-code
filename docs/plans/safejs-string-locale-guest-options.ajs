@@ -1,0 +1,15 @@
+import { S } from "schema";
+
+export const schema = S.Object({ title: S.String() });
+
+export default async (frontmatter) => {
+  const calls = [];
+  const options = Object.create({ numeric: true });
+  Object.defineProperty(options, "sensitivity", { get() { calls.push("sensitivity"); return "base"; } });
+  const compared = "item2".localeCompare({ toString() { return "item10"; } }, "en", options);
+  await 0;
+  if (compared >= 0 || calls.length !== 1 || "a".localeCompare("A", "en", { sensitivity: "base" }) !== 0) {
+    throw new Error("Guest localeCompare options failed");
+  }
+  return { title: frontmatter.title, ok: true, compared, calls };
+};

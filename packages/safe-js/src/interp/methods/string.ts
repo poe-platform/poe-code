@@ -25,6 +25,7 @@ import {
 } from "../values.js";
 import { executeRegex, getRegexMember, regexExec, regexFlagProperties, regexSearch, toMatchArray } from "./regex.js";
 import { restoreSandboxRegExpIterator } from "../regexp-iterator.js";
+import { compareStringLocale } from "./string-locale.js";
 
 type StringMethodName =
   | "at"
@@ -293,6 +294,9 @@ function callStringMethodBody(
   if ((methodName === "match" || methodName === "matchAll" || methodName === "search") && !isSandboxRegex(args[0])) {
     return callStringPattern(value, methodName, args[0], budget, parent, context);
   }
+
+  if (methodName === "localeCompare" && context?.getProperty !== undefined)
+    return compareStringLocale(value, args, budget, context);
 
   const operation = budget.acquireCompileOwner(false, parent?.owner);
   const compilation = new CompileScope(operation.owner);

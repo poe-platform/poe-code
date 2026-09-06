@@ -1,0 +1,18 @@
+import { S } from "schema";
+
+export const schema = S.Object({ title: S.String() });
+
+export default async (frontmatter) => {
+  let checked=0;
+  for(const value of [Promise.resolve(1),new Map(),new Set(),/x/]) {
+    if(Object.assign(value,{label:42})!==value || value.label!==42) {
+      throw new Error("Object.assign rejected or replaced its target");
+    }
+    Object.preventExtensions(value);
+    let rejected=false;
+    try{Object.assign(value,{extra:1})}catch(error){rejected=error instanceof TypeError}
+    if(!rejected)throw new Error("Object.assign extended a non-extensible target");
+    checked++;
+  }
+  return {title:frontmatter.title,ok:true,checked};
+};

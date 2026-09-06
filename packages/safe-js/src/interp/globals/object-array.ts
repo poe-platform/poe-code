@@ -498,9 +498,7 @@ function assignSandboxValues(
     budget.chargeDataUsage(measureSandboxData([target]));
   }
 
-  if (!isGuestClosure(target) && !isAssignableSandboxTarget(target)) {
-    throw new TypeError("Object.assign(target, ...sources) requires an object or array target.");
-  }
+  if (!isGuestHostObject(target)) objectProperties(target, true);
 
   if (context === undefined) {
     for (const source of sources) {

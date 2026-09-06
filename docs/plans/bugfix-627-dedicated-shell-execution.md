@@ -1,6 +1,6 @@
 # Issue 627: move playground shell execution off the page
 
-Author: kamilio. Status: implemented; final validation and delivery in progress.
+Author: kamilio. Status: implemented and validated; direct-main delivery next.
 
 ## Validated boundary
 
@@ -77,3 +77,6 @@ delivery, close issue 627 immediately, and monitor publication separately.
   TypeScript build does not require Node globals.
 - Final maintained playground unit route: 164 tests across eight files passed.
   The maintained browser TypeScript and production-site build also passed.
+- Guarded repository ESLint, root TypeScript checks, and workflow lint passed
+  after rebasing upstream changes confined to SafeJS and its plans. No playground
+  engine pin or dependency versions changed.

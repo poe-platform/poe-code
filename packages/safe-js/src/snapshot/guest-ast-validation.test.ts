@@ -18,10 +18,10 @@ it.each(["missing", "wrong-node", "wrong-index"])("rejects corrupted expression 
     scopeChain: [{ id: "external", bindings: { iterator: result.returnValue as RuntimeSnapshotValue } }],
     callStack: [], pendingPromises: [], moduleBindings: {} });
   const generator = Object.values(snapshot.heap!).find(node => node.kind === "guest-generator")!;
-  const [id, expression] = Object.entries(generator.expressionStates!)[0];
+  const [id, expression] = Object.entries(generator.expressionStates!).find(([, entry]) => entry.kind === "array")!;
   if (corruption === "missing") generator.expressionStates = {};
   else if (corruption === "wrong-node") generator.expressionStates = { [generator.astNodeId]: expression };
-  else if (expression.kind === "array") generator.expressionStates = { [id]: { ...expression, index: 0 } };
+  else if (expression.kind === "array") generator.expressionStates![id] = { ...expression, index: 0 };
   expect(() => restore(JSON.parse(JSON.stringify(snapshot)), { source })).toThrow("Invalid generator AST identity");
 });
 

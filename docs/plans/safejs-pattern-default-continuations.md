@@ -45,3 +45,4 @@ when a later initializer or pattern suspends. A direct restoration probe of
 `const first=input(),[second=yield 1]=[]` threw a redeclaration error for `first`,
 where native execution returned `[1,2,4]` for `[count,first,second]`. Declaration
 progress needs a separate continuation rather than suppressing redeclarations.
+That follow-up is tracked in `safejs-declaration-continuations.md`.

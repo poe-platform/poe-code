@@ -85,6 +85,7 @@ export function captureGuestHeapNode<T>(value: object, encode: (value: unknown) 
       ...(value.state !== "suspended" || origin.expressionStates === undefined ? {} : {
         expressionStates: Object.fromEntries([...origin.expressionStates].map(([id, expression]) => [String(id),
           expression.kind === "binary" ? { kind: "binary", left: encode(expression.left) }
+            : expression.kind === "declaration" ? { ...expression }
             : expression.kind === "pattern-source" ? { kind: "pattern-source", value: encode(expression.value) }
             : expression.kind === "object-pattern" ? { kind: "object-pattern", phase: expression.phase, index: expression.index,
               excludedKeys: expression.excludedKeys.map(encode), key: encode(expression.key), current: encode(expression.current),

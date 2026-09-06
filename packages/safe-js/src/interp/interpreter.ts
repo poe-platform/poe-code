@@ -1331,11 +1331,19 @@ async function evaluateVariableDeclaration(
   node: VariableDeclaration,
   context: EvaluationContext
 ): Promise<EvaluationResult> {
+  const saved = context.generatorResume === undefined || node.nodeId === undefined
+    ? undefined : context.restoredGeneratorExpressionStates?.get(node.nodeId);
+  if (saved !== undefined && saved.kind !== "declaration") throw new TypeError("Invalid declaration continuation.");
   if (node.kind !== "var") {
     predeclareDeclarationBindings(node, context.scope);
   }
 
-  for (const declarator of node.declarations) {
+  for (let index = saved?.index ?? 0; index < node.declarations.length; index++) {
+    const declarator = node.declarations[index];
+    if (context.generatorYield !== undefined && node.nodeId !== undefined) {
+      context = { ...context, generatorExpressionStates: new Map([...(context.generatorExpressionStates ?? []),
+        [node.nodeId, { kind: "declaration", index }]]) };
+    }
     if (
       node.kind === "var" &&
       declarator.init === undefined &&
@@ -2305,6 +2313,10 @@ async function bindIterationVariable(
     throw new TypeError("for...of declarations must include exactly one declarator.");
   }
 
+  if (context.generatorYield !== undefined && left.nodeId !== undefined) {
+    context = { ...context, generatorExpressionStates: new Map([...(context.generatorExpressionStates ?? []),
+      [left.nodeId, { kind: "declaration", index: 0 }]]) };
+  }
   return bindPattern(declarator.id, value, { kind: left.kind }, scope, createPatternContext(context, scope));
 }
 

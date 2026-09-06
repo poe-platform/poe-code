@@ -3,6 +3,7 @@ import type { Scope } from "./scope.js";
 import type { SandboxIterator, IteratorSnapshot } from "./iteration.js";
 
 export type GeneratorExpressionState<T = SandboxValue, S = Scope, I = SandboxIterator | IteratorSnapshot> =
+  | { kind: "declaration"; index: number }
   | { kind: "pattern-source"; value: T }
   | { kind: "object-pattern"; phase: "key" | "reference" | "binding"; index: number; excludedKeys: T[]; key: T; current: T; referenceObject?: T; referenceKey?: T }
   | { kind: "array-pattern"; phase: "reference" | "binding"; index: number; done: boolean; current: T; iterator: I; referenceObject?: T; referenceKey?: T }

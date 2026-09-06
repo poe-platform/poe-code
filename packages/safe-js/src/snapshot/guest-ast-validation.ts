@@ -15,6 +15,7 @@ export function validateGuestFunctionAst(record: Record<string, unknown>, origin
     | { kind: "for-in"; phase: string }
     | { kind: "for-of"; phase: string; async: boolean }
     | { kind: "array-pattern"; index: number }
+    | { kind: "declaration"; index: number }
     | { kind: "object-pattern"; index: number; key: boolean }
     | { kind: "member-assignment"; superReceiver: boolean; key: boolean }
     | { kind: "array" | "call" | "new" | "template" | "tagged"; index: number; member?: boolean }
@@ -36,6 +37,11 @@ export function validateGuestFunctionAst(record: Record<string, unknown>, origin
       yieldExpressions = frame.expressions;
     }
     for (const [key, value] of Object.entries(node)) {
+      if (node.type === "VariableDeclaration" && key === "declarations" && typeof node.nodeId === "number" && Array.isArray(value)) {
+        value.forEach((declarator, index) => pending.push({ value: declarator, blocks, finalizers: frame.finalizers,
+          expressions: new Map([...frame.expressions, [node.nodeId as number, { kind: "declaration", index }]]) }));
+        continue;
+      }
       // Tagged templates evaluate substitutions as arguments, not string prefixes.
       if (node.type === "TaggedTemplateExpression" && key === "quasi") {
         ((value as Record<string, unknown>).expressions as unknown[]).forEach((expression, index) => {

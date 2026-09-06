@@ -226,6 +226,7 @@ describe("Math.f16round independent review", () => {
         Math: {
           ...capture.completed.bindings.Math,
           [Symbol.toStringTag]: "Math",
+          sumPrecise: { kind: "fn", name: "sumPrecise" },
           f16round: { kind: "fn", name: "f16round" }
         }
       }

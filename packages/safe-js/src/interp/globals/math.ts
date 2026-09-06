@@ -4,6 +4,7 @@ import { sandboxNumber } from "../string-coercion.js";
 import { retainValues } from "../resources.js";
 import { registerBuiltinIdentities } from "../intrinsics.js";
 import { registerIntrinsicFunction, registerIntrinsicObject } from "../object-model.js";
+import { sumPrecise } from "./math-sum-precise.js";
 
 const mathMethods = {
   abs: Math.abs,
@@ -98,7 +99,11 @@ export function createMathGlobals(options: MathGlobalsOptions = {}): MathGlobals
     PI: Math.PI,
     SQRT1_2: Math.SQRT1_2,
     SQRT2: Math.SQRT2,
-    random: createSandboxClosure({ sandbox: true, guest: true, call: () => random(), name: "random", length: 0 })
+    random: createSandboxClosure({ sandbox: true, guest: true, call: () => random(), name: "random", length: 0 }),
+    sumPrecise: createSandboxClosure({
+      sandbox: true, guest: true, name: "sumPrecise", length: 1,
+      call: ([source], context) => sumPrecise(source, budget, context)
+    })
   };
 
   for (const [name, method] of Object.entries(mathMethods)) {

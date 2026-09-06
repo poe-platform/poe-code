@@ -158,6 +158,7 @@ describe("compile checkpoint hash compatibility", () => {
         Math: {
           ...capture.completed.bindings.Math,
           [Symbol.toStringTag]: "Math",
+          sumPrecise: { kind: "fn", name: "sumPrecise" },
           f16round: { kind: "fn", name: "f16round" }
         }
       }

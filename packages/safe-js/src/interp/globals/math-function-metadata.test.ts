@@ -11,11 +11,11 @@ import { validateGuestHeapNode } from "../../snapshot/guest-heap-validation.js";
 const methods = ["abs", "acos", "acosh", "asin", "asinh", "atan", "atan2", "atanh",
   "ceil", "cbrt", "clz32", "cos", "cosh", "exp", "expm1", "floor", "f16round",
   "fround", "hypot", "imul", "log", "log1p", "log10", "log2", "max", "min",
-  "pow", "random", "round", "sign", "sin", "sinh", "sqrt", "tan", "tanh", "trunc"];
+  "pow", "random", "round", "sign", "sin", "sinh", "sqrt", "sumPrecise", "tan", "tanh", "trunc"];
 
 it.each(methods)("exposes standard Math.%s name and arity descriptors", async name => {
   const native = Math[name as keyof Math] as ((...args: number[]) => number) | undefined;
-  const length = name === "f16round" ? 1 : native!.length;
+  const length = name === "f16round" || name === "sumPrecise" ? 1 : native!.length;
   const result = await run(`const fn=Math.${name};return [fn.name,fn.length,
     Object.getOwnPropertyDescriptor(fn,"name"),Object.getOwnPropertyDescriptor(fn,"length")]`);
   expect(result.returnValue).toEqual([name, length,

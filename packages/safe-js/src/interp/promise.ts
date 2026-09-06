@@ -123,7 +123,7 @@ export function createPromiseGlobals(options: { budget: Budget }): PromiseGlobal
             context === undefined ? promiseConstructor : context.thisValue,
             context
           ),
-        name: "all"
+        guest: true, name: "all", length: 1
       }),
       race: createSandboxClosure({
         sandbox: true,
@@ -135,7 +135,7 @@ export function createPromiseGlobals(options: { budget: Budget }): PromiseGlobal
             context === undefined ? promiseConstructor : context.thisValue,
             context
           ),
-        name: "race"
+        guest: true, name: "race", length: 1
       }),
       allSettled: createSandboxClosure({
         sandbox: true,
@@ -147,7 +147,7 @@ export function createPromiseGlobals(options: { budget: Budget }): PromiseGlobal
             context === undefined ? promiseConstructor : context.thisValue,
             context
           ),
-        name: "allSettled"
+        guest: true, name: "allSettled", length: 1
       }),
       any: createSandboxClosure({
         sandbox: true,
@@ -159,7 +159,7 @@ export function createPromiseGlobals(options: { budget: Budget }): PromiseGlobal
             context === undefined ? promiseConstructor : context.thisValue,
             context
           ),
-        name: "any"
+        guest: true, name: "any", length: 1
       }),
       resolve: createSandboxClosure({
         sandbox: true,
@@ -182,7 +182,7 @@ export function createPromiseGlobals(options: { budget: Budget }): PromiseGlobal
           return actualConstructor instanceof Promise
             ? actualConstructor.then(finish) : finish(actualConstructor);
         },
-        name: "resolve"
+        guest: true, name: "resolve", length: 1
       }),
       reject: createSandboxClosure({
         sandbox: true,
@@ -192,7 +192,7 @@ export function createPromiseGlobals(options: { budget: Budget }): PromiseGlobal
             ? createRejectedSandboxPromise(reason, options.budget, context?.span)
             : settleConstructedPromise(constructor, reason, "rejected", options.budget, context);
         },
-        name: "reject"
+        guest: true, name: "reject", length: 1
       })
   };
   const promiseConstructor = createSandboxClosure({
@@ -217,6 +217,12 @@ export function createPromiseGlobals(options: { budget: Budget }): PromiseGlobal
   intrinsicPromiseConstructors.set(options.budget, promiseConstructor);
   registerIntrinsicFunction(options.budget, species);
   registerIntrinsicFunction(options.budget, promiseConstructor);
+  for (const method of [
+    ...Object.values(properties),
+    ...Object.values(Object.getOwnPropertyDescriptors(prototype)).map(descriptor => descriptor.value)
+  ]) {
+    if (isSandboxClosure(method)) registerIntrinsicFunction(options.budget, method);
+  }
   return { Promise: promiseConstructor };
 }
 
@@ -353,7 +359,7 @@ function getPromisePrototype(budget: Budget): SandboxObject {
         const constructor = getPromiseSpeciesConstructor(target, prototype, budget, context);
         return constructor instanceof Promise ? constructor.then(finish) : finish(constructor);
       },
-      name: "then"
+      guest: true, name: "then", length: 2
     }),
     catch: createSandboxClosure({
       sandbox: true,
@@ -375,7 +381,7 @@ function getPromisePrototype(budget: Budget): SandboxObject {
           : readPropertyDescriptor(descriptor, target, context, true);
         return then instanceof Promise ? then.then(invoke) : invoke(then);
       },
-      name: "catch"
+      guest: true, name: "catch", length: 1
     }),
     finally: createSandboxClosure({
       sandbox: true,
@@ -451,7 +457,7 @@ function getPromisePrototype(budget: Budget): SandboxObject {
         const constructor = getPromiseSpeciesConstructor(target, prototype, budget, context);
         return constructor instanceof Promise ? constructor.then(finish) : finish(constructor);
       },
-      name: "finally"
+      guest: true, name: "finally", length: 1
     })
   };
   for (const name of Object.keys(prototype)) {

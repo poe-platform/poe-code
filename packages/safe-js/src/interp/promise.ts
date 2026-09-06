@@ -1,5 +1,5 @@
 import { SandboxError, type Budget } from "./budget.js";
-import { accessorClosure } from "./accessors.js";
+import { accessorClosure, readPropertyDescriptor } from "./accessors.js";
 import { getSandboxPropertyDescriptor } from "./object-model.js";
 import { coerceThrownValue, createSubsetErrorValue } from "./exceptions.js";
 import { acquireSandboxIterator, closeIterator, getSandboxIterator, readIteratorResult } from "./iteration.js";
@@ -171,15 +171,19 @@ export function createPromiseGlobals(options: { budget: Budget }): PromiseGlobal
           if (typeof constructor !== "object" || constructor === null) {
             throw new TypeError("Promise.resolve requires an object receiver.");
           }
-          if (
-            isSandboxPromise(value) &&
-            getPromiseMember("constructor", options.budget) === constructor
-          ) {
-            return value;
-          }
-          return isSandboxPromiseConstructor(constructor)
-            ? createSandboxPromise(resolveSandboxValue(value, { budget: options.budget }))
-            : settleConstructedPromise(constructor, value, "fulfilled", options.budget, context);
+          const finish = (actualConstructor: SandboxValue) => {
+            if (isSandboxPromise(value) && actualConstructor === constructor) return value;
+            return isSandboxPromiseConstructor(constructor)
+              ? createSandboxPromise(resolveSandboxValue(value, { budget: options.budget }))
+              : settleConstructedPromise(constructor, value, "fulfilled", options.budget, context);
+          };
+          if (!isSandboxPromise(value)) return finish(undefined);
+          const descriptor = getSandboxPropertyDescriptor(value, "constructor", options.budget);
+          const actualConstructor = descriptor === undefined
+            ? getPromiseMember("constructor", options.budget)
+            : readPropertyDescriptor(descriptor, value, context, true);
+          return actualConstructor instanceof Promise
+            ? actualConstructor.then(finish) : finish(actualConstructor);
         },
         name: "resolve"
       }),

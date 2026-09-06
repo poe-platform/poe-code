@@ -84,7 +84,7 @@ describe("parse exports", () => {
     ).toMatchObject({
       type: "ExportDefaultDeclaration",
       declaration: {
-        type: "FunctionExpression",
+        type: "FunctionDeclaration",
         async: true,
         id: {
           type: "Identifier",

@@ -172,7 +172,7 @@ class ASUnusedImportScanner {
         this.visitVariableDeclaration(node.declaration);
         return;
       case "ExportDefaultDeclaration":
-        if (node.declaration.type === "ClassDeclaration") this.visitStatement(node.declaration);
+        if (node.declaration.type === "ClassDeclaration" || node.declaration.type === "FunctionDeclaration") this.visitStatement(node.declaration);
         else this.visitExpression(node.declaration);
         return;
       case "BlockStatement":
@@ -588,11 +588,15 @@ class ASUnusedImportScanner {
     const bindings: Binding[] = [];
 
     for (const statement of body) {
+      if (statement.type === "ExportDefaultDeclaration" && (statement.declaration.type === "FunctionDeclaration" || statement.declaration.type === "ClassDeclaration") && statement.declaration.id !== undefined) {
+        bindings.push({ kind: "let", name: statement.declaration.id.name });
+        continue;
+      }
       if (statement.type === "ImportDeclaration") {
         bindings.push(...this.collectImportBindings(statement));
         continue;
       }
-      if (statement.type === "FunctionDeclaration" || statement.type === "ClassDeclaration") {
+      if ((statement.type === "FunctionDeclaration" || statement.type === "ClassDeclaration") && statement.id !== undefined) {
         bindings.push({ kind: "let", name: statement.id.name });
         continue;
       }
@@ -612,7 +616,7 @@ class ASUnusedImportScanner {
     const bindings: Binding[] = [];
 
     for (const statement of body) {
-      if (statement.type === "FunctionDeclaration" || statement.type === "ClassDeclaration") {
+      if ((statement.type === "FunctionDeclaration" || statement.type === "ClassDeclaration") && statement.id !== undefined) {
         bindings.push({ kind: "let", name: statement.id.name });
       }
       if (statement.type === "VariableDeclaration") {

@@ -158,7 +158,7 @@ class ASFloatingPromiseScanner {
         this.visitVariableDeclaration(node.declaration);
         return;
       case "ExportDefaultDeclaration":
-        if (node.declaration.type === "ClassDeclaration") this.visitStatement(node.declaration);
+        if (node.declaration.type === "ClassDeclaration" || node.declaration.type === "FunctionDeclaration") this.visitStatement(node.declaration);
         else this.visitExpression(node.declaration);
         return;
       case "ImportDeclaration":
@@ -669,8 +669,9 @@ class ASFloatingPromiseScanner {
   }
 
   private collectBlockBindings(statements: readonly Statement[]): Binding[] {
-    return statements.flatMap((statement) => {
-      if (statement.type === "FunctionDeclaration") {
+    return statements.flatMap((entry) => {
+      const statement = entry.type === "ExportDefaultDeclaration" && entry.declaration.type === "FunctionDeclaration" ? entry.declaration : entry;
+      if (statement.type === "FunctionDeclaration" && statement.id !== undefined) {
         return [
           { async: statement.async && !statement.generator, kind: "local", name: statement.id.name }
         ];

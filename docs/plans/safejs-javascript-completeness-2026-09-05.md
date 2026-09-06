@@ -3597,7 +3597,7 @@ Class-export scoped workflow 34014626489 published
 finished green but declined publication at 05:43:31 UTC because remote main had
 advanced; it is not a verified CLI release.
 
-### 61. Anonymous function names — validated implementation under qualification
+### 61. Anonymous function names — closed on remote main
 
 Native comparisons reproduce 24 failures with six controls passing across
 function/arrow/async/generator initializers, assignments, defaults, properties,
@@ -3630,3 +3630,134 @@ precede the separate main push.
 The normal build and real harness passed. Its inspected screenshot shows inferred
 names ordinary/arrow/asynchronous/defaulted/computed/field and results [7, 8, 9,
 10, 11, 12], with zero spawns. This increment is ready for its atomic main push.
+
+Delivery is verified on remote main as
+2e3c7c5cee27c1d741e9b0bb2757c853596f95f7. Close this scope now; publication
+monitoring continues while default function declaration work proceeds. The user's
+staged patch ID is unchanged.
+
+Naming workflows 34014886991 (scoped) and 34014887196 (CLI) are monitored.
+Class-export CLI workflow 34014626562 was canceled, not published. A successful
+descendant CLI publication remains required; scoped 0.1.147 is already verified.
+
+Scoped workflow 34014886991 published @poe-platform/safe-js@0.1.148 at
+2026-09-06T05:52:18.1258997Z. This is publication evidence, not only a green run.
+
+CLI workflow 34014887196 published poe-code@14.0.67 to latest at
+2026-09-06T05:59:25.2806425Z and confirmed release completion at
+05:59:27.5346775Z. Remote tag v14.0.67 resolves exactly to
+2e3c7c5cee27c1d741e9b0bb2757c853596f95f7. This closes the outstanding
+CLI publication requirement for the preceding delivered changes.
+
+## 62. Default function declaration semantics (in progress)
+
+Native ESM comparisons validated missing named outer bindings, hoisting, live
+default bindings, and invalid bare call/member suffixes. The first regression
+suite reproduced 25 failures with ten controls passing. Native VM module probes
+also establish that anonymous default functions are initialized before module
+evaluation, including before a top-level await.
+
+Parse bare default functions as declarations (anonymous only in this position),
+hoist their bindings, and alias named defaults to the mutable module binding.
+Parenthesized function expressions retain expression semantics. The initial
+35 runtime/grammar checks now pass; four additional lint/checkpoint checks pass.
+Integrate declaration traversal and binding handling across lint visitors before
+full package and shared checks. Async generators remain explicitly unsupported.
+
+QA: build normally, run a zero-spawn harness whose named default async function
+is referenced before its declaration, inspect its CLI screenshot, and verify
+signature checking. Commit and push this atomic improvement only after gates
+pass, verify remote main, close this scope, and monitor actual publication while
+continuing the next validated gap.
+
+Qualification progress: all 575 focused parser/runtime/lint tests, 163 harness
+tests, scoped ESLint, and root TypeScript passed. The first full SafeJS run
+passed 13,481 tests and found one stale AST expectation, corrected from
+FunctionExpression to FunctionDeclaration. The maintained root shared run then
+passed 33,382 tests (43 skipped); Python passed 29 and Bash runner passed 279.
+Remaining workspace tests and repository lint must finish before delivery.
+
+The original broad run finished with 21,031 Bash passes, 23 failures and 63
+skips: one macOS realpath oracle incompatibility, 13 Bash3 brace-profile
+comparisons, and nine printf-variable native comparisons under investigation.
+This is failed evidence, not a clean gate. The realpath test-only repair is
+delivered and closed at verified remote main
+78d6e75e0c4125cb6138d2d645c3f4a09b5912f7, independently of this feature.
+Its scoped workflow 34015577072 published SafeFS/SafeJS/Safe Bash 0.1.149;
+SafeJS publication is confirmed at 2026-09-06T06:08:11.6021355Z. CLI workflow
+34015577096 remains independently monitored.
+
+Review also reproduced an unused-binding warning for a named default export.
+An added regression failed with 39 controls passing, then the export binding
+was marked as externally used consistently with named exports. The resulting
+567 runtime/lint checks and focused ESLint passed. Guarded repository lint,
+root types and workflow lint then passed: 9,823 configured files, no errors or
+warnings. Normal build and real zero-spawn harness screenshot follow; remaining
+native-oracle repairs must be qualified without weakening product contracts.
+
+Normal build passed, and the real function-exports harness passed with zero
+spawns. Its screenshot was visually inspected. A built-public-core assertion
+independently checks a reference before the named default declaration, the
+entry-point self-name, and frontmatter argument value: ["main", "main", 7].
+Fresh broad test qualification remains required after oracle repairs.
+
+The modern-Bash oracle-profile repair is independently delivered and closed at
+verified remote main e531497ca426adb0111a4d2c46006f7fb064b0a5. Its focused checks
+preserve active product assertions and report 22 unavailable modern-native
+subtests separately. Scoped workflow 34015880611 published SafeJS 0.1.150 at
+2026-09-06T06:15:44.1613877Z (SafeFS and Safe Bash likewise published 0.1.150).
+The older CLI workflow 34015577096 was canceled, not published; successor
+34015880686 is monitored. Fresh root validation has passed 33,383 shared tests
+(43 skipped), 29 Python tests and 279 Bash-runner tests; later workspace stages
+remain in progress. These are partial results, not a complete gate claim.
+
+Final qualification completed successfully on the repaired tree. Full npm test
+passed 33,383 shared tests (43 skipped), 29 Python tests, 279 Bash-runner tests,
+21,053 Bash tests (86 explicit skips), 288 shell-stress tests and two lint-stress
+tests. The uncached maintained workspace route and native pre/post stages ran.
+The final repository lint chain passed ESLint, root TypeScript and workflow lint.
+Normal build, built public-core assertions and the inspected real zero-spawn
+harness screenshot also passed. This atomic default-function declaration fix is
+ready for its own direct-main commit and push; release verification is separate.
+
+### Next validated gaps: iterator cleanup and async iteration
+
+Read-only probes against current source confirm that object/array destructuring
+declaration failure in a for-of head skips generator cleanup. Native JavaScript
+runs finally. A later instrumented assignment-setter probe shows a separate
+underlying gap: member assignment targets are rejected before the setter runs.
+Native reports [called, closed, failure] as [true, true, 7]; SafeJS reports
+[false, false, "Unsupported for...of left-hand side 'MemberExpression'."].
+Array and object assignment patterns are likewise rejected, though their
+declaration forms are accepted. Do not misclassify this as a reached setter
+failure; retain assignment-target support as a separate validated gap.
+A body throw of 7 followed by a
+cleanup throw of 9 incorrectly exposes 9 rather than preserving 7. Ordinary
+supported Symbol.iterator inputs do not receive return() on break, return, or
+throw; native invokes it once. The existing interpreter test expecting no return
+call is obsolete. Normal generator break cleanup and cleanup-error precedence
+over a return completion are passing controls. Add regressions and repair these
+paths in a separate atomic commit after default-function delivery.
+
+Falsey body throws undefined/null/false/0/empty-string are also incorrectly
+replaced by cleanup throw 9. Preserve exact completion identity, not truthiness.
+Read-only low-level controls establish that fatal budget and reentry errors
+currently escape unchanged without running generator cleanup effects; the
+cleanup repair must preserve this capability/budget boundary.
+
+Nested generators confirm the precedence defect: native preserves "body" when
+inner and outer cleanup throw; SafeJS exposes "outer". Labeled break and
+continue controls already produce the native cleanup orders [inner, outer] and
+[inner, inner, outer]. Raw iterator controls independently confirm that failures
+from next(), the done getter and the value getter do not invoke return() in
+either engine. Keep iterator advancement outside the new abrupt-body cleanup
+boundary; an unconditional close around the entire loop would introduce errors.
+
+Async iteration remains open: native controls succeed for async declarations,
+expressions, object/class generator methods, queued next calls, early close,
+and for-await over synchronous values/promises. SafeJS rejects all at parse time,
+confirmed with the current source parser as well as the built public runner.
+These probes establish syntax gaps, not runtime conformance beyond parsing.
+Implementing them also requires promise-returning iterator methods, request
+ordering, awaited values, cleanup, budgets, and checkpoint treatment; merely
+removing parser restrictions is insufficient.

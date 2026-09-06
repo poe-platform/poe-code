@@ -135,7 +135,7 @@ class ASMissingAsyncScanner {
         this.visitVariableDeclaration(node.declaration);
         return;
       case "ExportDefaultDeclaration":
-        if (node.declaration.type === "ClassDeclaration") this.visitStatement(node.declaration);
+        if (node.declaration.type === "ClassDeclaration" || node.declaration.type === "FunctionDeclaration") this.visitStatement(node.declaration);
         else this.visitExpression(node.declaration);
         return;
       case "ImportDeclaration":
@@ -559,7 +559,7 @@ function statementContainsAwait(node: Statement): boolean {
     case "ExportNamedDeclaration":
       return variableDeclarationContainsAwait(node.declaration);
     case "ExportDefaultDeclaration":
-      return node.declaration.type === "ClassDeclaration"
+      return node.declaration.type === "ClassDeclaration" || node.declaration.type === "FunctionDeclaration"
         ? statementContainsAwait(node.declaration)
         : expressionContainsAwait(node.declaration);
     case "ImportDeclaration":

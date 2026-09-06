@@ -349,7 +349,7 @@ export type FunctionDeclaration = BaseNode & {
   async: boolean;
   body: BlockStatement;
   generator: boolean;
-  id: Identifier;
+  id?: Identifier;
   params: ArrowFunctionExpression["params"];
 };
 
@@ -1638,6 +1638,12 @@ class Parser {
   private parseExportDefaultDeclaration(exportToken: Token): ExportDefaultDeclaration {
     this.index += 1;
 
+    if (this.currentToken().value === "function" ||
+        (this.currentToken().value === "async" && this.peekToken(1).value === "function" &&
+         !hasLineBreakBetween(this.currentToken(), this.peekToken(1)))) {
+      return createExportDefaultDeclaration(exportToken, this.parseFunctionDeclaration(true));
+    }
+
     if (this.currentToken().value === "class") {
       const named = isIdentifierLikeToken(this.peekToken(1)) && this.peekToken(1).value !== "extends";
       return createExportDefaultDeclaration(exportToken, this.parseClass(named));
@@ -1699,7 +1705,7 @@ class Parser {
     };
   }
 
-  private parseFunctionDeclaration(): FunctionDeclaration {
+  private parseFunctionDeclaration(defaultExport = false): FunctionDeclaration {
     const asyncToken = this.consumeKeyword("async");
     const functionToken = this.expectKeyword("function");
     const generatorToken = this.consumePunctuator("*");
@@ -1708,8 +1714,9 @@ class Parser {
         `async function* is not supported at line ${asyncToken.start.line}, column ${asyncToken.start.column}.`
       );
     }
-    const id = this.parseBindingIdentifier();
-    this.declareBinding(id, "function");
+    const id = defaultExport && this.currentToken().value === "("
+      ? undefined : this.parseBindingIdentifier();
+    if (id !== undefined) this.declareBinding(id, defaultExport ? "lexical" : "function");
     const generator = generatorToken !== undefined;
     const { params, body } = this.parseFunctionParts(generator, ordinaryFunctionContext);
 

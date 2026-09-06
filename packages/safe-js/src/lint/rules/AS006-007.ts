@@ -116,7 +116,7 @@ class AS006007Scanner {
         this.visitVariableDeclaration(node.declaration);
         return;
       case "ExportDefaultDeclaration":
-        if (node.declaration.type === "ClassDeclaration") this.visitStatement(node.declaration);
+        if (node.declaration.type === "ClassDeclaration" || node.declaration.type === "FunctionDeclaration") this.visitStatement(node.declaration);
         else this.visitExpression(node.declaration);
         return;
       case "BlockStatement":
@@ -626,11 +626,15 @@ class AS006007Scanner {
     }
 
     for (const statement of body) {
+      if (statement.type === "ExportDefaultDeclaration" && (statement.declaration.type === "FunctionDeclaration" || statement.declaration.type === "ClassDeclaration") && statement.declaration.id !== undefined) {
+        bindings.push({ ...this.createBinding(statement.declaration.id, "let"), code: undefined });
+        continue;
+      }
       if (statement.type === "ImportDeclaration") {
         bindings.push(...this.collectImportBindings(statement));
         continue;
       }
-      if (statement.type === "FunctionDeclaration" || statement.type === "ClassDeclaration") {
+      if ((statement.type === "FunctionDeclaration" || statement.type === "ClassDeclaration") && statement.id !== undefined) {
         bindings.push(this.createBinding(statement.id, "let"));
         continue;
       }
@@ -650,7 +654,7 @@ class AS006007Scanner {
     const bindings: Binding[] = [];
 
     for (const statement of body) {
-      if (statement.type === "FunctionDeclaration" || statement.type === "ClassDeclaration") {
+      if ((statement.type === "FunctionDeclaration" || statement.type === "ClassDeclaration") && statement.id !== undefined) {
         bindings.push(this.createBinding(statement.id, "let"));
       }
       if (statement.type === "VariableDeclaration" && statement.kind !== "var") {

@@ -148,7 +148,7 @@ class AS003Scanner {
         this.visitVariableDeclaration(node.declaration);
         return;
       case "ExportDefaultDeclaration":
-        if (node.declaration.type === "ClassDeclaration") this.visitStatement(node.declaration);
+        if (node.declaration.type === "ClassDeclaration" || node.declaration.type === "FunctionDeclaration") this.visitStatement(node.declaration);
         else this.visitExpression(node.declaration);
         return;
       case "ImportDeclaration":
@@ -627,7 +627,7 @@ class AS003Scanner {
       bindings.push(...this.collectDeclarationBindings(declaration));
     }
     for (const statement of body) {
-      if (statement.type === "ExportDefaultDeclaration" && statement.declaration.type === "ClassDeclaration") {
+      if (statement.type === "ExportDefaultDeclaration" && (statement.declaration.type === "ClassDeclaration" || statement.declaration.type === "FunctionDeclaration") && statement.declaration.id !== undefined) {
         bindings.push({ kind: "let", name: statement.declaration.id.name });
         continue;
       }
@@ -635,7 +635,7 @@ class AS003Scanner {
         bindings.push(...this.collectImportBindings(statement));
         continue;
       }
-      if (statement.type === "FunctionDeclaration" || statement.type === "ClassDeclaration") {
+      if ((statement.type === "FunctionDeclaration" || statement.type === "ClassDeclaration") && statement.id !== undefined) {
         bindings.push({ kind: "let", name: statement.id.name });
         continue;
       }
@@ -653,7 +653,7 @@ class AS003Scanner {
   private collectBlockBindings(body: Statement[]): Binding[] {
     const bindings: Binding[] = [];
     for (const statement of body) {
-      if (statement.type === "FunctionDeclaration" || statement.type === "ClassDeclaration") {
+      if ((statement.type === "FunctionDeclaration" || statement.type === "ClassDeclaration") && statement.id !== undefined) {
         bindings.push({ kind: "let", name: statement.id.name });
       }
       if (statement.type === "VariableDeclaration" && statement.kind !== "var") {

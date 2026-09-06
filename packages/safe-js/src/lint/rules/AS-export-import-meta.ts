@@ -13,6 +13,7 @@ import {
   type ForOfStatement,
   type ForStatement,
   type FunctionExpression,
+  type FunctionDeclaration,
   type IfStatement,
   type LogicalExpression,
   type MemberExpression,
@@ -145,13 +146,13 @@ class Scanner {
           this.pushDiagnostic(
             "AS-EXPORT-DEFAULT-NOT-ARROW",
             "error",
-            "Export default initializer must be an arrow or function expression.",
+            "Export default must be an arrow, function expression, or function declaration.",
             node.declaration.span
           );
         } else {
           this.visitDefaultExportSignature(node.declaration);
         }
-        if (node.declaration.type === "ClassDeclaration") this.visitStatement(node.declaration);
+        if (node.declaration.type === "ClassDeclaration" || node.declaration.type === "FunctionDeclaration") this.visitStatement(node.declaration);
         else this.visitExpression(node.declaration);
         return;
       case "BlockStatement":
@@ -212,7 +213,7 @@ class Scanner {
   }
 
   private visitDefaultExportSignature(
-    node: Extract<Expression, { type: "ArrowFunctionExpression" }> | FunctionExpression
+    node: Extract<Expression, { type: "ArrowFunctionExpression" }> | FunctionExpression | FunctionDeclaration
   ): void {
     const parameters = this.defaultExport?.parameters;
     if (parameters === undefined) {
@@ -509,13 +510,13 @@ class Scanner {
 }
 
 function isDefaultExportCallable(
-  node: Expression | import("../../parse/parser.js").ClassDeclaration
-): node is Extract<Expression, { type: "ArrowFunctionExpression" }> | FunctionExpression {
-  return node.type === "ArrowFunctionExpression" || node.type === "FunctionExpression";
+  node: Expression | import("../../parse/parser.js").ClassDeclaration | FunctionDeclaration
+): node is Extract<Expression, { type: "ArrowFunctionExpression" }> | FunctionExpression | FunctionDeclaration {
+  return node.type === "ArrowFunctionExpression" || node.type === "FunctionExpression" || node.type === "FunctionDeclaration";
 }
 
 function hasParameterNames(
-  node: Extract<Expression, { type: "ArrowFunctionExpression" }> | FunctionExpression,
+  node: Extract<Expression, { type: "ArrowFunctionExpression" }> | FunctionExpression | FunctionDeclaration,
   names: readonly string[]
 ): boolean {
   if (node.params.length !== names.length) {

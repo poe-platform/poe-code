@@ -848,6 +848,7 @@ async function evaluateFunctionDeclaration(
   node: FunctionDeclaration,
   context: EvaluationContext
 ): Promise<EvaluationResult> {
+  if (node.id === undefined) throw new Error("An anonymous declaration requires a default export.");
   if (!context.scope.hasOwnBinding(node.id.name)) {
     context.scope.declare(
       node.id.name,
@@ -1229,6 +1230,10 @@ async function evaluateExportDefaultDeclaration(
   node: ExportDefaultDeclaration,
   context: EvaluationContext
 ): Promise<EvaluationResult> {
+  if (node.declaration.type === "FunctionDeclaration") {
+    if (!context.scope.hasOwnBinding("default")) predeclareStatementListBindings([node], context);
+    return { kind: "normal", hasValue: false, value: undefined };
+  }
   const declaration = await evaluateNode(node.declaration, { ...context, inferredName: "default" });
   if (declaration.kind !== "normal") {
     return declaration;
@@ -1548,26 +1553,26 @@ function predeclareStatementListBindings(
   const { scope } = context;
   const names = new Set<string>();
 
-  for (const statement of statements) {
-    if (statement.type === "ExportDefaultDeclaration" && statement.declaration.type === "ClassDeclaration") {
-      scope.predeclare(statement.declaration.id.name, "let");
-      names.add(statement.declaration.id.name);
-      continue;
-    }
+  for (const entry of statements) {
+    const exportedFunction = entry.type === "ExportDefaultDeclaration" && entry.declaration.type === "FunctionDeclaration";
+    const statement = entry.type === "ExportDefaultDeclaration" &&
+      (entry.declaration.type === "ClassDeclaration" || entry.declaration.type === "FunctionDeclaration")
+      ? entry.declaration : entry;
     if (statement.type === "ClassDeclaration") {
       scope.predeclare(statement.id.name, "let");
       names.add(statement.id.name);
       continue;
     }
     if (statement.type === "FunctionDeclaration") {
-      const name = statement.id.name;
-      if (names.has(name) && !(functionBody && scope.getOwnBindingKind(name) === "var")) {
+      if (statement.id === undefined && !exportedFunction) throw new Error("An anonymous declaration requires a default export.");
+      const name = statement.id?.name ?? "default";
+      if (names.has(name) && !(!exportedFunction && functionBody && scope.getOwnBindingKind(name) === "var")) {
         throw new Error(`Cannot redeclare binding '${name}' in the same scope.`);
       }
 
-      const closure = createInterpretedClosure(statement, context, evaluateNode);
+      const closure = createInterpretedClosure(statement, exportedFunction ? { ...context, inferredName: name } : context, evaluateNode);
       const ownBindingKind = scope.getOwnBindingKind(name);
-      if (ownBindingKind === "var") {
+      if (ownBindingKind === "var" && !exportedFunction) {
         names.add(name);
         scope.assign(name, closure);
         continue;
@@ -1577,7 +1582,8 @@ function predeclareStatementListBindings(
       }
 
       names.add(name);
-      scope.declare(name, functionBody ? "var" : "let", closure);
+      scope.declare(name, exportedFunction ? (statement.id === undefined ? "const" : "let") : functionBody ? "var" : "let", closure);
+      if (exportedFunction && statement.id !== undefined) scope.declareAlias("default", name);
       continue;
     }
 

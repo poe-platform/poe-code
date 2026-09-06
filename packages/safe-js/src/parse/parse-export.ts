@@ -2,6 +2,7 @@ import type { Token } from "./tokenizer.js";
 import type {
   ClassDeclaration,
   Expression,
+  FunctionDeclaration,
   Module,
   SourceSpan,
   VariableDeclaration,
@@ -18,7 +19,7 @@ export type ExportNamedDeclaration = {
 export type ExportDefaultDeclaration = {
   nodeId?: number;
   type: "ExportDefaultDeclaration";
-  declaration: Expression | ClassDeclaration;
+  declaration: Expression | ClassDeclaration | FunctionDeclaration;
   span: SourceSpan;
 };
 
@@ -33,7 +34,7 @@ export type ExtractedNamedExport = {
 export type ExtractedDefaultExport = {
   type: "default";
   name: "default";
-  declaration: Expression | ClassDeclaration;
+  declaration: Expression | ClassDeclaration | FunctionDeclaration;
   statement: ExportDefaultDeclaration;
   span: SourceSpan;
 };
@@ -116,7 +117,7 @@ export function createExportNamedDeclaration(
 
 export function createExportDefaultDeclaration(
   exportToken: Token,
-  declaration: Expression | ClassDeclaration
+  declaration: Expression | ClassDeclaration | FunctionDeclaration
 ): ExportDefaultDeclaration {
   return {
     type: "ExportDefaultDeclaration",

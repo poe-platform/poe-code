@@ -130,7 +130,7 @@ class ASUnreachableScanner {
         this.visitVariableDeclaration(node.declaration);
         return false;
       case "ExportDefaultDeclaration":
-        if (node.declaration.type === "ClassDeclaration") this.visitStatement(node.declaration);
+        if (node.declaration.type === "ClassDeclaration" || node.declaration.type === "FunctionDeclaration") this.visitStatement(node.declaration);
         else this.visitExpression(node.declaration);
         return false;
       case "ImportDeclaration":

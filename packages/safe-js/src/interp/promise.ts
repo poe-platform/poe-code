@@ -1,6 +1,6 @@
 import { SandboxError, type Budget } from "./budget.js";
 import { accessorAdapter, accessorClosure, readPropertyDescriptor } from "./accessors.js";
-import { getSandboxPropertyDescriptor, hasExplicitSandboxPrototype, installPromisePrototype, materializeFunctionProperties, registerIntrinsicFunction } from "./object-model.js";
+import { getSandboxDataProperty, getSandboxPropertyDescriptor, hasExplicitSandboxPrototype, installPromisePrototype, materializeFunctionProperties, registerIntrinsicFunction, setSandboxPrototype } from "./object-model.js";
 import { coerceThrownValue, createSubsetErrorValue } from "./exceptions.js";
 import { acquireSandboxIterator, closeIterator, getSandboxIterator, readIteratorResult } from "./iteration.js";
 import { retainValues } from "./resources.js";
@@ -36,6 +36,11 @@ export function createPromiseGlobals(options: { budget: Budget }): PromiseGlobal
   const prototype = getPromisePrototype(options.budget);
   const construct: NonNullable<SandboxClosure["construct"]> = async ([executor], context) => {
     if (!isSandboxClosure(executor)) throw new TypeError("Promise executor must be a function.");
+    const prototypeValue = context?.newTarget === undefined ? prototype
+      : context.getProperty === undefined
+        ? getSandboxDataProperty(context.newTarget, "prototype", options.budget)
+        : context.getProperty(context.newTarget, "prototype");
+    const targetPrototype = prototypeValue instanceof Promise ? await prototypeValue : prototypeValue;
     let fulfill!: (value: SandboxValue | PromiseLike<SandboxValue>) => void;
     let reject!: (reason: unknown) => void;
     const pending = createSandboxPromise(
@@ -45,6 +50,8 @@ export function createPromiseGlobals(options: { budget: Budget }): PromiseGlobal
       }),
       { span: context?.span }
     );
+    if (typeof targetPrototype === "object" && targetPrototype !== null && targetPrototype !== prototype)
+      setSandboxPrototype(pending, targetPrototype, options.budget);
     let settled = false;
     const settle = (state: "fulfilled" | "rejected", value: SandboxValue) => {
       if (settled) return;
@@ -62,7 +69,7 @@ export function createPromiseGlobals(options: { budget: Budget }): PromiseGlobal
             )
           );
         } else {
-          fulfill(resolveSandboxValue(value, { budget: options.budget, self: pending }));
+          fulfill(resolveSandboxValue(value, { budget: options.budget, self: pending, context }));
         }
       } catch (error) {
         reject(error);
@@ -172,7 +179,7 @@ export function createPromiseGlobals(options: { budget: Budget }): PromiseGlobal
           const finish = (actualConstructor: SandboxValue) => {
             if (isSandboxPromise(value) && actualConstructor === constructor) return value;
             return isSandboxPromiseConstructor(constructor)
-              ? createSandboxPromise(resolveSandboxValue(value, { budget: options.budget }))
+              ? createSandboxPromise(resolveSandboxValue(value, { budget: options.budget, context }))
               : settleConstructedPromise(constructor, value, "fulfilled", options.budget, context);
           };
           if (!isSandboxPromise(value)) return finish(undefined);
@@ -276,9 +283,10 @@ async function createPromiseCapability(
   const leaveCall = budget.enterCall();
   try {
     const promise = await constructor.construct([executor], {
+      ...context,
       stack: context?.stack ?? [],
       thisValue: undefined,
-      ...(context?.span === undefined ? {} : { span: context.span })
+      newTarget: constructor
     });
     if (!isSandboxClosure(resolve) || !isSandboxClosure(reject)) {
       throw new TypeError("Promise capability requires callable resolve and reject functions.");
@@ -415,7 +423,7 @@ function getPromisePrototype(budget: Budget): SandboxObject {
                     if (isSandboxPromise(result) && actualConstructor === constructor) {
                       pending = result;
                     } else if (isSandboxPromiseConstructor(constructor)) {
-                      pending = createSandboxPromise(resolveSandboxValue(result, { budget }));
+                      pending = createSandboxPromise(resolveSandboxValue(result, { budget, context }));
                     } else {
                       pending = await settleConstructedPromise(constructor, result, "fulfilled", budget, context);
                     }
@@ -629,7 +637,7 @@ async function settleIterable(
             });
           });
           remaining++;
-          const then = await readPromiseReceiverProperty(entry, "then", prototype, context);
+          const then = await readPromiseProperty(entry, "then", prototype, budget, context);
           if (!isSandboxClosure(then))
             throw new TypeError("Promise resolver result requires a callable then.");
           await callPromiseClosure(then, handlers, entry, budget, context);
@@ -690,7 +698,7 @@ function budgetSandboxValue(value: SandboxValue, budget: Budget): SandboxValue {
 
 export function resolveSandboxValue(
   value: SandboxValue | Promise<SandboxValue> | PromiseLike<SandboxValue>,
-  options: { budget?: Budget; self?: SandboxPromise } = {}
+  options: { budget?: Budget; self?: SandboxPromise; context?: SandboxCallContext } = {}
 ): Promise<SandboxValue> {
   try {
     return resolveSandboxValueNow(value, options);
@@ -711,7 +719,7 @@ export function consumeSettledHostCall(value: SandboxPromise): undefined {
 
 function resolveSandboxValueNow(
   value: SandboxValue | Promise<SandboxValue> | PromiseLike<SandboxValue>,
-  options: { budget?: Budget; self?: SandboxPromise }
+  options: { budget?: Budget; self?: SandboxPromise; context?: SandboxCallContext }
 ): Promise<SandboxValue> {
   if (isPromiseLike(value)) {
     return Promise.resolve(value).then(
@@ -733,7 +741,7 @@ function resolveSandboxValueNow(
     !hasCustomPromiseThen(value, options.budget)
   ) {
     if (options.budget !== undefined) {
-      return resolvePromiseResult(value, options.budget, options.self);
+      return resolvePromiseResult(value, options.budget, options.self, options.context);
     }
     observeSandboxPromise(value);
     return value.promise.then(
@@ -765,7 +773,7 @@ function resolveSandboxValueNow(
 function resolveThenable(
   value: SandboxValue,
   then: SandboxClosure,
-  options: { budget?: Budget; self?: SandboxPromise }
+  options: { budget?: Budget; self?: SandboxPromise; context?: SandboxCallContext }
 ): Promise<SandboxValue> {
   if (typeof value !== "object" || value === null) {
     return Promise.resolve(budgetIfNeeded(value, options.budget));
@@ -841,7 +849,8 @@ function resolveThenable(
           recordSettlement("rejected", error);
           complete();
         }
-      }
+      },
+      options.context
     ).catch(reject);
   });
 }
@@ -902,13 +911,13 @@ function runPromiseReaction(
       state === "rejected" && value instanceof Error ? coerceThrownValue(value, budget, []) : value;
     const fulfilled = (result: SandboxValue | Promise<SandboxValue>) => {
       if (isPromiseLike(result)) {
-        resolve(resolvePromiseResult(result, budget, self));
+        resolve(resolvePromiseResult(result, budget, self, context));
       } else if (isSelfResolution(result, self)) {
         reject(
           createSubsetErrorValue("TypeError", "Promise cannot resolve to itself.", [], budget)
         );
       } else if (requiresPromiseResolution(result, budget)) {
-        resolve(resolvePromiseResult(result, budget, self));
+        resolve(resolvePromiseResult(result, budget, self, context));
       } else {
         resolve(budgetSandboxValue(result, budget));
       }
@@ -956,10 +965,11 @@ function callInPromiseJob(
 function resolvePromiseResult(
   result: SandboxValue | Promise<SandboxValue> | PromiseLike<SandboxValue>,
   budget: Budget,
-  self: SandboxPromise | undefined
+  self: SandboxPromise | undefined,
+  context?: SandboxCallContext
 ): Promise<SandboxValue> {
   if (isPromiseLike(result)) {
-    return Promise.resolve(result).then((resolved) => resolvePromiseResult(resolved, budget, self));
+    return Promise.resolve(result).then((resolved) => resolvePromiseResult(resolved, budget, self, context));
   }
   if (isSelfResolution(result, self)) {
     return Promise.reject(
@@ -967,7 +977,7 @@ function resolvePromiseResult(
     );
   }
   if (!isSandboxPromise(result) || hasCustomPromiseThen(result, budget)) {
-    return resolveSandboxValue(result, { budget, self });
+    return resolveSandboxValue(result, { budget, self, context });
   }
   const then = getSandboxPropertyDescriptor(result, "then", budget)?.value ?? getPromiseMember("then", budget);
   if (!isSandboxClosure(then)) return Promise.resolve(result);
@@ -979,7 +989,7 @@ function resolvePromiseResult(
       try {
         if (state === "rejected") reject(budgetSandboxValue(value, budget));
         else if (requiresPromiseResolution(value, budget)) {
-          resolve(resolvePromiseResult(value, budget, self));
+          resolve(resolvePromiseResult(value, budget, self, context));
         } else {
           resolve(budgetSandboxValue(value, budget));
         }
@@ -1008,7 +1018,8 @@ function resolvePromiseResult(
             })
           ],
           result,
-          budget
+          budget,
+          context
         );
         if (isSandboxPromise(completion)) {
           completion.promise.catch((reason: unknown) => {

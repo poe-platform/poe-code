@@ -1,0 +1,16 @@
+import { S } from "schema";
+
+export const schema = S.Object({ title: S.String() });
+
+export default async (frontmatter) => {
+  class Child extends Promise { label = "child"; }
+  const value = Child.all([20, 21]).then(values => values[0] + values[1] + 1);
+  if (!(value instanceof Child) || value.label !== "child" || (await value) !== 42) {
+    throw new Error("Promise subclass construction or reaction failed");
+  }
+  const cleanup = value.finally(() => undefined);
+  if (!(cleanup instanceof Child) || (await cleanup) !== 42) {
+    throw new Error("Promise subclass cleanup failed");
+  }
+  return { title: frontmatter.title, ok: true, answer: 42 };
+};

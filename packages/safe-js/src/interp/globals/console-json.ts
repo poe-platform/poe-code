@@ -64,6 +64,7 @@ export function createConsoleJsonGlobals(
         ? {
             error: createSandboxClosure({
               sandbox: true,
+              properties: {},
               call: async (args, context) => {
                 const operation = options.budget.acquireCompileOwner(
                   false,
@@ -82,6 +83,7 @@ export function createConsoleJsonGlobals(
             }),
             log: createSandboxClosure({
               sandbox: true,
+              properties: {},
               call: async (args, context) => {
                 const operation = options.budget.acquireCompileOwner(
                   false,

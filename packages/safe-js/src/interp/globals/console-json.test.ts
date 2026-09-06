@@ -8,8 +8,27 @@ import {
   type SandboxObject
 } from "../values.js";
 import { createConsoleJsonGlobals } from "./console-json.js";
+import { HostCallJournal } from "../host-call.js";
 
 describe("createConsoleJsonGlobals", () => {
+  it("keeps console function property shape identical with and without journaling", () => {
+    const hostCalls = new HostCallJournal("console-property-shape");
+    try {
+      const plain = createConsoleJsonGlobals({ budget: new Budget() });
+      const journaled = createConsoleJsonGlobals({ budget: new Budget(), hostCalls });
+      for (const name of ["log", "error"]) {
+        const plainFunction = getClosure(getProperty(plain.console, name));
+        const journaledFunction = getClosure(getProperty(journaled.console, name));
+        expect(plainFunction.properties).toBeDefined();
+        expect(Object.getOwnPropertyDescriptors(plainFunction.properties!)).toEqual(
+          Object.getOwnPropertyDescriptors(journaledFunction.properties!)
+        );
+        expect(Object.isExtensible(plainFunction.properties)).toBe(false);
+        expect(Object.isExtensible(journaledFunction.properties)).toBe(false);
+      }
+    } finally { hostCalls.dispose(); }
+  });
+
   it("writes console output through the provided sink", async () => {
     const sink = {
       error: vi.fn(),

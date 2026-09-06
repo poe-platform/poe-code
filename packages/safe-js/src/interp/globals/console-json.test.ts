@@ -231,9 +231,7 @@ describe("createConsoleJsonGlobals", () => {
     const stringifyJson = getClosure(getProperty(globals.JSON, "stringify"));
 
     await expect(parseJson.call(["{"])).rejects.toThrow(SyntaxError);
-    await expect(stringifyJson.call([{ ok: true }, "x"])).rejects.toThrow(
-      "JSON.stringify(value, replacer, indent) only supports function, null, or undefined replacers."
-    );
+    await expect(stringifyJson.call([{ ok: true }, "x"])).resolves.toBe('{"ok":true}');
     await expect(stringifyJson.call([{ ok: true }, null, false])).rejects.toThrow(
       "JSON.stringify(value, replacer, indent) requires indent to be a string, number, or undefined."
     );

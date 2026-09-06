@@ -127,33 +127,57 @@ async function stringifyJson(
   budget: Budget,
   context?: SandboxCallContext
 ): Promise<SandboxValue> {
-  if (replacer !== undefined && replacer !== null && !isSandboxClosure(replacer)) {
-    throw new TypeError(
-      "JSON.stringify(value, replacer, indent) only supports function, null, or undefined replacers."
-    );
+  const allocation = {};
+  let propertyList: string[] | undefined;
+  const release = retainValues(budget, () => [value, replacer, indent]);
+  try {
+    if (Array.isArray(replacer)) {
+      propertyList = [];
+      const seen = new Set<string>();
+      let size = 0;
+      const state: StringifyState = { budget, context, gap: "", stack: [] };
+      const length = replacer.length;
+      for (let index = 0; index < length; index++) {
+        budget.visitNode();
+        const entry = await getStringifyProperty(replacer, String(index), state);
+        const primitive = isSandboxBox(entry) ? boxedValue(entry) : entry;
+        if (typeof primitive !== "string" && typeof primitive !== "number") continue;
+        const key = await sandboxString(entry, budget, context);
+        if (seen.has(key)) continue;
+        budget.allocateArrayLength(propertyList.length + 1);
+        size += key.length + 2;
+        budget.setRetainedDataUsage(allocation, size);
+        propertyList.push(key);
+        seen.add(key);
+      }
+    }
+
+    if (indent !== undefined && typeof indent !== "number" && typeof indent !== "string") {
+      throw new TypeError(
+        "JSON.stringify(value, replacer, indent) requires indent to be a string, number, or undefined."
+      );
+    }
+
+    const holder: SandboxObject = {};
+    defineDataProperty(holder, "", value);
+    const output = await stringifyProperty("", holder, {
+      budget,
+      context,
+      gap: normalizeStringifyGap(indent),
+      replacer: isSandboxClosure(replacer) ? replacer : undefined,
+      propertyList,
+      stack: []
+    });
+
+    if (output === undefined) {
+      return undefined;
+    }
+
+    return budget.allocateString(output);
+  } finally {
+    budget.setRetainedDataUsage(allocation, 0);
+    release();
   }
-
-  if (indent !== undefined && typeof indent !== "number" && typeof indent !== "string") {
-    throw new TypeError(
-      "JSON.stringify(value, replacer, indent) requires indent to be a string, number, or undefined."
-    );
-  }
-
-  const holder: SandboxObject = {};
-  defineDataProperty(holder, "", value);
-  const output = await stringifyProperty("", holder, {
-    budget,
-    context,
-    gap: normalizeStringifyGap(indent),
-    replacer: isSandboxClosure(replacer) ? replacer : undefined,
-    stack: []
-  });
-
-  if (output === undefined) {
-    return undefined;
-  }
-
-  return budget.allocateString(output);
 }
 
 type StringifyState = {
@@ -161,6 +185,7 @@ type StringifyState = {
   context?: SandboxCallContext;
   gap: string;
   replacer?: SandboxClosure;
+  propertyList?: string[];
   stack: object[];
 };
 
@@ -290,7 +315,7 @@ async function stringifyObject(
   try {
     const nextIndent = indent + state.gap;
 
-    for (const key of Object.keys(value)) {
+    for (const key of state.propertyList ?? Object.keys(value)) {
       const serialized = await stringifyProperty(key, value, state, nextIndent);
       if (serialized !== undefined) {
         entries.push(`${quoteJsonString(key)}:${state.gap === "" ? "" : " "}${serialized}`);

@@ -1,4 +1,5 @@
 import { assertSandboxDataDepth } from "../graph-depth.js";
+import { isSandboxDate } from "./date.js";
 import { retainedAccessorClosures } from "./accessors.js";
 import { getHostObjectMember, isGuestHostObject, isLiveCapability } from "./host-capabilities.js";
 import type { Budget } from "./budget.js";
@@ -61,7 +62,7 @@ export function materializeFunctionProperties(closure: SandboxClosure): SandboxO
   return properties;
 }
 
-export function getGuestFunctionProperty(closure: SandboxClosure, key: string): SandboxValue {
+export function getGuestFunctionProperty(closure: SandboxClosure, key: PropertyKey): SandboxValue {
   let properties = functionProperties.get(closure);
   if (properties === undefined) {
     if (key === "length") return closure.length ?? 0;
@@ -85,10 +86,10 @@ export function installObjectPrototype(budget: Budget, prototype: SandboxObject,
   registerIntrinsicPrototype(budget, prototype, constructor);
 }
 
-export function installBoxedPrototype(budget: Budget, prototype: SandboxObject, constructor: SandboxClosure): void {
+export function installBoxedPrototype(budget: Budget, prototype: SandboxObject, constructor: SandboxClosure, kind: BoxedKind = typeof boxedValue(prototype) as BoxedKind): void {
   let state = boxedPrototypes.get(budget);
   if (state === undefined) boxedPrototypes.set(budget, state = new Map());
-  state.set(typeof boxedValue(prototype) as BoxedKind, prototype);
+  state.set(kind, prototype);
   initialBoxedMethods.set(prototype, new Map(Object.entries(Object.getOwnPropertyDescriptors(prototype)).map(([key, descriptor]) => [key, descriptor.value])));
   registerIntrinsicPrototype(budget, prototype, constructor);
 }
@@ -187,7 +188,7 @@ export function hasExplicitSandboxPrototype(value: object): boolean {
 
 export function getSandboxPropertyDescriptor(
   value: SandboxValue,
-  key: string | number,
+  key: PropertyKey,
   budget?: Budget
 ): PropertyDescriptor | undefined {
   const hostProperties = isSandboxClosure(value) ? value.properties : undefined;
@@ -200,7 +201,7 @@ export function getSandboxPropertyDescriptor(
   while (
     typeof current === "object" &&
     current !== null &&
-    (Array.isArray(current) || isPrototypeRecord(current))
+    (Array.isArray(current) || isSandboxDate(current) || isPrototypeRecord(current))
   ) {
     const properties = isGuestClosure(current) ? getGuestFunctionProperties(current) : current;
     const descriptor =
@@ -217,20 +218,20 @@ export function getSandboxPropertyDescriptor(
 
 export function getSandboxDataProperty(
   value: SandboxValue,
-  key: string | number,
+  key: PropertyKey,
   budget?: Budget
 ): SandboxValue {
   let current = value;
   let depth = 0;
   while (typeof current === "object" && current !== null) {
-    if (isGuestHostObject(current)) return getHostObjectMember(current, String(key));
+    if (isGuestHostObject(current)) return typeof key === "symbol" ? undefined : getHostObjectMember(current, String(key));
     if (isGuestClosure(current)) {
-      const entry = getGuestFunctionProperty(current, String(key));
-      if (entry !== undefined || Object.hasOwn(current.properties ?? {}, String(key))) return entry;
+      const entry = getGuestFunctionProperty(current, key);
+      if (entry !== undefined || Object.hasOwn(current.properties ?? {}, key)) return entry;
     } else if (isSandboxClosure(current)) {
       const properties = current.properties;
-      return properties !== undefined && Object.hasOwn(properties, String(key))
-        ? properties[String(key)]
+      return properties !== undefined && Object.hasOwn(properties, key)
+        ? properties[key]
         : undefined;
     }
     if (
@@ -241,7 +242,7 @@ export function getSandboxDataProperty(
       isSandboxGenerator(current)
     )
       return undefined;
-    if (!isSandboxClosure(current) && Object.hasOwn(current, String(key))) return (current as SandboxObject)[String(key)];
+    if (!isSandboxClosure(current) && Object.hasOwn(current, key)) return (current as SandboxObject)[key];
     current = getSandboxPrototype(current, budget) as SandboxValue;
     if (current !== null) {
       budget?.visitNode();
@@ -306,7 +307,7 @@ export function hasGuestObjectState(value: object): boolean {
   if (intrinsicUnchanged !== undefined) return !intrinsicUnchanged();
   if (isLiveCapability(value)) return true;
   if (functionProperties.has(value) || prototypes.has(value)) return true;
-  if (isSandboxBox(value)) return false;
+  if (isSandboxBox(value) || isSandboxDate(value)) return false;
   return (
     descriptorObjects.has(value) &&
     Object.values(Object.getOwnPropertyDescriptors(value)).some(

@@ -4036,7 +4036,7 @@ Delivered and closed at verified remote main
 unchanged. Scoped release 34019875521 and CLI release 34019875721 are running;
 continue with async delegation without waiting for publication.
 
-## 67. General async-iterator delegation (in progress)
+## 67. General async-iterator delegation (delivered)
 
 The four native-backed tests for async iterator next/return/throw delegation and
 completed promise identity fail against the delivered main implementation.
@@ -4068,3 +4068,609 @@ real async-delegation harness passed; the inspected screenshot shows successful
 return cleanup and synchronous fallback with zero spawns. This localized runtime
 change uses the maintained package/harness checks; the full repository gate is
 the separately recorded preceding for-await run, not a claim of a new full run.
+
+Delivered and closed at verified remote main
+de3eca6122e88e21d57cc827361a950937da291c. Protected user-staged changes remain
+unchanged. Scoped workflow 34020088056 and CLI workflow 34020088220 are queued;
+publication remains separate from verified main delivery.
+
+## 68. Symbols and guest iterator protocols (in progress)
+
+All 21 initial tests fail on current main, covering Symbol primitives,
+descriptions, explicit/implicit coercion, registry keys, computed properties,
+enumeration, assignment/deletion, descriptors, spread, conversion hooks,
+guest-defined sync/async iterators, hidden runtime metadata, and public checkpoint
+identity. Native controls validate the expected language behavior. Symbols are
+required for guest-defined iterator protocols; merely adding a global would not
+complete this increment.
+
+Implementation must preserve distinct symbol property keys and aliases across
+copy/snapshot boundaries, retain budget accounting, and avoid exposing internal
+symbol brands through guest enumeration. Registry lifetime must follow sandbox
+execution state rather than silently allocating immortal host-global registry
+entries. Check restored registry identity and well-known keys explicitly.
+
+Initial primitive implementation now passes 14 of 25 cases, after five additional
+coercion regressions were demonstrated failing and corrected. Package TypeScript
+passes. Eleven cases remain failing for symbol-keyed properties, enumeration,
+descriptors, conversion/iterator hooks and checkpoints. Do not commit or publish
+this partial implementation yet. Remaining implementation includes symbol-aware
+data budgeting and copy/heap serialization, registry restoration, symbol boxing
+and prototype behavior, and filtering internal symbol metadata from guest APIs.
+
+Symbol-key plumbing now passes 21 of 29 native-backed cases; the four new cases
+cover symbol method names and class fields/methods. Three method-name failures
+were reproduced before implementing bracketed symbol descriptions. Ordinary
+computed reads/writes, deletion, method calls and class fields preserve symbol
+keys. Package TypeScript passes after updating property-key interfaces through
+patterns and exception handling. Eight tests still fail for enumeration,
+descriptors, spread, conversion/iterator hooks and checkpoint identity.
+
+The interim typed-array/RegExp setter guards explicitly reject symbol keys
+instead of accidentally stringifying them; these are unfinished integration,
+not an accepted completion boundary. Also audit arguments' private symbol brand
+and captured-exception metadata before exposing symbol enumeration. Do not let
+Object.keys/values/entries start including symbol keys when adding spread/rest
+support: those enumeration operations have different rules.
+
+September 6, 08:06 UTC continuation: CLI workflow 34020088220 succeeded and
+actually published poe-code@14.0.70 at 07:58:09 UTC; remote main remains
+de3eca6122e88e21d57cc827361a950937da291c. Release monitoring is not blocking
+the Symbol implementation.
+
+Enumeration and internal-brand filtering now pass their native controls. Clean
+Node reports no own symbols on Promise instances; Vitest instrumentation adds
+host-private symbols, so that metadata control uses the clean-process result,
+not instrumentation artifacts. Public checkpoint replay passes, but is not
+evidence that direct heap serialization preserves symbols.
+
+Five additional conversion controls exposed four failures before implementing
+Symbol.toPrimitive lookup, callability/result validation, and symbol-preserving
+ToPropertyKey. The focused property-key suite now passes 148 tests with only the
+two guest iterator cases still failing; 118 additional coercion regressions pass.
+Context-free property access separately reproduced a symbol/string collision
+(returned 9 instead of 7); preserving keys fixes that regression. The combined
+Symbol/pattern run has 49 passes and those same two iterator failures. Package
+TypeScript passes. Arithmetic/default-hint conversion remains to be integrated;
+the passing String/Number controls do not establish all coercion behavior.
+
+Added a direct heap test that does not replay Symbol creation. It fails after
+restoration because the symbol bindings were lost in the round trip. This confirms
+that the public checkpoint's passing result did not establish portable symbol
+heap support. Evidence: /tmp/poe-safejs-symbol-heap-red.log. Continue with actual
+symbol graph serialization, aliases, registry restoration and budgets rather
+than accepting replay-only coverage. No partial Symbol commit or push yet.
+
+Direct unique-symbol heap serialization now passes in both dump and interpreter
+formats, including aliases, separate symbols with identical descriptions,
+anonymous symbols and ordinary object symbol keys. Symbols receive heap IDs
+separate from their descriptions. Symbol.iterator identity initially failed
+after restoration; named well-known symbol metadata now restores the actual
+intrinsic. The runtime global and snapshot codec share the same well-known table.
+
+Three malformed metadata controls failed before adding validation: unknown
+well-known names, inherited Object names such as toString, and conflicting
+well-known/description payloads. A numeric description was already rejected.
+The complete snapshot directory now passes 383 tests; package TypeScript passes.
+Logs: /tmp/poe-safejs-symbol-snapshot-final.log and
+/tmp/poe-safejs-symbol-snapshot-final-types.log. These checks do not yet prove
+symbol support in array/arguments/built-in properties, replay-data and copy
+codecs, registry restoration, descriptor preservation or data budget accounting.
+Those remain required, along with guest iterator and operator integration.
+
+Symbol-keyed arrays were separately reproduced failing in both formats and now
+retain their symbol entries. Direct object/array controls also preserve cycles
+reachable through symbol properties. Five malformed property-entry controls
+were accepted before the fix: non-array entries, incomplete tuples, string keys,
+references to non-symbol heap entries, and duplicate symbol key references.
+Both heap validators now reject those shapes before restoration. The snapshot
+directory passes 390 tests; package TypeScript and diff whitespace checks pass.
+The strengthened cycle fixture also passes all 14 Symbol snapshot cases.
+Evidence: /tmp/poe-safejs-symbol-array-snapshot-check.log,
+/tmp/poe-safejs-symbol-array-snapshot-types.log, and
+/tmp/poe-safejs-symbol-cycle-check.log. Arguments/built-ins, property descriptor
+attributes, replay/copy codecs, registry, resource accounting and runtime
+protocols remain unfinished; this is not yet a releasable Symbol increment.
+
+Symbol data-property attributes now survive direct object and array snapshots.
+All four format/container combinations first failed when strengthened to check
+non-enumerable properties and non-writable/non-configurable cyclic properties.
+The serialized symbol-entry payload now contains its data descriptor, and both
+restore paths share the descriptor reconstruction. Container indexing follows
+non-enumerable symbol data too. This format is still unshipped.
+
+Three malformed descriptor cases were reproduced accepted before validation was
+tightened: non-boolean flags, missing value, and an accessor field in a data
+descriptor. The duplicate-reference fixture now uses valid descriptors so that
+it continues to isolate duplicate key validation. All 393 snapshot tests and
+package TypeScript pass. Logs: /tmp/poe-safejs-symbol-descriptors-snapshot-check.log
+and /tmp/poe-safejs-symbol-descriptors-snapshot-types.log. Symbol accessors now
+fail explicitly instead of being silently omitted; portable accessor support
+remains required and is not claimed by these data-descriptor checks.
+
+Resource accounting: four initial tests confirmed that symbol primitives and
+symbol-keyed payloads were omitted. Symbols now charge one identity unit plus
+description length, once per identity; own non-internal symbol slots and their
+data/accessor captures are traversed, including non-enumerable values and cycles.
+A fifth failing regression exposed sibling mutation during retained-value
+callbacks; symbol descriptors are now captured before walking their values.
+Getter safety is checked separately. Two existing exact accounting expectations
+were updated because they explicitly excluded symbols, including arguments'
+Symbol.iterator key. The focused accounting/budget suite passes 66 tests.
+
+A maintained package diagnostic run completed with 13,742 passes, 41 skips and
+seven failures. It overlapped the new callback-mutation RED fixture, so that
+failure reflects the already-corrected intermediate implementation. Two failures
+are the still-unimplemented guest iterator protocols. The other four uncovered
+integration requirements: the two genuine EA checkpoint controls must explicitly
+enumerate the new Symbol intrinsic, and collection iterator budget controls must
+measure their baseline overhead rather than use a fixed total from an older
+global set. Empty symbol metadata is omitted from legacy object heaps so old
+graphs do not gain unrelated fields. Original checkpoint fixtures are untouched.
+
+Those integration suites plus all snapshot tests now pass 495 tests (one skip),
+with package TypeScript and diff checks clean. The iterator-budget controls still
+assert failure below the retained payload requirement and success above it; they
+derive the baseline from the same iterator construction without the temporary
+payload. Logs: /tmp/poe-safejs-symbol-resources-package.log (diagnostic failures),
+/tmp/poe-safejs-symbol-resources-focused-final.log,
+/tmp/poe-safejs-symbol-resource-integration.log, and
+/tmp/poe-safejs-symbol-resource-integration-types.log. No full-package green or
+release qualification is claimed yet. Symbol registry restoration, copy/replay
+paths and runtime protocols remain required.
+
+Object/array data-copy ingress and egress now preserve enumerable symbol keys,
+their distinct identity, nested copied values and cycles. Four initial controls
+failed because keys were dropped and symbol getters were silently ignored. The
+entry readers now retain actual string-or-symbol keys, filter internal brands,
+and reject enumerable accessors without invoking them. Diagnostic paths format
+symbols explicitly without converting their actual property identity. Existing
+tests that explicitly required skipping symbols were updated to assert copying.
+
+The six focused copy/bookkeeping suites pass 88 tests, including symbol-only
+depth-limit enforcement and getter rejection in both directions. Package
+TypeScript and diff checks pass. Logs: /tmp/poe-safejs-symbol-copy-red.log,
+/tmp/poe-safejs-symbol-copy-focused.log, and
+/tmp/poe-safejs-symbol-copy-focused-types.log. The data-copy contract remains
+own-enumerable data, distinct from snapshot descriptor preservation. Replay-data
+still explicitly rejects symbol primitives/properties and requires integration;
+do not infer replay support from this copy-boundary result.
+
+Replay-data now encodes unique symbols as graph nodes, preserving aliases and
+well-known intrinsic identity. Three direct round-trip tests first failed for
+symbol arrays and symbol-keyed object/array descriptors; all now pass including
+non-enumerable read-only cycles. Heap and replay encoders share the symbol
+metadata construction. Replay restores descriptors before applying object
+non-extensibility. Malformed symbol metadata is rejected, and two symbol slots
+with identical descriptions receive distinct capability paths and resolve to
+their original explicit host capabilities.
+
+All 401 snapshot tests and package TypeScript pass. Evidence:
+/tmp/poe-safejs-symbol-replay-red.log,
+/tmp/poe-safejs-symbol-replay-snapshots.log, and
+/tmp/poe-safejs-symbol-replay-final-types.log. Continue auditing registry identity,
+cross-graph identity and host capability path collisions with ordinary string
+properties; distinct symbol-slot coverage alone does not prove every path case.
+Built-in/arguments symbol properties and guest iterator/operator hooks remain
+unfinished. No completed Symbol release is claimed.
+
+Capability-path audit confirmed two failures: a string property named symbol:1
+collided with a symbol slot's generated ID, and saved symbol-keyed input
+capabilities could not resolve on resume. Symbol segments now use typed JSON
+objects ({symbol: ordinal}) while existing string-only paths remain unchanged.
+The input resolver validates and resolves those segments without reading getters
+or exposing internal brands. String keys resembling either old labels or JSON
+segments cannot collide with the typed representation.
+
+The strengthened resume control executes both restored callbacks and observes
+their distinct results (7 versus 9), not merely successful graph decoding.
+Malformed negative/fractional/extra-field/null symbol segments are rejected.
+All 407 snapshot tests, package TypeScript and diff checks pass. Logs:
+/tmp/poe-safejs-symbol-path-red.log,
+/tmp/poe-safejs-symbol-input-path-red.log,
+/tmp/poe-safejs-symbol-path-snapshots-final.log, and
+/tmp/poe-safejs-symbol-path-types-final.log. Registry and cross-graph symbol
+identity, built-in integration and runtime protocols remain unfinished.
+
+Operator integration: 22 native-backed controls failed before connecting binary,
+unary and compound operators to the shared Symbol.toPrimitive conversion path.
+Addition and loose object/primitive equality now request the default hint;
+numeric operations request number. Strict equality, object/object equality and
+nullish comparisons retain their non-coercing behavior. Ordinary fallback and
+Date default preference use the shared conversion implementation rather than a
+separate operator-only loop.
+
+The initial 23 cases pass, with six further controls checking left-to-right
+coercion after operand evaluation, getter lookup count, symbol-returning loose
+equality and invalid hook errors. The existing interpreter/template/number/
+string/Date regression routes pass 617 tests. Package TypeScript and diff checks
+pass. Evidence: /tmp/poe-safejs-symbol-operators-red.log,
+/tmp/poe-safejs-symbol-operators-regressions.log, and
+/tmp/poe-safejs-symbol-operators-final.log. Full-package/root qualification is
+still required before delivery; intrinsic well-known hooks, registry identity
+and guest iterator protocols remain incomplete.
+
+Date audit: three native-backed cases failed: the missing
+Date.prototype[Symbol.toPrimitive] function and attempts to shadow the hook with
+null/undefined. Date values are frozen and reject own properties, so the latter
+two failures are a broader Date object-model limitation, not evidence of an
+operator hint fix being complete.
+
+The Date conversion intrinsic is now available. It validates object receivers
+and the three standard hints, is generic over ordinary objects, and performs
+ordinary conversion without recursively calling Symbol.toPrimitive. Added
+native controls verify Date numeric conversion, generic default/string/number
+hints, invalid receivers/hints, and non-recursion. Package TypeScript and diff
+checks pass. The combined Date/operator/string/number run retains exactly the
+two Date-own-property failures; they are intentionally not waived. Evidence:
+/tmp/poe-safejs-symbol-date-red.log,
+/tmp/poe-safejs-symbol-date-hook-final.log, and
+/tmp/poe-safejs-symbol-date-hook-types.log. Continue with mutable Date own
+properties/prototype integration and the other unresolved Symbol requirements.
+
+Date own-property runtime work: six native controls first failed for string and
+symbol assignment, data/accessor descriptors, coercion-method overrides and
+deletion. Dates are no longer frozen on creation; descriptor reads and assignment
+accept their own properties. Null/undefined Symbol.toPrimitive overrides then
+exposed the separate default-hint bug: Date string preference is now supplied by
+its intrinsic hook, not an unconditional Date special case in ordinary coercion.
+Both override controls now return the native numeric result.
+
+The Date/operator/interpreter regression route passed 549 tests. A subsequent
+budget test confirmed that hidden string-valued Date properties were uncharged;
+Date values now traverse retained own string data/accessors after charging their
+time value, including non-enumerable properties. The final Date/operator/budget
+checks and package TypeScript pass. Logs:
+/tmp/poe-safejs-date-properties-red.log,
+/tmp/poe-safejs-date-properties-regressions.log,
+/tmp/poe-safejs-date-data-red.log,
+/tmp/poe-safejs-date-properties-final.log, and
+/tmp/poe-safejs-date-properties-final-types.log. Date copy/export and snapshot
+codecs still need own-property integration; direct overridden-method calls and
+prototype behavior also require dedicated controls. Do not ship this partial
+object-model expansion until those paths are verified.
+
+Direct Date method overrides were confirmed failing in three cases: guest
+function/receiver preservation, getter lookup count, and non-callable overrides.
+Date calls now use normal property resolution before invocation rather than
+unconditionally selecting the intrinsic method. Date copy ingress/egress also
+passed a new failing control after copying own data descriptors and cycles;
+native dates with ordinary own data are accepted, while subclass prototypes
+remain explicitly unsupported. Nested property values are independently copied,
+symbol self-references point at the copy, and read-only/hidden flags survive.
+
+The focused Date/copy suites pass 66 tests; TypeScript and diff checks pass.
+A getter safety control confirms unsupported accessors fail without execution.
+Evidence: /tmp/poe-safejs-date-method-red.log,
+/tmp/poe-safejs-date-copy-red.log,
+/tmp/poe-safejs-date-copy-final.log, and
+/tmp/poe-safejs-date-copy-types.log. Date heap/replay property serialization,
+prototype integration, extensibility state, and JSON hook behavior still require
+verification before this expansion can be delivered.
+
+Date replay-data descriptors are now preserved, including hidden strings,
+symbol-keyed self cycles and non-extensibility, while Dates without extra state
+retain the old two-field encoding. A second failing control used an actual guest
+Object.defineProperty result and exposed the generic custom-state rejection.
+Date data descriptors now pass that gate; explicit prototype links remain
+rejected before it, and accessors still fail in the Date data-property reader.
+
+The snapshot and Date suites pass 454 tests, including malformed Date field,
+descriptor and extensibility rejection. TypeScript and diff checks pass.
+Evidence: /tmp/poe-safejs-date-replay-red.log,
+/tmp/poe-safejs-date-managed-replay-red.log,
+/tmp/poe-safejs-date-replay-final.log, and
+/tmp/poe-safejs-date-replay-final-types.log. Direct heap/dump Date serialization
+still records time alone and requires corresponding property integration; the
+replay result is not proof of those separate paths. No partial delivery yet.
+
+Direct Date heap/dump property loss was reproduced in both formats with symbol
+keys, hidden string descriptors and cycles. A shared Date codec now preserves
+those data descriptors and non-extensibility, and container indexing follows
+non-enumerable Date string values as well as symbol values. Restoration installs
+the Date in the identity table before restoring its properties, preserving
+self-references. Plain Dates still use the old two-field representation.
+
+Both heap validators allow the new Date fields and share data-descriptor
+validation with symbol properties. Malformed Date metadata controls also pass
+through the dump envelope, not just replay decoding. The snapshot directory
+passes 415 tests; the combined snapshot/Date run passes 444 tests. TypeScript
+and diff checks pass. Evidence: /tmp/poe-safejs-date-heap-red.log,
+/tmp/poe-safejs-date-heap-final.log, and
+/tmp/poe-safejs-date-heap-types.log. Date prototype/JSON behavior, portable
+accessors, Symbol registry/cross-graph identity and guest iterator protocols
+remain unresolved; broader qualification and delivery are still pending.
+
+Date JSON own-hook handling: two failing native controls showed JSON.stringify
+always selected the Date intrinsic, ignoring an own toJSON function or an own
+undefined value. It now uses the intrinsic shortcut only when no guest property
+descriptor shadows toJSON. Guest overrides pass through ordinary hook lookup,
+receiver/key invocation and replacer processing; null/undefined shadows permit
+ordinary enumerable property serialization. Added controls check one getter
+read, hook-before-replacer ordering, and a null shadow.
+
+The focused Date/JSON/host-digest routes pass 76 tests, with package TypeScript
+and diff checks clean. Evidence: /tmp/poe-safejs-date-json-red.log,
+/tmp/poe-safejs-date-json-final.log, and /tmp/poe-safejs-date-json-types.log.
+The intrinsic Date.prototype.toJSON algorithm and its handling of valueOf or
+toISOString overrides still need a separate conformance audit; the own-toJSON
+fix does not establish those semantics. Other unresolved Symbol requirements
+and full pre-delivery qualification remain outstanding.
+
+The Date.toJSON intrinsic audit reproduced four failures: valueOf returning NaN
+was ignored, an own toISOString override was ignored, generic ordinary-object
+receivers were rejected, and a non-finite generic receiver did not short-circuit
+before reading toISOString. The intrinsic and JSON.stringify Date fallback now
+share numeric primitive conversion, non-finite handling, dynamic method lookup
+and invocation with the original receiver. Added controls verify NaN/Infinity
+primitive receivers, Symbol.toPrimitive's number hint, getter/call order,
+receiver identity and non-callable toISOString errors.
+
+The Date/JSON/host-digest routes pass 83 tests; package TypeScript and diff checks
+pass. Evidence: /tmp/poe-safejs-date-json-intrinsic-red.log,
+/tmp/poe-safejs-date-json-intrinsic-final.log, and
+/tmp/poe-safejs-date-json-intrinsic-types.log. Primitive receiver boxing with
+custom prototype methods, Date prototype integration and the remaining Symbol
+runtime/registry requirements still need qualification before delivery.
+
+Date JSON primitive boxing: native controls for Number, String and Boolean
+prototype toISOString methods all failed because the sandbox passed the primitive
+instead of the object produced by ToObject. Those receivers are now boxed before
+primitive conversion and method invocation, with allocation charged to the data
+budget. The controls assert both typeof this === object and the original boxed
+payload. Symbol boxing remains part of the unfinished Symbol intrinsic work.
+
+The Date/JSON and boxed-value routes pass 211 tests; package TypeScript and diff
+checks pass. Evidence: /tmp/poe-safejs-date-json-boxing-red.log,
+/tmp/poe-safejs-date-json-boxing-final.log, and
+/tmp/poe-safejs-date-json-boxing-final-types.log. No full qualification or partial
+Symbol delivery is claimed.
+
+Symbol boxing foundation: eight of nine initial native-backed cases failed.
+The box representation now admits native Symbol wrappers, and Symbol has an
+ordinary prototype with receiver-validated valueOf/toString, a description getter,
+Symbol.toPrimitive and Symbol.toStringTag. Symbol.prototype itself is not a box.
+Object(symbol) keeps the underlying identity and links to that prototype.
+JSON.stringify leaves Symbol boxes as objects instead of unboxing them.
+
+A further failing control found that symbol-keyed method lookup on primitive
+symbols returned undefined; primitive Symbol access now follows its boxed
+prototype, including description getters, rather than a hard-coded description
+shortcut. The implicit String(box) control was strengthened to create the box
+outside the catch, avoiding a false pass from construction failure.
+The focused boxing/JSON routes pass 118 tests; TypeScript and diff checks pass.
+Evidence: /tmp/poe-safejs-symbol-boxing-red.log,
+/tmp/poe-safejs-symbol-boxing-hook-red.log,
+/tmp/poe-safejs-symbol-boxing-final.log, and
+/tmp/poe-safejs-symbol-boxing-final-types.log. Boxed-symbol snapshot/replay,
+resource accounting and intrinsic mutation tracking remain required alongside
+the unresolved registry and iterator work. No partial push yet.
+
+Boxed-symbol budget/replay: a failing resource control showed Symbol wrappers
+charged eight scalar units rather than retaining their description. The box now
+visits its underlying symbol identity, preserving deduplication across multiple
+wrappers and primitive aliases. The focused budget/boxing routes pass 77 tests.
+
+A direct replay test then failed because the decoder rejected a symbol graph
+reference as a boxed payload. It now accepts references specifically to symbol
+nodes, preserving both wrapper aliases and underlying primitive identity. It
+does not accept arbitrary referenced objects or capabilities: added controls
+reject self-referential payloads and capability references before resolver calls.
+The snapshot/resource run passes 424 tests; TypeScript and diff checks pass.
+Evidence: /tmp/poe-safejs-symbol-box-budget-red.log,
+/tmp/poe-safejs-symbol-box-replay-red.log,
+/tmp/poe-safejs-symbol-box-replay-final.log, and
+/tmp/poe-safejs-symbol-box-replay-types.log. Direct heap boxed payload validation
+and symbol-keyed wrapper properties remain to be integrated; no full Symbol
+qualification or delivery is claimed.
+
+Direct boxed-symbol payloads: six strengthened dump/interpreter controls failed
+because heap validation rejected symbol references as boxed primitives. Both
+validators now inspect the referenced heap entry and accept only symbol nodes,
+preserving primitive/wrapper aliases without allowing arbitrary object payloads.
+Controls reject self references, object references and missing references before
+restoration. All 420 snapshot tests pass.
+
+The completed TypeScript run exposed unsafe property access on the replay
+payload's object type. This corrects the earlier premature TypeScript-pass claim
+for boxed-symbol replay: the payload is now narrowed through the record parser,
+and the final TypeScript process was explicitly awaited to exit zero. Diff checks
+also pass. Evidence: /tmp/poe-safejs-symbol-box-heap-red.log,
+/tmp/poe-safejs-symbol-box-heap-final.log, and
+/tmp/poe-safejs-symbol-box-heap-final-types.log. Symbol-keyed wrapper properties,
+registry/cross-graph identity and guest iteration remain unfinished.
+
+Wrapper own-property copy: a direct failing control showed that Symbol wrappers
+lost symbol-keyed self properties at the copy boundary. Boxed property enumeration
+now has a symbol-inclusive mode used by ordinary ingress and egress copying,
+preserving descriptor flags and aliases without changing the separate structured
+clone path. The control checks both the retained primitive and the wrapper's
+symbol-keyed cycle on ingress and egress.
+
+All 89 focused copy/boxing tests pass, with TypeScript explicitly completed at
+exit zero and diff checks clean. Evidence:
+/tmp/poe-safejs-box-properties-copy-red.log,
+/tmp/poe-safejs-box-properties-copy-final.log, and
+/tmp/poe-safejs-box-properties-copy-types.log. Symbol-keyed wrapper heap/replay
+properties still need integration; this copy result is not a snapshot claim.
+
+Wrapper symbol-property snapshot integration: six failing heap round-trip cases
+confirmed that dump and interpreter snapshots lost symbol-keyed wrapper data;
+a separate replay control reproduced the same loss. Both codecs now retain own
+symbol descriptors and self references. Replay additionally verifies a
+non-extensible wrapper is restored only after its properties. Wrappers without
+symbol properties keep their existing serialized shape. Heap validation accepts
+the new optional entries through the existing symbol-reference validator.
+
+All 420 snapshot tests pass, and the TypeScript process explicitly exited zero.
+Evidence: /tmp/poe-safejs-box-symbol-properties-red.log,
+/tmp/poe-safejs-box-symbol-properties-final.log, and
+/tmp/poe-safejs-box-symbol-properties-types.log. The staged Bash patch remains
+d770ec782b2a4ae7e2580e63ded765933890a1c5. This remains part of the uncommitted
+Symbol foundation: registry restoration, guest iterator protocols, and broad
+qualification are still outstanding. No push or release is claimed here.
+
+Iterator acquisition audit: rerunning the Symbol suite confirms 39 passing
+cases and the two known guest sync/async iterator failures. The implementation
+uses raw symbol/member reads and native-function calls; guest methods need the
+interpreter's property and closure APIs. This also means factory acquisition
+and result getters cannot simply be deferred or eagerly flattened: acquisition
+must precede consumer work, `next` is cached, `return`/`throw` are looked up on
+demand, and a for-of consumer must not read `value` after `done` is true.
+
+Native differential controls found eight acquisition failures: non-callable
+iterator properties silently fell back to array-like conversion, and four
+primitive factory results were not rejected until a later request. Acquisition
+now distinguishes null/undefined from non-callable methods and validates the
+factory result immediately. The controls also preserve nullish Array.from
+fallback and show that a non-callable `next` is cached but only rejected when
+called. All 152 focused acquisition, closing, running-state, async-generator,
+and collection-iteration tests pass; TypeScript explicitly exited zero and
+diff checks pass. Evidence: /tmp/poe-safejs-guest-iterator-red.log,
+/tmp/poe-safejs-iterator-acquisition-red.log,
+/tmp/poe-safejs-iterator-acquisition-final.log, and
+/tmp/poe-safejs-iterator-acquisition-types.log. Guest callable dispatch remains
+unfinished; these acquisition checks do not establish guest iteration support.
+
+Guest iteration integration: five failing native controls reproduced guest
+factory/getter dispatch, cached-next, cleanup receiver, spread, inherited factory,
+and delegation-result behavior. The new asynchronous acquisition path uses
+interpreter property reads and closure calls, retains the iterator and cached
+method, and exposes lazy result-property reads. For-of, spread and yield-star
+now use it. A boxed property-read result prevents runtime awaits from implicitly
+unwrapping the iterator's yielded value. Three further async controls reproduced
+guest async results, sync-to-async fallback, and completed-result getter behavior;
+the acquisition path now supports these and shares async-from-sync conversion
+with the native adapter.
+
+All 49 Symbol/guest-protocol controls pass (including both previously failing
+guest iterator cases), followed by 654 focused protocol/interpreter tests and
+an explicitly successful TypeScript exit. Evidence:
+/tmp/poe-safejs-guest-sync-protocol-red.log,
+/tmp/poe-safejs-guest-sync-protocol-first.log,
+/tmp/poe-safejs-guest-sync-protocol-final.log,
+/tmp/poe-safejs-guest-async-protocol-red.log,
+/tmp/poe-safejs-guest-async-protocol-first.log, and
+/tmp/poe-safejs-guest-async-protocol-final.log. The maintained package suite is
+running separately; no package-wide pass is implied by these focused results.
+Collection constructors, Array.from/fromEntries, and Promise combinators still
+use the older acquisition path and need integration and native controls. Full
+checkpoint/resource qualification and registry restoration remain outstanding.
+
+The maintained package run finished with 13,875 passes, 41 skips and four
+failures across three files; it was not a green qualification run. Investigation
+showed one obsolete Date-field rejection expectation (native JavaScript and
+the implemented Date own-property path both permit the field) and three RegExp
+cursor fixtures that expected symbol-keyed native functions to disappear during
+copying. The Date control now compares native descriptors. RegExp positive
+controls preserve a non-callable Symbol.toPrimitive data property without
+coercion, and new string/symbol-keyed native-function controls require rejection
+without invocation. This preserves the no-implicit-capability rule rather than
+exporting raw callbacks or discarding symbol data.
+
+All 144 affected class/RegExp controls pass and TypeScript explicitly exited
+zero; the full package suite has not yet been rerun after these fixture updates.
+The iterator implementation and controls also passed focused ESLint after
+replacing a broad Function annotation and removing an unused import. Evidence:
+/tmp/poe-safejs-guest-iteration-package.log,
+/tmp/poe-safejs-guest-iteration-eslint.log,
+/tmp/poe-safejs-guest-iteration-types.log,
+/tmp/poe-safejs-symbol-integration-controls.log, and
+/tmp/poe-safejs-symbol-integration-types.log. The staged Bash patch remains
+d770ec782b2a4ae7e2580e63ded765933890a1c5. No new commit, push or release is
+claimed for the unfinished Symbol foundation.
+
+Built-in iterator consumers: seven native controls initially failed for
+Array.from and Promise all/allSettled/race/any, including callback-error cleanup.
+Five more reproduced Map, Set and Object.fromEntries guest entry handling and
+invalid-entry cleanup. These consumers now acquire guest iterators through the
+shared path, read result getters in protocol order, and close through its lazy
+operation lookup. Context-free direct-host collection paths remain synchronous.
+All 12 new controls and 440 focused existing collection/Promise tests pass;
+TypeScript and focused ESLint explicitly exited zero. Evidence:
+/tmp/poe-safejs-guest-builtins-red.log,
+/tmp/poe-safejs-guest-collections-red.log,
+/tmp/poe-safejs-guest-collections-first.log,
+/tmp/poe-safejs-guest-collections-focused.log,
+/tmp/poe-safejs-guest-collections-types.log, and
+/tmp/poe-safejs-guest-collections-eslint.log.
+
+The first Promise cleanup fixture exposed a separate, validated built-in
+inheritance limitation: `class extends Promise` failed with "Prototype links
+require ordinary sandbox objects or guest functions" before reaching iteration.
+The cleanup control now uses a plain custom constructor returning a Promise,
+so it tests the iterator failure independently. Promise subclass construction
+remains an explicit gap, not an accepted substitute for JavaScript behavior.
+A standalone native-versus-SafeJS probe also confirmed that array destructuring
+still rejects a guest Symbol.iterator: native returns 7 for `const [first]=source`,
+while SafeJS fails in its separate pattern path. Integrating patterns is next.
+The maintained package rerun is recorded separately in
+/tmp/poe-safejs-guest-builtins-package.log; no release or full-goal completion is
+claimed by these focused results.
+
+The maintained package rerun completed successfully: 346 test files passed,
+one skipped; 13,893 tests passed and 41 skipped (52.29 seconds). Authoritative
+receipt: /tmp/poe-safejs-guest-builtins-package.log. TypeScript, focused ESLint
+and diff checks are also clean. The protected staged Bash patch is unchanged.
+This establishes package-level integration, not repository-wide qualification
+or publication. Full root checks, build/harness verification and remote delivery
+remain outstanding, alongside the explicitly recorded JavaScript gaps.
+
+Delivery qualification: fetched and fast-forwarded remote main to
+741a5f55ace3de487be022e9712a38308b3571ca (the separate Safe Bash diagnostic
+escaping fix), with no overlapping edits. The staged Bash patch remained
+d770ec782b2a4ae7e2580e63ded765933890a1c5. The maintained root `npm test`
+process is still active: shared JavaScript tasks passed 33,992 tests (43 skips),
+Python passed 29, and Bash runner checks passed 279; the main Bash suite has
+not yet finished. Receipt: /tmp/poe-safejs-symbol-root-unit.log.
+
+Repository-wide `npm run lint` explicitly exited zero. ESLint reports complete
+coverage of 9,854 configured files with zero errors/warnings; root type checking
+and workflow lint also completed successfully. Receipt:
+/tmp/poe-safejs-symbol-root-lint.log. The no-capability real harness fixture is
+prepared at docs/plans/safejs-symbol-foundation-harness.md (with its .ajs pair),
+but its build, execution and screenshot inspection remain pending until the
+root unit process finishes.
+
+Read-only native differential probes during verification confirmed another
+descriptor gap. Native Symbol.prototype has [writable,enumerable,configurable]
+[false,false,false]; Symbol.for/keyFor have [true,false,true]; iterator and
+asyncIterator have [false,false,false]. SafeJS currently reports
+[false,true,false] for all five. This is a concrete follow-up, not an inferred
+failure: the existing Symbol constructor still uses host-style property
+metadata rather than the guest-visible intrinsic property model.
+
+Additional read-only native comparisons confirmed missing well-known Symbol
+hooks (not just missing names): Object.prototype.toString with a custom
+Symbol.toStringTag returns `[object Object]` instead of `[object Custom]`;
+`{} instanceof { [Symbol.hasInstance]() { return true; } }` throws instead of
+returning true; concat leaves a Symbol.isConcatSpreadable array-like object
+nested instead of producing its element; and `"text".match` with a custom
+Symbol.match returning `"text!"` instead runs regex conversion and returns
+`["t"]`. These remain explicit conformance gaps. The Symbol identity/property
+foundation and iterator support must not be described as implementing every
+well-known Symbol protocol.
+
+The full maintained root `npm test` process has now explicitly exited zero.
+In addition to the shared/Python/runner results above, the main Bash suite
+reported 21,238 passes, 86 skips and zero failures; the subsequent eight-file
+unit group passed 288 tests; the root posttest lint-stress route passed both
+tests. Optional/unavailable profiles remain reported as unavailable, not passes.
+Receipt: /tmp/poe-safejs-symbol-root-unit.log. The normal `npm run build` is now
+running, with output at /tmp/poe-safejs-symbol-build.log. No commit or push has
+been made yet. Remote-base release workflows for 741a5f55 also independently
+report success (CLI run 34021514540, scoped-package run 34021514352); those are
+the baseline's releases, not delivery of this uncommitted Symbol work.
+
+Normal build completed successfully (70 declared workspace builds plus root
+suffix stages). The real harness passed with zero spawns; its final async
+iterator includes an actual await, and the screenshot rerun passed without
+diagnostics. The image at
+screenshots/harness-run-docs-plans-safejs-symbol-foundation-harness.md.png was
+visually inspected: successful completion and the expected result keys are
+readable. Receipts: /tmp/poe-safejs-symbol-build.log,
+/tmp/poe-safejs-symbol-harness.log and /tmp/poe-safejs-symbol-screenshot.log.
+The Symbol identity, property, coercion, copy/snapshot and guest-iterator
+foundation is qualified for delivery. Destructuring, intrinsic descriptors,
+remaining well-known hooks, built-in inheritance and the wider recorded gaps
+remain follow-up work; this delivery does not close the full completeness goal.

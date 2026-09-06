@@ -1,24 +1,26 @@
 import { types } from "node:util";
 import type { SandboxObject } from "./values.js";
 
-export type BoxedPrimitive = string | number | boolean;
-export type BoxedKind = "string" | "number" | "boolean";
+export type BoxedPrimitive = string | number | boolean | symbol;
+export type BoxedKind = "string" | "number" | "boolean" | "symbol";
 declare const boxedPrimitiveBrand: unique symbol;
 export type SandboxBox = SandboxObject & { readonly [boxedPrimitiveBrand]: true };
 const boxes = new WeakSet<object>();
 const numberValue = Number.prototype.valueOf;
 const stringValue = String.prototype.valueOf;
 const booleanValue = Boolean.prototype.valueOf;
+const symbolValue = Symbol.prototype.valueOf;
 
 export function nativeBoxedValue(value: unknown): BoxedPrimitive | undefined {
   if (types.isNumberObject(value)) return Reflect.apply(numberValue, value, []);
   if (types.isStringObject(value)) return Reflect.apply(stringValue, value, []);
   if (types.isBooleanObject(value)) return Reflect.apply(booleanValue, value, []);
+  if (types.isSymbolObject(value)) return Reflect.apply(symbolValue, value, []);
   return undefined;
 }
 
 export function createSandboxBox(value: unknown): SandboxBox {
-  if (typeof value !== "number" && typeof value !== "string" && typeof value !== "boolean")
+  if (typeof value !== "number" && typeof value !== "string" && typeof value !== "boolean" && typeof value !== "symbol")
     throw new TypeError("Invalid boxed primitive payload.");
   const box = Object(value) as SandboxBox;
   Object.setPrototypeOf(box, null);
@@ -41,9 +43,14 @@ export function primitiveReceiver(value: unknown, kind: BoxedKind): BoxedPrimiti
   return primitive as BoxedPrimitive;
 }
 
-export function boxedDataProperties(value: object): Array<[string, PropertyDescriptor]> {
+export function boxedDataProperties(value: object): Array<[string, PropertyDescriptor]>;
+export function boxedDataProperties(value: object, includeSymbols: true): Array<[string | symbol, PropertyDescriptor]>;
+export function boxedDataProperties(value: object, includeSymbols = false): Array<[string | symbol, PropertyDescriptor]> {
   const primitive = nativeBoxedValue(value);
-  return Object.entries(Object.getOwnPropertyDescriptors(value)).filter(([key]) => {
+  const descriptors = Object.getOwnPropertyDescriptors(value);
+  const keys = includeSymbols ? Reflect.ownKeys(descriptors) : Object.keys(descriptors);
+  return keys.map(key => [key, Object.getOwnPropertyDescriptor(descriptors, key)!.value] as [string | symbol, PropertyDescriptor]).filter(([key]) => {
+    if (typeof key === "symbol") return true;
     if (typeof primitive !== "string") return true;
     if (key === "length") return false;
     const index = Number(key);

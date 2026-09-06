@@ -1,5 +1,6 @@
 import { boxedDataProperties, boxedValue, type SandboxBox } from "../interp/boxed.js";
 import type { SandboxValue } from "../interp/values.js";
+import { restoreSymbolProperties, serializeSymbolProperties, type SerializedSymbolProperty } from "./symbols.js";
 
 export type BoxedData<T> = {
   kind: "boxed";
@@ -9,6 +10,7 @@ export type BoxedData<T> = {
     { value: T; configurable: boolean; enumerable: boolean; writable: boolean }
   >;
   extensible: boolean;
+  symbolEntries?: Array<SerializedSymbolProperty<T>>;
 };
 
 export function encodeBoxedData<T>(
@@ -25,11 +27,13 @@ export function encodeBoxedData<T>(
       writable: descriptor.writable === true
     };
   }
+  const symbolEntries = serializeSymbolProperties(value, entry => encode(entry as SandboxValue, "<symbol>"));
   return {
     kind: "boxed",
     value: encode(boxedValue(value), "<payload>"),
     properties,
-    extensible: Object.isExtensible(value)
+    extensible: Object.isExtensible(value),
+    ...(symbolEntries.length === 0 ? {} : { symbolEntries })
   };
 }
 
@@ -40,6 +44,7 @@ export function restoreBoxedProperties<T>(
 ): void {
   for (const [key, descriptor] of Object.entries(data.properties))
     Object.defineProperty(value, key, { ...descriptor, value: decode(descriptor.value) });
+  restoreSymbolProperties(value, data.symbolEntries, decode);
   if (!data.extensible) Object.preventExtensions(value);
 }
 
@@ -50,7 +55,8 @@ export function validateBoxedProperties(data: Record<string, unknown>): void {
     !Object.hasOwn(data, "value") ||
     !Object.hasOwn(data, "extensible") ||
     !Object.hasOwn(data, "properties") ||
-    Object.keys(data).length !== 4 ||
+    Object.keys(data).some(key => !["kind", "value", "extensible", "properties", "symbolEntries"].includes(key)) ||
+    (Object.hasOwn(data, "symbolEntries") && !Array.isArray(data.symbolEntries)) ||
     typeof data.extensible !== "boolean" ||
     typeof data.properties !== "object" ||
     data.properties === null ||

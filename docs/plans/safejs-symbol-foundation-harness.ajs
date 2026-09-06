@@ -1,0 +1,40 @@
+import { S } from "schema";
+
+export const schema = S.Object({ title: S.String() });
+
+export default async function symbolFoundation(frontmatter) {
+  const key = Symbol.for("foundation");
+  const other = Symbol("foundation");
+  const object = { [key]: 7, [other]: 9 };
+  const box = Object(key);
+  box[other] = object;
+  if (key === other || Symbol.keyFor(key) !== "foundation" || box.valueOf() !== key)
+    throw new Error("Symbol identity failed");
+  if (Object.getOwnPropertySymbols(object).length !== 2 || box[other][key] !== 7)
+    throw new Error("Symbol properties failed");
+  if (Number({ [Symbol.toPrimitive]() { return 42; } }) !== 42)
+    throw new Error("Primitive conversion failed");
+
+  const source = {
+    [Symbol.iterator]() {
+      let index = 0;
+      return { next() { return { done: index >= 3, value: ++index }; } };
+    }
+  };
+  const values = Array.from(source);
+  const promised = await Promise.all(source);
+  const unique = new Set(source);
+  if (values.join(",") !== "1,2,3" || promised.join(",") !== "1,2,3" || unique.size !== 3)
+    throw new Error("Built-in iterator consumers failed");
+
+  const asyncValues = [];
+  const asyncSource = {
+    [Symbol.asyncIterator]() {
+      let index = 0;
+      return { async next() { await 0; return { done: index >= 2, value: ++index }; } };
+    }
+  };
+  for await (const value of asyncSource) asyncValues.push(value);
+  if (asyncValues.join(",") !== "1,2") throw new Error("Async iteration failed");
+  return { title: frontmatter.title, symbols: true, values, asyncValues, collections: true };
+}

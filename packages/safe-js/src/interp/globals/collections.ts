@@ -1,7 +1,13 @@
 import { isFatalSandboxError, type Budget } from "../budget.js";
 import { createDataCheckpoint } from "../data-checkpoint.js";
 import { isCapturedException } from "../exceptions.js";
-import { getSandboxIterator } from "../iteration.js";
+import {
+  acquireSandboxIterator,
+  closeIterator,
+  getSandboxIterator,
+  readIteratorResult,
+  type SandboxIterator
+} from "../iteration.js";
 import { getSandboxDataProperty } from "../object-model.js";
 import {
   createSandboxClosure,
@@ -131,82 +137,97 @@ function populateCollection<T extends SandboxMap | SandboxSet>(
 ): T | Promise<T> {
   budget.allocateCollectionEntries(0);
   if (source === undefined || source === null) return collection;
-  const iterator = getSandboxIterator(source, budget, context);
-  if (iterator === undefined) throw new TypeError(`${name} constructor requires an iterable.`);
-  let entry: SandboxValue;
-  let failure: unknown;
-  const retained = {};
-  budget.setRetainedValues(retained, () => [
-    source,
-    iterator.retainedValue,
-    collection,
-    entry,
-    failure,
-    ...(retainedValues?.() ?? [])
-  ]);
-  const checkData = createDataCheckpoint(budget, context);
-  const closeOnThrow = (error: unknown): never | Promise<never> => {
-    failure = isCapturedException(error) ? error.reason : error;
-    const rethrow = (closeError?: unknown): never => {
-      if (!isFatalSandboxError(error) && isFatalSandboxError(closeError)) throw closeError;
-      throw error;
-    };
-    try {
-      const closing = iterator.return?.();
-      if (iterator.generator || iterator.asynchronous)
-        return Promise.resolve(closing).then(() => {
+  const populate = (iterator: SandboxIterator | undefined): T | Promise<T> => {
+    if (iterator === undefined) throw new TypeError(`${name} constructor requires an iterable.`);
+    let entry: SandboxValue;
+    let failure: unknown;
+    const retained = {};
+    budget.setRetainedValues(retained, () => [
+      source,
+      iterator.retainedValue,
+      collection,
+      entry,
+      failure,
+      ...(retainedValues?.() ?? [])
+    ]);
+    const checkData = createDataCheckpoint(budget, context);
+    const closeOnThrow = (error: unknown): never | Promise<never> => {
+      failure = isCapturedException(error) ? error.reason : error;
+      const rethrow = (closeError?: unknown): never => {
+        if (!isFatalSandboxError(error) && isFatalSandboxError(closeError)) throw closeError;
+        throw error;
+      };
+      if (iterator.getOperation !== undefined)
+        return closeIterator(iterator, true).then(() => {
           throw error;
         }, rethrow);
-    } catch (closeError) {
-      return rethrow(closeError);
-    }
-    throw error;
-  };
-  const consume = (result: IteratorResult<SandboxValue>): boolean | Promise<boolean> => {
-    if (typeof result !== "object" || result === null)
-      throw new TypeError("Iterator result must be an object.");
-    if (result.done) return true;
-    entry = result.value;
-    try {
-      budget.visitNode();
-      const growth = append(entry);
-      if (growth instanceof Promise)
-        return growth
-          .then((size) => {
-            entry = undefined;
-            checkData(collection, size);
-            return false;
-          })
-          .catch(closeOnThrow);
-      entry = undefined;
-      checkData(collection, growth);
-    } catch (error) {
-      return closeOnThrow(error);
-    }
-    return false;
-  };
-  if (iterator.generator || iterator.asynchronous || context !== undefined) {
-    return (async () => {
       try {
-        checkData(collection, 0, true);
-        while (!(await consume(await iterator.next()))) {
-          /* Consume each entry before advancing. */
-        }
-        checkData(collection, 0, true);
-        return collection;
-      } finally {
-        budget.setRetainedValues(retained, undefined);
+        const closing = iterator.return?.();
+        if (iterator.generator || iterator.asynchronous)
+          return Promise.resolve(closing).then(() => {
+            throw error;
+          }, rethrow);
+      } catch (closeError) {
+        return rethrow(closeError);
       }
-    })();
-  }
-  try {
-    checkData(collection, 0, true);
-    while (!consume(iterator.next() as IteratorResult<SandboxValue>)) {
-      /* Synchronous inputs stay synchronous. */
+      throw error;
+    };
+    const consume = (result: IteratorResult<SandboxValue>): boolean | Promise<boolean> => {
+      if (typeof result !== "object" || result === null)
+        throw new TypeError("Iterator result must be an object.");
+      if (result.done) return true;
+      entry = result.value;
+      try {
+        budget.visitNode();
+        const growth = append(entry);
+        if (growth instanceof Promise)
+          return growth
+            .then((size) => {
+              entry = undefined;
+              checkData(collection, size);
+              return false;
+            })
+            .catch(closeOnThrow);
+        entry = undefined;
+        checkData(collection, growth);
+      } catch (error) {
+        return closeOnThrow(error);
+      }
+      return false;
+    };
+    if (iterator.generator || iterator.asynchronous || context !== undefined) {
+      return (async () => {
+        try {
+          checkData(collection, 0, true);
+          while (true) {
+            const result = await iterator.next();
+            if (typeof result !== "object" || result === null)
+              throw new TypeError("Iterator result must be an object.");
+            if ((await readIteratorResult(iterator, result, "done")).value) break;
+            const value = (await readIteratorResult(iterator, result, "value")).value;
+            await consume({ done: false, value });
+          }
+          checkData(collection, 0, true);
+          return collection;
+        } finally {
+          budget.setRetainedValues(retained, undefined);
+        }
+      })();
     }
-    checkData(collection, 0, true);
-    return collection;
-  } finally {
-    budget.setRetainedValues(retained, undefined);
-  }
+    try {
+      checkData(collection, 0, true);
+      while (!consume(iterator.next() as IteratorResult<SandboxValue>)) {
+        /* Synchronous inputs stay synchronous. */
+      }
+      checkData(collection, 0, true);
+      return collection;
+    } finally {
+      budget.setRetainedValues(retained, undefined);
+    }
+  };
+  const iterator =
+    context === undefined
+      ? getSandboxIterator(source, budget)
+      : acquireSandboxIterator(source, budget, context);
+  return iterator instanceof Promise ? iterator.then(populate) : populate(iterator);
 }

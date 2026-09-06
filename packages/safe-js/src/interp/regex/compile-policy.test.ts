@@ -138,6 +138,7 @@ describe("compile checkpoint hash compatibility", () => {
       ...capture.completed,
       bindings: {
         ...capture.completed.bindings,
+        Symbol: { kind: "fn", name: "Symbol" },
         Date: { kind: "fn", name: "Date" },
         Object: { kind: "fn", name: "Object" },
         Math: {
@@ -329,18 +330,18 @@ describe("compile preimage policy", () => {
     const regex = createSandboxRegex("a", "g");
     Reflect.set(regex, "source", "b");
     Reflect.set(regex, "flags", "i");
-    const cursor = { [Symbol.toPrimitive]: vi.fn(() => 0) };
+    const cursor = { [Symbol.toPrimitive]: 7 };
     Object.defineProperty(regex, "lastIndex", { value: cursor });
     const native = deepCopyFromSandbox(regex) as RegExp;
     expect([native.source, native.flags]).toEqual(["b", "i"]);
     expect(Object.getOwnPropertyDescriptor(native, "lastIndex")).toEqual({
-      value: {},
+      value: cursor,
       writable: true,
       enumerable: false,
       configurable: false
     });
     expect(native.lastIndex).not.toBe(cursor);
-    expect(cursor[Symbol.toPrimitive]).not.toHaveBeenCalled();
+    expect(() => Number(native.lastIndex)).toThrow(TypeError);
   });
   it("RED source ceiling", () => {
     limits.sourceLength = 3;
@@ -437,14 +438,20 @@ describe("compile preimage policy", () => {
     expect(() => parseRegex("a", "u")).toThrow(SyntaxError);
     expect(() => parseRegex("a", "y")).toThrow(SyntaxError);
     const regex = createSandboxRegex("a", "g", 2);
-    const cursor = { [Symbol.toPrimitive]: vi.fn(() => 0) };
+    const cursor = { [Symbol.toPrimitive]: 7 };
     Object.defineProperty(regex, "lastIndex", { value: cursor });
     const copy = deepCopyFromSandbox([regex, regex]) as RegExp[];
     expect(copy[0]).toBe(copy[1]);
     expect(copy[0].source).toBe("a");
     expect(copy[0].flags).toBe("g");
     expect(copy[0].lastIndex).not.toBe(cursor);
-    expect(copy[0].lastIndex).toEqual({});
-    expect(cursor[Symbol.toPrimitive]).not.toHaveBeenCalled();
+    expect(copy[0].lastIndex).toEqual(cursor);
+  });
+  it.each([Symbol.toPrimitive, "valueOf"])("rejects a host-injected cursor function at %s without invoking it", key => {
+    const regex = createSandboxRegex("a", "g");
+    const hook = vi.fn(() => { throw new Error("coerced"); });
+    Object.defineProperty(regex, "lastIndex", { value: { [key]: hook } });
+    expect(() => deepCopyFromSandbox(regex)).toThrow(TypeError);
+    expect(hook).not.toHaveBeenCalled();
   });
 });

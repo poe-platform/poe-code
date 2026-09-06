@@ -90,8 +90,10 @@ describe("live collection method iterators", () => {
     "const collection=new Set();collection.add('x'.repeat(2000));collection.add('y'.repeat(2000));return collection.values()"
   ])("keeps iterator-only source data within the live budget: %s", async create => {
     const source = `const iterator=(()=>{${create}})();const temporary='z'.repeat(2000);return typeof iterator.next`;
-    await expect(run(source, { budget: new Budget({ dataSize: 5000 }) })).rejects.toMatchObject({ code: "budgetExceeded", budget: "dataSize" });
-    expect(await run(source, { budget: new Budget({ dataSize: 7000 }) })).toMatchObject({ ok: true, returnValue: "function" });
+    const baseline = new Budget();
+    await run(`const iterator=(()=>{${create}})();return typeof iterator.next`, { budget: baseline });
+    await expect(run(source, { budget: new Budget({ dataSize: baseline.peakDataSize + 1000 }) })).rejects.toMatchObject({ code: "budgetExceeded", budget: "dataSize" });
+    expect(await run(source, { budget: new Budget({ dataSize: baseline.peakDataSize + 3000 }) })).toMatchObject({ ok: true, returnValue: "function" });
   });
 
   it.each(["keys", "values", "entries"] as const)("does not inspect stored properties when creating or advancing %s", async method => {

@@ -38,8 +38,10 @@ import { hasOwnSandboxProperty } from "./globals/object.js";
 import { retainValues } from "./resources.js";
 import { getSandboxDataProperty } from "./object-model.js";
 import { toPropertyKey } from "./property-key.js";
+import { internalSymbols } from "./internal-symbols.js";
 
 const capturedExceptionBrand = Symbol("CapturedException");
+internalSymbols.add(capturedExceptionBrand);
 export type { SandboxErrorName } from "../error/shape.js";
 
 export type CompletionKind = "normal" | "return" | "throw" | "break" | "continue";
@@ -81,8 +83,8 @@ type ExceptionContext = {
   budget: Budget;
   callStack: readonly string[];
   scope: Scope;
-  toPropertyKey?: (value: SandboxValue) => Promise<string>;
-  getProperty?: (value: SandboxValue, key: string | number) => SandboxValue | Promise<SandboxValue>;
+  toPropertyKey?: (value: SandboxValue) => string | symbol | Promise<string | symbol>;
+  getProperty?: (value: SandboxValue, key: PropertyKey) => SandboxValue | Promise<SandboxValue>;
 };
 
 type EvaluateExceptionNode<TContext, TError> = (
@@ -699,7 +701,7 @@ async function bindObjectPattern<TContext extends ExceptionContext, TError>(
     throw new TypeError("Object catch bindings require a non-nullish value.");
   }
 
-  const excludedKeys = new Set<string>();
+  const excludedKeys = new Set<PropertyKey>();
 
   for (const property of pattern.properties) {
     if (property.type === "RestElement") {
@@ -717,7 +719,7 @@ async function bindObjectPattern<TContext extends ExceptionContext, TError>(
       return key;
     }
 
-    excludedKeys.add(String(key.value));
+    excludedKeys.add(typeof key.value === "symbol" ? key.value : String(key.value));
     const binding = await bindPattern(
       property.value,
       context.getProperty === undefined
@@ -741,7 +743,7 @@ async function resolvePatternPropertyKey<TContext extends ExceptionContext, TErr
 ): Promise<
   | {
       ok: true;
-      value: string | number;
+      value: PropertyKey;
     }
   | {
       ok: false;
@@ -787,13 +789,13 @@ function getStaticPropertyKey(property: AssignmentProperty["key"]): string | num
 
 async function copyObjectRest(
   value: Exclude<SandboxValue, null | undefined>,
-  excludedKeys: ReadonlySet<string>,
+  excludedKeys: ReadonlySet<PropertyKey>,
   context: ExceptionContext
 ): Promise<SandboxObject> {
   const rest = Object.create(null) as SandboxObject;
   const release = retainValues(context.budget, () => [value, rest]);
   try {
-    for (const key of ownEnumerableSandboxKeys(value)) {
+    for (const key of ownEnumerableSandboxKeys(value, true)) {
       if (excludedKeys.has(key) || !hasOwnSandboxProperty(value, key, true)) continue;
       rest[key] =
         context.getProperty === undefined

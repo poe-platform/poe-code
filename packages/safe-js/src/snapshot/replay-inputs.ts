@@ -11,6 +11,7 @@ import {
 } from "../interp/values.js";
 import { decodeReplayData, encodeReplayData, type ReplayData } from "./replay-data.js";
 import { CompileScope } from "../interp/regex/compile-guard.js";
+import { ownSerializableSymbolKeys } from "./symbols.js";
 
 const validationPromise = createSandboxPromise(Promise.resolve(undefined));
 
@@ -68,10 +69,23 @@ export function prepareReplayInputs(
   }
   const readCapability = (id: string): SandboxValue => {
     const path: unknown = JSON.parse(id);
-    if (!Array.isArray(path) || path.length === 0 || path.some((key) => typeof key !== "string"))
+    if (!Array.isArray(path) || path.length === 0)
       throw new TypeError("Invalid replay input capability path.");
     let value: SandboxValue = current;
     for (const key of path) {
+      if (typeof key !== "string") {
+        if (key === null || typeof key !== "object" || Array.isArray(key) ||
+            Object.keys(key).length !== 1 || !Object.hasOwn(key, "symbol") ||
+            !Number.isSafeInteger(key.symbol) || key.symbol < 0)
+          throw new TypeError("Invalid replay input symbol capability path.");
+        if (value === null || typeof value !== "object") return undefined;
+        const symbol = ownSerializableSymbolKeys(value)[key.symbol];
+        if (symbol === undefined) return undefined;
+        const descriptor = Object.getOwnPropertyDescriptor(value, symbol);
+        if (descriptor === undefined || !("value" in descriptor)) return undefined;
+        value = descriptor.value;
+        continue;
+      }
       if (isSandboxCollectionIterator(value)) {
         if (key === "<collection>") value = collectionIteratorState(value).collection;
         else {

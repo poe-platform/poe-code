@@ -8,6 +8,7 @@ import { createMiscGlobals } from "./globals/misc.js";
 import { createObjectArrayGlobals } from "./globals/object-array.js";
 import { createPromiseGlobals } from "./promise.js";
 import { createDateGlobal } from "./globals/date.js";
+import { createSymbolGlobal } from "./globals/symbol.js";
 import type { RunClock } from "../run.js";
 
 export function createBuiltinBindings(
@@ -18,6 +19,7 @@ export function createBuiltinBindings(
     ...createCollectionGlobals(options),
     Float32Array: createFloat32ArrayGlobal(options.budget),
     Date: createDateGlobal(options),
+    Symbol: createSymbolGlobal(options.budget),
     ...createErrorGlobals(options),
     ...createMathGlobals({ random: options.random }),
     ...createObjectArrayGlobals(options),

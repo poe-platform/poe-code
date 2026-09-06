@@ -3,7 +3,11 @@ import { describe, expect, it } from "vitest";
 import { Budget, createRealm, run } from "../core.js";
 
 describe("class construction and public elements", () => {
-  it.each(['new Date(0)', 'new Float32Array([7])'])("does not bypass unsupported field descriptors on %s", async receiver => {
+  it("defines public fields on a returned Date with native descriptors", async () => {
+    const source = "class A{constructor(){return new Date(0)}}class B extends A{x=7}const value=new B();return [value.getTime(),Object.getOwnPropertyDescriptor(value,'x')];";
+    expect(await run(source)).toMatchObject({ ok: true, returnValue: new Function(source)() });
+  });
+  it.each(['new Float32Array([7])'])("does not bypass unsupported field descriptors on %s", async receiver => {
     expect(await run(`class A{constructor(){return ${receiver}}}class B extends A{x=7}try{new B()}catch(error){return error.name}`)).toMatchObject({ ok: true, returnValue: "TypeError" });
   });
   it("does not let super assignment mutate private regex metadata", async () => {

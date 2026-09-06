@@ -9,9 +9,10 @@ import { defineDataProperty } from "./globals/object-array.js";
 import { createPatternContext } from "./interpreter.js";
 import type { Scope } from "./scope.js";
 import { hoistVarDeclarations } from "./var-hoist.js";
+import { propertyFunctionName } from "./property-key.js";
 import { createSandboxClosure, type SandboxCallContext, type SandboxClosure, type SandboxObject, type SandboxValue, isSandboxClosure } from "./values.js";
 
-type Field = { element: Extract<ClassElement, { type: "PropertyDefinition" }>; key: string };
+type Field = { element: Extract<ClassElement, { type: "PropertyDefinition" }>; key: string | symbol };
 type StaticElement = Field | { element: Extract<ClassElement, { type: "StaticBlock" }> };
 
 export async function evaluateClass(
@@ -121,7 +122,7 @@ export async function evaluateClass(
         continue;
       }
       if (element.type === "MethodDefinition" && element.kind === "constructor") continue;
-      let key: string;
+      let key: string | symbol;
       if (element.computed) {
         const result = await evaluateNode(element.key, classContext);
         if (result.kind !== "normal") return result;
@@ -129,7 +130,7 @@ export async function evaluateClass(
       } else {
         key = element.key.type === "Identifier" ? element.key.name : String((element.key as { value: string | number }).value);
       }
-      context.budget.allocateString(key);
+      if (typeof key === "string") context.budget.allocateString(key);
       if (element.type === "PropertyDefinition") {
         (element.static ? statics : fields).push({ element, key });
       } else {
@@ -137,7 +138,7 @@ export async function evaluateClass(
         const method = createInterpretedClosure(element.value, classContext, evaluateNode, home);
         const accessor = element.kind === "get" || element.kind === "set" ? element.kind : undefined;
         Object.defineProperty(materializeFunctionProperties(method), "name", {
-          value: accessor === undefined ? key : `${accessor} ${key}`
+          value: accessor === undefined ? propertyFunctionName(key) : `${accessor} ${propertyFunctionName(key)}`
         });
         Object.defineProperty(
           element.static ? properties : prototype,
@@ -174,7 +175,7 @@ async function initializeElement(
   let value: SandboxValue;
   if (initializer !== undefined) {
     if (element.type === "StaticBlock") hoistVarDeclarations(element.body, scope);
-    const result = await evaluateNode(initializer, { ...context, scope, functionEnvironment: { homeObject }, inferredName: "key" in definition ? definition.key : undefined });
+    const result = await evaluateNode(initializer, { ...context, scope, functionEnvironment: { homeObject }, inferredName: "key" in definition ? propertyFunctionName(definition.key) : undefined });
     if (result.kind === "error") throw result.error;
     if (result.kind === "throw") throw result.value;
     value = result.hasValue ? result.value : undefined;

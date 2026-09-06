@@ -13,6 +13,9 @@ import { getGuestFunctionProperties, getGuestFunctionProperty, getSandboxDataPro
 import { functionSources } from "../parse/function-source.js";
 import { wrapCallerInjectedBindings, type CallerInjectedBinding } from "../interp/host-bridge.js";
 import { restoreSandboxCollectionIterator } from "../interp/collection-iterator.js";
+import { wellKnownSymbols } from "../interp/symbols.js";
+import { restoreSymbolProperties } from "./symbols.js";
+import { restoreDateProperties } from "./date-properties.js";
 import { isSandboxMap, isSandboxSet } from "../interp/values.js";
 import {
   createSandboxArguments,
@@ -543,6 +546,11 @@ function restoreHeapValue(id: number, state: RestoreState): RuntimeSnapshotValue
     throw new Error(`Snapshot references unknown heap value ${id}.`);
   }
 
+  if (serialized.kind === "symbol") {
+    const value = serialized.wellKnown === undefined ? Symbol(serialized.description) : wellKnownSymbols[serialized.wellKnown]!;
+    state.heapValueById.set(id, value);
+    return value;
+  }
   if (serialized.kind === "boxed") {
     const value = createSandboxBox(deserializeValue(serialized.value, state));
     state.heapValueById.set(id, value);
@@ -552,6 +560,7 @@ function restoreHeapValue(id: number, state: RestoreState): RuntimeSnapshotValue
   if (serialized.kind === "date") {
     const value = restoreDateTime(serialized.time);
     state.heapValueById.set(id, value);
+    restoreDateProperties(value, serialized, entry => deserializeValue(entry, state));
     return value;
   }
   if (serialized.kind === "regex-object") {
@@ -593,6 +602,7 @@ function restoreHeapValue(id: number, state: RestoreState): RuntimeSnapshotValue
       });
     }
 
+    restoreSymbolProperties(array, serialized.symbolEntries, entry => deserializeValue(entry, state));
     return array;
   }
 
@@ -656,6 +666,7 @@ function restoreHeapValue(id: number, state: RestoreState): RuntimeSnapshotValue
   for (const [key, entry] of Object.entries(serialized.entries)) {
     object[key] = deserializeValue(entry, state);
   }
+  restoreSymbolProperties(object, serialized.symbolEntries, entry => deserializeValue(entry, state));
 
   return object;
 }

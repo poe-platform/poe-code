@@ -34,8 +34,9 @@ describe("ordinary-record data accounting", () => {
         }
       }
     });
-    Object.defineProperty(value, Symbol("ignored"), { value: "not charged", enumerable: true });
-    expect(measureSandboxData([value])).toBe(16);
+    Object.defineProperty(value, Symbol("counted"), { value: "now charged", enumerable: true });
+    // 16 existing units + one property + eight symbol units + eleven payload units.
+    expect(measureSandboxData([value])).toBe(36);
     expect(reads).toBe(0);
   });
 
@@ -134,7 +135,8 @@ describe("ordinary-record data accounting", () => {
   it("keeps the existing non-enumerable arguments-length charge", () => {
     const value = createSandboxArguments(["word"]);
     expect(Object.getOwnPropertyDescriptor(value, "length")?.enumerable).toBe(false);
-    expect(measureSandboxData([value])).toBe(14);
+    // Includes the own Symbol.iterator property and its retained symbol identity.
+    expect(measureSandboxData([value])).toBe(31);
   });
 
   it.each([25, 26, 27])("preserves the exact dataSize boundary at %i units", (limit) => {

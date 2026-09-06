@@ -236,18 +236,14 @@ describe("compile policy drafts", () => {
 
   it("preserves native source, flags and aliases while isolating cursor data without coercion", () => {
     const regex = createSandboxRegex("a", "g", 2);
-    const cursor = {
-      [Symbol.toPrimitive]: vi.fn(() => {
-        throw new Error("coerced");
-      })
-    };
+    // This non-callable conversion hook would throw if the cursor were coerced.
+    const cursor = { [Symbol.toPrimitive]: 7 };
     Object.defineProperty(regex, "lastIndex", { value: cursor });
     const copied = deepCopyFromSandbox([regex, regex]) as RegExp[];
     expect(copied[0]).toBe(copied[1]);
     expect(copied[0].source).toBe("a");
     expect(copied[0].flags).toBe("g");
     expect(copied[0].lastIndex).not.toBe(cursor);
-    expect(copied[0].lastIndex).toEqual({});
-    expect(cursor[Symbol.toPrimitive]).not.toHaveBeenCalled();
+    expect(copied[0].lastIndex).toEqual(cursor);
   });
 });

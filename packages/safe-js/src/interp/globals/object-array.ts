@@ -11,8 +11,9 @@ import { createObjectGlobal, hasOwnSandboxProperty } from "./object.js";
 import { isGuestHostObject } from "../host-capabilities.js";
 import { isFloat32Array } from "../float32.js";
 import { setSandboxProperty } from "../interpreter.js";
-import { getSandboxIterator, type SandboxIterator } from "../iteration.js";
+import { acquireSandboxIterator, closeIterator, getSandboxIterator, readIteratorResult, type SandboxIterator } from "../iteration.js";
 import { sandboxNumber, sandboxString } from "../string-coercion.js";
+import { toPropertyKey } from "../property-key.js";
 import { createNumericParsers } from "./numeric-parsers.js";
 import { createPrimitiveConstructor } from "./primitives.js";
 import {
@@ -37,6 +38,7 @@ import {
   isSandboxSet,
   measureSandboxData,
   ownEnumerableSandboxKeys as getOwnEnumerableKeys,
+  ownSandboxSymbolKeys,
   ownEnumerableSandboxEntries as getDirectEntries,
   type SandboxArray,
   type SandboxCallContext,
@@ -96,8 +98,8 @@ export function createObjectArrayGlobals(options: {
           call: ([value, key], context) => {
             if (value === null || value === undefined)
               throw new TypeError("Cannot convert undefined or null to object.");
-            const name = sandboxString(key, options.budget, context);
-            return typeof name === "string"
+            const name = toPropertyKey(key, options.budget, context);
+            return typeof name === "string" || typeof name === "symbol"
               ? hasOwnSandboxProperty(value, name, false)
               : name.then((property) => hasOwnSandboxProperty(value, property, false));
           },
@@ -108,7 +110,7 @@ export function createObjectArrayGlobals(options: {
           call: async ([value, key], context) => {
             const descriptor = Object.getOwnPropertyDescriptor(
               objectProperties(value),
-              await sandboxString(key, options.budget, context)
+              await toPropertyKey(key, options.budget, context)
             );
             if (descriptor === undefined) return undefined;
             return allocateProducedSandboxValue(
@@ -122,10 +124,9 @@ export function createObjectArrayGlobals(options: {
           sandbox: true,
           call: ([value]) => {
             const descriptors = Object.create(null) as SandboxObject;
-            for (const [key, descriptor] of Object.entries(
-              Object.getOwnPropertyDescriptors(objectProperties(value))
-            ))
-              defineOwnDataProperty(descriptors, key, exposePropertyDescriptor(descriptor));
+            const properties = objectProperties(value);
+            for (const key of [...Object.getOwnPropertyNames(properties), ...ownSandboxSymbolKeys(value)])
+              defineOwnDataProperty(descriptors, key, exposePropertyDescriptor(Object.getOwnPropertyDescriptor(properties, key)!));
             return allocateProducedSandboxValue(descriptors, options.budget);
           },
           name: "getOwnPropertyDescriptors"
@@ -136,11 +137,16 @@ export function createObjectArrayGlobals(options: {
             budgetSandboxValue(Object.getOwnPropertyNames(objectProperties(value)), options.budget),
           name: "getOwnPropertyNames"
         }),
+        getOwnPropertySymbols: createSandboxClosure({
+          sandbox: true,
+          call: ([value]) => allocateProducedSandboxValue(ownSandboxSymbolKeys(value), options.budget),
+          name: "getOwnPropertySymbols"
+        }),
         defineProperty: createSandboxClosure({
           sandbox: true,
           call: async ([value, key, descriptor], context) => {
             objectProperties(value, true);
-            const property = await sandboxString(key, options.budget, context);
+            const property = await toPropertyKey(key, options.budget, context);
             defineDataProperty(
               value,
               property,
@@ -202,6 +208,10 @@ export function createObjectArrayGlobals(options: {
         fromEntries: createSandboxClosure({
           sandbox: true,
           call: ([value], context) => {
+            if (context !== undefined) return acquireSandboxIterator(value, options.budget, context).then(iterator => {
+              if (iterator === undefined) throw new TypeError("Object.fromEntries requires an iterable.");
+              return objectFromSandboxEntries(value, iterator, options.budget, context);
+            });
             const iterator = getSandboxIterator(value, options.budget, context);
             if (iterator === undefined) {
               throw new TypeError("Object.fromEntries requires an iterable.");
@@ -277,7 +287,9 @@ export function createObjectArrayGlobals(options: {
     String: createPrimitiveConstructor(
       {
         call: (args, context) =>
-          sandboxString(args.length === 0 ? "" : args[0], options.budget, context),
+          typeof args[0] === "symbol"
+            ? options.budget.allocateString(String(args[0]))
+            : sandboxString(args.length === 0 ? "" : args[0], options.budget, context),
         name: "String",
         properties: {
           raw: createSandboxClosure({
@@ -375,7 +387,7 @@ async function objectFromSandboxEntries(
   const closeOnThrow = async (error: unknown): Promise<never> => {
     failure = isCapturedException(error) ? error.reason : error;
     try {
-      await iterator.return?.();
+      await closeIterator(iterator, true);
     } catch (closeError) {
       if (!isFatalSandboxError(error) && isFatalSandboxError(closeError)) throw closeError;
     }
@@ -393,8 +405,8 @@ async function objectFromSandboxEntries(
       if (typeof result !== "object" || result === null) {
         throw new TypeError("Iterator result must be an object.");
       }
-      if (result.done) break;
-      entry = result.value;
+      if ((await readIteratorResult(iterator, result, "done")).value) break;
+      entry = (await readIteratorResult(iterator, result, "value")).value;
       try {
         if (typeof entry !== "object" || entry === null) {
           throw new TypeError("Object.fromEntries requires entry objects.");
@@ -407,9 +419,9 @@ async function objectFromSandboxEntries(
           context?.getProperty !== undefined
             ? await context.getProperty(entry, 1)
             : getSandboxDataProperty(entry, 1, budget);
-        const property = await sandboxString(key, budget, context);
+        const property = await toPropertyKey(key, budget, context);
         const growth =
-          property.length +
+          (typeof property === "symbol" ? property.description?.length ?? 0 : property.length) +
           1 +
           (budget.limits.dataSize === undefined ? 0 : measureSandboxData([value]));
         budget.visitNode();
@@ -476,7 +488,6 @@ function assignSandboxValues(
 
 function objectProperties(value: SandboxValue, mutable = false): SandboxObject | SandboxArray {
   if (isSandboxDate(value)) {
-    if (mutable) throw new TypeError("Date own properties and prototypes are not supported.");
     return value as unknown as SandboxObject;
   }
   if (isGuestHostObject(value))
@@ -562,7 +573,7 @@ async function definePropertiesFromObject(
   context?: SandboxCallContext
 ): Promise<void> {
   objectProperties(target, true);
-  const properties: Array<[string, PropertyDescriptor]> = [];
+  const properties: Array<[PropertyKey, PropertyDescriptor]> = [];
   const release = retainValues(budget, () => [
     target,
     descriptors,
@@ -570,7 +581,7 @@ async function definePropertiesFromObject(
     ...properties.flatMap(([, descriptor]) => retainedAccessorClosures(descriptor))
   ]);
   try {
-    for (const key of getOwnEnumerableKeys(descriptors)) {
+    for (const key of getOwnEnumerableKeys(descriptors, true)) {
       if (!hasOwnSandboxProperty(descriptors, key, true)) continue;
       const descriptor = await (context?.getProperty !== undefined
         ? context.getProperty(descriptors, key)
@@ -585,7 +596,7 @@ async function definePropertiesFromObject(
 
 export function defineDataProperty(
   target: SandboxValue,
-  key: string,
+  key: PropertyKey,
   descriptor: PropertyDescriptor,
   budget: Budget
 ): void {
@@ -596,7 +607,7 @@ export function defineDataProperty(
   if (Array.isArray(properties)) {
     if (key === "length" && "value" in descriptor)
       budget.allocateArrayLength(Number(descriptor.value));
-    else {
+    else if (typeof key !== "symbol") {
       const index = Number(key);
       if (Number.isInteger(index) && index >= 0 && index < 0xffffffff && String(index) === key) {
         budget.allocateArrayLength(index + 1);
@@ -640,7 +651,7 @@ async function arrayFromSandboxValues(
     context?.getProperty !== undefined
       ? context.getProperty(items, property)
       : getSandboxDataProperty(items, property, budget);
-  const iterator = getSandboxIterator(items, budget, context);
+  const iterator = context === undefined ? getSandboxIterator(items, budget) : await acquireSandboxIterator(items, budget, context);
   const constructor = context?.thisValue;
   let result: SandboxValue;
   let currentValue: SandboxValue;
@@ -659,7 +670,7 @@ async function arrayFromSandboxValues(
   const closeOnThrow = async (error: unknown): Promise<never> => {
     failure = isCapturedException(error) ? error.reason : error;
     try {
-      await iterator?.return?.();
+      if (iterator !== undefined) await closeIterator(iterator, true);
     } catch (closeError) {
       if (!isFatalSandboxError(error) && isFatalSandboxError(closeError)) throw closeError;
     }
@@ -700,8 +711,8 @@ async function arrayFromSandboxValues(
         const next = await iterator.next();
         if (typeof next !== "object" || next === null)
           throw new TypeError("Iterator result must be an object.");
-        if (next.done) break;
-        currentValue = next.value;
+        if ((await readIteratorResult(iterator, next, "done")).value) break;
+        currentValue = (await readIteratorResult(iterator, next, "value")).value;
       } else {
         currentValue = await read(index);
       }

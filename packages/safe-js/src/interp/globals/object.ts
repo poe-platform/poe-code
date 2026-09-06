@@ -14,7 +14,7 @@ import {
   materializeFunctionProperties,
   setSandboxPrototype
 } from "../object-model.js";
-import { sandboxString } from "../string-coercion.js";
+import { toPropertyKey } from "../property-key.js";
 import {
   createSandboxClosure,
   isSandboxClosure,
@@ -90,7 +90,7 @@ export function createObjectGlobal(methods: SandboxObject, budget: Budget): Sand
       call: async ([key], context) =>
         hasOwnSandboxProperty(
           requireReceiver(context?.thisValue),
-          await sandboxString(key, budget, context),
+          await toPropertyKey(key, budget, context),
           false
         )
     }),
@@ -101,7 +101,7 @@ export function createObjectGlobal(methods: SandboxObject, budget: Budget): Sand
       call: async ([key], context) =>
         hasOwnSandboxProperty(
           requireReceiver(context?.thisValue),
-          await sandboxString(key, budget, context),
+          await toPropertyKey(key, budget, context),
           true
         )
     }),
@@ -142,11 +142,11 @@ function requireReceiver(value: SandboxValue): Exclude<SandboxValue, null | unde
 
 export function hasOwnSandboxProperty(
   value: SandboxValue,
-  key: string,
+  key: PropertyKey,
   enumerable: boolean
 ): boolean {
   requireReceiver(value);
-  if (isGuestHostObject(value)) return hasHostObjectMember(value, key, enumerable);
+  if (isGuestHostObject(value)) return typeof key === "symbol" ? false : hasHostObjectMember(value, String(key), enumerable);
   let properties: object;
   if (isGuestClosure(value)) properties = materializeFunctionProperties(value);
   else if (isSandboxClosure(value)) {

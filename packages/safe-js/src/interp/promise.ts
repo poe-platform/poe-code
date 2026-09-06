@@ -2,7 +2,7 @@ import { SandboxError, type Budget } from "./budget.js";
 import { accessorClosure } from "./accessors.js";
 import { getSandboxPropertyDescriptor } from "./object-model.js";
 import { coerceThrownValue, createSubsetErrorValue } from "./exceptions.js";
-import { getSandboxIterator } from "./iteration.js";
+import { acquireSandboxIterator, closeIterator, getSandboxIterator, readIteratorResult } from "./iteration.js";
 import { retainValues } from "./resources.js";
 import { runPromiseJob } from "./jobs.js";
 import { observeSandboxPromise } from "./promise-tracker.js";
@@ -490,7 +490,7 @@ async function settleIterable(
     const promiseResolve = await readPromiseReceiverProperty(constructor, "resolve", prototype, context);
     if (!isSandboxClosure(promiseResolve))
       throw new TypeError("Promise constructor requires a callable resolve.");
-    const iterator = getSandboxIterator(iterable, budget, context);
+    const iterator = context === undefined ? getSandboxIterator(iterable, budget) : await acquireSandboxIterator(iterable, budget, context);
     if (iterator === undefined) throw new TypeError("Promise helpers require an iterable.");
     const releaseIterator = retainValues(budget, () => [iterator.retainedValue]);
     try {
@@ -503,8 +503,8 @@ async function settleIterable(
             : (iterator.next() as IteratorResult<SandboxValue>);
         if (typeof next !== "object" || next === null)
           throw new TypeError("Iterator result must be an object.");
-        if (next.done) break;
-        const value = next.value;
+        if ((await readIteratorResult(iterator, next, "done")).value) break;
+        const value = (await readIteratorResult(iterator, next, "value")).value;
         try {
           budget.allocateArrayLength(index + 1);
           const entryIndex = index++;
@@ -550,12 +550,7 @@ async function settleIterable(
             throw new TypeError("Promise resolver result requires a callable then.");
           await callPromiseClosure(then, handlers, entry, budget, context);
         } catch (error) {
-          try {
-            const closed = iterator.return?.();
-            if (iterator.generator || iterator.asynchronous) await closed;
-          } catch {
-            throw error;
-          }
+          await closeIterator(iterator, true);
           throw error;
         }
       }

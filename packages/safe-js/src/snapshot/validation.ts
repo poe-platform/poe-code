@@ -1,4 +1,5 @@
 import { replaceErrorStack, sandboxErrorNames, type SandboxErrorName } from "../error/shape.js";
+import { wellKnownSymbols } from "../interp/symbols.js";
 import { types } from "node:util";
 import type { Budget } from "../interp/budget.js";
 import type { ParseResult } from "../parse/parser.js";
@@ -122,8 +123,9 @@ function validateDumpHeap(root: Record<string, unknown>, state: ValidationState)
     addUnique(heapIds, id, path);
     const entry = requireRecord(value, path);
     validateErrorType(entry, path);
+    validateSymbolEntries(entry, path, state, heap);
     if (entry.kind === "boxed") {
-      validateBoxedRecord(entry, path);
+      validateBoxedRecord(entry, path, heap);
       continue;
     }
     if (entry.kind === "date") {
@@ -145,6 +147,10 @@ function validateDumpHeap(root: Record<string, unknown>, state: ValidationState)
     }
     if (entry.kind === "object") {
       requireRecord(entry.entries, `${path}.entries`);
+      continue;
+    }
+    if (entry.kind === "symbol") {
+      validateSymbolRecord(entry, path, state);
       continue;
     }
     fail("unknownTag", `${path}.kind`, "unknown dump heap tag");
@@ -339,7 +345,8 @@ export function validateInterpreterSnapshot(
   for (const [key, value] of Object.entries(heap)) {
     const id = parseHeapId(key, `$.heap${formatKey(key)}`);
     addUnique(heapIds, id, `$.heap${formatKey(key)}`);
-    validateHeapValue(value, `$.heap${formatKey(key)}`, state);
+    validateHeapValue(value, `$.heap${formatKey(key)}`, state, heap);
+    validateSymbolEntries(requireRecord(value, `$.heap${formatKey(key)}`), `$.heap${formatKey(key)}`, state, heap);
   }
   validateReferences(root, "$", 0, state, { heapIds, nodeById, promiseIds, scopeIds });
 }
@@ -527,16 +534,17 @@ function validateGeneratorShape(
   });
 }
 
-function validateHeapValue(value: unknown, path: string, state: ValidationState): void {
+function validateHeapValue(value: unknown, path: string, state: ValidationState, heap: Record<string, unknown>): void {
   const record = requireRecord(value, path);
   validateErrorType(record, path);
-  if (!["arguments", "array", "object", "map", "set", "float32array", "date", "boxed", "collection-iterator", "regex-object"].includes(String(record.kind)))
+  if (!["symbol", "arguments", "array", "object", "map", "set", "float32array", "date", "boxed", "collection-iterator", "regex-object"].includes(String(record.kind)))
     fail("unknownTag", `${path}.kind`, "unknown heap tag");
   validateValue(record, path, 1, state);
+  if (record.kind === "symbol") validateSymbolRecord(record, path, state);
   if (record.kind === "arguments") validateArgumentsProperties(record, path);
   if (record.kind === "array") validateArrayHeap(record, path, state);
   if (record.kind === "object") requireRecord(record.entries, `${path}.entries`);
-  if (record.kind === "boxed") validateBoxedRecord(record, path);
+  if (record.kind === "boxed") validateBoxedRecord(record, path, heap);
   if (record.kind === "date") validateDateRecord(record, path);
   if (record.kind === "float32array") {
     validateFloat32Storage(record);
@@ -560,20 +568,80 @@ function validateHeapValue(value: unknown, path: string, state: ValidationState)
   }
 }
 
-function validateBoxedRecord(record: Record<string, unknown>, path: string): void {
+function validateSymbolEntries(
+  record: Record<string, unknown>,
+  path: string,
+  state: ValidationState,
+  heap: Record<string, unknown>
+): void {
+  if (record.symbolEntries === undefined) return;
+  if (record.kind !== "object" && record.kind !== "array" && record.kind !== "date" && record.kind !== "boxed")
+    fail("invalidValue", `${path}.symbolEntries`, "symbol properties are unsupported for this heap kind");
+  const entries = requireArray(record.symbolEntries, `${path}.symbolEntries`, state);
+  const keys = new Set<number>();
+  entries.forEach((entry, index) => {
+    const entryPath = `${path}.symbolEntries[${index}]`;
+    if (!Array.isArray(entry) || entry.length !== 2)
+      fail("invalidValue", entryPath, "symbol entry must contain a key and value");
+    const reference = requireRecord(entry[0], `${entryPath}[0]`);
+    if (reference.kind !== "ref") fail("invalidValue", `${entryPath}[0]`, "expected a symbol heap reference");
+    const id = requireSafeInteger(reference.id, `${entryPath}[0].id`, 1);
+    const symbol = requireRecord(heap[String(id)], `${entryPath}[0]`);
+    if (symbol.kind !== "symbol") fail("invalidValue", `${entryPath}[0]`, "property key must reference a symbol");
+    if (keys.has(id)) fail("invalidValue", entryPath, "duplicate symbol property key");
+    keys.add(id);
+    validateDataDescriptor(requireRecord(entry[1], `${entryPath}[1]`), `${entryPath}[1]`);
+  });
+}
+
+function validateSymbolRecord(record: Record<string, unknown>, path: string, state: ValidationState): void {
+  if (record.description !== undefined)
+    requireString(record.description, `${path}.description`, state.limits);
+  if (record.wellKnown !== undefined) {
+    requireString(record.wellKnown, `${path}.wellKnown`, state.limits);
+    if (!Object.hasOwn(wellKnownSymbols, String(record.wellKnown)))
+      fail("invalidValue", `${path}.wellKnown`, "unknown well-known symbol");
+    if (Object.hasOwn(record, "description"))
+      fail("invalidValue", path, "well-known symbol cannot specify a description");
+  }
+}
+
+function validateBoxedRecord(record: Record<string, unknown>, path: string, heap: Record<string, unknown>): void {
   try { validateBoxedProperties(record); }
   catch { fail("invalidValue", path, "invalid boxed primitive properties"); }
   const value = record.value;
   if (typeof value === "number" || typeof value === "string" || typeof value === "boolean") return;
   const number = requireRecord(value, `${path}.value`);
+  if (number.kind === "ref") {
+    const id = requireSafeInteger(number.id, `${path}.value.id`, 1);
+    const target = requireRecord(heap[String(id)], `${path}.value`);
+    if (target.kind !== "symbol") fail("invalidValue", `${path}.value`, "boxed payload must reference a symbol");
+    return;
+  }
   if (number.kind !== "number" || !["NaN", "Infinity", "-Infinity", "-0"].includes(String(number.value)))
     fail("invalidValue", `${path}.value`, "invalid boxed primitive payload");
 }
 
 function validateDateRecord(record: Record<string, unknown>, path: string): void {
-  if (Object.keys(record).length !== 2) fail("invalidValue", path, "invalid Date fields");
+  if (Object.keys(record).some(key => !["kind", "time", "properties", "symbolEntries", "extensible"].includes(key))) fail("invalidValue", path, "invalid Date fields");
   try { restoreDateTime(record.time); }
   catch { fail("invalidValue", `${path}.time`, "invalid Date epoch"); }
+  if (record.extensible !== undefined && typeof record.extensible !== "boolean") fail("invalidType", `${path}.extensible`, "invalid Date extensibility");
+  if (record.properties !== undefined) {
+    for (const [key, value] of Object.entries(requireRecord(record.properties, `${path}.properties`))) {
+      const propertyPath = `${path}.properties${formatKey(key)}`;
+      validateDataDescriptor(requireRecord(value, propertyPath), propertyPath);
+    }
+  }
+}
+
+function validateDataDescriptor(descriptor: Record<string, unknown>, path: string): void {
+  if (!Object.hasOwn(descriptor, "value")) fail("invalidValue", path, "missing property value");
+  for (const flag of ["enumerable", "writable", "configurable"]) {
+    if (typeof descriptor[flag] !== "boolean") fail("invalidType", `${path}.${flag}`, "property flag must be a boolean");
+  }
+  if (Object.keys(descriptor).some(key => !["value", "enumerable", "writable", "configurable"].includes(key)))
+    fail("invalidValue", path, "unsupported property descriptor field");
 }
 
 function validateArrayHeap(

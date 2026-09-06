@@ -1,4 +1,5 @@
 import { hashSource } from "../parse/hash.js";
+import { ownSerializableSymbolKeys, serializeSymbol, serializeSymbolProperties, type SerializedSymbol, type SerializedSymbolProperty } from "./symbols.js";
 import { collectionIteratorState, isSandboxCollectionIterator, snapshotCollectionIterator, type CollectionIterationMethod, type SandboxCollectionIterator } from "../interp/collection-iterator.js";
 import { hasGuestObjectState } from "../interp/object-model.js";
 import { sandboxErrorTypes, type SandboxErrorName } from "../error/shape.js";
@@ -7,7 +8,8 @@ import { serializeArguments, type SerializedArguments } from "./arguments.js";
 import { requiresArrayEntries, serializeArray, type SerializedArray } from "./arrays.js";
 import { float32DataProperties, isFloat32Array } from "../interp/float32.js";
 import { encodeFloat32Storage, type Float32Data } from "./float32array.js";
-import { isSandboxDate, serializedDateTime } from "../interp/date.js";
+import { dateDataProperties, isSandboxDate } from "../interp/date.js";
+import { serializeDate, type SerializedDate } from "./date-properties.js";
 import { boxedDataProperties, isSandboxBox, type SandboxBox } from "../interp/boxed.js";
 import { encodeBoxedData, type BoxedData } from "./boxed.js";
 import {
@@ -70,16 +72,18 @@ export type SerializedReferenceValue = {
 };
 
 export type SerializedHeapValue =
+  | SerializedSymbol
   | BoxedData<SerializedSnapshotValue>
   | { kind: "regex-object"; source: string; flags: string; lastIndex: SerializedSnapshotValue }
   | { kind: "collection-iterator"; collectionKind: "map" | "set"; method: CollectionIterationMethod; collection: SerializedSnapshotValue; index: number; exhausted: boolean; entries: Record<string, SerializedSnapshotValue> }
-  | { kind: "date"; time: number | null }
+  | SerializedDate<SerializedSnapshotValue>
   | (Float32Data<SerializedReferenceValue> & { entries: Record<string, SerializedSnapshotValue> })
   | SerializedArguments<SerializedSnapshotValue>
   | SerializedArray<SerializedSnapshotValue>
   | {
       kind: "object";
       entries: Record<string, SerializedSnapshotValue>;
+      symbolEntries?: Array<SerializedSymbolProperty<SerializedSnapshotValue>>;
       errorType?: SandboxErrorName;
     }
   | {
@@ -122,6 +126,7 @@ export type RuntimePromiseValue = {
 };
 
 export type RuntimeSnapshotValue =
+  | symbol
   | SandboxBox
   | Date
   | Float32Array
@@ -196,7 +201,7 @@ type SerializationState = {
   float32Buffers: WeakMap<ArrayBuffer, number>;
   ancestors: WeakMap<object, string>;
   heap: Record<string, SerializedHeapValue>;
-  heapIds: WeakMap<object, number>;
+  heapIds: Map<object | symbol, number>;
   serializedHeapIds: Set<number>;
 };
 
@@ -304,6 +309,7 @@ function serializeValue(
   path: string,
   state: SerializationState
 ): SerializedSnapshotValue {
+  if (typeof value === "symbol") return serializeSymbol(value, state.heapIds, state.heap);
   if (typeof value === "object" && value !== null && hasGuestObjectState(value)) {
     throw new TypeError("Guest function properties and prototype links cannot be serialized.");
   }
@@ -472,7 +478,7 @@ function serializeHeapReference(
     } else if (isSandboxBox(value)) {
       state.heap[String(id)] = encodeBoxedData(value, (entry, key) => serializeValue(entry as RuntimeSnapshotValue, `${path}.${key}`, state));
     } else if (isSandboxDate(value)) {
-      state.heap[String(id)] = { kind: "date", time: serializedDateTime(value) };
+      state.heap[String(id)] = serializeDate(value, entry => serializeValue(entry as RuntimeSnapshotValue, `${path}.<date-property>`, state));
     } else if (isFloat32Array(value)) {
       const storage = encodeFloat32Storage(value, id, state.float32Buffers, (id) => ({
         kind: "ref" as const,
@@ -502,20 +508,28 @@ function serializeHeapReference(
         )
       };
     } else if (Array.isArray(value)) {
-      state.heap[String(id)] = serializeArray(value, (entry, key) =>
+      const array = serializeArray(value, (entry, key) =>
         serializeValue(entry as RuntimeSnapshotValue, `${path}[${key}]`, state)
       );
+      state.heap[String(id)] = array;
+      const symbols = serializeSymbolProperties(value, entry => serializeValue(entry as RuntimeSnapshotValue, `${path}.[symbol]`, state));
+      if (symbols.length > 0) array.symbolEntries = symbols;
     } else {
       const entries = Object.create(null) as Record<string, SerializedSnapshotValue>;
       const errorType = sandboxErrorTypes.get(value);
-      state.heap[String(id)] = {
+      const serializedObject: Extract<SerializedHeapValue, { kind: "object" }> = {
         kind: "object",
         entries,
         ...(errorType === undefined ? {} : { errorType })
       };
+      state.heap[String(id)] = serializedObject;
 
       for (const [key, entry] of Object.entries(value)) {
         entries[key] = serializeValue(entry, `${path}.${key}`, state);
+      }
+      const symbolKeys = ownSerializableSymbolKeys(value);
+      if (symbolKeys.length > 0) {
+        serializedObject.symbolEntries = serializeSymbolProperties(value, entry => serializeValue(entry as RuntimeSnapshotValue, `${path}.[symbol]`, state));
       }
     }
   }
@@ -581,7 +595,7 @@ function withSerializableContainer<TValue>(
   }
 }
 
-function indexHeapContainers(input: SerializeInput): WeakMap<object, number> {
+function indexHeapContainers(input: SerializeInput): Map<object | symbol, number> {
   const stats = new Map<
     object,
     {
@@ -608,12 +622,13 @@ function indexHeapContainers(input: SerializeInput): WeakMap<object, number> {
     }
   }
 
-  const heapIds = new WeakMap<object, number>();
+  const heapIds = new Map<object | symbol, number>();
   let nextId = 1;
   for (const [value, stat] of stats.entries()) {
     if (
       stat.count > 1 ||
       stat.cyclic ||
+      ownSerializableSymbolKeys(value).length > 0 ||
       (isSandboxRegex(value) && (!Number.isSafeInteger(value.lastIndex) ||
         (typeof value.lastIndex === "number" && value.lastIndex < 0) || Object.is(value.lastIndex, -0))) ||
       isSandboxBox(value) ||
@@ -685,7 +700,9 @@ function collectContainerStats(
   stat.expanded = true;
   ancestors.add(value);
 
-  const entries = isSandboxBox(value)
+  const entries = isSandboxDate(value)
+    ? dateDataProperties(value).flatMap(([key, descriptor]) => typeof key === "string" ? [descriptor.value] : [])
+    : isSandboxBox(value)
     ? boxedDataProperties(value).map(([, descriptor]) => descriptor.value)
     : isSandboxCollectionIterator(value)
     ? [collectionIteratorState(value).collection, ...Object.values(value)]
@@ -700,6 +717,11 @@ function collectContainerStats(
         : Object.values(value);
   for (const entry of entries) {
     collectContainerStats(entry as RuntimeSnapshotValue, stats, ancestors);
+  }
+  for (const key of ownSerializableSymbolKeys(value)) {
+    const descriptor = Object.getOwnPropertyDescriptor(value, key)!;
+    if ("value" in descriptor)
+      collectContainerStats(descriptor.value, stats, ancestors);
   }
 
   ancestors.delete(value);

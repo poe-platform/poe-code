@@ -2,7 +2,8 @@ import type { Budget, CompileOwner } from "../budget.js";
 import { retainValues } from "../resources.js";
 import { readPropertyDescriptor } from "../accessors.js";
 import { getSandboxPropertyDescriptor } from "../object-model.js";
-import { dateMethods, isSandboxDate } from "../date.js";
+import { isSandboxDate } from "../date.js";
+import { dateToJSON } from "./date.js";
 import { boxedValue, isSandboxBox } from "../boxed.js";
 import { sandboxNumber, sandboxString } from "../string-coercion.js";
 import { CompileScope } from "../regex/compile-guard.js";
@@ -172,8 +173,8 @@ async function stringifyProperty(
   let value: unknown = await getStringifyProperty(holder, key, state);
   const release = retainValues(state.budget, () => [holder, value]);
   try {
-    if (isSandboxDate(value)) {
-      value = dateMethods.get("toJSON")!.invoke(value, []) as SandboxValue;
+    if (isSandboxDate(value) && getSandboxPropertyDescriptor(value, "toJSON", state.budget) === undefined) {
+      value = await dateToJSON(value, state.budget, state.context);
     } else if (isStringifyContainer(value)) {
       const toJSON = await getStringifyProperty(value, "toJSON", state);
       if (isSandboxClosure(toJSON)) {
@@ -208,7 +209,7 @@ async function stringifyValue(
         ? await sandboxNumber(value, state.budget, state.context)
         : typeof primitive === "string"
           ? await sandboxString(value, state.budget, state.context)
-          : primitive;
+          : typeof primitive === "symbol" ? value : primitive;
   }
   if (value === null) {
     return "null";

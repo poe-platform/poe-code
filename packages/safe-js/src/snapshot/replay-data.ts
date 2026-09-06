@@ -1,10 +1,12 @@
 import { MAX_DATA_DEPTH } from "../graph-depth.js";
+import { wellKnownSymbols } from "../interp/symbols.js";
+import { symbolData, serializeSymbolProperties, type SerializedSymbol, type SerializedSymbolProperty } from "./symbols.js";
 import { isSandboxCollectionIterator, restoreSandboxCollectionIterator, snapshotCollectionIterator, type CollectionIterationMethod } from "../interp/collection-iterator.js";
 import { hasGuestObjectState } from "../interp/object-model.js";
 import { CompileScope } from "../interp/regex/compile-guard.js";
 import { float32DataProperties, isFloat32Array } from "../interp/float32.js";
 import { decodeFloat32Storage, encodeFloat32Storage, type Float32Data } from "./float32array.js";
-import { isSandboxDate, restoreDateTime, serializedDateTime } from "../interp/date.js";
+import { dateDataProperties, isSandboxDate, restoreDateTime, serializedDateTime } from "../interp/date.js";
 import { boxedDataProperties, createSandboxBox, nativeBoxedValue } from "../interp/boxed.js";
 import { validateBoxedProperties } from "./boxed.js";
 import { sandboxErrorNames, sandboxErrorTypes, type SandboxErrorName } from "../error/shape.js";
@@ -43,14 +45,16 @@ type Properties = Record<
   { value: Atom; configurable: boolean; enumerable: boolean; writable: boolean }
 >;
 type DataNode =
-  | { kind: "boxed"; value: Atom; properties: Properties; extensible: boolean }
+  | SerializedSymbol
+  | { kind: "boxed"; value: Atom; properties: Properties; extensible: boolean; symbolEntries?: Array<SerializedSymbolProperty<Atom>> }
   | { kind: "collection-iterator"; collectionKind: "map" | "set"; method: CollectionIterationMethod; collection: Atom; index: number; exhausted: boolean; properties: Properties; extensible: boolean }
-  | { kind: "date"; time: number | null }
+  | { kind: "date"; time: number | null; properties?: Properties; symbolProperties?: Array<SerializedSymbolProperty<Atom>>; extensible?: boolean }
   | (Float32Data<Atom> & { properties: Properties; extensible: boolean })
   | { kind: "capability"; id: string; properties: Atom }
   | {
       kind: "array" | "object";
       properties: Properties;
+      symbolProperties?: Array<SerializedSymbolProperty<Atom>>;
       extensible: boolean;
       nullPrototype: boolean;
       errorType?: SandboxErrorName;
@@ -60,24 +64,35 @@ type DataNode =
   | { kind: "set"; values: Atom[] }
   | { kind: "regex"; source: string; flags: string; lastIndex: Atom };
 export type ReplayData = { root: Atom; nodes: DataNode[] };
+export type ReplayPathSegment = string | { symbol: number };
 
 export class MissingReplayCapabilityError extends TypeError {}
 
 export function encodeReplayData(
   value: SandboxValue,
   options: {
-    identifyCapability?: (value: SandboxClosure, path: readonly string[]) => string | undefined;
+    identifyCapability?: (value: SandboxClosure, path: readonly ReplayPathSegment[]) => string | undefined;
     captureCapabilityProperties?: boolean;
-    identifyPromise?: (value: SandboxPromise, path: readonly string[]) => string | undefined;
+    identifyPromise?: (value: SandboxPromise, path: readonly ReplayPathSegment[]) => string | undefined;
   } = {}
 ): ReplayData {
   const nodes: DataNode[] = [];
   const seen = new WeakMap<object, number>();
+  const symbols = new Map<symbol, number>();
   const float32Buffers = new WeakMap<ArrayBuffer, number>();
-  const encode = (entry: SandboxValue, depth: number, path: readonly string[]): Atom => {
+  const encode = (entry: SandboxValue, depth: number, path: readonly ReplayPathSegment[]): Atom => {
     if (depth > MAX_DATA_DEPTH) throw new TypeError("Replay data exceeds the nesting limit.");
     if (entry === null || typeof entry === "boolean" || typeof entry === "string") return entry;
     if (entry === undefined) return { tag: "undefined" };
+    if (typeof entry === "symbol") {
+      let id = symbols.get(entry);
+      if (id === undefined) {
+        id = nodes.length;
+        symbols.set(entry, id);
+        nodes.push(symbolData(entry));
+      }
+      return { tag: "ref", id };
+    }
     if (typeof entry === "number") {
       if (Object.is(entry, -0)) return { tag: "number", value: "-0" };
       if (Number.isFinite(entry)) return entry;
@@ -119,13 +134,27 @@ export function encodeReplayData(
       };
     } else if (nativeBoxedValue(entry) !== undefined) {
       const properties: Properties = Object.create(null);
-      nodes[id] = { kind: "boxed", value: child(nativeBoxedValue(entry)!, "<payload>"), properties, extensible: Object.isExtensible(entry) };
+      let symbolIndex = 0;
+      const symbolEntries = serializeSymbolProperties(entry, value => encode(value as SandboxValue, depth + 1, [...path, { symbol: Math.floor(symbolIndex++ / 2) }]));
+      nodes[id] = { kind: "boxed", value: child(nativeBoxedValue(entry)!, "<payload>"), properties, extensible: Object.isExtensible(entry), ...(symbolEntries.length === 0 ? {} : { symbolEntries }) };
       for (const [key, descriptor] of boxedDataProperties(entry)) {
         if (!("value" in descriptor)) throw new TypeError(`Cannot record replay data accessor '${key}'.`);
         properties[key] = { value: child(descriptor.value, JSON.stringify(["property", key])), configurable: descriptor.configurable === true, enumerable: descriptor.enumerable === true, writable: descriptor.writable === true };
       }
     } else if (isSandboxDate(entry)) {
-      nodes[id] = { kind: "date", time: serializedDateTime(entry) };
+      const properties: Properties = Object.create(null);
+      for (const [key, descriptor] of dateDataProperties(entry)) {
+        if (typeof key === "symbol") continue;
+        properties[key] = { value: child(descriptor.value, key), enumerable: descriptor.enumerable === true, writable: descriptor.writable === true, configurable: descriptor.configurable === true };
+      }
+      let symbolIndex = 0;
+      const symbolProperties = serializeSymbolProperties(entry, value => encode(value as SandboxValue, depth + 1, [...path, { symbol: Math.floor(symbolIndex++ / 2) }]));
+      nodes[id] = {
+        kind: "date", time: serializedDateTime(entry),
+        ...(Object.keys(properties).length === 0 ? {} : { properties }),
+        ...(symbolProperties.length === 0 ? {} : { symbolProperties }),
+        ...(Object.isExtensible(entry) ? {} : { extensible: false })
+      };
     } else if (isFloat32Array(entry)) {
       const storage = encodeFloat32Storage(entry, id, float32Buffers, (id) => ({
         tag: "ref" as const,
@@ -174,12 +203,13 @@ export function encodeReplayData(
     } else {
       const prototype = Object.getPrototypeOf(entry);
       if (
-        (!Array.isArray(entry) && prototype !== null && prototype !== Object.prototype) ||
-        Object.getOwnPropertySymbols(entry).length > 0
+        !Array.isArray(entry) && prototype !== null && prototype !== Object.prototype
       ) {
         throw new TypeError("Replay data contains an unsupported host object or symbol property.");
       }
       const properties: Properties = Object.create(null);
+      let symbolIndex = 0;
+      const symbolProperties = serializeSymbolProperties(entry, value => encode(value as SandboxValue, depth + 1, [...path, { symbol: Math.floor(symbolIndex++ / 2) }]));
       const errorType = sandboxErrorTypes.get(entry);
       for (const [key, descriptor] of Object.entries(Object.getOwnPropertyDescriptors(entry))) {
         if (!("value" in descriptor))
@@ -196,7 +226,8 @@ export function encodeReplayData(
         nullPrototype: prototype === null,
         ...(errorType === undefined ? {} : { errorType }),
         extensible: Object.isExtensible(entry),
-        properties
+        properties,
+        ...(symbolProperties.length === 0 ? {} : { symbolProperties })
       };
     }
     return { tag: "ref", id };
@@ -277,6 +308,17 @@ export function decodeReplayData(
         throw new TypeError("Invalid replay error metadata.");
       }
       const child = (value: unknown) => decode(value, depth + 1);
+      if (kind === "symbol") {
+        if (node.description !== undefined && typeof node.description !== "string") throw new TypeError("Invalid replay symbol description.");
+        let symbol: symbol;
+        if (node.wellKnown !== undefined) {
+          if (typeof node.wellKnown !== "string" || !Object.hasOwn(wellKnownSymbols, node.wellKnown) || Object.hasOwn(node, "description"))
+            throw new TypeError("Invalid replay well-known symbol.");
+          symbol = wellKnownSymbols[node.wellKnown]!;
+        } else symbol = Symbol(node.description);
+        restored.set(id, symbol);
+        return symbol;
+      }
       if (kind === "capability") {
         const capabilityId = own(node, "id");
         if (typeof capabilityId !== "string" || capabilityId.length === 0)
@@ -313,19 +355,28 @@ export function decodeReplayData(
       if (kind === "boxed") {
         validateBoxedProperties(node);
         const payload = own(node, "value");
+        const payloadRecord = payload !== null && typeof payload === "object" ? record(payload) : undefined;
+        const symbolReference = payloadRecord !== undefined &&
+          own(payloadRecord, "tag") === "ref" && Number.isSafeInteger(payloadRecord.id) &&
+          Number(payloadRecord.id) >= 0 && Number(payloadRecord.id) < nodes.length &&
+          own(record(nodes[Number(payloadRecord.id)]), "kind") === "symbol";
         if (typeof payload !== "number" && typeof payload !== "string" && typeof payload !== "boolean" &&
+          !symbolReference &&
           (payload === null || typeof payload !== "object" || own(record(payload), "tag") !== "number"))
           throw new TypeError("Invalid boxed primitive payload.");
         const result = createSandboxBox(child(payload));
         restored.set(id, result);
-        defineProperties(result, record(own(node, "properties")), child);
+        defineProperties(result, record(own(node, "properties")), child, node.symbolEntries);
         if (!node.extensible) Object.preventExtensions(result);
         return result;
       }
       if (kind === "date") {
-        if (Object.keys(node).length !== 2) throw new TypeError("Invalid serialized Date fields.");
+        if (Object.keys(node).some(key => !["kind", "time", "properties", "symbolProperties", "extensible"].includes(key))) throw new TypeError("Invalid serialized Date fields.");
+        if (node.extensible !== undefined && typeof node.extensible !== "boolean") throw new TypeError("Invalid replay Date extensibility.");
         const result = restoreDateTime(own(node, "time"));
         restored.set(id, result);
+        defineProperties(result, node.properties === undefined ? {} : record(node.properties), child, node.symbolProperties);
+        if (node.extensible === false) Object.preventExtensions(result);
         return result;
       }
       if (kind === "float32array") {
@@ -409,7 +460,7 @@ export function decodeReplayData(
       }
       if (kind === "array" && node.nullPrototype) Object.setPrototypeOf(result, null);
       restored.set(id, result);
-      defineProperties(result, record(own(node, "properties")), child);
+      defineProperties(result, record(own(node, "properties")), child, node.symbolProperties);
       if (!node.extensible) Object.preventExtensions(result);
       return result;
     };
@@ -425,9 +476,22 @@ export function decodeReplayData(
 function defineProperties(
   target: object,
   properties: Record<string, unknown>,
-  decode: (value: unknown) => SandboxValue
+  decode: (value: unknown) => SandboxValue,
+  symbolProperties?: unknown
 ): void {
-  for (const [key, value] of Object.entries(properties)) {
+  const entries: Array<[PropertyKey, unknown]> = Object.entries(properties);
+  if (symbolProperties !== undefined) {
+    const symbols = new Set<symbol>();
+    for (const entry of list(symbolProperties)) {
+      const pair = list(entry);
+      if (pair.length !== 2) throw new TypeError("Invalid replay symbol property entry.");
+      const key = decode(pair[0]);
+      if (typeof key !== "symbol" || symbols.has(key)) throw new TypeError("Invalid or duplicate replay symbol property key.");
+      symbols.add(key);
+      entries.push([key, pair[1]]);
+    }
+  }
+  for (const [key, value] of entries) {
     const descriptor = record(value);
     for (const field of Object.keys(descriptor)) {
       if (!["value", "writable", "enumerable", "configurable"].includes(field))

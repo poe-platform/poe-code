@@ -32,9 +32,9 @@ export type PatternTarget = { kind: VariableDeclarationKind; initialize?: true }
 export type PatternContext = {
   budget?: Budget;
   evaluate(node: ParseResult, inferredName?: string): Promise<AsyncEvaluationResult>;
-  toPropertyKey(value: SandboxValue): Promise<string>;
-  getProperty(value: SandboxValue, key: string | number): SandboxValue | Promise<SandboxValue>;
-  setProperty(target: SandboxValue, key: string | number, value: SandboxValue): void | Promise<void>;
+  toPropertyKey(value: SandboxValue): string | symbol | Promise<string | symbol>;
+  getProperty(value: SandboxValue, key: PropertyKey): SandboxValue | Promise<SandboxValue>;
+  setProperty(target: SandboxValue, key: PropertyKey, value: SandboxValue): void | Promise<void>;
 };
 
 export type BindPatternResult =
@@ -174,7 +174,7 @@ async function bindObjectPattern(
     throw new TypeError("Object destructuring declarations require a non-null object value.");
   }
 
-  const excludedKeys = new Set<string>();
+  const excludedKeys = new Set<PropertyKey>();
   for (const property of pattern.properties) {
     if (property.type === "RestElement") {
       const binding = await bindPattern(
@@ -195,7 +195,7 @@ async function bindObjectPattern(
       return key;
     }
 
-    excludedKeys.add(String(key.value));
+    excludedKeys.add(typeof key.value === "symbol" ? key.value : String(key.value));
     const binding = await bindPattern(
       property.value,
       await context.getProperty(value, key.value),
@@ -241,7 +241,7 @@ async function bindMemberExpression(
 async function evaluatePatternKey(
   property: AssignmentProperty,
   context: PatternContext
-): Promise<{ ok: true; value: string | number } | { ok: false; result: AsyncEvaluationResult }> {
+): Promise<{ ok: true; value: PropertyKey } | { ok: false; result: AsyncEvaluationResult }> {
   return property.computed
     ? evaluateProperty(property.key, context)
     : { ok: true, value: getStaticPropertyName(property.key) };
@@ -250,7 +250,7 @@ async function evaluatePatternKey(
 async function evaluateProperty(
   property: MemberExpression["property"],
   context: PatternContext
-): Promise<{ ok: true; value: string | number } | { ok: false; result: AsyncEvaluationResult }> {
+): Promise<{ ok: true; value: PropertyKey } | { ok: false; result: AsyncEvaluationResult }> {
   const result = await context.evaluate(property);
   if (result.kind !== "normal") {
     return { ok: false, result };
@@ -307,7 +307,7 @@ function describeRuntimeValue(value: unknown): string {
 
 async function copyObjectRestValue(
   value: Exclude<SandboxValue, null | undefined>,
-  excludedKeys: ReadonlySet<string>,
+  excludedKeys: ReadonlySet<PropertyKey>,
   context: PatternContext
 ): Promise<SandboxObject> {
   const rest = Object.create(null) as SandboxObject;
@@ -316,7 +316,7 @@ async function copyObjectRestValue(
       ? () => undefined
       : retainValues(context.budget, () => [value, rest]);
   try {
-    for (const key of ownEnumerableSandboxKeys(value)) {
+    for (const key of ownEnumerableSandboxKeys(value, true)) {
       if (excludedKeys.has(key) || !hasOwnSandboxProperty(value, key, true)) continue;
       defineProperty(rest, key, await context.getProperty(value, key));
     }
@@ -332,7 +332,7 @@ function isIndexableValue(value: SandboxValue): value is SandboxArray | SandboxO
 
 function defineProperty(
   target: SandboxArray | SandboxObject,
-  key: string,
+  key: PropertyKey,
   value: SandboxValue
 ): void {
   Object.defineProperty(target, key, {

@@ -1,8 +1,9 @@
 import { bindOtelSpan, getBoundOtelSpan } from "../observability/otel.js";
+import { internalSymbols } from "./internal-symbols.js";
 import { retainedAccessorClosures } from "./accessors.js";
 import { isSandboxMap, isSandboxSet, sandboxMapBrand, sandboxSetBrand } from "./collection-brands.js";
 import { collectionIteratorState, isSandboxCollectionIterator, restoreSandboxCollectionIterator, snapshotCollectionIterator, type SandboxCollectionIterator } from "./collection-iterator.js";
-import { copyNativeDate, exportDate, isSandboxDate } from "./date.js";
+import { copyNativeDate, dateDataProperties, exportDate, isSandboxDate } from "./date.js";
 import { boxedDataProperties, boxedValue, createSandboxBox, isSandboxBox, nativeBoxedValue } from "./boxed.js";
 import { getHostObjectKeys, getHostObjectMember, hasHostObjectMember, measureHostObjectData, isGuestHostObject, isLiveCapability } from "./host-capabilities.js";
 import type { Budget, CompileTicket } from "./budget.js";
@@ -44,8 +45,9 @@ const sandboxPromiseBrand = Symbol("SandboxPromise");
 const sandboxRegexBrand = Symbol("SandboxRegex");
 const sandboxRegexPattern = Symbol("SandboxRegexPattern");
 const sandboxRetainedValues = Symbol("SandboxRetainedValues");
+for (const marker of [sandboxClosureBrand, sandboxGeneratorBrand, sandboxPromiseBrand, sandboxRegexBrand, sandboxRegexPattern, sandboxRetainedValues]) internalSymbols.add(marker);
 
-export type SandboxPrimitive = string | number | boolean | null | undefined;
+export type SandboxPrimitive = string | number | boolean | symbol | null | undefined;
 
 export type SandboxValue =
   | SandboxPrimitive
@@ -63,6 +65,7 @@ export type SandboxValue =
 
 export type SandboxObject = {
   [key: string]: SandboxValue;
+  [key: symbol]: SandboxValue;
 };
 
 export type SandboxArray = SandboxValue[];
@@ -105,7 +108,7 @@ export type SandboxCallContext = {
   };
   readonly stack: readonly string[];
   readonly thisValue: SandboxValue;
-  readonly getProperty?: (value: SandboxValue, property: string | number) => SandboxValue | Promise<SandboxValue>;
+  readonly getProperty?: (value: SandboxValue, property: PropertyKey) => SandboxValue | Promise<SandboxValue>;
   readonly reconcileData?: (value: SandboxValue) => void;
   readonly invokeClosure?: (
     closure: SandboxClosure,
@@ -279,7 +282,22 @@ export function ownEnumerableSandboxEntries(
   return excludedKeys === undefined ? entries : entries.filter(([key]) => !excludedKeys.has(key));
 }
 
-export function ownEnumerableSandboxKeys(value: SandboxValue): string[] {
+export function ownSandboxSymbolKeys(value: SandboxValue): symbol[] {
+  if (value === null || value === undefined) throw new TypeError("Cannot convert undefined or null to object.");
+  if (isGuestHostObject(value)) return [];
+  if (isSandboxClosure(value)) value = value.properties ?? {};
+  else if (isSandboxGenerator(value) || isSandboxMap(value) || isSandboxSet(value) || isSandboxPromise(value) || isSandboxRegex(value)) return [];
+  return Object.getOwnPropertySymbols(Object(value)).filter(key => !internalSymbols.has(key));
+}
+
+export function ownEnumerableSandboxKeys(value: SandboxValue): string[];
+export function ownEnumerableSandboxKeys(value: SandboxValue, includeSymbols: true): PropertyKey[];
+export function ownEnumerableSandboxKeys(value: SandboxValue, includeSymbols = false): PropertyKey[] {
+  if (includeSymbols) {
+    const properties = isSandboxClosure(value) ? value.properties ?? {} : Object(value);
+    return [...ownEnumerableSandboxKeys(value), ...ownSandboxSymbolKeys(value).filter(key =>
+      Object.getOwnPropertyDescriptor(properties, key)?.enumerable === true)];
+  }
   if (isGuestHostObject(value)) return getHostObjectKeys(value);
   if (value === null || value === undefined) throw new TypeError("Cannot convert undefined or null to object.");
   if (isGuestClosure(value)) return Object.keys(value.properties ?? {});
@@ -479,9 +497,17 @@ export function measureSandboxData(
   } = {}
 ): number {
   const seen = new WeakSet<object>();
+  const seenSymbols = new Set<symbol>();
   let usage = 0;
 
   const visit = (value: unknown, depth = 0): void => {
+    if (typeof value === "symbol") {
+      if (!seenSymbols.has(value)) {
+        seenSymbols.add(value);
+        usage += 1 + (value.description?.length ?? 0);
+      }
+      return;
+    }
     if (typeof value === "string") {
       usage += value.length;
       return;
@@ -492,9 +518,21 @@ export function measureSandboxData(
     seen.add(value);
 
     usage += 1;
+    if (!isGuestHostObject(value)) {
+      const descriptors = Object.getOwnPropertySymbols(value)
+        .filter(key => !internalSymbols.has(key))
+        .map(key => [key, Object.getOwnPropertyDescriptor(value, key)!] as const);
+      for (const [key, descriptor] of descriptors) {
+        usage += 1;
+        visit(key, depth + 1);
+        if ("value" in descriptor) visit(descriptor.value, depth + 1);
+        else for (const closure of retainedAccessorClosures(descriptor)) visit(closure, depth + 1);
+      }
+    }
     if (isSandboxBox(value)) {
       const primitive = boxedValue(value);
-      usage += typeof primitive === "string" ? primitive.length : 8;
+      if (typeof primitive === "symbol") visit(primitive, depth + 1);
+      else usage += typeof primitive === "string" ? primitive.length : 8;
       const prototype = getSandboxPrototype(value);
       if (prototype !== null) visit(prototype, depth + 1);
       for (const [key, descriptor] of boxedDataProperties(value)) {
@@ -504,7 +542,7 @@ export function measureSandboxData(
       }
       return;
     }
-    if (isSandboxDate(value)) { usage += 8; return; }
+    if (isSandboxDate(value)) usage += 8;
     if (isGuestHostObject(value)) {
       usage += measureHostObjectData(value);
       return;
@@ -609,14 +647,15 @@ export function measureSandboxData(
 
     const descriptors = Object.getOwnPropertyDescriptors(value);
     const keys = Object.keys(descriptors);
+    const includeNonEnumerable = isSandboxDate(value) || hasManagedDescriptors(value);
     let entryCount = 0;
     for (const key of keys) {
-      if (descriptors[key].enumerable || hasManagedDescriptors(value)) entryCount += 1;
+      if (descriptors[key].enumerable || includeNonEnumerable) entryCount += 1;
     }
     usage += entryCount;
     for (const key of keys) {
       const descriptor = descriptors[key];
-      if (!descriptor.enumerable && !hasManagedDescriptors(value)) continue;
+      if (!descriptor.enumerable && !includeNonEnumerable) continue;
       usage += key.length;
       if ("value" in descriptor) visit(descriptor.value, depth + 1);
       else for (const closure of retainedAccessorClosures(descriptor)) visit(closure, depth + 1);
@@ -758,7 +797,7 @@ function copyToSandbox(
     const copy = createSandboxBox(primitive);
     state.seen.set(original, copy);
     if (!state.structuredClone) {
-      for (const [key, descriptor] of boxedDataProperties(original)) {
+      for (const [key, descriptor] of boxedDataProperties(original, true)) {
         if (!("value" in descriptor)) throw new TypeError("Boxed data cannot contain accessors.");
         Object.defineProperty(copy, key, {
           ...descriptor,
@@ -818,6 +857,9 @@ function copyToSandbox(
     if (existing !== undefined) return existing;
     const copy = copyNativeDate(value)!;
     state.seen.set(value, copy);
+    for (const [key, descriptor] of dateDataProperties(value)) {
+      Object.defineProperty(copy, key, { ...descriptor, value: copyToSandbox(descriptor.value, state, joinPath(path, key), cloneSandboxCollections, depth + 1) });
+    }
     return copy;
   }
 
@@ -972,7 +1014,7 @@ function copyFromSandbox(
     if (existing !== undefined) return existing;
     const copy = Object(boxedValue(value));
     state.seen.set(value, copy);
-    for (const [key, descriptor] of boxedDataProperties(value)) {
+    for (const [key, descriptor] of boxedDataProperties(value, true)) {
       if (!("value" in descriptor)) throw new TypeError("Boxed data cannot contain accessors.");
       Object.defineProperty(copy, key, {
         ...descriptor,
@@ -1024,6 +1066,9 @@ function copyFromSandbox(
     if (existing !== undefined) return existing;
     const copy = exportDate(value);
     state.seen.set(value, copy);
+    for (const [key, descriptor] of dateDataProperties(value)) {
+      Object.defineProperty(copy, key, { ...descriptor, value: copyFromSandbox(descriptor.value, state, joinPath(path, key), options, depth + 1) });
+    }
     return copy;
   }
 
@@ -1171,7 +1216,8 @@ function isSandboxPrimitive(value: unknown): value is SandboxPrimitive {
     value === undefined ||
     typeof value === "string" ||
     typeof value === "number" ||
-    typeof value === "boolean"
+    typeof value === "boolean" ||
+    typeof value === "symbol"
   );
 }
 
@@ -1290,7 +1336,7 @@ function createPlainObject(useNullPrototype: boolean): SandboxObject {
   return (useNullPrototype ? Object.create(null) : {}) as SandboxObject;
 }
 
-export function defineOwnDataProperty(target: object, key: string, value: unknown): void {
+export function defineOwnDataProperty(target: object, key: PropertyKey, value: unknown): void {
   Object.defineProperty(target, key, {
     enumerable: true,
     configurable: true,
@@ -1302,11 +1348,13 @@ export function defineOwnDataProperty(target: object, key: string, value: unknow
 function getEnumerableObjectEntries<TValue>(
   value: Record<string, TValue>,
   path: string
-): Array<{ key: string; value: TValue }> {
+): Array<{ key: string | symbol; value: TValue }> {
   const descriptors = Object.getOwnPropertyDescriptors(value);
-  const entries: Array<{ key: string; value: TValue }> = [];
+  const entries: Array<{ key: string | symbol; value: TValue }> = [];
 
-  for (const [key, descriptor] of Object.entries(descriptors)) {
+  for (const key of Reflect.ownKeys(descriptors)) {
+    if (typeof key === "symbol" && internalSymbols.has(key)) continue;
+    const descriptor = Object.getOwnPropertyDescriptor(descriptors, key)!.value as PropertyDescriptor;
     if (!descriptor.enumerable) {
       continue;
     }
@@ -1327,11 +1375,13 @@ function getEnumerableObjectEntries<TValue>(
 function getEnumerableArrayEntries<TValue>(
   value: TValue[],
   path: string
-): Array<{ key: string; value: TValue }> {
+): Array<{ key: string | symbol; value: TValue }> {
   const descriptors = Object.getOwnPropertyDescriptors(value);
-  const entries: Array<{ key: string; value: TValue }> = [];
+  const entries: Array<{ key: string | symbol; value: TValue }> = [];
 
-  for (const [key, descriptor] of Object.entries(descriptors)) {
+  for (const key of Reflect.ownKeys(descriptors)) {
+    if (typeof key === "symbol" && internalSymbols.has(key)) continue;
+    const descriptor = Object.getOwnPropertyDescriptor(descriptors, key)!.value as PropertyDescriptor;
     if (key === "length" || !descriptor.enumerable) {
       continue;
     }
@@ -1376,10 +1426,12 @@ function describeValue(value: unknown): string {
   return typeof value;
 }
 
-function joinPath(path: string, key: string): string {
+function joinPath(path: string, key: string | symbol): string {
+  if (typeof key === "symbol") return `${path}[${String(key)}]`;
   return path === "<root>" ? `<root>.${key}` : `${path}.${key}`;
 }
 
-function joinArrayPath(path: string, key: string): string {
+function joinArrayPath(path: string, key: string | symbol): string {
+  if (typeof key === "symbol") return `${path}[${String(key)}]`;
   return isArrayIndexKey(key) ? `${path}[${key}]` : joinPath(path, key);
 }

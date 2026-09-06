@@ -1,6 +1,7 @@
 import { sandboxErrorTypes } from "../error/shape.js";
 import { readPropertyDescriptor } from "./accessors.js";
 import { dateString, dateTime, isSandboxDate } from "./date.js";
+import { getDateMember } from "./globals/date.js";
 import type { Budget } from "./budget.js";
 import { invokeBuiltinClosure } from "./builtin-call.js";
 import { float32Storage, isFloat32Array } from "./float32.js";
@@ -47,12 +48,16 @@ export function sandboxString(
   context?: SandboxCallContext,
   joining = new Set<object>()
 ): string | Promise<string> {
+  if (typeof value === "symbol") throw new TypeError("Cannot convert a Symbol value to a string");
   if (value === null || typeof value !== "object") {
     if (typeof value === "function") throw new TypeError("Expected a sandbox value.");
     return budget.allocateString(String(value));
   }
   return objectToPrimitive(value, budget, context, joining, "string")
-    .then(primitive => budget.allocateString(String(primitive)));
+    .then(primitive => {
+      if (typeof primitive === "symbol") throw new TypeError("Cannot convert a Symbol value to a string");
+      return budget.allocateString(String(primitive));
+    });
 }
 
 export async function joinSandboxArray(
@@ -84,17 +89,26 @@ export async function joinSandboxArray(
   }
 }
 
-async function objectToPrimitive(
+export async function objectToPrimitive(
   value: SandboxValue & object,
   budget: Budget,
   context: SandboxCallContext | undefined,
   joining: Set<object>,
-  hint: "string" | "number"
+  hint: "string" | "number" | "default",
+  ordinary = false
 ): Promise<SandboxPrimitive> {
   const leaveCall = budget.enterCall();
   try {
     budget.visitNode();
-    for (const name of hint === "string" ? ["toString", "valueOf"] : ["valueOf", "toString"]) {
+    const exotic = ordinary ? undefined : await conversionHook(value, Symbol.toPrimitive, budget, context);
+    if (exotic !== undefined && exotic !== null) {
+      if (!isSandboxClosure(exotic)) throw new TypeError("Symbol.toPrimitive must be callable");
+      const result = await invokeBuiltinClosure(exotic, [hint], budget, context, value);
+      if (result === null || (typeof result !== "object" && typeof result !== "function")) return result;
+      throw new TypeError("Cannot convert object to primitive value");
+    }
+    const preferString = hint === "string";
+    for (const name of preferString ? ["toString", "valueOf"] : ["valueOf", "toString"]) {
       const hook = await conversionHook(value, name, budget, context);
       let result: SandboxValue;
       if (hook === defaultStringHook) {
@@ -122,7 +136,7 @@ async function objectToPrimitive(
 
 function conversionHook(
   value: SandboxValue & object,
-  name: string,
+  name: PropertyKey,
   budget: Budget,
   context?: SandboxCallContext
 ): SandboxValue | Promise<SandboxValue> | typeof defaultStringHook | typeof defaultValueHook {
@@ -154,7 +168,10 @@ function conversionHook(
       current === value &&
       (implicitBuiltin || (parent === null && !hasExplicitSandboxPrototype(value)))
     ) {
-      return name === "toString" ? defaultStringHook : defaultValueHook;
+      if (name === "toString") return defaultStringHook;
+      if (name === "valueOf") return defaultValueHook;
+      if (name === Symbol.toPrimitive && isSandboxDate(value))
+        return getDateMember(name, budget, context?.compilation?.owner);
     }
     current = parent;
     if (current !== null) {
@@ -182,7 +199,7 @@ async function defaultToString(
   if (isSandboxGenerator(value)) return "[object Generator]";
   if (isSandboxRegex(value)) {
     return budget.allocateString(
-      `/${getRegexMember(value, "source", budget)}/${getRegexMember(value, "flags", budget)}`
+      `/${String(getRegexMember(value, "source", budget))}/${String(getRegexMember(value, "flags", budget))}`
     );
   }
   if (isSandboxDate(value)) return budget.allocateString(dateString(value));

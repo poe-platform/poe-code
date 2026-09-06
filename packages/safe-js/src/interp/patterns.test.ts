@@ -254,7 +254,7 @@ describe("bindPattern", () => {
         new Scope(),
         context()
       )
-    ).rejects.toThrow("Object destructuring declarations require a non-null object value.");
+    ).rejects.toThrow("Object destructuring requires a non-nullish value.");
 
     const scope = new Scope();
     scope.declare("target", "const", null);

@@ -1168,21 +1168,21 @@ describe("interpret", () => {
   it("throws a TypeError-shaped sandbox error for object destructuring from null", async () => {
     await expect(interpret(parse("const { a } = null;"))).rejects.toMatchObject({
       name: "TypeError",
-      message: "Object destructuring declarations require a non-null object value."
+      message: "Object destructuring requires a non-nullish value."
     });
   });
 
   it("throws a TypeError-shaped sandbox error for object destructuring from undefined", async () => {
     await expect(interpret(parse("const { a } = undefined;"))).rejects.toMatchObject({
       name: "TypeError",
-      message: "Object destructuring declarations require a non-null object value."
+      message: "Object destructuring requires a non-nullish value."
     });
   });
 
   it("throws a TypeError-shaped sandbox error for nested object destructuring from null", async () => {
     await expect(interpret(parse("const { a: { b } } = { a: null };"))).rejects.toMatchObject({
       name: "TypeError",
-      message: "Object destructuring declarations require a non-null object value."
+      message: "Object destructuring requires a non-nullish value."
     });
   });
 

@@ -237,8 +237,8 @@ async function bindObjectPattern(
   scope: Scope,
   context: PatternContext
 ): Promise<BindPatternResult> {
-  if (typeof value !== "object" || value === null) {
-    throw new TypeError("Object destructuring declarations require a non-null object value.");
+  if (value === undefined || value === null) {
+    throw new TypeError("Object destructuring requires a non-nullish value.");
   }
 
   const excludedKeys = new Set<PropertyKey>();

@@ -184,6 +184,11 @@ export function createObjectArrayGlobals(options: {
         setPrototypeOf: createSandboxClosure({
           sandbox: true,
           call: ([value, prototype]) => {
+            if (value === null || value === undefined)
+              throw new TypeError("Cannot set the prototype of null or undefined.");
+            if (prototype !== null && typeof prototype !== "object")
+              throw new TypeError("Prototype must be an object or null.");
+            if (typeof value !== "object") return value;
             objectProperties(value, true);
             if (prototype !== null) objectProperties(prototype);
             setSandboxPrototype(value as object, prototype as object | null, options.budget);

@@ -138,7 +138,7 @@ function validateDumpHeap(root: Record<string, unknown>, state: ValidationState)
       if (error instanceof SnapshotValidationError) throw error;
       fail("invalidValue", path, error instanceof Error ? error.message : "invalid guest heap record");
     }
-    if (entry.kind === "regexp-iterator") {
+    if (entry.kind === "regexp-iterator" || (root.version === 2 && (entry.kind === "map" || entry.kind === "set"))) {
       validateHeapValue(entry, path, state, heap);
       continue;
     }
@@ -221,7 +221,7 @@ function validateDumpReferences(
       (record.kind === "for" && ["loopScope", "activeScope"].includes(key)) || (["switch", "for-in", "for-of-array", "for-of-iterator"].includes(String(record.kind)) && key === "scope")
     )) || role === "heap-node" && (
       (record.kind === "scope-frame" && key === "parent") ||
-      (record.kind === "guest-function" && key === "scope") ||
+      ((record.kind === "guest-function" || record.kind === "guest-class") && key === "scope") ||
       (record.kind === "guest-generator" && ["scope", "closureScope", "suspendedScope"].includes(key))
     );
     validateDumpReferences(entry, `${path}${formatKey(key)}`, depth + 1, state, heapIds, heap, childRole, scopeField);
@@ -396,7 +396,7 @@ export function validateInterpreterSnapshot(
   catch (error) { fail("invalidValue", "$.heap", String(error)); }
   for (const [key, value] of Object.entries(heap)) {
     const record = value as Record<string, unknown>;
-    if (record.kind === "guest-function" || record.kind === "guest-generator") {
+    if (record.kind === "guest-function" || record.kind === "guest-class" || record.kind === "guest-generator") {
       const id = requireNodeId(record.astNodeId, `$.heap${formatKey(key)}.astNodeId`, nodeById);
       const node = nodeById.get(id);
       try { validateGuestFunctionAst(record, node); }

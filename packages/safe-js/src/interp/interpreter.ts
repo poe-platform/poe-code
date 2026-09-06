@@ -139,7 +139,6 @@ import {
 } from "./methods/set.js";
 import { isSandboxErrorConstructorInstance } from "./globals/error.js";
 import { hasOwnSandboxProperty } from "./globals/object.js";
-import { isSandboxMapConstructor, isSandboxSetConstructor } from "./globals/collections.js";
 import { collectionIteratorState, isSandboxCollectionIterator } from "./collection-iterator.js";
 import { getCollectionIteratorMember } from "./methods/collection-iterator.js";
 import { isSandboxRegExpIterator, regexpIteratorState } from "./regexp-iterator.js";
@@ -3545,11 +3544,9 @@ async function evaluateInstanceof(
   }
 
   if (isSandboxPromiseConstructor(right)) return isSandboxPromise(left);
-  if (isSandboxMapConstructor(right) && isSandboxMap(left)) return true;
   if (isFloat32ArrayConstructor(right)) return isFloat32Array(left);
   if (isDateConstructor(right))
     return isSandboxDate(left) && getDatePrototype(left, context.budget, context.compilation?.owner) !== null;
-  if (isSandboxSetConstructor(right) && isSandboxSet(left)) return true;
   if (isSandboxErrorConstructorInstance(left, right)) return true;
   if (isGuestClosure(right)) {
     if (typeof left !== "object" || left === null) return false;

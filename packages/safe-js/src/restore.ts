@@ -91,7 +91,7 @@ export function restore<TSnapshot extends SafeJSSnapshot>(
 
   if (snapshot.heap !== undefined && typeof snapshot.heap === "object" && snapshot.heap !== null) {
     const closures = Object.entries(snapshot.heap).filter(([, value]) =>
-      value !== null && typeof value === "object" && (["guest-function", "guest-generator"].includes(String((value as Record<string, unknown>).kind)) ||
+      value !== null && typeof value === "object" && (["guest-function", "guest-class", "guest-generator"].includes(String((value as Record<string, unknown>).kind)) ||
         (value as Record<string, unknown>).templateNodeId !== undefined));
     if (closures.length > 0) {
       const functions = new Map<number, Record<string, unknown>>();

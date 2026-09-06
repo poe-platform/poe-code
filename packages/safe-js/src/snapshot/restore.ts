@@ -1,5 +1,6 @@
 import { Budget, SandboxError, type CompileOwner } from "../interp/budget.js";
 import { restoreRegexProperties } from "./regexp-properties.js";
+import { classOrigins, createClassConstructor, type Field } from "../interp/classes.js";
 import { mapIteratorSnapshot } from "../interp/iteration.js";
 import { createInterpretedClosure, executeAsyncFunction, type AsyncEvaluationContext } from "../interp/async.js";
 import { createBuiltinBindings } from "../interp/globals.js";
@@ -694,6 +695,7 @@ function restoreHeapValue(id: number, state: RestoreState): RuntimeSnapshotValue
   if (serialized.kind === "map") {
     const map = createSandboxMap();
     state.heapValueById.set(id, map);
+    if (Object.hasOwn(serialized, "prototype")) setSandboxPrototype(map, deserializeValue(serialized.prototype!, state) as object | null, state.budget);
     if (serialized.propertyState !== undefined) restorePropertyDescriptors(getCollectionProperties(map), serialized.propertyState, entry => deserializeValue(entry as SerializedSnapshotValue, state));
     for (const [key, entry] of serialized.entries) {
       map.entries.set(
@@ -707,6 +709,7 @@ function restoreHeapValue(id: number, state: RestoreState): RuntimeSnapshotValue
   if (serialized.kind === "set") {
     const set = createSandboxSet();
     state.heapValueById.set(id, set);
+    if (Object.hasOwn(serialized, "prototype")) setSandboxPrototype(set, deserializeValue(serialized.prototype!, state) as object | null, state.budget);
     if (serialized.propertyState !== undefined) restorePropertyDescriptors(getCollectionProperties(set), serialized.propertyState, entry => deserializeValue(entry as SerializedSnapshotValue, state));
     for (const entry of serialized.values) {
       set.values.add(deserializeValue(entry, state) as SandboxValue);
@@ -720,7 +723,7 @@ function restoreHeapValue(id: number, state: RestoreState): RuntimeSnapshotValue
     state.heapValueById.set(id, generator);
     return generator;
   }
-  if (serialized.kind === "intrinsic" || serialized.kind === "guest-function" || serialized.kind === "guest-object" || serialized.kind === "guest-array") {
+  if (serialized.kind === "intrinsic" || serialized.kind === "guest-function" || serialized.kind === "guest-class" || serialized.kind === "guest-object" || serialized.kind === "guest-array") {
     let value: RuntimeSnapshotValue;
     if (serialized.kind === "intrinsic") {
       if (!state.intrinsicsInitialized) {
@@ -728,6 +731,29 @@ function restoreHeapValue(id: number, state: RestoreState): RuntimeSnapshotValue
         state.intrinsicsInitialized = true;
       }
       value = resolveIntrinsicIdentity(state.budget, serialized.id) as RuntimeSnapshotValue;
+    } else if (serialized.kind === "guest-class") {
+      const node = state.nodeById.get(serialized.astNodeId);
+      if (node?.type !== "ClassDeclaration" && node?.type !== "ClassExpression") throw new TypeError("Invalid class origin.");
+      const scope = state.guestScopes.get((serialized.scope as SerializedReferenceValue).id);
+      if (scope === undefined) throw new TypeError("Missing class scope.");
+      const fields: Field[] = [];
+      const constructor = createClassConstructor(node, {
+        scope, budget: state.budget, compilation: state.compilation, rootNode: state.rootNode,
+        signal: state.signal, inferredName: serialized.name,
+        callStack: [], activeLoopIterations: new Map(), restoredLoopIterations: new Map(),
+        stats: { currentDataSize: 0, nodeVisits: 0, peakDataSize: 0 }
+      }, evaluateNode, fields);
+      value = constructor;
+      state.initializeIterators.push(() => {
+        for (const field of serialized.fields) {
+          const element = node.body.body[field.index];
+          const key = deserializeValue(field.key, state);
+          if (element?.type !== "PropertyDefinition" || element.static || (typeof key !== "string" && typeof key !== "symbol"))
+            throw new TypeError("Invalid restored class field.");
+          fields.push({ element, key });
+        }
+        classOrigins.get(constructor)!.initialized = true;
+      });
     } else if (serialized.kind === "guest-function") {
       const node = state.nodeById.get(serialized.astNodeId);
       if (node?.type !== "ArrowFunctionExpression" && node?.type !== "FunctionDeclaration" && node?.type !== "FunctionExpression")

@@ -57,7 +57,7 @@ export function validateGuestHeapNode(raw: unknown, heap: Record<string, unknown
     createRawJson(node.text);
     return true;
   }
-  if (!["intrinsic", "guest-function", "guest-generator", "scope-frame", "guest-object", "guest-array", "map", "set"].includes(String(node.kind))) return false;
+  if (!["intrinsic", "guest-function", "guest-class", "guest-generator", "scope-frame", "guest-object", "guest-array", "map", "set"].includes(String(node.kind))) return false;
   const reference = (value: unknown, kinds?: string[]) => {
     const ref = record(value);
     fields(ref, ["kind", "id"]);
@@ -68,7 +68,7 @@ export function validateGuestHeapNode(raw: unknown, heap: Record<string, unknown
   };
   const callable = (value: unknown) => {
     if (absent(value)) return;
-    const target = reference(value, ["intrinsic", "guest-function"]);
+    const target = reference(value, ["intrinsic", "guest-function", "guest-class"]);
     if (target.kind === "intrinsic" && intrinsicCatalogue().get(String(target.id)) !== true)
       throw new TypeError("Guest accessor reference is not callable.");
   };
@@ -104,8 +104,9 @@ export function validateGuestHeapNode(raw: unknown, heap: Record<string, unknown
     }
   };
   if (node.kind === "map" || node.kind === "set") {
-    fields(node, ["kind", node.kind === "map" ? "entries" : "values"], ["propertyState"]);
-    if (Object.hasOwn(node, "propertyState")) state({ properties: node.propertyState });
+    fields(node, ["kind", node.kind === "map" ? "entries" : "values"], ["propertyState", "prototype"]);
+    state({ properties: Object.hasOwn(node, "propertyState") ? node.propertyState : { properties: [], extensible: true },
+      ...(Object.hasOwn(node, "prototype") ? { prototype: node.prototype } : {}) });
     return false;
   }
   if (node.kind === "intrinsic") {
@@ -133,6 +134,27 @@ export function validateGuestHeapNode(raw: unknown, heap: Record<string, unknown
             index >= (descriptor.value as number)) throw new TypeError("Guest array index exceeds length.");
       }
     }
+  } else if (node.kind === "guest-class") {
+    fields(node, ["kind", "astNodeId", "scope", "state", "fields"], ["name"]);
+    if (integer(node.astNodeId) < 1) throw new TypeError("Invalid class AST identity.");
+    reference(node.scope, ["scope-frame"]);
+    if (Object.hasOwn(node, "name") && typeof node.name !== "string") throw new TypeError("Invalid class name.");
+    let previous = -1;
+    for (const item of array(node.fields)) {
+      const field = record(item);
+      fields(field, ["index", "key"]);
+      const index = integer(field.index);
+      if (index <= previous) throw new TypeError("Invalid class field order.");
+      previous = index;
+      if (typeof field.key !== "string") reference(field.key, ["symbol"]);
+    }
+    state(node.state);
+    const prototype = array(record(record(node.state).properties).properties).map(item => array(item)).find(entry => entry[0] === "prototype");
+    if (prototype === undefined) throw new TypeError("Missing class prototype descriptor.");
+    const descriptor = record(prototype[1]);
+    if (descriptor.kind !== "data" || descriptor.writable !== false || descriptor.enumerable !== false || descriptor.configurable !== false)
+      throw new TypeError("Invalid class prototype descriptor.");
+    reference(descriptor.value, ["object", "guest-object"]);
   } else if (node.kind === "guest-function") {
     fields(node, ["kind", "astNodeId", "scope", "state"], ["name", "environment"]);
     if (integer(node.astNodeId) < 1) throw new TypeError("Invalid guest AST identity.");

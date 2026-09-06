@@ -8,7 +8,7 @@ import {
   readIteratorResult,
   type SandboxIterator
 } from "../iteration.js";
-import { getSandboxDataProperty, getSandboxPropertyDescriptor } from "../object-model.js";
+import { getSandboxDataProperty, getSandboxPropertyDescriptor, getSandboxPrototype, setSandboxPrototype } from "../object-model.js";
 import { readPropertyDescriptor } from "../accessors.js";
 import { invokeBuiltinClosure } from "../builtin-call.js";
 import { getIntrinsicIdentity } from "../intrinsics.js";
@@ -153,7 +153,6 @@ function populateCollection<T extends SandboxMap | SandboxSet>(
   }
 ): T | Promise<T> {
   budget.allocateCollectionEntries(0);
-  if (source === undefined || source === null) return collection;
   let adder: SandboxClosure | undefined;
   const populate = (iterator: SandboxIterator | undefined): T | Promise<T> => {
     if (iterator === undefined) throw new TypeError(`${name} constructor requires an iterable.`);
@@ -253,9 +252,19 @@ function populateCollection<T extends SandboxMap | SandboxSet>(
       : acquireSandboxIterator(source, budget, context);
     return iterator instanceof Promise ? iterator.then(populate) : populate(iterator);
   };
-  const descriptor = getSandboxPropertyDescriptor(collection, method, budget);
-  const candidate = context?.getProperty !== undefined
-    ? context.getProperty(collection, method)
-    : descriptor === undefined ? undefined : readPropertyDescriptor(descriptor, collection, context);
-  return candidate instanceof Promise ? candidate.then(start) : start(candidate);
+  const initialize = (prototype: SandboxValue): T | Promise<T> => {
+    if (typeof prototype === "object" && prototype !== null && prototype !== getSandboxPrototype(collection, budget))
+      setSandboxPrototype(collection, prototype, budget);
+    if (source === undefined || source === null) return collection;
+    const descriptor = getSandboxPropertyDescriptor(collection, method, budget);
+    const candidate = context?.getProperty !== undefined
+      ? context.getProperty(collection, method)
+      : descriptor === undefined ? undefined : readPropertyDescriptor(descriptor, collection, context);
+    return candidate instanceof Promise ? candidate.then(start) : start(candidate);
+  };
+  if (context?.newTarget === undefined) return initialize(undefined);
+  const prototype = context.getProperty !== undefined
+    ? context.getProperty(context.newTarget, "prototype")
+    : getSandboxDataProperty(context.newTarget, "prototype", budget);
+  return prototype instanceof Promise ? prototype.then(initialize) : initialize(prototype);
 }

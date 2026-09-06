@@ -12,6 +12,8 @@ import { isSandboxRegExpIterator } from "../interp/regexp-iterator.js";
 import { Scope, type ScopeFrame } from "../interp/scope.js";
 import { isSandboxClosure, isSandboxRegex, isSandboxMap, isSandboxSet, isSandboxPromise, isSandboxGenerator, isSandboxArguments } from "../interp/values.js";
 import { serializePropertyDescriptors, type PropertyDescriptorData } from "./property-descriptors.js";
+import { serializeCollectionProperties } from "./collection-properties.js";
+import { classOrigins } from "../interp/classes.js";
 import type { CompletionResult } from "../interp/exceptions.js";
 import type { GeneratorExpressionState } from "../interp/generator-expression-state.js";
 import { mapIteratorSnapshot, type IteratorSnapshot } from "../interp/iteration.js";
@@ -24,6 +26,9 @@ export type GuestObjectState<T> = {
 };
 
 export type GuestHeapNode<T> =
+  | { kind: "guest-class"; astNodeId: number; scope: T; name?: string; fields: Array<{ index: number; key: T }>; state: GuestObjectState<T> }
+  | { kind: "map"; entries: Array<[T,T]>; propertyState?: PropertyDescriptorData<T>; prototype?: T }
+  | { kind: "set"; values: T[]; propertyState?: PropertyDescriptorData<T>; prototype?: T }
   | { kind: "raw-json"; text: string }
   | { kind: "guest-generator"; state: "start" | "running" | "suspended" | "done"; astNodeId: number;
       async: boolean; scope: T; closureScope: T; suspendedScope?: T; yieldNodeId?: number;
@@ -52,6 +57,17 @@ export function captureGuestHeapNode<T>(value: object, encode: (value: unknown) 
   if (intrinsic !== undefined) {
     const state = captureObjectState(value, encode);
     return { kind: "intrinsic", id: intrinsic, ...(state === undefined ? {} : { state }) };
+  }
+  if (isSandboxMap(value)) return { kind: "map", entries: [...value.entries].map(([key,entry]) => [encode(key),encode(entry)]), ...serializeCollectionProperties(value,encode) };
+  if (isSandboxSet(value)) return { kind: "set", values: [...value.values].map(encode), ...serializeCollectionProperties(value,encode) };
+  const classOrigin = classOrigins.get(value);
+  if (classOrigin !== undefined) {
+    if (!classOrigin.initialized || classOrigin.node.nodeId === undefined)
+      throw new TypeError("Class definitions must finish before they can be snapshotted.");
+    return { kind: "guest-class", astNodeId: classOrigin.node.nodeId, scope: encode(classOrigin.scope),
+      ...(isSandboxClosure(value) && value.name !== undefined ? { name: value.name } : {}),
+      fields: classOrigin.fields.map(field => ({ index: classOrigin.node.body.body.indexOf(field.element), key: encode(field.key) })),
+      state: captureObjectState(value, encode)! };
   }
   if (value instanceof Scope) {
     const frame = value.captureFrame();

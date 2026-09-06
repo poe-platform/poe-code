@@ -1,5 +1,22 @@
 // Schema validation precedes this source-ownership check in both restore paths.
 export function validateGuestFunctionAst(record: Record<string, unknown>, origin: unknown): void {
+  if (record.kind === "guest-class") {
+    if (origin === null || typeof origin !== "object" || !["ClassDeclaration", "ClassExpression"].includes(String((origin as Record<string, unknown>).type)))
+      throw new TypeError("Unknown class AST identity");
+    const node = origin as import("../parse.js").ClassNode;
+    const expected = node.body.body.flatMap((element,index) => element.type === "PropertyDefinition" && !element.static ? [{element,index}] : []);
+    const fields = record.fields as Array<{index:number;key:unknown}>;
+    if (fields.length !== expected.length) throw new TypeError("Invalid class field count.");
+    expected.forEach(({element,index}, position) => {
+      const field = fields[position];
+      if (field.index !== index) throw new TypeError("Invalid class field AST identity.");
+      if (!element.computed) {
+        const key = element.key.type === "Identifier" ? element.key.name : String((element.key as {value:string|number}).value);
+        if (field.key !== key) throw new TypeError("Invalid class field key.");
+      }
+    });
+    return;
+  }
   if (origin === null || typeof origin !== "object" ||
       !["ArrowFunctionExpression", "FunctionExpression", "FunctionDeclaration"].includes(String((origin as Record<string, unknown>).type)))
     throw new TypeError("Unknown guest function AST identity");

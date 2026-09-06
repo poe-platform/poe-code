@@ -580,6 +580,10 @@ function defineProperties(
 }
 
 function restoreCollectionDataProperties(value: SandboxMap | SandboxSet, node: Record<string, unknown>, decode: (value: unknown) => SandboxValue): void {
+  if (Object.hasOwn(node, "prototype")) {
+    if (node.prototype !== null) throw new TypeError("Replay collection prototypes must be null.");
+    setSandboxPrototype(value, null);
+  }
   if (!Object.hasOwn(node, "propertyState")) return;
   const properties = record(node.propertyState);
   for (const entry of list(own(properties, "properties"))) {

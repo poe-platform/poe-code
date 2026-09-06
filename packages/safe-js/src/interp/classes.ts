@@ -12,7 +12,7 @@ import { hoistVarDeclarations } from "./var-hoist.js";
 import { propertyFunctionName } from "./property-key.js";
 import { createSandboxClosure, type SandboxCallContext, type SandboxClosure, type SandboxObject, type SandboxValue, isSandboxClosure } from "./values.js";
 
-type Field = { element: Extract<ClassElement, { type: "PropertyDefinition" }>; key: string | symbol };
+export type Field = { element: Extract<ClassElement, { type: "PropertyDefinition" }>; key: string | symbol };
 type StaticElement = Field | { element: Extract<ClassElement, { type: "StaticBlock" }> };
 
 export async function evaluateClass(
@@ -41,73 +41,8 @@ export async function evaluateClass(
       if (prototypeParent !== null && typeof prototypeParent !== "object")
         throw new TypeError("Class extends value has an invalid prototype.");
     }
-    const constructorElement = node.body.body.find((element): element is Extract<ClassElement, { type: "MethodDefinition" }> => element.type === "MethodDefinition" && element.kind === "constructor");
     const derived = node.superClass !== undefined;
-    constructor = createSandboxClosure({
-      guest: true,
-      sandbox: true,
-      name: node.id?.name ?? context.inferredName ?? "",
-      length: constructorElement === undefined ? 0 : getFunctionLength(constructorElement.value.params),
-      sourceRange: functionSources.get(node),
-      retainedValues: () => [...scope.retainedValues(), ...fields.map(field => field.key)],
-      call: () => { throw new TypeError("Class constructor cannot be invoked without 'new'."); },
-      construct: async (args, invocation) => {
-        const newTarget = invocation?.newTarget ?? constructor!;
-        let thisValue: SandboxValue;
-        let thisScope: Scope | undefined;
-        let initialized = !derived;
-        const initializeFields = async (receiver: SandboxValue) => {
-          for (const field of fields) {
-            await initializeElement(field, receiver, prototype, classContext, evaluateNode);
-          }
-        };
-        const superCall = async (argumentsList: readonly SandboxValue[]) => {
-          // SuperConstructor is read at invocation time, not captured at definition.
-          const superConstructor = getSandboxPrototype(constructor!, context.budget);
-          if (!isSandboxClosure(superConstructor) || superConstructor.construct === undefined)
-            throw new TypeError("Super constructor is not a constructor.");
-          const receiver = await invocation!.invokeClosure!(superConstructor, argumentsList, undefined, true, newTarget);
-          if (initialized) throw new ReferenceError("Super constructor may only initialize this once.");
-          initialized = true;
-          thisValue = receiver;
-          thisScope?.declare("this", "const", receiver);
-          await initializeFields(receiver);
-          return receiver;
-        };
-        if (!derived) {
-          thisValue = {};
-          const targetPrototype = await invocation!.getProperty!(newTarget, "prototype");
-          if (typeof targetPrototype === "object" && targetPrototype !== null)
-            setSandboxPrototype(thisValue, targetPrototype, context.budget);
-        }
-        if (constructorElement === undefined) {
-          if (derived) return superCall(args);
-          await initializeFields(thisValue);
-          return thisValue;
-        }
-        const result = await executeClosure(constructorElement.value, args, thisValue, {
-          ...classContext,
-          compilation: invocation?.compilation ?? context.compilation,
-          callStack: [...(invocation?.stack ?? context.callStack)],
-          functionEnvironment: {
-            newTarget,
-            homeObject: prototype,
-            construction: {
-              derived,
-              superCall,
-              initialize: async (functionScope) => {
-                thisScope = functionScope;
-                if (!derived) await initializeFields(thisValue);
-              }
-            }
-          }
-        }, evaluateNode);
-        if (typeof result === "object" && result !== null) return result;
-        if (derived && result !== undefined) throw new TypeError("Derived constructors may only return an object or undefined.");
-        if (!initialized) throw new ReferenceError("Must call super constructor before returning from derived constructor.");
-        return thisValue;
-      }
-    });
+    constructor = createClassConstructor(node, { ...classContext, inferredName: context.inferredName }, evaluateNode, fields);
     const properties = materializeFunctionProperties(constructor);
     const prototype = properties.prototype as SandboxObject;
     Object.defineProperty(properties, "prototype", { writable: false });
@@ -151,6 +86,7 @@ export async function evaluateClass(
     }
     if (node.id !== undefined) scope.declare(node.id.name, "const", constructor);
     for (const element of statics) await initializeElement(element, constructor, constructor, classContext, evaluateNode);
+    classOrigins.get(constructor)!.initialized = true;
     if (node.type === "ClassDeclaration") {
       context.scope.declare(node.id.name, "let", constructor);
       return { kind: "normal", hasValue: false, value: undefined };
@@ -159,6 +95,90 @@ export async function evaluateClass(
   } finally {
     release();
   }
+}
+
+export type ClassOrigin = { node: ClassNode; scope: Scope; fields: Field[]; initialized: boolean };
+export const classOrigins = new WeakMap<object, ClassOrigin>();
+
+export function createClassConstructor(
+  node: ClassNode,
+  context: AsyncEvaluationContext,
+  evaluateNode: EvaluateAsyncNode,
+  fields: Field[]
+): SandboxClosure {
+  const scope = context.scope;
+  const classContext = { ...context, inferredName: undefined };
+  const constructorElement = node.body.body.find((element): element is Extract<ClassElement, { type: "MethodDefinition" }> => element.type === "MethodDefinition" && element.kind === "constructor");
+  const derived = node.superClass !== undefined;
+  const constructor = createSandboxClosure({
+    guest: true,
+    sandbox: true,
+    name: node.id?.name ?? context.inferredName ?? "",
+    length: constructorElement === undefined ? 0 : getFunctionLength(constructorElement.value.params),
+    sourceRange: functionSources.get(node),
+    retainedValues: () => [...scope.retainedValues(), ...fields.map(field => field.key)],
+    call: () => { throw new TypeError("Class constructor cannot be invoked without 'new'."); },
+    construct: async (args, invocation) => {
+      const prototype = materializeFunctionProperties(constructor).prototype as SandboxObject;
+      const newTarget = invocation?.newTarget ?? constructor!;
+      let thisValue: SandboxValue;
+      let thisScope: Scope | undefined;
+      let initialized = !derived;
+      const initializeFields = async (receiver: SandboxValue) => {
+        for (const field of fields) {
+          await initializeElement(field, receiver, prototype, classContext, evaluateNode);
+        }
+      };
+      const superCall = async (argumentsList: readonly SandboxValue[]) => {
+        // SuperConstructor is read at invocation time, not captured at definition.
+        const superConstructor = getSandboxPrototype(constructor!, context.budget);
+        if (!isSandboxClosure(superConstructor) || superConstructor.construct === undefined)
+          throw new TypeError("Super constructor is not a constructor.");
+        const receiver = await invocation!.invokeClosure!(superConstructor, argumentsList, undefined, true, newTarget);
+        if (initialized) throw new ReferenceError("Super constructor may only initialize this once.");
+        initialized = true;
+        thisValue = receiver;
+        thisScope?.declare("this", "const", receiver);
+        await initializeFields(receiver);
+        return receiver;
+      };
+      if (!derived) {
+        thisValue = {};
+        const targetPrototype = await invocation!.getProperty!(newTarget, "prototype");
+        if (typeof targetPrototype === "object" && targetPrototype !== null)
+          setSandboxPrototype(thisValue, targetPrototype, context.budget);
+      }
+      if (constructorElement === undefined) {
+        if (derived) return superCall(args);
+        await initializeFields(thisValue);
+        return thisValue;
+      }
+      const result = await executeClosure(constructorElement.value, args, thisValue, {
+        ...classContext,
+        compilation: invocation?.compilation ?? context.compilation,
+        callStack: [...(invocation?.stack ?? context.callStack)],
+        functionEnvironment: {
+          newTarget,
+          homeObject: prototype,
+          construction: {
+            derived,
+            superCall,
+            initialize: async (functionScope) => {
+              thisScope = functionScope;
+              if (!derived) await initializeFields(thisValue);
+            }
+          }
+        }
+      }, evaluateNode);
+      if (typeof result === "object" && result !== null) return result;
+      if (derived && result !== undefined) throw new TypeError("Derived constructors may only return an object or undefined.");
+      if (!initialized) throw new ReferenceError("Must call super constructor before returning from derived constructor.");
+      return thisValue;
+    }
+  });
+
+  classOrigins.set(constructor, { node, scope, fields, initialized: false });
+  return constructor;
 }
 
 async function initializeElement(

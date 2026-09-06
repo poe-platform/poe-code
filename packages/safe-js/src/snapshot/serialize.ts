@@ -1,5 +1,5 @@
 import { hashSource } from "../parse/hash.js";
-import { serializePropertyDescriptors, type PropertyDescriptorData } from "./property-descriptors.js";
+import type { PropertyDescriptorData } from "./property-descriptors.js";
 import { serializeCollectionProperties } from "./collection-properties.js";
 import { hasCustomRegexProperties, serializeRegexProperties, type RegexPropertyData } from "./regexp-properties.js";
 import { ownSerializableSymbolKeys, serializeSymbol, serializeSymbolProperties, type SerializedSymbol, type SerializedSymbolProperty } from "./symbols.js";
@@ -24,7 +24,6 @@ import {
   isSandboxMap,
   isSandboxRegex,
   getRegexProperties,
-  getCollectionProperties,
   isSandboxSet,
   type SandboxMap,
   type SandboxClosure,
@@ -100,11 +99,13 @@ export type SerializedHeapValue =
     }
   | {
       kind: "map";
+      prototype?: SerializedSnapshotValue;
       propertyState?: PropertyDescriptorData<SerializedSnapshotValue>;
       entries: Array<[SerializedSnapshotValue, SerializedSnapshotValue]>;
     }
   | {
       kind: "set";
+      prototype?: SerializedSnapshotValue;
       propertyState?: PropertyDescriptorData<SerializedSnapshotValue>;
       values: SerializedSnapshotValue[];
     };
@@ -338,7 +339,7 @@ function serializeValue(
     }
     return { kind: "ref", id };
   }
-  if (typeof value === "object" && value !== null && hasGuestObjectState(value)) {
+  if (typeof value === "object" && value !== null && hasGuestObjectState(value) && !isSandboxMap(value) && !isSandboxSet(value)) {
     throw new TypeError("Guest function properties and prototype links cannot be serialized.");
   }
   if (value === null || typeof value === "string" || typeof value === "boolean") {
@@ -787,7 +788,7 @@ function collectContainerStats(
         ? [...value.values]
         : Object.values(value);
   if (isSandboxMap(value) || isSandboxSet(value)) {
-    serializePropertyDescriptors(getCollectionProperties(value), entry => {
+    serializeCollectionProperties(value, entry => {
       entries.push(entry);
       return null;
     });

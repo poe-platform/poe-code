@@ -346,7 +346,7 @@ export function setSandboxPrototype(
     throw new TypeError("Object.prototype has an immutable null prototype.");
   }
   if (
-    (!Array.isArray(value) && !isSandboxRegex(value) && !isPrototypeRecord(value)) ||
+    (!Array.isArray(value) && !isSandboxRegex(value) && !isSandboxMap(value) && !isSandboxSet(value) && !isPrototypeRecord(value)) ||
     (prototype !== null && !Array.isArray(prototype) && !isPrototypeRecord(prototype))
   ) {
     throw new TypeError(
@@ -354,7 +354,7 @@ export function setSandboxPrototype(
     );
   }
   if (prototypes.has(value) && getSandboxPrototype(value, budget) === prototype) return;
-  if (!Object.isExtensible(isGuestClosure(value) ? materializeFunctionProperties(value) : isSandboxRegex(value) ? getRegexProperties(value) : value)) {
+  if (!Object.isExtensible(isGuestClosure(value) ? materializeFunctionProperties(value) : isSandboxRegex(value) ? getRegexProperties(value) : isSandboxMap(value) || isSandboxSet(value) ? getCollectionProperties(value) : value)) {
     throw new TypeError("Cannot change the prototype of a non-extensible object.");
   }
   let depth = 0;

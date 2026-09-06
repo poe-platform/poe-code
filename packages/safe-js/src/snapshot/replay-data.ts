@@ -1,4 +1,5 @@
 import { MAX_DATA_DEPTH } from "../graph-depth.js";
+import { validateBigIntData } from "./bigint.js";
 import { serializeRegexProperties, restoreRegexProperties, type RegexPropertyData } from "./regexp-properties.js";
 import { wellKnownSymbols } from "../interp/symbols.js";
 import { symbolData, serializeSymbolProperties, type SerializedSymbol, type SerializedSymbolProperty } from "./symbols.js";
@@ -38,6 +39,7 @@ type Atom =
   | number
   | string
   | { tag: "undefined" }
+  | { tag: "bigint"; value: string }
   | { tag: "number"; value: "NaN" | "Infinity" | "-Infinity" | "-0" }
   | { tag: "capability"; id: string }
   | { tag: "promise-capability"; id: string }
@@ -88,6 +90,7 @@ export function encodeReplayData(
     if (depth > MAX_DATA_DEPTH) throw new TypeError("Replay data exceeds the nesting limit.");
     if (entry === null || typeof entry === "boolean" || typeof entry === "string") return entry;
     if (entry === undefined) return { tag: "undefined" };
+    if (typeof entry === "bigint") return { tag: "bigint", value: String(entry) };
     if (typeof entry === "symbol") {
       let id = symbols.get(entry);
       if (id === undefined) {
@@ -292,6 +295,11 @@ export function decodeReplayData(
         return capability;
       }
       if (own(atom, "tag") === "undefined") return undefined;
+      if (own(atom, "tag") === "bigint") {
+        const value = own(atom, "value");
+        validateBigIntData(value);
+        return BigInt(value);
+      }
       if (atom.tag === "number") {
         switch (own(atom, "value")) {
           case "NaN":
@@ -379,7 +387,7 @@ export function decodeReplayData(
           own(record(nodes[Number(payloadRecord.id)]), "kind") === "symbol";
         if (typeof payload !== "number" && typeof payload !== "string" && typeof payload !== "boolean" &&
           !symbolReference &&
-          (payload === null || typeof payload !== "object" || own(record(payload), "tag") !== "number"))
+          (payload === null || typeof payload !== "object" || !["number", "bigint"].includes(String(own(record(payload), "tag")))))
           throw new TypeError("Invalid boxed primitive payload.");
         const result = createSandboxBox(child(payload));
         restored.set(id, result);

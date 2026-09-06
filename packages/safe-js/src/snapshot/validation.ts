@@ -1,4 +1,5 @@
 import { replaceErrorStack, sandboxErrorNames, type SandboxErrorName } from "../error/shape.js";
+import { validateBigIntData } from "./bigint.js";
 import { validateRegexProperties, type RegexPropertyData } from "./regexp-properties.js";
 import { wellKnownSymbols } from "../interp/symbols.js";
 import { types } from "node:util";
@@ -456,6 +457,11 @@ function validateTaggedValue(
   state: ValidationState
 ): void {
   switch (record.kind) {
+    case "bigint":
+      requireString(record.value, `${path}.value`, state.limits);
+      try { validateBigIntData(record.value); }
+      catch { fail("invalidValue", `${path}.value`, "invalid BigInt value"); }
+      return;
     case "undefined":
       return;
     case "number":
@@ -637,6 +643,11 @@ function validateBoxedRecord(record: Record<string, unknown>, path: string, heap
   const value = record.value;
   if (typeof value === "number" || typeof value === "string" || typeof value === "boolean") return;
   const number = requireRecord(value, `${path}.value`);
+  if (number.kind === "bigint") {
+    try { validateBigIntData(number.value); }
+    catch { fail("invalidValue", `${path}.value`, "invalid boxed BigInt payload"); }
+    return;
+  }
   if (number.kind === "ref") {
     const id = requireSafeInteger(number.id, `${path}.value.id`, 1);
     const target = requireRecord(heap[String(id)], `${path}.value`);

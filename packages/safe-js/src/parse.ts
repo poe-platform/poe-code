@@ -11,6 +11,7 @@ export type {
   AssignmentProperty,
   AwaitExpression,
   BinaryExpression,
+  BigIntLiteral,
   BlockStatement,
   BooleanLiteral,
   BreakStatement,

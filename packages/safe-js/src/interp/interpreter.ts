@@ -1,4 +1,5 @@
 import { promiseReplayContext } from "./promise-replay.js";
+import { bigIntOperation, type BigIntOperator } from "./bigint-operators.js";
 import { accessorAdapter, readPropertyDescriptor, writePropertyDescriptor } from "./accessors.js";
 import { deleteHostObjectMember, getHostObjectKeys, getHostObjectMember, hasHostObjectMember, isGuestHostObject, setHostObjectMember } from "./host-capabilities.js";
 import { propertyFunctionName, toPropertyKey } from "./property-key.js";
@@ -274,6 +275,16 @@ const dispatchTable: DispatchTable = {
   ArrowFunctionExpression: evaluateArrowFunction,
   AwaitExpression: evaluateAwait,
   BinaryExpression: evaluateBinaryExpression,
+  BigIntLiteral: async (node, context) => {
+    const allocation = {};
+    context.budget.visitNode(node.value.length);
+    context.budget.setRetainedDataUsage(allocation, node.value.length);
+    try {
+      return { kind: "normal", hasValue: true, value: BigInt(node.value) };
+    } finally {
+      context.budget.setRetainedDataUsage(allocation, 0);
+    }
+  },
   BlockStatement: evaluateBlockStatement,
   BooleanLiteral: evaluatePrimitiveLiteral,
   CallExpression: evaluateCallExpression,
@@ -2570,8 +2581,11 @@ async function evaluateIdentifierUpdateExpression(
     };
   }
 
-  const current = toNumber(await toNumericPrimitive(binding.value, context));
-  const next = node.operator === "++" ? current + 1 : current - 1;
+  const primitive = await toNumericPrimitive(binding.value, context);
+  const current = typeof primitive === "bigint" ? primitive : toNumber(primitive);
+  const next = typeof current === "bigint"
+    ? bigIntOperation(node.operator === "++" ? "+" : "-", current, 1n, context.budget)
+    : node.operator === "++" ? current + 1 : current - 1;
   context.scope.assign(node.argument.name, next);
 
   return {
@@ -2594,10 +2608,11 @@ async function evaluateMemberUpdateExpression(
       throw new TypeError("Cannot update properties of null or undefined.");
     }
     const property = await toPropertyKey(member.property, context.budget, createCoercionContext(context));
-    const current = toNumber(
-      await toNumericPrimitive(await getPropertyValue(member.object, property, context, member.superReceiver === undefined ? member.object : member.superReceiver.value), context)
-    );
-    const next = node.operator === "++" ? current + 1 : current - 1;
+    const primitive = await toNumericPrimitive(await getPropertyValue(member.object, property, context, member.superReceiver === undefined ? member.object : member.superReceiver.value), context);
+    const current = typeof primitive === "bigint" ? primitive : toNumber(primitive);
+    const next = typeof current === "bigint"
+      ? bigIntOperation(node.operator === "++" ? "+" : "-", current, 1n, context.budget)
+      : node.operator === "++" ? current + 1 : current - 1;
     if (member.superReceiver === undefined) await setSandboxProperty(member.object, property, next, context.budget, true, createCoercionContext(context));
     else await setSuperProperty(member.object, member.superReceiver.value, property, next, context);
 
@@ -2642,7 +2657,7 @@ function getPropertyValue(
   if (descriptor !== undefined)
     return readPropertyDescriptor(descriptor, receiver, createCoercionContext(context), true);
   if (isSandboxRegExpIterator(target)) return getRegExpIteratorMember(property, context.budget);
-  if (typeof target === "symbol") {
+  if (typeof target === "symbol" || typeof target === "bigint") {
     const prototype = getBoxedPrototype(target, context.budget);
     return prototype === undefined ? undefined : getPropertyValue(prototype, property, context, receiver);
   }
@@ -2887,6 +2902,7 @@ async function evaluateObjectPropertyKey(
 }
 
 function getStaticPropertyName(node: MemberExpression["property"]): string | number {
+  if (node.type === "BigIntLiteral") return BigInt(node.value).toString();
   if (node.type === "Identifier") {
     return node.name;
   }
@@ -2933,7 +2949,7 @@ async function evaluateMemberCallExpression(
     if (Array.isArray(member.object) && hasExplicitSandboxPrototype(member.object))
       return evaluateResolvedCallExpression(node, await getPropertyValue(member.object, member.property, context), context, member.object);
 
-    if ((typeof member.object === "string" || typeof member.object === "number" || typeof member.object === "boolean" || typeof member.object === "symbol") &&
+    if ((typeof member.object === "string" || typeof member.object === "number" || typeof member.object === "bigint" || typeof member.object === "boolean" || typeof member.object === "symbol") &&
         getBoxedPrototype(member.object, context.budget) !== undefined) {
       if (isDefaultBoxedMethod(member.object, member.property, context.budget)) {
         if (typeof member.object === "string" && isStringMethodName(member.property))
@@ -3253,10 +3269,14 @@ async function applyUnaryOperator(
       return undefined;
     case "+":
       return toNumber(await toNumericPrimitive(value, context));
-    case "-":
-      return -toNumber(await toNumericPrimitive(value, context));
-    case "~":
-      return ~toNumber(await toNumericPrimitive(value, context));
+    case "-": {
+      const primitive = await toNumericPrimitive(value, context);
+      return typeof primitive === "bigint" ? bigIntOperation("-", 0n, primitive, context.budget) : -toNumber(primitive);
+    }
+    case "~": {
+      const primitive = await toNumericPrimitive(value, context);
+      return typeof primitive === "bigint" ? bigIntOperation("^", primitive, -1n, context.budget) : ~toNumber(primitive);
+    }
   }
 }
 
@@ -3282,6 +3302,11 @@ function applyBinaryOperator(
   right: InterpreterValue,
   context: EvaluationContext
 ): InterpreterValue | Promise<InterpreterValue> {
+  if ((typeof left === "bigint" || typeof right === "bigint") &&
+      ["-", "*", "/", "%", "**", "&", "|", "^", "<<", ">>", ">>>"].includes(node.operator)) {
+    if (typeof left !== "bigint" || typeof right !== "bigint") throw new TypeError("Cannot mix BigInt and other numeric types.");
+    return bigIntOperation(node.operator as BigIntOperator, left, right, context.budget);
+  }
   switch (node.operator) {
     case "+":
       return applyAdditionOperator(left, right, context);
@@ -3421,6 +3446,10 @@ async function applyCompoundAssignmentOperator(
     left = await toNumericPrimitive(left, context, operator === "+=" ? "default" : "number");
     if (convertingObject) convertedLeft = left;
     right = await toNumericPrimitive(right, context, operator === "+=" ? "default" : "number");
+    if (operator !== "+=" && (typeof left === "bigint" || typeof right === "bigint")) {
+      if (typeof left !== "bigint" || typeof right !== "bigint") throw new TypeError("Cannot mix BigInt and other numeric types.");
+      return bigIntOperation(operator.slice(0, -1) as BigIntOperator, left, right, context.budget);
+    }
     switch (operator) {
       case "+=":
         return applyAdditionOperator(left, right, context);
@@ -3464,6 +3493,11 @@ function applyAdditionOperator(
     return context.budget.allocateString(toString(leftPrimitive) + toString(rightPrimitive));
   }
 
+  if (typeof leftPrimitive === "bigint" || typeof rightPrimitive === "bigint") {
+    if (typeof leftPrimitive !== "bigint" || typeof rightPrimitive !== "bigint") throw new TypeError("Cannot mix BigInt and other numeric types.");
+    return bigIntOperation("+", leftPrimitive, rightPrimitive, context.budget);
+  }
+
   return toNumber(leftPrimitive) + toNumber(rightPrimitive);
 }
 
@@ -3488,8 +3522,9 @@ function compareRelational(
     }
   }
 
-  const leftNumber = toNumber(leftPrimitive);
-  const rightNumber = toNumber(rightPrimitive);
+  const hasBigInt = typeof leftPrimitive === "bigint" || typeof rightPrimitive === "bigint";
+  const leftNumber = typeof leftPrimitive === "bigint" || (hasBigInt && typeof leftPrimitive === "string") ? leftPrimitive : toNumber(leftPrimitive);
+  const rightNumber = typeof rightPrimitive === "bigint" || (hasBigInt && typeof rightPrimitive === "string") ? rightPrimitive : toNumber(rightPrimitive);
 
   switch (operator) {
     case "<":
@@ -3504,6 +3539,7 @@ function compareRelational(
 }
 
 function isLooselyEqual(left: InterpreterValue, right: InterpreterValue): boolean {
+  if (typeof left === "bigint" || typeof right === "bigint") return left == right;
   const leftType = getCoercionType(left);
   const rightType = getCoercionType(right);
 
@@ -3546,9 +3582,10 @@ function isPrimitiveCoercionType(type: CoercionType): boolean {
   return type !== "object";
 }
 
-type CoercionType = "boolean" | "null" | "number" | "object" | "string" | "symbol" | "undefined";
+type CoercionType = "boolean" | "null" | "number" | "bigint" | "object" | "string" | "symbol" | "undefined";
 
 function getCoercionType(value: InterpreterValue): CoercionType {
+  if (typeof value === "bigint") return "bigint";
   if (typeof value === "symbol") return "symbol";
   if (value === null) {
     return "null";
@@ -3596,6 +3633,7 @@ async function toNumericPrimitive(
 }
 
 function toNumber(value: InterpreterValue): number {
+  if (typeof value === "bigint") throw new TypeError("Cannot convert a BigInt value to a number");
   if (typeof value === "symbol") throw new TypeError("Cannot convert a Symbol value to a number");
   if (isSandboxDate(value)) return dateTime(value);
   if (typeof value === "number") {

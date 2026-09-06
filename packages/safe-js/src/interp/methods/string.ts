@@ -1054,11 +1054,11 @@ function splitString(
 }
 
 function asNumber(value: SandboxValue | undefined): number {
-  return Number(value);
+  return +(value as number);
 }
 
 function asNumberOrUndefined(value: SandboxValue | undefined): number | undefined {
-  return value === undefined ? undefined : Number(value);
+  return value === undefined ? undefined : +(value as number);
 }
 
 function asStringOrUndefined(value: SandboxValue | undefined): string | undefined {

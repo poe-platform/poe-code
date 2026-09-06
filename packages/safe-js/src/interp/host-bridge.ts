@@ -825,6 +825,7 @@ function isSandboxLikeValue(value: unknown): value is SandboxValue {
     value === undefined ||
     typeof value === "string" ||
     typeof value === "number" ||
+    typeof value === "bigint" ||
     typeof value === "boolean"
   ) {
     return true;
@@ -924,6 +925,7 @@ export function copyHostValueToSandbox(
     value === null ||
     value === undefined ||
     typeof value === "number" ||
+    typeof value === "bigint" ||
     typeof value === "boolean"
   ) {
     return value;

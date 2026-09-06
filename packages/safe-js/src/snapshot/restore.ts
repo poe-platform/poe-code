@@ -393,6 +393,8 @@ function deserializeValue(
     return value.map((entry) => deserializeValue(entry, state));
   }
 
+  if (value.kind === "bigint" && typeof value.value === "string") return BigInt(value.value);
+
   if (isSerializedUndefinedValue(value)) {
     return undefined;
   }

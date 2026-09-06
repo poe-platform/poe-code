@@ -36,12 +36,16 @@ const defaultStringHook = Symbol("defaultStringHook");
 const defaultValueHook = Symbol("defaultValueHook");
 const joiningArrays = new WeakSet<object>();
 
-export function sandboxNumber(value: SandboxValue, budget: Budget, context?: SandboxCallContext): number | Promise<number> {
+export function sandboxNumber(value: SandboxValue, budget: Budget, context?: SandboxCallContext, allowBigInt = false): number | Promise<number> {
+  const convert = (primitive: SandboxPrimitive): number => {
+    if (typeof primitive === "bigint" && !allowBigInt) throw new TypeError("Cannot convert a BigInt value to a number");
+    return Number(primitive);
+  };
   if (value === null || typeof value !== "object") {
     if (typeof value === "function") throw new TypeError("Expected a sandbox value.");
-    return Number(value);
+    return convert(value);
   }
-  return objectToPrimitive(value, budget, context, new Set(), "number").then(Number);
+  return objectToPrimitive(value, budget, context, new Set(), "number").then(convert);
 }
 
 export function sandboxString(

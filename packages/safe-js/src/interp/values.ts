@@ -50,7 +50,7 @@ const sandboxRegexPattern = Symbol("SandboxRegexPattern");
 const sandboxRetainedValues = Symbol("SandboxRetainedValues");
 for (const marker of [sandboxClosureBrand, sandboxGeneratorBrand, sandboxPromiseBrand, sandboxRegexBrand, sandboxRegexPattern, sandboxRetainedValues]) internalSymbols.add(marker);
 
-export type SandboxPrimitive = string | number | boolean | symbol | null | undefined;
+export type SandboxPrimitive = string | number | bigint | boolean | symbol | null | undefined;
 
 export type SandboxValue =
   | SandboxPrimitive
@@ -531,6 +531,10 @@ export function measureSandboxData(
   let usage = 0;
 
   const visit = (value: unknown, depth = 0): void => {
+    if (typeof value === "bigint") {
+      usage += value.toString(16).length;
+      return;
+    }
     if (typeof value === "symbol") {
       if (!seenSymbols.has(value)) {
         seenSymbols.add(value);
@@ -1308,6 +1312,7 @@ function isSandboxPrimitive(value: unknown): value is SandboxPrimitive {
     value === undefined ||
     typeof value === "string" ||
     typeof value === "number" ||
+    typeof value === "bigint" ||
     typeof value === "boolean" ||
     typeof value === "symbol"
   );

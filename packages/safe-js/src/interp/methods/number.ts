@@ -47,7 +47,7 @@ export function callNumberMethod(
   if (argument !== null && typeof argument === "object") {
     return formatObjectArgument(value, methodName, argument, budget, context);
   }
-  return formatNumber(value, methodName, argument === undefined ? undefined : Number(argument), budget);
+  return formatNumber(value, methodName, argument === undefined ? undefined : +(argument as number), budget);
 }
 
 async function formatObjectArgument(

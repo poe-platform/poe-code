@@ -139,6 +139,7 @@ describe("compile checkpoint hash compatibility", () => {
       bindings: {
         ...capture.completed.bindings,
         Symbol: { kind: "fn", name: "Symbol" },
+        BigInt: { kind: "fn", name: "BigInt" },
         Date: { kind: "fn", name: "Date" },
         Object: { kind: "fn", name: "Object" },
         Math: {

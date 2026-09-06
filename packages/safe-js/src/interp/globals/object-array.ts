@@ -349,7 +349,7 @@ export function createObjectArrayGlobals(options: {
     Number: createPrimitiveConstructor(
       {
         call: (args, context) =>
-          sandboxNumber(args.length === 0 ? 0 : args[0], options.budget, context),
+          sandboxNumber(args.length === 0 ? 0 : args[0], options.budget, context, true),
         name: "Number",
         properties: {
           isFinite: createSandboxClosure({

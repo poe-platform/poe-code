@@ -311,9 +311,7 @@ describe("tokenize", () => {
     expect(parseNumericValue("5.")).toBe(5);
     expect(parseNumericValue("5.5e2")).toBe(550);
 
-    expect(() => tokenize("const answer = 1n;")).toThrowError(
-      "BigInt not supported at line 1, column 17."
-    );
+    expect(tokenize("const answer = 1n;")[3]).toMatchObject({ type: "numeric", value: "1n" });
     expect(parseNumericValue("0xFFFFFFFFFFFFFFFF")).toBe(Number("0xFFFFFFFFFFFFFFFF"));
     expect(() => tokenize("const bad = 1abc;")).toThrowError(
       "Invalid number at line 1, column 14."

@@ -52,6 +52,12 @@ export type NumericLiteral = BaseNode & {
   value: number;
 };
 
+export type BigIntLiteral = BaseNode & {
+  type: "BigIntLiteral";
+  raw: string;
+  value: string;
+};
+
 export type StringLiteral = BaseNode & {
   type: "StringLiteral";
   raw: string;
@@ -559,6 +565,7 @@ export type Expression =
   | NewTargetExpression
   | NullLiteral
   | NumericLiteral
+  | BigIntLiteral
   | ObjectExpression
   | RegexLiteral
   | SequenceExpression
@@ -4286,6 +4293,7 @@ function findImportMetaAssignmentInNode(
     case "BooleanLiteral":
     case "NullLiteral":
     case "NumericLiteral":
+    case "BigIntLiteral":
     case "StringLiteral":
     case "ThisExpression":
     case "RegexLiteral":
@@ -4387,7 +4395,13 @@ function isYieldArgumentTerminator(value: string): boolean {
   return value === ";" || value === "}" || value === ")" || value === "]" || value === ",";
 }
 
-function createNumericLiteral(token: Token): NumericLiteral {
+function createNumericLiteral(token: Token): NumericLiteral | BigIntLiteral {
+  if (token.value.endsWith("n")) return {
+    type: "BigIntLiteral",
+    raw: token.value,
+    value: token.value.slice(0, -1).replaceAll("_", ""),
+    span: createTokenSpan(token)
+  };
   return {
     type: "NumericLiteral",
     raw: token.value,
@@ -4478,7 +4492,7 @@ function createKeywordLiteral(token: Token): BooleanLiteral | NullLiteral | Unde
 
 function createLiteralFromToken(
   token: Token
-): BooleanLiteral | NullLiteral | NumericLiteral | StringLiteral | UndefinedLiteral {
+): BooleanLiteral | NullLiteral | NumericLiteral | BigIntLiteral | StringLiteral | UndefinedLiteral {
   if (token.type === "numeric") {
     return createNumericLiteral(token);
   }

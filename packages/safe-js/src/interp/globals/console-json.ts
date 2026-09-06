@@ -380,6 +380,7 @@ function toSandboxValue(value: unknown): SandboxValue {
     value === undefined ||
     typeof value === "string" ||
     typeof value === "number" ||
+    typeof value === "bigint" ||
     typeof value === "boolean" ||
     isSandboxClosure(value) ||
     isSandboxPromise(value) ||
@@ -387,10 +388,6 @@ function toSandboxValue(value: unknown): SandboxValue {
     isStringifyContainer(value)
   ) {
     return value as SandboxValue;
-  }
-
-  if (typeof value === "bigint") {
-    throw new TypeError("Do not know how to serialize a BigInt.");
   }
 
   throw new TypeError(

@@ -615,7 +615,7 @@ class Lexer {
         this.advance();
         this.advance();
         this.consumeDigitsForBase(isHexDigit, "hexadecimal");
-        this.rejectBigIntSuffix();
+        if (this.currentChar() === "n") this.advance();
         this.rejectInvalidNumericLiteralContinuation();
         return this.source.slice(start.offset, this.index);
       }
@@ -623,7 +623,7 @@ class Lexer {
         this.advance();
         this.advance();
         this.consumeDigitsForBase(isBinaryDigit, "binary");
-        this.rejectBigIntSuffix();
+        if (this.currentChar() === "n") this.advance();
         this.rejectInvalidNumericLiteralContinuation();
         return this.source.slice(start.offset, this.index);
       }
@@ -631,7 +631,7 @@ class Lexer {
         this.advance();
         this.advance();
         this.consumeDigitsForBase(isOctalDigit, "octal");
-        this.rejectBigIntSuffix();
+        if (this.currentChar() === "n") this.advance();
         this.rejectInvalidNumericLiteralContinuation();
         return this.source.slice(start.offset, this.index);
       }
@@ -650,6 +650,12 @@ class Lexer {
     }
 
     this.consumeDecimalDigits();
+
+    if (this.currentChar() === "n") {
+      this.advance();
+      this.rejectInvalidNumericLiteralContinuation();
+      return this.source.slice(start.offset, this.index);
+    }
 
     if (this.currentChar() === "." && (this.peekChar(1) !== "." || this.peekChar(2) !== ".")) {
       this.advance();
@@ -770,7 +776,7 @@ class Lexer {
 
   private rejectBigIntSuffix(): void {
     if (this.currentChar() === "n") {
-      this.syntaxError("BigInt not supported", this.position());
+      this.syntaxError("BigInt literals cannot contain a fraction or exponent", this.position());
     }
   }
 

@@ -288,6 +288,7 @@ class ASMissingAsyncScanner {
       case "MetaProperty":
       case "NullLiteral":
       case "NumericLiteral":
+      case "BigIntLiteral":
       case "RegexLiteral":
       case "StringLiteral":
       case "UndefinedLiteral":
@@ -649,6 +650,7 @@ function expressionContainsAwait(node: Expression): boolean {
     case "MetaProperty":
     case "NullLiteral":
     case "NumericLiteral":
+    case "BigIntLiteral":
     case "RegexLiteral":
     case "StringLiteral":
     case "ThisExpression":

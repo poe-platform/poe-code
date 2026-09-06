@@ -131,6 +131,7 @@ export type RuntimePromiseValue = {
 };
 
 export type RuntimeSnapshotValue =
+  | bigint
   | symbol
   | SandboxBox
   | Date
@@ -344,6 +345,8 @@ function serializeValue(
           : "-Infinity"
     };
   }
+
+  if (typeof value === "bigint") return { kind: "bigint", value: String(value) };
 
   if (Array.isArray(value)) {
     const reference = serializeHeapReference(value, path, state);

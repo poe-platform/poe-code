@@ -115,6 +115,7 @@ function serializeDumpValue(
   path: string,
   state: DumpState
 ): DumpValue | typeof SKIP_VALUE {
+  if (typeof value === "bigint") return { kind: "bigint", value: String(value) };
   if (typeof value === "symbol") return serializeSymbol(value, state.heapIds, state.heap);
   if (value === null || typeof value === "string" || typeof value === "boolean") {
     return value;

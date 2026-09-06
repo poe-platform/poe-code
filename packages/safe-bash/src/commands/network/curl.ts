@@ -2,6 +2,7 @@ import { posix } from "node:path";
 import { yieldTurn } from "../../contracts/yield.js";
 import { collectBytes, createOutputOperation, readBytes, toByteSource, writeBytes, type ByteSource, type CommandContext, type CommandDefinition } from "../../contracts/index.js";
 import { pathOf } from "../internal.js";
+import { createDeadlineOutput, deadlineDiagnostic } from "./aggregate.js";
 import { parseArguments, type CurlArguments } from "./args.js";
 import { createBody, queryData } from "./body.js";
 import { dumpHeaders, responseHeaders, writeOutput, writeOutFormat } from "./output.js";
@@ -76,6 +77,7 @@ export function createCurlCommand(options: NetworkCommandsOptions): CommandDefin
   const transport = options.transport ?? createNodeHttpTransport({ maxHeaderBytes: limits.maxHeaderBytes });
   if (typeof transport !== "function") throw new TypeError("Invalid HTTP transport");
   const authorize = options.authorize;
+  const executions = new WeakMap<object, number>();
   return {
     name: "curl",
     async execute(context) {
@@ -99,26 +101,38 @@ export function createCurlCommand(options: NetworkCommandsOptions): CommandDefin
         await diagnostic(context, failure);
         return { exitCode: failure.exitCode };
       }
+      const scope = context.executionScope ?? {};
+      let started = executions.get(scope);
+      if (started === undefined) { started = performance.now(); executions.set(scope, started); }
       let exitCode = 0;
-      for (const url of args.urls) exitCode = await transfer(context, args, url, limits, transport, authorize);
+      for (const url of args.urls) {
+        context.signal.throwIfAborted();
+        if (performance.now() - started >= limits.maxTotalTimeMs) {
+          const failure = new CurlError(28, "Operation timed out");
+          if (!args.silent || args.showError) {
+            try { await deadlineDiagnostic(context, failure, 0); }
+            catch (error) { context.signal.throwIfAborted(); if (!(error instanceof CurlError)) throw error; }
+          }
+          return { exitCode: failure.exitCode };
+        }
+        exitCode = await transfer(context, args, url, limits, transport, authorize, started);
+      }
       return { exitCode };
     },
   };
 }
 
 async function transfer(context: CommandContext, args: CurlArguments, input: string, limits: NetworkLimits,
-  transport: NonNullable<NetworkCommandsOptions["transport"]>, authorize: NetworkCommandsOptions["authorize"]): Promise<number> {
-  const lifetime = new AbortController();
-  let timeout: ReturnType<typeof setTimeout> | undefined;
-  const transferSignal = AbortSignal.any([context.signal, lifetime.signal]);
+  transport: NonNullable<NetworkCommandsOptions["transport"]>, authorize: NetworkCommandsOptions["authorize"], started: number): Promise<number> {
+  const start = performance.now();
+  const remaining = (): number => Math.min(args.maxTimeMs - (performance.now() - start), limits.maxTotalTimeMs - (performance.now() - started));
   const hasFileOutput = args.remoteName || args.output !== undefined && args.output !== "-" || args.dumpHeader !== undefined && args.dumpHeader !== "-";
-  const operation = createOutputOperation({ ...context, signal: transferSignal }, hasFileOutput ? { write: chunk => context.stdout.write(chunk) } : context.stdout);
+  const operation = createDeadlineOutput(context, hasFileOutput ? { write: chunk => context.stdout.write(chunk) } : context.stdout, remaining());
   const signal = operation.signal;
   const borrowed: ByteSource = context.stdout.ownedOutput ? { [Symbol.asyncIterator]() {
     const iterator = context.stdin[Symbol.asyncIterator]();
     return { next: () => iterator.next() };
   } } : context.stdin;
-  const start = performance.now();
   let response: HttpResponse | undefined;
   let failure: CurlError | undefined;
   const values = { ...writeOutDefaults };
@@ -130,7 +144,7 @@ async function transfer(context: CommandContext, args: CurlArguments, input: str
   let included: Uint8Array[] = [];
   let closedOutput = false;
   const publish = async (bytes: Uint8Array): Promise<void> => {
-    const writing = createOutputOperation(context, context.stdout);
+    const writing = createDeadlineOutput(context, context.stdout, remaining());
     try { await writeBytes(writing.output, bytes, writing.signal); }
     catch (error) {
       context.signal.throwIfAborted();
@@ -139,8 +153,6 @@ async function transfer(context: CommandContext, args: CurlArguments, input: str
     } finally { await writing.close(); }
   };
   try {
-    operation.registerCleanup(() => { clearTimeout(timeout); });
-    timeout = setTimeout(() => lifetime.abort(new CurlError(28, "Operation timed out")), args.maxTimeMs);
     if (format?.startsWith("@")) {
       try {
         const bytes = format === "@-"
@@ -181,11 +193,13 @@ async function transfer(context: CommandContext, args: CurlArguments, input: str
       let headerBytes = 0;
       while (true) {
         signal.throwIfAborted();
+        if (remaining() <= 0) throw new CurlError(28, "Operation timed out");
         values.url_effective = current.href;
         values.method = method;
         let allowed: boolean;
         try { allowed = await withSignal(() => authorize({ url: current.href, method, attempt, signal, ...(previous === undefined ? {} : { redirectFrom: previous }) }), signal); }
         catch { signal.throwIfAborted(); throw new CurlError(7, "Network authorization failed"); }
+        if (remaining() <= 0) throw new CurlError(28, "Operation timed out");
         if (allowed !== true) throw new CurlError(7, "Network access denied by host policy");
         const headers = requestHeaders(args, currentBody?.contentType, args.user ?? parsed.user, credentialsInScope, limits.maxHeaderBytes);
         if (args.verbose) await writeBytes(context.stderr, encode(`> ${method} ${current.origin}\n${headers.map(([name]) => `> ${name}: [redacted]\n`).join("")}`), signal);
@@ -250,7 +264,7 @@ async function transfer(context: CommandContext, args: CurlArguments, input: str
             let chunks = 0;
             try {
               for await (const chunk of readBytes(final.body, bodySignal)) {
-                if (++chunks % 256 === 0) await yieldTurn(bodySignal);
+                if (++chunks % 256 === 0) { await yieldTurn(context.signal); bodySignal.throwIfAborted(); }
                 downloaded += chunk.length;
                 if (downloaded > args.maxFileSize) throw new CurlError(63, "Response exceeds download byte limit");
                 published += chunk.length;
@@ -272,7 +286,7 @@ async function transfer(context: CommandContext, args: CurlArguments, input: str
         } finally { await writing?.close(); }
       }
       if (retryStatuses.has(response.status) && attempt < args.retries) {
-        if (failure && (!args.silent || args.showError)) await diagnostic(context, failure);
+        if (failure && (!args.silent || args.showError)) await deadlineDiagnostic(context, failure, remaining());
         const after = header(response.headers, "retry-after");
         let wait = args.retryDelayMs || Math.min(1000 * 2 ** attempt, 600_000);
         if (after !== undefined) {
@@ -292,9 +306,8 @@ async function transfer(context: CommandContext, args: CurlArguments, input: str
     else if (!hasFileOutput && context.stdout.ownedOutput?.consumerClosed.aborted) failure = new CurlError(23, "Failed writing output");
     else failure = signal.aborted && signal.reason instanceof CurlError ? signal.reason : networkError(error);
   } finally {
-    clearTimeout(timeout);
     try { await operation.close(); }
-    finally { lifetime.abort(); }
+    finally { context.signal.throwIfAborted(); }
   }
   values.size_download = String(downloaded);
   values.size_upload = String(uploaded);
@@ -303,8 +316,11 @@ async function transfer(context: CommandContext, args: CurlArguments, input: str
   values.errormsg = failure?.message ?? "";
   if (format !== undefined && formatReady) {
     try { await publish(writeOutFormat(format, values)); }
-    catch { context.signal.throwIfAborted(); failure = new CurlError(23, "Failed writing write-out result"); }
+    catch (error) { context.signal.throwIfAborted(); failure = error instanceof CurlError ? error : new CurlError(23, "Failed writing write-out result"); }
   }
-  if (failure && (!args.silent || args.showError)) await diagnostic(context, failure);
+  if (failure && (!args.silent || args.showError)) {
+    try { await deadlineDiagnostic(context, failure, remaining()); }
+    catch (error) { context.signal.throwIfAborted(); if (!(error instanceof CurlError)) throw error; failure = error; }
+  }
   return failure?.exitCode ?? (closedOutput ? 141 : 0);
 }

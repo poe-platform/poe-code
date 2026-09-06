@@ -220,7 +220,7 @@ export function readTypecheckInventories(root, boundaries, fileSystem = fs) {
   const inventories = [
     ["captured-types.json", "70fcd5c2b8d8baec26c2c69cc3fb9110de75366757bf36416b52d7838f4b961f"],
     ["staged-types.json", "74c0e75d5ae06a28db0647545387a2827ca3d51394aae19c4656dcb6bf9a1e43"],
-    ["inventory.json", "a76980f768defc631438cdfa78224843b99a8122f9641a8efcaf142d6df77010"],
+    ["inventory.json", "d37050116db1d1440f8e40dd1403249f60eac21c5566ae36272dc08bd04d3e1d"],
   ].map(([name, expected]) => {
     const bytes = readRegularInput(root, `${directory}/${name}`, 300000, fileSystem, boundaries);
     assert.equal(createHash("sha256").update(bytes).digest("hex"), expected, `unapproved type/lint inventory: ${name}`);

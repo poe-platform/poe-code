@@ -6,16 +6,16 @@ const payload = Uint8Array.from([0, 255, 13, 10, 65, 128, 66]);
 const quote = value => `'${value.replaceAll("'", "'\\''")}'`;
 const decode = chunks => Buffer.concat(chunks).toString('utf8');
 
-export async function runSuite(root, network, { baseline = false, select = () => true, validators = true } = {}) {
+export async function runSuite(root, network, { baseline = false, select = () => true, validators = true, expectedDefaults = defaults } = {}) {
   const receipts = [];
   const check = async (name, operation) => {
     try { receipts.push({ name, pass: true, ...await operation() }); }
     catch (error) { receipts.push({ name, pass: false, error: String(error.stack ?? error) }); }
   };
-  assert.deepEqual(network.defaultNetworkLimits, defaults);
+  assert.deepEqual(network.defaultNetworkLimits, expectedDefaults);
   assert.equal(Object.isFrozen(network.defaultNetworkLimits), true);
   for (const factory of validators ? ['createCurlCommand', 'networkCommands'] : []) {
-    for (const name of Object.keys(defaults)) {
+    for (const name of Object.keys(expectedDefaults)) {
       const count = name === 'maxRedirects' || name === 'maxRetries';
       const values = [['zero', 0], ['negative-zero', -0], ['one', 1], ['max-safe', huge], ...invalid];
       if (name === 'maxTimeMs') values.push(['timeout-ceiling', 2147483647], ['timeout-over', 2147483648]);

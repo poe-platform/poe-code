@@ -101,6 +101,7 @@ export function resolveLimits(...limits: (ShellLimits | undefined)[]): Required<
 const budgetedSinks = new WeakMap<ByteSink, { budget: Budget; write: ByteSink["write"] }>();
 
 export class Budget {
+  readonly executionScope = Object.freeze({});
   readonly parsing: ParseBudget;
   readonly values: ValueArena;
   commands = 0;
@@ -2497,6 +2498,7 @@ export class Runtime {
     const runtimeFrame: RuntimeOutcomeFrame = {};
     const context: ShellCommandContext = {
       ...publicIO, command: name, args: argumentValues.args, argumentValues, env, cwd: state.cwd, fs: this.fs, signal: this.commandSignal,
+      executionScope: this.budget.executionScope,
       registerCleanup: (cleanup) => scope.register(cleanup),
       invoke: (name, args, options) => {
         const invocation = this.invoke(name, args, options, context, state, scope);
@@ -3028,6 +3030,7 @@ export class Runtime {
       const invocationOverride: { current: CommandInvoker | undefined } = { current: undefined };
       const context: ShellCommandContext = {
         ...incoming, args: argumentValues.args, argumentValues,
+        executionScope: this.budget.executionScope,
         env: Object.assign(Object.create(null) as Record<string, string>, incoming.env),
         stdin: input ?? incoming.stdin,
         stdout: this.budget.sink(incoming.stdout, runtime.signal), stderr: this.budget.sink(incoming.stderr, runtime.signal),

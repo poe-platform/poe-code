@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import { runSuite } from './runtime.mjs';
 
-export async function runMutations(root, network) {
+export async function runMutations(root, network, { expectedDefaults } = {}) {
   const variants = [
     { name: 'reject-zero-constructor', select: 'redirect-307-zero-upload-true',
       change(_options) { throw new RangeError('mutation rejects zero constructor'); } },
@@ -24,7 +24,7 @@ export async function runMutations(root, network) {
       createCurlCommand: options => network.createCurlCommand(variant.change(options)),
       networkCommands: options => network.networkCommands(variant.change(options)),
     };
-    const result = await runSuite(root, mutated, { validators: false, select: spec => spec.name === variant.select });
+    const result = await runSuite(root, mutated, { validators: false, select: spec => spec.name === variant.select, expectedDefaults });
     assert.equal(result.counts.passed, 0, `${variant.name} escaped detection`);
     assert.equal(result.counts.failed, 2, `${variant.name} must fail direct and Shell controls`);
     receipts.push({ mutation: variant.name, detected: true, fixture: variant.select,

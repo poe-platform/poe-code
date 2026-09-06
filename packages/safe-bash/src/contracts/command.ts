@@ -188,6 +188,7 @@ export type CommandInvoker = (
 export type InvocationCleanup = () => void | Promise<void>;
 
 export interface CommandContext {
+  readonly executionScope?: object;
   readonly command: string;
   readonly args: readonly string[];
   readonly argumentValues?: CommandArguments;

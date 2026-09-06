@@ -41,6 +41,7 @@ export interface NetworkLimits {
   readonly maxRetries: number;
   readonly maxUrls: number;
   readonly maxTimeMs: number;
+  readonly maxTotalTimeMs: number;
 }
 
 export interface NetworkCommandsOptions {
@@ -59,6 +60,7 @@ export const defaultNetworkLimits: Readonly<NetworkLimits> = Object.freeze({
   maxRetries: 5,
   maxUrls: 32,
   maxTimeMs: 120_000,
+  maxTotalTimeMs: 120_000,
 });
 
 export const cloudflareWorkerNetworkLimits: Readonly<NetworkLimits> = Object.freeze({
@@ -70,6 +72,7 @@ export const cloudflareWorkerNetworkLimits: Readonly<NetworkLimits> = Object.fre
   maxRetries: 1,
   maxUrls: 8,
   maxTimeMs: 10_000,
+  maxTotalTimeMs: 10_000,
 });
 
 export class CurlError extends Error {

@@ -184,9 +184,9 @@
     },
     {
       "path": "tests/commands/network-zero-caps-review/mutations.d.mts",
-      "sha256": "09cda7f29f79d2625f9c892c0c25c1c65cc3d3f23942a60349599b42a6c53d8f",
+      "sha256": "1fd70e40845f82d08813d4f78145794383a2ee7fcdaff3f22f7f58739fc8c92b",
       "classification": "declaration",
-      "reason": "Imported support declarations for adjacent .mjs review helpers, not standalone executable or negative API test; exact bytes retained.",
+      "reason": "Maintained support declaration for the adjacent review helper; issue 624 adds an optional explicit current-default expectation while preserving the legacy default. Not standalone executable or negative API evidence.",
       "existingCoverage": "tests/commands/network-zero-caps-review/holdout.test.ts under root typecheck; paired .mjs helpers run by review harness",
       "qualifiedCoverage": "Root typecheck through imports; hash-authenticated declaration inventory, not a standalone runtime pass"
     },
@@ -200,9 +200,9 @@
     },
     {
       "path": "tests/commands/network-zero-caps-review/runtime.d.mts",
-      "sha256": "83a8579f6bcf3e42adda383e3519edaeb3fb49b98b471b8a56ebe758595aa1bc",
+      "sha256": "b37c3800ae2ad8c164b1b4a5311133729662cd4023217d2ed61158205673766b",
       "classification": "declaration",
-      "reason": "Imported support declarations for adjacent .mjs review helpers, not standalone executable or negative API test; exact bytes retained.",
+      "reason": "Maintained support declaration for the adjacent review helper; issue 624 adds an optional explicit current-default expectation while preserving the legacy default. Not standalone executable or negative API evidence.",
       "existingCoverage": "tests/commands/network-zero-caps-review/holdout.test.ts under root typecheck; paired .mjs helpers run by review harness",
       "qualifiedCoverage": "Root typecheck through imports; hash-authenticated declaration inventory, not a standalone runtime pass"
     },

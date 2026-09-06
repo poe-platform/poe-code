@@ -1,3 +1,23 @@
+# Execution identity
+
+`CommandContext.executionScope?: object` is an optional, opaque borrowed identity
+for one execution. Each `Shell.exec` owns a fresh frozen empty object on its
+runtime `Budget`. Commands dispatched within that execution receive the same
+identity, including pipelines, substitutions, interpreters and nested `invoke`
+calls. Concurrent executions do not share it, even on the same `Shell`.
+
+The identity exposes no budget values, cancellation controller or mutation
+authority. Commands must not attach state to it. A command factory may associate
+private execution-local state with it through a `WeakMap`; the host's configured
+limits remain authoritative. Forward the identity through transparent custom
+context adapters rather than manufacturing a new one for each command.
+
+Direct/custom hosts may omit the field. Curl then uses an independent scope for
+each invocation, including all its URLs. Such hosts can explicitly share an
+object across invocations when they represent one execution. The field does not
+change `CommandInvokeOptions` or create a separate runtime budget. See
+`network-deadline.md` for curl's aggregate deadline and cleanup contract.
+
 # Literal invocation environment
 
 `CommandInvokeOptions.replaceEnv?: boolean` is additive. Absent or false retains

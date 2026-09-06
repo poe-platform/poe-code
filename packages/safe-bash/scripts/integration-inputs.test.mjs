@@ -384,9 +384,11 @@ function assertSource7Discovery(files) {
     "tests/commands/node-safejs.test.ts",
     "tests/commands/input.test.ts",
     "tests/commands/network/mounted-output.test.ts",
+    "tests/commands/network/aggregate-deadline.test.ts",
     "tests/contracts/value.test.ts",
     "tests/shell/value-state.test.ts",
     "tests/shell/byte-values.test.ts",
+    "tests/shell/network-execution-deadline.test.ts",
   ]) assert.ok(files.includes(path), "retained byte-value test is missing: " + path);
   assert.equal(new Set(files).size, files.length);
   for (const path of removed) assert.ok(!files.includes(path), "removed filesystem test remains selected: " + path);
@@ -1981,6 +1983,18 @@ test("source7 inventory admits exactly the already sealed thirteen-entry source 
   assert.equal(inventory.entries.filter(entry => entry.path === currentAddition).length, 1);
   inventory.entries = inventory.entries.filter(entry => entry.path !== currentAddition);
   inventory.counts.current = 36;
+  for (const [path, currentHash, historicalHash] of [
+    ["tests/commands/network-zero-caps-review/mutations.d.mts", "1fd70e40845f82d08813d4f78145794383a2ee7fcdaff3f22f7f58739fc8c92b", "09cda7f29f79d2625f9c892c0c25c1c65cc3d3f23942a60349599b42a6c53d8f"],
+    ["tests/commands/network-zero-caps-review/runtime.d.mts", "b37c3800ae2ad8c164b1b4a5311133729662cd4023217d2ed61158205673766b", "83a8579f6bcf3e42adda383e3519edaeb3fb49b98b471b8a56ebe758595aa1bc"],
+  ]) {
+    const entry = inventory.entries.find(member => member.path === path);
+    assert.ok(entry);
+    assert.equal(entry.classification, "declaration");
+    assert.equal(entry.sha256, currentHash);
+    assert.equal(entry.reason, "Maintained support declaration for the adjacent review helper; issue 624 adds an optional explicit current-default expectation while preserving the legacy default. Not standalone executable or negative API evidence.");
+    entry.sha256 = historicalHash;
+    entry.reason = "Imported support declarations for adjacent .mjs review helpers, not standalone executable or negative API test; exact bytes retained.";
+  }
   assert.equal(createHash("sha256").update(JSON.stringify(inventory, null, 2) + "\n").digest("hex"), "ad4b990db1317e78a32db465a198d90b57008612ca6de490815d5fdd83604ea7");
   const types = JSON.parse(readRegularInput(root, "integration-type-inputs.json", 100000, fs, boundaries));
   const sealed = types.cohorts.flatMap(cohort => cohort.entries).filter(entry => entry.path.endsWith(".mts"));

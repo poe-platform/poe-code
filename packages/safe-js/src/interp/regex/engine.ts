@@ -290,10 +290,10 @@ function matchesCharacterClassItem(
       return false;
     }
 
-    const foldedCandidate = foldCharacter(character, true).charCodeAt(0);
-    const foldedFrom = foldCharacter(item.from, true).charCodeAt(0);
-    const foldedTo = foldCharacter(item.to, true).charCodeAt(0);
-    return foldedCandidate >= foldedFrom && foldedCandidate <= foldedTo;
+    // Folding endpoints does not preserve range membership. Classify one UTF-16
+    // code unit using generated hex endpoints, never a guest pattern.
+    return new RegExp(`^[\\u${from.toString(16).padStart(4, "0")}-\\u${to.toString(16).padStart(4, "0")}]$`, "i")
+      .test(character);
   }
 
   const matched =

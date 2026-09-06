@@ -118,7 +118,7 @@ import { getPromiseMember, isSandboxPromiseConstructor } from "./promise.js";
 import { acquireSandboxIterator, closeIterator, readIteratorResult } from "./iteration.js";
 import { assertCollectionMutable } from "./running-state.js";
 import { getGeneratorMember } from "./methods/generator.js";
-import { getRegexMember, isRegexMethodName, setRegexMember } from "./methods/regex.js";
+import { getRegexMember, setRegexMember } from "./methods/regex.js";
 import { bindPattern, type BindPatternResult, type PatternContext } from "./patterns.js";
 import {
   callStringMethod,
@@ -155,6 +155,7 @@ import {
   isSandboxMap,
   isSandboxPromise,
   isSandboxRegex,
+  getRegexProperties,
   isSandboxSet,
   reconcileCompiledValues,
   type SandboxArray,
@@ -2520,7 +2521,7 @@ async function evaluateDeleteExpression(
       throw new TypeError("Cannot delete properties of null or undefined.");
     }
 
-    if (!isIndexableSandboxValue(member.object)) {
+    if (!isIndexableSandboxValue(member.object) && !isSandboxRegex(member.object)) {
       throw new TypeError("Unary operator 'delete' requires a sandbox object property.");
     }
 
@@ -3050,10 +3051,10 @@ async function evaluateMemberCallExpression(
       );
     }
 
-    if (isSandboxRegex(member.object) && isRegexMethodName(member.property)) {
+    if (isSandboxRegex(member.object)) {
       return evaluateResolvedCallExpression(
         node,
-        getRegexMember(member.object, member.property, context.budget),
+        await getPropertyValue(member.object, member.property, context),
         context,
         member.object
       );
@@ -3718,7 +3719,6 @@ export function setSandboxProperty(
     return;
   }
   if (isSandboxRegex(target)) {
-    if (typeof property === "symbol") throw new TypeError("RegExp symbol properties are not yet supported.");
     setRegexMember(target, property, value);
     return;
   }
@@ -3802,6 +3802,7 @@ function deleteSandboxProperty(
 ): boolean {
   if (isGuestHostObject(target)) return deleteHostObjectMember(target, String(property));
   if (isGuestClosure(target)) target = materializeFunctionProperties(target);
+  if (isSandboxRegex(target)) target = getRegexProperties(target);
   if (Array.isArray(target)) {
     assertCollectionMutable(target);
   }

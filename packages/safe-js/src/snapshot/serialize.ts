@@ -1,4 +1,5 @@
 import { hashSource } from "../parse/hash.js";
+import { hasCustomRegexProperties, serializeRegexProperties, type RegexPropertyData } from "./regexp-properties.js";
 import { ownSerializableSymbolKeys, serializeSymbol, serializeSymbolProperties, type SerializedSymbol, type SerializedSymbolProperty } from "./symbols.js";
 import { collectionIteratorState, isSandboxCollectionIterator, snapshotCollectionIterator, type CollectionIterationMethod, type SandboxCollectionIterator } from "../interp/collection-iterator.js";
 import { hasGuestObjectState } from "../interp/object-model.js";
@@ -17,6 +18,7 @@ import {
   isSandboxGenerator,
   isSandboxMap,
   isSandboxRegex,
+  getRegexProperties,
   isSandboxSet,
   type SandboxMap,
   type SandboxGenerator,
@@ -74,7 +76,7 @@ export type SerializedReferenceValue = {
 export type SerializedHeapValue =
   | SerializedSymbol
   | BoxedData<SerializedSnapshotValue>
-  | { kind: "regex-object"; source: string; flags: string; lastIndex: SerializedSnapshotValue }
+  | ({ kind: "regex-object"; source: string; flags: string; lastIndex: SerializedSnapshotValue } & RegexPropertyData<SerializedSnapshotValue>)
   | { kind: "collection-iterator"; collectionKind: "map" | "set"; method: CollectionIterationMethod; collection: SerializedSnapshotValue; index: number; exhausted: boolean; entries: Record<string, SerializedSnapshotValue> }
   | SerializedDate<SerializedSnapshotValue>
   | (Float32Data<SerializedReferenceValue> & { entries: Record<string, SerializedSnapshotValue> })
@@ -465,7 +467,8 @@ function serializeHeapReference(
 
     if (isSandboxRegex(value)) {
       state.heap[String(id)] = { kind: "regex-object", source: value.source, flags: value.flags,
-        lastIndex: serializeValue(value.lastIndex as RuntimeSnapshotValue, `${path}.lastIndex`, state) };
+        lastIndex: serializeValue(value.lastIndex as RuntimeSnapshotValue, `${path}.lastIndex`, state),
+        ...serializeRegexProperties(value, entry => serializeValue(entry as RuntimeSnapshotValue, `${path}.<regex-property>`, state)) };
     } else if (isSandboxCollectionIterator(value)) {
       const snapshot = snapshotCollectionIterator(value);
       const entries: Record<string, SerializedSnapshotValue> = Object.create(null);
@@ -629,7 +632,7 @@ function indexHeapContainers(input: SerializeInput): Map<object | symbol, number
       stat.count > 1 ||
       stat.cyclic ||
       ownSerializableSymbolKeys(value).length > 0 ||
-      (isSandboxRegex(value) && (!Number.isSafeInteger(value.lastIndex) ||
+      (isSandboxRegex(value) && (hasCustomRegexProperties(value) || !Number.isSafeInteger(value.lastIndex) ||
         (typeof value.lastIndex === "number" && value.lastIndex < 0) || Object.is(value.lastIndex, -0))) ||
       isSandboxBox(value) ||
       isSandboxDate(value) ||
@@ -700,7 +703,12 @@ function collectContainerStats(
   stat.expanded = true;
   ancestors.add(value);
 
-  const entries = isSandboxDate(value)
+  const entries = isSandboxRegex(value)
+    ? Reflect.ownKeys(getRegexProperties(value)).flatMap(key => {
+      const descriptor = Object.getOwnPropertyDescriptor(getRegexProperties(value), key)!;
+      return "value" in descriptor ? [descriptor.value] : [];
+    })
+    : isSandboxDate(value)
     ? dateDataProperties(value).flatMap(([key, descriptor]) => typeof key === "string" ? [descriptor.value] : [])
     : isSandboxBox(value)
     ? boxedDataProperties(value).map(([, descriptor]) => descriptor.value)

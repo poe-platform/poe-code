@@ -1,5 +1,7 @@
 import { bindOtelSpan, getBoundOtelSpan } from "../observability/otel.js";
 import { internalSymbols } from "./internal-symbols.js";
+import { getRegexProperties, regexGuestProperties } from "./regexp-properties.js";
+export { getRegexProperties } from "./regexp-properties.js";
 import { retainedAccessorClosures } from "./accessors.js";
 import { isSandboxMap, isSandboxSet, sandboxMapBrand, sandboxSetBrand } from "./collection-brands.js";
 import { collectionIteratorState, isSandboxCollectionIterator, restoreSandboxCollectionIterator, snapshotCollectionIterator, type SandboxCollectionIterator } from "./collection-iterator.js";
@@ -277,6 +279,7 @@ export function ownEnumerableSandboxEntries(
   if (value === null || value === undefined) throw new TypeError("Cannot convert undefined or null to object.");
   let entries: Array<[string, SandboxValue]>;
   if (isGuestClosure(value)) entries = Object.entries(value.properties ?? {});
+  else if (isSandboxRegex(value)) entries = Object.entries(getRegexProperties(value));
   else if (isSandboxClosure(value) || isSandboxGenerator(value) || isSandboxMap(value) || isSandboxSet(value) || isSandboxPromise(value) || isSandboxRegex(value)) return [];
   else entries = Object.entries(Object(value)) as Array<[string, SandboxValue]>;
   return excludedKeys === undefined ? entries : entries.filter(([key]) => !excludedKeys.has(key));
@@ -286,6 +289,7 @@ export function ownSandboxSymbolKeys(value: SandboxValue): symbol[] {
   if (value === null || value === undefined) throw new TypeError("Cannot convert undefined or null to object.");
   if (isGuestHostObject(value)) return [];
   if (isSandboxClosure(value)) value = value.properties ?? {};
+  else if (isSandboxRegex(value)) value = getRegexProperties(value);
   else if (isSandboxGenerator(value) || isSandboxMap(value) || isSandboxSet(value) || isSandboxPromise(value) || isSandboxRegex(value)) return [];
   return Object.getOwnPropertySymbols(Object(value)).filter(key => !internalSymbols.has(key));
 }
@@ -294,13 +298,14 @@ export function ownEnumerableSandboxKeys(value: SandboxValue): string[];
 export function ownEnumerableSandboxKeys(value: SandboxValue, includeSymbols: true): PropertyKey[];
 export function ownEnumerableSandboxKeys(value: SandboxValue, includeSymbols = false): PropertyKey[] {
   if (includeSymbols) {
-    const properties = isSandboxClosure(value) ? value.properties ?? {} : Object(value);
+    const properties = isSandboxClosure(value) ? value.properties ?? {} : isSandboxRegex(value) ? getRegexProperties(value) : Object(value);
     return [...ownEnumerableSandboxKeys(value), ...ownSandboxSymbolKeys(value).filter(key =>
       Object.getOwnPropertyDescriptor(properties, key)?.enumerable === true)];
   }
   if (isGuestHostObject(value)) return getHostObjectKeys(value);
   if (value === null || value === undefined) throw new TypeError("Cannot convert undefined or null to object.");
   if (isGuestClosure(value)) return Object.keys(value.properties ?? {});
+  if (isSandboxRegex(value)) return Object.keys(getRegexProperties(value));
   if (isSandboxClosure(value) || isSandboxGenerator(value) || isSandboxMap(value) || isSandboxSet(value) || isSandboxPromise(value) || isSandboxRegex(value)) return [];
   return Object.keys(Object(value));
 }
@@ -434,6 +439,29 @@ export function createSandboxRegex(
   }
   const pattern = parseRegex(source, flags, compilation, 7 + source.length + flags.length);
   const regex = { kind: "regex", source, flags, lastIndex } as SandboxRegex;
+  const storage = Object.create(null) as SandboxObject;
+  Object.defineProperty(storage, "lastIndex", { value: lastIndex, writable: true });
+  const syncCursor = () => {
+    const descriptor = Object.getOwnPropertyDescriptor(regex, "lastIndex")!;
+    Object.defineProperty(storage, "lastIndex", { value: descriptor.value, writable: descriptor.writable });
+  };
+  const properties = new Proxy(storage, {
+    get: (target, key, receiver) => key === "lastIndex" ? regex.lastIndex : Reflect.get(target, key, receiver),
+    set: (target, key, value, receiver) => key === "lastIndex"
+      ? Reflect.set(regex, key, value) : Reflect.set(target, key, value, receiver),
+    getOwnPropertyDescriptor(target, key) {
+      if (key === "lastIndex") syncCursor();
+      return Object.getOwnPropertyDescriptor(target, key);
+    },
+    defineProperty(target, key, descriptor) {
+      if (key !== "lastIndex") return Reflect.defineProperty(target, key, descriptor);
+      syncCursor();
+      if (!Reflect.defineProperty(target, key, descriptor)) return false;
+      const cursor = Object.getOwnPropertyDescriptor(target, key)!;
+      return Reflect.defineProperty(regex, key, { value: cursor.value, writable: cursor.writable });
+    }
+  });
+  regexGuestProperties.set(regex, properties);
   Object.defineProperties(regex, {
     [sandboxRegexBrand]: { value: true },
     [sandboxRegexPattern]: { value: pattern }
@@ -632,6 +660,14 @@ export function measureSandboxData(
       usage += Math.max(6 + source.length + flags.length + compiled.units, staged - 1);
       if (compiled.ticket !== undefined) options.compileTickets?.add(compiled.ticket);
       visit(lastIndex, depth + 1);
+      for (const key of Reflect.ownKeys(getRegexProperties(value))) {
+        if (key === "lastIndex") continue;
+        const descriptor = Object.getOwnPropertyDescriptor(getRegexProperties(value), key)!;
+        usage += 1 + (typeof key === "string" ? key.length : 0);
+        if (typeof key === "symbol") visit(key, depth + 1);
+        if ("value" in descriptor) visit(descriptor.value, depth + 1);
+        else for (const closure of retainedAccessorClosures(descriptor)) visit(closure, depth + 1);
+      }
       return;
     }
 
@@ -710,7 +746,7 @@ function captureRegexData(value: object): { source: string; flags: string; lastI
       "Invalid sandbox RegExp source or flags: expected own string data properties."
     );
   }
-  const cursor = Object.getOwnPropertyDescriptor(value, "lastIndex");
+  const cursor = Object.getOwnPropertyDescriptor(regexGuestProperties.get(value) ?? value, "lastIndex");
   if (cursor === undefined || !("value" in cursor)) {
     throw new TypeError("Invalid sandbox RegExp lastIndex: expected an own data property.");
   }
@@ -757,6 +793,19 @@ function copyToSandbox(
     const copy = createSandboxRegex(value.source, value.flags, 0, state.compilation);
     state.seen.set(value, copy);
     if (!state.resetRegexLastIndex) copy.lastIndex = copyToSandbox(value.lastIndex, state, `${path}.lastIndex`, true, depth + 1);
+    if (!state.structuredClone) {
+      const properties = getRegexProperties(value);
+      for (const key of Reflect.ownKeys(properties)) {
+        const descriptor = Object.getOwnPropertyDescriptor(properties, key)!;
+        if (!("value" in descriptor)) throw new TypeError("RegExp accessor properties cannot be copied as data.");
+        Object.defineProperty(getRegexProperties(copy), key, {
+          ...descriptor,
+          value: key === "lastIndex" && state.resetRegexLastIndex ? 0
+            : copyToSandbox(descriptor.value, state, `${path}.${String(key)}`, true, depth + 1)
+        });
+      }
+      if (!Object.isExtensible(properties)) Object.preventExtensions(getRegexProperties(copy));
+    }
     return copy;
   }
 
@@ -1039,6 +1088,16 @@ function copyFromSandbox(
       const regex = new RegExp(source, flags);
       state.seen.set(value, regex);
       Reflect.set(regex, "lastIndex", copyFromSandbox(lastIndex, state, `${path}.lastIndex`, options, depth + 1));
+      const properties = regexGuestProperties.get(value);
+      if (properties !== undefined) {
+        for (const key of Reflect.ownKeys(properties)) {
+          const descriptor = Object.getOwnPropertyDescriptor(properties, key)!;
+          if (!("value" in descriptor)) throw new TypeError("RegExp accessor properties cannot be copied as data.");
+          Object.defineProperty(regex, key, { ...descriptor,
+            value: copyFromSandbox(descriptor.value, state, `${path}.${String(key)}`, options, depth + 1) });
+        }
+        if (!Object.isExtensible(properties)) Object.preventExtensions(regex);
+      }
       guard.retainScratch();
       return regex;
     } finally {

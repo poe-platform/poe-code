@@ -1,4 +1,5 @@
 import { MAX_DATA_DEPTH } from "../graph-depth.js";
+import { serializeRegexProperties, restoreRegexProperties, type RegexPropertyData } from "./regexp-properties.js";
 import { wellKnownSymbols } from "../interp/symbols.js";
 import { symbolData, serializeSymbolProperties, type SerializedSymbol, type SerializedSymbolProperty } from "./symbols.js";
 import { isSandboxCollectionIterator, restoreSandboxCollectionIterator, snapshotCollectionIterator, type CollectionIterationMethod } from "../interp/collection-iterator.js";
@@ -62,7 +63,7 @@ type DataNode =
   | { kind: "arguments"; data: SerializedArguments<Atom> }
   | { kind: "map"; entries: Array<[Atom, Atom]> }
   | { kind: "set"; values: Atom[] }
-  | { kind: "regex"; source: string; flags: string; lastIndex: Atom };
+  | ({ kind: "regex"; source: string; flags: string; lastIndex: Atom } & RegexPropertyData<Atom>);
 export type ReplayData = { root: Atom; nodes: DataNode[] };
 export type ReplayPathSegment = string | { symbol: number };
 
@@ -196,7 +197,8 @@ export function encodeReplayData(
         kind: "regex",
         source: entry.source,
         flags: entry.flags,
-        lastIndex: child(entry.lastIndex, "lastIndex")
+        lastIndex: child(entry.lastIndex, "lastIndex"),
+        ...serializeRegexProperties(entry, value => child(value as SandboxValue, "<regex-property>"))
       };
     } else if (isSandboxArguments(entry)) {
       nodes[id] = { kind: "arguments", data: serializeArguments(entry, child) };
@@ -430,6 +432,7 @@ export function decodeReplayData(
         const result = createSandboxRegex(node.source, node.flags, 0, compilation);
         restored.set(id, result);
         result.lastIndex = child(own(node, "lastIndex"));
+        restoreRegexProperties(result, node as RegexPropertyData<Atom>, child);
         return result;
       }
       if (kind === "arguments") {

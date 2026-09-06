@@ -1,4 +1,5 @@
 import { replaceErrorStack, sandboxErrorNames, type SandboxErrorName } from "../error/shape.js";
+import { validateRegexProperties, type RegexPropertyData } from "./regexp-properties.js";
 import { wellKnownSymbols } from "../interp/symbols.js";
 import { types } from "node:util";
 import type { Budget } from "../interp/budget.js";
@@ -124,6 +125,10 @@ function validateDumpHeap(root: Record<string, unknown>, state: ValidationState)
     const entry = requireRecord(value, path);
     validateErrorType(entry, path);
     validateSymbolEntries(entry, path, state, heap);
+    if (entry.kind === "regex-object") {
+      validateTaggedValue(entry, path, state);
+      continue;
+    }
     if (entry.kind === "boxed") {
       validateBoxedRecord(entry, path, heap);
       continue;
@@ -474,6 +479,8 @@ function validateTaggedValue(
       requireString(record.source, `${path}.source`, state.limits);
       requireString(record.flags, `${path}.flags`, state.limits);
       if (!Object.hasOwn(record, "lastIndex")) fail("invalidValue", `${path}.lastIndex`, "missing regex cursor");
+      try { validateRegexProperties(record as RegexPropertyData<unknown>); }
+      catch { fail("invalidValue", path, "invalid RegExp property data"); }
       return;
     case "array":
     case "arguments":
@@ -575,7 +582,7 @@ function validateSymbolEntries(
   heap: Record<string, unknown>
 ): void {
   if (record.symbolEntries === undefined) return;
-  if (record.kind !== "object" && record.kind !== "array" && record.kind !== "date" && record.kind !== "boxed")
+  if (record.kind !== "object" && record.kind !== "array" && record.kind !== "date" && record.kind !== "boxed" && record.kind !== "regex-object")
     fail("invalidValue", `${path}.symbolEntries`, "symbol properties are unsupported for this heap kind");
   const entries = requireArray(record.symbolEntries, `${path}.symbolEntries`, state);
   const keys = new Set<number>();

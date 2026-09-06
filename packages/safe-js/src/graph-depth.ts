@@ -4,6 +4,7 @@ import { getSandboxArgumentEntries, isSandboxArguments } from "./interp/argument
 import { collectionIteratorState, isSandboxCollectionIterator } from "./interp/collection-iterator.js";
 import { isSandboxMap, isSandboxSet } from "./interp/collection-brands.js";
 import { boxedDataProperties, isSandboxBox } from "./interp/boxed.js";
+import { regexGuestProperties } from "./interp/regexp-properties.js";
 
 export const MAX_DATA_DEPTH = 1_024;
 
@@ -77,6 +78,11 @@ function walkGraphDepth(
 }
 
 function graphEntries(value: object): Array<[string, unknown]> {
+  const properties = regexGuestProperties.get(value);
+  if (properties !== undefined) return Reflect.ownKeys(properties).flatMap(key => {
+    const descriptor = Object.getOwnPropertyDescriptor(properties, key)!;
+    return "value" in descriptor ? [[`.${String(key)}`, descriptor.value] as [string, unknown]] : [];
+  });
   if (isSandboxBox(value)) return boxedDataProperties(value).map(([key, descriptor]) => [`.${key}`, descriptor.value]);
   if (isSandboxArguments(value)) {
     return getSandboxArgumentEntries(value).map(([key, entry]) => [`.${key}`, entry]);

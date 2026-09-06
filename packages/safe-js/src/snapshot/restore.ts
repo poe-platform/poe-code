@@ -1,4 +1,5 @@
 import { Budget, SandboxError, type CompileOwner } from "../interp/budget.js";
+import { restoreRegexProperties } from "./regexp-properties.js";
 import { executeAsyncFunction } from "../interp/async.js";
 import { toPropertyKey } from "../interp/property-key.js";
 import { CompileScope } from "../interp/regex/compile-guard.js";
@@ -567,6 +568,7 @@ function restoreHeapValue(id: number, state: RestoreState): RuntimeSnapshotValue
     const value = createSandboxRegex(serialized.source, serialized.flags, 0, state.compilation);
     state.heapValueById.set(id, value);
     value.lastIndex = deserializeValue(serialized.lastIndex, state) as SandboxValue;
+    restoreRegexProperties(value, serialized, entry => deserializeValue(entry, state));
     return value;
   }
   if (serialized.kind === "float32array") {

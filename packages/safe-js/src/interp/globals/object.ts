@@ -26,6 +26,7 @@ import {
   isSandboxMap,
   isSandboxPromise,
   isSandboxRegex,
+  getRegexProperties,
   isSandboxSet,
   type SandboxClosure,
   type SandboxObject,
@@ -174,7 +175,7 @@ export function hasOwnSandboxProperty(
     isSandboxGenerator(value)
   )
     return false;
-  else if (isSandboxRegex(value)) return key === "lastIndex" && !enumerable;
+  else if (isSandboxRegex(value)) properties = getRegexProperties(value);
   else properties = Object(value) as object;
   const descriptor = Object.getOwnPropertyDescriptor(properties, key);
   return descriptor !== undefined && (!enumerable || descriptor.enumerable === true);

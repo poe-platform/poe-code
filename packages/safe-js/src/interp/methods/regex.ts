@@ -1,6 +1,7 @@
 import {
   createSandboxClosure,
   getSandboxRegexPattern,
+  getRegexProperties,
   isSandboxClosure,
   isSandboxRegex,
   type SandboxCallContext,
@@ -83,13 +84,15 @@ function escapeRegexSource(source: string, budget?: Budget): string {
 
 export function setRegexMember(
   target: SandboxRegex,
-  property: string | number,
+  property: PropertyKey,
   value: SandboxValue
 ): void {
-  if (property !== "lastIndex") {
+  const properties = getRegexProperties(target);
+  if (!Object.hasOwn(properties, property) &&
+      (property === "source" || property === "flags" || Object.hasOwn(regexFlagProperties, property))) {
     throw new TypeError(`RegExp#${String(property)} is not writable.`);
   }
-  target.lastIndex = value;
+  if (!Reflect.set(properties, property, value)) throw new TypeError(`RegExp#${String(property)} is not writable.`);
 }
 
 export async function callRegexMethod(

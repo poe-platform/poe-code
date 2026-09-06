@@ -1,4 +1,6 @@
 export const DUMP_FORMAT_VERSION = 1;
+import { getRegexProperties, isSandboxRegex } from "../interp/values.js";
+import { hasCustomRegexProperties, serializeRegexProperties, type RegexPropertyData } from "./regexp-properties.js";
 export const EXECUTION_SEMANTICS = "jobs-v8";
 import { assertSnapshotGraphDepth } from "../graph-depth.js";
 import { hasGuestObjectState } from "../interp/object-model.js";
@@ -26,6 +28,7 @@ type DumpValue =
     };
 
 type DumpHeapValue =
+  | ({ kind: "regex-object"; source: string; flags: string; lastIndex: DumpValue } & RegexPropertyData<DumpValue>)
   | SerializedSymbol
   | BoxedData<DumpValue>
   | SerializedDate<DumpValue>
@@ -137,7 +140,7 @@ function serializeDumpValue(
     throw new TypeError("Guest function properties and prototype links cannot be serialized.");
   }
 
-  if (isSandboxBox(value) || isSandboxDate(value) || isFloat32Array(value)) return serializeHeapReference(value, path, state)!;
+  if ((isSandboxRegex(value) && hasCustomRegexProperties(value)) || isSandboxBox(value) || isSandboxDate(value) || isFloat32Array(value)) return serializeHeapReference(value, path, state)!;
 
   if (Array.isArray(value)) {
     const reference = serializeHeapReference(value, path, state);
@@ -178,7 +181,15 @@ function serializeHeapReference(
   if (!state.serializedHeapIds.has(id)) {
     state.serializedHeapIds.add(id);
 
-    if (isSandboxBox(value)) {
+    if (isSandboxRegex(value) && hasCustomRegexProperties(value)) {
+      const encode = (entry: unknown): DumpValue => {
+        const serialized = serializeDumpValue(entry, `${path}.<regex-property>`, state);
+        if (serialized === SKIP_VALUE) throw new TypeError("Unsupported RegExp property in public dump.");
+        return serialized;
+      };
+      state.heap[String(id)] = { kind: "regex-object", source: value.source, flags: value.flags,
+        lastIndex: encode(value.lastIndex), ...serializeRegexProperties(value, encode) };
+    } else if (isSandboxBox(value)) {
       state.heap[String(id)] = encodeBoxedData(value, (entry, key) => {
         if (Object.is(entry, -0)) return { kind: "number", value: "-0" };
         const serialized = serializeDumpValue(entry, `${path}.${key}`, state);
@@ -274,6 +285,7 @@ function indexHeapContainers(snapshot: DumpableSnapshot): Map<object | symbol, n
       stat.cyclic ||
       ownSerializableSymbolKeys(value).length > 0 ||
       isSandboxBox(value) ||
+      (isSandboxRegex(value) && hasCustomRegexProperties(value)) ||
       isSandboxDate(value) ||
       isFloat32Array(value) ||
       (Array.isArray(value) && requiresArrayEntries(value)) ||
@@ -325,7 +337,12 @@ function collectContainerStats(
   stat.expanded = true;
   ancestors.add(value);
 
-  const entries = isSandboxDate(value)
+  const entries = isSandboxRegex(value)
+    ? Reflect.ownKeys(getRegexProperties(value)).flatMap(key => {
+      const descriptor = Object.getOwnPropertyDescriptor(getRegexProperties(value), key)!;
+      return "value" in descriptor ? [descriptor.value] : [];
+    })
+    : isSandboxDate(value)
     ? dateDataProperties(value).flatMap(([key, descriptor]) => typeof key === "string" ? [descriptor.value] : [])
     : isSandboxBox(value)
     ? boxedDataProperties(value).map(([, descriptor]) => descriptor.value)

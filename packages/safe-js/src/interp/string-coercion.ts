@@ -154,7 +154,7 @@ function conversionHook(
       isSandboxCollectionIterator(value) ||
       isSandboxRegExpIterator(value) ||
       isSandboxPromise(value) ||
-      isSandboxRegex(value) ||
+      (isSandboxRegex(value) && getSandboxPrototype(value, budget) === null) ||
       isSandboxGenerator(value) ||
       isGuestHostObject(value));
   let current: object | null = value;

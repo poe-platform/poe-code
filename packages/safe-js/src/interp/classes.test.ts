@@ -11,7 +11,8 @@ describe("class construction and public elements", () => {
     expect(await run(`class A{constructor(){return ${receiver}}}class B extends A{x=7}try{new B()}catch(error){return error.name}`)).toMatchObject({ ok: true, returnValue: "TypeError" });
   });
   it("does not let super assignment mutate private regex metadata", async () => {
-    expect(await run('const value=/a/;class A{}class B extends A{write(){super.source="b"}}try{B.prototype.write.call(value)}catch(error){return [error.name,value.source]}')).toMatchObject({ ok: true, returnValue: ["TypeError", "a"] });
+    const source = 'const value=/a/;class A{}class B extends A{write(){super.source="b"}}B.prototype.write.call(value);return [value.source,value.test("a"),value.test("b"),Object.hasOwn(value,"source")];';
+    expect(await run(source)).toMatchObject({ ok: true, returnValue: new Function(source)() });
   });
   it.each(["read(){}", "async read(){}", "*read(){yield 7}"])("retains an escaped method home object: %s", async method => {
     const budget = new Budget();

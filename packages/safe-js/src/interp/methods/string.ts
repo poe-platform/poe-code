@@ -6,7 +6,7 @@ import { CompileScope } from "../regex/compile-guard.js";
 import { normalizeLastIndex } from "../regex/engine.js";
 import { sandboxNumber, sandboxString } from "../string-coercion.js";
 import { retainValues } from "../resources.js";
-import { getSandboxDataProperty, getSandboxPropertyDescriptor } from "../object-model.js";
+import { getSandboxDataProperty, getSandboxPropertyDescriptor, hasRegexPropertyOverride } from "../object-model.js";
 import { readPropertyDescriptor } from "../accessors.js";
 import { createSandboxBox } from "../boxed.js";
 import {
@@ -277,11 +277,10 @@ function callStringMethodBody(
 
   const regex = args[0];
   if (methodName === "search" && isSandboxRegex(regex) &&
-      getSandboxPropertyDescriptor(regex, "exec", budget) !== undefined)
+      hasRegexPropertyOverride(regex, ["exec"], budget))
     return callCustomRegexSearch(value, regex, budget, context);
   if (methodName === "match" && isSandboxRegex(regex) &&
-      ["exec", "flags", ...Object.keys(regexFlagProperties)].some(key =>
-        getSandboxPropertyDescriptor(regex, key, budget) !== undefined))
+      hasRegexPropertyOverride(regex, ["exec", "flags", ...Object.keys(regexFlagProperties)], budget))
     return callObservableRegexMatch(value, regex, budget, context);
   if (isSandboxRegex(regex) && (methodName === "matchAll" ||
       (methodName === "match" && !regex.flags.includes("g") &&
@@ -495,8 +494,7 @@ async function replaceRegex(
   callClosure: (closure: SandboxClosure, args: readonly SandboxValue[]) => Promise<SandboxValue>,
   context?: SandboxCallContext
 ): Promise<string> {
-  if (["exec", "flags", ...Object.keys(regexFlagProperties)].some(key =>
-    getSandboxPropertyDescriptor(regex, key, budget) !== undefined))
+  if (hasRegexPropertyOverride(regex, ["exec", "flags", ...Object.keys(regexFlagProperties)], budget))
     return replaceObservableRegex(value, regex, replacement, budget, callClosure, context);
   if (regex.flags.includes("g")) regex.lastIndex = 0;
   const cursor = regex.lastIndex;

@@ -11,7 +11,7 @@ import {
 import { matchRegex, type RegexMatch } from "../regex/engine.js";
 import type { Budget } from "../budget.js";
 import { invokeBuiltinClosure } from "../builtin-call.js";
-import { getSandboxPropertyDescriptor } from "../object-model.js";
+import { getSandboxPropertyDescriptor, getSandboxPrototype, hasExplicitSandboxPrototype } from "../object-model.js";
 import { readPropertyDescriptor } from "../accessors.js";
 import { retainValues } from "../resources.js";
 import { sandboxNumber, sandboxString } from "../string-coercion.js";
@@ -115,10 +115,11 @@ function escapeRegexSource(source: string, budget?: Budget): string {
 export function setRegexMember(
   target: SandboxRegex,
   property: PropertyKey,
-  value: SandboxValue
+  value: SandboxValue,
+  budget?: Budget
 ): void {
   const properties = getRegexProperties(target);
-  if (!Object.hasOwn(properties, property) &&
+  if (!hasExplicitSandboxPrototype(target) && getSandboxPrototype(target, budget) === null && !Object.hasOwn(properties, property) &&
       (property === "source" || property === "flags" || Object.hasOwn(regexFlagProperties, property))) {
     throw new TypeError(`RegExp#${String(property)} is not writable.`);
   }

@@ -1,0 +1,19 @@
+import { S } from "schema";
+
+export const schema = S.Object({ title: S.String() });
+
+export default async function main(frontmatter) {
+  class Pattern extends RegExp {
+    label = 'pattern';
+    describe() { return this.label; }
+  }
+  const regex = new Pattern('a', 'i');
+  if (!(regex instanceof Pattern) || !(regex instanceof RegExp) || !regex.test('A'))
+    throw new Error('Derived RegExp construction failed');
+  if (regex.describe() !== 'pattern' || Object.getPrototypeOf(/a/) !== RegExp.prototype)
+    throw new Error('RegExp prototype chain failed');
+  RegExp.prototype.exec = function () { return null; };
+  if (regex.test('A')) throw new Error('Inherited exec override was ignored');
+  await 0;
+  return { ok: true, title: frontmatter.title, derived: true, override: true };
+}

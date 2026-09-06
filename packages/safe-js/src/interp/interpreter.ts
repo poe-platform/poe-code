@@ -2673,7 +2673,8 @@ function getPropertyValue(
   if (isSandboxGenerator(target)) return getGeneratorMember(target, property, context.budget);
   if (isSandboxClosure(target)) return getClosureMemberValue(target, property, context);
   if (isSandboxPromise(target)) return getPromiseMember(property, context.budget);
-  if (isSandboxRegex(target)) return getRegexMember(target, property, context.budget, createCoercionContext(context));
+  if (isSandboxRegex(target)) return hasExplicitSandboxPrototype(target) || getSandboxPrototype(target, context.budget) !== null
+    ? undefined : getRegexMember(target, property, context.budget, createCoercionContext(context));
   if (!isIndexableSandboxValue(target)) {
     throw new TypeError("Attempted to read a property from a non-object value.");
   }
@@ -3723,7 +3724,7 @@ export function setSandboxProperty(
     return;
   }
   if (isSandboxRegex(target)) {
-    setRegexMember(target, property, value);
+    setRegexMember(target, property, value, budget);
     return;
   }
   if (!isIndexableSandboxValue(target)) {

@@ -22,6 +22,8 @@ const functionProperties = new WeakMap<object, SandboxObject>();
 const prototypes = new WeakMap<object, object | null>();
 const intrinsicPrototypes = new WeakMap<Budget, SandboxObject>();
 const boxedPrototypes = new WeakMap<Budget, Map<BoxedKind, SandboxObject>>();
+const regexPrototypes = new WeakMap<Budget, SandboxObject>();
+const initialRegexDescriptors = new WeakMap<Budget, PropertyDescriptorMap>();
 const intrinsicPrototypeRoots = new WeakMap<Budget, Set<SandboxObject>>();
 const intrinsicConstructors = new WeakMap<object, () => boolean>();
 const initialBoxedMethods = new WeakMap<object, Map<string, SandboxValue>>();
@@ -99,6 +101,26 @@ export function getBoxedPrototype(value: BoxedPrimitive, budget: Budget): Sandbo
   return boxedPrototypes.get(budget)?.get(typeof value as BoxedKind);
 }
 
+export function installRegexPrototype(budget: Budget, prototype: SandboxObject, constructor: SandboxClosure): void {
+  regexPrototypes.set(budget, prototype);
+  initialRegexDescriptors.set(budget, Object.getOwnPropertyDescriptors(prototype));
+  registerIntrinsicPrototype(budget, prototype, constructor);
+}
+
+export function hasRegexPropertyOverride(value: SandboxValue, keys: readonly string[], budget: Budget): boolean {
+  const initial = initialRegexDescriptors.get(budget);
+  const prototype = regexPrototypes.get(budget);
+  const defaultPrototype = isSandboxRegex(value) && prototype !== undefined && getSandboxPrototype(value, budget) === prototype;
+  return keys.some(key => {
+    const current = defaultPrototype
+      ? Object.getOwnPropertyDescriptor(getRegexProperties(value), key) ?? Object.getOwnPropertyDescriptor(prototype, key)
+      : getSandboxPropertyDescriptor(value, key, budget);
+    const expected = initial?.[key];
+    return expected === undefined ? current !== undefined : current === undefined ||
+      current.value !== expected.value || current.get !== expected.get || current.set !== expected.set;
+  });
+}
+
 export function isDefaultBoxedMethod(value: BoxedPrimitive, key: string, budget: Budget): boolean {
   const prototype = getBoxedPrototype(value, budget);
   return prototype !== undefined && initialBoxedMethods.get(prototype)?.has(key) === true &&
@@ -126,7 +148,7 @@ function registerIntrinsicPrototype(
     }))
     .map((record) => ({
       ...record,
-      descriptors: new Map(Object.entries(Object.getOwnPropertyDescriptors(record.value)))
+      descriptors: new Map(Reflect.ownKeys(record.value).map(key => [key, Object.getOwnPropertyDescriptor(record.value, key)!]))
     }));
   const unchanged = (
     before: PropertyDescriptor | undefined,
@@ -146,8 +168,8 @@ function registerIntrinsicPrototype(
       return (
         getSandboxPrototype(target) === parent &&
         hasExplicitSandboxPrototype(target) === explicit &&
-        Object.keys(current).length === descriptors.size &&
-        Object.keys(current).every((key) => unchanged(descriptors.get(key), current[key]))
+        Reflect.ownKeys(current).length === descriptors.size &&
+        Reflect.ownKeys(value).every((key) => unchanged(descriptors.get(key), Object.getOwnPropertyDescriptor(value, key)))
       );
     })
   );
@@ -156,11 +178,12 @@ function registerIntrinsicPrototype(
       ...(getSandboxPrototype(target) === parent
         ? []
         : [getSandboxPrototype(target) as SandboxValue]),
-      ...Object.entries(Object.getOwnPropertyDescriptors(value)).flatMap(([key, descriptor]) =>
-        unchanged(descriptors.get(key), descriptor)
+      ...Reflect.ownKeys(value).flatMap(key => {
+        const descriptor = Object.getOwnPropertyDescriptor(value, key)!;
+        return unchanged(descriptors.get(key), descriptor)
           ? []
-          : [key, descriptor.value, ...retainedAccessorClosures(descriptor)]
-      )
+          : [key, descriptor.value, ...retainedAccessorClosures(descriptor)];
+      })
     ])
   );
 }
@@ -169,11 +192,14 @@ export function releaseObjectPrototype(budget: Budget): void {
   for (const prototype of intrinsicPrototypeRoots.get(budget) ?? []) budget.setRetainedValues(prototype, undefined);
   intrinsicPrototypeRoots.delete(budget);
   boxedPrototypes.delete(budget);
+  regexPrototypes.delete(budget);
+  initialRegexDescriptors.delete(budget);
   intrinsicPrototypes.delete(budget);
 }
 
 export function getSandboxPrototype(value: object, budget?: Budget): object | null {
   if (prototypes.has(value)) return prototypes.get(value) ?? null;
+  if (budget !== undefined && isSandboxRegex(value)) return regexPrototypes.get(budget) ?? null;
   if (budget !== undefined && isSandboxBox(value)) {
     const prototype = getBoxedPrototype(boxedValue(value), budget);
     if (prototype !== undefined && prototype !== value) return prototype;
@@ -264,7 +290,7 @@ export function setSandboxPrototype(
     throw new TypeError("Object.prototype has an immutable null prototype.");
   }
   if (
-    (!Array.isArray(value) && !isPrototypeRecord(value)) ||
+    (!Array.isArray(value) && !isSandboxRegex(value) && !isPrototypeRecord(value)) ||
     (prototype !== null && !Array.isArray(prototype) && !isPrototypeRecord(prototype))
   ) {
     throw new TypeError(
@@ -272,7 +298,7 @@ export function setSandboxPrototype(
     );
   }
   if (prototypes.has(value) && getSandboxPrototype(value, budget) === prototype) return;
-  if (!Object.isExtensible(isGuestClosure(value) ? materializeFunctionProperties(value) : value)) {
+  if (!Object.isExtensible(isGuestClosure(value) ? materializeFunctionProperties(value) : isSandboxRegex(value) ? getRegexProperties(value) : value)) {
     throw new TypeError("Cannot change the prototype of a non-extensible object.");
   }
   let depth = 0;

@@ -1,0 +1,23 @@
+import { S } from "schema";
+
+export const schema = S.Object({ title: S.String() });
+
+export default async (frontmatter) => {
+  let constructions = 0;
+  function Custom(executor) {
+    constructions++;
+    return new Promise(executor);
+  }
+  const value = Promise.resolve(42);
+  value.constructor = { [Symbol.species]: Custom };
+  const answer = await value.finally(() => 99);
+  if (answer !== 42 || constructions !== 2) {
+    throw new Error("Promise species construction failed");
+  }
+  const receiver = {};
+  const descriptor = Object.getOwnPropertyDescriptor(Promise, Symbol.species);
+  if (descriptor.get.call(receiver) !== receiver) {
+    throw new Error("Promise species getter receiver failed");
+  }
+  return { title: frontmatter.title, ok: true, answer, constructions };
+};

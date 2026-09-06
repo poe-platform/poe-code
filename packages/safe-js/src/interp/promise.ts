@@ -1,6 +1,6 @@
 import { SandboxError, type Budget } from "./budget.js";
-import { accessorClosure, readPropertyDescriptor } from "./accessors.js";
-import { getSandboxPropertyDescriptor } from "./object-model.js";
+import { accessorAdapter, accessorClosure, readPropertyDescriptor } from "./accessors.js";
+import { getSandboxPropertyDescriptor, materializeFunctionProperties, registerIntrinsicFunction } from "./object-model.js";
 import { coerceThrownValue, createSubsetErrorValue } from "./exceptions.js";
 import { acquireSandboxIterator, closeIterator, getSandboxIterator, readIteratorResult } from "./iteration.js";
 import { retainValues } from "./resources.js";
@@ -107,14 +107,11 @@ export function createPromiseGlobals(options: { budget: Budget }): PromiseGlobal
     }
     return pending;
   };
-  const promiseConstructor = createSandboxClosure({
-    sandbox: true,
-    name: "Promise",
-    construct,
-    call: () => {
-      throw new TypeError("Constructor Promise requires 'new'.");
-    },
-    properties: {
+  const species = createSandboxClosure({
+    guest: true, sandbox: true, name: "get [Symbol.species]", length: 0,
+    call: (_args, context) => context?.thisValue
+  });
+  const properties: SandboxObject = {
       prototype,
       all: createSandboxClosure({
         sandbox: true,
@@ -197,7 +194,19 @@ export function createPromiseGlobals(options: { budget: Budget }): PromiseGlobal
         },
         name: "reject"
       })
-    }
+  };
+  const promiseConstructor = createSandboxClosure({
+    guest: true, sandbox: true, name: "Promise", length: 1, construct,
+    call: () => { throw new TypeError("Constructor Promise requires 'new'."); }
+  });
+  const constructorProperties = materializeFunctionProperties(promiseConstructor);
+  for (const [key, value] of Object.entries(properties)) {
+    Object.defineProperty(constructorProperties, key, {
+      value, writable: key !== "prototype", configurable: key !== "prototype"
+    });
+  }
+  Object.defineProperty(constructorProperties, Symbol.species, {
+    get: accessorAdapter(species, "get"), configurable: true
   });
   Object.defineProperty(prototype, "constructor", {
     value: promiseConstructor,
@@ -206,10 +215,13 @@ export function createPromiseGlobals(options: { budget: Budget }): PromiseGlobal
   });
   promiseConstructors.add(promiseConstructor);
   intrinsicPromiseConstructors.set(options.budget, promiseConstructor);
+  registerIntrinsicFunction(options.budget, species);
+  registerIntrinsicFunction(options.budget, promiseConstructor);
   return { Promise: promiseConstructor };
 }
 
 export function getPromiseMember(property: string | number, budget: Budget): SandboxValue {
+  if (!intrinsicPromiseConstructors.has(budget)) createPromiseGlobals({ budget });
   const prototype = getPromisePrototype(budget);
   return Object.hasOwn(prototype, property) ? prototype[property] : undefined;
 }
@@ -306,7 +318,23 @@ function getPromisePrototype(budget: Budget): SandboxObject {
         const target = context?.thisValue;
         if (!isSandboxPromise(target))
           throw new TypeError("Promise.then requires a promise receiver.");
-        const finish = () => {
+        const finish = (constructor: SandboxClosure) => {
+          if (!isSandboxPromiseConstructor(constructor)) {
+            return createPromiseCapability(constructor, budget, context).then(capability => {
+              observeSandboxPromise(target);
+              createSandboxPromise(target.promise.then(
+                value => {
+                  consumeSettledHostCall(target);
+                  return runCapabilityReaction(onFulfilled, value, "fulfilled", capability, budget, context);
+                },
+                (reason: SandboxValue) => {
+                  consumeSettledHostCall(target);
+                  return runCapabilityReaction(onRejected, reason, "rejected", capability, budget, context);
+                }
+              ));
+              return capability.promise;
+            });
+          }
           observeSandboxPromise(target);
           const chained = createSandboxPromise(
             target.promise.then(
@@ -322,8 +350,8 @@ function getPromisePrototype(budget: Budget): SandboxObject {
           );
           return chained;
         };
-        const validation = validatePromiseConstructorProperty(target, prototype, budget, context);
-        return validation instanceof Promise ? validation.then(finish) : finish();
+        const constructor = getPromiseSpeciesConstructor(target, prototype, budget, context);
+        return constructor instanceof Promise ? constructor.then(finish) : finish(constructor);
       },
       name: "then"
     }),
@@ -356,14 +384,14 @@ function getPromisePrototype(budget: Budget): SandboxObject {
         if (typeof target !== "object" || target === null) {
           throw new TypeError("Promise.finally requires an object receiver.");
         }
-        const invoke = (then: SandboxValue) => {
+        const invoke = (then: SandboxValue, constructor: SandboxClosure) => {
           if (!isSandboxClosure(then))
             throw new TypeError("Promise.finally requires a callable then.");
           const handlers = isSandboxClosure(onFinally)
             ? (["fulfilled", "rejected"] as const).map((state) =>
                 createSandboxClosure({
                   sandbox: true,
-                  retainedValues: () => [onFinally],
+                  retainedValues: () => [onFinally, constructor],
                   call: async ([value]) => {
                     const result = await callPromiseClosure(
                       onFinally,
@@ -372,13 +400,18 @@ function getPromisePrototype(budget: Budget): SandboxObject {
                       budget,
                       context
                     );
-                    const pending =
-                      isSandboxPromise(result) &&
-                      getPromiseMember("constructor", budget) ===
-                        intrinsicPromiseConstructors.get(budget)
-                        ? result
-                        : createSandboxPromise(resolveSandboxValue(result, { budget }));
-                    const cleanupThen = getPromiseMember("then", budget);
+                    let pending: SandboxValue;
+                    const actualConstructor = isSandboxPromise(result)
+                      ? await readPromiseProperty(result, "constructor", prototype, budget, context)
+                      : undefined;
+                    if (isSandboxPromise(result) && actualConstructor === constructor) {
+                      pending = result;
+                    } else if (isSandboxPromiseConstructor(constructor)) {
+                      pending = createSandboxPromise(resolveSandboxValue(result, { budget }));
+                    } else {
+                      pending = await settleConstructedPromise(constructor, result, "fulfilled", budget, context);
+                    }
+                    const cleanupThen = await readPromiseProperty(pending, "then", prototype, budget, context);
                     if (!isSandboxClosure(cleanupThen))
                       throw new TypeError("Promise cleanup requires a callable then.");
                     return callPromiseClosure(
@@ -408,15 +441,15 @@ function getPromisePrototype(budget: Budget): SandboxObject {
             newTarget: undefined
           });
         };
-        const finish = () => {
+        const finish = (constructor: SandboxClosure) => {
           const descriptor = getSandboxPropertyDescriptor(target, "then", budget);
           const then = descriptor === undefined
             ? readPromiseReceiverProperty(target, "then", prototype, context)
             : readPropertyDescriptor(descriptor, target, context, true);
-          return then instanceof Promise ? then.then(invoke) : invoke(then);
+          return then instanceof Promise ? then.then(method => invoke(method, constructor)) : invoke(then, constructor);
         };
-        const validation = validatePromiseConstructorProperty(target, prototype, budget, context);
-        return validation instanceof Promise ? validation.then(finish) : finish();
+        const constructor = getPromiseSpeciesConstructor(target, prototype, budget, context);
+        return constructor instanceof Promise ? constructor.then(finish) : finish(constructor);
       },
       name: "finally"
     })
@@ -448,21 +481,45 @@ function readPromiseReceiverProperty(
     : undefined;
 }
 
-function validatePromiseConstructorProperty(
+function getPromiseSpeciesConstructor(
   receiver: SandboxValue,
   prototype: SandboxObject,
   budget: Budget,
   context?: SandboxCallContext
-): void | Promise<void> {
-  const validate = (constructor: SandboxValue) => {
-    if (constructor !== undefined && (typeof constructor !== "object" || constructor === null))
+): SandboxClosure | Promise<SandboxClosure> {
+  const defaultConstructor = intrinsicPromiseConstructors.get(budget)!;
+  const validate = (constructor: SandboxValue): SandboxClosure | Promise<SandboxClosure> => {
+    if (constructor === undefined) return defaultConstructor;
+    if (typeof constructor !== "object" || constructor === null)
       throw new TypeError("Promise constructor property must be an object.");
+    const finish = (species: SandboxValue): SandboxClosure => {
+      if (species === undefined || species === null) return defaultConstructor;
+      if (!isSandboxClosure(species) || species.construct === undefined)
+        throw new TypeError("Promise species must be a constructor.");
+      return species;
+    };
+    const species = readPromiseProperty(constructor, Symbol.species, prototype, budget, context);
+    return species instanceof Promise ? species.then(finish) : finish(species);
   };
-  const descriptor = getSandboxPropertyDescriptor(receiver, "constructor", budget);
-  const constructor = descriptor === undefined
-    ? readPromiseReceiverProperty(receiver, "constructor", prototype, context)
-    : readPropertyDescriptor(descriptor, receiver, context, true);
+  const constructor = readPromiseProperty(receiver, "constructor", prototype, budget, context);
   return constructor instanceof Promise ? constructor.then(validate) : validate(constructor);
+}
+
+function readPromiseProperty(
+  receiver: SandboxValue,
+  property: string | symbol,
+  prototype: SandboxObject,
+  budget: Budget,
+  context?: SandboxCallContext
+): SandboxValue | Promise<SandboxValue> {
+  const descriptor = getSandboxPropertyDescriptor(receiver, property, budget);
+  if (descriptor !== undefined && !("value" in descriptor) && context?.invokeClosure === undefined) {
+    const getter = accessorClosure(descriptor.get);
+    return getter?.call([], { ...context, stack: context?.stack ?? [], thisValue: receiver });
+  }
+  return descriptor === undefined
+    ? typeof property === "string" ? readPromiseReceiverProperty(receiver, property, prototype, context) : undefined
+    : readPropertyDescriptor(descriptor, receiver, context, true);
 }
 
 async function settleIterable(
@@ -776,6 +833,41 @@ function resolveThenable(
         }
       }
     ).catch(reject);
+  });
+}
+
+function runCapabilityReaction(
+  handler: SandboxValue,
+  value: SandboxValue,
+  state: "fulfilled" | "rejected",
+  capability: { resolve: SandboxClosure; reject: SandboxClosure },
+  budget: Budget,
+  context?: SandboxCallContext
+): Promise<undefined> {
+  return runPromiseJob(async () => {
+    if (value instanceof SandboxError && (value.code === "budgetExceeded" || value.code === "reentry")) {
+      throw value;
+    }
+    let completion = state;
+    let result = state === "rejected" && value instanceof Error
+      ? coerceThrownValue(value, budget, []) : value;
+    if (isSandboxClosure(handler)) {
+      try {
+        result = await callPromiseClosure(handler, [result], undefined, budget, context);
+        completion = "fulfilled";
+      } catch (error) {
+        if (error instanceof SandboxError && (error.code === "budgetExceeded" || error.code === "reentry")) {
+          throw error;
+        }
+        completion = "rejected";
+        result = error as SandboxValue;
+      }
+    }
+    await callPromiseClosure(
+      completion === "fulfilled" ? capability.resolve : capability.reject,
+      [result], undefined, budget, context
+    );
+    return undefined;
   });
 }
 

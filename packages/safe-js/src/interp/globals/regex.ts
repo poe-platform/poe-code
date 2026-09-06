@@ -90,6 +90,40 @@ export function createRegexGlobals(options: { budget: Budget; compileOwner?: Com
     }
   };
   const constructor = createSandboxClosure({ guest: true, sandbox: true, name: "RegExp", length: 2, call: invoke(false), construct: invoke(true) });
+  Object.defineProperty(materializeFunctionProperties(constructor), "escape", {
+    value: createSandboxClosure({ guest: true, sandbox: true, name: "escape", length: 1,
+      call: (args) => {
+        const input = args[0];
+        if (typeof input !== "string") throw new TypeError("RegExp.escape requires a string.");
+        const allocation = {};
+        let escaped = "";
+        try {
+          for (const character of input) {
+            options.budget.visitNode();
+            const point = character.codePointAt(0)!;
+            let part = character;
+            if (escaped.length === 0 && ((point >= 48 && point <= 57) ||
+                (point >= 65 && point <= 90) || (point >= 97 && point <= 122))) {
+              part = `\\x${point.toString(16)}`;
+            } else if ("^$\\.*+?()[]{}|/".includes(character)) {
+              part = "\\" + character;
+            } else {
+              const control = "\f\n\r\t\v".indexOf(character);
+              if (control !== -1) part = "\\" + "fnrtv"[control];
+              else if (",-=<>#&!%:;@~'`\"".includes(character) || character.trim() === "" ||
+                       (point >= 0xd800 && point <= 0xdfff)) {
+                part = point <= 0xff ? `\\x${point.toString(16).padStart(2, "0")}`
+                  : `\\u${point.toString(16).padStart(4, "0")}`;
+              }
+            }
+            options.budget.setRetainedDataUsage(allocation, escaped.length + part.length);
+            escaped = options.budget.allocateString(escaped + part);
+          }
+          return escaped;
+        } finally { options.budget.setRetainedDataUsage(allocation, 0); }
+      }
+    }), writable: true, configurable: true
+  });
   const prototype = Object.create(null) as SandboxObject;
   Object.defineProperty(materializeFunctionProperties(constructor), Symbol.species, {
     get: accessorAdapter(createSandboxClosure({ sandbox: true, name: "get [Symbol.species]", length: 0,

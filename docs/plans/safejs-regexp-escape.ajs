@@ -1,0 +1,16 @@
+import { S } from "schema";
+
+export const schema = S.Object({ title: S.String() });
+
+export default async function main(frontmatter) {
+  const escaped = RegExp.escape('a-b 😀');
+  if (escaped !== '\\x61\\x2db\\x20😀') throw new Error('Escape encoding mismatch');
+  if (!new RegExp('^(?:' + escaped + ')$', 'v').test('a-b 😀'))
+    throw new Error('Escaped literal did not round trip');
+  let rejected = false;
+  try { RegExp.escape({ toString() { throw new Error('Coercion must not run'); } }); }
+  catch (error) { rejected = error.name === 'TypeError'; }
+  if (!rejected) throw new Error('Non-string input was not rejected');
+  await 0;
+  return { ok: true, title: frontmatter.title, escaped, rejected };
+}

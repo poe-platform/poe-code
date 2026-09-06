@@ -1,0 +1,18 @@
+import { S } from "schema";
+
+export const schema = S.Object({ title: S.String() });
+
+export default async (frontmatter) => {
+  const value=Promise.resolve(42);
+  value.label="answer";
+  const keys=[];
+  for(const key in value) keys.push(key);
+  if(keys.join(",")!=="label" || JSON.stringify(value)!=='{"label":"answer"}') {
+    throw new Error("Promise own properties were not enumerated");
+  }
+  Object.freeze(value);
+  let rejected=false;
+  try{value.label="changed"}catch(error){rejected=error instanceof TypeError}
+  if(!rejected)throw new Error("Frozen promise property was mutable");
+  return {title:frontmatter.title,ok:true,label:value.label,answer:await value};
+};

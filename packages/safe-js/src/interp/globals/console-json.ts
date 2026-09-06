@@ -296,8 +296,6 @@ async function stringifyValue(
     throw new TypeError("Do not know how to serialize a BigInt.");
   }
 
-  if (isSandboxPromise(value)) return "{}";
-
   if (value === undefined || isSandboxClosure(value)) {
     return undefined;
   }
@@ -430,8 +428,7 @@ function isStringifyContainer(value: unknown): value is SandboxArray | SandboxOb
   return (
     typeof value === "object" &&
     value !== null &&
-    !isSandboxClosure(value) &&
-    !isSandboxPromise(value)
+    !isSandboxClosure(value)
   );
 }
 

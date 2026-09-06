@@ -34,6 +34,7 @@ import {
   isSandboxGenerator,
   isSandboxMap,
   isSandboxPromise,
+  getPromiseProperties,
   isSandboxRegex,
   getRegexProperties,
   getCollectionProperties,
@@ -246,7 +247,7 @@ export function createObjectArrayGlobals(options: {
           call: ([value]) => {
             if (isGuestHostObject(value))
               throw new TypeError("Live host objects cannot be made non-extensible.");
-            Object.preventExtensions(isGuestClosure(value) ? materializeFunctionProperties(value) : isSandboxRegex(value) ? getRegexProperties(value) : isSandboxMap(value) || isSandboxSet(value) ? getCollectionProperties(value) : value);
+            Object.preventExtensions(isSandboxPromise(value) ? getPromiseProperties(value) : isGuestClosure(value) ? materializeFunctionProperties(value) : isSandboxRegex(value) ? getRegexProperties(value) : isSandboxMap(value) || isSandboxSet(value) ? getCollectionProperties(value) : value);
             return value;
           },
           name: "preventExtensions"
@@ -254,7 +255,7 @@ export function createObjectArrayGlobals(options: {
         isExtensible: createSandboxClosure({
           sandbox: true,
           call: ([value]) =>
-            Object.isExtensible(isGuestClosure(value) ? materializeFunctionProperties(value) : isSandboxRegex(value) ? getRegexProperties(value) : isSandboxMap(value) || isSandboxSet(value) ? getCollectionProperties(value) : value),
+            Object.isExtensible(isSandboxPromise(value) ? getPromiseProperties(value) : isGuestClosure(value) ? materializeFunctionProperties(value) : isSandboxRegex(value) ? getRegexProperties(value) : isSandboxMap(value) || isSandboxSet(value) ? getCollectionProperties(value) : value),
           name: "isExtensible"
         }),
         seal: createSandboxClosure({
@@ -262,7 +263,7 @@ export function createObjectArrayGlobals(options: {
           call: ([value]) => {
             if (isGuestHostObject(value))
               throw new TypeError("Live host objects cannot be sealed.");
-            Object.seal(isGuestClosure(value) ? materializeFunctionProperties(value) : isSandboxRegex(value) ? getRegexProperties(value) : isSandboxMap(value) || isSandboxSet(value) ? getCollectionProperties(value) : value);
+            Object.seal(isSandboxPromise(value) ? getPromiseProperties(value) : isGuestClosure(value) ? materializeFunctionProperties(value) : isSandboxRegex(value) ? getRegexProperties(value) : isSandboxMap(value) || isSandboxSet(value) ? getCollectionProperties(value) : value);
             return value;
           },
           name: "seal"
@@ -270,7 +271,7 @@ export function createObjectArrayGlobals(options: {
         isSealed: createSandboxClosure({
           sandbox: true,
           call: ([value]) =>
-            Object.isSealed(isGuestClosure(value) ? materializeFunctionProperties(value) : isSandboxRegex(value) ? getRegexProperties(value) : isSandboxMap(value) || isSandboxSet(value) ? getCollectionProperties(value) : value),
+            Object.isSealed(isSandboxPromise(value) ? getPromiseProperties(value) : isGuestClosure(value) ? materializeFunctionProperties(value) : isSandboxRegex(value) ? getRegexProperties(value) : isSandboxMap(value) || isSandboxSet(value) ? getCollectionProperties(value) : value),
           name: "isSealed"
         }),
         freeze: createSandboxClosure({
@@ -279,7 +280,7 @@ export function createObjectArrayGlobals(options: {
             if (isGuestHostObject(value))
               throw new TypeError("Live host objects cannot be frozen.");
             if (typeof value === "object" && value !== null) {
-            Object.freeze(isGuestClosure(value) ? materializeFunctionProperties(value) : isSandboxRegex(value) ? getRegexProperties(value) : isSandboxMap(value) || isSandboxSet(value) ? getCollectionProperties(value) : value);
+            Object.freeze(isSandboxPromise(value) ? getPromiseProperties(value) : isGuestClosure(value) ? materializeFunctionProperties(value) : isSandboxRegex(value) ? getRegexProperties(value) : isSandboxMap(value) || isSandboxSet(value) ? getCollectionProperties(value) : value);
             }
 
             return value;
@@ -289,7 +290,7 @@ export function createObjectArrayGlobals(options: {
         isFrozen: createSandboxClosure({
           sandbox: true,
           call: ([value]) =>
-            Object.isFrozen(isGuestClosure(value) ? materializeFunctionProperties(value) : isSandboxRegex(value) ? getRegexProperties(value) : isSandboxMap(value) || isSandboxSet(value) ? getCollectionProperties(value) : value),
+            Object.isFrozen(isSandboxPromise(value) ? getPromiseProperties(value) : isGuestClosure(value) ? materializeFunctionProperties(value) : isSandboxRegex(value) ? getRegexProperties(value) : isSandboxMap(value) || isSandboxSet(value) ? getCollectionProperties(value) : value),
           name: "isFrozen"
         }),
         assign: createSandboxClosure({
@@ -536,6 +537,7 @@ function reflectionProperties(value: SandboxValue): SandboxObject | SandboxArray
 }
 
 function objectProperties(value: SandboxValue, mutable = false): SandboxObject | SandboxArray {
+  if (isSandboxPromise(value)) return getPromiseProperties(value);
   if (isSandboxMap(value) || isSandboxSet(value)) return getCollectionProperties(value);
   if (isSandboxRegex(value)) return getRegexProperties(value);
   if (isSandboxDate(value)) {

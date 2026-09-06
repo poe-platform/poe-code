@@ -22,6 +22,7 @@ import { boxedValue, isSandboxBox } from "./boxed.js";
 import {
   isSandboxClosure,
   isSandboxPromise,
+  getPromiseProperties,
   isSandboxMap,
   isSandboxSet,
   isSandboxRegex,
@@ -165,7 +166,7 @@ function conversionHook(
   let current: object | null = value;
   let depth = 0;
   while (current !== null) {
-    const properties = isGuestClosure(current) ? getGuestFunctionProperties(current)
+    const properties = isSandboxPromise(current) ? getPromiseProperties(current) : isGuestClosure(current) ? getGuestFunctionProperties(current)
       : isSandboxRegex(current) ? getRegexProperties(current)
       : isSandboxMap(current) || isSandboxSet(current) ? getCollectionProperties(current) : current;
     const descriptor =

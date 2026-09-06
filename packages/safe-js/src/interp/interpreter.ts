@@ -159,6 +159,7 @@ import {
   isSandboxGenerator,
   isSandboxMap,
   isSandboxPromise,
+  getPromiseProperties,
   isSandboxRegex,
   getRegexProperties,
   getCollectionProperties,
@@ -2025,7 +2026,7 @@ async function evaluateForInStatement(
 
 function forInObject(value: SandboxValue): object | undefined {
   if (isGuestClosure(value)) return value;
-  if (value === null || value === undefined || isSandboxClosure(value) || isSandboxPromise(value)) {
+  if (value === null || value === undefined || isSandboxClosure(value)) {
     return undefined;
   }
   if (
@@ -2047,7 +2048,7 @@ function forInKeys(object: object, budget: Budget): string[] {
   for (let current: object | null = object; current !== null; current = getSandboxPrototype(current, budget)) {
     if (depth > 0) budget.visitNode();
     assertSandboxDataDepth(depth++);
-    const properties = isGuestClosure(current) ? materializeFunctionProperties(current) : isSandboxClosure(current) ? current.properties ?? {} : isSandboxRegex(current) ? getRegexProperties(current) : isSandboxMap(current) || isSandboxSet(current) ? getCollectionProperties(current) : current;
+    const properties = isSandboxPromise(current) ? getPromiseProperties(current) : isGuestClosure(current) ? materializeFunctionProperties(current) : isSandboxClosure(current) ? current.properties ?? {} : isSandboxRegex(current) ? getRegexProperties(current) : isSandboxMap(current) || isSandboxSet(current) ? getCollectionProperties(current) : current;
     for (const key of Object.getOwnPropertyNames(properties)) {
       if (seen.has(key)) continue;
       seen.add(key);
@@ -2064,7 +2065,7 @@ function hasForInProperty(object: object, key: string, budget: Budget): boolean 
   for (let current: object | null = object; current !== null; current = getSandboxPrototype(current, budget)) {
     if (depth > 0) budget.visitNode();
     assertSandboxDataDepth(depth++);
-    const properties = isGuestClosure(current) ? materializeFunctionProperties(current) : isSandboxClosure(current) ? current.properties ?? {} : isSandboxRegex(current) ? getRegexProperties(current) : isSandboxMap(current) || isSandboxSet(current) ? getCollectionProperties(current) : current;
+    const properties = isSandboxPromise(current) ? getPromiseProperties(current) : isGuestClosure(current) ? materializeFunctionProperties(current) : isSandboxClosure(current) ? current.properties ?? {} : isSandboxRegex(current) ? getRegexProperties(current) : isSandboxMap(current) || isSandboxSet(current) ? getCollectionProperties(current) : current;
     if (Object.hasOwn(properties, key)) return true;
   }
   return false;
@@ -2654,7 +2655,7 @@ async function evaluateDeleteExpression(
       throw new TypeError("Cannot delete properties of null or undefined.");
     }
 
-    if (!isIndexableSandboxValue(member.object) && !isSandboxRegex(member.object) && !isSandboxMap(member.object) && !isSandboxSet(member.object)) {
+    if (!isIndexableSandboxValue(member.object) && !isSandboxPromise(member.object) && !isSandboxRegex(member.object) && !isSandboxMap(member.object) && !isSandboxSet(member.object)) {
       throw new TypeError("Unary operator 'delete' requires a sandbox object property.");
     }
 
@@ -3224,7 +3225,7 @@ async function evaluateMemberCallExpression(
     if (isSandboxPromise(member.object)) {
       return evaluateResolvedCallExpression(
         node,
-        getPromiseMember(member.property, context.budget),
+        await getPropertyValue(member.object, member.property, context),
         context,
         member.object
       );
@@ -3922,6 +3923,7 @@ export function setSandboxProperty(
       return writePropertyDescriptor(descriptor, target, value, context);
   }
   if (isGuestClosure(target)) target = materializeFunctionProperties(target);
+  if (isSandboxPromise(target)) target = getPromiseProperties(target);
   if (isSandboxMap(target) || isSandboxSet(target)) target = getCollectionProperties(target);
   if (isFloat32Array(target)) {
     if (typeof property === "symbol") throw new TypeError("Typed array symbol properties are not yet supported.");
@@ -4013,6 +4015,7 @@ function deleteSandboxProperty(
   if (isGuestHostObject(target)) return deleteHostObjectMember(target, String(property));
   if (isGuestClosure(target)) target = materializeFunctionProperties(target);
   if (isSandboxRegex(target)) target = getRegexProperties(target);
+  if (isSandboxPromise(target)) target = getPromiseProperties(target);
   if (isSandboxMap(target) || isSandboxSet(target)) target = getCollectionProperties(target);
   if (Array.isArray(target)) {
     assertCollectionMutable(target);
@@ -4330,10 +4333,7 @@ async function evaluateObjectSpread(
     return { ok: true, value: entries };
   }
 
-  if (
-    (isSandboxClosure(value.value) && !isGuestClosure(value.value)) ||
-    isSandboxPromise(value.value)
-  ) {
+  if (isSandboxClosure(value.value) && !isGuestClosure(value.value)) {
     throw new TypeError(
       `Cannot spread ${describeObjectSpreadValue(value.value)} into object literal.`
     );

@@ -159,6 +159,17 @@ export type SandboxPromise = {
   readonly [sandboxPromiseBrand]: true;
 };
 
+const promiseProperties = new WeakMap<SandboxPromise, SandboxObject>();
+
+export function getPromiseProperties(value: SandboxPromise): SandboxObject {
+  let properties = promiseProperties.get(value);
+  if (properties === undefined) {
+    properties = Object.create(null) as SandboxObject;
+    promiseProperties.set(value, properties);
+  }
+  return properties;
+}
+
 export type SandboxGenerator = {
   readonly kind: "generator";
   readonly async?: boolean;
@@ -285,6 +296,7 @@ export function ownEnumerableSandboxEntries(
   let entries: Array<[string, SandboxValue]>;
   if (isGuestClosure(value)) entries = Object.entries(value.properties ?? {});
   else if (isSandboxRegex(value)) entries = Object.entries(getRegexProperties(value));
+  else if (isSandboxPromise(value)) entries = Object.entries(getPromiseProperties(value));
   else if (isSandboxMap(value) || isSandboxSet(value)) entries = Object.entries(getCollectionProperties(value));
   else if (isSandboxClosure(value) || isSandboxGenerator(value) || isSandboxMap(value) || isSandboxSet(value) || isSandboxPromise(value) || isSandboxRegex(value)) return [];
   else entries = Object.entries(Object(value)) as Array<[string, SandboxValue]>;
@@ -296,6 +308,7 @@ export function ownSandboxSymbolKeys(value: SandboxValue): symbol[] {
   if (isGuestHostObject(value)) return [];
   if (isSandboxClosure(value)) value = value.properties ?? {};
   else if (isSandboxRegex(value)) value = getRegexProperties(value);
+  else if (isSandboxPromise(value)) value = getPromiseProperties(value);
   else if (isSandboxMap(value) || isSandboxSet(value)) value = getCollectionProperties(value);
   else if (isSandboxGenerator(value) || isSandboxMap(value) || isSandboxSet(value) || isSandboxPromise(value) || isSandboxRegex(value)) return [];
   return Object.getOwnPropertySymbols(Object(value)).filter(key => !internalSymbols.has(key));
@@ -305,7 +318,7 @@ export function ownEnumerableSandboxKeys(value: SandboxValue): string[];
 export function ownEnumerableSandboxKeys(value: SandboxValue, includeSymbols: true): PropertyKey[];
 export function ownEnumerableSandboxKeys(value: SandboxValue, includeSymbols = false): PropertyKey[] {
   if (includeSymbols) {
-    const properties = isSandboxClosure(value) ? value.properties ?? {} : isSandboxRegex(value) ? getRegexProperties(value)
+    const properties = isSandboxClosure(value) ? value.properties ?? {} : isSandboxPromise(value) ? getPromiseProperties(value) : isSandboxRegex(value) ? getRegexProperties(value)
       : isSandboxMap(value) || isSandboxSet(value) ? getCollectionProperties(value) : Object(value);
     return [...ownEnumerableSandboxKeys(value), ...ownSandboxSymbolKeys(value).filter(key =>
       Object.getOwnPropertyDescriptor(properties, key)?.enumerable === true)];
@@ -313,6 +326,7 @@ export function ownEnumerableSandboxKeys(value: SandboxValue, includeSymbols = f
   if (isGuestHostObject(value)) return getHostObjectKeys(value);
   if (value === null || value === undefined) throw new TypeError("Cannot convert undefined or null to object.");
   if (isGuestClosure(value)) return Object.keys(value.properties ?? {});
+  if (isSandboxPromise(value)) return Object.keys(getPromiseProperties(value));
   if (isSandboxRegex(value)) return Object.keys(getRegexProperties(value));
   if (isSandboxMap(value) || isSandboxSet(value)) return Object.keys(getCollectionProperties(value));
   if (isSandboxClosure(value) || isSandboxGenerator(value) || isSandboxMap(value) || isSandboxSet(value) || isSandboxPromise(value) || isSandboxRegex(value)) return [];
@@ -684,7 +698,15 @@ export function measureSandboxData(
       for (const completion of snapshot.sent) visit(completion.value, depth + 1);
       return;
     }
-    if (isSandboxPromise(value)) return;
+    if (isSandboxPromise(value)) {
+      for (const key of Reflect.ownKeys(getPromiseProperties(value))) {
+        const descriptor = Object.getOwnPropertyDescriptor(getPromiseProperties(value), key)!;
+        usage += typeof key === "string" ? key.length + 1 : 1;
+        if ("value" in descriptor) visit(descriptor.value, depth + 1);
+        else for (const closure of retainedAccessorClosures(descriptor)) visit(closure, depth + 1);
+      }
+      return;
+    }
     if (isSandboxRegex(value)) {
       const { source, flags, lastIndex } = captureRegexData(value);
       const compiled = regexCompiledData(getSandboxRegexPattern(value));
@@ -1214,6 +1236,8 @@ function copyFromSandbox(
   }
 
   if (isSandboxPromise(value)) {
+    const existing = state.seen.get(value);
+    if (existing !== undefined) return existing;
     observeSandboxPromise(value);
     const copySettlement = (settled: SandboxValue): unknown => {
       const owner = options.compilation?.owner;
@@ -1229,9 +1253,21 @@ function copyFromSandbox(
         operation?.release();
       }
     };
-    return value.promise.then(copySettlement, (reason: SandboxValue) =>
+    const copy = value.promise.then(copySettlement, (reason: SandboxValue) =>
       Promise.reject(reason instanceof SandboxError ? reason : copySettlement(reason))
     );
+    state.seen.set(value, copy);
+    const properties = getPromiseProperties(value);
+    for (const key of Reflect.ownKeys(properties)) {
+      const descriptor = Object.getOwnPropertyDescriptor(properties, key)!;
+      if (!("value" in descriptor)) throw new TypeError("Promise accessor properties cannot be copied as data.");
+      Object.defineProperty(copy, key, {
+        ...descriptor,
+        value: copyFromSandbox(descriptor.value, state, `${path}.<property>`, options, depth + 1)
+      });
+    }
+    if (!Object.isExtensible(properties)) Object.preventExtensions(copy);
+    return copy;
   }
 
   if (isSandboxGenerator(value)) {

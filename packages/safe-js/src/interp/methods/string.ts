@@ -168,10 +168,15 @@ export function callStringMethod(
   if (value === null || value === undefined)
     throw new TypeError(`String#${methodName} requires a non-null receiver.`);
   const fallback = (coercePattern = false) => {
-    const apply = (string: string) => coercePattern &&
-      (methodName === "match" || methodName === "matchAll" || methodName === "search")
-      ? callStringPattern(string, methodName, args[0], budget, parent, context)
-      : callStringMethodBody(string, methodName, args, budget, callClosure, parent, context);
+    const apply = (string: string) => {
+      if (coercePattern && (methodName === "match" || methodName === "matchAll" || methodName === "search"))
+        return callStringPattern(string, methodName, args[0], budget, parent, context);
+      const useRegex = isSandboxRegex(args[0]) && !coercePattern;
+      if (methodName === "replace" || methodName === "replaceAll")
+        return callReplaceLikeMethod(string, methodName, args, budget, callClosure, useRegex, context);
+      if (methodName === "split") return callSplit(string, args, budget, useRegex, parent, context);
+      return callStringMethodBody(string, methodName, args, budget, parent, context);
+    };
     return typeof value === "string" ? apply(value) : Promise.resolve(sandboxString(value, budget, context)).then(apply);
   };
   const symbol = methodName === "match" ? Symbol.match
@@ -223,10 +228,6 @@ function callStringMethodBody(
   methodName: StringMethodName,
   args: readonly SandboxValue[],
   budget: Budget,
-  callClosure: (
-    closure: SandboxClosure,
-    args: readonly SandboxValue[]
-  ) => Promise<SandboxValue> = async (closure, closureArgs) => await closure.call(closureArgs),
   parent?: CompileScope,
   context?: SandboxCallContext
 ): SandboxValue | Promise<SandboxValue> {
@@ -270,11 +271,6 @@ function callStringMethodBody(
     }
     return budget.allocateString(result + value.slice(spanStart));
   }
-
-  if (methodName === "replace" || methodName === "replaceAll") {
-    return callReplaceLikeMethod(value, methodName, args, budget, callClosure, context);
-  }
-  if (methodName === "split") return callSplit(value, args, budget, parent, context);
 
   const regex = args[0];
   if (isSandboxRegex(regex) && regex.lastIndex !== null && typeof regex.lastIndex === "object" &&
@@ -430,13 +426,14 @@ function callReplaceLikeMethod(
   args: readonly SandboxValue[],
   budget: Budget,
   callClosure: (closure: SandboxClosure, args: readonly SandboxValue[]) => Promise<SandboxValue>,
+  useRegex: boolean,
   context?: SandboxCallContext
 ): string | Promise<string> {
   const search = args[0];
   const replacement = args[1];
-  const useRegex = isSandboxRegex(search) && getSandboxPropertyDescriptor(search, Symbol.replace, budget) === undefined;
+  const regexSearch = useRegex && isSandboxRegex(search);
   if (
-    (!useRegex && typeof search !== "string") ||
+    (!regexSearch && typeof search !== "string") ||
     (typeof replacement !== "string" && !isSandboxClosure(replacement))
   ) {
     return (async () => {
@@ -444,9 +441,9 @@ function callReplaceLikeMethod(
       let normalizedReplacement: SandboxValue;
       const release = retainValues(budget, () => [normalizedSearch, normalizedReplacement]);
       try {
-        normalizedSearch = useRegex ? search : await sandboxString(search, budget, context);
+        normalizedSearch = regexSearch ? search : await sandboxString(search, budget, context);
         normalizedReplacement = isSandboxClosure(replacement) ? replacement : await sandboxString(replacement, budget, context);
-        return await callReplaceLikeMethod(value, methodName, [normalizedSearch, normalizedReplacement], budget, callClosure, context);
+        return await callReplaceLikeMethod(value, methodName, [normalizedSearch, normalizedReplacement], budget, callClosure, useRegex, context);
       } finally {
         release();
       }
@@ -612,11 +609,11 @@ function callSplit(
   value: string,
   args: readonly SandboxValue[],
   budget: Budget,
+  useRegex: boolean,
   parent?: CompileScope,
   context?: SandboxCallContext
 ): SandboxValue[] | Promise<SandboxValue[]> {
   const pattern = args[0];
-  const useRegex = isSandboxRegex(pattern) && getSandboxPropertyDescriptor(pattern, Symbol.split, budget) === undefined;
   let separator: string | SandboxRegex | undefined;
   const release = retainValues(budget, () => [value, ...args, separator]);
   const withLimit = (number: number): SandboxValue[] | Promise<SandboxValue[]> => {

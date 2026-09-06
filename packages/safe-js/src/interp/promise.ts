@@ -23,12 +23,17 @@ export type PromiseGlobals = {
 };
 
 const promiseConstructors = new WeakSet<SandboxClosure>();
+const promiseResolvingFunctions = new WeakSet<SandboxClosure>();
 const intrinsicPromiseThenMethods = new WeakSet<SandboxClosure>();
 const intrinsicPromiseConstructors = new WeakMap<Budget, SandboxClosure>();
 const promisePrototypes = new WeakMap<Budget, SandboxObject>();
 
 export function isSandboxPromiseConstructor(value: unknown): value is SandboxClosure {
   return isSandboxClosure(value) && promiseConstructors.has(value);
+}
+
+export function isPromiseResolvingFunction(value: unknown): value is SandboxClosure {
+  return isSandboxClosure(value) && promiseResolvingFunctions.has(value);
 }
 
 export function createPromiseGlobals(options: { budget: Budget }): PromiseGlobals {
@@ -76,29 +81,19 @@ export function createPromiseGlobals(options: { budget: Budget }): PromiseGlobal
       }
     };
     try {
-      const result = executor.call(
-        [
-          createSandboxClosure({
-            sandbox: true,
-            name: "resolve",
-            retainedValues: () => [pending],
-            call: ([value]) => {
-              settle("fulfilled", value);
-              return undefined;
-            }
-          }),
-          createSandboxClosure({
-            sandbox: true,
-            name: "reject",
-            retainedValues: () => [pending],
-            call: ([reason]) => {
-              settle("rejected", reason);
-              return undefined;
-            }
-          })
-        ],
-        { stack: context?.stack ?? [], thisValue: undefined }
-      );
+      const resolvers = (["fulfilled", "rejected"] as const).map(state => {
+        const resolver = createSandboxClosure({
+          sandbox: true, guest: true, name: "", length: 1,
+          retainedValues: () => [pending],
+          call: ([value]) => {
+            settle(state, value);
+            return undefined;
+          }
+        });
+        promiseResolvingFunctions.add(resolver);
+        return resolver;
+      });
+      const result = executor.call(resolvers, { stack: context?.stack ?? [], thisValue: undefined });
       if (executor.async !== true) await result;
       else if (isSandboxPromise(result) && result.synchronousPrefix !== undefined)
         await result.synchronousPrefix;

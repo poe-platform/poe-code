@@ -1,6 +1,7 @@
 export const DUMP_FORMAT_VERSION = 2;
 export const inMemoryRunSnapshots = new WeakSet<object>();
 import { getRegexProperties, isSandboxPromise, isSandboxRegex } from "../interp/values.js";
+import { isPromiseResolvingFunction } from "../interp/promise.js";
 import { isSandboxRegExpIterator, regexpIteratorState } from "../interp/regexp-iterator.js";
 import { hasCustomRegexProperties, serializeRegexProperties, type RegexPropertyData } from "./regexp-properties.js";
 export const EXECUTION_SEMANTICS = "jobs-v8";
@@ -163,10 +164,10 @@ function serializeDumpValue(
     return { kind: "ref", id };
   }
 
-  // Trusted run snapshots rebuild promise properties/prototypes by replay;
+  // Trusted run snapshots rebuild promise and resolver properties by replay;
   // retain their ordinary runtime metadata below. Arbitrary snapshot inputs
   // still cannot serialize managed promise state through this path.
-  if (hasGuestObjectState(value) && !(state.replayPromises && isSandboxPromise(value))) {
+  if (hasGuestObjectState(value) && !(state.replayPromises && (isSandboxPromise(value) || isPromiseResolvingFunction(value)))) {
     throw new TypeError("Guest function properties and prototype links cannot be serialized.");
   }
 

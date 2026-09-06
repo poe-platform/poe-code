@@ -1157,6 +1157,9 @@ async function evaluateLogicalExpression(
   node: LogicalExpression,
   context: EvaluationContext
 ): Promise<EvaluationResult> {
+  if (context.generatorResume !== undefined &&
+      containsResumeTarget(node.right, new Set([context.generatorResume.yieldNodeId])))
+    return evaluateNode(node.right, context);
   const left = await evaluateNode(node.left, context);
   if (left.kind !== "normal") {
     return left;
@@ -1211,6 +1214,11 @@ async function evaluateConditionalExpression(
   node: ConditionalExpression,
   context: EvaluationContext
 ): Promise<EvaluationResult> {
+  if (context.generatorResume !== undefined) {
+    const target = new Set([context.generatorResume.yieldNodeId]);
+    if (containsResumeTarget(node.consequent, target)) return evaluateNode(node.consequent, context);
+    if (containsResumeTarget(node.alternate, target)) return evaluateNode(node.alternate, context);
+  }
   const test = await evaluateNode(node.test, context);
   if (test.kind !== "normal") {
     return test;

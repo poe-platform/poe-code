@@ -1,0 +1,26 @@
+import { S } from "schema";
+
+export const schema = S.Object({ title: S.String() });
+
+export default async (frontmatter) => {
+  function* conditional() {
+    let count = 0;
+    const sent = count++ === 0 ? yield 1 : yield 2;
+    return [count, sent];
+  }
+  async function* logical() {
+    let count = 0;
+    const sent = ++count && (yield 1);
+    return [count, sent];
+  }
+  const results = [];
+  for (const iterator of [conditional(), logical()]) {
+    const first = await iterator.next();
+    const last = await iterator.next(4);
+    if (first.value !== 1 || first.done || !last.done || last.value[0] !== 1 || last.value[1] !== 4) {
+      throw new Error("Generator branch result changed");
+    }
+    results.push(last.value);
+  }
+  return { title: frontmatter.title, ok: true, results };
+};

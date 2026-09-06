@@ -3442,10 +3442,9 @@ describe("parse", () => {
       }
     });
 
-    expect(() => parse("() => { label: work(); }")).toThrowError(DisallowedSyntaxError);
-    expect(() => parse("() => { label: work(); }")).toThrowError(
-      "Disallowed syntax 'label' at line 1, column 9."
-    );
+    expect(parse("() => { label: work(); }")).toMatchObject({
+      body: { body: [{ type: "ExpressionStatement", labels: ["label"] }] }
+    });
 
     expect(parseModule("for (const x in obj) {}")).toMatchObject({
       body: [

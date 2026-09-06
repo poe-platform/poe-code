@@ -10,6 +10,7 @@ import { dump } from "../dump.js";
 import { restore as restoreDump } from "../restore.js";
 
 const bodies = [
+  "let count=0;exit:switch(++count){case 1:yield 1;break exit}return count",
   "let count=0;switch(++count){case 1:yield 1;return count;default:return 9}",
   "let count=0;switch(2){case ++count:yield 1;break;case ++count:yield 2;break}return count",
   "switch(1){case 1:let value=7;yield 1;return value}",

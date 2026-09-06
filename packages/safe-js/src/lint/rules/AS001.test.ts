@@ -6,12 +6,20 @@ describe("AS001", () => {
   const messages = (source: string) => AS001(source).map((diagnostic) => diagnostic.message);
 
   it.each([
+    "first: if (true) { break first; }",
+    "second: switch (value) { case 1: break second; }",
+    "third: value++;",
+    "eval: value++;",
     "exit: { break exit; }",
     "first: second: { break first; }",
     "exit: /* block */ { break exit; }",
     "first: /* nested */ second: /* block */ { break second; }"
   ])("allows supported labeled blocks in %s", source => {
     expect(AS001(source)).toEqual([]);
+  });
+
+  it("checks forbidden operations inside labeled statements", () => {
+    expect(messages('label: eval("value")')).toContain("Disallowed syntax: eval.");
   });
 
   it.each([
@@ -74,20 +82,7 @@ describe("AS001", () => {
       }
     ]);
 
-    expect(AS001("label: value")).toEqual([
-      {
-        code: "AS001",
-        severity: "error",
-        message: "Disallowed syntax: label.",
-        filename: "<input>",
-        line: 1,
-        column: 1,
-        span: {
-          start: { line: 1, column: 1, offset: 0 },
-          end: { line: 1, column: 6, offset: 5 }
-        }
-      }
-    ]);
+    expect(AS001("label: value")).toEqual([]);
 
     expect(AS001("/value+/gi")).toEqual([]);
 

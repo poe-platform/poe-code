@@ -515,6 +515,8 @@ export async function evaluateNode(
       compilation,
       context.compilation
     );
+    if (result.kind === "break" && result.label !== undefined && "labels" in node && node.labels?.includes(result.label))
+      return { kind: "normal", hasValue: false, value: undefined };
     return result;
   } catch (error) {
     if (error instanceof HostCallResumabilityError) {
@@ -1532,8 +1534,6 @@ async function evaluateBlockStatement(
       continue;
     }
     const result = await evaluateNode(statement, blockContext);
-    if (result.kind === "break" && result.label !== undefined && node.labels?.includes(result.label))
-      return { kind: "normal", hasValue: false, value: undefined };
     if (result.kind !== "normal") {
       return result;
     }

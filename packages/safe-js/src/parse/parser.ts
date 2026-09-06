@@ -33,6 +33,7 @@ export class DisallowedSyntaxError extends Error {
 
 type BaseNode = {
   nodeId?: number;
+  labels?: string[];
   type: string;
   span: SourceSpan;
 };
@@ -1206,7 +1207,12 @@ class Parser {
       if (token.type === "keyword" && token.value === "while") return this.parseWhileStatement(labels);
       if (token.type === "keyword" && token.value === "do") return this.parseDoWhileStatement(labels);
       if (token.type === "punctuator" && token.value === "{") return { ...this.parseBlockStatement(), labels };
-      throw new DisallowedSyntaxError("label", firstLabelToken.start);
+      if (["let", "const", "class", "function", "import", "export"].includes(token.value) || this.isAsyncFunctionDeclarationStart())
+        throw new DisallowedSyntaxError("labeled declaration", firstLabelToken.start);
+      const statement = this.parseStatement();
+      if (statement.type === "ImportDeclaration" || statement.type === "ExportDefaultDeclaration" || statement.type === "ExportNamedDeclaration")
+        throw new DisallowedSyntaxError("labeled declaration", firstLabelToken.start);
+      return { ...statement, labels, span: createSpan(firstLabelToken.start, statement.span.end) };
     } finally {
       for (const label of labels) this.activeLabels.delete(label);
     }

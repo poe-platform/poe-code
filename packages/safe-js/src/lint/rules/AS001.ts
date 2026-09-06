@@ -211,18 +211,8 @@ class AS001Scanner {
           nextSignificantChar
         );
 
-        if (
-          canStartStatement &&
-          nextSignificantChar === ":" &&
-          token.value !== "default" &&
-          !this.isSupportedLabelStart()
-        ) {
-          this.report(
-            "label",
-            token.start,
-            this.positionWithinSource(token.start.offset + token.value.length)
-          );
-        } else if (!isMemberProperty && !isPropertyKey && !isMemberName) {
+        const isLabel = canStartStatement && nextSignificantChar === ":" && token.type === "identifier";
+        if (!isLabel && !isMemberProperty && !isPropertyKey && !isMemberName) {
           this.reportForbiddenIdentifier(token);
           if (token.value === "class") {
             pendingClassBody = true;
@@ -513,36 +503,6 @@ class AS001Scanner {
   private peekNextSignificantChar(): string | undefined {
     const nextIndex = this.skipTriviaFrom(this.index);
     return nextIndex >= this.source.length ? undefined : this.source[nextIndex];
-  }
-
-  private isSupportedLabelStart(): boolean {
-    let index = this.skipTriviaFrom(this.index);
-    if (this.source[index] !== ":") {
-      return false;
-    }
-
-    index = this.skipTriviaFrom(index + 1);
-
-    while (index < this.source.length) {
-      if (this.source[index] === "{") return true;
-      const identifier = readIdentifierAt(this.source, index);
-      if (identifier === undefined) {
-        return false;
-      }
-
-      if (identifier.value === "for" || identifier.value === "while" || identifier.value === "do") {
-        return true;
-      }
-
-      const nextIndex = this.skipTriviaFrom(identifier.end);
-      if (this.source[nextIndex] !== ":") {
-        return false;
-      }
-
-      index = this.skipTriviaFrom(nextIndex + 1);
-    }
-
-    return false;
   }
 
   private skipTriviaFrom(start: number): number {
@@ -837,25 +797,6 @@ function isIdentifierStart(char: string): boolean {
 
 function isIdentifierPart(char: string): boolean {
   return isIdentifierStart(char) || isDecimalDigit(char);
-}
-
-function readIdentifierAt(
-  source: string,
-  start: number
-): { value: string; end: number } | undefined {
-  if (!isIdentifierStart(source[start] ?? "")) {
-    return undefined;
-  }
-
-  let end = start + 1;
-  while (end < source.length && isIdentifierPart(source[end] ?? "")) {
-    end += 1;
-  }
-
-  return {
-    value: source.slice(start, end),
-    end
-  };
 }
 
 function isAsciiLetter(char: string): boolean {

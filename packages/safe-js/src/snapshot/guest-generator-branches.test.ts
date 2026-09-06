@@ -7,6 +7,8 @@ import { restore } from "./restore.js";
 import { serialize, type RuntimeSnapshotValue } from "./serialize.js";
 
 const bodies = [
+  "exit:if(++count===1){yield 1;break exit}return count",
+  "exit:try{yield 1;break exit}finally{yield ++count}return count",
   "if(++count===1){yield 1;return count}return 9",
   "if(++count!==1){return 9}else{yield 1;return count}",
   "if(++count===1){if(++count===2){yield 1;return count}}return 9",

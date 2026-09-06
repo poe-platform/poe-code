@@ -260,6 +260,9 @@ Limits:
   Output: ${browserLimits.maxOutputBytes! / 1024} KiB; source: ${browserLimits.maxSourceBytes! / 1024} KiB.
   Commands: ${browserLimits.maxCommands}; loop iterations: ${browserLimits.maxLoopIterations}.
   A 5-second timeout requests cooperative cancellation, not a hard CPU/heap limit.
+  Regex/ERE workers use protocol work/byte budgets and timeouts.
+  Node resourceLimits heap/stack caps are not enforced in browser workers.
+  Worker cleanup does not guarantee page survival under memory exhaustion.
 
 Cwd and files persist between commands; variables and functions do not.
 Uploads are saved under /home/uploads. Reload/Reset discards the workspace.

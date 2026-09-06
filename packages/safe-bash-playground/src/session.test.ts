@@ -39,6 +39,9 @@ describe("PlaygroundSession", () => {
     expect(result.stdout).toContain("not installed");
     expect(result.stdout).toContain("All 79 agent commands");
     expect(result.stdout).toContain("Web Workers");
+    expect(result.stdout).toContain("Regex/ERE workers use protocol work/byte budgets and timeouts.");
+    expect(result.stdout).toContain("Node resourceLimits heap/stack caps are not enforced in browser workers.");
+    expect(result.stdout).toContain("Worker cleanup does not guarantee page survival under memory exhaustion.");
     expect(result.stdout).not.toContain("grep, rg, sed, awk, jq, and [[ =~ ]] are unavailable");
     expect(await session.complete("hel")).toContain("help");
     const builtins = result.stdout.split("Shell builtins:\n")[1]!.split("\n")[0]!.split(" ");

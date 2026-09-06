@@ -1,0 +1,22 @@
+import { S } from "schema";
+
+export const schema = S.Object({ title: S.String() });
+
+export default async function main(frontmatter) {
+  const regex = /a/g;
+  regex.lastIndex = 1;
+  const iterator = 'ababa'.matchAll(regex);
+  regex.lastIndex = 0;
+  const first = iterator.next();
+  await 0;
+  const remaining = Array.from(iterator).map(match => match.index);
+  if (first.value.index !== 2 || remaining.length !== 1 || remaining[0] !== 4)
+    throw new Error('Cursor isolation or partial consumption failed');
+  if (!iterator.next().done || Array.from(iterator).length !== 0)
+    throw new Error('Iterator exhaustion failed');
+  const empty = Array.from('ab'.matchAll(/(?:)/g)).map(match => match.index);
+  if (empty.join(',') !== '0,1,2') throw new Error('Empty match progress failed');
+  if (Object.prototype.toString.call(iterator) !== '[object RegExp String Iterator]')
+    throw new Error('Iterator type tag failed');
+  return { ok: true, title: frontmatter.title, first: first.value.index, remaining, empty, sourceCursor: regex.lastIndex };
+}

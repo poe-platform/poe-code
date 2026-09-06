@@ -12,6 +12,8 @@ import { isFloat32Array } from "./float32.js";
 import { boxedValue, isSandboxBox } from "./boxed.js";
 import { getHostObjectIterator, isGuestHostObject } from "./host-capabilities.js";
 import { isSandboxCollectionIterator, nextCollectionIterator } from "./collection-iterator.js";
+import { isSandboxRegExpIterator } from "./regexp-iterator.js";
+import { nextRegExpIterator } from "./methods/regexp-iterator.js";
 import { Budget, isFatalSandboxError } from "./budget.js";
 import { sandboxString } from "./string-coercion.js";
 import { awaitSandboxValue, awaitWithSignal } from "./cancel.js";
@@ -52,7 +54,8 @@ export async function acquireSandboxIterator(
     return asyncProtocol
       ? getSandboxAsyncIterator(value, budget, context, signal)
       : getSandboxIterator(value, budget, context);
-  if (getSandboxPropertyDescriptor(value, key, budget) === undefined) {
+  if (getSandboxPropertyDescriptor(value, key, budget) === undefined &&
+      !(isSandboxRegExpIterator(value) && !asyncProtocol && getSandboxPropertyDescriptor(value, "next", budget) !== undefined)) {
     if (!asyncProtocol) return getSandboxIterator(value, budget, context);
     if (isSandboxGenerator(value) && value.async)
       return getSandboxAsyncIterator(value, budget, context, signal);
@@ -292,6 +295,8 @@ export function getSandboxIterator(
   }
   if (isSandboxCollectionIterator(value))
     return { next: () => nextCollectionIterator(value, budget), snapshotIndex: () => 0 };
+  if (isSandboxRegExpIterator(value))
+    return { next: () => nextRegExpIterator(value, budget), snapshotIndex: () => 0 };
   if (isGuestHostObject(value)) return getHostObjectIterator(value);
   if (isFloat32Array(value)) {
     return syncIterator(Float32Array.prototype.values.call(value));

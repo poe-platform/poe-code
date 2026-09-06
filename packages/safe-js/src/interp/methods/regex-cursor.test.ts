@@ -4,6 +4,8 @@ import { Budget } from "../budget.js";
 import { createSandboxRegex } from "../values.js";
 import { callRegexMethod } from "./regex.js";
 import { callStringMethod } from "./string.js";
+import { isSandboxRegExpIterator } from "../regexp-iterator.js";
+import { nextRegExpIterator } from "./regexp-iterator.js";
 
 const originalCursorWorkflow = `const expression = /a/g;
 expression.lastIndex = 2;
@@ -80,7 +82,7 @@ describe("STR-04 regex cursor semantics", () => {
         expected = "aba"[method](native);
       }
       const regex = createSandboxRegex("a", flags, lastIndex);
-      const actual =
+      let actual =
         method === "exec" || method === "test"
           ? await callRegexMethod(regex, method, ["aba"], new Budget())
           : await callStringMethod(
@@ -89,6 +91,10 @@ describe("STR-04 regex cursor semantics", () => {
               [regex, ...(method === "replace" || method === "replaceAll" ? ["X"] : [])],
               new Budget()
             );
+      if (isSandboxRegExpIterator(actual)) {
+        const iterator = actual;
+        actual = Array.from({ [Symbol.iterator]: () => ({ next: () => nextRegExpIterator(iterator) }) });
+      }
       expect(regex.lastIndex).toBe(native.lastIndex);
       expect(JSON.parse(JSON.stringify(actual))).toEqual(JSON.parse(JSON.stringify(expected)));
     }

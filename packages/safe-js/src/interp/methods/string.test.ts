@@ -9,6 +9,8 @@ import {
   type SandboxValue
 } from "../values.js";
 import { callStringMethod, getStringMember, validateStringMethodArguments } from "./string.js";
+import { isSandboxRegExpIterator } from "../regexp-iterator.js";
+import { nextRegExpIterator } from "./regexp-iterator.js";
 
 type StringMethodName = Parameters<typeof callStringMethod>[1];
 
@@ -394,7 +396,9 @@ describe("regex string methods", () => {
     expect(callStringMethod("baac", "match", [createSandboxRegex("(a+)")], budget)).toEqual(
       Object.assign(["aa", "aa"], { index: 1, input: "baac" })
     );
-    expect(callStringMethod("a1a2", "matchAll", [createSandboxRegex("a(.)", "g")], budget)).toEqual(
+    const iterator = callStringMethod("a1a2", "matchAll", [createSandboxRegex("a(.)", "g")], budget);
+    if (!isSandboxRegExpIterator(iterator)) throw new Error("Expected a RegExp iterator");
+    expect(Array.from({ [Symbol.iterator]: () => ({ next: () => nextRegExpIterator(iterator, budget) }) })).toEqual(
       [
         Object.assign(["a1", "1"], { index: 0, input: "a1a2" }),
         Object.assign(["a2", "2"], { index: 2, input: "a1a2" })

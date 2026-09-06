@@ -14,10 +14,11 @@ import { getGuestFunctionProperties, getGuestFunctionProperty, getSandboxDataPro
 import { functionSources } from "../parse/function-source.js";
 import { wrapCallerInjectedBindings, type CallerInjectedBinding } from "../interp/host-bridge.js";
 import { restoreSandboxCollectionIterator } from "../interp/collection-iterator.js";
+import { restoreSandboxRegExpIterator } from "../interp/regexp-iterator.js";
 import { wellKnownSymbols } from "../interp/symbols.js";
 import { restoreSymbolProperties } from "./symbols.js";
 import { restoreDateProperties } from "./date-properties.js";
-import { isSandboxMap, isSandboxSet } from "../interp/values.js";
+import { isSandboxMap, isSandboxSet, isSandboxRegex } from "../interp/values.js";
 import {
   createSandboxArguments,
   createSandboxClosure,
@@ -628,6 +629,19 @@ function restoreHeapValue(id: number, state: RestoreState): RuntimeSnapshotValue
     }
     if (!serialized.extensible) Object.preventExtensions(args);
     return args as RuntimeSnapshotValue;
+  }
+
+  if (serialized.kind === "regexp-iterator") {
+    const iterator = restoreSandboxRegExpIterator({ matcher: undefined, input: undefined, exhausted: true });
+    state.heapValueById.set(id, iterator);
+    const matcher = deserializeValue(serialized.matcher, state);
+    const input = deserializeValue(serialized.input, state);
+    if (matcher !== undefined && !isSandboxRegex(matcher)) throw new TypeError("Invalid RegExp iterator matcher.");
+    if (input !== undefined && typeof input !== "string") throw new TypeError("Invalid RegExp iterator input.");
+    restoreSandboxRegExpIterator({ matcher, input, exhausted: serialized.exhausted }, iterator);
+    for (const [key, entry] of Object.entries(serialized.entries)) Object.defineProperty(iterator, key, { value: deserializeValue(entry, state), enumerable: true, configurable: true, writable: true });
+    restoreSymbolProperties(iterator, serialized.symbolEntries, entry => deserializeValue(entry, state));
+    return iterator;
   }
 
   if (serialized.kind === "collection-iterator") {

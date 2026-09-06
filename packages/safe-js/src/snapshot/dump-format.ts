@@ -1,5 +1,6 @@
 export const DUMP_FORMAT_VERSION = 1;
 import { getRegexProperties, isSandboxRegex } from "../interp/values.js";
+import { isSandboxRegExpIterator, regexpIteratorState } from "../interp/regexp-iterator.js";
 import { hasCustomRegexProperties, serializeRegexProperties, type RegexPropertyData } from "./regexp-properties.js";
 export const EXECUTION_SEMANTICS = "jobs-v8";
 import { assertSnapshotGraphDepth } from "../graph-depth.js";
@@ -28,6 +29,7 @@ type DumpValue =
     };
 
 type DumpHeapValue =
+  | { kind: "regexp-iterator"; matcher: DumpValue; input: DumpValue; exhausted: boolean; entries: Record<string, DumpValue>; symbolEntries?: Array<SerializedSymbolProperty<DumpValue>> }
   | ({ kind: "regex-object"; source: string; flags: string; lastIndex: DumpValue } & RegexPropertyData<DumpValue>)
   | SerializedSymbol
   | BoxedData<DumpValue>
@@ -140,7 +142,7 @@ function serializeDumpValue(
     throw new TypeError("Guest function properties and prototype links cannot be serialized.");
   }
 
-  if ((isSandboxRegex(value) && hasCustomRegexProperties(value)) || isSandboxBox(value) || isSandboxDate(value) || isFloat32Array(value)) return serializeHeapReference(value, path, state)!;
+  if (isSandboxRegExpIterator(value) || (isSandboxRegex(value) && hasCustomRegexProperties(value)) || isSandboxBox(value) || isSandboxDate(value) || isFloat32Array(value)) return serializeHeapReference(value, path, state)!;
 
   if (Array.isArray(value)) {
     const reference = serializeHeapReference(value, path, state);
@@ -181,7 +183,26 @@ function serializeHeapReference(
   if (!state.serializedHeapIds.has(id)) {
     state.serializedHeapIds.add(id);
 
-    if (isSandboxRegex(value) && hasCustomRegexProperties(value)) {
+    if (isSandboxRegExpIterator(value)) {
+      const snapshot = regexpIteratorState(value);
+      const matcher = snapshot.matcher;
+      const entries: Record<string, DumpValue> = Object.create(null);
+      state.heap[String(id)] = {
+        kind: "regexp-iterator", exhausted: snapshot.exhausted,
+        matcher: matcher === undefined ? { kind: "undefined" } : { kind: "regex", source: matcher.source, flags: matcher.flags, lastIndex: Number(matcher.lastIndex) },
+        input: snapshot.input ?? { kind: "undefined" }, entries,
+        symbolEntries: serializeSymbolProperties(value, entry => {
+          const serialized = serializeDumpValue(entry, `${path}.[symbol]`, state);
+          if (serialized === SKIP_VALUE) throw new TypeError("Unsupported RegExp iterator symbol property in public dump.");
+          return serialized;
+        })
+      };
+      for (const [key, entry] of getEnumerableDataEntries(value)) {
+        const serialized = serializeDumpValue(entry, `${path}.${key}`, state);
+        if (serialized === SKIP_VALUE) throw new TypeError("Unsupported RegExp iterator property in public dump.");
+        entries[key] = serialized;
+      }
+    } else if (isSandboxRegex(value) && hasCustomRegexProperties(value)) {
       const encode = (entry: unknown): DumpValue => {
         const serialized = serializeDumpValue(entry, `${path}.<regex-property>`, state);
         if (serialized === SKIP_VALUE) throw new TypeError("Unsupported RegExp property in public dump.");
@@ -285,6 +306,7 @@ function indexHeapContainers(snapshot: DumpableSnapshot): Map<object | symbol, n
       stat.cyclic ||
       ownSerializableSymbolKeys(value).length > 0 ||
       isSandboxBox(value) ||
+      isSandboxRegExpIterator(value) ||
       (isSandboxRegex(value) && hasCustomRegexProperties(value)) ||
       isSandboxDate(value) ||
       isFloat32Array(value) ||

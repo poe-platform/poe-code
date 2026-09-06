@@ -5,6 +5,8 @@ import { Budget } from "../budget.js";
 import { CompileScope } from "../regex/compile-guard.js";
 import { createSandboxClosure } from "../values.js";
 import { callStringMethod } from "./string.js";
+import { isSandboxRegExpIterator } from "../regexp-iterator.js";
+import { nextRegExpIterator } from "./regexp-iterator.js";
 
 const methods = ["search", "match", "matchAll"] as const;
 
@@ -130,8 +132,15 @@ describe("String pattern admission and ownership", () => {
     expect([...budget.retainedValues()]).toEqual([]);
   });
 
-  it("enforces matchAll output length on the internal method path", async () => {
-    await expect(callStringMethod("aaaa", "matchAll", ["a"], new Budget({ arrayLength: 2 }))).rejects.toMatchObject({ code: "budgetExceeded", budget: "arrayLength" });
+  it("creates matchAll lazily and enforces capture output length when advancing", async () => {
+    const budget = new Budget({ arrayLength: 2 });
+    const iterator = await callStringMethod("aaaa", "matchAll", ["a"], budget);
+    if (!isSandboxRegExpIterator(iterator)) throw new Error("Expected a RegExp iterator");
+    expect(nextRegExpIterator(iterator, budget)).toMatchObject({ done: false, value: { 0: "a", index: 0 } });
+    const captures = await callStringMethod("a", "matchAll", ["((a))"], budget);
+    if (!isSandboxRegExpIterator(captures)) throw new Error("Expected a RegExp iterator");
+    expect(() => nextRegExpIterator(captures, budget)).toThrowError(expect.objectContaining({ code: "budgetExceeded", budget: "arrayLength" }));
+    await expect(run("return Array.from('aaaa'.matchAll(/a/g));", { budget: new Budget({ arrayLength: 2 }) })).rejects.toMatchObject({ code: "budgetExceeded", budget: "arrayLength" });
   });
 
   it("keeps a coercion loop's step exhaustion fatal", async () => {

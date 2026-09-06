@@ -19,6 +19,7 @@ import {
   type SandboxValue
 } from "../values.js";
 import { executeRegex, toMatchArray } from "./regex.js";
+import { restoreSandboxRegExpIterator } from "../regexp-iterator.js";
 
 const SPLIT_STRING_MESSAGE = "String#split only supports string separator values.";
 
@@ -726,11 +727,10 @@ function callMatchLikeMethod(
     methodName === "matchAll"
       ? createSandboxRegex(regex.source, regex.flags, normalizeLastIndex(lastIndex ?? Number(regex.lastIndex)), compilation)
       : regex;
+  if (methodName === "matchAll")
+    return restoreSandboxRegExpIterator({ matcher, input: value, exhausted: false });
   const matches = collectRegexMatches(matcher, value, matcher.flags.includes("g"), compilation.owner?.budget, Number(matcher.lastIndex));
-  if (methodName === "match" && matches.length === 0) return null;
-  return methodName === "match"
-    ? matches.map((match) => match.text)
-    : matches.map((match) => toMatchArray(match, value));
+  return matches.length === 0 ? null : matches.map((match) => match.text);
 }
 
 function collectRegexMatches(regex: SandboxRegex, value: string, all: boolean, budget?: Budget, lastIndex = 0) {

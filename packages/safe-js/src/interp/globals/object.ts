@@ -8,6 +8,7 @@ import { isSandboxErrorConstructorInstance } from "../exceptions.js";
 import { isFloat32Array } from "../float32.js";
 import { hasHostObjectMember, isGuestHostObject } from "../host-capabilities.js";
 import { collectionIteratorState, isSandboxCollectionIterator } from "../collection-iterator.js";
+import { isSandboxRegExpIterator } from "../regexp-iterator.js";
 import {
   getSandboxPrototype,
   getSandboxPropertyDescriptor,
@@ -201,6 +202,7 @@ function typeTag(value: SandboxValue, builtinOnly = false): string {
   if (builtinOnly) return "Object";
   if (isSandboxMap(value)) return "Map";
   if (isSandboxSet(value)) return "Set";
+  if (isSandboxRegExpIterator(value)) return "RegExp String Iterator";
   if (isSandboxCollectionIterator(value)) return collectionIteratorState(value).collectionKind === "map" ? "Map Iterator" : "Set Iterator";
   if (isSandboxPromise(value)) return "Promise";
   if (isSandboxGenerator(value)) return "Generator";

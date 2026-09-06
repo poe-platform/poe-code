@@ -138,6 +138,8 @@ import { hasOwnSandboxProperty } from "./globals/object.js";
 import { isSandboxMapConstructor, isSandboxSetConstructor } from "./globals/collections.js";
 import { collectionIteratorState, isSandboxCollectionIterator } from "./collection-iterator.js";
 import { getCollectionIteratorMember } from "./methods/collection-iterator.js";
+import { isSandboxRegExpIterator, regexpIteratorState } from "./regexp-iterator.js";
+import { getRegExpIteratorMember } from "./methods/regexp-iterator.js";
 import {
   getFloat32Member,
   isFloat32ArrayConstructor,
@@ -1347,6 +1349,7 @@ function isRestorableBindingValue(value: InterpreterValue, seen = new WeakSet<ob
   }
   if (seen.has(value)) return true;
   seen.add(value);
+  if (isSandboxRegExpIterator(value)) return isRestorableBindingValue(regexpIteratorState(value).matcher, seen);
   if (isSandboxCollectionIterator(value)) {
     return isRestorableBindingValue(collectionIteratorState(value).collection, seen);
   }
@@ -1691,7 +1694,7 @@ async function evaluateForOfStatement(
     const restored = context.scope.consumeRestoredBinding(restoredIteration.values[0]);
     if (restored.found && Array.isArray(restored.value)) {
       restoredEntry = { done: false, value: restored.value[1] };
-      if (Array.isArray(restored.value[0]) || isSandboxMap(restored.value[0]) || isSandboxSet(restored.value[0]) || isSandboxCollectionIterator(restored.value[0])) {
+      if (Array.isArray(restored.value[0]) || isSandboxMap(restored.value[0]) || isSandboxSet(restored.value[0]) || isSandboxCollectionIterator(restored.value[0]) || isSandboxRegExpIterator(restored.value[0])) {
         return evaluateForOfIterator(node, restored.value[0], context, restoredEntry);
       }
     }
@@ -2158,7 +2161,7 @@ function createLoopIterationContext(context: EvaluationContext, scope: Scope): E
       for (const [nodeId, iteration] of context.activeLoopIterations) {
         if (
           typeof iteration !== "number" &&
-          (Array.isArray(iteration.values[0]) || isSandboxMap(iteration.values[0]) || isSandboxSet(iteration.values[0]) || isSandboxCollectionIterator(iteration.values[0]))
+          (Array.isArray(iteration.values[0]) || isSandboxMap(iteration.values[0]) || isSandboxSet(iteration.values[0]) || isSandboxCollectionIterator(iteration.values[0]) || isSandboxRegExpIterator(iteration.values[0]))
         ) {
           const bindingName = `#for-of:${nodeId}`;
           snapshot.bindings[bindingName] = iteration.values;
@@ -2638,6 +2641,7 @@ function getPropertyValue(
   const descriptor = getSandboxPropertyDescriptor(target, property, context.budget);
   if (descriptor !== undefined)
     return readPropertyDescriptor(descriptor, receiver, createCoercionContext(context), true);
+  if (isSandboxRegExpIterator(target)) return getRegExpIteratorMember(property, context.budget);
   if (typeof target === "symbol") {
     const prototype = getBoxedPrototype(target, context.budget);
     return prototype === undefined ? undefined : getPropertyValue(prototype, property, context, receiver);
@@ -3391,7 +3395,7 @@ function hasSandboxProperty(value: SandboxValue, key: PropertyKey, context: Eval
     if (hasOwnSandboxProperty(current, key, false)) return true;
     if (!((isGuestClosure(current) || Array.isArray(current)) && hasExplicitSandboxPrototype(current)) &&
         (Array.isArray(current) || !isPlainSandboxObject(current) ||
-        isSandboxDate(current) || isFloat32Array(current) || isSandboxGenerator(current) || isSandboxCollectionIterator(current))) {
+        isSandboxDate(current) || isFloat32Array(current) || isSandboxGenerator(current) || isSandboxCollectionIterator(current) || isSandboxRegExpIterator(current))) {
       return getPropertyValue(current, key, context) !== undefined;
     }
     current = getSandboxPrototype(current, context.budget) as SandboxValue;
@@ -3667,7 +3671,7 @@ function getMemberValue(
   while (typeof current === "object" && current !== null) {
     if (isSandboxClosure(current)) return getClosureMemberValue(current, property, context);
     if (Array.isArray(current)) return getArrayMemberValue(current, property, context);
-    if (!isPlainSandboxObject(current) || isSandboxGenerator(current) || isSandboxCollectionIterator(current) || isFloat32Array(current)) {
+    if (!isPlainSandboxObject(current) || isSandboxGenerator(current) || isSandboxCollectionIterator(current) || isSandboxRegExpIterator(current) || isFloat32Array(current)) {
       return getPropertyValue(current, property, context);
     }
     if (Object.hasOwn(current, String(property))) return (current as SandboxObject)[String(property)];

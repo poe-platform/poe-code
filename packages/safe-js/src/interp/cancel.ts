@@ -1,5 +1,6 @@
 import { AsyncLocalStorage } from "node:async_hooks";
 import { collectionIteratorState, isSandboxCollectionIterator } from "./collection-iterator.js";
+import { regexpIteratorState, isSandboxRegExpIterator } from "./regexp-iterator.js";
 import { getSandboxPrototype } from "./object-model.js";
 import {
   createSandboxPromise,
@@ -126,6 +127,7 @@ function registerCancelablePromises(value: SandboxValue, signal: AbortSignal): v
       for (const entry of current.values) pending.push(entry);
     } else {
       if (isSandboxCollectionIterator(current)) pending.push(collectionIteratorState(current).collection);
+      if (isSandboxRegExpIterator(current)) pending.push(regexpIteratorState(current).matcher);
       for (const descriptor of Object.values(Object.getOwnPropertyDescriptors(current))) {
         if ("value" in descriptor) pending.push(descriptor.value as SandboxValue);
       }

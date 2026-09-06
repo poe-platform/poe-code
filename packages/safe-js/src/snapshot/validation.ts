@@ -125,6 +125,10 @@ function validateDumpHeap(root: Record<string, unknown>, state: ValidationState)
     const entry = requireRecord(value, path);
     validateErrorType(entry, path);
     validateSymbolEntries(entry, path, state, heap);
+    if (entry.kind === "regexp-iterator") {
+      validateHeapValue(entry, path, state, heap);
+      continue;
+    }
     if (entry.kind === "regex-object") {
       validateTaggedValue(entry, path, state);
       continue;
@@ -488,6 +492,7 @@ function validateTaggedValue(
     case "map":
     case "set":
     case "collection-iterator":
+    case "regexp-iterator":
       return;
   }
 }
@@ -544,7 +549,7 @@ function validateGeneratorShape(
 function validateHeapValue(value: unknown, path: string, state: ValidationState, heap: Record<string, unknown>): void {
   const record = requireRecord(value, path);
   validateErrorType(record, path);
-  if (!["symbol", "arguments", "array", "object", "map", "set", "float32array", "date", "boxed", "collection-iterator", "regex-object"].includes(String(record.kind)))
+  if (!["symbol", "arguments", "array", "object", "map", "set", "float32array", "date", "boxed", "collection-iterator", "regexp-iterator", "regex-object"].includes(String(record.kind)))
     fail("unknownTag", `${path}.kind`, "unknown heap tag");
   validateValue(record, path, 1, state);
   if (record.kind === "symbol") validateSymbolRecord(record, path, state);
@@ -565,6 +570,11 @@ function validateHeapValue(value: unknown, path: string, state: ValidationState,
     });
   }
   if (record.kind === "set") requireArray(record.values, `${path}.values`, state);
+  if (record.kind === "regexp-iterator") {
+    if (typeof record.exhausted !== "boolean") fail("invalidValue", `${path}.exhausted`, "invalid iterator exhaustion");
+    if (!Object.hasOwn(record, "matcher") || !Object.hasOwn(record, "input")) fail("invalidValue", path, "missing RegExp iterator state");
+    requireRecord(record.entries, `${path}.entries`);
+  }
   if (record.kind === "collection-iterator") {
     if (record.collectionKind !== "map" && record.collectionKind !== "set") fail("invalidValue", `${path}.collectionKind`, "invalid iterator brand");
     if (record.method !== "keys" && record.method !== "values" && record.method !== "entries") fail("invalidValue", `${path}.method`, "invalid iteration method");
@@ -582,7 +592,7 @@ function validateSymbolEntries(
   heap: Record<string, unknown>
 ): void {
   if (record.symbolEntries === undefined) return;
-  if (record.kind !== "object" && record.kind !== "array" && record.kind !== "date" && record.kind !== "boxed" && record.kind !== "regex-object")
+  if (record.kind !== "object" && record.kind !== "array" && record.kind !== "date" && record.kind !== "boxed" && record.kind !== "regex-object" && record.kind !== "regexp-iterator")
     fail("invalidValue", `${path}.symbolEntries`, "symbol properties are unsupported for this heap kind");
   const entries = requireArray(record.symbolEntries, `${path}.symbolEntries`, state);
   const keys = new Set<number>();

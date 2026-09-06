@@ -8,6 +8,7 @@ import { float32Storage, isFloat32Array } from "./float32.js";
 import { assertSandboxDataDepth } from "../graph-depth.js";
 import { isGuestHostObject } from "./host-capabilities.js";
 import { collectionIteratorState, isSandboxCollectionIterator } from "./collection-iterator.js";
+import { isSandboxRegExpIterator } from "./regexp-iterator.js";
 import {
   getGuestFunctionProperties,
   getSandboxPrototype,
@@ -150,6 +151,7 @@ function conversionHook(
       isSandboxMap(value) ||
       isSandboxSet(value) ||
       isSandboxCollectionIterator(value) ||
+      isSandboxRegExpIterator(value) ||
       isSandboxPromise(value) ||
       isSandboxRegex(value) ||
       isSandboxGenerator(value) ||
@@ -192,6 +194,7 @@ async function defaultToString(
   if (isSandboxClosure(value)) return budget.allocateString(functionString(value));
   if (isSandboxMap(value)) return "[object Map]";
   if (isSandboxSet(value)) return "[object Set]";
+  if (isSandboxRegExpIterator(value)) return "[object RegExp String Iterator]";
   if (isSandboxCollectionIterator(value))
     return collectionIteratorState(value).collectionKind === "map"
       ? "[object Map Iterator]"

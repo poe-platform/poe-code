@@ -2,6 +2,7 @@ import { replaceErrorStack } from "./error/shape.js";
 import { SandboxError } from "./interp/budget.js";
 import { getSandboxArgumentEntries, isSandboxArguments } from "./interp/arguments.js";
 import { collectionIteratorState, isSandboxCollectionIterator } from "./interp/collection-iterator.js";
+import { regexpIteratorState, isSandboxRegExpIterator } from "./interp/regexp-iterator.js";
 import { isSandboxMap, isSandboxSet } from "./interp/collection-brands.js";
 import { boxedDataProperties, isSandboxBox } from "./interp/boxed.js";
 import { regexGuestProperties } from "./interp/regexp-properties.js";
@@ -101,6 +102,7 @@ function graphEntries(value: object): Array<[string, unknown]> {
 
   const entries: Array<[string, unknown]> = [];
   if (isSandboxCollectionIterator(value)) entries.push([".<collection>", collectionIteratorState(value).collection]);
+  if (isSandboxRegExpIterator(value)) entries.push([".<matcher>", regexpIteratorState(value).matcher]);
   for (const key of Object.keys(value)) {
     const descriptor = Object.getOwnPropertyDescriptor(value, key);
     if (descriptor !== undefined && "value" in descriptor)

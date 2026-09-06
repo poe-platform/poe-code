@@ -5,6 +5,7 @@ export { getRegexProperties } from "./regexp-properties.js";
 import { retainedAccessorClosures } from "./accessors.js";
 import { isSandboxMap, isSandboxSet, sandboxMapBrand, sandboxSetBrand } from "./collection-brands.js";
 import { collectionIteratorState, isSandboxCollectionIterator, restoreSandboxCollectionIterator, snapshotCollectionIterator, type SandboxCollectionIterator } from "./collection-iterator.js";
+import { regexpIteratorState, isSandboxRegExpIterator, restoreSandboxRegExpIterator, type SandboxRegExpIterator } from "./regexp-iterator.js";
 import { copyNativeDate, dateDataProperties, exportDate, isSandboxDate } from "./date.js";
 import { boxedDataProperties, boxedValue, createSandboxBox, isSandboxBox, nativeBoxedValue } from "./boxed.js";
 import { getHostObjectKeys, getHostObjectMember, hasHostObjectMember, measureHostObjectData, isGuestHostObject, isLiveCapability } from "./host-capabilities.js";
@@ -60,6 +61,7 @@ export type SandboxValue =
   | SandboxClosure
   | SandboxGenerator
   | SandboxCollectionIterator
+  | SandboxRegExpIterator
   | SandboxMap
   | SandboxSet
   | SandboxPromise
@@ -614,6 +616,16 @@ export function measureSandboxData(
       }
       return;
     }
+    if (isSandboxRegExpIterator(value)) {
+      const state = regexpIteratorState(value);
+      visit(state.matcher, depth + 1);
+      visit(state.input, depth + 1);
+      for (const [key, descriptor] of Object.entries(Object.getOwnPropertyDescriptors(value))) {
+        usage += key.length + 1;
+        if ("value" in descriptor) visit(descriptor.value, depth + 1);
+      }
+      return;
+    }
     if (isSandboxCollectionIterator(value)) {
       visit(collectionIteratorState(value).collection, depth + 1);
       for (const [key, descriptor] of Object.entries(Object.getOwnPropertyDescriptors(value))) {
@@ -815,6 +827,23 @@ function copyToSandbox(
     isSandboxPromise(value)
   ) {
     return value;
+  }
+
+  if (isSandboxRegExpIterator(value)) {
+    if (hasGuestObjectState(value)) throw new TypeError("Guest prototype links and custom descriptors cannot be copied as data.");
+    if (!cloneSandboxCollections) return value;
+    const existing = state.seen.get(value);
+    if (existing !== undefined) return existing;
+    const snapshot = regexpIteratorState(value);
+    const copy = restoreSandboxRegExpIterator({ matcher: undefined, input: undefined, exhausted: true });
+    state.seen.set(value, copy);
+    const matcher = copyToSandbox(snapshot.matcher, state, `${path}.<matcher>`, true, depth + 1);
+    if (matcher !== undefined && !isSandboxRegex(matcher)) throw new TypeError("Invalid RegExp iterator matcher.");
+    restoreSandboxRegExpIterator({ ...snapshot, matcher }, copy);
+    for (const entry of getEnumerableObjectEntries(value, path)) {
+      defineOwnDataProperty(copy, entry.key, copyToSandbox(entry.value, state, joinPath(path, entry.key), true, depth + 1));
+    }
+    return copy;
   }
 
   if (isSandboxCollectionIterator(value)) {
@@ -1175,6 +1204,9 @@ function copyFromSandbox(
 
   if (isSandboxCollectionIterator(value)) {
     throw new TypeError("Sandbox collection iterators cannot cross into host values.");
+  }
+  if (isSandboxRegExpIterator(value)) {
+    throw new TypeError("Sandbox RegExp iterators cannot cross into host values.");
   }
 
   if (isSandboxRegex(value)) {

@@ -1,4 +1,5 @@
 import { collectionIteratorState, isSandboxCollectionIterator } from "../interp/collection-iterator.js";
+import { regexpIteratorState, isSandboxRegExpIterator } from "../interp/regexp-iterator.js";
 import {
   createSandboxPromise,
   isSandboxClosure,
@@ -86,6 +87,17 @@ export function prepareReplayInputs(
         value = descriptor.value;
         continue;
       }
+      if (isSandboxRegExpIterator(value)) {
+        if (key === "<matcher>") value = regexpIteratorState(value).matcher;
+        else if (key === "<input>") value = regexpIteratorState(value).input;
+        else {
+          const property: unknown = JSON.parse(key);
+          if (!Array.isArray(property) || property.length !== 2 || property[0] !== "property" || typeof property[1] !== "string") throw new TypeError("Invalid replay input iterator capability path.");
+          const descriptor = Object.getOwnPropertyDescriptor(value, property[1]);
+          value = descriptor !== undefined && "value" in descriptor ? descriptor.value : undefined;
+        }
+        continue;
+      }
       if (isSandboxCollectionIterator(value)) {
         if (key === "<collection>") value = collectionIteratorState(value).collection;
         else {
@@ -169,6 +181,7 @@ function assertReplayInputShape(restored: SandboxValue): asserts restored is Rep
     isSandboxClosure(restored) ||
     isSandboxPromise(restored) ||
     isSandboxCollectionIterator(restored) ||
+    isSandboxRegExpIterator(restored) ||
     isSandboxMap(restored) ||
     isSandboxSet(restored)
   )
@@ -182,6 +195,7 @@ function assertReplayInputShape(restored: SandboxValue): asserts restored is Rep
       isSandboxClosure(values[key]) ||
       isSandboxPromise(values[key]) ||
       isSandboxCollectionIterator(values[key]) ||
+      isSandboxRegExpIterator(values[key]) ||
       isSandboxMap(values[key]) ||
       isSandboxSet(values[key])
     )

@@ -1,5 +1,6 @@
 import type { Budget } from "../budget.js";
 import { isSandboxCollectionIterator } from "../collection-iterator.js";
+import { isSandboxRegExpIterator } from "../regexp-iterator.js";
 import { assertSandboxGraphDepth } from "../../graph-depth.js";
 import { CompileScope } from "../regex/compile-guard.js";
 import { createNumericParsers } from "./numeric-parsers.js";
@@ -69,7 +70,7 @@ function structuredCloneSandboxValue(value: SandboxValue, budget: Budget, parent
 }
 
 function assertStructuredCloneable(value: SandboxValue, seen: WeakSet<object>): void {
-  if (isSandboxClosure(value) || isSandboxPromise(value) || isSandboxCollectionIterator(value)) {
+  if (isSandboxClosure(value) || isSandboxPromise(value) || isSandboxCollectionIterator(value) || isSandboxRegExpIterator(value)) {
     throw new TypeError("structuredClone() cannot clone closures, promises, or collection iterators.");
   }
 

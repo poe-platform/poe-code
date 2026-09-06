@@ -3,6 +3,7 @@ import { serializeRegexProperties, restoreRegexProperties, type RegexPropertyDat
 import { wellKnownSymbols } from "../interp/symbols.js";
 import { symbolData, serializeSymbolProperties, type SerializedSymbol, type SerializedSymbolProperty } from "./symbols.js";
 import { isSandboxCollectionIterator, restoreSandboxCollectionIterator, snapshotCollectionIterator, type CollectionIterationMethod } from "../interp/collection-iterator.js";
+import { isSandboxRegExpIterator, regexpIteratorState, restoreSandboxRegExpIterator } from "../interp/regexp-iterator.js";
 import { hasGuestObjectState } from "../interp/object-model.js";
 import { CompileScope } from "../interp/regex/compile-guard.js";
 import { float32DataProperties, isFloat32Array } from "../interp/float32.js";
@@ -46,6 +47,7 @@ type Properties = Record<
   { value: Atom; configurable: boolean; enumerable: boolean; writable: boolean }
 >;
 type DataNode =
+  | { kind: "regexp-iterator"; matcher: Atom; input: Atom; exhausted: boolean; properties: Properties; extensible: boolean; symbolEntries?: Array<SerializedSymbolProperty<Atom>> }
   | SerializedSymbol
   | { kind: "boxed"; value: Atom; properties: Properties; extensible: boolean; symbolEntries?: Array<SerializedSymbolProperty<Atom>> }
   | { kind: "collection-iterator"; collectionKind: "map" | "set"; method: CollectionIterationMethod; collection: Atom; index: number; exhausted: boolean; properties: Properties; extensible: boolean }
@@ -171,6 +173,16 @@ export function encodeReplayData(
         };
       }
       nodes[id] = { ...storage, properties, extensible: Object.isExtensible(entry) };
+    } else if (isSandboxRegExpIterator(entry)) {
+      const snapshot = regexpIteratorState(entry);
+      const properties: Properties = Object.create(null);
+      for (const [key, descriptor] of Object.entries(Object.getOwnPropertyDescriptors(entry))) {
+        if (!("value" in descriptor)) throw new TypeError(`Cannot record replay data accessor '${key}'.`);
+        properties[key] = { value: child(descriptor.value, JSON.stringify(["property", key])), configurable: descriptor.configurable === true, enumerable: descriptor.enumerable === true, writable: descriptor.writable === true };
+      }
+      let symbolIndex = 0;
+      const symbolEntries = serializeSymbolProperties(entry, value => encode(value as SandboxValue, depth + 1, [...path, { symbol: Math.floor(symbolIndex++ / 2) }]));
+      nodes[id] = { kind: "regexp-iterator", matcher: child(snapshot.matcher, "<matcher>"), input: child(snapshot.input, "<input>"), exhausted: snapshot.exhausted, properties, extensible: Object.isExtensible(entry), symbolEntries };
     } else if (isSandboxCollectionIterator(entry)) {
       const snapshot = snapshotCollectionIterator(entry);
       const properties: Properties = Object.create(null);
@@ -387,6 +399,20 @@ export function decodeReplayData(
         const result = decodeFloat32Storage(node, child);
         restored.set(id, result);
         defineProperties(result, record(own(node, "properties")), child);
+        if (!node.extensible) Object.preventExtensions(result);
+        return result;
+      }
+      if (kind === "regexp-iterator") {
+        const exhausted = own(node, "exhausted");
+        if (typeof exhausted !== "boolean" || typeof node.extensible !== "boolean") throw new TypeError("Invalid replay RegExp iterator.");
+        const result = restoreSandboxRegExpIterator({ matcher: undefined, input: undefined, exhausted: true });
+        restored.set(id, result);
+        const matcher = child(own(node, "matcher"));
+        const input = child(own(node, "input"));
+        if (matcher !== undefined && !isSandboxRegex(matcher)) throw new TypeError("Invalid replay RegExp iterator matcher.");
+        if (input !== undefined && typeof input !== "string") throw new TypeError("Invalid replay RegExp iterator input.");
+        restoreSandboxRegExpIterator({ matcher, input, exhausted }, result);
+        defineProperties(result, record(own(node, "properties")), child, node.symbolEntries);
         if (!node.extensible) Object.preventExtensions(result);
         return result;
       }

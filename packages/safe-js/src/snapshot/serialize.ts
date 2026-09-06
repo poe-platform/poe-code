@@ -2,6 +2,7 @@ import { hashSource } from "../parse/hash.js";
 import { hasCustomRegexProperties, serializeRegexProperties, type RegexPropertyData } from "./regexp-properties.js";
 import { ownSerializableSymbolKeys, serializeSymbol, serializeSymbolProperties, type SerializedSymbol, type SerializedSymbolProperty } from "./symbols.js";
 import { collectionIteratorState, isSandboxCollectionIterator, snapshotCollectionIterator, type CollectionIterationMethod, type SandboxCollectionIterator } from "../interp/collection-iterator.js";
+import { isSandboxRegExpIterator, regexpIteratorState, type SandboxRegExpIterator } from "../interp/regexp-iterator.js";
 import { hasGuestObjectState } from "../interp/object-model.js";
 import { sandboxErrorTypes, type SandboxErrorName } from "../error/shape.js";
 import { assertSnapshotGraphDepth } from "../graph-depth.js";
@@ -74,6 +75,7 @@ export type SerializedReferenceValue = {
 };
 
 export type SerializedHeapValue =
+  | { kind: "regexp-iterator"; matcher: SerializedSnapshotValue; input: SerializedSnapshotValue; exhausted: boolean; entries: Record<string, SerializedSnapshotValue>; symbolEntries?: Array<SerializedSymbolProperty<SerializedSnapshotValue>> }
   | SerializedSymbol
   | BoxedData<SerializedSnapshotValue>
   | ({ kind: "regex-object"; source: string; flags: string; lastIndex: SerializedSnapshotValue } & RegexPropertyData<SerializedSnapshotValue>)
@@ -140,6 +142,7 @@ export type RuntimeSnapshotValue =
   | RuntimeClosureValue
   | SandboxGenerator
   | SandboxCollectionIterator
+  | SandboxRegExpIterator
   | RuntimePromiseValue
   | SandboxMap
   | SandboxRegex
@@ -415,7 +418,7 @@ function serializeValue(
     return { kind: "regex", source: value.source, flags: value.flags, lastIndex: value.lastIndex };
   }
 
-  if (isSandboxBox(value) || isSandboxDate(value) || isSandboxMap(value) || isSandboxSet(value) || isSandboxCollectionIterator(value) || isFloat32Array(value)) {
+  if (isSandboxBox(value) || isSandboxDate(value) || isSandboxMap(value) || isSandboxSet(value) || isSandboxRegExpIterator(value) || isSandboxCollectionIterator(value) || isFloat32Array(value)) {
     const reference = serializeHeapReference(value, path, state);
     if (reference === undefined) {
       throw new TypeError(`Cannot serialize collection without a heap reference at ${path}.`);
@@ -452,6 +455,7 @@ function serializeHeapReference(
     | SandboxSet
     | SandboxRegex
     | SandboxCollectionIterator
+    | SandboxRegExpIterator
     | Date
     | Float32Array,
   path: string,
@@ -469,6 +473,15 @@ function serializeHeapReference(
       state.heap[String(id)] = { kind: "regex-object", source: value.source, flags: value.flags,
         lastIndex: serializeValue(value.lastIndex as RuntimeSnapshotValue, `${path}.lastIndex`, state),
         ...serializeRegexProperties(value, entry => serializeValue(entry as RuntimeSnapshotValue, `${path}.<regex-property>`, state)) };
+    } else if (isSandboxRegExpIterator(value)) {
+      const snapshot = regexpIteratorState(value);
+      const entries: Record<string, SerializedSnapshotValue> = Object.create(null);
+      state.heap[String(id)] = {
+        kind: "regexp-iterator", matcher: serializeValue(snapshot.matcher, `${path}.<matcher>`, state),
+        input: serializeValue(snapshot.input, `${path}.<input>`, state), exhausted: snapshot.exhausted, entries,
+        symbolEntries: serializeSymbolProperties(value, entry => serializeValue(entry as RuntimeSnapshotValue, `${path}.[symbol]`, state))
+      };
+      for (const [key, entry] of Object.entries(value)) entries[key] = serializeValue(entry as RuntimeSnapshotValue, `${path}.${key}`, state);
     } else if (isSandboxCollectionIterator(value)) {
       const snapshot = snapshotCollectionIterator(value);
       const entries: Record<string, SerializedSnapshotValue> = Object.create(null);
@@ -641,6 +654,7 @@ function indexHeapContainers(input: SerializeInput): Map<object | symbol, number
       sandboxErrorTypes.has(value) ||
       isSandboxArguments(value) ||
       isSandboxCollectionIterator(value) ||
+      isSandboxRegExpIterator(value) ||
       isSandboxMap(value) ||
       isSandboxSet(value)
     ) {
@@ -674,6 +688,7 @@ function collectContainerStats(
     !isFloat32Array(value) &&
     !isSandboxMap(value) &&
     !isSandboxCollectionIterator(value) &&
+    !isSandboxRegExpIterator(value) &&
     !isSandboxSet(value)
   ) {
     return;
@@ -712,6 +727,8 @@ function collectContainerStats(
     ? dateDataProperties(value).flatMap(([key, descriptor]) => typeof key === "string" ? [descriptor.value] : [])
     : isSandboxBox(value)
     ? boxedDataProperties(value).map(([, descriptor]) => descriptor.value)
+    : isSandboxRegExpIterator(value)
+    ? [regexpIteratorState(value).matcher, regexpIteratorState(value).input, ...Object.values(value)]
     : isSandboxCollectionIterator(value)
     ? [collectionIteratorState(value).collection, ...Object.values(value)]
     : isSandboxArguments(value)

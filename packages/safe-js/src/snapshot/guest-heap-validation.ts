@@ -152,6 +152,11 @@ export function validateGuestHeapNode(raw: unknown, heap: Record<string, unknown
         const expression = record(raw);
         if (expression.kind === "binary") {
           fields(expression, ["kind", "left"]);
+        } else if (expression.kind === "for") {
+          fields(expression, ["kind", "phase", "loopScope", "activeScope"]);
+          if (!["init", "test", "body", "update"].includes(String(expression.phase))) throw new TypeError("Invalid for-loop phase.");
+          reference(expression.loopScope, ["scope-frame"]);
+          reference(expression.activeScope, ["scope-frame"]);
         } else if (expression.kind === "identifier-assignment") {
           fields(expression, ["kind", "current"]);
         } else if (expression.kind === "member-assignment") {

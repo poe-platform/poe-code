@@ -192,7 +192,7 @@ function validateDumpReferences(
   state: ValidationState,
   heapIds: Set<number>,
   heap: Record<string, unknown>,
-  role: "root" | "heap" | "heap-node" | "scope-map" | "data" = "data",
+  role: "root" | "heap" | "heap-node" | "scope-map" | "expressions" | "expression" | "data" = "data",
   allowScopeReference = false
 ): void {
   if (value === null || typeof value !== "object") return;
@@ -214,8 +214,10 @@ function validateDumpReferences(
   }
   for (const [key, entry] of Object.entries(record)) {
     const childRole = role === "root" && key === "heap" ? "heap" : role === "heap" ? "heap-node"
-      : role === "heap-node" && record.kind === "guest-generator" && key === "blockScopes" ? "scope-map" : "data";
-    const scopeField = role === "scope-map" || role === "heap-node" && (
+      : role === "heap-node" && record.kind === "guest-generator" && key === "blockScopes" ? "scope-map"
+      : role === "heap-node" && record.kind === "guest-generator" && key === "expressionStates" ? "expressions"
+      : role === "expressions" ? "expression" : "data";
+    const scopeField = role === "scope-map" || (role === "expression" && record.kind === "for" && ["loopScope", "activeScope"].includes(key)) || role === "heap-node" && (
       (record.kind === "scope-frame" && key === "parent") ||
       (record.kind === "guest-function" && key === "scope") ||
       (record.kind === "guest-generator" && ["scope", "closureScope", "suspendedScope"].includes(key))

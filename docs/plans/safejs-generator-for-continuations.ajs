@@ -1,0 +1,25 @@
+import { S } from "schema";
+
+export const schema = S.Object({ title: S.String() });
+
+export default async frontmatter => {
+  function* values() {
+    const callbacks = [];
+    for (let index = 0; index < 3; index++) {
+      callbacks.push(() => index);
+      yield index;
+    }
+    return callbacks.map(fn => fn());
+  }
+  const iterator = values();
+  const seen = [];
+  for (let index = 0; index < 3; index++) {
+    seen.push(iterator.next().value);
+    await 0;
+  }
+  const last = iterator.next();
+  if (seen.join() !== "0,1,2" || !last.done || last.value.join() !== "0,1,2") {
+    throw new Error("For-loop continuation changed");
+  }
+  return { title: frontmatter.title, ok: true, seen, closures: last.value };
+};

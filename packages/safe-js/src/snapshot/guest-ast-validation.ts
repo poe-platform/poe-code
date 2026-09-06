@@ -11,6 +11,7 @@ export function validateGuestFunctionAst(record: Record<string, unknown>, origin
   let yieldBlocks: ReadonlySet<number> | undefined;
   let yieldFinalizers: ReadonlySet<number> | undefined;
   type ExpressionPosition = { kind: "binary" } | { kind: "identifier-assignment" } | { kind: "member"; superReceiver: boolean }
+    | { kind: "for"; phase: string }
     | { kind: "member-assignment"; superReceiver: boolean; key: boolean }
     | { kind: "array" | "call" | "new" | "template" | "tagged"; index: number; member?: boolean }
     | { kind: "object"; index: number; key: boolean };
@@ -64,7 +65,9 @@ export function validateGuestFunctionAst(record: Record<string, unknown>, origin
         continue;
       }
       pending.push({ value, blocks,
-        expressions: node.type === "BinaryExpression" && key === "right" && typeof node.nodeId === "number"
+        expressions: node.type === "ForStatement" && ["init", "test", "body", "update"].includes(key) && typeof node.nodeId === "number"
+          ? new Map([...frame.expressions, [node.nodeId, { kind: "for", phase: key }]])
+          : node.type === "BinaryExpression" && key === "right" && typeof node.nodeId === "number"
           ? new Map([...frame.expressions, [node.nodeId, { kind: "binary" }]])
           : node.type === "AssignmentExpression" && key === "right" && typeof node.nodeId === "number" &&
               (node.left as Record<string, unknown>).type === "Identifier"
@@ -103,7 +106,8 @@ export function validateGuestFunctionAst(record: Record<string, unknown>, origin
     const compatibleKind = expected?.kind === expression.kind ||
       (expected?.kind === "call" && expected.member === true && expression.kind === "array-call");
     if (expected === undefined || !compatibleKind ||
-        (expected.kind !== "binary" && expected.kind !== "identifier-assignment" && expected.kind !== "member" && expected.kind !== "member-assignment" && expected.index !== expression.index) ||
+        (expected.kind !== "binary" && expected.kind !== "identifier-assignment" && expected.kind !== "member" && expected.kind !== "member-assignment" && expected.kind !== "for" && expected.index !== expression.index) ||
+        (expected.kind === "for" && expected.phase !== expression.phase) ||
         (expected.kind === "member-assignment" && (expected.key !== Object.hasOwn(expression, "key") ||
           expected.superReceiver !== Object.hasOwn(expression, "superReceiver"))) ||
         (expected.kind === "member" && expected.superReceiver !== Object.hasOwn(expression, "superReceiver")) ||

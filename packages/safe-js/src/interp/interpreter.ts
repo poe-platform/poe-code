@@ -2014,15 +2014,26 @@ async function evaluateForStatement(
   node: ForStatement,
   context: EvaluationContext
 ): Promise<EvaluationResult> {
-  const loopScope = context.scope.child();
+  const restored = context.generatorResume === undefined || node.nodeId === undefined
+    ? undefined : context.restoredGeneratorExpressionStates?.get(node.nodeId);
+  if (restored !== undefined && restored.kind !== "for") throw new TypeError("Invalid for-loop continuation.");
+  let resumePhase = restored?.phase;
+  const loopScope = restored?.loopScope ?? context.scope.child();
   const loopBindingNames = getForStatementBindingNames(node);
   const loopContext = {
     ...context,
     scope: loopScope
   };
+  const phaseContext = (phase: "init" | "test" | "body" | "update", scope: Scope): EvaluationContext => ({
+    ...loopContext, scope,
+    ...(context.generatorYield === undefined || node.nodeId === undefined ? {} : {
+      generatorExpressionStates: new Map([...(context.generatorExpressionStates ?? []),
+        [node.nodeId, { kind: "for", phase, loopScope, activeScope: scope }]])
+    })
+  });
 
-  if (node.init !== undefined) {
-    const init = await evaluateNode(node.init, loopContext);
+  if (node.init !== undefined && (resumePhase === undefined || resumePhase === "init")) {
+    const init = await evaluateNode(node.init, phaseContext("init", loopScope));
     if (init.kind !== "normal") {
       return init;
     }
@@ -2032,8 +2043,8 @@ async function evaluateForStatement(
     context.budget.visitNode();
     context.stats.nodeVisits += 1;
 
-    if (node.test !== undefined) {
-      const test = await evaluateNode(node.test, loopContext);
+    if (node.test !== undefined && resumePhase !== "body" && resumePhase !== "update") {
+      const test = await evaluateNode(node.test, phaseContext("test", loopScope));
       if (test.kind !== "normal") {
         return test;
       }
@@ -2048,34 +2059,31 @@ async function evaluateForStatement(
     }
 
     const iterationScope =
-      loopBindingNames.length === 0 ? loopScope : loopScope.iterationChild(loopBindingNames);
-    const iterationContext = {
-      ...loopContext,
-      ...createLoopIterationContext(loopContext, iterationScope)
-    };
-    emitLoopIterationBreakpoint(node, iterationContext);
-    const result = await evaluateNode(node.body, iterationContext);
+      resumePhase === "body" || resumePhase === "update" ? restored!.activeScope
+        : loopBindingNames.length === 0 ? loopScope : loopScope.iterationChild(loopBindingNames);
+    if (resumePhase !== "update") {
+      const iterationContext = createLoopIterationContext(phaseContext("body", iterationScope), iterationScope);
+      emitLoopIterationBreakpoint(node, iterationContext);
+      const result = await evaluateNode(node.body, iterationContext);
 
-    if (isMatchingBreak(result, loopLabels(node))) {
-      return {
-        kind: "normal",
-        hasValue: false,
-        value: undefined
-      };
-    }
+      if (isMatchingBreak(result, loopLabels(node))) {
+        return {
+          kind: "normal",
+          hasValue: false,
+          value: undefined
+        };
+      }
 
-    if (result.kind !== "normal" && !isMatchingContinue(result, loopLabels(node))) {
-      return result;
+      if (result.kind !== "normal" && !isMatchingContinue(result, loopLabels(node))) {
+        return result;
+      }
     }
 
     const updateScope =
-      loopBindingNames.length === 0
+      resumePhase === "update" ? restored!.activeScope : loopBindingNames.length === 0
         ? iterationScope
         : iterationScope.iterationChild(loopBindingNames);
-    const updateContext = {
-      ...loopContext,
-      scope: updateScope
-    };
+    const updateContext = phaseContext("update", updateScope);
 
     if (node.update !== undefined) {
       const update = await evaluateNode(node.update, updateContext);
@@ -2085,6 +2093,7 @@ async function evaluateForStatement(
     }
 
     loopScope.copyInitializedBindingsFrom(updateScope, loopBindingNames);
+    resumePhase = undefined;
   }
 }
 

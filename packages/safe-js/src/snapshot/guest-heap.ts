@@ -26,7 +26,7 @@ export type GuestHeapNode<T> =
       async: boolean; scope: T; closureScope: T; suspendedScope?: T; yieldNodeId?: number;
       blockScopes?: Record<string, T>;
       finallyCompletions?: Record<string, GeneratorFinallyCompletion<T>>;
-      expressionStates?: Record<string, GeneratorExpressionState<T>>;
+      expressionStates?: Record<string, GeneratorExpressionState<T, T>>;
       sent: Array<{ type: "normal" | "return" | "throw"; value: T }>;
       environment?: { homeObject?: T; newTarget?: T } }
   | { kind: "guest-object"; state: GuestObjectState<T> }
@@ -84,6 +84,7 @@ export function captureGuestHeapNode<T>(value: object, encode: (value: unknown) 
       ...(value.state !== "suspended" || origin.expressionStates === undefined ? {} : {
         expressionStates: Object.fromEntries([...origin.expressionStates].map(([id, expression]) => [String(id),
           expression.kind === "binary" ? { kind: "binary", left: encode(expression.left) }
+            : expression.kind === "for" ? { kind: "for", phase: expression.phase, loopScope: encode(expression.loopScope), activeScope: encode(expression.activeScope) }
             : expression.kind === "identifier-assignment" ? { kind: "identifier-assignment", current: encode(expression.current) }
             : expression.kind === "member-assignment" ? { kind: "member-assignment", object: encode(expression.object), property: encode(expression.property), current: encode(expression.current),
               ...(Object.hasOwn(expression, "key") ? { key: encode(expression.key) } : {}),

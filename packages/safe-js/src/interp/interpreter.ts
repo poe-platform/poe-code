@@ -2215,12 +2215,8 @@ async function bindForOfLoopVariable(
   scope: Scope,
   context: EvaluationContext
 ): Promise<BindPatternResult> {
-  if (left.type === "Identifier") {
-    return bindPattern(left, value, { assign: true }, scope, createPatternContext(context, scope));
-  }
-
   if (left.type !== "VariableDeclaration") {
-    throw new TypeError(`Unsupported for...of left-hand side '${left.type}'.`);
+    return bindPattern(left, value, { assign: true }, scope, createPatternContext(context, scope));
   }
 
   const [declarator] = left.declarations;

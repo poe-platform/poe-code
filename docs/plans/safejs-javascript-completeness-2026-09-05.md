@@ -3771,7 +3771,7 @@ Implementing them also requires promise-returning iterator methods, request
 ordering, awaited values, cleanup, budgets, and checkpoint treatment; merely
 removing parser restrictions is insufficient.
 
-## 63. For-of iterator closing (in progress)
+## 63. For-of iterator closing (delivered)
 
 Native comparisons and the initial regression suite reproduce 14 failures with
 nine controls passing: binding failures skip closing, ordinary supported iterators
@@ -3807,3 +3807,39 @@ native controls confirm that finally blocks yielding during return are not
 drained beyond the single close request. This internal interpreter change uses
 the maintained package checks; the preceding broad root gate remains recorded
 separately. Ready for the atomic main push.
+
+Delivered and closed at verified remote main
+dcbb2b5f749c078d40d5ba23a6aaa1cd85019f33. User-staged changes retain their
+original patch identity. Publication monitoring continues while assignment-target
+support proceeds; this receipt does not assert a completed release.
+
+Scoped workflow 34016698993 published SafeJS 0.1.152 at
+2026-09-06T06:35:15.5153886Z; SafeFS and Safe Bash also published 0.1.152.
+CLI workflow 34016699087 remains independently monitored.
+
+## 64. For-of assignment targets (in progress)
+
+The parser already admits member, array and object assignment targets, but the
+loop binder accepted only identifiers or declarations. Native comparisons
+reproduced 18 failures with seven controls passing. Route non-declaration targets
+through the existing shared assignment-pattern implementation; remove the
+unsupported-target branch without adding a parallel assignment engine.
+
+The 25 initial tests now pass, covering computed target order, setters, nested
+patterns, defaults/rest, member targets inside patterns, strict undeclared/const
+errors, and cleanup after target/default/setter failures. Invalid top-level
+initializers and rest grammar remain rejected. An additional checkpoint test
+confirms that resuming the body does not duplicate target effects; no speculative
+replay change was needed. Maintained package/harness checks, scoped lint/types,
+normal build and real zero-spawn screenshot QA precede the separate main push.
+
+QA: assign into an object property and nested destructuring targets from a finite
+for-of loop, assert the final values and target call order, return the observations,
+and inspect the harness CLI screenshot. Grant no host capabilities or agent spawns.
+Close at verified remote main and continue work while release workflows run.
+
+Qualification passed: 13,534 maintained SafeJS tests (41 skipped), 163 harness
+tests, package TypeScript and scoped ESLint. Normal build and real zero-spawn
+harness execution passed; the screenshot was inspected. The harness asserts
+member value 7, nested value 8, rest [9, 10], and exact target/key/body order.
+This scoped internal change is ready for its own main push.

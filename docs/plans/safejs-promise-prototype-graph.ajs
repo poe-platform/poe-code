@@ -1,0 +1,21 @@
+import { S } from "schema";
+
+export const schema = S.Object({ title: S.String() });
+
+export default async (frontmatter) => {
+  Promise.prototype.label = 42;
+  const value = Promise.resolve(1);
+  const keys = [];
+  for (const key in value) keys.push(key);
+  if (Object.getPrototypeOf(value) !== Promise.prototype ||
+      !Promise.prototype.isPrototypeOf(value) ||
+      value.label !== 42 || keys.join(",") !== "label") {
+    throw new Error("Promise prototype inheritance failed");
+  }
+  const unbranded = Object.create(Promise.prototype);
+  if (!(unbranded instanceof Promise)) throw new Error("Promise ancestry check failed");
+  let rejected = false;
+  try { unbranded.then(); } catch (error) { rejected = error instanceof TypeError; }
+  if (!rejected) throw new Error("Prototype ancestry granted a Promise brand");
+  return { title: frontmatter.title, ok: true, keys, answer: await value };
+};

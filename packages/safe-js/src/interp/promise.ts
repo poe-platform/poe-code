@@ -1,6 +1,6 @@
 import { SandboxError, type Budget } from "./budget.js";
 import { accessorAdapter, accessorClosure, readPropertyDescriptor } from "./accessors.js";
-import { getSandboxPropertyDescriptor, materializeFunctionProperties, registerIntrinsicFunction } from "./object-model.js";
+import { getSandboxPropertyDescriptor, installPromisePrototype, materializeFunctionProperties, registerIntrinsicFunction } from "./object-model.js";
 import { coerceThrownValue, createSubsetErrorValue } from "./exceptions.js";
 import { acquireSandboxIterator, closeIterator, getSandboxIterator, readIteratorResult } from "./iteration.js";
 import { retainValues } from "./resources.js";
@@ -23,6 +23,7 @@ export type PromiseGlobals = {
 };
 
 const promiseConstructors = new WeakSet<SandboxClosure>();
+const intrinsicPromiseThenMethods = new WeakSet<SandboxClosure>();
 const intrinsicPromiseConstructors = new WeakMap<Budget, SandboxClosure>();
 const promisePrototypes = new WeakMap<Budget, SandboxObject>();
 
@@ -217,6 +218,7 @@ export function createPromiseGlobals(options: { budget: Budget }): PromiseGlobal
   intrinsicPromiseConstructors.set(options.budget, promiseConstructor);
   registerIntrinsicFunction(options.budget, species);
   registerIntrinsicFunction(options.budget, promiseConstructor);
+  installPromisePrototype(options.budget, prototype, promiseConstructor);
   for (const method of [
     ...Object.values(properties),
     ...Object.values(Object.getOwnPropertyDescriptors(prototype)).map(descriptor => descriptor.value)
@@ -460,6 +462,7 @@ function getPromisePrototype(budget: Budget): SandboxObject {
       guest: true, name: "finally", length: 1
     })
   };
+  intrinsicPromiseThenMethods.add(prototype.then as SandboxClosure);
   for (const name of Object.keys(prototype)) {
     Object.defineProperty(prototype, name, { enumerable: false });
   }
@@ -726,7 +729,7 @@ function resolveSandboxValueNow(
 
   if (
     isSandboxPromise(value) &&
-    getSandboxPropertyDescriptor(value, "then", options.budget) === undefined
+    !hasCustomPromiseThen(value, options.budget)
   ) {
     if (options.budget !== undefined) {
       return resolvePromiseResult(value, options.budget, options.self);
@@ -962,10 +965,10 @@ function resolvePromiseResult(
       createSubsetErrorValue("TypeError", "Promise cannot resolve to itself.", [], budget)
     );
   }
-  if (!isSandboxPromise(result) || getSandboxPropertyDescriptor(result, "then", budget) !== undefined) {
+  if (!isSandboxPromise(result) || hasCustomPromiseThen(result, budget)) {
     return resolveSandboxValue(result, { budget, self });
   }
-  const then = getPromiseMember("then", budget);
+  const then = getSandboxPropertyDescriptor(result, "then", budget)?.value ?? getPromiseMember("then", budget);
   if (!isSandboxClosure(then)) return Promise.resolve(result);
   return new Promise<SandboxValue>((resolve, reject) => {
     let settled = false;
@@ -1028,6 +1031,12 @@ function isSelfResolution(result: SandboxValue, self: SandboxPromise | undefined
     self !== undefined &&
     (result === self || (isSandboxPromise(result) && result.promise === self.promise))
   );
+}
+
+function hasCustomPromiseThen(value: SandboxValue, budget?: Budget): boolean {
+  const descriptor = getSandboxPropertyDescriptor(value, "then", budget);
+  return descriptor !== undefined &&
+    (!isSandboxClosure(descriptor.value) || !intrinsicPromiseThenMethods.has(descriptor.value));
 }
 
 export function requiresPromiseResolution(value: SandboxValue, budget?: Budget): boolean {

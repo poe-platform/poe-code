@@ -117,7 +117,7 @@ import {
   type MapMethodOptions
 } from "./methods/map.js";
 import { callNumberMethod, getNumberMember, isNumberMethodName } from "./methods/number.js";
-import { getPromiseMember, isSandboxPromiseConstructor } from "./promise.js";
+import { getPromiseMember } from "./promise.js";
 import { acquireSandboxIterator, closeIterator, readIteratorResult, restoreSandboxIterator } from "./iteration.js";
 import type { GeneratorExpressionState } from "./generator-expression-state.js";
 import { assertCollectionMutable } from "./running-state.js";
@@ -3544,7 +3544,6 @@ async function evaluateInstanceof(
     right = right.boundTarget;
   }
 
-  if (isSandboxPromiseConstructor(right)) return isSandboxPromise(left);
   if (isFloat32ArrayConstructor(right)) return isFloat32Array(left);
   if (isDateConstructor(right))
     return isSandboxDate(left) && getDatePrototype(left, context.budget, context.compilation?.owner) !== null;

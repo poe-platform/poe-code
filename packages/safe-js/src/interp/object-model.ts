@@ -28,6 +28,7 @@ const intrinsicPrototypes = new WeakMap<Budget, SandboxObject>();
 const boxedPrototypes = new WeakMap<Budget, Map<BoxedKind, SandboxObject>>();
 const regexPrototypes = new WeakMap<Budget, SandboxObject>();
 const collectionPrototypes = new WeakMap<Budget, Map<"Map" | "Set", SandboxObject>>();
+const promisePrototypes = new WeakMap<Budget, SandboxObject>();
 const initialRegexDescriptors = new WeakMap<Budget, PropertyDescriptorMap>();
 const intrinsicPrototypeRoots = new WeakMap<Budget, Set<object>>();
 const intrinsicConstructors = new WeakMap<object, () => boolean>();
@@ -117,6 +118,11 @@ export function installCollectionPrototype(budget: Budget, name: "Map" | "Set", 
   let state = collectionPrototypes.get(budget);
   if (state === undefined) collectionPrototypes.set(budget, state = new Map());
   state.set(name, prototype);
+  registerIntrinsicPrototype(budget, prototype, constructor);
+}
+
+export function installPromisePrototype(budget: Budget, prototype: SandboxObject, constructor: SandboxClosure): void {
+  promisePrototypes.set(budget, prototype);
   registerIntrinsicPrototype(budget, prototype, constructor);
 }
 
@@ -243,12 +249,14 @@ export function releaseObjectPrototype(budget: Budget): void {
   boxedPrototypes.delete(budget);
   regexPrototypes.delete(budget);
   collectionPrototypes.delete(budget);
+  promisePrototypes.delete(budget);
   initialRegexDescriptors.delete(budget);
   intrinsicPrototypes.delete(budget);
 }
 
 export function getSandboxPrototype(value: object, budget?: Budget): object | null {
   if (prototypes.has(value)) return prototypes.get(value) ?? null;
+  if (budget !== undefined && isSandboxPromise(value)) return promisePrototypes.get(budget) ?? null;
   if (budget !== undefined && (isSandboxMap(value) || isSandboxSet(value)))
     return collectionPrototypes.get(budget)?.get(isSandboxMap(value) ? "Map" : "Set") ?? null;
   if (budget !== undefined && isSandboxRegex(value)) return regexPrototypes.get(budget) ?? null;

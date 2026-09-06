@@ -1,5 +1,5 @@
 import type { Budget } from "../budget.js";
-import { objectToPrimitive } from "../string-coercion.js";
+import { objectToPrimitive, sandboxNumber, sandboxString } from "../string-coercion.js";
 import { createSandboxBox } from "../boxed.js";
 import { invokeBuiltinClosure } from "../builtin-call.js";
 import { getSandboxPropertyDescriptor, installDatePrototype, materializeFunctionProperties, setSandboxPrototype } from "../object-model.js";
@@ -9,7 +9,6 @@ import {
   createSandboxDate,
   dateFromParts,
   dateMethods,
-  dateNumber,
   dateString,
   dateTime,
   isSandboxDate,
@@ -58,10 +57,15 @@ export function createDateGlobal(
     construct: async (args, context) => {
       let time: number;
       if (args.length === 0) time = Number(await now.call([], context));
-      else if (args.length > 1) time = dateFromParts(args, false);
+      else if (args.length > 1) time = await coerceDateParts(args, false, options.budget, context);
       else if (isSandboxDate(args[0])) time = dateTime(args[0]);
-      else if (typeof args[0] === "string") time = parseDate(args[0], options.budget);
-      else time = dateNumber(args[0]);
+      else {
+        const input = args[0];
+        const primitive = input !== null && typeof input === "object"
+          ? await objectToPrimitive(input, options.budget, context, new Set(), "default") : input;
+        time = typeof primitive === "string" ? parseDate(primitive, options.budget)
+          : await sandboxNumber(primitive, options.budget, context);
+      }
       const newTarget = context?.newTarget;
       const selectedPrototype = newTarget === undefined || newTarget === constructor ? prototype
         : context?.getProperty !== undefined ? await context.getProperty(newTarget, "prototype")
@@ -80,13 +84,13 @@ export function createDateGlobal(
       sandbox: true,
       name: "parse",
       length: 1,
-      call: ([value]) => parseDate(value, options.budget)
+      call: async ([value], context) => parseDate(await sandboxString(value, options.budget, context), options.budget)
     }),
     UTC: createSandboxClosure({
       sandbox: true,
       name: "UTC",
       length: 7,
-      call: (args) => dateFromParts(args, true)
+      call: (args, context) => coerceDateParts(args, true, options.budget, context)
     })
   };
   const methods = new Map<PropertyKey, SandboxClosure>();
@@ -131,6 +135,12 @@ export function createDateGlobal(
     Object.defineProperty(prototype, key, { value, writable: key !== Symbol.toPrimitive, configurable: true });
   installDatePrototype(options.budget, prototype, constructor);
   return constructor;
+}
+
+async function coerceDateParts(args: readonly SandboxValue[], utc: boolean, budget: Budget, context?: SandboxCallContext): Promise<number> {
+  const parts: number[] = [];
+  for (const value of args.slice(0, 7)) parts.push(await sandboxNumber(value, budget, context));
+  return dateFromParts(parts, utc);
 }
 
 export async function dateToJSON(receiver: SandboxValue, budget: Budget, context?: SandboxCallContext): Promise<SandboxValue> {

@@ -10,7 +10,7 @@ export type RegexMatch = {
 
 type Capture = { start: number; end: number } | undefined;
 type MatchState = { position: number; captures: Capture[] };
-type MatchContext = { input: string; flags: RegexFlags; steps: number };
+type MatchContext = { input: string; flags: RegexFlags; direction: 1 | -1; work: { steps: number } };
 
 export function matchRegex(pattern: RegexPattern, input: string, lastIndex = 0): RegexMatch | null {
   const startIndex = pattern.flags.global || pattern.flags.sticky ? normalizeLastIndex(lastIndex) : 0;
@@ -27,7 +27,7 @@ export function matchRegexFrom(
   }
 
   for (let attempt = startIndex; attempt <= input.length; attempt += 1) {
-    const context: MatchContext = { input, flags: pattern.flags, steps: 0 };
+    const context: MatchContext = { input, flags: pattern.flags, direction: 1, work: { steps: 0 } };
     charge(context);
     const initialState: MatchState = {
       position: attempt,
@@ -49,22 +49,23 @@ function* matchNode(
   context: MatchContext
 ): Generator<MatchState> {
   charge(context);
+  const characterIndex = context.direction === 1 ? state.position : state.position - 1;
 
   switch (node.type) {
     case "empty":
       yield state;
       return;
     case "literal":
-      if (charactersEqual(context.input[state.position], node.value, context.flags.ignoreCase)) {
-        yield { ...state, position: state.position + 1 };
+      if (charactersEqual(context.input[characterIndex], node.value, context.flags.ignoreCase)) {
+        yield { ...state, position: state.position + context.direction };
       }
       return;
     case "dot":
       if (
-        state.position < context.input.length &&
-        (context.flags.dotAll || !isLineTerminator(context.input[state.position]))
+        characterIndex >= 0 && characterIndex < context.input.length &&
+        (context.flags.dotAll || !isLineTerminator(context.input[characterIndex]))
       ) {
-        yield { ...state, position: state.position + 1 };
+        yield { ...state, position: state.position + context.direction };
       }
       return;
     case "anchor":
@@ -82,12 +83,12 @@ function* matchNode(
       return;
     }
     case "characterClass": {
-      const character = context.input[state.position];
+      const character = context.input[characterIndex];
       if (
         character !== undefined &&
         matchesCharacterClass(character, node.items, node.negated, context.flags.ignoreCase)
       ) {
-        yield { ...state, position: state.position + 1 };
+        yield { ...state, position: state.position + context.direction };
       }
       return;
     }
@@ -99,8 +100,11 @@ function* matchNode(
         yield* matchNode(alternative, cloneState(state), context);
       }
       return;
-    case "lookahead": {
-      const result = matchNode(node.body, cloneState(state), context).next();
+    case "lookahead":
+    case "lookbehind": {
+      const result = matchNode(node.body, cloneState(state), {
+        ...context, direction: node.type === "lookbehind" ? -1 : 1
+      }).next();
       if (node.negated) {
         if (result.done) yield state;
       } else if (!result.done) {
@@ -115,7 +119,7 @@ function* matchNode(
           continue;
         }
         const captures = result.captures.slice();
-        captures[node.index - 1] = { start: state.position, end: result.position };
+        captures[node.index - 1] = { start: Math.min(state.position, result.position), end: Math.max(state.position, result.position) };
         yield { position: result.position, captures };
       }
       return;
@@ -136,7 +140,8 @@ function* matchSequence(
     return;
   }
 
-  for (const result of matchNode(elements[index], state, context)) {
+  const element = elements[context.direction === 1 ? index : elements.length - 1 - index];
+  for (const result of matchNode(element, state, context)) {
     yield* matchSequence(elements, index + 1, result, context);
   }
 }
@@ -281,14 +286,14 @@ function clearNodeCaptures(node: RegexNode, captures: Capture[]): void {
     }
     return;
   }
-  if (node.type === "quantifier" || node.type === "lookahead") {
+  if (node.type === "quantifier" || node.type === "lookahead" || node.type === "lookbehind") {
     clearNodeCaptures(node.body, captures);
   }
 }
 
 function charge(context: MatchContext): void {
-  context.steps += 1;
-  allocateRegexSteps(context.steps);
+  context.work.steps += 1;
+  allocateRegexSteps(context.work.steps);
 }
 
 export function normalizeLastIndex(lastIndex: number): number {

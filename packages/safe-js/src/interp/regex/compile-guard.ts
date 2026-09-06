@@ -185,6 +185,7 @@ function measureNode(node: RegexNode): number {
     case "group":
       return 5 + measureNode(node.body);
     case "lookahead":
+    case "lookbehind":
       return 4 + measureNode(node.body);
     case "quantifier":
       return (Object.hasOwn(node, "max") ? 6 : 5) + measureNode(node.body);

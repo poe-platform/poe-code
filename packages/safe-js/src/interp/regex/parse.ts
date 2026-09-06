@@ -27,6 +27,7 @@ export type RegexNode =
   | { type: "alternation"; alternatives: RegexNode[] }
   | { type: "group"; capturing: boolean; index?: number; body: RegexNode }
   | { type: "lookahead"; negated: boolean; body: RegexNode }
+  | { type: "lookbehind"; negated: boolean; body: RegexNode }
   | { type: "quantifier"; body: RegexNode; min: number; max?: number; greedy: boolean };
 
 export type RegexPattern = {
@@ -133,7 +134,7 @@ class RegexParser {
       return body;
     }
 
-    if (body.type === "anchor" || body.type === "wordBoundary") {
+    if (body.type === "anchor" || body.type === "wordBoundary" || body.type === "lookbehind") {
       this.fail("Invalid quantifier target", quantifierStart);
     }
 
@@ -172,7 +173,8 @@ class RegexParser {
 
   private parseGroup(start: number): RegexNode {
     let capturing = true;
-    let lookahead: boolean | undefined;
+    let assertionNegated: boolean | undefined;
+    let lookbehind = false;
     if (this.peek() === "?") {
       this.guard.allocate(Math.min(3, this.source.length - this.position));
       this.guard.work(Math.min(3, this.source.length - this.position));
@@ -182,10 +184,13 @@ class RegexParser {
         this.position += 2;
       } else if (extension.startsWith("?=") || extension.startsWith("?!")) {
         capturing = false;
-        lookahead = extension.startsWith("?!");
+        assertionNegated = extension.startsWith("?!");
         this.position += 2;
       } else if (extension.startsWith("?<=") || extension.startsWith("?<!")) {
-        this.fail("Lookbehind is not supported", start);
+        capturing = false;
+        assertionNegated = extension.startsWith("?<!");
+        lookbehind = true;
+        this.position += 3;
       } else if (extension.startsWith("?<")) {
         this.fail("Named groups are not supported", start);
       } else {
@@ -207,9 +212,9 @@ class RegexParser {
     }
     this.position += 1;
 
-    if (lookahead !== undefined) {
+    if (assertionNegated !== undefined) {
       this.guard.allocate(4);
-      return { type: "lookahead", negated: lookahead, body };
+      return { type: lookbehind ? "lookbehind" : "lookahead", negated: assertionNegated, body };
     }
     this.guard.allocate(5);
     return { type: "group", capturing, index, body };

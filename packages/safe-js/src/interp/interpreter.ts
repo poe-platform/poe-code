@@ -2800,8 +2800,10 @@ function getPropertyValue(
   if (isFloat32Array(target)) return getFloat32Member(target, property, context.budget);
   if (isSandboxDate(target))
     return getDateMember(property, context.budget, context.compilation?.owner);
-  if (isSandboxMap(target)) return getMapMember(target, property, createMapMethodOptions(context));
-  if (isSandboxSet(target)) return getSetMember(target, property, createSetMethodOptions(context));
+  if (isSandboxMap(target)) return getSandboxPrototype(target, context.budget) === null
+    ? getMapMember(target, property, createMapMethodOptions(context)) : undefined;
+  if (isSandboxSet(target)) return getSandboxPrototype(target, context.budget) === null
+    ? getSetMember(target, property, createSetMethodOptions(context)) : undefined;
   if (isSandboxCollectionIterator(target))
     return getCollectionIteratorMember(target, property, context.budget);
   if (isSandboxGenerator(target)) return getGeneratorMember(target, property, context.budget);
@@ -3097,6 +3099,9 @@ async function evaluateMemberCallExpression(
       return evaluateResolvedCallExpression(node, await getPropertyValue(member.object, member.property, context, member.superReceiver.value), context, member.superReceiver.value);
 
     if (typeof member.property === "symbol")
+      return evaluateResolvedCallExpression(node, await getPropertyValue(member.object, member.property, context), context, member.object);
+
+    if ((isSandboxMap(member.object) || isSandboxSet(member.object)) && getSandboxPrototype(member.object, context.budget) !== null)
       return evaluateResolvedCallExpression(node, await getPropertyValue(member.object, member.property, context), context, member.object);
 
     if (Array.isArray(member.object) && hasExplicitSandboxPrototype(member.object))
@@ -3582,7 +3587,7 @@ function hasSandboxProperty(value: SandboxValue, key: PropertyKey, context: Eval
   while (typeof current === "object" && current !== null) {
     if (isGuestHostObject(current)) return typeof key === "symbol" ? false : hasHostObjectMember(current, String(key));
     if (hasOwnSandboxProperty(current, key, false)) return true;
-    if (!isSandboxRegex(current) && !((isGuestClosure(current) || Array.isArray(current)) && hasExplicitSandboxPrototype(current)) &&
+    if (!isSandboxRegex(current) && !isSandboxMap(current) && !isSandboxSet(current) && !((isGuestClosure(current) || Array.isArray(current)) && hasExplicitSandboxPrototype(current)) &&
         (Array.isArray(current) || !isPlainSandboxObject(current) ||
         isSandboxDate(current) || isFloat32Array(current) || isSandboxGenerator(current) || isSandboxCollectionIterator(current) || isSandboxRegExpIterator(current))) {
       return getPropertyValue(current, key, context) !== undefined;

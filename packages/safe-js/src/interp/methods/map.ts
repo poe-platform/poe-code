@@ -35,7 +35,7 @@ export type MapMethodOptions = {
   ) => Promise<SandboxValue>;
 };
 
-const mapMethodNames = new Set<MapMethodName>([
+export const mapMethodNames = new Set<MapMethodName>([
   "get",
   "set",
   "has",

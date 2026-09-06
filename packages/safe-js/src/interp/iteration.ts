@@ -21,6 +21,7 @@ import { HostCallResumabilityError } from "./host-call.js";
 import { suspendJob } from "./jobs.js";
 import { invokeBuiltinClosure } from "./builtin-call.js";
 import { getSandboxPropertyDescriptor, hasExplicitSandboxPrototype } from "./object-model.js";
+import { getIntrinsicIdentity } from "./intrinsics.js";
 
 export type SandboxIterator = {
   snapshot?(): IteratorSnapshot;
@@ -91,6 +92,12 @@ export async function acquireSandboxIterator(
     return iterator === undefined ? undefined : asyncFromSyncIterator(iterator, budget, signal);
   }
   const factory = await context.getProperty(value, key);
+  if (!asyncProtocol && (isSandboxMap(value) || isSandboxSet(value)) &&
+      typeof factory === "object" && factory !== null &&
+      getIntrinsicIdentity(factory) === JSON.stringify(isSandboxMap(value)
+        ? ["Map", "prototype", "entries"] : ["Set", "prototype", "values"])) {
+    return getSandboxIterator(value, budget, context);
+  }
   if (factory === null || factory === undefined) {
     if (!asyncProtocol) return undefined;
     const iterator = await acquireSandboxIterator(value, budget, context);

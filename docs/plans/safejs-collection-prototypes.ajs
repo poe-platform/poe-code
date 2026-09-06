@@ -1,0 +1,15 @@
+import { S } from "schema";
+
+export const schema = S.Object({ title: S.String() });
+
+export default async (frontmatter) => {
+  const value = new Map();
+  Map.prototype.set.call(value, "key", 7);
+  if (value.get !== Map.prototype.get || Object.getPrototypeOf(value) !== Map.prototype) {
+    throw new Error("Map prototype validation failed");
+  }
+  if (Set.prototype.keys !== Set.prototype.values || value.get("key") !== 7 || value.size !== 1) {
+    throw new Error("Collection method validation failed");
+  }
+  return { title: frontmatter.title, ok: true, value: value.get("key"), size: value.size };
+};

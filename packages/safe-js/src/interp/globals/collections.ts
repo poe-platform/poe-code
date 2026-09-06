@@ -9,6 +9,7 @@ import {
   type SandboxIterator
 } from "../iteration.js";
 import { getSandboxDataProperty } from "../object-model.js";
+import { installCollectionPrototypes } from "./collection-prototypes.js";
 import {
   createSandboxClosure,
   createSandboxMap,
@@ -32,6 +33,8 @@ const setConstructors = new WeakSet<SandboxClosure>();
 export function createCollectionGlobals(options: { budget: Budget }): CollectionGlobals {
   const mapConstructor = createSandboxClosure({
     sandbox: true,
+    guest: true,
+    length: 0,
     call: () => {
       throw new TypeError("Constructor Map requires 'new'.");
     },
@@ -78,6 +81,8 @@ export function createCollectionGlobals(options: { budget: Budget }): Collection
   });
   const setConstructor = createSandboxClosure({
     sandbox: true,
+    guest: true,
+    length: 0,
     call: () => {
       throw new TypeError("Constructor Set requires 'new'.");
     },
@@ -103,6 +108,7 @@ export function createCollectionGlobals(options: { budget: Budget }): Collection
 
   mapConstructors.add(mapConstructor);
   setConstructors.add(setConstructor);
+  installCollectionPrototypes(options.budget, mapConstructor, setConstructor);
   return { Map: mapConstructor, Set: setConstructor };
 }
 

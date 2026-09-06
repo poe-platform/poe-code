@@ -169,6 +169,8 @@ export function createObjectArrayGlobals(options: {
         getPrototypeOf: createSandboxClosure({
           sandbox: true,
           call: ([value]) => {
+            if (isSandboxMap(value) || isSandboxSet(value))
+              return getSandboxPrototype(value, options.budget) as SandboxValue;
             if (isSandboxDate(value))
               return getDatePrototype(value, options.budget, options.compileOwner);
             if (value !== null && value !== undefined && typeof value !== "object")

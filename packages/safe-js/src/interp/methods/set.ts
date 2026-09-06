@@ -34,7 +34,7 @@ export type SetMethodOptions = {
   ) => Promise<SandboxValue>;
 };
 
-const setMethodNames = new Set<SetMethodName>([
+export const setMethodNames = new Set<SetMethodName>([
   "add",
   "has",
   "delete",

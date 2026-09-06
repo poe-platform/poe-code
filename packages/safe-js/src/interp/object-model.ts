@@ -25,6 +25,7 @@ const prototypes = new WeakMap<object, object | null>();
 const intrinsicPrototypes = new WeakMap<Budget, SandboxObject>();
 const boxedPrototypes = new WeakMap<Budget, Map<BoxedKind, SandboxObject>>();
 const regexPrototypes = new WeakMap<Budget, SandboxObject>();
+const collectionPrototypes = new WeakMap<Budget, Map<"Map" | "Set", SandboxObject>>();
 const initialRegexDescriptors = new WeakMap<Budget, PropertyDescriptorMap>();
 const intrinsicPrototypeRoots = new WeakMap<Budget, Set<object>>();
 const intrinsicConstructors = new WeakMap<object, () => boolean>();
@@ -110,6 +111,13 @@ export function installRegexPrototype(budget: Budget, prototype: SandboxObject, 
   registerIntrinsicPrototype(budget, prototype, constructor);
 }
 
+export function installCollectionPrototype(budget: Budget, name: "Map" | "Set", prototype: SandboxObject, constructor: SandboxClosure): void {
+  let state = collectionPrototypes.get(budget);
+  if (state === undefined) collectionPrototypes.set(budget, state = new Map());
+  state.set(name, prototype);
+  registerIntrinsicPrototype(budget, prototype, constructor);
+}
+
 export function hasRegexPropertyOverride(value: SandboxValue, keys: readonly string[], budget: Budget): boolean {
   const initial = initialRegexDescriptors.get(budget);
   const prototype = regexPrototypes.get(budget);
@@ -142,7 +150,10 @@ function registerIntrinsicPrototype(
   if (constructor.name === undefined) throw new TypeError("Intrinsic constructors require an installation name.");
   registerBuiltinIdentities(budget, { [constructor.name]: constructor });
   const methods = [prototype, materializeFunctionProperties(constructor)]
-    .flatMap(owner => Reflect.ownKeys(owner).map(key => Object.getOwnPropertyDescriptor(owner, key)?.value))
+    .flatMap(owner => Reflect.ownKeys(owner).flatMap(key => {
+      const descriptor = Object.getOwnPropertyDescriptor(owner, key)!;
+      return [descriptor.value, ...retainedAccessorClosures(descriptor)];
+    }))
     .filter(isGuestClosure);
   trackIntrinsicState(budget, prototype, constructor, [prototype, constructor, ...methods]);
 }
@@ -229,12 +240,15 @@ export function releaseObjectPrototype(budget: Budget): void {
   intrinsicPrototypeRoots.delete(budget);
   boxedPrototypes.delete(budget);
   regexPrototypes.delete(budget);
+  collectionPrototypes.delete(budget);
   initialRegexDescriptors.delete(budget);
   intrinsicPrototypes.delete(budget);
 }
 
 export function getSandboxPrototype(value: object, budget?: Budget): object | null {
   if (prototypes.has(value)) return prototypes.get(value) ?? null;
+  if (budget !== undefined && (isSandboxMap(value) || isSandboxSet(value)))
+    return collectionPrototypes.get(budget)?.get(isSandboxMap(value) ? "Map" : "Set") ?? null;
   if (budget !== undefined && isSandboxRegex(value)) return regexPrototypes.get(budget) ?? null;
   if (budget !== undefined && isSandboxBox(value)) {
     const prototype = getBoxedPrototype(boxedValue(value), budget);
@@ -268,10 +282,10 @@ export function getSandboxPropertyDescriptor(
   while (
     typeof current === "object" &&
     current !== null &&
-    (Array.isArray(current) || isSandboxDate(current) || isSandboxRegex(current) || isPrototypeRecord(current))
+    (Array.isArray(current) || isSandboxDate(current) || isSandboxRegex(current) || isSandboxMap(current) || isSandboxSet(current) || isPrototypeRecord(current))
   ) {
     const properties = isGuestClosure(current) ? getGuestFunctionProperties(current)
-      : isSandboxRegex(current) ? getRegexProperties(current) : current;
+      : isSandboxRegex(current) ? getRegexProperties(current) : isSandboxMap(current) || isSandboxSet(current) ? undefined : current;
     const descriptor =
       properties === undefined ? undefined : Object.getOwnPropertyDescriptor(properties, key);
     if (descriptor !== undefined) return descriptor;

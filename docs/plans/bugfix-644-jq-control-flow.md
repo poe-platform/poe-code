@@ -120,3 +120,163 @@ This authorized follow-up changes only the resource test and this plan. The
 parser/interpreter hashes remain unchanged from the prior freeze. No shared
 build, typecheck, registry, Git or full guard was run for this test-only follow-up.
 The corrected fixture and plan are frozen for root review and qualification.
+
+## Root-authorized retained-seal migration
+
+Root reported HEAD `f5ab683e8`, with the production/fixture change committed in
+`f6fd36ba1`. Root's full build passed, but its full npm test was interrupted by
+actual ENOSPC. The gate directory
+`/home/kjopek/kamilio-validation-569-575.RoFXyZ/issue-644-gate.7jV5d0` has truncated
+8,192-byte logging and no gates.status; it does not establish a completed test
+gate. After space recovery, root's package-CWD rerun passed 52/53, including all
+six split interop backends, and identified the retained resources source seal.
+That failure is preserved in the validation root's
+`tmp/issue644-post-space-failures.log`.
+
+### Previous regression selection was not complete package coverage
+
+The earlier 2473/2474 runs used CWD `/home/kjopek/project/poe-code`, Node 22 with
+`--import tsx --test --test-concurrency=1`, and these exact twelve files after
+expanding `packages/safe-bash/tests/commands/structured/*.test.ts`:
+
+- `packages/safe-bash/tests/commands/structured/byte-ownership.test.ts`
+- `packages/safe-bash/tests/commands/structured/cli.test.ts`
+- `packages/safe-bash/tests/commands/structured/resources.test.ts`
+- `packages/safe-bash/tests/commands/structured/semantics.test.ts`
+- `packages/safe-bash/tests/commands/structured/streaming.test.ts`
+- `packages/safe-bash/tests/commands/structured/string-work.test.ts`
+- `packages/safe-bash/tests/commands/structured-stress/regressions.test.ts`
+- `packages/safe-bash/tests/commands/structured-stress/safety.test.ts`
+- `packages/safe-bash/tests/commands/structured-stress/jq-grammar-author-20260827/grammar.test.ts`
+- `packages/safe-bash/tests/commands/structured-stress/jq-grammar-author-20260827/limits.test.ts`
+- `packages/safe-bash/tests/commands/structured-stress/jq-42-author-20260827/native.test.ts`
+- `packages/safe-bash/tests/commands/yq-author-20260828/yq.test.ts`
+
+This selection omitted the active
+`tests/commands/structured-stress/jq-42-review-fixes/evidence.test.ts` seal and
+the split interop file. The separate 117 new controls were not members of that
+2474-test regression selection either. These were focused results, not complete
+package coverage or qualification of all outward retained-evidence dependencies.
+
+### Dependency inspection and exact authority
+
+Before editing, a bounded literal-reference/current-digest search covered root
+scripts, package scripts, structured stress fixtures and plugin evidence. The
+test-duration weight entry is a path/task weight, not a source-content seal.
+The explicit historical consumers `jq-grammar-seal-proposal/verify.mjs` and
+`jq-grammar-seal-final/review.mjs` assert the earlier unapplied seal-test image;
+those assertions already differ from the unmodified current evidence test.
+`jq-grammar-proposal-review/review.mjs` also consumes its historical manifest.
+None were edited or executed. No additional current fixed binding to the
+unmodified evidence-test digest was found in this bounded search, nor a current
+production/root-maintained-script consumer requiring another edit. This is not
+global nonexecution or liveness clearance; root retains full qualification.
+
+The final outward-dependency check also inspected the maintained test route:
+`scripts/test.mjs` calls `discoverTests` from `scripts/integration-inputs.mjs`,
+whose active membership glob is `tests/**/*.test.ts`, and launches tests with
+package CWD. The evidence test remains in that route; no selection was changed.
+Its existing `scripts/test-duration-weights.json` weight remains 293. The
+source/test typecheck configuration still includes `tests/**/*.ts` unchanged.
+The new receipt has exactly one executable TS/MJS/JS reference in the inspected
+source/script/test trees: its literal owner, this evidence test; the other
+reference is this plan. No current fixed digest dependency on the unmodified
+evidence-test hash was found.
+
+The expanded reference search also identified the unchanged historical
+`jq-42-review-fixes/{seal,immutable}.mjs`,
+`jq-42-independent-final/{seal,immutable}.mjs`,
+`jq-grammar-source-review/validate.mjs` and
+`jq-grammar-final-review/finalize.mjs`. These preserve commit/snapshot verification,
+historical result processing and opt-in replay paths; they are not selected as
+test files by the maintained test glob. Their old source/manifest assertions
+already differ from the unmodified current tree. No retirement/exclusion or
+global nonexecution claim is inferred, and none was edited or run. Inspection
+identified no additional current binding requiring an out-of-scope update; root
+still owns the fresh full gate and any later concrete dependency disposition.
+
+Root authorized one explicit maintenance migration for the already-approved
+resources fixture strengthening. The new literal
+`tests/commands/structured-stress/jq-42-review-fixes/resource-depth-receipt-644.json`
+has exactly one member and one replacement block at byte offset 2986. Its 1735
+bytes are pinned by SHA-256
+`42afb49e94f3528829d9a26cf2aaf9d3d14eba4ad556ec1e27fbf0d1dbf6625c` in its literal
+owner, `tests/commands/structured-stress/jq-42-review-fixes/evidence.test.ts`.
+
+The migration authenticates the exact member selector, owner, receipt path,
+receipt length and digest before JSON parsing. It authenticates the complete
+6495-byte current fixture (`55e0aecebc8c3e2deb3b78d90fcb612a54103866b7d8b2488900b2dcf1ba4a91`)
+and the complete 6029-byte original snapshot
+(`c61d9f482fc8c76a432d962a134c7834e4fb381a9a501e94b92dc27f79012061`). Reversing only
+the approved block in memory must reproduce that snapshot byte-for-byte and
+pass its original expected hash. The normal original-hash assertion remains in
+the aggregate seal after reconstruction. No source is restored on disk.
+
+All 140 current members and all 23 original historical snapshots remain checked.
+The four spelling migrations and one unused-binding migration are unchanged;
+exactly one resource-depth migration is added. Both unchanged-image diagnostic
+counters now honestly report 134 byte-unchanged members:
+`140 = 134 + 4 spelling + 1 binding + 1 depth`. The prior 136-member count outside
+spelling migrations remains asserted, with an accurate label. Historical
+manifests, snapshots, exclusions, retirement decisions and production sources
+are unchanged.
+
+### Focused verification and freeze
+
+All new runs use CWD `/home/kjopek/project/poe-code/packages/safe-bash`, the Node
+22 toolchain selected by `/tmp/kamilio-toolchain.path`, validation-root `tmp` as
+TMPDIR, `TSX_DISABLE_CACHE=1`, and normal node:test isolation/concurrency 1.
+
+- Independent pre-edit seal RED: 47 tests, 46 pass and one failure, in
+  `/tmp/issue644-depth-seal-red.log`.
+- Before aggregate migration wiring, 69 controls yielded 67 passes and two
+  failures: the original seal plus a new negative-control setup whose replacement
+  needle did not actually mutate its input. Both are preserved in
+  `/tmp/issue644-depth-seal-controls-red.log`; the needle was corrected, not the
+  accepted fixture or the rejection assertion.
+- Final focused GREEN: 199/199 pass, no failures/skips/cancellations, in
+  `/tmp/issue644-depth-seal-focused.log`. This comprises 69 seal tests (47
+  existing plus one depth acceptance and 21 negative controls), seven resource
+  tests, the 117 new control-flow tests, and all six split interop backends.
+- New negatives reject wrong member/path/old hash/owner/receipt path, aliases,
+  malformed/truncated/extended/rewritten receipts, extra receipt members,
+  selector changes, same-size/extra source edits, weakened status assertions,
+  malformed-source rollback, diagnostic drift, snapshot mutation/extension and
+  restoration of the old fixture. Invalid receipt/selectors are explicitly
+  proven rejected before JSON.parse is called. All mutations are in memory.
+
+The focused command selected these package-relative files:
+
+```sh
+node --import tsx --test --test-concurrency=1 \
+  tests/commands/structured-stress/jq-42-review-fixes/evidence.test.ts \
+  tests/commands/structured/resources.test.ts \
+  tests/commands/jq-control-flow.test.ts \
+  tests/commands/jq-control-flow-limits.test.ts \
+  tests/commands/yq-control-flow.test.ts \
+  tests/commands/structured-stress/split-increment/interop.test.ts
+```
+
+This follow-up edits only the evidence test, its new literal receipt and this
+plan. They are frozen for root review. No production, resource-fixture, Git,
+build, typecheck or full-guard changes/actions were made; fresh full gates and
+delivery remain root-owned.
+
+### Root review before the replacement full gate
+
+On September 6, 2026, root independently reran the six-file cohort from the
+package directory: 199/199 pass, with the 140-member/23-snapshot accounting
+intact. The exact registry check passed 98/98, and maintained `npm run typecheck`
+passed all 26 current consumer groups and its expected negative controls.
+Logs are in the validation root's `tmp/issue644-root-depth-seal-focused.log`,
+`tmp/issue644-root-depth-seal-registry-corrected.log` and
+`tmp/issue644-root-depth-seal-types.log`.
+
+The first root registry invocation mistakenly used repository CWD for the
+package-relative script and failed before test discovery. Its diagnostic is
+preserved in `tmp/issue644-root-depth-seal-registry.log`; the corrected invocation
+used package CWD. This was a command-path error, not a product failure or a pass.
+Production sources, the strengthened resource fixture and immutable manifests
+remain unchanged by this maintenance follow-up. A fresh frozen full build,
+`npm test`, typecheck and lint run is still required; these focused results do
+not establish push or release delivery.

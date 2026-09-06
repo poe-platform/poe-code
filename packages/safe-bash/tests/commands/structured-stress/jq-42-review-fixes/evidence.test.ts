@@ -24,6 +24,69 @@ const unusedBindingMigration = {
     { offset: 1383, before: "_stderrBytes", after: "ignoredStderrBytes" },
   ],
 };
+const resourceDepthMigration = {
+  path: "tests/commands/structured/resources.test.ts",
+  owner: "tests/commands/structured-stress/jq-42-review-fixes/evidence.test.ts",
+  snapshot: "tests/commands/structured-stress/jq-grammar-canonical-plan/after-native/tests/commands/structured/resources.test.ts.txt",
+  receipt: {
+    path: "tests/commands/structured-stress/jq-42-review-fixes/resource-depth-receipt-644.json",
+    bytes: 1735,
+    sha256: "42afb49e94f3528829d9a26cf2aaf9d3d14eba4ad556ec1e27fbf0d1dbf6625c",
+  },
+  before: { bytes: 6029, sha256: "c61d9f482fc8c76a432d962a134c7834e4fb381a9a501e94b92dc27f79012061" },
+  after: { bytes: 6495, sha256: "55e0aecebc8c3e2deb3b78d90fcb612a54103866b7d8b2488900b2dcf1ba4a91" },
+};
+type ResourceDepthInput = {
+  path: string;
+  expected: string;
+  current: Buffer;
+  snapshot: Buffer;
+  index: number;
+  receipt: { owner: string; path: string; bytes: Buffer };
+};
+type ResourceDepthReceipt = {
+  version: number;
+  owner: string;
+  members: Array<{
+    path: string;
+    before: { bytes: number; sha256: string };
+    after: { bytes: number; sha256: string };
+    substitutions: Array<{ offset: number; before: string; after: string }>;
+  }>;
+};
+
+function assertResourceDepthMigration(input: ResourceDepthInput) {
+  assert.equal(input.path, resourceDepthMigration.path, "exact resource-depth migration path");
+  assert.equal(input.expected, resourceDepthMigration.before.sha256, "original resource-depth sealed digest");
+  assert.equal(input.index, 0, "exact resource-depth receipt member");
+  assert.equal(input.receipt.owner, resourceDepthMigration.owner, "exact resource-depth receipt owner");
+  assert.equal(input.receipt.path, resourceDepthMigration.receipt.path, "exact resource-depth receipt path");
+  assert.equal(input.receipt.bytes.length, resourceDepthMigration.receipt.bytes, "reviewed resource-depth receipt size");
+  assert.equal(digest(input.receipt.bytes), resourceDepthMigration.receipt.sha256, "reviewed resource-depth receipt digest");
+  const receipt = JSON.parse(input.receipt.bytes.toString("utf8")) as ResourceDepthReceipt;
+  assert.equal(receipt.version, 1, "resource-depth receipt version");
+  assert.equal(receipt.owner, resourceDepthMigration.owner, "authenticated resource-depth receipt owner");
+  assert.equal(receipt.members.length, 1, "one approved resource-depth member");
+  const member = receipt.members[input.index]!;
+  assert.equal(member.path, input.path, "authenticated resource-depth member path");
+  assert.deepEqual(member.before, resourceDepthMigration.before, "authenticated resource-depth before binding");
+  assert.deepEqual(member.after, resourceDepthMigration.after, "authenticated resource-depth after binding");
+  assert.equal(input.current.length, member.after.bytes, "reviewed resource-depth source size");
+  assert.equal(digest(input.current), member.after.sha256, "reviewed resource-depth source digest");
+  assert.equal(input.snapshot.length, member.before.bytes, "original resource-depth snapshot size");
+  assert.equal(digest(input.snapshot), input.expected, "original resource-depth snapshot digest");
+  assert.equal(member.substitutions.length, 1, "one exact resource-depth block replacement");
+  const substitution = member.substitutions[0]!;
+  const replacement = Buffer.from(substitution.after);
+  const end = substitution.offset + replacement.length;
+  assert.ok(Number.isSafeInteger(substitution.offset) && substitution.offset >= 0 && end <= input.current.length, "bounded resource-depth replacement");
+  assert.deepEqual(input.current.subarray(substitution.offset, end), replacement, "exact approved depth assertions and malformed control");
+  const original = Buffer.concat([input.current.subarray(0, substitution.offset), Buffer.from(substitution.before), input.current.subarray(end)]);
+  assert.equal(original.length, member.before.bytes, "reconstructed resource-depth source size");
+  assert.equal(digest(original), input.expected, "only the exact approved resource-depth transformation");
+  assert.deepEqual(original, input.snapshot, "unchanged historical resource-depth snapshot");
+  return original;
+}
 
 function assertUnusedBindingMigration(path: string, expected: string, current: Buffer) {
   assert.equal(path, unusedBindingMigration.path, "exact unused-binding migration path");
@@ -118,11 +181,21 @@ test("frozen historical evidence and retained non-native canonical seals remain 
     test: readFileSync(new URL("./lint-repair-receipt-20260830.json", import.meta.url)),
     helper: readFileSync(new URL("./helper-spelling-receipt-20260830.json", import.meta.url)),
   };
+  const depthReceipt = readFileSync(new URL("./resource-depth-receipt-644.json", import.meta.url));
   const compared = new Set<string>(), migrated = new Set<string>();
   const bindingMigrated = new Set<string>();
+  const depthMigrated = new Set<string>();
   function assertCurrent(path: string, expected: string, snapshot?: Buffer) {
     assert.ok(!compared.has(path), "duplicate current comparison");
     let current = readFileSync(path);
+    if (path === resourceDepthMigration.path) {
+      assert.ok(snapshot, "resource-depth member retains its authenticated historical snapshot");
+      current = assertResourceDepthMigration({
+        path, expected, current, snapshot, index: 0,
+        receipt: { owner: resourceDepthMigration.owner, path: resourceDepthMigration.receipt.path, bytes: depthReceipt },
+      });
+      depthMigrated.add(path);
+    }
     if (path === unusedBindingMigration.path) {
       current = assertUnusedBindingMigration(path, expected, current);
       if (snapshot) assert.deepEqual(current, snapshot, "unchanged historical helper snapshot");
@@ -151,10 +224,13 @@ test("frozen historical evidence and retained non-native canonical seals remain 
   }
   assert.equal(compared.size, 140, "current comparisons after two native source-seal retirements");
   assert.deepEqual([...migrated].sort(), spellingMigrations.map(entry => entry.path).sort(), "only the four approved migrations");
-  assert.equal(compared.size - migrated.size, 136, "unchanged retained current comparisons");
+  assert.equal(compared.size - migrated.size, 136, "retained current comparisons outside spelling migrations");
   assert.equal(snapshots.size, 23, "all original historical snapshots");
   assert.deepEqual([...bindingMigrated], [unusedBindingMigration.path], "only the reviewed unused-binding helper migration");
-  context.diagnostic(JSON.stringify({ liveComparisons: compared.size, unchangedComparisons: compared.size - migrated.size, spellingMigrations: migrated.size, historicalSnapshots: snapshots.size, unusedBindingMigrations: bindingMigrated.size, byteUnchangedComparisons: compared.size - migrated.size - bindingMigrated.size }));
+  assert.deepEqual([...depthMigrated], [resourceDepthMigration.path], "only the reviewed resource-depth fixture migration");
+  const unchangedComparisons = compared.size - migrated.size - bindingMigrated.size - depthMigrated.size;
+  assert.equal(unchangedComparisons, 134, "byte-unchanged retained current comparisons");
+  context.diagnostic(JSON.stringify({ liveComparisons: compared.size, unchangedComparisons, spellingMigrations: migrated.size, historicalSnapshots: snapshots.size, unusedBindingMigrations: bindingMigrated.size, resourceDepthMigrations: depthMigrated.size, byteUnchangedComparisons: unchangedComparisons }));
 });
 
 type MigrationControl = { migration: SpellingMigration; expected: string; current: Buffer; receipt: Buffer };
@@ -254,5 +330,78 @@ for (const [name, mutate] of unusedBindingControls) test("reviewed unused-bindin
     assert.ok(firstByte !== undefined, "historical helper snapshot mutation requires a byte");
     snapshot[0] = firstByte ^ 1;
     assert.throws(() => assert.deepEqual(restored, snapshot), { code: "ERR_ASSERTION" });
+  }
+});
+
+const resourceDepthControls: Array<[string, ((input: ResourceDepthInput) => void) | null]> = [
+  ["reconstructs the exact authenticated historical snapshot", null],
+  ["rejects a different member", input => { input.index = 1; }],
+  ["rejects a different source path", input => { input.path = "tests/commands/structured/cli.test.ts"; }],
+  ["rejects an aliased source path", input => { input.path = "./" + input.path; }],
+  ["rejects a changed old digest", input => { input.expected = "0".repeat(64); }],
+  ["rejects a different receipt owner", input => { input.receipt.owner = "tests/commands/structured/cli.test.ts"; }],
+  ["rejects a different receipt path", input => { input.receipt.path = "tests/commands/structured-stress/jq-42-review-fixes/lint-repair-receipt-20260830.json"; }],
+  ["rejects an aliased receipt path", input => { input.receipt.path = "./" + input.receipt.path; }],
+  ["rejects receipt mutation before parsing", input => { input.receipt.bytes[0] = 0; }],
+  ["rejects extra receipt bytes", input => { input.receipt.bytes = Buffer.concat([input.receipt.bytes, Buffer.from("\n")]); }],
+  ["rejects truncated receipt bytes", input => { input.receipt.bytes = input.receipt.bytes.subarray(1); }],
+  ["rejects a rewritten receipt member path", input => {
+    const receipt = JSON.parse(input.receipt.bytes.toString("utf8")) as ResourceDepthReceipt;
+    receipt.members[0]!.path = "tests/commands/structured/cli.test.ts";
+    input.receipt.bytes = Buffer.from(JSON.stringify(receipt, null, 2) + "\n");
+  }],
+  ["rejects a rewritten receipt selector offset", input => {
+    const receipt = JSON.parse(input.receipt.bytes.toString("utf8")) as ResourceDepthReceipt;
+    receipt.members[0]!.substitutions[0]!.offset++;
+    input.receipt.bytes = Buffer.from(JSON.stringify(receipt, null, 2) + "\n");
+  }],
+  ["rejects a receipt with extra approved members", input => {
+    const receipt = JSON.parse(input.receipt.bytes.toString("utf8")) as ResourceDepthReceipt;
+    receipt.members.push(receipt.members[0]!);
+    input.receipt.bytes = Buffer.from(JSON.stringify(receipt, null, 2) + "\n");
+  }],
+  ["rejects same-size source mutation", input => { input.current[0] = input.current[0]! ^ 1; }],
+  ["rejects extra source edits", input => { input.current = Buffer.concat([input.current, Buffer.from("\n")]); }],
+  ["rejects weakening the new status assertion", input => {
+    input.current = Buffer.from(input.current.toString("utf8").replace("    assert.equal(result.exitCode, 5);", "    assert.equal(result.exitCode, 0);"));
+    assert.equal(input.current.length, resourceDepthMigration.after.bytes);
+  }],
+  ["rejects restoring the malformed deep source", input => {
+    input.current = Buffer.from(input.current.toString("utf8").replace('".a".repeat(1000)', '"." + ".a".repeat(1000)'));
+    assert.notEqual(input.current.length, resourceDepthMigration.after.bytes);
+  }],
+  ["rejects altered malformed-control diagnostics", input => {
+    input.current = Buffer.from(input.current.toString("utf8").replace("unexpected IDENT", "unexpected OTHER"));
+    assert.equal(input.current.length, resourceDepthMigration.after.bytes);
+  }],
+  ["rejects original snapshot mutation", input => { input.snapshot[0] = input.snapshot[0]! ^ 1; }],
+  ["rejects extra original snapshot bytes", input => { input.snapshot = Buffer.concat([input.snapshot, Buffer.from("\n")]); }],
+  ["rejects the unreviewed original source image", input => { input.current = Buffer.from(input.snapshot); }],
+];
+
+for (const [name, mutate] of resourceDepthControls) test("reviewed resource-depth migration " + name, context => {
+  const input: ResourceDepthInput = {
+    path: resourceDepthMigration.path,
+    expected: resourceDepthMigration.before.sha256,
+    current: readFileSync(resourceDepthMigration.path),
+    snapshot: readFileSync(resourceDepthMigration.snapshot),
+    index: 0,
+    receipt: {
+      owner: resourceDepthMigration.owner,
+      path: resourceDepthMigration.receipt.path,
+      bytes: readFileSync(new URL("./resource-depth-receipt-644.json", import.meta.url)),
+    },
+  };
+  if (mutate) {
+    mutate(input);
+    const parse = context.mock.method(JSON, "parse");
+    assert.throws(() => assertResourceDepthMigration(input), { code: "ERR_ASSERTION" });
+    if (input.path !== resourceDepthMigration.path || input.expected !== resourceDepthMigration.before.sha256 || input.index !== 0
+      || input.receipt.owner !== resourceDepthMigration.owner || input.receipt.path !== resourceDepthMigration.receipt.path
+      || input.receipt.bytes.length !== resourceDepthMigration.receipt.bytes || digest(input.receipt.bytes) !== resourceDepthMigration.receipt.sha256) {
+      assert.equal(parse.mock.callCount(), 0, "reject unauthenticated receipt or selector before JSON parsing");
+    }
+  } else {
+    assert.deepEqual(assertResourceDepthMigration(input), input.snapshot);
   }
 });

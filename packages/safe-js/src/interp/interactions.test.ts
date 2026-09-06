@@ -108,7 +108,7 @@ describe("language feature interactions", () => {
     expect(first).toMatchObject({ ok: true, returnValue: 7 });
 
     if (!first.ok) return;
-    await expect(run(source, { snapshot: first.snapshot })).rejects.toThrow(/prototype links/);
+    await expect(run(source, { snapshot: first.snapshot })).resolves.toMatchObject({ok:true,returnValue:7});
   });
 
   it("round-trips shared collection identity, cycles, and insertion order", async () => {

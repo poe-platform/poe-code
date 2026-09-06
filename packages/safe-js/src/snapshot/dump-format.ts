@@ -1,4 +1,5 @@
 export const DUMP_FORMAT_VERSION = 2;
+export const inMemoryRunSnapshots = new WeakSet<object>();
 import { getRegexProperties, isSandboxRegex } from "../interp/values.js";
 import { isSandboxRegExpIterator, regexpIteratorState } from "../interp/regexp-iterator.js";
 import { hasCustomRegexProperties, serializeRegexProperties, type RegexPropertyData } from "./regexp-properties.js";

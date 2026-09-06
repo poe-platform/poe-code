@@ -77,7 +77,7 @@ import {
 } from "./observability/otel.js";
 import type { SnapshotBackend } from "./snapshot/backend.js";
 import { attachDumpController, createDumpController } from "./snapshot/dump.js";
-import { DUMP_FORMAT_VERSION, EXECUTION_SEMANTICS } from "./snapshot/dump-format.js";
+import { DUMP_FORMAT_VERSION, EXECUTION_SEMANTICS, inMemoryRunSnapshots } from "./snapshot/dump-format.js";
 import { createSnapshotScheduler, type SnapshotScheduler } from "./snapshot/scheduler.js";
 import { UnsnapshotableValueError } from "./snapshot/serialize.js";
 import { prepareReplayInputs } from "./snapshot/replay-inputs.js";
@@ -219,7 +219,7 @@ export function run(source: string, options: RunOptions = {}): Promise<RunResult
           const convertInitialInput = <TValue>(convert: () => TValue): TValue =>
             executionSemantics === "jobs-v6" ? convert() : promiseReplayContext.exit(convert);
           if (restoredSnapshot !== undefined) {
-            leaveSnapshotRun = enterSnapshotRun(restoredSnapshot);
+            leaveSnapshotRun = enterSnapshotRun(options.snapshot ?? restoredSnapshot);
           }
           promiseReplay.attachBudget(budget);
           const filename = options.filename ?? "<input>";
@@ -725,7 +725,7 @@ function createRunSnapshot(input: {
     | undefined;
   sourceHash: string;
 }): RunSnapshot {
-  return {
+  const snapshot: RunSnapshot = {
     version: DUMP_FORMAT_VERSION,
     executionSemantics: input.executionSemantics,
     sourceHash: input.sourceHash,
@@ -754,6 +754,8 @@ function createRunSnapshot(input: {
             state: input.random.generator.snapshot()
           }
   };
+  inMemoryRunSnapshots.add(snapshot);
+  return snapshot;
 }
 
 function readHostCallSnapshot(snapshot: SafeJSSnapshot | undefined): HostCallRecord[] {

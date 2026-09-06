@@ -1,5 +1,5 @@
 import { assertSandboxDataDepth } from "../graph-depth.js";
-import { registerBuiltinIdentities, releaseIntrinsicIdentities } from "./intrinsics.js";
+import { getIntrinsicIdentity, registerBuiltinIdentities, releaseIntrinsicIdentities } from "./intrinsics.js";
 import { releaseTemplateObjects } from "./template-objects.js";
 import { isSandboxDate } from "./date.js";
 import { retainedAccessorClosures } from "./accessors.js";
@@ -149,7 +149,8 @@ function registerIntrinsicPrototype(
 
 export function registerIntrinsicFunction(budget: Budget, closure: SandboxClosure): void {
   if (closure.name === undefined) throw new TypeError("Intrinsic functions require an installation name.");
-  registerBuiltinIdentities(budget, { [closure.name]: closure });
+  if (getIntrinsicIdentity(closure) === undefined)
+    registerBuiltinIdentities(budget, { [closure.name]: closure });
   trackIntrinsicState(budget, closure, closure, [closure]);
 }
 

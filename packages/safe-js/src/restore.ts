@@ -2,7 +2,7 @@ import { hashSource } from "./parse/hash.js";
 import type { CompileOwner } from "./interp/budget.js";
 import { replaceErrorStack } from "./error/shape.js";
 import { SnapshotValidationError, validateDumpEnvelope } from "./snapshot/validation.js";
-import { EXECUTION_SEMANTICS } from "./snapshot/dump-format.js";
+import { EXECUTION_SEMANTICS, inMemoryRunSnapshots, serializeSafeJSSnapshot } from "./snapshot/dump-format.js";
 import { assertSnapshotInactive } from "./interp/running-state.js";
 import { validateSnapshotMigration, type SnapshotMigration } from "./snapshot/migration.js";
 import { parseModule } from "./parse/parser.js";
@@ -51,7 +51,16 @@ export function restore<TSnapshot extends SafeJSSnapshot>(
   owner?: CompileOwner
 ): TSnapshot {
   assertSnapshotInactive(snapshot);
-  validateDumpEnvelope(snapshot);
+  try {
+    validateDumpEnvelope(snapshot);
+  } catch (error) {
+    if (!(error instanceof SnapshotValidationError) || error.code !== "invalidState" ||
+        !inMemoryRunSnapshots.has(snapshot)) throw error;
+    // Runtime snapshots can retain guest descriptor state. Use the same portable
+    // representation as dump(), then apply all normal validation below.
+    snapshot = JSON.parse(serializeSafeJSSnapshot(snapshot)) as TSnapshot;
+    validateDumpEnvelope(snapshot);
+  }
   validateSnapshotMigration(snapshot.migration, snapshot.sourceHash, owner);
 
   if (

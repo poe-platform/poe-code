@@ -168,7 +168,7 @@ describe("guest function objects through the public core", () => {
     "function Parent() {} function Child() {} Object.setPrototypeOf(Child, Parent); return Child;",
     "Object.setPrototypeOf(Number, { value: 7 }); return Number;",
     "Object.setPrototypeOf(Number, null); return Number;"
-  ])("preserves guest state in heap snapshots while refusing unsupported replay-data encoding: %s", async (source) => {
+  ])("preserves guest state in heap and direct run snapshots while refusing unsupported replay-data encoding: %s", async (source) => {
     const result = await run(source, { budget: new Budget() });
     if (!result.ok) throw new Error("Guest evaluation failed");
     expect(() => encodeReplayData(result.returnValue as SandboxValue)).toThrow(
@@ -190,9 +190,12 @@ describe("guest function objects through the public core", () => {
       scopeChain: [{ id: 1, bindings: { value: binding.value as RuntimeSnapshotValue } }],
       callStack: [], pendingPromises: [], moduleBindings: {} });
     expect(JSON.parse(JSON.stringify(recaptured))).toEqual(JSON.parse(JSON.stringify(snapshot)));
-    await expect(
-      run(source, { snapshot: result.snapshot, budget: new Budget() })
-    ).rejects.toThrow();
+    const resumed = await run(source, { snapshot: result.snapshot, budget: new Budget() });
+    expect(resumed.ok).toBe(true);
+    const resumedGraph = serialize({ source, currentAstNodeId: 1,
+      scopeChain: [{ id: 1, bindings: { value: resumed.returnValue as RuntimeSnapshotValue } }],
+      callStack: [], pendingPromises: [], moduleBindings: {} });
+    expect(JSON.parse(JSON.stringify(resumedGraph))).toEqual(JSON.parse(JSON.stringify(snapshot)));
   });
 
   it("keeps separate runs isolated", async () => {

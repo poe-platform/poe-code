@@ -1,0 +1,19 @@
+import { S } from "schema";
+
+export const schema = S.Object({ title: S.String() });
+
+export default async (frontmatter) => {
+  for (const name of ["parse", "stringify", "rawJSON", "isRawJSON"]) {
+    if (JSON[name].name !== name) throw new Error("Incorrect JSON method name");
+    const descriptor = Object.getOwnPropertyDescriptor(JSON[name], "name");
+    if (!descriptor.configurable || descriptor.writable || descriptor.enumerable) {
+      throw new Error("Incorrect JSON method descriptor");
+    }
+  }
+  const parse = JSON.parse;
+  Object.defineProperty(parse, "name", { value: "customParse", configurable: true });
+  if (parse("7") !== 7 || parse.name !== "customParse" || JSON.stringify.length !== 3) {
+    throw new Error("JSON method metadata validation failed");
+  }
+  return { title: frontmatter.title, ok: true, name: parse.name };
+};

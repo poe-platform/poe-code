@@ -3,7 +3,8 @@ import { retainValues } from "../resources.js";
 import { parseJsonWithReviver } from "./json-parse.js";
 import { createRawJson, isRawJson } from "../raw-json.js";
 import { readPropertyDescriptor } from "../accessors.js";
-import { getBoxedPrototype, getSandboxPropertyDescriptor } from "../object-model.js";
+import { getBoxedPrototype, getSandboxPropertyDescriptor, registerIntrinsicFunction } from "../object-model.js";
+import { registerBuiltinIdentities } from "../intrinsics.js";
 import { isSandboxDate } from "../date.js";
 import { dateToJSON } from "./date.js";
 import { boxedValue, isSandboxBox } from "../boxed.js";
@@ -41,10 +42,11 @@ export function createConsoleJsonGlobals(
 ): Record<"JSON" | "console", SandboxObject> {
   const sink = options.sink ?? console;
 
-  return {
+  const globals = {
     JSON: {
       rawJSON: createSandboxClosure({
         sandbox: true,
+        guest: true,
         name: "rawJSON",
         length: 1,
         call: async ([value], context) => {
@@ -55,12 +57,14 @@ export function createConsoleJsonGlobals(
       }),
       isRawJSON: createSandboxClosure({
         sandbox: true,
+        guest: true,
         name: "isRawJSON",
         length: 1,
         call: ([value]) => isRawJson(value)
       }),
       parse: createSandboxClosure({
         sandbox: true,
+        guest: true,
         length: 2,
         call: async ([text, reviver], context) => {
           const converted = sandboxString(text, options.budget, context);
@@ -75,6 +79,8 @@ export function createConsoleJsonGlobals(
       }),
       stringify: createSandboxClosure({
         sandbox: true,
+        guest: true,
+        length: 3,
         call: async ([value, replacer, indent], context) =>
           stringifyJson(value, replacer, indent, options.budget, context),
         name: "stringify"
@@ -141,6 +147,9 @@ export function createConsoleJsonGlobals(
             }
           )
   };
+  registerBuiltinIdentities(options.budget, { JSON: globals.JSON });
+  for (const method of Object.values(globals.JSON)) registerIntrinsicFunction(options.budget, method);
+  return globals;
 }
 
 async function stringifyJson(

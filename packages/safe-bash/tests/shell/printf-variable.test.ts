@@ -58,17 +58,54 @@ const cases = [
   ["UTF-8 indexed payload and BOM", 'printf -v "value[1]" "\\357\\273\\277é"; printf "%s" "${value[1]}"'],
 ] as const;
 
+// GNU Bash 5.0.17 qualified the original corpus (docs/plans/bugfix-636-printf-variable.md).
+// Fixed contracts preserve required empty/readonly/indexed assignment on Bash 3 hosts.
+const modernContracts = new Map<string, { stdout: Uint8Array; hasStderr: boolean }>([
+  ["scalar and empty assignment", { stdout: new TextEncoder().encode("<hi:007><>"), hasStderr: false }],
+  ["readonly refusal", { stdout: new TextEncoder().encode("<1:old>"), hasStderr: true }],
+  ["indexed lvalues and scalar promotion", { stdout: new TextEncoder().encode("<replaced:two>"), hasStderr: false }],
+  ["local indexed restoration", { stdout: new TextEncoder().encode("<zero:inner><outer:tail>"), hasStderr: false }],
+  ["readonly indexed and local refusal", { stdout: new TextEncoder().encode("<1:tail><1:old>"), hasStderr: true }],
+  ["quoted lvalue and boundary subscript", { stdout: new TextEncoder().encode("<two:last>"), hasStderr: false }],
+  ["empty index-zero publication", { stdout: new TextEncoder().encode("<:tail>"), hasStderr: false }],
+  ["replacing byte scalar at index zero", { stdout: new TextEncoder().encode("new"), hasStderr: false }],
+  ["UTF-8 indexed payload and BOM", { stdout: Uint8Array.of(239, 187, 191, 195, 169), hasStderr: false }],
+]);
+const version = spawnSync("/bin/bash", ["--noprofile", "--norc", "-c", 'printf "%s" "$BASH_VERSION"'], {
+  env: { PATH: "/usr/bin:/bin", LC_ALL: "C" }, timeout: 2000,
+});
+assert.ifError(version.error);
+assert.equal(version.signal, null);
+assert.equal(version.status, 0);
+assert.equal(version.stderr.length, 0);
+const bashVersion = version.stdout.toString();
+const bashMajor = Number(bashVersion.split(".")[0]);
+assert.ok(Number.isInteger(bashMajor) && bashMajor > 0, `Invalid Bash version: ${bashVersion}`);
+
 for (const [name, script] of cases) {
-  test(`printf -v: ${name}`, async () => {
-    const oracle = spawnSync("/bin/bash", ["--noprofile", "--norc", "-c", script], { env: { PATH: "/usr/bin:/bin", LC_ALL: "C" }, timeout: 2000 });
-    assert.ifError(oracle.error);
-    assert.equal(oracle.signal, null);
+  test(`printf -v: ${name}`, async context => {
     const { shell } = fixture();
     try {
       const result = await shell.exec(script);
-      assert.equal(result.exitCode, oracle.status, result.stderr);
-      assert.deepEqual(result.stdoutBytes, new Uint8Array(oracle.stdout), result.stderr);
-      assert.equal(result.stderr.length > 0, oracle.stderr.length > 0);
+      const compareNative = () => {
+        const oracle = spawnSync("/bin/bash", ["--noprofile", "--norc", "-c", script], { env: { PATH: "/usr/bin:/bin", LC_ALL: "C" }, timeout: 2000 });
+        assert.ifError(oracle.error);
+        assert.equal(oracle.signal, null);
+        assert.equal(result.exitCode, oracle.status, result.stderr);
+        assert.deepEqual(result.stdoutBytes, new Uint8Array(oracle.stdout), result.stderr);
+        assert.equal(result.stderr.length > 0, oracle.stderr.length > 0);
+      };
+      const contract = modernContracts.get(name);
+      if (contract !== undefined) {
+        assert.equal(result.exitCode, 0, result.stderr);
+        assert.deepEqual(result.stdoutBytes, contract.stdout, result.stderr);
+        assert.equal(result.stderr.length > 0, contract.hasStderr);
+        await context.test("GNU Bash 5+ native comparison", {
+          skip: bashMajor < 5 ? `GNU Bash 5+ oracle unavailable; /bin/bash is ${bashVersion}` : false,
+        }, compareNative);
+      } else {
+        compareNative();
+      }
     } finally { await shell.dispose(); }
   });
 }

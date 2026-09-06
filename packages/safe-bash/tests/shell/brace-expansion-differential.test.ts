@@ -69,16 +69,55 @@ const cases = [
   ["pipeline stages inherit but isolate option state", String.raw`set +B; printf '<%s>\n' {a,b} | cat; set -B | cat; printf '<%s>\n' {a,b}`],
 ] as const;
 
+// The original oracle was GNU Bash 5.0.17; see docs/plans/bugfix-637-brace-expansion.md.
+// These contracts retain stepped/padded ranges and lexical replay on older hosts.
+const modernContracts = new Map<string, readonly string[]>([
+  ["ascending descending and stepped numbers", ["1", "3", "5", "5", "3", "1", "-3", "-1", "1", "3", "3", "1", "-1", "-3"]],
+  ["zero and negative steps", ["1", "2", "3", "1", "3", "5", "5", "3", "1"]],
+  ["padding across signs", ["-03", "-01", "001", "003", "003", "002", "001", "000", "-01", "001", "002", "003", "0", "1", "2"]],
+  ["explicit plus signs and padded steps", ["1", "2", "3", "01", "03", "3", "1"]],
+  ["alphabetic sequences", ["a", "c", "e", "F", "D", "B", "x", "y", "z"]],
+  // {Y..c..3} selects ASCII Y, backslash, _, b. The recorded lexical contract
+  // replays the suffix: backslash quotes its next character (dollar/quote/escape),
+  // then removes itself. A quoted opening delimiter becomes literal; the dangling
+  // closing delimiter is removed. Thus "$value" becomes literal quote + unquoted
+  // x/y fields; ANSI-C decoding first leaves the literal quote followed by byte FF.
+  // These are contract-derived expectations, not fresh Bash 5 oracle captures.
+  ["range generated backslash quote removal", ["Y", "", "_", "b", "Ypost", "post", "_post", "bpost"]],
+  ["range generated backslash escapes parameter spelling", ["Ytail", "$value", "_tail", "btail", "Ytail", "${value}", "_tail", "btail"]],
+  ["range generated backslash preserves escaped quote spelling", ["Ypost", '"post', "_post", "bpost"]],
+  ["range generated backslash preserves ANSI quoted raw bytes", ["Y\xff", "'\xff", "_\xff", "b\xff"]],
+  ["range generated backslash changes parameter quote context", ["Yx y", '"x', "y", "_x y", "bx y"]],
+  ["range generated backslash escapes an existing escape", ["Y$name", "\\", "_$name", "b$name"]],
+  ["compound array values expand", ["a", "b", "01", "02", "03"]],
+  ["short option toggles", ["{a,b}", "1", "3", "5"]],
+]);
+const version = native('printf "%s" "$BASH_VERSION"');
+assert.equal(version.exitCode, 0);
+assert.equal(version.stderr, "");
+const bashVersion = Buffer.from(version.stdout, "hex").toString();
+const bashMajor = Number(bashVersion.split(".")[0]);
+assert.ok(Number.isInteger(bashMajor) && bashMajor > 0, `Invalid Bash version: ${bashVersion}`);
+
 for (const [name, source] of cases) {
   test(`brace expansion differential: ${name}`, async context => {
-    const expected = native(source);
     const fs = createMemoryFileSystem();
     await fs.mkdir("/dev");
     await fs.writeFile("/dev/null", new Uint8Array());
     const shell = new Shell({ fs, env: environment }).use(agentCommands());
     context.after(() => shell.dispose());
     const actual = await shell.exec(source);
-    assert.deepEqual({ stdout: Buffer.from(actual.stdoutBytes).toString("hex"), stderr: Buffer.from(actual.stderrBytes).toString("hex"), exitCode: actual.exitCode }, expected);
+    const observed = { stdout: Buffer.from(actual.stdoutBytes).toString("hex"), stderr: Buffer.from(actual.stderrBytes).toString("hex"), exitCode: actual.exitCode };
+    const contract = modernContracts.get(name);
+    if (contract !== undefined) {
+      const stdout = Buffer.from(contract.map(value => `<${value}>\n`).join(""), "latin1").toString("hex");
+      assert.deepEqual(observed, { stdout, stderr: "", exitCode: 0 });
+      await context.test("GNU Bash 5+ native comparison", {
+        skip: bashMajor < 5 ? `GNU Bash 5+ oracle unavailable; /bin/bash is ${bashVersion}` : false,
+      }, () => { assert.deepEqual(observed, native(source)); });
+    } else {
+      assert.deepEqual(observed, native(source));
+    }
   });
 }
 

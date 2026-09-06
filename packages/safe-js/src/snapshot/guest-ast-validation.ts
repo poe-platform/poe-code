@@ -80,7 +80,7 @@ export function validateGuestFunctionAst(record: Record<string, unknown>, origin
       }
       pending.push({ value, blocks,
         expressions: ((node.type === "VariableDeclarator" && key === "id" && node.init !== undefined) ||
-          (node.type === "AssignmentExpression" && key === "left")) && typeof node.nodeId === "number" &&
+          ((node.type === "AssignmentExpression" || node.type === "AssignmentPattern") && key === "left")) && typeof node.nodeId === "number" &&
           ["ArrayPattern", "ObjectPattern"].includes(String((value as Record<string, unknown>)?.type))
           ? new Map([...frame.expressions, [node.nodeId, { kind: "pattern-source" }]])
           : node.type === "ForOfStatement" && ["left", "body"].includes(key) && typeof node.nodeId === "number"

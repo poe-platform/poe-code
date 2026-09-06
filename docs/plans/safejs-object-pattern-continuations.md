@@ -51,3 +51,4 @@ yields. A direct restoration probe of
 `const {first:{second=yield 1}=input()}={}` returned a call count of 2, while
 native execution returned 1. Preserving default-expression results requires
 its own continuation state; the property-read value alone is insufficient.
+That follow-up is tracked in `safejs-pattern-default-continuations.md`.

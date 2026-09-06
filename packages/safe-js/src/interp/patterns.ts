@@ -110,19 +110,27 @@ async function bindAssignmentPattern(
   context: PatternContext,
   reference?: AssignmentReference
 ): Promise<BindPatternResult> {
-  if (value !== undefined) {
-    return bindPattern(pattern.left, value, target, scope, context, reference);
+  const saved = pattern.nodeId === undefined ? undefined : context.restoredPatternState?.(pattern.nodeId);
+  if (saved !== undefined && saved.kind !== "pattern-source") throw new TypeError("Invalid pattern default continuation.");
+  if (saved !== undefined) value = saved.value;
+  else if (value === undefined) {
+    const defaultValue = await context.evaluate(
+      pattern.right,
+      pattern.left.type === "Identifier" ? pattern.left.name : undefined
+    );
+    if (defaultValue.kind !== "normal") return { ok: false, result: defaultValue };
+    value = defaultValue.value;
   }
 
-  const defaultValue = await context.evaluate(
-    pattern.right,
-    pattern.left.type === "Identifier" ? pattern.left.name : undefined
-  );
-  if (defaultValue.kind !== "normal") {
-    return { ok: false, result: defaultValue };
+  const bindingContext = pattern.nodeId === undefined ||
+    (pattern.left.type !== "ArrayPattern" && pattern.left.type !== "ObjectPattern") ? context
+    : context.withPatternState?.(pattern.nodeId, { kind: "pattern-source", value }) ?? context;
+  const release = context.budget === undefined ? () => undefined : retainValues(context.budget, () => [value]);
+  try {
+    return await bindPattern(pattern.left, value, target, scope, bindingContext, reference);
+  } finally {
+    release();
   }
-
-  return bindPattern(pattern.left, defaultValue.value, target, scope, context, reference);
 }
 
 async function bindPatternValue(

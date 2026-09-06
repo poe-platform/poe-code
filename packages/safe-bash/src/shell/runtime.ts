@@ -1077,7 +1077,11 @@ export class Runtime {
     readonly cancellationDepth: number,
     readonly cancellationMaxDepth: number,
     readonly outcomeFrame: RuntimeOutcomeFrame | undefined = undefined,
-  ) { registerYieldCheckpoint(this.signal, () => this.budget.cpuCheckpoint()); }
+  ) {
+    const checkpoint = () => budget.cpuCheckpoint();
+    registerYieldCheckpoint(signal, checkpoint);
+    registerYieldCheckpoint(commandSignal, checkpoint);
+  }
 
   private async ereDiagnostic(io: IO, detail: string): Promise<void> {
     try { await this.diagnostic(io, detail); }

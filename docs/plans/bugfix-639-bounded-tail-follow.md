@@ -6,7 +6,43 @@ version: 1
 
 # Bugfix #639: bounded tail follow
 
-Implementation proposal for root review; this document does not authorize implementation.
+Retained readers, wrapper composition, bounded follow, and the required Shell
+cleanup/checkpoint repairs are implemented. Root's
+[command implementation profile](bugfix-639-command-profile.md) supersedes
+conflicting historical command-state proposals below. The
+[tail contract](../../packages/safe-bash/src/contracts/tail-follow.md) records
+command behavior and focused qualification, including both repaired Shell
+regressions. Local qualification, remote-main delivery, and successful
+publication remain separate milestones; historical handoffs below are not
+claims that a later candidate has passed its final gates.
+
+## Phase A authorization: September 6, 2026
+
+Root explicitly authorized Phase A on clean HEAD
+`6dd3b12baafeac38fb53234ab5f20ab959241dc7`, after #644 qualification, with fresh
+TDD and no concurrent build/test/lint. This supersedes the older statements
+that no source work is authorized, but only for the following seven paths:
+
+- `packages/safe-fs/tests/retained-read.test.ts`
+- `packages/safe-fs/src/contracts/filesystem.ts`
+- `packages/safe-fs/src/fs/memory/index.ts`
+- `packages/safe-fs/src/fs/real/index.ts`
+- `packages/safe-bash/src/contracts/filesystem.ts`
+- `packages/safe-bash/src/contracts/filesystem.md`
+- `docs/plans/bugfix-639-bounded-tail-follow.md`
+
+Approved API: optional `openReadFile`, optional `retainedRead`, and the minimal
+`FileReadHandle.stat(FsOptions?)`, `read(position, maxBytes, FsOptions?)`,
+`close()` interface. Identity uses only existing `FileStat` fields. Implement
+stock Memory/Real retention, owned bytes, fresh metadata, numeric admission,
+pre-abort, modified-adapter refusal and drain-safe native release, with a narrow
+public type re-export and contract documentation. Preserve finite streams.
+
+Wrappers, `capabilities.ts`, command factories, actual tail following, registry,
+README, Git operations, shared builds and full guards are not authorized in
+this phase. Root owns subsequent frozen qualification and delivery. The 28
+additional native observations recorded below inform command design but do
+not silently approve their command-state details.
 
 ## Root decisions after bounded native validation
 
@@ -778,3 +814,303 @@ This conditional wiring would expand Phase C's original no-factory-change
 scope. It is explicitly proposed here for root review, not silently authorized
 by the earlier plan or by the native-only cohort authorization. No cap or
 product-status implementation was made in this follow-up.
+
+## September 6 native sidecar: 28 additional observations
+
+These observations were collected before Phase A, on clean HEAD
+`a4567fa3e5d0a9f7f88d33417b294ea3d8714d4b`. The committed plan then had SHA-256
+`4a9e82f06fd7aedc73d026e2270e7411d3a637b2ce3cae10a9117b76735d9fcb`.
+The installed oracle remained GNU tail 8.30 with executable hash
+`00483d769f2d15f6d3c0f6f2d9c3c8dde3d377094d8411738f0f3b335008cf84`.
+The earlier eight controls and their differing default-profile results remain
+preserved; these additional live cases selected forced polling only.
+
+### Bounds and literal evidence
+
+The primary sidecar admitted 15 live and nine finite cases, at most two children
+at once, three seconds per live protocol, one second per transition barrier,
+4 KiB output per case, and 512 fixture bytes per case. Its cohort alarm was
+30 seconds with an external 35-second supervisor. The four-case boundary
+follow-up used three-second protocols, 0.8-second barriers, the same child and
+output caps, 256 fixture bytes per case, and 12/16-second cohort/supervisor
+bounds. Neither cohort used arbitrary sleeps as readiness or mutation barriers.
+
+Live argv used `/usr/bin/tail ---disable-inotify`, `-s 0.05`,
+`--max-unchanged-stats=1`, and `--pid` for a controlled cat sentinel. Mode/count
+variants and actual operand names are recorded literally in the reports. The
+sentinel exited normally after its stdin was closed; finite cases used actual
+stdin/file EOF. No SIGTERM/SIGKILL or supervisor timeout supplied an asserted
+successful status. Every child was reaped, writers/pipes were closed, and only
+owned fixtures were removed. No repository file was written by that sidecar.
+
+| Report | SHA-256 |
+| --- | --- |
+| `/home/kjopek/kamilio-validation-569-575.RoFXyZ/tail639-sidecar-20260906.l0k38zq4/report.json` | `961da1afebf2eaa2dd66679fa6bf342a508dc2961cf9d79354158e7436cce063` |
+| `/home/kjopek/kamilio-validation-569-575.RoFXyZ/tail639-boundary-20260906.dcn1_by3/report.json` | `d7d2827c8ad741cca782c1746a7e67522c5bbc1994940dd78918f74fd796bf3f` |
+
+The first directory retained 94,987 bytes of JSON, the second 23,796; neither
+retained fixture files/directories. Maximum captured case output was 1,025
+bytes. The raw reports contain actual argv/PIDs, stdout/stderr, metadata where
+needed, mutation barriers, statuses and cleanup records.
+
+### Outcomes and remaining command decisions
+
+| Cases | Observed result |
+| --- | --- |
+| Same-size replacement, `-F` / `-f` | Verified equal size and nanosecond mtime, distinct dev/ino identity. Name-follow emitted replacement bytes; descriptor-follow emitted only old-resource appends. Both exited 0. |
+| Observed truncate then append, both modes | Truncated to zero and awaited native `file truncated` before appending. Both read the reset contents and exited 0. This was not an unobserved truncate/regrow inference. |
+| Same-resource reappearance after ENOENT, `-F -n 1` | Verified unchanged dev/ino and no old data while unavailable. Reappearance emitted the whole resource from zero, replaying earlier lines, not resuming the saved offset. Exit 0. |
+| Initially missing, recovered / unrecovered | Both exited 1. On recovery, `-n 1` emitted both initial lines from zero, not a newly selected last-line suffix. |
+| Later missing, unrecovered at termination | Suppressed old-resource output and exited 0 under controlled normal termination. |
+| Initially EACCES, recovered / unrecovered | A separate open proved actual permission denial for the non-root test UID. Both exited 1. |
+| Later EACCES, recovered / unrecovered | Both exited 0. Recovery replayed the same inode from zero; transitions also emitted empty target headers. |
+| Initial ENOTDIR, recovered | Became readable and emitted data from zero; exit 1. |
+| Initial directory, `-F -n +1` | Native exited 1 before reading the healthy control operand. The intended recovery protocol could not proceed. This is the one honest early-exit protocol failure, not an unavailable oracle or a product test failure. |
+| Initial directory, `-F -n 1` | A separate follow-up observed diagnostics, recovery to a regular file, replay from zero and exit 1. |
+| Later directory replacement, `-F -n 1` | Observed untailable-file diagnostic, recovery to regular-file contents from zero and exit 0. |
+| Mixed stdin/named `-f` | Consumed pipe EOF retired stdin; a later named-file append still appeared. Exit 0. |
+| Seven finite count/header controls | Captured `-n 1`, `-c 3`, `-n +2`, `-c +3`, multi-file headers, quiet and verbose output, including a final unterminated line. All exited 0. |
+| Standalone stdin `-f` / `-F -` | Descriptor mode emitted the requested suffix and exited 0 at actual EOF; name mode rejected stdin with exit 1. |
+| Follow `-n +4` with initially short file | GNU emitted subsequent second/third lines; it did not carry an unmet initial line-skip counter across EOF. Exit 0. |
+| Follow `-c +5` beyond initial EOF | GNU emitted existing bytes and a truncation diagnostic even though this fixture was never truncated, then followed appends. Exit 0. This is distinct from the observed-truncation controls. |
+
+Accounting is **28 observations, 27 completed intended protocols, one preserved
+early-exit recovery-protocol failure**. The first report's
+`normal_pid_termination` boolean overgeneralized positive exit plus successful
+sentinel cleanup for the initial-directory `-n +1` case. The second report
+explicitly corrects that classification: native exited before the initial
+control barrier and before sentinel release. Do not count it as `--pid`
+termination; the original report remains unchanged. There were zero cleanup
+signals across both cohorts.
+
+These observations contradict the draft's saved-offset reappearance rule,
+initial-suffix-on-delayed-open rule, persistent `+N` skipping and universally
+data-only follow headers. They also show that later unrecovered ENOENT/EACCES
+do not independently force native failure under the selected profile. Root
+must approve the concrete command-state interpretation before Phase C; Phase A
+does not encode those choices. EPERM/EIO, unobserved ABA/truncate-regrow,
+cross-backend composition and arbitrary host preemption were not qualified.
+
+## Phase A local TDD and qualification boundary
+
+Fresh RED preceded production edits on the authorized clean baseline. Command:
+
+```sh
+PATH=/var/tmp/poe-code-kamilio-toolchain.GzqQj3/bin:$PATH npm run test:unit -- packages/safe-fs/tests/retained-read.test.ts
+```
+
+The initial test file SHA-256 was
+`6282b30cb69f0c54825379b21a3bce316fbb8800272befc664d266df652eb417`.
+Result: **81 failed, two finite-stream controls passed, 83 total**. The missing
+optional acquisition method was the deterministic RED; no timeout, large
+fixture or native performance inference was used.
+
+After implementation, fixture corrections kept acquisition counters separate
+from fixture-writing handles and used memfs's append operation rather than its
+FileHandle null-position append behavior. The adjacent contracts suite already
+contains a special adapter for that memfs append limitation. Native-link-count
+after unlink is also a memfs limitation: Memory checks zero links, while mocked
+Real checks retained bytes and missing paths and forwards native metadata
+without inventing zero. These are disclosed mock limitations, not source fixes
+or claims of native service acceptance.
+
+The intermediate runs were 17 failed / 66 passed before the setup/append
+correction and one failed / 82 passed before correcting the mock-only link-count
+expectation. Those failures were not counted as successful qualification.
+
+An additional diagnostic RED required invalid Real ranges to retain the virtual
+operand and syscall: **11 failed, 81 passed, 92 total**. Production validation
+then preserved those diagnostics. Final owned suite: **92 passed**.
+
+Normal-isolation focused adjacent command:
+
+```sh
+PATH=/var/tmp/poe-code-kamilio-toolchain.GzqQj3/bin:$PATH npm run test:unit -- packages/safe-fs/tests/retained-read.test.ts packages/safe-fs/tests/contracts.test.ts packages/safe-fs/tests/cleanup-semantics.test.ts packages/safe-fs/tests/directory-admission.test.ts packages/safe-fs/tests/real-trailing-separator.test.ts packages/safe-fs/tests/command-capabilities.test.ts packages/safe-fs/tests/migration/fs/memory/faithful-binding.test.ts packages/safe-fs/tests/migration/fs/memory/comparison.test.ts
+```
+
+Result: **269 passed across eight files**, including the 92 new tests. No
+isolation bypass, host fixture, build, full guard, native repro rerun or Git
+mutation was used. Test output is the current tool transcript; no additional
+repository report or generated test artifact was authored.
+
+Implemented behavior includes live pinned-node/native-handle reads, fresh
+resource stat, owned positional bytes, EOF reuse, rename/unlink/truncate,
+safe-integer/overflow checks, pre-abort/falsey reasons, conservative modified
+stock-adapter refusal, native flag/confinement/regular-file checks, late-open
+cleanup and idempotent close that drains admitted stat/read work before a
+single native close attempt. Existing finite stream bodies remain unchanged.
+
+No scope expansion was required. Wrapper admission/identity and command
+factories remain Phase B/C work; the approved command cap is not implemented
+here. A host close failure is observable, not proof of successful release;
+uncooperative host calls may prevent drain from settling. Range bounds are not
+a global allocation quota. Full source/test/public-consumer type qualification,
+maintained builds, guarded lint and frozen integration remain root-owned and
+pending. This is a local partial implementation of #639, not a commit, push,
+release or completed issue.
+
+## Phase B authorization and frozen local handoff
+
+September 6, 2026: root authorized Phase B after reporting delivery of the older
+fixes at `eff72fa252a36a5867c27553967fd255799fdb94`. Root reported the restored
+Phase A seven-file patch byte-identical, normal build and 26 public type-consumer
+groups passing, fresh 92 Phase A tests passing, and Euler's nine independent
+controls without a concrete blocker. Those are root/reviewer qualifications,
+not builds or reviews rerun by this worker. No Git commands were used to
+independently requalify that baseline during Phase B.
+
+Authorized and edited paths, with no scope expansion:
+
+- `packages/safe-fs/tests/retained-read-composition.test.ts`
+- `packages/safe-fs/src/fs/capabilities.ts`
+- `packages/safe-fs/src/fs/readonly/index.ts`
+- `packages/safe-fs/src/fs/mount/index.ts`
+- `packages/safe-fs/src/fs/overlay/index.ts`
+- `packages/safe-fs/src/fs/quota/index.ts`, conditional authorization exercised
+  only after the fresh RED below proved admission and late-cleanup gaps.
+- `packages/safe-bash/src/contracts/filesystem.md`
+- `docs/plans/bugfix-639-bounded-tail-follow.md`
+
+Phase A production and test files remain byte-identical to their restored
+inputs. No wrapper change weakens the stock modified-adapter guards. The root
+command profile is linked at the top of this plan, not edited. Jason's parallel
+command work, root registry, Git/publication, README, builds and full guards
+remain outside this worker's ownership. This handoff freezes Phase B for
+root's combined qualification; it is partial #639, not closure or delivery.
+
+### Fresh RED and controls
+
+The initial test-only run had 60 failures and one pass among 61 tests. One
+failure was a fixture mistake: stock Memory has `rm`, not `unlink`. Correcting
+that fixture and rerunning before any production changes yielded **59 failed,
+2 passed, 61 total**, on the exact new test file hash
+`e48bcd950632c2e5d0fa161b383f1cdd6b4cf7f362de2d1dc7a1750051635b9d`.
+
+```sh
+PATH=/var/tmp/poe-code-kamilio-toolchain.GzqQj3/bin:$PATH npm run test:unit -- packages/safe-fs/tests/retained-read-composition.test.ts
+```
+
+ReadOnly/Mount/Overlay lacked acquisition and/or truthful retained capability
+forwarding. Quota's incidental proxy opened paths with false/unknown or denied
+path capabilities, advertised a missing method, made one backend call on
+pre-abort instead of zero, and returned a late handle without closing it.
+Those concrete failures justify its narrowly scoped explicit admission branch;
+its mutation implementations, traversal and canonicalization mask are unchanged.
+
+After initial production changes, the mock WebDAV fixture incorrectly used `/`
+as its configured base although `MockDav` strips `/dav`. The observed routing
+`EACCES` was preserved as a fixture failure, not softened into an acceptable
+refusal. Correcting the base to `/dav/` yielded the first six-file GREEN:
+243 tests, including the original 61 composition tests and Phase A's 92.
+
+Additional falsey/lifecycle controls produced a second concrete RED:
+**7 failed, 94 passed, 101 total**. Mount's new acquisition path converted six
+falsey backend rejections into `EIO`, and converted a pre-aborted `NaN` reason
+into `EIO` because the existing error helper compares reasons with `===`.
+Only the new `openReadFile` catch now preserves falsey failures; other Mount
+operations and their existing error mapping are unchanged.
+
+The final routing controls initially included an incorrect cross-mount-symlink
+success expectation: **1 failed, 106 passed, 107 total**. Existing Mount
+resolution intentionally returns `EACCES` when a followed symlink crosses its
+backend boundary. The final control asserts that refusal plus successful
+within-mount symlink retention; no confinement code was changed. An intermediate
+380-test run selected 11 actual files: a misspelled authority-test selector did
+not select a twelfth file and is not credited as a pass. The final command below
+uses the actual authority-test path and separately reports its 29 tests.
+
+All controls use Memory, mocked native handles through memfs, or existing mock
+S3/WebDAV transports. No host fixtures, native probes, network, LLM calls,
+isolation override, shared builds, typechecks, lint bypasses or Git operations
+were run. Gate/deferred-promise transitions drive cancellation and late-open
+tests without sleeps, stress inputs or timing-based liveness claims. Results
+are in the tool transcript; no extra repository evidence artifacts were written.
+
+### Final focused GREEN
+
+```sh
+PATH=/var/tmp/poe-code-kamilio-toolchain.GzqQj3/bin:$PATH npm run test:unit -- \
+  packages/safe-fs/tests/retained-read-composition.test.ts \
+  packages/safe-fs/tests/retained-read.test.ts \
+  packages/safe-fs/tests/contracts.test.ts \
+  packages/safe-fs/tests/cleanup-semantics.test.ts \
+  packages/safe-fs/tests/command-capabilities.test.ts \
+  packages/safe-fs/tests/quota-scan-admission.test.ts \
+  packages/safe-fs/tests/quota-hardlinks.test.ts \
+  packages/safe-fs/tests/quota.test.ts \
+  packages/safe-fs/tests/mount-copy-options.test.ts \
+  packages/safe-fs/tests/migration/fs/mount/identity-scope.test.ts \
+  packages/safe-fs/tests/migration/fs/mount/identity-authority-review/authority.test.ts \
+  packages/safe-fs/tests/migration/fs/mount/comparison.test.ts \
+  packages/safe-fs/tests/directory-admission.test.ts --reporter=default
+```
+
+September 6, 2026, 05:49:47 UTC: **13 files, 459 tests passed**, normal isolation.
+The cohort contains 107 owned composition tests, 92 unchanged Phase A tests,
+and 260 adjacent tests. Per-file adjacent counts are contracts 37, cleanup 17,
+command capabilities 12, quota scan 40, quota hardlinks 24, quota 14, mount copy
+16, identity scope 9, authority review 29, comparison 18 and directory admission
+44. This is focused runtime evidence, not maintained build, type-consumer,
+guarded lint, deployed-provider or complete command qualification.
+
+The composition tests establish positive method-plus-capability admission,
+unknown path capability preservation, selected-route support on mixed backends,
+zero-call pre-abort, late-open cleanup settlement before rejection, unchanged
+backend close barriers, falsey errors, real backing identity and unknown
+identity preservation. They cover EOF/append/truncate, rename/unlink, alias
+mounts with equal inode numbers in different scopes, copy-up with an already
+opened lower reader, and an upper appearing while a lower acquisition is
+pending. They prove mock S3/WebDAV refusal without finite content reads and
+retain readonly mutation refusal and quota traversal/mask controls.
+
+### Public limits and remaining integration
+
+Admission and late-cleanup logic is shared, but successfully admitted handles
+are returned unchanged. No duplicate handle identity or proxy-only lifetime
+layer is introduced. Mount's acquisition errors use its virtual operand;
+subsequent handle errors use the selected backend's diagnostic namespace.
+Tail must label its own operand, not assume that handle error paths are mount
+paths. Overlay's new path capability query specializes retained support while
+retaining its composed mutation flags, and uses the potential upper route for
+a missing final entry. It does not make a missing entry readable.
+
+Routing/capability observations are not atomic with opening or protected from
+external mutation. The actual returned resource, not a path stat or wrapper
+scope, remains authoritative. Overlay holds its queue through acquisition and
+any required late cleanup, not for the returned handle lifetime. An opaque host
+that never settles can still block that acquisition/queue/drain; wrappers add
+no arbitrary-host preemption, deadline, global handle limit or memory quota.
+Custom hosts must honor their own retained-reader guarantees and clean up an
+acquisition that rejects without returning a handle. Unknown opened identity
+remains unsupported for the later `-F` consumer.
+
+The root-selected `maxTailFollowHandles` command policy and its public wiring
+remain command work, not filesystem limits implemented here. No new default
+idle/absolute timeout is introduced. Root schedules combined source/test/type,
+normal build, guarded lint and command integration gates after both workers
+freeze. There is no known Phase B scope blocker from these focused controls;
+those remaining gates are not claimed as passed for this changed composition.
+
+### Frozen Phase B SHA-256 inputs
+
+The plan's own final hash is reported separately to avoid self-reference.
+
+| Path | SHA-256 |
+| --- | --- |
+| `packages/safe-fs/tests/retained-read-composition.test.ts` | `b9c857c7a8c5d7aac3f3f668b673177f3a74926fb8232e7369bb9d8881383fd8` |
+| `packages/safe-fs/src/fs/capabilities.ts` | `c01dd9dd533465af77e4e4305849427d00f7f459ad334faebf5438ee3fc551fb` |
+| `packages/safe-fs/src/fs/readonly/index.ts` | `3ac77a59c941ec0f25905209b07c6b80d3417ef2c1362a3f6d43a40e5d7def46` |
+| `packages/safe-fs/src/fs/mount/index.ts` | `54bea1593f6a61646ff64fa64aac37d90abb349d5c6dbbd48b539ab6d4ce73ad` |
+| `packages/safe-fs/src/fs/overlay/index.ts` | `e19144e8ab9785d18e1c8dca2f5fdd4a1f523c1c157015b10b9fefa257970abf` |
+| `packages/safe-fs/src/fs/quota/index.ts` | `4162fabf9ea792bd21ad17f58ec4d6d93812c390530758a7ebe965e55b8872bc` |
+| `packages/safe-bash/src/contracts/filesystem.md` | `acc051d70721018d22ee90f1a550c4278e213b52ea19f05975d63c8a72646d0b` |
+
+The preserved Phase A files were rehashed after the last test run:
+
+| Path | Unchanged SHA-256 |
+| --- | --- |
+| `packages/safe-fs/tests/retained-read.test.ts` | `d7c5e1b33d326a2e12d7d3264b2d42c90aaf9820cdfd3fe526e82d89f4cb594f` |
+| `packages/safe-fs/src/contracts/filesystem.ts` | `2fb418e478a93353769e018e5dd380a88e464217ace7fcf952de973e51c391b1` |
+| `packages/safe-fs/src/fs/memory/index.ts` | `2682459c562be16234ba3796a8214c0aa2de9e212d03f4fb45d738654de47207` |
+| `packages/safe-fs/src/fs/real/index.ts` | `9792815bb2b85ec090b18abb576d416fea909d2f380396d986e5e7cb4231e6c5` |
+| `packages/safe-bash/src/contracts/filesystem.ts` | `11fe310d085bdd3d4e980ba716855861ba77b8a40fc28b220ead9970526e39be` |

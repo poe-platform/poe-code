@@ -69,7 +69,6 @@ class InputCursor {
   readonly #iterator: AsyncIterator<Uint8Array>;
   remainder: Uint8Array | undefined;
   #read: Promise<IteratorResult<Uint8Array>> | undefined;
-  #readSettled = false;
   #readFailed = false;
   #turn = Promise.resolve();
   #returned: Promise<void> | undefined;
@@ -102,13 +101,11 @@ class InputCursor {
     }
     if (this.#ended || this.#closed) return { value: undefined, done: true };
     if (!this.#read) {
-      this.#readSettled = false;
       this.#read = Promise.resolve().then(() => this.#closed ? { value: undefined, done: true as const } : this.#iterator.next()).then((result) => {
         if (result.done) return { value: undefined, done: true };
         if (!(result.value instanceof Uint8Array)) throw new TypeError("Shell stdin must yield Uint8Array");
         return { value: new Uint8Array(result.value), done: false };
       });
-      void this.#read.then(() => { this.#readSettled = true; }, () => { this.#readSettled = true; });
     }
     try {
       const result = await interruptible(this.#read, signal);
@@ -126,13 +123,10 @@ class InputCursor {
     if (this.#ended) { signal.throwIfAborted(); return; }
     this.#closed = true;
     this.remainder = undefined;
-    const pendingRead = this.#read !== undefined && !this.#readSettled;
     this.#returned ??= Promise.resolve().then(() => this.#iterator.return?.()).then(() => undefined);
     void this.#returned.catch(() => undefined);
-    if (!pendingRead) {
-      try { await interruptible(this.#returned, signal); }
-      catch (error) { if (!this.#readFailed) throw error; }
-    }
+    try { await interruptible(this.#returned, signal); }
+    catch (error) { if (!this.#readFailed) throw error; }
     signal.throwIfAborted();
   }
 }

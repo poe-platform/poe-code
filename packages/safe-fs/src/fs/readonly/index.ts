@@ -8,7 +8,7 @@ import type {
   ReadStreamOptions, RemoveOptions, WriteFileOptions,
 } from "../../contracts/filesystem.js";
 import { compareEntries, registerEntryView } from "../mount/comparison.js";
-import { readOnlyCapabilities } from "../capabilities.js";
+import { openRetainedReadFile, readOnlyCapabilities, retainedReadCapabilities } from "../capabilities.js";
 import { admitDirectoryEntries, directoryEntryLimit } from "../directory-admission.js";
 
 function readOnly(syscall: string, path: string, dest?: string): never {
@@ -39,7 +39,7 @@ export class ReadOnlyFileSystem implements FileSystem {
     registerEntryView(this, async (path) => ({ filesystem: this.#filesystem, path, readOnly: true }));
     const streamingRead = typeof filesystem.readStream === "function" ? filesystem.capabilities.streamingRead : false;
     this.#capabilities = readOnlyCapabilities({
-      ...filesystem.capabilities,
+      ...retainedReadCapabilities(filesystem),
       readOnly: true,
       append: false,
       symlinks: filesystem.capabilities.symlinks === true && typeof filesystem.readlink === "function",
@@ -58,7 +58,11 @@ export class ReadOnlyFileSystem implements FileSystem {
 
   async capabilitiesFor(path: string, options?: FsOptions): Promise<FileSystemCapabilities> {
     const capabilities = await this.#filesystem.capabilitiesFor?.(path, options) ?? this.#filesystem.capabilities;
-    return readOnlyCapabilities(capabilities);
+    return readOnlyCapabilities(retainedReadCapabilities(this.#filesystem, capabilities));
+  }
+
+  openReadFile(path: string, options: FsOptions = {}) {
+    return openRetainedReadFile(this.#filesystem, path, options);
   }
 
   async readFile(path: string, options?: ReadFileOptions): Promise<Uint8Array> {

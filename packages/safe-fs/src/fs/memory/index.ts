@@ -1,7 +1,7 @@
 import { FsError } from "../../contracts/errors.js";
 import type { ErrnoCode } from "../../contracts/errors.js";
 import type {
-  AppendFileOptions, CopyFileOptions, DirectoryEntry, EntryComparison, FileStat, FileSystem,
+  AppendFileOptions, CopyFileOptions, DirectoryEntry, EntryComparison, FileReadHandle, FileStat, FileSystem,
   FsOptions, MkdirOptions, ReadDirectoryOptions, ReadFileOptions, ReadStreamOptions, RemoveOptions,
   WriteFileOptions,
 } from "../../contracts/filesystem.js";
@@ -106,6 +106,7 @@ export class MemoryFileSystem implements FileSystem {
     timestamps: true,
     atomicRename: true,
     streamingRead: true,
+    retainedRead: true,
     streamingWrite: true,
   });
 
@@ -535,6 +536,52 @@ export class MemoryFileSystem implements FileSystem {
     data.set(node.data.subarray(0, length));
     node.data = data;
     this.changed(node);
+  }
+
+  async openReadFile(path: string, options: FsOptions = {}): Promise<FileReadHandle> {
+    options.signal?.throwIfAborted();
+    const unsupported = (): never => { throw new FsError("ENOTSUP", { syscall: "openReadFile", path }); };
+    const owner = ownedStores.get(this);
+    if (!owner || Object.getPrototypeOf(this) !== MemoryFileSystem.prototype
+      || Object.getOwnPropertyDescriptor(this, "root")?.value !== owner.root) unsupported();
+    for (const name of ["openReadFile", "readFile", "readStream", "stat", "lstat", "realpath", "access",
+      "file", "resolve", "permission", "validatePath", "fail", "snapshot", "integer"]) {
+      const descriptor = Object.getOwnPropertyDescriptor(this, name)
+        ?? Object.getOwnPropertyDescriptor(MemoryFileSystem.prototype, name);
+      if (!descriptor || !("value" in descriptor) || descriptor.value !== memoryImplementation[name]?.value) unsupported();
+    }
+    if (Object.getOwnPropertyDescriptor(this, "capabilities")?.value?.retainedRead !== true) unsupported();
+    let node: FileNode | undefined = this.file(path, "openReadFile");
+    this.permission(node, 4, "openReadFile", path);
+    const snapshot = this.snapshot.bind(this);
+    const integer = this.integer.bind(this);
+    let closing: Promise<void> | undefined;
+    const current = (signal: AbortSignal | undefined, syscall: string): FileNode => {
+      signal?.throwIfAborted();
+      if (!node) throw new FsError("EBADF", { syscall, path });
+      return node;
+    };
+    return {
+      async stat(options = {}) {
+        return snapshot(current(options.signal, "fstat"));
+      },
+      async read(position, maxBytes, options = {}) {
+        const file = current(options.signal, "read");
+        integer(position, "read", path);
+        integer(maxBytes, "read", path);
+        if (maxBytes === 0 || maxBytes > Number.MAX_SAFE_INTEGER - position) {
+          throw new FsError("EINVAL", { syscall: "read", path });
+        }
+        const bytes = file.data.slice(position, position + maxBytes);
+        file.atimeMs = Date.now();
+        return bytes;
+      },
+      close() {
+        node = undefined;
+        closing ??= Promise.resolve();
+        return closing;
+      },
+    };
   }
 
   async *readStream(path: string, options: ReadStreamOptions = {}): ByteSource {

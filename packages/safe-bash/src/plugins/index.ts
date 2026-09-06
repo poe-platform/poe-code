@@ -39,6 +39,7 @@ export interface AgentCommandsOptions {
   readonly regex?: RegexExecutionOptions;
   readonly maxDirectoryEntries?: number;
   readonly maxTeeTargets?: number;
+  readonly maxTailFollowHandles?: number;
   readonly text?: Omit<TextProgramOptions, "replace">;
   readonly structured?: Omit<StructuredCommandsOptions, "replace">;
   readonly search?: Omit<SearchOptions, "replace">;
@@ -71,7 +72,7 @@ export function createAgentCommands(options: AgentCommandsOptions = {}): readonl
   const timeoutOptions = options.timeout;
   const applyPatchLimits = options.applyPatch?.limits;
   commands.push(
-    ...createStandardCommands({ execute: options.execute ?? executor(name => commands.find(command => command.name === name)), ...(options.execution === undefined ? {} : { execution: options.execution }), ...(options.regex === undefined ? {} : { regex: options.regex }), ...(options.maxDirectoryEntries === undefined ? {} : { maxDirectoryEntries: options.maxDirectoryEntries }), ...(options.maxTeeTargets === undefined ? {} : { maxTeeTargets: options.maxTeeTargets }) }),
+    ...createStandardCommands({ execute: options.execute ?? executor(name => commands.find(command => command.name === name)), ...(options.execution === undefined ? {} : { execution: options.execution }), ...(options.regex === undefined ? {} : { regex: options.regex }), ...(options.maxDirectoryEntries === undefined ? {} : { maxDirectoryEntries: options.maxDirectoryEntries }), ...(options.maxTeeTargets === undefined ? {} : { maxTeeTargets: options.maxTeeTargets }), ...(options.maxTailFollowHandles === undefined ? {} : { maxTailFollowHandles: options.maxTailFollowHandles }) }),
     ...createTextProgramCommands({ ...options.text }),
     ...createStructuredCommands({ ...options.structured }),
     ...createSearchCommands({ ...options.search }),

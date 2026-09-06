@@ -3,6 +3,7 @@ import { openFileOutput, type FileOutput } from "../contracts/filesystem-output.
 import { outputFailure } from "../contracts/io.js";
 import { assertCommandRequirements, type CommandFileSystemRequirement } from "../contracts/command-requirements.js";
 import { inputRequirements } from "./portable-requirements.js";
+import { followTail, parseTailFollow } from "./tail-follow.js";
 import {
   assertInputRequirements, bufferLimit, concatenate, define, diagnostic, encoder, escapeBytes, input, integer,
   lines, options, output, pathOf, UsageError, value,
@@ -126,10 +127,11 @@ function wcSpace(point: number, posix: boolean): boolean {
     || point === 0x202f || point === 0x205f || point === 0x3000 || !posix && point === 0x2060;
 }
 
-function headTail(name: "head" | "tail"): CommandDefinition {
+function headTail(name: "head" | "tail", maxTailFollowHandles = 64): CommandDefinition {
   return define(name, async context => {
     const args = context.args[0] && /^-[0-9]+$/u.test(context.args[0]) ? ["-n", context.args[0].slice(1), ...context.args.slice(1)] : context.args;
-    const parsed = options(args, "n:c:qv", { lines: "n", bytes: "c", quiet: "q", silent: "q", verbose: "v" });
+    const follow = name === "tail" ? parseTailFollow(args) : undefined;
+    const parsed = options(follow?.args ?? args, "n:c:qv", { lines: "n", bytes: "c", quiet: "q", silent: "q", verbose: "v" });
     if (parsed.flags.has("n") && parsed.flags.has("c")) throw new UsageError("cannot combine line and byte counts");
     const bytes = parsed.flags.has("c");
     const amount = value(parsed, bytes ? "c" : "n") ?? "10";
@@ -137,6 +139,12 @@ function headTail(name: "head" | "tail"): CommandDefinition {
     const negative = amount.startsWith("-");
     const count = integer(amount.replace(/^[+-]/u, ""));
     const names = parsed.operands.length ? parsed.operands : ["-"];
+    if (follow?.mode) return followTail(context, {
+      names, mode: follow.mode, idleMs: follow.idleMs, count, bytes, positive,
+      headers: parsed.flags.has("v") || names.length > 1 && !parsed.flags.has("q"),
+    }, maxTailFollowHandles, (target, source) => positive
+      ? prefix(target, source, Math.max(0, count - 1), bytes, true)
+      : suffix(target, source, count, bytes, false));
     await assertInputRequirements(context, names);
     assertCommandRequirements(context, inspectedInputRequirements, [names.some(name => name !== "-") ? "file" : "stdin"]);
     let exitCode = 0;
@@ -208,9 +216,12 @@ function characterSet(specification: string): number[] {
   return result;
 }
 
-export function streamCommands(maxTeeTargets = 64): CommandDefinition[] {
+export function streamCommands(maxTeeTargets = 64, maxTailFollowHandles = 64): CommandDefinition[] {
   if (!Number.isSafeInteger(maxTeeTargets) || maxTeeTargets < 0) {
     throw new RangeError("maxTeeTargets must be a nonnegative safe integer");
+  }
+  if (!Number.isSafeInteger(maxTailFollowHandles) || maxTailFollowHandles < 0) {
+    throw new RangeError("maxTailFollowHandles must be a nonnegative safe integer");
   }
   return [
     define("cat", async context => {
@@ -268,7 +279,7 @@ export function streamCommands(maxTeeTargets = 64): CommandDefinition[] {
         throw error;
       } finally { await operation?.close(); }
     }),
-    headTail("head"), headTail("tail"),
+    headTail("head"), headTail("tail", maxTailFollowHandles),
     define("wc", async context => {
       const parsed = options(context.args, "lwcm", { lines: "l", words: "w", bytes: "c", chars: "m" });
       if (!parsed.flags.size) for (const flag of ["l", "w", "c"]) parsed.flags.add(flag);

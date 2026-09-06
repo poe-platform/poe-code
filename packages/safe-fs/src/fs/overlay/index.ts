@@ -1,5 +1,5 @@
 import { platform } from "#safe-fs-platform";
-import { requireCapabilities } from "../capabilities.js";
+import { openRetainedReadFile, requireCapabilities, retainedReadCapabilities } from "../capabilities.js";
 import { finishCleanup } from "../../contracts/cleanup.js";
 import { collectBytes, readBytes } from "../../contracts/io.js";
 import type { ByteSource } from "../../contracts/io.js";
@@ -129,6 +129,9 @@ export class OverlayFileSystem implements FileSystem {
       typeof backend.readStream === "function" ? backend.capabilities.streamingRead : false);
     const streamingRead = readable.every((capability) => capability === true) ? true
       : readable.every((capability) => capability === false) ? false : undefined;
+    const retained = [this.#upper, this.#lower].map((backend) => retainedReadCapabilities(backend).retainedRead);
+    const retainedRead = retained.every((capability) => capability === true) ? true
+      : retained.every((capability) => capability === false) ? false : undefined;
     const streamingWrite = writable && this.#upper.capabilities.streamingWrite === true
       && this.#upper.capabilities.streamingRead === true
       && typeof this.#upper.writeStream === "function" && typeof this.#upper.readStream === "function"
@@ -173,6 +176,7 @@ export class OverlayFileSystem implements FileSystem {
       permissions: writable && this.#upper.capabilities.permissions === true && typeof this.#upper.chmod === "function",
       timestamps: writable && this.#upper.capabilities.timestamps === true && typeof this.#upper.utimes === "function",
       ...(streamingRead === undefined ? {} : { streamingRead }),
+      ...(retainedRead === undefined ? {} : { retainedRead }),
       ...(effectiveStreamingWrite === undefined ? {} : { streamingWrite: effectiveStreamingWrite }),
     });
     Object.defineProperty(this, "capabilities", { writable: false, configurable: false });
@@ -195,6 +199,27 @@ export class OverlayFileSystem implements FileSystem {
     } finally {
       release();
     }
+  }
+
+  capabilitiesFor(path: string, options: FsOptions = {}): Promise<FileSystemCapabilities> {
+    return this.run(options, async () => {
+      const location = await this.resolve(path, options, true, true);
+      const backend = location.entry?.backend ?? this.#upper;
+      const capabilities = await backend.capabilitiesFor?.(location.path, options) ?? backend.capabilities;
+      options.signal?.throwIfAborted();
+      const { retainedRead: ignoredRetainedRead, ...composed } = this.capabilities;
+      const retainedRead = retainedReadCapabilities(backend, capabilities).retainedRead;
+      return Object.freeze({ ...composed, ...(retainedRead === undefined ? {} : { retainedRead }) });
+    }, false);
+  }
+
+  openReadFile(path: string, options: FsOptions = {}) {
+    return this.run(options, async () => {
+      const entry = await this.required(path, options);
+      if (entry.stat.type !== "file") fail("EISDIR", path);
+      this.permission(entry, 4);
+      return openRetainedReadFile(entry.backend, entry.path, options);
+    }, false);
   }
 
   private writable(path: string): void {

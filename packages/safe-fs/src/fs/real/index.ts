@@ -8,7 +8,7 @@ import {
   FsError, collectBytes, isErrnoCode, toByteSource, toFsError, validatePath,
 } from "../../contracts/index.js";
 import type {
-  AppendFileOptions, ByteSource, CopyFileOptions, DirectoryEntry, FileStat,
+  AppendFileOptions, ByteSource, CopyFileOptions, DirectoryEntry, FileReadHandle, FileStat,
   FileSystem, FileSystemCapabilities, FileType, FsOptions, MkdirOptions,
   ReadDirectoryOptions, ReadFileOptions, ReadStreamOptions, RemoveOptions, WriteFileOptions,
 } from "../../contracts/index.js";
@@ -114,7 +114,7 @@ export class RealFileSystem implements FileSystem {
     rename: true, copy: true, exclusiveCopy: true, readlink: true, truncate: true,
     streamingAppend: true, randomAccessWrite: true,
     readOnly: false, symlinks: true, hardlinks: true, permissions: true,
-    timestamps: true, atomicRename: true, streamingRead: true, streamingWrite: true,
+    timestamps: true, atomicRename: true, streamingRead: true, streamingWrite: true, retainedRead: true,
   });
 
   private readonly configuredRoot: string;
@@ -489,6 +489,95 @@ export class RealFileSystem implements FileSystem {
     });
   }
 
+  async openReadFile(path: string, options: FsOptions = {}): Promise<FileReadHandle> {
+    options.signal?.throwIfAborted();
+    const assertStock = (): void => {
+      const unsupported = (): never => { throw new FsError("ENOTSUP", { syscall: "openReadFile", path }); };
+      if (Object.getPrototypeOf(this) !== RealFileSystem.prototype) unsupported();
+      for (const name of ["openReadFile", "readFile", "readStream", "stat", "lstat", "realpath", "access",
+        "root", "absoluteTarget", "walk", "path"]) {
+        const descriptor = Object.getOwnPropertyDescriptor(this, name)
+          ?? Object.getOwnPropertyDescriptor(RealFileSystem.prototype, name);
+        if (!descriptor || !("value" in descriptor) || descriptor.value !== realImplementation[name]?.value) unsupported();
+      }
+      if (Object.getOwnPropertyDescriptor(this, "capabilities")?.value?.retainedRead !== true) unsupported();
+    };
+    assertStock();
+    const failure = (error: unknown, syscall: string): unknown => error
+      ? new FsError(nativeError(error).code, { syscall, path }) : error;
+    let resource: native.FileHandle | undefined;
+    try {
+      const target = await this.path(path, options);
+      options.signal?.throwIfAborted();
+      assertStock();
+      resource = await native.open(target, constants.O_RDONLY | constants.O_NOFOLLOW | constants.O_NONBLOCK);
+      options.signal?.throwIfAborted();
+      const stats = await resource.stat();
+      options.signal?.throwIfAborted();
+      assertStock();
+      if (stats.isDirectory()) throw new FsError("EISDIR");
+      if (!stats.isFile()) throw new FsError("ENOTSUP");
+    } catch (error) {
+      await finishCleanup(async () => { await resource?.close(); }, true);
+      options.signal?.throwIfAborted();
+      throw failure(error, "openReadFile");
+    }
+    const handle = resource;
+    const pending = new Set<Promise<void>>();
+    let accepting = true;
+    let closing: Promise<void> | undefined;
+    const assertOpen = (options: FsOptions, syscall: string): void => {
+      options.signal?.throwIfAborted();
+      if (!accepting) throw new FsError("EBADF", { syscall, path });
+    };
+    const perform = async <Value>(options: FsOptions, syscall: string, action: () => Promise<Value>): Promise<Value> => {
+      assertOpen(options, syscall);
+      let settled!: () => void;
+      const admitted = new Promise<void>(resolve => { settled = resolve; });
+      pending.add(admitted);
+      try {
+        const value = await action();
+        options.signal?.throwIfAborted();
+        return value;
+      } catch (error) {
+        options.signal?.throwIfAborted();
+        throw failure(error, syscall);
+      } finally {
+        pending.delete(admitted);
+        settled();
+      }
+    };
+    return {
+      stat(options = {}) {
+        return perform(options, "fstat", async () => fileStat(await handle.stat()));
+      },
+      async read(position, maxBytes, options = {}) {
+        assertOpen(options, "read");
+        try {
+          integer(position);
+          integer(maxBytes, 1);
+        } catch (error) { throw failure(error, "read"); }
+        if (maxBytes > Number.MAX_SAFE_INTEGER - position) throw new FsError("EINVAL", { syscall: "read", path });
+        return perform(options, "read", async () => {
+          let bytes: Uint8Array;
+          try { bytes = new Uint8Array(maxBytes); }
+          catch { throw new FsError("EFBIG"); }
+          const { bytesRead } = await handle.read(bytes, 0, bytes.byteLength, position);
+          if (!Number.isSafeInteger(bytesRead) || bytesRead < 0 || bytesRead > maxBytes) throw new FsError("EIO");
+          return bytes.slice(0, bytesRead);
+        });
+      },
+      close() {
+        accepting = false;
+        closing ??= Promise.all([...pending]).then(async () => {
+          try { await handle.close(); }
+          catch (error) { throw failure(error, "close"); }
+        });
+        return closing;
+      },
+    };
+  }
+
   async *readStream(path: string, options: ReadStreamOptions = {}): ByteSource {
     const syscall = "readStream";
     let handle: native.FileHandle | undefined;
@@ -568,6 +657,8 @@ export class RealFileSystem implements FileSystem {
     });
   }
 }
+
+const realImplementation = Object.getOwnPropertyDescriptors(RealFileSystem.prototype);
 
 /** Construct and validate an existing root before returning the backend. */
 export async function createRealFileSystem(options: RealFileSystemOptions | string): Promise<RealFileSystem> {

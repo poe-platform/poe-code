@@ -27,12 +27,13 @@ export interface BrowserCommandsOptions {
   readonly replace?: boolean;
   readonly maxDirectoryEntries?: number;
   readonly maxTeeTargets?: number;
+  readonly maxTailFollowHandles?: number;
 }
 
 export function createBrowserCommands(options: BrowserCommandsOptions = {}): readonly CommandDefinition[] {
   const commands = [
     ...basicCommands(), ...filesystemCommands(options.maxDirectoryEntries), ...predicateCommands(),
-    ...streamCommands(options.maxTeeTargets), ...textCommands(),
+    ...streamCommands(options.maxTeeTargets, options.maxTailFollowHandles), ...textCommands(),
   ];
   if (options.execution !== undefined) commands.push(...executionCommands(directExecutor(async context => {
     const command = commands.find(definition => definition.name === context.command);

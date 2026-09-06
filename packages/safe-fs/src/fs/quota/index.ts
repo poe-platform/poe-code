@@ -1,7 +1,7 @@
 import type { FileStat, FileSystem, FsOptions } from "../../contracts/filesystem.js";
 import { FsError } from "../../contracts/errors.js";
 import type { ByteSource } from "../../contracts/io.js";
-import { quotaCapabilities } from "../capabilities.js";
+import { openRetainedReadFile, quotaCapabilities, retainedReadCapabilities } from "../capabilities.js";
 import { admitDirectoryEntries } from "../directory-admission.js";
 
 export interface FileSystemQuotaOptions {
@@ -161,9 +161,12 @@ export function withFileSystemQuota(fs: FileSystem, options: FileSystemQuotaOpti
   return new Proxy(Object.create(fs) as FileSystem, {
     get(_target, property) {
       if (property === "canonicalizeMissingTarget") return undefined;
-      if (property === "capabilities") return quotaCapabilities(fs.capabilities);
-      if (property === "capabilitiesFor") return async (path: string, fsOptions?: FsOptions) =>
-        quotaCapabilities(await fs.capabilitiesFor?.(path, fsOptions) ?? fs.capabilities);
+      if (property === "capabilities") return quotaCapabilities(retainedReadCapabilities(fs));
+      if (property === "capabilitiesFor") return async (path: string, fsOptions?: FsOptions) => {
+        const capabilities = await fs.capabilitiesFor?.(path, fsOptions) ?? fs.capabilities;
+        return quotaCapabilities(retainedReadCapabilities(fs, capabilities));
+      };
+      if (property === "openReadFile") return (path: string, fsOptions: FsOptions = {}) => openRetainedReadFile(fs, path, fsOptions);
       const replacement = Reflect.get(mutations, property) as unknown;
       if (typeof replacement === "function") return replacement;
       const original = Reflect.get(fs, property) as unknown;

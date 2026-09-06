@@ -405,7 +405,10 @@ function assertSource7Discovery(files) {
   assert.ok(files.includes("tests/shell/brace-expansion.test.ts"));
   assert.ok(files.includes("tests/shell/brace-expansion-differential.test.ts"));
   assert.ok(files.includes("tests/shell/xargs-parallel-lifecycle.test.ts"));
+  assert.ok(files.includes("tests/shell/tail-follow-lifecycle.test.ts"));
+  assert.ok(files.includes("tests/shell/input-pending-return.test.ts"));
   assert.ok(files.includes("tests/commands/tee-target-admission.test.ts"));
+  assert.ok(files.includes("tests/commands/tail-follow.test.ts"));
   assert.ok(files.includes("tests/commands/xargs-parallel.test.ts"));
   assert.ok(files.includes("tests/contracts/missing-target.test.ts"));
   assert.ok(files.includes("tests/commands/copy-preflight-canonicalization.test.ts"));

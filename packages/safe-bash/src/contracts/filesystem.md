@@ -1,3 +1,143 @@
+# Optional retained file readers
+
+`FileSystem.openReadFile?(path, options?: FsOptions): Promise<FileReadHandle>`
+and `FileSystemCapabilities.retainedRead?: boolean` are additive, optional read
+contracts. Consumers requiring retained reads must require both a callable
+method and a positive capability, then handle acquisition failure. Existing
+finite `readFile` / `readStream` implementations are not substitutes for this
+guarantee. `FileReadHandle` is also a type export from the SafeBash filesystem
+contract surface.
+
+```ts
+interface FileReadHandle {
+  stat(options?: FsOptions): Promise<FileStat>;
+  read(position: number, maxBytes: number, options?: FsOptions): Promise<Uint8Array>;
+  close(): Promise<void>;
+}
+```
+
+Acquisition resolves the virtual path and checks read authority using the
+backend's existing path rules. It retains one regular file, not a pathname or a
+snapshot of the file's contents. Later `stat` and positional `read` address that
+same resource across rename, unlink and replacement of its original name.
+Appends and truncations of that resource remain observable; a zero-byte EOF
+read does not close the reader. Each call is an observation, not an atomic
+stat-and-read transaction or a whole-file snapshot.
+
+`stat` returns fresh metadata for the retained resource. Identity exists only
+in the existing `FileStat.identityScope`, `dev` and `ino` fields; there is no
+second identity property on the handle. The identity rules below still apply:
+valid zero IDs remain valid, incomplete identity remains unknown, and a
+wrapper cannot substitute its own scope or the identity of a fresh path lookup.
+The retained-read capability does not by itself promise complete identity.
+
+`read` requires a nonnegative safe-integer position and a positive safe-integer
+maximum. Their sum must be a safe integer. Invalid values or overflow reject
+with `EINVAL` before native reading/allocation. Results are owned `Uint8Array`
+values of at most the requested size; empty and short reads are allowed.
+Mutating or retaining a returned chunk must not change storage or later
+results. There is no implicit shared read cursor. Real allocates a working
+buffer of the requested maximum and copies the returned prefix; this is not
+a total retained-memory or filesystem-wide quota. Callers must choose bounded
+chunks. Real allocation failure is reported as `EFBIG`; this is not a
+promise to intercept host OOM or to preempt synchronous allocation.
+
+Signals apply to the individual open/stat/read operation, not the subsequent
+lifetime of a successfully returned reader. Pre-abort is checked before
+filesystem work, range admission or closed-reader diagnostics. Caller abort
+reasons, including falsey values, keep their identity. Real operations preserve
+falsey host rejections; native errno errors remain typed and carry only the
+original virtual operand, without native causes or host-path disclosure.
+
+`close` synchronously closes admission, returns the same promise on repeated
+calls, and waits for admitted stat/read operations before attempting native
+release once. Operations admitted before close may finish; later operations
+reject `EBADF` unless already aborted. Memory operations finish their work
+synchronously before returning their promises; close releases the pinned node.
+An unsuccessful native close remains observable through the shared rejected
+close promise and is not retried. The API cannot promise successful release if
+the native host's release operation fails.
+
+If native acquisition resolves after abort, or its subsequent regular-file
+check fails, acquisition waits for cleanup before rejecting. A secondary close
+failure does not replace the primary acquisition failure or caller abort.
+Stat/read failure does not silently close a successfully returned handle;
+callers retain ownership and must close it. Independent operation and close
+rejections are separate outcomes; invocation owners preserve primary-error
+ordering when composing them.
+
+Stock Memory retains a file node and reads its current data. Stock Real retains
+the native handle, with the existing confined resolution, `O_NOFOLLOW`,
+`O_NONBLOCK`, and post-open regular-file checks. This does not strengthen Real's
+existing ancestor/path-race or external-writer isolation guarantees. Neither
+adapter promises arbitrary-host preemption, a deadline for a host promise that
+never settles, or detection of truncate-and-regrow between observations.
+
+Stock acquisition conservatively refuses inherited subclass acquisition,
+replaced read/metadata/access or resolution methods (including accessor
+overrides), and a masked retained capability with `ENOTSUP`. Memory also checks
+its original owned store. Real rechecks stock policy after asynchronous path
+resolution and acquisition. Already opened readers use their pinned resource,
+not subsequently replaced pathname methods. These checks do not sandbox host
+JavaScript or authenticate malicious private-state mutation. A customized host
+must supply an explicit truthful retained-reader implementation; faithfully
+decorated finite reads alone do not establish this capability.
+
+## Retained-reader composition
+
+ReadOnly, Quota, Mount and Overlay expose `openReadFile` with explicit admission:
+the selected backend must have a callable method and positively declare
+`retainedRead` for that path. A method without the capability, an unknown or
+false capability, or a capability without a method is insufficient. Refusal
+is `ENOTSUP`, without substituting finite reads or streams. Normal namespace,
+type and access failures during routing remain observable. Metadata routing
+may be necessary before admission; this does not promise zero metadata calls
+for an unsupported mounted or overlaid path.
+
+ReadOnly preserves the read capability without granting mutations. Quota
+preserves its canonicalization mask and mutation accounting; retaining a reader
+does not scan storage, consume the byte quota or bypass later write admission.
+Neither wrapper wraps an admitted handle just to proxy its methods. Missing
+backend methods mask the capability as false. Global capability summaries are
+advisory; selected-path capability queries and acquisition can differ on mixed
+mounts/layers. A path-specific unknown remains unknown, not the global positive
+summary. Capability observations are not a namespace lease or a promise that
+later acquisition must succeed.
+
+Mount resolves using its existing confinement and symlink rules, then opens
+the selected backend-local path once. Synthetic directories are not retained
+readers. Overlay selects the visible entry without copy-up or garbage cleanup;
+an unsupported upper entry never falls through to a hidden capable lower.
+Overlay serializes selection/acquisition with its operation queue, but does
+not hold that queue for the returned reader's lifetime. Later copy-up changes
+new acquisitions only. Its path capability query preserves the existing
+composed mutation summary and specializes only retained-read support; a missing
+final entry uses the potential upper route, not proof that the file exists.
+
+The original backend handle is returned unchanged, so resource identity,
+unknown identity, owned bytes, per-call signals, close-promise identity and
+drain behavior remain those of that handle. Alias mounts share genuine backing
+identity; equal device/inode numbers in different scopes do not become aliases.
+Mount maps acquisition errors to the mount operand. Subsequent handle errors
+retain backend-local diagnostic paths; a consumer labeling an operand should
+use its own operand rather than treating an error path as namespace authority.
+No wrapper adds a second identity field or substitutes later pathname stats.
+
+Pre-aborted acquisition performs no backend calls. Cancellation during
+capability admission prevents opening. If a selected backend returns a handle
+after cancellation, the wrapper awaits that handle's close before rejecting;
+a secondary close failure does not replace the caller's abort, including
+falsey reasons. The returned handle is thereafter owned by the caller, not by
+the acquisition signal. A custom backend that rejects without returning its
+acquired resource must clean it up itself. These wrappers do not repair a
+dishonest host contract, preempt host work, bound a never-settling open/close,
+or impose a maximum number of live handles.
+
+S3/WebDAV still have neither a retained-reader method nor a positive retained
+capability. Their finite streaming is not live retention. This filesystem
+composition does not implement `tail`, polling, idle limits or a command handle
+cap; command integration and its qualification are separate work.
+
 # Optional allocation metadata
 
 `FileStat.allocatedBytes?: number` is an optional, readonly observation of the

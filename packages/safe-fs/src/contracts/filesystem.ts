@@ -56,12 +56,19 @@ export interface FileSystemCapabilities {
   readonly atomicRename?: boolean;
   readonly snapshotRmdir?: boolean;
   readonly streamingRead?: boolean;
+  readonly retainedRead?: boolean;
   readonly streamingWrite?: boolean;
   readonly [capability: string]: boolean | undefined;
 }
 
 export interface FsOptions {
   readonly signal?: AbortSignal;
+}
+
+export interface FileReadHandle {
+  stat(options?: FsOptions): Promise<FileStat>;
+  read(position: number, maxBytes: number, options?: FsOptions): Promise<Uint8Array>;
+  close(): Promise<void>;
 }
 
 export interface ReadFileOptions extends FsOptions {
@@ -110,6 +117,7 @@ export interface ReadStreamOptions extends FsOptions {
 
 export interface FileSystem {
   readonly capabilities: FileSystemCapabilities;
+  openReadFile?(path: string, options?: FsOptions): Promise<FileReadHandle>;
   canonicalizeMissingTarget?(path: string, options?: FsOptions): string | undefined;
   capabilitiesFor?(path: string, options?: FsOptions): Promise<FileSystemCapabilities>;
   readFile(path: string, options?: ReadFileOptions): Promise<Uint8Array>;

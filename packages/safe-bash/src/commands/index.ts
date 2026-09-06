@@ -19,6 +19,7 @@ export interface StandardCommandsOptions {
   readonly regex?: RegexExecutionOptions;
   readonly maxDirectoryEntries?: number;
   readonly maxTeeTargets?: number;
+  readonly maxTailFollowHandles?: number;
 }
 
 export function createStandardCommands(options: StandardCommandsOptions = {}): readonly CommandDefinition[] {
@@ -29,7 +30,7 @@ export function createStandardCommands(options: StandardCommandsOptions = {}): r
     await diagnostic(context, new Error("command not found"));
     return { exitCode: 127 };
   }));
-  commands.push(...basicCommands(), ...filesystemCommands(options.maxDirectoryEntries), ...streamCommands(options.maxTeeTargets), ...textCommands(), ...grepCommands(options.regex), ...predicateCommands(), ...executionCommands(execute, options.execution), ...findCommands(execute, options.maxDirectoryEntries));
+  commands.push(...basicCommands(), ...filesystemCommands(options.maxDirectoryEntries), ...streamCommands(options.maxTeeTargets, options.maxTailFollowHandles), ...textCommands(), ...grepCommands(options.regex), ...predicateCommands(), ...executionCommands(execute, options.execution), ...findCommands(execute, options.maxDirectoryEntries));
   return commands;
 }
 

@@ -1,14 +1,14 @@
 import { FsError, isFsError, toFsError } from "../../contracts/errors.js";
 import type { ErrnoCode } from "../../contracts/errors.js";
 import type {
-  AppendFileOptions, CopyFileOptions, DirectoryEntry, FileStat, FileSystem,
+  AppendFileOptions, CopyFileOptions, DirectoryEntry, FileReadHandle, FileStat, FileSystem,
   FileSystemCapabilities, FsOptions, MkdirOptions, ReadDirectoryOptions, ReadFileOptions,
   ReadStreamOptions, RemoveOptions, WriteFileOptions,
 } from "../../contracts/filesystem.js";
 import type { ByteSource } from "../../contracts/io.js";
 import { readBytes } from "../../contracts/io.js";
 import { finishCleanup } from "../../contracts/cleanup.js";
-import { readOnlyCapabilities } from "../capabilities.js";
+import { openRetainedReadFile, readOnlyCapabilities, retainedReadCapabilities } from "../capabilities.js";
 import { admitDirectoryEntries, directoryEntryLimit } from "../directory-admission.js";
 import { normalizePath, validatePath } from "../../contracts/virtual-path.js";
 import { compareIdentity } from "./identity.js";
@@ -118,11 +118,12 @@ export class MountFileSystem implements FileSystem {
     const all = (capability: string, methods: readonly (keyof FileSystem)[] = []): boolean =>
       mounts.every(({ backend }) => backend.capabilities[capability] === true
         && methods.every((method) => typeof backend[method] === "function"));
-    const streaming = (capability: "streamingRead" | "streamingWrite", method: "readStream" | "writeStream"): boolean | undefined =>
+    const streaming = (capability: "streamingRead" | "streamingWrite" | "retainedRead", method: "readStream" | "writeStream" | "openReadFile"): boolean | undefined =>
       all(capability, [method]) ? true : mounts.some(({ backend }) =>
         backend.capabilities[capability] !== false && typeof backend[method] === "function") ? undefined : false;
     const streamingRead = streaming("streamingRead", "readStream");
     const streamingWrite = streaming("streamingWrite", "writeStream");
+    const retainedRead = streaming("retainedRead", "openReadFile");
     const append = all("append") ? true
       : mounts.every(({ backend }) => backend.capabilities.append === false) ? false : undefined;
     const common = (capability: string): boolean | undefined => {
@@ -152,6 +153,7 @@ export class MountFileSystem implements FileSystem {
       atomicRename: mounts.length === 1 && all("atomicRename"),
       ...(streamingRead === undefined ? {} : { streamingRead }),
       ...(streamingWrite === undefined ? {} : { streamingWrite }),
+      ...(retainedRead === undefined ? {} : { retainedRead }),
     });
   }
 
@@ -162,8 +164,10 @@ export class MountFileSystem implements FileSystem {
   async capabilitiesFor(path: string, options: FsOptions = {}): Promise<FileSystemCapabilities> {
     return this.operation("capabilitiesFor", path, options, async () => {
       const location = await this.resolve(path, options, { allowMissing: true });
-      const capabilities = await location.mount.backend.capabilitiesFor?.(location.local, options)
+      const declared = await location.mount.backend.capabilitiesFor?.(location.local, options)
         ?? location.mount.backend.capabilities;
+      const capabilities = location.synthetic ? { ...declared, retainedRead: false }
+        : retainedReadCapabilities(location.mount.backend, declared);
       if (location.synthetic) return readOnlyCapabilities(capabilities);
       if (this.mounts.length === 1 || capabilities.readOnly === true) return Object.freeze({ ...capabilities });
       const { rename: ignoredRename, copy: ignoredCopy, exclusiveCopy: ignoredExclusiveCopy, ...selected } = capabilities;
@@ -178,6 +182,17 @@ export class MountFileSystem implements FileSystem {
 
   private protected(path: string): boolean {
     return path === "/" || this.mounts.some((mount) => within(path, mount.path));
+  }
+
+  async openReadFile(path: string, options: FsOptions = {}): Promise<FileReadHandle> {
+    try {
+      options.signal?.throwIfAborted();
+      const location = await this.resolve(path, options);
+      if (location.synthetic) fail("EISDIR");
+      return await openRetainedReadFile(location.mount.backend, location.local, options);
+    } catch (error) {
+      throw error ? this.error(error, "openReadFile", path, options) : error;
+    }
   }
 
   private error(error: unknown, syscall: string, path: string, options: FsOptions, dest?: string): unknown {

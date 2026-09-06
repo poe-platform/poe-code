@@ -1,4 +1,7 @@
 import { MAX_DATA_DEPTH } from "../graph-depth.js";
+import { serializeCollectionProperties } from "./collection-properties.js";
+import { restorePropertyDescriptors, type PropertyDescriptorData } from "./property-descriptors.js";
+import { getCollectionProperties } from "../interp/collection-properties.js";
 import { validateBigIntData } from "./bigint.js";
 import { serializeRegexProperties, restoreRegexProperties, type RegexPropertyData } from "./regexp-properties.js";
 import { wellKnownSymbols } from "../interp/symbols.js";
@@ -28,6 +31,8 @@ import {
   isSandboxRegex,
   isSandboxSet,
   type SandboxClosure,
+  type SandboxMap,
+  type SandboxSet,
   type SandboxPromise,
   type SandboxValue
 } from "../interp/values.js";
@@ -68,8 +73,8 @@ type DataNode =
       errorType?: SandboxErrorName;
     }
   | { kind: "arguments"; data: SerializedArguments<Atom> }
-  | { kind: "map"; entries: Array<[Atom, Atom]> }
-  | { kind: "set"; values: Atom[] }
+  | { kind: "map"; entries: Array<[Atom, Atom]>; propertyState?: PropertyDescriptorData<Atom> }
+  | { kind: "set"; values: Atom[]; propertyState?: PropertyDescriptorData<Atom> }
   | ({ kind: "regex"; source: string; flags: string; lastIndex: Atom } & RegexPropertyData<Atom>);
 export type ReplayData = { root: Atom; nodes: DataNode[] };
 export type ReplayPathSegment = string | { symbol: number };
@@ -203,6 +208,7 @@ export function encodeReplayData(
     } else if (isSandboxMap(entry)) {
       nodes[id] = {
         kind: "map",
+        ...serializeCollectionProperties(entry, value => child(value as SandboxValue, "<collection-property>"), true),
         entries: [...entry.entries].map(([key, value], index) => [
           child(key, `key:${index}`),
           child(value, `value:${index}`)
@@ -211,6 +217,7 @@ export function encodeReplayData(
     } else if (isSandboxSet(entry)) {
       nodes[id] = {
         kind: "set",
+        ...serializeCollectionProperties(entry, value => child(value as SandboxValue, "<collection-property>"), true),
         values: [...entry.values].map((value, index) => child(value, String(index)))
       };
     } else if (isSandboxRegex(entry)) {
@@ -458,6 +465,7 @@ export function decodeReplayData(
       if (kind === "map") {
         const result = createSandboxMap();
         restored.set(id, result);
+        restoreCollectionDataProperties(result, node, child);
         for (const pair of list(own(node, "entries"))) {
           const entries = list(pair);
           if (entries.length !== 2) throw new TypeError("Invalid replay map entry.");
@@ -468,6 +476,7 @@ export function decodeReplayData(
       if (kind === "set") {
         const result = createSandboxSet();
         restored.set(id, result);
+        restoreCollectionDataProperties(result, node, child);
         for (const value of list(own(node, "values"))) result.values.add(child(value));
         return result;
       }
@@ -568,6 +577,16 @@ function defineProperties(
       writable: descriptor.writable
     });
   }
+}
+
+function restoreCollectionDataProperties(value: SandboxMap | SandboxSet, node: Record<string, unknown>, decode: (value: unknown) => SandboxValue): void {
+  if (!Object.hasOwn(node, "propertyState")) return;
+  const properties = record(node.propertyState);
+  for (const entry of list(own(properties, "properties"))) {
+    const descriptor = record(list(entry)[1]);
+    if (own(descriptor, "kind") !== "data") throw new TypeError("Replay collection properties must be data descriptors.");
+  }
+  restorePropertyDescriptors(getCollectionProperties(value), properties, decode);
 }
 
 function record(value: unknown): Record<string, unknown> {

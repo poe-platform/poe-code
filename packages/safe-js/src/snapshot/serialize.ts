@@ -1,4 +1,6 @@
 import { hashSource } from "../parse/hash.js";
+import { serializePropertyDescriptors, type PropertyDescriptorData } from "./property-descriptors.js";
+import { serializeCollectionProperties } from "./collection-properties.js";
 import { hasCustomRegexProperties, serializeRegexProperties, type RegexPropertyData } from "./regexp-properties.js";
 import { ownSerializableSymbolKeys, serializeSymbol, serializeSymbolProperties, type SerializedSymbol, type SerializedSymbolProperty } from "./symbols.js";
 import { collectionIteratorState, isSandboxCollectionIterator, snapshotCollectionIterator, type CollectionIterationMethod, type SandboxCollectionIterator } from "../interp/collection-iterator.js";
@@ -22,6 +24,7 @@ import {
   isSandboxMap,
   isSandboxRegex,
   getRegexProperties,
+  getCollectionProperties,
   isSandboxSet,
   type SandboxMap,
   type SandboxClosure,
@@ -97,10 +100,12 @@ export type SerializedHeapValue =
     }
   | {
       kind: "map";
+      propertyState?: PropertyDescriptorData<SerializedSnapshotValue>;
       entries: Array<[SerializedSnapshotValue, SerializedSnapshotValue]>;
     }
   | {
       kind: "set";
+      propertyState?: PropertyDescriptorData<SerializedSnapshotValue>;
       values: SerializedSnapshotValue[];
     };
 
@@ -532,6 +537,7 @@ function serializeHeapReference(
     } else if (isSandboxMap(value)) {
       state.heap[String(id)] = {
         kind: "map",
+        ...serializeCollectionProperties(value, entry => serializeValue(entry as RuntimeSnapshotValue, `${path}.<property>`, state)),
         entries: [...value.entries].map(([key, entry], index) => [
           serializeValue(key as RuntimeSnapshotValue, `${path}.entries[${index}][0]`, state),
           serializeValue(entry as RuntimeSnapshotValue, `${path}.entries[${index}][1]`, state)
@@ -540,6 +546,7 @@ function serializeHeapReference(
     } else if (isSandboxSet(value)) {
       state.heap[String(id)] = {
         kind: "set",
+        ...serializeCollectionProperties(value, entry => serializeValue(entry as RuntimeSnapshotValue, `${path}.<property>`, state)),
         values: [...value.values].map((entry, index) =>
           serializeValue(entry as RuntimeSnapshotValue, `${path}.values[${index}]`, state)
         )
@@ -779,6 +786,12 @@ function collectContainerStats(
       : isSandboxSet(value)
         ? [...value.values]
         : Object.values(value);
+  if (isSandboxMap(value) || isSandboxSet(value)) {
+    serializePropertyDescriptors(getCollectionProperties(value), entry => {
+      entries.push(entry);
+      return null;
+    });
+  }
   for (const entry of entries) {
     collectContainerStats(entry, stats, ancestors, guestValues, depth + 1);
   }

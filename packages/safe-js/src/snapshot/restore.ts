@@ -8,6 +8,7 @@ import { allocateGuestScopes, hydrateGuestScopes } from "./scope-frames.js";
 import { registerTemplateObject } from "../interp/template-objects.js";
 import type { SandboxArray } from "../interp/values.js";
 import { restorePropertyDescriptors } from "./property-descriptors.js";
+import { getCollectionProperties } from "../interp/collection-properties.js";
 import { registerGeneratorOrigin } from "../interp/closure-origin.js";
 import { awaitSandboxValue } from "../interp/cancel.js";
 import { runAsyncPrefix } from "../interp/jobs.js";
@@ -693,6 +694,7 @@ function restoreHeapValue(id: number, state: RestoreState): RuntimeSnapshotValue
   if (serialized.kind === "map") {
     const map = createSandboxMap();
     state.heapValueById.set(id, map);
+    if (serialized.propertyState !== undefined) restorePropertyDescriptors(getCollectionProperties(map), serialized.propertyState, entry => deserializeValue(entry as SerializedSnapshotValue, state));
     for (const [key, entry] of serialized.entries) {
       map.entries.set(
         deserializeValue(key, state) as SandboxValue,
@@ -705,6 +707,7 @@ function restoreHeapValue(id: number, state: RestoreState): RuntimeSnapshotValue
   if (serialized.kind === "set") {
     const set = createSandboxSet();
     state.heapValueById.set(id, set);
+    if (serialized.propertyState !== undefined) restorePropertyDescriptors(getCollectionProperties(set), serialized.propertyState, entry => deserializeValue(entry as SerializedSnapshotValue, state));
     for (const entry of serialized.values) {
       set.values.add(deserializeValue(entry, state) as SandboxValue);
     }

@@ -18,6 +18,7 @@ import {
   deepCopyFromSandbox,
   isSandboxClosure,
   isSandboxPromise,
+  ownEnumerableSandboxKeys,
   type SandboxArray,
   type SandboxCallContext,
   type SandboxClosure,
@@ -354,7 +355,7 @@ async function stringifyObject(
   try {
     const nextIndent = indent + state.gap;
 
-    for (const key of state.propertyList ?? Object.keys(value)) {
+    for (const key of state.propertyList ?? ownEnumerableSandboxKeys(value)) {
       const serialized = await stringifyProperty(key, value, state, nextIndent);
       if (serialized !== undefined) {
         entries.push(`${quoteJsonString(key)}:${state.gap === "" ? "" : " "}${serialized}`);

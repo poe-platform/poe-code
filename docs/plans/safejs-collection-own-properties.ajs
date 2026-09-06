@@ -1,0 +1,18 @@
+import { S } from "schema";
+
+export const schema = S.Object({ title: S.String() });
+
+export default async (frontmatter) => {
+  const value = new Map([["answer", 42]]);
+  value.label = "collection";
+  Object.defineProperty(value, "summary", {
+    get() { return this.label + ":" + this.get("answer"); },
+    enumerable: true
+  });
+  const summary = value.summary;
+  const serialized = JSON.stringify(value);
+  if (summary !== "collection:42" || Object.keys(value).length !== 2) {
+    throw new Error("Collection own properties were not preserved");
+  }
+  return { title: frontmatter.title, ok: true, summary, serialized };
+};

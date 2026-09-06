@@ -1,6 +1,8 @@
 import { bindOtelSpan, getBoundOtelSpan } from "../observability/otel.js";
 import { internalSymbols } from "./internal-symbols.js";
 import { getRegexProperties, regexGuestProperties } from "./regexp-properties.js";
+import { getCollectionProperties, collectionGuestProperties, copyCollectionProperties } from "./collection-properties.js";
+export { getCollectionProperties } from "./collection-properties.js";
 export { getRegexProperties } from "./regexp-properties.js";
 import { retainedAccessorClosures } from "./accessors.js";
 import { isSandboxMap, isSandboxSet, sandboxMapBrand, sandboxSetBrand } from "./collection-brands.js";
@@ -283,6 +285,7 @@ export function ownEnumerableSandboxEntries(
   let entries: Array<[string, SandboxValue]>;
   if (isGuestClosure(value)) entries = Object.entries(value.properties ?? {});
   else if (isSandboxRegex(value)) entries = Object.entries(getRegexProperties(value));
+  else if (isSandboxMap(value) || isSandboxSet(value)) entries = Object.entries(getCollectionProperties(value));
   else if (isSandboxClosure(value) || isSandboxGenerator(value) || isSandboxMap(value) || isSandboxSet(value) || isSandboxPromise(value) || isSandboxRegex(value)) return [];
   else entries = Object.entries(Object(value)) as Array<[string, SandboxValue]>;
   return excludedKeys === undefined ? entries : entries.filter(([key]) => !excludedKeys.has(key));
@@ -293,6 +296,7 @@ export function ownSandboxSymbolKeys(value: SandboxValue): symbol[] {
   if (isGuestHostObject(value)) return [];
   if (isSandboxClosure(value)) value = value.properties ?? {};
   else if (isSandboxRegex(value)) value = getRegexProperties(value);
+  else if (isSandboxMap(value) || isSandboxSet(value)) value = getCollectionProperties(value);
   else if (isSandboxGenerator(value) || isSandboxMap(value) || isSandboxSet(value) || isSandboxPromise(value) || isSandboxRegex(value)) return [];
   return Object.getOwnPropertySymbols(Object(value)).filter(key => !internalSymbols.has(key));
 }
@@ -301,7 +305,8 @@ export function ownEnumerableSandboxKeys(value: SandboxValue): string[];
 export function ownEnumerableSandboxKeys(value: SandboxValue, includeSymbols: true): PropertyKey[];
 export function ownEnumerableSandboxKeys(value: SandboxValue, includeSymbols = false): PropertyKey[] {
   if (includeSymbols) {
-    const properties = isSandboxClosure(value) ? value.properties ?? {} : isSandboxRegex(value) ? getRegexProperties(value) : Object(value);
+    const properties = isSandboxClosure(value) ? value.properties ?? {} : isSandboxRegex(value) ? getRegexProperties(value)
+      : isSandboxMap(value) || isSandboxSet(value) ? getCollectionProperties(value) : Object(value);
     return [...ownEnumerableSandboxKeys(value), ...ownSandboxSymbolKeys(value).filter(key =>
       Object.getOwnPropertyDescriptor(properties, key)?.enumerable === true)];
   }
@@ -309,6 +314,7 @@ export function ownEnumerableSandboxKeys(value: SandboxValue, includeSymbols = f
   if (value === null || value === undefined) throw new TypeError("Cannot convert undefined or null to object.");
   if (isGuestClosure(value)) return Object.keys(value.properties ?? {});
   if (isSandboxRegex(value)) return Object.keys(getRegexProperties(value));
+  if (isSandboxMap(value) || isSandboxSet(value)) return Object.keys(getCollectionProperties(value));
   if (isSandboxClosure(value) || isSandboxGenerator(value) || isSandboxMap(value) || isSandboxSet(value) || isSandboxPromise(value) || isSandboxRegex(value)) return [];
   return Object.keys(Object(value));
 }
@@ -391,6 +397,7 @@ export function createSandboxMap(
   entries: Iterable<readonly [SandboxValue, SandboxValue]> = []
 ): SandboxMap {
   const map = {} as SandboxMap;
+  collectionGuestProperties.set(map, Object.create(null) as SandboxObject);
 
   Object.defineProperties(map, {
     kind: {
@@ -411,6 +418,7 @@ export function createSandboxMap(
 
 export function createSandboxSet(values: Iterable<SandboxValue> = []): SandboxSet {
   const set = {} as SandboxSet;
+  collectionGuestProperties.set(set, Object.create(null) as SandboxObject);
 
   Object.defineProperties(set, {
     kind: {
@@ -612,6 +620,16 @@ export function measureSandboxData(
         if (descriptor !== undefined && "value" in descriptor) visit(descriptor.value, depth + 1);
       }
       return;
+    }
+    if (isSandboxMap(value) || isSandboxSet(value)) {
+      const properties = getCollectionProperties(value);
+      for (const key of Reflect.ownKeys(properties)) {
+        const descriptor = Object.getOwnPropertyDescriptor(properties, key)!;
+        usage += 1 + (typeof key === "string" ? key.length : 0);
+        if (typeof key === "symbol") visit(key, depth + 1);
+        if ("value" in descriptor) visit(descriptor.value, depth + 1);
+        else for (const closure of retainedAccessorClosures(descriptor)) visit(closure, depth + 1);
+      }
     }
     if (isSandboxMap(value)) {
       usage += value.entries.size;
@@ -905,6 +923,7 @@ function copyToSandbox(
     if (existing !== undefined) return existing;
     const copy = createSandboxMap();
     state.seen.set(value, copy);
+    if (!state.structuredClone) copyCollectionProperties(value, getCollectionProperties(copy), entry => copyToSandbox(entry, state, `${path}.<property>`, true, depth + 1));
     for (const [key, entry] of value.entries) {
       copy.entries.set(
         copyToSandbox(key, state, `${path}.<key>`, true, depth + 1),
@@ -920,6 +939,7 @@ function copyToSandbox(
     if (existing !== undefined) return existing;
     const copy = createSandboxSet();
     state.seen.set(value, copy);
+    if (!state.structuredClone) copyCollectionProperties(value, getCollectionProperties(copy), entry => copyToSandbox(entry, state, `${path}.<property>`, true, depth + 1));
     for (const entry of value.values) {
       copy.values.add(copyToSandbox(entry, state, `${path}.<value>`, true, depth + 1));
     }
@@ -983,6 +1003,7 @@ function copyToSandbox(
 
     const copy = createSandboxMap();
     state.seen.set(value, copy);
+    if (!state.structuredClone) copyCollectionProperties(value, getCollectionProperties(copy), entry => copyToSandbox(entry, state, `${path}.<property>`, cloneSandboxCollections, depth + 1));
     for (const [key, entry] of value) {
       copy.entries.set(
         copyToSandbox(key, state, `${path}.<key>`, cloneSandboxCollections, depth + 1),
@@ -1000,6 +1021,7 @@ function copyToSandbox(
 
     const copy = createSandboxSet();
     state.seen.set(value, copy);
+    if (!state.structuredClone) copyCollectionProperties(value, getCollectionProperties(copy), entry => copyToSandbox(entry, state, `${path}.<property>`, cloneSandboxCollections, depth + 1));
     for (const entry of value) {
       copy.values.add(
         copyToSandbox(entry, state, `${path}.<value>`, cloneSandboxCollections, depth + 1)
@@ -1235,6 +1257,7 @@ function copyFromSandbox(
 
     const copy = new Map<unknown, unknown>();
     state.seen.set(value, copy);
+    copyCollectionProperties(value, copy, entry => copyFromSandbox(entry as SandboxValue, state, `${path}.<property>`, options, depth + 1));
     for (const [key, entry] of value.entries) {
       copy.set(
         copyFromSandbox(key, state, `${path}.<key>`, options, depth + 1),
@@ -1252,6 +1275,7 @@ function copyFromSandbox(
 
     const copy = new Set<unknown>();
     state.seen.set(value, copy);
+    copyCollectionProperties(value, copy, entry => copyFromSandbox(entry as SandboxValue, state, `${path}.<property>`, options, depth + 1));
     for (const entry of value.values) {
       copy.add(copyFromSandbox(entry, state, `${path}.<value>`, options, depth + 1));
     }

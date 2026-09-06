@@ -162,6 +162,7 @@ import {
   isSandboxPromise,
   isSandboxRegex,
   getRegexProperties,
+  getCollectionProperties,
   isSandboxSet,
   reconcileCompiledValues,
   type SandboxArray,
@@ -2654,7 +2655,7 @@ async function evaluateDeleteExpression(
       throw new TypeError("Cannot delete properties of null or undefined.");
     }
 
-    if (!isIndexableSandboxValue(member.object) && !isSandboxRegex(member.object)) {
+    if (!isIndexableSandboxValue(member.object) && !isSandboxRegex(member.object) && !isSandboxMap(member.object) && !isSandboxSet(member.object)) {
       throw new TypeError("Unary operator 'delete' requires a sandbox object property.");
     }
 
@@ -3924,6 +3925,7 @@ export function setSandboxProperty(
       return writePropertyDescriptor(descriptor, target, value, context);
   }
   if (isGuestClosure(target)) target = materializeFunctionProperties(target);
+  if (isSandboxMap(target) || isSandboxSet(target)) target = getCollectionProperties(target);
   if (isFloat32Array(target)) {
     if (typeof property === "symbol") throw new TypeError("Typed array symbol properties are not yet supported.");
     setFloat32Member(target, property, value);
@@ -4014,6 +4016,7 @@ function deleteSandboxProperty(
   if (isGuestHostObject(target)) return deleteHostObjectMember(target, String(property));
   if (isGuestClosure(target)) target = materializeFunctionProperties(target);
   if (isSandboxRegex(target)) target = getRegexProperties(target);
+  if (isSandboxMap(target) || isSandboxSet(target)) target = getCollectionProperties(target);
   if (Array.isArray(target)) {
     assertCollectionMutable(target);
   }

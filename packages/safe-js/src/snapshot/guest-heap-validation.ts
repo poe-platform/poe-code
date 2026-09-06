@@ -57,7 +57,7 @@ export function validateGuestHeapNode(raw: unknown, heap: Record<string, unknown
     createRawJson(node.text);
     return true;
   }
-  if (!["intrinsic", "guest-function", "guest-generator", "scope-frame", "guest-object", "guest-array"].includes(String(node.kind))) return false;
+  if (!["intrinsic", "guest-function", "guest-generator", "scope-frame", "guest-object", "guest-array", "map", "set"].includes(String(node.kind))) return false;
   const reference = (value: unknown, kinds?: string[]) => {
     const ref = record(value);
     fields(ref, ["kind", "id"]);
@@ -103,6 +103,11 @@ export function validateGuestHeapNode(raw: unknown, heap: Record<string, unknown
       if (typeof descriptor.enumerable !== "boolean" || typeof descriptor.configurable !== "boolean") throw new TypeError("Invalid guest descriptor flags.");
     }
   };
+  if (node.kind === "map" || node.kind === "set") {
+    fields(node, ["kind", node.kind === "map" ? "entries" : "values"], ["propertyState"]);
+    if (Object.hasOwn(node, "propertyState")) state({ properties: node.propertyState });
+    return false;
+  }
   if (node.kind === "intrinsic") {
     fields(node, ["kind", "id"], ["state"]);
     if (typeof node.id !== "string" || !intrinsicCatalogue().has(node.id)) throw new TypeError("Unknown intrinsic identity.");

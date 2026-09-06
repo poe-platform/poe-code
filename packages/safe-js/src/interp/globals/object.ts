@@ -25,6 +25,7 @@ import {
   isSandboxClosure,
   isSandboxGenerator,
   isSandboxMap,
+  getCollectionProperties,
   isSandboxPromise,
   isSandboxRegex,
   getRegexProperties,
@@ -169,9 +170,8 @@ export function hasOwnSandboxProperty(
   else if (isSandboxClosure(value)) {
     if (key === "length" || key === "name") return !enumerable;
     properties = value.properties ?? (Object.create(null) as SandboxObject);
-  } else if (
-    isSandboxMap(value) ||
-    isSandboxSet(value) ||
+  } else if (isSandboxMap(value) || isSandboxSet(value)) properties = getCollectionProperties(value);
+  else if (
     isSandboxPromise(value) ||
     isSandboxGenerator(value)
   )

@@ -13,6 +13,7 @@ import {
   isSandboxPromise,
   isSandboxRegex,
   getRegexProperties,
+  getCollectionProperties,
   isSandboxSet,
   type SandboxClosure,
   type SandboxObject,
@@ -285,7 +286,7 @@ export function getSandboxPropertyDescriptor(
     (Array.isArray(current) || isSandboxDate(current) || isSandboxRegex(current) || isSandboxMap(current) || isSandboxSet(current) || isPrototypeRecord(current))
   ) {
     const properties = isGuestClosure(current) ? getGuestFunctionProperties(current)
-      : isSandboxRegex(current) ? getRegexProperties(current) : isSandboxMap(current) || isSandboxSet(current) ? undefined : current;
+      : isSandboxRegex(current) ? getRegexProperties(current) : isSandboxMap(current) || isSandboxSet(current) ? getCollectionProperties(current) : current;
     const descriptor =
       properties === undefined ? undefined : Object.getOwnPropertyDescriptor(properties, key);
     if (descriptor !== undefined) return descriptor;
@@ -308,6 +309,7 @@ export function getSandboxDataProperty(
   while (typeof current === "object" && current !== null) {
     if (isGuestHostObject(current)) return typeof key === "symbol" ? undefined : getHostObjectMember(current, String(key));
     if (isSandboxRegex(current)) return Object.getOwnPropertyDescriptor(getRegexProperties(current), key)?.value;
+    if (isSandboxMap(current) || isSandboxSet(current)) return Object.getOwnPropertyDescriptor(getCollectionProperties(current), key)?.value;
     if (isGuestClosure(current)) {
       const entry = getGuestFunctionProperty(current, key);
       if (entry !== undefined || Object.hasOwn(current.properties ?? {}, key)) return entry;

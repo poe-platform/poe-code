@@ -381,6 +381,7 @@ function toSandboxValue(value: unknown): SandboxValue {
     typeof value === "string" ||
     typeof value === "number" ||
     typeof value === "bigint" ||
+    typeof value === "symbol" ||
     typeof value === "boolean" ||
     isSandboxClosure(value) ||
     isSandboxPromise(value) ||

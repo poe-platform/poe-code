@@ -1,0 +1,20 @@
+import { S } from "schema";
+
+export const schema = S.Object({ title: S.String() });
+
+export default async function main(frontmatter) {
+  const symbol = Symbol('value');
+  let observed = false;
+  const json = JSON.stringify({ value: symbol }, function(key, value) {
+    if (typeof value === 'symbol') {
+      observed = key === 'value' && value === symbol && this.value === symbol;
+      return 'converted';
+    }
+    return value;
+  });
+  if (!observed || json !== '{"value":"converted"}') throw new Error('Symbol replacer mismatch');
+  const unchanged = JSON.stringify([symbol], (key, value) => value);
+  if (unchanged !== '[null]') throw new Error('Symbol omission mismatch');
+  await 0;
+  return { ok: true, title: frontmatter.title, json, unchanged, observed };
+}

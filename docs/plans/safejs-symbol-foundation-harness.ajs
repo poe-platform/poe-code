@@ -3,6 +3,21 @@ import { S } from "schema";
 export const schema = S.Object({ title: S.String() });
 
 export default async function symbolFoundation(frontmatter) {
+  for (const name of ["prototype", "iterator", "asyncIterator"]) {
+    const descriptor = Object.getOwnPropertyDescriptor(Symbol, name);
+    if (descriptor.writable || descriptor.enumerable || descriptor.configurable)
+      throw new Error("Fixed Symbol descriptor failed");
+  }
+  for (const name of ["for", "keyFor"]) {
+    const descriptor = Object.getOwnPropertyDescriptor(Symbol, name);
+    if (!descriptor.writable || descriptor.enumerable || !descriptor.configurable)
+      throw new Error("Registry method descriptor failed");
+  }
+  const originalFor = Symbol.for;
+  Symbol.for = key => originalFor("fixture:" + key);
+  if (Symbol.keyFor(Symbol.for("key")) !== "fixture:key")
+    throw new Error("Registry method replacement failed");
+  Symbol.for = originalFor;
   const key = Symbol.for("foundation");
   const other = Symbol("foundation");
   const object = { [key]: 7, [other]: 9 };

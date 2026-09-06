@@ -234,3 +234,21 @@ Root lint then found the new Memory capability closure's `this` alias. Root
 made the closure parameter explicit instead, preserving the dynamic getter and
 frozen capability object. The worker hash above is its handoff identity, not
 the identity of this later lint correction; final gates cover the correction.
+
+The rebased candidate passed the normal build, SafeFS types, all maintained Bash
+consumer type groups, root lint and package lint. Its first full unit attempt
+passed 34,175 shared tests (42 skipped), then its Bash child finished with
+21,350 passed, five failed and 63 skipped. The parent tool ended with signal 143
+while that child continued; the cause is unestablished, and the parent's EXIT
+trap file is not evidence of a completed full gate.
+
+All five failures were independently reproduced (two passed/five failed in the
+focused RED). GNU tee 8.30 confirmed overwrite duplicate targets produce A,
+whereas append duplicate targets produce QAA. The tee test now asserts those
+exact bytes and still checks two opens/consumers and both closures. Existing
+shell-mirror growth and direct-mutation assertions remain intact in an explicit
+descriptorWriteStream:false fallback profile. Three additional stock-Memory
+controls assert the positional overwrite results, rather than pretending the
+old fallback mutation boundary still applies. The corrected focused run passed
+10/10. No production change or assertion waiver was needed for these failures;
+a fresh integrated gate is still required before delivery.

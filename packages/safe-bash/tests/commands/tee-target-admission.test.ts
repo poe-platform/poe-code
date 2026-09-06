@@ -171,7 +171,8 @@ for (const append of [false, true]) {
       setup.shell.use(standardCommands({ maxTeeTargets: 2 }));
       assert.equal((await setup.shell.exec(setup.script, { stdin: setup.stdin })).exitCode, 0);
       assert.equal(setup.state.firstRead?.active, 2);
-      assert.equal(new TextDecoder().decode(await setup.backing.readFile("/same")), append ? "QAA" : "AA");
+      assert.deepEqual(setup.state.opens, ["/same", "/same"]);
+      assert.equal(new TextDecoder().decode(await setup.backing.readFile("/same")), append ? "QAA" : "A");
       assert.equal(setup.state.active, 0); assert.equal(setup.state.closed.length, 2);
     } finally { await setup.shell.dispose(); }
   });

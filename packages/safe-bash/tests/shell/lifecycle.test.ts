@@ -88,8 +88,9 @@ test("EOF redirects append only new bytes and expose each completed write", asyn
   } finally { await shell.dispose(); }
 });
 
-for (const mixed of [false, true]) test(`redirect retained storage grows geometrically: mixed append=${mixed}`, async context => {
-  const { shell, commands } = setup();
+for (const mixed of [false, true]) test(`redirect retained storage grows geometrically: mixed append=${mixed}, legacy fallback`, async context => {
+  const { shell, fs, commands } = setup();
+  Object.defineProperty(fs, "capabilities", { value: { ...fs.capabilities, descriptorWriteStream: false } });
   const buffers = new Set<ArrayBufferLike>();
   const fileOperation = Runtime.prototype.fileOperation;
   context.mock.method(Runtime.prototype, "fileOperation", async function (this: Runtime, ...args: Parameters<Runtime["fileOperation"]>) {
@@ -103,14 +104,17 @@ for (const mixed of [false, true]) test(`redirect retained storage grows geometr
   } });
   try {
     assert.equal((await shell.exec(mixed ? "chunks >file 2>>file" : "chunks >file")).exitCode, 0);
+    assert.equal(new TextDecoder().decode(await fs.readFile("/file")), "abc".repeat(64));
     assert.ok(buffers.size > 0);
     assert.ok([...buffers].reduce((sum, buffer) => sum + buffer.byteLength, 0) <= 4 * 192);
   } finally { await shell.dispose(); }
 });
 
-for (const [replacement, expected] of [["Q", "abcXYZ"], ["123456789", "abcXYZ"], ["def", "defXYZ"]] as const) {
-  test(`EOF redirect after direct VFS replacement preserves the declared mutation boundary: ${replacement}`, async () => {
+for (const descriptorWriteStream of [false, true]) for (const [replacement, legacyExpected, positionalExpected] of [["Q", "abcXYZ", "Q\0\0XYZ"], ["123456789", "abcXYZ", "123XYZ789"], ["def", "defXYZ", "defXYZ"]] as const) {
+  test(`EOF redirect after direct VFS replacement preserves the declared mutation boundary: ${replacement}, descriptorWriteStream=${descriptorWriteStream}`, async () => {
     const { shell, fs, commands } = setup();
+    if (!descriptorWriteStream) Object.defineProperty(fs, "capabilities", { value: { ...fs.capabilities, descriptorWriteStream: false } });
+    assert.equal(fs.capabilities.descriptorWriteStream, descriptorWriteStream);
     commands.register({ name: "mutate", async execute({ stdout }) {
       await writeText(stdout, "abc");
       await fs.writeFile("/file", new TextEncoder().encode(replacement));
@@ -119,7 +123,7 @@ for (const [replacement, expected] of [["Q", "abcXYZ"], ["123456789", "abcXYZ"],
     } });
     try {
       assert.equal((await shell.exec("mutate >file")).exitCode, 0);
-      assert.equal(new TextDecoder().decode(await fs.readFile("/file")), expected);
+      assert.equal(new TextDecoder().decode(await fs.readFile("/file")), descriptorWriteStream ? positionalExpected : legacyExpected);
     } finally { await shell.dispose(); }
   });
 }

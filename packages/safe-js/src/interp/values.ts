@@ -916,7 +916,7 @@ function copyToSandbox(
     return copy;
   }
 
-  if (typeof value === "object" && value !== null && hasGuestObjectState(value)) {
+  if (typeof value === "object" && value !== null && hasGuestObjectState(value) && !(state.structuredClone && isSandboxDate(value))) {
     throw new TypeError("Guest prototype links and custom descriptors cannot be copied as data.");
   }
 
@@ -990,6 +990,7 @@ function copyToSandbox(
     if (existing !== undefined) return existing;
     const copy = copyNativeDate(value)!;
     state.seen.set(value, copy);
+    if (state.structuredClone) return copy;
     if (!state.structuredClone && hasNullObjectPrototype(value)) setSandboxPrototype(copy, null);
     for (const [key, descriptor] of dateDataProperties(value)) {
       Object.defineProperty(copy, key, { ...descriptor, value: copyToSandbox(descriptor.value, state, joinPath(path, key), cloneSandboxCollections, depth + 1) });

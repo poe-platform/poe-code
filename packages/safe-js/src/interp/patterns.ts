@@ -25,11 +25,14 @@ import {
 } from "./values.js";
 
 type Pattern = VariableDeclarator["id"] | AssignmentPattern | MemberExpression | RestElement;
-type AssignmentReference = { object: SandboxValue; key: PropertyKey };
+export type AssignmentReference = { object: SandboxValue; key: PropertyKey };
 
 export type PatternTarget = { kind: VariableDeclarationKind; initialize?: true } | { assign: true };
 
 export type PatternContext = {
+  prepareMemberReference?(pattern: MemberExpression): Promise<
+    { ok: true; reference: AssignmentReference } | { ok: false; result: AsyncEvaluationResult }
+  >;
   budget?: Budget;
   callContext?: SandboxCallContext;
   evaluate(node: ParseResult, inferredName?: string): Promise<AsyncEvaluationResult>;
@@ -305,6 +308,7 @@ async function prepareMemberReference(
 ): Promise<
   { ok: true; reference: AssignmentReference } | { ok: false; result: AsyncEvaluationResult }
 > {
+  if (context.prepareMemberReference !== undefined) return context.prepareMemberReference(pattern);
   const object = await context.evaluate(pattern.object);
   if (object.kind !== "normal") {
     return { ok: false, result: object };

@@ -1,0 +1,35 @@
+import { S } from "schema";
+
+export const schema = S.Object({ title: S.String() });
+
+export default async frontmatter => {
+  let factories = 0;
+  let getters = 0;
+  const iterable = {
+    [Symbol.iterator]() {
+      factories++;
+      let index = 0;
+      return {
+        get next() {
+          getters++;
+          return () => ({ done: index >= 3, value: ++index });
+        }
+      };
+    }
+  };
+  function* values() {
+    for (const value of iterable) yield value;
+    return 9;
+  }
+  const iterator = values();
+  const seen = [];
+  for (let index = 0; index < 3; index++) {
+    seen.push(iterator.next().value);
+    await 0;
+  }
+  const last = iterator.next();
+  if (seen.join() !== "1,2,3" || !last.done || last.value !== 9 || factories !== 1 || getters !== 1) {
+    throw new Error("Iterator continuation changed");
+  }
+  return { title: frontmatter.title, ok: true, seen, factories, getters };
+};

@@ -13,6 +13,7 @@ import { isSandboxClosure, isSandboxRegex, isSandboxMap, isSandboxSet, isSandbox
 import { serializePropertyDescriptors, type PropertyDescriptorData } from "./property-descriptors.js";
 import type { CompletionResult } from "../interp/exceptions.js";
 import type { GeneratorExpressionState } from "../interp/generator-expression-state.js";
+import { mapIteratorSnapshot, type IteratorSnapshot } from "../interp/iteration.js";
 
 export type GeneratorFinallyCompletion<T> = Omit<CompletionResult, "value" | "node" | "stackFrames"> & { value: T; nodeId?: number; stackFrames?: string[] };
 
@@ -26,7 +27,7 @@ export type GuestHeapNode<T> =
       async: boolean; scope: T; closureScope: T; suspendedScope?: T; yieldNodeId?: number;
       blockScopes?: Record<string, T>;
       finallyCompletions?: Record<string, GeneratorFinallyCompletion<T>>;
-      expressionStates?: Record<string, GeneratorExpressionState<T, T>>;
+      expressionStates?: Record<string, GeneratorExpressionState<T, T, IteratorSnapshot<T>>>;
       sent: Array<{ type: "normal" | "return" | "throw"; value: T }>;
       environment?: { homeObject?: T; newTarget?: T } }
   | { kind: "guest-object"; state: GuestObjectState<T> }
@@ -84,6 +85,9 @@ export function captureGuestHeapNode<T>(value: object, encode: (value: unknown) 
       ...(value.state !== "suspended" || origin.expressionStates === undefined ? {} : {
         expressionStates: Object.fromEntries([...origin.expressionStates].map(([id, expression]) => [String(id),
           expression.kind === "binary" ? { kind: "binary", left: encode(expression.left) }
+            : expression.kind === "for-of-array" ? { ...expression, values: encode(expression.values), current: encode(expression.current), scope: encode(expression.scope) }
+            : expression.kind === "for-of-iterator" ? { ...expression, value: encode(expression.value), current: encode(expression.current), scope: encode(expression.scope),
+              iterator: mapIteratorSnapshot("kind" in expression.iterator ? expression.iterator : expression.iterator.snapshot?.() ?? { kind: "unsupported" }, encode) }
             : expression.kind === "for-in" ? { ...expression, keys: [...expression.keys], object: encode(expression.object), scope: encode(expression.scope) }
             : expression.kind === "for" ? { kind: "for", phase: expression.phase, loopScope: encode(expression.loopScope), activeScope: encode(expression.activeScope) }
             : expression.kind === "identifier-assignment" ? { kind: "identifier-assignment", current: encode(expression.current) }

@@ -118,7 +118,7 @@ import {
 } from "./methods/map.js";
 import { callNumberMethod, getNumberMember, isNumberMethodName } from "./methods/number.js";
 import { getPromiseMember, isSandboxPromiseConstructor } from "./promise.js";
-import { acquireSandboxIterator, closeIterator, readIteratorResult } from "./iteration.js";
+import { acquireSandboxIterator, closeIterator, readIteratorResult, restoreSandboxIterator } from "./iteration.js";
 import { assertCollectionMutable } from "./running-state.js";
 import { getGeneratorMember } from "./methods/generator.js";
 import { getRegexMember, setRegexMember } from "./methods/regex.js";
@@ -1713,6 +1713,10 @@ async function evaluateForOfStatement(
   node: ForOfStatement,
   context: EvaluationContext
 ): Promise<EvaluationResult> {
+  const saved = context.generatorResume === undefined || node.nodeId === undefined
+    ? undefined : context.restoredGeneratorExpressionStates?.get(node.nodeId);
+  if (saved !== undefined && saved.kind !== "for-of-array" && saved.kind !== "for-of-iterator") throw new TypeError("Invalid for-of continuation.");
+  if (saved?.kind === "for-of-iterator") return evaluateForOfIterator(node, saved.value, context);
   const restoredIteration = context.restoredLoopIterations.get(node.nodeId ?? -1);
   let restoredEntry: IteratorResult<SandboxValue> | undefined;
   if (typeof restoredIteration === "object" && typeof restoredIteration.values[0] === "string") {
@@ -1724,7 +1728,7 @@ async function evaluateForOfStatement(
       }
     }
   }
-  const iterable = await evaluateNode(node.right, context);
+  const iterable = saved === undefined ? await evaluateNode(node.right, context) : { kind: "normal" as const, value: saved.values };
   if (iterable.kind !== "normal") {
     return iterable;
   }
@@ -1734,17 +1738,24 @@ async function evaluateForOfStatement(
     return evaluateForOfIterator(node, iterable.value, context, restoredEntry);
   }
 
-  const restoredIndex = consumeRestoredLoopIterationIndex(node, context);
-  for (let index = restoredIndex; index < values.length; index += 1) {
+  const restoredIndex = saved?.index ?? consumeRestoredLoopIterationIndex(node, context);
+  for (let index = restoredIndex; index < values.length || (saved !== undefined && index === saved.index); index += 1) {
     context.activeLoopIterations.set(node.nodeId ?? -1, index);
 
-    const scope = context.scope.child();
-    const binding = await bindForOfLoopVariable(node.left, values[index]!, scope, context);
-    if (!binding.ok) {
-      return binding.result;
+    const resuming = saved !== undefined && index === saved.index;
+    const scope = resuming ? saved.scope : context.scope.child();
+    const current = resuming ? saved.current : values[index]!;
+    const phaseContext = (phase: "left" | "body"): EvaluationContext => ({ ...context,
+      ...(context.generatorYield === undefined || node.nodeId === undefined ? {} : {
+        generatorExpressionStates: new Map([...(context.generatorExpressionStates ?? []),
+          [node.nodeId, { kind: "for-of-array", phase, values, current, index, scope }]])
+      }) });
+    if (!resuming || saved.phase === "left") {
+      const binding = await bindForOfLoopVariable(node.left, current, scope, phaseContext("left"));
+      if (!binding.ok) return binding.result;
     }
 
-    const iterationContext = createLoopIterationContext(context, scope);
+    const iterationContext = createLoopIterationContext(phaseContext("body"), scope);
     emitLoopIterationBreakpoint(node, iterationContext);
     const result = await evaluateNode(node.body, iterationContext);
 
@@ -1782,7 +1793,13 @@ async function evaluateForOfIterator(
   context: EvaluationContext,
   restoredEntry?: IteratorResult<SandboxValue>
 ): Promise<EvaluationResult> {
-  const iterator = await acquireSandboxIterator(value, context.budget, createCoercionContext(context), node.await, context.signal);
+  const saved = context.generatorResume === undefined || node.nodeId === undefined
+    ? undefined : context.restoredGeneratorExpressionStates?.get(node.nodeId);
+  if (saved !== undefined && saved.kind !== "for-of-iterator") throw new TypeError("Invalid iterator continuation.");
+  let resumeCurrent = saved !== undefined;
+  const iterator = saved === undefined
+    ? await acquireSandboxIterator(value, context.budget, createCoercionContext(context), node.await, context.signal)
+    : "kind" in saved.iterator ? await restoreSandboxIterator(saved.iterator, context.budget, createCoercionContext(context), context.signal) : saved.iterator;
   if (iterator === undefined) {
     throw new TypeError(`${String(value)} is not a supported iterable`);
   }
@@ -1802,8 +1819,8 @@ async function evaluateForOfIterator(
   const releaseIterator = retainValues(context.budget, () => [value, iterator.retainedValue]);
   try {
     const nodeId = node.nodeId ?? -1;
-    let index = consumeRestoredLoopIterationIndex(node, context);
-    for (let skipped = 0; skipped < index; skipped += 1) {
+    let index = saved?.index ?? consumeRestoredLoopIterationIndex(node, context);
+    for (let skipped = 0; saved === undefined && skipped < index; skipped += 1) {
       const skippedIteration = await nextIteration();
       if (typeof skippedIteration !== "object" || skippedIteration === null) {
         throw new TypeError("Iterator result must be an object.");
@@ -1814,7 +1831,9 @@ async function evaluateForOfIterator(
     }
 
     while (true) {
-      const iteration = restoredEntry ?? (await nextIteration());
+      const resuming = resumeCurrent;
+      resumeCurrent = false;
+      const iteration = resuming ? { done: false, value: saved!.current } : restoredEntry ?? (await nextIteration());
       restoredEntry = undefined;
       if (typeof iteration !== "object" || iteration === null) {
         throw new TypeError("Iterator result must be an object.");
@@ -1836,10 +1855,15 @@ async function evaluateForOfIterator(
               values: [value, nextValue]
             }
       );
-      const scope = context.scope.child();
+      const scope = resuming ? saved!.scope : context.scope.child();
+      const phaseContext = (phase: "left" | "body"): EvaluationContext => ({ ...context,
+        ...(context.generatorYield === undefined || node.nodeId === undefined ? {} : {
+          generatorExpressionStates: new Map([...(context.generatorExpressionStates ?? []),
+            [node.nodeId, { kind: "for-of-iterator", phase, async: node.await === true, value, current: nextValue, index, scope, iterator }]])
+        }) });
       let binding: BindPatternResult;
       try {
-        binding = await bindForOfLoopVariable(node.left, nextValue, scope, context);
+        binding = resuming && saved!.phase === "body" ? { ok: true } : await bindForOfLoopVariable(node.left, nextValue, scope, phaseContext("left"));
       } catch (error) {
         if (isFatalSandboxError(error) || error instanceof HostCallResumabilityError) throw error;
         await closeIterator(iterator, true);
@@ -1850,7 +1874,7 @@ async function evaluateForOfIterator(
         return binding.result;
       }
 
-      const iterationContext = createLoopIterationContext(context, scope);
+      const iterationContext = createLoopIterationContext(phaseContext("body"), scope);
       emitLoopIterationBreakpoint(node, iterationContext);
       const result = await evaluateNode(node.body, iterationContext);
       if (isMatchingBreak(result, loopLabels(node))) {
@@ -2737,6 +2761,15 @@ export function createPatternContext(
 ): PatternContext {
   const evaluationContext = { ...context, scope };
   return {
+    prepareMemberReference: async pattern => {
+      let reference: import("./patterns.js").AssignmentReference | undefined;
+      const result = await evaluateMemberAccess(pattern, evaluationContext, async member => {
+        if (member.kind === "nullish") throw new TypeError("Cannot assign properties of null or undefined.");
+        reference = { object: member.object, key: await toPropertyKey(member.property, context.budget, createCoercionContext(evaluationContext)) };
+        return normalEmptyResult();
+      });
+      return result.kind === "normal" ? { ok: true, reference: reference! } : { ok: false, result };
+    },
     budget: context.budget,
     callContext: createCoercionContext(evaluationContext),
     evaluate: (node, inferredName) => evaluate(node, { ...evaluationContext, inferredName }),

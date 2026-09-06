@@ -218,7 +218,7 @@ function validateDumpReferences(
       : role === "heap-node" && record.kind === "guest-generator" && key === "expressionStates" ? "expressions"
       : role === "expressions" ? "expression" : "data";
     const scopeField = role === "scope-map" || (role === "expression" && (
-      (record.kind === "for" && ["loopScope", "activeScope"].includes(key)) || (record.kind === "for-in" && key === "scope")
+      (record.kind === "for" && ["loopScope", "activeScope"].includes(key)) || (["for-in", "for-of-array", "for-of-iterator"].includes(String(record.kind)) && key === "scope")
     )) || role === "heap-node" && (
       (record.kind === "scope-frame" && key === "parent") ||
       (record.kind === "guest-function" && key === "scope") ||

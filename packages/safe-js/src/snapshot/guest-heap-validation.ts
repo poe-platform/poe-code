@@ -152,6 +152,50 @@ export function validateGuestHeapNode(raw: unknown, heap: Record<string, unknown
         const expression = record(raw);
         if (expression.kind === "binary") {
           fields(expression, ["kind", "left"]);
+        } else if (expression.kind === "for-of-array" || expression.kind === "for-of-iterator") {
+          fields(expression, ["kind", "phase", "current", "index", "scope",
+            ...(expression.kind === "for-of-array" ? ["values"] : ["value", "iterator", "async"])]);
+          if (!["left", "body"].includes(String(expression.phase))) throw new TypeError("Invalid for-of phase.");
+          integer(expression.index);
+          reference(expression.scope, ["scope-frame"]);
+          if (expression.kind === "for-of-array") reference(expression.values, ["array", "guest-array"]);
+          else {
+            let iterator = record(expression.iterator);
+            let depth = 0;
+            let protocol = false;
+            while (iterator.kind === "async-from-sync") {
+              if (++depth > 1) throw new TypeError("Invalid nested async iterator adapter.");
+              fields(iterator, ["kind", "inner"]);
+              iterator = record(iterator.inner);
+              protocol = true;
+            }
+            if (iterator.kind === "guest") {
+              fields(iterator, ["kind", "value", "next", "async"]);
+              if (typeof iterator.async !== "boolean") throw new TypeError("Invalid iterator protocol.");
+              if (depth > 0 && iterator.async) throw new TypeError("Invalid async-from-sync source.");
+              protocol ||= iterator.async;
+              reference(iterator.value);
+              callable(iterator.next);
+            } else if (iterator.kind === "builtin") {
+              fields(iterator, ["kind", "value", "index"]);
+              integer(iterator.index);
+              if (typeof iterator.value === "string" && (iterator.index as number) > iterator.value.length)
+                throw new TypeError("Invalid string iterator cursor.");
+              if (typeof iterator.value !== "string") {
+                const target = reference(iterator.value, ["array", "guest-array", "map", "set", "guest-generator", "collection-iterator", "regexp-iterator"]);
+                if (["guest-generator", "collection-iterator", "regexp-iterator"].includes(String(target.kind)) && iterator.index !== 0)
+                  throw new TypeError("Invalid stateful iterator cursor.");
+                if ((target.kind === "map" && (iterator.index as number) > array(target.entries).length) ||
+                    (target.kind === "set" && (iterator.index as number) > array(target.values).length))
+                  throw new TypeError("Invalid collection iterator cursor.");
+                if (target.kind === "guest-generator" && target.async === true) {
+                  if (depth > 0) throw new TypeError("Invalid async-from-sync generator.");
+                  protocol = true;
+                }
+              }
+            } else throw new TypeError("Invalid iterator continuation.");
+            if (expression.async !== protocol) throw new TypeError("Invalid for-of iterator protocol.");
+          }
         } else if (expression.kind === "for-in") {
           fields(expression, ["kind", "object", "keys", "index", "scope"]);
           if (array(expression.keys).some(key => typeof key !== "string") ||

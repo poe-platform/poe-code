@@ -23,6 +23,7 @@ import { invokeBuiltinClosure } from "./builtin-call.js";
 import { getSandboxPropertyDescriptor, hasExplicitSandboxPrototype } from "./object-model.js";
 
 export type SandboxIterator = {
+  snapshot?(): IteratorSnapshot;
   readonly asyncProtocol?: true;
   readonly generator?: true;
   readonly asynchronous?: true;
@@ -41,6 +42,33 @@ export type SandboxIterator = {
     error?: SandboxValue
   ): IteratorResult<SandboxValue> | Promise<IteratorResult<SandboxValue>>;
 };
+
+export type IteratorSnapshot<T = SandboxValue> =
+  | { kind: "guest"; value: T; next: T; async: boolean }
+  | { kind: "builtin"; value: T; index: number }
+  | { kind: "async-from-sync"; inner: IteratorSnapshot<T> }
+  | { kind: "unsupported" };
+
+export function mapIteratorSnapshot<T, U>(snapshot: IteratorSnapshot<T>, map: (value: T) => U): IteratorSnapshot<U> {
+  if (snapshot.kind === "unsupported") throw new TypeError("Host-owned iterator cannot be portably snapshotted.");
+  if (snapshot.kind === "async-from-sync") return { ...snapshot, inner: mapIteratorSnapshot(snapshot.inner, map) };
+  return snapshot.kind === "guest" ? { ...snapshot, value: map(snapshot.value), next: map(snapshot.next) }
+    : { ...snapshot, value: map(snapshot.value) };
+}
+
+export async function restoreSandboxIterator(snapshot: IteratorSnapshot, budget: Budget, context: SandboxCallContext, signal?: AbortSignal): Promise<SandboxIterator> {
+  if (snapshot.kind === "unsupported") throw new TypeError("Host-owned iterator cannot be restored.");
+  if (snapshot.kind === "guest") return guestIterator(snapshot.value, snapshot.next, snapshot.async, budget, context, signal);
+  if (snapshot.kind === "async-from-sync") return asyncFromSyncIterator(await restoreSandboxIterator(snapshot.inner, budget, context, signal), budget, signal);
+  if (Array.isArray(snapshot.value)) return arrayIterator(snapshot.value, context, budget, snapshot.index);
+  const iterator = isSandboxGenerator(snapshot.value) && snapshot.value.async
+    ? getSandboxAsyncIterator(snapshot.value, budget, context, signal)
+    : getSandboxIterator(snapshot.value, budget, context);
+  if (iterator === undefined) throw new TypeError("Invalid builtin iterator snapshot.");
+  // Builtin cursor restoration never invokes a guest iterator factory or next getter.
+  for (let index = 0; index < snapshot.index; index++) await iterator.next();
+  return iterator;
+}
 
 export async function acquireSandboxIterator(
   value: SandboxValue,
@@ -80,6 +108,10 @@ export async function acquireSandboxIterator(
   if ((typeof iterator !== "object" && typeof iterator !== "function") || iterator === null)
     throw new TypeError("Iterator must be an object.");
   const next = await context.getProperty(iterator, "next");
+  return guestIterator(iterator, next, asyncProtocol, budget, context, signal);
+}
+
+function guestIterator(iterator: SandboxValue, next: SandboxValue, asyncProtocol: boolean, budget: Budget, context: SandboxCallContext, signal?: AbortSignal): SandboxIterator {
   const invoke = async (
     operation: SandboxValue,
     args: readonly SandboxValue[]
@@ -94,7 +126,8 @@ export async function acquireSandboxIterator(
   return {
     ...(asyncProtocol ? { asyncProtocol: true as const } : {}),
     asynchronous: true,
-    retainedValue: [value, iterator, next],
+    retainedValue: [iterator, next],
+    snapshot: () => ({ kind: "guest", value: iterator, next, async: asyncProtocol }),
     next: (...args) => invoke(next, args),
     getOperation: async (method) => {
       const operation = method === "next" ? next : await context.getProperty!(iterator, method);
@@ -234,6 +267,7 @@ function asyncFromSyncIterator(
   return {
     asyncProtocol: true,
     snapshotIndex: iterator.snapshotIndex,
+    snapshot: () => ({ kind: "async-from-sync", inner: iterator.snapshot?.() ?? { kind: "unsupported" } }),
     get retainedValue() {
       return iterator.retainedValue;
     },
@@ -294,11 +328,14 @@ export function getSandboxIterator(
     };
   }
   if (isSandboxCollectionIterator(value))
-    return { next: () => nextCollectionIterator(value, budget), snapshotIndex: () => 0 };
+    return { next: () => nextCollectionIterator(value, budget), snapshotIndex: () => 0,
+      snapshot: () => ({ kind: "builtin", value, index: 0 }) };
   if (isSandboxRegExpIterator(value)) {
     if (context !== undefined && budget !== undefined)
-      return { asynchronous: true, next: () => nextObservableRegExpIterator(value, budget, context), snapshotIndex: () => 0 };
-    return { next: () => nextRegExpIterator(value, budget), snapshotIndex: () => 0 };
+      return { asynchronous: true, next: () => nextObservableRegExpIterator(value, budget, context), snapshotIndex: () => 0,
+        snapshot: () => ({ kind: "builtin", value, index: 0 }) };
+    return { next: () => nextRegExpIterator(value, budget), snapshotIndex: () => 0,
+      snapshot: () => ({ kind: "builtin", value, index: 0 }) };
   }
   if (isGuestHostObject(value)) return getHostObjectIterator(value);
   if (isFloat32Array(value)) {
@@ -309,29 +346,29 @@ export function getSandboxIterator(
   }
 
   if (typeof value === "string") {
-    return syncIterator(value[Symbol.iterator]());
+    const iterator = value[Symbol.iterator]();
+    let index = 0;
+    return {
+      snapshot: () => ({ kind: "builtin", value, index }),
+      next: () => {
+        const result = iterator.next();
+        if (!result.done) index++;
+        return result;
+      }
+    };
   }
 
   if (isSandboxMap(value)) {
-    return collectionIterator(value.entries);
+    return collectionIterator(value.entries, value);
   }
 
   if (isSandboxSet(value)) {
-    return collectionIterator(value.values);
+    return collectionIterator(value.values, value);
   }
 
   if (Array.isArray(value) && hasExplicitSandboxPrototype(value)) return undefined;
   if (Array.isArray(value) && context?.getProperty !== undefined) {
-    let index = 0;
-    return {
-      asynchronous: true,
-      snapshotIndex: () => index,
-      next: async () => {
-        if (index >= value.length) return { done: true, value: undefined };
-        budget?.visitNode();
-        return { done: false, value: await context.getProperty!(value, index++) };
-      }
-    };
+    return arrayIterator(value, context, budget);
   }
 
   if ((typeof value !== "object" && typeof value !== "function") || value === null) {
@@ -351,12 +388,27 @@ export function getSandboxIterator(
   return syncIterator(iterator);
 }
 
+function arrayIterator(value: SandboxValue[], context: SandboxCallContext, budget?: Budget, initialIndex = 0): SandboxIterator {
+  let index = initialIndex;
+  return {
+    asynchronous: true,
+    snapshotIndex: () => index,
+    snapshot: () => ({ kind: "builtin", value, index }),
+    next: async () => {
+      if (index >= value.length) return { done: true, value: undefined };
+      budget?.visitNode();
+      return { done: false, value: await context.getProperty!(value, index++) };
+    }
+  };
+}
+
 function collectionIterator(
-  collection: Map<SandboxValue, SandboxValue> | Set<SandboxValue>
+  collection: Map<SandboxValue, SandboxValue> | Set<SandboxValue>,
+  value: SandboxValue
 ): SandboxIterator {
   let iterator: Iterator<SandboxValue> = collection[Symbol.iterator]();
   let exhausted = false;
-  return {
+  const adapter: SandboxIterator = {
     ...syncIterator({
       next: () => {
         if (exhausted) return { done: true, value: undefined };
@@ -375,6 +427,8 @@ function collectionIterator(
       return index;
     }
   };
+  adapter.snapshot = () => ({ kind: "builtin", value, index: adapter.snapshotIndex!() });
+  return adapter;
 }
 
 const asyncGeneratorRequests = new WeakMap<SandboxGenerator, Promise<unknown>>();
@@ -420,6 +474,7 @@ export function generatorIterator(generator: SandboxGenerator, budget?: Budget):
 
   return {
     generator: true,
+    snapshot: () => ({ kind: "builtin", value: generator, index: 0 }),
     next: (value) => request("next", value),
     return: (value) => request("return", value),
     throw: (error) => request("throw", error)

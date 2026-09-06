@@ -13,6 +13,7 @@ export function validateGuestFunctionAst(record: Record<string, unknown>, origin
   type ExpressionPosition = { kind: "binary" } | { kind: "identifier-assignment" } | { kind: "member"; superReceiver: boolean }
     | { kind: "for"; phase: string }
     | { kind: "for-in" }
+    | { kind: "for-of"; phase: string; async: boolean }
     | { kind: "member-assignment"; superReceiver: boolean; key: boolean }
     | { kind: "array" | "call" | "new" | "template" | "tagged"; index: number; member?: boolean }
     | { kind: "object"; index: number; key: boolean };
@@ -66,7 +67,9 @@ export function validateGuestFunctionAst(record: Record<string, unknown>, origin
         continue;
       }
       pending.push({ value, blocks,
-        expressions: node.type === "ForInStatement" && key === "body" && typeof node.nodeId === "number"
+        expressions: node.type === "ForOfStatement" && ["left", "body"].includes(key) && typeof node.nodeId === "number"
+          ? new Map([...frame.expressions, [node.nodeId, { kind: "for-of", phase: key, async: node.await === true }]])
+          : node.type === "ForInStatement" && key === "body" && typeof node.nodeId === "number"
           ? new Map([...frame.expressions, [node.nodeId, { kind: "for-in" }]])
           : node.type === "ForStatement" && ["init", "test", "body", "update"].includes(key) && typeof node.nodeId === "number"
           ? new Map([...frame.expressions, [node.nodeId, { kind: "for", phase: key }]])
@@ -107,10 +110,12 @@ export function validateGuestFunctionAst(record: Record<string, unknown>, origin
   for (const [id, expression] of expressions) {
     const expected = yieldExpressions?.get(Number(id));
     const compatibleKind = expected?.kind === expression.kind ||
+      (expected?.kind === "for-of" && (expression.kind === "for-of-iterator" || (!expected.async && expression.kind === "for-of-array"))) ||
       (expected?.kind === "call" && expected.member === true && expression.kind === "array-call");
     if (expected === undefined || !compatibleKind ||
-        (expected.kind !== "binary" && expected.kind !== "identifier-assignment" && expected.kind !== "member" && expected.kind !== "member-assignment" && expected.kind !== "for" && expected.kind !== "for-in" && expected.index !== expression.index) ||
-        (expected.kind === "for" && expected.phase !== expression.phase) ||
+        (expected.kind !== "binary" && expected.kind !== "identifier-assignment" && expected.kind !== "member" && expected.kind !== "member-assignment" && expected.kind !== "for" && expected.kind !== "for-in" && expected.kind !== "for-of" && expected.index !== expression.index) ||
+        ((expected.kind === "for" || expected.kind === "for-of") && expected.phase !== expression.phase) ||
+        (expected.kind === "for-of" && expression.kind === "for-of-iterator" && expected.async !== expression.async) ||
         (expected.kind === "member-assignment" && (expected.key !== Object.hasOwn(expression, "key") ||
           expected.superReceiver !== Object.hasOwn(expression, "superReceiver"))) ||
         (expected.kind === "member" && expected.superReceiver !== Object.hasOwn(expression, "superReceiver")) ||

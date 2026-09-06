@@ -1,5 +1,6 @@
 import { Budget, SandboxError, type CompileOwner } from "../interp/budget.js";
 import { restoreRegexProperties } from "./regexp-properties.js";
+import { mapIteratorSnapshot } from "../interp/iteration.js";
 import { createInterpretedClosure, executeAsyncFunction, type AsyncEvaluationContext } from "../interp/async.js";
 import { createBuiltinBindings } from "../interp/globals.js";
 import { resolveIntrinsicIdentity } from "../interp/intrinsics.js";
@@ -852,6 +853,11 @@ function restoreGuestGenerator(
     for (const [id, expression] of Object.entries(serialized.expressionStates ?? {})) {
       expressions.set(Number(id), expression.kind === "binary"
         ? { kind: "binary", left: deserializeValue(expression.left, state) as SandboxValue }
+        : expression.kind === "for-of-array" ? { ...expression, values: deserializeValue(expression.values, state) as SandboxValue,
+          current: deserializeValue(expression.current, state) as SandboxValue, scope: state.guestScopes.get((expression.scope as SerializedReferenceValue).id)! }
+        : expression.kind === "for-of-iterator" ? { ...expression, value: deserializeValue(expression.value, state) as SandboxValue,
+          current: deserializeValue(expression.current, state) as SandboxValue, scope: state.guestScopes.get((expression.scope as SerializedReferenceValue).id)!,
+          iterator: mapIteratorSnapshot(expression.iterator, value => deserializeValue(value, state) as SandboxValue) }
         : expression.kind === "for-in" ? { ...expression, keys: [...expression.keys], object: deserializeValue(expression.object, state) as SandboxValue,
           scope: state.guestScopes.get((expression.scope as SerializedReferenceValue).id)! }
         : expression.kind === "for" ? { kind: "for", phase: expression.phase,

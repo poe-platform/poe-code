@@ -1,0 +1,14 @@
+import { S } from "schema";
+
+export const schema = S.Object({ title: S.String() });
+
+export default async (frontmatter) => {
+  const raw = JSON.rawJSON("9007199254740993");
+  const serialized = JSON.stringify({ amount: raw });
+  if (serialized !== '{"amount":9007199254740993}' ||
+      !JSON.isRawJSON(raw) || JSON.isRawJSON({ ...raw }) ||
+      !Object.isFrozen(raw) || Object.getPrototypeOf(raw) !== null) {
+    throw new Error("Raw JSON validation failed");
+  }
+  return { title: frontmatter.title, ok: true, serialized };
+};

@@ -5,6 +5,7 @@ import { isLiveCapability } from "../interp/host-capabilities.js";
 import { retainedAccessorClosures } from "../interp/accessors.js";
 import { templateOrigins, templateCookedArrays } from "../interp/template-objects.js";
 import { isSandboxBox } from "../interp/boxed.js";
+import { isRawJson } from "../interp/raw-json.js";
 import { isSandboxDate } from "../interp/date.js";
 import { isSandboxCollectionIterator } from "../interp/collection-iterator.js";
 import { isSandboxRegExpIterator } from "../interp/regexp-iterator.js";
@@ -23,6 +24,7 @@ export type GuestObjectState<T> = {
 };
 
 export type GuestHeapNode<T> =
+  | { kind: "raw-json"; text: string }
   | { kind: "guest-generator"; state: "start" | "running" | "suspended" | "done"; astNodeId: number;
       async: boolean; scope: T; closureScope: T; suspendedScope?: T; yieldNodeId?: number;
       blockScopes?: Record<string, T>;
@@ -45,6 +47,7 @@ export type GuestHeapNode<T> =
 // The enclosing graph serializer allocates the reference before calling this
 // function, so self-referential properties and captured environments can cycle.
 export function captureGuestHeapNode<T>(value: object, encode: (value: unknown) => T): GuestHeapNode<T> | undefined {
+  if (isRawJson(value)) return { kind: "raw-json", text: value.rawJSON };
   const intrinsic = getIntrinsicIdentity(value);
   if (intrinsic !== undefined) {
     const state = captureObjectState(value, encode);

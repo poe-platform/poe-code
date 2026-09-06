@@ -1,4 +1,5 @@
 import { Budget } from "../interp/budget.js";
+import { createRawJson } from "../interp/raw-json.js";
 import { createBuiltinBindings } from "../interp/globals.js";
 import { getIntrinsicIdentity, listIntrinsicIdentities, resolveIntrinsicIdentity } from "../interp/intrinsics.js";
 import { releaseObjectPrototype } from "../interp/object-model.js";
@@ -50,6 +51,12 @@ function absent(value: unknown): boolean {
 
 export function validateGuestHeapNode(raw: unknown, heap: Record<string, unknown>, maxArrayLength = 0xffffffff): boolean {
   const node = record(raw);
+  if (node.kind === "raw-json") {
+    fields(node, ["kind", "text"]);
+    if (typeof node.text !== "string") throw new TypeError("Invalid raw JSON source.");
+    createRawJson(node.text);
+    return true;
+  }
   if (!["intrinsic", "guest-function", "guest-generator", "scope-frame", "guest-object", "guest-array"].includes(String(node.kind))) return false;
   const reference = (value: unknown, kinds?: string[]) => {
     const ref = record(value);

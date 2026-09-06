@@ -149,6 +149,11 @@ describe("compile checkpoint hash compatibility", () => {
         decodeURI: { kind: "fn", name: "decodeURI" },
         decodeURIComponent: { kind: "fn", name: "decodeURIComponent" },
         Object: { kind: "fn", name: "Object" },
+        JSON: {
+          ...capture.completed.bindings.JSON,
+          rawJSON: { kind: "fn", name: "rawJSON" },
+          isRawJSON: { kind: "fn", name: "isRawJSON" }
+        },
         Math: {
           ...capture.completed.bindings.Math,
           f16round: { kind: "fn", name: "f16round" }

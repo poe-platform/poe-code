@@ -7,6 +7,7 @@ import { isSandboxMap, isSandboxSet, sandboxMapBrand, sandboxSetBrand } from "./
 import { collectionIteratorState, isSandboxCollectionIterator, restoreSandboxCollectionIterator, snapshotCollectionIterator, type SandboxCollectionIterator } from "./collection-iterator.js";
 import { regexpIteratorState, isSandboxRegExpIterator, restoreSandboxRegExpIterator, type SandboxRegExpIterator } from "./regexp-iterator.js";
 import { copyNativeDate, dateDataProperties, exportDate, isSandboxDate } from "./date.js";
+import { createRawJson, isRawJson } from "./raw-json.js";
 import { boxedDataProperties, boxedValue, createSandboxBox, isSandboxBox, nativeBoxedValue } from "./boxed.js";
 import { getHostObjectKeys, getHostObjectMember, hasHostObjectMember, measureHostObjectData, isGuestHostObject, isLiveCapability } from "./host-capabilities.js";
 import type { Budget, CompileTicket } from "./budget.js";
@@ -801,6 +802,14 @@ function copyToSandbox(
   }
 
   if (isLiveCapability(value)) throw new TypeError("Live capabilities require their owning realm bridge.");
+
+  if (isRawJson(value)) {
+    const existing = state.seen.get(value);
+    if (existing !== undefined) return existing;
+    const copy = createRawJson(value.rawJSON);
+    state.seen.set(value, copy);
+    return copy;
+  }
 
   if (isSandboxRegex(value)) {
     if (!cloneSandboxCollections) return value;

@@ -1,6 +1,7 @@
 import type { Budget, CompileOwner } from "../budget.js";
 import { retainValues } from "../resources.js";
 import { parseJsonWithReviver } from "./json-parse.js";
+import { createRawJson, isRawJson } from "../raw-json.js";
 import { readPropertyDescriptor } from "../accessors.js";
 import { getBoxedPrototype, getSandboxPropertyDescriptor } from "../object-model.js";
 import { isSandboxDate } from "../date.js";
@@ -42,6 +43,22 @@ export function createConsoleJsonGlobals(
 
   return {
     JSON: {
+      rawJSON: createSandboxClosure({
+        sandbox: true,
+        name: "rawJSON",
+        length: 1,
+        call: async ([value], context) => {
+          const text = await sandboxString(value, options.budget, context);
+          options.budget.visitNode(text.length);
+          return createRawJson(options.budget.allocateString(text));
+        }
+      }),
+      isRawJSON: createSandboxClosure({
+        sandbox: true,
+        name: "isRawJSON",
+        length: 1,
+        call: ([value]) => isRawJson(value)
+      }),
       parse: createSandboxClosure({
         sandbox: true,
         length: 2,
@@ -233,6 +250,7 @@ async function stringifyValue(
   state: StringifyState,
   indent: string
 ): Promise<string | undefined> {
+  if (isRawJson(value)) return value.rawJSON;
   if (isSandboxBox(value)) {
     const primitive = boxedValue(value);
     value =

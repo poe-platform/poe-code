@@ -10,6 +10,7 @@ import { CompileScope } from "../interp/regex/compile-guard.js";
 import { float32DataProperties, isFloat32Array } from "../interp/float32.js";
 import { decodeFloat32Storage, encodeFloat32Storage, type Float32Data } from "./float32array.js";
 import { dateDataProperties, isSandboxDate, restoreDateTime, serializedDateTime } from "../interp/date.js";
+import { createRawJson, isRawJson } from "../interp/raw-json.js";
 import { boxedDataProperties, createSandboxBox, nativeBoxedValue } from "../interp/boxed.js";
 import { validateBoxedProperties } from "./boxed.js";
 import { sandboxErrorNames, sandboxErrorTypes, type SandboxErrorName } from "../error/shape.js";
@@ -49,6 +50,7 @@ type Properties = Record<
   { value: Atom; configurable: boolean; enumerable: boolean; writable: boolean }
 >;
 type DataNode =
+  | { kind: "raw-json"; text: string }
   | { kind: "regexp-iterator"; matcher: Atom; input: Atom; exhausted: boolean; global?: boolean; unicode?: boolean; properties: Properties; extensible: boolean; symbolEntries?: Array<SerializedSymbolProperty<Atom>> }
   | SerializedSymbol
   | { kind: "boxed"; value: Atom; properties: Properties; extensible: boolean; symbolEntries?: Array<SerializedSymbolProperty<Atom>> }
@@ -139,6 +141,8 @@ export function encodeReplayData(
         id: capabilityId!,
         properties: child(entry.properties, "properties")
       };
+    } else if (isRawJson(entry)) {
+      nodes[id] = { kind: "raw-json", text: entry.rawJSON };
     } else if (nativeBoxedValue(entry) !== undefined) {
       const properties: Properties = Object.create(null);
       let symbolIndex = 0;
@@ -393,6 +397,13 @@ export function decodeReplayData(
         restored.set(id, result);
         defineProperties(result, record(own(node, "properties")), child, node.symbolEntries);
         if (!node.extensible) Object.preventExtensions(result);
+        return result;
+      }
+      if (kind === "raw-json") {
+        if (Object.keys(node).some(key => !["kind", "text"].includes(key)) || typeof own(node, "text") !== "string")
+          throw new TypeError("Invalid replay raw JSON fields.");
+        const result = createRawJson(own(node, "text") as string);
+        restored.set(id, result);
         return result;
       }
       if (kind === "date") {

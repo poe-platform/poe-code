@@ -16,6 +16,7 @@ import { toPropertyKey } from "../interp/property-key.js";
 import { CompileScope } from "../interp/regex/compile-guard.js";
 import { decodeFloat32Storage } from "./float32array.js";
 import { restoreDateTime } from "../interp/date.js";
+import { createRawJson } from "../interp/raw-json.js";
 import { createSandboxBox } from "../interp/boxed.js";
 import { restoreBoxedProperties } from "./boxed.js";
 import { sandboxErrorTypes } from "../error/shape.js";
@@ -592,6 +593,11 @@ function restoreHeapValue(id: number, state: RestoreState): RuntimeSnapshotValue
     const value = restoreDateTime(serialized.time);
     state.heapValueById.set(id, value);
     restoreDateProperties(value, serialized, entry => deserializeValue(entry, state));
+    return value;
+  }
+  if (serialized.kind === "raw-json") {
+    const value = createRawJson(serialized.text);
+    state.heapValueById.set(id, value);
     return value;
   }
   if (serialized.kind === "regex-object") {

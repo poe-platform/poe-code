@@ -48,9 +48,9 @@ function absent(value: unknown): boolean {
   return node.kind === "undefined" && Object.keys(node).length === 1;
 }
 
-export function validateGuestHeapNode(raw: unknown, heap: Record<string, unknown>): boolean {
+export function validateGuestHeapNode(raw: unknown, heap: Record<string, unknown>, maxArrayLength = 0xffffffff): boolean {
   const node = record(raw);
-  if (!["intrinsic", "guest-function", "guest-generator", "scope-frame", "guest-object"].includes(String(node.kind))) return false;
+  if (!["intrinsic", "guest-function", "guest-generator", "scope-frame", "guest-object", "guest-array"].includes(String(node.kind))) return false;
   const reference = (value: unknown, kinds?: string[]) => {
     const ref = record(value);
     fields(ref, ["kind", "id"]);
@@ -100,9 +100,24 @@ export function validateGuestHeapNode(raw: unknown, heap: Record<string, unknown
     fields(node, ["kind", "id"], ["state"]);
     if (typeof node.id !== "string" || !intrinsicCatalogue().has(node.id)) throw new TypeError("Unknown intrinsic identity.");
     if (Object.hasOwn(node, "state")) state(node.state);
-  } else if (node.kind === "guest-object") {
+  } else if (node.kind === "guest-object" || node.kind === "guest-array") {
     fields(node, ["kind", "state"]);
     state(node.state);
+    if (node.kind === "guest-array") {
+      const properties = array(record(record(node.state).properties).properties).map(entry => array(entry));
+      const length = properties.find(entry => entry[0] === "length");
+      if (length === undefined) throw new TypeError("Missing guest array length.");
+      const descriptor = record(length[1]);
+      if (descriptor.kind !== "data" || descriptor.configurable !== false || descriptor.enumerable !== false ||
+          integer(descriptor.value) > 0xffffffff) throw new TypeError("Invalid guest array length.");
+      if ((descriptor.value as number) > maxArrayLength) throw new TypeError("Guest array length exceeds allocation limit.");
+      for (const [key] of properties) {
+        if (typeof key !== "string") continue;
+        const index = Number(key);
+        if (Number.isInteger(index) && index >= 0 && index < 0xffffffff && String(index) === key &&
+            index >= (descriptor.value as number)) throw new TypeError("Guest array index exceeds length.");
+      }
+    }
   } else if (node.kind === "guest-function") {
     fields(node, ["kind", "astNodeId", "scope", "state"], ["name", "environment"]);
     if (integer(node.astNodeId) < 1) throw new TypeError("Invalid guest AST identity.");
@@ -145,17 +160,17 @@ export function validateGuestHeapNode(raw: unknown, heap: Record<string, unknown
         } else if (expression.kind === "array") {
           fields(expression, ["kind", "values", "index"]);
           integer(expression.index);
-          reference(expression.values, ["array"]);
+          reference(expression.values, ["array", "guest-array"]);
         } else if (expression.kind === "call" || expression.kind === "new" || expression.kind === "tagged") {
           fields(expression, ["kind", "callee", "thisValue", "args", "index"]);
           integer(expression.index);
-          reference(expression.args, ["array"]);
+          reference(expression.args, ["array", "guest-array"]);
         } else if (expression.kind === "array-call") {
           fields(expression, ["kind", "target", "method", "args", "index"]);
           if (typeof expression.method !== "string") throw new TypeError("Invalid array method.");
           integer(expression.index);
-          reference(expression.args, ["array"]);
-          reference(expression.target, ["array"]);
+          reference(expression.args, ["array", "guest-array"]);
+          reference(expression.target, ["array", "guest-array"]);
         } else throw new TypeError("Invalid expression continuation.");
       }
     }

@@ -34,8 +34,9 @@ describe("explicit array prototype links", () => {
     const value: number[] = [];
     setSandboxPrototype(value, { inherited: 7 }, new Budget());
     expect(() => deepCopyFromSandbox(value)).toThrow(/prototype/i);
-    expect(() =>
-      serializeSafeJSSnapshot({ sourceHash: "array-prototype", bindings: { value } })
-    ).toThrow(/prototype/i);
+    const snapshot = JSON.parse(serializeSafeJSSnapshot({ sourceHash: "array-prototype", bindings: { value } }));
+    expect(snapshot.heap[snapshot.bindings.value.id]).toMatchObject({
+      kind: "guest-array", state: { prototype: { kind: "ref" } }
+    });
   });
 });

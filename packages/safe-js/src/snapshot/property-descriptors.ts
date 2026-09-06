@@ -74,7 +74,7 @@ export function restorePropertyDescriptors<T>(target: object, raw: unknown, deco
 
   // Preflight native descriptor compatibility and key ordering before touching
   // the fresh realm's actual intrinsic object. No property values are read.
-  const trial = Object.defineProperties(Object.create(null), Object.getOwnPropertyDescriptors(target));
+  const trial = Object.defineProperties(Array.isArray(target) ? [] : Object.create(null), Object.getOwnPropertyDescriptors(target));
   if (!Object.isExtensible(target)) Object.preventExtensions(trial);
   applyDescriptors(trial, decoded, data.extensible);
   applyDescriptors(target, decoded, data.extensible);

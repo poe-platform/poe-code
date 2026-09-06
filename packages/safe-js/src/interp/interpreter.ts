@@ -872,6 +872,8 @@ function createTaggedTemplateStrings(
     writable: false
   });
   taggedTemplateRawArrays.set(strings, raw);
+  Object.freeze(raw);
+  Object.freeze(strings);
 
   return strings;
 }

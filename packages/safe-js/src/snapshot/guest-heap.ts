@@ -2,6 +2,7 @@ import { getClosureOrigin, getGeneratorOrigin } from "../interp/closure-origin.j
 import { getIntrinsicIdentity } from "../interp/intrinsics.js";
 import { getSandboxPrototype, hasExplicitSandboxPrototype, hasGuestObjectState, isGuestClosure, materializeFunctionProperties } from "../interp/object-model.js";
 import { isLiveCapability } from "../interp/host-capabilities.js";
+import { retainedAccessorClosures } from "../interp/accessors.js";
 import { isSandboxBox } from "../interp/boxed.js";
 import { isSandboxDate } from "../interp/date.js";
 import { isSandboxCollectionIterator } from "../interp/collection-iterator.js";
@@ -28,6 +29,7 @@ export type GuestHeapNode<T> =
       sent: Array<{ type: "normal" | "return" | "throw"; value: T }>;
       environment?: { homeObject?: T; newTarget?: T } }
   | { kind: "guest-object"; state: GuestObjectState<T> }
+  | { kind: "guest-array"; state: GuestObjectState<T> }
   | { kind: "intrinsic"; id: string; state?: GuestObjectState<T> }
   | { kind: "guest-function"; astNodeId: number; scope: T; name?: string; state: GuestObjectState<T>;
       environment?: { homeObject?: T; newTarget?: T } }
@@ -97,6 +99,17 @@ export function captureGuestHeapNode<T>(value: object, encode: (value: unknown) 
   }
   const origin = getClosureOrigin(value);
   if (origin === undefined) {
+    // Host accessors stay on the existing host-exclusion path; only guest
+    // accessor identities can be portably represented as descriptors.
+    if (Array.isArray(value) && Object.values(Object.getOwnPropertyDescriptors(value)).some(descriptor =>
+      !("value" in descriptor) && retainedAccessorClosures(descriptor).length !==
+        Number(descriptor.get !== undefined) + Number(descriptor.set !== undefined))) return undefined;
+    if (Array.isArray(value) && (!Object.isExtensible(value) || hasExplicitSandboxPrototype(value) ||
+        Reflect.ownKeys(value).some(key => {
+          const descriptor = Object.getOwnPropertyDescriptor(value, key)!;
+          return key === "length" ? descriptor.writable !== true
+            : !("value" in descriptor) || !descriptor.enumerable || !descriptor.configurable || !descriptor.writable;
+        }))) return { kind: "guest-array", state: captureObjectState(value, encode)! };
     if (isLiveCapability(value) || isSandboxClosure(value) || isSandboxBox(value) || isSandboxDate(value) ||
         isSandboxRegex(value) || isSandboxMap(value) || isSandboxSet(value) || isSandboxPromise(value) ||
         isSandboxGenerator(value) || isSandboxArguments(value) || isSandboxCollectionIterator(value) ||

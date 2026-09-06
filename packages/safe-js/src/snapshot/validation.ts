@@ -129,7 +129,7 @@ function validateDumpHeap(root: Record<string, unknown>, state: ValidationState)
     validateErrorType(entry, path);
     validateSymbolEntries(entry, path, state, heap);
     try {
-      if (validateGuestHeapNode(entry, heap)) {
+      if (validateGuestHeapNode(entry, heap, state.limits.maxEntries)) {
         if (root.version !== 2) fail("unsupportedVersion", path, "guest heap records require dump version 2");
         continue;
       }
@@ -598,7 +598,7 @@ function validateGeneratorShape(
 function validateHeapValue(value: unknown, path: string, state: ValidationState, heap: Record<string, unknown>): void {
   const record = requireRecord(value, path);
   try {
-    if (validateGuestHeapNode(record, heap)) {
+    if (validateGuestHeapNode(record, heap, state.limits.maxEntries)) {
       const tagged = state.validateTaggedPayloads;
       state.validateTaggedPayloads = false;
       try { validateValue(record, path, 1, state); }

@@ -212,7 +212,7 @@ describe("accessor execution boundaries", () => {
       expect(() => deepCopyFromSandbox(result.returnValue as SandboxValue)).toThrow(
         /descriptor|accessor/i
       );
-      if (target === "{}") {
+      if (target === "{}" || target === "[]") {
         const snapshot = JSON.parse(await dump(result));
         const resumed = await run(source, { snapshot: restore(snapshot, { source }) });
         expect(resumed.ok).toBe(true);

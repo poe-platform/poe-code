@@ -708,7 +708,7 @@ function restoreHeapValue(id: number, state: RestoreState): RuntimeSnapshotValue
     state.heapValueById.set(id, generator);
     return generator;
   }
-  if (serialized.kind === "intrinsic" || serialized.kind === "guest-function" || serialized.kind === "guest-object") {
+  if (serialized.kind === "intrinsic" || serialized.kind === "guest-function" || serialized.kind === "guest-object" || serialized.kind === "guest-array") {
     let value: RuntimeSnapshotValue;
     if (serialized.kind === "intrinsic") {
       if (!state.intrinsicsInitialized) {
@@ -733,7 +733,7 @@ function restoreHeapValue(id: number, state: RestoreState): RuntimeSnapshotValue
         callStack: [], activeLoopIterations: new Map(), restoredLoopIterations: new Map(),
         stats: { currentDataSize: 0, nodeVisits: 0, peakDataSize: 0 }
       }, evaluateNode, environment?.homeObject);
-    } else value = Object.create(null) as Record<string, RuntimeSnapshotValue>;
+    } else value = serialized.kind === "guest-array" ? [] : Object.create(null) as Record<string, RuntimeSnapshotValue>;
     state.heapValueById.set(id, value);
     const objectState = serialized.state;
     if (objectState !== undefined) state.initializeIterators.push(() => {
@@ -742,9 +742,9 @@ function restoreHeapValue(id: number, state: RestoreState): RuntimeSnapshotValue
         ? isGuestClosure(value) ? materializeFunctionProperties(value) : intrinsicProperties
         : value as object;
       if (target === undefined) throw new TypeError(`Missing restored function properties for ${serialized.kind === "intrinsic" ? serialized.id : serialized.kind}.`);
-      restorePropertyDescriptors(target, objectState.properties, entry => deserializeValue(entry as SerializedSnapshotValue, state));
       if (objectState.prototype !== undefined)
         setSandboxPrototype(value as object, deserializeValue(objectState.prototype, state) as object | null, state.budget);
+      restorePropertyDescriptors(target, objectState.properties, entry => deserializeValue(entry as SerializedSnapshotValue, state));
     });
     return value;
   }

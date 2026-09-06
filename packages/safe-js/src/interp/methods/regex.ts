@@ -178,7 +178,7 @@ export async function callRegexMethod(
     cursor = target.lastIndex;
     const lastIndex = await sandboxNumber(cursor, budget, context);
     const match = executeRegex(target, input, lastIndex);
-    return toMatchArray(match, input);
+    return toMatchArray(match, input, budget);
   } finally {
     budget.setRetainedValues(retained, undefined);
   }
@@ -249,11 +249,18 @@ export function executeRegex(target: SandboxRegex, input: string, lastIndex: num
   return match;
 }
 
-export function toMatchArray(match: RegexMatch | null, input: string): SandboxValue {
+export function toMatchArray(match: RegexMatch | null, input: string, budget?: Budget): SandboxValue {
   if (match === null) {
     return null;
   }
+  budget?.allocateArrayLength(match.captures.length + 1);
   const result = [match.text, ...match.captures] as SandboxValue[];
   Object.assign(result, { index: match.index, input, groups: undefined });
+  if (match.indices !== undefined) {
+    budget?.allocateArrayLength(match.indices.length);
+    budget?.allocateArrayLength(2);
+    Object.assign(match.indices, { groups: undefined });
+    Object.assign(result, { indices: match.indices });
+  }
   return result;
 }

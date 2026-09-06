@@ -5,6 +5,7 @@ export type RegexMatch = {
   index: number;
   text: string;
   captures: (string | undefined)[];
+  indices?: ([number, number] | undefined)[];
 };
 
 type Capture = { start: number; end: number } | undefined;
@@ -34,7 +35,7 @@ export function matchRegexFrom(
     };
     const result = matchNode(pattern.body, initialState, context).next();
     if (!result.done) {
-      return toRegexMatch(input, attempt, result.value);
+      return toRegexMatch(input, attempt, result.value, pattern.flags.hasIndices);
     }
     if (pattern.flags.sticky) break;
   }
@@ -226,14 +227,19 @@ function matchesCharacterClassItem(
   return item.negated ? !matched : matched;
 }
 
-function toRegexMatch(input: string, start: number, state: MatchState): RegexMatch {
-  return {
+function toRegexMatch(input: string, start: number, state: MatchState, hasIndices: boolean): RegexMatch {
+  const match: RegexMatch = {
     index: start,
     text: input.slice(start, state.position),
     captures: state.captures.map((capture) =>
       capture === undefined ? undefined : input.slice(capture.start, capture.end)
     )
   };
+  if (hasIndices) {
+    match.indices = [[start, state.position], ...state.captures.map((capture): [number, number] | undefined =>
+      capture === undefined ? undefined : [capture.start, capture.end])];
+  }
+  return match;
 }
 
 function cloneState(state: MatchState): MatchState {

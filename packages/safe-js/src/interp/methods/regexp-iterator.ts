@@ -32,8 +32,7 @@ export function nextRegExpIterator(
     const codePoint = input.codePointAt(index);
     matcher.lastIndex = index + (unicode && codePoint !== undefined && codePoint > 0xffff ? 2 : 1);
   }
-  budget?.allocateArrayLength(match.captures.length + 1);
-  return { value: toMatchArray(match, input), done: false };
+  return { value: toMatchArray(match, input, budget), done: false };
 }
 
 export async function nextObservableRegExpIterator(iterator: SandboxRegExpIterator, budget: Budget, context: SandboxCallContext): Promise<{ value: SandboxValue; done: boolean }> {

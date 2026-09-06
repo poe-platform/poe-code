@@ -1013,7 +1013,7 @@ function callMatchLikeMethod(
     return match?.index ?? -1;
   }
   if (methodName === "match" && !regex.flags.includes("g"))
-    return toMatchArray(executeRegex(regex, value, lastIndex ?? Number(regex.lastIndex)), value);
+    return toMatchArray(executeRegex(regex, value, lastIndex ?? Number(regex.lastIndex)), value, compilation.owner?.budget);
   if (methodName === "match") regex.lastIndex = 0;
   const matcher =
     methodName === "matchAll"

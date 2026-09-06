@@ -9,6 +9,7 @@ describe("parseRegex", () => {
     );
 
     expect(pattern.flags).toEqual({
+      hasIndices: false,
       global: true,
       sticky: false,
       ignoreCase: true,

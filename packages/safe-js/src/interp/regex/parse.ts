@@ -1,6 +1,7 @@
 import { RegexCompileGuard, type CompileScope } from "./compile-guard.js";
 
 export type RegexFlags = {
+  hasIndices: boolean;
   global: boolean;
   sticky: boolean;
   ignoreCase: boolean;
@@ -422,6 +423,7 @@ class RegexParser {
 function parseFlags(flags: string, guard: RegexCompileGuard): RegexFlags {
   guard.allocate(10);
   const parsed: RegexFlags = {
+    hasIndices: false,
     global: false,
     sticky: false,
     ignoreCase: false,
@@ -429,6 +431,7 @@ function parseFlags(flags: string, guard: RegexCompileGuard): RegexFlags {
     dotAll: false
   };
   const names: Record<string, keyof RegexFlags> = {
+    d: "hasIndices",
     g: "global",
     i: "ignoreCase",
     m: "multiline",

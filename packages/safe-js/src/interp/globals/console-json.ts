@@ -1,5 +1,6 @@
 import type { Budget, CompileOwner } from "../budget.js";
 import { retainValues } from "../resources.js";
+import { parseJsonWithReviver } from "./json-parse.js";
 import { readPropertyDescriptor } from "../accessors.js";
 import { getBoxedPrototype, getSandboxPropertyDescriptor } from "../object-model.js";
 import { isSandboxDate } from "../date.js";
@@ -43,10 +44,13 @@ export function createConsoleJsonGlobals(
     JSON: {
       parse: createSandboxClosure({
         sandbox: true,
-        call: async ([text], context) => {
+        length: 2,
+        call: async ([text, reviver], context) => {
           const converted = sandboxString(text, options.budget, context);
+          const source = converted instanceof Promise ? await converted : converted;
+          if (isSandboxClosure(reviver)) return parseJsonWithReviver(source, reviver, options.budget, context);
           return copyJsonToSandbox(
-            JSON.parse(converted instanceof Promise ? await converted : converted),
+            JSON.parse(source),
             options.budget
           );
         },

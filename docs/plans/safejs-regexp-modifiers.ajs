@@ -1,0 +1,15 @@
+import { S } from "schema";
+
+export const schema = S.Object({ title: S.String() });
+
+export default async function main(frontmatter) {
+  const regex = /(?i:a(?-i:b)c)d/;
+  if (!regex.test('AbCd') || regex.test('ABCD') || regex.ignoreCase)
+    throw new Error('Modifier scope escaped its group');
+  const match = /(?ims:^a.b$)/.exec('x\nA\nB\nx');
+  if (match[0] !== 'A\nB') throw new Error('Combined modifiers failed');
+  const replaced = 'Ab'.replace(/(?i:(a))(b)/, '$2$1');
+  if (replaced !== 'bA') throw new Error('Capture numbering changed');
+  await 0;
+  return { ok: true, title: frontmatter.title, matched: match[0], replaced, flags: regex.flags };
+}

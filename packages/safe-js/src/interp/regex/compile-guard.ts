@@ -199,7 +199,8 @@ function measureNode(node: RegexNode): number {
       return usage;
     }
     case "group":
-      return 5 + measureNode(node.body) + (node.name === undefined ? 0 : 1 + node.name.length);
+      return 5 + measureNode(node.body) + (node.name === undefined ? 0 : 1 + node.name.length) +
+        (node.modifiers === undefined ? 0 : 2 + Object.keys(node.modifiers).length);
     case "lookahead":
     case "lookbehind":
       return 4 + measureNode(node.body);

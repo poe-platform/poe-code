@@ -15,6 +15,7 @@ export type RegexFlags = {
 };
 
 export type CharacterKind = "digit" | "word" | "space";
+type RegexModifiers = Partial<Pick<RegexFlags, "ignoreCase" | "multiline" | "dotAll">>;
 
 export type CharacterClassItem =
   | { type: "character"; value: string }
@@ -42,7 +43,7 @@ export type RegexNode =
   | ({ type: "characterClass" } & CharacterSet)
   | { type: "sequence"; elements: RegexNode[] }
   | { type: "alternation"; alternatives: RegexNode[] }
-  | { type: "group"; capturing: boolean; index?: number; name?: string; body: RegexNode }
+  | { type: "group"; capturing: boolean; index?: number; name?: string; modifiers?: RegexModifiers; body: RegexNode }
   | { type: "lookahead"; negated: boolean; body: RegexNode }
   | { type: "lookbehind"; negated: boolean; body: RegexNode }
   | { type: "quantifier"; body: RegexNode; min: number; max?: number; greedy: boolean };
@@ -201,6 +202,7 @@ class RegexParser {
   private parseGroup(start: number): RegexNode {
     let capturing = true;
     let name: string | undefined;
+    let modifiers: RegexModifiers | undefined;
     let assertionNegated: boolean | undefined;
     let lookbehind = false;
     if (this.peek() === "?") {
@@ -222,6 +224,10 @@ class RegexParser {
       } else if (extension.startsWith("?<")) {
         this.position += 2;
         name = this.parseGroupName(start);
+      } else if ("ims-".includes(extension[1] ?? "") && extension.length > 1) {
+        capturing = false;
+        this.position++;
+        modifiers = this.parseModifiers(start);
       } else {
         this.fail("Unsupported group construct", start);
       }
@@ -252,7 +258,24 @@ class RegexParser {
       return { type: lookbehind ? "lookbehind" : "lookahead", negated: assertionNegated, body };
     }
     this.guard.allocate(5);
-    return { type: "group", capturing, index, body, ...(name === undefined ? {} : { name }) };
+    return { type: "group", capturing, index, body, ...(name === undefined ? {} : { name }),
+      ...(modifiers === undefined ? {} : { modifiers }) };
+  }
+
+  private parseModifiers(start: number): RegexModifiers {
+    this.guard.allocate(2);
+    const modifiers: RegexModifiers = {};
+    let enabled = true;
+    while (!this.atEnd() && this.peek() !== ":") {
+      const flag = this.take();
+      if (flag === "-" && enabled) { enabled = false; continue; }
+      const name = flag === "i" ? "ignoreCase" : flag === "m" ? "multiline" : flag === "s" ? "dotAll" : undefined;
+      if (name === undefined || Object.hasOwn(modifiers, name)) this.fail("Invalid regex modifiers", start);
+      this.guard.allocate(1);
+      modifiers[name] = enabled;
+    }
+    if (this.take() !== ":" || Object.keys(modifiers).length === 0) this.fail("Invalid regex modifiers", start);
+    return modifiers;
   }
 
   private parseCharacterClass(start: number): RegexNode {

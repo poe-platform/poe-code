@@ -155,7 +155,9 @@ function* matchNode(
       return;
     }
     case "group":
-      for (const result of matchNode(node.body, cloneState(state), context)) {
+      for (const result of matchNode(node.body, cloneState(state), node.modifiers === undefined ? context : {
+        ...context, flags: { ...context.flags, ...node.modifiers }
+      })) {
         if (!node.capturing || node.index === undefined) {
           yield result;
           continue;

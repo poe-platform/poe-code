@@ -509,6 +509,7 @@ function assertSource7Discovery(files) {
     "tests/shell/extensions/arrays/keys-review.test.ts",
     "tests/plugins/array-keys-runtime.test.ts",
   ]) assert.ok(files.includes(path), "opt-in array keys test is missing: " + path);
+  assert.ok(files.includes("tests/shell/extensions/arrays/indexed-element-operators.test.ts"), "opt-in literal indexed element operators test is missing");
   for (const path of [
     "tests/shell/extensions/arrays/readonly-indexed-review.test.ts",
     "tests/shell/extensions/arrays/readonly-indexed-independent.test.ts",

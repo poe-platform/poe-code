@@ -1,9 +1,9 @@
-# Indexed array keys and readonly declarations
+# Indexed array keys, element operators and readonly declarations
 
-`arraysExtension()` explicitly enables `${!name[@]}`, `${!name[*]}` and indexed
-readonly declarations. It declares
-`syntax: { arrayKeys: true, indexedDeclarations: ["readonly"] }` and the matching
-runtime identity; it installs no builtins. The default shell neither imports
+`arraysExtension()` explicitly enables `${!name[@]}`, `${!name[*]}`, literal indexed
+element `-`/`+` operators and indexed readonly declarations. It declares
+`syntax: { arrayKeys: true, indexedElementOperators: true, indexedDeclarations: ["readonly"] }`
+and the matching runtime identity; it installs no builtins. The default shell neither imports
 this leaf nor enables these capabilities. This is not full Bash array support.
 
 ## Capture and composition
@@ -55,6 +55,22 @@ Enumeration, ordering, copied values and output use the existing shared array,
 value and output ledgers. Root cancellation and awaited extension cleanup retain
 their existing precedence. There is no host-shell execution in the implementation.
 
+## Literal indexed element operators
+
+The separate own, positive `indexedElementOperators: true` capability admits
+`${name[1]-word}` and `${name[1]+word}` for existing literal-index selectors.
+It follows the same capture and fork rules. An extension name, keys capability
+or readonly declaration alone does not enable these operators; they remain
+invalid in the default shell.
+
+Non-colon `-` expands its operand only when the element is unset; `+` expands it
+only when the element is set. Set-empty counts as set. Operands are lazy and
+retain internal quoting, nested expansions and canonical bytes. Lookup uses
+existing scalar/indexed bindings and index/value/allocation limits without
+mutating the binding. Colon, assignment, error, pattern and substring operators
+on elements, member/key operators, arithmetic/dynamic subscripts and associative
+arrays are outside this increment. Ordinary assignment bounds remain unchanged.
+
 ## Indexed readonly declarations
 
 The explicit capability enables `readonly -a` and indexed declaration listing.
@@ -85,6 +101,16 @@ authenticated native reviews, including raw output bytes and exit status. Those
 profiles do not replace the older key-expansion evidence or establish full Bash
 array compatibility. Compiled public replay and independent review are separate
 acceptance requirements.
+
+Literal-element tests retain authenticated Bash 5.3 observations without new
+native launches. Wait23 compares unchanged guest source/stdin with recorded
+stdout/stderr/status in its C locale profile. Wait17 retains its guest source
+inside an explicit owned VFS `{ ...; } 3</gate3 7>/control` descriptor envelope
+with the recorded `WAIT_READY` gate payload. This is an IPC adaptation, not
+identical native invocation, kernel scheduling or wait-entry timing. Neither
+case upgrades the historical observation capsule to a general deterministic
+golden or establishes full array/wait parity; jobs still require their separate
+extension. Independent review and compiled/public acceptance remain separate.
 
 General indirection, associative arrays, wider ordinary assignments, additional
 array grammar, control-name changes and jobs remain outside this increment.

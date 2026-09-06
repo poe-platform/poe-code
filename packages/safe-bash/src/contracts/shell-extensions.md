@@ -33,12 +33,36 @@ are rejected. An absent or empty list remains omitted from captured syntax.
 The declaration is captured and propagated with the other syntax capabilities.
 Neither an extension's name nor `arrayKeys` alone enables it.
 
-The optional `arraysExtension()` factory declares both capabilities and matching
-runtime identity, with no builtins. It is absent from default registration and
+An extension may independently declare `indexedElementOperators: true` to enable
+`${name[literal]-word}` and `${name[literal]+word}`. This is an own, positive data
+property captured and unioned with the other syntax capabilities; false values
+and accessors are rejected. Neither the extension's name nor keys/readonly
+capabilities alone enables it. The default shell still rejects these operators.
+The non-colon `-` form expands its operand only when the selected element is
+unset; `+` expands its operand only when the element is set. A set-empty element
+counts as set. Selected operands preserve their internal quoting, nested
+expansions and canonical bytes; unselected operands are not evaluated. Lookup
+uses existing canonical scalar/indexed bindings and the existing index, value
+and allocation limits. This capability does not admit colon, assignment, error,
+pattern or substring operators on elements, member/key operators, arithmetic or
+dynamic subscripts, associative arrays, or background-job syntax.
+
+The optional `arraysExtension()` factory declares `arrayKeys: true`,
+`indexedDeclarations: ["readonly"]` and `indexedElementOperators: true`, with
+matching runtime identity and no builtins. It is absent from default registration and
 package artifacts. Keys use canonical numeric ordering and the existing shared
 allocation limits; this does not widen ordinary assignment bounds or implement
 associative arrays. The optional leaf's semantics document records the qualified
 expansion contexts and remaining limits.
+
+The literal-element regression retains the authenticated Bash 5.3 wait23 guest
+source and stdin unchanged and compares recorded status/stdout/stderr in its C
+locale profile. Wait17 retains its guest source inside an explicit owned VFS
+descriptor envelope, `{ ...; } 3</gate3 7>/control`, using the recorded
+`WAIT_READY` gate payload. This second case is an IPC adaptation, not identical
+native argv, kernel scheduling or wait-entry timing. Neither comparison upgrades
+the historical observation capsule into a general deterministic golden, enables
+jobs without its separate extension, or establishes full array/wait parity.
 
 ### List terminators and special parameters
 

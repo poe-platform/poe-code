@@ -5727,6 +5727,11 @@ export class Runtime {
         const index = numericIndex(selector.index, 4294967295);
         if (index === undefined) throw new ArrayFailure("index outside 0..4294967295");
         const value = binding ? binding.getValue(index) : index === 0 && state.variables[part.name] !== undefined ? stateMonitor(state)?.values.get(part.name, state.variables[part.name]!) ?? state.variables[part.name] : undefined;
+        if (part.operator === "-" || part.operator === "+") {
+          const alternate = part.operator === "+" ? value !== undefined : value === undefined;
+          if (alternate) return concatShellValues(await this.valueWord(part.alternate!, state, io, false, false, hereString, false, undefined, hereDocument), io[valueScope]);
+          return part.operator === "+" ? "" : value ?? "";
+        }
         this.requireParameter(value === undefined ? undefined : shellValueText(value), `${part.name}[${selector.index}]`, state, io, part.line);
         return part.length ? this.valueLength(value ?? "", state, io) : value ?? "";
       }
@@ -5983,8 +5988,15 @@ export class Runtime {
     for (let index = 0; index < parts.length; index++) {
       const { part, splitText } = parts[index]!;
       const quotedPresence = part.quoted && !(arrayOwned && isQuoteMarker(part));
+      const selector = getArraySelector(part);
       if (part.kind === "variable" && ["-", "+", ":-", ":+"].includes(part.operator ?? "") && /^[a-zA-Z_][a-zA-Z_0-9]*$/u.test(part.name)) {
-        const value = this.variable(state, part.name);
+        let value: ShellValue | undefined = this.variable(state, part.name);
+        if (selector?.kind === "element") {
+          const index = numericIndex(selector.index, 4294967295);
+          if (index === undefined) throw new ArrayFailure("index outside 0..4294967295");
+          const binding = arrayStore(state)?.get(part.name);
+          value = binding ? binding.getValue(index) : index === 0 ? value : undefined;
+        }
         const missing = value === undefined || (part.operator!.startsWith(":") && value === "");
         if (part.operator!.endsWith("+") ? !missing : missing) {
           const alternate = part.alternate!.parts.map((entry) => ({ part: copyArraySelector(entry, { ...entry, quoted: entry.quoted || part.quoted }), splitText: true }));
@@ -5993,7 +6005,6 @@ export class Runtime {
           continue;
         }
       }
-      const selector = getArraySelector(part);
       if (part.kind === "variable" && selector && selector.kind !== "element" && !part.length && split
         && (selector.kind === "members" ? !part.quoted || selector.separator === "@" : selector.separator === "@" && (part.quoted || state.variables.IFS === ""))) {
         const members = await this.arrayMembers(part.name, state, selector.kind === "keys");

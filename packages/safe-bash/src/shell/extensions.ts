@@ -185,6 +185,7 @@ export function captureShellExtensions(definitions: readonly ShellExtension[]): 
   if (previous) return previous;
   const declarations: CapturedShellSyntax[] = [];
   let arrayKeys = false;
+  let indexedElementOperators = false;
   let indexedReadonly = false;
   const listTerminators: { operator: string }[] = [];
   const specialParameters: { name: string }[] = [];
@@ -193,12 +194,14 @@ export function captureShellExtensions(definitions: readonly ShellExtension[]): 
     listTerminators.push(...syntax.listTerminators);
     specialParameters.push(...syntax.specialParameters);
     arrayKeys ||= syntax.arrayKeys === true;
+    indexedElementOperators ||= syntax.indexedElementOperators === true;
     indexedReadonly ||= syntax.indexedDeclarations?.includes("readonly") === true;
     declarations.push(syntax);
     return definition;
   });
   const result = Object.freeze({ definitions: Object.freeze(captured), declarations: Object.freeze(declarations), syntax: captureShellSyntax({
     ...(arrayKeys ? { arrayKeys: true } : {}),
+    ...(indexedElementOperators ? { indexedElementOperators: true } : {}),
     ...(indexedReadonly ? { indexedDeclarations: ["readonly"] } : {}),
     listTerminators, specialParameters,
   }) });

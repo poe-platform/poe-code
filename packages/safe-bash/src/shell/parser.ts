@@ -10,6 +10,7 @@ import type { ByteShellValue, ShellValue } from "../contracts/value.js";
 
 export interface ShellSyntaxDeclarations {
   readonly arrayKeys?: true;
+  readonly indexedElementOperators?: true;
   readonly indexedDeclarations?: readonly "readonly"[];
   readonly listTerminators?: readonly { readonly operator: string }[];
   readonly specialParameters?: readonly { readonly name: string }[];
@@ -17,6 +18,7 @@ export interface ShellSyntaxDeclarations {
 
 export interface CapturedShellSyntax {
   readonly arrayKeys?: true;
+  readonly indexedElementOperators?: true;
   readonly indexedDeclarations?: readonly "readonly"[];
   readonly listTerminators: readonly Readonly<{ operator: "&" }>[];
   readonly specialParameters: readonly Readonly<{ name: "!" }>[];
@@ -58,14 +60,16 @@ export function captureShellSyntax(declarations: ShellSyntaxDeclarations = defau
   const prototype: unknown = Object.getPrototypeOf(declarations);
   if (prototype !== null && prototype !== Object.prototype) throw new TypeError("Invalid shell syntax declarations");
   const properties = Object.getOwnPropertyDescriptors(declarations);
-  if (Reflect.ownKeys(properties).some(key => key !== "listTerminators" && key !== "specialParameters" && key !== "arrayKeys" && key !== "indexedDeclarations")
+  if (Reflect.ownKeys(properties).some(key => key !== "listTerminators" && key !== "specialParameters" && key !== "arrayKeys" && key !== "indexedDeclarations" && key !== "indexedElementOperators")
     || Object.values(properties).some(property => !("value" in property))) throw new TypeError("Invalid shell syntax declarations");
   if (properties.arrayKeys && properties.arrayKeys.value !== true) throw new TypeError("Invalid shell syntax capability");
+  if (properties.indexedElementOperators && properties.indexedElementOperators.value !== true) throw new TypeError("Invalid shell syntax capability");
   const indexed = indexedDeclarations(properties.indexedDeclarations?.value);
   const syntax: CapturedShellSyntax = Object.freeze({
     listTerminators: syntaxEntries(properties.listTerminators?.value, "operator", "&"),
     specialParameters: syntaxEntries(properties.specialParameters?.value, "name", "!"),
     ...(properties.arrayKeys ? { arrayKeys: true as const } : {}),
+    ...(properties.indexedElementOperators ? { indexedElementOperators: true as const } : {}),
     ...(indexed.length ? { indexedDeclarations: indexed } : {}),
   });
   capturedSyntax.add(syntax);
@@ -718,7 +722,8 @@ class Lexer {
         if (end < 0) this.error("Unterminated indexed-array subscript");
         selector = arraySelector(this.source.slice(start, end), start);
         this.position = end + 1;
-        if (this.source[this.position] !== "}") this.error("Unsupported indexed-array operator");
+        if (this.source[this.position] !== "}" && !(this.syntax.indexedElementOperators && !length && selector.kind === "element"
+          && (this.source[this.position] === "-" || this.source[this.position] === "+"))) this.error("Unsupported indexed-array operator");
       }
       if (keys) {
         if (length || selector?.kind !== "members") this.error("Unsupported array-key expansion");

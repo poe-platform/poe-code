@@ -4472,3 +4472,35 @@ Root approves the29 owned-file wait/checkpoint follow-up for a local atomic comm
 including this plan, but not a push or release. The separate joined release
 candidate's full-test failures remain open; no original-worktree WIP is copied
 into that candidate, and no successful release is inferred from local acceptance.
+
+### September 6, 2026: separate opt-in literal indexed operators
+
+The original worktree at917bdfb admits a bounded fuller-array increment through
+explicit captured `indexedElementOperators: true` metadata. `arraysExtension()`
+declares it independently of keys and indexed readonly. Only literal-element
+non-colon `-`/`+` operators are added: unset versus set-empty remains distinct,
+operands are lazy, and existing canonical bytes, binding state and budgets remain
+in use. Default syntax stays unchanged. Colon/assignment/error/pattern/substring
+element operators, member/key operators, dynamic/arithmetic subscripts and
+associative arrays are not implemented by this increment; the fuller goal remains.
+
+Author freeze `/tmp/indexed-wait17-23-scope-OhNi6Y/freeze.json`, SHA256
+`a72e09500122a0a65f1ef6f8f6da26167dea3528e7503eaba26951b0b5ef86e3`,
+binds six source/test paths and reports538 source checks passing plus16-root
+strict checking with zero diagnostics. Independent review is separate and pending.
+The new `tests/shell/extensions/arrays/indexed-element-operators.test.ts` is
+literally enrolled, and the existing shell-extension contract records the new
+capability without changing source, assertions, native records or README files.
+
+Wait23 compares unchanged guest source/stdin with authenticated recorded bytes
+and status. Wait17 keeps its guest source but adds the explicit owned VFS
+`{ ...; } 3</gate3 7>/control` envelope and recorded `WAIT_READY` handshake.
+This is not identical native invocation or kernel/wait-entry timing, and neither
+case upgrades the historical observation capsule to a general deterministic
+golden. Earlier red runs and fixture corrections remain in the author evidence.
+No new native execution is performed for enrollment/documentation.
+
+This original-worktree increment is not copied into the pending C3+dcad delivery
+candidate. Its independent review, compiled/public/default/package checks and
+separate commit/release follow the first delivery milestone; none are inferred
+from the current source receipt or this documentation update.

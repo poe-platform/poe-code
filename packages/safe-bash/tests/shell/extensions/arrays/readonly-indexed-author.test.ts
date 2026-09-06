@@ -30,9 +30,9 @@ test("readonly indexed metadata captures immutable explicit declarations indepen
   assert.equal(Object.isFrozen(captured), true);
   assert.equal(Object.isFrozen(Reflect.get(captured, "indexedDeclarations")), true);
   const extension = arraysExtension();
-  assert.deepEqual(extension.syntax, { arrayKeys: true, indexedDeclarations: ["readonly"] });
+  assert.deepEqual(extension.syntax, { arrayKeys: true, indexedElementOperators: true, indexedDeclarations: ["readonly"] });
   assert.deepEqual(captureShellExtensions([extension, { ...extension, name: "second" }]).syntax, {
-    listTerminators: [], specialParameters: [], arrayKeys: true, indexedDeclarations: ["readonly"],
+    listTerminators: [], specialParameters: [], arrayKeys: true, indexedElementOperators: true, indexedDeclarations: ["readonly"],
   });
 });
 

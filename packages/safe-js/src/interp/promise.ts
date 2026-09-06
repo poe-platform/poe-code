@@ -640,7 +640,18 @@ function resolveSandboxValueNow(
     );
   }
 
-  if (isSandboxPromise(value)) {
+  if (isSelfResolution(value, options.self)) {
+    return Promise.reject(
+      options.budget === undefined
+        ? new TypeError("Promise cannot resolve to itself.")
+        : createSubsetErrorValue("TypeError", "Promise cannot resolve to itself.", [], options.budget)
+    );
+  }
+
+  if (
+    isSandboxPromise(value) &&
+    getSandboxPropertyDescriptor(value, "then", options.budget) === undefined
+  ) {
     if (options.budget !== undefined) {
       return resolvePromiseResult(value, options.budget, options.self);
     }
@@ -840,7 +851,9 @@ function resolvePromiseResult(
       createSubsetErrorValue("TypeError", "Promise cannot resolve to itself.", [], budget)
     );
   }
-  if (!isSandboxPromise(result)) return resolveSandboxValue(result, { budget, self });
+  if (!isSandboxPromise(result) || getSandboxPropertyDescriptor(result, "then", budget) !== undefined) {
+    return resolveSandboxValue(result, { budget, self });
+  }
   const then = getPromiseMember("then", budget);
   if (!isSandboxClosure(then)) return Promise.resolve(result);
   return new Promise<SandboxValue>((resolve, reject) => {
@@ -918,7 +931,7 @@ function getThenable(
   value: SandboxValue,
   budget?: Budget
 ): SandboxClosure | undefined | Promise<SandboxClosure | undefined> {
-  if (typeof value !== "object" || value === null || isSandboxPromise(value)) {
+  if (typeof value !== "object" || value === null) {
     return undefined;
   }
 

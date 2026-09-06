@@ -1,0 +1,23 @@
+import { S } from "schema";
+
+export const schema = S.Object({ title: S.String() });
+
+export default async (frontmatter) => {
+  const value = Promise.resolve(1);
+  const events = [];
+  Object.defineProperty(value, "then", {
+    get() {
+      events.push("get");
+      return resolve => { events.push("call"); resolve(42); };
+    }
+  });
+  const wrapped = new Promise(resolve => {
+    resolve(value);
+    events.push("after");
+  });
+  const answer = await wrapped;
+  if (answer !== 42 || events.join(",") !== "get,after,call") {
+    throw new Error("Promise own then resolution failed");
+  }
+  return { title: frontmatter.title, ok: true, answer, events };
+};

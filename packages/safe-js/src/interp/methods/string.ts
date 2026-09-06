@@ -480,7 +480,8 @@ function callReplaceLikeMethod(
     replacement,
     methodName === "replaceAll",
     budget,
-    callClosure
+    callClosure,
+    context
   );
 }
 
@@ -494,20 +495,22 @@ async function replaceRegex(
 ): Promise<string> {
   if (regex.flags.includes("g")) regex.lastIndex = 0;
   const cursor = regex.lastIndex;
+  let result = "";
   const retained = {};
-  budget.setRetainedValues(retained, () => [value, regex, cursor, replacement]);
+  budget.setRetainedValues(retained, () => [value, regex, cursor, replacement, result]);
   try {
     const lastIndex = await sandboxNumber(cursor, budget, context);
     const matches = collectRegexMatches(regex, value, regex.flags.includes("g"), undefined, lastIndex);
-    let result = "";
     let copiedThrough = 0;
     for (const match of matches) {
       result += value.slice(copiedThrough, match.index);
       result +=
         typeof replacement === "string"
           ? expandReplacement(replacement, match.text, match.captures, value, match.index)
-          : String(
-              await callClosure(replacement, [match.text, ...match.captures, match.index, value])
+          : await sandboxString(
+              await callClosure(replacement, [match.text, ...match.captures, match.index, value]),
+              budget,
+              context
             );
       copiedThrough = match.index + match.text.length;
     }
@@ -572,20 +575,26 @@ async function replaceWithClosure(
   replacer: SandboxClosure,
   replaceAll: boolean,
   budget: Budget,
-  callClosure: (closure: SandboxClosure, args: readonly SandboxValue[]) => Promise<SandboxValue>
+  callClosure: (closure: SandboxClosure, args: readonly SandboxValue[]) => Promise<SandboxValue>,
+  context?: SandboxCallContext
 ): Promise<string> {
   const offsets = findReplacementOffsets(value, searchValue, replaceAll);
   let result = "";
   let copiedThrough = 0;
 
-  for (const offset of offsets) {
-    result += value.slice(copiedThrough, offset);
-    result += String(await callClosure(replacer, [searchValue, offset, value]));
-    copiedThrough = offset + searchValue.length;
-  }
+  const release = retainValues(budget, () => [value, searchValue, replacer, result]);
+  try {
+    for (const offset of offsets) {
+      result += value.slice(copiedThrough, offset);
+      result += await sandboxString(await callClosure(replacer, [searchValue, offset, value]), budget, context);
+      copiedThrough = offset + searchValue.length;
+    }
 
-  result += value.slice(copiedThrough);
-  return budget.allocateString(result);
+    result += value.slice(copiedThrough);
+    return budget.allocateString(result);
+  } finally {
+    release();
+  }
 }
 
 function findReplacementOffsets(value: string, searchValue: string, replaceAll: boolean): number[] {

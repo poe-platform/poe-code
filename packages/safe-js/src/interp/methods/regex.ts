@@ -15,6 +15,32 @@ import { getSandboxPropertyDescriptor, getSandboxPrototype, hasExplicitSandboxPr
 import { readPropertyDescriptor } from "../accessors.js";
 import { retainValues } from "../resources.js";
 import { sandboxNumber, sandboxString } from "../string-coercion.js";
+import { setSandboxProperty } from "../interpreter.js";
+
+export async function regexSearch(target: SandboxValue, input: SandboxValue, budget: Budget, context?: SandboxCallContext): Promise<SandboxValue> {
+  if (target === null || typeof target !== "object") throw new TypeError("RegExp search requires an object receiver.");
+  let string: string | undefined;
+  let previous: SandboxValue;
+  let result: SandboxValue;
+  const release = retainValues(budget, () => [target, input, string, previous, result]);
+  const read = (value: SandboxValue, key: PropertyKey) => {
+    if (context?.getProperty !== undefined) return context.getProperty(value, key);
+    const descriptor = getSandboxPropertyDescriptor(value, key, budget);
+    return descriptor === undefined ? undefined : readPropertyDescriptor(descriptor, value, context);
+  };
+  try {
+    string = await sandboxString(input, budget, context);
+    input = undefined;
+    previous = await read(target, "lastIndex");
+    if (!Object.is(previous, 0)) await setSandboxProperty(target, "lastIndex", 0, budget, true, context);
+    result = await regexExec(target, string, budget, context);
+    if (!Object.is(await read(target, "lastIndex"), previous))
+      await setSandboxProperty(target, "lastIndex", previous, budget, true, context);
+    return result === null ? -1 : await read(result, "index");
+  } finally {
+    release();
+  }
+}
 
 export type RegexMethodName = "exec" | "test" | "toString";
 

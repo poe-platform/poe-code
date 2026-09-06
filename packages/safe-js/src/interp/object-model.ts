@@ -139,7 +139,10 @@ function registerIntrinsicPrototype(
   let roots = intrinsicPrototypeRoots.get(budget);
   if (roots === undefined) intrinsicPrototypeRoots.set(budget, (roots = new Set()));
   roots.add(prototype);
-  const records = [prototype, constructor]
+  const methods = Reflect.ownKeys(prototype)
+    .map(key => Object.getOwnPropertyDescriptor(prototype, key)?.value)
+    .filter(isGuestClosure);
+  const records = [...new Set([prototype, constructor, ...methods])]
     .map((target) => ({
       target,
       value: isGuestClosure(target) ? materializeFunctionProperties(target) : target,

@@ -21,7 +21,7 @@ import {
   type SandboxRegex,
   type SandboxValue
 } from "../values.js";
-import { executeRegex, getRegexMember, regexExec, regexFlagProperties, toMatchArray } from "./regex.js";
+import { executeRegex, getRegexMember, regexExec, regexFlagProperties, regexSearch, toMatchArray } from "./regex.js";
 import { restoreSandboxRegExpIterator } from "../regexp-iterator.js";
 
 type StringMethodName =
@@ -278,7 +278,7 @@ function callStringMethodBody(
   const regex = args[0];
   if (methodName === "search" && isSandboxRegex(regex) &&
       hasRegexPropertyOverride(regex, ["exec"], budget))
-    return callCustomRegexSearch(value, regex, budget, context);
+    return regexSearch(regex, value, budget, context);
   if (methodName === "match" && isSandboxRegex(regex) &&
       hasRegexPropertyOverride(regex, ["exec", "flags", ...Object.keys(regexFlagProperties)], budget))
     return callObservableRegexMatch(value, regex, budget, context);
@@ -854,28 +854,6 @@ async function callStringPattern(
     budget.setRetainedValues(retainedPattern, undefined);
     compilation.dispose();
     operation.release();
-  }
-}
-
-async function callCustomRegexSearch(
-  value: string,
-  regex: SandboxRegex,
-  budget: Budget,
-  context?: SandboxCallContext
-): Promise<SandboxValue> {
-  const previousIndex = regex.lastIndex;
-  let result: SandboxValue;
-  const release = retainValues(budget, () => [value, regex, previousIndex, result]);
-  try {
-    if (!Object.is(previousIndex, 0)) regex.lastIndex = 0;
-    result = await regexExec(regex, value, budget, context);
-    if (!Object.is(regex.lastIndex, previousIndex)) regex.lastIndex = previousIndex;
-    if (result === null) return -1;
-    if (context?.getProperty !== undefined) return await context.getProperty(result, "index");
-    const descriptor = getSandboxPropertyDescriptor(result, "index", budget);
-    return descriptor === undefined ? undefined : await readPropertyDescriptor(descriptor, result, context);
-  } finally {
-    release();
   }
 }
 

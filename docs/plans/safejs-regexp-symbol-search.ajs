@@ -1,0 +1,19 @@
+import { S } from "schema";
+
+export const schema = S.Object({ title: S.String() });
+
+export default async function main(frontmatter) {
+  const order = [];
+  let cursor = 4;
+  const target = {
+    get lastIndex() { order.push('get'); return cursor; },
+    set lastIndex(value) { order.push('set:' + value); cursor = value; },
+    exec(value) { order.push('exec:' + value); return { index: 2 }; }
+  };
+  const result = RegExp.prototype[Symbol.search].call(target, 'abc');
+  if (result !== 2 || cursor !== 4 || order.join('|') !== 'get|set:0|exec:abc|get|set:4')
+    throw new Error('Generic search protocol order failed');
+  if (/a/[Symbol.search]('ba') !== 1) throw new Error('Regex search failed');
+  await 0;
+  return { ok: true, title: frontmatter.title, result, cursor, order };
+}

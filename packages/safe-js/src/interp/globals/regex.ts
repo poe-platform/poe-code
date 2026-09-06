@@ -14,7 +14,7 @@ import { SandboxError, type Budget, type CompileOwner } from "../budget.js";
 import { sandboxString } from "../string-coercion.js";
 import { getSandboxPropertyDescriptor, installRegexPrototype, materializeFunctionProperties, setSandboxPrototype } from "../object-model.js";
 import { accessorAdapter, readPropertyDescriptor } from "../accessors.js";
-import { callRegexMethod, getRegexMember, regexFlagProperties, type RegexMethodName } from "../methods/regex.js";
+import { callRegexMethod, getRegexMember, regexFlagProperties, regexSearch, type RegexMethodName } from "../methods/regex.js";
 
 export function createRegexGlobals(options: { budget: Budget; compileOwner?: CompileOwner }): { RegExp: SandboxClosure } {
   const invoke = (construct: boolean) => async (args: readonly SandboxValue[], context?: SandboxCallContext) => {
@@ -85,6 +85,11 @@ export function createRegexGlobals(options: { budget: Budget; compileOwner?: Com
   const prototype = Object.create(null) as SandboxObject;
   Object.defineProperty(materializeFunctionProperties(constructor), "prototype", { value: prototype, writable: false });
   Object.defineProperty(prototype, "constructor", { value: constructor, writable: true, configurable: true });
+  Object.defineProperty(prototype, Symbol.search, {
+    value: createSandboxClosure({ guest: true, sandbox: true, name: "[Symbol.search]", length: 1,
+      call: (args, context) => regexSearch(context?.thisValue, args[0], options.budget, context) }),
+    writable: true, configurable: true
+  });
   for (const name of ["exec", "test", "toString"] as RegexMethodName[]) {
     Object.defineProperty(prototype, name, {
       value: createSandboxClosure({ sandbox: true, name, length: name === "toString" ? 0 : 1,

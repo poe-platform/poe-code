@@ -110,6 +110,7 @@ export type SpreadElement = BaseNode & {
 
 export type Property = BaseNode & {
   type: "Property";
+  kind?: "get" | "set";
   computed: boolean;
   shorthand: boolean;
   key: Expression;
@@ -3182,16 +3183,19 @@ class Parser {
       );
     }
 
+    let accessor: "get" | "set" | undefined;
+    let accessorStart: Position | undefined;
     if (
       this.currentToken().type === "identifier" &&
       (this.currentToken().value === "get" || this.currentToken().value === "set") &&
       this.isObjectMethodStart()
     ) {
       const token = this.currentToken();
-      const syntax = token.value === "get" ? "Getter" : "Setter";
-      throw new Error(
-        `${syntax} shorthand methods are not supported at line ${token.start.line}, column ${token.start.column}.`
-      );
+      if (token.end.offset - token.start.offset !== token.value.length)
+        throw unexpectedTokenError(token);
+      accessor = token.value === "get" ? "get" : "set";
+      accessorStart = token.start;
+      this.index++;
     }
 
     const modifierToken = this.currentToken();
@@ -3212,14 +3216,15 @@ class Parser {
       const key = this.parseExpression();
       this.expectPunctuator("]");
       if (this.currentToken().type === "punctuator" && this.currentToken().value === "(") {
-        const value = this.parseObjectMethod(asyncToken, propertyStart.start);
+        const value = this.parseObjectMethod(asyncToken, accessorStart ?? propertyStart.start, accessor);
         return {
           type: "Property",
+          ...(accessor === undefined ? {} : { kind: accessor }),
           computed: true,
           shorthand: false,
           key: key.node,
           value,
-          span: createSpan(asyncToken?.start ?? propertyStart.start, value.span.end)
+          span: createSpan(value.span.start, value.span.end)
         };
       }
       this.expectPunctuator(":");
@@ -3239,14 +3244,15 @@ class Parser {
       this.index += 1;
       const key = createIdentifierName(token);
       if (this.currentToken().type === "punctuator" && this.currentToken().value === "(") {
-        const value = this.parseObjectMethod(asyncToken, key.span.start);
+        const value = this.parseObjectMethod(asyncToken, accessorStart ?? key.span.start, accessor);
         return {
           type: "Property",
+          ...(accessor === undefined ? {} : { kind: accessor }),
           computed: false,
           shorthand: false,
           key,
           value,
-          span: createSpan(asyncToken?.start ?? key.span.start, value.span.end)
+          span: createSpan(value.span.start, value.span.end)
         };
       }
       if (this.consumePunctuator(":") === undefined) {
@@ -3276,14 +3282,15 @@ class Parser {
       this.index += 1;
       const key = createLiteralFromToken(token);
       if (this.currentToken().type === "punctuator" && this.currentToken().value === "(") {
-        const value = this.parseObjectMethod(asyncToken, key.span.start);
+        const value = this.parseObjectMethod(asyncToken, accessorStart ?? key.span.start, accessor);
         return {
           type: "Property",
+          ...(accessor === undefined ? {} : { kind: accessor }),
           computed: false,
           shorthand: false,
           key,
           value,
-          span: createSpan(asyncToken?.start ?? key.span.start, value.span.end)
+          span: createSpan(value.span.start, value.span.end)
         };
       }
       this.expectPunctuator(":");
@@ -3335,12 +3342,14 @@ class Parser {
 
   private parseObjectMethod(
     asyncToken: Token | undefined,
-    methodStart: Position
+    methodStart: Position,
+    accessor?: "get" | "set"
   ): FunctionExpression {
     const { params, body } = this.parseFunctionParts(false, {
       ...ordinaryFunctionContext,
-      superProperty: true
-    });
+      superProperty: true,
+      ...(accessor === undefined ? {} : { await: false, strictAwait: true })
+    }, accessor);
 
     return this.withFunctionSource({
       type: "FunctionExpression",

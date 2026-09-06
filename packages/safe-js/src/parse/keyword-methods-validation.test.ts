@@ -121,18 +121,26 @@ const invalidPrograms = [
   "return { async set ['return'](value) {} };"
 ];
 
+const accessorPrograms = [
+  "return { get return() { return 1; } };",
+  "return { set return(value) {} };",
+  "return { get ['return']() { return 1; } };",
+  "return { set ['return'](value) {} };",
+  "return { get 'return'() { return 1; } };",
+  "return { set 2(value) {} };"
+];
+
 const unsupportedPrograms: [string, string][] = [
-  ["return { get return() { return 1; } };", "Getter shorthand methods are not supported"],
-  ["return { set return(value) {} };", "Setter shorthand methods are not supported"],
-  ["return { get ['return']() { return 1; } };", "Getter shorthand methods are not supported"],
-  ["return { set ['return'](value) {} };", "Setter shorthand methods are not supported"],
-  ["return { get 'return'() { return 1; } };", "Getter shorthand methods are not supported"],
-  ["return { set 2(value) {} };", "Setter shorthand methods are not supported"],
   ["return { *return() { yield 1; } };", "Generator shorthand methods are not supported"],
   ["return { async *['return']() { yield 1; } };", "Generator shorthand methods are not supported"]
 ];
 
 describe("IP-002 independent keyword and async-computed method validation", () => {
+  it.each(accessorPrograms)("accepts native-valid accessor syntax: %s", (source) => {
+    expect(() => new Script(`(async function () { ${source} })()`)).not.toThrow();
+    expect(() => parse(source)).not.toThrow();
+  });
+
   it.each(acceptedPrograms)(
     "matches native and completed replay: %s",
     async (_name, source, expected) => {

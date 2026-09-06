@@ -1,5 +1,5 @@
 import { promiseReplayContext } from "./promise-replay.js";
-import { readPropertyDescriptor, writePropertyDescriptor } from "./accessors.js";
+import { accessorAdapter, readPropertyDescriptor, writePropertyDescriptor } from "./accessors.js";
 import { deleteHostObjectMember, getHostObjectKeys, getHostObjectMember, hasHostObjectMember, isGuestHostObject, setHostObjectMember } from "./host-capabilities.js";
 import { toPropertyKey } from "./property-key.js";
 import { assertPromiseExecutionAllowed } from "./promise-tracker.js";
@@ -7,6 +7,7 @@ import { SandboxJobQueue, runAsyncPrefix, suspendJob } from "./jobs.js";
 import { withCancellationSignal } from "./cancel.js";
 import { retainValues } from "./resources.js";
 import { evaluateClass } from "./classes.js";
+import { defineDataProperty } from "./globals/object-array.js";
 import { sandboxString } from "./string-coercion.js";
 import type {
   ArrayExpression,
@@ -681,6 +682,19 @@ async function evaluateObjectExpression(
       }
       if (value.kind !== "normal") {
         return value;
+      }
+
+      if (property.kind !== undefined) {
+        if (!isSandboxClosure(value.value)) throw new TypeError("An accessor must be callable.");
+        Object.defineProperty(materializeFunctionProperties(value.value), "name", {
+          value: `${property.kind} ${String(key.value)}`
+        });
+        defineDataProperty(object, String(key.value), {
+          [property.kind]: accessorAdapter(value.value, property.kind),
+          configurable: true,
+          enumerable: true
+        }, context.budget);
+        continue;
       }
 
       if (isObjectPrototypeSetterProperty(property, key.value)) {

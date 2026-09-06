@@ -3334,7 +3334,7 @@ It is not a published CLI version. The latest CLI workflow 34002595606 must
 publish the descendant containing descriptors, class accessors and method super;
 its publication remains under monitoring while the next validated fix proceeds.
 
-### 56. __proto__ shorthand methods — validated next defect
+### 56. __proto__ shorthand methods — closed on remote main
 
 Current-main built probes reproduce missing own methods for identifier, quoted
 and async __proto__ method definitions. Native owns a function-valued property;
@@ -3366,3 +3366,43 @@ results. This fix is ready for its own commit/main push.
 Predecessor method-super scoped publication is verified: workflow 34002595599
 published `@poe-platform/safe-js@0.1.141` at 01:00:55 UTC on September 6. Its
 CLI workflow remains in progress and is monitored independently of this fix.
+
+Delivery is verified on remote main at
+2f69c910dedef3f5e6fa2b86d55ef51504890294. Scoped workflow 34003054137
+published `@poe-platform/safe-js@0.1.142` at 01:10:54 UTC on September 6.
+CLI workflow 34003054179 published `poe-code@14.0.66` at 01:19:45 UTC;
+remote tag v14.0.66 resolves to that exact commit. This publication also contains
+the preceding descriptor, class-accessor and object-method-super changes.
+
+### 57. Object literal accessors — validated implementation under qualification
+
+Native comparisons reproduced 53 failures with 19 passing controls before
+implementation. The parser now accepts getter/setter literal definitions and
+validates their parameter rules, while preserving ordinary get/set methods.
+Evaluation uses the existing descriptor registration and invocation path,
+retaining receivers, defining home objects for super, property attributes and
+getter/setter pairing. Accessor names and source spans include their modifiers.
+
+The first implementation passed 71 cases but exposed unregistered descriptor
+state during snapshot validation. Registering through the maintained descriptor
+helper corrected that concrete defect: all 109 focused accessor/boundary tests
+passed. Portable snapshot and data-copy rejection remain explicit limitations,
+not silently accepted broken state. Ten older parser assertions assumed valid
+accessors were unsupported; they now check valid acceptance or actual invalid
+parameter rules. Three further obsolete rejection cases in the maintained
+keyword suite were updated after its first run; generator-method exclusions
+remain unchanged.
+
+The support-note template was updated and skills synced. Maintained package
+and harness checks, focused lint/types, normal build and inspected zero-spawn
+harness QA qualify this separate atomic increment before its main push.
+
+Qualification passed: 13,330 maintained SafeJS tests (41 skipped), 163 harness
+tests, focused ESLint, package/root TypeScript and the normal workspace build.
+The inspected screenshot shows value 8, stored 7, computed label ready, getter
+and setter names, enumerable=true and spread value 8, with zero spawns. Synced
+skill validation also passes. This increment is ready for its own main push.
+
+Next validated gap: ordinary and computed generator object methods both reject
+at parsing in SafeJS; native controls yield [7, 8] and 7 respectively. Preserve
+that as a separate TDD increment after delivering object accessors.

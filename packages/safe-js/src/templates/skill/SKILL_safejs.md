@@ -89,10 +89,9 @@ literals, assignments/member assignment, `if`/`else`, `for`, `for...in`,
 
 Public classes support constructors, instance/static methods and fields, static
 blocks, getters/setters, inheritance, `super`, and `new.target`. Getter/setter
-properties can also be defined with `Object.defineProperty` or
+properties also work in object literals and through `Object.defineProperty` or
 `Object.defineProperties`; accessor objects cannot yet be copied as data or
-portably snapshotted. Private elements, object getter-setter syntax, and default
-class exports remain unsupported;
+portably snapshotted. Private elements and default class exports remain unsupported;
 built-in inheritance and portable custom-prototype snapshots remain incomplete.
 
 Top-level `await` also works inside control-flow blocks. `new Map(...)`,

@@ -477,11 +477,11 @@ describe("parse", () => {
   it.each([
     ["generator", "{ *gen() {} }", "Generator shorthand methods are not supported"],
     ["async generator", "{ async *gen() {} }", "Generator shorthand methods are not supported"],
-    ["getter", "{ get value() { return 1; } }", "Getter shorthand methods are not supported"],
-    ["computed getter", "{ get [value]() {} }", "Getter shorthand methods are not supported"],
-    ["setter", "{ set value(next) {} }", "Setter shorthand methods are not supported"],
-    ["literal setter", "{ set 'value'(next) {} }", "Setter shorthand methods are not supported"]
-  ])("rejects %s object method shorthand clearly", (_syntax, source, message) => {
+    ["getter", "{ get value(next) { return 1; } }", "A getter cannot have parameters"],
+    ["computed getter", "{ get [value](next) {} }", "A getter cannot have parameters"],
+    ["setter", "{ set value() {} }", "A setter must have exactly one non-rest parameter"],
+    ["literal setter", "{ set 'value'(...next) {} }", "A setter must have exactly one non-rest parameter"]
+  ])("rejects invalid or unsupported %s object method syntax", (_syntax, source, message) => {
     expect(() => parse(source)).toThrowError(message);
   });
 

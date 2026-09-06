@@ -41,7 +41,8 @@ are not connected because the shell has no declaration-attribute interface.
 Extdebug's declaration-location and BASH_ARGC/BASH_ARGV debugger metadata are not
 implemented. Unsupported surrounding shell syntax (including select and
 arithmetic for) is not made available by this leaf. Named signal delivery below
-does not establish OS job control or interruptible background/wait semantics.
+does not establish OS job control or general interruptible background/wait semantics.
+The bounded cooperative wait profiles below are separate qualifications.
 
 ## Explicit virtual signal host
 
@@ -64,6 +65,41 @@ execution promise and does not interrupt opaque blocked host commands. Cleanup
 closes delivery admission before awaiting unsubscribe. Root cancellation and
 budget failure reject execution; neither is converted into successful EXIT
 completion. Host signal delivery and root cancellation are separate mechanisms.
+
+## Cooperative wait
+
+With both explicit jobs and trap extensions, an active nonempty named action can
+interrupt an enrolled ordinary or next wait in the same shell scope. The wait's local
+cancellation is separate from its background child's owner. Ignored/unhandled
+signals retain their previous behavior. The pending action runs through the
+existing safe-point dispatcher, preserving the interrupted status; repeated
+pending delivery of the same signal coalesces.
+
+The source controls qualify one numeric child wait with the explicit virtual
+USR1/USR2 catalog 30/31. They observe wait-listener registration before delivery,
+status 158/159, exactly one trap before continuation while the child remains
+live, and status seven from the later wait. Root cancellation, falsey escaping
+failures, child cleanup, checkpoint failures, disposal, source budgets and trap
+exit remain separate outcomes.
+
+WF1 adds admitted VFS controls for `wait -n`, numeric targets, `-p`, two-child
+selection and negation under virtual USR1=30, plus later ordinary-operand
+transitions. Interrupted scalar `-p` destinations remain unset and later waits retain
+child statuses. Negated caller/trap status is zero rather than 158. Completion
+before delivery remains completion; interruption rejection before completion
+does not consume the child's result. These deterministic controls are not new
+native race observations. Stopped jobs, jobspecs, arbitrary compound wait timing
+and opaque host-work interruption remain unqualified. Fresh compiled acceptance
+is pending a coherent reviewed build, not inferred from source controls.
+
+Further canonical controls combine handled/ignored signals with mutable and
+readonly indexed destinations, and queued actions with early readonly name
+refusal. Indexed textual-name unbinding does not remove array elements; an
+interrupted indexed wait skips publication and preserves those values. Pending
+signals between completed ordinary operands remain effective across the single
+wait invocation. An action that replaces, ignores or removes its own disposition
+controls delivery at a subsequent wait. No native observation or complete
+accepted-combination cross-product is inferred from these source controls.
 
 ## Evidence, September 4, 2026
 

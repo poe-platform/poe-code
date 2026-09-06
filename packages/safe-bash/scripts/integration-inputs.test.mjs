@@ -665,6 +665,8 @@ function assertSource7Discovery(files) {
     "tests/plugins/binding-reference-runtime.test.ts",
   ]) assert.ok(files.includes(path), "generic reference binding test is missing: " + path);
   assert.ok(files.includes("tests/plugins/wait-options-runtime.test.ts"), "compiled wait-option test is missing");
+  assert.ok(files.includes("tests/plugins/indexed-element-operators-runtime.test.ts"), "compiled indexed-element operator test is missing");
+  assert.ok(files.includes("tests/plugins/trapped-wait-runtime.test.ts"), "compiled trapped ordinary-wait test is missing");
   assert.ok(files.includes("tests/plugins/wait-destination-runtime.test.ts"), "compiled wait-destination test is missing");
   assert.ok(files.includes("tests/plugins/wait-retirement-runtime.test.ts"), "compiled wait-retirement test is missing");
   assert.ok(files.includes("tests/plugins/wait-foreground-runtime.test.ts"), "compiled wait-foreground test is missing");
@@ -677,6 +679,10 @@ function assertSource7Discovery(files) {
   assert.ok(files.includes("tests/shell/extensions/jobs/next53-reference.test.ts"), "wait-option reference guard test is missing");
   assert.ok(files.includes("tests/shell/extensions/jobs/foreground53-reference.test.ts"), "foreground wait reference guard test is missing");
   assert.ok(files.includes("tests/shell/extensions/jobs/wait-options.test.ts"), "wait-option implementation test is missing");
+  assert.ok(files.includes("tests/shell/extensions/jobs/trapped-wait.test.ts"), "cooperative trapped ordinary-wait test is missing");
+  assert.ok(files.includes("tests/shell/extensions/jobs/trapped-wait-combinations.test.ts"), "cooperative trapped wait-combination test is missing");
+  assert.ok(files.includes("tests/shell/extensions/jobs/trapped-wait-destinations.test.ts"), "trapped wait destination and operand-transition test is missing");
+  assert.ok(files.includes("tests/shell/extensions/trap/pending-signals.test.ts"), "pending signal dispatch and nested-wait test is missing");
   assert.ok(files.includes("tests/shell/extensions/jobs/wait-options-independent.test.ts"), "independent wait-option test is missing");
   assert.ok(files.includes("tests/shell/substitution-provenance.test.ts"), "substitution provenance test is missing");
   for (const path of [

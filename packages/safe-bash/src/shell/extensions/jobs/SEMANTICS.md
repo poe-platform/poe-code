@@ -115,7 +115,8 @@ native job-table membership from the substitution's output. No foreground core
 hook is implemented by this leaf increment.
 
 Stopped-job semantics, job specifications, foreground job control, notifications,
-signal delivery, trapped-signal interruption of wait, POSIX-mode saved-status
+general signal delivery, trapped-signal interruption outside the bounded
+cooperative profiles below, POSIX-mode saved-status
 deletion, and remaining reference forms are unfinished. Recognizing `-f` in the
 termination-only model is not stopped-job qualification. The next-wait and
 destination work is therefore not full jobs/wait completion.
@@ -140,6 +141,55 @@ EXIT processing and local frame cleanup remain distinct from descendant drain.
 Cancellation and failure settle registered cooperative cleanup, preserve falsey
 failure reasons, and retain the existing failure-precedence rules. Uncooperative
 host callbacks do not gain preemption or sandboxing guarantees.
+
+## Cooperative trapped wait
+
+With an explicit trap signal host, ordinary and next-wait paths can enroll one local
+cooperative interruption in its current shell scope. It does not abort the job
+owner, consume a still-running child's status, or turn a trapped signal into a
+stored job failure. Ignored and unhandled signals do not interrupt. A host that
+omits the optional context capability retains the existing wait path.
+
+The bounded virtual profile uses one numeric child, USR1/USR2 catalog values
+30/31, and a child status of seven. The parent observes 158/159 and one trap
+before continuation while the child remains live; its later ordinary wait
+returns seven. The test observes actual wait-listener registration before
+delivery. VFS gating replaces the historical Bash 5.2.37 witness's native IPC;
+it is not a new native observation or identical source replay. Root cancellation,
+escaping falsey failures, descriptor cleanup, checkpoints, disposal, budgets and
+trap exit retain separate outcomes.
+
+The WF1 source controls additionally cover pending `wait -n` with no operands,
+one or two numeric targets, optional `-p`, and negation using virtual USR1=30.
+An interrupted next wait returns before PID publication, leaving its early-unbound
+scalar destination unset and preserving live children for later ordinary waits. Ordinary
+multi-operand controls also interrupt on a later operand without publishing an
+earlier PID. Negation yields caller/trap status zero while retaining interruption
+and live-child ownership. These are admitted VFS controls, not new native timing
+observations or full option/grammar parity.
+
+Deterministic completion-before-delivery and interruption-before-completion
+controls preserve the existing bridge selection: a completed result is not
+converted into interruption, while private interruption rejection does not
+consume a later completion. Falsey wait, reference and child-cleanup failures,
+root cancellation, trap checkpoints, disposal and source budgets are separately
+checked. Jobspecs, arbitrary compound timing, stopped/continued jobs and opaque
+host-work interruption remain outside this qualification. Fresh compiled/public
+acceptance of WF1 remains pending its reviewed committed build.
+
+The destination/transition follow-up checks existing indexed references without
+changing reference semantics: `values[1]` textual-name unbinding does not remove
+that element or the array, so interrupted waits leave both elements intact.
+Initially readonly scalar and whole-array destinations refuse before waiting;
+their queued action observes status one. A readonly indexed reference can wait,
+but completed PID publication still refuses unless interruption returns first.
+
+An ordinary explicit operand list now keeps one cooperative interruption receiver
+across its selections. A pending signal after an earlier completed operand cannot
+be lost when advancing to another pending or completed operand, and an earlier
+PID is not published on interruption. Replaced/ignored/removed trap actions govern
+subsequent wait admission. The canonical controls use explicit virtual USR1=30
+and deterministic VFS/JobState observation, not new native race measurements.
 
 ## Evidence
 

@@ -4504,3 +4504,179 @@ This original-worktree increment is not copied into the pending C3+dcad delivery
 candidate. Its independent review, compiled/public/default/package checks and
 separate commit/release follow the first delivery milestone; none are inferred
 from the current source receipt or this documentation update.
+
+### September 6, 2026: bounded trapped ordinary-wait source review
+
+Following the separate local indexed-operator commit
+`0090444d3e5b2210adf6e35d877a354cd012e8d4`, the original worktree implements bounded
+ordinary cooperative wait interruption by handled virtual USR1/USR2. Independent
+source review approves this scope at
+`/tmp/trapped-wait-independent-bfwiF3/approval.json`, SHA256
+`91539f6d67ca9fa1c0c393c36fc6a04ace9c547ff28c6d2466acc80d04942962`:
+138 independent tests pass and nine-root strict checking has zero diagnostics.
+No new native execution underlies this approval. Fresh-build public/declaration
+consumer tests remain pending; source acceptance does not establish those gates.
+
+Trapped `wait -n`, multi-child interruption, negated/compound wait-status timing,
+jobspecs, stopped/continued jobs and opaque host-work preemption remain outside
+this bounded qualification. Generic repeated-wait/barrier controls are not new
+multi-child or wait-n leaf parity. Virtual signals do not establish native
+process-global signal handling or full Bash compatibility. Preserve the broader
+goal, original failures and historical/native evidence qualifications. This
+increment awaits its separately reviewed public tests, scoped lint and authorized
+owned-path commit; no push, release or inclusion in the first delivery candidate
+is inferred from this note.
+
+### September 6, 2026: WF1 accepted next-wait interruption repair
+
+The fidelity review at `/tmp/wait-combination-fidelity-Gd8ZnS/review.json`, SHA256
+`1564ca3e217e8c955a767f676f66314426f25427babaed8f0bfbbff32cc74219`, identifies an
+implementation gap in already accepted wait combinations, not unsupported broader
+Bash. Its sixteen admitted VFS controls produce ten passes and six failures:
+pending `wait -n`, explicit targets, `-p`, multiple targets and negation bypass the
+interruption bridge. They wait for the bounded negative child release, and `-p`
+incorrectly publishes a completed PID. Negation masks the status failure but not
+the blocked wait or consumed completion. The original sixteen controls reproduce
+unchanged at `/tmp/wf1-wait-next-repair-XjwzGQ/historical-red.stdout`.
+
+The jobs leaf now enrolls pending `waitNext` in the existing optional cooperative
+bridge and returns an interrupted status before selecting/publishing a PID. The
+saved-status fast path, option/reference admission, reference cleanup and absent-
+capability fallback remain in place. This is a jobs-leaf repair only: runtime,
+parser, trap implementation and extension/declaration interfaces do not change.
+The approved ordinary-wait and public-fixture freezes remain historical evidence;
+this increment is separately reviewed rather than silently replacing their scope.
+
+Canonical TDD initially has 28 failures and 21 passing controls. After repair,
+all sixteen unchanged reviewer controls and the initial49 canonical cases pass.
+Four further retained-contract controls add clustered/repeated options, bare
+multi-child wait and transition past an earlier completed child. The final
+ten-file source cohort passes364/364, including all53 combination cases and the
+unchanged29 ordinary-wait controls, with no skips or cancellations. Exact falsey
+wait/reference/child-cleanup failures, root-cancellation priority, trap checkpoints,
+disposal, source budgets, deterministic completion/interruption ordering and later
+ordinary operands remain separate outcomes. These are bounded source contracts,
+not newly observed native race timing.
+
+The public fixture retains its nine earlier cases and adds eight next-wait cases:
+the six reported forms inline, plus explicit `-n -p` scripts through `bash` and
+`sh`. Its import-only source projection passes17/17; fresh compiled execution is
+still pending a coherent reviewed committed candidate. Existing built-declaration
+assertions already cover the unchanged optional generic bridge and public brands;
+no declaration widening is needed. Actual-options strict checking passes with zero
+diagnostics across four roots and400 stable inputs. Literal discovery passes1/1. Evidence and final
+input hashes are under `/tmp/wf1-wait-next-repair-XjwzGQ`; no new native oracle,
+build, Git write, README change or delivery-clone edit is part of this increment.
+
+The historical Bash5.2.37 signal profile and original six-form log remain distinct
+from source-derived negation and deterministic virtual ordering. This does not
+certify every accepted option/reference/signal cross-product: combined indexed or
+readonly destinations and signal delivery, and further pending-action transitions,
+still need scoped fidelity review rather than being relabeled unsupported. Jobspecs,
+stopped/continued jobs, arbitrary compound timing and opaque host-work preemption
+remain separately unqualified. Independent review, scoped lint, the owned
+local commit, fresh public/default79/browser28/pack acceptance after integration,
+and remote delivery/release are separate gates, not consequences of this source run.
+
+### September 6, 2026: WF1 destination and operand-transition follow-up
+
+WF1's preceding eight-file freeze is independently approved at
+`/tmp/wf1-independent-LjRrOA/approval.json`, SHA256
+`157a46b5bb628e6e0265d7ce351de96b0fc0c9203aa26450d69ffe57c114aea2`, with81
+independent passes and zero strict diagnostics. That approval remains bound to
+jobs source `f876e2977755397116848a886c423db1a7d369edcc4c00ff6d0b012c5ca8c009`;
+it does not automatically approve this subsequent source repair.
+
+The two accepted-grammar obligations now have24 bounded canonical controls in
+`tests/shell/extensions/jobs/trapped-wait-destinations.test.ts`. Twelve destination
+controls pass on the approved source: handled/ignored signals compose with
+mutable and readonly indexed references, while readonly scalar/whole-array names
+refuse before wait admission and a queued action observes status one. Indexed
+textual-name unbinding does not remove an array element, so interrupted indexed
+waits preserve the existing values rather than clearing them. Without interruption,
+readonly indexed PID publication still refuses. This distinction corrects the
+overbroad wording that every interrupted `-p` destination becomes unset; that
+statement applies to the early-unbound scalar destination, not an indexed reference.
+
+Seven transition controls reproduce a further actual defect before product edits:
+the ordinary operand loop creates a separate interruption scope for each child.
+A signal delivered after the first completed result is accepted into that first
+scope but lost before the next selection. Pending children then require the
+bounded negative release; even already-completed later operands can incorrectly
+publish their PID. Negation hides the status difference, not the lost interruption.
+Five root-cancellation controls also pass before the fix. Exact17pass/7fail red
+evidence and its source snapshot are retained in
+`/tmp/wf1-destination-transitions-Jni3xU` alongside all earlier WF1 reds.
+
+Only the jobs leaf changes: ordinary explicit operands share one existing generic
+interruption scope and check its signal before each selection. The pending action
+therefore survives completed-operand transitions; interrupted execution returns
+before PID publication. No runtime, trap, parser, array or declaration API change
+is needed. Prior53 combination tests,29 ordinary tests and17 public fixture cases
+remain byte-identical. The new controls also check repeated pending delivery and
+actions that replace, ignore or remove their disposition before a subsequent wait.
+
+Validation passes404/404 across the24 new cases,364 retained canonical cases and
+the16 unchanged original reviewer controls, with no skips or cancellations. The
+unchanged public fixture's source projection passes17/17; this is not fresh compiled
+acceptance. Actual-options strict checking reports zero diagnostics across six
+roots and403 stable inputs; literal discovery passes1/1. The pinned Bash5.3
+`wait.def` common signal handling and between-operand check support the source
+expectations; no new native measurement or internal native trace is claimed.
+
+This follow-up requires its own independent review and scoped lint before the
+root-owned commit. Fresh coherent compiled/public/declaration/default/pack checks
+remain pending integration, as do separately verified remote delivery and release.
+The tested accepted cases are not relabeled unsupported, and these bounded
+controls are not a claim of every option/reference/action combination or full
+Bash compatibility. No README, Git, build, native-oracle or delivery-clone changes
+are part of this follow-up.
+
+### September 6, 2026: distinct pending signals and trap-action waits
+
+The transition repair's independent144-pass/strict-zero approval remains intact.
+A subsequent owned temporary source cohort found a distinct reentrant-dispatch
+defect: delivering USR1 and USR2 once each while an ordinary wait is admitted
+runs the second action twice, in either delivery order. Parent interruption
+statuses158/159, child liveness and later child status7 remain correct. Exact
+two-red/four-control evidence remains immutable at
+`/tmp/wait-pending-nested-controls-JSe1dT/receipt.json`, SHA256
+`e69381484b0fa02ef83bf16797a5fb63a3aa7ce5e75bb1db0abb63927078cc67`.
+This is virtual source-contract evidence, not a new native observation.
+
+The minimal trap-leaf repair iterates the live pending set instead of an array
+snapshot. Reentrant dispatch cannot execute an already-consumed entry again.
+A still-running action's pending redelivery is retained rather than consumed;
+after that action finishes, its current handler is looked up normally. Existing
+coalescing, handler replacement/ignore/reset, separate-name reentrancy and the
+invocation command budget remain in force. No runtime/jobs/parser/interface or
+default-command change is needed.
+
+The proposed canonical `tests/shell/extensions/trap/pending-signals.test.ts`
+retains the original six controls and adds bounded redelivery, disposition,
+falsey checkpoint-host-failure/cleanup, root-cancellation and budget controls.
+Its qualified baseline is12pass/6fail; the prepared repair passes18/18. An
+import-only off-tree retained cohort passes137/137, including29 ordinary-wait,
+53 combination,24 destination/transition and13 signal-host controls. Actual-
+options strict checking passes with zero diagnostics for two proposed roots
+and279 stable disk inputs. Five initial fault-fixture expectations used ordinary
+builtin exceptions instead of the established checkpoint host-error carrier;
+they were corrected before repair and are not reported as product defects.
+All initial and qualified logs remain under
+`/tmp/trap-live-pending-repair-gvJmoW`.
+
+After root confirmed original OP3 commit
+`33eaab585c5def4c6f6ab10697032027ca8a8b4e`, the four-path patch was applied to
+the original worktree. Canonical validation passes159/159: the137-case retained
+cohort plus the unchanged six original mixed/nested controls and sixteen original
+WF1 reviewer controls. Literal enrollment passes1/1. Actual-options strict
+checking passes with zero diagnostics across six roots and286 stable inputs.
+Live evidence and exact source/test hashes are under
+`/tmp/trap-live-pending-canonical-qwG3S3`. Socrates's destination-test lint delta
+remains byte-identical; no runtime, jobs, parser or interface files were edited.
+
+Independent review, scoped lint and the root-owned local trap commit remain
+pending. Fresh coherent compiled/public/declaration/default79/browser28/pack
+acceptance and remote release remain separate gates. No new native oracle,
+build, Git operation, README edit or broad Bash parity claim is part of this
+bounded repair.

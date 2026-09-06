@@ -76,7 +76,10 @@ export function trapExtension(configuration: TrapExtensionOptions = {}): ShellEx
           if (number === undefined || number === 0 || number >= pseudoBase || names.get(number) === "SIGKILL" || names.get(number) === "SIGSTOP") return false;
           const action = actions.get(number);
           if (!action?.active) return false;
-          if (shellValueByteLength(action.source)) pending.add(number);
+          if (shellValueByteLength(action.source)) {
+            pending.add(number);
+            context.interruptWait?.((128 + number) % 256);
+          }
           return true;
         }, context.scope);
       },
@@ -142,7 +145,11 @@ export function trapExtension(configuration: TrapExtensionOptions = {}): ShellEx
           if (previous && !actions.has(aliases.get("DEBUG")!)) actions.set(aliases.get("DEBUG")!, previous);
           return;
         }
-        for (const number of [...pending]) { pending.delete(number); await run(number, context); }
+        for (const number of pending) {
+          if (running.has(number)) continue;
+          pending.delete(number);
+          await run(number, context);
+        }
         const name = event === "exit" ? "EXIT" : event === "error" ? "ERR" : event === "command" ? "DEBUG" : "RETURN";
         if (name === "DEBUG" && context.sourceDepth > 0 && sources.at(-1) === actions.get(aliases.get(name)!) && !options[1]!.enabled) return;
         const inherited = functions.at(-1)?.get(aliases.get(name)!) === actions.get(aliases.get(name)!);

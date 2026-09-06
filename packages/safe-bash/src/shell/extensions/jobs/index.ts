@@ -4,7 +4,7 @@ import { concatShellValues, shellValueBytes, shellValueFromBytes } from "../../.
 import type { ShellValue } from "../../../contracts/value.js";
 import type { ShellBindingReference, ShellExtension, ShellExtensionContext, ShellExtensionInstance } from "../../extensions.js";
 import { createJobState } from "./state.js";
-import type { JobHandle, JobOutcome, JobState } from "./state.js";
+import type { JobHandle, JobOutcome, JobState, JobTarget } from "./state.js";
 
 const maximumWaitProcessId = 2147483647;
 
@@ -47,6 +47,10 @@ function instance(inherited?: number): ShellExtensionInstance {
   const wait = async (context: ShellExtensionContext): Promise<number> => {
     let reference: ShellBindingReference | undefined;
     let primary: { reason: unknown } | undefined;
+    const ordinaryWait = async (targets?: readonly JobTarget[]) => {
+      if (context.waitInterruptibly) return context.waitInterruptibly(signal => jobs!.wait(targets, { signal }));
+      return { kind: "completed" as const, value: await jobs!.wait(targets, { signal: context.signal }) };
+    };
     const execute = async (): Promise<number> => {
       let offset = 0;
       let next = false;
@@ -110,40 +114,53 @@ function instance(inherited?: number): ShellExtensionInstance {
           await context.diagnostic(concatShellValues(["wait: `", raw, operand[0] === "%" ? "': no such job" : "': not a pid or valid job spec"]));
         }
         if (offset < context.args.length && !targets.length) return 127;
-        const waited = await jobs!.waitNext(offset === context.args.length ? undefined : targets, { signal: context.signal });
-        const result = status(waited.outcome);
-        const processId = waited.handle && [...children].find(([, handle]) => handle === waited.handle)?.[0];
+        const selected = offset === context.args.length ? undefined : targets;
+        const waited = context.waitInterruptibly
+          ? await context.waitInterruptibly(signal => jobs!.waitNext(selected, { signal }))
+          : { kind: "completed" as const, value: await jobs!.waitNext(selected, { signal: context.signal }) };
+        if (waited.kind === "interrupted") return waited.status;
+        const result = status(waited.value.outcome);
+        const processId = waited.value.handle && [...children].find(([, handle]) => handle === waited.value.handle)?.[0];
         return await publish(result, processId);
       }
       if (offset === context.args.length) {
-        const result = await jobs!.wait(undefined, { signal: context.signal });
+        const result = await ordinaryWait();
+        if (result.kind === "interrupted") return result.status;
         children.clear();
-        return status(result.outcome);
+        return status(result.value.outcome);
       }
-      let result = 0;
-      let returnedProcessId: number | undefined;
-      for (; offset < context.args.length; offset++) {
-        context.signal.throwIfAborted();
-        const operand = context.args[offset]!;
-        const raw = context.argumentValues[offset]!;
-        const processId = waitProcessId(operand);
-        returnedProcessId = undefined;
-        if (processId === undefined) {
-          await context.diagnostic(concatShellValues(["wait: `", raw, "': not a pid or valid job spec"]));
-          if (operand.length && operand[0]! >= "0" && operand[0]! <= "9") return 1;
-          result = 1;
-          continue;
+      const waitOperands = async (signal: AbortSignal) => {
+        let result = 0;
+        let returnedProcessId: number | undefined;
+        for (; offset < context.args.length; offset++) {
+          signal.throwIfAborted();
+          const operand = context.args[offset]!;
+          const raw = context.argumentValues[offset]!;
+          const processId = waitProcessId(operand);
+          returnedProcessId = undefined;
+          if (processId === undefined) {
+            await context.diagnostic(concatShellValues(["wait: `", raw, "': not a pid or valid job spec"]));
+            if (operand.length && operand[0]! >= "0" && operand[0]! <= "9") return { result: 1, processId: undefined };
+            result = 1;
+            continue;
+          }
+          const handle = children.get(processId);
+          if (!handle) {
+            await context.diagnostic(`wait: pid ${processId} is not a child of this shell`);
+            result = 127;
+          } else {
+            const waited = await jobs!.wait([{ handle }], { signal });
+            result = status(waited.outcome);
+            returnedProcessId = processId;
+          }
         }
-        const handle = children.get(processId);
-        if (!handle) {
-          await context.diagnostic(`wait: pid ${processId} is not a child of this shell`);
-          result = 127;
-        } else {
-          result = status((await jobs!.wait([{ handle }], { signal: context.signal })).outcome);
-          returnedProcessId = processId;
-        }
-      }
-      return await publish(result, returnedProcessId);
+        return { result, processId: returnedProcessId };
+      };
+      const waited = context.waitInterruptibly
+        ? await context.waitInterruptibly(waitOperands)
+        : { kind: "completed" as const, value: await waitOperands(context.signal) };
+      if (waited.kind === "interrupted") return waited.status;
+      return await publish(waited.value.result, waited.value.processId);
     };
     let result = 0;
     try { result = await execute(); }

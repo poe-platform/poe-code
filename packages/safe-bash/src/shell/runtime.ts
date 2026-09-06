@@ -1902,9 +1902,10 @@ export class Runtime {
     let input: ShellExtensionInput | undefined;
     const createBindings = this.extensionBindings.bind(this, state, io);
     const createInput = this.extensionInput.bind(this, state, io);
+    const signal = AbortSignal.any([this.signal, this.budget.executionCleanup.controller.signal]);
     return {
       command, args, argumentValues, status: state.status, functionDepth: state.functionDepth, sourceDepth: state.sourceDepth ?? 0,
-      stdin: io.stdin, stdout: io.stdout, stderr: io.stderr, signal: AbortSignal.any([this.signal, this.budget.executionCleanup.controller.signal]), scope: frame,
+      stdin: io.stdin, stdout: io.stdout, stderr: io.stderr, signal, scope: frame,
       get bindings() { return bindings ??= createBindings(); },
       get input() { return input ??= createInput(); },
       variable: name => state.variables[name],
@@ -1934,6 +1935,38 @@ export class Runtime {
       registerExecutionCleanup: cleanup => {
         this.budget.executionCleanup.register(cleanup);
         return AbortSignal.any([this.commandSignal, this.budget.signal, this.budget.executionCleanup.controller.signal]);
+      },
+      interruptWait: status => {
+        validateExitCode(status);
+        return !signal.aborted && (frame.waiting?.(status) ?? false);
+      },
+      waitInterruptibly: async operation => {
+        signal.throwIfAborted();
+        const scope = io[invocationScope];
+        scope.assertOpen();
+        if (typeof operation !== "function") throw new TypeError("Cooperative wait requires a callable operation");
+        if (frame.waiting) throw new Error("A cooperative wait is already active in this shell scope");
+        const controller = new AbortController();
+        const reason = Object.freeze({});
+        let interruption: { status: number } | undefined;
+        const interrupt = (status: number): boolean => {
+          if (interruption || signal.aborted || scope.signal.aborted) return false;
+          interruption = { status };
+          controller.abort(reason);
+          return true;
+        };
+        const close = (): void => { if (frame.waiting === interrupt) delete frame.waiting; };
+        scope.register(close);
+        frame.waiting = interrupt;
+        try {
+          const value = await scope.run(() => operation(AbortSignal.any([signal, scope.signal, controller.signal])));
+          signal.throwIfAborted();
+          return { kind: "completed", value };
+        } catch (error) {
+          signal.throwIfAborted();
+          if (interruption && error === reason) return { kind: "interrupted", status: interruption.status };
+          throw error;
+        } finally { close(); }
       },
     };
   }

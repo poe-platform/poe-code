@@ -94,6 +94,10 @@ export interface ShellExtensionContext {
   diagnostic(message: ShellValue): Promise<void>;
   registerCleanup(cleanup: () => void | Promise<void>): void;
   registerExecutionCleanup?(cleanup: () => void | Promise<void>): AbortSignal;
+  interruptWait?(status: number): boolean;
+  waitInterruptibly?<Value>(operation: (signal: AbortSignal) => Promise<Value>): Promise<
+    Readonly<{ kind: "completed"; value: Value } | { kind: "interrupted"; status: number }>
+  >;
 }
 
 export interface ShellExtensionBuiltin {
@@ -167,6 +171,7 @@ export interface ShellExtensionState {
   exiting?: boolean;
   started?: boolean;
   eventDepth?: number;
+  waiting?: (status: number) => boolean;
   readonly cleanup: (() => Promise<void>)[];
 }
 

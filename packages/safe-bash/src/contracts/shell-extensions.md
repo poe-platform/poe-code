@@ -10,6 +10,62 @@ extension builtin names still reject, even when replacement is requested.
 Direct dispatch and the `command`, `builtin` and `type` lookup paths honor the
 installed replacement without enabling optional command implementations.
 
+## Cooperative wait interruption
+
+Runtime contexts provide optional `waitInterruptibly(operation)` and
+`interruptWait(status)` capabilities. They are optional in the structural context
+type so existing manually supplied extension hosts remain compatible. A host
+without them retains its noninterruptible wait behavior.
+
+`waitInterruptibly` admits one cooperative operation in the current extension
+scope. Cleanup is registered before publishing its interruption receiver or
+starting work. The operation receives a local cancellation signal, combined
+with execution and invocation cancellation; it must settle and retire its own
+listeners when that signal aborts. Registered work is drained before settlement.
+This does not preempt opaque work or cancel a background-child owner.
+
+`interruptWait` accepts an integer shell status from zero through 255. It returns
+false without an active wait, after cancellation, or after the first accepted
+interruption. It affects only the current extension scope; forks do not inherit
+an active receiver. A completed operation returns `{ kind: "completed", value }`.
+Only rejection with that operation's private interruption reason returns
+`{ kind: "interrupted", status }`. Other escaping failures, including falsey
+values, retain their identity. Root cancellation takes precedence. Receivers
+retire on settlement and invocation cleanup; there is no global signal registry.
+
+The optional jobs leaf uses this capability for ordinary waits and pending
+`wait -n` selection. An interrupted next wait returns before status/PID publication;
+its early-unbound scalar `-p` destination stays unset, and children retain their
+owners. An indexed reference retains existing elements: textual-name unbinding
+does not perform element removal.
+The optional trap leaf requests interruption only for an active, nonempty named
+signal action, using its explicit catalog and eight-bit shell status arithmetic.
+Ignored and unhandled signals do not interrupt. Pending actions retain the
+existing safe-point dispatcher rather than introducing command-name branches or
+new checkpoint events. Neither capability enables jobs or traps by default.
+
+The bounded source qualification is a single live child, one numeric ordinary
+wait, and virtual USR1/USR2 numbers 30/31: interrupted status 158/159, one trap
+before parent continuation, live child ownership, and a later status of seven.
+It retains the historical Bash 5.2.37 witness but replaces native IPC and signals
+with an owned VFS gate and observed wait-listener admission. This is not native
+job control, arbitrary host-work interruption, or broader wait-option parity.
+WF1 adds admitted source controls for next-wait/no-operand/explicit/multiple-target
+forms, `-p`, negation and later ordinary operands under virtual USR1=30. Completion
+and interruption ordering, falsey failures and cancellation preserve the generic
+bridge contract above; they do not establish native race timing. The declaration
+surface is unchanged, and fresh compiled acceptance is a separate pending gate.
+
+The destination/transition follow-up covers mutable and readonly indexed `-p`
+references with handled and ignored signals, and early readonly scalar/whole-array
+refusal with a queued action. An interrupted indexed wait skips PID assignment;
+it does not clear the array. Without interruption, readonly indexed assignment
+still refuses at publication. Ordinary explicit operands share one interruption
+scope, so a signal received after an earlier completion remains effective before
+the next operand. Pending actions may replace, ignore or remove their disposition
+for a subsequent wait. These are bounded admitted source controls, not fresh
+native timing or a complete option/reference/action cross-product qualification.
+
 ## Optional syntax
 
 An extension may declare `syntax: { arrayKeys: true }` to enable indexed-key

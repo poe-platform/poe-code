@@ -151,7 +151,8 @@ class Scanner {
         } else {
           this.visitDefaultExportSignature(node.declaration);
         }
-        this.visitExpression(node.declaration);
+        if (node.declaration.type === "ClassDeclaration") this.visitStatement(node.declaration);
+        else this.visitExpression(node.declaration);
         return;
       case "BlockStatement":
         for (const statement of node.body) {
@@ -508,7 +509,7 @@ class Scanner {
 }
 
 function isDefaultExportCallable(
-  node: Expression
+  node: Expression | import("../../parse/parser.js").ClassDeclaration
 ): node is Extract<Expression, { type: "ArrowFunctionExpression" }> | FunctionExpression {
   return node.type === "ArrowFunctionExpression" || node.type === "FunctionExpression";
 }

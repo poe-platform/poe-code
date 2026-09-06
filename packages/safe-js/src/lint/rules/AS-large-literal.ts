@@ -126,7 +126,8 @@ class ASLargeLiteralScanner {
         this.visitVariableDeclaration(node.declaration);
         return;
       case "ExportDefaultDeclaration":
-        this.visitExpression(node.declaration);
+        if (node.declaration.type === "ClassDeclaration") this.visitStatement(node.declaration);
+        else this.visitExpression(node.declaration);
         return;
       case "ImportDeclaration":
       case "BreakStatement":

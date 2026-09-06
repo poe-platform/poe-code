@@ -1229,12 +1229,16 @@ async function evaluateExportDefaultDeclaration(
   node: ExportDefaultDeclaration,
   context: EvaluationContext
 ): Promise<EvaluationResult> {
-  const declaration = await evaluateNode(node.declaration, context);
+  const declaration = await evaluateNode(node.declaration, { ...context, inferredName: "default" });
   if (declaration.kind !== "normal") {
     return declaration;
   }
 
-  context.scope.declare("default", "const", declaration.value);
+  if (node.declaration.type === "ClassDeclaration") {
+    context.scope.declareAlias("default", node.declaration.id.name);
+  } else {
+    context.scope.declare("default", "const", declaration.value);
+  }
 
   return {
     kind: "normal",
@@ -1545,6 +1549,11 @@ function predeclareStatementListBindings(
   const names = new Set<string>();
 
   for (const statement of statements) {
+    if (statement.type === "ExportDefaultDeclaration" && statement.declaration.type === "ClassDeclaration") {
+      scope.predeclare(statement.declaration.id.name, "let");
+      names.add(statement.declaration.id.name);
+      continue;
+    }
     if (statement.type === "ClassDeclaration") {
       scope.predeclare(statement.id.name, "let");
       names.add(statement.id.name);

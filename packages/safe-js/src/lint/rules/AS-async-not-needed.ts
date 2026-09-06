@@ -151,7 +151,8 @@ class ASAsyncNotNeededScanner {
           this.visitFunctionExpression(node.declaration, true);
           return;
         }
-        this.visitExpression(node.declaration);
+        if (node.declaration.type === "ClassDeclaration") this.visitStatement(node.declaration);
+        else this.visitExpression(node.declaration);
         return;
       case "ImportDeclaration":
       case "BreakStatement":
@@ -594,7 +595,9 @@ function statementContainsAwait(node: Statement): boolean {
     case "ExportNamedDeclaration":
       return variableDeclarationContainsAwait(node.declaration);
     case "ExportDefaultDeclaration":
-      return expressionContainsAwait(node.declaration);
+      return node.declaration.type === "ClassDeclaration"
+        ? statementContainsAwait(node.declaration)
+        : expressionContainsAwait(node.declaration);
     case "ImportDeclaration":
     case "FunctionDeclaration":
     case "BreakStatement":

@@ -148,7 +148,8 @@ class AS003Scanner {
         this.visitVariableDeclaration(node.declaration);
         return;
       case "ExportDefaultDeclaration":
-        this.visitExpression(node.declaration);
+        if (node.declaration.type === "ClassDeclaration") this.visitStatement(node.declaration);
+        else this.visitExpression(node.declaration);
         return;
       case "ImportDeclaration":
       case "BreakStatement":
@@ -626,6 +627,10 @@ class AS003Scanner {
       bindings.push(...this.collectDeclarationBindings(declaration));
     }
     for (const statement of body) {
+      if (statement.type === "ExportDefaultDeclaration" && statement.declaration.type === "ClassDeclaration") {
+        bindings.push({ kind: "let", name: statement.declaration.id.name });
+        continue;
+      }
       if (statement.type === "ImportDeclaration") {
         bindings.push(...this.collectImportBindings(statement));
         continue;

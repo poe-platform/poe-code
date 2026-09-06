@@ -1639,10 +1639,8 @@ class Parser {
     this.index += 1;
 
     if (this.currentToken().value === "class") {
-      throw new DisallowedSyntaxError(
-        `export default ${this.currentToken().value}`,
-        this.currentToken().start
-      );
+      const named = isIdentifierLikeToken(this.peekToken(1)) && this.peekToken(1).value !== "extends";
+      return createExportDefaultDeclaration(exportToken, this.parseClass(named));
     }
 
     const declaration = this.parseExpression().node;

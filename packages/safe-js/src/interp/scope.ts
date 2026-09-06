@@ -125,10 +125,15 @@ export class Scope {
       throw new Error(`Cannot redeclare binding '${name}' in the same scope.`);
     }
 
-    this.#bindings.set(name, {
-      kind,
-      value
-    });
+    if (existing !== undefined) existing.value = value;
+    else this.#bindings.set(name, { kind, value });
+  }
+
+  declareAlias(name: string, target: string): void {
+    if (this.#bindings.has(name)) throw new Error(`Cannot redeclare binding '${name}' in the same scope.`);
+    const binding = this.#bindings.get(target);
+    if (binding === undefined) throw new ReferenceError(`Identifier '${target}' is not defined.`);
+    this.#bindings.set(name, binding);
   }
 
   declareVar(name: string): void {
@@ -185,10 +190,7 @@ export class Scope {
       throw new TypeError(`Cannot assign to const binding '${name}'.`);
     }
 
-    scope.#bindings.set(name, {
-      kind: binding.kind,
-      value
-    });
+    binding.value = value;
   }
 
   lookup(name: string): ScopeLookupResult {
@@ -247,10 +249,9 @@ export class Scope {
         continue;
       }
 
-      targetScope.#bindings.set(name, {
-        kind: sourceBinding.kind,
-        value: sourceBinding.value
-      });
+      const targetBinding = targetScope.#bindings.get(name)!;
+      targetBinding.kind = sourceBinding.kind;
+      targetBinding.value = sourceBinding.value;
     }
   }
 

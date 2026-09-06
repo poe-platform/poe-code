@@ -3478,7 +3478,7 @@ Generator scoped workflow 34013496165 published
 `@poe-platform/safe-js@0.1.144` at 05:18:22 UTC on September 6. Its CLI
 workflow 34013496214 remains in progress and is tracked separately.
 
-### 59. Object method names — validated implementation under qualification
+### 59. Object method names — closed on remote main
 
 Native comparisons reproduced ten failures with two passing controls: ordinary,
 async, generator, computed, numeric, quoted, prototype-named and reserved-key
@@ -3502,3 +3502,85 @@ The normal build and real harness passed. The inspected screenshot shows names
 read/load/items/computed name, results [7, 8, 9], and the native name descriptor
 (non-writable, non-enumerable, configurable), with zero spawns. This fix is ready
 for its own atomic main push.
+
+Delivery is verified on remote main at
+9bb3db5d3907f8637fc69d491c0b4dccdb8593f7. Close this scope at main delivery;
+publication monitoring continues independently. Default class exports remain
+the next native-validated language gap.
+
+Name-fix workflows 34013679280 (scoped) and 34013679370 (CLI) are under
+monitoring. Generator CLI run 34013496214 was canceled, not published; the
+new descendant CLI release must provide publication coverage for these fixes.
+
+### 60. Default class exports — validated implementation under qualification
+
+Native ESM imports reproduce twelve failures with six passing controls after
+correcting the test fixture to pass a program BlockStatement to interpret.
+Bare default classes are rejected; parenthesized anonymous defaults also lack
+their required default name. Named exports must create a lexical outer binding,
+respect its temporal dead zone, and keep the default export live after reassignment.
+
+The parser now represents named default classes as declarations, with anonymous
+classes evaluated as class expressions named default. Export evaluation creates
+a live alias for named declarations. Scope binding cells preserve identity across
+initialization, assignment and initialized-binding copies so aliases stay current.
+All eighteen runtime/native cases pass. Two initial cross-interpreter method-call
+fixtures hit the existing operation-ownership guard; their class-body observations
+now execute inside the defining module, matching the native module fixtures.
+
+The exported AST union and extraction helper include class declarations. Lint
+visitors dispatch these declarations through existing class traversal, and named
+module bindings are visible to reference analysis. Dedicated traversal, extraction
+and alias tests supplement the runtime cases. The obsolete parser rejection
+fixture now checks the declaration AST. The skill template explains module support
+while retaining the callable-function requirement for harness entry points, and
+skills were synced. Full repository checks are required before this broad change
+is committed and pushed; portable class snapshots and private elements remain open.
+
+Full qualification on the original base passed: 33,263 shared unit tests (43
+skipped), 29 Python checks, 279 Bash-runner checks, 19,981 Bash tests (63 skipped),
+288 shell stress tests and two lint stress tests. Repository ESLint covered 9,797
+files with zero errors/warnings; root types and workflow lint passed. Ten persistent
+realm probes retained the class payload (at least 750 bytes) and released every
+retained root on close.
+
+Remote main advanced independently through Bash/filesystem fixes to
+eff72fa252a36a5867c27553967fd255799fdb94. A checked three-way index integration
+and compare-and-swap forward ref update synchronized main without stashing or
+discarding local edits. The user's staged patch ID remained
+d770ec782b2a4ae7e2580e63ded765933890a1c5, and the SafeJS diff remained byte-identical.
+Focused SafeJS, harness, filesystem and root-type checks requalify this integration
+before the normal build and public API screenshot QA.
+
+The name-fix CLI workflow 34013679370 finished green but semantic-release explicitly
+declined publication at 05:31:52 UTC because its branch was behind remote main.
+This is not a CLI release. Descendant CLI workflow 34014179895 is under observation;
+SafeJS scoped 0.1.145 remains the latest verified package publication.
+
+Read-only native probes confirmed two follow-up gaps: named default functions lack
+outer bindings/hoisting, and anonymous functions/arrows lack inferred names in
+variables, assignments, defaults, properties and class fields. Explicit function
+names and comma-expression controls pass. Keep these as separate validated work.
+
+Manual QA: build through npm run build; run the built public API against anonymous
+default names, named class construction, temporal-dead-zone errors and a named
+default class reassigned to a callable entry point. Render those actual probe
+results with the maintained screenshot command and inspect the PNG. Verify that
+an unreassigned class remains rejected as a harness entry point, since classes
+are not callable without new. Do not create a standalone QA script.
+
+Synced qualification passed: 13,403 maintained SafeJS tests (41 skipped), 163
+harness tests, 1,184 filesystem tests, focused ESLint and root types. Safe-fs has
+no npm test script; that attempted route reported a missing script, so its tests
+were run through the maintained Vitest configuration and directory instead.
+An additional checkpoint case brings the dedicated class/alias cohort to 25
+passing tests: after replacing the class with an ordinary function before the
+checkpoint, the live export sees another reassignment after resume. This does
+not claim that class descriptor state is portably serializable.
+
+The normal workspace build passed. The built public API and inspected screenshot
+confirm default naming, construction result 7, ReferenceError before initialization,
+and live callable reassignment result 7. Calling an unreassigned class is correctly
+rejected with TypeError; the first probe expected a returned failure instead of
+a rejected promise, and was corrected without changing runtime code. This atomic
+increment is qualified for its own main commit and push.

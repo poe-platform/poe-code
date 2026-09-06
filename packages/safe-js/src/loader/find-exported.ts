@@ -1,6 +1,6 @@
-import type { Expression, Module } from "../parse/parser.js";
+import type { ClassDeclaration, Expression, Module } from "../parse/parser.js";
 
-export function findExportedConstInitializer(module: Module, name: string): Expression | undefined {
+export function findExportedConstInitializer(module: Module, name: string): Expression | ClassDeclaration | undefined {
   for (const statement of module.body) {
     if (statement.type === "ExportDefaultDeclaration") {
       if (name === "default") {

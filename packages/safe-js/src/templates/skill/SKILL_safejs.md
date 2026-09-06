@@ -91,7 +91,9 @@ Public classes support constructors, instance/static methods and fields, static
 blocks, getters/setters, inheritance, `super`, and `new.target`. Getter/setter
 properties also work in object literals and through `Object.defineProperty` or
 `Object.defineProperties`; accessor objects cannot yet be copied as data or
-portably snapshotted. Private elements and default class exports remain unsupported;
+portably snapshotted. Module evaluation supports default class exports, including
+anonymous names and live named bindings; harness entry points must still be callable
+functions, not classes. Private elements remain unsupported;
 built-in inheritance and portable custom-prototype snapshots remain incomplete.
 
 Top-level `await` also works inside control-flow blocks. `new Map(...)`,

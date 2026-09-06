@@ -696,6 +696,19 @@ function budgetSandboxValue(value: SandboxValue, budget: Budget): SandboxValue {
   return value;
 }
 
+export function prepareAwaitedPromise(
+  value: SandboxPromise,
+  budget: Budget,
+  context?: SandboxCallContext
+): SandboxPromise | Promise<SandboxPromise> {
+  if (!intrinsicPromiseConstructors.has(budget)) createPromiseGlobals({ budget });
+  const constructor = intrinsicPromiseConstructors.get(budget)!;
+  const actualConstructor = readPromiseProperty(value, "constructor", getPromisePrototype(budget), budget, context);
+  const finish = (actual: SandboxValue) => actual === constructor ? value
+    : createSandboxPromise(resolveSandboxValue(value, { budget, context }), { trackReplay: false });
+  return actualConstructor instanceof Promise ? actualConstructor.then(finish) : finish(actualConstructor);
+}
+
 export function resolveSandboxValue(
   value: SandboxValue | Promise<SandboxValue> | PromiseLike<SandboxValue>,
   options: { budget?: Budget; self?: SandboxPromise; context?: SandboxCallContext } = {}

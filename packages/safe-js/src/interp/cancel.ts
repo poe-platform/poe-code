@@ -21,7 +21,7 @@ import {
   trackSandboxPromise
 } from "./promise-tracker.js";
 import { replaceErrorStack } from "../error/shape.js";
-import { consumeSettledHostCall, resolveSandboxValue } from "./promise.js";
+import { consumeSettledHostCall, prepareAwaitedPromise, resolveSandboxValue } from "./promise.js";
 import type { Budget } from "./budget.js";
 
 const activeCancellation = new AsyncLocalStorage<{ signal?: AbortSignal; host: boolean }>();
@@ -141,14 +141,16 @@ export function awaitSandboxValue(
   budget?: Budget,
   context?: SandboxCallContext
 ): Promise<SandboxValue> {
-  let resolved: Promise<SandboxValue>;
-  if (isSandboxPromise(value)) {
+  if (!isSandboxPromise(value)) {
+    return interruptOnFatalPromiseRejection(awaitWithSignal(resolveSandboxValue(value, { budget, context }), signal));
+  }
+  const observe = (value: SandboxPromise): Promise<SandboxValue> => {
     observeSandboxPromise(value);
     const outcome =
       signal === undefined
         ? value.promise
         : (cancelableOutcomes.get(value)?.get(signal) ?? value.promise);
-    resolved = new Promise((resolve, reject) => {
+    const resolved = new Promise<SandboxValue>((resolve, reject) => {
       const detach = onFatalPromiseRejection(reject);
       const complete = (state: "fulfilled" | "rejected", result: unknown) => {
         detach?.();
@@ -165,16 +167,20 @@ export function awaitSandboxValue(
         (reason: unknown) => complete("rejected", reason)
       );
     });
-  } else {
-    resolved = resolveSandboxValue(value, { budget, context });
-  }
-  const pending =
-    isSandboxPromise(value) &&
-    (value.synchronousPrefix !== undefined ||
+    return (value.synchronousPrefix !== undefined ||
       (signal !== undefined && cancelableOutcomes.get(value)?.has(signal)))
       ? resolved
       : awaitWithSignal(resolved, signal);
-  return isSandboxPromise(value) ? pending : interruptOnFatalPromiseRejection(pending);
+  };
+  try {
+    assertPromiseExecutionAllowed();
+    const prepared = budget === undefined ? value : prepareAwaitedPromise(value, budget, context);
+    return prepared instanceof Promise
+      ? interruptOnFatalPromiseRejection(awaitWithSignal(prepared.then(observe), signal))
+      : observe(prepared);
+  } catch (error) {
+    return Promise.reject(error);
+  }
 }
 
 export function awaitWithSignal<T>(promise: PromiseLike<T>, signal?: AbortSignal): Promise<T> {

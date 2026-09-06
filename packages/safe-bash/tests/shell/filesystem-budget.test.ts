@@ -436,9 +436,8 @@ test("budget failure drains a late handle acquisition and gated close before set
   filesystem.openReadFile = () => { entered.resolve(); return acquisition.promise; };
   const { shell, commands } = fixture(context, 1, filesystem);
   commands.register({ name: "late", async execute({ fs, registerCleanup }) {
-    let pending: Promise<FileReadHandle> | undefined;
-    registerCleanup!(async () => { await (await pending)?.close(); });
-    pending = fs.openReadFile!("/data");
+    registerCleanup!(async () => { await (await pending).close(); });
+    const pending = fs.openReadFile!("/data");
     await entered.promise;
     await fs.stat("/");
     return { exitCode: 0 };

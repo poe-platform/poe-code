@@ -120,9 +120,11 @@ test("cancelled stream cleanup preserves its primary falsey reason", async () =>
   let returned = 0;
   const original = {
     capabilities: {},
-    readStream: () => ({ async *[Symbol.asyncIterator]() {
-      try { yield new Uint8Array([1]); }
-      finally { returned++; throw 0; }
+    readStream: () => ({ [Symbol.asyncIterator]() {
+      return {
+        async next() { return { done: false, value: new Uint8Array([1]) }; },
+        async return() { returned++; throw 0; },
+      };
     } }),
   } as unknown as FileSystem;
   const scoped = scopeFileSystem(original, () => {}, controller.signal);

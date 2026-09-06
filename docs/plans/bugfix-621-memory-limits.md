@@ -1,6 +1,7 @@
 # Issue 621: bounded persistent Memory storage and filesystem work
 
-Author: kamilio. Status: implementation and fresh TDD in progress.
+Author: kamilio. Status: implementation and local validation complete; remote
+delivery and publication are verified separately.
 
 ## Evidence and intended correction
 
@@ -169,3 +170,12 @@ Shell/lifecycle controls, build, maintained types and root lint. Upstream-only
 SafeJS changes are checked separately after rebase. This is a full-base plus
 focused-final-delta qualification, not a claim that the earlier full run tested
 the later barrier fix.
+
+Final delivery checks passed: normal build, filesystem types, all 26 maintained
+Bash consumer groups, 1,504 filesystem tests, 434 affected public Shell/lifecycle
+tests and 16,080 upstream SafeJS tests (41 skipped). Root lint initially found
+two test-fixture style errors; cleanup assertions and acquisition ordering were
+preserved while making the fixtures lint-clean. Their focused reruns passed
+30 filesystem-scope and 52 Shell-budget tests, then maintained types, full root
+lint, all 17 package rules and the built-public visual smoke passed. The earlier
+PNG was inspected; final smoke still verifies the same diagnostics and effects.

@@ -158,18 +158,26 @@ describe("AS001", () => {
     expect(AS001("value / total")).toEqual([]);
   });
 
-  it("reports generator shorthand methods", () => {
-    expect(AS001("const object = { *items() {} };")).toEqual([
+  it.each([
+    "const object = { *items() {} };",
+    'const object = { *["items"]() {} };',
+    "class Collection { *items() {} }"
+  ])("admits synchronous generator methods: %s", (source) => {
+    expect(AS001(source)).toEqual([]);
+  });
+
+  it("reports async generator shorthand methods", () => {
+    expect(AS001("const object = { async *items() {} };")).toEqual([
       {
         code: "AS001",
         severity: "error",
         message: "Disallowed syntax: generator.",
         filename: "<input>",
         line: 1,
-        column: 18,
+        column: 24,
         span: {
-          start: { line: 1, column: 18, offset: 17 },
-          end: { line: 1, column: 19, offset: 18 }
+          start: { line: 1, column: 24, offset: 23 },
+          end: { line: 1, column: 25, offset: 24 }
         }
       }
     ]);

@@ -3374,7 +3374,7 @@ CLI workflow 34003054179 published `poe-code@14.0.66` at 01:19:45 UTC;
 remote tag v14.0.66 resolves to that exact commit. This publication also contains
 the preceding descriptor, class-accessor and object-method-super changes.
 
-### 57. Object literal accessors — validated implementation under qualification
+### 57. Object literal accessors — closed on remote main
 
 Native comparisons reproduced 53 failures with 19 passing controls before
 implementation. The parser now accepts getter/setter literal definitions and
@@ -3406,3 +3406,61 @@ skill validation also passes. This increment is ready for its own main push.
 Next validated gap: ordinary and computed generator object methods both reject
 at parsing in SafeJS; native controls yield [7, 8] and 7 respectively. Preserve
 that as a separate TDD increment after delivering object accessors.
+
+Accessor delivery is verified on remote main as
+2fd3f576808bb1f957f264144b55ef481a199209. Close this scope now, without
+waiting for publication. Scoped workflow 34013210176 and CLI workflow
+34013210314 are running and monitored while generator work continues.
+
+Scoped workflow 34013210176 published `@poe-platform/safe-js@0.1.143` at
+05:12:11 UTC on September 6. The CLI workflow is still in progress; scoped
+publication is verified separately from that pending CLI release.
+
+### 58. Generator object methods — validated implementation under qualification
+
+Native comparisons reproduced 22 failures with eight passing controls for
+ordinary/computed/quoted/numeric/reserved generator method definitions,
+receivers, lazy execution, sent values, delegation, super, completion cleanup,
+parameter binding, source and prototype-named methods. Enabling the existing
+generator function path in object-method parsing makes all 30 cases pass,
+without adding another interpreter execution path. Native-invalid star data
+properties, accessors, parameter yields and nested yields remain rejected.
+Async generators remain an explicit outstanding gap across all definition forms.
+
+Old synchronous-generator rejection fixtures now accept the implemented syntax;
+async exclusions are retained. Add checkpoint coverage before the maintained
+checks, normal build, zero-spawn harness and screenshot qualification.
+
+The initial checkpoint fixture concretely reconfirmed the known custom-prototype
+serialization rejection. A suspended generator method with an ordinary home
+object restores successfully, then observes a prototype change after resume;
+all 31 dedicated cases pass. Custom-prototype serialization remains open and
+was not bypassed or declared supported by this parser increment.
+
+Maintained checks passed: 13,360 SafeJS tests (41 skipped), 163 harness tests,
+focused ESLint and package/root TypeScript. Skill sync and validation pass.
+The normal build and screenshot QA are in progress before this atomic push.
+
+Two further native-validated gaps remain: default anonymous/named class exports
+are explicitly rejected by the parser; ordinary, async and generator object
+methods expose an empty function name where native exposes the property name.
+The latter affects existing method kinds too and needs its own regression-backed
+metadata fix. Neither is claimed fixed by generator syntax support.
+
+The first generator harness screenshot failed with AS001 generator diagnostics,
+despite successful runtime tests: the admission scanner still rejected synchronous
+method stars. Restrict that diagnostic to async methods, retaining their unsupported
+status, and cover ordinary/computed/class synchronous methods plus async rejection.
+The integration assertion was corrected to use lint's diagnostic-array API.
+Requalify the entire lint suite, dedicated runtime suite and maintained harness
+suite, then rebuild and inspect the screenshot again before delivery.
+
+The corrected integration/lint cohort passes all 559 cases and the maintained
+harness suite passes 163 tests. Changed-file ESLint and package types pass again.
+The separate method-name regression suite reproduces ten failures with two
+passing controls; it remains local next-issue work, excluded from this increment.
+
+The rebuilt harness now passes. Its inspected screenshot shows values [7, 8],
+borrowed-receiver values [7, 10], first yield 7 and sent completion 8, with zero
+spawns. The normal build also passed. Generator method syntax and admission are
+ready for their own commit/main push; method-name metadata remains the next fix.

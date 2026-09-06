@@ -3177,15 +3177,17 @@ class Parser {
             this.peekToken(1).value === "*"
           ? this.peekToken(1)
           : undefined;
-    if (generatorToken !== undefined) {
+    if (generatorToken !== undefined && this.currentToken().value !== "*") {
       throw new Error(
         `Generator shorthand methods are not supported at line ${generatorToken.start.line}, column ${generatorToken.start.column}.`
       );
     }
+    if (generatorToken !== undefined) this.index++;
 
     let accessor: "get" | "set" | undefined;
     let accessorStart: Position | undefined;
     if (
+      generatorToken === undefined &&
       this.currentToken().type === "identifier" &&
       (this.currentToken().value === "get" || this.currentToken().value === "set") &&
       this.isObjectMethodStart()
@@ -3200,6 +3202,7 @@ class Parser {
 
     const modifierToken = this.currentToken();
     const asyncToken =
+      generatorToken === undefined &&
       modifierToken.type === "keyword" &&
       modifierToken.value === "async" &&
       modifierToken.end.offset - modifierToken.start.offset === modifierToken.value.length &&
@@ -3216,7 +3219,7 @@ class Parser {
       const key = this.parseExpression();
       this.expectPunctuator("]");
       if (this.currentToken().type === "punctuator" && this.currentToken().value === "(") {
-        const value = this.parseObjectMethod(asyncToken, accessorStart ?? propertyStart.start, accessor);
+        const value = this.parseObjectMethod(asyncToken, accessorStart ?? propertyStart.start, accessor, generatorToken);
         return {
           type: "Property",
           ...(accessor === undefined ? {} : { kind: accessor }),
@@ -3227,6 +3230,7 @@ class Parser {
           span: createSpan(value.span.start, value.span.end)
         };
       }
+      if (generatorToken !== undefined) throw unexpectedTokenError(this.currentToken());
       this.expectPunctuator(":");
       const value = this.parseExpression();
       return {
@@ -3244,7 +3248,7 @@ class Parser {
       this.index += 1;
       const key = createIdentifierName(token);
       if (this.currentToken().type === "punctuator" && this.currentToken().value === "(") {
-        const value = this.parseObjectMethod(asyncToken, accessorStart ?? key.span.start, accessor);
+        const value = this.parseObjectMethod(asyncToken, accessorStart ?? key.span.start, accessor, generatorToken);
         return {
           type: "Property",
           ...(accessor === undefined ? {} : { kind: accessor }),
@@ -3255,6 +3259,7 @@ class Parser {
           span: createSpan(value.span.start, value.span.end)
         };
       }
+      if (generatorToken !== undefined) throw unexpectedTokenError(this.currentToken());
       if (this.consumePunctuator(":") === undefined) {
         if (!isIdentifierLikeToken(token)) throw unexpectedTokenError(token);
         assertAllowedIdentifierReference(token);
@@ -3282,7 +3287,7 @@ class Parser {
       this.index += 1;
       const key = createLiteralFromToken(token);
       if (this.currentToken().type === "punctuator" && this.currentToken().value === "(") {
-        const value = this.parseObjectMethod(asyncToken, accessorStart ?? key.span.start, accessor);
+        const value = this.parseObjectMethod(asyncToken, accessorStart ?? key.span.start, accessor, generatorToken);
         return {
           type: "Property",
           ...(accessor === undefined ? {} : { kind: accessor }),
@@ -3293,6 +3298,7 @@ class Parser {
           span: createSpan(value.span.start, value.span.end)
         };
       }
+      if (generatorToken !== undefined) throw unexpectedTokenError(this.currentToken());
       this.expectPunctuator(":");
       const value = this.parseExpression();
       return {
@@ -3343,9 +3349,10 @@ class Parser {
   private parseObjectMethod(
     asyncToken: Token | undefined,
     methodStart: Position,
-    accessor?: "get" | "set"
+    accessor?: "get" | "set",
+    generatorToken?: Token
   ): FunctionExpression {
-    const { params, body } = this.parseFunctionParts(false, {
+    const { params, body } = this.parseFunctionParts(generatorToken !== undefined, {
       ...ordinaryFunctionContext,
       superProperty: true,
       ...(accessor === undefined ? {} : { await: false, strictAwait: true })
@@ -3355,11 +3362,11 @@ class Parser {
       type: "FunctionExpression",
       async: asyncToken !== undefined,
       body,
-      generator: false,
+      generator: generatorToken !== undefined,
       id: undefined,
       method: true,
       params,
-      span: createSpan(asyncToken?.start ?? methodStart, body.span.end)
+      span: createSpan(asyncToken?.start ?? generatorToken?.start ?? methodStart, body.span.end)
     });
   }
 

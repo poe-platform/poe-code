@@ -270,6 +270,7 @@ class AS001Scanner {
       if (
         token.type === "punctuator" &&
         token.value === "*" &&
+        previousToken?.value === "async" &&
         isGeneratorMemberToken(previousToken, previousPreviousToken, braceContextStack)
       ) {
         this.report("generator", token.start, token.end);

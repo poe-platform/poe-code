@@ -103,9 +103,7 @@ describe("generator parsing", () => {
     expect(() => parse("async function* values() {}")).toThrowError(
       "async function* is not supported"
     );
-    expect(() => parse("({ *values() {} })")).toThrowError(
-      "Generator shorthand methods are not supported"
-    );
+    expect(() => parse("({ *values() {} })")).not.toThrow();
     expect(() => parse("({ async *values() {} })")).toThrowError(
       "Generator shorthand methods are not supported"
     );

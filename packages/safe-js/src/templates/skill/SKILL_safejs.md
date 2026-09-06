@@ -80,7 +80,7 @@ Frontmatter never grants access. Checkpoints and output may contain granted
 secrets, including historical values retained during replay.
 
 Linted harness files support arrows, ordinary functions (including async
-functions), synchronous generators, closures over `const`, `let`, parameters, and imports,
+functions), synchronous generators (including object methods), closures over `const`, `let`, parameters, and imports,
 `async`/`await`, regex literals, sandbox constructor calls, `const`/`let`/`var`,
 destructuring, spread, optional chaining, nullish coalescing, template
 literals, assignments/member assignment, `if`/`else`, `for`, `for...in`,

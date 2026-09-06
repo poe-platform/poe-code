@@ -475,7 +475,6 @@ describe("parse", () => {
   });
 
   it.each([
-    ["generator", "{ *gen() {} }", "Generator shorthand methods are not supported"],
     ["async generator", "{ async *gen() {} }", "Generator shorthand methods are not supported"],
     ["getter", "{ get value(next) { return 1; } }", "A getter cannot have parameters"],
     ["computed getter", "{ get [value](next) {} }", "A getter cannot have parameters"],

@@ -1,0 +1,24 @@
+import { S } from "schema";
+
+export const schema = S.Object({ title: S.String() });
+
+export default async function main(frontmatter) {
+  const regex = /a/g;
+  const order = [];
+  regex.lastIndex = 3;
+  regex.exec = function(input) {
+    order.push(this.lastIndex, input);
+    this.lastIndex = 9;
+    return { get index() { order.push(regex.lastIndex); return 7; } };
+  };
+  const index = 'a'.search(regex);
+  if (index !== 7 || regex.lastIndex !== 3 || order.join('|') !== '0|a|3')
+    throw new Error('Search restoration order failed');
+  regex.exec = function() { this.lastIndex = 9; throw 'exec'; };
+  let failure;
+  try { 'a'.search(regex); } catch (error) { failure = error; }
+  if (failure !== 'exec' || regex.lastIndex !== 9)
+    throw new Error('Search exception semantics failed');
+  await 0;
+  return { ok: true, title: frontmatter.title, index, order, failure };
+}

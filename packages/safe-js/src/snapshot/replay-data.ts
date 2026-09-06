@@ -47,7 +47,7 @@ type Properties = Record<
   { value: Atom; configurable: boolean; enumerable: boolean; writable: boolean }
 >;
 type DataNode =
-  | { kind: "regexp-iterator"; matcher: Atom; input: Atom; exhausted: boolean; properties: Properties; extensible: boolean; symbolEntries?: Array<SerializedSymbolProperty<Atom>> }
+  | { kind: "regexp-iterator"; matcher: Atom; input: Atom; exhausted: boolean; global?: boolean; unicode?: boolean; properties: Properties; extensible: boolean; symbolEntries?: Array<SerializedSymbolProperty<Atom>> }
   | SerializedSymbol
   | { kind: "boxed"; value: Atom; properties: Properties; extensible: boolean; symbolEntries?: Array<SerializedSymbolProperty<Atom>> }
   | { kind: "collection-iterator"; collectionKind: "map" | "set"; method: CollectionIterationMethod; collection: Atom; index: number; exhausted: boolean; properties: Properties; extensible: boolean }
@@ -182,7 +182,8 @@ export function encodeReplayData(
       }
       let symbolIndex = 0;
       const symbolEntries = serializeSymbolProperties(entry, value => encode(value as SandboxValue, depth + 1, [...path, { symbol: Math.floor(symbolIndex++ / 2) }]));
-      nodes[id] = { kind: "regexp-iterator", matcher: child(snapshot.matcher, "<matcher>"), input: child(snapshot.input, "<input>"), exhausted: snapshot.exhausted, properties, extensible: Object.isExtensible(entry), symbolEntries };
+      nodes[id] = { kind: "regexp-iterator", matcher: child(snapshot.matcher, "<matcher>"), input: child(snapshot.input, "<input>"), exhausted: snapshot.exhausted, properties, extensible: Object.isExtensible(entry), symbolEntries,
+        ...(snapshot.global === undefined ? {} : { global: snapshot.global, unicode: snapshot.unicode }) };
     } else if (isSandboxCollectionIterator(entry)) {
       const snapshot = snapshotCollectionIterator(entry);
       const properties: Properties = Object.create(null);
@@ -409,9 +410,11 @@ export function decodeReplayData(
         restored.set(id, result);
         const matcher = child(own(node, "matcher"));
         const input = child(own(node, "input"));
-        if (matcher !== undefined && !isSandboxRegex(matcher)) throw new TypeError("Invalid replay RegExp iterator matcher.");
+        if ((node.global !== undefined || node.unicode !== undefined) && (typeof node.global !== "boolean" || typeof node.unicode !== "boolean")) throw new TypeError("Invalid replay RegExp iterator modes.");
+        if (matcher !== undefined && (node.global === undefined ? !isSandboxRegex(matcher) : matcher === null || typeof matcher !== "object")) throw new TypeError("Invalid replay RegExp iterator matcher.");
         if (input !== undefined && typeof input !== "string") throw new TypeError("Invalid replay RegExp iterator input.");
-        restoreSandboxRegExpIterator({ matcher, input, exhausted }, result);
+        restoreSandboxRegExpIterator({ matcher, input, exhausted,
+          ...(node.global === undefined ? {} : { global: node.global as boolean, unicode: node.unicode as boolean }) }, result);
         defineProperties(result, record(own(node, "properties")), child, node.symbolEntries);
         if (!node.extensible) Object.preventExtensions(result);
         return result;

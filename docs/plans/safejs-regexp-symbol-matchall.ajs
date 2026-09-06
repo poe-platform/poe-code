@@ -1,0 +1,25 @@
+import { S } from "schema";
+
+export const schema = S.Object({ title: S.String() });
+
+export default async function main(frontmatter) {
+  let calls = 0;
+  const marker = { 0: 'custom', length: 1 };
+  const target = {
+    flags: 'g',
+    lastIndex: 0,
+    constructor: {
+      [Symbol.species]: function () {
+        return { exec() { return ++calls === 1 ? marker : null; } };
+      }
+    }
+  };
+  const iterator = RegExp.prototype[Symbol.matchAll].call(target, 'a');
+  if (calls !== 0) throw new Error('Matcher executed eagerly');
+  if (iterator.next().value !== marker || !iterator.next().done || calls !== 2)
+    throw new Error('Species iterator lost lazy execution or result identity');
+  const indices = Array.from(/a/g[Symbol.matchAll]('aba'), match => match.index);
+  if (indices.join('|') !== '0|2') throw new Error('Default matcher failed');
+  await 0;
+  return { ok: true, title: frontmatter.title, calls, indices };
+}

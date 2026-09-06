@@ -838,7 +838,7 @@ function copyToSandbox(
     const copy = restoreSandboxRegExpIterator({ matcher: undefined, input: undefined, exhausted: true });
     state.seen.set(value, copy);
     const matcher = copyToSandbox(snapshot.matcher, state, `${path}.<matcher>`, true, depth + 1);
-    if (matcher !== undefined && !isSandboxRegex(matcher)) throw new TypeError("Invalid RegExp iterator matcher.");
+    if (matcher !== undefined && (snapshot.global === undefined ? !isSandboxRegex(matcher) : matcher === null || typeof matcher !== "object")) throw new TypeError("Invalid RegExp iterator matcher.");
     restoreSandboxRegExpIterator({ ...snapshot, matcher }, copy);
     for (const entry of getEnumerableObjectEntries(value, path)) {
       defineOwnDataProperty(copy, entry.key, copyToSandbox(entry.value, state, joinPath(path, entry.key), true, depth + 1));

@@ -1,6 +1,7 @@
 import {
   createSandboxClosure,
   createSandboxRegex,
+  isSandboxClosure,
   isSandboxRegex,
   reconcileCompiledValues,
   type SandboxCallContext,
@@ -11,12 +12,16 @@ import {
 } from "../values.js";
 import { CompileScope } from "../regex/compile-guard.js";
 import { SandboxError, type Budget, type CompileOwner } from "../budget.js";
-import { sandboxString } from "../string-coercion.js";
+import { sandboxNumber, sandboxString } from "../string-coercion.js";
 import { getSandboxPropertyDescriptor, installRegexPrototype, materializeFunctionProperties, setSandboxPrototype } from "../object-model.js";
 import { accessorAdapter, readPropertyDescriptor } from "../accessors.js";
 import { callRegexMethod, getRegexMember, regexFlagProperties, regexSearch, type RegexMethodName } from "../methods/regex.js";
 import { regexMatch, regexReplace } from "../methods/string.js";
 import { invokeBuiltinClosure } from "../builtin-call.js";
+import { restoreSandboxRegExpIterator } from "../regexp-iterator.js";
+import { normalizeLastIndex } from "../regex/engine.js";
+import { retainValues } from "../resources.js";
+import { setSandboxProperty } from "../interpreter.js";
 
 export function createRegexGlobals(options: { budget: Budget; compileOwner?: CompileOwner }): { RegExp: SandboxClosure } {
   const invoke = (construct: boolean) => async (args: readonly SandboxValue[], context?: SandboxCallContext) => {
@@ -85,6 +90,10 @@ export function createRegexGlobals(options: { budget: Budget; compileOwner?: Com
   };
   const constructor = createSandboxClosure({ guest: true, sandbox: true, name: "RegExp", length: 2, call: invoke(false), construct: invoke(true) });
   const prototype = Object.create(null) as SandboxObject;
+  Object.defineProperty(materializeFunctionProperties(constructor), Symbol.species, {
+    get: accessorAdapter(createSandboxClosure({ sandbox: true, name: "get [Symbol.species]", length: 0,
+      call: (_args, context) => context?.thisValue }), "get"), configurable: true
+  });
   Object.defineProperty(materializeFunctionProperties(constructor), "prototype", { value: prototype, writable: false });
   Object.defineProperty(prototype, "constructor", { value: constructor, writable: true, configurable: true });
   Object.defineProperty(prototype, Symbol.search, {
@@ -101,6 +110,51 @@ export function createRegexGlobals(options: { budget: Budget; compileOwner?: Com
     value: createSandboxClosure({ guest: true, sandbox: true, name: "[Symbol.replace]", length: 2,
       call: (args, context) => regexReplace(args[0], context?.thisValue, args[1], options.budget,
         (closure, values) => invokeBuiltinClosure(closure, values, options.budget, context, undefined), context) }),
+    writable: true, configurable: true
+  });
+  Object.defineProperty(prototype, Symbol.matchAll, {
+    value: createSandboxClosure({ guest: true, sandbox: true, name: "[Symbol.matchAll]", length: 1,
+      call: async (args, context) => {
+        const target = context?.thisValue;
+        if (target === null || typeof target !== "object") throw new TypeError("RegExp matchAll requires an object receiver.");
+        let input: SandboxValue = args[0];
+        let string: string | undefined;
+        let species: SandboxValue;
+        let field: SandboxValue;
+        let flags: string | undefined;
+        let matcher: SandboxValue;
+        const release = retainValues(options.budget, () => [target, input, string, species, field, flags, matcher]);
+        const read = (value: SandboxValue, key: PropertyKey) => {
+          if (context?.getProperty !== undefined) return context.getProperty(value, key);
+          const descriptor = getSandboxPropertyDescriptor(value, key, options.budget);
+          return descriptor === undefined ? undefined : readPropertyDescriptor(descriptor, value, context);
+        };
+        try {
+          string = await sandboxString(input, options.budget, context);
+          input = undefined;
+          field = await read(target, "constructor");
+          species = constructor;
+          if (field !== undefined) {
+            if (field === null || typeof field !== "object") throw new TypeError("Invalid RegExp species constructor.");
+            species = await read(field, Symbol.species);
+            if (species === null || species === undefined) species = constructor;
+          }
+          field = undefined;
+          if (!isSandboxClosure(species) || species.construct === undefined) throw new TypeError("RegExp species must be a constructor.");
+          field = await read(target, "flags");
+          flags = await sandboxString(field, options.budget, context);
+          field = undefined;
+          matcher = await invokeBuiltinClosure(species, [target, flags], options.budget, context, undefined, true);
+          field = await read(target, "lastIndex");
+          const cursor = normalizeLastIndex(await sandboxNumber(field, options.budget, context));
+          field = undefined;
+          await setSandboxProperty(matcher, "lastIndex", cursor, options.budget, true, context);
+          return restoreSandboxRegExpIterator({ matcher, input: string, exhausted: false,
+            global: flags.includes("g"), unicode: flags.includes("u") || flags.includes("v") });
+        } finally {
+          release();
+        }
+      } }),
     writable: true, configurable: true
   });
   for (const name of ["exec", "test", "toString"] as RegexMethodName[]) {

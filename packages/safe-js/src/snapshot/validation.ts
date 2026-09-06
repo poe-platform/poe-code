@@ -571,6 +571,8 @@ function validateHeapValue(value: unknown, path: string, state: ValidationState,
   }
   if (record.kind === "set") requireArray(record.values, `${path}.values`, state);
   if (record.kind === "regexp-iterator") {
+    if ((record.global !== undefined || record.unicode !== undefined) && (typeof record.global !== "boolean" || typeof record.unicode !== "boolean"))
+      fail("invalidValue", path, "invalid RegExp iterator modes");
     if (typeof record.exhausted !== "boolean") fail("invalidValue", `${path}.exhausted`, "invalid iterator exhaustion");
     if (!Object.hasOwn(record, "matcher") || !Object.hasOwn(record, "input")) fail("invalidValue", path, "missing RegExp iterator state");
     requireRecord(record.entries, `${path}.entries`);

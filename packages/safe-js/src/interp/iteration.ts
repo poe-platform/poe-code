@@ -13,7 +13,7 @@ import { boxedValue, isSandboxBox } from "./boxed.js";
 import { getHostObjectIterator, isGuestHostObject } from "./host-capabilities.js";
 import { isSandboxCollectionIterator, nextCollectionIterator } from "./collection-iterator.js";
 import { isSandboxRegExpIterator } from "./regexp-iterator.js";
-import { nextRegExpIterator } from "./methods/regexp-iterator.js";
+import { nextObservableRegExpIterator, nextRegExpIterator } from "./methods/regexp-iterator.js";
 import { Budget, isFatalSandboxError } from "./budget.js";
 import { sandboxString } from "./string-coercion.js";
 import { awaitSandboxValue, awaitWithSignal } from "./cancel.js";
@@ -295,8 +295,11 @@ export function getSandboxIterator(
   }
   if (isSandboxCollectionIterator(value))
     return { next: () => nextCollectionIterator(value, budget), snapshotIndex: () => 0 };
-  if (isSandboxRegExpIterator(value))
+  if (isSandboxRegExpIterator(value)) {
+    if (context !== undefined && budget !== undefined)
+      return { asynchronous: true, next: () => nextObservableRegExpIterator(value, budget, context), snapshotIndex: () => 0 };
     return { next: () => nextRegExpIterator(value, budget), snapshotIndex: () => 0 };
+  }
   if (isGuestHostObject(value)) return getHostObjectIterator(value);
   if (isFloat32Array(value)) {
     return syncIterator(Float32Array.prototype.values.call(value));

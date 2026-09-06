@@ -1,11 +1,13 @@
-import type { SandboxRegex } from "./values.js";
+import type { SandboxValue } from "./values.js";
 
 declare const regexpIteratorBrand: unique symbol;
 export type SandboxRegExpIterator = { readonly [regexpIteratorBrand]: true };
 export type RegExpIteratorState = {
-  matcher: SandboxRegex | undefined;
+  matcher: SandboxValue;
   input: string | undefined;
   exhausted: boolean;
+  global?: boolean;
+  unicode?: boolean;
 };
 const states = new WeakMap<object, RegExpIteratorState>();
 
@@ -17,10 +19,15 @@ export function restoreSandboxRegExpIterator(
   state: RegExpIteratorState,
   target = Object.create(null) as SandboxRegExpIterator
 ): SandboxRegExpIterator {
+  if ((state.global !== undefined || state.unicode !== undefined) &&
+      (typeof state.global !== "boolean" || typeof state.unicode !== "boolean"))
+    throw new TypeError("Invalid RegExp iterator modes.");
+  if (state.matcher !== undefined && (state.matcher === null || typeof state.matcher !== "object"))
+    throw new TypeError("Invalid RegExp iterator matcher.");
   if (!state.exhausted && (state.matcher === undefined || state.input === undefined))
     throw new TypeError("A live RegExp iterator requires its matcher and input.");
   states.set(target, state.exhausted
-    ? { matcher: undefined, input: undefined, exhausted: true }
+    ? { ...state, matcher: undefined, input: undefined, exhausted: true }
     : { ...state });
   return target;
 }

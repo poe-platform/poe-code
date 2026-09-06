@@ -29,7 +29,7 @@ type DumpValue =
     };
 
 type DumpHeapValue =
-  | { kind: "regexp-iterator"; matcher: DumpValue; input: DumpValue; exhausted: boolean; entries: Record<string, DumpValue>; symbolEntries?: Array<SerializedSymbolProperty<DumpValue>> }
+  | { kind: "regexp-iterator"; matcher: DumpValue; input: DumpValue; exhausted: boolean; global?: boolean; unicode?: boolean; entries: Record<string, DumpValue>; symbolEntries?: Array<SerializedSymbolProperty<DumpValue>> }
   | ({ kind: "regex-object"; source: string; flags: string; lastIndex: DumpValue } & RegexPropertyData<DumpValue>)
   | SerializedSymbol
   | BoxedData<DumpValue>
@@ -186,10 +186,15 @@ function serializeHeapReference(
     if (isSandboxRegExpIterator(value)) {
       const snapshot = regexpIteratorState(value);
       const matcher = snapshot.matcher;
+      const serializedMatcher: DumpValue | typeof SKIP_VALUE = snapshot.global === undefined && isSandboxRegex(matcher)
+        ? { kind: "regex", source: matcher.source, flags: matcher.flags, lastIndex: Number(matcher.lastIndex) }
+        : serializeDumpValue(matcher, `${path}.<matcher>`, state);
+      if (serializedMatcher === SKIP_VALUE) throw new TypeError("Unsupported RegExp iterator matcher in public dump.");
       const entries: Record<string, DumpValue> = Object.create(null);
       state.heap[String(id)] = {
         kind: "regexp-iterator", exhausted: snapshot.exhausted,
-        matcher: matcher === undefined ? { kind: "undefined" } : { kind: "regex", source: matcher.source, flags: matcher.flags, lastIndex: Number(matcher.lastIndex) },
+        matcher: serializedMatcher,
+        ...(snapshot.global === undefined ? {} : { global: snapshot.global, unicode: snapshot.unicode }),
         input: snapshot.input ?? { kind: "undefined" }, entries,
         symbolEntries: serializeSymbolProperties(value, entry => {
           const serialized = serializeDumpValue(entry, `${path}.[symbol]`, state);

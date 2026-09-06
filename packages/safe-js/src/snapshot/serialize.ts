@@ -75,7 +75,7 @@ export type SerializedReferenceValue = {
 };
 
 export type SerializedHeapValue =
-  | { kind: "regexp-iterator"; matcher: SerializedSnapshotValue; input: SerializedSnapshotValue; exhausted: boolean; entries: Record<string, SerializedSnapshotValue>; symbolEntries?: Array<SerializedSymbolProperty<SerializedSnapshotValue>> }
+  | { kind: "regexp-iterator"; matcher: SerializedSnapshotValue; input: SerializedSnapshotValue; exhausted: boolean; global?: boolean; unicode?: boolean; entries: Record<string, SerializedSnapshotValue>; symbolEntries?: Array<SerializedSymbolProperty<SerializedSnapshotValue>> }
   | SerializedSymbol
   | BoxedData<SerializedSnapshotValue>
   | ({ kind: "regex-object"; source: string; flags: string; lastIndex: SerializedSnapshotValue } & RegexPropertyData<SerializedSnapshotValue>)
@@ -477,7 +477,8 @@ function serializeHeapReference(
       const snapshot = regexpIteratorState(value);
       const entries: Record<string, SerializedSnapshotValue> = Object.create(null);
       state.heap[String(id)] = {
-        kind: "regexp-iterator", matcher: serializeValue(snapshot.matcher, `${path}.<matcher>`, state),
+        kind: "regexp-iterator", matcher: serializeValue(snapshot.matcher as RuntimeSnapshotValue, `${path}.<matcher>`, state),
+        ...(snapshot.global === undefined ? {} : { global: snapshot.global, unicode: snapshot.unicode }),
         input: serializeValue(snapshot.input, `${path}.<input>`, state), exhausted: snapshot.exhausted, entries,
         symbolEntries: serializeSymbolProperties(value, entry => serializeValue(entry as RuntimeSnapshotValue, `${path}.[symbol]`, state))
       };

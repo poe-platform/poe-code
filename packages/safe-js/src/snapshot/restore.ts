@@ -636,9 +636,10 @@ function restoreHeapValue(id: number, state: RestoreState): RuntimeSnapshotValue
     state.heapValueById.set(id, iterator);
     const matcher = deserializeValue(serialized.matcher, state);
     const input = deserializeValue(serialized.input, state);
-    if (matcher !== undefined && !isSandboxRegex(matcher)) throw new TypeError("Invalid RegExp iterator matcher.");
+    if (matcher !== undefined && (serialized.global === undefined ? !isSandboxRegex(matcher) : matcher === null || typeof matcher !== "object")) throw new TypeError("Invalid RegExp iterator matcher.");
     if (input !== undefined && typeof input !== "string") throw new TypeError("Invalid RegExp iterator input.");
-    restoreSandboxRegExpIterator({ matcher, input, exhausted: serialized.exhausted }, iterator);
+    restoreSandboxRegExpIterator({ matcher: matcher as SandboxValue, input, exhausted: serialized.exhausted,
+      ...(serialized.global === undefined ? {} : { global: serialized.global, unicode: serialized.unicode }) }, iterator);
     for (const [key, entry] of Object.entries(serialized.entries)) Object.defineProperty(iterator, key, { value: deserializeValue(entry, state), enumerable: true, configurable: true, writable: true });
     restoreSymbolProperties(iterator, serialized.symbolEntries, entry => deserializeValue(entry, state));
     return iterator;

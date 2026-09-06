@@ -1,0 +1,18 @@
+import { S } from "schema";
+
+export const schema = S.Object({ title: S.String() });
+
+export default async function concatSpreadability(frontmatter) {
+  await 0;
+  const source = { 0: 7, length: 2, [Symbol.isConcatSpreadable]: true };
+  const result = [1].concat(source);
+  if (result.length !== 3 || result[1] !== 7 || 2 in result)
+    throw new Error("Array-like sparse spreading failed");
+  const scalar = [8];
+  scalar[Symbol.isConcatSpreadable] = false;
+  if ([].concat(scalar)[0] !== scalar) throw new Error("Array opt-out failed");
+  const inherited = [,];
+  Object.setPrototypeOf(inherited, { 0: 9 });
+  if ([].concat(inherited)[0] !== 9) throw new Error("Inherited entry failed");
+  return { title: frontmatter.title, sparse: true, optOut: true, inherited: true };
+}

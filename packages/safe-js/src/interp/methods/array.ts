@@ -460,19 +460,27 @@ async function callArrayMethodUnlocked(
       options.budget.setRetainedValues(retained, () => [result]);
       try {
         for (const entry of [value, ...args]) {
-          if (!Array.isArray(entry)) {
+          let spread = false;
+          if (entry !== null && (typeof entry === "object" || typeof entry === "function")) {
+            const flag = options.context?.getProperty !== undefined
+              ? await options.context.getProperty(entry, Symbol.isConcatSpreadable)
+              : getSandboxDataProperty(entry, Symbol.isConcatSpreadable, options.budget);
+            spread = flag === undefined ? Array.isArray(entry) : Boolean(flag);
+          }
+          if (!spread) {
             options.budget.allocateArrayLength(result.length + 1);
             result.push(entry);
             continue;
           }
           const start = result.length;
-          const length = entry.length;
+          const source = await arrayLikeView(entry as SandboxValue & object, options);
+          const length = source.length;
           options.budget.allocateArrayLength(start + length);
           result.length += length;
           for (let index = 0; index < length; index++) {
             options.budget.visitNode();
-            if (index in entry)
-              result[start + index] = await readArrayElement(entry, index, options);
+            if (index in source)
+              result[start + index] = await readArrayElement(source, index, options);
           }
         }
         return budgetProducedValue(result, options.budget);

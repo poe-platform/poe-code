@@ -8,12 +8,14 @@ import { sandboxNumber, sandboxString } from "../string-coercion.js";
 import { retainValues } from "../resources.js";
 import { getSandboxDataProperty, getSandboxPropertyDescriptor } from "../object-model.js";
 import { readPropertyDescriptor } from "../accessors.js";
+import { createSandboxBox } from "../boxed.js";
 import {
   createSandboxClosure,
   createSandboxRegex,
   deepCopyFromSandbox,
   isSandboxClosure,
   isSandboxRegex,
+  measureSandboxData,
   type SandboxCallContext,
   type SandboxClosure,
   type SandboxRegex,
@@ -493,6 +495,9 @@ async function replaceRegex(
   callClosure: (closure: SandboxClosure, args: readonly SandboxValue[]) => Promise<SandboxValue>,
   context?: SandboxCallContext
 ): Promise<string> {
+  if (["exec", "flags", ...Object.keys(regexFlagProperties)].some(key =>
+    getSandboxPropertyDescriptor(regex, key, budget) !== undefined))
+    return replaceObservableRegex(value, regex, replacement, budget, callClosure, context);
   if (regex.flags.includes("g")) regex.lastIndex = 0;
   const cursor = regex.lastIndex;
   let result = "";
@@ -506,7 +511,7 @@ async function replaceRegex(
       result += value.slice(copiedThrough, match.index);
       result +=
         typeof replacement === "string"
-          ? expandReplacement(replacement, match.text, match.captures, value, match.index)
+          ? await expandReplacement(replacement, match.text, match.captures, value, match.index, budget, context)
           : await sandboxString(
               await callClosure(replacement, [match.text, ...match.captures, match.index, value]),
               budget,
@@ -521,52 +526,173 @@ async function replaceRegex(
   }
 }
 
-function expandReplacement(
+function readReplacementProperty(target: SandboxValue, key: string, budget: Budget, context?: SandboxCallContext): SandboxValue | Promise<SandboxValue> {
+  if (context?.getProperty !== undefined) return context.getProperty(target, key);
+  const descriptor = getSandboxPropertyDescriptor(target, key, budget);
+  if (descriptor !== undefined) return readPropertyDescriptor(descriptor, target, context);
+  return isSandboxRegex(target) ? getRegexMember(target, key, budget, context) : undefined;
+}
+
+async function replaceObservableRegex(
+  value: string,
+  regex: SandboxRegex,
+  replacement: string | SandboxClosure,
+  budget: Budget,
+  callClosure: (closure: SandboxClosure, args: readonly SandboxValue[]) => Promise<SandboxValue>,
+  context?: SandboxCallContext
+): Promise<string> {
+  const matches: SandboxValue[] = [];
+  let current: SandboxValue;
+  let field: SandboxValue;
+  let groups: SandboxValue;
+  let matched: string | undefined;
+  let captures: (string | undefined)[] = [];
+  let result = "";
+  let flags: string | undefined;
+  const release = retainValues(budget, () => [value, regex, replacement, matches, current, field, groups, matched, captures, result, flags]);
+  try {
+    field = await readReplacementProperty(regex, "flags", budget, context);
+    flags = await sandboxString(field, budget, context);
+    field = undefined;
+    const global = flags.includes("g");
+    const fullUnicode = flags.includes("u") || flags.includes("v");
+    flags = undefined;
+    if (global) regex.lastIndex = 0;
+    while (true) {
+      budget.visitNode();
+      current = await regexExec(regex, value, budget, context);
+      if (current === null) break;
+      budget.allocateArrayLength(matches.length + 1);
+      matches.push(current);
+      if (!global) break;
+      field = await readReplacementProperty(current, "0", budget, context);
+      matched = await sandboxString(field, budget, context);
+      field = undefined;
+      if (matched.length === 0) {
+        field = regex.lastIndex;
+        const index = normalizeLastIndex(await sandboxNumber(field, budget, context));
+        const point = fullUnicode ? value.codePointAt(index) : undefined;
+        regex.lastIndex = index + (point !== undefined && point > 0xffff ? 2 : 1);
+        field = undefined;
+      }
+      matched = undefined;
+      current = undefined;
+    }
+    let copiedThrough = 0;
+    for (current of matches) {
+      field = await readReplacementProperty(current, "length", budget, context);
+      const count = Math.max(normalizeLastIndex(await sandboxNumber(field, budget, context)) - 1, 0);
+      field = await readReplacementProperty(current, "0", budget, context);
+      matched = await sandboxString(field, budget, context);
+      field = await readReplacementProperty(current, "index", budget, context);
+      const number = await sandboxNumber(field, budget, context);
+      const position = Math.min(Math.max(Number.isNaN(number) ? 0 : Math.trunc(number), 0), value.length);
+      field = undefined;
+      captures = [];
+      budget.allocateArrayLength(count);
+      for (let index = 1; index <= count; index++) {
+        budget.visitNode();
+        field = await readReplacementProperty(current, String(index), budget, context);
+        captures.push(field === undefined ? undefined : await sandboxString(field, budget, context));
+        field = undefined;
+      }
+      groups = await readReplacementProperty(current, "groups", budget, context);
+      let text: string;
+      if (typeof replacement === "string") {
+        if (groups === null) throw new TypeError("Replacement groups cannot be null.");
+        if (groups !== undefined && typeof groups !== "object") {
+          groups = createSandboxBox(groups);
+          budget.chargeDataUsage(measureSandboxData([groups]));
+        }
+        text = await expandReplacement(replacement, matched, captures, value, position, budget, context, groups);
+      } else {
+        const args: SandboxValue[] = [matched, ...captures, position, value];
+        if (groups !== undefined) args.push(groups);
+        budget.allocateArrayLength(args.length);
+        field = await callClosure(replacement, args);
+        text = await sandboxString(field, budget, context);
+        field = undefined;
+      }
+      if (position >= copiedThrough) {
+        result = budget.allocateString(result + value.slice(copiedThrough, position) + text);
+        copiedThrough = position + matched.length;
+      }
+      matched = undefined;
+      captures = [];
+      groups = undefined;
+    }
+    return budget.allocateString(result + value.slice(copiedThrough));
+  } finally {
+    release();
+  }
+}
+
+async function expandReplacement(
   replacement: string,
   match: string,
   captures: (string | undefined)[],
   input: string,
-  matchIndex: number
-): string {
+  matchIndex: number,
+  budget: Budget,
+  context?: SandboxCallContext,
+  groups?: SandboxValue
+): Promise<string> {
   let result = "";
-  for (let index = 0; index < replacement.length; index += 1) {
-    const character = replacement.charAt(index);
-    if (character !== "$") {
-      result += character;
-      continue;
-    }
-
-    const token = replacement.charAt(index + 1);
-    if (token === "$") {
-      result += "$";
-    } else if (token === "&") {
-      result += match;
-    } else if (token === "`") {
-      result += input.slice(0, matchIndex);
-    } else if (token === "'") {
-      result += input.slice(matchIndex + match.length);
-    } else if (token >= "0" && token <= "9") {
-      let captureIndex = Number(token);
-      const nextDigit = replacement.charAt(index + 2);
-      if (nextDigit >= "0" && nextDigit <= "9") {
-        const twoDigitIndex = Number(token + nextDigit);
-        if (twoDigitIndex > 0 && twoDigitIndex <= captures.length) {
-          captureIndex = twoDigitIndex;
-          index += 1;
-        }
+  const release = retainValues(budget, () => [replacement, match, captures, input, groups, result]);
+  try {
+    for (let index = 0; index < replacement.length; index += 1) {
+      budget.visitNode();
+      budget.allocateString(result);
+      const character = replacement.charAt(index);
+      if (character !== "$") {
+        result += character;
+        continue;
       }
-      if (captureIndex === 0 || captureIndex > captures.length) {
+
+      const token = replacement.charAt(index + 1);
+      if (token === "$") {
+        result += "$";
+      } else if (token === "&") {
+        result += match;
+      } else if (token === "`") {
+        result += input.slice(0, matchIndex);
+      } else if (token === "'") {
+        result += input.slice(matchIndex + match.length);
+      } else if (token === "<" && groups !== undefined) {
+        const end = replacement.indexOf(">", index + 2);
+        if (end === -1) {
+          result += "$";
+          continue;
+        }
+        const capture = await readReplacementProperty(groups, replacement.slice(index + 2, end), budget, context);
+        if (capture !== undefined) result += await sandboxString(capture, budget, context);
+        index = end;
+        continue;
+      } else if (token >= "0" && token <= "9") {
+        let captureIndex = Number(token);
+        const nextDigit = replacement.charAt(index + 2);
+        if (nextDigit >= "0" && nextDigit <= "9") {
+          const twoDigitIndex = Number(token + nextDigit);
+          if (twoDigitIndex > 0 && twoDigitIndex <= captures.length) {
+            captureIndex = twoDigitIndex;
+            index += 1;
+          }
+        }
+        if (captureIndex === 0 || captureIndex > captures.length) {
+          result += "$";
+          continue;
+        }
+        result += captures[captureIndex - 1] ?? "";
+      } else {
         result += "$";
         continue;
       }
-      result += captures[captureIndex - 1] ?? "";
-    } else {
-      result += "$";
-      continue;
+      index += 1;
     }
-    index += 1;
+    return budget.allocateString(result);
+  } finally {
+    release();
   }
-  return result;
 }
 
 async function replaceWithClosure(

@@ -1,0 +1,23 @@
+import { S } from "schema";
+
+export const schema = S.Object({ title: S.String() });
+
+export default async function main(frontmatter) {
+  const regex = /a/g;
+  const order = [];
+  let calls = 0;
+  regex.exec = () => {
+    order.push('exec');
+    calls++;
+    return calls < 3 ? { 0: 'a', index: calls - 1, length: 1 } : null;
+  };
+  const text = 'aa'.replace(regex, () => { order.push('replace'); return 'b'; });
+  if (text !== 'bb' || order.join('|') !== 'exec|exec|exec|replace|replace')
+    throw new Error('Replacement collection order failed');
+  const named = /a/;
+  named.exec = () => ({ 0: 'X', index: 1, length: 2, 1: 'capture', groups: { name: 'named' } });
+  const expanded = 'abc'.replace(named, '[$1:$<name>]');
+  if (expanded !== 'a[capture:named]c') throw new Error('Custom match expansion failed');
+  await 0;
+  return { ok: true, title: frontmatter.title, text, order, expanded };
+}

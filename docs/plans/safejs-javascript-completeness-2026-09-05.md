@@ -3231,3 +3231,49 @@ lint-stress cases. Repository lint completed with zero errors/warnings across
 9,789 configured files; root TypeScript and workflow lint passed. The descriptor
 model is ready for its own commit and main push. This does not close the separate
 class/object accessor syntax or portable-snapshot gaps.
+
+Descriptor-model delivery is verified on remote main as
+38554541fda8d98080f3d42453f1b26a93ca66bb on September 6 UTC. Close that scope at
+main delivery. Scoped release 34001679145 and CLI release 34001679251 are being
+monitored in the background; no publication is claimed yet. The user's staged
+Bash patch hash remains unchanged. Class syntax proceeds without a release wait.
+
+### 54. Class getter/setter syntax — validated, implementation pending
+
+The just-built public API rejects class getters, setters, computed pairs and
+static getters with the explicit class-accessor syntax error. Native JavaScript
+returns 7 for each; descriptor and ordinary get-named-method controls return 7
+in both. Object literal accessors also remain rejected and are a separate next
+increment. Use the descriptor model already delivered, preserving home objects,
+receiver identity, descriptor transitions, metadata, strict early errors and
+resource boundaries. ECMAScript 2026 clauses 15.4 and 15.7 are the normative
+reference, with bounded native controls. Native compilation confirms setter
+defaults, destructuring and trailing commas are accepted; do not invent a
+trailing-comma prohibition. Add regressions before implementation and qualify
+this narrower change with maintained package/integration checks.
+
+After correcting a test import before implementation, the initial suite had
+57 genuine failures and 20 passing controls. Class get/set elements now create
+mediated non-enumerable accessor descriptors, preserve the opposite half of an
+existing pair, attach method home objects and expose prefixed function names.
+The first implementation passed 76/77 cases. A failing non-simple setter/use
+strict test drove directive validation; further native controls distinguish
+parenthesized/escaped strings, empty statements and a later directive. The
+expanded focused class/parser/lint/boundary cohort now passes 230 tests, including
+fatal budget exhaustion and escaped accessor home-object retention/cleanup.
+
+The predecessor descriptor scoped workflow published
+`@poe-platform/safe-js@0.1.139` at 00:39:11 UTC on September 6. This is verified
+from the successful publish step, not inferred from the green run. Its CLI
+release remains under observation while class syntax work proceeds.
+
+Class-accessor qualification passed: 13,201 maintained SafeJS tests (41 skipped),
+163 maintained harness tests, focused ESLint on all changed TypeScript files,
+package TypeScript and the root lint:types route. The normal build passed. The
+schema-only harness screenshot shows value 8, stored value 7, static label
+base:derived, mapped [8] and zero spawns. Four rebuilt public-API comparisons
+match native behavior, and twenty persistent-realm get/set cycles leave no
+retained roots after close. The skill support note was updated from its template,
+synced and validated. This class-syntax increment is ready for its own commit
+and main push; object syntax, private elements and portable accessor snapshots
+are not claimed complete.

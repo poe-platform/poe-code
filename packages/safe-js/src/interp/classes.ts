@@ -1,6 +1,7 @@
 import type { ClassElement, ClassNode } from "../parse.js";
 import { getFunctionLength } from "../parse/bindings.js";
 import { functionSources } from "../parse/function-source.js";
+import { accessorAdapter } from "./accessors.js";
 import { createInterpretedClosure, executeClosure, type AsyncEvaluationContext, type AsyncEvaluationResult, type EvaluateAsyncNode } from "./async.js";
 import { retainValues } from "./resources.js";
 import { getSandboxPrototype, materializeFunctionProperties, setSandboxPrototype } from "./object-model.js";
@@ -134,8 +135,17 @@ export async function evaluateClass(
       } else {
         const home = element.static ? constructor : prototype;
         const method = createInterpretedClosure(element.value, classContext, evaluateNode, home);
-        Object.defineProperty(materializeFunctionProperties(method), "name", { value: key });
-        Object.defineProperty(element.static ? properties : prototype, key, { value: method, configurable: true, writable: true, enumerable: false });
+        const accessor = element.kind === "get" || element.kind === "set" ? element.kind : undefined;
+        Object.defineProperty(materializeFunctionProperties(method), "name", {
+          value: accessor === undefined ? key : `${accessor} ${key}`
+        });
+        Object.defineProperty(
+          element.static ? properties : prototype,
+          key,
+          accessor === undefined
+            ? { value: method, configurable: true, writable: true, enumerable: false }
+            : { [accessor]: accessorAdapter(method, accessor), configurable: true, enumerable: false }
+        );
       }
     }
     if (node.id !== undefined) scope.declare(node.id.name, "const", constructor);

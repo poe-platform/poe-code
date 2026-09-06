@@ -367,7 +367,7 @@ export type ClassElement =
       type: "MethodDefinition";
       computed: boolean;
       key: Expression;
-      kind: "constructor" | "method";
+      kind: "constructor" | "method" | "get" | "set";
       static: boolean;
       value: FunctionExpression;
     })
@@ -1761,7 +1761,11 @@ class Parser {
     });
   }
 
-  private parseFunctionParts(generator: boolean, lexicalContext: LexicalParseContext): {
+  private parseFunctionParts(
+    generator: boolean,
+    lexicalContext: LexicalParseContext,
+    accessor?: "get" | "set"
+  ): {
     params: ArrowFunctionExpression["params"];
     body: BlockStatement;
   } {
@@ -1772,7 +1776,30 @@ class Parser {
           for (const identifier of boundIdentifiers(param)) this.declareBinding(identifier);
         return parsed;
       });
+      if (accessor === "get" && params.length !== 0)
+        throw new Error("A getter cannot have parameters.");
+      if (accessor === "set" && (params.length !== 1 || params[0]?.type === "RestElement"))
+        throw new Error("A setter must have exactly one non-rest parameter.");
+      const bodyTokenIndex = this.index;
       const body = this.withFunctionContext(generator ? "generator" : "normal", () => this.parseBlockStatement(params));
+      if (accessor === "set" && params[0]?.type !== "Identifier") {
+        let directiveTokenIndex = bodyTokenIndex + 1;
+        for (const statement of body.body) {
+          const token = this.tokens[directiveTokenIndex];
+          if (
+            statement.type !== "ExpressionStatement" ||
+            statement.expression.type !== "StringLiteral" ||
+            token?.type !== "string" ||
+            statement.span.start.offset !== token.start.offset ||
+            statement.span.end.offset !== token.end.offset
+          ) break;
+          if (statement.expression.raw === '"use strict"' || statement.expression.raw === "'use strict'")
+            throw new Error(
+              "A setter with a non-simple parameter cannot contain a use strict directive."
+            );
+          directiveTokenIndex += this.tokens[directiveTokenIndex + 1]?.value === ";" ? 2 : 1;
+        }
+      }
       return { params, body };
     });
   }
@@ -1800,8 +1827,14 @@ class Parser {
     }
     const generator = this.consumePunctuator("*") !== undefined;
     if (async && generator) throw new DisallowedSyntaxError("async generator", methodStart.start);
-    if ((this.currentToken().value === "get" || this.currentToken().value === "set") && this.isObjectMethodStart())
-      throw new DisallowedSyntaxError("class accessor", this.currentToken().start);
+    let accessor: "get" | "set" | undefined;
+    const modifier = this.currentToken();
+    if ((modifier.value === "get" || modifier.value === "set") && this.isObjectMethodStart()) {
+      if (async || generator || modifier.end.offset - modifier.start.offset !== modifier.value.length)
+        throw unexpectedTokenError(modifier);
+      accessor = modifier.value;
+      this.index++;
+    }
     const computed = this.consumePunctuator("[") !== undefined;
     const key = computed
       ? this.parseExpression({ allowSequence: true }).node
@@ -1816,18 +1849,18 @@ class Parser {
     if (isStatic && name === "prototype") throw new Error("A static class element cannot be named prototype.");
     if (this.currentToken().value === "(") {
       const constructor = !isStatic && name === "constructor";
-      if (constructor && (async || generator)) throw new Error("A class constructor cannot be async or a generator.");
+      if (constructor && (async || generator || accessor !== undefined)) throw new Error("A class constructor must be an ordinary method.");
       const { params, body } = this.parseFunctionParts(generator, {
         newTarget: true, superProperty: true, superCall: constructor && derived,
         arguments: true, return: true, await: async, strictAwait: true
-      });
+      }, accessor);
       const value = this.withFunctionSource({
         type: "FunctionExpression", async, generator, method: true, params, body,
         span: createSpan(methodStart.start, body.span.end)
       } as FunctionExpression);
       return {
         type: "MethodDefinition", key, computed, static: isStatic,
-        kind: constructor ? "constructor" : "method", value,
+        kind: accessor ?? (constructor ? "constructor" : "method"), value,
         span: createSpan(start.start, value.span.end)
       };
     }

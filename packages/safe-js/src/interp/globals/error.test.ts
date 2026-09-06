@@ -150,7 +150,7 @@ describe("createErrorGlobals", () => {
 
     expect(stack).toContain("Error: sandbox");
     expect(stack).toContain("    at Error (line 1, column 20)");
-    expect(stack).toContain("    at <anonymous> (line 1, column 49)");
+    expect(stack).toContain("    at make (line 1, column 49)");
     expect(String(stack)).not.toContain("error.test.ts");
   });
 

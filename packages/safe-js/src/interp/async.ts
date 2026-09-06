@@ -205,7 +205,7 @@ export function createInterpretedClosure(
       ? node.id === undefined
         ? { name: context.inferredName }
         : { name: node.id.name }
-      : {}),
+      : { name: context.inferredName }),
     ...(construct === undefined ? {} : { construct }),
     retainedValues: () => [...context.scope.retainedValues(), context.functionEnvironment?.homeObject, context.functionEnvironment?.newTarget],
     call: (args, callContext) => {

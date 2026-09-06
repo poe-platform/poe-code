@@ -3512,7 +3512,7 @@ Name-fix workflows 34013679280 (scoped) and 34013679370 (CLI) are under
 monitoring. Generator CLI run 34013496214 was canceled, not published; the
 new descendant CLI release must provide publication coverage for these fixes.
 
-### 60. Default class exports — validated implementation under qualification
+### 60. Default class exports — closed on remote main
 
 Native ESM imports reproduce twelve failures with six passing controls after
 correcting the test fixture to pass a program BlockStatement to interpret.
@@ -3584,3 +3584,49 @@ and live callable reassignment result 7. Calling an unreassigned class is correc
 rejected with TypeError; the first probe expected a returned failure instead of
 a rejected promise, and was corrected without changing runtime code. This atomic
 increment is qualified for its own main commit and push.
+
+Delivery is verified on remote main as
+cab36b26eb74de03d95d72c15dd147a515e663ea. Close this scope at main delivery,
+without waiting for release publication. The user's staged patch identity remains
+unchanged. Continue the validated function-export/naming gaps while monitoring
+the release workflows for this descendant.
+
+Class-export scoped workflow 34014626489 published
+`@poe-platform/safe-js@0.1.147` at 05:45:25 UTC on September 6. CLI workflow
+34014626562 remains under observation. The preceding eff72fa CLI run 34014179895
+finished green but declined publication at 05:43:31 UTC because remote main had
+advanced; it is not a verified CLI release.
+
+### 61. Anonymous function names — validated implementation under qualification
+
+Native comparisons reproduce 24 failures with six controls passing across
+function/arrow/async/generator initializers, assignments, defaults, properties,
+class fields, descriptors, bound names and checkpoints. Existing inferred-name
+plumbing was restricted to classes and method expressions, and arrow closure
+creation discarded the name. Retaining it for function and arrow expressions
+fixes all initial 30 cases, including four checkpoint variants. Controls preserve
+explicit names and avoid name leakage through comma/conditional expressions,
+member assignments, returned functions and passed callbacks.
+
+Additional native ESM comparisons cover anonymous default exports and explicit/
+comma-expression controls, plus a renamed destructuring default. The named default
+function declaration binding/hoisting defect remains separate and open. Maintained
+package/harness tests and scoped lint/types qualify this atomic metadata fix before
+build, zero-spawn harness screenshot, commit and direct main push.
+
+The first maintained run passed 13,440 tests and found three old stack assertions
+that expected inferred functions to remain anonymous. Their frames now correctly
+name default, read and make; update only those labels, retaining sandbox frame
+locations and host-stack exclusion checks. Additional read-only native probes
+also show that bare default function declarations incorrectly accept call suffixes;
+the explicitly parenthesized function-expression control is valid. Track this
+grammar boundary with the separate named-default-function declaration fix.
+
+Maintained qualification passed: 13,443 SafeJS tests (41 skipped), 163 harness
+tests, scoped ESLint and package/root TypeScript. The dedicated suite has 39
+native/metadata/checkpoint cases. Normal build and zero-spawn screenshot QA
+precede the separate main push.
+
+The normal build and real harness passed. Its inspected screenshot shows inferred
+names ordinary/arrow/asynchronous/defaulted/computed/field and results [7, 8, 9,
+10, 11, 12], with zero spawns. This increment is ready for its atomic main push.

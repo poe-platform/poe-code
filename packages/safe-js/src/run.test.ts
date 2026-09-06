@@ -1347,7 +1347,7 @@ try {
         message: "boom",
         name: "TypeError",
         stack:
-          "TypeError: boom\n    at explode (line 2, column 3)\n    at <anonymous> (line 1, column 1)"
+          "TypeError: boom\n    at explode (line 2, column 3)\n    at default (line 1, column 1)"
       })
     );
   });

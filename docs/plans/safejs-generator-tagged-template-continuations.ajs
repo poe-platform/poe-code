@@ -1,0 +1,27 @@
+import { S } from "schema";
+
+export const schema = S.Object({ title: S.String() });
+
+export default async frontmatter => {
+  function* values() {
+    let count = 0;
+    const receiver = {
+      id: 7,
+      get tag() {
+        count++;
+        return function(parts, a, b) { return [this.id, a, b]; };
+      }
+    };
+    const value = receiver.tag`${count++}:${yield 1}`;
+    return { count, value };
+  }
+  const iterator = values();
+  const first = iterator.next();
+  await 0;
+  const last = iterator.next(4);
+  if (first.value !== 1 || first.done || !last.done || last.value.count !== 2 ||
+      last.value.value[0] !== 7 || last.value.value[1] !== 1 || last.value.value[2] !== 4) {
+    throw new Error("Tagged template continuation changed");
+  }
+  return { title: frontmatter.title, ok: true, result: last.value };
+};

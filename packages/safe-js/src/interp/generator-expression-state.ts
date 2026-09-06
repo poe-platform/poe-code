@@ -4,6 +4,6 @@ export type GeneratorExpressionState<T = SandboxValue> =
   | { kind: "binary"; left: T }
   | { kind: "template"; prefix: string; index: number }
   | { kind: "object"; value: T; index: number; key?: T }
-  | { kind: "call" | "new"; callee: T; thisValue: T; args: T; index: number }
+  | { kind: "call" | "new" | "tagged"; callee: T; thisValue: T; args: T; index: number }
   | { kind: "array-call"; target: T; method: string; args: T; index: number }
   | { kind: "array"; values: T; index: number };

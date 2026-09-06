@@ -146,7 +146,7 @@ export function validateGuestHeapNode(raw: unknown, heap: Record<string, unknown
           fields(expression, ["kind", "values", "index"]);
           integer(expression.index);
           reference(expression.values, ["array"]);
-        } else if (expression.kind === "call" || expression.kind === "new") {
+        } else if (expression.kind === "call" || expression.kind === "new" || expression.kind === "tagged") {
           fields(expression, ["kind", "callee", "thisValue", "args", "index"]);
           integer(expression.index);
           reference(expression.args, ["array"]);

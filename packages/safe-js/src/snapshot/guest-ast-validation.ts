@@ -10,7 +10,7 @@ export function validateGuestFunctionAst(record: Record<string, unknown>, origin
 
   let yieldBlocks: ReadonlySet<number> | undefined;
   let yieldFinalizers: ReadonlySet<number> | undefined;
-  type ExpressionPosition = { kind: "binary" } | { kind: "array" | "call" | "new" | "template"; index: number; member?: boolean }
+  type ExpressionPosition = { kind: "binary" } | { kind: "array" | "call" | "new" | "template" | "tagged"; index: number; member?: boolean }
     | { kind: "object"; index: number; key: boolean };
   let yieldExpressions: ReadonlyMap<number, ExpressionPosition> | undefined;
   const pending: Array<{ value: unknown; blocks: ReadonlySet<number>; finalizers: ReadonlySet<number>; expressions: ReadonlyMap<number, ExpressionPosition> }> = [
@@ -31,8 +31,10 @@ export function validateGuestFunctionAst(record: Record<string, unknown>, origin
     for (const [key, value] of Object.entries(node)) {
       // Tagged templates evaluate substitutions as arguments, not string prefixes.
       if (node.type === "TaggedTemplateExpression" && key === "quasi") {
-        pending.push({ value: (value as Record<string, unknown>).expressions, blocks,
-          finalizers: frame.finalizers, expressions: frame.expressions });
+        ((value as Record<string, unknown>).expressions as unknown[]).forEach((expression, index) => {
+          pending.push({ value: expression, blocks, finalizers: frame.finalizers,
+            expressions: new Map([...frame.expressions, [node.nodeId as number, { kind: "tagged", index }]]) });
+        });
         continue;
       }
       if (node.type === "ObjectExpression" && key === "properties" && typeof node.nodeId === "number" && Array.isArray(value)) {

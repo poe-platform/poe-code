@@ -822,9 +822,11 @@ async function evaluateTaggedTemplateExpression(
 ): Promise<EvaluationResult> {
   const invokeTag = async (tag: SandboxValue, receiver: SandboxValue): Promise<EvaluationResult> => {
     if (!isSandboxClosure(tag)) throw new TypeError("Tagged template tag must be a function.");
+    const call = createCallContinuation(node, tag, context, receiver);
+    context = call.context;
     const release = retainValues(context.budget, () => [tag, receiver]);
     try {
-      const values = await evaluateTemplateExpressionValues(node.quasi, context);
+      const values = await evaluateCallArguments(node.quasi.expressions, context, call.state);
       if (!values.ok) return values.result;
       return {
         kind: "normal", hasValue: true,
@@ -834,6 +836,12 @@ async function evaluateTaggedTemplateExpression(
       };
     } finally { release(); }
   };
+  const restored = context.generatorResume === undefined || node.nodeId === undefined
+    ? undefined : context.restoredGeneratorExpressionStates?.get(node.nodeId);
+  if (restored !== undefined) {
+    if (restored.kind !== "tagged") throw new TypeError("Invalid tagged template continuation.");
+    return invokeTag(restored.callee, restored.thisValue);
+  }
   if (node.tag.type === "MemberExpression") return evaluateMemberAccess(node.tag, context, async member => {
     if (member.kind === "nullish") throw new TypeError("Tagged template tag must be a function.");
     const key = await toPropertyKey(member.property, context.budget, createCoercionContext(context));
@@ -842,34 +850,6 @@ async function evaluateTaggedTemplateExpression(
   });
   const tag = await evaluateNode(node.tag, context);
   return tag.kind === "normal" ? invokeTag(tag.value, undefined) : tag;
-}
-
-async function evaluateTemplateExpressionValues(
-  node: TemplateLiteral,
-  context: EvaluationContext
-): Promise<HelperResult<SandboxValue[]>> {
-  const values: SandboxValue[] = [];
-  const release = retainValues(context.budget, () => values);
-  try {
-    for (const expressionNode of node.expressions) {
-      const expression = await evaluateNode(expressionNode, context);
-      if (expression.kind !== "normal") {
-        return {
-          ok: false,
-          result: expression
-        };
-      }
-
-      values.push(expression.value);
-    }
-
-    return {
-      ok: true,
-      value: values
-    };
-  } finally {
-    release();
-  }
 }
 
 function createTaggedTemplateStrings(
@@ -4084,19 +4064,19 @@ async function invokeSandboxClosure(
 }
 
 function createCallContinuation(
-  node: CallExpression | NewExpression,
+  node: CallExpression | NewExpression | TaggedTemplateExpression,
   callee: SandboxValue,
   context: EvaluationContext,
   thisValue: SandboxValue = undefined
 ) {
-  const kind: "new" | "call" = node.type === "NewExpression" ? "new" : "call";
+  const kind: "new" | "call" | "tagged" = node.type === "NewExpression" ? "new" : node.type === "TaggedTemplateExpression" ? "tagged" : "call";
   const restored = context.generatorResume === undefined || node.nodeId === undefined
     ? undefined : context.restoredGeneratorExpressionStates?.get(node.nodeId);
-  if (restored !== undefined && ((restored.kind !== "call" && restored.kind !== "new") || restored.kind !== kind || !Array.isArray(restored.args)))
+  if (restored !== undefined && ((restored.kind !== "call" && restored.kind !== "new" && restored.kind !== "tagged") || restored.kind !== kind || !Array.isArray(restored.args)))
     throw new TypeError("Invalid call expression continuation.");
   const state = { kind, callee, thisValue,
-    args: restored?.kind === "call" || restored?.kind === "new" ? restored.args as SandboxValue[] : [],
-    index: restored?.kind === "call" || restored?.kind === "new" ? restored.index : 0 };
+    args: restored?.kind === "call" || restored?.kind === "new" || restored?.kind === "tagged" ? restored.args as SandboxValue[] : [],
+    index: restored?.kind === "call" || restored?.kind === "new" || restored?.kind === "tagged" ? restored.index : 0 };
   return { state, context: context.generatorYield === undefined || node.nodeId === undefined ? context : {
     ...context, generatorExpressionStates: new Map([...(context.generatorExpressionStates ?? []), [node.nodeId, state]])
   } };

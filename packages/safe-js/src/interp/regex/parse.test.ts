@@ -41,7 +41,7 @@ describe("parseRegex", () => {
     ["(?!a", "", "Unterminated group at position 0"],
     ["(?<=a", "", "Unterminated group at position 0"],
     ["(?<!a", "", "Unterminated group at position 0"],
-    ["(?<name>a)", "", "Named groups are not supported at position 0"],
+    ["(?<name>a", "", "Unterminated group at position 0"],
     ["\\p{Letter}", "", "Unicode property escapes are not supported at position 0"],
     ["\\P{Letter}", "", "Unicode property escapes are not supported at position 0"]
   ])("rejects %s", (source, flags, message) => {

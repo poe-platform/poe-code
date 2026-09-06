@@ -1,5 +1,8 @@
 import { RegexCompileGuard, type CompileScope } from "./compile-guard.js";
 
+const groupNameStart = /^[$_\p{ID_Start}]$/u;
+const groupNamePart = /^[$\u200c\u200d\p{ID_Continue}]$/u;
+
 export type RegexFlags = {
   hasIndices: boolean;
   global: boolean;
@@ -20,13 +23,14 @@ export type RegexNode =
   | { type: "empty" }
   | { type: "literal"; value: string }
   | { type: "backreference"; index: number }
+  | { type: "namedBackreference"; name: string }
   | { type: "dot" }
   | { type: "anchor"; kind: "start" | "end" }
   | { type: "wordBoundary"; negated: boolean }
   | { type: "characterClass"; negated: boolean; items: CharacterClassItem[] }
   | { type: "sequence"; elements: RegexNode[] }
   | { type: "alternation"; alternatives: RegexNode[] }
-  | { type: "group"; capturing: boolean; index?: number; body: RegexNode }
+  | { type: "group"; capturing: boolean; index?: number; name?: string; body: RegexNode }
   | { type: "lookahead"; negated: boolean; body: RegexNode }
   | { type: "lookbehind"; negated: boolean; body: RegexNode }
   | { type: "quantifier"; body: RegexNode; min: number; max?: number; greedy: boolean };
@@ -36,6 +40,7 @@ export type RegexPattern = {
   flags: RegexFlags;
   captureCount: number;
   body: RegexNode;
+  groups?: Record<string, number[]>;
 };
 
 export function parseRegex(
@@ -53,7 +58,8 @@ export function parseRegex(
     const parser = new RegexParser(source, guard);
     const body = parser.parse();
     guard.allocate(5 + source.length);
-    const pattern = { source, flags: parsedFlags, captureCount: parser.captureCount, body };
+    const pattern: RegexPattern = { source, flags: parsedFlags, captureCount: parser.captureCount, body };
+    if (Object.keys(parser.namedGroups).length > 0) pattern.groups = parser.namedGroups;
     guard.retain(pattern, valueUnits);
     return pattern;
   } finally {
@@ -65,6 +71,8 @@ class RegexParser {
   captureCount = 0;
   private cursor = 0;
   private totalCaptureCount?: number;
+  private hasNamedCaptures = false;
+  readonly namedGroups: Record<string, number[]> = Object.create(null);
 
   constructor(
     private readonly source: string,
@@ -88,6 +96,7 @@ class RegexParser {
       }
       this.fail(`Unexpected character '${this.peek()}'`);
     }
+    if (Object.keys(this.namedGroups).length > 0) this.validateNamedGroups(body);
     return body;
   }
 
@@ -175,6 +184,7 @@ class RegexParser {
 
   private parseGroup(start: number): RegexNode {
     let capturing = true;
+    let name: string | undefined;
     let assertionNegated: boolean | undefined;
     let lookbehind = false;
     if (this.peek() === "?") {
@@ -194,7 +204,8 @@ class RegexParser {
         lookbehind = true;
         this.position += 3;
       } else if (extension.startsWith("?<")) {
-        this.fail("Named groups are not supported", start);
+        this.position += 2;
+        name = this.parseGroupName(start);
       } else {
         this.fail("Unsupported group construct", start);
       }
@@ -202,6 +213,12 @@ class RegexParser {
 
     if (capturing) this.guard.allocate(1);
     const index = capturing ? ++this.captureCount : undefined;
+    if (name !== undefined) {
+      this.guard.allocate(name.length + 2);
+      const indices = this.namedGroups[name] ??= [];
+      this.guard.array(indices.length + 1);
+      indices.push(index!);
+    }
     this.guard.enterGroup();
     let body: RegexNode;
     try {
@@ -219,7 +236,7 @@ class RegexParser {
       return { type: lookbehind ? "lookbehind" : "lookahead", negated: assertionNegated, body };
     }
     this.guard.allocate(5);
-    return { type: "group", capturing, index, body };
+    return { type: "group", capturing, index, body, ...(name === undefined ? {} : { name }) };
   }
 
   private parseCharacterClass(start: number): RegexNode {
@@ -287,6 +304,15 @@ class RegexParser {
     }
 
     const escaped = this.take();
+    if (escaped === "k") {
+      this.totalCaptureCount ??= this.countAllCaptures();
+      if (this.hasNamedCaptures) {
+        if (inCharacterClass || this.take() !== "<") this.fail("Invalid named backreference", start);
+        const name = this.parseGroupName(start);
+        this.guard.allocate(3 + name.length);
+        return { type: "namedBackreference", name };
+      }
+    }
     if (isDecimalDigit(escaped)) {
       if (!inCharacterClass && escaped !== "0") {
         let end = this.position;
@@ -380,9 +406,65 @@ class RegexParser {
       else if (character === "\\") escaped = true;
       else if (character === "[") characterClass = true;
       else if (character === "]") characterClass = false;
-      else if (!characterClass && character === "(" && this.source[index + 1] !== "?") count++;
+      else if (!characterClass && character === "(") {
+        const named = this.source[index + 1] === "?" && this.source[index + 2] === "<" &&
+          this.source[index + 3] !== "=" && this.source[index + 3] !== "!";
+        if (named) this.hasNamedCaptures = true;
+        if (named || this.source[index + 1] !== "?") count++;
+      }
     }
     return count;
+  }
+
+  private parseGroupName(start: number): string {
+    let name = "";
+    while (!this.atEnd() && this.peek() !== ">") {
+      let character = this.take();
+      if (character === "\\") {
+        if (this.take() !== "u") this.fail("Invalid group name escape", start);
+        if (this.peek() === "{") {
+          this.position++;
+          const begin = this.position;
+          while (!this.atEnd() && this.peek() !== "}") this.position++;
+          this.guard.allocate(this.position - begin);
+          const digits = this.source.slice(begin, this.position);
+          const point = Number.parseInt(digits, 16);
+          if (this.take() !== "}" || digits.length === 0 || !allHexDigits(digits) || point > 0x10ffff)
+            this.fail("Invalid group name escape", start);
+          character = String.fromCodePoint(point);
+        } else character = this.parseHexEscape(4, "Unicode", start);
+      }
+      this.guard.allocate(character.length);
+      name += character;
+    }
+    if (this.take() !== ">" || name.length === 0) this.fail("Invalid group name", start);
+    let first = true;
+    for (const character of name) {
+      this.guard.work(1);
+      if (!(first ? groupNameStart : groupNamePart).test(character)) this.fail("Invalid group name", start);
+      first = false;
+    }
+    return name;
+  }
+
+  private validateNamedGroups(node: RegexNode): Set<string> {
+    this.guard.work(1);
+    this.guard.allocate(1);
+    const names = new Set<string>();
+    if (node.type === "namedBackreference" && !Object.hasOwn(this.namedGroups, node.name))
+      this.fail("Unknown named backreference");
+    if (node.type === "group" && node.name !== undefined) names.add(node.name);
+    const children = node.type === "sequence" ? node.elements : node.type === "alternation" ? node.alternatives
+      : node.type === "group" || node.type === "quantifier" || node.type === "lookahead" || node.type === "lookbehind" ? [node.body] : [];
+    for (const child of children) {
+      for (const name of this.validateNamedGroups(child)) {
+        this.guard.work(1);
+        if (names.has(name) && node.type !== "alternation") this.fail("Duplicate capture group name");
+        this.guard.allocate(1);
+        names.add(name);
+      }
+    }
+    return names;
   }
 
   private parseQuantifier(): { min: number; max?: number } | undefined {

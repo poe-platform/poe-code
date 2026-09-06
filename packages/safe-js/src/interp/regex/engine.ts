@@ -6,11 +6,13 @@ export type RegexMatch = {
   text: string;
   captures: (string | undefined)[];
   indices?: ([number, number] | undefined)[];
+  groups?: Record<string, string | undefined>;
+  indicesGroups?: Record<string, [number, number] | undefined>;
 };
 
 type Capture = { start: number; end: number } | undefined;
 type MatchState = { position: number; captures: Capture[] };
-type MatchContext = { input: string; flags: RegexFlags; direction: 1 | -1; work: { steps: number } };
+type MatchContext = { input: string; flags: RegexFlags; groups?: Record<string, number[]>; direction: 1 | -1; work: { steps: number } };
 
 export function matchRegex(pattern: RegexPattern, input: string, lastIndex = 0): RegexMatch | null {
   const startIndex = pattern.flags.global || pattern.flags.sticky ? normalizeLastIndex(lastIndex) : 0;
@@ -27,7 +29,7 @@ export function matchRegexFrom(
   }
 
   for (let attempt = startIndex; attempt <= input.length; attempt += 1) {
-    const context: MatchContext = { input, flags: pattern.flags, direction: 1, work: { steps: 0 } };
+    const context: MatchContext = { input, flags: pattern.flags, groups: pattern.groups, direction: 1, work: { steps: 0 } };
     charge(context);
     const initialState: MatchState = {
       position: attempt,
@@ -35,7 +37,7 @@ export function matchRegexFrom(
     };
     const result = matchNode(pattern.body, initialState, context).next();
     if (!result.done) {
-      return toRegexMatch(input, attempt, result.value, pattern.flags.hasIndices);
+      return toRegexMatch(input, attempt, result.value, pattern.flags.hasIndices, pattern.groups);
     }
     if (pattern.flags.sticky) break;
   }
@@ -60,8 +62,16 @@ function* matchNode(
         yield { ...state, position: state.position + context.direction };
       }
       return;
-    case "backreference": {
-      const capture = state.captures[node.index - 1];
+    case "backreference":
+    case "namedBackreference": {
+      let capture: Capture;
+      if (node.type === "backreference") capture = state.captures[node.index - 1];
+      else {
+        for (const index of context.groups?.[node.name] ?? []) {
+          charge(context);
+          if (state.captures[index - 1] !== undefined) { capture = state.captures[index - 1]; break; }
+        }
+      }
       if (capture === undefined) {
         yield state;
         return;
@@ -257,7 +267,7 @@ function matchesCharacterClassItem(
   return item.negated ? !matched : matched;
 }
 
-function toRegexMatch(input: string, start: number, state: MatchState, hasIndices: boolean): RegexMatch {
+function toRegexMatch(input: string, start: number, state: MatchState, hasIndices: boolean, groups?: Record<string, number[]>): RegexMatch {
   const match: RegexMatch = {
     index: start,
     text: input.slice(start, state.position),
@@ -268,6 +278,15 @@ function toRegexMatch(input: string, start: number, state: MatchState, hasIndice
   if (hasIndices) {
     match.indices = [[start, state.position], ...state.captures.map((capture): [number, number] | undefined =>
       capture === undefined ? undefined : [capture.start, capture.end])];
+  }
+  if (groups !== undefined) {
+    match.groups = Object.create(null) as Record<string, string | undefined>;
+    if (hasIndices) match.indicesGroups = Object.create(null) as Record<string, [number, number] | undefined>;
+    for (const [name, indices] of Object.entries(groups)) {
+      const index = indices.find(index => state.captures[index - 1] !== undefined);
+      match.groups[name] = index === undefined ? undefined : match.captures[index - 1];
+      if (match.indicesGroups !== undefined) match.indicesGroups[name] = index === undefined ? undefined : match.indices![index];
+    }
   }
   return match;
 }

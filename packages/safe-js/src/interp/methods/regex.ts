@@ -11,7 +11,7 @@ import {
 import { matchRegex, type RegexMatch } from "../regex/engine.js";
 import type { Budget } from "../budget.js";
 import { invokeBuiltinClosure } from "../builtin-call.js";
-import { getSandboxPropertyDescriptor, getSandboxPrototype, hasExplicitSandboxPrototype } from "../object-model.js";
+import { getSandboxPropertyDescriptor, getSandboxPrototype, hasExplicitSandboxPrototype, setSandboxPrototype } from "../object-model.js";
 import { readPropertyDescriptor } from "../accessors.js";
 import { retainValues } from "../resources.js";
 import { sandboxNumber, sandboxString } from "../string-coercion.js";
@@ -255,11 +255,13 @@ export function toMatchArray(match: RegexMatch | null, input: string, budget?: B
   }
   budget?.allocateArrayLength(match.captures.length + 1);
   const result = [match.text, ...match.captures] as SandboxValue[];
-  Object.assign(result, { index: match.index, input, groups: undefined });
+  if (match.groups !== undefined) setSandboxPrototype(match.groups, null, budget);
+  if (match.indicesGroups !== undefined) setSandboxPrototype(match.indicesGroups, null, budget);
+  Object.assign(result, { index: match.index, input, groups: match.groups });
   if (match.indices !== undefined) {
     budget?.allocateArrayLength(match.indices.length);
     budget?.allocateArrayLength(2);
-    Object.assign(match.indices, { groups: undefined });
+    Object.assign(match.indices, { groups: match.indicesGroups });
     Object.assign(result, { indices: match.indices });
   }
   return result;

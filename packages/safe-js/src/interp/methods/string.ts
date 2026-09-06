@@ -14,6 +14,7 @@ import {
   createSandboxClosure,
   createSandboxRegex,
   deepCopyFromSandbox,
+  getSandboxRegexPattern,
   isSandboxClosure,
   isSandboxRegex,
   measureSandboxData,
@@ -495,7 +496,7 @@ async function replaceRegex(
   callClosure: (closure: SandboxClosure, args: readonly SandboxValue[]) => Promise<SandboxValue>,
   context?: SandboxCallContext
 ): Promise<string> {
-  if (hasRegexPropertyOverride(regex, ["exec", "flags", ...Object.keys(regexFlagProperties)], budget))
+  if (getSandboxRegexPattern(regex).groups !== undefined || hasRegexPropertyOverride(regex, ["exec", "flags", ...Object.keys(regexFlagProperties)], budget))
     return regexReplace(value, regex, replacement, budget, callClosure, context);
   if (regex.flags.includes("g")) regex.lastIndex = 0;
   const cursor = regex.lastIndex;
@@ -557,7 +558,7 @@ export async function regexReplace(
     input = undefined;
     replacement = isSandboxClosure(replacementInput) ? replacementInput : await sandboxString(replacementInput, budget, context);
     replacementInput = undefined;
-    if (isSandboxRegex(regex) && !hasRegexPropertyOverride(regex, ["exec", "flags", ...Object.keys(regexFlagProperties)], budget)) {
+    if (isSandboxRegex(regex) && getSandboxRegexPattern(regex).groups === undefined && !hasRegexPropertyOverride(regex, ["exec", "flags", ...Object.keys(regexFlagProperties)], budget)) {
       release();
       return await replaceRegex(value, regex, replacement, budget, callClosure, context);
     }

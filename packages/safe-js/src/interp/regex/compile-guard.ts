@@ -125,7 +125,7 @@ export class RegexCompileGuard {
   }
 
   retain(pattern: RegexPattern, valueUnits = 0): void {
-    const units = 10 + pattern.source.length + measureNode(pattern.body);
+    const units = measurePattern(pattern);
     if (this.ticket !== undefined) {
       this.ticket.owner.budget.resizeCompileTicket(this.ticket, units + valueUnits);
     }
@@ -149,8 +149,17 @@ export function regexCompiledData(pattern: RegexPattern): {
   ticket?: CompileTicket;
 } {
   return (
-    compiledData.get(pattern) ?? { units: 10 + pattern.source.length + measureNode(pattern.body) }
+    compiledData.get(pattern) ?? { units: measurePattern(pattern) }
   );
+}
+
+function measurePattern(pattern: RegexPattern): number {
+  let units = 10 + pattern.source.length + measureNode(pattern.body);
+  if (pattern.groups !== undefined) {
+    units += 1;
+    for (const [name, indices] of Object.entries(pattern.groups)) units += name.length + 2 + indices.length;
+  }
+  return units;
 }
 
 function measureNode(node: RegexNode): number {
@@ -160,6 +169,8 @@ function measureNode(node: RegexNode): number {
       return 2;
     case "literal":
       return 3 + node.value.length;
+    case "namedBackreference":
+      return 3 + node.name.length;
     case "anchor":
     case "wordBoundary":
     case "backreference":
@@ -184,7 +195,7 @@ function measureNode(node: RegexNode): number {
       return usage;
     }
     case "group":
-      return 5 + measureNode(node.body);
+      return 5 + measureNode(node.body) + (node.name === undefined ? 0 : 1 + node.name.length);
     case "lookahead":
     case "lookbehind":
       return 4 + measureNode(node.body);

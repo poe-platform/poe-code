@@ -1,0 +1,14 @@
+import { S } from "schema";
+
+export const schema = S.Object({ title: S.String() });
+
+export default async function main(frontmatter) {
+  const match = /(?:(?<x>a)|(?<x>b))\k<x>/d.exec('bb');
+  if (match.groups.x !== 'b' || match.indices.groups.x !== match.indices[2])
+    throw new Error('Duplicate alternative names lost their selected capture');
+  if (Object.getPrototypeOf(match.groups) !== null) throw new Error('Groups prototype is not null');
+  const replaced = 'ab'.replace(/(?<a>a)(?<b>b)/, '$<b>$<a>');
+  if (replaced !== 'ba') throw new Error('Named replacement failed');
+  await 0;
+  return { ok: true, title: frontmatter.title, replaced, groups: match.groups };
+}

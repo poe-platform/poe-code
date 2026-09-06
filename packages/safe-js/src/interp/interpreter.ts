@@ -1741,6 +1741,11 @@ async function evaluateIfStatement(
   node: IfStatement,
   context: EvaluationContext
 ): Promise<EvaluationResult> {
+  if (context.generatorResume !== undefined && context.generatorResume.completed !== true) {
+    const target = new Set([context.generatorResume.yieldNodeId]);
+    if (containsResumeTarget(node.consequent, target)) return evaluateNode(node.consequent, context);
+    if (node.alternate !== undefined && containsResumeTarget(node.alternate, target)) return evaluateNode(node.alternate, context);
+  }
   const test = await evaluateNode(node.test, context);
   if (test.kind !== "normal") {
     return test;

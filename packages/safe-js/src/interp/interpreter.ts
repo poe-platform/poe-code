@@ -1459,6 +1459,8 @@ async function evaluateBlockStatement(
       continue;
     }
     const result = await evaluateNode(statement, blockContext);
+    if (result.kind === "break" && result.label !== undefined && node.labels?.includes(result.label))
+      return { kind: "normal", hasValue: false, value: undefined };
     if (result.kind !== "normal") {
       return result;
     }

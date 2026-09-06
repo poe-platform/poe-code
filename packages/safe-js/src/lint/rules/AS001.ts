@@ -215,7 +215,7 @@ class AS001Scanner {
           canStartStatement &&
           nextSignificantChar === ":" &&
           token.value !== "default" &&
-          !this.isLoopLabelStart()
+          !this.isSupportedLabelStart()
         ) {
           this.report(
             "label",
@@ -515,7 +515,7 @@ class AS001Scanner {
     return nextIndex >= this.source.length ? undefined : this.source[nextIndex];
   }
 
-  private isLoopLabelStart(): boolean {
+  private isSupportedLabelStart(): boolean {
     let index = this.skipTriviaFrom(this.index);
     if (this.source[index] !== ":") {
       return false;
@@ -524,6 +524,7 @@ class AS001Scanner {
     index = this.skipTriviaFrom(index + 1);
 
     while (index < this.source.length) {
+      if (this.source[index] === "{") return true;
       const identifier = readIdentifierAt(this.source, index);
       if (identifier === undefined) {
         return false;

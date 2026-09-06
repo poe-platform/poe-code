@@ -1,4 +1,5 @@
 import { describe, expect, it, vi } from "vitest";
+import { runInNewContext } from "node:vm";
 
 import { parse, parseModule, type ParseResult, type Statement } from "../parse.js";
 import { Budget, SandboxError } from "./budget.js";
@@ -3871,21 +3872,10 @@ describe("interpret", () => {
     });
   });
 
-  it("lets an adjacent inner loop label mask an outer loop label with the same name", async () => {
-    await expect(
-      interpret(
-        block(
-          parse("const out = []"),
-          parse(
-            "outer: for (let i = 0; i < 2; i = i + 1) { out.push(i); outer: outer: for (let j = 0; j < 2; j = j + 1) { out.push(j); break outer; } out.push(9); }"
-          ),
-          parse("return out")
-        )
-      )
-    ).resolves.toMatchObject({
-      ok: true,
-      returnValue: [0, 0, 9, 1, 0, 9]
-    });
+  it("rejects duplicate active loop labels like native JavaScript", () => {
+    const source = "outer: for (let i = 0; i < 2; i = i + 1) { out.push(i); outer: outer: for (let j = 0; j < 2; j = j + 1) { out.push(j); break outer; } out.push(9); }";
+    expect(() => runInNewContext(source)).toThrow();
+    expect(() => parse(source)).toThrow("Duplicate label 'outer'");
   });
 
   it("allows any distinct adjacent label to target the same loop", async () => {
@@ -3920,13 +3910,10 @@ describe("interpret", () => {
     });
   });
 
-  it("reports a clear error when a labeled break target is not in scope", async () => {
-    await expect(interpret(parse("for (;;) { break foo; }"))).resolves.toMatchObject({
-      ok: false,
-      error: {
-        message: "Label 'foo' not found"
-      }
-    });
+  it("rejects an out-of-scope labeled break while parsing like native JavaScript", () => {
+    const source = "for (;;) { break foo; }";
+    expect(() => runInNewContext(source)).toThrow();
+    expect(() => parse(source)).toThrow("Unknown break label 'foo'");
   });
 
   it("keeps unlabeled break scoped to the inner loop", async () => {

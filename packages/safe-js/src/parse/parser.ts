@@ -348,6 +348,7 @@ export type EmptyStatement = BaseNode & {
 export type BlockStatement = BaseNode & {
   type: "BlockStatement";
   body: Statement[];
+  labels?: string[];
 };
 
 export type FunctionDeclaration = BaseNode & {
@@ -722,6 +723,7 @@ class Parser {
   private conditionalExpressionDepth = 0;
   private ifStatementDepth = 0;
   private loopDepth = 0;
+  private activeLabels = new Map<string, boolean>();
   private readonly scopes: ParserScope[] = [new Map()];
   private readonly functionScopes = new WeakSet<ParserScope>();
   private readonly parenthesizedNodes = new WeakSet<Expression>();
@@ -1129,13 +1131,14 @@ class Parser {
     }
 
     if (token.type === "keyword" && token.value === "break") {
-      if (this.breakableDepth === 0) {
+      this.index += 1;
+      const label = this.consumeControlLabel(token);
+      if (label !== undefined && !this.activeLabels.has(label.value)) throw new Error(`Unknown break label '${label.value}'.`);
+      if (label === undefined && this.breakableDepth === 0) {
         throw new Error(
           `Illegal break statement outside a loop or switch at line ${token.start.line}, column ${token.start.column}.`
         );
       }
-      this.index += 1;
-      const label = this.consumeControlLabel(token);
       return {
         type: "BreakStatement",
         ...(label === undefined ? {} : { label: label.value }),
@@ -1151,6 +1154,7 @@ class Parser {
       }
       this.index += 1;
       const label = this.consumeControlLabel(token);
+      if (label !== undefined && this.activeLabels.get(label.value) !== true) throw new Error(`Invalid continue label '${label.value}'.`);
       return {
         type: "ContinueStatement",
         ...(label === undefined ? {} : { label: label.value }),
@@ -1190,19 +1194,22 @@ class Parser {
       return this.parseLabeledStatement([...labels, token.value], firstLabelToken);
     }
 
-    if (token.type === "keyword" && token.value === "for") {
-      return this.parseForStatement(labels);
+    const iteration = token.type === "keyword" && ["for", "while", "do"].includes(token.value);
+    const seen = new Set<string>();
+    for (const label of labels) {
+      if (seen.has(label) || this.activeLabels.has(label)) throw new Error(`Duplicate label '${label}'.`);
+      seen.add(label);
     }
-
-    if (token.type === "keyword" && token.value === "while") {
-      return this.parseWhileStatement(labels);
+    for (const label of labels) this.activeLabels.set(label, iteration);
+    try {
+      if (token.type === "keyword" && token.value === "for") return this.parseForStatement(labels);
+      if (token.type === "keyword" && token.value === "while") return this.parseWhileStatement(labels);
+      if (token.type === "keyword" && token.value === "do") return this.parseDoWhileStatement(labels);
+      if (token.type === "punctuator" && token.value === "{") return { ...this.parseBlockStatement(), labels };
+      throw new DisallowedSyntaxError("label", firstLabelToken.start);
+    } finally {
+      for (const label of labels) this.activeLabels.delete(label);
     }
-
-    if (token.type === "keyword" && token.value === "do") {
-      return this.parseDoWhileStatement(labels);
-    }
-
-    throw new DisallowedSyntaxError("label", firstLabelToken.start);
   }
 
   private parseIfStatement(): IfStatement {
@@ -3932,15 +3939,18 @@ class Parser {
   private withFunctionContext<T>(functionContext: FunctionParseContext, callback: () => T): T {
     const previousBreakableDepth = this.breakableDepth;
     const previousLoopDepth = this.loopDepth;
+    const previousLabels = this.activeLabels;
     const previousFunctionContext = this.functionContext;
     this.breakableDepth = 0;
     this.loopDepth = 0;
+    this.activeLabels = new Map();
     this.functionContext = functionContext;
     try {
       return callback();
     } finally {
       this.breakableDepth = previousBreakableDepth;
       this.loopDepth = previousLoopDepth;
+      this.activeLabels = previousLabels;
       this.functionContext = previousFunctionContext;
     }
   }

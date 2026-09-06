@@ -23,12 +23,35 @@ exhaustion. Do not treat browser workers, timeouts, or protocol allocation-unit
 budgets as a hard heap/RSS guarantee. Memory-pressure measurements, where
 available, are likewise not allocation-admission caps.
 
-## Main-page execution
+## Dedicated shell execution
 
-The shell currently executes on the page. Its five-second timer requests
-cooperative cancellation; synchronous work can prevent the timer from running.
-Moving shell execution off the page is tracked separately in issue 627. The
-regex/ERE worker disclosure does not resolve that execution-placement issue.
+Each command executes in a fresh dedicated worker, including shell parsing and
+command execution. A page-owned five-second deadline covers worker startup and
+execution. On expiry the page stops admitting filesystem requests, aborts
+admitted operations, terminates the execution worker and its page-owned
+regex/ERE workers, and drains filesystem cleanup before returning exit code 124.
+It does not wait for the execution worker to acknowledge cancellation. Browser
+worker construction or messaging failures never fall back to page execution.
+
+The in-memory filesystem stays on the page. A bounded RPC interface preserves
+acknowledged writes, hardlinks, byte contents, and filesystem error codes across
+worker termination. Reads use pull-based streams; writes use the same guarded
+empty-write/append sequence as the existing workspace policy. At most 64
+filesystem requests and 64 read streams are admitted concurrently; at most four
+auxiliary workers are owned by one execution. Remote stat identity scopes have
+a 10,000-identity ceiling per execution. These bounds are not heap quotas.
+
+Root cwd changes are sent as they occur, not only from final cleanup. After a
+termination the page retains the last received cwd and recovers to a surviving
+parent if needed. Subshell cwd does not overwrite the root state. Termination
+does not roll back writes already admitted, and a subsequent command gets a
+fresh worker using the surviving workspace. Variables/functions still do not
+persist between commands.
+
+Filesystem and UI work still run on the page, so this is not a guarantee that
+every page operation remains responsive. A page-level timer itself can be
+delayed by unrelated page work or browser scheduling. Worker termination is not
+a hard browser heap/RSS boundary or universal out-of-memory containment.
 
 ## Platform references
 

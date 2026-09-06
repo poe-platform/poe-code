@@ -7,6 +7,7 @@ await build({
   configFile: false,
   base: "./",
   plugins: [safeBashBrowserPlugin()],
+  worker: { format: "es", plugins: () => [safeBashBrowserPlugin()] },
   build: {
     outDir: "dist/site",
     emptyOutDir: true,

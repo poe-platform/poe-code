@@ -122,7 +122,9 @@ export async function buildBrowserEngine(options = {}) {
   }
   const result = options.workersOnly ? undefined : await build({
     ...shared,
-    ...(options.kernelOnly
+    ...(options.entry
+      ? { entryPoints: [resolve(directory, options.entry)] }
+      : options.kernelOnly
       ? { stdin: { contents: 'export * from "virtual:safe-bash-kernel";', resolveDir: directory } }
       : { entryPoints: [resolve(directory, "index.ts")] }),
     format: "esm",

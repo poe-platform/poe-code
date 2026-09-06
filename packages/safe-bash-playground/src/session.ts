@@ -1,5 +1,6 @@
-import { Shell, browserCommands, browserLimits, createMemoryFileSystem } from "./engine/index.js";
+import { browserLimits, createMemoryFileSystem, supportedCommands } from "./engine/index.js";
 import type { FileSystem } from "./engine/index.js";
+import { executeInWorker } from "./execution.js";
 import { sampleFiles } from "./samples.js";
 
 export const MAX_FILE_BYTES = 2 * 1024 * 1024;
@@ -211,26 +212,11 @@ export async function createSession(): Promise<PlaygroundSession> {
       return typeof original === "function" ? original.bind(target) : original;
     }
   });
-  const shell = new Shell({
-    fs: guardedFs,
-    cwd,
-    env: { HOME: "/home" },
-    limits: browserLimits
-  }).use(browserCommands());
-  shell.register({
-    name: "help",
-    description: "Show playground commands, examples, and resource limits",
-    async execute(context) {
-      const commands = shell.commands
-        .list()
-        .map((command) => command.name)
-        .filter((name) => name !== "help")
-        .sort();
-      const tasks = sampleFiles["/home/WELCOME.md"]!.split("\n")
+  const commands = supportedCommands;
+  const tasks = sampleFiles["/home/WELCOME.md"]!.split("\n")
         .filter((line) => line.startsWith("  "))
         .join("\n");
-      await context.stdout.write(
-        encoder.encode(`Safe Bash playground
+  const help = `Safe Bash playground
 
 Engine / Registered commands:
 ${commands.join(" ")}
@@ -259,7 +245,9 @@ Limits:
   Shell files may exceed the upload/edit limit within the workspace budget.
   Output: ${browserLimits.maxOutputBytes! / 1024} KiB; source: ${browserLimits.maxSourceBytes! / 1024} KiB.
   Commands: ${browserLimits.maxCommands}; loop iterations: ${browserLimits.maxLoopIterations}.
-  A 5-second timeout requests cooperative cancellation, not a hard CPU/heap limit.
+  A page-owned 5-second deadline terminates the dedicated shell worker.
+  Shell execution is off-page; filesystem/UI work still runs on the page.
+  Termination is not a hard heap limit; acknowledged file changes are retained.
   Regex/ERE workers use protocol work/byte budgets and timeouts.
   Node resourceLimits heap/stack caps are not enforced in browser workers.
   Worker cleanup does not guarantee page survival under memory exhaustion.
@@ -270,11 +258,7 @@ Download anything you want to keep. Tab completes commands and paths.
 Python, Node.js, TypeScript, Rust, Go, C, Ruby, and Java runtimes are not installed.
 All ${commands.length} agent commands are available, including grep, rg, sed, awk, jq, and find.
 Regex searches and [[ =~ ]] run in Web Workers. Network/OS commands remain unavailable.
-`)
-      );
-      return { exitCode: 0 };
-    }
-  });
+`;
 
   async function entries(): Promise<FileEntry[]> {
     const result: FileEntry[] = [];
@@ -310,25 +294,17 @@ Regex searches and [[ =~ ]] run in Web Workers. Network/OS commands remain unava
     },
     run(command) {
       return serial(async () => {
-        const controller = new AbortController();
-        const timeout = setTimeout(() => controller.abort(), 5000);
         try {
-          const result = await shell.exec(command, {
-            cwd,
-            signal: controller.signal,
-            onState(state) {
-              cwd = state.cwd;
-            }
+          return await executeInWorker(guardedFs, command, cwd, help, (nextCwd) => {
+            cwd = nextCwd;
           });
-          return { stdout: result.stdout, stderr: result.stderr, exitCode: result.exitCode };
         } catch (error) {
           return {
             stdout: "",
             stderr: `${error instanceof Error ? error.message : String(error)}\n`,
-            exitCode: controller.signal.aborted ? 124 : 1
+            exitCode: 1
           };
         } finally {
-          clearTimeout(timeout);
           await recoverCwd();
         }
       });
@@ -430,7 +406,8 @@ Regex searches and [[ =~ ]] run in Web Workers. Network/OS commands remain unava
       const candidates = new Set<string>();
       if (token.commandPosition && !token.value.includes("/")) {
         for (const command of [
-          ...shell.commands.list().map((command) => command.name),
+          ...supportedCommands,
+          "help",
           ...shellBuiltins,
           "sh",
           "bash"

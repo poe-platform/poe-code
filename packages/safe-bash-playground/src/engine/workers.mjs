@@ -3,26 +3,40 @@ import { sources } from "virtual:safe-bash-worker-sources";
 
 export const isMainThread = true;
 
+export const browserWorkerRuntime = {
+  create(identity, workerData) {
+    if (!Object.hasOwn(sources, identity)) throw new Error(`Unknown browser worker: ${identity}`);
+    const bootstrap = `globalThis.__safeBashWorkerData = ${JSON.stringify(workerData ?? null)};\n`;
+    const url = URL.createObjectURL(new Blob([bootstrap, sources[identity]], { type: "text/javascript" }));
+    let worker;
+    try {
+      worker = new globalThis.Worker(url, { name: `safe-bash-${identity}` });
+    } catch (error) {
+      URL.revokeObjectURL(url);
+      throw error;
+    }
+    return {
+      worker,
+      close() {
+        worker.terminate();
+        URL.revokeObjectURL(url);
+      }
+    };
+  }
+};
+
 export class Worker extends EventEmitter {
   #worker;
-  #url;
+  #close;
   #terminated = false;
   stdout = new EventEmitter();
   stderr = new EventEmitter();
 
   constructor(identity, options = {}) {
     super();
-    if (!Object.hasOwn(sources, identity)) throw new Error(`Unknown browser worker: ${identity}`);
-    const bootstrap = `globalThis.__safeBashWorkerData = ${JSON.stringify(options.workerData ?? null)};\n`;
-    this.#url = URL.createObjectURL(
-      new Blob([bootstrap, sources[identity]], { type: "text/javascript" })
-    );
-    try {
-      this.#worker = new globalThis.Worker(this.#url, { name: `safe-bash-${identity}` });
-    } catch (error) {
-      URL.revokeObjectURL(this.#url);
-      throw error;
-    }
+    const resource = browserWorkerRuntime.create(identity, options.workerData);
+    this.#worker = resource.worker;
+    this.#close = resource.close;
     this.#worker.addEventListener("message", (event) => {
       if (!this.#terminated) this.emit("message", event.data);
     });
@@ -48,9 +62,8 @@ export class Worker extends EventEmitter {
 
   async terminate() {
     if (this.#terminated) return 0;
-    this.#worker.terminate();
+    this.#close();
     this.#terminated = true;
-    URL.revokeObjectURL(this.#url);
     for (const stream of [this.stdout, this.stderr]) {
       stream.readableEnded = true;
       stream.closed = true;

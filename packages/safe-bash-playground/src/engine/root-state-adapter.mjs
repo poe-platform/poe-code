@@ -35,6 +35,39 @@ export function instrumentRootState(source) {
           ]
         )
       );
+      const observedCwd = factory.createIdentifier("playgroundRootCwd");
+      const cwdValue = factory.createIdentifier("value");
+      const observe = [
+        factory.createVariableStatement(undefined, factory.createVariableDeclarationList([
+          factory.createVariableDeclaration(observedCwd, undefined, undefined,
+            factory.createPropertyAccessExpression(factory.createIdentifier("state"), "cwd"))
+        ], ts.NodeFlags.Let)),
+        factory.createExpressionStatement(factory.createCallExpression(
+          factory.createPropertyAccessExpression(factory.createIdentifier("Object"), "defineProperty"),
+          undefined,
+          [factory.createIdentifier("state"), factory.createStringLiteral("cwd"), factory.createObjectLiteralExpression([
+            factory.createPropertyAssignment("enumerable", factory.createTrue()),
+            factory.createPropertyAssignment("configurable", factory.createTrue()),
+            factory.createPropertyAssignment("get", factory.createArrowFunction(
+              undefined, undefined, [], undefined, factory.createToken(ts.SyntaxKind.EqualsGreaterThanToken), observedCwd
+            )),
+            factory.createPropertyAssignment("set", factory.createArrowFunction(
+              undefined, undefined, [factory.createParameterDeclaration(undefined, undefined, cwdValue)],
+              undefined, factory.createToken(ts.SyntaxKind.EqualsGreaterThanToken), factory.createBlock([
+                factory.createIfStatement(
+                  factory.createBinaryExpression(observedCwd, ts.SyntaxKind.EqualsEqualsEqualsToken, cwdValue),
+                  factory.createReturnStatement()
+                ),
+                factory.createExpressionStatement(factory.createAssignment(observedCwd, cwdValue)),
+                factory.createExpressionStatement(factory.createCallChain(
+                  factory.createPropertyAccessExpression(factory.createIdentifier("options"), "onCwd"),
+                  factory.createToken(ts.SyntaxKind.QuestionDotToken), undefined, [cwdValue]
+                ))
+              ], true)
+            ))
+          ])]
+        ))
+      ];
       const visitBody = (node) => {
         if (ts.isBlock(node)) {
           const index = node.statements.findIndex(
@@ -56,6 +89,7 @@ export function instrumentRootState(source) {
             adapted++;
             return factory.updateBlock(node, [
               ...node.statements.slice(0, index + 1),
+              ...observe,
               factory.createTryStatement(
                 factory.createBlock(node.statements.slice(index + 1), true),
                 undefined,

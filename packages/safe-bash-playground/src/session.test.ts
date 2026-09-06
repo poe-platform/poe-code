@@ -1,6 +1,12 @@
-import { describe, expect, it, vi } from "vitest";
+import { afterAll, afterEach, beforeAll, describe, expect, it, vi } from "vitest";
 import { createSession, SESSION_LIMITS } from "./session.js";
 import { sampleFiles } from "./samples.js";
+import { browserWorkerFixture } from "../test/browser-worker.js";
+
+vi.mock("virtual:safe-bash-worker-sources", async () => {
+  const { buildBrowserEngine } = await import("./engine/build-plugin.mjs");
+  return { sources: (await buildBrowserEngine({ workersOnly: true })).workerSources };
+});
 
 vi.mock("./engine/index.js", async () => {
   const { buildBrowserEngine } = await import("./engine/build-plugin.mjs");
@@ -12,6 +18,17 @@ vi.mock("./engine/index.js", async () => {
 
 const fileLimit = 2 * 1024 * 1024;
 const workspaceLimit = 16 * 1024 * 1024;
+let fixture: ReturnType<typeof browserWorkerFixture>;
+beforeAll(async () => {
+  const { buildBrowserEngine } = await import("./engine/build-plugin.mjs");
+  fixture = browserWorkerFixture((await buildBrowserEngine({ entry: "../execution-worker.ts" })).code);
+  vi.stubGlobal("Worker", fixture.Worker);
+});
+afterEach(async () => {
+  expect(fixture.workers.size).toBe(0);
+  await fixture.close();
+});
+afterAll(() => vi.unstubAllGlobals());
 
 describe("PlaygroundSession", () => {
   it("publishes the same byte budgets used by editing and uploads", () => {
@@ -35,7 +52,7 @@ describe("PlaygroundSession", () => {
     expect(result.stdout).toContain("2 MiB");
     expect(result.stdout).toContain("16 MiB");
     expect(result.stdout).toContain("64 KiB");
-    expect(result.stdout).toContain("cooperative");
+    expect(result.stdout).toContain("5-second deadline terminates the dedicated shell worker");
     expect(result.stdout).toContain("not installed");
     expect(result.stdout).toContain("All 79 agent commands");
     expect(result.stdout).toContain("Web Workers");
@@ -248,7 +265,7 @@ describe("PlaygroundSession", () => {
   it.each([
     "cd examples; echo ready > /home/cancellation.txt; while true; do :; done",
     "cd examples; (cd /; echo ready > /home/cancellation.txt; while true; do :; done)"
-  ])("preserves root cwd on cooperative timeout: %s", async (command) => {
+  ])("preserves acknowledged root cwd on worker termination: %s", async (command) => {
     const session = await createSession();
     const timers = vi.spyOn(globalThis, "setTimeout");
     try {

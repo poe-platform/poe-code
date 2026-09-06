@@ -1,0 +1,22 @@
+import { S } from "schema";
+
+export const schema = S.Object({ title: S.String() });
+
+export default async (frontmatter) => {
+  async function* values() {
+    let count = 0;
+    do {
+      count++;
+    } while (yield count);
+    return count;
+  }
+  const iterator = values();
+  const first = await iterator.next();
+  const second = await iterator.next(true);
+  const final = await iterator.next(false);
+  if (first.value !== 1 || first.done || second.value !== 2 || second.done ||
+      final.value !== 2 || !final.done) {
+    throw new Error("Do-while continuation changed iteration progress");
+  }
+  return { title: frontmatter.title, ok: true, values: [first, second, final] };
+};

@@ -2188,22 +2188,27 @@ async function evaluateDoWhileStatement(
   node: DoWhileStatement,
   context: EvaluationContext
 ): Promise<EvaluationResult> {
+  let resumeTest = context.generatorResume !== undefined && context.generatorResume.completed !== true &&
+    containsResumeTarget(node.test, new Set([context.generatorResume.yieldNodeId]));
   while (true) {
-    const iterationContext = createLoopIterationContext(context, context.scope);
-    emitLoopIterationBreakpoint(node, iterationContext);
-    const result = await evaluateNode(node.body, iterationContext);
+    if (!resumeTest) {
+      const iterationContext = createLoopIterationContext(context, context.scope);
+      emitLoopIterationBreakpoint(node, iterationContext);
+      const result = await evaluateNode(node.body, iterationContext);
 
-    if (isMatchingBreak(result, loopLabels(node))) {
-      return {
-        kind: "normal",
-        hasValue: false,
-        value: undefined
-      };
-    }
+      if (isMatchingBreak(result, loopLabels(node))) {
+        return {
+          kind: "normal",
+          hasValue: false,
+          value: undefined
+        };
+      }
 
-    if (result.kind !== "normal" && !isMatchingContinue(result, loopLabels(node))) {
-      return result;
+      if (result.kind !== "normal" && !isMatchingContinue(result, loopLabels(node))) {
+        return result;
+      }
     }
+    resumeTest = false;
 
     const test = await evaluateNode(node.test, context);
     if (test.kind !== "normal") {

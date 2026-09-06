@@ -347,10 +347,10 @@ export function setSandboxPrototype(
   }
   if (
     (!Array.isArray(value) && !isSandboxRegex(value) && !isSandboxMap(value) && !isSandboxSet(value) && !isPrototypeRecord(value)) ||
-    (prototype !== null && !Array.isArray(prototype) && !isPrototypeRecord(prototype))
+    (prototype !== null && !Array.isArray(prototype) && !isSandboxMap(prototype) && !isSandboxSet(prototype) && !isPrototypeRecord(prototype))
   ) {
     throw new TypeError(
-      "Prototype links require ordinary sandbox objects, arrays, or guest functions."
+      "Prototype links require supported sandbox objects."
     );
   }
   if (getSandboxPrototype(value, budget) === prototype) {

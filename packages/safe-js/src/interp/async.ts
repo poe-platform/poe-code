@@ -203,7 +203,7 @@ export function createInterpretedClosure(
     ...(node.async ? { async: true } : {}),
     ...(node.type === "FunctionDeclaration" || node.type === "FunctionExpression"
       ? node.id === undefined
-        ? {}
+        ? { name: context.inferredName }
         : { name: node.id.name }
       : {}),
     ...(construct === undefined ? {} : { construct }),
@@ -282,7 +282,7 @@ function createGeneratorClosure(
     generator: true,
     sandbox: true,
     length: getFunctionLength(node.params),
-    ...(node.id === undefined ? {} : { name: node.id.name }),
+    ...(node.id === undefined ? { name: context.inferredName } : { name: node.id.name }),
     retainedValues: () => [...context.scope.retainedValues(), context.functionEnvironment?.homeObject, context.functionEnvironment?.newTarget],
     call: async (args, callContext) => {
       const closureContext = {

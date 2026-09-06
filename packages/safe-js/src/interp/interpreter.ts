@@ -453,7 +453,8 @@ async function evaluateNode(
   context: EvaluationContext
 ): Promise<EvaluationResult> {
   context.assertActive?.();
-  if (context.inferredName !== undefined && node.type !== "ClassExpression") context = { ...context, inferredName: undefined };
+  if (context.inferredName !== undefined && node.type !== "ClassExpression" &&
+      !(node.type === "FunctionExpression" && node.method === true)) context = { ...context, inferredName: undefined };
   const replayWait = promiseReplayContext.getStore()?.beforeNode(node.nodeId);
   if (replayWait !== undefined) await suspendJob(replayWait);
   assertPromiseExecutionAllowed();

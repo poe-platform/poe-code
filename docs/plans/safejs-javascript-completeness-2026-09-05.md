@@ -3416,7 +3416,7 @@ Scoped workflow 34013210176 published `@poe-platform/safe-js@0.1.143` at
 05:12:11 UTC on September 6. The CLI workflow is still in progress; scoped
 publication is verified separately from that pending CLI release.
 
-### 58. Generator object methods — validated implementation under qualification
+### 58. Generator object methods — closed on remote main
 
 Native comparisons reproduced 22 failures with eight passing controls for
 ordinary/computed/quoted/numeric/reserved generator method definitions,
@@ -3464,3 +3464,41 @@ The rebuilt harness now passes. Its inspected screenshot shows values [7, 8],
 borrowed-receiver values [7, 10], first yield 7 and sent completion 8, with zero
 spawns. The normal build also passed. Generator method syntax and admission are
 ready for their own commit/main push; method-name metadata remains the next fix.
+
+Delivery is verified on remote main at
+03cf2518abd8125bdbf57986ebb21a7b16772386. Close this scope at main delivery,
+without waiting for publication. Release workflows are monitored independently
+while the method-name regression work proceeds.
+
+Generator release workflows 34013496165 (scoped) and 34013496214 (CLI) are
+under monitoring. The predecessor accessor CLI run 34013210314 was canceled;
+it is not a publication. A successful descendant CLI publication is still required.
+
+Generator scoped workflow 34013496165 published
+`@poe-platform/safe-js@0.1.144` at 05:18:22 UTC on September 6. Its CLI
+workflow 34013496214 remains in progress and is tracked separately.
+
+### 59. Object method names — validated implementation under qualification
+
+Native comparisons reproduced ten failures with two passing controls: ordinary,
+async, generator, computed, numeric, quoted, prototype-named and reserved-key
+methods expose empty names instead of their property keys. Aliases and the name
+descriptor also disagree. Getter and explicitly named function-expression controls
+already pass. Three additional checkpoint regressions reproduce the same defect.
+
+Preserve the existing inferred property name for method FunctionExpression nodes
+and pass it into ordinary/generator closure creation. All 15 tests now pass,
+including computed, async and generator methods after checkpoint restoration.
+No snapshot format change was needed for these supported run/resume routes.
+Maintained tests, focused lint/types and real harness screenshot QA precede this
+increment's separate commit and main push.
+
+Maintained qualification passed: 13,379 SafeJS tests (41 skipped), 163 harness
+tests, focused ESLint and package/root TypeScript. The normal build and named
+method harness screenshot are running. This full package run also covers the
+preceding synchronous-generator lint admission fix and all prior accessors.
+
+The normal build and real harness passed. The inspected screenshot shows names
+read/load/items/computed name, results [7, 8, 9], and the native name descriptor
+(non-writable, non-enumerable, configurable), with zero spawns. This fix is ready
+for its own atomic main push.

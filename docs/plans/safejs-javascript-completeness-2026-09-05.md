@@ -3290,7 +3290,7 @@ Class accessor scoped publication is verified: workflow 34002139353 published
 `@poe-platform/safe-js@0.1.140` at 00:50:05 UTC on September 6. The corresponding
 CLI release remains under observation while object-method work continues.
 
-### 55. Object method home objects and super — confirmed prerequisite gap
+### 55. Object method home objects and super — closed at verified main delivery
 
 On the current built API, an object method reading super.x fails with the
 explicit super syntax error; native JavaScript returns 7. An ordinary this.x
@@ -3321,3 +3321,48 @@ checks cover direct/borrowed/async super calls and twenty persistent home-object
 prototype-change/cleanup cycles with no retained roots after close. This
 method-super increment is ready for its own commit and main push. The separate
 __proto__ method classification and object accessor syntax gaps remain open.
+
+Method-super delivery is verified on remote main as
+fd63ab961a41c75df77de67720303b97e90d38dd on September 6 UTC. Close this scope at
+main delivery. Scoped workflow 34002595599 and CLI workflow 34002595606 are
+being monitored without delaying the next fix. No publication is claimed for
+this commit yet; the class-accessor CLI workflow also remains under observation.
+
+The class-accessor CLI workflow 34002139452 subsequently completed green but
+explicitly skipped publication at 00:57:10 UTC because remote main had advanced.
+It is not a published CLI version. The latest CLI workflow 34002595606 must
+publish the descendant containing descriptors, class accessors and method super;
+its publication remains under monitoring while the next validated fix proceeds.
+
+### 56. __proto__ shorthand methods — validated next defect
+
+Current-main built probes reproduce missing own methods for identifier, quoted
+and async __proto__ method definitions. Native owns a function-valued property;
+SafeJS instead returns false/undefined for ownership/type. Computed methods and
+function-valued colon prototype declarations are passing controls. The literal
+prototype-setter classifier currently checks only key/computed/shorthand and
+does not distinguish method syntax. Add failing regressions before changing
+that classifier; preserve genuine colon prototype declarations. Keep this
+separate from the remaining object getter/setter syntax work.
+
+The first regression suite reproduced 13 failures with six passing controls.
+Exclude FunctionExpression method syntax from the colon-prototype classifier;
+genuine function-valued colon declarations retain their original behavior.
+Spread and checkpoint controls also pass, and the focused proto/method-super
+cohort passes 57 tests. The maintained package/harness checks and scoped lint
+are running. Manual QA will build normally, run the zero-spawn proto-methods
+harness, and inspect ownership, method values 7/8, keys and unchanged prototype
+before committing and pushing this fix separately.
+
+Qualification passed: 13,258 maintained SafeJS tests (41 skipped), 163 harness
+tests, focused ESLint, package/root TypeScript and the normal build. The inspected
+schema-only harness screenshot shows own=true, method results 7/8, the __proto__
+key and unchangedPrototype=true with zero spawns. The fixture's initial async
+method lacked await and produced an informational lint diagnostic; adding a real
+await to the fixture produced a clean screenshot without changing runtime code.
+The rebuilt public API confirms the same ordinary/async method and prototype
+results. This fix is ready for its own commit/main push.
+
+Predecessor method-super scoped publication is verified: workflow 34002595599
+published `@poe-platform/safe-js@0.1.141` at 01:00:55 UTC on September 6. Its
+CLI workflow remains in progress and is monitored independently of this fix.

@@ -704,7 +704,8 @@ async function evaluateObjectExpression(
 }
 
 function isObjectPrototypeSetterProperty(property: Property, key: string | number): boolean {
-  return !property.computed && !property.shorthand && key === "__proto__";
+  return !property.computed && !property.shorthand && key === "__proto__" &&
+    !(property.value.type === "FunctionExpression" && property.value.method === true);
 }
 
 async function evaluateTemplateLiteral(

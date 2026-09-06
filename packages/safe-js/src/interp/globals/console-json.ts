@@ -175,7 +175,7 @@ async function stringifyProperty(
   try {
     if (isSandboxDate(value) && getSandboxPropertyDescriptor(value, "toJSON", state.budget) === undefined) {
       value = await dateToJSON(value, state.budget, state.context);
-    } else if (typeof value === "bigint" || isStringifyContainer(value)) {
+    } else if (typeof value === "bigint" || isSandboxClosure(value) || isStringifyContainer(value)) {
       const toJSON = await getStringifyProperty(value, "toJSON", state);
       if (isSandboxClosure(toJSON)) {
         value = await callStringifyClosure(toJSON, [key], value, state);
@@ -396,7 +396,7 @@ function toSandboxValue(value: unknown): SandboxValue {
 }
 
 function getStringifyProperty(
-  target: SandboxArray | SandboxObject | bigint,
+  target: SandboxArray | SandboxObject | SandboxClosure | bigint,
   key: string,
   state: StringifyState
 ): SandboxValue | Promise<SandboxValue> {

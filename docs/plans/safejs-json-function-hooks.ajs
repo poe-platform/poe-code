@@ -1,0 +1,18 @@
+import { S } from "schema";
+
+export const schema = S.Object({ title: S.String() });
+
+export default async function main(frontmatter) {
+  const fn = function() {};
+  const calls = [];
+  fn.toJSON = function(key) {
+    calls.push([this === fn, key]);
+    return 'callable';
+  };
+  const json = JSON.stringify({ fn });
+  if (json !== '{"fn":"callable"}') throw new Error('Callable JSON hook was skipped');
+  if (calls[0][0] !== true || calls[0][1] !== 'fn') throw new Error('Hook context mismatch');
+  delete fn.toJSON;
+  await 0;
+  return { ok: true, title: frontmatter.title, json, calls };
+}

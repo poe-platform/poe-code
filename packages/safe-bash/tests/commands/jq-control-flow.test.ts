@@ -48,7 +48,7 @@ const vectors: readonly [string, string, string][] = [
   ["reduce (1,2) as $item (0; . + (reduce (3,4) as $item (0; .+$item)) + $item)", "null", "17\n"],
   ["try (1,.a,2) catch \"caught\"", "1", '1\n"caught"\n'],
   ["try (1,.a,2) catch empty", "1", "1\n"],
-  ["try .a catch (.,.)", "1", '"Cannot index number with string \\\"a\\\""\n"Cannot index number with string \\\"a\\\""\n'],
+  ["try .a catch (.,.)", "1", '"Cannot index number with string \\"a\\""\n"Cannot index number with string \\"a\\""\n'],
   ["try .a", "1", ""],
   ["try .a,2", "1", "2\n"],
   ["try (1 | .a)", "null", ""],

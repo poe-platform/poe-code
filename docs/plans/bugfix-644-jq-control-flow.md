@@ -280,3 +280,41 @@ Production sources, the strengthened resource fixture and immutable manifests
 remain unchanged by this maintenance follow-up. A fresh frozen full build,
 `npm test`, typecheck and lint run is still required; these focused results do
 not establish push or release delivery.
+
+### Completed unit gate and literal-spelling follow-up
+
+The clean `a4567fa3e5d0a9f7f88d33417b294ea3d8714d4b` candidate's full normal
+build passed in `issue-644-corrected-gate.fxPp53`. That wrapper subsequently
+terminated with status 143 and `completed=no`; its original status and logs
+remain preserved. Its test log reported passing cohorts, but that did not
+establish a successful terminal status. The termination cause remains unproven.
+A host-level process inspection found no surviving matching test children
+before the next run; a sandbox-local process listing alone was insufficient.
+
+The unchanged candidate's direct maintained `npm test` rerun then exited 0
+(tool session 79995), captured in `issue-644-final-gate.xJNn2V`: root/shared
+30,735 passes and 42 skips; native Python 29 passes; Bash runner 279 passes;
+Bash 21,053 passes and 63 skips across 616 active test files; terminal 288
+passes; and root posttest two passes. Workspace membership remained dynamically
+derived and uncached, with native npm lifecycle scripts intact. Workspaces
+without declared tests were not counted as passes.
+
+Maintained `npm run typecheck:all --workspace=virtual-bash` then passed all 26
+current consumer groups. The full guarded root lint completed discovery and
+reported exactly four `no-useless-escape` errors in the new
+`tests/commands/jq-control-flow.test.ts` line 51. Its raw report remains in
+`issue-644-final-gate.xJNn2V/lint.log`; no guard, exclusion or assertion was waived.
+
+Root removed only the four unnecessary quote-escape backslashes from that
+single-quoted expected-output literal. The TypeScript parser verified that all
+187 string-literal values are unchanged, that exactly one literal's spelling
+changed, and that every byte outside that literal is identical. Evidence:
+`tmp/issue644-style-value-proof.json`. The six-file focused cohort passed
+199/199 again in `tmp/issue644-style-focused.log`. Production source, expected
+output bytes and historical seals are unchanged.
+
+This spelling-only follow-up uses the completed full build/unit gate on its
+parent plus exact literal-value preservation and the fresh focused cohort;
+it does not claim that the full unit suite ran again on the spelling commit.
+Fresh maintained type and root/package lint checks remain required for that
+commit. Local qualification is not remote-main delivery or release success.

@@ -1,0 +1,17 @@
+import { S } from "schema";
+
+export const schema = S.Object({ title: S.String() });
+
+export default async (frontmatter) => {
+  let rejected = false;
+  try { Date.prototype.getTime(); } catch (error) { rejected = error instanceof TypeError; }
+  class Child extends Date {}
+  const date = new Child(7);
+  const prototypeCopy = structuredClone(Date.prototype);
+  await 0;
+  if (!rejected || prototypeCopy instanceof Date || !(date instanceof Child) || date.getTime() !== 7 ||
+      Object.getPrototypeOf(Date.prototype) !== Object.prototype) {
+    throw new Error("Date prototype brand correction failed");
+  }
+  return { title: frontmatter.title, ok: true, time: date.getTime() };
+};

@@ -185,14 +185,14 @@ describe("Date intrinsic", () => {
     const first = createRealm({ clock: { now: () => 10, snapshot: () => undefined } });
     const second = createRealm({ clock: { now: () => 20, snapshot: () => undefined } });
     try {
-      await first.evaluate("const date = new Date(); Date.prototype.setTime(1);");
+      await first.evaluate("const date = new Date(); Date.prototype.label = 1;");
       await second.evaluate("const date = new Date();");
       expect(
-        await first.evaluate("date.setTime(11); return [date.getTime(), Date.prototype.getTime()];")
-      ).toMatchObject({ ok: true, returnValue: [11, 1] });
+        await first.evaluate("date.setTime(11); return [date.getTime(), Date.prototype.label, date.label];")
+      ).toMatchObject({ ok: true, returnValue: [11, 1, 1] });
       expect(
-        await second.evaluate("return [date.getTime(), Number.isNaN(Date.prototype.getTime())];")
-      ).toMatchObject({ ok: true, returnValue: [20, true] });
+        await second.evaluate("return [date.getTime(), Object.hasOwn(Date.prototype, 'label'), date.label];")
+      ).toMatchObject({ ok: true, returnValue: [20, false, undefined] });
     } finally {
       await first.close();
       await second.close();

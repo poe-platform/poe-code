@@ -15,7 +15,7 @@ import {
   parseDate
 } from "../date.js";
 import { declareHostOperation, wrapCallerInjectedBindings } from "../host-bridge.js";
-import { allocateProducedSandboxValue, createSandboxClosure, isSandboxClosure, type SandboxCallContext, type SandboxClosure, type SandboxValue } from "../values.js";
+import { allocateProducedSandboxValue, createSandboxClosure, isSandboxClosure, type SandboxCallContext, type SandboxClosure, type SandboxObject, type SandboxValue } from "../values.js";
 import type { ConsoleJsonGlobalsOptions } from "./console-json.js";
 
 export function createDateGlobal(
@@ -44,7 +44,7 @@ export function createDateGlobal(
   );
   const now = wrapCallerInjectedBindings({ now: readNow }, { ...options, moduleId: "<Date>" })
     .now as SandboxClosure;
-  const prototype = createSandboxDate(NaN);
+  const prototype = Object.create(null) as SandboxObject;
   const constructor = createSandboxClosure({
     guest: true,
     sandbox: true,

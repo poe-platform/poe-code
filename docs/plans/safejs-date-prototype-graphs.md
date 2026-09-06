@@ -11,8 +11,8 @@ runs in an isolated VM so prototype mutations do not contaminate the test host.
 
 ## Implementation
 
-Install Date into the shared sandbox prototype graph. Date.prototype retains
-its branded invalid time slot and inherits Object.prototype. Install real method
+Install Date into the shared sandbox prototype graph. Date.prototype is an
+ordinary object without a DateValue slot and inherits Object.prototype. Install real method
 descriptors rather than a separate fallback method map. Keep receiver brand
 checks, including rejection of Date-like objects without a time slot. Make the
 constructor a guest intrinsic and allocate subclass instances using new.target's
@@ -53,3 +53,9 @@ suite collection; they are the next separate issue, not part of this green count
 The selected build completed 23 dependency-closure tasks and four native import
 smoke tests. The screenshot runner completed 70 uncached build tasks in 20.725
 seconds; the real harness passed and its PNG was visually inspected.
+
+Follow-up correction: the initial implementation and this plan incorrectly
+treated Date.prototype as a branded invalid Date. Native execution and the
+published ECMAScript 2026 specification disproved that assumption. The
+date-prototype-brand follow-up replaces it with an ordinary object and adds
+explicit brand-check regressions; genuine Date instances remain branded.

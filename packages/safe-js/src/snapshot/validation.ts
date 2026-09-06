@@ -712,7 +712,8 @@ function validateBoxedRecord(record: Record<string, unknown>, path: string, heap
 }
 
 function validateDateRecord(record: Record<string, unknown>, path: string): void {
-  if (Object.keys(record).some(key => !["kind", "time", "properties", "symbolEntries", "extensible"].includes(key))) fail("invalidValue", path, "invalid Date fields");
+  if (Object.keys(record).some(key => !["kind", "time", "properties", "symbolEntries", "extensible", "nullPrototype"].includes(key))) fail("invalidValue", path, "invalid Date fields");
+  if (record.nullPrototype !== undefined && record.nullPrototype !== true) fail("invalidValue", path, "invalid Date prototype");
   try { restoreDateTime(record.time); }
   catch { fail("invalidValue", `${path}.time`, "invalid Date epoch"); }
   if (record.extensible !== undefined && typeof record.extensible !== "boolean") fail("invalidType", `${path}.extensible`, "invalid Date extensibility");

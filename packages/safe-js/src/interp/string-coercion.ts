@@ -1,7 +1,6 @@
 import { sandboxErrorTypes } from "../error/shape.js";
 import { readPropertyDescriptor } from "./accessors.js";
 import { dateString, dateTime, isSandboxDate } from "./date.js";
-import { getDateMember } from "./globals/date.js";
 import type { Budget } from "./budget.js";
 import { invokeBuiltinClosure } from "./builtin-call.js";
 import { float32Storage, isFloat32Array } from "./float32.js";
@@ -151,7 +150,6 @@ function conversionHook(
   const implicitBuiltin =
     !hasExplicitSandboxPrototype(value) &&
     (Array.isArray(value) ||
-      isSandboxDate(value) ||
       isFloat32Array(value) ||
       sandboxErrorTypes.has(value) ||
       isSandboxClosure(value) ||
@@ -181,8 +179,6 @@ function conversionHook(
     ) {
       if (name === "toString") return defaultStringHook;
       if (name === "valueOf") return defaultValueHook;
-      if (name === Symbol.toPrimitive && isSandboxDate(value))
-        return getDateMember(name, budget, context?.compilation?.owner);
     }
     current = parent;
     if (current !== null) {

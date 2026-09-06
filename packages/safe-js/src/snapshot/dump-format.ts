@@ -50,7 +50,7 @@ type DumpHeapValue =
     };
 
 type DumpState = {
-  replayPromises: boolean;
+  trustedRunReplay: boolean;
   float32Buffers: WeakMap<ArrayBuffer, number>;
   heap: Record<string, DumpHeapValue>;
   heapIds: Map<object | symbol, number>;
@@ -89,7 +89,7 @@ export function serializeSafeJSSnapshot(snapshot: DumpableSnapshot): string {
 
 function createDumpFile(snapshot: DumpableSnapshot): Record<string, DumpValue> {
   const state: DumpState = {
-    replayPromises: inMemoryRunSnapshots.has(snapshot),
+    trustedRunReplay: inMemoryRunSnapshots.has(snapshot),
     float32Buffers: new WeakMap(),
     heap: {},
     ...indexHeapContainers(snapshot),
@@ -164,10 +164,10 @@ function serializeDumpValue(
     return { kind: "ref", id };
   }
 
-  // Trusted run snapshots rebuild promise and resolver properties by replay;
+  // Trusted run snapshots rebuild Date, promise and resolver properties by replay;
   // retain their ordinary runtime metadata below. Arbitrary snapshot inputs
-  // still cannot serialize managed promise state through this path.
-  if (hasGuestObjectState(value) && !(state.replayPromises && (isSandboxPromise(value) || isPromiseResolvingFunction(value)))) {
+  // still cannot serialize their managed state through this path.
+  if (hasGuestObjectState(value) && !(state.trustedRunReplay && (isSandboxDate(value) || isSandboxPromise(value) || isPromiseResolvingFunction(value)))) {
     throw new TypeError("Guest function properties and prototype links cannot be serialized.");
   }
 

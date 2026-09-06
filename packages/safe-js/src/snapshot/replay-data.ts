@@ -60,7 +60,7 @@ type DataNode =
   | SerializedSymbol
   | { kind: "boxed"; value: Atom; properties: Properties; extensible: boolean; symbolEntries?: Array<SerializedSymbolProperty<Atom>> }
   | { kind: "collection-iterator"; collectionKind: "map" | "set"; method: CollectionIterationMethod; collection: Atom; index: number; exhausted: boolean; properties: Properties; extensible: boolean }
-  | { kind: "date"; time: number | null; properties?: Properties; symbolProperties?: Array<SerializedSymbolProperty<Atom>>; extensible?: boolean }
+  | { kind: "date"; time: number | null; properties?: Properties; symbolProperties?: Array<SerializedSymbolProperty<Atom>>; extensible?: boolean; nullPrototype?: true }
   | (Float32Data<Atom> & { properties: Properties; extensible: boolean })
   | { kind: "capability"; id: string; properties: Atom }
   | {
@@ -167,6 +167,7 @@ export function encodeReplayData(
       const symbolProperties = serializeSymbolProperties(entry, value => encode(value as SandboxValue, depth + 1, [...path, { symbol: Math.floor(symbolIndex++ / 2) }]));
       nodes[id] = {
         kind: "date", time: serializedDateTime(entry),
+        ...(hasNullObjectPrototype(entry) ? { nullPrototype: true as const } : {}),
         ...(Object.keys(properties).length === 0 ? {} : { properties }),
         ...(symbolProperties.length === 0 ? {} : { symbolProperties }),
         ...(Object.isExtensible(entry) ? {} : { extensible: false })
@@ -414,9 +415,11 @@ export function decodeReplayData(
         return result;
       }
       if (kind === "date") {
-        if (Object.keys(node).some(key => !["kind", "time", "properties", "symbolProperties", "extensible"].includes(key))) throw new TypeError("Invalid serialized Date fields.");
+        if (Object.keys(node).some(key => !["kind", "time", "properties", "symbolProperties", "extensible", "nullPrototype"].includes(key))) throw new TypeError("Invalid serialized Date fields.");
+        if (node.nullPrototype !== undefined && node.nullPrototype !== true) throw new TypeError("Invalid replay Date prototype.");
         if (node.extensible !== undefined && typeof node.extensible !== "boolean") throw new TypeError("Invalid replay Date extensibility.");
         const result = restoreDateTime(own(node, "time"));
+        if (node.nullPrototype === true) setSandboxPrototype(result, null);
         restored.set(id, result);
         defineProperties(result, node.properties === undefined ? {} : record(node.properties), child, node.symbolProperties);
         if (node.extensible === false) Object.preventExtensions(result);

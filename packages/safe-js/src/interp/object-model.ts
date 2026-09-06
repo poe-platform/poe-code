@@ -29,6 +29,7 @@ const boxedPrototypes = new WeakMap<Budget, Map<BoxedKind, SandboxObject>>();
 const regexPrototypes = new WeakMap<Budget, SandboxObject>();
 const collectionPrototypes = new WeakMap<Budget, Map<"Map" | "Set", SandboxObject>>();
 const promisePrototypes = new WeakMap<Budget, SandboxObject>();
+const datePrototypes = new WeakMap<Budget, Date>();
 const initialRegexDescriptors = new WeakMap<Budget, PropertyDescriptorMap>();
 const intrinsicPrototypeRoots = new WeakMap<Budget, Set<object>>();
 const intrinsicConstructors = new WeakMap<object, () => boolean>();
@@ -126,6 +127,11 @@ export function installPromisePrototype(budget: Budget, prototype: SandboxObject
   registerIntrinsicPrototype(budget, prototype, constructor);
 }
 
+export function installDatePrototype(budget: Budget, prototype: Date, constructor: SandboxClosure): void {
+  datePrototypes.set(budget, prototype);
+  registerIntrinsicPrototype(budget, prototype, constructor);
+}
+
 export function hasRegexPropertyOverride(value: SandboxValue, keys: readonly string[], budget: Budget): boolean {
   const initial = initialRegexDescriptors.get(budget);
   const prototype = regexPrototypes.get(budget);
@@ -152,7 +158,7 @@ export function isIntrinsicFunction(value: object): boolean {
 
 function registerIntrinsicPrototype(
   budget: Budget,
-  prototype: SandboxObject,
+  prototype: SandboxObject | Date,
   constructor: SandboxClosure
 ): void {
   if (constructor.name === undefined) throw new TypeError("Intrinsic constructors require an installation name.");
@@ -183,7 +189,7 @@ function trackIntrinsicState(
   budget: Budget,
   root: object,
   owner: object,
-  targets: Array<SandboxObject | SandboxClosure>
+  targets: Array<SandboxObject | SandboxClosure | Date>
 ): void {
   let roots = intrinsicPrototypeRoots.get(budget);
   if (roots === undefined) intrinsicPrototypeRoots.set(budget, (roots = new Set()));
@@ -250,12 +256,17 @@ export function releaseObjectPrototype(budget: Budget): void {
   regexPrototypes.delete(budget);
   collectionPrototypes.delete(budget);
   promisePrototypes.delete(budget);
+  datePrototypes.delete(budget);
   initialRegexDescriptors.delete(budget);
   intrinsicPrototypes.delete(budget);
 }
 
 export function getSandboxPrototype(value: object, budget?: Budget): object | null {
   if (prototypes.has(value)) return prototypes.get(value) ?? null;
+  if (budget !== undefined && isSandboxDate(value)) {
+    const prototype = datePrototypes.get(budget);
+    return prototype === value ? intrinsicPrototypes.get(budget) ?? null : prototype ?? null;
+  }
   if (budget !== undefined && isSandboxPromise(value)) return promisePrototypes.get(budget) ?? null;
   if (budget !== undefined && (isSandboxMap(value) || isSandboxSet(value)))
     return collectionPrototypes.get(budget)?.get(isSandboxMap(value) ? "Map" : "Set") ?? null;
@@ -356,8 +367,8 @@ export function setSandboxPrototype(
     throw new TypeError("Object.prototype has an immutable null prototype.");
   }
   if (
-    (!Array.isArray(value) && !isSandboxPromise(value) && !isSandboxRegex(value) && !isSandboxMap(value) && !isSandboxSet(value) && !isPrototypeRecord(value)) ||
-    (prototype !== null && !Array.isArray(prototype) && !isSandboxPromise(prototype) && !isSandboxRegex(prototype) && !isSandboxMap(prototype) && !isSandboxSet(prototype) && !isPrototypeRecord(prototype))
+    (!Array.isArray(value) && !isSandboxDate(value) && !isSandboxPromise(value) && !isSandboxRegex(value) && !isSandboxMap(value) && !isSandboxSet(value) && !isPrototypeRecord(value)) ||
+    (prototype !== null && !Array.isArray(prototype) && !isSandboxDate(prototype) && !isSandboxPromise(prototype) && !isSandboxRegex(prototype) && !isSandboxMap(prototype) && !isSandboxSet(prototype) && !isPrototypeRecord(prototype))
   ) {
     throw new TypeError(
       "Prototype links require supported sandbox objects."

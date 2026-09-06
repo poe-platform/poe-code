@@ -6,7 +6,6 @@ import { retainValues } from "../resources.js";
 import { isCapturedException } from "../exceptions.js";
 import { isSandboxDate } from "../date.js";
 import { createSandboxBox } from "../boxed.js";
-import { getDatePrototype } from "./date.js";
 import { createObjectGlobal, hasOwnSandboxProperty } from "./object.js";
 import { isGuestHostObject } from "../host-capabilities.js";
 import { isFloat32Array } from "../float32.js";
@@ -173,8 +172,6 @@ export function createObjectArrayGlobals(options: {
           call: ([value]) => {
             if (isSandboxMap(value) || isSandboxSet(value))
               return getSandboxPrototype(value, options.budget) as SandboxValue;
-            if (isSandboxDate(value))
-              return getDatePrototype(value, options.budget, options.compileOwner);
             if (value !== null && value !== undefined && typeof value !== "object")
               value = createSandboxBox(value);
             objectProperties(value);

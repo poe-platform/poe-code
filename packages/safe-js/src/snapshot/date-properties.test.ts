@@ -5,10 +5,28 @@ import { run } from "../core.js";
 import { restore as restoreDump } from "../restore.js";
 import { hashSource } from "../parse/hash.js";
 import { EXECUTION_SEMANTICS } from "./dump-format.js";
+import { Budget } from "../interp/budget.js";
+import { hasNullObjectPrototype, setSandboxPrototype } from "../interp/object-model.js";
+import { serialize } from "./serialize.js";
+import { restore } from "./restore.js";
 
 describe("Date property replay", () => {
+  it("preserves null-prototype Dates through a direct portable snapshot", () => {
+    const value = createSandboxDate(7);
+    setSandboxPrototype(value, null);
+    Object.freeze(value);
+    const source = "await task()";
+    const snapshot = serialize({ source, currentAstNodeId: 1, scopeChain: [{ id: "module", bindings: { value } }], callStack: [], pendingPromises: [], moduleBindings: {} });
+    const binding = restore(JSON.parse(JSON.stringify(snapshot)), { source, budget: new Budget() }).currentScope.lookup("value");
+    if (!binding.found) throw new Error("Missing Date");
+    expect(hasNullObjectPrototype(binding.value as object)).toBe(true);
+    expect(Object.isFrozen(binding.value)).toBe(true);
+    expect(Date.prototype.getTime.call(binding.value)).toBe(7);
+  });
   it.each([
     { extensible: "false" },
+    { nullPrototype: false },
+    { nullPrototype: "true" },
     { properties: [] },
     { properties: { label: { value: 7, enumerable: true, configurable: true, writable: "yes" } } },
     { unexpected: true }

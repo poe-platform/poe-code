@@ -150,7 +150,6 @@ import {
 } from "./globals/float32array.js";
 import { isFloat32Array } from "./float32.js";
 import { dateString, dateTime, isSandboxDate } from "./date.js";
-import { getDateMember, getDatePrototype, isDateConstructor } from "./globals/date.js";
 import {
   createSandboxRegex,
   allocateProducedSandboxValue,
@@ -2781,9 +2780,7 @@ function getPropertyValue(
     const prototype = getBoxedPrototype(target, context.budget);
     return prototype === undefined ? undefined : getPropertyValue(prototype, property, context, receiver);
   }
-  if (typeof property === "symbol") return isSandboxDate(target)
-    ? getDateMember(property, context.budget, context.compilation?.owner)
-    : undefined;
+  if (typeof property === "symbol") return undefined;
   if (typeof target === "string" || typeof target === "number" || typeof target === "boolean") {
     const prototype = getBoxedPrototype(target, context.budget);
     if (prototype !== undefined) {
@@ -2799,8 +2796,7 @@ function getPropertyValue(
   if (typeof target === "number") return getNumberMember(property, context.budget);
   if (typeof target === "boolean") return undefined;
   if (isFloat32Array(target)) return getFloat32Member(target, property, context.budget);
-  if (isSandboxDate(target))
-    return getDateMember(property, context.budget, context.compilation?.owner);
+  if (isSandboxDate(target)) return undefined;
   if (isSandboxMap(target)) return getSandboxPrototype(target, context.budget) === null
     ? getMapMember(target, property, createMapMethodOptions(context)) : undefined;
   if (isSandboxSet(target)) return getSandboxPrototype(target, context.budget) === null
@@ -3546,8 +3542,6 @@ async function evaluateInstanceof(
   }
 
   if (isFloat32ArrayConstructor(right)) return isFloat32Array(left);
-  if (isDateConstructor(right))
-    return isSandboxDate(left) && getDatePrototype(left, context.budget, context.compilation?.owner) !== null;
   if (isSandboxErrorConstructorInstance(left, right)) return true;
   if (isGuestClosure(right)) {
     if (typeof left !== "object" || left === null) return false;
@@ -3586,7 +3580,7 @@ function hasSandboxProperty(value: SandboxValue, key: PropertyKey, context: Eval
   while (typeof current === "object" && current !== null) {
     if (isGuestHostObject(current)) return typeof key === "symbol" ? false : hasHostObjectMember(current, String(key));
     if (hasOwnSandboxProperty(current, key, false)) return true;
-    if (!isSandboxRegex(current) && !isSandboxMap(current) && !isSandboxSet(current) && !((isGuestClosure(current) || Array.isArray(current)) && hasExplicitSandboxPrototype(current)) &&
+    if (!isSandboxDate(current) && !isSandboxRegex(current) && !isSandboxMap(current) && !isSandboxSet(current) && !((isGuestClosure(current) || Array.isArray(current)) && hasExplicitSandboxPrototype(current)) &&
         (Array.isArray(current) || !isPlainSandboxObject(current) ||
         isSandboxDate(current) || isFloat32Array(current) || isSandboxGenerator(current) || isSandboxCollectionIterator(current) || isSandboxRegExpIterator(current))) {
       return getPropertyValue(current, key, context) !== undefined;

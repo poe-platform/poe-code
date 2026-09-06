@@ -1,8 +1,8 @@
-import type { Budget, CompileOwner } from "../budget.js";
+import type { Budget } from "../budget.js";
 import { objectToPrimitive } from "../string-coercion.js";
 import { createSandboxBox } from "../boxed.js";
 import { invokeBuiltinClosure } from "../builtin-call.js";
-import { getSandboxPropertyDescriptor } from "../object-model.js";
+import { getSandboxPropertyDescriptor, installDatePrototype, materializeFunctionProperties, setSandboxPrototype } from "../object-model.js";
 import { readPropertyDescriptor } from "../accessors.js";
 import type { RunClock } from "../../run.js";
 import {
@@ -18,14 +18,6 @@ import {
 import { declareHostOperation, wrapCallerInjectedBindings } from "../host-bridge.js";
 import { allocateProducedSandboxValue, createSandboxClosure, isSandboxClosure, type SandboxCallContext, type SandboxClosure, type SandboxValue } from "../values.js";
 import type { ConsoleJsonGlobalsOptions } from "./console-json.js";
-
-type DateIntrinsics = {
-  constructor: SandboxClosure;
-  prototype: Date;
-  methods: Map<PropertyKey, SandboxClosure>;
-};
-const intrinsics = new WeakMap<object, DateIntrinsics>();
-const constructors = new WeakSet<object>();
 
 export function createDateGlobal(
   options: ConsoleJsonGlobalsOptions & { clock?: RunClock }
@@ -55,6 +47,7 @@ export function createDateGlobal(
     .now as SandboxClosure;
   const prototype = createSandboxDate(NaN);
   const constructor = createSandboxClosure({
+    guest: true,
     sandbox: true,
     name: "Date",
     length: 7,
@@ -69,31 +62,39 @@ export function createDateGlobal(
       else if (isSandboxDate(args[0])) time = dateTime(args[0]);
       else if (typeof args[0] === "string") time = parseDate(args[0], options.budget);
       else time = dateNumber(args[0]);
+      const newTarget = context?.newTarget;
+      const selectedPrototype = newTarget === undefined || newTarget === constructor ? prototype
+        : context?.getProperty !== undefined ? await context.getProperty(newTarget, "prototype")
+        : await readPropertyDescriptor(getSandboxPropertyDescriptor(newTarget, "prototype", options.budget) ?? { value: undefined }, newTarget, context);
       options.budget.chargeDataUsage(9);
-      return createSandboxDate(time);
-    },
-    properties: {
-      now,
-      prototype,
-      parse: createSandboxClosure({
-        sandbox: true,
-        name: "parse",
-        length: 1,
-        call: ([value]) => parseDate(value, options.budget)
-      }),
-      UTC: createSandboxClosure({
-        sandbox: true,
-        name: "UTC",
-        length: 7,
-        call: (args) => dateFromParts(args, true)
-      })
+      const value = createSandboxDate(time);
+      if (selectedPrototype !== prototype && typeof selectedPrototype === "object" && selectedPrototype !== null)
+        setSandboxPrototype(value, selectedPrototype, options.budget);
+      return value;
     }
   });
+  const staticProperties = {
+    now,
+    prototype,
+    parse: createSandboxClosure({
+      sandbox: true,
+      name: "parse",
+      length: 1,
+      call: ([value]) => parseDate(value, options.budget)
+    }),
+    UTC: createSandboxClosure({
+      sandbox: true,
+      name: "UTC",
+      length: 7,
+      call: (args) => dateFromParts(args, true)
+    })
+  };
   const methods = new Map<PropertyKey, SandboxClosure>();
   for (const [name, method] of dateMethods)
     methods.set(
       name,
       createSandboxClosure({
+        guest: true,
         sandbox: true,
         name,
         length: method.length,
@@ -111,6 +112,7 @@ export function createDateGlobal(
       })
     );
   methods.set(Symbol.toPrimitive, createSandboxClosure({
+    guest: true,
     sandbox: true,
     name: "[Symbol.toPrimitive]",
     length: 1,
@@ -121,13 +123,14 @@ export function createDateGlobal(
       return objectToPrimitive(receiver, options.budget, context, new Set(), hint === "number" ? "number" : "string", true);
     }
   }));
-  constructors.add(constructor);
-  intrinsics.set(options.compileOwner ?? options.budget, { constructor, prototype, methods });
+  const properties = materializeFunctionProperties(constructor);
+  for (const [key, value] of Object.entries(staticProperties))
+    Object.defineProperty(properties, key, { value, writable: key !== "prototype", configurable: key !== "prototype" });
+  Object.defineProperty(prototype, "constructor", { value: constructor, writable: true, configurable: true });
+  for (const [key, value] of methods)
+    Object.defineProperty(prototype, key, { value, writable: key !== Symbol.toPrimitive, configurable: true });
+  installDatePrototype(options.budget, prototype, constructor);
   return constructor;
-}
-
-export function isDateConstructor(value: unknown): boolean {
-  return typeof value === "object" && value !== null && constructors.has(value);
 }
 
 export async function dateToJSON(receiver: SandboxValue, budget: Budget, context?: SandboxCallContext): Promise<SandboxValue> {
@@ -145,24 +148,8 @@ export async function dateToJSON(receiver: SandboxValue, budget: Budget, context
   if (context?.getProperty !== undefined) method = await context.getProperty(receiver, "toISOString");
   else {
     const descriptor = getSandboxPropertyDescriptor(receiver, "toISOString", budget);
-    method = descriptor === undefined
-      ? isSandboxDate(receiver) ? getDateMember("toISOString", budget, context?.compilation?.owner) : undefined
-      : await readPropertyDescriptor(descriptor, receiver, context);
+    method = descriptor === undefined ? undefined : await readPropertyDescriptor(descriptor, receiver, context);
   }
   if (!isSandboxClosure(method)) throw new TypeError("Date JSON conversion requires a callable toISOString.");
   return invokeBuiltinClosure(method, [], budget, context, receiver);
-}
-
-export function getDateMember(
-  property: PropertyKey,
-  budget: Budget,
-  owner?: CompileOwner
-): SandboxValue {
-  const state = intrinsics.get(owner ?? budget);
-  return property === "constructor" ? state?.constructor : state?.methods.get(typeof property === "symbol" ? property : String(property));
-}
-
-export function getDatePrototype(value: Date, budget: Budget, owner?: CompileOwner): Date | null {
-  const prototype = intrinsics.get(owner ?? budget)?.prototype;
-  return prototype === value ? null : (prototype ?? null);
 }

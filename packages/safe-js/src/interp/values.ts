@@ -990,6 +990,7 @@ function copyToSandbox(
     if (existing !== undefined) return existing;
     const copy = copyNativeDate(value)!;
     state.seen.set(value, copy);
+    if (!state.structuredClone && hasNullObjectPrototype(value)) setSandboxPrototype(copy, null);
     for (const [key, descriptor] of dateDataProperties(value)) {
       Object.defineProperty(copy, key, { ...descriptor, value: copyToSandbox(descriptor.value, state, joinPath(path, key), cloneSandboxCollections, depth + 1) });
     }
@@ -1212,6 +1213,7 @@ function copyFromSandbox(
     const existing = state.seen.get(value);
     if (existing !== undefined) return existing;
     const copy = exportDate(value);
+    if (hasNullObjectPrototype(value)) Object.setPrototypeOf(copy, null);
     state.seen.set(value, copy);
     for (const [key, descriptor] of dateDataProperties(value)) {
       Object.defineProperty(copy, key, { ...descriptor, value: copyFromSandbox(descriptor.value, state, joinPath(path, key), options, depth + 1) });

@@ -1,0 +1,22 @@
+import { S } from "schema";
+
+export const schema = S.Object({ title: S.String() });
+
+export default async (frontmatter) => {
+  class Epoch extends Date {
+    label = "epoch";
+    get answer() { return super.getTime() + 35; }
+  }
+  const date = new Epoch(7);
+  await 0;
+  if (!(date instanceof Epoch) || !(date instanceof Date) || date.answer !== 42 ||
+      date.label !== "epoch" || Object.getPrototypeOf(date) !== Epoch.prototype) {
+    throw new Error("Date subclass graph failed");
+  }
+  const borrowed = Date.prototype.getTime;
+  Object.setPrototypeOf(date, null);
+  if (date instanceof Date || typeof date.getTime !== "undefined" || borrowed.call(date) !== 7) {
+    throw new Error("Date null prototype or internal time slot failed");
+  }
+  return { title: frontmatter.title, ok: true, time: borrowed.call(date) };
+};

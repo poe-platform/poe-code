@@ -1,3 +1,4 @@
+import { escapeText } from "../../escaping.js";
 import {
   createOutputOperation,
   FsError,
@@ -263,7 +264,7 @@ function displayedSource(source: string): string {
   let bytes = 2;
   let truncated = false;
   for (const character of source) {
-    const encoded = JSON.stringify(character).slice(1, -1);
+    const encoded = escapeText(JSON.stringify(character).slice(1, -1), "diagnostic");
     const incoming = Buffer.byteLength(encoded);
     if (incoming > yqCaps.maxDisplayedFilenameBytes - bytes) {
       truncated = true;

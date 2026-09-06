@@ -274,7 +274,7 @@ test("env parser caps and carriage-return command bytes survive the bridge", asy
   for (const [header, status, diagnostic] of [
     [`-S bash ${"x".repeat(131072)}`, 125, /split-string byte limit exceeded/u],
     [`-S bash ${"x ".repeat(10001)}`, 125, /split-string argument limit exceeded/u],
-    ["bash\r", 127, /env: bash\r: command not found\n/u],
+    ["bash\r", 127, /env: bash\\r: command not found\n/u],
     ["-S bash -c 'true' ${MISSING}", 0, /^$/u],
   ] as const) {
     await fs.writeFile("/program", encode(`#!/usr/bin/env ${header}\ntrue`), { mode: 0o755 });

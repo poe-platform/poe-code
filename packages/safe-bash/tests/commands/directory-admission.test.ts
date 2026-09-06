@@ -170,8 +170,8 @@ test("directory admission preserves lexical order for an unordered host", async 
   fs.readdir = async () => [...entries].reverse();
   const shell = new Shell({ fs }).use(standardCommands({ maxDirectoryEntries: 3 }));
   context.after(() => shell.dispose());
-  assert.equal((await shell.exec("ls /")).stdout, "Z\na\né\n");
-  assert.equal((await shell.exec("find / -mindepth 1")).stdout, "/Z\n/a\n/é\n");
+  assert.equal((await shell.exec("ls /")).stdout, "Z\na\n\\303\\251\n");
+  assert.equal((await shell.exec("find / -mindepth 1")).stdout, "/Z\n/a\n/\\303\\251\n");
 });
 
 test("directory admission preserves cp preflight retry and directory creation", async context => {

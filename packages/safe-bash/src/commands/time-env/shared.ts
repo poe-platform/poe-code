@@ -1,3 +1,4 @@
+import { writeDiagnostic } from "../../escaping.js";
 import { FsError, writeBytes, type CommandContext, type CommandDefinition } from "../../contracts/index.js";
 
 export interface SleepScheduler {
@@ -84,7 +85,7 @@ export function command(name: string, configuration: Settings,
     catch (error) {
       context.signal.throwIfAborted();
       if (!(error instanceof CommandFailure)) throw error;
-      await writeBytes(context.stderr, new TextEncoder().encode(`${name}: ${error.message}\n`), context.signal);
+      await writeDiagnostic(context.stderr, `${name}: ${error.message}\n`, context.signal);
       return { exitCode: error.exitCode };
     }
   } };

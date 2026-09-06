@@ -1,5 +1,5 @@
 import type { CommandContext } from "../../contracts/index.js";
-import { writeBytes } from "../../contracts/index.js";
+import { writeDiagnostic } from "../../escaping.js";
 import { CurlError, defaultNetworkLimits, type HttpHeaders, type NetworkLimits } from "./types.js";
 
 export const encode = (text: string): Uint8Array => new TextEncoder().encode(text);
@@ -46,5 +46,5 @@ export function networkError(error: unknown): CurlError {
 }
 
 export async function diagnostic(context: CommandContext, error: CurlError): Promise<void> {
-  await writeBytes(context.stderr, encode(`curl: (${error.exitCode}) ${error.message}\n`), context.signal);
+  await writeDiagnostic(context.stderr, `curl: (${error.exitCode}) ${error.message}\n`, context.signal);
 }

@@ -1,4 +1,5 @@
 import { yieldTurn } from "../../contracts/yield.js";
+import { escapeText } from "../../escaping.js";
 import { FsError, writeBytes, type ByteSource, type CommandContext, type FileSystem, type ReadStreamOptions } from "../../contracts/index.js";
 import { Budget, Inputs, type RecordReader } from "../table-text/internal.js";
 import { readerSettings, type ColumnLimits } from "./options.js";
@@ -10,7 +11,7 @@ export function diagnostics(context: CommandContext, maximum: number): (error: u
     if (!remaining) return;
     const message = error instanceof Error ? error.message : String(error);
     const prefix = "column: ", marker = "...[diagnostic truncated]\n";
-    const candidate = prefix + message.slice(0, remaining) + "\n";
+    const candidate = prefix + escapeText(message.slice(0, remaining), "diagnostic") + "\n";
     let bytes = Buffer.from(candidate);
     if (message.length > remaining || bytes.length > remaining) {
       const suffix = Buffer.from(marker.slice(0, remaining));

@@ -1,4 +1,5 @@
-import { FsError, isFsError, collectBytes, writeBytes, type ByteSource, type CommandContext, type CommandDefinition } from "../../contracts/index.js";
+import { writeDiagnostic } from "../../escaping.js";
+import { FsError, isFsError, collectBytes, type ByteSource, type CommandContext, type CommandDefinition } from "../../contracts/index.js";
 import { Budget, Cursor, interruptible } from "./io.js";
 import { Names } from "./names.js";
 import { Outputs } from "./outputs.js";
@@ -115,7 +116,7 @@ export function createSplitCommand(limits: SplitLimits): CommandDefinition {
     } catch (error) {
       context.signal.throwIfAborted();
       const message = error instanceof FsError ? error.message.slice(error.code.length + 2) : error instanceof Error ? error.message : String(error);
-      await writeBytes(context.stderr, Buffer.from(`split: ${message.slice(0, 4096)}\n`), context.signal);
+      await writeDiagnostic(context.stderr, `split: ${message.slice(0, 4096)}\n`, context.signal);
       return { exitCode: 1 };
     }
   } };

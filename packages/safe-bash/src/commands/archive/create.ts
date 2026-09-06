@@ -1,4 +1,5 @@
 import { dirname, readBytes, resolvePath, type ByteSource, type CommandContext, type FileStat } from "../../contracts/index.js";
+import { escapeText } from "../../escaping.js";
 import { encodeEntry, type Entry } from "./format.js";
 import { Budget, checkPath, display, fail, fileSource, hasIdentity, maybeStat, operation, sameIdentity, vfsPath } from "./internal.js";
 import { Exclusions, type TarOptions } from "./options.js";
@@ -35,7 +36,7 @@ export async function manifest(context: CommandContext, options: TarOptions, bud
     const canonical = stat.type === "symlink" ? path : await operation(context, () => context.fs.realpath(path, { signal: context.signal }));
     if (output && (canonical === output || (outputStat && sameIdentity(stat, outputStat)))) {
       if (explicit) fail(`input is the output archive: ${display(name)}`);
-      await budget.output(`tar: ${display(name)}: file is the archive; not included\n`, true);
+      await budget.output(`tar: ${escapeText(display(name), "diagnostic")}: file is the archive; not included\n`, true);
       return;
     }
     if (stat.type !== "file" && stat.type !== "directory" && stat.type !== "symlink") fail(`unsupported source type: ${display(name)}`);

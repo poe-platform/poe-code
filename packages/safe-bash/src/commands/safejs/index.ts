@@ -1,4 +1,5 @@
 import { toByteSource, writeBytes, type CommandDefinition, type VirtualShellPlugin } from "../../contracts/index.js";
+import { writeDiagnostic } from "../../escaping.js";
 import { makeSafeJsFsModule } from "../../integrations/safejs/index.js";
 import { record, withSignal } from "../../integrations/safejs/values.js";
 import { pathOf, UsageError } from "../internal.js";
@@ -50,7 +51,7 @@ export function createSafeJsCommands<Budget = unknown>(options: SafeJsCommandsOp
     const diagnose = async (message: string): Promise<void> => {
       const diagnostic = new AbortController();
       const timer = setTimeout(() => diagnostic.abort(), Math.max(1, Math.min(limits.timeoutMs, deadline - Date.now())));
-      try { await writeBytes(context.stderr, Buffer.from(`${dialect.name}: ${message.slice(0, 4096)}\n`), AbortSignal.any([context.signal, diagnostic.signal])); }
+      try { await writeDiagnostic(context.stderr, `${dialect.name}: ${message.slice(0, 4096)}\n`, AbortSignal.any([context.signal, diagnostic.signal])); }
       catch (error) { context.signal.throwIfAborted(); if (!diagnostic.signal.aborted) throw error; }
       finally { clearTimeout(timer); }
     };

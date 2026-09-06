@@ -1,4 +1,5 @@
 import { cancelTurn, scheduleTurn, type TurnHandle } from "../../contracts/yield.js";
+import { escapeText } from "../../escaping.js";
 import { FsError, writeBytes, type ByteSink, type CommandContext } from "../../contracts/index.js";
 import type { DuLimits } from "./options.js";
 
@@ -127,6 +128,6 @@ export class Budget {
     const short = raw.length > maximum ? raw.slice(0, maximum) + " [diagnostic truncated]" : raw;
     const message = short.replace(/^[A-Z][A-Z0-9]+: /u, "");
     const location = path === undefined ? "" : `${JSON.stringify(path)}: `;
-    await this.emit(this.caller.stderr, `du: ${location}${message.replace(/[\x00-\x1f\x7f]/gu, character => `\\x${character.charCodeAt(0).toString(16).padStart(2, "0")}`)}\n`, this.caller.signal);
+    await this.emit(this.caller.stderr, escapeText(`du: ${location}${message.replace(/[\x00-\x1f\x7f]/gu, character => `\\x${character.charCodeAt(0).toString(16).padStart(2, "0")}`)}\n`, "diagnostic"), this.caller.signal);
   }
 }

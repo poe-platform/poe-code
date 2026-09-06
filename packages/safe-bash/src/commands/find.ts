@@ -1,6 +1,7 @@
 import { basename, FsError, getCommandArguments, type CommandDefinition, type CommandHandler, type FileStat } from "../contracts/index.js";
 import { compilePattern } from "../shell/pattern.js";
 import { codeOf, define, diagnostic, integer, output, pathOf, replaceArgument, UsageError } from "./internal.js";
+import { escapeText } from "../escaping.js";
 import { createDirectoryReader } from "./directory-admission.js";
 import { assertCommandRequirements } from "../contracts/command-requirements.js";
 import { filesystemCommandRequirements } from "./filesystem-requirements.js";
@@ -127,7 +128,7 @@ export function findCommands(execute: CommandHandler, maxDirectoryEntries?: numb
       }
       if (token === "-print" || token === "-print0") {
         explicitAction = true;
-        return async entry => { await output(context, entry.display + (token === "-print0" ? "\0" : "\n")); return true; };
+        return async entry => { await output(context, token === "-print0" ? `${entry.display}\0` : `${escapeText(entry.display, "display")}\n`); return true; };
       }
       if (token === "-exec") {
         explicitAction = true;
@@ -209,7 +210,7 @@ export function findCommands(execute: CommandHandler, maxDirectoryEntries?: numb
           catch (error) { if (codeOf(error) !== "ENOENT") throw error; }
         }
         const entry: Entry = { path, display, stat, symlink, depth, prune: false };
-        const apply = async () => { if (depth >= minDepth && await evaluate(entry) && !explicitAction) await output(context, `${display}\n`); };
+        const apply = async () => { if (depth >= minDepth && await evaluate(entry) && !explicitAction) await output(context, `${escapeText(display, "display")}\n`); };
         if (!depthFirst) await apply();
         if (stat.type === "directory" && depth < maxDepth && (!entry.prune || depthFirst)) {
           const physical = await context.fs.realpath(path, { signal: context.signal });

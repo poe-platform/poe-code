@@ -1,4 +1,5 @@
 import type { CommandContext, CommandDefinition, CommandResult } from "../../contracts/command.js";
+import { escapeText } from "../../escaping.js";
 import { FsError } from "../../contracts/errors.js";
 import { createOutputOperation } from "../../contracts/output.js";
 import type { VirtualShellPlugin } from "../../contracts/plugin.js";
@@ -45,18 +46,26 @@ async function execute(context: CommandContext, limits: XanLimits): Promise<Comm
       let bytes: Uint8Array | undefined;
       try {
         let size = 0;
-        for (const part of parts) size += await budget.textSize(part);
+        for (const part of parts) {
+          for (const character of part) {
+            const fragment = escapeText(character, "diagnostic");
+            const incoming = Buffer.byteLength(fragment);
+            budget.work(incoming);
+            size += incoming;
+            budget.bound("maxOutputBytes", size + (budget.totals.get("maxOutputBytes") ?? 0));
+            await budget.checkpoint();
+          }
+        }
         if (size <= limits.maxOutputBytes - (budget.totals.get("maxOutputBytes") ?? 0)) {
           budget.add("maxOutputBytes", size); budget.hold(size); bytes = new Uint8Array(size);
           let offset = 0;
           for (const part of parts) {
-            const encoded = await budget.encode(part);
-            try {
-              for (let start = 0; start < encoded.length; start += 4096) {
-                const fragment = encoded.subarray(start, start + 4096);
-                budget.work(fragment.length); bytes.set(fragment, offset); offset += fragment.length; await budget.checkpoint();
-              }
-            } finally { budget.release(encoded.length); }
+            for (const character of part) {
+              const encoded = await budget.encode(escapeText(character, "diagnostic"));
+              try {
+                budget.work(encoded.length); bytes.set(encoded, offset); offset += encoded.length; await budget.checkpoint();
+              } finally { budget.release(encoded.length); }
+            }
           }
           try { await stderr.output.write(bytes); }
           catch (sinkError) { throw new EscapingFailure(sinkError); }

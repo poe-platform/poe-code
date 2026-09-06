@@ -1,4 +1,5 @@
-import { FsError, getCommandArguments, readBytes, writeBytes, type ByteSource, type CommandDefinition, type CommandHandler } from "../contracts/index.js";
+import { FsError, getCommandArguments, readBytes, type ByteSource, type CommandDefinition, type CommandHandler } from "../contracts/index.js";
+import { writeDiagnostic } from "../escaping.js";
 import { shellValueByteLength } from "../contracts/value.js";
 import { define, emptyInput, encoder, escapeBytes, integer, options, output, pathOf, replaceArgument, UsageError, value } from "./internal.js";
 import { EnvSplitError, parseEnvOptions } from "./env-split.js";
@@ -64,7 +65,7 @@ export function executionCommands(execute: CommandHandler, configuration: Execut
       catch (error) {
         context.signal.throwIfAborted();
         if (!(error instanceof EnvSplitError)) throw error;
-        await writeBytes(context.stderr, encoder.encode(`${context.command}: ${error.message}\n`), context.signal);
+        await writeDiagnostic(context.stderr, `${context.command}: ${error.message}\n`, context.signal);
         return { exitCode: 125 };
       }
       const env: Record<string, string> = Object.assign(Object.create(null) as Record<string, string>, parsed.flags.has("i") ? {} : context.env);
@@ -195,7 +196,7 @@ export function executionCommands(execute: CommandHandler, configuration: Execut
         const args = childArguments.args;
         const size = encoder.encode(command).length + 1 + childArguments.values.reduce((sum, argument) => sum + shellValueByteLength(argument) + 1, 0);
         if (size > maxBytes) throw new UsageError("expanded arguments exceed command size limit");
-        if (parsed.flags.has("t")) await writeBytes(context.stderr, encoder.encode([command, ...args].map(argument => /^[A-Za-z0-9_./-]+$/u.test(argument) ? argument : `'${argument.replaceAll("'", "'\\''")}'`).join(" ") + "\n"), context.signal);
+        if (parsed.flags.has("t")) await writeDiagnostic(context.stderr, [command, ...args].map(argument => /^[A-Za-z0-9_./-]+$/u.test(argument) ? argument : `'${argument.replaceAll("'", "'\\''")}'`).join(" ") + "\n", context.signal);
         if (stop) return;
         context.signal.throwIfAborted();
         executed = true;

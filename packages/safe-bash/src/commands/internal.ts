@@ -1,4 +1,5 @@
 import { assertCommandRequirements } from "../contracts/command-requirements.js";
+import { writeDiagnostic } from "../escaping.js";
 import { inputRequirements } from "./portable-requirements.js";
 import { RecordBuffer } from "./record-buffer.js";
 import {
@@ -104,7 +105,7 @@ export async function output(context: CommandContext, text: string | Uint8Array)
 
 export async function diagnostic(context: CommandContext, error: unknown): Promise<void> {
   context.signal.throwIfAborted();
-  await writeBytes(context.stderr, encoder.encode(`${context.command}: ${error instanceof Error ? error.message : String(error)}\n`), context.signal);
+  await writeDiagnostic(context.stderr, `${context.command}: ${error instanceof Error ? error.message : String(error)}\n`, context.signal);
 }
 
 export function define(name: string, handler: CommandHandler, failureCode = 1): CommandDefinition {

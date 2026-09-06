@@ -6,7 +6,7 @@ for (const [header, expected] of [
   ["/usr/bin/env -S bash -e", [0, "forbidden", ""]],
   ["/usr/bin/env python", [127, "", "env: python: command not found\n"]],
   ["/usr/bin/env", null],
-  ["/usr/bin/env bash\r", [127, "", "env: bash\r: command not found\n"]],
+  ["/usr/bin/env bash\r", [127, "", "env: bash\\r: command not found\n"]],
 ] as const) test(`explicit env interpreter outcome ${JSON.stringify(header)}`, async () => {
   const fs = createMemoryFileSystem(); await fs.writeFile("/script", Buffer.from(`#!${header}\nprintf forbidden`), { mode: 0o755 });
   const shell = new Shell({ fs }).use(agentCommands());

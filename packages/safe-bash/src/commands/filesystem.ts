@@ -3,6 +3,7 @@ import {
   type CommandContext, type CommandDefinition, type FileStat,
 } from "../contracts/index.js";
 import { codeOf, define, eachOperand, options, output, pathOf, requireOperands, UsageError, value } from "./internal.js";
+import { escapeText } from "../escaping.js";
 import { compareCopyIdentity, compareObservedEntries } from "./copy-identity.js";
 import { MoveBudget, moveAcrossDevices } from "./move.js";
 import { admitFilesystemModes, filesystemCommandRequirements } from "./filesystem-requirements.js";
@@ -183,7 +184,7 @@ async function copy(
       await context.fs.copyFile(source, target, { exclusive: true, signal: context.signal });
     }
   }
-  if (!preflight && flags.has("v")) await output(context, `'${source}' -> '${target}'\n`);
+  if (!preflight && flags.has("v")) await output(context, `'${escapeText(source, "display")}' -> '${escapeText(target, "display")}'\n`);
 }
 
 function modeText(stat: FileStat): string {
@@ -210,7 +211,7 @@ export function filesystemCommands(maxDirectoryEntries?: number): CommandDefinit
         [parsed.flags.has("p") ? "parents" : "directory"], [pathOf(context, operand)]));
       return eachOperand(context, parsed.operands, async operand => {
         await context.fs.mkdir(pathOf(context, operand), { recursive: parsed.flags.has("p"), ...(mode === undefined ? {} : { mode: parseInt(mode, 8) }), signal: context.signal });
-        if (parsed.flags.has("v")) await output(context, `mkdir: created directory '${operand}'\n`);
+        if (parsed.flags.has("v")) await output(context, `mkdir: created directory '${escapeText(operand, "display")}'\n`);
       });
     }),
     define("touch", async context => {
@@ -282,7 +283,7 @@ export function filesystemCommands(maxDirectoryEntries?: number): CommandDefinit
             return;
           }
         }
-        if (parsed.flags.has("v")) await output(context, `'${operand}' -> '${target}'\n`);
+        if (parsed.flags.has("v")) await output(context, `'${escapeText(operand, "display")}' -> '${escapeText(target, "display")}'\n`);
       });
     }),
     define("rm", async context => {
@@ -315,7 +316,7 @@ export function filesystemCommands(maxDirectoryEntries?: number): CommandDefinit
         } else {
           await context.fs.rm(path, { recursive, force: parsed.flags.has("f"), signal: context.signal });
         }
-        if (parsed.flags.has("v")) await output(context, `removed '${operand}'\n`);
+        if (parsed.flags.has("v")) await output(context, `removed '${escapeText(operand, "display")}'\n`);
       });
     }),
     define("rmdir", async context => {
@@ -335,7 +336,7 @@ export function filesystemCommands(maxDirectoryEntries?: number): CommandDefinit
         do {
           if (path === "/") throw new FsError("EBUSY", { path });
           await removeEmptyDirectory(context, path, readDirectory);
-          if (parsed.flags.has("v")) await output(context, `rmdir: removing directory '${path}'\n`);
+          if (parsed.flags.has("v")) await output(context, `rmdir: removing directory '${escapeText(path, "display")}'\n`);
           path = dirname(path);
         } while (parsed.flags.has("p") && path !== "/" && path !== stop);
       });
@@ -500,10 +501,10 @@ export function filesystemCommands(maxDirectoryEntries?: number): CommandDefinit
           let target = "";
           if (stat.type === "symlink") {
             await admitFilesystemModes(context, "ls", ["link"], [path]);
-            needCapability(context, "readlink"); target = ` -> ${await context.fs.readlink!(path, { signal: context.signal })}`;
+            needCapability(context, "readlink"); target = ` -> ${escapeText(await context.fs.readlink!(path, { signal: context.signal }), "display")}`;
           }
-          await output(context, `${modeText(stat)} ${stat.nlink ?? 1} ${stat.uid ?? 0} ${stat.gid ?? 0} ${size} ${date} ${display}${suffix}${target}\n`);
-        } else await output(context, `${display}${suffix}\n`);
+          await output(context, `${modeText(stat)} ${stat.nlink ?? 1} ${stat.uid ?? 0} ${stat.gid ?? 0} ${size} ${date} ${escapeText(display, "display")}${suffix}${target}\n`);
+        } else await output(context, `${escapeText(display, "display")}${suffix}\n`);
         outputWritten = true;
       };
       const list = async ({ path, display }: ListingEntry, header: boolean, ancestors = new Set<string>()): Promise<void> => {
@@ -517,7 +518,7 @@ export function filesystemCommands(maxDirectoryEntries?: number): CommandDefinit
         }
         ancestors.add(physical);
         try {
-          if (header) { await output(context, `${outputWritten ? "\n" : ""}${display}:\n`); outputWritten = true; }
+          if (header) { await output(context, `${outputWritten ? "\n" : ""}${escapeText(display, "display")}:\n`); outputWritten = true; }
           const entries = await readDirectory(context, path, true);
           const names = entries.map(entry => entry.name).filter(name => parsed.flags.has("a") || parsed.flags.has("A") || !name.startsWith("."));
           if (parsed.flags.has("a")) for (const name of [".", ".."]) {

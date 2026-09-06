@@ -1,4 +1,5 @@
 import { FsError, readBytes, resolvePath, toByteSource, writeBytes, type ByteSource, type CommandContext, type CommandDefinition } from "../../contracts/index.js";
+import { escapeText, writeDiagnostic } from "../../escaping.js";
 import { Budget, copyObject, interruptible, JqError, JqLimitError, object, put, resolveJqLimits, truth, wellFormed, type InputLocation, type JqLimits, type Json, type StructuredCommandsOptions } from "./limits.js";
 import { jsonValues, parseJson, rawValues, stringify } from "./input.js";
 import { Interpreter } from "./interpreter.js";
@@ -130,7 +131,7 @@ async function execute(context: CommandContext, limits: JqLimits): Promise<{ exi
     try {
       while (written < diagnostics.length && (force || diagnostics[written]!.location.complete)) {
         const { location, message } = diagnostics[written++]!;
-        const place = location.name === "<unknown>" ? location.name : `${location.name}:${location.line}`;
+        const place = location.name === "<unknown>" ? location.name : `${escapeText(location.name, "diagnostic")}:${location.line}`;
         await writeBytes(context.stderr, Buffer.from(`jq: error (at ${place}): ${message}\n`), context.signal);
       }
     } catch (error) {
@@ -159,8 +160,8 @@ async function execute(context: CommandContext, limits: JqLimits): Promise<{ exi
           catch (error) {
             context.signal.throwIfAborted();
             if (!(error instanceof JqError) || error instanceof JqLimitError) throw error;
-            const message = error.message.slice(0, 1000);
-            diagnosticBytes += Buffer.byteLength(message) + Buffer.byteLength(budget.inputLocation.name) + 64;
+            const message = escapeText(error.message.slice(0, 1000), "diagnostic");
+            diagnosticBytes += Buffer.byteLength(message) + Buffer.byteLength(escapeText(budget.inputLocation.name, "diagnostic")) + 64;
             if (diagnosticBytes > limits.maxOutputBytes) throw new JqLimitError("maxOutputBytes");
             diagnostics.push({ location: budget.inputLocation, message });
             status = error.exitCode;
@@ -206,7 +207,7 @@ async function execute(context: CommandContext, limits: JqLimits): Promise<{ exi
     if (!(error instanceof JqError) && !(error instanceof FsError)) throw error;
     if (error instanceof FsError && error.code === "EPIPE") throw error;
     await flush(true);
-    await writeBytes(context.stderr, Buffer.from(`jq: ${error.message.slice(0, 1000)}\n`), context.signal);
+    await writeDiagnostic(context.stderr, `jq: ${error.message.slice(0, 1000)}\n`, context.signal);
     return { exitCode: error instanceof JqError ? error.exitCode : 2 };
   }
 }

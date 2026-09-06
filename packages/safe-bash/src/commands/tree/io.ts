@@ -1,4 +1,5 @@
 import { yieldTurn } from "../../contracts/yield.js";
+import { escapeText } from "../../escaping.js";
 import { FsError, writeBytes, type ByteSink, type CommandContext } from "../../contracts/index.js";
 import type { TreeLimits } from "./options.js";
 
@@ -21,14 +22,7 @@ export function message(error: unknown, budget: WalkBudget): string {
 
 export function escaped(value: string, budget: WalkBudget): string {
   budget.outputText(value);
-  const controls: Record<number, string> = { 8: "\\b", 9: "\\t", 10: "\\n", 11: "\\v", 12: "\\f", 13: "\\r", 92: "\\\\" };
-  let result = "";
-  for (const byte of new TextEncoder().encode(value)) {
-    const part = controls[byte] ?? (byte >= 32 && byte < 127 ? String.fromCharCode(byte) : `\\${byte.toString(8).padStart(3, "0")}`);
-    budget.checkOutput(result.length + part.length);
-    result += part;
-  }
-  return result;
+  return escapeText(value, "display", size => budget.checkOutput(size));
 }
 
 export class WalkBudget {

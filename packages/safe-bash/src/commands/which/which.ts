@@ -1,3 +1,4 @@
+import { escapeText } from "../../escaping.js";
 import {
   ACCESS_MODES, isAbsolutePath, isFsError, validatePath, writeBytes,
   type ByteSink, type CommandContext, type CommandDefinition, type CommandResult, type ErrnoCode,
@@ -249,7 +250,8 @@ class Invocation {
       this.check();
       if (!(error instanceof Diagnostic)) throw error;
       this.bytes(error.message, this.limits.maxPathBytes + 256, "maxPathBytes");
-      await this.write(this.context.stderr, error.message);
+      const message = escapeText(error.message, "diagnostic");
+      await this.write(this.context.stderr, message);
       this.check();
       return { exitCode: 1 };
     }

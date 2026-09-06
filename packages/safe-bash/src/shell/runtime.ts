@@ -1,3 +1,4 @@
+import { writeDiagnostic } from "../escaping.js";
 import { cancelTurn, monotonicNow, registerYieldCheckpoint, scheduleTurn, yieldTurn, type TurnHandle } from "../contracts/yield.js";
 import {
   ACCESS_MODES, FsError, composeMiddleware, createBytePipe, pipeBytes, resolvePath, toByteSource, validateExitCode, writeText,
@@ -1318,7 +1319,7 @@ export class Runtime {
   }
 
   diagnostic(io: IO, text: string): Promise<void> {
-    return writeText(io.stderr, `${io.scriptName ?? "shell"}: line ${io.diagnosticLine ?? 1}: ${text}\n`);
+    return writeDiagnostic(io.stderr, `${io.scriptName ?? "shell"}: line ${io.diagnosticLine ?? 1}: ${text}\n`);
   }
 
   writeVariable(state: State, name: string, value: ShellValue, origin: "assignment" | "arithmetic" | "getopts" = "assignment"): void {
@@ -2051,7 +2052,7 @@ export class Runtime {
       if (error instanceof Flow || error instanceof ShellLimitError || error instanceof ShellSyntaxError) throw error;
       this.clearOutcomeReport();
       if (error instanceof HereDocumentSyntaxError) {
-        await writeText(io.stderr, error.diagnostic);
+        await writeDiagnostic(io.stderr, error.diagnostic);
         if (command.kind !== "simple" && command.kind !== "subshell" && command.kind !== "arithmetic" && command.kind !== "conditional") this.errexit(1, state, io);
         return 1;
       }
@@ -2062,7 +2063,7 @@ export class Runtime {
       const line = error instanceof ExpansionFailure ? error.line ?? io.diagnosticLine ?? 1 : io.diagnosticLine ?? 1;
       if (error instanceof NounsetFailure || error instanceof ParameterExpansionFailure) {
         const detail = error instanceof ParameterExpansionFailure ? diagnostic ?? message(error) : message(error);
-        try { await writeText(io.stderr, `${io.scriptName ?? "shell"}: line ${line}: ${detail}\n`); }
+        try { await writeDiagnostic(io.stderr, `${io.scriptName ?? "shell"}: line ${line}: ${detail}\n`); }
         catch (reason) {
           this.signal.throwIfAborted();
           if (reason instanceof ShellLimitError) throw reason;
@@ -2071,9 +2072,9 @@ export class Runtime {
         }
         throw completedExit(error instanceof ParameterExpansionFailure && !state.isolated ? 127 : 1);
       }
-      if (error instanceof ArrayFailure) await writeText(io.stderr, `${io.scriptName ?? "shell"}: line ${line}: ${diagnostic ?? message(error)}\n`);
+      if (error instanceof ArrayFailure) await writeDiagnostic(io.stderr, `${io.scriptName ?? "shell"}: line ${line}: ${diagnostic ?? message(error)}\n`);
       else {
-        try { await writeText(io.stderr, `${io.scriptName ?? "shell"}: line ${line}: ${diagnostic ?? message(error)}\n`); }
+        try { await writeDiagnostic(io.stderr, `${io.scriptName ?? "shell"}: line ${line}: ${diagnostic ?? message(error)}\n`); }
         catch { this.signal.throwIfAborted(); }
       }
       if (error instanceof ExpansionFailure || error instanceof BraceExpansionFailure) throw completedExit(error instanceof ParameterExpansionFailure && !state.isolated ? 127 : 1);
@@ -2116,7 +2117,7 @@ export class Runtime {
     try {
       for (const word of hereDocumentWords(document, line, byteLocale(state.variables), warnings, this.budget.parsing)) {
         this.signal.throwIfAborted();
-        for (const warning of warnings.splice(0)) await writeText(io.stderr, `shell: warning: ${warning}\n`);
+        for (const warning of warnings.splice(0)) await writeDiagnostic(io.stderr, `shell: warning: ${warning}\n`);
         if (++words % 128 === 0) await yieldTurn(this.signal);
         const part = (await this.word(word, state, io, false)).join("");
         size += Buffer.byteLength(part);
@@ -2124,7 +2125,7 @@ export class Runtime {
         value += part;
       }
     } finally {
-      for (const warning of warnings.splice(0)) await writeText(io.stderr, `shell: warning: ${warning}\n`);
+      for (const warning of warnings.splice(0)) await writeDiagnostic(io.stderr, `shell: warning: ${warning}\n`);
     }
     return value;
   }
@@ -2744,8 +2745,8 @@ export class Runtime {
         else {
           if (command && flag !== "p") {
             await this.diagnostic({ ...io, ...context }, `command: -${flag}: invalid option`);
-            await writeText(context.stderr, "command: usage: command [-pVv] command [arg ...]\n");
-          } else await writeText(context.stderr, `${context.command}: ${option}: unsupported option\n`);
+            await writeDiagnostic(context.stderr, "command: usage: command [-pVv] command [arg ...]\n");
+          } else await writeDiagnostic(context.stderr, `${context.command}: ${option}: unsupported option\n`);
           return 2;
         }
       }
@@ -2786,7 +2787,7 @@ export class Runtime {
         }));
       }
       if (!matches.length) {
-        if (mode === "describe") await writeText(context.stderr, `${io.scriptName ?? "shell"}: line ${io.diagnosticLine ?? 1}: ${context.command}: ${name}: not found\n`);
+        if (mode === "describe") await writeDiagnostic(context.stderr, `${io.scriptName ?? "shell"}: line ${io.diagnosticLine ?? 1}: ${context.command}: ${name}: not found\n`);
         continue;
       }
       found++;
@@ -2871,7 +2872,7 @@ export class Runtime {
       }
       const flags = option.slice(1);
       if (!flags.length || [...flags].some(flag => !(option[0] === "-" ? "cseB" : "eB").includes(flag))) {
-        await writeText(context.stderr, `${context.command}: ${option}: unsupported option; supported flags are -c, -s, -e, +e, -B, +B and +/-o braceexpand\n`);
+        await writeDiagnostic(context.stderr, `${context.command}: ${option}: unsupported option; supported flags are -c, -s, -e, +e, -B, +B and +/-o braceexpand\n`);
         return 2;
       }
       commandString ||= option.includes("c");
@@ -2882,7 +2883,7 @@ export class Runtime {
     if (!commandString && !standardInput && args.length) return this.scriptFile(context, state, io, args[0]!, args.slice(1), false, errexit, loadedSource, braceexpand);
     const source = commandString ? args.shift() : undefined;
     if (commandString && source === undefined) {
-      await writeText(context.stderr, `${context.command}: -c: option requires an argument\n`);
+      await writeDiagnostic(context.stderr, `${context.command}: -c: option requires an argument\n`);
       return 2;
     }
     const arg0 = commandString ? args.shift() ?? context.command : context.command;
@@ -2902,13 +2903,13 @@ export class Runtime {
     const offset = io.diagnosticOffset ?? 0;
     const line = source.slice(0, error.offset).split("\n").length;
     const prefix = `${io.scriptName ?? "shell"}:${commandString ? " -c:" : ""}`;
-    if (error.unclosedQuote) await writeText(io.stderr, `${prefix} line ${offset + error.unclosedQuote.line}: unexpected EOF while looking for matching \`${error.unclosedQuote.quote}'\n`);
+    if (error.unclosedQuote) await writeDiagnostic(io.stderr, `${prefix} line ${offset + error.unclosedQuote.line}: unexpected EOF while looking for matching \`${error.unclosedQuote.quote}'\n`);
     else if (error.offset >= source.length && !/Unterminated|nesting|Unsupported/u.test(error.reason)) {
       const context = error.incompleteCommand ? ` from \`${error.incompleteCommand.name}' command on line ${offset + error.incompleteCommand.line}` : "";
-      await writeText(io.stderr, `${prefix} line ${offset + source.split("\n").length + Number(!source.endsWith("\n"))}: syntax error: unexpected end of file${context}\n`);
+      await writeDiagnostic(io.stderr, `${prefix} line ${offset + source.split("\n").length + Number(!source.endsWith("\n"))}: syntax error: unexpected end of file${context}\n`);
     } else {
       const token = /^[;&|()<>]|^[^\s;&|()<>]+/u.exec(source.slice(error.offset))?.[0] ?? "newline";
-      await writeText(io.stderr, `${prefix} line ${offset + line}: syntax error near unexpected token \`${token}'\n${prefix} line ${offset + line}: \`${source.split("\n")[line - 1] ?? ""}'\n`);
+      await writeDiagnostic(io.stderr, `${prefix} line ${offset + line}: syntax error near unexpected token \`${token}'\n${prefix} line ${offset + line}: \`${source.split("\n")[line - 1] ?? ""}'\n`);
     }
     return error.exitCode;
   }
@@ -2921,7 +2922,7 @@ export class Runtime {
       do {
         this.signal.throwIfAborted();
         const unit = parseShellUnit(source, position, byteLocale(state.variables), this.budget.parsing, lineIndex);
-        for (const warning of unit.script.warnings ?? []) await writeText(io.stderr, `${io.scriptName}: warning: ${warning}\n`);
+        for (const warning of unit.script.warnings ?? []) await writeDiagnostic(io.stderr, `${io.scriptName}: warning: ${warning}\n`);
         if (unit.script.lists.length) {
           const result = await this.runUnit(unit.script, state, io);
           status = result.exitCode;
@@ -2961,7 +2962,7 @@ export class Runtime {
       try {
         const unit = eof ? parseShellUnit(source, 0, byteLocale(state.variables), this.budget.parsing, lineIndex) : parseShellInputUnit(source, byteLocale(state.variables), this.budget.parsing, lineIndex);
         if (unit) {
-          for (const warning of unit.script.warnings ?? []) await writeText(io.stderr, `${io.scriptName}: warning: ${warning}\n`);
+          for (const warning of unit.script.warnings ?? []) await writeDiagnostic(io.stderr, `${io.scriptName}: warning: ${warning}\n`);
           if (unit.script.lists.length) {
             const result = await this.runUnit(unit.script, state, unitIO);
             status = result.exitCode;
@@ -3124,7 +3125,7 @@ export class Runtime {
       }
       if (direct) return { exitCode: await runtime.scriptFile(forwarded, state, childIO, command, forwarded.args, true) };
       if (definition) return definition.execute(forwarded);
-      await writeText(forwarded.stderr, `env: ${command}: command not found\n`);
+      await writeDiagnostic(forwarded.stderr, `env: ${command}: command not found\n`);
       return { exitCode: 127 };
     }, undefined, options.stdin !== context.stdin ? options.stdin : undefined, scope);
     return { exitCode };
@@ -3216,7 +3217,7 @@ export class Runtime {
     } catch (error) {
       if (!(error instanceof ShellSyntaxError)) throw error;
       const line = source.slice(0, error.offset).split("\n").length;
-      await writeText(context.stderr, `${target}: line ${line}: syntax error: ${error.reason}\n`);
+      await writeDiagnostic(context.stderr, `${target}: line ${line}: syntax error: ${error.reason}\n`);
       return error.exitCode;
     }
     const child = this.processState(context, state, target, args);
@@ -3226,7 +3227,7 @@ export class Runtime {
     const childIO = isolateIO({ ...io, ...context, execution: { ignoreErrexit: false }, diagnosticLine: 1, diagnosticOffset: 0, scriptName: target });
     let status = 0;
     for (const unit of units) {
-      for (const warning of unit.warnings ?? []) await writeText(context.stderr, `${target}: warning: ${warning}\n`);
+      for (const warning of unit.warnings ?? []) await writeDiagnostic(context.stderr, `${target}: warning: ${warning}\n`);
       if (!unit.lists.length) continue;
       const result = await this.runUnit(unit, child, childIO);
       status = result.exitCode;
@@ -3244,7 +3245,7 @@ export class Runtime {
       do {
         this.signal.throwIfAborted();
         const unit = parseShellUnit(source, position, byteLocale(state.variables), this.budget.parsing, lineIndex);
-        for (const warning of unit.script.warnings ?? []) await writeText(io.stderr, `${io.scriptName ?? "shell"}: warning: ${warning}\n`);
+        for (const warning of unit.script.warnings ?? []) await writeDiagnostic(io.stderr, `${io.scriptName ?? "shell"}: warning: ${warning}\n`);
         if (unit.script.lists.length) {
           status = await this.script(unit.script, state, io);
           executed = true;
@@ -3265,7 +3266,7 @@ export class Runtime {
     if (args[0] === "--") args.shift();
     else if (args[0]?.startsWith("-") && args[0] !== "-") {
       await this.diagnostic(io, `eval: -${args[0][1]}: invalid option`);
-      await writeText(io.stderr, "eval: usage: eval [arg ...]\n");
+      await writeDiagnostic(io.stderr, "eval: usage: eval [arg ...]\n");
       if (special) throw new Flow("exit", 2);
       return 2;
     }
@@ -3297,7 +3298,7 @@ export class Runtime {
     const filename = args.shift();
     if (filename === undefined) {
       await this.diagnostic(io, `${context.command}: filename argument required`);
-      await writeText(io.stderr, `${context.command}: usage: ${context.command} [-p path] filename [arguments]\n`);
+      await writeDiagnostic(io.stderr, `${context.command}: usage: ${context.command} [-p path] filename [arguments]\n`);
       if (special) throw new Flow("exit", 2);
       return 2;
     }
@@ -3486,7 +3487,7 @@ export class Runtime {
         } else valid = false;
       }
       if (!valid) {
-        await writeText(stderr, "set: unsupported shell option; supported forms are +/- e/u/B clusters, -- arguments and terminal o with braceexpand, pipefail, errexit or nounset\n");
+        await writeDiagnostic(stderr, "set: unsupported shell option; supported forms are +/- e/u/B clusters, -- arguments and terminal o with braceexpand, pipefail, errexit or nounset\n");
         return 1;
       }
       index++;
@@ -3563,11 +3564,11 @@ export class Runtime {
     const offset = context.args[0] === "--" ? 1 : 0;
     if (!offset && context.args[0]?.startsWith("-") && context.args[0] !== "-") {
       await this.diagnostic(context, `getopts: -${context.args[0][1]}: invalid option`);
-      await writeText(context.stderr, "getopts: usage: getopts optstring name [arg ...]\n");
+      await writeDiagnostic(context.stderr, "getopts: usage: getopts optstring name [arg ...]\n");
       return 2;
     }
     if (context.args.length - offset < 2) {
-      await writeText(context.stderr, "getopts: usage: getopts optstring name [arg ...]\n");
+      await writeDiagnostic(context.stderr, "getopts: usage: getopts optstring name [arg ...]\n");
       return 2;
     }
     const optstring = context.args[offset]!;
@@ -3597,7 +3598,7 @@ export class Runtime {
     state.getopts.cursor = result.state;
     if (result.diagnostic) {
       const explanation = result.diagnostic.kind === "unknown-option" ? "illegal option" : "option requires an argument";
-      await writeText(context.stderr, `${state.arg0 ?? context.scriptName ?? "shell"}: ${explanation} -- ${result.diagnostic.option}\n`);
+      await writeDiagnostic(context.stderr, `${state.arg0 ?? context.scriptName ?? "shell"}: ${explanation} -- ${result.diagnostic.option}\n`);
     }
     this.signal.throwIfAborted();
     this.writeVariable(state, "OPTIND", String(result.optind), "getopts");
@@ -3611,9 +3612,9 @@ export class Runtime {
   private async changeDirectory(context: CommandContext & IO, state: State, args: readonly string[], diagnose?: (error: unknown, diagnostic: string) => void, stackHooks?: { name: string; onCwdPublished(): void; emit(text: string): Promise<void> }): Promise<number> {
     const name = stackHooks?.name ?? "cd";
     this.signal.throwIfAborted();
-    if (args.length > 1) { await writeText(context.stderr, `${name}: too many arguments\n`); return 1; }
+    if (args.length > 1) { await writeDiagnostic(context.stderr, `${name}: too many arguments\n`); return 1; }
     const target = args[0] === "-" ? state.variables.OLDPWD : (args[0] ?? state.variables.HOME);
-    if (target === undefined) { await writeText(context.stderr, `${name}: ${args[0] === "-" ? "OLDPWD" : "HOME"} not set\n`); return 1; }
+    if (target === undefined) { await writeDiagnostic(context.stderr, `${name}: ${args[0] === "-" ? "OLDPWD" : "HOME"} not set\n`); return 1; }
     let selected: { path: string; print: boolean };
     try {
       selected = await new CdLookup(this.signal).find(this.fs, state.cwd, target || ".", state.variables.CDPATH);
@@ -3797,7 +3798,7 @@ export class Runtime {
         else if (flag === "u") unset = true;
         else {
           await this.diagnostic(context, `shopt: ${option.startsWith("--") ? option : `-${flag}`}: unsupported option`);
-          await writeText(context.stderr, "shopt: usage: shopt [-pqsu] [--] [dotglob ...]\n");
+          await writeDiagnostic(context.stderr, "shopt: usage: shopt [-pqsu] [--] [dotglob ...]\n");
           return 2;
         }
       }
@@ -3838,30 +3839,30 @@ export class Runtime {
       const option = incoming.args[offset++]!;
       const target = option.slice(2) || incoming.args[offset++];
       if (target === undefined) {
-        await writeText(context.stderr, "printf: -v: option requires an argument\n");
+        await writeDiagnostic(context.stderr, "printf: -v: option requires an argument\n");
         return 2;
       }
       const bracket = target.indexOf("[");
       name = bracket < 0 ? target : target.slice(0, bracket);
       if (!/^[a-zA-Z_][a-zA-Z_0-9]*$/u.test(name) || bracket >= 0 && !target.endsWith("]")) {
-        await writeText(context.stderr, `printf: '${target}': not a valid identifier\n`);
+        await writeDiagnostic(context.stderr, `printf: '${target}': not a valid identifier\n`);
         return 2;
       }
       index = undefined;
       if (bracket >= 0) {
         if (target[bracket + 1] === "'" || target[bracket + 1] === '"') {
-          await writeText(context.stderr, `printf: '${target}': unsupported indexed-array subscript\n`);
+          await writeDiagnostic(context.stderr, `printf: '${target}': unsupported indexed-array subscript\n`);
           return 2;
         }
         try { index = literalIndex(target.slice(bracket + 1, -1), 0, this.budget.parsing); }
         catch (error) {
           this.signal.throwIfAborted();
           if (!(error instanceof ShellSyntaxError)) throw error;
-          await writeText(context.stderr, `printf: '${target}': unsupported indexed-array subscript\n`);
+          await writeDiagnostic(context.stderr, `printf: '${target}': unsupported indexed-array subscript\n`);
           return 2;
         }
         if (numericIndex(index) === undefined) {
-          await writeText(context.stderr, "printf: index outside 0..2147483647\n");
+          await writeDiagnostic(context.stderr, "printf: index outside 0..2147483647\n");
           return 2;
         }
       }
@@ -3869,7 +3870,7 @@ export class Runtime {
     const arguments_ = incoming.slice(offset);
     const format = arguments_.args[0] === "--" ? arguments_.args[1] : arguments_.args[0];
     if (format === undefined || arguments_.args[0] !== "--" && format.startsWith("-")) {
-      await writeText(context.stderr, "printf: usage: printf [-v var] format [arguments]\n");
+      await writeDiagnostic(context.stderr, "printf: usage: printf [-v var] format [arguments]\n");
       return 2;
     }
     const allocation = this.budget.values.scope();
@@ -3893,13 +3894,13 @@ export class Runtime {
       catch (error) {
         this.signal.throwIfAborted();
         if (!(error instanceof UsageError)) throw error;
-        await writeText(context.stderr, `printf: ${error.message}\n`);
+        await writeDiagnostic(context.stderr, `printf: ${error.message}\n`);
         status = 1;
       }
       const value = concatShellValues(chunks, allocation);
       this.signal.throwIfAborted();
       if (state.readonlyVariables?.has(name)) {
-        await writeText(context.stderr, `printf: ${name}: readonly variable\n`);
+        await writeDiagnostic(context.stderr, `printf: ${name}: readonly variable\n`);
         return 1;
       }
       if (index || arrayStore(state)?.get(name)) {
@@ -3918,7 +3919,7 @@ export class Runtime {
           if (decode(shellValueBytes(previous, allocation)) === undefined) text = undefined;
         }
         if (text === undefined) {
-          await writeText(context.stderr, "printf: indexed variables do not support non-UTF-8 bytes\n");
+          await writeDiagnostic(context.stderr, "printf: indexed variables do not support non-UTF-8 bytes\n");
           return 1;
         }
         if (index) await this.arrayAssignment({ kind: "element", name, index, append: false, value: { offset: 0, parts: [{ kind: "text", value: text, quoted: true }] } }, state, context);
@@ -3943,7 +3944,7 @@ export class Runtime {
     if (command === "getopts") return this.getoptsBuiltin(context, state);
     if (command === "pushd" || command === "dirs" || command === "popd") return this.directoryStackBuiltin(context, state, diagnose);
     if (command === "pwd") {
-      if (args.some((arg) => arg !== "-L" && arg !== "-P")) { await writeText(stderr, "pwd: invalid option\n"); return 2; }
+      if (args.some((arg) => arg !== "-L" && arg !== "-P")) { await writeDiagnostic(stderr, "pwd: invalid option\n"); return 2; }
       const path = args.at(-1) === "-P" ? await this.fs.realpath(state.cwd, { signal: this.signal }) : state.cwd;
       await writeText(stdout, `${path}\n`);
       return 0;
@@ -3971,7 +3972,7 @@ export class Runtime {
           continue;
         }
         if (/^[+-]/u.test(option)) {
-          await writeText(stderr, "set: unsupported shell option; supported forms are +/- e/u clusters, -- arguments and terminal o with pipefail, errexit or nounset\n");
+          await writeDiagnostic(stderr, "set: unsupported shell option; supported forms are +/- e/u clusters, -- arguments and terminal o with pipefail, errexit or nounset\n");
           if (state.profile === "sh" && suppressSpecial) return 2;
           throw new Flow("exit", 2);
         }
@@ -3980,7 +3981,7 @@ export class Runtime {
       }
       if (positionals) { this.replacePositionals(state, getCommandArguments(context).values.slice(index)); state.positionalSetVersion = (state.positionalSetVersion ?? 0) + 1; }
       if (args.length) return 0;
-      await writeText(stderr, "set: supported forms are +/- e/u clusters, -- arguments and terminal o with pipefail, errexit or nounset\n");
+      await writeDiagnostic(stderr, "set: supported forms are +/- e/u clusters, -- arguments and terminal o with pipefail, errexit or nounset\n");
       return 2;
     }
     if (command === "shift") {
@@ -3995,13 +3996,13 @@ export class Runtime {
       if (command === "local") {
         const options = localDeclarationOptions(declarationArgs, this.signal);
         if (options.error !== undefined) {
-          await writeText(stderr, `local: ${options.error}: unsupported option\n`);
+          await writeDiagnostic(stderr, `local: ${options.error}: unsupported option\n`);
           return 2;
         }
         indexedLocal = options.indexed;
         declarationArgs.splice(0, options.offset);
         if (indexedLocal && declarationArgs.length === 0) {
-          await writeText(stderr, "local: -a requires a variable name\n");
+          await writeDiagnostic(stderr, "local: -a requires a variable name\n");
           return 2;
         }
       }
@@ -4009,11 +4010,11 @@ export class Runtime {
         while (declarationArgs[0]?.startsWith("-")) {
           const option = declarationArgs.shift();
           if (option === "--") break;
-          if (option !== "-p") { await writeText(stderr, `readonly: ${option}: unsupported option\n`); return 2; }
+          if (option !== "-p") { await writeDiagnostic(stderr, `readonly: ${option}: unsupported option\n`); return 2; }
         }
       }
       const locals = state.locals.at(-1);
-      if (command === "local" && !locals) { await writeText(stderr, "local: not in a function\n"); return 1; }
+      if (command === "local" && !locals) { await writeDiagnostic(stderr, "local: not in a function\n"); return 1; }
       let status = 0;
       if (!declarationArgs.length) {
         const names = command === "readonly" ? state.readonlyVariables ?? [] : state.exported;
@@ -4207,7 +4208,7 @@ export class Runtime {
           }
           continue;
         }
-        if (!/^[a-zA-Z_][a-zA-Z_0-9]*$/u.test(name)) { await writeText(stderr, `unset: ${name}: not a valid identifier\n`); status = 1; continue; }
+        if (!/^[a-zA-Z_][a-zA-Z_0-9]*$/u.test(name)) { await writeDiagnostic(stderr, `unset: ${name}: not a valid identifier\n`); status = 1; continue; }
         if (state.readonlyVariables?.has(name)) { await this.diagnostic(context, `unset: ${name}: cannot unset: readonly variable`); status = 1; continue; }
         if (name === "PATH") state.pathUnset = true;
         if (arrayStore(state)?.get(name)) await this.unsetIndexed(state, name);
@@ -4235,7 +4236,7 @@ export class Runtime {
           else if (flag === "d") delimiter = new TextEncoder().encode(value)[0] ?? 0;
           else if (exact && (!/^[ \t]*[+-]?\d+[ \t]*$/u.test(value) || !Number.isSafeInteger(Number(value)) || Number(value) < 0)) {
             const diagnosticIO: IO = context;
-            await writeText(stderr, `${diagnosticIO.scriptName ?? "shell"}: line ${diagnosticIO.diagnosticLine ?? 1}: read: ${value}: invalid ${/^[+-]?0[xX]/u.test(value) ? "hex " : ""}number\n`);
+            await writeDiagnostic(stderr, `${diagnosticIO.scriptName ?? "shell"}: line ${diagnosticIO.diagnosticLine ?? 1}: read: ${value}: invalid ${/^[+-]?0[xX]/u.test(value) ? "hex " : ""}number\n`);
             return 1;
           }
           else if (!exact && (!/^\d+$/u.test(value) || !Number.isSafeInteger(Number(value)))) invalid = true;
@@ -4248,11 +4249,11 @@ export class Runtime {
       const invalidName = names.find(name => !/^[a-zA-Z_][a-zA-Z_0-9]*$/u.test(name));
       if (exact && !invalid && invalidName !== undefined) {
         const diagnosticIO: IO = context;
-        await writeText(stderr, `${diagnosticIO.scriptName ?? "shell"}: line ${diagnosticIO.diagnosticLine ?? 1}: read: \`${invalidName}': not a valid identifier\n`);
+        await writeDiagnostic(stderr, `${diagnosticIO.scriptName ?? "shell"}: line ${diagnosticIO.diagnosticLine ?? 1}: read: \`${invalidName}': not a valid identifier\n`);
         return 1;
       }
       if (invalid || names.some((name) => !/^[a-zA-Z_][a-zA-Z_0-9]*$/u.test(name))) {
-        await writeText(stderr, "read: invalid variable name or unsupported option\n");
+        await writeDiagnostic(stderr, "read: invalid variable name or unsupported option\n");
         return 2;
       }
       const input = context.stdin instanceof ShellInput ? context.stdin : new ShellInput(context.stdin, this.budget, this.signal);
@@ -4301,10 +4302,10 @@ export class Runtime {
       return line.terminated ? 0 : 1;
     }
     if (command === "exit" || command === "return") {
-      if (command === "return" && state.functionDepth === 0 && !state.sourceDepth) { await writeText(stderr, "return: not in a function\n"); return 1; }
-      if (args.length > 1) { await writeText(stderr, `${command}: too many arguments\n`); return 1; }
+      if (command === "return" && state.functionDepth === 0 && !state.sourceDepth) { await writeDiagnostic(stderr, "return: not in a function\n"); return 1; }
+      if (args.length > 1) { await writeDiagnostic(stderr, `${command}: too many arguments\n`); return 1; }
       if (args[0] !== undefined && !/^[+-]?\d+$/u.test(args[0])) {
-        await writeText(stderr, `${command}: ${args[0]}: numeric argument required\n`);
+        await writeDiagnostic(stderr, `${command}: ${args[0]}: numeric argument required\n`);
         throw completedExit(2, command);
       }
       const status = args[0] === undefined ? state.status : Number((BigInt(args[0]) % 256n + 256n) % 256n);
@@ -4312,8 +4313,8 @@ export class Runtime {
     }
     if (command === "break" || command === "continue") {
       const levels = args[0] === undefined ? 1 : Number(args[0]);
-      if (args.length > 1 || !Number.isSafeInteger(levels) || levels < 1) { await writeText(stderr, `${command}: invalid loop count\n`); return 1; }
-      if (!state.loopDepth) { await writeText(stderr, `${command}: only meaningful in a loop\n`); return 0; }
+      if (args.length > 1 || !Number.isSafeInteger(levels) || levels < 1) { await writeDiagnostic(stderr, `${command}: invalid loop count\n`); return 1; }
+      if (!state.loopDepth) { await writeDiagnostic(stderr, `${command}: only meaningful in a loop\n`); return 0; }
       throw completedExit(0, command, Math.min(levels, state.loopDepth));
     }
     return undefined;
@@ -4362,7 +4363,7 @@ export class Runtime {
     this.signal.throwIfAborted();
     if (part.kind === "failed-substitution") {
       if (state.depth >= this.budget.limits.maxSubstitutionDepth) this.budget.fail("maxSubstitutionDepth");
-      await writeText(io.stderr, part.diagnostic);
+      await writeDiagnostic(io.stderr, part.diagnostic);
       state.status = state.substitutionStatus = 2;
       return "";
     }
@@ -4406,7 +4407,7 @@ export class Runtime {
       finally { stateMonitor(child)?.closeValues(); }
       state.status = state.substitutionStatus;
       const bytes = capture.bytes();
-      if (bytes.includes(0)) await writeText(io.stderr, `${io.scriptName ?? "shell"}: line ${warningLine}: warning: command substitution: ignored null byte in input\n`);
+      if (bytes.includes(0)) await writeDiagnostic(io.stderr, `${io.scriptName ?? "shell"}: line ${warningLine}: warning: command substitution: ignored null byte in input\n`);
       let length = 0;
       for (const byte of bytes) if (byte !== 0) bytes[length++] = byte;
       while (length && bytes[length - 1] === 10) length--;

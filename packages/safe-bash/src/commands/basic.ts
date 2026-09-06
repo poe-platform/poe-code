@@ -1,5 +1,6 @@
-import { basename, dirname, getCommandArguments, writeBytes, type CommandContext, type CommandDefinition, type CommandResult } from "../contracts/index.js";
-import { decoder, define, encoder, escapeBytes, options, output, requireOperands, UsageError, value } from "./internal.js";
+import { writeDiagnostic } from "../escaping.js";
+import { basename, dirname, getCommandArguments, type CommandContext, type CommandDefinition, type CommandResult } from "../contracts/index.js";
+import { decoder, define, escapeBytes, options, output, requireOperands, UsageError, value } from "./internal.js";
 import { assertCommandRequirements } from "../contracts/command-requirements.js";
 import { pwdRequirements } from "./portable-requirements.js";
 
@@ -126,7 +127,7 @@ export async function formatPrintf(context: CommandContext): Promise<CommandResu
           else number = parseInt(supplied.replace(/^[+-]?0/u, ""), 8) * (supplied.startsWith("-") ? -1 : 1);
         }
         if (!Number.isFinite(number)) {
-          await writeBytes(context.stderr, encoder.encode(`printf: '${supplied}': invalid number\n`), context.signal);
+          await writeDiagnostic(context.stderr, `printf: '${supplied}': invalid number\n`, context.signal);
           exitCode = 1; number = 0;
         }
         if (/[fF]/u.test(specifier)) text = number.toFixed(precision ?? 6);
@@ -146,7 +147,7 @@ export async function formatPrintf(context: CommandContext): Promise<CommandResu
             }
           } catch {
             integral = 0n;
-            if (exitCode === 0) await writeBytes(context.stderr, encoder.encode(`printf: '${supplied}': invalid integer\n`), context.signal);
+            if (exitCode === 0) await writeDiagnostic(context.stderr, `printf: '${supplied}': invalid integer\n`, context.signal);
             exitCode = 1;
           }
           text = (unsigned ? BigInt.asUintN(64, integral) : integral).toString(radix);

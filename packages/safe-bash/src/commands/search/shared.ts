@@ -1,3 +1,4 @@
+import { writeDiagnostic } from "../../escaping.js";
 import { yieldTurn } from "../../contracts/yield.js";
 import { readBytes, writeBytes, type ByteSource, type CommandContext } from "../../contracts/index.js";
 import { SearchError, type SearchOptions } from "./options.js";
@@ -59,7 +60,7 @@ export async function* fileInput(context: CommandContext, path: string, limits: 
 }
 
 export async function diagnostic(context: CommandContext, error: unknown): Promise<void> {
-  await writeBytes(context.stderr, Buffer.from(`rg: ${error instanceof Error ? error.message : String(error)}\n`), context.signal);
+  await writeDiagnostic(context.stderr, `rg: ${error instanceof Error ? error.message : String(error)}\n`, context.signal);
 }
 
 export interface Line { readonly bytes: Buffer; readonly content: Buffer; readonly number: number; readonly offset: number }

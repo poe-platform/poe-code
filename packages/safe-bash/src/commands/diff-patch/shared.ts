@@ -1,6 +1,7 @@
+import { writeDiagnostic } from "../../escaping.js";
 import { yieldTurn } from "../../contracts/yield.js";
 import {
-  collectBytes, isFsError, readBytes, resolvePath, writeBytes,
+  collectBytes, isFsError, readBytes, resolvePath,
   type ByteSource, type CommandContext, type CommandDefinition, type FileStat,
 } from "../../contracts/index.js";
 
@@ -166,7 +167,7 @@ export function definition(name: string, options: DiffPatchOptions, run: (contex
       catch (error) {
         context.signal.throwIfAborted();
         const message = error instanceof Error ? error.message : String(error);
-        await writeBytes(context.stderr, Buffer.from(`${name}: ${message.slice(0, 1000)}${message.length > 1000 ? "…" : ""}\n`), context.signal);
+        await writeDiagnostic(context.stderr, `${name}: ${message.slice(0, 1000)}${message.length > 1000 ? "…" : ""}\n`, context.signal);
         return { exitCode: error instanceof ToolError ? error.exitCode : 2 };
       }
     },

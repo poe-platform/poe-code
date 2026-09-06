@@ -1,4 +1,5 @@
 import { writeBytes, type CommandDefinition, type VirtualShellPlugin } from "../../contracts/index.js";
+import { escapeText } from "../../escaping.js";
 import { RegexExecutor, RegexExecutionError, withRegexSession } from "../regex-execution/client.js";
 import { ExprMatchError, exprMatchCeilings } from "../regex-execution/protocol.js";
 import { bytes, characterCount, smallInteger, truth } from "./evaluate.js";
@@ -55,10 +56,11 @@ export function createExprCommand(options: ExprCommandsOptions = {}): CommandDef
         await budget.yield();
       } catch (error) {
         context.signal.throwIfAborted();
-        const message = error instanceof ExprError || error instanceof ExprMatchError || error instanceof RegexExecutionError ? error.message : "execution or output failure";
+        const detail = error instanceof ExprError || error instanceof ExprMatchError || error instanceof RegexExecutionError ? error.message : "execution or output failure";
+        let message: string;
         try {
-          budget.check(message.length + 7, limits.maxOutputBytes, "output bytes");
-          budget.check(Buffer.byteLength(message) + 7, limits.maxOutputBytes, "output bytes");
+          budget.check(detail.length + 7, limits.maxOutputBytes, "output bytes");
+          message = escapeText(detail, "diagnostic", size => budget.check(size + 7, limits.maxOutputBytes, "output bytes"));
         } catch {
           await writeBytes(context.stderr, new TextEncoder().encode("expr: output bytes limit exceeded\n"), context.signal);
           return { exitCode: 3 };

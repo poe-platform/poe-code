@@ -409,6 +409,8 @@ function assertSource7Discovery(files) {
   assert.ok(files.includes("tests/shell/input-pending-return.test.ts"));
   assert.ok(files.includes("tests/commands/tee-target-admission.test.ts"));
   assert.ok(files.includes("tests/commands/tail-follow.test.ts"));
+  assert.ok(files.includes("tests/commands/diagnostic-display.test.ts"));
+  assert.ok(files.includes("tests/contracts/diagnostic-escaping.test.ts"));
   assert.ok(files.includes("tests/commands/xargs-parallel.test.ts"));
   assert.ok(files.includes("tests/contracts/missing-target.test.ts"));
   assert.ok(files.includes("tests/commands/copy-preflight-canonicalization.test.ts"));

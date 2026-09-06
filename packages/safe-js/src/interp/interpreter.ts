@@ -954,21 +954,27 @@ async function evaluateAssignmentExpression(
   context: EvaluationContext
 ): Promise<EvaluationResult> {
   if (node.left.type === "ArrayPattern" || node.left.type === "ObjectPattern") {
-    const right = await evaluateNode(node.right, context);
+    const restored = context.generatorResume === undefined || node.nodeId === undefined
+      ? undefined : context.restoredGeneratorExpressionStates?.get(node.nodeId);
+    if (restored !== undefined && restored.kind !== "pattern-source") throw new TypeError("Invalid pattern source continuation.");
+    const right = restored === undefined ? await evaluateNode(node.right, context)
+      : { kind: "normal" as const, hasValue: true as const, value: restored.value };
     if (right.kind !== "normal") {
       return right;
     }
 
-    const binding = await bindPattern(node.left, right.value, { assign: true }, context.scope, createPatternContext(context));
-    if (!binding.ok) {
-      return binding.result;
+    if (context.generatorYield !== undefined && node.nodeId !== undefined) {
+      context = { ...context, generatorExpressionStates: new Map([...(context.generatorExpressionStates ?? []),
+        [node.nodeId, { kind: "pattern-source", value: right.value }]]) };
     }
-
-    return {
-      kind: "normal",
-      hasValue: true,
-      value: right.value
-    };
+    const release = retainValues(context.budget, () => [right.value]);
+    try {
+      const binding = await bindPattern(node.left, right.value, { assign: true }, context.scope, createPatternContext(context));
+      if (!binding.ok) return binding.result;
+      return { kind: "normal", hasValue: true, value: right.value };
+    } finally {
+      release();
+    }
   }
 
   if (node.left.type === "MemberExpression") {
@@ -1357,12 +1363,17 @@ async function evaluateVariableDeclaration(
       }
     }
 
+    const restoredSource = context.generatorResume === undefined || declarator.nodeId === undefined
+      ? undefined : context.restoredGeneratorExpressionStates?.get(declarator.nodeId);
+    if (restoredSource !== undefined && restoredSource.kind !== "pattern-source") throw new TypeError("Invalid declaration source continuation.");
     const restoredValue =
       declarator.id.type === "Identifier"
         ? context.scope.consumeRestoredBinding(declarator.id.name)
         : { found: false as const };
     const value =
-      restoredValue.found && isRestorableBindingValue(restoredValue.value)
+      restoredSource !== undefined
+        ? { kind: "normal" as const, hasValue: true as const, value: restoredSource.value }
+        : restoredValue.found && isRestorableBindingValue(restoredValue.value)
         ? {
             kind: "normal" as const,
             hasValue: true as const,
@@ -1380,15 +1391,23 @@ async function evaluateVariableDeclaration(
       return value;
     }
 
-    const binding = await bindPattern(
-      declarator.id,
-      value.value,
-      { kind: node.kind },
-      context.scope,
-      createPatternContext(context)
-    );
-    if (!binding.ok) {
-      return binding.result;
+    const bindingContext = context.generatorYield === undefined || declarator.nodeId === undefined ||
+      declarator.init === undefined || declarator.id.type === "Identifier" ? context : {
+        ...context, generatorExpressionStates: new Map([...(context.generatorExpressionStates ?? []),
+          [declarator.nodeId, { kind: "pattern-source" as const, value: value.value }]])
+      };
+    const release = retainValues(context.budget, () => [value.value]);
+    try {
+      const binding = await bindPattern(
+        declarator.id,
+        value.value,
+        { kind: node.kind },
+        context.scope,
+        createPatternContext(bindingContext)
+      );
+      if (!binding.ok) return binding.result;
+    } finally {
+      release();
     }
   }
 

@@ -48,6 +48,7 @@ again before a partial pattern resumes. A direct restoration probe returning
 `[count,first,second]` produced `[2,2,4]`, versus native `[1,2,4]`. The acquired
 iterator and partial bindings are retained by this change, but preserving the
 declaration/assignment source value requires a separate continuation fix.
+That follow-up is tracked in `safejs-pattern-source-continuations.md`.
 
 ## Visual QA
 

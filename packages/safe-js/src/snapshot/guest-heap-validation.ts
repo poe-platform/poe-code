@@ -152,6 +152,8 @@ export function validateGuestHeapNode(raw: unknown, heap: Record<string, unknown
         const expression = record(raw);
         if (expression.kind === "binary") {
           fields(expression, ["kind", "left"]);
+        } else if (expression.kind === "pattern-source") {
+          fields(expression, ["kind", "value"]);
         } else if (expression.kind === "for-of-array" || expression.kind === "for-of-iterator" || expression.kind === "array-pattern") {
           if (expression.kind === "array-pattern") {
             fields(expression, ["kind", "phase", "index", "done", "current", "iterator"], ["referenceObject", "referenceKey"]);

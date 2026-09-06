@@ -10,7 +10,7 @@ export function validateGuestFunctionAst(record: Record<string, unknown>, origin
 
   let yieldBlocks: ReadonlySet<number> | undefined;
   let yieldFinalizers: ReadonlySet<number> | undefined;
-  type ExpressionPosition = { kind: "binary" } | { kind: "identifier-assignment" } | { kind: "member"; superReceiver: boolean }
+  type ExpressionPosition = { kind: "binary" } | { kind: "pattern-source" } | { kind: "identifier-assignment" } | { kind: "member"; superReceiver: boolean }
     | { kind: "for"; phase: string }
     | { kind: "for-in"; phase: string }
     | { kind: "for-of"; phase: string; async: boolean }
@@ -68,7 +68,11 @@ export function validateGuestFunctionAst(record: Record<string, unknown>, origin
         continue;
       }
       pending.push({ value, blocks,
-        expressions: node.type === "ForOfStatement" && ["left", "body"].includes(key) && typeof node.nodeId === "number"
+        expressions: ((node.type === "VariableDeclarator" && key === "id" && node.init !== undefined) ||
+          (node.type === "AssignmentExpression" && key === "left")) && typeof node.nodeId === "number" &&
+          ["ArrayPattern", "ObjectPattern"].includes(String((value as Record<string, unknown>)?.type))
+          ? new Map([...frame.expressions, [node.nodeId, { kind: "pattern-source" }]])
+          : node.type === "ForOfStatement" && ["left", "body"].includes(key) && typeof node.nodeId === "number"
           ? new Map([...frame.expressions, [node.nodeId, { kind: "for-of", phase: key, async: node.await === true }]])
           : node.type === "ForInStatement" && ["left", "body"].includes(key) && typeof node.nodeId === "number"
           ? new Map([...frame.expressions, [node.nodeId, { kind: "for-in", phase: key }]])
@@ -114,7 +118,7 @@ export function validateGuestFunctionAst(record: Record<string, unknown>, origin
       (expected?.kind === "for-of" && (expression.kind === "for-of-iterator" || (!expected.async && expression.kind === "for-of-array"))) ||
       (expected?.kind === "call" && expected.member === true && expression.kind === "array-call");
     if (expected === undefined || !compatibleKind ||
-        (expected.kind !== "binary" && expected.kind !== "identifier-assignment" && expected.kind !== "member" && expected.kind !== "member-assignment" && expected.kind !== "for" && expected.kind !== "for-in" && expected.kind !== "for-of" && expected.index !== expression.index) ||
+        (expected.kind !== "binary" && expected.kind !== "pattern-source" && expected.kind !== "identifier-assignment" && expected.kind !== "member" && expected.kind !== "member-assignment" && expected.kind !== "for" && expected.kind !== "for-in" && expected.kind !== "for-of" && expected.index !== expression.index) ||
         ((expected.kind === "for" || expected.kind === "for-of") && expected.phase !== expression.phase) ||
         (expected.kind === "for-in" && expected.phase !== (expression.phase ?? "body")) ||
         (expected.kind === "for-of" && expression.kind === "for-of-iterator" && expected.async !== expression.async) ||

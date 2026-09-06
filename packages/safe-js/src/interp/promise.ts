@@ -201,6 +201,17 @@ export function createPromiseGlobals(options: { budget: Budget }): PromiseGlobal
             : settleConstructedPromise(constructor, reason, "rejected", options.budget, context);
         },
         guest: true, name: "reject", length: 1
+      }),
+      withResolvers: createSandboxClosure({
+        sandbox: true,
+        guest: true,
+        name: "withResolvers",
+        length: 0,
+        call: (_args, context) => createPromiseCapability(
+          context === undefined ? promiseConstructor : context.thisValue,
+          options.budget,
+          context
+        )
       })
   };
   const promiseConstructor = createSandboxClosure({

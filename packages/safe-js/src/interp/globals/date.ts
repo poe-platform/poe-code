@@ -1,4 +1,5 @@
 import type { Budget } from "../budget.js";
+import { formatDateLocale } from "../date-locale.js";
 import { objectToPrimitive, sandboxNumber, sandboxString } from "../string-coercion.js";
 import { createSandboxBox } from "../boxed.js";
 import { invokeBuiltinClosure } from "../builtin-call.js";
@@ -118,6 +119,7 @@ export function createDateGlobal(
           if (!isSandboxDate(receiver))
             throw new TypeError(`Date#${name} requires a Date receiver.`);
           options.budget.visitNode();
+          if (name.startsWith("toLocale")) return formatDateLocale(name, dateTime(receiver), args, options.budget, context);
           if (name.startsWith("set")) return coerceDateSetter(name, receiver, args, options.budget, context);
           const value = method.invoke(receiver, args);
           return typeof value === "string"

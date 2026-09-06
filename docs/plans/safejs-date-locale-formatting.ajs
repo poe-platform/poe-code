@@ -1,0 +1,19 @@
+import { S } from "schema";
+
+export const schema = S.Object({ title: S.String() });
+
+export default async (frontmatter) => {
+  const calls = [];
+  const options = Object.create({ timeZone: "UTC" });
+  Object.defineProperty(options, "year", { get() { calls.push("year"); return "numeric"; } });
+  const date = new Date(0);
+  const year = date.toLocaleDateString("en-US", options);
+  await 0;
+  const time = date.toLocaleTimeString("en-US", { timeZone: "UTC", hour12: false });
+  const full = date.toLocaleString("en-US", { timeZone: "UTC" });
+  if (year !== "1970" || calls.length !== 1 || !time.includes(":") || !full.includes("1970") ||
+      new Date(NaN).toLocaleString(null, null) !== "Invalid Date") {
+    throw new Error("Date locale formatting failed");
+  }
+  return { title: frontmatter.title, ok: true, year, time, full };
+};

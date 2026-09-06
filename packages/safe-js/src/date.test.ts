@@ -199,10 +199,10 @@ describe("Date intrinsic", () => {
     }
   });
 
-  it("does not expose native constructors or silently implement unsupported locale formatting", async () => {
+  it("does not expose native constructors through Date or its formatting methods", async () => {
     expect(
       await run(
-        "const date = new Date(0); return [date.__proto__, date.getTime.constructor, Date.constructor, Date.prototype.__proto__, date.toLocaleString, date.toLocaleDateString, date.toLocaleTimeString];"
+        "const date = new Date(0); return [date.__proto__, date.getTime.constructor, Date.constructor, Date.prototype.__proto__, date.toLocaleString.constructor, date.toLocaleDateString.constructor, date.toLocaleTimeString.constructor];"
       )
     ).toMatchObject({
       ok: true,

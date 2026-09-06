@@ -103,8 +103,6 @@ Current-time reads are recorded for replay; replay does not call `now()` again. 
 
 Date values copy by value across host bindings, preserving aliases within a graph. Checkpoints preserve epoch values, invalid dates and mutations rather than converting dates to strings. Parsing is limited to 4,096 characters and consumes the work/string budgets; retained values consume data budget. Local methods and non-ISO parsing follow the host timezone/runtime, so use explicit-zone ISO strings and UTC methods for portable output.
 
-Unsupported: locale formatting, legacy `getYear`/`setYear`/`toGMTString`, subclassing, custom argument coercion, Date-instance own properties and prototype modification. These are restrictions, not stubs; no native constructor or prototype is exposed to guest code.
-
 </details>
 
 ## Add a host capability

@@ -3096,7 +3096,12 @@ Scoped publication is verified: run 33997517429 completed successfully and
 published `@poe-platform/safe-js@0.1.137` at 23:05:31 UTC on September 5. The CLI
 run remains independently monitored; scoped publication is not a CLI release.
 
-### 52. Anonymous class names in binding defaults — confirmed gap
+The class CLI workflow completed successfully but explicitly skipped publication
+at 23:13:15 UTC because its local main was behind remote main. That green run is
+not a release. The descendant default-name commit subsequently published CLI
+14.0.65, covering both increments; see the independently verified receipt below.
+
+### 52. Anonymous class names in binding defaults — closed at verified main delivery
 
 Read-only source/native comparisons confirm that object-destructuring defaults,
 array-destructuring defaults, and ordinary function parameter defaults evaluate
@@ -3132,6 +3137,18 @@ The screenshot build completed before package checks and root lint. Root lint
 covers 9,786 configured files with zero errors/warnings; TypeScript and workflow
 checks pass. This focused fix is ready for its own commit and verified main push.
 
+Delivered as 018e020567c503c3ef70a31ba3f5f460bf3dedd4 and independently verified
+on remote `refs/heads/main` September 5. Close this default-name issue at main
+delivery. CLI run 33998004115 and scoped run 33998004033 are being monitored;
+neither is claimed published yet. Accessor work starts during these release runs.
+
+Both publications are now verified. Scoped run 33998004033 published
+`@poe-platform/safe-js@0.1.138` at 23:15:49 UTC on September 5. CLI run
+33998004115 published `poe-code@14.0.65` to latest at 23:22:46 UTC; remote
+`refs/tags/v14.0.65` independently resolves to the exact default-name commit
+018e020567c503c3ef70a31ba3f5f460bf3dedd4. This CLI release also includes the
+public-class ancestor. The accessor work remains local and unreleased.
+
 ### 53. Accessor descriptors and class getter/setter syntax — confirmed gap
 
 Native/current-source comparisons return 7 natively for a descriptor getter
@@ -3142,3 +3159,75 @@ returns 8 in both engines. These are reproduced implementation limitations,
 not inferred issue reports. The next substantial work is the accessor property
 model and its consumers, followed by class/object accessor syntax; getters must
 not be implemented by exposing native host execution or silently dropping state.
+
+The first 52 native comparisons produced 49 failures and three passing controls.
+The mediated descriptor implementation brings those 52 green. Native descriptor
+slots hold opaque adapters, never guest-executing host getters; this prevents
+internal native Promise transport from invoking guest `then` getters on ordinary
+function returns. Actual reads/writes invoke closures through sandbox evaluation.
+Descriptor validation, inheritance, super receivers, object copying, JSON,
+coercion and promise resolution use mediated access.
+
+Expanded coverage across 35 maintained array operations plus getter/setter
+retention produced 33 further failures. Both retention probes initially charged
+only seven units while keeping a captured 700-character payload alive. Accessor
+closures now participate in data/compile reachability, and array operations use
+awaited guest reads and writes in observable order. All 89 cases pass; the first
+broader maintained SafeJS package check is running. This is not delivery or
+completion: remaining consumers, safety/cancellation/snapshot boundaries and
+broader regressions still need qualification before this atomic improvement
+is committed and pushed.
+
+The expanded accessor suite now has 121 native/runtime cases and 37 boundary
+cases. New failing comparisons drove fixes for array elisions/rest and exhausted
+bindings, callable member/instanceof reads, apply/bind metadata, String.raw,
+Promise helpers, descriptor validation order and JSON's captured array length.
+The maintained package initially exposed direct-adapter regressions; preserve
+the existing synchronous host routes and callable host thenables. The obsolete
+defineProperties fixture treated a callable getter as invalid: it now uses a
+genuinely non-callable getter so it still checks prevalidation without assuming
+that all accessors are unsupported.
+
+Boundary tests additionally reproduced lost intermediate values in object
+copying, JSON, array copying/reverse/default-sort and descriptor preparation,
+plus unaccounted bound names returned by getters. Retain those values for their
+actual execution lifetime and release them on completion. High/low data controls,
+fatal step exhaustion (including then getters), async-getter cancellation and
+unsupported snapshot/copy rejection all pass. The second maintained SafeJS run
+passed 13,106 tests with one failure: raw native accessor admission during direct
+String conversion. Restrict native-getter compatibility to the existing trusted
+low-level property-read route; explicit coercion stays rejecting. The focused
+native-boundary and accessor rerun passes 247 tests, and package TypeScript passes.
+
+Manual QA plan for this increment: build normally; run the schema-only
+`accessors.md`/`.ajs` fixture through the real harness with no capabilities or
+spawns; inspect its screenshot for getter/setter value 8, mapped array [9], JSON
+with base/value 8, resolved promise 9 and a function-valued getter descriptor.
+Run the maintained full `npm test` and repository lint after the screenshot
+command's build finishes. This change crosses interpreter, built-in, resource,
+promise and snapshot boundaries, so focused checks alone are insufficient.
+Only then make this descriptor-model improvement its own commit/main push.
+Class/object getter-setter syntax remains the next separately validated increment;
+portable accessor snapshots and full intrinsic graphs are not claimed complete.
+
+The first full gate passed: 32,967 shared unit tests (43 skipped), the maintained
+Python/Bash routes, 288 shell stress cases, two lint-stress cases and repository
+lint with zero errors/warnings across 9,789 configured files. The optional
+just-bash comparator remained pending, not a pass. Built-API audits and the
+schema-only harness screenshot also passed, with zero spawns. A separate native
+comparison nevertheless exposed lost execution context when built-ins such as
+Object.values, JSON.stringify and Number are passed directly to Promise.then or
+catch. Nine new regressions failed before the fix; forwarding property/invocation
+context through reactions and clearing new.target makes all nine pass. Two
+new.target controls pass as well. The focused Promise/accessor rerun passes
+274 tests. This finding is part of qualifying the new descriptor model, not an
+unrelated speculative fix. A final rebuilt full gate follows before delivery.
+
+Final qualification passed on September 6 UTC: the normal build, schema-only
+harness screenshot (zero spawns), twelve built public-API Promise callback
+comparisons, 32,978 shared unit tests (43 skipped), 29 Python tests, 279 Bash
+runner tests, 19,981 Bash tests (63 skipped), 288 shell-stress cases and two
+lint-stress cases. Repository lint completed with zero errors/warnings across
+9,789 configured files; root TypeScript and workflow lint passed. The descriptor
+model is ready for its own commit and main push. This does not close the separate
+class/object accessor syntax or portable-snapshot gaps.

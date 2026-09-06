@@ -34,12 +34,17 @@ export function createPrimitiveConstructor(
   const prototype = createSandboxBox(initial);
   const allocate = (value: BoxedPrimitive, context?: SandboxCallContext) => {
     const box = createSandboxBox(value);
+    const finish = (prototype: SandboxValue) => {
+      if (typeof prototype === "object" && prototype !== null)
+        setSandboxPrototype(box, prototype, budget);
+      budget.chargeDataUsage(measureSandboxData([box]));
+      return box;
+    };
     if (context?.newTarget !== undefined && context.newTarget !== constructor) {
       const prototype = context.getProperty!(context.newTarget, "prototype");
-      if (typeof prototype === "object" && prototype !== null) setSandboxPrototype(box, prototype, budget);
+      return prototype instanceof Promise ? prototype.then(finish) : finish(prototype);
     }
-    budget.chargeDataUsage(measureSandboxData([box]));
-    return box;
+    return finish(undefined);
   };
   const constructor = createSandboxClosure({
     guest: true,
@@ -49,7 +54,9 @@ export function createPrimitiveConstructor(
     call: options.call,
     construct: (args, context) => {
       const value = options.call(args, context);
-      return value instanceof Promise ? value.then(result => allocate(result, context)) : allocate(value, context);
+      return value instanceof Promise
+        ? value.then((result) => allocate(result, context))
+        : allocate(value, context);
     }
   });
   const properties = materializeFunctionProperties(constructor);

@@ -1,4 +1,5 @@
 import { bindOtelSpan, getBoundOtelSpan } from "../observability/otel.js";
+import { retainedAccessorClosures } from "./accessors.js";
 import { isSandboxMap, isSandboxSet, sandboxMapBrand, sandboxSetBrand } from "./collection-brands.js";
 import { collectionIteratorState, isSandboxCollectionIterator, restoreSandboxCollectionIterator, snapshotCollectionIterator, type SandboxCollectionIterator } from "./collection-iterator.js";
 import { copyNativeDate, exportDate, isSandboxDate } from "./date.js";
@@ -104,7 +105,7 @@ export type SandboxCallContext = {
   };
   readonly stack: readonly string[];
   readonly thisValue: SandboxValue;
-  readonly getProperty?: (value: SandboxValue, property: string | number) => SandboxValue;
+  readonly getProperty?: (value: SandboxValue, property: string | number) => SandboxValue | Promise<SandboxValue>;
   readonly reconcileData?: (value: SandboxValue) => void;
   readonly invokeClosure?: (
     closure: SandboxClosure,
@@ -275,6 +276,14 @@ export function ownEnumerableSandboxEntries(
   else if (isSandboxClosure(value) || isSandboxGenerator(value) || isSandboxMap(value) || isSandboxSet(value) || isSandboxPromise(value) || isSandboxRegex(value)) return [];
   else entries = Object.entries(Object(value)) as Array<[string, SandboxValue]>;
   return excludedKeys === undefined ? entries : entries.filter(([key]) => !excludedKeys.has(key));
+}
+
+export function ownEnumerableSandboxKeys(value: SandboxValue): string[] {
+  if (isGuestHostObject(value)) return getHostObjectKeys(value);
+  if (value === null || value === undefined) throw new TypeError("Cannot convert undefined or null to object.");
+  if (isGuestClosure(value)) return Object.keys(value.properties ?? {});
+  if (isSandboxClosure(value) || isSandboxGenerator(value) || isSandboxMap(value) || isSandboxSet(value) || isSandboxPromise(value) || isSandboxRegex(value)) return [];
+  return Object.keys(Object(value));
 }
 
 export function createSandboxPromise(
@@ -490,6 +499,7 @@ export function measureSandboxData(
       for (const [key, descriptor] of boxedDataProperties(value)) {
         usage += key.length + 1;
         if ("value" in descriptor) visit(descriptor.value, depth + 1);
+        else for (const closure of retainedAccessorClosures(descriptor)) visit(closure, depth + 1);
       }
       return;
     }
@@ -519,6 +529,7 @@ export function measureSandboxData(
           if (key === "length") continue;
           usage += key.length + 1;
           if ("value" in descriptor) visit(descriptor.value, depth + 1);
+          else for (const closure of retainedAccessorClosures(descriptor)) visit(closure, depth + 1);
         }
         return;
       }
@@ -557,6 +568,7 @@ export function measureSandboxData(
             if (key === "prototype" || key === "name" || key === "length") continue;
             usage += key.length + 1;
             if ("value" in descriptor) visit(descriptor.value, depth + 1);
+            else for (const closure of retainedAccessorClosures(descriptor)) visit(closure, depth + 1);
           }
         } else visit(value.properties, depth + 1);
       }
@@ -605,7 +617,8 @@ export function measureSandboxData(
       const descriptor = descriptors[key];
       if (!descriptor.enumerable && !hasManagedDescriptors(value)) continue;
       usage += key.length;
-      visit("value" in descriptor ? descriptor.value : undefined, depth + 1);
+      if ("value" in descriptor) visit(descriptor.value, depth + 1);
+      else for (const closure of retainedAccessorClosures(descriptor)) visit(closure, depth + 1);
     }
   };
 

@@ -1,4 +1,7 @@
 import type { Budget, CompileOwner } from "../budget.js";
+import { retainValues } from "../resources.js";
+import { readPropertyDescriptor } from "../accessors.js";
+import { getSandboxPropertyDescriptor } from "../object-model.js";
 import { dateMethods, isSandboxDate } from "../date.js";
 import { boxedValue, isSandboxBox } from "../boxed.js";
 import { sandboxNumber, sandboxString } from "../string-coercion.js";
@@ -166,22 +169,31 @@ async function stringifyProperty(
   state: StringifyState,
   indent = ""
 ): Promise<string | undefined> {
-  let value = getOwnDataValue(holder, key);
-
-  if (isSandboxDate(value)) {
-    value = dateMethods.get("toJSON")!.invoke(value, []) as SandboxValue;
-  } else if (isStringifyContainer(value)) {
-    const toJSON = getOwnDataValue(value, "toJSON");
-    if (isSandboxClosure(toJSON)) {
-      value = await callStringifyClosure(toJSON, [key], value, state);
+  let value: unknown = await getStringifyProperty(holder, key, state);
+  const release = retainValues(state.budget, () => [holder, value]);
+  try {
+    if (isSandboxDate(value)) {
+      value = dateMethods.get("toJSON")!.invoke(value, []) as SandboxValue;
+    } else if (isStringifyContainer(value)) {
+      const toJSON = await getStringifyProperty(value, "toJSON", state);
+      if (isSandboxClosure(toJSON)) {
+        value = await callStringifyClosure(toJSON, [key], value, state);
+      }
     }
-  }
 
-  if (state.replacer !== undefined) {
-    value = await callStringifyClosure(state.replacer, [key, toSandboxValue(value)], holder, state);
-  }
+    if (state.replacer !== undefined) {
+      value = await callStringifyClosure(
+        state.replacer,
+        [key, toSandboxValue(value)],
+        holder,
+        state
+      );
+    }
 
-  return stringifyValue(value, state, indent);
+    return await stringifyValue(value, state, indent);
+  } finally {
+    release();
+  }
 }
 
 async function stringifyValue(
@@ -191,9 +203,12 @@ async function stringifyValue(
 ): Promise<string | undefined> {
   if (isSandboxBox(value)) {
     const primitive = boxedValue(value);
-    value = typeof primitive === "number" ? await sandboxNumber(value, state.budget, state.context)
-      : typeof primitive === "string" ? await sandboxString(value, state.budget, state.context)
-      : primitive;
+    value =
+      typeof primitive === "number"
+        ? await sandboxNumber(value, state.budget, state.context)
+        : typeof primitive === "string"
+          ? await sandboxString(value, state.budget, state.context)
+          : primitive;
   }
   if (value === null) {
     return "null";
@@ -238,12 +253,13 @@ async function stringifyArray(
   indent: string
 ): Promise<string> {
   enterStringifyObject(value, state);
-
+  const entries: string[] = [];
+  const release = retainValues(state.budget, () => entries);
   try {
     const nextIndent = indent + state.gap;
-    const entries: string[] = [];
 
-    for (let index = 0; index < value.length; index += 1) {
+    const length = value.length;
+    for (let index = 0; index < length; index += 1) {
       entries.push((await stringifyProperty(String(index), value, state, nextIndent)) ?? "null");
     }
 
@@ -257,6 +273,7 @@ async function stringifyArray(
 
     return `[\n${nextIndent}${entries.join(`,\n${nextIndent}`)}\n${indent}]`;
   } finally {
+    release();
     leaveStringifyObject(value, state);
   }
 }
@@ -267,10 +284,10 @@ async function stringifyObject(
   indent: string
 ): Promise<string> {
   enterStringifyObject(value, state);
-
+  const entries: string[] = [];
+  const release = retainValues(state.budget, () => entries);
   try {
     const nextIndent = indent + state.gap;
-    const entries: string[] = [];
 
     for (const key of Object.keys(value)) {
       const serialized = await stringifyProperty(key, value, state, nextIndent);
@@ -289,6 +306,7 @@ async function stringifyObject(
 
     return `{\n${nextIndent}${entries.join(`,\n${nextIndent}`)}\n${indent}}`;
   } finally {
+    release();
     leaveStringifyObject(value, state);
   }
 }
@@ -379,17 +397,16 @@ function toSandboxValue(value: unknown): SandboxValue {
   );
 }
 
-function getOwnDataValue(target: SandboxArray | SandboxObject, key: string): unknown {
-  const descriptor = Object.getOwnPropertyDescriptor(target, key);
-  if (descriptor === undefined) {
-    return undefined;
-  }
-
-  if ("get" in descriptor || "set" in descriptor) {
-    throw new TypeError(`JSON.stringify(value) cannot serialize accessor property ${key}.`);
-  }
-
-  return descriptor.value as unknown;
+function getStringifyProperty(
+  target: SandboxArray | SandboxObject,
+  key: string,
+  state: StringifyState
+): SandboxValue | Promise<SandboxValue> {
+  if (state.context?.getProperty !== undefined) return state.context.getProperty(target, key);
+  const descriptor = getSandboxPropertyDescriptor(target, key, state.budget);
+  return descriptor === undefined
+    ? undefined
+    : readPropertyDescriptor(descriptor, target, state.context);
 }
 
 function copyJsonToSandbox(value: unknown, budget: Budget): SandboxValue {

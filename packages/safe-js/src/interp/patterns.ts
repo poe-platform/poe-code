@@ -13,11 +13,13 @@ import type {
 import type { AsyncEvaluationResult } from "./async.js";
 import type { Scope } from "./scope.js";
 import type { Budget } from "./budget.js";
+import { retainValues } from "./resources.js";
+import { hasOwnSandboxProperty } from "./globals/object.js";
 import { isSandboxCollectionIterator, nextCollectionIterator } from "./collection-iterator.js";
 import {
   isSandboxMap,
   isSandboxSet,
-  ownEnumerableSandboxEntries,
+  ownEnumerableSandboxKeys,
   type SandboxArray,
   type SandboxObject,
   type SandboxValue
@@ -31,8 +33,8 @@ export type PatternContext = {
   budget?: Budget;
   evaluate(node: ParseResult, inferredName?: string): Promise<AsyncEvaluationResult>;
   toPropertyKey(value: SandboxValue): Promise<string>;
-  getProperty(value: SandboxValue, key: string | number): SandboxValue;
-  setProperty(target: SandboxValue, key: string | number, value: SandboxValue): void;
+  getProperty(value: SandboxValue, key: string | number): SandboxValue | Promise<SandboxValue>;
+  setProperty(target: SandboxValue, key: string | number, value: SandboxValue): void | Promise<void>;
 };
 
 export type BindPatternResult =
@@ -123,26 +125,34 @@ async function bindArrayPattern(
 ): Promise<BindPatternResult> {
   const iterator = isSandboxCollectionIterator(value) ? value : undefined;
   const values = iterator === undefined ? getArrayPatternValues(value) : undefined;
+  let cursor = 0;
+  let done = false;
+  const next = async (): Promise<IteratorResult<SandboxValue>> => {
+    if (iterator !== undefined) return nextCollectionIterator(iterator, context.budget);
+    if (done || cursor >= values!.length) {
+      done = true;
+      return { done: true, value: undefined };
+    }
+    return { done: false, value: await context.getProperty(values!, cursor++) };
+  };
 
   for (let index = 0; index < pattern.elements.length; index += 1) {
     const element = pattern.elements[index];
     if (element === null) {
-      if (iterator !== undefined) nextCollectionIterator(iterator, context.budget);
+      await next();
       continue;
     }
 
     let elementValue: SandboxValue;
-    if (iterator === undefined) {
-      elementValue = element.type === "RestElement" ? values!.slice(index) : values![index];
-    } else if (element.type === "RestElement") {
+    if (element.type === "RestElement") {
       const rest: SandboxValue[] = [];
-      for (let entry = nextCollectionIterator(iterator, context.budget); !entry.done; entry = nextCollectionIterator(iterator, context.budget)) {
+      for (let entry = await next(); !entry.done; entry = await next()) {
         context.budget?.allocateArrayLength(rest.length + 1);
         rest.push(entry.value);
       }
       elementValue = rest;
     } else {
-      elementValue = nextCollectionIterator(iterator, context.budget).value;
+      elementValue = (await next()).value;
     }
     const binding = await bindPattern(element, elementValue, target, scope, context);
     if (!binding.ok) {
@@ -169,7 +179,7 @@ async function bindObjectPattern(
     if (property.type === "RestElement") {
       const binding = await bindPattern(
         property,
-        copyObjectRestValue(value, excludedKeys),
+        await copyObjectRestValue(value, excludedKeys, context),
         target,
         scope,
         context
@@ -188,7 +198,7 @@ async function bindObjectPattern(
     excludedKeys.add(String(key.value));
     const binding = await bindPattern(
       property.value,
-      context.getProperty(value, key.value),
+      await context.getProperty(value, key.value),
       target,
       scope,
       context
@@ -224,7 +234,7 @@ async function bindMemberExpression(
     throw new TypeError("Assignment expressions require a sandbox object property.");
   }
 
-  context.setProperty(object.value, await context.toPropertyKey(property.value), value);
+  await context.setProperty(object.value, await context.toPropertyKey(property.value), value);
   return { ok: true };
 }
 
@@ -295,15 +305,25 @@ function describeRuntimeValue(value: unknown): string {
   return typeof value;
 }
 
-function copyObjectRestValue(
+async function copyObjectRestValue(
   value: Exclude<SandboxValue, null | undefined>,
-  excludedKeys: ReadonlySet<string>
-): SandboxObject {
+  excludedKeys: ReadonlySet<string>,
+  context: PatternContext
+): Promise<SandboxObject> {
   const rest = Object.create(null) as SandboxObject;
-  for (const [key, entryValue] of ownEnumerableSandboxEntries(value, excludedKeys)) {
-    defineProperty(rest, key, entryValue);
+  const release =
+    context.budget === undefined
+      ? () => undefined
+      : retainValues(context.budget, () => [value, rest]);
+  try {
+    for (const key of ownEnumerableSandboxKeys(value)) {
+      if (excludedKeys.has(key) || !hasOwnSandboxProperty(value, key, true)) continue;
+      defineProperty(rest, key, await context.getProperty(value, key));
+    }
+    return rest;
+  } finally {
+    release();
   }
-  return rest;
 }
 
 function isIndexableValue(value: SandboxValue): value is SandboxArray | SandboxObject {

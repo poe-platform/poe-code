@@ -17,7 +17,7 @@ import type {
   LoopIterationSnapshot
 } from "./interpreter.js";
 import { bindPattern } from "./patterns.js";
-import { getThenable, resolveSandboxValue } from "./promise.js";
+import { requiresPromiseResolution, resolveSandboxValue } from "./promise.js";
 import { runAsyncPrefix, suspendJob } from "./jobs.js";
 import { CompileScope } from "./regex/compile-guard.js";
 import { awaitSandboxValue } from "./cancel.js";
@@ -243,7 +243,7 @@ export function executeAsyncFunction(
       try {
         const value = await execute(completePrefix);
         resolve(
-          isSandboxPromise(value) || getThenable(value) !== undefined
+          requiresPromiseResolution(value, budget)
             ? awaitSandboxValue(
                 createSandboxPromise(resolveSandboxValue(value, { budget }), {
                   trackReplay: false

@@ -1,4 +1,6 @@
 import { SandboxError, type Budget } from "./budget.js";
+import { accessorClosure } from "./accessors.js";
+import { getSandboxPropertyDescriptor } from "./object-model.js";
 import { coerceThrownValue, createSubsetErrorValue } from "./exceptions.js";
 import { getSandboxIterator } from "./iteration.js";
 import { retainValues } from "./resources.js";
@@ -278,7 +280,7 @@ async function callPromiseClosure(
         ? coerceThrownValue(value, budget, stack)
         : value
     );
-    let result = callback.call(values, { stack, thisValue });
+    let result = callback.call(values, { ...context, stack, thisValue, newTarget: undefined });
     if (callback.async !== true) result = await result;
     else if (isPromiseLike(result)) result = createSandboxPromise(Promise.resolve(result));
     if (isSandboxPromise(result) && result.synchronousPrefix !== undefined) {
@@ -306,11 +308,11 @@ function getPromisePrototype(budget: Budget): SandboxObject {
           target.promise.then(
             (value) => {
               consumeSettledHostCall(target);
-              return runPromiseReaction(onFulfilled, value, "fulfilled", budget, chained);
+              return runPromiseReaction(onFulfilled, value, "fulfilled", budget, chained, context);
             },
             (reason: SandboxValue) => {
               consumeSettledHostCall(target);
-              return runPromiseReaction(onRejected, reason, "rejected", budget, chained);
+              return runPromiseReaction(onRejected, reason, "rejected", budget, chained, context);
             }
           )
         );
@@ -322,12 +324,18 @@ function getPromisePrototype(budget: Budget): SandboxObject {
       sandbox: true,
       call: ([onRejected], context) => {
         const target = context?.thisValue;
-        const then = readPromiseReceiverProperty(target, "then", prototype);
-        if (!isSandboxClosure(then)) throw new TypeError("Promise.catch requires a callable then.");
-        return then.call([undefined, onRejected], {
-          stack: context?.stack ?? [],
-          thisValue: target
-        });
+        const invoke = (then: SandboxValue) => {
+          if (!isSandboxClosure(then))
+            throw new TypeError("Promise.catch requires a callable then.");
+          return then.call([undefined, onRejected], {
+            ...context,
+            stack: context?.stack ?? [],
+            thisValue: target,
+            newTarget: undefined
+          });
+        };
+        const then = readPromiseReceiverProperty(target, "then", prototype, context);
+        return then instanceof Promise ? then.then(invoke) : invoke(then);
       },
       name: "catch"
     }),
@@ -338,53 +346,64 @@ function getPromisePrototype(budget: Budget): SandboxObject {
         if (typeof target !== "object" || target === null) {
           throw new TypeError("Promise.finally requires an object receiver.");
         }
-        validatePromiseConstructorProperty(target, prototype);
-        const then = readPromiseReceiverProperty(target, "then", prototype);
-        if (!isSandboxClosure(then))
-          throw new TypeError("Promise.finally requires a callable then.");
-        const handlers = isSandboxClosure(onFinally)
-          ? (["fulfilled", "rejected"] as const).map((state) =>
-              createSandboxClosure({
-                sandbox: true,
-                retainedValues: () => [onFinally],
-                call: async ([value]) => {
-                  const result = await callPromiseClosure(
-                    onFinally,
-                    [],
-                    undefined,
-                    budget,
-                    context
-                  );
-                  const pending =
-                    isSandboxPromise(result) &&
-                    getPromiseMember("constructor", budget) ===
-                      intrinsicPromiseConstructors.get(budget)
-                      ? result
-                      : createSandboxPromise(resolveSandboxValue(result, { budget }));
-                  const cleanupThen = getPromiseMember("then", budget);
-                  if (!isSandboxClosure(cleanupThen))
-                    throw new TypeError("Promise cleanup requires a callable then.");
-                  return callPromiseClosure(
-                    cleanupThen,
-                    [
-                      createSandboxClosure({
-                        sandbox: true,
-                        retainedValues: () => [value],
-                        call: () => {
-                          if (state === "rejected") throw value;
-                          return value;
-                        }
-                      })
-                    ],
-                    pending,
-                    budget,
-                    context
-                  );
-                }
-              })
-            )
-          : [onFinally, onFinally];
-        return then.call(handlers, { stack: context?.stack ?? [], thisValue: target });
+        const invoke = (then: SandboxValue) => {
+          if (!isSandboxClosure(then))
+            throw new TypeError("Promise.finally requires a callable then.");
+          const handlers = isSandboxClosure(onFinally)
+            ? (["fulfilled", "rejected"] as const).map((state) =>
+                createSandboxClosure({
+                  sandbox: true,
+                  retainedValues: () => [onFinally],
+                  call: async ([value]) => {
+                    const result = await callPromiseClosure(
+                      onFinally,
+                      [],
+                      undefined,
+                      budget,
+                      context
+                    );
+                    const pending =
+                      isSandboxPromise(result) &&
+                      getPromiseMember("constructor", budget) ===
+                        intrinsicPromiseConstructors.get(budget)
+                        ? result
+                        : createSandboxPromise(resolveSandboxValue(result, { budget }));
+                    const cleanupThen = getPromiseMember("then", budget);
+                    if (!isSandboxClosure(cleanupThen))
+                      throw new TypeError("Promise cleanup requires a callable then.");
+                    return callPromiseClosure(
+                      cleanupThen,
+                      [
+                        createSandboxClosure({
+                          sandbox: true,
+                          retainedValues: () => [value],
+                          call: () => {
+                            if (state === "rejected") throw value;
+                            return value;
+                          }
+                        })
+                      ],
+                      pending,
+                      budget,
+                      context
+                    );
+                  }
+                })
+              )
+            : [onFinally, onFinally];
+          return then.call(handlers, {
+            ...context,
+            stack: context?.stack ?? [],
+            thisValue: target,
+            newTarget: undefined
+          });
+        };
+        const finish = () => {
+          const then = readPromiseReceiverProperty(target, "then", prototype, context);
+          return then instanceof Promise ? then.then(invoke) : invoke(then);
+        };
+        const validation = validatePromiseConstructorProperty(target, prototype, context);
+        return validation instanceof Promise ? validation.then(finish) : finish();
       },
       name: "finally"
     })
@@ -399,8 +418,11 @@ function getPromisePrototype(budget: Budget): SandboxObject {
 function readPromiseReceiverProperty(
   receiver: SandboxValue,
   property: string,
-  prototype: SandboxObject
-): SandboxValue {
+  prototype: SandboxObject,
+  context?: SandboxCallContext
+): SandboxValue | Promise<SandboxValue> {
+  if (!isSandboxPromise(receiver) && context?.getProperty !== undefined)
+    return context.getProperty(receiver, property);
   const properties = isSandboxPromise(receiver)
     ? prototype
     : isSandboxClosure(receiver)
@@ -415,12 +437,15 @@ function readPromiseReceiverProperty(
 
 function validatePromiseConstructorProperty(
   receiver: SandboxValue,
-  prototype: SandboxObject
-): void {
-  const constructor = readPromiseReceiverProperty(receiver, "constructor", prototype);
-  if (constructor !== undefined && (typeof constructor !== "object" || constructor === null)) {
-    throw new TypeError("Promise constructor property must be an object.");
-  }
+  prototype: SandboxObject,
+  context?: SandboxCallContext
+): void | Promise<void> {
+  const validate = (constructor: SandboxValue) => {
+    if (constructor !== undefined && (typeof constructor !== "object" || constructor === null))
+      throw new TypeError("Promise constructor property must be an object.");
+  };
+  const constructor = readPromiseReceiverProperty(receiver, "constructor", prototype, context);
+  return constructor instanceof Promise ? constructor.then(validate) : validate(constructor);
 }
 
 async function settleIterable(
@@ -462,7 +487,7 @@ async function settleIterable(
     }
   };
   try {
-    const promiseResolve = readPromiseReceiverProperty(constructor, "resolve", prototype);
+    const promiseResolve = await readPromiseReceiverProperty(constructor, "resolve", prototype, context);
     if (!isSandboxClosure(promiseResolve))
       throw new TypeError("Promise constructor requires a callable resolve.");
     const iterator = getSandboxIterator(iterable, budget, context);
@@ -520,7 +545,7 @@ async function settleIterable(
             });
           });
           remaining++;
-          const then = readPromiseReceiverProperty(entry, "then", prototype);
+          const then = await readPromiseReceiverProperty(entry, "then", prototype, context);
           if (!isSandboxClosure(then))
             throw new TypeError("Promise resolver result requires a callable then.");
           await callPromiseClosure(then, handlers, entry, budget, context);
@@ -633,7 +658,13 @@ function resolveSandboxValueNow(
     );
   }
 
-  const then = getThenable(value);
+  const then = getThenable(value, options.budget);
+  if (then instanceof Promise)
+    return then.then((method) =>
+      method === undefined
+        ? budgetIfNeeded(value, options.budget)
+        : resolveThenable(value, method, options)
+    );
   if (then !== undefined) {
     return resolveThenable(value, then, options);
   }
@@ -663,7 +694,7 @@ function resolveThenable(
       try {
         if (settlement.state === "fulfilled") {
           resolve(
-            isSandboxPromise(settlement.value) || getThenable(settlement.value) !== undefined
+            requiresPromiseResolution(settlement.value, options.budget)
               ? resolveSandboxValueNow(settlement.value, options)
               : budgetIfNeeded(settlement.value, options.budget)
           );
@@ -730,7 +761,8 @@ function runPromiseReaction(
   value: SandboxValue,
   state: "fulfilled" | "rejected",
   budget: Budget,
-  self?: SandboxPromise
+  self?: SandboxPromise,
+  context?: SandboxCallContext
 ): Promise<SandboxValue> {
   return new Promise<SandboxValue>((resolve, reject) => {
     if (
@@ -750,14 +782,14 @@ function runPromiseReaction(
         reject(
           createSubsetErrorValue("TypeError", "Promise cannot resolve to itself.", [], budget)
         );
-      } else if (isSandboxPromise(result) || getThenable(result) !== undefined) {
+      } else if (requiresPromiseResolution(result, budget)) {
         resolve(resolvePromiseResult(result, budget, self));
       } else {
         resolve(budgetSandboxValue(result, budget));
       }
     };
     if (isSandboxClosure(handler)) {
-      callInPromiseJob(handler, [argument], undefined, { fulfilled, rejected: reject }).catch(
+      callInPromiseJob(handler, [argument], undefined, { fulfilled, rejected: reject }, context).catch(
         reject
       );
     } else {
@@ -776,11 +808,12 @@ function callInPromiseJob(
   completion?: {
     fulfilled: (value: SandboxValue | Promise<SandboxValue>) => void;
     rejected: (reason: SandboxValue) => void;
-  }
+  },
+  context?: SandboxCallContext
 ): Promise<{ value: SandboxValue | Promise<SandboxValue> }> {
   return runPromiseJob(async () => {
     try {
-      let result = handler.call(args, { stack: [], thisValue });
+      let result = handler.call(args, { ...context, stack: [], thisValue, newTarget: undefined });
       if (handler.async !== true) result = await result;
       if (isSandboxPromise(result) && result.synchronousPrefix !== undefined) {
         await result.synchronousPrefix;
@@ -818,7 +851,7 @@ function resolvePromiseResult(
       settled = true;
       try {
         if (state === "rejected") reject(budgetSandboxValue(value, budget));
-        else if (isSandboxPromise(value) || getThenable(value) !== undefined) {
+        else if (requiresPromiseResolution(value, budget)) {
           resolve(resolvePromiseResult(value, budget, self));
         } else {
           resolve(budgetSandboxValue(value, budget));
@@ -874,14 +907,33 @@ function isSelfResolution(result: SandboxValue, self: SandboxPromise | undefined
   );
 }
 
-export function getThenable(value: SandboxValue): SandboxClosure | undefined {
+export function requiresPromiseResolution(value: SandboxValue, budget?: Budget): boolean {
+  if (isSandboxPromise(value)) return true;
+  const descriptor = getSandboxPropertyDescriptor(value, "then", budget);
+  return (
+    descriptor !== undefined && (!("value" in descriptor) || isSandboxClosure(descriptor.value))
+  );
+}
+
+function getThenable(
+  value: SandboxValue,
+  budget?: Budget
+): SandboxClosure | undefined | Promise<SandboxClosure | undefined> {
   if (typeof value !== "object" || value === null || isSandboxPromise(value)) {
     return undefined;
   }
 
-  const then = isSandboxClosure(value)
-    ? value.properties?.then
-    : (value as Record<string, SandboxValue>).then;
+  const descriptor = getSandboxPropertyDescriptor(value, "then", budget);
+  if (descriptor !== undefined && !("value" in descriptor)) {
+    const getter = accessorClosure(descriptor.get);
+    if (getter === undefined) return undefined;
+    const result =
+      budget === undefined
+        ? getter.call([], { stack: [], thisValue: value })
+        : callPromiseClosure(getter, [], value, budget);
+    return Promise.resolve(result).then((then) => (isSandboxClosure(then) ? then : undefined));
+  }
+  const then = descriptor?.value;
   return isSandboxClosure(then) ? then : undefined;
 }
 

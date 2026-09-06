@@ -140,7 +140,7 @@ describe("guest function objects through the public core", () => {
 
   it("validates all descriptors before defineProperties mutates its target", async () => {
     const result = await run(
-      "const target = {}; try { Object.defineProperties(target, { valid: { value: 7 }, invalid: { get: () => 9 } }); } catch (error) {} return Object.hasOwn(target, 'valid');",
+      "const target = {}; try { Object.defineProperties(target, { valid: { value: 7 }, invalid: { get: 9 } }); } catch (error) {} return Object.hasOwn(target, 'valid');",
       { budget: new Budget() }
     );
     expect(result).toMatchObject({ ok: true, returnValue: false });

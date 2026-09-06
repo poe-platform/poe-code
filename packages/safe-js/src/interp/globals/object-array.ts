@@ -1,19 +1,29 @@
 import { isFatalSandboxError, type Budget, type CompileOwner } from "../budget.js";
+import { accessorAdapter, accessorClosure, retainedAccessorClosures } from "../accessors.js";
 import { invokeBuiltinClosure } from "../builtin-call.js";
 import { createDataCheckpoint } from "../data-checkpoint.js";
+import { retainValues } from "../resources.js";
 import { isCapturedException } from "../exceptions.js";
 import { isSandboxDate } from "../date.js";
 import { createSandboxBox } from "../boxed.js";
 import { getDatePrototype } from "./date.js";
 import { createObjectGlobal, hasOwnSandboxProperty } from "./object.js";
-import { getHostObjectKeys, isGuestHostObject } from "../host-capabilities.js";
+import { isGuestHostObject } from "../host-capabilities.js";
 import { isFloat32Array } from "../float32.js";
 import { setSandboxProperty } from "../interpreter.js";
 import { getSandboxIterator, type SandboxIterator } from "../iteration.js";
 import { sandboxNumber, sandboxString } from "../string-coercion.js";
 import { createNumericParsers } from "./numeric-parsers.js";
 import { createPrimitiveConstructor } from "./primitives.js";
-import { getSandboxDataProperty, getSandboxPrototype, isGuestClosure, markDescriptorObject, materializeFunctionProperties, setSandboxPrototype } from "../object-model.js";
+import {
+  getSandboxDataProperty,
+  getSandboxPropertyDescriptor,
+  getSandboxPrototype,
+  isGuestClosure,
+  markDescriptorObject,
+  materializeFunctionProperties,
+  setSandboxPrototype
+} from "../object-model.js";
 import {
   allocateProducedSandboxValue,
   createSandboxClosure,
@@ -26,7 +36,8 @@ import {
   isSandboxRegex,
   isSandboxSet,
   measureSandboxData,
-  ownEnumerableSandboxEntries as getOwnEnumerableEntries,
+  ownEnumerableSandboxKeys as getOwnEnumerableKeys,
+  ownEnumerableSandboxEntries as getDirectEntries,
   type SandboxArray,
   type SandboxCallContext,
   type SandboxClosure,
@@ -42,155 +53,203 @@ export type ObjectArrayGlobals = {
   Boolean: SandboxClosure;
 };
 
-export function createObjectArrayGlobals(options: { budget: Budget; compileOwner?: CompileOwner }): ObjectArrayGlobals {
+export function createObjectArrayGlobals(options: {
+  budget: Budget;
+  compileOwner?: CompileOwner;
+}): ObjectArrayGlobals {
   return {
-    Object: createObjectGlobal({
-      keys: createSandboxClosure({
-        sandbox: true,
-        call: ([value]) => budgetSandboxValue(getOwnEnumerableKeys(value), options.budget),
-        name: "keys"
-      }),
-      values: createSandboxClosure({
-        sandbox: true,
-        call: ([value]) =>
-          allocateProducedSandboxValue(getOwnEnumerableValues(value), options.budget),
-        name: "values"
-      }),
-      entries: createSandboxClosure({
-        sandbox: true,
-        call: ([value]) =>
-          allocateProducedSandboxValue(getOwnEnumerableEntries(value), options.budget),
-        name: "entries"
-      }),
-      hasOwn: createSandboxClosure({
-        sandbox: true,
-        call: ([value, key], context) => {
-          if (value === null || value === undefined) throw new TypeError("Cannot convert undefined or null to object.");
-          const name = sandboxString(key, options.budget, context);
-          return typeof name === "string"
-            ? hasOwnSandboxProperty(value, name, false)
-            : name.then(property => hasOwnSandboxProperty(value, property, false));
-        },
-        name: "hasOwn"
-      }),
-      getOwnPropertyDescriptor: createSandboxClosure({
-        sandbox: true,
-        call: async ([value, key], context) => {
-          const descriptor = Object.getOwnPropertyDescriptor(objectProperties(value), await sandboxString(key, options.budget, context));
-          if (descriptor !== undefined && !("value" in descriptor)) throw new TypeError("Only data property descriptors are supported.");
-          return descriptor === undefined ? undefined : allocateProducedSandboxValue(descriptor as SandboxObject, options.budget);
-        },
-        name: "getOwnPropertyDescriptor"
-      }),
-      getOwnPropertyNames: createSandboxClosure({
-        sandbox: true,
-        call: ([value]) => budgetSandboxValue(Object.getOwnPropertyNames(objectProperties(value)), options.budget),
-        name: "getOwnPropertyNames"
-      }),
-      defineProperty: createSandboxClosure({
-        sandbox: true,
-        call: async ([value, key, descriptor], context) => {
-          defineDataProperty(value, await sandboxString(key, options.budget, context), dataDescriptor(descriptor), options.budget);
-          return value;
-        },
-        name: "defineProperty"
-      }),
-      defineProperties: createSandboxClosure({
-        sandbox: true,
-        call: ([value, descriptors]) => {
-          const properties = getOwnEnumerableEntries(descriptors).map(([key, descriptor]) => [key, dataDescriptor(descriptor)] as const);
-          for (const [key, descriptor] of properties) {
-            defineDataProperty(value, key, descriptor, options.budget);
-          }
-          return value;
-        },
-        name: "defineProperties"
-      }),
-      getPrototypeOf: createSandboxClosure({
-        sandbox: true,
-        call: ([value]) => {
-          if (isSandboxDate(value)) return getDatePrototype(value, options.budget, options.compileOwner);
-          if (value !== null && value !== undefined && typeof value !== "object") value = createSandboxBox(value);
-          objectProperties(value);
-          return getSandboxPrototype(value as object, options.budget) as SandboxValue;
-        },
-        name: "getPrototypeOf"
-      }),
-      setPrototypeOf: createSandboxClosure({
-        sandbox: true,
-        call: ([value, prototype]) => {
-          objectProperties(value, true);
-          if (prototype !== null) objectProperties(prototype);
-          setSandboxPrototype(value as object, prototype as object | null, options.budget);
-          return value;
-        },
-        name: "setPrototypeOf"
-      }),
-      create: createSandboxClosure({
-        sandbox: true,
-        call: ([prototype, descriptors]) => {
-          if (prototype !== null) objectProperties(prototype);
-          const value = Object.create(null) as SandboxObject;
-          setSandboxPrototype(value, prototype as object | null, options.budget);
-          if (descriptors !== undefined) {
-            const properties = getOwnEnumerableEntries(descriptors).map(([key, descriptor]) => [key, dataDescriptor(descriptor)] as const);
-            for (const [key, descriptor] of properties) {
-              defineDataProperty(value, key, descriptor, options.budget);
-            }
-          }
-          return allocateProducedSandboxValue(value, options.budget);
-        },
-        name: "create"
-      }),
-      is: createSandboxClosure({
-        sandbox: true,
-        call: ([left, right]) => Reflect.apply(Object.is, Object, [left, right]),
-        name: "is"
-      }),
-      fromEntries: createSandboxClosure({
-        sandbox: true,
-        call: ([value], context) => {
-          const iterator = getSandboxIterator(value, options.budget, context);
-          if (iterator === undefined) {
-            throw new TypeError("Object.fromEntries requires an iterable.");
-          }
-          if (context === undefined && !iterator.generator && !iterator.asynchronous) {
-            // The direct host adapter preserves synchronous results and native hooks.
+    Object: createObjectGlobal(
+      {
+        keys: createSandboxClosure({
+          sandbox: true,
+          call: ([value]) => budgetSandboxValue(getOwnEnumerableKeys(value), options.budget),
+          name: "keys"
+        }),
+        values: createSandboxClosure({
+          sandbox: true,
+          call: ([value], context) =>
+            context === undefined
+              ? allocateProducedSandboxValue(
+                  getDirectEntries(value).map(([, entry]) => entry),
+                  options.budget
+                )
+              : getOwnEnumerableEntries(value, options.budget, context).then((entries) =>
+                  allocateProducedSandboxValue(
+                    entries.map(([, entry]) => entry),
+                    options.budget
+                  )
+                ),
+          name: "values"
+        }),
+        entries: createSandboxClosure({
+          sandbox: true,
+          call: ([value], context) =>
+            context === undefined
+              ? allocateProducedSandboxValue(getDirectEntries(value), options.budget)
+              : getOwnEnumerableEntries(value, options.budget, context).then((entries) =>
+                  allocateProducedSandboxValue(entries, options.budget)
+                ),
+          name: "entries"
+        }),
+        hasOwn: createSandboxClosure({
+          sandbox: true,
+          call: ([value, key], context) => {
+            if (value === null || value === undefined)
+              throw new TypeError("Cannot convert undefined or null to object.");
+            const name = sandboxString(key, options.budget, context);
+            return typeof name === "string"
+              ? hasOwnSandboxProperty(value, name, false)
+              : name.then((property) => hasOwnSandboxProperty(value, property, false));
+          },
+          name: "hasOwn"
+        }),
+        getOwnPropertyDescriptor: createSandboxClosure({
+          sandbox: true,
+          call: async ([value, key], context) => {
+            const descriptor = Object.getOwnPropertyDescriptor(
+              objectProperties(value),
+              await sandboxString(key, options.budget, context)
+            );
+            if (descriptor === undefined) return undefined;
             return allocateProducedSandboxValue(
-              Object.setPrototypeOf(
-                Reflect.apply(Object.fromEntries, Object, [{ [Symbol.iterator]: () => iterator }]),
-                null
-              ),
+              exposePropertyDescriptor(descriptor),
               options.budget
             );
-          }
-          return objectFromSandboxEntries(value, iterator, options.budget, context);
-        },
-        name: "fromEntries"
-      }),
-      freeze: createSandboxClosure({
-        sandbox: true,
-        call: ([value]) => {
-          if (isGuestHostObject(value)) throw new TypeError("Live host objects cannot be frozen.");
-          if (typeof value === "object" && value !== null) {
-            Object.freeze(isGuestClosure(value) ? materializeFunctionProperties(value) : value);
-          }
+          },
+          name: "getOwnPropertyDescriptor"
+        }),
+        getOwnPropertyDescriptors: createSandboxClosure({
+          sandbox: true,
+          call: ([value]) => {
+            const descriptors = Object.create(null) as SandboxObject;
+            for (const [key, descriptor] of Object.entries(
+              Object.getOwnPropertyDescriptors(objectProperties(value))
+            ))
+              defineOwnDataProperty(descriptors, key, exposePropertyDescriptor(descriptor));
+            return allocateProducedSandboxValue(descriptors, options.budget);
+          },
+          name: "getOwnPropertyDescriptors"
+        }),
+        getOwnPropertyNames: createSandboxClosure({
+          sandbox: true,
+          call: ([value]) =>
+            budgetSandboxValue(Object.getOwnPropertyNames(objectProperties(value)), options.budget),
+          name: "getOwnPropertyNames"
+        }),
+        defineProperty: createSandboxClosure({
+          sandbox: true,
+          call: async ([value, key, descriptor], context) => {
+            objectProperties(value, true);
+            const property = await sandboxString(key, options.budget, context);
+            defineDataProperty(
+              value,
+              property,
+              await propertyDescriptor(descriptor, options.budget, context),
+              options.budget
+            );
+            return value;
+          },
+          name: "defineProperty"
+        }),
+        defineProperties: createSandboxClosure({
+          sandbox: true,
+          call: async ([value, descriptors], context) => {
+            await definePropertiesFromObject(value, descriptors, options.budget, context);
+            return value;
+          },
+          name: "defineProperties"
+        }),
+        getPrototypeOf: createSandboxClosure({
+          sandbox: true,
+          call: ([value]) => {
+            if (isSandboxDate(value))
+              return getDatePrototype(value, options.budget, options.compileOwner);
+            if (value !== null && value !== undefined && typeof value !== "object")
+              value = createSandboxBox(value);
+            objectProperties(value);
+            return getSandboxPrototype(value as object, options.budget) as SandboxValue;
+          },
+          name: "getPrototypeOf"
+        }),
+        setPrototypeOf: createSandboxClosure({
+          sandbox: true,
+          call: ([value, prototype]) => {
+            objectProperties(value, true);
+            if (prototype !== null) objectProperties(prototype);
+            setSandboxPrototype(value as object, prototype as object | null, options.budget);
+            return value;
+          },
+          name: "setPrototypeOf"
+        }),
+        create: createSandboxClosure({
+          sandbox: true,
+          call: async ([prototype, descriptors], context) => {
+            if (prototype !== null) objectProperties(prototype);
+            const value = Object.create(null) as SandboxObject;
+            setSandboxPrototype(value, prototype as object | null, options.budget);
+            if (descriptors !== undefined) {
+              await definePropertiesFromObject(value, descriptors, options.budget, context);
+            }
+            return allocateProducedSandboxValue(value, options.budget);
+          },
+          name: "create"
+        }),
+        is: createSandboxClosure({
+          sandbox: true,
+          call: ([left, right]) => Reflect.apply(Object.is, Object, [left, right]),
+          name: "is"
+        }),
+        fromEntries: createSandboxClosure({
+          sandbox: true,
+          call: ([value], context) => {
+            const iterator = getSandboxIterator(value, options.budget, context);
+            if (iterator === undefined) {
+              throw new TypeError("Object.fromEntries requires an iterable.");
+            }
+            if (context === undefined && !iterator.generator && !iterator.asynchronous) {
+              // The direct host adapter preserves synchronous results and native hooks.
+              return allocateProducedSandboxValue(
+                Object.setPrototypeOf(
+                  Reflect.apply(Object.fromEntries, Object, [
+                    { [Symbol.iterator]: () => iterator }
+                  ]),
+                  null
+                ),
+                options.budget
+              );
+            }
+            return objectFromSandboxEntries(value, iterator, options.budget, context);
+          },
+          name: "fromEntries"
+        }),
+        freeze: createSandboxClosure({
+          sandbox: true,
+          call: ([value]) => {
+            if (isGuestHostObject(value))
+              throw new TypeError("Live host objects cannot be frozen.");
+            if (typeof value === "object" && value !== null) {
+              Object.freeze(isGuestClosure(value) ? materializeFunctionProperties(value) : value);
+            }
 
-          return value;
-        },
-        name: "freeze"
-      }),
-      isFrozen: createSandboxClosure({
-        sandbox: true,
-        call: ([value]) => Object.isFrozen(isGuestClosure(value) ? materializeFunctionProperties(value) : value),
-        name: "isFrozen"
-      }),
-      assign: createSandboxClosure({
-        sandbox: true,
-        call: ([target, ...sources]) => assignSandboxValues(target, sources, options.budget),
-        name: "assign"
-      })
-    }, options.budget),
+            return value;
+          },
+          name: "freeze"
+        }),
+        isFrozen: createSandboxClosure({
+          sandbox: true,
+          call: ([value]) =>
+            Object.isFrozen(isGuestClosure(value) ? materializeFunctionProperties(value) : value),
+          name: "isFrozen"
+        }),
+        assign: createSandboxClosure({
+          sandbox: true,
+          call: ([target, ...sources], context) =>
+            assignSandboxValues(target, sources, options.budget, context),
+          name: "assign"
+        })
+      },
+      options.budget
+    ),
     Array: createSandboxClosure({
       sandbox: true,
       call: (args) => createArrayFromConstructorArgs(args, options.budget),
@@ -215,69 +274,79 @@ export function createObjectArrayGlobals(options: { budget: Budget; compileOwner
         })
       }
     }),
-    String: createPrimitiveConstructor({
-      call: (args, context) =>
-        sandboxString(args.length === 0 ? "" : args[0], options.budget, context),
-      name: "String",
-      properties: {
-        raw: createSandboxClosure({
-          sandbox: true,
-          call: (args) => stringRaw(args, options.budget),
-          name: "raw"
-        }),
-        fromCharCode: createSandboxClosure({
-          sandbox: true,
-          call: (args) =>
-            options.budget.allocateString(Reflect.apply(String.fromCharCode, String, [...args])),
-          name: "fromCharCode"
-        }),
-        fromCodePoint: createSandboxClosure({
-          sandbox: true,
-          call: (args) =>
-            options.budget.allocateString(Reflect.apply(String.fromCodePoint, String, [...args])),
-          name: "fromCodePoint"
-        })
-      }
-    }, options.budget),
-    Number: createPrimitiveConstructor({
-      call: (args, context) => sandboxNumber(args.length === 0 ? 0 : args[0], options.budget, context),
-      name: "Number",
-      properties: {
-        isFinite: createSandboxClosure({
-          sandbox: true,
-          call: ([value]) => typeof value === "number" && Number.isFinite(value),
-          name: "isFinite"
-        }),
-        isNaN: createSandboxClosure({
-          sandbox: true,
-          call: ([value]) => typeof value === "number" && Number.isNaN(value),
-          name: "isNaN"
-        }),
-        isInteger: createSandboxClosure({
-          sandbox: true,
-          call: ([value]) => typeof value === "number" && Number.isInteger(value),
-          name: "isInteger"
-        }),
-        ...createNumericParsers(options.budget),
-        isSafeInteger: createSandboxClosure({
-          sandbox: true,
-          call: ([value]) => typeof value === "number" && Number.isSafeInteger(value),
-          name: "isSafeInteger"
-        }),
-        MAX_SAFE_INTEGER: Number.MAX_SAFE_INTEGER,
-        MIN_SAFE_INTEGER: Number.MIN_SAFE_INTEGER,
-        EPSILON: Number.EPSILON,
-        MAX_VALUE: Number.MAX_VALUE,
-        MIN_VALUE: Number.MIN_VALUE,
-        NaN: Number.NaN,
-        NEGATIVE_INFINITY: Number.NEGATIVE_INFINITY,
-        POSITIVE_INFINITY: Number.POSITIVE_INFINITY
-      }
-    }, options.budget),
-    Boolean: createPrimitiveConstructor({
-      call: ([value]) => Boolean(value),
-      name: "Boolean"
-    }, options.budget)
+    String: createPrimitiveConstructor(
+      {
+        call: (args, context) =>
+          sandboxString(args.length === 0 ? "" : args[0], options.budget, context),
+        name: "String",
+        properties: {
+          raw: createSandboxClosure({
+            sandbox: true,
+            call: (args, context) => stringRaw(args, options.budget, context),
+            name: "raw"
+          }),
+          fromCharCode: createSandboxClosure({
+            sandbox: true,
+            call: (args) =>
+              options.budget.allocateString(Reflect.apply(String.fromCharCode, String, [...args])),
+            name: "fromCharCode"
+          }),
+          fromCodePoint: createSandboxClosure({
+            sandbox: true,
+            call: (args) =>
+              options.budget.allocateString(Reflect.apply(String.fromCodePoint, String, [...args])),
+            name: "fromCodePoint"
+          })
+        }
+      },
+      options.budget
+    ),
+    Number: createPrimitiveConstructor(
+      {
+        call: (args, context) =>
+          sandboxNumber(args.length === 0 ? 0 : args[0], options.budget, context),
+        name: "Number",
+        properties: {
+          isFinite: createSandboxClosure({
+            sandbox: true,
+            call: ([value]) => typeof value === "number" && Number.isFinite(value),
+            name: "isFinite"
+          }),
+          isNaN: createSandboxClosure({
+            sandbox: true,
+            call: ([value]) => typeof value === "number" && Number.isNaN(value),
+            name: "isNaN"
+          }),
+          isInteger: createSandboxClosure({
+            sandbox: true,
+            call: ([value]) => typeof value === "number" && Number.isInteger(value),
+            name: "isInteger"
+          }),
+          ...createNumericParsers(options.budget),
+          isSafeInteger: createSandboxClosure({
+            sandbox: true,
+            call: ([value]) => typeof value === "number" && Number.isSafeInteger(value),
+            name: "isSafeInteger"
+          }),
+          MAX_SAFE_INTEGER: Number.MAX_SAFE_INTEGER,
+          MIN_SAFE_INTEGER: Number.MIN_SAFE_INTEGER,
+          EPSILON: Number.EPSILON,
+          MAX_VALUE: Number.MAX_VALUE,
+          MIN_VALUE: Number.MIN_VALUE,
+          NaN: Number.NaN,
+          NEGATIVE_INFINITY: Number.NEGATIVE_INFINITY,
+          POSITIVE_INFINITY: Number.POSITIVE_INFINITY
+        }
+      },
+      options.budget
+    ),
+    Boolean: createPrimitiveConstructor(
+      {
+        call: ([value]) => Boolean(value),
+        name: "Boolean"
+      },
+      options.budget
+    )
   };
 }
 
@@ -293,7 +362,15 @@ async function objectFromSandboxEntries(
   let value: SandboxValue;
   let failure: unknown;
   const retained = {};
-  budget.setRetainedValues(retained, () => [items, iterator.retainedValue, object, entry, key, value, failure]);
+  budget.setRetainedValues(retained, () => [
+    items,
+    iterator.retainedValue,
+    object,
+    entry,
+    key,
+    value,
+    failure
+  ]);
   const checkData = createDataCheckpoint(budget, context);
   const closeOnThrow = async (error: unknown): Promise<never> => {
     failure = isCapturedException(error) ? error.reason : error;
@@ -322,14 +399,18 @@ async function objectFromSandboxEntries(
         if (typeof entry !== "object" || entry === null) {
           throw new TypeError("Object.fromEntries requires entry objects.");
         }
-        key = context?.getProperty !== undefined
-          ? context.getProperty(entry, 0)
-          : getSandboxDataProperty(entry, 0, budget);
-        value = context?.getProperty !== undefined
-          ? context.getProperty(entry, 1)
-          : getSandboxDataProperty(entry, 1, budget);
+        key =
+          context?.getProperty !== undefined
+            ? await context.getProperty(entry, 0)
+            : getSandboxDataProperty(entry, 0, budget);
+        value =
+          context?.getProperty !== undefined
+            ? await context.getProperty(entry, 1)
+            : getSandboxDataProperty(entry, 1, budget);
         const property = await sandboxString(key, budget, context);
-        const growth = property.length + 1 +
+        const growth =
+          property.length +
+          1 +
           (budget.limits.dataSize === undefined ? 0 : measureSandboxData([value]));
         budget.visitNode();
         defineOwnDataProperty(object, property, value);
@@ -346,7 +427,12 @@ async function objectFromSandboxEntries(
   }
 }
 
-function assignSandboxValues(target: SandboxValue, sources: readonly SandboxValue[], budget: Budget): SandboxValue {
+function assignSandboxValues(
+  target: SandboxValue,
+  sources: readonly SandboxValue[],
+  budget: Budget,
+  context?: SandboxCallContext
+): SandboxValue | Promise<SandboxValue> {
   if (target === null || target === undefined) {
     throw new TypeError("Object.assign(target, ...sources) requires a non-null target.");
   }
@@ -360,17 +446,32 @@ function assignSandboxValues(target: SandboxValue, sources: readonly SandboxValu
     throw new TypeError("Object.assign(target, ...sources) requires an object or array target.");
   }
 
-  for (const source of sources) {
-    if (source === null || source === undefined) {
-      continue;
+  if (context === undefined) {
+    for (const source of sources) {
+      if (source === null || source === undefined) continue;
+      for (const [key, value] of getDirectEntries(source))
+        setSandboxProperty(target, key, value, budget);
     }
-
-    for (const [key, value] of getOwnEnumerableEntries(source)) {
-      setSandboxProperty(target, key, value, budget);
-    }
+    return target;
   }
-
-  return target;
+  return (async () => {
+    const release = retainValues(budget, () => [target, ...sources]);
+    try {
+      for (const source of sources) {
+        if (source === null || source === undefined) continue;
+        for (const key of getOwnEnumerableKeys(source)) {
+          if (!hasOwnSandboxProperty(source, key, true)) continue;
+          const value = await (context.getProperty !== undefined
+            ? context.getProperty(source, key)
+            : getSandboxDataProperty(source, key, budget));
+          await setSandboxProperty(target, key, value, budget, true, context);
+        }
+      }
+      return target;
+    } finally {
+      release();
+    }
+  })();
 }
 
 function objectProperties(value: SandboxValue, mutable = false): SandboxObject | SandboxArray {
@@ -378,37 +479,123 @@ function objectProperties(value: SandboxValue, mutable = false): SandboxObject |
     if (mutable) throw new TypeError("Date own properties and prototypes are not supported.");
     return value as unknown as SandboxObject;
   }
-  if (isGuestHostObject(value)) throw new TypeError("Live host object descriptors are not supported.");
+  if (isGuestHostObject(value))
+    throw new TypeError("Live host object descriptors are not supported.");
   if (isGuestClosure(value)) return materializeFunctionProperties(value);
   if (isSandboxClosure(value)) {
     if (mutable) throw new TypeError("Host function properties are read only.");
-    return value.properties ?? Object.create(null) as SandboxObject;
+    return value.properties ?? (Object.create(null) as SandboxObject);
   }
-  if (!isAssignableSandboxTarget(value)) throw new TypeError("Expected a sandbox object or function.");
+  if (!isAssignableSandboxTarget(value))
+    throw new TypeError("Expected a sandbox object or function.");
   return value;
 }
 
-function dataDescriptor(input: SandboxValue): PropertyDescriptor {
-  const source = objectProperties(input);
-  const descriptor: PropertyDescriptor = {};
-  for (const field of ["get", "set", "value", "writable", "enumerable", "configurable"] as const) {
-    const entry = Object.getOwnPropertyDescriptor(source, field);
-    if (entry === undefined) continue;
-    if (!("value" in entry) || field === "get" || field === "set") {
-      throw new TypeError("Only data property descriptors are supported.");
-    }
-    if (field === "value") descriptor.value = entry.value;
-    else descriptor[field] = Boolean(entry.value);
-  }
-  return descriptor;
+function exposePropertyDescriptor(descriptor: PropertyDescriptor): SandboxObject {
+  return (
+    "value" in descriptor
+      ? descriptor
+      : {
+          get: accessorClosure(descriptor.get),
+          set: accessorClosure(descriptor.set),
+          enumerable: descriptor.enumerable,
+          configurable: descriptor.configurable
+        }
+  ) as SandboxObject;
 }
 
-export function defineDataProperty(target: SandboxValue, key: string, descriptor: PropertyDescriptor, budget: Budget): void {
+async function propertyDescriptor(
+  input: SandboxValue,
+  budget: Budget,
+  context?: SandboxCallContext
+): Promise<PropertyDescriptor> {
+  objectProperties(input);
+  const descriptor: PropertyDescriptor = {};
+  const release = retainValues(budget, () => [
+    input,
+    descriptor.value,
+    ...retainedAccessorClosures(descriptor)
+  ]);
+  try {
+    for (const field of [
+      "enumerable",
+      "configurable",
+      "value",
+      "writable",
+      "get",
+      "set"
+    ] as const) {
+      if (
+        getSandboxPropertyDescriptor(input, field, budget) === undefined &&
+        !hasOwnSandboxProperty(input, field, false)
+      )
+        continue;
+      const value = await (context?.getProperty !== undefined
+        ? context.getProperty(input, field)
+        : getSandboxDataProperty(input, field, budget));
+      if (field === "get" || field === "set") {
+        if (value !== undefined && !isSandboxClosure(value))
+          throw new TypeError("Accessor must be a function or undefined.");
+        descriptor[field] =
+          value === undefined ? undefined : (accessorAdapter(value, field) as () => unknown);
+      } else if (field === "value") {
+        descriptor.value = value;
+      } else {
+        descriptor[field] = Boolean(value);
+      }
+    }
+    if (
+      ("get" in descriptor || "set" in descriptor) &&
+      ("value" in descriptor || "writable" in descriptor)
+    )
+      throw new TypeError("A property cannot be both a data property and an accessor.");
+    return descriptor;
+  } finally {
+    release();
+  }
+}
+
+async function definePropertiesFromObject(
+  target: SandboxValue,
+  descriptors: SandboxValue,
+  budget: Budget,
+  context?: SandboxCallContext
+): Promise<void> {
+  objectProperties(target, true);
+  const properties: Array<[string, PropertyDescriptor]> = [];
+  const release = retainValues(budget, () => [
+    target,
+    descriptors,
+    properties,
+    ...properties.flatMap(([, descriptor]) => retainedAccessorClosures(descriptor))
+  ]);
+  try {
+    for (const key of getOwnEnumerableKeys(descriptors)) {
+      if (!hasOwnSandboxProperty(descriptors, key, true)) continue;
+      const descriptor = await (context?.getProperty !== undefined
+        ? context.getProperty(descriptors, key)
+        : getSandboxDataProperty(descriptors, key, budget));
+      properties.push([key, await propertyDescriptor(descriptor, budget, context)]);
+    }
+    for (const [key, descriptor] of properties) defineDataProperty(target, key, descriptor, budget);
+  } finally {
+    release();
+  }
+}
+
+export function defineDataProperty(
+  target: SandboxValue,
+  key: string,
+  descriptor: PropertyDescriptor,
+  budget: Budget
+): void {
   budget.visitNode();
-  if (isFloat32Array(target)) throw new TypeError("Typed array property descriptors are not supported.");
+  if (isFloat32Array(target))
+    throw new TypeError("Typed array property descriptors are not supported.");
   const properties = objectProperties(target, true);
   if (Array.isArray(properties)) {
-    if (key === "length" && "value" in descriptor) budget.allocateArrayLength(Number(descriptor.value));
+    if (key === "length" && "value" in descriptor)
+      budget.allocateArrayLength(Number(descriptor.value));
     else {
       const index = Number(key);
       if (Number.isInteger(index) && index >= 0 && index < 0xffffffff && String(index) === key) {
@@ -449,16 +636,25 @@ async function arrayFromSandboxValues(
   if (items === null || items === undefined) {
     throw new TypeError("Array.from requires a non-null input.");
   }
-  const read = (property: string | number) => context?.getProperty !== undefined
-    ? context.getProperty(items, property)
-    : getSandboxDataProperty(items, property, budget);
+  const read = (property: string | number) =>
+    context?.getProperty !== undefined
+      ? context.getProperty(items, property)
+      : getSandboxDataProperty(items, property, budget);
   const iterator = getSandboxIterator(items, budget, context);
   const constructor = context?.thisValue;
   let result: SandboxValue;
   let currentValue: SandboxValue;
   let failure: unknown;
   const retained = {};
-  budget.setRetainedValues(retained, () => [items, iterator?.retainedValue, mapFn, constructor, result, currentValue, failure]);
+  budget.setRetainedValues(retained, () => [
+    items,
+    iterator?.retainedValue,
+    mapFn,
+    constructor,
+    result,
+    currentValue,
+    failure
+  ]);
   const checkData = createDataCheckpoint(budget, context);
   const closeOnThrow = async (error: unknown): Promise<never> => {
     failure = isCapturedException(error) ? error.reason : error;
@@ -472,35 +668,57 @@ async function arrayFromSandboxValues(
   try {
     let length = 0;
     if (iterator === undefined) {
-      const number = await sandboxNumber(read("length"), budget, context);
-      length = Number.isNaN(number) || number <= 0 ? 0 : Math.min(Math.trunc(number), Number.MAX_SAFE_INTEGER);
+      const number = await sandboxNumber(await read("length"), budget, context);
+      length =
+        Number.isNaN(number) || number <= 0
+          ? 0
+          : Math.min(Math.trunc(number), Number.MAX_SAFE_INTEGER);
     }
-    result = isSandboxClosure(constructor) && constructor.construct !== undefined
-      ? await invokeBuiltinClosure(constructor, iterator === undefined ? [length] : [], budget, context, undefined, true)
-      : createArrayFromConstructorArgs([length], budget);
+    result =
+      isSandboxClosure(constructor) && constructor.construct !== undefined
+        ? await invokeBuiltinClosure(
+            constructor,
+            iterator === undefined ? [length] : [],
+            budget,
+            context,
+            undefined,
+            true
+          )
+        : createArrayFromConstructorArgs([length], budget);
     checkData(result, 0, true);
 
     let index = 0;
     while (iterator !== undefined || index < length) {
       try {
         budget.visitNode();
-        if (iterator !== undefined && index >= Number.MAX_SAFE_INTEGER) throw new TypeError("Array.from input is too long.");
+        if (iterator !== undefined && index >= Number.MAX_SAFE_INTEGER)
+          throw new TypeError("Array.from input is too long.");
       } catch (error) {
         await closeOnThrow(error);
       }
       if (iterator !== undefined) {
         const next = await iterator.next();
-        if (typeof next !== "object" || next === null) throw new TypeError("Iterator result must be an object.");
+        if (typeof next !== "object" || next === null)
+          throw new TypeError("Iterator result must be an object.");
         if (next.done) break;
         currentValue = next.value;
       } else {
-        currentValue = read(index);
+        currentValue = await read(index);
       }
       try {
         if (Array.isArray(result)) budget.allocateArrayLength(index + 1);
-        if (mapFn !== undefined) currentValue = await invokeBuiltinClosure(mapFn, [currentValue, index], budget, context, thisValue);
+        if (mapFn !== undefined)
+          currentValue = await invokeBuiltinClosure(
+            mapFn,
+            [currentValue, index],
+            budget,
+            context,
+            thisValue
+          );
         const key = String(index);
-        const growth = key.length + 1 +
+        const growth =
+          key.length +
+          1 +
           (Array.isArray(result) ? Math.max(0, index + 1 - result.length) : 0) +
           (budget.limits.dataSize === undefined ? 0 : measureSandboxData([currentValue]));
         budget.visitNode();
@@ -546,13 +764,27 @@ function createArrayFromConstructorArgs(
   }
 }
 
-function getOwnEnumerableKeys(value: SandboxValue): string[] {
-  if (isGuestHostObject(value)) return getHostObjectKeys(value);
-  return getOwnEnumerableEntries(value).map(([key]) => key);
-}
-
-function getOwnEnumerableValues(value: SandboxValue): SandboxValue[] {
-  return getOwnEnumerableEntries(value).map(([, entryValue]) => entryValue);
+async function getOwnEnumerableEntries(
+  value: SandboxValue,
+  budget: Budget,
+  context?: SandboxCallContext
+): Promise<Array<[string, SandboxValue]>> {
+  const entries: Array<[string, SandboxValue]> = [];
+  const release = retainValues(budget, () => [value, entries]);
+  try {
+    for (const key of getOwnEnumerableKeys(value)) {
+      if (!hasOwnSandboxProperty(value, key, true)) continue;
+      entries.push([
+        key,
+        await (context?.getProperty !== undefined
+          ? context.getProperty(value, key)
+          : getSandboxDataProperty(value, key, budget))
+      ]);
+    }
+    return entries;
+  } finally {
+    release();
+  }
 }
 
 function budgetSandboxValue(value: unknown, budget: Budget): SandboxValue {
@@ -561,8 +793,47 @@ function budgetSandboxValue(value: unknown, budget: Budget): SandboxValue {
   return allocateProducedSandboxValue(sandboxValue, budget);
 }
 
-function stringRaw(args: readonly SandboxValue[], budget: Budget): string {
+function stringRaw(
+  args: readonly SandboxValue[],
+  budget: Budget,
+  context?: SandboxCallContext
+): string | Promise<string> {
   const [template, ...substitutions] = args;
+  if (context?.getProperty !== undefined)
+    return (async () => {
+      if (template === null || template === undefined)
+        throw new TypeError("String.raw requires a template object.");
+      const raw = await context.getProperty!(template, "raw");
+      if (raw === null || raw === undefined)
+        throw new TypeError("String.raw requires raw strings.");
+      const number = await sandboxNumber(
+        await context.getProperty!(raw, "length"),
+        budget,
+        context
+      );
+      const length =
+        Number.isNaN(number) || number <= 0
+          ? 0
+          : Math.min(Math.trunc(number), Number.MAX_SAFE_INTEGER);
+      let result = "";
+      const retained = {};
+      budget.setRetainedValues(retained, () => [raw, result]);
+      try {
+        for (let index = 0; index < length; index++) {
+          budget.visitNode();
+          result = budget.allocateString(
+            result + (await sandboxString(await context.getProperty!(raw, index), budget, context))
+          );
+          if (index + 1 < length && index < substitutions.length)
+            result = budget.allocateString(
+              result + (await sandboxString(substitutions[index], budget, context))
+            );
+        }
+        return result;
+      } finally {
+        budget.setRetainedValues(retained, undefined);
+      }
+    })();
   const raw = getTemplateRawParts(template);
 
   let result = "";

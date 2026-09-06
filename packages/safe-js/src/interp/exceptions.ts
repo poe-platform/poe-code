@@ -33,7 +33,9 @@ import { HostCallResumabilityError } from "./host-call.js";
 import { withFatalPromiseCleanup } from "./promise-tracker.js";
 import type { Scope } from "./scope.js";
 import type { InterpreterError } from "./interpreter.js";
-import { deepCopyToSandbox, ownEnumerableSandboxEntries, type SandboxObject, type SandboxValue } from "./values.js";
+import { deepCopyToSandbox, ownEnumerableSandboxKeys, type SandboxObject, type SandboxValue } from "./values.js";
+import { hasOwnSandboxProperty } from "./globals/object.js";
+import { retainValues } from "./resources.js";
 import { getSandboxDataProperty } from "./object-model.js";
 import { toPropertyKey } from "./property-key.js";
 
@@ -80,7 +82,7 @@ type ExceptionContext = {
   callStack: readonly string[];
   scope: Scope;
   toPropertyKey?: (value: SandboxValue) => Promise<string>;
-  getProperty?: (value: SandboxValue, key: string | number) => SandboxValue;
+  getProperty?: (value: SandboxValue, key: string | number) => SandboxValue | Promise<SandboxValue>;
 };
 
 type EvaluateExceptionNode<TContext, TError> = (
@@ -645,14 +647,39 @@ async function bindArrayPattern<TContext extends ExceptionContext, TError>(
     throw new TypeError("Array catch bindings require an array value.");
   }
 
+  let cursor = 0;
+  let done = false;
+  const next = async (): Promise<IteratorResult<SandboxValue>> => {
+    if (done || cursor >= value.length) {
+      done = true;
+      return { done: true, value: undefined };
+    }
+    const key = cursor++;
+    return {
+      done: false,
+      value:
+        context.getProperty === undefined
+          ? getSandboxDataProperty(value, key, context.budget)
+          : await context.getProperty(value, key)
+    };
+  };
+
   for (let index = 0; index < pattern.elements.length; index += 1) {
     const element = pattern.elements[index];
     if (element === null) {
+      await next();
       continue;
     }
 
-    const elementValue =
-      element.type === "RestElement" ? value.slice(index) : (value[index] as SandboxValue);
+    let elementValue: SandboxValue;
+    if (element.type === "RestElement") {
+      const rest: SandboxValue[] = [];
+      for (let entry = await next(); !entry.done; entry = await next()) {
+        context.budget.allocateArrayLength(rest.length + 1);
+        rest.push(entry.value);
+      }
+      elementValue = rest;
+    } else elementValue = (await next()).value;
     const binding = await bindPattern(element, elementValue, context, evaluateNode);
     if (!binding.ok) {
       return binding;
@@ -676,7 +703,7 @@ async function bindObjectPattern<TContext extends ExceptionContext, TError>(
 
   for (const property of pattern.properties) {
     if (property.type === "RestElement") {
-      const restValue = copyObjectRest(value, excludedKeys);
+      const restValue = await copyObjectRest(value, excludedKeys, context);
       const binding = await bindPattern(property, restValue, context, evaluateNode);
       if (!binding.ok) {
         return binding;
@@ -695,7 +722,7 @@ async function bindObjectPattern<TContext extends ExceptionContext, TError>(
       property.value,
       context.getProperty === undefined
         ? getSandboxDataProperty(value, key.value, context.budget)
-        : context.getProperty(value, key.value),
+        : await context.getProperty(value, key.value),
       context,
       evaluateNode
     );
@@ -758,15 +785,24 @@ function getStaticPropertyKey(property: AssignmentProperty["key"]): string | num
   }
 }
 
-function copyObjectRest(
+async function copyObjectRest(
   value: Exclude<SandboxValue, null | undefined>,
-  excludedKeys: ReadonlySet<string>
-): SandboxObject {
+  excludedKeys: ReadonlySet<string>,
+  context: ExceptionContext
+): Promise<SandboxObject> {
   const rest = Object.create(null) as SandboxObject;
+  const release = retainValues(context.budget, () => [value, rest]);
+  try {
+    for (const key of ownEnumerableSandboxKeys(value)) {
+      if (excludedKeys.has(key) || !hasOwnSandboxProperty(value, key, true)) continue;
+      rest[key] =
+        context.getProperty === undefined
+          ? getSandboxDataProperty(value, key, context.budget)
+          : await context.getProperty(value, key);
+    }
 
-  for (const [key, entryValue] of ownEnumerableSandboxEntries(value, excludedKeys)) {
-    rest[key] = entryValue;
+    return rest;
+  } finally {
+    release();
   }
-
-  return rest;
 }

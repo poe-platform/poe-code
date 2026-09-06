@@ -1,4 +1,5 @@
 import { assertSandboxDataDepth } from "../graph-depth.js";
+import { retainedAccessorClosures } from "./accessors.js";
 import { getHostObjectMember, isGuestHostObject, isLiveCapability } from "./host-capabilities.js";
 import type { Budget } from "./budget.js";
 import { boxedValue, isSandboxBox, type BoxedKind, type BoxedPrimitive } from "./boxed.js";
@@ -106,32 +107,60 @@ export function isIntrinsicConstructor(value: object): boolean {
   return intrinsicConstructors.has(value);
 }
 
-function registerIntrinsicPrototype(budget: Budget, prototype: SandboxObject, constructor: SandboxClosure): void {
+function registerIntrinsicPrototype(
+  budget: Budget,
+  prototype: SandboxObject,
+  constructor: SandboxClosure
+): void {
   let roots = intrinsicPrototypeRoots.get(budget);
-  if (roots === undefined) intrinsicPrototypeRoots.set(budget, roots = new Set());
+  if (roots === undefined) intrinsicPrototypeRoots.set(budget, (roots = new Set()));
   roots.add(prototype);
-  const records = [prototype, constructor].map(target => ({
-    target,
-    value: isGuestClosure(target) ? materializeFunctionProperties(target) : target,
-    prototype: getSandboxPrototype(target),
-    explicit: hasExplicitSandboxPrototype(target)
-  })).map(record => ({
-    ...record, descriptors: new Map(Object.entries(Object.getOwnPropertyDescriptors(record.value)))
-  }));
-  const unchanged = (before: PropertyDescriptor | undefined, after: PropertyDescriptor | undefined): boolean =>
-    before !== undefined && after !== undefined && Object.is(before.value, after.value) &&
-    before.writable === after.writable && before.configurable === after.configurable && before.enumerable === after.enumerable;
-  intrinsicConstructors.set(constructor, () => records.every(({ target, value, descriptors, prototype: parent, explicit }) => {
-    const current = Object.getOwnPropertyDescriptors(value);
-    return getSandboxPrototype(target) === parent && hasExplicitSandboxPrototype(target) === explicit &&
-      Object.keys(current).length === descriptors.size &&
-      Object.keys(current).every(key => unchanged(descriptors.get(key), current[key]));
-  }));
-  budget.setRetainedValues(prototype, () => records.flatMap(({ target, value, descriptors, prototype: parent }) => [
-    ...(getSandboxPrototype(target) === parent ? [] : [getSandboxPrototype(target) as SandboxValue]),
-    ...Object.entries(Object.getOwnPropertyDescriptors(value)).flatMap(([key, descriptor]) =>
-      unchanged(descriptors.get(key), descriptor) ? [] : [key, descriptor.value])
-  ]));
+  const records = [prototype, constructor]
+    .map((target) => ({
+      target,
+      value: isGuestClosure(target) ? materializeFunctionProperties(target) : target,
+      prototype: getSandboxPrototype(target),
+      explicit: hasExplicitSandboxPrototype(target)
+    }))
+    .map((record) => ({
+      ...record,
+      descriptors: new Map(Object.entries(Object.getOwnPropertyDescriptors(record.value)))
+    }));
+  const unchanged = (
+    before: PropertyDescriptor | undefined,
+    after: PropertyDescriptor | undefined
+  ): boolean =>
+    before !== undefined &&
+    after !== undefined &&
+    Object.is(before.value, after.value) &&
+    before.get === after.get &&
+    before.set === after.set &&
+    before.writable === after.writable &&
+    before.configurable === after.configurable &&
+    before.enumerable === after.enumerable;
+  intrinsicConstructors.set(constructor, () =>
+    records.every(({ target, value, descriptors, prototype: parent, explicit }) => {
+      const current = Object.getOwnPropertyDescriptors(value);
+      return (
+        getSandboxPrototype(target) === parent &&
+        hasExplicitSandboxPrototype(target) === explicit &&
+        Object.keys(current).length === descriptors.size &&
+        Object.keys(current).every((key) => unchanged(descriptors.get(key), current[key]))
+      );
+    })
+  );
+  budget.setRetainedValues(prototype, () =>
+    records.flatMap(({ target, value, descriptors, prototype: parent }) => [
+      ...(getSandboxPrototype(target) === parent
+        ? []
+        : [getSandboxPrototype(target) as SandboxValue]),
+      ...Object.entries(Object.getOwnPropertyDescriptors(value)).flatMap(([key, descriptor]) =>
+        unchanged(descriptors.get(key), descriptor)
+          ? []
+          : [key, descriptor.value, ...retainedAccessorClosures(descriptor)]
+      )
+    ])
+  );
 }
 
 export function releaseObjectPrototype(budget: Budget): void {
@@ -154,6 +183,36 @@ export function getSandboxPrototype(value: object, budget?: Budget): object | nu
 
 export function hasExplicitSandboxPrototype(value: object): boolean {
   return prototypes.has(value);
+}
+
+export function getSandboxPropertyDescriptor(
+  value: SandboxValue,
+  key: string | number,
+  budget?: Budget
+): PropertyDescriptor | undefined {
+  const hostProperties = isSandboxClosure(value) ? value.properties : undefined;
+  if (isSandboxClosure(value) && !isGuestClosure(value))
+    return hostProperties === undefined
+      ? undefined
+      : Object.getOwnPropertyDescriptor(hostProperties, key);
+  let current = value;
+  let depth = 0;
+  while (
+    typeof current === "object" &&
+    current !== null &&
+    (Array.isArray(current) || isPrototypeRecord(current))
+  ) {
+    const properties = isGuestClosure(current) ? getGuestFunctionProperties(current) : current;
+    const descriptor =
+      properties === undefined ? undefined : Object.getOwnPropertyDescriptor(properties, key);
+    if (descriptor !== undefined) return descriptor;
+    current = getSandboxPrototype(current, budget) as SandboxValue;
+    if (current !== null) {
+      budget?.visitNode();
+      assertSandboxDataDepth(++depth);
+    }
+  }
+  return undefined;
 }
 
 export function getSandboxDataProperty(

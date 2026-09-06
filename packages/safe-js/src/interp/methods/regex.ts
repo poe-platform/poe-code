@@ -110,7 +110,7 @@ export async function callRegexMethod(
     const input = await sandboxString(args[0], budget, context);
     if (methodName === "test") {
       const exec = context?.getProperty === undefined
-        ? getSandboxDataProperty(target, "exec", budget) : context.getProperty(target, "exec");
+        ? getSandboxDataProperty(target, "exec", budget) : await context.getProperty(target, "exec");
       if (isSandboxClosure(exec)) {
         const result = await invokeBuiltinClosure(exec, [input], budget, context, target);
         if (result !== null && typeof result !== "object") {

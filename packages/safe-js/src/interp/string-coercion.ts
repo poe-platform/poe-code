@@ -1,4 +1,5 @@
 import { sandboxErrorTypes } from "../error/shape.js";
+import { readPropertyDescriptor } from "./accessors.js";
 import { dateString, dateTime, isSandboxDate } from "./date.js";
 import type { Budget } from "./budget.js";
 import { invokeBuiltinClosure } from "./builtin-call.js";
@@ -30,6 +31,7 @@ import {
 
 const defaultStringHook = Symbol("defaultStringHook");
 const defaultValueHook = Symbol("defaultValueHook");
+const joiningArrays = new WeakSet<object>();
 
 export function sandboxNumber(value: SandboxValue, budget: Budget, context?: SandboxCallContext): number | Promise<number> {
   if (value === null || typeof value !== "object") {
@@ -53,6 +55,35 @@ export function sandboxString(
     .then(primitive => budget.allocateString(String(primitive)));
 }
 
+export async function joinSandboxArray(
+  value: SandboxValue & object,
+  length: number,
+  separator: string,
+  budget: Budget,
+  context?: SandboxCallContext,
+  joining = new Set<object>()
+): Promise<string> {
+  if (joiningArrays.has(value)) return "";
+  joiningArrays.add(value);
+  let text = "";
+  const release = retainValues(budget, () => [value, text, separator]);
+  try {
+    for (let index = 0; index < length; index++) {
+      budget.visitNode();
+      const element = await readCoercionProperty(value, String(index), context);
+      const part =
+        element === null || element === undefined
+          ? ""
+          : await sandboxString(element, budget, context, joining);
+      text = budget.allocateString(text + (index === 0 ? "" : separator) + part);
+    }
+    return text;
+  } finally {
+    release();
+    joiningArrays.delete(value);
+  }
+}
+
 async function objectToPrimitive(
   value: SandboxValue & object,
   budget: Budget,
@@ -64,12 +95,16 @@ async function objectToPrimitive(
   try {
     budget.visitNode();
     for (const name of hint === "string" ? ["toString", "valueOf"] : ["valueOf", "toString"]) {
-      const hook = conversionHook(value, name, budget);
+      const hook = await conversionHook(value, name, budget, context);
       let result: SandboxValue;
       if (hook === defaultStringHook) {
         result = await defaultToString(value, budget, context, joining);
       } else if (hook === defaultValueHook) {
-        result = isSandboxDate(value) ? dateTime(value) : isSandboxBox(value) ? boxedValue(value) : value;
+        result = isSandboxDate(value)
+          ? dateTime(value)
+          : isSandboxBox(value)
+            ? boxedValue(value)
+            : value;
       } else {
         if (!isSandboxClosure(hook)) continue;
         result = await invokeBuiltinClosure(hook, [], budget, context, value);
@@ -88,8 +123,9 @@ async function objectToPrimitive(
 function conversionHook(
   value: SandboxValue & object,
   name: string,
-  budget: Budget
-): SandboxValue | typeof defaultStringHook | typeof defaultValueHook {
+  budget: Budget,
+  context?: SandboxCallContext
+): SandboxValue | Promise<SandboxValue> | typeof defaultStringHook | typeof defaultValueHook {
   const implicitBuiltin =
     !hasExplicitSandboxPrototype(value) &&
     (Array.isArray(value) ||
@@ -111,9 +147,7 @@ function conversionHook(
     const descriptor =
       properties === undefined ? undefined : Object.getOwnPropertyDescriptor(properties, name);
     if (descriptor !== undefined) {
-      if (!Object.hasOwn(descriptor, "value"))
-        throw new TypeError("String conversion requires sandbox data properties.");
-      return descriptor.value as SandboxValue;
+      return readPropertyDescriptor(descriptor, value, context);
     }
     const parent = getSandboxPrototype(current, budget);
     if (
@@ -141,7 +175,10 @@ async function defaultToString(
   if (isSandboxClosure(value)) return budget.allocateString(functionString(value));
   if (isSandboxMap(value)) return "[object Map]";
   if (isSandboxSet(value)) return "[object Set]";
-  if (isSandboxCollectionIterator(value)) return collectionIteratorState(value).collectionKind === "map" ? "[object Map Iterator]" : "[object Set Iterator]";
+  if (isSandboxCollectionIterator(value))
+    return collectionIteratorState(value).collectionKind === "map"
+      ? "[object Map Iterator]"
+      : "[object Set Iterator]";
   if (isSandboxGenerator(value)) return "[object Generator]";
   if (isSandboxRegex(value)) {
     return budget.allocateString(
@@ -151,41 +188,25 @@ async function defaultToString(
   if (isSandboxDate(value)) return budget.allocateString(dateString(value));
   if (Array.isArray(value) || isFloat32Array(value)) {
     if (Object.hasOwn(value, "join")) {
-      const join = ownDataValue(value, "join");
+      const join = await readCoercionProperty(value, "join", context);
       if (!isSandboxClosure(join))
         return isFloat32Array(value) ? "[object Float32Array]" : "[object Array]";
       return invokeBuiltinClosure(join, [], budget, context, value);
     }
-    if (joining.has(value)) return "";
-    joining.add(value);
-    let text = "";
-    const release = retainValues(budget, () => [text]);
-    try {
-      const length = isFloat32Array(value) ? float32Storage(value).length : value.length;
-      for (let index = 0; index < length; index++) {
-        budget.visitNode();
-        const element = ownDataValue(value, String(index));
-        const part =
-          element === null || element === undefined
-            ? ""
-            : await sandboxString(element, budget, context, joining);
-        text = budget.allocateString(text + (index === 0 ? "" : ",") + part);
-      }
-      return text;
-    } finally {
-      release();
-      joining.delete(value);
-    }
+    const length = isFloat32Array(value) ? float32Storage(value).length : value.length;
+    return joinSandboxArray(value, length, ",", budget, context, joining);
   }
   if (sandboxErrorTypes.has(value)) {
-    const nameValue = ownDataValue(value, "name");
+    const nameValue = await readCoercionProperty(value, "name", context);
     const name =
       nameValue === undefined ? "Error" : await sandboxString(nameValue, budget, context, joining);
     const release = retainValues(budget, () => [name]);
     try {
-      const messageValue = ownDataValue(value, "message");
+      const messageValue = await readCoercionProperty(value, "message", context);
       const message =
-        messageValue === undefined ? "" : await sandboxString(messageValue, budget, context, joining);
+        messageValue === undefined
+          ? ""
+          : await sandboxString(messageValue, budget, context, joining);
       return name === "" ? message : message === "" ? name : `${name}: ${message}`;
     } finally {
       release();
@@ -194,10 +215,12 @@ async function defaultToString(
   return isSandboxPromise(value) ? "[object Promise]" : "[object Object]";
 }
 
-function ownDataValue(value: object, name: string): SandboxValue {
+function readCoercionProperty(
+  value: SandboxValue & object,
+  name: string,
+  context?: SandboxCallContext
+): SandboxValue | Promise<SandboxValue> {
+  if (context?.getProperty !== undefined) return context.getProperty(value, name);
   const descriptor = Object.getOwnPropertyDescriptor(value, name);
-  if (descriptor !== undefined && !Object.hasOwn(descriptor, "value")) {
-    throw new TypeError("String conversion requires sandbox data properties.");
-  }
-  return descriptor?.value as SandboxValue;
+  return descriptor === undefined ? undefined : readPropertyDescriptor(descriptor, value, context);
 }

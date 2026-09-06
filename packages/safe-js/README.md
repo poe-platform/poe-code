@@ -53,7 +53,7 @@ const result = await run(`
 // result.returnValue: ["counter", 7, true]
 ```
 
-Properties stay inside the interpreter, not on native host functions. Arrows and object methods remain nonconstructible. Prototype links between callable or exotic objects (such as arrays) and accessor descriptors are unsupported; native `Function.prototype` is never exposed.
+Properties stay inside the interpreter, not on native host functions. Arrows and object methods remain nonconstructible. Prototype links between exotic objects (such as arrays) are unsupported; native `Function.prototype` is never exposed.
 
 <details>
 <summary>Object inspection and prototypes</summary>
@@ -74,7 +74,7 @@ const result = await run(`
 - Intrinsic methods are non-enumerable. Guest constructor prototypes inherit the ordinary Object prototype; explicit null/custom prototypes work with `Object.create`, `Object.setPrototypeOf` and literal `__proto__`. A computed `['__proto__']` remains an own data property.
 - Prototype mutations stay inside the current run or persistent realm and consume its retained-data budget. They never change native prototypes or another realm.
 
-Inherited accessors, symbols and full Array/Function/exotic prototype graphs are unsupported. Use borrowed Object methods for inspecting those supported values. Explicit prototype links and mutated Object intrinsics are not portable checkpoint/copy data; project own data before crossing those boundaries. The conservative `AS011` lint rule still flags explicit `prototype`/`constructor` access; `run()` executes it without automatic linting.
+Symbols and full Array/Function/exotic prototype graphs are unsupported. Use borrowed Object methods for inspecting those supported values. Explicit prototype links and mutated Object intrinsics are not portable checkpoint/copy data; project own data before crossing those boundaries. The conservative `AS011` lint rule still flags explicit `prototype`/`constructor` access; `run()` executes it without automatic linting.
 
 </details>
 

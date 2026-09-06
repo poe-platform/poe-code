@@ -68,6 +68,19 @@ export function getSandboxIterator(value: SandboxValue, budget?: Budget, context
     return collectionIterator(value.values);
   }
 
+  if (Array.isArray(value) && context?.getProperty !== undefined) {
+    let index = 0;
+    return {
+      asynchronous: true,
+      snapshotIndex: () => index,
+      next: async () => {
+        if (index >= value.length) return { done: true, value: undefined };
+        budget?.visitNode();
+        return { done: false, value: await context.getProperty!(value, index++) };
+      }
+    };
+  }
+
   if ((typeof value !== "object" && typeof value !== "function") || value === null) {
     return undefined;
   }

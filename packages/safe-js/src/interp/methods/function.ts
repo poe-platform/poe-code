@@ -1,5 +1,17 @@
-import { createSandboxClosure, isSandboxClosure, type SandboxClosure, type SandboxValue } from "../values.js";
-import { getGuestFunctionProperty, getSandboxPrototype, hasExplicitSandboxPrototype, isGuestClosure, setSandboxPrototype } from "../object-model.js";
+import {
+  createSandboxClosure,
+  isSandboxClosure,
+  type SandboxCallContext,
+  type SandboxClosure,
+  type SandboxValue
+} from "../values.js";
+import {
+  getGuestFunctionProperty,
+  getSandboxPrototype,
+  hasExplicitSandboxPrototype,
+  isGuestClosure,
+  setSandboxPrototype
+} from "../object-model.js";
 import { assertSandboxDataDepth } from "../../graph-depth.js";
 import type { Budget } from "../budget.js";
 import { functionString } from "../function-string.js";
@@ -31,7 +43,8 @@ export function getFunctionMember(
   while (current !== null) {
     if (isGuestClosure(current)) {
       const value = getGuestFunctionProperty(current, String(property));
-      if (value !== undefined || Object.hasOwn(current.properties ?? {}, String(property))) return value;
+      if (value !== undefined || Object.hasOwn(current.properties ?? {}, String(property)))
+        return value;
     } else if (isSandboxClosure(current)) {
       if (current.properties !== undefined && Object.hasOwn(current.properties, String(property)))
         return current.properties[String(property)];
@@ -48,7 +61,8 @@ export function getFunctionMember(
   }
   if (current === null) return undefined;
 
-  if (property === "toString" && runResources.getStore()?.functionSourceText === false) return undefined;
+  if (property === "toString" && runResources.getStore()?.functionSourceText === false)
+    return undefined;
 
   if (!isFunctionMethodName(property)) {
     return undefined;
@@ -59,7 +73,7 @@ export function getFunctionMember(
     name: `Function#${property}`,
     ...(property === "toString" ? { length: 0 } : {}),
     call: (args, context) =>
-      callFunctionMethod(context?.thisValue, property, args, options, context?.stack ?? [])
+      callFunctionMethod(context?.thisValue, property, args, options, context?.stack ?? [], context)
   });
 }
 
@@ -72,7 +86,8 @@ function callFunctionMethod(
   methodName: FunctionMethodName,
   args: readonly SandboxValue[],
   options: FunctionMethodOptions,
-  stack: readonly string[]
+  stack: readonly string[],
+  context?: SandboxCallContext
 ): Promise<SandboxValue> | SandboxValue {
   if (!isSandboxClosure(target)) {
     throw new TypeError(`Function#${methodName} requires a callable receiver.`);
@@ -85,33 +100,58 @@ function callFunctionMethod(
 
   if (methodName === "bind") {
     const boundArgs = args.slice(1);
-    const bound = createSandboxClosure({
-      guest: true,
-      sandbox: true,
-      name: `bound ${target.name ?? ""}`,
-      length:
+    const bind = (length: number | undefined, name: string) => {
+      const bound = createSandboxClosure({
+        guest: true,
+        sandbox: true,
+        name: `bound ${name}`,
+        length,
+        boundTarget: target,
+        retainedValues: () => [target, thisValue, ...boundArgs, bound.name],
+        call: (callArgs, context) =>
+          options.callClosure(target, [...boundArgs, ...callArgs], context?.stack ?? [], thisValue),
+        ...(target.construct === undefined
+          ? {}
+          : {
+              construct: (callArgs, context) =>
+                options.callClosure(
+                  target,
+                  [...boundArgs, ...callArgs],
+                  context?.stack ?? [],
+                  undefined,
+                  true,
+                  context?.newTarget === bound ? target : context?.newTarget
+                )
+            })
+      });
+      if (hasExplicitSandboxPrototype(target))
+        setSandboxPrototype(bound, getSandboxPrototype(target, options.budget), options.budget);
+      return bound;
+    };
+    if (context?.getProperty === undefined)
+      return bind(
         target.length === undefined ? undefined : Math.max(0, target.length - boundArgs.length),
-      boundTarget: target,
-      retainedValues: () => [target, thisValue, ...boundArgs],
-      call: (callArgs, context) =>
-        options.callClosure(target, [...boundArgs, ...callArgs], context?.stack ?? [], thisValue),
-      ...(target.construct === undefined
-        ? {}
-        : {
-            construct: (callArgs, context) =>
-              options.callClosure(
-                target,
-                [...boundArgs, ...callArgs],
-                context?.stack ?? [],
-                undefined,
-                true,
-                context?.newTarget === bound ? target : context?.newTarget
-              )
-          })
-    });
-    if (hasExplicitSandboxPrototype(target))
-      setSandboxPrototype(bound, getSandboxPrototype(target, options.budget), options.budget);
-    return bound;
+        target.name ?? ""
+      );
+    return (async () => {
+      const properties = target.properties;
+      const defaultName = target.name;
+      const hasLength =
+        !isGuestClosure(target) ||
+        target.properties === undefined ||
+        Object.hasOwn(target.properties, "length");
+      const length = hasLength ? await context.getProperty!(target, "length") : undefined;
+      const name =
+        !isGuestClosure(target) && !Object.hasOwn(properties ?? {}, "name")
+          ? defaultName
+          : await context.getProperty!(target, "name");
+      return bind(
+        typeof length === "number" && !Number.isNaN(length)
+          ? Math.max(0, Math.trunc(length) - boundArgs.length)
+          : 0,
+        typeof name === "string" ? name : ""
+      );
+    })();
   }
 
   if (methodName === "call") {
@@ -126,5 +166,22 @@ function callFunctionMethod(
     throw new TypeError("Function#apply requires an array or nullish arguments value.");
   }
 
-  return options.callClosure(target, applyArgs, stack, thisValue);
+  if (context?.getProperty === undefined)
+    return options.callClosure(target, applyArgs, stack, thisValue);
+  return (async () => {
+    const values: SandboxValue[] = [];
+    const length = applyArgs.length;
+    options.budget?.allocateArrayLength(length);
+    const retained = {};
+    options.budget?.setRetainedValues(retained, () => values);
+    try {
+      for (let index = 0; index < length; index++) {
+        options.budget?.visitNode();
+        values.push(await context.getProperty!(applyArgs, index));
+      }
+      return await options.callClosure(target, values, stack, thisValue);
+    } finally {
+      options.budget?.setRetainedValues(retained, undefined);
+    }
+  })();
 }

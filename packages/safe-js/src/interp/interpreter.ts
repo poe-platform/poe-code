@@ -1,4 +1,5 @@
 import { promiseReplayContext } from "./promise-replay.js";
+import { readPropertyDescriptor, writePropertyDescriptor } from "./accessors.js";
 import { deleteHostObjectMember, getHostObjectKeys, getHostObjectMember, hasHostObjectMember, isGuestHostObject, setHostObjectMember } from "./host-capabilities.js";
 import { toPropertyKey } from "./property-key.js";
 import { assertPromiseExecutionAllowed } from "./promise-tracker.js";
@@ -101,7 +102,7 @@ import {
   type ArrayMethodOptions
 } from "./methods/array.js";
 import { getFunctionMember, type FunctionMethodOptions } from "./methods/function.js";
-import { getBoxedPrototype, getGuestFunctionProperty, getSandboxPrototype, hasExplicitSandboxPrototype, isDefaultBoxedMethod, isGuestClosure, materializeFunctionProperties, setSandboxPrototype } from "./object-model.js";
+import { getBoxedPrototype, getSandboxPropertyDescriptor, getSandboxPrototype, hasExplicitSandboxPrototype, isDefaultBoxedMethod, isGuestClosure, materializeFunctionProperties, setSandboxPrototype } from "./object-model.js";
 import { getStringIndex } from "./methods/string.js";
 import { assertSandboxDataDepth } from "../graph-depth.js";
 import {
@@ -755,7 +756,8 @@ async function evaluateTaggedTemplateExpression(
   if (node.tag.type === "MemberExpression") return evaluateMemberAccess(node.tag, context, async member => {
     if (member.kind === "nullish") throw new TypeError("Tagged template tag must be a function.");
     const key = await toPropertyKey(member.property, context.budget, createCoercionContext(context));
-    return invokeTag(getPropertyValue(member.object, key, context), member.superReceiver === undefined ? member.object : member.superReceiver.value);
+    const receiver = member.superReceiver === undefined ? member.object : member.superReceiver.value;
+    return invokeTag(await getPropertyValue(member.object, key, context, receiver), receiver);
   });
   const tag = await evaluateNode(node.tag, context);
   return tag.kind === "normal" ? invokeTag(tag.value, undefined) : tag;
@@ -885,7 +887,8 @@ async function evaluateBinaryExpression(
       if (isSandboxBox(rightValue) && (!equality || (left.value !== null && left.value !== undefined && typeof left.value !== "object")))
         rightValue = await toNumericPrimitive(rightValue, context);
     }
-    const value = applyBinaryOperator(node, leftValue, rightValue, context);
+    const operation = applyBinaryOperator(node, leftValue, rightValue, context);
+    const value = operation instanceof Promise ? await operation : operation;
 
     return {
       kind: "normal",
@@ -994,7 +997,7 @@ async function evaluateMemberAssignmentExpression(
     throw new TypeError("Expected member assignment target.");
   }
 
-  return evaluateMemberAccess(node.left, context, async member => {
+  return evaluateMemberAccess(node.left, context, async (member) => {
     if (member.kind === "nullish") {
       throw new TypeError("Cannot assign properties of null or undefined.");
     }
@@ -1004,8 +1007,17 @@ async function evaluateMemberAssignmentExpression(
       if (member.object === null || member.object === undefined) {
         throw new TypeError("Cannot assign properties of null or undefined.");
       }
-      property = await toPropertyKey(member.property, context.budget, createCoercionContext(context));
-      current = getPropertyValue(member.object, property, context);
+      property = await toPropertyKey(
+        member.property,
+        context.budget,
+        createCoercionContext(context)
+      );
+      current = await getPropertyValue(
+        member.object,
+        property,
+        context,
+        member.superReceiver === undefined ? member.object : member.superReceiver.value
+      );
     }
 
     if (node.operator === "&&=" && !isTruthy(current)) {
@@ -1053,9 +1065,22 @@ async function evaluateMemberAssignmentExpression(
         throw new TypeError("Cannot assign properties of null or undefined.");
       }
       operands = [value];
-      property ??= await toPropertyKey(member.property, context.budget, createCoercionContext(context));
-      if (member.superReceiver === undefined) setSandboxProperty(member.object, property, value, context.budget);
-      else setSuperProperty(member.object, member.superReceiver.value, property, value, context.budget);
+      property ??= await toPropertyKey(
+        member.property,
+        context.budget,
+        createCoercionContext(context)
+      );
+      if (member.superReceiver === undefined)
+        await setSandboxProperty(
+          member.object,
+          property,
+          value,
+          context.budget,
+          true,
+          createCoercionContext(context)
+        );
+      else
+        await setSuperProperty(member.object, member.superReceiver.value, property, value, context);
 
       return {
         kind: "normal",
@@ -2497,11 +2522,11 @@ async function evaluateMemberUpdateExpression(
     }
     const property = await toPropertyKey(member.property, context.budget, createCoercionContext(context));
     const current = toNumber(
-      await toNumericPrimitive(getPropertyValue(member.object, property, context), context)
+      await toNumericPrimitive(await getPropertyValue(member.object, property, context, member.superReceiver === undefined ? member.object : member.superReceiver.value), context)
     );
     const next = node.operator === "++" ? current + 1 : current - 1;
-    if (member.superReceiver === undefined) setSandboxProperty(member.object, property, next, context.budget);
-    else setSuperProperty(member.object, member.superReceiver.value, property, next, context.budget);
+    if (member.superReceiver === undefined) await setSandboxProperty(member.object, property, next, context.budget, true, createCoercionContext(context));
+    else await setSuperProperty(member.object, member.superReceiver.value, property, next, context);
 
     return {
       kind: "normal",
@@ -2515,7 +2540,7 @@ async function evaluateMemberExpression(
   node: MemberExpression,
   context: EvaluationContext
 ): Promise<EvaluationResult> {
-  return evaluateMemberAccess(node, context, async member => {
+  return evaluateMemberAccess(node, context, async (member) => {
     if (member.kind === "nullish" || member.object === null || member.object === undefined) {
       if (member.kind === "nullish") return { kind: "normal", hasValue: true, value: undefined };
       throw new TypeError("Cannot read properties of null or undefined.");
@@ -2523,7 +2548,12 @@ async function evaluateMemberExpression(
     return {
       kind: "normal",
       hasValue: true,
-      value: getPropertyValue(member.object, await toPropertyKey(member.property, context.budget, createCoercionContext(context)), context)
+      value: await getPropertyValue(
+        member.object,
+        await toPropertyKey(member.property, context.budget, createCoercionContext(context)),
+        context,
+        member.superReceiver === undefined ? member.object : member.superReceiver.value
+      )
     };
   });
 }
@@ -2531,25 +2561,34 @@ async function evaluateMemberExpression(
 function getPropertyValue(
   target: InterpreterValue,
   property: string | number,
-  context: EvaluationContext
-): SandboxValue {
+  context: EvaluationContext,
+  receiver: SandboxValue = target
+): SandboxValue | Promise<SandboxValue> {
   if (isGuestHostObject(target)) return getHostObjectMember(target, String(property));
+  const descriptor = getSandboxPropertyDescriptor(target, property, context.budget);
+  if (descriptor !== undefined)
+    return readPropertyDescriptor(descriptor, receiver, createCoercionContext(context), true);
   if (typeof target === "string" || typeof target === "number" || typeof target === "boolean") {
     const prototype = getBoxedPrototype(target, context.budget);
     if (prototype !== undefined) {
-      if (typeof target === "string" && (property === "length" || getStringIndex(property) !== undefined))
+      if (
+        typeof target === "string" &&
+        (property === "length" || getStringIndex(property) !== undefined)
+      )
         return getStringMember(target, property, context.budget);
-      return getMemberValue(prototype, property, context);
+      return getPropertyValue(prototype, property, context, receiver);
     }
   }
   if (typeof target === "string") return getStringMember(target, property, context.budget);
   if (typeof target === "number") return getNumberMember(property, context.budget);
   if (typeof target === "boolean") return undefined;
   if (isFloat32Array(target)) return getFloat32Member(target, property, context.budget);
-  if (isSandboxDate(target)) return getDateMember(property, context.budget, context.compilation?.owner);
+  if (isSandboxDate(target))
+    return getDateMember(property, context.budget, context.compilation?.owner);
   if (isSandboxMap(target)) return getMapMember(target, property, createMapMethodOptions(context));
   if (isSandboxSet(target)) return getSetMember(target, property, createSetMethodOptions(context));
-  if (isSandboxCollectionIterator(target)) return getCollectionIteratorMember(target, property, context.budget);
+  if (isSandboxCollectionIterator(target))
+    return getCollectionIteratorMember(target, property, context.budget);
   if (isSandboxGenerator(target)) return getGeneratorMember(target, property, context.budget);
   if (isSandboxClosure(target)) return getClosureMemberValue(target, property, context);
   if (isSandboxPromise(target)) return getPromiseMember(property, context.budget);
@@ -2560,14 +2599,27 @@ function getPropertyValue(
   return getMemberValue(target, property, context);
 }
 
-export function createPatternContext(context: AsyncEvaluationContext, scope = context.scope, evaluate = evaluateNode): PatternContext {
+export function createPatternContext(
+  context: AsyncEvaluationContext,
+  scope = context.scope,
+  evaluate = evaluateNode
+): PatternContext {
   const evaluationContext = { ...context, scope };
   return {
     budget: context.budget,
     evaluate: (node, inferredName) => evaluate(node, { ...evaluationContext, inferredName }),
-    toPropertyKey: value => toPropertyKey(value, context.budget, createCoercionContext(evaluationContext)),
+    toPropertyKey: (value) =>
+      toPropertyKey(value, context.budget, createCoercionContext(evaluationContext)),
     getProperty: (value, key) => getPropertyValue(value, key, evaluationContext),
-    setProperty: (target, key, value) => setSandboxProperty(target, key, value, context.budget)
+    setProperty: (target, key, value) =>
+      setSandboxProperty(
+        target,
+        key,
+        value,
+        context.budget,
+        true,
+        createCoercionContext(evaluationContext)
+      )
   };
 }
 
@@ -2577,7 +2629,8 @@ async function evaluateCallExpression(
 ): Promise<EvaluationResult> {
   if (node.callee.type === "Super") {
     const construction = context.functionEnvironment?.construction;
-    if (construction === undefined) throw new ReferenceError("Super constructor binding is unavailable.");
+    if (construction === undefined)
+      throw new ReferenceError("Super constructor binding is unavailable.");
     const args = await evaluateCallArguments(node.arguments, context);
     if (!args.ok) return args.result;
     return { kind: "normal", hasValue: true, value: await construction.superCall(args.value) };
@@ -2789,7 +2842,7 @@ async function evaluateMemberCallExpression(
     };
 
     if (member.superReceiver !== undefined)
-      return evaluateResolvedCallExpression(node, getPropertyValue(member.object, member.property, context), context, member.superReceiver.value);
+      return evaluateResolvedCallExpression(node, await getPropertyValue(member.object, member.property, context, member.superReceiver.value), context, member.superReceiver.value);
 
     if ((typeof member.object === "string" || typeof member.object === "number" || typeof member.object === "boolean") &&
         getBoxedPrototype(member.object, context.budget) !== undefined) {
@@ -2799,7 +2852,7 @@ async function evaluateMemberCallExpression(
         if (typeof member.object === "number" && isNumberMethodName(member.property))
           return evaluateNumberMethodCall(node, member.object, member.property, context);
       }
-      return evaluateResolvedCallExpression(node, getPropertyValue(member.object, member.property, context), context, member.object);
+      return evaluateResolvedCallExpression(node, await getPropertyValue(member.object, member.property, context), context, member.object);
     }
 
     if (typeof member.object === "string" && isStringMethodName(member.property)) {
@@ -2897,7 +2950,7 @@ async function evaluateMemberCallExpression(
     }
 
     if (isSandboxClosure(member.object)) {
-      const memberValue = getClosureMemberValue(member.object, member.property, context);
+      const memberValue = await getPropertyValue(member.object, member.property, context);
       if (memberValue === undefined) {
         throw new TypeError(`Function#${String(member.property)} is not a supported method.`);
       }
@@ -2929,7 +2982,7 @@ async function evaluateMemberCallExpression(
 
     return evaluateResolvedCallExpression(
       node,
-      getMemberValue(member.object, member.property, context),
+      await getPropertyValue(member.object, member.property, context),
       context,
       member.object
     );
@@ -3139,7 +3192,7 @@ function applyBinaryOperator(
   left: InterpreterValue,
   right: InterpreterValue,
   context: EvaluationContext
-): InterpreterValue {
+): InterpreterValue | Promise<InterpreterValue> {
   switch (node.operator) {
     case "+":
       return applyAdditionOperator(left, right, context);
@@ -3188,7 +3241,11 @@ function applyBinaryOperator(
         return true;
       }
       if (isFloat32ArrayConstructor(right)) return isFloat32Array(left);
-      if (isDateConstructor(right)) return isSandboxDate(left) && getDatePrototype(left, context.budget, context.compilation?.owner) !== null;
+      if (isDateConstructor(right))
+        return (
+          isSandboxDate(left) &&
+          getDatePrototype(left, context.budget, context.compilation?.owner) !== null
+        );
       if (isSandboxSetConstructor(right) && isSandboxSet(left)) {
         return true;
       }
@@ -3197,16 +3254,24 @@ function applyBinaryOperator(
       }
       if (isGuestClosure(right)) {
         if (typeof left !== "object" || left === null) return false;
-        const prototype = getGuestFunctionProperty(right, "prototype");
-        if (typeof prototype !== "object" || prototype === null) {
-          throw new TypeError("Function has a non-object prototype in instanceof check.");
-        }
-        let depth = 0;
-        for (let current = getSandboxPrototype(left, context.budget); current !== null; current = getSandboxPrototype(current, context.budget)) {
-          context.budget.visitNode();
-          assertSandboxDataDepth(depth++);
-          if (current === prototype) return true;
-        }
+        const check = (prototype: SandboxValue): boolean => {
+          if (typeof prototype !== "object" || prototype === null) {
+            throw new TypeError("Function has a non-object prototype in instanceof check.");
+          }
+          let depth = 0;
+          for (
+            let current = getSandboxPrototype(left, context.budget);
+            current !== null;
+            current = getSandboxPrototype(current, context.budget)
+          ) {
+            context.budget.visitNode();
+            assertSandboxDataDepth(depth++);
+            if (current === prototype) return true;
+          }
+          return false;
+        };
+        const prototype = getPropertyValue(right, "prototype", context);
+        return prototype instanceof Promise ? prototype.then(check) : check(prototype);
       }
       return false;
     case "in":
@@ -3429,7 +3494,7 @@ async function toNumericPrimitive(
 
   if (isIndexableSandboxValue(value)) {
     for (const methodName of ["valueOf", "toString"] as const) {
-      const method = getMemberValue(value, methodName, context);
+      const method = await getPropertyValue(value, methodName, context);
       if (methodName === "toString" && method === undefined && !Object.hasOwn(value, methodName)) {
         return toString(value);
       }
@@ -3522,7 +3587,7 @@ function getMemberValue(
   target: SandboxArray | SandboxObject,
   property: string | number,
   context: EvaluationContext
-): SandboxValue {
+): SandboxValue | Promise<SandboxValue> {
   if (isGuestHostObject(target)) return getHostObjectMember(target, String(property));
   let current: SandboxValue = target;
   let depth = 0;
@@ -3559,14 +3624,20 @@ export function setSandboxProperty(
   property: string | number,
   value: SandboxValue,
   budget: Budget,
-  checkInherited = true
-): void {
+  checkInherited = true,
+  context?: SandboxCallContext
+): void | Promise<void> {
   if (isSandboxDate(target)) throw new TypeError("Date own properties are not supported.");
   if (isGuestHostObject(target)) {
     setHostObjectMember(target, String(property), value);
     return;
   }
   const prototypeOwner = target;
+  if (checkInherited) {
+    const descriptor = getSandboxPropertyDescriptor(target, property, budget);
+    if (descriptor !== undefined && !("value" in descriptor))
+      return writePropertyDescriptor(descriptor, target, value, context);
+  }
   if (isGuestClosure(target)) target = materializeFunctionProperties(target);
   if (isFloat32Array(target)) {
     setFloat32Member(target, property, value);
@@ -3597,13 +3668,19 @@ export function setSandboxProperty(
   } else {
     if (checkInherited && typeof prototypeOwner === "object" && prototypeOwner !== null) {
       let depth = 0;
-      for (let prototype = getSandboxPrototype(prototypeOwner, budget); prototype !== null; prototype = getSandboxPrototype(prototype, budget)) {
+      for (
+        let prototype = getSandboxPrototype(prototypeOwner, budget);
+        prototype !== null;
+        prototype = getSandboxPrototype(prototype, budget)
+      ) {
         budget.visitNode();
         assertSandboxDataDepth(depth++);
         const properties = isSandboxClosure(prototype) ? prototype.properties : prototype;
-        const inherited = properties === undefined ? undefined : Object.getOwnPropertyDescriptor(properties, key);
+        const inherited =
+          properties === undefined ? undefined : Object.getOwnPropertyDescriptor(properties, key);
         if (inherited === undefined) continue;
-        if (inherited.writable !== true) throw new TypeError(`Cannot assign to read only property '${key}'.`);
+        if (inherited.writable !== true)
+          throw new TypeError(`Cannot assign to read only property '${key}'.`);
         break;
       }
     }
@@ -3611,20 +3688,37 @@ export function setSandboxProperty(
   }
 }
 
-function setSuperProperty(base: SandboxValue, receiver: SandboxValue, key: string, value: SandboxValue, budget: Budget): void {
-  if (typeof base !== "object" || base === null) throw new TypeError("Cannot assign a property of null.");
+function setSuperProperty(
+  base: SandboxValue,
+  receiver: SandboxValue,
+  key: string,
+  value: SandboxValue,
+  context: EvaluationContext
+): void | Promise<void> {
+  const budget = context.budget;
+  if (typeof base !== "object" || base === null)
+    throw new TypeError("Cannot assign a property of null.");
   let depth = 0;
-  for (let current: object | null = base; current !== null; current = getSandboxPrototype(current, budget)) {
+  for (
+    let current: object | null = base;
+    current !== null;
+    current = getSandboxPrototype(current, budget)
+  ) {
     budget.visitNode();
     assertSandboxDataDepth(depth++);
     const properties = isSandboxClosure(current) ? current.properties : current;
-    const descriptor = properties === undefined ? undefined : Object.getOwnPropertyDescriptor(properties, key);
+    const descriptor =
+      properties === undefined ? undefined : Object.getOwnPropertyDescriptor(properties, key);
     if (descriptor === undefined) continue;
-    if (descriptor.writable !== true) throw new TypeError(`Cannot assign to read only property '${key}'.`);
+    if (!("value" in descriptor))
+      return writePropertyDescriptor(descriptor, receiver, value, createCoercionContext(context));
+    if (descriptor.writable !== true)
+      throw new TypeError(`Cannot assign to read only property '${key}'.`);
     break;
   }
-  if (typeof receiver !== "object" || receiver === null) throw new TypeError("Super assignment requires an object receiver.");
-  setSandboxProperty(receiver, key, value, budget, false);
+  if (typeof receiver !== "object" || receiver === null)
+    throw new TypeError("Super assignment requires an object receiver.");
+  return setSandboxProperty(receiver, key, value, budget, false);
 }
 
 function deleteSandboxProperty(
@@ -3715,7 +3809,7 @@ function createArrayMethodOptions(context: EvaluationContext): ArrayMethodOption
     budget: context.budget,
     context: createCoercionContext(context),
     hasProperty: (value, property) => hasSandboxProperty(value, property, context),
-    setProperty: (value, property, entry) => setSandboxProperty(value, property, entry, context.budget),
+    setProperty: (value, property, entry) => setSandboxProperty(value, property, entry, context.budget, true, createCoercionContext(context)),
     deleteProperty: deleteSandboxProperty,
     callClosure: (
       closure: Extract<InterpreterValue, { kind: "fn" }>,
@@ -3913,25 +4007,37 @@ async function evaluateObjectSpread(
   if (isGuestHostObject(value.value)) {
     const entries: Array<readonly [string, SandboxValue]> = [];
     for (const key of getHostObjectKeys(value.value)) {
-      if (hasHostObjectMember(value.value, key, true)) entries.push([key, getHostObjectMember(value.value, key)]);
+      if (hasHostObjectMember(value.value, key, true))
+        entries.push([key, getHostObjectMember(value.value, key)]);
     }
     return { ok: true, value: entries };
   }
 
-  if ((isSandboxClosure(value.value) && !isGuestClosure(value.value)) || isSandboxPromise(value.value)) {
+  if (
+    (isSandboxClosure(value.value) && !isGuestClosure(value.value)) ||
+    isSandboxPromise(value.value)
+  ) {
     throw new TypeError(
       `Cannot spread ${describeObjectSpreadValue(value.value)} into object literal.`
     );
   }
 
-  const spreadValue = isGuestClosure(value.value) ? value.value.properties ?? {} : Object(value.value) as Record<string, SandboxValue>;
+  const spreadValue = isGuestClosure(value.value)
+    ? (value.value.properties ?? {})
+    : (Object(value.value) as Record<string, SandboxValue>);
   const keys = Object.keys(spreadValue);
   context.budget.allocateArrayLength(keys.length);
-
-  return {
-    ok: true,
-    value: keys.map((key) => [key, spreadValue[key]] as const)
-  };
+  const entries: Array<readonly [string, SandboxValue]> = [];
+  const release = retainValues(context.budget, () => [value.value, entries]);
+  try {
+    for (const key of keys) {
+      if (!hasOwnSandboxProperty(value.value, key, true)) continue;
+      entries.push([key, await getPropertyValue(value.value, key, context)]);
+    }
+    return { ok: true, value: entries };
+  } finally {
+    release();
+  }
 }
 
 function describeObjectSpreadValue(value: SandboxValue): string {

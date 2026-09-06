@@ -35,7 +35,7 @@ export async function evaluateClass(
       parent = result.value;
       if (parent !== null && (!isSandboxClosure(parent) || parent.construct === undefined))
         throw new TypeError("Class extends value is not a constructor or null.");
-      prototypeParent = parent === null ? null : callContext.getProperty!(parent, "prototype");
+      prototypeParent = parent === null ? null : await callContext.getProperty!(parent, "prototype");
       if (prototypeParent !== null && typeof prototypeParent !== "object")
         throw new TypeError("Class extends value has an invalid prototype.");
     }
@@ -74,7 +74,7 @@ export async function evaluateClass(
         };
         if (!derived) {
           thisValue = {};
-          const targetPrototype = invocation!.getProperty!(newTarget, "prototype");
+          const targetPrototype = await invocation!.getProperty!(newTarget, "prototype");
           if (typeof targetPrototype === "object" && targetPrototype !== null)
             setSandboxPrototype(thisValue, targetPrototype, context.budget);
         }

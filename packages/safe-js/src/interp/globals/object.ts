@@ -49,11 +49,16 @@ export function createObjectGlobal(methods: SandboxObject, budget: Budget): Sand
     length: 1,
     call: construct,
     construct: (args, context) => {
-      if (context?.newTarget === undefined || context.newTarget === constructor) return construct(args);
+      if (context?.newTarget === undefined || context.newTarget === constructor)
+        return construct(args);
       const value = construct([]) as SandboxObject;
       const prototype = context.getProperty!(context.newTarget, "prototype");
-      if (typeof prototype === "object" && prototype !== null) setSandboxPrototype(value, prototype, budget);
-      return value;
+      const finish = (prototype: SandboxValue) => {
+        if (typeof prototype === "object" && prototype !== null)
+          setSandboxPrototype(value, prototype, budget);
+        return value;
+      };
+      return prototype instanceof Promise ? prototype.then(finish) : finish(prototype);
     }
   });
   const properties = materializeFunctionProperties(constructor);

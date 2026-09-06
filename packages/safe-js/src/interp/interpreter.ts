@@ -2390,7 +2390,8 @@ async function evaluateYieldExpression(
 
   if (
     context.generatorResume !== undefined &&
-    node.nodeId !== context.generatorResume.yieldNodeId
+    node.nodeId !== context.generatorResume.yieldNodeId &&
+    (node.argument === undefined || !containsResumeTarget(node.argument, new Set([context.generatorResume.yieldNodeId])))
   ) {
     return { kind: "normal", hasValue: true, value: undefined };
   }
@@ -2400,13 +2401,14 @@ async function evaluateYieldExpression(
   }
 
   const argument =
-    context.generatorResume !== undefined || node.argument === undefined
+    (context.generatorResume !== undefined && node.nodeId === context.generatorResume.yieldNodeId) || node.argument === undefined
       ? { kind: "normal" as const, hasValue: true, value: undefined }
       : await evaluateNode(node.argument, context);
   if (argument.kind !== "normal") {
     return argument;
   }
 
+  if (context.generatorResume?.completed === true) context.generatorResume = undefined;
   const completion = await yieldGeneratorValue(argument.value, node, context);
   if (context.generatorResume !== undefined) context.generatorResume.completed = true;
   context.generatorResume = undefined;
@@ -2445,6 +2447,7 @@ async function evaluateYieldDelegate(
   if (argument.kind !== "normal") {
     return argument;
   }
+  if (context.generatorResume?.completed === true) context.generatorResume = undefined;
   const iterator = saved === undefined ? await acquireSandboxIterator(
     argument.value,
     context.budget,

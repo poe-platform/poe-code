@@ -43,3 +43,4 @@ An outer yield incorrectly skips evaluation while restoring a suspension in its
 argument. A direct probe of `yield (yield 1)` throws that the suspended generator
 completed during replay, while native `.next(4)` yields `{value:4,done:false}`.
 Resumption through enclosing yield arguments requires a separate fix.
+That follow-up is tracked in `safejs-nested-yield-continuations.md`.

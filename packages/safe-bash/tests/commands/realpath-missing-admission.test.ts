@@ -209,8 +209,13 @@ test("realpath -m owned and fallback paths preserve legacy dot-dot, links and sl
 
 test("realpath -m preserves the small native lexical corpus", async context => {
   const paths = ["/", "/.__realpath_645_absent__/child", "/.__realpath_645_absent__/../other"];
-  const native = spawnSync("realpath", ["-m", ...paths], { encoding: "utf8", timeout: 1000 });
+  const native = spawnSync("realpath", ["-m", ...paths], { encoding: "utf8", timeout: 1000, env: { ...process.env, LC_ALL: "C" } });
   if (native.error && "code" in native.error && native.error.code === "ENOENT") { context.skip("native realpath unavailable"); return; }
+  assert.ifError(native.error);
+  assert.equal(native.signal, null);
+  if (native.status === 1 && native.stdout === "" && native.stderr.startsWith("realpath: illegal option -- m\n")) {
+    context.skip("native realpath lacks -m support"); return;
+  }
   assert.equal(native.status, 0, native.stderr);
   const result = await execute(createMemoryFileSystem(), ["-m", ...paths]);
   assert.deepEqual(result, { exitCode: native.status, stdout: native.stdout, stderr: native.stderr });

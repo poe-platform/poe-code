@@ -25,6 +25,7 @@ import {
   isSandboxMap,
   isSandboxSet,
   isSandboxRegex,
+  getRegexProperties,
   isSandboxGenerator,
   type SandboxCallContext,
   type SandboxPrimitive,
@@ -159,7 +160,8 @@ function conversionHook(
   let current: object | null = value;
   let depth = 0;
   while (current !== null) {
-    const properties = isGuestClosure(current) ? getGuestFunctionProperties(current) : current;
+    const properties = isGuestClosure(current) ? getGuestFunctionProperties(current)
+      : isSandboxRegex(current) ? getRegexProperties(current) : current;
     const descriptor =
       properties === undefined ? undefined : Object.getOwnPropertyDescriptor(properties, name);
     if (descriptor !== undefined) {

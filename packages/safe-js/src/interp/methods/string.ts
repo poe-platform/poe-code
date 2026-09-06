@@ -167,10 +167,13 @@ export function callStringMethod(
 ): SandboxValue | Promise<SandboxValue> {
   if (value === null || value === undefined)
     throw new TypeError(`String#${methodName} requires a non-null receiver.`);
-  const fallback = () => typeof value === "string"
-    ? callStringMethodBody(value, methodName, args, budget, callClosure, parent, context)
-    : Promise.resolve(sandboxString(value, budget, context)).then(string =>
-      callStringMethodBody(string, methodName, args, budget, callClosure, parent, context));
+  const fallback = (coercePattern = false) => {
+    const apply = (string: string) => coercePattern &&
+      (methodName === "match" || methodName === "matchAll" || methodName === "search")
+      ? callStringPattern(string, methodName, args[0], budget, parent, context)
+      : callStringMethodBody(string, methodName, args, budget, callClosure, parent, context);
+    return typeof value === "string" ? apply(value) : Promise.resolve(sandboxString(value, budget, context)).then(apply);
+  };
   const symbol = methodName === "match" ? Symbol.match
     : methodName === "search" ? Symbol.search
     : methodName === "matchAll" ? Symbol.matchAll
@@ -180,16 +183,17 @@ export function callStringMethod(
   if (symbol !== undefined && types.isRegExp(pattern))
     throw new TypeError(`String#${methodName} does not accept unbranded host RegExp values.`);
   if (symbol === undefined || pattern === null || pattern === undefined) return fallback();
-  const applyHook = (hook: SandboxValue) => {
-    if (hook === null || hook === undefined) return fallback();
-    if (!isSandboxClosure(hook)) throw new TypeError(`String#${methodName} symbol hook must be callable.`);
-    return invokeBuiltinClosure(hook, symbol === Symbol.split || symbol === Symbol.replace ? [value, args[1]] : [value], budget, context, pattern);
-  };
   const readProperty = (key: PropertyKey) => context?.getProperty !== undefined
     ? context.getProperty(pattern, key)
     : key === "flags" && isSandboxRegex(pattern) && getSandboxPropertyDescriptor(pattern, key, budget) === undefined
       ? pattern.flags : getSandboxDataProperty(pattern, key, budget);
   const dispatch = () => {
+    const overriddenRegex = isSandboxRegex(pattern) && getSandboxPropertyDescriptor(pattern, symbol, budget) !== undefined;
+    const applyHook = (hook: SandboxValue) => {
+      if (hook === null || hook === undefined) return fallback(overriddenRegex);
+      if (!isSandboxClosure(hook)) throw new TypeError(`String#${methodName} symbol hook must be callable.`);
+      return invokeBuiltinClosure(hook, symbol === Symbol.split || symbol === Symbol.replace ? [value, args[1]] : [value], budget, context, pattern);
+    };
     const hook = readProperty(symbol);
     return hook instanceof Promise ? hook.then(applyHook) : applyHook(hook);
   };

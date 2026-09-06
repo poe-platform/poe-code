@@ -9,6 +9,7 @@ export interface HttpRequest {
   readonly body?: ByteSource;
   readonly signal: AbortSignal;
   readonly registerCleanup?: (cleanup: InvocationCleanup) => void;
+  readonly denyPrivateNetworks?: true;
 }
 
 export interface HttpResponse {
@@ -20,7 +21,9 @@ export interface HttpResponse {
   dispose(): Promise<void>;
 }
 
-export type HttpTransport = (request: HttpRequest) => Promise<HttpResponse>;
+export type HttpTransport = ((request: HttpRequest) => Promise<HttpResponse>) & {
+  readonly supportsPrivateNetworkDeny?: true;
+};
 
 export interface NetworkAuthorization {
   readonly url: string;
@@ -28,6 +31,7 @@ export interface NetworkAuthorization {
   readonly redirectFrom?: string;
   readonly attempt: number;
   readonly signal: AbortSignal;
+  readonly requirePrivateNetworkDeny?: () => void;
 }
 
 export type NetworkAuthorizer = (request: NetworkAuthorization) => boolean | Promise<boolean>;

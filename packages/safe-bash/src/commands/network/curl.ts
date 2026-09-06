@@ -196,11 +196,18 @@ async function transfer(context: CommandContext, args: CurlArguments, input: str
         if (remaining() <= 0) throw new CurlError(28, "Operation timed out");
         values.url_effective = current.href;
         values.method = method;
+        let denyPrivateNetworks = false;
         let allowed: boolean;
-        try { allowed = await withSignal(() => authorize({ url: current.href, method, attempt, signal, ...(previous === undefined ? {} : { redirectFrom: previous }) }), signal); }
+        try { allowed = await withSignal(() => authorize({ url: current.href, method, attempt, signal,
+          requirePrivateNetworkDeny() { denyPrivateNetworks = true; },
+          ...(previous === undefined ? {} : { redirectFrom: previous }) }), signal); }
         catch { signal.throwIfAborted(); throw new CurlError(7, "Network authorization failed"); }
         if (remaining() <= 0) throw new CurlError(28, "Operation timed out");
         if (allowed !== true) throw new CurlError(7, "Network access denied by host policy");
+        const policy = denyPrivateNetworks ? { denyPrivateNetworks: true as const } : {};
+        if (policy.denyPrivateNetworks && transport.supportsPrivateNetworkDeny !== true) {
+          throw new CurlError(7, "Transport cannot enforce private network policy");
+        }
         const headers = requestHeaders(args, currentBody?.contentType, args.user ?? parsed.user, credentialsInScope, limits.maxHeaderBytes);
         if (args.verbose) await writeBytes(context.stderr, encode(`> ${method} ${current.origin}\n${headers.map(([name]) => `> ${name}: [redacted]\n`).join("")}`), signal);
         const upload: ByteSource | undefined = currentBody && (async function* () {
@@ -208,7 +215,7 @@ async function transfer(context: CommandContext, args: CurlArguments, input: str
         })();
         response = await operation.acquire(async () => {
           const acquired = await transport({ url: current.href, method, headers, signal,
-            registerCleanup: operation.registerCleanup, ...(upload ? { body: upload } : {}) });
+            registerCleanup: operation.registerCleanup, ...policy, ...(upload ? { body: upload } : {}) });
           let cleanup: Promise<void> | undefined;
           return { ...acquired, dispose() { cleanup ??= Promise.resolve().then(() => acquired.dispose()); return cleanup; } };
         }, result => result.dispose());

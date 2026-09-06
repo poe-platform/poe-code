@@ -1,12 +1,12 @@
-# Literal Private-Address Authorization Specification
+# Private-Address Authorization and Connection Specification
 
-Status: Implemented baseline; #619 translation-prefix extension in current source
+Status: Baseline and #619 literal policy; #618 connection enforcement contract
 
 Baseline Implemented Through: `1433543a56f5558f0eb9aa07bfa65da29ffda05c`
 
 Purpose: Make the existing opt-in private-address authorizer classify mapped
 IPv4, selected translation prefixes and native IP literals before curl transport
-dispatch.
+dispatch, then enforce that selected policy on the actual Node connection.
 
 ## Normative Language
 
@@ -31,10 +31,11 @@ embedded in an IPv4-mapped IPv6 literal or either translation prefix selected in
 section 4, and reject unspecified IPv6. Preserve public destination, allowlist
 and opt-in behavior outside the intentional extension.
 
-This is literal URL classification, not DNS resolution, rebinding protection,
-connection pinning, a complete non-global-address registry, or an SSRF sandbox.
-There is no new public API or automatic network registration. A host needing
-actual-connection IP restrictions remains responsible for its transport policy.
+The #618 extension requires connection pinning when the existing private-network
+option is true in curl. Node enforces the selected policy against the resolved
+address; unsupported transports fail closed. This is not a complete non-global
+address registry, protection from arbitrary trusted host JavaScript, or a claim
+that all host network activity is isolated. Network registration remains opt-in.
 
 ## 3. Configuration and Trust Boundary
 
@@ -52,6 +53,16 @@ single terminal-dot normalization. Neither form implicitly allows subdomains.
 The authorizer operates on URL-parsed hostnames. It MUST NOT infer an address
 from an arbitrary DNS name or perform network I/O. The URL parser remains
 responsible for URL syntax and canonicalization.
+
+With filtering enabled, the helper MUST invoke the optional request-carried
+`requirePrivateNetworkDeny` callback. Curl supplies this callback and records a
+monotonic requirement for each authorized hop. Forwarding authorization wrappers
+MUST preserve it. Authorizers MUST announce requirements before returning or
+fulfilling an allowed decision; a later callback does not revise a dispatched
+request. A standalone helper call without that integration remains a
+literal decision, not proof of connection enforcement. The configured boolean
+MUST be captured when constructing the helper, not changed by later mutation of
+the caller's options object.
 
 ## 4. Literal Classification
 
@@ -106,6 +117,40 @@ and redacted diagnostics. This change MUST NOT add a fallback allowing a denied
 request, alter credential stripping, auto-follow redirects in transports, or
 change cancellation and response-cleanup ownership.
 
+### Connection admission
+
+An authorized request requiring private-network denial MUST carry
+`HttpRequest.denyPrivateNetworks: true`. Before dispatch, curl MUST require
+`HttpTransport.supportsPrivateNetworkDeny: true`; otherwise it MUST fail with
+curl status 7 without dispatching or consuming the upload. This capability is
+a truthful trusted-host contract, not protection against a lying implementation.
+Here upload consumption means request-body upload iteration. Existing
+preauthorization query construction (`-G`) and write-out preparation may consume
+VFS or stdin inputs; this is not a guarantee of zero input preparation.
+
+The shipped Node transport MUST enforce flagged requests. It MUST resolve one
+numeric candidate, validate and snapshot its address/family, apply section 4,
+and connect only to that candidate through request-local lookup. Literal IP
+destinations MUST be checked too. DNS answers MUST NOT be cached between hops,
+retried through an unchecked address, or resolved again after admission. This
+single-candidate protected profile intentionally omits multi-address failover.
+
+`NodeHttpTransportOptions.resolveAddress` MAY inject the resolver, taking a
+hostname and effective AbortSignal and returning an address with family 4 or 6.
+Malformed results MUST fail before request construction. The original URL,
+default Host and port MUST remain intact. An explicit Host override MUST NOT
+change the original hostname/IP used for TLS SNI and certificate identity;
+ordinary CA validation MUST remain enabled.
+
+Cleanup MUST be registered before resolution. Cancellation MUST prevent later
+request construction and upload admission, and late resolver rejection MUST be
+observed. This does not guarantee hard preemption of an opaque host resolver.
+
+The generic Fetch transport MUST NOT claim this capability. Flagged direct
+requests MUST fail before constructing Request/body objects, acquiring the body
+iterator, or invoking fetch. Omitted/false policy behavior remains unchanged;
+true-option Fetch success intentionally becomes an unsupported-policy refusal.
+
 ## 6. Test and Validation Matrix
 
 | Requirement | Required evidence |
@@ -114,8 +159,10 @@ change cancellation and response-cleanup ownership.
 | Selected translation prefixes | Exact-prefix private range boundaries denied; public range neighbors and one-hextet prefix neighbors eligible; equivalent spellings agree. |
 | Existing classification | Native IPv4, unspecified/loopback/local IPv6, localhost terminal-dot controls and unrelated/public neighbors. |
 | Opt-in and allowlists | Default/false option behavior, private explicitly allowed yet denied with the option, exact origin and hostname preservation. |
-| Initial/redirect enforcement | Actual Shell/curl with injected transport and Fetch, normalized URL identity, zero denied-target dispatches and response disposal. |
-| Honest boundary | No external connections or DNS claims; mapped and selected-prefix public controls continue to succeed; no inferred translation or metadata reachability. |
+| Initial/redirect enforcement | Actual Shell/curl with enforcing injected transport, normalized URL identity, zero denied-target dispatches and response disposal; unsupported Fetch refusal. |
+| Connection enforcement | Private DNS answers denied before connection; one pinned candidate, fresh hop/retry resolution, validated family/address and original TLS identity. |
+| Cancellation | Registered cleanup before resolution, no late socket/upload admission, observed late rejection and falsey reason preservation. |
+| Honest boundary | Bounded mock/loopback evidence is distinguished from live DNS, cloud metadata, provider routing and complete address-registry coverage. |
 | Integration | Maintained network cohorts, normal build, built public exports, current consumers and maintained lint. |
 
 ## 7. Conformance Criteria
@@ -128,3 +175,6 @@ Those baseline integration results do not qualify the #619 extension. Its
 private-scratch and checkout verification evidence are recorded in
 `docs/plans/bugfix-619-translated-private-addresses.md`.
 Passing a hostname classifier does not establish connection-level isolation.
+Those historical results also do not qualify #618. Its implementation, fresh
+RED/GREEN evidence, intentional compatibility changes and integrated delivery
+are tracked in `docs/plans/bugfix-618-dns-pinning.md`.

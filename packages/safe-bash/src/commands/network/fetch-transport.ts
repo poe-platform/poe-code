@@ -28,6 +28,7 @@ export function createFetchTransport(options: FetchTransportOptions = {}): HttpT
     input.signal.throwIfAborted();
     const url = new URL(input.url);
     if (url.protocol !== "http:" && url.protocol !== "https:") throw new CurlError(1, "Unsupported protocol");
+    if (input.denyPrivateNetworks === true) throw new CurlError(7, "Fetch transport cannot enforce private-network denial");
     const stopped = new AbortController();
     const signal = AbortSignal.any([input.signal, stopped.signal]);
     const body = requestBody(input.body, signal);

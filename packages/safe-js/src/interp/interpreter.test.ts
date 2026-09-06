@@ -933,14 +933,15 @@ describe("interpret", () => {
   });
 
   it("spreads large arrays into push without leaking the host argument limit", async () => {
-    const source = Array.from({ length: 1_000_000 }, (_, index) => index);
+    const source = Array.from({ length: 600_000 }, (_, index) => index);
+    expect(() => Reflect.apply(Array.prototype.push, [], source)).toThrow(RangeError);
 
     await expect(
       interpret(
         block(
           parse("const target = []"),
           parse("target.push(...source)"),
-          parse("return target.length")
+          parse("return [target.length, target[0], target[target.length - 1]]")
         ),
         {
           bindings: {
@@ -950,7 +951,7 @@ describe("interpret", () => {
       )
     ).resolves.toMatchObject({
       ok: true,
-      returnValue: source.length
+      returnValue: [source.length, 0, source.length - 1]
     });
   });
 

@@ -4030,11 +4030,17 @@ async function evaluateSpreadElement(
         throw new TypeError("Iterator result must be an object.");
       }
 
-      if ((await readIteratorResult(iterator, next, "done")).value) {
+      const done = iterator.readResultProperty === undefined
+        ? next.done
+        : (await readIteratorResult(iterator, next, "done")).value;
+      if (done) {
         break;
       }
 
-      spreadValues.push((await readIteratorResult(iterator, next, "value")).value);
+      const item = iterator.readResultProperty === undefined
+        ? next.value
+        : (await readIteratorResult(iterator, next, "value")).value;
+      spreadValues.push(item);
       context.budget.allocateArrayLength(spreadValues.length);
     }
 

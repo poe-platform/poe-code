@@ -152,6 +152,8 @@ export function validateGuestHeapNode(raw: unknown, heap: Record<string, unknown
         const expression = record(raw);
         if (expression.kind === "binary") {
           fields(expression, ["kind", "left"]);
+        } else if (expression.kind === "member") {
+          fields(expression, ["kind", "object"], ["superReceiver"]);
         } else if (expression.kind === "template") {
           fields(expression, ["kind", "prefix", "index"]);
           integer(expression.index);

@@ -2843,8 +2843,15 @@ async function evaluateMemberAccess(
     }
   ) => Promise<EvaluationResult>
 ): Promise<EvaluationResult> {
-  const superReceiver = node.object.type === "Super" ? { value: context.scope.lookup("this") } : undefined;
-  const object = await evaluateNode(node.object, context);
+  const restored = context.generatorResume === undefined || node.nodeId === undefined
+    ? undefined : context.restoredGeneratorExpressionStates?.get(node.nodeId);
+  if (restored !== undefined && restored.kind !== "member") throw new TypeError("Invalid member continuation.");
+  const thisBinding = node.object.type === "Super" ? context.scope.lookup("this") : undefined;
+  const superReceiver = restored?.kind === "member" && Object.hasOwn(restored, "superReceiver")
+    ? { value: restored.superReceiver }
+    : thisBinding === undefined ? undefined : { value: thisBinding.found ? thisBinding.value : undefined };
+  const object = restored?.kind === "member" ? { kind: "normal" as const, value: restored.object }
+    : await evaluateNode(node.object, context);
   if (object.kind !== "normal") return object;
 
   if ((object.value === null || object.value === undefined) && node.optional) {
@@ -2852,6 +2859,11 @@ async function evaluateMemberAccess(
   }
 
   let property: SandboxValue;
+  if (node.computed && context.generatorYield !== undefined && node.nodeId !== undefined) {
+    const state = { kind: "member" as const, object: object.value,
+      ...(superReceiver === undefined ? {} : { superReceiver: superReceiver.value }) };
+    context = { ...context, generatorExpressionStates: new Map([...(context.generatorExpressionStates ?? []), [node.nodeId, state]]) };
+  }
   const release = retainValues(context.budget, () => [object.value, property]);
   try {
     const result = node.computed
@@ -2860,7 +2872,7 @@ async function evaluateMemberAccess(
     if (result.kind !== "normal") return result;
     property = result.value;
     return await consume({ kind: "resolved", object: object.value, property,
-      ...(superReceiver === undefined ? {} : { superReceiver: { value: superReceiver.value.found ? superReceiver.value.value : undefined } }) });
+      ...(superReceiver === undefined ? {} : { superReceiver }) });
   } finally {
     release();
   }

@@ -1861,7 +1861,7 @@ describe("interpret", () => {
           separator: /b+/ as never
         }
       })
-    ).rejects.toThrow("String#split only supports string separator values.");
+    ).rejects.toThrow("String#split does not accept unbranded host RegExp values.");
 
     await expect(
       interpret(parse("return value.replace(search, replacement)"), {
@@ -1872,7 +1872,7 @@ describe("interpret", () => {
         }
       })
     ).rejects.toThrow(
-      "String#replace only supports string or regex search values and string or function replacements."
+      "String#replace does not accept unbranded host RegExp values."
     );
 
     await expect(
@@ -1884,7 +1884,7 @@ describe("interpret", () => {
         }
       })
     ).rejects.toThrow(
-      "String#replaceAll only supports string or regex search values and string or function replacements."
+      "String#replaceAll does not accept unbranded host RegExp values."
     );
   });
 

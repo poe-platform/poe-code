@@ -1,11 +1,12 @@
 import type { Expression } from "../../parse.js";
+import { types } from "node:util";
 import { Budget } from "../budget.js";
 import { invokeBuiltinClosure } from "../builtin-call.js";
 import { CompileScope } from "../regex/compile-guard.js";
 import { normalizeLastIndex } from "../regex/engine.js";
 import { sandboxNumber, sandboxString } from "../string-coercion.js";
 import { retainValues } from "../resources.js";
-import { getSandboxDataProperty } from "../object-model.js";
+import { getSandboxDataProperty, getSandboxPropertyDescriptor } from "../object-model.js";
 import {
   createSandboxClosure,
   createSandboxRegex,
@@ -173,17 +174,45 @@ export function callStringMethod(
       callStringMethodBody(string, methodName, args, budget, callClosure, parent, context));
   const symbol = methodName === "match" ? Symbol.match
     : methodName === "search" ? Symbol.search
+    : methodName === "matchAll" ? Symbol.matchAll
+    : methodName === "replace" || methodName === "replaceAll" ? Symbol.replace
     : methodName === "split" ? Symbol.split : undefined;
   const pattern = args[0];
+  if (symbol !== undefined && types.isRegExp(pattern))
+    throw new TypeError(`String#${methodName} does not accept unbranded host RegExp values.`);
   if (symbol === undefined || pattern === null || pattern === undefined) return fallback();
   const applyHook = (hook: SandboxValue) => {
     if (hook === null || hook === undefined) return fallback();
     if (!isSandboxClosure(hook)) throw new TypeError(`String#${methodName} symbol hook must be callable.`);
-    return invokeBuiltinClosure(hook, methodName === "split" ? [value, args[1]] : [value], budget, context, pattern);
+    return invokeBuiltinClosure(hook, symbol === Symbol.split || symbol === Symbol.replace ? [value, args[1]] : [value], budget, context, pattern);
   };
-  return context?.getProperty !== undefined
-    ? Promise.resolve(context.getProperty(pattern, symbol)).then(applyHook)
-    : applyHook(getSandboxDataProperty(pattern, symbol, budget));
+  const readProperty = (key: PropertyKey) => context?.getProperty !== undefined
+    ? context.getProperty(pattern, key)
+    : key === "flags" && isSandboxRegex(pattern) && getSandboxPropertyDescriptor(pattern, key, budget) === undefined
+      ? pattern.flags : getSandboxDataProperty(pattern, key, budget);
+  const dispatch = () => {
+    const hook = readProperty(symbol);
+    return hook instanceof Promise ? hook.then(applyHook) : applyHook(hook);
+  };
+  if ((methodName === "replaceAll" || methodName === "matchAll") &&
+      (typeof pattern === "object" || typeof pattern === "function")) {
+    const checkFlags = (flags: SandboxValue) => {
+      const checkText = (text: string) => {
+        if (!text.includes("g")) throw new TypeError(`String#${methodName} requires a global regex.`);
+        return dispatch();
+      };
+      const text = sandboxString(flags, budget, context);
+      return typeof text === "string" ? checkText(text) : text.then(checkText);
+    };
+    const checkMatch = (match: SandboxValue) => {
+      if (!(match === undefined ? isSandboxRegex(pattern) : Boolean(match))) return dispatch();
+      const flags = readProperty("flags");
+      return flags instanceof Promise ? flags.then(checkFlags) : checkFlags(flags);
+    };
+    const match = readProperty(Symbol.match);
+    return match instanceof Promise ? match.then(checkMatch) : checkMatch(match);
+  }
+  return dispatch();
 }
 
 function callStringMethodBody(
@@ -246,7 +275,7 @@ function callStringMethodBody(
   const regex = args[0];
   if (isSandboxRegex(regex) && regex.lastIndex !== null && typeof regex.lastIndex === "object" &&
       ((methodName === "match" && !regex.flags.includes("g")) ||
-       (methodName === "matchAll" && regex.flags.includes("g")))) {
+       methodName === "matchAll")) {
     return callStringRegexCursor(value, methodName, regex, budget, parent, context);
   }
 
@@ -405,23 +434,29 @@ function callReplaceLikeMethod(
 ): string | Promise<string> {
   const search = args[0];
   const replacement = args[1];
+  const useRegex = isSandboxRegex(search) && getSandboxPropertyDescriptor(search, Symbol.replace, budget) === undefined;
   if (
-    (!isSandboxRegex(search) && typeof search !== "string") ||
+    (!useRegex && typeof search !== "string") ||
     (typeof replacement !== "string" && !isSandboxClosure(replacement))
   ) {
-    throw new TypeError(
-      `String#${methodName} only supports string or regex search values and string or function replacements.`
-    );
+    return (async () => {
+      let normalizedSearch: SandboxValue;
+      let normalizedReplacement: SandboxValue;
+      const release = retainValues(budget, () => [normalizedSearch, normalizedReplacement]);
+      try {
+        normalizedSearch = useRegex ? search : await sandboxString(search, budget, context);
+        normalizedReplacement = isSandboxClosure(replacement) ? replacement : await sandboxString(replacement, budget, context);
+        return await callReplaceLikeMethod(value, methodName, [normalizedSearch, normalizedReplacement], budget, callClosure, context);
+      } finally {
+        release();
+      }
+    })();
   }
   if (isSandboxRegex(search)) {
-    if (methodName === "replaceAll" && !search.flags.includes("g")) {
-      throw new TypeError("String#replaceAll requires a global regex.");
-    }
     return replaceRegex(
       value,
       search,
       replacement,
-      methodName === "replaceAll",
       budget,
       callClosure,
       context
@@ -448,7 +483,6 @@ async function replaceRegex(
   value: string,
   regex: SandboxRegex,
   replacement: string | SandboxClosure,
-  replaceAll: boolean,
   budget: Budget,
   callClosure: (closure: SandboxClosure, args: readonly SandboxValue[]) => Promise<SandboxValue>,
   context?: SandboxCallContext
@@ -459,7 +493,7 @@ async function replaceRegex(
   budget.setRetainedValues(retained, () => [value, regex, cursor, replacement]);
   try {
     const lastIndex = await sandboxNumber(cursor, budget, context);
-    const matches = collectRegexMatches(regex, value, replaceAll || regex.flags.includes("g"), undefined, lastIndex);
+    const matches = collectRegexMatches(regex, value, regex.flags.includes("g"), undefined, lastIndex);
     let result = "";
     let copiedThrough = 0;
     for (const match of matches) {
@@ -685,8 +719,6 @@ function callMatchLikeMethod(
     if (!Object.is(regex.lastIndex, lastIndex)) regex.lastIndex = lastIndex;
     return match?.index ?? -1;
   }
-  if (methodName === "matchAll" && !regex.flags.includes("g"))
-    throw new TypeError("String#matchAll requires a global regex.");
   if (methodName === "match" && !regex.flags.includes("g"))
     return toMatchArray(executeRegex(regex, value, lastIndex ?? Number(regex.lastIndex)), value);
   if (methodName === "match") regex.lastIndex = 0;
@@ -694,7 +726,7 @@ function callMatchLikeMethod(
     methodName === "matchAll"
       ? createSandboxRegex(regex.source, regex.flags, normalizeLastIndex(lastIndex ?? Number(regex.lastIndex)), compilation)
       : regex;
-  const matches = collectRegexMatches(matcher, value, true, compilation.owner?.budget, Number(matcher.lastIndex));
+  const matches = collectRegexMatches(matcher, value, matcher.flags.includes("g"), compilation.owner?.budget, Number(matcher.lastIndex));
   if (methodName === "match" && matches.length === 0) return null;
   return methodName === "match"
     ? matches.map((match) => match.text)

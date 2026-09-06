@@ -154,6 +154,15 @@ export function validateGuestHeapNode(raw: unknown, heap: Record<string, unknown
           fields(expression, ["kind", "left"]);
         } else if (expression.kind === "pattern-source") {
           fields(expression, ["kind", "value"]);
+        } else if (expression.kind === "object-pattern") {
+          fields(expression, ["kind", "phase", "index", "excludedKeys", "key", "current"], ["referenceObject", "referenceKey"]);
+          integer(expression.index);
+          if (!["key", "reference", "binding"].includes(String(expression.phase)) ||
+              Object.hasOwn(expression, "referenceObject") !== Object.hasOwn(expression, "referenceKey")) throw new TypeError("Invalid object pattern state.");
+          for (const key of array(expression.excludedKeys)) if (typeof key !== "string") reference(key, ["symbol"]);
+          if (!absent(expression.key) && typeof expression.key !== "string") reference(expression.key, ["symbol"]);
+          if (Object.hasOwn(expression, "referenceObject") && expression.phase !== "binding") throw new TypeError("Invalid prepared object pattern reference.");
+          if (Object.hasOwn(expression, "referenceKey") && typeof expression.referenceKey !== "string") reference(expression.referenceKey, ["symbol"]);
         } else if (expression.kind === "for-of-array" || expression.kind === "for-of-iterator" || expression.kind === "array-pattern") {
           if (expression.kind === "array-pattern") {
             fields(expression, ["kind", "phase", "index", "done", "current", "iterator"], ["referenceObject", "referenceKey"]);

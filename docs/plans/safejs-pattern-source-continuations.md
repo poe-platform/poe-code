@@ -44,3 +44,4 @@ Restoring `const {first,second=yield 1}={first:2}` still tries to bind `first`
 again and throws a redeclaration error; native execution returns `[2,4]`
 after sending 4. Source evaluation is now retained, but object patterns still
 need their own partial binding, property-key and rest-exclusion continuation.
+That follow-up is tracked in `safejs-object-pattern-continuations.md`.

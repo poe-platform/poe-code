@@ -4,6 +4,7 @@ import type { SandboxIterator, IteratorSnapshot } from "./iteration.js";
 
 export type GeneratorExpressionState<T = SandboxValue, S = Scope, I = SandboxIterator | IteratorSnapshot> =
   | { kind: "pattern-source"; value: T }
+  | { kind: "object-pattern"; phase: "key" | "reference" | "binding"; index: number; excludedKeys: T[]; key: T; current: T; referenceObject?: T; referenceKey?: T }
   | { kind: "array-pattern"; phase: "reference" | "binding"; index: number; done: boolean; current: T; iterator: I; referenceObject?: T; referenceKey?: T }
   | { kind: "for-of-array"; phase: "left" | "body"; values: T; current: T; index: number; scope: S }
   | { kind: "for-of-iterator"; phase: "left" | "body"; async: boolean; value: T; current: T; index: number; scope: S; iterator: I }

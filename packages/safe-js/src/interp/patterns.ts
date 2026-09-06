@@ -270,41 +270,53 @@ async function bindObjectPattern(
     throw new TypeError("Object destructuring requires a non-nullish value.");
   }
 
-  const excludedKeys = new Set<PropertyKey>();
-  for (const property of pattern.properties) {
-    if (property.type === "RestElement") {
-      const binding = await bindPatternValue(
-        property,
-        async () => ({ value: await copyObjectRestValue(value, excludedKeys, context) }),
-        target,
-        scope,
-        context
-      );
-      if (!binding.ok) {
-        return binding;
+  const saved = pattern.nodeId === undefined ? undefined : context.restoredPatternState?.(pattern.nodeId);
+  if (saved !== undefined && saved.kind !== "object-pattern") throw new TypeError("Invalid object pattern continuation.");
+  const excludedKeys = new Set<PropertyKey>(saved?.excludedKeys as PropertyKey[] | undefined);
+  const excludedKeyValues = [...excludedKeys] as SandboxValue[];
+  let state: Extract<GeneratorExpressionState, { kind: "object-pattern" }> | undefined;
+  const release = context.budget === undefined ? () => undefined : retainValues(context.budget,
+    () => [value, state?.current, state?.key, state?.referenceObject, state?.referenceKey, ...(state?.excludedKeys ?? [])]);
+  try {
+    for (let index = saved?.index ?? 0; index < pattern.properties.length; index++) {
+      const property = pattern.properties[index];
+      state = saved !== undefined && index === saved.index ? { ...saved, excludedKeys: excludedKeyValues } : {
+        kind: "object-pattern", phase: property.type === "RestElement" ? "reference" : "key",
+        index, excludedKeys: excludedKeyValues, key: undefined, current: undefined
+      };
+      const currentState = state;
+      const propertyContext = pattern.nodeId === undefined ? context : context.withPatternState?.(pattern.nodeId, state) ?? context;
+      if (property.type !== "RestElement" && state.phase === "key") {
+        const key = await evaluatePatternKey(property, propertyContext);
+        if (!key.ok) return key;
+        state.key = typeof key.value === "symbol" ? key.value : String(key.value);
+        if (!excludedKeys.has(state.key)) excludedKeyValues.push(state.key);
+        excludedKeys.add(state.key);
+        state.phase = "reference";
       }
-      continue;
+      const element = property.type === "RestElement" ? property : property.value;
+      const binding = state.phase === "binding"
+        ? await bindPattern(element, state.current, target, scope, propertyContext,
+          Object.hasOwn(state, "referenceObject") ? { object: state.referenceObject, key: state.referenceKey as PropertyKey } : undefined)
+        : await bindPatternValue(element,
+          async () => ({ value: property.type === "RestElement"
+            ? await copyObjectRestValue(value, excludedKeys, propertyContext)
+            : await propertyContext.getProperty(value, currentState.key as PropertyKey) }),
+          target, scope, propertyContext,
+          (current, reference) => {
+            currentState.current = current;
+            currentState.phase = "binding";
+            if (reference !== undefined) {
+              currentState.referenceObject = reference.object;
+              currentState.referenceKey = reference.key;
+            }
+          });
+      if (!binding.ok) return binding;
     }
-
-    const key = await evaluatePatternKey(property, context);
-    if (!key.ok) {
-      return key;
-    }
-
-    excludedKeys.add(typeof key.value === "symbol" ? key.value : String(key.value));
-    const binding = await bindPatternValue(
-      property.value,
-      async () => ({ value: await context.getProperty(value, key.value) }),
-      target,
-      scope,
-      context
-    );
-    if (!binding.ok) {
-      return binding;
-    }
+    return { ok: true };
+  } finally {
+    release();
   }
-
-  return { ok: true };
 }
 
 async function bindMemberExpression(

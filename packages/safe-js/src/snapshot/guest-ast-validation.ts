@@ -15,6 +15,7 @@ export function validateGuestFunctionAst(record: Record<string, unknown>, origin
     | { kind: "for-in"; phase: string }
     | { kind: "for-of"; phase: string; async: boolean }
     | { kind: "array-pattern"; index: number }
+    | { kind: "object-pattern"; index: number; key: boolean }
     | { kind: "member-assignment"; superReceiver: boolean; key: boolean }
     | { kind: "array" | "call" | "new" | "template" | "tagged"; index: number; member?: boolean }
     | { kind: "object"; index: number; key: boolean };
@@ -40,6 +41,16 @@ export function validateGuestFunctionAst(record: Record<string, unknown>, origin
         ((value as Record<string, unknown>).expressions as unknown[]).forEach((expression, index) => {
           pending.push({ value: expression, blocks, finalizers: frame.finalizers,
             expressions: new Map([...frame.expressions, [node.nodeId as number, { kind: "tagged", index }]]) });
+        });
+        continue;
+      }
+      if (node.type === "ObjectPattern" && key === "properties" && typeof node.nodeId === "number" && Array.isArray(value)) {
+        const id = node.nodeId;
+        value.forEach((property: Record<string, unknown>, index) => {
+          for (const part of property.type === "RestElement" ? ["argument"] : ["key", "value"]) {
+            pending.push({ value: property[part], blocks, finalizers: frame.finalizers,
+              expressions: new Map([...frame.expressions, [id, { kind: "object-pattern", index, key: part === "key" }]]) });
+          }
         });
         continue;
       }
@@ -121,6 +132,7 @@ export function validateGuestFunctionAst(record: Record<string, unknown>, origin
         (expected.kind !== "binary" && expected.kind !== "pattern-source" && expected.kind !== "identifier-assignment" && expected.kind !== "member" && expected.kind !== "member-assignment" && expected.kind !== "for" && expected.kind !== "for-in" && expected.kind !== "for-of" && expected.index !== expression.index) ||
         ((expected.kind === "for" || expected.kind === "for-of") && expected.phase !== expression.phase) ||
         (expected.kind === "for-in" && expected.phase !== (expression.phase ?? "body")) ||
+        (expected.kind === "object-pattern" && expected.key !== (expression.phase === "key")) ||
         (expected.kind === "for-of" && expression.kind === "for-of-iterator" && expected.async !== expression.async) ||
         (expected.kind === "member-assignment" && (expected.key !== Object.hasOwn(expression, "key") ||
           expected.superReceiver !== Object.hasOwn(expression, "superReceiver"))) ||

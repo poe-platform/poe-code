@@ -13,6 +13,7 @@ import { createSymbolGlobal } from "./globals/symbol.js";
 import { createBigIntGlobal } from "./globals/bigint.js";
 import type { RunClock } from "../run.js";
 import { registerBuiltinIdentities } from "./intrinsics.js";
+import { registerIntrinsicObject } from "./object-model.js";
 
 export function createBuiltinBindings(
   options: Parameters<typeof createConsoleJsonGlobals>[0] & { random?: () => number; clock?: RunClock }
@@ -33,5 +34,6 @@ export function createBuiltinBindings(
     ...createRegexGlobals(options)
   };
   registerBuiltinIdentities(options.budget, bindings);
+  registerIntrinsicObject(options.budget, bindings.Math);
   return bindings;
 }

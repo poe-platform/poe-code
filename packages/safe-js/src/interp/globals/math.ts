@@ -102,6 +102,16 @@ export function createMathGlobals(options: MathGlobalsOptions = {}): MathGlobals
     });
   }
 
+  for (const [name, value] of Object.entries(mathObject)) {
+    const constant = typeof value === "number";
+    Object.defineProperty(mathObject, name, {
+      enumerable: false,
+      writable: !constant,
+      configurable: !constant
+    });
+  }
+  Object.defineProperty(mathObject, Symbol.toStringTag, { value: "Math", configurable: true });
+
   return {
     Infinity,
     Math: mathObject,

@@ -1733,7 +1733,9 @@ async function evaluateForOfStatement(
     return iterable;
   }
 
-  const values = node.await ? undefined : snapshotableIterationValues(iterable.value);
+  // New executions always acquire the iterator protocol. Keep the indexed
+  // path only for snapshots created before protocol-based array iteration.
+  const values = saved?.kind === "for-of-array" && Array.isArray(saved.values) ? saved.values : undefined;
   if (values === undefined) {
     return evaluateForOfIterator(node, iterable.value, context, restoredEntry);
   }
@@ -2258,16 +2260,6 @@ function consumeRestoredLoopIterationIndex(
 ): number {
   const iteration = consumeRestoredLoopIteration(node, context);
   return typeof iteration === "number" ? iteration : (iteration?.index ?? 0);
-}
-
-function snapshotableIterationValues(value: SandboxValue): SandboxValue[] | undefined {
-  if (typeof value === "string") {
-    return Array.from(value);
-  }
-  if (Array.isArray(value)) {
-    return value;
-  }
-  return undefined;
 }
 
 function isMatchingBreak(result: EvaluationResult, labels: string[] | string | undefined): boolean {

@@ -248,19 +248,20 @@ function trackIntrinsicState(
       );
     })
   );
-  budget.setRetainedValues(root, () =>
-    records.flatMap(({ target, value, descriptors, prototype: parent }) => [
-      ...(getSandboxPrototype(target) === parent
-        ? []
-        : [getSandboxPrototype(target) as SandboxValue]),
-      ...Reflect.ownKeys(value).flatMap(key => {
+  budget.setRetainedValues(root, () => {
+    // Capture every change before measurement invokes retained-value callbacks.
+    const retained: unknown[] = [];
+    for (const { target, value, descriptors, prototype: parent } of records) {
+      const currentPrototype = getSandboxPrototype(target);
+      if (currentPrototype !== parent) retained.push(currentPrototype);
+      for (const key of Reflect.ownKeys(value)) {
         const descriptor = Object.getOwnPropertyDescriptor(value, key)!;
-        return unchanged(descriptors.get(key), descriptor)
-          ? []
-          : [key, descriptor.value, ...retainedAccessorClosures(descriptor)];
-      })
-    ])
-  );
+        if (unchanged(descriptors.get(key), descriptor)) continue;
+        retained.push(key, descriptor.value, ...retainedAccessorClosures(descriptor));
+      }
+    }
+    return retained;
+  });
 }
 
 export function releaseObjectPrototype(budget: Budget): void {

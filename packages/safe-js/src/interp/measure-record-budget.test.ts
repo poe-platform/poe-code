@@ -1,4 +1,4 @@
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 import { createSandboxArguments } from "./arguments.js";
 import { Budget, SandboxError } from "./budget.js";
 import {
@@ -9,6 +9,14 @@ import {
 } from "./values.js";
 
 describe("ordinary-record data accounting", () => {
+  it("captures descriptors without constructing a descriptor dictionary", () => {
+    const value = { word: "abc" };
+    const dictionaries = vi.spyOn(Object, "getOwnPropertyDescriptors");
+    try {
+      expect(measureSandboxData([value])).toBe(9);
+      expect(dictionaries.mock.calls.some(([owner]) => owner === value)).toBe(false);
+    } finally { dictionaries.mockRestore(); }
+  });
   it.each([
     { name: "empty", value: {}, units: 1 },
     { name: "undefined", value: { alpha: undefined }, units: 7 },

@@ -576,7 +576,8 @@ export function measureSandboxData(
 
     usage += 1;
     if (!isGuestHostObject(value)) {
-      const descriptors = Object.getOwnPropertySymbols(value)
+      const symbols = Object.getOwnPropertySymbols(value);
+      const descriptors = symbols.length === 0 ? [] : symbols
         .filter(key => !internalSymbols.has(key))
         .map(key => [key, Object.getOwnPropertyDescriptor(value, key)!] as const);
       for (const [key, descriptor] of descriptors) {
@@ -738,18 +739,16 @@ export function measureSandboxData(
       return;
     }
 
-    const descriptors = Object.getOwnPropertyDescriptors(value);
-    const keys = Object.keys(descriptors);
-    const includeNonEnumerable = isSandboxDate(value) || hasManagedDescriptors(value);
-    let entryCount = 0;
-    for (const key of keys) {
-      if (descriptors[key].enumerable || includeNonEnumerable) entryCount += 1;
+    // Retained callbacks may mutate later properties while their values are visited.
+    const descriptors: Array<readonly [string, PropertyDescriptor]> = [];
+    for (const key of Object.getOwnPropertyNames(value)) {
+      const descriptor = Object.getOwnPropertyDescriptor(value, key);
+      if (descriptor !== undefined) descriptors.push([key, descriptor]);
     }
-    usage += entryCount;
-    for (const key of keys) {
-      const descriptor = descriptors[key];
+    const includeNonEnumerable = isSandboxDate(value) || hasManagedDescriptors(value);
+    for (const [key, descriptor] of descriptors) {
       if (!descriptor.enumerable && !includeNonEnumerable) continue;
-      usage += key.length;
+      usage += 1 + key.length;
       if ("value" in descriptor) visit(descriptor.value, depth + 1);
       else for (const closure of retainedAccessorClosures(descriptor)) visit(closure, depth + 1);
     }

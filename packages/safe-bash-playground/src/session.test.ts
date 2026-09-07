@@ -25,8 +25,11 @@ beforeAll(async () => {
   vi.stubGlobal("Worker", fixture.Worker);
 });
 afterEach(async () => {
-  expect(fixture.workers.size).toBe(0);
-  await fixture.close();
+  try {
+    expect(fixture.workers.size).toBe(0);
+  } finally {
+    await fixture.close();
+  }
 });
 afterAll(() => vi.unstubAllGlobals());
 
@@ -62,9 +65,11 @@ describe("PlaygroundSession", () => {
     expect(result.stdout).not.toContain("grep, rg, sed, awk, jq, and [[ =~ ]] are unavailable");
     expect(await session.complete("hel")).toContain("help");
     const builtins = result.stdout.split("Shell builtins:\n")[1]!.split("\n")[0]!.split(" ");
-    for (const builtin of builtins) {
-      expect((await session.run(`type -t ${builtin}`)).stdout, builtin).toBe("builtin\n");
-    }
+    const types = await session.run(`type -t ${builtins.join(" ")}`);
+    expect(types.exitCode).toBe(0);
+    expect(types.stderr).toBe("");
+    expect(types.stdout.split("\n").slice(0, -1), builtins.join(", ")).toEqual(builtins.map(() => "builtin"));
+    expect(types.stdout.endsWith("\n")).toBe(true);
   });
 
   it("supports real help pipelines, redirects, and command dispatch", async () => {

@@ -14,6 +14,17 @@ const collatorOptions: ReadonlyArray<readonly [string, IntlOptionType]> = [
   ["ignorePunctuation", "boolean"]
 ];
 
+export async function changeStringLocaleCase(value: string, method: "toLocaleLowerCase" | "toLocaleUpperCase", args: readonly SandboxValue[], budget: Budget, context?: SandboxCallContext): Promise<string> {
+  let locales: string[] = [];
+  const release = retainValues(budget, () => [value, locales]);
+  try {
+    // Validate the entire list even when native case mapping only reads its first entry.
+    locales = await canonicalizeGuestLocales(args[0], budget, context);
+    budget.visitNode(value.length);
+    return budget.allocateString(Reflect.apply(String.prototype[method], value, [locales]));
+  } finally { release(); }
+}
+
 export async function compareStringLocale(value: string, args: readonly SandboxValue[], budget: Budget, context: SandboxCallContext): Promise<number> {
   let comparison = "";
   let locales: string[] = [];

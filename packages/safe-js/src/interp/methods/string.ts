@@ -25,7 +25,7 @@ import {
 } from "../values.js";
 import { executeRegex, getRegexMember, regexExec, regexFlagProperties, regexSearch, toMatchArray } from "./regex.js";
 import { restoreSandboxRegExpIterator } from "../regexp-iterator.js";
-import { compareStringLocale } from "./string-locale.js";
+import { changeStringLocaleCase, compareStringLocale } from "./string-locale.js";
 
 type StringMethodName =
   | "at"
@@ -55,6 +55,8 @@ type StringMethodName =
   | "substring"
   | "toLowerCase"
   | "toUpperCase"
+  | "toLocaleLowerCase"
+  | "toLocaleUpperCase"
   | "toWellFormed"
   | "trim"
   | "trimEnd"
@@ -88,6 +90,8 @@ export const stringMethodNames = new Set<StringMethodName>([
   "substring",
   "toLowerCase",
   "toUpperCase",
+  "toLocaleLowerCase",
+  "toLocaleUpperCase",
   "toWellFormed",
   "trim",
   "trimEnd",
@@ -115,6 +119,8 @@ export function getStringMember(
   return createSandboxClosure({
     sandbox: true,
     name: `String#${property}`,
+    ...(property === "toLocaleLowerCase" || property === "toLocaleUpperCase"
+      ? { guest: true, name: property, length: 0 } : {}),
     ...(property === "localeCompare" ? { length: 1 } : {}),
     ...(property === "isWellFormed" || property === "toWellFormed" ? { length: 0 } : {}),
     call: async (args, context) => {
@@ -295,6 +301,8 @@ function callStringMethodBody(
     return callStringPattern(value, methodName, args[0], budget, parent, context);
   }
 
+  if (methodName === "toLocaleLowerCase" || methodName === "toLocaleUpperCase")
+    return changeStringLocaleCase(value, methodName, args, budget, context);
   if (methodName === "localeCompare" && context?.getProperty !== undefined)
     return compareStringLocale(value, args, budget, context);
 

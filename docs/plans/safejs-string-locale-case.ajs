@@ -1,0 +1,18 @@
+import { S } from "schema";
+
+export const schema = S.Object({ title: S.String() });
+
+export default async (frontmatter) => {
+  const calls = [];
+  const locales = { length: 2, 0: "tr", get 1() { calls.push("second"); return "en"; } };
+  const lower = "I".toLocaleLowerCase(locales);
+  await 0;
+  const upper = "i".toLocaleUpperCase("tr");
+  let rejected = false;
+  try { "I".toLocaleLowerCase(["tr", "bad_locale"]); } catch (error) { rejected = error instanceof RangeError; }
+  if (lower !== "ı" || upper !== "İ" || calls.length !== 1 || !rejected ||
+      String.prototype.toLocaleUpperCase.length !== 0) {
+    throw new Error("Locale-sensitive case conversion failed");
+  }
+  return { title: frontmatter.title, ok: true, lower, upper };
+};

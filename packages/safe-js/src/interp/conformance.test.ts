@@ -455,10 +455,10 @@ describe("JavaScript conformance matrix", () => {
   });
 
   describe("documented deviations", () => {
-    it("provides ordinary Object inspection without an Array prototype graph", async () => {
-      await expect(run("return [({}).toString(), [].hasOwnProperty]")).resolves.toEqual([
+    it("provides ordinary Object inspection through the Array prototype graph", async () => {
+      await expect(run("return [({}).toString(), [].hasOwnProperty === Object.prototype.hasOwnProperty]")).resolves.toEqual([
         "[object Object]",
-        undefined
+        true
       ]);
     });
 

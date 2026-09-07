@@ -149,7 +149,7 @@ function conversionHook(
 ): SandboxValue | Promise<SandboxValue> | typeof defaultStringHook | typeof defaultValueHook {
   const implicitBuiltin =
     !hasExplicitSandboxPrototype(value) &&
-    (Array.isArray(value) ||
+    ((Array.isArray(value) && getSandboxPrototype(value, budget) === null) ||
       isFloat32Array(value) ||
       sandboxErrorTypes.has(value) ||
       isSandboxClosure(value) ||

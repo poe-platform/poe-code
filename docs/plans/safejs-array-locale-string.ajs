@@ -1,0 +1,23 @@
+import { S } from "schema";
+
+export const schema = S.Object({ title: S.String() });
+
+export default async (frontmatter) => {
+  const calls = [];
+  const options = { tag: "!" };
+  const item = { toLocaleString(locales, received) {
+    calls.push(this === item, received === options);
+    return locales + received.tag;
+  } };
+  const generic = Array.prototype.toLocaleString.call({ 0: item, length: 1 }, "en", options);
+  await 0;
+  const exact = [BigInt("9223372036854775807"), null, "end"].toLocaleString("en-US", { useGrouping: false });
+  const same = [].map === Array.prototype.map;
+  Array.prototype.map = function() { return "replaced"; };
+  const replacement = [1].map();
+  if (generic !== "en!" || exact !== "9223372036854775807,,end" ||
+      !same || replacement !== "replaced" || calls[0] !== true || calls[1] !== true) {
+    throw new Error("Array locale conversion or prototype dispatch failed");
+  }
+  return { title: frontmatter.title, ok: true, generic, exact, replacement };
+};

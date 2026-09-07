@@ -30,6 +30,8 @@ const regexPrototypes = new WeakMap<Budget, SandboxObject>();
 const collectionPrototypes = new WeakMap<Budget, Map<"Map" | "Set", SandboxObject>>();
 const promisePrototypes = new WeakMap<Budget, SandboxObject>();
 const datePrototypes = new WeakMap<Budget, SandboxObject>();
+const arrayPrototypes = new WeakMap<Budget, SandboxValue[]>();
+const initialArrayMethods = new WeakMap<object, Map<string, SandboxValue>>();
 const initialRegexDescriptors = new WeakMap<Budget, PropertyDescriptorMap>();
 const intrinsicPrototypeRoots = new WeakMap<Budget, Set<object>>();
 const intrinsicConstructors = new WeakMap<object, () => boolean>();
@@ -130,6 +132,20 @@ export function installPromisePrototype(budget: Budget, prototype: SandboxObject
 export function installDatePrototype(budget: Budget, prototype: SandboxObject, constructor: SandboxClosure): void {
   datePrototypes.set(budget, prototype);
   registerIntrinsicPrototype(budget, prototype, constructor);
+}
+
+export function installArrayPrototype(budget: Budget, prototype: SandboxValue[], constructor: SandboxClosure): void {
+  arrayPrototypes.set(budget, prototype);
+  prototypes.set(prototype, intrinsicPrototypes.get(budget) ?? null);
+  initialArrayMethods.set(prototype, new Map(Object.entries(Object.getOwnPropertyDescriptors(prototype)).map(([key, descriptor]) => [key, descriptor.value])));
+  registerIntrinsicPrototype(budget, prototype as unknown as SandboxObject, constructor);
+}
+
+export function isDefaultArrayMethod(value: SandboxValue[], key: string, budget: Budget): boolean {
+  const prototype = arrayPrototypes.get(budget);
+  return prototype !== undefined && getSandboxPrototype(value, budget) === prototype &&
+    !Object.hasOwn(value, key) && initialArrayMethods.get(prototype)?.has(key) === true &&
+    Object.getOwnPropertyDescriptor(prototype, key)?.value === initialArrayMethods.get(prototype)?.get(key);
 }
 
 export function hasRegexPropertyOverride(value: SandboxValue, keys: readonly string[], budget: Budget): boolean {
@@ -257,12 +273,14 @@ export function releaseObjectPrototype(budget: Budget): void {
   collectionPrototypes.delete(budget);
   promisePrototypes.delete(budget);
   datePrototypes.delete(budget);
+  arrayPrototypes.delete(budget);
   initialRegexDescriptors.delete(budget);
   intrinsicPrototypes.delete(budget);
 }
 
 export function getSandboxPrototype(value: object, budget?: Budget): object | null {
   if (prototypes.has(value)) return prototypes.get(value) ?? null;
+  if (budget !== undefined && Array.isArray(value)) return arrayPrototypes.get(budget) ?? null;
   if (budget !== undefined && isSandboxDate(value)) return datePrototypes.get(budget) ?? null;
   if (budget !== undefined && isSandboxPromise(value)) return promisePrototypes.get(budget) ?? null;
   if (budget !== undefined && (isSandboxMap(value) || isSandboxSet(value)))

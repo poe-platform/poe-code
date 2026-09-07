@@ -106,7 +106,7 @@ import {
   type ArrayMethodOptions
 } from "./methods/array.js";
 import { getFunctionMember, type FunctionMethodOptions } from "./methods/function.js";
-import { getBoxedPrototype, getSandboxPropertyDescriptor, getSandboxPrototype, hasExplicitSandboxPrototype, isDefaultBoxedMethod, isGuestClosure, materializeFunctionProperties, setSandboxPrototype } from "./object-model.js";
+import { getBoxedPrototype, getSandboxPropertyDescriptor, getSandboxPrototype, hasExplicitSandboxPrototype, isDefaultArrayMethod, isDefaultBoxedMethod, isGuestClosure, materializeFunctionProperties, setSandboxPrototype } from "./object-model.js";
 import { getStringIndex } from "./methods/string.js";
 import { assertSandboxDataDepth } from "../graph-depth.js";
 import {
@@ -3086,8 +3086,8 @@ async function evaluateMemberCallExpression(
     };
 
     if (context.generatorYield !== undefined && node.arguments.some(argument => containsResumeTarget(argument.type === "SpreadElement" ? argument.argument : argument))) {
-      if (Array.isArray(member.object) && !hasExplicitSandboxPrototype(member.object) &&
-          typeof member.property !== "symbol" && isArrayMethodName(member.property) && !Object.hasOwn(member.object, member.property))
+      if (Array.isArray(member.object) &&
+          typeof member.property !== "symbol" && isArrayMethodName(member.property) && isDefaultArrayMethod(member.object, member.property, context.budget))
         return evaluateArrayMethodCall(node, member.object, member.property, context);
       const receiver = member.superReceiver?.value ?? member.object;
       return evaluateResolvedCallExpression(node, await getPropertyValue(member.object, member.property, context, receiver), context, receiver);
@@ -3103,6 +3103,9 @@ async function evaluateMemberCallExpression(
       return evaluateResolvedCallExpression(node, await getPropertyValue(member.object, member.property, context), context, member.object);
 
     if (Array.isArray(member.object) && hasExplicitSandboxPrototype(member.object))
+      return evaluateResolvedCallExpression(node, await getPropertyValue(member.object, member.property, context), context, member.object);
+
+    if (Array.isArray(member.object) && isArrayMethodName(member.property) && !isDefaultArrayMethod(member.object, member.property, context.budget))
       return evaluateResolvedCallExpression(node, await getPropertyValue(member.object, member.property, context), context, member.object);
 
     if ((typeof member.object === "string" || typeof member.object === "number" || typeof member.object === "bigint" || typeof member.object === "boolean" || typeof member.object === "symbol") &&
@@ -3161,6 +3164,8 @@ async function evaluateMemberCallExpression(
     }
 
     if (Array.isArray(member.object) && !Object.hasOwn(member.object, member.property)) {
+      if (getSandboxPropertyDescriptor(member.object, member.property, context.budget) !== undefined)
+        return evaluateResolvedCallExpression(node, await getPropertyValue(member.object, member.property, context), context, member.object);
       return evaluatePrimitiveMemberCall(
         node,
         "Array",
@@ -3894,6 +3899,8 @@ function getArrayMemberValue(
     return templateRawArrays.get(target);
   }
 
+  if (getSandboxPrototype(target, context.budget) !== null) return undefined;
+
   return getArrayMember(target, property, createArrayMethodOptions(context));
 }
 
@@ -4002,7 +4009,7 @@ function setSuperProperty(
   return setSandboxProperty(receiver, key, value, budget, false);
 }
 
-function deleteSandboxProperty(
+export function deleteSandboxProperty(
   target: SandboxValue,
   property: PropertyKey
 ): boolean {

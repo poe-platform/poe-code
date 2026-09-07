@@ -9,16 +9,18 @@ import { createSandboxBox } from "../boxed.js";
 import { createObjectGlobal, hasOwnSandboxProperty } from "./object.js";
 import { isGuestHostObject } from "../host-capabilities.js";
 import { isFloat32Array } from "../float32.js";
-import { setSandboxProperty } from "../interpreter.js";
+import { deleteSandboxProperty, setSandboxProperty } from "../interpreter.js";
 import { acquireSandboxIterator, closeIterator, getSandboxIterator, readIteratorResult, type SandboxIterator } from "../iteration.js";
 import { sandboxNumber, sandboxString } from "../string-coercion.js";
 import { toPropertyKey } from "../property-key.js";
 import { createNumericParsers } from "./numeric-parsers.js";
 import { createPrimitiveConstructor } from "./primitives.js";
+import { arrayMethodNames, callArrayMethod } from "../methods/array.js";
 import {
   getSandboxDataProperty,
   getSandboxPropertyDescriptor,
   getSandboxPrototype,
+  installArrayPrototype,
   isGuestClosure,
   markDescriptorObject,
   materializeFunctionProperties,
@@ -299,30 +301,7 @@ export function createObjectArrayGlobals(options: {
       },
       options.budget
     ),
-    Array: createSandboxClosure({
-      sandbox: true,
-      call: (args) => createArrayFromConstructorArgs(args, options.budget),
-      construct: (args) => createArrayFromConstructorArgs(args, options.budget),
-      name: "Array",
-      properties: {
-        isArray: createSandboxClosure({
-          sandbox: true,
-          call: ([value]) => Array.isArray(value),
-          name: "isArray"
-        }),
-        from: createSandboxClosure({
-          sandbox: true,
-          call: (args, context) => arrayFromSandboxValues(args, options.budget, context),
-          name: "from"
-        }),
-        of: createSandboxClosure({
-          sandbox: true,
-          call: (args) =>
-            budgetSandboxValue(Reflect.apply(Array.of, Array, [...args]), options.budget),
-          name: "of"
-        })
-      }
-    }),
+    Array: createArrayGlobal(options.budget),
     String: createPrimitiveConstructor(
       {
         call: (args, context) =>
@@ -401,6 +380,57 @@ export function createObjectArrayGlobals(options: {
       options.budget
     )
   };
+}
+
+function createArrayGlobal(budget: Budget): SandboxClosure {
+  const prototype: SandboxArray = [];
+  const objectToString = Object.getOwnPropertyDescriptor(getSandboxPrototype(Object.create(null), budget)!, "toString")!.value as SandboxClosure;
+  const constructor = createSandboxClosure({
+    guest: true,
+    sandbox: true,
+    call: (args) => createArrayFromConstructorArgs(args, budget),
+    construct: (args) => createArrayFromConstructorArgs(args, budget),
+    name: "Array",
+    length: 1
+  });
+  const properties = materializeFunctionProperties(constructor);
+  Object.defineProperty(properties, "prototype", { value: prototype, writable: false });
+  Object.defineProperty(prototype, "constructor", { value: constructor, writable: true, configurable: true });
+  for (const name of arrayMethodNames) {
+    const method = createSandboxClosure({
+      guest: true, sandbox: true, name,
+      length: Object.getOwnPropertyDescriptor(Array.prototype, name)!.value.length,
+      call: (args, context) => callArrayMethod(context?.thisValue, name, args, {
+        budget, context,
+        hasProperty: (value, key) => hasOwnSandboxProperty(value, key, false) || getSandboxPropertyDescriptor(value, key, budget) !== undefined,
+        deleteProperty: deleteSandboxProperty,
+        setProperty: (value, key, entry) => setSandboxProperty(value, key, entry, budget, true, context),
+        callClosure: (closure, values, _stack, receiver) => invokeBuiltinClosure(closure, values, budget, context, receiver)
+      }, context?.stack ?? [])
+    });
+    Object.defineProperty(prototype, name, { value: method, writable: true, configurable: true });
+  }
+  Object.defineProperty(prototype, "toString", {
+    value: createSandboxClosure({ guest: true, sandbox: true, name: "toString", length: 0,
+      call: async (_args, context) => {
+        const receiver = context?.thisValue;
+        if (receiver === null || receiver === undefined) throw new TypeError("Array toString requires a receiver.");
+        const object = typeof receiver === "object" ? receiver : createSandboxBox(receiver);
+        const method = context?.getProperty === undefined ? getSandboxDataProperty(object, "join", budget)
+          : await context.getProperty(object, "join");
+        return invokeBuiltinClosure(isSandboxClosure(method) ? method : objectToString, [], budget, context, object);
+      }
+    }), writable: true, configurable: true
+  });
+  const statics = {
+    isArray: createSandboxClosure({ sandbox: true, name: "isArray", call: ([value]) => Array.isArray(value) }),
+    from: createSandboxClosure({ sandbox: true, name: "from", call: (args, context) => arrayFromSandboxValues(args, budget, context) }),
+    of: createSandboxClosure({ sandbox: true, name: "of", call: (args) => budgetSandboxValue(Reflect.apply(Array.of, Array, [...args]), budget) })
+  };
+  for (const [name, value] of Object.entries(statics))
+    Object.defineProperty(properties, name, { value, writable: true, configurable: true });
+  installArrayPrototype(budget, prototype, constructor);
+  return constructor;
 }
 
 async function objectFromSandboxEntries(

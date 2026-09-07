@@ -36,6 +36,7 @@ import {
   type SandboxValue
 } from "../values.js";
 import { measureSandboxData } from "../values.js";
+import { invokeBuiltinClosure } from "../builtin-call.js";
 
 export function createObjectGlobal(methods: SandboxObject, budget: Budget): SandboxClosure {
   const construct = ([value]: readonly SandboxValue[]): SandboxValue => {
@@ -76,6 +77,19 @@ export function createObjectGlobal(methods: SandboxObject, budget: Budget): Sand
     Object.defineProperty(properties, name, { value: method, writable: true, configurable: true });
   }
   const prototypeMethods: SandboxObject = {
+    toLocaleString: createSandboxClosure({
+      guest: true, sandbox: true, name: "toLocaleString", length: 0,
+      call: async (_args, context) => {
+        const receiver = requireReceiver(context?.thisValue);
+        const object = construct([receiver]);
+        const descriptor = getSandboxPropertyDescriptor(object, "toString", budget);
+        const method = context?.getProperty === undefined
+          ? descriptor === undefined ? undefined : await readPropertyDescriptor(descriptor, receiver, context)
+          : await context.getProperty(receiver, "toString");
+        if (!isSandboxClosure(method)) throw new TypeError("toString must be callable.");
+        return invokeBuiltinClosure(method, [], budget, context, receiver);
+      }
+    }),
     toString: createSandboxClosure({
       sandbox: true,
       name: "toString",

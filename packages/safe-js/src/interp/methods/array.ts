@@ -17,12 +17,14 @@ import { assertCollectionMutable, enterRunningState } from "../running-state.js"
 import { retainValues } from "../resources.js";
 import { getSandboxDataProperty, getSandboxPrototype } from "../object-model.js";
 import { joinSandboxArray, sandboxNumber, sandboxString } from "../string-coercion.js";
+import { invokeBuiltinClosure } from "../builtin-call.js";
 
 type ArrayLikeValue =
   | SandboxArray
   | (SandboxObject & { [index: number]: SandboxValue; length: number });
 const arrayLikeSources = new WeakMap<object, SandboxValue & object>();
 const activeArrayCallbacks = new WeakMap<object, { depth: number; leave: () => void }>();
+const localeArrays = new WeakSet<object>();
 
 export type ArrayMethodName =
   | "map"
@@ -42,6 +44,7 @@ export type ArrayMethodName =
   | "indexOf"
   | "lastIndexOf"
   | "join"
+  | "toLocaleString"
   | "slice"
   | "concat"
   | "splice"
@@ -77,7 +80,7 @@ export type ArrayMethodOptions = {
   ) => Promise<SandboxValue>;
 };
 
-const arrayMethodNames = new Set<ArrayMethodName>([
+export const arrayMethodNames = new Set<ArrayMethodName>([
   "map",
   "filter",
   "find",
@@ -95,6 +98,7 @@ const arrayMethodNames = new Set<ArrayMethodName>([
   "indexOf",
   "lastIndexOf",
   "join",
+  "toLocaleString",
   "slice",
   "concat",
   "splice",
@@ -282,6 +286,36 @@ async function callArrayMethodUnlocked(
   stack: readonly string[]
 ): Promise<SandboxValue> {
   switch (methodName) {
+    case "toLocaleString": {
+      const receiver = arrayLikeSources.get(value) ?? value;
+      const length = value.length;
+      if (localeArrays.has(receiver)) return "";
+      localeArrays.add(receiver);
+      let text = "";
+      const release = retainValues(options.budget, () => [receiver, text, ...args]);
+      try {
+        for (let index = 0; index < length; index++) {
+          options.budget.visitNode();
+          const element = options.context?.getProperty === undefined
+            ? getSandboxDataProperty(receiver, String(index), options.budget)
+            : await options.context.getProperty(receiver, String(index));
+          let part = "";
+          if (element !== null && element !== undefined) {
+            const method = options.context?.getProperty === undefined
+              ? getSandboxDataProperty(element, "toLocaleString", options.budget)
+              : await options.context.getProperty(element, "toLocaleString");
+            if (!isSandboxClosure(method)) throw new TypeError("Element toLocaleString must be callable.");
+            const converted = await invokeBuiltinClosure(method, [args[0], args[1]], options.budget, options.context, element);
+            part = await sandboxString(converted, options.budget, options.context);
+          }
+          text = options.budget.allocateString(text + (index === 0 ? "" : ",") + part);
+        }
+        return text;
+      } finally {
+        release();
+        localeArrays.delete(receiver);
+      }
+    }
     case "map":
       return budgetProducedValue(
         await mapArray(value, getRequiredCallback(methodName, args[0]), options, stack, args[1]),

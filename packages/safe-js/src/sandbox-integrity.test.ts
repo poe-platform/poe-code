@@ -127,7 +127,7 @@ describe("sandbox integrity at the run boundary", () => {
       const closure = function () {};
       return [
         ({}).__proto__, ({}).constructor === Object, ({}).prototype,
-        [].__proto__, [].constructor, [].prototype,
+        [].__proto__, [].constructor === Array, [].prototype,
         "value".__proto__, "value".constructor === String, "value".prototype,
         (1).__proto__, (1).constructor === Number, (1).prototype,
         closure.__proto__, closure.constructor, closure.prototype.constructor === closure,
@@ -139,7 +139,7 @@ describe("sandbox integrity at the run boundary", () => {
       ok: true,
       returnValue: [
         undefined, true, undefined,
-        undefined, undefined, undefined,
+        undefined, true, undefined,
         undefined, true, undefined,
         undefined, true, undefined,
         undefined, undefined, true, "function"
@@ -179,7 +179,7 @@ describe("sandbox integrity at the run boundary", () => {
   it.each([
     ["closure constructor", "return (function () {}).constructor;"],
     ["object constructor", "return ({}).constructor.constructor;"],
-    ["array constructor", "return [].constructor;"]
+    ["array constructor", "return [].constructor.constructor;"]
   ])("does not expose a Function constructor through %s", async (_label, source) => {
     await expect(run(source)).resolves.toMatchObject({ ok: true, returnValue: undefined });
   });
@@ -198,7 +198,7 @@ describe("sandbox integrity at the run boundary", () => {
     [
       "array gadget",
       'return [].constructor("return process")();',
-      "Array#constructor is not a supported method."
+      "Attempted to call a non-function value."
     ]
   ])("fails closed for the %s", async (_label, source, message) => {
     await expect(run(source)).rejects.toMatchObject({

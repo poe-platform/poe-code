@@ -2,14 +2,16 @@ import { Budget } from "../budget.js";
 import { sandboxNumber } from "../string-coercion.js";
 import { isSandboxBox, boxedValue } from "../boxed.js";
 import { createSandboxClosure, type SandboxCallContext, type SandboxValue } from "../values.js";
+import { formatNumberLocale } from "../number-locale.js";
 
-export type NumberMethodName = "toExponential" | "toFixed" | "toPrecision" | "toString";
+export type NumberMethodName = "toExponential" | "toFixed" | "toPrecision" | "toString" | "toLocaleString";
 
 export const numberMethodNames = new Set<NumberMethodName>([
   "toExponential",
   "toFixed",
   "toPrecision",
-  "toString"
+  "toString",
+  "toLocaleString"
 ]);
 
 export function getNumberMember(
@@ -23,6 +25,7 @@ export function getNumberMember(
   return createSandboxClosure({
     sandbox: true,
     name: `Number#${property}`,
+    ...(property === "toLocaleString" ? { guest: true, name: property, length: 0 } : {}),
     call: (args, context) => callNumberMethod(context?.thisValue, property, args, budget, context)
   });
 }
@@ -43,6 +46,8 @@ export function callNumberMethod(
     throw new TypeError(`Number#${methodName} requires a number receiver.`);
   }
 
+  if (methodName === "toLocaleString") return formatNumberLocale(value, args, budget, context);
+
   const argument = args[0];
   if (argument !== null && typeof argument === "object") {
     return formatObjectArgument(value, methodName, argument, budget, context);
@@ -52,7 +57,7 @@ export function callNumberMethod(
 
 async function formatObjectArgument(
   value: number,
-  methodName: NumberMethodName,
+  methodName: Exclude<NumberMethodName, "toLocaleString">,
   argument: SandboxValue & object,
   budget: Budget,
   context: SandboxCallContext | undefined
@@ -67,7 +72,7 @@ async function formatObjectArgument(
   }
 }
 
-function formatNumber(value: number, methodName: NumberMethodName, argument: number | undefined, budget: Budget): string {
+function formatNumber(value: number, methodName: Exclude<NumberMethodName, "toLocaleString">, argument: number | undefined, budget: Budget): string {
   let result: string;
   try {
     result = value[methodName](argument);

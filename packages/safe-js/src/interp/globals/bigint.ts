@@ -3,6 +3,7 @@ import { primitiveReceiver } from "../boxed.js";
 import { installBoxedPrototype, materializeFunctionProperties } from "../object-model.js";
 import { objectToPrimitive, sandboxNumber } from "../string-coercion.js";
 import { createSandboxClosure, type SandboxCallContext, type SandboxValue } from "../values.js";
+import { formatNumberLocale } from "../number-locale.js";
 
 export function createBigIntGlobal(budget: Budget) {
   const convert = async (value: SandboxValue, context?: SandboxCallContext, allowNumber = false): Promise<bigint> => {
@@ -42,6 +43,11 @@ export function createBigIntGlobal(budget: Budget) {
           try { return budget.allocateString(value.toString(base)); }
           finally { budget.setRetainedDataUsage(allocation, 0); }
         } }),
+      writable: true, configurable: true
+    },
+    toLocaleString: {
+      value: createSandboxClosure({ guest: true, sandbox: true, name: "toLocaleString", length: 0,
+        call: (args, context) => formatNumberLocale(primitiveReceiver(context?.thisValue, "bigint") as bigint, args, budget, context) }),
       writable: true, configurable: true
     },
     [Symbol.toStringTag]: { value: "BigInt", configurable: true }

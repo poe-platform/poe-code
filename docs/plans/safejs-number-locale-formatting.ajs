@@ -1,0 +1,22 @@
+import { S } from "schema";
+
+export const schema = S.Object({ title: S.String() });
+
+export default async (frontmatter) => {
+  const log = [];
+  const rounded = (1234.567).toLocaleString("en-US", {
+    maximumSignificantDigits: 3,
+    minimumFractionDigits: { valueOf() { throw new Error("Unused digit option was coerced"); } },
+    get useGrouping() { log.push("grouping"); return true; }
+  });
+  await 0;
+  const exact = BigInt("9223372036854775807").toLocaleString("en-US", { useGrouping: false });
+  const scientific = (1234.5678).toLocaleString("en-US", {
+    style: "currency", currency: "USD", notation: "scientific"
+  });
+  if (rounded !== "1,230" || exact !== "9223372036854775807" || scientific !== "$1.235E3" ||
+      log.length !== 1 || BigInt.prototype.toLocaleString.length !== 0) {
+    throw new Error("Numeric locale formatting failed");
+  }
+  return { title: frontmatter.title, ok: true, rounded, exact, scientific };
+};

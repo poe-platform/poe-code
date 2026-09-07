@@ -1,0 +1,27 @@
+import { S } from "schema";
+
+export const schema = S.Object({ title: S.String() });
+
+export default async (frontmatter) => {
+  class Items extends Array {
+    label() { return "items"; }
+  }
+  const value = { count: 1 };
+  const direct = new Items(value);
+  const factory = Items.of(value, value);
+  const copied = Items.from(factory);
+  const writes = [];
+  function Result() {
+    return { set length(length) { writes.push(length); } };
+  }
+  const custom = Array.of.call(Result, value);
+  const from = Array.from.call(Result, [value, value]);
+  await 0;
+  if (!(direct instanceof Items) || direct.label() !== "items" ||
+      !(factory instanceof Items) || !(copied instanceof Items) ||
+      direct[0] !== value || factory[1] !== value || copied[0] !== value ||
+      custom[0] !== value || from[1] !== value || writes[0] !== 1 || writes[1] !== 2) {
+    throw new Error("Array construction or factory identity failed");
+  }
+  return { title: frontmatter.title, ok: true, label: direct.label(), writes };
+};

@@ -389,7 +389,17 @@ function createArrayGlobal(budget: Budget): SandboxClosure {
     guest: true,
     sandbox: true,
     call: (args) => createArrayFromConstructorArgs(args, budget),
-    construct: (args) => createArrayFromConstructorArgs(args, budget),
+    construct: async (args, context) => {
+      const target = context?.newTarget;
+      const parent = target === undefined || target === constructor ? prototype
+        : context?.getProperty === undefined ? await readPropertyDescriptor(
+            getSandboxPropertyDescriptor(target, "prototype", budget) ?? { value: undefined }, target, context)
+          : await context.getProperty(target, "prototype");
+      const value = createArrayFromConstructorArgs(args, budget);
+      if (parent !== prototype && typeof parent === "object" && parent !== null)
+        setSandboxPrototype(value, parent, budget);
+      return value;
+    },
     name: "Array",
     length: 1
   });
@@ -425,7 +435,31 @@ function createArrayGlobal(budget: Budget): SandboxClosure {
   const statics = {
     isArray: createSandboxClosure({ sandbox: true, name: "isArray", call: ([value]) => Array.isArray(value) }),
     from: createSandboxClosure({ sandbox: true, name: "from", call: (args, context) => arrayFromSandboxValues(args, budget, context) }),
-    of: createSandboxClosure({ sandbox: true, name: "of", call: (args) => budgetSandboxValue(Reflect.apply(Array.of, Array, [...args]), budget) })
+    of: createSandboxClosure({ guest: true, sandbox: true, name: "of", length: 0,
+      call: async (args, context) => {
+        const target = context?.thisValue;
+        let result: SandboxValue;
+        const release = retainValues(budget, () => [...args, target, result]);
+        try {
+          result = isSandboxClosure(target) && target.construct !== undefined
+            ? await invokeBuiltinClosure(target, [args.length], budget, context, undefined, true)
+            : createArrayFromConstructorArgs([args.length], budget);
+          const checkData = createDataCheckpoint(budget, context);
+          checkData(result, 0, true);
+          for (let index = 0; index < args.length; index += 1) {
+            budget.visitNode();
+            if (Array.isArray(result)) budget.allocateArrayLength(index + 1);
+            defineOwnDataProperty(objectProperties(result, true), String(index), args[index]);
+            checkData(result, 0, true);
+          }
+          await setSandboxProperty(result, "length", args.length, budget, true, context);
+          checkData(result, 0, true);
+          return allocateProducedSandboxValue(result, budget);
+        } finally {
+          release();
+        }
+      }
+    })
   };
   for (const [name, value] of Object.entries(statics))
     Object.defineProperty(properties, name, { value, writable: true, configurable: true });
@@ -830,7 +864,7 @@ async function arrayFromSandboxValues(
       }
       index += 1;
     }
-    setSandboxProperty(result, "length", index, budget);
+    await setSandboxProperty(result, "length", index, budget, true, context);
     checkData(result, 0, true);
     return allocateProducedSandboxValue(result, budget);
   } finally {
@@ -843,12 +877,12 @@ function createArrayFromConstructorArgs(
   budget: Budget
 ): SandboxArray {
   if (args.length !== 1) {
-    return budgetSandboxValue(Reflect.apply(Array, Array, [...args]), budget) as SandboxArray;
+    return allocateProducedSandboxValue([...args], budget) as SandboxArray;
   }
 
   const [lengthOrValue] = args;
   if (typeof lengthOrValue !== "number") {
-    return budgetSandboxValue([lengthOrValue], budget) as SandboxArray;
+    return allocateProducedSandboxValue([lengthOrValue], budget) as SandboxArray;
   }
 
   if (!Number.isInteger(lengthOrValue) || lengthOrValue < 0 || lengthOrValue > 0xffffffff) {

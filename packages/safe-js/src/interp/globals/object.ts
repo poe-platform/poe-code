@@ -272,7 +272,6 @@ function typeTag(value: SandboxValue, builtinOnly = false): string {
   if (isSandboxSet(value)) return "Set";
   if (isSandboxRegExpIterator(value)) return "RegExp String Iterator";
   if (isSandboxCollectionIterator(value)) return collectionIteratorState(value).collectionKind === "map" ? "Map Iterator" : "Set Iterator";
-  if (isSandboxPromise(value)) return "Promise";
   if (isSandboxGenerator(value)) return "Generator";
   if (isNumericTypedArray(value)) return typedArrayStorage(value).Native.name;
   return "Object";

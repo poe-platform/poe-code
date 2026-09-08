@@ -588,6 +588,7 @@ function getPromisePrototype(budget: Budget): SandboxObject {
       guest: true, name: "finally", length: 1
     })
   });
+  Object.defineProperty(prototype, Symbol.toStringTag, { value: "Promise", configurable: true });
   intrinsicPromiseThenMethods.add(prototype.then as SandboxClosure);
   for (const name of Object.keys(prototype)) {
     Object.defineProperty(prototype, name, { enumerable: false });

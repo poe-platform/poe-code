@@ -468,9 +468,15 @@ captured bindings, and suspended generators have focused checkpoint coverage.
 Identifier calls again pass through replay bookkeeping, fixing a reproduced
 compatibility regression in historical Promise checkpoints.
 
+Recent compatibility fixes also cover Array prototype unscopables, restricted
+function and strict-arguments accessors, the Promise prototype tag, and
+`Object.prototype.toString` after collection or typed-array tags are deleted.
+These have focused native-comparison and checkpoint tests.
+
 These changes have focused native-comparison and recovery tests, but the full
-integration gate is not green. Remaining failures include a reproduced
-large-array spread timeout. Pushes and releases are paused; local implementation,
+integration gate is not green. The latest completed candidate run passed 22,217
+tests with one namespace-identity timeout; that file passed separately, which
+does not make the full run successful. Pushes and releases are paused; local implementation,
 remote delivery, and successful publication are separate milestones.
 
 WeakMap/WeakSet work is experimental and excluded from the integration candidate.

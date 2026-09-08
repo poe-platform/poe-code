@@ -2,6 +2,10 @@
 
 Run a JavaScript subset with explicit host capabilities, execution budgets, and resumable checkpoints.
 
+This README describes the current source checkout. See [Development status](#development-status)
+for local changes that are not yet released; installing the published package
+does not necessarily include them.
+
 ## Quickstart
 
 Install the public package (Node.js 18.18+ and ESM):
@@ -31,10 +35,10 @@ console.log(result.returnValue);
 
 ## Supported features
 
-- **JavaScript control flow:** functions and closures, async/await, loops, destructuring, spread, templates, exceptions, and synchronous generators.
+- **JavaScript control flow:** functions and closures, classes, async/await, loops, destructuring, spread, templates, exceptions, and synchronous and asynchronous generators.
 - **Guest function objects:** own properties on functions and arrows; ordinary constructors with shared prototypes, inherited methods and `instanceof`. `Object.create`, `getPrototypeOf`, `setPrototypeOf`, own-property inspection, and data descriptors work on ordinary sandbox records.
-- **Data processing:** arrays, objects, strings, numbers, JSON, Math, Date, Map, Set, Float32Array, promises, and a bounded regular-expression subset. These are selected APIs, not complete ECMAScript implementations.
-- **Explicit capabilities:** named, default, and namespace imports resolve against host-supplied modules. Optional helpers cover agents, MCP tools, files, environment reads, time, logging, and metrics.
+- **Data processing:** arrays, objects, strings, numbers, BigInt, Symbol, JSON, Math, Date, Map, Set, typed arrays, ArrayBuffer/DataView, promises, Intl APIs, and budgeted regular expressions. Built-in presence does not imply complete ECMAScript conformance.
+- **Explicit capabilities:** static imports and dynamic `import()` resolve against host-supplied modules, not arbitrary npm packages or files. Optional helpers cover agents, MCP tools, files, environment reads, time, logging, and metrics.
 - **Persistent realms:** keep guest state across evaluations; register trusted extensions with explicit grants, live host objects, revocable callbacks, and ordered cleanup.
 - **Execution controls:** step, call-depth, string, array, and retained-data budgets; an absolute deadline; host cancellation; console and telemetry sinks.
 - **Checkpoints:** capture execution state, restore compatible source, and reconcile pending host operations. Changed programs can use explicit continuation migration.
@@ -53,7 +57,7 @@ const result = await run(`
 // result.returnValue: ["counter", 7, true]
 ```
 
-Properties stay inside the interpreter, not on native host functions. Arrows and object methods remain nonconstructible. Prototype links between exotic objects (such as arrays) are unsupported; native `Function.prototype` is never exposed.
+Properties stay inside the interpreter, not on native host functions. Arrows and object methods remain nonconstructible. Supported guest prototype links include arrays and function objects; native `Function.prototype` is never exposed.
 
 <details>
 <summary>Object inspection and prototypes</summary>
@@ -74,7 +78,12 @@ const result = await run(`
 - Intrinsic methods are non-enumerable. Guest constructor prototypes inherit the ordinary Object prototype; explicit null/custom prototypes work with `Object.create`, `Object.setPrototypeOf` and literal `__proto__`. A computed `['__proto__']` remains an own data property.
 - Prototype mutations stay inside the current run or persistent realm and consume its retained-data budget. They never change native prototypes or another realm.
 
-Symbols and full Array/Function/exotic prototype graphs are unsupported. Use borrowed Object methods for inspecting those supported values. Explicit prototype links and mutated Object intrinsics are not portable checkpoint/copy data; project own data before crossing those boundaries. The conservative `AS011` lint rule still flags explicit `prototype`/`constructor` access; `run()` executes it without automatic linting.
+Guest symbols, supported prototype links, and mutated guest intrinsics can be
+represented in checkpoints. Plain data-copy helpers have narrower contracts:
+for example, copying an array with a custom prototype can be rejected rather
+than silently discarding the prototype. Checkpoint support does not imply that
+every host object or prototype graph is copyable. `run()` does not lint
+automatically.
 
 </details>
 
@@ -439,10 +448,39 @@ For embedding, `runCli(argv, options?)` comes from `@poe-platform/safe-js/cli`. 
 
 </details>
 
+## Development status
+
+The current local work adds guest-only `Function`, `AsyncFunction`,
+`GeneratorFunction`, and `AsyncGeneratorFunction` constructors. They parse and
+execute code inside SafeJS, retain execution budgets, and use the granted global
+environment rather than capturing caller-local variables or invoking host eval.
+
+```js
+// Current source checkout; not yet a released-package guarantee.
+const result = await run("return Function('a', 'b', 'return a + b')(2, 3)");
+// result.returnValue: 5
+```
+
+Related local changes cover non-strict `this`, mapped `arguments`, `with`
+environments and `Symbol.unscopables`, strict assignment checks, named-function
+self-bindings, escaped/contextual identifiers, and loop grammar. Dynamic source,
+captured bindings, and suspended generators have focused checkpoint coverage.
+Identifier calls again pass through replay bookkeeping, fixing a reproduced
+compatibility regression in historical Promise checkpoints.
+
+These changes have focused native-comparison and recovery tests, but the full
+integration gate is not green. Remaining failures include a reproduced
+large-array spread timeout. Pushes and releases are paused; local implementation,
+remote delivery, and successful publication are separate milestones.
+
+WeakMap/WeakSet work is experimental and excluded from the integration candidate.
+Portable weak-symbol lifetime support on Node.js 18 remains unresolved. Do not
+treat that work as complete weak-collection support.
+
 ## Meaningful limitations
 
-- **Not a full JavaScript engine.** No async generators, dynamic imports, or automatic multi-file/npm resolution. No browser build, DOM, general Node API, `eval`, or `Function` constructor. Ordinary guest constructor prototypes are supported, but native and exotic prototype chains are not. Built-in coverage is selective; lint success is not a runtime compatibility guarantee.
-- **Some familiar syntax differs.** Regex supports `g`, `i`, `m`, and `s`, but not lookaround, backreferences, named groups, Unicode property escapes, or other flags. Compilation and matching have fixed limits in addition to configured budgets.
+- **Not a full JavaScript engine.** `eval`, `Proxy`, `WeakRef`, `FinalizationRegistry`, `SharedArrayBuffer`, and `Atomics` remain missing. There is no ambient DOM or general Node API, nor automatic multi-file/npm resolution. See the unreleased and experimental features above; lint success is not a runtime compatibility guarantee.
+- **Regular expressions are bounded.** The guest engine supports `d`, `g`, `i`, `m`, `s`, `u`, `v`, and `y`, including lookaround, backreferences, named groups, and Unicode property escapes. Compilation and matching still enforce limits; this is not an unbounded native-RegExp escape hatch or a claim of complete conformance.
 - **Budgets are not hard resource isolation.** Limits govern interpreter work, not arbitrary host functions or total process memory. Deadlines are checked cooperatively; cancellation cannot forcibly stop a blocking host call or undo its effects. Add host-operation timeouts and external isolation where required.
 - **Recovery is not exactly-once delivery.** Replay can repeat work and consumes budget again. Pending side effects need external reconciliation; opaque host handles and native iterator frames are not portable checkpoint state. Keep compatible source for ordinary restore or explicitly migrate. Checkpoints can contain input data and host results: store them as sensitive data.
 - **Filesystem access is a grant, not an OS sandbox.** The helper is a subset of `node:fs/promises`, with text-oriented results and no file handles, streams, or Buffer API. Root checks do not isolate the process from concurrent filesystem changes. Prefer narrow host operations when a script only needs a few files.

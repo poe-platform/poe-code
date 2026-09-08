@@ -4266,11 +4266,12 @@ async function evaluateNumberMethodCall(
 }
 
 function createArrayMethodOptions(context: EvaluationContext): ArrayMethodOptions {
+  const callContext = createCoercionContext(context);
   return {
     budget: context.budget,
-    context: createCoercionContext(context),
+    context: callContext,
     hasProperty: (value, property) => hasSandboxProperty(value, property, context),
-    setProperty: (value, property, entry) => setSandboxProperty(value, property, entry, context.budget, true, createCoercionContext(context)),
+    setProperty: (value, property, entry) => setSandboxProperty(value, property, entry, context.budget, true, callContext),
     deleteProperty: deleteSandboxProperty,
     callClosure: (
       closure: Extract<InterpreterValue, { kind: "fn" }>,

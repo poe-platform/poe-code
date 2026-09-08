@@ -473,10 +473,16 @@ function and strict-arguments accessors, the Promise prototype tag, and
 `Object.prototype.toString` after collection or typed-array tags are deleted.
 These have focused native-comparison and checkpoint tests.
 
+Initial guest `eval` support is also in progress locally: script parsing, direct
+and indirect calls, basic scope handling, and block/branch/try completion values.
+It is not complete eval support; declaration edge cases, loop completions and
+evaluated-source checkpoint ownership still need work.
+
 These changes have focused native-comparison and recovery tests, but the full
-integration gate is not green. The latest completed candidate run passed 22,217
-tests with one namespace-identity timeout; that file passed separately, which
-does not make the full run successful. Pushes and releases are paused; local implementation,
+integration gate is not green. The latest completed candidate run passed 22,266
+tests with one array-context test instrumentation failure. The corrected test
+passes focused checks; the full rerun is pending and excludes the newer eval work.
+Pushes and releases are paused; local implementation,
 remote delivery, and successful publication are separate milestones.
 
 WeakMap/WeakSet work is experimental and excluded from the integration candidate.
@@ -485,7 +491,7 @@ treat that work as complete weak-collection support.
 
 ## Meaningful limitations
 
-- **Not a full JavaScript engine.** `eval`, `Proxy`, `WeakRef`, `FinalizationRegistry`, `SharedArrayBuffer`, and `Atomics` remain missing. There is no ambient DOM or general Node API, nor automatic multi-file/npm resolution. See the unreleased and experimental features above; lint success is not a runtime compatibility guarantee.
+- **Not a full JavaScript engine.** `eval` is incomplete; `Proxy`, `WeakRef`, `FinalizationRegistry`, `SharedArrayBuffer`, and `Atomics` remain missing. There is no ambient DOM or general Node API, nor automatic multi-file/npm resolution. See the unreleased and experimental features above; lint success is not a runtime compatibility guarantee.
 - **Regular expressions are bounded.** The guest engine supports `d`, `g`, `i`, `m`, `s`, `u`, `v`, and `y`, including lookaround, backreferences, named groups, and Unicode property escapes. Compilation and matching still enforce limits; this is not an unbounded native-RegExp escape hatch or a claim of complete conformance.
 - **Budgets are not hard resource isolation.** Limits govern interpreter work, not arbitrary host functions or total process memory. Deadlines are checked cooperatively; cancellation cannot forcibly stop a blocking host call or undo its effects. Add host-operation timeouts and external isolation where required.
 - **Recovery is not exactly-once delivery.** Replay can repeat work and consumes budget again. Pending side effects need external reconciliation; opaque host handles and native iterator frames are not portable checkpoint state. Keep compatible source for ordinary restore or explicitly migrate. Checkpoints can contain input data and host results: store them as sensitive data.

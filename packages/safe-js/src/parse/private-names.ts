@@ -3,8 +3,11 @@ import type { ClassNode } from "./parser.js";
 type PrivateScope = { names: Set<string>; parent?: PrivateScope };
 
 /** Check complete class bodies so private references may precede declarations. */
-export function validatePrivateNames(root: unknown): void {
-  const pending: Array<{ value: unknown; scope?: PrivateScope; declaration?: boolean }> = [{ value: root }];
+export function validatePrivateNames(root: unknown, inheritedNames?: ReadonlySet<string>): void {
+  const pending: Array<{ value: unknown; scope?: PrivateScope; declaration?: boolean }> = [{
+    value: root,
+    scope: inheritedNames === undefined ? undefined : {names: new Set(inheritedNames)}
+  }];
   while (pending.length > 0) {
     const { value, scope, declaration } = pending.pop()!;
     if (value === null || typeof value !== "object") continue;

@@ -2609,6 +2609,21 @@ extension, integration, or validation requirement is missing or unverified.
   the integration test) and selected workspace build passed. Guest builtin registration, sorted's
   outer positional binding, truth/call/comparison implementations and complete
   native allocation accounting remain unfinished.
+- Added callable-sentinel iterator storage for iter(callable, sentinel), with
+  eager callability validation and lazy calls. Sentinel-first equality skips
+  identical results. Matches or callable StopIteration release state and latch
+  exhaustion; equality StopIteration translates only that next call to done,
+  permitting retry. Other call/equality failures propagate without rewinding
+  callable state. Reentrant exhaustion during call/equality follows the distinct
+  CPython paths, with metering before state changes and after guest callbacks.
+- The callable-iterator suite first failed on its missing module; all 2,889 tests
+  in 175 files pass. A 1,000-trace CPython audit matched 12,000 next observations
+  and callable/equality traces; separate probes confirmed both reentrant cases.
+  Source typecheck, scoped lint and selected workspace build passed after fixing
+  two prefer-const test declarations; the full package suite passed again.
+  Guest iter argument binding, iterator identity, StopIteration values, guest
+  call/reflected equality implementations, recursion limits and complete native
+  allocation accounting remain unfinished.
 - Next:
   remaining scope/compiler audits, interpreter runtime,
   resource controls, runtime modules, and safe-fs integration. Parsing and static

@@ -1132,6 +1132,25 @@ extension, integration, or validation requirement is missing or unverified.
   not the complete guest super type: argument/subtype validation, zero-argument
   frame/cell resolution, unbound binding, proxy-owned attributes, generic fallback
   and execution-engine integration remain pending.
+- Added binary numeric special-method negotiation: same-type operands only try
+  the forward method; unrelated types try forward then reflected; strict right
+  subtypes get reflected priority only when overridden. A prioritized reflected
+  method returning NotImplemented is not retried. Only the supplied singleton
+  triggers fallback, so None/false/zero/undefined remain successful values.
+  Exceptions propagate and every dispatch/override callback is checkpointed.
+  Late method resolution remains possible after a prior method mutates a type.
+- Binary dispatch validation: missing-module red test preceded implementation;
+  all 1,733 tests in 78 files pass. CPython comparisons matched 2,688 cases across
+  14 binary operators, three type relationships and absent/declining/successful/
+  non-callable forward and reflected methods, including inherited reflected slots.
+  Typecheck, scoped lint and the dependency build passed. References:
+  https://docs.python.org/3/reference/datamodel.html#emulating-numeric-types and
+  CPython v3.14.0 Objects/typeobject.c, method_is_overloaded/SLOT1BINFULL.
+  Override detection deliberately remains a guest-aware callback: CPython can
+  execute type attribute access and rich comparison there. This kernel does not
+  yet provide that guest lookup, built-in numeric/sequence slot adaptation,
+  in-place or rich-comparison dispatch, final operand diagnostics, or evaluator
+  integration. Callback-internal work and heap use remain caller-accounted.
 - Next:
   remaining scope/compiler audits, interpreter runtime,
   resource controls, runtime modules, and safe-fs integration. Parsing and static

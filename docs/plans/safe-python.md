@@ -751,6 +751,21 @@ extension, integration, or validation requirement is missing or unverified.
   https://docs.python.org/3/library/stdtypes.html#ranges . Guest indexing/coercion,
   generic equality searches, len overflow checks, iterators, hashing, and list/
   tuple/string slice integration remain pending.
+- Added immutable code-point string storage with copied private buffers, code-point
+  iteration/indexing, exact slice normalization, and lexicographic comparison.
+  Parsed escaped surrogate pairs stay distinct from supplementary characters;
+  operations never round-trip through UTF-16. Contiguous full slices can reuse
+  immutable storage; strided slices handle huge steps without numeric overflow.
+- String-storage validation: the suite failed on the missing module first; a
+  CPython comparison then exposed huge-index diagnostic differences, reproduced
+  by a failing regression and fixed using the guest's signed 64-bit index check.
+  All 1,384 package tests pass, including 24 storage cases. CPython comparisons
+  matched 17,472 slices, 273 indices, and 1,521 comparisons across Unicode,
+  surrogates, empty strings, and extreme bounds. Scoped lint, source typecheck,
+  and selected workspace build passed. Reference:
+  https://docs.python.org/3/library/stdtypes.html#text-sequence-type-str . This is
+  internal storage, not complete guest str behavior; string methods, hashing,
+  encoding, allocation limits, and guest object/protocol integration remain pending.
 - Next:
   remaining scope/compiler audits, interpreter runtime,
   resource controls, runtime modules, and safe-fs integration. Parsing and static

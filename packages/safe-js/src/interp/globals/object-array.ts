@@ -5,6 +5,7 @@ import { sandboxGetPrototypeOf, sandboxSetPrototypeOf } from "../guest-proxy-pro
 import { sandboxGetOwnPropertyDescriptor } from "../guest-proxy-descriptor.js";
 import { sandboxHasProperty } from "../guest-proxy-has.js";
 import { sandboxOwnKeys } from "../guest-proxy-own-keys.js";
+import { setGuestProxyIntegrity } from "../guest-proxy-integrity.js";
 import { defineGuestProxyProperty } from "../guest-proxy-define.js";
 import { getGeneratorProperties } from "../generator-properties.js";
 import { accessorAdapter, accessorClosure, readPropertyDescriptor, retainedAccessorClosures } from "../accessors.js";
@@ -331,7 +332,9 @@ export function createObjectArrayGlobals(options: {
         }),
         seal: createSandboxClosure({
           sandbox: true,
-          call: ([value]) => {
+          call: ([value], context) => {
+            if (typeof value === "object" && value !== null && guestProxyStates.has(value))
+              return setGuestProxyIntegrity(value, "sealed", options.budget, context);
             if (isGuestHostObject(value))
               throw new TypeError("Live host objects cannot be sealed.");
             Object.seal(isSandboxGenerator(value) ? getGeneratorProperties(value) : isSandboxPromise(value) ? getPromiseProperties(value) : isSandboxClosure(value) ? materializeFunctionProperties(value) : isSandboxRegex(value) ? getRegexProperties(value) : isSandboxMap(value) || isSandboxSet(value) ? getCollectionProperties(value) : value);
@@ -347,7 +350,9 @@ export function createObjectArrayGlobals(options: {
         }),
         freeze: createSandboxClosure({
           sandbox: true,
-          call: ([value]) => {
+          call: ([value], context) => {
+            if (typeof value === "object" && value !== null && guestProxyStates.has(value))
+              return setGuestProxyIntegrity(value, "frozen", options.budget, context);
             if (isGuestHostObject(value))
               throw new TypeError("Live host objects cannot be frozen.");
             if (typeof value === "object" && value !== null) {

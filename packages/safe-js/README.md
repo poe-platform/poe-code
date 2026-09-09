@@ -544,10 +544,15 @@ ownership predicates, `Object.assign`, descriptor maps for `Object.create` and
 Ordinary enumeration also handles existing string/symbol properties made
 enumerable by an earlier getter.
 
+The later internal freeze/seal implementation now prevents target extension and
+updates properties through Proxy traps, with tested ordering and partial-failure
+behavior. Integrity queries (`Object.isFrozen` and `Object.isSealed`) still need
+Proxy integration.
+
 At source commit `f71a86152`, the internal Proxy selection passed 388 tests across
 24 files. This is not a full-package gate or evidence of public Proxy support.
 Callable proxies, public construction/revocation, Proxy checkpoint state, and
-remaining consumers such as for-in and freeze/seal still need integration.
+remaining consumers such as for-in and integrity queries still need integration.
 See the [Proxy progress record](../../docs/plans/safejs-proxy-progress.md) for
 the tested scope and remaining work.
 

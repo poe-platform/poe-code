@@ -18,6 +18,10 @@ full-package, snapshot, or JavaScript-conformance gate.
 - Ordinary enumerability changes during values/entries, descriptor-map and
   spread/rest traversal.
 
+After the source checkpoint above, internal freeze/seal gained Proxy dispatch;
+see [set-integrity verification](safejs-proxy-set-integrity.md). Integrity queries
+remain separate work.
+
 Individual implementation plans record failing native comparisons, scoped
 regressions, TypeScript and lint checks. Recent records include
 [spread/rest](safejs-proxy-copy.md), [ownership](safejs-proxy-ownership.md), and
@@ -29,7 +33,7 @@ regressions, TypeScript and lint checks. Recent records include
   apply/construct traps and callable identity.
 - Proxy graph serialization/restoration, cycles, revocation state, validation,
   and host/structured-clone boundaries.
-- For-in, freeze/seal and integrity queries, array-method bridges, prototype
+- For-in and integrity queries, array-method bridges, prototype
   predicates, legacy accessor lookup and object tags need consumer audits.
 - Array identity and ordinary prototype-cycle checks need Proxy-aware validation.
 - A fresh integrated package gate after implementation; the earlier passing

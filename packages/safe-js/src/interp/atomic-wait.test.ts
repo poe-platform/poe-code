@@ -3,6 +3,8 @@ import { Budget, SandboxError } from "./budget.js";
 import { withRunResources } from "./resources.js";
 import { waitForAtomicValue } from "./atomic-wait.js";
 import { run } from "../run.js";
+import { dump } from "../dump.js";
+import { declareHostOperation } from "./host-bridge.js";
 
 const state = vi.hoisted(() => ({
   created: [] as Array<{ emit: (event: string, ...args: unknown[]) => boolean; terminate: ReturnType<typeof vi.fn>; posts: Array<{ id: number }> }>,
@@ -142,4 +144,62 @@ it("delivers a worker failure as a guest Error after wait registration", async (
     await outcome;
   }
   expect(state.created[0].terminate).toHaveBeenCalledTimes(1);
+});
+
+it("restores a pending atomic checkpoint with controlled worker registration", async () => {
+  const controller = new AbortController();
+  let posted!: () => void;
+  let registration = new Promise<void>(resolve => { posted = resolve; });
+  state.onPost = () => posted();
+  let entered!: () => void;
+  const ready = new Promise<void>(resolve => { entered = resolve; });
+  let resume!: () => void;
+  const gate = new Promise<void>(resolve => { resume = resolve; });
+  const views: Int32Array[] = [];
+  const settlements: Promise<string>[] = [];
+  function acknowledge(worker: (typeof state.created)[number]) {
+    const message = worker.posts[0] as { id: number; buffer: SharedArrayBuffer; offset: number; expected: number; timeout: number };
+    const view = new Int32Array(message.buffer, message.offset, 1);
+    views.push(view);
+    const wait = Reflect.apply(Reflect.get(Atomics, "waitAsync"), Atomics,
+      [view, 0, message.expected, message.timeout]) as { async: boolean; value: Promise<string> };
+    expect(wait.async).toBe(true);
+    settlements.push(wait.value);
+    worker.emit("message", { id: message.id, kind: "registered", async: true });
+    void wait.value.then(value => worker.emit("message", { id: message.id, kind: "settled", value }));
+  }
+  const source = `const a=new Int32Array(new SharedArrayBuffer(4));
+    const waiter=Atomics.waitAsync(a,0,0);await gate();
+    return [Atomics.notify(a,0),await waiter.value]`;
+  const pending = run(source, { signal: controller.signal,
+    bindings: { gate: declareHostOperation(async () => { entered(); return gate; }, "re-issue") } });
+  const outcome = pending.catch(error => error);
+  let replayOutcome: Promise<unknown> | undefined;
+  try {
+    await registration;
+    acknowledge(state.created[0]);
+    await ready;
+    await new Promise<void>(resolve => setImmediate(resolve));
+    const snapshot = JSON.parse(await dump(pending, { mode: "replay" }));
+    resume();
+    expect(await outcome).toMatchObject({ ok: true, returnValue: [1, "ok"] });
+    registration = new Promise<void>(resolve => { posted = resolve; });
+    let replayGateCalls = 0;
+    const replay = run(source, { snapshot, signal: controller.signal,
+      bindings: { gate: declareHostOperation(async () => { replayGateCalls++; }, "re-issue") } });
+    replayOutcome = replay.catch(error => error);
+    await registration;
+    expect(state.created).toHaveLength(2);
+    expect(replayGateCalls).toBe(0);
+    acknowledge(state.created[1]);
+    expect(await replayOutcome).toMatchObject({ ok: true, returnValue: [1, "ok"] });
+    expect(replayGateCalls).toBe(1);
+    for (const worker of state.created) expect(worker.terminate).toHaveBeenCalledTimes(1);
+    for (const view of views) expect(Atomics.notify(view, 0)).toBe(0);
+  } finally {
+    resume();
+    controller.abort();
+    for (const view of views) Atomics.notify(view, 0);
+    await Promise.all([outcome, replayOutcome, ...settlements]);
+  }
 });

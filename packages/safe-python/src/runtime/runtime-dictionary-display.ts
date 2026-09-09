@@ -2,6 +2,7 @@ import { PythonRuntimeError } from "./error.js";
 import type { ExecutionMeter } from "./execution-budget.js";
 import type { ExpressionDictionary } from "./expression-evaluation.js";
 import { OrderedKeyMap, type KeyOperations } from "./ordered-key-map.js";
+import { runtimeDictionaryStorage } from "./runtime-dictionary-storage.js";
 import { runtimeDictionaryAccess } from "./runtime-dictionary-access.js";
 import { mergeRuntimeMappingProxy } from "./runtime-mapping-proxy.js";
 import type { RuntimeValue, RuntimeValues } from "./runtime-values.js";
@@ -13,7 +14,14 @@ import type { RuntimeValue, RuntimeValues } from "./runtime-values.js";
  */
 export function beginRuntimeDictionary(initial: readonly (readonly [RuntimeValue, RuntimeValue])[], values: RuntimeValues, keys: KeyOperations<RuntimeValue>, meter: ExecutionMeter): ExpressionDictionary<RuntimeValue> {
   meter.checkpoint(1, 128);
-  const result = values.dictionary(new OrderedKeyMap<RuntimeValue, RuntimeValue>(keys, meter));
+  let storage = runtimeDictionaryStorage;
+  if (initial.length > 5) {
+    let exactStrings = true;
+    for (const [key] of initial) { meter.checkpoint(); if (key.kind !== "str") { exactStrings = false; break; } }
+    meter.checkpoint(1, 64);
+    storage = { ...runtimeDictionaryStorage, minimumEntries: initial.length, exactStrings };
+  }
+  const result = values.dictionary(new OrderedKeyMap<RuntimeValue, RuntimeValue>(keys, meter, storage));
   const builder: ExpressionDictionary<RuntimeValue> = {
     set(key, value) {
       meter.checkpoint(1, 32);

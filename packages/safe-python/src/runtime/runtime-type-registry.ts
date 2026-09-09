@@ -1,6 +1,7 @@
 import type { TupleConstant } from "./constant-values.js";
 import type { ExecutionMeter } from "./execution-budget.js";
 import { OrderedKeyMap, type KeyOperations } from "./ordered-key-map.js";
+import { runtimeDictionaryStorage } from "./runtime-dictionary-storage.js";
 import { RuntimeTypeLayout } from "./runtime-type-layout.js";
 import type { RuntimeValue, RuntimeValues, TypeValue } from "./runtime-values.js";
 
@@ -25,8 +26,8 @@ export class RuntimeTypeRegistry {
   constructor(private readonly values: RuntimeValues, keys: KeyOperations<RuntimeValue>, private readonly meter: ExecutionMeter) {
     meter.checkpoint(1, 192);
     this.#entries = new WeakMap();
-    const objectLayout = new RuntimeTypeLayout("object", [], values.dictionary(new OrderedKeyMap<RuntimeValue, RuntimeValue>(keys, meter)), meter);
-    const typeLayout = new RuntimeTypeLayout("type", [objectLayout], values.dictionary(new OrderedKeyMap<RuntimeValue, RuntimeValue>(keys, meter)), meter);
+    const objectLayout = new RuntimeTypeLayout("object", [], values.dictionary(new OrderedKeyMap<RuntimeValue, RuntimeValue>(keys, meter, runtimeDictionaryStorage)), meter);
+    const typeLayout = new RuntimeTypeLayout("type", [objectLayout], values.dictionary(new OrderedKeyMap<RuntimeValue, RuntimeValue>(keys, meter, runtimeDictionaryStorage)), meter);
     this.type = values.type(typeLayout, "self", { immutable: true });
     this.object = values.type(objectLayout, this.type, { immutable: true });
     this.#entries.set(objectLayout, { type: this.object });

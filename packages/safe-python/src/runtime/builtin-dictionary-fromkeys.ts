@@ -1,6 +1,7 @@
 import { PythonRuntimeError } from "./error.js";
 import type { ExecutionMeter } from "./execution-budget.js";
 import { OrderedKeyMap, type KeyOperations } from "./ordered-key-map.js";
+import { runtimeDictionaryStorage } from "./runtime-dictionary-storage.js";
 import { runtimeDictionaryAccess } from "./runtime-dictionary-access.js";
 import { runtimeIterate } from "./runtime-iteration.js";
 import type { BuiltinFunctionValue, RuntimeValue, RuntimeValues } from "./runtime-values.js";
@@ -30,7 +31,7 @@ export function createDictionaryFromKeysBuiltin(values: RuntimeValues, keys: Key
       if (positional.length < 1) throw new PythonRuntimeError("TypeError", "fromkeys expected at least 1 argument, got 0");
       if (positional.length > 2) throw new PythonRuntimeError("TypeError", `fromkeys expected at most 2 arguments, got ${positional.length}`);
       const source = positional[0], value = positional[1] ?? values.none;
-      const result = context ? context.create() : values.dictionary(new OrderedKeyMap<RuntimeValue, RuntimeValue>(keys, meter));
+      const result = context ? context.create() : values.dictionary(new OrderedKeyMap<RuntimeValue, RuntimeValue>(keys, meter, runtimeDictionaryStorage));
       meter.checkpoint();
       if (result.kind === "dict" && (source.kind === "dict" || source.kind === "set" || source.kind === "frozenset")) {
         meter.checkpoint(0, 16);

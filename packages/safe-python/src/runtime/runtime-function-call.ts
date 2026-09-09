@@ -2,6 +2,7 @@ import type { ExecutionMeter } from "./execution-budget.js";
 import { PythonRuntimeError } from "./error.js";
 import { invokeFunction, type FunctionInvocationContext } from "./function-invocation.js";
 import { OrderedKeyMap, type KeyOperations } from "./ordered-key-map.js";
+import { runtimeDictionaryStorage } from "./runtime-dictionary-storage.js";
 import type { DictionaryValue, FunctionValue, RuntimeValue, RuntimeValues } from "./runtime-values.js";
 
 export interface RuntimeFunctionContext extends Pick<FunctionInvocationContext<RuntimeValue, RuntimeValue>, "calls" | "body" | "suspended" | "classBody"> {
@@ -39,7 +40,7 @@ export function invokeRuntimeFunction(fn: FunctionValue, positional: readonly Ru
     none: context.values.none, calls: context.calls, body: context.body.bind(context),
     tuple: items => context.values.tuple(items),
     dictionary(items) {
-      const storage = new OrderedKeyMap<RuntimeValue, RuntimeValue>(context.keys, meter);
+      const storage = new OrderedKeyMap<RuntimeValue, RuntimeValue>(context.keys, meter, runtimeDictionaryStorage);
       for (const [key, value] of items) { meter.checkpoint(); storage.set(key, value); }
       return context.values.dictionary(storage);
     }

@@ -2,6 +2,7 @@ import type { ExpressionCall } from "./call-arguments.js";
 import type { ExecutionMeter } from "./execution-budget.js";
 import { PythonRuntimeError } from "./error.js";
 import { OrderedKeyMap, type KeyOperations } from "./ordered-key-map.js";
+import { runtimeDictionaryStorage } from "./runtime-dictionary-storage.js";
 import { runtimeIterate } from "./runtime-iteration.js";
 import { mergeRuntimeMappingProxy } from "./runtime-mapping-proxy.js";
 import type { DictionaryValue, RuntimeValue, RuntimeValues } from "./runtime-values.js";
@@ -31,7 +32,7 @@ export interface RuntimeCallContext {
 export function beginRuntimeCall(callee: RuntimeValue, context: RuntimeCallContext, meter: ExecutionMeter): ExpressionCall<RuntimeValue> {
   meter.checkpoint(1, 256);
   const positional: RuntimeValue[] = [];
-  const keywords = context.values.dictionary(new OrderedKeyMap<RuntimeValue, RuntimeValue>(context.keys, meter));
+  const keywords = context.values.dictionary(new OrderedKeyMap<RuntimeValue, RuntimeValue>(context.keys, meter, runtimeDictionaryStorage));
   const duplicate = (key: RuntimeValue): never => {
     const name = context.name(callee); meter.checkpoint();
     const keyword = context.keywordName(key);

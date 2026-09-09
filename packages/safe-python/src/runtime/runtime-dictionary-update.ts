@@ -2,6 +2,7 @@ import { PythonRuntimeError } from "./error.js";
 import type { ExecutionMeter } from "./execution-budget.js";
 import { updateDictionaryPairs } from "./dictionary-update.js";
 import { OrderedKeyMap, type KeyOperations } from "./ordered-key-map.js";
+import { runtimeDictionaryStorage } from "./runtime-dictionary-storage.js";
 import { runtimeDictionaryAccess } from "./runtime-dictionary-access.js";
 import { runtimeIterate } from "./runtime-iteration.js";
 import { mergeRuntimeMappingProxy } from "./runtime-mapping-proxy.js";
@@ -43,7 +44,7 @@ export function updateRuntimeDictionary(target: DictionaryValue, source: Runtime
 export function constructRuntimeDictionary(positional: readonly RuntimeValue[], keywords: ReadonlyMap<string, RuntimeValue>, values: RuntimeValues, keys: KeyOperations<RuntimeValue>, meter: ExecutionMeter): DictionaryValue {
   meter.checkpoint();
   if (positional.length > 1) throw new PythonRuntimeError("TypeError", `dict expected at most 1 argument, got ${positional.length}`);
-  const result = values.dictionary(new OrderedKeyMap<RuntimeValue, RuntimeValue>(keys, meter));
+  const result = values.dictionary(new OrderedKeyMap<RuntimeValue, RuntimeValue>(keys, meter, runtimeDictionaryStorage));
   if (positional.length === 1) updateRuntimeDictionary(result, positional[0], values, meter);
   for (const [name, value] of keywords) {
     meter.checkpoint(1, 32);

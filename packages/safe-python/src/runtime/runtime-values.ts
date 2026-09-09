@@ -197,7 +197,9 @@ export class RuntimeValues extends ConstantValues {
     return Object.freeze({ kind: "method", value: Object.freeze({ function: fn, instance }) });
   }
 
-  /** Adopt prepared ordered storage sharing this execution's key policy/meter. */
+  /** Adopt prepared ordered storage sharing this execution's key policy/meter.
+   * Does not reconstruct insertion history: host-provided maps that need raw
+   * dictionary traversal must opt into positional storage when created. */
   dictionary(items: OrderedKeyMap<RuntimeValue, RuntimeValue>): DictionaryValue {
     this.runtimeMeter.checkpoint(1, 32);
     return Object.freeze({ kind: "dict", items });

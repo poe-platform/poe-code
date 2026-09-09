@@ -5362,6 +5362,23 @@ extension, integration, or validation requirement is missing or unverified.
   split/shared-key layouts, native dict/set representation, bytes percent
   operators, full guest objects, suspended execution, complete accounting and
   SDK/safe-fs integration remain incomplete.
+- Enabled positional storage at native dictionary creation sites using one
+  shared exact-string layout policy: displays, dict() construction, default
+  fromkeys, call keyword collectors, function-bound **kwargs, builder-body calls
+  and bootstrap type namespaces. Explicit initial display runs presize from the
+  full pair count and key types, including duplicate keys. Native set constructors
+  and transient keyword merge groups remain outside dictionary positional storage.
+  Adoption of host-prepared maps retains identity and does not fabricate missing
+  insertion history; such hosts must configure positional storage at creation.
+- Five new construction tests first failed on disabled positional storage, and
+  another regression checks function-bound keyword dictionaries. All 4,563 tests
+  in 375 files pass. CPython raw entry positions match 1,476 compiled dictionary
+  display/mutation programs, including duplicate runs, string/integer layouts,
+  deletions, insertions and large literal construction chunks. Source typecheck,
+  scoped lint and selected workspace build pass. Native dict representation
+  dispatch, remaining bulk-layout policies, split/shared-key layouts, set repr,
+  bytes percent operators, full guest objects, suspended execution, complete
+  accounting and SDK/safe-fs integration remain incomplete.
 - Next:
   remaining scope/compiler audits, interpreter runtime,
   resource controls, runtime modules, and safe-fs integration. Parsing and static

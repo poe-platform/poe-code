@@ -3,6 +3,7 @@ import type { ExecutionMeter } from "./execution-budget.js";
 import type { CellStorage } from "./lexical-frame.js";
 import type { LocalNamespace } from "./module-frame.js";
 import { OrderedKeyMap } from "./ordered-key-map.js";
+import { runtimeDictionaryStorage } from "./runtime-dictionary-storage.js";
 import type { CompiledProgram } from "./program-compilation.js";
 import { RuntimeDictionaryNamespace } from "./runtime-dictionary-namespace.js";
 import { invokeRuntimeFunction } from "./runtime-function-call.js";
@@ -40,7 +41,7 @@ export function executeRuntimeBuilderBody(
     meter.checkpoint();
     return result;
   }
-  const keywords = values.dictionary(new OrderedKeyMap<RuntimeValue, RuntimeValue>(keys, meter));
+  const keywords = values.dictionary(new OrderedKeyMap<RuntimeValue, RuntimeValue>(keys, meter, runtimeDictionaryStorage));
   const result = invokeRuntimeFunction(fn, [], keywords, {
     values, keys, calls, body: bindBody, suspended: hooks.suspended?.bind(hooks)
   }, meter);

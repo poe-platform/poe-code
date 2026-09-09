@@ -43,6 +43,12 @@ function fixture(source: string) {
 }
 
 describe("concrete runtime function calls", () => {
+  it("creates positional storage for function-bound keyword dictionaries", () => {
+    const { run, v } = fixture("def f(**kw):\n return kw\n");
+    const result = run("f(a=1, b=2)");
+    if (result.kind !== "dict") throw Error("expected dict");
+    expect(result.items.nextDictionaryEntry(1)).toEqual({ position: 2, key: v.string("b"), value: v.integer(2) });
+  });
   it("binds all argument kinds and produces concrete variadic containers", () => {
     const { run, v, calls } = fixture("def f(a, /, b=2, *rest, c=3, **kw):\n return a, b, rest, c, kw\n");
     const result = run("f(1, *[4, 5], c=6, **{'a': 7, 'x': 8})");

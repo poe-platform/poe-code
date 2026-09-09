@@ -5,6 +5,23 @@ import { ExecutionBudget } from "./execution-budget.js";
 const budget = () => new ExecutionBudget({ maxSteps: 10000, maxAllocatedBytes: 10000 });
 
 describe("iterator-driven assignment unpacking", () => {
+  it.each([[2, null, [1, 2], 112], [1, 1, [1, 2, 3], 160]] as const)("accounts for result arrays including copied suffix slots (%s, %s)", (before, after, input, bytes) => {
+    const meter = budget();
+    unpackAssignment(input[Symbol.iterator](), before, after, meter);
+    expect(meter.usage.allocatedBytes).toBe(bytes);
+  });
+  it.each([[2, null, 72], [0, 0, 104]] as const)("charges temporary slots before retaining values (%s, %s)", (before, after, maxAllocatedBytes) => {
+    const next = vi.fn(() => ({ done: false, value: 1 })), close = vi.fn();
+    const meter = new ExecutionBudget({ maxSteps: 10000, maxAllocatedBytes });
+    expect(() => unpackAssignment({ next, return: close }, before, after, meter)).toThrow("execution allocation limit exceeded");
+    expect(next).toHaveBeenCalledTimes(2); expect(close).not.toHaveBeenCalled();
+  });
+  it.each([null, 0])("observes cancellation after an exhaustion callback (%s)", after => {
+    const controller = new AbortController();
+    const meter = new ExecutionBudget({ maxSteps: 10000, maxAllocatedBytes: 10000, signal: controller.signal });
+    const next = () => { controller.abort(); return { done: true as const, value: undefined }; };
+    expect(() => unpackAssignment({ next }, 0, after, meter)).toThrow("execution cancelled");
+  });
   it("collects exact-count values, retaining undefined and identity", () => {
     const value = {};
     expect(unpackAssignment([value, undefined][Symbol.iterator](), 2, null, budget())).toEqual({ leading: [value, undefined], starred: undefined, trailing: [] });

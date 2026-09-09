@@ -6161,6 +6161,18 @@ extension, integration, or validation requirement is missing or unverified.
   unpacking hint comparisons still pass. Typecheck, scoped lint and
   selected workspace build pass. Broader object/builtin/SDK/safe-fs integration
   and complete temporary allocation accounting remain unfinished.
+- Metered unpacking's temporary result/array allocations, retained leading and
+  starred slots, and copied trailing slots before allocation. Successful next
+  callbacks are checked before inspecting exhaustion, retaining values or
+  returning; remainder preparation is also checked before allocating its array.
+- Six cases cover allocation cutoffs without closing/extra pulls, cancellation
+  on exhaustion and exact cumulative temporary charges. Three first failed on
+  missing allocation/cancellation enforcement. The 5,000-level traversal fixture
+  retains its full depth with a budget accommodating newly counted temporaries.
+  All 4,880 tests in 426 files pass, and 120 extended-unpack CPython comparisons
+  retain exact output/error/callback behavior. Typecheck, scoped lint and selected workspace
+  build pass. Expression buffers and traversal work stacks still need complete
+  temporary accounting; broader interpreter and SDK/safe-fs work remain open.
 - Next:
   remaining scope/compiler audits, interpreter runtime,
   resource controls, runtime modules, and safe-fs integration. Parsing and static

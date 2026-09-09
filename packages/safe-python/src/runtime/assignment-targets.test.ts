@@ -88,7 +88,8 @@ describe("assignment target traversal", () => {
   it("does not recurse on the host stack for deep target trees", () => {
     const leaf = parseExpression("a"); let target: Expression = leaf, value: unknown = 1;
     for (let i = 0; i < 5000; i++) { target = { ...leaf, kind: "tuple", items: [target] }; value = [value]; }
-    const { context, names, meter } = environment();
+    // Each level now accounts for its temporary unpack result and array slots.
+    const { context, names, meter } = environment(new ExecutionBudget({ maxSteps: 100000, maxAllocatedBytes: 1000000 }));
     assignTargets([target], value, context, meter);
     expect(names.get("a")).toBe(1);
   });

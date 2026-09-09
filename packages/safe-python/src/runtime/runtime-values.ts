@@ -63,6 +63,22 @@ export interface TypeValue {
   readonly metaclass: TypeValue;
 }
 
+/** Explicit native descriptor capability. Accessors receive a receiver already
+ * accepted by the applicability policy; callbacks own their internal metering. */
+export interface GetsetDescriptorCapability {
+  readonly owner: TypeValue;
+  readonly name: string;
+  accepts(instance: RuntimeValue, meter: ExecutionMeter): boolean;
+  get(instance: RuntimeValue, meter: ExecutionMeter): RuntimeValue;
+  set?(instance: RuntimeValue, value: RuntimeValue, meter: ExecutionMeter): void;
+  delete?(instance: RuntimeValue, meter: ExecutionMeter): void;
+}
+
+export interface GetsetDescriptorValue {
+  readonly kind: "getset_descriptor";
+  readonly value: GetsetDescriptorCapability;
+}
+
 /** Finish the self-reference before publishing the immutable record. */
 class RuntimeTypeRecord implements TypeValue {
   readonly kind = "type";
@@ -86,6 +102,7 @@ export type RuntimeValue =
   | BoundMethodValue
   | CellValue
   | TypeValue
+  | GetsetDescriptorValue
   | DictionaryValue;
 
 /** Host-only records, never accessible through guest JavaScript properties.
@@ -158,5 +175,10 @@ export class RuntimeValues extends ConstantValues {
   type(layout: RuntimeTypeLayout, metaclass: TypeValue | "self"): TypeValue {
     this.runtimeMeter.checkpoint(1, 48);
     return new RuntimeTypeRecord(layout, metaclass);
+  }
+
+  getsetDescriptor(value: GetsetDescriptorCapability): GetsetDescriptorValue {
+    this.runtimeMeter.checkpoint(1, 32);
+    return Object.freeze({ kind: "getset_descriptor", value });
   }
 }

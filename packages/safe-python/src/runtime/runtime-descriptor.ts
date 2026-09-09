@@ -2,10 +2,11 @@ import type { ExecutionMeter } from "./execution-budget.js";
 import { PythonRuntimeError } from "./error.js";
 import type { ClassAttribute, DescriptorSlots } from "./instance-attributes.js";
 import type { BoundMethodValue, FunctionValue, RuntimeValue, RuntimeValues } from "./runtime-values.js";
+import { readRuntimeGetsetDescriptor, mutateRuntimeGetsetDescriptor } from "./runtime-getset-descriptor.js";
 
 export interface RuntimeDescriptorContext {
   /** Resolve slots on the value's type, never its instance dictionary. Exact
-   * Python functions use the intrinsic slot and do not consult this hook. */
+   * Python functions and native getsets use intrinsic slots, bypassing this hook. */
   slots(value: RuntimeValue): DescriptorSlots<RuntimeValue, RuntimeValue, RuntimeValue> | undefined;
 }
 
@@ -27,9 +28,14 @@ export function getRuntimeFunctionDescriptor(fn: FunctionValue, instance: Runtim
  * storage, __getattribute__ overrides and __getattr__ fallback remain separate.
  */
 export function resolveRuntimeClassAttribute(value: RuntimeValue, context: RuntimeDescriptorContext, values: RuntimeValues, meter: ExecutionMeter): ClassAttribute<RuntimeValue, RuntimeValue, RuntimeValue> {
-  meter.checkpoint(1, value.kind === "function" ? 96 : 32);
+  meter.checkpoint(1, value.kind === "function" ? 96 : value.kind === "getset_descriptor" ? 160 : 32);
   const slots = value.kind === "function"
     ? Object.freeze({ get: (instance: RuntimeValue | null, owner: RuntimeValue) => getRuntimeFunctionDescriptor(value, instance, owner, values, meter) })
+    : value.kind === "getset_descriptor" ? Object.freeze({
+      get: (instance: RuntimeValue | null, owner: RuntimeValue) => readRuntimeGetsetDescriptor(value, instance, owner, meter),
+      set: (instance: RuntimeValue, item: RuntimeValue) => mutateRuntimeGetsetDescriptor(value, instance, { kind: "set", value: item }, meter),
+      delete: (instance: RuntimeValue) => mutateRuntimeGetsetDescriptor(value, instance, { kind: "delete" }, meter)
+    })
     : context.slots(value);
   meter.checkpoint();
   return Object.freeze({ value, slots });

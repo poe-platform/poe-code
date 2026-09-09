@@ -86,7 +86,7 @@ export function runtimeHash(value: RuntimeValue, context: ConstantHashContext | 
             result = normalized(fn ^ instance); break;
           }
           case "list": case "dict": case "cell": throw new UnhashableRuntimeValueError(current.kind);
-          case "function": case "iterator": case "builtin_function_or_method": case "type":
+          case "function": case "iterator": case "builtin_function_or_method": case "type": case "getset_descriptor":
             if (!("none" in context)) throw new Error("runtime hash context is required for identity-based runtime values");
             result = normalized(context.identity(current)); break;
           case "bool": result = current.value ? 1n : 0n; break;

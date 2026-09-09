@@ -3497,6 +3497,22 @@ extension, integration, or validation requirement is missing or unverified.
   mutability checks, intrinsic metaclass descriptors, overridden __getattribute__/
   __getattr__, missing-name diagnostics and type construction remain unfinished.
   Suspension, full accounting and public SDK/safe-fs integration remain unfinished.
+- Added concrete native getset-descriptor capabilities with intrinsic data slots,
+  receiver applicability checks, class-access markers, read-only diagnostics and
+  post-callback resource checkpoints. Explicit writable capabilities retain their
+  callback owner. Bootstrap now installs type.__mro__ as a read-only native getset,
+  returning the canonical cached hierarchy tuple and resisting class-dictionary
+  shadowing. Descriptor records have intrinsic identity hashing/truth and reject
+  unsupported arithmetic/iteration without traversing owner cycles.
+- The new suite first failed on the missing descriptor implementation. All 3,472
+  tests in 239 files pass. A 1,000-case CPython type-graph audit matched MRO reads,
+  receiver checks and read-only errors alongside intrinsic type behavior. Type
+  descriptor configurations (484/2,420 operations), function descriptor lookup
+  (1,200/3,600 outcomes) and runtime hash (3,000) differential regressions passed.
+  Source typecheck, scoped lint and selected workspace build passed. Other native
+  type descriptors, exposed descriptor-wrapper argument binding/introspection,
+  immutable-type mutation guards, type construction and instance dispatch remain
+  unfinished, as do suspension, full accounting and public SDK/safe-fs integration.
 - Next:
   remaining scope/compiler audits, interpreter runtime,
   resource controls, runtime modules, and safe-fs integration. Parsing and static

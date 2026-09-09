@@ -39,12 +39,17 @@ export function constantComparison(operator: string, left: ConstantValue, right:
     }
     if (a.kind === "str" && b.kind === "str") { result = orderedResult(op, a.value.compare(b.value, meter)); continue; }
     if (a.kind === "bytes" && b.kind === "bytes") { result = orderedResult(op, a.value.compare(b.value, meter)); continue; }
-    if (a.kind === "tuple" && b.kind === "tuple") {
+    if ((a.kind === "tuple" && b.kind === "tuple") || (a.kind === "slice" && b.kind === "slice")) {
+      // Slice comparison uses the same identity-aware component ordering as
+      // tuples; charge temporary three-reference arrays, not guest tuple records.
+      if (a.kind === "slice") meter.checkpoint(0, 6 * 8);
+      const aItems = a.kind === "tuple" ? a.items : [a.start, a.stop, a.step];
+      const bItems = b.kind === "tuple" ? b.items : [b.start, b.stop, b.step];
       let index = 0;
       const next = () => {
-        while (index < a.items.length && index < b.items.length) {
+        while (index < aItems.length && index < bItems.length) {
           meter.checkpoint();
-          const x = a.items[index], y = b.items[index]; index++;
+          const x = aItems[index], y = bItems[index]; index++;
           if (x === y) continue;
           work.push(() => {
             if (result) { work.push(next); return; }
@@ -53,7 +58,7 @@ export function constantComparison(operator: string, left: ConstantValue, right:
           }, { operator: "==", left: x, right: y });
           return;
         }
-        result = orderedResult(op, a.items.length - b.items.length);
+        result = orderedResult(op, aItems.length - bItems.length);
       };
       work.push(next);
       continue;

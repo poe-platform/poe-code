@@ -1,9 +1,10 @@
 import type { ConstantValue, ConstantValues } from "./constant-values.js";
 import type { ExecutionMeter } from "./execution-budget.js";
 import { PythonRuntimeError } from "./error.js";
+import { constantSlice } from "./constant-slice.js";
 
-/** Integer subscription for exact immutable builtin values. Slices and guest
- * __index__/__getitem__ dispatch belong to separate object-runtime operations.
+/** Integer and slice subscription for exact immutable builtin values. Guest
+ * __index__/__getitem__ dispatch belongs to separate object-runtime operations.
  * String results preserve a single Unicode code point, including surrogates;
  * tuple results retain the original member identity.
  */
@@ -13,6 +14,7 @@ export function constantIndex(object: ConstantValue, key: ConstantValue, values:
     const name = object.kind === "none" ? "NoneType" : object.kind === "not-implemented" ? "NotImplementedType" : object.kind;
     throw new PythonRuntimeError("TypeError", `'${name}' object is not subscriptable`);
   }
+  if (key.kind === "slice") return constantSlice(object, { lower: key.start, upper: key.stop, step: key.step }, values, meter);
   if (key.kind !== "int" && key.kind !== "bool") {
     const name = key.kind === "none" ? "NoneType" : key.kind === "not-implemented" ? "NotImplementedType" : key.kind;
     throw new PythonRuntimeError("TypeError", object.kind === "str" ? `string indices must be integers, not '${name}'` : `${object.kind === "bytes" ? "byte" : "tuple"} indices must be integers or slices, not ${name}`);

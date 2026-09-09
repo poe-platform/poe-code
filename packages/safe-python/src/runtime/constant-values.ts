@@ -1,4 +1,5 @@
 import type { Expression } from "../ast.js";
+import type { SliceValues } from "./expression-evaluation.js";
 import type { ExecutionMeter } from "./execution-budget.js";
 import { CodePointString } from "./code-point-string.js";
 import { ImmutableBytes } from "./immutable-bytes.js";
@@ -19,7 +20,14 @@ export interface TupleConstant<Value = ConstantValue> {
   readonly items: readonly Value[];
 }
 
-export type ConstantValue = PrimitiveConstant | TupleConstant<ConstantValue>;
+export interface SliceConstant<Value = ConstantValue> {
+  readonly kind: "slice";
+  readonly start: Value;
+  readonly stop: Value;
+  readonly step: Value;
+}
+
+export type ConstantValue = PrimitiveConstant | TupleConstant<ConstantValue> | SliceConstant<ConstantValue>;
 
 // Logical runtime allocation policy, not a measurement of JavaScript heap size.
 const VALUE_BYTES = 32;
@@ -96,6 +104,12 @@ export class ConstantValues {
     const items: Value[] = new Array(values.length);
     for (let index = 0; index < values.length; index++) { this.meter.checkpoint(); items[index] = values[index]; }
     return Object.freeze({ kind: "tuple", items: Object.freeze(items) });
+  }
+
+  /** Creating a slice never coerces or validates its component values. */
+  slice(parts: SliceValues<ConstantValue>): SliceConstant {
+    this.meter.checkpoint(1, VALUE_BYTES + 3 * REFERENCE_BYTES);
+    return Object.freeze({ kind: "slice", start: parts.lower ?? this.none, stop: parts.upper ?? this.none, step: parts.step ?? this.none });
   }
 
   /** Materialize validated parser literals; explicit surrogate code points remain

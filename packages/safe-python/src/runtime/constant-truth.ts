@@ -1,4 +1,4 @@
-import type { PrimitiveConstant, TupleConstant } from "./constant-values.js";
+import type { PrimitiveConstant, TupleConstant, SliceConstant } from "./constant-values.js";
 import type { ExecutionMeter } from "./execution-budget.js";
 import { PythonRuntimeError } from "./error.js";
 
@@ -6,11 +6,12 @@ import { PythonRuntimeError } from "./error.js";
  * dispatch. Container members are never coerced. The wider object runtime must
  * resolve overridden __bool__/__len__ slots before using exact builtin behavior.
  */
-export function constantTruth(value: PrimitiveConstant | TupleConstant<unknown>, meter: ExecutionMeter): boolean {
+export function constantTruth(value: PrimitiveConstant | TupleConstant<unknown> | SliceConstant<unknown>, meter: ExecutionMeter): boolean {
   meter.checkpoint();
   switch (value.kind) {
     case "none": return false;
     case "ellipsis": return true;
+    case "slice": return true;
     case "not-implemented": throw new PythonRuntimeError("TypeError", "NotImplemented should not be used in a boolean context");
     case "bool": return value.value;
     case "int": return value.value !== 0n;

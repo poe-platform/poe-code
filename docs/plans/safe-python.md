@@ -2096,6 +2096,19 @@ extension, integration, or validation requirement is missing or unverified.
   Byte-slice accounting verifies one copied payload plus the tagged
   result. Guest slice objects/expression wiring, user-defined index conversion
   and complete host heap accounting remain unfinished.
+- Added immutable concrete slice records with start/stop/step references and None
+  defaults; construction intentionally does not validate or coerce components.
+  Slices are truthy and compare through identity-aware component ordering on the
+  explicit comparison work stack. Concrete subscription now recognizes slice keys,
+  connecting evaluated slice syntax to sequence slicing through expression tests.
+  Logical slice allocation charges include the record and three references;
+  comparison charges its temporary component arrays without guest tuple records.
+- Slice-value validation: seven new regression tests failed before implementation.
+  All 2,502 tests in 138 files pass; CPython matched 141,512 mixed comparisons with
+  slice values/shared components and 3,000 subscriptions through concrete slice
+  keys. Typecheck, scoped lint and selected workspace build passed.
+  Guest slice type descriptors, constructor-call binding, indices(), hashing,
+  user-defined conversion and complete host heap accounting remain unfinished.
 - Next:
   remaining scope/compiler audits, interpreter runtime,
   resource controls, runtime modules, and safe-fs integration. Parsing and static

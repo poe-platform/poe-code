@@ -1,11 +1,12 @@
 import type { CodePointString } from "./code-point-string.js";
 import type { ExecutionMeter } from "./execution-budget.js";
-import type { RepresentationContext } from "./representation-protocol.js";
+import { representationObject, type RepresentationContext } from "./representation-protocol.js";
 import { hasNativeRepresentation, runtimeNativeRepresentation } from "./runtime-native-representation-method.js";
 import type { RuntimeValue, RuntimeValues } from "./runtime-values.js";
 import { listRepresentation } from "./list-representation.js";
 import { tupleRepresentation } from "./tuple-representation.js";
 import { dictionaryRepresentation } from "./dictionary-representation.js";
+import { mappingProxyRepresentation } from "./mapping-proxy-representation.js";
 import { RepresentationStack } from "./representation-stack.js";
 
 export interface RuntimeRepresentationHooks {
@@ -31,6 +32,10 @@ export function createRuntimeRepresentationContext(values: RuntimeValues, meter:
     string(value) { meter.checkpoint(); return value.kind === "str" ? value.value : hooks.string?.(value); },
     lookupStr(value) {
       meter.checkpoint();
+      if (value.kind === "mappingproxy") {
+        meter.checkpoint(0, 64);
+        return () => representationObject(value.value, "str", context, meter);
+      }
       if (value.kind === "list" || value.kind === "tuple" || value.kind === "dict") return undefined; // object.__str__ falls back to repr.
       if (hasNativeRepresentation(value)) {
         meter.checkpoint(0, 64);
@@ -40,6 +45,10 @@ export function createRuntimeRepresentationContext(values: RuntimeValues, meter:
     },
     lookupRepr(value) {
       meter.checkpoint();
+      if (value.kind === "mappingproxy") {
+        meter.checkpoint(0, 64);
+        return () => values.stringPoints(mappingProxyRepresentation(value.value, context, meter));
+      }
       if (value.kind === "list" || value.kind === "tuple" || value.kind === "dict") {
         meter.checkpoint(0, 64);
         return () => {

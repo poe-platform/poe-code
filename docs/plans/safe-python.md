@@ -5396,6 +5396,20 @@ extension, integration, or validation requirement is missing or unverified.
   policies, split/shared-key layouts, set/frozenset representation, bytes percent
   operators, full guest objects, suspended execution, complete accounting and
   SDK/safe-fs integration remain incomplete.
+- Added native representation for the current dictionary-backed mapping proxies.
+  Str delegates to the mapping's str; repr adds metered mappingproxy(...) framing
+  around its repr in one final code-point buffer. Underlying dictionary guards
+  remain shared through proxy cycles, preserving guest hooks, live mutation and
+  failure cleanup. Percent s/r/a uses the same native paths and field rules.
+- Four runtime tests first failed on missing proxy support. All 4,572 tests in
+  377 files pass. Native methods/percent formatting match CPython across 2,000
+  proxy/dictionary graphs (9,000 roots), and 2,000 compiled programs obtain proxies
+  through dictionary-view mapping attributes and render mixed native contents.
+  Source typecheck, scoped lint and selected workspace build pass. Arbitrary
+  guest-mapping proxy construction, remaining dictionary bulk-layout policies,
+  split/shared-key layouts, set/frozenset representation, bytes percent operators,
+  full guest objects, suspended execution, complete accounting and SDK/safe-fs
+  integration remain incomplete.
 - Next:
   remaining scope/compiler audits, interpreter runtime,
   resource controls, runtime modules, and safe-fs integration. Parsing and static

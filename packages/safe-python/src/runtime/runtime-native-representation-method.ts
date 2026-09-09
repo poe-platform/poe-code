@@ -10,12 +10,12 @@ import { createRuntimeRepresentationContext } from "./runtime-representation.js"
 import { representationObject } from "./representation-protocol.js";
 import { UnsupportedExpressionError } from "./expression-evaluation.js";
 
-type NativeRepresentationValue = Extract<RuntimeValue, { kind: "str" | "bytes" | "int" | "bool" | "float" | "complex" | "range" | "list" | "tuple" | "dict" | "none" | "ellipsis" | "not-implemented" }>;
+type NativeRepresentationValue = Extract<RuntimeValue, { kind: "str" | "bytes" | "int" | "bool" | "float" | "complex" | "range" | "list" | "tuple" | "dict" | "mappingproxy" | "none" | "ellipsis" | "not-implemented" }>;
 
 /** One capability guard shared by attribute and implicit representation lookup. */
 export function hasNativeRepresentation(value: RuntimeValue): value is NativeRepresentationValue {
   return value.kind === "str" || value.kind === "bytes" || value.kind === "int" || value.kind === "bool"
-    || value.kind === "float" || value.kind === "complex" || value.kind === "range" || value.kind === "list" || value.kind === "tuple" || value.kind === "dict" || value.kind === "none" || value.kind === "ellipsis" || value.kind === "not-implemented";
+    || value.kind === "float" || value.kind === "complex" || value.kind === "range" || value.kind === "list" || value.kind === "tuple" || value.kind === "dict" || value.kind === "mappingproxy" || value.kind === "none" || value.kind === "ellipsis" || value.kind === "not-implemented";
 }
 
 /** Implemented exact native slots; guest subclass dispatch and method-wrapper
@@ -36,7 +36,7 @@ export function createRuntimeNativeRepresentationMethod(receiver: NativeRepresen
 /** Shared native slot operation, separate from explicit method argument checks. */
 export function runtimeNativeRepresentation(receiver: NativeRepresentationValue, name: "__str__" | "__repr__", values: RuntimeValues, meter: ExecutionMeter): RuntimeValue {
   meter.checkpoint();
-  if (receiver.kind === "list" || receiver.kind === "tuple" || receiver.kind === "dict") {
+  if (receiver.kind === "list" || receiver.kind === "tuple" || receiver.kind === "dict" || receiver.kind === "mappingproxy") {
     const context = createRuntimeRepresentationContext(values, meter, {
       defaultRepr() { throw new UnsupportedExpressionError("attribute"); }
     });

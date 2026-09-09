@@ -2286,7 +2286,6 @@ function forInKeys(object: object, budget: Budget): string[] {
     for (const key of Object.getOwnPropertyNames(properties)) {
       if (seen.has(key)) continue;
       seen.add(key);
-      if (Array.isArray(properties) && !isArrayIndexKey(key)) continue;
       if (Object.getOwnPropertyDescriptor(properties, key)?.enumerable) keys.push(key);
     }
   }

@@ -544,6 +544,8 @@ ownership predicates, `isPrototypeOf`, legacy accessor lookup and `__proto__`,
 `Object.defineProperties`, and object spread/rest now dispatch those operations.
 Ordinary enumeration also handles existing string/symbol properties made
 enumerable by an earlier getter.
+Ordinary `for-in` includes enumerable non-index string properties on arrays and
+array ancestors, including when a generator resumes from a checkpoint.
 
 `Array.isArray` follows nested Proxy targets without invoking traps and rejects
 revoked proxies. Other internal array-identity consumers still need integration.

@@ -10,6 +10,8 @@ import { dump } from "../dump.js";
 import { restore as restoreDump } from "../restore.js";
 
 const bodies = [
+  "const object=[1];object.extra=2;for(const key in object)yield key;return 9",
+  "const parent=[];parent.extra=2;const object={__proto__:parent,own:1};for(const key in object)yield key;return 9",
   "for(const key in {a:1,b:2,c:3})yield key;return 9",
   "let count=0;function object(){count++;return {a:1,b:2}}for(const key in object()){yield key}return count",
   "const object={a:1,b:2,c:3};for(const key in object){delete object[key];yield key}return 9",

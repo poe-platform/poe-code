@@ -2,7 +2,7 @@ import { isFatalSandboxError, type Budget } from "../budget.js";
 import { invokeBuiltinClosure } from "../builtin-call.js";
 import { createDataCheckpoint } from "../data-checkpoint.js";
 import { acquireSandboxIterator, closeIterator, getSandboxIterator, readIteratorResult } from "../iteration.js";
-import { setSandboxPrototype } from "../object-model.js";
+import { getSandboxPrototype, setSandboxPrototype } from "../object-model.js";
 import { toPropertyKey } from "../property-key.js";
 import { retainValues } from "../resources.js";
 import { allocateProducedSandboxValue, createSandboxClosure, createSandboxMap, defineOwnDataProperty, isSandboxClosure, measureSandboxData, type SandboxValue } from "../values.js";
@@ -45,6 +45,8 @@ export function createGroupBy(budget: Budget, keyMode: "property" | "identity") 
             if (group === undefined) {
               budget.allocateCollectionEntries(groups.entries.size + 1);
               group = [];
+              const prototype = getSandboxPrototype(group, budget);
+              if (prototype !== null) setSandboxPrototype(group, prototype, budget);
               groups.entries.set(key, group);
             }
             budget.allocateArrayLength(group.length + 1);

@@ -91,3 +91,19 @@ Scoped ESLint, package TypeScript and the maintained build passed (23
 workspace builds and four fresh-process import checks). Direct built SDK
 probes passed for parsed objects and arrays, with and without a guest reviver.
 No visual CLI behavior changed. No push or release occurred.
+
+## Grouping bucket implementation
+
+Two source tests failed on bucket prototype identity before the fix, one for
+each groupBy API. The native-backed key/element-identity and null-prototype
+Object-result control already passed. New bucket arrays now receive their
+originating Array prototype at allocation; no grouping keys or element values
+are copied or re-prototyped. Tests also check bucket contents, later prototype
+mutation and rejection of lossy data copying. This change covers bucket arrays,
+not an assertion of complete Map-result realm or data-copy conformance.
+
+Final bucket verification passed 267 tests across eight grouping/collection/
+snapshot files. Scoped ESLint, package TypeScript and the maintained build
+passed (23 workspace builds, four fresh-process import checks). Built SDK
+probes verified originating bucket prototypes for both groupBy APIs. No
+visual CLI behavior changed. No push or release occurred.

@@ -617,6 +617,9 @@ JSON parsing retains the originating prototypes of parsed objects and arrays,
 including nested containers, reviver holders, and reviver context objects.
 Reviver replacements retain their own identity and prototypes; deletion and
 special-key data properties keep their native behavior.
+`Object.groupBy` and `Map.groupBy` bucket arrays retain their originating
+Array prototype after SDK cleanup. Group keys and elements retain identity,
+and the outer Object grouping result remains null-prototype.
 Object literals retain their originating prototype after cleanup and when
 created later by exported closures. Explicit null prototypes stay null;
 modified prototype chains reject lossy data copying. `Object.fromEntries`

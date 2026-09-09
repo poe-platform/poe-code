@@ -69,3 +69,27 @@ the low-level collision but do not establish a supported multi-source public
 checkpoint contract. Next investigate explicit host resume capabilities and
 realm ownership before choosing a format change; a rejection-only patch would
 not fulfill mixed-realm transport support.
+
+## Resume-provider boundary inspection
+
+Source inspection distinguishes two mechanisms that the earlier follow-up
+wording could conflate. `RunOptions.hostCallResumeProvider` reconciles pending
+external operations: `HostCallJournal` calls it with an operation identity and
+validates the returned outcome proof. It is not an arbitrary object/intrinsic
+identity resolver for serialization.
+
+Replay callable identities are registered internally. `host-bridge.ts`
+registers injected native functions by their binding/module paths, and
+`HostCallJournal.registerCallbackFunction` registers exported guest callbacks
+against a recorded host call. `encodeReplayData` asks that journal for an
+existing callable identity. Its low-level `identifyCapability` callback is
+not a `RunOptions` field. Additionally, the guest-state/prototype-link guard
+runs before callable identification; assigning a callable identity alone does
+not admit an arbitrary foreign intrinsic graph.
+
+These are source-level boundary findings, not a successful runtime recovery
+probe. Do not treat supplying `hostCallResumeProvider` as a general fix for the
+earlier completed-run dump rejection. The next runtime probe should use the
+actual registered callback/binding paths and distinguish admission, dump and
+recovery before changing the snapshot format. The isolated full-package test
+candidate remains unchanged by this documentation follow-up.

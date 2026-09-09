@@ -2,6 +2,7 @@ import type { CollectionItem, DictionaryEntry, Expression, SourceSpan } from "./
 import type { TokenCursor } from "./token-cursor.js";
 import { readComprehensionClauses } from "./comprehensions.js";
 import { readNamedExpression } from "./named-expression.js";
+import { readYield } from "./yield-expression.js";
 
 type ReadExpression = (cursor: TokenCursor, minimum?: number) => Expression;
 
@@ -11,6 +12,10 @@ export function readDisplay(cursor: TokenCursor, read: ReadExpression): Expressi
   if (opening.text === "{") return readBraces(cursor, read, opening);
   const close = opening.text === "(" ? ")" : "]";
   const kind = opening.text === "(" ? "tuple" : "list";
+  if (opening.text === "(" && cursor.peek().text === "yield") {
+    const value = readYield(cursor, read);
+    return { ...value, start: opening.start, end: cursor.expect(")").end };
+  }
   if (cursor.peek().text === close) {
     return { kind, items: [], start: opening.start, end: cursor.take().end };
   }

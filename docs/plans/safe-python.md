@@ -318,8 +318,22 @@ extension, integration, or validation requirement is missing or unverified.
   compatibility-equivalent spellings. Scoped lint, source typecheck, and selected workspace build
   passed. This supplies binding keys and checks; runtime environments, function
   argument binding, and class/global/nonlocal semantics remain unimplemented.
+- Added await, yield, and yield-from expression trees. Await consumes a primary
+  before exponentiation; yield owns its comma-separated value list and is admitted
+  by grouping and replacement-field grammar rather than as an unrestricted prefix.
+  Empty yields, tuple unpacking, delegation operands, lambda bodies with grouped
+  yields, and suspension expressions inside formatted/template fields are retained
+  without execution. The child visitor reaches their values for scope checks.
+- Suspension syntax validation: four positive tests failed before implementation;
+  all 656 package tests pass. A 108-case CPython AST comparison matched acceptance
+  and tree structure across operands, precedence, groups, and replacement fields.
+  CPython compilation separately confirmed rejection of a lone starred yield value
+  and acceptance of its tuple form. Scoped lint, source typecheck, and selected workspace build
+  passed. Enclosing function/async checks, comprehension yield restrictions,
+  generator/coroutine state machines, delegation, and await protocols remain pending.
+  Grammar reference: https://docs.python.org/3/reference/grammar.html.
 - Next:
-  await/yield expressions and statement grammar
+  suspension context validation and statement grammar
   normalization, the complete grammar/parser and evaluator, then runtime modules
   and safe-fs integration. Tokenization does not establish interpreter execution.
 - Workspace lockfile registration and packaging integration remain pending.

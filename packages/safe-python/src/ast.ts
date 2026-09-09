@@ -44,6 +44,8 @@ export type SubscriptItem = CollectionItem | (SourceSpan & (
 ));
 
 export type Expression = SourceSpan & (
+  | { readonly kind: "await" | "yield-from"; readonly value: Expression }
+  | { readonly kind: "yield"; readonly value: Expression | null }
   | { readonly kind: "interpolated-string"; readonly flavor: "formatted" | "template"; readonly parts: readonly InterpolatedPart[] }
   | { readonly kind: "literal"; readonly literalKind: "integer" | "float" | "imaginary" | "string" | "bytes" | "boolean" | "none" | "ellipsis";
       readonly value: bigint | number | Uint32Array | Uint8Array | boolean | null }

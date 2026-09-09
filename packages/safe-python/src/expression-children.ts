@@ -3,6 +3,8 @@ import type { Expression, InterpolatedPart, SubscriptItem } from "./ast.js";
 /** Enumerate syntax children without inspecting host objects or literal buffers. */
 export function* expressionChildren(node: Expression): Generator<Expression> {
   switch (node.kind) {
+    case "await": case "yield-from": yield node.value; return;
+    case "yield": if (node.value) yield node.value; return;
     case "interpolated-string": yield* interpolatedExpressions(node.parts); return;
     case "literal": case "name": return;
     case "assignment-expression": yield node.target; yield node.value; return;

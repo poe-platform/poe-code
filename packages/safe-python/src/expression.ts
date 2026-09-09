@@ -82,6 +82,11 @@ export function readExpression(cursor: TokenCursor, minimum = 0): Expression {
 function readPrefix(cursor: TokenCursor, minimum: number): Expression {
   const token = cursor.peek();
   if (token.text === "lambda" && minimum <= 1) return readLambda(cursor, readExpression);
+  if (token.text === "await") {
+    cursor.take();
+    const value = readTrailers(cursor, readAtom(cursor), readExpression);
+    return { kind: "await", value, start: token.start, end: value.end };
+  }
   if ((token.text === "not" && minimum <= 4) || ["+", "-", "~"].includes(token.text)) {
     cursor.take();
     const operand = readExpression(cursor, token.text === "not" ? 4 : 12);

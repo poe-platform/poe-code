@@ -1,5 +1,6 @@
 import type { CollectionItem, Expression, InterpolatedPart } from "./ast.js";
 import type { TokenCursor } from "./token-cursor.js";
+import { readYield } from "./yield-expression.js";
 
 type ReadExpression = (cursor: TokenCursor, minimum?: number) => Expression;
 
@@ -50,6 +51,7 @@ function readField(cursor: TokenCursor, read: ReadExpression): InterpolatedPart 
 }
 
 function readFieldExpression(cursor: TokenCursor, read: ReadExpression): Expression {
+  if (cursor.peek().text === "yield") return readYield(cursor, read);
   const items: CollectionItem[] = [];
   let comma = false;
   let end = cursor.peek().end;

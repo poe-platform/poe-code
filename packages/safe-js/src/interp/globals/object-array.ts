@@ -123,9 +123,15 @@ export function createObjectArrayGlobals(options: {
             if (value === null || value === undefined)
               throw new TypeError("Cannot convert undefined or null to object.");
             const name = toPropertyKey(key, options.budget, context);
+            const finish = (property: PropertyKey) => {
+              if (typeof value === "object" && guestProxyStates.has(value))
+                return Promise.resolve(sandboxGetOwnPropertyDescriptor(value, property, options.budget, context))
+                  .then(descriptor => descriptor !== undefined);
+              return hasOwnSandboxProperty(value, property, false);
+            };
             return typeof name === "string" || typeof name === "symbol"
-              ? hasOwnSandboxProperty(value, name, false)
-              : name.then((property) => hasOwnSandboxProperty(value, property, false));
+              ? finish(name)
+              : name.then(finish);
           },
           name: "hasOwn"
         }),

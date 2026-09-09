@@ -1,5 +1,7 @@
 import { assertSandboxDataDepth } from "../../graph-depth.js";
 import { getGeneratorProperties } from "../generator-properties.js";
+import { guestProxyStates } from "../guest-proxy.js";
+import { sandboxGetOwnPropertyDescriptor } from "../guest-proxy-descriptor.js";
 import { accessorAdapter, accessorClosure, readPropertyDescriptor } from "../accessors.js";
 import { isSandboxArguments } from "../arguments.js";
 import type { Budget } from "../budget.js";
@@ -125,6 +127,9 @@ export function createObjectGlobal(methods: SandboxObject, budget: Budget): Sand
       length: 1,
       call: async ([key], context) => {
         const property = await toPropertyKey(key, budget, context);
+        const receiver = context?.thisValue;
+        if (typeof receiver === "object" && receiver !== null && guestProxyStates.has(receiver))
+          return (await sandboxGetOwnPropertyDescriptor(receiver, property, budget, context)) !== undefined;
         return hasOwnSandboxProperty(context?.thisValue, property, false);
       }
     }),
@@ -134,6 +139,9 @@ export function createObjectGlobal(methods: SandboxObject, budget: Budget): Sand
       length: 1,
       call: async ([key], context) => {
         const property = await toPropertyKey(key, budget, context);
+        const receiver = context?.thisValue;
+        if (typeof receiver === "object" && receiver !== null && guestProxyStates.has(receiver))
+          return (await sandboxGetOwnPropertyDescriptor(receiver, property, budget, context))?.enumerable === true;
         return hasOwnSandboxProperty(context?.thisValue, property, true);
       }
     }),

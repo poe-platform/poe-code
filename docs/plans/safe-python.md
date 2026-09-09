@@ -3989,6 +3989,20 @@ extension, integration, or validation requirement is missing or unverified.
   errors; the 2,440-call string-search regression also passes. Additional string
   methods, native descriptors, guest index slots, remaining builtins,
   comprehension/suspension integration, accounting and SDK/safe-fs are pending.
+- Connected str.removeprefix/removesuffix/partition/rpartition to native lookup.
+  Boundary removal uses direct affix matching and retains the exact receiver
+  when unchanged. Partitioning finds the first/last separator, preserves the
+  supplied separator object and places the original receiver on the appropriate
+  side when absent. Empty separators fail; empty removal arguments are no-ops.
+  Returned slices retain code-point semantics, including lone surrogates.
+- Cut-method verification began with eight failing tests. All 3,757 tests in
+  269 files pass, with scoped lint, source typecheck and selected workspace build. Tests
+  inspect returned code points directly, verify receiver/separator identity and
+  preserve the distinct None diagnostics. A 1,244-call compiled-program CPython
+  audit matches code points, receiver identity and errors. The prefix/suffix regression audit
+  passes 1,936 compiled calls. Remaining text methods, global string interning,
+  native descriptors, guest object slots, remaining builtins, suspension,
+  accounting and SDK/safe-fs remain unfinished.
 - Next:
   remaining scope/compiler audits, interpreter runtime,
   resource controls, runtime modules, and safe-fs integration. Parsing and static

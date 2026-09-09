@@ -27,7 +27,10 @@ describe("interpreter retained-root accounting", () => {
     "function value(){return 7}return value()",
     "async function value(){return 7}return await value()"
   ])("counts registered roots once when a public run completes: %s", async (source) => {
-    const budget = new Budget({ dataSize: 3500 });
+    const baseline = new Budget();
+    await run(`retain();${source}`, { budget: baseline, bindings: { retain: () => undefined } });
+    const limit = baseline.peakDataSize + 2000;
+    const budget = new Budget({ dataSize: limit });
     const owner = {};
     try {
       expect(await run(`retain();${source}`, {
@@ -36,10 +39,20 @@ describe("interpreter retained-root accounting", () => {
           retain: () => { budget.setRetainedValues(owner, () => ["x".repeat(2000)]); }
         }
       })).toMatchObject({ ok: true, returnValue: 7 });
-      expect(budget.peakDataSize).toBeGreaterThanOrEqual(2000);
-      expect(budget.peakDataSize).toBeLessThanOrEqual(3500);
+      expect(budget.peakDataSize).toBe(limit);
     } finally {
       budget.setRetainedValues(owner, undefined);
+    }
+    const insufficient = new Budget({ dataSize: limit - 1 });
+    try {
+      await expect(run(`retain();${source}`, {
+        budget: insufficient,
+        bindings: {
+          retain: () => { insufficient.setRetainedValues(owner, () => ["x".repeat(2000)]); }
+        }
+      })).rejects.toMatchObject({ code: "budgetExceeded", budget: "dataSize", current: limit, limit: limit - 1 });
+    } finally {
+      insufficient.setRetainedValues(owner, undefined);
     }
   });
 

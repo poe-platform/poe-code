@@ -1522,6 +1522,9 @@ function copyFromSandbox(
     return value;
   }
 
+  if (guestProxyStates.has(value) && (!isSandboxClosure(value) || options.wrapClosure === undefined))
+    throw new TypeError("Proxy values require their owning realm bridge; they cannot be copied as data.");
+
   if (isGuestHostObject(value)) {
     if (options.unwrapHostObject === undefined) throw new TypeError("Live capabilities require their owning realm bridge.");
     return options.unwrapHostObject(value);

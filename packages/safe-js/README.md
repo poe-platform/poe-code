@@ -627,8 +627,10 @@ passed, two failed, and 37 skipped; both failures concern host-Promise property
 imports. Source/test fingerprints matched before and after the run. This is not
 a green package gate or an isolated committed-tree result. See the
 [integration refresh](../../docs/plans/safejs-integration-refresh-2026-09-09.md).
-The public data-copy boundary still loses Proxy contents, producing empty
-objects for object, array, and nested Proxy values.
+The public data-copy boundary now rejects guest Proxy values explicitly instead
+of silently producing empty objects. Use an owning realm's retained guest
+references to preserve identity and trap behavior; explicit callable wrappers
+remain available. Transparent Proxy export is not implemented.
 
 Experimental work remains uncommitted. Pushes and releases are paused; local
 implementation, remote delivery, and successful publication are separate

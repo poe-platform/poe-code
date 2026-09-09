@@ -71,7 +71,7 @@ export function createDataViewGlobal(budget: Budget): SandboxClosure {
       } finally { release(); }
     }
   });
-  Object.defineProperty(materializeFunctionProperties(constructor), "prototype", { value: prototype });
+  Object.defineProperty(materializeFunctionProperties(constructor), "prototype", { value: prototype, writable: false });
   Object.defineProperties(prototype, {
     constructor: { value: constructor, writable: true, configurable: true },
     [Symbol.toStringTag]: { value: "DataView", configurable: true }

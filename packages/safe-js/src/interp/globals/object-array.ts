@@ -692,7 +692,8 @@ function assignSandboxValues(
 
   if (!isGuestHostObject(target)) objectProperties(target, true);
 
-  if (context === undefined) {
+  if (context === undefined && ![target, ...sources].some(value =>
+    typeof value === "object" && value !== null && guestProxyStates.has(value))) {
     for (const source of sources) {
       if (source === null || source === undefined) continue;
       const properties = isGuestHostObject(source) ? undefined : reflectionProperties(source);
@@ -708,16 +709,24 @@ function assignSandboxValues(
     return target;
   }
   return (async () => {
-    const release = retainValues(budget, () => [target, ...sources]);
+    let keys: PropertyKey[] = [];
+    let value: SandboxValue;
+    const release = retainValues(budget, () => [target, ...sources, keys, value]);
     try {
       for (const source of sources) {
         if (source === null || source === undefined) continue;
+        const proxy = typeof source === "object" && guestProxyStates.has(source);
         const properties = isGuestHostObject(source) ? undefined : reflectionProperties(source);
-        const keys = properties === undefined ? getOwnEnumerableKeys(source, true)
-          : [...Object.getOwnPropertyNames(properties), ...ownSandboxSymbolKeys(source)];
+        keys = proxy ? await sandboxOwnKeys(source, budget, context)
+          : properties === undefined ? getOwnEnumerableKeys(source, true)
+            : [...Object.getOwnPropertyNames(properties), ...ownSandboxSymbolKeys(source)];
         for (const key of keys) {
-          if (!hasOwnSandboxProperty(source, key, true)) continue;
-          const value = await (context?.getProperty !== undefined
+          budget.visitNode();
+          const enumerable = proxy
+            ? (await sandboxGetOwnPropertyDescriptor(source, key, budget, context))?.enumerable
+            : hasOwnSandboxProperty(source, key, true);
+          if (!enumerable) continue;
+          value = await (context?.getProperty !== undefined
             ? context.getProperty(source, key)
             : isGuestHostObject(source) ? getSandboxDataProperty(source, key, budget)
               : readPropertyDescriptor(Object.getOwnPropertyDescriptor(properties!, key)!, source, context, true));

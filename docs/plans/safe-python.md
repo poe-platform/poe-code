@@ -1657,6 +1657,21 @@ extension, integration, or validation requirement is missing or unverified.
   lint, source typecheck, selected workspace build and final focused rerun passed.
   The metadata enables correct call dispatch; ordinary body invocation and
   suspended generator/coroutine execution still require implementation.
+- Connected invocation to argument frames and analyzed execution kinds. Ordinary
+  function bodies run through the statement engine; lambda bodies evaluate in
+  value context. Bare/implicit returns produce the supplied guest None, while
+  explicit null/undefined payloads retain identity. Generator/coroutine/async-
+  generator calls bind arguments immediately and delegate unstarted-object creation
+  to an optional suspension backend without preparing or executing the body.
+  Missing backends fail explicitly; this is not a completed suspension runtime.
+- Invocation validation: missing-module red suite preceded implementation. All
+  2,142 tests in 107 files pass, including 20 new cases for return/finally behavior,
+  activation-local loop bindings, lambdas, suspended dispatch, argument failure
+  timing, absent backends and execution limits. CPython matched 90 calls spanning
+  body effects, return values, finally cleanup, failures and unstarted-object call
+  behavior. Source typecheck, selected build and scoped lint passed. Concrete guest
+  callable objects, resumable execution, recursion/call-stack controls, tracebacks
+  and full activation allocation accounting remain unfinished.
 - Next:
   remaining scope/compiler audits, interpreter runtime,
   resource controls, runtime modules, and safe-fs integration. Parsing and static

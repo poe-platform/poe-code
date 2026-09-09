@@ -4224,6 +4224,19 @@ extension, integration, or validation requirement is missing or unverified.
   diagnostics. Scoped lint, source typecheck and selected workspace build pass.
   Remaining bytes/text/numeric methods, native builtins, subclasses/global
   interning, suspension, full accounting and SDK/safe-fs remain unfinished.
+- Connected bytes.isascii/isspace/isalpha/isalnum/isdigit/islower/isupper/istitle
+  with short-circuit scans over immutable storage and no copied buffers. Only
+  isascii accepts empty input. Whitespace is the six ASCII space bytes; case
+  checks ignore nonletters but require a cased ASCII byte, and nonletters reset
+  title state. Unicode-only predicates remain unavailable on bytes.
+- Eighteen new tests failed before the methods were connected. All 3,998 tests
+  in 292 files pass, including short-circuit allocation and long uncased scan
+  budgets. Every byte pair matches CPython across all eight native predicates
+  (524,288 calls), and 5,088 compiled calls match results and errors. The
+  4,305-call bytes-casing regression, scoped lint, source typecheck and selected
+  workspace build pass. Remaining bytes/text/numeric methods, native builtins,
+  subclasses/global interning, suspension, full accounting and SDK/safe-fs
+  remain unfinished.
 - Next:
   remaining scope/compiler audits, interpreter runtime,
   resource controls, runtime modules, and safe-fs integration. Parsing and static

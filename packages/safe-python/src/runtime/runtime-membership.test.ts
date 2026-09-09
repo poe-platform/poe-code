@@ -6,6 +6,7 @@ import { createRange } from "./integer-sequence.js";
 import { runtimeIterate } from "./runtime-iteration.js";
 import { evaluateExpression, type ExpressionContext } from "./expression-evaluation.js";
 import { parseExpression } from "../expression.js";
+import type { ContainmentContext } from "./containment-protocol.js";
 
 function fixture() {
   const meter = new ExecutionBudget({ maxSteps: 100000, maxAllocatedBytes: 1000000 });
@@ -13,6 +14,19 @@ function fixture() {
 }
 
 describe("runtime membership", () => {
+  it("wraps guest containment truth as canonical booleans and negates only once", () => {
+    const { meter, v } = fixture(), source = v.cell({}), needle = v.cell({}), answer = v.cell({}); let calls = 0;
+    const unused = (): never => { throw Error("must not iterate"); };
+    const context: ContainmentContext<RuntimeValue> = {
+      lookupContains: value => { expect(value).toBe(source); return arg => { expect(arg).toBe(needle); return answer; }; },
+      truth: value => { expect(value).toBe(answer); calls++; return true; }, equal: unused,
+      lookupIter: unused, hasNext: unused, next: unused, hasSequenceItem: unused, getItem: unused,
+      isStopIteration: () => false, isIndexError: () => false, isTypeError: () => false, typeName: () => "Guest"
+    };
+    expect(runtimeMembership("in", needle, source, v, meter, context)).toBe(v.true);
+    expect(runtimeMembership("not in", needle, source, v, meter, context)).toBe(v.false);
+    expect(calls).toBe(2);
+  });
   it("uses runtime equality for nested list and tuple members", () => {
     const { meter, v } = fixture(), member = v.list([v.integer(1)]), needle = v.list([v.float(1)]);
     expect(runtimeMembership("in", needle, v.list([member]), v, meter)).toBe(v.true);

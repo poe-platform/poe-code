@@ -16,6 +16,7 @@ import { RuntimeDictionaryNamespace } from "./runtime-dictionary-namespace.js";
 import { OrderedKeyMap } from "./ordered-key-map.js";
 import { protocolTruth, type TruthProtocolContext } from "./truth-protocol.js";
 import { runtimeTruth } from "./runtime-truth.js";
+import type { ContainmentContext } from "./containment-protocol.js";
 
 function fixture(source: string, maxSteps = 100000, signal?: AbortSignal) {
   const meter = new ExecutionBudget({ maxSteps, maxAllocatedBytes: 1000000, signal }), values = new RuntimeValues(meter);
@@ -34,6 +35,25 @@ function fixture(source: string, maxSteps = 100000, signal?: AbortSignal) {
 }
 
 describe("assembled concrete runtime programs", () => {
+  it.each(["contains", "iterate"] as const)("forwards guest containment through %s and nested frames", mode => {
+    const state = fixture("module_result=needle in container\ndef f():\n return needle not in container\nresult=(module_result,f())\n"), v = state.values;
+    const needle = v.cell({}), container = v.cell({}); let prepared = 0, calls = 0;
+    state.globals.set("needle", needle); state.globals.set("container", container);
+    const unused = (): never => { throw Error("unexpected callback"); };
+    const protocol: ContainmentContext<RuntimeValue> = {
+      lookupContains: () => mode === "contains" ? value => { expect(value).toBe(needle); calls++; return v.true; } : undefined,
+      lookupIter: () => () => container, hasNext: () => true, next: () => { calls++; return needle; },
+      hasSequenceItem: () => false, getItem: unused, equal: unused,
+      truth: value => { expect(value).toBe(v.true); return true; },
+      isStopIteration: () => false, isIndexError: () => false, isTypeError: () => false, typeName: () => "Guest"
+    };
+    state.hooks.expressions = () => {
+      const owner = { warn() {}, containment(value: RuntimeValue) { expect(this).toBe(owner); expect(value).toBe(container); prepared++; return protocol; } };
+      return owner;
+    };
+    state.run(); expect(state.globals.get("result")).toEqual(v.tuple([v.true, v.false]));
+    expect(prepared).toBe(2); expect(calls).toBe(2); expect(state.calls.depth).toBe(0);
+  });
   it("forwards rich comparisons and their result truth through nested frames", () => {
     const state = fixture("module_result = a < b\ndef f():\n return a < b < missing\nresult=f()\n"), v = state.values;
     const a = v.cell({}), b = v.cell({}), answer = v.cell({}); let comparisons = 0, truths = 0;

@@ -8,15 +8,22 @@ import type { RuntimeValue } from "./runtime-values.js";
 import { runtimeDictionaryAccess } from "./runtime-dictionary-access.js";
 import { containsRuntimeDictionaryView } from "./runtime-dictionary-view.js";
 import { runtimeSetAccess } from "./runtime-set.js";
+import { protocolContains, type ContainmentContext } from "./containment-protocol.js";
 
 /** Exact runtime membership. Integer/bool range searches use arithmetic; other
  * iterable searches consume only through the first identity/equality match.
- * User __contains__/iteration slots, arbitrary buffer exporters and a shared
- * guest comparison-depth policy remain wider object-runtime responsibilities.
+ * Optional guest containment overrides native dispatch for this container.
+ * Arbitrary buffer exporters and a shared guest comparison-depth policy remain
+ * wider object-runtime responsibilities.
  */
-export function runtimeMembership(operator: string, needle: RuntimeValue, container: RuntimeValue, values: ConstantValues, meter: ExecutionMeter): Extract<PrimitiveConstant, { kind: "bool" }> {
+export function runtimeMembership(operator: string, needle: RuntimeValue, container: RuntimeValue, values: ConstantValues, meter: ExecutionMeter, protocol?: ContainmentContext<RuntimeValue>): Extract<PrimitiveConstant, { kind: "bool" }> {
   meter.checkpoint();
   if (operator !== "in" && operator !== "not in") throw new Error(`unsupported constant membership operator: ${operator}`);
+  if (protocol !== undefined) {
+    const found = protocolContains(needle, container, protocol, meter);
+    meter.checkpoint();
+    return values.boolean(operator === "in" ? found : !found);
+  }
   let found = false;
   if (container.kind === "set" || container.kind === "frozenset") {
     found = runtimeSetAccess(container, needle, "contains", values, meter);

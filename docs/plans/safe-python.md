@@ -6093,6 +6093,18 @@ extension, integration, or validation requirement is missing or unverified.
   indexed and failure paths. Typecheck, scoped lint and selected workspace build
   pass. Runtime expression/frame containment wiring and broader object/SDK/
   safe-fs integration remain unfinished.
+- Wired optional guest containment into runtime membership, expression and frame
+  assembly. Container-specific capability selection can return undefined to
+  retain native dispatch; supplied protocols support contains slots and iterator
+  fallback. in/not-in return canonical booleans, with negation applied only
+  after the single containment truth conversion. Nested frames owner-bind and
+  retain the execution's containment policy.
+- Three tests first reproduced missing runtime/frame connections. All 4,843
+  tests in 426 files pass. CPython comparisons pass for 374 native membership
+  programs and 64 guest contains programs with fixed/alternating truth, Boolean
+  combinations and nested functions, including exact callback traces. Typecheck,
+  scoped lint and selected workspace build pass. Concrete guest storage/type
+  adapters and broader interpreter/SDK/safe-fs integration remain unfinished.
 - Next:
   remaining scope/compiler audits, interpreter runtime,
   resource controls, runtime modules, and safe-fs integration. Parsing and static

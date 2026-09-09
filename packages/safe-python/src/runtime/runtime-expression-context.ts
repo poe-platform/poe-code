@@ -18,6 +18,7 @@ import { beginRuntimeSet } from "./runtime-set.js";
 import { createRuntimeFormatContext } from "./runtime-format.js";
 import { createRuntimeFormattedStringContext } from "./runtime-formatted-string.js";
 import type { FormatContext } from "./format-protocol.js";
+import type { ContainmentContext } from "./containment-protocol.js";
 
 /** Explicit scope/object capabilities, supplied by the surrounding runtime.
  * Attribute lookup defaults to implemented exact native container members;
@@ -37,6 +38,8 @@ export type RuntimeExpressionBindings = Pick<ExpressionContext<RuntimeValue>,
      * Native sequence fallback runs only after those slots decline. */
     addition?(left: RuntimeValue, right: RuntimeValue): AdditionContext;
     richComparison?(operator: string, left: RuntimeValue, right: RuntimeValue): RuntimeRichComparisonContext;
+    /** Return undefined to retain native container handling. */
+    containment?(container: RuntimeValue): ContainmentContext<RuntimeValue> | undefined;
   } &
   Pick<ConstantUnaryContext, "warn"> & (
     Pick<ExpressionContext<RuntimeValue>, "beginDictionary" | "beginSet"> |
@@ -80,7 +83,11 @@ export function createRuntimeExpressionContext(values: RuntimeValues, bindings: 
       return result;
     },
     compare(operator, left, right) {
-      if (operator === "in" || operator === "not in") return runtimeMembership(operator, left, right, values, meter);
+      if (operator === "in" || operator === "not in") {
+        const containment = bindings.containment?.(right);
+        meter.checkpoint();
+        return runtimeMembership(operator, left, right, values, meter, containment);
+      }
       if (operator === "is" || operator === "is not") return runtimeComparison(operator, left, right, values, meter);
       const comparison = bindings.richComparison?.(operator, left, right);
       meter.checkpoint();

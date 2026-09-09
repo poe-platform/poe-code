@@ -1,19 +1,21 @@
 import type { ExecutionMeter } from "./execution-budget.js";
+import type { ExpressionContext } from "./expression-evaluation.js";
 import { PythonRuntimeError } from "./error.js";
 import { runtimeBinary } from "./runtime-binary.js";
 import { runtimeIterate } from "./runtime-iteration.js";
 import { updateRuntimeDictionary } from "./runtime-dictionary-update.js";
 import { isRuntimeSet, type RuntimeValue, type RuntimeValues } from "./runtime-values.js";
 
+export type RuntimeInPlaceContext = Partial<Pick<ExpressionContext<RuntimeValue>, "binary" | "iterate">>;
+
 /** Exact container in-place operations followed by ordinary binary fallback.
  * Streaming extension keeps partial progress on failure; direct self-extension
  * duplicates the original slots once. Assignment write-back is the caller's job
- * and must not roll back mutations. An optional ordinary fallback connects guest
- * binary dispatch and diagnostics after native mutation slots decline. Guest
- * in-place slots must run before this kernel; length hints and finalizers remain
- * separate object-runtime work.
+ * and must not roll back mutations. Optional expression capabilities connect
+ * guest iteration/source hints and ordinary augmented binary fallback. Guest
+ * in-place slots must run before this kernel; finalizers remain separate work.
  */
-export function runtimeInPlace(operator: string, left: RuntimeValue, right: RuntimeValue, values: RuntimeValues, meter: ExecutionMeter, fallback?: (operator: string, left: RuntimeValue, right: RuntimeValue) => RuntimeValue): RuntimeValue {
+export function runtimeInPlace(operator: string, left: RuntimeValue, right: RuntimeValue, values: RuntimeValues, meter: ExecutionMeter, context: RuntimeInPlaceContext = {}): RuntimeValue {
   meter.checkpoint();
   if (left.kind === "mappingproxy" && operator === "|") throw new PythonRuntimeError("TypeError", "'|=' is not supported by mappingproxy; use '|' instead");
   if (left.kind === "dict" && operator === "|") {
@@ -35,7 +37,7 @@ export function runtimeInPlace(operator: string, left: RuntimeValue, right: Runt
   if (left.kind === "list") {
     if (operator === "+") {
       if (right.kind === "list") left.items.extend(right.items);
-      else left.items.extendIterator(runtimeIterate(right, values, meter));
+      else left.items.extendIterator(context.iterate === undefined ? runtimeIterate(right, values, meter) : context.iterate(right, undefined, true));
       return left;
     }
     if (operator === "*" && (right.kind === "int" || right.kind === "bool")) {
@@ -44,5 +46,5 @@ export function runtimeInPlace(operator: string, left: RuntimeValue, right: Runt
       return left;
     }
   }
-  return fallback === undefined ? runtimeBinary(operator, left, right, values, meter) : fallback(operator, left, right);
+  return context.binary === undefined ? runtimeBinary(operator, left, right, values, meter) : context.binary(operator, left, right, true);
 }

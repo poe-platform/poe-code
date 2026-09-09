@@ -34,7 +34,6 @@ export interface RuntimeStatementBindings extends RuntimeReferenceWrites,
 export function createRuntimeStatementContext(expressions: ExpressionContext<RuntimeValue>, bindings: RuntimeStatementBindings, values: RuntimeValues, meter: ExecutionMeter): StatementContext<RuntimeValue> {
   meter.checkpoint(1, 768);
   const resolve = (target: Expression) => resolveRuntimeReference(target, expressions, bindings, values, meter);
-  const binaryFallback = (operator: string, left: RuntimeValue, right: RuntimeValue) => expressions.binary(operator, left, right, true);
   const assignment: AssignmentExecutionContext<RuntimeValue> = {
     evaluate: expression => evaluateExpression(expression, expressions, meter),
     store: expressions.store.bind(expressions), list: expressions.list.bind(expressions), resolve,
@@ -56,7 +55,7 @@ export function createRuntimeStatementContext(expressions: ExpressionContext<Run
       const result = bindings.inplace === undefined ? values.notImplemented : bindings.inplace(operator, left, right);
       meter.checkpoint();
       if (result !== values.notImplemented) return result;
-      return runtimeInPlace(operator, left, right, values, meter, binaryFallback);
+      return runtimeInPlace(operator, left, right, values, meter, expressions);
     }
   };
   const deletion = { removeName: bindings.deleteName.bind(bindings), resolve };

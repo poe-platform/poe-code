@@ -6453,6 +6453,19 @@ extension, integration, or validation requirement is missing or unverified.
   and ordinary/reflected fallback. Typecheck, scoped lint and selected workspace
   build pass. Automatic slot/type assembly, remaining operator families, guest
   container iteration/hints and broader interpreter/SDK/safe-fs work remain open.
+- Connected list += to the frame's existing iteration capability with source
+  hint evaluation enabled. Exact list/self-extension retains its finite storage
+  fast path; other sources acquire an iterator, validate their original source
+  length/hint and append incrementally. In-place context now carries iteration
+  and ordinary binary capabilities together, removing the fallback-only wrapper.
+- Three regression cases cover guest extension, hint failure before mutation and
+  partial mutation after next failure, preserving list identity through aliases.
+  All 5,025 tests in 438 files pass. All 96 compiled CPython comparisons match
+  results/errors/traces for direct/indexed targets, nested frames, self-extension,
+  hint errors and iterator failures. Typecheck, scoped lint and selected workspace
+  build pass. Advisory hints still do not trigger speculative capacity allocation.
+  Guest list.extend method wiring, automatic object/builtin assembly and broader
+  interpreter/SDK/safe-fs integration remain unfinished.
 - Next:
   remaining scope/compiler audits, interpreter runtime,
   resource controls, runtime modules, and safe-fs integration. Parsing and static

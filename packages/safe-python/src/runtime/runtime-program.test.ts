@@ -39,6 +39,31 @@ function fixture(source: string, maxSteps = 100000, signal?: AbortSignal) {
 }
 
 describe("assembled concrete runtime programs", () => {
+  it.each(["success", "hint-error", "next-error"])("extends lists in place through guest iteration and source hints: %s", mode => {
+    const state = fixture("x=[0]\nalias=x\nx += guest\n"), v = state.values, guest = v.cell({}), cursor = v.cell({}), events: string[] = [];
+    const stop = new PythonRuntimeError("StopIteration", "done"), failure = new PythonRuntimeError("ValueError", "extension failed");
+    let index = 0;
+    const iteration: IterationContext<RuntimeValue> = {
+      lookupIter: value => { expect(value).toBe(guest); return () => { events.push("iter"); return cursor; }; },
+      hasNext: value => value === cursor,
+      next() { events.push("next"); if (index++ === 0) return v.integer(1); if (mode === "next-error") throw failure; throw stop; },
+      hasSequenceItem: () => false, getItem: () => { throw Error("unexpected item"); },
+      isStopIteration: error => error === stop, isIndexError: () => false, typeName: () => "Guest",
+      hints: {
+        length: value => { expect(value).toBe(guest); events.push("length"); return undefined; },
+        lookupHint: value => { expect(value).toBe(guest); return () => { events.push("hint"); if (mode === "hint-error") throw failure; return v.integer(8); }; },
+        integer: value => value.kind === "int" ? value.value : undefined,
+        isNotImplemented: value => value === v.notImplemented, isTypeError: () => false, typeName: () => "Guest"
+      }
+    };
+    state.globals.set("guest", guest); state.hooks.expressions = () => ({ warn() {}, iteration });
+    if (mode === "success") state.run(); else expect(() => state.run()).toThrow(failure);
+    const list = state.globals.get("x");
+    expect(list).toBe(state.globals.get("alias"));
+    if (list?.kind !== "list") throw new Error("expected list");
+    expect(list.items.snapshot()).toEqual(mode === "hint-error" ? [v.integer(0)] : [v.integer(0), v.integer(1)]);
+    expect(events).toEqual(mode === "hint-error" ? ["iter", "length", "hint"] : ["iter", "length", "hint", "next", "next"]);
+  });
   it.each(["**", "+"])("reports augmented-operator diagnostics after native decline: %s", operator => {
     const state = fixture(`x=None\nx ${operator}= 2`);
     expect(() => state.run()).toThrow(`unsupported operand type(s) for ${operator}=: 'NoneType' and 'int'`);

@@ -4976,6 +4976,20 @@ extension, integration, or validation requirement is missing or unverified.
   protocols, guest identity wrapping and binary percent integration remain
   unfinished. Full guest objects, bytearray storage, suspended execution, complete
   accounting and SDK/safe-fs integration also remain outstanding.
+- Added unsupported percent-conversion diagnostics for text and bytes, called
+  only after operand binding. Text retains U+001F through U+007E; bytes retain
+  ASCII controls and reproduce CPython's signed high-byte diagnostic overflow.
+  Unicode offsets remain code-point based, and missing operands win over an
+  unsupported conversion. Host metadata and cancellation are checked first.
+- Six missing-module tests drove the helper; a CPython differential audit found
+  the U+001F boundary and a seventh failing regression drove its correction.
+  All 4,390 tests in 348 files pass. CPython matches 10,964 unsupported-code and
+  missing-operand cases across all byte values and sampled Unicode, including
+  surrogates. Source typecheck, scoped lint and selected workspace build pass.
+  Default runtime field dispatch, floating formatting, representation protocols,
+  guest identity wrapping and binary percent integration remain unfinished.
+  Full guest objects, suspended execution, complete accounting and SDK/safe-fs
+  integration also remain outstanding.
 - Next:
   remaining scope/compiler audits, interpreter runtime,
   resource controls, runtime modules, and safe-fs integration. Parsing and static

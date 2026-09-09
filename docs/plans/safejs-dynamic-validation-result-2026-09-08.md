@@ -1,5 +1,19 @@
 # Frozen dynamic-function candidate validation
 
+## Completed main-worktree follow-up
+
+Session 74273 completed with exit 1: 22,788 passed, two failed and 37 skipped
+across 840 files (838 passed, one failed, one skipped), taking 400.56s.
+All 23 maintained prerequisite builds and four fresh import checks passed.
+Both failures were the unresolved native Promise own-property import cases
+(string descriptor and user symbol). No other failure was reported.
+
+This run used main, not the isolated dynamic-source candidate. Package source
+was not edited during this run. It includes the eval/super and block-function
+deletion follow-ups, but excludes the subsequent CLI dynamic-source lint fix.
+No pre-run digest was captured for this main run; the older frozen manifests
+below do not identify this source set. This is not a passing full unit gate.
+
 ## Integrated follow-up verification
 
 Session 11849 terminated with exit 143 during the full unit route, without a

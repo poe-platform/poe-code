@@ -488,6 +488,11 @@ captured closures, destructuring and suspended assignments through recovery.
 Some edge-case expectations follow the specification where Node 22 differs;
 these are not claims of exact native-engine equivalence.
 
+The local CLI lint gate now accepts guest `Function` and `eval` without lint
+suppression. Direct eval no longer marks the bindings it can access as unused;
+indirect and optional eval retain ordinary unused-binding checks. Focused CLI
+tests confirm nested dynamic execution and unavailable Node host globals.
+
 Exception-flow work adds function hoisting and class temporal-dead-zone handling
 inside try/catch/finally blocks, including restored generators. Unresolved reads,
 calls and updates inside these blocks now reach guest catch handlers as
@@ -511,7 +516,8 @@ integration gate is not green. The latest completed whole-SafeJS snapshot
 (September 8, 2026) includes eval, exception-flow, source-stack and eval-deletion
 fixes, plus experimental weak collections. Its maintained build closure and
 all four fresh-process import checks passed. The unit run finished with
-22,718 passes, two failures and 37 skips across 829 files.
+22,788 passes, two failures and 37 skips across 840 files. That run predates the
+CLI lint fix above, which has separate focused verification.
 
 Both failures concern host-Promise property imports. Their policy remains
 unresolved because native properties can contain private Node.js context data.

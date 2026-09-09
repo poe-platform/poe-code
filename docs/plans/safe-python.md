@@ -2272,6 +2272,22 @@ extension, integration, or validation requirement is missing or unverified.
   to the concrete hash context; host key generation and complete runtime setup,
   guest hash dispatch, mutable containers and full temporary-heap accounting
   remain unfinished.
+- Added generic ordered key-map storage with supplied guest hash/equality
+  operations, collision buckets and identity-or-equality matching. Overwrites
+  retain the first key object/order; deletion and reinsertion append; explicit
+  lookup records distinguish stored undefined from absence. Detached frozen
+  snapshots expose no mutable storage. This is not yet a guest dict/view/iterator.
+- Equality-side mutations revalidate candidate membership and bucket identity,
+  restarting safely after deletion/replacement and observing value-only updates.
+  Hash/equality errors propagate; failed storage reservations do not insert the
+  requested item; pathological restart loops stop at the execution budget.
+  Initial tests reproduced the missing implementation. All 2,612 tests in 150
+  files pass; source typecheck, scoped lint and selected workspace build passed.
+  A 10,000-operation CPython audit matched lookups, mutation results,
+  original key identities and ordered snapshots, using both real seeded hashes
+  and forced collisions across mixed concrete numeric/string/bytes/tuple/slice
+  keys. Full guest container wiring, iteration semantics, method APIs, callback
+  recursion control and complete host Map/Set heap accounting remain pending.
 - Next:
   remaining scope/compiler audits, interpreter runtime,
   resource controls, runtime modules, and safe-fs integration. Parsing and static

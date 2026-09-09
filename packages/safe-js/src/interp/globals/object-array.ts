@@ -837,15 +837,25 @@ async function definePropertiesFromObject(
 ): Promise<void> {
   objectProperties(target, true);
   const properties: Array<[PropertyKey, PropertyDescriptor]> = [];
+  const proxy = typeof descriptors === "object" && descriptors !== null && guestProxyStates.has(descriptors);
+  let keys: PropertyKey[] = [];
   const release = retainValues(budget, () => [
     target,
     descriptors,
     properties,
+    keys,
     ...properties.flatMap(([, descriptor]) => retainedAccessorClosures(descriptor))
   ]);
   try {
-    for (const key of getOwnEnumerableKeys(descriptors, true)) {
-      if (!hasOwnSandboxProperty(descriptors, key, true)) continue;
+    keys = proxy ? await sandboxOwnKeys(descriptors, budget, context)
+      : isGuestHostObject(descriptors) ? getOwnEnumerableKeys(descriptors, true)
+        : [...Object.getOwnPropertyNames(reflectionProperties(descriptors)), ...ownSandboxSymbolKeys(descriptors)];
+    for (const key of keys) {
+      budget.visitNode();
+      const enumerable = proxy
+        ? (await sandboxGetOwnPropertyDescriptor(descriptors, key, budget, context))?.enumerable
+        : hasOwnSandboxProperty(descriptors, key, true);
+      if (!enumerable) continue;
       const descriptor = await (context?.getProperty !== undefined
         ? context.getProperty(descriptors, key)
         : getSandboxDataProperty(descriptors, key, budget));

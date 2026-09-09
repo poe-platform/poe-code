@@ -5799,6 +5799,17 @@ extension, integration, or validation requirement is missing or unverified.
   transitions, positional bounds, mapping restrictions and guest/syntax error
   ordering. Typecheck, scoped lint and selected workspace build pass. Nested expansion,
   conversion/rendering assembly and public string methods remain pending.
+- Assembled generic brace-format evaluation over explicit field/format hooks.
+  Lookup, s/r/a conversion, nested spec expansion and native/guest rendering run
+  in Python order. Nested builds share numbering and enforce Python's two-level
+  expansion limit; host recursion is therefore bounded. Output uses metered
+  immutable code-point pieces and a single final join when required.
+- Six tests first exposed the missing evaluator. All 4,715 tests in 405 files
+  pass. A 20,584-case CPython comparison covers rendered output and errors,
+  including 3,470 successful renderings; focused tests check guest ordering,
+  recursion timing and surrogate preservation. Typecheck, scoped lint and selected workspace
+  build pass. Native bound str.format/format_map methods, runtime lookup wiring
+  and broader interpreter/SDK/safe-fs integration remain pending.
 - Next:
   remaining scope/compiler audits, interpreter runtime,
   resource controls, runtime modules, and safe-fs integration. Parsing and static

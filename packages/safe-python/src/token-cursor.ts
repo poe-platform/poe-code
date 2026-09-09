@@ -10,9 +10,12 @@ export function createTokenCursor(text: string, options: LexerOptions = {}): Tok
   return new TokenCursor(tokens, options.filename, text, comments);
 }
 
-/** Bounded lookahead over the lazy lexer; no whole-program token array is needed. */
+/** Lazy tokens, retaining consumed tokens only while a grammar alternative needs them. */
 export class TokenCursor {
-  private buffered: Token | undefined;
+  private buffered: Token[] = [];
+  private offset = 0;
+  private attempts = 0;
+  private lexerFailure: unknown;
   constructor(private readonly tokens: Iterator<Token>, private readonly filename = "<string>", private readonly sourceText = "", private readonly comments: readonly SourceSpan[] = []) {}
 
   /** Retrieve original spelling, excluding lexer-identified comments only. */
@@ -36,18 +39,42 @@ export class TokenCursor {
   }
 
   peek(): Token {
-    if (!this.buffered) {
-      const next = this.tokens.next();
-      if (next.done) throw new Error("token stream ended without an end marker");
-      this.buffered = next.value;
+    if (this.offset === this.buffered.length) {
+      if (this.lexerFailure) throw this.lexerFailure;
+      try {
+        const next = this.tokens.next();
+        if (next.done) throw new Error("token stream ended without an end marker");
+        this.buffered.push(next.value);
+      } catch (error) { this.lexerFailure = error; throw error; }
     }
-    return this.buffered;
+    return this.buffered[this.offset];
   }
 
   take(): Token {
     const token = this.peek();
-    if (token.kind !== "end") this.buffered = undefined;
+    if (token.kind !== "end") { this.offset++; this.releaseConsumed(); }
     return token;
+  }
+
+  /** Try an ordered grammar alternative; lexical side effects happen only once. */
+  attempt<T>(read: () => T): T | undefined {
+    const offset = this.offset;
+    this.attempts++;
+    try { return read(); }
+    catch (error) {
+      if (!(error instanceof PythonSyntaxError)) throw error;
+      this.offset = offset;
+      return undefined;
+    } finally { this.attempts--; this.releaseConsumed(); }
+  }
+
+  private releaseConsumed(): void {
+    if (this.attempts || !this.offset) return;
+    if (this.offset === this.buffered.length) { this.buffered.length = 0; this.offset = 0; }
+    else if (this.offset >= this.buffered.length / 2) {
+      this.buffered = this.buffered.slice(this.offset);
+      this.offset = 0;
+    }
   }
 
   expect(text: string): Token {

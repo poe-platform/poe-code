@@ -6,6 +6,7 @@ import { readSimpleStatement } from "./simple-statements.js";
 import { readLoopTarget } from "./targets.js";
 import { readStatementValue } from "./assignment-statements.js";
 import { readTry } from "./try-statements.js";
+import { readWith } from "./with-statements.js";
 
 /** A block owns its statements; its caller owns the terminating dedent. */
 export function readStatements(cursor: TokenCursor): Statement[] {
@@ -13,7 +14,13 @@ export function readStatements(cursor: TokenCursor): Statement[] {
   while (cursor.peek().kind !== "end" && cursor.peek().kind !== "dedent") {
     if (cursor.peek().kind === "newline") { cursor.take(); continue; }
     if (cursor.peek().text === "if" || cursor.peek().text === "while") body.push(readConditional(cursor));
-    else if (cursor.peek().text === "for" || cursor.peek().text === "async") body.push(readFor(cursor));
+    else if (cursor.peek().text === "async") {
+      const start = cursor.take().start;
+      if (cursor.peek().text === "with") body.push(readWith(cursor, readSuite, start));
+      else body.push(readFor(cursor, start));
+    }
+    else if (cursor.peek().text === "for") body.push(readFor(cursor));
+    else if (cursor.peek().text === "with") body.push(readWith(cursor, readSuite));
     else if (cursor.peek().text === "try") body.push(readTry(cursor, readSuite));
     else for (const statement of readSimpleLine(cursor)) body.push(statement);
   }
@@ -65,10 +72,9 @@ function readConditional(cursor: TokenCursor): Statement {
     : { kind: "while", condition, body, otherwise, ...span };
 }
 
-function readFor(cursor: TokenCursor): Statement {
-  const start = cursor.peek().start;
-  const async = cursor.peek().text === "async";
-  if (async) cursor.take();
+function readFor(cursor: TokenCursor, asyncStart?: Statement["start"]): Statement {
+  const start = asyncStart ?? cursor.peek().start;
+  const async = asyncStart !== undefined;
   cursor.expect("for");
   const target = readLoopTarget(cursor, readExpression);
   cursor.expect("in");

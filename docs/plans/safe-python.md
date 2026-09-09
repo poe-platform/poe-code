@@ -428,6 +428,20 @@ extension, integration, or validation requirement is missing or unverified.
   workspace build passed. Exception matching,
   exception-group splitting, unwinding, and except-star control-flow restrictions
   remain runtime/enclosing-scope work.
+- Added with/async-with syntax, ordered manager expressions, validated assignment
+  targets, parenthesized multi-manager headers, and nested suites. Ordered grammar
+  alternatives distinguish manager-list parentheses from tuple, generator, named,
+  and trailer-bearing expressions. The lazy cursor retains tokens during an
+  alternative, replays failed alternatives without repeating lexer callbacks,
+  preserves lexical errors, and releases consumed tokens after alternatives end.
+- With-statement validation: three positive syntax tests and three token-replay
+  tests failed before implementation; all 852 package tests pass. A 768-case
+  CPython compilation and AST comparison matched acceptance, async flags, ordered
+  context expressions, and target trees. CPython cases ran inside an async function
+  to isolate syntax from pending enclosing-scope checks. Scoped lint, source
+  typecheck, and the selected workspace build passed.
+  Context-manager protocol calls, unwinding, suppression, and async execution
+  remain runtime work.
 - Next:
   compound statements, type aliases, and enclosing-scope validation
   normalization, the complete grammar/parser and evaluator, then runtime modules

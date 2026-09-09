@@ -4405,6 +4405,19 @@ extension, integration, or validation requirement is missing or unverified.
   source typecheck and selected workspace build pass. Remaining
   methods, buffer protocols, native builtins, suspension, full accounting and
   SDK/safe-fs remain unfinished.
+- Added a receiver-independent bytes.maketrans callable and immutable table
+  constructor. The operation initializes one identity table, applies ordered
+  overrides with last duplicate winning, validates equal lengths and returns
+  a fresh 256-byte table. Existing instance attribute lookup exposes it;
+  native type-level registration remains part of unfinished builtin work.
+- Seven native/storage tests first reproduced missing support. All 4,118 tests
+  in 309 files pass, including full-domain maps, duplicate overrides, ignored
+  receiver, exact allocation, immutable exports and mapping-loop budgets.
+  A 2,409-program compiled CPython audit checks table contents and translation
+  integration; the 3,441-call translation regression, scoped lint, source
+  typecheck and selected workspace build pass. Remaining methods, buffer
+  protocols, native builtins, suspension, full accounting and SDK/safe-fs remain
+  unfinished.
 - Next:
   remaining scope/compiler audits, interpreter runtime,
   resource controls, runtime modules, and safe-fs integration. Parsing and static

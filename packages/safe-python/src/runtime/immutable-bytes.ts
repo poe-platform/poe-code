@@ -29,6 +29,17 @@ export class ImmutableBytes implements Iterable<number> {
     return new ImmutableBytes(owned);
   }
 
+  /** Build the identity mapping first, then apply ordered overrides. */
+  static maketrans(from: ImmutableBytes, to: ImmutableBytes, meter: ExecutionMeter): ImmutableBytes {
+    meter.checkpoint();
+    if (from.length !== to.length) throw new PythonRuntimeError("ValueError", "maketrans arguments must have same length");
+    meter.checkpoint(0, 256);
+    const bytes = new Uint8Array(256);
+    for (let byte = 0; byte < 256; byte++) { meter.checkpoint(); bytes[byte] = byte; }
+    for (let index = 0; index < from.length; index++) { meter.checkpoint(); bytes[from.#bytes[index]] = to.#bytes[index]; }
+    return new ImmutableBytes(bytes);
+  }
+
   *[Symbol.iterator](): IterableIterator<number> {
     for (let index = 0; index < this.length; index++) yield this.#bytes[index];
   }

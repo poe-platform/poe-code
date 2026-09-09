@@ -6,12 +6,14 @@ import type { ResolvedScope } from "../symbol-resolution.js";
 import type { CodeConstants } from "./code-constants.js";
 import type { ExecutionMeter } from "./execution-budget.js";
 import { compileSuite } from "./suite-compilation.js";
+import type { CompiledClassBody } from "./class-compilation.js";
 
 export interface CompiledFunction<Value> {
   /** Originating program's code registry. Nested definitions follow their code,
    * not the caller's currently executing module. Standalone compilation may omit
    * it when the embedding runtime supplies its own definition resolver. */
   readonly definitions?: ReadonlyMap<FunctionNode, CompiledFunction<Value>>;
+  readonly classDefinitions?: ReadonlyMap<Extract<Statement, { kind: "class" }>, CompiledFunction<Value>>;
   readonly scope: ResolvedScope;
   readonly kind: FunctionExecutionKind;
   readonly name: Value;
@@ -19,7 +21,8 @@ export interface CompiledFunction<Value> {
   readonly firstLine: Value;
   readonly docstring: { readonly value: Value } | undefined;
   readonly body: { readonly kind: "suite"; readonly statements: readonly Statement[] }
-    | { readonly kind: "expression"; readonly expression: Expression };
+    | { readonly kind: "expression"; readonly expression: Expression }
+    | { readonly kind: "class"; readonly code: CompiledClassBody<Value> };
 }
 
 /** Compile function/lambda metadata using exact analyzed identities. Defaults and

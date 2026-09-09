@@ -4,7 +4,7 @@ import { invokeFunction, type FunctionInvocationContext } from "./function-invoc
 import { OrderedKeyMap, type KeyOperations } from "./ordered-key-map.js";
 import type { DictionaryValue, FunctionValue, RuntimeValue, RuntimeValues } from "./runtime-values.js";
 
-export interface RuntimeFunctionContext extends Pick<FunctionInvocationContext<RuntimeValue, RuntimeValue>, "calls" | "body" | "suspended"> {
+export interface RuntimeFunctionContext extends Pick<FunctionInvocationContext<RuntimeValue, RuntimeValue>, "calls" | "body" | "suspended" | "classBody"> {
   readonly values: RuntimeValues;
   readonly keys: KeyOperations<RuntimeValue>;
 }
@@ -45,6 +45,7 @@ export function invokeRuntimeFunction(fn: FunctionValue, positional: readonly Ru
     }
   };
   if (context.suspended) invocation.suspended = context.suspended.bind(context);
+  if (context.classBody) invocation.classBody = context.classBody.bind(context);
   return invokeFunction(state.code, {
     name: stringText(state.qualifiedName, meter), positional, keywords: keywordValues, defaults: state.defaults,
     keywordNames: {

@@ -3387,6 +3387,24 @@ extension, integration, or validation requirement is missing or unverified.
   also passed. Source typecheck, scoped lint and selected workspace build passed.
   Class-body callable representation and class-statement construction remain
   unfinished; this fixes a prerequisite rather than completing those features.
+- Added precompiled class-body function code as an execution form of ordinary
+  Python function values. Class statements now resolve __build_class__ from active
+  builtins and pass the unexecuted body/name through the shared argument collector,
+  retaining decorator/header ordering and builder overrides. Direct body calls
+  bind zero parameters, execute class-scope code in defining globals, and return
+  the exact published construction-cell wrapper or None. Class-body function docs
+  remain None even when the class suite has a docstring. Nested function and class
+  registries follow originating code across separately compiled programs.
+- All seven initial integration cases failed at unsupported class dispatch before
+  implementation. All 3,416 tests in 232 files now pass. A 1,500-case CPython audit
+  matched overridden-builder class statements, direct class-body calls, metadata,
+  closures and binding/suite errors. Assembled-program (1,300), prepared-class-suite
+  (1,200) and cross-program function (1,500) differential regressions also passed.
+  Source typecheck, scoped lint and selected workspace build passed. The default
+  builtin __build_class__ backend, metaclass/type construction, arbitrary prepared
+  mappings and instance dispatch remain unfinished; no default class builder is
+  silently installed. Suspension, full resource accounting and public SDK/safe-fs
+  integration remain unfinished as well.
 - Next:
   remaining scope/compiler audits, interpreter runtime,
   resource controls, runtime modules, and safe-fs integration. Parsing and static

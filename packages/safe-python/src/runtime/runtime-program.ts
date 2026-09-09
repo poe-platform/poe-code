@@ -11,11 +11,14 @@ import type { KeyOperations } from "./ordered-key-map.js";
 import type { CompiledProgram } from "./program-compilation.js";
 import { beginRuntimeCall, type RuntimeCallContext } from "./runtime-call.js";
 import { createRuntimeExpressionContext, type RuntimeExpressionBindings } from "./runtime-expression-context.js";
-import { createRuntimeFunctionDefinitions } from "./runtime-function-definition.js";
+import { createRuntimeFunctionDefinitions, type RuntimeFunctionDefinitionBindings } from "./runtime-function-definition.js";
 import { invokeRuntimeFunction, type RuntimeFunctionContext } from "./runtime-function-call.js";
 import { createRuntimeStatementContext, type RuntimeStatementBindings } from "./runtime-statement-context.js";
 import type { DictionaryValue, RuntimeValue, RuntimeValues } from "./runtime-values.js";
 import { ClassFrame } from "./class-frame.js";
+import { executeClassBody } from "./class-body.js";
+import { createRuntimeClassDefinitions } from "./runtime-class-definition.js";
+import { executeClassDefinition } from "./class-definition.js";
 
 export type RuntimeFrame = ModuleFrame<RuntimeValue> | LexicalFrame<RuntimeValue> | ClassFrame<RuntimeValue>;
 
@@ -49,7 +52,7 @@ export interface RuntimeProgramContext extends ModuleNamespaces<RuntimeValue>, R
 export function createRuntimeFrameBody(program: CompiledProgram<RuntimeValue>, context: RuntimeExecutionContext, meter: ExecutionMeter) {
   meter.checkpoint(1, 192);
   const { values, keys, hooks, calls } = context;
-  const body = (frame: RuntimeFrame, namespaces: LexicalNamespaces<RuntimeValue>, functions = program.functions) => {
+  const body = (frame: RuntimeFrame, namespaces: LexicalNamespaces<RuntimeValue>, functions = program.functions, classFunctions = program.classFunctions) => {
     meter.checkpoint(1, 384);
     const expressionHooks = hooks.expressions(frame); meter.checkpoint();
     const statementHooks = hooks.statements(frame); meter.checkpoint();
@@ -66,19 +69,36 @@ export function createRuntimeFrameBody(program: CompiledProgram<RuntimeValue>, c
         }
         if (fn.kind !== "function") return hooks.invoke(fn, args, keywords, frame);
         const invocation: RuntimeFunctionContext = {
-          values, keys, calls, body: child => body(child, fn.value, fn.value.code.definitions ?? functions)
+          values, keys, calls, body: child => body(child, fn.value, fn.value.code.definitions ?? functions, fn.value.code.classDefinitions ?? classFunctions),
+          classBody(code) {
+            let result: RuntimeValue = values.none;
+            const globals = fn.value.globals;
+            executeClassBody(code, {
+              ...fn.value, calls,
+              locals: {
+                lookup: name => globals.has(name) ? { value: globals.get(name)! } : undefined,
+                store: (name, value) => { globals.set(name, value); },
+                delete: name => globals.delete(name), isGuest: () => false
+              },
+              cell: cell => { result = values.cell(cell); return result; },
+              body: child => body(child, fn.value, fn.value.code.definitions ?? functions, fn.value.code.classDefinitions ?? classFunctions)
+            }, meter);
+            return result;
+          }
         };
         if (hooks.suspended) invocation.suspended = hooks.suspended.bind(hooks);
         return invokeRuntimeFunction(fn, args, keywords, invocation, meter);
       }
     }, meter);
-    const definitions = createRuntimeFunctionDefinitions({ functions }, {
+    const definitionBindings: RuntimeFunctionDefinitionBindings = {
       globals: namespaces.globals, builtins: namespaces.builtins,
       capture: frame instanceof LexicalFrame || frame instanceof ClassFrame ? frame.capture.bind(frame) : undefined,
       resolveBuiltins: hooks.resolveBuiltins?.bind(hooks),
       evaluate: expression => evaluateExpression(expression, expressions, meter),
       beginCall, store: frame.store.bind(frame)
-    }, values, meter);
+    };
+    const definitions = createRuntimeFunctionDefinitions({ functions }, definitionBindings, values, meter);
+    const classDefinitions = createRuntimeClassDefinitions({ classFunctions }, { ...definitionBindings, decorate: definitions.decorate.bind(definitions) }, values, meter);
     const expressions = createRuntimeExpressionContext(values, {
       load: frame.load.bind(frame), store: frame.store.bind(frame),
       attribute: expressionHooks.attribute.bind(expressionHooks), beginSet: expressionHooks.beginSet.bind(expressionHooks),
@@ -91,6 +111,7 @@ export function createRuntimeFrameBody(program: CompiledProgram<RuntimeValue>, c
       assertions: statementHooks.assertions, managers: statementHooks.managers, exceptions: statementHooks.exceptions,
       executeUnhandled(statement) {
         if (statement.kind === "function") executeFunctionDefinition(statement, definitions, meter);
+        else if (statement.kind === "class") executeClassDefinition(statement, classDefinitions, meter);
         else statementHooks.executeUnhandled(statement);
       }
     }, values, meter);

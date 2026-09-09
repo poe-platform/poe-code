@@ -17,6 +17,7 @@ export interface CompiledProgram<Value> {
   readonly module: CompiledModule<Value>;
   readonly functions: ReadonlyMap<FunctionNode, CompiledFunction<Value>>;
   readonly classes: ReadonlyMap<Extract<Statement, { kind: "class" }>, CompiledClassBody<Value>>;
+  readonly classFunctions: ReadonlyMap<Extract<Statement, { kind: "class" }>, CompiledFunction<Value>>;
 }
 
 /** Eagerly prepare all analyzed function/class code before module execution.
@@ -37,6 +38,7 @@ export function compileProgram<Value>(
   const module: CompiledModule<Value> = { scope: analysis.scopes, ...compileSuite(analysis.module.body, options.stripDocstring, constants, meter) };
   const functions = new Map<FunctionNode, CompiledFunction<Value>>();
   const classes = new Map<Extract<Statement, { kind: "class" }>, CompiledClassBody<Value>>();
+  const classFunctions = new Map<Extract<Statement, { kind: "class" }>, CompiledFunction<Value>>();
   const pending = [analysis.scopes];
   while (pending.length) {
     meter.checkpoint();
@@ -44,10 +46,20 @@ export function compileProgram<Value>(
     if (node.kind === "function" || node.kind === "lambda") {
       const code = compileFunction(scope, analysis, options, constants, meter);
       meter.checkpoint(0, 96);
-      functions.set(node, { ...code, definitions: functions });
+      functions.set(node, { ...code, definitions: functions, classDefinitions: classFunctions });
     }
-    else if (node.kind === "class") classes.set(node, compileClassBody(scope, analysis, options, constants, meter));
+    else if (node.kind === "class") {
+      const code = compileClassBody(scope, analysis, options, constants, meter);
+      classes.set(node, code);
+      meter.checkpoint(0, 128);
+      classFunctions.set(node, {
+        scope, kind: "function", name: constants.string(node.name.name),
+        qualifiedName: code.qualifiedName, firstLine: code.firstLine,
+        docstring: undefined, body: { kind: "class", code },
+        definitions: functions, classDefinitions: classFunctions
+      });
+    }
     for (let index = scope.children.length - 1; index >= 0; index--) { meter.checkpoint(); pending.push(scope.children[index]); }
   }
-  return { module, functions, classes };
+  return { module, functions, classes, classFunctions };
 }

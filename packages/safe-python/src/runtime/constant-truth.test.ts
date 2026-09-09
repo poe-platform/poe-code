@@ -10,6 +10,7 @@ import { realBinary } from "./real-binary.js";
 import { integerBitwise } from "./integer-bitwise.js";
 import { integerShift } from "./integer-shift.js";
 import { complexBinary } from "./complex-binary.js";
+import { constantConcat } from "./constant-concat.js";
 import { ExecutionBudget, ExecutionLimitError } from "./execution-budget.js";
 import { evaluateExpression, type ExpressionContext } from "./expression-evaluation.js";
 import { parseExpression } from "../expression.js";
@@ -59,7 +60,16 @@ describe("concrete constant truth", () => {
       literal: node => v.literal(node), boolean: value => v.boolean(value), truth: value => constantTruth(value, meter),
       load: name => { if (name === "NotImplemented") return v.notImplemented; return unexpected(); }, store: unexpected,
       unary: (operator, value) => constantUnary(operator, value, { values: v, warn: unexpected }, meter),
-      binary: (operator, left, right) => operator === "<<" || operator === ">>" ? integerShift(operator, left, right, v, meter) : operator === "&" || operator === "|" || operator === "^" ? integerBitwise(operator, left, right, v, meter) : left.kind === "complex" || right.kind === "complex" ? complexBinary(operator, left, right, v, meter) : realBinary(operator, left, right, v, meter), compare: (operator, left, right) => operator === "in" || operator === "not in" ? constantMembership(operator, left, right, v, meter) : constantComparison(operator, left, right, v, meter), attribute: unexpected, beginCall: unexpected,
+      binary: (operator, left, right) => {
+        if (operator === "<<" || operator === ">>") return integerShift(operator, left, right, v, meter);
+        if (operator === "&" || operator === "|" || operator === "^") return integerBitwise(operator, left, right, v, meter);
+        if (operator === "+") {
+          const concatenated = constantConcat(left, right, v, meter);
+          if (concatenated !== v.notImplemented) return concatenated;
+        }
+        return left.kind === "complex" || right.kind === "complex" ? complexBinary(operator, left, right, v, meter) : realBinary(operator, left, right, v, meter);
+      },
+      compare: (operator, left, right) => operator === "in" || operator === "not in" ? constantMembership(operator, left, right, v, meter) : constantComparison(operator, left, right, v, meter), attribute: unexpected, beginCall: unexpected,
       tuple: values => v.tuple(values), list: unexpected, beginSet: unexpected, beginDictionary: unexpected,
       slice: parts => v.slice(parts), getItem: (object, key) => constantIndex(object, key, v, meter), iterate: value => new ConstantIterator(value, v, meter)
     };
@@ -89,6 +99,9 @@ describe("concrete constant truth", () => {
     expect(run("(True << True) == 2")).toBe(v.true);
     expect(run("(1 + 2j) * (3 + 4j) == -5 + 10j")).toBe(v.true);
     expect(run("1 / (1 + 1j) == 0.5 - 0.5j")).toBe(v.true);
+    expect(run("'a' + '😀' == 'a😀'")).toBe(v.true);
+    expect(run("b'ab' + b'cd' == b'abcd'")).toBe(v.true);
+    expect(run("(1,) + (2, 3) == (1, 2, 3)")).toBe(v.true);
     expect(run("False and NotImplemented")).toBe(v.false);
     expect(run("True or NotImplemented")).toBe(v.true);
     expect(run("False or NotImplemented")).toBe(v.notImplemented);

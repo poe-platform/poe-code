@@ -2164,6 +2164,18 @@ extension, integration, or validation requirement is missing or unverified.
   normalized NaN payloads. Source typecheck, scoped lint and selected build passed.
   Powers, guest numeric slot wiring, public math.fma error
   policy and full temporary-rational/host heap accounting remain unfinished.
+- Added concrete concatenation for matching immutable strings, bytes and tuples,
+  wired into expression tests. String concatenation preserves separate surrogate
+  code points; bytes adopt a newly allocated output buffer; tuple slots preserve
+  member identities. Empty operands reuse the other value. Mismatches decline so
+  callers retain reflected dispatch and sequence-error responsibilities. String
+  and tuple temporary copies are explicitly charged; eliminating those copies
+  and full host object/array overhead accounting remain pending.
+- Concatenation validation: missing-module red tests preceded implementation.
+  All 2,548 tests in 144 files pass; CPython matched 3,000 generated string/bytes/
+  tuple concatenations. Ownership, identity and pre-allocation budget checks pass.
+  Source typecheck, scoped lint and selected workspace build passed. Guest sequence
+  dispatch, repetition and complete resource accounting remain unfinished.
 - Next:
   remaining scope/compiler audits, interpreter runtime,
   resource controls, runtime modules, and safe-fs integration. Parsing and static

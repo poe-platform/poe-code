@@ -58,6 +58,17 @@ export class ImmutableBytes implements Iterable<number> {
     return new ImmutableBytes(owned);
   }
 
+  concat(other: ImmutableBytes, meter: ExecutionMeter): ImmutableBytes {
+    meter.checkpoint();
+    if (this.length === 0) return other;
+    if (other.length === 0) return this;
+    meter.checkpoint(0, this.length + other.length);
+    const bytes = new Uint8Array(this.length + other.length);
+    for (let i = 0; i < this.length; i++) { meter.checkpoint(); bytes[i] = this.#bytes[i]; }
+    for (let i = 0; i < other.length; i++) { meter.checkpoint(); bytes[this.length + i] = other.#bytes[i]; }
+    return new ImmutableBytes(bytes);
+  }
+
   /** Search owned storage without exporting/copying either buffer. */
   contains(needle: ImmutableBytes | number, meter: ExecutionMeter): boolean {
     meter.checkpoint();

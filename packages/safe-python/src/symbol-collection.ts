@@ -3,12 +3,14 @@ import type { DeclaredName, Module, Statement } from "./statement-ast.js";
 import type { Pattern } from "./pattern-ast.js";
 import { expressionChildren } from "./expression-children.js";
 import { statementExpressions } from "./statement-expressions.js";
+import { manglePrivateName } from "./private-names.js";
 
 export type SymbolEvent = SourceSpan & {
   readonly kind: "read" | "write" | "delete" | "parameter" | "global" | "nonlocal" | "annotation" | "import" | "write-outer";
   readonly name: string;
 };
 export type SymbolScope = {
+  readonly privateName: string | null;
   readonly kind: "module" | "function" | "class" | "lambda" | "comprehension";
   readonly node: Module | Statement | Expression;
   readonly events: readonly SymbolEvent[];
@@ -18,12 +20,13 @@ type MutableScope = Omit<SymbolScope, "events" | "children"> & { events: SymbolE
 
 /** Collect lexical occurrences without resolving names or executing user code. */
 export function collectSymbols(module: Module): SymbolScope {
-  const root: MutableScope = { kind: "module", node: module, events: [], children: [] };
+  const root: MutableScope = { kind: "module", privateName: null, node: module, events: [], children: [] };
   function record(scope: MutableScope, kind: SymbolEvent["kind"], name: DeclaredName | (SourceSpan & { name: string })): void {
-    scope.events.push({ kind, name: name.name, start: name.start, end: name.end });
+    scope.events.push({ kind, name: manglePrivateName(name.name, scope.privateName), start: name.start, end: name.end });
   }
   function child(scope: MutableScope, kind: SymbolScope["kind"], node: SymbolScope["node"]): MutableScope {
-    const nested: MutableScope = { kind, node, events: [], children: [] };
+    const privateName = node.kind === "class" ? node.name.name : scope.privateName;
+    const nested: MutableScope = { kind, privateName, node, events: [], children: [] };
     scope.children.push(nested);
     return nested;
   }

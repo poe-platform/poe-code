@@ -601,6 +601,21 @@ extension, integration, or validation requirement is missing or unverified.
   Private-name mangling, implicit __class__/super cells,
   remaining scope/compiler details, public validation orchestration, and runtime
   closure execution remain pending.
+- Added normalized private-name mangling with lexical class context on symbol
+  scopes. Methods, nested functions, lambdas, and comprehensions inherit that
+  context; nested class headers use the outer context and their bodies establish
+  their own. Preserves special double-suffix names, dotted names, and classes made
+  only of underscores. Symbol occurrences/import bindings are mangled without
+  mutating raw AST spelling. Parameter collisions introduced by mangling are
+  rejected during declaration validation.
+- Private-name validation: the new suite initially failed on the missing helper;
+  all 1,126 package tests pass. A 110-case CPython symbol-table comparison matched
+  scope-name trees and collision acceptance across class-name variants and nested
+  callables. Additional CPython checks confirmed that tested keyword/pattern
+  collisions are accepted, so no unsupported rejection was added. Scoped lint,
+  source typecheck, and the selected workspace build passed. Runtime attribute/import
+  use of lexical mangling, implicit __class__/super
+  cells, and complete validation/execution orchestration remain pending.
 - Next:
   compound statements, type aliases, and enclosing-scope validation
   normalization, the complete grammar/parser and evaluator, then runtime modules

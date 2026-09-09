@@ -6,6 +6,7 @@ export function validateDeclarations(scope: SymbolScope, filename = "<string>"):
   const previous = new Map<string, Set<SymbolEvent["kind"]>>();
   for (const event of scope.events) {
     const kinds = previous.get(event.name) ?? new Set<SymbolEvent["kind"]>();
+    if (event.kind === "parameter" && kinds.has("parameter")) throw new PythonSyntaxError(`duplicate argument '${event.name}' in function definition`, filename, event.start);
     if (event.kind === "global" || event.kind === "nonlocal") {
       let message: string | undefined;
       if (event.kind === "nonlocal" && scope.kind === "module") message = "nonlocal declaration not allowed at module level";

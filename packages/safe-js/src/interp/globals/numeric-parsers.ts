@@ -8,6 +8,7 @@ export function createNumericParsers(budget: Budget) {
     parseInt: createSandboxClosure({
       sandbox: true,
       name: "parseInt",
+      length: 2,
       call: ([value, radix], context) => {
         const parse = (text: string): number | Promise<number> => {
           const release = retainValues(budget, () => [text]);
@@ -36,6 +37,7 @@ export function createNumericParsers(budget: Budget) {
     parseFloat: createSandboxClosure({
       sandbox: true,
       name: "parseFloat",
+      length: 1,
       call: ([value], context) => {
         const text = sandboxString(value, budget, context);
         return typeof text === "string"

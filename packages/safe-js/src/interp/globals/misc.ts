@@ -15,10 +15,13 @@ export type MiscGlobals = {
   isFinite: SandboxClosure;
 };
 
-export function createMiscGlobals(options: { budget: Budget }): MiscGlobals {
+export function createMiscGlobals(options: {
+  budget: Budget;
+  numericParsers?: ReturnType<typeof createNumericParsers>;
+}): MiscGlobals {
   return {
     structuredClone: createStructuredCloneGlobal(options.budget),
-    ...createNumericParsers(options.budget),
+    ...(options.numericParsers ?? createNumericParsers(options.budget)),
     isNaN: createSandboxClosure({
       sandbox: true,
       call: ([value], context) => {

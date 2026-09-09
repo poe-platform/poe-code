@@ -84,6 +84,7 @@ export type ObjectArrayGlobals = {
 export function createObjectArrayGlobals(options: {
   budget: Budget;
   compileOwner?: CompileOwner;
+  numericParsers?: ReturnType<typeof createNumericParsers>;
 }): ObjectArrayGlobals {
   return {
     Object: createObjectGlobal(
@@ -441,7 +442,7 @@ export function createObjectArrayGlobals(options: {
             call: ([value]) => typeof value === "number" && Number.isInteger(value),
             name: "isInteger"
           }),
-          ...createNumericParsers(options.budget),
+          ...(options.numericParsers ?? createNumericParsers(options.budget)),
           isSafeInteger: createSandboxClosure({
             guest: true,
             sandbox: true,

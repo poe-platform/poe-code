@@ -8,6 +8,7 @@ import { createErrorGlobals, createErrorPrototypes } from "./globals/error.js";
 import { createMathGlobals } from "./globals/math.js";
 import { createRegexGlobals, installRegExpIteratorPrototype } from "./globals/regex.js";
 import { createMiscGlobals } from "./globals/misc.js";
+import { createNumericParsers } from "./globals/numeric-parsers.js";
 import { createUriGlobals } from "./globals/uri.js";
 import { createObjectArrayGlobals } from "./globals/object-array.js";
 import { createFunctionPrototype, installDynamicFunctionConstructors } from "./globals/function.js";
@@ -36,6 +37,7 @@ export function createBuiltinBindings(
   options: Parameters<typeof createConsoleJsonGlobals>[0] & { random?: () => number; clock?: RunClock; functionHasInstance?: boolean; errorPrototypes?: boolean; typedArrayPrototypes?: boolean }
 ) {
   activeFunctionRealmPrototypes.delete(options.budget);
+  const numericParsers = createNumericParsers(options.budget);
   const date = createDateGlobal(options);
   const baseBindings = {
     eval: createEvalGlobal(options.budget),
@@ -48,7 +50,7 @@ export function createBuiltinBindings(
     BigInt: createBigIntGlobal(options.budget),
     ...createErrorGlobals({ ...options, errorPrototypes: options.errorPrototypes !== false }),
     ...createMathGlobals({ random: options.random, budget: options.budget }),
-    ...createObjectArrayGlobals(options),
+    ...createObjectArrayGlobals({ ...options, numericParsers }),
     Iterator: createIteratorGlobal(options.budget),
     DisposableStack: createDisposableStackGlobal(options.budget),
     AsyncDisposableStack: createAsyncDisposableStackGlobal(options.budget),
@@ -59,7 +61,7 @@ export function createBuiltinBindings(
     Intl: createIntlGlobal(options.budget, date.properties!.now as SandboxClosure),
     ArrayBuffer: createArrayBufferGlobal(options.budget),
     DataView: createDataViewGlobal(options.budget),
-    ...createMiscGlobals(options),
+    ...createMiscGlobals({ ...options, numericParsers }),
     ...createUriGlobals(options.budget),
     ...createPromiseGlobals(options),
     ...createRegexGlobals(options)

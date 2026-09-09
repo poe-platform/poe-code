@@ -17,6 +17,7 @@ function environment(initial: Record<string, unknown> = {}) {
     tuple: () => { throw new Error("unused"); }, slice: () => { throw new Error("unused"); }, getItem: () => { throw new Error("unused"); }, iterate: () => { throw new Error("unused"); },
     list: values => [...values],
     beginSet: () => { throw new Error("unused"); },
+    beginDictionary: () => { throw new Error("unused"); },
     beginCall: callee => {
       const positional: unknown[] = [], keywords = new Map<string, unknown>();
       const merge = (entries: Iterable<readonly [string, unknown]>) => {

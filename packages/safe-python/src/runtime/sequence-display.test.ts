@@ -14,6 +14,7 @@ function environment(initial: Record<string, unknown> = {}) {
     unary: unused, binary: unused, compare: unused, attribute: unused, slice: unused, beginCall: unused,
     truth: Boolean, boolean: value => value,
     beginSet: unused,
+    beginDictionary: unused,
     tuple: values => { events.push("tuple"); return { tuple: values }; },
     list: values => { events.push("list"); return [...values]; },
     getItem: (object, key) => (object as unknown[])[Number(key)],

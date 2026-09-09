@@ -1,4 +1,4 @@
-import type { CallArgument, Expression } from "../ast.js";
+import type { CallArgument, DictionaryEntry, Expression } from "../ast.js";
 import type { ExecutionMeter } from "./execution-budget.js";
 
 /** Per-call guest argument collector. Expansion/merging owns iteration, guest
@@ -19,6 +19,15 @@ export interface ExpressionCall<Value> {
 export interface ExpressionSet<Value> {
   add(value: Value): void;
   update(iterable: Value): void;
+  finish(): Value;
+}
+
+/** Dictionary updates overwrite existing values, unlike call keyword merges.
+ * Concrete storage owns key identity/equality, hash reuse and mapping protocols.
+ */
+export interface ExpressionDictionary<Value> {
+  set(key: Value, value: Value): void;
+  update(mapping: Value): void;
   finish(): Value;
 }
 
@@ -52,6 +61,7 @@ export interface ExpressionContext<Value> {
   /** Allocate a fresh guest list, preserving element references. */
   list(values: readonly Value[]): Value;
   beginSet(initial: readonly Value[]): ExpressionSet<Value>;
+  beginDictionary(initial: readonly (readonly [Value, Value])[]): ExpressionDictionary<Value>;
   slice(parts: SliceValues<Value>): Value;
   getItem(object: Value, key: Value): Value;
   /** Adapt the guest iteration protocol to next/done. Internal guest calls and
@@ -107,6 +117,60 @@ export function evaluateExpression<Value>(expression: Expression, context: Expre
       case "assignment-expression":
         work.push(() => { context.store(node.target.name, value); knownTruth = undefined; }, { node: node.value, test: "value" });
         break;
+      case "dictionary": {
+        let dictionary: ExpressionDictionary<Value> | undefined, index = 0;
+        const nextChunk = () => {
+          const entry = node.entries[index];
+          if (entry === undefined) {
+            if (dictionary === undefined) { dictionary = context.beginDictionary([]); work.push(nextChunk); }
+            else { value = dictionary.finish(); knownTruth = undefined; }
+            return;
+          }
+          if (entry.kind === "mapping") {
+            if (dictionary === undefined) { dictionary = context.beginDictionary([]); work.push(nextChunk); return; }
+            index++;
+            work.push(() => { dictionary!.update(value); work.push(nextChunk); }, { node: entry.value, test: "value" });
+            return;
+          }
+          let end = index;
+          // CPython emits explicit runs in chunks of at most 17 pairs. Runs
+          // above 15 pairs insert incrementally; smaller runs defer hashing.
+          while (end < node.entries.length && end - index < 17 && node.entries[end].kind === "entry") {
+            meter.checkpoint(); end++;
+          }
+          let cursor = index;
+          const pending: (readonly [Value, Value])[] = [];
+          let group: ExpressionDictionary<Value> | undefined;
+          if (end - index > 15) { meter.checkpoint(); group = context.beginDictionary([]); }
+          index = end;
+          const finishGroup = () => {
+            if (dictionary === undefined) { dictionary = group!; work.push(nextChunk); }
+            else {
+              const mapping = group!.finish();
+              work.push(() => { dictionary!.update(mapping); work.push(nextChunk); });
+            }
+          };
+          const nextPair = () => {
+            if (cursor === end) {
+              if (group === undefined) group = context.beginDictionary(pending);
+              work.push(finishGroup);
+              return;
+            }
+            const pair = node.entries[cursor++] as Extract<DictionaryEntry, { kind: "entry" }>;
+            work.push(() => {
+              const key = value;
+              work.push(() => {
+                if (group === undefined) pending.push([key, value]);
+                else group.set(key, value);
+                work.push(nextPair);
+              }, { node: pair.value, test: "value" });
+            }, { node: pair.key, test: "value" });
+          };
+          work.push(nextPair);
+        };
+        work.push(nextChunk);
+        break;
+      }
       case "set": {
         // CPython's stack-use guideline changes observable hash-call timing:
         // small initial runs are evaluated before BUILD_SET, large ones use adds.

@@ -1316,6 +1316,24 @@ extension, integration, or validation requirement is missing or unverified.
   along with internal iteration and allocation metering. This adds evaluation
   scheduling, not a complete guest set object. Dictionary displays, comprehensions,
   statement execution and complete interpreter/resource accounting remain pending.
+- Added dictionary-display execution, including empty dictionaries, explicit
+  key/value entries and **mapping updates. Keys execute before their values;
+  small explicit runs finish evaluation before hashing. Larger runs use
+  incremental insertion, with CPython's 15/16-pair and 17-pair chunk boundaries
+  preserved. Runs construct separate guest dictionaries before merging into an
+  existing result, allowing hash reuse by the concrete implementation. Mapping
+  updates overwrite prior values rather than applying call-keyword duplicate
+  rejection. Errors stop subsequent key/value/mapping expressions.
+- Dictionary validation: thirteen tests failed on unsupported dictionary nodes
+  before implementation; all 1,832 tests in 88 files now pass. CPython matched
+  2,600 generated dictionary results/traces with key/value loads, hashing, mapping
+  keys/getitem, overwrites, invalid mappings and hashing failures, including long
+  runs across chunk boundaries. Scoped lint, source typecheck and dependency build
+  passed. References: Python dictionary-display rules and CPython v3.14.0
+  Python/codegen.c codegen_dict/codegen_subdict. Concrete guest dictionary storage,
+  hashing/equality/identity, optimized hash reuse and mapping protocol work remain
+  context-owned, with internal metering required. Guest object/frame execution,
+  comprehensions, suspensions and complete allocation accounting remain pending.
 - Next:
   remaining scope/compiler audits, interpreter runtime,
   resource controls, runtime modules, and safe-fs integration. Parsing and static

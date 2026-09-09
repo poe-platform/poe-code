@@ -11,6 +11,7 @@ function environment(initial: Record<string, unknown> = {}) {
     load: name => { events.push(`load:${name}`); if (!names.has(name)) throw new Error(`missing:${name}`); return names.get(name); },
     store: unused, unary: unused, binary: unused, compare: unused, attribute: unused, slice: unused, beginCall: unused,
     truth: Boolean, boolean: value => value, tuple: unused, list: values => [...values], getItem: unused, iterate: unused,
+    beginDictionary: unused,
     beginSet: values => {
       events.push("create");
       const set = new Set<unknown>();

@@ -13,6 +13,7 @@ function environment(initial: Record<string, unknown> = {}) {
     tuple: values => { events.push("tuple"); return { tuple: values }; },
     list: values => [...values],
     beginSet: unused,
+    beginDictionary: unused,
     slice: parts => { events.push("slice"); return { slice: [parts.lower ?? null, parts.upper ?? null, parts.step ?? null] }; },
     getItem: (_object, key) => { events.push("getitem"); return key; },
     iterate: value => {

@@ -8,9 +8,10 @@
   "exports": {
     ".": { "types": "./dist/index.d.ts", "import": "./dist/index.js" }
   },
-  "files": ["dist"],
+  "files": ["dist", "UNICODE-LICENSE.txt"],
   "scripts": {
     "build": "node ../../scripts/guard-package-dist.mjs && tsc -p tsconfig.json",
+    "generate:unicode": "tsx scripts/generate-unicode.ts",
     "typecheck": "tsc -p tsconfig.json --noEmit",
     "test": "vitest run --config vitest.config.ts",
     "test:unit": "vitest run --config vitest.config.ts"

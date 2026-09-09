@@ -63,8 +63,35 @@ extension, integration, or validation requirement is missing or unverified.
   with no acceptance/value differences. Floating and imaginary values were compared
   by IEEE-754 bytes, including overflow and underflow. This evidence covers literal
   reading only, not numeric operations or the complete lexer.
-- Next: strings and bytes, lexical token generation, and logical-line joining,
-  then parser and evaluator. Interpreter execution is not implemented.
+- Added ordinary/raw string and bytes readers: short/triple quotes, all recognized
+  escapes, named Unicode escapes, bytes ASCII restrictions, line continuation,
+  normalized newlines, source spans, and first-warning behavior. Text literal
+  values are code-point arrays so separate escaped surrogates do not collapse
+  into a different Python character. Bytes values use Uint8Array.
+- Unicode name lookup uses 45,786 explicit names/aliases and 17 algorithmic
+  ranges from pinned Unicode 16.0.0 inputs, matching CPython 3.14.7. It searches
+  sorted text without constructing a large lookup map. Generated source includes
+  the Unicode license; declaration output is 143 bytes, not a literal-type copy
+  of the database. The database is local at runtime; no runtime download or host
+  Python dependency is introduced.
+- Regenerate the name database with
+  `npm run generate:unicode --workspace=@poe-code/safe-python`. Input downloads are
+  SHA-256 checked in `scripts/generate-unicode.ts`; the pure compilation function
+  is tested in memory. Inputs are Unicode's `16.0.0/ucd/extracted/DerivedName.txt`
+  and `16.0.0/ucd/NameAliases.txt`. Python's omission of algorithmic Tangut names
+  and rejection of multi-character named sequences in string escapes are preserved.
+- String/Unicode validation: 212 package unit cases pass. CPython comparison
+  checked 194,639 canonical-name/alias lookups without differences. A separate
+  3,720-case string corpus yielded 3,710 single-literal comparisons with no
+  acceptance, code-point/byte-value, or warning-text differences. Ten generated
+  cases were adjacent literals and are explicitly excluded until parser-level
+  concatenation exists. Differential failures first exposed non-ASCII escape
+  warnings and warning timing; five failing regression cases preceded fixes.
+  Focused ESLint, source and generator typechecks, and selected workspace build
+  passed. Error-message text/locations have not been exhaustively compared.
+- Next: lexical token generation, identifiers, logical-line joining, and f/t-string
+  expression parsing, then the complete parser and evaluator. Ordinary literal
+  decoding does not establish complete lexical support or interpreter execution.
 - Workspace lockfile registration and packaging integration remain pending.
 - Package README creation awaits the requested permission under repository rules.
 - No push or release was requested.

@@ -28,7 +28,7 @@ export interface RuntimeCallContext {
 /** Per-expression collector. No callability checks or formatting during setup.
  * Exact dict keyword merges reject duplicates with cached hashes; non-string
  * validation waits until invocation (or an opted-in native callee's checks).
- * Guest mapping/length-hint slots and full
+ * Guest mapping slots and full
  * temporary accounting remain wider object-runtime responsibilities.
  */
 export function beginRuntimeCall(callee: RuntimeValue, context: RuntimeCallContext, meter: ExecutionMeter): ExpressionCall<RuntimeValue> {
@@ -48,7 +48,7 @@ export function beginRuntimeCall(callee: RuntimeValue, context: RuntimeCallConte
         const prefix = loneStar ? `${context.name(callee)} argument after` : "Value after";
         meter.checkpoint();
         throw new PythonRuntimeError("TypeError", `${prefix} * must be an iterable, not ${name}`);
-      });
+      }, !loneStar);
       while (true) {
         meter.checkpoint(); const item = iterator.next(); meter.checkpoint();
         if (item.done) return;

@@ -6148,6 +6148,19 @@ extension, integration, or validation requirement is missing or unverified.
   build pass. Advisory sizes are not used for speculative allocations, matching
   existing list-extension policy. Other collecting consumers still need their
   hint integration; concrete objects and broader SDK/safe-fs work remain open.
+- Connected source hints to starred list/tuple/subscript expansion and mixed
+  positional call collection. Hints run after iterator acquisition, before the
+  first pull, against the original source. Lone-star calls retain CPython 3.14's
+  tuple-conversion path without hint lookup; loops and fixed unpacking remain
+  unaffected. Exact native values retain their existing non-guest paths.
+- Four compiled regressions cover failing source hints and lone-star exclusion;
+  three failed before implementation. All 4,874 tests in 426 files pass. A
+  96-program CPython comparison matches values, errors and exact callback order
+  across displays, single/multiple-star calls, nested functions and noncollecting
+  consumers with zero-to-eleven items and negative/valid hints. The 80 extended
+  unpacking hint comparisons still pass. Typecheck, scoped lint and
+  selected workspace build pass. Broader object/builtin/SDK/safe-fs integration
+  and complete temporary allocation accounting remain unfinished.
 - Next:
   remaining scope/compiler audits, interpreter runtime,
   resource controls, runtime modules, and safe-fs integration. Parsing and static

@@ -60,8 +60,9 @@ export interface ExpressionContext<Value> {
   /** Adapt the guest iteration protocol to next/done. Internal guest calls and
    * allocations remain metered by the context; the evaluator meters each next.
    * Optional consumer diagnostic for absent iteration/sequence slots only;
-   * exceptions from existing guest slots must propagate unchanged. */
-  iterate(value: Value, notIterable?: (typeName: string) => never): Iterator<Value>;
+   * exceptions from existing guest slots must propagate unchanged. A requested
+   * hint is checked on the source after acquisition, before the first next. */
+  iterate(value: Value, notIterable?: (typeName: string) => never, hint?: boolean): Iterator<Value>;
   /** Create a fresh guest function using the compiled code for this exact AST
    * node and capture the defining environment. Do not execute the lambda body.
    * Defaults have normalized source keys, retaining original value identities;
@@ -292,7 +293,7 @@ export function evaluateExpression<Value>(expression: Expression, context: Expre
               work.push(() => {
                 const iterator = context.iterate(value, name => {
                   throw new PythonRuntimeError("TypeError", `Value after * must be an iterable, not ${name}`);
-                });
+                }, true);
                 const nextValue = () => {
                   const entry = iterator.next();
                   if (entry.done) work.push(nextItem);

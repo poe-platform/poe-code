@@ -7,15 +7,18 @@ import { PythonRuntimeError } from "./error.js";
 import { iterateRuntimeDictionaryView } from "./runtime-dictionary-view.js";
 import type { CompletionIterator } from "./iterator-completion.js";
 import { ProtocolIterator, type IterationContext } from "./protocol-iterator.js";
+import { lengthHint } from "./length-hint.js";
 
 /** Acquire host iteration for exact builtin runtime values. Prepared iterator
  * records preserve their cursor identity; lists use live storage, not snapshots.
  * Range payloads are wrapped only when pulled. Optional guest type-level slots
  * are adapted only for non-builtin inputs, preserving exhaustion metadata.
+ * List-style collectors request a source hint after acquisition; it is checked
+ * for protocol effects without trusting it for allocation or iteration count.
  * Iterator type objects and full object wiring remain external. The values
  * factory and storage must use this execution's meter.
  */
-export function runtimeIterate(value: RuntimeValue, values: ConstantValues, meter: ExecutionMeter, protocol?: IterationContext<RuntimeValue>, notIterable?: (typeName: string) => never): CompletionIterator<RuntimeValue> {
+export function runtimeIterate(value: RuntimeValue, values: ConstantValues, meter: ExecutionMeter, protocol?: IterationContext<RuntimeValue>, notIterable?: (typeName: string) => never, hint = false): CompletionIterator<RuntimeValue> {
   meter.checkpoint();
   switch (value.kind) {
     case "set": case "frozenset":
@@ -30,7 +33,11 @@ export function runtimeIterate(value: RuntimeValue, values: ConstantValues, mete
     case "range": return createRuntimeRangeIterator(value.value, false, values, meter);
     case "tuple": case "str": case "bytes": return new ConstantIterator<RuntimeValue>(value, values, meter);
     default: {
-      if (protocol !== undefined) return new ProtocolIterator(value, protocol, meter, notIterable);
+      if (protocol !== undefined) {
+        const iterator = new ProtocolIterator(value, protocol, meter, notIterable);
+        if (hint && protocol.hints !== undefined) lengthHint(value, protocol.hints, meter, 8n);
+        return iterator;
+      }
       const type = value.kind === "none" ? "NoneType" : value.kind === "not-implemented" ? "NotImplementedType" : value.kind;
       if (notIterable !== undefined) return notIterable(type);
       throw new PythonRuntimeError("TypeError", `'${type}' object is not iterable`);

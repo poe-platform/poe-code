@@ -102,7 +102,7 @@ export function createRuntimeExpressionContext(values: RuntimeValues, bindings: 
       return result;
     },
     getItem: (object, key) => runtimeIndex(object, key, values, meter),
-    iterate: (value, notIterable) => runtimeIterate(value, values, meter, bindings.iteration, notIterable)
+    iterate: (value, notIterable, hint) => runtimeIterate(value, values, meter, bindings.iteration, notIterable, hint)
   };
   if (bindings.createLambda) context.createLambda = bindings.createLambda.bind(bindings);
   context.formattedString = bindings.formattedString ?? createRuntimeFormattedStringContext(values, formatting, meter);

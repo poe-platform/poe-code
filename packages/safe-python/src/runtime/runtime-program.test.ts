@@ -38,6 +38,30 @@ function fixture(source: string, maxSteps = 100000, signal?: AbortSignal) {
 }
 
 describe("assembled concrete runtime programs", () => {
+  it.each([
+    ["result=[*guest]\n", true], ["result=(*guest,)\n", true],
+    ["def f(*args):\n return args\nresult=f(0,*guest)\n", true],
+    ["def f(*args):\n return args\nresult=f(*guest)\n", false]
+  ] as const)("consults source hints only for list-style expansion: %s", (source, hinted) => {
+    const state = fixture(source), v = state.values, guest = v.cell({}), cursor = v.cell({}), events: string[] = [];
+    const stop = new PythonRuntimeError("StopIteration", "done"), failure = new PythonRuntimeError("ValueError", "source hint failed");
+    const iteration: IterationContext<RuntimeValue> = {
+      hints: {
+        length: value => { expect(value).toBe(guest); events.push("length"); return undefined; },
+        lookupHint: value => { expect(value).toBe(guest); return () => { events.push("hint"); throw failure; }; },
+        integer: () => undefined, isNotImplemented: () => false, isTypeError: () => false, typeName: () => "Guest"
+      },
+      lookupIter: value => { expect(value).toBe(guest); return () => { events.push("iter"); return cursor; }; },
+      hasNext: value => value === cursor,
+      next: () => { events.push("next"); throw stop; },
+      hasSequenceItem: () => false, getItem: () => { throw Error("unexpected item"); },
+      isStopIteration: error => error === stop, isIndexError: () => false, typeName: () => "Guest"
+    };
+    state.globals.set("guest", guest); state.hooks.expressions = () => ({ warn() {}, iteration });
+    if (hinted) expect(state.run).toThrow(failure); else state.run();
+    expect(events).toEqual(hinted ? ["iter", "length", "hint"] : ["iter", "next"]);
+    expect(state.calls.depth).toBe(0);
+  });
   it.each([false, true])("checks the original cursor hint after reacquisition (failure=%s)", fail => {
     const state = fixture("first,*rest=guest\n"), v = state.values;
     const guest = v.cell({}), cursor = v.cell({}), replacement = v.cell({}), events: string[] = [];

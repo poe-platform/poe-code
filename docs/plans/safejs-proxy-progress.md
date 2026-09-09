@@ -17,6 +17,8 @@ full-package, snapshot, or JavaScript-conformance gate.
   [verification](safejs-proxy-is-prototype.md).
 - Proxy-aware legacy getter/setter lookup; see
   [verification](safejs-proxy-accessor-lookup.md).
+- Proxy-aware legacy __proto__ getter/setter; see
+  [verification](safejs-proxy-legacy-proto.md).
 - Object.assign sources and targets, descriptor-map enumeration, object
   spread/rest and rest exclusions.
 - Ordinary enumerability changes during values/entries, descriptor-map and

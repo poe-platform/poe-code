@@ -2,7 +2,7 @@ import { assertSandboxDataDepth } from "../../graph-depth.js";
 import { getGeneratorProperties } from "../generator-properties.js";
 import { guestProxyStates } from "../guest-proxy.js";
 import { sandboxGetOwnPropertyDescriptor } from "../guest-proxy-descriptor.js";
-import { sandboxGetPrototypeOf } from "../guest-proxy-prototype.js";
+import { sandboxGetPrototypeOf, sandboxSetPrototypeOf } from "../guest-proxy-prototype.js";
 import { accessorAdapter, accessorClosure, readPropertyDescriptor } from "../accessors.js";
 import { isSandboxArguments } from "../arguments.js";
 import type { Budget } from "../budget.js";
@@ -14,7 +14,6 @@ import { collectionIteratorState, isSandboxCollectionIterator } from "../collect
 import { isSandboxRegExpIterator } from "../regexp-iterator.js";
 import {
   createIntrinsicObject,
-  getSandboxPrototype,
   getSandboxPropertyDescriptor,
   hasExplicitSandboxPrototype,
   installObjectPrototype,
@@ -219,7 +218,7 @@ export function createObjectGlobal(methods: SandboxObject, budget: Budget): Sand
       call: (_args, context) => {
         const target = construct([requireReceiver(context?.thisValue)]);
         objectProperties(target);
-        return getSandboxPrototype(target as object, budget) as SandboxValue;
+        return sandboxGetPrototypeOf(target, budget, context);
       }
     }), "get"),
     set: accessorAdapter(createSandboxClosure({
@@ -230,6 +229,13 @@ export function createObjectGlobal(methods: SandboxObject, budget: Budget): Sand
         if (typeof target !== "object") return undefined;
         objectProperties(target, true);
         if (parent !== null) objectProperties(parent);
+        if (guestProxyStates.has(target)) {
+          const result = sandboxSetPrototypeOf(target, parent, budget, context);
+          return Promise.resolve(result).then(success => {
+            if (!success) throw new TypeError("Proxy refused setPrototypeOf.");
+            return undefined;
+          });
+        }
         setSandboxPrototype(target, parent, budget);
         return undefined;
       }

@@ -605,6 +605,10 @@ Built-in `exec`, `match`, and `matchAll` match arrays retain their originating
 prototype, including indices arrays and capture-index pairs. Named capture
 metadata stays null-prototype and preserves index aliases. Custom match hooks
 and custom non-global `exec` results retain their own identity.
+Object reflection lists and `Reflect.ownKeys` preserve their originating array
+prototype, including `Object.entries` pairs and synchronous SDK Object calls.
+Existing values keep their identity and prototypes; Proxy reflection retains
+its key filtering and descriptor behavior.
 Object literals retain their originating prototype after cleanup and when
 created later by exported closures. Explicit null prototypes stay null;
 modified prototype chains reject lossy data copying. `Object.fromEntries`

@@ -51,7 +51,6 @@ import {
 import {
   allocateProducedSandboxValue,
   createSandboxClosure,
-  deepCopyToSandbox,
   defineOwnDataProperty,
   isSandboxClosure,
   isSandboxGenerator,
@@ -93,20 +92,20 @@ export function createObjectArrayGlobals(options: {
           call: ([value], context) =>
             typeof value === "object" && value !== null && guestProxyStates.has(value)
               ? getOwnEnumerableProperties(value, "key", options.budget, context).then(keys =>
-                  allocateProducedSandboxValue(keys, options.budget))
-              : budgetSandboxValue(getOwnEnumerableKeys(value), options.budget),
+                  allocateReflectionResult(keys, options.budget))
+              : allocateReflectionResult(getOwnEnumerableKeys(value), options.budget),
           name: "keys"
         }),
         values: createSandboxClosure({
           sandbox: true,
           call: ([value], context) =>
             context === undefined && !(typeof value === "object" && value !== null && guestProxyStates.has(value))
-              ? allocateProducedSandboxValue(
+              ? allocateReflectionResult(
                   getDirectEntries(value).map(([, entry]) => entry),
                   options.budget
                 )
               : getOwnEnumerableProperties(value, "value", options.budget, context).then((values) =>
-                  allocateProducedSandboxValue(values, options.budget)
+                  allocateReflectionResult(values, options.budget)
                 ),
           name: "values"
         }),
@@ -114,9 +113,9 @@ export function createObjectArrayGlobals(options: {
           sandbox: true,
           call: ([value], context) =>
             context === undefined && !(typeof value === "object" && value !== null && guestProxyStates.has(value))
-              ? allocateProducedSandboxValue(getDirectEntries(value), options.budget)
+              ? allocateReflectionResult(getDirectEntries(value), options.budget, true)
               : getOwnEnumerableProperties(value, "key+value", options.budget, context).then((entries) =>
-                  allocateProducedSandboxValue(entries, options.budget)
+                  allocateReflectionResult(entries, options.budget, true)
                 ),
           name: "entries"
         }),
@@ -188,8 +187,8 @@ export function createObjectArrayGlobals(options: {
           call: ([value], context) => {
             if (typeof value === "object" && value !== null && guestProxyStates.has(value))
               return Promise.resolve(sandboxOwnKeys(value, options.budget, context)).then(keys =>
-                budgetSandboxValue(keys.filter(key => typeof key === "string"), options.budget));
-            return budgetSandboxValue(Object.getOwnPropertyNames(reflectionProperties(value)), options.budget);
+                allocateReflectionResult(keys.filter(key => typeof key === "string"), options.budget));
+            return allocateReflectionResult(Object.getOwnPropertyNames(reflectionProperties(value)), options.budget);
           },
           name: "getOwnPropertyNames"
         }),
@@ -198,8 +197,8 @@ export function createObjectArrayGlobals(options: {
           call: ([value], context) => {
             if (typeof value === "object" && value !== null && guestProxyStates.has(value))
               return Promise.resolve(sandboxOwnKeys(value, options.budget, context)).then(keys =>
-                allocateProducedSandboxValue(keys.filter(key => typeof key === "symbol"), options.budget));
-            return allocateProducedSandboxValue(ownSandboxSymbolKeys(value), options.budget);
+                allocateReflectionResult(keys.filter(key => typeof key === "symbol"), options.budget));
+            return allocateReflectionResult(ownSandboxSymbolKeys(value), options.budget);
           },
           name: "getOwnPropertySymbols"
         }),
@@ -1182,10 +1181,17 @@ async function getOwnEnumerableProperties(
   }
 }
 
-function budgetSandboxValue(value: unknown, budget: Budget): SandboxValue {
-  const sandboxValue = deepCopyToSandbox(value);
-
-  return allocateProducedSandboxValue(sandboxValue, budget);
+export function allocateReflectionResult(value: SandboxArray, budget: Budget, entries = false): SandboxValue {
+  const prototype = getSandboxPrototype(value, budget);
+  if (prototype !== null) {
+    setSandboxPrototype(value, prototype, budget);
+    if (entries) {
+      for (const pair of value) {
+        if (Array.isArray(pair)) setSandboxPrototype(pair, prototype, budget);
+      }
+    }
+  }
+  return allocateProducedSandboxValue(value, budget);
 }
 
 function stringFromCodes(

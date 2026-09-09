@@ -71,3 +71,38 @@ realm. These are concrete regressions for the context-free branches, not
 merely an inferred need for coverage. Fixes must preserve both synchronous
 return behavior and result prototypes. This probe used a plain guest object
 `{a:1}`; it does not establish context-free accessor or Proxy semantics.
+
+## Reflection-list implementation
+
+Twelve source tests failed on prototype identity before the change, covering
+all six reflection methods through guest factories and direct SDK calls.
+The value-identity, symbol-identity and accessor-order control already passed.
+The new suite now passes all 19 cases, including six Proxy-path prototype
+checks. Together with existing Proxy key/descriptor suites, 53 tests pass.
+
+A reflection-specific allocator stores the originating prototype on fresh
+result lists and, only for Object.entries, fresh entry pairs. It does not
+recurse into payloads or change generic allocation behavior. Ordinary key/name
+lists contain only newly collected strings and no longer need a data-import
+copy before accounting. The five synchronous SDK Object routes remain
+synchronous. Reflect.ownKeys retains its asynchronous route. Iterator wrappers,
+entry-pair producers and toArray remain separate pending fixes.
+
+The first broader run passed 2,708 tests and failed one existing direct SDK
+Object.fromEntries(Object.entries(...)) alias/copy test. Explicitly linked
+arrays were rejected by getSandboxIterator before their guest iterator could
+be read. Two new regressions confirmed this round-trip and an own iterator
+override both failed. Explicit arrays in context-free adapters now use the
+existing guest-protocol bridge, like other explicitly linked built-in values;
+normal interpreter contexts still perform their own protocol acquisition.
+This bridge may be asynchronous so guest iterator behavior remains observable.
+The five direct reflection methods themselves remain synchronous. The 21 new
+tests and 19 existing alias tests now pass; broader revalidation is pending.
+
+Final revalidation passed 2,711 tests across 188 snapshot/object/Proxy files,
+plus 94 iterator-protocol tests across four files. Scoped ESLint and package
+TypeScript checks passed. The rebuilt candidate passed 23 workspace builds
+and four fresh-process import checks. Built ESM probes verified all five
+synchronous SDK Object reflection results and the entries/fromEntries
+round-trip. No visual CLI changes, push or release. This is targeted
+verification; the earlier full-package result predates this implementation.

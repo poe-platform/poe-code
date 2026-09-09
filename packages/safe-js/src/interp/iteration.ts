@@ -457,7 +457,9 @@ export function getSandboxIterator(
     return collectionIterator(value.values, value);
   }
 
-  if (Array.isArray(value) && hasExplicitSandboxPrototype(value)) return undefined;
+  if (Array.isArray(value) && hasExplicitSandboxPrototype(value))
+    return context?.getProperty === undefined
+      ? guestProtocolAdapter(value, budget ?? new Budget(), context, false) : undefined;
   if (Array.isArray(value) && context?.getProperty !== undefined) {
     return arrayIterator(value, context, budget);
   }

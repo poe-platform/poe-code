@@ -102,9 +102,25 @@ extension, integration, or validation requirement is missing or unverified.
   focused ESLint passed. The name reader preserves spelling; parser-level NFKC
   normalization is still required, including avoiding dependence on host Unicode
   versions (the inspected host reports Unicode 17, while the target uses 16).
-- Next: lexical token generation, logical-line joining, and f/t-string
-  expression parsing, then the complete parser and evaluator. Ordinary literal
-  decoding does not establish complete lexical support or interpreter execution.
+- Added the public lazy `lex(text, { filename?, onWarning? })` token stream.
+  It joins explicit and bracketed physical lines, suppresses comments and blank
+  logical lines, emits indentation/dedentation and EOF, matches delimiters and
+  longest operators, and integrates existing name/literal readers. No CLI or
+  environment variables were introduced. Interpolated f/t strings explicitly
+  report an unimplemented-tokenization error instead of being misread as ordinary
+  strings. This is an incomplete lexer, not a complete interpreter API.
+- Lexer validation: 304 package unit cases pass. A comparison of 89 source
+  fixtures with CPython matched significant token kinds and non-indent lexemes
+  after newline normalization. INDENT text was compared separately: after a
+  leading backslash continuation, CPython's public tokenizer reports the later
+  physical prefix, while this API retains the earlier prefix that determines the
+  actual indentation width. CPython compilation confirmed the width behavior.
+  Further compilation checks exposed comment/blank-line continuation handling;
+  three failing regression cases preceded deferred indentation acceptance.
+  Source typecheck and selected workspace build passed; focused lint also passed.
+- Next: f/t-string tokenization and expression parsing, parser-level NFKC
+  normalization, the complete grammar/parser and evaluator, then runtime modules
+  and safe-fs integration. Tokenization does not establish interpreter execution.
 - Workspace lockfile registration and packaging integration remain pending.
 - Package README creation awaits the requested permission under repository rules.
 - No push or release was requested.

@@ -37,3 +37,27 @@ separately in safejs-foreign-intrinsic-error-audit.md. README already names the
 four unavailable globals; no README change is needed for this refresh.
 
 No new implementation, push or release is claimed.
+
+## Standards check after the intrinsic-parent candidate
+
+The inventory above describes its historical baseline; current global-presence
+status is tracked in `safejs-current-gap-inventory-2026-09-09.md`. A new bounded
+Node 22 comparison of 30 globals/namespaces and their direct prototypes
+(b86197) reported legacy RegExp statics, Error stack helpers and old Locale
+information getters as missing names. Their dispositions are:
+
+- RegExp statics remain a compatibility gap, but the
+  [TC39 legacy-features proposal](https://github.com/tc39/proposal-regexp-legacy-features)
+  identifies them as stage 3, not part of published ECMA-262. Do not classify
+  their absence as a demonstrated ECMAScript 2026 conformance defect.
+- `Error.captureStackTrace` and `Error.stackTraceLimit` belong to the
+  [V8 stack-trace API](https://v8.dev/docs/stack-trace-api), not the portable
+  language surface targeted by this comparison.
+- Published [ECMA-402 2026 Locale methods](https://402.ecma-international.org/#sec-Intl.Locale.prototype.getCalendars)
+  use `getCalendars`, `getCollations`, `getHourCycles`, `getNumberingSystems`,
+  `getTimeZones`, `getTextInfo` and `getWeekInfo`. SafeJS implements these;
+  adding Node 22's older getter names is not required to repair a missing
+  standard method.
+
+These classifications resolve name-only suspicions, not algorithmic
+conformance. No runtime changes were made for them.

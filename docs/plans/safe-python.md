@@ -2638,6 +2638,18 @@ extension, integration, or validation requirement is missing or unverified.
   typecheck, scoped lint and selected workspace build passed. Guest zip
   argument/strict truth binding, eager iterator creation, tuple wrapping/reuse,
   builtin registration and complete native allocation accounting remain open.
+- Connected expanded guest zip calls to protocol iterator acquisition and strict
+  row iteration. Keyword-count/unknown-name validation and spelling suggestions
+  precede strict truth conversion; truth conversion precedes eager left-to-right
+  iterator creation, including the zero-input case. Construction never consumes
+  a value or queries a length hint and stops at the first iterable error. Tuple
+  factory calls retain their host context; temporary iterator slots are charged.
+- The constructor suite first failed on its missing module; all 2,912 tests in
+  177 files pass. A 1,000-case CPython constructor/iteration audit matched keyword
+  errors, strict truth, eager iterator order, input failures and resulting rows/
+  mismatch errors. Source typecheck, scoped lint and selected workspace build
+  passed. Guest builtin registration, iterator/tuple object wrapping,
+  special-method dispatch implementations and complete heap accounting remain open.
 - Next:
   remaining scope/compiler audits, interpreter runtime,
   resource controls, runtime modules, and safe-fs integration. Parsing and static

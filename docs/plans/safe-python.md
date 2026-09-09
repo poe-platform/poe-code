@@ -5927,6 +5927,18 @@ extension, integration, or validation requirement is missing or unverified.
   covers arbitrary-size squares/neighbors up to 40,001-bit inputs. Typecheck, scoped lint and
   selected workspace build pass. Complex-magnitude rounding, the abs builtin,
   public math.isqrt/module wiring and broader interpreter integration remain open.
+- Added a metered complex-magnitude kernel that aligns exact binary64 ratios,
+  squares bounded integer operands, takes an at-most-106-bit integer square root
+  and compares exact rounding midpoints. Subnormal spacing, positive zero,
+  infinity-before-NaN precedence and finite-input overflow are explicit.
+- Four tests first exposed the missing kernel. All 4,766 tests in 415 files
+  pass; typecheck, scoped lint and selected workspace build pass. A 20,000-case
+  audit against 1,600-digit Decimal square roots has no mismatches. The same
+  corpus differs from this platform's CPython complex abs in 1,372 cases and
+  math.hypot in three subnormal cases; checked differences favor exact rounding.
+  CPython complex abs delegates to platform C hypot, so this kernel deliberately
+  provides portable correctly rounded results, not platform-libm bit parity.
+  The abs builtin and broader interpreter integration remain unfinished.
 - Next:
   remaining scope/compiler audits, interpreter runtime,
   resource controls, runtime modules, and safe-fs integration. Parsing and static

@@ -21,7 +21,8 @@ Verification:
 The first whole-SafeJS snapshot, 94065, excluded this work and finished with
 22,631 passes, ten failures and 37 skips. The refreshed frozen snapshot in
 session 31057 includes the implementation and original ten regression cases;
-its build and import checks passed and its full unit suite is still active.
+its build and import checks passed and its full unit suite finished with 22,682
+passes, two host-promise property-import failures and 37 skips.
 Three later identity-preservation recovery cases are outside that frozen run.
 
 For the atomic local commit, isolate the repair from eval and the later catch

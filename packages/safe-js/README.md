@@ -488,15 +488,14 @@ calls and updates inside these blocks now reach guest catch handlers as
 validation; do not assume every error path is JavaScript-equivalent.
 
 These changes have focused native-comparison and recovery tests, but the full
-integration gate is not green. The last completed reduced candidate run passed
-22,266 tests with one namespace-replay timeout and excluded newer eval work.
-A subsequent frozen whole-SafeJS snapshot includes eval and experimental weak
-collections: its maintained build closure and fresh-process import checks passed,
-but its full unit run finished with 22,631 passes, ten failures and 37 skips.
-Failures cover timeouts/deadlines, host-Promise property imports, and historical
-checkpoint expectations missing the new eval intrinsic. Later exception-flow
-changes are outside that snapshot. The earlier array-context test instrumentation
-failure is fixed.
+integration gate is not green. The latest frozen whole-SafeJS snapshot includes
+eval, exception-flow fixes and experimental weak collections. Its maintained
+build closure and fresh-process import checks passed; the full unit run finished
+with 22,682 passes, two failures and 37 skips. Both failures concern host-Promise
+property imports, whose policy remains unresolved because native properties can
+contain private Node.js context data. Earlier workload deadlines and historical
+checkpoint expectation failures did not recur in this run. Three later
+function-identity recovery cases were verified separately.
 
 These latest changes include uncommitted work. Pushes and releases are paused;
 local implementation, remote delivery, and successful publication are separate

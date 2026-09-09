@@ -2123,6 +2123,17 @@ extension, integration, or validation requirement is missing or unverified.
   Source typecheck, scoped lint and selected workspace build passed.
   Complex arithmetic, powers, bitwise operations, guest slot wiring, bigint payload
   allocation and size-dependent CPU metering remain unfinished.
+- Added concrete integer bitwise &, | and ^ with arbitrary-size signed integer
+  semantics. Two bool operands return canonical bool values; mixed bool/int pairs
+  return integers. Other types decline without truth/numeric conversion so later
+  reflected/set dispatch remains possible. Expression integration covers boolean
+  identity and signed integer operations.
+- Bitwise validation: missing-module red tests preceded implementation. All 2,520
+  tests in 140 files pass; CPython matched 15,552 typed results and unsupported
+  builtin pairs, including multi-thousand-bit signed integers. Source typecheck,
+  scoped lint and selected workspace build passed. Shifts, set slots,
+  guest type dispatch, bigint payload allocation and size-dependent CPU metering
+  remain unfinished.
 - Next:
   remaining scope/compiler audits, interpreter runtime,
   resource controls, runtime modules, and safe-fs integration. Parsing and static

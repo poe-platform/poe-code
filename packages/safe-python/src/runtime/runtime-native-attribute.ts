@@ -9,6 +9,7 @@ import { createRuntimeSetRelationMethod } from "./runtime-set-relation-method.js
 import { createRuntimeListMethod } from "./runtime-list-method.js";
 import { createRuntimeListSortMethod } from "./runtime-list-sort-method.js";
 import { createRuntimeTupleMethod } from "./runtime-tuple-method.js";
+import { readRuntimeRangeAttribute } from "./runtime-range-attributes.js";
 import type { ExpressionContext } from "./expression-evaluation.js";
 import { isRuntimeSet, type RuntimeValue, type RuntimeValues } from "./runtime-values.js";
 
@@ -19,6 +20,10 @@ import { isRuntimeSet, type RuntimeValue, type RuntimeValues } from "./runtime-v
  * separate from these instance-bound container capabilities. */
 export function runtimeNativeAttribute(receiver: RuntimeValue, name: string, values: RuntimeValues, meter: ExecutionMeter, beginCall?: ExpressionContext<RuntimeValue>["beginCall"]): RuntimeValue {
   meter.checkpoint();
+  if (receiver.kind === "range") {
+    const result = readRuntimeRangeAttribute(receiver, name, values, meter);
+    if (result !== undefined) return result;
+  }
   if (receiver.kind === "tuple" && (name === "count" || name === "index")) return createRuntimeTupleMethod(receiver, name, values, meter);
   if (receiver.kind === "list") {
     if (name === "sort") return createRuntimeListSortMethod(receiver, values, meter, beginCall);

@@ -3931,6 +3931,21 @@ extension, integration, or validation requirement is missing or unverified.
   descriptors, guest index/equality slots, remaining builtin methods,
   comprehension/suspension integration, accounting and SDK/safe-fs remain
   unfinished.
+- Connected range start/stop/step reads and count/index methods to native
+  attribute lookup. Exact integer/bool searches use progression arithmetic and
+  return arbitrary-precision indices without iteration or machine-length
+  conversion. Other values use metered equality iteration, preserving the
+  separate generic missing-index error and exhaustive count behavior. Search
+  counters retain native signed-size overflow checks on their iterative paths.
+- Range-member verification began with six failing tests. All 3,730 tests in
+  265 files pass, with scoped lint, source typecheck and selected workspace build. A
+  1,600-program CPython audit matches range member values, integer/float/complex
+  searches and argument errors. The 231-outcome native-lookup regression audit
+  passes. Tests prove huge integer lookup completes within
+  a small step budget while a huge generic count terminates at its execution
+  limit. Reverse-method binding, native member-object identity, descriptors,
+  guest equality slots, remaining builtins, suspension, complete accounting and
+  SDK/safe-fs integration remain unfinished.
 - Next:
   remaining scope/compiler audits, interpreter runtime,
   resource controls, runtime modules, and safe-fs integration. Parsing and static

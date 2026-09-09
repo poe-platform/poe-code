@@ -586,6 +586,9 @@ Constructed typed arrays preserve their originating guest prototype after run
 cleanup, including later mutations to that prototype. Data-only copying and
 replay accept pristine default chains but reject modified chains that would
 otherwise lose guest behavior.
+Array literals also retain their originating prototype, including literals
+created by exported closures after run cleanup. Their later prototype mutations
+remain visible to SDK iteration.
 SDK typed-array input conversion follows Proxy reads and calls for array-like
 inputs, iterator factories, iterator objects, and result objects. Iterator
 acquisition also observes methods supplied by Proxy traps or Proxy ancestors,

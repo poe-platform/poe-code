@@ -1,7 +1,7 @@
 import { assertSandboxDataDepth } from "../graph-depth.js";
 import { guestProxyStates } from "./guest-proxy.js";
 import { getGeneratorProperties } from "./generator-properties.js";
-import { asyncFunctionPrototypes, generatorPrototypes } from "./generator-prototypes.js";
+import { asyncFunctionPrototypes } from "./generator-prototypes.js";
 import { getClosureOrigin } from "./closure-origin.js";
 import { runResources } from "./resources.js";
 import { getIntrinsicIdentity, registerBuiltinIdentities, releaseIntrinsicIdentities } from "./intrinsics.js";
@@ -413,9 +413,10 @@ export function releaseObjectPrototype(budget: Budget): void {
   collectionPrototypes.delete(budget);
   promisePrototypes.delete(budget);
   datePrototypes.delete(budget);
-  arrayPrototypes.delete(budget);
+  // Keep arrayPrototypes and generatorPrototypes for live SDK closures that
+  // create values in this realm. Weak budget keys bound their lifetimes;
+  // accounting roots above are still released.
   functionPrototypes.delete(budget);
-  generatorPrototypes.delete(budget);
   errorPrototypes.delete(budget);
   typedArrayPrototypes.delete(budget);
   arrayBufferPrototypes.delete(budget);

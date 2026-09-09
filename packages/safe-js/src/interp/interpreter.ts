@@ -716,6 +716,10 @@ async function evaluateArrayExpression(
   if (restored !== undefined && (restored.kind !== "array" || !Array.isArray(restored.values)))
     throw new TypeError("Invalid array expression continuation.");
   const values: SandboxArray = restored?.kind === "array" ? restored.values as SandboxArray : [];
+  if (restored === undefined) {
+    const prototype = getSandboxPrototype(values, context.budget);
+    if (prototype !== null) setSandboxPrototype(values, prototype, context.budget);
+  }
   const expressionState = { kind: "array" as const, values, index: restored?.kind === "array" ? restored.index : 0 };
   if (context.generatorYield !== undefined && node.nodeId !== undefined) context = {
     ...context, generatorExpressionStates: new Map([...(context.generatorExpressionStates ?? []), [node.nodeId, expressionState]])

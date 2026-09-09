@@ -4,6 +4,7 @@ import { run } from "../../run.js";
 import { dump } from "../../dump.js";
 
 const lengths = {
+  "isNaN": 1, "isFinite": 1,
   "Object.assign": 2, "Object.getOwnPropertyDescriptor": 2,
   "Object.getOwnPropertyDescriptors": 1, "Object.getOwnPropertyNames": 1,
   "Object.getOwnPropertySymbols": 1, "Object.hasOwn": 2, "Object.is": 2,

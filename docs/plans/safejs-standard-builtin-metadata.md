@@ -81,3 +81,34 @@ private index before and after checks. The built CLI screenshot (b22934) was
 visually reviewed: representative Object, Array, String, Number and BigInt
 lengths match the declarations. Scoped lint passed all three changed source/test
 files (93500). These focused checks do not establish full-worktree conformance.
+
+## Global predicate follow-up
+
+A later built-runtime probe (5d5501) enumerated 53 callable guest globals and
+compared their names and lengths with a fresh Node VM. Two comparable globals
+still differ: `isNaN.length` and `isFinite.length` are zero in SafeJS and one in
+the native control. Five names were unavailable in the VM and were not counted
+as matches: Float16Array, SuppressedError, DisposableStack, AsyncDisposableStack
+and structuredClone. The earlier audit did not cover these global predicates.
+
+The main-tree metadata regression table now includes both cases. Do not change
+the runtime until these tests have been run red. The isolated prototype-origin
+candidate and its live full suite (94735) remain unchanged; this follow-up is
+not part of that gate.
+
+The added predicate cases failed as expected while the existing 32 passed
+(98082). Both factories now explicitly declare length one, without changing
+coercion or call behavior. Focused verification runs separately in the main
+tree; the full prototype candidate remains unchanged and does not include this
+follow-up. The metadata and numeric-predicate selection passed all 82 tests
+(3746). Independent build/lint verification is still required before commit.
+
+The independent predicate-only candidate is based on `78b4c7842`, staged tree
+`0e8d2418dde82bc39f3a9b1dca59acd529d29755`; no prototype-origin or weak-reference
+work is included. All 1,327 tracked SafeJS source/test blobs matched the private
+index before and after verification. The selected maintained build passed all
+23 tasks and four native ESM import checks (74470). Both focused files passed
+all 82 tests (22094). The built CLI screenshot (45319) was reviewed and reports
+length one and bound length zero for both globals. Scoped lint passed both files
+(63333). These checks do not resolve the separate full-suite type-contract
+timeout or prove complete builtin conformance.

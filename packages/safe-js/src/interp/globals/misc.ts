@@ -28,7 +28,8 @@ export function createMiscGlobals(options: {
         const number = sandboxNumber(value, options.budget, context);
         return typeof number === "number" ? Number.isNaN(number) : number.then(Number.isNaN);
       },
-      name: "isNaN"
+      name: "isNaN",
+      length: 1
     }),
     isFinite: createSandboxClosure({
       sandbox: true,
@@ -36,7 +37,8 @@ export function createMiscGlobals(options: {
         const number = sandboxNumber(value, options.budget, context);
         return typeof number === "number" ? Number.isFinite(number) : number.then(Number.isFinite);
       },
-      name: "isFinite"
+      name: "isFinite",
+      length: 1
     })
   };
 }

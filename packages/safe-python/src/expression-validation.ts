@@ -12,21 +12,21 @@ interface Context {
 
 /** Validate expression-level scope constraints without executing any syntax. */
 export function validateExpression(node: Expression, filename = "<string>", context: Context = { iterations: new Set(), iterable: false, target: false, assignments: null }): void {
-  if (node.kind === "name" && context.target && context.assignments?.has(node.spelling)) {
-    throw new PythonSyntaxError(`comprehension inner loop cannot rebind assignment expression target '${node.spelling}'`, filename, node.start);
+  if (node.kind === "name" && context.target && context.assignments?.has(node.name)) {
+    throw new PythonSyntaxError(`comprehension inner loop cannot rebind assignment expression target '${node.name}'`, filename, node.start);
   }
-  if (node.kind === "name" && context.target) context.targetReferences?.add(node.spelling);
+  if (node.kind === "name" && context.target) context.targetReferences?.add(node.name);
   if (node.kind === "assignment-expression") {
     if (context.iterable) {
       throw new PythonSyntaxError("assignment expression cannot be used in a comprehension iterable expression", filename, node.target.start);
     }
-    if (context.iterations.has(node.target.spelling)) {
-      throw new PythonSyntaxError(`assignment expression cannot rebind comprehension iteration variable '${node.target.spelling}'`, filename, node.target.start);
+    if (context.iterations.has(node.target.name)) {
+      throw new PythonSyntaxError(`assignment expression cannot rebind comprehension iteration variable '${node.target.name}'`, filename, node.target.start);
     }
-    context.assignments?.add(node.target.spelling);
+    context.assignments?.add(node.target.name);
     // CPython records a local definition after the first assignment, even when
     // the loop target only read this name through an attribute/subscript object.
-    if (context.targetReferences?.has(node.target.spelling)) context.iterations.add(node.target.spelling);
+    if (context.targetReferences?.has(node.target.name)) context.iterations.add(node.target.name);
   }
   if (node.kind === "lambda") {
     for (const parameter of node.parameters) if (parameter.default) validateExpression(parameter.default, filename, context);
@@ -50,7 +50,7 @@ export function validateExpression(node: Expression, filename = "<string>", cont
 }
 
 function collectBindings(target: Expression, names: Set<string>): void {
-  if (target.kind === "name") names.add(target.spelling);
+  if (target.kind === "name") names.add(target.name);
   else if (target.kind === "tuple" || target.kind === "list") {
     for (const item of target.items) collectBindings(item.kind === "unpack" ? item.value : item, names);
   }

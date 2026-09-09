@@ -3,6 +3,7 @@ import type { TokenCursor } from "./token-cursor.js";
 import { reservedWords } from "./keywords.js";
 import { readComprehensionClauses } from "./comprehensions.js";
 import { readNamedExpression } from "./named-expression.js";
+import { normalizeNfkc } from "./normalization.js";
 
 type ReadExpression = (cursor: TokenCursor, minimum?: number) => Expression;
 
@@ -14,7 +15,7 @@ export function readTrailers(cursor: TokenCursor, value: Expression, read: ReadE
       const name = cursor.peek();
       if (name.kind !== "name" || reservedWords.has(name.text)) throw cursor.error("expected attribute name");
       cursor.take();
-      value = { kind: "attribute", object: value, spelling: name.text, start: value.start, end: name.end };
+      value = { kind: "attribute", object: value, spelling: name.text, name: normalizeNfkc(name.text), start: value.start, end: name.end };
     } else if (cursor.peek().text === "(") {
       const opening = cursor.take();
       const args = readArguments(cursor, read, opening);
@@ -64,11 +65,12 @@ function readArguments(cursor: TokenCursor, read: ReadExpression, opening: Sourc
           throw cursor.error("keyword argument must be an unparenthesized name");
         }
         cursor.take();
-        if (keywords.has(value.spelling)) throw cursor.error(`keyword argument repeated: ${value.spelling}`);
-        keywords.add(value.spelling);
+        if (value.name === "__debug__") throw cursor.error("cannot assign to __debug__");
+        if (keywords.has(value.name)) throw cursor.error(`keyword argument repeated: ${value.name}`);
+        keywords.add(value.name);
         keywordSeen = true;
         const argument = read(cursor);
-        args.push({ kind: "keyword", spelling: value.spelling, value: argument, start: first.start, end: argument.end });
+        args.push({ kind: "keyword", spelling: value.spelling, name: value.name, value: argument, start: first.start, end: argument.end });
       } else {
         if (keywordSeen) throw cursor.error("positional argument follows keyword argument");
         args.push({ kind: "positional", value, start: first.start, end: value.end });

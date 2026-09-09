@@ -5,8 +5,10 @@ export interface SourceSpan {
   readonly end: SourcePosition;
 }
 
+/** Name-bearing nodes retain raw `spelling`; `name` is the NFKC binding key. */
 export type Parameter = SourceSpan & {
   readonly spelling: string;
+  readonly name: string;
   readonly kind: "positional-only" | "positional-or-keyword" | "keyword-only" | "var-positional" | "var-keyword";
   readonly default: Expression | null;
 };
@@ -27,7 +29,7 @@ export type InterpolatedPart = SourceSpan & (
 
 export type CallArgument = SourceSpan & (
   | { readonly kind: "positional" | "starred" | "mapping"; readonly value: Expression }
-  | { readonly kind: "keyword"; readonly spelling: string; readonly value: Expression }
+  | { readonly kind: "keyword"; readonly spelling: string; readonly name: string; readonly value: Expression }
 );
 
 export type CollectionItem = Expression | (SourceSpan & { readonly kind: "unpack"; readonly value: Expression });
@@ -45,14 +47,14 @@ export type Expression = SourceSpan & (
   | { readonly kind: "interpolated-string"; readonly flavor: "formatted" | "template"; readonly parts: readonly InterpolatedPart[] }
   | { readonly kind: "literal"; readonly literalKind: "integer" | "float" | "imaginary" | "string" | "bytes" | "boolean" | "none" | "ellipsis";
       readonly value: bigint | number | Uint32Array | Uint8Array | boolean | null }
-  | { readonly kind: "name"; readonly spelling: string }
-  | { readonly kind: "assignment-expression"; readonly target: SourceSpan & { readonly kind: "name"; readonly spelling: string }; readonly value: Expression }
+  | { readonly kind: "name"; readonly spelling: string; readonly name: string }
+  | { readonly kind: "assignment-expression"; readonly target: SourceSpan & { readonly kind: "name"; readonly spelling: string; readonly name: string }; readonly value: Expression }
   | { readonly kind: "lambda"; readonly parameters: readonly Parameter[]; readonly body: Expression }
   | { readonly kind: "comprehension"; readonly collection: "list" | "set" | "generator"; readonly element: Expression; readonly clauses: readonly ComprehensionClause[] }
   | { readonly kind: "dictionary-comprehension"; readonly key: Expression; readonly value: Expression; readonly clauses: readonly ComprehensionClause[] }
   | { readonly kind: "tuple" | "list" | "set"; readonly items: readonly CollectionItem[] }
   | { readonly kind: "dictionary"; readonly entries: readonly DictionaryEntry[] }
-  | { readonly kind: "attribute"; readonly object: Expression; readonly spelling: string }
+  | { readonly kind: "attribute"; readonly object: Expression; readonly spelling: string; readonly name: string }
   | { readonly kind: "call"; readonly callee: Expression; readonly arguments: readonly CallArgument[] }
   | { readonly kind: "subscript"; readonly object: Expression; readonly items: readonly SubscriptItem[]; readonly tuple: boolean }
   | { readonly kind: "unary"; readonly operator: string; readonly operand: Expression }

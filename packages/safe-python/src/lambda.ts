@@ -1,6 +1,7 @@
 import type { Expression, Parameter } from "./ast.js";
 import { reservedWords } from "./keywords.js";
 import type { TokenCursor } from "./token-cursor.js";
+import { normalizeNfkc } from "./normalization.js";
 
 export function readLambda(cursor: TokenCursor, read: (cursor: TokenCursor) => Expression): Expression {
   const start = cursor.expect("lambda").start;
@@ -36,8 +37,10 @@ export function readLambda(cursor: TokenCursor, read: (cursor: TokenCursor) => E
       }
       const name = cursor.peek();
       if (name.kind !== "name" || reservedWords.has(name.text)) throw cursor.error("expected parameter name");
-      if (names.has(name.text)) throw cursor.error("duplicate argument in function definition");
-      names.add(name.text);
+      const bindingName = normalizeNfkc(name.text);
+      if (bindingName === "__debug__") throw cursor.error("cannot assign to __debug__");
+      if (names.has(bindingName)) throw cursor.error("duplicate argument in function definition");
+      names.add(bindingName);
       cursor.take();
       let value: Expression | null = null;
       if (cursor.peek().text === "=") {
@@ -50,7 +53,7 @@ export function readLambda(cursor: TokenCursor, read: (cursor: TokenCursor) => E
         positionalDefault ||= value !== null;
       }
       if (kind === "keyword-only") keywordCount++;
-      parameters.push({ kind, spelling: name.text, default: value, start: first.start, end: value?.end ?? name.end });
+      parameters.push({ kind, spelling: name.text, name: bindingName, default: value, start: first.start, end: value?.end ?? name.end });
     }
     if (cursor.peek().text !== ",") break;
     cursor.take();

@@ -304,8 +304,22 @@ extension, integration, or validation requirement is missing or unverified.
   Scoped lint, source typecheck, and selected workspace build passed. The parser still retains
   only raw identifier spelling; wiring normalized names into its AST, duplicate
   checks, forbidden-binding checks, and scope validation is the next step.
+- Integrated pinned NFKC into name, attribute, parameter, and keyword-argument AST
+  nodes. `spelling` retains source text; `name` is the normalized binding key.
+  Keyword recognition still uses raw spelling, so compatibility spellings of
+  keywords remain valid identifiers. Duplicate parameters/keywords, forbidden
+  `__debug__` bindings, and comprehension scope conflicts now use normalized names.
+  String values and template/debug source spelling are not normalized.
+- Normalized-name validation: all 20 initial tests failed before implementation,
+  followed by two failing regressions for forbidden explicit `__debug__` keyword
+  arguments. All 639 package tests pass. A 1,350-case CPython compilation and AST
+  comparison matched acceptance and normalized names across parameters, keywords,
+  attributes, assignments, and comprehension targets, including canonical and
+  compatibility-equivalent spellings. Scoped lint, source typecheck, and selected workspace build
+  passed. This supplies binding keys and checks; runtime environments, function
+  argument binding, and class/global/nonlocal semantics remain unimplemented.
 - Next:
-  parser-level NFKC integration
+  await/yield expressions and statement grammar
   normalization, the complete grammar/parser and evaluator, then runtime modules
   and safe-fs integration. Tokenization does not establish interpreter execution.
 - Workspace lockfile registration and packaging integration remain pending.

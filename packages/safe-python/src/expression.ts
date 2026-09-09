@@ -8,6 +8,7 @@ import { readDisplay } from "./displays.js";
 import { readLambda } from "./lambda.js";
 import { validateExpression } from "./expression-validation.js";
 import { readStringExpression } from "./string-expressions.js";
+import { normalizeNfkc } from "./normalization.js";
 
 const binaryPrecedence: Readonly<Record<string, number>> = {
   or: 2, and: 3, "|": 6, "^": 7, "&": 8, "<<": 9, ">>": 9,
@@ -106,7 +107,7 @@ function readAtom(cursor: TokenCursor): Expression {
   }
   if (token.kind === "name" && !reservedWords.has(token.text)) {
     cursor.take();
-    return { kind: "name", spelling: token.text, start: token.start, end: token.end };
+    return { kind: "name", spelling: token.text, name: normalizeNfkc(token.text), start: token.start, end: token.end };
   }
   throw cursor.error("expected expression");
 }

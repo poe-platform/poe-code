@@ -5,6 +5,7 @@ import { hasNativeRepresentation, runtimeNativeRepresentation } from "./runtime-
 import type { RuntimeValue, RuntimeValues } from "./runtime-values.js";
 import { listRepresentation } from "./list-representation.js";
 import { tupleRepresentation } from "./tuple-representation.js";
+import { dictionaryRepresentation } from "./dictionary-representation.js";
 import { RepresentationStack } from "./representation-stack.js";
 
 export interface RuntimeRepresentationHooks {
@@ -30,7 +31,7 @@ export function createRuntimeRepresentationContext(values: RuntimeValues, meter:
     string(value) { meter.checkpoint(); return value.kind === "str" ? value.value : hooks.string?.(value); },
     lookupStr(value) {
       meter.checkpoint();
-      if (value.kind === "list" || value.kind === "tuple") return undefined; // object.__str__ falls back to repr.
+      if (value.kind === "list" || value.kind === "tuple" || value.kind === "dict") return undefined; // object.__str__ falls back to repr.
       if (hasNativeRepresentation(value)) {
         meter.checkpoint(0, 64);
         return () => runtimeNativeRepresentation(value, "__str__", values, meter);
@@ -39,10 +40,27 @@ export function createRuntimeRepresentationContext(values: RuntimeValues, meter:
     },
     lookupRepr(value) {
       meter.checkpoint();
-      if (value.kind === "list" || value.kind === "tuple") {
+      if (value.kind === "list" || value.kind === "tuple" || value.kind === "dict") {
         meter.checkpoint(0, 64);
         return () => {
           stack ??= new RepresentationStack<RuntimeValue>(100, meter);
+          if (value.kind === "dict") {
+            meter.checkpoint(1, 64);
+            const text = dictionaryRepresentation(value, () => {
+              meter.checkpoint(1, 96);
+              let position = 0;
+              return {
+                next() {
+                  meter.checkpoint(1, 64);
+                  const row = value.items.nextDictionaryEntry(position);
+                  if (row === undefined) return { done: true, value: undefined };
+                  position = row.position;
+                  return { done: false, value: [row.key, row.value] as const };
+                }
+              };
+            }, context, stack, meter);
+            return values.stringPoints(text);
+          }
           const text = value.kind === "list"
             ? listRepresentation(value, value.items, context, stack, meter)
             : tupleRepresentation(value, value.items, context, stack, meter);

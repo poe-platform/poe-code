@@ -5379,6 +5379,23 @@ extension, integration, or validation requirement is missing or unverified.
   dispatch, remaining bulk-layout policies, split/shared-key layouts, set repr,
   bytes percent operators, full guest objects, suspended execution, complete
   accounting and SDK/safe-fs integration remain incomplete.
+- Wired native dictionary __str__/__repr__ and percent s/r/a formatting to the
+  production renderer through a metered positional cursor adapter. Dict/list/
+  tuple rendering shares one active-path guard and guest element hooks. Current
+  key/value pairs survive key-repr mutation, later pairs are read live, and clear/
+  refill continues from the saved position. Empty recursive reentry and failures
+  retain dictionary-specific marker/cleanup behavior. Mapping percent lookup and
+  explicit native method argument validation remain intact.
+- Five tests first failed on missing native dictionary support. All 4,568 tests
+  in 376 files pass. Native methods and percent fields match CPython for 2,000
+  recursive dictionary graphs (9,000 roots), plus 2,000 compiled nested-dictionary
+  programs with mixed native elements. These checks use native runtime dispatch,
+  not audit-only representation wiring. Source typecheck, scoped lint and
+  selected workspace build pass. Host-adopted maps must have been configured for
+  positional storage; missing history is not reconstructed. Remaining bulk-layout
+  policies, split/shared-key layouts, set/frozenset representation, bytes percent
+  operators, full guest objects, suspended execution, complete accounting and
+  SDK/safe-fs integration remain incomplete.
 - Next:
   remaining scope/compiler audits, interpreter runtime,
   resource controls, runtime modules, and safe-fs integration. Parsing and static

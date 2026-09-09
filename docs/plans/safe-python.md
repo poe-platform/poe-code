@@ -2839,6 +2839,19 @@ extension, integration, or validation requirement is missing or unverified.
   hash. Source typecheck, scoped lint and selected workspace build passed. Guest range/hash
   registration, execution-wide identity policy and full bigint/host allocation
   accounting remain unfinished.
+- Added indexed reverse iteration over live guest sequence slots with an
+  already validated initial length. Item errors permanently exhaust/release the
+  cursor; IndexError/StopIteration become done while other errors propagate
+  once. Length-hint failures and zero hints do not exhaust it. Each operation
+  captures its position before guest callbacks, retaining reentrant item/hint
+  ordering, and next does not query current length.
+- The reverse suite first failed on its missing module; all 3,092 tests in 192
+  files pass. A 1,000-trace CPython audit matched 30,000 mutation/next/hint
+  operations; two separate reentrant probes matched the tested callback/index
+  behavior. Source typecheck, scoped lint and selected workspace build passed.
+  Reversed constructor binding/special-method dispatch, guest iterator wrapping,
+  state/pickling, exhaustive adversarial reentrancy and full allocation/recursion
+  accounting remain open.
 - Next:
   remaining scope/compiler audits, interpreter runtime,
   resource controls, runtime modules, and safe-fs integration. Parsing and static

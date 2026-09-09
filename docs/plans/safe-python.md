@@ -2914,6 +2914,17 @@ extension, integration, or validation requirement is missing or unverified.
   passed. This is host-only storage groundwork, not a complete guest object
   model: dictionaries, sets, callable/user objects, guest type/protocol dispatch,
   concrete module contexts, safe-fs wiring and full heap accounting remain open.
+- Connected concrete runtime values to exact builtin truth evaluation. Mutable
+  lists use current size without visiting members or cycles; ranges inspect
+  arbitrary-precision length without len() overflow, and iterators remain truthy
+  before and after exhaustion without advancing. Existing scalar/tuple/slice
+  behavior is reused, including NotImplemented's boolean-context error.
+- The truth suite first failed on its missing module; all 3,162 tests in 198
+  files pass, including parsed list short-circuit/branch integration. A 1,000-case
+  CPython comparison matched 3,000 list/range/iterator truth results. Source
+  typecheck, scoped lint and selected workspace build passed. This dispatch is
+  exact-builtin only: subclass/user slots, the concrete execution context and the
+  remaining full-interpreter/resource/safe-fs work remain unfinished.
 - Next:
   remaining scope/compiler audits, interpreter runtime,
   resource controls, runtime modules, and safe-fs integration. Parsing and static

@@ -1365,6 +1365,22 @@ extension, integration, or validation requirement is missing or unverified.
   typecheck, scoped lint and selected dependency build passed. Guest reference evaluation,
   concrete object storage and complete temporary-buffer heap accounting remain
   pending/context-owned; this is not a complete statement interpreter.
+- Added synchronous augmented-assignment execution: resolve the target once,
+  load its current value, evaluate the RHS, dispatch the in-place operation with
+  ordinary binary fallback, then write the result to the retained reference.
+  Required checkpoints precede each guest stage. Errors stop subsequent work
+  without rolling back in-place mutations, including write-back failures.
+  Reference adapters retain receiver/key identity but perform live get/set lookup;
+  lexical name destinations must remain distinct from load fallback locations.
+- Augmented-assignment validation: missing-module red suite preceded implementation;
+  all 1,879 tests in 91 files pass. Tests cover all 13 operators, name/attribute/
+  subscript targets, RHS rebinding, undefined-valued adapters, stage failures and
+  every dispatch-budget boundary. CPython matched 624 attribute/subscript traces
+  across operators, self/new/fallback results and injected guest failures, including
+  retained mutation and write-back outcomes. Scoped lint, source typecheck and selected build
+  passed. Reference: Python 3.14 simple statements, augmented-assignment rules.
+  This provides execution ordering, not concrete guest reference/protocol objects;
+  suspended RHS execution and full frame/statement execution remain pending.
 - Next:
   remaining scope/compiler audits, interpreter runtime,
   resource controls, runtime modules, and safe-fs integration. Parsing and static

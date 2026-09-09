@@ -6,6 +6,7 @@ import { constantComparison } from "./constant-comparison.js";
 import { constantMembership } from "./constant-membership.js";
 import { constantIndex } from "./constant-index.js";
 import { ConstantIterator } from "./constant-iterator.js";
+import { realBinary } from "./real-binary.js";
 import { ExecutionBudget, ExecutionLimitError } from "./execution-budget.js";
 import { evaluateExpression, type ExpressionContext } from "./expression-evaluation.js";
 import { parseExpression } from "../expression.js";
@@ -55,7 +56,7 @@ describe("concrete constant truth", () => {
       literal: node => v.literal(node), boolean: value => v.boolean(value), truth: value => constantTruth(value, meter),
       load: name => { if (name === "NotImplemented") return v.notImplemented; return unexpected(); }, store: unexpected,
       unary: (operator, value) => constantUnary(operator, value, { values: v, warn: unexpected }, meter),
-      binary: unexpected, compare: (operator, left, right) => operator === "in" || operator === "not in" ? constantMembership(operator, left, right, v, meter) : constantComparison(operator, left, right, v, meter), attribute: unexpected, beginCall: unexpected,
+      binary: (operator, left, right) => realBinary(operator, left, right, v, meter), compare: (operator, left, right) => operator === "in" || operator === "not in" ? constantMembership(operator, left, right, v, meter) : constantComparison(operator, left, right, v, meter), attribute: unexpected, beginCall: unexpected,
       tuple: values => v.tuple(values), list: unexpected, beginSet: unexpected, beginDictionary: unexpected,
       slice: parts => v.slice(parts), getItem: (object, key) => constantIndex(object, key, v, meter), iterate: value => new ConstantIterator(value, v, meter)
     };
@@ -75,6 +76,9 @@ describe("concrete constant truth", () => {
     expect(run("'a😀b'[::-1] == 'b😀a'")).toBe(v.true);
     expect(run("b'abcd'[1::2] == b'bd'")).toBe(v.true);
     expect(run("(0, 1, 2, 3)[-3:-1] == (1, 2)")).toBe(v.true);
+    expect(run("(7 + 2) * 3 - 1 == 26")).toBe(v.true);
+    expect(run("-7 // 3 == -3 and -7 % 3 == 2")).toBe(v.true);
+    expect(run("1 / 2 == 0.5 and 1 // 0.1 == 9.0")).toBe(v.true);
     expect(run("False and NotImplemented")).toBe(v.false);
     expect(run("True or NotImplemented")).toBe(v.true);
     expect(run("False or NotImplemented")).toBe(v.notImplemented);

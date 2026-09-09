@@ -2109,6 +2109,20 @@ extension, integration, or validation requirement is missing or unverified.
   keys. Typecheck, scoped lint and selected workspace build passed.
   Guest slice type descriptors, constructor-call binding, indices(), hashing,
   user-defined conversion and complete host heap accounting remain unfinished.
+- Added concrete real-pair arithmetic for +, -, *, /, // and %, wired into
+  expression tests. Bool/integer operations retain exact integer results except
+  true division; mixed float operands convert before divisor validation. Exact
+  integer-ratio division and Python float-divmod rounding reuse existing kernels.
+  Nonreal operands decline before conversion for later complex/sequence dispatch.
+- Arithmetic validation: missing-module red tests preceded implementation; a
+  separate failing regression reproduced the stale integer divmod zero-division
+  message. Local CPython 3.14.7 and official 3.14 longobject.c both confirmed the
+  corrected "division by zero" diagnostic. All 2,513 tests in 139 files pass;
+  CPython matched 16,854 numeric results/errors including exact floating bits
+  (NaN payloads normalized), huge integers, overflow and zero-division precedence.
+  Source typecheck, scoped lint and selected workspace build passed.
+  Complex arithmetic, powers, bitwise operations, guest slot wiring, bigint payload
+  allocation and size-dependent CPU metering remain unfinished.
 - Next:
   remaining scope/compiler audits, interpreter runtime,
   resource controls, runtime modules, and safe-fs integration. Parsing and static

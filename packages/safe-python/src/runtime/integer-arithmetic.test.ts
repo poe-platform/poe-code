@@ -68,7 +68,7 @@ describe("Python integer division", () => {
 
   it("uses Python numeric faults rather than host bigint division errors", () => {
     for (const a of [0n, 1n, -1n]) {
-      expect(() => integerDivmod(a, 0n)).toThrow(expect.objectContaining({ name: "ZeroDivisionError", message: "integer division or modulo by zero" }));
+      expect(() => integerDivmod(a, 0n)).toThrow(expect.objectContaining({ name: "ZeroDivisionError", message: "division by zero" }));
       expect(() => integerTrueDivide(a, 0n)).toThrow(expect.objectContaining({ name: "ZeroDivisionError", message: "division by zero" }));
     }
   });

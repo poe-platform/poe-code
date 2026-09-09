@@ -2,7 +2,7 @@ import { PythonRuntimeError } from "./error.js";
 
 /** Exact floor quotient and remainder, whose sign follows the divisor. */
 export function integerDivmod(a: bigint, b: bigint): { quotient: bigint; remainder: bigint } {
-  if (b === 0n) throw new PythonRuntimeError("ZeroDivisionError", "integer division or modulo by zero");
+  if (b === 0n) throw new PythonRuntimeError("ZeroDivisionError", "division by zero");
   let quotient = a / b;
   let remainder = a % b;
   if (remainder !== 0n && (remainder < 0n) !== (b < 0n)) {

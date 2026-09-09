@@ -1,10 +1,31 @@
 import type { Token } from "./lexer.js";
 import { PythonSyntaxError } from "./source.js";
+import type { SourceSpan } from "./ast.js";
 
 /** Bounded lookahead over the lazy lexer; no whole-program token array is needed. */
 export class TokenCursor {
   private buffered: Token | undefined;
-  constructor(private readonly tokens: Iterator<Token>, private readonly filename = "<string>") {}
+  constructor(private readonly tokens: Iterator<Token>, private readonly filename = "<string>", private readonly sourceText = "", private readonly comments: readonly SourceSpan[] = []) {}
+
+  /** Retrieve original spelling, excluding lexer-identified comments only. */
+  sourceBetween(start: number, end: number): string {
+    let low = 0;
+    let high = this.comments.length;
+    while (low < high) {
+      const middle = Math.floor((low + high) / 2);
+      if (this.comments[middle].end.offset <= start) low = middle + 1;
+      else high = middle;
+    }
+    const parts: string[] = [];
+    let offset = start;
+    for (let index = low; index < this.comments.length && this.comments[index].start.offset < end; index++) {
+      const comment = this.comments[index];
+      parts.push(this.sourceText.slice(offset, Math.max(offset, comment.start.offset)));
+      offset = Math.min(end, comment.end.offset);
+    }
+    parts.push(this.sourceText.slice(offset, end));
+    return parts.join("").replaceAll("\r\n", "\n").replaceAll("\r", "\n");
+  }
 
   peek(): Token {
     if (!this.buffered) {

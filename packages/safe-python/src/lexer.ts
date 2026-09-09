@@ -9,6 +9,7 @@ import { readString } from "./strings.js";
 import type { StringToken } from "./strings.js";
 import { Interpolation } from "./interpolation.js";
 import type { InterpolatedToken } from "./interpolation.js";
+import type { SourceSpan } from "./ast.js";
 
 export interface StructuralToken {
   readonly kind: "operator" | "newline" | "indent" | "dedent" | "end";
@@ -22,6 +23,7 @@ export type Token = NameToken | NumberToken | StringToken | StructuralToken | In
 export interface LexerOptions {
   readonly filename?: string;
   readonly onWarning?: (message: string, position: SourcePosition) => void;
+  readonly onComment?: (span: SourceSpan) => void;
 }
 
 const operators = new Set([
@@ -60,7 +62,9 @@ export function* lex(text: string, options: LexerOptions = {}): Generator<Token,
     const character = source.peek();
     if (isSpace(character)) { source.advance(); continue; }
     if (character === "#") {
+      const start = source.position;
       while (!source.done && source.peek() !== "\n") source.advance();
+      options.onComment?.({ start, end: source.position });
       continue;
     }
     if (character === "\n") {

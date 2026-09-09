@@ -18,6 +18,13 @@ export type ComprehensionClause = SourceSpan & {
   readonly filters: readonly Expression[];
 };
 
+export type InterpolatedPart = SourceSpan & (
+  | { readonly kind: "text"; readonly value: Uint32Array }
+  | { readonly kind: "field"; readonly expression: Expression; readonly expressionText: string;
+      readonly debugText: string | null; readonly conversion: "s" | "r" | "a" | null;
+      readonly format: readonly InterpolatedPart[] | null }
+);
+
 export type CallArgument = SourceSpan & (
   | { readonly kind: "positional" | "starred" | "mapping"; readonly value: Expression }
   | { readonly kind: "keyword"; readonly spelling: string; readonly value: Expression }
@@ -35,6 +42,7 @@ export type SubscriptItem = CollectionItem | (SourceSpan & (
 ));
 
 export type Expression = SourceSpan & (
+  | { readonly kind: "interpolated-string"; readonly flavor: "formatted" | "template"; readonly parts: readonly InterpolatedPart[] }
   | { readonly kind: "literal"; readonly literalKind: "integer" | "float" | "imaginary" | "string" | "bytes" | "boolean" | "none" | "ellipsis";
       readonly value: bigint | number | Uint32Array | Uint8Array | boolean | null }
   | { readonly kind: "name"; readonly spelling: string }

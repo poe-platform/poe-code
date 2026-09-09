@@ -1,8 +1,9 @@
-import type { Expression, SubscriptItem } from "./ast.js";
+import type { Expression, InterpolatedPart, SubscriptItem } from "./ast.js";
 
 /** Enumerate syntax children without inspecting host objects or literal buffers. */
 export function* expressionChildren(node: Expression): Generator<Expression> {
   switch (node.kind) {
+    case "interpolated-string": yield* interpolatedExpressions(node.parts); return;
     case "literal": case "name": return;
     case "assignment-expression": yield node.target; yield node.value; return;
     case "lambda":
@@ -33,6 +34,15 @@ export function* expressionChildren(node: Expression): Generator<Expression> {
     case "comparison": yield* node.operands; return;
     case "conditional": yield node.condition; yield node.consequent; yield node.alternate; return;
     default: { const exhaustive: never = node; throw new Error(`unknown expression: ${exhaustive}`); }
+  }
+}
+
+function* interpolatedExpressions(parts: readonly InterpolatedPart[]): Generator<Expression> {
+  for (const part of parts) {
+    if (part.kind === "field") {
+      yield part.expression;
+      if (part.format) yield* interpolatedExpressions(part.format);
+    }
   }
 }
 

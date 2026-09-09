@@ -1,12 +1,13 @@
 import { lex } from "./lexer.js";
 import type { LexerOptions } from "./lexer.js";
-import type { Expression } from "./ast.js";
+import type { Expression, SourceSpan } from "./ast.js";
 import { TokenCursor } from "./token-cursor.js";
 import { readTrailers } from "./primary.js";
 import { reservedWords } from "./keywords.js";
 import { readDisplay } from "./displays.js";
 import { readLambda } from "./lambda.js";
 import { validateExpression } from "./expression-validation.js";
+import { readInterpolatedString } from "./interpolated-expression.js";
 
 const binaryPrecedence: Readonly<Record<string, number>> = {
   or: 2, and: 3, "|": 6, "^": 7, "&": 8, "<<": 9, ">>": 9,
@@ -16,7 +17,9 @@ const comparisons = new Set(["<", "<=", ">", ">=", "==", "!=", "in", "is", "not"
 
 /** Parse a single expression. Statement grammar and additional expression forms are still being implemented. */
 export function parseExpression(text: string, options: LexerOptions = {}): Expression {
-  const cursor = new TokenCursor(lex(text, options), options.filename);
+  const comments: SourceSpan[] = [];
+  const tokens = lex(text, { ...options, onComment: span => { comments.push(span); options.onComment?.(span); } });
+  const cursor = new TokenCursor(tokens, options.filename, text, comments);
   let result = readExpression(cursor);
   if (cursor.peek().text === ",") {
     const items = [result];
@@ -88,6 +91,7 @@ function readPrefix(cursor: TokenCursor, minimum: number): Expression {
 
 function readAtom(cursor: TokenCursor): Expression {
   const token = cursor.peek();
+  if (token.kind === "fstring-start" || token.kind === "tstring-start") return readInterpolatedString(cursor, readExpression);
   if (["(", "[", "{"].includes(token.text)) return readDisplay(cursor, readExpression);
   if (token.kind === "integer" || token.kind === "float" || token.kind === "imaginary" || token.kind === "string" || token.kind === "bytes") {
     cursor.take();

@@ -259,8 +259,24 @@ extension, integration, or validation requirement is missing or unverified.
   prefixes and paired text fragments. Scoped lint, source typecheck, and selected workspace build
   passed. Interpolated expression-tree assembly, conversions, debug fields, adjacent
   interpolated literals, and runtime formatting/template construction remain pending.
+- Added formatted/template string expression trees with ordered decoded text and
+  replacement fields, explicit conversions, debug text, template expression spelling,
+  tuple/starred fields, and recursively nested format specifications. Expressions
+  remain unevaluated. The expression visitor reaches fields and nested format
+  specifications so existing comprehension scope checks apply inside strings.
+  Lexer comment-span callbacks let source retrieval omit actual comments without
+  stripping hash characters inside string literals; retrieval uses binary search
+  over ordered comment spans, not rescanning or retokenizing expressions.
+- Interpolated-expression validation: five positive tests failed before implementation,
+  followed by a failing regression for comment omission in debug/template spelling.
+  All 582 package tests pass. A 990-case CPython compilation and AST comparison
+  matched field values, conversions, debug text, template spelling, nested formats,
+  and invalid-field rejection. Scoped lint, source typecheck, and selected workspace build passed.
+  Reference: https://docs.python.org/3/reference/lexical_analysis.html#f-strings.
+  Adjacent interpolated-literal concatenation, yield/await fields, runtime formatting,
+  and template construction remain pending; these checks prove parser behavior only.
 - Next:
-  interpolated-string ASTs, parser-level NFKC
+  adjacent interpolated literals, parser-level NFKC
   normalization, the complete grammar/parser and evaluator, then runtime modules
   and safe-fs integration. Tokenization does not establish interpreter execution.
 - Workspace lockfile registration and packaging integration remain pending.

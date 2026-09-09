@@ -1,5 +1,6 @@
 import type { ExecutionMeter } from "./execution-budget.js";
 import { PythonRuntimeError } from "./error.js";
+import type { CompletionIterator, CompletionResult } from "./iterator-completion.js";
 
 /** Combine already-adapted input iterators, advancing them left to right. Strict
  * exhaustion probes later inputs only when the first input is exhausted, and
@@ -10,19 +11,19 @@ import { PythonRuntimeError } from "./error.js";
  * tuple reuse optimizations and full host heap accounting remain unfinished.
  */
 export class ParallelIterator<Value, Result> implements IterableIterator<Result> {
-  readonly #sources: readonly Iterator<Value>[];
+  readonly #sources: readonly CompletionIterator<Value>[];
 
-  constructor(sources: readonly Iterator<Value>[], private readonly strict: boolean, private readonly produce: (values: readonly Value[]) => Result, private readonly meter: ExecutionMeter, private readonly operation: "zip" | "map" = "zip") {
+  constructor(sources: readonly CompletionIterator<Value>[], private readonly strict: boolean, private readonly produce: (values: readonly Value[]) => Result, private readonly meter: ExecutionMeter, private readonly operation: "zip" | "map" = "zip") {
     const length = sources.length;
     meter.checkpoint(1, 64 + length * 8);
-    const copy = new Array<Iterator<Value>>(length);
+    const copy = new Array<CompletionIterator<Value>>(length);
     for (let i = 0; i < length; i++) { meter.checkpoint(); copy[i] = sources[i]; }
     this.#sources = Object.freeze(copy);
   }
 
   [Symbol.iterator](): IterableIterator<Result> { return this; }
 
-  next(): IteratorResult<Result> {
+  next(): CompletionResult<Result> {
     this.meter.checkpoint(1, 16);
     if (this.#sources.length === 0) return { done: true, value: undefined };
     this.meter.checkpoint(0, 32 + this.#sources.length * 8);
@@ -32,7 +33,8 @@ export class ParallelIterator<Value, Result> implements IterableIterator<Result>
       const item = this.#sources[i].next();
       this.meter.checkpoint();
       if (item.done) {
-        if (this.strict) this.#checkExhaustion(i);
+        if (!this.strict) return item;
+        this.#checkExhaustion(i);
         return { done: true, value: undefined };
       }
       row[i] = item.value;

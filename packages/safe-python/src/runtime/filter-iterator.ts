@@ -1,4 +1,5 @@
 import type { ExecutionMeter } from "./execution-budget.js";
+import type { CompletionIterator, CompletionResult } from "./iterator-completion.js";
 
 export interface FilterIterationContext<Value> {
   /** Pure identity check for guest None or the exact builtin bool object. */
@@ -16,7 +17,7 @@ export interface FilterIterationContext<Value> {
 export class FilterIterator<Value> implements IterableIterator<Value> {
   readonly #truthOnly: boolean;
 
-  constructor(private readonly predicate: Value, private readonly source: Iterator<Value>, private readonly context: FilterIterationContext<Value>, private readonly meter: ExecutionMeter) {
+  constructor(private readonly predicate: Value, private readonly source: CompletionIterator<Value>, private readonly context: FilterIterationContext<Value>, private readonly meter: ExecutionMeter) {
     meter.checkpoint(1, 64);
     this.#truthOnly = context.isTruthPredicate(predicate);
     meter.checkpoint();
@@ -24,14 +25,14 @@ export class FilterIterator<Value> implements IterableIterator<Value> {
 
   [Symbol.iterator](): IterableIterator<Value> { return this; }
 
-  next(): IteratorResult<Value> {
+  next(): CompletionResult<Value> {
     this.meter.checkpoint(1, 16);
     try {
       while (true) {
         this.meter.checkpoint();
         const item = this.source.next();
         this.meter.checkpoint();
-        if (item.done) return { done: true, value: undefined };
+        if (item.done) return item;
         let decision = item.value;
         if (!this.#truthOnly) {
           decision = this.context.call(this.predicate, item.value);
@@ -43,8 +44,10 @@ export class FilterIterator<Value> implements IterableIterator<Value> {
       }
     } catch (error) {
       this.meter.checkpoint();
-      if (!this.context.isStopIteration(error)) throw error;
-      return { done: true, value: undefined };
+      const ended = this.context.isStopIteration(error); this.meter.checkpoint();
+      if (!ended) throw error;
+      this.meter.checkpoint(0, 32);
+      return { done: true, value: undefined, exception: { value: error } };
     }
   }
 }

@@ -4645,6 +4645,21 @@ extension, integration, or validation requirement is missing or unverified.
   Strict zip/map instead discard source exhaustion payloads during mismatch
   checking. Full guest object wiring, builtin registration, suspended execution,
   complete accounting and SDK/safe-fs integration remain outstanding.
+- Forwarded source completion records through enumerate, filter, non-strict
+  map and non-strict zip without copying them or imposing sticky exhaustion.
+  Map callbacks and filter predicate/truth callbacks retain classified guest
+  exhaustion objects for explicit next calls. Strict parallel traversal still
+  discards source exhaustion payloads during length checks, but does not discard
+  mapper callback payloads. Map/filter exception classification now checks
+  cancellation before publishing completion metadata.
+- Ten new tests first reproduced lost metadata and missed cancellation checks;
+  two strict-mode tests confirmed existing mismatch behavior. All 4,227 tests
+  in 327 files pass. Four CPython audits match 4,900 scenarios and 58,800 next
+  observations, including source/callback payloads, strict mismatch diagnostics,
+  retries, input consumption order and enumerate reentrancy. Source typecheck,
+  scoped lint and selected workspace build pass. Native constructor bindings
+  for these combinators, full guest object wiring/registration, suspended
+  execution, complete accounting and SDK/safe-fs integration remain unfinished.
 - Next:
   remaining scope/compiler audits, interpreter runtime,
   resource controls, runtime modules, and safe-fs integration. Parsing and static

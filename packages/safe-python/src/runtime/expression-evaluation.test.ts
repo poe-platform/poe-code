@@ -4,6 +4,8 @@ import type { Expression } from "../ast.js";
 import { evaluateExpression, type ExpressionContext } from "./expression-evaluation.js";
 import { ExecutionBudget } from "./execution-budget.js";
 import { integerDivmod } from "./integer-arithmetic.js";
+import { parseModule } from "../module.js";
+import { executeStatements } from "./statement-execution.js";
 
 type Value = bigint | boolean | null | string;
 
@@ -43,6 +45,64 @@ function environment(initial: ReadonlyMap<string, Value> = new Map()) {
 const budget = () => new ExecutionBudget({ maxSteps: 1000000, maxAllocatedBytes: 1000000 });
 
 describe("expression execution order", () => {
+  it("returns host truth in branch mode while preserving ordinary value mode", () => {
+    const { context } = environment(new Map([["a", 7n]]));
+    expect(evaluateExpression(parseExpression("a"), context, budget(), "branch")).toBe(true);
+    expect(evaluateExpression(parseExpression("a"), context, budget())).toBe(7n);
+  });
+
+  it.each(["a and missing", "not (a and missing)", "(a and missing) if True else missing"])("does not repeat a stateful truth conversion at the branch boundary: %s", source => {
+    const { context } = environment(new Map([["a", 0n]]));
+    let calls = 0;
+    context.truth = value => typeof value === "boolean" ? value : ++calls > 1;
+    expect(evaluateExpression(parseExpression(source), context, budget(), "branch")).toBe(source.startsWith("not"));
+    expect(calls).toBe(1);
+  });
+
+  it("preserves the walrus value boundary inside branch mode", () => {
+    const { context, names } = environment(new Map([["a", 0n]]));
+    let calls = 0;
+    context.truth = () => ++calls > 1;
+    expect(evaluateExpression(parseExpression("(x := (a and missing))"), context, budget(), "branch")).toBe(true);
+    expect(calls).toBe(2);
+    expect(names.get("x")).toBe(0n);
+  });
+
+  it("does not retest a short-circuited comparison chain in branch mode", () => {
+    const { context } = environment();
+    let calls = 0;
+    context.compare = () => "comparison";
+    context.truth = () => ++calls > 1;
+    expect(evaluateExpression(parseExpression("1 < 2 < missing"), context, budget(), "branch")).toBe(false);
+    expect(calls).toBe(1);
+  });
+
+  it("checks the budget before the final guest truth conversion", () => {
+    const { context, events } = environment();
+    expect(() => evaluateExpression(parseExpression("1"), context, new ExecutionBudget({ maxSteps: 1, maxAllocatedBytes: 1000 }), "branch")).toThrow("execution step limit exceeded");
+    expect(events).toEqual([]);
+    context.truth = () => { throw new Error("guest truth failed"); };
+    expect(() => evaluateExpression(parseExpression("1"), context, budget(), "branch")).toThrow("guest truth failed");
+  });
+
+  it("drives statement branches without converting an already-tested value again", () => {
+    const { context } = environment(new Map([["a", 0n]])), meter = budget(), outputs: Value[] = [];
+    let calls = 0;
+    context.truth = () => ++calls > 1;
+    executeStatements(parseModule("if a and missing:\n  1\nelse:\n  2").body, {
+      evaluate: expression => evaluateExpression(expression, context, meter),
+      test: expression => evaluateExpression(expression, context, meter, "branch"),
+      iterate: () => { throw new Error("unused"); },
+      assign: () => { throw new Error("unused"); },
+      execute: statement => {
+        if (statement.kind !== "expression-statement") throw new Error("unused");
+        outputs.push(evaluateExpression(statement.expression, context, meter));
+      }
+    }, meter);
+    expect(outputs).toEqual([2n]);
+    expect(calls).toBe(1);
+  });
+
   it("executes parsed arithmetic using runtime operations", () => {
     const { context } = environment();
     expect(evaluateExpression(parseExpression("-7 // 3 + 2 * 5"), context, budget())).toBe(7n);

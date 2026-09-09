@@ -1401,6 +1401,20 @@ extension, integration, or validation requirement is missing or unverified.
   adapter-owned; try/with/match/async for fail explicitly before operand effects.
   Exception unwinding, suspended execution, full frame integration and complete
   frame-heap accounting remain pending. This is not the complete interpreter.
+- Exposed branch-context expression execution through an overload of the existing
+  evaluator. The default remains value-producing; explicit branch mode propagates
+  branching context from the root and returns a host boolean. Short-circuit truth
+  results are reused without another guest conversion. Walrus/value boundaries
+  still trigger the required later conversion; final truth conversion is metered
+  and propagates guest errors. Statement contexts can now use the existing
+  evaluator directly for conditions instead of evaluating then coercing a value.
+- Branch-mode validation: seven failing tests preceded implementation; all 1,904
+  tests in 92 files pass. Added stateful truth, not, conditional, comparison-chain,
+  walrus, budget and statement-engine integration coverage. CPython matched 4,000
+  branching-mode result/traces (stable and state-changing truth methods), plus
+  2,000 value-mode regression traces. Scoped lint, source typecheck and selected
+  dependency build passed. Concrete guest values/frames, remaining statement and
+  expression families, suspension and complete heap accounting remain pending.
 - Next:
   remaining scope/compiler audits, interpreter runtime,
   resource controls, runtime modules, and safe-fs integration. Parsing and static

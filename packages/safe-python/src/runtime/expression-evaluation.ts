@@ -83,11 +83,15 @@ export class UnsupportedExpressionError extends Error {
  * short-circuit value's __bool__ is not invoked twice by a surrounding test.
  * Value-producing boundaries (such as walrus stores) deliberately break that
  * propagation. AST validity/static scope analysis are caller preconditions.
+ * Branch mode returns host boolean truth directly for statement conditions;
+ * value mode (the default) returns the guest value without final coercion.
  * Stack/closure heap accounting and suspending expression families remain pending.
  */
-export function evaluateExpression<Value>(expression: Expression, context: ExpressionContext<Value>, meter: ExecutionMeter): Value {
+export function evaluateExpression<Value>(expression: Expression, context: ExpressionContext<Value>, meter: ExecutionMeter, mode: "branch"): boolean;
+export function evaluateExpression<Value>(expression: Expression, context: ExpressionContext<Value>, meter: ExecutionMeter, mode?: "value"): Value;
+export function evaluateExpression<Value>(expression: Expression, context: ExpressionContext<Value>, meter: ExecutionMeter, mode: "value" | "branch" = "value"): Value | boolean {
   type Task = { node: Expression; test: "value" | "preserve" | "branch" } | (() => void);
-  const work: Task[] = [{ node: expression, test: "value" }];
+  const work: Task[] = [{ node: expression, test: mode }];
   let value!: Value;
   let knownTruth: boolean | undefined;
   while (work.length) {
@@ -351,6 +355,10 @@ export function evaluateExpression<Value>(expression: Expression, context: Expre
       }
       default: throw new UnsupportedExpressionError(node.kind);
     }
+  }
+  if (mode === "branch") {
+    meter.checkpoint();
+    return knownTruth ?? context.truth(value);
   }
   return value;
 }

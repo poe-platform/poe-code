@@ -54,3 +54,13 @@ result keys, copied contents, and unchanged original keys/contents without
 reading that constructor. Preserve those behaviors when fixing prototypes.
 The shared budgetProducedValue helper also handles existing mutation targets,
 so indiscriminately assigning a prototype there would change unrelated objects.
+
+## Split path controls
+
+Read-only probes at fa36d37f3 confirm wrong originating array identity for
+string separators, zero limit, omitted separator, regex separators, and
+capturing regex separators. Native VM passes all five identity controls.
+Custom Symbol.split controls still match native: a returned null-prototype
+object keeps its identity/prototype, and a custom hook receives the original
+uncoerced receiver plus limit zero and is called once. Do not re-prototype
+custom hook results or move fallback coercion ahead of hook dispatch.

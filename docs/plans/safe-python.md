@@ -3420,6 +3420,22 @@ extension, integration, or validation requirement is missing or unverified.
   Source typecheck, scoped lint and selected workspace build passed. Concrete default-builder,
   metaclass/type construction and arbitrary prepared mapping integration remain
   unfinished, as do suspension, full accounting and public SDK/safe-fs integration.
+- Added an explicitly registered concrete __build_class__ builtin. It validates
+  runtime keyword strings without replacing their key records, owns intrinsic
+  function/name checks and reserved-key recognition, and drives the existing
+  builder lifecycle through supplied base/metaclass/prepared-body capabilities.
+  Capability method owners are retained. Integration tests execute real compiled
+  class suites in prepared dictionaries and construct callable-metaclass results;
+  cancellation and body failures cannot publish a class binding.
+- The builtin suite first failed on its missing module. All 3,429 tests in 234
+  files pass. A 1,200-case CPython audit matched full class-statement outcomes using
+  the concrete builtin and supplied callable-metaclass policies, including method
+  results and partial-failure namespaces. Keyword-identity (1,000) and overridden
+  class-builder (1,500) differential regressions passed. Source typecheck, scoped
+  lint and selected workspace build passed. Default type/metaclass objects,
+  arbitrary prepared mappings and a unified prepared-body executor still need
+  integration; the builtin requires explicit policies and is not silently
+  installed. Suspension, full accounting and public SDK/safe-fs remain unfinished.
 - Next:
   remaining scope/compiler audits, interpreter runtime,
   resource controls, runtime modules, and safe-fs integration. Parsing and static

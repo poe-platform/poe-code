@@ -7,9 +7,6 @@ import { runtimeTruth } from "./runtime-truth.js";
 import { runtimeIterate } from "./runtime-iteration.js";
 import { runtimeMembership } from "./runtime-membership.js";
 import { ExecutionBudget } from "./execution-budget.js";
-import { UnsupportedExpressionError } from "./expression-evaluation.js";
-import { runtimeIndex } from "./runtime-index.js";
-import { runtimeMutateItem } from "./runtime-mutation.js";
 
 function fixture() {
   const meter = new ExecutionBudget({ maxSteps: 100000, maxAllocatedBytes: 1000000 }), v = new RuntimeValues(meter);
@@ -62,10 +59,5 @@ describe("runtime dictionary records", () => {
     const { meter, v, hash, dictionary } = fixture(), dict = dictionary(); dict.items.set(v.integer(1), dict);
     expect(() => runtimeHash(dict, hash, meter)).toThrow("unhashable type: 'dict'");
     expect(() => runtimeHash(v.tuple([dict]), hash, meter)).toThrow("unhashable type: 'dict'");
-  });
-  it("keeps unfinished dictionary access explicit", () => {
-    const { meter, v, dictionary } = fixture(), dict = dictionary();
-    expect(() => runtimeIndex(dict, v.integer(1), v, meter)).toThrow(UnsupportedExpressionError);
-    expect(() => runtimeMutateItem(dict, v.integer(1), { kind: "set", value: v.true }, v, meter)).toThrow(UnsupportedExpressionError);
   });
 });

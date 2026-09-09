@@ -8,6 +8,9 @@ import { compileProgram } from "./program-compilation.js";
 import { executeModule } from "./module-execution.js";
 import { UnsupportedStatementError } from "./statement-execution.js";
 import { analyzeModule } from "../analysis.js";
+import { OrderedKeyMap } from "./ordered-key-map.js";
+import { runtimeHash } from "./runtime-hash.js";
+import { runtimeComparison } from "./runtime-comparison.js";
 
 function fixture(source: string, maxSteps = 100000) {
   const meter = new ExecutionBudget({ maxSteps, maxAllocatedBytes: 1000000 }), v = new RuntimeValues(meter);
@@ -27,10 +30,21 @@ function fixture(source: string, maxSteps = 100000) {
       }, v, meter);
     }
   };
-  return { v, globals, calls, run: () => executeModule(code, context, meter) };
+  return { v, meter, globals, calls, run: () => executeModule(code, context, meter) };
 }
 
 describe("concrete runtime statement context", () => {
+  it("executes dictionary assignment, augmented mutation, reads and deletion", () => {
+    const state = fixture("d[1] = [2]\nalias = d[True]\nd[1.0] += [3]\nd['next'] = d[1]\ndel d[1]\nresult = d['next']\nmissing = d[1]\n");
+    const { v, meter } = state;
+    const hash = { none: v.none, identity: () => 17n, string: () => 23n, bytes: () => 29n };
+    const dict = v.dictionary(new OrderedKeyMap<RuntimeValue, RuntimeValue>({ hash: key => runtimeHash(key, hash, meter), equal: (a, b) => runtimeComparison("==", a, b, v, meter).value }, meter));
+    state.globals.set("d", dict);
+    expect(state.run).toThrow(expect.objectContaining({ name: "KeyError", args: [v.integer(1)] }));
+    const result = state.globals.get("result"); if (result?.kind !== "list") throw new Error("list expected");
+    expect(result.items.snapshot()).toEqual([v.integer(2), v.integer(3)]); expect(result).toBe(state.globals.get("alias"));
+    expect(dict.items.size).toBe(1); expect(state.globals.has("missing")).toBe(false); expect(state.calls.depth).toBe(0);
+  });
   it("executes compiled modules with shared list aliases and item mutation", () => {
     const state = fixture('"module doc"\na = [1]\nalias = a\nfor x in [2, 3]:\n a += [x]\na[0] = 9\ndel a[1]\n');
     state.run(); const list = state.globals.get("a");

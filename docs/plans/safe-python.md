@@ -3145,6 +3145,23 @@ extension, integration, or validation requirement is missing or unverified.
   Dictionary subscription/mutation/literals, concrete calls and exception values,
   guest key slots and their recursion control, full temporary/heap accounting,
   public execution integration and safe-fs wiring remain unfinished.
+- Implemented exact dictionary subscription, assignment and deletion through a
+  shared key-operation dispatcher also used by membership. Each operation hashes
+  once, retains first-key identity/order on overwrite, and treats hashable slices
+  as keys without sequence-index validation. Missing-key faults now carry a frozen
+  single-argument array retaining the original key; raising never calls repr.
+  The internal host diagnostic is not guest KeyError formatting: concrete guest
+  exception construction and str/repr rendering remain explicit unfinished work.
+- All five initial access tests reproduced unsupported subscription/mutation.
+  All 3,292 tests in 215 files pass, including compiled statement reads, writes,
+  augmented list mutation, alias retention, deletion and frame restoration after
+  a missing key. A 1,500-trace CPython audit matched 30,000 item operations,
+  including KeyError arguments and unhashable-key diagnostics. Subscription and
+  list-mutation audits each matched 3,000 cases; compiled-module and dictionary
+  storage regressions also passed. Source typecheck, scoped lint and selected workspace build
+  passed. Dictionary literals/constructors, concrete call keyword dictionaries,
+  guest key slots, complete resource accounting and public execution/safe-fs
+  integration remain unfinished.
 - Next:
   remaining scope/compiler audits, interpreter runtime,
   resource controls, runtime modules, and safe-fs integration. Parsing and static

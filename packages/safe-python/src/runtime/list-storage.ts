@@ -2,6 +2,7 @@ import { exhaustAllocation, type ExecutionMeter } from "./execution-budget.js";
 import { PythonRuntimeError } from "./error.js";
 import { ListIterator } from "./list-iterator.js";
 import { normalizeSlice } from "./integer-sequence.js";
+import { stableSort, type StableSortContext } from "./stable-sort.js";
 
 /** Owned mutable list slots, not the guest list type or protocol dispatcher.
  * Index arguments have already passed guest __index__ conversion. The fixed
@@ -11,6 +12,7 @@ import { normalizeSlice } from "./integer-sequence.js";
  */
 export class ListStorage<Value> {
   readonly #items: Value[];
+  #sortModified: boolean | undefined;
 
   constructor(values: readonly Value[], private readonly meter: ExecutionMeter) {
     const length = values.length;
@@ -29,6 +31,7 @@ export class ListStorage<Value> {
   append(value: Value): void {
     this.meter.checkpoint(1, 8);
     if (this.#items.length === 0xffffffff) exhaustAllocation(this.meter);
+    if (this.#sortModified !== undefined) this.#sortModified = true;
     this.#items.push(value);
   }
 
@@ -38,6 +41,7 @@ export class ListStorage<Value> {
     const offset = this.#items.length, count = source.#items.length;
     this.meter.checkpoint(1 + count, count * 8);
     if (offset + count > 0xffffffff) exhaustAllocation(this.meter);
+    if (count > 0 && this.#sortModified !== undefined) this.#sortModified = true;
     this.#items.length = offset + count;
     for (let i = 0; i < count; i++) this.#items[offset + i] = source.#items[i];
   }
@@ -85,6 +89,7 @@ export class ListStorage<Value> {
     if (length === original) return;
     if (length === 0) { this.clear(); return; }
     this.meter.checkpoint(length - original, (length - original) * 8);
+    if (this.#sortModified !== undefined) this.#sortModified = true;
     this.#items.length = length;
     for (let i = original; i < length; i++) this.#items[i] = this.#items[i % original];
   }
@@ -97,6 +102,7 @@ export class ListStorage<Value> {
     const position = index < 0n ? 0 : index > BigInt(length) ? length : Number(index);
     this.meter.checkpoint(1 + length - position, 8);
     if (length === 0xffffffff) exhaustAllocation(this.meter);
+    if (this.#sortModified !== undefined) this.#sortModified = true;
     this.#items.push(value);
     for (let i = length; i > position; i--) this.#items[i] = this.#items[i - 1];
     this.#items[position] = value;
@@ -164,6 +170,30 @@ export class ListStorage<Value> {
     }
   }
 
+  /** Hide saved elements from guest callbacks, retaining the backing array for
+   * existing cursors. Any growth of the temporary empty list marks modification,
+   * even if later undone. Shrink/reorder alone cannot change an empty list.
+   * Restoration is prepaid and runs without guest code after fatal termination.
+   * On comparison failure the kernel restores original order, not CPython's
+   * algorithm-dependent partial permutation. Finalizer handling is still external.
+   */
+  sort<Key>(context: StableSortContext<Value, Key>): void {
+    const original = this.snapshot();
+    this.meter.checkpoint(1 + original.length * 2, original.length * 8);
+    const outerModified = this.#sortModified;
+    this.#sortModified = false;
+    this.#items.length = 0;
+    let result = original;
+    try {
+      result = stableSort(original, context, this.meter);
+      if (this.#sortModified) throw new PythonRuntimeError("ValueError", "list modified during sort");
+    } finally {
+      this.#items.length = result.length;
+      for (let i = 0; i < result.length; i++) this.#items[i] = result[i];
+      this.#sortModified = outerModified === undefined ? undefined : outerModified || this.#sortModified;
+    }
+  }
+
   slice(start: bigint | null = null, stop: bigint | null = null, step: bigint | null = null): ListStorage<Value> {
     this.meter.checkpoint();
     const indices = normalizeSlice(BigInt(this.#items.length), start, stop, step);
@@ -200,6 +230,7 @@ export class ListStorage<Value> {
     this.meter.checkpoint(added + (delta === 0 ? 0 : length - tail), Math.max(0, delta) * 8);
     if (size > 0xffffffff) exhaustAllocation(this.meter);
     if (delta > 0) {
+      if (this.#sortModified !== undefined) this.#sortModified = true;
       this.#items.length = size;
       for (let i = length - 1; i >= tail; i--) this.#items[i + delta] = this.#items[i];
     } else if (delta < 0) {

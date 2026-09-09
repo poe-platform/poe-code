@@ -2526,6 +2526,22 @@ extension, integration, or validation requirement is missing or unverified.
   typecheck, scoped lint and selected workspace build passed. Full
   list.sort temporary-empty/mutation/failure lifecycle, sorted iterable setup,
   guest protocol wiring and complete native allocation accounting remain open.
+- Integrated stable sorting with mutable list storage's temporary-empty
+  lifecycle. Original elements are hidden from callbacks while existing cursors
+  keep the backing array. Growth marks modification even when undone; empty
+  no-ops do not. Nested sorts preserve outer mutation detection. Successful
+  mutation attempts restore sorted original elements and raise ValueError;
+  callback failures retain their original exception and restore original slots.
+  Restoration work/growth is prepaid so fatal budget rejection cannot interrupt
+  the host-only restoration path. No guest cleanup runs during that path.
+- All 13 lifecycle regressions first failed on missing sort support; all 2,818
+  tests in 169 files pass. A 4,000-case CPython audit matched key-call list
+  visibility, key failures, mutations/no-ops, nested sorts and existing cursors.
+  Source typecheck, scoped lint and selected workspace build passed.
+  Comparison failure restores original order rather than CPython's
+  algorithm-dependent partial permutation. Exact comparison scheduling, guest
+  method/reverse/key argument dispatch, sorted iterable preparation, finalizers
+  and complete native allocation accounting remain unfinished.
 - Next:
   remaining scope/compiler audits, interpreter runtime,
   resource controls, runtime modules, and safe-fs integration. Parsing and static

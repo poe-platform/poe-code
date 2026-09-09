@@ -454,6 +454,19 @@ extension, integration, or validation requirement is missing or unverified.
   categories, normalized names, defaults, and decorator kinds. Scoped lint, source
   typecheck, and the selected workspace build passed. Generic type-parameter
   syntax, function symbol tables, closures, call binding, and execution remain pending.
+- Added class definitions with normalized names, ordered decorators, nested suites,
+  methods, and shared call-argument parsing for bases, unpacking, and metaclass
+  keywords. Retains original argument order in the executable AST. Class headers
+  require generator base expressions to be parenthesized even though calls accept
+  bare generator clauses; this difference was found by CPython comparison and
+  reproduced with a failing regression test before correction.
+- Class validation: four positive tests failed before implementation, followed by
+  the bare-generator regression; all 893 package tests pass. A 924-case CPython
+  compilation and AST comparison matched acceptance, normalized class/keyword names,
+  base and keyword expressions, and decorator trees. Scoped lint, source typecheck,
+  and the selected workspace build passed. Generic class parameters,
+  class scope rules, MRO, metaclass construction, descriptors, and execution remain
+  pending.
 - Next:
   compound statements, type aliases, and enclosing-scope validation
   normalization, the complete grammar/parser and evaluator, then runtime modules

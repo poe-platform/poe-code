@@ -39,7 +39,7 @@ export function readTrailers(cursor: TokenCursor, value: Expression, read: ReadE
   }
 }
 
-function readArguments(cursor: TokenCursor, read: ReadExpression, opening: SourceSpan): CallArgument[] {
+export function readArguments(cursor: TokenCursor, read: ReadExpression, opening: SourceSpan, allowBareGenerator = true): CallArgument[] {
   const args: CallArgument[] = [];
   const keywords = new Set<string>();
   let keywordSeen = false;
@@ -55,7 +55,7 @@ function readArguments(cursor: TokenCursor, read: ReadExpression, opening: Sourc
     } else {
       let value = readNamedExpression(cursor, read);
       if (cursor.peek().text === "for" || cursor.peek().text === "async") {
-        if (args.length > 0) throw cursor.error("generator expression must be parenthesized");
+        if (!allowBareGenerator || args.length > 0) throw cursor.error("generator expression must be parenthesized");
         const clauses = readComprehensionClauses(cursor, read);
         if (cursor.peek().text !== ")") throw cursor.error("generator expression must be parenthesized");
         value = { kind: "comprehension", collection: "generator", element: value, clauses, start: opening.start, end: cursor.peek().end };

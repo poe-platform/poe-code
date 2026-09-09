@@ -8,6 +8,7 @@ import { readStatementValue } from "./assignment-statements.js";
 import { readTry } from "./try-statements.js";
 import { readWith } from "./with-statements.js";
 import { readFunction } from "./function-statements.js";
+import { readClass } from "./class-statements.js";
 
 /** A block owns its statements; its caller owns the terminating dedent. */
 export function readStatements(cursor: TokenCursor): Statement[] {
@@ -25,6 +26,7 @@ export function readStatements(cursor: TokenCursor): Statement[] {
     else if (cursor.peek().text === "with") body.push(readWith(cursor, readSuite));
     else if (cursor.peek().text === "try") body.push(readTry(cursor, readSuite));
     else if (cursor.peek().text === "def") body.push(readFunction(cursor, readSuite));
+    else if (cursor.peek().text === "class") body.push(readClass(cursor, readSuite));
     else if (cursor.peek().text === "@") {
       const decorators = [];
       while (cursor.peek().text === "@") {
@@ -33,8 +35,11 @@ export function readStatements(cursor: TokenCursor): Statement[] {
         if (cursor.peek().kind !== "newline") throw cursor.error("expected newline after decorator");
         cursor.take();
       }
-      const asyncStart = cursor.peek().text === "async" ? cursor.take().start : undefined;
-      body.push(readFunction(cursor, readSuite, asyncStart, decorators));
+      if (cursor.peek().text === "class") body.push(readClass(cursor, readSuite, decorators));
+      else {
+        const asyncStart = cursor.peek().text === "async" ? cursor.take().start : undefined;
+        body.push(readFunction(cursor, readSuite, asyncStart, decorators));
+      }
     }
     else for (const statement of readSimpleLine(cursor)) body.push(statement);
   }

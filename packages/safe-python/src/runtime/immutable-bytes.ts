@@ -1,7 +1,7 @@
 import { exhaustAllocation, type ExecutionMeter } from "./execution-budget.js";
 import { PythonRuntimeError } from "./error.js";
 import { normalizeSlice } from "./integer-sequence.js";
-import { searchSubstring, type SearchMode } from "./substring-search.js";
+import { searchSubstring, substringMatches, type SearchMode } from "./substring-search.js";
 import { isAsciiWhitespace } from "./ascii-whitespace.js";
 
 export type BytesCaseTransformation = "upper" | "lower" | "title" | "capitalize" | "swapcase";
@@ -137,6 +137,42 @@ export class ImmutableBytes implements Iterable<number> {
     for (let index = 0; index < left; index++) { meter.checkpoint(); bytes[offset++] = fill; }
     for (let index = sign; index < this.length; index++) { meter.checkpoint(); bytes[offset++] = this.#bytes[index]; }
     while (offset < length) { meter.checkpoint(); bytes[offset++] = fill; }
+    return new ImmutableBytes(bytes);
+  }
+
+  /** Two linear scans count and copy nonoverlapping matches without retaining
+   * match positions. Empty patterns insert at at most length + 1 boundaries. */
+  replace(old: ImmutableBytes, replacement: ImmutableBytes, count: bigint, meter: ExecutionMeter): ImmutableBytes {
+    meter.checkpoint();
+    if (count === 0n || old.length > this.length || (old.length === 0 && replacement.length === 0)) return this;
+    const limit = count < 0n || count > BigInt(this.length) + 1n ? this.length + 1 : Number(count);
+    let matches = 0;
+    if (old.length === 0) matches = Math.min(limit, this.length + 1);
+    else for (const ignoredIndex of substringMatches(this.#bytes, old.#bytes, false, meter)) {
+      if (++matches === limit) break;
+    }
+    if (matches === 0) return this;
+    const length = this.length + matches * (replacement.length - old.length);
+    if (!Number.isSafeInteger(length) || length > 0xffffffff) exhaustAllocation(meter);
+    meter.checkpoint(0, length);
+    const bytes = new Uint8Array(length);
+    let offset = 0, source = 0;
+    if (old.length === 0) {
+      for (let boundary = 0; boundary <= this.length; boundary++) {
+        meter.checkpoint();
+        if (boundary < matches) for (const byte of replacement.#bytes) { meter.checkpoint(); bytes[offset++] = byte; }
+        if (boundary < this.length) { meter.checkpoint(); bytes[offset++] = this.#bytes[boundary]; }
+      }
+    } else {
+      let remaining = matches;
+      for (const index of substringMatches(this.#bytes, old.#bytes, false, meter)) {
+        while (source < index) { meter.checkpoint(); bytes[offset++] = this.#bytes[source++]; }
+        for (const byte of replacement.#bytes) { meter.checkpoint(); bytes[offset++] = byte; }
+        source = index + old.length;
+        if (--remaining === 0) break;
+      }
+      while (source < this.length) { meter.checkpoint(); bytes[offset++] = this.#bytes[source++]; }
+    }
     return new ImmutableBytes(bytes);
   }
 

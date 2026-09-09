@@ -4366,6 +4366,19 @@ extension, integration, or validation requirement is missing or unverified.
   pass. Remaining
   methods, buffer protocols, native builtins, suspension, full accounting and
   SDK/safe-fs remain unfinished.
+- Connected bytes.replace with metered nonoverlapping KMP scans and one final
+  byte buffer. Empty patterns insert at boundaries, count limits bound matches,
+  and zero counts/no matches retain the receiver. Equal nonempty replacements
+  still produce fresh bytes, unlike the string identity shortcut. Changed
+  empty results are canonical; byte calls reject count keywords.
+- Eight native/storage tests first failed for missing support. All 4,096 tests
+  in 306 files pass, including precise search/output allocation, immutable
+  exports, repetitive-search checkpoints and expansion limits. A 6,097-call
+  compiled CPython audit matches byte values, identity and errors; 33,075
+  exhaustive binary-pattern replacements and the 2,616-call string replacement
+  regression, scoped lint, source typecheck and selected workspace build also
+  pass. Remaining methods, buffer protocols, native builtins,
+  suspension, full accounting and SDK/safe-fs remain unfinished.
 - Next:
   remaining scope/compiler audits, interpreter runtime,
   resource controls, runtime modules, and safe-fs integration. Parsing and static

@@ -126,6 +126,7 @@ import { getFunctionMember, type FunctionMethodOptions } from "./methods/functio
 import { getBoxedPrototype, getSandboxPropertyDescriptor, getSandboxPrototype, hasExplicitSandboxPrototype, isDefaultArrayMethod, isDefaultBoxedMethod, isGuestClosure, materializeFunctionProperties, setSandboxPrototype } from "./object-model.js";
 import { guestProxyStates } from "./guest-proxy.js";
 import { sandboxDeleteProperty } from "./guest-proxy-delete.js";
+import { sandboxHasProperty } from "./guest-proxy-has.js";
 import { getStringIndex } from "./methods/string.js";
 import { assertSandboxDataDepth } from "../graph-depth.js";
 import {
@@ -3926,7 +3927,9 @@ function applyBinaryOperator(
     case "instanceof":
       return evaluateInstanceof(left, right, context.budget, createCoercionContext(context));
     case "in":
-      return hasSandboxProperty(right, left as string | symbol, context);
+      return isGuestHostObject(right)
+        ? hasSandboxProperty(right, left as string | symbol, context)
+        : sandboxHasProperty(right, left as string | symbol, context.budget, createCoercionContext(context));
   }
 }
 

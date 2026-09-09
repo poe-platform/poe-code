@@ -32,6 +32,41 @@ function fixture(source: string, maxSteps = 100000, signal?: AbortSignal) {
 }
 
 describe("assembled concrete runtime programs", () => {
+  it("shares equal literal constants throughout one compiled program", () => {
+    const state = fixture('a = "long value 😀"\nb = "long value 😀"\ndef f():\n return "long value 😀"\nresult = (a is b, a is f(), f() is f())\n');
+    state.run();
+    expect(state.globals.get("result")).toEqual(state.values.tuple([state.values.true, state.values.true, state.values.true]));
+  });
+  it("keeps literal types distinct while pooling equal scalar and byte literals", () => {
+    const state = fixture('a=1000\nb=1000\nc=1.5\nd=1.5\ne=b"long bytes"\nf=b"long bytes"\nx=1\ny=1.0\nz=True\nresult=(a is b,c is d,e is f,x is y,x is z)\n');
+    state.run();
+    expect(state.globals.get("result")).toEqual(state.values.tuple([state.values.true, state.values.true, state.values.true, state.values.false, state.values.false]));
+  });
+  it("uses pooled literal identity for replacement without interning computed strings", () => {
+    const state = fixture('s="payloadpayload"\na="payload"\nb="payload"\nc="".join(["pay","load"])\nresult=(a is b,a is c,s.replace(a,b) is s,s.replace(a,c) is s)\n');
+    state.hooks.expressions = () => ({ warn() {} }); state.run();
+    expect(state.globals.get("result")).toEqual(state.values.tuple([state.values.true, state.values.false, state.values.true, state.values.false]));
+  });
+  it("retains originating literal constants when another program invokes a function", () => {
+    const origin = fixture('value="long origin value!"\ndef f():\n return "long origin value!"\n'); origin.run();
+    const caller = fixture('result = f() is value\n');
+    caller.globals.set("f", origin.globals.get("f")!); caller.globals.set("value", origin.globals.get("value")!);
+    caller.run(); expect(caller.globals.get("result")).toBe(caller.values.true);
+  });
+  it("reuses constants when the same compiled program executes again", () => {
+    const state = fixture('value="long reusable literal!"\n'); state.run();
+    const first = state.globals.get("value"); state.run();
+    expect(state.globals.get("value")).toBe(first);
+  });
+  it("does not use caller literal tables for standalone function code", () => {
+    const origin = fixture('def f():\n return "standalone value!"\n'); origin.run();
+    const fn = origin.globals.get("f"); if (fn?.kind !== "function") throw new Error("expected function");
+    const caller = fixture('result = f()\n');
+    caller.globals.set("f", origin.values.function({ ...fn.value, code: { ...fn.value.code, literals: undefined } }));
+    caller.run(); const result = caller.globals.get("result");
+    if (result?.kind !== "str") throw new Error("expected string");
+    expect([...result.value]).toEqual([..."standalone value!"].map(c => c.codePointAt(0)));
+  });
   it.each(["False", "True", "None", "[]", "[1]"])("sorts stably with guest keys and reverse=%s", reverse => {
     const state = fixture(`a = [(2, 0), (1, 1), (2, 2)]\ntrace = []\ndef key(x):\n trace.append((x, a.copy()))\n return x[0]\nresult = a.sort(key=key, reverse=${reverse})\n`);
     state.hooks.expressions = () => ({ warn() {} }); state.run();

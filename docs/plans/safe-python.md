@@ -4078,8 +4078,26 @@ extension, integration, or validation requirement is missing or unverified.
   replacement identity. That strict audit is not a pass and must be rerun after
   literal pooling/interner work. Guest index slots, subclasses, remaining text
   methods/builtins, suspension, full accounting and SDK/safe-fs remain pending.
+- Added per-compilation scalar literal pooling with type-separated keys and
+  code-point-safe string/byte keys. Repeated literal nodes share immutable
+  values across activations, nested functions/defaults/lambdas and repeated
+  module execution. Function code carries its originating pool across program
+  boundaries; standalone code without a pool retains its unpooled adapter path.
+  Runtime-created strings are not implicitly interned. Traversal excludes
+  consumed docstrings and the parser's discarded annotation expressions.
+- Literal-pool verification began with five failing compiled identity tests;
+  a sixth regression reproduced accidental caller-pool use by standalone code.
+  All 3,828 tests in 279 files pass, with scoped lint, source typecheck and
+  selected workspace build.
+  The previously failing strict 2,616-call replacement audit now passes without
+  explicit-alias substitutions. Another 1,200 compiled pooling programs and
+  1,500 cross-program function-factory regressions match CPython. The 1,300-case
+  assembled-runtime regression also passes. Tests cover
+  type distinctions, separate compilations, undefined guest values, immutable
+  parser-buffer copies and preallocation budget checks. Compound constant
+  folding, metadata/docstring pooling, global interning, remaining native
+  methods/builtins, suspension, full accounting and SDK/safe-fs remain pending.
 - Next:
-  reproduce and address compiler literal constant pooling, then
   remaining scope/compiler audits, interpreter runtime,
   resource controls, runtime modules, and safe-fs integration. Parsing and static
   analysis do not establish interpreter execution.

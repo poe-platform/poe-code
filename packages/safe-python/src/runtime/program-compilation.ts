@@ -6,6 +6,7 @@ import { compileClassBody, type ClassConstants, type CompiledClassBody } from ".
 import { compileFunction, type CompiledFunction } from "./function-compilation.js";
 import { compileSuite } from "./suite-compilation.js";
 import type { ExecutionMeter } from "./execution-budget.js";
+import { compileLiteralPool, type LiteralExpression, type LiteralPool } from "./literal-pool.js";
 
 export interface CompiledModule<Value> {
   readonly scope: ResolvedScope;
@@ -14,6 +15,7 @@ export interface CompiledModule<Value> {
 }
 
 export interface CompiledProgram<Value> {
+  readonly literals?: LiteralPool<Value>;
   readonly module: CompiledModule<Value>;
   readonly functions: ReadonlyMap<FunctionNode, CompiledFunction<Value>>;
   readonly classes: ReadonlyMap<Extract<Statement, { kind: "class" }>, CompiledClassBody<Value>>;
@@ -30,12 +32,13 @@ export interface CompiledProgram<Value> {
  */
 export function compileProgram<Value>(
   analysis: ModuleAnalysis, options: { readonly stripDocstring: boolean },
-  constants: ClassConstants<Value>, meter: ExecutionMeter
+  constants: ClassConstants<Value> & { literal?(node: LiteralExpression): Value }, meter: ExecutionMeter
 ): CompiledProgram<Value> {
   meter.checkpoint();
   if (analysis.scopes.scope.kind !== "module" || analysis.scopes.scope.node !== analysis.module)
     throw new Error("program compilation requires a matching analyzed module scope");
   const module: CompiledModule<Value> = { scope: analysis.scopes, ...compileSuite(analysis.module.body, options.stripDocstring, constants, meter) };
+  const literals = constants.literal ? compileLiteralPool(analysis.module.body, constants.literal.bind(constants), meter) : undefined;
   const functions = new Map<FunctionNode, CompiledFunction<Value>>();
   const classes = new Map<Extract<Statement, { kind: "class" }>, CompiledClassBody<Value>>();
   const classFunctions = new Map<Extract<Statement, { kind: "class" }>, CompiledFunction<Value>>();
@@ -46,7 +49,7 @@ export function compileProgram<Value>(
     if (node.kind === "function" || node.kind === "lambda") {
       const code = compileFunction(scope, analysis, options, constants, meter);
       meter.checkpoint(0, 96);
-      functions.set(node, { ...code, definitions: functions, classDefinitions: classFunctions });
+      functions.set(node, { ...code, definitions: functions, classDefinitions: classFunctions, literals });
     }
     else if (node.kind === "class") {
       const code = compileClassBody(scope, analysis, options, constants, meter);
@@ -56,10 +59,10 @@ export function compileProgram<Value>(
         scope, kind: "function", name: constants.string(node.name.name),
         qualifiedName: code.qualifiedName, firstLine: code.firstLine,
         docstring: undefined, body: { kind: "class", code },
-        definitions: functions, classDefinitions: classFunctions
+        definitions: functions, classDefinitions: classFunctions, literals
       });
     }
     for (let index = scope.children.length - 1; index >= 0; index--) { meter.checkpoint(); pending.push(scope.children[index]); }
   }
-  return { module, functions, classes, classFunctions };
+  return { module, functions, classes, classFunctions, literals };
 }

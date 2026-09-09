@@ -52,7 +52,7 @@ export interface RuntimeProgramContext extends ModuleNamespaces<RuntimeValue>, R
 export function createRuntimeFrameBody(program: CompiledProgram<RuntimeValue>, context: RuntimeExecutionContext, meter: ExecutionMeter) {
   meter.checkpoint(1, 192);
   const { values, keys, hooks, calls } = context;
-  const body = (frame: RuntimeFrame, namespaces: LexicalNamespaces<RuntimeValue>, functions = program.functions, classFunctions = program.classFunctions) => {
+  const body = (frame: RuntimeFrame, namespaces: LexicalNamespaces<RuntimeValue>, functions = program.functions, classFunctions = program.classFunctions, literals = program.literals ?? null) => {
     meter.checkpoint(1, 384);
     const expressionHooks = hooks.expressions(frame); meter.checkpoint();
     const statementHooks = hooks.statements(frame); meter.checkpoint();
@@ -69,7 +69,7 @@ export function createRuntimeFrameBody(program: CompiledProgram<RuntimeValue>, c
         }
         if (fn.kind !== "function") return hooks.invoke(fn, args, keywords, frame);
         const invocation: RuntimeFunctionContext = {
-          values, keys, calls, body: child => body(child, fn.value, fn.value.code.definitions ?? functions, fn.value.code.classDefinitions ?? classFunctions),
+          values, keys, calls, body: child => body(child, fn.value, fn.value.code.definitions ?? functions, fn.value.code.classDefinitions ?? classFunctions, fn.value.code.literals ?? null),
           classBody(code) {
             let result: RuntimeValue = values.none;
             const globals = fn.value.globals;
@@ -81,7 +81,7 @@ export function createRuntimeFrameBody(program: CompiledProgram<RuntimeValue>, c
                 delete: name => globals.delete(name), isGuest: () => false
               },
               cell: cell => { result = values.cell(cell); return result; },
-              body: child => body(child, fn.value, fn.value.code.definitions ?? functions, fn.value.code.classDefinitions ?? classFunctions)
+              body: child => body(child, fn.value, fn.value.code.definitions ?? functions, fn.value.code.classDefinitions ?? classFunctions, fn.value.code.literals ?? null)
             }, meter);
             return result;
           }
@@ -100,6 +100,11 @@ export function createRuntimeFrameBody(program: CompiledProgram<RuntimeValue>, c
     const definitions = createRuntimeFunctionDefinitions({ functions }, definitionBindings, values, meter);
     const classDefinitions = createRuntimeClassDefinitions({ classFunctions }, { ...definitionBindings, decorate: definitions.decorate.bind(definitions) }, values, meter);
     const expressions = createRuntimeExpressionContext(values, {
+      literal: literals === null ? undefined : node => {
+        meter.checkpoint();
+        if (!literals.has(node)) throw new Error("literal is missing from originating compiled code");
+        return literals.get(node)!;
+      },
       load: frame.load.bind(frame), store: frame.store.bind(frame),
       attribute: expressionHooks.attribute?.bind(expressionHooks), beginSet: expressionHooks.beginSet?.bind(expressionHooks),
       warn: expressionHooks.warn.bind(expressionHooks), beginCall, dictionaryKeys: keys,

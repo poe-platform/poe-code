@@ -1,6 +1,7 @@
 import type { DictionaryEntry, Expression } from "../ast.js";
 import type { ExecutionMeter } from "./execution-budget.js";
 import { evaluateCallArguments, type ExpressionCall } from "./call-arguments.js";
+import { evaluateFormattedString, type FormattedStringContext } from "./formatted-string-evaluation.js";
 export type { ExpressionCall } from "./call-arguments.js";
 
 /** Concrete guest set operations own hashing/equality, optimized updates from
@@ -34,6 +35,7 @@ export interface SliceValues<Value> {
  * name resolution, descriptor/operator dispatch and metering inside each call.
  */
 export interface ExpressionContext<Value> {
+  formattedString?: FormattedStringContext<Value>;
   literal(node: Extract<Expression, { kind: "literal" }>): Value;
   load(name: string): Value;
   store(name: string, value: Value): void;
@@ -107,6 +109,18 @@ export function evaluateExpression<Value>(expression: Expression, context: Expre
     const { node, test } = task;
     knownTruth = undefined;
     switch (node.kind) {
+      case "interpolated-string": {
+        if (node.flavor !== "formatted" || context.formattedString === undefined) throw new UnsupportedExpressionError(node.kind);
+        meter.checkpoint(0, 192);
+        const parts = evaluateFormattedString(node.parts, context.formattedString, meter);
+        const advance = () => {
+          const next = parts.next(value);
+          if (next.done) { value = next.value; knownTruth = undefined; }
+          else work.push(advance, { node: next.value, test: "value" });
+        };
+        work.push(advance);
+        break;
+      }
       case "literal": value = context.literal(node); break;
       case "name": value = context.load(node.name); break;
       case "lambda": {

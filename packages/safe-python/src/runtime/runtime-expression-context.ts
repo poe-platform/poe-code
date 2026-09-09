@@ -24,7 +24,7 @@ import { beginRuntimeSet } from "./runtime-set.js";
  */
 export type RuntimeExpressionBindings = Pick<ExpressionContext<RuntimeValue>,
   "load" | "store" | "beginCall" | "createLambda"> &
-  Partial<Pick<ExpressionContext<RuntimeValue>, "attribute" | "literal">> &
+  Partial<Pick<ExpressionContext<RuntimeValue>, "attribute" | "literal" | "formattedString">> &
   Pick<ConstantUnaryContext, "warn"> & (
     Pick<ExpressionContext<RuntimeValue>, "beginDictionary" | "beginSet"> |
     { readonly dictionaryKeys: KeyOperations<RuntimeValue> } & Partial<Pick<ExpressionContext<RuntimeValue>, "beginSet">>
@@ -68,5 +68,6 @@ export function createRuntimeExpressionContext(values: RuntimeValues, bindings: 
     iterate: value => runtimeIterate(value, values, meter)
   };
   if (bindings.createLambda) context.createLambda = bindings.createLambda.bind(bindings);
+  if (bindings.formattedString) context.formattedString = bindings.formattedString;
   return context;
 }

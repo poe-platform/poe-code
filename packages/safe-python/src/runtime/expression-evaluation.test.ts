@@ -45,6 +45,46 @@ function environment(initial: ReadonlyMap<string, Value> = new Map()) {
 const budget = () => new ExecutionBudget({ maxSteps: 1000000, maxAllocatedBytes: 1000000 });
 
 describe("expression execution order", () => {
+  it("evaluates f-string conversion before nested format specs and later fields", () => {
+    const { context, events } = environment(new Map<string, Value>([["x", "X"], ["w", "W"], ["y", "Y"]]));
+    context.formattedString = {
+      text: points => typeof points === "string" ? points : String.fromCodePoint(...points),
+      convert: (value, code) => { events.push(`convert:${code}:${value}`); return `${code}(${value})`; },
+      format: (value, spec) => { events.push(`format:${value}:${spec ?? "absent"}`); return spec === undefined ? value : `${value}<${spec}>`; },
+      join: parts => parts.join("")
+    };
+    expect(evaluateExpression(parseExpression('f"head {x!r:>{w}} {y!s}"'), context, budget())).toBe("head r(X)<>W> s(Y)");
+    expect(events).toEqual(["load:x", "convert:r:X", "load:w", "format:W:absent", "format:r(X):>W", "load:y", "convert:s:Y", "format:s(Y):absent"]);
+  });
+  it("keeps f-string debug labels, empty specs and conditional truth distinct", () => {
+    const { context } = environment(new Map<string, Value>([["x", "X"]]));
+    context.formattedString = {
+      text: points => typeof points === "string" ? points : String.fromCodePoint(...points),
+      convert: (value, code) => `${code}(${value})`,
+      format: (value, spec) => spec === undefined ? value : `${value}[${spec}]`,
+      join: parts => parts.join("")
+    };
+    expect(evaluateExpression(parseExpression('f"{x=}|{x=:}"'), context, budget())).toBe("x=r(X)|x=X[]");
+    expect(evaluateExpression(parseExpression('f""'), context, budget(), "branch")).toBe(false);
+    expect(evaluateExpression(parseExpression('f"{x}"'), context, budget(), "branch")).toBe(true);
+    expect(() => evaluateExpression(parseExpression('t"{x}"'), context, budget())).toThrow("expression execution is not implemented for interpolated-string");
+  });
+  it("stops before nested spec evaluation when f-string conversion fails", () => {
+    const { context, events } = environment(new Map<string, Value>([["x", "X"]])), error = Error("conversion");
+    context.formattedString = {
+      text: () => "", convert: () => { throw error; }, format: () => "", join: () => ""
+    };
+    expect(() => evaluateExpression(parseExpression('f"{x!r:{missing}}"'), context, budget())).toThrow(error);
+    expect(events).toEqual(["load:x"]);
+  });
+  it("evaluates nested f-string expressions using the same continuation stack", () => {
+    const { context } = environment(new Map<string, Value>([["x", "X"]]));
+    context.formattedString = {
+      text: points => typeof points === "string" ? points : String.fromCodePoint(...points),
+      convert: value => value, format: value => value, join: parts => parts.join("")
+    };
+    expect(evaluateExpression(parseExpression(`f"outer {f'inner {x}'}"`), context, budget())).toBe("outer inner X");
+  });
   it("returns host truth in branch mode while preserving ordinary value mode", () => {
     const { context } = environment(new Map([["a", 7n]]));
     expect(evaluateExpression(parseExpression("a"), context, budget(), "branch")).toBe(true);

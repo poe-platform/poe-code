@@ -27,6 +27,17 @@ function fixture() {
 }
 
 describe("concrete runtime expression context", () => {
+  it("passes the explicit formatted-string capability into evaluation", () => {
+    const { v, meter, bindings } = fixture();
+    const result = v.string("formatted");
+    const formattedString = {
+      text: () => v.string(""), convert: () => result, format: () => result,
+      join: (parts: readonly RuntimeValue[]) => parts[0] ?? v.string("")
+    };
+    const context = createRuntimeExpressionContext(v, { ...bindings, formattedString }, meter);
+    expect(context.formattedString).toBe(formattedString);
+    expect(evaluateExpression(parseExpression('f"{1!r}"'), context, meter)).toBe(result);
+  });
   it("assembles arithmetic, subscription, comparison and membership", () => {
     const { v, run } = fixture();
     expect(run("([1, 2] + [3] * 2)[-1]")).toEqual(v.integer(3));

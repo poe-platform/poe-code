@@ -5480,6 +5480,22 @@ extension, integration, or validation requirement is missing or unverified.
   dictionary views. All 4,603 tests in 383 files pass. Typecheck, scoped lint and selected workspace build pass. Full builtin
   namespace assembly, remaining native representations, guest objects, suspended
   execution and SDK/safe-fs integration remain unfinished.
+- Added formatted-string evaluation on the existing continuation stack, with
+  an explicit metered frame stack for nested format specifications. Field
+  expressions yield back to ordinary expression execution; explicit conversion
+  precedes nested format-spec evaluation as in CPython 3.14. Debug labels,
+  absent versus empty specs, sequential fields and conditional truth survive.
+  Formatting, result validation and string assembly remain explicit capabilities,
+  now propagated through runtime expression/program hooks. Templates remain a
+  distinct unsupported execution family, not silently rendered f-strings.
+- Five tests first failed on absent f-string evaluation/capability plumbing.
+  All 4,608 tests in 383 files pass; typecheck, scoped lint and selected workspace
+  build pass. A 160-case CPython audit matches evaluation output and guest
+  conversion/format call traces using audit formatting capabilities. A further
+  1,000 compiled programs verify runtime-hook plumbing with supplied empty-spec
+  formatting and existing native representation capabilities. Neither audit
+  establishes native __format__ or format-mini-language implementation; those,
+  template objects, suspended execution and SDK/safe-fs integration remain pending.
 - Next:
   remaining scope/compiler audits, interpreter runtime,
   resource controls, runtime modules, and safe-fs integration. Parsing and static

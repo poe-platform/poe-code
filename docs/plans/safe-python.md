@@ -1777,6 +1777,19 @@ extension, integration, or validation requirement is missing or unverified.
   typecheck, scoped lint and selected build passed. Full class-definition stage
   wiring, concrete argument collectors, guest suspension and temporary allocation
   accounting remain unfinished.
+- Added class-definition execution through the active builtin builder: decorator
+  expressions precede builder lookup and header operands; the body callable and
+  normalized name form the implicit positional prefix. Shared argument evaluation
+  preserves starred-base timing. Builder results receive decorators in reverse
+  order and bind only after success. Missing/overridden/non-callable builders retain
+  their semantics; class bodies and ignored type syntax are not evaluated here.
+- Class-definition validation: missing-module red suite preceded implementation.
+  All 2,259 tests in 115 files pass, including 20 new lifecycle cases. CPython matched
+  234 combinations of header ordering, decorators, builder availability/callability
+  and injected failures, comparing effects, final bindings and exact errors. Source
+  typecheck, scoped lint and selected build passed. The concrete builtin builder's
+  connection to base resolution, prepared class frames and metaclass construction,
+  guest object representation and complete heap accounting remain unfinished.
 - Next:
   remaining scope/compiler audits, interpreter runtime,
   resource controls, runtime modules, and safe-fs integration. Parsing and static

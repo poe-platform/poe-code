@@ -5,9 +5,9 @@ import { objectFormat } from "./object-format.js";
 import { stringFormat } from "./string-format.js";
 import { integerFormat } from "./integer-format.js";
 import { floatFormat } from "./float-format.js";
+import { complexFormat } from "./complex-format.js";
 import { representationObject } from "./representation-protocol.js";
 import type { RuntimeValue, RuntimeValues } from "./runtime-values.js";
-import { UnsupportedExpressionError } from "./expression-evaluation.js";
 
 export interface RuntimeFormatHooks extends RuntimeRepresentationHooks {
   lookupFormat?(value: RuntimeValue): ((spec: RuntimeValue) => RuntimeValue) | undefined;
@@ -59,7 +59,7 @@ export function createRuntimeFormatContext(values: RuntimeValues, meter: Executi
             return values.stringPoints(integerFormat(integer, storage, value.kind, meter));
           }
           if (value.kind === "float") return values.stringPoints(floatFormat(value.value, storage, "float", meter));
-          throw new UnsupportedExpressionError("call");
+          return values.stringPoints(complexFormat(value.real, value.imaginary, storage, "complex", meter));
         };
       }
       return hooks.lookupFormat?.(value);

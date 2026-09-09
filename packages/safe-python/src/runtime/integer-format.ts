@@ -1,5 +1,5 @@
 import { CodePointString } from "./code-point-string.js";
-import { diagnosticTypeName } from "./diagnostic-type-name.js";
+import { unknownFormatCode } from "./unknown-format-code.js";
 import { PythonRuntimeError } from "./error.js";
 import type { ExecutionMeter } from "./execution-budget.js";
 import { UnsupportedExpressionError } from "./expression-evaluation.js";
@@ -31,9 +31,6 @@ export function integerFormat(value: bigint, spec: CodePointString, typeName: st
       return CodePointString.fromFloatFormat(converted, field, meter);
     }
     case 110: throw new UnsupportedExpressionError("call");
-    default: {
-      const code = field.type > 32 && field.type < 128 ? String.fromCharCode(field.type) : `\\x${field.type.toString(16)}`;
-      throw new PythonRuntimeError("ValueError", `Unknown format code '${code}' for object of type '${diagnosticTypeName(typeName, meter)}'`);
-    }
+    default: return unknownFormatCode(field.type, typeName, meter);
   }
 }

@@ -14,6 +14,13 @@ function fixture() {
   return { v, meter, dictionary, context };
 }
 const text = (value: RuntimeValue) => { if (value.kind !== "str") throw Error("expected str"); return String.fromCodePoint(...value.value); };
+it("dispatches native complex formatting through the shared protocol", () => {
+  const { v, meter, context, dictionary } = fixture();
+  expect(text(formatObject(v.complex(-0, 2), v.string("z.2"), context, meter))).toBe("(0+2j)");
+  const method = runtimeNativeAttribute(v.complex(1, 2), "__format__", v, meter);
+  if (method.kind !== "builtin_function_or_method") throw Error("expected method");
+  expect(text(method.value.invoke([v.string(".2f")], dictionary(), meter))).toBe("1.00+2.00j");
+});
 it("dispatches native float specs through the shared formatting protocol", () => {
   const { v, meter, context, dictionary } = fixture();
   expect(text(formatObject(v.float(-0.0001), v.string("+z08.2f"), context, meter))).toBe("+0000.00");

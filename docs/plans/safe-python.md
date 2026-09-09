@@ -5683,6 +5683,17 @@ extension, integration, or validation requirement is missing or unverified.
   Typecheck, scoped lint and selected workspace build pass. Native complex
   dispatch, locale-aware presentation, guest subclasses and broader interpreter/
   SDK/safe-fs integration remain unfinished.
+- Connected native complex formatting to presentation dispatch and adopted the
+  composed buffer without a second copy. Unsupported presentations, including %,
+  fail before renderer precision/layout checks. Consolidated the identical
+  unknown-code diagnostic across string, integer, float and complex formatters.
+- Three tests first reproduced missing complex dispatch and the absent adapter.
+  All 4,672 tests in 395 files pass. An 18,000-case CPython complex dispatch audit
+  and 384 compiled format()/bound-method/f-string programs pass. After diagnostic
+  consolidation, 12,060 string, 20,000 integer and 18,000 float renderer comparisons
+  also pass. Typecheck, scoped lint and selected workspace build pass. Locale-aware
+  n, guest subclass behavior, remaining native object families and the broader
+  interpreter/SDK/safe-fs integration remain unfinished.
 - Next:
   remaining scope/compiler audits, interpreter runtime,
   resource controls, runtime modules, and safe-fs integration. Parsing and static

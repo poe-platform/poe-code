@@ -1,15 +1,15 @@
 import { CodePointString } from "./code-point-string.js";
-import { unknownFormatCode } from "./unknown-format-code.js";
 import type { ExecutionMeter } from "./execution-budget.js";
 import { UnsupportedExpressionError } from "./expression-evaluation.js";
 import { parseFormatSpec } from "./format-spec.js";
+import { unknownFormatCode } from "./unknown-format-code.js";
 
-/** Native float payload formatting; locale-aware n remains a separate policy. */
-export function floatFormat(value: number, spec: CodePointString, typeName: string, meter: ExecutionMeter): CodePointString {
+/** Native complex payload dispatch. Locale-aware n remains a separate policy. */
+export function complexFormat(real: number, imaginary: number, spec: CodePointString, typeName: string, meter: ExecutionMeter): CodePointString {
   const field = parseFormatSpec(spec, 0, ">", typeName, meter);
   switch (field.type) {
-    case 0: case 101: case 69: case 102: case 70: case 103: case 71: case 37:
-      return CodePointString.fromFloatFormat(value, field, meter);
+    case 0: case 101: case 69: case 102: case 70: case 103: case 71:
+      return CodePointString.fromComplexFormat(real, imaginary, field, meter);
     case 110: throw new UnsupportedExpressionError("call");
     default: return unknownFormatCode(field.type, typeName, meter);
   }

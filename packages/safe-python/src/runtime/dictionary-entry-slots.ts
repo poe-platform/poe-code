@@ -1,17 +1,20 @@
 import { exhaustAllocation, type ExecutionMeter } from "./execution-budget.js";
 
-/** Positional entries for incrementally built, combined general-key dictionaries.
+/** Positional entries for incrementally built combined dictionaries.
  * Entry objects have stable identity; key matching and payload updates belong to
  * the hash-storage owner. Deletion leaves holes, insertion exhaustion compacts,
  * and pop truncates without refunding usable capacity. Cursors retain numeric
  * positions across every mutation, including clear and compaction.
- * Split/shared-key layouts, presized bulk construction and Unicode-to-general
- * layout transitions are not modeled here yet. Not a set table or guest iterator.
+ * Exact-string layouts convert to general entries when appending a missing
+ * non-exact-string key (CPython 3.14.7). Overwrites do not change layout.
+ * Split/shared-key layouts and presized bulk construction are not modeled
+ * here yet. Not a set table or guest iterator.
  */
 export class DictionaryEntrySlots<Entry extends object> {
   #slots: (Entry | undefined)[];
   #positions: Map<Entry, number>;
   #usable = 0;
+  #unicode: boolean | undefined;
 
   constructor(private readonly meter: ExecutionMeter) {
     meter.checkpoint(1, 96);
@@ -19,15 +22,19 @@ export class DictionaryEntrySlots<Entry extends object> {
     Object.freeze(this);
   }
 
-  append(entry: Entry): void {
+  append(entry: Entry, exactString = false): void {
     this.meter.checkpoint();
     if (this.#positions.has(entry)) throw new Error("entry is already present");
-    if (this.#usable !== 0) {
+    if (this.#usable !== 0 && !(this.#unicode === true && !exactString)) {
       this.meter.checkpoint(1, 48);
       this.#positions.set(entry, this.#slots.length);
       this.#slots.push(entry); this.#usable--;
       return;
     }
+    this.#rebuild(this.#unicode === false ? false : exactString, entry);
+  }
+
+  #rebuild(unicode: boolean, appended: Entry): void {
     // Combined dict insertion uses used*3 rounded up to a power of two, with
     // a minimum eight hash slots and floor(2*size/3) entry capacity.
     let size = 8;
@@ -41,9 +48,10 @@ export class DictionaryEntrySlots<Entry extends object> {
       if (value === undefined) continue;
       positions.set(value, slots.length); slots.push(value);
     }
-    positions.set(entry, slots.length); slots.push(entry);
+    positions.set(appended, slots.length); slots.push(appended);
     this.#slots = slots; this.#positions = positions;
     this.#usable = capacity - slots.length;
+    this.#unicode = unicode;
   }
 
   delete(entry: Entry): boolean {
@@ -74,7 +82,7 @@ export class DictionaryEntrySlots<Entry extends object> {
 
   clear(): void {
     this.meter.checkpoint(1 + this.#slots.length);
-    this.#slots.length = 0; this.#positions.clear(); this.#usable = 0;
+    this.#slots.length = 0; this.#positions.clear(); this.#usable = 0; this.#unicode = undefined;
   }
 
   /** No exhaustion latch: the owner keeps the unchanged input position when no

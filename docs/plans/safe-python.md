@@ -5307,6 +5307,24 @@ extension, integration, or validation requirement is missing or unverified.
   OrderedKeyMap integration and native dict representation remain incomplete.
   Set representation, bytes percent operators, full guest objects, suspended
   execution, complete accounting and SDK/safe-fs integration remain outstanding.
+- Added exact-string/general layout tracking to DictionaryEntrySlots. A missing
+  non-exact-string key compacts a string-key layout even with spare capacity;
+  general layouts remain general until clear, while payload overwrites preserve
+  positions and layout. Failed conversion precharges leave both unchanged.
+- Five new tests initially failed on missing conversion behavior. Differential
+  testing caught a version-sensitive rule: the initially consulted 3.14.0 source
+  converted before lookup, but the installed interpreter and matching
+  [CPython 3.14.7 source](https://raw.githubusercontent.com/python/cpython/v3.14.7/Objects/dictobject.c)
+  convert only when adding a missing key. Removed the premature pre-lookup API
+  and corrected the overwrite test against that evidence.
+- All 4,543 tests in 372 files pass. CPython PyDict_Next positions and contents
+  match 2,000 mixed exact-string/string-subclass/general-key histories (439,000
+  operations), including subclass overwrites, deletion holes, clear and
+  compaction. The 439,000-operation integer-key regression also passes. Source
+  typecheck, scoped lint and selected workspace build pass. Presized/bulk and split/shared-key
+  layouts, OrderedKeyMap integration, native dict/set representation, bytes
+  percent operators, full guest objects, suspended execution, complete accounting
+  and SDK/safe-fs integration remain incomplete.
 - Next:
   remaining scope/compiler audits, interpreter runtime,
   resource controls, runtime modules, and safe-fs integration. Parsing and static

@@ -79,3 +79,52 @@ it("does not rescan deletion holes when pop sees no live entries", () => {
   expect(slots.pop()).toBeUndefined();
   expect(steps).toBe(2);
 });
+it("compacts string-key slots on a general key before insertion capacity runs out", () => {
+  const { slots, entries } = fixture();
+  slots.append(entries[0]!, true); slots.append(entries[1]!, true);
+  slots.delete(entries[0]!);
+  slots.append(entries[2]!, false);
+  expect(slots.next(0)).toEqual({ position: 1, entry: entries[1] });
+  expect(slots.next(1)).toEqual({ position: 2, entry: entries[2] });
+});
+it("keeps layout and positions when the owner overwrites an existing key", () => {
+  const { slots, entries } = fixture();
+  slots.append(entries[0]!, true); slots.append(entries[1]!, true);
+  slots.delete(entries[0]!);
+  // Lookup/payload overwrite does not append, including a matching str subclass.
+  entries[1]!.value = 99;
+  expect(slots.next(0)).toEqual({ position: 2, entry: entries[1] });
+  slots.append(entries[2]!, false);
+  expect(slots.next(0)).toEqual({ position: 1, entry: entries[1] });
+});
+it("does not compact ordinary string insertion or already-general layouts", () => {
+  for (const exact of [true, false]) {
+    const { slots, entries } = fixture();
+    slots.append(entries[0]!, exact); slots.append(entries[1]!, true);
+    slots.delete(entries[0]!);
+    slots.append(entries[2]!, true);
+    expect(slots.next(0)).toEqual({ position: 2, entry: entries[1] });
+  }
+});
+it("retains general layout after deletion but resets it on clear", () => {
+  const { slots, entries } = fixture();
+  slots.append(entries[0]!, false); slots.delete(entries[0]!);
+  slots.append(entries[1]!, true); slots.append(entries[2]!, false);
+  expect(slots.next(0)).toEqual({ position: 2, entry: entries[1] });
+  slots.clear();
+  slots.append(entries[3]!, true); slots.append(entries[4]!, true); slots.delete(entries[3]!);
+  slots.append(entries[5]!, false);
+  expect(slots.next(0)).toEqual({ position: 1, entry: entries[4] });
+});
+it("precharges layout conversion before changing positions or layout state", () => {
+  let reject = false;
+  const slots = new DictionaryEntrySlots<object>({ checkpoint(_steps = 1, bytes = 0) { if (reject && bytes > 0) throw new ExecutionLimitError("allocation"); } });
+  const a = {}, b = {}, c = {};
+  slots.append(a, true); slots.append(b, true); slots.delete(a);
+  reject = true;
+  expect(() => slots.append(c, false)).toThrow(ExecutionLimitError);
+  reject = false;
+  expect(slots.next(0)).toEqual({ position: 2, entry: b });
+  slots.append(c, false);
+  expect(slots.next(0)).toEqual({ position: 1, entry: b });
+});

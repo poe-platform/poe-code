@@ -397,6 +397,15 @@ extension, integration, or validation requirement is missing or unverified.
   typecheck and selected workspace build passed. Runtime module loading/caching,
   capability-aware safe-fs resolution, future directives, and scope restrictions
   on star imports remain pending.
+- Added indented and single-line suites with if/elif/else and while/else ASTs.
+  Suite parsing owns line separators and dedents, preserving nested else ownership;
+  single-line suites admit only simple statements. Expression validation descends
+  into all branch conditions and bodies, excluding ignored annotations as before.
+- Compound-suite validation: four positive tests failed before implementation;
+  all 797 package tests pass. A 205-case CPython AST-parser comparison matched
+  syntax acceptance and nested body/else structure. Scoped lint, source typecheck,
+  and the selected workspace build passed.
+  This is grammar coverage, not loop execution or enclosing-scope validation.
 - Next:
   compound statements, type aliases, and enclosing-scope validation
   normalization, the complete grammar/parser and evaluator, then runtime modules

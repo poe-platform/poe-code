@@ -500,6 +500,13 @@ function createArrayGlobal(budget: Budget): SandboxClosure {
       }
     }), writable: true, configurable: true
   });
+  const unscopables = createIntrinsicObject();
+  for (const name of ["at", "copyWithin", "entries", "fill", "find", "findIndex",
+    "findLast", "findLastIndex", "flat", "flatMap", "includes", "keys",
+    "toReversed", "toSorted", "toSpliced", "values"]) unscopables[name] = true;
+  setSandboxPrototype(unscopables, null);
+  registerIntrinsicObject(budget, unscopables);
+  Object.defineProperty(prototype, Symbol.unscopables, { value: unscopables, configurable: true });
   const statics = {
     isArray: createSandboxClosure({ sandbox: true, name: "isArray", call: ([value]) => Array.isArray(value) }),
     from: createSandboxClosure({ sandbox: true, name: "from", call: (args, context) => arrayFromSandboxValues(args, budget, context) }),

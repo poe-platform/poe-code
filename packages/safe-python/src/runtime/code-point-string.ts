@@ -1,6 +1,7 @@
 import { PythonRuntimeError } from "./error.js";
 import { normalizeSlice } from "./integer-sequence.js";
-import { searchSubstring, type SearchMode } from "./substring-search.js";
+import { searchSubstring, substringMatches, type SearchMode } from "./substring-search.js";
+import { isUnicodeWhitespace } from "./unicode-whitespace.js";
 import { exhaustAllocation, type ExecutionMeter } from "./execution-budget.js";
 
 // Module-private capability: only freshly generated, already charged buffers
@@ -105,6 +106,46 @@ export class CodePointString implements Iterable<number> {
       for (const point of parts[i].#points) { meter.checkpoint(); points[offset++] = point; }
     }
     return new CodePointString(points, meter, ownedPoints);
+  }
+
+  /** Emits pieces in scan order (rightmost first for reverse splitting).
+   * The guest list layer restores forward order after a reverse scan. */
+  *split(separator: CodePointString | null, maxsplit: bigint, reverse: boolean, meter: ExecutionMeter): IterableIterator<CodePointString> {
+    meter.checkpoint(1, 64);
+    let remaining = maxsplit < 0n ? BigInt(this.length) + 1n : maxsplit;
+    if (separator !== null) {
+      if (separator.length === 0) throw new PythonRuntimeError("ValueError", "empty separator");
+      let boundary = reverse ? this.length : 0;
+      if (remaining !== 0n) for (const index of substringMatches(this.#points, separator.#points, reverse, meter)) {
+        yield this.slice(BigInt(reverse ? index + separator.length : boundary), BigInt(reverse ? boundary : index), null, meter);
+        boundary = reverse ? index : index + separator.length;
+        if (--remaining === 0n) break;
+      }
+      yield this.slice(BigInt(reverse ? 0 : boundary), BigInt(reverse ? boundary : this.length), null, meter);
+      return;
+    }
+    const step = reverse ? -1 : 1;
+    let index = reverse ? this.length - 1 : 0;
+    while (index >= 0 && index < this.length) {
+      while (index >= 0 && index < this.length) {
+        meter.checkpoint();
+        if (!isUnicodeWhitespace(this.#points[index])) break;
+        index += step;
+      }
+      if (index < 0 || index >= this.length) return;
+      const start = index;
+      if (remaining === 0n) {
+        yield this.slice(BigInt(reverse ? 0 : start), BigInt(reverse ? start + 1 : this.length), null, meter);
+        return;
+      }
+      while (index >= 0 && index < this.length) {
+        meter.checkpoint();
+        if (isUnicodeWhitespace(this.#points[index])) break;
+        index += step;
+      }
+      yield this.slice(BigInt(reverse ? index + 1 : start), BigInt(reverse ? start + 1 : index), null, meter);
+      remaining--;
+    }
   }
 
   search(needle: CodePointString, mode: SearchMode, start = 0n, stop: bigint | null = null, meter?: ExecutionMeter): number {

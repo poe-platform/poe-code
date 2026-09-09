@@ -4044,6 +4044,24 @@ extension, integration, or validation requirement is missing or unverified.
   and selected workspace build. The 1,818-call strip regression
   also passes. Guest truth slots, native descriptors/subclasses, remaining text
   methods and builtins, suspension, full accounting and SDK/safe-fs are pending.
+- Connected str.split/rsplit to native lookup. Explicit separators retain
+  empty fields and select nonoverlapping matches from the requested end;
+  whitespace splitting coalesces Python whitespace and preserves the correct
+  untouched remainder at maxsplit. Options accept positional/keyword forms,
+  validate maxsplit before separator type, and enforce signed-size limits.
+- Added a directional, lazy substring matcher that builds one prefix table
+  per scan, shares prefix construction with existing search, and indexes
+  backwards without reversing/copying input. String storage emits pieces in
+  traversal order; owned list storage restores forward order for rsplit.
+- Split verification began with nine failing tests. A 3,038-call compiled
+  CPython audit reproduced and corrected zero-limit whitespace-copy identity
+  and NotImplemented diagnostics; all audited results/identities/errors match.
+  All 3,803 tests in 276 files pass, including repetitive-prefix work bounds,
+  one-table allocation, early reverse termination and zero-limit no-search
+  checks, with scoped lint, source typecheck and selected workspace build.
+  The 2,440-call existing search regression passes. Global string
+  interning, guest index slots, remaining text methods/builtins, suspension,
+  full accounting and SDK/safe-fs remain unfinished.
 - Next:
   remaining scope/compiler audits, interpreter runtime,
   resource controls, runtime modules, and safe-fs integration. Parsing and static

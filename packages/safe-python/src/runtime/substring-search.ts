@@ -7,17 +7,7 @@ export type SearchMode = "find" | "rfind" | "count";
  * while rfind retains overlapping candidates. Works for bytes or code points.
  */
 export function searchSubstring(haystack: Uint8Array | Uint32Array, needle: Uint8Array | Uint32Array, start: number, stop: number, mode: SearchMode, meter?: ExecutionMeter): number {
-  meter?.checkpoint(0, needle.length * Uint32Array.BYTES_PER_ELEMENT);
-  const prefix = new Uint32Array(needle.length);
-  for (let index = 1, matched = 0; index < needle.length; index++) {
-    meter?.checkpoint();
-    while (matched > 0 && needle[index] !== needle[matched]) {
-      meter?.checkpoint();
-      matched = prefix[matched - 1]!;
-    }
-    if (needle[index] === needle[matched]) matched++;
-    prefix[index] = matched;
-  }
+  const prefix = substringPrefix(needle, false, meter);
   let matched = 0;
   let result = mode === "count" ? 0 : -1;
   for (let index = start; index < stop; index++) {
@@ -39,4 +29,38 @@ export function searchSubstring(haystack: Uint8Array | Uint32Array, needle: Uint
     }
   }
   return result;
+}
+
+/** Nonoverlapping matches in traversal order, with one prefix table per scan.
+ * Reverse matching uses reversed indexing, not a copied/reversed input. */
+export function* substringMatches(haystack: Uint8Array | Uint32Array, needle: Uint8Array | Uint32Array, reverse: boolean, meter: ExecutionMeter): IterableIterator<number> {
+  meter.checkpoint(1, 64);
+  if (needle.length === 0) throw new RangeError("substring matches requires a nonempty pattern");
+  if (needle.length > haystack.length) return;
+  const prefix = substringPrefix(needle, reverse, meter);
+  let matched = 0;
+  for (let offset = 0; offset < haystack.length; offset++) {
+    meter.checkpoint();
+    const index = reverse ? haystack.length - 1 - offset : offset, point = haystack[index];
+    while (matched > 0 && point !== needle[reverse ? needle.length - 1 - matched : matched]) {
+      meter.checkpoint(); matched = prefix[matched - 1];
+    }
+    if (point === needle[reverse ? needle.length - 1 - matched : matched]) matched++;
+    if (matched === needle.length) { yield reverse ? index : index - needle.length + 1; matched = 0; }
+  }
+}
+
+function substringPrefix(needle: Uint8Array | Uint32Array, reverse: boolean, meter?: ExecutionMeter): Uint32Array {
+  meter?.checkpoint(0, needle.length * Uint32Array.BYTES_PER_ELEMENT);
+  const prefix = new Uint32Array(needle.length);
+  for (let index = 1, matched = 0; index < needle.length; index++) {
+    meter?.checkpoint();
+    const point = needle[reverse ? needle.length - 1 - index : index];
+    while (matched > 0 && point !== needle[reverse ? needle.length - 1 - matched : matched]) {
+      meter?.checkpoint(); matched = prefix[matched - 1];
+    }
+    if (point === needle[reverse ? needle.length - 1 - matched : matched]) matched++;
+    prefix[index] = matched;
+  }
+  return prefix;
 }

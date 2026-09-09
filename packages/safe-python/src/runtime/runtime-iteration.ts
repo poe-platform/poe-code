@@ -22,9 +22,9 @@ export function runtimeIterate(value: RuntimeValue, values: ConstantValues, mete
     case "builtin_function_or_method": throw new PythonRuntimeError("TypeError", "'builtin_function_or_method' object is not iterable");
     case "iterator": return value.value;
     case "list": return value.items.iterate();
-    case "dict":
+    case "dict": case "mappingproxy":
       meter.checkpoint(1, 32);
-      return value.items.iterate(key => key);
+      return (value.kind === "dict" ? value : value.value).items.iterate(key => key);
     case "range": {
       meter.checkpoint(1, 32);
       const source = new RangeIterator(value.value, false, meter);

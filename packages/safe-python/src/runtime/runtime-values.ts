@@ -33,6 +33,12 @@ export interface DictionaryValue {
   readonly items: OrderedKeyMap<RuntimeValue, RuntimeValue>;
 }
 
+/** Live read-only guest view. Host storage is never exposed by guest attributes. */
+export interface MappingProxyValue {
+  readonly kind: "mappingproxy";
+  readonly value: DictionaryValue;
+}
+
 /** Trusted host implementation, installed explicitly by the runtime owner.
  * No payload fields are exposed through guest JavaScript property access. The
  * synchronous implementation owns its internal work and resource checkpoints.
@@ -104,6 +110,7 @@ export type RuntimeValue =
   | CellValue
   | TypeValue
   | GetsetDescriptorValue
+  | MappingProxyValue
   | DictionaryValue;
 
 /** Host-only records, never accessible through guest JavaScript properties.
@@ -181,5 +188,10 @@ export class RuntimeValues extends ConstantValues {
   getsetDescriptor(value: GetsetDescriptorCapability): GetsetDescriptorValue {
     this.runtimeMeter.checkpoint(1, 32);
     return Object.freeze({ kind: "getset_descriptor", value });
+  }
+
+  mappingProxy(value: DictionaryValue): MappingProxyValue {
+    this.runtimeMeter.checkpoint(1, 32);
+    return Object.freeze({ kind: "mappingproxy", value });
   }
 }

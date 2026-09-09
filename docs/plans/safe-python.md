@@ -3524,6 +3524,27 @@ extension, integration, or validation requirement is missing or unverified.
   2,420 operations and 1,000 MRO type graphs. Other intrinsic type metadata,
   construction, instance dispatch, suspension, full accounting and public
   SDK/safe-fs integration remain unfinished.
+- Added live dictionary-backed mapping-proxy runtime values and the native
+  type.__dict__ descriptor. Each read publishes a fresh read-only view sharing
+  the current namespace. Exact runtime lookup, iteration, membership, length,
+  truth, identity, rich comparison, hash delegation and mutation rejection now
+  handle these views. Dictionary unions preserve operand order and produce fresh
+  dictionaries; dict in-place union retains identity and accepts iterable pairs,
+  while mapping-proxy in-place union rejects mutation. Mapping expansion collects
+  keys before value retrieval, rehashes through the mapping protocol and rejects
+  call duplicates before fetching values. Earlier writes survive later failures.
+- Tests first failed on the absent proxy factory, then exposed cached-hash
+  shortcut misuse, dictionary in-place identity loss and incorrect unsupported
+  proxy-union errors. All 3,485 tests in 240 files pass; typecheck, scoped lint and
+  selected workspace build pass. A 1,200-case CPython mapping-proxy trace audit
+  matched live views, comparisons, unions, expansions and errors. Regressions
+  passed for type descriptors (484 configurations / 2,420 operations), MRO
+  descriptors (1,000 graphs), dictionary update/construction (2,400 each), call
+  collection (2,400), binary expressions (3,000) and in-place list operations
+  (1,200). Reference: https://docs.python.org/3/library/types.html#types.MappingProxyType.
+  Arbitrary guest mapping proxies, exposed proxy methods/dictionary views,
+  additional intrinsic type metadata, type construction, instance dispatch,
+  suspension, full accounting and public SDK/safe-fs integration remain unfinished.
 - Next:
   remaining scope/compiler audits, interpreter runtime,
   resource controls, runtime modules, and safe-fs integration. Parsing and static

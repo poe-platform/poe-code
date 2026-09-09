@@ -11,6 +11,7 @@ export function runtimeTruth(value: RuntimeValue, meter: ExecutionMeter): boolea
   switch (value.kind) {
     case "list": return value.items.length !== 0;
     case "dict": return value.items.size !== 0;
+    case "mappingproxy": return value.value.items.size !== 0;
     case "range": return value.value.length !== 0n;
     case "iterator": case "function": case "builtin_function_or_method": case "method": case "cell": case "type": case "getset_descriptor": return true;
     default: return constantTruth(value, meter);

@@ -16,8 +16,8 @@ export function runtimeMembership(operator: string, needle: RuntimeValue, contai
   meter.checkpoint();
   if (operator !== "in" && operator !== "not in") throw new Error(`unsupported constant membership operator: ${operator}`);
   let found = false;
-  if (container.kind === "dict") {
-    found = runtimeDictionaryAccess(container, needle, "contains", meter);
+  if (container.kind === "dict" || container.kind === "mappingproxy") {
+    found = runtimeDictionaryAccess(container.kind === "dict" ? container : container.value, needle, "contains", meter);
   } else if (container.kind === "range" && (needle.kind === "int" || needle.kind === "bool")) {
     const integer = needle.kind === "int" ? needle.value : needle.value ? 1n : 0n;
     found = rangeIndexOf(container.value, integer) !== undefined;

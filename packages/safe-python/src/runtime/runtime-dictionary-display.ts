@@ -3,6 +3,7 @@ import type { ExecutionMeter } from "./execution-budget.js";
 import type { ExpressionDictionary } from "./expression-evaluation.js";
 import { OrderedKeyMap, type KeyOperations } from "./ordered-key-map.js";
 import { runtimeDictionaryAccess } from "./runtime-dictionary-access.js";
+import { mergeRuntimeMappingProxy } from "./runtime-mapping-proxy.js";
 import type { RuntimeValue, RuntimeValues } from "./runtime-values.js";
 
 /** Literal builder, not dict(iterable): ** accepts mappings only. Exact maps
@@ -20,11 +21,12 @@ export function beginRuntimeDictionary(initial: readonly (readonly [RuntimeValue
     },
     update(mapping) {
       meter.checkpoint();
-      if (mapping.kind !== "dict") {
+      if (mapping.kind !== "dict" && mapping.kind !== "mappingproxy") {
         const name = mapping.kind === "none" ? "NoneType" : mapping.kind === "not-implemented" ? "NotImplementedType" : mapping.kind;
         throw new PythonRuntimeError("TypeError", `'${name}' object is not a mapping`);
       }
-      result.items.update(mapping.items);
+      if (mapping.kind === "mappingproxy") mergeRuntimeMappingProxy(result, mapping, meter);
+      else result.items.update(mapping.items);
     },
     finish() { meter.checkpoint(); return result; }
   };

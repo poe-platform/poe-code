@@ -14,7 +14,7 @@ interface TypeEntry {
  * layouts and enforce metaclass/layout policies before publication. Weak entries
  * do not keep otherwise unreachable types alive. Immutable hierarchy tuples are
  * cached independently from mutable namespaces; __bases__ mutation needs a later
- * replacement/invalidation protocol. Bootstrap installs the read-only MRO getset;
+ * replacement/invalidation protocol. Bootstrap installs read-only MRO/dict getsets;
  * remaining builtin members and methods belong to the object layer.
  */
 export class RuntimeTypeRegistry {
@@ -31,20 +31,27 @@ export class RuntimeTypeRegistry {
     this.object = values.type(objectLayout, this.type, { immutable: true });
     this.#entries.set(objectLayout, { type: this.object });
     this.#entries.set(typeLayout, { type: this.type });
-    meter.checkpoint(1, 96);
-    const mro = values.getsetDescriptor({
-      owner: this.type, name: "__mro__",
-      accepts: (instance, meter) => {
-        if (instance.kind !== "type") return false;
-        for (const ancestor of instance.metaclass.value.mro) {
-          meter.checkpoint();
-          if (ancestor === this.type.value) return true;
-        }
-        return false;
-      },
-      get: instance => this.metadata(instance as TypeValue, "mro")
-    });
-    typeLayout.namespace.items.set(values.string(mro.value.name), mro);
+    meter.checkpoint(1, 192);
+    const descriptors = [
+      { name: "__mro__", get: (instance: TypeValue) => this.metadata(instance, "mro") },
+      { name: "__dict__", get: (instance: TypeValue) => values.mappingProxy(instance.value.namespace) }
+    ];
+    for (const entry of descriptors) {
+      meter.checkpoint(1, 96);
+      const descriptor = values.getsetDescriptor({
+        owner: this.type, name: entry.name,
+        accepts: (instance, meter) => {
+          if (instance.kind !== "type") return false;
+          for (const ancestor of instance.metaclass.value.mro) {
+            meter.checkpoint();
+            if (ancestor === this.type.value) return true;
+          }
+          return false;
+        },
+        get: instance => entry.get(instance as TypeValue)
+      });
+      typeLayout.namespace.items.set(values.string(entry.name), descriptor);
+    }
     Object.freeze(this);
   }
 

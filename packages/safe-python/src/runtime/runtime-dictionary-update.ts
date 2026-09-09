@@ -4,6 +4,7 @@ import { updateDictionaryPairs } from "./dictionary-update.js";
 import { OrderedKeyMap, type KeyOperations } from "./ordered-key-map.js";
 import { runtimeDictionaryAccess } from "./runtime-dictionary-access.js";
 import { runtimeIterate } from "./runtime-iteration.js";
+import { mergeRuntimeMappingProxy } from "./runtime-mapping-proxy.js";
 import type { DictionaryValue, RuntimeValue, RuntimeValues } from "./runtime-values.js";
 
 /** Exact-value update, after call binding. Dictionary sources share cached
@@ -15,6 +16,7 @@ import type { DictionaryValue, RuntimeValue, RuntimeValues } from "./runtime-val
 export function updateRuntimeDictionary(target: DictionaryValue, source: RuntimeValue, values: RuntimeValues, meter: ExecutionMeter): RuntimeValues["none"] {
   meter.checkpoint();
   if (source.kind === "dict") target.items.update(source.items);
+  else if (source.kind === "mappingproxy") mergeRuntimeMappingProxy(target, source, meter);
   else {
     const iterator = runtimeIterate(source, values, meter);
     meter.checkpoint(0, 192);

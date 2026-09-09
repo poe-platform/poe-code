@@ -3,6 +3,7 @@ import type { ExecutionMeter } from "./execution-budget.js";
 import { PythonRuntimeError } from "./error.js";
 import { OrderedKeyMap, type KeyOperations } from "./ordered-key-map.js";
 import { runtimeIterate } from "./runtime-iteration.js";
+import { mergeRuntimeMappingProxy } from "./runtime-mapping-proxy.js";
 import type { DictionaryValue, RuntimeValue, RuntimeValues } from "./runtime-values.js";
 
 export interface RuntimeCallContext {
@@ -60,12 +61,13 @@ export function beginRuntimeCall(callee: RuntimeValue, context: RuntimeCallConte
     },
     mapping(value) {
       meter.checkpoint();
-      if (value.kind !== "dict") {
+      if (value.kind !== "dict" && value.kind !== "mappingproxy") {
         const type = value.kind === "none" ? "NoneType" : value.kind === "not-implemented" ? "NotImplementedType" : value.kind;
         const name = context.name(callee); meter.checkpoint();
         throw new PythonRuntimeError("TypeError", `${name} argument after ** must be a mapping, not ${type}`);
       }
-      keywords.items.update(value.items, duplicate);
+      if (value.kind === "mappingproxy") mergeRuntimeMappingProxy(keywords, value, meter, duplicate);
+      else keywords.items.update(value.items, duplicate);
     },
     invoke() {
       meter.checkpoint(1, 32);

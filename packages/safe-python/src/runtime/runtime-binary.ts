@@ -1,6 +1,7 @@
 import { constantBinary } from "./constant-binary.js";
 import { constantConcat } from "./constant-concat.js";
 import { constantRepeat } from "./constant-repeat.js";
+import { PythonRuntimeError } from "./error.js";
 import type { ExecutionMeter } from "./execution-budget.js";
 import type { RuntimeValue, RuntimeValues } from "./runtime-values.js";
 
@@ -16,6 +17,21 @@ export function runtimeBinary(operator: string, left: RuntimeValue, right: Runti
     case "&": case "|": case "^": case "<<": case ">>": case "@": break;
     default: throw new Error(`unsupported runtime binary operator: ${operator}`);
   }
+  if (operator === "|") {
+    const a = left.kind === "mappingproxy" ? left.value : left, b = right.kind === "mappingproxy" ? right.value : right;
+    if (a.kind === "dict" && b.kind === "dict") {
+      const result = values.dictionary(a.items.copy());
+      result.items.update(b.items);
+      meter.checkpoint();
+      return result;
+    }
+    if (left.kind === "mappingproxy" || right.kind === "mappingproxy") {
+      const aName = a.kind === "none" ? "NoneType" : a.kind === "not-implemented" ? "NotImplementedType" : a.kind;
+      const bName = b.kind === "none" ? "NoneType" : b.kind === "not-implemented" ? "NotImplementedType" : b.kind;
+      throw new PythonRuntimeError("TypeError", `unsupported operand type(s) for |: '${aName}' and '${bName}'`);
+    }
+  }
+  if (left.kind === "mappingproxy" || right.kind === "mappingproxy") return values.notImplemented;
   if (left.kind === "cell" || right.kind === "cell" || left.kind === "type" || right.kind === "type") return values.notImplemented;
   if (left.kind === "getset_descriptor" || right.kind === "getset_descriptor") return values.notImplemented;
   if (left.kind === "list" || right.kind === "list") {

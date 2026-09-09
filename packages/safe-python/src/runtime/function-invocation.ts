@@ -9,7 +9,7 @@ import type { CallStack } from "./call-stack.js";
 export interface FunctionInvocationContext<Value> extends FunctionFrameContext<Value> {
   readonly none: Value;
   /** Shared across all nested calls in this execution context. */
-  readonly calls: CallStack<LexicalFrame<Value>>;
+  readonly calls: Pick<CallStack<LexicalFrame<Value>>, "enter">;
   /** Bind expression/statement protocols to this activation. Do not execute guest
    * code merely to prepare the context. Function-local operations use this frame;
    * nested definitions capture its cells, not copied values.

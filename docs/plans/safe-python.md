@@ -1808,6 +1808,24 @@ extension, integration, or validation requirement is missing or unverified.
   Concrete guest values, body-frame execution/metadata and full heap accounting
   remain unfinished. Directly supplied ordinary function bodies must honor their
   optimized-locals flags rather than treating every function as class-suite code.
+- Added class-suite execution with ClassFrame storage, shared call-depth entry and
+  unconditional host-frame restoration. The executor installs module, qualified
+  name and first-line metadata, handles optimized-away docstrings, runs the suite,
+  then publishes static attributes and the original captured class cell. Metadata
+  stores honor class declarations and prepared mapping protocols. Function call
+  contexts now require only the stack entry capability so mixed frame stacks can
+  serve both functions and classes. Arbitrary functions directly supplied to the
+  builtin builder still require separate code-flag-aware dispatch.
+- Class-suite validation: missing-module red tests preceded implementation. A
+  CPython probe and failing regression exposed Python 3.14 docstring cleaning;
+  added metered tab expansion/common-indent removal preserving blank lines.
+  All 2,291 tests in 117 files pass, including 16 new suite cases. CPython matched
+  72 metadata/mapping/failure/optimization traces and 512 docstring cases. Source
+  typecheck, scoped lint and selected build passed. Metadata ordering and docstring
+  behavior were checked against CPython 3.14 Python/codegen.c and Python/compile.c.
+  Qualified-name compilation, static-attribute tuple analysis, concrete guest
+  statement protocols, builder/body binding and full allocation accounting remain
+  unfinished; metadata inputs are required, not silently defaulted to empty values.
 - Next:
   remaining scope/compiler audits, interpreter runtime,
   resource controls, runtime modules, and safe-fs integration. Parsing and static

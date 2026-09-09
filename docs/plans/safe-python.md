@@ -5646,6 +5646,18 @@ extension, integration, or validation requirement is missing or unverified.
   after directly checking that modern formatting also zero-pads infinities/NaNs.
   Float width/grouping/layout and native dispatch, locale and complex rendering,
   and broader interpreter/SDK/safe-fs work remain unfinished.
+- Added float field layout over the rounded magnitude stage: signs, Unicode
+  fill, four alignments, integer and fractional grouping, and suffix preservation.
+  Integer grouping counts from the right and fractional grouping from the decimal
+  point. Sign-aware zero padding participates only when actual digits exist;
+  infinities/NaNs remain ungrouped. Final output uses one preflighted owned buffer.
+- Five tests first failed on the missing renderer, including allocation-delta and
+  oversized-width checks. All 4,660 tests in 392 files pass. An 18,000-case CPython
+  audit matches modern float field output and errors over binary64 samples,
+  Unicode padding/widths, integer/fraction grouping, precision, alternate and z
+  settings. Typecheck, scoped lint and selected workspace build pass. Native float dispatch,
+  integer float-style presentations, locale/complex rendering and broader
+  interpreter/SDK/safe-fs integration remain unfinished.
 - Next:
   remaining scope/compiler audits, interpreter runtime,
   resource controls, runtime modules, and safe-fs integration. Parsing and static

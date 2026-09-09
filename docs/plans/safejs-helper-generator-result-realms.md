@@ -156,6 +156,27 @@ and four fresh-process import checks. Built SDK probes passed all 40 borrowed
 helper operations. No visual CLI changes, push or release. The recorded full
 package gate predates this implementation.
 
+## Iterator.from fallback-return implementation
+
+Four source regressions failed before this change: borrowed return calls and
+public replay with an absent or null underlying return method. The wrapper
+now uses createIteratorResult only for its synthesized completion result.
+Tests verify native contents (including ignoring supplied return arguments),
+freshness, method-realm prototype identity, subsequent prototype mutation and
+rejection of lossy data copying.
+
+The custom-result control passed before the fix and continues to require
+identity preservation, unchanged null prototypes, fresh return-method lookup,
+correct receiver binding and no forwarded arguments. Custom next/return
+results are not modified. Generator result and yield-star gaps remain open.
+
+Validation passed 115 tests across seven wrapper, construction, disposal,
+helper and SDK Proxy files, including the five new cases. Scoped ESLint,
+package TypeScript and the maintained build passed (23 workspace builds and
+four fresh-process import checks). Built SDK probes passed repeated borrowed
+return calls for both absent and null methods. No visual CLI changes, push
+or release. The recorded full-package gate predates this fix.
+
 ## Verification boundary
 
 These are built-SDK/native audit observations, not completed fixes or passing

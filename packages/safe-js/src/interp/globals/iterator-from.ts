@@ -8,6 +8,7 @@ import { registerBuiltinIdentities, resolveIntrinsicIdentity } from "../intrinsi
 import { iteratorWrapperStates } from "../iterator-wrapper.js";
 import { createIntrinsicObject, getBoxedPrototype, materializeFunctionProperties, registerIntrinsicFunction, registerIntrinsicObject, setSandboxPrototype } from "../object-model.js";
 import { retainValues } from "../resources.js";
+import { createIteratorResult } from "../iterator-result.js";
 import { createSandboxClosure, isSandboxClosure, type SandboxCallContext, type SandboxClosure, type SandboxObject, type SandboxValue } from "../values.js";
 
 export function installIteratorFrom(constructor: SandboxClosure, budget: Budget): void {
@@ -22,7 +23,7 @@ export function installIteratorFrom(constructor: SandboxClosure, budget: Budget)
         const state=receiver !== null && typeof receiver === "object" ? iteratorWrapperStates.get(receiver) : undefined;
         if (state === undefined) throw new TypeError("Iterator wrapper method requires a branded receiver.");
         const method=name === "next" ? state.next : await context.getProperty!(state.iterator,"return");
-        if (name === "return" && (method === undefined || method === null)) return {value:undefined,done:true};
+        if (name === "return" && (method === undefined || method === null)) return createIteratorResult(undefined,true,budget);
         if (!isSandboxClosure(method)) throw new TypeError("Iterator method must be callable.");
         return invokeBuiltinClosure(method,[],budget,context,state.iterator);
       }

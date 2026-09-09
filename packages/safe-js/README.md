@@ -631,6 +631,9 @@ retain the method's originating Object prototype, including exhausted results
 and borrowed SDK calls. Yielded values are not re-prototyped.
 Lazy iterator helpers preserve the called next/return method's Object
 prototype through yielding, early return, exhaustion and public replay.
+`Iterator.from` fallback return results retain the called method's Object
+prototype when the underlying return method is absent or null. Custom next
+and return results are forwarded unchanged.
 RegExp iterator results follow the same rule for built-in and custom `exec`
 paths, including non-global matching. Custom match results retain identity.
 For `RegExp.prototype[Symbol.matchAll]` iterators, borrowed `next` calls
@@ -742,9 +745,9 @@ fingerprints matched before and after the run. Both failures concern native
 Promise own-property imports, whose admission policy remains unresolved.
 The previous checkpoint/camera timeouts did not recur; this does not establish
 a permanent timing fix. This is not a green package gate or an isolated
-committed-tree result, and predates the helper-result fix. Generator result
-realms, Iterator.from fallback return results, and synchronous yield-star
-result forwarding remain validated gaps.
+committed-tree result, and predates the helper and wrapper-result fixes.
+Generator result realms and synchronous yield-star result forwarding remain
+validated gaps.
 See the [full gate record](../../docs/plans/safejs-realm-lifetime-full-gate.md).
 The public data-copy boundary now rejects guest Proxy values explicitly instead
 of silently producing empty objects. Use an owning realm's retained guest

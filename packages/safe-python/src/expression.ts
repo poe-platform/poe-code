@@ -2,17 +2,14 @@ import { lex } from "./lexer.js";
 import type { LexerOptions } from "./lexer.js";
 import type { Expression } from "./ast.js";
 import { TokenCursor } from "./token-cursor.js";
+import { readTrailers } from "./primary.js";
+import { reservedWords } from "./keywords.js";
 
 const binaryPrecedence: Readonly<Record<string, number>> = {
   or: 2, and: 3, "|": 6, "^": 7, "&": 8, "<<": 9, ">>": 9,
   "+": 10, "-": 10, "*": 11, "@": 11, "/": 11, "//": 11, "%": 11, "**": 13
 };
 const comparisons = new Set(["<", "<=", ">", ">=", "==", "!=", "in", "is", "not"]);
-const reserved = new Set([
-  "False", "None", "True", "and", "as", "assert", "async", "await", "break", "class", "continue",
-  "def", "del", "elif", "else", "except", "finally", "for", "from", "global", "if", "import", "in",
-  "is", "lambda", "nonlocal", "not", "or", "pass", "raise", "return", "try", "while", "with", "yield"
-]);
 
 /** Parse a single expression. Statement grammar and additional expression forms are still being implemented. */
 export function parseExpression(text: string, options: LexerOptions = {}): Expression {
@@ -69,6 +66,11 @@ function readPrefix(cursor: TokenCursor, minimum: number): Expression {
     const operand = readExpression(cursor, token.text === "not" ? 4 : 12);
     return { kind: "unary", operator: token.text, operand, start: token.start, end: operand.end };
   }
+  return readTrailers(cursor, readAtom(cursor), readExpression);
+}
+
+function readAtom(cursor: TokenCursor): Expression {
+  const token = cursor.peek();
   if (token.text === "(") {
     cursor.take();
     const expression = readExpression(cursor);
@@ -86,7 +88,7 @@ function readPrefix(cursor: TokenCursor, minimum: number): Expression {
       value: token.text === "None" || token.text === "..." ? null : token.text === "True", start: token.start, end: token.end
     };
   }
-  if (token.kind === "name" && !reserved.has(token.text)) {
+  if (token.kind === "name" && !reservedWords.has(token.text)) {
     cursor.take();
     return { kind: "name", spelling: token.text, start: token.start, end: token.end };
   }

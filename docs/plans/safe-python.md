@@ -150,7 +150,21 @@ extension, integration, or validation requirement is missing or unverified.
   part of that AST comparison. Identifier binding still needs pinned NFKC
   normalization; AST names deliberately retain `spelling` rather than claiming
   to contain normalized binding names.
-- Next: primary trailers (calls, attributes, subscripts), collection literals,
+- Added primary trailers: chained calls, attributes, subscriptions, slices with
+  omitted bounds/steps, multidimensional keys, and starred subscription keys.
+  Calls retain positional/keyword/iterable-unpacking/mapping-unpacking forms and
+  reject invalid ordering and repeated raw keyword spellings. The AST preserves
+  source argument order; runtime evaluation must still implement Python's
+  positional/starred-before-keyword evaluation rule. Scalar and tuple keys remain
+  distinct even for one-element trailing-comma and unpacked subscriptions.
+- Primary validation: 382 package unit cases pass. A 110-case CPython compilation
+  and AST comparison covered argument-order combinations, unpacking, slices,
+  trailing commas, and chained trailers with zero differences. Comparison grouped
+  call arguments into CPython's positional and keyword AST lists; this is a syntax
+  check, not runtime argument evaluation evidence. Focused lint, source typecheck,
+  and selected workspace build passed. Normalized duplicate-keyword checks still
+  depend on the pending pinned identifier normalization/binding work.
+- Next: collection literals,
   comprehensions, lambdas, interpolated-string ASTs, parser-level NFKC
   normalization, the complete grammar/parser and evaluator, then runtime modules
   and safe-fs integration. Tokenization does not establish interpreter execution.

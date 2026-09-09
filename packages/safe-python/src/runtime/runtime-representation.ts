@@ -1,7 +1,7 @@
 import type { CodePointString } from "./code-point-string.js";
 import type { ExecutionMeter } from "./execution-budget.js";
 import type { RepresentationContext } from "./representation-protocol.js";
-import { runtimeScalarRepresentation } from "./runtime-scalar-representation-method.js";
+import { isRuntimeRepresentationScalar, runtimeScalarRepresentation } from "./runtime-scalar-representation-method.js";
 import type { RuntimeValue, RuntimeValues } from "./runtime-values.js";
 
 export interface RuntimeRepresentationHooks {
@@ -24,7 +24,7 @@ export function createRuntimeRepresentationContext(values: RuntimeValues, meter:
     string(value) { meter.checkpoint(); return value.kind === "str" ? value.value : hooks.string?.(value); },
     lookupStr(value) {
       meter.checkpoint();
-      if (value.kind === "str" || value.kind === "bytes" || value.kind === "int" || value.kind === "bool") {
+      if (isRuntimeRepresentationScalar(value)) {
         meter.checkpoint(0, 64);
         return () => runtimeScalarRepresentation(value, "__str__", values, meter);
       }
@@ -32,7 +32,7 @@ export function createRuntimeRepresentationContext(values: RuntimeValues, meter:
     },
     lookupRepr(value) {
       meter.checkpoint();
-      if (value.kind === "str" || value.kind === "bytes" || value.kind === "int" || value.kind === "bool") {
+      if (isRuntimeRepresentationScalar(value)) {
         meter.checkpoint(0, 64);
         return () => runtimeScalarRepresentation(value, "__repr__", values, meter);
       }

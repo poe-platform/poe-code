@@ -5156,6 +5156,20 @@ extension, integration, or validation requirement is missing or unverified.
   guest reflected slots and global string canonicalization remain incomplete.
   Full guest objects, suspended execution, complete accounting and SDK/safe-fs
   integration remain outstanding.
+- Added native None, Ellipsis and NotImplemented str/repr slots and connected
+  them to implicit representation and percent formatting. A shared scalar
+  capability guard keeps explicit attribute lookup and runtime representation
+  dispatch synchronized. Method argument validation and cancellation behavior
+  reuse the existing native scalar path.
+- Five tests first failed on missing singleton methods/representations. All
+  4,478 tests in 361 files pass. CPython matches 4,644 compiled singleton method
+  calls and percent formats across flag, width, precision and argument-error
+  combinations. All 672 runtime representation protocol comparisons still pass.
+  Source typecheck, scoped lint and selected workspace build pass. Floating and
+  container representations, bytes percent dispatch/operator integration, guest
+  reflected slots and global string canonicalization remain incomplete. Full
+  guest objects, suspended execution, complete accounting and SDK/safe-fs
+  integration remain outstanding.
 - Next:
   remaining scope/compiler audits, interpreter runtime,
   resource controls, runtime modules, and safe-fs integration. Parsing and static

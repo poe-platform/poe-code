@@ -9,6 +9,7 @@ import { ConstantIterator } from "./constant-iterator.js";
 import { realBinary } from "./real-binary.js";
 import { integerBitwise } from "./integer-bitwise.js";
 import { integerShift } from "./integer-shift.js";
+import { integerPower } from "./integer-power.js";
 import { complexBinary } from "./complex-binary.js";
 import { constantConcat } from "./constant-concat.js";
 import { constantRepeat } from "./constant-repeat.js";
@@ -62,6 +63,7 @@ describe("concrete constant truth", () => {
       load: name => { if (name === "NotImplemented") return v.notImplemented; return unexpected(); }, store: unexpected,
       unary: (operator, value) => constantUnary(operator, value, { values: v, warn: unexpected }, meter),
       binary: (operator, left, right) => {
+        if (operator === "**") return integerPower(left, right, v, meter);
         if (operator === "<<" || operator === ">>") return integerShift(operator, left, right, v, meter);
         if (operator === "&" || operator === "|" || operator === "^") return integerBitwise(operator, left, right, v, meter);
         if (operator === "+") {
@@ -102,6 +104,8 @@ describe("concrete constant truth", () => {
     expect(run("(7 & 3) == 3")).toBe(v.true);
     expect(run("(3 << 10) == 3072 and (-7 >> 1) == -4")).toBe(v.true);
     expect(run("(True << True) == 2")).toBe(v.true);
+    expect(run("2 ** 3 ** 2 == 512 and -2 ** 2 == -4")).toBe(v.true);
+    expect(run("(-2) ** 3 == -8 and 2 ** -3 == 0.125")).toBe(v.true);
     expect(run("(1 + 2j) * (3 + 4j) == -5 + 10j")).toBe(v.true);
     expect(run("1 / (1 + 1j) == 0.5 - 0.5j")).toBe(v.true);
     expect(run("'a' + '😀' == 'a😀'")).toBe(v.true);

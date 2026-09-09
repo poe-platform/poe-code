@@ -2225,6 +2225,22 @@ extension, integration, or validation requirement is missing or unverified.
   146 files pass, and 11,333 modular-power outcomes match CPython. Source
   typecheck, scoped lint and selected workspace build passed. Bigint payload
   allocation and size-dependent host CPU accounting remain unfinished.
+- Added concrete bool/int ordinary exponentiation and expression-fixture wiring.
+  Nonnegative powers remain exact integers, use metered repeated squaring and
+  reserve product payload upper bounds before host multiplication. Trivial
+  0/1/-1 bases avoid exponential work; unrepresentable result growth fails through
+  the latched allocation budget. Negative powers preserve integer-to-float
+  conversion order, signed underflow and Python 3.14's zero-power error.
+- Integer-power validation: tests first reproduced the missing kernel; all 2,589
+  tests in 147 files pass, including right-associativity/unary precedence and
+  resource guards. Source typecheck, scoped lint and selected build passed.
+  A 6,697-case CPython audit matched integer/error/signed-zero outcomes exactly.
+  Its strict bitwise float comparison found 190 finite nonzero differences, each
+  one ULP in this corpus. CPython uses platform libm pow while this path uses host
+  JavaScript exponentiation; exact platform rounding parity is not established.
+  Reference: https://github.com/python/cpython/blob/3.14/Objects/floatobject.c .
+  Float/complex operand powers, full builtin dispatch, bit-length temporary
+  storage, exponent shifts and size-dependent host CPU accounting remain pending.
 - Next:
   remaining scope/compiler audits, interpreter runtime,
   resource controls, runtime modules, and safe-fs integration. Parsing and static

@@ -2,19 +2,25 @@
 
 ## Integrated follow-up verification
 
-Session 11849 is running the maintained SafeJS workspace build closure followed
-by its full unit route in the existing isolated checkout. The 1,163-file package
+Session 11849 terminated with exit 143 during the full unit route, without a
+final Vitest summary. All 23 maintained builds and four fresh import checks
+passed. Failure markers appeared during the unit run, but no authoritative
+final counts or failure details were produced; the termination cause is not
+established. No matching Vitest process remained in the subsequent process
+check. This is not a completed or passing unit gate. The 1,163-file package
 snapshot exactly matches the current source, excluding node_modules, dist and
 coverage directories. Its sorted manifest digest is
 `65b50da011daf3bf1e298841d0a4e41ea543d501a6d9a28141a22e0edccfe2bd`.
 The copy and manifest check completed while prerequisite builds were running,
-before the SafeJS build began. Keep this candidate frozen through termination.
+before the SafeJS build began. The post-termination manifest exactly matches
+the original 1,163 files and digest; the candidate remained frozen.
 
 This snapshot includes the later numeric-update and default-parameter eval
 repairs, the independently committed function/arguments/Array intrinsic changes,
 and the final host-version-independent Array descriptor tests. Experimental weak
 collections and both unresolved host-Promise property-import tests remain in
-scope. Builds and unit results are pending; no push or release is authorized.
+scope. Later eval/super tests and the eval block-function deletion fix are
+outside this snapshot. No push or release is authorized.
 
 ## Latest eval-deletion verification
 

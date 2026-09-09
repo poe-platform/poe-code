@@ -4264,6 +4264,22 @@ extension, integration, or validation requirement is missing or unverified.
   source typecheck and selected workspace build pass. Guest buffer/index protocols, remaining
   bytes/text/numeric methods, native builtins, subclasses/global interning,
   suspension, full accounting and SDK/safe-fs remain unfinished.
+- Connected bytes.removeprefix/removesuffix/partition/rpartition through existing
+  immutable byte boundary/search/slice operations. Unchanged removal retains the
+  receiver; partition retains the supplied separator, shares empty sides of a
+  full match, and retains the empty receiver in all three absent-match slots.
+  Empty partition separators and non-byte arguments use bytes diagnostics.
+- Twelve tests first failed for missing methods. All 4,032 tests in 297 files
+  pass. A 3,244-call compiled CPython audit matches values, receiver/separator
+  identities and errors; the 1,244-call string-cut regression, scoped lint,
+  source typecheck and selected workspace build pass. This does
+  not establish global empty/one-byte caching: for example, CPython reuses the
+  one-byte separator as the right slice in b'aa'.partition(b'a'), while current
+  byte factories/slices still create separate records. Address cache-aware
+  literal/result construction without incorrectly caching case-transform
+  results, which must remain fresh even for one byte. Guest buffer protocols,
+  remaining bytes/text/numeric methods, native builtins, suspension, full
+  accounting and SDK/safe-fs also remain unfinished.
 - Next:
   remaining scope/compiler audits, interpreter runtime,
   resource controls, runtime modules, and safe-fs integration. Parsing and static

@@ -2,6 +2,7 @@ import { ConstantValues, type PrimitiveConstant, type SliceConstant, type TupleC
 import type { ExecutionMeter } from "./execution-budget.js";
 import type { IntegerProgression } from "./integer-sequence.js";
 import { ListStorage } from "./list-storage.js";
+import type { FunctionState } from "./function-state.js";
 
 export interface ListValue {
   readonly kind: "list";
@@ -18,13 +19,19 @@ export interface IteratorValue {
   readonly value: Iterator<RuntimeValue>;
 }
 
+export interface FunctionValue {
+  readonly kind: "function";
+  readonly value: FunctionState<RuntimeValue>;
+}
+
 export type RuntimeValue =
   | PrimitiveConstant
   | TupleConstant<RuntimeValue>
   | SliceConstant<RuntimeValue>
   | ListValue
   | RangeValue
-  | IteratorValue;
+  | IteratorValue
+  | FunctionValue;
 
 /** Host-only records, never accessible through guest JavaScript properties.
  * Lists own their slots but share members, including cyclic references. Range
@@ -53,5 +60,11 @@ export class RuntimeValues extends ConstantValues {
   iterator(value: Iterator<RuntimeValue>): IteratorValue {
     this.runtimeMeter.checkpoint(1, 32);
     return Object.freeze({ kind: "iterator", value });
+  }
+
+  /** Retain already captured state; wrapping must never execute the function. */
+  function(value: FunctionState<RuntimeValue>): FunctionValue {
+    this.runtimeMeter.checkpoint(1, 32);
+    return Object.freeze({ kind: "function", value });
   }
 }

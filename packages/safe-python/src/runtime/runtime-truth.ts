@@ -11,7 +11,7 @@ export function runtimeTruth(value: RuntimeValue, meter: ExecutionMeter): boolea
   switch (value.kind) {
     case "list": return value.items.length !== 0;
     case "range": return value.value.length !== 0n;
-    case "iterator": return true;
+    case "iterator": case "function": return true;
     default: return constantTruth(value, meter);
   }
 }

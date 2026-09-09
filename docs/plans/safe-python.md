@@ -3084,6 +3084,20 @@ extension, integration, or validation requirement is missing or unverified.
   statement execution path, not full Python: concrete functions/classes/imports,
   object/exception hooks, starred length hints, full temporary/heap accounting,
   public execution/SDK integration and safe-fs capability wiring remain unfinished.
+- Added concrete function value records around the existing captured FunctionState
+  model, retaining live globals, defaults, closure storage and mutable metadata
+  without executing bodies during wrapping. Function values are truthy, compare
+  by wrapper identity, reject iteration and decline unsupported arithmetic; host
+  payload fields remain inaccessible through guest property lookup. Compiled
+  function invocation now has an integration test using these records and the
+  assembled concrete expression/statement contexts.
+- All five new tests first failed on the missing factory method; all 3,262 tests
+  in 211 files pass. A 768-case CPython compiled-function audit matched body
+  results, defaults, variadic tuple arguments, positional-only/keyword binding
+  errors and frame restoration. Source typecheck, scoped lint and selected
+  workspace build passed. Guest call collectors, definition/lambda installation,
+  function descriptors, keyword dictionaries, nested closure wiring, suspension,
+  full heap/CPU accounting and safe-fs/public execution integration remain open.
 - Next:
   remaining scope/compiler audits, interpreter runtime,
   resource controls, runtime modules, and safe-fs integration. Parsing and static

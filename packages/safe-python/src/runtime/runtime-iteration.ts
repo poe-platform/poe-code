@@ -3,6 +3,7 @@ import type { ExecutionMeter } from "./execution-budget.js";
 import { RangeIterator } from "./range-iterator.js";
 import type { RuntimeValue } from "./runtime-values.js";
 import type { ConstantValues } from "./constant-values.js";
+import { PythonRuntimeError } from "./error.js";
 
 /** Acquire host iteration for exact builtin runtime values. Prepared iterator
  * records preserve their cursor identity; lists use live storage, not snapshots.
@@ -13,6 +14,7 @@ import type { ConstantValues } from "./constant-values.js";
 export function runtimeIterate(value: RuntimeValue, values: ConstantValues, meter: ExecutionMeter): Iterator<RuntimeValue> {
   meter.checkpoint();
   switch (value.kind) {
+    case "function": throw new PythonRuntimeError("TypeError", "'function' object is not iterable");
     case "iterator": return value.value;
     case "list": return value.items.iterate();
     case "range": {

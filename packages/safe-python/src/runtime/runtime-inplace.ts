@@ -5,7 +5,7 @@ import { runtimeIterate } from "./runtime-iteration.js";
 import { updateRuntimeDictionary } from "./runtime-dictionary-update.js";
 import type { RuntimeValue, RuntimeValues } from "./runtime-values.js";
 
-/** Exact list in-place operations followed by ordinary exact binary fallback.
+/** Exact container in-place operations followed by ordinary binary fallback.
  * Streaming extension keeps partial progress on failure; direct self-extension
  * duplicates the original slots once. Assignment write-back is the caller's job
  * and must not roll back mutations. Guest slots, length hints, unsupported-operand
@@ -16,6 +16,10 @@ export function runtimeInPlace(operator: string, left: RuntimeValue, right: Runt
   if (left.kind === "mappingproxy" && operator === "|") throw new PythonRuntimeError("TypeError", "'|=' is not supported by mappingproxy; use '|' instead");
   if (left.kind === "dict" && operator === "|") {
     updateRuntimeDictionary(left, right, values, meter);
+    return left;
+  }
+  if (left.kind === "set" && right.kind === "set" && operator === "&") {
+    left.items.intersectKeysInPlace(right.items);
     return left;
   }
   if (left.kind === "list") {

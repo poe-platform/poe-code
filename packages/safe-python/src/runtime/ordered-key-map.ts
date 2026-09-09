@@ -253,6 +253,47 @@ export class OrderedKeyMap<Key, Value> {
     return true;
   }
 
+  /** Fresh key intersection, retaining entries from the smaller input (right
+   * on a tie). Payloads follow those retained keys. Shared policies reuse
+   * hashes; foreign-policy probes and insertions use their destination policy.
+   * Like set intersection, source traversal is not a dictionary iterator and
+   * does not impose dictionary-size mutation errors on equality callbacks. */
+  intersectKeys(other: OrderedKeyMap<Key, Value>): OrderedKeyMap<Key, Value> {
+    this.meter.checkpoint();
+    if (this === other) return this.copy();
+    const result = new OrderedKeyMap<Key, Value>(this.operations, this.meter);
+    const source = other.#entries.size > this.#entries.size ? this : other;
+    const target = source === this ? other : this;
+    for (const entry of source.#entries) {
+      this.meter.checkpoint();
+      const { key, value } = entry;
+      const hash = source.operations === target.operations ? entry.hash : target.operations.hash(key);
+      if (target.#find(key, hash) === undefined) continue;
+      const resultHash = source.operations === this.operations ? entry.hash : hash;
+      const existing = result.#find(key, resultHash);
+      if (existing === undefined) result.#insert(key, resultHash, value);
+    }
+    this.meter.checkpoint();
+    return result;
+  }
+
+  /** Compute before publishing: guest comparison/allocation failures leave the
+   * receiver unchanged except for mutations performed by callbacks themselves.
+   * Keep the live entry set so existing iterators still observe size changes.
+   * Precharge the callback-free transfer before its first destructive write. */
+  intersectKeysInPlace(other: OrderedKeyMap<Key, Value>): void {
+    const result = this.intersectKeys(other);
+    // Preserve live cursors for the unchanged self-intersection. Still compute
+    // the copy above so its resource checks precede successful completion.
+    if (this === other) return;
+    this.meter.checkpoint(1 + this.#entries.size + result.#entries.size, 32 * result.#entries.size);
+    this.#entries.clear();
+    this.#buckets.clear();
+    for (const entry of result.#entries) this.#entries.add(entry);
+    for (const [hash, bucket] of result.#buckets) this.#buckets.set(hash, bucket);
+    this.#last = result.#last;
+  }
+
   reversed<Result>(project: (key: Key, value: Value) => Result): OrderedMapReverseIterator<Key, Value, Result> {
     return new OrderedMapReverseIterator(this.#entries, this.#last, project, this.meter);
   }

@@ -3665,6 +3665,26 @@ extension, integration, or validation requirement is missing or unverified.
   lookup-key conversion, set algebra and bound set methods remain unfinished.
   Automatic builtin registration, full object construction, suspension, complete
   accounting and public SDK/safe-fs integration also remain unfinished.
+- Added exact mutable-set intersection (`&`) and in-place intersection (`&=`)
+  using cached-hash storage. Results retain smaller-operand members, choosing
+  the right operand on equal sizes; self intersections copy without guest
+  hashing/equality. Foreign hash-policy domains use destination hashes.
+  In-place computation precedes publication, preserves receiver/storage
+  identity, and precharges the callback-free transfer. Failure does not publish
+  partial results (independent callback mutations are not rolled back).
+  A failing follow-up test exposed self-intersection restarting live iterators;
+  self publication now preserves those cursors.
+- Intersection verification: missing behavior was reproduced with failing tests;
+  3,552 tests in 248 files pass, along with scoped lint, source typecheck and selected workspace
+  build. A CPython 3.14 audit matched 1,800 binary/in-place cases for contents,
+  retained member types and receiver identity, ignoring set iteration order.
+  The 1,800-case mutable-set construction/comparison/update regression audit passes.
+  Tests cover foreign hash policies, cancellation, transfer allocation failure,
+  failure atomicity and adopted storage integrity. Distinct-operand,
+  size-preserving in-place changes still use host live-storage cursor behavior,
+  not CPython table-position semantics; iterator parity remains unfinished.
+  Union, difference, symmetric difference, frozen sets, view algebra and bound
+  set methods remain pending, alongside the broader runtime/integration scope.
 - Next:
   remaining scope/compiler audits, interpreter runtime,
   resource controls, runtime modules, and safe-fs integration. Parsing and static

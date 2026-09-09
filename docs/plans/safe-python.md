@@ -4915,6 +4915,20 @@ extension, integration, or validation requirement is missing or unverified.
   floating formatting and production percent assembly/dispatch remain unfinished.
   Full representation builtins, suspended execution, complete accounting and
   SDK/safe-fs integration remain outstanding.
+- Added the concrete runtime adapter for integer percent conversion. It extracts
+  native int/bool/exact-float payloads, preserves explicit guest hook ownership,
+  and supports guest subclass payloads, conversion slots, type names, TypeError
+  classification and warning policies. It never probes instance attributes,
+  parses numeric text/bytes or coerces host objects. Guest hook configurations
+  require a warning handler; native-only contexts cannot produce slot warnings.
+- Six new tests first failed for the missing adapter. All 4,358 tests in 344
+  files pass. CPython comparisons using actual RuntimeValues match 3,000 text
+  and 3,000 bytes-format integer conversions, including slot order, errors,
+  Unicode type diagnostics and warning filters. Source typecheck, scoped lint
+  and selected workspace build pass. Full guest slot registration, character
+  and floating formatting, general representations and production percent
+  assembly/binary dispatch remain unfinished. Suspended execution, complete
+  resource accounting and SDK/safe-fs integration also remain outstanding.
 - Next:
   remaining scope/compiler audits, interpreter runtime,
   resource controls, runtime modules, and safe-fs integration. Parsing and static

@@ -6323,6 +6323,18 @@ extension, integration, or validation requirement is missing or unverified.
   mismatches for the compiler audit. Numeric IDs are intentionally opaque rather
   than reproducing process-specific addresses. Automatic identity/builtin policy
   assembly and broader interpreter/object/SDK/safe-fs work remain unfinished.
+- Extended per-compilation pooling to immutable tuple displays and unary
+  integer/float constants. An iterative postorder walk keys nested tuples by
+  typed constant records, preserving bool/int/float distinctions and signed zero
+  without guest equality or global interning. Compiled functions retain their
+  originating pool; mutable and dynamic displays still execute normally.
+- Eight regression cases cover repeated/nested constants, dynamic exclusions,
+  typed tuple keys, undefined factory values and boolean inversion's runtime
+  warning policy. All 4,961 tests in 433 files pass. All 53 identity comparisons
+  now match CPython, resolving the two previously recorded pooling mismatches;
+  another 272 compiled constant-pooling comparisons match. Typecheck, scoped lint and selected
+  workspace build pass. General constant folding, automatic builtin/object
+  assembly and broader interpreter/SDK/safe-fs integration remain unfinished.
 - Next:
   remaining scope/compiler audits, interpreter runtime,
   resource controls, runtime modules, and safe-fs integration. Parsing and static

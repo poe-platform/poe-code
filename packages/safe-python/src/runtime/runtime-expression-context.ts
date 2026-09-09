@@ -33,7 +33,7 @@ import type { IterationContext } from "./protocol-iterator.js";
  */
 export type RuntimeExpressionBindings = Pick<ExpressionContext<RuntimeValue>,
   "load" | "store" | "beginCall" | "createLambda"> &
-  Partial<Pick<ExpressionContext<RuntimeValue>, "attribute" | "literal" | "formattedString" | "truth">> &
+  Partial<Pick<ExpressionContext<RuntimeValue>, "attribute" | "literal" | "constants" | "formattedString" | "truth">> &
   { readonly formatting?: FormatContext<RuntimeValue>;
     readonly iteration?: IterationContext<RuntimeValue>;
     /** Prepare type-level numeric addition slots for the evaluated pair.
@@ -58,6 +58,7 @@ export function createRuntimeExpressionContext(values: RuntimeValues, bindings: 
   const unary = { values, warn: bindings.warn.bind(bindings) };
   const formatting = bindings.formatting ?? createRuntimeFormatContext(values, meter, { defaultRepr() { throw new UnsupportedExpressionError("interpolated-string"); } });
   const context: ExpressionContext<RuntimeValue> = {
+    constants: bindings.constants,
     literal: bindings.literal?.bind(bindings) ?? values.literal.bind(values),
     boolean: values.boolean.bind(values),
     tuple: items => values.tuple(items),

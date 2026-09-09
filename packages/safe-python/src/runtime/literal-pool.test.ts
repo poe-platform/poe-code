@@ -7,6 +7,30 @@ import { RuntimeValues } from "./runtime-values.js";
 const budget = () => new ExecutionBudget({ maxSteps: 10000, maxAllocatedBytes: 100000 });
 
 describe("compiled scalar literal pools", () => {
+  it("merges nested tuple constants without conflating element types or signed zero", () => {
+    const body = analyzeModule('a=((1,),-10)\nb=((1,),-10)\nc=(True,)\nd=(1.0,)\ne=(0.0,)\nf=(-0.0,)').module.body;
+    const meter = budget(), values = new RuntimeValues(meter);
+    const pool = compileLiteralPool(body, values.literal.bind(values), meter, values.tuple.bind(values));
+    const constants = body.map(statement => {
+      if (statement.kind !== "assignment") throw new Error("expected assignment");
+      return pool.folded!.get(statement.value);
+    });
+    expect(constants.every(value => value?.kind === "tuple")).toBe(true);
+    expect(constants[0]).toBe(constants[1]);
+    expect(new Set(constants).size).toBe(5);
+  });
+  it("keeps boolean inversion on the runtime path for warning policy", () => {
+    const body = analyzeModule('a=(~True,)').module.body;
+    const pool = compileLiteralPool(body, () => undefined, budget(), () => undefined);
+    expect(pool.folded!.size).toBe(0);
+  });
+  it("keys tuples by typed constants even when factories return undefined", () => {
+    let tuples = 0;
+    const pool = compileLiteralPool(analyzeModule('a=(1,)\nb=(1,)\nc=(True,)\nd=(1.0,)').module.body,
+      () => undefined, budget(), () => { tuples++; return undefined; });
+    expect(tuples).toBe(3);
+    expect(pool.folded!.size).toBe(4);
+  });
   it("merges equal typed values but not different types", () => {
     let allocations = 0;
     const pool = compileLiteralPool(analyzeModule('a=1000\nb=1000\nc=1000.0\nd=True\ne=b"abc"\nf="abc"').module.body,

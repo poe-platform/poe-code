@@ -107,6 +107,7 @@ export function createRuntimeFrameBody(program: CompiledProgram<RuntimeValue>, c
     const definitions = createRuntimeFunctionDefinitions({ functions }, definitionBindings, values, meter);
     const classDefinitions = createRuntimeClassDefinitions({ classFunctions }, { ...definitionBindings, decorate: definitions.decorate.bind(definitions) }, values, meter);
     const expressions = createRuntimeExpressionContext(values, {
+      constants: literals?.folded,
       literal: literals === null ? undefined : node => {
         meter.checkpoint();
         if (!literals.has(node)) throw new Error("literal is missing from originating compiled code");

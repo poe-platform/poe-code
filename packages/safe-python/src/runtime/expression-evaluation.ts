@@ -36,6 +36,7 @@ export interface SliceValues<Value> {
  * name resolution, descriptor/operator dispatch and metering inside each call.
  */
 export interface ExpressionContext<Value> {
+  readonly constants?: ReadonlyMap<Expression, Value>;
   formattedString?: FormattedStringContext<Value>;
   literal(node: Extract<Expression, { kind: "literal" }>): Value;
   load(name: string): Value;
@@ -111,6 +112,7 @@ export function evaluateExpression<Value>(expression: Expression, context: Expre
     if (typeof task === "function") { task(); continue; }
     const { node, test } = task;
     knownTruth = undefined;
+    if (context.constants?.has(node)) { value = context.constants.get(node)!; continue; }
     switch (node.kind) {
       case "interpolated-string": {
         if (node.flavor !== "formatted" || context.formattedString === undefined) throw new UnsupportedExpressionError(node.kind);

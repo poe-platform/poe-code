@@ -38,7 +38,7 @@ export function compileProgram<Value>(
   if (analysis.scopes.scope.kind !== "module" || analysis.scopes.scope.node !== analysis.module)
     throw new Error("program compilation requires a matching analyzed module scope");
   const module: CompiledModule<Value> = { scope: analysis.scopes, ...compileSuite(analysis.module.body, options.stripDocstring, constants, meter) };
-  const literals = constants.literal ? compileLiteralPool(analysis.module.body, constants.literal.bind(constants), meter) : undefined;
+  const literals = constants.literal ? compileLiteralPool(analysis.module.body, constants.literal.bind(constants), meter, constants.tuple.bind(constants)) : undefined;
   const functions = new Map<FunctionNode, CompiledFunction<Value>>();
   const classes = new Map<Extract<Statement, { kind: "class" }>, CompiledClassBody<Value>>();
   const classFunctions = new Map<Extract<Statement, { kind: "class" }>, CompiledFunction<Value>>();

@@ -39,6 +39,18 @@ function fixture(source: string, maxSteps = 100000, signal?: AbortSignal) {
 
 describe("assembled concrete runtime programs", () => {
   it.each([
+    "a=(1,)\nb=(1,)\nresult=a is b\n",
+    "a=-10\nb=-10\nresult=a is b\n",
+    "def f():\n return ((1,),-10)\nresult=f() is f()\n"
+  ])("reuses folded immutable constants from the originating compilation: %s", source => {
+    const state = fixture(source); state.run();
+    expect(state.globals.get("result")).toBe(state.values.true);
+  });
+  it.each(["[1]", "(x,)"])("does not pool mutable or dynamic displays: %s", expression => {
+    const state = fixture(`x=1\ndef f():\n return ${expression}\nresult=f() is f()\n`); state.run();
+    expect(state.globals.get("result")).toBe(state.values.false);
+  });
+  it.each([
     ["result=[*guest]\n", true], ["result=(*guest,)\n", true],
     ["def f(*args):\n return args\nresult=f(0,*guest)\n", true],
     ["def f(*args):\n return args\nresult=f(*guest)\n", false]

@@ -1,6 +1,7 @@
 import { isFatalSandboxError, type Budget, type CompileOwner } from "../budget.js";
 import { guestProxyStates } from "../guest-proxy.js";
 import { sandboxIsExtensible, sandboxPreventExtensions } from "../guest-proxy-extensibility.js";
+import { sandboxGetPrototypeOf, sandboxSetPrototypeOf } from "../guest-proxy-prototype.js";
 import { getGeneratorProperties } from "../generator-properties.js";
 import { accessorAdapter, accessorClosure, readPropertyDescriptor, retainedAccessorClosures } from "../accessors.js";
 import { invokeBuiltinClosure } from "../builtin-call.js";
@@ -186,7 +187,9 @@ export function createObjectArrayGlobals(options: {
         }),
         getPrototypeOf: createSandboxClosure({
           sandbox: true,
-          call: ([value]) => {
+          call: ([value], context) => {
+            if (typeof value === "object" && value !== null && guestProxyStates.has(value))
+              return sandboxGetPrototypeOf(value, options.budget, context);
             if (isSandboxMap(value) || isSandboxSet(value))
               return getSandboxPrototype(value, options.budget) as SandboxValue;
             if (value !== null && value !== undefined && typeof value !== "object")
@@ -198,12 +201,18 @@ export function createObjectArrayGlobals(options: {
         }),
         setPrototypeOf: createSandboxClosure({
           sandbox: true,
-          call: ([value, prototype]) => {
+          call: ([value, prototype], context) => {
             if (value === null || value === undefined)
               throw new TypeError("Cannot set the prototype of null or undefined.");
             if (prototype !== null && typeof prototype !== "object")
               throw new TypeError("Prototype must be an object or null.");
             if (typeof value !== "object") return value;
+            if (guestProxyStates.has(value)) {
+              return Promise.resolve(sandboxSetPrototypeOf(value, prototype, options.budget, context)).then(success => {
+                if (!success) throw new TypeError("Proxy refused setPrototypeOf.");
+                return value;
+              });
+            }
             objectProperties(value, true);
             if (prototype !== null) objectProperties(prototype);
             setSandboxPrototype(value as object, prototype as object | null, options.budget);

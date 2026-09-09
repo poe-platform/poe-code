@@ -2,10 +2,11 @@ import { PythonRuntimeError } from "./error.js";
 import type { ExecutionMeter } from "./execution-budget.js";
 import { CodePointString } from "./code-point-string.js";
 import { runtimeIntegerIndex } from "./runtime-integer-index.js";
+import type { IntegerIndexContext } from "./index-protocol.js";
 import { runtimeLength } from "./runtime-length.js";
 import type { BuiltinFunctionValue, RuntimeValue, RuntimeValues } from "./runtime-values.js";
 
-export function createRuntimeBytesHexMethod(receiver: Extract<RuntimeValue, { kind: "bytes" }>, values: RuntimeValues, meter: ExecutionMeter): BuiltinFunctionValue {
+export function createRuntimeBytesHexMethod(receiver: Extract<RuntimeValue, { kind: "bytes" }>, values: RuntimeValues, meter: ExecutionMeter, context?: IntegerIndexContext<RuntimeValue>): BuiltinFunctionValue {
   meter.checkpoint(1, 64);
   return values.builtinFunction({
     name: "hex",
@@ -23,7 +24,7 @@ export function createRuntimeBytesHexMethod(receiver: Extract<RuntimeValue, { ki
         if (positional.length >= position) throw new PythonRuntimeError("TypeError", `argument for hex() given by name ('${label}') and position (${position})`);
         if (label === "sep") separator = value; else grouping = value;
       }
-      const group = grouping === undefined ? 1n : runtimeIntegerIndex(grouping, meter);
+      const group = grouping === undefined ? 1n : runtimeIntegerIndex(grouping, meter, context);
       if (BigInt.asIntN(32, group) !== group) throw new PythonRuntimeError("OverflowError", "Python int too large to convert to C int");
       let point: number | null = null;
       if (separator !== undefined) {

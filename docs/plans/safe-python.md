@@ -6639,6 +6639,14 @@ extension, integration, or validation requirement is missing or unverified.
   overflow) and 84 split/pad comparisons match. Typecheck and selected workspace
   build pass. Remaining native protocols, automatic object/builtin assembly and
   broader interpreter/SDK/safe-fs integration remain unfinished.
+- Connected bytes.hex grouping to guest integer-index conversion, retaining
+  signed C-int bounds and conversion before separator length/type/ASCII checks.
+- Two compiled regressions verify positive/negative keyword grouping. All 5,115
+  tests in 440 files pass; 30 CPython comparisons match output/errors/traces
+  across grouping direction, zero, signed-width endpoints/overflow and invalid
+  separators. Typecheck, scoped lint and selected workspace build pass.
+  Remaining native protocols, automatic object/builtin assembly and broader
+  interpreter/SDK/safe-fs integration remain unfinished.
 - Next:
   remaining scope/compiler audits, interpreter runtime,
   resource controls, runtime modules, and safe-fs integration. Parsing and static

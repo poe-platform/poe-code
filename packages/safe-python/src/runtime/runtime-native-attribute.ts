@@ -91,7 +91,7 @@ export function runtimeNativeAttribute(receiver: RuntimeValue, name: string, val
   if ((receiver.kind === "str" || receiver.kind === "bytes") && (name === "center" || name === "ljust" || name === "rjust" || name === "zfill")) return createRuntimePadMethod(receiver, name, values, meter, methods?.integerIndex);
   if (receiver.kind === "bytes") {
     if (name === "fromhex") return createRuntimeBytesFromhexMethod(values, meter);
-    if (name === "hex") return createRuntimeBytesHexMethod(receiver, values, meter);
+    if (name === "hex") return createRuntimeBytesHexMethod(receiver, values, meter, methods?.integerIndex);
     if (name === "maketrans") return createRuntimeBytesMaketransMethod(values, meter);
     if (name === "translate") return createRuntimeBytesTranslateMethod(receiver, values, meter);
     if (name === "replace") return createRuntimeBytesReplaceMethod(receiver, values, meter, methods?.integerIndex);

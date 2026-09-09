@@ -44,6 +44,13 @@ describe("Python function argument binding", () => {
     expect(() => bindArguments("f", signature, [], new Map([["K", 1]]))).toThrow("f() got an unexpected keyword argument 'K'");
   });
 
+  it("suggests similar eligible keyword parameters", () => {
+    const signature: CallParameter[] = [{ name: "k0", kind: "keyword-only" }];
+    expect(() => bindArguments("f", signature, [], new Map([["kw", 1]]))).toThrow("f() got an unexpected keyword argument 'kw'. Did you mean 'k0'?");
+    const positionalOnly: CallParameter[] = [{ name: "keyword", kind: "positional-only" }];
+    expect(() => bindArguments("f", positionalOnly, [1], new Map([["keywrod", 2]]))).toThrow(/^f\(\) got an unexpected keyword argument 'keywrod'$/);
+  });
+
   it("formats missing positional and keyword-only argument lists", () => {
     const signature: CallParameter[] = ["a", "b", "c"].map(name => ({ name, kind: "positional-or-keyword" }));
     expect(() => bindArguments("f", signature, [], new Map())).toThrow("f() missing 3 required positional arguments: 'a', 'b', and 'c'");

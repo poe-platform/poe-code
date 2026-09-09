@@ -1192,6 +1192,25 @@ extension, integration, or validation requirement is missing or unverified.
   Call-expression evaluation/unpacking, duplicate keyword assembly, non-string
   and guest str-subclass key handling, suggestions, guest collection allocation
   accounting, actual function/frame objects and evaluator wiring remain pending.
+- Closed the unexpected-keyword suggestion gap found in the preceding increment.
+  Added a reusable diagnostic-name matcher with CPython's weighted UTF-8 byte
+  edit distance, ASCII case-change cost, first-candidate tie resolution, 750-item
+  cutoff, and 40-byte nonmatching-region cutoff after shared affix trimming.
+  The binder considers only positional-or-keyword and keyword-only names, not
+  positional-only or variadic names. Unencodable surrogate strings suppress the
+  optional hint; resource-limit failures remain fatal. Encoding reservations,
+  the bounded distance workspace, and traversal/distance work are metered.
+- Suggestion validation: the previously missing keyword hint was reproduced in a
+  failing binder test before changes; the new module also failed before creation.
+  All 1,761 tests in 82 files pass. The full 7,560-case argument-binding oracle
+  now matches exact messages WITHOUT stripping suggestions, and 6,000 additional
+  multilingual/random name cases matched CPython's _suggestions implementation.
+  Scoped lint, source typecheck and dependency build passed. Reference:
+  https://github.com/python/cpython/blob/v3.14.0/Python/suggestions.c and ceval.c
+  unexpected-keyword handling. UTF-8 reservations conservatively charge three
+  bytes per host UTF-16 unit; host container/string overhead remains outside those
+  explicit buffer charges. Guest argument assembly, function objects/frames and
+  evaluator execution remain pending; these diagnostics do not establish them.
 - Next:
   remaining scope/compiler audits, interpreter runtime,
   resource controls, runtime modules, and safe-fs integration. Parsing and static

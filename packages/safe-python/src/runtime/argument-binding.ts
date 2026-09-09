@@ -1,6 +1,7 @@
 import type { Parameter } from "../ast.js";
 import { PythonRuntimeError } from "./error.js";
 import type { ExecutionMeter } from "./execution-budget.js";
+import { suggestName } from "./name-suggestion.js";
 
 export type CallParameter = Pick<Parameter, "name" | "kind">;
 
@@ -56,7 +57,10 @@ export function bindArguments<Value>(
         if (candidate.kind === "positional-only" && keywords.has(candidate.name)) conflicts.push(candidate.name);
       }
       if (conflicts.length) throw new PythonRuntimeError("TypeError", `${functionName}() got some positional-only arguments passed as keyword arguments: '${conflicts.join(", ")}'`);
-      throw new PythonRuntimeError("TypeError", `${functionName}() got an unexpected keyword argument '${name}'`);
+      meter?.checkpoint(keywordParameters.size);
+      const suggestion = suggestName(name, [...keywordParameters.keys()], meter);
+      const hint = suggestion === undefined ? "" : `. Did you mean '${suggestion}'?`;
+      throw new PythonRuntimeError("TypeError", `${functionName}() got an unexpected keyword argument '${name}'${hint}`);
     }
   }
   if (!hasVarPositional && positional.length > positionalParameters.length) {

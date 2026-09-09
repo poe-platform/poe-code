@@ -1495,6 +1495,23 @@ extension, integration, or validation requirement is missing or unverified.
   ordinary except-clause rules. Concrete class metadata, raise normalization,
   exception-group matching and complete temporary-set heap accounting remain
   pending/adapter-owned, along with the remaining interpreter work.
+- Added reusable handled-exception state with nested host-only enter/restore
+  scopes and idempotent restoration. Automatic context linking operates after
+  raise normalization, preserves explicit cause/suppression, leaves self-raises
+  and no-active-exception cases unchanged, and overwrites previous implicit context
+  when appropriate. Constant-space Floyd traversal removes an edge that would
+  create a new cycle and terminates on unrelated pre-existing cycles. Internal
+  metadata access bypasses guest attribute hooks; reads/writes are step-metered.
+- Exception-state validation: missing-module red suite preceded implementation;
+  all 1,981 tests in 97 files pass. Coverage includes nested isolated state,
+  restoration, graph cycles, long-chain budgets and statement-finalizer integration.
+  CPython matched every four-exception context graph across all raised/active
+  choices, including no active exception: 12,500 cases comparing all resulting
+  context links plus preserved causes and suppression flags. Scoped lint, source
+  typecheck and selected build passed. Reference: CPython v3.14.0 Python/errors.c
+  implicit context handling in _PyErr_SetObject. Restore callbacks require LIFO
+  use; suspension/context switching, concrete guest exception storage and complete
+  scope-closure allocation accounting remain pending with the full interpreter.
 - Next:
   remaining scope/compiler audits, interpreter runtime,
   resource controls, runtime modules, and safe-fs integration. Parsing and static

@@ -617,8 +617,8 @@ export function validateGuestHeapNode(raw: unknown, heap: Record<string, unknown
     }
     state(node.state);
   } else if (node.kind === "iterator-helper") {
-    fields(node, ["kind", "method", "status", "callback", "remaining", "index", "state"], ["outer", "inner"]);
-    if (!["map", "filter", "take", "drop", "flatMap"].includes(String(node.method)) ||
+    fields(node, ["kind", "method", "status", "callback", "remaining", "index", "state"], ["outer", "inner", "iterables"]);
+    if (!["map", "filter", "take", "drop", "flatMap", "concat"].includes(String(node.method)) ||
         !["start", "yield", "done"].includes(String(node.status))) throw new TypeError("Invalid iterator helper mode.");
     integer(node.index);
     if (node.remaining !== "Infinity" && (typeof node.remaining !== "number" || !Number.isInteger(node.remaining) || node.remaining < 0))
@@ -630,10 +630,27 @@ export function validateGuestHeapNode(raw: unknown, heap: Record<string, unknown
       const target = reference(cursor.iterator);
       if (target.kind === "symbol" || target.kind === "scope-frame") throw new TypeError("Invalid helper iterator.");
     }
-    if ((node.status === "done") === Object.hasOwn(node, "outer") ||
+    if (node.method === "concat") {
+      if (node.remaining !== 0 || node.index !== 0 || Object.hasOwn(node,"inner") ||
+          Object.hasOwn(node,"outer") !== (node.status === "yield") ||
+          Object.hasOwn(node,"iterables") !== (node.status !== "done"))
+        throw new TypeError("Invalid concat cursor state.");
+      if (Object.hasOwn(node,"iterables")) {
+        const inputs=array(node.iterables);
+        if (inputs.length > maxArrayLength) throw new TypeError("Invalid concat input count.");
+        for (const entry of inputs) {
+          const input=record(entry);
+          fields(input,["iterable","open"]);
+          const target=reference(input.iterable);
+          if (target.kind === "symbol" || target.kind === "scope-frame") throw new TypeError("Invalid concat iterable.");
+          callable(input.open);
+        }
+      }
+    } else if (Object.hasOwn(node,"iterables")) throw new TypeError("Unexpected concat inputs.");
+    if ((node.method !== "concat" && (node.status === "done") === Object.hasOwn(node, "outer")) ||
         (Object.hasOwn(node, "inner") && (node.method !== "flatMap" || node.status !== "yield")))
       throw new TypeError("Invalid iterator helper cursor state.");
-    if (node.status === "done" || node.method === "take" || node.method === "drop") {
+    if (node.status === "done" || node.method === "take" || node.method === "drop" || node.method === "concat") {
       if (!absent(node.callback)) throw new TypeError("Unexpected iterator helper callback.");
     } else {
       if (absent(node.callback)) throw new TypeError("Missing iterator helper callback.");

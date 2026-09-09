@@ -877,6 +877,11 @@ export function measureSandboxData(
     }
     const helperState = iteratorHelperStates.get(value);
     if (helperState !== undefined) {
+      for (const input of helperState.iterables ?? []) {
+        usage += 1;
+        visit(input.iterable, depth + 1);
+        visit(input.open, depth + 1);
+      }
       for (const record of [helperState.outer, helperState.inner]) {
         if (record !== undefined) {
           visit(record.iterator, depth + 1);

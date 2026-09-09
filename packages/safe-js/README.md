@@ -663,6 +663,12 @@ retain the method's originating Object prototype, including exhausted results
 and borrowed SDK calls. Yielded values are not re-prototyped.
 Lazy iterator helpers preserve the called next/return method's Object
 prototype through yielding, early return, exhaustion and public replay.
+`Iterator.concat(...inputs)` captures each input's iterator method immediately,
+then opens and consumes inputs sequentially on demand. Early return closes
+only the active input. Unopened inputs and active cursors participate in data
+accounting and snapshot recovery. Primitive inputs, including strings, are
+rejected; pass an iterable object instead. `Iterator.zip` and `zipKeyed` remain
+unsupported.
 `Promise.any` rejection errors expose a writable, configurable, non-enumerable
 `errors` property, including empty input and public replay. Rejection elements
 retain their identity.

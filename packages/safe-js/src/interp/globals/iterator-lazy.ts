@@ -6,13 +6,13 @@ import { closeIterator, type SandboxIterator } from "../iteration.js";
 import { iteratorHelperStates, type IteratorHelperState } from "../iterator-helper.js";
 import type { IteratorWrapperState } from "../iterator-wrapper.js";
 import { registerBuiltinIdentities } from "../intrinsics.js";
-import { createIntrinsicObject, registerIntrinsicObject, setSandboxPrototype } from "../object-model.js";
+import { createIntrinsicObject, materializeFunctionProperties, registerIntrinsicFunction, registerIntrinsicObject, setSandboxPrototype } from "../object-model.js";
 import { retainValues } from "../resources.js";
 import { createIteratorResult } from "../iterator-result.js";
 import { sandboxNumber } from "../string-coercion.js";
 import { createSandboxClosure, isSandboxClosure, type SandboxCallContext, type SandboxClosure, type SandboxObject, type SandboxValue } from "../values.js";
 
-export function installLazyIteratorHelpers(common: SandboxObject,budget: Budget): void {
+export function installLazyIteratorHelpers(common: SandboxObject,budget: Budget,constructor: SandboxClosure): void {
   const prototype: SandboxObject=createIntrinsicObject();
   setSandboxPrototype(prototype,common);
   Object.defineProperty(prototype,Symbol.toStringTag,{value:"Iterator Helper",configurable:true});
@@ -33,12 +33,27 @@ export function installLazyIteratorHelpers(common: SandboxObject,budget: Budget)
               try {await closeIterator(adapter(state.inner,context))}
               catch(error) {if (!isFatalSandboxError(error)) await closeIterator(adapter(outer,context),true);throw error}
             }
-            await closeIterator(adapter(outer,context));
+            if (outer !== undefined) await closeIterator(adapter(outer,context));
             complete(state);
             return createIteratorResult(undefined,true,budget);
           }
           while (true) {
             budget.visitNode();
+            if (state.method === "concat") {
+              if (state.outer === undefined) {
+                const input=state.iterables?.[0];
+                if (input === undefined) {complete(state);return createIteratorResult(undefined,true,budget)}
+                const iterator=await invokeBuiltinClosure(input.open,[],budget,context,input.iterable);
+                if (iterator === null || typeof iterator !== "object") throw new TypeError("Iterator must be an object.");
+                state.outer={iterator,next:undefined};
+                state.outer.next=await context.getProperty!(iterator,"next");
+                state.iterables!.shift();
+              }
+              const result=await step(state.outer,context);
+              if (result.done) {state.outer=undefined;continue}
+              state.status="yield";
+              return result;
+            }
             if (state.inner !== undefined) {
               let innerResult;
               try {innerResult=await step(state.inner,context)}
@@ -108,7 +123,29 @@ export function installLazyIteratorHelpers(common: SandboxObject,budget: Budget)
       }
     })});
   }
-  registerBuiltinIdentities(budget,{"%IteratorPrototype%":common,"%IteratorHelperPrototype%":prototype});
+  const concat=createSandboxClosure({guest:true,sandbox:true,name:"concat",length:0,call:async (items,context)=>{
+    context=callContext(context);
+    const helper: SandboxObject=Object.create(null);
+    const iterables: NonNullable<IteratorHelperState["iterables"]>=[];
+    iteratorHelperStates.set(helper,{method:"concat",status:"start",iterables,callback:undefined,remaining:0,index:0});
+    setSandboxPrototype(helper,prototype,budget);
+    const release=retainValues(budget,()=>[helper,...items]);
+    try {
+      for (const iterable of items) {
+        budget.visitNode();
+        if (iterable === null || typeof iterable !== "object") throw new TypeError("Iterator.concat inputs must be objects.");
+        const open=await context.getProperty!(iterable,Symbol.iterator);
+        if (!isSandboxClosure(open)) throw new TypeError("Iterator.concat inputs must be iterable.");
+        iterables.push({iterable,open});
+        createDataCheckpoint(budget,context)(helper,0,true);
+      }
+      createDataCheckpoint(budget,context)(helper,0,true);
+      return helper;
+    } finally {release()}
+  }});
+  Object.defineProperty(materializeFunctionProperties(constructor),"concat",{value:concat,writable:true,configurable:true});
+  registerBuiltinIdentities(budget,{Iterator:constructor,"%IteratorPrototype%":common,"%IteratorHelperPrototype%":prototype});
+  registerIntrinsicFunction(budget,concat);
   registerIntrinsicObject(budget,prototype);
   registerIntrinsicObject(budget,common);
 
@@ -152,5 +189,6 @@ function complete(state: IteratorHelperState): void {
   state.status="done";
   state.outer=undefined;
   state.inner=undefined;
+  state.iterables=undefined;
   state.callback=undefined;
 }

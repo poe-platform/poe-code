@@ -122,6 +122,7 @@ export type GuestHeapNode<T> =
   | { kind: "guest-segments"; segmenter: T; input: string; index?: number; state: GuestObjectState<T> }
   | { kind: "iterator-helper"; method: IteratorHelperState["method"]; status: "start" | "yield" | "done";
       outer?: { iterator: T; next: T }; inner?: { iterator: T; next: T }; callback: T;
+      iterables?: Array<{ iterable: T; open: T }>;
       remaining: number | "Infinity"; index: number; state: GuestObjectState<T> }
   | { kind: "iterator-wrapper"; iterator: T; next: T; state: GuestObjectState<T> }
   | { kind: "module-namespace"; entries: Array<[string,T]> }
@@ -374,6 +375,7 @@ export function captureGuestHeapNode<T>(value: object, encode: (value: unknown) 
     return { kind: "iterator-helper", method: helper.method, status: helper.status,
       ...(helper.outer === undefined ? {} : { outer: { iterator: encode(helper.outer.iterator), next: encode(helper.outer.next) } }),
       ...(helper.inner === undefined ? {} : { inner: { iterator: encode(helper.inner.iterator), next: encode(helper.inner.next) } }),
+      ...(helper.iterables === undefined ? {} : { iterables: helper.iterables.map(input=>({iterable:encode(input.iterable),open:encode(input.open)})) }),
       callback: encode(helper.callback), remaining: helper.remaining === Infinity ? "Infinity" : helper.remaining,
       index: helper.index, state: captureObjectState(value, encode)! };
   }

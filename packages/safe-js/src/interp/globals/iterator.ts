@@ -81,7 +81,7 @@ export function createIteratorGlobal(budget: Budget): SandboxClosure {
   registerIntrinsicFunction(budget, dispose);
   installIteratorFrom(constructor,budget);
   installIteratorConsumers(prototype,budget);
-  installLazyIteratorHelpers(prototype,budget);
+  installLazyIteratorHelpers(prototype,budget,constructor);
   registerIntrinsicFunction(budget,constructor);
   completeIntrinsicObjectInitialization(budget, prototype);
   registerIntrinsicObject(budget,prototype);

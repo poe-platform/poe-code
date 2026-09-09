@@ -1519,6 +1519,11 @@ function restoreHeapValue(id: number, state: RestoreState): RuntimeSnapshotValue
         method: serialized.method, status: serialized.status,
         outer: serialized.outer === undefined ? undefined : cursor(serialized.outer),
         inner: serialized.inner === undefined ? undefined : cursor(serialized.inner),
+        iterables: serialized.iterables?.map(input=>{
+          const open=deserializeValue(input.open,state);
+          if (!isSandboxClosure(open)) throw new TypeError("Invalid concat open method.");
+          return {iterable:deserializeValue(input.iterable,state) as SandboxValue,open};
+        }),
         callback: deserializeValue(serialized.callback, state) as SandboxValue,
         remaining: serialized.remaining === "Infinity" ? Infinity : serialized.remaining,
         index: serialized.index

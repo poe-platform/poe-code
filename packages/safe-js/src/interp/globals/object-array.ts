@@ -96,7 +96,8 @@ export function createObjectArrayGlobals(options: {
               ? getOwnEnumerableProperties(value, "key", options.budget, context).then(keys =>
                   allocateReflectionResult(keys, options.budget))
               : allocateReflectionResult(getOwnEnumerableKeys(value), options.budget),
-          name: "keys"
+          name: "keys",
+          length: 1
         }),
         values: createSandboxClosure({
           sandbox: true,
@@ -109,7 +110,8 @@ export function createObjectArrayGlobals(options: {
               : getOwnEnumerableProperties(value, "value", options.budget, context).then((values) =>
                   allocateReflectionResult(values, options.budget)
                 ),
-          name: "values"
+          name: "values",
+          length: 1
         }),
         entries: createSandboxClosure({
           sandbox: true,
@@ -119,7 +121,8 @@ export function createObjectArrayGlobals(options: {
               : getOwnEnumerableProperties(value, "key+value", options.budget, context).then((entries) =>
                   allocateReflectionResult(entries, options.budget, true)
                 ),
-          name: "entries"
+          name: "entries",
+          length: 1
         }),
         hasOwn: createSandboxClosure({
           sandbox: true,
@@ -137,7 +140,8 @@ export function createObjectArrayGlobals(options: {
               ? finish(name)
               : name.then(finish);
           },
-          name: "hasOwn"
+          name: "hasOwn",
+          length: 2
         }),
         getOwnPropertyDescriptor: createSandboxClosure({
           sandbox: true,
@@ -153,7 +157,8 @@ export function createObjectArrayGlobals(options: {
               options.budget
             );
           },
-          name: "getOwnPropertyDescriptor"
+          name: "getOwnPropertyDescriptor",
+          length: 2
         }),
         getOwnPropertyDescriptors: createSandboxClosure({
           sandbox: true,
@@ -184,7 +189,8 @@ export function createObjectArrayGlobals(options: {
               defineOwnDataProperty(descriptors, key, exposePropertyDescriptor(Object.getOwnPropertyDescriptor(properties, key)!, options.budget));
             return allocateProducedSandboxValue(descriptors, options.budget);
           },
-          name: "getOwnPropertyDescriptors"
+          name: "getOwnPropertyDescriptors",
+          length: 1
         }),
         getOwnPropertyNames: createSandboxClosure({
           sandbox: true,
@@ -194,7 +200,8 @@ export function createObjectArrayGlobals(options: {
                 allocateReflectionResult(keys.filter(key => typeof key === "string"), options.budget));
             return allocateReflectionResult(Object.getOwnPropertyNames(reflectionProperties(value)), options.budget);
           },
-          name: "getOwnPropertyNames"
+          name: "getOwnPropertyNames",
+          length: 1
         }),
         getOwnPropertySymbols: createSandboxClosure({
           sandbox: true,
@@ -204,7 +211,8 @@ export function createObjectArrayGlobals(options: {
                 allocateReflectionResult(keys.filter(key => typeof key === "symbol"), options.budget));
             return allocateReflectionResult(ownSandboxSymbolKeys(value), options.budget);
           },
-          name: "getOwnPropertySymbols"
+          name: "getOwnPropertySymbols",
+          length: 1
         }),
         defineProperty: createSandboxClosure({
           sandbox: true,
@@ -220,7 +228,8 @@ export function createObjectArrayGlobals(options: {
             );
             return value;
           },
-          name: "defineProperty"
+          name: "defineProperty",
+          length: 3
         }),
         defineProperties: createSandboxClosure({
           sandbox: true,
@@ -228,7 +237,8 @@ export function createObjectArrayGlobals(options: {
             await definePropertiesFromObject(value, descriptors, options.budget, context);
             return value;
           },
-          name: "defineProperties"
+          name: "defineProperties",
+          length: 2
         }),
         getPrototypeOf: createSandboxClosure({
           sandbox: true,
@@ -242,7 +252,8 @@ export function createObjectArrayGlobals(options: {
             objectProperties(value);
             return getSandboxPrototype(value as object, options.budget) as SandboxValue;
           },
-          name: "getPrototypeOf"
+          name: "getPrototypeOf",
+          length: 1
         }),
         setPrototypeOf: createSandboxClosure({
           sandbox: true,
@@ -263,7 +274,8 @@ export function createObjectArrayGlobals(options: {
             setSandboxPrototype(value as object, prototype as object | null, options.budget);
             return value;
           },
-          name: "setPrototypeOf"
+          name: "setPrototypeOf",
+          length: 2
         }),
         create: createSandboxClosure({
           sandbox: true,
@@ -276,12 +288,14 @@ export function createObjectArrayGlobals(options: {
             }
             return allocateProducedSandboxValue(value, options.budget);
           },
-          name: "create"
+          name: "create",
+          length: 2
         }),
         is: createSandboxClosure({
           sandbox: true,
           call: ([left, right]) => Reflect.apply(Object.is, Object, [left, right]),
-          name: "is"
+          name: "is",
+          length: 2
         }),
         groupBy: createGroupBy(options.budget, "property"),
         fromEntries: createSandboxClosure({
@@ -312,7 +326,8 @@ export function createObjectArrayGlobals(options: {
             }
             return objectFromSandboxEntries(value, iterator, options.budget, context);
           },
-          name: "fromEntries"
+          name: "fromEntries",
+          length: 1
         }),
         preventExtensions: createSandboxClosure({
           sandbox: true,
@@ -328,7 +343,8 @@ export function createObjectArrayGlobals(options: {
             Object.preventExtensions(isSandboxGenerator(value) ? getGeneratorProperties(value) : isSandboxPromise(value) ? getPromiseProperties(value) : isSandboxClosure(value) ? materializeFunctionProperties(value) : isSandboxRegex(value) ? getRegexProperties(value) : isSandboxMap(value) || isSandboxSet(value) ? getCollectionProperties(value) : value);
             return value;
           },
-          name: "preventExtensions"
+          name: "preventExtensions",
+          length: 1
         }),
         isExtensible: createSandboxClosure({
           sandbox: true,
@@ -336,7 +352,8 @@ export function createObjectArrayGlobals(options: {
             typeof value === "object" && value !== null && guestProxyStates.has(value)
               ? sandboxIsExtensible(value, options.budget, context) :
             Object.isExtensible(isSandboxGenerator(value) ? getGeneratorProperties(value) : isSandboxPromise(value) ? getPromiseProperties(value) : isSandboxClosure(value) ? materializeFunctionProperties(value) : isSandboxRegex(value) ? getRegexProperties(value) : isSandboxMap(value) || isSandboxSet(value) ? getCollectionProperties(value) : value),
-          name: "isExtensible"
+          name: "isExtensible",
+          length: 1
         }),
         seal: createSandboxClosure({
           sandbox: true,
@@ -348,7 +365,8 @@ export function createObjectArrayGlobals(options: {
             Object.seal(isSandboxGenerator(value) ? getGeneratorProperties(value) : isSandboxPromise(value) ? getPromiseProperties(value) : isSandboxClosure(value) ? materializeFunctionProperties(value) : isSandboxRegex(value) ? getRegexProperties(value) : isSandboxMap(value) || isSandboxSet(value) ? getCollectionProperties(value) : value);
             return value;
           },
-          name: "seal"
+          name: "seal",
+          length: 1
         }),
         isSealed: createSandboxClosure({
           sandbox: true,
@@ -356,7 +374,8 @@ export function createObjectArrayGlobals(options: {
             typeof value === "object" && value !== null && guestProxyStates.has(value)
               ? testGuestProxyIntegrity(value, "sealed", options.budget, context) :
             Object.isSealed(isSandboxGenerator(value) ? getGeneratorProperties(value) : isSandboxPromise(value) ? getPromiseProperties(value) : isSandboxClosure(value) ? materializeFunctionProperties(value) : isSandboxRegex(value) ? getRegexProperties(value) : isSandboxMap(value) || isSandboxSet(value) ? getCollectionProperties(value) : value),
-          name: "isSealed"
+          name: "isSealed",
+          length: 1
         }),
         freeze: createSandboxClosure({
           sandbox: true,
@@ -371,7 +390,8 @@ export function createObjectArrayGlobals(options: {
 
             return value;
           },
-          name: "freeze"
+          name: "freeze",
+          length: 1
         }),
         isFrozen: createSandboxClosure({
           sandbox: true,
@@ -379,13 +399,15 @@ export function createObjectArrayGlobals(options: {
             typeof value === "object" && value !== null && guestProxyStates.has(value)
               ? testGuestProxyIntegrity(value, "frozen", options.budget, context) :
             Object.isFrozen(isSandboxGenerator(value) ? getGeneratorProperties(value) : isSandboxPromise(value) ? getPromiseProperties(value) : isSandboxClosure(value) ? materializeFunctionProperties(value) : isSandboxRegex(value) ? getRegexProperties(value) : isSandboxMap(value) || isSandboxSet(value) ? getCollectionProperties(value) : value),
-          name: "isFrozen"
+          name: "isFrozen",
+          length: 1
         }),
         assign: createSandboxClosure({
           sandbox: true,
           call: ([target, ...sources], context) =>
             assignSandboxValues(target, sources, options.budget, context),
-          name: "assign"
+          name: "assign",
+          length: 2
         })
       },
       options.budget
@@ -402,17 +424,20 @@ export function createObjectArrayGlobals(options: {
           raw: createSandboxClosure({
             sandbox: true,
             call: (args, context) => stringRaw(args, options.budget, context),
-            name: "raw"
+            name: "raw",
+            length: 1
           }),
           fromCharCode: createSandboxClosure({
             sandbox: true,
             call: (args, context) => stringFromCodes(args, String.fromCharCode, options.budget, context),
-            name: "fromCharCode"
+            name: "fromCharCode",
+            length: 1
           }),
           fromCodePoint: createSandboxClosure({
             sandbox: true,
             call: (args, context) => stringFromCodes(args, String.fromCodePoint, options.budget, context),
-            name: "fromCodePoint"
+            name: "fromCodePoint",
+            length: 1
           })
         }
       },
@@ -428,26 +453,30 @@ export function createObjectArrayGlobals(options: {
             guest: true,
             sandbox: true,
             call: ([value]) => typeof value === "number" && Number.isFinite(value),
-            name: "isFinite"
+            name: "isFinite",
+            length: 1
           }),
           isNaN: createSandboxClosure({
             guest: true,
             sandbox: true,
             call: ([value]) => typeof value === "number" && Number.isNaN(value),
-            name: "isNaN"
+            name: "isNaN",
+            length: 1
           }),
           isInteger: createSandboxClosure({
             guest: true,
             sandbox: true,
             call: ([value]) => typeof value === "number" && Number.isInteger(value),
-            name: "isInteger"
+            name: "isInteger",
+            length: 1
           }),
           ...(options.numericParsers ?? createNumericParsers(options.budget)),
           isSafeInteger: createSandboxClosure({
             guest: true,
             sandbox: true,
             call: ([value]) => typeof value === "number" && Number.isSafeInteger(value),
-            name: "isSafeInteger"
+            name: "isSafeInteger",
+            length: 1
           }),
           MAX_SAFE_INTEGER: Number.MAX_SAFE_INTEGER,
           MIN_SAFE_INTEGER: Number.MIN_SAFE_INTEGER,
@@ -586,8 +615,8 @@ function createArrayGlobal(budget: Budget): SandboxClosure {
   registerIntrinsicObject(budget, unscopables);
   Object.defineProperty(prototype, Symbol.unscopables, { value: unscopables, configurable: true });
   const statics = {
-    isArray: createSandboxClosure({ sandbox: true, name: "isArray", call: ([value]) => sandboxIsArray(value, budget) }),
-    from: createSandboxClosure({ sandbox: true, name: "from", call: (args, context) => arrayFromSandboxValues(args, budget, context) }),
+    isArray: createSandboxClosure({ sandbox: true, name: "isArray", length: 1, call: ([value]) => sandboxIsArray(value, budget) }),
+    from: createSandboxClosure({ sandbox: true, name: "from", length: 1, call: (args, context) => arrayFromSandboxValues(args, budget, context) }),
     fromAsync: createSandboxClosure({ guest: true, sandbox: true, name: "fromAsync", length: 1,
       call: (args, context) => executeAsyncFunction(
         onSuspend => arrayFromSandboxValues(args, budget, context, onSuspend), budget, undefined, context)

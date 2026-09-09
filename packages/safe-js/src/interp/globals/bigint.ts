@@ -37,7 +37,7 @@ export function createBigIntGlobal(budget: Budget) {
       writable: true, configurable: true
     },
     toString: {
-      value: createSandboxClosure({ sandbox: true, name: "toString", length: 1,
+      value: createSandboxClosure({ sandbox: true, name: "toString", length: 0,
         call: async ([radix], context) => {
           const value = primitiveReceiver(context?.thisValue, "bigint") as bigint;
           const base = radix === undefined ? 10 : await sandboxNumber(radix, budget, context);

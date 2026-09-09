@@ -52,3 +52,32 @@ BigInt.prototype.toString reported length 1 instead of native Node 22's 0.
 Check published signatures and explicit length exceptions before implementing
 these as a separate atomic change. Do not infer complete metadata conformance
 from the bounded comparison or silently copy host-specific surfaces.
+
+## Callable metadata implementation
+
+The parser identity and length repair is separately committed as `0b3e4d7c0`.
+For the remaining 32 audited methods, the new regression file first failed all
+32 cases (33130), after each native control confirmed the expected descriptor
+and bound-function lengths. The implementation adds explicit lengths to 22
+Object static methods, two Array statics, three String statics and four Number
+predicates, and changes BigInt.prototype.toString from one to zero.
+
+The published [builtin length rule](https://tc39.es/ecma262/2026/multipage/ecmascript-standard-built-in-objects.html#sec-ecmascript-standard-built-in-objects)
+excludes optional and rest parameters unless a method specifies an exception.
+[BigInt.prototype.toString](https://tc39.es/ecma262/2026/multipage/numbers-and-dates.html#sec-bigint.prototype.tostring)
+has only an optional radix and no length exception. Metadata is declared in
+the factories, not read from mutable host functions. Invocation behavior is
+unchanged.
+
+The focused main-tree selection passed 179 tests in six files (87385), covering
+all new descriptor/bind/public-replay cases, parser identity, String factory
+coercion, Number predicates, BigInt coercion and intrinsic snapshot mutations.
+The isolated candidate is based on `0b3e4d7c0`, staged tree
+`407fb40314f3b1879381f5c7891a2216491ca399`, excluding pending realm and weak
+reference changes. Its same six-file selection independently passed all 179
+tests (18060). The maintained selected build passed 23 tasks and four native
+ESM import checks (98319). All 1,280 tracked SafeJS source blobs matched the
+private index before and after checks. The built CLI screenshot (b22934) was
+visually reviewed: representative Object, Array, String, Number and BigInt
+lengths match the declarations. Scoped lint passed all three changed source/test
+files (93500). These focused checks do not establish full-worktree conformance.

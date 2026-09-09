@@ -666,6 +666,9 @@ properties and later binding operations; explicit null/custom prototypes win.
 independently of a custom prototype supplied for the Error object.
 Promise construction, async returns and `then` results retain their
 originating Promise prototype after cleanup.
+Promise construction honors foreign newTarget default prototypes, including
+bound and Proxy targets and replay. Prototype lookup failures occur before
+the executor is invoked; invalid executors are checked before prototype lookup.
 Borrowed `then`, `resolve` and `reject` calls respect a foreign intrinsic
 constructor instead of allocating in the method's realm.
 Promise aggregate arrays, `allSettled` records and `withResolvers` capability

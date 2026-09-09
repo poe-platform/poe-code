@@ -1,4 +1,5 @@
 import { SandboxError, Budget } from "./budget.js";
+import { getFunctionRealmPrototype } from "./function-realm.js";
 import { guestProxyStates } from "./guest-proxy.js";
 import { callGuestProxy } from "./guest-proxy-call.js";
 import { constructGuestProxy } from "./guest-proxy-construct.js";
@@ -160,7 +161,9 @@ export function createPromiseGlobals(options: { budget: Budget }): PromiseGlobal
       : context.getProperty === undefined
         ? getSandboxDataProperty(context.newTarget, "prototype", options.budget)
         : context.getProperty(context.newTarget, "prototype");
-    const targetPrototype = prototypeValue instanceof Promise ? await prototypeValue : prototypeValue;
+    const candidate = prototypeValue instanceof Promise ? await prototypeValue : prototypeValue;
+    const targetPrototype = candidate !== null && typeof candidate === "object" ? candidate
+      : getFunctionRealmPrototype(context?.newTarget, "Promise", prototype);
     const capability = createPendingPromiseCapability(options.budget, context);
     const pending = capability.promise;
     if (typeof targetPrototype === "object" && targetPrototype !== null && targetPrototype !== prototype)

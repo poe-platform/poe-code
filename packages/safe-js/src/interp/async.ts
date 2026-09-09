@@ -29,7 +29,7 @@ import type { Scope } from "./scope.js";
 import { hoistVarDeclarations } from "./var-hoist.js";
 import { prepareLegacyBlockFunctions } from "./legacy-block-functions.js";
 import { createCoercionContext, createPatternContext } from "./interpreter.js";
-import { getGuestFunctionProperty, markDescriptorObject, materializeFunctionProperties, setSandboxPrototype } from "./object-model.js";
+import { getGuestFunctionProperty, getSandboxPrototype, markDescriptorObject, materializeFunctionProperties, setSandboxPrototype } from "./object-model.js";
 import { generatorPrototypes } from "./generator-prototypes.js";
 import { retainValues, runResources } from "./resources.js";
 import { functionSources, functionStrictness } from "../parse/function-source.js";
@@ -667,6 +667,8 @@ async function bindParameters(
     }
     if (param.type === "RestElement") {
       const rest = args.slice(index);
+      const prototype = getSandboxPrototype(rest, context.budget);
+      if (prototype !== null) setSandboxPrototype(rest, prototype, context.budget);
       context.budget.allocateArrayLength(rest.length);
       const binding = await bindPattern(param, rest, { kind, initialize: true }, scope, createPatternContext(context, scope, evaluateNode));
       if (!binding.ok) {

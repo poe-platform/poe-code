@@ -600,6 +600,8 @@ retain their creation realm, while existing object inputs keep their identity.
 Object and array destructuring rest results also retain their originating
 prototype, including assignment and parameter patterns used by exported
 functions after run cleanup.
+Function rest-parameter arrays retain the function's originating array
+prototype as well, including calls made through exported SDK functions.
 Dates retain their originating prototype after run cleanup, including Dates
 created later by exported closures. Pristine Dates remain copyable as data;
 modified prototype chains reject copying rather than losing guest behavior.

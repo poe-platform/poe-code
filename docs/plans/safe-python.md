@@ -531,6 +531,19 @@ extension, integration, or validation requirement is missing or unverified.
   large-integer/complex comparisons matched acceptance. Scoped lint, source typecheck, and the
   selected workspace build passed. Dynamic-key collisions, structural matching,
   enclosing-scope validation, and interpreter execution remain pending.
+- Added a separate internal statement-context validation pass over module ASTs.
+  Checks return placement, break/continue loop ownership, loop-else boundaries,
+  except-star exits, async-for/with function context, and module-only star imports.
+  Function/class bodies reset enclosing loop and handler state. Loops nested inside
+  an except-star handler can still use their own break/continue. Errors preserve
+  the offending statement position and caller filename.
+- Context validation: the new suite initially failed on the missing validator;
+  all 1,041 package tests pass. A 1,008-case CPython compilation comparison matched
+  acceptance across nested scopes, loops, handlers, and suites. Scoped lint, source
+  typecheck, and the selected workspace build passed. This pass is intentionally
+  separate from syntax parsing; expression
+  placement (yield/await and async generators), symbol resolution, complete module
+  validation orchestration, and execution remain pending.
 - Next:
   compound statements, type aliases, and enclosing-scope validation
   normalization, the complete grammar/parser and evaluator, then runtime modules

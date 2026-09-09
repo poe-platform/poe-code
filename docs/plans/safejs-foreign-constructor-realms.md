@@ -112,3 +112,28 @@ fallback failures for ArrayBuffer, DataView, Uint8Array, Float32Array, and
 BigInt64Array; five explicit custom-prototype controls passed.
 Four built-SDK probes also passed for ordinary functions, base classes, and
 both derived-constructor forms, checking foreign prototype identity and fields.
+
+## Buffer and typed-array follow-up
+
+After `9a8ad4fd9`, ArrayBuffer, DataView and the shared numeric typed-array
+constructor now use the function-realm lookup for primitive/null newTarget
+prototype properties. Buffer and DataView select and retain the fallback
+before allocation; the shared typed-array path retains it through each input
+overload. Explicit custom-object prototypes remain unchanged.
+
+The original 10 failures turned green. An expanded native differential matrix
+covers ArrayBuffer, DataView and all 11 typed-array constructors available in
+the host VM. Separate replay cases include Float16Array (not available in this
+host VM), bound-class targets and replaced constructor global bindings.
+These Float16Array checks verify SafeJS identity and replay, not a native VM
+differential. In total, 225 tests passed across nine focused buffer, typed-array,
+SDK and snapshot files. Scoped lint and TypeScript passed. No full package or
+full snapshot gate has been run for this follow-up.
+
+The maintained workspace closure built 23 workspaces and passed four
+fresh-process import checks. Six built-SDK probes passed for ArrayBuffer,
+DataView, Uint8Array, Float32Array, BigInt64Array and Float16Array with foreign
+bound-class targets. The separate `intl-foreign-newtarget.test.ts` audit then
+reproduced 18 default-prototype failures across nine Intl constructors, with
+nine passing explicit custom-prototype controls. That audit is not included
+in the buffer fix or its passing test count.

@@ -1,4 +1,5 @@
 import type { Budget } from "../budget.js";
+import { getFunctionRealmPrototype } from "../function-realm.js";
 import { arrayBufferDetached, arrayBufferLength, arrayBufferOptions, arrayBufferPrototypes, isSandboxArrayBuffer } from "../array-buffer.js";
 import { accessorAdapter } from "../accessors.js";
 import { createSandboxClosure, isSandboxClosure, type SandboxCallContext, type SandboxClosure, type SandboxObject, type SandboxValue } from "../values.js";
@@ -19,7 +20,7 @@ export function createArrayBufferGlobal(budget: Budget): SandboxClosure {
     guest: true, sandbox: true, name: "ArrayBuffer", length: 1,
     call: () => { throw new TypeError("ArrayBuffer requires new."); },
     construct: async (args, context) => {
-      let selected: unknown;
+      let selected: SandboxValue;
       let current: SandboxValue;
       const callerContext: SandboxCallContext = {
         ...context, stack: context?.stack ?? [], thisValue: undefined,
@@ -47,12 +48,14 @@ export function createArrayBufferGlobal(budget: Budget): SandboxClosure {
         }
         const target = context?.newTarget ?? constructor;
         selected = await bridge.getProperty!(target, "prototype");
+        if (selected === null || typeof selected !== "object")
+          selected = getFunctionRealmPrototype(target, "ArrayBuffer", prototype);
         if (maxByteLength !== undefined && resizeBuffer === undefined)
           throw new TypeError("Resizable ArrayBuffer requires host runtime support.");
         budget.allocateArrayLength(maxByteLength ?? length);
         budget.provisionDataUsage(length + 1)();
         const result = Reflect.construct(ArrayBuffer, [length, maxByteLength === undefined ? undefined : { maxByteLength }]) as ArrayBuffer;
-        setSandboxPrototype(result, selected !== null && typeof selected === "object" ? selected : prototype, budget);
+        setSandboxPrototype(result, selected, budget);
         return result;
       } finally { release(); }
     }

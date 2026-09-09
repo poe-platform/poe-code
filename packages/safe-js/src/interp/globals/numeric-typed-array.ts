@@ -1,4 +1,5 @@
 import type { Budget } from "../budget.js";
+import { getFunctionRealmPrototype } from "../function-realm.js";
 import {
   checkTypedArrayAllocation,
   typedArrayNumber,
@@ -93,7 +94,8 @@ export function createNumericTypedArrayGlobal(budget: Budget, nativePrototype = 
           };
           candidate = await sandboxGetProperty(newTarget, "prototype", newTarget, budget, bridge);
         }
-        const prototype = candidate !== null && typeof candidate === "object" ? candidate : getSandboxDataProperty(constructor, "prototype", budget) as SandboxObject;
+        const prototype = candidate !== null && typeof candidate === "object" ? candidate
+          : getFunctionRealmPrototype(newTarget, Native.name, getSandboxDataProperty(constructor, "prototype", budget) as SandboxObject);
         const release = retainValues(budget, () => [prototype, ...args]);
         try {
           if (isSandboxArrayBuffer(args[0])) {

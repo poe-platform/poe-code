@@ -1,4 +1,5 @@
 import type { Budget } from "../budget.js";
+import { getFunctionRealmPrototype } from "../function-realm.js";
 import { arrayBufferDetached, arrayBufferLength, arrayBufferOptions, isSandboxArrayBuffer } from "../array-buffer.js";
 import { dataViewGetters, dataViewLayouts, dataViewPrototypes, isSandboxDataView } from "../data-view.js";
 import { accessorAdapter, readPropertyDescriptor } from "../accessors.js";
@@ -59,10 +60,12 @@ export function createDataViewGlobal(budget: Budget): SandboxClosure {
           const descriptor = getSandboxPropertyDescriptor(target, "prototype", budget);
           selected = descriptor === undefined ? undefined : await readPropertyDescriptor(descriptor, target, context);
         }
+        if (selected === null || typeof selected !== "object")
+          selected = getFunctionRealmPrototype(target, "DataView", prototype);
         budget.provisionDataUsage(1)();
         const value = new DataView(buffer, offset, size);
         if (arrayBufferOptions(buffer) !== undefined) dataViewLayouts.set(value, { byteOffset: offset, ...(size === undefined ? {} : { byteLength: size }) });
-        setSandboxPrototype(value, selected !== null && typeof selected === "object" ? selected : prototype, budget);
+        setSandboxPrototype(value, selected, budget);
         return value;
       } finally { release(); }
     }

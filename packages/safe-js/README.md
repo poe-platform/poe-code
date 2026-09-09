@@ -643,6 +643,9 @@ bound-class and Proxy targets, plus replay and calls after cleanup.
 Ordinary function and class construction also uses the newTarget realm's
 Object prototype when its `prototype` property is not an object, including
 derived classes and field initialization.
+ArrayBuffer, DataView, and typed-array constructors likewise use foreign
+newTarget realm defaults. Focused checks cover native typed-array types,
+Float16Array, replaced global bindings, and target replay after cleanup.
 `AggregateError.errors` retains the constructor realm's Array prototype,
 independently of a custom prototype supplied for the Error object.
 Promise construction, async returns and `then` results retain their

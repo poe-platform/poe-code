@@ -891,6 +891,23 @@ extension, integration, or validation requirement is missing or unverified.
   https://docs.python.org/3/library/io.html#io.TextIOWrapper . This remains an
   internal UTF-8 decoding layer, not a full TextIOWrapper: line reading, writing,
   seeking/cookies, codec registry dispatch, and safe-fs integration remain pending.
+- Added metered UTF-8 text-write preparation: read/write newline settings now have
+  a write-side counterpart translating LF only, with an explicitly supplied guest
+  platform line separator (host-independent LF default). Existing CR characters
+  are preserved. The result carries independently owned bytes, original code-point
+  count, and CR/LF presence for future line buffering. Encoding policies apply after
+  translation, including translated input/error positions. Scans, translation
+  working/copy buffers, and byte encoding are metered; inputs remain immutable.
+- Text-write validation: the new suite failed on the missing module; all 1,545
+  package tests pass, including 24 write cases and 300 budget boundaries. CPython
+  TextIOWrapper comparisons matched 60,720 writes/errors across five newline
+  settings, three supplied platform separators, and eight encoding policies.
+  Non-default platform separators were modeled with the equivalent explicit
+  TextIOWrapper newline setting. Scoped lint, source typecheck, and selected
+  workspace build passed. Reference:
+  https://docs.python.org/3/library/io.html#io.TextIOWrapper . Actual stream writes,
+  partial-write handling, buffering/flush, platform configuration, guest objects,
+  codec registry dispatch, and safe-fs integration remain pending.
 - Next:
   remaining scope/compiler audits, interpreter runtime,
   resource controls, runtime modules, and safe-fs integration. Parsing and static

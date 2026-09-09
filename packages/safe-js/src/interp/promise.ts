@@ -666,7 +666,10 @@ function readPromiseProperty(
   budget: Budget,
   context?: SandboxCallContext
 ): SandboxValue | Promise<SandboxValue> {
-  const descriptor = getSandboxPropertyDescriptor(receiver, property, budget);
+  let proxy: object | undefined;
+  const descriptor = getSandboxPropertyDescriptor(receiver, property, budget, boundary => { proxy = boundary; });
+  if (proxy !== undefined)
+    return sandboxGetProperty(proxy as SandboxValue, property, receiver, budget, context);
   if (descriptor !== undefined && !("value" in descriptor) && context?.invokeClosure === undefined) {
     const getter = accessorClosure(descriptor.get);
     return getter?.call([], { ...context, stack: context?.stack ?? [], thisValue: receiver });

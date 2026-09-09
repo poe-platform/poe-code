@@ -585,6 +585,8 @@ Proxy-valued `then` getters retain guest call context, including inherited and
 nested getters, thrown trap errors, and checkpoint recovery.
 Promise adoption also leaves the intrinsic fast path when `then` lookup reaches
 a Proxy ancestor of the shared Promise prototype.
+Constructor and species reads follow Proxy ancestors with the original receiver,
+including trap errors, custom species selection, and own-property shadowing.
 Other host-boundary interactions still need auditing.
 
 `Array.isArray` follows nested Proxy targets without invoking traps and rejects

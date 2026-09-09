@@ -16,6 +16,7 @@ function fixture(source: string, name: string) {
 }
 
 it.each([
+  ["lower", "İ ǅ ẞ 𐐀", "i\u0307 ǆ ß 𐐨"],
   ["upper", "Straße ﬃ µ 𐐨", "STRASSE FFI Μ 𐐀"],
   ["casefold", "Straße ẞ İ Σς ﬃ K", "strasse ss i\u0307 σσ ffi k"]
 ])("implements full Unicode %s mappings", (name, source, expected) => {
@@ -24,7 +25,7 @@ it.each([
   expect([...result.value]).toEqual([...expected].map(c => c.codePointAt(0)));
 });
 
-it.each(["upper", "casefold"])("preserves only empty receiver identity for %s", name => {
+it.each(["upper", "casefold", "lower"])("preserves only empty receiver identity for %s", name => {
   const empty = fixture("", name); expect(empty.call()).toBe(empty.text);
   const unchanged = fixture("123变量\ud800", name), result = unchanged.call();
   expect(result === unchanged.text).toBe(false);
@@ -32,9 +33,17 @@ it.each(["upper", "casefold"])("preserves only empty receiver identity for %s", 
   expect([...result.value]).toEqual([...unchanged.text.value]);
 });
 
-it.each(["upper", "casefold"])("rejects arguments and keywords for %s", name => {
+it.each(["upper", "casefold", "lower"])("rejects arguments and keywords for %s", name => {
   const { call, v, keywords } = fixture("", name);
   expect(() => call([v.true])).toThrow(`str.${name}() takes no arguments (1 given)`);
   keywords.items.set(v.string("x"), v.true);
   expect(() => call()).toThrow(`str.${name}() takes no keyword arguments`);
+});
+
+it("lowercases sigma according to surrounding original cased characters", () => {
+  for (const [source, expected] of [["Σ", "σ"], ["ΟΣ", "ος"], ["ΟΣΑ", "οσα"], ["Ο\u0301Σ\u0301", "ο\u0301ς\u0301"], ["Ο\u0301Σ\u0301Α", "ο\u0301σ\u0301α"], ["\u0345Σ", "\u0345σ"], ["AΣ\u0345", "aς\u0345"], ["AΣ\u0345A", "aσ\u0345a"], ["AΣ\u200d", "aς\u200d"], ["AΣ\u200dA", "aσ\u200da"], ["AΣ\ud800A", "aς\ud800a"]]) {
+    const result = fixture(source, "lower").call();
+    if (result.kind !== "str") throw new Error("expected string");
+    expect([...result.value]).toEqual([...expected].map(c => c.codePointAt(0)));
+  }
 });

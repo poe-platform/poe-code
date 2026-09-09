@@ -3,7 +3,8 @@ import { normalizeSlice } from "./integer-sequence.js";
 import { searchSubstring, substringMatches, type SearchMode } from "./substring-search.js";
 import { isUnicodeWhitespace } from "./unicode-whitespace.js";
 import { exhaustAllocation, type ExecutionMeter } from "./execution-budget.js";
-import { upperMappings, casefoldMappings } from "../unicode-case-data.js";
+import { upperMappings, casefoldMappings, lowerMappings } from "../unicode-case-data.js";
+import { isUnicodeCharacter } from "./unicode-character-classification.js";
 
 // Module-private capability: only freshly generated, already charged buffers
 // may bypass public input copying and validation. Never export this marker.
@@ -111,10 +112,10 @@ export class CodePointString implements Iterable<number> {
 
   /** Full locale-independent mappings can expand one code point into several.
    * Preflight the result size, then fill a single owned buffer. */
-  transformCase(mode: "upper" | "casefold", meter: ExecutionMeter): CodePointString {
+  transformCase(mode: "upper" | "casefold" | "lower", meter: ExecutionMeter): CodePointString {
     meter.checkpoint();
     if (this.length === 0) return this;
-    const table = mode === "upper" ? upperMappings : casefoldMappings;
+    const table = mode === "upper" ? upperMappings : mode === "lower" ? lowerMappings : casefoldMappings;
     let length = 0;
     for (const point of this.#points) {
       meter.checkpoint();
@@ -124,13 +125,28 @@ export class CodePointString implements Iterable<number> {
     meter.checkpoint(0, length * Uint32Array.BYTES_PER_ELEMENT);
     const points = new Uint32Array(length);
     let offset = 0;
-    for (const point of this.#points) {
+    for (let index = 0; index < this.length; index++) {
       meter.checkpoint();
+      const point = this.#points[index];
+      if (mode === "lower" && point === 0x3a3 && this.#isFinalSigma(index, meter)) {
+        points[offset++] = 0x3c2; continue;
+      }
       const mapping = table[point];
       if (mapping === undefined) points[offset++] = point;
       else for (const mapped of mapping) { meter.checkpoint(); points[offset++] = mapped; }
     }
     return new CodePointString(points, meter, ownedPoints);
+  }
+
+  /** Sigma itself is not case-ignorable, so neighboring sigma context scans
+   * cannot overlap beyond their intervening ignorable run: total linear work. */
+  #isFinalSigma(index: number, meter: ExecutionMeter): boolean {
+    let previous = index - 1;
+    while (previous >= 0 && isUnicodeCharacter(this.#points[previous], "caseIgnorable", meter)) previous--;
+    if (previous < 0 || !isUnicodeCharacter(this.#points[previous], "cased", meter)) return false;
+    let next = index + 1;
+    while (next < this.length && isUnicodeCharacter(this.#points[next], "caseIgnorable", meter)) next++;
+    return next === this.length || !isUnicodeCharacter(this.#points[next], "cased", meter);
   }
 
   /** Size the expanded text first, then fill one owned buffer. Only CR/LF reset

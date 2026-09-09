@@ -33,7 +33,7 @@ import { isRuntimeSet, type RuntimeValue, type RuntimeValues } from "./runtime-v
 export function runtimeNativeAttribute(receiver: RuntimeValue, name: string, values: RuntimeValues, meter: ExecutionMeter, beginCall?: ExpressionContext<RuntimeValue>["beginCall"]): RuntimeValue {
   meter.checkpoint();
   if (receiver.kind === "str") {
-    if (name === "upper" || name === "casefold") return createRuntimeStringCaseMethod(receiver, name, values, meter);
+    if (name === "upper" || name === "casefold" || name === "lower") return createRuntimeStringCaseMethod(receiver, name, values, meter);
     switch (name) {
       case "isascii": case "isspace": case "isidentifier": case "isalpha": case "isdecimal":
       case "isdigit": case "isnumeric": case "isalnum": case "isprintable": case "islower": case "isupper": case "istitle":

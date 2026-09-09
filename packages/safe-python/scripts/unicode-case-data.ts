@@ -1,13 +1,15 @@
-type CaseMappings = Record<"upper" | "casefold", Record<number, number[]>>;
+type CaseMappings = Record<"upper" | "casefold" | "lower", Record<number, number[]>>;
 
 /** Unicode default full casing is locale-independent. Conditional casing rows
- * and Turkic folding are deliberately not part of these two transformations. */
+ * and Turkic folding are excluded from the tables. Contextual final sigma is
+ * handled by the runtime against the original string. */
 export function compileCaseMappings(unicodeData: string, specialCasing: string, caseFolding: string): CaseMappings {
-  const result: CaseMappings = { upper: {}, casefold: {} };
+  const result: CaseMappings = { upper: {}, casefold: {}, lower: {} };
   for (const line of unicodeData.split("\n")) {
     if (!line.trim()) continue;
     const fields = line.split(";");
     if (fields[12]) result.upper[codePoint(fields[0])] = [codePoint(fields[12])];
+    if (fields[13]) result.lower[codePoint(fields[0])] = [codePoint(fields[13])];
   }
   for (const line of specialCasing.split("\n")) {
     const row = line.split("#", 1)[0].trim();
@@ -15,6 +17,7 @@ export function compileCaseMappings(unicodeData: string, specialCasing: string, 
     const fields = row.split(";").map(field => field.trim());
     if (fields[4]) continue;
     result.upper[codePoint(fields[0])] = fields[3].split(" ").filter(Boolean).map(codePoint);
+    result.lower[codePoint(fields[0])] = fields[1].split(" ").filter(Boolean).map(codePoint);
   }
   for (const line of caseFolding.split("\n")) {
     const row = line.split("#", 1)[0].trim();

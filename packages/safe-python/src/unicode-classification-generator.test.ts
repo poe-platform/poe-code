@@ -2,6 +2,11 @@ import { describe, expect, it } from "vitest";
 import { compileClassificationData } from "../scripts/unicode-classification-data.js";
 
 describe("Unicode classification range generation", () => {
+  it("retains independent Cased and Case_Ignorable properties", () => {
+    const result = compileClassificationData("", "", "0041;Cased\n0301;Case_Ignorable\n0345;Cased\n0345;Case_Ignorable\n");
+    expect(result.cased).toEqual([0x41, 0x41, 0x345, 0x345]);
+    expect(result.caseIgnorable).toEqual([0x301, 0x301, 0x345, 0x345]);
+  });
   it("uses derived lowercase/uppercase properties and the titlecase category", () => {
     const result = compileClassificationData("01C5;TITLE;Lt\n", "", "0061..0062;Lowercase\n00AA;Lowercase\n0041;Uppercase\n0042;Uppercase\n0301;Case_Ignorable\n");
     expect(result.lower).toEqual([0x61, 0x62, 0xaa, 0xaa]);

@@ -4181,6 +4181,21 @@ extension, integration, or validation requirement is missing or unverified.
   Contextual lowercase/title/capitalize/swapcase, remaining native methods and
   builtins, subclasses/global interning, suspension, full accounting and
   SDK/safe-fs remain unfinished.
+- Connected str.lower with 1,460 full default lowercase mappings and generated
+  Unicode 16 Cased/Case_Ignorable intervals. Contextual Greek final sigma reads
+  the original storage, skipping case-ignorable points before cased checks even
+  when both properties hold. Sigma is not ignorable, so neighboring context
+  scans revisit only their intervening runs and total work remains linear.
+- Six method/generator tests and two storage tests first reproduced missing
+  lowercase/context behavior. All 3,934 tests in 289 files pass, including
+  exact expanded allocation, long-run work bounds and context-scan budgets.
+  Every one of 1,114,112 code points matches CPython in isolation and in four
+  sigma contexts (4,456,448 contextual transformations); 3,604 compiled calls
+  match output, identity and errors. The 3,608-call upper/casefold regression,
+  scoped lint, source typecheck and selected workspace build pass.
+  Title/capitalize/swapcase, remaining native
+  methods/builtins, subclasses/global interning, suspension, full accounting
+  and SDK/safe-fs remain unfinished.
 - Next:
   remaining scope/compiler audits, interpreter runtime,
   resource controls, runtime modules, and safe-fs integration. Parsing and static

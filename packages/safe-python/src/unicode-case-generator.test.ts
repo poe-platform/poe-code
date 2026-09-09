@@ -14,6 +14,14 @@ it("uses common/full folding and ignores simple-only and Turkic mappings", () =>
   expect(data.casefold).toEqual({ 65: [97], 223: [115, 115] });
 });
 
+it("combines simple lowercase with full unconditional expansion", () => {
+  const row = Array<string>(15).fill(""); row[0] = "0041"; row[13] = "0061";
+  const data = compileCaseMappings(row.join(";"), "0130;0069 0307;0130;0130;\n03A3;03C2;03A3;03A3;Final_Sigma;", "");
+  expect(data.lower[65]).toEqual([97]);
+  expect(data.lower[0x130]).toEqual([0x69, 0x307]);
+  expect(data.lower[0x3a3]).toBeUndefined();
+});
+
 it("rejects malformed or out-of-range case mapping points", () => {
   for (const mapping of ["110000", "00XX", "-001"]) {
     expect(() => compileCaseMappings("", "", `0041;C;${mapping};`)).toThrow("invalid Unicode case code point");

@@ -2691,6 +2691,18 @@ extension, integration, or validation requirement is missing or unverified.
   build passed. Filter argument binding/eager iterable construction, guest
   builtin/object registration, concrete truth dispatch and complete allocation
   accounting remain unfinished.
+- Connected exact builtin filter argument binding to protocol iterator
+  acquisition and lazy filtering. Keywords fail before positional arity; the
+  two-argument call eagerly acquires its iterator without consuming values or
+  validating predicate callability. Legacy indexed sources use the same protocol
+  adapter; initialization failures and cancellation prevent later callbacks.
+- The constructor suite first failed on its missing module; all 2,956 tests in
+  181 files pass. A 400-case CPython constructor/iteration audit matched argument
+  diagnostics, eager iterator errors, indexed fallback, lazy predicate calls and
+  repeated next outcomes. Source typecheck, scoped lint and selected workspace
+  build passed. Concrete guest builtin/type registration, subclass construction,
+  truth/call dispatch, pickling and complete native allocation accounting remain
+  open; this bridge does not establish a complete executable interpreter.
 - Next:
   remaining scope/compiler audits, interpreter runtime,
   resource controls, runtime modules, and safe-fs integration. Parsing and static

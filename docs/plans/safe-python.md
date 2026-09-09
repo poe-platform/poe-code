@@ -1596,6 +1596,22 @@ extension, integration, or validation requirement is missing or unverified.
   absence and budgets stopping before message evaluation or failure construction.
   Scoped lint, source typecheck and selected workspace build passed. Concrete
   guest exception objects and full-interpreter integration remain pending.
+- Added function definition-time execution: evaluate decorator expressions in
+  source order before positional/keyword defaults, create the function without
+  executing its body, apply decorators inside-out and store only the final result.
+  Defaults retain identity in a fresh parameter-name map usable by argument
+  binding. Arbitrary decorator results are allowed, and no early name binding or
+  callability check is introduced. Parsed annotations/type bounds stay ignored.
+  The adapter owns concrete function construction, globals/closure capture,
+  metadata, guest calls and storage; async definitions pass their unchanged AST.
+- Function-definition validation: a missing-module red suite preceded the
+  implementation. All 2,066 tests in 103 files pass, including 17 new cases for
+  ordering, failure boundaries, identity, normalized names and metering before
+  every guest effect. CPython matched 350 sync/async cases spanning decorator and
+  default counts, evaluation/application failures, defaults metadata and retained
+  previous bindings. Scoped lint, source typecheck and selected build passed.
+  Concrete callable objects, invocation frames, suspension and complete temporary
+  heap accounting remain pending; this does not establish a working interpreter.
 - Next:
   remaining scope/compiler audits, interpreter runtime,
   resource controls, runtime modules, and safe-fs integration. Parsing and static

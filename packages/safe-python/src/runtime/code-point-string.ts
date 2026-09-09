@@ -56,6 +56,17 @@ export class CodePointString implements Iterable<number> {
     return new CodePointString(points, meter);
   }
 
+  repeat(count: number, meter: ExecutionMeter): CodePointString {
+    meter.checkpoint();
+    if (!Number.isSafeInteger(count) || count < 0) throw new RangeError("repeat requires a nonnegative safe integer");
+    if (this.length === 0 || count === 1) return this;
+    const length = this.length * count;
+    meter.checkpoint(0, length * Uint32Array.BYTES_PER_ELEMENT);
+    const points = new Uint32Array(length);
+    for (let i = 0; i < length; i++) { meter.checkpoint(); points[i] = this.#points[i % this.length]; }
+    return new CodePointString(points, meter);
+  }
+
   concat(other: CodePointString, meter: ExecutionMeter): CodePointString {
     meter.checkpoint();
     if (this.length === 0) return other;

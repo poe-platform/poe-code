@@ -1,14 +1,6 @@
 import type { ConstantValue, ConstantValues } from "./constant-values.js";
-import { ExecutionLimitError, type ExecutionMeter } from "./execution-budget.js";
+import { exhaustAllocation, type ExecutionMeter } from "./execution-budget.js";
 import { PythonRuntimeError } from "./error.js";
-
-function exhaustAllocation(meter: ExecutionMeter): never {
-  // Two valid charges exceed every representable ExecutionBudget limit and
-  // latch its fatal failure. A custom meter that accepts both still terminates.
-  meter.checkpoint(0, Number.MAX_SAFE_INTEGER);
-  meter.checkpoint(0, 1);
-  throw new ExecutionLimitError("allocation");
-}
 
 /** Exact builtin bool/int shifts. Reserve ceil(count/8) growth bytes before
  * nonzero left shifts; zero left shifts and right shifts do not grow the value.

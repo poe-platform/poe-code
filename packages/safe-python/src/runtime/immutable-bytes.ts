@@ -58,6 +58,17 @@ export class ImmutableBytes implements Iterable<number> {
     return new ImmutableBytes(owned);
   }
 
+  repeat(count: number, meter: ExecutionMeter): ImmutableBytes {
+    meter.checkpoint();
+    if (!Number.isSafeInteger(count) || count < 0) throw new RangeError("repeat requires a nonnegative safe integer");
+    if (this.length === 0 || count === 1) return this;
+    const length = this.length * count;
+    meter.checkpoint(0, length);
+    const bytes = new Uint8Array(length);
+    for (let i = 0; i < length; i++) { meter.checkpoint(); bytes[i] = this.#bytes[i % this.length]; }
+    return new ImmutableBytes(bytes);
+  }
+
   concat(other: ImmutableBytes, meter: ExecutionMeter): ImmutableBytes {
     meter.checkpoint();
     if (this.length === 0) return other;

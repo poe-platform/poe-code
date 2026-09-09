@@ -2176,6 +2176,21 @@ extension, integration, or validation requirement is missing or unverified.
   tuple concatenations. Ownership, identity and pre-allocation budget checks pass.
   Source typecheck, scoped lint and selected workspace build passed. Guest sequence
   dispatch, repetition and complete resource accounting remain unfinished.
+- Added concrete immutable sequence repetition in both operand orders, connected
+  to expression tests. Integer/bool counts are validated against the signed 64-bit
+  index model before empty shortcuts; zero/negative counts produce empty values,
+  count one preserves identity and tuple copies repeat member references. String,
+  bytes and tuple oversized-result diagnostics match their Python paths. Byte
+  outputs adopt one buffer; string/tuple temporary copies are explicitly charged.
+- Shared fatal allocation exhaustion now serves shifts and repetition, preserving
+  ExecutionBudget latching for unrepresentable output sizes and host array limits.
+  Repetition reserves payload/slot storage before host allocation; full object
+  overhead and removal of string/tuple temporary copies remain unfinished.
+- Repetition validation: missing-module red tests preceded implementation. All
+  2,557 tests in 145 files pass; CPython matched 6,036 results/errors in both operand
+  orders, including safe overflow probes. Source typecheck, scoped lint and selected
+  workspace build passed. Guest index conversion, sequence slot
+  dispatch and complete resource accounting remain unfinished.
 - Next:
   remaining scope/compiler audits, interpreter runtime,
   resource controls, runtime modules, and safe-fs integration. Parsing and static

@@ -11,6 +11,7 @@ import { integerBitwise } from "./integer-bitwise.js";
 import { integerShift } from "./integer-shift.js";
 import { complexBinary } from "./complex-binary.js";
 import { constantConcat } from "./constant-concat.js";
+import { constantRepeat } from "./constant-repeat.js";
 import { ExecutionBudget, ExecutionLimitError } from "./execution-budget.js";
 import { evaluateExpression, type ExpressionContext } from "./expression-evaluation.js";
 import { parseExpression } from "../expression.js";
@@ -67,6 +68,10 @@ describe("concrete constant truth", () => {
           const concatenated = constantConcat(left, right, v, meter);
           if (concatenated !== v.notImplemented) return concatenated;
         }
+        if (operator === "*") {
+          const repeated = constantRepeat(left, right, v, meter);
+          if (repeated !== v.notImplemented) return repeated;
+        }
         return left.kind === "complex" || right.kind === "complex" ? complexBinary(operator, left, right, v, meter) : realBinary(operator, left, right, v, meter);
       },
       compare: (operator, left, right) => operator === "in" || operator === "not in" ? constantMembership(operator, left, right, v, meter) : constantComparison(operator, left, right, v, meter), attribute: unexpected, beginCall: unexpected,
@@ -102,6 +107,9 @@ describe("concrete constant truth", () => {
     expect(run("'a' + '😀' == 'a😀'")).toBe(v.true);
     expect(run("b'ab' + b'cd' == b'abcd'")).toBe(v.true);
     expect(run("(1,) + (2, 3) == (1, 2, 3)")).toBe(v.true);
+    expect(run("'a😀' * 2 == 'a😀a😀'")).toBe(v.true);
+    expect(run("3 * b'ab' == b'ababab'")).toBe(v.true);
+    expect(run("(1, 2) * 2 == (1, 2, 1, 2)")).toBe(v.true);
     expect(run("False and NotImplemented")).toBe(v.false);
     expect(run("True or NotImplemented")).toBe(v.true);
     expect(run("False or NotImplemented")).toBe(v.notImplemented);

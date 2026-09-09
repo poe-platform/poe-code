@@ -22,6 +22,15 @@ function validateAmount(value: number): void {
   if (!Number.isSafeInteger(value) || value < 0) throw new RangeError("execution budget amounts must be nonnegative safe integers");
 }
 
+/** Fail through the meter so ExecutionBudget latches unrepresentable allocation.
+ * Custom meters that accept both charges still receive a fatal termination.
+ */
+export function exhaustAllocation(meter: ExecutionMeter): never {
+  meter.checkpoint(0, Number.MAX_SAFE_INTEGER);
+  meter.checkpoint(0, 1);
+  throw new ExecutionLimitError("allocation");
+}
+
 /** Monotonic per-execution budget. A failed charge is atomic and permanently fatal.
  * Cancellation is observed at checkpoints; synchronous work does not yield the
  * host event loop. Only instrumented operations are covered by this meter.

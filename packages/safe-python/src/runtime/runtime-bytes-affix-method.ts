@@ -1,11 +1,12 @@
 import { PythonRuntimeError } from "./error.js";
 import type { ExecutionMeter } from "./execution-budget.js";
 import { runtimeSearchBound } from "./runtime-search-bound.js";
+import type { IntegerIndexContext } from "./index-protocol.js";
 import type { BuiltinFunctionValue, RuntimeValue, RuntimeValues } from "./runtime-values.js";
 
 /** Tuple alternatives are checked lazily after bound conversion. Unlike byte
  * searches, these methods do not accept integer needles. */
-export function createRuntimeBytesAffixMethod(receiver: Extract<RuntimeValue, { kind: "bytes" }>, name: "startswith" | "endswith", values: RuntimeValues, meter: ExecutionMeter): BuiltinFunctionValue {
+export function createRuntimeBytesAffixMethod(receiver: Extract<RuntimeValue, { kind: "bytes" }>, name: "startswith" | "endswith", values: RuntimeValues, meter: ExecutionMeter, context?: IntegerIndexContext<RuntimeValue>): BuiltinFunctionValue {
   meter.checkpoint(1, 64);
   return values.builtinFunction({
     name,
@@ -14,7 +15,7 @@ export function createRuntimeBytesAffixMethod(receiver: Extract<RuntimeValue, { 
       if (keywords.items.size !== 0) throw new PythonRuntimeError("TypeError", `bytes.${name}() takes no keyword arguments`);
       if (positional.length < 1) throw new PythonRuntimeError("TypeError", `${name} expected at least 1 argument, got 0`);
       if (positional.length > 3) throw new PythonRuntimeError("TypeError", `${name} expected at most 3 arguments, got ${positional.length}`);
-      const start = runtimeSearchBound(positional[1], 0n, meter, true), stop = runtimeSearchBound(positional[2], 9223372036854775807n, meter, true);
+      const start = runtimeSearchBound(positional[1], 0n, meter, true, context), stop = runtimeSearchBound(positional[2], 9223372036854775807n, meter, true, context);
       const candidate = positional[0], tuple = candidate.kind === "tuple";
       meter.checkpoint(1, 64);
       const matches = (value: RuntimeValue): boolean => {

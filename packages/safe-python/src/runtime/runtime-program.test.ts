@@ -39,6 +39,21 @@ function fixture(source: string, maxSteps = 100000, signal?: AbortSignal) {
 }
 
 describe("assembled concrete runtime programs", () => {
+  it.each(["find", "rfind", "index", "rindex", "count", "startswith", "endswith"])("converts guest bounds for text %s methods", method => {
+    for (const prefix of ["", "b"]) {
+      const state = fixture(`text=${prefix}'ababa'\nresult=text.${method}(${prefix}'ba',start,stop)\nexpected=text.${method}(${prefix}'ba',1,None)\n`), v = state.values;
+      const start = v.cell({}), stop = v.cell({}), events: string[] = [];
+      state.globals.set("start", start); state.globals.set("stop", stop);
+      state.hooks.expressions = () => ({ warn() {}, integerIndex: {
+        integer: value => value.kind === "int" ? value.value : undefined,
+        isExactInteger: value => value.kind === "int", typeName: () => "Index", warn() {},
+        lookupIndex: value => () => { events.push(value === start ? "start" : "stop"); return v.integer(value === start ? 1n : 1n << 100n); }
+      } });
+      state.run();
+      expect(events).toEqual(["start", "stop"]);
+      expect(state.globals.get("result")).toEqual(state.globals.get("expected"));
+    }
+  });
   it("hints the original slice cursor while consuming its replacement", () => {
     const state = fixture("items=[1]\nitems[:]=guest\n"), v = state.values;
     const guest = v.cell({}), cursor = v.cell({}), replacement = v.cell({}), events: string[] = [];

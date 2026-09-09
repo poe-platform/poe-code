@@ -6580,6 +6580,16 @@ extension, integration, or validation requirement is missing or unverified.
   audits. All 5,082 tests in 440 files and typecheck pass. This increment changes
   tests only; automatic object/builtin assembly and broader interpreter/SDK/
   safe-fs integration remain unfinished.
+- Connected string/bytes find, rfind, index, rindex, count, startswith and
+  endswith bounds to the frame's guest integer-index capability. Shared bound
+  conversion retains explicit None, signed-width saturation, left-to-right
+  conversion and existing per-method needle validation order.
+- Seven compiled regression cases exercise both receiver types. All 5,089
+  tests in 440 files pass; 350 CPython text-search comparisons match values,
+  errors and conversion traces for negative, ordinary and oversized bounds.
+  Typecheck, scoped lint and selected workspace build pass. Guest bytes needles,
+  remaining native-method protocols, automatic object/builtin assembly and
+  broader interpreter/SDK/safe-fs integration remain unfinished.
 - Next:
   remaining scope/compiler audits, interpreter runtime,
   resource controls, runtime modules, and safe-fs integration. Parsing and static

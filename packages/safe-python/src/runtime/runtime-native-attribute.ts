@@ -98,11 +98,11 @@ export function runtimeNativeAttribute(receiver: RuntimeValue, name: string, val
     if (name === "strip" || name === "lstrip" || name === "rstrip") return createRuntimeBytesStripMethod(receiver, name, values, meter);
     if (name === "join") return createRuntimeBytesJoinMethod(receiver, values, meter);
     if (name === "removeprefix" || name === "removesuffix" || name === "partition" || name === "rpartition") return createRuntimeBytesCutMethod(receiver, name, values, meter);
-    if (name === "startswith" || name === "endswith") return createRuntimeBytesAffixMethod(receiver, name, values, meter);
+    if (name === "startswith" || name === "endswith") return createRuntimeBytesAffixMethod(receiver, name, values, meter, methods?.integerIndex);
     if (name === "upper" || name === "lower" || name === "title" || name === "capitalize" || name === "swapcase") return createRuntimeBytesCaseMethod(receiver, name, values, meter);
     switch (name) {
       case "find": case "rfind": case "index": case "rindex": case "count":
-        return createRuntimeBytesSearchMethod(receiver, name, values, meter);
+        return createRuntimeBytesSearchMethod(receiver, name, values, meter, methods?.integerIndex);
       case "isascii": case "isspace": case "isalpha": case "isalnum": case "isdigit": case "islower": case "isupper": case "istitle":
         return createRuntimeBytesClassificationMethod(receiver, name, values, meter);
     }
@@ -118,10 +118,10 @@ export function runtimeNativeAttribute(receiver: RuntimeValue, name: string, val
     if (name === "strip" || name === "lstrip" || name === "rstrip") return createRuntimeStringStripMethod(receiver, name, values, meter);
     if (name === "join") return createRuntimeStringJoinMethod(receiver, values, meter);
     if (name === "removeprefix" || name === "removesuffix" || name === "partition" || name === "rpartition") return createRuntimeStringCutMethod(receiver, name, values, meter);
-    if (name === "startswith" || name === "endswith") return createRuntimeStringAffixMethod(receiver, name, values, meter);
+    if (name === "startswith" || name === "endswith") return createRuntimeStringAffixMethod(receiver, name, values, meter, methods?.integerIndex);
     switch (name) {
       case "find": case "rfind": case "index": case "rindex": case "count":
-        return createRuntimeStringSearchMethod(receiver, name, values, meter);
+        return createRuntimeStringSearchMethod(receiver, name, values, meter, methods?.integerIndex);
     }
   }
   if (receiver.kind === "range") {

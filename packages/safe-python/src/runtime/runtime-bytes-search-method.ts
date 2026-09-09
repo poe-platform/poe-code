@@ -2,9 +2,10 @@ import { PythonRuntimeError } from "./error.js";
 import type { ExecutionMeter } from "./execution-budget.js";
 import type { ImmutableBytes } from "./immutable-bytes.js";
 import { runtimeSearchBound } from "./runtime-search-bound.js";
+import type { IntegerIndexContext } from "./index-protocol.js";
 import type { BuiltinFunctionValue, RuntimeValue, RuntimeValues } from "./runtime-values.js";
 
-export function createRuntimeBytesSearchMethod(receiver: Extract<RuntimeValue, { kind: "bytes" }>, name: "find" | "rfind" | "index" | "rindex" | "count", values: RuntimeValues, meter: ExecutionMeter): BuiltinFunctionValue {
+export function createRuntimeBytesSearchMethod(receiver: Extract<RuntimeValue, { kind: "bytes" }>, name: "find" | "rfind" | "index" | "rindex" | "count", values: RuntimeValues, meter: ExecutionMeter, context?: IntegerIndexContext<RuntimeValue>): BuiltinFunctionValue {
   meter.checkpoint(1, 64);
   return values.builtinFunction({
     name,
@@ -13,7 +14,7 @@ export function createRuntimeBytesSearchMethod(receiver: Extract<RuntimeValue, {
       if (keywords.items.size !== 0) throw new PythonRuntimeError("TypeError", `bytes.${name}() takes no keyword arguments`);
       if (positional.length < 1) throw new PythonRuntimeError("TypeError", `${name} expected at least 1 argument, got 0`);
       if (positional.length > 3) throw new PythonRuntimeError("TypeError", `${name} expected at most 3 arguments, got ${positional.length}`);
-      const start = runtimeSearchBound(positional[1], 0n, meter, true), stop = runtimeSearchBound(positional[2], 9223372036854775807n, meter, true);
+      const start = runtimeSearchBound(positional[1], 0n, meter, true, context), stop = runtimeSearchBound(positional[2], 9223372036854775807n, meter, true, context);
       const needle = positional[0];
       let pattern: ImmutableBytes | number;
       if (needle.kind === "bytes") pattern = needle.value;

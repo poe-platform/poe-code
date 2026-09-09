@@ -2445,6 +2445,20 @@ extension, integration, or validation requirement is missing or unverified.
   60,000 mutation and iteration operations. Source typecheck, scoped lint and
   selected workspace build passed. Guest iterator types, StopIteration
   conversion and complete native allocation accounting remain unfinished.
+- Added mutable list slice reads, replacement and deletion using the existing
+  exact-integer normalization. Reads create detached list slots; contiguous
+  replacement grows/shrinks in place; extended replacement enforces exact size
+  and traversal order. Self replacement snapshots before overwriting. Deletion
+  compacts survivors in one ascending pass without a positions array, including
+  negative and arbitrarily large strides. Existing cursors retain the same owned
+  backing slots. Mutation work/growth is preflighted before changing slots.
+- All 21 new slice tests first failed on missing methods; all 2,737 tests in 163
+  files now pass. A 12,000-case CPython comparison matched reads, replacement,
+  deletion, errors, self assignment and existing iterator observations. Source
+  typecheck, scoped lint and selected workspace build passed. Guest
+  slice component conversion, replacement iterable materialization and finalizer
+  deferral remain the protocol layer's responsibility, not implemented by these
+  storage methods. Complete host allocation accounting is still pending.
 - Next:
   remaining scope/compiler audits, interpreter runtime,
   resource controls, runtime modules, and safe-fs integration. Parsing and static

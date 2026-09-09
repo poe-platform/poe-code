@@ -5289,6 +5289,24 @@ extension, integration, or validation requirement is missing or unverified.
   workspace build pass. Native dict/set representations, bytes percent operator
   integration, full guest objects, suspended execution, complete accounting and
   SDK/safe-fs integration remain outstanding.
+- Added DictionaryEntrySlots for incrementally built combined general-key
+  dictionaries: identity-indexed entries, deletion holes, live numeric scans,
+  clear/refill position behavior, insertion-triggered compaction and LIFO
+  truncation without refunded capacity. Compaction is fully precharged before
+  publishing storage. Empty pop avoids repeatedly scanning tombstones.
+  The bookkeeping follows the
+  [CPython 3.14 dictionary implementation](https://raw.githubusercontent.com/python/cpython/v3.14.0/Objects/dictobject.c).
+  This is an independent storage component, not yet attached to OrderedKeyMap.
+- Six tests first failed on the missing component; an additional failing
+  checkpoint-count test exposed empty-pop rescanning and drove the constant-time
+  fix. All 4,538 tests in 372 files pass. Direct CPython PyDict_Next comparison
+  matches 2,000 incremental integer-key mutation histories (439,000 operations),
+  including cursor positions, values, contents, overwrites, deletion, pop, clear,
+  insertion and compaction. Source typecheck, scoped lint and selected workspace build pass.
+  Presized/bulk and split/shared-key layouts, Unicode-to-general transitions,
+  OrderedKeyMap integration and native dict representation remain incomplete.
+  Set representation, bytes percent operators, full guest objects, suspended
+  execution, complete accounting and SDK/safe-fs integration remain outstanding.
 - Next:
   remaining scope/compiler audits, interpreter runtime,
   resource controls, runtime modules, and safe-fs integration. Parsing and static

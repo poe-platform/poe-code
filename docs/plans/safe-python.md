@@ -4030,6 +4030,20 @@ extension, integration, or validation requirement is missing or unverified.
   exhaustive classification agrees for all 1,114,112 Unicode code points.
   Remaining native string methods, subclasses/interning, object protocols,
   builtins, suspension, full accounting and SDK/safe-fs remain unfinished.
+- Connected str.splitlines to native lookup. The linear code-point scanner
+  recognizes all Python line boundaries, consumes CRLF together, retains
+  optional terminators and avoids a spurious trailing empty line. It builds
+  owned list slots directly and retains the exact receiver when one unchanged
+  line is returned. keepends uses runtime truth conversion, including empty
+  input, and accepts its native keyword spelling.
+- Splitlines verification began with six failing tests. A 2,104-call compiled
+  CPython audit caught and reproduced the keyword-only excess-argument
+  diagnostic before correction; all audited code points, identities and errors
+  now agree. All 3,785 tests in 274 files pass, including scan-budget termination
+  and linear-work/output-allocation checks, with scoped lint, source typecheck
+  and selected workspace build. The 1,818-call strip regression
+  also passes. Guest truth slots, native descriptors/subclasses, remaining text
+  methods and builtins, suspension, full accounting and SDK/safe-fs are pending.
 - Next:
   remaining scope/compiler audits, interpreter runtime,
   resource controls, runtime modules, and safe-fs integration. Parsing and static

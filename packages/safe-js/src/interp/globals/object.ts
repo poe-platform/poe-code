@@ -48,7 +48,9 @@ export function createObjectGlobal(methods: SandboxObject, budget: Budget): Sand
   const construct = ([value]: readonly SandboxValue[]): SandboxValue => {
     if (value === null || value === undefined) {
       budget.chargeDataUsage(1);
-      return Object.create(null) as SandboxObject;
+      const object = Object.create(null) as SandboxObject;
+      setSandboxPrototype(object, prototype, budget);
+      return object;
     }
     if (typeof value !== "object") {
       const box = createSandboxBox(value);

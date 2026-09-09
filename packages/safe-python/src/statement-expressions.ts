@@ -1,9 +1,18 @@
 import type { Expression } from "./ast.js";
 import type { Statement } from "./statement-ast.js";
+import { patternExpressions } from "./pattern-expressions.js";
 
 /** Enumerate executable expressions; discarded annotations are never visited. */
 export function* statementExpressions(statement: Statement): Generator<Expression> {
   switch (statement.kind) {
+    case "match":
+      yield statement.subject;
+      for (const clause of statement.cases) {
+        yield* patternExpressions(clause.pattern);
+        if (clause.guard) yield clause.guard;
+        for (const child of clause.body) yield* statementExpressions(child);
+      }
+      return;
     case "type-alias": return;
     case "class":
       yield* statement.decorators;

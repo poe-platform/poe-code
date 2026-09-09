@@ -1,12 +1,15 @@
 import type { CallArgument, Expression, Parameter, SourceSpan } from "./ast.js";
+import type { Pattern } from "./pattern-ast.js";
 
 export type DeclaredName = SourceSpan & { readonly name: string; readonly spelling: string };
 export type ImportItem = SourceSpan & { readonly path: readonly DeclaredName[]; readonly alias: DeclaredName | null };
 export type ConditionalBranch = { readonly condition: Expression; readonly body: readonly Statement[] };
 export type ExceptionHandler = SourceSpan & { readonly exception: Expression | null; readonly alias: DeclaredName | null; readonly body: readonly Statement[] };
 export type WithItem = SourceSpan & { readonly context: Expression; readonly target: Expression | null };
+export type MatchCase = SourceSpan & { readonly pattern: Pattern; readonly guard: Expression | null; readonly body: readonly Statement[] };
 
 export type Statement = SourceSpan & (
+  | { readonly kind: "match"; readonly subject: Expression; readonly cases: readonly MatchCase[] }
   | { readonly kind: "type-alias"; readonly name: DeclaredName }
   | { readonly kind: "class"; readonly name: DeclaredName; readonly arguments: readonly CallArgument[]; readonly decorators: readonly Expression[]; readonly body: readonly Statement[] }
   | { readonly kind: "function"; readonly name: DeclaredName; readonly async: boolean; readonly parameters: readonly Parameter[]; readonly decorators: readonly Expression[]; readonly body: readonly Statement[] }

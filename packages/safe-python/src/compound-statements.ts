@@ -9,12 +9,17 @@ import { readTry } from "./try-statements.js";
 import { readWith } from "./with-statements.js";
 import { readFunction } from "./function-statements.js";
 import { readClass } from "./class-statements.js";
+import { readMatch } from "./match-statements.js";
 
 /** A block owns its statements; its caller owns the terminating dedent. */
 export function readStatements(cursor: TokenCursor): Statement[] {
   const body: Statement[] = [];
   while (cursor.peek().kind !== "end" && cursor.peek().kind !== "dedent") {
     if (cursor.peek().kind === "newline") { cursor.take(); continue; }
+    if (cursor.peek().text === "match") {
+      const match = readMatch(cursor, readSuite);
+      if (match) { body.push(match); continue; }
+    }
     if (cursor.peek().text === "if" || cursor.peek().text === "while") body.push(readConditional(cursor));
     else if (cursor.peek().text === "async") {
       const start = cursor.take().start;

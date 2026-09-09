@@ -506,6 +506,19 @@ extension, integration, or validation requirement is missing or unverified.
   irrefutability, duplicate mapping keys, match-suite integration, and execution
   remain pending. Scoped lint, source typecheck, and the selected workspace build
   passed.
+- Connected patterns to match/case statements with ordered guarded cases, indented
+  case blocks, nested suites, named/tuple/unpacked subjects, and named guards.
+  Header-only grammar alternatives preserve ordinary match/case identifiers.
+  Executable expression enumeration includes subjects, pattern values, guards,
+  and bodies. Capture validation rejects repeated normalized bindings, different
+  binding sets across alternatives, multiple sequence stars, unreachable alternatives,
+  and cases after an unguarded irrefutable pattern.
+- Match validation: four positive tests failed before implementation; all 989
+  package tests pass. A 792-case CPython compilation comparison matched syntax
+  acceptance, subject/guard forms, case membership, and capture sets. Scoped lint,
+  source typecheck, and the selected workspace build passed. Duplicate literal
+  mapping-key checks, enclosing-scope rules,
+  and actual structural matching/capture execution remain pending.
 - Next:
   compound statements, type aliases, and enclosing-scope validation
   normalization, the complete grammar/parser and evaluator, then runtime modules

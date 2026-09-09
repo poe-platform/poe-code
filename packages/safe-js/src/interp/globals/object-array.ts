@@ -294,7 +294,7 @@ export function createObjectArrayGlobals(options: {
             }
             if (context === undefined && !iterator.generator && !iterator.asynchronous) {
               // The direct host adapter preserves synchronous results and native hooks.
-              return allocateProducedSandboxValue(
+              const object = allocateProducedSandboxValue(
                 Object.setPrototypeOf(
                   Reflect.apply(Object.fromEntries, Object, [
                     { [Symbol.iterator]: () => iterator }
@@ -303,6 +303,9 @@ export function createObjectArrayGlobals(options: {
                 ),
                 options.budget
               );
+              const prototype = getSandboxPrototype(object as object, options.budget);
+              if (prototype !== null) setSandboxPrototype(object as object, prototype, options.budget);
+              return object;
             }
             return objectFromSandboxEntries(value, iterator, options.budget, context);
           },
@@ -624,6 +627,8 @@ async function objectFromSandboxEntries(
   context?: SandboxCallContext
 ): Promise<SandboxValue> {
   const object = Object.create(null) as SandboxObject;
+  const prototype = getSandboxPrototype(object, budget);
+  if (prototype !== null) setSandboxPrototype(object, prototype, budget);
   let entry: SandboxValue;
   let key: SandboxValue;
   let value: SandboxValue;

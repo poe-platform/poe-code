@@ -593,9 +593,10 @@ Arrays created by `Array` or `new Array` also preserve their originating
 prototype when inspected through another realm's SDK methods.
 Object literals retain their originating prototype after cleanup and when
 created later by exported closures. Explicit null prototypes stay null;
-modified prototype chains reject lossy data copying. Other creation paths,
-including `new Object()`, `Object.fromEntries`, and destructuring rest, still
-have verified SDK realm-identity gaps.
+modified prototype chains reject lossy data copying. `Object.fromEntries`
+results also preserve their originating prototype, including synchronous SDK
+adapter calls. `new Object()` and destructuring rest still have verified SDK
+realm-identity gaps.
 Dates retain their originating prototype after run cleanup, including Dates
 created later by exported closures. Pristine Dates remain copyable as data;
 modified prototype chains reject copying rather than losing guest behavior.

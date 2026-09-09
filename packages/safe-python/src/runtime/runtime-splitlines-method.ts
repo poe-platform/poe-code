@@ -4,9 +4,9 @@ import { ListStorage } from "./list-storage.js";
 import { runtimeTruth } from "./runtime-truth.js";
 import type { BuiltinFunctionValue, RuntimeValue, RuntimeValues } from "./runtime-values.js";
 
-/** Python line boundaries are a strict subset of whitespace. CRLF is consumed
- * together; a terminal boundary never introduces an extra empty line. */
-export function createRuntimeStringSplitlinesMethod(receiver: Extract<RuntimeValue, { kind: "str" }>, values: RuntimeValues, meter: ExecutionMeter): BuiltinFunctionValue {
+/** Bytes recognize only CR/LF, while text has additional Unicode boundaries.
+ * Both consume CRLF together and omit an extra line after a terminal boundary. */
+export function createRuntimeSplitlinesMethod(receiver: Extract<RuntimeValue, { kind: "str" | "bytes" }>, values: RuntimeValues, meter: ExecutionMeter): BuiltinFunctionValue {
   meter.checkpoint(1, 64);
   return values.builtinFunction({
     name: "splitlines",
@@ -22,19 +22,21 @@ export function createRuntimeStringSplitlinesMethod(receiver: Extract<RuntimeVal
         if (label !== "keepends") throw new PythonRuntimeError("TypeError", `splitlines() got an unexpected keyword argument '${label}'`);
         keepends = value;
       }
-      const retain = runtimeTruth(keepends, meter), text = receiver.value, length = BigInt(text.length);
+      const retain = runtimeTruth(keepends, meter), length = BigInt(receiver.value.length);
       const result = new ListStorage<RuntimeValue>([], meter);
       let start = 0n, index = 0n;
       while (index < length) {
-        const point = text.codePointAt(index, meter);
-        if (!isLineBoundary(point)) { index++; continue; }
+        const point = receiver.kind === "str" ? receiver.value.codePointAt(index, meter) : receiver.value.byteAt(index, meter);
+        if (!(point === 10 || point === 13 || receiver.kind === "str" && isLineBoundary(point))) { index++; continue; }
         const end = index++;
-        if (point === 13 && index < length && text.codePointAt(index, meter) === 10) index++;
+        if (point === 13 && index < length && (receiver.kind === "str" ? receiver.value.codePointAt(index, meter) : receiver.value.byteAt(index, meter)) === 10) index++;
         const stop = retain ? index : end;
-        result.append(start === 0n && stop === length ? receiver : values.stringPoints(text.slice(start, stop, null, meter)));
+        result.append(start === 0n && stop === length ? receiver : receiver.kind === "str"
+          ? values.stringPoints(receiver.value.slice(start, stop, null, meter)) : values.bytes(receiver.value.slice(start, stop, null, meter)));
         start = index;
       }
-      if (start < length) result.append(start === 0n ? receiver : values.stringPoints(text.slice(start, length, null, meter)));
+      if (start < length) result.append(start === 0n ? receiver : receiver.kind === "str"
+        ? values.stringPoints(receiver.value.slice(start, length, null, meter)) : values.bytes(receiver.value.slice(start, length, null, meter)));
       return values.list(result);
     }
   });

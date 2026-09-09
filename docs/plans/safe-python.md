@@ -4328,6 +4328,18 @@ extension, integration, or validation requirement is missing or unverified.
   lint, source typecheck and selected workspace build pass. Buffer protocols,
   remaining bytes/text/numeric methods and native builtins, string/integer
   interning, suspension, full accounting and SDK/safe-fs remain unfinished.
+- Connected bytes.splitlines through the existing text method's shared argument
+  handling and metered scan. Bytes recognize CR/LF/CRLF only; text retains its
+  additional Unicode boundaries. Unsplit nonempty receivers retain identity,
+  partial byte lines use canonical construction, and terminal boundaries do
+  not append an extra empty line.
+- Six native tests reproduce missing bytes support and now pass. All 4,072
+  tests in 303 files pass. A 4,716-call compiled CPython audit matches byte
+  values, receiver identity and diagnostics; the 2,104-call string splitlines
+  regression, scoped lint, source typecheck and selected workspace build also
+  pass. Remaining bytes/text/numeric methods, buffer
+  protocols, native builtins, suspension, full accounting and SDK/safe-fs
+  integration remain unfinished.
 - Next:
   remaining scope/compiler audits, interpreter runtime,
   resource controls, runtime modules, and safe-fs integration. Parsing and static

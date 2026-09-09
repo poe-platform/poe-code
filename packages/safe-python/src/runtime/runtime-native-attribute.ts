@@ -85,7 +85,7 @@ export function runtimeNativeAttribute(receiver: RuntimeValue, name: string, val
   if ((receiver.kind === "int" || receiver.kind === "bool" || receiver.kind === "float") && name === "is_integer") return createRuntimeIsIntegerMethod(receiver, values, meter);
   if ((receiver.kind === "int" || receiver.kind === "bool" || receiver.kind === "float") && name === "as_integer_ratio") return createRuntimeIntegerRatioMethod(receiver, values, meter);
   if ((receiver.kind === "int" || receiver.kind === "bool") && (name === "bit_length" || name === "bit_count")) return createRuntimeIntegerBitMethod(receiver, name, values, meter);
-  if ((receiver.kind === "str" || receiver.kind === "bytes") && name === "splitlines") return createRuntimeSplitlinesMethod(receiver, values, meter);
+  if ((receiver.kind === "str" || receiver.kind === "bytes") && name === "splitlines") return createRuntimeSplitlinesMethod(receiver, values, meter, methods?.truth);
   if ((receiver.kind === "str" || receiver.kind === "bytes") && (name === "split" || name === "rsplit")) return createRuntimeSplitMethod(receiver, name, values, meter, methods?.integerIndex);
   if ((receiver.kind === "str" || receiver.kind === "bytes") && name === "expandtabs") return createRuntimeExpandtabsMethod(receiver, values, meter, methods?.integerIndex);
   if ((receiver.kind === "str" || receiver.kind === "bytes") && (name === "center" || name === "ljust" || name === "rjust" || name === "zfill")) return createRuntimePadMethod(receiver, name, values, meter, methods?.integerIndex);

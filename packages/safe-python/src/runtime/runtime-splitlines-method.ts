@@ -2,11 +2,12 @@ import { PythonRuntimeError } from "./error.js";
 import type { ExecutionMeter } from "./execution-budget.js";
 import { ListStorage } from "./list-storage.js";
 import { runtimeTruth } from "./runtime-truth.js";
+import type { ExpressionContext } from "./expression-evaluation.js";
 import type { BuiltinFunctionValue, RuntimeValue, RuntimeValues } from "./runtime-values.js";
 
 /** Bytes recognize only CR/LF, while text has additional Unicode boundaries.
  * Both consume CRLF together and omit an extra line after a terminal boundary. */
-export function createRuntimeSplitlinesMethod(receiver: Extract<RuntimeValue, { kind: "str" | "bytes" }>, values: RuntimeValues, meter: ExecutionMeter): BuiltinFunctionValue {
+export function createRuntimeSplitlinesMethod(receiver: Extract<RuntimeValue, { kind: "str" | "bytes" }>, values: RuntimeValues, meter: ExecutionMeter, truth?: ExpressionContext<RuntimeValue>["truth"]): BuiltinFunctionValue {
   meter.checkpoint(1, 64);
   return values.builtinFunction({
     name: "splitlines",
@@ -22,7 +23,9 @@ export function createRuntimeSplitlinesMethod(receiver: Extract<RuntimeValue, { 
         if (label !== "keepends") throw new PythonRuntimeError("TypeError", `splitlines() got an unexpected keyword argument '${label}'`);
         keepends = value;
       }
-      const retain = runtimeTruth(keepends, meter), length = BigInt(receiver.value.length);
+      const retain = truth === undefined ? runtimeTruth(keepends, meter) : truth(keepends);
+      meter.checkpoint();
+      const length = BigInt(receiver.value.length);
       const result = new ListStorage<RuntimeValue>([], meter);
       let start = 0n, index = 0n;
       while (index < length) {

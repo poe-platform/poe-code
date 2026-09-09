@@ -6647,6 +6647,15 @@ extension, integration, or validation requirement is missing or unverified.
   separators. Typecheck, scoped lint and selected workspace build pass.
   Remaining native protocols, automatic object/builtin assembly and broader
   interpreter/SDK/safe-fs integration remain unfinished.
+- Connected str/bytes splitlines keepends to the frame truth capability, with
+  a post-conversion cancellation checkpoint. This argument follows truth
+  semantics rather than integer-index conversion, including empty inputs.
+- Four compiled regressions cover guest true/false flags for both receiver
+  types. All 5,119 tests in 440 files pass; 32 CPython comparisons match outputs
+  and truth traces for empty input, CR/LF/CRLF and text-only line boundaries.
+  Typecheck and selected workspace build pass. Remaining native protocols,
+  automatic object/builtin assembly and broader interpreter/SDK/safe-fs
+  integration remain unfinished.
 - Next:
   remaining scope/compiler audits, interpreter runtime,
   resource controls, runtime modules, and safe-fs integration. Parsing and static

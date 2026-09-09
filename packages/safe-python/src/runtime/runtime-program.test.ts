@@ -39,6 +39,16 @@ function fixture(source: string, maxSteps = 100000, signal?: AbortSignal) {
 }
 
 describe("assembled concrete runtime programs", () => {
+  it.each([["", false], ["", true], ["b", false], ["b", true]] as const)("uses guest truth for splitlines keepends (%s, %s)", (prefix, retain) => {
+    const state = fixture(`result=${prefix}'a\\nb'.splitlines(keepends=flag)\nexpected=${prefix}'a\\nb'.splitlines(${retain ? "True" : "False"})\n`), v = state.values, flag = v.cell({}); let calls = 0;
+    state.globals.set("flag", flag);
+    state.hooks.expressions = () => ({ warn() {}, truth(value) {
+      if (value === flag) { calls++; return retain; }
+      return runtimeTruth(value, state.meter);
+    } });
+    state.run(); expect(calls).toBe(1);
+    expect(state.globals.get("result")).toEqual(state.globals.get("expected"));
+  });
   it.each([2, -2])("converts guest hex grouping %s", group => {
     const state = fixture(`result=b'abcde'.hex('-',bytes_per_sep=group)\nexpected=b'abcde'.hex('-',${group})\n`), v = state.values; let calls = 0;
     state.globals.set("group", v.cell({}));

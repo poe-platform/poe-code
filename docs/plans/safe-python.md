@@ -2752,6 +2752,19 @@ extension, integration, or validation requirement is missing or unverified.
   callback traces. Source typecheck, scoped lint and selected workspace build
   passed. The planned reusable length-slot conversion and integration remain
   open; this correction does not establish that broader protocol implementation.
+- Added optional length-slot conversion through the integer-index protocol.
+  Missing slots return absence for consumer-specific fallback; lookup/call,
+  conversion and warning failures propagate. Negative lengths fail before
+  signed 64-bit overflow. Extracted object-preserving index resolution so a
+  returned integer subclass retains its type in overflow diagnostics; existing
+  integerIndex consumers still receive normalized bigint payloads.
+- New length tests and index-object identity tests failed before implementation;
+  all 3,011 tests in 185 files pass. A 180-case CPython length conversion audit
+  matched values, errors, warnings and callback traces, and the 126-case integer
+  index audit passed after refactoring. Source typecheck, scoped lint and selected
+  workspace build passed. Concrete builtin/context integration, len/truth entry
+  points, bounded diagnostic type names and complete bigint/heap accounting
+  remain unfinished.
 - Next:
   remaining scope/compiler audits, interpreter runtime,
   resource controls, runtime modules, and safe-fs integration. Parsing and static

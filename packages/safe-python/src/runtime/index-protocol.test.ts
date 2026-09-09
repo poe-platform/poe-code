@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { integerIndex, type IntegerIndexContext } from "./index-protocol.js";
+import { integerIndex, indexObject, type IntegerIndexContext } from "./index-protocol.js";
 import { ExecutionBudget, ExecutionLimitError } from "./execution-budget.js";
 
 interface Value { name: string; integer?: bigint; exact?: boolean; method?: () => Value }
@@ -12,6 +12,11 @@ const context: IntegerIndexContext<Value> = {
 };
 
 describe("integer index protocol", () => {
+  it("retains the original integer object when requested by a typed consumer", () => {
+    const value = integer(1n, "Sub");
+    expect(indexObject(value, context, budget())).toBe(value);
+    expect(indexObject({ name: "Index", method: () => value }, { ...context, warn: () => {} }, budget())).toBe(value);
+  });
   it.each(["int", "bool", "IntSubclass"])("uses %s payload without calling overridden index", name => {
     expect(integerIndex({ ...integer(7n, name), method: () => { throw new Error("unexpected index"); } }, context, budget())).toBe(7n);
   });

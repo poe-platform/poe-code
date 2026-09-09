@@ -4237,6 +4237,20 @@ extension, integration, or validation requirement is missing or unverified.
   workspace build pass. Remaining bytes/text/numeric methods, native builtins,
   subclasses/global interning, suspension, full accounting and SDK/safe-fs
   remain unfinished.
+- Connected bytes.find/rfind/index/rindex/count with byte-string and integer
+  needles, saturating/None slice bounds, empty-pattern boundary semantics and
+  nonoverlapping counts. Bounds are validated before the needle, matching bytes
+  rather than str call ordering. Invalid integers and missing index results use
+  the bytes-specific diagnostics. Integer needles scan without temporary
+  allocation; byte-string searches reuse the bounded linear substring kernel.
+- Fourteen native/storage tests first failed for missing searches. All 4,012
+  tests in 294 files pass, including repetitive-pattern work bounds, prefix-table
+  allocation, impossible windows and integer scan budgets. A 6,350-call compiled
+  CPython audit matches results, bounds and diagnostics; the 2,440-call string
+  search regression, scoped lint, source typecheck and selected workspace build
+  pass. Guest index/buffer protocols, remaining bytes/text/numeric methods,
+  native builtins, subclasses/global interning, suspension, full accounting and
+  SDK/safe-fs remain unfinished.
 - Next:
   remaining scope/compiler audits, interpreter runtime,
   resource controls, runtime modules, and safe-fs integration. Parsing and static

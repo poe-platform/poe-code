@@ -1,7 +1,7 @@
 import type { ExecutionMeter } from "./execution-budget.js";
 import { PythonRuntimeError } from "./error.js";
 import { normalizeSlice } from "./integer-sequence.js";
-import { searchSubstring } from "./substring-search.js";
+import { searchSubstring, type SearchMode } from "./substring-search.js";
 
 export type BytesCaseTransformation = "upper" | "lower" | "title" | "capitalize" | "swapcase";
 
@@ -99,6 +99,31 @@ export class ImmutableBytes implements Iterable<number> {
     for (let i = 0; i < this.length; i++) { meter.checkpoint(); bytes[i] = this.#bytes[i]; }
     for (let i = 0; i < other.length; i++) { meter.checkpoint(); bytes[this.length + i] = other.#bytes[i]; }
     return new ImmutableBytes(bytes);
+  }
+
+  /** Bounded searches retain original byte positions, including empty-pattern
+   * boundaries. Integer needles use an allocation-free scan. */
+  search(needle: ImmutableBytes | number, mode: SearchMode, start = 0n, stop: bigint | null = null, meter: ExecutionMeter): number {
+    meter.checkpoint();
+    if (typeof needle === "number" && (!Number.isInteger(needle) || needle < 0 || needle > 255)) throw new RangeError("byte search requires an integer in range 0..255");
+    const length = BigInt(this.length), needleLength = typeof needle === "number" ? 1 : needle.length;
+    if (start < 0n) start += length;
+    if (start < 0n) start = 0n;
+    stop ??= length;
+    if (stop < 0n) stop += length;
+    if (stop < 0n) stop = 0n;
+    if (stop > length) stop = length;
+    if (start > stop || BigInt(needleLength) > stop - start) return mode === "count" ? 0 : -1;
+    if (needleLength === 0) return Number(mode === "find" ? start : mode === "rfind" ? stop : stop - start + 1n);
+    if (typeof needle !== "number") return searchSubstring(this.#bytes, needle.#bytes, Number(start), Number(stop), mode, meter);
+    let result = mode === "count" ? 0 : -1;
+    for (let index = Number(start); index < Number(stop); index++) {
+      meter.checkpoint();
+      if (this.#bytes[index] !== needle) continue;
+      if (mode === "find") return index;
+      if (mode === "count") result++; else result = index;
+    }
+    return result;
   }
 
   /** Search owned storage without exporting/copying either buffer. */

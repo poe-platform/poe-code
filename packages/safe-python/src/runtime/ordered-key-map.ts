@@ -45,12 +45,33 @@ export class OrderedKeyMap<Key, Value> {
     const hash = this.operations.hash(key);
     const existing = this.#find(key, hash);
     if (existing !== undefined) { existing.value = value; return; }
-    let bucket = this.#buckets.get(hash);
-    this.meter.checkpoint(0, 80 + (bucket === undefined ? 32 : 0));
-    const entry: Entry<Key, Value> = { key, value };
-    if (bucket === undefined) { bucket = new Set(); this.#buckets.set(hash, bucket); }
-    bucket.add(entry);
-    this.#entries.add(entry);
+    this.#insert(key, hash, value);
+  }
+
+  /** Single hash/lookup: never implement this as lookup followed by set, since
+   * guest hashing/equality can mutate state or return different results. */
+  setdefault(key: Key, value: Value): Value {
+    this.meter.checkpoint();
+    const hash = this.operations.hash(key);
+    const existing = this.#find(key, hash);
+    if (existing !== undefined) return existing.value;
+    this.#insert(key, hash, value);
+    return value;
+  }
+
+  /** Absence is separate from a stored undefined value. The guest method layer
+   * applies its default or raises KeyError, without performing another lookup. */
+  pop(key: Key): Readonly<{ value: Value }> | undefined {
+    this.meter.checkpoint();
+    // CPython skips hashing entirely on an empty dictionary.
+    if (this.#entries.size === 0) return undefined;
+    const hash = this.operations.hash(key);
+    const entry = this.#find(key, hash);
+    if (entry === undefined) return undefined;
+    this.meter.checkpoint(0, 16);
+    const result = Object.freeze({ value: entry.value });
+    this.#remove(entry, hash);
+    return result;
   }
 
   delete(key: Key): boolean {
@@ -58,10 +79,7 @@ export class OrderedKeyMap<Key, Value> {
     const hash = this.operations.hash(key);
     const entry = this.#find(key, hash);
     if (entry === undefined) return false;
-    const bucket = this.#buckets.get(hash)!;
-    bucket.delete(entry);
-    if (bucket.size === 0) this.#buckets.delete(hash);
-    this.#entries.delete(entry);
+    this.#remove(entry, hash);
     return true;
   }
 
@@ -80,6 +98,22 @@ export class OrderedKeyMap<Key, Value> {
       rows.push(Object.freeze([entry.key, entry.value] as const));
     }
     return Object.freeze(rows);
+  }
+
+  #insert(key: Key, hash: bigint, value: Value): void {
+    let bucket = this.#buckets.get(hash);
+    this.meter.checkpoint(0, 80 + (bucket === undefined ? 32 : 0));
+    const entry: Entry<Key, Value> = { key, value };
+    if (bucket === undefined) { bucket = new Set(); this.#buckets.set(hash, bucket); }
+    bucket.add(entry);
+    this.#entries.add(entry);
+  }
+
+  #remove(entry: Entry<Key, Value>, hash: bigint): void {
+    const bucket = this.#buckets.get(hash)!;
+    bucket.delete(entry);
+    if (bucket.size === 0) this.#buckets.delete(hash);
+    this.#entries.delete(entry);
   }
 
   #find(key: Key, hash: bigint): Entry<Key, Value> | undefined {

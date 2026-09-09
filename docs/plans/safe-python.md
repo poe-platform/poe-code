@@ -2288,6 +2288,19 @@ extension, integration, or validation requirement is missing or unverified.
   and forced collisions across mixed concrete numeric/string/bytes/tuple/slice
   keys. Full guest container wiring, iteration semantics, method APIs, callback
   recursion control and complete host Map/Set heap accounting remain pending.
+- Added single-lookup ordered-map setdefault/pop primitives. Defaults preserve
+  existing values and key identity; pop returns a detached presence/value result,
+  reserving result storage before removal. Shared insertion/removal internals
+  preserve collision and order behavior without repeated guest hashing/equality.
+  Empty-map pop skips hashing, verified against CPython; setdefault still hashes.
+  Guest default arguments and KeyError translation remain in the future method
+  layer, rather than overloading stored undefined as absence.
+- Default/pop regressions failed before implementation. All 2,622 tests in 151
+  files pass, covering single-hash calls, equality-triggered replacement, stored
+  undefined, allocation rejection and empty-map error precedence. A 10,000-step
+  CPython audit including default insertion/removal matched operation results and
+  ordered snapshots under seeded hashes and forced collisions. Source typecheck,
+  scoped lint and selected workspace build passed.
 - Next:
   remaining scope/compiler audits, interpreter runtime,
   resource controls, runtime modules, and safe-fs integration. Parsing and static

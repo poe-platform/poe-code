@@ -5510,6 +5510,18 @@ extension, integration, or validation requirement is missing or unverified.
   methods and raising descriptors. Typecheck, scoped lint and selected workspace
   build pass. Native __format__ slots, format-mini-language
   parsing, default f-string wiring and the wider interpreter work remain pending.
+- Added the public format() builtin adapter with explicit shared formatting
+  context registration. Keyword rejection precedes one/two-argument arity checks;
+  invalid specs raise the public TypeError, with 50-byte type diagnostics and
+  the special None spelling, before entering the internal formatting protocol.
+  String-subclass specs and valid method results retain identity.
+- Four tests first failed on the absent adapter. A 2,008-program compiled
+  CPython audit covers native empty-spec str/int formatting, identity and public
+  argument errors. It exposed the None versus NoneType diagnostic mismatch;
+  an exact failing regression assertion was added before correcting the adapter.
+  All 4,618 tests in 385 files pass. Typecheck, scoped lint and selected workspace build pass. This adapter does not establish
+  nonempty native format specifications, the full builtin namespace, default
+  f-string formatting or the wider interpreter/SDK/safe-fs work.
 - Next:
   remaining scope/compiler audits, interpreter runtime,
   resource controls, runtime modules, and safe-fs integration. Parsing and static

@@ -30,7 +30,10 @@ confirmed that next/next/next, return/return and next/return/next all allocate
 results in A in the native oracle. SafeJS returned objects linked to neither
 exported prototype. These checks support using the method's result allocator,
 including helper step results that are newly constructed rather than forwarded.
-Extend the borrowed-method tests to all five helper kinds before fixing them.
+The follow-up built/native audit extended these three operation sequences to
+all five helper kinds: all 40 native results used the called method's realm,
+and all 40 SafeJS identity checks failed. Add these as source regressions
+before implementing the fix.
 
 ## Generator results need state-sensitive handling
 
@@ -54,6 +57,36 @@ correct for every generator state. Before implementation, add failing source
 regressions for these sequences and check throw, finally/yield, yield-star,
 queued async requests and snapshot restoration. Preserve custom yielded value
 identity and avoid rewriting delegated result objects without native evidence.
+
+## Synchronous yield-star forwards the result object
+
+A separate native comparison establishes that synchronous yield-star must
+not always allocate a new result object. Use a delegate returning a shared
+null-prototype object with own `value: 1`, `done: false`, and `extra: 7`, then
+call next on `(function*(){yield*delegate})()`.
+
+Native preserves the exact object, its null prototype, and all three keys.
+SafeJS instead returns a different object with only value/done, loses the
+null prototype, and drops extra. The async-generator control matches native:
+it returns a different ordinary result with just value/done. Do not apply
+synchronous result forwarding to async generators.
+
+Two accessor controls expose a behavioral consequence beyond identity:
+
+- With a logging value getter, native synchronous generator.next returns the
+  delegate's object without reading value. SafeJS invokes the getter early.
+- With a throwing value getter, native generator.next still yields normally
+  without invoking it; SafeJS throws the getter's error from next instead.
+
+The current delegated-yield loop in interp/interpreter.ts reads both done and
+value before checking completion, then stores/yields just the value. The
+channel in interp/generator.ts constructs a new result around that value.
+Both boundaries need review; merely assigning a prototype to the replacement
+would leave identity, extra properties and getter timing incorrect.
+
+Before changing code, reproduce these cases as failing source tests and
+include delegate throw/return, done results, Proxy results, replay and memory
+retention controls. This bug is validated but not fixed by this audit.
 
 ## Verification boundary
 

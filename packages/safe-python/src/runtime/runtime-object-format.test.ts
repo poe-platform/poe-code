@@ -1,0 +1,53 @@
+import { expect, it } from "vitest";
+import { createRuntimeFormatContext } from "./runtime-format.js";
+import { formatObject } from "./format-protocol.js";
+import { runtimeNativeAttribute } from "./runtime-native-attribute.js";
+import { constructRuntimeDictionary } from "./runtime-dictionary-update.js";
+import { RuntimeValues, type RuntimeValue } from "./runtime-values.js";
+import { ExecutionBudget } from "./execution-budget.js";
+import { createRange } from "./integer-sequence.js";
+
+function fixture() {
+  const meter = new ExecutionBudget({ maxSteps: 100000, maxAllocatedBytes: 1000000 }), v = new RuntimeValues(meter);
+  const dictionary = () => constructRuntimeDictionary([], new Map(), v, { hash: () => 1n, equal: (a, b) => a === b }, meter);
+  const context = createRuntimeFormatContext(v, meter, { defaultRepr() { throw Error("unresolved representation"); } });
+  return { v, meter, dictionary, context };
+}
+const text = (value: RuntimeValue) => { if (value.kind !== "str") throw Error("expected str"); return String.fromCodePoint(...value.value); };
+it("formats implemented native object families with empty specs", () => {
+  const { v, meter, dictionary, context } = fixture(), d = dictionary();
+  const cases = [[v.none, "None"], [v.ellipsis, "Ellipsis"], [v.notImplemented, "NotImplemented"], [v.bytes(Uint8Array.of(255)), "b'\\xff'"], [v.list([]), "[]"], [v.tuple([]), "()"], [d, "{}"], [v.mappingProxy(d), "{}"], [v.dictionaryView(d, "dict_keys"), "dict_keys([])"], [v.dictionaryView(d, "dict_values"), "dict_values([])"], [v.dictionaryView(d, "dict_items"), "dict_items([])"], [v.range(createRange(0n, 2n, 1n)), "range(0, 2)"]] as const;
+  for (const [value, expected] of cases) expect(text(formatObject(value, v.string(""), context, meter))).toBe(expected);
+});
+it("rejects nonempty specs before traversing unresolved container contents", () => {
+  const { v, meter, context } = fixture();
+  expect(() => formatObject(v.list([v.cell({})]), v.string("x"), context, meter)).toThrow("unsupported format string passed to list.__format__");
+  expect(() => formatObject(v.none, v.string("x"), context, meter)).toThrow("unsupported format string passed to NoneType.__format__");
+});
+it("exposes native bound object-format methods with their argument diagnostics", () => {
+  const { v, meter, dictionary } = fixture(), keywords = dictionary();
+  for (const [value, type] of [[v.none, "NoneType"], [v.list([]), "list"], [v.bytes(new Uint8Array()), "bytes"]] as const) {
+    const method = runtimeNativeAttribute(value, "__format__", v, meter);
+    if (method.kind !== "builtin_function_or_method") throw Error("expected method");
+    expect(() => method.value.invoke([], keywords, meter)).toThrow(`${type}.__format__() takes exactly one argument (0 given)`);
+    expect(() => method.value.invoke([v.integer(1)], keywords, meter)).toThrow("__format__() argument must be str, not int");
+    expect(() => method.value.invoke([v.string("x")], keywords, meter)).toThrow(`unsupported format string passed to ${type}.__format__`);
+    expect(method.value.invoke([v.string("")], keywords, meter).kind).toBe("str");
+    keywords.items.set(v.string("format_spec"), v.string(""));
+    expect(() => method.value.invoke([], keywords, meter)).toThrow(`${type}.__format__() takes no keyword arguments`);
+    keywords.items.clear();
+  }
+});
+it("preserves live cycles, guest representation hooks and guest format slots", () => {
+  const { v, meter, dictionary } = fixture(), guest = v.cell({}), result = v.string("guest"), list = v.list([guest]), d = dictionary();
+  list.items.append(list);
+  const context = createRuntimeFormatContext(v, meter, {
+    lookupRepr: value => value === guest ? () => result : undefined,
+    lookupFormat: value => value === guest ? spec => spec : undefined,
+    defaultRepr() { throw Error("unexpected default"); }
+  });
+  expect(text(formatObject(list, undefined, context, meter))).toBe("[guest, [...]]");
+  expect(formatObject(guest, result, context, meter)).toBe(result);
+  d.items.set(v.string("proxy"), v.mappingProxy(d));
+  expect(text(formatObject(v.mappingProxy(d), undefined, context, meter))).toBe("{'proxy': mappingproxy({...})}");
+});

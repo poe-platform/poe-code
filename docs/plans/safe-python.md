@@ -5522,6 +5522,24 @@ extension, integration, or validation requirement is missing or unverified.
   All 4,618 tests in 385 files pass. Typecheck, scoped lint and selected workspace build pass. This adapter does not establish
   nonempty native format specifications, the full builtin namespace, default
   f-string formatting or the wider interpreter/SDK/safe-fs work.
+- Added inherited object-format behavior for implemented native representation
+  families (singletons, bytes, list/tuple/dict, mapping proxies/views and range).
+  Empty specs delegate to str through the shared representation context;
+  nonempty specs fail before representation traversal. Bound __format__ methods
+  validate their own arguments, while a runtime format-context factory exposes
+  native inherited slots plus explicit guest formatting hooks. Specialized
+  numeric/text formatting remains an explicit implementation gap.
+- Four tests first failed on absent native object-format support. All 4,622 tests
+  in 386 files pass; typecheck, scoped lint and selected workspace build pass.
+  A 2,055-program CPython audit matches builtin formatting, successful native
+  method calls and bound-method argument failures over mixed native containers.
+- Direct-call diagnostic parity remains incomplete: CPython optimized calls such
+  as x.__format__() report object.__format__ for argument failures, while
+  m=x.__format__; m() reports the receiver type. The current runtime materializes
+  bound methods for both call paths. The initial compiled audit exposed this;
+  the passing audit explicitly uses retrieved bound methods for those failures.
+  Descriptor/direct-call optimization, remaining native families, format-spec
+  parsing, default f-string wiring and the wider interpreter work remain pending.
 - Next:
   remaining scope/compiler audits, interpreter runtime,
   resource controls, runtime modules, and safe-fs integration. Parsing and static

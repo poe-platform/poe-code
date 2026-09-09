@@ -31,6 +31,21 @@ function environment(meter = budget()) {
 }
 
 describe("assignment target traversal", () => {
+  it.each(["a = b", "a, b"])("charges queued target records before any child stores: %s", source => {
+    const { context, names, meter } = environment(new ExecutionBudget({ maxSteps: 1000, maxAllocatedBytes: 72 }));
+    context.unpack = () => ({ leading: [1, 2], starred: undefined, trailing: [] });
+    expect(() => assignTargets(targets(source), [1, 2], context, meter)).toThrow("execution allocation limit exceeded");
+    expect(names.size).toBe(0);
+  });
+  it.each(["store", "set", "unpack"])("observes cancellation from the final %s callback", callback => {
+    const controller = new AbortController();
+    const { context, meter } = environment(new ExecutionBudget({ maxSteps: 1000, maxAllocatedBytes: 10000, signal: controller.signal }));
+    context.store = () => { controller.abort(); };
+    context.resolve = () => ({ set: () => { controller.abort(); } });
+    context.unpack = () => { controller.abort(); return { leading: [], starred: undefined, trailing: [] }; };
+    const target = callback === "store" ? targets("a") : callback === "set" ? targets("obj.x") : targets("[]");
+    expect(() => assignTargets(target, [], context, meter)).toThrow("execution cancelled");
+  });
   it("assigns chained targets left to right using the same RHS identity", () => {
     const { context, names, events, meter } = environment(), value = {};
     assignTargets(targets("a = b"), value, context, meter);

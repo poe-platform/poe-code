@@ -6173,6 +6173,16 @@ extension, integration, or validation requirement is missing or unverified.
   retain exact output/error/callback behavior. Typecheck, scoped lint and selected workspace
   build pass. Expression buffers and traversal work stacks still need complete
   temporary accounting; broader interpreter and SDK/safe-fs work remain open.
+- Assignment traversal now charges its work array and each queued target/value
+  record before allocation, both for chained roots and unpacked children. It
+  checks cancellation after stores, reference writes, unpacking and starred-list
+  creation, including terminal callbacks with no subsequent traversal iteration.
+- Five regression cases first demonstrated uncharged root/child records and
+  missed terminal cancellation. All 4,885 tests in 426 files pass, including the
+  unchanged 5,000-level nonrecursive traversal case. The 120 extended-unpack
+  CPython comparisons preserve results, errors and callback order. Typecheck, scoped lint
+  and selected workspace build pass. Expression buffers and other work stacks
+  remain in the memory-accounting audit; full interpreter integration is open.
 - Next:
   remaining scope/compiler audits, interpreter runtime,
   resource controls, runtime modules, and safe-fs integration. Parsing and static

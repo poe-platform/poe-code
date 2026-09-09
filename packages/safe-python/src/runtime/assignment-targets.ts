@@ -16,24 +16,28 @@ export interface AssignmentContext<Value> {
 /** Assign one already-evaluated RHS to statically validated chained targets.
  * Each unpack completes before that level's child stores; later failures do not
  * roll back earlier stores. Work is iterative, including nested starred targets.
- * The context owns scope resolution, guest protocols and heap accounting.
+ * Traversal accounts for its work array and queued records; the context owns
+ * scope resolution, guest protocols and guest-value heap accounting.
  */
 export function assignTargets<Value>(
   targets: readonly Expression[], value: Value, context: AssignmentContext<Value>, meter: ExecutionMeter
 ): void {
-  meter.checkpoint();
+  meter.checkpoint(1, 32);
   const work: { target: Expression; value: Value }[] = [];
   for (let index = targets.length - 1; index >= 0; index--) {
-    meter.checkpoint(); work.push({ target: targets[index], value });
+    meter.checkpoint(1, 40); work.push({ target: targets[index], value });
   }
   while (work.length) {
     meter.checkpoint();
     const current = work.pop()!, target = current.target;
-    if (target.kind === "name") context.store(target.name, current.value);
-    else if (target.kind === "attribute" || target.kind === "subscript") {
+    if (target.kind === "name") {
+      context.store(target.name, current.value);
+      meter.checkpoint(0);
+    } else if (target.kind === "attribute" || target.kind === "subscript") {
       const reference = context.resolve(target);
       meter.checkpoint();
       reference.set(current.value);
+      meter.checkpoint(0);
     } else if (target.kind === "tuple" || target.kind === "list") {
       let star = -1;
       for (let index = 0; index < target.items.length; index++) {
@@ -45,10 +49,11 @@ export function assignTargets<Value>(
       }
       meter.checkpoint();
       const unpacked = context.unpack(current.value, star === -1 ? target.items.length : star, star === -1 ? null : target.items.length - star - 1);
+      meter.checkpoint(0);
       let middle!: Value;
-      if (star !== -1) { meter.checkpoint(); middle = context.list(unpacked.starred!); }
+      if (star !== -1) { meter.checkpoint(); middle = context.list(unpacked.starred!); meter.checkpoint(0); }
       for (let index = target.items.length - 1; index >= 0; index--) {
-        meter.checkpoint();
+        meter.checkpoint(1, 40);
         const item = target.items[index];
         const child = index === star ? middle : star === -1 || index < star ? unpacked.leading[index] : unpacked.trailing[index - star - 1];
         work.push({ target: item.kind === "unpack" ? item.value : item, value: child });

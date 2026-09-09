@@ -1,4 +1,5 @@
 import type { Budget } from "../budget.js";
+import { sandboxIsExtensible, sandboxPreventExtensions } from "../guest-proxy-extensibility.js";
 import { isSandboxModuleNamespace } from "../module-namespace.js";
 import { assertSandboxDataDepth } from "../../graph-depth.js";
 import { accessorClosure, readPropertyDescriptor } from "../accessors.js";
@@ -35,8 +36,8 @@ export function createReflectGlobal(budget: Budget): SandboxObject {
       objectProperties(target);
       return getSandboxPropertyDescriptor(target, await toPropertyKey(key, budget, context), budget) !== undefined;
     } },
-    isExtensible: { length: 1, call: ([target]) => Object.isExtensible(objectProperties(target)) },
-    preventExtensions: { length: 1, call: ([target]) => Reflect.preventExtensions(objectProperties(target, true)) },
+    isExtensible: { length: 1, call: ([target], context) => sandboxIsExtensible(target, budget, context) },
+    preventExtensions: { length: 1, call: ([target], context) => sandboxPreventExtensions(target, budget, context) },
     deleteProperty: { length: 2, call: async ([target, key], context) => {
       objectProperties(target, true);
       const property = await toPropertyKey(key, budget, context);

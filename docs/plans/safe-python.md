@@ -2435,6 +2435,16 @@ extension, integration, or validation requirement is missing or unverified.
   match. Source typecheck, scoped lint and selected workspace build passed.
   List slices, iteration, extension, sorting, guest type integration,
   native spare-capacity/reallocation accounting and finalizers remain pending.
+- Added live forward and reverse list cursors with constant-sized allocation and
+  no element-slot copy. Forward cursors observe appended values and index shifts;
+  reverse cursors capture their initial final index. A bounds failure during next
+  permanently releases the source, while a zero length hint alone is not terminal.
+  Budget checks precede cursor advancement; stored undefined is not exhaustion.
+- Iterator regressions first reproduced missing methods. All 2,716 tests in 162
+  files pass. A CPython audit matched 1,000 forward/reverse traces containing
+  60,000 mutation and iteration operations. Source typecheck, scoped lint and
+  selected workspace build passed. Guest iterator types, StopIteration
+  conversion and complete native allocation accounting remain unfinished.
 - Next:
   remaining scope/compiler audits, interpreter runtime,
   resource controls, runtime modules, and safe-fs integration. Parsing and static

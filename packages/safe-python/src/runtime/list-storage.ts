@@ -1,5 +1,6 @@
 import { exhaustAllocation, type ExecutionMeter } from "./execution-budget.js";
 import { PythonRuntimeError } from "./error.js";
+import { ListIterator } from "./list-iterator.js";
 
 /** Owned mutable list slots, not the guest list type or protocol dispatcher.
  * Index arguments have already passed guest __index__ conversion. The fixed
@@ -60,6 +61,10 @@ export class ListStorage<Value> {
       this.#items[i] = this.#items[other]; this.#items[other] = value;
     }
   }
+
+  iterate(): ListIterator<Value> { return new ListIterator(this.#items, false, this.meter); }
+
+  reversed(): ListIterator<Value> { return new ListIterator(this.#items, true, this.meter); }
 
   snapshot(): readonly Value[] {
     this.meter.checkpoint(1 + this.#items.length, 32 + this.#items.length * 8);

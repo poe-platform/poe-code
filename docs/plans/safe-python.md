@@ -3328,6 +3328,20 @@ extension, integration, or validation requirement is missing or unverified.
   workspace build passed. Layouts are host metadata, not guest type values;
   metaclass policy, mutable __bases__, concrete type/instance records, class
   construction, full accounting and public SDK/safe-fs integration remain pending.
+- Added a concrete dictionary-backed name namespace shared by class-frame locals,
+  builtin lookup and module exec locals. It converts source names to runtime string
+  keys without extra normalization, preserves live storage and non-string entries,
+  distinguishes missing names from None, and propagates dictionary policy faults.
+  Class-frame writes/private mangling now have an integration test against the
+  same dictionary subsequently searched by runtime MRO lookup.
+- The adapter suite first failed on its missing module. All 3,384 tests in 229
+  files pass, including assembled-program separate-local and captured-builtin
+  integration. A 1,200-program CPython exec comparison matched separate dictionary
+  locals/builtins, global routing, default capture and deletion; the 10,000-case
+  inheritance audit also passed. Source typecheck, scoped lint and selected
+  workspace build passed. This does not yet replace global Map storage, implement
+  arbitrary prepared mappings or complete guest type/instance/class construction.
+  Full accounting, suspension and public SDK/safe-fs integration remain pending.
 - Next:
   remaining scope/compiler audits, interpreter runtime,
   resource controls, runtime modules, and safe-fs integration. Parsing and static

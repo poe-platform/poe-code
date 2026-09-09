@@ -12,6 +12,8 @@ import { ModuleFrame, type LocalNamespace } from "./module-frame.js";
 import { createLenBuiltin } from "./builtin-len.js";
 import { resolveRuntimeClassAttribute } from "./runtime-descriptor.js";
 import { readInstanceAttribute } from "./instance-attributes.js";
+import { RuntimeDictionaryNamespace } from "./runtime-dictionary-namespace.js";
+import { OrderedKeyMap } from "./ordered-key-map.js";
 
 function fixture(source: string, maxSteps = 100000, signal?: AbortSignal) {
   const meter = new ExecutionBudget({ maxSteps, maxAllocatedBytes: 1000000, signal }), values = new RuntimeValues(meter);
@@ -26,10 +28,20 @@ function fixture(source: string, maxSteps = 100000, signal?: AbortSignal) {
     callable: () => false, invoke: unused, name: () => "function()",
     keywordName: key => { if (key.kind !== "str") return unused(); return String.fromCodePoint(...key.value); }
   };
-  return { values, meter, globals, builtins, calls, hooks, run: (locals?: LocalNamespace<RuntimeValue>) => executeRuntimeProgram(program, { globals, builtins, locals, calls, values, keys, hooks }, meter) };
+  return { values, meter, globals, builtins, calls, hooks, keys, run: (locals?: LocalNamespace<RuntimeValue>) => executeRuntimeProgram(program, { globals, builtins, locals, calls, values, keys, hooks }, meter) };
 }
 
 describe("assembled concrete runtime programs", () => {
+  it("executes against live Python dictionary locals without leaking them into function globals", () => {
+    const state = fixture("x = 2\ndef f():\n return x\nresult = f()\ndel x\n");
+    const dictionary = state.values.dictionary(new OrderedKeyMap<RuntimeValue, RuntimeValue>(state.keys, state.meter));
+    state.globals.set("x", state.values.integer(9));
+    state.run(new RuntimeDictionaryNamespace(dictionary, state.values, state.meter));
+    expect(dictionary.items.lookup(state.values.string("result"))?.value).toEqual(state.values.integer(9));
+    expect(dictionary.items.lookup(state.values.string("x"))).toBeUndefined();
+    expect(dictionary.items.lookup(state.values.string("f"))?.value.kind).toBe("function");
+    expect(state.globals.has("result")).toBe(false); expect(state.calls.depth).toBe(0);
+  });
   it("calls methods produced by default function-descriptor lookup", () => {
     const state = fixture("def f(self, x=2):\n return self[0] + x\ninstance = [10]\nresult = instance.method(3)\n");
     state.hooks.expressions = () => ({
@@ -90,7 +102,7 @@ describe("assembled concrete runtime programs", () => {
     state.builtins.set("token", state.values.integer(3));
     state.hooks.resolveBuiltins = value => {
       if (value.kind !== "dict") throw new Error("dictionary expected");
-      return { lookup: name => value.items.lookup(state.values.string(name)) };
+      return new RuntimeDictionaryNamespace(value, state.values, state.meter);
     };
     state.run(); expect(state.globals.get("result")).toEqual(state.values.integer(1));
   });

@@ -1,5 +1,23 @@
 # Frozen dynamic-function candidate validation
 
+## Latest eval-deletion verification
+
+Session 89782 is running the maintained SafeJS workspace build closure followed
+by its full unit route. The refreshed package snapshot includes the locally
+committed ReferenceError stack repair and the later uncommitted eval-binding
+deletion, resolved assignment and destructuring/recovery fixes. All 1,156 package
+files match the source tree, with zero missing, extra or different files, excluding
+directories named node_modules, dist and coverage. SHA-256 of the JSON-encoded
+sorted [relative path, file SHA-256] manifest (localeCompare path ordering):
+`c46ea705025e7a10c22b5154f3d270acdd84c11b8f673cc418dddce8041c92d5`.
+
+The candidate is frozen until the run terminates. Root infrastructure and private
+dependencies remain the isolated baseline. Experimental weak collections and the
+two unresolved host-Promise property-import tests are still present; this run
+does not authorize publishing them or copying private native metadata. Latest
+focused deletion/assignment validation passes 342 tests and final TypeScript/lint.
+Build and full-suite results remain pending. No push or release.
+
 ## New whole-SafeJS verification
 
 Session 31057 is terminal, exit 1: 22,682 passed, two failed, 37 skipped across

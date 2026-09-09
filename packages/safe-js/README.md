@@ -566,6 +566,8 @@ Internal callable Proxies support direct, bound, callback, and Reflect.apply
 invocation, including apply traps and target forwarding. Revocation preserves
 callable identity but rejects calls. Constructible Proxies support construct traps,
 target forwarding, and explicit `new.target`, including subclass construction.
+Exported SDK `Reflect.construct` also preserves explicit constructor identity
+through ordinary, bound, and Proxy targets, including accessor-backed traps.
 
 `Array.isArray` follows nested Proxy targets without invoking traps and rejects
 revoked proxies. Other internal array-identity consumers still need integration.

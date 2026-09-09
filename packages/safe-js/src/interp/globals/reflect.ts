@@ -87,9 +87,14 @@ export function createReflectGlobal(budget: Budget): SandboxObject {
       call: async (args, context) => {
         const release = retainValues(budget, () => args);
         try {
-          return await method.call(args, { ...context, stack:context?.stack ?? [], thisValue:context?.thisValue,
+          const callerContext: SandboxCallContext = {
+            ...context, stack: context?.stack ?? [], thisValue: context?.thisValue,
+            getProperty: context?.getProperty ?? ((object, key) => sandboxGetProperty(object, key, object, budget, bridge))
+          };
+          const bridge: SandboxCallContext = { ...callerContext,
             invokeClosure: context?.invokeClosure ?? ((target, values, receiver, construct, newTarget) =>
-              invokeBuiltinClosure(target, values, budget, {...context,stack:context?.stack ?? [],thisValue:receiver,newTarget}, receiver, construct)) });
+              invokeBuiltinClosure(target, values, budget, callerContext, receiver, construct, newTarget)) };
+          return await method.call(args, bridge);
         } finally { release(); }
       }
     });

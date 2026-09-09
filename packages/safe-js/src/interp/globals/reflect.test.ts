@@ -81,6 +81,20 @@ it("preserves newTarget through SDK Reflect.construct", async () => {
   expect(await values[0].call([values[1],[],values[2]])).toMatchObject({own:true});
 });
 
+it.each([
+  'function A(){this.own=new.target===B}function B(){}',
+  'function C(){this.own=new.target===B}const A=C.bind(null);function B(){}',
+  'function C(){this.own=new.target===B}const A=new Proxy(C,{});function B(){}',
+  'const A=new Proxy(function(){},{construct(t,args,n){return {own:n===B}}});function B(){}',
+  'const A=new Proxy(function(){},{get construct(){return function(t,args,n){return {own:n===B}}}});function B(){}',
+  'function A(){this.own=new.target===B}const B=new Proxy(function(){},{})'
+])("preserves SDK constructor identity for %s", async setup => {
+  const result = await run(`${setup};return [Reflect.construct,A,B]`);
+  const values = result.returnValue;
+  if (!Array.isArray(values) || !isSandboxClosure(values[0])) throw new Error("Missing Reflect.construct closure");
+  expect(await values[0].call([values[1], [], values[2]])).toMatchObject({own: true});
+});
+
 it("uses guest conversion when Object.defineProperty changes array length", async () => {
   const source = "const a=[1,2,3];const seen=[];Object.defineProperty(a,'length',{value:{valueOf(){seen.push('convert');return 1}}});return [a,seen]";
   expect(await run(source)).toMatchObject({ok:true,returnValue:Function(source)()});

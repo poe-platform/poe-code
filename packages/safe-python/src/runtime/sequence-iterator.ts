@@ -1,5 +1,6 @@
 import type { ExecutionMeter } from "./execution-budget.js";
 import { PythonRuntimeError } from "./error.js";
+import type { LengthHintContext } from "./length-hint.js";
 
 export interface SequenceIterationContext<Value> {
   getItem(sequence: Value, index: bigint): Value;
@@ -17,6 +18,24 @@ export class SequenceIterator<Value> implements IterableIterator<Value> {
     meter.checkpoint(1, 64); this.#source = { value };
   }
   [Symbol.iterator](): IterableIterator<Value> { return this; }
+  /** The sequence cursor's hint reads only its source's length, never the
+   * source's own __length_hint__. Exhausted cursors release that source. */
+  lengthHint(context: LengthHintContext<Value>, fallback = 0n): bigint {
+    this.meter.checkpoint();
+    if (this.#source === undefined) return 0n;
+    let length: bigint | undefined;
+    try { length = context.length(this.#source.value); }
+    catch (error) {
+      this.meter.checkpoint();
+      const ignored = context.isTypeError(error); this.meter.checkpoint();
+      if (!ignored) throw error;
+    }
+    this.meter.checkpoint();
+    if (length === undefined) return fallback;
+    if (length < 0n) throw new PythonRuntimeError("ValueError", "__len__() should return >= 0");
+    if (BigInt.asIntN(64, length) !== length) throw new PythonRuntimeError("OverflowError", "cannot fit 'int' into an index-sized integer");
+    return length > this.#index ? length - this.#index : 0n;
+  }
   next(): IteratorResult<Value> {
     this.meter.checkpoint(1, 16);
     const source = this.#source;

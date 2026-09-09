@@ -6133,8 +6133,21 @@ extension, integration, or validation requirement is missing or unverified.
   and invalid replacements. All 4,860 tests in 426 files pass; 40 compiled
   extended-unpack programs match CPython results, arity errors and exact traces
   across prefix/suffix combinations, nested functions and zero-to-seven items.
-  Typecheck, scoped lint and selected workspace build pass. Length hints,
-  concrete objects and broader SDK/safe-fs work remain unfinished.
+  Typecheck, scoped lint and selected workspace build pass.
+- Added an optional length-hint capability to iteration contexts. Extended
+  unpacking reacquires first, then validates the original cursor's hint before
+  consuming the remainder. Replacement cursors are not queried in its place.
+  Legacy sequence cursors consult only their source's length, subtract the
+  consumed index, clamp to zero and avoid callbacks after exhaustion. Guest
+  TypeError fallback and invalid length/overflow behavior are retained.
+- Two compiled tests first reproduced skipped hint effects/errors; eight adapter
+  cases cover legacy absence, remaining counts, exhaustion and invalid lengths.
+  All 4,870 tests in 426 files pass. Eighty compiled CPython comparisons match
+  values/errors and exact callback traces across guest/legacy cursors, nested
+  functions, target shapes and input sizes. Typecheck, scoped lint and selected workspace
+  build pass. Advisory sizes are not used for speculative allocations, matching
+  existing list-extension policy. Other collecting consumers still need their
+  hint integration; concrete objects and broader SDK/safe-fs work remain open.
 - Next:
   remaining scope/compiler audits, interpreter runtime,
   resource controls, runtime modules, and safe-fs integration. Parsing and static

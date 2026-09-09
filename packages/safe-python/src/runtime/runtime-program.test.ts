@@ -19,6 +19,7 @@ import { runtimeTruth } from "./runtime-truth.js";
 import type { ContainmentContext } from "./containment-protocol.js";
 import type { IterationContext } from "./protocol-iterator.js";
 import { PythonRuntimeError } from "./error.js";
+import type { LengthHintContext } from "./length-hint.js";
 
 function fixture(source: string, maxSteps = 100000, signal?: AbortSignal) {
   const meter = new ExecutionBudget({ maxSteps, maxAllocatedBytes: 1000000, signal }), values = new RuntimeValues(meter);
@@ -37,6 +38,30 @@ function fixture(source: string, maxSteps = 100000, signal?: AbortSignal) {
 }
 
 describe("assembled concrete runtime programs", () => {
+  it.each([false, true])("checks the original cursor hint after reacquisition (failure=%s)", fail => {
+    const state = fixture("first,*rest=guest\n"), v = state.values;
+    const guest = v.cell({}), cursor = v.cell({}), replacement = v.cell({}), events: string[] = [];
+    const stop = new PythonRuntimeError("StopIteration", "done"), failure = new PythonRuntimeError("ValueError", "hint failed");
+    const hints: LengthHintContext<RuntimeValue> = {
+      length: value => { expect(value).toBe(cursor); events.push("length"); return undefined; },
+      lookupHint: value => { expect(value).toBe(cursor); return () => { events.push("hint"); if (fail) throw failure; return v.integer(0); }; },
+      integer: value => value.kind === "int" ? value.value : undefined,
+      isNotImplemented: value => value === v.notImplemented,
+      isTypeError: error => error instanceof PythonRuntimeError && error.name === "TypeError", typeName: value => value.kind
+    };
+    const iteration: IterationContext<RuntimeValue> = {
+      hints,
+      lookupIter: value => () => { events.push(value === guest ? "source iter" : "cursor iter"); return value === guest ? cursor : replacement; },
+      hasNext: () => true,
+      next(value) { events.push(value === cursor ? "prefix" : "remainder"); if (value === cursor) return v.integer(1); throw stop; },
+      hasSequenceItem: () => false, getItem: () => { throw Error("unexpected item"); },
+      isStopIteration: error => error === stop, isIndexError: () => false, typeName: () => "Guest"
+    };
+    state.globals.set("guest", guest); state.hooks.expressions = () => ({ warn() {}, iteration });
+    if (fail) { expect(state.run).toThrow(failure); expect(state.globals.has("first")).toBe(false); }
+    else { state.run(); expect(state.globals.get("rest")).toEqual(v.list([])); }
+    expect(events).toEqual(["source iter", "prefix", "cursor iter", "length", "hint", ...(fail ? [] : ["remainder"])]);
+  });
   it.each([false, true])("reacquires the cursor after the extended-unpack prefix (failure=%s)", fail => {
     const state = fixture("first,*rest=guest\n"), v = state.values;
     const guest = v.cell({}), cursor = v.cell({}), replacement = v.cell({}), events: string[] = [];

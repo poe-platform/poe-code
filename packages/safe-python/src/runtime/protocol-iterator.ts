@@ -2,8 +2,12 @@ import type { ExecutionMeter } from "./execution-budget.js";
 import { PythonRuntimeError } from "./error.js";
 import { SequenceIterator } from "./sequence-iterator.js";
 import type { CompletionResult } from "./iterator-completion.js";
+import { lengthHint, type LengthHintContext } from "./length-hint.js";
 
 export interface IterationContext<Value> {
+  /** Optional advisory-size capability for consumers that request length hints.
+   * Merely acquiring or advancing an iterator never invokes it. */
+  readonly hints?: LengthHintContext<Value>;
   /** Resolve the type's __iter__ slot, including special lookup/binding. Return
    * undefined only if absent; explicit disabling/non-callability must raise.
    */
@@ -71,6 +75,16 @@ export class ProtocolIterator<Value> implements IterableIterator<Value> {
   reacquire(): ProtocolIterator<Value> {
     this.meter.checkpoint();
     return this.#source === undefined ? this : new ProtocolIterator(this.#source.value, this.context, this.meter);
+  }
+
+  /** Inspect this guest cursor, not a replacement returned by reacquisition.
+   * The result is advisory and must not control how many items are consumed. */
+  lengthHint(fallback = 0n): bigint {
+    this.meter.checkpoint();
+    const hints = this.context.hints;
+    if (hints === undefined) return fallback;
+    return this.#sequence !== undefined ? this.#sequence.lengthHint(hints, fallback)
+      : lengthHint(this.#source!.value, hints, this.meter, fallback);
   }
 
   next(): CompletionResult<Value> {

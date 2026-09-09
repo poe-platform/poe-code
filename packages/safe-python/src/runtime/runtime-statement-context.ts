@@ -24,7 +24,7 @@ export interface RuntimeStatementBindings extends RuntimeReferenceWrites,
 /** Connect analyzed statement traversal to concrete expressions, references and
  * exact-value mutation. Hooks supply the unfinished object/exception/import
  * capabilities explicitly; no filesystem or host execution capability is added.
- * Starred unpacking length hints, full temporary accounting and guest in-place
+ * Full temporary accounting and guest in-place
  * negotiation remain unfinished. All components share this execution meter.
  */
 export function createRuntimeStatementContext(expressions: ExpressionContext<RuntimeValue>, bindings: RuntimeStatementBindings, values: RuntimeValues, meter: ExecutionMeter): StatementContext<RuntimeValue> {
@@ -38,7 +38,11 @@ export function createRuntimeStatementContext(expressions: ExpressionContext<Run
         throw new PythonRuntimeError("TypeError", `cannot unpack non-iterable ${name} object`);
       });
       return unpackAssignment(iterator, before, after, meter,
-        iterator instanceof ProtocolIterator ? () => iterator.reacquire() : undefined);
+        iterator instanceof ProtocolIterator ? () => {
+          const remainder = iterator.reacquire();
+          iterator.lengthHint(8n);
+          return remainder;
+        } : undefined);
     }
   };
   const augmented: AugmentedAssignmentContext<RuntimeValue> = {

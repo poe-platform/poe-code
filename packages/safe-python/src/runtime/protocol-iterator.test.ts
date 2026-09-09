@@ -18,6 +18,35 @@ const context: IterationContext<unknown> = {
 };
 
 describe("guest protocol iterator adapters", () => {
+  it.each([undefined, 0n, 1n, 5n])("gets a legacy cursor's remaining length from source length %s", length => {
+    let calls = 0;
+    const iterator = new ProtocolIterator({ get: (index: bigint) => { if (index === 2n) throw new Stop(); return index; } }, {
+      ...context,
+      hints: {
+        length: () => { calls++; return length; },
+        lookupHint: () => { throw Error("must not consult source hint"); },
+        integer: () => undefined, isNotImplemented: () => false, isTypeError: () => false, typeName: () => "X"
+      }
+    }, budget());
+    iterator.next();
+    expect(iterator.lengthHint(8n)).toBe(length === undefined ? 8n : length > 1n ? length - 1n : 0n);
+    iterator.next(); iterator.next();
+    expect(iterator.lengthHint(8n)).toBe(0n); expect(calls).toBe(1);
+  });
+  it.each(["TypeError", "ValueError", "negative", "overflow"])("handles legacy cursor length failure %s", mode => {
+    const failure = new PythonRuntimeError(mode, "length failed");
+    const iterator = new ProtocolIterator({ get: () => 1 }, {
+      ...context,
+      hints: {
+        length: () => { if (mode === "negative") return -1n; if (mode === "overflow") return 1n << 63n; throw failure; },
+        lookupHint: () => { throw Error("must not consult source hint"); },
+        integer: () => undefined, isNotImplemented: () => false,
+        isTypeError: error => error instanceof PythonRuntimeError && error.name === "TypeError", typeName: () => "X"
+      }
+    }, budget());
+    if (mode === "TypeError") expect(iterator.lengthHint(8n)).toBe(8n);
+    else expect(() => iterator.lengthHint(8n)).toThrow(mode === "negative" ? "__len__() should return >= 0" : mode === "overflow" ? "cannot fit 'int' into an index-sized integer" : failure);
+  });
   it("keeps a legacy sequence cursor's position when reacquired", () => {
     const iterator = new ProtocolIterator({ get: (index: bigint) => index }, context, budget());
     expect(iterator.next().value).toBe(0n);

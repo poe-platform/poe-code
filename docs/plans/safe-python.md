@@ -2542,6 +2542,19 @@ extension, integration, or validation requirement is missing or unverified.
   algorithm-dependent partial permutation. Exact comparison scheduling, guest
   method/reverse/key argument dispatch, sorted iterable preparation, finalizers
   and complete native allocation accounting remain unfinished.
+- Added shared length-hint protocol handling for iterable preparation. A valid
+  length takes precedence; length TypeError permits fallback. Hint descriptor
+  lookup errors propagate, while hint call TypeError or NotImplemented returns
+  the caller's default. Returned hint values require int/bool payloads rather
+  than arbitrary __index__ conversion, with separate negative and signed-index
+  overflow errors. Hints do not trigger allocation or bound actual iteration.
+- The length-hint suite first failed on its missing module; all 2,834 tests in
+  170 files pass. A 312-case CPython audit matched outcomes and length/descriptor/
+  call traces, including bad length conversion, non-callable hints, descriptor
+  failures and negative defaults. Source typecheck, scoped lint and selected
+  workspace build passed. The context still supplies guest length slots,
+  descriptor binding and exact integer extraction; iterable adapters, consumer
+  reservation wiring and full guest runtime integration remain unfinished.
 - Next:
   remaining scope/compiler audits, interpreter runtime,
   resource controls, runtime modules, and safe-fs integration. Parsing and static

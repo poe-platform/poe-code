@@ -5970,6 +5970,20 @@ extension, integration, or validation requirement is missing or unverified.
   arguments. Typecheck, scoped lint and selected workspace build pass. Automatic
   builtin registration and general guest object/SDK/safe-fs integration remain
   unfinished.
+- Added explicitly registered min/max through a shared streaming selector.
+  Iterable and multiple-positional forms preserve original member identity,
+  first ties and comparison direction. Key callbacks run once per member;
+  None disables key dispatch, and empty defaults are returned without key calls.
+  Keyword count/name/suggestion checks precede input acquisition, with the
+  zero-positional error taking precedence. Guest call/comparison/iteration
+  capabilities and checkpoints preserve failures and cancellation without
+  implicitly closing input iterators.
+- Eight tests cover native selection/ties/NaNs, key order, option errors,
+  callback StopIteration, guest sequence fallback, default identity and
+  cancellation. All 4,792 tests in 419 files pass; 2,202 compiled min/max
+  programs match CPython for selection, keys, identity and diagnostics.
+  Typecheck, scoped lint and selected workspace build pass. Automatic builtin
+  registration and general guest object/SDK/safe-fs integration remain open.
 - Next:
   remaining scope/compiler audits, interpreter runtime,
   resource controls, runtime modules, and safe-fs integration. Parsing and static

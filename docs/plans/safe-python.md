@@ -927,6 +927,27 @@ extension, integration, or validation requirement is missing or unverified.
   open-option validation, capability mapping, descriptor lifetime/identity,
   buffering, and safe-fs operations remain pending. Parser metering covers scan
   work, not diagnostic strings or host object overhead.
+- Added internal memory byte-stream storage for BytesIO/buffered-I/O foundations:
+  owned snapshots, byte reads, LF-only bounded line reads, readinto, overwrites,
+  zero-filled holes, exact signed-64-bit seeking, truncation, and idempotent close.
+  Truncation preserves position and does not expand storage; empty writes beyond
+  EOF do not extend it. Capacity grows geometrically, and discarded bytes cannot
+  reappear when retained capacity is reused. Guest buffer exports are not exposed.
+  Work/buffer charges precede mutation, including readinto targets and in-place
+  writes. Unsupported host-index growth is rejected without attempting allocation.
+- Memory-stream validation: the new suite failed on the missing module; all 1,601
+  package tests pass, including 17 storage cases and 200 write-budget boundaries.
+  CPython BytesIO comparisons matched 30,000 stateful operations, including results,
+  errors, positions, contents, and closed-state behavior. An additional ad hoc
+  sweep passed 4,800 budget/state boundaries, including retained-capacity holes.
+  A 1,000-single-byte-write test passed within 4,096 cumulative allocation bytes;
+  an unrepresentable-growth check verified unchanged state without allocation.
+  Scoped lint, source typecheck, and selected workspace build passed. Reference:
+  https://docs.python.org/3/library/io.html#io.BytesIO . This is internal storage,
+  not a complete guest BytesIO object: buffer-view exports/pinning, protocols,
+  iteration, aggregate methods, and safe-fs file objects remain pending. Optional
+  internal meters require mandatory guest-context wiring; host object overhead
+  and garbage-collection timing are not represented by buffer-allocation charges.
 - Next:
   remaining scope/compiler audits, interpreter runtime,
   resource controls, runtime modules, and safe-fs integration. Parsing and static

@@ -1,5 +1,22 @@
 # SafeJS full-package gate — September 9
 
+## Latest completed run
+
+Runtime candidate `291ce5fca`, session 21369: exit 1 after 544.03 seconds.
+24,819 tests passed, 2 failed, 37 skipped; 971 files passed, 1 failed,
+1 skipped (973 total). Only the two host-Promise own-property policy tests
+failed. The reused-budget accounting and original five-second D3 cases passed
+in this package run; no deadline or workload was relaxed.
+
+The original 1,302 source/test inputs were verified unchanged after completion:
+SHA-256 f02fa8d837b87e731d944737740e0f6a90fc06d89011f287362c68fe9e5eaa06.
+The newly added Atomics factory and regression file were excluded from those
+inputs; the factory was not yet connected to globals during this run.
+Uncommitted work remains included in the original input set. This is not a
+clean-checkout or all-green claim.
+
+## Earlier run
+
 Runtime candidate `b4613fcbc`; later `dd550eab4` changed only documentation.
 Command: npm run test:unit --workspace=@poe-code/safe-js -- --reporter=dot.
 Session 54630 completed with exit 1 after 689.23 seconds.

@@ -13,6 +13,8 @@ full-package, snapshot, or JavaScript-conformance gate.
   operations, including their tested target invariants.
 - Member expressions, assignments, membership, deletion and with bindings.
 - Object key/name/symbol/descriptor enumeration and own-property predicates.
+- Proxy-aware isPrototypeOf traversal, including bounded virtual cycles; see
+  [verification](safejs-proxy-is-prototype.md).
 - Object.assign sources and targets, descriptor-map enumeration, object
   spread/rest and rest exclusions.
 - Ordinary enumerability changes during values/entries, descriptor-map and
@@ -33,8 +35,8 @@ regressions, TypeScript and lint checks. Recent records include
   apply/construct traps and callable identity.
 - Proxy graph serialization/restoration, cycles, revocation state, validation,
   and host/structured-clone boundaries.
-- For-in, array-method bridges, prototype
-  predicates, legacy accessor lookup and object tags need consumer audits.
+- For-in, array-method bridges, instanceof, legacy accessor lookup and object
+  tags need consumer audits.
 - Array identity and ordinary prototype-cycle checks need Proxy-aware validation.
 - A fresh integrated package gate after implementation; the earlier passing
   dynamic/eval candidate predates this Proxy work.

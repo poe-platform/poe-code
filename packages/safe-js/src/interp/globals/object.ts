@@ -2,6 +2,7 @@ import { assertSandboxDataDepth } from "../../graph-depth.js";
 import { getGeneratorProperties } from "../generator-properties.js";
 import { guestProxyStates } from "../guest-proxy.js";
 import { sandboxGetOwnPropertyDescriptor } from "../guest-proxy-descriptor.js";
+import { sandboxGetPrototypeOf } from "../guest-proxy-prototype.js";
 import { accessorAdapter, accessorClosure, readPropertyDescriptor } from "../accessors.js";
 import { isSandboxArguments } from "../arguments.js";
 import type { Budget } from "../budget.js";
@@ -149,20 +150,24 @@ export function createObjectGlobal(methods: SandboxObject, budget: Budget): Sand
       sandbox: true,
       name: "isPrototypeOf",
       length: 1,
-      call: ([value], context) => {
+      call: async ([value], context) => {
         if (typeof value !== "object" || value === null) return false;
         const receiver = requireReceiver(context?.thisValue);
         let depth = 0;
-        for (
-          let current = getSandboxPrototype(value, budget);
-          current !== null;
-          current = getSandboxPrototype(current, budget)
-        ) {
-          budget.visitNode();
-          assertSandboxDataDepth(depth++);
-          if (current === receiver) return true;
+        let current: SandboxValue = value;
+        const release = retainValues(budget, () => [receiver, current]);
+        try {
+          while (current !== null) {
+            budget.visitNode();
+            assertSandboxDataDepth(depth++);
+            const next = sandboxGetPrototypeOf(current, budget, context);
+            current = next instanceof Promise ? await next : next;
+            if (current === receiver) return true;
+          }
+          return false;
+        } finally {
+          release();
         }
-        return false;
       }
     })
   };

@@ -6535,6 +6535,17 @@ extension, integration, or validation requirement is missing or unverified.
   typecheck, scoped lint and selected workspace build. Guest slice components,
   subscript assignment/deletion, automatic object/builtin assembly and broader
   interpreter/SDK/safe-fs integration remain unfinished.
+- Connected slice subscription components to the shared index-result protocol.
+  Step converts before start and stop; zero step and guest errors prevent later
+  conversion. None remains omitted, and arbitrary-precision components remain
+  available to range consumers rather than being narrowed prematurely.
+- Eight regression cases verify compiled sequence slicing, conversion order,
+  oversized results, failures and cancellation. All 5,067 tests in 440 files
+  pass; 625 guest-slice comparisons match CPython across list, tuple, string,
+  bytes and range, including huge positive/negative bounds and strides.
+  Typecheck, scoped lint and selected workspace build pass. Subscript mutation,
+  automatic object/builtin assembly and broader interpreter/SDK/safe-fs
+  integration remain unfinished.
 - Next:
   remaining scope/compiler audits, interpreter runtime,
   resource controls, runtime modules, and safe-fs integration. Parsing and static

@@ -21,7 +21,7 @@ export function runtimeIndex(object: RuntimeValue, key: RuntimeValue, values: Ru
     throw new PythonRuntimeError("TypeError", `'${name}' object is not subscriptable`);
   }
   if (key.kind === "slice") {
-    const { start, stop, step } = runtimeSliceBounds(key, meter);
+    const { start, stop, step } = runtimeSliceBounds(key, meter, context);
     switch (object.kind) {
       case "list": return values.list(object.items.slice(start, stop, step));
       case "range":

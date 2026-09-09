@@ -5200,6 +5200,20 @@ extension, integration, or validation requirement is missing or unverified.
   slots and global string canonicalization remain incomplete. Full guest objects,
   suspended execution, complete accounting and SDK/safe-fs integration remain
   outstanding.
+- Added native range str/repr and percent representation support using stored
+  start/stop/step values, omitting only step=1. Empty ranges preserve their original
+  bounds; huge cardinalities require neither iteration nor guest len(). Integer
+  decimal conversion limits apply to each displayed component. Renamed the shared
+  scalar representation module/exports to native representation to cover ranges
+  without duplicated slot validation or lookup guards.
+- Five tests first failed on missing range methods and formatting. All 4,502
+  tests in 366 files pass. CPython matches 3,024 range method/percent cases covering
+  empty/descending/huge ranges and decimal-limit boundaries. Source typecheck,
+  scoped lint and selected workspace build pass; no stale renamed imports remain.
+  Recursive container representations, bytes percent dispatch/operator integration,
+  guest reflected slots and global string canonicalization remain incomplete.
+  Full guest objects, suspended execution, complete accounting and SDK/safe-fs
+  integration remain outstanding.
 - Next:
   remaining scope/compiler audits, interpreter runtime,
   resource controls, runtime modules, and safe-fs integration. Parsing and static

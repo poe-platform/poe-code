@@ -1,7 +1,7 @@
 import type { CodePointString } from "./code-point-string.js";
 import type { ExecutionMeter } from "./execution-budget.js";
 import type { RepresentationContext } from "./representation-protocol.js";
-import { isRuntimeRepresentationScalar, runtimeScalarRepresentation } from "./runtime-scalar-representation-method.js";
+import { hasNativeRepresentation, runtimeNativeRepresentation } from "./runtime-native-representation-method.js";
 import type { RuntimeValue, RuntimeValues } from "./runtime-values.js";
 
 export interface RuntimeRepresentationHooks {
@@ -15,7 +15,7 @@ export interface RuntimeRepresentationHooks {
   defaultRepr(value: RuntimeValue): RuntimeValue;
 }
 
-/** Existing native scalar slots plus explicit guest representation capabilities.
+/** Implemented native slots plus explicit guest representation capabilities.
  * Does not invent generic strings for unfinished native/container types. */
 export function createRuntimeRepresentationContext(values: RuntimeValues, meter: ExecutionMeter, hooks: RuntimeRepresentationHooks): RepresentationContext<RuntimeValue> {
   meter.checkpoint(1, 384);
@@ -24,17 +24,17 @@ export function createRuntimeRepresentationContext(values: RuntimeValues, meter:
     string(value) { meter.checkpoint(); return value.kind === "str" ? value.value : hooks.string?.(value); },
     lookupStr(value) {
       meter.checkpoint();
-      if (isRuntimeRepresentationScalar(value)) {
+      if (hasNativeRepresentation(value)) {
         meter.checkpoint(0, 64);
-        return () => runtimeScalarRepresentation(value, "__str__", values, meter);
+        return () => runtimeNativeRepresentation(value, "__str__", values, meter);
       }
       return hooks.lookupStr?.(value);
     },
     lookupRepr(value) {
       meter.checkpoint();
-      if (isRuntimeRepresentationScalar(value)) {
+      if (hasNativeRepresentation(value)) {
         meter.checkpoint(0, 64);
-        return () => runtimeScalarRepresentation(value, "__repr__", values, meter);
+        return () => runtimeNativeRepresentation(value, "__repr__", values, meter);
       }
       return hooks.lookupRepr?.(value);
     },

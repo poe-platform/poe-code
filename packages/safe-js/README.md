@@ -473,20 +473,35 @@ function and strict-arguments accessors, the Promise prototype tag, and
 `Object.prototype.toString` after collection or typed-array tags are deleted.
 These have focused native-comparison and checkpoint tests.
 
-Initial guest `eval` support is also in progress locally: script parsing, direct
-and indirect calls, basic scope handling, and block/branch/try completion values.
-It is not complete eval support; declaration edge cases, loop completions and
-broader integration still need work. Retained eval source is now budgeted, with
-focused recovery coverage for closures, classes, generators and tagged templates.
+Guest `eval` remains in progress locally. Focused coverage now includes direct
+and indirect calls; block, branch, try, loop, switch and `with` completion values;
+lexical declaration conflicts; function hoisting and global declaration rules;
+and class-initializer restrictions on `arguments`. Retained eval source is
+budgeted, with recovery coverage for closures, classes, generators, tagged
+templates and captured declaration environments. This is not complete eval
+conformance; further declaration edge cases and integration still need validation.
+
+Exception-flow work adds function hoisting and class temporal-dead-zone handling
+inside try/catch/finally blocks, including restored generators. Unresolved reads,
+calls and updates inside these blocks now reach guest catch handlers as
+`ReferenceError` values. Promise rejection delivery and recovery remain under
+validation; do not assume every error path is JavaScript-equivalent.
 
 These changes have focused native-comparison and recovery tests, but the full
-integration gate is not green. The latest completed candidate run passed 22,266
-tests with one namespace-replay timeout. The earlier array-context test
-instrumentation failure is fixed; the full candidate still excludes newer eval work.
-Pushes and releases are paused; local implementation,
-remote delivery, and successful publication are separate milestones.
+integration gate is not green. The last completed reduced candidate run passed
+22,266 tests with one namespace-replay timeout and excluded newer eval work.
+A subsequent frozen whole-SafeJS snapshot includes eval and experimental weak
+collections: its maintained build closure and fresh-process import checks passed,
+but its full unit run has not yet produced a final result and has emitted failure
+markers. Later exception-flow changes are outside that snapshot. The earlier
+array-context test instrumentation failure is fixed.
 
-WeakMap/WeakSet work is experimental and excluded from the integration candidate.
+These latest changes include uncommitted work. Pushes and releases are paused;
+local implementation, remote delivery, and successful publication are separate
+milestones.
+
+WeakMap/WeakSet work remains experimental, even though it is now included in the
+whole-SafeJS validation snapshot.
 Portable weak-symbol lifetime support on Node.js 18 remains unresolved. Do not
 treat that work as complete weak-collection support.
 

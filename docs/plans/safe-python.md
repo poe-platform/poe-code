@@ -6621,6 +6621,15 @@ extension, integration, or validation requirement is missing or unverified.
   Typecheck, scoped lint and selected workspace build pass. Remaining native
   protocols, automatic object/builtin assembly and broader interpreter/SDK/
   safe-fs integration remain unfinished.
+- Connected str/bytes split/rsplit limits and center/ljust/rjust/zfill widths to
+  guest signed-size conversion through native attribute lookup. Existing argument
+  binding, separator/fill validation and storage algorithms remain unchanged.
+- Six compiled regression cases exercise both receiver types. All 5,111 tests
+  in 440 files pass; 84 CPython comparisons match results/errors and conversion
+  traces across negative, zero, positive and oversized sizes. Typecheck and
+  selected workspace build pass. Remaining native integer/truth arguments,
+  automatic object/builtin assembly and broader interpreter/SDK/safe-fs
+  integration remain unfinished.
 - Next:
   remaining scope/compiler audits, interpreter runtime,
   resource controls, runtime modules, and safe-fs integration. Parsing and static

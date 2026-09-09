@@ -2,11 +2,12 @@ import { PythonRuntimeError } from "./error.js";
 import type { ExecutionMeter } from "./execution-budget.js";
 import { ListStorage } from "./list-storage.js";
 import { runtimeSizeIndex } from "./runtime-size-index.js";
+import type { IntegerIndexContext } from "./index-protocol.js";
 import type { BuiltinFunctionValue, RuntimeValue, RuntimeValues } from "./runtime-values.js";
 
-/** Exact str/bytes split binding. Guest index slots and subclasses remain
- * object-protocol work; integer limits match the signed-size sequence model. */
-export function createRuntimeSplitMethod(receiver: Extract<RuntimeValue, { kind: "str" | "bytes" }>, name: "split" | "rsplit", values: RuntimeValues, meter: ExecutionMeter): BuiltinFunctionValue {
+/** Exact str/bytes split binding with optional guest index slots.
+ * Integer limits match the signed-size sequence model; subclasses are separate. */
+export function createRuntimeSplitMethod(receiver: Extract<RuntimeValue, { kind: "str" | "bytes" }>, name: "split" | "rsplit", values: RuntimeValues, meter: ExecutionMeter, context?: IntegerIndexContext<RuntimeValue>): BuiltinFunctionValue {
   meter.checkpoint(1, 64);
   return values.builtinFunction({
     name,
@@ -24,7 +25,7 @@ export function createRuntimeSplitMethod(receiver: Extract<RuntimeValue, { kind:
         if (positional.length >= position) throw new PythonRuntimeError("TypeError", `argument for ${name}() given by name ('${label}') and position (${position})`);
         if (label === "sep") separator = value; else limit = value;
       }
-      const maxsplit = limit === undefined ? -1n : runtimeSizeIndex(limit, meter);
+      const maxsplit = limit === undefined ? -1n : runtimeSizeIndex(limit, meter, context);
       if (receiver.kind === "bytes") {
         if (separator.kind !== "none" && separator.kind !== "bytes") throw new PythonRuntimeError("TypeError", `a bytes-like object is required, not '${separator.kind === "not-implemented" ? "NotImplementedType" : separator.kind}'`);
         const reverse = name === "rsplit", result = new ListStorage<RuntimeValue>([], meter);

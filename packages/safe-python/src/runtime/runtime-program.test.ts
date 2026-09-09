@@ -39,6 +39,22 @@ function fixture(source: string, maxSteps = 100000, signal?: AbortSignal) {
 }
 
 describe("assembled concrete runtime programs", () => {
+  it.each(["split", "rsplit", "center", "ljust", "rjust", "zfill"])("converts guest text %s sizes", method => {
+    for (const prefix of ["", "b"]) {
+      const splitting = method === "split" || method === "rsplit";
+      const args = splitting ? `${prefix}'a',size` : "size";
+      const exact = splitting ? `${prefix}'a',1` : "8";
+      const state = fixture(`text=${prefix}'aba'\nresult=text.${method}(${args})\nexpected=text.${method}(${exact})\n`), v = state.values; let calls = 0;
+      state.globals.set("size", v.cell({}));
+      state.hooks.expressions = () => ({ warn() {}, integerIndex: {
+        integer: value => value.kind === "int" ? value.value : undefined,
+        isExactInteger: value => value.kind === "int", typeName: () => "Size", warn() {},
+        lookupIndex: () => () => { calls++; return v.integer(splitting ? 1 : 8); }
+      } });
+      state.run(); expect(calls).toBe(1);
+      expect(state.globals.get("result")).toEqual(state.globals.get("expected"));
+    }
+  });
   it.each(["'ababa'.replace('a','x',count)", "'ababa'.replace('a','x',count=count)", "b'ababa'.replace(b'a',b'x',count)"])("converts guest replacement counts: %s", expression => {
     const state = fixture(`result=${expression}\n`), v = state.values; let calls = 0;
     state.globals.set("count", v.cell({}));

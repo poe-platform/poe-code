@@ -1,9 +1,10 @@
 import { PythonRuntimeError } from "./error.js";
 import type { ExecutionMeter } from "./execution-budget.js";
 import { runtimeSizeIndex } from "./runtime-size-index.js";
+import type { IntegerIndexContext } from "./index-protocol.js";
 import type { BuiltinFunctionValue, RuntimeValue, RuntimeValues } from "./runtime-values.js";
 
-export function createRuntimePadMethod(receiver: Extract<RuntimeValue, { kind: "str" | "bytes" }>, name: "center" | "ljust" | "rjust" | "zfill", values: RuntimeValues, meter: ExecutionMeter): BuiltinFunctionValue {
+export function createRuntimePadMethod(receiver: Extract<RuntimeValue, { kind: "str" | "bytes" }>, name: "center" | "ljust" | "rjust" | "zfill", values: RuntimeValues, meter: ExecutionMeter, context?: IntegerIndexContext<RuntimeValue>): BuiltinFunctionValue {
   meter.checkpoint(1, 64);
   return values.builtinFunction({
     name,
@@ -16,7 +17,7 @@ export function createRuntimePadMethod(receiver: Extract<RuntimeValue, { kind: "
         if (positional.length < 1) throw new PythonRuntimeError("TypeError", `${name} expected at least 1 argument, got ${positional.length}`);
         if (positional.length > 2) throw new PythonRuntimeError("TypeError", `${name} expected at most 2 arguments, got ${positional.length}`);
       }
-      const width = runtimeSizeIndex(positional[0], meter), character = positional[1];
+      const width = runtimeSizeIndex(positional[0], meter, context), character = positional[1];
       let fill = name === "zfill" ? 48 : 32;
       if (character !== undefined) {
         if (receiver.kind === "bytes") {

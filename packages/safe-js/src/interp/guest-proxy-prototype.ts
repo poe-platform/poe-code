@@ -31,6 +31,7 @@ export function sandboxSetPrototypeOf(value: SandboxValue, prototype: SandboxVal
   if (prototype !== null) objectProperties(prototype);
   if (!guestProxyStates.has(value as object)) return setSandboxPrototype(value as object, prototype as object | null, budget, false);
   budget.visitNode();
+  const release = retainValues(budget, () => [prototype]);
   return withGuestProxyTrap(value as object, "setPrototypeOf", budget, context, async ({ target, handler, trap }) => {
     if (trap === undefined) return sandboxSetPrototypeOf(target, prototype, budget, context);
     const result = Boolean(await invokeBuiltinClosure(trap, [target, prototype], budget, context, handler));
@@ -38,5 +39,5 @@ export function sandboxSetPrototypeOf(value: SandboxValue, prototype: SandboxVal
     if (!await sandboxIsExtensible(target, budget, context) && prototype !== await sandboxGetPrototypeOf(target, budget, context))
       throw new TypeError("Proxy cannot change its non-extensible target's prototype.");
     return true;
-  });
+  }).finally(release);
 }

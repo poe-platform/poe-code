@@ -1381,6 +1381,26 @@ extension, integration, or validation requirement is missing or unverified.
   passed. Reference: Python 3.14 simple statements, augmented-assignment rules.
   This provides execution ordering, not concrete guest reference/protocol objects;
   suspended RHS execution and full frame/statement execution remain pending.
+- Added an explicit-frame synchronous statement control-flow engine for ordered
+  suites, if/elif/else, while/for, loop else, break/continue and return. For iterables
+  are evaluated/acquired once; assignments precede each body execution. Exhaustion
+  removes the loop frame before else, so transfers there target enclosing loops.
+  Break skips else, continue resumes testing/iteration, and return exits the suite
+  with a tagged completion. Bare return is distinct from a present undefined host
+  payload. Transfers do not explicitly close for iterators. Parsed type aliases
+  and scope declarations have no runtime action under the ignored-types policy.
+- Statement validation: missing-module red suite preceded implementation. Seventeen
+  focused tests cover normal/early exits, partial failure, retained target bindings,
+  empty iterators, infinite-loop budgets and 10,000 nested blocks without host
+  recursion. CPython matched 700 generated nested control-flow programs, including
+  stateful condition/iterator traces, emitted effects, returns and injected errors.
+  All 1,896 tests in 92 files pass; scoped lint, source typecheck and selected
+  dependency build passed. Reference: Python 3.14 compound-statement rules.
+  Branch-expression evaluation is a dedicated context contract to avoid duplicate
+  guest truth conversions. Leaf execution and concrete guest operations remain
+  adapter-owned; try/with/match/async for fail explicitly before operand effects.
+  Exception unwinding, suspended execution, full frame integration and complete
+  frame-heap accounting remain pending. This is not the complete interpreter.
 - Next:
   remaining scope/compiler audits, interpreter runtime,
   resource controls, runtime modules, and safe-fs integration. Parsing and static

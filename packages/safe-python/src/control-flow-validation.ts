@@ -1,34 +1,43 @@
 import type { Module, Statement } from "./statement-ast.js";
 import { PythonSyntaxError } from "./source.js";
+import { statementExpressions } from "./statement-expressions.js";
+import { validateExpressionContext, type ExpressionScope } from "./expression-context.js";
+
+type Scope = ExpressionScope & { valueReturn?: Statement };
 
 type Context = {
-  scope: "module" | "class" | "function" | "async-function";
+  scope: Scope;
   loops: number;
   exceptStarLoop: number | null;
 };
 
-/** Statement placement checks, separate from parsing and expression/symbol analysis. */
+/** Statement and expression placement checks, separate from parsing and symbol analysis. */
 export function validateControlFlow(module: Module, filename = "<string>"): void {
   function visit(statements: readonly Statement[], context: Context): void {
     for (const statement of statements) {
+      for (const expression of statementExpressions(statement, false)) validateExpressionContext(expression, context.scope, filename);
       const invalid = (message: string): PythonSyntaxError => new PythonSyntaxError(message, filename, statement.start);
       switch (statement.kind) {
         case "return":
-          if (context.scope !== "function" && context.scope !== "async-function") throw invalid("'return' outside function");
+          if (context.scope.kind !== "function" && context.scope.kind !== "async-function") throw invalid("'return' outside function");
           if (context.exceptStarLoop !== null) throw invalid("'return' cannot leave an except* block");
+          if (statement.value) context.scope.valueReturn = statement;
           break;
         case "break": case "continue":
           if (!context.loops) throw invalid(`'${statement.kind}' outside loop`);
           if (context.exceptStarLoop !== null && context.loops <= context.exceptStarLoop) throw invalid(`'${statement.kind}' cannot leave an except* block`);
           break;
-        case "function":
-          visit(statement.body, { scope: statement.async ? "async-function" : "function", loops: 0, exceptStarLoop: null });
+        case "function": {
+          const scope: Scope = { kind: statement.async ? "async-function" : "function", generator: false };
+          visit(statement.body, { scope, loops: 0, exceptStarLoop: null });
+          if (statement.async && scope.generator && scope.valueReturn) throw new PythonSyntaxError("'return' with value in async generator", filename, scope.valueReturn.start);
           break;
+        }
         case "class":
-          visit(statement.body, { scope: "class", loops: 0, exceptStarLoop: null });
+          visit(statement.body, { scope: { kind: "class", generator: false }, loops: 0, exceptStarLoop: null });
           break;
         case "for":
-          if (statement.async && context.scope !== "async-function") throw invalid("'async for' outside async function");
+          if (statement.async && context.scope.kind !== "async-function") throw invalid("'async for' outside async function");
           visit(statement.body, { ...context, loops: context.loops + 1 });
           visit(statement.otherwise, context);
           break;
@@ -37,7 +46,7 @@ export function validateControlFlow(module: Module, filename = "<string>"): void
           visit(statement.otherwise, context);
           break;
         case "with":
-          if (statement.async && context.scope !== "async-function") throw invalid("'async with' outside async function");
+          if (statement.async && context.scope.kind !== "async-function") throw invalid("'async with' outside async function");
           visit(statement.body, context);
           break;
         case "if":
@@ -56,7 +65,7 @@ export function validateControlFlow(module: Module, filename = "<string>"): void
           visit(statement.finalizer, context);
           break;
         case "import-from":
-          if (statement.imports === "*" && context.scope !== "module") throw invalid("import * only allowed at module level");
+          if (statement.imports === "*" && context.scope.kind !== "module") throw invalid("import * only allowed at module level");
           break;
         case "pass": case "type-alias": case "raise": case "assert": case "global": case "nonlocal":
         case "delete": case "import": case "expression-statement": case "assignment":
@@ -65,5 +74,5 @@ export function validateControlFlow(module: Module, filename = "<string>"): void
       }
     }
   }
-  visit(module.body, { scope: "module", loops: 0, exceptStarLoop: null });
+  visit(module.body, { scope: { kind: "module", generator: false }, loops: 0, exceptStarLoop: null });
 }

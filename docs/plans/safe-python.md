@@ -544,6 +544,20 @@ extension, integration, or validation requirement is missing or unverified.
   separate from syntax parsing; expression
   placement (yield/await and async generators), symbol resolution, complete module
   validation orchestration, and execution remain pending.
+- Extended context validation to yield/await placement and async-generator return
+  restrictions. Function defaults, decorators, and class bases are visited in the
+  enclosing scope; nested bodies and lambdas use their own scopes. Comprehension
+  first iterables stay in the outer scope, while generator-expression bodies can
+  be asynchronous independently of that scope. Async list/set/dict comprehensions
+  still require an asynchronous enclosing context. Ignored annotations are not
+  visited. Direct statement-expression enumeration supports scope-aware traversal.
+- Expression-context validation: seventeen negative tests failed before the
+  implementation; all 1,072 package tests pass. A 576-case CPython compilation
+  comparison matched placement and generator-return acceptance across expressions,
+  defaults, decorators, class bases, and nested scopes. Scoped lint, source typecheck,
+  and the selected workspace build passed.
+  Symbol resolution, complete public validation orchestration, and runtime
+  functions/generators/coroutines remain pending.
 - Next:
   compound statements, type aliases, and enclosing-scope validation
   normalization, the complete grammar/parser and evaluator, then runtime modules

@@ -4801,6 +4801,22 @@ extension, integration, or validation requirement is missing or unverified.
   formatting assembly and percent binary dispatch remain unfinished. The original
   string-percent failure remains open; full guest object wiring, suspended
   execution, complete accounting and SDK/safe-fs integration remain outstanding.
+- Added bytes representation as immutable text, including the b prefix,
+  whole-input quote selection, short whitespace escapes and two-digit hexadecimal
+  escapes for controls and every high byte. No byte decoding occurs. Text and
+  bytes now share a dedicated metered quoted-buffer renderer; CodePointString
+  takes sole ownership of its preflighted output without a second buffer copy.
+- Seven new tests first failed for the missing bytes representation factory.
+  All 4,307 tests in 338 files pass. CPython matches 131,072 bytes repr/ascii
+  outputs for every byte pair and 12,348 bytes-as-text %s/%r/%a field outputs
+  through native binding and field rendering. After the shared-renderer
+  extraction, all 2,228,224 Unicode single-point and 131,072 Latin-1 pair string
+  repr/ascii comparisons still pass. Source typecheck, scoped lint and selected
+  workspace build pass. Native representation registration, other value
+  representations, numeric conversion, production formatting assembly and
+  percent binary dispatch remain unfinished. The original string-percent failure
+  remains open; full guest object wiring, suspended execution, complete accounting
+  and SDK/safe-fs integration remain outstanding.
 - Next:
   remaining scope/compiler audits, interpreter runtime,
   resource controls, runtime modules, and safe-fs integration. Parsing and static

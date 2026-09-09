@@ -4,8 +4,15 @@ import { ImmutableBytes } from "./immutable-bytes.js";
 import { runtimeSizeIndex } from "./runtime-size-index.js";
 import { runtimeTruth } from "./runtime-truth.js";
 import type { BuiltinFunctionValue, RuntimeValue, RuntimeValues } from "./runtime-values.js";
+import type { IntegerIndexContext } from "./index-protocol.js";
+import type { ExpressionContext } from "./expression-evaluation.js";
 
-export function createRuntimeIntegerToBytesMethod(receiver: Extract<RuntimeValue, { kind: "int" | "bool" }>, values: RuntimeValues, meter: ExecutionMeter): BuiltinFunctionValue {
+export interface RuntimeIntegerToBytesContext {
+  readonly integerIndex?: IntegerIndexContext<RuntimeValue>;
+  readonly truth?: ExpressionContext<RuntimeValue>["truth"];
+}
+
+export function createRuntimeIntegerToBytesMethod(receiver: Extract<RuntimeValue, { kind: "int" | "bool" }>, values: RuntimeValues, meter: ExecutionMeter, context: RuntimeIntegerToBytesContext = {}): BuiltinFunctionValue {
   meter.checkpoint(1, 64);
   return values.builtinFunction({
     name: "to_bytes",
@@ -24,12 +31,13 @@ export function createRuntimeIntegerToBytesMethod(receiver: Extract<RuntimeValue
         if (positional.length >= position) throw new PythonRuntimeError("TypeError", `argument for to_bytes() given by name ('${label}') and position (${position})`);
         if (label === "length") lengthArgument = value; else if (label === "byteorder") orderArgument = value; else signedArgument = value;
       }
-      const length = lengthArgument === undefined ? 1n : runtimeSizeIndex(lengthArgument, meter);
+      const length = lengthArgument === undefined ? 1n : runtimeSizeIndex(lengthArgument, meter, context.integerIndex);
       if (orderArgument !== undefined && orderArgument.kind !== "str") {
         const type = orderArgument.kind === "none" ? "None" : orderArgument.kind === "not-implemented" ? "NotImplementedType" : orderArgument.kind;
         throw new PythonRuntimeError("TypeError", `to_bytes() argument 'byteorder' must be str, not ${type}`);
       }
-      const signed = runtimeTruth(signedArgument, meter);
+      const signed = context.truth === undefined ? runtimeTruth(signedArgument, meter) : context.truth(signedArgument);
+      meter.checkpoint();
       let order = "big";
       if (orderArgument !== undefined) {
         order = "";

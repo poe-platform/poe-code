@@ -39,6 +39,19 @@ function fixture(source: string, maxSteps = 100000, signal?: AbortSignal) {
 }
 
 describe("assembled concrete runtime programs", () => {
+  it.each([true, false])("converts guest to_bytes length and signed flag (%s)", signed => {
+    const state = fixture(`result=(255).to_bytes(length,'little',signed=flag)\nexpected=(255).to_bytes(2,'little',signed=${signed ? "True" : "False"})\n`), v = state.values;
+    const length = v.cell({}), flag = v.cell({}), events: string[] = [];
+    state.globals.set("length", length); state.globals.set("flag", flag);
+    state.hooks.expressions = () => ({ warn() {}, integerIndex: {
+      integer: value => value.kind === "int" ? value.value : undefined,
+      isExactInteger: value => value.kind === "int", typeName: () => "Length", warn() {},
+      lookupIndex: value => () => { expect(value).toBe(length); events.push("length"); return v.integer(2); }
+    }, truth(value) { if (value === flag) { events.push("signed"); return signed; } return runtimeTruth(value, state.meter); } });
+    state.run();
+    expect(events).toEqual(["length", "signed"]);
+    expect(state.globals.get("result")).toEqual(state.globals.get("expected"));
+  });
   it.each([["", false], ["", true], ["b", false], ["b", true]] as const)("uses guest truth for splitlines keepends (%s, %s)", (prefix, retain) => {
     const state = fixture(`result=${prefix}'a\\nb'.splitlines(keepends=flag)\nexpected=${prefix}'a\\nb'.splitlines(${retain ? "True" : "False"})\n`), v = state.values, flag = v.cell({}); let calls = 0;
     state.globals.set("flag", flag);

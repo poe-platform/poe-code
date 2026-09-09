@@ -6656,6 +6656,16 @@ extension, integration, or validation requirement is missing or unverified.
   Typecheck and selected workspace build pass. Remaining native protocols,
   automatic object/builtin assembly and broader interpreter/SDK/safe-fs
   integration remain unfinished.
+- Connected int/bool.to_bytes length and signed arguments to guest index and
+  truth capabilities. Length conversion precedes byteorder type validation;
+  signed conversion precedes byteorder value/negative-length validation. A
+  post-truth checkpoint prevents conversion output after cancellation.
+- Two compiled regressions verify ordered length/truth callbacks. All 5,121
+  tests in 440 files pass; 200 CPython comparisons match bytes/errors/traces
+  across signedness, byte order, negative/zero/oversized lengths and integer
+  range errors. Typecheck and selected workspace build pass. Remaining native
+  protocols, automatic object/builtin assembly and broader interpreter/SDK/
+  safe-fs integration remain unfinished.
 - Next:
   remaining scope/compiler audits, interpreter runtime,
   resource controls, runtime modules, and safe-fs integration. Parsing and static

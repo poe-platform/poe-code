@@ -1066,6 +1066,22 @@ extension, integration, or validation requirement is missing or unverified.
   overhead still require guest-heap accounting; cursor charges alone are not a
   full memory bound. Class objects/creation, metaclass MRO overrides, layout checks,
   full __bases__ graph mutation, attribute lookup, and super() remain pending.
+- Added type-valued metaclass selection using concrete MRO identity membership,
+  not virtual subclass hooks or matching names. It retains/promotes the current
+  compatible candidate, rejects unrelated candidates with Python's diagnostic,
+  and preserves CPython's sequential conflict behavior rather than searching later
+  bases for a possible repair. Candidate/base traversal is metered and inputs are
+  unchanged. Initial-candidate choice and non-type callable metaclasses remain the
+  surrounding class-construction layer's responsibility.
+- Metaclass validation: the suite failed on the missing module before implementation;
+  all 1,685 package tests pass, including ten selection cases. Comparisons against
+  CPython builtin class construction matched 4,680 candidate/base combinations
+  across a multiple-inheritance metaclass hierarchy. Another 200 budget/input-
+  preservation checks passed. Scoped lint, source typecheck, and the selected
+  dependency build passed. Reference:
+  https://docs.python.org/3/reference/datamodel.html#determining-the-appropriate-metaclass .
+  Base-entry resolution, namespace preparation/execution, metaclass invocation,
+  class object construction, descriptors, and interpreter execution remain pending.
 - Next:
   remaining scope/compiler audits, interpreter runtime,
   resource controls, runtime modules, and safe-fs integration. Parsing and static

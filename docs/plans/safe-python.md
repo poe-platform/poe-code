@@ -4610,6 +4610,24 @@ extension, integration, or validation requirement is missing or unverified.
   to a non-latched done result; this does not establish full exception fidelity.
   Full accounting, suspended execution, object integration and SDK/safe-fs work
   remain outstanding.
+- Connected iter/next builtin bindings to optional explicit guest iteration
+  protocols. iter returns a validated guest iterator unchanged, without a second
+  iter lookup; absent iter alone enables indexed fallback. Extracted the indexed
+  cursor from ProtocolIterator so both bindings share retry/sticky-exhaustion
+  behavior without duplicated guest lookup. Exact builtin paths remain direct.
+  Guest next requires only the next slot, preserves returned values and raised
+  exception objects, recognizes configured StopIteration subclasses when given
+  a default, and checks cancellation after callbacks/classification.
+- Eight new tests first reproduced the missing protocol integration. All 4,210
+  tests in 325 files pass; the final binding adjustment also passes all 29 focused
+  builtin/protocol tests. A 1,000-scenario CPython audit matches 12,000 guest and
+  indexed builtin next observations and callback traces; the corresponding host
+  adapter regression audit also matches all 12,000 observations. The 3,720
+  compiled builtin regression programs remain passing. Source typecheck, scoped
+  lint and selected workspace build pass. Full native registration,
+  object-slot wiring into all expression/statement iteration, host-adapted
+  StopIteration payloads, suspended execution, full accounting and SDK/safe-fs
+  integration remain unfinished.
 - Next:
   remaining scope/compiler audits, interpreter runtime,
   resource controls, runtime modules, and safe-fs integration. Parsing and static

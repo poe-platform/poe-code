@@ -1,5 +1,6 @@
 import type { ExecutionMeter } from "./execution-budget.js";
 import { PythonRuntimeError } from "./error.js";
+import { SequenceIterator } from "./sequence-iterator.js";
 
 export interface IterationContext<Value> {
   /** Resolve the type's __iter__ slot, including special lookup/binding. Return
@@ -18,6 +19,29 @@ export interface IterationContext<Value> {
   typeName(value: Value): string;
 }
 
+/** Resolve once without wrapping a guest iterator or advancing any cursor. */
+export function resolveIteration<Value>(value: Value, context: IterationContext<Value>, meter: ExecutionMeter): { value: Value; sequence: boolean } {
+  meter.checkpoint(1, 64);
+  const iter = context.lookupIter(value);
+  meter.checkpoint();
+  if (iter === undefined) {
+    const sequence = context.hasSequenceItem(value);
+    meter.checkpoint();
+    if (!sequence) {
+      const name = context.typeName(value); meter.checkpoint();
+      throw new PythonRuntimeError("TypeError", `'${name}' object is not iterable`);
+    }
+    return { value, sequence: true };
+  }
+  const result = iter(); meter.checkpoint();
+  const valid = context.hasNext(result); meter.checkpoint();
+  if (!valid) {
+    const name = context.typeName(result); meter.checkpoint();
+    throw new PythonRuntimeError("TypeError", `iter() returned non-iterator of type '${name}'`);
+  }
+  return { value: result, sequence: false };
+}
+
 /** Host adapter for guest iteration, including the legacy indexed fallback.
  * Custom guest iterators own their exhaustion state: StopIteration translates
  * this call to done but does not suppress subsequent guest next calls. Indexed
@@ -27,45 +51,29 @@ export interface IterationContext<Value> {
  * remain outside this adapter; no implicit close/return hook is introduced.
  */
 export class ProtocolIterator<Value> implements IterableIterator<Value> {
-  #source: { value: Value; sequence: boolean } | undefined;
-  #index = 0n;
+  readonly #source: { value: Value } | undefined;
+  readonly #sequence: SequenceIterator<Value> | undefined;
 
   constructor(value: Value, private readonly context: IterationContext<Value>, private readonly meter: ExecutionMeter) {
-    meter.checkpoint(1, 64);
-    const iter = context.lookupIter(value);
-    meter.checkpoint();
-    if (iter === undefined) {
-      const sequence = context.hasSequenceItem(value);
-      meter.checkpoint();
-      if (!sequence) throw new PythonRuntimeError("TypeError", `'${context.typeName(value)}' object is not iterable`);
-      this.#source = { value, sequence: true };
-    } else {
-      const result = iter();
-      meter.checkpoint();
-      const valid = context.hasNext(result);
-      meter.checkpoint();
-      if (!valid) throw new PythonRuntimeError("TypeError", `iter() returned non-iterator of type '${context.typeName(result)}'`);
-      this.#source = { value: result, sequence: false };
-    }
+    const source = resolveIteration(value, context, meter);
+    this.#source = source.sequence ? undefined : source;
+    this.#sequence = source.sequence ? new SequenceIterator(source.value, context, meter) : undefined;
   }
 
   [Symbol.iterator](): IterableIterator<Value> { return this; }
 
   next(): IteratorResult<Value> {
+    if (this.#sequence !== undefined) return this.#sequence.next();
     this.meter.checkpoint(1, 16);
-    const source = this.#source;
-    if (source === undefined) return { done: true, value: undefined };
-    if (source.sequence && this.#index === (1n << 63n) - 1n) throw new PythonRuntimeError("OverflowError", "iter index too large");
     let value: Value;
-    try { value = source.sequence ? this.context.getItem(source.value, this.#index) : this.context.next(source.value); }
+    try { value = this.context.next(this.#source!.value); }
     catch (error) {
       this.meter.checkpoint();
-      if (!this.context.isStopIteration(error) && !(source.sequence && this.context.isIndexError(error))) throw error;
-      if (source.sequence) this.#source = undefined;
+      const ended = this.context.isStopIteration(error); this.meter.checkpoint();
+      if (!ended) throw error;
       return { done: true, value: undefined };
     }
     this.meter.checkpoint();
-    if (source.sequence) this.#index++;
     return { done: false, value };
   }
 }

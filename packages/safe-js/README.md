@@ -569,6 +569,10 @@ target forwarding, and explicit `new.target`, including subclass construction.
 
 `Array.isArray` follows nested Proxy targets without invoking traps and rejects
 revoked proxies. Other internal array-identity consumers still need integration.
+`JSON.stringify` recognizes wrapped arrays and replacer arrays, enumerates Proxy
+objects through key and descriptor traps, and invokes callable Proxy replacers
+and `toJSON` hooks. Focused native comparisons cover trap ordering, length
+coercion, mutation during enumeration, cycles, and revocation.
 Object.prototype.toString reads custom tags through non-callable Proxies and
 preserves wrapped-array identity. Ordinary receivers also read inherited tags
 through Proxy ancestors with the original receiver. Callable Proxies use the

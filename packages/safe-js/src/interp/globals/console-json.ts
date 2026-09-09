@@ -1,5 +1,11 @@
 import type { Budget, CompileOwner } from "../budget.js";
 import { retainValues } from "../resources.js";
+import { guestProxyStates } from "../guest-proxy.js";
+import { sandboxIsArray } from "../guest-proxy-array.js";
+import { sandboxOwnKeys } from "../guest-proxy-own-keys.js";
+import { sandboxGetOwnPropertyDescriptor } from "../guest-proxy-descriptor.js";
+import { sandboxGetProperty } from "../guest-proxy-get.js";
+import { invokeBuiltinClosure } from "../builtin-call.js";
 import { parseJsonWithReviver } from "./json-parse.js";
 import { createRawJson, isRawJson } from "../raw-json.js";
 import { readPropertyDescriptor } from "../accessors.js";
@@ -173,15 +179,15 @@ async function stringifyJson(
   let propertyList: string[] | undefined;
   const release = retainValues(budget, () => [value, replacer, indent]);
   try {
-    if (Array.isArray(replacer)) {
+    if (!isSandboxClosure(replacer) && sandboxIsArray(replacer, budget)) {
       propertyList = [];
       const seen = new Set<string>();
       let size = 0;
       const state: StringifyState = { budget, context, gap: "", stack: [] };
-      const length = replacer.length;
+      const length = await stringifyArrayLength(replacer as SandboxArray | SandboxObject, state);
       for (let index = 0; index < length; index++) {
         budget.visitNode();
-        const entry = await getStringifyProperty(replacer, String(index), state);
+        const entry = await getStringifyProperty(replacer as SandboxArray | SandboxObject, String(index), state);
         const primitive = isSandboxBox(entry) ? boxedValue(entry) : entry;
         if (typeof primitive !== "string" && typeof primitive !== "number") continue;
         const key = await sandboxString(entry, budget, context);
@@ -303,7 +309,7 @@ async function stringifyValue(
     return undefined;
   }
 
-  if (Array.isArray(value)) {
+  if (isStringifyContainer(value) && sandboxIsArray(value, state.budget)) {
     return stringifyArray(value, state, indent);
   }
 
@@ -315,7 +321,7 @@ async function stringifyValue(
 }
 
 async function stringifyArray(
-  value: SandboxArray,
+  value: SandboxArray | SandboxObject,
   state: StringifyState,
   indent: string
 ): Promise<string> {
@@ -325,8 +331,9 @@ async function stringifyArray(
   try {
     const nextIndent = indent + state.gap;
 
-    const length = value.length;
+    const length = await stringifyArrayLength(value, state);
     for (let index = 0; index < length; index += 1) {
+      state.budget.visitNode();
       entries.push((await stringifyProperty(String(index), value, state, nextIndent)) ?? "null");
     }
 
@@ -352,11 +359,22 @@ async function stringifyObject(
 ): Promise<string> {
   enterStringifyObject(value, state);
   const entries: string[] = [];
-  const release = retainValues(state.budget, () => entries);
+  let keys: string[] = [], ownKeys: Array<string | symbol> = [];
+  const release = retainValues(state.budget, () => [entries, keys, ownKeys]);
   try {
     const nextIndent = indent + state.gap;
 
-    for (const key of state.propertyList ?? ownEnumerableSandboxKeys(value)) {
+    if (state.propertyList !== undefined) keys = state.propertyList;
+    else if (guestProxyStates.has(value)) {
+      ownKeys = await sandboxOwnKeys(value, state.budget, state.context);
+      for (const key of ownKeys) {
+        state.budget.visitNode();
+        if (typeof key !== "string") continue;
+        const descriptor = await sandboxGetOwnPropertyDescriptor(value, key, state.budget, state.context);
+        if (descriptor?.enumerable) keys.push(key);
+      }
+    } else keys = ownEnumerableSandboxKeys(value);
+    for (const key of keys) {
       const serialized = await stringifyProperty(key, value, state, nextIndent);
       if (serialized !== undefined) {
         entries.push(`${quoteJsonString(key)}:${state.gap === "" ? "" : " "}${serialized}`);
@@ -384,7 +402,7 @@ async function callStringifyClosure(
   thisValue: SandboxValue,
   state: StringifyState
 ): Promise<unknown> {
-  const result = await closure.call(args, { stack: [], thisValue });
+  const result = await invokeBuiltinClosure(closure, args, state.budget, state.context, thisValue);
   if (isSandboxPromise(result) && result.synchronousPrefix !== undefined) {
     await result.synchronousPrefix;
   }
@@ -467,11 +485,24 @@ function getStringifyProperty(
   state: StringifyState
 ): SandboxValue | Promise<SandboxValue> {
   if (state.context?.getProperty !== undefined) return state.context.getProperty(target, key);
+  if (typeof target === "object" && guestProxyStates.has(target))
+    return sandboxGetProperty(target, key, target, state.budget, state.context);
   const object = typeof target === "bigint" ? getBoxedPrototype(target, state.budget) : target;
   const descriptor = object === undefined ? undefined : getSandboxPropertyDescriptor(object, key, state.budget);
   return descriptor === undefined
     ? undefined
     : readPropertyDescriptor(descriptor, target, state.context);
+}
+
+async function stringifyArrayLength(value: SandboxArray | SandboxObject, state: StringifyState): Promise<number> {
+  const raw = await getStringifyProperty(value, "length", state);
+  const release = retainValues(state.budget, () => [raw]);
+  try {
+    const number = await sandboxNumber(raw, state.budget, state.context);
+    return Number.isNaN(number) || number <= 0 ? 0 : Math.min(Math.trunc(number), Number.MAX_SAFE_INTEGER);
+  } finally {
+    release();
+  }
 }
 
 function copyJsonToSandbox(value: unknown, budget: Budget): SandboxValue {

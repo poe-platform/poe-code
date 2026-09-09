@@ -7,7 +7,8 @@ import { exhaustAllocation, type ExecutionMeter } from "./execution-budget.js";
  * positions across every mutation, including clear and compaction.
  * Exact-string layouts convert to general entries when appending a missing
  * non-exact-string key (CPython 3.14.7). Overwrites do not change layout.
- * Split/shared-key layouts and presized bulk construction are not modeled
+ * Optional presizing selects the initial combined layout and reserves insertion
+ * slots. Split/shared-key layouts and bulk merge/copy policies are not modeled
  * here yet. Not a set table or guest iterator.
  */
 export class DictionaryEntrySlots<Entry extends object> {
@@ -16,9 +17,23 @@ export class DictionaryEntrySlots<Entry extends object> {
   #usable = 0;
   #unicode: boolean | undefined;
 
-  constructor(private readonly meter: ExecutionMeter) {
-    meter.checkpoint(1, 96);
+  /** Construction hint, not a guarantee: tiny hints use the normal empty table;
+   * large hints cap at 2**17 hash slots, following CPython dict_new_presized.
+   * The bulk-construction owner determines whether all keys are exact strings.
+   */
+  constructor(private readonly meter: ExecutionMeter, minimumEntries = 0, exactStrings = false) {
+    if (!Number.isSafeInteger(minimumEntries) || minimumEntries < 0) throw new RangeError("minimum dictionary entries must be a nonnegative safe integer");
+    let capacity = 0;
+    if (minimumEntries > 5) {
+      const target = Math.min(minimumEntries, 87381);
+      let size = 8;
+      while (Math.floor(size * 2 / 3) < target) { meter.checkpoint(); size *= 2; }
+      capacity = Math.floor(size * 2 / 3);
+    }
+    meter.checkpoint(1, 96 + capacity * 8);
     this.#slots = []; this.#positions = new Map();
+    this.#usable = capacity;
+    this.#unicode = capacity === 0 ? undefined : exactStrings;
     Object.freeze(this);
   }
 

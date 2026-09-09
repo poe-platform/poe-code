@@ -5325,6 +5325,23 @@ extension, integration, or validation requirement is missing or unverified.
   layouts, OrderedKeyMap integration, native dict/set representation, bytes
   percent operators, full guest objects, suspended execution, complete accounting
   and SDK/safe-fs integration remain incomplete.
+- Added bounded constructor presizing to DictionaryEntrySlots, including initial
+  exact-string/general layout selection. Tiny hints keep the normal empty-table
+  behavior; larger hints reserve entry capacity with CPython's maximum presize
+  cap. Clear discards the reservation. Reserved references are charged before
+  publication, without allocation proportional to arbitrarily large hints.
+- Four new tests failed on missing reservation/validation behavior and two
+  behavior regressions already passed. All 4,549 tests in 373 files pass. Direct
+  CPython _PyDict_NewPresized/PyDict_Next comparison matches 2,000 histories
+  (439,000 operations), including hints through Number.MAX_SAFE_INTEGER. A
+  further 2,000 histories (439,000 operations) match _PyDict_FromItems exact-string
+  presizing with duplicate input keys; reservation uses supplied item count, not
+  just distinct keys. The 439,000-operation unpresized mixed-layout regression
+  also passes. Source typecheck, scoped lint and selected workspace build pass.
+  OrderedKeyMap integration, bulk merge/copy policies, split/shared-key layouts,
+  native dict/set representation, bytes percent operators, full guest objects,
+  suspended execution, complete accounting and SDK/safe-fs integration remain
+  incomplete.
 - Next:
   remaining scope/compiler audits, interpreter runtime,
   resource controls, runtime modules, and safe-fs integration. Parsing and static

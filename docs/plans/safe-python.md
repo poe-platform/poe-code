@@ -3917,6 +3917,20 @@ extension, integration, or validation requirement is missing or unverified.
   permutation on comparison failure; inconsistent comparators and NaN ordering
   require further parity work. Full descriptors, guest ordering/truth slots,
   remaining builtins, suspension, accounting and SDK/safe-fs remain unfinished.
+- Connected tuple.count and tuple.index to native attribute lookup. Both scan
+  immutable tuple slots directly, preserve identical-object matches (including
+  NaN) and compare mutable members structurally. Index normalizes negative and
+  oversized bounds after validation; list and tuple methods now share exact
+  signed-width search-bound conversion without accepting explicit None.
+- Tuple-method verification began with seven failing tests. All 3,724 tests in
+  264 files pass, with scoped lint, source typecheck and selected workspace build. A
+  2,264-call compiled-program CPython audit matches tuple search results, bounds
+  and argument errors. The 2,224-call list-index regression audit passes after
+  extracting common conversion logic. Tests cover bool/int equality, nested
+  mutable members, NaN identity and keyword/arity rejection. Native type
+  descriptors, guest index/equality slots, remaining builtin methods,
+  comprehension/suspension integration, accounting and SDK/safe-fs remain
+  unfinished.
 - Next:
   remaining scope/compiler audits, interpreter runtime,
   resource controls, runtime modules, and safe-fs integration. Parsing and static

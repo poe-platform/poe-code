@@ -275,8 +275,20 @@ extension, integration, or validation requirement is missing or unverified.
   Reference: https://docs.python.org/3/reference/lexical_analysis.html#f-strings.
   Adjacent interpolated-literal concatenation, yield/await fields, runtime formatting,
   and template construction remain pending; these checks prove parser behavior only.
+- Added one string-sequence reader for ordinary, byte, formatted, and template
+  literals. Plain text may concatenate with formatted strings, while templates
+  concatenate only with templates and bytes only with bytes. Sequences bind as
+  one primary before trailers; empty/field-free formatted and template strings
+  retain their distinct expression kind. Contiguous text runs are collected then
+  copied once, with field order, debug metadata, code points, and source spans intact.
+- Concatenation validation: eight positive tests failed before implementation;
+  all 599 package tests now pass, including a 1,000-segment formatted/plain sequence.
+  A 2,744-case CPython compilation and AST comparison of three-literal combinations
+  matched acceptance, string kind, decoded text, field order, debug text, conversions,
+  and format specifications. Scoped lint, source typecheck, and selected workspace build passed.
+  Runtime string construction/formatting and template objects remain pending.
 - Next:
-  adjacent interpolated literals, parser-level NFKC
+  parser-level NFKC
   normalization, the complete grammar/parser and evaluator, then runtime modules
   and safe-fs integration. Tokenization does not establish interpreter execution.
 - Workspace lockfile registration and packaging integration remain pending.

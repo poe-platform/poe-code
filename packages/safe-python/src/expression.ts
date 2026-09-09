@@ -7,7 +7,7 @@ import { reservedWords } from "./keywords.js";
 import { readDisplay } from "./displays.js";
 import { readLambda } from "./lambda.js";
 import { validateExpression } from "./expression-validation.js";
-import { readInterpolatedString } from "./interpolated-expression.js";
+import { readStringExpression } from "./string-expressions.js";
 
 const binaryPrecedence: Readonly<Record<string, number>> = {
   or: 2, and: 3, "|": 6, "^": 7, "&": 8, "<<": 9, ">>": 9,
@@ -91,29 +91,10 @@ function readPrefix(cursor: TokenCursor, minimum: number): Expression {
 
 function readAtom(cursor: TokenCursor): Expression {
   const token = cursor.peek();
-  if (token.kind === "fstring-start" || token.kind === "tstring-start") return readInterpolatedString(cursor, readExpression);
+  if (token.kind === "string" || token.kind === "bytes" || token.kind === "fstring-start" || token.kind === "tstring-start") return readStringExpression(cursor, readExpression);
   if (["(", "[", "{"].includes(token.text)) return readDisplay(cursor, readExpression);
-  if (token.kind === "integer" || token.kind === "float" || token.kind === "imaginary" || token.kind === "string" || token.kind === "bytes") {
+  if (token.kind === "integer" || token.kind === "float" || token.kind === "imaginary") {
     cursor.take();
-    if (token.kind === "string" || token.kind === "bytes") {
-      const parts: Array<Uint32Array | Uint8Array> = [token.value];
-      let length = token.value.length;
-      let end = token.end;
-      while (cursor.peek().kind === "string" || cursor.peek().kind === "bytes") {
-        const next = cursor.peek();
-        if (next.kind !== token.kind) throw cursor.error("cannot mix bytes and nonbytes literals");
-        cursor.take();
-        parts.push(next.value);
-        length += next.value.length;
-        end = next.end;
-      }
-      if (parts.length > 1) {
-        const value = token.kind === "string" ? new Uint32Array(length) : new Uint8Array(length);
-        let offset = 0;
-        for (const part of parts) { value.set(part, offset); offset += part.length; }
-        return { kind: "literal", literalKind: token.kind, value, start: token.start, end };
-      }
-    }
     return { kind: "literal", literalKind: token.kind, value: token.value, start: token.start, end: token.end };
   }
   if (token.text === "True" || token.text === "False" || token.text === "None" || token.text === "...") {

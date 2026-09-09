@@ -3,7 +3,7 @@ import type { TokenCursor } from "./token-cursor.js";
 
 type ReadExpression = (cursor: TokenCursor, minimum?: number) => Expression;
 
-export function readInterpolatedString(cursor: TokenCursor, read: ReadExpression): Expression {
+export function readInterpolatedString(cursor: TokenCursor, read: ReadExpression): Extract<Expression, { kind: "interpolated-string" }> {
   const opening = cursor.take();
   const flavor = opening.kind === "fstring-start" ? "formatted" : "template";
   const endKind = flavor === "formatted" ? "fstring-end" : "tstring-end";

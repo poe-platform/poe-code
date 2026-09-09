@@ -7,9 +7,12 @@ import { integerFormat } from "./integer-format.js";
 import { floatFormat } from "./float-format.js";
 import { complexFormat } from "./complex-format.js";
 import { representationObject } from "./representation-protocol.js";
+import { NumericLocale } from "./numeric-locale.js";
 import type { RuntimeValue, RuntimeValues } from "./runtime-values.js";
 
 export interface RuntimeFormatHooks extends RuntimeRepresentationHooks {
+  /** Trusted, execution-owned snapshot; never reads the host locale implicitly. */
+  numericLocale?(): NumericLocale;
   lookupFormat?(value: RuntimeValue): ((spec: RuntimeValue) => RuntimeValue) | undefined;
 }
 
@@ -26,6 +29,8 @@ export function hasNativeObjectFormat(value: RuntimeValue): boolean {
  * Guest lookup owns inherited methods and descriptor behavior for guest types. */
 export function createRuntimeFormatContext(values: RuntimeValues, meter: ExecutionMeter, hooks: RuntimeFormatHooks): FormatContext<RuntimeValue> {
   meter.checkpoint(1, 512);
+  let portableLocale: NumericLocale | undefined;
+  const numericLocale = () => hooks.numericLocale ? hooks.numericLocale() : (portableLocale ??= NumericLocale.portable(meter));
   const context: FormatContext<RuntimeValue> = {
     ...createRuntimeRepresentationContext(values, meter, hooks),
     isExactInteger(value) { meter.checkpoint(); return value.kind === "int"; },
@@ -56,10 +61,10 @@ export function createRuntimeFormatContext(values: RuntimeValues, meter: Executi
           if (storage.length === 0) return representationObject(value, "str", context, meter);
           if (value.kind === "int" || value.kind === "bool") {
             const integer = value.kind === "int" ? value.value : value.value ? 1n : 0n;
-            return values.stringPoints(integerFormat(integer, storage, value.kind, meter));
+            return values.stringPoints(integerFormat(integer, storage, value.kind, meter, undefined, numericLocale));
           }
-          if (value.kind === "float") return values.stringPoints(floatFormat(value.value, storage, "float", meter));
-          return values.stringPoints(complexFormat(value.real, value.imaginary, storage, "complex", meter));
+          if (value.kind === "float") return values.stringPoints(floatFormat(value.value, storage, "float", meter, numericLocale));
+          return values.stringPoints(complexFormat(value.real, value.imaginary, storage, "complex", meter, numericLocale));
         };
       }
       return hooks.lookupFormat?.(value);

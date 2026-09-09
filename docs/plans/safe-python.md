@@ -5743,6 +5743,17 @@ extension, integration, or validation requirement is missing or unverified.
   shared formatting context, not the value records; propagation through bound
   native methods, expressions and program frames, default C locale selection,
   guest locale APIs and broader interpreter/SDK/safe-fs work remain pending.
+- Added lazy, execution-owned numeric locale acquisition to native formatting.
+  The shared formatting context defaults to an immutable portable C snapshot;
+  trusted owners may supply changing snapshots without reading or mutating host
+  locale state. Only n presentations acquire a snapshot, and complex formatting
+  resolves it once for both components. Acquisition is followed by a checkpoint.
+- Two tests first reproduced missing native locale dispatch. All 4,690 tests in
+  400 files pass, together with typecheck, scoped lint and the selected workspace
+  build. A 462-case compiled CPython comparison passes for default C formatting
+  through format(), bound __format__ and f-strings, including invalid specs.
+  Propagating a custom shared context through native attributes, expressions and
+  program frames remains pending, as do guest locale APIs and broader work.
 - Next:
   remaining scope/compiler audits, interpreter runtime,
   resource controls, runtime modules, and safe-fs integration. Parsing and static

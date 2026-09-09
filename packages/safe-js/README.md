@@ -732,15 +732,16 @@ remaining array species/identity consumers still need integration.
 See the [Proxy progress record](../../docs/plans/safejs-proxy-progress.md) for
 the tested scope and remaining work.
 
-The latest working-tree gate after the array, split, and match result-realm
-fixes passed 23 workspace builds and four import checks. The full SafeJS unit
-run passed 24,176 tests, failed two, and skipped 37 across 938 files. Source/test
+The latest working-tree gate includes the reflection, descriptor, JSON,
+grouping, built-in iterator and RegExp matcher realm fixes. The maintained
+build passed 23 workspace builds and four import checks. The full SafeJS unit
+run passed 24,317 tests, failed two, and skipped 37 across 946 files. Source/test
 fingerprints matched before and after the run. Both failures concern native
 Promise own-property imports, whose admission policy remains unresolved.
 The previous checkpoint/camera timeouts did not recur; this does not establish
 a permanent timing fix. This is not a green package gate or an isolated
-committed-tree result. Reflection results, iterator results, JSON containers,
-and grouping buckets still have separately validated SDK realm gaps.
+committed-tree result. Iterator-helper and generator result realms, plus
+synchronous yield-star result forwarding, remain validated gaps.
 See the [full gate record](../../docs/plans/safejs-realm-lifetime-full-gate.md).
 The public data-copy boundary now rejects guest Proxy values explicitly instead
 of silently producing empty objects. Use an owning realm's retained guest

@@ -1,6 +1,33 @@
 # Realm lifetime full package gate
 
-## Latest array, split and match candidate
+## Latest reflection, iterator and RegExp matcher candidate
+
+Runtime HEAD `c1b8b4eda` includes the reflection, descriptor, JSON, grouping,
+entry-pair, toArray, built-in iterator-result and RegExp matcher realm fixes.
+Its maintained build passed 23 workspace builds and four fresh-process import
+checks. The full unit command below ran the npm pretest:unit locale hook.
+Vitest started at 04:44:29 and completed in 686.12 seconds, exit 1 (session
+57306). Documentation-only audit commits landed while it ran.
+
+- Tests: 24,317 passed, two failed, 37 skipped; 24,356 total.
+- Files: 944 passed, one failed, one skipped; 946 total.
+- Both failures remain in promise-import-properties.test.ts: omitted native
+  Promise own string descriptors and omitted user-symbol properties.
+- No other failures or timeouts were reported. This does not establish a
+  permanent fix for the earlier timing failures.
+
+The sorted source/test SHA-256 matched before, during and after the run:
+
+`958f252f6325d13c3381d9be5042572b07c402b85857258f1f9d45569160fcad`
+
+The working tree still includes uncommitted weak-collection work and Promise
+policy tests; this is not an isolated committed-tree result or a green gate.
+The fingerprint covers source/test paths and contents, not dependencies,
+generated dist or toolchains. Helper and generator result-realm gaps and
+synchronous yield-star forwarding were independently validated during this
+run; see safejs-helper-generator-result-realms.md. No push or release occurred.
+
+## Previous array, split and match candidate
 
 Runtime HEAD ae5b505ab includes the copy-by-change, default species, split,
 and match-result realm fixes. The maintained build passed 23 workspace builds

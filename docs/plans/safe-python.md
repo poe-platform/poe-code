@@ -1211,6 +1211,32 @@ extension, integration, or validation requirement is missing or unverified.
   bytes per host UTF-16 unit; host container/string overhead remains outside those
   explicit buffer charges. Guest argument assembly, function objects/frames and
   evaluator execution remain pending; these diagnostics do not establish them.
+- Began actual parsed-expression execution with an internal, generic guest-operation
+  context and explicit continuation stack. Supported families now execute literals,
+  names, unary/binary operations, attributes, walrus stores, logical operators,
+  conditional expressions and comparison chains. Operand order is left-to-right;
+  unselected branches are not visited; chained comparison middle operands execute
+  once and final comparison values are not implicitly coerced. A required execution
+  meter checks every AST/continuation step before guest operations. Unsupported
+  families raise an explicit host UnsupportedExpressionError, not a guest error.
+- Expression validation: observed missing-module red tests before implementation;
+  differential checks then exposed context-sensitive truth-call mismatches, each
+  reproduced with a failing regression test before correction. Branch tests,
+  value-preserving logical tests and plain value contexts are distinct; not,
+  comparison-chain results, walrus stores and conditional branch fallthrough
+  preserve CPython's observable truth-conversion behavior. All 1,780 tests in 83
+  files pass, including 19 new cases and a 20,000-node nonrecursive AST evaluation.
+  CPython matched 6,000 generated expression executions/traces: 2,000 logical,
+  2,000 with state-changing __bool__, and 2,000 mixed arithmetic/comparison cases.
+  Scoped lint, source typecheck and selected dependency build passed. References:
+  Python expression evaluation rules and CPython v3.14.0 Python/codegen.c.
+- This is an execution-layer increment, NOT a complete/public Python interpreter.
+  The context still supplies guest values, operations, scope-aware name resolution,
+  internal callback metering and literal ownership. Continuation closure/stack heap
+  accounting remains incomplete. Calls, containers, subscripts, comprehensions,
+  lambdas, interpolation, await/yield, statement/frame execution and guest object
+  construction remain to be wired and implemented. No host eval is used by the
+  implementation; CPython eval is used only in independent differential checks.
 - Next:
   remaining scope/compiler audits, interpreter runtime,
   resource controls, runtime modules, and safe-fs integration. Parsing and static

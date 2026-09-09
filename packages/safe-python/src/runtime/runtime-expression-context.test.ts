@@ -111,6 +111,24 @@ describe("concrete runtime expression context", () => {
     expect(run("left + right")).toBe(answer);
     expect(events).toEqual(["load:left", "load:right", "slots"]);
   });
+  it("uses the same guest truth hook for not and Boolean short-circuiting", () => {
+    const { v, bindings, run, names } = fixture(), guest = v.cell({}); let truth = false, calls = 0;
+    names.set("guest", guest);
+    bindings.truth = function(value) { expect(this).toBe(bindings); expect(value).toBe(guest); calls++; return truth; };
+    expect(run("not guest")).toBe(v.true);
+    expect(run("guest and missing")).toBe(guest);
+    expect(run("guest or 42")).toBe(v.integer(42));
+    truth = true;
+    expect(run("not guest")).toBe(v.false);
+    expect(run("guest or missing")).toBe(guest);
+    expect(calls).toBe(5);
+  });
+  it("checks cancellation immediately after guest truth returns", () => {
+    const { v, bindings } = fixture(); let cancelled = false;
+    bindings.truth = () => { cancelled = true; return false; };
+    const context = createRuntimeExpressionContext(v, bindings, { checkpoint() { if (cancelled) throw new ExecutionLimitError("cancelled"); } });
+    expect(() => context.truth(v.cell({}))).toThrow(ExecutionLimitError);
+  });
   it("retains explicit unsupported object operations rather than inventing defaults", () => {
     const { run } = fixture();
     expect(() => run("{1}")).toThrow(UnsupportedExpressionError);

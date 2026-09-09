@@ -24,11 +24,13 @@ import type { FormatContext } from "./format-protocol.js";
  * execution or mapping access is implicit.
  * Supplying a key policy enables native dictionary and set construction;
  * callers without one must supply both construction capabilities explicitly.
+ * A truth hook replaces native truth for expressions and statement conditions;
+ * it owns both native handling and guest bool/length protocol dispatch.
  * Hooks must implement guest semantics and charge their execution internally.
  */
 export type RuntimeExpressionBindings = Pick<ExpressionContext<RuntimeValue>,
   "load" | "store" | "beginCall" | "createLambda"> &
-  Partial<Pick<ExpressionContext<RuntimeValue>, "attribute" | "literal" | "formattedString">> &
+  Partial<Pick<ExpressionContext<RuntimeValue>, "attribute" | "literal" | "formattedString" | "truth">> &
   { readonly formatting?: FormatContext<RuntimeValue>;
     /** Prepare type-level numeric addition slots for the evaluated pair.
      * Native sequence fallback runs only after those slots decline. */
@@ -64,7 +66,7 @@ export function createRuntimeExpressionContext(values: RuntimeValues, bindings: 
     beginDictionary: "beginDictionary" in bindings
       ? bindings.beginDictionary.bind(bindings)
       : initial => beginRuntimeDictionary(initial, values, bindings.dictionaryKeys, meter),
-    unary: (operator, value) => runtimeUnary(operator, value, unary, meter),
+    unary: (operator, value) => operator === "not" ? values.boolean(!context.truth(value)) : runtimeUnary(operator, value, unary, meter),
     binary(operator, left, right) {
       if (operator === "+") {
         const addition = bindings.addition?.(left, right);
@@ -78,7 +80,12 @@ export function createRuntimeExpressionContext(values: RuntimeValues, bindings: 
     compare: (operator, left, right) => operator === "in" || operator === "not in"
       ? runtimeMembership(operator, left, right, values, meter)
       : runtimeComparison(operator, left, right, values, meter),
-    truth: value => runtimeTruth(value, meter),
+    truth(value) {
+      meter.checkpoint();
+      const result = bindings.truth === undefined ? runtimeTruth(value, meter) : bindings.truth(value);
+      meter.checkpoint();
+      return result;
+    },
     getItem: (object, key) => runtimeIndex(object, key, values, meter),
     iterate: value => runtimeIterate(value, values, meter)
   };

@@ -14,6 +14,8 @@ import { resolveRuntimeClassAttribute } from "./runtime-descriptor.js";
 import { readInstanceAttribute } from "./instance-attributes.js";
 import { RuntimeDictionaryNamespace } from "./runtime-dictionary-namespace.js";
 import { OrderedKeyMap } from "./ordered-key-map.js";
+import { protocolTruth, type TruthProtocolContext } from "./truth-protocol.js";
+import { runtimeTruth } from "./runtime-truth.js";
 
 function fixture(source: string, maxSteps = 100000, signal?: AbortSignal) {
   const meter = new ExecutionBudget({ maxSteps, maxAllocatedBytes: 1000000, signal }), values = new RuntimeValues(meter);
@@ -32,6 +34,25 @@ function fixture(source: string, maxSteps = 100000, signal?: AbortSignal) {
 }
 
 describe("assembled concrete runtime programs", () => {
+  it.each(["bool", "length"] as const)("uses guest %s truth for branches, not and nested functions", mode => {
+    const state = fixture("if guest:\n x=1\nelse:\n x=2\ndef f():\n return not guest\nresult=(x,f(),1 if guest else 2)\n");
+    const { values: v, meter } = state, guest = v.cell({}), events: string[] = [];
+    state.globals.set("guest", guest);
+    const protocol: TruthProtocolContext<RuntimeValue> = {
+      boolean: value => value.kind === "bool" ? value.value : undefined, isNone: value => value === v.none,
+      lookupBool: () => mode === "bool" ? () => { events.push("bool"); return v.false; } : undefined,
+      lookupLength: () => () => { events.push("length"); return v.integer(0); },
+      integer: value => value.kind === "int" ? value.value : undefined, isExactInteger: value => value.kind === "int",
+      lookupIndex: () => undefined, typeName: value => value.kind, warn() {}
+    };
+    state.hooks.expressions = () => {
+      const owner = { warn() {}, truth(value: RuntimeValue) { expect(this).toBe(owner); return value === guest ? protocolTruth(value, protocol, meter) : runtimeTruth(value, meter); } };
+      return owner;
+    };
+    state.run();
+    expect(state.globals.get("result")).toEqual(v.tuple([v.integer(2), v.true, v.integer(2)]));
+    expect(events).toEqual([mode, mode, mode]); expect(state.calls.depth).toBe(0);
+  });
   it("shares guest addition hooks with module and nested function frames", () => {
     const state = fixture("module_result = left + right\ndef f():\n return left + right\nresult = f()\n");
     const { values: v } = state, guest = v.cell({}), answer = v.string("guest addition"); let prepared = 0;

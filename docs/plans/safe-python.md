@@ -6055,6 +6055,19 @@ extension, integration, or validation requirement is missing or unverified.
   all 2,479 compiled sum cases. Typecheck, scoped lint and selected workspace
   build pass. Concrete guest class/sequence adapters, remaining operators and
   broader interpreter/SDK/safe-fs integration remain unfinished.
+- Added an execution-owned truth hook to runtime expression/frame assembly,
+  with native truth retained when omitted. Boolean short-circuiting, not and
+  statement branch evaluation share the hook; callbacks are owner-bound in
+  module/nested-function frames and followed by cancellation checkpoints.
+  Existing bool-before-length protocol conversion can now drive these compiled
+  paths without inventing truth behavior for guest object records.
+- Four new tests first exposed missing expression and frame forwarding, covering
+  owner binding, cancellation and guest __bool__/__len__ precedence in branches
+  and nested functions. All 4,827 tests in 424 files pass. A 96-program CPython
+  comparison matches results and exact truth-call traces for fixed and
+  alternating guest truth, nested Boolean expressions and functions. Typecheck,
+  scoped lint and selected workspace build pass. Concrete guest type/descriptor
+  construction and broader interpreter/SDK/safe-fs integration remain open.
 - Next:
   remaining scope/compiler audits, interpreter runtime,
   resource controls, runtime modules, and safe-fs integration. Parsing and static

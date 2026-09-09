@@ -5,6 +5,7 @@ import { unpackAssignment } from "./assignment-unpacking.js";
 import { executeAugmentedAssignment, type AugmentedAssignmentContext } from "./augmented-assignment.js";
 import { deleteTargets } from "./deletion-targets.js";
 import { PythonRuntimeError } from "./error.js";
+import { ProtocolIterator } from "./protocol-iterator.js";
 import type { ExecutionMeter } from "./execution-budget.js";
 import { evaluateExpression, type ExpressionContext } from "./expression-evaluation.js";
 import { runtimeInPlace } from "./runtime-inplace.js";
@@ -36,7 +37,8 @@ export function createRuntimeStatementContext(expressions: ExpressionContext<Run
       const iterator = expressions.iterate(value, name => {
         throw new PythonRuntimeError("TypeError", `cannot unpack non-iterable ${name} object`);
       });
-      return unpackAssignment(iterator, before, after, meter);
+      return unpackAssignment(iterator, before, after, meter,
+        iterator instanceof ProtocolIterator ? () => iterator.reacquire() : undefined);
     }
   };
   const augmented: AugmentedAssignmentContext<RuntimeValue> = {

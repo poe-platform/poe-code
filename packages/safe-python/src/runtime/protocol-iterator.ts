@@ -66,6 +66,13 @@ export class ProtocolIterator<Value> implements IterableIterator<Value> {
 
   [Symbol.iterator](): IterableIterator<Value> { return this; }
 
+  /** Perform guest iter(cursor), distinct from adapting this host iterator.
+   * Legacy sequence cursors are self-iterating and keep their current index. */
+  reacquire(): ProtocolIterator<Value> {
+    this.meter.checkpoint();
+    return this.#source === undefined ? this : new ProtocolIterator(this.#source.value, this.context, this.meter);
+  }
+
   next(): CompletionResult<Value> {
     if (this.#sequence !== undefined) return this.#sequence.next();
     this.meter.checkpoint(1, 16);

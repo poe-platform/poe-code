@@ -18,6 +18,21 @@ const context: IterationContext<unknown> = {
 };
 
 describe("guest protocol iterator adapters", () => {
+  it("keeps a legacy sequence cursor's position when reacquired", () => {
+    const iterator = new ProtocolIterator({ get: (index: bigint) => index }, context, budget());
+    expect(iterator.next().value).toBe(0n);
+    expect(iterator.reacquire()).toBe(iterator);
+    expect(iterator.next().value).toBe(1n);
+  });
+  it("requires iterability of a guest cursor only when reacquired", () => {
+    const iterator = new ProtocolIterator({ iter: () => ({ next: () => 7 }) }, context, budget());
+    expect(iterator.next().value).toBe(7);
+    expect(() => iterator.reacquire()).toThrow("'X' object is not iterable");
+  });
+  it("validates the replacement cursor returned during reacquisition", () => {
+    const iterator = new ProtocolIterator({ iter: () => ({ next: () => 7, iter: () => ({}) }) }, context, budget());
+    expect(() => iterator.reacquire()).toThrow("iter() returned non-iterator of type 'X'");
+  });
   it("calls iter once and validates next without calling iter on the result", () => {
     let calls = 0, nextCalls = 0;
     const result = { next: () => ++nextCalls, iter: () => { throw new Error("unexpected second iter"); } };

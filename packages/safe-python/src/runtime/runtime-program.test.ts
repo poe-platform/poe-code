@@ -37,6 +37,41 @@ function fixture(source: string, maxSteps = 100000, signal?: AbortSignal) {
 }
 
 describe("assembled concrete runtime programs", () => {
+  it.each([false, true])("reacquires the cursor after the extended-unpack prefix (failure=%s)", fail => {
+    const state = fixture("first,*rest=guest\n"), v = state.values;
+    const guest = v.cell({}), cursor = v.cell({}), replacement = v.cell({}), events: string[] = [];
+    const stop = new PythonRuntimeError("StopIteration", "done"), failure = new PythonRuntimeError("TypeError", "cursor iter failed");
+    let remaining = 1;
+    const iteration: IterationContext<RuntimeValue> = {
+      lookupIter: value => () => {
+        events.push(value === guest ? "source iter" : "cursor iter");
+        if (value === guest) return cursor;
+        if (fail) throw failure;
+        return replacement;
+      },
+      hasNext: value => value === cursor || value === replacement,
+      next(value) {
+        events.push(value === cursor ? "prefix" : "remainder");
+        if (value === cursor) return v.integer(1);
+        if (remaining-- > 0) return v.integer(9);
+        throw stop;
+      },
+      hasSequenceItem: () => false, getItem: () => { throw Error("unexpected item"); },
+      isStopIteration: error => error === stop, isIndexError: () => false, typeName: () => "Guest"
+    };
+    state.globals.set("guest", guest); state.hooks.expressions = () => ({ warn() {}, iteration });
+    if (fail) {
+      expect(state.run).toThrow(failure);
+      expect(state.globals.has("first")).toBe(false);
+      expect(events).toEqual(["source iter", "prefix", "cursor iter"]);
+    } else {
+      state.run();
+      expect(state.globals.get("first")).toBe(v.integer(1));
+      expect(state.globals.get("rest")).toEqual(v.list([v.integer(9)]));
+      expect(events).toEqual(["source iter", "prefix", "cursor iter", "remainder", "remainder"]);
+    }
+    expect(state.calls.depth).toBe(0);
+  });
   it.each(["result=[*None]\n", "result=(*None,)\n"])("reports absent iteration in starred displays: %s", source => {
     const state = fixture(source);
     expect(state.run).toThrow("Value after * must be an iterable, not NoneType");

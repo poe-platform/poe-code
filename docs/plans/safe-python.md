@@ -6123,9 +6123,18 @@ extension, integration, or validation requirement is missing or unverified.
   displays. All 4,855 tests in 426 files pass. CPython comparisons match 30
   acquisition-failure programs, 48 valid guest-iteration programs and 90
   containment-protocol cases, including callback traces. Typecheck, scoped lint
-  and selected workspace build pass. Length-hint and extended-unpack iterator
-  reacquisition behavior, concrete objects and broader SDK/safe-fs work remain
-  unfinished.
+  and selected workspace build pass.
+- Connected extended assignment unpacking to guest cursor reacquisition after
+  consuming the prefix. The remainder uses iter(cursor), which may return a
+  replacement iterator or fail; legacy sequence cursors retain their position.
+  Ordinary fixed unpacking and host iterator adaptation do not reacquire.
+- Two compiled regressions first failed on replacement/error behavior. Three
+  adapter cases additionally cover legacy position, missing cursor iterability
+  and invalid replacements. All 4,860 tests in 426 files pass; 40 compiled
+  extended-unpack programs match CPython results, arity errors and exact traces
+  across prefix/suffix combinations, nested functions and zero-to-seven items.
+  Typecheck, scoped lint and selected workspace build pass. Length hints,
+  concrete objects and broader SDK/safe-fs work remain unfinished.
 - Next:
   remaining scope/compiler audits, interpreter runtime,
   resource controls, runtime modules, and safe-fs integration. Parsing and static

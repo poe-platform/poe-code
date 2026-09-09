@@ -1923,6 +1923,22 @@ extension, integration, or validation requirement is missing or unverified.
   selected build passed. This is not a standalone interpreter API: concrete guest
   values and leaf/expression wiring, comprehension execution, imports/builtin
   initialization, guest tracebacks and complete allocation accounting remain open.
+- Added lambda creation to expression evaluation through an optional runtime
+  factory. Defaults execute in the containing scope in parameter order, retaining
+  original values and normalized unmangled keys; the body remains unexecuted.
+  Fresh definition maps, default-side-effect preservation and factory failures
+  follow function-definition semantics. Explicit continuations keep nested lambda
+  defaults off the host evaluation stack and clear stale default truth state.
+  Missing lambda capability fails before evaluating defaults.
+- Lambda-expression validation: eight of ten initial cases reproduced the missing
+  implementation (entry-limit and unavailable-backend checks already passed).
+  All 2,376 tests in 125 files pass, including 11 new cases, a 4,001-level nested
+  default check and an integration path through program compilation, lambda
+  creation, argument binding and invocation. CPython matched 192 default-order,
+  failure, walrus, nesting and branching cases. Source typecheck, scoped lint and
+  selected build passed. Concrete guest function storage/metadata, closure factory
+  wiring, suspension and complete definition/continuation heap accounting remain
+  unfinished.
 - Next:
   remaining scope/compiler audits, interpreter runtime,
   resource controls, runtime modules, and safe-fs integration. Parsing and static

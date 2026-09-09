@@ -58,6 +58,12 @@ export interface ExpressionContext<Value> {
    * allocations remain metered by the context; the evaluator meters each next.
    */
   iterate(value: Value): Iterator<Value>;
+  /** Create a fresh guest function using the compiled code for this exact AST
+   * node and capture the defining environment. Do not execute the lambda body.
+   * Defaults have normalized source keys, retaining original value identities;
+   * function-frame initialization applies private-name mangling when binding.
+   */
+  createLambda?(node: Extract<Expression, { kind: "lambda" }>, defaults: ReadonlyMap<string, Value>): Value;
 }
 
 /** Host implementation gap, not a catchable guest exception. */
@@ -93,6 +99,25 @@ export function evaluateExpression<Value>(expression: Expression, context: Expre
     switch (node.kind) {
       case "literal": value = context.literal(node); break;
       case "name": value = context.load(node.name); break;
+      case "lambda": {
+        const create = context.createLambda;
+        if (create === undefined) throw new UnsupportedExpressionError(node.kind);
+        const defaults = new Map<string, Value>();
+        let index = 0;
+        const next = () => {
+          while (index < node.parameters.length) {
+            meter.checkpoint();
+            const parameter = node.parameters[index++];
+            if (parameter.default === null) continue;
+            work.push(() => { defaults.set(parameter.name, value); work.push(next); }, { node: parameter.default, test: "value" });
+            return;
+          }
+          value = create.call(context, node, defaults);
+          knownTruth = undefined;
+        };
+        work.push(next);
+        break;
+      }
       case "unary":
         if (node.operator === "not" && test === "branch") {
           work.push(() => {

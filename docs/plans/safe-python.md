@@ -3098,6 +3098,19 @@ extension, integration, or validation requirement is missing or unverified.
   workspace build passed. Guest call collectors, definition/lambda installation,
   function descriptors, keyword dictionaries, nested closure wiring, suspension,
   full heap/CPU accounting and safe-fs/public execution integration remain open.
+- Extended the shared explicit-stack hash engine to concrete runtime values,
+  retaining the constant hashing API as a compatibility export. Lists reject
+  hashing directly or inside tuple/slice keys, without traversing cycles or later
+  members. Functions/iterators use the supplied stable identity policy. Ranges
+  hash a virtual canonical three-member tuple using the execution's None identity,
+  avoiding range expansion and recursive host calls even when nested in keys.
+- The runtime hash suite first failed on its missing module; all 3,268 tests in
+  212 files pass. A 3,000-case CPython audit matched runtime range/compound hashes
+  and unhashable-key errors; 12,004 immutable and 5,000 range hash regressions also
+  passed, using the same None identity hash where required. Source typecheck,
+  scoped lint and selected workspace build passed. Execution-wide identity/seed
+  provisioning, concrete dictionary values/literals, guest __hash__ slots, full
+  bigint/heap accounting and safe-fs/public execution integration remain open.
 - Next:
   remaining scope/compiler audits, interpreter runtime,
   resource controls, runtime modules, and safe-fs integration. Parsing and static

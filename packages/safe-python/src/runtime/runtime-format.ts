@@ -3,6 +3,7 @@ import type { FormatContext } from "./format-protocol.js";
 import { createRuntimeRepresentationContext, type RuntimeRepresentationHooks } from "./runtime-representation.js";
 import { objectFormat } from "./object-format.js";
 import { stringFormat } from "./string-format.js";
+import { integerFormat } from "./integer-format.js";
 import { representationObject } from "./representation-protocol.js";
 import type { RuntimeValue, RuntimeValues } from "./runtime-values.js";
 import { UnsupportedExpressionError } from "./expression-evaluation.js";
@@ -19,8 +20,8 @@ export function hasNativeObjectFormat(value: RuntimeValue): boolean {
     || value.kind === "dict_values" || value.kind === "dict_items";
 }
 
-/** Shared native formatting/representation capabilities. Nonempty native numeric
- * specs remain explicit gaps rather than pretending their slots are absent.
+/** Shared native formatting/representation capabilities. Remaining numeric
+ * presentations stay explicit gaps rather than pretending their slots are absent.
  * Guest lookup owns inherited methods and descriptor behavior for guest types. */
 export function createRuntimeFormatContext(values: RuntimeValues, meter: ExecutionMeter, hooks: RuntimeFormatHooks): FormatContext<RuntimeValue> {
   meter.checkpoint(1, 512);
@@ -51,8 +52,12 @@ export function createRuntimeFormatContext(values: RuntimeValues, meter: Executi
         return spec => {
           const storage = context.string(spec); meter.checkpoint();
           if (storage === undefined) throw new Error("validated format spec lost string storage");
-          if (storage.length !== 0) throw new UnsupportedExpressionError("call");
-          return representationObject(value, "str", context, meter);
+          if (storage.length === 0) return representationObject(value, "str", context, meter);
+          if (value.kind === "int" || value.kind === "bool") {
+            const integer = value.kind === "int" ? value.value : value.value ? 1n : 0n;
+            return values.stringPoints(integerFormat(integer, storage, value.kind, meter));
+          }
+          throw new UnsupportedExpressionError("call");
         };
       }
       return hooks.lookupFormat?.(value);

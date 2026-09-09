@@ -5620,6 +5620,19 @@ extension, integration, or validation requirement is missing or unverified.
   not yet connected to native integer dispatch; character/locale/float integer
   presentations, remaining numeric renderers and broader interpreter/SDK/safe-fs
   integration remain unfinished.
+- Connected nonempty native int/bool specs to integer presentation dispatch and
+  added c formatting with code-point fill/alignment, independent surrogate
+  values, flag precedence and signed-C-long versus Unicode range diagnostics.
+  Unknown presentation errors precede type-specific flag checks. Radix output
+  is adopted as immutable string storage without a second allocation; bool
+  retains its existing empty-spec spelling but uses numeric payload otherwise.
+- Five tests first reproduced missing dispatch and the absent integer formatter.
+  All 4,650 tests in 390 files pass. A 20,000-case CPython audit matches radix,
+  character and unknown-presentation output/errors; 180 compiled programs compare
+  native int/bool format(), bound methods and f-strings. Typecheck, scoped lint and selected
+  workspace build pass. Integer locale/float presentations, nonempty float/complex
+  renderers, guest subclass behavior and broader interpreter/SDK/safe-fs work
+  remain unfinished.
 - Next:
   remaining scope/compiler audits, interpreter runtime,
   resource controls, runtime modules, and safe-fs integration. Parsing and static

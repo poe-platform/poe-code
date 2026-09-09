@@ -14,6 +14,15 @@ function fixture() {
   return { v, meter, dictionary, context };
 }
 const text = (value: RuntimeValue) => { if (value.kind !== "str") throw Error("expected str"); return String.fromCodePoint(...value.value); };
+it("dispatches native integer and boolean nonempty format specs", () => {
+  const { v, meter, context, dictionary } = fixture();
+  expect(text(formatObject(v.integer(-1234), v.string("010,d"), context, meter))).toBe("-0,001,234");
+  expect(text(formatObject(v.true, v.string("+d"), context, meter))).toBe("+1");
+  expect(text(formatObject(v.false, v.string(" "), context, meter))).toBe(" 0");
+  const method = runtimeNativeAttribute(v.integer(65), "__format__", v, meter);
+  if (method.kind !== "builtin_function_or_method") throw Error("expected method");
+  expect(text(method.value.invoke([v.string("c")], dictionary(), meter))).toBe("A");
+});
 it("formats native numeric values with empty and omitted specifications", () => {
   const { v, meter, context } = fixture();
   for (const [value, expected] of [[v.true, "True"], [v.false, "False"], [v.integer(-71), "-71"], [v.float(-0), "-0.0"], [v.float(Infinity), "inf"], [v.float(NaN), "nan"], [v.complex(1, -2), "(1-2j)"], [v.complex(-0, -0), "(-0-0j)"]] as const) {

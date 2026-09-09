@@ -117,7 +117,7 @@ export class ConstantValues {
   }
 
   /** Creating a slice never coerces or validates its component values. */
-  slice(parts: SliceValues<ConstantValue>): SliceConstant {
+  slice<Value = ConstantValue>(parts: SliceValues<Value>): SliceConstant<Value | ConstantValues["none"]> {
     this.meter.checkpoint(1, VALUE_BYTES + 3 * REFERENCE_BYTES);
     return Object.freeze({ kind: "slice", start: parts.lower ?? this.none, stop: parts.upper ?? this.none, step: parts.step ?? this.none });
   }

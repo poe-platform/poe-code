@@ -2902,6 +2902,18 @@ extension, integration, or validation requirement is missing or unverified.
   workspace build passed. Float/complex powers, string formatting, guest/mutable
   object dispatch, concrete module contexts and complete resource accounting
   remain open. Existing platform-sensitive floating-power limitations persist.
+- Established a concrete runtime value union/factory extending immutable scalar
+  allocation with mutable lists, validated ranges and prepared iterators. List
+  wrappers own fresh storage slots but preserve shared/cyclic members; immutable
+  tuples can retain those mutable members. Slice construction now accepts generic
+  runtime components without conversion. Range/iterator wrapping retains prepared
+  state without expanding ranges or advancing iterators; wrappers are frozen and
+  allocation is charged before publication.
+- The value-model suite first failed on its missing module; all 3,155 tests in
+  197 files pass. Source typecheck, scoped lint and selected workspace build
+  passed. This is host-only storage groundwork, not a complete guest object
+  model: dictionaries, sets, callable/user objects, guest type/protocol dispatch,
+  concrete module contexts, safe-fs wiring and full heap accounting remain open.
 - Next:
   remaining scope/compiler audits, interpreter runtime,
   resource controls, runtime modules, and safe-fs integration. Parsing and static

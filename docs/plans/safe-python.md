@@ -2828,6 +2828,17 @@ extension, integration, or validation requirement is missing or unverified.
   against CPython source, not dynamically traversed; practical execution budgets
   terminate such scans first. Guest method registration, rich equality dispatch,
   result wrapping and full bigint/heap accounting remain unfinished.
+- Added range hashing through the shared numeric/tuple hash implementation.
+  A fixed three-slot canonical key uses exact cardinality, start for nonempty
+  ranges and step only for ranges longer than one element; omitted fields use
+  the runtime's None singleton. Equal empty/singleton/multi-element ranges thus
+  share hashes despite irrelevant differences in their original attributes.
+- The hash suite first failed on its missing module; all 3,080 tests in 191
+  files pass. A 5,000-case CPython audit matched hashes across empty, singleton,
+  descending and huge-integer ranges after supplying the same None identity
+  hash. Source typecheck, scoped lint and selected workspace build passed. Guest range/hash
+  registration, execution-wide identity policy and full bigint/host allocation
+  accounting remain unfinished.
 - Next:
   remaining scope/compiler audits, interpreter runtime,
   resource controls, runtime modules, and safe-fs integration. Parsing and static

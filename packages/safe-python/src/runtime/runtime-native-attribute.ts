@@ -17,6 +17,7 @@ import { createRuntimeStringJoinMethod } from "./runtime-string-join-method.js";
 import { createRuntimeStringStripMethod } from "./runtime-string-strip-method.js";
 import { createRuntimeStringSplitlinesMethod } from "./runtime-string-splitlines-method.js";
 import { createRuntimeStringSplitMethod } from "./runtime-string-split-method.js";
+import { createRuntimeStringReplaceMethod } from "./runtime-string-replace-method.js";
 import type { ExpressionContext } from "./expression-evaluation.js";
 import { isRuntimeSet, type RuntimeValue, type RuntimeValues } from "./runtime-values.js";
 
@@ -28,6 +29,7 @@ import { isRuntimeSet, type RuntimeValue, type RuntimeValues } from "./runtime-v
 export function runtimeNativeAttribute(receiver: RuntimeValue, name: string, values: RuntimeValues, meter: ExecutionMeter, beginCall?: ExpressionContext<RuntimeValue>["beginCall"]): RuntimeValue {
   meter.checkpoint();
   if (receiver.kind === "str") {
+    if (name === "replace") return createRuntimeStringReplaceMethod(receiver, values, meter);
     if (name === "split" || name === "rsplit") return createRuntimeStringSplitMethod(receiver, name, values, meter);
     if (name === "splitlines") return createRuntimeStringSplitlinesMethod(receiver, values, meter);
     if (name === "strip" || name === "lstrip" || name === "rstrip") return createRuntimeStringStripMethod(receiver, name, values, meter);

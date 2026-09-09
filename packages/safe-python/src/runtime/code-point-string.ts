@@ -108,6 +108,42 @@ export class CodePointString implements Iterable<number> {
     return new CodePointString(points, meter, ownedPoints);
   }
 
+  /** Count selected matches, then fill one exact-size owned output buffer.
+   * Two bounded scans avoid storing every match offset or repeated concatenation. */
+  replace(old: CodePointString, replacement: CodePointString, count: bigint, meter: ExecutionMeter): CodePointString {
+    meter.checkpoint();
+    if (count === 0n || old.length > this.length || (old.length === 0 && replacement.length === 0)) return this;
+    const limit = count < 0n || count > BigInt(this.length) + 1n ? this.length + 1 : Number(count);
+    let matches = 0;
+    if (old.length === 0) matches = Math.min(limit, this.length + 1);
+    else for (const ignoredIndex of substringMatches(this.#points, old.#points, false, meter)) {
+      if (++matches === limit) break;
+    }
+    if (matches === 0) return this;
+    const length = this.length + matches * (replacement.length - old.length);
+    if (!Number.isSafeInteger(length) || length > 0xffffffff) exhaustAllocation(meter);
+    meter.checkpoint(0, length * Uint32Array.BYTES_PER_ELEMENT);
+    const points = new Uint32Array(length);
+    let offset = 0, source = 0;
+    if (old.length === 0) {
+      for (let boundary = 0; boundary <= this.length; boundary++) {
+        meter.checkpoint();
+        if (boundary < matches) for (const point of replacement.#points) { meter.checkpoint(); points[offset++] = point; }
+        if (boundary < this.length) { meter.checkpoint(); points[offset++] = this.#points[boundary]; }
+      }
+    } else {
+      let remaining = matches;
+      for (const index of substringMatches(this.#points, old.#points, false, meter)) {
+        while (source < index) { meter.checkpoint(); points[offset++] = this.#points[source++]; }
+        for (const point of replacement.#points) { meter.checkpoint(); points[offset++] = point; }
+        source = index + old.length;
+        if (--remaining === 0) break;
+      }
+      while (source < this.length) { meter.checkpoint(); points[offset++] = this.#points[source++]; }
+    }
+    return new CodePointString(points, meter, ownedPoints);
+  }
+
   /** Emits pieces in scan order (rightmost first for reverse splitting).
    * The guest list layer restores forward order after a reverse scan. */
   *split(separator: CodePointString | null, maxsplit: bigint, reverse: boolean, meter: ExecutionMeter): IterableIterator<CodePointString> {

@@ -4062,7 +4062,24 @@ extension, integration, or validation requirement is missing or unverified.
   The 2,440-call existing search regression passes. Global string
   interning, guest index slots, remaining text methods/builtins, suspension,
   full accounting and SDK/safe-fs remain unfinished.
+- Connected str.replace to native lookup, including positional-only old/new,
+  the count keyword, signed-size count validation, empty-pattern insertion,
+  leftmost nonoverlapping matches and no rescanning of replacement text.
+  The storage kernel counts selected matches then fills one exact output
+  buffer in a second bounded scan, without retaining all match positions.
+- Replacement verification began with seven failing tests. All 3,814 tests
+  in 278 files pass, with scoped lint, source typecheck and selected workspace
+  build. The 3,038-call split regression also passes. Unit checks cover
+  exact same-object no-ops versus distinct equal replacement strings, Unicode
+  code points, one output-buffer allocation and linear work. A 2,616-call
+  compiled CPython audit passes with explicit aliasing for equal old/new text.
+  The separate literal-based audit exposes an unresolved compiler constant
+  pooling gap: repeated equal literals can be distinct runtime objects, changing
+  replacement identity. That strict audit is not a pass and must be rerun after
+  literal pooling/interner work. Guest index slots, subclasses, remaining text
+  methods/builtins, suspension, full accounting and SDK/safe-fs remain pending.
 - Next:
+  reproduce and address compiler literal constant pooling, then
   remaining scope/compiler audits, interpreter runtime,
   resource controls, runtime modules, and safe-fs integration. Parsing and static
   analysis do not establish interpreter execution.

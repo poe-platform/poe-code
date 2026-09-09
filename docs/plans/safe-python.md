@@ -6080,6 +6080,19 @@ extension, integration, or validation requirement is missing or unverified.
   fixed/alternating result truth and nested functions. Typecheck, scoped lint
   and selected workspace build pass. Concrete guest type/descriptor dispatch,
   containment adapters and broader interpreter/SDK/safe-fs work remain open.
+- Added a generic metered containment protocol: __contains__ precedes iteration,
+  None-disabled slots reject immediately, and arbitrary slot results undergo
+  truth conversion without a NotImplemented fallback. Iterator/legacy indexed
+  fallback compares member against needle with identity first and stops at the
+  first match. No length hints or implicit closing are requested.
+- Verified CPython's containment-specific acquisition rule: TypeErrors from
+  obtaining the iterator are rewritten to the container/iterable diagnostic;
+  next/equality/truth/contains failures propagate unchanged. Seven tests first
+  exposed the missing kernel. All 4,840 tests in 426 files pass. A 90-case CPython
+  audit matches results, errors and callback traces across slot, iterator,
+  indexed and failure paths. Typecheck, scoped lint and selected workspace build
+  pass. Runtime expression/frame containment wiring and broader object/SDK/
+  safe-fs integration remain unfinished.
 - Next:
   remaining scope/compiler audits, interpreter runtime,
   resource controls, runtime modules, and safe-fs integration. Parsing and static

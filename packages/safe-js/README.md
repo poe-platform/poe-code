@@ -665,6 +665,9 @@ retain the method's originating Object prototype, including exhausted results
 and borrowed SDK calls. Yielded values are not re-prototyped.
 Lazy iterator helpers preserve the called next/return method's Object
 prototype through yielding, early return, exhaustion and public replay.
+Following the ECMAScript 2027 draft, `take` and `drop` reject finite limits
+above `Number.MAX_SAFE_INTEGER` and close the input before reading `next`.
+Positive `Infinity` remains accepted; fractional limits are truncated.
 `Iterator.concat(...inputs)` captures each input's iterator method immediately,
 then opens and consumes inputs sequentially on demand. Early return closes
 only the active input. Unopened inputs and active cursors participate in data

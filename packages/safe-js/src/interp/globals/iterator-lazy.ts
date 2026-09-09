@@ -117,6 +117,7 @@ export function installLazyIteratorHelpers(common: SandboxObject,budget: Budget,
           if (method === "take" || method === "drop") {
             const number=await sandboxNumber(argument,budget,context);
             if (Number.isNaN(number)) throw new RangeError("Iterator limit must not be NaN.");
+            if (Number.isFinite(number) && number>Number.MAX_SAFE_INTEGER) throw new RangeError("Iterator limit must not exceed the maximum safe integer.");
             remaining=Math.trunc(number);
             if (remaining<0) throw new RangeError("Iterator limit must not be negative.");
           } else if (!isSandboxClosure(argument)) throw new TypeError("Iterator callback must be callable.");

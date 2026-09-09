@@ -587,6 +587,20 @@ extension, integration, or validation requirement is missing or unverified.
   Missing-nonlocal resolution, closure propagation,
   class-scope assignment-expression restrictions, public validation orchestration,
   and runtime execution remain pending.
+- Added lexical binding resolution with local/global/free classifications, owner
+  scopes, captured-cell sets, and closure forwarding through intervening scopes.
+  Nonlocal declarations resolve against complete enclosing bindings, including
+  later definitions, while excluding modules/class locals and respecting function
+  global barriers. Class global declarations do not block method closures.
+  Comprehension outward assignments resolve to their enclosing binding and are
+  rejected in class bodies. Declaration validation runs before resolution.
+- Resolution validation: the suite initially failed on the missing resolver; all
+  1,114 package tests pass. A 160-case CPython symbol-table comparison matched
+  nonlocal availability, function/class global barriers, and binding classifications.
+  Scoped lint, source typecheck, and the selected workspace build passed.
+  Private-name mangling, implicit __class__/super cells,
+  remaining scope/compiler details, public validation orchestration, and runtime
+  closure execution remain pending.
 - Next:
   compound statements, type aliases, and enclosing-scope validation
   normalization, the complete grammar/parser and evaluator, then runtime modules

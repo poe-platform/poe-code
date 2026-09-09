@@ -1,5 +1,6 @@
 import { bindOtelSpan, getBoundOtelSpan } from "../observability/otel.js";
 import { scopeDataRoots } from "./scope-data-roots.js";
+import { guestProxyStates } from "./guest-proxy.js";
 import { hostFunctionMetadata } from "./host-function-metadata.js";
 import { NativeSuppressedError } from "../error/native-suppressed-error.js";
 import { isSandboxModuleNamespace } from "./module-namespace.js";
@@ -730,6 +731,12 @@ export function measureSandboxData(
     seen.add(value);
 
     usage += 1;
+    const proxyState = guestProxyStates.get(value);
+    if (proxyState !== undefined) {
+      if (proxyState.target !== null) visit(proxyState.target, depth + 1);
+      if (proxyState.handler !== null) visit(proxyState.handler, depth + 1);
+      return;
+    }
     if (dynamicSourceRecords.has(value)) {
       const source = value as DynamicSource;
       usage += source.body.length + source.nodes.size + (source.kind === "eval"

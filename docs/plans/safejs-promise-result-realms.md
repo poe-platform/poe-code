@@ -83,3 +83,27 @@ body return of a thenable (three), return through a yielding finally block
 (four), and caught throw (four). Each compares result prototype identity and
 value/done contents. This is bounded follow-up evidence, not proof of all
 generator behavior.
+
+## Error-constructor lifetime follow-up
+
+Eight additional native/SDK probes compare an error created inside `run` with
+one created later by an exported closure. Error, EvalError, RangeError,
+ReferenceError, SyntaxError, TypeError, URIError and AggregateError all preserve
+their native prototype in the control and in the initial SafeJS value, but
+lose it in the later SafeJS value. Native enumerable own keys remain empty;
+the later SafeJS values enumerate name/message/stack, plus errors for
+AggregateError. A SafeJS-only SuppressedError probe also switches to enumerable
+name/message/stack/error/suppressed fields; do not count that as a Node 22
+native comparison.
+
+`createErrorConstructor` selects its native or legacy implementation based on
+whether `errorPrototypes.has(budget)` remains true. Cleanup deletes that map,
+so a live exported constructor changes behavior after the run ends. Retaining
+the weak-budget lookup must not retain accounting roots released by cleanup;
+add explicit cleanup and legacy-prototype-disabled controls.
+
+Separately, the errors array of an AggregateError constructed inside `run`
+fails the originating Array-prototype comparison from a foreign getter.
+`createNativeError` builds that array without a prototype link. Fix its fresh
+array allocation separately from preserving the Error constructor lookup,
+and keep error-element identity and custom prototypes unchanged.

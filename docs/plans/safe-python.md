@@ -1612,6 +1612,23 @@ extension, integration, or validation requirement is missing or unverified.
   previous bindings. Scoped lint, source typecheck and selected build passed.
   Concrete callable objects, invocation frames, suspension and complete temporary
   heap accounting remain pending; this does not establish a working interpreter.
+- Added concrete lexical frame storage driven by resolved scopes: fresh local
+  bindings and owned cells per activation, shared nonlocal cells, transitive
+  closure forwarding, owner validation and live global/builtin dictionary reads.
+  Deletion empties shared cells, so siblings observe deletion and later rebinding.
+  Missing locals raise UnboundLocalError; missing free/global names raise NameError
+  with distinct diagnostics. Null/undefined guest payloads remain valid bindings.
+  Source identifiers are mangled with their lexical class context. Module/class
+  namespaces are explicitly rejected because they require different lookup rules.
+- Lexical-frame validation: missing-module red suite preceded implementation.
+  All 2,079 tests in 104 files pass, including 13 new cases for analyzed closures,
+  sibling and invocation isolation, comprehension/lambda captures, mangling,
+  missing/wrong-owner cells and budgets. CPython matched 7,500 mixed reads, writes
+  and deletions over 300 independent local/nonlocal/global activations, including
+  exact missing-name diagnostics. Scoped lint, source typecheck and selected
+  workspace build passed. Guest frame objects, class/module namespaces, dynamic
+  locals/exec behavior, invocation integration and full heap accounting remain
+  pending; full Python execution is not established by these storage checks.
 - Next:
   remaining scope/compiler audits, interpreter runtime,
   resource controls, runtime modules, and safe-fs integration. Parsing and static

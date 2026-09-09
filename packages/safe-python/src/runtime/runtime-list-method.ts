@@ -7,7 +7,7 @@ import { runtimeSearchBound } from "./runtime-search-bound.js";
 
 /** Exact list capabilities backed by owned, metered storage. Guest index slots,
  * iterable length hints, descriptors and finalizers belong to the object layer. */
-export function createRuntimeListMethod(receiver: ListValue, name: "append" | "extend" | "insert" | "pop" | "clear" | "reverse" | "copy" | "count" | "remove" | "index", values: RuntimeValues, meter: ExecutionMeter): BuiltinFunctionValue {
+export function createRuntimeListMethod(receiver: ListValue, name: "append" | "extend" | "insert" | "pop" | "clear" | "reverse" | "copy" | "count" | "remove" | "index" | "__reversed__", values: RuntimeValues, meter: ExecutionMeter): BuiltinFunctionValue {
   meter.checkpoint(1, 64);
   return values.builtinFunction({
     name,
@@ -40,8 +40,9 @@ export function createRuntimeListMethod(receiver: ListValue, name: "append" | "e
         receiver.items.insert(index, positional[1]);
         return values.none;
       }
-      if (name === "clear" || name === "reverse" || name === "copy") {
+      if (name === "clear" || name === "reverse" || name === "copy" || name === "__reversed__") {
         if (positional.length !== 0) throw new PythonRuntimeError("TypeError", `list.${name}() takes no arguments (${positional.length} given)`);
+        if (name === "__reversed__") return values.iterator(receiver.items.reversed());
         if (name === "copy") return values.list(receiver.items.slice());
         if (name === "clear") receiver.items.clear();
         else receiver.items.reverse();

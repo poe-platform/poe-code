@@ -1,6 +1,6 @@
 import { ConstantIterator } from "./constant-iterator.js";
 import type { ExecutionMeter } from "./execution-budget.js";
-import { RangeIterator } from "./range-iterator.js";
+import { createRuntimeRangeIterator } from "./runtime-range-iterator.js";
 import type { RuntimeValue } from "./runtime-values.js";
 import type { ConstantValues } from "./constant-values.js";
 import { PythonRuntimeError } from "./error.js";
@@ -30,17 +30,7 @@ export function runtimeIterate(value: RuntimeValue, values: ConstantValues, mete
     case "dict": case "mappingproxy":
       meter.checkpoint(1, 32);
       return (value.kind === "dict" ? value : value.value).items.iterate(key => key);
-    case "range": {
-      meter.checkpoint(1, 32);
-      const source = new RangeIterator(value.value, false, meter);
-      return {
-        next(): IteratorResult<RuntimeValue> {
-          meter.checkpoint(1, 16);
-          const item = source.next();
-          return item.done ? { done: true, value: undefined } : { done: false, value: values.integer(item.value) };
-        }
-      };
-    }
+    case "range": return createRuntimeRangeIterator(value.value, false, values, meter);
     default: return new ConstantIterator<RuntimeValue>(value, values, meter);
   }
 }

@@ -1,6 +1,6 @@
 import { PythonRuntimeError } from "./error.js";
 import type { ExecutionMeter } from "./execution-budget.js";
-import { RangeIterator } from "./range-iterator.js";
+import { createRuntimeRangeIterator } from "./runtime-range-iterator.js";
 import { constructReversed, type ReversedConstructionContext } from "./reversed-construction.js";
 import { iterateRuntimeDictionaryView } from "./runtime-dictionary-view.js";
 import { runtimeIndex } from "./runtime-index.js";
@@ -22,17 +22,7 @@ export function createReversedBuiltin(values: RuntimeValues, meter: ExecutionMet
         case "mappingproxy": return () => values.iterator(source.value.items.reversed(key => key));
         case "dict_keys": case "dict_values": case "dict_items":
           return () => values.iterator(iterateRuntimeDictionaryView(source, values, meter, true));
-        case "range": return () => {
-          meter.checkpoint(1, 64);
-          const cursor = new RangeIterator(source.value, true, meter);
-          return values.iterator({
-            next() {
-              meter.checkpoint(1, 16);
-              const item = cursor.next();
-              return item.done ? { done: true, value: undefined } : { done: false, value: values.integer(item.value) };
-            }
-          });
-        };
+        case "range": return () => values.iterator(createRuntimeRangeIterator(source.value, true, values, meter));
         case "tuple": case "str": case "bytes": return undefined;
         default: return context?.lookupReversed(source);
       }

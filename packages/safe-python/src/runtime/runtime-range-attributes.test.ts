@@ -14,6 +14,21 @@ function fixture(start = 2n, stop = 12n, step = 2n, maxSteps = 10000) {
 }
 
 describe("native range attributes", () => {
+  it("creates lazy reverse cursors over ranges longer than machine-sized indices", () => {
+    const { v, call } = fixture(0n, 1n << 100n, 3n, 100), iterator = call("__reversed__", []);
+    if (iterator.kind !== "iterator") throw new Error("expected iterator");
+    const last = ((1n << 100n) - 1n) / 3n * 3n;
+    expect(iterator.value.next().value).toEqual(v.integer(last));
+    expect(iterator.value.next().value).toEqual(v.integer(last - 3n));
+  });
+  it("validates reverse-method arguments and exhausts empty ranges", () => {
+    const { v, call, keywords } = fixture(0n, 0n), iterator = call("__reversed__", []);
+    if (iterator.kind !== "iterator") throw new Error("expected iterator");
+    expect(iterator.value.next().done).toBe(true); expect(iterator.value.next().done).toBe(true);
+    expect(() => call("__reversed__", [v.true])).toThrow("range.__reversed__() takes no arguments (1 given)");
+    keywords.items.set(v.string("x"), v.true);
+    expect(() => call("__reversed__", [])).toThrow("range.__reversed__() takes no keyword arguments");
+  });
   it("reads exact start, stop and step even for empty descending ranges", () => {
     const { v, get } = fixture(2n, 12n, -3n);
     expect(get("start")).toEqual(v.integer(2)); expect(get("stop")).toEqual(v.integer(12)); expect(get("step")).toEqual(v.integer(-3));

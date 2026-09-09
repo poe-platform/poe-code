@@ -17,6 +17,21 @@ function fixture(meter: ExecutionMeter = new ExecutionBudget({ maxSteps: 10000, 
 }
 
 describe("native list methods", () => {
+  it("creates independent live reverse iterators retaining member identity", () => {
+    const { v, list, call } = fixture(), first = call("__reversed__"), second = call("__reversed__");
+    if (first.kind !== "iterator" || second.kind !== "iterator") throw new Error("expected iterators");
+    expect(first === second).toBe(false);
+    list.items.set(2n, v.true);
+    expect(first.value.next().value).toBe(v.true); expect(second.value.next().value).toBe(v.true);
+    list.items.clear(); expect(first.value.next().done).toBe(true);
+    list.items.append(v.false); expect(first.value.next().done).toBe(true);
+  });
+  it("validates reverse-method arguments before constructing a cursor", () => {
+    const { v, call, keywords } = fixture();
+    expect(() => call("__reversed__", [v.true])).toThrow("list.__reversed__() takes no arguments (1 given)");
+    keywords.items.set(v.string("x"), v.true);
+    expect(() => call("__reversed__")).toThrow("list.__reversed__() takes no keyword arguments");
+  });
   it.each([[0, 3, 0], [1, 3, 2], [-2, 3, 2], [0, -1, 0]] as const)("finds the first index within %s:%s", (start, stop, expected) => {
     const { v, call } = fixture();
     expect(call("index", [v.true, v.integer(start), v.integer(stop)])).toEqual(v.integer(expected));

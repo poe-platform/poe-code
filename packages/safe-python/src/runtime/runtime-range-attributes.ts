@@ -3,6 +3,7 @@ import type { ExecutionMeter } from "./execution-budget.js";
 import { rangeIndexOf } from "./integer-sequence.js";
 import { runtimeComparison } from "./runtime-comparison.js";
 import { runtimeIterate } from "./runtime-iteration.js";
+import { createRuntimeRangeIterator } from "./runtime-range-iterator.js";
 import type { RangeValue, RuntimeValue, RuntimeValues } from "./runtime-values.js";
 
 /** Exact range members. Integer/bool searches use arithmetic regardless of
@@ -10,13 +11,17 @@ import type { RangeValue, RuntimeValue, RuntimeValues } from "./runtime-values.j
 export function readRuntimeRangeAttribute(receiver: RangeValue, name: string, values: RuntimeValues, meter: ExecutionMeter): RuntimeValue | undefined {
   meter.checkpoint();
   if (name === "start" || name === "stop" || name === "step") return values.integer(receiver.value[name]);
-  if (name !== "count" && name !== "index") return undefined;
+  if (name !== "count" && name !== "index" && name !== "__reversed__") return undefined;
   meter.checkpoint(1, 64);
   return values.builtinFunction({
     name,
     invoke(positional, keywords, meter) {
       meter.checkpoint();
       if (keywords.items.size !== 0) throw new PythonRuntimeError("TypeError", `range.${name}() takes no keyword arguments`);
+      if (name === "__reversed__") {
+        if (positional.length !== 0) throw new PythonRuntimeError("TypeError", `range.__reversed__() takes no arguments (${positional.length} given)`);
+        return values.iterator(createRuntimeRangeIterator(receiver.value, true, values, meter));
+      }
       if (positional.length !== 1) throw new PythonRuntimeError("TypeError", `range.${name}() takes exactly one argument (${positional.length} given)`);
       const value = positional[0];
       if (value.kind === "int" || value.kind === "bool") {

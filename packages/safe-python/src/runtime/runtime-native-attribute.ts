@@ -28,7 +28,7 @@ export function runtimeNativeAttribute(receiver: RuntimeValue, name: string, val
   if (receiver.kind === "list") {
     if (name === "sort") return createRuntimeListSortMethod(receiver, values, meter, beginCall);
     switch (name) {
-      case "append": case "extend": case "insert": case "pop": case "clear": case "reverse": case "copy": case "count": case "remove": case "index":
+      case "append": case "extend": case "insert": case "pop": case "clear": case "reverse": case "copy": case "count": case "remove": case "index": case "__reversed__":
         return createRuntimeListMethod(receiver, name, values, meter);
     }
   }

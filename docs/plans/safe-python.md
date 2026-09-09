@@ -3946,6 +3946,22 @@ extension, integration, or validation requirement is missing or unverified.
   limit. Reverse-method binding, native member-object identity, descriptors,
   guest equality slots, remaining builtins, suspension, complete accounting and
   SDK/safe-fs integration remain unfinished.
+- Connected list/range __reversed__ methods to native lookup with zero-argument
+  validation. List cursors retain live slots and capture their initial reverse
+  position; exhausted cursors do not resume after growth. Range cursors remain
+  lazy over arbitrary-precision lengths. Forward range traversal, reversed()
+  and direct range.__reversed__ now share one metered guest-integer adapter.
+- Reverse-binding verification began with four failing tests. A test identity
+  assertion initially consumed live cursors through Vitest's diagnostic deep
+  comparison; inspecting the matcher confirmed this, and a boolean identity
+  assertion preserves the cursors. Direct reverse-method and reversed-builtin
+  CPython audits each pass 1,800 cases / 21,600 next outcomes; the forward
+  range/list regression passes 1,000 cases / 10,000 mutation-sensitive results.
+  All 3,734 tests in 265 files pass, with scoped lint, source typecheck and selected workspace
+  build; the range cursor remains constant-space even beyond machine-sized lengths.
+  Native iterator types/introspection, pickle/state restoration, range member
+  identity, full resource accounting, remaining builtins and SDK/safe-fs remain
+  pending.
 - Next:
   remaining scope/compiler audits, interpreter runtime,
   resource controls, runtime modules, and safe-fs integration. Parsing and static

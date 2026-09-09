@@ -1,15 +1,17 @@
 import type { Budget } from "../budget.js";
+import { createSandboxBox } from "../boxed.js";
 import { sandboxGetProperty } from "../guest-proxy-get.js";
 import { invokeBuiltinClosure } from "../builtin-call.js";
 import { createDataCheckpoint } from "../data-checkpoint.js";
 import { ordinaryHasInstance } from "../instanceof.js";
 import { registerBuiltinIdentities, resolveIntrinsicIdentity } from "../intrinsics.js";
 import { iteratorWrapperStates } from "../iterator-wrapper.js";
-import { createIntrinsicObject, materializeFunctionProperties, registerIntrinsicFunction, registerIntrinsicObject, setSandboxPrototype } from "../object-model.js";
+import { createIntrinsicObject, getBoxedPrototype, materializeFunctionProperties, registerIntrinsicFunction, registerIntrinsicObject, setSandboxPrototype } from "../object-model.js";
 import { retainValues } from "../resources.js";
 import { createSandboxClosure, isSandboxClosure, type SandboxCallContext, type SandboxClosure, type SandboxObject, type SandboxValue } from "../values.js";
 
 export function installIteratorFrom(constructor: SandboxClosure, budget: Budget): void {
+  const stringPrototype = getBoxedPrototype("", budget);
   const prototype: SandboxObject = createIntrinsicObject();
   setSandboxPrototype(prototype, resolveIntrinsicIdentity(budget, '["%IteratorPrototype%"]'));
   for (const name of ["next", "return"] as const) {
@@ -57,7 +59,12 @@ export function installIteratorFrom(constructor: SandboxClosure, budget: Budget)
   function callContext(context?: SandboxCallContext): SandboxCallContext {
     const caller: SandboxCallContext = {
       ...context, stack: context?.stack ?? [], thisValue: context?.thisValue,
-      getProperty: context?.getProperty ?? ((value,key)=>sandboxGetProperty(value,key,value,budget,bridge))
+      getProperty: context?.getProperty ?? ((value,key)=>{
+        if (typeof value !== "string") return sandboxGetProperty(value,key,value,budget,bridge);
+        const box = createSandboxBox(value);
+        setSandboxPrototype(box, stringPrototype ?? null, budget);
+        return sandboxGetProperty(box,key,value,budget,bridge);
+      })
     };
     const bridge: SandboxCallContext = {
       ...caller,

@@ -2,6 +2,24 @@
 
 ## Latest completed run
 
+Atomics candidate `098e503fd`, session 5896: exit 1 after 733.32 seconds.
+24,864 tests passed, 4 failed, 37 skipped; 971 files passed, 3 failed,
+1 skipped (975 total). Two failures are the unresolved host-Promise property
+policy. Two legacy EA checkpoint comparisons explicitly enumerate added globals
+but omit Atomics. Their exact binding-list mismatch is reproduced by the gate;
+add Atomics to those declarations without changing the historical captures or
+weakening graph, alias, metadata or hash comparisons. D3 deadline cases passed.
+
+The original 1,305 inputs were verified unchanged after completion, SHA-256
+6a473f2b78c9f41a890dbabc43a7aa6c8b28b77747c58ec3e73915e0894d2893.
+The six new shared-buffer modules/tests were not part of the discovered inputs.
+This run includes the pre-existing uncommitted work and is not all green.
+After adding only Atomics to the two explicit intrinsic-addition lists, both
+affected files passed: 44 tests passed and one skipped (session 20527). Legacy
+captures and the graph comparator were unchanged.
+
+## Previous completed run
+
 Runtime candidate `291ce5fca`, session 21369: exit 1 after 544.03 seconds.
 24,819 tests passed, 2 failed, 37 skipped; 971 files passed, 1 failed,
 1 skipped (973 total). Only the two host-Promise own-property policy tests

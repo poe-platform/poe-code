@@ -5059,6 +5059,20 @@ extension, integration, or validation requirement is missing or unverified.
   workspace build pass. Sign handling, field padding, default dispatch and binary
   percent integration remain unfinished. Full guest objects, suspended execution,
   complete accounting and SDK/safe-fs integration remain outstanding.
+- Added floating percent fields for text and bytes, with shared sign and width
+  handling over exact magnitude rendering. Signs precede zero padding; left
+  alignment overrides zero padding. Negative zero and negative rounded-to-zero
+  values retain signs, NaN sign bits are ignored, and nonfinite magnitudes use
+  percent formatting's zero padding. Storage classes adopt one final correctly
+  sized byte/code-point buffer without a second copy.
+- Eight tests first failed on missing storage entrypoints. All 4,433 tests in
+  354 files pass. CPython matches 13,840 assembled text/bytes floating fields
+  through runtime operand binding and conversion, covering all flag combinations,
+  random binary64 values, widths, precisions, negative zero and signed NaNs.
+  Source typecheck, scoped lint and selected workspace build pass. Default field
+  dispatch, representation protocols, guest identity wrapping and binary percent
+  integration remain unfinished. Full guest objects, suspended execution,
+  complete accounting and SDK/safe-fs integration remain outstanding.
 - Next:
   remaining scope/compiler audits, interpreter runtime,
   resource controls, runtime modules, and safe-fs integration. Parsing and static

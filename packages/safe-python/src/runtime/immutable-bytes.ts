@@ -5,6 +5,7 @@ import { searchSubstring, substringMatches, type SearchMode } from "./substring-
 import { isAsciiWhitespace } from "./ascii-whitespace.js";
 import type { CodePointString } from "./code-point-string.js";
 import { renderIntegerPercentBuffer, type IntegerPercentField } from "./integer-percent-field.js";
+import { renderFloatPercentBuffer, type FloatPercentField } from "./float-percent-field.js";
 
 export type BytesCaseTransformation = "upper" | "lower" | "title" | "capitalize" | "swapcase";
 
@@ -39,6 +40,12 @@ export class ImmutableBytes implements Iterable<number> {
    * code-point buffer or second copy. Numeric output is entirely ASCII bytes. */
   static fromIntegerPercentField(value: bigint, field: IntegerPercentField, meter: ExecutionMeter, maxDecimalDigits?: number): ImmutableBytes {
     const bytes = renderIntegerPercentBuffer(value, field, Uint8Array, meter, maxDecimalDigits);
+    return new ImmutableBytes(bytes);
+  }
+
+  /** Adopt the floating renderer's byte buffer with no code-point intermediate. */
+  static fromFloatPercentField(value: number, field: FloatPercentField, meter: ExecutionMeter): ImmutableBytes {
+    const bytes = renderFloatPercentBuffer(value, field, Uint8Array, meter);
     return new ImmutableBytes(bytes);
   }
 

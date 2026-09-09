@@ -5453,6 +5453,21 @@ extension, integration, or validation requirement is missing or unverified.
   Native bytes percent wrapper/operator wiring remains pending. CPython probes
   confirm even unchanged multi-byte literal formats and sole b/s fields produce
   fresh guest bytes objects; do not reuse text formatting's identity policy.
+- Connected bytes percent formatting to native runtime binary dispatch before
+  operand-family guards. The complete wrapper validates binding/surplus before
+  constructing exact bytes output, preserving small-bytes canonicalization but
+  not multi-byte source/operand identity. Native conversion contexts now expose
+  explicit guest bytes-subclass, bytearray-snapshot, __bytes__ and buffer hooks.
+  Existing expression and in-place execution routes use the same operation.
+- Four native integration tests first failed on absent operator support; two
+  further tests verify guest capabilities and post-construction cancellation.
+  Updated the old text-modulo test's deliberately unsupported bytes expectation
+  to its now-supported canonical bytes result. Native operator dispatch matches
+  CPython for 5,018 mixed formats; 2,000 compiled programs additionally verify
+  bytes mapping keys, mixed native representations and in-place percent.
+  All 4,598 tests in 382 files pass. Typecheck, scoped production lint and selected workspace build pass.
+  Raising __bytes__ descriptor parity, guest object/buffer adapters and the wider
+  interpreter/SDK/safe-fs work remain incomplete.
 - Next:
   remaining scope/compiler audits, interpreter runtime,
   resource controls, runtime modules, and safe-fs integration. Parsing and static

@@ -48,7 +48,7 @@ it("keeps unfinished representations explicit and numeric modulo unchanged", () 
   expect(text(format("%s", v.list([])))).toBe("[]");
   expect(() => format("%s", v.cell({}))).toThrow(UnsupportedExpressionError);
   expect(runtimeBinary("%", v.integer(-7), v.integer(3), v, meter)).toEqual(v.integer(2));
-  expect(runtimeBinary("%", v.bytes(Uint8Array.of(37, 100)), v.integer(1), v, meter)).toBe(v.notImplemented);
+  expect(runtimeBinary("%", v.bytes(Uint8Array.of(37, 100)), v.integer(1), v, meter)).toBe(v.bytes(Uint8Array.of(49)));
 });
 it("checks execution cancellation before entering formatting", () => {
   const { v } = fixture(), controller = new AbortController(); controller.abort();

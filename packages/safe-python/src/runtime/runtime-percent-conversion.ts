@@ -4,6 +4,7 @@ import type { PercentCharacterContext } from "./percent-character-conversion.js"
 import type { PercentFloatContext } from "./percent-float-conversion.js";
 import type { CodePointString } from "./code-point-string.js";
 import type { RuntimeValue } from "./runtime-values.js";
+import type { PercentBytesContext } from "./percent-bytes-conversion.js";
 
 export interface RuntimePercentConversionHooks {
   /** Pure guest integer-subclass payload inspection, never conversion. */
@@ -22,6 +23,10 @@ export interface RuntimePercentConversionHooks {
   string?(value: RuntimeValue): CodePointString | undefined;
   /** Guest bytes/bytearray storage, excluding arbitrary buffer protocols. */
   bytes?: PercentCharacterContext<RuntimeValue>["bytes"];
+  byteString?: PercentBytesContext<RuntimeValue>["byteString"];
+  byteArray?: PercentBytesContext<RuntimeValue>["byteArray"];
+  lookupBytes?: PercentBytesContext<RuntimeValue>["lookupBytes"];
+  bufferBytes?: PercentBytesContext<RuntimeValue>["bufferBytes"];
   isTypeError?(error: unknown): boolean;
   /** Required when supplying guest hooks: apply the execution's warning policy. */
   warn(category: "DeprecationWarning", message: string): void;
@@ -29,8 +34,8 @@ export interface RuntimePercentConversionHooks {
 
 /** Concrete native payloads plus explicit guest conversion capabilities. No
  * attribute probing, string parsing or host object coercion is performed. */
-export function createRuntimePercentConversionContext(meter: ExecutionMeter, hooks?: RuntimePercentConversionHooks): PercentIntegerContext<RuntimeValue> & PercentCharacterContext<RuntimeValue> & PercentFloatContext<RuntimeValue> {
-  meter.checkpoint(1, 512);
+export function createRuntimePercentConversionContext(meter: ExecutionMeter, hooks?: RuntimePercentConversionHooks): PercentIntegerContext<RuntimeValue> & PercentCharacterContext<RuntimeValue> & PercentFloatContext<RuntimeValue> & PercentBytesContext<RuntimeValue> {
+  meter.checkpoint(1, 768);
   return {
     integer(value) {
       meter.checkpoint();
@@ -46,6 +51,10 @@ export function createRuntimePercentConversionContext(meter: ExecutionMeter, hoo
     isPythonException(error) { meter.checkpoint(); return hooks?.isPythonException?.(error) ?? false; },
     string(value) { meter.checkpoint(); return value.kind === "str" ? value.value : hooks?.string?.(value); },
     bytes(value) { meter.checkpoint(); return value.kind === "bytes" ? value : hooks?.bytes?.(value); },
+    byteString(value) { meter.checkpoint(); return value.kind === "bytes" ? value.value : hooks?.byteString?.(value); },
+    byteArray(value) { meter.checkpoint(); return hooks?.byteArray?.(value); },
+    lookupBytes(value) { meter.checkpoint(); return hooks?.lookupBytes?.(value); },
+    bufferBytes(value) { meter.checkpoint(); return hooks?.bufferBytes?.(value); },
     lookupInt(value) { meter.checkpoint(); return hooks?.lookupInt?.(value); },
     lookupIndex(value) { meter.checkpoint(); return hooks?.lookupIndex?.(value); },
     typeName(value) {

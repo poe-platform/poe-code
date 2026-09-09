@@ -4314,6 +4314,20 @@ extension, integration, or validation requirement is missing or unverified.
   length hints, remaining bytes/text/numeric methods and native builtins,
   string/integer interning, suspension, full accounting and SDK/safe-fs remain
   unfinished.
+- Connected bytes.strip/lstrip/rstrip with the six ASCII whitespace bytes or
+  a custom byte set indexed once in a fixed 256-byte table. Scans visit only
+  relevant boundaries before one final slice; empty custom sets and unchanged
+  results retain the receiver, including fresh empty/one-byte objects. Changed
+  small results use canonical byte construction. Shared ASCII whitespace also
+  backs bytes.isspace without changing Unicode string whitespace behavior.
+- Fourteen native/storage tests first failed for missing methods. All 4,066
+  tests in 302 files pass, including bounded custom-set memory, edge-scan work
+  limits and unchanged-interior shortcuts. A 6,084-call compiled CPython audit
+  matches byte values, identity and diagnostics. The 1,818-call string-strip
+  regression, exhaustive 524,288-call bytes-classification regression, scoped
+  lint, source typecheck and selected workspace build pass. Buffer protocols,
+  remaining bytes/text/numeric methods and native builtins, string/integer
+  interning, suspension, full accounting and SDK/safe-fs remain unfinished.
 - Next:
   remaining scope/compiler audits, interpreter runtime,
   resource controls, runtime modules, and safe-fs integration. Parsing and static

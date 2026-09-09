@@ -1,4 +1,5 @@
 import { PythonRuntimeError } from "./error.js";
+import { isAsciiWhitespace } from "./ascii-whitespace.js";
 import type { ExecutionMeter } from "./execution-budget.js";
 import type { BuiltinFunctionValue, RuntimeValue, RuntimeValues } from "./runtime-values.js";
 
@@ -22,7 +23,7 @@ export function createRuntimeBytesClassificationMethod(receiver: Extract<Runtime
         let valid: boolean;
         switch (name) {
           case "isascii": valid = byte < 128; break;
-          case "isspace": valid = byte === 32 || byte >= 9 && byte <= 13; break;
+          case "isspace": valid = isAsciiWhitespace(byte); break;
           case "isalpha": valid = upper || lower; break;
           case "isalnum": valid = upper || lower || digit; break;
           case "isdigit": valid = digit; break;

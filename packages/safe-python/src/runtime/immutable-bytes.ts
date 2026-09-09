@@ -2,6 +2,7 @@ import { exhaustAllocation, type ExecutionMeter } from "./execution-budget.js";
 import { PythonRuntimeError } from "./error.js";
 import { normalizeSlice } from "./integer-sequence.js";
 import { searchSubstring, type SearchMode } from "./substring-search.js";
+import { isAsciiWhitespace } from "./ascii-whitespace.js";
 
 export type BytesCaseTransformation = "upper" | "lower" | "title" | "capitalize" | "swapcase";
 
@@ -99,6 +100,30 @@ export class ImmutableBytes implements Iterable<number> {
     for (let i = 0; i < this.length; i++) { meter.checkpoint(); bytes[i] = this.#bytes[i]; }
     for (let i = 0; i < other.length; i++) { meter.checkpoint(); bytes[this.length + i] = other.#bytes[i]; }
     return new ImmutableBytes(bytes);
+  }
+
+  /** Index custom byte sets once, scan only the edges, and copy one final slice. */
+  strip(side: "strip" | "lstrip" | "rstrip", chars: ImmutableBytes | null, meter: ExecutionMeter): ImmutableBytes {
+    meter.checkpoint();
+    if (this.length === 0 || chars?.length === 0) return this;
+    let members: Uint8Array | undefined;
+    if (chars !== null) {
+      meter.checkpoint(1, 256); members = new Uint8Array(256);
+      for (const byte of chars.#bytes) { meter.checkpoint(); members[byte] = 1; }
+    }
+    let start = 0, stop = this.length;
+    if (side !== "rstrip") while (start < stop) {
+      meter.checkpoint(); const byte = this.#bytes[start];
+      if (members === undefined ? !isAsciiWhitespace(byte) : members[byte] === 0) break;
+      start++;
+    }
+    if (side !== "lstrip") while (stop > start) {
+      meter.checkpoint(); const byte = this.#bytes[stop - 1];
+      if (members === undefined ? !isAsciiWhitespace(byte) : members[byte] === 0) break;
+      stop--;
+    }
+    if (start === 0 && stop === this.length) return this;
+    return this.slice(BigInt(start), BigInt(stop), null, meter);
   }
 
   /** Size all validated parts before allocating a single owned output buffer. */

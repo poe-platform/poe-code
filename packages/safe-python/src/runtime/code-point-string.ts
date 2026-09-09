@@ -10,10 +10,14 @@ export class CodePointString implements Iterable<number> {
   readonly #points: Uint32Array;
   readonly length: number;
 
-  constructor(points: Uint32Array) {
-    this.#points = new Uint32Array(points);
-    for (const point of this.#points) {
+  constructor(points: Uint32Array, meter?: ExecutionMeter) {
+    meter?.checkpoint(1, points.byteLength);
+    this.#points = new Uint32Array(points.length);
+    for (let index = 0; index < this.#points.length; index++) {
+      meter?.checkpoint();
+      const point = points[index]!;
       if (point > 0x10ffff) throw new PythonRuntimeError("ValueError", "string code point outside Unicode range");
+      this.#points[index] = point;
     }
     this.length = this.#points.length;
     Object.freeze(this);
@@ -23,7 +27,8 @@ export class CodePointString implements Iterable<number> {
     for (let index = 0; index < this.length; index++) yield this.#points[index]!;
   }
 
-  codePointAt(index: bigint): number {
+  codePointAt(index: bigint, meter?: ExecutionMeter): number {
+    meter?.checkpoint();
     // String indexing uses the guest's signed 64-bit index model, unlike range.
     if (BigInt.asIntN(64, index) !== index) throw new PythonRuntimeError("IndexError", "cannot fit 'int' into an index-sized integer");
     if (index < 0n) index += BigInt(this.length);
@@ -31,19 +36,24 @@ export class CodePointString implements Iterable<number> {
     return this.#points[Number(index)]!;
   }
 
-  slice(start: bigint | null = null, stop: bigint | null = null, step: bigint | null = null): CodePointString {
+  slice(start: bigint | null = null, stop: bigint | null = null, step: bigint | null = null, meter?: ExecutionMeter): CodePointString {
+    meter?.checkpoint();
     const indices = normalizeSlice(BigInt(this.length), start, stop, step);
     if (indices.step === 1n) {
       if (indices.start === 0n && indices.stop === BigInt(this.length)) return this;
-      return new CodePointString(this.#points.subarray(Number(indices.start), Number(indices.stop)));
+      return new CodePointString(this.#points.subarray(Number(indices.start), Number(indices.stop)), meter);
     }
     const count = Number(indices.length);
+    meter?.checkpoint(0, count * Uint32Array.BYTES_PER_ELEMENT);
     const points = new Uint32Array(count);
     // With at least two elements, the stride is bounded by the stored length.
     // Otherwise an arbitrary-size step need never be converted to a JS number.
     const stride = count > 1 ? Number(indices.step) : 0;
-    for (let offset = 0, index = Number(indices.start); offset < count; offset++, index += stride) points[offset] = this.#points[index]!;
-    return new CodePointString(points);
+    for (let offset = 0, index = Number(indices.start); offset < count; offset++, index += stride) {
+      meter?.checkpoint();
+      points[offset] = this.#points[index]!;
+    }
+    return new CodePointString(points, meter);
   }
 
   search(needle: CodePointString, mode: SearchMode, start = 0n, stop: bigint | null = null, meter?: ExecutionMeter): number {
@@ -61,9 +71,11 @@ export class CodePointString implements Iterable<number> {
     return searchSubstring(this.#points, needle.#points, Number(start), Number(stop), mode, meter);
   }
 
-  compare(other: CodePointString): -1 | 0 | 1 {
+  compare(other: CodePointString, meter?: ExecutionMeter): -1 | 0 | 1 {
+    meter?.checkpoint();
     const common = Math.min(this.length, other.length);
     for (let index = 0; index < common; index++) {
+      meter?.checkpoint();
       if (this.#points[index]! < other.#points[index]!) return -1;
       if (this.#points[index]! > other.#points[index]!) return 1;
     }

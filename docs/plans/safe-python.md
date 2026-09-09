@@ -798,6 +798,20 @@ extension, integration, or validation requirement is missing or unverified.
   scoped source and test lint passed. Full runtime budget enforcement,
   allocation accounting, asynchronous scheduling, and guest catch behavior remain
   pending.
+- Extended optional operation metering to code-point string construction, indexing,
+  slicing, and comparison. Construction charges storage before allocation and
+  copies/validates with per-point checkpoints. Contiguous slices charge their
+  immutable copy; strided slices charge both intermediate and final buffers.
+  Reused full slices charge entry work without allocation. Comparison and indexing
+  account work without storage charges, including empty/invalid fast paths.
+- String-meter validation: six new tests failed before implementation; all 1,430
+  package tests pass. An ad hoc sweep passed 926 step/allocation boundary cases.
+  Re-running the CPython storage comparison matched 17,472 slices, 273 indices,
+  and 1,521 comparisons after instrumentation. Scoped lint, source typecheck, and
+  selected workspace build passed. Internal iteration, numeric operations, other
+  runtime operations, and object overhead remain unmetered. These counters cover
+  explicit buffer allocations, not all host memory, and optional internal meters
+  still need mandatory wiring through the eventual interpreter execution context.
 - Next:
   remaining scope/compiler audits, interpreter runtime,
   resource controls, runtime modules, and safe-fs integration. Parsing and static

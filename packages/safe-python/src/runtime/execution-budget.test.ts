@@ -115,3 +115,70 @@ describe("budgeted substring search", () => {
     expect(checkpoints).toBe(5);
   });
 });
+
+describe("budgeted string storage operations", () => {
+  it("charges a copied buffer before constructing string storage", () => {
+    const input = new Uint32Array([65, 66, 67]);
+    const denied = new ExecutionBudget({ maxSteps: 100, maxAllocatedBytes: 11 });
+    expect(() => new CodePointString(input, denied)).toThrow(expect.objectContaining({ reason: "allocation" }));
+    expect(denied.usage).toEqual({ steps: 0, allocatedBytes: 0 });
+    const allowed = new ExecutionBudget({ maxSteps: 100, maxAllocatedBytes: 12 });
+    expect([...new CodePointString(input, allowed)]).toEqual([65, 66, 67]);
+    expect(allowed.usage).toEqual({ steps: 4, allocatedBytes: 12 });
+  });
+
+  it("stops point validation while retaining the charge for already allocated storage", () => {
+    const budget = new ExecutionBudget({ maxSteps: 2, maxAllocatedBytes: 12 });
+    expect(() => new CodePointString(new Uint32Array([65, 66, 67]), budget)).toThrow(expect.objectContaining({ reason: "steps" }));
+    expect(budget.usage).toEqual({ steps: 2, allocatedBytes: 12 });
+  });
+
+  it("charges only actual buffers for contiguous and strided slices", () => {
+    const source = new CodePointString(new Uint32Array([65, 66, 67, 68]));
+    const contiguous = new ExecutionBudget({ maxSteps: 100, maxAllocatedBytes: 8 });
+    expect([...source.slice(1n, 3n, null, contiguous)]).toEqual([66, 67]);
+    expect(contiguous.usage.allocatedBytes).toBe(8);
+    const strided = new ExecutionBudget({ maxSteps: 100, maxAllocatedBytes: 16 });
+    expect([...source.slice(null, null, 2n, strided)]).toEqual([65, 67]);
+    expect(strided.usage.allocatedBytes).toBe(16);
+    const reused = new ExecutionBudget({ maxSteps: 1, maxAllocatedBytes: 0 });
+    expect(source.slice(null, null, null, reused)).toBe(source);
+    expect(reused.usage).toEqual({ steps: 1, allocatedBytes: 0 });
+  });
+
+  it("rejects slicing before buffer allocation and during copying", () => {
+    const source = new CodePointString(new Uint32Array([65, 66, 67, 68]));
+    const allocation = new ExecutionBudget({ maxSteps: 100, maxAllocatedBytes: 0 });
+    expect(() => source.slice(null, null, -1n, allocation)).toThrow(expect.objectContaining({ reason: "allocation" }));
+    expect(allocation.usage.allocatedBytes).toBe(0);
+    const steps = new ExecutionBudget({ maxSteps: 2, maxAllocatedBytes: 100 });
+    expect(() => source.slice(null, null, -1n, steps)).toThrow(expect.objectContaining({ reason: "steps" }));
+    expect(steps.usage).toEqual({ steps: 2, allocatedBytes: 16 });
+  });
+
+  it("checks comparison and indexing without charging new storage", () => {
+    const source = new CodePointString(new Uint32Array([65, 66, 67]));
+    const allowed = new ExecutionBudget({ maxSteps: 5, maxAllocatedBytes: 0 });
+    expect(source.compare(source, allowed)).toBe(0);
+    expect(source.codePointAt(-1n, allowed)).toBe(67);
+    expect(allowed.usage).toEqual({ steps: 5, allocatedBytes: 0 });
+    const denied = new ExecutionBudget({ maxSteps: 2, maxAllocatedBytes: 0 });
+    expect(() => source.compare(source, denied)).toThrow(expect.objectContaining({ reason: "steps" }));
+  });
+
+  it("checks cancellation on empty, reused, and invalid-index fast paths", () => {
+    const source = new CodePointString(new Uint32Array());
+    const controller = new AbortController();
+    controller.abort();
+    for (const run of [
+      (meter: ExecutionBudget) => new CodePointString(new Uint32Array(), meter),
+      (meter: ExecutionBudget) => source.slice(null, null, null, meter),
+      (meter: ExecutionBudget) => source.compare(source, meter),
+      (meter: ExecutionBudget) => source.codePointAt(0n, meter)
+    ]) {
+      const budget = new ExecutionBudget({ maxSteps: 100, maxAllocatedBytes: 100, signal: controller.signal });
+      expect(() => run(budget)).toThrow(expect.objectContaining({ reason: "cancelled" }));
+      expect(budget.usage).toEqual({ steps: 0, allocatedBytes: 0 });
+    }
+  });
+});

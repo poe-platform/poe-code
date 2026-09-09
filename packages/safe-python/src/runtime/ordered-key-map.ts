@@ -197,14 +197,16 @@ export class OrderedKeyMap<Key, Value> {
    * a changed source size is reported after the current successful insertion.
    * Call keyword merges supply a rejecting duplicate handler; it receives the
    * incoming key before any overwrite and preserves earlier successful entries.
+   * An explicit replacement supplies one shared value for fromkeys-style merges.
    */
-  update(source: OrderedKeyMap<Key, Value>, rejectDuplicate?: (key: Key) => never): void {
+  update(source: OrderedKeyMap<Key, Value>, rejectDuplicate?: (key: Key) => never, replacement?: { readonly value: Value }): void {
     this.meter.checkpoint();
-    if (source === this && !rejectDuplicate) return;
+    if (source === this && !rejectDuplicate && replacement === undefined) return;
     const size = source.#entries.size;
     for (const entry of source.#entries) {
       this.meter.checkpoint();
-      const { key, value } = entry;
+      const { key } = entry;
+      const value = replacement === undefined ? entry.value : replacement.value;
       const hash = this.operations === source.operations ? entry.hash : this.operations.hash(key);
       const existing = this.#find(key, hash);
       if (existing === undefined) this.#insert(key, hash, value);

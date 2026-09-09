@@ -19,6 +19,7 @@ import { CallStack } from "./call-stack.js";
 import { readRuntimeDictionaryViewAttribute } from "./runtime-dictionary-view-attributes.js";
 import { createReversedBuiltin } from "./builtin-reversed.js";
 import { createRuntimeDictionaryMutationMethod } from "./runtime-dictionary-mutation-method.js";
+import { createDictionaryFromKeysBuiltin } from "./builtin-dictionary-fromkeys.js";
 
 function fixture() {
   const meter = new ExecutionBudget({ maxSteps: 100000, maxAllocatedBytes: 2000000 }), v = new RuntimeValues(meter);
@@ -35,6 +36,7 @@ describe("live dictionary views", () => {
     const { meter, v, keys } = fixture(), globals = new Map<string, RuntimeValue>(), unused = (): never => { throw new Error("unexpected object hook"); };
     const hooks: RuntimeProgramHooks = {
       expressions: () => ({ attribute(receiver, name) {
+        if (receiver.kind === "dict" && name === "fromkeys") return createDictionaryFromKeysBuiltin(v, keys, meter);
         if (receiver.kind === "dict" && (name === "clear" || name === "pop" || name === "popitem" || name === "setdefault" || name === "update")) {
           return createRuntimeDictionaryMutationMethod(receiver, name, v, meter);
         }
@@ -50,7 +52,7 @@ describe("live dictionary views", () => {
       statements: () => ({ setAttribute: unused, deleteAttribute: unused, executeUnhandled: unused }), callable: () => false, invoke: unused, name: unused, keywordName: unused
     };
     const code = 'd = {"x": 2}\nview = d.items()\nbefore = len(view)\nd["y"] = 3\nafter = len(view)\ntotal = 0\nfor key, value in view:\n    total += value\ncopied = d.copy()\ndel d["x"]\nremaining = len(view)\nfound = copied.get("x", 99)\nmatching = copied.keys() == {"x": 0, "y": 0}.keys()\nlive_value = view.mapping.get("y")\ndisjoint = d.keys().isdisjoint(["absent"])\nreverse_total = 0\nfor key, value in reversed(view):\n    reverse_total += value\n';
-    const mutations = 'd.update(z=5)\ndefaulted = d.setdefault("z", 99)\nremoved = d.pop("z")\nlast = d.popitem()\nd.clear()\nfinal_count = len(view)\n';
+    const mutations = 'd.update(z=5)\ndefaulted = d.setdefault("z", 99)\nremoved = d.pop("z")\nlast = d.popitem()\nd.clear()\nfinal_count = len(view)\nmade = copied.fromkeys(["new", "other", "new"], [])\nmade_count = len(made)\nshared = made["new"] is made["other"]\n';
     const program = compileProgram<RuntimeValue>(analyzeModule(code + mutations), { stripDocstring: false }, v, meter);
     executeRuntimeProgram(program, { globals, builtins: new Map([["len", createLenBuiltin(v, meter)], ["reversed", createReversedBuiltin(v, meter)]]), values: v, keys, calls: new CallStack<object>(10, meter), hooks }, meter);
     for (const [name, value] of [["before", 1], ["after", 2], ["remaining", 1], ["total", 5], ["found", 2], ["live_value", 3], ["reverse_total", 3]] as const) expect(globals.get(name)).toEqual(v.integer(value));
@@ -58,6 +60,7 @@ describe("live dictionary views", () => {
     expect(globals.get("disjoint")).toBe(v.true);
     expect(globals.get("defaulted")).toEqual(v.integer(5)); expect(globals.get("removed")).toEqual(v.integer(5));
     expect(globals.get("last")).toEqual(v.tuple([v.string("y"), v.integer(3)])); expect(globals.get("final_count")).toEqual(v.integer(0));
+    expect(globals.get("made_count")).toEqual(v.integer(2)); expect(globals.get("shared")).toBe(v.true);
   });
   it("iterates live keys, values and fresh item tuples in both directions", () => {
     const { meter, v, source, key, collect } = fixture(), payload = v.list([]), next = v.string("y");

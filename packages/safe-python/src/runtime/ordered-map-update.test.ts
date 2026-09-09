@@ -5,6 +5,13 @@ import { ExecutionBudget } from "./execution-budget.js";
 const budget = () => new ExecutionBudget({ maxSteps: 10000, maxAllocatedBytes: 100000 });
 
 describe("direct ordered-map updates", () => {
+  it("replaces all source values with an explicit shared default, including undefined", () => {
+    const operations: KeyOperations<number> = { hash: BigInt, equal: (a, b) => a === b }, meter = budget();
+    const source = new OrderedKeyMap<number, number | undefined>(operations, meter), target = new OrderedKeyMap<number, number | undefined>(operations, meter);
+    source.set(1, 2); source.set(3, 4); target.update(source, undefined, { value: undefined });
+    expect(target.snapshot()).toEqual([[1, undefined], [3, undefined]]); expect(source.snapshot()).toEqual([[1, 2], [3, 4]]);
+    source.update(source, undefined, { value: 9 }); expect(source.snapshot()).toEqual([[1, 9], [3, 9]]);
+  });
   it("overwrites existing values, retaining destination keys and insertion order", () => {
     const operations: KeyOperations<{ id: number }> = { hash: k => BigInt(k.id), equal: (a, b) => a.id === b.id };
     const meter = budget(), target = new OrderedKeyMap(operations, meter), source = new OrderedKeyMap(operations, meter);

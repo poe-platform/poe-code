@@ -3627,6 +3627,24 @@ extension, integration, or validation requirement is missing or unverified.
   descriptor discovery/introspection, dict.fromkeys, remaining native calling
   conventions, full object construction, sets, suspension, accounting and public
   SDK/safe-fs integration remain unfinished.
+- Added dictionary fromkeys construction with one shared default value, first-key
+  identity/order preservation, exact-dictionary cached-hash merging and normal
+  iteration for proxies/views/sequences. Ordered-map merging now accepts an
+  explicit replacement value (including undefined) without changing ordinary
+  update behavior. Self-source replacement is supported. An optional bound-class
+  policy performs no-argument construction before iteration and dispatches every
+  subclass setitem, including duplicates; exact dict results retain native paths.
+  Construction/next/set callbacks have post-callback resource checkpoints.
+- Tests first failed on missing construction and fixed-value merge support. All
+  3,530 tests in 245 files pass; typecheck, scoped lint and selected workspace
+  build pass. A 1,500-source CPython audit matched 3,000 exact/subclass fromkeys
+  constructions, shared-default identity, callback traces, errors and partial
+  state. Regression audits passed for dictionary mutations (1,800 / 43,200
+  operations), update/construction (2,400 each) and mapping proxies (1,200).
+  An assembled program calls fromkeys through explicit attribute dispatch.
+  Full bound-class descriptor installation, native method identity/introspection,
+  sets and their fast paths, object construction, suspension, accounting and
+  public SDK/safe-fs integration remain unfinished.
 - Next:
   remaining scope/compiler audits, interpreter runtime,
   resource controls, runtime modules, and safe-fs integration. Parsing and static

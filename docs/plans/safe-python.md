@@ -843,6 +843,23 @@ extension, integration, or validation requirement is missing or unverified.
   source typecheck, and selected workspace build passed. Incremental codecs,
   registry/custom-handler dispatch, guest bytes/exception objects, and safe-fs
   text I/O remain pending.
+- Added incremental UTF-8 decoding with pending-byte snapshots/restoration, reset,
+  mutable error policy, and final flushing. The shared internal decoder now returns
+  `{ text, consumed }` and supports non-final prefixes; its in-package callers were
+  updated. Partial surrogate candidates follow CPython's deferral behavior in all
+  modes. Decode/error/budget failures preserve the old pending state, and combined
+  input remains intact in decode diagnostics. Buffer assembly, state snapshots,
+  and pending-buffer copies are metered before allocation.
+- Incremental validation: the new suite failed on the missing module; all 1,492
+  package tests pass, including 16 incremental cases. CPython comparisons matched
+  18,216 chunk sequences (54,648 output/error/state observations). Both final and
+  non-final sweeps matched 76,293 inputs across six modes each (457,758 results per
+  sweep), including every one-/two-byte input. An ad hoc budget sweep passed 600
+  atomic-state boundary checks. Scoped lint, source typecheck, and selected
+  workspace build passed. Reference:
+  https://docs.python.org/3/library/codecs.html#incrementaldecoder-objects . Registry
+  integration, other codecs, guest codec objects, and safe-fs text streams remain
+  pending.
 - Next:
   remaining scope/compiler audits, interpreter runtime,
   resource controls, runtime modules, and safe-fs integration. Parsing and static

@@ -47,7 +47,7 @@ describe("UTF-8 encoding", () => {
 
   it("round-trips arbitrary bytes through surrogateescape", () => {
     const bytes = Uint8Array.from({ length: 256 }, (_, index) => index);
-    expect(encodeUtf8(decodeUtf8(bytes, "surrogateescape"), "surrogateescape")).toEqual(bytes);
+    expect(encodeUtf8(decodeUtf8(bytes, "surrogateescape").text, "surrogateescape")).toEqual(bytes);
   });
 
   it("returns independently owned byte buffers", () => {

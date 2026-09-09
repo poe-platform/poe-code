@@ -10,7 +10,9 @@ describe("UTF-8 decoding", () => {
     [[0xef, 0xbf, 0xbf], [0xffff]], [[0xf0, 0x90, 0x80, 0x80], [0x10000]],
     [[0xf4, 0x8f, 0xbf, 0xbf], [0x10ffff]], [[0xef, 0xbb, 0xbf, 65], [0xfeff, 65]]
   ])("decodes bytes %s to code points %s", (bytes, points) => {
-    expect([...decodeUtf8(new Uint8Array(bytes))]).toEqual(points);
+    const decoded = decodeUtf8(new Uint8Array(bytes));
+    expect([...decoded.text]).toEqual(points);
+    expect(decoded.consumed).toBe(bytes.length);
   });
 
   it.each([
@@ -35,19 +37,19 @@ describe("UTF-8 decoding", () => {
   });
 
   it("replaces one malformed prefix at a time without consuming following ASCII", () => {
-    expect([...decodeUtf8(new Uint8Array([0xe2, 0x82, 65, 0xff]), "replace")]).toEqual([0xfffd, 65, 0xfffd]);
-    expect([...decodeUtf8(new Uint8Array([0xed, 0xa0, 0x80]), "replace")]).toEqual([0xfffd, 0xfffd, 0xfffd]);
-    expect([...decodeUtf8(new Uint8Array([0xe2, 0x82]), "ignore")]).toEqual([]);
+    expect([...decodeUtf8(new Uint8Array([0xe2, 0x82, 65, 0xff]), "replace").text]).toEqual([0xfffd, 65, 0xfffd]);
+    expect([...decodeUtf8(new Uint8Array([0xed, 0xa0, 0x80]), "replace").text]).toEqual([0xfffd, 0xfffd, 0xfffd]);
+    expect([...decodeUtf8(new Uint8Array([0xe2, 0x82]), "ignore").text]).toEqual([]);
   });
 
   it("escapes each malformed byte independently", () => {
     const input = new Uint8Array([0xe2, 0x82, 65, 0xff]);
-    expect([...decodeUtf8(input, "surrogateescape")]).toEqual([0xdce2, 0xdc82, 65, 0xdcff]);
-    expect([...decodeUtf8(input, "backslashreplace")]).toEqual(Array.from("\\xe2\\x82A\\xff", char => char.codePointAt(0)!));
+    expect([...decodeUtf8(input, "surrogateescape").text]).toEqual([0xdce2, 0xdc82, 65, 0xdcff]);
+    expect([...decodeUtf8(input, "backslashreplace").text]).toEqual(Array.from("\\xe2\\x82A\\xff", char => char.codePointAt(0)!));
   });
 
   it("passes complete encoded surrogates without merging them", () => {
-    expect([...decodeUtf8(new Uint8Array([0xed, 0xa0, 0x80, 0xed, 0xb0, 0x80]), "surrogatepass")]).toEqual([0xd800, 0xdc00]);
+    expect([...decodeUtf8(new Uint8Array([0xed, 0xa0, 0x80, 0xed, 0xb0, 0x80]), "surrogatepass").text]).toEqual([0xd800, 0xdc00]);
     for (const input of [[0xed, 0xa0], [0xed, 0xa0, 65]]) {
       expect(() => decodeUtf8(new Uint8Array(input), "surrogatepass")).toThrow(expect.objectContaining({ start: 0, end: 1, reason: "invalid continuation byte" }));
     }
@@ -58,7 +60,7 @@ describe("UTF-8 decoding", () => {
     expect(() => decodeUtf8(new Uint8Array([65]), "strict", denied)).toThrow(expect.objectContaining({ reason: "allocation" }));
     expect(denied.usage.allocatedBytes).toBe(0);
     const allowed = new ExecutionBudget({ maxSteps: 100, maxAllocatedBytes: 8 });
-    expect([...decodeUtf8(new Uint8Array([65]), "strict", allowed)]).toEqual([65]);
+    expect([...decodeUtf8(new Uint8Array([65]), "strict", allowed).text]).toEqual([65]);
     expect(allowed.usage.allocatedBytes).toBe(8);
     const steps = new ExecutionBudget({ maxSteps: 1, maxAllocatedBytes: 100 });
     expect(() => decodeUtf8(new Uint8Array([65, 66]), "strict", steps)).toThrow(expect.objectContaining({ reason: "steps" }));

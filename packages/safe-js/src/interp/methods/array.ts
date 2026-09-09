@@ -504,7 +504,7 @@ async function callArrayMethodUnlocked(
             const flag = options.context?.getProperty !== undefined
               ? await options.context.getProperty(entry, Symbol.isConcatSpreadable)
               : getSandboxDataProperty(entry, Symbol.isConcatSpreadable, options.budget);
-            spread = flag === undefined ? Array.isArray(entry) : Boolean(flag);
+            spread = flag === undefined ? sandboxIsArray(entry, options.budget) : Boolean(flag);
           }
           if (!spread) {
             await defineArrayResult(result, targetIndex++, entry, options);

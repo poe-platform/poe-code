@@ -554,7 +554,8 @@ receivers, with ordered writes and tested partial failures. Their internal view
 no longer reads a guest `then` property. Species selection recognizes wrapped
 arrays, including nested Proxies and array subclasses. Proxy-valued species
 results receive element definitions through `defineProperty` traps, with failures
-stopping further writes. Wrapped-array flattening and concat identity still need
+stopping further writes. Concat spreads wrapped arrays by default and honors
+`Symbol.isConcatSpreadable` overrides. Wrapped-array flattening still needs
 integration.
 
 `Array.isArray` follows nested Proxy targets without invoking traps and rejects

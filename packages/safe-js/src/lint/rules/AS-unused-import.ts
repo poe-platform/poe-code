@@ -434,6 +434,13 @@ class ASUnusedImportScanner {
   }
 
   private visitCallExpression(node: CallExpression): void {
+    if (!node.optional && node.arguments.length > 0 &&
+        node.callee.type === "Identifier" && node.callee.name === "eval") {
+      // Dynamic source may reference any import that is visible at this call.
+      for (const binding of this.imports) {
+        if (this.resolveBinding(binding.name) === binding) binding.reads += 1;
+      }
+    }
     this.visitExpression(node.callee);
     for (const argument of node.arguments) {
       if (argument.type === "SpreadElement") {

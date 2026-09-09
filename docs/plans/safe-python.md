@@ -5766,6 +5766,17 @@ extension, integration, or validation requirement is missing or unverified.
   passes across five locales, nested frames, snapshot changes and invalid specs.
   Typecheck, scoped lint and selected workspace build pass. Guest locale APIs,
   namespace assembly and broader interpreter/SDK/safe-fs integration remain open.
+- Added lazy brace-format scanning as the foundation for str.format/format_map.
+  Literal, field-name and spec spans reference immutable source storage, including
+  subranges for future nested expansion. Escapes, opaque bracket keys, raw
+  conversions, nested brace balance and precise malformed-field errors are
+  handled without eagerly parsing subsequent fields or copying their text.
+- Five tests first exposed the missing scanner module. All 4,698 tests in 402
+  files pass. A 20,159-case comparison with CPython's _string.formatter_parser
+  covers emitted partial sequences and errors as well as valid markup, Unicode
+  and NUL conversions. Typecheck, scoped lint and selected workspace build pass. Field-name
+  binding, numbering state, expansion/evaluation and public format/format_map
+  methods remain pending; the scanner alone does not implement these methods.
 - Next:
   remaining scope/compiler audits, interpreter runtime,
   resource controls, runtime modules, and safe-fs integration. Parsing and static

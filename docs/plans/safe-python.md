@@ -1351,6 +1351,20 @@ extension, integration, or validation requirement is missing or unverified.
   sequence fast paths. Actual target stores, recursive target traversal, guest
   starred-list construction, initial iterator acquisition, concrete remainder
   protocols and complete allocation accounting remain pending/context-owned.
+- Added iterative assignment-target traversal for names, attributes, subscriptions,
+  chained assignments and nested tuple/list/starred targets. Each level unpacks
+  before storing its children; starred lists are created before child stores.
+  Stores proceed left to right, retain earlier mutations after later failures,
+  and resolve receivers/keys only when execution reaches their targets. Explicit
+  checkpoints cover traversal and precede reference mutation. Statically validated
+  targets are required; adapters own scope lookup and concrete guest protocols.
+- Assignment-target validation: missing-module red tests preceded implementation;
+  all 1,853 tests in 90 files pass, including a 5,000-level target without host
+  recursion. CPython matched 2,200 generated nested/chained assignments, including
+  partial-store traces, failures, starred values and final bindings. Source
+  typecheck, scoped lint and selected dependency build passed. Guest reference evaluation,
+  concrete object storage and complete temporary-buffer heap accounting remain
+  pending/context-owned; this is not a complete statement interpreter.
 - Next:
   remaining scope/compiler audits, interpreter runtime,
   resource controls, runtime modules, and safe-fs integration. Parsing and static

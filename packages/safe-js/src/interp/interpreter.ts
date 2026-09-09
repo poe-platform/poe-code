@@ -1407,7 +1407,9 @@ async function evaluateWithStatement(
 
 function bindingOperations(context: EvaluationContext) {
   return {
-    has: (object: SandboxObject, key: string) => hasSandboxProperty(object, key, context),
+    has: (object: SandboxObject, key: string) => isGuestHostObject(object)
+      ? hasSandboxProperty(object, key, context)
+      : sandboxHasProperty(object, key, context.budget, createCoercionContext(context)),
     get: (object: SandboxObject, key: PropertyKey) => getPropertyValue(object, key, context)
   };
 }
@@ -2938,7 +2940,10 @@ async function evaluateDeleteExpression(
   if (node.argument.type === "Identifier" && context.strict === false) {
     const reference = await context.scope.resolveBinding(node.argument.name, bindingOperations(context));
     return {kind: "normal", hasValue: true, value: reference.kind === "unresolvable" ? true
-      : reference.kind === "binding" ? reference.scope.deleteBinding(reference.name) : deleteSandboxProperty(reference.object, reference.name, false)};
+      : reference.kind === "binding" ? reference.scope.deleteBinding(reference.name)
+      : guestProxyStates.has(reference.object)
+        ? await sandboxDeleteProperty(reference.object, reference.name, context.budget, createCoercionContext(context))
+        : deleteSandboxProperty(reference.object, reference.name, false)};
   }
   if (node.argument.type !== "MemberExpression") {
     if (node.argument.type !== "Identifier") {

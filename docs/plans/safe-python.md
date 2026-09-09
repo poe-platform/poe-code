@@ -558,6 +558,22 @@ extension, integration, or validation requirement is missing or unverified.
   and the selected workspace build passed.
   Symbol resolution, complete public validation orchestration, and runtime
   functions/generators/coroutines remain pending.
+- Added an internal lexical symbol collector with source-positioned read, binding,
+  deletion, parameter, declaration, annotation, import, and outward-walrus events.
+  Builds explicit function/class/lambda/comprehension scope trees. Defaults and
+  decorators stay outside nested bodies; comprehension first iterables stay outside
+  their scope. Attribute/subscript stores read their receiver/index expressions
+  without inventing local bindings. Captures, handler aliases, and loop/with targets
+  are collected; ignored type aliases/expressions introduce no symbols.
+- Symbol collection validation: the initial suite failed on the missing collector;
+  all 1,077 package tests pass. Sixty CPython symbol-table comparisons matched scope
+  trees and read/assignment/parameter/import flags for directly comparable forms.
+  Comparison excludes propagated entries without source occurrences, ignored-type
+  synthetic annotation scopes, inlined list-comprehension tables, and outward-walrus
+  parent flags; explicit lexical/outer-binding behavior is covered separately by
+  tests. Scoped lint, source typecheck, and the selected workspace build passed.
+  Global/nonlocal resolution, closure propagation, and declaration conflict checks
+  remain the next analysis phase; symbol collection alone does not validate them.
 - Next:
   compound statements, type aliases, and enclosing-scope validation
   normalization, the complete grammar/parser and evaluator, then runtime modules

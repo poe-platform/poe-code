@@ -19,7 +19,7 @@ Proxy deletion/descriptor reads, Reflect, value deletion and primitive deletion.
 The same command completed TypeScript and scoped lint successfully.
 
 This implements Reflect dispatch and the reusable internal operation. Interpreter
-delete expressions and function-method deletion callbacks still require Proxy
+delete expressions and array-method deletion callbacks still require Proxy
 integration and strict/sloppy refusal tests; this change does not claim those
 paths work. Public Proxy support, snapshots and full-package validation remain
 unfinished. No push or release under the user's publication hold.

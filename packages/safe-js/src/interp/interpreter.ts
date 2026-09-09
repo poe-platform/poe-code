@@ -124,6 +124,8 @@ import {
 } from "./methods/array.js";
 import { getFunctionMember, type FunctionMethodOptions } from "./methods/function.js";
 import { getBoxedPrototype, getSandboxPropertyDescriptor, getSandboxPrototype, hasExplicitSandboxPrototype, isDefaultArrayMethod, isDefaultBoxedMethod, isGuestClosure, materializeFunctionProperties, setSandboxPrototype } from "./object-model.js";
+import { guestProxyStates } from "./guest-proxy.js";
+import { sandboxDeleteProperty } from "./guest-proxy-delete.js";
 import { getStringIndex } from "./methods/string.js";
 import { assertSandboxDataDepth } from "../graph-depth.js";
 import {
@@ -2968,7 +2970,10 @@ async function evaluateDeleteExpression(
     }
 
     const property = await toPropertyKey(member.property, context.budget, createCoercionContext(context));
-    const deleted = deleteSandboxProperty(member.object, property, context.strict !== false);
+    const deleted = typeof member.object === "object" && guestProxyStates.has(member.object)
+      ? await sandboxDeleteProperty(member.object, property, context.budget, createCoercionContext(context))
+      : deleteSandboxProperty(member.object, property, context.strict !== false);
+    if (!deleted && context.strict !== false) throw new TypeError("Cannot delete property.");
 
     return {
       kind: "normal",

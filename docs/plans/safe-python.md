@@ -4770,6 +4770,22 @@ extension, integration, or validation requirement is missing or unverified.
   unfinished; the original string-percent failure remains open. Full guest
   object wiring, native registration, suspended execution, complete accounting
   and SDK/safe-fs integration also remain outstanding.
+- Added nonnumeric text/byte field rendering to immutable storage. Normalized
+  precision truncates before minimum-width space padding. Both operations share
+  one preflighted owned buffer, preserve unchanged storage, meter copying and
+  padding, and reject unrepresentable allocation before narrowing dimensions.
+  Text dimensions count code points, including separate surrogates; byte fields
+  preserve every byte without decoding. Numeric fields require separate rules.
+- Twelve new tests first failed for the missing field operations. All 4,291
+  tests in 336 files pass. CPython comparisons through native percent binding
+  match 2,401 text-field outputs and 179,046 byte-field outputs (%s/%b), covering
+  precision, width, alignment, ignored nonnumeric flags, Unicode and every byte
+  value. The audit assembles literals and fields explicitly; production output
+  assembly, conversion/representation and binary dispatch remain unfinished.
+  Source typecheck, scoped lint and selected workspace build pass. The original
+  string-percent failure remains open. Full guest object wiring, native
+  registration, suspended execution, complete accounting and SDK/safe-fs
+  integration remain outstanding.
 - Next:
   remaining scope/compiler audits, interpreter runtime,
   resource controls, runtime modules, and safe-fs integration. Parsing and static

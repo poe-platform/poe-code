@@ -135,6 +135,26 @@ export class CodePointString implements Iterable<number> {
     return new CodePointString(points, meter, ownedPoints);
   }
 
+  /** Render an already converted text field with normalized percent dimensions.
+   * Precision truncation precedes space padding; neither uses UTF-16 lengths.
+   * Fuse both operations into one preflighted owned allocation. Numeric fields
+   * have different sign/zero/precision rules and do not use this operation. */
+  formatField(width: bigint, precision: bigint | null, left: boolean, meter: ExecutionMeter): CodePointString {
+    meter.checkpoint();
+    if (width < 0n || (precision !== null && precision < 0n)) throw new RangeError("field dimensions must be nonnegative");
+    const count = precision === null || precision >= BigInt(this.length) ? this.length : Number(precision);
+    if (width <= BigInt(count) && count === this.length) return this;
+    if (width > 0xffffffffn) exhaustAllocation(meter);
+    const length = Math.max(count, Number(width));
+    meter.checkpoint(0, length * Uint32Array.BYTES_PER_ELEMENT);
+    const points = new Uint32Array(length), start = left ? 0 : length - count;
+    let offset = 0;
+    while (offset < start) { meter.checkpoint(); points[offset++] = 32; }
+    for (let index = 0; index < count; index++) { meter.checkpoint(); points[offset++] = this.#points[index]; }
+    while (offset < length) { meter.checkpoint(); points[offset++] = 32; }
+    return new CodePointString(points, meter, ownedPoints);
+  }
+
   /** Full locale-independent mappings can expand one code point into several.
    * Preflight the result size, then fill a single owned buffer. */
   transformCase(mode: StringCaseTransformation, meter: ExecutionMeter): CodePointString {

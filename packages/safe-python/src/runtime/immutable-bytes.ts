@@ -195,6 +195,24 @@ export class ImmutableBytes implements Iterable<number> {
     return new ImmutableBytes(bytes);
   }
 
+  /** Render converted nonnumeric percent fields with byte-count precision.
+   * Truncation and space padding share one preflighted owned result buffer. */
+  formatField(width: bigint, precision: bigint | null, left: boolean, meter: ExecutionMeter): ImmutableBytes {
+    meter.checkpoint();
+    if (width < 0n || (precision !== null && precision < 0n)) throw new RangeError("field dimensions must be nonnegative");
+    const count = precision === null || precision >= BigInt(this.length) ? this.length : Number(precision);
+    if (width <= BigInt(count) && count === this.length) return this;
+    if (width > 0xffffffffn) exhaustAllocation(meter);
+    const length = Math.max(count, Number(width));
+    meter.checkpoint(0, length);
+    const bytes = new Uint8Array(length), start = left ? 0 : length - count;
+    let offset = 0;
+    while (offset < start) { meter.checkpoint(); bytes[offset++] = 32; }
+    for (let index = 0; index < count; index++) { meter.checkpoint(); bytes[offset++] = this.#bytes[index]; }
+    while (offset < length) { meter.checkpoint(); bytes[offset++] = 32; }
+    return new ImmutableBytes(bytes);
+  }
+
   /** Padding owns one final buffer; sign alignment recognizes only ASCII +/- . */
   pad(width: bigint, alignment: "left" | "right" | "center" | "sign", fill: number, meter: ExecutionMeter): ImmutableBytes {
     meter.checkpoint();

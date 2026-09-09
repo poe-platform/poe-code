@@ -3039,6 +3039,21 @@ extension, integration, or validation requirement is missing or unverified.
   selected workspace build passed. Guest contains/iteration slots, arbitrary
   buffer exporters, shared comparison-depth configuration, full concrete
   execution/resource accounting and safe-fs integration remain unfinished.
+- Assembled a concrete exact-value expression context from the runtime operators,
+  containment/comparison, iteration, factories and subscription. Namespace/object
+  capabilities remain explicit supplied hooks whose receivers are retained;
+  setup invokes no guest code. Parsed named expressions write through the bound
+  namespace, and branching retains short-circuit semantics. Declined binary
+  families now raise an explicit host implementation-gap error in this context
+  rather than leaking NotImplemented as a successful expression result.
+- The context suite first failed on its missing module; all 3,237 tests in 207
+  files pass. A 3,000-case parsed CPython audit matched through the assembled
+  context. Source typecheck, scoped lint and selected workspace build passed.
+  This is not full module execution: concrete statement/reference wiring,
+  functions/classes/call collectors, dictionaries/sets, guest protocol dispatch,
+  final binary diagnostics, shared recursion policy, full resource accounting
+  and safe-fs integration remain unfinished. Required object hooks make these
+  gaps explicit rather than silently substituting partial implementations.
 - Next:
   remaining scope/compiler audits, interpreter runtime,
   resource controls, runtime modules, and safe-fs integration. Parsing and static

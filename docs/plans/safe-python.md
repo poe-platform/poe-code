@@ -2814,6 +2814,20 @@ extension, integration, or validation requirement is missing or unverified.
   scoped lint and selected workspace build passed. Concrete guest range/type
   registration, protocol wrappers, hashing, state/pickling and full bigint
   CPU/allocation accounting remain unfinished.
+- Added range contains/index/count searches with exact int/bool arithmetic and
+  generic guest equality fallback. Floats, integer subclasses and user objects
+  use element-first rich equality; generic count can observe multiple matches,
+  while contains/index short-circuit. Missing-index diagnostics distinguish the
+  arithmetic and sequence-search paths. Generic iteration and callbacks are
+  metered, with signed-machine result overflow checks and no needle __index__
+  conversion. Exact arithmetic indices can exceed machine width.
+- The search suite first failed on its missing module; all 3,073 tests in 190
+  files pass. A 3,000-case CPython audit matched search results/errors and guest
+  equality/truth callback traces. Source typecheck, scoped lint and selected
+  workspace build passed. Astronomical generic overflow paths were inspected
+  against CPython source, not dynamically traversed; practical execution budgets
+  terminate such scans first. Guest method registration, rich equality dispatch,
+  result wrapping and full bigint/heap accounting remain unfinished.
 - Next:
   remaining scope/compiler audits, interpreter runtime,
   resource controls, runtime modules, and safe-fs integration. Parsing and static

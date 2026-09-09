@@ -3248,6 +3248,22 @@ extension, integration, or validation requirement is missing or unverified.
   assembly remains explicit in integration harnesses; class/builtin/method
   dispatch, suspended execution, stack-independent calls, complete accounting and
   public execution/safe-fs integration remain unfinished.
+- Added a reusable internal program-execution entry point assembling module,
+  expression, statement, call, definition and lambda execution with one value/key
+  policy, namespace set, call-depth policy and meter. Frame-scoped expression and
+  statement hook factories retain their method owners. Exact functions dispatch
+  through captured code and namespaces; other callables require explicit object
+  capabilities. Nested definitions use the callee's captured builtin namespace
+  when globals no longer supplies __builtins__, not the module's initial defaults.
+- The suite first failed on the missing execution module. All 3,340 tests in 222
+  files pass, including separate module locals, captured builtins, custom call
+  capabilities, hook ownership, fatal cancellation and cleanup after unsupported
+  leaves. A 1,300-module CPython audit matched the assembled runner's definitions,
+  closures, decorators, defaults, recursion, captured builtins and failure cleanup.
+  Source typecheck, scoped lint and selected workspace build passed. This remains
+  an internal explicit-capability runner: complete object/class/builtin/import
+  behavior, suspended execution, stack-independent calls, complete accounting and
+  the public SDK/safe-fs integration remain unfinished.
 - Next:
   remaining scope/compiler audits, interpreter runtime,
   resource controls, runtime modules, and safe-fs integration. Parsing and static

@@ -21,6 +21,7 @@ export function readPatternLiteral(cursor: TokenCursor): Expression {
   let value: Expression = negative ? { kind: "unary", operator: "-", operand: number, start: first.start, end: number.end } : number;
   if (cursor.peek().text === "+" || cursor.peek().text === "-") {
     if (number.literalKind === "imaginary") throw cursor.error("real number required in complex pattern");
+    if (typeof number.value === "bigint" && !Number.isFinite(Number(number.value))) throw cursor.error("real part of complex pattern is too large");
     const operator = cursor.take().text;
     const imaginary = readNumberLiteral(cursor);
     if (imaginary.literalKind !== "imaginary") throw cursor.error("imaginary number required in complex pattern");

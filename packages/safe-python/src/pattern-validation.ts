@@ -1,5 +1,6 @@
 import type { Pattern } from "./pattern-ast.js";
 import type { TokenCursor } from "./token-cursor.js";
+import { patternLiteralKey } from "./pattern-literal-keys.js";
 
 /** Validate captures and return whether the pattern is irrefutable. */
 export function validatePattern(pattern: Pattern, cursor: TokenCursor): boolean {
@@ -44,10 +45,19 @@ export function validatePattern(pattern: Pattern, cursor: TokenCursor): boolean 
         }
         return false;
       }
-      case "mapping":
-        for (const entry of pattern.entries) visit(entry.pattern, names);
+      case "mapping": {
+        const keys = new Set<string>();
+        for (const entry of pattern.entries) {
+          const key = patternLiteralKey(entry.key);
+          if (key !== undefined) {
+            if (keys.has(key)) throw cursor.error("mapping pattern checks duplicate key");
+            keys.add(key);
+          }
+          visit(entry.pattern, names);
+        }
         if (pattern.rest) bind(names, pattern.rest.name);
         return false;
+      }
       case "class":
         for (const child of pattern.positional) visit(child, names);
         for (const keyword of pattern.keywords) visit(keyword.pattern, names);

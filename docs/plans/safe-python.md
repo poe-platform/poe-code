@@ -519,6 +519,18 @@ extension, integration, or validation requirement is missing or unverified.
   source typecheck, and the selected workspace build passed. Duplicate literal
   mapping-key checks, enclosing-scope rules,
   and actual structural matching/capture execution remain pending.
+- Added compile-time duplicate literal mapping-key validation with Python numeric
+  cross-type equality, exact integer/float comparisons, complex folding, signed
+  zero, infinity, code-point strings, bytes, and None. Dynamic dotted keys are not
+  evaluated statically. Each nested mapping maintains an independent key set.
+  Complex pattern literals whose integer real part overflows float conversion are
+  rejected, while the corresponding arbitrary-precision integer remains valid.
+- Mapping-key validation: fourteen tests failed before key validation and one
+  additional overflow regression failed before its correction; all 1,013 package
+  tests pass. A 1,681-case CPython key-pair compilation comparison and 48 additional
+  large-integer/complex comparisons matched acceptance. Scoped lint, source typecheck, and the
+  selected workspace build passed. Dynamic-key collisions, structural matching,
+  enclosing-scope validation, and interpreter execution remain pending.
 - Next:
   compound statements, type aliases, and enclosing-scope validation
   normalization, the complete grammar/parser and evaluator, then runtime modules

@@ -551,6 +551,9 @@ Object.prototype.toString reads custom tags through non-callable Proxies and
 preserves wrapped-array identity. Ordinary receivers also read inherited tags
 through Proxy ancestors with the original receiver. Callable Proxy tags remain
 part of the pending callable-carrier work.
+Ordinary-constructor `instanceof` checks follow Proxy prototype chains, including
+bound constructors. Callable Proxy constructors and special built-in paths remain
+separate integration work.
 
 The later internal freeze/seal implementation now prevents target extension and
 updates properties through Proxy traps, with tested ordering and partial-failure

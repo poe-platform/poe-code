@@ -5,7 +5,9 @@ import { invokeBuiltinClosure } from "./builtin-call.js";
 import { isNumericTypedArray, typedArrayStorage } from "./typed-array.js";
 import { numericTypedArrayConstructor } from "./globals/numeric-typed-array.js";
 import { isSandboxErrorConstructorInstance } from "./globals/error.js";
-import { getSandboxPropertyDescriptor, getSandboxPrototype, hasExplicitSandboxPrototype, isGuestClosure } from "./object-model.js";
+import { getSandboxPropertyDescriptor, hasExplicitSandboxPrototype, isGuestClosure } from "./object-model.js";
+import { sandboxGetPrototypeOf } from "./guest-proxy-prototype.js";
+import { retainValues } from "./resources.js";
 import { isSandboxClosure, type SandboxCallContext, type SandboxValue } from "./values.js";
 
 export async function evaluateInstanceof(
@@ -47,12 +49,20 @@ export async function ordinaryHasInstance(
   if (typeof prototype !== "object" || prototype === null)
     throw new TypeError("Function has a non-object prototype in instanceof check.");
   let depth = 0;
-  for (let current = getSandboxPrototype(value, budget); current !== null; current = getSandboxPrototype(current, budget)) {
-    budget.visitNode();
-    assertSandboxDataDepth(depth++);
-    if (current === prototype) return true;
+  let current: SandboxValue = value;
+  const release = retainValues(budget, () => [current, prototype]);
+  try {
+    while (current !== null) {
+      budget.visitNode();
+      assertSandboxDataDepth(depth++);
+      const next = sandboxGetPrototypeOf(current, budget, context);
+      current = next instanceof Promise ? await next : next;
+      if (current === prototype) return true;
+    }
+    return false;
+  } finally {
+    release();
   }
-  return false;
 }
 
 async function readInstanceProperty(value: SandboxValue, key: PropertyKey, budget: Budget, context?: SandboxCallContext): Promise<SandboxValue> {

@@ -25,6 +25,8 @@ full-package, snapshot, or JavaScript-conformance gate.
   [verification and remaining scope](safejs-proxy-object-tag.md).
 - Inherited Proxy tag reads for ordinary receivers; see
   [verification](safejs-proxy-inherited-tag.md).
+- Ordinary-constructor instanceof through Proxy chains; see
+  [verification and remaining scope](safejs-proxy-instanceof.md).
 - Object.assign sources and targets, descriptor-map enumeration, object
   spread/rest and rest exclusions.
 - Ordinary enumerability changes during values/entries, descriptor-map and
@@ -45,7 +47,7 @@ regressions, TypeScript and lint checks. Recent records include
   apply/construct traps and callable identity.
 - Proxy graph serialization/restoration, cycles, revocation state, validation,
   and host/structured-clone boundaries.
-- For-in, array-method bridges, instanceof and object
+- For-in, array-method bridges, remaining built-in/callable-Proxy instanceof cases and object
   tags need consumer audits.
 - Other array-identity consumers and ordinary prototype-cycle checks need
   Proxy-aware validation.

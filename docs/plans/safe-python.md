@@ -6296,6 +6296,18 @@ extension, integration, or validation requirement is missing or unverified.
   nested-function execution. Typecheck, scoped lint and selected workspace build pass.
   Concrete shared attribute adapters, automatic builtin namespace assembly and
   broader interpreter/object/SDK/safe-fs integration remain unfinished.
+- Added setattr/delattr builtin adapters and shared attribute-name validation
+  with getattr/hasattr. Names and assigned objects retain identity, no preflight
+  attribute read occurs, guest mutation errors propagate and successful calls
+  return None regardless of the override's return value. Post-mutation metering
+  checks cancellation without attempting to roll back completed side effects.
+- Six tests cover setter/deleter forwarding, string-subclass names, receiver
+  binding, argument validation and descriptor errors. All 4,949 tests in 431
+  files pass. Fifty-eight compiled mutation programs and 76 lookup programs
+  match CPython results/errors and callback traces, including empty/NUL/Unicode
+  names and nested functions. Typecheck, scoped lint and selected workspace build pass.
+  Automatic namespace assembly and concrete shared attribute/object adapters,
+  plus broader interpreter/SDK/safe-fs integration, remain unfinished.
 - Next:
   remaining scope/compiler audits, interpreter runtime,
   resource controls, runtime modules, and safe-fs integration. Parsing and static

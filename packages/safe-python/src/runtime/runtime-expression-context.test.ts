@@ -35,6 +35,7 @@ describe("concrete runtime expression context", () => {
     expect(run('f"[{x:_>6.2s}]"')).toEqual(v.string("[____😀é]"));
     expect(run('f"{x!a}"')).toEqual(v.string("'\\U0001f600\\xe9z'"));
     expect(run('f"{123}:{None}:{[1, 2]}"')).toEqual(v.string("123:None:[1, 2]"));
+    expect(run('f"{1.5}:{True}:{1+2j}:{-0.0:}"')).toEqual(v.string("1.5:True:(1+2j):-0.0"));
     names.set("x", v.stringPoints(Uint32Array.of(0xd800, 0xdc00)));
     expect(run('f"a{x}b"')).toEqual(v.stringPoints(Uint32Array.of(97, 0xd800, 0xdc00, 98)));
   });

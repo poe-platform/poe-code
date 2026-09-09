@@ -60,7 +60,8 @@ export function runtimeNativeAttribute(receiver: RuntimeValue, name: string, val
   const iteratorMethod = readRuntimeIteratorMethod(receiver, name, values, meter);
   if (iteratorMethod !== undefined) return iteratorMethod;
   if ((name === "__str__" || name === "__repr__") && hasNativeRepresentation(receiver)) return createRuntimeNativeRepresentationMethod(receiver, name, values, meter);
-  if (name === "__format__" && (receiver.kind === "str" || hasNativeObjectFormat(receiver))) return createRuntimeNativeFormatMethod(receiver, values, meter);
+  if (name === "__format__" && (receiver.kind === "str" || receiver.kind === "int" || receiver.kind === "bool"
+    || receiver.kind === "float" || receiver.kind === "complex" || hasNativeObjectFormat(receiver))) return createRuntimeNativeFormatMethod(receiver, values, meter);
   if ((receiver.kind === "int" || receiver.kind === "bool") && name === "from_bytes") return createRuntimeIntegerFromBytesMethod(receiver.kind === "bool", values, meter);
   if ((receiver.kind === "int" || receiver.kind === "bool") && name === "to_bytes") return createRuntimeIntegerToBytesMethod(receiver, values, meter);
   if (receiver.kind === "float" && name === "fromhex") return createRuntimeFloatFromhexMethod(values, meter);

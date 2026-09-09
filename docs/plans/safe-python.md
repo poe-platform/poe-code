@@ -5595,6 +5595,18 @@ extension, integration, or validation requirement is missing or unverified.
   Numeric specialized formatting (including remaining empty-spec numeric slots),
   guest subclasses, template objects, global string canonicalization and the
   broader interpreter/SDK/safe-fs work remain unfinished.
+- Added exact native numeric empty-spec formatting and exposed bound numeric
+  __format__ slots. Empty specs delegate to existing native str representations,
+  preserving bool spelling, float signed zero/nonfinite values and complex
+  spelling; nonempty numeric specs remain explicit implementation gaps.
+- Two new tests and an expanded default f-string regression first reproduced
+  unsupported numeric dispatch and absent attributes. All 4,640 tests in 388
+  files pass. A 1,035-program compiled CPython audit covers native numeric empty
+  formatting through format(), bound methods, simple/explicit/nested-spec
+  f-strings and bound argument diagnostics, including sampled float bit patterns
+  and complex values. Typecheck, scoped lint and selected workspace build pass. Numeric
+  nonempty renderers, guest subclasses and the wider interpreter/SDK/safe-fs
+  integration remain incomplete.
 - Next:
   remaining scope/compiler audits, interpreter runtime,
   resource controls, runtime modules, and safe-fs integration. Parsing and static

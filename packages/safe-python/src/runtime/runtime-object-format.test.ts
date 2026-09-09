@@ -14,6 +14,26 @@ function fixture() {
   return { v, meter, dictionary, context };
 }
 const text = (value: RuntimeValue) => { if (value.kind !== "str") throw Error("expected str"); return String.fromCodePoint(...value.value); };
+it("formats native numeric values with empty and omitted specifications", () => {
+  const { v, meter, context } = fixture();
+  for (const [value, expected] of [[v.true, "True"], [v.false, "False"], [v.integer(-71), "-71"], [v.float(-0), "-0.0"], [v.float(Infinity), "inf"], [v.float(NaN), "nan"], [v.complex(1, -2), "(1-2j)"], [v.complex(-0, -0), "(-0-0j)"]] as const) {
+    expect(text(formatObject(value, undefined, context, meter))).toBe(expected);
+    expect(text(formatObject(value, v.string(""), context, meter))).toBe(expected);
+  }
+});
+it("exposes numeric format slots with bound method argument validation", () => {
+  const { v, meter, dictionary } = fixture(), keywords = dictionary();
+  for (const value of [v.true, v.integer(17), v.float(1.5), v.complex(1, 2)]) {
+    const method = runtimeNativeAttribute(value, "__format__", v, meter);
+    if (method.kind !== "builtin_function_or_method") throw Error("expected method");
+    expect(method.value.invoke([v.string("")], keywords, meter).kind).toBe("str");
+    expect(() => method.value.invoke([], keywords, meter)).toThrow(`${value.kind}.__format__() takes exactly one argument (0 given)`);
+    expect(() => method.value.invoke([v.none], keywords, meter)).toThrow("__format__() argument must be str, not None");
+    keywords.items.set(v.string("spec"), v.string(""));
+    expect(() => method.value.invoke([], keywords, meter)).toThrow(`${value.kind}.__format__() takes no keyword arguments`);
+    keywords.items.clear();
+  }
+});
 it("formats implemented native object families with empty specs", () => {
   const { v, meter, dictionary, context } = fixture(), d = dictionary();
   const cases = [[v.none, "None"], [v.ellipsis, "Ellipsis"], [v.notImplemented, "NotImplemented"], [v.bytes(Uint8Array.of(255)), "b'\\xff'"], [v.list([]), "[]"], [v.tuple([]), "()"], [d, "{}"], [v.mappingProxy(d), "{}"], [v.dictionaryView(d, "dict_keys"), "dict_keys([])"], [v.dictionaryView(d, "dict_values"), "dict_values([])"], [v.dictionaryView(d, "dict_items"), "dict_items([])"], [v.range(createRange(0n, 2n, 1n)), "range(0, 2)"]] as const;

@@ -4867,6 +4867,22 @@ extension, integration, or validation requirement is missing or unverified.
   formatting assembly/dispatch remain unfinished. Full guest object wiring,
   suspended execution, complete BigInt/resource accounting and SDK/safe-fs
   integration remain outstanding.
+- Added integer percent-field rendering for d/i/u/o/x/X over the shared digit
+  converter. It handles signs, alternate octal/hex prefixes, uppercase digits,
+  precision zeroes, width zeroes/spaces and left alignment in one preflighted
+  owned code-point buffer. Python's zero-at-zero-precision behavior and combined
+  precision/zero-width padding are preserved. Output dimensions remain bigint
+  until bounded; decimal conversion limits exclude formatter-inserted zeroes.
+- Eight initial tests first failed for the missing renderer, and an additional
+  exact-budget test verifies buffer adoption without another copy. All 4,335
+  tests in 341 files pass. CPython matches 88,704 integer fields through native
+  binding across all flag combinations and dynamic dimensions, plus 48 fields
+  with precision beyond the decimal conversion digit limit. Source typecheck,
+  scoped lint and selected workspace build pass. These comparisons assemble
+  literals/fields in the audit: runtime operand conversion, byte-output numeric
+  storage, floating formatting and production percent assembly/dispatch remain
+  unfinished. Full representation builtins, guest object wiring, suspended
+  execution, complete accounting and SDK/safe-fs integration remain outstanding.
 - Next:
   remaining scope/compiler audits, interpreter runtime,
   resource controls, runtime modules, and safe-fs integration. Parsing and static

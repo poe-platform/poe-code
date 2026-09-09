@@ -6183,6 +6183,18 @@ extension, integration, or validation requirement is missing or unverified.
   CPython comparisons preserve results, errors and callback order. Typecheck, scoped lint
   and selected workspace build pass. Expression buffers and other work stacks
   remain in the memory-accounting audit; full interpreter integration is open.
+- Charged expression collection buffers: tuple/list/subscript arrays and each
+  retained value, deferred set entries, and deferred dictionary pairs including
+  their pair arrays. Guest-controlled starred collection now reaches the
+  allocation limit before retaining a value beyond its budget, without consuming
+  another item or publishing the final container.
+- Eight regression cases first exposed absent charges for fixed/guest-sized
+  buffers. The 5,000-level nested-display test retains its depth with an explicit
+  budget for its newly counted arrays/slots. All 4,893 tests in 426 files pass.
+  A 136-program CPython rerun preserves starred hint and extended-unpack results,
+  errors and callback order. Typecheck, scoped lint and selected workspace build pass.
+  Expression continuation records/closures and remaining temporary objects still
+  need accounting; full guest-object and SDK/safe-fs integration remain open.
 - Next:
   remaining scope/compiler audits, interpreter runtime,
   resource controls, runtime modules, and safe-fs integration. Parsing and static

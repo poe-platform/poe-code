@@ -185,6 +185,7 @@ export function evaluateExpression<Value>(expression: Expression, context: Expre
             meter.checkpoint(); end++;
           }
           let cursor = index;
+          meter.checkpoint(0, 32);
           const pending: (readonly [Value, Value])[] = [];
           let group: ExpressionDictionary<Value> | undefined;
           if (end - index > 15) { meter.checkpoint(); group = context.beginDictionary([]); }
@@ -206,7 +207,7 @@ export function evaluateExpression<Value>(expression: Expression, context: Expre
             work.push(() => {
               const key = value;
               work.push(() => {
-                if (group === undefined) pending.push([key, value]);
+                if (group === undefined) { meter.checkpoint(0, 56); pending.push([key, value]); }
                 else group.set(key, value);
                 work.push(nextPair);
               }, { node: pair.value, test: "value" });
@@ -226,6 +227,7 @@ export function evaluateExpression<Value>(expression: Expression, context: Expre
             meter.checkpoint(); initialCount++;
           }
         }
+        meter.checkpoint(0, 32);
         const initial: Value[] = [];
         let set: ExpressionSet<Value> | undefined, index = 0;
         const nextItem = () => {
@@ -238,7 +240,7 @@ export function evaluateExpression<Value>(expression: Expression, context: Expre
           if (item === undefined) { value = set!.finish(); knownTruth = undefined; return; }
           work.push(() => {
             if (item.kind === "unpack") set!.update(value);
-            else if (set === undefined) initial.push(value);
+            else if (set === undefined) { meter.checkpoint(0, 8); initial.push(value); }
             else set.add(value);
             work.push(nextItem);
           }, { node: item.kind === "unpack" ? item.value : item, test: "value" });
@@ -251,6 +253,7 @@ export function evaluateExpression<Value>(expression: Expression, context: Expre
       case "subscript": {
         let object!: Value;
         const assemble = () => {
+          meter.checkpoint(0, 32);
           const keys: Value[] = [];
           let index = 0;
           const nextItem = () => {
@@ -285,7 +288,8 @@ export function evaluateExpression<Value>(expression: Expression, context: Expre
                   return;
                 }
                 meter.checkpoint();
-                keys.push(context.slice(parts));
+                const slice = context.slice(parts);
+                meter.checkpoint(0, 8); keys.push(slice);
                 work.push(nextItem);
               };
               work.push(nextPart);
@@ -297,12 +301,12 @@ export function evaluateExpression<Value>(expression: Expression, context: Expre
                 const nextValue = () => {
                   const entry = iterator.next();
                   if (entry.done) work.push(nextItem);
-                  else { keys.push(entry.value); work.push(nextValue); }
+                  else { meter.checkpoint(0, 8); keys.push(entry.value); work.push(nextValue); }
                 };
                 work.push(nextValue);
               }, { node: item.value, test: "value" });
             } else {
-              work.push(() => { keys.push(value); work.push(nextItem); }, { node: item, test: "value" });
+              work.push(() => { meter.checkpoint(0, 8); keys.push(value); work.push(nextItem); }, { node: item, test: "value" });
             }
           };
           work.push(nextItem);

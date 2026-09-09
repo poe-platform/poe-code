@@ -45,6 +45,23 @@ function environment(initial: ReadonlyMap<string, Value> = new Map()) {
 const budget = () => new ExecutionBudget({ maxSteps: 1000000, maxAllocatedBytes: 1000000 });
 
 describe("expression execution order", () => {
+  it.each(["[1, 2]", "(1, 2)", "{1, 2}", "{1: 2}", "x[1, 2]"])("charges temporary collection buffers: %s", source => {
+    const { context } = environment(new Map([["x", 0n]]));
+    context.list = context.tuple = context.getItem = () => null;
+    context.beginSet = () => ({ add() {}, update() {}, finish: () => null });
+    context.beginDictionary = () => ({ set() {}, update() {}, finish: () => null });
+    const meter = new ExecutionBudget({ maxSteps: 1000, maxAllocatedBytes: 32 });
+    expect(() => evaluateExpression(parseExpression(source), context, meter)).toThrow("execution allocation limit exceeded");
+  });
+  it.each(["[*x]", "(*x,)", "x[*x]"])("bounds guest-controlled starred buffers: %s", source => {
+    const { context } = environment(new Map([["x", 0n]]));
+    let pulls = 0, finished = false;
+    context.iterate = () => ({ next: () => { pulls++; return { done: false, value: 1n }; } });
+    context.list = context.tuple = context.getItem = () => { finished = true; return null; };
+    const meter = new ExecutionBudget({ maxSteps: 1000, maxAllocatedBytes: 40 });
+    expect(() => evaluateExpression(parseExpression(source), context, meter)).toThrow("execution allocation limit exceeded");
+    expect(pulls).toBe(2); expect(finished).toBe(false);
+  });
   it("evaluates f-string conversion before nested format specs and later fields", () => {
     const { context, events } = environment(new Map<string, Value>([["x", "X"], ["w", "W"], ["y", "Y"]]));
     context.formattedString = {

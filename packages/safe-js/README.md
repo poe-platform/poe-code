@@ -580,6 +580,8 @@ preserving the receiver and invoking Proxy-valued species constructors.
 Direct SDK typed-array `slice`, `subarray`, `map`, `filter`, `toReversed`,
 `toSorted`, and `with` calls preserve intrinsic prototypes on default results,
 including calls made after the originating run has completed.
+SDK typed-array construction also retains its intrinsic prototype fallback when
+`newTarget.prototype` is a primitive, after the originating run has completed.
 Public Proxy binding reads the prototype and own length descriptor through traps
 before reading length and name, including null prototypes and nested Proxies.
 Promise operations dispatch Proxy constructors, executors, reaction callbacks,

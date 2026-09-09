@@ -93,7 +93,7 @@ export function createNumericTypedArrayGlobal(budget: Budget, nativePrototype = 
           };
           candidate = await sandboxGetProperty(newTarget, "prototype", newTarget, budget, bridge);
         }
-        const prototype = candidate !== null && typeof candidate === "object" ? candidate : typedArrayPrototypes.get(budget)!.get(Native)!;
+        const prototype = candidate !== null && typeof candidate === "object" ? candidate : getSandboxDataProperty(constructor, "prototype", budget) as SandboxObject;
         const release = retainValues(budget, () => [prototype, ...args]);
         try {
           if (isSandboxArrayBuffer(args[0])) {

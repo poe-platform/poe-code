@@ -4,12 +4,13 @@ import { sandboxGetPrototypeOf, sandboxSetPrototypeOf } from "../guest-proxy-pro
 import { sandboxGetOwnPropertyDescriptor } from "../guest-proxy-descriptor.js";
 import { sandboxDeleteProperty } from "../guest-proxy-delete.js";
 import { sandboxHasProperty } from "../guest-proxy-has.js";
+import { sandboxGetProperty } from "../guest-proxy-get.js";
 import { isSandboxModuleNamespace } from "../module-namespace.js";
 import { assertSandboxDataDepth } from "../../graph-depth.js";
-import { accessorClosure, readPropertyDescriptor } from "../accessors.js";
+import { accessorClosure } from "../accessors.js";
 import { invokeBuiltinClosure } from "../builtin-call.js";
 import { registerBuiltinIdentities } from "../intrinsics.js";
-import { createIntrinsicObject, getSandboxPropertyDescriptor, getSandboxPrototype, registerIntrinsicFunction, registerIntrinsicObject } from "../object-model.js";
+import { createIntrinsicObject, getSandboxPrototype, registerIntrinsicFunction, registerIntrinsicObject } from "../object-model.js";
 import { toPropertyKey } from "../property-key.js";
 import { retainValues } from "../resources.js";
 import { allocateProducedSandboxValue, createSandboxClosure, isSandboxClosure, ownSandboxSymbolKeys, type SandboxCallContext, type SandboxObject, type SandboxValue } from "../values.js";
@@ -48,8 +49,7 @@ export function createReflectGlobal(budget: Budget): SandboxObject {
       const [target, key] = args;
       objectProperties(target);
       const property = await toPropertyKey(key, budget, context);
-      const descriptor = getSandboxPropertyDescriptor(target, property, budget);
-      return descriptor === undefined ? undefined : readPropertyDescriptor(descriptor, args.length > 2 ? args[2] : target, context);
+      return sandboxGetProperty(target, property, args.length > 2 ? args[2] : target, budget, context);
     } },
     defineProperty: { length: 3, call: async ([target, key, input], context) => {
       objectProperties(target,true);

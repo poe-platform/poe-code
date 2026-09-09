@@ -2385,6 +2385,19 @@ extension, integration, or validation requirement is missing or unverified.
   emulate. The 10,000-operation copy/default/pop/popitem audit still matches.
   Source typecheck, scoped lint and selected workspace build passed. Guest
   views/methods and complete native heap accounting remain unfinished.
+- Added direct ordered-map updates with cached-hash reuse inside a shared
+  operations-policy domain and destination rehashing across distinct policies.
+  Self-updates are no-ops. Incoming values are captured before destination
+  callbacks; existing destination key identities/order survive overwrites.
+  Source size mutation raises "dict mutated during update" after the current
+  successful insertion, while callback failures retain their original precedence.
+- Direct-update regressions failed before implementation. All 2,679 tests in
+  158 files pass. A 10,000-operation CPython audit including direct update,
+  copy/default/pop/popitem matched results and ordered state under seeded hashes
+  and forced collisions. Source typecheck, scoped lint and selected workspace
+  build passed. Same-size source mutations still follow live storage
+  ordering rather than CPython table-compaction details; full guest dictionary
+  wiring and complete host heap accounting remain unfinished.
 - Next:
   remaining scope/compiler audits, interpreter runtime,
   resource controls, runtime modules, and safe-fs integration. Parsing and static

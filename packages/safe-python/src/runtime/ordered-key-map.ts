@@ -1,6 +1,7 @@
 import type { ExecutionMeter } from "./execution-budget.js";
 import { OrderedMapIterator } from "./ordered-map-iterator.js";
 import { OrderedMapReverseIterator } from "./ordered-map-reverse-iterator.js";
+import { PythonRuntimeError } from "./error.js";
 
 export interface KeyOperations<Key> {
   /** Equal keys must produce the same stable hash. The runtime owns __hash__,
@@ -109,6 +110,27 @@ export class OrderedKeyMap<Key, Value> {
     this.#entries.clear();
     this.#buckets.clear();
     this.#last = undefined;
+  }
+
+  /** Direct storage merge. Cached source hashes are valid only in the same
+   * hash-policy domain; foreign policies must hash with the destination policy.
+   * Values are captured before destination callbacks. Like exact-dict update,
+   * a changed source size is reported after the current successful insertion.
+   */
+  update(source: OrderedKeyMap<Key, Value>): void {
+    this.meter.checkpoint();
+    if (source === this) return;
+    const size = source.#entries.size;
+    for (const entry of source.#entries) {
+      this.meter.checkpoint();
+      const { key, value } = entry;
+      const hash = this.operations === source.operations ? entry.hash : this.operations.hash(key);
+      const existing = this.#find(key, hash);
+      if (existing === undefined) this.#insert(key, hash, value);
+      else existing.value = value;
+      this.meter.checkpoint();
+      if (source.#entries.size !== size) throw new PythonRuntimeError("RuntimeError", "dict mutated during update");
+    }
   }
 
   /** Copy live entries and their cached hashes without invoking guest methods.

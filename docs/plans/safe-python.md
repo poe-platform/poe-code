@@ -5033,6 +5033,19 @@ extension, integration, or validation requirement is missing or unverified.
   dispatch and binary percent integration remain unfinished. Full guest objects,
   suspended execution, complete accounting and SDK/safe-fs integration remain
   outstanding.
+- Added exact significant-digit binary64 rounding with normalized decimal
+  exponents for scientific/general format consumers. A bounded terminating
+  decimal coefficient determines exponent and ties-to-even rounding, including
+  carry across powers of ten. Precision beyond the coefficient pads zeros
+  without growing BigInt operands. Output and arithmetic are precharged.
+- Seven missing-module tests drove the implementation. All 4,418 tests in
+  352 files pass. CPython matches 32,327 significant-digit outputs, including
+  random binary64 values, subnormals, ties, neighboring values around decimal
+  powers and precision through 5,001 digits. Source typecheck, scoped lint and
+  selected workspace build pass. Scientific/general layout, sign/nonfinite
+  rendering, field padding, default dispatch and binary percent integration
+  remain unfinished. Full guest objects, suspended execution, complete accounting
+  and SDK/safe-fs integration remain outstanding.
 - Next:
   remaining scope/compiler audits, interpreter runtime,
   resource controls, runtime modules, and safe-fs integration. Parsing and static

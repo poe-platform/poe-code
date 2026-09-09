@@ -589,6 +589,8 @@ otherwise lose guest behavior.
 Array literals also retain their originating prototype, including literals
 created by exported closures after run cleanup. Their later prototype mutations
 remain visible to SDK iteration.
+Array member calls also accept guest-defined own and inherited methods; missing
+or non-callable members fail the normal callability check.
 Direct SDK `Iterator.from` accepts strings after run cleanup, using the
 originating guest String prototype. Getter and Proxy-ancestor reads preserve
 the primitive receiver, including later guest iterator overrides.

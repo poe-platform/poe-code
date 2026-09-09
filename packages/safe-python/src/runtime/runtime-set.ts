@@ -9,12 +9,14 @@ import type { DictionaryValue, FrozenSetValue, RuntimeValue, RuntimeValues, SetV
 
 export function runtimeSetAccess(set: SetValue | FrozenSetValue, key: RuntimeValue, operation: "contains", values: ConstantValues, meter: ExecutionMeter): boolean;
 export function runtimeSetAccess(set: SetValue, key: RuntimeValue, operation: "add", values: ConstantValues, meter: ExecutionMeter): void;
+export function runtimeSetAccess(set: SetValue, key: RuntimeValue, operation: "discard", values: ConstantValues, meter: ExecutionMeter): boolean;
 /** Exact set key operations. Mutable-set lookup probes use equivalent frozen
  * hashes without allocating replacement keys; insertion remains unhashable. */
-export function runtimeSetAccess(set: SetValue | FrozenSetValue, key: RuntimeValue, operation: "contains" | "add", values: ConstantValues, meter: ExecutionMeter): boolean | void {
+export function runtimeSetAccess(set: SetValue | FrozenSetValue, key: RuntimeValue, operation: "contains" | "add" | "discard", values: ConstantValues, meter: ExecutionMeter): boolean | void {
   meter.checkpoint();
   try {
     if (operation === "contains") return set.items.containsKey(key, key.kind === "set" ? key.items.keySetHash() : undefined);
+    if (operation === "discard") return set.items.delete(key, key.kind === "set" ? key.items.keySetHash() : undefined);
     set.items.set(key, values.none);
   } catch (error) {
     if (!(error instanceof UnhashableRuntimeValueError)) throw error;
@@ -29,7 +31,7 @@ export function updateRuntimeSet(target: SetValue, source: RuntimeValue, values:
   if (source.kind === "set" || source.kind === "frozenset") target.items.mergeKeysInPlace(source.items, "|");
   else if (source.kind === "dict") {
     meter.checkpoint(0, 16);
-    target.items.update(source.items, undefined, { value: values.none });
+    target.items.mergeKeysInPlace(source.items, "|", { value: values.none });
   } else {
     const iterator = runtimeIterate(source, values, meter);
     while (true) {

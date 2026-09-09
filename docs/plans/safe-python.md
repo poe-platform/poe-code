@@ -3744,6 +3744,25 @@ extension, integration, or validation requirement is missing or unverified.
   Native set/frozen-set methods, view-producing algebra, automatic builtin/type
   registration, iterator table-position parity, complete accounting, suspension
   and the full SDK/safe-fs integration remain unfinished.
+- Added explicitly bound mutable-set methods: add, remove, discard, pop, clear
+  and multi-source update. Key operations hash once; remove/discard accept
+  mutable-set probes using equivalent frozen hashes, while insertion still
+  rejects them. KeyError retains the original missing guest key. Pop returns an
+  arbitrary existing member without hashing; no CPython pop-order promise is
+  made. Argument validation precedes mutations and update keeps earlier writes
+  when a later source or element fails. Compiled-program calls exercise all six
+  methods through explicit attribute hooks and preserve receiver aliases.
+- A failing regression test, backed by CPython execution, exposed a dictionary-
+  only source-mutation error in set.update(dict). Set-specific merges now accept
+  replacement payloads, retain dictionary-source collision comparisons and
+  allow source clearing during equality without the spurious dictionary error.
+  All 3,622 tests in 255 files pass, with scoped lint, source typecheck and selected workspace
+  build. A 2,400-call CPython audit matched native method results, errors and
+  partial state; pop used empty/singleton inputs to avoid assuming arbitrary
+  selection order. Mutable-set and nested frozen-set regressions cover 1,800
+  cases each. Remaining set algebra/relationship methods, frozen-set methods,
+  dictionary-view algebra, automatic method/type registration, iterator parity,
+  complete accounting, suspension and public SDK/safe-fs integration are pending.
 - Next:
   remaining scope/compiler audits, interpreter runtime,
   resource controls, runtime modules, and safe-fs integration. Parsing and static

@@ -165,10 +165,11 @@ export class OrderedKeyMap<Key, Value> {
     return result;
   }
 
-  delete(key: Key): boolean {
+  /** Known hashes support exact mutable-set removal probes. */
+  delete(key: Key, knownHash?: bigint): boolean {
     this.meter.checkpoint();
     this.#assertWritable();
-    const hash = this.operations.hash(key);
+    const hash = knownHash === undefined ? this.operations.hash(key) : knownHash;
     const entry = this.#find(key, hash);
     if (entry === undefined) return false;
     this.#remove(entry);
@@ -331,8 +332,9 @@ export class OrderedKeyMap<Key, Value> {
    * removes matches and inserts misses. Unlike dictionary update, callbacks
    * may mutate source size without a dictionary-specific error. Cached hashes
    * are reused only within a shared policy domain. Successful earlier writes
-   * survive later callback/resource failures. */
-  mergeKeysInPlace(source: OrderedKeyMap<Key, Value>, operator: "|" | "^"): void {
+   * survive later callback/resource failures. A replacement payload supports
+   * dictionary-to-set merges, which must compare even into an empty receiver. */
+  mergeKeysInPlace(source: OrderedKeyMap<Key, Value>, operator: "|" | "^", replacement?: { readonly value: Value }): void {
     this.meter.checkpoint();
     this.#assertWritable();
     if (source === this) {
@@ -341,10 +343,11 @@ export class OrderedKeyMap<Key, Value> {
     }
     // Empty union copies distinct, already validated source keys without
     // re-comparing collisions. Foreign policies must still validate their keys.
-    const clean = operator === "|" && this.#entries.size === 0 && this.operations === source.operations;
+    const clean = operator === "|" && replacement === undefined && this.#entries.size === 0 && this.operations === source.operations;
     for (const entry of source.#entries) {
       this.meter.checkpoint();
-      const { key, value } = entry;
+      const { key } = entry;
+      const value = replacement === undefined ? entry.value : replacement.value;
       const hash = this.operations === source.operations ? entry.hash : this.operations.hash(key);
       if (clean) { this.#insert(key, hash, value); continue; }
       const existing = this.#find(key, hash);

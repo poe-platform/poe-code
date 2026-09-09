@@ -839,6 +839,15 @@ integrated main run described above, not the isolated dynamic/eval candidate.
 Portable weak-symbol lifetime support on Node.js 18 remains unresolved. Do not
 treat that work as complete weak-collection support.
 
+Experimental, uncommitted `WeakRef` and `FinalizationRegistry` implementations now
+have focused coverage for job-scoped target retention, held-value budgets,
+owner-scheduled cleanup, cancellation, and heap snapshot restoration. Cleanup
+errors are reported to the owning run or persistent realm. These changes are not
+released or fully validated: unique-symbol weak references still fail on older
+Node.js 18 runtimes, and low-level registry restoration requires an execution
+owner with error reporting. The snapshot and selected weak-reference checks pass
+1,806 tests across 138 files; this is not a full-package or conformance result.
+
 ## Meaningful limitations
 
 The unreleased runtime supports `Atomics` integer operations on ordinary
@@ -877,7 +886,7 @@ effects. Focused tests cover two-stage growth, pending-call prefixes, and an
 intermediate write observed through another host checkpoint. Arbitrary
 intermediate async visibility is not yet fully verified.
 
-- **Not a full JavaScript engine.** Complete `eval` conformance is unproven. `WeakRef` and `FinalizationRegistry` remain unavailable. Shared-memory and Proxy support are incomplete as described above; host-boundary integration remains incomplete. There is no ambient DOM or general Node API, nor automatic multi-file/npm resolution. See the unreleased and experimental features above; lint success is not a runtime compatibility guarantee.
+- **Not a full JavaScript engine.** Complete `eval` conformance is unproven. `WeakRef` and `FinalizationRegistry` are experimental local work with the limitations above. Shared-memory and Proxy support are incomplete as described above; host-boundary integration remains incomplete. There is no ambient DOM or general Node API, nor automatic multi-file/npm resolution. See the unreleased and experimental features above; lint success is not a runtime compatibility guarantee.
 - **Regular expressions are bounded.** The guest engine supports `d`, `g`, `i`, `m`, `s`, `u`, `v`, and `y`, including lookaround, backreferences, named groups, and Unicode property escapes. Compilation and matching still enforce limits; this is not an unbounded native-RegExp escape hatch or a claim of complete conformance.
 - **Budgets are not hard resource isolation.** Limits govern interpreter work, not arbitrary host functions or total process memory. Deadlines are checked cooperatively; cancellation cannot forcibly stop a blocking host call or undo its effects. Add host-operation timeouts and external isolation where required.
 - **Recovery is not exactly-once delivery.** Replay can repeat work and consumes budget again. Pending side effects need external reconciliation; opaque host handles and native iterator frames are not portable checkpoint state. Keep compatible source for ordinary restore or explicitly migrate. Checkpoints can contain input data and host results: store them as sensitive data.

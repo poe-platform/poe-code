@@ -39,6 +39,23 @@ function fixture(source: string, maxSteps = 100000, signal?: AbortSignal) {
 }
 
 describe("assembled concrete runtime programs", () => {
+  it.each(["success", "invalid", "raises"])("uses guest __bytes__ before iterable fallback (%s)", mode => {
+    const state = fixture("result=(0).from_bytes(source,signed=True)\n"), v = state.values, source = v.cell({});
+    const failure = new PythonRuntimeError("ValueError", "bytes failed"); let calls = 0;
+    state.globals.set("source", source);
+    state.hooks.expressions = () => ({ warn() {}, bytes: {
+      byteString: value => value.kind === "bytes" ? value.value : undefined,
+      typeName: value => value.kind,
+      lookupBytes: value => () => {
+        expect(value).toBe(source); calls++;
+        if (mode === "raises") throw failure;
+        return mode === "invalid" ? v.integer(1) : v.bytes(Uint8Array.of(255));
+      }
+    } });
+    if (mode === "success") { state.run(); expect(state.globals.get("result")).toEqual(v.integer(-1)); }
+    else expect(() => state.run()).toThrow(mode === "invalid" ? "__bytes__ returned non-bytes (type int)" : failure);
+    expect(calls).toBe(1);
+  });
   it.each([false, true, "invalid-hint"])("decodes guest byte iterables with signed truth (%s)", signed => {
     const state = fixture("result=(0).from_bytes(source,signed=flag)\n"), v = state.values;
     const source = v.cell({}), cursor = v.cell({}), byte = v.cell({}), flag = v.cell({}), events: string[] = []; let index = 0;

@@ -6676,6 +6676,15 @@ extension, integration, or validation requirement is missing or unverified.
   byte-range errors and traces. Typecheck and selected workspace build pass.
   Guest __bytes__, buffers, automatic object/builtin assembly and broader
   interpreter/SDK/safe-fs integration remain unfinished.
+- Connected type-level guest __bytes__ to byte-input conversion through frame
+  capabilities. The hook precedes iterable fallback, its result must expose
+  bytes storage, and lookup/call/result checkpoints enforce cancellation.
+  Existing percent-bytes capability declarations supply the shared slot contract.
+- Three compiled regressions cover success, invalid results and hook failures.
+  All 5,127 tests in 440 files pass; 24 CPython __bytes__ comparisons and 48
+  iterable from_bytes comparisons match values/errors/traces. Typecheck and
+  selected workspace build pass. Buffer input, automatic object/builtin assembly
+  and broader interpreter/SDK/safe-fs integration remain unfinished.
 - Next:
   remaining scope/compiler audits, interpreter runtime,
   resource controls, runtime modules, and safe-fs integration. Parsing and static

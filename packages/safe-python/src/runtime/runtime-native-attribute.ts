@@ -52,6 +52,7 @@ import { createRuntimeBytesJoinMethod } from "./runtime-bytes-join-method.js";
 import { createRuntimeBytesStripMethod } from "./runtime-bytes-strip-method.js";
 import { createRuntimeStringClassificationMethod } from "./runtime-string-classification-method.js";
 import type { ExpressionContext } from "./expression-evaluation.js";
+import type { RuntimeBytesInputContext } from "./runtime-bytes-input.js";
 import { isRuntimeSet, type RuntimeValue, type RuntimeValues } from "./runtime-values.js";
 
 /** Default exact-value lookup. Only explicitly implemented Python members are
@@ -59,7 +60,7 @@ import { isRuntimeSet, type RuntimeValue, type RuntimeValues } from "./runtime-v
  * Custom object policies can replace this operation in expression bindings.
  * Type descriptors, inherited object members and native introspection remain
  * separate from these instance-bound container capabilities. */
-export function runtimeNativeAttribute(receiver: RuntimeValue, name: string, values: RuntimeValues, meter: ExecutionMeter, beginCall?: ExpressionContext<RuntimeValue>["beginCall"], formatting?: FormatContext<RuntimeValue>, methods?: RuntimeListMethodContext): RuntimeValue {
+export function runtimeNativeAttribute(receiver: RuntimeValue, name: string, values: RuntimeValues, meter: ExecutionMeter, beginCall?: ExpressionContext<RuntimeValue>["beginCall"], formatting?: FormatContext<RuntimeValue>, methods?: RuntimeListMethodContext & RuntimeBytesInputContext): RuntimeValue {
   meter.checkpoint();
   if (receiver.kind === "str" && (name === "format" || name === "format_map")) {
     const context = formatting ?? createRuntimeFormatContext(values, meter, { defaultRepr() { throw new UnsupportedExpressionError("attribute"); } });

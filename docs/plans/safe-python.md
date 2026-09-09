@@ -2729,6 +2729,19 @@ extension, integration, or validation requirement is missing or unverified.
   passed.
   Concrete index-protocol dispatch, guest builtin/type registration, subclass
   construction, pickling and full bigint/heap accounting remain open.
+- Added a reusable integer-index protocol kernel. Direct int/bool/subclass
+  payloads bypass overridden methods; other values use a type-level index slot.
+  Method results must already be integers (no recursive conversion or __int__
+  fallback). Strict integer-subclass results route DeprecationWarning through
+  the guest context, including warning-as-error propagation. Exact bigint
+  results are neither truncated nor clipped to machine width.
+- The protocol suite first failed on its missing module; all 2,992 tests in
+  184 files pass. A 126-case CPython audit matched direct/method results,
+  callback traces, invalid results and three warning policies across small and
+  large integers. Source typecheck, scoped lint and selected workspace build
+  passed. Concrete slot dispatch, warning infrastructure, integration into
+  builtin contexts, bounded diagnostic type-name formatting and full bigint/
+  heap accounting remain open.
 - Next:
   remaining scope/compiler audits, interpreter runtime,
   resource controls, runtime modules, and safe-fs integration. Parsing and static

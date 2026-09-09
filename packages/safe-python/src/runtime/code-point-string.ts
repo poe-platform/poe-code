@@ -1,7 +1,7 @@
 import { PythonRuntimeError } from "./error.js";
 import { normalizeSlice } from "./integer-sequence.js";
 import { searchSubstring, type SearchMode } from "./substring-search.js";
-import type { ExecutionMeter } from "./execution-budget.js";
+import { exhaustAllocation, type ExecutionMeter } from "./execution-budget.js";
 
 // Module-private capability: only freshly generated, already charged buffers
 // may bypass public input copying and validation. Never export this marker.
@@ -82,6 +82,28 @@ export class CodePointString implements Iterable<number> {
     const points = new Uint32Array(this.length + other.length);
     for (let i = 0; i < this.length; i++) { meter.checkpoint(); points[i] = this.#points[i]; }
     for (let i = 0; i < other.length; i++) { meter.checkpoint(); points[this.length + i] = other.#points[i]; }
+    return new CodePointString(points, meter, ownedPoints);
+  }
+
+  /** Precompute total size and fill one owned output buffer, avoiding repeated
+   * concatenation. Parts are trusted immutable storage, already validated. */
+  join(parts: readonly CodePointString[], meter: ExecutionMeter): CodePointString {
+    meter.checkpoint();
+    if (parts.length === 1) return parts[0];
+    let length = 0;
+    for (let i = 0; i < parts.length; i++) {
+      meter.checkpoint();
+      length += parts[i].length + (i === 0 ? 0 : this.length);
+      if (!Number.isSafeInteger(length) || length > 0xffffffff) exhaustAllocation(meter);
+    }
+    meter.checkpoint(0, length * Uint32Array.BYTES_PER_ELEMENT);
+    const points = new Uint32Array(length);
+    let offset = 0;
+    for (let i = 0; i < parts.length; i++) {
+      meter.checkpoint();
+      if (i !== 0) for (const point of this.#points) { meter.checkpoint(); points[offset++] = point; }
+      for (const point of parts[i].#points) { meter.checkpoint(); points[offset++] = point; }
+    }
     return new CodePointString(points, meter, ownedPoints);
   }
 

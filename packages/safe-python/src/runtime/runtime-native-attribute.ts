@@ -13,6 +13,7 @@ import { readRuntimeRangeAttribute } from "./runtime-range-attributes.js";
 import { createRuntimeStringSearchMethod } from "./runtime-string-search-method.js";
 import { createRuntimeStringAffixMethod } from "./runtime-string-affix-method.js";
 import { createRuntimeStringCutMethod } from "./runtime-string-cut-method.js";
+import { createRuntimeStringJoinMethod } from "./runtime-string-join-method.js";
 import type { ExpressionContext } from "./expression-evaluation.js";
 import { isRuntimeSet, type RuntimeValue, type RuntimeValues } from "./runtime-values.js";
 
@@ -24,6 +25,7 @@ import { isRuntimeSet, type RuntimeValue, type RuntimeValues } from "./runtime-v
 export function runtimeNativeAttribute(receiver: RuntimeValue, name: string, values: RuntimeValues, meter: ExecutionMeter, beginCall?: ExpressionContext<RuntimeValue>["beginCall"]): RuntimeValue {
   meter.checkpoint();
   if (receiver.kind === "str") {
+    if (name === "join") return createRuntimeStringJoinMethod(receiver, values, meter);
     if (name === "removeprefix" || name === "removesuffix" || name === "partition" || name === "rpartition") return createRuntimeStringCutMethod(receiver, name, values, meter);
     if (name === "startswith" || name === "endswith") return createRuntimeStringAffixMethod(receiver, name, values, meter);
     switch (name) {

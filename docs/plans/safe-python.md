@@ -4003,6 +4003,21 @@ extension, integration, or validation requirement is missing or unverified.
   passes 1,936 compiled calls. Remaining text methods, global string interning,
   native descriptors, guest object slots, remaining builtins, suspension,
   accounting and SDK/safe-fs remain unfinished.
+- Connected str.join to native lookup. Generic iterables are fully materialized
+  before member validation, preserving later iterator failure precedence over
+  an invalid earlier element. Acquisition-only TypeErrors become the native
+  noniterable diagnostic; errors from next remain intact. Singleton exact
+  strings retain identity. A storage pre-pass computes final size and fills one
+  owned code-point buffer, avoiding repeated concatenation and surrogate merging.
+- Join verification began with six failing method tests. All 3,767 tests in
+  271 files pass, with scoped lint, source typecheck and selected workspace
+  build. The 1,244-call removal/partition regression also passes. A 1,200-call compiled
+  CPython audit matches code points, iterable forms and errors. Tests cover
+  full consumption on bad elements, iterator failure precedence, cancellation
+  after next, singleton identity and exact output-buffer allocation with linear
+  work. Guest length hints, string subclasses/interning, remaining string
+  methods and builtins, suspension, full accounting and SDK/safe-fs remain
+  unfinished.
 - Next:
   remaining scope/compiler audits, interpreter runtime,
   resource controls, runtime modules, and safe-fs integration. Parsing and static

@@ -112,6 +112,28 @@ Saved yield-delegate expression state currently retains only the yielded
 value; preserving a raw delegate result requires reviewing restored state,
 accounting and snapshot validation rather than changing only the last wrapper.
 
+### Delegated abrupt operations and Proxy controls
+
+Built/native comparisons extended the matrix to delegate throw and return
+methods after an initial yield. Each receives argument 4 and returns an object
+with a logging value getter, done and extra properties.
+
+- With done false, native returns the exact object, retains extra, and does
+  not invoke the value getter. SafeJS copies it, loses extra and invokes value.
+- With done true, both read value once and return a separate completed result;
+  these controls already match and must remain unchanged.
+
+Proxy delegate results make the identity loss observable after yielding too.
+Changing the original Proxy's value from 1 to 9 changes the native returned
+result, while SafeJS still exposes 1. Revoking the Proxy makes a later native
+value read throw TypeError; SafeJS still returns the copied 1. Both native
+results retain identity with the Proxy; neither SafeJS result does.
+
+These checks ran against the same unchanged built runtime while the full
+suite was live. They are additional failing audit probes, not implemented
+fixes. Keep mutation/revocation and completed-result controls in the eventual
+source regression tests.
+
 ## Verification boundary
 
 These are built-SDK/native audit observations, not completed fixes or passing

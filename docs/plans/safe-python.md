@@ -812,6 +812,22 @@ extension, integration, or validation requirement is missing or unverified.
   runtime operations, and object overhead remain unmetered. These counters cover
   explicit buffer allocations, not all host memory, and optional internal meters
   still need mandatory wiring through the eventual interpreter execution context.
+- Added complete-buffer UTF-8 decoding with strict, ignore, replace,
+  backslashreplace, surrogateescape, and surrogatepass behavior. Valid Unicode
+  boundaries, noncharacters, BOM-as-content, malformed prefix consumption, and
+  strict error spans/messages follow Python. Internal decode faults snapshot the
+  input and retain encoding/start/end/reason metadata. Working/output buffers,
+  decoding steps, and error snapshots are metered when a meter is provided.
+- UTF-8 validation: the suite first failed on the missing module; all 1,454
+  package tests pass, including 24 decoder cases. CPython comparisons matched
+  76,293 byte inputs across six modes (457,758 results), covering every one-/two-
+  byte input plus longer malformed/boundary cases. A separate budgeted decode of
+  CPython-generated UTF-8 recovered every one of 1,114,112 Python code points,
+  including surrogates, charging 2,228,226 steps and 22,011,392 buffer bytes.
+  Scoped lint, source typecheck, and selected workspace build passed. Reference:
+  https://docs.python.org/3/library/codecs.html#error-handlers . Incremental decoding,
+  encoding, custom error-handler/codec registries, guest codec exceptions, and
+  safe-fs text-stream integration remain pending.
 - Next:
   remaining scope/compiler audits, interpreter runtime,
   resource controls, runtime modules, and safe-fs integration. Parsing and static

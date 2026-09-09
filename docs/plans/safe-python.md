@@ -1031,6 +1031,23 @@ extension, integration, or validation requirement is missing or unverified.
   Guest file objects, imports, descriptor identity, filesystem exception conversion,
   streaming I/O and public extension wiring remain pending. This establishes an
   internal whole-file integration, not complete Python filesystem support.
+- Connected whole-file UTF-8 text reads/writes to the injected safe-fs boundary.
+  Read configuration validates before I/O, final decoding applies the selected
+  newline/error policy, and all codec buffers share the boundary's execution
+  budget. Write preparation returns original character counts and routes ordinary,
+  exclusive, and append operations through the existing capability checks. Added
+  a failing post-await cancellation regression before closing that check gap.
+- Text-filesystem validation: all eleven initial tests failed before implementation;
+  all 1,665 package tests pass, including twelve integration cases. CPython codec
+  pipeline comparisons matched 2,400 cases through the actual safe-fs memory
+  adapter; an additional 640 text/filesystem budget boundaries passed. Scoped lint,
+  source typecheck, and the selected safe-fs/safe-python build closure passed. A
+  compiled-runtime check verified cancellation after awaiting the binary boundary.
+- These internal UTF-8 helpers encode before adapter mutation. They deliberately
+  do not claim Python open()/TextIOWrapper or pathlib.write_text lifecycle semantics:
+  guest file objects must separately model opening/truncation followed by writes,
+  including failures after open. Other encodings, streaming text/file objects,
+  filesystem guest exceptions and public API integration remain pending.
 - Next:
   remaining scope/compiler audits, interpreter runtime,
   resource controls, runtime modules, and safe-fs integration. Parsing and static

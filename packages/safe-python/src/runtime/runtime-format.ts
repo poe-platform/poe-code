@@ -2,6 +2,7 @@ import type { ExecutionMeter } from "./execution-budget.js";
 import type { FormatContext } from "./format-protocol.js";
 import { createRuntimeRepresentationContext, type RuntimeRepresentationHooks } from "./runtime-representation.js";
 import { objectFormat } from "./object-format.js";
+import { stringFormat } from "./string-format.js";
 import type { RuntimeValue, RuntimeValues } from "./runtime-values.js";
 import { UnsupportedExpressionError } from "./expression-evaluation.js";
 
@@ -17,7 +18,7 @@ export function hasNativeObjectFormat(value: RuntimeValue): boolean {
     || value.kind === "dict_values" || value.kind === "dict_items";
 }
 
-/** Shared native formatting/representation capabilities. Native specialized
+/** Shared native formatting/representation capabilities. Native numeric
  * formatters remain explicit gaps rather than pretending their slots are absent.
  * Guest lookup owns inherited methods and descriptor behavior for guest types. */
 export function createRuntimeFormatContext(values: RuntimeValues, meter: ExecutionMeter, hooks: RuntimeFormatHooks): FormatContext<RuntimeValue> {
@@ -27,6 +28,15 @@ export function createRuntimeFormatContext(values: RuntimeValues, meter: Executi
     isExactInteger(value) { meter.checkpoint(); return value.kind === "int"; },
     lookupFormat(value) {
       meter.checkpoint();
+      if (value.kind === "str") {
+        meter.checkpoint(0, 64);
+        return spec => {
+          const storage = context.string(spec); meter.checkpoint();
+          if (storage === undefined) throw new Error("validated format spec lost string storage");
+          const result = stringFormat(value.value, storage, "str", meter);
+          return result === value.value ? value : values.stringPoints(result);
+        };
+      }
       if (hasNativeObjectFormat(value)) {
         meter.checkpoint(0, 64);
         return spec => {
@@ -35,7 +45,7 @@ export function createRuntimeFormatContext(values: RuntimeValues, meter: Executi
           return objectFormat(value, storage, context, meter);
         };
       }
-      if (value.kind === "str" || value.kind === "int" || value.kind === "bool" || value.kind === "float" || value.kind === "complex") throw new UnsupportedExpressionError("call");
+      if (value.kind === "int" || value.kind === "bool" || value.kind === "float" || value.kind === "complex") throw new UnsupportedExpressionError("call");
       return hooks.lookupFormat?.(value);
     }
   };

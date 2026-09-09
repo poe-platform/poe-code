@@ -5568,6 +5568,19 @@ extension, integration, or validation requirement is missing or unverified.
   Typecheck, scoped lint and selected workspace build pass. This is a storage
   renderer, not native str.__format__ registration or default f-string wiring;
   those and numeric renderers remain pending with the wider interpreter work.
+- Connected exact native strings to the runtime format context and exposed their
+  bound __format__ method. Unchanged storage preserves guest identity; changed
+  output goes through the native string factory. Renamed/generalized the existing
+  bound formatter adapter so string and inherited object slots share argument
+  validation and dispatch without duplicating the method parser.
+- Two regressions first demonstrated unsupported nonempty string formatting and
+  the missing str.__format__ attribute. All 4,636 tests in 388 files pass.
+  A 159-program compiled CPython audit checks string rendering, unchanged result
+  identity and public/bound argument errors; the 2,055-program inherited-object
+  audit also passes after shared dispatch changes. Typecheck, scoped lint and
+  selected workspace build pass. Guest string subclasses, numeric formatting,
+  default f-string wiring and the broader interpreter/SDK/safe-fs work remain
+  incomplete; the earlier object direct-call diagnostic gap is unchanged.
 - Next:
   remaining scope/compiler audits, interpreter runtime,
   resource controls, runtime modules, and safe-fs integration. Parsing and static

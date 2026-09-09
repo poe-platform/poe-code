@@ -38,6 +38,23 @@ it("exposes native bound object-format methods with their argument diagnostics",
     keywords.items.clear();
   }
 });
+it("formats native strings through the shared protocol preserving unchanged identity", () => {
+  const { v, meter, context } = fixture(), value = v.string("😀ab");
+  for (const spec of ["", "s", "2s", ".9s"]) expect(formatObject(value, v.string(spec), context, meter)).toBe(value);
+  expect(text(formatObject(value, v.string(".^6.2s"), context, meter))).toBe("..😀a..");
+  expect(() => formatObject(value, v.string("+s"), context, meter)).toThrow("Sign not allowed in string format specifier");
+});
+it("exposes str format methods with native argument validation and rendering", () => {
+  const { v, meter, dictionary } = fixture(), value = v.string("abc"), keywords = dictionary();
+  const method = runtimeNativeAttribute(value, "__format__", v, meter);
+  if (method.kind !== "builtin_function_or_method") throw Error("expected method");
+  expect(method.value.invoke([v.string("s")], keywords, meter)).toBe(value);
+  expect(text(method.value.invoke([v.string(">5")], keywords, meter))).toBe("  abc");
+  expect(() => method.value.invoke([], keywords, meter)).toThrow("str.__format__() takes exactly one argument (0 given)");
+  expect(() => method.value.invoke([v.none], keywords, meter)).toThrow("__format__() argument must be str, not None");
+  keywords.items.set(v.string("format_spec"), v.string(""));
+  expect(() => method.value.invoke([], keywords, meter)).toThrow("str.__format__() takes no keyword arguments");
+});
 it("preserves live cycles, guest representation hooks and guest format slots", () => {
   const { v, meter, dictionary } = fixture(), guest = v.cell({}), result = v.string("guest"), list = v.list([guest]), d = dictionary();
   list.items.append(list);

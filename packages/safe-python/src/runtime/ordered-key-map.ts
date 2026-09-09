@@ -191,10 +191,12 @@ export class OrderedKeyMap<Key, Value> {
    * hash-policy domain; foreign policies must hash with the destination policy.
    * Values are captured before destination callbacks. Like exact-dict update,
    * a changed source size is reported after the current successful insertion.
+   * Call keyword merges supply a rejecting duplicate handler; it receives the
+   * incoming key before any overwrite and preserves earlier successful entries.
    */
-  update(source: OrderedKeyMap<Key, Value>): void {
+  update(source: OrderedKeyMap<Key, Value>, rejectDuplicate?: (key: Key) => never): void {
     this.meter.checkpoint();
-    if (source === this) return;
+    if (source === this && !rejectDuplicate) return;
     const size = source.#entries.size;
     for (const entry of source.#entries) {
       this.meter.checkpoint();
@@ -202,7 +204,10 @@ export class OrderedKeyMap<Key, Value> {
       const hash = this.operations === source.operations ? entry.hash : this.operations.hash(key);
       const existing = this.#find(key, hash);
       if (existing === undefined) this.#insert(key, hash, value);
-      else existing.value = value;
+      else {
+        if (rejectDuplicate) rejectDuplicate(key);
+        existing.value = value;
+      }
       this.meter.checkpoint();
       if (source.#entries.size !== size) throw new PythonRuntimeError("RuntimeError", "dict mutated during update");
     }

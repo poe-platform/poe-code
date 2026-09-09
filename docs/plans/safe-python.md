@@ -3193,6 +3193,25 @@ extension, integration, or validation requirement is missing or unverified.
   builtin/method registration. Guest mapping and length-hint slots, dict method
   call binding, concrete call collectors, full exception/resource accounting and
   public execution/safe-fs integration remain unfinished.
+- Added concrete per-expression call collectors for positional arguments, starred
+  iteration, explicit keyword groups and exact-dictionary ** merging. Ordered
+  storage supports duplicate-rejecting merges without discarding cached hashes
+  or overwriting prior values. Non-string keyword validation is deferred until
+  expansion finishes and callability is checked. Lone-star scheduling now carries
+  the distinction needed for its diagnostic. Keyword storage remains a runtime
+  dictionary: host UTF-16 string maps can collapse distinct Python surrogate keys.
+- The new collector suite first failed on its missing module; focused tests also
+  reproduced absent duplicate rejection and incorrect non-callable/non-string
+  error precedence before correction. All 3,317 tests in 218 files pass, including
+  nested calls, deferred expansion, next errors and distinct surrogate keys.
+  A 2,400-case CPython call audit matched collected arguments and expansion/keyword
+  diagnostics; 10,000 ordered-map operations and 2,400 dictionary-display cases
+  also matched. Source typecheck, scoped lint and selected workspace build passed. Callable
+  presence, error formatting and invocation are still supplied runtime policies;
+  concrete function invocation wiring, guest mapping/length-hint slots, full
+  resource/exception accounting and public execution/safe-fs integration remain
+  unfinished. Python keyword code points must remain intact through future
+  function argument binding and **kwargs construction.
 - Next:
   remaining scope/compiler audits, interpreter runtime,
   resource controls, runtime modules, and safe-fs integration. Parsing and static

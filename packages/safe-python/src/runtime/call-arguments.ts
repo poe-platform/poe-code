@@ -7,7 +7,7 @@ import type { ExecutionMeter } from "./execution-budget.js";
  */
 export interface ExpressionCall<Value> {
   positional(value: Value): void;
-  starred(value: Value): void;
+  starred(value: Value, loneStar?: boolean): void;
   keywords(entries: readonly (readonly [string, Value])[]): void;
   mapping(value: Value): void;
   invoke(): Value;
@@ -54,7 +54,7 @@ export function* evaluateCallArguments<Value>(
     else call.mapping(value);
   }
   if (group.length) { meter.checkpoint(); call.keywords(group); }
-  if (deferredStar !== undefined) { meter.checkpoint(); call.starred(deferredStar.value); }
+  if (deferredStar !== undefined) { meter.checkpoint(); call.starred(deferredStar.value, true); }
   meter.checkpoint();
   return call.invoke();
 }

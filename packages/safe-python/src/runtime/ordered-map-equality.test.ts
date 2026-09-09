@@ -6,6 +6,13 @@ const budget = () => new ExecutionBudget({ maxSteps: 10000, maxAllocatedBytes: 1
 const operations: KeyOperations<number> = { hash: BigInt, equal: (a, b) => a === b };
 
 describe("ordered mapping equality", () => {
+  it("can reject duplicate update keys before overwriting, retaining earlier entries", () => {
+    const a = new OrderedKeyMap<number, string>(operations, budget()), b = new OrderedKeyMap<number, string>(operations, budget());
+    a.set(1, "original"); b.set(2, "new"); b.set(1, "replacement"); const error = new Error("duplicate");
+    expect(() => a.update(b, key => { expect(key).toBe(1); throw error; })).toThrow(error);
+    expect(a.snapshot()).toEqual([[1, "original"], [2, "new"]]);
+    expect(() => a.update(a, () => { throw error; })).toThrow(error);
+  });
   it("suspends value comparisons and observes later value replacements", () => {
     const a = new OrderedKeyMap<number, string>(operations, budget()), b = new OrderedKeyMap<number, string>(operations, budget());
     a.set(1, "left"); b.set(1, "right"); a.set(2, "old"); b.set(2, "other");

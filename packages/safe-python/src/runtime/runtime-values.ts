@@ -5,6 +5,7 @@ import { ListStorage } from "./list-storage.js";
 import type { FunctionState } from "./function-state.js";
 import type { OrderedKeyMap } from "./ordered-key-map.js";
 import { PythonRuntimeError } from "./error.js";
+import type { LexicalCell } from "./lexical-frame.js";
 
 export interface ListValue {
   readonly kind: "list";
@@ -50,6 +51,11 @@ export interface BoundMethodValue {
   readonly value: { readonly function: FunctionValue; readonly instance: RuntimeValue };
 }
 
+export interface CellValue {
+  readonly kind: "cell";
+  readonly value: Pick<LexicalCell<RuntimeValue>, "content">;
+}
+
 export type RuntimeValue =
   | PrimitiveConstant
   | TupleConstant<RuntimeValue>
@@ -60,6 +66,7 @@ export type RuntimeValue =
   | FunctionValue
   | BuiltinFunctionValue
   | BoundMethodValue
+  | CellValue
   | DictionaryValue;
 
 /** Host-only records, never accessible through guest JavaScript properties.
@@ -117,5 +124,12 @@ export class RuntimeValues extends ConstantValues {
   dictionary(items: OrderedKeyMap<RuntimeValue, RuntimeValue>): DictionaryValue {
     this.runtimeMeter.checkpoint(1, 32);
     return Object.freeze({ kind: "dict", items });
+  }
+
+  /** Adopt shared closure storage, including an empty cell. The publishing
+   * object layer retains this wrapper when exposing the same cell again. */
+  cell(value: CellValue["value"]): CellValue {
+    this.runtimeMeter.checkpoint(1, 32);
+    return Object.freeze({ kind: "cell", value });
   }
 }

@@ -3342,6 +3342,22 @@ extension, integration, or validation requirement is missing or unverified.
   workspace build passed. This does not yet replace global Map storage, implement
   arbitrary prepared mappings or complete guest type/instance/class construction.
   Full accounting, suspension and public SDK/safe-fs integration remain pending.
+- Added concrete guest cell records retaining shared closure storage, including
+  class construction cells captured by methods. Exact cell_contents access raises
+  ValueError for empty reads, shares assigned contents and permits repeated
+  deletion. Cells are truthy and unhashable. Their six rich comparisons delegate
+  directly to occupied contents, order empty cells first and use the existing
+  explicit comparison stack/resource depth policy rather than host recursion.
+- The cell suite first failed on its missing module. All 3,393 tests in 230 files
+  pass, including 5,000 nested cells, cyclic comparison limits, NaN identity cases,
+  class closure storage identity and mutation allocation/cancellation checks.
+  A 2,000-case CPython audit matched 12,000 comparisons plus hash failures and
+  cell_contents transitions. Runtime comparison (3,600), hash (3,000) and assembled
+  program (1,300) differential regressions also passed. Source typecheck, scoped
+  lint and selected workspace build passed. Cell wrappers still require object
+  layer publication/caching and exposed descriptor/constructor binding; this is
+  not full class-suite or type/instance construction integration. Full accounting,
+  suspension and public SDK/safe-fs integration remain unfinished.
 - Next:
   remaining scope/compiler audits, interpreter runtime,
   resource controls, runtime modules, and safe-fs integration. Parsing and static

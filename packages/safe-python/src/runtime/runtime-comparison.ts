@@ -50,6 +50,19 @@ export function runtimeComparison(operator: string, left: RuntimeValue, right: R
     const task = work.pop()!;
     if (typeof task === "function") { task(); continue; }
     const { operator: op, left: a, right: b, depth } = task;
+    if (a.kind === "cell" && b.kind === "cell") {
+      if (depth >= maxDepth) throw new PythonRuntimeError("RecursionError", "maximum recursion depth exceeded in comparison");
+      const x = a.value.content, y = b.value.content;
+      if (x === undefined || y === undefined) {
+        result = orderedResult(op, Number(x !== undefined) - Number(y !== undefined));
+        continue;
+      }
+      // Cell rich comparison delegates the requested operator directly, even
+      // for identical contents (unlike container member equality shortcuts).
+      meter.checkpoint(0, 64);
+      work.push({ operator: op, left: x.value, right: y.value, depth: depth + 1 });
+      continue;
+    }
     if (a.kind === "method" && b.kind === "method" && (op === "==" || op === "!=")) {
       const equal = a.value.function === b.value.function && a.value.instance === b.value.instance;
       result = op === "==" ? equal : !equal; continue;

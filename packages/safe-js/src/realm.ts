@@ -355,11 +355,17 @@ class RealmState {
     }
   };
 
-  onCleanup = (cleanup: () => void | Promise<void>): void => {
+  onCleanup = (cleanup: () => void | Promise<void>): (() => void) => {
     this.assertOpen();
     if (typeof cleanup !== "function") throw new TypeError("Cleanup must be a function.");
     this.checkCollection(this.cleanups.length + 1, this.limits.cleanups, "cleanup");
-    this.cleanups.push(cleanup);
+    // Each registration has its own identity even when callbacks are reused.
+    const registration = () => cleanup();
+    this.cleanups.push(registration);
+    return () => {
+      const index = this.cleanups.indexOf(registration);
+      if (index !== -1) this.cleanups.splice(index,1);
+    };
   };
 
   checkCollection(count: number, limit: number, name: string): void {

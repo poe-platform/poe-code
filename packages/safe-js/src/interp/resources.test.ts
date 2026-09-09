@@ -1,6 +1,16 @@
 import { expect, it, vi } from "vitest";
 import { runResources, withRunResources } from "./resources.js";
 
+it("allows a rolled-back operation to detach its registered cleanup", async () => {
+  const close = vi.fn(async () => {});
+  await withRunResources(undefined, async () => {
+    const detach = runResources.getStore()!.add(close);
+    expect(typeof detach).toBe("function");
+    detach!();
+  });
+  expect(close).not.toHaveBeenCalled();
+});
+
 it("reports an asynchronous owned-job failure and cancels its execution owner", async () => {
   const failure = new Error("cleanup job failed");
   const closed = vi.fn(async () => {});

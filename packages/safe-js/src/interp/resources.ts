@@ -7,7 +7,7 @@ export type RunResources = {
   // Cancellation is catchable; suspended references survive until disposal.
   referenceReleases: Set<() => void>;
   reportError?: (reason: unknown) => void;
-  add(close: () => Promise<void>): void;
+  add(close: () => Promise<void>): void | (() => void);
 };
 
 export const runResources = new AsyncLocalStorage<RunResources>();
@@ -44,6 +44,7 @@ export async function withRunResources<Result>(
     },
     add(close) {
       cleanups.add(close);
+      return () => { cleanups.delete(close); };
     }
   };
   signal?.addEventListener("abort", cancel, { once: true });

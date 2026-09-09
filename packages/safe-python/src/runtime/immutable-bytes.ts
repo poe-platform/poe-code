@@ -62,6 +62,44 @@ export class ImmutableBytes implements Iterable<number> {
     return new ImmutableBytes(bytes);
   }
 
+  /** Encode magnitude digits once, then carry two's complement from the low
+   * byte. Host BigInt string size is charged after conversion until integer
+   * payload size metadata is available, as with integer bit metrics. */
+  static fromInteger(value: bigint, length: bigint, little: boolean, signed: boolean, meter: ExecutionMeter): ImmutableBytes {
+    meter.checkpoint();
+    if (length < 0n) throw new PythonRuntimeError("ValueError", "length argument must be non-negative");
+    if (length > 0xffffffffn) exhaustAllocation(meter);
+    const negative = value < 0n;
+    if (negative && !signed) throw new PythonRuntimeError("OverflowError", "can't convert negative int to unsigned");
+    const digits = value.toString(16), start = negative ? 1 : 0;
+    meter.checkpoint(1, 32 + digits.length * 2);
+    const firstCode = digits.charCodeAt(start), first = firstCode >= 97 ? firstCode - 87 : firstCode - 48;
+    const bits = value === 0n ? 0 : (digits.length - start - 1) * 4 + 32 - Math.clz32(first), capacity = Number(length) * 8;
+    let fits = bits <= capacity;
+    if (signed && value !== 0n) {
+      if (!negative) fits = bits < capacity;
+      else if (bits === capacity) {
+        fits = (first & (first - 1)) === 0;
+        for (let index = start + 1; fits && index < digits.length; index++) { meter.checkpoint(); fits = digits.charCodeAt(index) === 48; }
+      }
+    }
+    if (!fits) throw new PythonRuntimeError("OverflowError", "int too big to convert");
+    meter.checkpoint(0, Number(length));
+    const bytes = new Uint8Array(Number(length));
+    let position = digits.length - 1, carry = negative ? 1 : 0;
+    for (let offset = 0; offset < bytes.length; offset++) {
+      meter.checkpoint();
+      let byte = 0;
+      for (let shift = 0; shift < 8 && position >= start; shift += 4) {
+        const code = digits.charCodeAt(position--), digit = code >= 97 ? code - 87 : code - 48;
+        byte |= digit << shift;
+      }
+      if (negative) { byte = 255 - byte + carry; carry = byte >>> 8; byte &= 255; }
+      bytes[little ? offset : bytes.length - offset - 1] = byte;
+    }
+    return new ImmutableBytes(bytes);
+  }
+
   *[Symbol.iterator](): IterableIterator<number> {
     for (let index = 0; index < this.length; index++) yield this.#bytes[index];
   }

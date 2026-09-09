@@ -4535,6 +4535,19 @@ extension, integration, or validation requirement is missing or unverified.
   and call errors. Scoped lint, source typecheck and selected workspace build
   pass. Remaining numeric/text methods, native builtins, buffer protocols,
   suspension, full accounting and SDK/safe-fs remain unfinished.
+- Connected int/bool.to_bytes with default one-byte big-endian unsigned output,
+  keyword-only signed truth conversion, both byte orders and Python validation
+  precedence. The immutable writer scans hexadecimal magnitude digits, validates
+  signed boundaries and carries two's complement from the low byte into one
+  final buffer. Nonempty output stays fresh; zero-length output is canonical.
+  BigInt temporary-text charging remains post-conversion pending size metadata.
+- Seven native tests first reproduced missing support. All 4,174 tests in 320
+  files pass, including zero-length restrictions, negative limits, sign extension,
+  call binding and output work/allocation budgets. A 5,131-program compiled
+  CPython audit and 49,248 power-boundary conversion cases match byte values,
+  output identity and errors. Scoped lint, source typecheck and selected
+  workspace build pass. Remaining numeric/text methods, buffer protocols,
+  native builtins, suspension, full accounting and SDK/safe-fs remain unfinished.
 - Next:
   remaining scope/compiler audits, interpreter runtime,
   resource controls, runtime modules, and safe-fs integration. Parsing and static

@@ -30,6 +30,7 @@ import { createRuntimeConjugateMethod } from "./runtime-conjugate-method.js";
 import { runtimeNumericAttribute } from "./runtime-numeric-attribute.js";
 import { createRuntimeFloatHexMethod } from "./runtime-float-hex-method.js";
 import { createRuntimeFloatFromhexMethod } from "./runtime-float-fromhex-method.js";
+import { createRuntimeIntegerToBytesMethod } from "./runtime-integer-to-bytes-method.js";
 import { createRuntimePadMethod } from "./runtime-pad-method.js";
 import { createRuntimeExpandtabsMethod } from "./runtime-expandtabs-method.js";
 import { createRuntimeStringCaseMethod } from "./runtime-string-case-method.js";
@@ -51,6 +52,7 @@ import { isRuntimeSet, type RuntimeValue, type RuntimeValues } from "./runtime-v
  * separate from these instance-bound container capabilities. */
 export function runtimeNativeAttribute(receiver: RuntimeValue, name: string, values: RuntimeValues, meter: ExecutionMeter, beginCall?: ExpressionContext<RuntimeValue>["beginCall"]): RuntimeValue {
   meter.checkpoint();
+  if ((receiver.kind === "int" || receiver.kind === "bool") && name === "to_bytes") return createRuntimeIntegerToBytesMethod(receiver, values, meter);
   if (receiver.kind === "float" && name === "fromhex") return createRuntimeFloatFromhexMethod(values, meter);
   if (receiver.kind === "float" && name === "hex") return createRuntimeFloatHexMethod(receiver, values, meter);
   if (receiver.kind === "int" || receiver.kind === "bool" || receiver.kind === "float" || receiver.kind === "complex") {

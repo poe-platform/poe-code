@@ -919,7 +919,7 @@ function restoreReplayCalls(
           if (!Array.isArray(args) || (callback.hasReceiver && (args.length === 0 || args[0] === undefined)))
             throw new TypeError("Invalid replay callback.");
           const shared = callback.sharedState === undefined ? undefined : decodeSharedCallback(callback.sharedState, resolveCapability, validation);
-          if (shared !== undefined && shared[0].length !== args.length)
+          if (shared !== undefined && (shared[0].length !== args.length || (callback.hasReceiver && shared[0][0] === undefined)))
             throw new TypeError("Contradictory shared callback arguments.");
           callbackSizes.set(`${entry.id}/callback/${index + 1}`, measureSandboxData([args]) + (shared === undefined ? 0 : measureSandboxData([shared])));
         } finally {

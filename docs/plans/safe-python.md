@@ -5170,6 +5170,21 @@ extension, integration, or validation requirement is missing or unverified.
   reflected slots and global string canonicalization remain incomplete. Full
   guest objects, suspended execution, complete accounting and SDK/safe-fs
   integration remain outstanding.
+- Added shortest round-trip float representation with Python's fixed/scientific
+  thresholds, exponent spelling, integral .0 suffix, negative zero and nonfinite
+  names. The host supplies shortest digits; bounded layout normalization removes
+  insignificant integral zeros before scientific output. Connected the renderer
+  to native float str/repr slots and percent s/r/a conversion.
+- Six missing-module tests drove digit rendering; four further tests failed on
+  missing native float methods before slot integration. All 4,488 tests in
+  363 files pass. CPython matches 333,408 shortest representations covering random
+  binary64 bits, every exponent and decimal-power neighbors, plus 3,915 compiled
+  float method/percent programs covering parsing, runtime conversion and output.
+  Source typecheck, scoped lint and selected workspace build pass. Complex and
+  container representations, bytes percent dispatch/operator integration, guest
+  reflected slots and global string canonicalization remain incomplete. Full
+  guest objects, suspended execution, complete accounting and SDK/safe-fs
+  integration remain outstanding.
 - Next:
   remaining scope/compiler audits, interpreter runtime,
   resource controls, runtime modules, and safe-fs integration. Parsing and static

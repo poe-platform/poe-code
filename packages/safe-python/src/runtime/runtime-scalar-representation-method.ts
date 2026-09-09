@@ -1,15 +1,16 @@
 import { CodePointString } from "./code-point-string.js";
 import { PythonRuntimeError } from "./error.js";
 import { integerDigits } from "./integer-digits.js";
+import { floatRepresentation } from "./float-representation.js";
 import type { ExecutionMeter } from "./execution-budget.js";
 import type { RuntimeValue, RuntimeValues } from "./runtime-values.js";
 
-type RepresentationScalar = Extract<RuntimeValue, { kind: "str" | "bytes" | "int" | "bool" | "none" | "ellipsis" | "not-implemented" }>;
+type RepresentationScalar = Extract<RuntimeValue, { kind: "str" | "bytes" | "int" | "bool" | "float" | "none" | "ellipsis" | "not-implemented" }>;
 
 /** One capability guard shared by attribute and implicit representation lookup. */
 export function isRuntimeRepresentationScalar(value: RuntimeValue): value is RepresentationScalar {
   return value.kind === "str" || value.kind === "bytes" || value.kind === "int" || value.kind === "bool"
-    || value.kind === "none" || value.kind === "ellipsis" || value.kind === "not-implemented";
+    || value.kind === "float" || value.kind === "none" || value.kind === "ellipsis" || value.kind === "not-implemented";
 }
 
 /** Implemented exact scalar slots; guest subclass dispatch and method-wrapper
@@ -33,6 +34,7 @@ export function runtimeScalarRepresentation(receiver: RepresentationScalar, name
   if (receiver.kind === "none") return values.string("None");
   if (receiver.kind === "ellipsis") return values.string("Ellipsis");
   if (receiver.kind === "not-implemented") return values.string("NotImplemented");
+  if (receiver.kind === "float") return values.string(floatRepresentation(receiver.value, meter));
   if (receiver.kind === "int") return values.string(integerDigits(receiver.value, 10, meter));
   if (receiver.kind === "bool") return values.string(receiver.value ? "True" : "False");
   if (receiver.kind === "str" && name === "__str__") return receiver;

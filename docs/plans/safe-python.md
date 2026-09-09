@@ -375,8 +375,19 @@ extension, integration, or validation requirement is missing or unverified.
   Scoped lint, source typecheck, and selected workspace build passed. Function/loop placement,
   return unwinding, exception handling, assertion execution, and loop transfers
   remain semantic/runtime work.
+- Added del, global, and nonlocal syntax. Declarations preserve ordered raw spelling
+  and normalized binding names, including duplicates. Deletion retains explicit
+  tuple/list target structure and shares target validation with assignment, with
+  deletion-specific rejection of starred targets and forbidden normalized names.
+  Executable target expressions remain visible to the expression-scope validator.
+- Declaration/deletion validation: two positive tests failed before implementation;
+  all 754 package tests pass. A 534-case CPython comparison matched syntax acceptance
+  and AST structure/name lists. Deletion cases were compiled; declaration cases
+  used AST parsing to isolate syntax from pending nonlocal-resolution and declaration
+  ordering checks. Scoped lint, source typecheck, and selected workspace build passed. Actual
+  deletion, global/nonlocal binding, and enclosing-scope validation remain pending.
 - Next:
-  deletion/import/scope-declaration statements, compound statements, and enclosing-scope validation
+  import statements, compound statements, and enclosing-scope validation
   normalization, the complete grammar/parser and evaluator, then runtime modules
   and safe-fs integration. Tokenization does not establish interpreter execution.
 - Workspace lockfile registration and packaging integration remain pending.

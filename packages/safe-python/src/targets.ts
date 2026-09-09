@@ -23,18 +23,19 @@ export function readLoopTarget(cursor: TokenCursor, read: (cursor: TokenCursor, 
   return target;
 }
 
-export function validateTarget(target: Expression, cursor: TokenCursor): void {
+export function validateTarget(target: Expression, cursor: TokenCursor, action: "assign" | "delete" = "assign"): void {
   if ((target.kind === "name" || target.kind === "attribute") && target.name === "__debug__") {
-    throw cursor.error("cannot assign to __debug__");
+    throw cursor.error(action === "assign" ? "cannot assign to __debug__" : "cannot delete __debug__");
   }
   if (target.kind === "name" || target.kind === "attribute" || target.kind === "subscript") return;
-  if (target.kind !== "tuple" && target.kind !== "list") throw cursor.error("cannot assign to expression");
+  if (target.kind !== "tuple" && target.kind !== "list") throw cursor.error(action === "assign" ? "cannot assign to expression" : "cannot delete expression");
   let starred = false;
   for (const item of target.items) {
     if (item.kind === "unpack") {
+      if (action === "delete") throw cursor.error("cannot delete starred expression");
       if (starred) throw cursor.error("multiple starred expressions in assignment");
       starred = true;
-      validateTarget(item.value, cursor);
-    } else validateTarget(item, cursor);
+      validateTarget(item.value, cursor, action);
+    } else validateTarget(item, cursor, action);
   }
 }

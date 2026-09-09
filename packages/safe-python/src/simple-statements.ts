@@ -1,11 +1,40 @@
-import type { Statement } from "./statement-ast.js";
+import type { DeclaredName, Statement } from "./statement-ast.js";
+import type { Expression } from "./ast.js";
 import type { TokenCursor } from "./token-cursor.js";
 import { readAssignmentOrExpression, readStatementValue } from "./assignment-statements.js";
 import { readExpression } from "./expression.js";
+import { reservedWords } from "./keywords.js";
+import { normalizeNfkc } from "./normalization.js";
+import { validateTarget } from "./targets.js";
 
 export function readSimpleStatement(cursor: TokenCursor): Statement {
   const token = cursor.peek();
   switch (token.text) {
+    case "global": case "nonlocal": {
+      cursor.take();
+      const names: DeclaredName[] = [];
+      for (;;) {
+        const name = cursor.peek();
+        if (name.kind !== "name" || reservedWords.has(name.text)) throw cursor.error("expected declaration name");
+        cursor.take();
+        names.push({ spelling: name.text, name: normalizeNfkc(name.text), start: name.start, end: name.end });
+        if (cursor.peek().text !== ",") break;
+        cursor.take();
+      }
+      return { kind: token.text, names, start: token.start, end: names[names.length - 1].end };
+    }
+    case "del": {
+      cursor.take();
+      const targets: Expression[] = [];
+      do {
+        const target = readExpression(cursor);
+        validateTarget(target, cursor, "delete");
+        targets.push(target);
+        if (cursor.peek().text !== ",") break;
+        cursor.take();
+      } while (!atStatementEnd(cursor));
+      return { kind: "delete", targets, start: token.start, end: targets[targets.length - 1].end };
+    }
     case "pass": case "break": case "continue":
       cursor.take();
       return { kind: token.text, start: token.start, end: token.end };

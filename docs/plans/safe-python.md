@@ -3822,6 +3822,22 @@ extension, integration, or validation requirement is missing or unverified.
   Dictionary-view algebra, automatic method/type installation, full native
   introspection, iterator table-position parity, complete accounting, suspension
   and public SDK/safe-fs integration remain unfinished.
+- Added dictionary-key/item view union, intersection, subtraction and xor,
+  including reflected iterable operands and fresh mutable results. Left proxy
+  union forwards through its dictionary; right proxies remain generic iterables.
+  Intersection preserves the exact mutable-set optimization and consumes all
+  generic input members, without the set-method early-stop shortcut. Item-view
+  xor compares values before tuple hashing, allowing equal unhashable values to
+  cancel. Matching-item storage subtraction reuses hashes, retains incoming
+  pairs across callbacks, checks cancellation and reports failed second lookups.
+- Dictionary-view algebra verification began with nine failing behavior cases.
+  All 3,676 tests in 262 files pass, with scoped lint, source typecheck and
+  selected workspace build. A 2,400-case CPython audit matches results, errors and iterator
+  remainders across all four operators and both directions. Regression audits
+  pass for frozen-set/view relationships (1,200) and difference/xor methods
+  (3,200). Automatic method/type installation, native introspection, iterator
+  table-position parity, complete accounting, suspension and public SDK/safe-fs
+  integration remain unfinished.
 - Next:
   remaining scope/compiler audits, interpreter runtime,
   resource controls, runtime modules, and safe-fs integration. Parsing and static

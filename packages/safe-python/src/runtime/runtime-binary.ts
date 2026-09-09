@@ -3,7 +3,8 @@ import { constantConcat } from "./constant-concat.js";
 import { constantRepeat } from "./constant-repeat.js";
 import { PythonRuntimeError } from "./error.js";
 import type { ExecutionMeter } from "./execution-budget.js";
-import { isRuntimeSet, type RuntimeValue, type RuntimeValues } from "./runtime-values.js";
+import { isRuntimeSet, isRuntimeSetView, type RuntimeValue, type RuntimeValues } from "./runtime-values.js";
+import { runtimeDictionaryViewBinary } from "./runtime-dictionary-view-algebra.js";
 
 /** Exact runtime binary kernels, not guest reflected/subclass dispatch. Lists
  * always produce fresh slots; tuple operations preserve mutable member identity.
@@ -16,6 +17,11 @@ export function runtimeBinary(operator: string, left: RuntimeValue, right: Runti
     case "+": case "-": case "*": case "/": case "//": case "%": case "**":
     case "&": case "|": case "^": case "<<": case ">>": case "@": break;
     default: throw new Error(`unsupported runtime binary operator: ${operator}`);
+  }
+  if ((operator === "|" || operator === "&" || operator === "-" || operator === "^") && (isRuntimeSetView(left) || isRuntimeSetView(right))) {
+    // A left proxy forwards union to its dictionary before reflected dispatch.
+    // A right proxy remains the iterable seen by the view's own union slot.
+    return runtimeDictionaryViewBinary(operator, operator === "|" && left.kind === "mappingproxy" ? left.value : left, right, values, meter);
   }
   if (operator === "|") {
     const a = left.kind === "mappingproxy" ? left.value : left, b = right.kind === "mappingproxy" ? right.value : right;

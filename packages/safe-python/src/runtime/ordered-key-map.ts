@@ -255,6 +255,31 @@ export class OrderedKeyMap<Key, Value> {
     }
   }
 
+  /** Remove equal key/value pairs while reporting unmatched incoming pairs.
+   * Source traversal reuses native hashes and permits source mutation. Values
+   * are compared before any tuple hashing, so unhashable common item values can
+   * cancel. A key lost during the second lookup is returned for guest KeyError. */
+  subtractMatchingItems(other: OrderedKeyMap<Key, Value>, equalValue: (left: Value, right: Value) => boolean, unmatched: (key: Key, value: Value) => void): Readonly<{ key: Key }> | undefined {
+    this.meter.checkpoint();
+    this.#assertWritable();
+    for (const entry of other.#entries) {
+      this.meter.checkpoint();
+      const { key, value } = entry;
+      const hash = this.operations === other.operations ? entry.hash : this.operations.hash(key);
+      const found = this.#find(key, hash);
+      const equal = found !== undefined && (Object.is(found.value, value) || equalValue(found.value, value));
+      this.meter.checkpoint();
+      if (equal) {
+        if (!this.delete(key, hash)) {
+          this.meter.checkpoint(0, 16);
+          return Object.freeze({ key });
+        }
+      } else unmatched(key, value);
+      this.meter.checkpoint();
+    }
+    return undefined;
+  }
+
   /** Fresh empty storage in this execution's hash-policy and budget domain. */
   emptyCopy(): OrderedKeyMap<Key, Value> {
     this.meter.checkpoint();

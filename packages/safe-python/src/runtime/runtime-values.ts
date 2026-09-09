@@ -61,6 +61,10 @@ export type DictionaryViewValue = { readonly value: DictionaryValue } & (
   | { readonly kind: "dict_items" }
 );
 
+export function isRuntimeSetView(value: RuntimeValue): value is DictionaryViewValue & { kind: "dict_keys" | "dict_items" } {
+  return value.kind === "dict_keys" || value.kind === "dict_items";
+}
+
 /** Trusted host implementation, installed explicitly by the runtime owner.
  * No payload fields are exposed through guest JavaScript property access. The
  * synchronous implementation owns its internal work and resource checkpoints.

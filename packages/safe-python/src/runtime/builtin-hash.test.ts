@@ -4,6 +4,7 @@ import { RuntimeValues, type RuntimeValue } from "./runtime-values.js";
 import { ExecutionBudget } from "./execution-budget.js";
 import { OrderedKeyMap } from "./ordered-key-map.js";
 import { runtimeHash, type RuntimeHashContext } from "./runtime-hash.js";
+import { PythonRuntimeError } from "./error.js";
 
 function fixture() {
   const meter = new ExecutionBudget({ maxSteps: 10000, maxAllocatedBytes: 100000 }), values = new RuntimeValues(meter);
@@ -14,6 +15,17 @@ function fixture() {
 }
 
 describe("concrete hash builtin", () => {
+  it("restores the exact guest exception for direct and tuple hashing", () => {
+    const { values: v, context, call } = fixture(), guest = v.cell({}), failure = new PythonRuntimeError("TypeError", "inside hash");
+    context.guestHash = value => value !== guest ? undefined : {
+      lookupHash: () => () => { throw failure; }, integer: () => undefined, typeName: () => "Guest"
+    };
+    for (const value of [guest, v.tuple([guest])]) {
+      let caught: unknown;
+      try { call(value); } catch (error) { caught = error; }
+      expect(caught).toBe(failure);
+    }
+  });
   it("uses guest hash dispatch for roots and nested immutable members", () => {
     const { values: v, context, meter, call } = fixture(), guest = v.cell({});
     let calls = 0;

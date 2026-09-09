@@ -1,6 +1,7 @@
 import { PythonRuntimeError } from "./error.js";
 import type { ExecutionMeter } from "./execution-budget.js";
 import { UnhashableRuntimeValueError } from "./runtime-hash.js";
+import { RuntimeHashError } from "./runtime-hash-error.js";
 import type { ItemMutation } from "./runtime-mutation.js";
 import type { DictionaryValue, RuntimeValue } from "./runtime-values.js";
 
@@ -44,7 +45,8 @@ export function runtimeDictionaryAccess(object: DictionaryValue, key: RuntimeVal
     } else if (object.items.delete(key)) return;
     throw new PythonKeyError(key, meter);
   } catch (error) {
-    if (!(error instanceof UnhashableRuntimeValueError)) throw error;
-    throw new PythonRuntimeError("TypeError", `cannot use '${key.kind}' as a dict key (${error.message})`);
+    if (!(error instanceof UnhashableRuntimeValueError) && !(error instanceof RuntimeHashError)) throw error;
+    const type = error instanceof RuntimeHashError ? error.keyType : key.kind;
+    throw new PythonRuntimeError("TypeError", `cannot use '${type}' as a dict key (${error.message})`);
   }
 }

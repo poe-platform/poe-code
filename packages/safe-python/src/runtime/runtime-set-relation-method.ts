@@ -1,6 +1,7 @@
 import { PythonRuntimeError } from "./error.js";
 import type { ExecutionMeter } from "./execution-budget.js";
 import { UnhashableRuntimeValueError } from "./runtime-hash.js";
+import { RuntimeHashError } from "./runtime-hash-error.js";
 import { runtimeIterate } from "./runtime-iteration.js";
 import { isRuntimeSet, type BuiltinFunctionValue, type FrozenSetValue, type RuntimeValues, type SetValue } from "./runtime-values.js";
 
@@ -37,8 +38,9 @@ export function createRuntimeSetRelationMethod(receiver: SetValue | FrozenSetVal
         let found: boolean;
         try { found = receiver.items.containsKey(item.value); }
         catch (error) {
-          if (!(error instanceof UnhashableRuntimeValueError)) throw error;
-          throw new PythonRuntimeError("TypeError", `cannot use '${item.value.kind}' as a set element (${error.message})`);
+          if (!(error instanceof UnhashableRuntimeValueError) && !(error instanceof RuntimeHashError)) throw error;
+          const type = error instanceof RuntimeHashError ? error.keyType : item.value.kind;
+          throw new PythonRuntimeError("TypeError", `cannot use '${type}' as a set element (${error.message})`);
         }
         if (name === "isdisjoint" ? found : !found) return values.false;
       }

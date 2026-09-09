@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { RuntimeValues, type RuntimeValue } from "./runtime-values.js";
 import { OrderedKeyMap } from "./ordered-key-map.js";
-import { runtimeHash } from "./runtime-hash.js";
+import { runtimeHash, type RuntimeHashContext } from "./runtime-hash.js";
 import { runtimeComparison } from "./runtime-comparison.js";
 import { runtimeIndex } from "./runtime-index.js";
 import { runtimeMutateItem } from "./runtime-mutation.js";
@@ -18,6 +18,22 @@ function fixture() {
 }
 
 describe("runtime dictionary item access", () => {
+  it.each([false, true])("adds root-key context to guest hash failures (raised=%s)", raised => {
+    const { v, meter } = fixture(), guest = v.cell({}), failure = new PythonRuntimeError("TypeError", "inside hash");
+    const hash: RuntimeHashContext = {
+      none: v.none, identity: () => 1n, string: () => 1n, bytes: () => 1n,
+      guestHash: value => value !== guest ? undefined : {
+        lookupHash: () => () => { if (raised) throw failure; return v.none; },
+        integer: () => undefined, typeName: () => "Guest"
+      }
+    };
+    const dict = v.dictionary(new OrderedKeyMap<RuntimeValue, RuntimeValue>({ hash: key => runtimeHash(key, hash, meter), equal: (a, b) => a === b }, meter));
+    for (const key of [guest, v.tuple([guest])]) {
+      const type = key === guest ? "Guest" : "tuple";
+      expect(() => runtimeMutateItem(dict, key, { kind: "set", value: v.none }, v, meter)).toThrow(`cannot use '${type}' as a dict key (${raised ? "inside hash" : "__hash__ method should return an integer"})`);
+    }
+    expect(dict.items.size).toBe(0);
+  });
   it("does not relabel comparison errors or change storage after a failed lookup", () => {
     const { v, meter } = fixture(), failure = new PythonRuntimeError("TypeError", "comparison failed");
     const dict = v.dictionary(new OrderedKeyMap<RuntimeValue, RuntimeValue>({ hash: () => 1n, equal: () => { throw failure; } }, meter));

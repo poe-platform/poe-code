@@ -6,6 +6,8 @@ import { hashReal } from "./real-comparison.js";
 import { PythonRuntimeError } from "./error.js";
 import type { RangeValue, RuntimeValue } from "./runtime-values.js";
 import { protocolHash, type HashProtocolContext } from "./hash-protocol.js";
+import { RuntimeHashError } from "./runtime-hash-error.js";
+import { diagnosticTypeName } from "./diagnostic-type-name.js";
 
 /** Trusted runtime policies. Identity hashes must remain stable for each object;
  * payload hashes must use one execution-wide seed and respect value equality.
@@ -69,12 +71,22 @@ export function runtimeHash(value: RuntimeValue, context: ConstantHashContext | 
   const stack: Frame[] = [];
   let current: RuntimeValue | undefined = value;
   let result = 0n;
+  let rootGuest: HashProtocolContext<RuntimeValue> | undefined;
   while (true) {
     meter.checkpoint();
     if (current !== undefined) {
       const guest = "none" in context ? context.guestHash?.(current) : undefined;
       meter.checkpoint(0);
-      if (guest !== undefined) result = protocolHash(current, guest, meter);
+      if (current === value) rootGuest = guest;
+      if (guest !== undefined) {
+        try { result = protocolHash(current, guest, meter); }
+        catch (error) {
+          meter.checkpoint();
+          if (!(error instanceof PythonRuntimeError) || error.name !== "TypeError") throw error;
+          const type = rootGuest === undefined ? value.kind : rootGuest.typeName(value);
+          throw new RuntimeHashError(diagnosticTypeName(type, meter), error, meter);
+        }
+      }
       else if (current.kind === "tuple" || current.kind === "slice" || current.kind === "range") {
         const length = current.kind === "tuple" ? current.items.length : 3;
         if (length !== 0) {

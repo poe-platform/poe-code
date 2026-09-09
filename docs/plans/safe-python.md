@@ -6259,6 +6259,18 @@ extension, integration, or validation requirement is missing or unverified.
   gap: dictionary/set error adaptation needs guest root type information and
   hash-failure provenance, without rewriting unrelated equality errors. The full
   guest-hash differential is retained with these failures, not counted as passed.
+- Resolved the two guest-hash dictionary diagnostics above. Hash-boundary
+  provenance carries the root key type and original TypeError; dictionary/set
+  consumers add their context without relabeling ordinary equality failures.
+  Direct hash() restores the exact original exception, including tuple-member
+  failures. Native unhashable diagnostics retain their existing path.
+- Two regressions first reproduced invalid-result/raised-TypeError context gaps;
+  a third verifies original exception identity for direct/tuple hash calls. All
+  4,930 tests in 428 files pass. The formerly failing 153-case guest audit now
+  passes, as do 260 expanded guest hash/container cases and 1,014 native hash
+  cases. Typecheck, scoped lint and selected workspace build pass. Full guest
+  exception-class adaptation and broader object/namespace/SDK/safe-fs work remain
+  unfinished.
 - Next:
   remaining scope/compiler audits, interpreter runtime,
   resource controls, runtime modules, and safe-fs integration. Parsing and static

@@ -4,6 +4,7 @@ import type { ExecutionMeter } from "./execution-budget.js";
 import type { ExpressionSet } from "./expression-evaluation.js";
 import { OrderedKeyMap, type KeyOperations } from "./ordered-key-map.js";
 import { UnhashableRuntimeValueError } from "./runtime-hash.js";
+import { RuntimeHashError } from "./runtime-hash-error.js";
 import { runtimeIterate } from "./runtime-iteration.js";
 import type { DictionaryValue, FrozenSetValue, RuntimeValue, RuntimeValues, SetValue } from "./runtime-values.js";
 
@@ -19,8 +20,9 @@ export function runtimeSetAccess(set: SetValue | FrozenSetValue, key: RuntimeVal
     if (operation === "discard") return set.items.delete(key, key.kind === "set" ? key.items.keySetHash() : undefined);
     set.items.set(key, values.none);
   } catch (error) {
-    if (!(error instanceof UnhashableRuntimeValueError)) throw error;
-    throw new PythonRuntimeError("TypeError", `cannot use '${key.kind}' as a set element (${error.message})`);
+    if (!(error instanceof UnhashableRuntimeValueError) && !(error instanceof RuntimeHashError)) throw error;
+    const type = error instanceof RuntimeHashError ? error.keyType : key.kind;
+    throw new PythonRuntimeError("TypeError", `cannot use '${type}' as a set element (${error.message})`);
   }
 }
 
@@ -60,8 +62,9 @@ export function subtractRuntimeSet(target: SetValue, source: RuntimeValue, value
       if (item.done) break;
       try { target.items.delete(item.value); }
       catch (error) {
-        if (!(error instanceof UnhashableRuntimeValueError)) throw error;
-        throw new PythonRuntimeError("TypeError", `cannot use '${item.value.kind}' as a set element (${error.message})`);
+        if (!(error instanceof UnhashableRuntimeValueError) && !(error instanceof RuntimeHashError)) throw error;
+        const type = error instanceof RuntimeHashError ? error.keyType : item.value.kind;
+        throw new PythonRuntimeError("TypeError", `cannot use '${type}' as a set element (${error.message})`);
       }
     }
   }

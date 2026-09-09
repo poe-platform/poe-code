@@ -92,8 +92,9 @@ export function createRegexGlobals(options: { budget: Budget; compileOwner?: Com
         0,
         compilation
       );
-      if (typeof retainedPrototype === "object" && retainedPrototype !== null)
-        setSandboxPrototype(regex, retainedPrototype, options.budget);
+      setSandboxPrototype(regex,
+        typeof retainedPrototype === "object" && retainedPrototype !== null ? retainedPrototype : prototype,
+        options.budget);
       if (compilation !== context?.compilation) {
         reconcileCompiledValues(options.budget, [regex], compilation);
       }

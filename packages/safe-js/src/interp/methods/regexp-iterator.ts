@@ -2,7 +2,7 @@ import type { Budget } from "../budget.js";
 import { isSandboxRegExpIterator, regexpIteratorState, type SandboxRegExpIterator } from "../regexp-iterator.js";
 import { createSandboxClosure, isSandboxRegex, type SandboxCallContext, type SandboxValue } from "../values.js";
 import { executeRegex, regexExec, toMatchArray } from "./regex.js";
-import { getSandboxPropertyDescriptor, hasRegexPropertyOverride } from "../object-model.js";
+import { getSandboxPropertyDescriptor } from "../object-model.js";
 import { readPropertyDescriptor } from "../accessors.js";
 import { setSandboxProperty } from "../interpreter.js";
 import { sandboxNumber, sandboxString } from "../string-coercion.js";
@@ -40,9 +40,6 @@ export async function nextObservableRegExpIterator(iterator: SandboxRegExpIterat
   const state = regexpIteratorState(iterator);
   if (state.exhausted) return createIteratorResult(undefined, true, budget);
   const matcher = state.matcher;
-  if (isSandboxRegex(matcher) && !hasRegexPropertyOverride(matcher, ["exec"], budget) &&
-      (matcher.lastIndex === null || typeof matcher.lastIndex !== "object"))
-    return nextRegExpIterator(iterator, budget);
   const input = state.input!;
   let result: SandboxValue;
   let field: SandboxValue;

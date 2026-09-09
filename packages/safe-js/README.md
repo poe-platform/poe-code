@@ -631,6 +631,10 @@ retain the method's originating Object prototype, including exhausted results
 and borrowed SDK calls. Yielded values are not re-prototyped.
 RegExp iterator results follow the same rule for built-in and custom `exec`
 paths, including non-global matching. Custom match results retain identity.
+For `RegExp.prototype[Symbol.matchAll]` iterators, borrowed `next` calls
+distinguish the outer result's method realm from the match array's `exec`
+realm, including capture-index arrays.
+Default constructed matchers retain their RegExp prototype after cleanup.
 Object literals retain their originating prototype after cleanup and when
 created later by exported closures. Explicit null prototypes stay null;
 modified prototype chains reject lossy data copying. `Object.fromEntries`

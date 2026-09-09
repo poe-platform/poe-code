@@ -196,3 +196,42 @@ checks. Built SDK probes passed borrowed next calls through yield and
 repeated completion for all four built-in/custom, global/non-global modes.
 No visual CLI changes, push or release. A fresh full-package run is still
 needed after this series of fixes.
+
+## Borrowed RegExp next match-payload realms
+
+The built SDK and a native VM comparison disagreed for a borrowed next
+method: native match arrays used the matcher's exec realm, while SafeJS
+used the next method's realm. Four source regressions reproduced this for
+global/non-global matching, with and without indices. The outer result
+correctly used the next method's Object prototype in both implementations.
+
+Removing the observable iterator's exec-bypassing fast path was necessary
+but insufficient: all four regressions still failed. A fifth test showed
+that the default RegExp constructor did not retain the matcher's prototype
+after cleanup. Recording that link fixed the five tests. Controls verify
+third-realm callable exec uses that third realm, while non-callable exec
+falls back to the next method's realm.
+
+A further failing test exposed rejected pristine data copies for RegExp
+objects constructed after cleanup. The RegExp prototype lookup is now kept
+under its weak Budget key, like the existing Array and Date lookups;
+accounting roots are still released. This keeps default-link classification
+available to exported constructors without preserving accounting roots.
+
+These changes cover constructed matchers and observable iterator execution;
+they do not establish complete realm conformance for RegExp literals or every
+internal clone path. Iterator helpers and generator results remain pending.
+
+Built probes passed borrowed calls for RegExp symbol matchAll with `g` and
+`dg` and String.matchAll with a RegExp argument. A separate probe failed for
+String.matchAll with a string argument: its internal clone still lacks an
+originating prototype. That producer lives in methods/string.ts and is the
+next separate fix; it is not covered by the constructor fix.
+
+Final validation passed 4,373 tests across 157 RegExp and snapshot files,
+including the eight focused execution-realm and constructor regressions/
+controls. Scoped ESLint, package TypeScript and the maintained build passed
+(23 workspace builds and four fresh-process import checks). A separate built
+SDK probe verified data copying from an exported RegExp factory after
+cleanup. No visual CLI changes, push or release occurred. This is not a
+fresh full-package gate.

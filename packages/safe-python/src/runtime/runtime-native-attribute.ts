@@ -7,6 +7,8 @@ import { createRuntimeSetAlgebraMethod } from "./runtime-set-algebra-method.js";
 import { createRuntimeSetMutationMethod } from "./runtime-set-mutation-method.js";
 import { createRuntimeSetRelationMethod } from "./runtime-set-relation-method.js";
 import { createRuntimeListMethod } from "./runtime-list-method.js";
+import { createRuntimeListSortMethod } from "./runtime-list-sort-method.js";
+import type { ExpressionContext } from "./expression-evaluation.js";
 import { isRuntimeSet, type RuntimeValue, type RuntimeValues } from "./runtime-values.js";
 
 /** Default exact-value lookup. Only explicitly implemented Python members are
@@ -14,9 +16,10 @@ import { isRuntimeSet, type RuntimeValue, type RuntimeValues } from "./runtime-v
  * Custom object policies can replace this operation in expression bindings.
  * Type descriptors, inherited object members and native introspection remain
  * separate from these instance-bound container capabilities. */
-export function runtimeNativeAttribute(receiver: RuntimeValue, name: string, values: RuntimeValues, meter: ExecutionMeter): RuntimeValue {
+export function runtimeNativeAttribute(receiver: RuntimeValue, name: string, values: RuntimeValues, meter: ExecutionMeter, beginCall?: ExpressionContext<RuntimeValue>["beginCall"]): RuntimeValue {
   meter.checkpoint();
   if (receiver.kind === "list") {
+    if (name === "sort") return createRuntimeListSortMethod(receiver, values, meter, beginCall);
     switch (name) {
       case "append": case "extend": case "insert": case "pop": case "clear": case "reverse": case "copy": case "count": case "remove": case "index":
         return createRuntimeListMethod(receiver, name, values, meter);

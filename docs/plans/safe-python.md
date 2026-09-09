@@ -3899,6 +3899,24 @@ extension, integration, or validation requirement is missing or unverified.
   identical NaN lookup and bool/int equality. List sort binding, guest index
   slots, native descriptors/introspection, remaining builtins, suspension, full
   resource accounting and SDK/safe-fs integration remain pending.
+- Connected list.sort to default native lookup and the frame's existing call
+  capability. Guest key functions retain normal closure ownership, call binding
+  and depth policy. Sort validates keyword-only key/reverse options, performs
+  reverse truth conversion before hiding list contents, and skips key invocation
+  for an empty list. The storage lifecycle restores contents after failures,
+  discards temporary additions and reports mutation during key evaluation.
+  Capability cancellation is checked before publishing a key result.
+- Sort binding started with eight failing compiled-program tests. All 3,717
+  tests in 263 files pass, with scoped lint, source typecheck and selected workspace build.
+  A 1,800-program CPython audit matches returned values, stable ordering,
+  original-order key traces, temporary-empty observations, key failures,
+  argument errors and mutation state. A separate cancellation test verifies one
+  key invocation and no subsequent result publication. The 2,400-call list-method
+  regression audit passes. The existing sort kernel still differs from CPython's
+  exact comparison scheduling and partial
+  permutation on comparison failure; inconsistent comparators and NaN ordering
+  require further parity work. Full descriptors, guest ordering/truth slots,
+  remaining builtins, suspension, accounting and SDK/safe-fs remain unfinished.
 - Next:
   remaining scope/compiler audits, interpreter runtime,
   resource controls, runtime modules, and safe-fs integration. Parsing and static

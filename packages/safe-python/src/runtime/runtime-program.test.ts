@@ -32,6 +32,44 @@ function fixture(source: string, maxSteps = 100000, signal?: AbortSignal) {
 }
 
 describe("assembled concrete runtime programs", () => {
+  it.each(["False", "True", "None", "[]", "[1]"])("sorts stably with guest keys and reverse=%s", reverse => {
+    const state = fixture(`a = [(2, 0), (1, 1), (2, 2)]\ntrace = []\ndef key(x):\n trace.append((x, a.copy()))\n return x[0]\nresult = a.sort(key=key, reverse=${reverse})\n`);
+    state.hooks.expressions = () => ({ warn() {} }); state.run();
+    expect(state.globals.get("result")).toBe(state.values.none);
+    const a = state.globals.get("a"), trace = state.globals.get("trace");
+    if (a?.kind !== "list" || trace?.kind !== "list") throw new Error("expected lists");
+    const ids = a.items.snapshot().map(x => x.kind === "tuple" ? x.items[1] : x);
+    expect(ids).toEqual((reverse === "True" || reverse === "[1]" ? [0, 2, 1] : [1, 0, 2]).map(n => state.values.integer(n)));
+    expect(trace.items.length).toBe(3);
+    for (const entry of trace.items.snapshot()) {
+      if (entry.kind !== "tuple" || entry.items[1].kind !== "list") throw new Error("expected trace");
+      expect(entry.items[1].items.length).toBe(0);
+    }
+  });
+  it("restores the original list when a guest sort key fails", () => {
+    const state = fixture("a = [3, 1, 2]\ndef key(x):\n return 1 / 0\nresult = a.sort(key=key)\n");
+    state.hooks.expressions = () => ({ warn() {} }); expect(state.run).toThrow("division by zero");
+    const a = state.globals.get("a"); if (a?.kind !== "list") throw new Error("expected list");
+    expect(a.items.snapshot()).toEqual([3, 1, 2].map(n => state.values.integer(n))); expect(state.calls.depth).toBe(0);
+  });
+  it("detects mutation during a guest sort key and discards temporary additions", () => {
+    const state = fixture("a = [3, 1, 2]\ndef key(x):\n a.append(9)\n return x\na.sort(key=key)\n");
+    state.hooks.expressions = () => ({ warn() {} }); expect(state.run).toThrow("list modified during sort");
+    const a = state.globals.get("a"); if (a?.kind !== "list") throw new Error("expected list");
+    expect(a.items.snapshot()).toEqual([1, 2, 3].map(n => state.values.integer(n)));
+  });
+  it("does not call an invalid key for an empty sort", () => {
+    const state = fixture("a = []\nresult = a.sort(key=1)\n"); state.hooks.expressions = () => ({ warn() {} });
+    state.run(); expect(state.globals.get("result")).toBe(state.values.none);
+  });
+  it("stops after a sort-key capability cancels execution", () => {
+    const controller = new AbortController(), state = fixture("a = [2, 1]\nresult = a.sort(key=key)\nafter = 1\n", 100000, controller.signal);
+    let calls = 0;
+    state.hooks.expressions = () => ({ warn() {} });
+    state.builtins.set("key", state.values.builtinFunction({ name: "key", invoke() { calls++; controller.abort(); return state.values.true; } }));
+    expect(state.run).toThrow(ExecutionLimitError); expect(calls).toBe(1);
+    expect(state.globals.has("result")).toBe(false); expect(state.globals.has("after")).toBe(false); expect(state.calls.depth).toBe(0);
+  });
   it("uses native list methods through ordinary compiled calls", () => {
     const state = fixture("def f(a):\n a.append(3)\n a.extend(a)\n a.insert(-1, 9)\n a.remove(1)\n b = a.copy()\n b.reverse()\n return a.count(2), b.pop(), a\nresult = f([1, 2])\n");
     state.hooks.expressions = () => ({ warn() {} }); state.run();

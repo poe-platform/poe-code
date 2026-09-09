@@ -2,6 +2,7 @@ import type { Module, Statement } from "./statement-ast.js";
 import { PythonSyntaxError } from "./source.js";
 import { statementExpressions } from "./statement-expressions.js";
 import { validateExpressionContext, type ExpressionScope } from "./expression-context.js";
+import { annotationTargetExpressions } from "./annotation-targets.js";
 
 type Scope = ExpressionScope & { valueReturn?: Statement };
 
@@ -15,7 +16,9 @@ type Context = {
 export function validateControlFlow(module: Module, filename = "<string>"): void {
   function visit(statements: readonly Statement[], context: Context): void {
     for (const statement of statements) {
-      for (const expression of statementExpressions(statement, false)) validateExpressionContext(expression, context.scope, filename);
+      const expressions = statement.kind === "annotated-assignment" && statement.value === null
+        ? annotationTargetExpressions(statement.target, filename) : statementExpressions(statement, false);
+      for (const expression of expressions) validateExpressionContext(expression, context.scope, filename);
       const invalid = (message: string): PythonSyntaxError => new PythonSyntaxError(message, filename, statement.start);
       switch (statement.kind) {
         case "return":

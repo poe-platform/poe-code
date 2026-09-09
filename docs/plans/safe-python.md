@@ -1566,6 +1566,23 @@ extension, integration, or validation requirement is missing or unverified.
   Scoped lint, source typecheck and selected build passed. Guest storage/protocol
   semantics, complete frame allocation accounting and remaining full-interpreter
   integration are still pending.
+- Connected ordinary/annotated assignment execution to RHS evaluation and target
+  traversal. RHS values execute once before chained stores. Annotation expressions
+  remain absent/ignored; without an RHS, names do nothing, attributes evaluate only
+  their receiver, and subscriptions evaluate receiver/key expressions without a
+  store or outer key-tuple/slice construction. Nested key tuples flatten, while
+  slice bounds and list expressions execute normally. A shared iterative operand
+  enumerator supports runtime metering and static placement validation.
+- Assignment/annotation validation: missing-module red suite preceded execution
+  work. Current-code probes reproduced erroneous acceptance of valueless starred
+  keys before static validation was corrected; value-bearing annotations and stars
+  inside executable list/slice-bound/receiver expressions remain accepted.
+  All 2,035 tests in 101 files pass. CPython matched 1,800 generated annotated-target
+  cases with RHS presence, nested keys/slices/stars, failures, exact syntax errors,
+  store traces and ignored annotation expressions. A budget test covers deeply
+  nested empty keys that yield no expressions. Scoped lint, source typecheck and
+  selected build passed. Complete guest reference storage, frame-heap accounting,
+  suspension and remaining full-interpreter integration remain pending.
 - Next:
   remaining scope/compiler audits, interpreter runtime,
   resource controls, runtime modules, and safe-fs integration. Parsing and static

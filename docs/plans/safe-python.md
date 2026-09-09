@@ -2070,6 +2070,18 @@ extension, integration, or validation requirement is missing or unverified.
   Source typecheck, scoped lint and selected workspace build passed.
   Concrete slices, user-defined index conversion/subscription and complete host
   allocation accounting remain unfinished.
+- Added concrete immutable-sequence host iterators for strings, bytes and tuples,
+  connected to expression starred unpacking. String items preserve code points;
+  byte items are integers; tuple items retain their identities. Independent
+  positions, decreasing length hints, stable exhaustion and source-reference
+  release on observed exhaustion are explicit. Construction, next and length-hint
+  calls checkpoint the budget; output strings/integers use the constant factory.
+- Iterator validation: missing-module red tests preceded implementation. All 2,486
+  tests in 136 files pass; CPython matched 300 iterator traces with 4,950 next and
+  length-hint steps, including repeated exhaustion and surrogate strings. Source
+  typecheck, scoped lint and selected workspace build passed. Guest
+  iterator type objects, StopIteration conversion, special-method/legacy iteration
+  dispatch and full iterator/result-record heap accounting remain unfinished.
 - Next:
   remaining scope/compiler audits, interpreter runtime,
   resource controls, runtime modules, and safe-fs integration. Parsing and static

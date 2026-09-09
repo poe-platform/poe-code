@@ -5,6 +5,7 @@ import { constantUnary } from "./constant-unary.js";
 import { constantComparison } from "./constant-comparison.js";
 import { constantMembership } from "./constant-membership.js";
 import { constantIndex } from "./constant-index.js";
+import { ConstantIterator } from "./constant-iterator.js";
 import { ExecutionBudget, ExecutionLimitError } from "./execution-budget.js";
 import { evaluateExpression, type ExpressionContext } from "./expression-evaluation.js";
 import { parseExpression } from "../expression.js";
@@ -56,7 +57,7 @@ describe("concrete constant truth", () => {
       unary: (operator, value) => constantUnary(operator, value, { values: v, warn: unexpected }, meter),
       binary: unexpected, compare: (operator, left, right) => operator === "in" || operator === "not in" ? constantMembership(operator, left, right, v, meter) : constantComparison(operator, left, right, v, meter), attribute: unexpected, beginCall: unexpected,
       tuple: values => v.tuple(values), list: unexpected, beginSet: unexpected, beginDictionary: unexpected,
-      slice: unexpected, getItem: (object, key) => constantIndex(object, key, v, meter), iterate: unexpected
+      slice: unexpected, getItem: (object, key) => constantIndex(object, key, v, meter), iterate: value => new ConstantIterator(value, v, meter)
     };
     const run = (source: string) => evaluateExpression(parseExpression(source), context, meter);
     expect(run("not 0")).toBe(v.true);
@@ -69,6 +70,8 @@ describe("concrete constant truth", () => {
     expect(run("'😀x'[0] == '😀'")).toBe(v.true);
     expect(run("(None, True)[-1]")).toBe(v.true);
     expect(run("b'abc'[1] == 98")).toBe(v.true);
+    expect(run("(*'a😀',) == ('a', '😀')")).toBe(v.true);
+    expect(run("(*b'ab',) == (97, 98)")).toBe(v.true);
     expect(run("False and NotImplemented")).toBe(v.false);
     expect(run("True or NotImplemented")).toBe(v.true);
     expect(run("False or NotImplemented")).toBe(v.notImplemented);

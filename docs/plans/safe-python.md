@@ -3782,6 +3782,26 @@ extension, integration, or validation requirement is missing or unverified.
   and cancellation. Algebra-producing methods and their multi-source mutation
   forms, dictionary-view algebra, automatic descriptor/type installation,
   iterator parity, full accounting, suspension and SDK/safe-fs work are pending.
+- Added multi-source set/frozen-set union and intersection methods, plus mutable
+  intersection_update. Generic sources preserve native consumption, errors and
+  short-circuit tails; empty intersections still process later arguments. Union
+  skips original-receiver arguments without repeated equality work. Results are
+  fresh even for zero-argument frozen operations. Intersection-update computes
+  every stage before publication, preserving receiver identity and prior state
+  on failure without rolling back mutations performed by input callbacks.
+- Added a precharged, callback-free storage handoff that empties the private
+  source and permits subsequent independent reuse. Sealed storage and transfers
+  across hash-policy/execution-meter domains are rejected. A failing test caught
+  the missing meter-domain check before the handoff was finalized. Existing
+  in-place intersection shares this handoff and retains its self-cursor case.
+- Multi-source verification: missing methods were reproduced before implementation.
+  All 3,652 tests in 259 files pass, with scoped lint, source typecheck and selected workspace
+  build; the strengthened collision/self-union test also passes. A 2,400-case
+  CPython audit matches results, errors, identity and iterator remainders.
+  Regressions cover binary/in-place intersection (1,800) and mutable-set methods
+  (2,400). Difference/symmetric-difference methods and their mutation forms,
+  dictionary-view algebra, automatic method/type registration, iterator parity,
+  complete resource accounting, suspension and SDK/safe-fs work remain pending.
 - Next:
   remaining scope/compiler audits, interpreter runtime,
   resource controls, runtime modules, and safe-fs integration. Parsing and static

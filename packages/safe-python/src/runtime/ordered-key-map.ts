@@ -434,13 +434,29 @@ export class OrderedKeyMap<Key, Value> {
     // Preserve live cursors for the unchanged self-intersection. Still compute
     // the copy above so its resource checks precede successful completion.
     if (this === other) return;
-    this.meter.checkpoint(1 + this.#entries.size + result.#entries.size, 32 * result.#entries.size);
+    this.takeContents(result);
+  }
+
+  /** Consume private mutable storage from the same execution/hash domain. No key
+   * callbacks run during publication. Precharge all transfer work before the
+   * first write; emptied source storage can subsequently be reused independently. */
+  takeContents(source: OrderedKeyMap<Key, Value>): void {
+    this.meter.checkpoint();
     this.#assertWritable();
+    source.#assertWritable();
+    if (source === this) return;
+    if (this.operations !== source.operations || this.meter !== source.meter) throw new Error("cannot transfer keys across execution domains");
+    this.meter.checkpoint(1 + this.#entries.size + source.#entries.size * 2, 32 * source.#entries.size);
+    this.#assertWritable();
+    source.#assertWritable();
     this.#entries.clear();
     this.#buckets.clear();
-    for (const entry of result.#entries) this.#entries.add(entry);
-    for (const [hash, bucket] of result.#buckets) this.#buckets.set(hash, bucket);
-    this.#last = result.#last;
+    for (const entry of source.#entries) this.#entries.add(entry);
+    for (const [hash, bucket] of source.#buckets) this.#buckets.set(hash, bucket);
+    this.#last = source.#last;
+    source.#entries.clear();
+    source.#buckets.clear();
+    source.#last = undefined;
   }
 
   reversed<Result>(project: (key: Key, value: Value) => Result): OrderedMapReverseIterator<Key, Value, Result> {

@@ -2511,6 +2511,21 @@ extension, integration, or validation requirement is missing or unverified.
   Behavior was also checked against CPython 3.14 list_richcompare_impl. Guest
   recursive-comparison limits, reflected/type dispatch, finalizers and complete
   native allocation accounting remain unfinished.
+- Added a metered stable natural-merge sorting kernel for subsequent list.sort
+  and sorted integration. Source slots are captured before key callbacks; keys
+  are evaluated once in input order. Ascending/strict-descending runs have linear
+  detection; pairwise merging has O(n log n) worst-case work and O(n) temporary
+  slots. Equal-key identities retain order, including reverse sorting. Source
+  slots are not mutated on callback failure, and allocation/callback/merge work
+  is charged. Exact CPython powersort/galloping comparison scheduling is not
+  reproduced; inconsistent orderings and comparison-side effects may differ.
+- The sorting suite first failed on its missing module. After correcting a
+  parameterized-test argument shape, all 2,805 tests in 168 files pass. A
+  6,000-case CPython audit matched stable output and key-call order for four key
+  functions and both directions, with comparison-count bounds checked. Source
+  typecheck, scoped lint and selected workspace build passed. Full
+  list.sort temporary-empty/mutation/failure lifecycle, sorted iterable setup,
+  guest protocol wiring and complete native allocation accounting remain open.
 - Next:
   remaining scope/compiler audits, interpreter runtime,
   resource controls, runtime modules, and safe-fs integration. Parsing and static

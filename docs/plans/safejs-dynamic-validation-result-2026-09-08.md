@@ -1,5 +1,21 @@
 # Frozen dynamic-function candidate validation
 
+## Integrated follow-up verification
+
+Session 11849 is running the maintained SafeJS workspace build closure followed
+by its full unit route in the existing isolated checkout. The 1,163-file package
+snapshot exactly matches the current source, excluding node_modules, dist and
+coverage directories. Its sorted manifest digest is
+`65b50da011daf3bf1e298841d0a4e41ea543d501a6d9a28141a22e0edccfe2bd`.
+The copy and manifest check completed while prerequisite builds were running,
+before the SafeJS build began. Keep this candidate frozen through termination.
+
+This snapshot includes the later numeric-update and default-parameter eval
+repairs, the independently committed function/arguments/Array intrinsic changes,
+and the final host-version-independent Array descriptor tests. Experimental weak
+collections and both unresolved host-Promise property-import tests remain in
+scope. Builds and unit results are pending; no push or release is authorized.
+
 ## Latest eval-deletion verification
 
 Session 89782 completed with exit 1: 22,718 passed, two failed and 37 skipped

@@ -25,14 +25,14 @@ export function textPercentField<Value>(field: Extract<BoundPercentFormatEvent<V
     case 99: {
       const point = percentCharacter(field.argument, false, context, meter);
       meter.checkpoint(0, Uint32Array.BYTES_PER_ELEMENT);
-      storage = new CodePointString(Uint32Array.of(point), meter).formatField(field.width, null, field.flags.left, meter);
+      storage = new CodePointString(Uint32Array.of(point), meter).formatField(field.width, null, field.flags.left ? "left" : "right", 32, meter);
       break;
     }
     case 115: case 114: case 97: {
       const value = representationObject(field.argument, field.code === 115 ? "str" : field.code === 114 ? "repr" : "ascii", context, meter);
       const original = context.string(value); meter.checkpoint();
       if (original === undefined) throw new TypeError("representation context lost string storage");
-      storage = original.formatField(field.width, field.precision, field.flags.left, meter);
+      storage = original.formatField(field.width, field.precision, field.flags.left ? "left" : "right", 32, meter);
       if (storage === original) return value;
       break;
     }

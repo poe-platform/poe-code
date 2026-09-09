@@ -10,7 +10,7 @@ function fixture() {
   const meter = new ExecutionBudget({ maxSteps: 100000, maxAllocatedBytes: 1000000 }), v = new RuntimeValues(meter);
   const binding = createRuntimePercentBindingContext(v, meter);
   const text: PercentOutputContext<RuntimeValue, CodePointString> = { ...binding, convert(field) {
-    if (field.argument.kind === "str") return field.argument.value.formatField(field.width, field.precision, field.flags.left, meter);
+    if (field.argument.kind === "str") return field.argument.value.formatField(field.width, field.precision, field.flags.left ? "left" : "right", 32, meter);
     if (field.argument.kind === "int") return CodePointString.fromIntegerPercentField(field.argument.value, field, meter);
     throw new Error("unexpected test operand");
   } };

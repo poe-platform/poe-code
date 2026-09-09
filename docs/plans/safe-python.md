@@ -5554,6 +5554,20 @@ extension, integration, or validation requirement is missing or unverified.
   workspace build pass. Text/numeric format
   renderers, their native slots, default f-string wiring and the broader
   interpreter/SDK/safe-fs integration remain unfinished.
+- Added native string storage formatting with shared spec parsing, presentation
+  and flag diagnostic precedence, Unicode fill/alignment and precision truncation.
+  Generalized the existing text field kernel to fuse truncation and custom fill
+  into one owned allocation. Format centering puts odd extra padding on the right;
+  str.center's separate parity behavior is unchanged. Text percent callers retain
+  their existing left/right space padding. Fractional grouping syntax is accepted
+  but ignored by string rendering, matching CPython.
+- Five tests first failed on the missing renderer and expanded field API. All
+  4,634 tests in 388 files pass, including one-allocation centering coverage.
+  A 12,060-case CPython comparison matches string output code points and errors;
+  a further 5,018-case text-percent audit passes after the shared kernel change.
+  Typecheck, scoped lint and selected workspace build pass. This is a storage
+  renderer, not native str.__format__ registration or default f-string wiring;
+  those and numeric renderers remain pending with the wider interpreter work.
 - Next:
   remaining scope/compiler audits, interpreter runtime,
   resource controls, runtime modules, and safe-fs integration. Parsing and static

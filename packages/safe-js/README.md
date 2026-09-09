@@ -576,8 +576,10 @@ Public Proxy binding reads the prototype and own length descriptor through traps
 before reading length and name, including null prototypes and nested Proxies.
 Promise operations dispatch Proxy constructors, executors, reaction callbacks,
 callable thenable hooks, and overridden `then` methods used by `catch`/`finally`.
-These paths have native-comparison tests; Proxy-wrapped thenable objects and
-other host-boundary interactions still need auditing.
+Promise resolution also reads `then` through Proxy traps, preserving the receiver,
+read/call ordering, and rejection on trap errors or revocation. Nested and
+callable Proxies, callback/async returns, and checkpoint recovery have focused
+coverage. Other host-boundary interactions still need auditing.
 
 `Array.isArray` follows nested Proxy targets without invoking traps and rejects
 revoked proxies. Other internal array-identity consumers still need integration.

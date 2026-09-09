@@ -2,6 +2,7 @@ import { SandboxError, Budget } from "./budget.js";
 import { guestProxyStates } from "./guest-proxy.js";
 import { callGuestProxy } from "./guest-proxy-call.js";
 import { constructGuestProxy } from "./guest-proxy-construct.js";
+import { sandboxGetProperty } from "./guest-proxy-get.js";
 import { asyncFunctionHandlers } from "./async-function-driver.js";
 import { asyncGeneratorHandlers, rejectGeneratorQueue } from "./async-generator-driver.js";
 import { accessorAdapter, accessorClosure, readPropertyDescriptor } from "./accessors.js";
@@ -905,7 +906,7 @@ function resolveSandboxValueNow(
     );
   }
 
-  const then = getThenable(value, options.budget);
+  const then = getThenable(value, options.budget, options.context);
   if (then instanceof Promise) {
     let fulfill!: (value: SandboxValue | PromiseLike<SandboxValue>) => void;
     let reject!: (reason: unknown) => void;
@@ -1241,6 +1242,7 @@ function hasCustomPromiseThen(value: SandboxValue, budget?: Budget): boolean {
 
 export function requiresPromiseResolution(value: SandboxValue, budget?: Budget): boolean {
   if (isSandboxPromise(value)) return true;
+  if (typeof value === "object" && value !== null && guestProxyStates.has(value)) return true;
   const descriptor = getSandboxPropertyDescriptor(value, "then", budget);
   return (
     descriptor !== undefined && (!("value" in descriptor) || isSandboxClosure(descriptor.value))
@@ -1249,10 +1251,16 @@ export function requiresPromiseResolution(value: SandboxValue, budget?: Budget):
 
 function getThenable(
   value: SandboxValue,
-  budget?: Budget
+  budget?: Budget,
+  context?: SandboxCallContext
 ): SandboxClosure | undefined | Promise<SandboxClosure | undefined> {
   if (typeof value !== "object" || value === null) {
     return undefined;
+  }
+
+  if (guestProxyStates.has(value)) {
+    const then = sandboxGetProperty(value, "then", value, budget ?? new Budget(), context);
+    return Promise.resolve(then).then(method => isSandboxClosure(method) ? method : undefined);
   }
 
   const descriptor = getSandboxPropertyDescriptor(value, "then", budget);

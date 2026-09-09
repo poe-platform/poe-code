@@ -2742,6 +2742,16 @@ extension, integration, or validation requirement is missing or unverified.
   passed. Concrete slot dispatch, warning infrastructure, integration into
   builtin contexts, bounded diagnostic type-name formatting and full bigint/
   heap accounting remain open.
+- Corrected length-hint validation for negative __len__ payloads outside the
+  signed machine range: negativity takes precedence over overflow and prevents
+  hint fallback. Hint-result validation intentionally retains overflow-first
+  behavior. A CPython probe and two failing regression cases demonstrated the
+  mismatch before the check-order fix; four negative boundary regressions pass.
+- All 2,996 tests in 184 files pass. The existing 312-case CPython length-hint
+  audit and a new 120-case signed boundary audit both matched results/errors and
+  callback traces. Source typecheck, scoped lint and selected workspace build
+  passed. The planned reusable length-slot conversion and integration remain
+  open; this correction does not establish that broader protocol implementation.
 - Next:
   remaining scope/compiler audits, interpreter runtime,
   resource controls, runtime modules, and safe-fs integration. Parsing and static

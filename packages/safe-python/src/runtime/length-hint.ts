@@ -30,8 +30,8 @@ export function lengthHint<Value>(value: Value, context: LengthHintContext<Value
   catch (error) { if (!context.isTypeError(error)) throw error; }
   meter.checkpoint();
   if (length !== undefined) {
-    if (BigInt.asIntN(64, length) !== length) throw new PythonRuntimeError("OverflowError", "cannot fit 'int' into an index-sized integer");
     if (length < 0n) throw new PythonRuntimeError("ValueError", "__len__() should return >= 0");
+    if (BigInt.asIntN(64, length) !== length) throw new PythonRuntimeError("OverflowError", "cannot fit 'int' into an index-sized integer");
     return length;
   }
   const hint = context.lookupHint(value);

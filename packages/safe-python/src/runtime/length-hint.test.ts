@@ -56,6 +56,11 @@ describe("length hint protocol", () => {
     expect(() => lengthHint({}, { ...context, length: () => -1n }, budget())).toThrow(expect.objectContaining({ name: "ValueError" }));
     expect(() => lengthHint({}, { ...context, length: () => 1n << 100n }, budget())).toThrow(expect.objectContaining({ name: "OverflowError" }));
   });
+  it.each([-1n, -(1n << 63n), -(1n << 63n) - 1n, -(1n << 1000n)])("rejects negative length %s before overflow or hint fallback", length => {
+    expect(() => lengthHint({}, { ...context, length: () => length,
+      lookupHint: () => { throw new Error("unexpected hint fallback"); }
+    }, budget())).toThrow(expect.objectContaining({ name: "ValueError", message: "__len__() should return >= 0" }));
+  });
   it("preserves fatal execution limits instead of interpreting them as missing hints", () => {
     const failure = new ExecutionLimitError("steps");
     expect(() => lengthHint({}, { ...context, lookupHint: () => () => { throw failure; } }, budget())).toThrow(failure);

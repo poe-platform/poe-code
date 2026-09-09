@@ -305,11 +305,16 @@ export function createPromiseGlobals(options: { budget: Budget }): PromiseGlobal
         guest: true,
         name: "withResolvers",
         length: 0,
-        call: (_args, context) => createPromiseCapability(
-          context === undefined ? promiseConstructor : context.thisValue,
-          options.budget,
-          context
-        )
+        call: async (_args, context) => {
+          const capability = await createPromiseCapability(
+            context === undefined ? promiseConstructor : context.thisValue,
+            options.budget,
+            context
+          );
+          const prototype = getSandboxPrototype(capability, options.budget);
+          if (prototype !== null) setSandboxPrototype(capability, prototype, options.budget);
+          return capability;
+        }
       })
   };
   const promiseConstructor = createSandboxClosure({
@@ -693,6 +698,8 @@ async function settleIterable(
   const prototype = getPromisePrototype(budget);
   if (isSandboxPromise(capability.promise)) unrepresentedPromiseContinuations.add(capability.promise);
   const values: SandboxValue[] = [];
+  const valuesPrototype = getSandboxPrototype(values, budget);
+  if (valuesPrototype !== null) setSandboxPrototype(values, valuesPrototype, budget);
   const aggregate: PromiseAggregateState = {method, capability, values, remaining: 1, size: 0, iteration: "active"};
   promiseAggregateStates.set(aggregate, aggregate);
   let represented = true;
@@ -801,9 +808,12 @@ export function createPromiseAggregateHandler(entry: PromiseAggregateEntry, acti
       if (entry.called) return undefined;
       entry.called = true;
       const {method, values} = aggregate;
-      values[entry.index] = method === "allSettled"
-        ? action === "fulfilled" ? {status: action, value: settlement} : {status: action, reason: settlement}
-        : settlement;
+      if (method === "allSettled") {
+        const result = action === "fulfilled" ? {status: action, value: settlement} : {status: action, reason: settlement};
+        const prototype = getSandboxPrototype(result, budget);
+        if (prototype !== null) setSandboxPrototype(result, prototype, budget);
+        values[entry.index] = result;
+      } else values[entry.index] = settlement;
       aggregate.remaining--;
       await completePromiseAggregate(aggregate, budget, context);
       return undefined;

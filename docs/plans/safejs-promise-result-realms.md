@@ -214,3 +214,22 @@ local and creates its cleanup Promise with the method's budget. This is a
 separately validated gap, not covered by the instance-construction repair.
 Add a failing regression before changing the cleanup branch, including
 fulfillment/rejection preservation and overridden-then observability.
+Four such regressions now fail for the resolve/reject combinations of the
+original Promise and cleanup thenable. Final values/reasons match native;
+each native trace has three true observations versus SafeJS's one. The test
+file remains uncommitted for the next atomic fix.
+
+## Promise result-container implementation
+
+Aggregate result arrays now retain the method's originating Array prototype.
+Fresh allSettled fulfillment/rejection records and withResolvers capability
+objects retain the method's Object prototype. Only newly created containers
+are linked; payload values keep identity and custom/null prototypes.
+
+The seven original realm failures now pass. Expanded cross-realm contents,
+rejected-record, public replay, payload-identity and mutated-prototype copy
+checks pass with the existing Promise, capability and aggregate snapshot
+tests: 103 tests across seven files. Scoped lint, TypeScript, the maintained
+23-workspace build and four fresh-process import checks pass. Built-SDK probes
+verify all/any/allSettled arrays, settlement records and withResolvers objects.
+The earlier full-package and 1,700-snapshot gates predate this container change.

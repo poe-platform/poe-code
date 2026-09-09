@@ -641,6 +641,9 @@ Promise construction, async returns and `then` results retain their
 originating Promise prototype after cleanup.
 Borrowed `then`, `resolve` and `reject` calls respect a foreign intrinsic
 constructor instead of allocating in the method's realm.
+Promise aggregate arrays, `allSettled` records and `withResolvers` capability
+objects retain the method's originating prototypes, including public replay.
+Their payload values retain identity and custom prototypes.
 `Iterator.from` fallback return results retain the called method's Object
 prototype when the underlying return method is absent or null. Custom next
 and return results are forwarded unchanged.

@@ -168,12 +168,12 @@ export function evaluateExpression<Value>(expression: Expression, context: Expre
         const nextChunk = () => {
           const entry = node.entries[index];
           if (entry === undefined) {
-            if (dictionary === undefined) { dictionary = context.beginDictionary([]); work.push(nextChunk); }
+            if (dictionary === undefined) { meter.checkpoint(0, 32); dictionary = context.beginDictionary([]); work.push(nextChunk); }
             else { value = dictionary.finish(); knownTruth = undefined; }
             return;
           }
           if (entry.kind === "mapping") {
-            if (dictionary === undefined) { dictionary = context.beginDictionary([]); work.push(nextChunk); return; }
+            if (dictionary === undefined) { meter.checkpoint(0, 32); dictionary = context.beginDictionary([]); work.push(nextChunk); return; }
             index++;
             work.push(() => { dictionary!.update(value); work.push(nextChunk); }, { node: entry.value, test: "value" });
             return;
@@ -188,7 +188,7 @@ export function evaluateExpression<Value>(expression: Expression, context: Expre
           meter.checkpoint(0, 32);
           const pending: (readonly [Value, Value])[] = [];
           let group: ExpressionDictionary<Value> | undefined;
-          if (end - index > 15) { meter.checkpoint(); group = context.beginDictionary([]); }
+          if (end - index > 15) { meter.checkpoint(1, 32); group = context.beginDictionary([]); }
           index = end;
           const finishGroup = () => {
             if (dictionary === undefined) { dictionary = group!; work.push(nextChunk); }
@@ -276,6 +276,7 @@ export function evaluateExpression<Value>(expression: Expression, context: Expre
               return;
             }
             if (item.kind === "slice") {
+              meter.checkpoint(0, 120);
               const parts: { lower?: Value; upper?: Value; step?: Value } = {};
               const fields = ["lower", "upper", "step"] as const;
               let part = 0;

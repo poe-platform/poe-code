@@ -45,6 +45,16 @@ function environment(initial: ReadonlyMap<string, Value> = new Map()) {
 const budget = () => new ExecutionBudget({ maxSteps: 1000000, maxAllocatedBytes: 1000000 });
 
 describe("expression execution order", () => {
+  it.each([["{}", 0], ["{**x}", 0], ["x[1:2]", 32]] as const)("charges empty dictionary and slice temporaries before callbacks: %s", (source, maxAllocatedBytes) => {
+    const { context } = environment(new Map([["x", 1n]]));
+    let callbacks = 0;
+    context.beginDictionary = () => { callbacks++; return { set() {}, update() {}, finish: () => null }; };
+    context.slice = () => { callbacks++; return null; };
+    context.getItem = () => null;
+    const meter = new ExecutionBudget({ maxSteps: 1000, maxAllocatedBytes });
+    expect(() => evaluateExpression(parseExpression(source), context, meter)).toThrow("execution allocation limit exceeded");
+    expect(callbacks).toBe(0);
+  });
   it.each(["literal", "load", "binary", "list", "truth"])("observes cancellation from the terminal %s callback", hook => {
     const controller = new AbortController(), { context } = environment(new Map([["x", 1n]]));
     let source = "x";

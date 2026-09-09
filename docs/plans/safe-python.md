@@ -6214,6 +6214,15 @@ extension, integration, or validation requirement is missing or unverified.
   test retains its depth with an explicit budget covering its frames. Typecheck, scoped lint
   and selected workspace build pass. Remaining continuation/temporary allocation
   accounting and broad guest-object/interpreter/SDK/safe-fs integration are open.
+- Charged empty dictionary seed arrays across empty/mapping/incremental-build
+  paths and the slice-bound record/field list before creating them. Allocation
+  failure therefore precedes dictionary construction or slice-bound callbacks.
+- Three tests first exposed missing seed charges and a slice callback running
+  before its temporary allocation failure. All 4,904 tests in 426 files pass.
+  CPython comparisons retain 260 string-selection identity cases and 4,176
+  substring-method identity cases. Typecheck, scoped lint and selected workspace
+  build pass. Continuation allocations and broader interpreter/object/SDK/safe-fs
+  integration remain unfinished.
 - Next:
   remaining scope/compiler audits, interpreter runtime,
   resource controls, runtime modules, and safe-fs integration. Parsing and static

@@ -13,10 +13,13 @@ import {
   updateKeyedCollectionCallbacks
 } from "./collection-callback.js";
 import { createSandboxCollectionIterator } from "../collection-iterator.js";
+import { retainValues } from "../resources.js";
 
 export type MapMethodName =
   | "get"
   | "set"
+  | "getOrInsert"
+  | "getOrInsertComputed"
   | "has"
   | "delete"
   | "clear"
@@ -38,6 +41,8 @@ export type MapMethodOptions = {
 export const mapMethodNames = new Set<MapMethodName>([
   "get",
   "set",
+  "getOrInsert",
+  "getOrInsertComputed",
   "has",
   "delete",
   "clear",
@@ -85,6 +90,28 @@ export async function callMapMethod(
   switch (methodName) {
     case "get":
       return target.entries.get(args[0]);
+    case "getOrInsert":
+    case "getOrInsertComputed": {
+      const callback = args[1];
+      if (methodName === "getOrInsertComputed" && !isSandboxClosure(callback))
+        throw new TypeError("Map.prototype.getOrInsertComputed requires a callback function.");
+      const key = args[0] === 0 ? 0 : args[0];
+      if (target.entries.has(key)) return target.entries.get(key);
+      let value: SandboxValue = args[1];
+      const release = retainValues(options.budget, () => [target, key, callback, value]);
+      try {
+        if (methodName === "getOrInsertComputed")
+          value = await options.callClosure(callback as SandboxClosure, [key], stack);
+        // The callback can create, delete or replace this key. Update the live
+        // entry in place, preserving its current insertion order.
+        assertCollectionMutable(target);
+        const exists = target.entries.has(key);
+        options.budget.allocateCollectionEntries(target.entries.size + (exists ? 0 : 1));
+        if (!exists) updateKeyedCollectionCallbacks(target, "add", key);
+        target.entries.set(key, value);
+        return value;
+      } finally { release(); }
+    }
     case "set": {
       assertCollectionMutable(target);
       const exists = target.entries.has(args[0]);

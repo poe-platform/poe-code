@@ -912,6 +912,12 @@ separates current API presence from behavioral, recovery and validation gaps.
 It includes newer native APIs that are still proposals; matching a native
 property list is not proof of JavaScript conformance.
 
+The unreleased runtime also provides `Map.prototype.getOrInsert(key, value)`
+and `getOrInsertComputed(key, callback)`. These newer compatibility methods
+preserve existing values and use collection budgets for insertions; computed
+defaults run only for missing keys. The corresponding WeakMap methods remain
+unimplemented. See the [validation record](../../docs/plans/safejs-map-upsert.md).
+
 The unreleased runtime supports `Atomics` integer operations on ordinary
 ArrayBuffer-backed typed arrays, including BigInt views. Experimental,
 shared-memory work adds fixed/growable `SharedArrayBuffer`, typed

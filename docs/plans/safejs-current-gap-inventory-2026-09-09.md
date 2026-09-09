@@ -27,7 +27,8 @@ It does not compare inherited typed-array methods or anonymous intrinsics.
 | Temporal.Instant | until/since now present; toLocaleString and toZonedDateTimeISO absent | Partial, uncommitted implementation |
 | Temporal.Duration | compare, round and total absent | Partial, uncommitted implementation |
 | Temporal.PlainDate, PlainTime, PlainDateTime, PlainYearMonth, PlainMonthDay, ZonedDateTime, Now | Absent | Remaining Temporal implementation work |
-| Map.prototype and WeakMap.prototype | getOrInsert and getOrInsertComputed absent | Newer native compatibility gap; classify separately from finalized requirements |
+| Map.prototype | getOrInsert and getOrInsertComputed were absent in probe 302398; subsequently implemented locally | See [focused qualification](safejs-map-upsert.md); newer compatibility work, not a full conformance claim |
+| WeakMap.prototype | getOrInsert and getOrInsertComputed absent | Newer native compatibility gap; classify separately from finalized requirements |
 | RegExp constructor | Native legacy capture/context properties absent | Compatibility difference requiring standards classification before a fix |
 | Error constructor | Native captureStackTrace, prepareStackTrace and stackTraceLimit absent | Engine-specific compatibility surface, not automatic proof of a language defect |
 

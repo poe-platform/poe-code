@@ -11,7 +11,8 @@ import { createSandboxClosure, isSandboxMap, isSandboxSet, type SandboxClosure, 
 
 export function installCollectionPrototypes(budget: Budget, mapConstructor: SandboxClosure, setConstructor: SandboxClosure): void {
   const mapMethods = Object.fromEntries([...mapMethodNames].map(name => [name, createSandboxClosure({
-    guest: true, sandbox: true, name, length: Map.prototype[name].length,
+    guest: true, sandbox: true, name,
+    length: name === "getOrInsert" || name === "getOrInsertComputed" ? 2 : Map.prototype[name].length,
     call: (args, context) => {
       const receiver = context?.thisValue;
       if (!isSandboxMap(receiver)) throw new TypeError(`Map.prototype.${name} requires a Map receiver.`);

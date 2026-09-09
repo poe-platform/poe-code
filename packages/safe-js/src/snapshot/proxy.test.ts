@@ -13,6 +13,7 @@ import { serialize, type RuntimeSnapshotValue } from "./serialize.js";
 import { restore as restoreGraph } from "./restore.js";
 
 it.each([
+  'const p={x:7};Object.defineProperty(p,"then",{get:new Proxy(function(){return resolve=>resolve(this.x)}, {})});await 0;return await Promise.resolve(p)',
   'const proto=new Proxy({then(resolve){resolve(this.x)}},{});const p=Object.create(proto);p.x=7;await 0;return await Promise.resolve(p)',
   'const p=new Proxy({then(resolve){resolve(3)}},{});await 0;return await Promise.resolve(p)',
   'const f=new Proxy(x=>x+1,{});await 0;return await Promise.resolve(1).then(f)',

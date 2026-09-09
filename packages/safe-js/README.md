@@ -581,6 +581,8 @@ read/call ordering, and rejection on trap errors or revocation. Nested and
 callable Proxies, callback/async returns, and checkpoint recovery have focused
 coverage. Inherited `then` lookup also reaches Proxy ancestors with the original
 receiver; an own `then` property stops lookup before a revoked Proxy ancestor.
+Proxy-valued `then` getters retain guest call context, including inherited and
+nested getters, thrown trap errors, and checkpoint recovery.
 Other host-boundary interactions still need auditing.
 
 `Array.isArray` follows nested Proxy targets without invoking traps and rejects

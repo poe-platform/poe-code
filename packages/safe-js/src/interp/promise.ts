@@ -1270,8 +1270,10 @@ function getThenable(
     if (getter === undefined) return undefined;
     const result =
       budget === undefined
-        ? getter.call([], { stack: [], thisValue: value })
-        : callPromiseClosure(getter, [], value, budget);
+        ? guestProxyStates.has(getter)
+          ? callGuestProxy(getter, [], new Budget(), context, value)
+          : getter.call([], { stack: [], thisValue: value })
+        : callPromiseClosure(getter, [], value, budget, context);
     return Promise.resolve(result).then((then) => (isSandboxClosure(then) ? then : undefined));
   }
   const then = descriptor?.value;

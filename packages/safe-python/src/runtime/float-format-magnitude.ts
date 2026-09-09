@@ -5,8 +5,9 @@ import { floatPercentMagnitude } from "./float-percent-magnitude.js";
 import { floatRepresentation } from "./float-representation.js";
 
 /** Rounded unsigned modern float text plus its post-rounding sign. Width,
- * grouping and locale presentation are separate layout responsibilities. */
-export function floatFormatMagnitude(value: number, field: Pick<FormatSpec, "type" | "precision" | "alternate" | "noNegativeZero">, meter: ExecutionMeter): Readonly<{ magnitude: string; negative: boolean }> {
+ * grouping and locale presentation are separate layout responsibilities.
+ * Complex components disable omitted-type addDotZero spelling. */
+export function floatFormatMagnitude(value: number, field: Pick<FormatSpec, "type" | "precision" | "alternate" | "noNegativeZero">, meter: ExecutionMeter, addDotZero = true): Readonly<{ magnitude: string; negative: boolean }> {
   meter.checkpoint(1, 128);
   const { type, precision, alternate } = field;
   if (precision !== null && precision > 2147483647n) throw new PythonRuntimeError("ValueError", "precision too big");
@@ -16,13 +17,14 @@ export function floatFormatMagnitude(value: number, field: Pick<FormatSpec, "typ
   let magnitude: string;
   if (type === 0 && precision === null) {
     magnitude = floatRepresentation(Math.abs(scaled), meter);
+    if (!addDotZero && magnitude.endsWith(".0")) magnitude = magnitude.slice(0, alternate ? -1 : -2);
     if (alternate && Number.isFinite(scaled) && !magnitude.includes(".")) {
       const exponent = magnitude.indexOf("e");
       meter.checkpoint(1, 32 + (magnitude.length + 1) * 2);
       magnitude = exponent < 0 ? magnitude + "." : magnitude.slice(0, exponent) + "." + magnitude.slice(exponent);
     }
   } else {
-    magnitude = floatPercentMagnitude(Math.abs(scaled), type === 0 ? 103 : type === 37 ? 102 : type, precision, alternate, meter, type === 0);
+    magnitude = floatPercentMagnitude(Math.abs(scaled), type === 0 ? 103 : type === 37 ? 102 : type, precision, alternate, meter, type === 0 && addDotZero);
   }
   let negative = scaled < 0 || Object.is(scaled, -0);
   if (negative && field.noNegativeZero && Number.isFinite(scaled)) {

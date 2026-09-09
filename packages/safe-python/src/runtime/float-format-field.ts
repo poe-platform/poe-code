@@ -5,9 +5,9 @@ import { floatFormatMagnitude } from "./float-format-magnitude.js";
 /** One owned numeric field buffer. Integer grouping counts from the right;
  * fractional grouping counts from the decimal point, excluding any suffix.
  * Only sign-aware zero padding on actual digits participates in grouping. */
-export function renderFloatFormatBuffer(value: number, field: FormatSpec, meter: ExecutionMeter): Uint32Array {
+export function renderFloatFormatBuffer(value: number, field: FormatSpec, meter: ExecutionMeter, addDotZero = true): Uint32Array {
   meter.checkpoint(1, 256);
-  const { magnitude, negative } = floatFormatMagnitude(value, field, meter);
+  const { magnitude, negative } = floatFormatMagnitude(value, field, meter, addDotZero);
   const sign = negative ? 45 : field.sign === "+" ? 43 : field.sign === " " ? 32 : 0;
   let integral = 0;
   while (integral < magnitude.length) {

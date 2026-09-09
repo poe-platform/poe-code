@@ -5670,6 +5670,19 @@ extension, integration, or validation requirement is missing or unverified.
   including rounding above 2**53 and large-integer overflow. Typecheck, scoped lint and selected
   workspace build pass. Locale-aware n, nonempty complex formats, guest subclass
   behavior and broader interpreter/SDK/safe-fs integration remain unfinished.
+- Added complex field composition for omitted type and e/E/f/F/g/G. Components
+  reuse float rounding/grouping with complex omitted-type spelling (no forced
+  .0 and ordinary general-notation threshold); the combined number gets padding.
+  Positive-zero real omission and parentheses are decided before rounding/z.
+  Precision bounds precede forbidden zero-fill and equals-alignment diagnostics.
+  Two temporary component buffers feed one preflighted final output buffer.
+- Five tests first failed on the missing renderer. All 4,669 tests in 394 files
+  pass. An 18,000-case CPython complex audit checks component signs, zero omission,
+  grouping, padding and diagnostics across sampled binary64 pairs; the existing
+  18,000-case float field audit also passes after sharing the spelling policy.
+  Typecheck, scoped lint and selected workspace build pass. Native complex
+  dispatch, locale-aware presentation, guest subclasses and broader interpreter/
+  SDK/safe-fs integration remain unfinished.
 - Next:
   remaining scope/compiler audits, interpreter runtime,
   resource controls, runtime modules, and safe-fs integration. Parsing and static

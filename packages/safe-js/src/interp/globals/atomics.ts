@@ -1,7 +1,9 @@
 import type { Budget } from "../budget.js";
 import { registerBuiltinIdentities } from "../intrinsics.js";
 import { createIntrinsicObject, registerIntrinsicFunction, registerIntrinsicObject } from "../object-model.js";
-import { retainValues } from "../resources.js";
+import { retainValues, runResources } from "../resources.js";
+import { waitForAtomicValue } from "../atomic-wait.js";
+import { promiseReplayContext } from "../promise-replay.js";
 import { sandboxNumber } from "../string-coercion.js";
 import { isNumericTypedArray, typedArrayStorage } from "../typed-array.js";
 import { allocateProducedSandboxValue, createSandboxClosure, type SandboxObject } from "../values.js";
@@ -55,11 +57,14 @@ export function createAtomicsGlobal(budget: Budget): SandboxObject {
             const timeout=await sandboxNumber(args[3],budget,context);
             // SafeJS runs on a host event-loop agent that cannot suspend.
             if (name === "wait") throw new TypeError("The sandbox agent cannot block in Atomics.wait.");
-            const pending=Reflect.apply(method,Atomics,[view,index,expected,timeout]) as
-              {async:false;value:string}|{async:true;value:Promise<string>};
+            const pending=await waitForAtomicValue(view as Int32Array | BigInt64Array,index,expected,timeout,budget);
             if (!pending.async) return allocateProducedSandboxValue({async:false,value:pending.value},budget);
             const capability=createPendingPromiseCapability(budget,context);
-            void pending.value.then(value=>capability.resolve.call([value]));
+            const signal=runResources.getStore()?.signal;
+            void pending.value.then(
+              value=>{if (!signal?.aborted) return capability.resolve.call([value]);},
+              reason=>{if (!signal?.aborted) return capability.reject.call([reason]);}
+            ).catch(error=>{if (!signal?.aborted) promiseReplayContext.getStore()?.fail(error);});
             return allocateProducedSandboxValue({async:true,value:capability.promise},budget);
           }
           for (let offset = 2; offset < method.length; offset++) {

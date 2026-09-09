@@ -847,7 +847,11 @@ shared-memory work adds fixed/growable `SharedArrayBuffer`, typed
 array and DataView aliases, shared structured cloning, and `waitAsync`/`notify`.
 Focused tests cover direct shared-buffer snapshot and replay-data round-trips,
 including shared growth and distinct wrapper identities. Host-boundary transport
-and abandoned-wait cleanup remain under review. Focused async-wait tests cover
+remains under review. Pending waits inside a run now use a per-run Node worker;
+run completion or cancellation awaits worker termination, removing that run's
+native wait registrations without notifying unrelated waiters. Standalone
+intrinsic calls without a run lifecycle retain native waiter lifetime.
+Focused async-wait tests cover
 timeouts, notification order, await cancellation, and pending source replay;
 they do not establish direct restoration of live waiter continuations or
 deterministic timeout replay;

@@ -4,9 +4,9 @@ import { ListStorage } from "./list-storage.js";
 import { runtimeSizeIndex } from "./runtime-size-index.js";
 import type { BuiltinFunctionValue, RuntimeValue, RuntimeValues } from "./runtime-values.js";
 
-/** Exact str split binding. Guest index slots and string subclasses remain
+/** Exact str/bytes split binding. Guest index slots and subclasses remain
  * object-protocol work; integer limits match the signed-size sequence model. */
-export function createRuntimeStringSplitMethod(receiver: Extract<RuntimeValue, { kind: "str" }>, name: "split" | "rsplit", values: RuntimeValues, meter: ExecutionMeter): BuiltinFunctionValue {
+export function createRuntimeSplitMethod(receiver: Extract<RuntimeValue, { kind: "str" | "bytes" }>, name: "split" | "rsplit", values: RuntimeValues, meter: ExecutionMeter): BuiltinFunctionValue {
   meter.checkpoint(1, 64);
   return values.builtinFunction({
     name,
@@ -25,6 +25,16 @@ export function createRuntimeStringSplitMethod(receiver: Extract<RuntimeValue, {
         if (label === "sep") separator = value; else limit = value;
       }
       const maxsplit = limit === undefined ? -1n : runtimeSizeIndex(limit, meter);
+      if (receiver.kind === "bytes") {
+        if (separator.kind !== "none" && separator.kind !== "bytes") throw new PythonRuntimeError("TypeError", `a bytes-like object is required, not '${separator.kind === "not-implemented" ? "NotImplementedType" : separator.kind}'`);
+        const reverse = name === "rsplit", result = new ListStorage<RuntimeValue>([], meter);
+        for (const part of receiver.value.split(separator.kind === "none" ? null : separator.value, maxsplit, reverse, meter)) {
+          meter.checkpoint();
+          result.append(part === receiver.value ? receiver : values.bytes(part));
+        }
+        if (reverse) result.reverse();
+        return values.list(result);
+      }
       if (separator.kind !== "none" && separator.kind !== "str") throw new PythonRuntimeError("TypeError", `must be str or None, not ${separator.kind === "not-implemented" ? "NotImplementedType" : separator.kind}`);
       const reverse = name === "rsplit", result = new ListStorage<RuntimeValue>([], meter);
       for (const part of receiver.value.split(separator.kind === "none" ? null : separator.value, maxsplit, reverse, meter)) {

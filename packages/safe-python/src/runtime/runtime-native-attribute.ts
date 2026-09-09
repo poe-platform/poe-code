@@ -16,7 +16,7 @@ import { createRuntimeStringCutMethod } from "./runtime-string-cut-method.js";
 import { createRuntimeStringJoinMethod } from "./runtime-string-join-method.js";
 import { createRuntimeStringStripMethod } from "./runtime-string-strip-method.js";
 import { createRuntimeSplitlinesMethod } from "./runtime-splitlines-method.js";
-import { createRuntimeStringSplitMethod } from "./runtime-string-split-method.js";
+import { createRuntimeSplitMethod } from "./runtime-split-method.js";
 import { createRuntimeStringReplaceMethod } from "./runtime-string-replace-method.js";
 import { createRuntimeBytesReplaceMethod } from "./runtime-bytes-replace-method.js";
 import { createRuntimePadMethod } from "./runtime-pad-method.js";
@@ -41,6 +41,7 @@ import { isRuntimeSet, type RuntimeValue, type RuntimeValues } from "./runtime-v
 export function runtimeNativeAttribute(receiver: RuntimeValue, name: string, values: RuntimeValues, meter: ExecutionMeter, beginCall?: ExpressionContext<RuntimeValue>["beginCall"]): RuntimeValue {
   meter.checkpoint();
   if ((receiver.kind === "str" || receiver.kind === "bytes") && name === "splitlines") return createRuntimeSplitlinesMethod(receiver, values, meter);
+  if ((receiver.kind === "str" || receiver.kind === "bytes") && (name === "split" || name === "rsplit")) return createRuntimeSplitMethod(receiver, name, values, meter);
   if ((receiver.kind === "str" || receiver.kind === "bytes") && name === "expandtabs") return createRuntimeExpandtabsMethod(receiver, values, meter);
   if ((receiver.kind === "str" || receiver.kind === "bytes") && (name === "center" || name === "ljust" || name === "rjust" || name === "zfill")) return createRuntimePadMethod(receiver, name, values, meter);
   if (receiver.kind === "bytes") {
@@ -65,7 +66,6 @@ export function runtimeNativeAttribute(receiver: RuntimeValue, name: string, val
         return createRuntimeStringClassificationMethod(receiver, name, values, meter);
     }
     if (name === "replace") return createRuntimeStringReplaceMethod(receiver, values, meter);
-    if (name === "split" || name === "rsplit") return createRuntimeStringSplitMethod(receiver, name, values, meter);
     if (name === "strip" || name === "lstrip" || name === "rstrip") return createRuntimeStringStripMethod(receiver, name, values, meter);
     if (name === "join") return createRuntimeStringJoinMethod(receiver, values, meter);
     if (name === "removeprefix" || name === "removesuffix" || name === "partition" || name === "rpartition") return createRuntimeStringCutMethod(receiver, name, values, meter);

@@ -4379,6 +4379,19 @@ extension, integration, or validation requirement is missing or unverified.
   regression, scoped lint, source typecheck and selected workspace build also
   pass. Remaining methods, buffer protocols, native builtins,
   suspension, full accounting and SDK/safe-fs remain unfinished.
+- Connected bytes.split/rsplit with shared text/byte argument binding, metered
+  directional KMP scans for explicit separators and ASCII-only whitespace
+  scanning. Results preserve forward order after reverse scans. Unsplit byte
+  receivers retain identity; zero-limit whitespace remainders copy and partial
+  empty/single-byte results use canonical construction.
+- Eight native tests first reproduced missing support. All 4,104 tests in 307
+  files pass, covering reverse overlaps, whitespace remainders, keyword errors,
+  maxsplit validation precedence and scan budgets. A 6,880-call compiled CPython
+  audit matches byte values, receiver/cache identity and diagnostics; 19,050
+  exhaustive short-pattern splits, 3,038 string regression calls, scoped lint,
+  source typecheck and selected workspace build pass. Remaining methods,
+  buffer protocols, native builtins, suspension, full accounting and SDK/safe-fs
+  remain unfinished.
 - Next:
   remaining scope/compiler audits, interpreter runtime,
   resource controls, runtime modules, and safe-fs integration. Parsing and static

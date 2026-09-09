@@ -176,6 +176,48 @@ export class ImmutableBytes implements Iterable<number> {
     return new ImmutableBytes(bytes);
   }
 
+  /** Emit pieces in scan order; the runtime reverses right-to-left results.
+   * A zero-limit whitespace remainder is copied even when it spans the input. */
+  *split(separator: ImmutableBytes | null, maxsplit: bigint, reverse: boolean, meter: ExecutionMeter): IterableIterator<ImmutableBytes> {
+    meter.checkpoint(1, 64);
+    let remaining = maxsplit < 0n ? BigInt(this.length) + 1n : maxsplit;
+    if (separator !== null) {
+      if (separator.length === 0) throw new PythonRuntimeError("ValueError", "empty separator");
+      let boundary = reverse ? this.length : 0;
+      if (remaining !== 0n) for (const index of substringMatches(this.#bytes, separator.#bytes, reverse, meter)) {
+        yield this.slice(BigInt(reverse ? index + separator.length : boundary), BigInt(reverse ? boundary : index), null, meter);
+        boundary = reverse ? index : index + separator.length;
+        if (--remaining === 0n) break;
+      }
+      const start = reverse ? 0 : boundary, stop = reverse ? boundary : this.length;
+      yield start === 0 && stop === this.length ? this : this.slice(BigInt(start), BigInt(stop), null, meter);
+      return;
+    }
+    const step = reverse ? -1 : 1;
+    let index = reverse ? this.length - 1 : 0;
+    while (index >= 0 && index < this.length) {
+      while (index >= 0 && index < this.length) {
+        meter.checkpoint();
+        if (!isAsciiWhitespace(this.#bytes[index])) break;
+        index += step;
+      }
+      if (index < 0 || index >= this.length) return;
+      const start = index;
+      if (remaining === 0n) {
+        yield this.slice(BigInt(reverse ? 0 : start), BigInt(reverse ? start + 1 : this.length), null, meter);
+        return;
+      }
+      while (index >= 0 && index < this.length) {
+        meter.checkpoint();
+        if (isAsciiWhitespace(this.#bytes[index])) break;
+        index += step;
+      }
+      const begin = reverse ? index + 1 : start, stop = reverse ? start + 1 : index;
+      yield begin === 0 && stop === this.length ? this : this.slice(BigInt(begin), BigInt(stop), null, meter);
+      remaining--;
+    }
+  }
+
   concat(other: ImmutableBytes, meter: ExecutionMeter): ImmutableBytes {
     meter.checkpoint();
     if (this.length === 0) return other;

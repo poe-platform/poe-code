@@ -1082,6 +1082,24 @@ extension, integration, or validation requirement is missing or unverified.
   https://docs.python.org/3/reference/datamodel.html#determining-the-appropriate-metaclass .
   Base-entry resolution, namespace preparation/execution, metaclass invocation,
   class object construction, descriptors, and interpreter execution remain pending.
+- Added default instance-attribute descriptor precedence and mutation dispatch.
+  Data getters precede instance storage; non-data getters follow it; setter/deleter-
+  only descriptors do not override stored values on reads. Instance-held descriptor
+  objects are returned without binding. Assignment/deletion dispatch through data
+  descriptors, including AttributeError for a missing corresponding mutation slot.
+  Lookup results distinguish absence from every possible stored value, and getter
+  failures propagate without dictionary fallback. Dispatch is metered before calls.
+- Descriptor validation: the suite failed on the missing module before implementation;
+  all 1,700 package tests pass, including 15 precedence/dispatch cases. Comparisons
+  against CPython's default object attribute operations matched 324 combinations
+  of absent/callable/non-callable slots, class and instance presence, and get/set/
+  delete behavior. Another 192 dispatch budget cases passed. Scoped lint, source
+  typecheck, and the selected dependency build passed. Reference:
+  https://docs.python.org/3/howto/descriptor.html . The caller must perform class-MRO
+  lookup and resolve slots on the descriptor type; callbacks remain owned/metered
+  by the eventual guest execution engine. Class objects, guest dictionaries/slots,
+  override dispatch, __getattr__, class/super lookup and interpreter wiring remain
+  pending. This dispatch kernel alone does not execute guest class definitions.
 - Next:
   remaining scope/compiler audits, interpreter runtime,
   resource controls, runtime modules, and safe-fs integration. Parsing and static

@@ -596,6 +596,8 @@ factories, iterator objects, and methods through guest operations. Wrappers cach
 `next`, read `return` lazily, and preserve iterator receivers and revocation checks.
 SDK Iterator subclass construction observes Proxy `newTarget.prototype` reads,
 including nested/accessor-backed traps, and rejects revoked constructor targets.
+SDK iterator disposal observes Proxy `return` lookup and invocation with the
+original receiver, including inherited accessors and revoked methods.
 Public Proxy binding reads the prototype and own length descriptor through traps
 before reading length and name, including null prototypes and nested Proxies.
 Promise operations dispatch Proxy constructors, executors, reaction callbacks,

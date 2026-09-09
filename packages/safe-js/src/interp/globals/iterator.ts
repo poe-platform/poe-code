@@ -1,12 +1,12 @@
 import type { Budget } from "../budget.js";
-import { accessorAdapter, readPropertyDescriptor } from "../accessors.js";
+import { accessorAdapter } from "../accessors.js";
 import { createDataCheckpoint } from "../data-checkpoint.js";
 import { invokeBuiltinClosure } from "../builtin-call.js";
 import { sandboxGetProperty } from "../guest-proxy-get.js";
 import { wellKnownSymbols } from "../symbols.js";
 import { resolveIntrinsicIdentity } from "../intrinsics.js";
 import { setSandboxProperty } from "../interpreter.js";
-import { completeIntrinsicObjectInitialization, getSandboxPropertyDescriptor, materializeFunctionProperties, registerIntrinsicFunction, registerIntrinsicObject, setSandboxPrototype } from "../object-model.js";
+import { completeIntrinsicObjectInitialization, materializeFunctionProperties, registerIntrinsicFunction, registerIntrinsicObject, setSandboxPrototype } from "../object-model.js";
 import { createSandboxClosure, defineOwnDataProperty, isSandboxClosure, type SandboxCallContext, type SandboxClosure, type SandboxObject } from "../values.js";
 import { objectProperties } from "./object-array.js";
 import { installIteratorFrom } from "./iterator-from.js";
@@ -58,11 +58,19 @@ export function createIteratorGlobal(budget: Budget): SandboxClosure {
     call: async (_args, context) => {
       const receiver = context?.thisValue;
       if (receiver === null || receiver === undefined) throw new TypeError("Cannot read return from a nullish receiver.");
-      const method = context?.getProperty !== undefined ? await context.getProperty(receiver, "return")
-        : await readPropertyDescriptor(getSandboxPropertyDescriptor(receiver, "return", budget) ?? {value: undefined}, receiver, context);
+      const caller: SandboxCallContext = {
+        ...context, stack: context?.stack ?? [], thisValue: receiver,
+        getProperty: context?.getProperty ?? ((value,key)=>sandboxGetProperty(value,key,value,budget,bridge))
+      };
+      const bridge: SandboxCallContext = {
+        ...caller,
+        invokeClosure: context?.invokeClosure ?? ((callee,args,target,construct,newTarget)=>
+          invokeBuiltinClosure(callee,args,budget,caller,target,construct,newTarget))
+      };
+      const method = await bridge.getProperty!(receiver, "return");
       if (method === undefined || method === null) return undefined;
       if (!isSandboxClosure(method)) throw new TypeError("Iterator return must be callable.");
-      await invokeBuiltinClosure(method, [], budget, context, receiver);
+      await invokeBuiltinClosure(method, [], budget, bridge, receiver);
       return undefined;
     }
   });

@@ -230,8 +230,24 @@ extension, integration, or validation requirement is missing or unverified.
   This establishes grammar, not binding: comprehension iterable restrictions,
   iteration-variable rebinding checks, enclosing-scope binding, and normalized
   identifiers still need the semantic validation/runtime work.
+- Added a post-parse expression validation pass for comprehension assignment
+  restrictions. It rejects assignment expressions anywhere in iterable subtrees,
+  iteration-variable rebinding across nested comprehensions, and CPython's ordered
+  loop-target conflicts. Lambda defaults retain the surrounding context, while
+  bodies establish a new binding context without bypassing iterable restrictions.
+  A typed, exhaustive child enumerator visits syntax rather than reflecting over
+  arbitrary objects or literal buffers; new expression variants require updating it.
+- Scope validation: 16 initial tests and six follow-up target-conflict regressions
+  failed before their implementations. All 557 package tests pass. A 1,100-case
+  CPython compilation comparison matched acceptance across comprehension forms,
+  nested lambdas/comprehensions, filters, targets, and iterable expressions.
+  Scoped lint, source typecheck, and selected workspace build passed. Reference rules were
+  checked against PEP 572 and CPython's symtable implementation; the latter exposed
+  ordered conflicts involving names read by attribute/subscript targets.
+  Normalized-name checks, class/global/nonlocal contexts, runtime binding, and
+  complete semantic validation remain pending.
 - Next:
-  comprehension scope validation, interpolated-string ASTs, parser-level NFKC
+  interpolated-string ASTs, parser-level NFKC
   normalization, the complete grammar/parser and evaluator, then runtime modules
   and safe-fs integration. Tokenization does not establish interpreter execution.
 - Workspace lockfile registration and packaging integration remain pending.

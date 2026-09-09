@@ -6,6 +6,7 @@ import { readTrailers } from "./primary.js";
 import { reservedWords } from "./keywords.js";
 import { readDisplay } from "./displays.js";
 import { readLambda } from "./lambda.js";
+import { validateExpression } from "./expression-validation.js";
 
 const binaryPrecedence: Readonly<Record<string, number>> = {
   or: 2, and: 3, "|": 6, "^": 7, "&": 8, "<<": 9, ">>": 9,
@@ -31,6 +32,7 @@ export function parseExpression(text: string, options: LexerOptions = {}): Expre
   }
   while (cursor.peek().kind === "newline") cursor.take();
   if (cursor.peek().kind !== "end") throw cursor.error("unexpected token after expression");
+  validateExpression(result, options.filename);
   return result;
 }
 

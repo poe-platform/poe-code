@@ -1,0 +1,69 @@
+import type { ExecutionMeter } from "./execution-budget.js";
+import { PythonRuntimeError } from "./error.js";
+import { normalizeSlice } from "./integer-sequence.js";
+
+/** Internal immutable bytes payload, not a guest object or releasable memoryview.
+ * Public input/output buffers are copied. Internally created slices transfer sole
+ * buffer ownership without a second copy. Buffer allocation and operations are
+ * metered; host object/iterator overhead accounting remains unfinished. The host
+ * iterator exposes only byte numbers; guest iterator adapters must meter next().
+ */
+export class ImmutableBytes implements Iterable<number> {
+  readonly #bytes: Uint8Array;
+  readonly length: number;
+
+  private constructor(owned: Uint8Array) {
+    this.#bytes = owned;
+    this.length = owned.length;
+    Object.freeze(this);
+  }
+
+  static copyOf(input: Uint8Array, meter: ExecutionMeter): ImmutableBytes {
+    meter.checkpoint(1, input.byteLength);
+    const owned = new Uint8Array(input.length);
+    for (let index = 0; index < input.length; index++) { meter.checkpoint(); owned[index] = input[index]; }
+    return new ImmutableBytes(owned);
+  }
+
+  *[Symbol.iterator](): IterableIterator<number> {
+    for (let index = 0; index < this.length; index++) yield this.#bytes[index];
+  }
+
+  toUint8Array(meter: ExecutionMeter): Uint8Array {
+    meter.checkpoint(1, this.length);
+    const output = new Uint8Array(this.length);
+    for (let index = 0; index < this.length; index++) { meter.checkpoint(); output[index] = this.#bytes[index]; }
+    return output;
+  }
+
+  byteAt(index: bigint, meter: ExecutionMeter): number {
+    meter.checkpoint();
+    if (BigInt.asIntN(64, index) !== index) throw new PythonRuntimeError("IndexError", "cannot fit 'int' into an index-sized integer");
+    if (index < 0n) index += BigInt(this.length);
+    if (index < 0n || index >= BigInt(this.length)) throw new PythonRuntimeError("IndexError", "index out of range");
+    return this.#bytes[Number(index)];
+  }
+
+  slice(start: bigint | null, stop: bigint | null, step: bigint | null, meter: ExecutionMeter): ImmutableBytes {
+    meter.checkpoint();
+    const indices = normalizeSlice(BigInt(this.length), start, stop, step);
+    const count = Number(indices.length);
+    meter.checkpoint(0, count);
+    const owned = new Uint8Array(count);
+    const stride = count > 1 ? Number(indices.step) : 0;
+    for (let offset = 0, index = Number(indices.start); offset < count; offset++, index += stride) {
+      meter.checkpoint(); owned[offset] = this.#bytes[index];
+    }
+    return new ImmutableBytes(owned);
+  }
+
+  compare(other: ImmutableBytes, meter: ExecutionMeter): -1 | 0 | 1 {
+    meter.checkpoint();
+    const common = Math.min(this.length, other.length);
+    for (let index = 0; index < common; index++) {
+      meter.checkpoint();
+      if (this.#bytes[index] !== other.#bytes[index]) return this.#bytes[index] < other.#bytes[index] ? -1 : 1;
+    }
+    return this.length === other.length ? 0 : this.length < other.length ? -1 : 1;
+  }
+}

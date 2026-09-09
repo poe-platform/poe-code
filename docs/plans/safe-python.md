@@ -1971,6 +1971,19 @@ extension, integration, or validation requirement is missing or unverified.
   exposure, builtin initialization and complete runtime/allocation integration
   remain unfinished. Resolver absence with an explicit builtin value is a host
   integration failure, not silent fallback or a guest exception.
+- Added owned immutable byte storage as a concrete literal/value payload
+  foundation, distinct from mutable/releasable buffer views. Input and exported
+  arrays are copied; internal slicing adopts its freshly allocated output without
+  a second copy. Exact 64-bit-model indexing, arbitrary-size slice strides and
+  unsigned lexicographic comparison are metered. Required buffer allocations are
+  charged before allocation, while host iteration exposes only byte numbers.
+- Immutable-byte validation: missing-module red suite preceded implementation.
+  All 2,409 tests in 128 files pass, including 14 new ownership, indexing, slicing,
+  comparison and allocation cases. CPython matched 3,000 indexing/slicing/comparison
+  operations over 1,000 generated cases, including huge indices/strides and exact
+  error messages. Source typecheck, scoped lint and selected build passed. Concrete
+  guest constant factories, bytes objects/methods/buffer exports and full host
+  object/iterator allocation accounting remain unfinished.
 - Next:
   remaining scope/compiler audits, interpreter runtime,
   resource controls, runtime modules, and safe-fs integration. Parsing and static

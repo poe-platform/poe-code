@@ -257,11 +257,7 @@ function typeTag(value: SandboxValue, builtinOnly = false): string {
   if (typeof value === "number") return "Number";
   if (typeof value === "boolean") return "Boolean";
   if (isSandboxArguments(value)) return "Arguments";
-  if (isSandboxClosure(value)) {
-    if (builtinOnly) return "Function";
-    while (value.boundTarget !== undefined) value = value.boundTarget;
-    return value.generator ? "GeneratorFunction" : value.async ? "AsyncFunction" : "Function";
-  }
+  if (isSandboxClosure(value)) return "Function";
   if (Array.isArray(value)) return "Array";
   if (isSandboxDate(value)) return "Date";
   if (isSandboxErrorConstructorInstance(value, "Error")) return "Error";

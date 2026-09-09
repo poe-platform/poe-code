@@ -1,4 +1,6 @@
 import { getClosureOrigin, getGeneratorOrigin } from "../interp/closure-origin.js";
+import { mappedArgumentStates } from "../interp/arguments.js";
+import { dynamicNodeSources, dynamicSourceRecords, type DynamicSource, type EvalSourceContext } from "../parse/function-source.js";
 import { moduleFunctionOrigins } from "../interp/module-function-origin.js";
 import { isSandboxModuleNamespace } from "../interp/module-namespace.js";
 import { boundFunctionStates } from "../interp/bound-function-state.js";
@@ -73,6 +75,9 @@ export type PrivateElementData<T> = { name: T } & (
 );
 
 export type GuestHeapNode<T> =
+  | {kind: "guest-source"; functionKind: Exclude<DynamicSource["kind"], "eval">; parameters: string; body: string}
+  | {kind: "guest-script"; context: EvalSourceContext; body: string}
+  | {kind: "mapped-arguments"; scope: T; parameters: Array<[string, string]>; state: GuestObjectState<T>; nativeIterator: boolean}
   | {kind: "async-generator-driver"; generator: T; requests: Array<{method:"next"|"return"|"throw";value:T;capability:{promise:T;resolve:T;reject:T}}>;
       phase:"idle"|"waiting";suspension:"await"|"yield";awaitKind:"body"|"return";generation:number}
   | {kind: "async-generator-handler"; driver:T;owner:T;action:"fulfilled"|"rejected";generation:number;state:GuestObjectState<T>}
@@ -122,11 +127,12 @@ export type GuestHeapNode<T> =
   | { kind: "guest-regexp-iterator"; matcher: T; input: T; exhausted: boolean; global?: boolean; unicode?: boolean; state: GuestObjectState<T> }
   | { kind: "bound-function"; target: T; thisValue: T; args: T[]; name?: string; length: T; state: GuestObjectState<T> }
   | { kind: "array-iterator"; source: T; index: number; method: "keys" | "values" | "entries"; state: GuestObjectState<T> }
-  | { kind: "guest-class"; astNodeId: number; scope: T; name?: string; fields: Array<{ index: number; key: T; privateName?: T }>; privateMethods?: PrivateElementData<T>[]; state: GuestObjectState<T> }
+  | { kind: "guest-class"; astNodeId: number; scope: T; name?: string; fields: Array<{ index: number; key: T; privateName?: T }>; privateMethods?: PrivateElementData<T>[]; state: GuestObjectState<T>; dynamicSource?: T }
   | { kind: "map"; entries: Array<[T,T]>; propertyState?: PropertyDescriptorData<T>; prototype?: T; privateElements?: PrivateElementData<T>[] }
   | { kind: "set"; values: T[]; propertyState?: PropertyDescriptorData<T>; prototype?: T; privateElements?: PrivateElementData<T>[] }
   | { kind: "raw-json"; text: string }
   | { kind: "guest-generator"; state: "start" | "running" | "suspended" | "done"; astNodeId: number;
+      dynamicSource?: T;
       asyncFunction?: true;
       driver?: T;
       awaitPhase?: "await" | "yield" | "return" | "resume-return";
@@ -135,20 +141,23 @@ export type GuestHeapNode<T> =
       finallyCompletions?: Record<string, GeneratorFinallyCompletion<T>>;
       expressionStates?: Record<string, GeneratorExpressionState<T, T, IteratorSnapshot<T>>>;
       sent: Array<{ type: "normal" | "return" | "throw"; value: T }>;
-      environment?: { homeObject?: T; newTarget?: T; construction?: T }; objectState?: GuestObjectState<T> }
+      environment?: { homeObject?: T; newTarget?: T; construction?: T; classInitializer?: true }; objectState?: GuestObjectState<T> }
   | { kind: "guest-object"; state: GuestObjectState<T>; errorType?: SandboxErrorName }
-  | { kind: "guest-array"; state: GuestObjectState<T>; templateNodeId?: number; templateOwner?: T }
+  | { kind: "guest-array"; state: GuestObjectState<T>; templateNodeId?: number; templateOwner?: T; dynamicSource?: T }
   | { kind: "intrinsic"; id: string; state?: GuestObjectState<T>; symbolRegistry?: Array<[string, T]> }
   | { kind: "module-function"; module: string; path: string[]; name?: string; state: GuestObjectState<T> }
-  | { kind: "guest-function"; astNodeId: number; scope: T; name?: string; state: GuestObjectState<T>;
-      environment?: { homeObject?: T; newTarget?: T; construction?: T } }
+  | { kind: "guest-function"; astNodeId: number; scope: T; name?: string; state: GuestObjectState<T>; dynamicSource?: T;
+      environment?: { homeObject?: T; newTarget?: T; construction?: T; classInitializer?: true } }
   | { kind: "scope-frame"; parent: T; importMeta: T; functionBoundary: boolean; chargeData: boolean;
+      simpleCatchParameter?: string;
+      globalEnvironment?: boolean;
       moduleEnvironment?: {available: string[]; namespaces: T};
       objectEnvironment?: T;
+      withObject?: T;
       resourceState?: T;
       privateNames?: Array<[string, T]>;
       bindings: Array<[string, number]>;
-      cells: Array<{ kind: ScopeFrame["cells"][number]["kind"] } & (
+      cells: Array<{ kind: ScopeFrame["cells"][number]["kind"]; silentImmutable?: true; deletable?: true } & (
         { initialized: false } | { initialized: true; value: T }
       )>;
       restoredBindings?: Array<[string, T]> };
@@ -156,6 +165,16 @@ export type GuestHeapNode<T> =
 // The enclosing graph serializer allocates the reference before calling this
 // function, so self-referential properties and captured environments can cycle.
 export function captureGuestHeapNode<T>(value: object, encode: (value: unknown) => T): GuestHeapNode<T> | undefined {
+  if (dynamicSourceRecords.has(value)) {
+    const source = value as DynamicSource;
+    if (source.kind === "eval") return {kind: "guest-script", body: source.body,
+      context: {...source.context, privateNames: [...source.context.privateNames]}};
+    return {kind: "guest-source", functionKind: source.kind, parameters: source.parameters, body: source.body};
+  }
+  const mapped = isSandboxArguments(value) ? mappedArgumentStates.get(value) : undefined;
+  if (mapped !== undefined) return {kind: "mapped-arguments", scope: encode(mapped.scope),
+    parameters: [...mapped.parameters], nativeIterator: Object.getOwnPropertyDescriptor(value, Symbol.iterator)?.value === Array.prototype.values,
+    state: captureObjectState(value, entry => encode(entry === Array.prototype.values ? undefined : entry))!};
   const generatorDriver = asyncGeneratorDrivers.get(value);
   if (generatorDriver === value) {
     if (generatorDriver.phase === "running") throw new SnapshotNotReadyError("Cannot snapshot an active async generator request.");
@@ -390,6 +409,7 @@ export function captureGuestHeapNode<T>(value: object, encode: (value: unknown) 
     if (!classOrigin.initialized || classOrigin.node.nodeId === undefined)
       throw new TypeError("Class definitions must finish before they can be snapshotted.");
     return { kind: "guest-class", astNodeId: classOrigin.node.nodeId, scope: encode(classOrigin.scope),
+      ...(dynamicNodeSources.has(classOrigin.node) ? {dynamicSource: encode(dynamicNodeSources.get(classOrigin.node))} : {}),
       ...(isSandboxClosure(value) && value.name !== undefined ? { name: value.name } : {}),
       fields: classOrigin.fields.map(field => ({ index: classOrigin.node.body.body.indexOf(field.element), key: encode(field.key),
         ...(field.privateName === undefined ? {} : { privateName: encode(field.privateName) }) })),
@@ -401,11 +421,14 @@ export function captureGuestHeapNode<T>(value: object, encode: (value: unknown) 
     return {
       kind: "scope-frame", parent: encode(frame.parent), importMeta: encode(frame.importMeta),
       functionBoundary: frame.functionBoundary, chargeData: frame.chargeData,
+      ...(frame.simpleCatchParameter === undefined ? {} : {simpleCatchParameter: frame.simpleCatchParameter}),
+      ...(frame.globalEnvironment === true ? {globalEnvironment: true} : {}),
       bindings: frame.bindings,
       ...(frame.moduleEnvironment === undefined ? {} : {moduleEnvironment: {
         available: [...frame.moduleEnvironment.available], namespaces: encode(frame.moduleEnvironment.namespaces)
       }}),
       ...(frame.objectEnvironment === undefined ? {} : {objectEnvironment: encode(frame.objectEnvironment)}),
+      ...(frame.withObject === undefined ? {} : {withObject: encode(frame.withObject)}),
       ...(frame.resourceState === undefined ? {} : {resourceState: encode(frame.resourceState)}),
       ...(frame.privateNames === undefined ? {} : { privateNames: frame.privateNames.map(([name, identity]) => [name, encode(identity)] as [string, T]) }),
       cells: frame.cells.map(cell => cell.initialized ? { ...cell, value: encode(cell.value) } : cell),
@@ -420,6 +443,7 @@ export function captureGuestHeapNode<T>(value: object, encode: (value: unknown) 
     const channel = value.channel.snapshot();
     return {
       kind: "guest-generator", state: value.state, astNodeId: origin.node.nodeId, async: value.async === true,
+      ...(dynamicNodeSources.has(origin.node) ? {dynamicSource: encode(dynamicNodeSources.get(origin.node))} : {}),
       ...(origin.asyncFunction ? {asyncFunction: true as const} : {}),
       ...(generatorDriver === undefined ? {} : {driver: encode(generatorDriver)}),
       ...(origin.awaitPhase === undefined ? {} : {awaitPhase: origin.awaitPhase}),
@@ -450,10 +474,14 @@ export function captureGuestHeapNode<T>(value: object, encode: (value: unknown) 
               iterator: mapIteratorSnapshot("kind" in expression.iterator ? expression.iterator : expression.iterator.snapshot?.() ?? { kind: "unsupported" }, encode) }
             : expression.kind === "pattern-source" ? { kind: "pattern-source", value: encode(expression.value) }
             : expression.kind === "object-pattern" ? { kind: "object-pattern", phase: expression.phase, index: expression.index,
+              ...(expression.referenceScope === undefined ? {} : {referenceScope: encode(expression.referenceScope)}),
+              ...(expression.referenceUnresolvable === undefined ? {} : {referenceUnresolvable: true as const}),
               ...(expression.privateName === undefined ? {} : { privateName: expression.privateName }),
               excludedKeys: expression.excludedKeys.map(encode), key: encode(expression.key), current: encode(expression.current),
               ...(Object.hasOwn(expression, "referenceObject") ? { referenceObject: encode(expression.referenceObject), referenceKey: encode(expression.referenceKey) } : {}) }
             : expression.kind === "array-pattern" ? { kind: "array-pattern", phase: expression.phase, index: expression.index, done: expression.done, current: encode(expression.current),
+              ...(expression.referenceScope === undefined ? {} : {referenceScope: encode(expression.referenceScope)}),
+              ...(expression.referenceUnresolvable === undefined ? {} : {referenceUnresolvable: true as const}),
               ...(expression.privateName === undefined ? {} : { privateName: expression.privateName }),
               iterator: mapIteratorSnapshot("kind" in expression.iterator ? expression.iterator : expression.iterator.snapshot?.() ?? { kind: "unsupported" }, encode),
               ...(Object.hasOwn(expression, "referenceObject") ? { referenceObject: encode(expression.referenceObject), referenceKey: encode(expression.referenceKey) } : {}) }
@@ -465,7 +493,10 @@ export function captureGuestHeapNode<T>(value: object, encode: (value: unknown) 
               iterator: mapIteratorSnapshot("kind" in expression.iterator ? expression.iterator : expression.iterator.snapshot?.() ?? { kind: "unsupported" }, encode) }
             : expression.kind === "for-in" ? { ...expression, keys: [...expression.keys], object: encode(expression.object), scope: encode(expression.scope) }
             : expression.kind === "for" ? { kind: "for", phase: expression.phase, loopScope: encode(expression.loopScope), activeScope: encode(expression.activeScope) }
-            : expression.kind === "identifier-assignment" ? { kind: "identifier-assignment", current: encode(expression.current) }
+            : expression.kind === "identifier-assignment" ? { kind: "identifier-assignment", current: encode(expression.current),
+              ...(expression.referenceKind === undefined ? {} : {referenceKind: expression.referenceKind}),
+              ...(expression.referenceScope === undefined ? {} : {referenceScope: encode(expression.referenceScope)}),
+              ...(expression.referenceKind !== "object" ? {} : {referenceObject: encode(expression.referenceObject)}) }
             : expression.kind === "member-assignment" ? { kind: "member-assignment", object: encode(expression.object), property: encode(expression.property), current: encode(expression.current),
               ...(expression.privateName === undefined ? {} : { privateName: expression.privateName }),
               ...(Object.hasOwn(expression, "key") ? { key: encode(expression.key) } : {}),
@@ -481,6 +512,7 @@ export function captureGuestHeapNode<T>(value: object, encode: (value: unknown) 
       }),
       sent: channel.sent.map(completion => ({ type: completion.type, value: encode(completion.value) })),
       ...(origin.environment === undefined ? {} : { environment: {
+        ...(origin.environment.classInitializer ? {classInitializer: true as const} : {}),
         ...(origin.environment.homeObject === undefined ? {} : { homeObject: encode(origin.environment.homeObject) }),
         ...(origin.environment.newTarget === undefined ? {} : { newTarget: encode(origin.environment.newTarget) }),
         ...(origin.environment.construction === undefined ? {} : {construction: encode(origin.environment.construction)})
@@ -500,10 +532,13 @@ export function captureGuestHeapNode<T>(value: object, encode: (value: unknown) 
           return key === "length" ? descriptor.writable !== true
             : !("value" in descriptor) || !descriptor.enumerable || !descriptor.configurable || !descriptor.writable;
         }))) {
-      const templateNodeId = templateOrigins.get(value)?.nodeId;
+      const templateNode = templateOrigins.get(value);
+      const templateNodeId = templateNode?.nodeId;
+      const dynamicSource = templateNode === undefined ? undefined : dynamicNodeSources.get(templateNode);
       const templateOwner = templateCookedArrays.get(value);
       return { kind: "guest-array", state: captureObjectState(value, encode)!,
         ...(templateNodeId === undefined ? {} : { templateNodeId }),
+        ...(dynamicSource === undefined ? {} : {dynamicSource: encode(dynamicSource)}),
         ...(templateOwner === undefined ? {} : { templateOwner: encode(templateOwner) }) };
     }
     if (isLiveCapability(value) || isSandboxClosure(value) || isSandboxBox(value) || isSandboxDate(value) ||
@@ -523,8 +558,10 @@ export function captureGuestHeapNode<T>(value: object, encode: (value: unknown) 
   if (state === undefined) throw new TypeError("Guest closures require a property state.");
   return {
     kind: "guest-function", astNodeId: origin.node.nodeId, scope: encode(origin.scope), state,
+    ...(dynamicNodeSources.has(origin.node) ? {dynamicSource: encode(dynamicNodeSources.get(origin.node))} : {}),
     ...(isSandboxClosure(value) && value.name !== undefined ? { name: value.name } : {}),
     ...(origin.environment === undefined ? {} : { environment: {
+      ...(origin.environment.classInitializer ? {classInitializer: true as const} : {}),
       ...(origin.environment.homeObject === undefined ? {} : { homeObject: encode(origin.environment.homeObject) }),
       ...(origin.environment.newTarget === undefined ? {} : { newTarget: encode(origin.environment.newTarget) }),
       ...(origin.environment.construction === undefined ? {} : {construction: encode(origin.environment.construction)})

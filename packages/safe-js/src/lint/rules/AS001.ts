@@ -274,8 +274,6 @@ class AS001Scanner {
 
   private reportForbiddenIdentifier(token: Token): void {
     switch (token.value) {
-      case "eval":
-      case "Function":
       case "with":
         this.report(token.value, token.start, token.end);
         return;

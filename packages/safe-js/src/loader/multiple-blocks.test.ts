@@ -97,7 +97,7 @@ describe("multiple executable Markdown blocks", () => {
         "const value = 1;",
         "```",
         "~~~ajs",
-        'eval("value");',
+        'with (context) value;',
         "~~~"
       ].join(newline)
     });
@@ -281,7 +281,7 @@ describe("multiple executable Markdown blocks", () => {
           "```",
           "# Next",
           "~~~ajs",
-          'eval("value");',
+          'with (context) value;',
           "~~~"
         ].join(newline)
       });

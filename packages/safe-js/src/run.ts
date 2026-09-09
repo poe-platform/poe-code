@@ -377,7 +377,7 @@ export function run(source: string, options: RunOptions = {}): Promise<RunResult
             { chargeData: false },
             interpreterSnapshot?.bindings as Record<string, SandboxValue> | undefined
           );
-          const callerScope = scope.child(cancelableCallerBindings);
+          const callerScope = scope.child(cancelableCallerBindings, {globalEnvironment: true});
           const executionScope = new Scope(
             initialInputs.values.imports,
             callerScope,

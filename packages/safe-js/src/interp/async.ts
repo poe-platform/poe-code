@@ -27,11 +27,15 @@ import { awaitSandboxValue, awaitWithSignal } from "./cancel.js";
 import { observeSandboxPromise } from "./promise-tracker.js";
 import type { Scope } from "./scope.js";
 import { hoistVarDeclarations } from "./var-hoist.js";
+import { prepareLegacyBlockFunctions } from "./legacy-block-functions.js";
 import { createCoercionContext, createPatternContext } from "./interpreter.js";
 import { getGuestFunctionProperty, markDescriptorObject, materializeFunctionProperties, setSandboxPrototype } from "./object-model.js";
 import { generatorPrototypes } from "./generator-prototypes.js";
 import { retainValues, runResources } from "./resources.js";
-import { functionSources } from "../parse/function-source.js";
+import { functionSources, functionStrictness } from "../parse/function-source.js";
+import { resolveIntrinsicIdentity } from "./intrinsics.js";
+import { createSandboxBox } from "./boxed.js";
+import { createMappedSandboxArguments } from "./arguments.js";
 import { getGeneratorOrigin, registerClosureOrigin, registerGeneratorOrigin } from "./closure-origin.js";
 import { constructionStates } from "./construction-state.js";
 import {
@@ -72,8 +76,12 @@ export type AsyncInterpreterError = InterpreterError;
 export type AsyncEvaluationResult = EvaluationResult<AsyncInterpreterError>;
 
 export type AsyncEvaluationContext = {
+  evalCompletion?: boolean;
+  callee?: SandboxClosure;
+  strict?: boolean;
   inferredName?: string;
   functionEnvironment?: {
+    classInitializer?: true;
     newTarget?: SandboxClosure;
     homeObject?: SandboxObject | SandboxClosure;
     construction?: {
@@ -167,7 +175,8 @@ export async function evaluateFunctionExpression(
 
   const wrapperScope = context.scope.child();
   const closure = createInterpretedClosure(node, { ...context, scope: wrapperScope }, evaluateNode);
-  wrapperScope.declare(node.id.name, "const", closure);
+  wrapperScope.declare(node.id.name, "const", closure,
+    functionStrictness.get(node) === false ? {silentImmutable: true} : undefined);
 
   return {
     kind: "normal",
@@ -183,6 +192,7 @@ export function createInterpretedClosure(
   homeObject?: SandboxObject | SandboxClosure,
   initializeGeneratorPrototype = true
 ) {
+  if (context.evalCompletion) context = {...context, evalCompletion: undefined};
   if (node.type !== "ArrowFunctionExpression") {
     context = { ...context, functionEnvironment: { homeObject } };
   }
@@ -209,6 +219,7 @@ export function createInterpretedClosure(
             thisValue,
             {
               ...context,
+              callee: closure,
               functionEnvironment: { newTarget },
               compilation: callContext?.compilation ?? context.compilation,
               callStack: [...(callContext?.stack ?? context.callStack)]
@@ -243,6 +254,8 @@ export function createInterpretedClosure(
     call: (args, callContext) => {
       const invocationContext = {
         ...context,
+        callee: closure,
+        strict: functionStrictness.get(node) ?? true,
         compilation: callContext?.compilation ?? context.compilation,
         callStack: [...(callContext?.stack ?? context.callStack)]
       };
@@ -352,6 +365,8 @@ function createGeneratorClosure(
       try {
         const closureContext = {
           ...context,
+          callee: closure,
+          strict: functionStrictness.get(node) ?? true,
           compilation: callContext?.compilation ?? context.compilation,
           callStack: [...(callContext?.stack ?? context.callStack)]
         };
@@ -514,7 +529,7 @@ export async function executeClosure(
   const parent = context.compilation;
   const operation = context.budget.acquireCompileOwner(false, parent?.owner);
   const compilation = new CompileScope(operation.owner, parent);
-  context = { ...context, compilation };
+  context = { ...context, compilation, strict: functionStrictness.get(node) ?? true };
   try {
     const scope = await createClosureScope(node, args, thisValue, context, evaluateNode);
 
@@ -562,20 +577,45 @@ async function createClosureScope(
   context: AsyncEvaluationContext,
   evaluateNode: EvaluateAsyncNode
 ): Promise<Scope> {
-  const scope = context.scope.child({}, { functionBoundary: true });
+  const functionScope = context.scope.child({}, { functionBoundary: true });
+  const hasParameterExpressions = node.params.some(containsParameterExpression);
+  const separateParameters = hasParameterExpressions && functionStrictness.get(node) === false;
+  const scope = separateParameters ? functionScope.child() : functionScope;
+  const needsArguments = node.type !== "ArrowFunctionExpression"
+    && !node.params.some(param => [...boundIdentifiers(param)].some(identifier => identifier.name === "arguments"))
+    && (hasParameterExpressions || !isBlockBody(node.body) || !node.body.body.some(statement => {
+      if (statement.type === "FunctionDeclaration" || statement.type === "ClassDeclaration")
+        return statement.id?.name === "arguments";
+      return statement.type === "VariableDeclaration" && statement.kind !== "var"
+        && statement.declarations.some(declaration => [...boundIdentifiers(declaration.id)].some(identifier => identifier.name === "arguments"));
+    }));
+  const mapped = needsArguments && functionStrictness.get(node) === false
+    && node.params.every(param => param.type === "Identifier");
   if (node.type !== "ArrowFunctionExpression") {
+    if (functionStrictness.get(node) === false) {
+      if (thisValue === null || thisValue === undefined)
+        thisValue = resolveIntrinsicIdentity(context.budget, '["globalThis"]') as SandboxObject;
+      else if (typeof thisValue !== "object") thisValue = createSandboxBox(thisValue);
+    }
     const construction = context.functionEnvironment?.construction;
     if (construction?.derived === true) scope.predeclare("this", "const");
     else scope.declare("this", "const", thisValue);
-    context.budget.allocateArrayLength(args.length);
-    scope.declare("arguments", "let", createSandboxArguments(args));
+    if (needsArguments) {
+      context.budget.allocateArrayLength(args.length);
+      if (!mapped) scope.declare("arguments", functionStrictness.get(node) === false && !separateParameters ? "var" : "let", createSandboxArguments(args));
+    }
     await construction?.initialize(scope);
   }
-  await bindParameters(node.params, args, scope, context, evaluateNode);
-  const bodyScope = node.params.some(containsParameterExpression)
+  await bindParameters(node.params, args, scope, context, evaluateNode, separateParameters ? "let" : "var");
+  if (mapped) scope.declare("arguments", "var", createMappedSandboxArguments(
+    args, node.params.map(param => {if (param.type !== "Identifier") throw new TypeError("Invalid mapped parameter."); return param.name;}),
+    scope, context.callee
+  ));
+  const bodyScope = hasParameterExpressions
     ? scope.child({}, { functionBoundary: true })
     : scope;
   hoistVarDeclarations(node.body, bodyScope);
+  prepareLegacyBlockFunctions(node, bodyScope);
   if (bodyScope !== scope) {
     for (const declaration of hoistedVarDeclarations([node.body])) {
       for (const declarator of declaration.declarations) {
@@ -601,20 +641,32 @@ async function bindParameters(
   args: readonly SandboxValue[],
   scope: Scope,
   context: AsyncEvaluationContext,
-  evaluateNode: EvaluateAsyncNode
+  evaluateNode: EvaluateAsyncNode,
+  kind: "let" | "var"
 ): Promise<void> {
+  const names = new Set<string>();
   for (const param of params) {
     for (const identifier of boundIdentifiers(param)) {
-      scope.predeclare(identifier.name, "var");
+      if (names.has(identifier.name)) continue;
+      scope.predeclare(identifier.name, kind);
+      names.add(identifier.name);
     }
   }
 
+  names.clear();
   for (let index = 0; index < params.length; index += 1) {
     const param = params[index];
+    if (param.type === "Identifier") {
+      if (names.has(param.name)) {
+        await scope.assign(param.name, args[index]);
+        continue;
+      }
+      names.add(param.name);
+    }
     if (param.type === "RestElement") {
       const rest = args.slice(index);
       context.budget.allocateArrayLength(rest.length);
-      const binding = await bindPattern(param, rest, { kind: "var", initialize: true }, scope, createPatternContext(context, scope, evaluateNode));
+      const binding = await bindPattern(param, rest, { kind, initialize: true }, scope, createPatternContext(context, scope, evaluateNode));
       if (!binding.ok) {
         if (binding.result.kind === "error") {
           throw binding.result.error;
@@ -629,7 +681,7 @@ async function bindParameters(
     const binding = await bindPattern(
       param,
       args[index],
-      { kind: "var", initialize: true },
+      { kind, initialize: true },
       scope,
       createPatternContext(context, scope, evaluateNode)
     );

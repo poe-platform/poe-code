@@ -7,6 +7,9 @@ import { restore } from "./restore.js";
 import { serialize, type RuntimeSnapshotValue } from "./serialize.js";
 
 const bodies = [
+  'let x=1;x=yield 1;return x',
+  'let x=1;x+=yield 1;return x',
+  'let x=1;x+=(yield 1)+(yield 2);return x',
   'const object={x:0};function select(){count++;return object}select().x=yield 1;return [count,object.x]',
   'const object={x:0};function key(){count++;return "x"}object[key()]=yield 1;return [count,object.x]',
   'const object={x:0};const key={toString(){count++;return "x"}};object[key]=yield 1;return [count,object.x]',

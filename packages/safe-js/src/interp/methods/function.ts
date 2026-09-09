@@ -100,11 +100,11 @@ export function callFunctionMethod(
 
   if (methodName === "bind") {
     const boundArgs = args.slice(1);
-    const explicitPrototype = hasExplicitSandboxPrototype(target);
     const prototype = getSandboxPrototype(target, options.budget);
+    const preservePrototype = prototype !== null || hasExplicitSandboxPrototype(target);
     const bind = (length: number | undefined, name: string) => {
       const bound = createBoundFunction({ target, thisValue, args: boundArgs }, `bound ${name}`, length, options.callClosure);
-      if (explicitPrototype) setSandboxPrototype(bound, prototype, options.budget);
+      if (preservePrototype) setSandboxPrototype(bound, prototype, options.budget);
       return bound;
     };
     if (context?.getProperty === undefined)
@@ -113,7 +113,7 @@ export function callFunctionMethod(
         target.name ?? ""
       );
     return (async () => {
-      const release = options.budget !== undefined && explicitPrototype && prototype !== null
+      const release = options.budget !== undefined && prototype !== null
         ? retainValues(options.budget, () => [prototype]) : undefined;
       try {
         const properties = target.properties;

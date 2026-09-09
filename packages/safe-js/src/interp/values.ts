@@ -67,10 +67,13 @@ import { assertSandboxDataDepth } from "../graph-depth.js";
 import { sandboxErrorTypes } from "../error/shape.js";
 import { getGuestFunctionProperties, materializeFunctionProperties, getSandboxPropertyDescriptor, getSandboxPrototype, hasExplicitSandboxPrototype, hasGuestObjectState, hasManagedDescriptors, hasNullObjectPrototype, intrinsicFunctionDataDescriptors, isIntrinsicFunction, isTrackedIntrinsicObject, registerGuestClosure, setSandboxPrototype } from "./object-model.js";
 import type { FunctionSource } from "../parse/function-source.js";
+import { dynamicSourceRecords, dynamicValueSources, type DynamicSource } from "../parse/function-source.js";
 import {
   copySandboxArgumentProperties,
   createSandboxArguments,
   getSandboxArgumentEntries,
+  mappedArgumentStates,
+  unrestrictedArgumentObjects,
   isSandboxArguments
 } from "./arguments.js";
 
@@ -133,6 +136,8 @@ export type SandboxRegex = {
 };
 
 export type SandboxCallContext = {
+  readonly evaluateEval?: (source: string) => Promise<SandboxValue>;
+  readonly createDynamicFunction?: (kind: import("../parse/parser.js").DynamicFunctionKind, parameters: string, body: string) => SandboxClosure;
   readonly newTarget?: SandboxClosure;
   readonly compilation?: CompileScope;
   readonly span?: {
@@ -725,6 +730,15 @@ export function measureSandboxData(
     seen.add(value);
 
     usage += 1;
+    if (dynamicSourceRecords.has(value)) {
+      const source = value as DynamicSource;
+      usage += source.body.length + source.nodes.size + (source.kind === "eval"
+        ? 6 + source.context.privateNames.reduce((total, name) => total + name.length + 1, 0)
+        : source.parameters.length);
+      return;
+    }
+    const dynamicSource = dynamicValueSources.get(value);
+    if (dynamicSource !== undefined) visit(dynamicSource, depth + 1);
     const disposableResources = disposableStackStates.get(value)?.resources.map(resource =>
       [resource.method, resource.receiver, ...resource.args]);
     const asyncDisposableResources = asyncDisposableStackStates.get(value)?.resources.map(resource =>
@@ -1014,6 +1028,10 @@ export function measureSandboxData(
     }
 
     if (isSandboxArguments(value)) {
+      const mapped = mappedArgumentStates.get(value);
+      if (mapped !== undefined) {
+        for (const retained of mapped.scope.retainedDataRoots()) visit(retained, depth + 1);
+      }
       const entries: Array<[string, unknown[]]> = [];
       for (const key of Object.getOwnPropertyNames(value)) {
         const descriptor = Object.getOwnPropertyDescriptor(value, key)!;
@@ -1439,7 +1457,7 @@ function copyToSandbox(
   if (isSandboxArguments(value)) {
     const existing = state.seen.get(value);
     if (existing !== undefined) return existing;
-    const copy = createSandboxArguments([]);
+    const copy = createSandboxArguments([], unrestrictedArgumentObjects.has(value) ? {callee: undefined} : undefined);
     state.seen.set(value, copy);
     copySandboxArgumentProperties(value, copy, (entry, key) =>
       copyToSandbox(entry, state, joinPath(path, key), cloneSandboxCollections, depth + 1)
@@ -1498,7 +1516,7 @@ function copyFromSandbox(
     return options.unwrapHostObject(value);
   }
 
-  if (nodeTypes.isProxy(value) && !isNumericTypedArray(value) && !isTrackedIntrinsicObject(value)) throw new TypeError("Unsupported proxy sandbox value.");
+  if (nodeTypes.isProxy(value) && !isNumericTypedArray(value) && !isTrackedIntrinsicObject(value) && !mappedArgumentStates.has(value as import("./arguments.js").SandboxArguments)) throw new TypeError("Unsupported proxy sandbox value.");
   if (sandboxErrorTypes.has(value) && hasExplicitSandboxPrototype(value)) {
     const prototype = getSandboxPrototype(value);
     let nativePrototype: object | null = null;
@@ -1761,7 +1779,7 @@ function copyFromSandbox(
   if (isSandboxArguments(value)) {
     const existing = state.seen.get(value);
     if (existing !== undefined) return existing;
-    const copy = createSandboxArguments([]);
+    const copy = createSandboxArguments([], unrestrictedArgumentObjects.has(value) ? {callee: undefined} : undefined);
     state.seen.set(value, copy);
     copySandboxArgumentProperties(value, copy, (entry, key) =>
       copyFromSandbox(entry, state, joinPath(path, key), options, depth + 1)

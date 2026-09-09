@@ -78,5 +78,6 @@ export type {
   VariableDeclaration,
   VariableDeclarationKind,
   VariableDeclarator,
-  WhileStatement
+  WhileStatement,
+  WithStatement
 } from "./parse/parser.js";

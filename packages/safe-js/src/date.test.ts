@@ -202,11 +202,11 @@ describe("Date intrinsic", () => {
   it("does not expose native constructors through Date or its formatting methods", async () => {
     expect(
       await run(
-        "const date = new Date(0); return [date.__proto__ === Date.prototype, date.getTime.constructor, Date.constructor, Date.prototype.__proto__ === Object.prototype, date.toLocaleString.constructor, date.toLocaleDateString.constructor, date.toLocaleTimeString.constructor];"
+        "const date = new Date(0); return [date.__proto__===Date.prototype, date.getTime.constructor===Function, Date.constructor===Function, Date.prototype.__proto__===Object.prototype, date.toLocaleString.constructor===Function, date.toLocaleDateString.constructor===Function, date.toLocaleTimeString.constructor===Function, date.getTime.constructor('return typeof process')()];"
       )
     ).toMatchObject({
       ok: true,
-      returnValue: [true, undefined, undefined, true, undefined, undefined, undefined]
+      returnValue: [true, true, true, true, true, true, true, "undefined"]
     });
   });
 

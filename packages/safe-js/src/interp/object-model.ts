@@ -1,6 +1,7 @@
 import { assertSandboxDataDepth } from "../graph-depth.js";
 import { getGeneratorProperties } from "./generator-properties.js";
-import { generatorPrototypes } from "./generator-prototypes.js";
+import { asyncFunctionPrototypes, generatorPrototypes } from "./generator-prototypes.js";
+import { getClosureOrigin } from "./closure-origin.js";
 import { runResources } from "./resources.js";
 import { getIntrinsicIdentity, registerBuiltinIdentities, releaseIntrinsicIdentities } from "./intrinsics.js";
 import { releaseTemplateObjects } from "./template-objects.js";
@@ -288,7 +289,7 @@ export function registerIntrinsicObject(budget: Budget, value: SandboxObject, tr
 
 // Only builtin installation may replace a partially initialized baseline.
 // Ordinary repeated registration must keep charging earlier guest mutations.
-export function completeIntrinsicObjectInitialization(budget: Budget, value: SandboxObject): void {
+export function completeIntrinsicObjectInitialization(budget: Budget, value: SandboxObject | SandboxClosure): void {
   for (const records of intrinsicRetentionGroups.get(budget)?.values() ?? []) {
     const record = records.find(record => record.target === value);
     if (record === undefined) continue;
@@ -432,8 +433,12 @@ export function getSandboxPrototype(value: object, budget?: Budget): object | nu
     const prototype = errorPrototypes.get(budget)?.get(errorType);
     if (prototype !== undefined) return prototype;
   }
-  if (budget !== undefined && isSandboxClosure(value) && runResources.getStore()?.functionSourceText !== false)
+  if (budget !== undefined && isSandboxClosure(value) && runResources.getStore()?.functionSourceText !== false) {
+    const node = getClosureOrigin(value)?.node;
+    if (node?.async && (node.type === "ArrowFunctionExpression" || !node.generator))
+      return asyncFunctionPrototypes.get(budget) ?? functionPrototypes.get(budget) ?? null;
     return functionPrototypes.get(budget) ?? null;
+  }
   if (budget !== undefined && Array.isArray(value)) return arrayPrototypes.get(budget) ?? null;
   if (budget !== undefined && isSandboxDate(value)) return datePrototypes.get(budget) ?? null;
   if (budget !== undefined && isSandboxPromise(value)) return promisePrototypes.get(budget) ?? null;

@@ -63,6 +63,60 @@ function absent(value: unknown): boolean {
 }
 
 export function validateGuestHeapNode(raw: unknown, heap: Record<string, unknown>, maxArrayLength = 0xffffffff): boolean {
+  if (record(raw).kind === "guest-script") {
+    const source = record(raw);
+    fields(source, ["kind", "body", "context"]);
+    if (typeof source.body !== "string") throw new TypeError("Invalid eval source.");
+    const context = record(source.context);
+    const flags = ["strict", "newTarget", "superProperty", "superCall", "arguments"];
+    fields(context, [...flags, "privateNames"]);
+    if (flags.some(name => typeof context[name] !== "boolean")) throw new TypeError("Invalid eval syntax context.");
+    const names = array(context.privateNames);
+    if (names.some(name => typeof name !== "string" || name.length === 0) || new Set(names).size !== names.length)
+      throw new TypeError("Invalid eval private-name context.");
+    return true;
+  }
+  if (record(raw).kind === "guest-source") {
+    const source = record(raw);
+    fields(source, ["kind", "functionKind", "parameters", "body"]);
+    if (!["normal", "async", "generator", "async-generator"].includes(String(source.functionKind))
+      || typeof source.parameters !== "string" || typeof source.body !== "string") throw new TypeError("Invalid dynamic source.");
+    return true;
+  }
+  if (record(raw).kind === "mapped-arguments") {
+    const node = record(raw);
+    fields(node, ["kind", "scope", "parameters", "state", "nativeIterator"]);
+    const scopeRef = record(node.scope);
+    fields(scopeRef, ["kind", "id"]);
+    if (scopeRef.kind !== "ref") throw new TypeError("Invalid mapped arguments scope.");
+    const scope = record(heap[String(integer(scopeRef.id))]);
+    if (scope.kind !== "scope-frame") throw new TypeError("Invalid mapped arguments scope.");
+    if (typeof node.nativeIterator !== "boolean") throw new TypeError("Invalid native arguments iterator flag.");
+    validateGuestHeapNode({kind: "guest-object", state: node.state}, heap, maxArrayLength);
+    const properties = array(record(record(node.state).properties).properties).map(array);
+    if (node.nativeIterator) {
+      const iterator = properties.find(([key]) => typeof key === "object" && key !== null
+        && record(heap[String(record(key).id)]).wellKnown === "iterator");
+      if (iterator === undefined || record(iterator[1]).kind !== "data" || !absent(record(iterator[1]).value))
+        throw new TypeError("Invalid native arguments iterator descriptor.");
+    }
+    const indices = new Set<string>(), names = new Set<string>();
+    for (const rawParameter of array(node.parameters)) {
+      const parameter = array(rawParameter);
+      const [key, name] = parameter;
+      if (parameter.length !== 2 || typeof key !== "string" || typeof name !== "string" || indices.has(key) || names.has(name)
+        || !Number.isInteger(Number(key)) || Number(key) < 0 || Number(key) >= 0xffffffff || String(Number(key)) !== key)
+        throw new TypeError("Invalid mapped argument parameter.");
+      indices.add(key); names.add(name);
+      const property = properties.find(entry => entry[0] === key);
+      const descriptor = record(property?.[1]);
+      if (descriptor.kind !== "data" || descriptor.writable !== true) throw new TypeError("Mapped argument must be writable.");
+      const binding = array(scope.bindings).map(array).find(entry => entry[0] === name);
+      const cell = binding === undefined ? undefined : record(array(scope.cells)[integer(binding[1])]);
+      if (cell?.initialized !== true || cell.kind === "const") throw new TypeError("Missing mutable mapped parameter cell.");
+    }
+    return true;
+  }
   const node = record(raw);
   if (node.kind === "module-namespace") {
     fields(node,["kind","entries"]);
@@ -718,7 +772,11 @@ export function validateGuestHeapNode(raw: unknown, heap: Record<string, unknown
     }
     state(node.state);
   } else if (node.kind === "guest-object" || node.kind === "guest-array") {
-    fields(node, ["kind", "state"], node.kind === "guest-array" ? ["templateNodeId", "templateOwner"] : ["errorType"]);
+    fields(node, ["kind", "state"], node.kind === "guest-array" ? ["templateNodeId", "templateOwner", "dynamicSource"] : ["errorType"]);
+    if (node.dynamicSource !== undefined) {
+      reference(node.dynamicSource, ["guest-source", "guest-script"]);
+      if (node.templateNodeId === undefined) throw new TypeError("Dynamic template source requires a template identity.");
+    }
     if (Object.hasOwn(node, "errorType") && !sandboxErrorNames.includes(node.errorType as SandboxErrorName))
       throw new TypeError("Invalid guest error type.");
     if (Object.hasOwn(node, "templateOwner")) reference(node.templateOwner, ["guest-array"]);
@@ -741,7 +799,8 @@ export function validateGuestHeapNode(raw: unknown, heap: Record<string, unknown
       }
     }
   } else if (node.kind === "guest-class") {
-    fields(node, ["kind", "astNodeId", "scope", "state", "fields"], ["name", "privateMethods"]);
+    fields(node, ["kind", "astNodeId", "scope", "state", "fields"], ["name", "privateMethods", "dynamicSource"]);
+    if (node.dynamicSource !== undefined) reference(node.dynamicSource, ["guest-source", "guest-script"]);
     if (node.privateMethods !== undefined) privateState(node.privateMethods, true);
     if (integer(node.astNodeId) < 1) throw new TypeError("Invalid class AST identity.");
     reference(node.scope, ["scope-frame"]);
@@ -784,25 +843,29 @@ export function validateGuestHeapNode(raw: unknown, heap: Record<string, unknown
     }
     state(node.state);
   } else if (node.kind === "guest-function") {
-    fields(node, ["kind", "astNodeId", "scope", "state"], ["name", "environment"]);
-    if (integer(node.astNodeId) < 1) throw new TypeError("Invalid guest AST identity.");
+    fields(node, ["kind", "astNodeId", "scope", "state"], ["name", "environment", "dynamicSource"]);
+    if (integer(node.astNodeId) < (node.dynamicSource === undefined ? 1 : 0)) throw new TypeError("Invalid guest AST identity.");
+    if (node.dynamicSource !== undefined) reference(node.dynamicSource, ["guest-source", "guest-script"]);
     reference(node.scope, ["scope-frame"]);
     if (Object.hasOwn(node, "name") && typeof node.name !== "string") throw new TypeError("Invalid guest function name.");
     if (Object.hasOwn(node, "environment")) {
       const environment = record(node.environment);
-      fields(environment, [], ["homeObject", "newTarget", "construction"]);
+      fields(environment, [], ["homeObject", "newTarget", "construction", "classInitializer"]);
+      if (environment.classInitializer !== undefined && (environment.classInitializer !== true || !Object.hasOwn(environment, "homeObject")))
+        throw new TypeError("Invalid class initializer environment.");
       if (Object.hasOwn(environment, "homeObject")) reference(environment.homeObject);
       if (Object.hasOwn(environment, "newTarget")) callable(environment.newTarget);
       if (Object.hasOwn(environment, "construction")) reference(environment.construction, ["construction-environment"]);
     }
     state(node.state);
   } else if (node.kind === "guest-generator") {
-    fields(node, ["kind", "state", "astNodeId", "async", "scope", "closureScope", "sent"], ["suspendedScope", "yieldNodeId", "environment", "blockScopes", "finallyCompletions", "expressionStates", "objectState", "asyncFunction", "driver", "awaitPhase"]);
+    fields(node, ["kind", "state", "astNodeId", "async", "scope", "closureScope", "sent"], ["suspendedScope", "yieldNodeId", "environment", "blockScopes", "finallyCompletions", "expressionStates", "objectState", "asyncFunction", "driver", "awaitPhase", "dynamicSource"]);
+    if (node.dynamicSource !== undefined) reference(node.dynamicSource, ["guest-source", "guest-script"]);
     if (node.asyncFunction !== undefined && (node.asyncFunction !== true || node.async !== false)) throw new TypeError("Invalid async function suspension frame.");
     if (node.driver !== undefined && (node.async !== true || reference(reference(node.driver, ["async-generator-driver"]).generator) !== node)) throw new TypeError("Invalid async generator frame owner.");
     if (node.awaitPhase !== undefined && (node.driver === undefined || node.state !== "suspended" || !["await", "yield", "return", "resume-return"].includes(String(node.awaitPhase)))) throw new TypeError("Invalid async generator await phase.");
     if (Object.hasOwn(node, "objectState")) state(node.objectState);
-    if (!["start", "running", "suspended", "done"].includes(String(node.state)) || typeof node.async !== "boolean" || integer(node.astNodeId) < 1)
+    if (!["start", "running", "suspended", "done"].includes(String(node.state)) || typeof node.async !== "boolean" || integer(node.astNodeId) < (node.dynamicSource === undefined ? 1 : 0))
       throw new TypeError("Invalid generator state.");
     reference(node.scope, ["scope-frame"]);
     reference(node.closureScope, ["scope-frame"]);
@@ -817,6 +880,17 @@ export function validateGuestHeapNode(raw: unknown, heap: Record<string, unknown
       for (const [id, raw] of Object.entries(record(node.expressionStates))) {
         if (integer(Number(id)) < 1 || String(Number(id)) !== id) throw new TypeError("Invalid expression identity.");
         const expression = record(raw);
+        if (expression.kind === "array-pattern" || expression.kind === "object-pattern") {
+          if (expression.referenceScope !== undefined || expression.referenceUnresolvable !== undefined) {
+            if (!Object.hasOwn(expression, "referenceObject") || !absent(expression.referenceObject) ||
+                typeof expression.referenceKey !== "string" || expression.privateName !== undefined ||
+                (expression.referenceScope !== undefined && expression.referenceUnresolvable !== undefined))
+              throw new TypeError("Invalid pattern binding reference.");
+            if (expression.referenceScope !== undefined) reference(expression.referenceScope, ["scope-frame"]);
+            if (expression.referenceUnresolvable !== undefined && expression.referenceUnresolvable !== true)
+              throw new TypeError("Invalid unresolvable pattern reference.");
+          }
+        }
         if (expression.kind === "binary") {
           fields(expression, ["kind", "left"]);
         } else if (expression.kind === "dynamic-import") {
@@ -827,7 +901,7 @@ export function validateGuestHeapNode(raw: unknown, heap: Record<string, unknown
         } else if (expression.kind === "pattern-source") {
           fields(expression, ["kind", "value"]);
         } else if (expression.kind === "object-pattern") {
-          fields(expression, ["kind", "phase", "index", "excludedKeys", "key", "current"], ["referenceObject", "referenceKey", "privateName"]);
+          fields(expression, ["kind", "phase", "index", "excludedKeys", "key", "current"], ["referenceObject", "referenceKey", "privateName", "referenceScope", "referenceUnresolvable"]);
           if (expression.privateName !== undefined && (typeof expression.privateName !== "string" || !Object.hasOwn(expression, "referenceObject"))) throw new TypeError("Invalid private pattern reference.");
           integer(expression.index);
           if (!["key", "reference", "binding"].includes(String(expression.phase)) ||
@@ -858,7 +932,7 @@ export function validateGuestHeapNode(raw: unknown, heap: Record<string, unknown
             } else if (expression.awaitState !== undefined || expression.completion !== undefined)
               throw new TypeError("Unexpected delegated iterator continuation fields.");
           } else if (expression.kind === "array-pattern") {
-            fields(expression, ["kind", "phase", "index", "done", "current", "iterator"], ["referenceObject", "referenceKey", "privateName"]);
+            fields(expression, ["kind", "phase", "index", "done", "current", "iterator"], ["referenceObject", "referenceKey", "privateName", "referenceScope", "referenceUnresolvable"]);
             if (expression.privateName !== undefined && (typeof expression.privateName !== "string" || !Object.hasOwn(expression, "referenceObject"))) throw new TypeError("Invalid private pattern reference.");
             if (!["reference", "binding"].includes(String(expression.phase)) || typeof expression.done !== "boolean" ||
                 Object.hasOwn(expression, "referenceObject") !== Object.hasOwn(expression, "referenceKey")) throw new TypeError("Invalid array pattern state.");
@@ -949,7 +1023,18 @@ export function validateGuestHeapNode(raw: unknown, heap: Record<string, unknown
           reference(expression.loopScope, ["scope-frame"]);
           reference(expression.activeScope, ["scope-frame"]);
         } else if (expression.kind === "identifier-assignment") {
-          fields(expression, ["kind", "current"]);
+          fields(expression, ["kind", "current"], ["referenceKind", "referenceScope", "referenceObject"]);
+          if (expression.referenceKind !== undefined && !["binding", "object", "unresolvable"].includes(String(expression.referenceKind)))
+            throw new TypeError("Invalid assignment reference kind.");
+          if (Object.hasOwn(expression, "referenceScope") !== (expression.referenceKind === "binding") ||
+              Object.hasOwn(expression, "referenceObject") !== (expression.referenceKind === "object"))
+            throw new TypeError("Invalid assignment reference target.");
+          if (expression.referenceKind === "binding") reference(expression.referenceScope, ["scope-frame"]);
+          if (expression.referenceKind === "object") {
+            const target = reference(expression.referenceObject);
+            if (["scope-frame", "guest-source", "guest-script", "construction-environment", "thenable-state", "symbol"].includes(String(target.kind)))
+              throw new TypeError("Invalid assignment object reference.");
+          }
         } else if (expression.kind === "member-assignment") {
           fields(expression, ["kind", "object", "property", "current"], ["key", "superReceiver", "privateName"]);
           if (expression.privateName !== undefined && (typeof expression.privateName !== "string" || Object.hasOwn(expression, "key") || Object.hasOwn(expression, "superReceiver"))) throw new TypeError("Invalid private assignment reference.");
@@ -1002,13 +1087,28 @@ export function validateGuestHeapNode(raw: unknown, heap: Record<string, unknown
     }
     if (Object.hasOwn(node, "environment")) {
       const environment = record(node.environment);
-      fields(environment, [], ["homeObject", "newTarget", "construction"]);
+      fields(environment, [], ["homeObject", "newTarget", "construction", "classInitializer"]);
+      if (environment.classInitializer !== undefined && (environment.classInitializer !== true || !Object.hasOwn(environment, "homeObject")))
+        throw new TypeError("Invalid class initializer environment.");
       if (Object.hasOwn(environment, "homeObject")) reference(environment.homeObject);
       if (Object.hasOwn(environment, "newTarget")) callable(environment.newTarget);
       if (Object.hasOwn(environment, "construction")) reference(environment.construction, ["construction-environment"]);
     }
   } else {
-    fields(node, ["kind", "parent", "importMeta", "functionBoundary", "chargeData", "bindings", "cells"], ["restoredBindings", "privateNames", "resourceState", "objectEnvironment", "moduleEnvironment"]);
+    fields(node, ["kind", "parent", "importMeta", "functionBoundary", "chargeData", "bindings", "cells"], ["restoredBindings", "privateNames", "resourceState", "objectEnvironment", "withObject", "moduleEnvironment", "globalEnvironment", "simpleCatchParameter"]);
+    if (node.simpleCatchParameter !== undefined) {
+      const bindings = array(node.bindings);
+      const cells = array(node.cells);
+      const binding = bindings.length === 1 ? array(bindings[0]) : [];
+      const cell = cells.length === 1 ? record(cells[0]) : {};
+      if (typeof node.simpleCatchParameter !== "string" || node.simpleCatchParameter.length === 0 ||
+          absent(node.parent) || node.functionBoundary !== false || node.globalEnvironment === true ||
+          node.withObject !== undefined || node.objectEnvironment !== undefined ||
+          binding[0] !== node.simpleCatchParameter || binding[1] !== 0 || cell.kind !== "let")
+        throw new TypeError("Invalid simple catch parameter scope.");
+    }
+    if (node.globalEnvironment !== undefined && typeof node.globalEnvironment !== "boolean")
+      throw new TypeError("Invalid global environment flag.");
     if (node.moduleEnvironment !== undefined) {
       const environment = record(node.moduleEnvironment);
       fields(environment,["available","namespaces"]);
@@ -1023,6 +1123,13 @@ export function validateGuestHeapNode(raw: unknown, heap: Record<string, unknown
       if (!absent(node.parent)) throw new TypeError("Only root scopes own global object environments.");
       const globalObject = reference(node.objectEnvironment, ["intrinsic"]);
       if (globalObject.id !== '["globalThis"]') throw new TypeError("Invalid global object environment.");
+    }
+    if (node.withObject !== undefined) {
+      if (absent(node.parent) || node.functionBoundary !== false || node.globalEnvironment === true ||
+        node.objectEnvironment !== undefined) throw new TypeError("Invalid with scope frame.");
+      const object = reference(node.withObject);
+      if (["scope-frame", "guest-source", "guest-script", "construction-environment", "thenable-state", "symbol"].includes(String(object.kind)))
+        throw new TypeError("Invalid with object reference.");
     }
     if (node.resourceState !== undefined) reference(node.resourceState, ["object"]);
     if (node.privateNames !== undefined) {
@@ -1040,7 +1147,17 @@ export function validateGuestHeapNode(raw: unknown, heap: Record<string, unknown
     for (const rawCell of cells) {
       const cell = record(rawCell);
       if (typeof cell.initialized !== "boolean" || !["var", "let", "const"].includes(String(cell.kind))) throw new TypeError("Invalid guest binding cell.");
-      fields(cell, cell.initialized ? ["kind", "initialized", "value"] : ["kind", "initialized"]);
+      fields(cell, cell.initialized ? ["kind", "initialized", "value"] : ["kind", "initialized"], ["silentImmutable", "deletable"]);
+      if (cell.deletable !== undefined &&
+          (cell.deletable !== true || cell.kind !== "var" || cell.initialized !== true))
+        throw new TypeError("Invalid deletable binding cell.");
+      if (cell.silentImmutable !== undefined) {
+        if (cell.silentImmutable !== true || cell.kind !== "const" || cell.initialized !== true ||
+            node.functionBoundary !== false || cells.length !== 1 ||
+            array(node.bindings).length !== 1 ||
+            reference(reference(cell.value, ["guest-function"]).scope, ["scope-frame"]) !== node)
+          throw new TypeError("Invalid named function binding cell.");
+      }
     }
     const names = new Set<string>();
     const used = new Set<number>();

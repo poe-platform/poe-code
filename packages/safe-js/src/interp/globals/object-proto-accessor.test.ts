@@ -31,8 +31,8 @@ it.each([
 });
 
 it("returns only guest function prototypes", async () => {
-  expect(await run("return [Array.__proto__===Object.getPrototypeOf(Array),Array.__proto__.constructor,Array.__proto__.kind,Array.__proto__.properties,Array.__proto__.__proto__===Object.prototype]"))
-    .toMatchObject({ok: true, returnValue: [true,undefined,undefined,undefined,true]});
+  expect(await run("return [Array.__proto__===Object.getPrototypeOf(Array),Array.__proto__.constructor===Function,Array.__proto__.kind,Array.__proto__.properties,Array.__proto__.__proto__===Object.prototype,Array.__proto__.constructor('return typeof process')()]"))
+    .toMatchObject({ok: true, returnValue: [true,true,undefined,undefined,true,"undefined"]});
 });
 
 it("replays an accessor-set prototype and a saved accessor identity", async () => {

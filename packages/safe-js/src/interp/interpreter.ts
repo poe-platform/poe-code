@@ -1,4 +1,12 @@
 import { promiseReplayContext } from "./promise-replay.js";
+import { createSandboxBox } from "./boxed.js";
+import { legacyBlockFunctions, prepareLegacyEvalFunctions } from "./legacy-block-functions.js";
+import { compileDynamicFunction } from "./dynamic-function.js";
+import { getIntrinsicIdentity, resolveIntrinsicIdentity } from "./intrinsics.js";
+import { createEvalSource } from "../parse/dynamic-source.js";
+import { evalFunctionDeclarations } from "../parse/function-source.js";
+import { hoistedVarDeclarations } from "../parse/bindings.js";
+import { StatementCompletion } from "./statement-completion.js";
 import { findPrivateElement, type PrivateName } from "./private-state.js";
 import { invokeBuiltinClosure } from "./builtin-call.js";
 import { isSandboxModuleNamespace } from "./module-namespace.js";
@@ -184,7 +192,7 @@ import {
   type SandboxSet,
   type SandboxValue
 } from "./values.js";
-import { Scope } from "./scope.js";
+import { Scope, type BindingReference } from "./scope.js";
 import { hoistVarDeclarations } from "./var-hoist.js";
 
 export type InterpreterValue = SandboxValue;
@@ -325,6 +333,7 @@ const dispatchTable: DispatchTable = {
   FunctionExpression: evaluateFunction,
   IfStatement: evaluateIfStatement,
   Identifier: evaluateIdentifier,
+  WithStatement: evaluateWithStatement,
   LogicalExpression: evaluateLogicalExpression,
   MemberExpression: evaluateMemberExpression,
   MetaProperty: evaluateMetaProperty,
@@ -532,7 +541,8 @@ export { Scope } from "./scope.js";
 
 export async function evaluateNode(
   node: ParseResult,
-  context: EvaluationContext
+  context: EvaluationContext,
+  onReference?: (reference: BindingReference) => void
 ): Promise<EvaluationResult> {
   context.assertActive?.();
   if (context.generatorResume?.completed === true) context.generatorResume = undefined;
@@ -568,7 +578,9 @@ export async function evaluateNode(
     }
   };
   try {
-    const result = await handler(node as never, evaluationContext);
+    const result = node.type === "Identifier" && onReference !== undefined
+      ? await evaluateIdentifier(node, evaluationContext, onReference)
+      : await handler(node as never, evaluationContext);
     reconcileDataBudget(
       context.budget,
       context.stats,
@@ -578,7 +590,7 @@ export async function evaluateNode(
       context.compilation
     );
     if (result.kind === "break" && result.label !== undefined && "labels" in node && node.labels?.includes(result.label))
-      return { kind: "normal", hasValue: false, value: undefined };
+      return { kind: "normal", hasValue: context.evalCompletion === true && result.hasValue, value: context.evalCompletion ? result.value : undefined };
     return result;
   } catch (error) {
     if (error instanceof HostCallResumabilityError) {
@@ -932,12 +944,21 @@ async function evaluateFunctionDeclaration(
   context: EvaluationContext
 ): Promise<EvaluationResult> {
   if (node.id === undefined) throw new Error("An anonymous declaration requires a default export.");
+  if (context.evalCompletion && evalFunctionDeclarations.has(node)) return normalEmptyResult();
   if (!context.scope.hasOwnBinding(node.id.name)) {
     context.scope.declare(
       node.id.name,
       "const",
       createInterpretedClosure(node, context, evaluateNode)
     );
+  }
+  if (legacyBlockFunctions.has(node)) {
+    const binding = context.scope.lookup(node.id.name);
+    if (binding.found) {
+      const assigned = context.scope.assignVar(node.id.name, binding.value, (object, key, value) =>
+        setSandboxProperty(object, key, value, context.budget, true, createCoercionContext(context), false));
+      if (assigned !== undefined) await assigned;
+    }
   }
 
   return {
@@ -1067,13 +1088,16 @@ async function evaluateAssignmentExpression(
   const restored = context.generatorResume === undefined || node.nodeId === undefined
     ? undefined : context.restoredGeneratorExpressionStates?.get(node.nodeId);
   if (restored !== undefined && restored.kind !== "identifier-assignment") throw new TypeError("Invalid identifier assignment continuation.");
-  const binding = node.operator === "=" || restored !== undefined ? undefined : context.scope.lookup(node.left.name);
-  if (binding?.found === false) {
+  const reference: BindingReference = restored?.referenceKind === "object"
+    ? {kind: "object", name: node.left.name, object: restored.referenceObject as SandboxObject, withEnvironment: false}
+    : restored?.referenceKind === "binding"
+      ? {kind: "binding", name: node.left.name, scope: restored.referenceScope!}
+      : restored?.referenceKind === "unresolvable" ? {kind: "unresolvable", name: node.left.name}
+        : await context.scope.resolveBinding(node.left.name, bindingOperations(context));
+  if (reference.kind === "unresolvable" && node.operator !== "=")
     throw new ReferenceError(`Cannot assign to undeclared binding '${node.left.name}'.`);
-  }
   const current = restored === undefined
-    ? binding?.found && binding.object !== undefined
-      ? await getPropertyValue(binding.object, node.left.name, context) : binding?.value
+    ? node.operator === "=" ? undefined : await getReferenceValue(reference, context)
     : restored.current;
 
   if (node.operator === "&&=" && !isTruthy(current)) {
@@ -1102,9 +1126,12 @@ async function evaluateAssignmentExpression(
 
   if (context.generatorYield !== undefined && node.nodeId !== undefined) {
     context = { ...context, generatorExpressionStates: new Map([...(context.generatorExpressionStates ?? []),
-      [node.nodeId, { kind: "identifier-assignment", current }]]) };
+      [node.nodeId, { kind: "identifier-assignment", current, referenceKind: reference.kind,
+        ...(reference.kind === "object" ? {referenceObject: reference.object} : {}),
+        ...(reference.kind === "binding" ? {referenceScope: reference.scope} : {}) }]]) };
   }
-  const release = retainValues(context.budget, () => [current]);
+  const release = retainValues(context.budget, () => [current,
+    ...(reference.kind === "object" ? [reference.object] : reference.kind === "binding" ? reference.scope.retainedDataRoots() : [])]);
   try {
     const right = await evaluateNode(node.right, { ...context, inferredName: node.left.name });
     if (right.kind !== "normal") {
@@ -1119,8 +1146,16 @@ async function evaluateAssignmentExpression(
         ? right.value
         : await applyCompoundAssignmentOperator(node.operator, current, right.value, context);
 
-    await context.scope.assign(node.left.name, value, (object, key, assigned) =>
-      setSandboxProperty(object, key, assigned, context.budget, true, createCoercionContext(context)));
+    if (reference.kind === "unresolvable" && context.strict === false) {
+      const global = resolveIntrinsicIdentity(context.budget, '["globalThis"]') as SandboxObject;
+      await setSandboxProperty(global, node.left.name, value, context.budget, true, createCoercionContext(context), false);
+    } else if (reference.kind === "object") {
+      if (context.strict !== false && !await hasSandboxProperty(reference.object, reference.name, context))
+        throw new ReferenceError(`Cannot assign to undeclared binding '${reference.name}'.`);
+      await setSandboxProperty(reference.object, reference.name, value, context.budget, true, createCoercionContext(context), context.strict !== false);
+    } else if (reference.kind === "binding") {
+      reference.scope.assignOwnBinding(reference.name, value, context.strict !== false);
+    } else throw new ReferenceError(`Cannot assign to undeclared binding '${node.left.name}'.`);
 
     return {
       kind: "normal",
@@ -1231,7 +1266,8 @@ async function evaluateMemberAssignmentExpression(
           value,
           context.budget,
           true,
-          createCoercionContext(context)
+          createCoercionContext(context),
+          context.strict !== false
         );
       else
         await setSuperProperty(member.object, member.superReceiver.value, property!, value, context);
@@ -1327,11 +1363,13 @@ async function evaluateConditionalExpression(
 
 async function evaluateIdentifier(
   node: Identifier,
-  context: EvaluationContext
+  context: EvaluationContext,
+  onReference?: (reference: BindingReference) => void
 ): Promise<EvaluationResult> {
-  const binding = context.scope.lookup(node.name);
+  const resolved = context.scope.resolveBinding(node.name, bindingOperations(context));
+  const reference = "kind" in resolved ? resolved : await resolved;
 
-  if (!binding.found) {
+  if (reference.kind === "unresolvable") {
     return {
       kind: "error",
       error: createError(
@@ -1343,11 +1381,42 @@ async function evaluateIdentifier(
     };
   }
 
+  const value = reference.kind === "binding"
+    ? getReferenceValue(reference, context) : await getReferenceValue(reference, context);
+  onReference?.(reference);
+  return { kind: "normal", hasValue: true, value };
+}
+
+async function evaluateWithStatement(
+  node: import("../parse.js").WithStatement, context: EvaluationContext
+): Promise<EvaluationResult> {
+  const result = await evaluateNode(node.object, context);
+  if (result.kind !== "normal") return result;
+  if (result.value === null || result.value === undefined) throw new TypeError("Cannot create a with environment from null or undefined.");
+  const object = typeof result.value === "object" ? result.value : createSandboxBox(result.value);
+  const evaluation = evaluateNode(node.body, {...context, scope: context.scope.withObject(object as SandboxObject)});
+  if (!context.evalCompletion) return evaluation;
+  const completion = await evaluation;
+  return completion.kind !== "error" && !completion.hasValue
+    ? { ...completion, hasValue: true, value: undefined } : completion;
+}
+
+function bindingOperations(context: EvaluationContext) {
   return {
-    kind: "normal",
-    hasValue: true,
-    value: binding.object === undefined ? binding.value : await getPropertyValue(binding.object, node.name, context)
+    has: (object: SandboxObject, key: string) => hasSandboxProperty(object, key, context),
+    get: (object: SandboxObject, key: PropertyKey) => getPropertyValue(object, key, context)
   };
+}
+
+function getReferenceValue(reference: Extract<BindingReference, {kind: "binding"}>, context: EvaluationContext): SandboxValue;
+function getReferenceValue(reference: BindingReference, context: EvaluationContext): SandboxValue | Promise<SandboxValue>;
+function getReferenceValue(reference: BindingReference, context: EvaluationContext): SandboxValue | Promise<SandboxValue> {
+  if (reference.kind === "object") return getPropertyValue(reference.object, reference.name, context);
+  if (reference.kind === "binding") {
+    const binding = reference.scope.lookup(reference.name);
+    if (binding.found) return binding.value;
+  }
+  throw new ReferenceError(`Identifier '${reference.name}' is not defined.`);
 }
 
 async function evaluateThisExpression(
@@ -1596,7 +1665,8 @@ async function evaluateBlockStatement(
   const blockContext = createBlockContext(node, context);
   const resumeIndex = findResumeStatementIndex(node, blockContext);
   const generatorResumeIndex = findGeneratorResumeStatementIndex(node, blockContext);
-  return evaluateResourceScope(blockContext.scope, context.budget, {...createCoercionContext(blockContext), ...resourceSuspension(blockContext, node), onSuspend: blockContext.onSuspend, signal: blockContext.signal}, async () => {
+  const completion = context.evalCompletion && node !== context.functionBody ? new StatementCompletion(context.budget) : undefined;
+  const evaluation = evaluateResourceScope(blockContext.scope, context.budget, {...createCoercionContext(blockContext), ...resourceSuspension(blockContext, node), onSuspend: blockContext.onSuspend, signal: blockContext.signal}, async () => {
   for (let index = 0; index < node.body.length; index += 1) {
     const statement = node.body[index]!;
     if (generatorResumeIndex !== undefined && index < generatorResumeIndex) {
@@ -1609,18 +1679,21 @@ async function evaluateBlockStatement(
     ) {
       continue;
     }
-    const result = await evaluateNode(statement, blockContext);
+    const evaluated = await evaluateNode(statement, blockContext);
+    const result = completion?.update(evaluated) ?? evaluated;
     if (result.kind !== "normal") {
       return result;
     }
   }
 
-  return {
+  return completion?.normal() ?? {
     kind: "normal",
     hasValue: false,
     value: undefined
   };
   });
+  if (completion === undefined) return evaluation;
+  try { return await evaluation; } finally { completion.close(); }
 }
 
 function findGeneratorResumeStatementIndex(
@@ -1689,6 +1762,7 @@ function predeclareStatementListBindings(
 ): void {
   const { scope } = context;
   const names = new Set<string>();
+  const legacyFunctions = new Set<string>();
 
   for (const entry of statements) {
     const exportedFunction = entry.type === "ExportDefaultDeclaration" && entry.declaration.type === "FunctionDeclaration";
@@ -1703,13 +1777,23 @@ function predeclareStatementListBindings(
     if (statement.type === "FunctionDeclaration") {
       if (statement.id === undefined && !exportedFunction) throw new Error("An anonymous declaration requires a default export.");
       const name = statement.id?.name ?? "default";
-      if (names.has(name) && !(!exportedFunction && functionBody && scope.getOwnBindingKind(name) === "var")) {
+      const closure = createInterpretedClosure(statement, exportedFunction ? { ...context, inferredName: name } : context, evaluateNode);
+      if (functionBody && context.evalCompletion && !exportedFunction) {
+        scope.declareVar(name, {functionValue: closure, deletable: true});
+        names.add(name);
+        continue;
+      }
+      const legacyFunction = !functionBody && !exportedFunction && context.strict === false &&
+        !statement.async && !statement.generator;
+      const repeatedLegacyFunction = legacyFunction && legacyFunctions.has(name);
+      if (names.has(name) && !repeatedLegacyFunction &&
+          !(!exportedFunction && functionBody && scope.getOwnBindingKind(name) === "var")) {
         throw new Error(`Cannot redeclare binding '${name}' in the same scope.`);
       }
 
-      const closure = createInterpretedClosure(statement, exportedFunction ? { ...context, inferredName: name } : context, evaluateNode);
       const ownBindingKind = scope.getOwnBindingKind(name);
-      if (ownBindingKind === "var" && !exportedFunction) {
+      if ((ownBindingKind === "var" && !exportedFunction) ||
+          (ownBindingKind === "let" && repeatedLegacyFunction)) {
         names.add(name);
         scope.assign(name, closure);
         continue;
@@ -1719,6 +1803,7 @@ function predeclareStatementListBindings(
       }
 
       names.add(name);
+      if (legacyFunction) legacyFunctions.add(name);
       scope.declare(name, exportedFunction ? (statement.id === undefined ? "const" : "let") : functionBody ? "var" : "let", closure);
       if (exportedFunction && statement.id !== undefined) scope.declareAlias("default", name);
       continue;
@@ -1764,6 +1849,7 @@ async function evaluateSwitchStatement(
     switchContext
   );
 
+  const completion = context.evalCompletion ? new StatementCompletion(context.budget, true) : undefined;
   const release = retainValues(context.budget, () => [progress.value]);
   try {
     return await evaluateResourceScope(progress.scope, context.budget, {...createCoercionContext(switchContext), ...resourceSuspension(switchContext, node), onSuspend: switchContext.onSuspend, signal: switchContext.signal}, async () => {
@@ -1788,7 +1874,7 @@ async function evaluateSwitchStatement(
 
     startIndex ??= defaultIndex < 0 ? undefined : defaultIndex;
     if (startIndex === undefined) {
-      return normalEmptyResult();
+      return completion?.normal() ?? normalEmptyResult();
     }
 
     for (let caseIndex = startIndex; caseIndex < node.cases.length; caseIndex += 1) {
@@ -1799,9 +1885,10 @@ async function evaluateSwitchStatement(
         statementIndex < statements.length; statementIndex++) {
         progress.statementIndex = statementIndex;
         const statement = statements[statementIndex]!;
-        const result = await evaluateNode(statement, switchContext);
+        const evaluated = await evaluateNode(statement, switchContext);
+        const result = completion?.update(evaluated) ?? evaluated;
         if (result.kind === "break" && result.label === undefined) {
-          return normalEmptyResult();
+          return completion?.normal() ?? normalEmptyResult();
         }
         if (result.kind !== "normal") {
           return result;
@@ -1809,10 +1896,11 @@ async function evaluateSwitchStatement(
       }
     }
 
-    return normalEmptyResult();
+    return completion?.normal() ?? normalEmptyResult();
     });
   } finally {
     release();
+    completion?.close();
   }
 }
 
@@ -1834,12 +1922,15 @@ async function evaluateIfStatement(
   if (branch === undefined) {
     return {
       kind: "normal",
-      hasValue: false,
+      hasValue: context.evalCompletion === true,
       value: undefined
     };
   }
 
-  return evaluateNode(branch, context);
+  if (!context.evalCompletion) return evaluateNode(branch, context);
+  const result = await evaluateNode(branch, context);
+  return context.evalCompletion && result.kind !== "error" && !result.hasValue
+    ? {...result, hasValue: true, value: undefined} : result;
 }
 
 async function evaluateForOfStatement(
@@ -1969,6 +2060,7 @@ async function evaluateForOfIterator(
     }
   };
 
+  const completion = context.evalCompletion ? new StatementCompletion(context.budget, true) : undefined;
   const releaseIterator = retainValues(context.budget, () => [value, iterator.retainedValue]);
   const closeLoopIterator = async (completion: EvaluationResult): Promise<void> => {
     const preserveThrow = completion.kind === "throw";
@@ -2006,7 +2098,7 @@ async function evaluateForOfIterator(
         throw new TypeError("Iterator result must be an object.");
       }
       if ((await readIteratorResult(iterator, skippedIteration, "done")).value) {
-        return normalEmptyResult();
+        return completion?.normal() ?? normalEmptyResult();
       }
     }
 
@@ -2020,7 +2112,7 @@ async function evaluateForOfIterator(
       }
       if ((await readIteratorResult(iterator, iteration, "done")).value) {
         context.activeLoopIterations.delete(nodeId);
-        return normalEmptyResult();
+        return completion?.normal() ?? normalEmptyResult();
       }
 
       const nextValue = (await readIteratorResult(iterator, iteration, "value")).value;
@@ -2056,11 +2148,13 @@ async function evaluateForOfIterator(
 
       const iterationContext = createLoopIterationContext(phaseContext("body"), scope);
       emitLoopIterationBreakpoint(node, iterationContext);
-      const result = await evaluateResourceScope(scope, context.budget, {...createCoercionContext(iterationContext), ...resourceSuspension(iterationContext, node), onSuspend: iterationContext.onSuspend, signal: iterationContext.signal}, () => evaluateNode(node.body, iterationContext));
+      const evaluated = await evaluateResourceScope(scope, context.budget, {...createCoercionContext(iterationContext), ...resourceSuspension(iterationContext, node), onSuspend: iterationContext.onSuspend, signal: iterationContext.signal}, () => evaluateNode(node.body, iterationContext));
+      const result = completion?.update(evaluated) ?? evaluated;
       if (isMatchingBreak(result, loopLabels(node))) {
         context.activeLoopIterations.delete(nodeId);
-        await closeLoopIterator(normalEmptyResult());
-        return normalEmptyResult();
+        const finished = completion?.normal() ?? normalEmptyResult();
+        await closeLoopIterator(finished);
+        return finished;
       }
       if (isMatchingContinue(result, loopLabels(node))) {
         index += 1;
@@ -2075,6 +2169,7 @@ async function evaluateForOfIterator(
     }
   } finally {
     releaseIterator();
+    completion?.close();
   }
 }
 
@@ -2093,9 +2188,11 @@ async function evaluateForInStatement(
 
   const object = forInObject(right.value);
   if (object === undefined) {
-    return normalEmptyResult();
+    return { kind: "normal", hasValue: context.evalCompletion === true, value: undefined };
   }
 
+  const completion = context.evalCompletion ? new StatementCompletion(context.budget, true) : undefined;
+  try {
   const restoredIteration = consumeRestoredLoopIteration(node, context);
   const keys = restored?.keys ?? (
     restoredIteration === undefined || typeof restoredIteration === "number"
@@ -2129,10 +2226,11 @@ async function evaluateForInStatement(
 
     const iterationContext = createLoopIterationContext(phaseContext("body"), scope);
     emitLoopIterationBreakpoint(node, iterationContext);
-    const result = await evaluateNode(node.body, iterationContext);
+    const evaluated = await evaluateNode(node.body, iterationContext);
+    const result = completion?.update(evaluated) ?? evaluated;
     if (isMatchingBreak(result, loopLabels(node))) {
       context.activeLoopIterations.delete(node.nodeId ?? -1);
-      return normalEmptyResult();
+      return completion?.normal() ?? normalEmptyResult();
     }
     if (isMatchingContinue(result, loopLabels(node))) {
       continue;
@@ -2144,7 +2242,10 @@ async function evaluateForInStatement(
   }
 
   context.activeLoopIterations.delete(node.nodeId ?? -1);
-  return normalEmptyResult();
+  return completion?.normal() ?? normalEmptyResult();
+  } finally {
+    completion?.close();
+  }
 }
 
 function forInObject(value: SandboxValue): object | undefined {
@@ -2232,7 +2333,8 @@ async function evaluateForStatement(
         [node.nodeId, { kind: "for", phase, loopScope, activeScope: scope }]])
     })
   });
-  return evaluateResourceScope(loopScope, context.budget, {...createCoercionContext(loopContext), ...resourceSuspension(phaseContext("dispose", loopScope), node), onSuspend: loopContext.onSuspend, signal: loopContext.signal}, async () => {
+  const completion = context.evalCompletion ? new StatementCompletion(context.budget, true) : undefined;
+  const evaluation = evaluateResourceScope(loopScope, context.budget, {...createCoercionContext(loopContext), ...resourceSuspension(phaseContext("dispose", loopScope), node), onSuspend: loopContext.onSuspend, signal: loopContext.signal}, async () => {
   if (node.init !== undefined && (resumePhase === undefined || resumePhase === "init")) {
     const init = await evaluateNode(node.init, phaseContext("init", loopScope));
     if (init.kind !== "normal") {
@@ -2251,7 +2353,7 @@ async function evaluateForStatement(
       }
 
       if (!isTruthy(test.value)) {
-        return {
+        return completion?.normal() ?? {
           kind: "normal",
           hasValue: false,
           value: undefined
@@ -2265,10 +2367,11 @@ async function evaluateForStatement(
     if (resumePhase !== "update") {
       const iterationContext = createLoopIterationContext(phaseContext("body", iterationScope), iterationScope);
       emitLoopIterationBreakpoint(node, iterationContext);
-      const result = await evaluateNode(node.body, iterationContext);
+      const evaluated = await evaluateNode(node.body, iterationContext);
+      const result = completion?.update(evaluated) ?? evaluated;
 
       if (isMatchingBreak(result, loopLabels(node))) {
-        return {
+        return completion?.normal() ?? {
           kind: "normal",
           hasValue: false,
           value: undefined
@@ -2297,28 +2400,33 @@ async function evaluateForStatement(
     resumePhase = undefined;
   }
   });
+  if (completion === undefined) return evaluation;
+  try { return await evaluation; } finally { completion.close(); }
 }
 
 async function evaluateWhileStatement(
   node: WhileStatement,
   context: EvaluationContext
 ): Promise<EvaluationResult> {
+  const completion = context.evalCompletion ? new StatementCompletion(context.budget, true) : undefined;
+  try {
   let resumeBody = context.generatorResume !== undefined && context.generatorResume.completed !== true &&
     containsResumeTarget(node.body, new Set([context.generatorResume.yieldNodeId]));
   while (true) {
     if (!resumeBody) {
       const test = await evaluateNode(node.test, context);
       if (test.kind !== "normal") return test;
-      if (!isTruthy(test.value)) return { kind: "normal", hasValue: false, value: undefined };
+      if (!isTruthy(test.value)) return completion?.normal() ?? { kind: "normal", hasValue: false, value: undefined };
     }
     resumeBody = false;
 
     const iterationContext = createLoopIterationContext(context, context.scope);
     emitLoopIterationBreakpoint(node, iterationContext);
-    const result = await evaluateNode(node.body, iterationContext);
+    const evaluated = await evaluateNode(node.body, iterationContext);
+    const result = completion?.update(evaluated) ?? evaluated;
 
     if (isMatchingBreak(result, loopLabels(node))) {
-      return {
+      return completion?.normal() ?? {
         kind: "normal",
         hasValue: false,
         value: undefined
@@ -2333,22 +2441,28 @@ async function evaluateWhileStatement(
       return result;
     }
   }
+  } finally {
+    completion?.close();
+  }
 }
 
 async function evaluateDoWhileStatement(
   node: DoWhileStatement,
   context: EvaluationContext
 ): Promise<EvaluationResult> {
+  const completion = context.evalCompletion ? new StatementCompletion(context.budget, true) : undefined;
+  try {
   let resumeTest = context.generatorResume !== undefined && context.generatorResume.completed !== true &&
     containsResumeTarget(node.test, new Set([context.generatorResume.yieldNodeId]));
   while (true) {
     if (!resumeTest) {
       const iterationContext = createLoopIterationContext(context, context.scope);
       emitLoopIterationBreakpoint(node, iterationContext);
-      const result = await evaluateNode(node.body, iterationContext);
+      const evaluated = await evaluateNode(node.body, iterationContext);
+      const result = completion?.update(evaluated) ?? evaluated;
 
       if (isMatchingBreak(result, loopLabels(node))) {
-        return {
+        return completion?.normal() ?? {
           kind: "normal",
           hasValue: false,
           value: undefined
@@ -2367,12 +2481,15 @@ async function evaluateDoWhileStatement(
     }
 
     if (!isTruthy(test.value)) {
-      return {
+      return completion?.normal() ?? {
         kind: "normal",
         hasValue: false,
         value: undefined
       };
     }
+  }
+  } finally {
+    completion?.close();
   }
 }
 
@@ -2753,12 +2870,16 @@ async function evaluateTryStatement(
   node: TryStatement,
   context: EvaluationContext
 ): Promise<EvaluationResult> {
-  return evaluateTryStatementResult(node, {
+  const evaluation = evaluateTryStatementResult(node, {
     ...context,
     instantiateBlock: (block: BlockStatement, scope: Scope) => predeclareStatementListBindings(block.body, {...context, scope}),
     toPropertyKey: (value: SandboxValue) => toPropertyKey(value, context.budget, createCoercionContext(context)),
     getProperty: (value: SandboxValue, key: PropertyKey) => getPropertyValue(value, key, context)
   }, evaluateNode);
+  if (!context.evalCompletion) return evaluation;
+  const result = await evaluation;
+  return context.evalCompletion && result.kind !== "error" && !result.hasValue
+    ? {...result, hasValue: true, value: undefined} : result;
 }
 
 async function evaluateUnaryExpression(
@@ -2771,13 +2892,18 @@ async function evaluateUnaryExpression(
 
   if (
     node.operator === "typeof" &&
-    node.argument.type === "Identifier" &&
-    !context.scope.lookup(node.argument.name).found
+    node.argument.type === "Identifier"
   ) {
+    const reference = await context.scope.resolveBinding(node.argument.name, bindingOperations(context));
+    if (reference.kind === "unresolvable") return {kind: "normal", hasValue: true, value: "undefined"};
+    context.budget.visitNode();
+    context.stats.nodeVisits += 1;
+    const value = await getReferenceValue(reference, context);
+    reconcileDataBudget(context.budget, context.stats, context.scope, value, context.compilation, context.compilation?.parent);
     return {
       kind: "normal",
       hasValue: true,
-      value: "undefined"
+      value: await applyUnaryOperator("typeof", value, context)
     };
   }
 
@@ -2805,6 +2931,11 @@ async function evaluateDeleteExpression(
   node: UnaryExpression,
   context: EvaluationContext
 ): Promise<EvaluationResult> {
+  if (node.argument.type === "Identifier" && context.strict === false) {
+    const reference = await context.scope.resolveBinding(node.argument.name, bindingOperations(context));
+    return {kind: "normal", hasValue: true, value: reference.kind === "unresolvable" ? true
+      : reference.kind === "binding" ? reference.scope.deleteBinding(reference.name) : deleteSandboxProperty(reference.object, reference.name, false)};
+  }
   if (node.argument.type !== "MemberExpression") {
     if (node.argument.type !== "Identifier") {
       const argument = await evaluateNode(node.argument, context);
@@ -2837,7 +2968,7 @@ async function evaluateDeleteExpression(
     }
 
     const property = await toPropertyKey(member.property, context.budget, createCoercionContext(context));
-    const deleted = deleteSandboxProperty(member.object, property);
+    const deleted = deleteSandboxProperty(member.object, property, context.strict !== false);
 
     return {
       kind: "normal",
@@ -2866,8 +2997,8 @@ async function evaluateIdentifierUpdateExpression(
     throw new TypeError("Expected identifier update target.");
   }
 
-  const binding = context.scope.lookup(node.argument.name);
-  if (!binding.found) {
+  const reference = await context.scope.resolveBinding(node.argument.name, bindingOperations(context));
+  if (reference.kind === "unresolvable") {
     return {
       kind: "error",
       error: createError(
@@ -2878,14 +3009,16 @@ async function evaluateIdentifierUpdateExpression(
     };
   }
 
-  const primitive = await toNumericPrimitive(binding.object === undefined ? binding.value
-    : await getPropertyValue(binding.object, node.argument.name, context), context);
+  const primitive = await toNumericPrimitive(await getReferenceValue(reference, context), context);
   const current = typeof primitive === "bigint" ? primitive : toNumber(primitive);
   const next = typeof current === "bigint"
     ? bigIntOperation(node.operator === "++" ? "+" : "-", current, 1n, context.budget)
     : node.operator === "++" ? current + 1 : current - 1;
-  await context.scope.assign(node.argument.name, next, (object, key, assigned) =>
-    setSandboxProperty(object, key, assigned, context.budget, true, createCoercionContext(context)));
+  if (reference.kind === "object") {
+    await setSandboxProperty(reference.object, reference.name, next, context.budget, true, createCoercionContext(context), context.strict !== false);
+  } else {
+    reference.scope.assignOwnBinding(reference.name, next, context.strict !== false);
+  }
 
   return {
     kind: "normal",
@@ -2913,7 +3046,7 @@ async function evaluateMemberUpdateExpression(
       ? bigIntOperation(node.operator === "++" ? "+" : "-", current, 1n, context.budget)
       : node.operator === "++" ? current + 1 : current - 1;
     if (member.privateName !== undefined) await writePrivateValue(member.object, member.privateName, next, context);
-    else if (member.superReceiver === undefined) await setSandboxProperty(member.object, property!, next, context.budget, true, createCoercionContext(context));
+    else if (member.superReceiver === undefined) await setSandboxProperty(member.object, property!, next, context.budget, true, createCoercionContext(context), context.strict !== false);
     else await setSuperProperty(member.object, member.superReceiver.value, property!, next, context);
 
     return {
@@ -3021,6 +3154,10 @@ export function createPatternContext(
 ): PatternContext {
   const evaluationContext = { ...context, scope };
   return {
+    strict: context.strict !== false,
+    bindingOperations: bindingOperations(evaluationContext),
+    unresolvableAssignmentTarget: context.strict === false
+      ? resolveIntrinsicIdentity(context.budget, '["globalThis"]') as SandboxObject : undefined,
     restoredPatternState: id => context.generatorResume === undefined ? undefined : context.restoredGeneratorExpressionStates?.get(id),
     withPatternState: (id, state) => context.generatorYield === undefined ? createPatternContext(context, scope, evaluate)
       : createPatternContext({ ...context, generatorExpressionStates: new Map([...(context.generatorExpressionStates ?? []), [id, state]]) }, scope, evaluate),
@@ -3049,7 +3186,8 @@ export function createPatternContext(
         value,
         context.budget,
         true,
-        createCoercionContext(evaluationContext)
+        createCoercionContext(evaluationContext),
+        context.strict !== false
       )
   };
 }
@@ -3079,12 +3217,64 @@ async function evaluateCallExpression(
     return evaluateMemberCallExpression(node, context);
   }
 
-  const callee = await evaluateNode(node.callee, context);
+  let receiver: SandboxObject | undefined;
+  const callee = await evaluateNode(node.callee, context, reference => {
+    if (reference.kind === "object" && reference.withEnvironment) receiver = reference.object;
+  });
   if (callee.kind !== "normal") {
     return callee;
   }
 
-  return evaluateResolvedCallExpression(node, callee.value, context);
+  return evaluateResolvedCallExpression(node, callee.value, context, receiver);
+}
+
+async function evaluateGuestEval(source: string, context: EvaluationContext, direct: boolean): Promise<SandboxValue> {
+  const parent = direct ? context.scope : context.scope.globalScope();
+  const parsed = createEvalSource(source, {
+    strict: direct && context.strict !== false,
+    newTarget: direct && context.functionEnvironment !== undefined,
+    superProperty: direct && context.functionEnvironment?.homeObject !== undefined,
+    superCall: direct && context.functionEnvironment?.construction?.derived === true,
+    arguments: !direct || context.functionEnvironment?.classInitializer !== true,
+    privateNames: direct && source.includes("#") ? parent.visiblePrivateNames() : undefined
+  }, context.compilation?.owner);
+  if (!parsed.strict) {
+    const names = new Set<string>();
+    const functions = new Set<string>();
+    for (const declaration of hoistedVarDeclarations(parsed.node.body)) {
+      for (const name of getDeclarationBindingNames(declaration)) names.add(name);
+    }
+    for (const statement of parsed.node.body) {
+      if (statement.type === "FunctionDeclaration" && statement.id !== undefined) {
+        names.add(statement.id.name);
+        functions.add(statement.id.name);
+      }
+    }
+    const conflict = parent.findEvalVarConflict(names);
+    if (conflict !== undefined) throw new SyntaxError(`Cannot redeclare binding '${conflict}' in eval.`);
+    parent.validateEvalGlobalDeclarations(names, functions);
+  }
+  const scope = parent.child({}, {functionBoundary: parsed.strict});
+  if (!direct) scope.declare("this", "const", resolveIntrinsicIdentity(context.budget, '["globalThis"]') as SandboxObject);
+  const evaluationContext: EvaluationContext = {
+    ...context, scope, strict: parsed.strict, functionBody: undefined, evalCompletion: true,
+    functionEnvironment: direct ? context.functionEnvironment : undefined
+  };
+  let value: SandboxValue;
+  const release = retainValues(context.budget, () => [...scope.retainedDataRoots(), source, value]);
+  try {
+    for (const statement of parsed.node.body) hoistVarDeclarations(statement, scope, {deletable: true});
+    if (!parsed.strict) prepareLegacyEvalFunctions(parsed.node.body, scope);
+    predeclareStatementListBindings(parsed.node.body, evaluationContext, true);
+    for (const statement of parsed.node.body) {
+      const result = await evaluateNode(statement, evaluationContext);
+      if (result.kind === "error") throw result.error;
+      if (result.kind === "throw") throw result.value;
+      if (result.kind !== "normal") throw new SyntaxError("Invalid eval completion.");
+      if (result.hasValue) value = result.value;
+    }
+    return value;
+  } finally {release();}
 }
 
 async function evaluateNewExpression(
@@ -3737,6 +3927,8 @@ function applyBinaryOperator(
 
 export function createCoercionContext(context: EvaluationContext): SandboxCallContext {
   return {
+    evaluateEval: source => evaluateGuestEval(source, context, false),
+    createDynamicFunction: (kind, parameters, body) => compileDynamicFunction(context, evaluateNode, kind, parameters, body),
     stack: context.callStack,
     thisValue: undefined,
     compilation: context.compilation,
@@ -4078,7 +4270,8 @@ export function setSandboxProperty(
   value: SandboxValue,
   budget: Budget,
   checkInherited = true,
-  context?: SandboxCallContext
+  context?: SandboxCallContext,
+  throwOnFailure = true
 ): void | Promise<void> {
   if (isGuestHostObject(target)) {
     if (typeof property === "symbol") throw new TypeError("Host properties require string keys.");
@@ -4086,11 +4279,19 @@ export function setSandboxProperty(
     return;
   }
   const prototypeOwner = target;
-  if (isSandboxModuleNamespace(target)) throw new TypeError("Cannot assign to a module namespace.");
+  if (isSandboxModuleNamespace(target)) {
+    if (!throwOnFailure) return;
+    throw new TypeError("Cannot assign to a module namespace.");
+  }
   if (checkInherited) {
     const descriptor = getSandboxPropertyDescriptor(target, property, budget);
-    if (descriptor !== undefined && !("value" in descriptor))
-      return writePropertyDescriptor(descriptor, target, value, context);
+    if (descriptor !== undefined) {
+      if (!("value" in descriptor)) {
+        if (!throwOnFailure && descriptor.set === undefined) return;
+        return writePropertyDescriptor(descriptor, target, value, context);
+      }
+      if (!throwOnFailure && descriptor.writable === false) return;
+    }
   }
   if (isSandboxClosure(target)) target = materializeFunctionProperties(target);
   if (isSandboxPromise(target)) target = getPromiseProperties(target);
@@ -4104,12 +4305,17 @@ export function setSandboxProperty(
     return;
   }
   if (!isIndexableSandboxValue(target)) {
+    if (!throwOnFailure && target !== null && target !== undefined && typeof target !== "object") return;
     throw new TypeError("Assignment expressions require a sandbox object property.");
   }
   const key = typeof property === "symbol" ? property : String(property);
   if (Array.isArray(target)) {
     assertCollectionMutable(target);
     if (typeof key === "string" && (key === "length" || isArrayIndexKey(key))) {
+      if (!throwOnFailure) {
+        Reflect.set(target, key, value);
+        return;
+      }
       (target as unknown as Record<string, SandboxValue>)[key] = value;
       return;
     }
@@ -4118,10 +4324,12 @@ export function setSandboxProperty(
   const descriptor = Object.getOwnPropertyDescriptor(target, key);
   if (descriptor !== undefined) {
     if (descriptor.writable !== true) {
+      if (!throwOnFailure) return;
       throw new TypeError(`Cannot assign to read only property '${String(key)}'.`);
     }
     Object.defineProperty(target, key, { value });
   } else {
+    if (!throwOnFailure && !Object.isExtensible(target)) return;
     if (checkInherited && typeof prototypeOwner === "object" && prototypeOwner !== null) {
       let depth = 0;
       for (
@@ -4181,7 +4389,8 @@ function setSuperProperty(
 
 export function deleteSandboxProperty(
   target: SandboxValue,
-  property: PropertyKey
+  property: PropertyKey,
+  throwOnFailure = true
 ): boolean {
   if (target !== null && target !== undefined && typeof target !== "object") target = Object(target) as SandboxObject;
   if (isGuestHostObject(target)) return deleteHostObjectMember(target, String(property));
@@ -4193,6 +4402,7 @@ export function deleteSandboxProperty(
   if (Array.isArray(target)) {
     assertCollectionMutable(target);
   }
+  if (!throwOnFailure) return Reflect.deleteProperty(target as object, property);
   return delete (target as unknown as Record<PropertyKey, SandboxValue>)[property];
 }
 
@@ -4229,6 +4439,11 @@ async function evaluateResolvedCallExpression(
     throw new TypeError("Attempted to call a non-function value.");
   }
 
+  // The syntax and captured callee survive argument suspension; do not resolve
+  // the binding again when a saved call resumes.
+  const directEval = node.callee.type === "Identifier" && node.callee.name === "eval" &&
+    node.optional !== true && getIntrinsicIdentity(callee) === '["eval"]' &&
+    callee === resolveIntrinsicIdentity(context.budget, '["eval"]');
   return {
     kind: "normal",
     hasValue: true,
@@ -4238,7 +4453,10 @@ async function evaluateResolvedCallExpression(
       context,
       [...context.callStack, formatStackFrame(node, callee.name)],
       node.span,
-      thisValue
+      thisValue,
+      false,
+      undefined,
+      directEval
     )
   };
 }
@@ -4318,7 +4536,8 @@ async function invokeSandboxClosure(
   span?: SourceSpan,
   thisValue: SandboxValue = undefined,
   construct = false,
-  newTarget?: SandboxClosure
+  newTarget?: SandboxClosure,
+  directEval = false
 ): Promise<SandboxValue> {
   const leaveCall = context.budget.enterCall();
 
@@ -4331,6 +4550,9 @@ async function invokeSandboxClosure(
         stack,
         thisValue,
         newTarget: construct ? newTarget ?? callee : undefined,
+        evaluateEval: (source: string) => evaluateGuestEval(source, context, directEval),
+        createDynamicFunction: (kind: import("../parse/parser.js").DynamicFunctionKind, parameters: string, body: string) =>
+          compileDynamicFunction(context, evaluateNode, kind, parameters, body),
         compilation: context.compilation,
         getProperty: (value: SandboxValue, property: string | number) =>
           getPropertyValue(value, property, context),

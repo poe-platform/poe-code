@@ -100,6 +100,6 @@ it("preserves shared method mutations across a pending effect", async () => {
 });
 
 it("does not expose a dynamic host Function constructor", async () => {
-  const result = await run("function f(){}return [typeof Function,f.constructor,Math.abs.constructor,Array.constructor]");
-  expect(result.returnValue).toEqual(["undefined", undefined, undefined, undefined]);
+  const result = await run("function f(){}return [typeof Function,f.constructor===Function,Math.abs.constructor===Function,Array.constructor===Function,Function.constructor===Function,Function('return [typeof process,typeof require,typeof Buffer]')(),Function.kind,Function.properties]");
+  expect(result.returnValue).toEqual(["function", true, true, true, true, ["undefined", "undefined", "undefined"], undefined, undefined]);
 });

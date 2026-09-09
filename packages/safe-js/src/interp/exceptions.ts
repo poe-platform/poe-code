@@ -42,6 +42,7 @@ import { internalSymbols } from "./internal-symbols.js";
 import { containsResumeTarget } from "./resume-target.js";
 import { evaluateResourceScope, resourceSuspension } from "./resource-management.js";
 import type { AsyncSuspensionContext } from "./async.js";
+import { StatementCompletion } from "./statement-completion.js";
 
 const capturedExceptionBrand = Symbol("CapturedException");
 export const referenceErrorDiagnostics = new WeakSet<object>();
@@ -90,6 +91,7 @@ type CapturedException = {
 };
 
 type ExceptionContext = AsyncSuspensionContext & {
+  evalCompletion?: boolean;
   onSuspend?: () => void;
   signal?: AbortSignal;
   budget: Budget;
@@ -573,7 +575,8 @@ async function evaluateCatchClause<TContext extends BlockExceptionContext, TErro
   if (context.generatorResume !== undefined && context.generatorResume.completed !== true &&
       node.body.nodeId !== undefined && context.restoredGeneratorBlockScopes?.has(node.body.nodeId))
     return evaluateBlockCompletion(node.body, context, evaluateNode);
-  const scope = context.scope.child();
+  const scope = context.scope.child({}, node.param?.type === "Identifier"
+    ? {simpleCatchParameter: node.param.name} : {});
   const catchContext = {
     ...context,
     scope
@@ -608,7 +611,8 @@ async function evaluateBlockCompletion<TContext extends BlockExceptionContext, T
     })
   };
   if (restoredScope === undefined) context.instantiateBlock(node, blockContext.scope);
-  return evaluateResourceScope(scope, context.budget, {...resourceSuspension(blockContext, node), stack: context.callStack, thisValue: undefined, getProperty: context.getProperty, onSuspend: context.onSuspend, signal: context.signal}, async () => {
+  const completion = context.evalCompletion ? new StatementCompletion(context.budget) : undefined;
+  const evaluation = evaluateResourceScope(scope, context.budget, {...resourceSuspension(blockContext, node), stack: context.callStack, thisValue: undefined, getProperty: context.getProperty, onSuspend: context.onSuspend, signal: context.signal}, async () => {
   let result: EvaluationResult<TError> = {
     kind: "normal",
     hasValue: false,
@@ -621,13 +625,16 @@ async function evaluateBlockCompletion<TContext extends BlockExceptionContext, T
   for (let index = Math.max(0, resumeIndex); index < node.body.length; index++) {
     const statement = node.body[index];
     result = await evaluateNode(statement, blockContext);
+    if (completion !== undefined) result = completion.update(result);
     if (result.kind !== "normal") {
       return result;
     }
   }
 
-  return result;
+  return completion?.normal() ?? result;
   });
+  if (completion === undefined) return evaluation;
+  try { return await evaluation; } finally { completion.close(); }
 }
 
 function getPatternBindingNames(

@@ -130,7 +130,7 @@ describe("sandbox integrity at the run boundary", () => {
         [].__proto__ === Array.prototype, [].constructor === Array, [].prototype,
         "value".__proto__ === String.prototype, "value".constructor === String, "value".prototype,
         (1).__proto__ === Number.prototype, (1).constructor === Number, (1).prototype,
-        closure.__proto__ === Object.getPrototypeOf(Object), closure.constructor, closure.prototype.constructor === closure,
+        closure.__proto__ === Function.prototype, closure.constructor === Function, closure.prototype.constructor === closure,
         typeof ([1].toSorted)
       ];
     `);
@@ -142,7 +142,7 @@ describe("sandbox integrity at the run boundary", () => {
         true, true, undefined,
         true, true, undefined,
         true, true, undefined,
-        true, undefined, true, "function"
+        true, true, true, "function"
       ]
     });
   });
@@ -177,32 +177,36 @@ describe("sandbox integrity at the run boundary", () => {
   });
 
   it.each([
-    ["closure constructor", "return (function () {}).constructor;"],
-    ["object constructor", "return ({}).constructor.constructor;"],
-    ["array constructor", "return [].constructor.constructor;"]
-  ])("does not expose a Function constructor through %s", async (_label, source) => {
-    await expect(run(source)).resolves.toMatchObject({ ok: true, returnValue: undefined });
+    ["closure constructor", "(function () {}).constructor"],
+    ["object constructor", "({}).constructor.constructor"],
+    ["array constructor", "[].constructor.constructor"]
+  ])("exposes only a guest Function constructor through %s", async (_label, expression) => {
+    const source = `const C=${expression};return [C===Function,C('return [typeof process,typeof require,typeof Buffer]')()]`;
+    await expect(run(source)).resolves.toMatchObject({ ok: true, returnValue: [true,["undefined","undefined","undefined"]] });
   });
 
   it.each([
     [
       "closure gadget",
       'return (function () {}).constructor("return process")();',
-      "Function#constructor is not a supported method."
+      "Identifier 'process' is not defined.",
+      "ReferenceError"
     ],
     [
       "object gadget",
       'return ({}).constructor("return process")();',
-      "Attempted to call a non-function value."
+      "Attempted to call a non-function value.",
+      "TypeError"
     ],
     [
       "array gadget",
       'return [].constructor("return process")();',
-      "Attempted to call a non-function value."
+      "Attempted to call a non-function value.",
+      "TypeError"
     ]
-  ])("fails closed for the %s", async (_label, source, message) => {
+  ])("fails closed for the %s", async (_label, source, message, name) => {
     await expect(run(source)).rejects.toMatchObject({
-      name: "TypeError",
+      name,
       message
     });
   });

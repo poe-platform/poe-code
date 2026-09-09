@@ -73,7 +73,7 @@ describe("guest function objects through the public core", () => {
 
   it("keeps host constructors and internal closure fields inaccessible", async () => {
     const result = await run(
-      "function Counter() {} Math.abs.label = 'changed'; return Math.abs.label === 'changed' && Counter.constructor === undefined && Counter.kind === undefined && Counter.properties === undefined && Math.abs.constructor === undefined && Math.abs.kind === undefined && Math.abs.properties === undefined;",
+      "function Counter() {} Math.abs.label = 'changed'; return Math.abs.label === 'changed' && Counter.constructor === Function && Counter.constructor('return typeof process')() === 'undefined' && Counter.kind === undefined && Counter.properties === undefined && Math.abs.constructor === Function && Math.abs.kind === undefined && Math.abs.properties === undefined;",
       { budget: new Budget() }
     );
     expect(result).toMatchObject({ ok: true, returnValue: true });
@@ -81,12 +81,12 @@ describe("guest function objects through the public core", () => {
 
   it("does not inherit native fields from intrinsic function property tables", async () => {
     const result = await run(
-      "return [Array.constructor, Array.__proto__ === Object.getPrototypeOf(Array), Number.constructor, String.constructor, Promise.constructor, Array.__proto__.constructor, Array.__proto__.kind, Array.__proto__.properties];",
+      "return [Array.constructor === Function, Array.__proto__ === Object.getPrototypeOf(Array), Number.constructor === Function, String.constructor === Function, Promise.constructor === Function, Array.__proto__.constructor === Function, Array.__proto__.kind, Array.__proto__.properties];",
       { budget: new Budget() }
     );
     expect(result).toMatchObject({
       ok: true,
-      returnValue: [undefined, true, undefined, undefined, undefined, undefined, undefined, undefined]
+      returnValue: [true, true, true, true, true, true, undefined, undefined]
     });
   });
 

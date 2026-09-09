@@ -10,6 +10,9 @@ import { createInterpretedClosure, executeAsyncFunction, type AsyncEvaluationCon
 import { createBuiltinBindings } from "../interp/globals.js";
 import { resolveIntrinsicIdentity } from "../interp/intrinsics.js";
 import { allocateGuestScopes, hydrateGuestScopes } from "./scope-frames.js";
+import { createMappedSandboxArguments, mappedArgumentStates } from "../interp/arguments.js";
+import type { DynamicSource } from "../parse/dynamic-source.js";
+import { functionStrictness } from "../parse/function-source.js";
 import { createModuleEnvironment, resolveModuleFunction, type ModuleEnvironment } from "../modules/registry.js";
 import { moduleFunctionOrigins } from "../interp/module-function-origin.js";
 import { hostFunctionMetadata } from "../interp/host-function-metadata.js";
@@ -216,6 +219,7 @@ type RestoreState = {
   heapValueById: Map<number, RuntimeSnapshotValue>;
   moduleBindings: Record<string, SandboxValue>;
   nodeById: Map<number, ParseResult>;
+  dynamicSources: Map<number, DynamicSource>;
   pendingPromiseById: Map<SnapshotId, RuntimePendingPromise>;
   serializedScopeById: Map<SnapshotId, SerializedScopeFrame>;
   scopeById: Map<SnapshotId, Scope>;
@@ -248,7 +252,8 @@ export function restore(
 
     const ast = parseModule(options.source, "<input>", operation.owner);
     const nodeById = indexAstNodes(ast);
-    validateInterpreterSnapshot(snapshot, nodeById, budget);
+    const dynamicSources = new Map<number, DynamicSource>();
+    validateInterpreterSnapshot(snapshot, nodeById, budget, dynamicSources, operation.owner);
     const currentNode = nodeById.get(snapshot.currentAstNodeId);
 
     if (currentNode === undefined) {
@@ -278,6 +283,7 @@ export function restore(
         signal: options.signal
       }),
       nodeById,
+      dynamicSources,
       pendingPromiseById: new Map(),
       serializedScopeById: new Map(snapshot.scopeChain.map((frame) => [frame.id, frame])),
       scopeById: new Map(),
@@ -893,6 +899,28 @@ function restoreHeapValue(id: number, state: RestoreState): RuntimeSnapshotValue
     return array;
   }
 
+  if (serialized.kind === "mapped-arguments") {
+    const scope = state.guestScopes.get((serialized.scope as SerializedReferenceValue).id);
+    if (scope === undefined) throw new TypeError("Missing mapped arguments scope.");
+    const args = createMappedSandboxArguments([], [], scope, undefined);
+    state.heapValueById.set(id, args as RuntimeSnapshotValue);
+    state.initializeIterators.push(() => {
+      const nativeIterator = {};
+      const properties = serialized.state.properties.properties.map(([key, descriptor]) =>
+        serialized.nativeIterator && deserializeValue(key, state) === Symbol.iterator
+          ? [key, {...descriptor, value: nativeIterator}] : [key, descriptor]);
+      restorePropertyDescriptors(args, {...serialized.state.properties, properties}, entry =>
+        entry === nativeIterator ? Array.prototype.values : deserializeValue(entry as SerializedSnapshotValue, state));
+      if (serialized.state.prototype !== undefined)
+        setSandboxPrototype(args, deserializeValue(serialized.state.prototype, state) as object | null, state.budget);
+      if (serialized.state.privateElements !== undefined)
+        privateElements.set(args, restorePrivateElements(serialized.state.privateElements, entry => deserializeValue(entry, state) as SandboxValue));
+      const mapping = mappedArgumentStates.get(args)!;
+      for (const [key, name] of serialized.parameters) mapping.parameters.set(key, name);
+    });
+    return args as RuntimeSnapshotValue;
+  }
+
   if (serialized.kind === "arguments") {
     const args = createSandboxArguments([]);
     if (!serialized.lengthBeforeCallee) delete args.length;
@@ -985,6 +1013,7 @@ function restoreHeapValue(id: number, state: RestoreState): RuntimeSnapshotValue
   }
 
   if (serialized.kind === "scope-frame") throw new TypeError("Internal scopes cannot be guest data.");
+  if (serialized.kind === "guest-source" || serialized.kind === "guest-script") throw new TypeError("Internal source records cannot be guest data.");
   if (serialized.kind === "construction-environment") throw new TypeError("Internal construction environments cannot be guest data.");
   if (serialized.kind === "thenable-state") throw new TypeError("Internal thenable states cannot be guest data.");
   if (serialized.kind === "guest-generator") {
@@ -1332,7 +1361,9 @@ function restoreHeapValue(id: number, state: RestoreState): RuntimeSnapshotValue
         for (const [key, symbol] of entries) registry.set(key, symbol);
       });
     } else if (serialized.kind === "guest-class") {
-      const node = state.nodeById.get(serialized.astNodeId);
+      const nodes = serialized.dynamicSource === undefined ? state.nodeById
+        : state.dynamicSources.get((serialized.dynamicSource as SerializedReferenceValue).id)!.nodes;
+      const node = nodes.get(serialized.astNodeId);
       if (node?.type !== "ClassDeclaration" && node?.type !== "ClassExpression") throw new TypeError("Invalid class origin.");
       const scope = state.guestScopes.get((serialized.scope as SerializedReferenceValue).id);
       if (scope === undefined) throw new TypeError("Missing class scope.");
@@ -1357,13 +1388,16 @@ function restoreHeapValue(id: number, state: RestoreState): RuntimeSnapshotValue
         classOrigins.get(constructor)!.initialized = true;
       });
     } else if (serialized.kind === "guest-function") {
-      const node = state.nodeById.get(serialized.astNodeId);
+      const nodes = serialized.dynamicSource === undefined ? state.nodeById
+        : state.dynamicSources.get((serialized.dynamicSource as SerializedReferenceValue).id)!.nodes;
+      const node = nodes.get(serialized.astNodeId);
       if (node?.type !== "ArrowFunctionExpression" && node?.type !== "FunctionDeclaration" && node?.type !== "FunctionExpression")
         throw new TypeError("Invalid guest function origin.");
       const scopeRef = serialized.scope as SerializedReferenceValue;
       const scope = state.guestScopes.get(scopeRef.id);
       if (scope === undefined) throw new TypeError("Missing guest function scope.");
       const environment: AsyncEvaluationContext["functionEnvironment"] = serialized.environment === undefined ? undefined : {
+        classInitializer: serialized.environment.classInitializer,
         homeObject: serialized.environment.homeObject === undefined ? undefined : deserializeValue(serialized.environment.homeObject, state) as NonNullable<AsyncEvaluationContext["functionEnvironment"]>["homeObject"],
         newTarget: serialized.environment.newTarget === undefined ? undefined : deserializeValue(serialized.environment.newTarget, state) as SandboxClosure,
         construction: serialized.environment.construction === undefined ? undefined : restoreConstructionEnvironment(serialized.environment.construction, state)
@@ -1454,7 +1488,9 @@ function restoreHeapValue(id: number, state: RestoreState): RuntimeSnapshotValue
       if (objectState.privateElements !== undefined)
         privateElements.set(value as object, restorePrivateElements(objectState.privateElements, entry => deserializeValue(entry, state) as SandboxValue));
       if (serialized.kind === "guest-array" && serialized.templateNodeId !== undefined) {
-        const node = state.nodeById.get(serialized.templateNodeId);
+        const nodes = serialized.dynamicSource === undefined ? state.nodeById
+          : state.dynamicSources.get((serialized.dynamicSource as SerializedReferenceValue).id)!.nodes;
+        const node = nodes.get(serialized.templateNodeId);
         if (node?.type !== "TemplateLiteral") throw new TypeError("Invalid template source identity.");
         state.initializeIterators.push(() => registerTemplateObject(node, value as SandboxArray, state.budget));
       }
@@ -1484,7 +1520,9 @@ function restoreGuestGenerator(
   serialized: Extract<SerializedHeapValue, { kind: "guest-generator" }>,
   state: RestoreState
 ): SandboxGenerator {
-  const node = state.nodeById.get(serialized.astNodeId);
+  const nodes = serialized.dynamicSource === undefined ? state.nodeById
+    : state.dynamicSources.get((serialized.dynamicSource as SerializedReferenceValue).id)!.nodes;
+  const node = nodes.get(serialized.astNodeId);
   if ((node?.type !== "FunctionDeclaration" && node?.type !== "FunctionExpression" && !(serialized.asyncFunction && node?.type === "ArrowFunctionExpression")) ||
       (serialized.asyncFunction ? !node.async || ("generator" in node && node.generator) || serialized.async : !("generator" in node) || !node.generator || node.async !== serialized.async))
     throw new TypeError("Invalid generator AST identity.");
@@ -1496,6 +1534,7 @@ function restoreGuestGenerator(
   if (scope === undefined || closureScope === undefined) throw new TypeError("Missing generator scope.");
   const context: AsyncEvaluationContext = {
     scope: closureScope, budget: state.budget, compilation: state.compilation,
+    strict: functionStrictness.get(node) ?? true,
     signal: state.signal, rootNode: state.rootNode,
     callStack: [], activeLoopIterations: new Map(), restoredLoopIterations: new Map(),
     stats: { currentDataSize: 0, nodeVisits: 0, peakDataSize: 0 }
@@ -1503,7 +1542,7 @@ function restoreGuestGenerator(
   const blockScopes = new Map<number, Scope>();
   for (const [id, ref] of Object.entries(serialized.blockScopes ?? {})) {
     const blockScope = state.guestScopes.get((ref as SerializedReferenceValue).id);
-    if (blockScope === undefined || state.nodeById.get(Number(id))?.type !== "BlockStatement")
+    if (blockScope === undefined || nodes.get(Number(id))?.type !== "BlockStatement")
       throw new TypeError("Invalid generator block scope.");
     blockScopes.set(Number(id), blockScope);
   }
@@ -1550,7 +1589,7 @@ function restoreGuestGenerator(
     const completions = new Map<number, CompletionResult>();
     for (const [id, completion] of Object.entries(serialized.finallyCompletions ?? {})) {
       const { nodeId, value, ...metadata } = completion;
-      const node = nodeId === undefined ? undefined : state.nodeById.get(nodeId);
+      const node = nodeId === undefined ? undefined : nodes.get(nodeId);
       if (nodeId !== undefined && node?.type !== "BreakStatement" && node?.type !== "ContinueStatement")
         throw new TypeError("Invalid completion node identity.");
       completions.set(Number(id), { ...metadata, value: deserializeValue(value, state) as SandboxValue,
@@ -1572,12 +1611,16 @@ function restoreGuestGenerator(
           iterator: mapIteratorSnapshot(expression.iterator, value => deserializeValue(value, state) as SandboxValue) }
         : expression.kind === "pattern-source" ? { kind: "pattern-source", value: deserializeValue(expression.value, state) as SandboxValue }
         : expression.kind === "object-pattern" ? { kind: "object-pattern", phase: expression.phase, index: expression.index,
+          ...(expression.referenceScope === undefined ? {} : {referenceScope: state.guestScopes.get((expression.referenceScope as SerializedReferenceValue).id)!}),
+          ...(expression.referenceUnresolvable === undefined ? {} : {referenceUnresolvable: true as const}),
           ...(expression.privateName === undefined ? {} : { privateName: expression.privateName }),
           excludedKeys: expression.excludedKeys.map(value => deserializeValue(value, state) as SandboxValue),
           key: deserializeValue(expression.key, state) as SandboxValue, current: deserializeValue(expression.current, state) as SandboxValue,
           ...(Object.hasOwn(expression, "referenceObject") ? { referenceObject: deserializeValue(expression.referenceObject!, state) as SandboxValue,
             referenceKey: deserializeValue(expression.referenceKey!, state) as SandboxValue } : {}) }
         : expression.kind === "array-pattern" ? { kind: "array-pattern", phase: expression.phase, index: expression.index, done: expression.done, current: deserializeValue(expression.current, state) as SandboxValue,
+          ...(expression.referenceScope === undefined ? {} : {referenceScope: state.guestScopes.get((expression.referenceScope as SerializedReferenceValue).id)!}),
+          ...(expression.referenceUnresolvable === undefined ? {} : {referenceUnresolvable: true as const}),
           ...(expression.privateName === undefined ? {} : { privateName: expression.privateName }),
           iterator: mapIteratorSnapshot(expression.iterator, value => deserializeValue(value, state) as SandboxValue),
           ...(Object.hasOwn(expression, "referenceObject") ? { referenceObject: deserializeValue(expression.referenceObject!, state) as SandboxValue,
@@ -1593,7 +1636,10 @@ function restoreGuestGenerator(
         : expression.kind === "for" ? { kind: "for", phase: expression.phase,
           loopScope: state.guestScopes.get((expression.loopScope as SerializedReferenceValue).id)!,
           activeScope: state.guestScopes.get((expression.activeScope as SerializedReferenceValue).id)! }
-        : expression.kind === "identifier-assignment" ? { kind: "identifier-assignment", current: deserializeValue(expression.current, state) as SandboxValue }
+        : expression.kind === "identifier-assignment" ? { kind: "identifier-assignment", current: deserializeValue(expression.current, state) as SandboxValue,
+          ...(expression.referenceKind === undefined ? {} : {referenceKind: expression.referenceKind}),
+          ...(expression.referenceScope === undefined ? {} : {referenceScope: state.guestScopes.get((expression.referenceScope as SerializedReferenceValue).id)!}),
+          ...(expression.referenceKind !== "object" ? {} : {referenceObject: deserializeValue(expression.referenceObject!, state) as SandboxValue}) }
         : expression.kind === "member-assignment" ? { kind: "member-assignment", object: deserializeValue(expression.object, state) as SandboxValue,
           ...(expression.privateName === undefined ? {} : { privateName: expression.privateName }),
           property: deserializeValue(expression.property, state) as SandboxValue, current: deserializeValue(expression.current, state) as SandboxValue,
@@ -1617,6 +1663,7 @@ function restoreGuestGenerator(
       Object.defineProperty(generator, "channel", { value: restoreGeneratorChannel(createBody, { sent, yieldNodeId: serialized.yieldNodeId }) });
     if (serialized.environment !== undefined) {
       context.functionEnvironment = {
+        classInitializer: serialized.environment.classInitializer,
         homeObject: serialized.environment.homeObject === undefined ? undefined : deserializeValue(serialized.environment.homeObject, state) as NonNullable<AsyncEvaluationContext["functionEnvironment"]>["homeObject"],
         newTarget: serialized.environment.newTarget === undefined ? undefined : deserializeValue(serialized.environment.newTarget, state) as SandboxClosure,
         construction: serialized.environment.construction === undefined ? undefined : restoreConstructionEnvironment(serialized.environment.construction, state)

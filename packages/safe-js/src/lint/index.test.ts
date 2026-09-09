@@ -12,12 +12,12 @@ describe("lint", () => {
     );
   });
   it("returns AS001 diagnostics for disallowed syntax instead of throwing", () => {
-    expect(() => lint("eval('7')", { filename: "rule.js" })).not.toThrow();
-    expect(lint("eval('7')", { filename: "rule.js" })).toEqual([
+    expect(() => lint("with (context) value", { filename: "rule.js" })).not.toThrow();
+    expect(lint("with (context) value", { filename: "rule.js" })).toEqual([
       {
         code: "AS001",
         severity: "error",
-        message: "Disallowed syntax: eval.",
+        message: "Disallowed syntax: with.",
         filename: "rule.js",
         line: 1,
         column: 1,

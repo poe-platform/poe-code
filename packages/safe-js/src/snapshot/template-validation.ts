@@ -1,21 +1,29 @@
 import type { ParseResult, TemplateLiteral } from "../parse.js";
+import type { DynamicSource } from "../parse/dynamic-source.js";
 
 // Envelope/schema validation runs first. This checks semantic source ownership
 // and the canonical immutable template arrays without executing guest code.
-export function validateTemplateObjects(heap: Record<string, unknown>, nodes: Iterable<ParseResult>): void {
+export function validateTemplateObjects(heap: Record<string, unknown>, nodes: Iterable<ParseResult>, dynamicSources: ReadonlyMap<number, DynamicSource> = new Map()): void {
   const sites = new Map<number, TemplateLiteral>();
   for (const node of nodes) {
     if (node.type === "TaggedTemplateExpression" && node.quasi.nodeId !== undefined)
       sites.set(node.quasi.nodeId, node.quasi);
   }
-  const seen = new Set<number>();
+  const dynamicSites = new Map<number, Map<number, TemplateLiteral>>();
+  for (const [id, source] of dynamicSources) {
+    const entries = new Map<number, TemplateLiteral>();
+    for (const node of source.nodes.values())
+      if (node.type === "TaggedTemplateExpression" && node.quasi.nodeId !== undefined) entries.set(node.quasi.nodeId, node.quasi);
+    dynamicSites.set(id, entries);
+  }
+  const seen = new Set<TemplateLiteral>();
   const rawOwners = new Map<unknown, unknown>();
   for (const raw of Object.values(heap)) {
-    const entry = raw as { kind: string; templateNodeId?: number; state?: unknown };
+    const entry = raw as { kind: string; templateNodeId?: number; state?: unknown; dynamicSource?: {id: number} };
     if (entry.kind !== "guest-array" || entry.templateNodeId === undefined) continue;
-    const node = sites.get(entry.templateNodeId);
-    if (node === undefined || seen.has(entry.templateNodeId)) throw new TypeError("Invalid or duplicate template source identity.");
-    seen.add(entry.templateNodeId);
+    const node = (entry.dynamicSource === undefined ? sites : dynamicSites.get(entry.dynamicSource.id))?.get(entry.templateNodeId);
+    if (node === undefined || seen.has(node)) throw new TypeError("Invalid or duplicate template source identity.");
+    seen.add(node);
     const cooked = descriptors(entry.state);
     const rawReference = cooked.get("raw")?.value as { kind?: string; id?: number } | undefined;
     const rawArray = rawReference?.kind === "ref" ? heap[String(rawReference.id)] as { kind?: string; state?: unknown } : undefined;

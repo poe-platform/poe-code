@@ -16,6 +16,8 @@ export const KNOWN_RUNTIME_GLOBALS = [
   "encodeURIComponent",
   "Error",
   "EvalError",
+  "eval",
+  "Function",
   "Infinity",
   "Intl",
   "globalThis",

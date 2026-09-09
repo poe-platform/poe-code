@@ -10,6 +10,7 @@ export type TokenType =
   | "identifier"
   | "private-identifier"
   | "keyword"
+  | "escaped-keyword"
   | "numeric"
   | "regex"
   | "string"
@@ -36,6 +37,7 @@ export type TokenizeOptions = {
   allowRegexLiterals?: boolean;
   allowLegacyNumbers?: boolean;
   allowLegacyEscapes?: boolean;
+  allowHtmlComments?: boolean;
   comments?: Comment[];
   compilation?: CompileScope;
 };
@@ -51,6 +53,7 @@ const KEYWORDS = new Set([
   "for",
   "do",
   "while",
+  "with",
   "return",
   "break",
   "continue",
@@ -77,7 +80,8 @@ const KEYWORDS = new Set([
 ]);
 
 const EXPRESSION_ENDING_KEYWORDS = new Set(["true", "false", "null"]);
-const CONTROL_FLOW_PAREN_KEYWORDS = new Set(["if", "while", "for", "catch"]);
+export const RESERVED_IDENTIFIER_SPELLINGS = new Set(["case", "default", "debugger", "enum", "export", "new", "switch", "var"]);
+const CONTROL_FLOW_PAREN_KEYWORDS = new Set(["if", "while", "with", "for", "catch"]);
 const MAX_UNICODE_CODE_POINT = 0x10ffff;
 const IDENTIFIER_START_PATTERN = /^\p{ID_Start}$/u;
 const IDENTIFIER_PART_PATTERN = /^\p{ID_Continue}$/u;
@@ -168,6 +172,7 @@ class Lexer {
   private readonly groupingStack: GroupingContext[] = [];
   private lastClosedControlParenthesis = false;
   private legacyStringEscape = false;
+  private lineHasToken = false;
 
   constructor(
     private readonly source: string,
@@ -186,7 +191,7 @@ class Lexer {
       const char = this.currentChar();
       const codePointChar = this.currentCodePointChar();
 
-      if (this.isHtmlStyleCommentDelimiter()) {
+      if (!this.options.allowHtmlComments && this.isHtmlStyleCommentDelimiter()) {
         this.syntaxError("HTML-style comments are not supported in Agent Script", start);
       }
 
@@ -237,6 +242,15 @@ class Lexer {
     while (!this.isAtEnd()) {
       const char = this.currentChar();
 
+      if (this.options.allowHtmlComments) {
+        const open = this.source.startsWith("<!--", this.index);
+        const close = !this.lineHasToken && this.source.startsWith("-->", this.index);
+        if (open || close) {
+          this.skipLineComment(open ? 4 : 3);
+          continue;
+        }
+      }
+
       if (this.isHashbangCommentStart()) {
         this.skipLineComment();
         continue;
@@ -271,9 +285,11 @@ class Lexer {
   private readIdentifierOrKeyword(start: Position, privateName = false): void {
     let value = "";
     let isStart = true;
+    let escapedKeyword = false;
 
     while (!this.isAtEnd()) {
       if (this.startsUnicodeEscape()) {
+        escapedKeyword = true;
         const escapeStart = this.position();
         const escaped = this.readUnicodeEscape();
         const isValidIdentifierCharacter = isStart
@@ -302,7 +318,10 @@ class Lexer {
     }
 
     if (privateName && isStart) this.syntaxError("Expected private identifier", start);
-    this.pushToken(privateName ? "private-identifier" : KEYWORDS.has(value) ? "keyword" : "identifier", start, value);
+    const type = privateName ? "private-identifier"
+      : escapedKeyword && (KEYWORDS.has(value) || RESERVED_IDENTIFIER_SPELLINGS.has(value)) ? "escaped-keyword"
+      : KEYWORDS.has(value) ? "keyword" : "identifier";
+    this.pushToken(type, start, value);
   }
 
   private readString(start: Position, quote: string): void {
@@ -371,9 +390,11 @@ class Lexer {
     let lastClosedControlParenthesis = false;
 
     while (!this.isAtEnd() && depth > 0) {
+      this.skipTrivia();
+      if (this.isAtEnd()) break;
       const char = this.currentChar();
 
-      if (this.isHtmlStyleCommentDelimiter()) {
+      if (!this.options.allowHtmlComments && this.isHtmlStyleCommentDelimiter()) {
         this.syntaxError("HTML-style comments are not supported in Agent Script", this.position());
       }
 
@@ -563,10 +584,9 @@ class Lexer {
     this.syntaxError("Unterminated template literal", start);
   }
 
-  private skipLineComment(): void {
+  private skipLineComment(delimiterLength = 2): void {
     const start = this.position();
-    this.advance();
-    this.advance();
+    this.advanceBy(delimiterLength);
     const valueStart = this.index;
     while (!this.isAtEnd() && !isLineBreak(this.currentChar())) {
       this.advance();
@@ -576,6 +596,8 @@ class Lexer {
 
   private skipBlockComment(): void {
     const start = this.position();
+    const lineHadToken = this.lineHasToken;
+    let containsLineBreak = false;
     this.advance();
     this.advance();
     const valueStart = this.index;
@@ -585,9 +607,11 @@ class Lexer {
         const valueEnd = this.index;
         this.advance();
         this.advance();
+        this.lineHasToken = containsLineBreak ? false : lineHadToken;
         this.recordComment("block", start, valueStart, valueEnd);
         return;
       }
+      if (isLineBreak(this.currentChar())) containsLineBreak = true;
       this.advance();
     }
 
@@ -1105,6 +1129,8 @@ class Lexer {
     }
 
     const char = this.currentChar();
+    if (isLineBreak(char)) this.lineHasToken = false;
+    else if (!isWhitespace(char)) this.lineHasToken = true;
     if (char === "\r") {
       this.index += 1;
       if (this.currentChar() === "\n") {

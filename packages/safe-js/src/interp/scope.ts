@@ -10,6 +10,8 @@ import { scopeDataRoots } from "./scope-data-roots.js";
 
 type ScopeBinding = {
   kind: VariableDeclarationKind;
+  deletable?: true;
+  silentImmutable?: true;
   value: InterpreterValue | typeof uninitialized;
   accounting?: { value: InterpreterValue; root: SandboxObject };
 };
@@ -18,6 +20,7 @@ type ScopeLookupResult =
   | {
       found: true;
       kind: VariableDeclarationKind;
+      silentImmutable?: true;
       value: InterpreterValue;
       object?: SandboxObject;
     }
@@ -27,14 +30,29 @@ type ScopeLookupResult =
 
 const uninitialized = Symbol("uninitialized");
 
+export type BindingReference =
+  | {kind: "unresolvable"; name: string}
+  | {kind: "binding"; name: string; scope: Scope}
+  | {kind: "object"; name: string; object: SandboxObject; withEnvironment: boolean};
+
+export type BindingOperations = {
+  has(object: SandboxObject, name: string): boolean | Promise<boolean>;
+  get(object: SandboxObject, key: PropertyKey): InterpreterValue | Promise<InterpreterValue>;
+};
+
 type ScopeOptions = {
+  simpleCatchParameter?: string;
+  globalEnvironment?: boolean;
   functionBoundary?: boolean;
   chargeData?: boolean;
 };
 
 export type ScopeFrame = {
+  simpleCatchParameter?: string;
+  globalEnvironment?: boolean;
   moduleEnvironment?: ModuleEnvironment;
   objectEnvironment?: SandboxObject;
+  withObject?: SandboxObject;
   resourceState?: ResourceScopeState;
   privateNames?: Array<[string, PrivateName]>;
   parent?: Scope;
@@ -42,7 +60,7 @@ export type ScopeFrame = {
   functionBoundary: boolean;
   chargeData: boolean;
   bindings: Array<[string, number]>;
-  cells: Array<{ kind: VariableDeclarationKind } & (
+  cells: Array<{ kind: VariableDeclarationKind; silentImmutable?: true; deletable?: true } & (
     { initialized: false } | { initialized: true; value: InterpreterValue }
   )>;
   restoredBindings?: Array<[string, InterpreterValue]>;
@@ -51,6 +69,7 @@ export type ScopeFrame = {
 export class Scope {
   moduleEnvironment?: ModuleEnvironment;
   private objectEnvironment?: SandboxObject;
+  private withEnvironment = false;
   resourceState?: ResourceScopeState;
   privateNames?: Map<string, PrivateName>;
   readonly #bindings = new Map<string, ScopeBinding>();
@@ -89,6 +108,36 @@ export class Scope {
     });
   }
 
+  withObject(object: SandboxObject): Scope {
+    const scope = this.child();
+    scope.objectEnvironment = object;
+    scope.withEnvironment = true;
+    return scope;
+  }
+
+  resolveBinding(name: string, operations: BindingOperations): BindingReference | Promise<BindingReference> {
+    if (this.#bindings.has(name)) return {kind: "binding", name, scope: this};
+    if (this.objectEnvironment !== undefined) return this.resolveObjectBinding(name, this.objectEnvironment, operations);
+    if (this.parent !== undefined) return this.parent.resolveBinding(name, operations);
+    if (name === "undefined") return {kind: "binding", name, scope: this};
+    return {kind: "unresolvable", name};
+  }
+
+  private async resolveObjectBinding(name: string, object: SandboxObject, operations: BindingOperations): Promise<BindingReference> {
+    if (await operations.has(object, name)) {
+      let blocked = false;
+      if (this.withEnvironment) {
+        const unscopables = await operations.get(object, Symbol.unscopables);
+        if (typeof unscopables === "object" && unscopables !== null)
+          blocked = Boolean(await operations.get(unscopables as SandboxObject, name));
+      }
+      if (!blocked) return {kind: "object", name, object, withEnvironment: this.withEnvironment};
+    }
+    if (this.parent !== undefined) return this.parent.resolveBinding(name, operations);
+    if (name === "undefined") return {kind: "binding", name, scope: this};
+    return {kind: "unresolvable", name};
+  }
+
   declarePrivateName(description: string): PrivateName {
     const names = this.privateNames ??= new Map();
     const existing = names.get(description);
@@ -110,6 +159,13 @@ export class Scope {
     throw new SyntaxError(`Undeclared private name #${description}.`);
   }
 
+  visiblePrivateNames(): ReadonlySet<string> {
+    const names = new Set(this.privateNames?.keys());
+    for (let scope = this.parent; scope !== undefined; scope = scope.parent)
+      for (const name of scope.privateNames?.keys() ?? []) names.add(name);
+    return names;
+  }
+
   consumeRestoredBinding(
     name: string
   ): { found: true; value: InterpreterValue } | { found: false } {
@@ -124,6 +180,15 @@ export class Scope {
 
   hasOwnBinding(name: string): boolean {
     return this.#bindings.has(name);
+  }
+
+  deleteBinding(name: string): boolean {
+    const binding = this.#bindings.get(name);
+    if (binding?.deletable !== true) return false;
+    this.#bindings.delete(name);
+    if (![...this.#bindings.values()].includes(binding)) this.#replacedBindings.delete(binding);
+    this.#bindingDataRoots = undefined;
+    return true;
   }
 
   getOwnBindingKind(name: string): VariableDeclarationKind | undefined {
@@ -193,6 +258,7 @@ export class Scope {
 
   retainedDataRoots(): InterpreterValue[] {
     const values = this.parent?.retainedDataRoots() ?? [];
+    if (this.withEnvironment && this.objectEnvironment !== undefined) values.push(this.objectEnvironment);
     if (this.moduleEnvironment !== undefined) values.push(...Object.values(this.moduleEnvironment.namespaces));
     if (this.resourceState !== undefined) values.push(this.resourceState);
     if (this.options.chargeData !== false) {
@@ -223,7 +289,10 @@ export class Scope {
     return values;
   }
 
-  declare(name: string, kind: VariableDeclarationKind, value: InterpreterValue): void {
+  declare(name: string, kind: VariableDeclarationKind, value: InterpreterValue,
+    options?: {silentImmutable: true}
+  ): void {
+    if (options?.silentImmutable && kind !== "const") throw new TypeError("Silent immutable bindings must be const.");
     const existing = this.#bindings.get(name);
     if (existing !== undefined && existing.value !== uninitialized) {
       throw new Error(`Cannot redeclare binding '${name}' in the same scope.`);
@@ -234,7 +303,7 @@ export class Scope {
 
     if (existing !== undefined) this.writeBindingValue(existing, value);
     else {
-      this.#bindings.set(name, { kind, value });
+      this.#bindings.set(name, { kind, value, ...options });
       if (isChargedBindingValue(value)) this.#bindingDataRoots = undefined;
     }
   }
@@ -246,18 +315,34 @@ export class Scope {
     this.#bindings.set(name, binding);
   }
 
-  declareVar(name: string): void {
+  declareVar(name: string, options?: {functionValue?: InterpreterValue; deletable?: true}): void {
+    const definesFunction = options !== undefined && "functionValue" in options;
+    if (this.options.globalEnvironment === true) {
+      const object = this.parent?.objectEnvironment;
+      if (object === undefined) throw new TypeError("Missing global object environment.");
+      const descriptor = Object.getOwnPropertyDescriptor(object, name);
+      if (!definesFunction && descriptor !== undefined) return;
+      const attributes = definesFunction && descriptor?.configurable === false
+        ? {value: options.functionValue}
+        : {value: options?.functionValue, writable: true, enumerable: true, configurable: true};
+      if (!Reflect.defineProperty(object, name, attributes)) throw new TypeError(`Cannot declare global '${name}'.`);
+      return;
+    }
     const boundary = this.options.functionBoundary === true ? this : this.parent;
     if (boundary === undefined) {
       throw new Error("Cannot declare var without a function boundary.");
     }
     if (boundary !== this) {
-      boundary.declareVar(name);
+      boundary.declareVar(name, options);
       return;
     }
 
     const existing = this.#bindings.get(name);
     if (existing?.kind === "var") {
+      if (definesFunction) {
+        this.writeBindingValue(existing, options.functionValue);
+        this.trackReplacement(name, existing);
+      }
       return;
     }
     if (existing !== undefined) {
@@ -266,8 +351,53 @@ export class Scope {
 
     this.#bindings.set(name, {
       kind: "var",
-      value: undefined
+      ...(options?.deletable ? {deletable: true} : {}),
+      value: options?.functionValue
     });
+    if (options !== undefined && isChargedBindingValue(options.functionValue)) this.#bindingDataRoots = undefined;
+    if (options !== undefined) this.trackReplacement(name, this.#bindings.get(name)!);
+  }
+
+  validateEvalGlobalDeclarations(names: ReadonlySet<string>, functions: ReadonlySet<string>): void {
+    if (this.options.globalEnvironment === true) {
+      const object = this.parent?.objectEnvironment;
+      if (object === undefined) throw new TypeError("Missing global object environment.");
+      for (const name of names) {
+        const descriptor = Object.getOwnPropertyDescriptor(object, name);
+        if (descriptor === undefined ? !Object.isExtensible(object)
+          : functions.has(name) && descriptor.configurable !== true &&
+            (!("value" in descriptor) || descriptor.writable !== true || descriptor.enumerable !== true))
+          throw new TypeError(`Cannot declare global '${name}'.`);
+      }
+    } else if (!this.isFunctionBoundary()) {
+      this.parent?.validateEvalGlobalDeclarations(names, functions);
+    }
+  }
+
+  findEvalVarConflict(names: ReadonlySet<string>): string | undefined {
+    for (const name of names) {
+      const kind = this.getOwnBindingKind(name);
+      if (kind !== undefined && kind !== "var" && this.options.simpleCatchParameter !== name) {
+        return name;
+      }
+    }
+    if (!this.isFunctionBoundary() && this.options.globalEnvironment !== true)
+      return this.parent?.findEvalVarConflict(names);
+    return undefined;
+  }
+
+  assignVar(name: string, value: InterpreterValue,
+    setProperty?: (object: SandboxObject, key: string, value: InterpreterValue) => void | Promise<void>
+  ): void | Promise<void> {
+    if (this.options.globalEnvironment === true) {
+      return this.assign(name, value, setProperty, false);
+    }
+    if (this.isFunctionBoundary()) {
+      this.assignOwnBinding(name, value, false);
+      return;
+    }
+    if (this.parent === undefined) throw new Error("Cannot assign var without a function boundary.");
+    return this.parent.assignVar(name, value, setProperty);
   }
 
   predeclare(name: string, kind: VariableDeclarationKind): void {
@@ -282,7 +412,8 @@ export class Scope {
   }
 
   assign(name: string, value: InterpreterValue,
-    setProperty?: (object: SandboxObject, key: string, value: InterpreterValue) => void | Promise<void>
+    setProperty?: (object: SandboxObject, key: string, value: InterpreterValue) => void | Promise<void>,
+    strict = true
   ): void | Promise<void> {
     const scope = this.resolveScope(name);
     if (scope === undefined) {
@@ -298,9 +429,18 @@ export class Scope {
       if (!Reflect.set(scope.objectEnvironment, name, value)) throw new TypeError(`Cannot assign to read-only binding '${name}'.`);
       return;
     }
-    const binding = scope.#bindings.get(name);
+    return scope.assignOwnBinding(name, value, strict);
+  }
+
+  assignOwnBinding(name: string, value: InterpreterValue, strict = true): void {
+    let binding = this.#bindings.get(name);
     if (binding === undefined) {
-      throw new ReferenceError(`Cannot assign to undeclared binding '${name}'.`);
+      if (strict) throw new ReferenceError(`Cannot assign to undeclared binding '${name}'.`);
+      binding = {kind: "var", deletable: true, value};
+      this.#bindings.set(name, binding);
+      this.#bindingDataRoots = undefined;
+      this.trackReplacement(name, binding);
+      return;
     }
 
     if (binding.value === uninitialized) {
@@ -308,11 +448,19 @@ export class Scope {
     }
 
     if (binding.kind === "const") {
+      if (binding.silentImmutable && !strict) return;
       throw new TypeError(`Cannot assign to const binding '${name}'.`);
     }
 
-    scope.writeBindingValue(binding, value);
-    scope.trackReplacement(name, binding);
+    this.writeBindingValue(binding, value);
+    this.trackReplacement(name, binding);
+  }
+
+  globalScope(): Scope {
+    if (this.parent === undefined || this.options.globalEnvironment === true) return this;
+    let scope: Scope = this.parent;
+    while (scope.parent !== undefined && scope.options.globalEnvironment !== true) scope = scope.parent;
+    return scope;
   }
 
   lookup(name: string): ScopeLookupResult {
@@ -325,6 +473,7 @@ export class Scope {
       return {
         found: true,
         kind: binding.kind,
+        ...(binding.silentImmutable ? {silentImmutable: true} : {}),
         value: binding.value
       };
     }
@@ -387,16 +536,21 @@ export class Scope {
         ids.set(binding, id);
         cells.push(binding.value === uninitialized
           ? { kind: binding.kind, initialized: false }
-          : { kind: binding.kind, initialized: true, value: binding.value });
+          : { kind: binding.kind, initialized: true, value: binding.value,
+              ...(binding.deletable ? {deletable: true} : {}),
+              ...(binding.silentImmutable ? {silentImmutable: true} : {}) });
       }
       bindings.push([name, id]);
     }
     return {
       parent: this.parent,
+      ...(this.options.simpleCatchParameter === undefined ? {} : {simpleCatchParameter: this.options.simpleCatchParameter}),
       ...(this.moduleEnvironment === undefined || this.moduleEnvironment.available.length === 0 ? {} : {moduleEnvironment: this.moduleEnvironment}),
-      ...(this.objectEnvironment === undefined ? {} : {objectEnvironment: this.objectEnvironment}),
+      ...(this.objectEnvironment === undefined ? {} : this.withEnvironment
+        ? {withObject: this.objectEnvironment} : {objectEnvironment: this.objectEnvironment}),
       importMeta: this.importMeta,
       functionBoundary: this.isFunctionBoundary(),
+      ...(this.options.globalEnvironment === true ? {globalEnvironment: true} : {}),
       chargeData: this.options.chargeData !== false,
       bindings,
       cells,
@@ -411,12 +565,16 @@ export class Scope {
         (this.parent === undefined && this.#restoredBindings.size !== 0))
       throw new TypeError("Frame hydration requires a fresh scope.");
     if (frame.parent !== this.parent || frame.functionBoundary !== this.isFunctionBoundary() ||
+        frame.simpleCatchParameter !== this.options.simpleCatchParameter ||
+        (frame.globalEnvironment === true) !== (this.options.globalEnvironment === true) ||
         frame.chargeData !== (this.options.chargeData !== false))
       throw new TypeError("Scope frame does not match its allocation.");
     if (this.parent !== undefined && frame.restoredBindings !== undefined)
       throw new TypeError("Only root scopes own restored bindings.");
     const cells: ScopeBinding[] = frame.cells.map(cell => ({
       kind: cell.kind,
+      ...(cell.deletable ? {deletable: true as const} : {}),
+      ...(cell.silentImmutable ? {silentImmutable: true as const} : {}),
       value: cell.initialized ? cell.value : uninitialized
     }));
     const bindings = new Map<string, ScopeBinding>();
@@ -432,7 +590,11 @@ export class Scope {
     if (restored.size !== (frame.restoredBindings?.length ?? 0)) throw new TypeError("Duplicate restored binding.");
     this.importMeta = frame.importMeta;
     this.moduleEnvironment = frame.moduleEnvironment;
-    this.objectEnvironment = frame.objectEnvironment;
+    if (frame.withObject !== undefined && (frame.objectEnvironment !== undefined ||
+      frame.parent === undefined || frame.functionBoundary || frame.globalEnvironment === true))
+      throw new TypeError("Invalid with scope frame.");
+    this.objectEnvironment = frame.withObject ?? frame.objectEnvironment;
+    this.withEnvironment = frame.withObject !== undefined;
     this.resourceState = frame.resourceState;
     if (frame.privateNames !== undefined) this.privateNames = new Map(frame.privateNames);
     for (const [name, binding] of bindings) {

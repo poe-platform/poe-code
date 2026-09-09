@@ -1,6 +1,7 @@
 import type { ClassElement, ClassNode } from "../parse.js";
 import { getFunctionLength } from "../parse/bindings.js";
 import { functionSources } from "../parse/function-source.js";
+import { dynamicNodeSources, dynamicValueSources } from "../parse/function-source.js";
 import { accessorAdapter } from "./accessors.js";
 import { createInterpretedClosure, executeClosure, type AsyncEvaluationContext, type AsyncEvaluationResult, type EvaluateAsyncNode } from "./async.js";
 import { retainValues } from "./resources.js";
@@ -25,7 +26,7 @@ export async function evaluateClass(
 ): Promise<AsyncEvaluationResult> {
   const scope = context.scope.child();
   if (node.id !== undefined) scope.predeclare(node.id.name, "const");
-  const classContext = { ...context, scope, inferredName: undefined };
+  const classContext = { ...context, scope, inferredName: undefined, strict: true };
   let parent: SandboxValue;
   let prototypeParent: SandboxValue;
   const fields: Field[] = [];
@@ -126,7 +127,7 @@ export function createClassConstructor(
   fields: Field[]
 ): SandboxClosure {
   const scope = context.scope;
-  const classContext = { ...context, inferredName: undefined };
+  const classContext = { ...context, inferredName: undefined, strict: true };
   const constructorElement = node.body.body.find((element): element is Extract<ClassElement, { type: "MethodDefinition" }> => element.type === "MethodDefinition" && element.kind === "constructor");
   const derived = node.superClass !== undefined;
   const constructor = createSandboxClosure({
@@ -180,6 +181,8 @@ export function createClassConstructor(
   });
 
   classOrigins.set(constructor, { node, scope, fields, initialized: false, privateMethods: new Map() });
+  const dynamicSource = dynamicNodeSources.get(node);
+  if (dynamicSource !== undefined) dynamicValueSources.set(constructor, dynamicSource);
   return constructor;
 }
 
@@ -240,7 +243,7 @@ async function initializeElement(
   let value: SandboxValue;
   if (initializer !== undefined) {
     if (element.type === "StaticBlock") hoistVarDeclarations(element.body, scope);
-    const result = await evaluateNode(initializer, { ...context, scope, functionEnvironment: { homeObject }, inferredName: "key" in definition ? propertyFunctionName(definition.key) : undefined });
+    const result = await evaluateNode(initializer, { ...context, scope, functionEnvironment: { homeObject, classInitializer: true }, inferredName: "key" in definition ? propertyFunctionName(definition.key) : undefined });
     if (result.kind === "error") throw result.error;
     if (result.kind === "throw") throw result.value;
     value = result.hasValue ? result.value : undefined;

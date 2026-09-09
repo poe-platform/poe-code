@@ -433,6 +433,8 @@ function bodyHasExit(
   allowUnlabeledBreak: boolean
 ): boolean {
   switch (node.type) {
+    case "WithStatement":
+      return bodyHasExit(node.body, exitingLabels, allowUnlabeledBreak);
     case "ClassDeclaration":
       return false;
     case "BlockStatement":

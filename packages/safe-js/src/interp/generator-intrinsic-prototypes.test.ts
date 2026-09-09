@@ -120,9 +120,9 @@ it.each([false, true])("retains shared generator iterator-method metadata (async
   } finally { releaseObjectPrototype(budget); }
 });
 
-it("keeps generator dynamic-source constructors inaccessible", async () => {
-  expect(await run("function* f(){}async function* g(){}return [typeof GeneratorFunction,typeof AsyncGeneratorFunction,f.constructor,g.constructor,f().constructor===Object.getPrototypeOf(f),g().constructor===Object.getPrototypeOf(g)]"))
-    .toMatchObject({ok:true,returnValue:["undefined","undefined",undefined,undefined,true,true]});
+it("keeps generator dynamic-source constructors inside the guest realm", async () => {
+  expect(await run("function* f(){}async function* g(){}return [typeof GeneratorFunction,typeof AsyncGeneratorFunction,f.constructor.name,g.constructor.name,f().constructor===Object.getPrototypeOf(f),g().constructor===Object.getPrototypeOf(g),f.constructor('return typeof process')().next().value,(await g.constructor('return typeof process')().next()).value]"))
+    .toMatchObject({ok:true,returnValue:["undefined","undefined","GeneratorFunction","AsyncGeneratorFunction",true,true,"undefined","undefined"]});
 });
 
 it.each([false, true])("retains the selected prototype during parameter initialization (async=%s)", async async => {

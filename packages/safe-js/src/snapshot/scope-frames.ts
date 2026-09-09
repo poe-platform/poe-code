@@ -41,7 +41,8 @@ export function allocateGuestScopes(frames: ReadonlyMap<number, Frame>, budget: 
       assertSnapshotDataDepth(depth, "<scope-parent>");
       depths.set(frameId, depth);
       scopes.set(frameId, new Scope({}, parent === undefined ? undefined : scopes.get(parent), undefined, {
-        functionBoundary: frame.functionBoundary, chargeData: frame.chargeData
+        functionBoundary: frame.functionBoundary, chargeData: frame.chargeData, globalEnvironment: frame.globalEnvironment,
+        simpleCatchParameter: frame.simpleCatchParameter
       }));
     }
   }
@@ -67,6 +68,8 @@ export function hydrateGuestScopes(
       parent: parent === undefined ? undefined : scopes.get(parent),
       importMeta: decode(frame.importMeta),
       functionBoundary: frame.functionBoundary,
+      simpleCatchParameter: frame.simpleCatchParameter,
+      globalEnvironment: frame.globalEnvironment,
       chargeData: frame.chargeData,
       bindings: frame.bindings,
       ...(frame.moduleEnvironment === undefined ? {} : {moduleEnvironment: {
@@ -74,6 +77,7 @@ export function hydrateGuestScopes(
         namespaces: decode(frame.moduleEnvironment.namespaces) as Record<string,SandboxValue>
       }}),
       ...(frame.objectEnvironment === undefined ? {} : {objectEnvironment: decode(frame.objectEnvironment) as SandboxObject}),
+      ...(frame.withObject === undefined ? {} : {withObject: decode(frame.withObject) as SandboxObject}),
       ...(resourceState === undefined ? {} : {resourceState: resourceState as ResourceScopeState}),
       ...(frame.privateNames === undefined ? {} : { privateNames: frame.privateNames.map(([name, identity]) => [name, decode(identity) as PrivateName] as [string, PrivateName]) }),
       cells: frame.cells.map(cell => cell.initialized ? { ...cell, value: decode(cell.value) } : cell),

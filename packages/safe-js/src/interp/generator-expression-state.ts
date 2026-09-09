@@ -9,8 +9,8 @@ export type GeneratorExpressionState<T = SandboxValue, S = Scope, I = SandboxIte
       phase?: "await" | "close"; awaitState?: IteratorAwaitState; completion?: {type:"normal"|"return"|"throw";value:T} }
   | { kind: "declaration"; index: number }
   | { kind: "pattern-source"; value: T }
-  | { kind: "object-pattern"; phase: "key" | "reference" | "binding"; index: number; excludedKeys: T[]; key: T; current: T; referenceObject?: T; referenceKey?: T; privateName?: string }
-  | { kind: "array-pattern"; phase: "reference" | "binding"; index: number; done: boolean; current: T; iterator: I; referenceObject?: T; referenceKey?: T; privateName?: string }
+  | { kind: "object-pattern"; phase: "key" | "reference" | "binding"; index: number; excludedKeys: T[]; key: T; current: T; referenceObject?: T; referenceKey?: T; privateName?: string; referenceScope?: S; referenceUnresolvable?: true }
+  | { kind: "array-pattern"; phase: "reference" | "binding"; index: number; done: boolean; current: T; iterator: I; referenceObject?: T; referenceKey?: T; privateName?: string; referenceScope?: S; referenceUnresolvable?: true }
   | { kind: "for-of-array"; phase: "left" | "body"; values: T; current: T; index: number; scope: S }
   | { kind: "for-of-iterator"; phase: "left" | "body" | "next" | "close"; awaitState?: IteratorAwaitState;
       closeCompletion?: Omit<CompletionResult, "value" | "node" | "stackFrames"> & {value: T; stackFrames?: string[]};
@@ -19,7 +19,7 @@ export type GeneratorExpressionState<T = SandboxValue, S = Scope, I = SandboxIte
   | { kind: "for"; phase: "init" | "test" | "body" | "update" | "dispose"; loopScope: S; activeScope: S }
   | { kind: "binary"; left: T }
   | { kind: "dynamic-import"; source: T }
-  | { kind: "identifier-assignment"; current: T }
+  | { kind: "identifier-assignment"; current: T; referenceKind?: "binding" | "object" | "unresolvable"; referenceScope?: S; referenceObject?: T }
   | { kind: "member"; object: T; superReceiver?: T }
   | { kind: "member-assignment"; object: T; property: T; current: T; key?: T; superReceiver?: T; privateName?: string }
   | { kind: "template"; prefix: string; index: number }

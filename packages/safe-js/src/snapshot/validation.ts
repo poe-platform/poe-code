@@ -3,7 +3,8 @@ import { validateBigIntData } from "./bigint.js";
 import { validateRegexProperties, type RegexPropertyData } from "./regexp-properties.js";
 import { wellKnownSymbols } from "../interp/symbols.js";
 import { types } from "node:util";
-import type { Budget } from "../interp/budget.js";
+import type { Budget, CompileOwner } from "../interp/budget.js";
+import { createDynamicSource, createEvalSource, type DynamicSource, type EvalSourceContext } from "../parse/dynamic-source.js";
 import type { ParseResult } from "../parse/parser.js";
 import { DUMP_FORMAT_VERSION, EXECUTION_SEMANTICS, inMemoryRunSnapshots } from "./dump-format.js";
 import { MAX_DATA_DEPTH } from "../graph-depth.js";
@@ -226,7 +227,8 @@ function validateDumpReferences(
   role: "root" | "heap" | "heap-node" | "scope-map" | "expressions" | "expression" | "function-environment" | "data" = "data",
   allowScopeReference = false,
   allowConstructionReference = false,
-  allowThenableReference = false
+  allowThenableReference = false,
+  allowSourceReference = false
 ): void {
   if (value === null || typeof value !== "object") return;
   if (depth > state.limits.maxDepth)
@@ -244,6 +246,8 @@ function validateDumpReferences(
     if (!heapIds.has(id)) fail("danglingReference", `${path}.id`, `unknown heap value ${id}`);
     if ((heap[String(id)] as Record<string, unknown>).kind === "scope-frame" && !allowScopeReference)
       fail("invalidValue", path, "Internal scopes cannot be guest data");
+    if (["guest-source", "guest-script"].includes(String((heap[String(id)] as Record<string, unknown>).kind)) && !allowSourceReference)
+      fail("invalidValue", path, "Internal source records cannot be guest data");
     if ((heap[String(id)] as Record<string, unknown>).kind === "construction-environment" && !allowConstructionReference)
       fail("invalidValue", path, "Internal construction environments cannot be guest data");
     if ((heap[String(id)] as Record<string, unknown>).kind === "thenable-state" && !allowThenableReference)
@@ -256,17 +260,19 @@ function validateDumpReferences(
       : role === "heap-node" && record.kind === "guest-generator" && key === "expressionStates" ? "expressions"
       : role === "expressions" ? "expression" : "data";
     const scopeField = role === "scope-map" || (role === "expression" && (
+      (["identifier-assignment", "array-pattern", "object-pattern"].includes(String(record.kind)) && key === "referenceScope") ||
       (record.kind === "for" && ["loopScope", "activeScope"].includes(key)) || (["switch", "for-in", "for-of-array", "for-of-iterator"].includes(String(record.kind)) && key === "scope")
     )) || role === "heap-node" && (
       (record.kind === "scope-frame" && key === "parent") ||
       (record.kind === "construction-environment" && key === "thisScope") ||
-      ((record.kind === "guest-function" || record.kind === "guest-class") && key === "scope") ||
+      ((record.kind === "guest-function" || record.kind === "guest-class" || record.kind === "mapped-arguments") && key === "scope") ||
       (record.kind === "guest-generator" && ["scope", "closureScope", "suspendedScope"].includes(key))
     );
     validateDumpReferences(entry, `${path}${formatKey(key)}`, depth + 1, state, heapIds, heap, childRole, scopeField,
       role === "function-environment" && key === "construction",
       role === "heap-node" && ((record.kind === "thenable-resolver" && key === "continuation") ||
-        (record.kind === "pending-promise" && key === "thenable")));
+        (record.kind === "pending-promise" && key === "thenable")),
+      role === "heap-node" && ["guest-function", "guest-class", "guest-generator", "guest-array"].includes(String(record.kind)) && key === "dynamicSource");
   }
 }
 
@@ -323,7 +329,9 @@ function validatePosition(value: unknown, path: string): number {
 export function validateInterpreterSnapshot(
   snapshot: unknown,
   nodeById: ReadonlyMap<number, ParseResult>,
-  budget: Budget
+  budget: Budget,
+  dynamicSources: Map<number, DynamicSource> = new Map(),
+  owner?: CompileOwner
 ): asserts snapshot is Record<string, unknown> {
   const limits = limitsFromBudget(budget);
   const state: ValidationState = {
@@ -437,15 +445,32 @@ export function validateInterpreterSnapshot(
   try { validateGuestHeapGraphs(heap); }
   catch (error) { fail("invalidValue", "$.heap", String(error)); }
   for (const [key, value] of Object.entries(heap)) {
+    const source = value as Record<string, unknown>;
+    if (source.kind === "guest-source" || source.kind === "guest-script") {
+      try {
+        const compiled = source.kind === "guest-script"
+          ? createEvalSource(source.body as string, source.context as EvalSourceContext, owner)
+          : createDynamicSource(source.functionKind as Exclude<DynamicSource["kind"], "eval">,
+            source.parameters as string, source.body as string, owner);
+        dynamicSources.set(Number(key), compiled.source);
+      } catch (error) {
+        if (!(error instanceof SyntaxError)) throw error;
+        fail("invalidValue", `$.heap${formatKey(key)}`, error.message);
+      }
+    }
+  }
+  for (const [key, value] of Object.entries(heap)) {
     const record = value as Record<string, unknown>;
     if (record.kind === "guest-function" || record.kind === "guest-class" || record.kind === "guest-generator") {
-      const id = requireNodeId(record.astNodeId, `$.heap${formatKey(key)}.astNodeId`, nodeById);
-      const node = nodeById.get(id);
+      const nodes = record.dynamicSource === undefined ? nodeById
+        : dynamicSources.get((record.dynamicSource as {id: number}).id)!.nodes;
+      const id = requireNodeId(record.astNodeId, `$.heap${formatKey(key)}.astNodeId`, nodes);
+      const node = nodes.get(id);
       try { validateGuestFunctionAst(record, node); }
       catch (error) { fail("invalidValue", `$.heap${formatKey(key)}`, String(error)); }
     }
   }
-  try { validateTemplateObjects(heap, nodeById.values()); }
+  try { validateTemplateObjects(heap, nodeById.values(), dynamicSources); }
   catch (error) { fail("invalidValue", "$.heap", String(error)); }
 }
 

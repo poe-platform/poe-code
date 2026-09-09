@@ -438,6 +438,17 @@ class AS006007Scanner {
   }
 
   private visitCallExpression(node: CallExpression | NewExpression): void {
+    if (node.type === "CallExpression" && !node.optional && node.arguments.length > 0 &&
+        node.callee.type === "Identifier" && node.callee.name === "eval") {
+      // Direct eval may read any visible binding, even when its source is not a literal.
+      for (const scope of this.scopes) {
+        for (const binding of scope.values()) {
+          if (this.resolveBinding(binding.name) === binding && !this.isIgnoredRead(binding)) {
+            binding.reads += 1;
+          }
+        }
+      }
+    }
     this.visitExpression(node.callee);
     for (const argument of node.arguments) {
       if (argument.type === "SpreadElement") {

@@ -544,6 +544,8 @@ function statementListContainsAwait(statements: readonly Statement[]): boolean {
 
 function statementContainsAwait(node: Statement): boolean {
   switch (node.type) {
+    case "WithStatement":
+      return expressionContainsAwait(node.object) || statementContainsAwait(node.body);
     case "ClassDeclaration":
       return classDefinitionContains(node, expressionContainsAwait);
     case "BlockStatement":

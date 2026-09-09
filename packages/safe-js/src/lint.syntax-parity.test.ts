@@ -95,8 +95,15 @@ describe("supported syntax lint parity", () => {
     expect(lint(source)).toEqual([]);
   });
 
-  it.each(["eval('1')", "new Function('return 1')", "with (value) {}"])(
-    "retains host-escape restrictions for %s",
+  it.each(["eval('1')", "new Function('return 1')"])(
+    "accepts guest-only dynamic source for %s",
+    (source) => {
+      expect(lint(source)).toEqual([]);
+    }
+  );
+
+  it.each(["with (value) {}"])(
+    "retains strict module syntax restrictions for %s",
     (source) => {
       expect(lint(source)).toContainEqual(expect.objectContaining({ code: "AS001" }));
     }

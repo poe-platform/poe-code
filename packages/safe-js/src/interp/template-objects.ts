@@ -1,6 +1,7 @@
 import type { TemplateLiteral } from "../parse.js";
 import type { Budget } from "./budget.js";
 import type { SandboxArray } from "./values.js";
+import { dynamicNodeSources, dynamicValueSources } from "../parse/function-source.js";
 
 const realms = new WeakMap<Budget, Map<TemplateLiteral, SandboxArray>>();
 export const templateOrigins = new WeakMap<SandboxArray, TemplateLiteral>();
@@ -39,6 +40,8 @@ export function registerTemplateObject(node: TemplateLiteral, value: SandboxArra
   }
   realm.set(node, value);
   templateOrigins.set(value, node);
+  const dynamicSource = dynamicNodeSources.get(node);
+  if (dynamicSource !== undefined) dynamicValueSources.set(value, dynamicSource);
   templateRawArrays.set(value, raw as SandboxArray);
   templateCookedArrays.set(raw as SandboxArray, value);
 }

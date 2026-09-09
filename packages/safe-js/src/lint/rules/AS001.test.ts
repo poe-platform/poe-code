@@ -19,7 +19,7 @@ describe("AS001", () => {
   });
 
   it("checks forbidden operations inside labeled statements", () => {
-    expect(messages('label: eval("value")')).toContain("Disallowed syntax: eval.");
+    expect(messages('label: with (context) value')).toContain("Disallowed syntax: with.");
   });
 
   it.each([
@@ -42,14 +42,14 @@ describe("AS001", () => {
   );
 
   it.each(["\n", "\r\n", "\r"])("counts %j line endings in diagnostic spans", (newline) => {
-    const source = `const value = 1;${newline}  eval("value");`;
+    const source = `const value = 1;${newline}  with (context) value;`;
     expect(AS001(source)).toEqual([
       expect.objectContaining({
         line: 2,
         column: 3,
         span: {
-          start: { line: 2, column: 3, offset: source.indexOf("eval") },
-          end: { line: 2, column: 7, offset: source.indexOf("eval") + 4 }
+          start: { line: 2, column: 3, offset: source.indexOf("with") },
+          end: { line: 2, column: 7, offset: source.indexOf("with") + 4 }
         }
       })
     ]);
@@ -86,35 +86,8 @@ describe("AS001", () => {
 
     expect(AS001("/value+/gi")).toEqual([]);
 
-    expect(AS001("eval(value)")).toEqual([
-      {
-        code: "AS001",
-        severity: "error",
-        message: "Disallowed syntax: eval.",
-        filename: "<input>",
-        line: 1,
-        column: 1,
-        span: {
-          start: { line: 1, column: 1, offset: 0 },
-          end: { line: 1, column: 5, offset: 4 }
-        }
-      }
-    ]);
-
-    expect(AS001("Function('return 1')")).toEqual([
-      {
-        code: "AS001",
-        severity: "error",
-        message: "Disallowed syntax: Function.",
-        filename: "<input>",
-        line: 1,
-        column: 1,
-        span: {
-          start: { line: 1, column: 1, offset: 0 },
-          end: { line: 1, column: 9, offset: 8 }
-        }
-      }
-    ]);
+    expect(AS001("eval(value)")).toEqual([]);
+    expect(AS001("Function('return 1')")).toEqual([]);
   });
 
   it("allows labels on loops", () => {
@@ -142,20 +115,7 @@ describe("AS001", () => {
       "`do ${eval(value)} while`;"
     ].join("\n");
 
-    expect(AS001(source)).toEqual([
-      {
-        code: "AS001",
-        severity: "error",
-        message: "Disallowed syntax: eval.",
-        filename: "<input>",
-        line: 15,
-        column: 7,
-        span: {
-          start: { line: 15, column: 7, offset: 217 },
-          end: { line: 15, column: 11, offset: 221 }
-        }
-      }
-    ]);
+    expect(AS001(source)).toEqual([]);
   });
 
   it("does not confuse division with regex literals", () => {
@@ -197,56 +157,36 @@ describe("AS001", () => {
     expect(AS001(source)).toEqual([]);
   });
 
-  it("reports disallowed syntax inside nested expression positions", () => {
-    expect(messages("const value = { nested: new Function() };")).toEqual([
-      "Disallowed syntax: Function."
-    ]);
-    expect(messages("const value = `${new Function()}`;")).toEqual([
-      "Disallowed syntax: Function."
-    ]);
-    expect(messages("const read = (value = Function('return 1')) => value;")).toEqual([
-      "Disallowed syntax: Function."
-    ]);
+  it("allows dynamic source inside nested expression positions", () => {
+    expect(messages("const value = { nested: new Function() };")).toEqual([]);
+    expect(messages("const value = `${new Function()}`;")).toEqual([]);
+    expect(messages("const read = (value = Function('return 1')) => value;")).toEqual([]);
   });
 
-  it("reports disallowed syntax in binding defaults and catch patterns", () => {
-    expect(messages("const { value = new Function() } = input;")).toEqual([
-      "Disallowed syntax: Function."
-    ]);
+  it("allows dynamic source in binding defaults and catch patterns", () => {
+    expect(messages("const { value = new Function() } = input;")).toEqual([]);
     expect(
       messages("try { work(); } catch ({ recover = Function('return 1') }) { recover(); }")
-    ).toEqual(["Disallowed syntax: Function."]);
+    ).toEqual([]);
   });
 
-  it("reports disallowed syntax at file boundaries and exported nested arrows", () => {
-    expect(messages("new Function();")).toEqual(["Disallowed syntax: Function."]);
-    expect(messages("const done = true;\nFunction('return 1')")).toEqual([
-      "Disallowed syntax: Function."
-    ]);
-    expect(messages("export default () => () => eval(value);")).toEqual([
-      "Disallowed syntax: eval."
-    ]);
+  it("allows dynamic source at file boundaries and exported nested arrows", () => {
+    expect(messages("new Function();")).toEqual([]);
+    expect(messages("const done = true;\nFunction('return 1')")).toEqual([]);
+    expect(messages("export default () => () => eval(value);")).toEqual([]);
   });
 
-  it("reports disallowed syntax nested inside conditional and logical expressions", () => {
-    expect(messages("const value = ready ? ok : new Function();")).toEqual([
-      "Disallowed syntax: Function."
-    ]);
-    expect(messages("const value = ready && Function('return 1');")).toEqual([
-      "Disallowed syntax: Function."
-    ]);
+  it("allows dynamic source nested inside conditional and logical expressions", () => {
+    expect(messages("const value = ready ? ok : new Function();")).toEqual([]);
+    expect(messages("const value = ready && Function('return 1');")).toEqual([]);
   });
 
-  it("reports disallowed syntax inside array binding defaults and computed pattern keys", () => {
+  it("allows dynamic source inside array binding defaults and computed pattern keys", () => {
     expect(messages("const [value = /fallback/] = input;")).toEqual([]);
-    expect(messages("const { [Function('return key')]: value } = input;")).toEqual([
-      "Disallowed syntax: Function."
-    ]);
+    expect(messages("const { [Function('return key')]: value } = input;")).toEqual([]);
   });
 
-  it("reports disallowed syntax inside exported arrow block bodies", () => {
-    expect(messages("export default () => { return class Example { read() { return eval('7'); } }; };")).toEqual([
-      "Disallowed syntax: eval."
-    ]);
+  it("allows dynamic source inside exported arrow block bodies", () => {
+    expect(messages("export default () => { return class Example { read() { return eval('7'); } }; };")).toEqual([]);
   });
 });

@@ -198,6 +198,7 @@ describe("compile checkpoint hash compatibility", () => {
         decodeURIComponent: { kind: "fn", name: "decodeURIComponent" },
         escape: { kind: "fn", name: "escape" },
         unescape: { kind: "fn", name: "unescape" },
+        Function: { kind: "fn", name: "Function" },
         Object: { kind: "fn", name: "Object" },
         JSON: {
           ...capture.completed.bindings.JSON,
@@ -248,7 +249,7 @@ describe("compile checkpoint hash compatibility", () => {
       expect(pair[1]).toBe(regex);
       const serialized: SafeJSSnapshot = JSON.parse(await dump(result));
       expect(restore(serialized, { source })).toBe(serialized);
-      expectLegacyDumpGraph(serialized, expectedCompleted, ["globalThis"]);
+      expectLegacyDumpGraph(serialized, expectedCompleted, ["globalThis", "eval"]);
       for (const field of [
         "hostCalls",
         "replay",

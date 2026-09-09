@@ -244,8 +244,8 @@ describe("explicit owned console replacement", () => {
     const { extension, cleanup } = consoleExtension();
     const realm = createRealm({ extensions: [extension], builtinOverrides: { console: "browser" }, budget: new Budget({ maxSteps: 200 }) });
     try {
-      expect(await realm.evaluate('return [console.constructor, console.__proto__, console.log.constructor];'))
-        .toMatchObject({ returnValue: [undefined, undefined, undefined] });
+      expect(await realm.evaluate('return [console.constructor, console.__proto__, console.log.constructor===Function,console.log.constructor("return typeof process")()];'))
+        .toMatchObject({ returnValue: [undefined, undefined, true, "undefined"] });
       await expect(realm.evaluate('while (true) { console.log("bounded"); }')).rejects.toMatchObject({ code: "budgetExceeded" });
     } finally { await realm.close(); }
     expect(cleanup).toHaveBeenCalledTimes(1);

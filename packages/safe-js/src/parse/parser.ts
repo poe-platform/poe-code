@@ -1,8 +1,8 @@
 import { boundIdentifiers } from "./bindings.js";
 import { validatePrivateNames } from "./private-names.js";
-import { tokenize, type Position, type Token } from "./tokenizer.js";
+import { RESERVED_IDENTIFIER_SPELLINGS, tokenize, type Position, type Token } from "./tokenizer.js";
 import { assignIds } from "./assign-ids.js";
-import { functionSources } from "./function-source.js";
+import { evalFunctionDeclarations, functionSources, functionStrictness } from "./function-source.js";
 import { formatParseError } from "./format-error.js";
 import {
   createExportDefaultDeclaration,
@@ -20,6 +20,7 @@ export type { ExportDefaultDeclaration, ExportNamedDeclaration } from "./parse-e
 const MAX_CONDITIONAL_EXPRESSION_DEPTH = 256;
 const MAX_IF_STATEMENT_DEPTH = 2_048;
 const STRICT_BINDING_NAMES = new Set(["eval", "arguments", "implements", "interface", "let", "package", "private", "protected", "public", "static", "yield"]);
+const functionBodyStrictness = new WeakMap<object, boolean>();
 
 export type SourceSpan = {
   start: Position;
@@ -461,6 +462,12 @@ export type WhileStatement = BaseNode & {
   labels?: string[];
 };
 
+export type WithStatement = BaseNode & {
+  type: "WithStatement";
+  object: Expression;
+  body: Statement;
+};
+
 export type DoWhileStatement = BaseNode & {
   type: "DoWhileStatement";
   body: Statement;
@@ -547,7 +554,8 @@ export type Statement =
   | SwitchStatement
   | ThrowStatement
   | VariableDeclaration
-  | WhileStatement;
+  | WhileStatement
+  | WithStatement;
 
 export type ArrowFunctionExpression = BaseNode & {
   type: "ArrowFunctionExpression";
@@ -718,6 +726,47 @@ export function parseExecutableModule(
   }
 }
 
+export type EvalParseContext = {
+  strict?: boolean;
+  newTarget?: boolean;
+  superProperty?: boolean;
+  superCall?: boolean;
+  arguments?: boolean;
+  privateNames?: ReadonlySet<string>;
+};
+
+export function parseEvalScript(
+  source: string,
+  context: EvalParseContext = {},
+  owner?: CompileOwner
+): {node: Module; strict: boolean} {
+  const compilation = new CompileScope(owner);
+  try {
+    const limit = owner?.budget.limits.stringLength;
+    if (limit !== undefined && source.length > limit)
+      throw new SandboxError({budget: "stringLength", current: source.length, limit});
+    if (owner !== undefined) for (let index = 0; index < source.length; index++) owner.budget.visitNode();
+    const grammar = {await: false, yield: false, strict: context.strict === true};
+    const parser = new Parser(tokenize(source, {
+      allowRegexLiterals: true, allowLegacyNumbers: true, allowLegacyEscapes: true,
+      allowHtmlComments: true, compilation
+    }), source, compilation, "normal", {
+      grammar, newTarget: context.newTarget === true,
+      superProperty: context.superProperty === true, superCall: context.superCall === true,
+      arguments: context.arguments !== false, return: false, await: false, strictAwait: true
+    }, false);
+    const node = assignIds(parser.parseScript());
+    if (source.includes("#")) validatePrivateNames(node, context.privateNames);
+    for (const statement of node.body) {
+      if (statement.type === "FunctionDeclaration") evalFunctionDeclarations.add(statement);
+    }
+    return {node, strict: grammar.strict};
+  } catch (error) {
+    if (error instanceof SandboxError) throw error;
+    throw new SyntaxError(error instanceof Error ? error.message : String(error));
+  } finally { compilation.dispose(); }
+}
+
 export type DynamicFunctionKind = "normal" | "generator" | "async" | "async-generator";
 
 export function parseDynamicFunction(
@@ -738,7 +787,7 @@ export function parseDynamicFunction(
     const bodySource = `{\n${body}\n}`;
     const source = `${prefix} anonymous(${parameters}\n) ${bodySource}`;
     const createParser = (text: string) => new Parser(
-      tokenize(text, {allowRegexLiterals: true, allowLegacyNumbers: true, allowLegacyEscapes: true, compilation}), text, compilation,
+      tokenize(text, {allowRegexLiterals: true, allowLegacyNumbers: true, allowLegacyEscapes: true, allowHtmlComments: true, compilation}), text, compilation,
       kind, {...ordinaryFunctionContext, grammar: {
         await: kind === "async" || kind === "async-generator",
         yield: kind === "generator" || kind === "async-generator", strict: false
@@ -755,7 +804,7 @@ export function parseDynamicFunction(
   } finally { compilation.dispose(); }
 }
 
-type ParserBindingKind = "lexical" | "function" | "parameter" | "catch";
+type ParserBindingKind = "lexical" | "function" | "legacy-function" | "parameter" | "catch";
 type ParserScope = Map<string, ParserBindingKind>;
 type FunctionParseContext = "top-level" | "normal" | "async" | "generator" | "async-generator" | "parameters";
 type LexicalParseContext = {
@@ -780,6 +829,7 @@ class Parser {
   private ifStatementDepth = 0;
   private loopDepth = 0;
   private activeLabels = new Map<string, boolean>();
+  private forInInitializerEnd?: Token;
   private readonly scopes: ParserScope[] = [new Map()];
   private readonly functionScopes = new WeakSet<ParserScope>();
   private readonly parenthesizedNodes = new WeakSet<Expression>();
@@ -797,6 +847,11 @@ class Parser {
   }
 
   private withFunctionSource<T extends FunctionNode | ClassNode>(node: T): T {
+    if ((node.type === "FunctionDeclaration" || node.type === "FunctionExpression") &&
+        node.id !== undefined && functionBodyStrictness.get(node.body) && STRICT_BINDING_NAMES.has(node.id.name))
+      throw new Error(`Invalid strict function name '${node.id.name}'.`);
+    if (this.lexicalContext.grammar !== undefined && node.type !== "ClassDeclaration" && node.type !== "ClassExpression")
+      functionStrictness.set(node, functionBodyStrictness.get(node.body) ?? this.lexicalContext.grammar.strict);
     functionSources.set(node, {
       text: this.source,
       start: node.span.start.offset,
@@ -851,6 +906,15 @@ class Parser {
     return {
       type: "Module",
       body,
+      span: createSpan(body[0]?.span.start ?? end, body[body.length - 1]?.span.end ?? end)
+    };
+  }
+
+  parseScript(): Module {
+    const body = this.parseStatementList(undefined, true);
+    const end = this.currentToken().end;
+    return {
+      type: "Module", body,
       span: createSpan(body[0]?.span.start ?? end, body[body.length - 1]?.span.end ?? end)
     };
   }
@@ -971,7 +1035,10 @@ class Parser {
     if (this.isAsyncArrowWithSingleParam()) {
       const asyncToken = this.currentToken();
       this.index += 1;
-      const param = this.parseBindingIdentifier();
+      const param = this.withLexicalContext({
+        ...this.lexicalContext,
+        ...(this.lexicalContext.grammar === undefined ? {} : {grammar: {...this.lexicalContext.grammar, await: true}})
+      }, () => this.parseBindingIdentifier());
       return this.finishArrowFunctionExpression(asyncToken.start, true, [param]);
     }
 
@@ -1103,17 +1170,27 @@ class Parser {
           directiveTokenIndex += this.tokens[directiveTokenIndex + 1]?.value === ";" ? 2 : 1;
         }
       }
+      if (params !== undefined && this.lexicalContext.grammar !== undefined)
+        functionBodyStrictness.set(body, this.lexicalContext.grammar.strict);
       return body;
     }, params !== undefined);
   }
 
   private parseBlockStatementBody(start: Token, functionBody = false): BlockStatement {
+    const body = this.parseStatementList(start, functionBody);
+    return {
+      type: "BlockStatement", body,
+      span: createSpan(start.start, this.previousToken().end)
+    };
+  }
+
+  private parseStatementList(start?: Token, directivePrologue = false): Statement[] {
     const body: Statement[] = [];
-    let directivePrologue = functionBody;
     let legacyDirective = false;
 
-    while (this.consumePunctuator("}") === undefined) {
+    while (start === undefined || this.consumePunctuator("}") === undefined) {
       if (this.currentToken().type === "eof") {
+        if (start === undefined) break;
         throw new Error(
           `Unterminated block at line ${start.start.line}, column ${start.start.column}.`
         );
@@ -1140,15 +1217,14 @@ class Parser {
       }
     }
 
-    return {
-      type: "BlockStatement",
-      body,
-      span: createSpan(start.start, this.previousToken().end)
-    };
+    return body;
   }
 
-  private parseStatement(allowResourceDeclaration = true): Statement {
-    const statement = this.parseStatementBody(allowResourceDeclaration);
+  private parseStatement(allowDeclarations = true): Statement {
+    const statement = this.parseStatementBody(allowDeclarations);
+    if (!allowDeclarations && (statement.type === "FunctionDeclaration" || statement.type === "ClassDeclaration" ||
+        (statement.type === "VariableDeclaration" && statement.kind !== "var")))
+      throw new DisallowedSyntaxError("declaration in a statement body", statement.span.start);
     if (this.lexicalContext.grammar !== undefined &&
       ["ExpressionStatement", "ReturnStatement", "ThrowStatement", "VariableDeclaration", "BreakStatement", "ContinueStatement"].includes(statement.type)) {
       const next = this.currentToken();
@@ -1159,7 +1235,7 @@ class Parser {
     return statement;
   }
 
-  private parseStatementBody(allowResourceDeclaration: boolean): Statement {
+  private parseStatementBody(allowDeclarations: boolean): Statement {
     const emptyStatement = this.parseEmptyStatement();
     if (emptyStatement !== undefined) {
       return emptyStatement;
@@ -1168,12 +1244,12 @@ class Parser {
     const token = this.currentToken();
 
     if (this.resourceDeclarationHint() !== undefined) {
-      if (!allowResourceDeclaration) throw unexpectedTokenError(token);
+      if (!allowDeclarations) throw unexpectedTokenError(token);
       return this.parseResourceDeclaration();
     }
 
     if (
-      token.type === "identifier" &&
+      this.isLabelIdentifier(token) &&
       this.peekToken(1).type === "punctuator" &&
       this.peekToken(1).value === ":"
     ) {
@@ -1212,6 +1288,16 @@ class Parser {
 
     if (token.type === "keyword" && token.value === "while") {
       return this.parseWhileStatement();
+    }
+
+    if (token.type === "keyword" && token.value === "with") {
+      if (this.lexicalContext.grammar?.strict !== false) throw new DisallowedSyntaxError("with", token.start);
+      this.index++;
+      this.expectPunctuator("(");
+      const object = this.parseExpression({allowSequence: true}).node;
+      this.expectPunctuator(")");
+      const body = this.parseStatement(false);
+      return {type: "WithStatement", object, body, span: createSpan(token.start, body.span.end)};
     }
 
     if (token.type === "keyword" && token.value === "do") {
@@ -1264,10 +1350,7 @@ class Parser {
       };
     }
 
-    if (
-      (token.type === "keyword" && (token.value === "const" || token.value === "let")) ||
-      (token.type === "identifier" && token.value === "var")
-    ) {
+    if (this.isVariableDeclarationStart()) {
       return this.parseVariableDeclaration();
     }
 
@@ -1327,7 +1410,7 @@ class Parser {
     const token = this.currentToken();
 
     if (
-      token.type === "identifier" &&
+      this.isLabelIdentifier(token) &&
       this.peekToken(1).type === "punctuator" &&
       this.peekToken(1).value === ":"
     ) {
@@ -1347,7 +1430,14 @@ class Parser {
       if (token.type === "keyword" && token.value === "while") return this.parseWhileStatement(labels);
       if (token.type === "keyword" && token.value === "do") return this.parseDoWhileStatement(labels);
       if (token.type === "punctuator" && token.value === "{") return { ...this.parseBlockStatement(), labels };
-      if (["let", "const", "class", "function", "export"].includes(token.value) ||
+      if (token.type === "keyword" && token.value === "function" &&
+          this.lexicalContext.grammar?.strict === false && this.peekToken(1).value !== "*") {
+        const declaration = this.parseFunctionDeclaration();
+        declaration.labels = labels;
+        return declaration;
+      }
+      if (["const", "class", "function", "export"].includes(token.value) ||
+          (token.value === "let" && this.isVariableDeclarationStart()) ||
           (token.value === "import" && this.peekToken(1).value !== "(") ||
           this.isAsyncFunctionDeclarationStart() || this.resourceDeclarationHint() !== undefined)
         throw new DisallowedSyntaxError("labeled declaration", firstLabelToken.start);
@@ -1358,6 +1448,16 @@ class Parser {
     } finally {
       for (const label of labels) this.activeLabels.delete(label);
     }
+  }
+
+  private parseIfClause(): Statement {
+    const start = this.currentToken().start;
+    const functionClause = this.currentToken().value === "function" || this.isAsyncFunctionDeclarationStart();
+    const statement = functionClause ? this.withScope(() => this.parseFunctionDeclaration()) : this.parseStatement(false);
+    if (statement.type !== "FunctionDeclaration") return statement;
+    if (this.lexicalContext.grammar?.strict !== false || statement.async || statement.generator)
+      throw new DisallowedSyntaxError("function declaration in an if clause", start);
+    return {type: "BlockStatement", body: [statement], span: statement.span};
   }
 
   private parseIfStatement(): IfStatement {
@@ -1374,7 +1474,7 @@ class Parser {
       this.expectPunctuator("(");
       const test = this.parseExpression({ allowSequence: true }).node;
       this.expectPunctuator(")");
-      const consequent = this.parseStatement(false);
+      const consequent = this.parseIfClause();
       if (consequent.type !== "BlockStatement") {
         while (
           this.currentToken().type === "punctuator" &&
@@ -1386,7 +1486,7 @@ class Parser {
         }
       }
       const elseToken = this.consumeKeyword("else");
-      const alternate = elseToken === undefined ? undefined : this.parseStatement(false);
+      const alternate = elseToken === undefined ? undefined : this.parseIfClause();
       return {
         type: "IfStatement",
         test,
@@ -1477,7 +1577,7 @@ class Parser {
     return token.type === "punctuator" && token.value === value;
   }
 
-  private parseForStatement(labels?: string[]): ForInStatement | ForOfStatement | ForStatement {
+  private parseForStatement(labels?: string[]): ForInStatement | ForOfStatement | ForStatement | BlockStatement {
     const forToken = this.expectKeyword("for");
     const awaitToken = this.consumeKeyword("await");
     if (awaitToken !== undefined && this.functionContext !== "top-level" &&
@@ -1493,12 +1593,12 @@ class Parser {
 
       if (iterationOperator?.value === "in") {
         if (this.resourceDeclarationHint() !== undefined) throw unexpectedTokenError(this.currentToken());
-        const left = this.parseForOfLeft();
+        const left = this.parseForOfLeft(this.lexicalContext.grammar?.strict === false ? iterationOperator : undefined);
         this.expectKeyword("in");
-        const right = this.parseExpression().node;
+        const right = this.parseExpression({allowSequence: true}).node;
         this.expectPunctuator(")");
         const body = this.withLoopContext(() => this.parseStatement(false));
-        return {
+        const loop: ForInStatement = {
           type: "ForInStatement",
           left,
           right,
@@ -1506,9 +1606,21 @@ class Parser {
           ...createLoopLabelFields(labels),
           span: createSpan(forToken.start, body.span.end)
         };
+        const declaration = left.type === "VariableDeclaration" ? left.declarations[0] : undefined;
+        if (left.type === "VariableDeclaration" && declaration?.init !== undefined && declaration.id.type === "Identifier") {
+          const { init: ignoredInit, ...binding } = declaration;
+          loop.left = {...left, declarations: [{...binding, id: {...declaration.id}, span: declaration.id.span}]};
+          return {type: "BlockStatement", body: [left, loop], span: loop.span};
+        }
+        return loop;
       }
 
       if (iterationOperator?.value === "of") {
+        if (this.currentToken().type === "keyword" && this.currentToken().value === "let" &&
+            !this.isVariableDeclarationStart()) throw unexpectedTokenError(this.currentToken());
+        if (awaitToken === undefined && this.currentToken().type === "keyword" &&
+            this.currentToken().value === "async" && this.peekToken(1).value === "of")
+          throw unexpectedTokenError(this.currentToken());
         const left = this.parseForOfLeft();
         this.expectKeyword("of");
         const right = this.parseExpression().node;
@@ -1528,10 +1640,7 @@ class Parser {
       let init: Expression | VariableDeclaration | undefined;
       if (this.consumePunctuator(";") === undefined) {
         init = this.resourceDeclarationHint() !== undefined ? this.parseResourceDeclaration() :
-          (this.currentToken().type === "keyword" || this.currentToken().type === "identifier") &&
-          (this.currentToken().value === "const" ||
-            this.currentToken().value === "let" ||
-            this.currentToken().value === "var")
+          this.isVariableDeclarationStart()
             ? this.parseVariableDeclaration()
             : this.parseExpression({ allowSequence: true }).node;
         this.expectPunctuator(";");
@@ -1562,23 +1671,18 @@ class Parser {
     });
   }
 
-  private parseForOfLeft(): PatternTarget | VariableDeclaration {
+  private parseForOfLeft(legacyInitializerEnd?: Token): PatternTarget | VariableDeclaration {
     if (this.resourceDeclarationHint() !== undefined && this.peekToken(1).value !== "of") {
       return this.parseResourceDeclaration(true);
     }
-    if (
-      (this.currentToken().type === "keyword" || this.currentToken().type === "identifier") &&
-      (this.currentToken().value === "const" ||
-        this.currentToken().value === "let" ||
-        this.currentToken().value === "var")
-    ) {
-      return this.parseForOfDeclaration();
+    if (this.isVariableDeclarationStart()) {
+      return this.parseForOfDeclaration(legacyInitializerEnd);
     }
 
     return this.toPatternTarget(this.parseAssignmentTarget());
   }
 
-  private parseForOfDeclaration(): VariableDeclaration {
+  private parseForOfDeclaration(legacyInitializerEnd?: Token): VariableDeclaration {
     const kindToken = this.currentToken();
     if (
       (kindToken.type !== "keyword" && kindToken.type !== "identifier") ||
@@ -1589,10 +1693,19 @@ class Parser {
 
     this.index += 1;
     const id = this.parseBindingTarget();
-    if (this.currentToken().type === "punctuator" && this.currentToken().value === "=") {
-      throw new Error(
+    if (kindToken.value !== "var") {
+      for (const identifier of boundIdentifiers(id))
+        if (identifier.name === "let") throw unexpectedTokenError(kindToken);
+    }
+    let init: Expression | undefined;
+    if (this.consumePunctuator("=") !== undefined) {
+      if (legacyInitializerEnd === undefined || kindToken.value !== "var" || id.type !== "Identifier") throw new Error(
         `for...of declarations cannot include an initializer at line ${kindToken.start.line}, column ${kindToken.start.column}.`
       );
+      const previousEnd = this.forInInitializerEnd;
+      this.forInInitializerEnd = legacyInitializerEnd;
+      try { init = this.parseExpression().node; }
+      finally { this.forInInitializerEnd = previousEnd; }
     }
     if (this.currentToken().type === "punctuator" && this.currentToken().value === ",") {
       throw new Error(
@@ -1603,15 +1716,18 @@ class Parser {
     const declarator: VariableDeclarator = {
       type: "VariableDeclarator",
       id,
-      span: id.span
+      ...(init === undefined ? {} : {init}),
+      span: createSpan(id.span.start, init?.span.end ?? id.span.end)
     };
-    this.declarePatternBindings(id);
+    if (kindToken.value === "var") {
+      for (const identifier of boundIdentifiers(id)) this.declareVarBinding(identifier);
+    } else this.declarePatternBindings(id);
 
     return {
       type: "VariableDeclaration",
       declarations: [declarator],
       kind: kindToken.value,
-      span: createSpan(kindToken.start, id.span.end)
+      span: createSpan(kindToken.start, init?.span.end ?? id.span.end)
     };
   }
 
@@ -1838,6 +1954,16 @@ class Parser {
     };
   }
 
+  private isVariableDeclarationStart(): boolean {
+    const token = this.currentToken();
+    if ((token.type === "identifier" && token.value === "var") ||
+        (token.type === "keyword" && token.value === "const")) return true;
+    if (token.type !== "keyword" || token.value !== "let") return false;
+    if (this.lexicalContext.grammar?.strict !== false) return true;
+    const next = this.peekToken(1);
+    return next.value === "[" || next.value === "{" || isIdentifierLikeToken(next) || this.isContextualIdentifier(next);
+  }
+
   private parseVariableDeclaration(): VariableDeclaration {
     const kindToken = this.currentToken();
     if (
@@ -1853,6 +1979,8 @@ class Parser {
     while (true) {
       const declarator = this.parseVariableDeclarator(kindToken.value);
       if (kindToken.value !== "var") {
+        for (const identifier of boundIdentifiers(declarator.id))
+          if (identifier.name === "let") throw unexpectedTokenError(kindToken);
         this.declarePatternBindings(declarator.id);
       } else {
         for (const identifier of boundIdentifiers(declarator.id)) {
@@ -1912,7 +2040,9 @@ class Parser {
     const generatorToken = this.consumePunctuator("*");
     const id = defaultExport && this.currentToken().value === "("
       ? undefined : this.parseBindingIdentifier();
-    if (id !== undefined) this.declareBinding(id, defaultExport ? "lexical" : "function");
+    const legacyBlockFunction = !defaultExport && asyncToken === undefined && generatorToken === undefined &&
+      this.lexicalContext.grammar?.strict === false && !this.functionScopes.has(this.scopes[this.scopes.length - 1]!);
+    if (id !== undefined) this.declareBinding(id, defaultExport ? "lexical" : legacyBlockFunction ? "legacy-function" : "function");
     const generator = generatorToken !== undefined;
     const { params, body } = this.parseFunctionParts(generator, ordinaryFunctionContext, undefined, asyncToken !== undefined);
 
@@ -2206,9 +2336,10 @@ class Parser {
 
   private isContextualIdentifier(token: Token): boolean {
     const grammar = this.lexicalContext.grammar;
-    return grammar !== undefined && token.type === "keyword" &&
+    return grammar !== undefined && (token.type === "keyword" || token.type === "escaped-keyword") &&
       ((token.value === "await" && !grammar.await) ||
-        (token.value === "yield" && !grammar.yield && !grammar.strict));
+        (token.value === "yield" && !grammar.yield && !grammar.strict) ||
+        (token.value === "let" && !grammar.strict));
   }
 
   private parseArrayPattern(): ArrayPattern {
@@ -2347,7 +2478,7 @@ class Parser {
     }
 
     const token = this.currentToken();
-    if (token.type === "identifier" || token.type === "keyword") {
+    if (token.type === "identifier" || token.type === "keyword" || token.type === "escaped-keyword") {
       this.index += 1;
       const key = createIdentifierName(token);
       if (this.consumePunctuator(":") !== undefined) {
@@ -2365,8 +2496,10 @@ class Parser {
         };
       }
 
-      if (!isIdentifierLikeToken(token)) throw unexpectedTokenError(token);
+      if (!isIdentifierLikeToken(token) && !this.isContextualIdentifier(token)) throw unexpectedTokenError(token);
+      assertAllowedIdentifierReference(token, this.lexicalContext.grammar?.strict !== false);
       let value: AssignmentPattern | ArrayPattern | Identifier | ObjectPattern = key;
+      this.assertUnrestrictedTarget(key);
       if (this.consumePunctuator("=") !== undefined) {
         const right = this.parseExpression().node;
         value = {
@@ -2476,6 +2609,7 @@ class Parser {
 
     const expression = this.parseLeftHandSideExpression().node;
     if (expression.type === "Identifier") {
+      this.assertUnrestrictedTarget(expression);
       return expression;
     }
 
@@ -2625,7 +2759,7 @@ class Parser {
     }
 
     const token = this.currentToken();
-    if (token.type === "identifier" || token.type === "keyword") {
+    if (token.type === "identifier" || token.type === "keyword" || token.type === "escaped-keyword") {
       this.index += 1;
       const key = createIdentifierName(token);
       if (this.consumePunctuator(":") !== undefined) {
@@ -2643,9 +2777,11 @@ class Parser {
         };
       }
 
-      if (!isIdentifierLikeToken(token)) throw unexpectedTokenError(token);
+      if (!isIdentifierLikeToken(token) && !this.isContextualIdentifier(token)) throw unexpectedTokenError(token);
+      assertAllowedIdentifierReference(token, this.lexicalContext.grammar?.strict !== false);
       let value: AssignmentPattern | ArrayPattern | Identifier | MemberExpression | ObjectPattern =
         key;
+      this.assertUnrestrictedTarget(key);
       if (this.consumePunctuator("=") !== undefined) {
         const right = this.parseAssignmentExpression().node;
         value = {
@@ -3060,7 +3196,7 @@ class Parser {
     const token = this.currentToken();
 
     if (token.value === "class") return { node: this.parseClass(false) as ClassExpression, parenthesized: false };
-    if (token.value === "super") {
+    if (token.type === "keyword" && token.value === "super") {
       const next = this.peekToken(1).value;
       if (!(next === "(" ? this.lexicalContext.superCall :
           (next === "." || next === "[") && this.lexicalContext.superProperty))
@@ -3097,7 +3233,7 @@ class Parser {
     }
 
     if (isIdentifierLikeToken(token) || this.isContextualIdentifier(token)) {
-      assertAllowedIdentifierReference(token);
+      assertAllowedIdentifierReference(token, this.lexicalContext.grammar?.strict !== false);
       this.index += 1;
       return {
         node: createIdentifier(token),
@@ -3276,10 +3412,14 @@ class Parser {
     const asyncToken = this.consumeKeyword("async");
     const functionToken = this.expectKeyword("function");
     const generatorToken = this.consumePunctuator("*");
-    const id = isIdentifierLikeToken(this.currentToken())
-      ? this.parseBindingIdentifier()
-      : undefined;
     const generator = generatorToken !== undefined;
+    const grammar = this.lexicalContext.grammar;
+    const id = this.withLexicalContext({
+      ...this.lexicalContext,
+      ...(grammar === undefined ? {} : {grammar: {...grammar, await: asyncToken !== undefined, yield: generator}})
+    }, () => isIdentifierLikeToken(this.currentToken()) || this.isContextualIdentifier(this.currentToken())
+      ? this.parseBindingIdentifier()
+      : undefined);
     const { params, body } = this.parseFunctionParts(generator, ordinaryFunctionContext, undefined, asyncToken !== undefined);
 
     return this.withFunctionSource({
@@ -3474,7 +3614,7 @@ class Parser {
     }
 
     const token = this.currentToken();
-    if (token.type === "identifier" || token.type === "keyword") {
+    if (token.type === "identifier" || token.type === "keyword" || token.type === "escaped-keyword") {
       this.index += 1;
       const key = createIdentifierName(token);
       if (this.currentToken().type === "punctuator" && this.currentToken().value === "(") {
@@ -3491,8 +3631,8 @@ class Parser {
       }
       if (generatorToken !== undefined) throw unexpectedTokenError(this.currentToken());
       if (this.consumePunctuator(":") === undefined) {
-        if (!isIdentifierLikeToken(token)) throw unexpectedTokenError(token);
-        assertAllowedIdentifierReference(token);
+        if (!isIdentifierLikeToken(token) && !this.isContextualIdentifier(token)) throw unexpectedTokenError(token);
+        assertAllowedIdentifierReference(token, this.lexicalContext.grammar?.strict !== false);
         return {
           type: "Property",
           computed: false,
@@ -3570,6 +3710,7 @@ class Parser {
       (propertyToken.type === "identifier" ||
         propertyToken.type === "private-identifier" ||
         propertyToken.type === "keyword" ||
+        propertyToken.type === "escaped-keyword" ||
         propertyToken.type === "numeric" ||
         propertyToken.type === "string") &&
       this.peekToken(2).type === "punctuator" &&
@@ -3603,7 +3744,7 @@ class Parser {
 
   private parseIdentifierName(): Identifier {
     const token = this.currentToken();
-    if (token.type !== "identifier" && token.type !== "keyword") {
+    if (token.type !== "identifier" && token.type !== "keyword" && token.type !== "escaped-keyword") {
       throw unexpectedTokenError(token);
     }
     this.index += 1;
@@ -3700,7 +3841,7 @@ class Parser {
 
     while (true) {
       const token = this.currentToken();
-      if (!operators.has(token.value as BinaryOperator)) {
+      if (token === this.forInInitializerEnd || token.type === "escaped-keyword" || !operators.has(token.value as BinaryOperator)) {
         return left;
       }
 
@@ -3731,8 +3872,15 @@ class Parser {
     }
   }
 
+  private assertUnrestrictedTarget(identifier: Identifier): void {
+    if (this.lexicalContext.grammar?.strict !== false &&
+        (identifier.name === "eval" || identifier.name === "arguments"))
+      throw new Error(`Invalid strict binding target '${identifier.name}'.`);
+  }
+
   private toAssignmentTarget(node: Expression): AssignmentTarget {
     if (node.type === "Identifier") {
+      this.assertUnrestrictedTarget(node);
       return node;
     }
 
@@ -3753,6 +3901,7 @@ class Parser {
 
   private toUpdateTarget(node: Expression): UpdateTarget {
     if (node.type === "Identifier") {
+      this.assertUnrestrictedTarget(node);
       return node;
     }
 
@@ -3858,15 +4007,12 @@ class Parser {
 
       return {
         type: "RestElement",
-        argument: property.argument,
+        argument: this.toPatternTarget(this.toAssignmentTarget(property.argument)),
         span: property.span
       };
     }
 
-    const value =
-      property.shorthand && property.value.type === "Identifier"
-        ? property.value
-        : this.toObjectPropertyValue(property.value);
+    const value = this.toObjectPropertyValue(property.value);
 
     return {
       type: "AssignmentProperty",
@@ -3943,7 +4089,7 @@ class Parser {
 
   private isSingleParamArrowFunction(): boolean {
     const token = this.currentToken();
-    if (!isIdentifierLikeToken(token) || this.peekToken(1).value !== "=>") {
+    if ((!isIdentifierLikeToken(token) && !this.isContextualIdentifier(token)) || this.peekToken(1).value !== "=>") {
       return false;
     }
 
@@ -3962,7 +4108,7 @@ class Parser {
     if (
       token.type !== "keyword" ||
       token.value !== "async" ||
-      this.peekToken(1).type !== "identifier" ||
+      (!isIdentifierLikeToken(this.peekToken(1)) && !this.isContextualIdentifier(this.peekToken(1))) ||
       this.peekToken(2).value !== "=>"
     ) {
       return false;
@@ -4053,6 +4199,7 @@ class Parser {
   private findTopLevelForIterationOperator(startIndex: number): Token | undefined {
     let operator: Token | undefined;
     let depth = 0;
+    let conditionalDepth = 0;
     let previousToken: Token | undefined;
 
     for (let index = startIndex; index < this.tokens.length; index += 1) {
@@ -4067,15 +4214,20 @@ class Parser {
           depth -= 1;
         } else if (depth === 0 && token.value === ";") {
           return undefined;
+        } else if (depth === 0 && token.value === "?") {
+          conditionalDepth++;
+        } else if (depth === 0 && token.value === ":" && conditionalDepth > 0) {
+          conditionalDepth--;
         }
       }
 
       if (
-        depth === 0 &&
+        depth === 0 && conditionalDepth === 0 &&
         token.type === "keyword" &&
         (token.value === "of" || token.value === "in") &&
         index !== startIndex &&
         !(token.value === "of" && index === startIndex + 1 &&
+          previousToken?.type !== "escaped-keyword" &&
           ["const", "let", "var"].includes(previousToken?.value ?? "")) &&
         previousToken?.value !== "." &&
         previousToken?.value !== "?."
@@ -4136,9 +4288,15 @@ class Parser {
     }
   }
 
+  private isLabelIdentifier(token: Token): boolean {
+    if (this.lexicalContext.grammar?.strict !== false && STRICT_BINDING_NAMES.has(token.value) &&
+        token.value !== "eval" && token.value !== "arguments") return false;
+    return isIdentifierLikeToken(token) || this.isContextualIdentifier(token);
+  }
+
   private consumeControlLabel(token: Token): Token | undefined {
     if (
-      this.currentToken().type === "identifier" &&
+      this.isLabelIdentifier(this.currentToken()) &&
       !hasLineBreakBetween(token, this.currentToken())
     ) {
       const label = this.currentToken();
@@ -4231,7 +4389,8 @@ class Parser {
     const variableFunction = kind === "function" && this.functionScopes.has(scope);
     if (
       (existing !== undefined &&
-        !(variableFunction && (existing === "function" || existing === "parameter"))) ||
+        !(variableFunction && (existing === "function" || existing === "parameter")) &&
+        !(kind === "legacy-function" && existing === "legacy-function")) ||
       (!variableFunction && this.varNames.get(scope)?.has(identifier.name))
     ) {
       throw new Error(
@@ -4246,7 +4405,8 @@ class Parser {
     for (let index = this.scopes.length - 1; index >= 0; index--) {
       const scope = this.scopes[index]!;
       const existing = scope.get(identifier.name);
-      if (existing === "lexical" || (existing === "function" && !this.functionScopes.has(scope))) {
+      if (existing === "lexical" || existing === "legacy-function" ||
+          (existing === "function" && !this.functionScopes.has(scope))) {
         throw new Error(
           `Cannot redeclare binding '${identifier.name}' at line ${identifier.span.start.line}, column ${identifier.span.start.column}.`
         );
@@ -5268,7 +5428,8 @@ function parseEmbeddedExpression(
 ): Expression {
   const tokens = tokenize(source, {
     allowRegexLiterals: true, allowLegacyNumbers: lexicalContext.grammar?.strict === false,
-    allowLegacyEscapes: lexicalContext.grammar?.strict === false, compilation
+    allowLegacyEscapes: lexicalContext.grammar?.strict === false,
+    allowHtmlComments: lexicalContext.grammar !== undefined, compilation
   }).map((token) => ({
     ...token,
     start: rebasePosition(token.start, base),
@@ -5382,20 +5543,21 @@ function isLiteralPropertyKey(token: Token): boolean {
 }
 
 function isIdentifierLikeToken(token: Token): boolean {
-  return token.type === "identifier" ||
-    (token.type === "keyword" && (token.value === "async" || token.value === "of"));
+  return (token.type === "identifier" && !RESERVED_IDENTIFIER_SPELLINGS.has(token.value)) ||
+    ((token.type === "keyword" || token.type === "escaped-keyword") && (token.value === "async" || token.value === "of" || token.value === "as"));
 }
 
 function isNewToken(token: Token): boolean {
-  return token.value === "new";
+  return token.type !== "escaped-keyword" && token.value === "new";
 }
 
 function createTokenSpan(token: Token): SourceSpan {
   return createSpan(token.start, token.end);
 }
 
-function assertAllowedIdentifierReference(token: Token): void {
-  if (token.value === "new") {
+function assertAllowedIdentifierReference(token: Token, strict: boolean): void {
+  if (token.value === "new" || (strict && STRICT_BINDING_NAMES.has(token.value) &&
+      token.value !== "eval" && token.value !== "arguments")) {
     throw new DisallowedSyntaxError(token.value, token.start);
   }
 }

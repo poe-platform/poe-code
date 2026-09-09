@@ -87,6 +87,9 @@ class ASUnreachableScanner {
       return false;
     }
     switch (node.type) {
+      case "WithStatement":
+        this.visitExpression(node.object);
+        return this.visitStatement(node.body);
       case "FunctionDeclaration":
         this.visitArrowFunction(node);
         return false;

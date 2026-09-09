@@ -21,12 +21,12 @@ describe("supported guest prototype access", () => {
     const host = () => 7;
     expect(
       await run(
-        "const key='constructor';return [host.constructor,host.prototype,host.__proto__===Object.getPrototypeOf(function(){}),host[key],Object.getPrototypeOf(host)===Object.getPrototypeOf(function(){}),host.bind(null).constructor,host.call.constructor,host.__proto__.constructor,host.__proto__.kind,host.__proto__.properties];",
+        "const key='constructor';return [host.constructor===Function,host.prototype,host.__proto__===Function.prototype,host[key]===Function,Object.getPrototypeOf(host)===Object.getPrototypeOf(function(){}),host.bind(null).constructor===Function,host.call.constructor===Function,host.constructor('return [typeof process,typeof require,typeof Buffer]')()];",
         { bindings: { host } }
       )
     ).toMatchObject({
       ok: true,
-      returnValue: [undefined, undefined, true, undefined, true, undefined, undefined, undefined, undefined, undefined]
+      returnValue: [true, undefined, true, true, true, true, true, ["undefined","undefined","undefined"]]
     });
   });
 });

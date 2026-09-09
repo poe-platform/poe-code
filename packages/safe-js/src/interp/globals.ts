@@ -10,7 +10,8 @@ import { createRegexGlobals, installRegExpIteratorPrototype } from "./globals/re
 import { createMiscGlobals } from "./globals/misc.js";
 import { createUriGlobals } from "./globals/uri.js";
 import { createObjectArrayGlobals } from "./globals/object-array.js";
-import { createFunctionPrototype } from "./globals/function.js";
+import { createFunctionPrototype, installDynamicFunctionConstructors } from "./globals/function.js";
+import { createEvalGlobal } from "./globals/eval.js";
 import { createGeneratorPrototypes } from "./globals/generator.js";
 import { createPromiseGlobals } from "./promise.js";
 import { createDateGlobal } from "./globals/date.js";
@@ -31,7 +32,8 @@ export function createBuiltinBindings(
   options: Parameters<typeof createConsoleJsonGlobals>[0] & { random?: () => number; clock?: RunClock; functionHasInstance?: boolean; errorPrototypes?: boolean; typedArrayPrototypes?: boolean }
 ) {
   const date = createDateGlobal(options);
-  const bindings = {
+  const baseBindings = {
+    eval: createEvalGlobal(options.budget),
     ...createConsoleJsonGlobals(options),
     ...createCollectionGlobals(options),
     ...Object.fromEntries(Object.entries(numericTypedArrayConstructors).map(([name, Native]) =>
@@ -56,10 +58,11 @@ export function createBuiltinBindings(
   };
   installCollectionIteratorPrototypes(options.budget);
   installRegExpIteratorPrototype(options.budget);
-  createFunctionPrototype(options.budget, options.functionHasInstance);
+  const bindings = {...baseBindings, Function: createFunctionPrototype(options.budget, options.functionHasInstance)};
   if (options.typedArrayPrototypes !== false) createNumericTypedArrayPrototypes(options.budget, bindings);
   if (options.errorPrototypes !== false) createErrorPrototypes(options.budget, bindings);
   createGeneratorPrototypes(options.budget);
+  installDynamicFunctionConstructors(options.budget, bindings.Function);
   registerBuiltinIdentities(options.budget, bindings);
   mutableBuiltinBindings.set(bindings, new Set(Object.keys(bindings).filter(name =>
     name !== "Infinity" && name !== "NaN" && name !== "undefined")));

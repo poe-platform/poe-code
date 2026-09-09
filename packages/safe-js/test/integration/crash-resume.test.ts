@@ -326,6 +326,15 @@ function readBinding(snapshot: RunSnapshot, name: string): unknown {
     const items = (value as { items?: unknown[] }).items;
     if (Array.isArray(items)) return items;
   }
+  if (value !== null && typeof value === "object" && (value as { kind?: string }).kind === "guest-array") {
+    const array = value as { state: { properties: { properties: Array<[string, { kind: string; value: unknown }]> } } };
+    const properties = Object.fromEntries(array.state.properties.properties);
+    expect(properties.length).toMatchObject({ kind: "data", value: expect.any(Number) });
+    return Array.from({ length: properties.length.value as number }, (_, index) => {
+      expect(properties[index]).toMatchObject({ kind: "data" });
+      return properties[index].value;
+    });
+  }
   return value;
 }
 

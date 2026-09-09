@@ -5848,6 +5848,16 @@ extension, integration, or validation requirement is missing or unverified.
   audits also pass. Typecheck, scoped lint and selected workspace build pass.
   Remaining string-operation cache policies, broader interning, guest object
   integration and interpreter/SDK/safe-fs work remain unfinished.
+- Connected string indexing and iteration to canonical character construction.
+  Contiguous slices request canonical results, while strided slices remain fresh;
+  full-slice identity still returns the original source, even when that source
+  is a fresh Latin-1 character. Constant and runtime slicing use the same policy.
+- Four tests were added; three first reproduced missing cache reuse. All 4,732
+  tests in 408 files pass. A 260-program CPython comparison covers all Latin-1
+  characters plus non-Latin-1/surrogate/longer strings through indexing,
+  iteration, contiguous/strided slices, fresh-source full slices and empty
+  results. Typecheck, scoped lint and selected workspace build pass. Other
+  string-result identity policies and broader interpreter integration remain open.
 - Next:
   remaining scope/compiler audits, interpreter runtime,
   resource controls, runtime modules, and safe-fs integration. Parsing and static

@@ -45,7 +45,7 @@ export class ConstantIterator<Value = ConstantValue> implements IterableIterator
     else {
       const point = source.value.codePointAt(BigInt(index), this.meter);
       this.meter.checkpoint(0, Uint32Array.BYTES_PER_ELEMENT);
-      value = this.values.stringPoints(Uint32Array.of(point));
+      value = this.values.stringPoints(Uint32Array.of(point), "canonical");
     }
     return { done: false, value };
   }

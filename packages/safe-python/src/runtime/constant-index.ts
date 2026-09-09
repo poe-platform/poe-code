@@ -24,7 +24,7 @@ export function constantIndex(object: ConstantValue, key: ConstantValue, values:
   if (object.kind === "str") {
     const point = object.value.codePointAt(index, meter);
     meter.checkpoint(0, Uint32Array.BYTES_PER_ELEMENT);
-    return values.stringPoints(Uint32Array.of(point));
+    return values.stringPoints(Uint32Array.of(point), "canonical");
   }
   if (BigInt.asIntN(64, index) !== index) throw new PythonRuntimeError("IndexError", "cannot fit 'int' into an index-sized integer");
   if (index < 0n) index += BigInt(object.items.length);

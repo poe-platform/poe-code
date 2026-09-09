@@ -55,7 +55,19 @@ export function expectLegacyDumpGraph(actual: RecordValue, legacy: RecordValue, 
         return;
       }
       expect(node?.kind).toBe("intrinsic");
-      expect(node.id).toBe(JSON.stringify(path));
+      if (old.kind === "fn" && path.length === 1 && (path[0] === "parseInt" || path[0] === "parseFloat")) {
+        // The legacy inline format did not represent these required aliases.
+        // Accept their canonical Number path only with exact shared heap identity.
+        const number = bindings.Number as { kind: string; id: number };
+        expect(number).toMatchObject({ kind: "ref", id: expect.any(Number) });
+        const numberNode = actualHeap[number.id];
+        expect(numberNode).toMatchObject({ kind: "intrinsic", id: '["Number"]' });
+        const state = numberNode.state as { properties: { properties: Array<[unknown, RecordValue]> } };
+        const descriptor = state.properties.properties.find(([key]) => key === path[0])?.[1];
+        expect(descriptor?.kind).toBe("data");
+        expect(descriptor?.value).toStrictEqual(current);
+        expect(node.id).toBe(JSON.stringify(["Number", path[0]]));
+      } else expect(node.id).toBe(JSON.stringify(path));
       if (old.kind === "fn") {
         expect(old.name).toBe(path.at(-1));
         return;

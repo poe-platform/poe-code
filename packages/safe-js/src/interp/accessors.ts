@@ -1,10 +1,14 @@
 import type { SandboxCallContext, SandboxClosure, SandboxValue } from "./values.js";
+import type { Budget } from "./budget.js";
+import { resolveIntrinsicIdentity } from "./intrinsics.js";
 
 type NativeAccessor = (...args: never[]) => unknown;
 
 const accessorClosures = new WeakMap<object, SandboxClosure>();
 const getterAdapters = new WeakMap<SandboxClosure, () => undefined>();
 const setterAdapters = new WeakMap<SandboxClosure, (value: unknown) => void>();
+// Strict arguments carry this native intrinsic; translate its identity, never execute it.
+const nativeRestrictedAccessor = Object.getOwnPropertyDescriptor(Function.prototype, "caller")!.get;
 
 /** Native descriptors store identity only. Guest code runs through invokeClosure. */
 export function accessorAdapter(closure: SandboxClosure, kind: "get" | "set"): NativeAccessor {
@@ -30,8 +34,10 @@ export function accessorAdapter(closure: SandboxClosure, kind: "get" | "set"): N
   return adapter;
 }
 
-export function accessorClosure(adapter: NativeAccessor | undefined): SandboxClosure | undefined {
+export function accessorClosure(adapter: NativeAccessor | undefined, budget?: Budget): SandboxClosure | undefined {
   if (adapter === undefined) return undefined;
+  if (budget !== undefined && adapter === nativeRestrictedAccessor)
+    return resolveIntrinsicIdentity(budget, '["%ThrowTypeError%"]') as SandboxClosure;
   const closure = accessorClosures.get(adapter);
   if (closure === undefined) throw new TypeError("Native accessors cannot execute in the sandbox.");
   return closure;

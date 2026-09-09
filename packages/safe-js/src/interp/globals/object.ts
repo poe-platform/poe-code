@@ -186,7 +186,7 @@ export function createObjectGlobal(methods: SandboxObject, budget: Budget): Sand
             budget.visitNode();
             assertSandboxDataDepth(depth++);
             const descriptor = Object.getOwnPropertyDescriptor(objectProperties(current), property);
-            if (descriptor !== undefined) return accessorClosure(descriptor[kind]);
+            if (descriptor !== undefined) return accessorClosure(descriptor[kind], budget);
             current = getSandboxPrototype(current, budget) as SandboxObject;
           }
           return undefined;

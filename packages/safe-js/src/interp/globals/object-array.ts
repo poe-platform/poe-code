@@ -130,7 +130,7 @@ export function createObjectArrayGlobals(options: {
             );
             if (descriptor === undefined) return undefined;
             return allocateProducedSandboxValue(
-              exposePropertyDescriptor(descriptor),
+              exposePropertyDescriptor(descriptor, options.budget),
               options.budget
             );
           },
@@ -142,7 +142,7 @@ export function createObjectArrayGlobals(options: {
             const descriptors = Object.create(null) as SandboxObject;
             const properties = reflectionProperties(value);
             for (const key of [...Object.getOwnPropertyNames(properties), ...ownSandboxSymbolKeys(value)])
-              defineOwnDataProperty(descriptors, key, exposePropertyDescriptor(Object.getOwnPropertyDescriptor(properties, key)!));
+              defineOwnDataProperty(descriptors, key, exposePropertyDescriptor(Object.getOwnPropertyDescriptor(properties, key)!, options.budget));
             return allocateProducedSandboxValue(descriptors, options.budget);
           },
           name: "getOwnPropertyDescriptors"
@@ -694,13 +694,13 @@ export function objectProperties(value: SandboxValue, _mutable = false): Sandbox
   return value;
 }
 
-export function exposePropertyDescriptor(descriptor: PropertyDescriptor): SandboxObject {
+export function exposePropertyDescriptor(descriptor: PropertyDescriptor, budget: Budget): SandboxObject {
   return (
     "value" in descriptor
       ? descriptor
       : {
-          get: accessorClosure(descriptor.get),
-          set: accessorClosure(descriptor.set),
+          get: accessorClosure(descriptor.get, budget),
+          set: accessorClosure(descriptor.set, budget),
           enumerable: descriptor.enumerable,
           configurable: descriptor.configurable
         }

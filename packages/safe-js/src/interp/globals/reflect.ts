@@ -25,7 +25,7 @@ export function createReflectGlobal(budget: Budget): SandboxObject {
       objectProperties(target);
       const property = await toPropertyKey(key, budget, context);
       const descriptor = Object.getOwnPropertyDescriptor(objectProperties(target), property);
-      return descriptor === undefined ? undefined : allocateProducedSandboxValue(exposePropertyDescriptor(descriptor), budget);
+      return descriptor === undefined ? undefined : allocateProducedSandboxValue(exposePropertyDescriptor(descriptor, budget), budget);
     } },
     getPrototypeOf: { length: 1, call: ([target]) => {
       objectProperties(target);

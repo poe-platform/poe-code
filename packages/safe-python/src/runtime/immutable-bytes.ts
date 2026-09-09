@@ -23,10 +23,14 @@ export class ImmutableBytes implements Iterable<number> {
     Object.freeze(this);
   }
 
-  static copyOf(input: Uint8Array, meter: ExecutionMeter): ImmutableBytes {
-    meter.checkpoint(1, input.byteLength);
+  static copyOf(input: Uint8Array | readonly number[], meter: ExecutionMeter): ImmutableBytes {
+    meter.checkpoint(1, input.length);
     const owned = new Uint8Array(input.length);
-    for (let index = 0; index < input.length; index++) { meter.checkpoint(); owned[index] = input[index]; }
+    for (let index = 0; index < input.length; index++) {
+      meter.checkpoint(); const byte = input[index];
+      if (!Number.isInteger(byte) || byte < 0 || byte > 255) throw new RangeError("byte value must be an integer in range 0..255");
+      owned[index] = byte;
+    }
     return new ImmutableBytes(owned);
   }
 

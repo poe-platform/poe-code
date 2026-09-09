@@ -4564,6 +4564,20 @@ extension, integration, or validation requirement is missing or unverified.
   binding is not yet implemented. Remaining native builtins, numeric/text
   methods, buffer protocols, suspension, full accounting and SDK/safe-fs remain
   unfinished.
+- Added native integer/bool instance access to from_bytes, with named bytes,
+  default big endian, keyword-only signed truth and Python validation order.
+  Iterable input is checked one element at a time without consuming or closing
+  the remainder on an invalid byte; cancellation is checked after every pull.
+  Bool receivers construct canonical boolean results. Immutable storage now
+  accepts validated number arrays without silently wrapping invalid elements.
+- Seven new tests first reproduced missing support. All 4,186 tests in 322
+  files pass; 4,872 compiled CPython comparison programs match exact integers,
+  boolean results and errors. Scoped lint, source typecheck and selected
+  workspace build pass. The audit
+  separately confirmed missing explicit list.__iter__ lookup; that case is not
+  counted as passing. Prepared iterator conversion is covered by unit tests.
+  Guest __bytes__, buffer and index protocols, class-level native registration,
+  explicit iterator slots, full accounting and SDK/safe-fs remain unfinished.
 - Next:
   remaining scope/compiler audits, interpreter runtime,
   resource controls, runtime modules, and safe-fs integration. Parsing and static

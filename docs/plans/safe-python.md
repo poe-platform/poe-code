@@ -1748,6 +1748,20 @@ extension, integration, or validation requirement is missing or unverified.
   and selected build passed. Class body execution/construction/decorator wiring,
   concrete guest protocol adapters and full temporary allocation accounting remain
   unfinished.
+- Added metaclass construction completion and original body-captured __class__
+  cell validation. Type results must match a populated captured cell; empty cells
+  produce the propagation RuntimeError and mismatches produce TypeError. Non-type
+  metaclass results remain valid and skip cell validation. Diagnostics preserve
+  Python name repr, value-repr order and formatting failures; construction and
+  representation effects are never rolled back. Preparation now exposes a shared
+  typed result for the construction stage.
+- Construction-completion validation: missing-module red suite preceded work.
+  All 2,230 tests in 113 files pass, including 16 new completion cases. CPython
+  matched 240 combinations of metaclass result/cell state/name/representation
+  behavior, including repr-triggered cell repair, exact errors, effect traces and
+  final cell state. Source typecheck, scoped lint and selected build passed.
+  Type.__new__ propagation/namespace validation, full class-body/decorator wiring,
+  concrete guest objects and complete allocation accounting remain unfinished.
 - Next:
   remaining scope/compiler audits, interpreter runtime,
   resource controls, runtime modules, and safe-fs integration. Parsing and static

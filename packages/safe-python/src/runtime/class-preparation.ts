@@ -2,6 +2,12 @@ import type { ExecutionMeter } from "./execution-budget.js";
 import { PythonRuntimeError } from "./error.js";
 import { selectTypeMetaclass } from "./metaclass.js";
 
+export interface PreparedClass<Value> {
+  readonly metaclass: Value;
+  readonly namespace: Value;
+  readonly keywords: ReadonlyMap<string, Value>;
+}
+
 export interface ClassPreparationContext<Value> {
   readonly defaultType: Value & object;
   tupleItems(value: Value): readonly Value[] | undefined;
@@ -29,7 +35,7 @@ export interface ClassPreparationContext<Value> {
 export function prepareClass<Value>(
   name: string, bases: Value, keywords: ReadonlyMap<string, Value>,
   context: ClassPreparationContext<Value>, meter: ExecutionMeter
-): { readonly metaclass: Value; readonly namespace: Value; readonly keywords: ReadonlyMap<string, Value> } {
+): PreparedClass<Value> {
   meter.checkpoint();
   const items = context.tupleItems(bases);
   if (items === undefined) throw new Error("class bases must be an assembled tuple");

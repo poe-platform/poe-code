@@ -2596,6 +2596,19 @@ extension, integration, or validation requirement is missing or unverified.
   workspace build passed. Guest positional/keyword binding, key and
   reverse dispatch, result object wrapping, exact comparison scheduling and
   complete native allocation accounting remain unfinished.
+- Added list.sort option binding for expanded calls, reusable after sorted's
+  materialization phase. Total argument-count checks precede positional rejection;
+  unknown-keyword validation and spelling suggestions precede reverse truth
+  conversion. Reverse is converted once. Absent/None keys preserve identity;
+  other keys remain unvalidated until an actual item invokes them, including
+  empty sorts that never call a non-callable key. Guest callbacks retain context.
+- The binder suite first failed on its missing module. All 2,878 tests in 174
+  files pass, including direct composition with the sorted iterable pipeline.
+  A 1,570-case CPython audit matched argument errors, keyword-order precedence,
+  suggestions and reverse truth traces. Source typecheck, scoped lint (including
+  the integration test) and selected workspace build passed. Guest builtin registration, sorted's
+  outer positional binding, truth/call/comparison implementations and complete
+  native allocation accounting remain unfinished.
 - Next:
   remaining scope/compiler audits, interpreter runtime,
   resource controls, runtime modules, and safe-fs integration. Parsing and static

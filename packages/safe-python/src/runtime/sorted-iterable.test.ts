@@ -4,6 +4,7 @@ import type { ListExtensionContext } from "./list-extension.js";
 import { ListStorage } from "./list-storage.js";
 import { ExecutionBudget, ExecutionLimitError } from "./execution-budget.js";
 import { PythonRuntimeError } from "./error.js";
+import { bindSortOptions } from "./sort-options.js";
 
 class Stop extends Error {}
 interface Source { iter?: () => unknown; next?: () => unknown; len?: () => bigint }
@@ -23,6 +24,17 @@ const context: ListExtensionContext<unknown> = {
 const numeric = { key: (value: unknown) => Number(value), less: (a: number, b: number) => a < b };
 
 describe("sorted iterable integration", () => {
+  it("composes guest sort-option binding with copied-list sorting", () => {
+    const source = new ListStorage<unknown>([3, 1, 2], budget()), events: unknown[] = [], meter = budget();
+    const key = (value: unknown) => { events.push(value); return -Number(value); };
+    const result = sortedIterable(source, context, () => bindSortOptions([], new Map<string, unknown>([["key", key], ["reverse", true]]), {
+      isNone: value => value === null,
+      truth: () => { events.push("reverse"); return true; },
+      callKey: (callable, value) => (callable as typeof key)(value), less: (a, b) => Number(a) < Number(b)
+    }, meter), meter);
+    expect(result.snapshot()).toEqual([1, 2, 3]); expect(source.snapshot()).toEqual([3, 1, 2]);
+    expect(events).toEqual(["reverse", 3, 1, 2]);
+  });
   it("copies an exact list before sorting and leaves its slots unchanged", () => {
     const source = new ListStorage<unknown>([3, 1, 2], budget());
     const result = sortedIterable(source, context, () => numeric, budget());

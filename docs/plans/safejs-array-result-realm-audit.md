@@ -64,3 +64,17 @@ Custom Symbol.split controls still match native: a returned null-prototype
 object keeps its identity/prototype, and a custom hook receives the original
 uncoerced receiver plus limit zero and is called once. Do not re-prototype
 custom hook results or move fallback coercion ahead of hook dispatch.
+
+## Borrowed species-method fallback
+
+Read-only built ESM probes at runtime commit fa36d37f3 also fail originating
+Array.prototype identity for slice(), map(x=>x), filter(x=>true), flat(), and
+flatMap(x=>x) borrowed onto `{0:1,1:2,length:2}`. Each factory runs after SDK
+cleanup, and a separately exported Object.getPrototypeOf inspects its result.
+Native VM controls pass all five. The earlier passing array-receiver cases
+therefore do not cover the plain array-like fallback.
+
+Source inspection finds arraySpeciesCreate allocates and returns a bare array
+when no species constructor is selected. Validate this path with source tests
+before fixing it; preserve explicit species selection and custom constructor
+results. This audit changed no runtime or test files during the full gate.

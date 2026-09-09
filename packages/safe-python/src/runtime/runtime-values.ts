@@ -3,6 +3,7 @@ import type { ExecutionMeter } from "./execution-budget.js";
 import type { IntegerProgression } from "./integer-sequence.js";
 import { ListStorage } from "./list-storage.js";
 import type { FunctionState } from "./function-state.js";
+import type { OrderedKeyMap } from "./ordered-key-map.js";
 
 export interface ListValue {
   readonly kind: "list";
@@ -24,6 +25,11 @@ export interface FunctionValue {
   readonly value: FunctionState<RuntimeValue>;
 }
 
+export interface DictionaryValue {
+  readonly kind: "dict";
+  readonly items: OrderedKeyMap<RuntimeValue, RuntimeValue>;
+}
+
 export type RuntimeValue =
   | PrimitiveConstant
   | TupleConstant<RuntimeValue>
@@ -31,7 +37,8 @@ export type RuntimeValue =
   | ListValue
   | RangeValue
   | IteratorValue
-  | FunctionValue;
+  | FunctionValue
+  | DictionaryValue;
 
 /** Host-only records, never accessible through guest JavaScript properties.
  * Lists own their slots but share members, including cyclic references. Range
@@ -66,5 +73,11 @@ export class RuntimeValues extends ConstantValues {
   function(value: FunctionState<RuntimeValue>): FunctionValue {
     this.runtimeMeter.checkpoint(1, 32);
     return Object.freeze({ kind: "function", value });
+  }
+
+  /** Adopt prepared ordered storage sharing this execution's key policy/meter. */
+  dictionary(items: OrderedKeyMap<RuntimeValue, RuntimeValue>): DictionaryValue {
+    this.runtimeMeter.checkpoint(1, 32);
+    return Object.freeze({ kind: "dict", items });
   }
 }

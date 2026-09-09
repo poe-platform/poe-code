@@ -4,6 +4,7 @@ import type { ExecutionMeter } from "./execution-budget.js";
 import { normalizeSlice, rangeItem, sliceRange } from "./integer-sequence.js";
 import type { RuntimeValue, RuntimeValues } from "./runtime-values.js";
 import { runtimeSliceBounds } from "./runtime-slice-bounds.js";
+import { UnsupportedExpressionError } from "./expression-evaluation.js";
 
 /** Exact builtin subscription. Guest __index__/__getitem__ and overridden
  * subclass slots require the separate object protocol layer. List slices adopt
@@ -11,6 +12,7 @@ import { runtimeSliceBounds } from "./runtime-slice-bounds.js";
  */
 export function runtimeIndex(object: RuntimeValue, key: RuntimeValue, values: RuntimeValues, meter: ExecutionMeter): RuntimeValue {
   meter.checkpoint();
+  if (object.kind === "dict") throw new UnsupportedExpressionError("subscript");
   if (object.kind !== "list" && object.kind !== "range" && object.kind !== "tuple" && object.kind !== "str" && object.kind !== "bytes") {
     const name = object.kind === "none" ? "NoneType" : object.kind === "not-implemented" ? "NotImplementedType" : object.kind;
     throw new PythonRuntimeError("TypeError", `'${name}' object is not subscriptable`);

@@ -10,6 +10,7 @@ export function runtimeTruth(value: RuntimeValue, meter: ExecutionMeter): boolea
   meter.checkpoint();
   switch (value.kind) {
     case "list": return value.items.length !== 0;
+    case "dict": return value.items.size !== 0;
     case "range": return value.value.length !== 0n;
     case "iterator": case "function": return true;
     default: return constantTruth(value, meter);

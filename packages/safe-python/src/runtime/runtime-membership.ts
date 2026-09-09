@@ -5,6 +5,7 @@ import { PythonRuntimeError } from "./error.js";
 import { rangeIndexOf } from "./integer-sequence.js";
 import { runtimeIterate } from "./runtime-iteration.js";
 import type { RuntimeValue } from "./runtime-values.js";
+import { UnhashableRuntimeValueError } from "./runtime-hash.js";
 
 /** Exact runtime membership. Integer/bool range searches use arithmetic; other
  * iterable searches consume only through the first identity/equality match.
@@ -15,7 +16,14 @@ export function runtimeMembership(operator: string, needle: RuntimeValue, contai
   meter.checkpoint();
   if (operator !== "in" && operator !== "not in") throw new Error(`unsupported constant membership operator: ${operator}`);
   let found = false;
-  if (container.kind === "range" && (needle.kind === "int" || needle.kind === "bool")) {
+  if (container.kind === "dict") {
+    try {
+      found = container.items.containsKey(needle);
+    } catch (error) {
+      if (!(error instanceof UnhashableRuntimeValueError)) throw error;
+      throw new PythonRuntimeError("TypeError", `cannot use '${needle.kind}' as a dict key (${error.message})`);
+    }
+  } else if (container.kind === "range" && (needle.kind === "int" || needle.kind === "bool")) {
     const integer = needle.kind === "int" ? needle.value : needle.value ? 1n : 0n;
     found = rangeIndexOf(container.value, integer) !== undefined;
   } else if (container.kind === "tuple" || container.kind === "list" || container.kind === "iterator" || container.kind === "range") {

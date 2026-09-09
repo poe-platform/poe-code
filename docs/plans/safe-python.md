@@ -3111,6 +3111,24 @@ extension, integration, or validation requirement is missing or unverified.
   scoped lint and selected workspace build passed. Execution-wide identity/seed
   provisioning, concrete dictionary values/literals, guest __hash__ slots, full
   bigint/heap accounting and safe-fs/public execution integration remain open.
+- Added concrete dictionary records retaining prepared ordered storage and its
+  shared key/hash policy. Truth uses live size; iteration yields original keys
+  with storage mutation checks; membership hashes and compares keys, not values.
+  Numeric-equivalent keys retain the first key and insertion position. Dictionary
+  values reject hashing directly or nested in immutable keys without traversing
+  cyclic contents. Built-in unhashable membership errors identify the outer key
+  type, while direct hashing retains its original diagnostic.
+- The initial record tests failed on the absent factory, and added boundary and
+  diagnostic tests reproduced silent scalar-comparison fallback and missing
+  dictionary-key error context. All 3,276 tests in 213 files pass. A 1,200-case
+  CPython dictionary audit matched key order/types, replacement, deletion,
+  reinsertion, truth, membership and unhashable-list errors; the 3,000-case runtime
+  hash regression also passed. Source typecheck, scoped lint and selected workspace build
+  passed. Subscription, item mutation and dictionary value equality remain
+  explicit unsupported-operation boundaries, not false scalar/sequence behavior.
+  Dictionary literals, call keyword dictionaries, guest hash/equality slots,
+  execution-wide hash policy provisioning and safe-fs/public execution integration
+  remain unfinished; storage iterator compaction differences remain as logged.
 - Next:
   remaining scope/compiler audits, interpreter runtime,
   resource controls, runtime modules, and safe-fs integration. Parsing and static

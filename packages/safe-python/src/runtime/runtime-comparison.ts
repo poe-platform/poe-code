@@ -4,6 +4,7 @@ import { numericComparison } from "./numeric-comparison.js";
 import { PythonRuntimeError } from "./error.js";
 import { rangesEqual } from "./integer-sequence.js";
 import type { RuntimeValue } from "./runtime-values.js";
+import { UnsupportedExpressionError } from "./expression-evaluation.js";
 
 type Compound = Extract<RuntimeValue, { kind: "list" | "tuple" | "slice" }>;
 
@@ -50,6 +51,7 @@ export function runtimeComparison(operator: string, left: RuntimeValue, right: R
     const task = work.pop()!;
     if (typeof task === "function") { task(); continue; }
     const { operator: op, left: a, right: b, depth } = task;
+    if (a.kind === "dict" && b.kind === "dict" && (op === "==" || op === "!=")) throw new UnsupportedExpressionError("comparison");
     if ((a.kind === "bool" || a.kind === "int" || a.kind === "float" || a.kind === "complex") &&
         (b.kind === "bool" || b.kind === "int" || b.kind === "float" || b.kind === "complex")) {
       const numeric = numericComparison(op, a, b, values, meter);

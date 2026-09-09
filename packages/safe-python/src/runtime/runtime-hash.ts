@@ -22,6 +22,13 @@ export interface RuntimeHashContext extends ConstantHashContext {
   identity(value: RuntimeValue): bigint;
 }
 
+/** Identifies an exact built-in hash rejection without matching error text. */
+export class UnhashableRuntimeValueError extends PythonRuntimeError {
+  constructor(kind: "list" | "dict") {
+    super("TypeError", `unhashable type: '${kind}'`);
+  }
+}
+
 const prime1 = 11400714785074694791n;
 const prime2 = 14029467366897019727n;
 const prime5 = 2870177450012600261n;
@@ -71,7 +78,7 @@ export function runtimeHash(value: RuntimeValue, context: ConstantHashContext | 
         result = BigInt.asIntN(64, prime5 + (prime5 ^ 3527539n));
       } else {
         switch (current.kind) {
-          case "list": throw new PythonRuntimeError("TypeError", "unhashable type: 'list'");
+          case "list": case "dict": throw new UnhashableRuntimeValueError(current.kind);
           case "function": case "iterator":
             if (!("none" in context)) throw new Error("runtime hash context is required for identity-based runtime values");
             result = normalized(context.identity(current)); break;

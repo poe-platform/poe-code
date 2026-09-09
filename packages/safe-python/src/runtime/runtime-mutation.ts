@@ -4,6 +4,7 @@ import { ListStorage } from "./list-storage.js";
 import { runtimeIterate } from "./runtime-iteration.js";
 import { runtimeSliceBounds } from "./runtime-slice-bounds.js";
 import type { RuntimeValue, RuntimeValues } from "./runtime-values.js";
+import { UnsupportedExpressionError } from "./expression-evaluation.js";
 
 export type ItemMutation = { readonly kind: "set"; readonly value: RuntimeValue } | { readonly kind: "delete" };
 
@@ -14,6 +15,7 @@ export type ItemMutation = { readonly kind: "set"; readonly value: RuntimeValue 
  */
 export function runtimeMutateItem(object: RuntimeValue, key: RuntimeValue, change: ItemMutation, values: RuntimeValues, meter: ExecutionMeter): void {
   meter.checkpoint();
+  if (object.kind === "dict") throw new UnsupportedExpressionError("subscript");
   if (object.kind !== "list") {
     const name = object.kind === "none" ? "NoneType" : object.kind === "not-implemented" ? "NotImplementedType" : object.kind;
     const immutableSequence = object.kind === "tuple" || object.kind === "str" || object.kind === "bytes" || object.kind === "range";

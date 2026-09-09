@@ -17,6 +17,9 @@ export function runtimeIterate(value: RuntimeValue, values: ConstantValues, mete
     case "function": throw new PythonRuntimeError("TypeError", "'function' object is not iterable");
     case "iterator": return value.value;
     case "list": return value.items.iterate();
+    case "dict":
+      meter.checkpoint(1, 32);
+      return value.items.iterate(key => key);
     case "range": {
       meter.checkpoint(1, 32);
       const source = new RangeIterator(value.value, false, meter);

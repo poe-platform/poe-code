@@ -293,6 +293,15 @@ export function createNumericTypedArrayPrototypes(budget: Budget, bindings: Reco
         const target = context?.thisValue;
         if (!isSandboxClosure(target) || target.construct === undefined)
           throw new TypeError("TypedArray.of requires a constructor receiver.");
+        const callerContext: SandboxCallContext = {
+          ...context, stack: context?.stack ?? [], thisValue: target,
+          getProperty: context?.getProperty ?? ((value, key) => sandboxGetProperty(value, key, value, budget, context))
+        };
+        context = {
+          ...callerContext,
+          invokeClosure: callerContext.invokeClosure ?? ((callee, values, receiver, construct, newTarget) =>
+            invokeBuiltinClosure(callee, values, budget, callerContext, receiver, construct, newTarget))
+        };
         let result: SandboxValue;
         const release = retainValues(budget, () => [target, result, ...args]);
         try {

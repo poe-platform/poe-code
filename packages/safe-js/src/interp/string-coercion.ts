@@ -1,6 +1,8 @@
 import { sandboxErrorTypes } from "../error/shape.js";
 import { getGeneratorProperties } from "./generator-properties.js";
 import { readPropertyDescriptor } from "./accessors.js";
+import { guestProxyStates } from "./guest-proxy.js";
+import { sandboxGetProperty } from "./guest-proxy-get.js";
 import { dateString, dateTime, isSandboxDate } from "./date.js";
 import type { Budget } from "./budget.js";
 import { invokeBuiltinClosure } from "./builtin-call.js";
@@ -165,6 +167,8 @@ function conversionHook(
   let current: object | null = value;
   let depth = 0;
   while (current !== null) {
+    if (guestProxyStates.has(current))
+      return sandboxGetProperty(current as SandboxValue, name, value, budget, context);
     const properties = isSandboxGenerator(current) ? getGeneratorProperties(current) : isSandboxPromise(current) ? getPromiseProperties(current) : isGuestClosure(current) ? getGuestFunctionProperties(current)
       : isSandboxRegex(current) ? getRegexProperties(current)
       : isSandboxMap(current) || isSandboxSet(current) ? getCollectionProperties(current) : current;

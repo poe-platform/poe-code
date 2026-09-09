@@ -588,6 +588,9 @@ acquisition also observes methods supplied by Proxy traps or Proxy ancestors,
 including async iteration and its synchronous fallback.
 Direct SDK `TypedArray.from` calls observe Proxy inputs, mapping callbacks, and
 constructor receivers, preserving mapper `this` and index arguments.
+Direct SDK `TypedArray.of` calls support Proxy constructor receivers and element
+conversion hooks. Primitive conversion observes Proxy hooks and Proxy ancestors
+instead of treating their private carriers as ordinary objects.
 Public Proxy binding reads the prototype and own length descriptor through traps
 before reading length and name, including null prototypes and nested Proxies.
 Promise operations dispatch Proxy constructors, executors, reaction callbacks,

@@ -3513,6 +3513,17 @@ extension, integration, or validation requirement is missing or unverified.
   type descriptors, exposed descriptor-wrapper argument binding/introspection,
   immutable-type mutation guards, type construction and instance dispatch remain
   unfinished, as do suspension, full accounting and public SDK/safe-fs integration.
+- Added explicit immutable type metadata and marked bootstrap object/type immutable.
+  Default type attribute mutation now rejects assignment and deletion before any
+  metaclass descriptor lookup or namespace mutation, with metered Python-compatible
+  diagnostics. Published user classes remain mutable; direct native descriptor
+  operations retain their own receiver/read-only checks. The regression first
+  failed because mutation reached descriptor lookup on object. All 3,475 tests in
+  239 files pass; source typecheck, scoped lint and selected workspace build pass.
+  CPython differential regressions passed for 484 descriptor configurations /
+  2,420 operations and 1,000 MRO type graphs. Other intrinsic type metadata,
+  construction, instance dispatch, suspension, full accounting and public
+  SDK/safe-fs integration remain unfinished.
 - Next:
   remaining scope/compiler audits, interpreter runtime,
   resource controls, runtime modules, and safe-fs integration. Parsing and static

@@ -1,4 +1,5 @@
 import { readClassAttribute } from "./class-attributes.js";
+import { PythonRuntimeError } from "./error.js";
 import type { ExecutionMeter } from "./execution-budget.js";
 import { deleteInstanceAttribute, writeInstanceAttribute, type AttributeValue } from "./instance-attributes.js";
 import type { RuntimeDescriptorContext } from "./runtime-descriptor.js";
@@ -20,7 +21,7 @@ export function readRuntimeTypeAttribute(
     () => resolveRuntimeTypeAttribute(cls.value, name, context, values, meter)?.attribute, meter);
 }
 
-/** Default mutation after the caller's type-mutability checks. Only metaclass
+/** Default mutation enforces type immutability before descriptor lookup. Only metaclass
  * data descriptors intercept writes/deletes; descriptors in the class namespace
  * are ordinary values here. Return false only for absent own-namespace deletion,
  * allowing the dispatcher to supply the correct AttributeError diagnostic.
@@ -32,6 +33,14 @@ export function mutateRuntimeTypeAttribute(
   context: RuntimeDescriptorContext, values: RuntimeValues, meter: ExecutionMeter
 ): boolean {
   meter.checkpoint(1, 64);
+  if (cls.immutable) {
+    let label = "";
+    for (const point of name.value) {
+      meter.checkpoint(1, point > 0xffff ? 4 : 2);
+      label += String.fromCodePoint(point);
+    }
+    throw new PythonRuntimeError("TypeError", `cannot set '${label}' attribute of immutable type '${cls.value.name}'`);
+  }
   const attribute = resolveRuntimeTypeAttribute(cls.metaclass.value, name, context, values, meter)?.attribute;
   let changed = true;
   if (change.kind === "set") {

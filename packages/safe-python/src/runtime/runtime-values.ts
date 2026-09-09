@@ -61,6 +61,7 @@ export interface TypeValue {
   readonly kind: "type";
   readonly value: RuntimeTypeLayout;
   readonly metaclass: TypeValue;
+  readonly immutable: boolean;
 }
 
 /** Explicit native descriptor capability. Accessors receive a receiver already
@@ -84,7 +85,7 @@ class RuntimeTypeRecord implements TypeValue {
   readonly kind = "type";
   readonly metaclass: TypeValue;
 
-  constructor(readonly value: RuntimeTypeLayout, metaclass: TypeValue | "self") {
+  constructor(readonly value: RuntimeTypeLayout, metaclass: TypeValue | "self", readonly immutable: boolean) {
     this.metaclass = metaclass === "self" ? this : metaclass;
     Object.freeze(this);
   }
@@ -172,9 +173,9 @@ export class RuntimeValues extends ConstantValues {
   /** Adopt a validated layout and explicit metaclass. "self" is a host-only
    * bootstrap marker for type, not a guest metaclass argument or inferred default.
    * The object layer owns canonical publication and metaclass/layout validation. */
-  type(layout: RuntimeTypeLayout, metaclass: TypeValue | "self"): TypeValue {
+  type(layout: RuntimeTypeLayout, metaclass: TypeValue | "self", options: { readonly immutable?: boolean } = {}): TypeValue {
     this.runtimeMeter.checkpoint(1, 48);
-    return new RuntimeTypeRecord(layout, metaclass);
+    return new RuntimeTypeRecord(layout, metaclass, options.immutable ?? false);
   }
 
   getsetDescriptor(value: GetsetDescriptorCapability): GetsetDescriptorValue {

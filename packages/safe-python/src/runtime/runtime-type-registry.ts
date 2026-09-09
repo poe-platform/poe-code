@@ -27,8 +27,8 @@ export class RuntimeTypeRegistry {
     this.#entries = new WeakMap();
     const objectLayout = new RuntimeTypeLayout("object", [], values.dictionary(new OrderedKeyMap<RuntimeValue, RuntimeValue>(keys, meter)), meter);
     const typeLayout = new RuntimeTypeLayout("type", [objectLayout], values.dictionary(new OrderedKeyMap<RuntimeValue, RuntimeValue>(keys, meter)), meter);
-    this.type = values.type(typeLayout, "self");
-    this.object = values.type(objectLayout, this.type);
+    this.type = values.type(typeLayout, "self", { immutable: true });
+    this.object = values.type(objectLayout, this.type, { immutable: true });
     this.#entries.set(objectLayout, { type: this.object });
     this.#entries.set(typeLayout, { type: this.type });
     meter.checkpoint(1, 96);

@@ -12,6 +12,7 @@ import { analyzeModule } from "../analysis.js";
 import { compileProgram } from "./program-compilation.js";
 import { executeRuntimeProgram, type RuntimeProgramHooks } from "./runtime-program.js";
 import { CallStack } from "./call-stack.js";
+import { mutateRuntimeGetsetDescriptor } from "./runtime-getset-descriptor.js";
 
 function fixture(signal?: AbortSignal) {
   const meter = new ExecutionBudget({ maxSteps: 100000, maxAllocatedBytes: 2000000, signal }), v = new RuntimeValues(meter);
@@ -23,10 +24,45 @@ function fixture(signal?: AbortSignal) {
   const read = () => readRuntimeTypeAttribute(cls, name, context, v, meter);
   const set = (value: RuntimeValue) => mutateRuntimeTypeAttribute(cls, name, { kind: "set", value }, context, v, meter);
   const remove = () => mutateRuntimeTypeAttribute(cls, name, { kind: "delete" }, context, v, meter);
-  return { v, meter, keys, cls, base, meta, name, slots, context, read, set, remove };
+  return { v, meter, keys, registry, cls, base, meta, name, slots, context, read, set, remove };
 }
 
 describe("concrete default type attribute access", () => {
+  it("keeps immutability local to the type and leaves direct descriptor validation intact", () => {
+    const state = fixture();
+    expect(state.registry.object.immutable).toBe(true); expect(state.registry.type.immutable).toBe(true);
+    expect(state.cls.immutable).toBe(false); expect(state.meta.immutable).toBe(false);
+    const descriptor = state.registry.type.value.namespace.items.lookup(state.v.string("__mro__"))!.value;
+    if (descriptor.kind !== "getset_descriptor") throw new Error("missing MRO descriptor");
+    for (const change of [{ kind: "set", value: state.v.none }, { kind: "delete" }] as const) {
+      expect(() => mutateRuntimeGetsetDescriptor(descriptor, state.registry.object, change, state.meter))
+        .toThrow("attribute '__mro__' of 'type' objects is not writable");
+    }
+    expect(state.set(state.v.true)).toBe(true); expect(state.remove()).toBe(true);
+  });
+  it("meters immutable-type diagnostics and honors cancellation before lookup", () => {
+    const controller = new AbortController(), state = fixture(controller.signal), name = state.v.string("long attribute name");
+    const budget = new ExecutionBudget({ maxSteps: 3, maxAllocatedBytes: 1000 });
+    expect(() => mutateRuntimeTypeAttribute(state.registry.object, name, { kind: "delete" }, state.context, state.v, budget))
+      .toThrow(ExecutionLimitError);
+    controller.abort();
+    expect(() => mutateRuntimeTypeAttribute(state.registry.object, name, { kind: "delete" }, state.context, state.v, state.meter))
+      .toThrow(ExecutionLimitError);
+  });
+  it("rejects bootstrap type mutation before descriptor lookup or namespace changes", () => {
+    const state = fixture(), context = { slots(): never { throw new Error("descriptor lookup must not run"); } };
+    state.registry.type.value.namespace.items.set(state.name, state.v.true);
+    for (const cls of [state.registry.object, state.registry.type]) {
+      for (const name of ["x", "missing", "__mro__", "a'\n𐀀"]) {
+        const key = state.v.string(name), before = cls.value.namespace.items.lookup(key);
+        for (const change of [{ kind: "set", value: state.v.false }, { kind: "delete" }] as const) {
+          expect(() => mutateRuntimeTypeAttribute(cls, key, change, context, state.v, state.meter))
+            .toThrow(`cannot set '${name}' attribute of immutable type '${cls.value.name}'`);
+          expect(cls.value.namespace.items.lookup(key)).toEqual(before);
+        }
+      }
+    }
+  });
   it("resolves inherited namespaces and distinguishes None from absence", () => {
     const state = fixture(); expect(state.read()).toBeUndefined(); state.base.value.namespace.items.set(state.name, state.v.none);
     expect(state.read()?.value).toBe(state.v.none); expect(state.remove()).toBe(false);

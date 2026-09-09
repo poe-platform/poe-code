@@ -4,6 +4,11 @@ import type { Statement } from "./statement-ast.js";
 /** Enumerate executable expressions; discarded annotations are never visited. */
 export function* statementExpressions(statement: Statement): Generator<Expression> {
   switch (statement.kind) {
+    case "function":
+      yield* statement.decorators;
+      for (const parameter of statement.parameters) if (parameter.default) yield parameter.default;
+      for (const child of statement.body) yield* statementExpressions(child);
+      return;
     case "with":
       for (const item of statement.items) {
         yield item.context;

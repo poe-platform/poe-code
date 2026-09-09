@@ -442,6 +442,18 @@ extension, integration, or validation requirement is missing or unverified.
   typecheck, and the selected workspace build passed.
   Context-manager protocol calls, unwinding, suppression, and async execution
   remain runtime work.
+- Added synchronous/async function definitions, ordered decorators (including
+  named assignments), nested function suites, and shared function/lambda parameter
+  parsing. Preserves positional-only, keyword-only, variadic parameters, defaults,
+  and normalized names. Parameter/return annotations, including starred variadic
+  annotations, are parsed and discarded rather than evaluated or validated as
+  executable expressions. Defaults, decorators, and bodies remain executable ASTs.
+- Function validation: four initial positive tests and an additional named-decorator
+  test failed before implementation; all 875 package tests pass. A 2,136-case
+  CPython compilation and AST comparison matched acceptance, async flags, parameter
+  categories, normalized names, defaults, and decorator kinds. Scoped lint, source
+  typecheck, and the selected workspace build passed. Generic type-parameter
+  syntax, function symbol tables, closures, call binding, and execution remain pending.
 - Next:
   compound statements, type aliases, and enclosing-scope validation
   normalization, the complete grammar/parser and evaluator, then runtime modules

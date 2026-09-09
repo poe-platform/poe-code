@@ -146,9 +146,27 @@ export function createObjectArrayGlobals(options: {
         }),
         getOwnPropertyDescriptors: createSandboxClosure({
           sandbox: true,
-          call: ([value]) => {
+          call: ([value], context) => {
             const descriptors = Object.create(null) as SandboxObject;
             const properties = reflectionProperties(value);
+            if (typeof value === "object" && value !== null && guestProxyStates.has(value)) {
+              return (async () => {
+                let keys: Array<string | symbol> = [];
+                const release = retainValues(options.budget, () => [value, keys, descriptors]);
+                try {
+                  keys = await sandboxOwnKeys(value, options.budget, context);
+                  for (const key of keys) {
+                    options.budget.visitNode();
+                    const descriptor = await sandboxGetOwnPropertyDescriptor(value, key, options.budget, context);
+                    if (descriptor !== undefined)
+                      defineOwnDataProperty(descriptors, key, exposePropertyDescriptor(descriptor, options.budget));
+                  }
+                  return allocateProducedSandboxValue(descriptors, options.budget);
+                } finally {
+                  release();
+                }
+              })();
+            }
             for (const key of [...Object.getOwnPropertyNames(properties), ...ownSandboxSymbolKeys(value)])
               defineOwnDataProperty(descriptors, key, exposePropertyDescriptor(Object.getOwnPropertyDescriptor(properties, key)!, options.budget));
             return allocateProducedSandboxValue(descriptors, options.budget);

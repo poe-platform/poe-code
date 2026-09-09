@@ -2978,6 +2978,20 @@ extension, integration, or validation requirement is missing or unverified.
   passed. Concrete guest iterator type names, overridden unary/truth slots,
   complete expression/statement contexts, full resource accounting and safe-fs
   integration remain unfinished; these adapters still cover exact runtime values.
+- Connected exact runtime binary kernels for list concatenation/repetition,
+  mutable-member tuple concatenation/repetition and existing scalar arithmetic.
+  Generalized immutable concat/repeat member types instead of duplicating their
+  slot algorithms. Lists always return fresh slots (even zero/one repetition),
+  while tuple shortcuts retain immutable wrapper identity and shared members.
+  Matched arithmetic/size errors propagate; unsupported operands and unavailable
+  families explicitly decline for the unfinished guest reflected dispatcher.
+- The runtime binary suite first failed on its missing module; all 3,205 tests in
+  203 files pass, including parsed sequence arithmetic/subscription integration.
+  A 3,000-case parsed-expression CPython comparison matched scalar/list/tuple/
+  string results and repetition overflow errors. Source typecheck, scoped lint
+  and selected workspace build passed. Reflected/subclass dispatch, final
+  unsupported-operand diagnostics, float/complex powers, formatting, in-place
+  operation wiring, full execution contexts/resources and safe-fs remain open.
 - Next:
   remaining scope/compiler audits, interpreter runtime,
   resource controls, runtime modules, and safe-fs integration. Parsing and static

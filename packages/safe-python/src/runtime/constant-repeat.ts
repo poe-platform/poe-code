@@ -1,4 +1,4 @@
-import type { ConstantValue, ConstantValues } from "./constant-values.js";
+import type { ConstantValue, ConstantValues, PrimitiveConstant, TupleConstant, SliceConstant } from "./constant-values.js";
 import { exhaustAllocation, type ExecutionMeter } from "./execution-budget.js";
 import { PythonRuntimeError } from "./error.js";
 
@@ -7,7 +7,7 @@ import { PythonRuntimeError } from "./error.js";
  * to the caller. Payload/slot copies are charged before allocation, while full
  * host overhead accounting remains pending.
  */
-export function constantRepeat(left: ConstantValue, right: ConstantValue, values: ConstantValues, meter: ExecutionMeter): ConstantValue {
+export function constantRepeat<Value = ConstantValue>(left: PrimitiveConstant | TupleConstant<Value> | SliceConstant<unknown>, right: PrimitiveConstant | TupleConstant<Value> | SliceConstant<unknown>, values: ConstantValues, meter: ExecutionMeter): PrimitiveConstant | TupleConstant<Value> {
   meter.checkpoint();
   let source = left, multiplier = right;
   if (source.kind !== "str" && source.kind !== "bytes" && source.kind !== "tuple") { source = right; multiplier = left; }

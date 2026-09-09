@@ -1,4 +1,4 @@
-import type { ConstantValue, ConstantValues } from "./constant-values.js";
+import type { ConstantValue, ConstantValues, PrimitiveConstant, TupleConstant, SliceConstant } from "./constant-values.js";
 import type { ExecutionMeter } from "./execution-budget.js";
 
 /** Concatenate matching exact immutable sequence kinds. This kernel declines
@@ -6,7 +6,7 @@ import type { ExecutionMeter } from "./execution-budget.js";
  * Byte/string storage is adopted once; tuple slots are generated directly into
  * final storage. Complete host object/array overhead accounting is unfinished.
  */
-export function constantConcat(left: ConstantValue, right: ConstantValue, values: ConstantValues, meter: ExecutionMeter): ConstantValue {
+export function constantConcat<Value = ConstantValue>(left: PrimitiveConstant | TupleConstant<Value> | SliceConstant<unknown>, right: PrimitiveConstant | TupleConstant<Value> | SliceConstant<unknown>, values: ConstantValues, meter: ExecutionMeter): PrimitiveConstant | TupleConstant<Value> {
   meter.checkpoint();
   if (left.kind === "str" && right.kind === "str") {
     if (left.value.length === 0) return right;

@@ -1,15 +1,16 @@
 import type { TupleConstant } from "./constant-values.js";
 import { PythonRuntimeError } from "./error.js";
 import type { ExecutionMeter } from "./execution-budget.js";
-import { runtimeComparison } from "./runtime-comparison.js";
+import { createRuntimeSearchEquality, type RuntimeSearchEqualityContext } from "./runtime-search-equality.js";
 import { runtimeSearchBound } from "./runtime-search-bound.js";
 import type { BuiltinFunctionValue, RuntimeValue, RuntimeValues } from "./runtime-values.js";
 
 /** Search immutable tuple slots without copying them. Referenced mutable
  * members retain their normal equality behavior; identical members match
  * without equality dispatch. Guest index slots and subclasses remain external. */
-export function createRuntimeTupleMethod(receiver: TupleConstant<RuntimeValue>, name: "count" | "index", values: RuntimeValues, meter: ExecutionMeter): BuiltinFunctionValue {
+export function createRuntimeTupleMethod(receiver: TupleConstant<RuntimeValue>, name: "count" | "index", values: RuntimeValues, meter: ExecutionMeter, context: RuntimeSearchEqualityContext = {}): BuiltinFunctionValue {
   meter.checkpoint(1, 64);
+  const equal = createRuntimeSearchEquality(values, meter, context);
   return values.builtinFunction({
     name,
     invoke(positional, keywords, meter) {
@@ -32,7 +33,7 @@ export function createRuntimeTupleMethod(receiver: TupleConstant<RuntimeValue>, 
       for (let index = Number(start); index < end; index++) {
         meter.checkpoint();
         const stored = receiver.items[index];
-        const matches = stored === value || runtimeComparison("==", stored, value, values, meter).value;
+        const matches = stored === value || equal(stored, value);
         meter.checkpoint();
         if (matches) {
           if (name === "index") return values.integer(index);

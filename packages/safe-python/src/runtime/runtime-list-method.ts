@@ -1,11 +1,10 @@
 import { PythonRuntimeError } from "./error.js";
 import type { ExecutionMeter } from "./execution-budget.js";
 import type { ExpressionContext } from "./expression-evaluation.js";
-import { runtimeComparison } from "./runtime-comparison.js";
 import { runtimeIterate } from "./runtime-iteration.js";
 import type { BuiltinFunctionValue, ListValue, RuntimeValue, RuntimeValues } from "./runtime-values.js";
 import { runtimeSearchBound } from "./runtime-search-bound.js";
-import { runtimeTruth } from "./runtime-truth.js";
+import { createRuntimeSearchEquality } from "./runtime-search-equality.js";
 
 export type RuntimeListMethodContext = Partial<Pick<ExpressionContext<RuntimeValue>, "iterate" | "compare" | "truth">>;
 
@@ -13,14 +12,8 @@ export type RuntimeListMethodContext = Partial<Pick<ExpressionContext<RuntimeVal
  * capabilities supply guest iteration, equality and truth. Guest index slots,
  * descriptors and finalizers remain separate object-layer work. */
 export function createRuntimeListMethod(receiver: ListValue, name: "append" | "extend" | "insert" | "pop" | "clear" | "reverse" | "copy" | "count" | "remove" | "index" | "__reversed__", values: RuntimeValues, meter: ExecutionMeter, context: RuntimeListMethodContext = {}): BuiltinFunctionValue {
-  meter.checkpoint(1, 128);
-  const equal = (left: RuntimeValue, right: RuntimeValue): boolean => {
-    const result = context.compare === undefined ? runtimeComparison("==", left, right, values, meter) : context.compare("==", left, right);
-    meter.checkpoint();
-    const matches = context.truth === undefined ? runtimeTruth(result, meter) : context.truth(result);
-    meter.checkpoint();
-    return matches;
-  };
+  meter.checkpoint(1, 64);
+  const equal = createRuntimeSearchEquality(values, meter, context);
   return values.builtinFunction({
     name,
     invoke(positional, keywords, meter) {

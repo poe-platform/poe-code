@@ -128,7 +128,7 @@ export function runtimeNativeAttribute(receiver: RuntimeValue, name: string, val
     const result = readRuntimeRangeAttribute(receiver, name, values, meter);
     if (result !== undefined) return result;
   }
-  if (receiver.kind === "tuple" && (name === "count" || name === "index")) return createRuntimeTupleMethod(receiver, name, values, meter);
+  if (receiver.kind === "tuple" && (name === "count" || name === "index")) return createRuntimeTupleMethod(receiver, name, values, meter, methods);
   if (receiver.kind === "list") {
     if (name === "sort") return createRuntimeListSortMethod(receiver, values, meter, beginCall);
     switch (name) {

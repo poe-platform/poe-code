@@ -39,8 +39,8 @@ function fixture(source: string, maxSteps = 100000, signal?: AbortSignal) {
 }
 
 describe("assembled concrete runtime programs", () => {
-  it.each(["count", "index", "remove"])("uses guest equality and truth for list.%s", method => {
-    const state = fixture(`items=[a,a]\nresult=items.${method}(b)\n`), v = state.values;
+  it.each([["list", "count"], ["list", "index"], ["list", "remove"], ["tuple", "count"], ["tuple", "index"]])("uses guest equality and truth for %s.%s", (kind, method) => {
+    const state = fixture(`items=${kind === "tuple" ? "(a,a)" : "[a,a]"}\nresult=items.${method}(b)\n`), v = state.values;
     const a = v.cell({}), b = v.cell({}), truth = v.cell({}), events: string[] = [];
     state.globals.set("a", a); state.globals.set("b", b);
     state.hooks.expressions = () => ({ warn() {}, richComparison(operator, left, right) {

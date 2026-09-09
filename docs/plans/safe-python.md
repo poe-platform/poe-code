@@ -6491,6 +6491,17 @@ extension, integration, or validation requirement is missing or unverified.
   and nested calls. Typecheck, scoped lint and selected workspace build pass.
   Guest index conversion, tuple search wiring, automatic object/builtin assembly
   and broader interpreter/SDK/safe-fs work remain unfinished.
+- Connected tuple.count/index to guest equality and truth, extracting the shared
+  metered search-equality adapter used by list methods. Collections still own
+  identity shortcuts and traversal: tuples retain their original immutable slots
+  even when comparison callbacks rebind the variable naming the receiver.
+- Two additional regression cases verify tuple count/index callback execution.
+  All 5,034 tests in 438 files pass. All 64 compiled tuple and 144 list CPython
+  comparisons match results/errors/traces, including identity matches, receiver
+  rebinding and equality/truth failures. Typecheck, scoped lint and selected
+  workspace build pass. Guest search-bound conversion, remaining native-method
+  protocols, automatic object/builtin assembly and broader interpreter/SDK/safe-fs
+  integration remain unfinished.
 - Next:
   remaining scope/compiler audits, interpreter runtime,
   resource controls, runtime modules, and safe-fs integration. Parsing and static

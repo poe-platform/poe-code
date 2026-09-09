@@ -1,6 +1,24 @@
 # Frozen dynamic-function candidate validation
 
-## Current whole-SafeJS worktree snapshot
+## New whole-SafeJS verification
+
+Session 31057 is running the maintained selected SafeJS build closure followed
+by the entire package unit suite. This refreshed snapshot includes the later
+exception-block, ReferenceError recovery, empty-retention and explicit eval
+checkpoint-expectation changes. The prior 94065 run below remains the latest
+completed full-suite result, not a pass.
+
+All 1,150 package files match the main worktree, excluding node_modules, dist
+and coverage, with no missing or extra files. SHA-256 of the JSON-encoded sorted
+[relative path, file SHA-256] manifest:
+`cbdf51201c49f4d7d98d93522512799d4bc59bdc9fe8500e43496ad3475dbdf5`.
+Dependencies and root workspace infrastructure remain the isolated baseline.
+Keep this candidate frozen until the command terminates. No push or release.
+
+The maintained 23-build closure and all four fresh-process import checks pass.
+The full unit suite is now running; no final unit result is available yet.
+
+## Completed whole-SafeJS snapshot
 
 A new full run, session 94065, uses a fresh snapshot of the entire current
 SafeJS package in the existing isolated checkout. Unlike previous runs, this

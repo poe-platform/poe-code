@@ -3569,6 +3569,24 @@ extension, integration, or validation requirement is missing or unverified.
   remain unfinished. Existing iterator compaction differences remain tracked.
   Type construction, instance dispatch, suspension, full accounting and public
   SDK/safe-fs integration also remain unfinished.
+- Added exact dictionary-view read attributes: each mapping read returns a fresh
+  live mapping proxy, all three view kinds bind __reversed__, and keys/items bind
+  isdisjoint. Disjointness validates arguments before iteration, short-circuits
+  at the first match without consuming the remainder, handles identical views
+  without hashing and chooses the smaller set-like view. Arbitrary iterables
+  retain their own iteration/error behavior; item values need not be hashable.
+  Post-next checkpoints catch cancellation even when an iterator reports done.
+  Unknown names and values-view isdisjoint return absence for the dispatcher.
+- Tests first failed on the missing attribute implementation. All 3,500 tests in
+  242 files pass; typecheck, scoped lint and selected workspace build pass. A
+  1,600-case CPython audit matched view attributes, argument errors, disjointness
+  and remaining iterator contents; the prior 1,500-case view/read-method audit
+  still passes. An assembled program exercises mapping access, bound calls and
+  reverse iteration through explicit runtime attribute hooks. Set-producing view
+  operations and set interoperability remain unfinished, as do automatic type
+  descriptor installation, inherited object members, readonly-attribute mutation
+  dispatch and bound-native-method identity/introspection. The full interpreter,
+  accounting, suspension and public SDK/safe-fs integration are not complete.
 - Next:
   remaining scope/compiler audits, interpreter runtime,
   resource controls, runtime modules, and safe-fs integration. Parsing and static

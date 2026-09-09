@@ -16,6 +16,7 @@ import { analyzeModule } from "../analysis.js";
 import { compileProgram } from "./program-compilation.js";
 import { executeRuntimeProgram, type RuntimeProgramHooks } from "./runtime-program.js";
 import { CallStack } from "./call-stack.js";
+import { readRuntimeDictionaryViewAttribute } from "./runtime-dictionary-view-attributes.js";
 
 function fixture() {
   const meter = new ExecutionBudget({ maxSteps: 100000, maxAllocatedBytes: 2000000 }), v = new RuntimeValues(meter);
@@ -36,15 +37,19 @@ describe("live dictionary views", () => {
             (name === "get" || name === "copy" || name === "keys" || name === "values" || name === "items" || name === "__reversed__")) {
           return createRuntimeDictionaryMethod(receiver, name, v, meter);
         }
+        if (receiver.kind === "dict_keys" || receiver.kind === "dict_values" || receiver.kind === "dict_items") {
+          return readRuntimeDictionaryViewAttribute(receiver, name, v, meter) ?? unused();
+        }
         return unused();
       }, beginSet: unused, warn: unused }),
       statements: () => ({ setAttribute: unused, deleteAttribute: unused, executeUnhandled: unused }), callable: () => false, invoke: unused, name: unused, keywordName: unused
     };
-    const code = 'd = {"x": 2}\nview = d.items()\nbefore = len(view)\nd["y"] = 3\nafter = len(view)\ntotal = 0\nfor key, value in view:\n    total += value\ncopied = d.copy()\ndel d["x"]\nremaining = len(view)\nfound = copied.get("x", 99)\nmatching = copied.keys() == {"x": 0, "y": 0}.keys()\n';
+    const code = 'd = {"x": 2}\nview = d.items()\nbefore = len(view)\nd["y"] = 3\nafter = len(view)\ntotal = 0\nfor key, value in view:\n    total += value\ncopied = d.copy()\ndel d["x"]\nremaining = len(view)\nfound = copied.get("x", 99)\nmatching = copied.keys() == {"x": 0, "y": 0}.keys()\nlive_value = view.mapping.get("y")\ndisjoint = d.keys().isdisjoint(["absent"])\nreverse_total = 0\nfor key, value in view.__reversed__():\n    reverse_total += value\n';
     const program = compileProgram<RuntimeValue>(analyzeModule(code), { stripDocstring: false }, v, meter);
     executeRuntimeProgram(program, { globals, builtins: new Map([["len", createLenBuiltin(v, meter)]]), values: v, keys, calls: new CallStack<object>(10, meter), hooks }, meter);
-    for (const [name, value] of [["before", 1], ["after", 2], ["remaining", 1], ["total", 5], ["found", 2]] as const) expect(globals.get(name)).toEqual(v.integer(value));
+    for (const [name, value] of [["before", 1], ["after", 2], ["remaining", 1], ["total", 5], ["found", 2], ["live_value", 3], ["reverse_total", 3]] as const) expect(globals.get(name)).toEqual(v.integer(value));
     expect(globals.get("matching")).toBe(v.true);
+    expect(globals.get("disjoint")).toBe(v.true);
   });
   it("iterates live keys, values and fresh item tuples in both directions", () => {
     const { meter, v, source, key, collect } = fixture(), payload = v.list([]), next = v.string("y");

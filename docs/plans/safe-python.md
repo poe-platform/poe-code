@@ -6195,6 +6195,16 @@ extension, integration, or validation requirement is missing or unverified.
   errors and callback order. Typecheck, scoped lint and selected workspace build pass.
   Expression continuation records/closures and remaining temporary objects still
   need accounting; full guest-object and SDK/safe-fs integration remain open.
+- Closed expression-return cancellation gaps. A final node or continuation can
+  invoke guest code without queuing another task; the evaluator now checks the
+  meter before publishing its result/reference and after final branch truth
+  conversion. Zero-step checks preserve operation-count behavior.
+- Five tests first reproduced ignored terminal cancellation in literal, load,
+  binary, list-construction and truth callbacks. All 4,898 tests in 426 files
+  pass. CPython comparisons still match 96 guest truth programs and 144 guest
+  rich-comparison programs, including callback traces. Typecheck, scoped lint and selected
+  workspace build pass. Remaining allocation audits and broad interpreter,
+  object-model and SDK/safe-fs integration remain unfinished.
 - Next:
   remaining scope/compiler audits, interpreter runtime,
   resource controls, runtime modules, and safe-fs integration. Parsing and static

@@ -45,6 +45,18 @@ function environment(initial: ReadonlyMap<string, Value> = new Map()) {
 const budget = () => new ExecutionBudget({ maxSteps: 1000000, maxAllocatedBytes: 1000000 });
 
 describe("expression execution order", () => {
+  it.each(["literal", "load", "binary", "list", "truth"])("observes cancellation from the terminal %s callback", hook => {
+    const controller = new AbortController(), { context } = environment(new Map([["x", 1n]]));
+    let source = "x";
+    if (hook === "literal") { source = "1"; context.literal = () => { controller.abort(); return 1n; }; }
+    if (hook === "load") context.load = () => { controller.abort(); return 1n; };
+    if (hook === "binary") { source = "1+2"; context.binary = () => { controller.abort(); return 3n; }; }
+    if (hook === "list") { source = "[]"; context.list = () => { controller.abort(); return null; }; }
+    if (hook === "truth") context.truth = () => { controller.abort(); return true; };
+    const meter = new ExecutionBudget({ maxSteps: 1000, maxAllocatedBytes: 10000, signal: controller.signal });
+    expect(() => hook === "truth" ? evaluateExpression(parseExpression(source), context, meter, "branch")
+      : evaluateExpression(parseExpression(source), context, meter)).toThrow("execution cancelled");
+  });
   it.each(["[1, 2]", "(1, 2)", "{1, 2}", "{1: 2}", "x[1, 2]"])("charges temporary collection buffers: %s", source => {
     const { context } = environment(new Map([["x", 0n]]));
     context.list = context.tuple = context.getItem = () => null;

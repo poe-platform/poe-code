@@ -374,13 +374,18 @@ export function evaluateExpression<Value>(expression: Expression, context: Expre
       default: throw new UnsupportedExpressionError(node.kind);
     }
   }
+  // A terminal node/continuation may call guest code without scheduling another
+  // task. Observe its cancellation before publishing the expression result.
+  meter.checkpoint(0);
   if (mode === "subscript-reference") {
     if (reference === undefined) throw new Error("subscript reference was not resolved");
     return reference;
   }
   if (mode === "branch") {
     meter.checkpoint();
-    return knownTruth ?? context.truth(value);
+    const truth = knownTruth ?? context.truth(value);
+    meter.checkpoint(0);
+    return truth;
   }
   return value;
 }

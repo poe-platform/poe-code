@@ -681,17 +681,14 @@ remaining array species/identity consumers still need integration.
 See the [Proxy progress record](../../docs/plans/safejs-proxy-progress.md) for
 the tested scope and remaining work.
 
-The working-tree gate after array-realm preservation passed 23 workspace builds
-and four import checks. Unit results were 23,985 passed, 31 failed, and 37 skipped.
-Source/test fingerprints matched before and after the run. A follow-up fixes
-22 snapshot-inspection failures, with all 39 tests in the two affected files
-passing. Exact baseline-and-boundary checks also replace three stale retained-root
-budget expectations; all 11 tests in that file pass. Legacy graph comparisons
-now recognize descriptor-backed arrays while checking aliases and prototype
-identity; their three test files pass 61 cases and skip one. Remaining failures
-still require work. This is not a green package
-gate or an isolated committed-tree result. See the
-[snapshot inspection record](../../docs/plans/safejs-array-snapshot-inspection.md).
+The latest working-tree gate after the realm-lifetime fixes passed 23 workspace
+builds and four import checks. The full SafeJS unit run passed 24,091 tests,
+failed two, and skipped 37 across 932 files. Source/test fingerprints matched
+before and after the run. Both failures concern native Promise own-property
+imports, whose admission policy remains unresolved. This is not a green
+package gate or an isolated committed-tree result. Boxed primitives and some
+array-producing methods still have separately validated SDK realm gaps.
+See the [full gate record](../../docs/plans/safejs-realm-lifetime-full-gate.md).
 The public data-copy boundary now rejects guest Proxy values explicitly instead
 of silently producing empty objects. Use an owning realm's retained guest
 references to preserve identity and trap behavior; explicit callable wrappers

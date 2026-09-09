@@ -1,4 +1,4 @@
-import { isSandboxClosure, type SandboxCallContext, type SandboxClosure, type SandboxObject, type SandboxPrimitive, type SandboxValue } from "./values.js";
+import { createSandboxClosure, isSandboxClosure, type SandboxCallContext, type SandboxClosure, type SandboxObject, type SandboxPrimitive, type SandboxValue } from "./values.js";
 import type { Budget } from "./budget.js";
 import { retainValues } from "./resources.js";
 
@@ -7,10 +7,14 @@ type ProxyState = { target: ProxyObject | null; handler: ProxyObject | null };
 
 export const guestProxyStates = new WeakMap<object, ProxyState>();
 
-export function createGuestProxy(target: SandboxValue, handler: SandboxValue): SandboxObject {
+export function createGuestProxy(target: SandboxValue, handler: SandboxValue): SandboxObject | SandboxClosure {
   if (typeof target !== "object" || target === null) throw new TypeError("Proxy target must be an object.");
   if (typeof handler !== "object" || handler === null) throw new TypeError("Proxy handler must be an object.");
-  const proxy = Object.create(null) as SandboxObject;
+  const proxy = isSandboxClosure(target)
+    ? createSandboxClosure({ guest: true, sandbox: true, call: () => {
+      throw new TypeError("Proxy calls require runtime dispatch.");
+    } })
+    : Object.create(null) as SandboxObject;
   guestProxyStates.set(proxy, { target, handler });
   return proxy;
 }

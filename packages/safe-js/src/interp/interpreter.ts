@@ -125,6 +125,7 @@ import {
 import { getFunctionMember, type FunctionMethodOptions } from "./methods/function.js";
 import { getBoxedPrototype, getSandboxPropertyDescriptor, getSandboxPrototype, hasExplicitSandboxPrototype, isDefaultArrayMethod, isDefaultBoxedMethod, isGuestClosure, materializeFunctionProperties, setSandboxPrototype } from "./object-model.js";
 import { guestProxyStates } from "./guest-proxy.js";
+import { callGuestProxy } from "./guest-proxy-call.js";
 import { sandboxDeleteProperty } from "./guest-proxy-delete.js";
 import { sandboxHasProperty } from "./guest-proxy-has.js";
 import { sandboxGetProperty } from "./guest-proxy-get.js";
@@ -4609,6 +4610,8 @@ async function invokeSandboxClosure(
   const leaveCall = context.budget.enterCall();
 
   try {
+    if (!construct && guestProxyStates.has(callee))
+      return await callGuestProxy(callee, args, context.budget, { ...createCoercionContext(context), stack }, thisValue);
     const invoke = construct ? callee.construct : callee.call;
     if (invoke === undefined) throw new TypeError("Value is not a constructor.");
     const result = Reflect.apply(invoke, undefined, [

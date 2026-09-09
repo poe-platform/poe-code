@@ -557,13 +557,16 @@ results receive element definitions through `defineProperty` traps, with failure
 stopping further writes. Concat spreads wrapped arrays by default and honors
 `Symbol.isConcatSpreadable` overrides. `flat` and `flatMap` traverse wrapped nested
 arrays, snapshot each nested length, and honor depth limits while skipping holes.
+Internal callable Proxies support direct, bound, callback, and Reflect.apply
+invocation, including apply traps and target forwarding. Revocation preserves
+callable identity but rejects calls. Constructor dispatch is not implemented yet.
 
 `Array.isArray` follows nested Proxy targets without invoking traps and rejects
 revoked proxies. Other internal array-identity consumers still need integration.
 Object.prototype.toString reads custom tags through non-callable Proxies and
 preserves wrapped-array identity. Ordinary receivers also read inherited tags
 through Proxy ancestors with the original receiver. Callable Proxy tags remain
-part of the pending callable-carrier work.
+pending integration work.
 Ordinary-constructor `instanceof` checks follow Proxy prototype chains, including
 bound constructors. Callable Proxy constructors and special built-in paths remain
 separate integration work.
@@ -575,7 +578,7 @@ Proxy extensibility and descriptor operations, with tested early exits.
 
 At source commit `f71a86152`, the internal Proxy selection passed 388 tests across
 24 files. This is not a full-package gate or evidence of public Proxy support.
-Callable proxies, public construction/revocation, Proxy checkpoint state, and
+Proxy constructor dispatch, public construction/revocation, Proxy checkpoint state, and
 remaining array species/identity consumers still need integration.
 See the [Proxy progress record](../../docs/plans/safejs-proxy-progress.md) for
 the tested scope and remaining work.

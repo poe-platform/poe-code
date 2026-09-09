@@ -1,4 +1,6 @@
 import type { Budget } from "./budget.js";
+import { guestProxyStates } from "./guest-proxy.js";
+import { callGuestProxy } from "./guest-proxy-call.js";
 import { isSandboxPromise, type SandboxCallContext, type SandboxClosure, type SandboxValue } from "./values.js";
 
 export async function invokeBuiltinClosure(
@@ -14,6 +16,8 @@ export async function invokeBuiltinClosure(
   }
   const leaveCall = budget.enterCall();
   try {
+    if (!construct && guestProxyStates.has(closure))
+      return await callGuestProxy(closure, args, budget, context, thisValue);
     const invoke = construct ? closure.construct : closure.call;
     if (invoke === undefined) throw new TypeError("Value is not a constructor.");
     const result = await invoke(args, {

@@ -3617,8 +3617,10 @@ describe("interpret", () => {
     ).resolves.toMatchObject({ ok: true, returnValue: ["0", "2"] });
   });
 
-  it("iterates only present array indices", async () => {
+  it("iterates present array indices and enumerable named properties", async () => {
     const value = Object.assign(["a", "b"], { extra: true });
+    const expected = new Function("value", "const seen = []; for (const key in value) seen.push(key); return seen;")(value);
+    expect(expected).toEqual(["0", "1", "extra"]);
     await expect(
       interpret(
         parse(
@@ -3626,7 +3628,7 @@ describe("interpret", () => {
         ),
         { bindings: { value } }
       )
-    ).resolves.toMatchObject({ ok: true, returnValue: ["0", "1"] });
+    ).resolves.toMatchObject({ ok: true, returnValue: expected });
   });
 
   it.each([

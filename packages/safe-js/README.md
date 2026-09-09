@@ -601,6 +601,10 @@ Built-in string and RegExp splitting preserve the result array's originating
 prototype after SDK cleanup, including empty results and limits. Custom
 `Symbol.split` hooks retain their returned value and receive the original
 receiver before fallback string coercion.
+Built-in `exec`, `match`, and `matchAll` match arrays retain their originating
+prototype, including indices arrays and capture-index pairs. Named capture
+metadata stays null-prototype and preserves index aliases. Custom match hooks
+and custom non-global `exec` results retain their own identity.
 Object literals retain their originating prototype after cleanup and when
 created later by exported closures. Explicit null prototypes stay null;
 modified prototype chains reject lossy data copying. `Object.fromEntries`

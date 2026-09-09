@@ -255,12 +255,20 @@ export function toMatchArray(match: RegexMatch | null, input: string, budget?: B
   }
   budget?.allocateArrayLength(match.captures.length + 1);
   const result = [match.text, ...match.captures] as SandboxValue[];
+  const prototype = getSandboxPrototype(result, budget);
+  if (prototype !== null) setSandboxPrototype(result, prototype, budget);
   if (match.groups !== undefined) setSandboxPrototype(match.groups, null, budget);
   if (match.indicesGroups !== undefined) setSandboxPrototype(match.indicesGroups, null, budget);
   Object.assign(result, { index: match.index, input, groups: match.groups });
   if (match.indices !== undefined) {
     budget?.allocateArrayLength(match.indices.length);
     budget?.allocateArrayLength(2);
+    if (prototype !== null) {
+      setSandboxPrototype(match.indices, prototype, budget);
+      for (const indices of match.indices) {
+        if (indices !== undefined) setSandboxPrototype(indices, prototype, budget);
+      }
+    }
     Object.assign(match.indices, { groups: match.indicesGroups });
     Object.assign(result, { indices: match.indices });
   }

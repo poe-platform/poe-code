@@ -865,6 +865,8 @@ export async function regexMatch(
   if (regex === null || typeof regex !== "object") throw new TypeError("RegExp match requires an object receiver.");
   let value: string | undefined;
   const matches: SandboxValue[] = [];
+  const prototype = getSandboxPrototype(matches, budget);
+  if (prototype !== null) setSandboxPrototype(matches, prototype, budget);
   let result: SandboxValue;
   let matched: SandboxValue;
   let cursor: SandboxValue;
@@ -1009,7 +1011,11 @@ function callMatchLikeMethod(
   if (methodName === "matchAll")
     return restoreSandboxRegExpIterator({ matcher, input: value, exhausted: false }, undefined, compilation.owner?.budget);
   const matches = collectRegexMatches(matcher, value, matcher.flags.includes("g"), compilation.owner?.budget, Number(matcher.lastIndex));
-  return matches.length === 0 ? null : matches.map((match) => match.text);
+  if (matches.length === 0) return null;
+  const result = matches.map((match) => match.text);
+  const prototype = getSandboxPrototype(result, compilation.owner?.budget);
+  if (prototype !== null) setSandboxPrototype(result, prototype, compilation.owner?.budget);
+  return result;
 }
 
 function collectRegexMatches(regex: SandboxRegex, value: string, all: boolean, budget?: Budget, lastIndex = 0) {

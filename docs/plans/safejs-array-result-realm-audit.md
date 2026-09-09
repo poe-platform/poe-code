@@ -153,3 +153,27 @@ array prototype identity for `/a/.exec('a')`, `'a'.match(/a/)`,
 all four. Each factory is called after SDK cleanup, then a separate realm's
 Object.getPrototypeOf inspects the result. Add regressions before changing
 these paths, including match metadata, captures, indices, and custom hooks.
+
+## Match result implementation
+
+Eight new source tests failed on originating array prototype identity before
+the fix: exec, non-global match, global match, matchAll, indices, whole-match
+index pairs, named capture pairs, and the global match path with an own exec
+override. Three custom-result controls and one named-capture metadata control
+passed before the change. All 12 pass afterward.
+
+toMatchArray now retains the originating prototype on its result, indices
+array and defined index pairs without replacing any arrays or alias links.
+Both built-in global-match collection paths retain their result prototype.
+Custom non-global exec results and Symbol.match/Symbol.matchAll returns are
+unchanged. Tests compare native own descriptors and contents, preserve absent
+captures and null-prototype groups, observe later prototype mutation, and
+reject lossy data copying.
+
+Match-change verification: 6,161 tests passed across 88 method and regex
+snapshot files. Scoped ESLint, package TypeScript and the maintained build
+passed (23 workspace builds, four fresh-process import checks). Built SDK
+probes also passed for exec, both match forms, matchAll and a nested index
+pair. The full package suite must be rerun for the accumulated result-realm
+changes; this targeted pass does not resolve its prior failures. No push or
+release occurred.

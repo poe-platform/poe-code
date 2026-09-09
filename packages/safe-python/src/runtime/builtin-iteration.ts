@@ -4,6 +4,7 @@ import type { ExecutionMeter } from "./execution-budget.js";
 import { runtimeIterate } from "./runtime-iteration.js";
 import { resolveIteration, type IterationContext } from "./protocol-iterator.js";
 import { SequenceIterator } from "./sequence-iterator.js";
+import type { CompletionResult } from "./iterator-completion.js";
 import type { BuiltinFunctionValue, RuntimeValue, RuntimeValues } from "./runtime-values.js";
 
 /** Register explicitly in the execution's builtin namespace. One-argument iter
@@ -56,7 +57,7 @@ export function createNextBuiltin(values: RuntimeValues, meter: ExecutionMeter, 
           meter.checkpoint(); throw new PythonRuntimeError("TypeError", `'${type}' object is not an iterator`);
         }
       }
-      let step: IteratorResult<RuntimeValue> | undefined, result: RuntimeValue | undefined;
+      let step: CompletionResult<RuntimeValue> | undefined, result: RuntimeValue | undefined;
       try {
         if (source.kind !== "iterator") result = protocol!.next(source);
         else step = source.value.next();
@@ -73,6 +74,7 @@ export function createNextBuiltin(values: RuntimeValues, meter: ExecutionMeter, 
       if (source.kind !== "iterator") return result!;
       if (!step!.done) return step!.value;
       if (positional.length === 2) return positional[1];
+      if (step!.done && step!.exception !== undefined) throw step!.exception.value;
       throw new PythonRuntimeError("StopIteration", "");
     }
   });

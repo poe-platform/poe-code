@@ -28,7 +28,10 @@ export function readRuntimeIteratorMethod(receiver: RuntimeValue, name: string, 
       // Eligibility above ensures that only a prepared cursor reaches this path.
       const step = runtimeIterate(receiver, values, meter).next();
       meter.checkpoint();
-      if (step.done) throw new PythonRuntimeError("StopIteration", "");
+      if (step.done) {
+        if (step.exception !== undefined) throw step.exception.value;
+        throw new PythonRuntimeError("StopIteration", "");
+      }
       return step.value;
     }
   });

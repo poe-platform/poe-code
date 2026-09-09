@@ -1,5 +1,6 @@
 import type { ExecutionMeter } from "./execution-budget.js";
 import { PythonRuntimeError } from "./error.js";
+import type { CompletionResult } from "./iterator-completion.js";
 
 export interface CallableIterationContext<Value> {
   isCallable(value: Value): boolean;
@@ -14,7 +15,8 @@ export interface CallableIterationContext<Value> {
  * StopIteration releases both captured values permanently. Equality errors do
  * not latch exhaustion, including StopIteration translated to a done result.
  * Reentrant calls can exhaust the adapter while a call/equality is in progress.
- * Guest iterator identity, exception values, call/compare dispatch and recursion
+ * Equality exhaustion retains its exception for explicit guest next calls.
+ * Guest iterator identity, call/compare dispatch and recursion
  * guards remain external; no implicit callable close is introduced.
  */
 export class CallableIterator<Value> implements IterableIterator<Value> {
@@ -31,7 +33,7 @@ export class CallableIterator<Value> implements IterableIterator<Value> {
 
   [Symbol.iterator](): IterableIterator<Value> { return this; }
 
-  next(): IteratorResult<Value> {
+  next(): CompletionResult<Value> {
     this.meter.checkpoint(1, 16);
     const source = this.#source;
     if (source === undefined) return { done: true, value: undefined };
@@ -39,7 +41,8 @@ export class CallableIterator<Value> implements IterableIterator<Value> {
     try { value = this.context.call(source.callable); }
     catch (error) {
       this.meter.checkpoint();
-      if (!this.context.isStopIteration(error)) throw error;
+      const ended = this.context.isStopIteration(error); this.meter.checkpoint();
+      if (!ended) throw error;
       this.#source = undefined;
       return { done: true, value: undefined };
     }
@@ -50,8 +53,10 @@ export class CallableIterator<Value> implements IterableIterator<Value> {
       try { matches = this.context.equal(source.sentinel, value); }
       catch (error) {
         this.meter.checkpoint();
-        if (!this.context.isStopIteration(error)) throw error;
-        return { done: true, value: undefined };
+        const ended = this.context.isStopIteration(error); this.meter.checkpoint();
+        if (!ended) throw error;
+        this.meter.checkpoint(0, 32);
+        return { done: true, value: undefined, exception: { value: error } };
       }
       this.meter.checkpoint();
     }

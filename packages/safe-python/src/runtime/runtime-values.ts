@@ -7,6 +7,7 @@ import type { OrderedKeyMap } from "./ordered-key-map.js";
 import { PythonRuntimeError } from "./error.js";
 import type { CellStorage } from "./lexical-frame.js";
 import type { RuntimeTypeLayout } from "./runtime-type-layout.js";
+import type { CompletionIterator } from "./iterator-completion.js";
 
 export interface ListValue {
   readonly kind: "list";
@@ -20,7 +21,7 @@ export interface RangeValue {
 
 export interface IteratorValue {
   readonly kind: "iterator";
-  readonly value: Iterator<RuntimeValue>;
+  readonly value: CompletionIterator<RuntimeValue>;
 }
 
 export interface FunctionValue {
@@ -169,7 +170,7 @@ export class RuntimeValues extends ConstantValues {
     return Object.freeze({ kind: "range", value });
   }
 
-  iterator(value: Iterator<RuntimeValue>): IteratorValue {
+  iterator(value: CompletionIterator<RuntimeValue>): IteratorValue {
     this.runtimeMeter.checkpoint(1, 32);
     return Object.freeze({ kind: "iterator", value });
   }

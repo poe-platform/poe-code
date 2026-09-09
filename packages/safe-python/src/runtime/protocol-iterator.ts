@@ -1,6 +1,7 @@
 import type { ExecutionMeter } from "./execution-budget.js";
 import { PythonRuntimeError } from "./error.js";
 import { SequenceIterator } from "./sequence-iterator.js";
+import type { CompletionResult } from "./iterator-completion.js";
 
 export interface IterationContext<Value> {
   /** Resolve the type's __iter__ slot, including special lookup/binding. Return
@@ -47,7 +48,7 @@ export function resolveIteration<Value>(value: Value, context: IterationContext<
  * this call to done but does not suppress subsequent guest next calls. Indexed
  * fallback latches exhaustion and releases its source on IndexError or
  * StopIteration. Other failures leave its index unchanged. Guest iterator type
- * identity, StopIteration values, descriptor dispatch and recursive-call limits
+ * identity, descriptor dispatch and recursive-call limits
  * remain outside this adapter; no implicit close/return hook is introduced.
  */
 export class ProtocolIterator<Value> implements IterableIterator<Value> {
@@ -62,7 +63,7 @@ export class ProtocolIterator<Value> implements IterableIterator<Value> {
 
   [Symbol.iterator](): IterableIterator<Value> { return this; }
 
-  next(): IteratorResult<Value> {
+  next(): CompletionResult<Value> {
     if (this.#sequence !== undefined) return this.#sequence.next();
     this.meter.checkpoint(1, 16);
     let value: Value;
@@ -71,7 +72,8 @@ export class ProtocolIterator<Value> implements IterableIterator<Value> {
       this.meter.checkpoint();
       const ended = this.context.isStopIteration(error); this.meter.checkpoint();
       if (!ended) throw error;
-      return { done: true, value: undefined };
+      this.meter.checkpoint(0, 32);
+      return { done: true, value: undefined, exception: { value: error } };
     }
     this.meter.checkpoint();
     return { done: false, value };

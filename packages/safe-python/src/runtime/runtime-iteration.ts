@@ -5,6 +5,7 @@ import type { RuntimeValue } from "./runtime-values.js";
 import type { ConstantValues } from "./constant-values.js";
 import { PythonRuntimeError } from "./error.js";
 import { iterateRuntimeDictionaryView } from "./runtime-dictionary-view.js";
+import type { CompletionIterator } from "./iterator-completion.js";
 
 /** Acquire host iteration for exact builtin runtime values. Prepared iterator
  * records preserve their cursor identity; lists use live storage, not snapshots.
@@ -12,7 +13,7 @@ import { iterateRuntimeDictionaryView } from "./runtime-dictionary-view.js";
  * iterator type objects and StopIteration translation belong to the object
  * runtime. The values factory and storage must use this execution's meter.
  */
-export function runtimeIterate(value: RuntimeValue, values: ConstantValues, meter: ExecutionMeter): Iterator<RuntimeValue> {
+export function runtimeIterate(value: RuntimeValue, values: ConstantValues, meter: ExecutionMeter): CompletionIterator<RuntimeValue> {
   meter.checkpoint();
   switch (value.kind) {
     case "set": case "frozenset":

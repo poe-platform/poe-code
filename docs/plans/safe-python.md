@@ -4628,6 +4628,23 @@ extension, integration, or validation requirement is missing or unverified.
   object-slot wiring into all expression/statement iteration, host-adapted
   StopIteration payloads, suspended execution, full accounting and SDK/safe-fs
   integration remain unfinished.
+- Added typed, per-pull completion metadata so host adapters can signal done
+  while retaining a classified guest exhaustion object for explicit next and
+  __next__ calls. Callable equality faults and guest ProtocolIterator faults now
+  preserve identity/payload; callable termination and indexed sequence termination
+  still discard payloads as CPython does. Defaults consume exhaustion normally.
+  Sentinel exception classification now checks cancellation before returning or
+  committing exhaustion. Metadata is not retained in persistent cursor state.
+- Three new tests first reproduced payload loss and missed post-classification
+  cancellation. All 4,215 tests in 326 files pass. Two 1,000-scenario CPython
+  audits match 24,000 explicit next observations, including exception messages,
+  retries and source/callback traces. Scoped lint, source typecheck and selected
+  workspace build pass. A follow-up CPython probe confirms that map, filter,
+  enumerate and non-strict zip must forward source exhaustion payloads; their
+  existing host combinators still discard this metadata and need integration.
+  Strict zip/map instead discard source exhaustion payloads during mismatch
+  checking. Full guest object wiring, builtin registration, suspended execution,
+  complete accounting and SDK/safe-fs integration remain outstanding.
 - Next:
   remaining scope/compiler audits, interpreter runtime,
   resource controls, runtime modules, and safe-fs integration. Parsing and static

@@ -591,6 +591,9 @@ constructor receivers, preserving mapper `this` and index arguments.
 Direct SDK `TypedArray.of` calls support Proxy constructor receivers and element
 conversion hooks. Primitive conversion observes Proxy hooks and Proxy ancestors
 instead of treating their private carriers as ordinary objects.
+Direct SDK `Iterator.from` and its wrapper methods dispatch Proxy iterator
+factories, iterator objects, and methods through guest operations. Wrappers cache
+`next`, read `return` lazily, and preserve iterator receivers and revocation checks.
 Public Proxy binding reads the prototype and own length descriptor through traps
 before reading length and name, including null prototypes and nested Proxies.
 Promise operations dispatch Proxy constructors, executors, reaction callbacks,

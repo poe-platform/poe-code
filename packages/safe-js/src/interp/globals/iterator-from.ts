@@ -1,11 +1,11 @@
 import type { Budget } from "../budget.js";
-import { readPropertyDescriptor } from "../accessors.js";
+import { sandboxGetProperty } from "../guest-proxy-get.js";
 import { invokeBuiltinClosure } from "../builtin-call.js";
 import { createDataCheckpoint } from "../data-checkpoint.js";
 import { ordinaryHasInstance } from "../instanceof.js";
 import { registerBuiltinIdentities, resolveIntrinsicIdentity } from "../intrinsics.js";
 import { iteratorWrapperStates } from "../iterator-wrapper.js";
-import { createIntrinsicObject, getSandboxPropertyDescriptor, materializeFunctionProperties, registerIntrinsicFunction, registerIntrinsicObject, setSandboxPrototype } from "../object-model.js";
+import { createIntrinsicObject, materializeFunctionProperties, registerIntrinsicFunction, registerIntrinsicObject, setSandboxPrototype } from "../object-model.js";
 import { retainValues } from "../resources.js";
 import { createSandboxClosure, isSandboxClosure, type SandboxCallContext, type SandboxClosure, type SandboxObject, type SandboxValue } from "../values.js";
 
@@ -16,9 +16,10 @@ export function installIteratorFrom(constructor: SandboxClosure, budget: Budget)
     Object.defineProperty(prototype, name, {writable:true,configurable:true,value:createSandboxClosure({
       guest:true,sandbox:true,name,length:0,call:async (_args,context)=>{
         const receiver=context?.thisValue;
+        context=callContext(context);
         const state=receiver !== null && typeof receiver === "object" ? iteratorWrapperStates.get(receiver) : undefined;
         if (state === undefined) throw new TypeError("Iterator wrapper method requires a branded receiver.");
-        const method=name === "next" ? state.next : await read(state.iterator,"return",context);
+        const method=name === "next" ? state.next : await context.getProperty!(state.iterator,"return");
         if (name === "return" && (method === undefined || method === null)) return {value:undefined,done:true};
         if (!isSandboxClosure(method)) throw new TypeError("Iterator method must be callable.");
         return invokeBuiltinClosure(method,[],budget,context,state.iterator);
@@ -26,19 +27,20 @@ export function installIteratorFrom(constructor: SandboxClosure, budget: Budget)
     })});
   }
   const from=createSandboxClosure({guest:true,sandbox:true,name:"from",length:1,call:async ([input],context)=>{
+    context=callContext(context);
     if (input === null || (typeof input !== "object" && typeof input !== "string"))
       throw new TypeError("Iterator.from requires an object or string.");
     let iterator: SandboxValue=input;
     let next: SandboxValue;
     const release=retainValues(budget,()=>[input,iterator,next]);
     try {
-      const method=await read(input,Symbol.iterator,context);
+      const method=await context.getProperty!(input,Symbol.iterator);
       if (method !== undefined && method !== null) {
         if (!isSandboxClosure(method)) throw new TypeError("Symbol.iterator must be callable.");
         iterator=await invokeBuiltinClosure(method,[],budget,context,input);
       }
       if (iterator === null || typeof iterator !== "object") throw new TypeError("Iterator must be an object.");
-      next=await read(iterator,"next",context);
+      next=await context.getProperty!(iterator,"next");
       if (await ordinaryHasInstance(iterator,constructor,budget,context)) return iterator;
       const wrapper: SandboxObject=Object.create(null);
       iteratorWrapperStates.set(wrapper,{iterator,next});
@@ -52,9 +54,16 @@ export function installIteratorFrom(constructor: SandboxClosure, budget: Budget)
   registerIntrinsicFunction(budget,from);
   registerIntrinsicObject(budget,prototype);
 
-  async function read(value: SandboxValue,key: PropertyKey,context?: SandboxCallContext): Promise<SandboxValue> {
-    if (context?.getProperty !== undefined) return context.getProperty(value,key);
-    const descriptor=getSandboxPropertyDescriptor(value,key,budget);
-    return descriptor === undefined ? undefined : readPropertyDescriptor(descriptor,value,context);
+  function callContext(context?: SandboxCallContext): SandboxCallContext {
+    const caller: SandboxCallContext = {
+      ...context, stack: context?.stack ?? [], thisValue: context?.thisValue,
+      getProperty: context?.getProperty ?? ((value,key)=>sandboxGetProperty(value,key,value,budget,bridge))
+    };
+    const bridge: SandboxCallContext = {
+      ...caller,
+      invokeClosure: context?.invokeClosure ?? ((callee,args,receiver,construct,newTarget)=>
+        invokeBuiltinClosure(callee,args,budget,caller,receiver,construct,newTarget))
+    };
+    return bridge;
   }
 }

@@ -6234,6 +6234,16 @@ extension, integration, or validation requirement is missing or unverified.
   substring-method identity cases. Typecheck, scoped lint and selected workspace
   build pass. Continuation allocations and broader interpreter/object/SDK/safe-fs
   integration remain unfinished.
+- Added an explicitly registered hash builtin over the existing exact-value
+  hashing kernel. It shares the execution's identity and payload policies with
+  dictionaries/sets, validates keywords before arity and preserves nested
+  unhashable errors and policy failures without introducing global hash state.
+- Four tests cover primitive/composite policy use, argument validation and error
+  propagation. All 4,914 tests in 427 files pass. A 1,014-program CPython audit
+  matches numeric/tuple hash representations exactly, plus unhashable/argument
+  errors. Typecheck, scoped lint and selected workspace build pass. Guest hash
+  slot negotiation and automatic namespace assembly remain required, alongside
+  the broader unfinished object/interpreter/SDK/safe-fs integration.
 - Next:
   remaining scope/compiler audits, interpreter runtime,
   resource controls, runtime modules, and safe-fs integration. Parsing and static

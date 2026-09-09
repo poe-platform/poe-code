@@ -1733,6 +1733,21 @@ extension, integration, or validation requirement is missing or unverified.
   Source typecheck, scoped lint and selected build passed. Concrete protocol
   adapters, full class-construction integration and allocation accounting remain
   unfinished.
+- Connected resolved class bases to metaclass selection and __prepare__. Explicit
+  non-type factories bypass metaclass conflict selection; absent metaclasses use
+  the first base's type or builtin type. The metaclass keyword is removed from a
+  fresh ordered map shared with subsequent construction. Prepare results use the
+  internal mapping protocol flag, not an ABC check; callability of a non-type
+  metaclass is deferred until construction. Missing prepare hooks allocate the
+  builtin namespace. Invalid-result diagnostics use bounded UTF-8 type names.
+- Preparation validation: missing-module red suite preceded implementation;
+  CPython probes then produced three exact failing long-name regressions before
+  200-byte, whole-character diagnostic truncation was added. All 2,214 tests in
+  112 files pass, including 16 preparation tests. CPython's class builder matched
+  120 metaclass/base/result/failure combinations. Source typecheck, scoped lint
+  and selected build passed. Class body execution/construction/decorator wiring,
+  concrete guest protocol adapters and full temporary allocation accounting remain
+  unfinished.
 - Next:
   remaining scope/compiler audits, interpreter runtime,
   resource controls, runtime modules, and safe-fs integration. Parsing and static

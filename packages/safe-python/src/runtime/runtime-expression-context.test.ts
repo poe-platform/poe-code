@@ -27,6 +27,26 @@ function fixture() {
 }
 
 describe("concrete runtime expression context", () => {
+  it("evaluates native f-strings without custom formatting hooks", () => {
+    const { v, names, run } = fixture(), value = v.string("😀éz");
+    names.set("x", value);
+    expect(run('f"{x}"')).toBe(value);
+    expect(run('f""')).toEqual(v.string(""));
+    expect(run('f"[{x:_>6.2s}]"')).toEqual(v.string("[____😀é]"));
+    expect(run('f"{x!a}"')).toEqual(v.string("'\\U0001f600\\xe9z'"));
+    expect(run('f"{123}:{None}:{[1, 2]}"')).toEqual(v.string("123:None:[1, 2]"));
+    names.set("x", v.stringPoints(Uint32Array.of(0xd800, 0xdc00)));
+    expect(run('f"a{x}b"')).toEqual(v.stringPoints(Uint32Array.of(97, 0xd800, 0xdc00, 98)));
+  });
+  it("evaluates nested format specs and debug text using native capabilities", () => {
+    const { v, names, run, events } = fixture();
+    names.set("x", v.string("ab")); names.set("width", v.integer(5));
+    expect(run('f"{x:>{width}}"')).toEqual(v.string("   ab"));
+    expect(events).toEqual(["load:x", "load:width"]);
+    expect(run('f"{x = }"')).toEqual(v.string("x = 'ab'"));
+    expect(() => run('f"{x:+s}"')).toThrow("Sign not allowed in string format specifier");
+    expect(() => run('t"{x}"')).toThrow(UnsupportedExpressionError);
+  });
   it("passes the explicit formatted-string capability into evaluation", () => {
     const { v, meter, bindings } = fixture();
     const result = v.string("formatted");

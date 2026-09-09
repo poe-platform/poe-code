@@ -5581,6 +5581,20 @@ extension, integration, or validation requirement is missing or unverified.
   selected workspace build pass. Guest string subclasses, numeric formatting,
   default f-string wiring and the broader interpreter/SDK/safe-fs work remain
   incomplete; the earlier object direct-call diagnostic gap is unchanged.
+- Added the default runtime f-string capability, using a shared format/representation
+  context for conversions and field dispatch. Joining validates string payloads,
+  preserves singleton result identity and copies multipart code points once,
+  retaining independent surrogate points. Explicit formatted-string hooks still
+  override the native defaults and can use the same adapter with guest contexts.
+- Two tests first reproduced the absent default interpolation capability. All
+  4,638 tests in 388 files pass, with a focused rerun also verifying surrogate
+  joining. A 1,018-program compiled CPython audit matches native conversions,
+  string specs, nested widths, debug fields, result identity and evaluation order
+  without custom formatting hooks. Typecheck, scoped lint and selected workspace
+  build pass.
+  Numeric specialized formatting (including remaining empty-spec numeric slots),
+  guest subclasses, template objects, global string canonicalization and the
+  broader interpreter/SDK/safe-fs work remain unfinished.
 - Next:
   remaining scope/compiler audits, interpreter runtime,
   resource controls, runtime modules, and safe-fs integration. Parsing and static

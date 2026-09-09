@@ -4706,6 +4706,23 @@ extension, integration, or validation requirement is missing or unverified.
   registration/subclass construction, filter binding, full guest object wiring,
   suspended execution, complete resource accounting and SDK/safe-fs integration
   remain unfinished.
+- Added the explicitly registerable filter binding with keyword rejection before
+  arity checks, eager input acquisition and lazy predicate/truth calls. None and
+  an explicitly supplied exact bool identity use truth-only filtering; another
+  callable named bool does not. Original accepted members retain identity.
+  Optional guest iteration/truth capabilities reuse the existing filtering kernel,
+  including callback exhaustion payloads, resumability and cancellation checks.
+- Seven new tests first failed for the missing binding. All 4,256 tests in 331
+  files pass. Source typecheck, scoped lint and selected workspace build pass.
+  The compiled audit separately reproduced unimplemented string percent
+  formatting: filter(lambda x: x % 2, "aa0aaaa0aa") raises an internal unsupported
+  binary-expression error instead of Python's string-formatting TypeError. Those
+  cases are not counted as passing; string-comparison predicates replace them
+  in the focused filter audit, whose 3,411 compiled programs match CPython values
+  and errors for truth-only predicates, lambdas, defined functions and bound native
+  methods. String/bytes formatting, native type registration,
+  subclasses, full guest object wiring, suspended execution, complete resource
+  accounting and SDK/safe-fs integration remain unfinished.
 - Next:
   remaining scope/compiler audits, interpreter runtime,
   resource controls, runtime modules, and safe-fs integration. Parsing and static

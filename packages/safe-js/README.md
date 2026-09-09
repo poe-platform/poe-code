@@ -481,6 +481,13 @@ budgeted, with recovery coverage for closures, classes, generators, tagged
 templates and captured declaration environments. This is not complete eval
 conformance; further declaration edge cases and integration still need validation.
 
+Later local fixes cover deletion of eval-created bindings, assignment and numeric
+updates after conversion deletes a binding, and separate environments for eval
+inside default parameters versus function-body declarations. Focused checks cover
+captured closures, destructuring and suspended assignments through recovery.
+Some edge-case expectations follow the specification where Node 22 differs;
+these are not claims of exact native-engine equivalence.
+
 Exception-flow work adds function hoisting and class temporal-dead-zone handling
 inside try/catch/finally blocks, including restored generators. Unresolved reads,
 calls and updates inside these blocks now reach guest catch handlers as
@@ -500,7 +507,7 @@ workload checks pass; this is not a guarantee that deadline-sensitive tests
 always pass under load.
 
 These changes have focused native-comparison and recovery tests, but the full
-integration gate is not green. The latest frozen whole-SafeJS snapshot includes
+integration gate is not green. The latest completed whole-SafeJS snapshot includes
 eval, exception-flow fixes and experimental weak collections. Its maintained
 build closure and fresh-process import checks passed; the full unit run finished
 with 22,682 passes, two failures and 37 skips. Both failures concern host-Promise
@@ -508,6 +515,11 @@ property imports, whose policy remains unresolved because native properties can
 contain private Node.js context data. Earlier workload deadlines and historical
 checkpoint expectation failures did not recur in this run. Three later
 function-identity recovery cases were verified separately.
+
+A newer frozen snapshot adds the source-stack and eval-deletion fixes. Its build
+closure and import checks passed, but the unit run is still in progress. The
+later numeric-update and parameter-environment fixes have focused verification
+only and are outside that frozen run.
 
 These latest changes include uncommitted work. Pushes and releases are paused;
 local implementation, remote delivery, and successful publication are separate

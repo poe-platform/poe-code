@@ -4851,6 +4851,22 @@ extension, integration, or validation requirement is missing or unverified.
   and host BigInt conversion cannot yield mid-operation; complete representation
   accounting remains open. Full guest object wiring, suspended execution and
   SDK/safe-fs integration also remain outstanding.
+- Extended native __str__/__repr__ binding to exact integers and booleans.
+  Integers use the shared decimal converter without binary64 narrowing; bools
+  return True/False names. Decimal limits apply at invocation after wrapper
+  argument validation, not when retrieving a bound method. Renamed the existing
+  text factory/tests to scalar representation so text, bytes, ints and bools
+  share bound-call validation rather than duplicating it.
+- Five new tests first failed with missing native integer/bool attributes.
+  All 4,326 tests in 340 files pass. A 3,236-case compiled Python comparison
+  matches integer/bool output, identity and errors, including decimal-limit
+  boundaries and chained representations; all 3,208 compiled text/bytes
+  regression cases still pass. Source typecheck, scoped lint and selected
+  workspace build pass. General repr/str builtin registration, other scalar and
+  container representations, configurable runtime sys digit limits and percent
+  formatting assembly/dispatch remain unfinished. Full guest object wiring,
+  suspended execution, complete BigInt/resource accounting and SDK/safe-fs
+  integration remain outstanding.
 - Next:
   remaining scope/compiler audits, interpreter runtime,
   resource controls, runtime modules, and safe-fs integration. Parsing and static

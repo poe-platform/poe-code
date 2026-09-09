@@ -1,6 +1,6 @@
 import { PythonRuntimeError } from "./error.js";
 import { readRuntimeIteratorMethod } from "./runtime-iterator-method.js";
-import { createRuntimeTextRepresentationMethod } from "./runtime-text-representation-method.js";
+import { createRuntimeScalarRepresentationMethod } from "./runtime-scalar-representation-method.js";
 import type { ExecutionMeter } from "./execution-budget.js";
 import { createRuntimeDictionaryMethod } from "./runtime-dictionary-method.js";
 import { createRuntimeDictionaryMutationMethod } from "./runtime-dictionary-mutation-method.js";
@@ -57,7 +57,7 @@ export function runtimeNativeAttribute(receiver: RuntimeValue, name: string, val
   meter.checkpoint();
   const iteratorMethod = readRuntimeIteratorMethod(receiver, name, values, meter);
   if (iteratorMethod !== undefined) return iteratorMethod;
-  if ((receiver.kind === "str" || receiver.kind === "bytes") && (name === "__str__" || name === "__repr__")) return createRuntimeTextRepresentationMethod(receiver, name, values, meter);
+  if ((receiver.kind === "str" || receiver.kind === "bytes" || receiver.kind === "int" || receiver.kind === "bool") && (name === "__str__" || name === "__repr__")) return createRuntimeScalarRepresentationMethod(receiver, name, values, meter);
   if ((receiver.kind === "int" || receiver.kind === "bool") && name === "from_bytes") return createRuntimeIntegerFromBytesMethod(receiver.kind === "bool", values, meter);
   if ((receiver.kind === "int" || receiver.kind === "bool") && name === "to_bytes") return createRuntimeIntegerToBytesMethod(receiver, values, meter);
   if (receiver.kind === "float" && name === "fromhex") return createRuntimeFloatFromhexMethod(values, meter);

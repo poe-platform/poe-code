@@ -874,6 +874,23 @@ extension, integration, or validation requirement is missing or unverified.
   https://docs.python.org/3/library/io.html#io.IncrementalNewlineDecoder . This is
   an internal universal-newline primitive, not yet a guest I/O object; specific
   newline modes, byte-codec composition, and safe-fs text streams remain pending.
+- Added an internal UTF-8 text-decoding composition supporting all five read-side
+  newline settings (`null`, empty, LF, CR, CRLF). Universal modes recognize newline
+  forms and optionally translate; specific modes preserve decoded text without
+  universal-newline buffering or metadata. Line extraction remains a stream concern.
+  Byte state is staged until atomic newline processing succeeds, so decoding and
+  budget failures preserve both layers. State-copy buffers are metered. Reset
+  clears both layers together, and the current error policy applies to each call.
+- Text-decoder validation: the new suite failed on the missing module; all 1,521
+  package tests pass, including 12 composition cases with 200 budget boundaries.
+  Ad hoc comparisons against CPython's composed incremental codecs matched 30,360
+  chunk sequences (121,440 output/newline observations), covering five newline
+  modes and four malformed-input recovery policies. A TextIOWrapper oracle also
+  verified whole-read output and metadata for all newline settings. Scoped lint,
+  source typecheck, and selected workspace build passed. Reference:
+  https://docs.python.org/3/library/io.html#io.TextIOWrapper . This remains an
+  internal UTF-8 decoding layer, not a full TextIOWrapper: line reading, writing,
+  seeking/cookies, codec registry dispatch, and safe-fs integration remain pending.
 - Next:
   remaining scope/compiler audits, interpreter runtime,
   resource controls, runtime modules, and safe-fs integration. Parsing and static

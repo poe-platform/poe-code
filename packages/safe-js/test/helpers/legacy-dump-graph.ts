@@ -11,6 +11,7 @@ export function expectLegacyDumpGraph(actual: RecordValue, legacy: RecordValue, 
   const legacyHeap = legacy.heap as Record<string, RecordValue>;
   const forward = new Map<number, number>();
   const reverse = new Map<number, number>();
+  const inlineArrayReferences = new Set<number>();
 
   function compare(value: unknown, expected: unknown, path: string[]): void {
     if (expected === null || typeof expected !== "object") {
@@ -23,6 +24,7 @@ export function expectLegacyDumpGraph(actual: RecordValue, legacy: RecordValue, 
       expect(current).toMatchObject({ kind: "ref", id: expect.any(Number) });
       const before = old.id as number;
       const after = current!.id as number;
+      expect(inlineArrayReferences.has(after)).toBe(false);
       if (forward.has(before)) { expect(after).toBe(forward.get(before)); return; }
       expect(reverse.has(after)).toBe(false);
       forward.set(before, after);
@@ -32,6 +34,26 @@ export function expectLegacyDumpGraph(actual: RecordValue, legacy: RecordValue, 
     }
     if (current?.kind === "ref") {
       const node = actualHeap[current.id as number];
+      if (node?.kind === "guest-array" && Array.isArray(expected)) {
+        const id = current.id as number;
+        expect(inlineArrayReferences.has(id) || reverse.has(id)).toBe(false);
+        inlineArrayReferences.add(id);
+        const state = node.state as {
+          prototype: { kind: string; id: number };
+          properties: { extensible: boolean; properties: Array<[string, RecordValue]> };
+        };
+        expect(state.prototype).toMatchObject({ kind: "ref", id: expect.any(Number) });
+        expect(actualHeap[state.prototype.id]).toMatchObject({ kind: "intrinsic", id: '["Array","prototype"]' });
+        expect(state.properties.extensible).toBe(true);
+        const entries = state.properties.properties;
+        expect(entries.map(([key]) => key)).toEqual(Object.getOwnPropertyNames(expected));
+        for (const [key, descriptor] of entries) {
+          expect(descriptor).toMatchObject({ kind: "data", writable: true,
+            enumerable: key !== "length", configurable: key !== "length" });
+          compare(descriptor.value, (expected as unknown as RecordValue)[key], [...path, key]);
+        }
+        return;
+      }
       expect(node?.kind).toBe("intrinsic");
       expect(node.id).toBe(JSON.stringify(path));
       if (old.kind === "fn") {

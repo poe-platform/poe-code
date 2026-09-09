@@ -665,8 +665,10 @@ and four import checks. Unit results were 23,985 passed, 31 failed, and 37 skipp
 Source/test fingerprints matched before and after the run. A follow-up fixes
 22 snapshot-inspection failures, with all 39 tests in the two affected files
 passing. Exact baseline-and-boundary checks also replace three stale retained-root
-budget expectations; all 11 tests in that file pass. Remaining failures still
-require work. This is not a green package
+budget expectations; all 11 tests in that file pass. Legacy graph comparisons
+now recognize descriptor-backed arrays while checking aliases and prototype
+identity; their three test files pass 61 cases and skip one. Remaining failures
+still require work. This is not a green package
 gate or an isolated committed-tree result. See the
 [snapshot inspection record](../../docs/plans/safejs-array-snapshot-inspection.md).
 The public data-copy boundary now rejects guest Proxy values explicitly instead

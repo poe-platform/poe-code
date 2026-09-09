@@ -5113,6 +5113,21 @@ extension, integration, or validation requirement is missing or unverified.
   recursion guards, default percent field dispatch, guest identity wrapping and
   binary percent integration remain unfinished. Full guest objects, suspended
   execution, complete accounting and SDK/safe-fs integration remain outstanding.
+- Added default text percent-field dispatch for integer, floating, character and
+  str/repr/ascii conversions over the existing protocols and storage renderers.
+  Representation precision is applied after conversion; character precision and
+  numeric flags are ignored. Unmodified representation objects retain identity
+  for the eventual whole-expression wrapper. Unsupported-code errors use the
+  bound source offset after argument consumption.
+- Seven tests first failed for the missing dispatcher. All 4,460 tests in
+  358 files pass. CPython matches 5,018 mixed text formats through runtime values,
+  argument binding, default field dispatch and output assembly, with guaranteed
+  code coverage, dynamic widths/precisions, negative zero, surrogate code points
+  and missing/surplus/error precedence cases. Source typecheck, scoped lint and
+  selected workspace build pass. Whole-expression identity wrapping, bytes field
+  dispatch, other native/container representations and binary percent operator
+  integration remain unfinished. Full guest objects, suspended execution,
+  complete accounting and SDK/safe-fs integration remain outstanding.
 - Next:
   remaining scope/compiler audits, interpreter runtime,
   resource controls, runtime modules, and safe-fs integration. Parsing and static

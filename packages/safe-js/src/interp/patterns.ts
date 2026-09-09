@@ -17,6 +17,9 @@ import { retainValues } from "./resources.js";
 import { hasOwnSandboxProperty } from "./globals/object.js";
 import { reflectionProperties } from "./globals/object-array.js";
 import { isGuestHostObject } from "./host-capabilities.js";
+import { guestProxyStates } from "./guest-proxy.js";
+import { sandboxOwnKeys } from "./guest-proxy-own-keys.js";
+import { sandboxGetOwnPropertyDescriptor } from "./guest-proxy-descriptor.js";
 import { acquireSandboxIterator, closeIterator, readIteratorResult, restoreSandboxIterator } from "./iteration.js";
 import type { GeneratorExpressionState } from "./generator-expression-state.js";
 import {
@@ -454,16 +457,22 @@ async function copyObjectRestValue(
   context: PatternContext
 ): Promise<SandboxObject> {
   const rest = Object.create(null) as SandboxObject;
-  const keys = isGuestHostObject(value) ? ownEnumerableSandboxKeys(value, true)
-    : [...Object.getOwnPropertyNames(reflectionProperties(value)), ...ownSandboxSymbolKeys(value)];
-  const release =
-    context.budget === undefined
-      ? () => undefined
-      : retainValues(context.budget, () => [value, rest, keys]);
+  const budget = context.budget ?? new Budget();
+  const callContext = context.callContext ?? { stack: [], thisValue: undefined, getProperty: context.getProperty };
+  const proxy = typeof value === "object" && guestProxyStates.has(value);
+  let keys: PropertyKey[] = [];
+  const release = retainValues(budget, () => [value, rest, keys]);
   try {
+    keys = proxy ? await sandboxOwnKeys(value, budget, callContext)
+      : isGuestHostObject(value) ? ownEnumerableSandboxKeys(value, true)
+        : [...Object.getOwnPropertyNames(reflectionProperties(value)), ...ownSandboxSymbolKeys(value)];
     for (const key of keys) {
-      context.budget?.visitNode();
-      if (excludedKeys.has(key) || !hasOwnSandboxProperty(value, key, true)) continue;
+      budget.visitNode();
+      if (excludedKeys.has(key)) continue;
+      const enumerable = proxy
+        ? (await sandboxGetOwnPropertyDescriptor(value, key, budget, callContext))?.enumerable
+        : hasOwnSandboxProperty(value, key, true);
+      if (!enumerable) continue;
       defineProperty(rest, key, await context.getProperty(value, key));
     }
     return rest;

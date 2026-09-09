@@ -129,6 +129,8 @@ import { sandboxDeleteProperty } from "./guest-proxy-delete.js";
 import { sandboxHasProperty } from "./guest-proxy-has.js";
 import { sandboxGetProperty } from "./guest-proxy-get.js";
 import { sandboxSetProperty } from "./guest-proxy-set.js";
+import { sandboxOwnKeys } from "./guest-proxy-own-keys.js";
+import { sandboxGetOwnPropertyDescriptor } from "./guest-proxy-descriptor.js";
 import { getStringIndex } from "./methods/string.js";
 import { assertSandboxDataDepth } from "../graph-depth.js";
 import {
@@ -4764,14 +4766,21 @@ async function evaluateObjectSpread(
     return { ok: true, value: entries };
   }
 
-  const keys = [...Object.getOwnPropertyNames(reflectionProperties(value.value)), ...ownSandboxSymbolKeys(value.value)];
-  context.budget.allocateArrayLength(keys.length);
+  const proxy = typeof value.value === "object" && guestProxyStates.has(value.value);
+  const callContext = createCoercionContext(context);
+  let keys: PropertyKey[] = [];
   const entries: Array<readonly [PropertyKey, SandboxValue]> = [];
   const release = retainValues(context.budget, () => [value.value, entries, keys]);
   try {
+    keys = proxy ? await sandboxOwnKeys(value.value, context.budget, callContext)
+      : [...Object.getOwnPropertyNames(reflectionProperties(value.value)), ...ownSandboxSymbolKeys(value.value)];
+    context.budget.allocateArrayLength(keys.length);
     for (const key of keys) {
       context.budget.visitNode();
-      if (!hasOwnSandboxProperty(value.value, key, true)) continue;
+      const enumerable = proxy
+        ? (await sandboxGetOwnPropertyDescriptor(value.value, key, context.budget, callContext))?.enumerable
+        : hasOwnSandboxProperty(value.value, key, true);
+      if (!enumerable) continue;
       entries.push([key, await getPropertyValue(value.value, key, context)]);
     }
     return { ok: true, value: entries };

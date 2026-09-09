@@ -3,7 +3,7 @@ import { asyncFunctionHandlers } from "./async-function-driver.js";
 import { asyncGeneratorHandlers, rejectGeneratorQueue } from "./async-generator-driver.js";
 import { accessorAdapter, accessorClosure, readPropertyDescriptor } from "./accessors.js";
 import { createIntrinsicObject, getSandboxDataProperty, getSandboxPropertyDescriptor, hasExplicitSandboxPrototype, installPromisePrototype, materializeFunctionProperties, registerIntrinsicFunction, setSandboxPrototype } from "./object-model.js";
-import { coerceThrownValue, createSubsetErrorValue } from "./exceptions.js";
+import { coerceThrownValue, createSubsetErrorValue, isSourceReferenceError } from "./exceptions.js";
 import { acquireSandboxIterator, closeIterator, getSandboxIterator, readIteratorResult } from "./iteration.js";
 import { retainValues } from "./resources.js";
 import { runPromiseJob } from "./jobs.js";
@@ -174,7 +174,9 @@ export function createPromiseGlobals(options: { budget: Budget }): PromiseGlobal
         observeSandboxPromise(pending);
         throw error;
       }
-      capability.reject.call([error as SandboxValue]);
+      capability.reject.call([isSourceReferenceError(error)
+        ? coerceThrownValue(error, options.budget, context?.stack ?? [])
+        : error as SandboxValue]);
     }
     return pending;
   };
@@ -413,7 +415,7 @@ async function callPromiseClosure(
   try {
     const stack = context?.stack ?? [];
     const values = args.map((value) =>
-      value instanceof Error && !(value instanceof SandboxError)
+      (value instanceof Error && !(value instanceof SandboxError)) || isSourceReferenceError(value)
         ? coerceThrownValue(value, budget, stack)
         : value
     );
@@ -424,6 +426,9 @@ async function callPromiseClosure(
       await result.synchronousPrefix;
     }
     return result;
+  } catch (error) {
+    if (isSourceReferenceError(error)) throw coerceThrownValue(error, budget, context?.stack ?? []);
+    throw error;
   } finally {
     leaveCall();
   }
@@ -986,7 +991,8 @@ export function createThenableBridge(
             reject(error);
             return;
           }
-          recordSettlement("rejected", error);
+          recordSettlement("rejected", options.budget !== undefined && isSourceReferenceError(error)
+            ? coerceThrownValue(error, options.budget, options.context?.stack ?? []) : error);
           complete();
         }
       };
@@ -1011,7 +1017,7 @@ function runCapabilityReaction(
       throw value;
     }
     let completion = state;
-    let result = state === "rejected" && value instanceof Error
+    let result = state === "rejected" && (value instanceof Error || isSourceReferenceError(value))
       ? coerceThrownValue(value, budget, []) : value;
     if (isSandboxClosure(handler)) {
       try {
@@ -1051,7 +1057,9 @@ function runPromiseReaction(
       return;
     }
     const argument =
-      state === "rejected" && value instanceof Error ? coerceThrownValue(value, budget, []) : value;
+      state === "rejected" && (value instanceof Error || isSourceReferenceError(value)) ? coerceThrownValue(value, budget, []) : value;
+    const rejected = (reason: unknown) => reject(isSourceReferenceError(reason)
+      ? coerceThrownValue(reason, budget, context?.stack ?? []) : reason);
     const fulfilled = (result: SandboxValue | Promise<SandboxValue>) => {
       if (isPromiseLike(result)) {
         resolve(resolvePromiseResult(result, budget, self, context));
@@ -1066,14 +1074,14 @@ function runPromiseReaction(
       }
     };
     if (isSandboxClosure(handler)) {
-      callInPromiseJob(handler, [argument], undefined, { fulfilled, rejected: reject }, context).catch(
-        reject
+      callInPromiseJob(handler, [argument], undefined, { fulfilled, rejected }, context).catch(
+        rejected
       );
     } else {
       runPromiseJob(() => {
         if (state === "fulfilled") fulfilled(value);
-        else reject(budgetSandboxValue(value, budget));
-      }).catch(reject);
+        else rejected(budgetSandboxValue(argument, budget));
+      }).catch(rejected);
     }
   });
 }

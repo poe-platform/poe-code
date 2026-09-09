@@ -45,6 +45,12 @@ import { evaluateResourceScope, resourceSuspension } from "./resource-management
 import type { AsyncSuspensionContext } from "./async.js";
 
 const capturedExceptionBrand = Symbol("CapturedException");
+export const referenceErrorDiagnostics = new WeakSet<object>();
+const referenceErrorValues = new WeakMap<Budget, WeakMap<object, SandboxObject>>();
+
+export function isSourceReferenceError(value: unknown): value is InterpreterError {
+  return typeof value === "object" && value !== null && referenceErrorDiagnostics.has(value);
+}
 const readDOMExceptionCode = Object.getOwnPropertyDescriptor(DOMException.prototype, "code")!.get!;
 internalSymbols.add(capturedExceptionBrand);
 export type { SandboxErrorName } from "../error/shape.js";
@@ -269,6 +275,21 @@ export function coerceThrownValue(
 ): SandboxValue {
   if (reason instanceof HostCallResumabilityError) {
     throw reason;
+  }
+
+  if (isSourceReferenceError(reason)) {
+    let values = referenceErrorValues.get(budget);
+    if (values === undefined) {
+      values = new WeakMap();
+      referenceErrorValues.set(budget, values);
+    }
+    const existing = values.get(reason);
+    if (existing !== undefined) return existing;
+    const value = createSubsetErrorValue("ReferenceError", reason.message, stackFrames, budget, {
+      chargeBudget: false, span: reason.span ?? span
+    });
+    values.set(reason, value);
+    return value;
   }
 
   if (isSubsetErrorValue(reason)) {

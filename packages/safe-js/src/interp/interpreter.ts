@@ -104,6 +104,7 @@ import {
   evaluateTryStatement as evaluateTryStatementResult,
   isCapturedException,
   isInterpreterError,
+  referenceErrorDiagnostics,
   surfaceThrownValue
 } from "./exceptions.js";
 import {
@@ -3154,7 +3155,7 @@ function createError(
 ): InterpreterError {
   const name = code === "UNBOUND_IDENTIFIER" ? "ReferenceError" : "Error";
   const stack = [...stackFrames, formatStackFrame(node, undefined)];
-  return {
+  const error = {
     code,
     message,
     name,
@@ -3163,6 +3164,8 @@ function createError(
     span: node.span,
     stack: formatErrorStack(name, message, stack)
   };
+  if (code === "UNBOUND_IDENTIFIER") referenceErrorDiagnostics.add(error);
+  return error;
 }
 
 function attachFatalSandboxErrorContext(

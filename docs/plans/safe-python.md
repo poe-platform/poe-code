@@ -5905,6 +5905,16 @@ extension, integration, or validation requirement is missing or unverified.
   454 compiled brace-method programs and 20,584 evaluator cases. Typecheck,
   scoped lint and selected workspace build pass. Remaining output identity and
   broader interpreter/SDK/safe-fs integration work remains unfinished.
+- Added explicitly registered bin, oct and hex through one radix builtin factory.
+  Fixed presentation metadata is prepared once and the existing metered integer
+  renderer owns sign/prefix layout and output allocation. Exact integers/Booleans
+  and optional guest index slots are supported; decimal digit limits do not apply
+  to these power-of-two radices. Results retain fresh nonempty identity.
+- Eight tests first exposed the missing factory. All 4,758 tests in 413 files
+  pass. A 1,251-program CPython comparison covers positive/negative arbitrary-size
+  integers, values exceeding decimal conversion limits, identity and public
+  argument errors. Typecheck, scoped lint and selected workspace build pass. Automatic
+  namespace assembly and broader interpreter/SDK/safe-fs integration remain open.
 - Next:
   remaining scope/compiler audits, interpreter runtime,
   resource controls, runtime modules, and safe-fs integration. Parsing and static

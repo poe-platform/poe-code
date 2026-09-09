@@ -6349,6 +6349,22 @@ extension, integration, or validation requirement is missing or unverified.
   Bigint host division remains indivisible; automatic builtin namespace and
   concrete guest slot assembly, plus broader interpreter/SDK/safe-fs integration,
   remain unfinished.
+- Added round builtin binding for positional/named number and ndigits, exact
+  native integer/float rounding, optional __index__ conversion and type-level
+  guest __round__ dispatch. None and omitted ndigits both invoke guest slots
+  without an argument; other guest digits and results retain identity without
+  conversion. Integer no-op rounding preserves identity, while floats are boxed
+  anew. Arithmetic temporaries and callback cancellation are metered.
+- Six tests cover ties, signed zeros, argument precedence, guest forwarding,
+  index conversion, huge digit counts and cancellation. All 4,972 tests in 435
+  files pass. All 717 completed compiled CPython comparisons match results and
+  errors across module/nested calls and numeric/keyword edge cases. Fourteen
+  extreme negative-ndigits integer reference cases were excluded after the
+  initial CPython process remained CPU-bound and was explicitly interrupted;
+  they are not counted as passes. Safe-python's bounded zero shortcut remains
+  covered by unit tests. Another 16 compiled guest round call/result traces match
+  CPython. Typecheck, scoped lint and selected workspace build pass. Automatic
+  builtin/object assembly and broader interpreter/SDK/safe-fs work remain pending.
 - Next:
   remaining scope/compiler audits, interpreter runtime,
   resource controls, runtime modules, and safe-fs integration. Parsing and static

@@ -4519,6 +4519,22 @@ extension, integration, or validation requirement is missing or unverified.
   Scoped lint, source typecheck and selected workspace build pass.
   Remaining numeric/text methods, string interning, buffer protocols, native
   builtins, suspension, full accounting and SDK/safe-fs remain unfinished.
+- Added float.fromhex parsing and instance-accessible exact-float class operation.
+  The parser accepts optional prefixes/exponents, ASCII edge whitespace and
+  signed non-finite spellings. It keeps at most sixteen leading hexadecimal
+  digits plus a sticky discarded tail, saturates exponents beyond possible
+  input-length cancellation, and reuses exact ties-to-even ratio rounding.
+  Working numeric storage stays bounded for long coefficient/exponent text;
+  signed underflow and overflow diagnostics match Python. Native type/subclass
+  registration remains unfinished.
+- Six parser tests initially failed to load the missing module; two native tests
+  then reproduced missing method support. All 4,167 tests in 319 files pass,
+  including normal/subnormal ties and a 4,000-digit coefficient under a bounded
+  working budget. A 24,160-case CPython parser audit matches exact binary64 bits
+  and errors; 2,409 compiled programs match native values, fresh-result identity
+  and call errors. Scoped lint, source typecheck and selected workspace build
+  pass. Remaining numeric/text methods, native builtins, buffer protocols,
+  suspension, full accounting and SDK/safe-fs remain unfinished.
 - Next:
   remaining scope/compiler audits, interpreter runtime,
   resource controls, runtime modules, and safe-fs integration. Parsing and static

@@ -2241,6 +2241,21 @@ extension, integration, or validation requirement is missing or unverified.
   Reference: https://github.com/python/cpython/blob/3.14/Objects/floatobject.c .
   Float/complex operand powers, full builtin dispatch, bit-length temporary
   storage, exponent shifts and size-dependent host CPU accounting remain pending.
+- Added concrete immutable hashing with exact 64-bit numeric, complex, tuple
+  and slice combiners. Equal numeric values share hashes across bool/int/float/
+  complex; NaNs use their containing object's identity policy. Identity and
+  seeded string/byte hashes are explicit trusted runtime policies, not guest
+  callbacks or an implicit insecure default. Host hash results normalize to
+  signed 64 bits and exclude the reserved -1 sentinel.
+- Hash traversal uses a charged explicit stack, handles 10,000 nested tuples,
+  preserves member order and failure propagation, and checks cancellation after
+  trusted policies return. Tests first reproduced the missing module. All 2,597
+  tests in 148 files pass; 12,004 numeric/nested immutable hashes matched CPython
+  exactly. Source typecheck, scoped lint and selected workspace build passed. Reference:
+  https://github.com/python/cpython/blob/3.14/Objects/tupleobject.c and the
+  corresponding sliceobject.c/complexobject.c hash implementations.
+  Default seeded payload hashing, guest __hash__ dispatch, mutable containers,
+  caching and complete host temporary-allocation/CPU accounting remain pending.
 - Next:
   remaining scope/compiler audits, interpreter runtime,
   resource controls, runtime modules, and safe-fs integration. Parsing and static

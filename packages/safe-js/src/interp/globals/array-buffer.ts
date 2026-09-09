@@ -1,8 +1,8 @@
 import type { Budget } from "../budget.js";
 import { arrayBufferDetached, arrayBufferLength, arrayBufferOptions, arrayBufferPrototypes, isSandboxArrayBuffer } from "../array-buffer.js";
-import { accessorAdapter, readPropertyDescriptor } from "../accessors.js";
+import { accessorAdapter } from "../accessors.js";
 import { createSandboxClosure, isSandboxClosure, type SandboxCallContext, type SandboxClosure, type SandboxObject, type SandboxValue } from "../values.js";
-import { createIntrinsicObject, getSandboxDataProperty, getSandboxPropertyDescriptor, getSandboxPrototype, materializeFunctionProperties, registerIntrinsicFunction, registerIntrinsicObject, setSandboxPrototype } from "../object-model.js";
+import { createIntrinsicObject, getSandboxPrototype, materializeFunctionProperties, registerIntrinsicFunction, registerIntrinsicObject, setSandboxPrototype } from "../object-model.js";
 import { invokeBuiltinClosure } from "../builtin-call.js";
 import { sandboxGetProperty } from "../guest-proxy-get.js";
 import { registerBuiltinIdentities } from "../intrinsics.js";
@@ -84,15 +84,14 @@ export function createArrayBufferGlobal(budget: Budget): SandboxClosure {
         const length = arrayBufferLength(receiver);
         let candidate: SandboxValue;
         let result: SandboxValue;
-        const bridge: SandboxCallContext = {
+        const callerContext: SandboxCallContext = {
           ...context, stack: context?.stack ?? [], thisValue: receiver,
-          getProperty: context?.getProperty ?? ((value, key) => {
-            const descriptor = getSandboxPropertyDescriptor(value, key, budget);
-            return descriptor === undefined ? getSandboxDataProperty(value, key, budget)
-              : readPropertyDescriptor(descriptor, value, bridge);
-          }),
-          invokeClosure: context?.invokeClosure ?? ((callee, values, thisValue, construct) =>
-            invokeBuiltinClosure(callee, values, budget, context, thisValue, construct))
+          getProperty: context?.getProperty ?? ((value, key) => sandboxGetProperty(value, key, value, budget, bridge))
+        };
+        const bridge: SandboxCallContext = {
+          ...callerContext,
+          invokeClosure: context?.invokeClosure ?? ((callee, values, thisValue, construct, newTarget) =>
+            invokeBuiltinClosure(callee, values, budget, callerContext, thisValue, construct, newTarget))
         };
         const release = retainValues(budget, () => [receiver, candidate, result, ...args]);
         const clamp = (number: number) => {

@@ -473,15 +473,14 @@ export function getTypedArrayMember(
           return receiver;
         } finally { release(); }
       }
-      const bridge: SandboxCallContext = {
+      const callerContext: SandboxCallContext = {
         ...context, stack: context?.stack ?? [], thisValue: receiver,
-        getProperty: context?.getProperty ?? ((value, property) => {
-          const descriptor = getSandboxPropertyDescriptor(value, property, budget);
-          return descriptor === undefined ? getSandboxDataProperty(value, property, budget)
-            : readPropertyDescriptor(descriptor, value, bridge);
-        }),
-        invokeClosure: context?.invokeClosure ?? ((callee, values, thisValue, construct) =>
-          invokeBuiltinClosure(callee, values, budget, context, thisValue, construct))
+        getProperty: context?.getProperty ?? ((value, property) => sandboxGetProperty(value, property, value, budget, bridge))
+      };
+      const bridge: SandboxCallContext = {
+        ...callerContext,
+        invokeClosure: context?.invokeClosure ?? ((callee, values, thisValue, construct, newTarget) =>
+          invokeBuiltinClosure(callee, values, budget, callerContext, thisValue, construct, newTarget))
       };
       if (key === "sort" || key === "toSorted") {
         const comparator = args[0] as SandboxClosure | undefined;

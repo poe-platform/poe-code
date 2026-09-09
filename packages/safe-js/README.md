@@ -575,6 +575,8 @@ bindings while preserving the normal default-constructor substitution.
 SDK ArrayBuffer and typed-array construction reads Proxy `newTarget.prototype`
 through guest operations, including nested Proxies, accessor-backed traps, and
 revocation checks.
+SDK buffer `slice` species lookup also follows Proxy holders and ancestors,
+preserving the receiver and invoking Proxy-valued species constructors.
 Public Proxy binding reads the prototype and own length descriptor through traps
 before reading length and name, including null prototypes and nested Proxies.
 Promise operations dispatch Proxy constructors, executors, reaction callbacks,

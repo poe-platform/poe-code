@@ -5823,6 +5823,17 @@ extension, integration, or validation requirement is missing or unverified.
   Typecheck, scoped lint and selected workspace build pass. General guest
   descriptor/mapping wiring, global string identity policies and broader
   interpreter/SDK/safe-fs integration remain unfinished.
+- Corrected brace-format output identity after direct CPython evidence: leading
+  empty writes do not initialize output, while a later append (even empty)
+  ends the nonempty field identity fast path. A sole nonempty str-subclass
+  formatter result is retained instead of being coerced to exact str. Empty
+  fields still execute lookup/conversion/rendering before output is skipped.
+- Two new tests first reproduced the mismatches. All 4,723 tests in 406 files
+  pass. CPython comparisons pass for 576 compiled noncached-string identity
+  cases, 80 guest subclass identity cases and the existing 20,584 evaluator
+  cases. Typecheck, scoped lint and selected workspace build pass. Empty/Latin-1
+  single-character canonicalization remains part of unfinished global string
+  identity work; these focused audits do not establish all identity policies.
 - Next:
   remaining scope/compiler audits, interpreter runtime,
   resource controls, runtime modules, and safe-fs integration. Parsing and static

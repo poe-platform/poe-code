@@ -5,6 +5,8 @@ import { runtimeNativeAttribute } from "./runtime-native-attribute.js";
 import { constructRuntimeDictionary } from "./runtime-dictionary-update.js";
 import { runtimeComparison } from "./runtime-comparison.js";
 import { PythonKeyError } from "./runtime-dictionary-access.js";
+import { createRuntimeBraceFormatMethod } from "./runtime-brace-format-method.js";
+import { createRuntimeFormatContext } from "./runtime-format.js";
 
 function fixture() {
   const meter = new ExecutionBudget({ maxSteps: 100000, maxAllocatedBytes: 1000000 }), v = new RuntimeValues(meter);
@@ -47,4 +49,24 @@ it("retains exact string identity for unchanged templates and single fields", ()
   expect(call(source, "format", [])).toBe(source);
   expect(call(v.string("{}"), "format", [value])).toBe(value);
   expect(call(v.string("{!s}"), "format", [value])).toBe(value);
+});
+it("retains a field after leading empty output but copies after trailing empty output", () => {
+  const { v, call } = fixture(), value = v.string("long field value"), empty = v.string("");
+  expect(call(v.string("{}{}"), "format", [empty, value])).toBe(value);
+  expect(call(v.string("{}{}{}"), "format", [empty, empty, value])).toBe(value);
+  expect(call(v.string("{0:.0}{1}"), "format", [v.string("discarded"), value])).toBe(value);
+  expect(call(v.string("{}{}"), "format", [value, empty])).not.toBe(value);
+  expect(call(v.string("{}{}{}"), "format", [empty, value, empty])).not.toBe(value);
+});
+it("preserves a nonempty guest str-subclass formatter result until a later append", () => {
+  const { v, meter, dictionary } = fixture(), guest = v.cell({}), subclass = v.cell({}), storage = v.string("subclass text").value;
+  const unused = (): never => { throw Error("unused lookup"); };
+  const base = createRuntimeFormatContext(v, meter, { defaultRepr: unused });
+  const context = { ...base, string: (value: RuntimeValue) => value === subclass ? storage : base.string(value), lookupFormat: (value: RuntimeValue) => value === guest ? () => subclass : base.lookupFormat(value) };
+  const call = (source: string, args: readonly RuntimeValue[]) => createRuntimeBraceFormatMethod(v.string(source), "format", v, meter, context, { attribute: unused, getItem: unused }).value.invoke(args, dictionary(), meter);
+  expect(call("{}", [guest])).toBe(subclass);
+  expect(call("{}{}", [v.string(""), guest])).toBe(subclass);
+  const copied = call("{}{}", [guest, v.string("")]);
+  expect(copied).toEqual(v.string("subclass text"));
+  expect(copied.kind).toBe("str");
 });

@@ -8,14 +8,14 @@ import { representationObject } from "./representation-protocol.js";
 
 export interface BraceFormatResult<Value> {
   readonly storage: CodePointString;
-  /** Sole rendered field, for exact-str identity preservation by the caller. */
+  /** Sole nonempty rendered field before any later append, including subclasses. */
   readonly original?: Value;
 }
 
 /** Assemble str.format semantics over explicit guest capabilities. Nested specs
  * share argument numbering; expansion is limited to two build levels, so this
  * helper's host recursion is bounded independently of untrusted input size.
- * The caller owns public method validation and exact-str result construction. */
+ * The caller owns public method validation and result construction. */
 export function braceFormat<Value>(source: CodePointString, positional: readonly Value[] | null, hooks: FormatFieldHooks<Value>, context: FormatContext<Value>, meter: ExecutionMeter): BraceFormatResult<Value> {
   meter.checkpoint(1, 256);
   const resolver = new FormatFieldResolver(positional, hooks, meter);
@@ -47,6 +47,9 @@ export function braceFormat<Value>(source: CodePointString, positional: readonly
       const result = formatObject(value, spec, context, meter);
       const rendered = context.string(result); meter.checkpoint();
       if (rendered === undefined) throw new Error("validated format result lost string storage");
+      // An initial empty write leaves the output uninitialized. Once a field
+      // backs the output, even an empty append ends its identity fast path.
+      if (rendered.length === 0 && parts.length === 0) continue;
       meter.checkpoint(1, 16); parts.push(rendered);
       original = result;
     }

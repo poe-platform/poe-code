@@ -2876,6 +2876,18 @@ extension, integration, or validation requirement is missing or unverified.
   typecheck, scoped lint and selected workspace build passed. Expanded argument/
   keyword binding, guest iterable acquisition, concrete comparison dispatch,
   builtin registration and full heap/recursion accounting remain open.
+- Connected expanded min/max calls to shared selection and guest iteration.
+  A single positional argument is iterated; multiple arguments are candidates
+  directly. Arity errors precede keyword count/name diagnostics (including
+  spelling suggestions), then default/multiple-argument conflicts. None keys use
+  identity, other keys remain lazily callable, and explicit defaults preserve
+  their value even when the host representation is undefined.
+- The call suite first failed on its missing module; all 3,131 tests in 195
+  files pass. A 768-case CPython audit matched binding errors, defaults, key
+  behavior and iteration/callback ordering. Source typecheck, scoped lint and
+  selected workspace build passed. Concrete guest builtin/context registration,
+  rich comparison dispatch and complete native iterator/result allocation and
+  recursion accounting remain unfinished.
 - Next:
   remaining scope/compiler audits, interpreter runtime,
   resource controls, runtime modules, and safe-fs integration. Parsing and static

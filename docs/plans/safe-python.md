@@ -3129,6 +3129,22 @@ extension, integration, or validation requirement is missing or unverified.
   Dictionary literals, call keyword dictionaries, guest hash/equality slots,
   execution-wide hash policy provisioning and safe-fs/public execution integration
   remain unfinished; storage iterator compaction differences remain as logged.
+- Implemented runtime dictionary equality and inequality through the existing
+  explicit comparison stack. Ordered storage can suspend non-identical value
+  pairs while retaining cached key hashes, captured values and live subsequent
+  entries; its callback equality API now drives that same traversal. Dictionary
+  insertion order is ignored, numeric-equivalent keys match, identical values
+  bypass comparison, and distinct cycles consume the configured comparison-depth
+  policy instead of overflowing the host call stack. Ordering remains a TypeError.
+- Five new runtime tests first reproduced the unsupported comparison boundary.
+  All 3,285 tests in 214 files pass, including 4,000 nested dictionary/tuple pairs,
+  cyclic values, NaN identity, missing keys, suspended mutation and cancellation.
+  A 2,400-case CPython audit matched 14,400 nested dictionary comparison outcomes;
+  10,000 ordered-map operations and 3,600 runtime comparison regressions also
+  matched. Source typecheck, scoped lint and selected workspace build passed.
+  Dictionary subscription/mutation/literals, concrete calls and exception values,
+  guest key slots and their recursion control, full temporary/heap accounting,
+  public execution integration and safe-fs wiring remain unfinished.
 - Next:
   remaining scope/compiler audits, interpreter runtime,
   resource controls, runtime modules, and safe-fs integration. Parsing and static

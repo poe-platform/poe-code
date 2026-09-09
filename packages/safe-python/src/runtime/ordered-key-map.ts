@@ -152,6 +152,23 @@ export class OrderedKeyMap<Key, Value> {
    * shortcut: collisions can still invoke key equality even when maps coincide.
    */
   equals(other: OrderedKeyMap<Key, Value>, equalValue: (left: Value, right: Value) => boolean): boolean {
+    const comparisons = this.compareValues(other);
+    let next = comparisons.next();
+    while (!next.done) {
+      const equal = equalValue(next.value[0], next.value[1]);
+      this.meter.checkpoint();
+      next = comparisons.next(equal);
+    }
+    return next.value;
+  }
+
+  /** Suspend each non-identical value comparison so an interpreter can drive
+   * recursive equality with its own explicit stack. Resume with that pair's
+   * equality result; keys still use this map's trusted synchronous policy.
+   * Captured values survive callback mutation, and shared policies reuse hashes.
+   */
+  *compareValues(other: OrderedKeyMap<Key, Value>): Generator<readonly [Value, Value], boolean, boolean> {
+    this.meter.checkpoint(0, 64);
     this.meter.checkpoint();
     if (this.#entries.size !== other.#entries.size) return false;
     for (const entry of this.#entries) {
@@ -161,7 +178,8 @@ export class OrderedKeyMap<Key, Value> {
       const found = other.#find(key, hash);
       if (found === undefined) return false;
       if (!Object.is(value, found.value)) {
-        const equal = equalValue(value, found.value);
+        this.meter.checkpoint(0, 48);
+        const equal = yield Object.freeze([value, found.value] as const);
         this.meter.checkpoint();
         if (!equal) return false;
       }

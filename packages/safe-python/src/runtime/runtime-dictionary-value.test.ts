@@ -63,9 +63,8 @@ describe("runtime dictionary records", () => {
     expect(() => runtimeHash(dict, hash, meter)).toThrow("unhashable type: 'dict'");
     expect(() => runtimeHash(v.tuple([dict]), hash, meter)).toThrow("unhashable type: 'dict'");
   });
-  it("keeps unfinished dictionary access and value comparison explicit", () => {
+  it("keeps unfinished dictionary access explicit", () => {
     const { meter, v, dictionary } = fixture(), dict = dictionary();
-    expect(() => runtimeComparison("==", dict, dictionary(), v, meter)).toThrow(UnsupportedExpressionError);
     expect(() => runtimeIndex(dict, v.integer(1), v, meter)).toThrow(UnsupportedExpressionError);
     expect(() => runtimeMutateItem(dict, v.integer(1), { kind: "set", value: v.true }, v, meter)).toThrow(UnsupportedExpressionError);
   });

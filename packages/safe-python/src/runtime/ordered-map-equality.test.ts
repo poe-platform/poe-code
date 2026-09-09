@@ -6,6 +6,27 @@ const budget = () => new ExecutionBudget({ maxSteps: 10000, maxAllocatedBytes: 1
 const operations: KeyOperations<number> = { hash: BigInt, equal: (a, b) => a === b };
 
 describe("ordered mapping equality", () => {
+  it("suspends value comparisons and observes later value replacements", () => {
+    const a = new OrderedKeyMap<number, string>(operations, budget()), b = new OrderedKeyMap<number, string>(operations, budget());
+    a.set(1, "left"); b.set(1, "right"); a.set(2, "old"); b.set(2, "other");
+    const comparisons = a.compareValues(b), first = comparisons.next();
+    expect(first).toEqual({ done: false, value: ["left", "right"] }); expect(Object.isFrozen(first.value)).toBe(true);
+    a.set(2, "new"); b.set(2, "new");
+    expect(comparisons.next(true)).toEqual({ done: true, value: true });
+  });
+  it("stops a suspended comparison immediately on a false response", () => {
+    const a = new OrderedKeyMap<number, string>(operations, budget()), b = new OrderedKeyMap<number, string>(operations, budget());
+    a.set(1, "left"); b.set(1, "right"); a.set(2, "later"); b.set(2, "different");
+    const comparisons = a.compareValues(b); comparisons.next();
+    expect(comparisons.next(false)).toEqual({ done: true, value: false });
+  });
+  it("checks cancellation when a suspended comparison resumes", () => {
+    let reject = false;
+    const meter = { checkpoint: () => { if (reject) throw new ExecutionLimitError("steps"); } };
+    const a = new OrderedKeyMap<number, string>(operations, meter), b = new OrderedKeyMap<number, string>(operations, meter);
+    a.set(1, "left"); b.set(1, "right"); const comparisons = a.compareValues(b); comparisons.next(); reject = true;
+    expect(() => comparisons.next(true)).toThrow(ExecutionLimitError);
+  });
   it("ignores insertion order while checking matching keys and values", () => {
     const a = new OrderedKeyMap<number, string>(operations, budget()), b = new OrderedKeyMap<number, string>(operations, budget());
     a.set(1, "a"); a.set(2, "b"); b.set(2, "b"); b.set(1, "a");

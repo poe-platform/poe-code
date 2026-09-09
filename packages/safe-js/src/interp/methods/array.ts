@@ -16,7 +16,7 @@ import {
 } from "../values.js";
 import { assertCollectionMutable, enterRunningState } from "../running-state.js";
 import { retainValues } from "../resources.js";
-import { getSandboxDataProperty, getSandboxPrototype } from "../object-model.js";
+import { getSandboxDataProperty, getSandboxPrototype, setSandboxPrototype } from "../object-model.js";
 import { joinSandboxArray, sandboxNumber, sandboxString } from "../string-coercion.js";
 import { invokeBuiltinClosure } from "../builtin-call.js";
 import { defineDataProperty, objectProperties } from "../globals/object-array.js";
@@ -678,8 +678,7 @@ async function callArrayMethodUnlocked(
     }
     case "toSorted": {
       const length = value.length;
-      options.budget.allocateArrayLength(length);
-      const result = new Array(length) as SandboxArray;
+      const result = createDefaultArray(length, options.budget);
       const release = retainValues(options.budget, () => [result]);
       try {
         for (let index = 0; index < length; index += 1) {
@@ -700,8 +699,7 @@ async function callArrayMethodUnlocked(
     }
     case "toReversed": {
       const length = value.length;
-      options.budget.allocateArrayLength(length);
-      const result = new Array(length) as SandboxArray;
+      const result = createDefaultArray(length, options.budget);
       const release = retainValues(options.budget, () => [result]);
       try {
         for (let index = 0; index < length; index += 1) {
@@ -737,8 +735,7 @@ async function callArrayMethodUnlocked(
       const resultLength = length + inserted - deleted;
       if (resultLength > Number.MAX_SAFE_INTEGER)
         throw new TypeError("Array-like length exceeds the safe integer limit.");
-      options.budget.allocateArrayLength(resultLength);
-      const result = new Array(resultLength) as SandboxArray;
+      const result = createDefaultArray(resultLength, options.budget);
       const release = retainValues(options.budget, () => [result]);
       try {
         for (let index = 0; index < resultLength; index += 1) {
@@ -768,8 +765,7 @@ async function callArrayMethodUnlocked(
         throw new RangeError("Invalid index");
       }
 
-      options.budget.allocateArrayLength(length);
-      const result: SandboxArray = [];
+      const result = createDefaultArray(length, options.budget);
       const release = retainValues(options.budget, () => [result]);
       try {
         for (let position = 0; position < length; position += 1) {
@@ -1552,6 +1548,14 @@ async function findNextDefinedIndex(
   }
 
   return -1;
+}
+
+function createDefaultArray(length: number, budget: Budget): SandboxArray {
+  budget.allocateArrayLength(length);
+  const result = new Array(length) as SandboxArray;
+  const prototype = getSandboxPrototype(result, budget);
+  if (prototype !== null) setSandboxPrototype(result, prototype, budget);
+  return result;
 }
 
 function budgetProducedValue(value: SandboxValue, budget: Budget): SandboxValue {

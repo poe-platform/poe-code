@@ -78,3 +78,24 @@ Source inspection finds arraySpeciesCreate allocates and returns a bare array
 when no species constructor is selected. Validate this path with source tests
 before fixing it; preserve explicit species selection and custom constructor
 results. This audit changed no runtime or test files during the full gate.
+
+## Copy-by-change implementation
+
+Four source regressions failed on originating prototype identity before the
+fix and pass afterward. Each checks ordinary and borrowed sparse inputs,
+native contents and own keys, later prototype mutation, and rejection of lossy
+data copying. The ordinary receiver has a throwing constructor getter, which
+must not be read.
+
+Only the four copy-by-change methods use the new default-array allocator. It
+preserves their allocation limit check and explicitly stores the originating
+prototype when available. It does not change shared produced-value accounting,
+species selection, existing mutation targets, or custom species results.
+The separately validated borrowed species fallback and string split paths
+remain pending. The previous full gate predates this implementation.
+
+Verification: 6,123 tests passed across 85 method/proxy/array-snapshot files;
+scoped ESLint and package TypeScript checks passed. The maintained workspace
+build passed 23 builds and four fresh-process import checks. Built ESM SDK
+probes passed originating prototype identity and native sparse-result contents
+for all four methods. No visual CLI behavior changed. No push or release.

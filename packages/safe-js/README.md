@@ -591,6 +591,9 @@ created by exported closures after run cleanup. Their later prototype mutations
 remain visible to SDK iteration.
 Arrays created by `Array` or `new Array` also preserve their originating
 prototype when inspected through another realm's SDK methods.
+Array `toReversed`, `toSorted`, `toSpliced`, and `with` results retain their
+originating prototype after SDK cleanup, including borrowed array-like calls.
+They continue to ignore species constructors and copy holes as undefined.
 Object literals retain their originating prototype after cleanup and when
 created later by exported closures. Explicit null prototypes stay null;
 modified prototype chains reject lossy data copying. `Object.fromEntries`

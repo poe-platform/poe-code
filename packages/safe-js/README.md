@@ -652,6 +652,9 @@ Revocation during prototype lookup is checked before locale/options processing.
 Exported non-strict functions and eval calls retain access to their runtime
 global and owning eval identity after cleanup, including public replay and a
 replaced `globalThis` binding. Snapshot-resolution tables are still released.
+Foreign eval executes in its owning realm: global writes and declarations stay
+there, caller locals remain inaccessible, and errors use the owning prototypes.
+Focused checks cover normal, indirect and optional calls and independent replay.
 Dynamic Function, AsyncFunction, GeneratorFunction and AsyncGeneratorFunction
 constructors use foreign newTarget prototype defaults without changing the
 function body's originating global environment. Focused checks cover execution

@@ -139,7 +139,7 @@ export type SandboxRegex = {
 };
 
 export type SandboxCallContext = {
-  readonly evaluateEval?: (source: string) => Promise<SandboxValue>;
+  readonly evaluateEval?: (source: string, realm?: Budget) => Promise<SandboxValue>;
   readonly createDynamicFunction?: (kind: import("../parse/parser.js").DynamicFunctionKind, parameters: string, body: string) => SandboxClosure;
   readonly newTarget?: SandboxClosure;
   readonly compilation?: CompileScope;

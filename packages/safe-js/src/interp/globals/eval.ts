@@ -7,7 +7,7 @@ export function createEvalGlobal(budget: Budget) {
     call: ([value], context) => {
       if (typeof value !== "string") return value;
       if (context?.evaluateEval === undefined) throw new TypeError("Eval requires a guest execution context.");
-      return context.evaluateEval(value);
+      return context.evaluateEval(value, budget);
     }
   });
   registerIntrinsicFunction(budget, evaluate);

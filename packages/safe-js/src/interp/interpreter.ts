@@ -279,6 +279,7 @@ export type InterpretOptions = {
 };
 
 type EvaluationContext = AsyncEvaluationContext;
+const evalRealmContexts = new WeakMap<Budget, EvaluationContext>();
 
 type EvaluationResult = AsyncEvaluationResult;
 type MemberReference = { kind: "nullish" } | {
@@ -479,6 +480,10 @@ export async function interpret(
       asyncGenerator: options.asyncGenerator,
       resumeTarget: { nodeId: options.snapshot?.resumeNodeId }
     };
+    // Foreign intrinsic eval needs this realm's global scope, not the private
+    // lexical scope of either the owner script or its eventual caller.
+    if (!evalRealmContexts.has(budget))
+      evalRealmContexts.set(budget, { ...context, scope: scope.globalScope() });
     const execute = () => node.type === "VariableDeclaration" && node.disposal !== undefined
       ? evaluateResourceScope(scope, budget, {...createCoercionContext(context), onSuspend: context.onSuspend, signal: context.signal}, () => evaluateNode(node, context))
       : evaluateNode(node, context);
@@ -3291,7 +3296,13 @@ async function evaluateCallExpression(
   return evaluateResolvedCallExpression(node, callee.value, context, receiver);
 }
 
-async function evaluateGuestEval(source: string, context: EvaluationContext, direct: boolean): Promise<SandboxValue> {
+async function evaluateGuestEval(source: string, context: EvaluationContext, direct: boolean, realm = context.budget): Promise<SandboxValue> {
+  if (realm !== context.budget) {
+    const owner = evalRealmContexts.get(realm);
+    if (owner === undefined) throw new TypeError("Eval realm has no execution context.");
+    context = owner;
+    direct = false;
+  }
   const parent = direct ? context.scope : context.scope.globalScope();
   const parsed = createEvalSource(source, {
     strict: direct && context.strict !== false,
@@ -3992,7 +4003,7 @@ function applyBinaryOperator(
 
 export function createCoercionContext(context: EvaluationContext): SandboxCallContext {
   return {
-    evaluateEval: source => evaluateGuestEval(source, context, false),
+    evaluateEval: (source, realm) => evaluateGuestEval(source, context, false, realm),
     createDynamicFunction: (kind, parameters, body) => compileDynamicFunction(context, evaluateNode, kind, parameters, body),
     stack: context.callStack,
     thisValue: undefined,
@@ -4638,7 +4649,7 @@ async function invokeSandboxClosure(
         stack,
         thisValue,
         newTarget: construct ? newTarget ?? callee : undefined,
-        evaluateEval: (source: string) => evaluateGuestEval(source, context, directEval),
+        evaluateEval: (source: string, realm?: Budget) => evaluateGuestEval(source, context, directEval, realm),
         createDynamicFunction: (kind: import("../parse/parser.js").DynamicFunctionKind, parameters: string, body: string) =>
           compileDynamicFunction(context, evaluateNode, kind, parameters, body),
         compilation: context.compilation,

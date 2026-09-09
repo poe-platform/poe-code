@@ -4961,6 +4961,21 @@ extension, integration, or validation requirement is missing or unverified.
   production percent assembly/dispatch remain unfinished. Full representations,
   suspended execution, complete accounting and SDK/safe-fs integration remain
   outstanding.
+- Added percent-format storage assembly over incremental argument binding.
+  Literal slices and fully rendered callback fields are collected in source
+  order and joined once; no repeated concatenation is used. Conversion failures
+  precede later grammar/surplus failures, callback results are checked before
+  publication, incompatible output storage is rejected, and retained references
+  and final storage are metered. Raw immutable storage sharing does not define
+  guest object identity; wrapping/canonicalization remain runtime responsibilities.
+- Eight new tests first failed for the missing assembler. All 4,383 tests in
+  347 files pass. CPython matches 88,704 assembled integer text outputs, 88,704
+  integer bytes outputs and 8,049 assembled text binding/error-order cases through
+  explicit field converters. Source typecheck, scoped lint and selected workspace
+  build pass. Default runtime field dispatch, floating formatting, representation
+  protocols, guest identity wrapping and binary percent integration remain
+  unfinished. Full guest objects, bytearray storage, suspended execution, complete
+  accounting and SDK/safe-fs integration also remain outstanding.
 - Next:
   remaining scope/compiler audits, interpreter runtime,
   resource controls, runtime modules, and safe-fs integration. Parsing and static

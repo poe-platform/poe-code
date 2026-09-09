@@ -14,6 +14,7 @@ import type { AsyncEvaluationResult } from "./async.js";
 import type { BindingOperations, Scope } from "./scope.js";
 import { Budget, isFatalSandboxError } from "./budget.js";
 import { retainValues } from "./resources.js";
+import { getSandboxPrototype, setSandboxPrototype } from "./object-model.js";
 import { hasOwnSandboxProperty } from "./globals/object.js";
 import { reflectionProperties } from "./globals/object-array.js";
 import { isGuestHostObject } from "./host-capabilities.js";
@@ -271,6 +272,8 @@ async function bindArrayPattern(
         async () => {
           if (element.type !== "RestElement") return next();
           const rest: SandboxValue[] = [];
+          const prototype = getSandboxPrototype(rest, budget);
+          if (prototype !== null) setSandboxPrototype(rest, prototype, budget);
           retained = rest;
           for (let entry = await next(); !done; entry = await next()) {
             budget.allocateArrayLength(rest.length + 1);
@@ -460,6 +463,8 @@ async function copyObjectRestValue(
   const budget = context.budget ?? new Budget();
   const callContext = context.callContext ?? { stack: [], thisValue: undefined, getProperty: context.getProperty };
   const proxy = typeof value === "object" && guestProxyStates.has(value);
+  const prototype = getSandboxPrototype(rest, budget);
+  if (prototype !== null) setSandboxPrototype(rest, prototype, budget);
   let keys: PropertyKey[] = [];
   const release = retainValues(budget, () => [value, rest, keys]);
   try {

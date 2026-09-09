@@ -597,7 +597,9 @@ modified prototype chains reject lossy data copying. `Object.fromEntries`
 results also preserve their originating prototype, including synchronous SDK
 adapter calls. `Object()` and `new Object()` with null or missing arguments
 retain their creation realm, while existing object inputs keep their identity.
-Destructuring rest still has a verified SDK realm-identity gap.
+Object and array destructuring rest results also retain their originating
+prototype, including assignment and parameter patterns used by exported
+functions after run cleanup.
 Dates retain their originating prototype after run cleanup, including Dates
 created later by exported closures. Pristine Dates remain copyable as data;
 modified prototype chains reject copying rather than losing guest behavior.

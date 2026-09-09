@@ -6,6 +6,7 @@ import { ExecutionBudget, ExecutionLimitError } from "./execution-budget.js";
 import type { LexicalCell } from "./lexical-frame.js";
 import { createFunctionFrame } from "./function-frame.js";
 import { executeFunctionDefinition } from "./function-definition.js";
+import { lookupNamespace } from "./namespace-lookup.js";
 
 const budget = () => new ExecutionBudget({ maxSteps: 10000, maxAllocatedBytes: 100000 });
 function fixture(source = 'def f(a):\n "doc"\n return a') {
@@ -96,7 +97,7 @@ describe("function definition state", () => {
       ...value, tuple: values => [...values], dictionary: values => new Map(values)
     }, budget());
     expect(frame.load("a")).toBe(object); expect(frame.load("x")).toBe(42);
-    state.builtins.set("dynamic", 99); expect(value.builtins.get("dynamic")).toBe(99);
+    state.builtins.set("dynamic", 99); expect(lookupNamespace(value.builtins, "dynamic")).toEqual({ value: 99 });
   });
   it("checks the entry budget before capturing state", () => {
     const state = fixture();

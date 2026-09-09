@@ -1955,6 +1955,22 @@ extension, integration, or validation requirement is missing or unverified.
   validated special-attribute writes, __code__ replacement, definition-time builtin
   selection, concrete guest function allocation and full heap accounting remain
   unfinished.
+- Added builtin namespace protocol lookup alongside the internal dictionary fast
+  path. Module, function and class frames preserve present undefined values,
+  translate adapter-reported missing keys to NameError, and propagate other
+  protocol failures. Function creation now resolves globals.__builtins__ once per
+  definition when present, retaining the current namespace only when absent.
+  Resolution adapters defer mapping support checks until lookup; previously
+  created functions retain their selected namespaces after globals rebinding.
+- Builtin-namespace validation: CPython probes confirmed custom mappings and
+  deferred None/int subscription failures; all eight new regression cases failed
+  before implementation. All 2,395 tests in 127 files pass. CPython matched 70
+  dictionary/custom-mapping/missing/failure cases across module, function and class
+  frames with local/global precedence. Source typecheck, scoped lint and selected
+  build passed. Concrete guest builtin/module adapters, guest __builtins__ attribute
+  exposure, builtin initialization and complete runtime/allocation integration
+  remain unfinished. Resolver absence with an explicit builtin value is a host
+  integration failure, not silent fallback or a guest exception.
 - Next:
   remaining scope/compiler audits, interpreter runtime,
   resource controls, runtime modules, and safe-fs integration. Parsing and static

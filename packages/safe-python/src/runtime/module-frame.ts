@@ -1,6 +1,7 @@
 import type { ResolvedScope } from "../symbol-resolution.js";
 import { ExecutionLimitError, type ExecutionMeter } from "./execution-budget.js";
 import { PythonRuntimeError } from "./error.js";
+import { lookupNamespace, type NameNamespace } from "./namespace-lookup.js";
 
 export interface LocalNamespace<Value> {
   /** Perform guest mapping lookup. Only a missing-key exception becomes undefined;
@@ -16,13 +17,14 @@ export interface LocalNamespace<Value> {
 
 export interface ModuleNamespaces<Value> {
   readonly globals: Map<string, Value>;
-  readonly builtins: ReadonlyMap<string, Value>;
+  readonly builtins: NameNamespace<Value>;
   /** Omit for ordinary modules, whose locals are the global dictionary itself. */
   readonly locals?: LocalNamespace<Value>;
 }
 
 /** Name storage for an analyzed module or source compiled for exec. Separate
- * locals use guest mapping protocols; globals/builtins use backing dictionaries.
+ * locals use guest mapping protocols; globals use backing dictionaries and
+ * builtins support either backing dictionaries or protocol adapters.
  * CPython propagates descendant global declarations to module-level name access,
  * including declarations in code that is not executed. Do not apply that rule to
  * optimized function locals or class namespaces. Names are normalized source
@@ -57,7 +59,8 @@ export class ModuleFrame<Value> {
     }
     if (this.namespaces.globals.has(name)) return this.namespaces.globals.get(name)!;
     this.meter.checkpoint();
-    if (this.namespaces.builtins.has(name)) return this.namespaces.builtins.get(name)!;
+    const builtin = lookupNamespace(this.namespaces.builtins, name);
+    if (builtin !== undefined) return builtin.value;
     throw new PythonRuntimeError("NameError", `name '${name}' is not defined`);
   }
 

@@ -4,6 +4,7 @@ import { ExecutionLimitError, type ExecutionMeter } from "./execution-budget.js"
 import { PythonRuntimeError } from "./error.js";
 import type { LexicalCell, LexicalNamespaces } from "./lexical-frame.js";
 import type { LocalNamespace } from "./module-frame.js";
+import { lookupNamespace } from "./namespace-lookup.js";
 
 export interface ClassNamespaces<Value> extends LexicalNamespaces<Value> {
   readonly locals: LocalNamespace<Value>;
@@ -67,7 +68,8 @@ export class ClassFrame<Value> {
     }
     if (this.namespaces.globals.has(key)) return this.namespaces.globals.get(key)!;
     this.meter.checkpoint();
-    if (this.namespaces.builtins.has(key)) return this.namespaces.builtins.get(key)!;
+    const builtin = lookupNamespace(this.namespaces.builtins, key);
+    if (builtin !== undefined) return builtin.value;
     throw new PythonRuntimeError("NameError", `name '${key}' is not defined`);
   }
 

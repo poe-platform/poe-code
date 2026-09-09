@@ -2,6 +2,7 @@ import { manglePrivateName } from "../private-names.js";
 import type { SymbolScope } from "../symbol-collection.js";
 import type { ResolvedBinding, ResolvedScope } from "../symbol-resolution.js";
 import type { ExecutionMeter } from "./execution-budget.js";
+import { lookupNamespace, type NameNamespace } from "./namespace-lookup.js";
 import { PythonRuntimeError } from "./error.js";
 
 /** Internal shared storage, never a guest-accessible JavaScript object. The
@@ -15,10 +16,10 @@ export interface LexicalCell<Value> {
 export interface LexicalNamespaces<Value> {
   /** Backing dictionary storage; not guest mapping protocol objects. */
   readonly globals: Map<string, Value>;
-  /** The defining function's selected builtins dictionary, not a fresh lookup of
-   * globals.__builtins__ on each name access. Its contents remain live.
+  /** The defining function's selected builtin namespace, not a fresh lookup of
+   * globals.__builtins__ on each name access. Its contents/protocol remain live.
    */
-  readonly builtins: ReadonlyMap<string, Value>;
+  readonly builtins: NameNamespace<Value>;
   readonly closure?: ReadonlyMap<string, LexicalCell<Value>>;
 }
 
@@ -73,7 +74,8 @@ export class LexicalFrame<Value> {
     const [key, binding] = this.#resolve(name);
     if (binding.kind === "global") {
       if (this.namespaces.globals.has(key)) return this.namespaces.globals.get(key)!;
-      if (this.namespaces.builtins.has(key)) return this.namespaces.builtins.get(key)!;
+      const builtin = lookupNamespace(this.namespaces.builtins, key);
+      if (builtin !== undefined) return builtin.value;
     } else {
       const cell = this.#cells.get(key);
       if (cell) {

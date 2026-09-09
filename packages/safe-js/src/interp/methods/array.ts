@@ -44,8 +44,7 @@ async function arraySpeciesCreate(value: ArrayLikeValue, length: number, options
       return await invokeBuiltinClosure(constructor, [length], options.budget, options.context, undefined, true) as SandboxValue & object;
     }
   }
-  options.budget.allocateArrayLength(length);
-  return new Array(length) as SandboxArray;
+  return createDefaultArray(length, options.budget);
 }
 
 async function defineArrayResult(result: SandboxValue & object, index: number, value: SandboxValue, options: ArrayMethodOptions): Promise<void> {

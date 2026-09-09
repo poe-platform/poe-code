@@ -99,3 +99,24 @@ scoped ESLint and package TypeScript checks passed. The maintained workspace
 build passed 23 builds and four fresh-process import checks. Built ESM SDK
 probes passed originating prototype identity and native sparse-result contents
 for all four methods. No visual CLI behavior changed. No push or release.
+
+## Default species fallback implementation
+
+Twenty-one source regressions confirmed prototype loss for slice, map, filter,
+flat, flatMap, splice and concat with plain array-like receivers, undefined
+array constructors, and null species. Native VM controls retain identity in
+every case. Seven custom species controls returning a null-prototype object
+already passed before the change.
+
+arraySpeciesCreate now uses the default-array allocator only after species
+selection falls through. The custom constructor path is unchanged. All 28 new
+tests and 15 existing Proxy species tests pass. Tests also compare native sparse
+contents and own keys, observe later prototype mutations, and reject lossy
+data copying. String split remains a separate pending result-realm gap.
+
+The broader method/proxy/array-snapshot selection passed 6,151 tests across
+86 files. Scoped ESLint, package TypeScript, the maintained 23-workspace build
+and four fresh-process import checks passed. Built ESM probes confirmed
+borrowed-result prototype identity for all seven methods. These targeted
+checks do not resolve the earlier full-suite timeouts or Promise policy
+failures. No visual CLI behavior changed; no push or release occurred.

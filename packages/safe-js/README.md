@@ -594,6 +594,9 @@ prototype when inspected through another realm's SDK methods.
 Array `toReversed`, `toSorted`, `toSpliced`, and `with` results retain their
 originating prototype after SDK cleanup, including borrowed array-like calls.
 They continue to ignore species constructors and copy holes as undefined.
+Default results of species-aware array methods also preserve their originating
+prototype for borrowed array-like calls, undefined constructors, and null
+species. Explicit custom species results retain their own identity/prototype.
 Object literals retain their originating prototype after cleanup and when
 created later by exported closures. Explicit null prototypes stay null;
 modified prototype chains reject lossy data copying. `Object.fromEntries`

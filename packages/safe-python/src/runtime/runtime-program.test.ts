@@ -10,6 +10,7 @@ import { runtimeComparison } from "./runtime-comparison.js";
 import { UnsupportedStatementError } from "./statement-execution.js";
 import { ModuleFrame, type LocalNamespace } from "./module-frame.js";
 import { createLenBuiltin } from "./builtin-len.js";
+import { createPowBuiltin } from "./builtin-pow.js";
 import { resolveRuntimeClassAttribute } from "./runtime-descriptor.js";
 import { readInstanceAttribute } from "./instance-attributes.js";
 import { RuntimeDictionaryNamespace } from "./runtime-dictionary-namespace.js";
@@ -38,6 +39,25 @@ function fixture(source: string, maxSteps = 100000, signal?: AbortSignal) {
 }
 
 describe("assembled concrete runtime programs", () => {
+  it.each(["result=a ** b", "result=pow(a,b)", "def f():\n return a ** b\nresult=f()", "def f():\n return pow(a,b)\nresult=f()"])("shares power capabilities across operators, builtins and frames: %s", source => {
+    const state = fixture(source), a = state.values.cell({}), b = state.values.cell({});
+    const result = state.values.list([]), seen: RuntimeValue[][] = [];
+    const power = { power(base: RuntimeValue, exponent: RuntimeValue, modulus: RuntimeValue) {
+      expect(this).toBe(power); seen.push([base, exponent, modulus]); return result;
+    } };
+    state.globals.set("a", a); state.globals.set("b", b);
+    state.builtins.set("pow", createPowBuiltin(state.values, state.meter, power));
+    state.hooks.expressions = () => ({ warn() {}, power });
+    state.run();
+    expect(state.globals.get("result")).toBe(result);
+    expect(seen).toEqual([[a, b, state.values.none]]);
+  });
+  it.each([false, true])("checks cancellation after a power capability, including declines: %s", decline => {
+    const controller = new AbortController(), state = fixture("result=a ** b", 100000, controller.signal);
+    state.globals.set("a", state.values.cell({})); state.globals.set("b", state.values.cell({}));
+    state.hooks.expressions = () => ({ warn() {}, power: { power() { controller.abort(); return decline ? state.values.notImplemented : state.values.none; } } });
+    expect(() => state.run()).toThrow(ExecutionLimitError);
+  });
   it.each([
     "a=(1,)\nb=(1,)\nresult=a is b\n",
     "a=-10\nb=-10\nresult=a is b\n",

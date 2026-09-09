@@ -1,21 +1,13 @@
-import { diagnosticTypeName } from "./diagnostic-type-name.js";
 import { PythonRuntimeError } from "./error.js";
 import type { ExecutionMeter } from "./execution-budget.js";
-import { runtimePower } from "./runtime-power.js";
+import { runtimePowerOperation, type RuntimePowerContext } from "./runtime-power-operation.js";
 import type { BuiltinFunctionValue, RuntimeValue, RuntimeValues } from "./runtime-values.js";
 
-export interface PowContext {
-  /** Complete execution-owned binary/ternary numeric dispatch, including native
-   * slots, reflected methods and subtype priority. None denotes binary power.
-   * Return this execution's NotImplemented only when all eligible slots decline.
-   * Omission uses native slots only; this hook does not perform __index__ coercion. */
-  power?(base: RuntimeValue, exponent: RuntimeValue, modulus: RuntimeValue): RuntimeValue;
-  typeName?(value: RuntimeValue): string;
-}
+export type { RuntimePowerContext as PowContext } from "./runtime-power-operation.js";
 
 /** Explicit pow registration. Slot results are unrestricted; keyword binding
  * precedes all numeric work and normalizes omitted mod to the None singleton. */
-export function createPowBuiltin(values: RuntimeValues, meter: ExecutionMeter, context: PowContext = {}): BuiltinFunctionValue {
+export function createPowBuiltin(values: RuntimeValues, meter: ExecutionMeter, context: RuntimePowerContext = {}): BuiltinFunctionValue {
   meter.checkpoint(1, 64);
   return values.builtinFunction({ name: "pow", invoke(positional, keywords, meter) {
     meter.checkpoint();
@@ -38,16 +30,6 @@ export function createPowBuiltin(values: RuntimeValues, meter: ExecutionMeter, c
     if (duplicate !== undefined) throw new PythonRuntimeError("TypeError", duplicate);
     if (unexpected !== undefined) throw new PythonRuntimeError("TypeError", `pow() got an unexpected keyword argument '${unexpected}'`);
     const base = args[0], exponent = args[1], modulus = args[2] ?? values.none;
-    const result = context.power === undefined ? runtimePower(base, exponent, modulus, values, meter) : context.power(base, exponent, modulus);
-    meter.checkpoint();
-    if (result !== values.notImplemented) return result;
-    const names: string[] = [];
-    meter.checkpoint(0, 56);
-    for (let index = 0; index < (modulus.kind === "none" ? 2 : 3); index++) {
-      const value = args[index]!;
-      const name = context.typeName?.(value) ?? (value.kind === "none" ? "NoneType" : value.kind === "not-implemented" ? "NotImplementedType" : value.kind);
-      names.push(`'${diagnosticTypeName(name, meter, 100)}'`);
-    }
-    throw new PythonRuntimeError("TypeError", `unsupported operand type(s) for ** or pow(): ${names.join(modulus.kind === "none" ? " and " : ", ")}`);
+    return runtimePowerOperation(base, exponent, modulus, values, meter, context);
   } });
 }

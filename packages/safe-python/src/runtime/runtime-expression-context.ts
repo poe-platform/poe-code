@@ -2,6 +2,7 @@ import { UnsupportedExpressionError, type ExpressionContext } from "./expression
 import type { ConstantUnaryContext } from "./constant-unary.js";
 import type { ExecutionMeter } from "./execution-budget.js";
 import { runtimeBinary } from "./runtime-binary.js";
+import { runtimePowerOperation, type RuntimePowerContext } from "./runtime-power-operation.js";
 import { runtimeAddition, type AdditionContext } from "./runtime-addition.js";
 import { runtimeComparison } from "./runtime-comparison.js";
 import { runtimeRichComparison, type RuntimeRichComparisonContext } from "./runtime-rich-comparison.js";
@@ -35,6 +36,7 @@ export type RuntimeExpressionBindings = Pick<ExpressionContext<RuntimeValue>,
   "load" | "store" | "beginCall" | "createLambda"> &
   Partial<Pick<ExpressionContext<RuntimeValue>, "attribute" | "literal" | "constants" | "formattedString" | "truth">> &
   { readonly formatting?: FormatContext<RuntimeValue>;
+    readonly power?: RuntimePowerContext;
     readonly iteration?: IterationContext<RuntimeValue>;
     /** Prepare type-level numeric addition slots for the evaluated pair.
      * Native sequence fallback runs only after those slots decline. */
@@ -76,6 +78,7 @@ export function createRuntimeExpressionContext(values: RuntimeValues, bindings: 
       : initial => beginRuntimeDictionary(initial, values, bindings.dictionaryKeys, meter),
     unary: (operator, value) => operator === "not" ? values.boolean(!context.truth(value)) : runtimeUnary(operator, value, unary, meter),
     binary(operator, left, right) {
+      if (operator === "**") return runtimePowerOperation(left, right, values.none, values, meter, bindings.power);
       if (operator === "+") {
         const addition = bindings.addition?.(left, right);
         meter.checkpoint();

@@ -6425,6 +6425,20 @@ extension, integration, or validation requirement is missing or unverified.
   combinations. Typecheck, scoped lint and selected workspace build pass. Existing
   transcendental rounding differences remain; automatic builtin/object assembly
   and broader interpreter/SDK/safe-fs integration remain unfinished.
+- Connected the execution-owned power capability to ** expressions and frame
+  hooks, sharing dispatch, cancellation checks and unsupported-operand diagnostics
+  with pow. The separately callable native slot kernel remains available for
+  object-protocol adapters. Existing PowContext imports remain valid through a
+  type alias to the shared RuntimePowerContext.
+- Six new compiled-runtime regression cases verify operator/builtin parity in
+  module and nested frames, original operand/result identity, hook receiver and
+  cancellation after successful or declined guest operations. Native unsupported
+  ** operands now raise Python TypeError rather than an implementation-gap error.
+  All 5,016 tests in 438 files pass. All 988 native and 32 guest forward/reflected
+  CPython comparisons match results, errors and traces. Typecheck, scoped lint
+  and selected workspace build pass. Concrete automatic type/slot and builtin
+  assembly, existing transcendental precision differences and broader runtime/
+  SDK/safe-fs integration remain unfinished.
 - Next:
   remaining scope/compiler audits, interpreter runtime,
   resource controls, runtime modules, and safe-fs integration. Parsing and static

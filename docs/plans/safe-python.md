@@ -2992,6 +2992,18 @@ extension, integration, or validation requirement is missing or unverified.
   and selected workspace build passed. Reflected/subclass dispatch, final
   unsupported-operand diagnostics, float/complex powers, formatting, in-place
   operation wiring, full execution contexts/resources and safe-fs remain open.
+- Connected exact list in-place addition/repetition with ordinary runtime binary
+  fallback for immutable values. Direct self-extension duplicates original slots
+  once; other iterables stream into the existing list, retaining partial progress
+  on failure. Repetition preserves list identity and shared/cyclic members.
+  Augmented-assignment integration verifies that a failed target write-back does
+  not undo the preceding list mutation; live self-iterator growth is budget-bound.
+- The in-place suite first failed on its missing module; all 3,213 tests in 204
+  files pass. A 1,200-case CPython comparison matched resulting lists, identity,
+  errors and iteration traces. Source typecheck, scoped lint and selected
+  workspace build passed. Guest in-place/reflected slots, iterable length hints,
+  finalizers, final unsupported-operand diagnostics, full concrete execution
+  contexts/resource accounting and safe-fs integration remain unfinished.
 - Next:
   remaining scope/compiler audits, interpreter runtime,
   resource controls, runtime modules, and safe-fs integration. Parsing and static

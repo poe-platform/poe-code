@@ -2,6 +2,7 @@ import type { Budget } from "../budget.js";
 import { sandboxIsExtensible, sandboxPreventExtensions } from "../guest-proxy-extensibility.js";
 import { sandboxGetPrototypeOf, sandboxSetPrototypeOf } from "../guest-proxy-prototype.js";
 import { sandboxGetOwnPropertyDescriptor } from "../guest-proxy-descriptor.js";
+import { sandboxDeleteProperty } from "../guest-proxy-delete.js";
 import { isSandboxModuleNamespace } from "../module-namespace.js";
 import { assertSandboxDataDepth } from "../../graph-depth.js";
 import { accessorClosure, readPropertyDescriptor } from "../accessors.js";
@@ -40,7 +41,7 @@ export function createReflectGlobal(budget: Budget): SandboxObject {
     deleteProperty: { length: 2, call: async ([target, key], context) => {
       objectProperties(target, true);
       const property = await toPropertyKey(key, budget, context);
-      return Reflect.deleteProperty(objectProperties(target, true), property);
+      return sandboxDeleteProperty(target, property, budget, context);
     } },
     get: { length: 2, call: async (args, context) => {
       const [target, key] = args;

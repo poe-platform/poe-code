@@ -2650,6 +2650,20 @@ extension, integration, or validation requirement is missing or unverified.
   mismatch errors. Source typecheck, scoped lint and selected workspace build
   passed. Guest builtin registration, iterator/tuple object wrapping,
   special-method dispatch implementations and complete heap accounting remain open.
+- Added map iteration over prepared inputs, including Python 3.14 strict lengths.
+  Extracted zip's row-consumption engine into shared ParallelIterator while
+  retaining the ZipIterator export alias. Map produces a function result from
+  each complete host argument row, without an intermediate guest tuple, and
+  selects map-specific mismatch diagnostics. Function callability remains lazy;
+  callback StopIteration ends only the current next call, permitting later rows.
+  Other callback failures preserve consumed positions and fatal limits propagate.
+- The map suite first failed on its missing module; all 2,924 tests in 178 files
+  pass. A 1,200-trace CPython map audit matched 14,400 next observations and
+  input/mapper traces. Both zip audits also passed after the shared-engine
+  refactor: 1,500 iterator traces and 1,000 constructor/iteration cases. Source
+  typecheck, scoped lint and selected workspace build passed. Guest map argument/
+  strict binding, eager iterable acquisition, builtin/iterator object wiring,
+  exception values and complete native allocation accounting remain unfinished.
 - Next:
   remaining scope/compiler audits, interpreter runtime,
   resource controls, runtime modules, and safe-fs integration. Parsing and static

@@ -108,6 +108,27 @@ export class CodePointString implements Iterable<number> {
     return new CodePointString(points, meter, ownedPoints);
   }
 
+  /** Fill a single final buffer. Width is code points, not UTF-16 units or
+   * terminal columns. Sign alignment preserves an ASCII leading +/- prefix. */
+  pad(width: bigint, alignment: "left" | "right" | "center" | "sign", fill: number, meter: ExecutionMeter): CodePointString {
+    meter.checkpoint();
+    if (!Number.isInteger(fill) || fill < 0 || fill > 0x10ffff) throw new RangeError("padding requires a valid code point");
+    if (width <= BigInt(this.length)) return this;
+    if (width > 0xffffffffn) exhaustAllocation(meter);
+    const length = Number(width), padding = length - this.length;
+    const left = alignment === "left" ? 0 : alignment === "center"
+      ? Math.floor(padding / 2) + (padding % 2) * (length % 2) : padding;
+    const sign = alignment === "sign" && (this.#points[0] === 43 || this.#points[0] === 45) ? 1 : 0;
+    meter.checkpoint(0, length * Uint32Array.BYTES_PER_ELEMENT);
+    const points = new Uint32Array(length);
+    let offset = 0;
+    if (sign) { meter.checkpoint(); points[offset++] = this.#points[0]; }
+    for (let index = 0; index < left; index++) { meter.checkpoint(); points[offset++] = fill; }
+    for (let index = sign; index < this.length; index++) { meter.checkpoint(); points[offset++] = this.#points[index]; }
+    while (offset < length) { meter.checkpoint(); points[offset++] = fill; }
+    return new CodePointString(points, meter, ownedPoints);
+  }
+
   /** Count selected matches, then fill one exact-size owned output buffer.
    * Two bounded scans avoid storing every match offset or repeated concatenation. */
   replace(old: CodePointString, replacement: CodePointString, count: bigint, meter: ExecutionMeter): CodePointString {

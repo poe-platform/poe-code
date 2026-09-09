@@ -1,6 +1,7 @@
 import { PythonRuntimeError } from "./error.js";
 import type { ExecutionMeter } from "./execution-budget.js";
 import { ListStorage } from "./list-storage.js";
+import { runtimeSizeIndex } from "./runtime-size-index.js";
 import type { BuiltinFunctionValue, RuntimeValue, RuntimeValues } from "./runtime-values.js";
 
 /** Exact str split binding. Guest index slots and string subclasses remain
@@ -23,16 +24,7 @@ export function createRuntimeStringSplitMethod(receiver: Extract<RuntimeValue, {
         if (positional.length >= position) throw new PythonRuntimeError("TypeError", `argument for ${name}() given by name ('${label}') and position (${position})`);
         if (label === "sep") separator = value; else limit = value;
       }
-      let maxsplit = -1n;
-      if (limit !== undefined) {
-        if (limit.kind === "bool") maxsplit = limit.value ? 1n : 0n;
-        else if (limit.kind === "int") maxsplit = limit.value;
-        else {
-          const type = limit.kind === "none" ? "NoneType" : limit.kind === "not-implemented" ? "NotImplementedType" : limit.kind;
-          throw new PythonRuntimeError("TypeError", `'${type}' object cannot be interpreted as an integer`);
-        }
-        if (BigInt.asIntN(64, maxsplit) !== maxsplit) throw new PythonRuntimeError("OverflowError", "Python int too large to convert to C ssize_t");
-      }
+      const maxsplit = limit === undefined ? -1n : runtimeSizeIndex(limit, meter);
       if (separator.kind !== "none" && separator.kind !== "str") throw new PythonRuntimeError("TypeError", `must be str or None, not ${separator.kind === "not-implemented" ? "NotImplementedType" : separator.kind}`);
       const reverse = name === "rsplit", result = new ListStorage<RuntimeValue>([], meter);
       for (const part of receiver.value.split(separator.kind === "none" ? null : separator.value, maxsplit, reverse, meter)) {

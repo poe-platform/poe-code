@@ -4097,6 +4097,20 @@ extension, integration, or validation requirement is missing or unverified.
   parser-buffer copies and preallocation budget checks. Compound constant
   folding, metadata/docstring pooling, global interning, remaining native
   methods/builtins, suspension, full accounting and SDK/safe-fs remain pending.
+- Connected str.center/ljust/rjust/zfill to native lookup. Widths count code
+  points; fill validation precedes unchanged-output shortcuts. Center uses
+  Python's odd-padding parity rule, and zfill preserves only an ASCII leading
+  sign. One final buffer holds padding and source points, retaining lone
+  surrogates. Oversized output fails through the execution budget.
+- Consolidated exact signed-size conversion for padding, split and replacement;
+  search-bound saturation remains a different operation. Padding began with
+  13 failing method tests. All 3,851 tests in 281 files pass, including exact
+  one-buffer allocation, linear-work, budget termination and invalid-code-point
+  kernel checks. A 2,460-call compiled padding audit matches CPython; split
+  (3,038 calls) and strict replacement (2,616 calls) regressions also pass.
+  Scoped lint, source typecheck and selected workspace build pass. Guest index slots,
+  subclasses/global interning, remaining native methods/builtins, suspension,
+  complete accounting and SDK/safe-fs remain unfinished.
 - Next:
   remaining scope/compiler audits, interpreter runtime,
   resource controls, runtime modules, and safe-fs integration. Parsing and static

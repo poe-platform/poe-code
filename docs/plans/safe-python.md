@@ -4834,6 +4834,23 @@ extension, integration, or validation requirement is missing or unverified.
   The original string-percent failure remains open; full guest object wiring,
   suspended execution, complete accounting and SDK/safe-fs integration remain
   outstanding.
+- Added shared signed integer digit conversion for binary, octal, decimal and
+  hexadecimal output without prefixes. Decimal output defaults to a 4,300-digit
+  limit, excludes the sign, and supports an explicit caller limit or zero to
+  disable it. Bit-length bounds and an exact threshold reject oversized decimal
+  values before decimal conversion; power-of-two radices remain exempt. Output
+  storage and work are conservatively reserved before host conversion.
+- Seven initial tests first failed for the missing converter; an additional
+  admission test proves host decimal conversion is not called after failed
+  allocation admission or a digit-limit rejection. All 4,321 tests in 340 files
+  pass. A 3,416-case CPython comparison validates all supported radices, signed
+  values and decimal-limit boundaries. Source typecheck, scoped lint and selected
+  workspace build pass. sys setting registration/minimum validation, runtime
+  representation integration and percent formatting remain unfinished. Existing
+  BigInt size inspection still charges temporary hex storage after conversion,
+  and host BigInt conversion cannot yield mid-operation; complete representation
+  accounting remains open. Full guest object wiring, suspended execution and
+  SDK/safe-fs integration also remain outstanding.
 - Next:
   remaining scope/compiler audits, interpreter runtime,
   resource controls, runtime modules, and safe-fs integration. Parsing and static

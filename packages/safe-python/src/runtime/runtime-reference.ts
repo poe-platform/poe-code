@@ -43,7 +43,7 @@ export function resolveRuntimeReference(target: Expression, context: ExpressionC
       const { object, key } = evaluateExpression(target, context, meter, "subscript-reference");
       return {
         get() { meter.checkpoint(); return context.getItem(object, key); },
-        set(value) { meter.checkpoint(1, 32); runtimeMutateItem(object, key, { kind: "set", value }, values, meter, writes.integerIndex); },
+        set(value) { meter.checkpoint(1, 96); runtimeMutateItem(object, key, { kind: "set", value }, values, meter, writes.integerIndex, context.iterate.bind(context)); },
         remove() { meter.checkpoint(1, 16); runtimeMutateItem(object, key, { kind: "delete" }, values, meter, writes.integerIndex); }
       };
     }

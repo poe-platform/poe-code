@@ -6557,6 +6557,18 @@ extension, integration, or validation requirement is missing or unverified.
   Typecheck, scoped lint and selected workspace build pass. Guest replacement
   iteration for slice assignment, automatic object/builtin assembly and broader
   interpreter/SDK/safe-fs integration remain unfinished.
+- Connected guest iterable slice replacements through the expression iteration
+  capability. As in CPython's sequence materialization, acquisition is followed
+  by iter(cursor), then a length hint on the original cursor, before collecting
+  values. Initial iterator TypeErrors retain slice-assignment diagnostics;
+  later cursor/hint/next failures propagate. Failed collection does not apply
+  partially collected replacements. Bound iteration callbacks are metered.
+- Three compiled regression cases cover success, hint failure and next failure.
+  All 5,075 tests in 440 files pass, as do 24 CPython replacement comparisons
+  across contiguous, extended and reversed slices, typecheck, scoped lint and
+  selected workspace build. More callback-mutation audits, automatic object/
+  builtin assembly and broader interpreter/SDK/safe-fs integration remain
+  unfinished.
 - Next:
   remaining scope/compiler audits, interpreter runtime,
   resource controls, runtime modules, and safe-fs integration. Parsing and static

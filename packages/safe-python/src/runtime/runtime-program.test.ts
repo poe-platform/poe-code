@@ -39,6 +39,29 @@ function fixture(source: string, maxSteps = 100000, signal?: AbortSignal) {
 }
 
 describe("assembled concrete runtime programs", () => {
+  it.each(["success", "next-error", "hint-error"])("collects guest slice replacements with cursor hints (%s)", mode => {
+    const state = fixture("items=[0,1,2]\nitems[1:]=guest\n"), v = state.values;
+    const guest = v.cell({}), cursor = v.cell({}), events: string[] = [];
+    const stop = new PythonRuntimeError("StopIteration", "done"), failure = new PythonRuntimeError("ValueError", "collection failed"); let index = 0;
+    const iteration: IterationContext<RuntimeValue> = {
+      lookupIter: value => () => { events.push(value === guest ? "source iter" : "cursor iter"); return cursor; },
+      hasNext: value => value === cursor,
+      next() { events.push("next"); if (index++ === 0) return v.integer(9); if (mode === "next-error") throw failure; throw stop; },
+      hasSequenceItem: () => false, getItem() { throw Error("unexpected item"); },
+      isStopIteration: error => error === stop, isIndexError: () => false, typeName: () => "Guest",
+      hints: {
+        length: value => { expect(value).toBe(cursor); return undefined; },
+        lookupHint: () => () => { events.push("hint"); if (mode === "hint-error") throw failure; return v.integer(0); },
+        integer: value => value.kind === "int" ? value.value : undefined,
+        isNotImplemented: value => value === v.notImplemented, isTypeError: () => false, typeName: () => "Guest"
+      }
+    };
+    state.globals.set("guest", guest); state.hooks.expressions = () => ({ warn() {}, iteration });
+    if (mode === "success") state.run(); else expect(() => state.run()).toThrow(failure);
+    const items = state.globals.get("items"); if (items?.kind !== "list") throw Error("expected list");
+    expect(items.items.snapshot()).toEqual((mode === "success" ? [0,9] : [0,1,2]).map(value => v.integer(value)));
+    expect(events).toEqual(mode === "hint-error" ? ["source iter", "cursor iter", "hint"] : ["source iter", "cursor iter", "hint", "next", "next"]);
+  });
   it.each([
     ["items[guest]=9", [0,9,2], 1], ["del items[guest]", [0,2], 1],
     ["items[guest]+=9", [0,10,2], 2],

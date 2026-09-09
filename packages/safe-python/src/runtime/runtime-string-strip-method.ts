@@ -29,7 +29,7 @@ export function createRuntimeStringStripMethod(receiver: Extract<RuntimeValue, {
       if (name !== "rstrip") while (start < stop && matches(receiver.value.codePointAt(start, meter))) start++;
       if (name !== "lstrip") while (stop > start && matches(receiver.value.codePointAt(stop - 1n, meter))) stop--;
       if (start === 0n && stop === BigInt(receiver.value.length)) return receiver;
-      return values.stringPoints(receiver.value.slice(start, stop, null, meter));
+      return values.stringPoints(receiver.value.slice(start, stop, null, meter), "canonical");
     }
   });
 }

@@ -32,11 +32,11 @@ export function createRuntimeSplitlinesMethod(receiver: Extract<RuntimeValue, { 
         if (point === 13 && index < length && (receiver.kind === "str" ? receiver.value.codePointAt(index, meter) : receiver.value.byteAt(index, meter)) === 10) index++;
         const stop = retain ? index : end;
         result.append(start === 0n && stop === length ? receiver : receiver.kind === "str"
-          ? values.stringPoints(receiver.value.slice(start, stop, null, meter)) : values.bytes(receiver.value.slice(start, stop, null, meter)));
+          ? values.stringPoints(receiver.value.slice(start, stop, null, meter), "canonical") : values.bytes(receiver.value.slice(start, stop, null, meter)));
         start = index;
       }
       if (start < length) result.append(start === 0n ? receiver : receiver.kind === "str"
-        ? values.stringPoints(receiver.value.slice(start, length, null, meter)) : values.bytes(receiver.value.slice(start, length, null, meter)));
+        ? values.stringPoints(receiver.value.slice(start, length, null, meter), "canonical") : values.bytes(receiver.value.slice(start, length, null, meter)));
       return values.list(result);
     }
   });

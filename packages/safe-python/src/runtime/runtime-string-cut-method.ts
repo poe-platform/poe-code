@@ -22,7 +22,7 @@ export function createRuntimeStringCutMethod(receiver: Extract<RuntimeValue, { k
         if (separator.length === 0 || !text.hasAffix(separator, name === "removeprefix" ? "start" : "end", 0n, null, meter)) return receiver;
         const start = name === "removeprefix" ? BigInt(separator.length) : 0n;
         const stop = name === "removesuffix" ? BigInt(text.length - separator.length) : null;
-        return values.stringPoints(text.slice(start, stop, null, meter));
+        return values.stringPoints(text.slice(start, stop, null, meter), "canonical");
       }
       if (separator.length === 0) throw new PythonRuntimeError("ValueError", "empty separator");
       const index = text.search(separator, name === "partition" ? "find" : "rfind", 0n, null, meter);
@@ -30,9 +30,9 @@ export function createRuntimeStringCutMethod(receiver: Extract<RuntimeValue, { k
         const empty = values.string("");
         return values.tuple(name === "partition" ? [receiver, empty, empty] : [empty, empty, receiver]);
       }
-      const left = index === 0 ? values.string("") : values.stringPoints(text.slice(0n, BigInt(index), null, meter));
+      const left = index === 0 ? values.string("") : values.stringPoints(text.slice(0n, BigInt(index), null, meter), "canonical");
       const end = index + separator.length;
-      const right = end === text.length ? (index === 0 ? left : values.string("")) : values.stringPoints(text.slice(BigInt(end), null, null, meter));
+      const right = end === text.length ? (index === 0 ? left : values.string("")) : values.stringPoints(text.slice(BigInt(end), null, null, meter), "canonical");
       return values.tuple([left, argument, right]);
     }
   });

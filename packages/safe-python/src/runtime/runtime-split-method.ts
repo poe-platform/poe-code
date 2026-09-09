@@ -40,10 +40,9 @@ export function createRuntimeSplitMethod(receiver: Extract<RuntimeValue, { kind:
       for (const part of receiver.value.split(separator.kind === "none" ? null : separator.value, maxsplit, reverse, meter)) {
         meter.checkpoint();
         // A zero-limit whitespace remainder uses the copying path, not the
-        // unsplit fast path. CPython's cached Latin-1 singleton is an exception.
-        const copyRemainder = separator.kind === "none" && maxsplit === 0n
-          && !(part.length === 1 && part.codePointAt(0n, meter) <= 0xff);
-        result.append(part === receiver.value && !copyRemainder ? receiver : values.stringPoints(part));
+        // unsplit fast path. Canonical construction handles Latin-1 caching.
+        const copyRemainder = separator.kind === "none" && maxsplit === 0n;
+        result.append(part === receiver.value && !copyRemainder ? receiver : values.stringPoints(part, "canonical"));
       }
       if (reverse) result.reverse();
       return values.list(result);

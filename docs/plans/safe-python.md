@@ -5858,6 +5858,16 @@ extension, integration, or validation requirement is missing or unverified.
   iteration, contiguous/strided slices, fresh-source full slices and empty
   results. Typecheck, scoped lint and selected workspace build pass. Other
   string-result identity policies and broader interpreter integration remain open.
+- Applied canonical substring construction to strip/lstrip/rstrip, prefix/suffix
+  removal, partition/rpartition, split/rsplit and splitlines. Unchanged source
+  identity and supplied partition separator identity remain intact. Zero-limit
+  whitespace splitting now routes even fresh Latin-1 remainders through canonical
+  construction instead of incorrectly returning the fresh source object.
+- Four tests first reproduced incorrect substring identity. All 4,736 tests in
+  409 files pass. A 4,176-program CPython audit covers empty/all Latin-1,
+  non-Latin-1, surrogate and longer strings across the changed methods, including
+  fresh source/no-op behavior. Typecheck, scoped lint and selected workspace
+  build pass. Other string-result policies and broader interpreter work remain open.
 - Next:
   remaining scope/compiler audits, interpreter runtime,
   resource controls, runtime modules, and safe-fs integration. Parsing and static

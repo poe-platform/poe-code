@@ -2624,6 +2624,20 @@ extension, integration, or validation requirement is missing or unverified.
   Guest iter argument binding, iterator identity, StopIteration values, guest
   call/reflected equality implementations, recursion limits and complete native
   allocation accounting remain unfinished.
+- Added zip iteration over prepared inputs, including strict length checking.
+  Inputs advance left to right; partial rows consume earlier values but never
+  invoke the tuple factory. A first-input exhaustion probes later inputs and
+  consumes the unmatched value before a longer-input error; later exhaustion
+  reports the shorter input. Singular/plural argument ranges match Python.
+  Retries retain actual input positions without forced sticky exhaustion, and
+  repeated references to one iterator support chunking semantics. Row slots and
+  iterator calls are metered before consumption and tuple construction.
+- The zip suite first failed on its missing module; all 2,903 tests in 176 files
+  pass. A 1,500-trace CPython audit matched 18,000 next observations, strict
+  mismatch errors, resumable input behavior and consumption order. Source
+  typecheck, scoped lint and selected workspace build passed. Guest zip
+  argument/strict truth binding, eager iterator creation, tuple wrapping/reuse,
+  builtin registration and complete native allocation accounting remain open.
 - Next:
   remaining scope/compiler audits, interpreter runtime,
   resource controls, runtime modules, and safe-fs integration. Parsing and static

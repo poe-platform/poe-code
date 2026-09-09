@@ -211,7 +211,7 @@ function serializeDumpValue(
   // Trusted run snapshots rebuild Date, promise and resolver properties by replay;
   // retain their ordinary runtime metadata below. Arbitrary snapshot inputs
   // still cannot serialize their managed state through this path.
-  if (hasGuestObjectState(value) && !isSandboxDataView(value) && !isNumericTypedArray(value) && !(state.trustedRunReplay && ((isSandboxClosure(value) && !isGuestClosure(value)) || isSandboxDate(value) || isSandboxPromise(value) || isPromiseResolvingFunction(value)))) {
+  if (hasGuestObjectState(value) && !isSandboxArrayBuffer(value) && !isSandboxSharedArrayBuffer(value) && !isSandboxDataView(value) && !isNumericTypedArray(value) && !(state.trustedRunReplay && ((isSandboxClosure(value) && !isGuestClosure(value)) || isSandboxDate(value) || isSandboxPromise(value) || isPromiseResolvingFunction(value)))) {
     throw new TypeError("Guest function properties and prototype links cannot be serialized.");
   }
 

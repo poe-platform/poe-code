@@ -3720,6 +3720,30 @@ extension, integration, or validation requirement is missing or unverified.
   Frozen sets, mutable-set lookup conversion, dictionary-view algebra, native
   bound set methods and set iterator table-position parity remain pending,
   alongside the full object runtime, suspension, accounting and SDK/safe-fs work.
+- Added frozen-set values with permanently sealed owned storage and cached,
+  order-independent 64-bit hashes derived from stored member hashes. Sealing
+  guards every mutation route, including callback-triggered sealing before a
+  write; mutable copies remain independent. Exact construction accepts iterable
+  inputs and returns an exact frozen input unchanged after argument validation.
+  Frozen sets participate in truth/length, iteration, membership, comparisons,
+  nested dictionary keys and all mixed set algebra. Result mutability follows
+  the left operand; augmented frozen operations use binary fallback.
+  Mutable-set membership probes now use equivalent frozen hashes without
+  allocating replacement guest keys or making mutable sets generally hashable.
+  Dictionary-view comparison/disjointness and fromkeys include frozen fast paths.
+- Frozen-set verification: initial failing tests reproduced missing storage and
+  runtime behavior. Follow-up failures caught missing fast paths and cancellation
+  precedence on sealed in-place intersection; both are fixed. All 3,606 tests in
+  254 files pass, along with scoped lint, source typecheck and selected workspace
+  build. CPython audits matched 1,800 nested frozen-set cases (hashes, mixed
+  algebra/comparisons and mutable probes) and 1,200 frozen-set/view cases.
+  Regressions passed for mutable sets (1,800), merge callbacks (16) and difference
+  strategy/callback failures (1,350). A view audit stalled waiting for stdin EOF;
+  sampled stacks identified the transport wait, and a newline-framed JSON input
+  completed the audit after terminating that specific diagnostic child.
+  Native set/frozen-set methods, view-producing algebra, automatic builtin/type
+  registration, iterator table-position parity, complete accounting, suspension
+  and the full SDK/safe-fs integration remain unfinished.
 - Next:
   remaining scope/compiler audits, interpreter runtime,
   resource controls, runtime modules, and safe-fs integration. Parsing and static

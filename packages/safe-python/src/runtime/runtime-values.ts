@@ -39,6 +39,16 @@ export interface SetValue {
   readonly items: OrderedKeyMap<RuntimeValue, RuntimeValue>;
 }
 
+/** Permanently sealed key storage, owned exclusively before publication. */
+export interface FrozenSetValue {
+  readonly kind: "frozenset";
+  readonly items: OrderedKeyMap<RuntimeValue, RuntimeValue>;
+}
+
+export function isRuntimeSet(value: RuntimeValue): value is SetValue | FrozenSetValue {
+  return value.kind === "set" || value.kind === "frozenset";
+}
+
 /** Live read-only guest view. Host storage is never exposed by guest attributes. */
 export interface MappingProxyValue {
   readonly kind: "mappingproxy";
@@ -128,6 +138,7 @@ export type RuntimeValue =
   | MappingProxyValue
   | DictionaryViewValue
   | SetValue
+  | FrozenSetValue
   | DictionaryValue;
 
 /** Host-only records, never accessible through guest JavaScript properties.
@@ -220,5 +231,12 @@ export class RuntimeValues extends ConstantValues {
   set(items: OrderedKeyMap<RuntimeValue, RuntimeValue>): SetValue {
     this.runtimeMeter.checkpoint(1, 32);
     return Object.freeze({ kind: "set", items });
+  }
+
+  /** Adopt fresh, exclusively owned storage without copying its entries. */
+  frozenSet(items: OrderedKeyMap<RuntimeValue, RuntimeValue>): FrozenSetValue {
+    this.runtimeMeter.checkpoint(1, 32);
+    items.seal();
+    return Object.freeze({ kind: "frozenset", items });
   }
 }

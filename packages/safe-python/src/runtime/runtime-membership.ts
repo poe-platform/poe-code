@@ -18,7 +18,7 @@ export function runtimeMembership(operator: string, needle: RuntimeValue, contai
   meter.checkpoint();
   if (operator !== "in" && operator !== "not in") throw new Error(`unsupported constant membership operator: ${operator}`);
   let found = false;
-  if (container.kind === "set") {
+  if (container.kind === "set" || container.kind === "frozenset") {
     found = runtimeSetAccess(container, needle, "contains", values, meter);
   } else if (container.kind === "dict_keys" || container.kind === "dict_values" || container.kind === "dict_items") {
     const comparisons = containsRuntimeDictionaryView(container, needle, meter);

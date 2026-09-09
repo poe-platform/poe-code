@@ -3,7 +3,7 @@ import type { ExecutionMeter } from "./execution-budget.js";
 import { numericComparison } from "./numeric-comparison.js";
 import { PythonRuntimeError } from "./error.js";
 import { rangesEqual } from "./integer-sequence.js";
-import type { RuntimeValue } from "./runtime-values.js";
+import { isRuntimeSet, type RuntimeValue } from "./runtime-values.js";
 import { compareRuntimeDictionaryViews } from "./runtime-dictionary-view.js";
 
 type Compound = Extract<RuntimeValue, { kind: "list" | "tuple" | "slice" }>;
@@ -51,7 +51,7 @@ export function runtimeComparison(operator: string, left: RuntimeValue, right: R
     const task = work.pop()!;
     if (typeof task === "function") { task(); continue; }
     const { operator: op, left: a, right: b, depth } = task;
-    if (a.kind === "set" && b.kind === "set") {
+    if (isRuntimeSet(a) && isRuntimeSet(b)) {
       const aSize = a.items.size, bSize = b.items.size;
       if (op === "==" || op === "!=") {
         const equal = aSize === bSize && a.items.isKeySubsetOf(b.items);
@@ -60,7 +60,7 @@ export function runtimeComparison(operator: string, left: RuntimeValue, right: R
       else result = (op === ">" ? aSize > bSize : aSize >= bSize) && b.items.isKeySubsetOf(a.items);
       continue;
     }
-    if ((a.kind === "dict_keys" || a.kind === "dict_items" || a.kind === "set") && (b.kind === "dict_keys" || b.kind === "dict_items" || b.kind === "set")) {
+    if ((a.kind === "dict_keys" || a.kind === "dict_items" || isRuntimeSet(a)) && (b.kind === "dict_keys" || b.kind === "dict_items" || isRuntimeSet(b))) {
       if (depth >= maxDepth) throw new PythonRuntimeError("RecursionError", "maximum recursion depth exceeded in comparison");
       meter.checkpoint(0, 64);
       const comparisons = compareRuntimeDictionaryViews(op, a, b, values, meter);

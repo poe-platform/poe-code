@@ -15,7 +15,7 @@ import { iterateRuntimeDictionaryView } from "./runtime-dictionary-view.js";
 export function runtimeIterate(value: RuntimeValue, values: ConstantValues, meter: ExecutionMeter): Iterator<RuntimeValue> {
   meter.checkpoint();
   switch (value.kind) {
-    case "set":
+    case "set": case "frozenset":
       meter.checkpoint(1, 32);
       return value.items.iterate(key => key, "set");
     case "dict_keys": case "dict_values": case "dict_items": return iterateRuntimeDictionaryView(value, values, meter);

@@ -5,16 +5,16 @@ import type { ExpressionSet } from "./expression-evaluation.js";
 import { OrderedKeyMap, type KeyOperations } from "./ordered-key-map.js";
 import { UnhashableRuntimeValueError } from "./runtime-hash.js";
 import { runtimeIterate } from "./runtime-iteration.js";
-import type { DictionaryValue, RuntimeValue, RuntimeValues, SetValue } from "./runtime-values.js";
+import type { DictionaryValue, FrozenSetValue, RuntimeValue, RuntimeValues, SetValue } from "./runtime-values.js";
 
-export function runtimeSetAccess(set: SetValue, key: RuntimeValue, operation: "contains", values: ConstantValues, meter: ExecutionMeter): boolean;
+export function runtimeSetAccess(set: SetValue | FrozenSetValue, key: RuntimeValue, operation: "contains", values: ConstantValues, meter: ExecutionMeter): boolean;
 export function runtimeSetAccess(set: SetValue, key: RuntimeValue, operation: "add", values: ConstantValues, meter: ExecutionMeter): void;
-/** Exact set key operations; frozenset conversion for mutable-set lookup keys
- * and user-defined hash slots belong to subsequent object-model integration. */
-export function runtimeSetAccess(set: SetValue, key: RuntimeValue, operation: "contains" | "add", values: ConstantValues, meter: ExecutionMeter): boolean | void {
+/** Exact set key operations. Mutable-set lookup probes use equivalent frozen
+ * hashes without allocating replacement keys; insertion remains unhashable. */
+export function runtimeSetAccess(set: SetValue | FrozenSetValue, key: RuntimeValue, operation: "contains" | "add", values: ConstantValues, meter: ExecutionMeter): boolean | void {
   meter.checkpoint();
   try {
-    if (operation === "contains") return set.items.containsKey(key);
+    if (operation === "contains") return set.items.containsKey(key, key.kind === "set" ? key.items.keySetHash() : undefined);
     set.items.set(key, values.none);
   } catch (error) {
     if (!(error instanceof UnhashableRuntimeValueError)) throw error;
@@ -26,7 +26,7 @@ export function runtimeSetAccess(set: SetValue, key: RuntimeValue, operation: "c
  * retain prior insertions on failure. Set iteration order is not an API promise. */
 export function updateRuntimeSet(target: SetValue, source: RuntimeValue, values: RuntimeValues, meter: ExecutionMeter): void {
   meter.checkpoint();
-  if (source.kind === "set") target.items.mergeKeysInPlace(source.items, "|");
+  if (source.kind === "set" || source.kind === "frozenset") target.items.mergeKeysInPlace(source.items, "|");
   else if (source.kind === "dict") {
     meter.checkpoint(0, 16);
     target.items.update(source.items, undefined, { value: values.none });

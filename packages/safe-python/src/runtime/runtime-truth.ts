@@ -10,7 +10,7 @@ export function runtimeTruth(value: RuntimeValue, meter: ExecutionMeter): boolea
   meter.checkpoint();
   switch (value.kind) {
     case "list": return value.items.length !== 0;
-    case "dict": case "set": return value.items.size !== 0;
+    case "dict": case "set": case "frozenset": return value.items.size !== 0;
     case "mappingproxy": case "dict_keys": case "dict_values": case "dict_items": return value.value.items.size !== 0;
     case "range": return value.value.length !== 0n;
     case "iterator": case "function": case "builtin_function_or_method": case "method": case "cell": case "type": case "getset_descriptor": return true;

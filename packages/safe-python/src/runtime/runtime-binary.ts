@@ -3,7 +3,7 @@ import { constantConcat } from "./constant-concat.js";
 import { constantRepeat } from "./constant-repeat.js";
 import { PythonRuntimeError } from "./error.js";
 import type { ExecutionMeter } from "./execution-budget.js";
-import type { RuntimeValue, RuntimeValues } from "./runtime-values.js";
+import { isRuntimeSet, type RuntimeValue, type RuntimeValues } from "./runtime-values.js";
 
 /** Exact runtime binary kernels, not guest reflected/subclass dispatch. Lists
  * always produce fresh slots; tuple operations preserve mutable member identity.
@@ -32,14 +32,14 @@ export function runtimeBinary(operator: string, left: RuntimeValue, right: Runti
     }
   }
   if (left.kind === "mappingproxy" || right.kind === "mappingproxy") return values.notImplemented;
-  if (operator === "&" && left.kind === "set" && right.kind === "set") return values.set(left.items.intersectKeys(right.items));
-  if (operator === "-" && left.kind === "set" && right.kind === "set") return values.set(left.items.differenceKeys(right.items));
-  if ((operator === "|" || operator === "^") && left.kind === "set" && right.kind === "set") {
-    const result = values.set((operator === "|" ? left : right).items.copy());
-    if (operator !== "|" || left !== right) result.items.mergeKeysInPlace((operator === "|" ? right : left).items, operator);
-    return result;
+  if (isRuntimeSet(left) && isRuntimeSet(right)) {
+    if (operator === "&" || operator === "-" || operator === "|" || operator === "^") {
+      const items = operator === "&" ? left.items.intersectKeys(right.items) : operator === "-" ? left.items.differenceKeys(right.items) : (operator === "|" ? left : right).items.copy();
+      if ((operator === "|" && left !== right) || operator === "^") items.mergeKeysInPlace((operator === "|" ? right : left).items, operator);
+      return left.kind === "set" ? values.set(items) : values.frozenSet(items);
+    }
   }
-  if (left.kind === "set" || right.kind === "set") return values.notImplemented;
+  if (isRuntimeSet(left) || isRuntimeSet(right)) return values.notImplemented;
   if (left.kind === "dict_keys" || left.kind === "dict_items" || left.kind === "dict_values" || right.kind === "dict_keys" || right.kind === "dict_items" || right.kind === "dict_values") return values.notImplemented;
   if (left.kind === "cell" || right.kind === "cell" || left.kind === "type" || right.kind === "type") return values.notImplemented;
   if (left.kind === "getset_descriptor" || right.kind === "getset_descriptor") return values.notImplemented;

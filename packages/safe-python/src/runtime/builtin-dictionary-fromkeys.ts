@@ -32,7 +32,7 @@ export function createDictionaryFromKeysBuiltin(values: RuntimeValues, keys: Key
       const source = positional[0], value = positional[1] ?? values.none;
       const result = context ? context.create() : values.dictionary(new OrderedKeyMap<RuntimeValue, RuntimeValue>(keys, meter));
       meter.checkpoint();
-      if (result.kind === "dict" && (source.kind === "dict" || source.kind === "set")) {
+      if (result.kind === "dict" && (source.kind === "dict" || source.kind === "set" || source.kind === "frozenset")) {
         meter.checkpoint(0, 16);
         result.items.update(source.items, undefined, { value });
       } else {

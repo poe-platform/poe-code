@@ -3,7 +3,7 @@ import { PythonRuntimeError } from "./error.js";
 import { runtimeBinary } from "./runtime-binary.js";
 import { runtimeIterate } from "./runtime-iteration.js";
 import { updateRuntimeDictionary } from "./runtime-dictionary-update.js";
-import type { RuntimeValue, RuntimeValues } from "./runtime-values.js";
+import { isRuntimeSet, type RuntimeValue, type RuntimeValues } from "./runtime-values.js";
 
 /** Exact container in-place operations followed by ordinary binary fallback.
  * Streaming extension keeps partial progress on failure; direct self-extension
@@ -18,15 +18,15 @@ export function runtimeInPlace(operator: string, left: RuntimeValue, right: Runt
     updateRuntimeDictionary(left, right, values, meter);
     return left;
   }
-  if (left.kind === "set" && right.kind === "set" && operator === "&") {
+  if (left.kind === "set" && isRuntimeSet(right) && operator === "&") {
     left.items.intersectKeysInPlace(right.items);
     return left;
   }
-  if (left.kind === "set" && right.kind === "set" && operator === "-") {
+  if (left.kind === "set" && isRuntimeSet(right) && operator === "-") {
     left.items.subtractKeysInPlace(right.items);
     return left;
   }
-  if (left.kind === "set" && right.kind === "set" && (operator === "|" || operator === "^")) {
+  if (left.kind === "set" && isRuntimeSet(right) && (operator === "|" || operator === "^")) {
     left.items.mergeKeysInPlace(right.items, operator);
     return left;
   }

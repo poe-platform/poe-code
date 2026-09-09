@@ -31,6 +31,8 @@ export class OrderedKeyMap<Key, Value> {
   readonly #buckets: Map<bigint, Set<Entry<Key, Value>>>;
   readonly #entries: Set<Entry<Key, Value>>;
   #last: Entry<Key, Value> | undefined;
+  #sealed = false;
+  #keySetHash: bigint | undefined;
 
   constructor(private readonly operations: KeyOperations<Key>, private readonly meter: ExecutionMeter) {
     meter.checkpoint(1, 64);
@@ -41,6 +43,30 @@ export class OrderedKeyMap<Key, Value> {
 
   get size(): number { this.meter.checkpoint(); return this.#entries.size; }
 
+  /** Permanently close owned storage before publishing an immutable value. */
+  seal(): void { this.meter.checkpoint(); this.#sealed = true; }
+
+  /** Python's 64-bit frozenset hash over cached key hashes, not payloads.
+   * Mutable sets can request the equivalent hash for membership probes; only
+   * sealed storage caches it. No guest hash/equality callbacks run here. */
+  keySetHash(): bigint {
+    this.meter.checkpoint();
+    if (this.#keySetHash !== undefined) return this.#keySetHash;
+    let hash = 0n;
+    for (const entry of this.#entries) {
+      this.meter.checkpoint(1, 64);
+      const h = BigInt.asUintN(64, entry.hash);
+      hash ^= BigInt.asUintN(64, ((h ^ 89869747n) ^ (h << 16n)) * 3644798167n);
+    }
+    hash ^= BigInt.asUintN(64, (BigInt(this.#entries.size) + 1n) * 1927868237n);
+    hash ^= (hash >> 11n) ^ (hash >> 25n);
+    hash = BigInt.asIntN(64, hash * 69069n + 907133923n);
+    if (hash === -1n) hash = 590923713n;
+    this.meter.checkpoint(1, 64);
+    if (this.#sealed) this.#keySetHash = hash;
+    return hash;
+  }
+
   lookup(key: Key): Readonly<{ value: Value }> | undefined {
     this.meter.checkpoint();
     const hash = this.operations.hash(key);
@@ -50,10 +76,11 @@ export class OrderedKeyMap<Key, Value> {
     return Object.freeze({ value: entry.value });
   }
 
-  /** Boolean key lookup avoids allocating a presence/value result record. */
-  containsKey(key: Key): boolean {
+  /** Boolean lookup. A trusted caller may supply the equivalent frozen hash
+   * for a mutable-set probe without constructing or hashing a new guest key. */
+  containsKey(key: Key, knownHash?: bigint): boolean {
     this.meter.checkpoint();
-    const hash = this.operations.hash(key);
+    const hash = knownHash === undefined ? this.operations.hash(key) : knownHash;
     return this.#find(key, hash) !== undefined;
   }
 
@@ -86,9 +113,10 @@ export class OrderedKeyMap<Key, Value> {
 
   set(key: Key, value: Value): void {
     this.meter.checkpoint();
+    this.#assertWritable();
     const hash = this.operations.hash(key);
     const existing = this.#find(key, hash);
-    if (existing !== undefined) { existing.value = value; return; }
+    if (existing !== undefined) { this.#assertWritable(); existing.value = value; return; }
     this.#insert(key, hash, value);
   }
 
@@ -96,6 +124,7 @@ export class OrderedKeyMap<Key, Value> {
    * guest hashing/equality can mutate state or return different results. */
   setdefault(key: Key, value: Value): Value {
     this.meter.checkpoint();
+    this.#assertWritable();
     const hash = this.operations.hash(key);
     const existing = this.#find(key, hash);
     if (existing !== undefined) return existing.value;
@@ -107,6 +136,7 @@ export class OrderedKeyMap<Key, Value> {
    * applies its default or raises KeyError, without performing another lookup. */
   pop(key: Key): Readonly<{ value: Value }> | undefined {
     this.meter.checkpoint();
+    this.#assertWritable();
     // CPython skips hashing entirely on an empty dictionary.
     if (this.#entries.size === 0) return undefined;
     const hash = this.operations.hash(key);
@@ -125,6 +155,7 @@ export class OrderedKeyMap<Key, Value> {
   popitem<Result>(project: (key: Key, value: Value) => Result): Result | undefined;
   popitem<Result>(project?: (key: Key, value: Value) => Result): Result | readonly [Key, Value] | undefined {
     this.meter.checkpoint();
+    this.#assertWritable();
     const entry = this.#last;
     if (entry === undefined) return undefined;
     this.meter.checkpoint(0, 48);
@@ -136,6 +167,7 @@ export class OrderedKeyMap<Key, Value> {
 
   delete(key: Key): boolean {
     this.meter.checkpoint();
+    this.#assertWritable();
     const hash = this.operations.hash(key);
     const entry = this.#find(key, hash);
     if (entry === undefined) return false;
@@ -145,6 +177,7 @@ export class OrderedKeyMap<Key, Value> {
 
   clear(): void {
     this.meter.checkpoint(1 + this.#entries.size);
+    this.#assertWritable();
     this.#entries.clear();
     this.#buckets.clear();
     this.#last = undefined;
@@ -201,6 +234,7 @@ export class OrderedKeyMap<Key, Value> {
    */
   update(source: OrderedKeyMap<Key, Value>, rejectDuplicate?: (key: Key) => never, replacement?: { readonly value: Value }): void {
     this.meter.checkpoint();
+    this.#assertWritable();
     if (source === this && !rejectDuplicate && replacement === undefined) return;
     const size = source.#entries.size;
     for (const entry of source.#entries) {
@@ -212,6 +246,7 @@ export class OrderedKeyMap<Key, Value> {
       if (existing === undefined) this.#insert(key, hash, value);
       else {
         if (rejectDuplicate) rejectDuplicate(key);
+        this.#assertWritable();
         existing.value = value;
       }
       this.meter.checkpoint();
@@ -280,6 +315,7 @@ export class OrderedKeyMap<Key, Value> {
    * Python's bounded lookup strategy and its pre-removal callback phase. */
   subtractKeysInPlace(other: OrderedKeyMap<Key, Value>): void {
     this.meter.checkpoint();
+    this.#assertWritable();
     if (other === this) { this.clear(); return; }
     const source = Math.floor(other.#entries.size / 8) > this.#entries.size ? this.intersectKeys(other) : other;
     for (const entry of source.#entries) {
@@ -298,6 +334,7 @@ export class OrderedKeyMap<Key, Value> {
    * survive later callback/resource failures. */
   mergeKeysInPlace(source: OrderedKeyMap<Key, Value>, operator: "|" | "^"): void {
     this.meter.checkpoint();
+    this.#assertWritable();
     if (source === this) {
       if (operator === "^") this.clear();
       return;
@@ -351,11 +388,14 @@ export class OrderedKeyMap<Key, Value> {
    * Keep the live entry set so existing iterators still observe size changes.
    * Precharge the callback-free transfer before its first destructive write. */
   intersectKeysInPlace(other: OrderedKeyMap<Key, Value>): void {
+    this.meter.checkpoint();
+    this.#assertWritable();
     const result = this.intersectKeys(other);
     // Preserve live cursors for the unchanged self-intersection. Still compute
     // the copy above so its resource checks precede successful completion.
     if (this === other) return;
     this.meter.checkpoint(1 + this.#entries.size + result.#entries.size, 32 * result.#entries.size);
+    this.#assertWritable();
     this.#entries.clear();
     this.#buckets.clear();
     for (const entry of result.#entries) this.#entries.add(entry);
@@ -381,6 +421,7 @@ export class OrderedKeyMap<Key, Value> {
   #insert(key: Key, hash: bigint, value: Value): void {
     let bucket = this.#buckets.get(hash);
     this.meter.checkpoint(0, 104 + (bucket === undefined ? 32 : 0));
+    this.#assertWritable();
     const entry: Entry<Key, Value> = { key, hash, value, previous: this.#last, next: undefined };
     if (bucket === undefined) { bucket = new Set(); this.#buckets.set(hash, bucket); }
     bucket.add(entry);
@@ -390,6 +431,7 @@ export class OrderedKeyMap<Key, Value> {
   }
 
   #remove(entry: Entry<Key, Value>): void {
+    this.#assertWritable();
     const bucket = this.#buckets.get(entry.hash)!;
     bucket.delete(entry);
     if (bucket.size === 0) this.#buckets.delete(entry.hash);
@@ -400,6 +442,10 @@ export class OrderedKeyMap<Key, Value> {
     // A reverse cursor may already point at this removed entry. Keep its
     // predecessor route so the cursor can skip it and continue backwards.
     entry.next = undefined;
+  }
+
+  #assertWritable(): void {
+    if (this.#sealed) throw new Error("key storage is sealed");
   }
 
   #find(key: Key, hash: bigint): Entry<Key, Value> | undefined {

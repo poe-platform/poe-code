@@ -78,6 +78,7 @@ export function runtimeHash(value: RuntimeValue, context: ConstantHashContext | 
         result = BigInt.asIntN(64, prime5 + (prime5 ^ 3527539n));
       } else {
         switch (current.kind) {
+          case "frozenset": result = current.items.keySetHash(); break;
           case "mappingproxy": current = current.value; continue;
           case "method": {
             if (!("none" in context)) throw new Error("runtime hash context is required for bound methods");

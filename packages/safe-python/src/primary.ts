@@ -2,6 +2,7 @@ import type { CallArgument, Expression, SourceSpan, SubscriptItem } from "./ast.
 import type { TokenCursor } from "./token-cursor.js";
 import { reservedWords } from "./keywords.js";
 import { readComprehensionClauses } from "./comprehensions.js";
+import { readNamedExpression } from "./named-expression.js";
 
 type ReadExpression = (cursor: TokenCursor, minimum?: number) => Expression;
 
@@ -51,7 +52,7 @@ function readArguments(cursor: TokenCursor, read: ReadExpression, opening: Sourc
       if (first.text === "**") { mappingSeen = true; keywordSeen = true; }
       args.push({ kind: first.text === "*" ? "starred" : "mapping", value, start: first.start, end: value.end });
     } else {
-      let value = read(cursor);
+      let value = readNamedExpression(cursor, read);
       if (cursor.peek().text === "for" || cursor.peek().text === "async") {
         if (args.length > 0) throw cursor.error("generator expression must be parenthesized");
         const clauses = readComprehensionClauses(cursor, read);
@@ -86,10 +87,13 @@ function readSubscriptItem(cursor: TokenCursor, read: ReadExpression): Subscript
     const value = read(cursor);
     return { kind: "unpack", value, start: first.start, end: value.end };
   }
-  const lower = first.text === ":" ? null : read(cursor);
+  const lower = first.text === ":" ? null : readNamedExpression(cursor, read);
   if (cursor.peek().text !== ":") {
     if (!lower) throw cursor.error("expected subscript");
     return lower;
+  }
+  if (lower?.kind === "assignment-expression" && lower.start.offset === lower.target.start.offset) {
+    throw cursor.error("assignment expression in slice must be parenthesized");
   }
   let end = cursor.take().end;
   let upper: Expression | null = null;

@@ -38,6 +38,7 @@ export type Expression = SourceSpan & (
   | { readonly kind: "literal"; readonly literalKind: "integer" | "float" | "imaginary" | "string" | "bytes" | "boolean" | "none" | "ellipsis";
       readonly value: bigint | number | Uint32Array | Uint8Array | boolean | null }
   | { readonly kind: "name"; readonly spelling: string }
+  | { readonly kind: "assignment-expression"; readonly target: SourceSpan & { readonly kind: "name"; readonly spelling: string }; readonly value: Expression }
   | { readonly kind: "lambda"; readonly parameters: readonly Parameter[]; readonly body: Expression }
   | { readonly kind: "comprehension"; readonly collection: "list" | "set" | "generator"; readonly element: Expression; readonly clauses: readonly ComprehensionClause[] }
   | { readonly kind: "dictionary-comprehension"; readonly key: Expression; readonly value: Expression; readonly clauses: readonly ComprehensionClause[] }

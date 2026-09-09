@@ -216,8 +216,22 @@ extension, integration, or validation requirement is missing or unverified.
   workspace build passed. Comprehension scopes, iteration, eager versus lazy
   evaluation, assignment-expression restrictions, and async execution remain
   implementation work; these checks establish syntax only.
+- Added assignment-expression trees with unevaluated values and simple name
+  targets. A named-expression reader is used only where the grammar allows bare
+  `:=`, including displays, positional call arguments, and nonslice subscriptions.
+  Dictionary keys and slice bounds require parentheses; keyword values, lambda
+  bodies/defaults, conditionals, and comprehension filters keep expression or
+  disjunction grammar. Grouped targets, chained bare assignments, non-name targets,
+  and assignment to `__debug__` are rejected.
+- Assignment-expression validation: 23 tests failed before implementation; all
+  522 package tests now pass. 1,596 CPython parser acceptance comparisons matched,
+  plus 36 compiled CPython AST comparisons covering value precedence and contextual
+  placement. Scoped lint, source typecheck, and selected workspace build passed.
+  This establishes grammar, not binding: comprehension iterable restrictions,
+  iteration-variable rebinding checks, enclosing-scope binding, and normalized
+  identifiers still need the semantic validation/runtime work.
 - Next:
-  assignment expressions, interpolated-string ASTs, parser-level NFKC
+  comprehension scope validation, interpolated-string ASTs, parser-level NFKC
   normalization, the complete grammar/parser and evaluator, then runtime modules
   and safe-fs integration. Tokenization does not establish interpreter execution.
 - Workspace lockfile registration and packaging integration remain pending.

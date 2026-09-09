@@ -1,6 +1,7 @@
 import type { CollectionItem, DictionaryEntry, Expression, SourceSpan } from "./ast.js";
 import type { TokenCursor } from "./token-cursor.js";
 import { readComprehensionClauses } from "./comprehensions.js";
+import { readNamedExpression } from "./named-expression.js";
 
 type ReadExpression = (cursor: TokenCursor, minimum?: number) => Expression;
 
@@ -33,7 +34,7 @@ export function readDisplay(cursor: TokenCursor, read: ReadExpression): Expressi
 }
 
 function readItem(cursor: TokenCursor, read: ReadExpression): CollectionItem {
-  if (cursor.peek().text !== "*") return read(cursor);
+  if (cursor.peek().text !== "*") return readNamedExpression(cursor, read);
   const start = cursor.take().start;
   const value = read(cursor, 6);
   return { kind: "unpack", value, start, end: value.end };
@@ -46,6 +47,9 @@ function readEntry(cursor: TokenCursor, read: ReadExpression, firstKey?: Express
     return { kind: "mapping", value, start, end: value.end };
   }
   const key = firstKey ?? read(cursor);
+  if (key.kind === "assignment-expression" && key.start.offset === key.target.start.offset) {
+    throw cursor.error("assignment expression in dictionary key must be parenthesized");
+  }
   cursor.expect(":");
   const value = read(cursor);
   return { kind: "entry", key, value, start: key.start, end: value.end };

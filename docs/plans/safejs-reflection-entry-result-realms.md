@@ -144,3 +144,32 @@ Scoped ESLint, package TypeScript, and the maintained build passed (23
 workspace builds and four fresh-process import checks). Built ESM SDK probes
 passed for empty and non-empty foreign iterators. No visual CLI changes,
 push or release occurred.
+
+## Array, collection and string iterator-result implementation
+
+Thirty-two source regressions failed for Array values/keys/entries, Uint8Array
+values, Float32Array entries, Map entries, Set values and Unicode string
+iteration. The tests cover first yield, first completion, repeated completion,
+and direct SDK calls borrowing a next method from a different realm. Native
+VM controls passed; the payload/descriptor/fresh-result control already
+passed before the fix.
+
+A shared result factory creates the two data properties and records the
+originating Object prototype. These three iterator implementations use it
+for both yielded and completed results. It does not alter payload objects.
+Regressions check foreign prototype identity, subsequent prototype mutation,
+and rejection of lossy data copying.
+
+Other producers still require separate validation: RegExp iterators,
+iterator helpers, Iterator.from fallback return results, and generators.
+Their source contains result-object allocations, but that alone does not
+establish which exposed paths lose their creation realm.
+
+Validation passed 249 tests across nine iterator/entry/resize/snapshot files,
+including eight new public replay cases, and 397 tests across 18 iterator
+protocol/consumer/SDK files (these selections overlap). Scoped ESLint and
+package TypeScript passed. The maintained build passed 23 workspace builds
+and four fresh-process import checks; built SDK probes passed for Array,
+Uint8Array, Float32Array, Map, Set and string borrowed next calls through
+yield and repeated completion. No visual CLI changes, push or release. This
+does not replace a fresh full-package run.

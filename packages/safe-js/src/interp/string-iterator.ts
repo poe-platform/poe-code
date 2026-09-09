@@ -1,5 +1,6 @@
 import type { Budget } from "./budget.js";
 import type { SandboxObject, SandboxValue } from "./values.js";
+import { createIteratorResult } from "./iterator-result.js";
 
 export type StringIteratorState = { input: string | undefined; index: number };
 declare const stringIteratorBrand: unique symbol;
@@ -33,14 +34,14 @@ export function nextStringIterator(value: SandboxValue, budget: Budget): Sandbox
   if (!isSandboxStringIterator(value)) throw new TypeError("String iterator next requires a String iterator receiver.");
   const state = stringIteratorState(value);
   budget.visitNode();
-  if (state.input === undefined) return { value: undefined, done: true };
+  if (state.input === undefined) return createIteratorResult(undefined, true, budget);
   if (state.index >= state.input.length) {
     state.input = undefined;
     state.index = 0;
-    return { value: undefined, done: true };
+    return createIteratorResult(undefined, true, budget);
   }
   const width = state.input.codePointAt(state.index)! > 0xffff ? 2 : 1;
   const entry = budget.allocateString(state.input.slice(state.index, state.index + width));
   state.index += width;
-  return { value: entry, done: false };
+  return createIteratorResult(entry, false, budget);
 }

@@ -1,6 +1,7 @@
 import type { Budget } from "./budget.js";
 import type { SandboxMap, SandboxSet, SandboxValue, SandboxObject } from "./values.js";
 import { getSandboxPrototype, setSandboxPrototype } from "./object-model.js";
+import { createIteratorResult } from "./iterator-result.js";
 
 export const collectionIteratorPrototypes = new WeakMap<Budget, Partial<Record<"map" | "set", SandboxObject>>>();
 
@@ -80,13 +81,13 @@ export function nextCollectionIterator(
 ): { value: SandboxValue; done: boolean } {
   const state = states.get(value)!;
   budget?.visitNode();
-  if (state.exhausted) return { value: undefined, done: true };
+  if (state.exhausted) return createIteratorResult(undefined, true, budget);
   const result = state.iterator!.next();
   if (result.done) {
     state.exhausted = true;
     state.collection = undefined;
     state.iterator = undefined;
-    return { value: undefined, done: true };
+    return createIteratorResult(undefined, true, budget);
   }
   if (state.method === "entries") {
     budget?.allocateArrayLength(2);
@@ -95,7 +96,7 @@ export function nextCollectionIterator(
       if (prototype !== null) setSandboxPrototype(result.value, prototype, budget);
     }
   }
-  return { value: result.value, done: false };
+  return createIteratorResult(result.value, false, budget);
 }
 
 function nativeIterator(collection: SandboxMap | SandboxSet, method: CollectionIterationMethod): Iterator<SandboxValue> {

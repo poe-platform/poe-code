@@ -4,6 +4,7 @@ import { typedArrayStorage, isNumericTypedArray } from "../typed-array.js";
 import { readPropertyDescriptor } from "../accessors.js";
 import { getSandboxPropertyDescriptor, getSandboxPrototype, setSandboxPrototype } from "../object-model.js";
 import { retainValues } from "../resources.js";
+import { createIteratorResult } from "../iterator-result.js";
 import { sandboxNumber } from "../string-coercion.js";
 import type { SandboxCallContext, SandboxValue } from "../values.js";
 
@@ -11,7 +12,7 @@ export async function nextArrayIterator(value: SandboxValue, budget: Budget, con
   if (!isSandboxArrayIterator(value)) throw new TypeError("Array iterator next requires an Array iterator receiver.");
   const state = arrayIteratorState(value);
   const source = state.source;
-  if (source === undefined) return { value: undefined, done: true };
+  if (source === undefined) return createIteratorResult(undefined, true, budget);
   const index = state.index;
   const release = retainValues(budget, () => [value, source]);
   const read = (key: string) => context?.getProperty !== undefined ? context.getProperty(source, key)
@@ -24,19 +25,19 @@ export async function nextArrayIterator(value: SandboxValue, budget: Budget, con
     const length = Number.isNaN(number) || number <= 0 ? 0 : Math.min(Math.trunc(number), Number.MAX_SAFE_INTEGER);
     if (index >= length) {
       state.source = undefined;
-      return { value: undefined, done: true };
+      return createIteratorResult(undefined, true, budget);
     }
     state.index = index + 1;
-    if (state.method === "keys") return { value: index, done: false };
+    if (state.method === "keys") return createIteratorResult(index, false, budget);
     const entry = await read(String(index));
     if (state.method === "entries") {
       budget.allocateArrayLength(2);
       const pair = [index, entry];
       const prototype = getSandboxPrototype(pair, budget);
       if (prototype !== null) setSandboxPrototype(pair, prototype, budget);
-      return { value: pair, done: false };
+      return createIteratorResult(pair, false, budget);
     }
-    return { value: entry, done: false };
+    return createIteratorResult(entry, false, budget);
   } finally {
     release();
   }

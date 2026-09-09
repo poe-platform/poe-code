@@ -5214,6 +5214,20 @@ extension, integration, or validation requirement is missing or unverified.
   guest reflected slots and global string canonicalization remain incomplete.
   Full guest objects, suspended execution, complete accounting and SDK/safe-fs
   integration remain outstanding.
+- Added a metered active-path representation stack for upcoming recursive
+  container renderers. It detects identity cycles without treating repeated
+  siblings as recursive, bounds new nesting with an explicit execution policy,
+  precharges entries before mutation, and provides idempotent LIFO cleanup that
+  remains usable after fatal budget failures. Its depth limit is not claimed to
+  reproduce CPython's process/C-stack threshold.
+- Eight tests first failed for the missing guard. All 4,510 tests in 367 files
+  pass. With an audit-only list renderer, cycle-marker behavior matches CPython
+  for 2,000 shared/cyclic graphs and 9,000 roots. This validates the guard, not
+  production list representation integration. Source typecheck, scoped lint and
+  selected workspace build pass. Recursive container renderers, bytes percent
+  dispatch/operator integration, guest reflected slots and global string
+  canonicalization remain incomplete. Full guest objects, suspended execution,
+  complete accounting and SDK/safe-fs integration remain outstanding.
 - Next:
   remaining scope/compiler audits, interpreter runtime,
   resource controls, runtime modules, and safe-fs integration. Parsing and static

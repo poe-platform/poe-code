@@ -5956,6 +5956,20 @@ extension, integration, or validation requirement is missing or unverified.
   documented exact-rounding/platform-libm distinction. Automatic builtin
   namespace assembly, concrete guest classes and broader SDK/safe-fs work remain
   unfinished.
+- Added explicitly registered all/any through one short-circuit reduction
+  factory using native/guest iteration and execution-owned optional truth
+  dispatch. Explicit cursor pulls avoid implicit iterator closing; exhaustion
+  metadata is consumed, whereas truth exceptions propagate unchanged. No
+  collection of consumed values or length hint is needed, and each pull/truth
+  boundary checks the execution meter.
+- Ten tests cover empty results, native truth, early exit without closing or
+  over-pulling, argument errors, guest iteration/truth ordering, failures,
+  cancellation and bounded infinite input. All 4,784 tests in 418 files pass.
+  A 910-program CPython comparison covers native iterable reductions, remaining
+  cursor elements after short-circuiting, NotImplemented truth errors and public
+  arguments. Typecheck, scoped lint and selected workspace build pass. Automatic
+  builtin registration and general guest object/SDK/safe-fs integration remain
+  unfinished.
 - Next:
   remaining scope/compiler audits, interpreter runtime,
   resource controls, runtime modules, and safe-fs integration. Parsing and static

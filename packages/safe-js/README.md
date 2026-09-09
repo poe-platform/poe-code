@@ -484,8 +484,19 @@ conformance; further declaration edge cases and integration still need validatio
 Exception-flow work adds function hoisting and class temporal-dead-zone handling
 inside try/catch/finally blocks, including restored generators. Unresolved reads,
 calls and updates inside these blocks now reach guest catch handlers as
-`ReferenceError` values. Promise rejection delivery and recovery remain under
-validation; do not assume every error path is JavaScript-equivalent.
+`ReferenceError` values. The locally committed Promise repair preserves guest
+`ReferenceError` instances and shared rejection identity through handlers and
+checkpoint recovery, with coverage for executors, async functions, thenables and
+pass-through reactions. Bare unhandled missing names still return the public
+diagnostic envelope. Catch/finally normalization is still uncommitted, and caught
+ReferenceError stacks can lose the offending source location; do not assume
+every error path is JavaScript-equivalent.
+
+A separate local performance fix avoids allocating empty intrinsic-retention
+arrays when no changed values need retaining. Required descriptor scans,
+callback order and execution budgets are unchanged. Focused allocation and
+workload checks pass; this is not a guarantee that deadline-sensitive tests
+always pass under load.
 
 These changes have focused native-comparison and recovery tests, but the full
 integration gate is not green. The latest frozen whole-SafeJS snapshot includes

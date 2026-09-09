@@ -1908,6 +1908,21 @@ extension, integration, or validation requirement is missing or unverified.
   scoped lint and selected build passed. Concrete function/code value objects,
   metadata mutation, whole-program compilation/caching, guest suspension and full
   allocation accounting remain unfinished.
+- Added whole-program preparation of module suites and all analyzed function/class
+  bodies. AST-identity code maps support definition adapters without recompilation
+  or repeated scope searches. Traversal reaches defaults, comprehension children
+  and unexecuted definitions; nested docstring failures therefore precede module
+  execution. Added compiled module execution through ModuleFrame and the statement
+  engine, with retained-docstring storage, live supplied namespaces, shared active
+  frames and unconditional host restoration. Prior mutations are not rolled back.
+- Program/module validation: missing-module red suites preceded implementation.
+  All 2,365 tests in 124 files pass, including 14 new compilation/execution cases.
+  CPython matched 144 compiled module/exec traces across separate locals, nested
+  global declarations, retained/stripped/absent docstrings and mapping failures,
+  comparing namespace state and exact errors. Source typecheck, scoped lint and
+  selected build passed. This is not a standalone interpreter API: concrete guest
+  values and leaf/expression wiring, comprehension execution, imports/builtin
+  initialization, guest tracebacks and complete allocation accounting remain open.
 - Next:
   remaining scope/compiler audits, interpreter runtime,
   resource controls, runtime modules, and safe-fs integration. Parsing and static

@@ -10,7 +10,8 @@ import { ProtocolIterator } from "./protocol-iterator.js";
 import type { PercentBytesContext } from "./percent-bytes-conversion.js";
 import { diagnosticTypeName } from "./diagnostic-type-name.js";
 
-export type RuntimeBytesInputProtocol = Pick<PercentBytesContext<RuntimeValue>, "lookupBytes" | "byteString" | "typeName">;
+export type RuntimeBytesInputProtocol = Pick<PercentBytesContext<RuntimeValue>, "lookupBytes" | "byteString" | "typeName"> &
+  Partial<Pick<PercentBytesContext<RuntimeValue>, "bufferBytes">>;
 
 export interface RuntimeBytesInputContext {
   readonly bytes?: RuntimeBytesInputProtocol;
@@ -19,8 +20,8 @@ export interface RuntimeBytesInputContext {
 }
 
 /** Exact bytes or an iterable of byte indices; unlike bytes(n), an integer is
- * not a zero-filled allocation request. Guest __bytes__ precedes iteration;
- * buffer acquisition remains separate capability work. */
+ * not a zero-filled allocation request. Guest __bytes__ precedes buffer copying,
+ * then iterable fallback. Buffer capabilities own acquisition/copy/release. */
 export function runtimeBytesInput(source: RuntimeValue, values: RuntimeValues, meter: ExecutionMeter, context: RuntimeBytesInputContext = {}): ImmutableBytes {
   meter.checkpoint();
   if (source.kind === "bytes") return source.value;
@@ -33,6 +34,9 @@ export function runtimeBytesInput(source: RuntimeValue, values: RuntimeValues, m
       if (storage !== undefined) return storage;
       throw new PythonRuntimeError("TypeError", `__bytes__ returned non-bytes (type ${diagnosticTypeName(context.bytes.typeName(result), meter)})`);
     }
+    const buffer = context.bytes.bufferBytes?.(source);
+    meter.checkpoint();
+    if (buffer !== undefined) return buffer;
   }
   const type = source.kind === "none" ? "NoneType" : source.kind === "not-implemented" ? "NotImplementedType" : source.kind;
   if (source.kind === "str") throw new PythonRuntimeError("TypeError", `cannot convert '${type}' object to bytes`);

@@ -39,6 +39,28 @@ function fixture(source: string, maxSteps = 100000, signal?: AbortSignal) {
 }
 
 describe("assembled concrete runtime programs", () => {
+  it.each(["buffer", "bytes", "failure", "cancelled"])("decodes buffer-capable inputs (%s)", mode => {
+    const controller = new AbortController(), state = fixture("result=(0).from_bytes(source)\n", 100000, controller.signal), v = state.values;
+    const source = v.cell({}), payload = v.bytes(Uint8Array.of(1,2)), events: string[] = [];
+    const failure = new PythonRuntimeError("BufferError", "buffer unavailable");
+    state.globals.set("source", source);
+    state.hooks.expressions = () => ({ warn() {}, bytes: {
+      byteString: value => value.kind === "bytes" ? value.value : undefined,
+      typeName: value => value.kind,
+      lookupBytes: () => { events.push("lookup"); return mode === "bytes" ? () => { events.push("bytes"); return payload; } : undefined; },
+      bufferBytes: value => {
+        expect(value).toBe(source); events.push("buffer");
+        if (mode === "failure") throw failure;
+        if (mode === "cancelled") controller.abort();
+        return payload.value;
+      }
+    } });
+    if (mode === "failure") expect(() => state.run()).toThrow(failure);
+    else if (mode === "cancelled") expect(() => state.run()).toThrow(ExecutionLimitError);
+    else { state.run(); expect(state.globals.get("result")).toEqual(v.integer(258)); }
+    expect(events).toEqual(mode === "bytes" ? ["lookup", "bytes"] : ["lookup", "buffer"]);
+    if (mode === "failure" || mode === "cancelled") expect(state.globals.has("result")).toBe(false);
+  });
   it.each(["success", "invalid", "raises"])("uses guest __bytes__ before iterable fallback (%s)", mode => {
     const state = fixture("result=(0).from_bytes(source,signed=True)\n"), v = state.values, source = v.cell({});
     const failure = new PythonRuntimeError("ValueError", "bytes failed"); let calls = 0;

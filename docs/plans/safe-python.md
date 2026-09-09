@@ -6685,6 +6685,16 @@ extension, integration, or validation requirement is missing or unverified.
   iterable from_bytes comparisons match values/errors/traces. Typecheck and
   selected workspace build pass. Buffer input, automatic object/builtin assembly
   and broader interpreter/SDK/safe-fs integration remain unfinished.
+- Connected the existing buffer-copy capability contract to byte input after
+  __bytes__ and before iteration. Acquisition failures propagate; post-copy
+  cancellation prevents decoding. The capability owns metered C-order copying
+  and release, rather than exposing a live host buffer to the interpreter.
+- Four compiled regressions cover buffer success, __bytes__ precedence, failure
+  and cancellation. All 5,131 tests in 440 files pass; 24 CPython buffer-provider
+  comparisons match results/errors and acquisition/release traces. Typecheck,
+  scoped lint and selected workspace build pass. Concrete buffer exporters,
+  automatic object/builtin assembly and broader interpreter/SDK/safe-fs
+  integration remain unfinished.
 - Next:
   remaining scope/compiler audits, interpreter runtime,
   resource controls, runtime modules, and safe-fs integration. Parsing and static

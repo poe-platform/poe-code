@@ -779,6 +779,25 @@ extension, integration, or validation requirement is missing or unverified.
   typecheck, and selected workspace build passed. Reference:
   https://docs.python.org/3/library/stdtypes.html#str.count . Guest string method
   dispatch, search allocation accounting, and other string operations remain pending.
+- Added an internal execution meter and monotonic budget with explicit maximum
+  steps/cumulative allocated bytes and optional AbortSignal. Charges validate safe
+  integer inputs and commit atomically; limit/cancellation failures remain latched
+  and use a host termination class separate from guest-operation faults. Usage
+  snapshots are immutable, and abort reasons do not become guest error payloads.
+- Instrumented string-search entry, prefix allocation, prefix fallback, and scan
+  work through the meter interface. Allocation is charged before creating the
+  temporary prefix table. Meters remain optional on internal primitives; there is
+  no public safe execution entry yet. Other operations remain uninstrumented, and
+  cumulative charged bytes are not a measurement of live heap memory. Synchronous
+  checkpoints do not yield the event loop or provide preemptive cancellation.
+- Budget validation: the suite initially failed on the missing module; all 1,424
+  package tests pass, including 16 budget/search tests. An ad hoc sweep passed 486
+  search budget boundary cases. Tests cover exact limits, atomic rejection, latched
+  failure identity, invalid inputs, immutable snapshots, and cancellation before
+  entry and during scanning. Source typecheck and selected workspace build passed;
+  scoped source and test lint passed. Full runtime budget enforcement,
+  allocation accounting, asynchronous scheduling, and guest catch behavior remain
+  pending.
 - Next:
   remaining scope/compiler audits, interpreter runtime,
   resource controls, runtime modules, and safe-fs integration. Parsing and static

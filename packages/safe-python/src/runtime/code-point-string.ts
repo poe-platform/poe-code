@@ -1,6 +1,7 @@
 import { PythonRuntimeError } from "./error.js";
 import { normalizeSlice } from "./integer-sequence.js";
 import { searchSubstring, type SearchMode } from "./substring-search.js";
+import type { ExecutionMeter } from "./execution-budget.js";
 
 /** Internal immutable string storage, not the guest str object/protocol itself.
  * Surrogates remain individual code points; no UTF-16 round trip is performed.
@@ -45,7 +46,8 @@ export class CodePointString implements Iterable<number> {
     return new CodePointString(points);
   }
 
-  search(needle: CodePointString, mode: SearchMode, start = 0n, stop: bigint | null = null): number {
+  search(needle: CodePointString, mode: SearchMode, start = 0n, stop: bigint | null = null, meter?: ExecutionMeter): number {
+    meter?.checkpoint();
     const length = BigInt(this.length);
     if (start < 0n) start += length;
     if (start < 0n) start = 0n;
@@ -56,7 +58,7 @@ export class CodePointString implements Iterable<number> {
     // Unlike slice normalization, start beyond the end cannot match even ''.
     if (start > stop || BigInt(needle.length) > stop - start) return mode === "count" ? 0 : -1;
     if (needle.length === 0) return Number(mode === "find" ? start : mode === "rfind" ? stop : stop - start + 1n);
-    return searchSubstring(this.#points, needle.#points, Number(start), Number(stop), mode);
+    return searchSubstring(this.#points, needle.#points, Number(start), Number(stop), mode, meter);
   }
 
   compare(other: CodePointString): -1 | 0 | 1 {

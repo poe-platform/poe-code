@@ -87,31 +87,32 @@ export function createObjectArrayGlobals(options: {
       {
         keys: createSandboxClosure({
           sandbox: true,
-          call: ([value]) => budgetSandboxValue(getOwnEnumerableKeys(value), options.budget),
+          call: ([value], context) =>
+            typeof value === "object" && value !== null && guestProxyStates.has(value)
+              ? getOwnEnumerableProperties(value, "key", options.budget, context).then(keys =>
+                  allocateProducedSandboxValue(keys, options.budget))
+              : budgetSandboxValue(getOwnEnumerableKeys(value), options.budget),
           name: "keys"
         }),
         values: createSandboxClosure({
           sandbox: true,
           call: ([value], context) =>
-            context === undefined
+            context === undefined && !(typeof value === "object" && value !== null && guestProxyStates.has(value))
               ? allocateProducedSandboxValue(
                   getDirectEntries(value).map(([, entry]) => entry),
                   options.budget
                 )
-              : getOwnEnumerableEntries(value, options.budget, context).then((entries) =>
-                  allocateProducedSandboxValue(
-                    entries.map(([, entry]) => entry),
-                    options.budget
-                  )
+              : getOwnEnumerableProperties(value, "value", options.budget, context).then((values) =>
+                  allocateProducedSandboxValue(values, options.budget)
                 ),
           name: "values"
         }),
         entries: createSandboxClosure({
           sandbox: true,
           call: ([value], context) =>
-            context === undefined
+            context === undefined && !(typeof value === "object" && value !== null && guestProxyStates.has(value))
               ? allocateProducedSandboxValue(getDirectEntries(value), options.budget)
-              : getOwnEnumerableEntries(value, options.budget, context).then((entries) =>
+              : getOwnEnumerableProperties(value, "key+value", options.budget, context).then((entries) =>
                   allocateProducedSandboxValue(entries, options.budget)
                 ),
           name: "entries"
@@ -1102,26 +1103,36 @@ function createArrayFromConstructorArgs(
   }
 }
 
-async function getOwnEnumerableEntries(
+async function getOwnEnumerableProperties(
   value: SandboxValue,
+  kind: "key" | "value" | "key+value",
   budget: Budget,
   context?: SandboxCallContext
-): Promise<Array<[string, SandboxValue]>> {
-  const entries: Array<[string, SandboxValue]> = [];
-  const keys = isGuestHostObject(value)
-    ? getOwnEnumerableKeys(value)
-    : Object.getOwnPropertyNames(reflectionProperties(value));
+): Promise<SandboxArray> {
+  const entries: SandboxArray = [];
+  const proxy = typeof value === "object" && value !== null && guestProxyStates.has(value);
+  let keys: Array<string | symbol> = [];
   const release = retainValues(budget, () => [value, entries, keys]);
   try {
+    keys = proxy
+      ? await sandboxOwnKeys(value, budget, context)
+      : isGuestHostObject(value)
+        ? getOwnEnumerableKeys(value)
+        : Object.getOwnPropertyNames(reflectionProperties(value));
     for (const key of keys) {
       budget.visitNode();
-      if (!hasOwnSandboxProperty(value, key, true)) continue;
-      entries.push([
-        key,
-        await (context?.getProperty !== undefined
+      if (typeof key !== "string") continue;
+      const enumerable = proxy
+        ? (await sandboxGetOwnPropertyDescriptor(value, key, budget, context))?.enumerable
+        : hasOwnSandboxProperty(value, key, true);
+      if (!enumerable) continue;
+      if (kind === "key") entries.push(key);
+      else {
+        const entry = await (context?.getProperty !== undefined
           ? context.getProperty(value, key)
-          : getSandboxDataProperty(value, key, budget))
-      ]);
+          : getSandboxDataProperty(value, key, budget));
+        entries.push(kind === "value" ? entry : [key, entry]);
+      }
     }
     return entries;
   } finally {

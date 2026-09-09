@@ -9,6 +9,7 @@
     ".": { "types": "./dist/index.d.ts", "import": "./dist/index.js" }
   },
   "files": ["dist", "UNICODE-LICENSE.txt"],
+  "dependencies": { "@poe-code/safe-fs": "*" },
   "scripts": {
     "build": "node ../../scripts/guard-package-dist.mjs && tsc -p tsconfig.json",
     "generate:unicode": "tsx scripts/generate-unicode.ts",

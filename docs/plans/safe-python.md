@@ -1006,6 +1006,31 @@ extension, integration, or validation requirement is missing or unverified.
   https://docs.python.org/3/library/stdtypes.html#memoryview.c_contiguous . These
   are internal B-format buffer operations; guest buffer negotiation, other formats,
   file-backed streams, and safe-fs integration remain pending.
+- Added the first injected safe-fs boundary for bounded whole-file reads, ordinary
+  and exclusive writes, and direct appends. Added the declared safe-fs workspace
+  dependency using the build route's supported `*` range. The boundary requires
+  an execution meter and maximum read size, forwards an optional AbortSignal,
+  snapshots mutable write inputs before awaiting, and returns owned read buffers.
+  Read accounting conservatively reserves the maximum adapter result before the
+  call, then charges the returned copy; reservations are cumulative, not refunded.
+- Global and selected-path capability denials are honored without treating unknown
+  support as either authorization or rejection. Added failing regressions before
+  enforcing global readonly/unsupported declarations against contradictory path
+  metadata. Backend path confinement, permissions, storage quotas and operation
+  semantics remain the injected adapter's responsibility. Existing FsError objects
+  are preserved for later guest OSError translation. Cancellation is checked around
+  awaits; completed external mutations are not rolled back or claimed atomic.
+- Filesystem-boundary validation: the new suite failed on the missing module;
+  all 1,653 package tests pass, including 18 boundary cases using safe-fs's actual
+  in-memory adapter. An ad hoc model comparison passed 1,000 filesystem operations
+  and 360 budget boundaries. Scoped lint, source typecheck, and the maintained
+  selected build passed with the safe-fs/safe-python dependency closure; a built
+  runtime check also verified global capability denial. No real files were touched
+  by these runtime tests. Backend allocations/work beyond the reserved returned
+  buffer are not counted by this boundary's execution meter.
+  Guest file objects, imports, descriptor identity, filesystem exception conversion,
+  streaming I/O and public extension wiring remain pending. This establishes an
+  internal whole-file integration, not complete Python filesystem support.
 - Next:
   remaining scope/compiler audits, interpreter runtime,
   resource controls, runtime modules, and safe-fs integration. Parsing and static

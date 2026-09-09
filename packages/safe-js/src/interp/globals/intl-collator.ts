@@ -1,4 +1,5 @@
 import type { Budget } from "../budget.js";
+import { getFunctionRealmPrototype } from "../function-realm.js";
 import { accessorAdapter, readPropertyDescriptor } from "../accessors.js";
 import { createBoundFunction } from "../bound-function.js";
 import { invokeBuiltinClosure } from "../builtin-call.js";
@@ -31,9 +32,11 @@ export function createCollatorConstructor(budget: Budget): SandboxClosure {
   registerIntrinsicFunction(budget, compareTarget);
   const initialize = async ([input, options]: readonly SandboxValue[], context?: SandboxCallContext): Promise<SandboxValue> => {
     const target = context?.newTarget;
-    const selected = target === undefined || target === constructor ? prototype
+    let selected = target === undefined || target === constructor ? prototype
       : context?.getProperty !== undefined ? await context.getProperty(target, "prototype")
       : await readPropertyDescriptor(getSandboxPropertyDescriptor(target, "prototype", budget) ?? { value: undefined }, target, context);
+    if (selected === null || typeof selected !== "object")
+      selected = getFunctionRealmPrototype(target, "Intl.Collator", prototype);
     let locales: string[] = [];
     const release = retainValues(budget, () => [selected, locales]);
     try {

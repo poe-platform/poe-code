@@ -646,6 +646,9 @@ derived classes and field initialization.
 ArrayBuffer, DataView, and typed-array constructors likewise use foreign
 newTarget realm defaults. Focused checks cover native typed-array types,
 Float16Array, replaced global bindings, and target replay after cleanup.
+Intl constructors use namespace-qualified defaults from the newTarget realm,
+including after replacing the `Intl` global binding or replaying the target.
+Revocation during prototype lookup is checked before locale/options processing.
 `AggregateError.errors` retains the constructor realm's Array prototype,
 independently of a custom prototype supplied for the Error object.
 Promise construction, async returns and `then` results retain their

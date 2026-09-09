@@ -1,4 +1,5 @@
 import type { Budget } from "../budget.js";
+import { getFunctionRealmPrototype } from "../function-realm.js";
 import { accessorAdapter, readPropertyDescriptor } from "../accessors.js";
 import { buildLocaleTag, createSandboxLocale, localeMember, localeTag } from "../intl-locale.js";
 import { createIntrinsicObject, getSandboxPropertyDescriptor, materializeFunctionProperties, setSandboxPrototype } from "../object-model.js";
@@ -16,9 +17,11 @@ export function createLocaleConstructor(budget: Budget): SandboxClosure {
     call: () => { throw new TypeError("Intl.Locale requires new."); },
     construct: async ([tag, options], context) => {
       const target = context?.newTarget;
-      const selected = target === undefined || target === constructor ? prototype
+      let selected = target === undefined || target === constructor ? prototype
         : context?.getProperty !== undefined ? await context.getProperty(target, "prototype")
         : await readPropertyDescriptor(getSandboxPropertyDescriptor(target, "prototype", budget) ?? { value: undefined }, target, context);
+      if (selected === null || typeof selected !== "object")
+        selected = getFunctionRealmPrototype(target, "Intl.Locale", prototype);
       return create(await buildLocaleTag(tag, options, budget, context), selected);
     }
   });

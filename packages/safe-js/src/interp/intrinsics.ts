@@ -26,8 +26,8 @@ export function registerBuiltinIdentities(
     const [path, value] = pending[index];
     if (value === null || typeof value !== "object") continue;
     if (isSandboxClosure(value)) registerFunctionRealm(value, budget);
-    if (path.length === 2 && typeof path[0] === "string" && path[1] === "prototype")
-      registerRealmPrototype(budget, path[0], value);
+    if (path.length >= 2 && path.at(-1) === "prototype" && path.every(member => typeof member === "string"))
+      registerRealmPrototype(budget, path.slice(0, -1).join("."), value);
     const id = JSON.stringify(path);
     const previous = realm.get(id);
     if (previous !== undefined && previous !== value)

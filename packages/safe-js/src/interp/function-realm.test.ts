@@ -42,3 +42,14 @@ it("uses the caller fallback for an unregistered host closure", () => {
   const target = createSandboxClosure({name:"Number",call:()=>undefined});
   expect(getFunctionRealmPrototype(target,"Number",fallback)).toBe(fallback);
 });
+
+it("retains namespace-qualified defaults without flattening Intl names", () => {
+  const budget = new Budget();
+  const globals = createBuiltinBindings({budget});
+  const constructor = getSandboxDataProperty(globals.Intl,"NumberFormat",budget);
+  const prototype = getSandboxDataProperty(constructor,"prototype",budget);
+  releaseObjectPrototype(budget);
+  const fallback = {};
+  expect(getFunctionRealmPrototype(globals.Number,"Intl.NumberFormat",fallback)).toBe(prototype);
+  expect(getFunctionRealmPrototype(globals.Number,"NumberFormat",fallback)).toBe(fallback);
+});

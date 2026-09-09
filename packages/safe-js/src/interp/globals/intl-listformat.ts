@@ -1,4 +1,5 @@
 import type { Budget } from "../budget.js";
+import { getFunctionRealmPrototype } from "../function-realm.js";
 import { readPropertyDescriptor } from "../accessors.js";
 import { createDataCheckpoint } from "../data-checkpoint.js";
 import { canonicalizeGuestLocales, convertIntlOption, intlOptionsObject, readIntlProperty } from "../intl-options.js";
@@ -22,9 +23,11 @@ export function createListFormatConstructor(budget: Budget): SandboxClosure {
     call: () => { throw new TypeError("Constructor ListFormat requires 'new'."); },
     construct: async ([input, options], context) => {
       const target = context?.newTarget;
-      const selected = target === undefined || target === constructor ? prototype
+      let selected = target === undefined || target === constructor ? prototype
         : context?.getProperty !== undefined ? await context.getProperty(target, "prototype")
         : await readPropertyDescriptor(getSandboxPropertyDescriptor(target, "prototype", budget) ?? { value: undefined }, target, context);
+      if (selected === null || typeof selected !== "object")
+        selected = getFunctionRealmPrototype(target, "Intl.ListFormat", prototype);
       let locales: string[] = [];
       const converted: Record<string, string> = Object.create(null);
       const release = retainValues(budget, () => [selected, locales, converted]);

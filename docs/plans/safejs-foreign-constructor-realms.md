@@ -137,3 +137,32 @@ bound-class targets. The separate `intl-foreign-newtarget.test.ts` audit then
 reproduced 18 default-prototype failures across nine Intl constructors, with
 nine passing explicit custom-prototype controls. That audit is not included
 in the buffer fix or its passing test count.
+
+## Intl follow-up
+
+After `83a8f3da8`, the nine-constructor native differential reproduced 18
+fallback failures and nine passing explicit-prototype controls. Three replay
+cases added failures for NumberFormat, Locale and DurationFormat. DurationFormat
+is not available in the host VM; its test checks SafeJS realm identity and
+replay rather than native differential behavior.
+
+Intrinsic registration now preserves namespace-qualified installation paths
+such as `Intl.NumberFormat` instead of registering only top-level prototype
+paths. All ten Intl constructor implementations select the default immediately
+after reading newTarget.prototype, before locale/options conversion, and retain
+it throughout initialization. Registration remains based on trusted installation
+paths, not guest-visible names or mutable global bindings.
+
+All 471 tests passed across 15 focused Intl, realm, identity and accounting
+files. This includes revoked-Proxy ordering and namespace isolation checks.
+The maintained workspace closure built 23 workspaces and passed four fresh
+import checks; ten built-SDK Intl probes passed. The first concurrent standalone
+TypeScript check raced dependency dist rebuilding (tiny-mcp-client declarations
+were temporarily absent); the standalone TypeScript rerun passed after the
+successful workspace build, and scoped lint passed. All 1,700 tests in the
+127-file snapshot suite passed at this candidate.
+
+A separate dynamic Function constructor audit produced eight fallback failures
+across ordinary, async, generator and async-generator constructors, with four
+passing explicit-object prototype controls. That test is not part of the Intl
+fix or its passing test count.

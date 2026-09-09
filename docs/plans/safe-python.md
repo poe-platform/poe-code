@@ -406,6 +406,16 @@ extension, integration, or validation requirement is missing or unverified.
   syntax acceptance and nested body/else structure. Scoped lint, source typecheck,
   and the selected workspace build passed.
   This is grammar coverage, not loop execution or enclosing-scope validation.
+- Added for and async-for syntax with shared assignment-target validation,
+  starred/comma-separated iterables, single-line or indented bodies, and loop else
+  suites. Executable expressions in targets, iterables, bodies, and else suites
+  participate in expression validation. No iteration or async execution is claimed.
+- For-loop validation: three positive tests failed before implementation; all 814
+  package tests pass. A 768-case CPython compilation and AST comparison matched
+  acceptance, target/iterable trees, async flags, and body/else membership. CPython
+  cases were wrapped in an async function to isolate loop syntax from pending
+  enclosing-function restrictions. Scoped lint, source typecheck, and the selected
+  workspace build passed.
 - Next:
   compound statements, type aliases, and enclosing-scope validation
   normalization, the complete grammar/parser and evaluator, then runtime modules

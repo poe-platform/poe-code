@@ -3,6 +3,8 @@ import type { TokenCursor } from "./token-cursor.js";
 import { readExpression } from "./expression.js";
 import { readNamedExpression } from "./named-expression.js";
 import { readSimpleStatement } from "./simple-statements.js";
+import { readLoopTarget } from "./targets.js";
+import { readStatementValue } from "./assignment-statements.js";
 
 /** A block owns its statements; its caller owns the terminating dedent. */
 export function readStatements(cursor: TokenCursor): Statement[] {
@@ -10,6 +12,7 @@ export function readStatements(cursor: TokenCursor): Statement[] {
   while (cursor.peek().kind !== "end" && cursor.peek().kind !== "dedent") {
     if (cursor.peek().kind === "newline") { cursor.take(); continue; }
     if (cursor.peek().text === "if" || cursor.peek().text === "while") body.push(readConditional(cursor));
+    else if (cursor.peek().text === "for" || cursor.peek().text === "async") body.push(readFor(cursor));
     else for (const statement of readSimpleLine(cursor)) body.push(statement);
   }
   return body;
@@ -58,4 +61,20 @@ function readConditional(cursor: TokenCursor): Statement {
   return opening.text === "if"
     ? { kind: "if", branches, otherwise, ...span }
     : { kind: "while", condition, body, otherwise, ...span };
+}
+
+function readFor(cursor: TokenCursor): Statement {
+  const start = cursor.peek().start;
+  const async = cursor.peek().text === "async";
+  if (async) cursor.take();
+  cursor.expect("for");
+  const target = readLoopTarget(cursor, readExpression);
+  cursor.expect("in");
+  if (cursor.peek().text === "yield") throw cursor.error("expected iterable expression");
+  const iterable = readStatementValue(cursor);
+  const body = readSuite(cursor);
+  let otherwise: Statement[] = [];
+  if (cursor.peek().text === "else") { cursor.take(); otherwise = readSuite(cursor); }
+  const finalBody = otherwise.length ? otherwise : body;
+  return { kind: "for", async, target, iterable, body, otherwise, start, end: finalBody[finalBody.length - 1]!.end };
 }

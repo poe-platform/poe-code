@@ -5,6 +5,7 @@ export type ImportItem = SourceSpan & { readonly path: readonly DeclaredName[]; 
 export type ConditionalBranch = { readonly condition: Expression; readonly body: readonly Statement[] };
 
 export type Statement = SourceSpan & (
+  | { readonly kind: "for"; readonly async: boolean; readonly target: Expression; readonly iterable: Expression; readonly body: readonly Statement[]; readonly otherwise: readonly Statement[] }
   | { readonly kind: "if"; readonly branches: readonly ConditionalBranch[]; readonly otherwise: readonly Statement[] }
   | { readonly kind: "while"; readonly condition: Expression; readonly body: readonly Statement[]; readonly otherwise: readonly Statement[] }
   | { readonly kind: "pass" | "break" | "continue" }

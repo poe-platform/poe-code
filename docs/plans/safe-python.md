@@ -2888,6 +2888,20 @@ extension, integration, or validation requirement is missing or unverified.
   selected workspace build passed. Concrete guest builtin/context registration,
   rich comparison dispatch and complete native iterator/result allocation and
   recursion accounting remain unfinished.
+- Re-inspected module/expression execution: the public surface still exposes
+  parsing/static analysis, while module execution requires host-supplied body
+  adapters. There is no complete concrete execution context yet. Connected the
+  existing real/complex arithmetic, integer powers/bitwise/shifts and immutable
+  concat/repeat kernels through one constant binary dispatcher as groundwork for
+  that context. Matched-operation failures propagate; unavailable families
+  explicitly decline rather than masquerading as implemented behavior.
+- The dispatcher suite first failed on its missing module; all 3,148 tests in
+  196 files pass, including a parsed-expression evaluator integration test. A
+  3,000-case CPython audit matched parsed numeric/tuple expressions through that
+  evaluator/dispatcher composition. Source typecheck, scoped lint and selected
+  workspace build passed. Float/complex powers, string formatting, guest/mutable
+  object dispatch, concrete module contexts and complete resource accounting
+  remain open. Existing platform-sensitive floating-power limitations persist.
 - Next:
   remaining scope/compiler audits, interpreter runtime,
   resource controls, runtime modules, and safe-fs integration. Parsing and static

@@ -16,6 +16,24 @@ function fixture(source: string) {
 }
 
 describe("native basic Unicode string classifications", () => {
+  it.each([
+    ["isalpha", "Lettersµ变量", "Ⅳ"],
+    ["isdecimal", "٠١٢３", "²"],
+    ["isdigit", "²٠９", "¼"],
+    ["isnumeric", "²Ⅳ¼一", "a"],
+    ["isalnum", "abcⅣ²一", "a_"],
+    ["isprintable", "a 😀", "\u00a0"]
+  ])("implements Unicode %s without conflating related properties", (name, yes, no) => {
+    const valid = fixture(yes), invalid = fixture(no), empty = fixture("");
+    expect(valid.call(name)).toBe(valid.v.true);
+    expect(invalid.call(name)).toBe(invalid.v.false);
+    expect(empty.call(name)).toBe(name === "isprintable" ? empty.v.true : empty.v.false);
+  });
+  it("rejects unassigned, private-use and surrogate code points as printable", () => {
+    for (const source of ["\u0378", "\ue000", "\ud800", "\n", "\ufeff"]) {
+      const { call, v } = fixture(source); expect(call("isprintable")).toBe(v.false);
+    }
+  });
   it("accepts empty ASCII but not empty whitespace or identifiers", () => {
     const { call, v } = fixture("");
     expect(call("isascii")).toBe(v.true); expect(call("isspace")).toBe(v.false); expect(call("isidentifier")).toBe(v.false);
@@ -38,7 +56,7 @@ describe("native basic Unicode string classifications", () => {
       const { call, v } = fixture(source); expect(call("isidentifier")).toBe(v.false);
     }
   });
-  it.each(["isascii", "isspace", "isidentifier"])("rejects arguments and keywords for %s", name => {
+  it.each(["isascii", "isspace", "isidentifier", "isalpha", "isdecimal", "isdigit", "isnumeric", "isalnum", "isprintable"])("rejects arguments and keywords for %s", name => {
     const { call, v, keywords } = fixture("");
     expect(() => call(name, [v.true])).toThrow(`str.${name}() takes no arguments (1 given)`);
     keywords.items.set(v.string("x"), v.true);

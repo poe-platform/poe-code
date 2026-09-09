@@ -32,7 +32,11 @@ import { isRuntimeSet, type RuntimeValue, type RuntimeValues } from "./runtime-v
 export function runtimeNativeAttribute(receiver: RuntimeValue, name: string, values: RuntimeValues, meter: ExecutionMeter, beginCall?: ExpressionContext<RuntimeValue>["beginCall"]): RuntimeValue {
   meter.checkpoint();
   if (receiver.kind === "str") {
-    if (name === "isascii" || name === "isspace" || name === "isidentifier") return createRuntimeStringClassificationMethod(receiver, name, values, meter);
+    switch (name) {
+      case "isascii": case "isspace": case "isidentifier": case "isalpha": case "isdecimal":
+      case "isdigit": case "isnumeric": case "isalnum": case "isprintable":
+        return createRuntimeStringClassificationMethod(receiver, name, values, meter);
+    }
     if (name === "expandtabs") return createRuntimeStringExpandtabsMethod(receiver, values, meter);
     if (name === "center" || name === "ljust" || name === "rjust" || name === "zfill") return createRuntimeStringPadMethod(receiver, name, values, meter);
     if (name === "replace") return createRuntimeStringReplaceMethod(receiver, values, meter);

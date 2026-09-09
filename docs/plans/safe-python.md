@@ -4140,6 +4140,19 @@ extension, integration, or validation requirement is missing or unverified.
   scoped lint, source typecheck and selected workspace build pass. Remaining Unicode classification
   and case mappings, other native methods/builtins, subclasses/global interning,
   suspension, full accounting and SDK/safe-fs remain unfinished.
+- Connected str.isalpha/isdecimal/isdigit/isnumeric/isalnum/isprintable using
+  1,800 generated Unicode 16 category/numeric intervals. The hash-pinned
+  DerivedNumericType input includes Unihan numeric values; category ranges
+  distinguish letters from broader alphabetic properties and printable ASCII
+  space from other separators. Binary lookup is metered without per-call storage.
+- This increment began with failing method and missing-generator tests. All
+  3,900 tests in 286 files pass, including malformed generator ranges, generated
+  interval invariants, empty strings, invalid code points and lookup budgets.
+  All 1,114,112 code points match CPython across the six predicates, and 3,624
+  compiled calls match results and errors. Scoped lint, source typecheck and selected
+  workspace build pass. Unicode case mappings, other native methods/builtins,
+  subclasses/global interning, suspension, full accounting and SDK/safe-fs
+  remain unfinished.
 - Next:
   remaining scope/compiler audits, interpreter runtime,
   resource controls, runtime modules, and safe-fs integration. Parsing and static

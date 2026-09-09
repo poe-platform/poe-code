@@ -2677,6 +2677,20 @@ extension, integration, or validation requirement is missing or unverified.
   sharing strict binding. Source typecheck, scoped lint and selected workspace
   build passed. Guest builtin/iterator registration, concrete special-method
   dispatch, exception values and complete native allocation accounting remain open.
+- Added lazy filter iteration over a prepared source. None and exact builtin
+  bool use direct item truth; other predicates are called lazily and their
+  results truth-tested while returning the original accepted item. Invalid
+  predicates are not invoked for empty inputs. Source/callback stops end only
+  the current next call; subsequent calls may resume. Other errors preserve
+  consumed positions, and checkpoints bound infinite rejection loops and prevent
+  further guest callbacks after a fatal limit.
+- The filter suite first failed on its missing module; all 2,944 tests in 180
+  files pass. A 1,200-trace CPython audit matched 14,400 next observations plus
+  source, predicate and truth callback traces, including resumable stops and
+  nonterminal failures. Source typecheck, scoped lint and selected workspace
+  build passed. Filter argument binding/eager iterable construction, guest
+  builtin/object registration, concrete truth dispatch and complete allocation
+  accounting remain unfinished.
 - Next:
   remaining scope/compiler audits, interpreter runtime,
   resource controls, runtime modules, and safe-fs integration. Parsing and static

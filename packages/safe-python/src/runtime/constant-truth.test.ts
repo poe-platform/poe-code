@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { ConstantValues, type ConstantValue } from "./constant-values.js";
 import { constantTruth } from "./constant-truth.js";
+import { constantUnary } from "./constant-unary.js";
 import { ExecutionBudget, ExecutionLimitError } from "./execution-budget.js";
 import { evaluateExpression, type ExpressionContext } from "./expression-evaluation.js";
 import { parseExpression } from "../expression.js";
@@ -49,7 +50,7 @@ describe("concrete constant truth", () => {
     const context: ExpressionContext<ConstantValue> = {
       literal: node => v.literal(node), boolean: value => v.boolean(value), truth: value => constantTruth(value, meter),
       load: name => { if (name === "NotImplemented") return v.notImplemented; return unexpected(); }, store: unexpected,
-      unary: (operator, value) => { if (operator === "not") return v.boolean(!constantTruth(value, meter)); return unexpected(); },
+      unary: (operator, value) => constantUnary(operator, value, { values: v, warn: unexpected }, meter),
       binary: unexpected, compare: unexpected, attribute: unexpected, beginCall: unexpected,
       tuple: values => v.tuple(values), list: unexpected, beginSet: unexpected, beginDictionary: unexpected,
       slice: unexpected, getItem: unexpected, iterate: unexpected

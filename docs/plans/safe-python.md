@@ -2006,6 +2006,19 @@ extension, integration, or validation requirement is missing or unverified.
   short circuiting and exact errors. Typecheck, scoped lint and selected workspace
   build passed. User-defined/subclass __bool__/__len__ dispatch and concrete guest
   type integration remain unfinished; this helper is for exact builtin values.
+- Added exact builtin constant unary operators (+, -, ~, not), preserving numeric
+  unary-plus identity, arbitrary-size integer results, signed floating zeros and
+  component-wise complex negation. Boolean arithmetic returns integer values;
+  boolean inversion calls an explicit warning-policy hook before producing a
+  result. Unsupported operands report Python type names and unknown operators
+  remain host integration errors. Expression integration now uses this adapter.
+- Constant-unary validation: missing-module red tests preceded implementation.
+  All 2,445 tests in 131 files pass; CPython matched 2,444 unary results/errors and
+  complete warning traces, including large integers, NaN and infinities. Typecheck,
+  scoped lint and selected build passed. Guest warning filtering/locations,
+  subclass dispatch, bigint payload allocation and size-dependent CPU accounting
+  remain unfinished; tagged-result allocations and operation checkpoints alone
+  do not establish complete resource containment.
 - Next:
   remaining scope/compiler audits, interpreter runtime,
   resource controls, runtime modules, and safe-fs integration. Parsing and static

@@ -12,6 +12,7 @@ import type { CallStack } from "./call-stack.js";
 import type { KeyOperations } from "./ordered-key-map.js";
 import type { CompiledProgram } from "./program-compilation.js";
 import { beginRuntimeCall, type RuntimeCallContext } from "./runtime-call.js";
+import { runtimeCallable } from "./runtime-callability.js";
 import { createRuntimeExpressionContext, type RuntimeExpressionBindings } from "./runtime-expression-context.js";
 import { createRuntimeFunctionDefinitions, type RuntimeFunctionDefinitionBindings } from "./runtime-function-definition.js";
 import { invokeRuntimeFunction, type RuntimeFunctionContext } from "./runtime-function-call.js";
@@ -64,7 +65,7 @@ export function createRuntimeFrameBody(program: CompiledProgram<RuntimeValue>, c
     const beginCall = (callee: RuntimeValue) => beginRuntimeCall(callee, {
       iteration: expressionHooks.iteration,
       values, keys, name: value => value.kind === "builtin_function_or_method" ? `${value.value.name}()` : hooks.name(value.kind === "method" ? value.value.function : value), keywordName: hooks.keywordName.bind(hooks),
-      callable: value => value.kind === "function" || value.kind === "builtin_function_or_method" || value.kind === "method" || value.kind === "type" || hooks.callable(value),
+      callable: value => runtimeCallable(value, meter, hooks),
       invoke(value, positional, keywords) {
         if (value.kind === "builtin_function_or_method") return value.value.invoke(positional, keywords, meter);
         const fn = value.kind === "method" ? value.value.function : value;

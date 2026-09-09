@@ -6271,6 +6271,18 @@ extension, integration, or validation requirement is missing or unverified.
   cases. Typecheck, scoped lint and selected workspace build pass. Full guest
   exception-class adaptation and broader object/namespace/SDK/safe-fs work remain
   unfinished.
+- Added callable() and shared native/guest call-slot classification with actual
+  runtime invocation. Native functions, builtin functions, bound methods and
+  types bypass guest inspection. Other values use the execution's slot-presence
+  policy without descriptor lookup or speculative calls; a defined but unusable
+  __call__ can still classify as callable, matching Python.
+- Four tests cover native bypass, guest yes/no inspection, receiver binding,
+  default false and argument validation. All 4,934 tests in 429 files pass.
+  Twenty-four compiled programs match CPython across absent/disabled/present
+  guest call slots, native functions/methods, conditionals, nested functions
+  and malformed arguments. Typecheck, scoped lint and selected workspace build
+  pass. Automatic namespace assembly, concrete guest types and broader
+  interpreter/SDK/safe-fs integration remain unfinished.
 - Next:
   remaining scope/compiler audits, interpreter runtime,
   resource controls, runtime modules, and safe-fs integration. Parsing and static

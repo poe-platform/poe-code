@@ -8,10 +8,12 @@ import { isRuntimeSet, type RuntimeValue, type RuntimeValues } from "./runtime-v
 /** Exact container in-place operations followed by ordinary binary fallback.
  * Streaming extension keeps partial progress on failure; direct self-extension
  * duplicates the original slots once. Assignment write-back is the caller's job
- * and must not roll back mutations. Guest slots, length hints, unsupported-operand
- * diagnostics and finalizer behavior remain separate object-runtime work.
+ * and must not roll back mutations. An optional ordinary fallback connects guest
+ * binary dispatch and diagnostics after native mutation slots decline. Guest
+ * in-place slots must run before this kernel; length hints and finalizers remain
+ * separate object-runtime work.
  */
-export function runtimeInPlace(operator: string, left: RuntimeValue, right: RuntimeValue, values: RuntimeValues, meter: ExecutionMeter): RuntimeValue {
+export function runtimeInPlace(operator: string, left: RuntimeValue, right: RuntimeValue, values: RuntimeValues, meter: ExecutionMeter, fallback?: (operator: string, left: RuntimeValue, right: RuntimeValue) => RuntimeValue): RuntimeValue {
   meter.checkpoint();
   if (left.kind === "mappingproxy" && operator === "|") throw new PythonRuntimeError("TypeError", "'|=' is not supported by mappingproxy; use '|' instead");
   if (left.kind === "dict" && operator === "|") {
@@ -42,5 +44,5 @@ export function runtimeInPlace(operator: string, left: RuntimeValue, right: Runt
       return left;
     }
   }
-  return runtimeBinary(operator, left, right, values, meter);
+  return fallback === undefined ? runtimeBinary(operator, left, right, values, meter) : fallback(operator, left, right);
 }

@@ -16,7 +16,7 @@ export interface AdditionContext {
  * negotiation followed by native sequence fallback. Sequence failures must not
  * preempt reflected numeric methods. Guest sequence storage/buffer exporters
  * require further adapters; this never performs in-place addition. */
-export function runtimeAddition(left: RuntimeValue, right: RuntimeValue, values: RuntimeValues, meter: ExecutionMeter, context: AdditionContext = {}): RuntimeValue {
+export function runtimeAddition(left: RuntimeValue, right: RuntimeValue, values: RuntimeValues, meter: ExecutionMeter, context: AdditionContext = {}, augmented = false): RuntimeValue {
   meter.checkpoint();
   const result = context.numeric === undefined ? runtimeBinary("+", left, right, values, meter) : dispatchBinaryOperation(context.numeric, meter);
   meter.checkpoint();
@@ -28,5 +28,5 @@ export function runtimeAddition(left: RuntimeValue, right: RuntimeValue, values:
   if (left.kind === "bytes") throw new PythonRuntimeError("TypeError", `can't concat ${b} to bytes`);
   if (sequence) throw new PythonRuntimeError("TypeError", `can only concatenate ${left.kind} (not "${b}") to ${left.kind}`);
   const leftName = context.typeName?.(left) ?? (left.kind === "none" ? "NoneType" : left.kind === "not-implemented" ? "NotImplementedType" : left.kind);
-  throw new PythonRuntimeError("TypeError", `unsupported operand type(s) for +: '${diagnosticTypeName(leftName, meter, 100)}' and '${b}'`);
+  throw new PythonRuntimeError("TypeError", `unsupported operand type(s) for ${augmented ? "+=" : "+"}: '${diagnosticTypeName(leftName, meter, 100)}' and '${b}'`);
 }

@@ -6439,6 +6439,20 @@ extension, integration, or validation requirement is missing or unverified.
   and selected workspace build pass. Concrete automatic type/slot and builtin
   assembly, existing transcendental precision differences and broader runtime/
   SDK/safe-fs integration remain unfinished.
+- Connected statement-frame in-place capabilities to augmented assignment.
+  Guest in-place slots run first; absent/declined slots retain native container
+  mutation before ordinary expression fallback, including the shared guest power
+  policy. Existing target resolution/read/RHS/write ordering is retained, and
+  exceptions do not trigger fallback or write-back. No completed mutation is
+  rolled back. Ordinary fallback carries augmented diagnostic context so final
+  power/addition declines name **=/+= without rewriting inner guest exceptions.
+- Six new cases reproduce and cover augmented power negotiation, single indexed
+  target evaluation, failure isolation and augmented diagnostics. All 5,022 tests
+  in 438 files pass. All 32 compiled CPython augmented-power result/error/trace
+  comparisons match across module/nested frames, in-place success/decline/error
+  and ordinary/reflected fallback. Typecheck, scoped lint and selected workspace
+  build pass. Automatic slot/type assembly, remaining operator families, guest
+  container iteration/hints and broader interpreter/SDK/safe-fs work remain open.
 - Next:
   remaining scope/compiler audits, interpreter runtime,
   resource controls, runtime modules, and safe-fs integration. Parsing and static

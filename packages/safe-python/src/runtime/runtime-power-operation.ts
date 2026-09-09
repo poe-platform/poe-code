@@ -15,7 +15,7 @@ export interface RuntimePowerContext {
 
 /** Shared operator/builtin power semantics. Native kernels remain separately
  * callable by object-protocol adapters that need a declining native slot. */
-export function runtimePowerOperation(base: RuntimeValue, exponent: RuntimeValue, modulus: RuntimeValue, values: RuntimeValues, meter: ExecutionMeter, context: RuntimePowerContext = {}): RuntimeValue {
+export function runtimePowerOperation(base: RuntimeValue, exponent: RuntimeValue, modulus: RuntimeValue, values: RuntimeValues, meter: ExecutionMeter, context: RuntimePowerContext = {}, augmented = false): RuntimeValue {
   meter.checkpoint();
   const result = context.power === undefined ? runtimePower(base, exponent, modulus, values, meter) : context.power(base, exponent, modulus);
   meter.checkpoint();
@@ -27,5 +27,5 @@ export function runtimePowerOperation(base: RuntimeValue, exponent: RuntimeValue
     const name = context.typeName?.(value) ?? (value.kind === "none" ? "NoneType" : value.kind === "not-implemented" ? "NotImplementedType" : value.kind);
     names.push(`'${diagnosticTypeName(name, meter, 100)}'`);
   }
-  throw new PythonRuntimeError("TypeError", `unsupported operand type(s) for ** or pow(): ${names.join(modulus.kind === "none" ? " and " : ", ")}`);
+  throw new PythonRuntimeError("TypeError", `unsupported operand type(s) for ${augmented ? "**=" : "** or pow()"}: ${names.join(modulus.kind === "none" ? " and " : ", ")}`);
 }

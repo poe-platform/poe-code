@@ -42,7 +42,7 @@ export interface ExpressionContext<Value> {
   load(name: string): Value;
   store(name: string, value: Value): void;
   unary(operator: string, value: Value): Value;
-  binary(operator: string, left: Value, right: Value): Value;
+  binary(operator: string, left: Value, right: Value, augmented?: boolean): Value;
   compare(operator: string, left: Value, right: Value): Value;
   truth(value: Value): boolean;
   boolean(value: boolean): Value;

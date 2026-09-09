@@ -77,12 +77,12 @@ export function createRuntimeExpressionContext(values: RuntimeValues, bindings: 
       ? bindings.beginDictionary.bind(bindings)
       : initial => beginRuntimeDictionary(initial, values, bindings.dictionaryKeys, meter),
     unary: (operator, value) => operator === "not" ? values.boolean(!context.truth(value)) : runtimeUnary(operator, value, unary, meter),
-    binary(operator, left, right) {
-      if (operator === "**") return runtimePowerOperation(left, right, values.none, values, meter, bindings.power);
+    binary(operator, left, right, augmented = false) {
+      if (operator === "**") return runtimePowerOperation(left, right, values.none, values, meter, bindings.power, augmented);
       if (operator === "+") {
         const addition = bindings.addition?.(left, right);
         meter.checkpoint();
-        return runtimeAddition(left, right, values, meter, addition);
+        return runtimeAddition(left, right, values, meter, addition, augmented);
       }
       const result = runtimeBinary(operator, left, right, values, meter);
       if (result === values.notImplemented) throw new UnsupportedExpressionError("binary");

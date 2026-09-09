@@ -128,6 +128,7 @@ export function createRuntimeFrameBody(program: CompiledProgram<RuntimeValue>, c
     }, meter);
     return createRuntimeStatementContext(expressions, {
       deleteName: frame.delete.bind(frame),
+      inplace: statementHooks.inplace?.bind(statementHooks),
       setAttribute: statementHooks.setAttribute.bind(statementHooks), deleteAttribute: statementHooks.deleteAttribute.bind(statementHooks),
       assertions: statementHooks.assertions, managers: statementHooks.managers, exceptions: statementHooks.exceptions,
       executeUnhandled(statement) {

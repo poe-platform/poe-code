@@ -39,6 +39,38 @@ function fixture(source: string, maxSteps = 100000, signal?: AbortSignal) {
 }
 
 describe("assembled concrete runtime programs", () => {
+  it.each(["**", "+"])("reports augmented-operator diagnostics after native decline: %s", operator => {
+    const state = fixture(`x=None\nx ${operator}= 2`);
+    expect(() => state.run()).toThrow(`unsupported operand type(s) for ${operator}=: 'NoneType' and 'int'`);
+  });
+  it.each(["absent", "decline", "success"])("negotiates augmented power before ordinary fallback: %s", mode => {
+    const state = fixture("items=[a]\ndef key():\n trace.append('key')\n return 0\nitems[key()] **= b\nresult=items[0]");
+    const a = state.values.cell({}), b = state.values.cell({}), result = state.values.cell({}), events: string[] = [];
+    state.globals.set("a", a); state.globals.set("b", b); state.globals.set("trace", state.values.list([]));
+    state.hooks.expressions = () => ({ warn() {}, power: { power(left, right, modulus) {
+      events.push("power"); expect([left, right, modulus]).toEqual([a, b, state.values.none]); return result;
+    } } });
+    const statements = state.hooks.statements;
+    state.hooks.statements = frame => ({ ...statements(frame), inplace: mode === "absent" ? undefined : (operator, left, right) => {
+      events.push("inplace"); expect([operator, left, right]).toEqual(["**", a, b]);
+      return mode === "success" ? result : state.values.notImplemented;
+    } });
+    state.run();
+    expect(state.globals.get("result")).toBe(result);
+    expect(events).toEqual(mode === "absent" ? ["power"] : mode === "decline" ? ["inplace", "power"] : ["inplace"]);
+    const trace = state.globals.get("trace");
+    if (trace?.kind !== "list") throw new Error("expected trace list");
+    expect(trace.items.snapshot()).toEqual([state.values.string("key")]);
+  });
+  it("does not fall back or write back after an in-place hook fails", () => {
+    const state = fixture("x=a\nx **= b"), a = state.values.cell({}), failure = new PythonRuntimeError("ValueError", "inplace failed");
+    state.globals.set("a", a); state.globals.set("b", state.values.cell({}));
+    state.hooks.expressions = () => ({ warn() {}, power: { power() { throw new Error("unexpected fallback"); } } });
+    const statements = state.hooks.statements;
+    state.hooks.statements = frame => ({ ...statements(frame), inplace() { throw failure; } });
+    expect(() => state.run()).toThrow(failure);
+    expect(state.globals.get("x")).toBe(a);
+  });
   it.each(["result=a ** b", "result=pow(a,b)", "def f():\n return a ** b\nresult=f()", "def f():\n return pow(a,b)\nresult=f()"])("shares power capabilities across operators, builtins and frames: %s", source => {
     const state = fixture(source), a = state.values.cell({}), b = state.values.cell({});
     const result = state.values.list([]), seen: RuntimeValue[][] = [];

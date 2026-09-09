@@ -10,13 +10,17 @@ import type { ExecutionMeter } from "./execution-budget.js";
 import { evaluateExpression, type ExpressionContext } from "./expression-evaluation.js";
 import { runtimeInPlace } from "./runtime-inplace.js";
 import { resolveRuntimeReference, type RuntimeReferenceWrites } from "./runtime-reference.js";
-import { UnsupportedStatementError, type LeafStatement, type StatementContext } from "./statement-execution.js";
+import { type LeafStatement, type StatementContext } from "./statement-execution.js";
 import type { RuntimeValue, RuntimeValues } from "./runtime-values.js";
 
 export type UnhandledRuntimeStatement = Exclude<LeafStatement, { kind: "expression-statement" | "assignment" | "annotated-assignment" | "augmented-assignment" | "delete" }>;
 
 export interface RuntimeStatementBindings extends RuntimeReferenceWrites,
   Pick<StatementContext<RuntimeValue>, "assertions" | "managers" | "exceptions"> {
+  /** Invoke the left type's in-place slot, returning NotImplemented when absent
+   * or declined. Do not perform ordinary binary fallback here. Disabled slots
+   * raise through the adapter; mutations are not undone if fallback later fails. */
+  inplace?(operator: string, left: RuntimeValue, right: RuntimeValue): RuntimeValue;
   /** Execute definitions/imports/raise or throw an explicit implementation gap. */
   executeUnhandled(statement: UnhandledRuntimeStatement): void;
 }
@@ -24,12 +28,13 @@ export interface RuntimeStatementBindings extends RuntimeReferenceWrites,
 /** Connect analyzed statement traversal to concrete expressions, references and
  * exact-value mutation. Hooks supply the unfinished object/exception/import
  * capabilities explicitly; no filesystem or host execution capability is added.
- * Full temporary accounting and guest in-place
- * negotiation remain unfinished. All components share this execution meter.
+ * Guest in-place slots precede exact native mutation, then the expression
+ * context performs ordinary binary fallback. All components share one meter.
  */
 export function createRuntimeStatementContext(expressions: ExpressionContext<RuntimeValue>, bindings: RuntimeStatementBindings, values: RuntimeValues, meter: ExecutionMeter): StatementContext<RuntimeValue> {
   meter.checkpoint(1, 768);
   const resolve = (target: Expression) => resolveRuntimeReference(target, expressions, bindings, values, meter);
+  const binaryFallback = (operator: string, left: RuntimeValue, right: RuntimeValue) => expressions.binary(operator, left, right, true);
   const assignment: AssignmentExecutionContext<RuntimeValue> = {
     evaluate: expression => evaluateExpression(expression, expressions, meter),
     store: expressions.store.bind(expressions), list: expressions.list.bind(expressions), resolve,
@@ -48,9 +53,10 @@ export function createRuntimeStatementContext(expressions: ExpressionContext<Run
   const augmented: AugmentedAssignmentContext<RuntimeValue> = {
     evaluate: assignment.evaluate, resolve,
     inplace(operator, left, right) {
-      const result = runtimeInPlace(operator, left, right, values, meter);
-      if (result === values.notImplemented) throw new UnsupportedStatementError("augmented-assignment");
-      return result;
+      const result = bindings.inplace === undefined ? values.notImplemented : bindings.inplace(operator, left, right);
+      meter.checkpoint();
+      if (result !== values.notImplemented) return result;
+      return runtimeInPlace(operator, left, right, values, meter, binaryFallback);
     }
   };
   const deletion = { removeName: bindings.deleteName.bind(bindings), resolve };

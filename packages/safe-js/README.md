@@ -536,6 +536,8 @@ tests plus TypeScript and lint passing; neither status implies
 remote delivery or complete function compatibility.
 
 `Proxy` and `Proxy.revocable` are available in the locally committed runtime.
+Lint recognizes the Proxy global, including the CLI's default lint gate, and
+warns when a local declaration shadows it.
 Proxy support remains incomplete. Checkpoint graphs now preserve Proxy targets,
 handlers, aliases, cycles, callable/constructible identity, and revocation state.
 Revokers retain their own properties and release their target after use. Focused

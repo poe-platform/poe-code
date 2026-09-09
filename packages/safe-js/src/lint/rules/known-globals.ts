@@ -35,6 +35,7 @@ export const KNOWN_RUNTIME_GLOBALS = [
   "parseFloat",
   "parseInt",
   "Promise",
+  "Proxy",
   "RangeError",
   "ReferenceError",
   "Reflect",

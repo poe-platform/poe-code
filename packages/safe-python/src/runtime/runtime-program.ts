@@ -33,7 +33,7 @@ export interface RuntimeProgramHooks extends Pick<RuntimeCallContext, "callable"
   Pick<FunctionCreationContext<RuntimeValue>, "resolveBuiltins">,
   Pick<FunctionInvocationContext<RuntimeValue>, "suspended"> {
   expressions(frame: RuntimeFrame): Pick<RuntimeExpressionBindings, "attribute" | "beginSet" | "warn" | "formattedString" | "addition" | "truth" | "richComparison" | "containment" | "iteration" | "power" | "integerIndex">;
-  statements(frame: RuntimeFrame): Omit<RuntimeStatementBindings, "deleteName">;
+  statements(frame: RuntimeFrame): Omit<RuntimeStatementBindings, "deleteName" | "integerIndex">;
   invoke(callee: RuntimeValue, positional: readonly RuntimeValue[], keywords: DictionaryValue, frame: RuntimeFrame): RuntimeValue;
 }
 
@@ -128,6 +128,7 @@ export function createRuntimeFrameBody(program: CompiledProgram<RuntimeValue>, c
       createLambda: definitions.create.bind(definitions)
     }, meter);
     return createRuntimeStatementContext(expressions, {
+      integerIndex: expressionHooks.integerIndex,
       deleteName: frame.delete.bind(frame),
       inplace: statementHooks.inplace?.bind(statementHooks),
       setAttribute: statementHooks.setAttribute.bind(statementHooks), deleteAttribute: statementHooks.deleteAttribute.bind(statementHooks),

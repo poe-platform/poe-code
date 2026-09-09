@@ -3,8 +3,10 @@ import { evaluateExpression, type ExpressionContext } from "./expression-evaluat
 import type { ExecutionMeter } from "./execution-budget.js";
 import { runtimeMutateItem } from "./runtime-mutation.js";
 import type { RuntimeValue, RuntimeValues } from "./runtime-values.js";
+import type { IntegerIndexContext } from "./index-protocol.js";
 
 export interface RuntimeReferenceWrites {
+  readonly integerIndex?: IntegerIndexContext<RuntimeValue>;
   deleteName(name: string): void;
   setAttribute(object: RuntimeValue, name: string, value: RuntimeValue): void;
   deleteAttribute(object: RuntimeValue, name: string): void;
@@ -41,8 +43,8 @@ export function resolveRuntimeReference(target: Expression, context: ExpressionC
       const { object, key } = evaluateExpression(target, context, meter, "subscript-reference");
       return {
         get() { meter.checkpoint(); return context.getItem(object, key); },
-        set(value) { meter.checkpoint(1, 32); runtimeMutateItem(object, key, { kind: "set", value }, values, meter); },
-        remove() { meter.checkpoint(1, 16); runtimeMutateItem(object, key, { kind: "delete" }, values, meter); }
+        set(value) { meter.checkpoint(1, 32); runtimeMutateItem(object, key, { kind: "set", value }, values, meter, writes.integerIndex); },
+        remove() { meter.checkpoint(1, 16); runtimeMutateItem(object, key, { kind: "delete" }, values, meter, writes.integerIndex); }
       };
     }
     default: throw new Error(`invalid reference target: ${target.kind}`);

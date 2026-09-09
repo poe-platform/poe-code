@@ -6546,6 +6546,17 @@ extension, integration, or validation requirement is missing or unverified.
   Typecheck, scoped lint and selected workspace build pass. Subscript mutation,
   automatic object/builtin assembly and broader interpreter/SDK/safe-fs
   integration remain unfinished.
+- Connected list subscript assignment/deletion, including slices and augmented
+  writeback, to the same frame integer-index capability as reads. Extracted
+  shared sequence-index conversion so diagnostics and fixed-width policy cannot
+  diverge between reads and writes. Mapping keys and immutable-receiver checks
+  remain outside index conversion; retained augmented keys convert again on set.
+- Five compiled regression cases pass. All 5,072 tests in 440 files pass, along
+  with 84 CPython mutation comparisons (oversized/negative indices and callbacks
+  clearing or shortening the receiver) and 40 subscription-read comparisons.
+  Typecheck, scoped lint and selected workspace build pass. Guest replacement
+  iteration for slice assignment, automatic object/builtin assembly and broader
+  interpreter/SDK/safe-fs integration remain unfinished.
 - Next:
   remaining scope/compiler audits, interpreter runtime,
   resource controls, runtime modules, and safe-fs integration. Parsing and static

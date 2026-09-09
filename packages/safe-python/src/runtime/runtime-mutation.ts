@@ -5,6 +5,8 @@ import { runtimeIterate } from "./runtime-iteration.js";
 import { runtimeSliceBounds } from "./runtime-slice-bounds.js";
 import type { RuntimeValue, RuntimeValues } from "./runtime-values.js";
 import { runtimeDictionaryAccess } from "./runtime-dictionary-access.js";
+import type { IntegerIndexContext } from "./index-protocol.js";
+import { runtimeSequenceIndex } from "./runtime-sequence-index.js";
 
 export type ItemMutation = { readonly kind: "set"; readonly value: RuntimeValue } | { readonly kind: "delete" };
 
@@ -13,7 +15,7 @@ export type ItemMutation = { readonly kind: "set"; readonly value: RuntimeValue 
  * No implicit iterator close or rollback of callback effects. Guest slots,
  * length-hint dispatch and finalizer behavior remain object-runtime concerns.
  */
-export function runtimeMutateItem(object: RuntimeValue, key: RuntimeValue, change: ItemMutation, values: RuntimeValues, meter: ExecutionMeter): void {
+export function runtimeMutateItem(object: RuntimeValue, key: RuntimeValue, change: ItemMutation, values: RuntimeValues, meter: ExecutionMeter, context?: IntegerIndexContext<RuntimeValue>): void {
   meter.checkpoint();
   if (object.kind === "dict") { runtimeDictionaryAccess(object, key, change, meter); return; }
   if (object.kind !== "list") {
@@ -23,7 +25,7 @@ export function runtimeMutateItem(object: RuntimeValue, key: RuntimeValue, chang
     throw new PythonRuntimeError("TypeError", `'${name}' object ${verb} support item ${change.kind === "set" ? "assignment" : "deletion"}`);
   }
   if (key.kind === "slice") {
-    const { start, stop, step } = runtimeSliceBounds(key, meter);
+    const { start, stop, step } = runtimeSliceBounds(key, meter, context);
     if (change.kind === "delete") { object.items.deleteSlice(start, stop, step); return; }
     let replacement: ListStorage<RuntimeValue>;
     if (change.value.kind === "list") replacement = change.value.items;
@@ -41,11 +43,7 @@ export function runtimeMutateItem(object: RuntimeValue, key: RuntimeValue, chang
     object.items.setSlice(start, stop, step, replacement);
     return;
   }
-  if (key.kind !== "int" && key.kind !== "bool") {
-    const name = key.kind === "none" ? "NoneType" : key.kind === "not-implemented" ? "NotImplementedType" : key.kind;
-    throw new PythonRuntimeError("TypeError", `list indices must be integers or slices, not ${name}`);
-  }
-  const index = key.kind === "int" ? key.value : key.value ? 1n : 0n;
+  const index = runtimeSequenceIndex("list", key, meter, context);
   if (change.kind === "delete") object.items.delete(index);
   else object.items.set(index, change.value);
 }

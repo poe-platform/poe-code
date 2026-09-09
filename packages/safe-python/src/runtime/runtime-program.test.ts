@@ -39,6 +39,23 @@ function fixture(source: string, maxSteps = 100000, signal?: AbortSignal) {
 }
 
 describe("assembled concrete runtime programs", () => {
+  it.each([
+    ["items[guest]=9", [0,9,2], 1], ["del items[guest]", [0,2], 1],
+    ["items[guest]+=9", [0,10,2], 2],
+    ["items[guest:]=[9]", [0,9], 1], ["del items[guest:]", [0], 1]
+  ] as const)("converts guest indices for %s", (operation, expected, count) => {
+    const state = fixture(`items=[0,1,2]\n${operation}\n`), v = state.values; let calls = 0;
+    state.globals.set("guest", v.cell({}));
+    state.hooks.expressions = () => ({ warn() {}, integerIndex: {
+      integer: value => value.kind === "int" ? value.value : undefined,
+      isExactInteger: value => value.kind === "int", typeName: () => "Index", warn() {},
+      lookupIndex: () => () => { calls++; return v.integer(1); }
+    } });
+    state.run();
+    expect(calls).toBe(count);
+    const items = state.globals.get("items"); if (items?.kind !== "list") throw Error("expected list");
+    expect(items.items.snapshot()).toEqual(expected.map(value => v.integer(value)));
+  });
   it.each(["[0,1,2,3]", "(0,1,2,3)", "'abcd'", "b'abcd'"])("converts guest slice components in Python order for %s", source => {
     const state = fixture(`items=${source}\nresult=items[start:stop:step]\nexpected=items[0:3:2]\n`), v = state.values;
     const start = v.cell({}), stop = v.cell({}), step = v.cell({}), events: string[] = [];

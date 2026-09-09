@@ -5,8 +5,8 @@ import { normalizeSlice, rangeItem, sliceRange } from "./integer-sequence.js";
 import type { RuntimeValue, RuntimeValues } from "./runtime-values.js";
 import { runtimeSliceBounds } from "./runtime-slice-bounds.js";
 import { runtimeDictionaryAccess } from "./runtime-dictionary-access.js";
-import { validateIndexResult, type IntegerIndexContext } from "./index-protocol.js";
-import { diagnosticTypeName } from "./diagnostic-type-name.js";
+import type { IntegerIndexContext } from "./index-protocol.js";
+import { runtimeSequenceIndex } from "./runtime-sequence-index.js";
 
 /** Exact builtin subscription with optional guest index conversion. __getitem__ and overridden
  * subclass slots require the separate object protocol layer. List slices adopt
@@ -40,21 +40,7 @@ export function runtimeIndex(object: RuntimeValue, key: RuntimeValue, values: Ru
       }
     }
   }
-  let index = key.kind === "int" ? key.value : key.kind === "bool" ? (key.value ? 1n : 0n) : context?.integer(key);
-  if (index === undefined && context !== undefined) {
-    const slot = context.lookupIndex(key);
-    meter.checkpoint();
-    if (slot !== undefined) index = context.integer(validateIndexResult(slot(), context, meter));
-  }
-  meter.checkpoint();
-  if (index === undefined) {
-    const name = context === undefined ? key.kind === "none" ? "NoneType" : key.kind === "not-implemented" ? "NotImplementedType" : key.kind : diagnosticTypeName(context.typeName(key), meter);
-    throw new PythonRuntimeError("TypeError", object.kind === "str" ? `string indices must be integers, not '${name}'` : `${object.kind === "bytes" ? "byte" : object.kind} indices must be integers or slices, not ${name}`);
-  }
-  if (object.kind !== "range" && BigInt.asIntN(64, index) !== index) {
-    const name = key.kind === "int" ? "int" : context === undefined ? key.kind : diagnosticTypeName(context.typeName(key), meter);
-    throw new PythonRuntimeError("IndexError", `cannot fit '${name}' into an index-sized integer`);
-  }
+  let index = runtimeSequenceIndex(object.kind, key, meter, context);
   if (object.kind === "list") return object.items.get(index);
   if (object.kind === "range") return values.integer(rangeItem(object.value, index));
   if (object.kind === "str" || object.kind === "bytes") return constantIndex(object, key.kind === "int" || key.kind === "bool" ? key : values.integer(index), values, meter);

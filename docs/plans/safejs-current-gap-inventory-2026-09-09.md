@@ -38,6 +38,7 @@ not substitute for the pending full-package result.
 | Native Promise properties | Two tests require own-property admission; settlement-only import remains the implementation | Resolve explicit property-selection policy without copying async-hook or AsyncLocalStorage metadata |
 | Shared memory | Integer Atomics, managed shared buffers, async waits and bounded replay/recovery cases are implemented | Arbitrary intermediate async visibility, deterministic timeout recovery, host boundary and concurrency audits |
 | Internal wait restoration | Local committed heap restorer exposes explicit activation | Do not confuse this with the public SDK's source-replay path |
+| Mixed-realm intrinsic snapshots | A built-runtime probe combined distinct Number prototypes from two runs; low-level restoration collapsed their identities | Establish supported transport boundaries and preserve realm-qualified intrinsic graphs; see [the reproduction](safejs-mixed-realm-snapshot-identity.md) |
 | eval, Proxy and general language semantics | Many focused implementations and comparisons exist | An exhaustive conformance disposition is absent; presence and historical green tests are insufficient |
 | Ambient host APIs | No implicit DOM, Node, filesystem or network authority | Preserve capability boundaries; language completeness does not authorize exposing host privileges |
 | Repository-wide delivery checks | Focused/package evidence exists, not a current green repository gate | Appropriate maintained lint/build/test routes before eventual delivery |

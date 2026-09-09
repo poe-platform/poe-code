@@ -5046,6 +5046,19 @@ extension, integration, or validation requirement is missing or unverified.
   rendering, field padding, default dispatch and binary percent integration
   remain unfinished. Full guest objects, suspended execution, complete accounting
   and SDK/safe-fs integration remain outstanding.
+- Added unsigned e/E/f/F/g/G percent magnitude layout over exact digit renderers.
+  General notation uses the rounded exponent; alternate form preserves decimal
+  points and significant zeros. Exponents include signs and at least two digits.
+  Nonfinite spelling follows case without precision-proportional allocation.
+  General output without # caps internal precision at the exact binary64
+  coefficient bound instead of allocating trailing zeros only to remove them.
+- Seven missing-module tests drove the renderer. All 4,425 tests in 353 files
+  pass. CPython matches 26,160 magnitude outputs across all six codes, alternate
+  form, random binary64 values, rounding boundaries, nonfinite values and
+  precision through 5,000 places. Source typecheck, scoped lint and selected
+  workspace build pass. Sign handling, field padding, default dispatch and binary
+  percent integration remain unfinished. Full guest objects, suspended execution,
+  complete accounting and SDK/safe-fs integration remain outstanding.
 - Next:
   remaining scope/compiler audits, interpreter runtime,
   resource controls, runtime modules, and safe-fs integration. Parsing and static

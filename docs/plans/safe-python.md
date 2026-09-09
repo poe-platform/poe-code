@@ -1170,6 +1170,28 @@ extension, integration, or validation requirement is missing or unverified.
   guest slot lookup, callback execution/heap accounting, augmented-target storage,
   and evaluator integration. These internal dispatch functions alone do not
   execute guest expressions or augmented assignments.
+- Added Python-function argument binding for all five parser parameter kinds.
+  Positional-only names can flow into **kwargs without satisfying their positional
+  slots; variadic parameter names are not ordinary keyword targets. Evaluated
+  defaults retain identity and observe later replacements. Missing values are
+  distinguished from present undefined/None, and **mapping names are not NFKC-
+  normalized. Binding checks duplicate assignments and positional-only/unexpected
+  keywords before excess/missing-argument errors, retaining keyword insertion order.
+  Traversal is metered and input collections are unchanged; output variadics await
+  guest tuple/dict packing and frame installation.
+- Argument binding validation: missing-module red test preceded implementation;
+  all 1,755 tests in 81 files pass. Generated CPython calls matched 7,560 cases
+  over 216 signatures, including successful local values and primary TypeError
+  messages/precedence. CPython's optional unexpected-keyword "Did you mean" suffix
+  exposed an unimplemented diagnostic feature and was explicitly stripped only in
+  the comparison harness; exact suggestion parity is NOT claimed. Scoped lint,
+  source typecheck and dependency build passed. References:
+  https://docs.python.org/3/reference/expressions.html#calls and
+  https://docs.python.org/3/reference/compound_stmts.html#function-definitions .
+  Signature validity is a caller precondition; defaults are evaluated values.
+  Call-expression evaluation/unpacking, duplicate keyword assembly, non-string
+  and guest str-subclass key handling, suggestions, guest collection allocation
+  accounting, actual function/frame objects and evaluator wiring remain pending.
 - Next:
   remaining scope/compiler audits, interpreter runtime,
   resource controls, runtime modules, and safe-fs integration. Parsing and static

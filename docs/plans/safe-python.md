@@ -860,6 +860,20 @@ extension, integration, or validation requirement is missing or unverified.
   https://docs.python.org/3/library/codecs.html#incrementaldecoder-objects . Registry
   integration, other codecs, guest codec objects, and safe-fs text streams remain
   pending.
+- Added a metered universal-newline layer over decoded code points, with optional
+  CR/CRLF translation, trailing-CR buffering across empty/chunk boundaries, final
+  flushing, observed-newline metadata, and pending-state restoration/reset.
+  Other Unicode separators and individual surrogate points remain unchanged.
+  Failed budget checks leave pending and observed state intact; output buffers
+  are charged before allocation. Byte-codec state remains a separate layer.
+- Newline validation: the new suite first failed on the missing module; all 1,509
+  package tests pass, including 17 newline cases. Ad hoc CPython comparisons
+  matched 7,422 chunk sequences (29,688 output/metadata/state observations), and
+  4,320 step/allocation boundaries passed transactional-state checks. Scoped lint,
+  source typecheck, and selected workspace build passed. Reference:
+  https://docs.python.org/3/library/io.html#io.IncrementalNewlineDecoder . This is
+  an internal universal-newline primitive, not yet a guest I/O object; specific
+  newline modes, byte-codec composition, and safe-fs text streams remain pending.
 - Next:
   remaining scope/compiler audits, interpreter runtime,
   resource controls, runtime modules, and safe-fs integration. Parsing and static

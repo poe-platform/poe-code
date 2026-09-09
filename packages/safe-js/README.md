@@ -665,6 +665,8 @@ neither the caller's locals nor the owner script's private locals are captured.
 Ordinary, async, arrow, class and built-in functions retain their owning
 Function/AsyncFunction prototype after cleanup. This also preserves inherited
 properties and later binding operations; explicit null/custom prototypes win.
+Reusing a budget for a new realm starts a fresh function-prototype table while
+existing function objects retain their original prototype defaults.
 `AggregateError.errors` retains the constructor realm's Array prototype,
 independently of a custom prototype supplied for the Error object.
 Promise construction, async returns and `then` results retain their

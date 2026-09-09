@@ -24,6 +24,7 @@ import { createArrayBufferGlobal } from "./globals/array-buffer.js";
 import { createDataViewGlobal } from "./globals/data-view.js";
 import { createReflectGlobal } from "./globals/reflect.js";
 import { createProxyGlobal } from "./globals/proxy.js";
+import { activeFunctionRealmPrototypes } from "./function-realm.js";
 import { createIntlGlobal } from "./globals/intl.js";
 import type { RunClock } from "../run.js";
 import { builtinGlobalObjects, mutableBuiltinBindings, registerBuiltinIdentities } from "./intrinsics.js";
@@ -32,6 +33,7 @@ import { createIntrinsicObject, getSandboxPrototype, registerIntrinsicObject, se
 export function createBuiltinBindings(
   options: Parameters<typeof createConsoleJsonGlobals>[0] & { random?: () => number; clock?: RunClock; functionHasInstance?: boolean; errorPrototypes?: boolean; typedArrayPrototypes?: boolean }
 ) {
+  activeFunctionRealmPrototypes.delete(options.budget);
   const date = createDateGlobal(options);
   const baseBindings = {
     eval: createEvalGlobal(options.budget),

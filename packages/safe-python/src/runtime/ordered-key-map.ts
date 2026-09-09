@@ -8,7 +8,13 @@ export interface KeyOperations<Key> {
   equal(stored: Key, incoming: Key): boolean;
 }
 
-interface Entry<Key, Value> { readonly key: Key; value: Value }
+interface Entry<Key, Value> {
+  readonly key: Key;
+  readonly hash: bigint;
+  value: Value;
+  previous: Entry<Key, Value> | undefined;
+  next: Entry<Key, Value> | undefined;
+}
 
 /** Ordered storage with Python identity-or-equality key matching. Hash buckets
  * accelerate lookup; a separate ordered set retains the original key and its
@@ -22,6 +28,7 @@ interface Entry<Key, Value> { readonly key: Key; value: Value }
 export class OrderedKeyMap<Key, Value> {
   readonly #buckets: Map<bigint, Set<Entry<Key, Value>>>;
   readonly #entries: Set<Entry<Key, Value>>;
+  #last: Entry<Key, Value> | undefined;
 
   constructor(private readonly operations: KeyOperations<Key>, private readonly meter: ExecutionMeter) {
     meter.checkpoint(1, 64);
@@ -71,7 +78,19 @@ export class OrderedKeyMap<Key, Value> {
     if (entry === undefined) return undefined;
     this.meter.checkpoint(0, 16);
     const result = Object.freeze({ value: entry.value });
-    this.#remove(entry, hash);
+    this.#remove(entry);
+    return result;
+  }
+
+  /** LIFO removal without guest hashing/equality. Empty storage is reported as
+   * absence; the guest method layer raises its popitem-specific KeyError. */
+  popitem(): readonly [Key, Value] | undefined {
+    this.meter.checkpoint();
+    const entry = this.#last;
+    if (entry === undefined) return undefined;
+    this.meter.checkpoint(0, 48);
+    const result = Object.freeze([entry.key, entry.value] as const);
+    this.#remove(entry);
     return result;
   }
 
@@ -80,7 +99,7 @@ export class OrderedKeyMap<Key, Value> {
     const hash = this.operations.hash(key);
     const entry = this.#find(key, hash);
     if (entry === undefined) return false;
-    this.#remove(entry, hash);
+    this.#remove(entry);
     return true;
   }
 
@@ -88,6 +107,7 @@ export class OrderedKeyMap<Key, Value> {
     this.meter.checkpoint(1 + this.#entries.size);
     this.#entries.clear();
     this.#buckets.clear();
+    this.#last = undefined;
   }
 
   /** Capture iteration state now, not lazily on the first next call. */
@@ -108,18 +128,25 @@ export class OrderedKeyMap<Key, Value> {
 
   #insert(key: Key, hash: bigint, value: Value): void {
     let bucket = this.#buckets.get(hash);
-    this.meter.checkpoint(0, 80 + (bucket === undefined ? 32 : 0));
-    const entry: Entry<Key, Value> = { key, value };
+    this.meter.checkpoint(0, 104 + (bucket === undefined ? 32 : 0));
+    const entry: Entry<Key, Value> = { key, hash, value, previous: this.#last, next: undefined };
     if (bucket === undefined) { bucket = new Set(); this.#buckets.set(hash, bucket); }
     bucket.add(entry);
     this.#entries.add(entry);
+    if (this.#last !== undefined) this.#last.next = entry;
+    this.#last = entry;
   }
 
-  #remove(entry: Entry<Key, Value>, hash: bigint): void {
-    const bucket = this.#buckets.get(hash)!;
+  #remove(entry: Entry<Key, Value>): void {
+    const bucket = this.#buckets.get(entry.hash)!;
     bucket.delete(entry);
-    if (bucket.size === 0) this.#buckets.delete(hash);
+    if (bucket.size === 0) this.#buckets.delete(entry.hash);
     this.#entries.delete(entry);
+    if (entry.previous !== undefined) entry.previous.next = entry.next;
+    if (entry.next !== undefined) entry.next.previous = entry.previous;
+    else this.#last = entry.previous;
+    entry.previous = undefined;
+    entry.next = undefined;
   }
 
   #find(key: Key, hash: bigint): Entry<Key, Value> | undefined {

@@ -2347,6 +2347,21 @@ extension, integration, or validation requirement is missing or unverified.
   lint and selected workspace build passed. Exact-dict optimized
   merging, keyword updates and complete guest method/container wiring remain
   unfinished.
+- Added LIFO ordered-map popitem storage with a linked tail and cached entry
+  hashes, so removal requires no map scan or guest hash/equality calls. Normal
+  delete/pop paths maintain both links; overwrite retains position; clear resets
+  the tail. Returned pair storage is reserved before mutation. Empty storage
+  returns absence for the future guest layer's popitem-specific KeyError.
+  Entry reservations include the additional hash/link slots.
+- Popitem regressions first reproduced missing support. All 2,659 tests in 155
+  files pass, including key hash failures after insertion, middle/head/tail
+  deletion, iterator invalidation, allocation rejection and bounded pop steps.
+  Source typecheck, scoped lint and selected workspace build passed.
+  A 10,000-operation CPython audit with popitem/default/pop and ordered snapshots
+  matched under seeded hashes and forced collisions. The iterator re-audit keeps
+  the previously documented 1,495/1,512 exact trace matches and the same 17
+  size-preserving table-compaction differences. Guest methods/reverse iteration
+  and full host heap accounting remain unfinished.
 - Next:
   remaining scope/compiler audits, interpreter runtime,
   resource controls, runtime modules, and safe-fs integration. Parsing and static

@@ -4280,6 +4280,25 @@ extension, integration, or validation requirement is missing or unverified.
   results, which must remain fresh even for one byte. Guest buffer protocols,
   remaining bytes/text/numeric methods, native builtins, suspension, full
   accounting and SDK/safe-fs also remain unfinished.
+- Added a runtime-scoped lazy cache for the 257 empty/one-byte values, with an
+  explicit fresh-result identity policy. Cache map/entry storage is charged
+  before publication and hits allocate no records. Independent parsed literals,
+  contiguous partial slices and partition/removal sides now share canonical
+  values; nonempty casing and one-byte strided slices remain fresh. Full
+  unit-stride nonempty slices retain their receiver, including fresh receivers.
+- Six new tests first reproduced the cache gap. The initial differential audit
+  then exposed CPython's fresh zero-repeat empty bytes, reproduced in another
+  failing unit test. Repetition now preserves that distinction; empty slices
+  and casing canonicalize, unchanged removals retain the fresh receiver, and
+  missing partitions retain only its appropriate side. All 4,040 tests in 298
+  files pass. A 6,461-case compiled audit matches CPython byte values and identity
+  across all 256 bytes, fresh/canonical construction, slicing, repetition,
+  concatenation, casing, removal and partitioning. The stricter 3,244-call
+  partition-side identity audit, 4,305 casing calls, 1,200 literal-pooling
+  programs, scoped lint, source typecheck and selected workspace build pass.
+  String/integer interning,
+  compound constant folding, future bytes constructors/methods and buffer
+  protocols, full accounting, suspension and SDK/safe-fs remain unfinished.
 - Next:
   remaining scope/compiler audits, interpreter runtime,
   resource controls, runtime modules, and safe-fs integration. Parsing and static

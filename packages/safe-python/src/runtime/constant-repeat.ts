@@ -26,7 +26,7 @@ export function constantRepeat<Value = ConstantValue>(left: PrimitiveConstant | 
   if (total > BigInt(Number.MAX_SAFE_INTEGER)) exhaustAllocation(meter);
   try {
     if (source.kind === "str") return values.stringPoints(source.value.repeat(Number(repetitions), meter));
-    if (source.kind === "bytes") return values.bytes(source.value.repeat(Number(repetitions), meter));
+    if (source.kind === "bytes") return values.bytes(source.value.repeat(Number(repetitions), meter), "fresh");
     const members = source.items;
     return values.tuple(Number(total), index => members[index % length]);
   } catch (error) {

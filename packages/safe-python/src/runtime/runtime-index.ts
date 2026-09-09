@@ -30,9 +30,9 @@ export function runtimeIndex(object: RuntimeValue, key: RuntimeValue, values: Ru
       case "tuple": {
         const length = object.kind === "tuple" ? object.items.length : object.value.length;
         const indices = normalizeSlice(BigInt(length), start, stop, step);
-        if (indices.step === 1n && indices.start === 0n && indices.length === BigInt(length)) return object;
+        if (indices.step === 1n && indices.start === 0n && indices.length === BigInt(length) && (object.kind !== "bytes" || length !== 0)) return object;
         if (object.kind === "str") return values.stringPoints(object.value.slice(start, stop, step, meter));
-        if (object.kind === "bytes") return values.bytes(object.value.slice(start, stop, step, meter));
+        if (object.kind === "bytes") return values.bytes(object.value.slice(start, stop, step, meter), indices.step === 1n || indices.length === 0n ? "canonical" : "fresh");
         const count = Number(indices.length), first = Number(indices.start), stride = count > 1 ? Number(indices.step) : 0;
         return values.tuple(count, offset => object.items[first + offset * stride]);
       }

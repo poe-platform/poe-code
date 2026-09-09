@@ -28,9 +28,9 @@ export function constantSlice(object: ConstantValue, parts: SliceValues<Constant
   const start = bound(parts.lower, meter), stop = bound(parts.upper, meter);
   const length = object.kind === "tuple" ? object.items.length : object.value.length;
   const indices = normalizeSlice(BigInt(length), start, stop, step);
-  if (indices.step === 1n && indices.start === 0n && indices.length === BigInt(length)) return object;
+  if (indices.step === 1n && indices.start === 0n && indices.length === BigInt(length) && (object.kind !== "bytes" || length !== 0)) return object;
   if (object.kind === "str") return values.stringPoints(object.value.slice(start, stop, step, meter));
-  if (object.kind === "bytes") return values.bytes(object.value.slice(start, stop, step, meter));
+  if (object.kind === "bytes") return values.bytes(object.value.slice(start, stop, step, meter), indices.step === 1n || indices.length === 0n ? "canonical" : "fresh");
   const count = Number(indices.length);
   const stride = count > 1 ? Number(indices.step) : 0;
   const first = Number(indices.start);

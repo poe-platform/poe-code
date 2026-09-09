@@ -27,7 +27,7 @@ export function createRuntimeBytesCutMethod(receiver: Extract<RuntimeValue, { ki
       if (separator.length === 0) throw new PythonRuntimeError("ValueError", "empty separator");
       const index = source.search(separator, name === "partition" ? "find" : "rfind", 0n, null, meter);
       if (index === -1) {
-        const empty = source.length === 0 ? receiver : values.bytes(new Uint8Array());
+        const empty = values.bytes(new Uint8Array());
         return values.tuple(name === "partition" ? [receiver, empty, empty] : [empty, empty, receiver]);
       }
       const left = values.bytes(source.slice(0n, BigInt(index), null, meter)), end = index + separator.length;

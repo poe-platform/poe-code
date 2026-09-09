@@ -28,6 +28,7 @@ export interface SliceConstant<Value = ConstantValue> {
 }
 
 export type ConstantValue = PrimitiveConstant | TupleConstant<ConstantValue> | SliceConstant<ConstantValue>;
+type BytesConstant = Extract<PrimitiveConstant, { kind: "bytes" }>;
 
 // Logical runtime allocation policy, not a measurement of JavaScript heap size.
 const VALUE_BYTES = 32;
@@ -39,10 +40,14 @@ const REFERENCE_BYTES = 8;
  * slots, permitting mutable guest members through the generic tuple factory.
  * Charge 32 bytes per tagged record and 8 per tuple slot; copied string/byte
  * buffers are charged separately. Existing bigint payloads are retained, not
- * copied: their creation must be charged by the parser/arithmetic caller. Full
+ * copied: their creation must be charged by the parser/arithmetic caller.
+ * Small bytes are cached lazily (64-byte map plus 32 bytes per cache entry);
+ * empty/one-byte results can request fresh identity for operations such as
+ * repetition, casing and strided slicing. Full
  * host heap accounting, guest type objects and methods remain unfinished.
  */
 export class ConstantValues {
+  #smallBytes: Map<number, BytesConstant> | undefined;
   readonly none: Extract<PrimitiveConstant, { kind: "none" }>;
   readonly true: Extract<PrimitiveConstant, { kind: "bool" }>;
   readonly false: Extract<PrimitiveConstant, { kind: "bool" }>;
@@ -94,9 +99,22 @@ export class ConstantValues {
     return this.stringPoints(points.subarray(0, length));
   }
 
-  bytes(value: Uint8Array | ImmutableBytes): Extract<PrimitiveConstant, { kind: "bytes" }> {
-    this.meter.checkpoint(1, VALUE_BYTES);
-    return Object.freeze({ kind: "bytes", value: value instanceof ImmutableBytes ? value : ImmutableBytes.copyOf(value, this.meter) });
+  bytes(value: Uint8Array | ImmutableBytes, identity: "canonical" | "fresh" = "canonical"): BytesConstant {
+    this.meter.checkpoint();
+    let key: number | undefined;
+    if (value.length <= 1 && identity === "canonical") {
+      key = value.length === 0 ? -1 : value instanceof ImmutableBytes ? value.byteAt(0n, this.meter) : value[0];
+      const cached = this.#smallBytes?.get(key);
+      if (cached !== undefined) return cached;
+      this.meter.checkpoint(0, (this.#smallBytes === undefined ? 64 : 0) + 32);
+    }
+    this.meter.checkpoint(0, VALUE_BYTES);
+    const result: BytesConstant = Object.freeze({ kind: "bytes", value: value instanceof ImmutableBytes ? value : ImmutableBytes.copyOf(value, this.meter) });
+    if (key !== undefined) {
+      this.#smallBytes ??= new Map();
+      this.#smallBytes.set(key, result);
+    }
+    return result;
   }
 
   tuple<Value>(values: readonly Value[]): TupleConstant<Value>;

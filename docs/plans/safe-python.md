@@ -2472,6 +2472,19 @@ extension, integration, or validation requirement is missing or unverified.
   observations. Source typecheck, scoped lint and selected workspace build passed.
   Guest iterable preparation, length-hint protocol evaluation,
   builtin method dispatch and complete native allocation accounting remain open.
+- Added list index search, counting and first-match removal with identity before
+  stored-first equality. Searches observe live slots after callback mutations;
+  negative bounds use the starting length, while positive stops remain open to
+  subsequent growth. Removal deletes the current numeric position after a
+  successful comparison, even when the originally matched object moved, and
+  succeeds without deletion if that position vanished during equality.
+- All 17 search regressions first failed on missing support. All 2,763 tests in
+  165 files pass. A 6,000-case CPython audit matched index/count/remove results,
+  ordered equality traces, identity shortcuts, huge bounds, callback mutations
+  and failures. Source typecheck, scoped lint and selected workspace build passed.
+  The storage reports absence without constructing guest errors;
+  guest __index__ conversion, reflected equality/truth dispatch, repr-sensitive
+  index errors and builtin method wiring still belong to the unfinished runtime.
 - Next:
   remaining scope/compiler audits, interpreter runtime,
   resource controls, runtime modules, and safe-fs integration. Parsing and static

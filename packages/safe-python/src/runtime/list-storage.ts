@@ -73,6 +73,50 @@ export class ListStorage<Value> {
 
   delete(index: bigint): void { this.#remove(this.#position(index, "write")); }
 
+  /** Search bound arguments have already passed guest __index__ conversion.
+   * Positive stops are not clipped to the initial list length: comparisons may
+   * append elements. Absence is returned to the guest layer for its ValueError
+   * (index/remove) or boolean membership result, without running repr here.
+   */
+  indexOf(value: Value, equal: (stored: Value, incoming: Value) => boolean, start = 0n, stop: bigint | null = null): number | undefined {
+    this.meter.checkpoint();
+    const length = BigInt(this.#items.length);
+    const first = Math.max(0, Number(start < 0n ? start + length : start));
+    const end = stop === null ? Infinity : Math.max(0, Number(stop < 0n ? stop + length : stop));
+    for (let i = first; i < end && i < this.#items.length; i++) {
+      this.meter.checkpoint();
+      const stored = this.#items[i];
+      if (Object.is(stored, value)) return i;
+      const matches = equal(stored, value);
+      this.meter.checkpoint();
+      if (matches) return i;
+    }
+    return undefined;
+  }
+
+  count(value: Value, equal: (stored: Value, incoming: Value) => boolean): number {
+    this.meter.checkpoint();
+    let count = 0;
+    for (let i = 0; i < this.#items.length; i++) {
+      this.meter.checkpoint();
+      const stored = this.#items[i];
+      if (Object.is(stored, value)) { count++; continue; }
+      const matches = equal(stored, value);
+      this.meter.checkpoint();
+      if (matches) count++;
+    }
+    return count;
+  }
+
+  removeFirst(value: Value, equal: (stored: Value, incoming: Value) => boolean): boolean {
+    const index = this.indexOf(value, equal);
+    if (index === undefined) return false;
+    // Equality can remove or shift the matched element. Python deletes the
+    // current numeric position, and still succeeds if that position vanished.
+    if (index < this.#items.length) this.#remove(index);
+    return true;
+  }
+
   clear(): void {
     this.meter.checkpoint(1 + this.#items.length);
     this.#items.length = 0;

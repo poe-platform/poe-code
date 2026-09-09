@@ -12,7 +12,6 @@ export type LeafStatement = Extract<
       | "annotated-assignment"
       | "delete"
       | "raise"
-      | "assert"
       | "import"
       | "import-from"
       | "class"
@@ -38,6 +37,15 @@ export interface StatementContext<Value> {
   assign(target: Expression, value: Value): void;
   /** Definitions execute a separate scope; they cannot transfer control here. */
   execute(statement: LeafStatement): void;
+  assertions?: {
+    /** Compilation optimization policy; disabled assertions evaluate neither operand. */
+    enabled: boolean;
+    /** Raise the canonical builtin AssertionError, independent of shadowed names.
+     * Null means no arguments; a wrapper means exactly one unchanged argument.
+     * The adapter owns construction, context/traceback attachment and internal metering.
+     */
+    fail(message: { readonly value: Value } | null): never;
+  };
   managers?: {
     /** Resolve exit then enter through implicit special-method lookup (CPython
      * 3.14 order, observable with descriptors), before invoking enter.
@@ -333,6 +341,17 @@ export function executeStatements<Value>(
                 ? { kind: "return" }
                 : { kind: "return", value: context.evaluate(statement.value) };
             break;
+          case "assert": {
+            if (!context.assertions) throw new UnsupportedStatementError(statement.kind);
+            if (!context.assertions.enabled || context.test(statement.condition)) break;
+            let message: { readonly value: Value } | null = null;
+            if (statement.message !== null) {
+              meter.checkpoint();
+              message = { value: context.evaluate(statement.message) };
+            }
+            meter.checkpoint();
+            return context.assertions.fail(message);
+          }
           case "pass":
           case "global":
           case "nonlocal":

@@ -1583,6 +1583,19 @@ extension, integration, or validation requirement is missing or unverified.
   nested empty keys that yield no expressions. Scoped lint, source typecheck and
   selected build passed. Complete guest reference storage, frame-heap accounting,
   suspension and remaining full-interpreter integration remain pending.
+- Added direct assertion execution to the statement engine with an explicit
+  enable/optimization capability. Conditions use branching-context evaluation;
+  messages execute only after failure and retain their identity as one argument.
+  Absent messages are distinct from null/undefined payloads. The guest adapter
+  supplies canonical builtin AssertionError construction and chaining; shadowed
+  names are not resolved by the engine. Disabled assertions skip both operands.
+- Assertion validation: all 14 new tests failed against the previous leaf-only
+  implementation before runtime changes. All 2,049 tests in 102 files pass;
+  60 CPython cases matched optimization, operand failures, message values,
+  finally effects and a shadowed AssertionError name. Tests also cover capability
+  absence and budgets stopping before message evaluation or failure construction.
+  Scoped lint, source typecheck and selected workspace build passed. Concrete
+  guest exception objects and full-interpreter integration remain pending.
 - Next:
   remaining scope/compiler audits, interpreter runtime,
   resource controls, runtime modules, and safe-fs integration. Parsing and static

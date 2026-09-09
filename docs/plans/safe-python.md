@@ -89,7 +89,20 @@ extension, integration, or validation requirement is missing or unverified.
   warnings and warning timing; five failing regression cases preceded fixes.
   Focused ESLint, source and generator typechecks, and selected workspace build
   passed. Error-message text/locations have not been exhaustively compared.
-- Next: lexical token generation, identifiers, logical-line joining, and f/t-string
+- Added Unicode 16 identifier classification and raw name-token reading with
+  source spans. Generated/coalesced tables contain 684 start ranges and 800
+  continuation ranges. ASCII takes a direct path; non-ASCII uses binary search.
+  The Unicode generator now also hashes and reads `DerivedCoreProperties.txt`.
+  No host Unicode character classification or runtime data downloads are used.
+- Identifier validation: all 1,114,112 code points were compared in both start
+  and continuation positions with CPython 3.14.7 (2,228,224 classifications), with
+  zero differences. The initial check exposed an incorrect older-Python assumption
+  about join controls; three failing regressions preceded its removal. There are
+  now 249 passing package unit cases. Source/build and generator typechecks and
+  focused ESLint passed. The name reader preserves spelling; parser-level NFKC
+  normalization is still required, including avoiding dependence on host Unicode
+  versions (the inspected host reports Unicode 17, while the target uses 16).
+- Next: lexical token generation, logical-line joining, and f/t-string
   expression parsing, then the complete parser and evaluator. Ordinary literal
   decoding does not establish complete lexical support or interpreter execution.
 - Workspace lockfile registration and packaging integration remain pending.

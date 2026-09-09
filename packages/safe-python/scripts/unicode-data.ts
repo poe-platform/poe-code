@@ -27,3 +27,19 @@ export function compileUnicodeNames(derivedNames: string, aliases: string): {
     ranges
   };
 }
+
+export function compileIdentifierRanges(properties: string): { start: number[]; continue: number[] } {
+  const tables: Record<"XID_Start" | "XID_Continue", number[]> = { XID_Start: [], XID_Continue: [] };
+  for (const line of properties.split("\n")) {
+    const [points, property] = line.split("#", 1)[0].split(";").map((field) => field.trim());
+    if (property !== "XID_Start" && property !== "XID_Continue") continue;
+    const [first, last = first] = points.split("..").map((point) => Number.parseInt(point, 16));
+    const table = tables[property];
+    if (table.length && first <= table[table.length - 1] + 1) {
+      table[table.length - 1] = Math.max(last, table[table.length - 1]);
+    } else {
+      table.push(first, last);
+    }
+  }
+  return { start: tables.XID_Start, continue: tables.XID_Continue };
+}

@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { compileUnicodeNames } from "../scripts/unicode-data.js";
+import { compileUnicodeNames, compileIdentifierRanges } from "../scripts/unicode-data.js";
 
 describe("Unicode name data generation", () => {
   it("sorts explicit names and aliases into a compact searchable table", () => {
@@ -25,5 +25,18 @@ describe("Unicode name data generation", () => {
   it("rejects conflicting names instead of silently changing a character", () => {
     expect(() => compileUnicodeNames("0041;NAME\n0042;NAME", ""))
       .toThrow("conflicting Unicode name NAME");
+  });
+});
+
+describe("Unicode identifier range generation", () => {
+  it("selects and coalesces sorted XID ranges without unrelated properties", () => {
+    expect(compileIdentifierRanges(
+      "0041..005A; XID_Start\n0061..007A; XID_Start # letters\n" +
+      "0030..0039; XID_Continue\n0041..005A; XID_Continue\n005B; XID_Continue\n" +
+      "0061..007A; XID_Continue\n200C..200D; XID_Continue\n0041..005A; Alphabetic\n"
+    )).toEqual({
+      start: [0x41, 0x5a, 0x61, 0x7a],
+      continue: [0x30, 0x39, 0x41, 0x5b, 0x61, 0x7a, 0x200c, 0x200d]
+    });
   });
 });

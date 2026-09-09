@@ -5777,6 +5777,18 @@ extension, integration, or validation requirement is missing or unverified.
   and NUL conversions. Typecheck, scoped lint and selected workspace build pass. Field-name
   binding, numbering state, expansion/evaluation and public format/format_map
   methods remain pending; the scanner alone does not implement these methods.
+- Added lazy format-field-name lookup steps for initial arguments, attributes
+  and item keys. Steps retain original code-point spans, recognize Unicode
+  decimal indices within signed-size bounds, preserve nonnumeric keys and defer
+  invalid suffixes until preceding lookup steps have been consumed. Empty first
+  names are retained for shared auto-numbering; attribute names stay text.
+  Decimal classification now shares one helper with format-spec parsing.
+- Five tests first exposed the missing field-name module. All 4,703 tests in
+  403 files pass. A 20,062-case CPython field-name comparison covers partial
+  sequences, errors, Unicode indices and overflow-before-nondigit behavior.
+  The existing 12,760-case format-spec equivalence audit also passes, together
+  with typecheck, scoped lint and selected workspace build. Numbering, lookup/evaluation,
+  expansion and public str.format/format_map methods remain pending.
 - Next:
   remaining scope/compiler audits, interpreter runtime,
   resource controls, runtime modules, and safe-fs integration. Parsing and static

@@ -1,4 +1,4 @@
-import { decimalRanges } from "../unicode-classification-data.js";
+import { unicodeDecimal } from "./unicode-decimal.js";
 import type { CodePointString } from "./code-point-string.js";
 import { diagnosticTypeName } from "./diagnostic-type-name.js";
 import { PythonRuntimeError } from "./error.js";
@@ -31,7 +31,7 @@ export function parseFormatSpec(source: CodePointString, defaultType: number, de
   const integer = (): bigint | null => {
     let result: bigint | null = null;
     for (;;) {
-      const digit = decimal(read(), meter);
+      const digit = unicodeDecimal(read(), meter);
       if (digit < 0) return result;
       meter.checkpoint(1, 64);
       const next: bigint = (result ?? 0n) * 10n + BigInt(digit);
@@ -94,19 +94,6 @@ export function parseFormatSpec(source: CodePointString, defaultType: number, de
 }
 
 function alignment(point: number): boolean { return point === 60 || point === 62 || point === 61 || point === 94; }
-
-function decimal(point: number, meter: ExecutionMeter): number {
-  if (point >= 48 && point <= 57) return point - 48;
-  let low = 0, high = decimalRanges.length / 2;
-  while (low < high) {
-    meter.checkpoint();
-    const middle = Math.floor((low + high) / 2), start = decimalRanges[middle * 2], end = decimalRanges[middle * 2 + 1];
-    if (point < start) high = middle;
-    else if (point > end) low = middle + 1;
-    else return (point - start) % 10;
-  }
-  return -1;
-}
 
 function invalidGrouping(separator: "," | "_", type: number): never {
   const name = type > 32 && type < 128 ? String.fromCharCode(type) : `\\x${type.toString(16)}`;

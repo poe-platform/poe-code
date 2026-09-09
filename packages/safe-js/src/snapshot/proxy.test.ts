@@ -13,6 +13,9 @@ import { serialize, type RuntimeSnapshotValue } from "./serialize.js";
 import { restore as restoreGraph } from "./restore.js";
 
 it.each([
+  'const f=new Proxy(x=>x+1,{});await 0;return await Promise.resolve(1).then(f)',
+  'const P=new Proxy(Promise,{});await 0;return await P.all([1,2])',
+  'const then=new Proxy(function(resolve){resolve(3)},{});const value={then};await 0;return await Promise.resolve(value)',
   'const target={x:2};const p=new Proxy(target,{});await 0;p.x++;return [p.x,target.x]',
   'const target={x:2};const handler={get(t,k,r){return k==="self"?r:Reflect.get(t,k,r)*2}};const p=new Proxy(target,handler);target.back=p;await 0;return [p.x,p.self===p,target.back===p]',
   'function C(x){this.x=x}const P=new Proxy(C,{});await 0;const v=new P(3);return [v.x,v instanceof P,v instanceof C]',

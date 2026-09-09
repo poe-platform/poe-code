@@ -1,4 +1,7 @@
-import { SandboxError, type Budget } from "./budget.js";
+import { SandboxError, Budget } from "./budget.js";
+import { guestProxyStates } from "./guest-proxy.js";
+import { callGuestProxy } from "./guest-proxy-call.js";
+import { constructGuestProxy } from "./guest-proxy-construct.js";
 import { asyncFunctionHandlers } from "./async-function-driver.js";
 import { asyncGeneratorHandlers, rejectGeneratorQueue } from "./async-generator-driver.js";
 import { accessorAdapter, accessorClosure, readPropertyDescriptor } from "./accessors.js";
@@ -161,7 +164,9 @@ export function createPromiseGlobals(options: { budget: Budget }): PromiseGlobal
       setSandboxPrototype(pending, targetPrototype, options.budget);
     try {
       const resolvers = [capability.resolve, capability.reject];
-      const result = executor.call(resolvers, { stack: context?.stack ?? [], thisValue: undefined });
+      const result = guestProxyStates.has(executor)
+        ? callGuestProxy(executor, resolvers, options.budget, context, undefined)
+        : executor.call(resolvers, { stack: context?.stack ?? [], thisValue: undefined });
       if (executor.async !== true) await result;
       else if (isSandboxPromise(result) && result.synchronousPrefix !== undefined)
         await result.synchronousPrefix;
@@ -372,12 +377,14 @@ async function createPromiseCapability(
   const executor = createPromiseCapabilityExecutor(state);
   const leaveCall = budget.enterCall();
   try {
-    const promise = await constructor.construct([executor], {
+    const promise = await (guestProxyStates.has(constructor)
+      ? constructGuestProxy(constructor, [executor], budget, context, constructor)
+      : constructor.construct([executor], {
       ...context,
       stack: context?.stack ?? [],
       thisValue: undefined,
       newTarget: constructor
-    });
+    }));
     const {resolve, reject} = state;
     if (!isSandboxClosure(resolve) || !isSandboxClosure(reject)) {
       throw new TypeError("Promise capability requires callable resolve and reject functions.");
@@ -419,7 +426,9 @@ async function callPromiseClosure(
         ? coerceThrownValue(value, budget, stack)
         : value
     );
-    let result = callback.call(values, { ...context, stack, thisValue, newTarget: undefined });
+    let result = guestProxyStates.has(callback)
+      ? callGuestProxy(callback, values, budget, context, thisValue)
+      : callback.call(values, { ...context, stack, thisValue, newTarget: undefined });
     if (callback.async !== true) result = await result;
     else if (isPromiseLike(result)) result = createSandboxPromise(Promise.resolve(result));
     if (isSandboxPromise(result) && result.synchronousPrefix !== undefined) {
@@ -501,6 +510,7 @@ function getPromisePrototype(budget: Budget): SandboxObject {
         const invoke = (then: SandboxValue) => {
           if (!isSandboxClosure(then))
             throw new TypeError("Promise.catch requires a callable then.");
+          if (guestProxyStates.has(then)) return callGuestProxy(then, [undefined, onRejected], budget, context, target);
           return then.call([undefined, onRejected], {
             ...context,
             stack: context?.stack ?? [],
@@ -573,6 +583,7 @@ function getPromisePrototype(budget: Budget): SandboxObject {
                 })
               )
             : [onFinally, onFinally];
+          if (guestProxyStates.has(then)) return callGuestProxy(then, handlers, budget, context, target);
           return then.call(handlers, {
             ...context,
             stack: context?.stack ?? [],
@@ -927,7 +938,7 @@ function resolveThenable(
   const state: ThenableContinuation = {source: value, owner: options.self,
     settlement: undefined, completed: false, invocationPending: true};
   const bridge = createThenableBridge(state, options);
-  callInPromiseJob(then, bridge.resolvers, value, bridge.invocation, options.context).catch(bridge.rejectNative);
+  callInPromiseJob(then, bridge.resolvers, value, bridge.invocation, options.context, options.budget).catch(bridge.rejectNative);
   return bridge.promise;
 }
 
@@ -1074,7 +1085,7 @@ function runPromiseReaction(
       }
     };
     if (isSandboxClosure(handler)) {
-      callInPromiseJob(handler, [argument], undefined, { fulfilled, rejected }, context).catch(
+      callInPromiseJob(handler, [argument], undefined, { fulfilled, rejected }, context, budget).catch(
         rejected
       );
     } else {
@@ -1094,11 +1105,14 @@ function callInPromiseJob(
     fulfilled: (value: SandboxValue | Promise<SandboxValue>) => void;
     rejected: (reason: SandboxValue) => void;
   },
-  context?: SandboxCallContext
+  context?: SandboxCallContext,
+  budget?: Budget
 ): Promise<{ value: SandboxValue | Promise<SandboxValue> }> {
   return runPromiseJob(async () => {
     try {
-      let result = handler.call(args, { ...context, stack: [], thisValue, newTarget: undefined });
+      let result = guestProxyStates.has(handler)
+        ? callGuestProxy(handler, args, budget ?? new Budget(), context, thisValue)
+        : handler.call(args, { ...context, stack: [], thisValue, newTarget: undefined });
       if (handler.async !== true) result = await result;
       if (isSandboxPromise(result) && result.synchronousPrefix !== undefined) {
         await result.synchronousPrefix;

@@ -2058,6 +2058,18 @@ extension, integration, or validation requirement is missing or unverified.
   allocation/work bounds and fatal step exhaustion. Typecheck, scoped lint and
   selected workspace build passed. Guest __contains__/iteration
   fallback, index conversion and arbitrary buffer exporters remain unfinished.
+- Added concrete integer subscription for immutable strings, bytes and tuples,
+  wired into expression execution tests. Bool indices use 0/1; negative indices
+  normalize only after signed 64-bit overflow checks. String results own exactly
+  one code point, including surrogates; bytes return integer values and tuple
+  members retain identity without result allocation. Receiver/key/range failures
+  preserve Python's type-specific diagnostics and evaluation precedence.
+- Integer-subscription validation: missing-module red tests preceded implementation.
+  All 2,478 tests in 135 files pass; CPython matched 1,700 indexing outcomes across
+  Unicode strings, bytes, tuples, nonsubscriptable receivers and invalid/huge keys.
+  Source typecheck, scoped lint and selected workspace build passed.
+  Concrete slices, user-defined index conversion/subscription and complete host
+  allocation accounting remain unfinished.
 - Next:
   remaining scope/compiler audits, interpreter runtime,
   resource controls, runtime modules, and safe-fs integration. Parsing and static

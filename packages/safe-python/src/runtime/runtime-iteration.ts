@@ -15,6 +15,7 @@ export function runtimeIterate(value: RuntimeValue, values: ConstantValues, mete
   meter.checkpoint();
   switch (value.kind) {
     case "function": throw new PythonRuntimeError("TypeError", "'function' object is not iterable");
+    case "builtin_function_or_method": throw new PythonRuntimeError("TypeError", "'builtin_function_or_method' object is not iterable");
     case "iterator": return value.value;
     case "list": return value.items.iterate();
     case "dict":

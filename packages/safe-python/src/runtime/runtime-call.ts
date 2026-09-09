@@ -30,7 +30,8 @@ export function beginRuntimeCall(callee: RuntimeValue, context: RuntimeCallConte
   const positional: RuntimeValue[] = [];
   const keywords = context.values.dictionary(new OrderedKeyMap<RuntimeValue, RuntimeValue>(context.keys, meter));
   const duplicate = (key: RuntimeValue): never => {
-    const name = context.name(callee), keyword = context.keywordName(key);
+    const name = context.name(callee); meter.checkpoint();
+    const keyword = context.keywordName(key);
     meter.checkpoint();
     throw new PythonRuntimeError("TypeError", `${name} got multiple values for keyword argument '${keyword}'`);
   };

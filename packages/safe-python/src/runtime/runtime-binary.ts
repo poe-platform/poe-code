@@ -27,7 +27,7 @@ export function runtimeBinary(operator: string, left: RuntimeValue, right: Runti
     }
     return values.notImplemented;
   }
-  if (left.kind === "range" || left.kind === "iterator" || left.kind === "function" || left.kind === "dict" || right.kind === "range" || right.kind === "iterator" || right.kind === "function" || right.kind === "dict") return values.notImplemented;
+  if (left.kind === "range" || left.kind === "iterator" || left.kind === "function" || left.kind === "dict" || left.kind === "builtin_function_or_method" || right.kind === "range" || right.kind === "iterator" || right.kind === "function" || right.kind === "dict" || right.kind === "builtin_function_or_method") return values.notImplemented;
   if (operator === "+") {
     const result = constantConcat<RuntimeValue>(left, right, values, meter);
     if (result !== values.notImplemented) return result;

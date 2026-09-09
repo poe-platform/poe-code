@@ -79,7 +79,7 @@ export function runtimeHash(value: RuntimeValue, context: ConstantHashContext | 
       } else {
         switch (current.kind) {
           case "list": case "dict": throw new UnhashableRuntimeValueError(current.kind);
-          case "function": case "iterator":
+          case "function": case "iterator": case "builtin_function_or_method":
             if (!("none" in context)) throw new Error("runtime hash context is required for identity-based runtime values");
             result = normalized(context.identity(current)); break;
           case "bool": result = current.value ? 1n : 0n; break;

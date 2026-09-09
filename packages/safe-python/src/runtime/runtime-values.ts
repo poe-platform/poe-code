@@ -30,6 +30,20 @@ export interface DictionaryValue {
   readonly items: OrderedKeyMap<RuntimeValue, RuntimeValue>;
 }
 
+/** Trusted host implementation, installed explicitly by the runtime owner.
+ * No payload fields are exposed through guest JavaScript property access. The
+ * synchronous implementation owns its internal work and resource checkpoints.
+ */
+export interface BuiltinFunctionCapability {
+  readonly name: string;
+  invoke(positional: readonly RuntimeValue[], keywords: DictionaryValue, meter: ExecutionMeter): RuntimeValue;
+}
+
+export interface BuiltinFunctionValue {
+  readonly kind: "builtin_function_or_method";
+  readonly value: BuiltinFunctionCapability;
+}
+
 export type RuntimeValue =
   | PrimitiveConstant
   | TupleConstant<RuntimeValue>
@@ -38,6 +52,7 @@ export type RuntimeValue =
   | RangeValue
   | IteratorValue
   | FunctionValue
+  | BuiltinFunctionValue
   | DictionaryValue;
 
 /** Host-only records, never accessible through guest JavaScript properties.
@@ -73,6 +88,13 @@ export class RuntimeValues extends ConstantValues {
   function(value: FunctionState<RuntimeValue>): FunctionValue {
     this.runtimeMeter.checkpoint(1, 32);
     return Object.freeze({ kind: "function", value });
+  }
+
+  /** Retain a prepared explicit capability; creation never invokes it. Bound
+   * method descriptors and their self/function equality remain separate work. */
+  builtinFunction(value: BuiltinFunctionCapability): BuiltinFunctionValue {
+    this.runtimeMeter.checkpoint(1, 32);
+    return Object.freeze({ kind: "builtin_function_or_method", value });
   }
 
   /** Adopt prepared ordered storage sharing this execution's key policy/meter. */

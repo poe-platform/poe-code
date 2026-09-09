@@ -51,9 +51,10 @@ export function executeRuntimeProgram(program: CompiledProgram<RuntimeValue>, co
     const expressionHooks = hooks.expressions(frame); meter.checkpoint();
     const statementHooks = hooks.statements(frame); meter.checkpoint();
     const beginCall = (callee: RuntimeValue) => beginRuntimeCall(callee, {
-      values, keys, name: hooks.name.bind(hooks), keywordName: hooks.keywordName.bind(hooks),
-      callable: value => value.kind === "function" || hooks.callable(value),
+      values, keys, name: value => value.kind === "builtin_function_or_method" ? `${value.value.name}()` : hooks.name(value), keywordName: hooks.keywordName.bind(hooks),
+      callable: value => value.kind === "function" || value.kind === "builtin_function_or_method" || hooks.callable(value),
       invoke(value, positional, keywords) {
+        if (value.kind === "builtin_function_or_method") return value.value.invoke(positional, keywords, meter);
         if (value.kind !== "function") return hooks.invoke(value, positional, keywords, frame);
         const invocation: RuntimeFunctionContext = {
           values, keys, calls, body: child => body(child, value.value)

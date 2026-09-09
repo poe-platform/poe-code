@@ -9,6 +9,7 @@ import { runtimeHash } from "./runtime-hash.js";
 import { runtimeComparison } from "./runtime-comparison.js";
 import { UnsupportedStatementError } from "./statement-execution.js";
 import { ModuleFrame, type LocalNamespace } from "./module-frame.js";
+import { createLenBuiltin } from "./builtin-len.js";
 
 function fixture(source: string, maxSteps = 100000, signal?: AbortSignal) {
   const meter = new ExecutionBudget({ maxSteps, maxAllocatedBytes: 1000000, signal }), values = new RuntimeValues(meter);
@@ -23,10 +24,34 @@ function fixture(source: string, maxSteps = 100000, signal?: AbortSignal) {
     callable: () => false, invoke: unused, name: () => "function()",
     keywordName: key => { if (key.kind !== "str") return unused(); return String.fromCodePoint(...key.value); }
   };
-  return { values, globals, builtins, calls, hooks, run: (locals?: LocalNamespace<RuntimeValue>) => executeRuntimeProgram(program, { globals, builtins, locals, calls, values, keys, hooks }, meter) };
+  return { values, meter, globals, builtins, calls, hooks, run: (locals?: LocalNamespace<RuntimeValue>) => executeRuntimeProgram(program, { globals, builtins, locals, calls, values, keys, hooks }, meter) };
 }
 
 describe("assembled concrete runtime programs", () => {
+  it("does not publish a builtin result after its capability cancels execution", () => {
+    const controller = new AbortController(), state = fixture("result = native()\nafter = 1\n", 100000, controller.signal);
+    state.builtins.set("native", state.values.builtinFunction({ name: "native", invoke() { controller.abort(); return state.values.true; } }));
+    expect(state.run).toThrow(ExecutionLimitError); expect(state.globals.has("result")).toBe(false); expect(state.globals.has("after")).toBe(false); expect(state.calls.depth).toBe(0);
+  });
+  it("stops between error-formatting callbacks after cancellation", () => {
+    const controller = new AbortController(), state = fixture("def f():\n pass\nf(**{'x': 1}, **{'x': 2})\n", 100000, controller.signal);
+    let formatted = false;
+    state.hooks.name = () => { controller.abort(); return "f()"; };
+    state.hooks.keywordName = () => { formatted = true; return "x"; };
+    expect(state.run).toThrow(ExecutionLimitError); expect(formatted).toBe(false); expect(state.calls.depth).toBe(0);
+  });
+  it("runs registered len calls inside guest functions and formats expansion errors", () => {
+    const state = fixture("def f(x):\n return len(x)\nresult = f({'a': 1, 'b': 2})\nlen(*1)\n");
+    state.builtins.set("len", createLenBuiltin(state.values, state.meter));
+    expect(state.run).toThrow("len() argument after * must be an iterable, not int");
+    expect(state.globals.get("result")).toEqual(state.values.integer(2)); expect(state.calls.depth).toBe(0);
+  });
+  it("invokes explicitly registered builtins with their retained method owner", () => {
+    const state = fixture("result = native(3, x=4)\n");
+    const capability = { name: "native", result: state.values.integer(7), invoke(positional: readonly RuntimeValue[]) { expect(positional).toEqual([state.values.integer(3)]); return this.result; } };
+    state.builtins.set("native", state.values.builtinFunction(capability));
+    state.run(); expect(state.globals.get("result")).toBe(capability.result); expect(state.calls.depth).toBe(0);
+  });
   it("keeps separate module locals out of function global lookup", () => {
     const state = fixture("x = 2\ndef f():\n return x\nresult = f()\n"), locals = new Map<string, RuntimeValue>();
     state.globals.set("x", state.values.integer(1));

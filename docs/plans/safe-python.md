@@ -3264,6 +3264,27 @@ extension, integration, or validation requirement is missing or unverified.
   an internal explicit-capability runner: complete object/class/builtin/import
   behavior, suspended execution, stack-independent calls, complete accounting and
   the public SDK/safe-fs integration remain unfinished.
+- Added explicit builtin-function capability records. Frozen wrappers retain
+  trusted synchronous implementations without invoking them or exposing host
+  payload properties. The assembled runner recognizes these callables, preserves
+  their method owner, passes the shared meter and uses their registered name for
+  expansion diagnostics. Truth/hash/iteration/arithmetic dispatch now recognizes
+  the new value kind. Bound-method descriptors/equality remain separate work.
+- Added explicitly registered len as the first concrete builtin capability,
+  handling exact list/tuple/dict/string/bytes/range lengths, positional/keyword
+  validation and oversized ranges without member traversal. Tests first failed
+  on the missing capability factory and len module. A cancellation regression
+  also reproduced an extra diagnostic callback after cancellation; the call
+  collector now checks between those callbacks and does not publish cancelled
+  capability results.
+- All 3,352 tests in 224 files pass. A 1,800-case CPython audit matched registered
+  len calls, expansion errors, builtin truth and hashes using the supplied matching
+  identity policy. Program (1,300), call-collection (2,400) and runtime-hash (3,000)
+  regressions also passed. Source typecheck, scoped lint and selected workspace
+  build passed. Builtin coverage is not complete; generic __len__/object slots,
+  bound methods, class/import dispatch, suspension, complete accounting and public
+  SDK/safe-fs integration remain unfinished. No filesystem capability is granted
+  implicitly by builtin registration.
 - Next:
   remaining scope/compiler audits, interpreter runtime,
   resource controls, runtime modules, and safe-fs integration. Parsing and static

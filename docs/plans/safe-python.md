@@ -984,6 +984,28 @@ extension, integration, or validation requirement is missing or unverified.
   remain restricted to internal one-dimensional unsigned-byte views; arbitrary
   format/shape casting, guest buffer negotiation, and heap finalization remain
   pending. Readonly access does not make the shared exporter immutable.
+- Connected internal byte views to memory-stream readinto/write. Writable
+  contiguous read targets receive only the available prefix; aliased targets use
+  source snapshots and temporary leases are released even on budget failure.
+  Contiguous readonly views are valid write sources, but no source is retained.
+  Released/noncontiguous/readonly buffer diagnostics precede closed-stream checks
+  where CPython's argument conversion requires it; own exported write sources
+  still trigger the stream's pinning guard.
+- Differential testing exposed incorrect empty-view contiguity: singleton views
+  are contiguous irrespective of stride, but empty views require unit stride.
+  Reproduced both failures in tests before fixing them. Views now preserve exact
+  signed-64-bit stride composition and CPython slice-step clipping, including
+  empty/singleton metadata and overflow in nested strides, without unsafe physical
+  indexing or allocation for huge bounds.
+- Buffer-I/O validation: the new suite failed before implementation; all 1,635
+  package tests pass, including 12 integration cases and 80 aliased-read budget
+  boundaries. After the contiguity correction, all 10,000 CPython buffer-I/O cases
+  and 2,916 nested stride chains matched. A further 1,200 budget/state cases passed.
+  Scoped lint, source typecheck, and selected workspace build passed. References:
+  https://docs.python.org/3/library/io.html#io.BufferedIOBase.readinto and
+  https://docs.python.org/3/library/stdtypes.html#memoryview.c_contiguous . These
+  are internal B-format buffer operations; guest buffer negotiation, other formats,
+  file-backed streams, and safe-fs integration remain pending.
 - Next:
   remaining scope/compiler audits, interpreter runtime,
   resource controls, runtime modules, and safe-fs integration. Parsing and static

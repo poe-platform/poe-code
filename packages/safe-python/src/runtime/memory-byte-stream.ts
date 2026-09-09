@@ -69,25 +69,42 @@ export class MemoryByteStream {
     return output;
   }
 
-  readinto(target: Uint8Array, meter?: ExecutionMeter): bigint {
+  readinto(target: Uint8Array | ByteBufferView, meter?: ExecutionMeter): bigint {
     meter?.checkpoint();
+    if (target instanceof ByteBufferView) {
+      let writable = false;
+      try { writable = !target.readonly && target.cContiguous; }
+      catch (error) {
+        // CPython's writable-buffer argument conversion masks released-view
+        // ValueError as the same TypeError used for readonly/strided views.
+        if (!(error instanceof PythonRuntimeError) || error.name !== "ValueError") throw error;
+      }
+      if (!writable) throw new PythonRuntimeError("TypeError", "readinto() argument must be read-write bytes-like object, not memoryview");
+    }
     this.#checkOpen();
     const start = Number(this.#position < BigInt(this.#length) ? this.#position : BigInt(this.#length));
     const count = Math.min(target.length, this.#length - start);
     meter?.checkpoint(count);
-    target.set(this.#buffer.subarray(start, start + count));
+    const source = this.#buffer.subarray(start, start + count);
+    if (target instanceof ByteBufferView) {
+      const prefix = target.slice(0n, BigInt(count), 1n, meter);
+      try { prefix.assign(source, meter); }
+      finally { prefix.release(); }
+    } else target.set(source);
     this.#position += BigInt(count);
     return BigInt(count);
   }
 
-  write(input: Uint8Array, meter?: ExecutionMeter): bigint {
+  write(input: Uint8Array | ByteBufferView, meter?: ExecutionMeter): bigint {
     meter?.checkpoint();
+    if (input instanceof ByteBufferView && !input.cContiguous) throw new PythonRuntimeError("BufferError", "memoryview: underlying buffer is not C-contiguous");
     this.#checkOpen();
     this.#checkUnpinned();
     if (input.length === 0) return 0n;
     const endPosition = this.#position + BigInt(input.length);
     checkIndex(endPosition, "new buffer size too large");
     if (endPosition > BigInt(Number.MAX_SAFE_INTEGER)) throw new PythonRuntimeError("MemoryError", "");
+    const bytes = input instanceof ByteBufferView ? input.snapshot(meter) : input;
     const end = Number(endPosition), start = Number(this.#position);
     const gap = Math.max(0, start - this.#length);
     let buffer = this.#buffer;
@@ -104,7 +121,7 @@ export class MemoryByteStream {
     } else meter?.checkpoint(gap + input.length);
     // All budget checks precede mutation, including when existing capacity is reused.
     buffer.fill(0, this.#length, start);
-    buffer.set(input, start);
+    buffer.set(bytes, start);
     this.#buffer = buffer;
     this.#length = Math.max(this.#length, end);
     this.#position = endPosition;

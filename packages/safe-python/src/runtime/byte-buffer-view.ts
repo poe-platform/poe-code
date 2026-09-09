@@ -10,11 +10,11 @@ export class ByteBufferView {
   #buffer: Uint8Array | undefined;
   readonly #exports: BufferExports;
   readonly #offset: number;
-  readonly #stride: number;
+  readonly #stride: bigint;
   readonly #length: number;
   readonly #readonly: boolean;
 
-  constructor(buffer: Uint8Array, exports: BufferExports, offset = 0, stride = 1, length = buffer.length, readonly = false) {
+  constructor(buffer: Uint8Array, exports: BufferExports, offset = 0, stride = 1n, length = buffer.length, readonly = false) {
     this.#buffer = buffer;
     this.#exports = exports;
     this.#offset = offset;
@@ -35,6 +35,11 @@ export class ByteBufferView {
     return this.#readonly;
   }
 
+  get cContiguous(): boolean {
+    this.#checkActive();
+    return this.#length === 1 || this.#stride === 1n;
+  }
+
   #checkActive(): Uint8Array {
     if (this.#buffer === undefined) throw new PythonRuntimeError("ValueError", "operation forbidden on released memoryview object");
     return this.#buffer;
@@ -50,7 +55,7 @@ export class ByteBufferView {
     if (BigInt.asIntN(64, index) !== index) throw new PythonRuntimeError("IndexError", "cannot fit 'int' into an index-sized integer");
     if (index < 0n) index += BigInt(this.#length);
     if (index < 0n || index >= BigInt(this.#length)) throw new PythonRuntimeError("IndexError", "index out of bounds on dimension 1");
-    return this.#offset + Number(index) * this.#stride;
+    return this.#offset + Number(index * this.#stride);
   }
 
   get(index: bigint, meter?: ExecutionMeter): number {
@@ -70,10 +75,14 @@ export class ByteBufferView {
   slice(start: bigint | null = null, stop: bigint | null = null, step: bigint | null = null, meter?: ExecutionMeter): ByteBufferView {
     meter?.checkpoint();
     const buffer = this.#checkActive();
+    // Buffer strides use the guest signed-64-bit index model, including empty
+    // views where stride metadata still determines contiguous-buffer admission.
+    const maximum = (1n << 63n) - 1n;
+    if (step !== null) step = step < -maximum ? -maximum : step > maximum ? maximum : step;
     const indices = normalizeSlice(BigInt(this.#length), start, stop, step);
     const length = Number(indices.length);
-    const offset = length === 0 ? 0 : this.#offset + Number(indices.start) * this.#stride;
-    const stride = length > 1 ? Number(indices.step) * this.#stride : 0;
+    const offset = length === 0 ? 0 : this.#offset + Number(indices.start * this.#stride);
+    const stride = BigInt.asIntN(64, indices.step * this.#stride);
     return new ByteBufferView(buffer, this.#exports, offset, stride, length, this.#readonly);
   }
 
@@ -97,7 +106,8 @@ export class ByteBufferView {
     // Snapshot the complete source and admit all writes before touching shared
     // storage. This also makes budget failure atomic for aliased assignments.
     meter?.checkpoint(this.#length);
-    for (let index = 0; index < this.#length; index++) buffer[this.#offset + index * this.#stride] = snapshot[index]!;
+    const stride = Number(this.#stride);
+    for (let index = 0; index < this.#length; index++) buffer[this.#offset + index * stride] = snapshot[index]!;
   }
 
   snapshot(meter?: ExecutionMeter): Uint8Array {
@@ -105,7 +115,8 @@ export class ByteBufferView {
     const buffer = this.#checkActive();
     meter?.checkpoint(this.#length, this.#length);
     const output = new Uint8Array(this.#length);
-    for (let index = 0; index < this.#length; index++) output[index] = buffer[this.#offset + index * this.#stride]!;
+    const stride = Number(this.#stride);
+    for (let index = 0; index < this.#length; index++) output[index] = buffer[this.#offset + index * stride]!;
     return output;
   }
 

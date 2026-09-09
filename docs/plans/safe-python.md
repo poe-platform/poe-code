@@ -5984,6 +5984,20 @@ extension, integration, or validation requirement is missing or unverified.
   programs match CPython for selection, keys, identity and diagnostics.
   Typecheck, scoped lint and selected workspace build pass. Automatic builtin
   registration and general guest object/SDK/safe-fs integration remain open.
+- Added explicitly registered sorted using existing list storage, extension and
+  sort-option kernels. Input is copied/consumed before keyword errors or reverse
+  truth conversion; sorting retains member identity and stable reverse ties.
+  Optional complete list-extension capabilities preserve guest iteration and
+  length-hint ordering; native-only fallback avoids implicit iterator closing.
+  Key, rich less-than and truth callbacks remain execution-owned capabilities.
+- Seven tests cover copied slots, stable identity, argument/error precedence,
+  delayed key callability, source mutation during key calls, failures,
+  cancellation and guest hint ordering. All 4,799 tests in 420 files pass;
+  1,339 compiled sorted programs match CPython for native ordering, keys,
+  reverse, source preservation and diagnostics. Typecheck, scoped lint and
+  selected workspace build pass. Exact CPython comparison schedules, hint-driven
+  speculative allocations, automatic builtin registration and broader
+  object/SDK/safe-fs integration remain unfinished.
 - Next:
   remaining scope/compiler audits, interpreter runtime,
   resource controls, runtime modules, and safe-fs integration. Parsing and static

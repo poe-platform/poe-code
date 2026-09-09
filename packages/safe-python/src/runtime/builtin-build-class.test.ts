@@ -8,7 +8,7 @@ import { runtimeComparison } from "./runtime-comparison.js";
 import { analyzeModule } from "../analysis.js";
 import { compileProgram } from "./program-compilation.js";
 import { executeRuntimeProgram, type RuntimeProgramHooks } from "./runtime-program.js";
-import { executeRuntimeClassBody } from "./runtime-class-body.js";
+import { executeRuntimeBuilderBody } from "./runtime-builder-body.js";
 import { CallStack } from "./call-stack.js";
 
 function fixture(source: string, signal?: AbortSignal) {
@@ -30,8 +30,8 @@ function fixture(source: string, signal?: AbortSignal) {
     },
     executeBody(fn, namespace) {
       expect(this).toBe(policy); events.push("body");
-      if (fn.kind !== "function" || fn.value.code.scope.scope.node.kind !== "class" || namespace.kind !== "dict") return unused();
-      return executeRuntimeClassBody(program, fn.value.code.scope.scope.node, { ...context, ...fn.value, namespace }, meter);
+      if (fn.kind !== "function") return unused();
+      return executeRuntimeBuilderBody(fn, namespace, program, context, meter);
     },
     storeOriginalBases(namespace, original) { expect(this).toBe(policy); if (namespace.kind !== "dict") return unused(); namespace.items.set(values.string("__orig_bases__"), original); },
     construction: {
@@ -65,6 +65,15 @@ describe("concrete __build_class__ builtin", () => {
   it("does not construct or bind a class after its body fails", () => {
     const state = fixture("class C(metaclass=Meta):\n x = 1 / 0\n"); expect(state.run).toThrow(expect.objectContaining({ name: "ZeroDivisionError" }));
     expect(state.globals.has("C")).toBe(false); expect(state.events).toEqual(["prepare", "body"]); expect(state.calls.depth).toBe(0);
+  });
+  it("runs explicitly supplied ordinary functions without leaking optimized locals", () => {
+    const state = fixture("def f():\n global changed\n changed = 7\n local = 3\n return 42\nC = __build_class__(f, 'C', metaclass=Meta)\n"); state.run();
+    const cls = state.globals.get("C"); expect(cls?.kind === "dict" && cls.items.size).toBe(0);
+    expect(state.globals.get("changed")).toEqual(state.values.integer(7)); expect(state.globals.has("local")).toBe(false); expect(state.calls.depth).toBe(0);
+  });
+  it("accepts standalone returned cells during non-type metaclass construction", () => {
+    const state = fixture("def f(): return cell\nC = __build_class__(f, 'C', metaclass=Meta)\n"); state.globals.set("cell", state.values.cell({ content: { value: state.values.true } }));
+    state.run(); expect(state.globals.get("C")?.kind).toBe("dict"); expect(state.calls.depth).toBe(0);
   });
   it("does not publish a metaclass result after cancellation", () => {
     const controller = new AbortController(), state = fixture("class C(metaclass=Meta): pass\n", controller.signal);

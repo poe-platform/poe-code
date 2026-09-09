@@ -1,6 +1,6 @@
 import type { PreparedClass } from "./class-preparation.js";
 import type { ExecutionMeter } from "./execution-budget.js";
-import type { LexicalCell } from "./lexical-frame.js";
+import type { CellStorage } from "./lexical-frame.js";
 import { PythonRuntimeError } from "./error.js";
 
 export interface ClassConstructionContext<Value, Name = string, Key = string> {
@@ -22,7 +22,7 @@ export interface ClassConstructionContext<Value, Name = string, Key = string> {
  * remain separate. Construction or formatting failure never rolls back effects.
  */
 export function constructClass<Value, Name = string, Key = string>(
-  name: Name, bases: Value, prepared: PreparedClass<Value, Key>, cell: LexicalCell<Value> | undefined,
+  name: Name, bases: Value, prepared: PreparedClass<Value, Key>, cell: CellStorage<Value> | undefined,
   context: ClassConstructionContext<Value, Name, Key>, meter: ExecutionMeter
 ): Value {
   meter.checkpoint();

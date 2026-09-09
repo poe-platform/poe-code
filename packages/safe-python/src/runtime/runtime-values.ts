@@ -5,7 +5,7 @@ import { ListStorage } from "./list-storage.js";
 import type { FunctionState } from "./function-state.js";
 import type { OrderedKeyMap } from "./ordered-key-map.js";
 import { PythonRuntimeError } from "./error.js";
-import type { LexicalCell } from "./lexical-frame.js";
+import type { CellStorage } from "./lexical-frame.js";
 
 export interface ListValue {
   readonly kind: "list";
@@ -53,7 +53,7 @@ export interface BoundMethodValue {
 
 export interface CellValue {
   readonly kind: "cell";
-  readonly value: Pick<LexicalCell<RuntimeValue>, "content">;
+  readonly value: CellStorage<RuntimeValue>;
 }
 
 export type RuntimeValue =

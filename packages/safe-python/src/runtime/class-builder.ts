@@ -2,7 +2,7 @@ import { resolveClassBases, type ClassBasesContext } from "./class-bases.js";
 import { prepareClass, type ClassPreparationContext } from "./class-preparation.js";
 import { constructClass, type ClassConstructionContext } from "./class-construction.js";
 import type { ExecutionMeter } from "./execution-budget.js";
-import type { LexicalCell } from "./lexical-frame.js";
+import type { CellStorage } from "./lexical-frame.js";
 import { PythonRuntimeError } from "./error.js";
 
 export interface ClassBuilderContext<Value, Key = string> {
@@ -19,7 +19,7 @@ export interface ClassBuilderContext<Value, Key = string> {
    * Frame metadata, closure
    * handling, call-stack restoration and guest protocols belong to this adapter.
    */
-  executeBody(body: Value, namespace: Value): LexicalCell<Value> | undefined;
+  executeBody(body: Value, namespace: Value): CellStorage<Value> | undefined;
   /** Ordinary mapping assignment to __orig_bases__, including guest effects. */
   storeOriginalBases(namespace: Value, original: Value): void;
   readonly construction: ClassConstructionContext<Value, Value, Key>;

@@ -8,9 +8,13 @@ import { PythonRuntimeError } from "./error.js";
 /** Internal shared storage, never a guest-accessible JavaScript object. The
  * wrapper distinguishes an unbound cell from any valid Value, including undefined.
  */
-export interface LexicalCell<Value> {
-  readonly owner: SymbolScope;
+export interface CellStorage<Value> {
   content?: { readonly value: Value };
+}
+
+/** Lexical capture adds compiler ownership; standalone guest cells need no scope. */
+export interface LexicalCell<Value> extends CellStorage<Value> {
+  readonly owner: SymbolScope;
 }
 
 export interface LexicalNamespaces<Value> {

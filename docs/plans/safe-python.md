@@ -3436,6 +3436,22 @@ extension, integration, or validation requirement is missing or unverified.
   arbitrary prepared mappings and a unified prepared-body executor still need
   integration; the builtin requires explicit policies and is not silently
   installed. Suspension, full accounting and public SDK/safe-fs remain unfinished.
+- Added a unified concrete prepared-builder body executor. Class code uses exact
+  dictionary locals or an explicit custom mapping adapter; ordinary functions keep
+  normal argument binding and optimized locals without consulting prepared locals.
+  Returned cells retain shared storage, now separated from optional lexical owner
+  metadata. Originating function/class registries follow the body across programs.
+  The builtin integration uses this executor for real class suites and explicitly
+  supplied ordinary functions, including standalone returned cells.
+- The executor suite first failed on its missing module. A later test reproduced
+  returning a cell after cancellation during the last mapping store; a completion
+  checkpoint now rejects that return after stack cleanup. All 3,440 tests in 235
+  files pass. CPython audits matched 1,000 ordinary-function builder calls and
+  1,200 class statements through the unified executor, including argument errors,
+  globals, returned cells and partial failures. Source typecheck, scoped lint and
+  selected workspace build passed. Default type/metaclass/instance integration,
+  full guest mapping protocols, suspension, complete accounting and public SDK/
+  safe-fs integration remain unfinished; custom mappings still require a policy.
 - Next:
   remaining scope/compiler audits, interpreter runtime,
   resource controls, runtime modules, and safe-fs integration. Parsing and static

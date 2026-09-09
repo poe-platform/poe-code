@@ -6479,6 +6479,18 @@ extension, integration, or validation requirement is missing or unverified.
   speculative capacity allocation is still omitted; broader native-method guest
   protocols, automatic object/builtin assembly and interpreter/SDK/safe-fs work
   remain unfinished.
+- Connected list.count/index/remove to supplied rich comparison and truth
+  capabilities through native attribute lookup. Identity shortcuts remain in
+  storage; nonidentical elements use guest equality followed by truth conversion.
+  Live traversal and numeric-position removal preserve mutations performed by
+  guest comparisons. Post-comparison/truth checkpoints enforce cancellation.
+- Four regression cases cover each search method and removal after equality
+  shifts storage. All 5,032 tests in 438 files pass. All 144 compiled CPython
+  comparisons match results/errors/traces for true/false results, identity
+  matches, append/pop/clear during equality, and equality/truth failures in module
+  and nested calls. Typecheck, scoped lint and selected workspace build pass.
+  Guest index conversion, tuple search wiring, automatic object/builtin assembly
+  and broader interpreter/SDK/safe-fs work remain unfinished.
 - Next:
   remaining scope/compiler audits, interpreter runtime,
   resource controls, runtime modules, and safe-fs integration. Parsing and static

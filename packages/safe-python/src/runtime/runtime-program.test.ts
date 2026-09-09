@@ -39,6 +39,31 @@ function fixture(source: string, maxSteps = 100000, signal?: AbortSignal) {
 }
 
 describe("assembled concrete runtime programs", () => {
+  it.each(["count", "index", "remove"])("uses guest equality and truth for list.%s", method => {
+    const state = fixture(`items=[a,a]\nresult=items.${method}(b)\n`), v = state.values;
+    const a = v.cell({}), b = v.cell({}), truth = v.cell({}), events: string[] = [];
+    state.globals.set("a", a); state.globals.set("b", b);
+    state.hooks.expressions = () => ({ warn() {}, richComparison(operator, left, right) {
+      expect([operator, left, right]).toEqual(["==", a, b]); events.push("equal");
+      return { slots: { rightIsStrictSubtype: false, notImplemented: v.notImplemented, forward: () => truth, reflected: () => { throw Error("unexpected reflected comparison"); } } };
+    }, truth(value) { expect(value).toBe(truth); events.push("truth"); return true; } });
+    state.run();
+    expect(state.globals.get("result")).toEqual(method === "count" ? v.integer(2) : method === "index" ? v.integer(0) : v.none);
+    expect(events).toEqual(method === "count" ? ["equal", "truth", "equal", "truth"] : ["equal", "truth"]);
+  });
+  it("keeps list removal tied to the current numeric index after guest equality mutates storage", () => {
+    const state = fixture("items=[a,b]\nresult=items.remove(target)\n"), v = state.values;
+    state.globals.set("a", v.cell({})); state.globals.set("b", v.cell({})); state.globals.set("target", v.cell({}));
+    state.hooks.expressions = () => ({ warn() {}, richComparison() {
+      return { slots: { rightIsStrictSubtype: false, notImplemented: v.notImplemented, forward() {
+        const items = state.globals.get("items"); if (items?.kind !== "list") throw Error("expected list");
+        items.items.pop(0n); return v.true;
+      }, reflected: () => v.notImplemented } };
+    } });
+    state.run();
+    const items = state.globals.get("items"); if (items?.kind !== "list") throw Error("expected list");
+    expect(items.items.length).toBe(0);
+  });
   it.each([
     ["success", false], ["hint-error", false], ["next-error", false],
     ["success", true], ["hint-error", true], ["next-error", true]

@@ -5,12 +5,22 @@ import { runtimeComparison } from "./runtime-comparison.js";
 import { runtimeIterate } from "./runtime-iteration.js";
 import type { BuiltinFunctionValue, ListValue, RuntimeValue, RuntimeValues } from "./runtime-values.js";
 import { runtimeSearchBound } from "./runtime-search-bound.js";
+import { runtimeTruth } from "./runtime-truth.js";
 
-/** Exact list capabilities backed by owned, metered storage. Optional iteration
- * supplies guest acquisition and source hints. Guest index slots, descriptors
- * and finalizers remain separate object-layer work. */
-export function createRuntimeListMethod(receiver: ListValue, name: "append" | "extend" | "insert" | "pop" | "clear" | "reverse" | "copy" | "count" | "remove" | "index" | "__reversed__", values: RuntimeValues, meter: ExecutionMeter, iteration?: Pick<ExpressionContext<RuntimeValue>, "iterate">): BuiltinFunctionValue {
-  meter.checkpoint(1, 64);
+export type RuntimeListMethodContext = Partial<Pick<ExpressionContext<RuntimeValue>, "iterate" | "compare" | "truth">>;
+
+/** Exact list capabilities backed by owned, metered storage. Optional expression
+ * capabilities supply guest iteration, equality and truth. Guest index slots,
+ * descriptors and finalizers remain separate object-layer work. */
+export function createRuntimeListMethod(receiver: ListValue, name: "append" | "extend" | "insert" | "pop" | "clear" | "reverse" | "copy" | "count" | "remove" | "index" | "__reversed__", values: RuntimeValues, meter: ExecutionMeter, context: RuntimeListMethodContext = {}): BuiltinFunctionValue {
+  meter.checkpoint(1, 128);
+  const equal = (left: RuntimeValue, right: RuntimeValue): boolean => {
+    const result = context.compare === undefined ? runtimeComparison("==", left, right, values, meter) : context.compare("==", left, right);
+    meter.checkpoint();
+    const matches = context.truth === undefined ? runtimeTruth(result, meter) : context.truth(result);
+    meter.checkpoint();
+    return matches;
+  };
   return values.builtinFunction({
     name,
     invoke(positional, keywords, meter) {
@@ -20,7 +30,7 @@ export function createRuntimeListMethod(receiver: ListValue, name: "append" | "e
         if (positional.length < 1) throw new PythonRuntimeError("TypeError", "index expected at least 1 argument, got 0");
         if (positional.length > 3) throw new PythonRuntimeError("TypeError", `index expected at most 3 arguments, got ${positional.length}`);
         const start = runtimeSearchBound(positional[1], 0n, meter), stop = runtimeSearchBound(positional[2], 9223372036854775807n, meter);
-        const index = receiver.items.indexOf(positional[0], (a, b) => runtimeComparison("==", a, b, values, meter).value, start, stop);
+        const index = receiver.items.indexOf(positional[0], equal, start, stop);
         if (index === undefined) throw new PythonRuntimeError("ValueError", "list.index(x): x not in list");
         return values.integer(index);
       }
@@ -55,9 +65,8 @@ export function createRuntimeListMethod(receiver: ListValue, name: "append" | "e
       if (name === "append") receiver.items.append(value);
       else if (name === "extend") {
         if (value.kind === "list") receiver.items.extend(value.items);
-        else receiver.items.extendIterator(iteration === undefined ? runtimeIterate(value, values, meter) : iteration.iterate(value, undefined, true));
+        else receiver.items.extendIterator(context.iterate === undefined ? runtimeIterate(value, values, meter) : context.iterate(value, undefined, true));
       } else {
-        const equal = (a: typeof value, b: typeof value) => runtimeComparison("==", a, b, values, meter).value;
         if (name === "count") return values.integer(receiver.items.count(value, equal));
         if (!receiver.items.removeFirst(value, equal)) throw new PythonRuntimeError("ValueError", "list.remove(x): x not in list");
       }

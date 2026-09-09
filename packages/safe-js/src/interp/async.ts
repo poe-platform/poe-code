@@ -34,7 +34,7 @@ import { getFunctionRealmPrototype } from "./function-realm.js";
 import { generatorPrototypes } from "./generator-prototypes.js";
 import { retainValues, runResources } from "./resources.js";
 import { functionSources, functionStrictness } from "../parse/function-source.js";
-import { resolveIntrinsicIdentity } from "./intrinsics.js";
+import { getRealmGlobalObject } from "./intrinsics.js";
 import { createSandboxBox } from "./boxed.js";
 import { createMappedSandboxArguments } from "./arguments.js";
 import { getGeneratorOrigin, registerClosureOrigin, registerGeneratorOrigin } from "./closure-origin.js";
@@ -597,7 +597,7 @@ async function createClosureScope(
   if (node.type !== "ArrowFunctionExpression") {
     if (functionStrictness.get(node) === false) {
       if (thisValue === null || thisValue === undefined)
-        thisValue = resolveIntrinsicIdentity(context.budget, '["globalThis"]') as SandboxObject;
+        thisValue = getRealmGlobalObject(context.budget);
       else if (typeof thisValue !== "object") thisValue = createSandboxBox(thisValue);
     }
     const construction = context.functionEnvironment?.construction;

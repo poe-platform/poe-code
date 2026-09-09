@@ -2,7 +2,7 @@ import { promiseReplayContext } from "./promise-replay.js";
 import { createSandboxBox } from "./boxed.js";
 import { legacyBlockFunctions, prepareLegacyEvalFunctions } from "./legacy-block-functions.js";
 import { compileDynamicFunction } from "./dynamic-function.js";
-import { getIntrinsicIdentity, resolveIntrinsicIdentity } from "./intrinsics.js";
+import { getRealmGlobalObject, isRealmEval } from "./intrinsics.js";
 import { createEvalSource } from "../parse/dynamic-source.js";
 import { evalFunctionDeclarations } from "../parse/function-source.js";
 import { hoistedVarDeclarations } from "../parse/bindings.js";
@@ -1167,7 +1167,7 @@ async function evaluateAssignmentExpression(
         : await applyCompoundAssignmentOperator(node.operator, current, right.value, context);
 
     if (reference.kind === "unresolvable" && context.strict === false) {
-      const global = resolveIntrinsicIdentity(context.budget, '["globalThis"]') as SandboxObject;
+      const global = getRealmGlobalObject(context.budget);
       await setSandboxProperty(global, node.left.name, value, context.budget, true, createCoercionContext(context), false);
     } else if (reference.kind === "object") {
       if (context.strict !== false && !await bindingOperations(context).has(reference.object, reference.name))
@@ -3220,7 +3220,7 @@ export function createPatternContext(
     strict: context.strict !== false,
     bindingOperations: bindingOperations(evaluationContext),
     unresolvableAssignmentTarget: context.strict === false
-      ? resolveIntrinsicIdentity(context.budget, '["globalThis"]') as SandboxObject : undefined,
+      ? getRealmGlobalObject(context.budget) : undefined,
     restoredPatternState: id => context.generatorResume === undefined ? undefined : context.restoredGeneratorExpressionStates?.get(id),
     withPatternState: (id, state) => context.generatorYield === undefined ? createPatternContext(context, scope, evaluate)
       : createPatternContext({ ...context, generatorExpressionStates: new Map([...(context.generatorExpressionStates ?? []), [id, state]]) }, scope, evaluate),
@@ -3318,7 +3318,7 @@ async function evaluateGuestEval(source: string, context: EvaluationContext, dir
     parent.validateEvalGlobalDeclarations(names, functions);
   }
   const scope = parent.child({}, {functionBoundary: parsed.strict});
-  if (!direct) scope.declare("this", "const", resolveIntrinsicIdentity(context.budget, '["globalThis"]') as SandboxObject);
+  if (!direct) scope.declare("this", "const", getRealmGlobalObject(context.budget));
   const evaluationContext: EvaluationContext = {
     ...context, scope, strict: parsed.strict, functionBody: undefined, evalCompletion: true,
     functionEnvironment: direct ? context.functionEnvironment : undefined
@@ -4523,8 +4523,7 @@ async function evaluateResolvedCallExpression(
   // The syntax and captured callee survive argument suspension; do not resolve
   // the binding again when a saved call resumes.
   const directEval = node.callee.type === "Identifier" && node.callee.name === "eval" &&
-    node.optional !== true && getIntrinsicIdentity(callee) === '["eval"]' &&
-    callee === resolveIntrinsicIdentity(context.budget, '["eval"]');
+    node.optional !== true && isRealmEval(callee, context.budget);
   return {
     kind: "normal",
     hasValue: true,

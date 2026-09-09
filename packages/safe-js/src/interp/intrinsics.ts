@@ -8,6 +8,8 @@ import type { SandboxObject } from "./values.js";
 
 const identities = new WeakMap<object, string>();
 const realms = new WeakMap<Budget, Map<string, object>>();
+const runtimeGlobals = new WeakMap<Budget, SandboxObject>();
+const runtimeEvaluators = new WeakMap<Budget, object>();
 export const mutableBuiltinBindings = new WeakMap<object, ReadonlySet<string>>();
 export const builtinGlobalObjects = new WeakMap<object, SandboxObject>();
 
@@ -33,6 +35,8 @@ export function registerBuiltinIdentities(
     if (previous !== undefined && previous !== value)
       throw new TypeError(`Duplicate intrinsic identity: ${id}`);
     realm.set(id, value);
+    if (path.length === 1 && path[0] === "globalThis") runtimeGlobals.set(budget, value as SandboxObject);
+    if (path.length === 1 && path[0] === "eval") runtimeEvaluators.set(budget, value);
     if (!identities.has(value)) identities.set(value, id);
     if (visited.has(value)) continue;
     visited.add(value);
@@ -72,4 +76,16 @@ export function listIntrinsicIdentities(budget: Budget): string[] {
 
 export function releaseIntrinsicIdentities(budget: Budget): void {
   realms.delete(budget);
+}
+
+// Runtime global access outlives the snapshot-resolution table when an SDK
+// caller retains a guest closure. The visible globalThis binding may be changed.
+export function getRealmGlobalObject(budget: Budget): SandboxObject {
+  const global = runtimeGlobals.get(budget);
+  if (global === undefined) throw new TypeError("Realm global object is not installed.");
+  return global;
+}
+
+export function isRealmEval(value: object, budget: Budget): boolean {
+  return runtimeEvaluators.get(budget) === value;
 }

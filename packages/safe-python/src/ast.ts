@@ -5,6 +5,12 @@ export interface SourceSpan {
   readonly end: SourcePosition;
 }
 
+export type Parameter = SourceSpan & {
+  readonly spelling: string;
+  readonly kind: "positional-only" | "positional-or-keyword" | "keyword-only" | "var-positional" | "var-keyword";
+  readonly default: Expression | null;
+};
+
 export type CallArgument = SourceSpan & (
   | { readonly kind: "positional" | "starred" | "mapping"; readonly value: Expression }
   | { readonly kind: "keyword"; readonly spelling: string; readonly value: Expression }
@@ -25,6 +31,7 @@ export type Expression = SourceSpan & (
   | { readonly kind: "literal"; readonly literalKind: "integer" | "float" | "imaginary" | "string" | "bytes" | "boolean" | "none" | "ellipsis";
       readonly value: bigint | number | Uint32Array | Uint8Array | boolean | null }
   | { readonly kind: "name"; readonly spelling: string }
+  | { readonly kind: "lambda"; readonly parameters: readonly Parameter[]; readonly body: Expression }
   | { readonly kind: "tuple" | "list" | "set"; readonly items: readonly CollectionItem[] }
   | { readonly kind: "dictionary"; readonly entries: readonly DictionaryEntry[] }
   | { readonly kind: "attribute"; readonly object: Expression; readonly spelling: string }

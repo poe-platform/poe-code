@@ -5,6 +5,7 @@ import { TokenCursor } from "./token-cursor.js";
 import { readTrailers } from "./primary.js";
 import { reservedWords } from "./keywords.js";
 import { readDisplay } from "./displays.js";
+import { readLambda } from "./lambda.js";
 
 const binaryPrecedence: Readonly<Record<string, number>> = {
   or: 2, and: 3, "|": 6, "^": 7, "&": 8, "<<": 9, ">>": 9,
@@ -74,6 +75,7 @@ export function readExpression(cursor: TokenCursor, minimum = 0): Expression {
 
 function readPrefix(cursor: TokenCursor, minimum: number): Expression {
   const token = cursor.peek();
+  if (token.text === "lambda" && minimum <= 1) return readLambda(cursor, readExpression);
   if ((token.text === "not" && minimum <= 4) || ["+", "-", "~"].includes(token.text)) {
     cursor.take();
     const operand = readExpression(cursor, token.text === "not" ? 4 : 12);

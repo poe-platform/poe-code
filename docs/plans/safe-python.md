@@ -188,8 +188,20 @@ extension, integration, or validation requirement is missing or unverified.
   logical-line joins matched acceptance and decoded values. Source typecheck,
   scoped lint, and selected workspace build passed. Mixing interpolated and
   ordinary literals still depends on the pending interpolated-string AST parser.
+- Added lambda expression trees with positional-only, positional-or-keyword,
+  keyword-only, variadic positional, and variadic keyword parameters. Defaults
+  and bodies remain unevaluated expressions, including nested lambdas. Parameter
+  ordering, separators, raw duplicate names, and default-placement rules are
+  validated; lambda precedence permits conditional alternatives but rejects
+  unparenthesized lambdas in arithmetic operands and conditional conditions.
+- Lambda validation: four valid-syntax tests failed before implementation; all
+  440 package unit cases now pass. A generated 9,361-case CPython compilation
+  and parameter-tree comparison matched acceptance, parameter categories, and
+  literal defaults without differences. Scoped lint, source typecheck, and selected workspace
+  build passed. Identifier-normalized duplicate checks and runtime function/default
+  evaluation remain pending.
 - Next:
-  comprehensions, lambdas, interpolated-string ASTs, parser-level NFKC
+  comprehensions, interpolated-string ASTs, parser-level NFKC
   normalization, the complete grammar/parser and evaluator, then runtime modules
   and safe-fs integration. Tokenization does not establish interpreter execution.
 - Workspace lockfile registration and packaging integration remain pending.

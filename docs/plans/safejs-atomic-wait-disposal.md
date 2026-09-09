@@ -83,10 +83,32 @@ The built-runtime abort probe now reports zero remaining native waiters, whereas
 the pre-fix probe reported one. The committed-candidate full gate remains a
 separate validation of d9e6c0fe2 and cannot establish a full pass for this change.
 
+## Terminal committed-candidate gate
+
+Gate 8033 completed successfully: 24,930 tests passed and 37 skipped across
+981 files (980 passed, one skipped), in 572.70 seconds. The post-run 1,321-file
+digest exactly matches the pre-run digest above. This is a full SafeJS package
+unit pass for d9e6c0fe2, excluding the later worker implementation and unrelated
+uncommitted experimental tests. The worker cleanup was committed separately as
+bc6a2dfdb after its 47 focused tests, type/lint checks and selected build passed.
+No remote delivery or release occurred, and full JavaScript completeness remains
+unproven.
+
 Separately, full committed-candidate gate 8033 runs in
 `/tmp/safejs-shared-commit.eCW6K7/candidate`, against d9e6c0fe2. All 1,313 tracked
 SafeJS source/test files match that commit. The 1,321-file path/content digest,
 including eight generated Intl JavaScript/declaration files, is
 `bc50c94a8800a2abdb6696aba70e942fb886462e75df90b294ad8efa5d9739fe`.
 Vitest aliases resolve workspace packages to that candidate's own sources.
-This new disposal regression is main-worktree-only, outside the frozen gate.
+The disposal regression was outside that frozen gate.
+
+## Guest failure delivery
+
+A deterministic fake-worker integration test now drives a registered wait through
+the full interpreter, emits a worker error, and checks the guest catch result:
+`["Error", "wait worker failed", true]`, including `instanceof Error`. The focused
+test passes on the existing implementation (2041); no runtime correction was
+justified. The test also checks that worker termination occurs exactly once.
+The combined four-file selection passes all 48 tests (69362); package TypeScript
+(75391) and scoped ESLint (68430) also pass. These remain focused checks, not a
+full-suite result for the newer worker implementation.

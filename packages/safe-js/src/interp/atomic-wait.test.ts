@@ -2,11 +2,13 @@ import { beforeEach, expect, it, vi } from "vitest";
 import { Budget, SandboxError } from "./budget.js";
 import { withRunResources } from "./resources.js";
 import { waitForAtomicValue } from "./atomic-wait.js";
+import { run } from "../run.js";
 
 const state = vi.hoisted(() => ({
   created: [] as Array<{ emit: (event: string, ...args: unknown[]) => boolean; terminate: ReturnType<typeof vi.fn>; posts: Array<{ id: number }> }>,
   startupError: undefined as Error | undefined,
-  postError: undefined as Error | undefined
+  postError: undefined as Error | undefined,
+  onPost: undefined as (() => void) | undefined
 }));
 
 vi.mock("node:worker_threads", async () => {
@@ -22,6 +24,7 @@ vi.mock("node:worker_threads", async () => {
     postMessage(message: { id: number }) {
       if (state.postError !== undefined) throw state.postError;
       this.posts.push(message);
+      state.onPost?.();
     }
   } };
 });
@@ -30,6 +33,7 @@ beforeEach(() => {
   state.created.length = 0;
   state.startupError = undefined;
   state.postError = undefined;
+  state.onPost = undefined;
 });
 
 it("reuses one worker and acknowledges registration before settlement", async () => {
@@ -104,4 +108,28 @@ it("delivers settlement accounting failures through the wait promise", async () 
       await expect(result.value).rejects.toBe(failure);
     } finally { check.mockRestore(); }
   });
+});
+
+it("delivers a worker failure as a guest Error after wait registration", async () => {
+  state.onPost = () => {
+    const worker = state.created[0];
+    worker.emit("message", { id: worker.posts[0].id, kind: "registered", async: true });
+  };
+  let entered!: () => void;
+  const ready = new Promise<void>(resolve => { entered = resolve; });
+  const controller = new AbortController();
+  const pending = run(`const wait=Atomics.waitAsync(new Int32Array(new SharedArrayBuffer(4)),0,0);
+    ready();try{await wait.value}catch(error){return [error.name,error.message,error instanceof Error]}`, {
+    signal: controller.signal, bindings: { ready: entered }
+  });
+  const outcome = pending.catch(error => error);
+  try {
+    await ready;
+    state.created[0].emit("error", new Error("wait worker failed"));
+    expect(await outcome).toMatchObject({ ok: true, returnValue: ["Error", "wait worker failed", true] });
+  } finally {
+    controller.abort();
+    await outcome;
+  }
+  expect(state.created[0].terminate).toHaveBeenCalledTimes(1);
 });

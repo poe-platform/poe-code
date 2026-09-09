@@ -9,6 +9,12 @@ function fixture() {
 }
 
 describe("concrete sequence repetition", () => {
+  it("fits tuple repetition into only its final slot allocation", () => {
+    const { values: sourceValues } = fixture(), source = sourceValues.tuple([sourceValues.true, sourceValues.false]);
+    const meter = new ExecutionBudget({ maxSteps: 100, maxAllocatedBytes: 240 }), values = new ConstantValues(meter);
+    const result = constantRepeat(source, sourceValues.integer(3), values, meter);
+    expect(result.kind).toBe("tuple"); expect(meter.usage.allocatedBytes).toBe(240);
+  });
   it("repeats code points without merging surrogate boundaries", () => {
     const { meter, values: v } = fixture(), source = v.stringPoints(Uint32Array.of(0xdc00, 0xd800));
     const result = constantRepeat(source, v.integer(2), v, meter);

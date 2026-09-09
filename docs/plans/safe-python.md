@@ -2203,6 +2203,15 @@ extension, integration, or validation requirement is missing or unverified.
   concatenations, 6,036 repetitions and 3,000 slices. Source typecheck, scoped lint
   and selected workspace build passed. Tuple temporary copies and
   full host object/array overhead accounting remain unfinished.
+- Removed temporary tuple arrays from concatenation, repetition and slicing.
+  The constant factory supports trusted indexed readers that fill final slots
+  directly, charges storage before invoking readers, and never exposes partially
+  initialized arrays. Existing array input still copies and freezes its slots.
+- Direct-tuple validation: allocation and reader regressions failed before the
+  implementation; all 2,568 tests in 145 files now pass. CPython rechecks matched
+  3,000 concatenations, 6,036 repetitions and 3,000 slices. Source typecheck,
+  scoped lint and selected workspace build passed. Full host object/array
+  overhead accounting remains unfinished.
 - Next:
   remaining scope/compiler audits, interpreter runtime,
   resource controls, runtime modules, and safe-fs integration. Parsing and static

@@ -14,8 +14,8 @@ function bound(value: ConstantValue | undefined, meter: ExecutionMeter): bigint 
 
 /** Apply already-evaluated slice components to exact builtin constant sequences.
  * This is not a guest slice object or user-defined __index__/__getitem__ dispatch.
- * Step conversion and zero validation precede lower/upper conversion. Temporary
- * tuple slots are charged separately from the factory's immutable owned copy.
+ * Step conversion and zero validation precede lower/upper conversion. Selected
+ * tuple slots are generated directly into the factory's final immutable array.
  */
 export function constantSlice(object: ConstantValue, parts: SliceValues<ConstantValue>, values: ConstantValues, meter: ExecutionMeter): ConstantValue {
   meter.checkpoint();
@@ -32,11 +32,7 @@ export function constantSlice(object: ConstantValue, parts: SliceValues<Constant
   if (object.kind === "str") return values.stringPoints(object.value.slice(start, stop, step, meter));
   if (object.kind === "bytes") return values.bytes(object.value.slice(start, stop, step, meter));
   const count = Number(indices.length);
-  meter.checkpoint(0, count * 8);
-  const items: ConstantValue[] = new Array(count);
   const stride = count > 1 ? Number(indices.step) : 0;
-  for (let offset = 0, index = Number(indices.start); offset < count; offset++, index += stride) {
-    meter.checkpoint(); items[offset] = object.items[index];
-  }
-  return values.tuple(items);
+  const first = Number(indices.start);
+  return values.tuple(count, offset => object.items[first + offset * stride]);
 }

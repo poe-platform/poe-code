@@ -11,6 +11,30 @@ function fixture() {
 }
 
 describe("concrete immutable constants", () => {
+  it("builds tuple slots directly from a trusted indexed reader", () => {
+    const { values, meter } = fixture(), member = { mutable: true }, calls: number[] = [], before = meter.usage.allocatedBytes;
+    const tuple = values.tuple(3, index => { calls.push(index); return member; });
+    expect(calls).toEqual([0, 1, 2]); expect(tuple.items).toEqual([member, member, member]);
+    expect(tuple.items.every(value => value === member)).toBe(true);
+    expect(Object.isFrozen(tuple.items)).toBe(true); expect(Object.isFrozen(member)).toBe(false);
+    expect(meter.usage.allocatedBytes - before).toBe(32 + 3 * 8);
+  });
+  it("does not invoke indexed readers for empty tuples or rejected allocations", () => {
+    const meter = new ExecutionBudget({ maxSteps: 100, maxAllocatedBytes: 239 }), values = new ConstantValues(meter), calls: number[] = [];
+    expect(values.tuple(0, index => { calls.push(index); return index; }).items).toEqual([]);
+    expect(() => values.tuple(2, index => { calls.push(index); return index; })).toThrow(ExecutionLimitError);
+    expect(calls).toEqual([]);
+  });
+  it("validates indexed tuple lengths and requires a reader", () => {
+    const { values } = fixture();
+    for (const length of [-1, .5, Infinity]) expect(() => values.tuple(length, () => 1)).toThrow("tuple length must be a nonnegative safe integer");
+    expect(() => values.tuple(1 as never)).toThrow("tuple item reader is required");
+  });
+  it("propagates indexed-reader failures without visiting later slots", () => {
+    const { values } = fixture(), calls: number[] = [], error = new Error("reader failed");
+    expect(() => values.tuple(3, index => { calls.push(index); if (index === 1) throw error; return index; })).toThrow(error);
+    expect(calls).toEqual([0, 1]);
+  });
   it("reuses immutable string and bytes storage without copying its payload", () => {
     const { values, meter } = fixture(), string = values.string("abc"), bytes = values.bytes(Uint8Array.of(1, 2));
     const before = meter.usage.allocatedBytes;

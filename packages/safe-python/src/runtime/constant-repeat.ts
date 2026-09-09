@@ -5,7 +5,7 @@ import { PythonRuntimeError } from "./error.js";
 /** Exact immutable sequence repetition in either operand order. Count conversion
  * precedes empty-sequence shortcuts. Guest __index__/reflected dispatch belongs
  * to the caller. Payload/slot copies are charged before allocation, while full
- * host overhead and removal of tuple temporary copies remain pending.
+ * host overhead accounting remains pending.
  */
 export function constantRepeat(left: ConstantValue, right: ConstantValue, values: ConstantValues, meter: ExecutionMeter): ConstantValue {
   meter.checkpoint();
@@ -27,11 +27,8 @@ export function constantRepeat(left: ConstantValue, right: ConstantValue, values
   try {
     if (source.kind === "str") return values.stringPoints(source.value.repeat(Number(repetitions), meter));
     if (source.kind === "bytes") return values.bytes(source.value.repeat(Number(repetitions), meter));
-    const outputLength = Number(total);
-    meter.checkpoint(0, outputLength * 8);
-    const items: ConstantValue[] = new Array(outputLength);
-    for (let i = 0; i < outputLength; i++) { meter.checkpoint(); items[i] = source.items[i % length]; }
-    return values.tuple(items);
+    const members = source.items;
+    return values.tuple(Number(total), index => members[index % length]);
   } catch (error) {
     if (error instanceof RangeError) exhaustAllocation(meter);
     throw error;

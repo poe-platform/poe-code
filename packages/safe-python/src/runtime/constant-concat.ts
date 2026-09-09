@@ -3,8 +3,8 @@ import type { ExecutionMeter } from "./execution-budget.js";
 
 /** Concatenate matching exact immutable sequence kinds. This kernel declines
  * mismatches; the caller owns reflected dispatch and sequence-specific errors.
- * Byte/string storage is adopted once; tuple temporary copies are explicitly
- * charged. Complete host object/array overhead accounting remains unfinished.
+ * Byte/string storage is adopted once; tuple slots are generated directly into
+ * final storage. Complete host object/array overhead accounting is unfinished.
  */
 export function constantConcat(left: ConstantValue, right: ConstantValue, values: ConstantValues, meter: ExecutionMeter): ConstantValue {
   meter.checkpoint();
@@ -22,11 +22,7 @@ export function constantConcat(left: ConstantValue, right: ConstantValue, values
     if (left.items.length === 0) return right;
     if (right.items.length === 0) return left;
     const length = left.items.length + right.items.length;
-    meter.checkpoint(0, length * 8);
-    const items: ConstantValue[] = new Array(length);
-    for (let i = 0; i < left.items.length; i++) { meter.checkpoint(); items[i] = left.items[i]; }
-    for (let i = 0; i < right.items.length; i++) { meter.checkpoint(); items[left.items.length + i] = right.items[i]; }
-    return values.tuple(items);
+    return values.tuple(length, index => index < left.items.length ? left.items[index] : right.items[index - left.items.length]);
   }
   return values.notImplemented;
 }

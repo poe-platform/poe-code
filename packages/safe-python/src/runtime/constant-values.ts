@@ -99,10 +99,20 @@ export class ConstantValues {
     return Object.freeze({ kind: "bytes", value: value instanceof ImmutableBytes ? value : ImmutableBytes.copyOf(value, this.meter) });
   }
 
-  tuple<Value>(values: readonly Value[]): TupleConstant<Value> {
-    this.meter.checkpoint(1, VALUE_BYTES + values.length * REFERENCE_BYTES);
-    const items: Value[] = new Array(values.length);
-    for (let index = 0; index < values.length; index++) { this.meter.checkpoint(); items[index] = values[index]; }
+  tuple<Value>(values: readonly Value[]): TupleConstant<Value>;
+  tuple<Value>(length: number, readItem: (index: number) => Value): TupleConstant<Value>;
+  /** Indexed readers are trusted host construction callbacks, never guest
+   * iteration. Allocate and charge final slots before visiting any item; the
+   * partially constructed array is never passed to the reader or published.
+   */
+  tuple<Value>(values: readonly Value[] | number, readItem?: (index: number) => Value): TupleConstant<Value> {
+    this.meter.checkpoint();
+    const length = typeof values === "number" ? values : values.length;
+    if (!Number.isSafeInteger(length) || length < 0) throw new RangeError("tuple length must be a nonnegative safe integer");
+    if (typeof values === "number" && typeof readItem !== "function") throw new TypeError("tuple item reader is required");
+    this.meter.checkpoint(0, VALUE_BYTES + length * REFERENCE_BYTES);
+    const items: Value[] = new Array(length);
+    for (let index = 0; index < length; index++) { this.meter.checkpoint(); items[index] = typeof values === "number" ? readItem!(index) : values[index]; }
     return Object.freeze({ kind: "tuple", items: Object.freeze(items) });
   }
 

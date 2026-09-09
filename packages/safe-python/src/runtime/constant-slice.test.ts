@@ -9,6 +9,11 @@ function fixture() {
 }
 
 describe("concrete immutable slicing", () => {
+  it("charges only final tuple slots for a strided slice", () => {
+    const { meter, values: v } = fixture(), source = v.tuple([v.none, v.true, v.false]), step = v.integer(2), before = meter.usage.allocatedBytes;
+    constantSlice(source, { step }, v, meter);
+    expect(meter.usage.allocatedBytes - before).toBe(32 + 2 * 8);
+  });
   it("retains identity for full unit-stride slices", () => {
     const { meter, values: v } = fixture();
     for (const source of [v.string("abc"), v.bytes(Uint8Array.of(1, 2)), v.tuple([v.none])]) {

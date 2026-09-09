@@ -3285,6 +3285,22 @@ extension, integration, or validation requirement is missing or unverified.
   bound methods, class/import dispatch, suspension, complete accounting and public
   SDK/safe-fs integration remain unfinished. No filesystem capability is granted
   implicitly by builtin registration.
+- Added immutable bound Python-method records retaining the exact function and
+  instance, without executing or copying either. Method calls prepend the instance
+  before ordinary function argument binding and use the function's captured
+  namespaces/diagnostic identity. Equality compares function/instance identities;
+  hashing xors the function hash with generic instance identity, so unhashable
+  instances remain valid. Truth, iteration and arithmetic dispatch recognize the
+  new value kind, and equivalent method dictionary keys merge correctly.
+- The method and integration tests first failed on the absent factory. All
+  3,358 tests in 225 files pass. A 960-case CPython MethodType audit matched calls,
+  equality, binding errors and method hashes using matching identity policies;
+  program (1,300), comparison (3,600) and runtime-hash (3,000) regressions also
+  passed. Source typecheck, scoped lint and selected workspace build passed.
+  Binding currently covers exact Python functions; general MethodType callable
+  inputs, function __get__ argument handling, concrete types/instance attribute
+  wiring, class construction, suspension, complete accounting and public SDK/
+  safe-fs integration remain unfinished.
 - Next:
   remaining scope/compiler audits, interpreter runtime,
   resource controls, runtime modules, and safe-fs integration. Parsing and static

@@ -50,6 +50,10 @@ export function runtimeComparison(operator: string, left: RuntimeValue, right: R
     const task = work.pop()!;
     if (typeof task === "function") { task(); continue; }
     const { operator: op, left: a, right: b, depth } = task;
+    if (a.kind === "method" && b.kind === "method" && (op === "==" || op === "!=")) {
+      const equal = a.value.function === b.value.function && a.value.instance === b.value.instance;
+      result = op === "==" ? equal : !equal; continue;
+    }
     if (a.kind === "dict" && b.kind === "dict" && (op === "==" || op === "!=")) {
       if (depth >= maxDepth) throw new PythonRuntimeError("RecursionError", "maximum recursion depth exceeded in comparison");
       meter.checkpoint(0, 64);

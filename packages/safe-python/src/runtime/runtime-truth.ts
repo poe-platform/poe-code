@@ -12,7 +12,7 @@ export function runtimeTruth(value: RuntimeValue, meter: ExecutionMeter): boolea
     case "list": return value.items.length !== 0;
     case "dict": return value.items.size !== 0;
     case "range": return value.value.length !== 0n;
-    case "iterator": case "function": case "builtin_function_or_method": return true;
+    case "iterator": case "function": case "builtin_function_or_method": case "method": return true;
     default: return constantTruth(value, meter);
   }
 }

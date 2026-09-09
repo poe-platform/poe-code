@@ -4,6 +4,7 @@ import type { IntegerProgression } from "./integer-sequence.js";
 import { ListStorage } from "./list-storage.js";
 import type { FunctionState } from "./function-state.js";
 import type { OrderedKeyMap } from "./ordered-key-map.js";
+import { PythonRuntimeError } from "./error.js";
 
 export interface ListValue {
   readonly kind: "list";
@@ -44,6 +45,11 @@ export interface BuiltinFunctionValue {
   readonly value: BuiltinFunctionCapability;
 }
 
+export interface BoundMethodValue {
+  readonly kind: "method";
+  readonly value: { readonly function: FunctionValue; readonly instance: RuntimeValue };
+}
+
 export type RuntimeValue =
   | PrimitiveConstant
   | TupleConstant<RuntimeValue>
@@ -53,6 +59,7 @@ export type RuntimeValue =
   | IteratorValue
   | FunctionValue
   | BuiltinFunctionValue
+  | BoundMethodValue
   | DictionaryValue;
 
 /** Host-only records, never accessible through guest JavaScript properties.
@@ -95,6 +102,15 @@ export class RuntimeValues extends ConstantValues {
   builtinFunction(value: BuiltinFunctionCapability): BuiltinFunctionValue {
     this.runtimeMeter.checkpoint(1, 32);
     return Object.freeze({ kind: "builtin_function_or_method", value });
+  }
+
+  /** Exact Python-function binding. General MethodType callable inputs and
+   * descriptor __get__ argument handling belong to the later object layer. */
+  boundMethod(fn: FunctionValue, instance: RuntimeValue): BoundMethodValue {
+    this.runtimeMeter.checkpoint();
+    if (instance.kind === "none") throw new PythonRuntimeError("TypeError", "instance must not be None");
+    this.runtimeMeter.checkpoint(0, 64);
+    return Object.freeze({ kind: "method", value: Object.freeze({ function: fn, instance }) });
   }
 
   /** Adopt prepared ordered storage sharing this execution's key policy/meter. */

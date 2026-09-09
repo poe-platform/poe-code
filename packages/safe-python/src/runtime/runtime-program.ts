@@ -51,16 +51,22 @@ export function executeRuntimeProgram(program: CompiledProgram<RuntimeValue>, co
     const expressionHooks = hooks.expressions(frame); meter.checkpoint();
     const statementHooks = hooks.statements(frame); meter.checkpoint();
     const beginCall = (callee: RuntimeValue) => beginRuntimeCall(callee, {
-      values, keys, name: value => value.kind === "builtin_function_or_method" ? `${value.value.name}()` : hooks.name(value), keywordName: hooks.keywordName.bind(hooks),
-      callable: value => value.kind === "function" || value.kind === "builtin_function_or_method" || hooks.callable(value),
+      values, keys, name: value => value.kind === "builtin_function_or_method" ? `${value.value.name}()` : hooks.name(value.kind === "method" ? value.value.function : value), keywordName: hooks.keywordName.bind(hooks),
+      callable: value => value.kind === "function" || value.kind === "builtin_function_or_method" || value.kind === "method" || hooks.callable(value),
       invoke(value, positional, keywords) {
         if (value.kind === "builtin_function_or_method") return value.value.invoke(positional, keywords, meter);
-        if (value.kind !== "function") return hooks.invoke(value, positional, keywords, frame);
+        const fn = value.kind === "method" ? value.value.function : value;
+        let args = positional;
+        if (value.kind === "method") {
+          meter.checkpoint(1, 32 + 8 * (positional.length + 1));
+          args = Object.freeze([value.value.instance, ...positional]);
+        }
+        if (fn.kind !== "function") return hooks.invoke(fn, args, keywords, frame);
         const invocation: RuntimeFunctionContext = {
-          values, keys, calls, body: child => body(child, value.value)
+          values, keys, calls, body: child => body(child, fn.value)
         };
         if (hooks.suspended) invocation.suspended = hooks.suspended.bind(hooks);
-        return invokeRuntimeFunction(value, positional, keywords, invocation, meter);
+        return invokeRuntimeFunction(fn, args, keywords, invocation, meter);
       }
     }, meter);
     const definitions = createRuntimeFunctionDefinitions(program, {

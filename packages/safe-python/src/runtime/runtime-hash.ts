@@ -78,6 +78,13 @@ export function runtimeHash(value: RuntimeValue, context: ConstantHashContext | 
         result = BigInt.asIntN(64, prime5 + (prime5 ^ 3527539n));
       } else {
         switch (current.kind) {
+          case "method": {
+            if (!("none" in context)) throw new Error("runtime hash context is required for bound methods");
+            const fn = normalized(context.identity(current.value.function));
+            meter.checkpoint();
+            const instance = normalized(context.identity(current.value.instance));
+            result = normalized(fn ^ instance); break;
+          }
           case "list": case "dict": throw new UnhashableRuntimeValueError(current.kind);
           case "function": case "iterator": case "builtin_function_or_method":
             if (!("none" in context)) throw new Error("runtime hash context is required for identity-based runtime values");

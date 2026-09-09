@@ -28,6 +28,14 @@ function fixture(source: string, maxSteps = 100000, signal?: AbortSignal) {
 }
 
 describe("assembled concrete runtime programs", () => {
+  it("prepends the bound instance before function argument binding", () => {
+    const state = fixture("def f(self, x=2, **kw):\n return self[0] + x + kw['y']\nm = bind(f, [10])\nresult = m(y=3)\n");
+    state.builtins.set("bind", state.values.builtinFunction({ name: "bind", invoke(positional) {
+      const fn = positional[0]; if (fn.kind !== "function") throw new Error("function expected");
+      return state.values.boundMethod(fn, positional[1]);
+    } }));
+    state.run(); expect(state.globals.get("result")).toEqual(state.values.integer(15)); expect(state.calls.depth).toBe(0);
+  });
   it("does not publish a builtin result after its capability cancels execution", () => {
     const controller = new AbortController(), state = fixture("result = native()\nafter = 1\n", 100000, controller.signal);
     state.builtins.set("native", state.values.builtinFunction({ name: "native", invoke() { controller.abort(); return state.values.true; } }));

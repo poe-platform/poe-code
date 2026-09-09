@@ -1,6 +1,30 @@
 # Realm lifetime full package gate
 
-## Latest boxed-primitive candidate
+## Latest array, split and match candidate
+
+Runtime HEAD ae5b505ab includes the copy-by-change, default species, split,
+and match-result realm fixes. The maintained build passed 23 workspace builds
+and four fresh-process import checks. The full unit command below ran its npm
+pretest locale hook, started Vitest at 03:55:06 and completed in 731.75 seconds,
+exit 1.
+
+- Tests: 24,176 passed, two failed, 37 skipped; 24,215 total.
+- Files: 936 passed, one failed, one skipped; 938 total.
+- Only the two native Promise property-import assertions failed.
+- The checkpoint and camera timeouts from the preceding gate did not recur.
+  This run proves a pass for those tests, not a permanent timing fix.
+
+The sorted source/test SHA-256 matched before, during and after the run:
+
+`fa292a36ab8101c083a6971570276d9b79084e71fe0ba5e53ade39f00426065f`
+
+Documentation-only audit commits landed while the source and tests remained
+unchanged. Uncommitted weak-collection work and Promise policy tests remain
+included, so this is a working-tree result rather than an isolated committed
+candidate. Reflection, iterator, descriptor, JSON and grouping realm audits
+identify independent next fixes. No push or release occurred.
+
+## Previous boxed-primitive candidate
 
 Runtime HEAD fa36d37f3 passed the maintained selected-workspace build (23
 builds and four fresh-process import checks), then the same unit command below

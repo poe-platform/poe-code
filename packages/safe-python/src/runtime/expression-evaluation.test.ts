@@ -27,6 +27,7 @@ function environment(initial: ReadonlyMap<string, Value> = new Map()) {
     compare: (operator, left, right) => { events.push(`compare:${operator}`); return operator === "<" ? (left as bigint) < (right as bigint) : left === right; },
     truth: value => { events.push("truth"); return Boolean(value); },
     boolean: value => value,
+    beginCall: () => { throw new Error("fixture calls unsupported"); },
     attribute: (value, name) => { events.push(`attribute:${name}`); return `${value}.${name}`; }
   };
   return { context, names, events };

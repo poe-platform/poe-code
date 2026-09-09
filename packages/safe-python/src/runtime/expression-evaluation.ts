@@ -1,5 +1,17 @@
-import type { Expression } from "../ast.js";
+import type { CallArgument, Expression } from "../ast.js";
 import type { ExecutionMeter } from "./execution-budget.js";
+
+/** Per-call guest argument collector. Expansion/merging owns iteration, guest
+ * key validation, duplicate detection, allocation and internal metering. Explicit
+ * keyword groups are evaluated fully before being handed to the collector.
+ */
+export interface ExpressionCall<Value> {
+  positional(value: Value): void;
+  starred(value: Value): void;
+  keywords(entries: readonly (readonly [string, Value])[]): void;
+  mapping(value: Value): void;
+  invoke(): Value;
+}
 
 /** Guest object operations, never host eval. Implementations own guest types,
  * name resolution, descriptor/operator dispatch and metering inside each call.
@@ -14,6 +26,10 @@ export interface ExpressionContext<Value> {
   truth(value: Value): boolean;
   boolean(value: boolean): Value;
   attribute(object: Value, name: string): Value;
+  /** Prepare host bookkeeping only: do not invoke guest code or reject a
+   * non-callable callee here. Callability/binding are checked at invoke time.
+   */
+  beginCall(callee: Value): ExpressionCall<Value>;
 }
 
 /** Host implementation gap, not a catchable guest exception. */
@@ -62,6 +78,54 @@ export function evaluateExpression<Value>(expression: Expression, context: Expre
         break;
       case "assignment-expression":
         work.push(() => { context.store(node.target.name, value); knownTruth = undefined; }, { node: node.value, test: "value" });
+        break;
+      case "call":
+        work.push(() => {
+          const call = context.beginCall(value);
+          const positional: CallArgument[] = [], keywords: CallArgument[] = [];
+          for (const argument of node.arguments) {
+            meter.checkpoint();
+            (argument.kind === "positional" || argument.kind === "starred" ? positional : keywords).push(argument);
+          }
+          const soleStar = positional.length === 1 && positional[0].kind === "starred";
+          let deferredStar: { value: Value } | undefined;
+          let position = 0, keyword = 0;
+          let group: (readonly [string, Value])[] = [];
+          const nextKeyword = () => {
+            const argument = keywords[keyword];
+            if (group.length && (argument === undefined || argument.kind === "mapping")) {
+              const entries = group; group = [];
+              work.push(nextKeyword);
+              call.keywords(entries);
+              return;
+            }
+            if (argument === undefined) {
+              work.push(() => { value = call.invoke(); knownTruth = undefined; });
+              if (deferredStar !== undefined) {
+                const star = deferredStar.value;
+                work.push(() => { call.starred(star); });
+              }
+              return;
+            }
+            keyword++;
+            work.push(() => {
+              if (argument.kind === "keyword") group.push([argument.name, value]);
+              else call.mapping(value);
+              work.push(nextKeyword);
+            }, { node: argument.value, test: "value" });
+          };
+          const nextPositional = () => {
+            const argument = positional[position++];
+            if (argument === undefined) { work.push(nextKeyword); return; }
+            work.push(() => {
+              if (argument.kind === "positional") call.positional(value);
+              else if (soleStar) deferredStar = { value };
+              else call.starred(value);
+              work.push(nextPositional);
+            }, { node: argument.value, test: "value" });
+          };
+          work.push(nextPositional);
+        }, { node: node.callee, test: "value" });
         break;
       case "binary":
         work.push(() => {

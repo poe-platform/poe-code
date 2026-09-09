@@ -1237,6 +1237,27 @@ extension, integration, or validation requirement is missing or unverified.
   lambdas, interpolation, await/yield, statement/frame execution and guest object
   construction remain to be wired and implemented. No host eval is used by the
   implementation; CPython eval is used only in independent differential checks.
+- Added call-expression execution to the continuation evaluator. It evaluates the
+  callee first, then positional/starred expressions before keyword/mapping
+  expressions, even when a star appears textually after an explicit keyword.
+  Each explicit keyword run is evaluated before merging with earlier mappings.
+  A sole starred positional value is held for expansion after keyword processing,
+  matching CPython's observable iteration/error order. Other star expansions are
+  consumed in positional order. Callee callability and binding are delayed until
+  invocation; nested calls retain independent argument-collection state.
+- Call validation: nine execution tests failed on unsupported call nodes before
+  implementation; all 1,789 tests in 84 files now pass. An integration case invokes
+  the existing argument binder with evaluated call arguments. CPython matched
+  3,400 generated call traces/results, including 400 larger argument lists and
+  observable name loads, star iteration, mapping keys/getitem, duplicate failures
+  and invocation. The prior 2,000 logical-expression traces still match. Scoped
+  lint, source typecheck and selected dependency build passed. Reference:
+  https://docs.python.org/3/reference/expressions.html#calls .
+  A per-call guest collector still owns concrete iterable/mapping protocols,
+  duplicate/key validation, guest tuple/dict allocation, actual callable dispatch
+  and internal metering. beginCall is host-only preparation and must not run guest
+  code or reject non-callables early. Call scheduling is implemented, but complete
+  guest callables, frame execution, suspensions and heap accounting remain pending.
 - Next:
   remaining scope/compiler audits, interpreter runtime,
   resource controls, runtime modules, and safe-fs integration. Parsing and static

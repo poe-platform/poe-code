@@ -1717,6 +1717,22 @@ extension, integration, or validation requirement is missing or unverified.
   final scoped lint and selected build passed. Class construction, metadata and
   __classcell__ protocol validation, guest object integration and complete heap
   accounting remain unfinished.
+- Added class-header base resolution through ordinary __mro_entries__ lookup on
+  non-types. Hooks receive the same original bases tuple; empty and multiple
+  replacements are supported without recursively resolving or pre-validating
+  replacement elements as classes. No replacement preserves tuple identity;
+  a changed flag supports later __orig_bases__ installation. Returned tuples are
+  validated before expansion, with observable subclass iteration delegated to a
+  metered sequence-fast adapter rather than direct replacement storage reads.
+- Base-resolution validation: missing-module red suite preceded implementation.
+  All 2,198 tests in 111 files pass, including 13 new cases for ordering, identity,
+  failures, nonrecursive expansion and an infinite replacement iterator budget.
+  CPython's class builder matched 729 combinations of bases and failure modes.
+  Probes corrected the adapter contract: tuple-subclass expansion materializes its
+  iterator with list-extension protocols, not the original tuple subclass's length.
+  Source typecheck, scoped lint and selected build passed. Concrete protocol
+  adapters, full class-construction integration and allocation accounting remain
+  unfinished.
 - Next:
   remaining scope/compiler audits, interpreter runtime,
   resource controls, runtime modules, and safe-fs integration. Parsing and static

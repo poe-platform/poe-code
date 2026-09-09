@@ -4723,6 +4723,23 @@ extension, integration, or validation requirement is missing or unverified.
   methods. String/bytes formatting, native type registration,
   subclasses, full guest object wiring, suspended execution, complete resource
   accounting and SDK/safe-fs integration remain unfinished.
+- Started percent-formatting support with a shared lazy code-point/byte grammar
+  scanner. It emits original-source literal/key spans, mapping-start boundaries,
+  flags, bounded static widths/precisions, dynamic operands and raw conversions.
+  Event boundaries allow mapping checks and star-argument conversions before
+  later syntax failures; unknown conversion validation waits for argument binding.
+  Single h/l/L modifiers and nested mapping-key parentheses follow Python grammar.
+  No token array or copied literal/key text is retained by the scanner.
+- Eight new tests first failed for the missing scanner. All 4,264 tests in 332
+  files pass. An 8,000-case CPython comparison validates scanner events through
+  an audit-only string-field consumer, covering flags, dynamic dimensions,
+  precision, mapping keys and escaped percents for both storage input forms.
+  Source typecheck, scoped lint and selected workspace build pass. This does not
+  implement runtime percent formatting: argument consumption/conversion, numeric
+  and repr/string formatting, output construction and binary dispatch remain
+  unfinished, and the previously recorded string-percent failure remains open.
+  Full guest object wiring, native registration, suspended execution, complete
+  accounting and SDK/safe-fs integration also remain outstanding.
 - Next:
   remaining scope/compiler audits, interpreter runtime,
   resource controls, runtime modules, and safe-fs integration. Parsing and static

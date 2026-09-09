@@ -1687,6 +1687,21 @@ extension, integration, or validation requirement is missing or unverified.
   limits are required while nested calls still use host callbacks; stack-independent
   invocation, resumable execution, traceback objects and full heap accounting remain
   unfinished. This is not a complete host-stack safety boundary.
+- Added module namespace storage with live local/global/builtin lookup, ordinary
+  module dictionary storage and optional separate local mapping protocols. Explicit
+  globals bypass local mappings for reads/writes/deletes. CPython probes confirmed
+  that descendant global declarations also affect module name access, even inside
+  unexecuted definitions; iterative scope scanning preserves this behavior and
+  class-mangled global keys. Local deletion guest failures become NameError;
+  lookup/store failures and host/fatal deletion errors propagate unchanged.
+- Module-frame validation: missing-module red suite preceded implementation.
+  All 2,172 tests in 109 files pass, including 16 new cases for lookup precedence,
+  declaration propagation, live values, mangling, mapping failures, scope rejection
+  and metering. CPython matched 2,400 mixed namespace operations across 200 scope,
+  mapping-failure and initial-state configurations, including exact errors, mapping
+  traces and final storage. Source typecheck, scoped lint and selected build passed.
+  Class namespaces, module execution integration, guest exec/auditing, builtin
+  selection/insertion and complete heap accounting remain pending.
 - Next:
   remaining scope/compiler audits, interpreter runtime,
   resource controls, runtime modules, and safe-fs integration. Parsing and static

@@ -4392,6 +4392,19 @@ extension, integration, or validation requirement is missing or unverified.
   source typecheck and selected workspace build pass. Remaining methods,
   buffer protocols, native builtins, suspension, full accounting and SDK/safe-fs
   remain unfinished.
+- Connected bytes.translate with positional table validation, optional delete
+  keyword, original-byte deletion before mapping and a fixed 256-byte deletion
+  lookup. A sizing scan detects unchanged results before one exact output
+  allocation. Unchanged receivers retain identity, including fresh empty bytes;
+  changed nonempty results are fresh and changed empty results canonical.
+- Seven native/storage tests first reproduced missing support. All 4,111 tests
+  in 308 files pass, including full byte mappings, validation precedence,
+  duplicate deletion entries, bounded lookup storage, immutable exports and
+  scan budgets. A 3,441-call compiled CPython audit and 262,144 exhaustive
+  byte-pair translations match values, identity and diagnostics. Scoped lint,
+  source typecheck and selected workspace build pass. Remaining
+  methods, buffer protocols, native builtins, suspension, full accounting and
+  SDK/safe-fs remain unfinished.
 - Next:
   remaining scope/compiler audits, interpreter runtime,
   resource controls, runtime modules, and safe-fs integration. Parsing and static

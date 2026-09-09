@@ -19,6 +19,7 @@ import { createRuntimeSplitlinesMethod } from "./runtime-splitlines-method.js";
 import { createRuntimeSplitMethod } from "./runtime-split-method.js";
 import { createRuntimeStringReplaceMethod } from "./runtime-string-replace-method.js";
 import { createRuntimeBytesReplaceMethod } from "./runtime-bytes-replace-method.js";
+import { createRuntimeBytesTranslateMethod } from "./runtime-bytes-translate-method.js";
 import { createRuntimePadMethod } from "./runtime-pad-method.js";
 import { createRuntimeExpandtabsMethod } from "./runtime-expandtabs-method.js";
 import { createRuntimeStringCaseMethod } from "./runtime-string-case-method.js";
@@ -45,6 +46,7 @@ export function runtimeNativeAttribute(receiver: RuntimeValue, name: string, val
   if ((receiver.kind === "str" || receiver.kind === "bytes") && name === "expandtabs") return createRuntimeExpandtabsMethod(receiver, values, meter);
   if ((receiver.kind === "str" || receiver.kind === "bytes") && (name === "center" || name === "ljust" || name === "rjust" || name === "zfill")) return createRuntimePadMethod(receiver, name, values, meter);
   if (receiver.kind === "bytes") {
+    if (name === "translate") return createRuntimeBytesTranslateMethod(receiver, values, meter);
     if (name === "replace") return createRuntimeBytesReplaceMethod(receiver, values, meter);
     if (name === "strip" || name === "lstrip" || name === "rstrip") return createRuntimeBytesStripMethod(receiver, name, values, meter);
     if (name === "join") return createRuntimeBytesJoinMethod(receiver, values, meter);

@@ -218,6 +218,35 @@ export class ImmutableBytes implements Iterable<number> {
     }
   }
 
+  /** Delete original bytes before mapping, sizing only retained bytes. A fixed
+   * membership table avoids storage proportional to a repeated deletion set. */
+  translate(table: ImmutableBytes | null, deleted: ImmutableBytes | null, meter: ExecutionMeter): ImmutableBytes {
+    meter.checkpoint();
+    if (table !== null && table.length !== 256) throw new PythonRuntimeError("ValueError", "translation table must be 256 characters long");
+    if (this.length === 0 || table === null && (deleted === null || deleted.length === 0)) return this;
+    let members: Uint8Array | undefined;
+    if (deleted !== null && deleted.length > 0) {
+      meter.checkpoint(0, 256); members = new Uint8Array(256);
+      for (const byte of deleted.#bytes) { meter.checkpoint(); members[byte] = 1; }
+    }
+    let length = 0, changed = false;
+    for (const byte of this.#bytes) {
+      meter.checkpoint();
+      if (members?.[byte] === 1) { changed = true; continue; }
+      length++;
+      if (table !== null && table.#bytes[byte] !== byte) changed = true;
+    }
+    if (!changed) return this;
+    meter.checkpoint(0, length);
+    const bytes = new Uint8Array(length);
+    let offset = 0;
+    for (const byte of this.#bytes) {
+      meter.checkpoint();
+      if (members?.[byte] !== 1) bytes[offset++] = table === null ? byte : table.#bytes[byte];
+    }
+    return new ImmutableBytes(bytes);
+  }
+
   concat(other: ImmutableBytes, meter: ExecutionMeter): ImmutableBytes {
     meter.checkpoint();
     if (this.length === 0) return other;

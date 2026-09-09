@@ -22,6 +22,7 @@ import { createRuntimeBytesReplaceMethod } from "./runtime-bytes-replace-method.
 import { createRuntimeBytesTranslateMethod } from "./runtime-bytes-translate-method.js";
 import { createRuntimeBytesMaketransMethod } from "./runtime-bytes-maketrans-method.js";
 import { createRuntimeBytesHexMethod } from "./runtime-bytes-hex-method.js";
+import { createRuntimeBytesFromhexMethod } from "./runtime-bytes-fromhex-method.js";
 import { createRuntimePadMethod } from "./runtime-pad-method.js";
 import { createRuntimeExpandtabsMethod } from "./runtime-expandtabs-method.js";
 import { createRuntimeStringCaseMethod } from "./runtime-string-case-method.js";
@@ -48,6 +49,7 @@ export function runtimeNativeAttribute(receiver: RuntimeValue, name: string, val
   if ((receiver.kind === "str" || receiver.kind === "bytes") && name === "expandtabs") return createRuntimeExpandtabsMethod(receiver, values, meter);
   if ((receiver.kind === "str" || receiver.kind === "bytes") && (name === "center" || name === "ljust" || name === "rjust" || name === "zfill")) return createRuntimePadMethod(receiver, name, values, meter);
   if (receiver.kind === "bytes") {
+    if (name === "fromhex") return createRuntimeBytesFromhexMethod(values, meter);
     if (name === "hex") return createRuntimeBytesHexMethod(receiver, values, meter);
     if (name === "maketrans") return createRuntimeBytesMaketransMethod(values, meter);
     if (name === "translate") return createRuntimeBytesTranslateMethod(receiver, values, meter);

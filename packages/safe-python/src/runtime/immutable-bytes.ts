@@ -3,6 +3,7 @@ import { PythonRuntimeError } from "./error.js";
 import { normalizeSlice } from "./integer-sequence.js";
 import { searchSubstring, substringMatches, type SearchMode } from "./substring-search.js";
 import { isAsciiWhitespace } from "./ascii-whitespace.js";
+import type { CodePointString } from "./code-point-string.js";
 
 export type BytesCaseTransformation = "upper" | "lower" | "title" | "capitalize" | "swapcase";
 
@@ -37,6 +38,27 @@ export class ImmutableBytes implements Iterable<number> {
     const bytes = new Uint8Array(256);
     for (let byte = 0; byte < 256; byte++) { meter.checkpoint(); bytes[byte] = byte; }
     for (let index = 0; index < from.length; index++) { meter.checkpoint(); bytes[from.#bytes[index]] = to.#bytes[index]; }
+    return new ImmutableBytes(bytes);
+  }
+
+  /** Text rejects its first non-ASCII point before hex parsing. Byte inputs
+   * parse directly. Validate/count before allocating one exact output buffer. */
+  static fromHex(source: ImmutableBytes | CodePointString, meter: ExecutionMeter): ImmutableBytes {
+    meter.checkpoint();
+    if (!(source instanceof ImmutableBytes)) {
+      let position = 0;
+      for (const point of source) {
+        meter.checkpoint();
+        if (point > 127) throw new PythonRuntimeError("ValueError", `non-hexadecimal number found in fromhex() arg at position ${position}`);
+        position++;
+      }
+    }
+    let length = 0;
+    for (const ignoredByte of decodedHexBytes(source, meter)) length++;
+    meter.checkpoint(0, length);
+    const bytes = new Uint8Array(length);
+    let offset = 0;
+    for (const byte of decodedHexBytes(source, meter)) bytes[offset++] = byte;
     return new ImmutableBytes(bytes);
   }
 
@@ -383,4 +405,19 @@ export class ImmutableBytes implements Iterable<number> {
     }
     return this.length === other.length ? 0 : this.length < other.length ? -1 : 1;
   }
+}
+
+function* decodedHexBytes(source: ImmutableBytes | CodePointString, meter: ExecutionMeter): IterableIterator<number> {
+  meter.checkpoint(1, 64);
+  let high: number | null = null, position = 0;
+  for (const point of source) {
+    meter.checkpoint();
+    if (high === null && isAsciiWhitespace(point)) { position++; continue; }
+    const digit = point >= 48 && point <= 57 ? point - 48 : point >= 65 && point <= 70 ? point - 55 : point >= 97 && point <= 102 ? point - 87 : -1;
+    if (digit < 0) throw new PythonRuntimeError("ValueError", `non-hexadecimal number found in fromhex() arg at position ${position}`);
+    if (high === null) high = digit;
+    else { yield high * 16 + digit; high = null; }
+    position++;
+  }
+  if (high !== null) throw new PythonRuntimeError("ValueError", "fromhex() arg must contain an even number of hexadecimal digits");
 }

@@ -4430,6 +4430,20 @@ extension, integration, or validation requirement is missing or unverified.
   Scoped lint, source typecheck and selected workspace build also pass.
   String interning, remaining methods, buffer protocols, native builtins,
   suspension, full accounting and SDK/safe-fs remain unfinished.
+- Added exact bytes.fromhex decoding for str and bytes inputs, accessible via
+  instance lookup. Text first checks for non-ASCII code points, while bytes
+  parse directly; both preserve Python 3.14 odd-digit and invalid-position
+  errors. ASCII whitespace is allowed only between complete digit pairs.
+  Two metered decoder passes size and fill one output buffer; empty/single-byte
+  output is canonical. Native type/subclass registration remains unfinished.
+- Seven native/storage tests first reproduced missing support. All 4,132 tests
+  in 311 files pass, including byte-domain decoding, whitespace, Unicode error
+  precedence, identity, exact allocation, immutable exports and work limits.
+  A 4,463-call compiled CPython audit, 131,072 exhaustive byte/text-pair result
+  and error comparisons, and the 3,621-call hex regression pass. Scoped lint,
+  source typecheck and selected workspace build pass. Remaining methods, buffer
+  protocols, native builtins, suspension, full accounting and SDK/safe-fs remain
+  unfinished.
 - Next:
   remaining scope/compiler audits, interpreter runtime,
   resource controls, runtime modules, and safe-fs integration. Parsing and static

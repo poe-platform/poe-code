@@ -1626,6 +1626,8 @@ function restoreGuestGenerator(
   const generator = createSandboxGenerator(channel, { async: serialized.async });
   generator.state = serialized.state;
   const origin = registerGeneratorOrigin(generator, node, scope, context);
+  if (serialized.resultPrototype !== undefined)
+    origin.resultPrototype = deserializeValue(serialized.resultPrototype, state) as object | null;
   origin.asyncFunction = serialized.asyncFunction;
   origin.awaitPhase = serialized.awaitPhase;
   origin.suspendedScope = suspendedScope;
@@ -1636,8 +1638,6 @@ function restoreGuestGenerator(
     for (const completion of serialized.sent) sent.push({ type: completion.type, value: deserializeValue(completion.value, state) });
     const completions = new Map<number, CompletionResult>();
     for (const [id, completion] of Object.entries(serialized.finallyCompletions ?? {})) {
-  if (serialized.resultPrototype !== undefined)
-    origin.resultPrototype = deserializeValue(serialized.resultPrototype, state) as object | null;
       const { nodeId, value, ...metadata } = completion;
       const node = nodeId === undefined ? undefined : nodes.get(nodeId);
       if (nodeId !== undefined && node?.type !== "BreakStatement" && node?.type !== "ContinueStatement")

@@ -989,6 +989,7 @@ export function measureSandboxData(
       return;
     }
     if (isSandboxGenerator(value)) {
+      visit(getGeneratorOrigin(value)?.resultPrototype, depth + 1);
       visit(asyncGeneratorDrivers.get(value), depth + 1);
       const descriptors = Object.getOwnPropertyDescriptors(getGeneratorProperties(value));
       for (const key of Reflect.ownKeys(descriptors)) {
@@ -1028,7 +1029,6 @@ export function measureSandboxData(
         usage += typeof key === "string" ? key.length + 1 : 1;
         if ("value" in descriptor) visit(descriptor.value, depth + 1);
         else for (const closure of retainedAccessorClosures(descriptor)) visit(closure, depth + 1);
-      visit(getGeneratorOrigin(value)?.resultPrototype, depth + 1);
       }
       return;
     }

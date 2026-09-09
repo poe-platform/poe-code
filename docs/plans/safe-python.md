@@ -6395,6 +6395,21 @@ extension, integration, or validation requirement is missing or unverified.
   General complex-operand powers, the pow builtin, guest power dispatch and a
   deterministic transcendental rounding policy remain unfinished, alongside
   broader interpreter/object/SDK/safe-fs work.
+- Added complex-operand ** execution, using metered complex multiplication and
+  division for integral exponents through magnitude 100, and the principal
+  logarithmic branch otherwise. Mixed native numeric operands convert before
+  shortcuts; zero-base errors, signed branch direction and overflow diagnostics
+  are preserved. The implementation reuses existing complex product/quotient
+  kernels and their nonfinite recovery rather than duplicating them.
+- Six tests cover small powers/inverses, principal branches, mixed conversions,
+  zero/nonfinite/error cases and shared-execution allocation limits. All 5,005
+  tests in 437 files pass; typecheck, scoped lint and selected workspace build
+  pass. Of 300 compiled CPython comparisons, 290 match bit-for-bit and ten have
+  finite component rounding differences of one ULP; types, signs, nonfinite
+  values and errors match. General transcendental accuracy remains platform-
+  dependent, not an exact CPython compatibility claim. The pow builtin, guest
+  binary/ternary power dispatch and broader interpreter/object/SDK/safe-fs
+  integration remain unfinished.
 - Next:
   remaining scope/compiler audits, interpreter runtime,
   resource controls, runtime modules, and safe-fs integration. Parsing and static

@@ -412,15 +412,14 @@ export function releaseObjectPrototype(budget: Budget): void {
   regexPrototypes.delete(budget);
   collectionPrototypes.delete(budget);
   promisePrototypes.delete(budget);
-  // Keep arrayPrototypes, datePrototypes and generatorPrototypes for live SDK closures that
-  // create values in this realm. Weak budget keys bound their lifetimes;
+  // Keep object, array, Date and generator prototype lookups for live SDK closures
+  // that create values in this realm. Weak budget keys bound their lifetimes;
   // accounting roots above are still released.
   functionPrototypes.delete(budget);
   errorPrototypes.delete(budget);
   typedArrayPrototypes.delete(budget);
   arrayBufferPrototypes.delete(budget);
   initialRegexDescriptors.delete(budget);
-  intrinsicPrototypes.delete(budget);
 }
 
 export function getSandboxPrototype(value: object, budget?: Budget): object | null {

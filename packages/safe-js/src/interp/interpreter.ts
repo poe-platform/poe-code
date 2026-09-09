@@ -775,6 +775,10 @@ async function evaluateObjectExpression(
       typeof restored.value !== "object" || Array.isArray(restored.value)))
     throw new TypeError("Invalid object expression continuation.");
   const object = restored?.kind === "object" ? restored.value as SandboxObject : Object.create(null) as SandboxObject;
+  if (restored === undefined) {
+    const prototype = getSandboxPrototype(object, context.budget);
+    if (prototype !== null) setSandboxPrototype(object, prototype, context.budget);
+  }
   const state: { kind: "object"; value: SandboxObject; index: number; key?: PropertyKey } = {
     kind: "object", value: object, index: restored?.kind === "object" ? restored.index : 0
   };

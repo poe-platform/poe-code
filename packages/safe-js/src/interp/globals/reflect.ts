@@ -6,12 +6,13 @@ import { sandboxDeleteProperty } from "../guest-proxy-delete.js";
 import { sandboxHasProperty } from "../guest-proxy-has.js";
 import { sandboxGetProperty } from "../guest-proxy-get.js";
 import { sandboxSetProperty } from "../guest-proxy-set.js";
+import { sandboxOwnKeys } from "../guest-proxy-own-keys.js";
 import { invokeBuiltinClosure } from "../builtin-call.js";
 import { registerBuiltinIdentities } from "../intrinsics.js";
 import { createIntrinsicObject, registerIntrinsicFunction, registerIntrinsicObject } from "../object-model.js";
 import { toPropertyKey } from "../property-key.js";
 import { retainValues } from "../resources.js";
-import { allocateProducedSandboxValue, createSandboxClosure, isSandboxClosure, ownSandboxSymbolKeys, type SandboxCallContext, type SandboxObject, type SandboxValue } from "../values.js";
+import { allocateProducedSandboxValue, createSandboxClosure, isSandboxClosure, type SandboxCallContext, type SandboxObject, type SandboxValue } from "../values.js";
 import { defineDataProperty, exposePropertyDescriptor, objectProperties, propertyDescriptor } from "./object-array.js";
 import { callFunctionMethod } from "../methods/function.js";
 
@@ -19,9 +20,8 @@ const nativeReflectPropertyNames = Object.getOwnPropertyNames(Reflect);
 
 export function createReflectGlobal(budget: Budget): SandboxObject {
   const methods: Record<string, { length: number; call(args: readonly SandboxValue[], context: SandboxCallContext): SandboxValue | Promise<SandboxValue> }> = {
-    ownKeys: { length: 1, call: ([target]) => {
-      const properties = objectProperties(target);
-      return allocateProducedSandboxValue([...Object.getOwnPropertyNames(properties), ...ownSandboxSymbolKeys(target)], budget);
+    ownKeys: { length: 1, call: async ([target], context) => {
+      return allocateProducedSandboxValue(await sandboxOwnKeys(target, budget, context), budget);
     } },
     getOwnPropertyDescriptor: { length: 2, call: async ([target, key], context) => {
       objectProperties(target);

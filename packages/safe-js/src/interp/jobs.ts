@@ -1,9 +1,11 @@
 import { AsyncLocalStorage } from "node:async_hooks";
+import type { Budget } from "./budget.js";
 
 type ExecutionJob = {
   queue: SandboxJobQueue;
   ownsExecution: boolean;
   prefixParent?: ExecutionJob;
+  keptTargets?: Map<Budget, Set<object | symbol>>;
 };
 
 const activeJob = new AsyncLocalStorage<ExecutionJob>();
@@ -34,6 +36,8 @@ export class SandboxJobQueue {
   release(job: ExecutionJob): void {
     job.prefixParent = undefined;
     if (!job.ownsExecution) return;
+    for (const budget of job.keptTargets?.keys() ?? []) budget.setRetainedValues(job, undefined);
+    job.keptTargets = undefined;
     job.ownsExecution = false;
     this.running = false;
     this.advance();
@@ -80,6 +84,30 @@ export class SandboxJobQueue {
 export function runPromiseJob<T>(task: () => T | Promise<T>): Promise<T> {
   const job = activeJob.getStore();
   return job === undefined ? Promise.resolve().then(task) : job.queue.run(task);
+}
+
+// Native notifications do not inherit the guest invocation's async context.
+// Capture ownership when registering, not when a later notice arrives.
+export function captureJobScheduler(): <T>(task: () => T | Promise<T>) => Promise<T> {
+  const queue = activeJob.getStore()?.queue ?? new SandboxJobQueue();
+  const context = AsyncLocalStorage.snapshot();
+  return task => context(() => queue.run(task));
+}
+
+export function keepJobTarget(target: object | symbol, budget: Budget): void {
+  let job = activeJob.getStore();
+  while (job !== undefined && !job.ownsExecution) job = job.prefixParent;
+  // Standalone intrinsic calls use their surrounding native execution lifetime.
+  if (job === undefined) return;
+  job.keptTargets ??= new Map();
+  let targets = job.keptTargets.get(budget);
+  if (targets === undefined) {
+    targets = new Set();
+    job.keptTargets.set(budget, targets);
+    const retained = targets;
+    budget.setRetainedValues(job, () => retained);
+  }
+  targets.add(target);
 }
 
 // A suspended frame keeps its AsyncLocalStorage record across native awaits.

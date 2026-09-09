@@ -2301,6 +2301,22 @@ extension, integration, or validation requirement is missing or unverified.
   CPython audit including default insertion/removal matched operation results and
   ordered snapshots under seeded hashes and forced collisions. Source typecheck,
   scoped lint and selected workspace build passed.
+- Added forward ordered-map cursors with immediate state capture and trusted
+  key/value/item projection. Value-only updates remain visible. Observed size
+  mismatches latch RuntimeError; extra keys after the expected yield count cause
+  one keys-changed error then exhaustion. Length hints observe current size
+  without themselves latching errors. Exhaustion releases direct storage refs
+  and remains terminal; projection errors advance past the selected entry.
+- Iterator regressions first reproduced missing iteration support. All 2,631
+  tests in 152 files pass; source typecheck, scoped lint and selected build passed.
+  A CPython audit covered 1,512 traces / 34,902 next-and-length-hint observations:
+  1,495 traces matched exactly, with 17 differences confined to size-preserving
+  deletion/reinsertion at CPython table-compaction boundaries. The cursor follows
+  live storage order rather than emulating those internal resize thresholds.
+  Python explicitly permits RuntimeError or skipped entries during mutation:
+  https://docs.python.org/3/library/stdtypes.html#dictionary-view-objects .
+  Exact CPython mutation-trace parity is not established; guest views, reverse
+  iteration, full container wiring and complete host heap accounting remain open.
 - Next:
   remaining scope/compiler audits, interpreter runtime,
   resource controls, runtime modules, and safe-fs integration. Parsing and static

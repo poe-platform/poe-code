@@ -1,4 +1,5 @@
 import type { ExecutionMeter } from "./execution-budget.js";
+import { OrderedMapIterator } from "./ordered-map-iterator.js";
 
 export interface KeyOperations<Key> {
   /** Equal keys must produce the same stable hash. The runtime owns __hash__,
@@ -14,7 +15,7 @@ interface Entry<Key, Value> { readonly key: Key; value: Value }
  * position on overwrite. No host equality is used as guest value equality.
  * Equality may mutate this map: deleted candidates/replaced buckets restart
  * lookup, while a value-only update remains visible. Pathological retries are
- * step-bounded. This is not yet a guest dict, its views or mutation-aware iterator.
+ * step-bounded. This is not yet a guest dict or its view objects.
  * Logical storage is charged before growth; exact host Map/Set heap costs and
  * synchronous callback recursion remain the enclosing runtime's responsibility.
  */
@@ -87,6 +88,11 @@ export class OrderedKeyMap<Key, Value> {
     this.meter.checkpoint(1 + this.#entries.size);
     this.#entries.clear();
     this.#buckets.clear();
+  }
+
+  /** Capture iteration state now, not lazily on the first next call. */
+  iterate<Result>(project: (key: Key, value: Value) => Result): OrderedMapIterator<Key, Value, Result> {
+    return new OrderedMapIterator(this.#entries, project, this.meter);
   }
 
   /** A detached host snapshot, not a guest dict view or iteration API. */

@@ -6009,6 +6009,26 @@ extension, integration, or validation requirement is missing or unverified.
   scoped lint and selected workspace build pass. This is not exact math.fsum;
   public sum binding, staged integer/float/complex transitions and guest addition
   remain next work, alongside broader interpreter/SDK/safe-fs integration.
+- Added a staged streaming sum kernel and explicitly registered public sum.
+  Signed-64-bit integer accumulation advances at most once through compensated
+  float and complex stages before ordinary addition. Boolean/large-int starts
+  remain generic; overflow or later guest results do not restart earlier phases.
+  Complex real-only contributions leave imaginary signed zero unchanged.
+  The caller owns full reflected ordinary addition, never in-place addition.
+- Public binding supports positional-only input and positional/keyword start,
+  validates arity and keyword suggestions, then acquires iteration before
+  rejecting string/bytes/bytearray starts. Optional guest start classification
+  and iteration remain explicit capabilities. Empty fast numeric results follow
+  CPython identity behavior; generic starts preserve identity.
+- Ten tests cover phases, cancellation, numeric overflow, start identity, list
+  nonmutation, guest errors and public binding. All 4,814 tests in 423 files
+  pass. A 2,459-program CPython comparison covers numeric/mixed-complex sums,
+  phase transitions, valid concatenation and argument errors. Typecheck, scoped
+  lint and selected workspace build pass. The audit exposed missing full-add
+  diagnostics for invalid list/tuple concatenation in the supplied native
+  addition adapter; those 20 combinations were excluded, not counted as passes.
+  Full guest addition/sequence fallback, automatic registration and broader
+  object/SDK/safe-fs integration remain unfinished.
 - Next:
   remaining scope/compiler audits, interpreter runtime,
   resource controls, runtime modules, and safe-fs integration. Parsing and static

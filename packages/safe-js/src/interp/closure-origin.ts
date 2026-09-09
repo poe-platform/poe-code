@@ -4,6 +4,7 @@ import type { Scope } from "./scope.js";
 import type { SandboxClosure, SandboxGenerator } from "./values.js";
 import { dynamicNodeSources, dynamicValueSources } from "../parse/function-source.js";
 import { getSandboxPrototype } from "./object-model.js";
+import { registerFunctionRealm } from "./function-realm.js";
 
 export type ClosureOrigin = {
   node: ArrowFunctionExpression | FunctionDeclaration | FunctionExpression;
@@ -26,6 +27,7 @@ export type GeneratorOrigin = ClosureOrigin & {
 const generatorOrigins = new WeakMap<object, GeneratorOrigin>();
 
 export function registerClosureOrigin(closure: SandboxClosure, node: ClosureOrigin["node"], context: AsyncEvaluationContext): void {
+  registerFunctionRealm(closure, context.budget);
   origins.set(closure, { node, scope: context.scope, environment: context.functionEnvironment });
   const source = dynamicNodeSources.get(node);
   if (source !== undefined) dynamicValueSources.set(closure, source);

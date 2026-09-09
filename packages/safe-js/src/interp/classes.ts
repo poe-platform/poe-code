@@ -1,4 +1,5 @@
 import type { ClassElement, ClassNode } from "../parse.js";
+import { registerFunctionRealm } from "./function-realm.js";
 import { getFunctionLength } from "../parse/bindings.js";
 import { functionSources } from "../parse/function-source.js";
 import { dynamicNodeSources, dynamicValueSources } from "../parse/function-source.js";
@@ -181,6 +182,7 @@ export function createClassConstructor(
   });
 
   classOrigins.set(constructor, { node, scope, fields, initialized: false, privateMethods: new Map() });
+  registerFunctionRealm(constructor, context.budget);
   const dynamicSource = dynamicNodeSources.get(node);
   if (dynamicSource !== undefined) dynamicValueSources.set(constructor, dynamicSource);
   return constructor;

@@ -3,6 +3,7 @@ import { types } from "node:util";
 import { sandboxErrorTypes } from "../../error/shape.js";
 import { errorPrototypes } from "../error-prototypes.js";
 import { createIntrinsicObject, getSandboxPropertyDescriptor, getSandboxPrototype, materializeFunctionProperties, registerIntrinsicFunction, registerIntrinsicObject, setSandboxPrototype } from "../object-model.js";
+import { getFunctionRealmPrototype } from "../function-realm.js";
 import { registerBuiltinIdentities } from "../intrinsics.js";
 import { sandboxString } from "../string-coercion.js";
 import { retainValues } from "../resources.js";
@@ -135,7 +136,8 @@ async function readErrorProperty(value: SandboxValue, key: PropertyKey, budget: 
 async function createNativeError(name: ErrorName, args: readonly SandboxValue[], budget: Budget, context: SandboxCallContext | undefined, constructor: SandboxClosure): Promise<SandboxObject> {
   const newTarget = context?.newTarget ?? constructor;
   const candidate = await readErrorProperty(newTarget, "prototype", budget, context);
-  const prototype = candidate !== null && typeof candidate === "object" ? candidate : errorPrototypes.get(budget)!.get(name)!;
+  const prototype = candidate !== null && typeof candidate === "object" ? candidate
+    : getFunctionRealmPrototype(newTarget, name, errorPrototypes.get(budget)!.get(name)!);
   let error: SandboxObject | undefined;
   let iterator: SandboxIterator | undefined;
   const errors: SandboxValue[] = [];

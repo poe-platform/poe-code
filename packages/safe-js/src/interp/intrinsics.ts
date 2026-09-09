@@ -1,4 +1,5 @@
 import type { Budget } from "./budget.js";
+import { registerFunctionRealm, registerRealmPrototype } from "./function-realm.js";
 import { accessorClosure } from "./accessors.js";
 import { wellKnownSymbols } from "./symbols.js";
 import { internalSymbols } from "./internal-symbols.js";
@@ -24,6 +25,9 @@ export function registerBuiltinIdentities(
   for (let index = 0; index < pending.length; index++) {
     const [path, value] = pending[index];
     if (value === null || typeof value !== "object") continue;
+    if (isSandboxClosure(value)) registerFunctionRealm(value, budget);
+    if (path.length === 2 && typeof path[0] === "string" && path[1] === "prototype")
+      registerRealmPrototype(budget, path[0], value);
     const id = JSON.stringify(path);
     const previous = realm.get(id);
     if (previous !== undefined && previous !== value)

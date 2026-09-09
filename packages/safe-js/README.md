@@ -635,8 +635,11 @@ prototype through yielding, early return, exhaustion and public replay.
 `errors` property, including empty input and public replay. Rejection elements
 retain their identity.
 Error constructors called through exported closures after cleanup retain their
-originating prototypes and non-enumerable fields. Explicit custom newTarget
-prototypes remain supported; foreign-realm default fallback still needs work.
+originating prototypes and non-enumerable fields. Error, Number, String,
+Boolean, Object, Array, Date, RegExp, Map, and Set constructors select default
+prototypes from a foreign newTarget's originating realm. Explicit custom
+newTarget prototypes remain supported. Focused checks cover ordinary, bound,
+bound-class and Proxy targets, plus replay and calls after cleanup.
 `AggregateError.errors` retains the constructor realm's Array prototype,
 independently of a custom prototype supplied for the Error object.
 Promise construction, async returns and `then` results retain their

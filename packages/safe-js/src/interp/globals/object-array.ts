@@ -1,4 +1,5 @@
 import { isFatalSandboxError, type Budget, type CompileOwner } from "../budget.js";
+import { getFunctionRealmPrototype } from "../function-realm.js";
 import { guestProxyStates } from "../guest-proxy.js";
 import { sandboxIsArray } from "../guest-proxy-array.js";
 import { sandboxIsExtensible, sandboxPreventExtensions } from "../guest-proxy-extensibility.js";
@@ -482,9 +483,10 @@ function createArrayGlobal(budget: Budget): SandboxClosure {
         : context?.getProperty === undefined ? await readPropertyDescriptor(
             getSandboxPropertyDescriptor(target, "prototype", budget) ?? { value: undefined }, target, context)
           : await context.getProperty(target, "prototype");
+      const selected = typeof parent === "object" && parent !== null ? parent
+        : getFunctionRealmPrototype(target, "Array", prototype);
       const value = createArrayFromConstructorArgs(args, budget);
-      if (parent !== prototype && typeof parent === "object" && parent !== null)
-        setSandboxPrototype(value, parent, budget);
+      if (selected !== prototype) setSandboxPrototype(value, selected, budget);
       return value;
     },
     name: "Array",

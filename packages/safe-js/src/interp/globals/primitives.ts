@@ -1,4 +1,5 @@
 import type { Budget } from "../budget.js";
+import { getFunctionRealmPrototype } from "../function-realm.js";
 import {
   createSandboxBox,
   primitiveReceiver,
@@ -40,7 +41,8 @@ export function createPrimitiveConstructor(
     const finish = (selectedPrototype: SandboxValue) => {
       budget.chargeDataUsage(measureSandboxData([box]));
       setSandboxPrototype(box,
-        typeof selectedPrototype === "object" && selectedPrototype !== null ? selectedPrototype : prototype,
+        typeof selectedPrototype === "object" && selectedPrototype !== null ? selectedPrototype
+          : getFunctionRealmPrototype(context?.newTarget, options.name, prototype),
         budget);
       return box;
     };

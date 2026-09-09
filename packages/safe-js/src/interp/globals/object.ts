@@ -43,6 +43,7 @@ import {
 import { measureSandboxData } from "../values.js";
 import { invokeBuiltinClosure } from "../builtin-call.js";
 import { retainValues } from "../resources.js";
+import { getFunctionRealmPrototype } from "../function-realm.js";
 import { defineDataProperty, objectProperties } from "./object-array.js";
 
 export function createObjectGlobal(methods: SandboxObject, budget: Budget): SandboxClosure {
@@ -72,13 +73,13 @@ export function createObjectGlobal(methods: SandboxObject, budget: Budget): Sand
       if (context?.newTarget === undefined || context.newTarget === constructor)
         return construct(args);
       const value = construct([]) as SandboxObject;
-      const prototype = context.getProperty!(context.newTarget, "prototype");
-      const finish = (prototype: SandboxValue) => {
-        if (typeof prototype === "object" && prototype !== null)
-          setSandboxPrototype(value, prototype, budget);
+      const candidate = context.getProperty!(context.newTarget, "prototype");
+      const finish = (selected: SandboxValue) => {
+        setSandboxPrototype(value, typeof selected === "object" && selected !== null ? selected
+          : getFunctionRealmPrototype(context.newTarget, "Object", prototype), budget);
         return value;
       };
-      return prototype instanceof Promise ? prototype.then(finish) : finish(prototype);
+      return candidate instanceof Promise ? candidate.then(finish) : finish(candidate);
     }
   });
   const properties = materializeFunctionProperties(constructor);

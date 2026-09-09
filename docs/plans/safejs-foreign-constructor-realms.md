@@ -1,0 +1,90 @@
+# Foreign constructor realm audit
+
+## Validated baseline
+
+Runtime baseline: `962c556d2`, with existing unrelated worktree changes preserved.
+The regression matrix in
+`packages/safe-js/src/interp/globals/foreign-newtarget-default.test.ts`
+compares separate Node VM realms with separate SafeJS runs after their cleanup.
+
+It covers Error, TypeError, Number, String, Boolean, Object, Array, Date,
+RegExp, Map, and Set. Each constructor is tested with an ordinary function,
+a bound function, and a bound class as foreign `newTarget`. Each target has
+its visible function prototype chain replaced with null. Its own `prototype`
+property is a number, null, or an explicit custom object.
+
+The initial expanded run produced 66 failing fallback assertions and 33
+passing custom-object controls. Native prototype identity assertions passed
+before each corresponding SafeJS assertion. These are 66 manifestations of
+a shared realm-selection gap, not 66 independent bugs.
+
+## Implementation findings
+
+- `registerClosureOrigin` records syntax, scope, and function environment,
+  but does not record an immutable originating realm.
+- Intrinsic identities are installation-path based. The per-budget identity
+  table is deleted on cleanup; reverse object identities survive.
+- Bound functions already retain their target in `boundFunctionStates`.
+- Proxy state already retains its target and tracks revocation. A realm
+  lookup must use that internal state, not invoke a guest-visible trap.
+- Class constructors have a separate creation path in `classes.ts`; recording
+  only ordinary closure origins would miss them.
+- Error construction currently uses the invoked constructor's budget to
+  select the default prototype, even when `newTarget` is foreign.
+
+The specification's [GetFunctionRealm algorithm](https://tc39.es/ecma262/multipage/abstract-operations.html#sec-getfunctionrealm)
+uses internal realm information, follows bound-function targets, and validates
+and follows proxy targets. A function's mutable visible prototype chain is
+not a substitute for this information.
+
+## Remaining work
+
+Implement shared function-realm tracking and intrinsic default lookup, then
+apply it to constructor allocation sites. Keep explicit object prototypes
+unchanged and preserve the ordering of the `prototype` property read.
+
+Before claiming completion, cover intrinsic newTargets, ordinary classes,
+proxy targets and revocation, mutated globals, public snapshot/replay, and
+retained-data accounting. The current matrix does not cover those cases.
+Realm metadata must survive exported-function use after cleanup without
+retaining released accounting roots or dropping reachable guest mutations
+from budget accounting. Do not infer realms from names or global bindings.
+
+## Implementation candidate
+
+`function-realm.ts` now records originating budgets for interpreted functions,
+class constructors, and installed intrinsic functions. A separate weak-keyed
+prototype registry preserves intrinsic defaults after the snapshot identity
+lookup table is released. Bound functions and Proxies resolve their internal
+targets; revoked proxies throw. Unknown host closures keep the caller fallback.
+
+Error, primitive wrapper, Object, Array, Date, RegExp, Map and Set constructor
+paths use this lookup only when the selected prototype is not an object.
+No guest-visible prototype chain or global name lookup determines the realm.
+
+The original 99-case matrix and 11 retained-root accounting tests pass.
+Adding three public-replay cases (including replaced TypeError global bindings
+and targets created by exported factories after cleanup) yielded 192 passing
+tests across seven focused files. TypeScript and scoped lint passed at that
+candidate. Additional Proxy tests, the snapshot suite and workspace build are
+being checked separately; these results do not claim full conformance.
+
+Other constructor families and ordinary interpreted constructor allocation
+still need the same audit and integration. The earlier remaining-work list is
+the full scope, not a claim that every item is covered by this candidate.
+
+No push, release, or issue closure is represented by this audit.
+
+Final candidate verification: 151 tests passed across the expanded constructor
+matrix, realm metadata tests, and intrinsic-identity tests. This includes 33
+additional Proxy-target cases and overlaps the earlier 192-test run. All 1,700
+snapshot tests in 127 files passed. The maintained workspace closure built 23
+workspaces and passed four fresh-process import checks. Eight built-SDK probes
+passed for foreign bound-class targets. Scoped lint and TypeScript passed;
+the two newly added test files also passed scoped lint. No full package gate
+was run for this candidate.
+
+The separate `ordinary-constructor-realm.test.ts` audit then reproduced four
+failures for ordinary function/class constructors with primitive or null
+newTarget prototypes; its two custom-object controls passed. That follow-up
+test is not part of the built-in constructor fix or the snapshot test count.

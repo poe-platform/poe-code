@@ -1,3 +1,4 @@
+import { getFunctionRealmPrototype } from "../function-realm.js";
 import {
   createSandboxClosure,
   createSandboxRegex,
@@ -93,7 +94,8 @@ export function createRegexGlobals(options: { budget: Budget; compileOwner?: Com
         compilation
       );
       setSandboxPrototype(regex,
-        typeof retainedPrototype === "object" && retainedPrototype !== null ? retainedPrototype : prototype,
+        typeof retainedPrototype === "object" && retainedPrototype !== null ? retainedPrototype
+          : getFunctionRealmPrototype(construct ? context?.newTarget : undefined, "RegExp", prototype),
         options.budget);
       if (compilation !== context?.compilation) {
         reconcileCompiledValues(options.budget, [regex], compilation);

@@ -1,4 +1,5 @@
 import type { Budget } from "../budget.js";
+import { getFunctionRealmPrototype } from "../function-realm.js";
 import { formatDateLocale } from "../date-locale.js";
 import { objectToPrimitive, sandboxNumber, sandboxString } from "../string-coercion.js";
 import { createSandboxBox } from "../boxed.js";
@@ -74,7 +75,8 @@ export function createDateGlobal(
       options.budget.chargeDataUsage(9);
       const value = createSandboxDate(time);
       setSandboxPrototype(value,
-        typeof selectedPrototype === "object" && selectedPrototype !== null ? selectedPrototype : prototype,
+        typeof selectedPrototype === "object" && selectedPrototype !== null ? selectedPrototype
+          : getFunctionRealmPrototype(newTarget, "Date", prototype),
         options.budget);
       return value;
     }

@@ -12,6 +12,7 @@ import { getSandboxDataProperty, getSandboxPropertyDescriptor, getSandboxPrototy
 import { readPropertyDescriptor } from "../accessors.js";
 import { invokeBuiltinClosure } from "../builtin-call.js";
 import { getIntrinsicIdentity } from "../intrinsics.js";
+import { getFunctionRealmPrototype } from "../function-realm.js";
 import { installCollectionPrototypes } from "./collection-prototypes.js";
 import { createGroupBy } from "./group-by.js";
 import { materializeFunctionProperties } from "../object-model.js";
@@ -258,6 +259,8 @@ function populateCollection<T extends SandboxMap | SandboxSet>(
     return iterator instanceof Promise ? iterator.then(populate) : populate(iterator);
   };
   const initialize = (prototype: SandboxValue): T | Promise<T> => {
+    if (typeof prototype !== "object" || prototype === null)
+      prototype = getFunctionRealmPrototype(context?.newTarget, name, getSandboxPrototype(collection, budget)) as SandboxValue;
     if (typeof prototype === "object" && prototype !== null && prototype !== getSandboxPrototype(collection, budget))
       setSandboxPrototype(collection, prototype, budget);
     if (source === undefined || source === null) return collection;

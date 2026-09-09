@@ -2147,6 +2147,23 @@ extension, integration, or validation requirement is missing or unverified.
   budgets. All 2,529 tests in 141 files pass; source typecheck, scoped lint and
   selected workspace build passed. Guest type dispatch and full bigint resource
   accounting remain pending.
+- Added concrete complex +, -, * and /, connected to expression integration.
+  Python 3.14 mixed-real paths preserve imaginary signed zero and avoid artificial
+  NaNs. Complex multiplication includes nonfinite recovery; division uses scaled
+  ratios and infinity/zero recovery. Unsupported nonnumeric pairs decline before
+  conversion, and zero division follows integer-to-float conversion precedence.
+- Complex validation exposed 16 signed-zero/cancellation mismatches against the
+  local CPython build despite direct source-formula agreement. Focused probes
+  identified fused multiply-add rounding; failing regressions preceded an exact
+  binary64 FMA kernel using bounded rational intermediates and one final rounding.
+  Complex division now explicitly preserves that reference-build rounding without
+  relying on JavaScript hardware fusion. The internal FMA returns hardware-style
+  infinities/NaNs; it is not the public math.fma exception wrapper.
+- All 2,541 tests in 143 files pass. CPython matched 93,636 complex arithmetic
+  outcomes and 2,004 internal FMA outcomes, with exact finite bits/signed zeros and
+  normalized NaN payloads. Source typecheck, scoped lint and selected build passed.
+  Powers, guest numeric slot wiring, public math.fma error
+  policy and full temporary-rational/host heap accounting remain unfinished.
 - Next:
   remaining scope/compiler audits, interpreter runtime,
   resource controls, runtime modules, and safe-fs integration. Parsing and static

@@ -3468,6 +3468,20 @@ extension, integration, or validation requirement is missing or unverified.
   Canonical type publication/bootstrap registry, type construction, metaclass slot
   overrides and instance dispatch remain unfinished. Suspension, complete resource
   accounting and public SDK/safe-fs integration also remain unfinished.
+- Added an execution-owned canonical type registry with object/type bootstrap
+  records, weak layout-to-type ownership and lazy cached bases/MRO tuples.
+  Repeated publication preserves type identity; conflicting metaclasses, foreign
+  base layouts and impostor wrappers are rejected as host integration faults.
+  Namespace mutation remains independent of immutable hierarchy metadata, and
+  failed allocations do not publish records or cache incomplete tuples. Registry
+  metadata now supplies real type MROs to class metaclass-selection tests.
+- The registry suite first failed on its missing module. All 3,456 tests in 237
+  files pass. A 1,000-case CPython type-graph audit matched intrinsic behavior and
+  hierarchy metadata while additionally checking canonical publication, lookup
+  and tuple caching. Source typecheck, scoped lint and selected workspace build passed.
+  The registry does not install builtin methods or implement type.__new__, mutable
+  __bases__, metaclass overrides or instance dispatch. Suspension, complete
+  accounting and public SDK/safe-fs integration remain unfinished.
 - Next:
   remaining scope/compiler audits, interpreter runtime,
   resource controls, runtime modules, and safe-fs integration. Parsing and static

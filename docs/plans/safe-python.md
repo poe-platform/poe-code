@@ -2925,6 +2925,18 @@ extension, integration, or validation requirement is missing or unverified.
   typecheck, scoped lint and selected workspace build passed. This dispatch is
   exact-builtin only: subclass/user slots, the concrete execution context and the
   remaining full-interpreter/resource/safe-fs work remain unfinished.
+- Connected exact runtime iteration to live list cursors, lazy integer-wrapped
+  ranges, prepared iterator identity and immutable sequence cursors. Generalized
+  the immutable cursor's tuple member type so mutable guest members retain
+  identity without casts or copies. Invalid builtin receivers fail at acquisition;
+  ranges do not expand ahead of demand and list exhaustion remains sticky.
+- The iteration suite first failed on its missing module; all 3,171 tests in
+  199 files pass, including parsed starred list/tuple expression integration.
+  A 1,000-case CPython comparison matched range results and 10,000 mutation-sensitive
+  list next results. Source typecheck, scoped lint and selected workspace build
+  passed. Guest iterator types/StopIteration translation, arbitrary user iteration,
+  concrete execution contexts, full heap/CPU accounting and safe-fs integration
+  remain open; prepared host iterators are trusted adapters, not guest objects.
 - Next:
   remaining scope/compiler audits, interpreter runtime,
   resource controls, runtime modules, and safe-fs integration. Parsing and static

@@ -416,6 +416,18 @@ extension, integration, or validation requirement is missing or unverified.
   cases were wrapped in an async function to isolate loop syntax from pending
   enclosing-function restrictions. Scoped lint, source typecheck, and the selected
   workspace build passed.
+- Added try/except/except*/else/finally syntax with ordered handlers, normalized
+  aliases, nested suites, and Python 3.14 unparenthesized exception lists. Rejects
+  mixed regular/group handlers, non-final bare handlers, bare group handlers,
+  forbidden alias bindings, and unparenthesized multiple types with an alias.
+  Expression validation visits handler types and every suite.
+- Try-statement validation: three positive tests failed before implementation;
+  all 834 package tests pass. A 1,024-case CPython compilation and AST comparison
+  matched syntax acceptance, exception type trees, normalized aliases, group flags,
+  and handler/else/finally membership. Scoped lint, source typecheck, and the selected
+  workspace build passed. Exception matching,
+  exception-group splitting, unwinding, and except-star control-flow restrictions
+  remain runtime/enclosing-scope work.
 - Next:
   compound statements, type aliases, and enclosing-scope validation
   normalization, the complete grammar/parser and evaluator, then runtime modules

@@ -3,8 +3,10 @@ import type { Expression, SourceSpan } from "./ast.js";
 export type DeclaredName = SourceSpan & { readonly name: string; readonly spelling: string };
 export type ImportItem = SourceSpan & { readonly path: readonly DeclaredName[]; readonly alias: DeclaredName | null };
 export type ConditionalBranch = { readonly condition: Expression; readonly body: readonly Statement[] };
+export type ExceptionHandler = SourceSpan & { readonly exception: Expression | null; readonly alias: DeclaredName | null; readonly body: readonly Statement[] };
 
 export type Statement = SourceSpan & (
+  | { readonly kind: "try"; readonly group: boolean; readonly body: readonly Statement[]; readonly handlers: readonly ExceptionHandler[]; readonly otherwise: readonly Statement[]; readonly finalizer: readonly Statement[] }
   | { readonly kind: "for"; readonly async: boolean; readonly target: Expression; readonly iterable: Expression; readonly body: readonly Statement[]; readonly otherwise: readonly Statement[] }
   | { readonly kind: "if"; readonly branches: readonly ConditionalBranch[]; readonly otherwise: readonly Statement[] }
   | { readonly kind: "while"; readonly condition: Expression; readonly body: readonly Statement[]; readonly otherwise: readonly Statement[] }

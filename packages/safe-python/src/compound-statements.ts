@@ -5,6 +5,7 @@ import { readNamedExpression } from "./named-expression.js";
 import { readSimpleStatement } from "./simple-statements.js";
 import { readLoopTarget } from "./targets.js";
 import { readStatementValue } from "./assignment-statements.js";
+import { readTry } from "./try-statements.js";
 
 /** A block owns its statements; its caller owns the terminating dedent. */
 export function readStatements(cursor: TokenCursor): Statement[] {
@@ -13,6 +14,7 @@ export function readStatements(cursor: TokenCursor): Statement[] {
     if (cursor.peek().kind === "newline") { cursor.take(); continue; }
     if (cursor.peek().text === "if" || cursor.peek().text === "while") body.push(readConditional(cursor));
     else if (cursor.peek().text === "for" || cursor.peek().text === "async") body.push(readFor(cursor));
+    else if (cursor.peek().text === "try") body.push(readTry(cursor, readSuite));
     else for (const statement of readSimpleLine(cursor)) body.push(statement);
   }
   return body;

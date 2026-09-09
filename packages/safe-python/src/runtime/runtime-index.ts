@@ -3,14 +3,7 @@ import { PythonRuntimeError } from "./error.js";
 import type { ExecutionMeter } from "./execution-budget.js";
 import { normalizeSlice, rangeItem, sliceRange } from "./integer-sequence.js";
 import type { RuntimeValue, RuntimeValues } from "./runtime-values.js";
-
-function bound(value: RuntimeValue, meter: ExecutionMeter): bigint | null {
-  meter.checkpoint();
-  if (value.kind === "none") return null;
-  if (value.kind === "int") return value.value;
-  if (value.kind === "bool") return value.value ? 1n : 0n;
-  throw new PythonRuntimeError("TypeError", "slice indices must be integers or None or have an __index__ method");
-}
+import { runtimeSliceBounds } from "./runtime-slice-bounds.js";
 
 /** Exact builtin subscription. Guest __index__/__getitem__ and overridden
  * subclass slots require the separate object protocol layer. List slices adopt
@@ -23,9 +16,7 @@ export function runtimeIndex(object: RuntimeValue, key: RuntimeValue, values: Ru
     throw new PythonRuntimeError("TypeError", `'${name}' object is not subscriptable`);
   }
   if (key.kind === "slice") {
-    const step = bound(key.step, meter);
-    if (step === 0n) throw new PythonRuntimeError("ValueError", "slice step cannot be zero");
-    const start = bound(key.start, meter), stop = bound(key.stop, meter);
+    const { start, stop, step } = runtimeSliceBounds(key, meter);
     switch (object.kind) {
       case "list": return values.list(object.items.slice(start, stop, step));
       case "range":

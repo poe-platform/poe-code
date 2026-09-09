@@ -2951,6 +2951,22 @@ extension, integration, or validation requirement is missing or unverified.
   passed. Guest __index__/__getitem__ slots, mutable assignment/deletion wiring,
   complete execution contexts, heap/CPU accounting and safe-fs integration remain
   unfinished. Trusted adopted storage must belong to the same execution meter.
+- Connected exact list item assignment/deletion and slice replacement/deletion.
+  Shared runtime slice conversion with subscription so zero-step/error ordering
+  stays consistent. List replacements preserve self-alias handling; tuple and
+  other iterable replacements materialize before target slot changes, then
+  normalize against the current list size after iterator side effects. Iteration
+  errors preserve those effects but do not partially assign; no implicit close.
+  Immutable receiver and non-iterable replacement diagnostics follow the tested
+  Python operation-specific wording.
+- The mutation suite first failed on its missing module; all 3,190 tests in 201
+  files pass. A 3,000-case CPython mutation comparison matched resulting lists
+  and errors, including self replacement and iterator-driven changes. The
+  3,000-case subscription regression also passed after sharing slice validation.
+  Source typecheck, scoped lint and selected workspace build passed. Guest
+  mutation/index slots, replacement length-hint dispatch, finalizers, concrete
+  statement contexts, full resource accounting and safe-fs integration remain
+  unfinished; this is exact runtime-value mutation, not arbitrary guest objects.
 - Next:
   remaining scope/compiler audits, interpreter runtime,
   resource controls, runtime modules, and safe-fs integration. Parsing and static

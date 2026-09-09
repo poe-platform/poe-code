@@ -908,6 +908,25 @@ extension, integration, or validation requirement is missing or unverified.
   https://docs.python.org/3/library/io.html#io.TextIOWrapper . Actual stream writes,
   partial-write handling, buffering/flush, platform configuration, guest objects,
   codec registry dispatch, and safe-fs integration remain pending.
+- Inspected safe-fs's current FileSystem and semantic-capability contracts. The
+  API exposes path-based byte/stream operations, not open file handles. Its
+  `randomAccessWrite` declaration permits bounded observe-and-replace offset
+  updates, not positional handles or concurrent-writer isolation. Integration
+  must preserve these limits rather than infer guarantees from method presence.
+- Added an internal open-mode parser yielding immutable action/binary/update
+  settings. It accepts all supported modifier orderings, rejects duplicates,
+  removed `U` and unknown flags, and preserves CPython's conflicting-mode and
+  embedded-NUL diagnostic precedence. Scans are metered and recognized-character
+  state remains bounded; this layer performs no I/O or guest argument conversion.
+- Open-mode validation: the new suite failed on the missing module; all 1,584
+  package tests pass, including 39 parser cases. An ad hoc CPython builtin-open
+  comparison matched 66,437 modes, including all 76 accepted spellings. A throwing
+  opener observed native flags without opening or creating files. Scoped lint,
+  source typecheck, and selected workspace build passed. Reference:
+  https://docs.python.org/3/library/functions.html#open . Guest argument conversion,
+  open-option validation, capability mapping, descriptor lifetime/identity,
+  buffering, and safe-fs operations remain pending. Parser metering covers scan
+  work, not diagnostic strings or host object overhead.
 - Next:
   remaining scope/compiler audits, interpreter runtime,
   resource controls, runtime modules, and safe-fs integration. Parsing and static

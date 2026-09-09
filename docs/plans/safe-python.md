@@ -3004,6 +3004,26 @@ extension, integration, or validation requirement is missing or unverified.
   workspace build passed. Guest in-place/reflected slots, iterable length hints,
   finalizers, final unsupported-operand diagnostics, full concrete execution
   contexts/resource accounting and safe-fs integration remain unfinished.
+- Unified immutable and mutable exact rich comparison in one explicit-stack
+  engine, preserving the former constant entry point as a compatibility export.
+  Lists use live slots and equality's length shortcut; tuples/slices share
+  identity-aware member traversal. Range equality compares represented sequences.
+  Direct NaN equality still differs from identity-skipped container members.
+  Added a configurable comparison-depth policy (default 1,000) and logical frame/
+  continuation charges; distinct cycles raise controlled RecursionError without
+  consuming the host call stack. The 5,000-level legacy test explicitly requests
+  a larger comparison policy and still verifies stack-independent traversal.
+- The runtime comparison suite first failed on its missing module; all 3,221
+  tests in 205 files pass, including allocation-limit latching and mixed deep
+  containers. A 3,600-case CPython runtime comparison matched results/errors;
+  69,192 immutable and 141,512 slice regression comparisons also passed. Their
+  shared audit allocation caps were increased from 10 MB to 100 MB after the new
+  frame charges exhausted the old aggregate caps; production budget enforcement
+  remains enabled and directly tested. CPython cyclic-list probes confirmed self
+  equality and distinct-cycle recursion errors. Source typecheck, scoped lint and
+  selected workspace build passed. Guest rich slots, call-stack/shared recursion
+  policy integration, exact iterator type names, full heap/CPU accounting, concrete
+  execution contexts and safe-fs integration remain unfinished.
 - Next:
   remaining scope/compiler audits, interpreter runtime,
   resource controls, runtime modules, and safe-fs integration. Parsing and static

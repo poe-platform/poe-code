@@ -6,7 +6,7 @@ import { ExecutionBudget, ExecutionLimitError } from "./execution-budget.js";
 function fixture() {
   const meter = new ExecutionBudget({ maxSteps: 1000000, maxAllocatedBytes: 10000000 });
   const values = new ConstantValues(meter);
-  return { meter, values, compare: (op: string, a: ConstantValue, b: ConstantValue) => constantComparison(op, a, b, values, meter) };
+  return { meter, values, compare: (op: string, a: ConstantValue, b: ConstantValue) => constantComparison(op, a, b, values, meter, 10000) };
 }
 
 describe("concrete constant comparisons", () => {

@@ -3685,6 +3685,23 @@ extension, integration, or validation requirement is missing or unverified.
   not CPython table-position semantics; iterator parity remains unfinished.
   Union, difference, symmetric difference, frozen sets, view algebra and bound
   set methods remain pending, alongside the broader runtime/integration scope.
+- Added exact mutable-set union and symmetric difference (`|`, `^`, `|=`, `^=`).
+  Set-specific storage merges reuse cached hashes, retain existing union members,
+  preserve earlier in-place writes on failure and avoid dictionary-only source
+  mutation errors. Symmetric difference preserves separate discard/add lookups
+  and binary right-to-left comparison dispatch. Self union performs no guest
+  comparisons; self in-place xor clears the receiver. Empty exact-set updates
+  now copy validated keys without redundant collision comparisons, fixing a
+  follow-up failing regression test in the existing construction/update path.
+- Merge verification: initial tests reproduced the missing operators before
+  implementation. All 3,569 tests in 250 files pass, as do scoped lint, source typecheck and
+  selected workspace build. CPython audits matched 1,800 cases per operator
+  (binary and in-place contents, retained member types and receiver identity),
+  plus 16 callback direction/count/source-clearing cases. Set construction/update
+  and intersection regressions matched 1,800 cases each. Set iteration order and
+  CPython table-layout mutation behavior are not claimed by these audits.
+  Difference, frozen sets, dictionary-view algebra and bound set methods remain
+  pending, as do the broader runtime, suspension, accounting and SDK/safe-fs work.
 - Next:
   remaining scope/compiler audits, interpreter runtime,
   resource controls, runtime modules, and safe-fs integration. Parsing and static

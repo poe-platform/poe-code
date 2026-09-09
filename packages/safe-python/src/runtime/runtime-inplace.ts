@@ -22,6 +22,10 @@ export function runtimeInPlace(operator: string, left: RuntimeValue, right: Runt
     left.items.intersectKeysInPlace(right.items);
     return left;
   }
+  if (left.kind === "set" && right.kind === "set" && (operator === "|" || operator === "^")) {
+    left.items.mergeKeysInPlace(right.items, operator);
+    return left;
+  }
   if (left.kind === "list") {
     if (operator === "+") {
       if (right.kind === "list") left.items.extend(right.items);

@@ -253,6 +253,37 @@ export class OrderedKeyMap<Key, Value> {
     return true;
   }
 
+  /** Set-style merge: union retains existing entries; symmetric difference
+   * removes matches and inserts misses. Unlike dictionary update, callbacks
+   * may mutate source size without a dictionary-specific error. Cached hashes
+   * are reused only within a shared policy domain. Successful earlier writes
+   * survive later callback/resource failures. */
+  mergeKeysInPlace(source: OrderedKeyMap<Key, Value>, operator: "|" | "^"): void {
+    this.meter.checkpoint();
+    if (source === this) {
+      if (operator === "^") this.clear();
+      return;
+    }
+    // Empty union copies distinct, already validated source keys without
+    // re-comparing collisions. Foreign policies must still validate their keys.
+    const clean = operator === "|" && this.#entries.size === 0 && this.operations === source.operations;
+    for (const entry of source.#entries) {
+      this.meter.checkpoint();
+      const { key, value } = entry;
+      const hash = this.operations === source.operations ? entry.hash : this.operations.hash(key);
+      if (clean) { this.#insert(key, hash, value); continue; }
+      const existing = this.#find(key, hash);
+      if (operator === "^" && existing !== undefined) this.#remove(existing);
+      else if (existing === undefined) {
+        // Symmetric difference performs discard followed by add, including
+        // the second equality lookup and its possible guest side effects.
+        const added = operator === "^" ? this.#find(key, hash) : undefined;
+        if (added === undefined) this.#insert(key, hash, value);
+      }
+    }
+    this.meter.checkpoint();
+  }
+
   /** Fresh key intersection, retaining entries from the smaller input (right
    * on a tie). Payloads follow those retained keys. Shared policies reuse
    * hashes; foreign-policy probes and insertions use their destination policy.

@@ -26,7 +26,7 @@ export function runtimeSetAccess(set: SetValue, key: RuntimeValue, operation: "c
  * retain prior insertions on failure. Set iteration order is not an API promise. */
 export function updateRuntimeSet(target: SetValue, source: RuntimeValue, values: RuntimeValues, meter: ExecutionMeter): void {
   meter.checkpoint();
-  if (source.kind === "set") target.items.update(source.items);
+  if (source.kind === "set") target.items.mergeKeysInPlace(source.items, "|");
   else if (source.kind === "dict") {
     meter.checkpoint(0, 16);
     target.items.update(source.items, undefined, { value: values.none });

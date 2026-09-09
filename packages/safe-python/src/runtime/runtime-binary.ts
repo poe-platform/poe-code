@@ -33,6 +33,11 @@ export function runtimeBinary(operator: string, left: RuntimeValue, right: Runti
   }
   if (left.kind === "mappingproxy" || right.kind === "mappingproxy") return values.notImplemented;
   if (operator === "&" && left.kind === "set" && right.kind === "set") return values.set(left.items.intersectKeys(right.items));
+  if ((operator === "|" || operator === "^") && left.kind === "set" && right.kind === "set") {
+    const result = values.set((operator === "|" ? left : right).items.copy());
+    if (operator !== "|" || left !== right) result.items.mergeKeysInPlace((operator === "|" ? right : left).items, operator);
+    return result;
+  }
   if (left.kind === "set" || right.kind === "set") return values.notImplemented;
   if (left.kind === "dict_keys" || left.kind === "dict_items" || left.kind === "dict_values" || right.kind === "dict_keys" || right.kind === "dict_items" || right.kind === "dict_values") return values.notImplemented;
   if (left.kind === "cell" || right.kind === "cell" || left.kind === "type" || right.kind === "type") return values.notImplemented;

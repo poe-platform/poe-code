@@ -1278,6 +1278,24 @@ extension, integration, or validation requirement is missing or unverified.
   hint behavior and guest exception conversion). Internal protocol work and guest
   allocations remain context-metered; continuation/key-buffer heap accounting,
   container literals, statements and complete guest objects remain pending.
+- Added tuple/list display execution, sharing the existing sequence-item and
+  starred-unpacking traversal with subscription keys rather than duplicating
+  iterator control. Empty/singleton/nested displays preserve their shapes and
+  element references; starred iterables are consumed before later elements.
+  List construction asks the guest context for a fresh list. Displays now compose
+  with existing name stores, call arguments and immediate subscriptions. Failed
+  expansion stops later evaluation, and infinite unpacking is step-budget bounded.
+- Sequence validation: eleven tests failed on unsupported tuple/list nodes before
+  implementation; all 1,811 tests in 86 files now pass, including 5,000-level nested
+  display AST execution without host recursion. CPython matched 2,500 generated
+  nested-display results/traces with successful and failed unpackings. The prior
+  2,500 subscription and 3,000 call traces still match. Scoped lint, source typecheck
+  and selected dependency build passed. References: Python expression-list,
+  list-display and iterable-unpacking rules. Tuple/list object semantics, guest
+  allocation/length-hint accounting and concrete iterator adaptation remain owned
+  by the context; the evaluator's temporary buffers/continuation heap still need
+  complete accounting. Set/dict displays, comprehensions, statements, suspensions
+  and the full guest object/frame model remain pending.
 - Next:
   remaining scope/compiler audits, interpreter runtime,
   resource controls, runtime modules, and safe-fs integration. Parsing and static

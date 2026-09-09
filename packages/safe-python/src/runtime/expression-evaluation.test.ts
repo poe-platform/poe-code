@@ -29,6 +29,7 @@ function environment(initial: ReadonlyMap<string, Value> = new Map()) {
     boolean: value => value,
     beginCall: () => { throw new Error("fixture calls unsupported"); },
     tuple: () => { throw new Error("fixture tuples unsupported"); },
+    list: () => { throw new Error("fixture lists unsupported"); },
     slice: () => { throw new Error("fixture slices unsupported"); },
     getItem: () => { throw new Error("fixture subscriptions unsupported"); },
     iterate: () => { throw new Error("fixture iteration unsupported"); },
@@ -160,6 +161,6 @@ describe("expression execution order", () => {
   });
 
   it("reports unimplemented expression families explicitly", () => {
-    expect(() => evaluateExpression(parseExpression("[1, 2]"), environment().context, budget())).toThrow(expect.objectContaining({ name: "UnsupportedExpressionError", kind: "list" }));
+    expect(() => evaluateExpression(parseExpression("lambda: 1"), environment().context, budget())).toThrow(expect.objectContaining({ name: "UnsupportedExpressionError", kind: "lambda" }));
   });
 });

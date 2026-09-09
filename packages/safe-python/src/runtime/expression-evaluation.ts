@@ -40,6 +40,8 @@ export interface ExpressionContext<Value> {
    */
   beginCall(callee: Value): ExpressionCall<Value>;
   tuple(values: readonly Value[]): Value;
+  /** Allocate a fresh guest list, preserving element references. */
+  list(values: readonly Value[]): Value;
   slice(parts: SliceValues<Value>): Value;
   getItem(object: Value, key: Value): Value;
   /** Adapt the guest iteration protocol to next/done. Internal guest calls and
@@ -95,16 +97,24 @@ export function evaluateExpression<Value>(expression: Expression, context: Expre
       case "assignment-expression":
         work.push(() => { context.store(node.target.name, value); knownTruth = undefined; }, { node: node.value, test: "value" });
         break;
-      case "subscript":
-        work.push(() => {
-          const object = value, keys: Value[] = [];
+      case "tuple":
+      case "list":
+      case "subscript": {
+        let object!: Value;
+        const assemble = () => {
+          const keys: Value[] = [];
           let index = 0;
           const nextItem = () => {
             const item = node.items[index++];
             if (item === undefined) {
-              work.push(() => { value = context.getItem(object, value); knownTruth = undefined; });
-              if (node.tuple) work.push(() => { value = context.tuple(keys); });
-              else value = keys[0];
+              if (node.kind === "subscript") {
+                work.push(() => { value = context.getItem(object, value); knownTruth = undefined; });
+                if (node.tuple) work.push(() => { value = context.tuple(keys); });
+                else value = keys[0];
+              } else {
+                value = node.kind === "list" ? context.list(keys) : context.tuple(keys);
+                knownTruth = undefined;
+              }
               return;
             }
             if (item.kind === "slice") {
@@ -139,8 +149,12 @@ export function evaluateExpression<Value>(expression: Expression, context: Expre
             }
           };
           work.push(nextItem);
-        }, { node: node.object, test: "value" });
+        };
+        if (node.kind === "subscript") {
+          work.push(() => { object = value; assemble(); }, { node: node.object, test: "value" });
+        } else work.push(assemble);
         break;
+      }
       case "call":
         work.push(() => {
           const call = context.beginCall(value);

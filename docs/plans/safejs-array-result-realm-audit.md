@@ -40,3 +40,17 @@ Symbol.split result paths; custom splitter results must not be re-prototyped.
 
 No runtime or test files changed for this audit. The full package gate
 continues against its original source/test hash. No push or release.
+
+## Borrowed methods and semantic controls
+
+Read-only probes at runtime commit fa36d37f3 confirm all four copy-by-change
+methods also lose result realm identity when borrowed via
+Array.prototype.method.call onto `{0:1,1:2,length:2}` (the sorted case uses
+values 2 and 1). Native VM controls preserve identity in all four cases.
+
+Separate controls use `[3,,1]` with a throwing own constructor getter.
+toReversed(), toSorted(), toSpliced(1,1,9), and with(1,9) all match native
+result keys, copied contents, and unchanged original keys/contents without
+reading that constructor. Preserve those behaviors when fixing prototypes.
+The shared budgetProducedValue helper also handles existing mutation targets,
+so indiscriminately assigning a prototype there would change unrelated objects.

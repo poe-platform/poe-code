@@ -1456,6 +1456,26 @@ extension, integration, or validation requirement is missing or unverified.
   Except* remains explicitly unsupported. Concrete guest exception matching,
   scope storage, context managers, suspension, frame integration and full heap
   accounting remain pending; the complete interpreter is not yet implemented.
+- Added synchronous with-statement execution with explicit manager-entry/exit
+  frames. Managers enter left to right and leave right to left. Exit is captured
+  before enter and registered after successful entry, before assigning an as target;
+  a suppressed target-assignment failure skips remaining managers and the body.
+  Exceptional exit runs with the exception active and truth-tests its result;
+  suppression makes outer exits normal. Other transfers ignore the exit result.
+  Exit/truth failures propagate through outer managers with restored bookkeeping.
+  Fatal host/budget failures bypass guest exits. Adapters own implicit lookup,
+  bound callbacks, exception type/value/traceback conversion and internal metering.
+- With validation: thirteen tests initially failed on unsupported with nodes;
+  all 1,954 tests in 95 files pass. Tests include entry/assignment/exit/truth
+  failures, suppression, transfers, retained exit callbacks, undefined enter values,
+  fatal budgets and 5,000 managers without host recursion. CPython matched 2,500
+  generated nested manager/handler/finalizer programs with descriptor lookup,
+  active-exception observations, failure chaining and outcome traces. Differential
+  evidence corrected the lookup contract to CPython 3.14's observable exit-before-
+  enter order (different from reference pseudocode). Scoped lint, source typecheck
+  and selected dependency build passed. Reference: Python with-statement rules.
+  Async with, except*, match, suspension, concrete guest object/frame integration
+  and complete allocation accounting remain pending; the interpreter is unfinished.
 - Next:
   remaining scope/compiler audits, interpreter runtime,
   resource controls, runtime modules, and safe-fs integration. Parsing and static

@@ -20,6 +20,14 @@ export type LeafStatement = Extract<
   }
 >;
 
+/** Bound guest protocol callbacks, obtained before enter is called. Null means
+ * exit(None, None, None); a present error is adapted to type/value/traceback.
+ */
+export interface PreparedContextManager<Value> {
+  enter(): Value;
+  exit(exception: { readonly error: unknown } | null): Value;
+}
+
 export interface StatementContext<Value> {
   evaluate(expression: Expression): Value;
   /** Evaluate directly in branching context, including short-circuit truth rules.
@@ -30,6 +38,13 @@ export interface StatementContext<Value> {
   assign(target: Expression, value: Value): void;
   /** Definitions execute a separate scope; they cannot transfer control here. */
   execute(statement: LeafStatement): void;
+  managers?: {
+    /** Resolve exit then enter through implicit special-method lookup (CPython
+     * 3.14 order, observable with descriptors), before invoking enter.
+     */
+    prepare(value: Value): PreparedContextManager<Value>;
+    truth(value: Value): boolean;
+  };
   /** Host-only, non-throwing exception bookkeeping. Classify only guest errors,
    * never implementation faults. Enter installs the active exception for bare
    * raise and automatic chaining; its restore callback must not run guest code.
@@ -73,6 +88,8 @@ type Frame<Value> =
   | { kind: "while"; statement: Extract<Statement, { kind: "while" }> }
   | { kind: "for"; statement: Extract<Statement, { kind: "for" }>; iterator: Iterator<Value> }
   | { kind: "finally"; body: readonly Statement[] }
+  | { kind: "with-items"; statement: Extract<Statement, { kind: "with" }>; index: number }
+  | { kind: "with-exit"; exit: PreparedContextManager<Value>["exit"] }
   | { kind: "catch"; statement: Extract<Statement, { kind: "try" }> }
   | {
       kind: "search";
@@ -87,7 +104,7 @@ type Frame<Value> =
 /** Synchronous execution of statically validated suites using explicit frames.
  * Finally suites run during normal and abrupt completion; guest exception state
  * is scoped to exception-triggered cleanup and ordinary except handlers. Except*
- * groups, context managers, match
+ * groups, async context managers, match
  * and suspensions are not implemented here yet; unsupported compounds fail
  * before evaluating their operands. Contexts own guest protocols and internal
  * metering; frame allocation still requires full heap accounting.
@@ -119,6 +136,25 @@ export function executeStatements<Value>(
       if (exceptional) frame.restore();
     }
   };
+  const exitManager = (
+    frame: Extract<Frame<Value>, { kind: "with-exit" }>,
+    pending?: Transfer<Value>
+  ): Transfer<Value> | undefined => {
+    if (pending?.kind !== "throw") {
+      meter.checkpoint();
+      frame.exit(null);
+      return pending;
+    }
+    const restore = context.exceptions!.enter(pending.error);
+    try {
+      meter.checkpoint();
+      const result = frame.exit({ error: pending.error });
+      meter.checkpoint();
+      return context.managers!.truth(result) ? undefined : pending;
+    } finally {
+      restore();
+    }
+  };
   try {
     while (frames.length || transfer) {
       if (!frames.length && transfer) {
@@ -142,6 +178,12 @@ export function executeStatements<Value>(
             restore: context.exceptions!.enter(transfer.error)
           });
           transfer = undefined;
+        } else if (frame.kind === "with-exit") {
+          try {
+            transfer = exitManager(frame, transfer);
+          } catch (error) {
+            transfer = guestFailure(error);
+          }
         } else if (frame.kind === "handler-cleanup") {
           try {
             clearHandler(frame, transfer.kind === "throw");
@@ -160,6 +202,32 @@ export function executeStatements<Value>(
       }
       try {
         const frame = frames[frames.length - 1];
+        if (frame.kind === "with-items") {
+          if (frame.index === frame.statement.items.length) {
+            frames.pop();
+            frames.push({ kind: "block", body: frame.statement.body, index: 0 });
+            continue;
+          }
+          const item = frame.statement.items[frame.index++];
+          const value = context.evaluate(item.context);
+          meter.checkpoint();
+          const manager = context.managers!.prepare(value),
+            exit = manager.exit;
+          meter.checkpoint();
+          const entered = manager.enter();
+          frames.pop();
+          frames.push({ kind: "with-exit", exit }, frame);
+          if (item.target !== null) {
+            meter.checkpoint();
+            context.assign(item.target, entered);
+          }
+          continue;
+        }
+        if (frame.kind === "with-exit") {
+          frames.pop();
+          exitManager(frame);
+          continue;
+        }
         if (frame.kind === "catch") {
           frames.pop();
           frames.push({ kind: "block", body: frame.statement.otherwise, index: 0 });
@@ -278,6 +346,9 @@ export function executeStatements<Value>(
             frames.push({ kind: "block", body: statement.body, index: 0 });
             break;
           case "with":
+            if (statement.async || !context.managers) throw new UnsupportedStatementError(statement.kind);
+            frames.push({ kind: "with-items", statement, index: 0 });
+            break;
           case "match":
             throw new UnsupportedStatementError(statement.kind);
           default:

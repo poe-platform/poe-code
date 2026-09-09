@@ -74,6 +74,11 @@ export class UnsupportedExpressionError extends Error {
   }
 }
 
+export interface SubscriptReference<Value> {
+  readonly object: Value;
+  readonly key: Value;
+}
+
 /** Execute the supported expression families on an explicit continuation stack.
  * Boolean-test context propagates through logical/conditional nodes so a
  * short-circuit value's __bool__ is not invoked twice by a surrounding test.
@@ -81,13 +86,18 @@ export class UnsupportedExpressionError extends Error {
  * propagation. AST validity/static scope analysis are caller preconditions.
  * Branch mode returns host boolean truth directly for statement conditions;
  * value mode (the default) returns the guest value without final coercion.
+ * Subscript-reference mode captures only the outer receiver/key without getitem;
+ * nested subscriptions and key expressions still execute in normal value mode.
  * Stack/closure heap accounting and suspending expression families remain pending.
  */
+export function evaluateExpression<Value>(expression: Extract<Expression, { kind: "subscript" }>, context: ExpressionContext<Value>, meter: ExecutionMeter, mode: "subscript-reference"): SubscriptReference<Value>;
 export function evaluateExpression<Value>(expression: Expression, context: ExpressionContext<Value>, meter: ExecutionMeter, mode: "branch"): boolean;
 export function evaluateExpression<Value>(expression: Expression, context: ExpressionContext<Value>, meter: ExecutionMeter, mode?: "value"): Value;
-export function evaluateExpression<Value>(expression: Expression, context: ExpressionContext<Value>, meter: ExecutionMeter, mode: "value" | "branch" = "value"): Value | boolean {
+export function evaluateExpression<Value>(expression: Expression, context: ExpressionContext<Value>, meter: ExecutionMeter, mode: "value" | "branch" | "subscript-reference" = "value"): Value | boolean | SubscriptReference<Value> {
+  if (mode === "subscript-reference" && expression.kind !== "subscript") throw new Error("subscript reference mode requires a subscript expression");
   type Task = { node: Expression; test: "value" | "preserve" | "branch" } | (() => void);
-  const work: Task[] = [{ node: expression, test: mode }];
+  const work: Task[] = [{ node: expression, test: mode === "branch" ? "branch" : "value" }];
+  let reference: SubscriptReference<Value> | undefined;
   let value!: Value;
   let knownTruth: boolean | undefined;
   while (work.length) {
@@ -230,7 +240,13 @@ export function evaluateExpression<Value>(expression: Expression, context: Expre
             const item = node.items[index++];
             if (item === undefined) {
               if (node.kind === "subscript") {
-                work.push(() => { value = context.getItem(object, value); knownTruth = undefined; });
+                work.push(() => {
+                  if (mode === "subscript-reference" && node === expression) {
+                    meter.checkpoint(1, 32);
+                    reference = { object, key: value };
+                  } else value = context.getItem(object, value);
+                  knownTruth = undefined;
+                });
                 if (node.tuple) work.push(() => { value = context.tuple(keys); });
                 else value = keys[0];
               } else {
@@ -334,6 +350,10 @@ export function evaluateExpression<Value>(expression: Expression, context: Expre
       }
       default: throw new UnsupportedExpressionError(node.kind);
     }
+  }
+  if (mode === "subscript-reference") {
+    if (reference === undefined) throw new Error("subscript reference was not resolved");
+    return reference;
   }
   if (mode === "branch") {
     meter.checkpoint();

@@ -3054,6 +3054,20 @@ extension, integration, or validation requirement is missing or unverified.
   final binary diagnostics, shared recursion policy, full resource accounting
   and safe-fs integration remain unfinished. Required object hooks make these
   gaps explicit rather than silently substituting partial implementations.
+- Added subscript-reference evaluation to the existing expression continuation
+  engine: it captures only the outer receiver/key without getitem, while nested
+  subscriptions, slices and starred keys retain normal evaluation order. Added
+  runtime name/attribute/subscript references that evaluate target operands once,
+  defer reads, and use retained identities with current access/mutation hooks.
+  List assignment/deletion reuse concrete mutation; no host attribute access is
+  implicit. Retained references check the execution meter on every operation.
+- Reference tests first reproduced unwanted outer getitem behavior and a missing
+  runtime resolver. All 3,248 tests in 209 files pass. A 1,200-case CPython target
+  capture/order audit matched, and the 3,000-case assembled expression regression
+  passed. Source typecheck, scoped lint and selected workspace build passed.
+  Concrete module statement assembly, guest subscription mutation slots, full
+  object types/descriptors, closure/frame accounting and safe-fs integration remain
+  unfinished; this supplies the reference bridge, not complete module execution.
 - Next:
   remaining scope/compiler audits, interpreter runtime,
   resource controls, runtime modules, and safe-fs integration. Parsing and static

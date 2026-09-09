@@ -32,6 +32,13 @@ function fixture(source: string, maxSteps = 100000, signal?: AbortSignal) {
 }
 
 describe("assembled concrete runtime programs", () => {
+  it("uses native list methods through ordinary compiled calls", () => {
+    const state = fixture("def f(a):\n a.append(3)\n a.extend(a)\n a.insert(-1, 9)\n a.remove(1)\n b = a.copy()\n b.reverse()\n return a.count(2), b.pop(), a\nresult = f([1, 2])\n");
+    state.hooks.expressions = () => ({ warn() {} }); state.run();
+    expect(state.globals.get("result")).toEqual(state.values.tuple([state.values.integer(2), state.values.integer(2), state.values.list([2, 3, 1, 2, 9, 3].map(n => state.values.integer(n)))]));
+    const result = state.globals.get("result"); if (result?.kind !== "tuple" || result.items[2].kind !== "list") throw new Error("expected list result");
+    expect(result.items[2].items.snapshot()).toEqual([2, 3, 1, 2, 9, 3].map(n => state.values.integer(n)));
+  });
   it("constructs native set displays and unpackings without a construction hook", () => {
     const state = fixture("def f():\n return {True, 1, *[2, 2], *{'x': 3}}\ns = f()\ns.add(4)\nresult = s == {1, 2, 'x', 4}\n");
     state.hooks.expressions = () => ({ warn() {} });

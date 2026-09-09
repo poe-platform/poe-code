@@ -6,6 +6,7 @@ import { readRuntimeDictionaryViewAttribute } from "./runtime-dictionary-view-at
 import { createRuntimeSetAlgebraMethod } from "./runtime-set-algebra-method.js";
 import { createRuntimeSetMutationMethod } from "./runtime-set-mutation-method.js";
 import { createRuntimeSetRelationMethod } from "./runtime-set-relation-method.js";
+import { createRuntimeListMethod } from "./runtime-list-method.js";
 import { isRuntimeSet, type RuntimeValue, type RuntimeValues } from "./runtime-values.js";
 
 /** Default exact-value lookup. Only explicitly implemented Python members are
@@ -15,6 +16,12 @@ import { isRuntimeSet, type RuntimeValue, type RuntimeValues } from "./runtime-v
  * separate from these instance-bound container capabilities. */
 export function runtimeNativeAttribute(receiver: RuntimeValue, name: string, values: RuntimeValues, meter: ExecutionMeter): RuntimeValue {
   meter.checkpoint();
+  if (receiver.kind === "list") {
+    switch (name) {
+      case "append": case "extend": case "insert": case "pop": case "clear": case "reverse": case "copy": case "count": case "remove":
+        return createRuntimeListMethod(receiver, name, values, meter);
+    }
+  }
   if (receiver.kind === "dict" || receiver.kind === "mappingproxy") {
     switch (name) {
       case "get": case "copy": case "keys": case "values": case "items": case "__reversed__":

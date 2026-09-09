@@ -3867,6 +3867,24 @@ extension, integration, or validation requirement is missing or unverified.
   The 1,300-module closure/decorator/failure-cleanup regression audit also passes.
   Public constructors, full native descriptors/introspection, comprehension
   runtime integration, suspension, accounting and SDK/safe-fs remain pending.
+- Connected nine native list methods to default attribute lookup: append,
+  extend, insert, pop, clear, reverse, copy, count and remove. Methods validate
+  arguments before mutation and use owned storage for bounded operations.
+  Self-extension duplicates the original slots once; generic extension streams
+  values, keeps earlier additions on failure and checks cancellation after each
+  pull. Copy duplicates slots but preserves member identity. Insert/pop perform
+  signed index conversion before touching storage, including empty-pop cases.
+- List-method verification began with fourteen failing behavior tests. All
+  3,701 tests in 263 files pass, with scoped lint, source typecheck and selected
+  workspace build. A 2,400-call compiled-program CPython audit matches returned
+  values, errors and receiver state across all nine methods, arity/keyword
+  failures, nested members, self-extension and index overflow. Compiled-function
+  tests exercise default method lookup; storage tests verify shallow identity,
+  partial iterator failure and cancellation before adding a pulled element.
+  The 800-program set-display execution regression audit also passes.
+  List index/sort binding, guest index slots and length hints, native descriptors,
+  finalizers, remaining builtins, suspension, accounting and SDK/safe-fs remain
+  unfinished.
 - Next:
   remaining scope/compiler audits, interpreter runtime,
   resource controls, runtime modules, and safe-fs integration. Parsing and static

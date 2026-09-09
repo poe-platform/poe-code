@@ -2256,6 +2256,22 @@ extension, integration, or validation requirement is missing or unverified.
   corresponding sliceobject.c/complexobject.c hash implementations.
   Default seeded payload hashing, guest __hash__ dispatch, mutable containers,
   caching and complete host temporary-allocation/CPU accounting remain pending.
+- Added an explicit-key SipHash-1-3 policy for immutable byte/string payloads.
+  It streams bytes without copying payload-sized buffers and reserves a fixed
+  32-byte logical working state. Strings use minimal 1/2/4-byte code-point width
+  across the whole value in the fixed little-endian model, preserving isolated
+  surrogates. Empty payloads hash to zero; results exclude reserved -1.
+  Runtime hosts must supply unpredictable key material; deterministic keys are
+  explicit test inputs, never an implicit default.
+- Seeded-payload tests first reproduced the missing implementation. All 2,603
+  tests in 149 files pass. An 8,000-case CPython differential matched byte/string
+  hashes exactly across four deterministic seeds, including block boundaries,
+  byte-length footer wraparound and mixed Unicode widths. Source typecheck,
+  scoped lint and selected workspace build passed. Reference:
+  https://github.com/python/cpython/blob/3.14/Python/pyhash.c . The policy connects
+  to the concrete hash context; host key generation and complete runtime setup,
+  guest hash dispatch, mutable containers and full temporary-heap accounting
+  remain unfinished.
 - Next:
   remaining scope/compiler audits, interpreter runtime,
   resource controls, runtime modules, and safe-fs integration. Parsing and static

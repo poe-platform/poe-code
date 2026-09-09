@@ -2664,6 +2664,19 @@ extension, integration, or validation requirement is missing or unverified.
   typecheck, scoped lint and selected workspace build passed. Guest map argument/
   strict binding, eager iterable acquisition, builtin/iterator object wiring,
   exception values and complete native allocation accounting remain unfinished.
+- Connected expanded guest map calls to eager protocol iterator acquisition and
+  mapping. Extracted strict-only keyword validation/truth conversion for shared
+  use by zip and map. Map performs that phase before checking its minimum two
+  positional arguments, then acquires each input left to right without pulling
+  items or testing mapper callability. Mapping starts only on next; failures
+  preserve the established phase and consumption ordering.
+- The map constructor suite first failed on its missing module; all 2,932 tests
+  in 179 files pass. A 1,200-case CPython map constructor/iteration audit matched
+  strict-before-arity precedence, eager input order, lazy callability errors and
+  subsequent rows/errors. Zip's 1,000-case constructor audit also passed after
+  sharing strict binding. Source typecheck, scoped lint and selected workspace
+  build passed. Guest builtin/iterator registration, concrete special-method
+  dispatch, exception values and complete native allocation accounting remain open.
 - Next:
   remaining scope/compiler audits, interpreter runtime,
   resource controls, runtime modules, and safe-fs integration. Parsing and static

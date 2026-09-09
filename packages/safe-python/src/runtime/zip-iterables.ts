@@ -1,6 +1,5 @@
 import type { ExecutionMeter } from "./execution-budget.js";
-import { PythonRuntimeError } from "./error.js";
-import { suggestName } from "./name-suggestion.js";
+import { bindStrictOption } from "./strict-option.js";
 import { ProtocolIterator, type IterationContext } from "./protocol-iterator.js";
 import { ZipIterator } from "./zip-iterator.js";
 
@@ -17,16 +16,7 @@ export interface ZipIterableContext<Value, Result> extends IterationContext<Valu
  */
 export function zipIterables<Value, Result>(inputs: readonly Value[], keywords: ReadonlyMap<string, Value>, context: ZipIterableContext<Value, Result>, meter: ExecutionMeter): ZipIterator<Value, Result> {
   meter.checkpoint();
-  if (keywords.size > 1) throw new PythonRuntimeError("TypeError", `zip() takes at most 1 keyword argument (${keywords.size} given)`);
-  for (const name of keywords.keys()) {
-    meter.checkpoint();
-    if (name === "strict") continue;
-    const suggestion = suggestName(name, ["strict"], meter);
-    const hint = suggestion === undefined ? "" : `. Did you mean '${suggestion}'?`;
-    throw new PythonRuntimeError("TypeError", `zip() got an unexpected keyword argument '${name}'${hint}`);
-  }
-  const strict = keywords.has("strict") ? context.truth(keywords.get("strict")!) : false;
-  meter.checkpoint();
+  const strict = bindStrictOption("zip", keywords, context, meter);
   const length = inputs.length;
   meter.checkpoint(0, 64 + length * 8);
   const iterators = new Array<Iterator<Value>>(length);

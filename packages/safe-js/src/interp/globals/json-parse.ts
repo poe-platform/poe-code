@@ -1,6 +1,6 @@
 import type { Budget } from "../budget.js";
 import { readPropertyDescriptor } from "../accessors.js";
-import { getSandboxPropertyDescriptor, isGuestClosure, materializeFunctionProperties } from "../object-model.js";
+import { getSandboxPropertyDescriptor, getSandboxPrototype, isGuestClosure, materializeFunctionProperties, setSandboxPrototype } from "../object-model.js";
 import { retainValues } from "../resources.js";
 import {
   allocateProducedSandboxValue, getRegexProperties,
@@ -25,6 +25,8 @@ export async function parseJsonWithReviver(
   let position = 0;
   const root = readValue();
   const holder: SandboxObject = { "": root.value };
+  const prototype = getSandboxPrototype(holder, budget);
+  if (prototype !== null) setSandboxPrototype(holder, prototype, budget);
   const release = retainValues(budget, () => [holder, reviver, text, ...originalValues]);
   try {
     return await internalize(holder, "", root);
@@ -63,6 +65,8 @@ export async function parseJsonWithReviver(
       }
       const array = opening === "[";
       const value: SandboxValue = array ? [] : Object.create(null) as SandboxObject;
+      const prototype = getSandboxPrototype(value, budget);
+      if (prototype !== null) setSandboxPrototype(value, prototype, budget);
       const children = new Map<string, ParseRecord>();
       position++;
       skipWhitespace();
@@ -94,6 +98,8 @@ export async function parseJsonWithReviver(
     const leave = budget.enterCall();
     let value: SandboxValue;
     const callbackContext: SandboxObject = {};
+    const prototype = getSandboxPrototype(callbackContext, budget);
+    if (prototype !== null) setSandboxPrototype(callbackContext, prototype, budget);
     const release = retainValues(budget, () => [holder, value, callbackContext]);
     try {
       if (context?.getProperty !== undefined) value = await context.getProperty(holder, key);

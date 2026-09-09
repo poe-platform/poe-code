@@ -71,3 +71,23 @@ The maintained build passed 23 workspace builds and four fresh-process import
 checks. Direct built SDK probes passed for both single-descriptor APIs and
 getOwnPropertyDescriptors, whose direct ordinary-object route remains
 synchronous. No visual CLI behavior changed. No push or release occurred.
+
+## JSON container implementation
+
+Nine regressions failed before the change: empty and nested object/array
+containers with and without a reviver, plus reviver holder/context identity
+after SDK cleanup. Native VM controls pass. The replacement/deletion/special-
+key control already passed; all ten new tests pass after implementation.
+
+The plain JSON conversion path assigns prototypes to each new container.
+The reviver parser assigns them during container creation, before callbacks,
+and to its root holder and callback context objects. It does not recursively
+rewrite final results or reviver replacements. Tests verify later prototype
+mutation remains visible and reject lossy data copying. Grouping buckets
+remain pending. Broader verification is still required.
+
+Final JSON verification passed 1,954 tests across 139 JSON/snapshot files.
+Scoped ESLint, package TypeScript and the maintained build passed (23
+workspace builds and four fresh-process import checks). Direct built SDK
+probes passed for parsed objects and arrays, with and without a guest reviver.
+No visual CLI behavior changed. No push or release occurred.

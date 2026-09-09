@@ -9,7 +9,7 @@ import { invokeBuiltinClosure } from "../builtin-call.js";
 import { parseJsonWithReviver } from "./json-parse.js";
 import { createRawJson, isRawJson } from "../raw-json.js";
 import { readPropertyDescriptor } from "../accessors.js";
-import { createIntrinsicObject, getBoxedPrototype, getSandboxPropertyDescriptor, materializeFunctionProperties, registerIntrinsicFunction, registerIntrinsicObject } from "../object-model.js";
+import { createIntrinsicObject, getBoxedPrototype, getSandboxPropertyDescriptor, getSandboxPrototype, materializeFunctionProperties, registerIntrinsicFunction, registerIntrinsicObject, setSandboxPrototype } from "../object-model.js";
 import { hostFunctionMetadata } from "../host-function-metadata.js";
 import { registerBuiltinIdentities } from "../intrinsics.js";
 import { isSandboxDate } from "../date.js";
@@ -521,11 +521,16 @@ function copyJsonToSandbox(value: unknown, budget: Budget): SandboxValue {
 
   if (Array.isArray(value)) {
     budget.allocateArrayLength(value.length);
-    return value.map((entry) => copyJsonToSandbox(entry, budget));
+    const copy = value.map((entry) => copyJsonToSandbox(entry, budget));
+    const prototype = getSandboxPrototype(copy, budget);
+    if (prototype !== null) setSandboxPrototype(copy, prototype, budget);
+    return copy;
   }
 
   if (isPlainObject(value)) {
     const copy = Object.create(null) as SandboxObject;
+    const prototype = getSandboxPrototype(copy, budget);
+    if (prototype !== null) setSandboxPrototype(copy, prototype, budget);
 
     for (const [key, entry] of Object.entries(value)) {
       defineDataProperty(copy, key, copyJsonToSandbox(entry, budget));

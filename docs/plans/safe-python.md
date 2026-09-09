@@ -4817,6 +4817,23 @@ extension, integration, or validation requirement is missing or unverified.
   percent binary dispatch remain unfinished. The original string-percent failure
   remains open; full guest object wiring, suspended execution, complete accounting
   and SDK/safe-fs integration remain outstanding.
+- Connected exact native string/bytes __str__ and __repr__ to explicit attribute
+  lookup. str.__str__ returns the exact receiver; other paths return metered
+  immutable representation text. Bound-call validation rejects keywords before
+  positional counts with Python's wrapper diagnostics. Internal storage helpers
+  remain inaccessible as guest attributes. Native method-wrapper introspection
+  and guest subclass dispatch remain separate work.
+- Six new tests cover rendering, identity, argument precedence, cancellation
+  and storage encapsulation; five first failed with missing native attributes
+  and the encapsulation check already passed. All 4,313 tests in 339 files pass.
+  A 3,208-case compiled Python comparison matches CPython output code points,
+  receiver identity and errors, including saved bound methods and chained
+  representations. Source typecheck, scoped lint and selected workspace build
+  pass. General repr/str builtin registration, other value representations,
+  numeric conversion and percent formatting assembly/dispatch remain unfinished.
+  The original string-percent failure remains open; full guest object wiring,
+  suspended execution, complete accounting and SDK/safe-fs integration remain
+  outstanding.
 - Next:
   remaining scope/compiler audits, interpreter runtime,
   resource controls, runtime modules, and safe-fs integration. Parsing and static

@@ -2789,6 +2789,19 @@ extension, integration, or validation requirement is missing or unverified.
   selected workspace build passed. Builtin argument binding/registration,
   concrete guest slot dispatch, bool wrapping and full heap/recursion accounting
   remain open.
+- Added metered forward/reverse range iteration using existing validated integer
+  progressions rather than duplicating range storage/arithmetic. The cursor
+  captures start, stride and exact remaining count, yields bigint payloads and
+  exposes exact hints without materializing or retaining the source progression.
+  Empty/exhausted cursors remain done; huge ranges require only fixed cursor
+  slots (bigint payload size accounting remains separate unfinished work).
+- The range iterator suite first failed on its missing module; all 3,049 tests
+  in 188 files pass. A 2,000-trace CPython audit matched 40,000 next observations
+  and 40,000 associated length hints across forward/reverse, empty, descending
+  and large-integer progressions. Source typecheck, scoped lint and selected
+  workspace build passed. Guest range/iterator registration, integer wrapping,
+  constructor binding, iterator state restoration/pickling and full bigint
+  CPU/allocation accounting remain open.
 - Next:
   remaining scope/compiler audits, interpreter runtime,
   resource controls, runtime modules, and safe-fs integration. Parsing and static

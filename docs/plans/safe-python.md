@@ -1874,6 +1874,21 @@ extension, integration, or validation requirement is missing or unverified.
   and generated declaration inspection passed. Whole-program compilation/caching,
   concrete guest code/value objects, builtin builder dispatch, complete docstring
   encoding validation and full allocation accounting remain unfinished.
+- Validated and fixed compiler docstring encoding: retained docstrings reject
+  surrogate code points after tab expansion but before indentation cleanup.
+  Errors preserve the first contiguous surrogate span in expanded code-point
+  coordinates and retain an independently owned immutable copy of the complete
+  expanded text. Adjacent surrogate code points are never merged through a UTF-16
+  round trip. Optimized-away docstrings bypass validation. Error-text buffers are
+  charged before allocation and fatal budget failures take priority.
+- Docstring encoding validation: CPython probes reproduced the mismatch, and all
+  nine initial encoding cases failed before the fix. All 2,336 tests in 121 files
+  pass, including ten new cases covering spans, ownership, optimization and limits.
+  A 1,000-case CPython comparison matched cleaned values or complete encoding-error
+  diagnostics and retained text across tabs, nulls, line breaks, supplementary
+  characters and surrogate runs. Source typecheck, scoped lint and selected build
+  passed. Concrete guest exception objects, whole-program compiler dispatch and
+  complete host-string temporary allocation accounting remain unfinished.
 - Next:
   remaining scope/compiler audits, interpreter runtime,
   resource controls, runtime modules, and safe-fs integration. Parsing and static

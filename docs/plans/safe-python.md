@@ -948,6 +948,25 @@ extension, integration, or validation requirement is missing or unverified.
   iteration, aggregate methods, and safe-fs file objects remain pending. Optional
   internal meters require mandatory guest-context wiring; host object overhead
   and garbage-collection timing are not represented by buffer-allocation charges.
+- Added internal pinned unsigned-byte views to memory streams. Indexed mutations
+  are visible through stream reads/snapshots; returned view snapshots are owned
+  copies. Arbitrary positive/negative-stride slices share storage and retain their
+  own leases, including empty slices and children of released parents. Explicit
+  release is idempotent, drops the storage reference, and remains available after
+  budget termination. Outstanding leases reject writes (including empty writes),
+  truncation, and close with Python-compatible BufferError diagnostics. Ordinary
+  reads and seeking remain available. No unrestricted raw buffer is returned.
+- Buffer-view validation: all 12 new tests failed before getbuffer implementation;
+  all 1,613 package tests pass. CPython comparisons matched 9,000 nested slice,
+  mutation, pinning, and release cases, including huge bounds/steps. An ad hoc
+  sweep passed 300 budget/lease-cleanup cases without leaked pins. Scoped lint,
+  source typecheck, and selected workspace build passed. References:
+  https://docs.python.org/3/library/io.html#io.BytesIO.getbuffer and
+  https://docs.python.org/3/library/stdtypes.html#memoryview . These are internal
+  one-dimensional B-format views, not complete guest memoryview objects: formats,
+  casting, readonly views, bulk assignment, guest protocols and deterministic
+  guest-heap finalization remain pending. View-object overhead is not metered;
+  explicit snapshot buffers and operational checkpoints are metered.
 - Next:
   remaining scope/compiler audits, interpreter runtime,
   resource controls, runtime modules, and safe-fs integration. Parsing and static

@@ -1,16 +1,18 @@
 import { PythonRuntimeError } from "./error.js";
 import type { ExecutionMeter } from "./execution-budget.js";
+import { ByteBufferView } from "./byte-buffer-view.js";
 
 function checkIndex(value: bigint, message: string): void {
   if (BigInt.asIntN(64, value) !== value) throw new PythonRuntimeError("OverflowError", message);
 }
 
-/** Internal BytesIO storage. Guest buffer exports and protocol methods are separate. */
+/** Internal BytesIO storage. Guest object/protocol bindings are separate. */
 export class MemoryByteStream {
   #buffer: Uint8Array;
   #length: number;
   #position = 0n;
   #closed = false;
+  readonly #exports = { count: 0 };
 
   constructor(initial = new Uint8Array(), meter?: ExecutionMeter) {
     meter?.checkpoint(initial.length + 1, initial.byteLength);
@@ -22,6 +24,10 @@ export class MemoryByteStream {
 
   #checkOpen(): void {
     if (this.#closed) throw new PythonRuntimeError("ValueError", "I/O operation on closed file.");
+  }
+
+  #checkUnpinned(): void {
+    if (this.#exports.count !== 0) throw new PythonRuntimeError("BufferError", "Existing exports of data: object cannot be re-sized");
   }
 
   tell(meter?: ExecutionMeter): bigint {
@@ -77,6 +83,7 @@ export class MemoryByteStream {
   write(input: Uint8Array, meter?: ExecutionMeter): bigint {
     meter?.checkpoint();
     this.#checkOpen();
+    this.#checkUnpinned();
     if (input.length === 0) return 0n;
     const endPosition = this.#position + BigInt(input.length);
     checkIndex(endPosition, "new buffer size too large");
@@ -107,6 +114,7 @@ export class MemoryByteStream {
   truncate(size: bigint | null = null, meter?: ExecutionMeter): bigint {
     meter?.checkpoint();
     this.#checkOpen();
+    this.#checkUnpinned();
     const length = size ?? this.#position;
     checkIndex(length, "Python int too large to convert to C long");
     if (length < 0n) throw new PythonRuntimeError("ValueError", `negative size value ${length}`);
@@ -121,8 +129,15 @@ export class MemoryByteStream {
     return this.#buffer.slice(0, this.#length);
   }
 
+  getbuffer(meter?: ExecutionMeter): ByteBufferView {
+    meter?.checkpoint();
+    this.#checkOpen();
+    return new ByteBufferView(this.#buffer.subarray(0, this.#length), this.#exports);
+  }
+
   close(meter?: ExecutionMeter): void {
     meter?.checkpoint();
+    this.#checkUnpinned();
     this.#buffer = new Uint8Array();
     this.#length = 0;
     this.#closed = true;

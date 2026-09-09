@@ -5708,6 +5708,18 @@ extension, integration, or validation requirement is missing or unverified.
   test finishes within a 500-step budget. Typecheck, scoped lint and selected workspace build
   pass. Locale snapshots, renderer/native n integration and broader interpreter/
   SDK/safe-fs work remain unfinished; no host locale settings were changed.
+- Added immutable numeric-locale snapshots and integer n field rendering with
+  explicit metadata. Grouping supports repeated/stopped POSIX patterns and
+  multi-code-point Unicode separators, including their width during zero padding
+  and alignment. Non-n presentations ignore supplied locale data. No locale
+  acquisition or host setting changes occur in the interpreter implementation.
+- Four tests first failed on the missing snapshot/renderer support. All 4,681
+  tests in 397 files pass. A 5,000-case audit compares integer n fields with
+  CPython across C, US, Indian, French and German numeric locales, selected only
+  inside isolated reference subprocesses. The 20,000-case ordinary radix audit
+  also passes. Typecheck, scoped lint and selected workspace build pass. Locale-aware float/
+  complex layout, native n dispatch and runtime locale ownership remain pending,
+  along with broader interpreter/SDK/safe-fs integration.
 - Next:
   remaining scope/compiler audits, interpreter runtime,
   resource controls, runtime modules, and safe-fs integration. Parsing and static

@@ -23,7 +23,7 @@ export function readLoopTarget(cursor: TokenCursor, read: (cursor: TokenCursor, 
   return target;
 }
 
-function validateTarget(target: Expression, cursor: TokenCursor): void {
+export function validateTarget(target: Expression, cursor: TokenCursor): void {
   if ((target.kind === "name" || target.kind === "attribute") && target.name === "__debug__") {
     throw cursor.error("cannot assign to __debug__");
   }

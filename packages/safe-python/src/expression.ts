@@ -1,7 +1,7 @@
-import { lex } from "./lexer.js";
 import type { LexerOptions } from "./lexer.js";
-import type { Expression, SourceSpan } from "./ast.js";
-import { TokenCursor } from "./token-cursor.js";
+import type { Expression } from "./ast.js";
+import { createTokenCursor } from "./token-cursor.js";
+import type { TokenCursor } from "./token-cursor.js";
 import { readTrailers } from "./primary.js";
 import { reservedWords } from "./keywords.js";
 import { readDisplay } from "./displays.js";
@@ -18,9 +18,7 @@ const comparisons = new Set(["<", "<=", ">", ">=", "==", "!=", "in", "is", "not"
 
 /** Parse a single expression. Statement grammar and additional expression forms are still being implemented. */
 export function parseExpression(text: string, options: LexerOptions = {}): Expression {
-  const comments: SourceSpan[] = [];
-  const tokens = lex(text, { ...options, onComment: span => { comments.push(span); options.onComment?.(span); } });
-  const cursor = new TokenCursor(tokens, options.filename, text, comments);
+  const cursor = createTokenCursor(text, options);
   let result = readExpression(cursor);
   if (cursor.peek().text === ",") {
     const items = [result];

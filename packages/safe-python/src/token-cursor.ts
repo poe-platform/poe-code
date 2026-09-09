@@ -1,6 +1,14 @@
 import type { Token } from "./lexer.js";
+import { lex } from "./lexer.js";
+import type { LexerOptions } from "./lexer.js";
 import { PythonSyntaxError } from "./source.js";
 import type { SourceSpan } from "./ast.js";
+
+export function createTokenCursor(text: string, options: LexerOptions = {}): TokenCursor {
+  const comments: SourceSpan[] = [];
+  const tokens = lex(text, { ...options, onComment: span => { comments.push(span); options.onComment?.(span); } });
+  return new TokenCursor(tokens, options.filename, text, comments);
+}
 
 /** Bounded lookahead over the lazy lexer; no whole-program token array is needed. */
 export class TokenCursor {

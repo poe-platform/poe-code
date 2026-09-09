@@ -343,8 +343,28 @@ extension, integration, or validation requirement is missing or unverified.
   lambda defaults/bodies, fields, targets, filters, and first/later iterables.
   Scoped lint, source typecheck, and selected workspace build passed. Top-level/function/async
   validation and runtime generator/coroutine behavior still require implementation.
+- Added public `parseModule` with module/statement AST types and initial simple
+  statements: pass, expression statements, chained/destructuring assignments,
+  augmented assignments, and annotated assignments. Logical lines and semicolon
+  separators are consumed from the lazy token stream. Assignment target validation
+  is shared with comprehensions, and augmented operations retain their target once
+  rather than being rewritten into a duplicated expression. Token-cursor creation
+  now shares comment/source plumbing between expression and module entry points.
+- Annotation expressions are parsed and discarded, not stored in executable ASTs
+  or subjected to expression-scope checks. Targets, optional values, and the simple
+  name marker remain available for later binding semantics. This deliberately
+  differs from Python's annotation evaluation/storage to meet the ignored-types
+  requirement; function/type-parameter/type-alias syntax still needs implementation.
+- Module validation: the new suite initially failed because the module entry point
+  did not exist. All 713 package tests pass. A 1,020-case CPython compilation comparison
+  matched acceptance, statement kinds, target counts, and annotation metadata;
+  146 additional comparisons matched complete supported trees after omitting
+  annotations. Scoped lint, source typecheck, and selected workspace build passed. Enclosing
+  module/function/async validation, remaining simple statements, compound statements,
+  execution, and safe-fs integration remain pending.
+  Reference: https://docs.python.org/3/reference/simple_stmts.html.
 - Next:
-  statement grammar and enclosing-scope validation
+  remaining simple statements, compound statements, and enclosing-scope validation
   normalization, the complete grammar/parser and evaluator, then runtime modules
   and safe-fs integration. Tokenization does not establish interpreter execution.
 - Workspace lockfile registration and packaging integration remain pending.

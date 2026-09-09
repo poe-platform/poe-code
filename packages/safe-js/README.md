@@ -582,6 +582,10 @@ Direct SDK typed-array `slice`, `subarray`, `map`, `filter`, `toReversed`,
 including calls made after the originating run has completed.
 SDK typed-array construction also retains its intrinsic prototype fallback when
 `newTarget.prototype` is a primitive, after the originating run has completed.
+Constructed typed arrays preserve their originating guest prototype after run
+cleanup, including later mutations to that prototype. Data-only copying and
+replay accept pristine default chains but reject modified chains that would
+otherwise lose guest behavior.
 SDK typed-array input conversion follows Proxy reads and calls for array-like
 inputs, iterator factories, iterator objects, and result objects. Iterator
 acquisition also observes methods supplied by Proxy traps or Proxy ancestors,

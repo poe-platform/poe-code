@@ -43,6 +43,8 @@ const functionPropertyRevisions = new WeakMap<object, {
 }>();
 const trackedIntrinsicObjects = new WeakSet<object>();
 const prototypes = new WeakMap<object, object | null>();
+const defaultPrototypeLinks = new WeakMap<object, object>();
+const intrinsicPrototypeOwners = new WeakMap<object, SandboxClosure>();
 const trackedPrototypes = new WeakMap<object, { current: object | null }>();
 
 function storePrototype(value: object, prototype: object | null): void {
@@ -273,6 +275,7 @@ function registerIntrinsicPrototype(
     }))
     .filter(isGuestClosure);
   trackIntrinsicState(budget, prototype, constructor, [prototype, constructor, ...methods]);
+  intrinsicPrototypeOwners.set(prototype, constructor);
 }
 
 export function registerIntrinsicFunction(budget: Budget, closure: SandboxClosure): void {
@@ -563,8 +566,9 @@ export function setSandboxPrototype(
     );
   }
   if (getSandboxPrototype(value, budget) === prototype) {
-    // Null is also the budget-free fallback; retain an explicit null link for snapshots.
-    if (prototype === null) storePrototype(value, null);
+    // Preserve the requested link beyond the lifetime of the realm fallback.
+    if (prototype !== null && !prototypes.has(value)) defaultPrototypeLinks.set(value, prototype);
+    storePrototype(value, prototype);
     return true;
   }
   if (!Object.isExtensible(isSandboxGenerator(value) ? getGeneratorProperties(value) : isSandboxClosure(value) ? materializeFunctionProperties(value) : isSandboxPromise(value) ? getPromiseProperties(value) : isSandboxRegex(value) ? getRegexProperties(value) : isSandboxMap(value) || isSandboxSet(value) ? getCollectionProperties(value) : value)) {
@@ -615,7 +619,17 @@ export function hasGuestObjectState(value: object): boolean {
   const intrinsicUnchanged = intrinsicConstructors.get(value);
   if (intrinsicUnchanged !== undefined) return !intrinsicUnchanged();
   if (isLiveCapability(value)) return true;
-  if (functionProperties.has(value) || (prototypes.has(value) && !hasNullObjectPrototype(value))) return true;
+  if (functionProperties.has(value)) return true;
+  if (prototypes.has(value) && !hasNullObjectPrototype(value)) {
+    const prototype = prototypes.get(value);
+    if (prototype === undefined || prototype === null || prototype !== defaultPrototypeLinks.get(value)) return true;
+    // Data transport may omit only a pristine originating default chain. A
+    // changed prototype or intrinsic method still requires guest graph state.
+    for (let current: object | null = prototype; current !== null; current = getSandboxPrototype(current)) {
+      const owner = intrinsicPrototypeOwners.get(current) ?? current;
+      if (intrinsicConstructors.get(owner)?.() !== true) return true;
+    }
+  }
   if (isSandboxBox(value) || isSandboxDate(value)) return false;
   if (Array.isArray(value) && descriptorObjects.has(value)) {
     return Object.getOwnPropertyNames(value).some(key => {

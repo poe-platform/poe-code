@@ -574,6 +574,19 @@ extension, integration, or validation requirement is missing or unverified.
   tests. Scoped lint, source typecheck, and the selected workspace build passed.
   Global/nonlocal resolution, closure propagation, and declaration conflict checks
   remain the next analysis phase; symbol collection alone does not validate them.
+- Added declaration-conflict validation over lexical symbol events. Rejects names
+  used/assigned/deleted before global or nonlocal declarations, parameter conflicts,
+  conflicting declaration kinds, annotation conflicts in either order, and module
+  nonlocal declarations. Repeated compatible declarations remain valid; imports
+  before a declaration are permitted as in CPython. Checks are scope-local and
+  retain source positions and caller filenames.
+- Declaration validation: the suite initially failed on the missing validator;
+  all 1,104 package tests pass. A 616-case CPython compilation comparison matched
+  declaration ordering/conflicts in functions and classes with enclosing bindings.
+  Scoped lint, source typecheck, and the selected workspace build passed.
+  Missing-nonlocal resolution, closure propagation,
+  class-scope assignment-expression restrictions, public validation orchestration,
+  and runtime execution remain pending.
 - Next:
   compound statements, type aliases, and enclosing-scope validation
   normalization, the complete grammar/parser and evaluator, then runtime modules

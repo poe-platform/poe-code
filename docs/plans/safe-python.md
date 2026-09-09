@@ -6335,6 +6335,20 @@ extension, integration, or validation requirement is missing or unverified.
   another 272 compiled constant-pooling comparisons match. Typecheck, scoped lint and selected
   workspace build pass. General constant folding, automatic builtin/object
   assembly and broader interpreter/SDK/safe-fs integration remain unfinished.
+- Added an explicitly registered divmod builtin using the existing exact integer
+  and float quotient/remainder kernels. Its separate numeric protocol supports
+  __divmod__/__rdivmod__ negotiation and subtype priority, returns arbitrary
+  guest results unchanged and never substitutes separate // and % calls.
+  Argument validation, conversion-before-zero errors and post-hook cancellation
+  checks preserve the runtime's protocol and execution-policy boundaries.
+- Five tests cover exact real arithmetic, large integers, signed zeros, errors,
+  reflected dispatch, guest diagnostics and cancellation. All 4,966 tests in
+  434 files pass. All 886 compiled CPython comparisons match, covering module and
+  nested-function calls, mixed real pairs, infinities, NaNs, oversized integers
+  and invalid arguments. Typecheck, scoped lint and selected workspace build pass.
+  Bigint host division remains indivisible; automatic builtin namespace and
+  concrete guest slot assembly, plus broader interpreter/SDK/safe-fs integration,
+  remain unfinished.
 - Next:
   remaining scope/compiler audits, interpreter runtime,
   resource controls, runtime modules, and safe-fs integration. Parsing and static

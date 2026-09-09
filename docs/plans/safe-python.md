@@ -4660,6 +4660,22 @@ extension, integration, or validation requirement is missing or unverified.
   scoped lint and selected workspace build pass. Native constructor bindings
   for these combinators, full guest object wiring/registration, suspended
   execution, complete accounting and SDK/safe-fs integration remain unfinished.
+- Added the explicitly registerable enumerate binding with positional/named
+  iterable/start arguments, observed Python keyword diagnostic precedence,
+  unbounded integer/bool starts and optional guest index conversion. Start is
+  converted before eager iterator acquisition. Pair production remains lazy and
+  preserves member identity and source completion metadata. runtimeIterate now
+  accepts an optional guest protocol for non-builtin inputs, reusing the existing
+  ProtocolIterator rather than duplicating slot resolution in the constructor.
+- Eight new tests first failed for the missing binding. All 4,235 tests in 328
+  files pass; the final pair-factory adjustment also passes all eight focused
+  tests. A 3,269-program compiled CPython audit matches enumerate values and
+  errors, including very large positive/negative starts and keyword permutations.
+  The 3,720-program iter/next regression audit remains passing. Source typecheck,
+  scoped lint and selected workspace build pass. Native enumerate
+  type registration, subclass construction and tuple reuse remain separate
+  work, alongside other combinator bindings, full guest object wiring, suspended
+  execution, complete accounting and SDK/safe-fs integration.
 - Next:
   remaining scope/compiler audits, interpreter runtime,
   resource controls, runtime modules, and safe-fs integration. Parsing and static

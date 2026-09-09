@@ -1533,6 +1533,25 @@ extension, integration, or validation requirement is missing or unverified.
   exception object construction, automatic context attachment at the propagation
   boundary, traceback updates and suspension remain adapter/runtime work; the
   full interpreter is still unfinished.
+- Added final normalization for validated raised instances. Ordinary subclass
+  queries (including virtual hooks) decide whether to preserve the original
+  instance. Otherwise the requested exception class is called with that instance
+  as one argument; any exception-instance result is accepted without repeated
+  reconstruction. Invalid results use the normalization-specific type-name
+  diagnostic. Constructor failures receive best-effort normalization notes;
+  guest repr failures use unknown arguments, and guest note-storage failures
+  preserve the original failure. Unclassified host faults and fatal resource
+  limits are never suppressed during diagnostic work.
+- Normalization validation: missing-module red suite preceded implementation;
+  all 2,009 tests in 99 files pass. CPython matched 1,440 combined raise/normalization
+  cases spanning virtual-hook results/failures, replacement instances, invalid
+  constructor returns, repr failures, invalid/failing note storage, active handled
+  exceptions and explicit causes, comparing call traces and final metadata.
+  Scoped lint, source typecheck and selected build passed. Reference: CPython
+  v3.14.0 Python/errors.c _PyErr_SetObject and _PyErr_CreateException.
+  Concrete subclass protocol dispatch, note storage, exception object/traceback
+  integration and complete diagnostic allocation accounting remain adapter/runtime
+  responsibilities; full interpreter execution is still unfinished.
 - Next:
   remaining scope/compiler audits, interpreter runtime,
   resource controls, runtime modules, and safe-fs integration. Parsing and static

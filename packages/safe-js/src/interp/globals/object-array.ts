@@ -1108,9 +1108,13 @@ async function getOwnEnumerableEntries(
   context?: SandboxCallContext
 ): Promise<Array<[string, SandboxValue]>> {
   const entries: Array<[string, SandboxValue]> = [];
-  const release = retainValues(budget, () => [value, entries]);
+  const keys = isGuestHostObject(value)
+    ? getOwnEnumerableKeys(value)
+    : Object.getOwnPropertyNames(reflectionProperties(value));
+  const release = retainValues(budget, () => [value, entries, keys]);
   try {
-    for (const key of getOwnEnumerableKeys(value)) {
+    for (const key of keys) {
+      budget.visitNode();
       if (!hasOwnSandboxProperty(value, key, true)) continue;
       entries.push([
         key,

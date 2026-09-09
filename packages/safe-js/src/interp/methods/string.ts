@@ -1008,8 +1008,11 @@ function callMatchLikeMethod(
     methodName === "matchAll"
       ? createSandboxRegex(regex.source, regex.flags, normalizeLastIndex(lastIndex ?? Number(regex.lastIndex)), compilation)
       : regex;
-  if (methodName === "matchAll")
+  if (methodName === "matchAll") {
+    const prototype = getSandboxPrototype(matcher, compilation.owner?.budget);
+    if (prototype !== null) setSandboxPrototype(matcher, prototype, compilation.owner?.budget);
     return restoreSandboxRegExpIterator({ matcher, input: value, exhausted: false }, undefined, compilation.owner?.budget);
+  }
   const matches = collectRegexMatches(matcher, value, matcher.flags.includes("g"), compilation.owner?.budget, Number(matcher.lastIndex));
   if (matches.length === 0) return null;
   const result = matches.map((match) => match.text);

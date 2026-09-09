@@ -17,14 +17,16 @@ it("supports pristine data copies of RegExp objects constructed after cleanup", 
   expect(() => deepCopyFromSandbox(result)).not.toThrow();
 });
 
-it.each(["g", "", "dg", "d"])("uses the exec realm for match payloads with flags %s", async flags => {
-  const expression = `/a/${flags}[Symbol.matchAll]("a")`;
+it.each([
+  ...["g", "", "dg", "d"].map(flags => `/a/${flags}[Symbol.matchAll]("a")`),
+  '"a".matchAll("a")', '"a".matchAll()', '"a".matchAll({toString(){return "a"}})'
+])("uses the exec realm for match payloads: %s", async expression => {
   const nativeMethod = runInNewContext(`[(/a/g[Symbol.matchAll]("a")).next,Object.prototype]`);
   const nativeReceiver = runInNewContext(`[${expression},Array.prototype]`);
   const expected = nativeMethod[0].call(nativeReceiver[0]);
   expect(Object.getPrototypeOf(expected) === nativeMethod[1]).toBe(true);
   expect(Object.getPrototypeOf(expected.value) === nativeReceiver[1]).toBe(true);
-  if (flags.includes("d")) {
+  if (expected.value.indices !== undefined) {
     expect(Object.getPrototypeOf(expected.value.indices) === nativeReceiver[1]).toBe(true);
     expect(Object.getPrototypeOf(expected.value.indices[0]) === nativeReceiver[1]).toBe(true);
   }
@@ -38,7 +40,7 @@ it.each(["g", "", "dg", "d"])("uses the exec realm for match payloads with flags
   expect(await getter.call([result], context) === method[1]).toBe(true);
   const payloads = await reader.call([result], context);
   if (!Array.isArray(payloads)) throw new Error("Expected payload list");
-  for (const payload of flags.includes("d") ? payloads : payloads.slice(0, 1)) {
+  for (const payload of expected.value.indices !== undefined ? payloads : payloads.slice(0, 1)) {
     expect(await getter.call([payload], context) === receiver[1]).toBe(true);
   }
   expect(deepCopyFromSandbox(result)).toEqual(expected);

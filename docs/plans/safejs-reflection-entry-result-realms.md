@@ -235,3 +235,21 @@ controls. Scoped ESLint, package TypeScript and the maintained build passed
 SDK probe verified data copying from an exported RegExp factory after
 cleanup. No visual CLI changes, push or release occurred. This is not a
 fresh full-package gate.
+
+## String-pattern matchAll internal matcher
+
+Three additional source regressions failed for String.matchAll with a string,
+an omitted pattern and an object coerced to a string. Native VM comparisons
+confirmed the match payload belongs to the internal matcher's creation realm,
+not a borrowed next method's realm. The shared match-like string path now
+records the cloned matcher's default RegExp prototype before exposing the
+iterator. Other internal clone paths are not changed without validation.
+
+The iterator-result suite now covers these inputs through first/later next
+calls, borrowed methods and public replay as well as the payload-realm tests.
+
+Validation passed 2,265 tests across 38 string/RegExp/snapshot files and
+78 iterator-result tests in one additional file. Scoped ESLint, package
+TypeScript and the maintained build passed (23 workspace builds and four
+fresh-process import checks). Built SDK probes passed for all three pattern
+forms. No visual CLI changes, push or release occurred.

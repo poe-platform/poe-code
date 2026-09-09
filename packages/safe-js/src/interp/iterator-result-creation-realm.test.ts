@@ -10,6 +10,7 @@ const iterators = [
   "new Map([[1,3]]).entries()", "new Set([3]).values()",
   '"😀"[Symbol.iterator]()',
   '"a".matchAll(/a/g)', '/a/[Symbol.matchAll]("a")',
+  '"a".matchAll("a")', '"a".matchAll()', '"a".matchAll({toString(){return "a"}})',
   ...["g", ""].map(flags => `RegExp.prototype[Symbol.matchAll].call({flags:"${flags}",lastIndex:0,constructor:{[Symbol.species]:function(){let calls=0;return {exec(){return calls++===0?{0:"a",length:1}:null}}}}},"a")`)
 ];
 

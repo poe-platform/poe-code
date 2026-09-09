@@ -1841,6 +1841,23 @@ extension, integration, or validation requirement is missing or unverified.
   scoped lint and selected build passed. Rules were checked against CPython 3.14
   Python/compile.c compiler_set_qualname. Static-attribute analysis, concrete
   function/class value metadata, executor wiring and full runtime remain unfinished.
+- Added class static-attribute analysis to analyzeModule, keyed by class scope
+  identity. Ordinary stores to the literal self receiver contribute sorted,
+  normalized, unmangled attribute names. Unpacking/for/with/comprehension targets
+  count; augmented assignment, deletion, loads and valueless annotations do not.
+  Ownership follows the enclosing code-class stack, excluding the current class
+  code unit and accounting for comprehension inlining. Nested class-body stores
+  can therefore belong to the enclosing class, while nested methods belong to
+  their own class. Unreachable syntactically compiled stores remain represented.
+- Static-attribute validation: 13 new tests initially failed for missing metadata.
+  All 2,316 tests in 119 files pass. CPython matched 176 compiled class metadata
+  trees across nested code scopes and assignment forms, including Unicode ordering,
+  definition defaults and nested comprehension ownership. The oracle deduplicates
+  repeated epilogue stores emitted on separate control-flow exits of one code unit.
+  Source typecheck, scoped lint and selected build passed. Ownership rules were
+  checked against CPython 3.14 Python/compile.c. Guest tuple materialization,
+  function/class value metadata, full runtime wiring and allocation accounting
+  remain unfinished.
 - Next:
   remaining scope/compiler audits, interpreter runtime,
   resource controls, runtime modules, and safe-fs integration. Parsing and static

@@ -8,6 +8,7 @@ import { resolveSymbols, type ResolvedScope } from "./symbol-resolution.js";
 import type { FunctionExecutionKind, FunctionNode } from "./expression-context.js";
 import type { SymbolScope } from "./symbol-collection.js";
 import { collectQualifiedNames } from "./qualified-names.js";
+import { collectStaticAttributes } from "./static-attributes.js";
 
 export interface ModuleAnalysis {
   readonly module: Module;
@@ -17,6 +18,8 @@ export interface ModuleAnalysis {
   readonly functionKinds: ReadonlyMap<FunctionNode, FunctionExecutionKind>;
   /** Code-bearing scope identities only; inlined comprehensions have no entry. */
   readonly qualifiedNames: ReadonlyMap<SymbolScope, string>;
+  /** Class scopes only; sorted, normalized, unmangled static store names. */
+  readonly staticAttributes: ReadonlyMap<SymbolScope, readonly string[]>;
 }
 
 /** Parse and statically validate source without executing it or loading imports.
@@ -29,5 +32,6 @@ export function analyzeModule(text: string, options: LexerOptions = {}): ModuleA
   const functionKinds = validateControlFlow(module, options.filename);
   const scopes = resolveSymbols(collectSymbols(module), options.filename);
   const qualifiedNames = collectQualifiedNames(scopes.scope);
-  return { module, futureFeatures, scopes, functionKinds, qualifiedNames };
+  const staticAttributes = collectStaticAttributes(scopes.scope);
+  return { module, futureFeatures, scopes, functionKinds, qualifiedNames, staticAttributes };
 }

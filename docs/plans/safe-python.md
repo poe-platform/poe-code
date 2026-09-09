@@ -2864,6 +2864,18 @@ extension, integration, or validation requirement is missing or unverified.
   selected workspace build passed. Concrete builtin/descriptor/sequence dispatch,
   subclass construction, guest object registration, state/pickling and complete
   allocation/recursion accounting remain open.
+- Added shared stable min/max selection over prepared iterators. Each item is
+  keyed once, candidate keys compare on the left with the requested strict
+  ordering, and ties retain the first original item. Empty inputs return an
+  explicitly supplied default untouched or raise the Python empty-iterable
+  error; defaults never participate in comparison. Key/comparison errors retain
+  consumed progress and never close the source; checkpoints bound infinite input.
+- The selection suite first failed on its missing module; all 3,120 tests in
+  194 files pass. A 2,000-case CPython audit matched results/errors and input,
+  key and comparison traces, including key-raised StopIteration. Source
+  typecheck, scoped lint and selected workspace build passed. Expanded argument/
+  keyword binding, guest iterable acquisition, concrete comparison dispatch,
+  builtin registration and full heap/recursion accounting remain open.
 - Next:
   remaining scope/compiler audits, interpreter runtime,
   resource controls, runtime modules, and safe-fs integration. Parsing and static

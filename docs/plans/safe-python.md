@@ -3405,6 +3405,21 @@ extension, integration, or validation requirement is missing or unverified.
   mappings and instance dispatch remain unfinished; no default class builder is
   silently installed. Suspension, full resource accounting and public SDK/safe-fs
   integration remain unfinished as well.
+- Generalized class preparation/construction/builder keyword maps to retain
+  runtime key records. An explicit key policy recognizes the exact reserved
+  metaclass name; all other keys flow unchanged through preparation and final
+  construction. Existing host-string callers retain their default behavior.
+  Non-string keys without a policy fail explicitly, and cancellation or policy
+  failures stop before metaclass hooks. This avoids lossy host-string conversion
+  of distinct Python surrogate-pair and astral keyword names.
+- All four new tests failed before implementation: runtime metaclass keys were
+  ignored and the new policy was never invoked. All 3,420 tests in 233 files pass.
+  A 1,000-case CPython builder audit matched preparation/construction keyword key
+  identity, order and values, including surrogate/astral and compatibility-character
+  distinctions. The 1,500-case class-definition differential regression passed.
+  Source typecheck, scoped lint and selected workspace build passed. Concrete default-builder,
+  metaclass/type construction and arbitrary prepared mapping integration remain
+  unfinished, as do suspension, full accounting and public SDK/safe-fs integration.
 - Next:
   remaining scope/compiler audits, interpreter runtime,
   resource controls, runtime modules, and safe-fs integration. Parsing and static

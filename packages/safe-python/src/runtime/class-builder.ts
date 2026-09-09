@@ -5,13 +5,13 @@ import type { ExecutionMeter } from "./execution-budget.js";
 import type { LexicalCell } from "./lexical-frame.js";
 import { PythonRuntimeError } from "./error.js";
 
-export interface ClassBuilderContext<Value> {
+export interface ClassBuilderContext<Value, Key = string> {
   /** Internal Python function flag, not a generic callability test. */
   isFunction(value: Value): boolean;
   /** Internal string flag, including subclasses; never invoke str(). */
   isString(value: Value): boolean;
   readonly bases: ClassBasesContext<Value>;
-  readonly preparation: ClassPreparationContext<Value, Value>;
+  readonly preparation: ClassPreparationContext<Value, Value, Key>;
   /** Run the function with the prepared locals namespace. Return its captured
    * class cell, or undefined for a non-cell body result. This is not an ordinary
    * function invocation: honor the body's code flags when selecting locals (an
@@ -22,7 +22,7 @@ export interface ClassBuilderContext<Value> {
   executeBody(body: Value, namespace: Value): LexicalCell<Value> | undefined;
   /** Ordinary mapping assignment to __orig_bases__, including guest effects. */
   storeOriginalBases(namespace: Value, original: Value): void;
-  readonly construction: ClassConstructionContext<Value, Value>;
+  readonly construction: ClassConstructionContext<Value, Value, Key>;
 }
 
 /** Builtin __build_class__ lifecycle after argument collection. Validation occurs
@@ -33,9 +33,9 @@ export interface ClassBuilderContext<Value> {
  * through every stage. Concrete values, body frames and complete heap accounting
  * still require integration.
  */
-export function buildClass<Value>(
-  positional: readonly Value[], keywords: ReadonlyMap<string, Value>,
-  context: ClassBuilderContext<Value>, meter: ExecutionMeter
+export function buildClass<Value, Key = string>(
+  positional: readonly Value[], keywords: ReadonlyMap<Key, Value>,
+  context: ClassBuilderContext<Value, Key>, meter: ExecutionMeter
 ): Value {
   meter.checkpoint();
   if (positional.length < 2) throw new PythonRuntimeError("TypeError", "__build_class__: not enough arguments");

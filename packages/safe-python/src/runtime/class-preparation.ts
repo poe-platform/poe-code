@@ -2,13 +2,16 @@ import type { ExecutionMeter } from "./execution-budget.js";
 import { PythonRuntimeError } from "./error.js";
 import { selectTypeMetaclass } from "./metaclass.js";
 
-export interface PreparedClass<Value> {
+export interface PreparedClass<Value, Key = string> {
   readonly metaclass: Value;
   readonly namespace: Value;
-  readonly keywords: ReadonlyMap<string, Value>;
+  readonly keywords: ReadonlyMap<Key, Value>;
 }
 
-export interface ClassPreparationContext<Value, Name = string> {
+export interface ClassPreparationContext<Value, Name = string, Key = string> {
+  /** Required for non-host-string keys. Recognize only the exact reserved name;
+   * never normalize or replace the original keys forwarded to metaclass calls. */
+  isMetaclassKeyword?(key: Key): boolean;
   readonly defaultType: Value & object;
   tupleItems(value: Value): readonly Value[] | undefined;
   /** Internal type flags/MRO/type names, never virtual guest attribute access. */
@@ -19,7 +22,7 @@ export interface ClassPreparationContext<Value, Name = string> {
   /** Ordinary bound attribute lookup; only AttributeError means absent. */
   lookupPrepare(metaclass: Value): { readonly value: Value } | undefined;
   /** Guest call with name and resolved bases as positional arguments. */
-  callPrepare(hook: Value, name: Name, bases: Value, keywords: ReadonlyMap<string, Value>): Value;
+  callPrepare(hook: Value, name: Name, bases: Value, keywords: ReadonlyMap<Key, Value>): Value;
   emptyNamespace(): Value;
   /** Internal mapping/subscript protocol flag, not an ABC membership test. */
   isMapping(value: Value): boolean;
@@ -32,19 +35,25 @@ export interface ClassPreparationContext<Value, Name = string> {
  * callability yet. Guest protocol operations/internal allocation are adapter-owned;
  * body execution, construction, decorators and full heap accounting are separate.
  */
-export function prepareClass<Value, Name = string>(
-  name: Name, bases: Value, keywords: ReadonlyMap<string, Value>,
-  context: ClassPreparationContext<Value, Name>, meter: ExecutionMeter
-): PreparedClass<Value> {
+export function prepareClass<Value, Name = string, Key = string>(
+  name: Name, bases: Value, keywords: ReadonlyMap<Key, Value>,
+  context: ClassPreparationContext<Value, Name, Key>, meter: ExecutionMeter
+): PreparedClass<Value, Key> {
   meter.checkpoint();
   const items = context.tupleItems(bases);
   if (items === undefined) throw new Error("class bases must be an assembled tuple");
-  const remaining = new Map<string, Value>();
+  const remaining = new Map<Key, Value>();
+  let explicit: { readonly value: Value } | undefined;
   for (const [key, value] of keywords) {
     meter.checkpoint();
-    if (key !== "metaclass") remaining.set(key, value);
+    if (context.isMetaclassKeyword === undefined && typeof key !== "string")
+      throw new Error("class keyword key policy is required");
+    const reserved = context.isMetaclassKeyword === undefined ? key === "metaclass" : context.isMetaclassKeyword(key);
+    meter.checkpoint();
+    if (reserved) { meter.checkpoint(0, 16); explicit = { value }; }
+    else remaining.set(key, value);
   }
-  let metaclass = keywords.has("metaclass") ? keywords.get("metaclass")!
+  let metaclass = explicit !== undefined ? explicit.value
     : items.length ? context.typeOf(items[0]) : context.defaultType;
   if (context.isType(metaclass)) {
     const baseMetaclasses: (Value & object)[] = [];

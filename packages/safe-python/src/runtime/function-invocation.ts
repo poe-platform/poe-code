@@ -4,9 +4,12 @@ import type { ExecutionMeter } from "./execution-budget.js";
 import { createFunctionFrame, type FunctionCallArguments, type FunctionFrameContext } from "./function-frame.js";
 import type { LexicalFrame } from "./lexical-frame.js";
 import { executeStatements, type StatementContext } from "./statement-execution.js";
+import type { CallStack } from "./call-stack.js";
 
 export interface FunctionInvocationContext<Value> extends FunctionFrameContext<Value> {
   readonly none: Value;
+  /** Shared across all nested calls in this execution context. */
+  readonly calls: CallStack<LexicalFrame<Value>>;
   /** Bind expression/statement protocols to this activation. Do not execute guest
    * code merely to prepare the context. Function-local operations use this frame;
    * nested definitions capture its cells, not copied values.
@@ -30,8 +33,8 @@ export class UnsupportedFunctionExecutionError extends Error {
  * Kind must come from the analyzer entry for this exact scope node. Binding occurs
  * at call time even for suspended functions. Ordinary suites use explicit control
  * flow frames, while lambda bodies evaluate directly in value context. The outer
- * runtime still owns recursion limits, guest traceback/call-stack bookkeeping,
- * full heap accounting and concrete object/suspension protocols.
+ * runtime supplies shared depth policy and still owns guest traceback bookkeeping,
+ * stack-independent call dispatch, full heap accounting and suspension protocols.
  */
 export function invokeFunction<Value>(
   scope: ResolvedScope, kind: FunctionExecutionKind, call: FunctionCallArguments<Value>,
@@ -44,14 +47,19 @@ export function invokeFunction<Value>(
     if (!context.suspended) throw new UnsupportedFunctionExecutionError(kind);
     return context.suspended(kind, frame);
   }
-  const bodyContext = context.body(frame);
-  const node = scope.scope.node;
-  if (node.kind === "lambda") {
-    meter.checkpoint();
-    return bodyContext.evaluate(node.body);
+  const leave = context.calls.enter(frame);
+  try {
+    const bodyContext = context.body(frame);
+    const node = scope.scope.node;
+    if (node.kind === "lambda") {
+      meter.checkpoint();
+      return bodyContext.evaluate(node.body);
+    }
+    // createFunctionFrame already rejects other node kinds; retain narrowing here.
+    if (node.kind !== "function") throw new Error("function calls require a function or lambda scope");
+    const result = executeStatements(node.body, bodyContext, meter);
+    return result.kind === "return" && Object.hasOwn(result, "value") ? result.value! : context.none;
+  } finally {
+    leave();
   }
-  // createFunctionFrame already rejects other node kinds; retain narrowing here.
-  if (node.kind !== "function") throw new Error("function calls require a function or lambda scope");
-  const result = executeStatements(node.body, bodyContext, meter);
-  return result.kind === "return" && Object.hasOwn(result, "value") ? result.value! : context.none;
 }

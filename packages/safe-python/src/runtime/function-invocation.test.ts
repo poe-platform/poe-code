@@ -4,6 +4,8 @@ import type { Expression } from "../ast.js";
 import { ExecutionBudget, ExecutionLimitError } from "./execution-budget.js";
 import { invokeFunction, UnsupportedFunctionExecutionError, type FunctionInvocationContext } from "./function-invocation.js";
 import type { LexicalFrame } from "./lexical-frame.js";
+import { CallStack } from "./call-stack.js";
+import { PythonRuntimeError } from "./error.js";
 
 function fixture(source: string) {
   const analysis = analyzeModule(source), scope = analysis.scopes.children[0];
@@ -12,7 +14,9 @@ function fixture(source: string) {
   const kind = analysis.functionKinds.get(node)!;
   const events: unknown[] = [], frames: LexicalFrame<unknown>[] = [];
   const none = { none: true };
+  const calls = new CallStack<LexicalFrame<unknown>>(10, new ExecutionBudget({ maxSteps: 10000, maxAllocatedBytes: 100000 }));
   const context: FunctionInvocationContext<unknown> = {
+    calls,
     globals: new Map(), builtins: new Map(),
     tuple: values => [...values], dictionary: values => new Map(values), none,
     body: frame => {
@@ -37,7 +41,7 @@ function fixture(source: string) {
   const run = (positional: unknown[] = [], maxSteps = 10000) => invokeFunction(scope, kind, {
     name: node.kind === "function" ? node.name.name : "<lambda>", positional, keywords: new Map(), defaults: new Map()
   }, context, new ExecutionBudget({ maxSteps, maxAllocatedBytes: 100000 }));
-  return { run, context, events, frames, none };
+  return { run, context, events, frames, none, calls };
 }
 
 describe("function invocation dispatch", () => {
@@ -124,5 +128,73 @@ describe("function invocation dispatch", () => {
     const state = fixture("def f(): pass");
     expect(() => state.run([], 0)).toThrow(ExecutionLimitError);
     expect(state.events).toEqual([]);
+  });
+
+  it("tracks recursive body entry and cleans up after a recursion error", () => {
+    const state = fixture("def f(a): return a");
+    const originalBody = state.context.body;
+    const depths: number[] = [];
+    state.context.body = frame => {
+      expect(state.calls.current).toBe(frame);
+      depths.push(state.calls.depth);
+      const body = originalBody(frame);
+      body.evaluate = () => {
+        const remaining = frame.load("a") as number;
+        return remaining > 0 ? state.run([remaining - 1]) : remaining;
+      };
+      return body;
+    };
+    expect(state.run([3])).toBe(0);
+    expect(depths).toEqual([1, 2, 3, 4]);
+    expect(state.calls.depth).toBe(0);
+    expect(() => state.run([20])).toThrow(expect.objectContaining({ name: "RecursionError" }));
+    expect(state.calls.depth).toBe(0);
+    expect(state.calls.current).toBeUndefined();
+    expect(state.run([1])).toBe(0);
+  });
+
+  it("restores call state after body-context failures and fatal body limits", () => {
+    const state = fixture("def f(): pass");
+    state.context.body = () => { throw new ExecutionLimitError("steps"); };
+    expect(() => state.run()).toThrow(ExecutionLimitError);
+    expect(state.calls.depth).toBe(0);
+  });
+
+  it("allows a guest handler to recover from excess depth inside an active caller", () => {
+    const state = fixture("def f(a):\n try: return a\n except: return 99");
+    const originalBody = state.context.body;
+    state.context.body = frame => {
+      const body = originalBody(frame), evaluate = body.evaluate;
+      body.evaluate = expression => {
+        if (expression.kind === "name") {
+          const remaining = frame.load("a") as number;
+          return remaining > 0 ? state.run([remaining - 1]) : remaining;
+        }
+        expect(state.calls.current).toBe(frame);
+        expect(state.calls.depth).toBe(10);
+        return evaluate(expression);
+      };
+      body.exceptions = {
+        isGuest: error => error instanceof PythonRuntimeError,
+        enter: () => () => {},
+        handlers: { match: () => true, bind: () => {}, clear: () => {} }
+      };
+      return body;
+    };
+    expect(state.run([20])).toBe(99);
+    expect(state.calls.depth).toBe(0);
+    expect(state.run([2])).toBe(0);
+    expect(state.calls.depth).toBe(0);
+  });
+
+  it("does not enter a body frame for unstarted suspended calls", () => {
+    const state = fixture("async def f(): pass");
+    const original = state.context.suspended!;
+    state.context.suspended = (kind, frame) => {
+      expect(state.calls.depth).toBe(0);
+      return original(kind, frame);
+    };
+    state.run();
+    expect(state.calls.depth).toBe(0);
   });
 });

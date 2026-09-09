@@ -1672,6 +1672,21 @@ extension, integration, or validation requirement is missing or unverified.
   behavior. Source typecheck, selected build and scoped lint passed. Concrete guest
   callable objects, resumable execution, recursion/call-stack controls, tracebacks
   and full activation allocation accounting remain unfinished.
+- Added shared execution-context call-depth tracking around ordinary function and
+  lambda bodies. Rejected entry raises an internal RecursionError without changing
+  the active stack. Invocation restores the caller in finally, including body
+  adapter failures and fatal limits. Cleanup is unmetered/idempotent; out-of-order
+  restoration is a host integration error. Unstarted suspended calls do not enter
+  the body stack. Invocation contexts now require the shared call tracker.
+- Call-stack validation: missing-module red suites preceded implementation. All
+  2,156 tests in 108 files pass, including depth/current-frame tracking, invalid
+  limits, excess-depth recovery, repeated/LIFO restoration, recursive invocation,
+  guest-handler recovery and cleanup after fatal signals. Source typecheck, scoped
+  lint and selected workspace build passed. The maximum is explicit runtime policy,
+  not an exact emulation of CPython's process-global recursion counter. Conservative
+  limits are required while nested calls still use host callbacks; stack-independent
+  invocation, resumable execution, traceback objects and full heap accounting remain
+  unfinished. This is not a complete host-stack safety boundary.
 - Next:
   remaining scope/compiler audits, interpreter runtime,
   resource controls, runtime modules, and safe-fs integration. Parsing and static

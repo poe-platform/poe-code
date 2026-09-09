@@ -1,9 +1,10 @@
 import { PythonRuntimeError } from "./error.js";
 import type { ExecutionMeter } from "./execution-budget.js";
 import { runtimeSizeIndex } from "./runtime-size-index.js";
+import type { IntegerIndexContext } from "./index-protocol.js";
 import type { BuiltinFunctionValue, RuntimeValue, RuntimeValues } from "./runtime-values.js";
 
-export function createRuntimeStringReplaceMethod(receiver: Extract<RuntimeValue, { kind: "str" }>, values: RuntimeValues, meter: ExecutionMeter): BuiltinFunctionValue {
+export function createRuntimeStringReplaceMethod(receiver: Extract<RuntimeValue, { kind: "str" }>, values: RuntimeValues, meter: ExecutionMeter, context?: IntegerIndexContext<RuntimeValue>): BuiltinFunctionValue {
   meter.checkpoint(1, 64);
   return values.builtinFunction({
     name: "replace",
@@ -21,7 +22,7 @@ export function createRuntimeStringReplaceMethod(receiver: Extract<RuntimeValue,
         limit = value;
       }
       const old = replacementStringArgument(positional[0], 1), replacement = replacementStringArgument(positional[1], 2);
-      const count = limit === undefined ? -1n : runtimeSizeIndex(limit, meter);
+      const count = limit === undefined ? -1n : runtimeSizeIndex(limit, meter, context);
       if (old === replacement) return receiver;
       const result = receiver.value.replace(old.value, replacement.value, count, meter);
       return result === receiver.value ? receiver : values.stringPoints(result);

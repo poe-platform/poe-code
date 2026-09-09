@@ -39,6 +39,17 @@ function fixture(source: string, maxSteps = 100000, signal?: AbortSignal) {
 }
 
 describe("assembled concrete runtime programs", () => {
+  it.each(["'ababa'.replace('a','x',count)", "'ababa'.replace('a','x',count=count)", "b'ababa'.replace(b'a',b'x',count)"])("converts guest replacement counts: %s", expression => {
+    const state = fixture(`result=${expression}\n`), v = state.values; let calls = 0;
+    state.globals.set("count", v.cell({}));
+    state.hooks.expressions = () => ({ warn() {}, integerIndex: {
+      integer: value => value.kind === "int" ? value.value : undefined,
+      isExactInteger: value => value.kind === "int", typeName: () => "Count", warn() {},
+      lookupIndex: () => () => { calls++; return v.integer(2); }
+    } });
+    state.run(); expect(calls).toBe(1);
+    expect(state.globals.get("result")).toEqual(expression.startsWith("b") ? v.bytes(Uint8Array.of(120,98,120,98,97)) : v.string("xbxba"));
+  });
   it.each([["", false], ["", true], ["b", false], ["b", true]] as const)("joins guest iterables (%s, failure=%s)", (prefix, fail) => {
     const state = fixture(`result=${prefix}','.join(guest)\nexpected=${prefix}'a,b'\n`), v = state.values;
     const guest = v.cell({}), cursor = v.cell({}), events: string[] = []; let index = 0;

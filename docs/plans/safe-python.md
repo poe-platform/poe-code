@@ -6612,6 +6612,15 @@ extension, integration, or validation requirement is missing or unverified.
   scoped lint and selected workspace build pass. String subclasses, buffers,
   remaining native protocols, automatic object/builtin assembly and broader
   interpreter/SDK/safe-fs integration remain unfinished.
+- Connected str.replace/bytes.replace counts to guest integer-index conversion,
+  including str's count keyword. Extended the signed-size converter and reused
+  it for list.insert/pop, preserving overflow errors instead of saturation.
+- Three compiled regressions cover positional and keyword counts. All 5,105
+  tests in 440 files pass; 14 CPython replacement-count comparisons and 42 list
+  insert/pop comparisons match, including negative and oversized counts.
+  Typecheck, scoped lint and selected workspace build pass. Remaining native
+  protocols, automatic object/builtin assembly and broader interpreter/SDK/
+  safe-fs integration remain unfinished.
 - Next:
   remaining scope/compiler audits, interpreter runtime,
   resource controls, runtime modules, and safe-fs integration. Parsing and static

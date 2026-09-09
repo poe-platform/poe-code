@@ -4,8 +4,7 @@ import type { ExpressionContext } from "./expression-evaluation.js";
 import { runtimeIterate } from "./runtime-iteration.js";
 import type { BuiltinFunctionValue, ListValue, RuntimeValue, RuntimeValues } from "./runtime-values.js";
 import { runtimeSearchBound } from "./runtime-search-bound.js";
-import { integerIndex } from "./index-protocol.js";
-import { runtimeIntegerIndex } from "./runtime-integer-index.js";
+import { runtimeSizeIndex } from "./runtime-size-index.js";
 import { createRuntimeSearchEquality, type RuntimeSearchEqualityContext } from "./runtime-search-equality.js";
 
 export type RuntimeListMethodContext = RuntimeSearchEqualityContext & Partial<Pick<ExpressionContext<RuntimeValue>, "iterate">>;
@@ -35,10 +34,7 @@ export function createRuntimeListMethod(receiver: ListValue, name: "append" | "e
         const value = positional[0];
         let index = -1n;
         if (value !== undefined) {
-          index = context.integerIndex === undefined || value.kind === "int" || value.kind === "bool"
-            ? runtimeIntegerIndex(value, meter) : integerIndex(value, context.integerIndex, meter);
-          meter.checkpoint();
-          if (BigInt.asIntN(64, index) !== index) throw new PythonRuntimeError("OverflowError", "Python int too large to convert to C ssize_t");
+          index = runtimeSizeIndex(value, meter, context.integerIndex);
         }
         if (name === "pop") return receiver.items.pop(index);
         receiver.items.insert(index, positional[1]);

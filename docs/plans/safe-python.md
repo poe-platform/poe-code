@@ -4418,6 +4418,18 @@ extension, integration, or validation requirement is missing or unverified.
   typecheck and selected workspace build pass. Remaining methods, buffer
   protocols, native builtins, suspension, full accounting and SDK/safe-fs remain
   unfinished.
+- Connected bytes.hex with ASCII str/bytes separators, positive right-grouping,
+  negative left-grouping and zero-group suppression. Output goes directly into
+  one exact-size code-point buffer. Validation preserves C-int group bounds,
+  length-before-type separator errors and keyword duplication checks. Extracted
+  exact-value length lookup from len for reuse without invoking a guest builtin.
+- Seven native/storage tests first reproduced missing support. All 4,125 tests
+  in 310 files pass, including all byte digits, grouping edges, validation order,
+  allocation and loop budgets. A 3,621-call compiled CPython hex audit, 327,680
+  exhaustive byte-pair conversions and the 1,800-call len regression pass.
+  Scoped lint, source typecheck and selected workspace build also pass.
+  String interning, remaining methods, buffer protocols, native builtins,
+  suspension, full accounting and SDK/safe-fs remain unfinished.
 - Next:
   remaining scope/compiler audits, interpreter runtime,
   resource controls, runtime modules, and safe-fs integration. Parsing and static

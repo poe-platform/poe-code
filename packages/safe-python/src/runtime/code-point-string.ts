@@ -5,6 +5,7 @@ import { isUnicodeWhitespace } from "./unicode-whitespace.js";
 import { exhaustAllocation, type ExecutionMeter } from "./execution-budget.js";
 import { upperMappings, casefoldMappings, lowerMappings, titleMappings } from "../unicode-case-data.js";
 import { isUnicodeCharacter } from "./unicode-character-classification.js";
+import type { ImmutableBytes } from "./immutable-bytes.js";
 
 // Module-private capability: only freshly generated, already charged buffers
 // may bypass public input copying and validation. Never export this marker.
@@ -33,6 +34,28 @@ export class CodePointString implements Iterable<number> {
     }
     this.length = this.#points.length;
     Object.freeze(this);
+  }
+
+  /** Hexadecimal bytes need ASCII output only, built directly into owned points. */
+  static fromBytesHex(bytes: ImmutableBytes, separator: number | null, group: number, meter: ExecutionMeter): CodePointString {
+    meter.checkpoint();
+    if (separator !== null && (!Number.isInteger(separator) || separator < 0 || separator > 127)) throw new RangeError("hex separator must be ASCII");
+    if (!Number.isSafeInteger(group)) throw new RangeError("hex group size must be a safe integer");
+    const size = Math.abs(group), separators = separator === null || size === 0 || bytes.length === 0 ? 0 : Math.floor((bytes.length - 1) / size);
+    const length = bytes.length * 2 + separators;
+    if (!Number.isSafeInteger(length) || length > 0xffffffff) exhaustAllocation(meter);
+    meter.checkpoint(0, length * Uint32Array.BYTES_PER_ELEMENT);
+    const points = new Uint32Array(length);
+    let index = 0, offset = 0;
+    for (const byte of bytes) {
+      meter.checkpoint();
+      if (separator !== null && size !== 0 && index > 0 && (group > 0 ? bytes.length - index : index) % size === 0) points[offset++] = separator;
+      const high = byte >>> 4, low = byte & 15;
+      points[offset++] = high < 10 ? 48 + high : 87 + high;
+      points[offset++] = low < 10 ? 48 + low : 87 + low;
+      index++;
+    }
+    return new CodePointString(points, meter, ownedPoints);
   }
 
   *[Symbol.iterator](): IterableIterator<number> {

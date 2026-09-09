@@ -1341,7 +1341,8 @@ async function flatMapArray(
   const length = value.length;
   const result = await arraySpeciesCreate(value, 0, options);
   let targetIndex = 0;
-  options.budget.setRetainedValues(result, () => [result]);
+  let mapped: SandboxValue;
+  options.budget.setRetainedValues(result, () => [result, mapped]);
 
   try {
     for (let index = 0; index < length; index += 1) {
@@ -1350,7 +1351,7 @@ async function flatMapArray(
         continue;
       }
 
-      const mapped = await callArrayCallback(
+      mapped = await callArrayCallback(
         callback,
         await readArrayElement(value, index, options),
         index,
@@ -1359,15 +1360,16 @@ async function flatMapArray(
         stack,
         thisValue
       );
-      if (Array.isArray(mapped)) {
-        const mappedLength = mapped.length;
+      if (sandboxIsArray(mapped, options.budget)) {
+        const source = Array.isArray(mapped) ? mapped : await arrayLikeView(mapped as SandboxValue & object, options);
+        const mappedLength = source.length;
         for (let mappedIndex = 0; mappedIndex < mappedLength; mappedIndex += 1) {
           options.budget.visitNode();
-          if (!await hasArrayElement(mapped, mappedIndex, options)) {
+          if (!await hasArrayElement(source, mappedIndex, options)) {
             continue;
           }
 
-          await defineArrayResult(result, targetIndex++, await readArrayElement(mapped, mappedIndex, options), options);
+          await defineArrayResult(result, targetIndex++, await readArrayElement(source, mappedIndex, options), options);
         }
 
         continue;
@@ -1407,21 +1409,28 @@ async function appendFlattenedEntries(
   targetIndex: number,
   length = value.length
 ): Promise<number> {
+  let entry: SandboxValue;
+  const release = retainValues(options.budget, () => [arrayLikeSources.get(value) ?? value, entry]);
+  try {
   for (let index = 0; index < length; index += 1) {
     options.budget.visitNode();
     if (!await hasArrayElement(value, index, options)) {
       continue;
     }
 
-    const entry = await readArrayElement(value, index, options);
-    if (depth > 0 && Array.isArray(entry)) {
-      targetIndex = await appendFlattenedEntries(entry, depth - 1, result, options, targetIndex);
+    entry = await readArrayElement(value, index, options);
+    if (depth > 0 && sandboxIsArray(entry, options.budget)) {
+      const source = Array.isArray(entry) ? entry : await arrayLikeView(entry as SandboxValue & object, options);
+      targetIndex = await appendFlattenedEntries(source, depth - 1, result, options, targetIndex);
       continue;
     }
 
     await defineArrayResult(result, targetIndex++, entry, options);
   }
   return targetIndex;
+  } finally {
+    release();
+  }
 }
 
 async function sortArray(

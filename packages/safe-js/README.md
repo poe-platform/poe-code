@@ -555,8 +555,8 @@ no longer reads a guest `then` property. Species selection recognizes wrapped
 arrays, including nested Proxies and array subclasses. Proxy-valued species
 results receive element definitions through `defineProperty` traps, with failures
 stopping further writes. Concat spreads wrapped arrays by default and honors
-`Symbol.isConcatSpreadable` overrides. Wrapped-array flattening still needs
-integration.
+`Symbol.isConcatSpreadable` overrides. `flat` and `flatMap` traverse wrapped nested
+arrays, snapshot each nested length, and honor depth limits while skipping holes.
 
 `Array.isArray` follows nested Proxy targets without invoking traps and rejects
 revoked proxies. Other internal array-identity consumers still need integration.

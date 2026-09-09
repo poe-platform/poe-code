@@ -37,6 +37,8 @@ full-package, snapshot, or JavaScript-conformance gate.
   mutations; see [verification](safejs-proxy-array-results.md).
 - Concat spreading of wrapped arrays with spreadability overrides; see
   [verification](safejs-proxy-concat.md).
+- Flat/flatMap traversal of wrapped nested arrays, with length snapshots and
+  depth handling; see [verification](safejs-proxy-flatten.md).
 - Object.assign sources and targets, descriptor-map enumeration, object
   spread/rest and rest exclusions.
 - Ordinary enumerability changes during values/entries, descriptor-map and
@@ -57,7 +59,7 @@ regressions, TypeScript and lint checks. Recent records include
   apply/construct traps and callable identity.
 - Proxy graph serialization/restoration, cycles, revocation state, validation,
   and host/structured-clone boundaries.
-- Flattening identity, remaining built-in/callable-Proxy instanceof cases and object
+- Remaining built-in/callable-Proxy instanceof cases and object
   tags need consumer audits.
 - Other array-identity consumers and ordinary prototype-cycle checks need
   Proxy-aware validation.

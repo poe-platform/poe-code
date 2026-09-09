@@ -1100,6 +1100,21 @@ extension, integration, or validation requirement is missing or unverified.
   by the eventual guest execution engine. Class objects, guest dictionaries/slots,
   override dispatch, __getattr__, class/super lookup and interpreter wiring remain
   pending. This dispatch kernel alone does not execute guest class definitions.
+- Added default class-attribute lookup with metaclass data-getter precedence,
+  class-MRO descriptor binding to None and the requested class, then metaclass
+  non-data/raw fallback. Getter errors propagate without fallback. Added generic
+  MRO namespace search preserving first-owner identity, present undefined values,
+  and live namespace changes without caching. Both kernels checkpoint before
+  namespace/descriptor callbacks; callback execution remains caller-metered.
+- Class lookup validation: missing-module red test preceded implementation;
+  all 1,715 tests in 76 files pass, including 15 new cases. An independent CPython
+  comparison matched 216 combinations of absent/callable/non-callable metaclass
+  slots, binding presence, and inherited class raw/descriptor values, including
+  descriptor arguments and exception outcomes. Scoped lint, source typecheck,
+  and the selected safe-fs/safe-python dependency build passed. Reference:
+  https://docs.python.org/3/howto/descriptor.html . These remain internal kernels:
+  guest class construction, descriptor-type slot resolution, overrides, __getattr__,
+  super lookup, guest heap accounting and interpreter execution are still pending.
 - Next:
   remaining scope/compiler audits, interpreter runtime,
   resource controls, runtime modules, and safe-fs integration. Parsing and static

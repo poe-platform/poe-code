@@ -20,8 +20,8 @@ export function createRuntimeTupleMethod(receiver: TupleConstant<RuntimeValue>, 
       if (name === "index") {
         if (positional.length < 1) throw new PythonRuntimeError("TypeError", "index expected at least 1 argument, got 0");
         if (positional.length > 3) throw new PythonRuntimeError("TypeError", `index expected at most 3 arguments, got ${positional.length}`);
-        start = runtimeSearchBound(positional[1], 0n, meter);
-        stop = runtimeSearchBound(positional[2], stop, meter);
+        start = runtimeSearchBound(positional[1], 0n, meter, false, context.integerIndex);
+        stop = runtimeSearchBound(positional[2], stop, meter, false, context.integerIndex);
         const length = BigInt(receiver.items.length);
         if (start < 0n) start += length;
         if (start < 0n) start = 0n;

@@ -4,9 +4,9 @@ import type { ExpressionContext } from "./expression-evaluation.js";
 import { runtimeIterate } from "./runtime-iteration.js";
 import type { BuiltinFunctionValue, ListValue, RuntimeValue, RuntimeValues } from "./runtime-values.js";
 import { runtimeSearchBound } from "./runtime-search-bound.js";
-import { createRuntimeSearchEquality } from "./runtime-search-equality.js";
+import { createRuntimeSearchEquality, type RuntimeSearchEqualityContext } from "./runtime-search-equality.js";
 
-export type RuntimeListMethodContext = Partial<Pick<ExpressionContext<RuntimeValue>, "iterate" | "compare" | "truth">>;
+export type RuntimeListMethodContext = RuntimeSearchEqualityContext & Partial<Pick<ExpressionContext<RuntimeValue>, "iterate">>;
 
 /** Exact list capabilities backed by owned, metered storage. Optional expression
  * capabilities supply guest iteration, equality and truth. Guest index slots,
@@ -22,7 +22,7 @@ export function createRuntimeListMethod(receiver: ListValue, name: "append" | "e
       if (name === "index") {
         if (positional.length < 1) throw new PythonRuntimeError("TypeError", "index expected at least 1 argument, got 0");
         if (positional.length > 3) throw new PythonRuntimeError("TypeError", `index expected at most 3 arguments, got ${positional.length}`);
-        const start = runtimeSearchBound(positional[1], 0n, meter), stop = runtimeSearchBound(positional[2], 9223372036854775807n, meter);
+        const start = runtimeSearchBound(positional[1], 0n, meter, false, context.integerIndex), stop = runtimeSearchBound(positional[2], 9223372036854775807n, meter, false, context.integerIndex);
         const index = receiver.items.indexOf(positional[0], equal, start, stop);
         if (index === undefined) throw new PythonRuntimeError("ValueError", "list.index(x): x not in list");
         return values.integer(index);

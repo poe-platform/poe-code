@@ -39,6 +39,19 @@ function fixture(source: string, maxSteps = 100000, signal?: AbortSignal) {
 }
 
 describe("assembled concrete runtime programs", () => {
+  it.each(["[False,True,True]", "(False,True,True)"])("converts guest search bounds left to right: %s", source => {
+    const state = fixture(`items=${source}\nresult=items.index(True,start,stop)\n`), v = state.values;
+    const start = v.cell({}), stop = v.cell({}), events: string[] = [];
+    state.globals.set("start", start); state.globals.set("stop", stop);
+    state.hooks.expressions = () => ({ warn() {}, integerIndex: {
+      integer: value => value.kind === "int" ? value.value : undefined,
+      isExactInteger: value => value.kind === "int", typeName: () => "Bound", warn() {},
+      lookupIndex: value => () => { events.push(value === start ? "start" : "stop"); return v.integer(value === start ? 1n : 1n << 100n); }
+    } });
+    state.run();
+    expect(state.globals.get("result")).toBe(v.integer(1));
+    expect(events).toEqual(["start", "stop"]);
+  });
   it.each([["list", "count"], ["list", "index"], ["list", "remove"], ["tuple", "count"], ["tuple", "index"]])("uses guest equality and truth for %s.%s", (kind, method) => {
     const state = fixture(`items=${kind === "tuple" ? "(a,a)" : "[a,a]"}\nresult=items.${method}(b)\n`), v = state.values;
     const a = v.cell({}), b = v.cell({}), truth = v.cell({}), events: string[] = [];

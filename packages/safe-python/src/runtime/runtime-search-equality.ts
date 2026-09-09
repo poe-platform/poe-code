@@ -3,8 +3,11 @@ import type { ExpressionContext } from "./expression-evaluation.js";
 import { runtimeComparison } from "./runtime-comparison.js";
 import { runtimeTruth } from "./runtime-truth.js";
 import type { RuntimeValue, RuntimeValues } from "./runtime-values.js";
+import type { IntegerIndexContext } from "./index-protocol.js";
 
-export type RuntimeSearchEqualityContext = Partial<Pick<ExpressionContext<RuntimeValue>, "compare" | "truth">>;
+export type RuntimeSearchEqualityContext = Partial<Pick<ExpressionContext<RuntimeValue>, "compare" | "truth">> & {
+  readonly integerIndex?: IntegerIndexContext<RuntimeValue>;
+};
 
 /** Adapt rich equality and truth to native search kernels. Identity shortcuts
  * belong to the owning collection; guest callbacks and construction share the

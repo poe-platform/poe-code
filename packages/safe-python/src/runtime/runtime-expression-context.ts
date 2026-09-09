@@ -21,6 +21,7 @@ import { createRuntimeFormattedStringContext } from "./runtime-formatted-string.
 import type { FormatContext } from "./format-protocol.js";
 import type { ContainmentContext } from "./containment-protocol.js";
 import type { IterationContext } from "./protocol-iterator.js";
+import type { IntegerIndexContext } from "./index-protocol.js";
 
 /** Explicit scope/object capabilities, supplied by the surrounding runtime.
  * Attribute lookup defaults to implemented exact native container members;
@@ -36,6 +37,7 @@ export type RuntimeExpressionBindings = Pick<ExpressionContext<RuntimeValue>,
   "load" | "store" | "beginCall" | "createLambda"> &
   Partial<Pick<ExpressionContext<RuntimeValue>, "attribute" | "literal" | "constants" | "formattedString" | "truth">> &
   { readonly formatting?: FormatContext<RuntimeValue>;
+    readonly integerIndex?: IntegerIndexContext<RuntimeValue>;
     readonly power?: RuntimePowerContext;
     readonly iteration?: IterationContext<RuntimeValue>;
     /** Prepare type-level numeric addition slots for the evaluated pair.
@@ -68,7 +70,7 @@ export function createRuntimeExpressionContext(values: RuntimeValues, bindings: 
     slice: parts => values.slice(parts),
     load: bindings.load.bind(bindings),
     store: bindings.store.bind(bindings),
-    attribute: bindings.attribute?.bind(bindings) ?? ((receiver, name) => runtimeNativeAttribute(receiver, name, values, meter, context.beginCall, formatting, context)),
+    attribute: bindings.attribute?.bind(bindings) ?? ((receiver, name) => runtimeNativeAttribute(receiver, name, values, meter, context.beginCall, formatting, methods)),
     beginCall: bindings.beginCall.bind(bindings),
     beginSet: "dictionaryKeys" in bindings
       ? bindings.beginSet?.bind(bindings) ?? (initial => beginRuntimeSet(initial, values, bindings.dictionaryKeys, meter))
@@ -107,6 +109,11 @@ export function createRuntimeExpressionContext(values: RuntimeValues, bindings: 
     },
     getItem: (object, key) => runtimeIndex(object, key, values, meter),
     iterate: (value, notIterable, hint) => runtimeIterate(value, values, meter, bindings.iteration, notIterable, hint)
+  };
+  meter.checkpoint(0, 320);
+  const methods = {
+    iterate: context.iterate.bind(context), compare: context.compare.bind(context),
+    truth: context.truth.bind(context), integerIndex: bindings.integerIndex
   };
   if (bindings.createLambda) context.createLambda = bindings.createLambda.bind(bindings);
   context.formattedString = bindings.formattedString ?? createRuntimeFormattedStringContext(values, formatting, meter);

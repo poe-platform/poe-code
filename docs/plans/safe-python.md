@@ -6502,6 +6502,17 @@ extension, integration, or validation requirement is missing or unverified.
   workspace build pass. Guest search-bound conversion, remaining native-method
   protocols, automatic object/builtin assembly and broader interpreter/SDK/safe-fs
   integration remain unfinished.
+- Connected list/tuple index search bounds to the frame's integer-index
+  capability. Bounds convert left to right, preserve guest failures and warning
+  policy, and saturate oversized results to signed index width. Missing slots
+  retain search-specific diagnostics; direct integer subclasses bypass slots.
+- Twelve additional regression cases cover compiled list/tuple wiring, clipping,
+  missing slots, invalid results, warnings, guest errors and cancellation.
+  All 5,046 tests in 439 files pass, as do typecheck, scoped lint and the selected
+  workspace build. The existing 144 list and 64 tuple compiled CPython search
+  comparisons still pass. Text search and other native-method index consumers,
+  automatic object/builtin assembly and broader interpreter/SDK/safe-fs work
+  remain unfinished.
 - Next:
   remaining scope/compiler audits, interpreter runtime,
   resource controls, runtime modules, and safe-fs integration. Parsing and static

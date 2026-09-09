@@ -573,6 +573,9 @@ revoked proxies. Other internal array-identity consumers still need integration.
 objects through key and descriptor traps, and invokes callable Proxy replacers
 and `toJSON` hooks. Focused native comparisons cover trap ordering, length
 coercion, mutation during enumeration, cycles, and revocation.
+`structuredClone` rejects Proxy values with `DataCloneError`, including nested
+and revoked Proxies, without invoking traps or detaching transfer buffers.
+This follows native clone behavior; it is separate from Proxy checkpoint support.
 Object.prototype.toString reads custom tags through non-callable Proxies and
 preserves wrapped-array identity. Ordinary receivers also read inherited tags
 through Proxy ancestors with the original receiver. Callable Proxies use the

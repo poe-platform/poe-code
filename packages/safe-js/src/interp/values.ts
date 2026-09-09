@@ -605,6 +605,8 @@ export function* cloneStructuredGraph(
 ): Generator<StructuredCloneRequest, SandboxValue, SandboxValue> {
   assertSandboxDataDepth(depth);
   budget.visitNode();
+  if (typeof value === "object" && value !== null && guestProxyStates.has(value))
+    throw new DOMException("Proxies cannot be structured cloned.", "DataCloneError");
   if (typeof value === "symbol" || isSandboxModuleNamespace(value) || isSandboxClosure(value) || isSandboxPromise(value) ||
       isSandboxGenerator(value) || isSandboxCollectionIterator(value) || isSandboxRegExpIterator(value) ||
       isSandboxArrayIterator(value) || isSandboxStringIterator(value) || isSandboxArguments(value) ||
@@ -1165,6 +1167,8 @@ function copyToSandbox(
     return value;
   }
 
+  if (state.structuredClone && typeof value === "object" && value !== null && guestProxyStates.has(value))
+    throw new DOMException("Proxies cannot be structured cloned.", "DataCloneError");
   if (state.structuredClone && nodeTypes.isSymbolObject(value))
     throw new DOMException("Cannot clone a boxed symbol.", "DataCloneError");
   if (state.structuredClone && isSandboxModuleNamespace(value))

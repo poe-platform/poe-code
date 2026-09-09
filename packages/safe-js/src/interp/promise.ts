@@ -564,8 +564,9 @@ function getPromisePrototype(budget: Budget): SandboxObject {
                       : undefined;
                     if (isSandboxPromise(result) && actualConstructor === constructor) {
                       pending = result;
-                    } else if (isSandboxPromiseConstructor(constructor)) {
+                    } else if (constructor === intrinsicPromiseConstructors.get(budget)) {
                       pending = createSandboxPromise(resolveSandboxValue(result, { budget, context }));
+                      setSandboxPrototype(pending, prototype, budget);
                     } else {
                       pending = await settleConstructedPromise(constructor, result, "fulfilled", budget, context);
                     }

@@ -644,6 +644,8 @@ constructor instead of allocating in the method's realm.
 Promise aggregate arrays, `allSettled` records and `withResolvers` capability
 objects retain the method's originating prototypes, including public replay.
 Their payload values retain identity and custom prototypes.
+`finally` cleanup respects foreign Promise species and preserves observable
+overridden `then` calls and cleanup Promise prototypes.
 `Iterator.from` fallback return results retain the called method's Object
 prototype when the underlying return method is absent or null. Custom next
 and return results are forwarded unchanged.

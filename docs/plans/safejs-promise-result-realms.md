@@ -214,10 +214,10 @@ local and creates its cleanup Promise with the method's budget. This is a
 separately validated gap, not covered by the instance-construction repair.
 Add a failing regression before changing the cleanup branch, including
 fulfillment/rejection preservation and overridden-then observability.
-Four such regressions now fail for the resolve/reject combinations of the
+Four such regressions failed for the resolve/reject combinations of the
 original Promise and cleanup thenable. Final values/reasons match native;
 each native trace has three true observations versus SafeJS's one. The test
-file remains uncommitted for the next atomic fix.
+file is included with the separate finally repair below.
 
 ## Promise result-container implementation
 
@@ -233,3 +233,16 @@ tests: 103 tests across seven files. Scoped lint, TypeScript, the maintained
 23-workspace build and four fresh-process import checks pass. Built-SDK probes
 verify all/any/allSettled arrays, settlement records and withResolvers objects.
 The earlier full-package and 1,700-snapshot gates predate this container change.
+
+## Finally cleanup species implementation
+
+Foreign intrinsic species now use normal capability construction in finally,
+instead of the method realm's optimized cleanup Promise. Local optimized
+cleanup Promises explicitly retain their default prototype. A fifth regression
+used a foreign prototype getter inside an overridden then: native reported
+three true checks, while SafeJS reported true/false/true before the local fix.
+
+All 111 tests across six finally/species/Promise/recovery files pass, including
+the five new cases and fulfillment/rejection preservation. Scoped lint and
+TypeScript pass. The latest maintained build and full-snapshot gate
+predate this two-line runtime change; they are not claimed as its validation.

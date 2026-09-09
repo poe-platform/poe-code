@@ -7,6 +7,8 @@ import { readNumber } from "./numbers.js";
 import type { NumberToken } from "./numbers.js";
 import { readString } from "./strings.js";
 import type { StringToken } from "./strings.js";
+import { Interpolation } from "./interpolation.js";
+import type { InterpolatedToken } from "./interpolation.js";
 
 export interface StructuralToken {
   readonly kind: "operator" | "newline" | "indent" | "dedent" | "end";
@@ -15,7 +17,7 @@ export interface StructuralToken {
   readonly end: SourcePosition;
 }
 
-export type Token = NameToken | NumberToken | StringToken | StructuralToken;
+export type Token = NameToken | NumberToken | StringToken | StructuralToken | InterpolatedToken;
 
 export interface LexerOptions {
   readonly filename?: string;
@@ -36,15 +38,20 @@ const interpolatedPrefixes = new Set(["f", "fr", "rf", "t", "tr", "rt"]);
 export function* lex(text: string, options: LexerOptions = {}): Generator<Token, void> {
   const source = new PythonSource(text, options.filename);
   const indentation = new Indentation();
+  const interpolation = new Interpolation();
   const delimiters: Array<{ text: string; start: SourcePosition }> = [];
   let lineStart = true;
   let lineHasCode = false;
   let pendingIndent: { text: string; start: SourcePosition; end: SourcePosition } | undefined;
   while (!source.done) {
+    if (interpolation.inText) {
+      yield interpolation.readText(source, delimiters.length);
+      continue;
+    }
     if (lineStart) {
       const start = source.position;
       while (isSpace(source.peek())) source.advance();
-      pendingIndent = delimiters.length ? undefined : {
+      pendingIndent = delimiters.length || interpolation.active ? undefined : {
         text: text.slice(start.offset, source.position.offset), start, end: source.position
       };
       lineStart = false;
@@ -59,7 +66,7 @@ export function* lex(text: string, options: LexerOptions = {}): Generator<Token,
     if (character === "\n") {
       const start = source.position;
       source.advance();
-      if (!delimiters.length && lineHasCode) {
+      if (!delimiters.length && !interpolation.active && lineHasCode) {
         yield { kind: "newline", text: "\n", start, end: source.position };
         lineHasCode = false;
       }
@@ -86,9 +93,12 @@ export function* lex(text: string, options: LexerOptions = {}): Generator<Token,
       pendingIndent = undefined;
     }
     lineHasCode = true;
+    const boundary = interpolation.boundary(source, delimiters.length);
+    if (boundary) { yield boundary; continue; }
     const prefix = stringPrefix(source);
     if (prefix === "interpolated") {
-      throw source.error("interpolated string tokenization is not implemented yet");
+      yield interpolation.begin(source);
+      continue;
     }
     if (prefix === "ordinary") {
       yield readString(source, options.onWarning);
@@ -110,6 +120,9 @@ export function* lex(text: string, options: LexerOptions = {}): Generator<Token,
     if (operator === "(" || operator === "[" || operator === "{") delimiters.push({ text: operator, start });
     const opening = closingDelimiters[operator];
     if (opening) {
+      if (interpolation.fieldDepth !== undefined && delimiters.length <= interpolation.fieldDepth) {
+        throw source.error(`unmatched '${operator}' in replacement field`, start);
+      }
       const expected = delimiters.pop();
       if (!expected) throw source.error(`unmatched '${operator}'`, start);
       if (expected.text !== opening) {
@@ -119,6 +132,7 @@ export function* lex(text: string, options: LexerOptions = {}): Generator<Token,
     for (let index = 0; index < operator.length; index++) source.advance();
     yield { kind: "operator", text: operator, start, end: source.position };
   }
+  interpolation.assertClosed(source);
   const unclosed = delimiters[delimiters.length - 1];
   if (unclosed) throw source.error(`'${unclosed.text}' was never closed`, unclosed.start);
   const end = source.position;

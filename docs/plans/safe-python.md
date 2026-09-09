@@ -106,9 +106,8 @@ extension, integration, or validation requirement is missing or unverified.
   It joins explicit and bracketed physical lines, suppresses comments and blank
   logical lines, emits indentation/dedentation and EOF, matches delimiters and
   longest operators, and integrates existing name/literal readers. No CLI or
-  environment variables were introduced. Interpolated f/t strings explicitly
-  report an unimplemented-tokenization error instead of being misread as ordinary
-  strings. This is an incomplete lexer, not a complete interpreter API.
+  environment variables were introduced. This is a lexer API, not a complete
+  interpreter API.
 - Lexer validation: 304 package unit cases pass. A comparison of 89 source
   fixtures with CPython matched significant token kinds and non-indent lexemes
   after newline normalization. INDENT text was compared separately: after a
@@ -118,7 +117,25 @@ extension, integration, or validation requirement is missing or unverified.
   Further compilation checks exposed comment/blank-line continuation handling;
   three failing regression cases preceded deferred indentation acceptance.
   Source typecheck and selected workspace build passed; focused lint also passed.
-- Next: f/t-string tokenization and expression parsing, parser-level NFKC
+- Added f/t-string tokenization with an explicit mode stack for literal text,
+  replacement fields, and format specifications. The existing lexer reads field
+  expressions, including nested f/t strings, ordinary strings, dictionaries,
+  slices, comments, physical newlines, and quote reuse. Top-level colons enter
+  format mode; parenthesized walrus expressions retain their normal operator.
+  Literal doubled braces collapse in `content`, while `text` and spans retain
+  source spelling. Escapes remain encoded for parser-level literal decoding.
+- Interpolation validation: 331 package unit cases pass, including 300 nested
+  interpolated strings without recursive lexer calls. A 992-case differential
+  corpus matched CPython syntax acceptance and significant tokens after merging
+  adjacent middle-text tokens and dropping empty middle tokens. Thirty-two
+  deliberately mismatched-delimiter fixtures used CPython compilation as the
+  reference: its public tokenizer emits those invalid delimiters without rejection.
+  Prefix case/raw variants, both quote sizes, format fields, named escapes,
+  multiline expressions, conversions, and debug-marker tokens were covered.
+  Source typecheck, selected workspace build, and focused lint passed.
+  This does not validate field-expression grammar, conversion semantics,
+  interpolated literal escape decoding/warnings, formatting, or evaluation.
+- Next: expression parsing, parser-level NFKC
   normalization, the complete grammar/parser and evaluator, then runtime modules
   and safe-fs integration. Tokenization does not establish interpreter execution.
 - Workspace lockfile registration and packaging integration remain pending.

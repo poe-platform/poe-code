@@ -39,6 +39,17 @@ function fixture(source: string, maxSteps = 100000, signal?: AbortSignal) {
 }
 
 describe("assembled concrete runtime programs", () => {
+  it.each(["", "b"])("converts guest tab sizes for %s text", prefix => {
+    const state = fixture(`result=${prefix}'a\\tb'.expandtabs(tabsize=size)\nexpected=${prefix}'a   b'\n`), v = state.values; let calls = 0;
+    state.globals.set("size", v.cell({}));
+    state.hooks.expressions = () => ({ warn() {}, integerIndex: {
+      integer: value => value.kind === "int" ? value.value : undefined,
+      isExactInteger: value => value.kind === "int", typeName: () => "Size", warn() {},
+      lookupIndex: () => () => { calls++; return v.integer(4); }
+    } });
+    state.run(); expect(calls).toBe(1);
+    expect(state.globals.get("result")).toEqual(state.globals.get("expected"));
+  });
   it.each(["split", "rsplit", "center", "ljust", "rjust", "zfill"])("converts guest text %s sizes", method => {
     for (const prefix of ["", "b"]) {
       const splitting = method === "split" || method === "rsplit";

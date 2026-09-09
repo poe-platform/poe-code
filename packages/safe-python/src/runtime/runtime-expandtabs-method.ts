@@ -1,9 +1,10 @@
 import { PythonRuntimeError } from "./error.js";
 import type { ExecutionMeter } from "./execution-budget.js";
 import { runtimeIntegerIndex } from "./runtime-integer-index.js";
+import type { IntegerIndexContext } from "./index-protocol.js";
 import type { BuiltinFunctionValue, RuntimeValue, RuntimeValues } from "./runtime-values.js";
 
-export function createRuntimeExpandtabsMethod(receiver: Extract<RuntimeValue, { kind: "str" | "bytes" }>, values: RuntimeValues, meter: ExecutionMeter): BuiltinFunctionValue {
+export function createRuntimeExpandtabsMethod(receiver: Extract<RuntimeValue, { kind: "str" | "bytes" }>, values: RuntimeValues, meter: ExecutionMeter, context?: IntegerIndexContext<RuntimeValue>): BuiltinFunctionValue {
   meter.checkpoint(1, 64);
   return values.builtinFunction({
     name: "expandtabs",
@@ -19,7 +20,7 @@ export function createRuntimeExpandtabsMethod(receiver: Extract<RuntimeValue, { 
         if (label !== "tabsize") throw new PythonRuntimeError("TypeError", `expandtabs() got an unexpected keyword argument '${label}'`);
         argument = value;
       }
-      const tabsize = argument === undefined ? 8n : runtimeIntegerIndex(argument, meter);
+      const tabsize = argument === undefined ? 8n : runtimeIntegerIndex(argument, meter, context);
       if (BigInt.asIntN(32, tabsize) !== tabsize) throw new PythonRuntimeError("OverflowError", "Python int too large to convert to C int");
       if (receiver.kind === "bytes") {
         const result = receiver.value.expandTabs(Number(tabsize), meter);

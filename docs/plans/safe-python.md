@@ -6630,6 +6630,15 @@ extension, integration, or validation requirement is missing or unverified.
   selected workspace build pass. Remaining native integer/truth arguments,
   automatic object/builtin assembly and broader interpreter/SDK/safe-fs
   integration remain unfinished.
+- Connected str/bytes expandtabs to guest integer-index conversion while
+  preserving signed 32-bit overflow checks. The general runtime integer-index
+  helper now optionally accepts guest capabilities; signed-size conversion
+  reuses it rather than duplicating native-versus-guest dispatch.
+- Two compiled regressions cover keyword tab sizes. All 5,113 tests in 440 files
+  pass; 18 CPython tabsize comparisons (tabs/newlines, negative values and C-int
+  overflow) and 84 split/pad comparisons match. Typecheck and selected workspace
+  build pass. Remaining native protocols, automatic object/builtin assembly and
+  broader interpreter/SDK/safe-fs integration remain unfinished.
 - Next:
   remaining scope/compiler audits, interpreter runtime,
   resource controls, runtime modules, and safe-fs integration. Parsing and static

@@ -16,6 +16,7 @@ import { typedArrayPrototypes } from "../typed-array-prototypes.js";
 import { createIntrinsicObject, getBoxedPrototype, getSandboxDataProperty, getSandboxPropertyDescriptor, getSandboxPrototype, materializeFunctionProperties, registerIntrinsicFunction, registerIntrinsicObject, setSandboxPrototype } from "../object-model.js";
 import { registerBuiltinIdentities, resolveIntrinsicIdentity } from "../intrinsics.js";
 import { invokeBuiltinClosure } from "../builtin-call.js";
+import { sandboxGetProperty } from "../guest-proxy-get.js";
 import { retainValues } from "../resources.js";
 import { sandboxNumber, sandboxString } from "../string-coercion.js";
 import { acquireSandboxIterator, readIteratorResult, type SandboxIterator } from "../iteration.js";
@@ -78,9 +79,20 @@ export function createNumericTypedArrayGlobal(budget: Budget, nativePrototype = 
       if (!nativePrototype) return allocateTypedArray(args[0], budget, Native);
       return (async () => {
         const newTarget = context?.newTarget ?? constructor;
-        const candidate = context?.getProperty === undefined
-          ? getSandboxDataProperty(newTarget, "prototype", budget)
-          : await context.getProperty(newTarget, "prototype");
+        let candidate: SandboxValue;
+        if (context?.getProperty !== undefined) candidate = await context.getProperty(newTarget, "prototype");
+        else {
+          const callerContext: SandboxCallContext = {
+            ...context, stack: context?.stack ?? [], thisValue: undefined,
+            getProperty: (value, key) => sandboxGetProperty(value, key, value, budget, bridge)
+          };
+          const bridge: SandboxCallContext = {
+            ...callerContext,
+            invokeClosure: context?.invokeClosure ?? ((callee, values, receiver, construct, target) =>
+              invokeBuiltinClosure(callee, values, budget, callerContext, receiver, construct, target))
+          };
+          candidate = await sandboxGetProperty(newTarget, "prototype", newTarget, budget, bridge);
+        }
         const prototype = candidate !== null && typeof candidate === "object" ? candidate : typedArrayPrototypes.get(budget)!.get(Native)!;
         const release = retainValues(budget, () => [prototype, ...args]);
         try {

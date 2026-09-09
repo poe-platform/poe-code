@@ -4557,9 +4557,11 @@ function createArrayMethodOptions(context: EvaluationContext): ArrayMethodOption
   return {
     budget: context.budget,
     context: callContext,
-    hasProperty: (value, property) => hasSandboxProperty(value, property, context),
+    hasProperty: (value, property) => isGuestHostObject(value)
+      ? hasSandboxProperty(value, property, context)
+      : sandboxHasProperty(value, property, context.budget, callContext),
     setProperty: (value, property, entry) => setSandboxProperty(value, property, entry, context.budget, true, callContext),
-    deleteProperty: deleteSandboxProperty,
+    deleteProperty: (value, property) => sandboxDeleteProperty(value, String(property), context.budget, callContext),
     callClosure: (
       closure: Extract<InterpreterValue, { kind: "fn" }>,
       args: readonly SandboxValue[],

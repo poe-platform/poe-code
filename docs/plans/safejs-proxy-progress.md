@@ -29,6 +29,8 @@ full-package, snapshot, or JavaScript-conformance gate.
   [verification and remaining scope](safejs-proxy-instanceof.md).
 - For-in key collection and per-iteration descriptor checks through Proxies; see
   [verification and checkpoint limits](safejs-proxy-for-in.md).
+- Array-method async membership/deletion dispatch and internal-view isolation;
+  see [verification and remaining array scope](safejs-proxy-array-methods.md).
 - Object.assign sources and targets, descriptor-map enumeration, object
   spread/rest and rest exclusions.
 - Ordinary enumerability changes during values/entries, descriptor-map and
@@ -49,7 +51,7 @@ regressions, TypeScript and lint checks. Recent records include
   apply/construct traps and callable identity.
 - Proxy graph serialization/restoration, cycles, revocation state, validation,
   and host/structured-clone boundaries.
-- Array-method bridges, remaining built-in/callable-Proxy instanceof cases and object
+- Array species/results, flattening/concat identity, remaining built-in/callable-Proxy instanceof cases and object
   tags need consumer audits.
 - Other array-identity consumers and ordinary prototype-cycle checks need
   Proxy-aware validation.

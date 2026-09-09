@@ -549,6 +549,10 @@ array ancestors, including when a generator resumes from a checkpoint.
 Internal Proxy `for-in` now uses own-key, prototype, and descriptor operations,
 including virtual keys, inherited properties, deletion, and early loop exits.
 The saved key-list format is unchanged; serializing Proxy graphs remains pending.
+Array methods now await Proxy membership and deletion traps on array-like
+receivers, with ordered writes and tested partial failures. Their internal view
+no longer reads a guest `then` property. Wrapped-array species, flattening and
+concat identity still need integration.
 
 `Array.isArray` follows nested Proxy targets without invoking traps and rejects
 revoked proxies. Other internal array-identity consumers still need integration.
@@ -568,7 +572,7 @@ Proxy extensibility and descriptor operations, with tested early exits.
 At source commit `f71a86152`, the internal Proxy selection passed 388 tests across
 24 files. This is not a full-package gate or evidence of public Proxy support.
 Callable proxies, public construction/revocation, Proxy checkpoint state, and
-remaining consumers such as array-method bridges still need integration.
+remaining array species/identity consumers still need integration.
 See the [Proxy progress record](../../docs/plans/safejs-proxy-progress.md) for
 the tested scope and remaining work.
 

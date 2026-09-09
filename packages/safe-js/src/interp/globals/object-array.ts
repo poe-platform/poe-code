@@ -5,6 +5,7 @@ import { sandboxIsExtensible, sandboxPreventExtensions } from "../guest-proxy-ex
 import { sandboxGetPrototypeOf, sandboxSetPrototypeOf } from "../guest-proxy-prototype.js";
 import { sandboxGetOwnPropertyDescriptor } from "../guest-proxy-descriptor.js";
 import { sandboxHasProperty } from "../guest-proxy-has.js";
+import { sandboxDeleteProperty } from "../guest-proxy-delete.js";
 import { sandboxOwnKeys } from "../guest-proxy-own-keys.js";
 import { setGuestProxyIntegrity, testGuestProxyIntegrity } from "../guest-proxy-integrity.js";
 import { defineGuestProxyProperty } from "../guest-proxy-define.js";
@@ -26,7 +27,7 @@ import { createObjectGlobal, hasOwnSandboxProperty } from "./object.js";
 import { isGuestHostObject } from "../host-capabilities.js";
 import { isNumericTypedArray, isTypedArrayIndex, typedArrayStorage } from "../typed-array.js";
 import { typedArrayElement } from "./numeric-typed-array.js";
-import { deleteSandboxProperty, setSandboxProperty } from "../interpreter.js";
+import { setSandboxProperty } from "../interpreter.js";
 import { acquireSandboxIterator, closeIterator, getSandboxAsyncIterator, getSandboxIterator, getSandboxIteratorFromMethod, readIteratorResult, type SandboxIterator } from "../iteration.js";
 import { sandboxNumber, sandboxString } from "../string-coercion.js";
 import { toPropertyKey } from "../property-key.js";
@@ -548,8 +549,10 @@ function createArrayGlobal(budget: Budget): SandboxClosure {
       length: arrayMethodLengths[name],
       call: (args, context) => callArrayMethod(context?.thisValue, name, args, {
         budget, context,
-        hasProperty: (value, key) => hasOwnSandboxProperty(value, key, false) || getSandboxPropertyDescriptor(value, key, budget) !== undefined,
-        deleteProperty: deleteSandboxProperty,
+        hasProperty: (value, key) => isGuestHostObject(value)
+          ? hasOwnSandboxProperty(value, key, false) || getSandboxPropertyDescriptor(value, key, budget) !== undefined
+          : sandboxHasProperty(value, key, budget, context),
+        deleteProperty: (value, key) => sandboxDeleteProperty(value, String(key), budget, context),
         setProperty: (value, key, entry) => setSandboxProperty(value, key, entry, budget, true, context),
         callClosure: (closure, values, _stack, receiver) => invokeBuiltinClosure(closure, values, budget, context, receiver)
       }, context?.stack ?? [])

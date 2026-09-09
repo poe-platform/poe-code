@@ -98,13 +98,13 @@ export type ArrayMethodName =
 export type ArrayMethodOptions = {
   budget: Budget;
   context?: SandboxCallContext;
-  hasProperty?: (value: SandboxValue, property: string) => boolean;
+  hasProperty?: (value: SandboxValue, property: string) => boolean | Promise<boolean>;
   setProperty?: (
     value: SandboxValue,
     property: string,
     entry: SandboxValue
   ) => void | Promise<void>;
-  deleteProperty?: (value: SandboxValue, property: string | number) => boolean;
+  deleteProperty?: (value: SandboxValue, property: string | number) => boolean | Promise<boolean>;
   callClosure: (
     closure: SandboxClosure,
     args: readonly SandboxValue[],
@@ -244,6 +244,8 @@ async function arrayLikeView(
     Object.create(null) as SandboxObject & { [index: number]: SandboxValue; length: number },
     {
       get: (_target, key) => {
+        // This implementation-only view is not a guest thenable.
+        if (key === "then") return undefined;
         options.budget.visitNode();
         if (key === "length") return length;
         if (typeof key !== "string") return undefined;
@@ -253,8 +255,6 @@ async function arrayLikeView(
       },
       has: (_target, key) => {
         options.budget.visitNode();
-        if (typeof key === "string" && options.hasProperty !== undefined)
-          return options.hasProperty(receiver, key);
         for (
           let current: object | null = receiver;
           current !== null;
@@ -265,20 +265,6 @@ async function arrayLikeView(
         }
         return false;
       },
-      set: (_target, key, entry: SandboxValue) => {
-        options.budget.visitNode();
-        if (typeof key !== "string") throw new TypeError("Array indices must be string keys.");
-        if (options.setProperty !== undefined) options.setProperty(receiver, key, entry);
-        else if (!Reflect.set(receiver, key, entry))
-          throw new TypeError(`Cannot assign property '${key}'.`);
-        return true;
-      },
-      deleteProperty: (_target, key) => {
-        options.budget.visitNode();
-        if (typeof key === "string" && options.deleteProperty !== undefined)
-          return options.deleteProperty(receiver, key);
-        return Reflect.deleteProperty(receiver, key);
-      }
     }
   );
   arrayLikeSources.set(view, receiver);
@@ -450,7 +436,7 @@ async function callArrayMethodUnlocked(
           : start;
       for (; index >= 0 && index < length; index += reverse ? -1 : 1) {
         options.budget.visitNode();
-        if (methodName !== "includes" && !(index in value)) continue;
+        if (methodName !== "includes" && !await hasArrayElement(value, index, options)) continue;
         const entry = await readArrayElement(value, index, options);
         if (
           entry === args[0] ||
@@ -489,7 +475,7 @@ async function callArrayMethodUnlocked(
       try {
         for (let index = 0; index < count; index += 1) {
           options.budget.visitNode();
-          if (first + index in value)
+          if (await hasArrayElement(value, first + index, options))
             defineArrayResult(result, index, await readArrayElement(value, first + index, options), options);
         }
         await setSandboxProperty(result, "length", count, options.budget, true, options.context);
@@ -524,7 +510,7 @@ async function callArrayMethodUnlocked(
           targetIndex += length;
           for (let index = 0; index < length; index++) {
             options.budget.visitNode();
-            if (index in source)
+            if (await hasArrayElement(source, index, options))
               defineArrayResult(result, start + index, await readArrayElement(source, index, options), options);
           }
         }
@@ -564,7 +550,7 @@ async function callArrayMethodUnlocked(
       try {
         for (let index = 0; index < deleted; index++) {
           options.budget.visitNode();
-          if (first + index in value)
+          if (await hasArrayElement(value, first + index, options))
             defineArrayResult(removed, index, await readArrayElement(value, first + index, options), options);
         }
         await setSandboxProperty(removed, "length", deleted, options.budget, true, options.context);
@@ -572,7 +558,7 @@ async function callArrayMethodUnlocked(
           for (let index = first; index < length - deleted; index++)
             await moveArrayElement(value, index + deleted, index + inserted, options);
           for (let index = length; index > nextLength; index--)
-            deleteArrayElement(value, index - 1, options);
+            await deleteArrayElement(value, index - 1, options);
         } else if (inserted > deleted) {
           for (let index = length - deleted; index > first; index--)
             await moveArrayElement(value, index + deleted - 1, index + inserted - 1, options);
@@ -661,18 +647,18 @@ async function callArrayMethodUnlocked(
           options.budget.visitNode();
           lowerValue = upperValue = undefined;
           const upper = length - lower - 1;
-          const lowerExists = lower in value;
+          const lowerExists = await hasArrayElement(value, lower, options);
           lowerValue = lowerExists ? await readArrayElement(value, lower, options) : undefined;
-          const upperExists = upper in value;
+          const upperExists = await hasArrayElement(value, upper, options);
           upperValue = upperExists ? await readArrayElement(value, upper, options) : undefined;
           if (lowerExists && upperExists) {
             await writeArrayProperty(value, lower, upperValue, options);
             await writeArrayProperty(value, upper, lowerValue, options);
           } else if (!lowerExists && upperExists) {
             await writeArrayProperty(value, lower, upperValue, options);
-            deleteArrayElement(value, upper, options);
+            await deleteArrayElement(value, upper, options);
           } else if (lowerExists) {
-            deleteArrayElement(value, lower, options);
+            await deleteArrayElement(value, lower, options);
             await writeArrayProperty(value, upper, lowerValue, options);
           }
         }
@@ -808,7 +794,7 @@ async function callArrayMethodUnlocked(
         if (methodName === "shift")
           for (let index = 1; index < length; index++)
             await moveArrayElement(value, index, index - 1, options);
-        deleteArrayElement(value, length - 1, options);
+        await deleteArrayElement(value, length - 1, options);
         await writeArrayProperty(value, "length", length - 1, options);
         return budgetProducedValue(result, options.budget);
       } finally {
@@ -903,6 +889,11 @@ function getRequiredCallback(
   return value;
 }
 
+function hasArrayElement(value: ArrayLikeValue, index: number, options: ArrayMethodOptions): boolean | Promise<boolean> {
+  const receiver = arrayLikeSources.get(value) ?? value;
+  return options.hasProperty === undefined ? index in value : options.hasProperty(receiver, String(index));
+}
+
 function readArrayElement(
   value: ArrayLikeValue,
   index: number,
@@ -931,17 +922,17 @@ function writeArrayProperty(
     throw new TypeError(`Cannot assign to read only property '${key}'.`);
 }
 
-function deleteArrayElement(
+async function deleteArrayElement(
   value: ArrayLikeValue,
   index: number,
   options: ArrayMethodOptions
-): void {
+): Promise<void> {
   options.budget.visitNode();
   const receiver = arrayLikeSources.get(value) ?? value;
   const deleted =
     options.deleteProperty === undefined
       ? Reflect.deleteProperty(receiver, String(index))
-      : options.deleteProperty(receiver, String(index));
+      : await options.deleteProperty(receiver, String(index));
   if (!deleted) throw new TypeError(`Cannot delete property '${index}'.`);
 }
 
@@ -952,9 +943,9 @@ async function moveArrayElement(
   options: ArrayMethodOptions
 ): Promise<void> {
   options.budget.visitNode();
-  if (from in value)
+  if (await hasArrayElement(value, from, options))
     await writeArrayProperty(value, to, await readArrayElement(value, from, options), options);
-  else deleteArrayElement(value, to, options);
+  else await deleteArrayElement(value, to, options);
 }
 
 async function mapArray(
@@ -971,7 +962,7 @@ async function mapArray(
   try {
     for (let index = 0; index < length; index += 1) {
       options.budget.visitNode();
-      if (!(index in value)) {
+      if (!await hasArrayElement(value, index, options)) {
         continue;
       }
 
@@ -1007,7 +998,7 @@ async function filterArray(
   try {
     for (let index = 0; index < length; index += 1) {
       options.budget.visitNode();
-      if (!(index in value)) {
+      if (!await hasArrayElement(value, index, options)) {
         continue;
       }
 
@@ -1114,7 +1105,7 @@ async function someInArray(
 
   for (let index = 0; index < length; index += 1) {
     options.budget.visitNode();
-    if (!(index in value)) {
+    if (!await hasArrayElement(value, index, options)) {
       continue;
     }
 
@@ -1147,7 +1138,7 @@ async function everyInArray(
 
   for (let index = 0; index < length; index += 1) {
     options.budget.visitNode();
-    if (!(index in value)) {
+    if (!await hasArrayElement(value, index, options)) {
       continue;
     }
 
@@ -1183,7 +1174,7 @@ async function reduceArray(
     return reduceFromLeft(value, callback, initialValue, 0, length, options, stack);
   }
 
-  const start = findNextDefinedIndex(value, 0, 1, length, options.budget);
+  const start = await findNextDefinedIndex(value, 0, 1, length, options);
   if (start < 0) {
     throw new TypeError("Reduce of empty array with no initial value.");
   }
@@ -1213,7 +1204,7 @@ async function reduceRightArray(
     return reduceFromRight(value, callback, initialValue, length - 1, length, options, stack);
   }
 
-  const start = findNextDefinedIndex(value, length - 1, -1, length, options.budget);
+  const start = await findNextDefinedIndex(value, length - 1, -1, length, options);
   if (start < 0) {
     throw new TypeError("Reduce of empty array with no initial value.");
   }
@@ -1245,7 +1236,7 @@ async function reduceFromLeft(
   try {
     for (let index = startIndex; index < length; index += 1) {
       options.budget.visitNode();
-      if (!(index in value)) {
+      if (!await hasArrayElement(value, index, options)) {
         continue;
       }
 
@@ -1283,7 +1274,7 @@ async function reduceFromRight(
   try {
     for (let index = Math.min(startIndex, length - 1); index >= 0; index -= 1) {
       options.budget.visitNode();
-      if (!(index in value)) {
+      if (!await hasArrayElement(value, index, options)) {
         continue;
       }
 
@@ -1316,7 +1307,7 @@ async function forEachArray(
 
   for (let index = 0; index < length; index += 1) {
     options.budget.visitNode();
-    if (!(index in value)) {
+    if (!await hasArrayElement(value, index, options)) {
       continue;
     }
 
@@ -1347,7 +1338,7 @@ async function flatMapArray(
   try {
     for (let index = 0; index < length; index += 1) {
       options.budget.visitNode();
-      if (!(index in value)) {
+      if (!await hasArrayElement(value, index, options)) {
         continue;
       }
 
@@ -1364,7 +1355,7 @@ async function flatMapArray(
         const mappedLength = mapped.length;
         for (let mappedIndex = 0; mappedIndex < mappedLength; mappedIndex += 1) {
           options.budget.visitNode();
-          if (!(mappedIndex in mapped)) {
+          if (!await hasArrayElement(mapped, mappedIndex, options)) {
             continue;
           }
 
@@ -1410,7 +1401,7 @@ async function appendFlattenedEntries(
 ): Promise<number> {
   for (let index = 0; index < length; index += 1) {
     options.budget.visitNode();
-    if (!(index in value)) {
+    if (!await hasArrayElement(value, index, options)) {
       continue;
     }
 
@@ -1440,7 +1431,7 @@ async function sortArray(
   try {
     for (let index = 0; index < length; index += 1) {
       options.budget.visitNode();
-      if (!(index in value)) {
+      if (!await hasArrayElement(value, index, options)) {
         continue;
       }
 
@@ -1479,7 +1470,7 @@ async function sortArray(
 
     for (let index = definedValues.length + undefinedCount; index < length; index += 1) {
       options.budget.visitNode();
-      deleteArrayElement(value, index, options);
+      await deleteArrayElement(value, index, options);
     }
   } finally {
     options.budget.setRetainedValues(definedValues, undefined);
@@ -1529,16 +1520,16 @@ async function callArrayCallback(
   );
 }
 
-function findNextDefinedIndex(
+async function findNextDefinedIndex(
   value: ArrayLikeValue,
   startIndex: number,
   direction: 1 | -1,
   length: number,
-  budget: Budget
-): number {
+  options: ArrayMethodOptions
+): Promise<number> {
   for (let index = startIndex; direction > 0 ? index < length : index >= 0; index += direction) {
-    budget.visitNode();
-    if (index in value) {
+    options.budget.visitNode();
+    if (await hasArrayElement(value, index, options)) {
       return index;
     }
   }

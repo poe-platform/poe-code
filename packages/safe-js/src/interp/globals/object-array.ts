@@ -3,6 +3,7 @@ import { guestProxyStates } from "../guest-proxy.js";
 import { sandboxIsExtensible, sandboxPreventExtensions } from "../guest-proxy-extensibility.js";
 import { sandboxGetPrototypeOf, sandboxSetPrototypeOf } from "../guest-proxy-prototype.js";
 import { sandboxGetOwnPropertyDescriptor } from "../guest-proxy-descriptor.js";
+import { sandboxHasProperty } from "../guest-proxy-has.js";
 import { getGeneratorProperties } from "../generator-properties.js";
 import { accessorAdapter, accessorClosure, readPropertyDescriptor, retainedAccessorClosures } from "../accessors.js";
 import { invokeBuiltinClosure } from "../builtin-call.js";
@@ -756,11 +757,8 @@ export async function propertyDescriptor(
       "get",
       "set"
     ] as const) {
-      if (
-        getSandboxPropertyDescriptor(input, field, budget) === undefined &&
-        !hasOwnSandboxProperty(input, field, false)
-      )
-        continue;
+      const present = sandboxHasProperty(input, field, budget, context);
+      if (!(typeof present === "boolean" ? present : await present)) continue;
       const value = await (context?.getProperty !== undefined
         ? context.getProperty(input, field)
         : getSandboxDataProperty(input, field, budget));

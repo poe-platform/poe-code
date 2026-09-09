@@ -3962,6 +3962,20 @@ extension, integration, or validation requirement is missing or unverified.
   Native iterator types/introspection, pickle/state restoration, range member
   identity, full resource accounting, remaining builtins and SDK/safe-fs remain
   pending.
+- Connected str.find/rfind/index/rindex/count to native attribute lookup and the
+  metered Unicode code-point search engine. The binding validates needle type
+  before bounds, accepts None only for text-search bounds, saturates huge bounds
+  and preserves empty-needle/start-beyond-end behavior. Count remains
+  nonoverlapping; indexing does not reinterpret astral characters or lone
+  surrogates as UTF-16 positions. List/tuple search bounds remain None-rejecting.
+- String-search verification began with nine failing tests. A CPython audit
+  caught the special invalid-None needle diagnostic, reproduced by an exact
+  message test before correction. The 2,440-call compiled-program audit now
+  matches code-point results, bounds and errors, and the 2,264-call tuple-search
+  regression passes. All 3,743 tests in 266 files pass, with scoped lint, source typecheck
+  and selected workspace build. Other string methods, native descriptors, guest index
+  slots, remaining builtins, suspension, accounting and SDK/safe-fs remain
+  unfinished.
 - Next:
   remaining scope/compiler audits, interpreter runtime,
   resource controls, runtime modules, and safe-fs integration. Parsing and static

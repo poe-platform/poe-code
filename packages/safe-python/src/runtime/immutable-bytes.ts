@@ -120,6 +120,26 @@ export class ImmutableBytes implements Iterable<number> {
     return new ImmutableBytes(bytes);
   }
 
+  /** Padding owns one final buffer; sign alignment recognizes only ASCII +/- . */
+  pad(width: bigint, alignment: "left" | "right" | "center" | "sign", fill: number, meter: ExecutionMeter): ImmutableBytes {
+    meter.checkpoint();
+    if (!Number.isInteger(fill) || fill < 0 || fill > 255) throw new RangeError("padding requires a valid byte");
+    if (width <= BigInt(this.length)) return this;
+    if (width > 0xffffffffn) exhaustAllocation(meter);
+    const length = Number(width), padding = length - this.length;
+    const left = alignment === "left" ? 0 : alignment === "center"
+      ? Math.floor(padding / 2) + (padding % 2) * (length % 2) : padding;
+    const sign = alignment === "sign" && (this.#bytes[0] === 43 || this.#bytes[0] === 45) ? 1 : 0;
+    meter.checkpoint(0, length);
+    const bytes = new Uint8Array(length);
+    let offset = 0;
+    if (sign) { meter.checkpoint(); bytes[offset++] = this.#bytes[0]; }
+    for (let index = 0; index < left; index++) { meter.checkpoint(); bytes[offset++] = fill; }
+    for (let index = sign; index < this.length; index++) { meter.checkpoint(); bytes[offset++] = this.#bytes[index]; }
+    while (offset < length) { meter.checkpoint(); bytes[offset++] = fill; }
+    return new ImmutableBytes(bytes);
+  }
+
   concat(other: ImmutableBytes, meter: ExecutionMeter): ImmutableBytes {
     meter.checkpoint();
     if (this.length === 0) return other;

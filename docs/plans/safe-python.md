@@ -4352,6 +4352,20 @@ extension, integration, or validation requirement is missing or unverified.
   transformations, source typecheck, scoped lint and selected workspace build
   pass. Remaining methods, buffer protocols, native
   builtins, suspension, full accounting and SDK/safe-fs remain unfinished.
+- Connected bytes.center/ljust/rjust/zfill with shared text/byte call validation
+  and one exact-size owned byte buffer. Centering uses Python's odd-padding
+  placement; zfill moves zeros after an initial ASCII sign only. Unchanged
+  receivers retain identity, including fresh empty bytes; padded outputs stay
+  fresh, including one-byte results. Fill validation precedes no-op shortcuts.
+- Six native tests first reproduced missing methods. Added exact allocation,
+  immutable export, no-allocation shortcut and byte-domain checks. The compiled
+  audit exposed the bytes-only None fill diagnostic, which now has an exact
+  regression. A total of 8,376 compiled calls, 2,460 string regression calls and
+  196,608 exhaustive source/fill-byte transformations match CPython. All 4,088
+  tests in 305 files, scoped lint, source typecheck and selected workspace build
+  pass. Remaining
+  methods, buffer protocols, native builtins, suspension, full accounting and
+  SDK/safe-fs remain unfinished.
 - Next:
   remaining scope/compiler audits, interpreter runtime,
   resource controls, runtime modules, and safe-fs integration. Parsing and static

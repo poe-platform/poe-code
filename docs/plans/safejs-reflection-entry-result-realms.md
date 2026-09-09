@@ -41,3 +41,22 @@ remain intact. Iterator producers need separate source inspection and tests.
 No runtime or test source changed during this audit. The full SafeJS gate
 continues against the ae5b505ab working-tree source/test fingerprint. No push
 or release occurred.
+
+## Iterator follow-up audit
+
+Further read-only ae5b505ab built probes fail originating Array.prototype
+identity for Uint8Array and Float32Array entry pairs and for
+`[1].values().toArray()`. Separate probes fail originating Object.prototype
+identity for `.next()` result objects from an Array values iterator, Map
+entries iterator, Set values iterator, and string iterator. Native VM controls
+pass all seven. These use the same post-cleanup factory and foreign inspector
+protocol as the first audit.
+
+Source inspection locates Array/typed-array pair allocation in
+methods/array-iterator.ts, which also creates iterator-result records.
+collection-iterator.ts exposes fresh native entry-pair arrays and separately
+creates result records. Keep the pair array, result wrapper, and payload
+identity requirements separate. Extend tests to exhausted results, borrowed
+next methods, restored iterators, and unchanged value/key identity before
+fixing these paths. Iterator.toArray needs its own source regression and must
+not modify values collected from custom iterators.

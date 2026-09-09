@@ -1,13 +1,15 @@
 import { PythonRuntimeError } from "./error.js";
 import type { ExecutionMeter } from "./execution-budget.js";
+import type { ExpressionContext } from "./expression-evaluation.js";
 import { runtimeComparison } from "./runtime-comparison.js";
 import { runtimeIterate } from "./runtime-iteration.js";
-import type { BuiltinFunctionValue, ListValue, RuntimeValues } from "./runtime-values.js";
+import type { BuiltinFunctionValue, ListValue, RuntimeValue, RuntimeValues } from "./runtime-values.js";
 import { runtimeSearchBound } from "./runtime-search-bound.js";
 
-/** Exact list capabilities backed by owned, metered storage. Guest index slots,
- * iterable length hints, descriptors and finalizers belong to the object layer. */
-export function createRuntimeListMethod(receiver: ListValue, name: "append" | "extend" | "insert" | "pop" | "clear" | "reverse" | "copy" | "count" | "remove" | "index" | "__reversed__", values: RuntimeValues, meter: ExecutionMeter): BuiltinFunctionValue {
+/** Exact list capabilities backed by owned, metered storage. Optional iteration
+ * supplies guest acquisition and source hints. Guest index slots, descriptors
+ * and finalizers remain separate object-layer work. */
+export function createRuntimeListMethod(receiver: ListValue, name: "append" | "extend" | "insert" | "pop" | "clear" | "reverse" | "copy" | "count" | "remove" | "index" | "__reversed__", values: RuntimeValues, meter: ExecutionMeter, iteration?: Pick<ExpressionContext<RuntimeValue>, "iterate">): BuiltinFunctionValue {
   meter.checkpoint(1, 64);
   return values.builtinFunction({
     name,
@@ -53,7 +55,7 @@ export function createRuntimeListMethod(receiver: ListValue, name: "append" | "e
       if (name === "append") receiver.items.append(value);
       else if (name === "extend") {
         if (value.kind === "list") receiver.items.extend(value.items);
-        else receiver.items.extendIterator(runtimeIterate(value, values, meter));
+        else receiver.items.extendIterator(iteration === undefined ? runtimeIterate(value, values, meter) : iteration.iterate(value, undefined, true));
       } else {
         const equal = (a: typeof value, b: typeof value) => runtimeComparison("==", a, b, values, meter).value;
         if (name === "count") return values.integer(receiver.items.count(value, equal));

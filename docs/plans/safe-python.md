@@ -6466,6 +6466,19 @@ extension, integration, or validation requirement is missing or unverified.
   build pass. Advisory hints still do not trigger speculative capacity allocation.
   Guest list.extend method wiring, automatic object/builtin assembly and broader
   interpreter/SDK/safe-fs integration remain unfinished.
+- Connected native list.extend attribute lookup and method invocation to the
+  execution's iteration capability. Guest source acquisition/hints now match
+  list +=; exact lists retain storage-level extension and methods return None.
+  Saved bound methods retain the supplied capability without resolving a new
+  target, and partial additions survive iterator failure.
+- Three additional regression cases share the += success/hint-error/next-error
+  checks while verifying method None returns. All 5,028 tests in 438 files pass.
+  All 120 compiled CPython method comparisons match results/errors/traces across
+  direct/indexed receivers, nested calls, saved bound methods, self-extension and
+  failures. Typecheck, scoped lint and selected workspace build pass. Hint-based
+  speculative capacity allocation is still omitted; broader native-method guest
+  protocols, automatic object/builtin assembly and interpreter/SDK/safe-fs work
+  remain unfinished.
 - Next:
   remaining scope/compiler audits, interpreter runtime,
   resource controls, runtime modules, and safe-fs integration. Parsing and static

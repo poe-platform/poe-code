@@ -59,7 +59,7 @@ import { isRuntimeSet, type RuntimeValue, type RuntimeValues } from "./runtime-v
  * Custom object policies can replace this operation in expression bindings.
  * Type descriptors, inherited object members and native introspection remain
  * separate from these instance-bound container capabilities. */
-export function runtimeNativeAttribute(receiver: RuntimeValue, name: string, values: RuntimeValues, meter: ExecutionMeter, beginCall?: ExpressionContext<RuntimeValue>["beginCall"], formatting?: FormatContext<RuntimeValue>): RuntimeValue {
+export function runtimeNativeAttribute(receiver: RuntimeValue, name: string, values: RuntimeValues, meter: ExecutionMeter, beginCall?: ExpressionContext<RuntimeValue>["beginCall"], formatting?: FormatContext<RuntimeValue>, iteration?: Pick<ExpressionContext<RuntimeValue>, "iterate">): RuntimeValue {
   meter.checkpoint();
   if (receiver.kind === "str" && (name === "format" || name === "format_map")) {
     const context = formatting ?? createRuntimeFormatContext(values, meter, { defaultRepr() { throw new UnsupportedExpressionError("attribute"); } });
@@ -133,7 +133,7 @@ export function runtimeNativeAttribute(receiver: RuntimeValue, name: string, val
     if (name === "sort") return createRuntimeListSortMethod(receiver, values, meter, beginCall);
     switch (name) {
       case "append": case "extend": case "insert": case "pop": case "clear": case "reverse": case "copy": case "count": case "remove": case "index": case "__reversed__":
-        return createRuntimeListMethod(receiver, name, values, meter);
+        return createRuntimeListMethod(receiver, name, values, meter, iteration);
     }
   }
   if (receiver.kind === "dict" || receiver.kind === "mappingproxy") {

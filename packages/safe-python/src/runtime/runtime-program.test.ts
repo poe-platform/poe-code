@@ -39,8 +39,11 @@ function fixture(source: string, maxSteps = 100000, signal?: AbortSignal) {
 }
 
 describe("assembled concrete runtime programs", () => {
-  it.each(["success", "hint-error", "next-error"])("extends lists in place through guest iteration and source hints: %s", mode => {
-    const state = fixture("x=[0]\nalias=x\nx += guest\n"), v = state.values, guest = v.cell({}), cursor = v.cell({}), events: string[] = [];
+  it.each([
+    ["success", false], ["hint-error", false], ["next-error", false],
+    ["success", true], ["hint-error", true], ["next-error", true]
+  ] as const)("extends lists through guest iteration and source hints (%s, method=%s)", (mode, method) => {
+    const state = fixture(`x=[0]\nalias=x\n${method ? "result=x.extend(guest)" : "x += guest"}\n`), v = state.values, guest = v.cell({}), cursor = v.cell({}), events: string[] = [];
     const stop = new PythonRuntimeError("StopIteration", "done"), failure = new PythonRuntimeError("ValueError", "extension failed");
     let index = 0;
     const iteration: IterationContext<RuntimeValue> = {
@@ -58,6 +61,7 @@ describe("assembled concrete runtime programs", () => {
     };
     state.globals.set("guest", guest); state.hooks.expressions = () => ({ warn() {}, iteration });
     if (mode === "success") state.run(); else expect(() => state.run()).toThrow(failure);
+    if (method && mode === "success") expect(state.globals.get("result")).toBe(v.none);
     const list = state.globals.get("x");
     expect(list).toBe(state.globals.get("alias"));
     if (list?.kind !== "list") throw new Error("expected list");

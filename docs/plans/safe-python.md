@@ -6410,6 +6410,21 @@ extension, integration, or validation requirement is missing or unverified.
   dependent, not an exact CPython compatibility claim. The pow builtin, guest
   binary/ternary power dispatch and broader interpreter/object/SDK/safe-fs
   integration remain unfinished.
+- Added pow builtin binding for base/exp/mod and shared exact-native runtime
+  power dispatch. Omitted/None mod uses ordinary ** kernels; integer mod uses
+  metered modular power. Distinct native ternary slots retain their ordering,
+  including float-modulus rejection and complex conversion-before-modulo errors.
+  Required arguments are checked before duplicate-keyword diagnostics.
+- An explicit execution-owned power capability supports complete guest numeric
+  dispatch and unrestricted results; it receives original operands and canonical
+  None for an omitted modulus. Automatic guest binary/ternary slot assembly is
+  still unfinished rather than hidden behind native fallback or index coercion.
+- Five tests cover native families, inverses, keyword/error precedence, guest
+  forwarding and cancellation. All 5,010 tests in 438 files pass. All 988 compiled
+  CPython comparisons match across module/nested calls and native ternary type
+  combinations. Typecheck, scoped lint and selected workspace build pass. Existing
+  transcendental rounding differences remain; automatic builtin/object assembly
+  and broader interpreter/SDK/safe-fs integration remain unfinished.
 - Next:
   remaining scope/compiler audits, interpreter runtime,
   resource controls, runtime modules, and safe-fs integration. Parsing and static

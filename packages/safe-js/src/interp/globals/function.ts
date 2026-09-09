@@ -34,7 +34,7 @@ export function createFunctionPrototype(budget: Budget, installHasInstance = tru
           callClosure: (target, values, stack, thisValue, construct, newTarget) =>
             context?.invokeClosure !== undefined
               ? context.invokeClosure(target, values, thisValue, construct, newTarget)
-              : invokeBuiltinClosure(target, values, budget, { ...context, stack, thisValue, newTarget }, thisValue, construct)
+              : invokeBuiltinClosure(target, values, budget, { ...context, stack, thisValue, newTarget }, thisValue, construct, newTarget)
         }, context?.stack ?? [], context)
       })
     });

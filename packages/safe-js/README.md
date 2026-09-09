@@ -570,6 +570,8 @@ callable identity but rejects calls. Constructible Proxies support construct tra
 target forwarding, and explicit `new.target`, including subclass construction.
 Exported SDK `Reflect.construct` also preserves explicit constructor identity
 through ordinary, bound, and Proxy targets, including accessor-backed traps.
+SDK-created bound functions also retain explicit `newTarget` through nested
+bindings while preserving the normal default-constructor substitution.
 
 `Array.isArray` follows nested Proxy targets without invoking traps and rejects
 revoked proxies. Other internal array-identity consumers still need integration.

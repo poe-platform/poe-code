@@ -4299,6 +4299,21 @@ extension, integration, or validation requirement is missing or unverified.
   String/integer interning,
   compound constant folding, future bytes constructors/methods and buffer
   protocols, full accounting, suspension and SDK/safe-fs remain unfinished.
+- Connected bytes.join using existing iterator collection and an exact-size
+  immutable byte join kernel. Generic iterables are exhausted before member
+  validation, preserving next-error precedence and immediate post-next
+  cancellation. Validated parts are copied into one output buffer after size
+  checks. A singleton bytes member retains identity, including a fresh empty;
+  multi-item nonempty results stay fresh and empty output is canonical.
+- Twelve native/storage tests first failed for missing join support. All 4,052
+  tests in 300 files pass, including exact allocation, immutable exports,
+  generic iteration errors and copy-loop budgets. A 5,304-call compiled CPython
+  audit matches values, identity, container forms and errors; the 1,200-call
+  string-join regression, scoped lint, source typecheck and selected workspace
+  build pass. Guest buffer protocols,
+  length hints, remaining bytes/text/numeric methods and native builtins,
+  string/integer interning, suspension, full accounting and SDK/safe-fs remain
+  unfinished.
 - Next:
   remaining scope/compiler audits, interpreter runtime,
   resource controls, runtime modules, and safe-fs integration. Parsing and static

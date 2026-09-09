@@ -26,6 +26,7 @@ import { createRuntimeBytesClassificationMethod } from "./runtime-bytes-classifi
 import { createRuntimeBytesSearchMethod } from "./runtime-bytes-search-method.js";
 import { createRuntimeBytesAffixMethod } from "./runtime-bytes-affix-method.js";
 import { createRuntimeBytesCutMethod } from "./runtime-bytes-cut-method.js";
+import { createRuntimeBytesJoinMethod } from "./runtime-bytes-join-method.js";
 import { createRuntimeStringClassificationMethod } from "./runtime-string-classification-method.js";
 import type { ExpressionContext } from "./expression-evaluation.js";
 import { isRuntimeSet, type RuntimeValue, type RuntimeValues } from "./runtime-values.js";
@@ -38,6 +39,7 @@ import { isRuntimeSet, type RuntimeValue, type RuntimeValues } from "./runtime-v
 export function runtimeNativeAttribute(receiver: RuntimeValue, name: string, values: RuntimeValues, meter: ExecutionMeter, beginCall?: ExpressionContext<RuntimeValue>["beginCall"]): RuntimeValue {
   meter.checkpoint();
   if (receiver.kind === "bytes") {
+    if (name === "join") return createRuntimeBytesJoinMethod(receiver, values, meter);
     if (name === "removeprefix" || name === "removesuffix" || name === "partition" || name === "rpartition") return createRuntimeBytesCutMethod(receiver, name, values, meter);
     if (name === "startswith" || name === "endswith") return createRuntimeBytesAffixMethod(receiver, name, values, meter);
     if (name === "upper" || name === "lower" || name === "title" || name === "capitalize" || name === "swapcase") return createRuntimeBytesCaseMethod(receiver, name, values, meter);

@@ -1,4 +1,4 @@
-import type { ExecutionMeter } from "./execution-budget.js";
+import { exhaustAllocation, type ExecutionMeter } from "./execution-budget.js";
 import { PythonRuntimeError } from "./error.js";
 import { normalizeSlice } from "./integer-sequence.js";
 import { searchSubstring, type SearchMode } from "./substring-search.js";
@@ -98,6 +98,27 @@ export class ImmutableBytes implements Iterable<number> {
     const bytes = new Uint8Array(this.length + other.length);
     for (let i = 0; i < this.length; i++) { meter.checkpoint(); bytes[i] = this.#bytes[i]; }
     for (let i = 0; i < other.length; i++) { meter.checkpoint(); bytes[this.length + i] = other.#bytes[i]; }
+    return new ImmutableBytes(bytes);
+  }
+
+  /** Size all validated parts before allocating a single owned output buffer. */
+  join(parts: readonly ImmutableBytes[], meter: ExecutionMeter): ImmutableBytes {
+    meter.checkpoint();
+    if (parts.length === 1) return parts[0];
+    let length = 0;
+    for (let index = 0; index < parts.length; index++) {
+      meter.checkpoint();
+      length += parts[index].length + (index === 0 ? 0 : this.length);
+      if (!Number.isSafeInteger(length) || length > 0xffffffff) exhaustAllocation(meter);
+    }
+    meter.checkpoint(0, length);
+    const bytes = new Uint8Array(length);
+    let offset = 0;
+    for (let index = 0; index < parts.length; index++) {
+      meter.checkpoint();
+      if (index !== 0) for (const byte of this.#bytes) { meter.checkpoint(); bytes[offset++] = byte; }
+      for (const byte of parts[index].#bytes) { meter.checkpoint(); bytes[offset++] = byte; }
+    }
     return new ImmutableBytes(bytes);
   }
 

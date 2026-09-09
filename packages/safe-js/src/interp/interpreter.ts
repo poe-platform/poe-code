@@ -4658,6 +4658,9 @@ async function invokeSandboxClosure(
     }
     const invoke = construct ? callee.construct : callee.call;
     if (invoke === undefined) throw new TypeError("Value is not a constructor.");
+    const realm = functionRealms.get(callee);
+    const compilation = realm !== undefined && realm !== activeFunctionRealmPrototypes.get(context.budget)
+      ? intrinsicRealmContexts.get(realm)?.compilation : context.compilation;
     const result = Reflect.apply(invoke, undefined, [
       args,
       {
@@ -4667,7 +4670,7 @@ async function invokeSandboxClosure(
         evaluateEval: (source: string, realm?: SandboxClosure) => evaluateGuestEval(source, context, directEval, realm),
         createDynamicFunction: (kind: import("../parse/parser.js").DynamicFunctionKind, parameters: string, body: string, realm?: SandboxClosure) =>
           compileGuestDynamicFunction(context, kind, parameters, body, realm),
-        compilation: context.compilation,
+        compilation,
         getProperty: (value: SandboxValue, property: string | number) =>
           getPropertyValue(value, property, context),
         reconcileData: (value: SandboxValue) =>

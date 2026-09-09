@@ -4457,6 +4457,20 @@ extension, integration, or validation requirement is missing or unverified.
   Scoped lint, source typecheck and selected workspace build also pass.
   Remaining numeric/text methods, buffer protocols, native builtins, suspension,
   full accounting and SDK/safe-fs remain unfinished.
+- Connected int/bool/float.as_integer_ratio through the existing exact binary64
+  decoder. Integer numerators retain receiver identity, bool numerators become
+  ints, signed zero becomes 0/1, and non-finite values preserve Python errors.
+  The decoder now accepts an optional meter for reduction-loop checkpoints,
+  bounded decoding storage and result payload charging. Complete host BigInt
+  object-overhead accounting remains unfinished.
+- Five native tests first reproduced missing methods. All 4,142 tests in 313
+  files pass, including subnormal/minimum and maximum floats, exact decimal
+  binary ratios, argument precedence, integer identity and reduction budgets.
+  A 2,726-program compiled CPython audit compares exact integer outputs and
+  20,480 binary64 exponent-boundary cases match ratios/errors. Scoped lint,
+  source typecheck and selected workspace build pass. Remaining numeric/text
+  methods, buffer protocols, native builtins, suspension, full accounting and
+  SDK/safe-fs remain unfinished.
 - Next:
   remaining scope/compiler audits, interpreter runtime,
   resource controls, runtime modules, and safe-fs integration. Parsing and static

@@ -5868,6 +5868,18 @@ extension, integration, or validation requirement is missing or unverified.
   non-Latin-1, surrogate and longer strings across the changed methods, including
   fresh source/no-op behavior. Typecheck, scoped lint and selected workspace
   build pass. Other string-result policies and broader interpreter work remain open.
+- Added explicitly registered chr with exact native integer/Boolean handling
+  and optional guest integer-index capabilities. Public keyword/arity checks
+  precede conversion; arbitrary-size indices receive Unicode range errors rather
+  than machine-integer overflow. Surrogates remain individual code points and
+  Latin-1 characters use canonical construction. Guest slot warnings and errors
+  remain owned by the supplied index context, with cancellation checkpoints.
+- Five tests first exposed the missing builtin module. All 4,741 tests in 410
+  files pass. A 1,274-program CPython comparison covers output, cached/fresh
+  identity, surrogates, range limits, huge integers and public argument errors.
+  Typecheck, scoped lint and selected workspace build pass. Automatic builtin namespace
+  assembly, remaining numeric-format identity policies and broader integration
+  remain unfinished.
 - Next:
   remaining scope/compiler audits, interpreter runtime,
   resource controls, runtime modules, and safe-fs integration. Parsing and static

@@ -110,6 +110,20 @@ export class OrderedKeyMap<Key, Value> {
     this.#last = undefined;
   }
 
+  /** Copy live entries and their cached hashes without invoking guest methods.
+   * Key/value references are shared, but buckets, entries and links are fresh.
+   * The copy stays in the same runtime/hash-policy and execution-budget domain.
+   */
+  copy(): OrderedKeyMap<Key, Value> {
+    this.meter.checkpoint();
+    const result = new OrderedKeyMap<Key, Value>(this.operations, this.meter);
+    for (const entry of this.#entries) {
+      this.meter.checkpoint();
+      result.#insert(entry.key, entry.hash, entry.value);
+    }
+    return result;
+  }
+
   /** Capture iteration state now, not lazily on the first next call. */
   iterate<Result>(project: (key: Key, value: Value) => Result): OrderedMapIterator<Key, Value, Result> {
     return new OrderedMapIterator(this.#entries, project, this.meter);

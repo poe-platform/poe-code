@@ -2362,6 +2362,16 @@ extension, integration, or validation requirement is missing or unverified.
   the previously documented 1,495/1,512 exact trace matches and the same 17
   size-preserving table-compaction differences. Guest methods/reverse iteration
   and full host heap accounting remain unfinished.
+- Added shallow ordered-map copying that preserves live-entry order, original
+  key/value references and cached hashes without guest hash/equality calls.
+  Copies allocate fresh buckets, entries and links in the same runtime/hash-policy
+  and budget domain; mutating either storage does not affect the other. Allocation
+  failure leaves the source intact and never publishes a partial copy.
+- Copy regressions failed before implementation. All 2,664 tests in 156 files
+  pass; a 10,000-operation CPython audit with copy/default/pop/popitem matched
+  copied and source state under seeded hashes and forced collisions. Source
+  typecheck, scoped lint and selected workspace build passed. Guest
+  dictionary method exposure and full host allocation accounting remain pending.
 - Next:
   remaining scope/compiler audits, interpreter runtime,
   resource controls, runtime modules, and safe-fs integration. Parsing and static

@@ -36,7 +36,8 @@ it("retains backing storage during copying and validates direct receivers", asyn
     const result=method.call([],{stack:[],thisValue:receiver}) as Float32Array;
     expect(Array.from(result)).toEqual([2,1]);
     expect(result.buffer).not.toBe(receiver.buffer);
-    expect(spy).toHaveBeenCalledTimes(2);
+    // Two element copies plus validation of the three intrinsic prototype links.
+    expect(spy).toHaveBeenCalledTimes(5);
   } finally { spy.mockRestore(); }
   expect(measureSandboxData(budget.retainedValues())).toBeLessThan(1000);
   structuredClone(receiver.buffer,{transfer:[receiver.buffer]});

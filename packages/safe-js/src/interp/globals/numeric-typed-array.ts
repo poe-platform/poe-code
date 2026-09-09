@@ -443,12 +443,15 @@ export function getTypedArrayMember(
       const storage = typedArrayStorage(receiver, key === "sort" || key === "toSorted" || key === "with" || key === "reduce" || key === "reduceRight" || key === "map" || key === "filter" || key === "slice" || key === "fill" || key === "copyWithin" || key === "reverse" || key === "toReversed" || key === "at" || key === "includes" || key === "indexOf" || key === "lastIndexOf" || key === "forEach" || key === "every" || key === "some" || key === "find" || key === "findIndex" || key === "findLast" || key === "findLastIndex" || key === "toLocaleString");
       const elementPrototype = hasBigIntContent(storage.Native) ? bigintPrototype : numberPrototype;
       const defaultConstructor = bindings?.[storage.Native.name as keyof typeof bindings];
+      const prototypeValue = defaultConstructor === undefined ? undefined : getSandboxDataProperty(defaultConstructor, "prototype", budget);
+      const resultPrototype = prototypeValue !== null && typeof prototypeValue === "object" ? prototypeValue : undefined;
       if (key === "toReversed") {
         let result: NumericTypedArray | undefined;
         const release = retainValues(budget, () => [receiver, result, ...args]);
         try {
           checkTypedArrayAllocation(storage.length, budget, storage.elementSize);
           result = new storage.Native(storage.length);
+          if (resultPrototype !== undefined) setSandboxPrototype(result, resultPrototype, budget);
           createDataCheckpoint(budget, context)(result, 0, true);
           for (let index = 0; index < storage.length; index++) {
             budget.visitNode();
@@ -494,6 +497,7 @@ export function getTypedArrayMember(
           try {
             checkTypedArrayAllocation(storage.length, budget, storage.elementSize);
             items = new storage.Native(storage.length);
+            if (key === "toSorted" && resultPrototype !== undefined) setSandboxPrototype(items, resultPrototype, budget);
             checkData(items, 0, true);
             for (let index = 0; index < storage.length; index++) {
               budget.visitNode();
@@ -644,6 +648,7 @@ export function getTypedArrayMember(
               throw new RangeError("Float32Array#with index is out of bounds.");
             checkTypedArrayAllocation(storage.length, budget, storage.elementSize);
             result = new storage.Native(storage.length);
+            if (resultPrototype !== undefined) setSandboxPrototype(result, resultPrototype, budget);
             createDataCheckpoint(budget, bridge)(result, 0, true);
             for (let offset = 0; offset < storage.length; offset++) {
               budget.visitNode();
@@ -796,6 +801,7 @@ export function getTypedArrayMember(
           if (key === "subarray") {
             if (result === undefined) {
               result = new storage.Native(storage.buffer, offset, tracking ? undefined : length);
+              if (resultPrototype !== undefined) setSandboxPrototype(result, resultPrototype, budget);
               if (arrayBufferOptions(storage.buffer) !== undefined)
                 typedArrayViewLayouts.set(result, { byteOffset: offset, ...(tracking ? {} : { length }) });
             }
@@ -804,6 +810,7 @@ export function getTypedArrayMember(
           if (result === undefined) {
             checkTypedArrayAllocation(length, budget, storage.elementSize);
             result = new storage.Native(length);
+            if (resultPrototype !== undefined) setSandboxPrototype(result, resultPrototype, budget);
           }
           if (!isNumericTypedArray(result)) throw new TypeError("TypedArray species must return typed storage.");
           if (key === "filter") {

@@ -155,3 +155,22 @@ honoring an explicitly supplied object prototype. Do not count it as repaired
 by restoring Error lookup lifetime. Future regression coverage must distinguish
 those cases and inspect bound/Proxy newTarget behavior and snapshot retention
 before introducing a shared realm-resolution mechanism.
+
+## Error lookup lifetime implementation
+
+Cleanup now preserves the weak-budget Error prototype lookup while continuing
+to release intrinsic accounting roots. Exported constructors therefore keep
+their native descriptor path and captured/custom prototype behavior after a
+run ends. The change does not implement foreign newTarget fallback resolution
+or link AggregateError errors arrays.
+
+The Error lifetime, intrinsic-prototype, string-coercion and retained-root
+accounting files pass all 85 tests, including the ten newly failing lifetime
+checks and the passing legacy-mode control. Broader Error/recovery validation
+passes 154 tests across ten files (overlapping the earlier focused run).
+The lifetime file then passes 13 cases after adding public replay and
+SuppressedError descriptor/payload controls. Scoped lint and TypeScript pass.
+The maintained build passes 23 workspace builds and four fresh-process import
+checks. Built-SDK probes pass all eight native-comparable Error lifetime cases
+and the Promise.any errors-descriptor case. No full-package pass, push or
+release is claimed.

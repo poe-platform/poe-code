@@ -634,6 +634,9 @@ prototype through yielding, early return, exhaustion and public replay.
 `Promise.any` rejection errors expose a writable, configurable, non-enumerable
 `errors` property, including empty input and public replay. Rejection elements
 retain their identity.
+Error constructors called through exported closures after cleanup retain their
+originating prototypes and non-enumerable fields. Explicit custom newTarget
+prototypes remain supported; foreign-realm default fallback still needs work.
 `Iterator.from` fallback return results retain the called method's Object
 prototype when the underlying return method is absent or null. Custom next
 and return results are forwarded unchanged.

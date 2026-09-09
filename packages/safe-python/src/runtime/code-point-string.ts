@@ -156,6 +156,35 @@ export class CodePointString implements Iterable<number> {
     return new CodePointString(points, meter, ownedPoints);
   }
 
+  /** Escape only non-ASCII points of an already-produced representation. ASCII
+   * syntax/controls stay literal; unchanged immutable storage can be shared. */
+  escapeAscii(meter: ExecutionMeter): CodePointString {
+    meter.checkpoint();
+    let length = 0;
+    for (const point of this.#points) {
+      meter.checkpoint();
+      length += point < 128 ? 1 : point <= 255 ? 4 : point <= 65535 ? 6 : 10;
+      if (length > 0xffffffff) exhaustAllocation(meter);
+    }
+    if (length === this.length) return this;
+    meter.checkpoint(0, length * Uint32Array.BYTES_PER_ELEMENT);
+    const points = new Uint32Array(length);
+    let offset = 0;
+    for (const point of this.#points) {
+      meter.checkpoint();
+      if (point < 128) { points[offset++] = point; continue; }
+      const digits = point <= 255 ? 2 : point <= 65535 ? 4 : 8;
+      points[offset++] = 92;
+      points[offset++] = digits === 2 ? 120 : digits === 4 ? 117 : 85;
+      for (let shift = (digits - 1) * 4; shift >= 0; shift -= 4) {
+        meter.checkpoint();
+        const digit = point >>> shift & 15;
+        points[offset++] = digit < 10 ? 48 + digit : 87 + digit;
+      }
+    }
+    return new CodePointString(points, meter, ownedPoints);
+  }
+
   /** Python str repr/ascii with pinned Unicode printability and sole ownership
    * of the shared renderer's fresh, preflighted code-point buffer. */
   repr(ascii: boolean, meter: ExecutionMeter): CodePointString {

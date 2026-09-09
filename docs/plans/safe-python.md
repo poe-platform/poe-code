@@ -5073,6 +5073,18 @@ extension, integration, or validation requirement is missing or unverified.
   dispatch, representation protocols, guest identity wrapping and binary percent
   integration remain unfinished. Full guest objects, suspended execution,
   complete accounting and SDK/safe-fs integration remain outstanding.
+- Added non-ASCII escaping of already-produced representation text for ascii()
+  and percent %a consumers. ASCII controls, quotes and backslashes remain literal;
+  non-ASCII points use lowercase hex x/u/U escapes without combining surrogates.
+  ASCII-only immutable storage is shared, while changed output is preflighted
+  and adopted from one exact-sized buffer.
+- Six tests first failed on the missing storage operation. All 4,439 tests in
+  355 files pass. Chunked output hashes match CPython ascii() over custom repr
+  output for all 1,114,112 Unicode code points, including controls and surrogates.
+  Source typecheck, scoped lint and selected workspace build pass. Representation
+  slot dispatch, default percent field dispatch, guest identity wrapping and
+  binary percent integration remain unfinished. Full guest objects, suspended
+  execution, complete accounting and SDK/safe-fs integration remain outstanding.
 - Next:
   remaining scope/compiler audits, interpreter runtime,
   resource controls, runtime modules, and safe-fs integration. Parsing and static

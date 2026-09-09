@@ -20,8 +20,10 @@ export interface IterationContext<Value> {
   typeName(value: Value): string;
 }
 
-/** Resolve once without wrapping a guest iterator or advancing any cursor. */
-export function resolveIteration<Value>(value: Value, context: IterationContext<Value>, meter: ExecutionMeter): { value: Value; sequence: boolean } {
+/** Resolve once without wrapping a guest iterator or advancing any cursor.
+ * A consumer may specialize only the absent-slot diagnostic; invocation,
+ * binding and invalid-iterator errors never enter that callback. */
+export function resolveIteration<Value>(value: Value, context: IterationContext<Value>, meter: ExecutionMeter, notIterable?: (typeName: string) => never): { value: Value; sequence: boolean } {
   meter.checkpoint(1, 64);
   const iter = context.lookupIter(value);
   meter.checkpoint();
@@ -30,6 +32,7 @@ export function resolveIteration<Value>(value: Value, context: IterationContext<
     meter.checkpoint();
     if (!sequence) {
       const name = context.typeName(value); meter.checkpoint();
+      if (notIterable !== undefined) return notIterable(name);
       throw new PythonRuntimeError("TypeError", `'${name}' object is not iterable`);
     }
     return { value, sequence: true };
@@ -55,8 +58,8 @@ export class ProtocolIterator<Value> implements IterableIterator<Value> {
   readonly #source: { value: Value } | undefined;
   readonly #sequence: SequenceIterator<Value> | undefined;
 
-  constructor(value: Value, private readonly context: IterationContext<Value>, private readonly meter: ExecutionMeter) {
-    const source = resolveIteration(value, context, meter);
+  constructor(value: Value, private readonly context: IterationContext<Value>, private readonly meter: ExecutionMeter, notIterable?: (typeName: string) => never) {
+    const source = resolveIteration(value, context, meter, notIterable);
     this.#source = source.sequence ? undefined : source;
     this.#sequence = source.sequence ? new SequenceIterator(source.value, context, meter) : undefined;
   }

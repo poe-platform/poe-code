@@ -37,6 +37,25 @@ function fixture(source: string, maxSteps = 100000, signal?: AbortSignal) {
 }
 
 describe("assembled concrete runtime programs", () => {
+  it.each(["result=[*None]\n", "result=(*None,)\n"])("reports absent iteration in starred displays: %s", source => {
+    const state = fixture(source);
+    expect(state.run).toThrow("Value after * must be an iterable, not NoneType");
+  });
+  it.each([
+    "a,b=guest\n", "result=(*guest,)\n", "result=[*guest]\n",
+    "def f(*args):\n return args\nresult=f(*guest)\n",
+    "def f(*args):\n return args\nresult=f(1,*guest)\n"
+  ])("preserves guest iterator acquisition failures: %s", source => {
+    const state = fixture(source), v = state.values, guest = v.cell({});
+    const failure = new PythonRuntimeError("TypeError", "inside guest iter");
+    const unused = (): never => { throw Error("unexpected callback"); };
+    const iteration: IterationContext<RuntimeValue> = {
+      lookupIter: () => () => { throw failure; }, hasNext: unused, next: unused,
+      hasSequenceItem: unused, getItem: unused, isStopIteration: () => false, isIndexError: () => false, typeName: () => "Guest"
+    };
+    state.globals.set("guest", guest); state.hooks.expressions = () => ({ warn() {}, iteration });
+    expect(state.run).toThrow(failure); expect(state.calls.depth).toBe(0);
+  });
   it.each([
     "total=0\nfor item in guest:\n total=total+item\nresult=total\n",
     "a,b=guest\nresult=(a,b)\n",

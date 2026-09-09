@@ -44,15 +44,11 @@ export function beginRuntimeCall(callee: RuntimeValue, context: RuntimeCallConte
   return {
     positional(value) { meter.checkpoint(1, 8); positional.push(value); },
     starred(value, loneStar = false) {
-      let iterator: Iterator<RuntimeValue>;
-      try { iterator = runtimeIterate(value, context.values, meter, context.iteration); }
-      catch (error) {
-        if (!(error instanceof PythonRuntimeError) || error.name !== "TypeError") throw error;
-        const name = value.kind === "none" ? "NoneType" : value.kind === "not-implemented" ? "NotImplementedType" : value.kind;
+      const iterator = runtimeIterate(value, context.values, meter, context.iteration, name => {
         const prefix = loneStar ? `${context.name(callee)} argument after` : "Value after";
         meter.checkpoint();
         throw new PythonRuntimeError("TypeError", `${prefix} * must be an iterable, not ${name}`);
-      }
+      });
       while (true) {
         meter.checkpoint(); const item = iterator.next(); meter.checkpoint();
         if (item.done) return;

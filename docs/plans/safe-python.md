@@ -6114,10 +6114,16 @@ extension, integration, or validation requirement is missing or unverified.
   tests in 426 files pass. A 48-program CPython comparison matches outputs,
   fixed-unpack errors and exact iterator acquisition/pull traces for input sizes
   zero through seven. Typecheck, scoped lint and selected workspace build pass.
-- Next error-path work: CPython propagates a TypeError raised inside guest
-  __iter__ during unpacking and starred calls; current wrappers catch broad
-  TypeErrors and can replace that failure. Distinguish genuine non-iterability
-  from guest acquisition exceptions. Length-hint and extended-unpack iterator
+- Preserved guest iterator-acquisition exceptions in assignment unpacking and
+  starred calls. Consumers now specialize diagnostics only when iteration and
+  sequence slots are absent, without catching guest slot failures (including
+  nested non-iterability errors). Starred list/tuple displays also use the
+  appropriate absent-iteration diagnostic.
+- Seven regression cases cover guest TypeErrors and absent iteration in starred
+  displays. All 4,855 tests in 426 files pass. CPython comparisons match 30
+  acquisition-failure programs, 48 valid guest-iteration programs and 90
+  containment-protocol cases, including callback traces. Typecheck, scoped lint
+  and selected workspace build pass. Length-hint and extended-unpack iterator
   reacquisition behavior, concrete objects and broader SDK/safe-fs work remain
   unfinished.
 - Next:

@@ -15,7 +15,7 @@ import { ProtocolIterator, type IterationContext } from "./protocol-iterator.js"
  * Iterator type objects and full object wiring remain external. The values
  * factory and storage must use this execution's meter.
  */
-export function runtimeIterate(value: RuntimeValue, values: ConstantValues, meter: ExecutionMeter, protocol?: IterationContext<RuntimeValue>): CompletionIterator<RuntimeValue> {
+export function runtimeIterate(value: RuntimeValue, values: ConstantValues, meter: ExecutionMeter, protocol?: IterationContext<RuntimeValue>, notIterable?: (typeName: string) => never): CompletionIterator<RuntimeValue> {
   meter.checkpoint();
   switch (value.kind) {
     case "set": case "frozenset":
@@ -30,8 +30,9 @@ export function runtimeIterate(value: RuntimeValue, values: ConstantValues, mete
     case "range": return createRuntimeRangeIterator(value.value, false, values, meter);
     case "tuple": case "str": case "bytes": return new ConstantIterator<RuntimeValue>(value, values, meter);
     default: {
-      if (protocol !== undefined) return new ProtocolIterator(value, protocol, meter);
+      if (protocol !== undefined) return new ProtocolIterator(value, protocol, meter, notIterable);
       const type = value.kind === "none" ? "NoneType" : value.kind === "not-implemented" ? "NotImplementedType" : value.kind;
+      if (notIterable !== undefined) return notIterable(type);
       throw new PythonRuntimeError("TypeError", `'${type}' object is not iterable`);
     }
   }

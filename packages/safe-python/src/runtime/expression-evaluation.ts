@@ -1,5 +1,6 @@
 import type { DictionaryEntry, Expression } from "../ast.js";
 import type { ExecutionMeter } from "./execution-budget.js";
+import { PythonRuntimeError } from "./error.js";
 import { evaluateCallArguments, type ExpressionCall } from "./call-arguments.js";
 import { evaluateFormattedString, type FormattedStringContext } from "./formatted-string-evaluation.js";
 export type { ExpressionCall } from "./call-arguments.js";
@@ -58,8 +59,9 @@ export interface ExpressionContext<Value> {
   getItem(object: Value, key: Value): Value;
   /** Adapt the guest iteration protocol to next/done. Internal guest calls and
    * allocations remain metered by the context; the evaluator meters each next.
-   */
-  iterate(value: Value): Iterator<Value>;
+   * Optional consumer diagnostic for absent iteration/sequence slots only;
+   * exceptions from existing guest slots must propagate unchanged. */
+  iterate(value: Value, notIterable?: (typeName: string) => never): Iterator<Value>;
   /** Create a fresh guest function using the compiled code for this exact AST
    * node and capture the defining environment. Do not execute the lambda body.
    * Defaults have normalized source keys, retaining original value identities;
@@ -288,7 +290,9 @@ export function evaluateExpression<Value>(expression: Expression, context: Expre
               work.push(nextPart);
             } else if (item.kind === "unpack") {
               work.push(() => {
-                const iterator = context.iterate(value);
+                const iterator = context.iterate(value, name => {
+                  throw new PythonRuntimeError("TypeError", `Value after * must be an iterable, not ${name}`);
+                });
                 const nextValue = () => {
                   const entry = iterator.next();
                   if (entry.done) work.push(nextItem);

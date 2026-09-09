@@ -33,16 +33,9 @@ export function createRuntimeStatementContext(expressions: ExpressionContext<Run
     evaluate: expression => evaluateExpression(expression, expressions, meter),
     store: expressions.store.bind(expressions), list: expressions.list.bind(expressions), resolve,
     unpack(value, before, after) {
-      let iterator: Iterator<RuntimeValue>;
-      try { iterator = expressions.iterate(value); }
-      catch (error) {
-        if (error instanceof PythonRuntimeError && error.name === "TypeError" &&
-            value.kind !== "list" && value.kind !== "tuple" && value.kind !== "range" && value.kind !== "iterator" && value.kind !== "str" && value.kind !== "bytes" && value.kind !== "dict") {
-          const name = value.kind === "none" ? "NoneType" : value.kind === "not-implemented" ? "NotImplementedType" : value.kind;
-          throw new PythonRuntimeError("TypeError", `cannot unpack non-iterable ${name} object`);
-        }
-        throw error;
-      }
+      const iterator = expressions.iterate(value, name => {
+        throw new PythonRuntimeError("TypeError", `cannot unpack non-iterable ${name} object`);
+      });
       return unpackAssignment(iterator, before, after, meter);
     }
   };

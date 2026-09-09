@@ -1790,6 +1790,24 @@ extension, integration, or validation requirement is missing or unverified.
   typecheck, scoped lint and selected build passed. The concrete builtin builder's
   connection to base resolution, prepared class frames and metaclass construction,
   guest object representation and complete heap accounting remain unfinished.
+- Connected builtin class building across argument validation, original-base tuple
+  assembly, base resolution, namespace preparation, body execution and construction.
+  Successful bodies precede __orig_bases__ mapping assignment; only changed bases
+  trigger that assignment, and failures preserve prior effects. The exact captured
+  body cell reaches construction validation. Preparation/construction now accept a
+  generic name representation, preserving guest string-subclass identity instead
+  of reducing names to host strings. Existing host-string callers remain supported.
+- Builtin-builder validation: missing-module red tests preceded implementation;
+  an additional failing identity test demonstrated and fixed name-object loss.
+  All 2,275 tests in 116 files pass, including 16 new builder cases. A differential
+  probe matched 56 CPython combinations of base-resolution mode, string/subclass
+  names and stage failures, comparing traces, results, exact errors and original-base
+  namespace state. Typecheck, scoped lint and selected build passed. Lifecycle order
+  was also checked against CPython 3.14 Python/bltinmodule.c:
+  https://github.com/python/cpython/blob/3.14/Python/bltinmodule.c
+  Concrete guest values, body-frame execution/metadata and full heap accounting
+  remain unfinished. Directly supplied ordinary function bodies must honor their
+  optimized-locals flags rather than treating every function as class-suite code.
 - Next:
   remaining scope/compiler audits, interpreter runtime,
   resource controls, runtime modules, and safe-fs integration. Parsing and static

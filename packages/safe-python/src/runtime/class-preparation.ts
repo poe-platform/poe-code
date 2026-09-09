@@ -8,7 +8,7 @@ export interface PreparedClass<Value> {
   readonly keywords: ReadonlyMap<string, Value>;
 }
 
-export interface ClassPreparationContext<Value> {
+export interface ClassPreparationContext<Value, Name = string> {
   readonly defaultType: Value & object;
   tupleItems(value: Value): readonly Value[] | undefined;
   /** Internal type flags/MRO/type names, never virtual guest attribute access. */
@@ -19,7 +19,7 @@ export interface ClassPreparationContext<Value> {
   /** Ordinary bound attribute lookup; only AttributeError means absent. */
   lookupPrepare(metaclass: Value): { readonly value: Value } | undefined;
   /** Guest call with name and resolved bases as positional arguments. */
-  callPrepare(hook: Value, name: string, bases: Value, keywords: ReadonlyMap<string, Value>): Value;
+  callPrepare(hook: Value, name: Name, bases: Value, keywords: ReadonlyMap<string, Value>): Value;
   emptyNamespace(): Value;
   /** Internal mapping/subscript protocol flag, not an ABC membership test. */
   isMapping(value: Value): boolean;
@@ -32,9 +32,9 @@ export interface ClassPreparationContext<Value> {
  * callability yet. Guest protocol operations/internal allocation are adapter-owned;
  * body execution, construction, decorators and full heap accounting are separate.
  */
-export function prepareClass<Value>(
-  name: string, bases: Value, keywords: ReadonlyMap<string, Value>,
-  context: ClassPreparationContext<Value>, meter: ExecutionMeter
+export function prepareClass<Value, Name = string>(
+  name: Name, bases: Value, keywords: ReadonlyMap<string, Value>,
+  context: ClassPreparationContext<Value, Name>, meter: ExecutionMeter
 ): PreparedClass<Value> {
   meter.checkpoint();
   const items = context.tupleItems(bases);

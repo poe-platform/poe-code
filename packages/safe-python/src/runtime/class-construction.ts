@@ -3,12 +3,12 @@ import type { ExecutionMeter } from "./execution-budget.js";
 import type { LexicalCell } from "./lexical-frame.js";
 import { PythonRuntimeError } from "./error.js";
 
-export interface ClassConstructionContext<Value> {
-  call(metaclass: Value, name: string, bases: Value, namespace: Value, keywords: ReadonlyMap<string, Value>): Value;
+export interface ClassConstructionContext<Value, Name = string> {
+  call(metaclass: Value, name: Name, bases: Value, namespace: Value, keywords: ReadonlyMap<string, Value>): Value;
   /** Actual type flag; do not invoke virtual instance checks. */
   isType(value: Value): boolean;
   /** Python string repr for the class name, including quote/escape selection. */
-  reprName(name: string): string;
+  reprName(name: Name): string;
   /** Guest repr; failures replace the pending class-cell diagnostic. */
   repr(value: Value): string;
 }
@@ -21,9 +21,9 @@ export interface ClassConstructionContext<Value> {
  * adapter. Decorators, final binding, traceback and full allocation accounting
  * remain separate. Construction or formatting failure never rolls back effects.
  */
-export function constructClass<Value>(
-  name: string, bases: Value, prepared: PreparedClass<Value>, cell: LexicalCell<Value> | undefined,
-  context: ClassConstructionContext<Value>, meter: ExecutionMeter
+export function constructClass<Value, Name = string>(
+  name: Name, bases: Value, prepared: PreparedClass<Value>, cell: LexicalCell<Value> | undefined,
+  context: ClassConstructionContext<Value, Name>, meter: ExecutionMeter
 ): Value {
   meter.checkpoint();
   const result = context.call(prepared.metaclass, name, bases, prepared.namespace, prepared.keywords);

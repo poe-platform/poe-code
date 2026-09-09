@@ -2317,6 +2317,22 @@ extension, integration, or validation requirement is missing or unverified.
   https://docs.python.org/3/library/stdtypes.html#dictionary-view-objects .
   Exact CPython mutation-trace parity is not established; guest views, reverse
   iteration, full container wiring and complete host heap accounting remain open.
+- Added dictionary update-from-pairs execution with exact sequence fast paths
+  and a generic fully materialized row path. Rows are consumed to completion
+  before checking length; error messages include the correct row index/length.
+  Earlier successful insertions persist after later failures, and failed rows
+  do not trigger subsequent outer iteration or implicit iterator closing.
+- Row conversion keeps initial iteration separate from list-style preparation
+  (second iterator lookup and length hint). Initial guest TypeError becomes
+  "object is not iterable"; preparation/next errors retain their original form.
+  The supplied context owns guest protocols and exact list/tuple recognition;
+  the helper charges retained temporary row slots and bounds infinite iterators.
+- Pair-update tests first reproduced missing support. All 2,642 tests in 153
+  files pass; source typecheck, scoped lint and selected workspace build passed.
+  A 600-case CPython differential matched outcomes, partial mapping state and
+  detailed iterator/preparation/hint/next traces. Mapping/keys dispatch, keyword
+  updates, complete guest dict wiring and full temporary-heap accounting remain
+  unfinished.
 - Next:
   remaining scope/compiler audits, interpreter runtime,
   resource controls, runtime modules, and safe-fs integration. Parsing and static

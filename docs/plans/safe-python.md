@@ -3162,6 +3162,21 @@ extension, integration, or validation requirement is missing or unverified.
   passed. Dictionary literals/constructors, concrete call keyword dictionaries,
   guest key slots, complete resource accounting and public execution/safe-fs
   integration remain unfinished.
+- Added concrete dictionary literal construction and exact-dictionary ** unpacking.
+  Expression bindings can supply the execution's shared key policy for the
+  built-in builder or retain an explicit custom builder hook. Construction uses
+  existing chunk/evaluation scheduling, preserves first keys and shared values,
+  and reuses source hashes inside a shared policy domain. ** rejects non-mappings
+  rather than accepting the iterable-pair constructor path. Compiled statements
+  now have an integration test creating and unpacking dictionaries from source,
+  then performing item mutation, alias-preserving augmentation and deletion.
+- All six new display tests first failed because the concrete key-policy path
+  was absent. All 3,298 tests in 216 files pass. A 2,400-case CPython audit matched
+  parsed dictionary displays, nested access/equality, unpacking and errors;
+  the 3,000-case assembled-expression regression also passed. Source typecheck
+  scoped lint and selected workspace build passed. dict constructors/methods, arbitrary guest
+  mapping slots, concrete call keyword dictionaries, complete exception rendering,
+  full resource accounting and public execution/safe-fs integration remain open.
 - Next:
   remaining scope/compiler audits, interpreter runtime,
   resource controls, runtime modules, and safe-fs integration. Parsing and static

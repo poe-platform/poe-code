@@ -9,14 +9,19 @@ import { runtimeMembership } from "./runtime-membership.js";
 import { runtimeTruth } from "./runtime-truth.js";
 import { runtimeUnary } from "./runtime-unary.js";
 import type { RuntimeValue, RuntimeValues } from "./runtime-values.js";
+import { beginRuntimeDictionary } from "./runtime-dictionary-display.js";
+import type { KeyOperations } from "./ordered-key-map.js";
 
 /** Explicit scope/object capabilities, supplied by the surrounding runtime.
  * No host property lookup, callable execution or mapping access is implicit.
  * Hooks must implement guest semantics and charge their execution internally.
  */
-export interface RuntimeExpressionBindings extends Pick<ExpressionContext<RuntimeValue>,
-  "load" | "store" | "attribute" | "beginCall" | "beginSet" | "beginDictionary" | "createLambda">,
-  Pick<ConstantUnaryContext, "warn"> {}
+export type RuntimeExpressionBindings = Pick<ExpressionContext<RuntimeValue>,
+  "load" | "store" | "attribute" | "beginCall" | "beginSet" | "createLambda"> &
+  Pick<ConstantUnaryContext, "warn"> & (
+    Pick<ExpressionContext<RuntimeValue>, "beginDictionary"> |
+    { readonly dictionaryKeys: KeyOperations<RuntimeValue> }
+  );
 
 /** Assemble concrete exact-value operations with scope/object hooks. Setup runs
  * no guest code. The factory and hooks belong to the same metered execution.
@@ -37,7 +42,9 @@ export function createRuntimeExpressionContext(values: RuntimeValues, bindings: 
     attribute: bindings.attribute.bind(bindings),
     beginCall: bindings.beginCall.bind(bindings),
     beginSet: bindings.beginSet.bind(bindings),
-    beginDictionary: bindings.beginDictionary.bind(bindings),
+    beginDictionary: "beginDictionary" in bindings
+      ? bindings.beginDictionary.bind(bindings)
+      : initial => beginRuntimeDictionary(initial, values, bindings.dictionaryKeys, meter),
     unary: (operator, value) => runtimeUnary(operator, value, unary, meter),
     binary(operator, left, right) {
       const result = runtimeBinary(operator, left, right, values, meter);

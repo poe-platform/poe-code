@@ -8,7 +8,6 @@ import { compileProgram } from "./program-compilation.js";
 import { executeModule } from "./module-execution.js";
 import { UnsupportedStatementError } from "./statement-execution.js";
 import { analyzeModule } from "../analysis.js";
-import { OrderedKeyMap } from "./ordered-key-map.js";
 import { runtimeHash } from "./runtime-hash.js";
 import { runtimeComparison } from "./runtime-comparison.js";
 
@@ -16,13 +15,15 @@ function fixture(source: string, maxSteps = 100000) {
   const meter = new ExecutionBudget({ maxSteps, maxAllocatedBytes: 1000000 }), v = new RuntimeValues(meter);
   const code = compileProgram<RuntimeValue>(analyzeModule(source), { stripDocstring: false }, v, meter).module;
   const globals = new Map<string, RuntimeValue>(), calls = new CallStack<object>(100, meter);
+  const hash = { none: v.none, identity: () => 17n, string: () => 23n, bytes: () => 29n };
+  const dictionaryKeys = { hash: (key: RuntimeValue) => runtimeHash(key, hash, meter), equal: (a: RuntimeValue, b: RuntimeValue) => runtimeComparison("==", a, b, v, meter).value };
   const unused = (): never => { throw new Error("unimplemented object hook"); };
   const context = {
     globals, builtins: new Map<string, RuntimeValue>(), calls,
     body(frame: { load(name: string): RuntimeValue; store(name: string, value: RuntimeValue): void; delete(name: string): void }) {
       const expressions = createRuntimeExpressionContext(v, {
         load: frame.load.bind(frame), store: frame.store.bind(frame), attribute: unused,
-        beginCall: unused, beginSet: unused, beginDictionary: unused, warn: unused
+        beginCall: unused, beginSet: unused, dictionaryKeys, warn: unused
       }, meter);
       return createRuntimeStatementContext(expressions, {
         deleteName: frame.delete.bind(frame), setAttribute: unused, deleteAttribute: unused,
@@ -35,13 +36,11 @@ function fixture(source: string, maxSteps = 100000) {
 
 describe("concrete runtime statement context", () => {
   it("executes dictionary assignment, augmented mutation, reads and deletion", () => {
-    const state = fixture("d[1] = [2]\nalias = d[True]\nd[1.0] += [3]\nd['next'] = d[1]\ndel d[1]\nresult = d['next']\nmissing = d[1]\n");
-    const { v, meter } = state;
-    const hash = { none: v.none, identity: () => 17n, string: () => 23n, bytes: () => 29n };
-    const dict = v.dictionary(new OrderedKeyMap<RuntimeValue, RuntimeValue>({ hash: key => runtimeHash(key, hash, meter), equal: (a, b) => runtimeComparison("==", a, b, v, meter).value }, meter));
-    state.globals.set("d", dict);
+    const state = fixture("d = {1: [2]}\nalias = d[True]\nd[1.0] += [3]\nd = {**d, 'next': d[1]}\ndel d[1]\nresult = d['next']\nmissing = d[1]\n");
+    const { v } = state;
     expect(state.run).toThrow(expect.objectContaining({ name: "KeyError", args: [v.integer(1)] }));
     const result = state.globals.get("result"); if (result?.kind !== "list") throw new Error("list expected");
+    const dict = state.globals.get("d"); if (dict?.kind !== "dict") throw new Error("dictionary expected");
     expect(result.items.snapshot()).toEqual([v.integer(2), v.integer(3)]); expect(result).toBe(state.globals.get("alias"));
     expect(dict.items.size).toBe(1); expect(state.globals.has("missing")).toBe(false); expect(state.calls.depth).toBe(0);
   });

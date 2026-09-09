@@ -488,7 +488,7 @@ calls and updates inside these blocks now reach guest catch handlers as
 `ReferenceError` instances and shared rejection identity through handlers and
 checkpoint recovery, with coverage for executors, async functions, thenables and
 pass-through reactions. Bare unhandled missing names still return the public
-diagnostic envelope. Catch/finally normalization is still uncommitted, and caught
+diagnostic envelope. Catch/finally normalization is also locally committed; caught
 ReferenceError stacks can lose the offending source location; do not assume
 every error path is JavaScript-equivalent.
 

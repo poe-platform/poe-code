@@ -2967,6 +2967,17 @@ extension, integration, or validation requirement is missing or unverified.
   mutation/index slots, replacement length-hint dispatch, finalizers, concrete
   statement contexts, full resource accounting and safe-fs integration remain
   unfinished; this is exact runtime-value mutation, not arbitrary guest objects.
+- Connected runtime unary operators: logical negation uses mutable/range/iterator
+  truth without member traversal, while numeric signs/inversion reuse scalar
+  behavior and warning policy. Invalid operand diagnostics do not inspect nested
+  values. Parsed negative indices and negative slice steps now compose the unary
+  adapter with runtime subscription, alongside value-mode not on list literals.
+- The unary suite first failed on its missing module; all 3,197 tests in 202
+  files pass. A 960-case CPython comparison matched results, operand errors and
+  warning traces. Source typecheck, scoped lint and selected workspace build
+  passed. Concrete guest iterator type names, overridden unary/truth slots,
+  complete expression/statement contexts, full resource accounting and safe-fs
+  integration remain unfinished; these adapters still cover exact runtime values.
 - Next:
   remaining scope/compiler audits, interpreter runtime,
   resource controls, runtime modules, and safe-fs integration. Parsing and static

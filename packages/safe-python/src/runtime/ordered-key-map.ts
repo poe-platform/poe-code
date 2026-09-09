@@ -253,6 +253,44 @@ export class OrderedKeyMap<Key, Value> {
     return true;
   }
 
+  /** Fresh left-only keys. CPython switches to copy-and-remove when the left
+   * side is much larger; this also determines guest equality call direction.
+   * Retained entries keep their left key/value identities and cached hashes. */
+  differenceKeys(other: OrderedKeyMap<Key, Value>): OrderedKeyMap<Key, Value> {
+    this.meter.checkpoint();
+    if (Math.floor(this.#entries.size / 4) > other.#entries.size) {
+      const result = this.copy();
+      result.subtractKeysInPlace(other);
+      return result;
+    }
+    const result = new OrderedKeyMap<Key, Value>(this.operations, this.meter);
+    for (const entry of this.#entries) {
+      this.meter.checkpoint();
+      const { key, value, hash } = entry;
+      const otherHash = this.operations === other.operations ? hash : other.operations.hash(key);
+      if (other.#find(key, otherHash) !== undefined) continue;
+      if (result.#find(key, hash) === undefined) result.#insert(key, hash, value);
+    }
+    this.meter.checkpoint();
+    return result;
+  }
+
+  /** Streaming exact-set subtraction preserves completed removals on failure.
+   * For a much larger source, first intersect it with the receiver, matching
+   * Python's bounded lookup strategy and its pre-removal callback phase. */
+  subtractKeysInPlace(other: OrderedKeyMap<Key, Value>): void {
+    this.meter.checkpoint();
+    if (other === this) { this.clear(); return; }
+    const source = Math.floor(other.#entries.size / 8) > this.#entries.size ? this.intersectKeys(other) : other;
+    for (const entry of source.#entries) {
+      this.meter.checkpoint();
+      const hash = this.operations === source.operations ? entry.hash : this.operations.hash(entry.key);
+      const found = this.#find(entry.key, hash);
+      if (found !== undefined) this.#remove(found);
+    }
+    this.meter.checkpoint();
+  }
+
   /** Set-style merge: union retains existing entries; symmetric difference
    * removes matches and inserts misses. Unlike dictionary update, callbacks
    * may mutate source size without a dictionary-specific error. Cached hashes

@@ -3702,6 +3702,24 @@ extension, integration, or validation requirement is missing or unverified.
   CPython table-layout mutation behavior are not claimed by these audits.
   Difference, frozen sets, dictionary-view algebra and bound set methods remain
   pending, as do the broader runtime, suspension, accounting and SDK/safe-fs work.
+- Added exact mutable-set difference (`-`, `-=`) with cached hashes and preserved
+  left-member identity. Binary subtraction uses CPython's size-based choice
+  between filtering and copy/removal; in-place subtraction pre-intersects a much
+  larger source before removals. These choices preserve comparison direction
+  and failure timing, not only final membership. Self in-place subtraction
+  clears directly; streaming failures preserve prior removals, while failed
+  pre-intersection does not publish removals. Foreign hash-policy destinations
+  rehash probes, and cancellation is checked before committing removals.
+- Difference verification began with four failing runtime tests. All 3,582 tests
+  in 252 files pass, along with scoped lint, source typecheck and selected
+  workspace build. CPython audits
+  matched 1,800 binary/in-place value cases and 1,350 size-strategy/callback/
+  failure cases; intersection and mutable-set regression audits cover 1,800
+  cases each. A compiled program now executes all four binary and augmented set
+  operators through the explicit set-builder hook and verifies alias identity.
+  Frozen sets, mutable-set lookup conversion, dictionary-view algebra, native
+  bound set methods and set iterator table-position parity remain pending,
+  alongside the full object runtime, suspension, accounting and SDK/safe-fs work.
 - Next:
   remaining scope/compiler audits, interpreter runtime,
   resource controls, runtime modules, and safe-fs integration. Parsing and static

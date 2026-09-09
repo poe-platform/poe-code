@@ -616,6 +616,20 @@ extension, integration, or validation requirement is missing or unverified.
   source typecheck, and the selected workspace build passed. Runtime attribute/import
   use of lexical mangling, implicit __class__/super
   cells, and complete validation/execution orchestration remain pending.
+- Added implicit __class__ cell analysis. Explicit references/nonlocals can bind to
+  an enclosing class's implicit cell independently of class-namespace assignments
+  or global declarations. Super name loads in callable/comprehension scopes record
+  distinct implicit reads; module/class-body loads and augmented stores do not.
+  Those reads participate in declaration ordering, and existing closure propagation
+  forwards class cells through nested callables and nested class bodies.
+- Class-cell validation: six tests failed before implementation; all 1,134 package
+  tests pass. A 108-case CPython symbol-table comparison matched explicit/implicit
+  class binding resolution and declaration acceptance, including shadowing and
+  nested callable scopes. CPython code-object checks established the targeted
+  class-cell behavior; analysis retains lexical requirements rather than emulating
+  CPython's later closure-slot optimizations. Scoped lint, source typecheck, and
+  the selected workspace build passed. Runtime
+  class-cell initialization, super behavior, and public execution remain pending.
 - Next:
   compound statements, type aliases, and enclosing-scope validation
   normalization, the complete grammar/parser and evaluator, then runtime modules

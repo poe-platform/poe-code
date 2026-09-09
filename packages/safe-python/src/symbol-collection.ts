@@ -6,7 +6,7 @@ import { statementExpressions } from "./statement-expressions.js";
 import { manglePrivateName } from "./private-names.js";
 
 export type SymbolEvent = SourceSpan & {
-  readonly kind: "read" | "write" | "delete" | "parameter" | "global" | "nonlocal" | "annotation" | "import" | "write-outer";
+  readonly kind: "read" | "implicit-read" | "write" | "delete" | "parameter" | "global" | "nonlocal" | "annotation" | "import" | "write-outer";
   readonly name: string;
 };
 export type SymbolScope = {
@@ -34,7 +34,13 @@ export function collectSymbols(module: Module): SymbolScope {
     for (const parameter of values) record(scope, "parameter", parameter);
   }
   function expression(node: Expression, scope: MutableScope, walrusScope = scope): void {
-    if (node.kind === "name") { record(scope, "read", node); return; }
+    if (node.kind === "name") {
+      record(scope, "read", node);
+      if (node.name === "super" && scope.kind !== "module" && scope.kind !== "class") {
+        record(scope, "implicit-read", { name: "__class__", start: node.start, end: node.end });
+      }
+      return;
+    }
     if (node.kind === "assignment-expression") {
       expression(node.value, scope, walrusScope);
       record(walrusScope, "write", node.target);

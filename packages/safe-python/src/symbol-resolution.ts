@@ -53,7 +53,10 @@ export function resolveSymbols(scope: SymbolScope, filename = "<string>"): Resol
   function enclosing(frame: Frame, name: string): Frame | undefined {
     for (let parent = frame.parent; parent; parent = parent.parent) {
       if (parent.result.scope.kind === "module") return undefined;
-      if (parent.result.scope.kind === "class") continue;
+      if (parent.result.scope.kind === "class") {
+        if (name === "__class__") return parent;
+        continue;
+      }
       if (parent.declarations.get(name) === "global") return undefined;
       if (parent.locals.has(name)) return parent;
     }

@@ -14,7 +14,7 @@ export function validateDeclarations(scope: SymbolScope, filename = "<string>"):
       else if (kinds.has("parameter")) message = `name '${event.name}' is parameter and ${event.kind}`;
       else if (kinds.has("annotation")) message = `annotated name '${event.name}' can't be ${event.kind}`;
       else if (kinds.has("write") || kinds.has("delete") || kinds.has("write-outer")) message = `name '${event.name}' is assigned to before ${event.kind} declaration`;
-      else if (kinds.has("read")) message = `name '${event.name}' is used prior to ${event.kind} declaration`;
+      else if (kinds.has("read") || kinds.has("implicit-read")) message = `name '${event.name}' is used prior to ${event.kind} declaration`;
       if (message) throw new PythonSyntaxError(message, filename, event.start);
     } else if (event.kind === "annotation" && (kinds.has("global") || kinds.has("nonlocal"))) {
       throw new PythonSyntaxError(`annotated name '${event.name}' can't be global or nonlocal`, filename, event.start);

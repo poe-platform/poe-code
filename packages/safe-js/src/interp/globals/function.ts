@@ -1,4 +1,5 @@
 import type { Budget } from "../budget.js";
+import { getFunctionRealmPrototype } from "../function-realm.js";
 import { invokeBuiltinClosure } from "../builtin-call.js";
 import { callFunctionMethod } from "../methods/function.js";
 import { completeIntrinsicObjectInitialization, createIntrinsicObject, getSandboxPrototype, installFunctionPrototype, materializeFunctionProperties, registerIntrinsicFunction, registerIntrinsicObject, setSandboxPrototype } from "../object-model.js";
@@ -85,7 +86,8 @@ function createDynamicConstructor(budget: Budget, kind: DynamicFunctionKind, nam
       const targetPrototype = context.getProperty === undefined
         ? materializeFunctionProperties(target).prototype
         : await context.getProperty(target, "prototype");
-      setSandboxPrototype(closure, typeof targetPrototype === "object" && targetPrototype !== null ? targetPrototype : prototype, budget);
+      setSandboxPrototype(closure, typeof targetPrototype === "object" && targetPrototype !== null ? targetPrototype
+        : getFunctionRealmPrototype(target, name, prototype), budget);
       return closure;
     } finally { release(); }
   };

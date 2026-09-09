@@ -652,6 +652,10 @@ Revocation during prototype lookup is checked before locale/options processing.
 Exported non-strict functions and eval calls retain access to their runtime
 global and owning eval identity after cleanup, including public replay and a
 replaced `globalThis` binding. Snapshot-resolution tables are still released.
+Dynamic Function, AsyncFunction, GeneratorFunction and AsyncGeneratorFunction
+constructors use foreign newTarget prototype defaults without changing the
+function body's originating global environment. Focused checks cover execution
+and independent replay of the factory and target realms.
 `AggregateError.errors` retains the constructor realm's Array prototype,
 independently of a custom prototype supplied for the Error object.
 Promise construction, async returns and `then` results retain their

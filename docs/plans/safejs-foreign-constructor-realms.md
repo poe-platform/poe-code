@@ -166,3 +166,24 @@ A separate dynamic Function constructor audit produced eight fallback failures
 across ordinary, async, generator and async-generator constructors, with four
 passing explicit-object prototype controls. That test is not part of the Intl
 fix or its passing test count.
+
+## Dynamic function constructor follow-up
+
+The eight dynamic constructor fallback failures were fixed by using the shared
+function-realm prototype lookup for the constructor's intrinsic installation
+name. The original 12-case matrix passed, as did the existing dynamic-function
+and accounting tests (88 total across three files).
+
+Four additional replay/execution cases distinguish prototype ownership from
+the function body's global environment. They exposed runtime-global cleanup
+failures, fixed independently in `9e7579676` and documented in
+`safejs-runtime-global-lifetime.md`. With that prerequisite, all four function
+kinds retain the factory realm's global marker while receiving the newTarget
+realm's prototype, including independent replay of both realms.
+
+Verification with both improvements present: 512 tests across 32 focused files
+and 1,700 snapshot tests across 127 files passed. These counts overlap earlier
+focused runs and do not represent a full package gate. Scoped lint, TypeScript,
+the maintained 23-workspace build and four fresh import checks passed. Four
+built-SDK probes verified prototype identity and body execution together.
+No push, release, or issue closure.

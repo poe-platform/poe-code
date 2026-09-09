@@ -3,6 +3,7 @@ import { normalizeSlice } from "./integer-sequence.js";
 import { searchSubstring, substringMatches, type SearchMode } from "./substring-search.js";
 import { isUnicodeWhitespace } from "./unicode-whitespace.js";
 import { exhaustAllocation, type ExecutionMeter } from "./execution-budget.js";
+import { upperMappings, casefoldMappings } from "../unicode-case-data.js";
 
 // Module-private capability: only freshly generated, already charged buffers
 // may bypass public input copying and validation. Never export this marker.
@@ -104,6 +105,30 @@ export class CodePointString implements Iterable<number> {
       meter.checkpoint();
       if (i !== 0) for (const point of this.#points) { meter.checkpoint(); points[offset++] = point; }
       for (const point of parts[i].#points) { meter.checkpoint(); points[offset++] = point; }
+    }
+    return new CodePointString(points, meter, ownedPoints);
+  }
+
+  /** Full locale-independent mappings can expand one code point into several.
+   * Preflight the result size, then fill a single owned buffer. */
+  transformCase(mode: "upper" | "casefold", meter: ExecutionMeter): CodePointString {
+    meter.checkpoint();
+    if (this.length === 0) return this;
+    const table = mode === "upper" ? upperMappings : casefoldMappings;
+    let length = 0;
+    for (const point of this.#points) {
+      meter.checkpoint();
+      length += table[point]?.length ?? 1;
+      if (!Number.isSafeInteger(length) || length > 0xffffffff) exhaustAllocation(meter);
+    }
+    meter.checkpoint(0, length * Uint32Array.BYTES_PER_ELEMENT);
+    const points = new Uint32Array(length);
+    let offset = 0;
+    for (const point of this.#points) {
+      meter.checkpoint();
+      const mapping = table[point];
+      if (mapping === undefined) points[offset++] = point;
+      else for (const mapped of mapping) { meter.checkpoint(); points[offset++] = mapped; }
     }
     return new CodePointString(points, meter, ownedPoints);
   }

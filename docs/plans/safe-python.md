@@ -4166,6 +4166,21 @@ extension, integration, or validation requirement is missing or unverified.
   range rejection and cased/uncased scan-budget tests. Unicode case transformations, other native
   methods/builtins, subclasses/global interning, suspension, full accounting
   and SDK/safe-fs remain unfinished.
+- Connected str.upper/casefold with 3,109 full Unicode 16 mappings from
+  hash-pinned UnicodeData, SpecialCasing and CaseFolding inputs. Full mappings
+  override simple uppercase values; folding uses common/full rather than
+  simple-only or locale-specific Turkic rows. Transformation preflights size
+  before one output buffer and preserves individual surrogate code points.
+  Only empty receivers retain guest identity, including unchanged nonempty text.
+- Six native method tests and four storage tests first failed for missing
+  behavior; generator tests first failed for the absent compiler. All 3,926
+  tests in 289 files pass, including exact allocation and both-pass execution
+  budgets. Every one of 1,114,112 code points matches CPython for both methods;
+  3,608 compiled calls match output, receiver identity and argument errors.
+  Scoped lint, source typecheck and selected workspace build pass.
+  Contextual lowercase/title/capitalize/swapcase, remaining native methods and
+  builtins, subclasses/global interning, suspension, full accounting and
+  SDK/safe-fs remain unfinished.
 - Next:
   remaining scope/compiler audits, interpreter runtime,
   resource controls, runtime modules, and safe-fs integration. Parsing and static

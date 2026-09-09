@@ -20,6 +20,7 @@ import { createRuntimeStringSplitMethod } from "./runtime-string-split-method.js
 import { createRuntimeStringReplaceMethod } from "./runtime-string-replace-method.js";
 import { createRuntimeStringPadMethod } from "./runtime-string-pad-method.js";
 import { createRuntimeStringExpandtabsMethod } from "./runtime-string-expandtabs-method.js";
+import { createRuntimeStringCaseMethod } from "./runtime-string-case-method.js";
 import { createRuntimeStringClassificationMethod } from "./runtime-string-classification-method.js";
 import type { ExpressionContext } from "./expression-evaluation.js";
 import { isRuntimeSet, type RuntimeValue, type RuntimeValues } from "./runtime-values.js";
@@ -32,6 +33,7 @@ import { isRuntimeSet, type RuntimeValue, type RuntimeValues } from "./runtime-v
 export function runtimeNativeAttribute(receiver: RuntimeValue, name: string, values: RuntimeValues, meter: ExecutionMeter, beginCall?: ExpressionContext<RuntimeValue>["beginCall"]): RuntimeValue {
   meter.checkpoint();
   if (receiver.kind === "str") {
+    if (name === "upper" || name === "casefold") return createRuntimeStringCaseMethod(receiver, name, values, meter);
     switch (name) {
       case "isascii": case "isspace": case "isidentifier": case "isalpha": case "isdecimal":
       case "isdigit": case "isnumeric": case "isalnum": case "isprintable": case "islower": case "isupper": case "istitle":

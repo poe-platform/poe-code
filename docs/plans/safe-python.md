@@ -135,7 +135,23 @@ extension, integration, or validation requirement is missing or unverified.
   Source typecheck, selected workspace build, and focused lint passed.
   This does not validate field-expression grammar, conversion semantics,
   interpolated literal escape decoding/warnings, formatting, or evaluation.
-- Next: expression parsing, parser-level NFKC
+- Added a shared bounded-lookahead token cursor, source-spanned expression AST,
+  and public `parseExpression(text, { filename?, onWarning? })` API. The first
+  expression grammar covers scalar literals, raw name spellings, grouping,
+  arithmetic/bitwise operators, unary signs/inversion/not, boolean and/or,
+  chained comparisons, and conditional expressions. Comparison chains retain
+  all operands so a future evaluator can evaluate each intermediate operand once.
+  No evaluation or host code execution is introduced.
+- Expression validation: 358 package unit cases pass. CPython AST comparison
+  covered 755 combinations of binary/comparison/boolean operators, unary prefixes,
+  grouping, and conditional expressions, with no structural differences after
+  flattening equivalent boolean chains. Source typecheck, selected workspace
+  build, and scoped ESLint passed. Parenthesis/source-span conventions were not
+  part of that AST comparison. Identifier binding still needs pinned NFKC
+  normalization; AST names deliberately retain `spelling` rather than claiming
+  to contain normalized binding names.
+- Next: primary trailers (calls, attributes, subscripts), collection literals,
+  comprehensions, lambdas, interpolated-string ASTs, parser-level NFKC
   normalization, the complete grammar/parser and evaluator, then runtime modules
   and safe-fs integration. Tokenization does not establish interpreter execution.
 - Workspace lockfile registration and packaging integration remain pending.

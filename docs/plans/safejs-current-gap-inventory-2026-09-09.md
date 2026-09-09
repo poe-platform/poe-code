@@ -15,8 +15,12 @@ only. It does not establish complete semantics, portability, or publication.
 
 The isolated full-package run at 24ead3798 passed 24,961 tests and skipped 37;
 it excludes the later cleanup/job changes and uncommitted weak-reference work.
-The current working-tree full-package run (99280) includes those changes and has
-reported failures; terminal results are pending. It is not a green gate.
+The working-tree full-package run (99280) included those changes and completed:
+25,116 passed, four failed, 37 skipped across 1,002 files in 924.25 seconds.
+Its source/test fingerprint matched before and after. Two failures required
+explicit new intrinsic names in historical checkpoint comparisons; those two
+files now pass 44 tests with one skip. The other two concern native Promise
+property admission. This is not a green full-package gate.
 
 More recent bounded checks: 1,806 snapshot/job/weak-reference tests passed across
 138 files before the rollback-error follow-up. After that follow-up, all 1,771

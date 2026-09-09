@@ -4757,6 +4757,19 @@ extension, integration, or validation requirement is missing or unverified.
   string-percent failure is not yet fixed. Full guest object wiring, native
   registration, suspended execution, complete accounting and SDK/safe-fs
   integration remain unfinished.
+- Added concrete runtime percent-binding policies for tuple operands, exact
+  bool/int star dimensions, native mapping eligibility and explicit guest
+  tuple/integer/mapping capabilities. Mapping keys retain their original byte or
+  code-point storage, including separate surrogate code points. Missing keys
+  retain PythonKeyError guest arguments without premature exception rendering.
+- Seven new tests first failed for the missing runtime binding module. All 4,279
+  tests in 334 files pass. An 8,049-case CPython comparison validates concrete
+  runtime operand binding with an audit-only string consumer. Source typecheck,
+  scoped lint and selected workspace build pass. Production representation and
+  numeric conversion, output construction and percent binary dispatch remain
+  unfinished; the original string-percent failure remains open. Full guest
+  object wiring, native registration, suspended execution, complete accounting
+  and SDK/safe-fs integration also remain outstanding.
 - Next:
   remaining scope/compiler audits, interpreter runtime,
   resource controls, runtime modules, and safe-fs integration. Parsing and static

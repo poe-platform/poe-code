@@ -4,6 +4,7 @@ import type { RepresentationContext } from "./representation-protocol.js";
 import { hasNativeRepresentation, runtimeNativeRepresentation } from "./runtime-native-representation-method.js";
 import type { RuntimeValue, RuntimeValues } from "./runtime-values.js";
 import { listRepresentation } from "./list-representation.js";
+import { tupleRepresentation } from "./tuple-representation.js";
 import { RepresentationStack } from "./representation-stack.js";
 
 export interface RuntimeRepresentationHooks {
@@ -29,7 +30,7 @@ export function createRuntimeRepresentationContext(values: RuntimeValues, meter:
     string(value) { meter.checkpoint(); return value.kind === "str" ? value.value : hooks.string?.(value); },
     lookupStr(value) {
       meter.checkpoint();
-      if (value.kind === "list") return undefined; // object.__str__ falls back to repr.
+      if (value.kind === "list" || value.kind === "tuple") return undefined; // object.__str__ falls back to repr.
       if (hasNativeRepresentation(value)) {
         meter.checkpoint(0, 64);
         return () => runtimeNativeRepresentation(value, "__str__", values, meter);
@@ -38,11 +39,14 @@ export function createRuntimeRepresentationContext(values: RuntimeValues, meter:
     },
     lookupRepr(value) {
       meter.checkpoint();
-      if (value.kind === "list") {
+      if (value.kind === "list" || value.kind === "tuple") {
         meter.checkpoint(0, 64);
         return () => {
           stack ??= new RepresentationStack<RuntimeValue>(100, meter);
-          return values.stringPoints(listRepresentation(value, value.items, context, stack, meter));
+          const text = value.kind === "list"
+            ? listRepresentation(value, value.items, context, stack, meter)
+            : tupleRepresentation(value, value.items, context, stack, meter);
+          return values.stringPoints(text);
         };
       }
       if (hasNativeRepresentation(value)) {

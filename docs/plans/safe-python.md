@@ -5256,6 +5256,19 @@ extension, integration, or validation requirement is missing or unverified.
   scoped lint and selected workspace build pass. Tuple/dict/set representations,
   bytes percent operator integration, full guest objects, suspended execution,
   complete accounting and SDK/safe-fs integration remain outstanding.
+- Added metered tuple representation and native str/repr plus percent s/r/a
+  integration. Empty and singleton syntax, tuple-specific cycle markers, shared
+  list/tuple paths, repeated sibling identities, guest element hooks, mutation of
+  later mutable elements and exception cleanup are preserved. Tuple formatting
+  operands retain their existing unpacking semantics; a tuple representation as
+  one percent operand must still be wrapped in the argument tuple.
+- Five new tests first failed on missing tuple support. All 4,526 tests in 370
+  files pass. Native method/percent results match CPython across 2,000 mixed
+  list/tuple graphs (11,000 roots), plus 2,000 compiled nested-tuple programs with
+  mixed native elements. Source typecheck, scoped lint and selected workspace
+  build pass. Dict/set representations, bytes percent operator integration, full
+  guest objects, suspended execution, complete accounting and SDK/safe-fs
+  integration remain outstanding.
 - Next:
   remaining scope/compiler audits, interpreter runtime,
   resource controls, runtime modules, and safe-fs integration. Parsing and static

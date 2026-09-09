@@ -12,6 +12,16 @@ const context: IntegerIndexContext<Value> = {
 };
 
 describe("integer index protocol", () => {
+  it("bounds type names in missing-slot and invalid-result diagnostics", () => {
+    const name = "€".repeat(100), short = "€".repeat(66);
+    expect(() => integerIndex({ name }, context, budget())).toThrow(`'${short}' object cannot be interpreted as an integer`);
+    expect(() => integerIndex({ name: "I", method: () => ({ name }) }, context, budget())).toThrow(`__index__ returned non-int (type ${short})`);
+  });
+  it("bounds strict-subclass names in index warnings", () => {
+    const warnings: string[] = [];
+    integerIndex({ name: "I", method: () => integer(1n, "a".repeat(300)) }, { ...context, warn: (_category, message) => { warnings.push(message); } }, budget());
+    expect(warnings[0]).toBe(`__index__ returned non-int (type ${"a".repeat(200)}).  The ability to return an instance of a strict subclass of int is deprecated, and may be removed in a future version of Python.`);
+  });
   it("retains the original integer object when requested by a typed consumer", () => {
     const value = integer(1n, "Sub");
     expect(indexObject(value, context, budget())).toBe(value);

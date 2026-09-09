@@ -4898,6 +4898,23 @@ extension, integration, or validation requirement is missing or unverified.
   binary dispatch remain unfinished. Full representation builtins, guest object
   wiring, suspended execution, complete accounting and SDK/safe-fs integration
   remain outstanding.
+- Added context-driven integer percent operand conversion. Decimal conversions
+  accept exact floats and prefer __int__ before __index__; octal/hex use indexing
+  only. Direct int/bool/subclass payloads bypass overrides. Strict-subclass method
+  results warn, conversion TypeErrors become percent-specific diagnostics, other
+  exceptions retain identity, and fatal execution limits bypass classification.
+- Nine new conversion tests first failed for the missing module. Two additional
+  failing index-protocol tests validated a related diagnostic mismatch: Python
+  bounds these type names to 200 UTF-8 bytes, dropping incomplete characters.
+  A shared metered helper now applies that rule to index errors/warnings and
+  percent conversion diagnostics. All 4,352 tests in 343 files pass. Context-level
+  CPython comparisons match 3,000 text-format and 3,000 bytes-format conversions,
+  including slot call order, errors, long Unicode type names, subclass warnings
+  and warning-as-error behavior. Source typecheck, scoped lint and selected
+  workspace build pass. Runtime value adapters, full guest slot registration,
+  floating formatting and production percent assembly/dispatch remain unfinished.
+  Full representation builtins, suspended execution, complete accounting and
+  SDK/safe-fs integration remain outstanding.
 - Next:
   remaining scope/compiler audits, interpreter runtime,
   resource controls, runtime modules, and safe-fs integration. Parsing and static

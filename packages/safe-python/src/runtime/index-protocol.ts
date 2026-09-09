@@ -1,5 +1,6 @@
 import type { ExecutionMeter } from "./execution-budget.js";
 import { PythonRuntimeError } from "./error.js";
+import { diagnosticTypeName } from "./diagnostic-type-name.js";
 
 export interface IntegerIndexContext<Value> {
   /** Pure payload inspection for int, bool and int subclasses only. */
@@ -34,13 +35,13 @@ export function indexObject<Value>(value: Value, context: IntegerIndexContext<Va
   if (direct !== undefined) return value;
   const method = context.lookupIndex(value);
   meter.checkpoint();
-  if (method === undefined) throw new PythonRuntimeError("TypeError", `'${context.typeName(value)}' object cannot be interpreted as an integer`);
+  if (method === undefined) throw new PythonRuntimeError("TypeError", `'${diagnosticTypeName(context.typeName(value), meter)}' object cannot be interpreted as an integer`);
   const result = method();
   meter.checkpoint();
   const integer = context.integer(result);
-  if (integer === undefined) throw new PythonRuntimeError("TypeError", `__index__ returned non-int (type ${context.typeName(result)})`);
+  if (integer === undefined) throw new PythonRuntimeError("TypeError", `__index__ returned non-int (type ${diagnosticTypeName(context.typeName(result), meter)})`);
   if (!context.isExactInteger(result)) {
-    context.warn("DeprecationWarning", `__index__ returned non-int (type ${context.typeName(result)}).  The ability to return an instance of a strict subclass of int is deprecated, and may be removed in a future version of Python.`);
+    context.warn("DeprecationWarning", `__index__ returned non-int (type ${diagnosticTypeName(context.typeName(result), meter)}).  The ability to return an instance of a strict subclass of int is deprecated, and may be removed in a future version of Python.`);
     meter.checkpoint();
   }
   return result;

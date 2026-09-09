@@ -4126,6 +4126,20 @@ extension, integration, or validation requirement is missing or unverified.
   Guest index slots, native
   subclasses/global interning, remaining text methods/builtins, suspension,
   full accounting and SDK/safe-fs remain pending.
+- Connected str.isascii/isspace/isidentifier to native lookup with no-argument
+  validation, empty-string distinctions, short-circuit scans and no copied
+  string storage. Identifier checks reuse Unicode 16 parser tables without
+  keyword rejection or normalization; whitespace reuses the stripping predicate.
+- Classification began with nine failing tests. The full Unicode audit confirms
+  identifier-start, identifier-continue and whitespace behavior for all 1,114,112
+  code points. A new test's outdated join-control assumption was corrected
+  against CPython 3.14 (continuation allowed, initial position rejected), with
+  no change to the existing matching tables. All 3,875 tests in 284 files pass,
+  including early-exit and scan-budget checks; 2,412 compiled classification
+  calls match CPython results and diagnostics. The 1,818-call strip regression,
+  scoped lint, source typecheck and selected workspace build pass. Remaining Unicode classification
+  and case mappings, other native methods/builtins, subclasses/global interning,
+  suspension, full accounting and SDK/safe-fs remain unfinished.
 - Next:
   remaining scope/compiler audits, interpreter runtime,
   resource controls, runtime modules, and safe-fs integration. Parsing and static

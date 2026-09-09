@@ -246,3 +246,22 @@ All 111 tests across six finally/species/Promise/recovery files pass, including
 the five new cases and fulfillment/rejection preservation. Scoped lint and
 TypeScript pass. The latest maintained build and full-snapshot gate
 predate this two-line runtime change; they are not claimed as its validation.
+
+## AggregateError errors-array implementation
+
+Three new cases reproduced the missing array prototype for empty/nonempty
+construction, factories called after cleanup, and public replay. The existing
+payload/custom-prototype control passed. AggregateError now links only its
+new errors array to the constructor realm's Array prototype, before collecting
+elements. It does not change the Error object's explicit custom prototype or
+the identities/prototypes of error elements.
+
+The initial related Error/recovery run passes 95 tests across five files.
+The focused file then passes six cases after adding a foreign custom newTarget
+control and rejection of lossy copying after Array-prototype mutation. These
+runs overlap. Scoped lint and TypeScript pass, including the final test-file
+checks. The maintained build passes 23 workspace builds and four fresh-process
+import checks. Built-SDK probes pass four empty/nonempty errors-array realm
+checks, covering initial construction and later exported factory calls.
+Foreign primitive newTarget fallback remains a separate open gap. No full
+package pass, push or release is claimed.

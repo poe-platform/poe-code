@@ -637,6 +637,8 @@ retain their identity.
 Error constructors called through exported closures after cleanup retain their
 originating prototypes and non-enumerable fields. Explicit custom newTarget
 prototypes remain supported; foreign-realm default fallback still needs work.
+`AggregateError.errors` retains the constructor realm's Array prototype,
+independently of a custom prototype supplied for the Error object.
 Promise construction, async returns and `then` results retain their
 originating Promise prototype after cleanup.
 Borrowed `then`, `resolve` and `reject` calls respect a foreign intrinsic

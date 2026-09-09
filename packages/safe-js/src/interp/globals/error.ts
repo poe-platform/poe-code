@@ -157,6 +157,8 @@ async function createNativeError(name: ErrorName, args: readonly SandboxValue[],
       });
     }
     if (name === "AggregateError") {
+      const errorsPrototype = getSandboxPrototype(errors, budget);
+      if (errorsPrototype !== null) setSandboxPrototype(errors, errorsPrototype, budget);
       iterator = context === undefined ? getSandboxIterator(args[0], budget) : await acquireSandboxIterator(args[0], budget, context);
       if (iterator === undefined) throw new TypeError("AggregateError errors must be iterable.");
       while (true) {

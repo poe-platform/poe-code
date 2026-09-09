@@ -1,6 +1,6 @@
 import { type Budget } from "../budget.js";
 import { type SandboxCallContext, type SandboxClosure, type SandboxValue, isSandboxClosure } from "../values.js";
-import { getSandboxPropertyDescriptor } from "../object-model.js";
+import { getSandboxPropertyDescriptor, getSandboxPrototype, setSandboxPrototype } from "../object-model.js";
 import { readPropertyDescriptor } from "../accessors.js";
 import { invokeBuiltinClosure } from "../builtin-call.js";
 import { setSandboxProperty } from "../interpreter.js";
@@ -19,6 +19,8 @@ export async function regexSplit(target: SandboxValue, input: SandboxValue, limi
   let matcher: SandboxValue;
   let match: SandboxValue;
   const result: SandboxValue[] = [];
+  const prototype = getSandboxPrototype(result, budget);
+  if (prototype !== null) setSandboxPrototype(result, prototype, budget);
   const release = retainValues(budget, () => [target, input, limit, string, species, field, flags, matcher, match, result]);
   const read = (value: SandboxValue, key: PropertyKey) => {
     if (context?.getProperty !== undefined) return context.getProperty(value, key);

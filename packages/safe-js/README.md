@@ -597,6 +597,10 @@ They continue to ignore species constructors and copy holes as undefined.
 Default results of species-aware array methods also preserve their originating
 prototype for borrowed array-like calls, undefined constructors, and null
 species. Explicit custom species results retain their own identity/prototype.
+Built-in string and RegExp splitting preserve the result array's originating
+prototype after SDK cleanup, including empty results and limits. Custom
+`Symbol.split` hooks retain their returned value and receive the original
+receiver before fallback string coercion.
 Object literals retain their originating prototype after cleanup and when
 created later by exported closures. Explicit null prototypes stay null;
 modified prototype chains reject lossy data copying. `Object.fromEntries`

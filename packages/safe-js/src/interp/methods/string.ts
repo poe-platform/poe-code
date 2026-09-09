@@ -6,7 +6,7 @@ import { CompileScope } from "../regex/compile-guard.js";
 import { advanceStringIndex, normalizeLastIndex } from "../regex/engine.js";
 import { sandboxNumber, sandboxString } from "../string-coercion.js";
 import { retainValues } from "../resources.js";
-import { getSandboxDataProperty, getSandboxPropertyDescriptor, hasRegexPropertyOverride } from "../object-model.js";
+import { getSandboxDataProperty, getSandboxPropertyDescriptor, getSandboxPrototype, hasRegexPropertyOverride, setSandboxPrototype } from "../object-model.js";
 import { readPropertyDescriptor } from "../accessors.js";
 import { createSandboxBox } from "../boxed.js";
 import { setSandboxProperty } from "../interpreter.js";
@@ -758,7 +758,10 @@ function callSplit(
     const converted = useRegex || pattern === undefined ? pattern : sandboxString(pattern, budget, context);
     const split = (converted: string | SandboxRegex | undefined) => {
       separator = converted;
-      return splitNormalized(value, converted, limit, budget, parent);
+      const result = splitNormalized(value, converted, limit, budget, parent);
+      const prototype = getSandboxPrototype(result, budget);
+      if (prototype !== null) setSandboxPrototype(result, prototype, budget);
+      return result;
     };
     return converted instanceof Promise ? converted.then(split) : split(converted as string | SandboxRegex | undefined);
   };

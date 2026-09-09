@@ -120,3 +120,36 @@ and four fresh-process import checks passed. Built ESM probes confirmed
 borrowed-result prototype identity for all seven methods. These targeted
 checks do not resolve the earlier full-suite timeouts or Promise policy
 failures. No visual CLI behavior changed; no push or release occurred.
+
+## Split result implementation
+
+Twelve source regressions failed on originating prototype identity before
+the fix, covering string separators, omitted separators, empty strings, zero
+and finite limits, regex separators/captures, and direct RegExp Symbol.split
+calls. All pass after attaching the default prototype to built-in results.
+Contents and own keys match native VM controls; later prototype mutation is
+observable and lossy data copying is rejected.
+
+Three custom-hook controls passed before and after the change. They return
+a null-prototype object, an array, or a primitive unchanged; the hook receives
+the original uncoerced receiver and zero limit exactly once. The fix touches
+only callSplit's normalized built-in result and regexSplit's allocated array,
+not the shared custom-hook dispatch. Lint and package TypeScript checks pass.
+
+The method selection passed 6,058 tests across 83 files; a separate regex
+snapshot selection passed 79 tests across three files. The maintained build
+passed 23 workspace builds and four fresh-process import checks. Built SDK
+probes confirm originating result identity for string/regex separators,
+captures, and zero limits. The method command also named two nonexistent
+shadowed-method snapshot paths; those names provided no coverage. The separate
+snapshot run used the actual regex-cursor-data, regexp-properties and
+regexp-iterators files. No push or release occurred.
+
+## Next match-result audit
+
+Read-only built probes after the split implementation still lose originating
+array prototype identity for `/a/.exec('a')`, `'a'.match(/a/)`,
+`'a'.match(/a/g)`, and `[...'a'.matchAll(/a/g)][0]`. Native VM controls pass
+all four. Each factory is called after SDK cleanup, then a separate realm's
+Object.getPrototypeOf inspects the result. Add regressions before changing
+these paths, including match metadata, captures, indices, and custom hooks.

@@ -1629,6 +1629,21 @@ extension, integration, or validation requirement is missing or unverified.
   workspace build passed. Guest frame objects, class/module namespaces, dynamic
   locals/exec behavior, invocation integration and full heap accounting remain
   pending; full Python execution is not established by these storage checks.
+- Connected expanded argument binding to fresh function/lambda lexical frames.
+  Positional/keyword/default values initialize locals and captured parameter cells;
+  declared variadics receive builtin tuple/dictionary values, including fresh empty
+  kwargs dictionaries. Defining globals/builtins and shared closure cells are
+  retained. Source parameter/default names are privately mangled before binding,
+  while supplied keyword strings are neither normalized nor mangled. Binding errors
+  precede container construction. Async/generator bodies are not executed here.
+- Function-frame validation: missing-module red suite preceded implementation.
+  All 2,096 tests in 105 files pass, including 17 new cases for defaults identity,
+  cell initialization, variadics, private/Unicode keywords, errors, scope rejection,
+  budgets and feeding a bound argument into statement-return execution. CPython
+  matched 1,152 ordinary/class-context calls with initialized parameter values and
+  exact binding diagnostics. Scoped lint, source typecheck and selected build
+  passed. Function objects, full body invocation, suspension/recursion controls and
+  complete activation allocation accounting remain pending.
 - Next:
   remaining scope/compiler audits, interpreter runtime,
   resource controls, runtime modules, and safe-fs integration. Parsing and static

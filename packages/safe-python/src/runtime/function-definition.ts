@@ -7,7 +7,8 @@ export interface FunctionDefinitionContext<Value> {
   /** Construct a guest function without executing its body. Capture the defining
    * globals/closure cells, code metadata and sync/async/generator behavior here.
    * Defaults are evaluated once per definition and retained by identity; their
-   * normalized parameter keys can be passed directly to argument binding.
+   * normalized source parameter keys are accepted by function-frame initialization,
+   * which applies the defining class's private-name mangling before argument binding.
    */
   create(statement: Extract<Statement, { kind: "function" }>, defaults: ReadonlyMap<string, Value>): Value;
   /** Ordinary guest call with exactly one positional argument, no keywords.

@@ -19,7 +19,7 @@ export interface ReversedConstructionContext<Value> extends ReverseSequenceConte
  * descriptors/slots, guest type registration and subclass construction remain
  * external; next/getitem is never called during construction.
  */
-export function constructReversed<Value>(positional: readonly Value[], keywords: ReadonlyMap<string, Value>, context: ReversedConstructionContext<Value>, meter: ExecutionMeter): Value {
+export function constructReversed<Value>(positional: readonly Value[], keywords: { readonly size: number }, context: ReversedConstructionContext<Value>, meter: ExecutionMeter): Value {
   meter.checkpoint();
   if (keywords.size !== 0) throw new PythonRuntimeError("TypeError", "reversed() takes no keyword arguments");
   if (positional.length !== 1) throw new PythonRuntimeError("TypeError", `reversed expected 1 argument, got ${positional.length}`);
@@ -32,7 +32,11 @@ export function constructReversed<Value>(positional: readonly Value[], keywords:
   }
   const eligible = method !== null && context.hasSequenceItem(source);
   meter.checkpoint();
-  if (!eligible) throw new PythonRuntimeError("TypeError", `'${context.typeName(source)}' object is not reversible`);
+  if (!eligible) {
+    const name = context.typeName(source);
+    meter.checkpoint();
+    throw new PythonRuntimeError("TypeError", `'${name}' object is not reversible`);
+  }
   const length = context.length(source);
   meter.checkpoint();
   const result = context.wrap(new SequenceReverseIterator(source, length, context, meter));

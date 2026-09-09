@@ -56,4 +56,10 @@ describe("guest reversed construction", () => {
     expect(() => constructReversed([{}], new Map(), { ...context, lookupReversed: () => () => { cancelled = true; return 1; } },
       { checkpoint: () => { if (cancelled) throw new ExecutionLimitError("cancelled"); } })).toThrow(ExecutionLimitError);
   });
+  it("checks cancellation after formatting the non-reversible type name", () => {
+    let cancelled = false;
+    expect(() => constructReversed([{}], new Map(), { ...context,
+      hasSequenceItem: () => false, typeName: () => { cancelled = true; return "Source"; }
+    }, { checkpoint: () => { if (cancelled) throw new ExecutionLimitError("cancelled"); } })).toThrow(ExecutionLimitError);
+  });
 });

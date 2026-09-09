@@ -3587,6 +3587,25 @@ extension, integration, or validation requirement is missing or unverified.
   descriptor installation, inherited object members, readonly-attribute mutation
   dispatch and bound-native-method identity/introspection. The full interpreter,
   accounting, suspension and public SDK/safe-fs integration are not complete.
+- Added an explicitly registered reversed builtin for exact lists, tuples,
+  strings, bytes, arbitrary-size ranges, dictionaries, mapping proxies and all
+  dictionary views. Existing native cursors retain live-mutation behavior;
+  indexed fallback preserves Python string code points and shared members. An
+  optional explicit protocol context supports custom type-level __reversed__,
+  disabled methods and sequence fallback while preserving callback ownership.
+  Custom method results are returned without requiring iterator shape. Keyword
+  validation uses the existing keyword-map size without copying keys.
+- Tests first failed on the missing builtin. Additional failing tests exposed
+  cancellation gaps after non-reversible type-name formatting and reverse-iterator
+  exception classification; both now checkpoint before publishing an error or
+  end-of-iteration result. All 3,510 tests in 243 files pass; typecheck, scoped lint
+  and selected workspace build pass. A 1,800-case CPython audit matched 21,600
+  next outcomes across exact sequences, huge ranges, mappings and live mutations.
+  View-attribute (1,600) and view/read-method (1,500) regressions passed, and an
+  assembled program invokes reversed through its ordinary builtin namespace.
+  Automatic builtin/type registration, iterator subtype metadata/introspection,
+  state restoration, set-producing view operations, full object construction,
+  suspension, accounting and public SDK/safe-fs integration remain unfinished.
 - Next:
   remaining scope/compiler audits, interpreter runtime,
   resource controls, runtime modules, and safe-fs integration. Parsing and static

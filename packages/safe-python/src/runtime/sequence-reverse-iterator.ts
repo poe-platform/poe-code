@@ -50,7 +50,13 @@ export class SequenceReverseIterator<Value> implements IterableIterator<Value> {
       this.meter.checkpoint();
       this.#index = -1n;
       this.#source = undefined;
-      if (!this.context.isIndexError(error) && !this.context.isStopIteration(error)) throw error;
+      let ended = this.context.isIndexError(error);
+      this.meter.checkpoint();
+      if (!ended) {
+        ended = this.context.isStopIteration(error);
+        this.meter.checkpoint();
+      }
+      if (!ended) throw error;
       return { done: true, value: undefined };
     }
     this.meter.checkpoint();

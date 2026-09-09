@@ -63,4 +63,13 @@ describe("indexed reverse iteration", () => {
       { checkpoint: () => { if (cancelled) throw new ExecutionLimitError("cancelled"); } });
     expect(() => iterator.next()).toThrow(ExecutionLimitError);
   });
+  it.each(["index", "stop"])("checks limits after the %s error classifier", phase => {
+    let cancelled = false;
+    const iterator = new SequenceReverseIterator({}, 1n, { ...context,
+      getItem: () => { throw new Stop(); },
+      isIndexError: () => { if (phase === "index") cancelled = true; return phase === "index"; },
+      isStopIteration: () => { cancelled = true; return true; }
+    }, { checkpoint: () => { if (cancelled) throw new ExecutionLimitError("cancelled"); } });
+    expect(() => iterator.next()).toThrow(ExecutionLimitError);
+  });
 });

@@ -1,5 +1,22 @@
 # Frozen dynamic-function candidate validation
 
+## Passing committed-feature candidate
+
+Session 75555 completed with exit 0: 22,765 passed, 37 skipped and zero failures
+across 839 files (838 passed, one skipped), taking 413.52s. All 23 maintained
+builds and four fresh-process import checks passed. Its tracked package source
+matches local 0a1a18533, including dynamic functions/eval, the import-autofix and
+escape-name follow-ups, and the corrected loader diagnostic triggers.
+
+The 1,164-file package manifest before and after the run matches exactly:
+919f11c3bbaf5c1181e38882a8011026484d493004fbc976f73f901e35754bbe.
+The candidate additionally contains the independent uncommitted
+error-diagnostic-accessors audit test. Experimental weak collections and the two
+unresolved host-Promise property-import tests remain in main, not this candidate.
+Later private Proxy work is also outside this run. This is a passing candidate
+package gate, not complete JavaScript conformance or a green integrated main.
+No push or release occurred.
+
 ## Completed main-worktree follow-up
 
 Session 74273 completed with exit 1: 22,788 passed, two failed and 37 skipped

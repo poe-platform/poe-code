@@ -511,19 +511,21 @@ callback order and execution budgets are unchanged. Focused allocation and
 workload checks pass; this is not a guarantee that deadline-sensitive tests
 always pass under load.
 
-These changes have focused native-comparison and recovery tests, but the full
-integration gate is not green. The latest completed whole-SafeJS snapshot
-(September 8, 2026) includes eval, exception-flow, source-stack and eval-deletion
-fixes, plus experimental weak collections. Its maintained build closure and
-all four fresh-process import checks passed. The unit run finished with
-22,788 passes, two failures and 37 skips across 840 files. That run predates the
-CLI lint fix above, which has separate focused verification.
+Dynamic functions/eval and the CLI lint follow-ups are now locally committed.
+Their isolated candidate passed all 23 maintained builds, four fresh-process
+import checks, and 22,765 unit tests with 37 skips across 839 files on September
+8, 2026. This candidate excludes experimental weak collections and unresolved
+host-Promise property-import work; it does not establish complete JavaScript
+conformance or a passing integrated main worktree.
+
+The latest completed integrated main run passed 22,788 tests, failed two and
+skipped 37 across 840 files. It includes the later eval numeric-update and
+parameter-environment fixes, but predates the CLI lint follow-ups.
 
 Both failures concern host-Promise property imports. Their policy remains
 unresolved because native properties can contain private Node.js context data.
 Earlier workload deadlines and historical checkpoint expectation failures did
-not recur in this run. The later numeric-update and parameter-environment fixes
-have focused verification only and are outside that frozen run. See the
+not recur in this run. See the
 [validation record](../../docs/plans/safejs-dynamic-validation-result-2026-09-08.md)
 for the exact snapshot and scope.
 

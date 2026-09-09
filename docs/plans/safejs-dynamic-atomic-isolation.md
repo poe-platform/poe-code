@@ -103,3 +103,31 @@ The built candidate CLI also passed nested Function/eval execution with the
 default lint gate. Documentation baselines were synchronized to a9f981cf5.
 The separate import-autofix and escape-global repairs remain outside this
 feature candidate and will receive their own commits.
+
+## Local commits and combined follow-up run
+
+The runtime/CLI feature and verified loader-fixture correction are locally
+committed as 5541c7a19. Follow-ups are separate local commits: 68d0a324e preserves
+imports read by direct eval; 0a1a18533 declares escape/unescape to lint.
+No push or release occurred. Protected SafeBash staging retains patch id
+69df99c443cea05ae0f9e88dae5d20292332d8b8.
+
+The isolated package's tracked files exactly match 0a1a18533 after applying
+the follow-ups and committed README. The independent error-diagnostic-accessors
+audit test remains additional untracked verification, not part of the commits.
+Experimental weak collections and host-Promise policy tests remain in main,
+not this candidate. Private feature index 5XnUdJ has completed its purpose; do
+not reuse it for future commits. Follow-up index is stored separately.
+
+Combined maintained build/full-unit verification is running as 75555, explicitly
+from the isolated checkout. Its frozen package manifest is 1,164 files with
+SHA-256 919f11c3bbaf5c1181e38882a8011026484d493004fbc976f73f901e35754bbe.
+Do not claim a passing full rerun until it completes. The earlier 8302 failure
+and the 162 passing loader repair tests remain separate evidence.
+
+75555 has completed successfully: 22,765 passed, 37 skipped, zero failures;
+838 files passed and one skipped (839 total), 413.52s. All 23 maintained builds
+and four fresh imports pass. The post-run 1,164-file manifest exactly matches
+919f11c3bbaf5c1181e38882a8011026484d493004fbc976f73f901e35754bbe.
+No active candidate test handle remains. Later main-only Proxy work is outside
+this passing candidate; weak collections and host-Promise policy remain open.

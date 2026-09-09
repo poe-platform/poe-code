@@ -127,6 +127,7 @@ import { getBoxedPrototype, getSandboxPropertyDescriptor, getSandboxPrototype, h
 import { guestProxyStates } from "./guest-proxy.js";
 import { sandboxDeleteProperty } from "./guest-proxy-delete.js";
 import { sandboxHasProperty } from "./guest-proxy-has.js";
+import { sandboxGetProperty } from "./guest-proxy-get.js";
 import { getStringIndex } from "./methods/string.js";
 import { assertSandboxDataDepth } from "../graph-depth.js";
 import {
@@ -3108,7 +3109,10 @@ function getPropertyValue(
   receiver: SandboxValue = target
 ): SandboxValue | Promise<SandboxValue> {
   if (isGuestHostObject(target)) return typeof property === "symbol" ? undefined : getHostObjectMember(target, String(property));
-  const descriptor = getSandboxPropertyDescriptor(target, property, context.budget);
+  let proxyBoundary: object | undefined;
+  const descriptor = getSandboxPropertyDescriptor(target, property, context.budget, proxy => { proxyBoundary = proxy; });
+  if (proxyBoundary !== undefined)
+    return sandboxGetProperty(proxyBoundary as SandboxValue, property, receiver, context.budget, createCoercionContext(context));
   if (descriptor !== undefined)
     return readPropertyDescriptor(descriptor, receiver, createCoercionContext(context), true);
   if (isSandboxRegExpIterator(target)) return hasExplicitSandboxPrototype(target) ? undefined : getRegExpIteratorMember(property, context.budget);

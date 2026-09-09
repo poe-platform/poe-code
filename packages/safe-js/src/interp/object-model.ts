@@ -1,4 +1,5 @@
 import { assertSandboxDataDepth } from "../graph-depth.js";
+import { guestProxyStates } from "./guest-proxy.js";
 import { getGeneratorProperties } from "./generator-properties.js";
 import { asyncFunctionPrototypes, generatorPrototypes } from "./generator-prototypes.js";
 import { getClosureOrigin } from "./closure-origin.js";
@@ -465,7 +466,8 @@ export function hasNullObjectPrototype(value: object): boolean {
 export function getSandboxPropertyDescriptor(
   value: SandboxValue,
   key: PropertyKey,
-  budget?: Budget
+  budget?: Budget,
+  onProxy?: (proxy: object) => void
 ): PropertyDescriptor | undefined {
   let current = value;
   let depth = 0;
@@ -474,6 +476,12 @@ export function getSandboxPropertyDescriptor(
     current !== null &&
     (Array.isArray(current) || isSandboxGenerator(current) || isSandboxDate(current) || isSandboxPromise(current) || isSandboxRegex(current) || isSandboxMap(current) || isSandboxSet(current) || isPrototypeRecord(current))
   ) {
+    // Callers with asynchronous property dispatch must resume at the exotic
+    // boundary rather than inspect the Proxy carrier or skip its traps.
+    if (onProxy !== undefined && guestProxyStates.has(current)) {
+      onProxy(current);
+      return undefined;
+    }
     // An integer-indexed object stops numeric-key lookup even when it occurs
     // inside another object's prototype chain and the index is invalid.
     if (isNumericTypedArray(current) && typeof key !== "symbol" && isTypedArrayIndex(String(key)))

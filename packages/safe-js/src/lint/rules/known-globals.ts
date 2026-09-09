@@ -14,6 +14,7 @@ export const KNOWN_RUNTIME_GLOBALS = [
   "decodeURIComponent",
   "encodeURI",
   "encodeURIComponent",
+  "escape",
   "Error",
   "EvalError",
   "eval",
@@ -47,5 +48,6 @@ export const KNOWN_RUNTIME_GLOBALS = [
   "TypeError",
   "URIError",
   "undefined",
+  "unescape",
   "console"
 ] as const;

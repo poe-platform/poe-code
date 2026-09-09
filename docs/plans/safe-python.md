@@ -697,6 +697,18 @@ extension, integration, or validation requirement is missing or unverified.
   https://docs.python.org/3/reference/expressions.html and
   https://github.com/python/cpython/blob/main/Objects/floatobject.c . Mixed numeric
   dispatch, guest values, and interpreter execution remain pending.
+- Added checked integer-to-float conversion, float-to-integer truncation, and exact
+  reduced float ratios. Binary64 decoding handles normals/subnormals and removes
+  powers of two without decimal-string conversion. Non-finite conversions and
+  integer overflow raise Python numeric faults with operation-specific messages;
+  integer conversion preserves every integral bit across the finite float range.
+- Numeric conversion validation: the suite first failed on the missing module;
+  all 1,276 package tests pass, including 29 conversion cases and round-trip ratio
+  checks across binary exponents. CPython comparisons matched truncation and
+  ratios for 3,011 floats and bit-exact conversion/errors for 3,005 integers.
+  Scoped lint, source typecheck, and selected workspace build passed. Reference:
+  https://docs.python.org/3/library/stdtypes.html#float.as_integer_ratio . Numeric
+  constructors, mixed-type dispatch, hashing, and rounding integration remain pending.
 - Next:
   remaining scope/compiler audits, interpreter runtime,
   resource controls, runtime modules, and safe-fs integration. Parsing and static

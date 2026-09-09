@@ -1,7 +1,8 @@
 import { ConstantIterator } from "./constant-iterator.js";
 import type { ExecutionMeter } from "./execution-budget.js";
 import { RangeIterator } from "./range-iterator.js";
-import type { RuntimeValue, RuntimeValues } from "./runtime-values.js";
+import type { RuntimeValue } from "./runtime-values.js";
+import type { ConstantValues } from "./constant-values.js";
 
 /** Acquire host iteration for exact builtin runtime values. Prepared iterator
  * records preserve their cursor identity; lists use live storage, not snapshots.
@@ -9,7 +10,7 @@ import type { RuntimeValue, RuntimeValues } from "./runtime-values.js";
  * iterator type objects and StopIteration translation belong to the object
  * runtime. The values factory and storage must use this execution's meter.
  */
-export function runtimeIterate(value: RuntimeValue, values: RuntimeValues, meter: ExecutionMeter): Iterator<RuntimeValue> {
+export function runtimeIterate(value: RuntimeValue, values: ConstantValues, meter: ExecutionMeter): Iterator<RuntimeValue> {
   meter.checkpoint();
   switch (value.kind) {
     case "iterator": return value.value;

@@ -3024,6 +3024,21 @@ extension, integration, or validation requirement is missing or unverified.
   selected workspace build passed. Guest rich slots, call-stack/shared recursion
   policy integration, exact iterator type names, full heap/CPU accounting, concrete
   execution contexts and safe-fs integration remain unfinished.
+- Unified immutable and runtime membership while retaining the old constant
+  entry point as a compatibility export. List/tuple/iterator membership uses
+  identity-aware runtime equality and stops immediately after a match, preserving
+  the unconsumed iterator tail. Exact integer/bool range needles use arithmetic;
+  other range needles use numeric equality through iteration. String/byte
+  containment retains specialized searches and validates arbitrary runtime needle
+  types. Runtime iteration now requires only its used scalar factory interface.
+- The membership suite first failed on its missing module; all 3,230 tests in
+  206 files pass, including parsed nested mutable membership, cycles, iterator
+  failure/no-close behavior and infinite-input limits. A 1,920-case CPython audit
+  matched runtime membership results/errors and remaining iterator lengths; the
+  17,298-case immutable regression passed. Source typecheck, scoped lint and
+  selected workspace build passed. Guest contains/iteration slots, arbitrary
+  buffer exporters, shared comparison-depth configuration, full concrete
+  execution/resource accounting and safe-fs integration remain unfinished.
 - Next:
   remaining scope/compiler audits, interpreter runtime,
   resource controls, runtime modules, and safe-fs integration. Parsing and static

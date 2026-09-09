@@ -1702,6 +1702,21 @@ extension, integration, or validation requirement is missing or unverified.
   traces and final storage. Source typecheck, scoped lint and selected build passed.
   Class namespaces, module execution integration, guest exec/auditing, builtin
   selection/insertion and complete heap accounting remain pending.
+- Added class-body storage with prepared mapping lookup, enclosing cells, explicit
+  global/nonlocal mutation, private-name mangling and method-closure capture.
+  Locally bound class names fall back to globals/builtins, not forwarded method
+  cells. Owned __class__ construction cells stay separate from namespace entries
+  and same-named enclosing cells; method captures select by lexical owner.
+- Class-frame validation: missing-module red suite preceded implementation.
+  CPython comparison then disproved the initial assumption that explicit nonlocal
+  reads bypass the mapping. A corrected failing regression preceded the fix:
+  class nonlocal reads are mapping-first, but writes/deletes target the cell.
+  All 2,185 tests in 110 files pass, including 13 class-frame cases. CPython matched
+  1,536 operations across 256 binding/mapping/state configurations, including exact
+  failures, protocol traces and local/enclosing/global state. Source typecheck,
+  final scoped lint and selected build passed. Class construction, metadata and
+  __classcell__ protocol validation, guest object integration and complete heap
+  accounting remain unfinished.
 - Next:
   remaining scope/compiler audits, interpreter runtime,
   resource controls, runtime modules, and safe-fs integration. Parsing and static

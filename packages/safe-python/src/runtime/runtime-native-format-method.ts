@@ -2,14 +2,14 @@ import { diagnosticTypeName } from "./diagnostic-type-name.js";
 import { PythonRuntimeError } from "./error.js";
 import type { ExecutionMeter } from "./execution-budget.js";
 import { UnsupportedExpressionError } from "./expression-evaluation.js";
-import { formatObject } from "./format-protocol.js";
+import { formatObject, type FormatContext } from "./format-protocol.js";
 import { createRuntimeFormatContext } from "./runtime-format.js";
 import type { BuiltinFunctionValue, RuntimeValue, RuntimeValues } from "./runtime-values.js";
 
 /** Bound native formatter with shared argument validation and slot dispatch. */
-export function createRuntimeNativeFormatMethod(receiver: RuntimeValue, values: RuntimeValues, meter: ExecutionMeter): BuiltinFunctionValue {
+export function createRuntimeNativeFormatMethod(receiver: RuntimeValue, values: RuntimeValues, meter: ExecutionMeter, formatting?: FormatContext<RuntimeValue>): BuiltinFunctionValue {
   meter.checkpoint(1, 64);
-  const context = createRuntimeFormatContext(values, meter, { defaultRepr() { throw new UnsupportedExpressionError("attribute"); } });
+  const context = formatting ?? createRuntimeFormatContext(values, meter, { defaultRepr() { throw new UnsupportedExpressionError("attribute"); } });
   return values.builtinFunction({
     name: "__format__",
     invoke(positional, keywords, meter) {

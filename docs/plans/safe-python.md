@@ -5754,6 +5754,18 @@ extension, integration, or validation requirement is missing or unverified.
   through format(), bound __format__ and f-strings, including invalid specs.
   Propagating a custom shared context through native attributes, expressions and
   program frames remains pending, as do guest locale APIs and broader work.
+- Propagated an optional execution-owned FormatContext through program frames,
+  standalone expression assembly, native attribute lookup and bound format
+  methods. Default program contexts are created once and reused by nested frames;
+  explicit f-string and attribute overrides retain their existing precedence.
+  Builtin registration can use the same context, and already-bound native methods
+  observe later locale snapshots rather than capturing locale data at lookup.
+- Three compiled-program tests cover format(), bound __format__ and f-strings;
+  the latter two first failed because supplied locale ownership was lost. All
+  4,693 tests in 401 files pass. A 2,310-case compiled comparison against CPython
+  passes across five locales, nested frames, snapshot changes and invalid specs.
+  Typecheck, scoped lint and selected workspace build pass. Guest locale APIs,
+  namespace assembly and broader interpreter/SDK/safe-fs integration remain open.
 - Next:
   remaining scope/compiler audits, interpreter runtime,
   resource controls, runtime modules, and safe-fs integration. Parsing and static

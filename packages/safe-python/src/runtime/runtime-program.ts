@@ -1,5 +1,7 @@
 import type { ExecutionMeter } from "./execution-budget.js";
-import { evaluateExpression } from "./expression-evaluation.js";
+import { evaluateExpression, UnsupportedExpressionError } from "./expression-evaluation.js";
+import type { FormatContext } from "./format-protocol.js";
+import { createRuntimeFormatContext } from "./runtime-format.js";
 import { executeFunctionDefinition } from "./function-definition.js";
 import type { FunctionCreationContext } from "./function-state.js";
 import type { FunctionInvocationContext } from "./function-invocation.js";
@@ -35,6 +37,8 @@ export interface RuntimeProgramHooks extends Pick<RuntimeCallContext, "callable"
 }
 
 export interface RuntimeExecutionContext {
+  /** Shared by all frames; builtin registration can use this same context. */
+  readonly formatting?: FormatContext<RuntimeValue>;
   readonly values: RuntimeValues;
   readonly keys: KeyOperations<RuntimeValue>;
   readonly calls: Pick<CallStack<RuntimeFrame>, "enter">;
@@ -52,6 +56,7 @@ export interface RuntimeProgramContext extends ModuleNamespaces<RuntimeValue>, R
 export function createRuntimeFrameBody(program: CompiledProgram<RuntimeValue>, context: RuntimeExecutionContext, meter: ExecutionMeter) {
   meter.checkpoint(1, 192);
   const { values, keys, hooks, calls } = context;
+  const formatting = context.formatting ?? createRuntimeFormatContext(values, meter, { defaultRepr() { throw new UnsupportedExpressionError("interpolated-string"); } });
   const body = (frame: RuntimeFrame, namespaces: LexicalNamespaces<RuntimeValue>, functions = program.functions, classFunctions = program.classFunctions, literals = program.literals ?? null) => {
     meter.checkpoint(1, 384);
     const expressionHooks = hooks.expressions(frame); meter.checkpoint();
@@ -108,6 +113,7 @@ export function createRuntimeFrameBody(program: CompiledProgram<RuntimeValue>, c
       load: frame.load.bind(frame), store: frame.store.bind(frame),
       attribute: expressionHooks.attribute?.bind(expressionHooks), beginSet: expressionHooks.beginSet?.bind(expressionHooks),
       formattedString: expressionHooks.formattedString,
+      formatting,
       warn: expressionHooks.warn.bind(expressionHooks), beginCall, dictionaryKeys: keys,
       createLambda: definitions.create.bind(definitions)
     }, meter);

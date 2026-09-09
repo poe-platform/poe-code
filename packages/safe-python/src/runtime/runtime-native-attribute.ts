@@ -2,6 +2,7 @@ import { PythonRuntimeError } from "./error.js";
 import { readRuntimeIteratorMethod } from "./runtime-iterator-method.js";
 import { createRuntimeNativeRepresentationMethod, hasNativeRepresentation } from "./runtime-native-representation-method.js";
 import { hasNativeObjectFormat } from "./runtime-format.js";
+import type { FormatContext } from "./format-protocol.js";
 import { createRuntimeNativeFormatMethod } from "./runtime-native-format-method.js";
 import type { ExecutionMeter } from "./execution-budget.js";
 import { createRuntimeDictionaryMethod } from "./runtime-dictionary-method.js";
@@ -55,13 +56,13 @@ import { isRuntimeSet, type RuntimeValue, type RuntimeValues } from "./runtime-v
  * Custom object policies can replace this operation in expression bindings.
  * Type descriptors, inherited object members and native introspection remain
  * separate from these instance-bound container capabilities. */
-export function runtimeNativeAttribute(receiver: RuntimeValue, name: string, values: RuntimeValues, meter: ExecutionMeter, beginCall?: ExpressionContext<RuntimeValue>["beginCall"]): RuntimeValue {
+export function runtimeNativeAttribute(receiver: RuntimeValue, name: string, values: RuntimeValues, meter: ExecutionMeter, beginCall?: ExpressionContext<RuntimeValue>["beginCall"], formatting?: FormatContext<RuntimeValue>): RuntimeValue {
   meter.checkpoint();
   const iteratorMethod = readRuntimeIteratorMethod(receiver, name, values, meter);
   if (iteratorMethod !== undefined) return iteratorMethod;
   if ((name === "__str__" || name === "__repr__") && hasNativeRepresentation(receiver)) return createRuntimeNativeRepresentationMethod(receiver, name, values, meter);
   if (name === "__format__" && (receiver.kind === "str" || receiver.kind === "int" || receiver.kind === "bool"
-    || receiver.kind === "float" || receiver.kind === "complex" || hasNativeObjectFormat(receiver))) return createRuntimeNativeFormatMethod(receiver, values, meter);
+    || receiver.kind === "float" || receiver.kind === "complex" || hasNativeObjectFormat(receiver))) return createRuntimeNativeFormatMethod(receiver, values, meter, formatting);
   if ((receiver.kind === "int" || receiver.kind === "bool") && name === "from_bytes") return createRuntimeIntegerFromBytesMethod(receiver.kind === "bool", values, meter);
   if ((receiver.kind === "int" || receiver.kind === "bool") && name === "to_bytes") return createRuntimeIntegerToBytesMethod(receiver, values, meter);
   if (receiver.kind === "float" && name === "fromhex") return createRuntimeFloatFromhexMethod(values, meter);

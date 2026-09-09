@@ -105,7 +105,7 @@ describe("concrete immutable constants", () => {
   });
   it("charges tagged values and tuple slots using the documented logical allocation policy", () => {
     const { values, meter } = fixture(), before = meter.usage.allocatedBytes;
-    const integer = values.integer(1n); expect(meter.usage.allocatedBytes - before).toBe(32);
+    const integer = values.integer(1n); expect(meter.usage.allocatedBytes - before).toBe(128); // tag, lazy map and cache entry
     const tupleStart = meter.usage.allocatedBytes;
     values.tuple([integer, values.none]); expect(meter.usage.allocatedBytes - tupleStart).toBe(48);
   });

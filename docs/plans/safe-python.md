@@ -5939,6 +5939,23 @@ extension, integration, or validation requirement is missing or unverified.
   CPython complex abs delegates to platform C hypot, so this kernel deliberately
   provides portable correctly rounded results, not platform-libm bit parity.
   The abs builtin and broader interpreter integration remain unfinished.
+- Added explicitly registered abs with native integer/Boolean/float/complex
+  handling and optional type-level guest __abs__ lookup. Guest results are
+  returned without coercion or NotImplemented fallback; lookup/invocation
+  checkpoints preserve host cancellation. Negative integer result allocation
+  and word-sized work are charged, with existing bit-metric limitations noted.
+- Compiled identity auditing exposed missing shared small-integer caching.
+  ConstantValues now lazily caches -5 through 256 per execution, charging the
+  map/entries once and checking cancellation even on hits. The existing logical
+  allocation test was updated to include the newly owned cache metadata.
+- Eight new tests cover numeric results, identity, public argument errors,
+  arbitrary guest results/failures, cache boundaries and cancellation. All 4,774
+  tests in 417 files pass. CPython comparisons pass for 1,024 compiled abs
+  programs and 1,614 compiled integer identity programs. Typecheck, scoped lint
+  and selected workspace build pass. Complex results retain the previously
+  documented exact-rounding/platform-libm distinction. Automatic builtin
+  namespace assembly, concrete guest classes and broader SDK/safe-fs work remain
+  unfinished.
 - Next:
   remaining scope/compiler audits, interpreter runtime,
   resource controls, runtime modules, and safe-fs integration. Parsing and static

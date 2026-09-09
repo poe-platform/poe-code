@@ -42,12 +42,14 @@ const REFERENCE_BYTES = 8;
  * Charge 32 bytes per tagged record and 8 per tuple slot; copied string/byte
  * buffers are charged separately. Existing bigint payloads are retained, not
  * copied: their creation must be charged by the parser/arithmetic caller.
- * Small bytes are cached lazily (64-byte map plus 32 bytes per cache entry);
+ * Small integers (-5 through 256) and bytes are cached lazily (64-byte map
+ * plus 32 bytes per cache entry);
  * empty/one-byte results can request fresh identity for operations such as
  * repetition, casing and strided slicing. Full
  * host heap accounting, guest type objects and methods remain unfinished.
  */
 export class ConstantValues {
+  #smallIntegers: Map<number, Extract<PrimitiveConstant, { kind: "int" }>> | undefined;
   #smallBytes: Map<number, BytesConstant> | undefined;
   #smallStrings: Map<number, StringConstant> | undefined;
   readonly none: Extract<PrimitiveConstant, { kind: "none" }>;
@@ -73,8 +75,21 @@ export class ConstantValues {
   integer(value: bigint | number): Extract<PrimitiveConstant, { kind: "int" }> {
     this.meter.checkpoint();
     if (typeof value === "number" && !Number.isSafeInteger(value)) throw new RangeError("integer constant requires a bigint or safe integer");
+    // CPython's small integer interval. Cache per execution, lazily charging
+    // the map and each entry; never allocate a fresh tag on a cache hit.
+    const key = value >= -5 && value <= 256 ? Number(value) : undefined;
+    if (key !== undefined) {
+      const cached = this.#smallIntegers?.get(key);
+      if (cached !== undefined) return cached;
+      this.meter.checkpoint(0, (this.#smallIntegers === undefined ? 64 : 0) + 32);
+    }
     this.meter.checkpoint(0, VALUE_BYTES);
-    return Object.freeze({ kind: "int", value: typeof value === "number" ? BigInt(value) : value });
+    const result = Object.freeze({ kind: "int" as const, value: typeof value === "number" ? BigInt(value) : value });
+    if (key !== undefined) {
+      this.#smallIntegers ??= new Map();
+      this.#smallIntegers.set(key, result);
+    }
+    return result;
   }
 
   float(value: number): Extract<PrimitiveConstant, { kind: "float" }> {

@@ -129,6 +129,16 @@ describe("concrete runtime expression context", () => {
     const context = createRuntimeExpressionContext(v, bindings, { checkpoint() { if (cancelled) throw new ExecutionLimitError("cancelled"); } });
     expect(() => context.truth(v.cell({}))).toThrow(ExecutionLimitError);
   });
+  it("retains arbitrary rich comparison results and truth-tests chain links once", () => {
+    const { v, bindings, run, names } = fixture(), a = v.cell({}), b = v.cell({}), result = v.cell({}); let compared = 0, tested = 0;
+    names.set("a", a); names.set("b", b);
+    bindings.richComparison = () => ({ slots: { rightIsStrictSubtype: false, notImplemented: v.notImplemented,
+      forward() { compared++; return result; }, reflected: () => v.notImplemented } });
+    bindings.truth = value => { expect(value).toBe(result); tested++; return false; };
+    expect(run("a < b")).toBe(result); expect(tested).toBe(0);
+    expect(run("a < b < missing")).toBe(result); expect(tested).toBe(1); expect(compared).toBe(2);
+    expect(run("a is b")).toBe(v.false); expect(compared).toBe(2);
+  });
   it("retains explicit unsupported object operations rather than inventing defaults", () => {
     const { run } = fixture();
     expect(() => run("{1}")).toThrow(UnsupportedExpressionError);

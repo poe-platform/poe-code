@@ -6068,6 +6068,18 @@ extension, integration, or validation requirement is missing or unverified.
   alternating guest truth, nested Boolean expressions and functions. Typecheck,
   scoped lint and selected workspace build pass. Concrete guest type/descriptor
   construction and broader interpreter/SDK/safe-fs integration remain open.
+- Added a runtime rich-comparison adapter that preserves arbitrary guest results,
+  prioritizes strict-subtype reflection and applies identity equality fallback
+  only after both slots decline. Unsupported ordering reports bounded type
+  diagnostics. Expression and frame assembly now accept owner-bound prepared
+  rich-comparison slots; identity and membership remain separate native paths.
+  Chained comparisons use the shared truth hook without coercing final results.
+- Six tests first exposed missing adapter/expression/frame behavior. All 4,833
+  tests in 425 files pass. CPython comparisons pass for 2,400 native comparison
+  programs and 144 guest comparison-chain programs, including exact traces for
+  fixed/alternating result truth and nested functions. Typecheck, scoped lint
+  and selected workspace build pass. Concrete guest type/descriptor dispatch,
+  containment adapters and broader interpreter/SDK/safe-fs work remain open.
 - Next:
   remaining scope/compiler audits, interpreter runtime,
   resource controls, runtime modules, and safe-fs integration. Parsing and static

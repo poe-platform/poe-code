@@ -31,7 +31,7 @@ export type RuntimeFrame = ModuleFrame<RuntimeValue> | LexicalFrame<RuntimeValue
 export interface RuntimeProgramHooks extends Pick<RuntimeCallContext, "callable" | "name" | "keywordName">,
   Pick<FunctionCreationContext<RuntimeValue>, "resolveBuiltins">,
   Pick<FunctionInvocationContext<RuntimeValue>, "suspended"> {
-  expressions(frame: RuntimeFrame): Pick<RuntimeExpressionBindings, "attribute" | "beginSet" | "warn" | "formattedString" | "addition" | "truth">;
+  expressions(frame: RuntimeFrame): Pick<RuntimeExpressionBindings, "attribute" | "beginSet" | "warn" | "formattedString" | "addition" | "truth" | "richComparison">;
   statements(frame: RuntimeFrame): Omit<RuntimeStatementBindings, "deleteName">;
   invoke(callee: RuntimeValue, positional: readonly RuntimeValue[], keywords: DictionaryValue, frame: RuntimeFrame): RuntimeValue;
 }
@@ -115,6 +115,7 @@ export function createRuntimeFrameBody(program: CompiledProgram<RuntimeValue>, c
       formattedString: expressionHooks.formattedString,
       addition: expressionHooks.addition?.bind(expressionHooks),
       truth: expressionHooks.truth?.bind(expressionHooks),
+      richComparison: expressionHooks.richComparison?.bind(expressionHooks),
       formatting,
       warn: expressionHooks.warn.bind(expressionHooks), beginCall, dictionaryKeys: keys,
       createLambda: definitions.create.bind(definitions)

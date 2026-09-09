@@ -4,6 +4,7 @@ import type { ExecutionMeter } from "./execution-budget.js";
 import { runtimeBinary } from "./runtime-binary.js";
 import { runtimeAddition, type AdditionContext } from "./runtime-addition.js";
 import { runtimeComparison } from "./runtime-comparison.js";
+import { runtimeRichComparison, type RuntimeRichComparisonContext } from "./runtime-rich-comparison.js";
 import { runtimeIndex } from "./runtime-index.js";
 import { runtimeIterate } from "./runtime-iteration.js";
 import { runtimeMembership } from "./runtime-membership.js";
@@ -35,6 +36,7 @@ export type RuntimeExpressionBindings = Pick<ExpressionContext<RuntimeValue>,
     /** Prepare type-level numeric addition slots for the evaluated pair.
      * Native sequence fallback runs only after those slots decline. */
     addition?(left: RuntimeValue, right: RuntimeValue): AdditionContext;
+    richComparison?(operator: string, left: RuntimeValue, right: RuntimeValue): RuntimeRichComparisonContext;
   } &
   Pick<ConstantUnaryContext, "warn"> & (
     Pick<ExpressionContext<RuntimeValue>, "beginDictionary" | "beginSet"> |
@@ -77,9 +79,13 @@ export function createRuntimeExpressionContext(values: RuntimeValues, bindings: 
       if (result === values.notImplemented) throw new UnsupportedExpressionError("binary");
       return result;
     },
-    compare: (operator, left, right) => operator === "in" || operator === "not in"
-      ? runtimeMembership(operator, left, right, values, meter)
-      : runtimeComparison(operator, left, right, values, meter),
+    compare(operator, left, right) {
+      if (operator === "in" || operator === "not in") return runtimeMembership(operator, left, right, values, meter);
+      if (operator === "is" || operator === "is not") return runtimeComparison(operator, left, right, values, meter);
+      const comparison = bindings.richComparison?.(operator, left, right);
+      meter.checkpoint();
+      return runtimeRichComparison(operator, left, right, values, meter, comparison);
+    },
     truth(value) {
       meter.checkpoint();
       const result = bindings.truth === undefined ? runtimeTruth(value, meter) : bindings.truth(value);

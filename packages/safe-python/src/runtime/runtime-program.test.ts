@@ -34,6 +34,21 @@ function fixture(source: string, maxSteps = 100000, signal?: AbortSignal) {
 }
 
 describe("assembled concrete runtime programs", () => {
+  it("forwards rich comparisons and their result truth through nested frames", () => {
+    const state = fixture("module_result = a < b\ndef f():\n return a < b < missing\nresult=f()\n"), v = state.values;
+    const a = v.cell({}), b = v.cell({}), answer = v.cell({}); let comparisons = 0, truths = 0;
+    state.globals.set("a", a); state.globals.set("b", b);
+    state.hooks.expressions = () => {
+      const owner = { warn() {}, truth(value: RuntimeValue) { expect(value).toBe(answer); truths++; return false; },
+        richComparison(operator: string, left: RuntimeValue, right: RuntimeValue) {
+          expect(this).toBe(owner); expect(operator).toBe("<"); expect(left).toBe(a); expect(right).toBe(b); comparisons++;
+          return { slots: { rightIsStrictSubtype: false, notImplemented: v.notImplemented, forward: () => answer, reflected: () => v.notImplemented } };
+        } };
+      return owner;
+    };
+    state.run(); expect(state.globals.get("module_result")).toBe(answer); expect(state.globals.get("result")).toBe(answer);
+    expect(comparisons).toBe(2); expect(truths).toBe(1); expect(state.calls.depth).toBe(0);
+  });
   it.each(["bool", "length"] as const)("uses guest %s truth for branches, not and nested functions", mode => {
     const state = fixture("if guest:\n x=1\nelse:\n x=2\ndef f():\n return not guest\nresult=(x,f(),1 if guest else 2)\n");
     const { values: v, meter } = state, guest = v.cell({}), events: string[] = [];

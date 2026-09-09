@@ -1,10 +1,10 @@
-import { PythonNumericError } from "./numeric-error.js";
+import { PythonRuntimeError } from "./error.js";
 
 /** Integer three-argument pow, including modular inverses for negative exponents.
  * Products are reduced at each step; no unmodulated exponential is allocated.
  */
 export function integerModularPower(base: bigint, exponent: bigint, modulus: bigint): bigint {
-  if (modulus === 0n) throw new PythonNumericError("ValueError", "pow() 3rd argument cannot be 0");
+  if (modulus === 0n) throw new PythonRuntimeError("ValueError", "pow() 3rd argument cannot be 0");
   const magnitude = modulus < 0n ? -modulus : modulus;
   if (magnitude === 1n) return 0n;
   base %= magnitude;
@@ -31,7 +31,7 @@ function modularInverse(base: bigint, modulus: bigint): bigint {
     [previous, remainder] = [remainder, previous % remainder];
     [previousCoefficient, coefficient] = [coefficient, previousCoefficient - quotient * coefficient];
   }
-  if (previous !== 1n) throw new PythonNumericError("ValueError", "base is not invertible for the given modulus");
+  if (previous !== 1n) throw new PythonRuntimeError("ValueError", "base is not invertible for the given modulus");
   const inverse = previousCoefficient % modulus;
   return inverse < 0n ? inverse + modulus : inverse;
 }

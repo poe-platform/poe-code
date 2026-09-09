@@ -736,6 +736,21 @@ extension, integration, or validation requirement is missing or unverified.
   https://docs.python.org/3/library/stdtypes.html#hashing-of-numeric-types . Guest
   dictionary/set lookup, complex/rational hashing, and identity allocation remain
   pending; numeric hashes alone do not establish collection semantics.
+- Added exact slice normalization and immutable arithmetic range payloads. Bounds
+  preserve None versus explicit negative indices, clamp correctly for either step
+  direction, and retain arbitrary-precision cardinality. Range lookup and integer
+  search use arithmetic without materialization; slicing preserves derived range
+  attributes, including empty/singleton results, and equality compares sequences.
+  Generalized the internal numeric fault carrier to PythonRuntimeError for shared
+  operation errors including IndexError; this is still not the guest exception model.
+- Sequence validation: the new suite failed on the missing module; all 1,360
+  package tests pass, including 19 sequence cases with enormous bounds/ranges.
+  CPython comparisons matched 3,240 slice normalizations, 1,944 range slices,
+  48 index/search probes, and 36 equalities. Runtime-scoped lint, source typecheck,
+  and selected workspace build passed. Reference:
+  https://docs.python.org/3/library/stdtypes.html#ranges . Guest indexing/coercion,
+  generic equality searches, len overflow checks, iterators, hashing, and list/
+  tuple/string slice integration remain pending.
 - Next:
   remaining scope/compiler audits, interpreter runtime,
   resource controls, runtime modules, and safe-fs integration. Parsing and static

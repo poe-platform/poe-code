@@ -1,6 +1,6 @@
 import { floatAsIntegerRatio, floatToInteger } from "./numeric-conversion.js";
 import { integerTrueDivide } from "./integer-arithmetic.js";
-import { PythonNumericError } from "./numeric-error.js";
+import { PythonRuntimeError } from "./error.js";
 
 /** Exact nearest integer with ties to even; denominator must be positive. */
 function roundRatio(numerator: bigint, denominator: bigint): bigint {
@@ -39,6 +39,6 @@ export function floatRound(value: number, digits?: bigint): bigint | number {
     : roundRatio(numerator, denominator * factor);
   if (rounded === 0n) return zero;
   const result = digits >= 0n ? integerTrueDivide(rounded, factor) : Number(rounded * factor);
-  if (!Number.isFinite(result)) throw new PythonNumericError("OverflowError", "rounded value too large to represent");
+  if (!Number.isFinite(result)) throw new PythonRuntimeError("OverflowError", "rounded value too large to represent");
   return result;
 }

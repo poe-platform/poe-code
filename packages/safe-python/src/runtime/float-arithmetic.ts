@@ -1,7 +1,7 @@
-import { PythonNumericError } from "./numeric-error.js";
+import { PythonRuntimeError } from "./error.js";
 
 export function floatTrueDivide(a: number, b: number): number {
-  if (b === 0) throw new PythonNumericError("ZeroDivisionError", "division by zero");
+  if (b === 0) throw new PythonRuntimeError("ZeroDivisionError", "division by zero");
   return a / b;
 }
 
@@ -9,7 +9,7 @@ export function floatTrueDivide(a: number, b: number): number {
  * Rounding can make those disagree near integral ratios (for example 1 / 0.1).
  */
 export function floatDivmod(a: number, b: number): { quotient: number; remainder: number } {
-  if (b === 0) throw new PythonNumericError("ZeroDivisionError", "division by zero");
+  if (b === 0) throw new PythonRuntimeError("ZeroDivisionError", "division by zero");
   let remainder = a % b;
   let division = (a - remainder) / b;
   if (remainder !== 0) {

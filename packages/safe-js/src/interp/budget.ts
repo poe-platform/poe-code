@@ -104,7 +104,7 @@ export class Budget {
   private visitsUntilDeadlineCheck = DEADLINE_CHECK_INTERVAL;
   private retainedDataSize = 0;
   private readonly retainedData = new Map<object, number>();
-  private readonly retainedValueSources = new Map<object, () => Iterable<unknown>>();
+  private readonly retainedValueSources = new Map<object, () => Iterable<unknown> | undefined>();
   private compileGeneration = 0;
   private activeCompileOwner?: CompileOwner;
   private defaultCompileOwner?: CompileOwner;
@@ -201,13 +201,16 @@ export class Budget {
     this.peakDataSize = Math.max(this.peakDataSize, total);
   }
 
-  setRetainedValues(owner: object, values: (() => Iterable<unknown>) | undefined): void {
+  setRetainedValues(owner: object, values: (() => Iterable<unknown> | undefined) | undefined): void {
     if (values === undefined) this.retainedValueSources.delete(owner);
     else this.retainedValueSources.set(owner, values);
   }
 
   *retainedValues(): Iterable<unknown> {
-    for (const values of this.retainedValueSources.values()) yield* values();
+    for (const values of this.retainedValueSources.values()) {
+      const retained = values();
+      if (retained !== undefined) yield* retained;
+    }
   }
 
   acquireCompileOwner(

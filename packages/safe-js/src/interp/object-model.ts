@@ -317,7 +317,7 @@ function captureIntrinsicRecords(targets: Array<SandboxObject | SandboxClosure>)
       ...record,
       revision: functionPropertyRevisions.get(record.value),
       capturedRevision: -1,
-      captured: [] as unknown[],
+      captured: undefined as unknown[] | undefined,
       extensible: Object.isExtensible(record.value),
       descriptors: new Map(Reflect.ownKeys(record.value).map(key => [key, Object.getOwnPropertyDescriptor(record.value, key)!]))
     }));
@@ -373,22 +373,24 @@ function trackIntrinsicState(
   if (retainedRecords.length === 0) return;
   budget.setRetainedValues(root, () => {
     // Capture every change before measurement invokes retained-value callbacks.
-    const retained: unknown[] = [];
+    let retained: unknown[] | undefined;
     for (const record of retainedRecords) {
       const { value, descriptors, prototype: parent, revision } = record;
       const currentPrototype = record.tracked.current;
-      if (currentPrototype !== parent) retained.push(currentPrototype);
+      if (currentPrototype !== parent) (retained ??= []).push(currentPrototype);
       if (revision === undefined || revision.revision !== record.capturedRevision) {
-        const captured: unknown[] = [];
+        let captured: unknown[] | undefined;
         for (const key of Reflect.ownKeys(value)) {
           const descriptor = Object.getOwnPropertyDescriptor(value, key)!;
           if (unchanged(descriptors.get(key), descriptor)) continue;
-          captured.push(key, descriptor.value, ...retainedAccessorClosures(descriptor));
+          (captured ??= []).push(key, descriptor.value, ...retainedAccessorClosures(descriptor));
         }
         record.captured = captured;
         record.capturedRevision = revision?.revision ?? -1;
       }
-      for (const item of record.captured) retained.push(item);
+      if (record.captured !== undefined) {
+        for (const item of record.captured) (retained ??= []).push(item);
+      }
     }
     return retained;
   });

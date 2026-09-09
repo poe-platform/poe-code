@@ -781,7 +781,7 @@ async function completePromiseAggregate(aggregate: PromiseAggregateState, budget
   if (remaining !== 0 || method === "race") return;
   if (method === "any") {
     const error = createSubsetErrorValue("AggregateError", "All promises were rejected", [], budget);
-    error.errors = values;
+    Object.defineProperty(error, "errors", {value: values, writable: true, configurable: true});
     await callPromiseClosure(capability.reject, [budgetSandboxValue(error, budget)], undefined, budget, context);
   } else {
     await callPromiseClosure(capability.resolve, [budgetSandboxValue(values, budget)], undefined, budget, context);

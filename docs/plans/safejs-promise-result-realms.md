@@ -3,10 +3,13 @@
 ## Evidence boundary
 
 Native Node VM and built SafeJS probes were run against local commit
-`52d8ad42b`. The full package suite is running with source/test digest
+`52d8ad42b`. The full package suite used source/test digest
 `c31f51cabe7178d2dbc7770911e0fd10410402bc04eb4c6101fae47956dac7d8`.
-Source and tests remain unchanged while that run executes. These are
-reproductions and implementation requirements, not completed fixes.
+Its discovered inputs remained unchanged: 24,368 tests passed, three failed
+and 37 were skipped. See safejs-realm-lifetime-full-gate.md for the failure
+details and accounting follow-up. The audit observations below are not claims
+that all the listed gaps have been fixed; individual implementation results
+are recorded separately.
 
 ## Validated mismatches
 
@@ -107,3 +110,48 @@ fails the originating Array-prototype comparison from a foreign getter.
 `createNativeError` builds that array without a prototype link. Fix its fresh
 array allocation separately from preserving the Error constructor lookup,
 and keep error-element identity and custom prototypes unchanged.
+
+## Red regression tests added during the full-suite run
+
+Three new test files were added after the full run's discovery and executed
+separately. They are not part of that run's claimed coverage. Excluding exactly
+those three new files from the source/test digest reproduces the original
+`c31f51cabe7178d2dbc7770911e0fd10410402bc04eb4c6101fae47956dac7d8`;
+runtime and previously discovered test files remain unchanged.
+
+- promise-any-descriptors.test.ts: three failing descriptor/replay cases and
+  one passing payload-identity, replacement and deletion control.
+- error-prototype-lifetime.test.ts: nine failures, covering the eight native
+  constructors and custom newTarget prototype behavior after cleanup. A further
+  cleanup test verifies dirty intrinsic data is retained before cleanup and
+  released afterward, then fails the Error prototype fallback comparison.
+  The explicit legacy Error-mode control passes.
+- promise-result-realm.test.ts: seven failures, covering empty/nonempty all,
+  allSettled and any, plus the withResolvers capability. Separate soft
+  assertions expose the Promise, array, settlement-record and Error realm
+  mismatches rather than stopping at the first failed comparison.
+
+The realm/lifetime red tests are uncommitted pending their respective atomic
+fixes. The Promise.any descriptor repair defines errors as writable and
+configurable but non-enumerable, instead of assigning an enumerable property.
+All four new descriptor/replay/control tests pass, together with the existing
+Promise and aggregate-state tests: 95 tests across four files. Package
+TypeScript and scoped lint pass. Another 27 tests across four Promise-aggregate
+and Error snapshot files pass (122 tests across eight files total). The
+maintained build and full-package gate predate this descriptor-only change;
+neither is claimed as validation of it. No visual CLI behavior changed.
+
+## Foreign newTarget fallback: separate open gap
+
+A native/built-SDK comparison exported Reflect.construct and a constructor from
+realm A, and `function Target() {}; Target.prototype = 7` from realm B. Native
+construction with that newTarget uses B's corresponding intrinsic prototype.
+Error, TypeError, Number, Array, Date, RegExp, Map and Set all fail that identity
+comparison in SafeJS. Number/Array/Date/RegExp instead use A's prototype;
+Error/TypeError/Map/Set match neither captured prototype after cleanup.
+
+This fallback gap is distinct from live-constructor lookup retention and from
+honoring an explicitly supplied object prototype. Do not count it as repaired
+by restoring Error lookup lifetime. Future regression coverage must distinguish
+those cases and inspect bound/Proxy newTarget behavior and snapshot retention
+before introducing a shared realm-resolution mechanism.

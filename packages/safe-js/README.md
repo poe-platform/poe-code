@@ -631,6 +631,9 @@ retain the method's originating Object prototype, including exhausted results
 and borrowed SDK calls. Yielded values are not re-prototyped.
 Lazy iterator helpers preserve the called next/return method's Object
 prototype through yielding, early return, exhaustion and public replay.
+`Promise.any` rejection errors expose a writable, configurable, non-enumerable
+`errors` property, including empty input and public replay. Rejection elements
+retain their identity.
 `Iterator.from` fallback return results retain the called method's Object
 prototype when the underlying return method is absent or null. Custom next
 and return results are forwarded unchanged.

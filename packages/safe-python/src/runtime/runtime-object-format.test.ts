@@ -14,6 +14,14 @@ function fixture() {
   return { v, meter, dictionary, context };
 }
 const text = (value: RuntimeValue) => { if (value.kind !== "str") throw Error("expected str"); return String.fromCodePoint(...value.value); };
+it("dispatches native float specs through the shared formatting protocol", () => {
+  const { v, meter, context, dictionary } = fixture();
+  expect(text(formatObject(v.float(-0.0001), v.string("+z08.2f"), context, meter))).toBe("+0000.00");
+  expect(text(formatObject(v.true, v.string(".1%"), context, meter))).toBe("100.0%");
+  const method = runtimeNativeAttribute(v.float(1.25), "__format__", v, meter);
+  if (method.kind !== "builtin_function_or_method") throw Error("expected method");
+  expect(text(method.value.invoke([v.string(".1f")], dictionary(), meter))).toBe("1.2");
+});
 it("dispatches native integer and boolean nonempty format specs", () => {
   const { v, meter, context, dictionary } = fixture();
   expect(text(formatObject(v.integer(-1234), v.string("010,d"), context, meter))).toBe("-0,001,234");

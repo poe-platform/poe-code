@@ -5658,6 +5658,18 @@ extension, integration, or validation requirement is missing or unverified.
   settings. Typecheck, scoped lint and selected workspace build pass. Native float dispatch,
   integer float-style presentations, locale/complex rendering and broader
   interpreter/SDK/safe-fs integration remain unfinished.
+- Connected modern native float presentation dispatch and float-style integer/
+  boolean presentations to the shared field renderer. Integer conversion uses
+  checked binary64 rounding before precision validation, preserving overflow
+  precedence. Unknown float presentations fail before renderer precision checks.
+  Immutable float output adopts the final buffer without copying.
+- Four tests first reproduced missing native float dispatch and the absent
+  formatter. All 4,664 tests in 393 files pass. An 18,000-case CPython audit checks
+  float presentation dispatch/output/errors; 468 compiled programs independently
+  compare format(), bound methods and f-strings for floats, integers and bools,
+  including rounding above 2**53 and large-integer overflow. Typecheck, scoped lint and selected
+  workspace build pass. Locale-aware n, nonempty complex formats, guest subclass
+  behavior and broader interpreter/SDK/safe-fs integration remain unfinished.
 - Next:
   remaining scope/compiler audits, interpreter runtime,
   resource controls, runtime modules, and safe-fs integration. Parsing and static

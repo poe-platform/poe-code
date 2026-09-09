@@ -10,6 +10,7 @@ import { renderQuotedPoints } from "./quoted-representation.js";
 import { renderIntegerPercentBuffer, type IntegerPercentField } from "./integer-percent-field.js";
 import { renderFloatPercentBuffer, type FloatPercentField } from "./float-percent-field.js";
 import { renderIntegerRadixFormat } from "./integer-radix-format.js";
+import { renderFloatFormatBuffer } from "./float-format-field.js";
 import type { FormatSpec } from "./format-spec.js";
 
 // Module-private capability: only freshly generated, already charged buffers
@@ -159,6 +160,12 @@ export class CodePointString implements Iterable<number> {
   }
 
   /** Adopt the floating renderer's final buffer without copying. */
+  static fromFloatFormat(value: number, field: FormatSpec, meter: ExecutionMeter): CodePointString {
+    const points = renderFloatFormatBuffer(value, field, meter);
+    return new CodePointString(points, meter, ownedPoints);
+  }
+
+  /** Adopt the floating percent renderer's final buffer without copying. */
   static fromFloatPercentField(value: number, field: FloatPercentField, meter: ExecutionMeter): CodePointString {
     const points = renderFloatPercentBuffer(value, field, Uint32Array, meter);
     return new CodePointString(points, meter, ownedPoints);

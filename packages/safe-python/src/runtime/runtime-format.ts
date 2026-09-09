@@ -4,6 +4,7 @@ import { createRuntimeRepresentationContext, type RuntimeRepresentationHooks } f
 import { objectFormat } from "./object-format.js";
 import { stringFormat } from "./string-format.js";
 import { integerFormat } from "./integer-format.js";
+import { floatFormat } from "./float-format.js";
 import { representationObject } from "./representation-protocol.js";
 import type { RuntimeValue, RuntimeValues } from "./runtime-values.js";
 import { UnsupportedExpressionError } from "./expression-evaluation.js";
@@ -57,6 +58,7 @@ export function createRuntimeFormatContext(values: RuntimeValues, meter: Executi
             const integer = value.kind === "int" ? value.value : value.value ? 1n : 0n;
             return values.stringPoints(integerFormat(integer, storage, value.kind, meter));
           }
+          if (value.kind === "float") return values.stringPoints(floatFormat(value.value, storage, "float", meter));
           throw new UnsupportedExpressionError("call");
         };
       }

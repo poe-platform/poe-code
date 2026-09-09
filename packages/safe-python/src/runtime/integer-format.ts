@@ -4,10 +4,11 @@ import { PythonRuntimeError } from "./error.js";
 import type { ExecutionMeter } from "./execution-budget.js";
 import { UnsupportedExpressionError } from "./expression-evaluation.js";
 import { parseFormatSpec } from "./format-spec.js";
+import { integerToFloat } from "./numeric-conversion.js";
 
 /** Integer payload formatting; callers retain bool's empty-spec str behavior.
- * Locale and float presentations require separate numeric capabilities, not a
- * conversion through host formatting or a fabricated unsupported-code error. */
+ * Float presentations share the binary64 renderer after checked conversion;
+ * locale-aware presentation remains a separate policy. */
 export function integerFormat(value: bigint, spec: CodePointString, typeName: string, meter: ExecutionMeter, maxDecimalDigits?: number): CodePointString {
   const field = parseFormatSpec(spec, 100, ">", typeName, meter);
   switch (field.type) {
@@ -24,8 +25,12 @@ export function integerFormat(value: bigint, spec: CodePointString, typeName: st
       const source = new CodePointString(Uint32Array.of(Number(value)), meter);
       return source.formatField(field.width ?? 0n, null, field.align === "<" ? "left" : field.align === "^" ? "center" : "right", field.fill, meter);
     }
-    case 110: case 101: case 69: case 102: case 70: case 103: case 71: case 37:
-      throw new UnsupportedExpressionError("call");
+    case 101: case 69: case 102: case 70: case 103: case 71: case 37: {
+      meter.checkpoint();
+      const converted = integerToFloat(value); meter.checkpoint();
+      return CodePointString.fromFloatFormat(converted, field, meter);
+    }
+    case 110: throw new UnsupportedExpressionError("call");
     default: {
       const code = field.type > 32 && field.type < 128 ? String.fromCharCode(field.type) : `\\x${field.type.toString(16)}`;
       throw new PythonRuntimeError("ValueError", `Unknown format code '${code}' for object of type '${diagnosticTypeName(typeName, meter)}'`);

@@ -164,6 +164,7 @@ export async function evaluateTryStatement<TContext extends BlockExceptionContex
     };
   }
 
+  tryResult = sourceReferenceCompletion(tryResult, context);
   let tryOrCatchResult = tryResult;
   let catchFailure: CompletionResult | undefined;
   if (!resumeInFinally && fatalBudgetError === undefined && (resumeInCatch || tryResult.kind === "throw") && node.handler !== undefined) {
@@ -178,6 +179,7 @@ export async function evaluateTryStatement<TContext extends BlockExceptionContex
     }
   }
 
+  tryOrCatchResult = sourceReferenceCompletion(tryOrCatchResult, context);
   if (node.finalizer === undefined || tryOrCatchResult.kind === "error") {
     return tryOrCatchResult;
   }
@@ -197,7 +199,7 @@ export async function evaluateTryStatement<TContext extends BlockExceptionContex
     context.budget.setRetainedValues(catchFailure, () => [value]);
   }
   try {
-    const finalizerResult = await (fatalBudgetError === undefined
+    const evaluatedFinalizer = await (fatalBudgetError === undefined
       ? evaluateFinalizer()
       : withFatalPromiseCleanup(evaluateFinalizer));
 
@@ -205,6 +207,7 @@ export async function evaluateTryStatement<TContext extends BlockExceptionContex
       throw fatalBudgetError;
     }
 
+    const finalizerResult = sourceReferenceCompletion(evaluatedFinalizer, context);
     if (finalizerResult.kind === "normal") {
       return tryOrCatchResult;
     }
@@ -213,6 +216,15 @@ export async function evaluateTryStatement<TContext extends BlockExceptionContex
   } finally {
     if (catchFailure !== undefined) context.budget.setRetainedValues(catchFailure, undefined);
   }
+}
+
+function sourceReferenceCompletion<TError>(result: EvaluationResult<TError>, context: ExceptionContext): EvaluationResult<TError> {
+  if (result.kind !== "error" || !isInterpreterError(result.error) || result.error.code !== "UNBOUND_IDENTIFIER") return result;
+  const {message, stack, span} = result.error;
+  if (isSourceReferenceError(result.error)) return createThrowCompletion(result.error, context.budget, context.callStack, result.error.span);
+  const error = new ReferenceError(message);
+  error.stack = stack;
+  return createThrowCompletion(error, context.budget, context.callStack, span);
 }
 
 export function createThrowCompletion(

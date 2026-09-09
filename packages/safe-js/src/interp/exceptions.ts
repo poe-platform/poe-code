@@ -301,7 +301,7 @@ export function coerceThrownValue(
     const existing = values.get(reason);
     if (existing !== undefined) return existing;
     const value = createSubsetErrorValue("ReferenceError", reason.message, stackFrames, budget, {
-      chargeBudget: false, span: reason.span ?? span
+      chargeBudget: false, span: reason.span ?? span, stack: reason.stack
     });
     values.set(reason, value);
     return value;
@@ -394,7 +394,7 @@ export function createSubsetErrorValue(
   message: SandboxValue,
   stackFrames: readonly string[],
   budget: Budget,
-  options: { cause?: unknown; chargeBudget?: boolean; span?: ErrorSourceSpan; transport?: boolean } = {}
+  options: { cause?: unknown; chargeBudget?: boolean; span?: ErrorSourceSpan; transport?: boolean; stack?: string } = {}
 ): SandboxObject {
   const resumeChecks = options.chargeBudget === false ? budget.suspendChecks() : undefined;
 
@@ -402,7 +402,7 @@ export function createSubsetErrorValue(
     const errorName = budget.allocateString(name === "" ? "Error" : name);
     const errorMessage = budget.allocateString(coerceErrorMessage(message));
     const header = errorMessage === "" ? errorName : `${errorName}: ${errorMessage}`;
-    const stack = budget.allocateString([header, ...[...stackFrames].reverse()].join("\n"));
+    const stack = budget.allocateString(options.stack ?? [header, ...[...stackFrames].reverse()].join("\n"));
     const prototype = options.transport ? undefined : errorPrototypes.get(budget)?.get(toSandboxErrorName(errorName));
     const error: SandboxObject = prototype === undefined ? { name: errorName, message: errorMessage, stack } : {};
     if (prototype !== undefined) {

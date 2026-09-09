@@ -507,19 +507,24 @@ workload checks pass; this is not a guarantee that deadline-sensitive tests
 always pass under load.
 
 These changes have focused native-comparison and recovery tests, but the full
-integration gate is not green. The latest completed whole-SafeJS snapshot includes
-eval, exception-flow fixes and experimental weak collections. Its maintained
-build closure and fresh-process import checks passed; the full unit run finished
-with 22,682 passes, two failures and 37 skips. Both failures concern host-Promise
-property imports, whose policy remains unresolved because native properties can
-contain private Node.js context data. Earlier workload deadlines and historical
-checkpoint expectation failures did not recur in this run. Three later
-function-identity recovery cases were verified separately.
+integration gate is not green. The latest completed whole-SafeJS snapshot
+(September 8, 2026) includes eval, exception-flow, source-stack and eval-deletion
+fixes, plus experimental weak collections. Its maintained build closure and
+all four fresh-process import checks passed. The unit run finished with
+22,718 passes, two failures and 37 skips across 829 files.
 
-A newer frozen snapshot adds the source-stack and eval-deletion fixes. Its build
-closure and import checks passed, but the unit run is still in progress. The
-later numeric-update and parameter-environment fixes have focused verification
-only and are outside that frozen run.
+Both failures concern host-Promise property imports. Their policy remains
+unresolved because native properties can contain private Node.js context data.
+Earlier workload deadlines and historical checkpoint expectation failures did
+not recur in this run. The later numeric-update and parameter-environment fixes
+have focused verification only and are outside that frozen run. See the
+[validation record](../../docs/plans/safejs-dynamic-validation-result-2026-09-08.md)
+for the exact snapshot and scope.
+
+The restricted function-prototype accessor repair is independently committed
+locally, with 101 focused tests plus TypeScript and lint passing. The related
+strict-arguments descriptor bridge remains uncommitted; neither status implies
+remote delivery or complete function compatibility.
 
 These latest changes include uncommitted work. Pushes and releases are paused;
 local implementation, remote delivery, and successful publication are separate

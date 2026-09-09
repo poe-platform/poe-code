@@ -3885,6 +3885,20 @@ extension, integration, or validation requirement is missing or unverified.
   List index/sort binding, guest index slots and length hints, native descriptors,
   finalizers, remaining builtins, suspension, accounting and SDK/safe-fs remain
   unfinished.
+- Connected list.index to native lookup with positional value/start/stop binding.
+  Both search bounds are converted before searching, including empty lists and
+  excluded ranges. Arbitrarily large bounds saturate to the signed index width
+  instead of raising insert/pop overflow errors. Native list search preserves
+  identity shortcuts, structural equality, first-match positions and the Python
+  3.14 fixed missing-value error without invoking representation callbacks.
+- List-index verification began with seven failing tests. All 3,708 tests in
+  263 files pass, with scoped lint, source typecheck and selected workspace build. A
+  2,224-call compiled-program CPython audit matches results and errors across
+  omitted/negative/huge/invalid bounds, nested lists and argument failures; the
+  existing 2,400-call list-method regression audit passes. Unit coverage includes
+  identical NaN lookup and bool/int equality. List sort binding, guest index
+  slots, native descriptors/introspection, remaining builtins, suspension, full
+  resource accounting and SDK/safe-fs integration remain pending.
 - Next:
   remaining scope/compiler audits, interpreter runtime,
   resource controls, runtime modules, and safe-fs integration. Parsing and static

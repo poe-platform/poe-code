@@ -2,17 +2,34 @@ import { PythonRuntimeError } from "./error.js";
 import type { ExecutionMeter } from "./execution-budget.js";
 import { runtimeComparison } from "./runtime-comparison.js";
 import { runtimeIterate } from "./runtime-iteration.js";
-import type { BuiltinFunctionValue, ListValue, RuntimeValues } from "./runtime-values.js";
+import type { BuiltinFunctionValue, ListValue, RuntimeValue, RuntimeValues } from "./runtime-values.js";
+
+function searchBound(value: RuntimeValue | undefined, fallback: bigint, meter: ExecutionMeter): bigint {
+  meter.checkpoint();
+  if (value === undefined) return fallback;
+  if (value.kind === "bool") return value.value ? 1n : 0n;
+  if (value.kind !== "int") throw new PythonRuntimeError("TypeError", "slice indices must be integers or have an __index__ method");
+  const index = value.value;
+  return index < -9223372036854775808n ? -9223372036854775808n : index > 9223372036854775807n ? 9223372036854775807n : index;
+}
 
 /** Exact list capabilities backed by owned, metered storage. Guest index slots,
  * iterable length hints, descriptors and finalizers belong to the object layer. */
-export function createRuntimeListMethod(receiver: ListValue, name: "append" | "extend" | "insert" | "pop" | "clear" | "reverse" | "copy" | "count" | "remove", values: RuntimeValues, meter: ExecutionMeter): BuiltinFunctionValue {
+export function createRuntimeListMethod(receiver: ListValue, name: "append" | "extend" | "insert" | "pop" | "clear" | "reverse" | "copy" | "count" | "remove" | "index", values: RuntimeValues, meter: ExecutionMeter): BuiltinFunctionValue {
   meter.checkpoint(1, 64);
   return values.builtinFunction({
     name,
     invoke(positional, keywords, meter) {
       meter.checkpoint();
       if (keywords.items.size !== 0) throw new PythonRuntimeError("TypeError", `list.${name}() takes no keyword arguments`);
+      if (name === "index") {
+        if (positional.length < 1) throw new PythonRuntimeError("TypeError", "index expected at least 1 argument, got 0");
+        if (positional.length > 3) throw new PythonRuntimeError("TypeError", `index expected at most 3 arguments, got ${positional.length}`);
+        const start = searchBound(positional[1], 0n, meter), stop = searchBound(positional[2], 9223372036854775807n, meter);
+        const index = receiver.items.indexOf(positional[0], (a, b) => runtimeComparison("==", a, b, values, meter).value, start, stop);
+        if (index === undefined) throw new PythonRuntimeError("ValueError", "list.index(x): x not in list");
+        return values.integer(index);
+      }
       if (name === "insert" || name === "pop") {
         if (name === "insert" && positional.length !== 2) throw new PythonRuntimeError("TypeError", `insert expected 2 arguments, got ${positional.length}`);
         if (name === "pop" && positional.length > 1) throw new PythonRuntimeError("TypeError", `pop expected at most 1 argument, got ${positional.length}`);

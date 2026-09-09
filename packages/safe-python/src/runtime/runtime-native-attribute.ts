@@ -18,7 +18,7 @@ export function runtimeNativeAttribute(receiver: RuntimeValue, name: string, val
   meter.checkpoint();
   if (receiver.kind === "list") {
     switch (name) {
-      case "append": case "extend": case "insert": case "pop": case "clear": case "reverse": case "copy": case "count": case "remove":
+      case "append": case "extend": case "insert": case "pop": case "clear": case "reverse": case "copy": case "count": case "remove": case "index":
         return createRuntimeListMethod(receiver, name, values, meter);
     }
   }

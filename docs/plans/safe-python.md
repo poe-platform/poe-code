@@ -1512,6 +1512,27 @@ extension, integration, or validation requirement is missing or unverified.
   implicit context handling in _PyErr_SetObject. Restore callbacks require LIFO
   use; suspension/context switching, concrete guest exception storage and complete
   scope-closure allocation accounting remain pending with the full interpreter.
+- Added synchronous raise-statement operand evaluation and initial exception
+  construction. Exception and cause expressions execute before constructor calls;
+  exception-class results must be exception instances. Invalid main/cause operands
+  have distinct diagnostics, and bad constructor results format both class
+  representations in order. Explicit cause mutation precedes final normalization;
+  no from clause preserves prior cause, whereas from None requests suppression.
+  Bare raise preserves the active instance/traceback path and reports RuntimeError
+  when no handled exception exists. Final propagation retains the originally
+  requested class for adapter-owned normalization rather than replacing it with
+  the constructed value's type. Present cause payloads use a wrapper, preserving
+  null/undefined host representations without confusing them with guest None.
+- Raise validation: missing-module red suite preceded implementation; a further
+  failing null-payload test preceded the explicit-cause wrapper correction. All
+  1,996 tests in 98 files pass. CPython matched 2,160 combinations of operand kinds,
+  constructor results/failures, representation failures, evaluation failures,
+  active exception state and explicit causes, including events and final error
+  diagnostics/metadata. Scoped lint, source typecheck and selected build passed.
+  Reference: CPython v3.14.0 Python/ceval.c do_raise. Final normalization, guest
+  exception object construction, automatic context attachment at the propagation
+  boundary, traceback updates and suspension remain adapter/runtime work; the
+  full interpreter is still unfinished.
 - Next:
   remaining scope/compiler audits, interpreter runtime,
   resource controls, runtime modules, and safe-fs integration. Parsing and static

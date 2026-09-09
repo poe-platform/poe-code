@@ -6569,6 +6569,17 @@ extension, integration, or validation requirement is missing or unverified.
   selected workspace build. More callback-mutation audits, automatic object/
   builtin assembly and broader interpreter/SDK/safe-fs integration remain
   unfinished.
+- Audited slice-replacement callbacks against CPython: 72 comparisons match
+  across clearing/appending/removing destination items, successful collection,
+  failures and contiguous/extended/reversed slices. Added six compiled mutation
+  regressions confirming successful normalization uses current storage and
+  collection failure preserves callback effects without applying partial output.
+- Added a seventh compiled regression for cursor redirection: iter(cursor) may
+  return another iterator, but the original cursor supplies the length hint.
+  The observed trace matches CPython. No runtime fix was justified by these
+  audits. All 5,082 tests in 440 files and typecheck pass. This increment changes
+  tests only; automatic object/builtin assembly and broader interpreter/SDK/
+  safe-fs integration remain unfinished.
 - Next:
   remaining scope/compiler audits, interpreter runtime,
   resource controls, runtime modules, and safe-fs integration. Parsing and static

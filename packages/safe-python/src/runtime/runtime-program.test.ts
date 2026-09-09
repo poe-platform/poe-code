@@ -39,6 +39,62 @@ function fixture(source: string, maxSteps = 100000, signal?: AbortSignal) {
 }
 
 describe("assembled concrete runtime programs", () => {
+  it("hints the original slice cursor while consuming its replacement", () => {
+    const state = fixture("items=[1]\nitems[:]=guest\n"), v = state.values;
+    const guest = v.cell({}), cursor = v.cell({}), replacement = v.cell({}), events: string[] = [];
+    const stop = new PythonRuntimeError("StopIteration", "done");
+    const iteration: IterationContext<RuntimeValue> = {
+      lookupIter: value => () => {
+        expect(value).not.toBe(replacement);
+        events.push(value === guest ? "source iter" : "cursor iter");
+        return value === guest ? cursor : replacement;
+      },
+      hasNext: value => value === cursor || value === replacement,
+      next(value) { expect(value).toBe(replacement); events.push("replacement next"); throw stop; },
+      hasSequenceItem: () => false, getItem() { throw Error("unexpected item"); },
+      isStopIteration: error => error === stop, isIndexError: () => false, typeName: () => "Guest",
+      hints: {
+        length: value => { expect(value).toBe(cursor); return undefined; },
+        lookupHint: () => () => { events.push("original hint"); return v.integer(0); },
+        integer: value => value.kind === "int" ? value.value : undefined,
+        isNotImplemented: () => false, isTypeError: () => false, typeName: () => "Guest"
+      }
+    };
+    state.globals.set("guest", guest); state.hooks.expressions = () => ({ warn() {}, iteration });
+    state.run();
+    expect(events).toEqual(["source iter", "cursor iter", "original hint", "replacement next"]);
+    const items = state.globals.get("items"); if (items?.kind !== "list") throw Error("expected list");
+    expect(items.items.length).toBe(0);
+  });
+  it.each([
+    ["clear", false], ["clear", true], ["append", false],
+    ["append", true], ["pop", false], ["pop", true]
+  ] as const)("preserves %s callbacks during slice collection (failure=%s)", (mutation, fail) => {
+    const state = fixture("items=[0,1,2,3]\nitems[:]=guest\n"), v = state.values;
+    const guest = v.cell({}), cursor = v.cell({}); let index = 0;
+    const stop = new PythonRuntimeError("StopIteration", "done"), failure = new PythonRuntimeError("ValueError", "collection failed");
+    const iteration: IterationContext<RuntimeValue> = {
+      lookupIter: () => () => cursor, hasNext: value => value === cursor,
+      next() {
+        if (index++ === 0) {
+          const items = state.globals.get("items"); if (items?.kind !== "list") throw Error("expected list");
+          if (mutation === "clear") items.items.clear();
+          else if (mutation === "append") items.items.append(v.integer(7));
+          else items.items.pop(0n);
+          return v.integer(9);
+        }
+        if (fail) throw failure;
+        throw stop;
+      },
+      hasSequenceItem: () => false, getItem() { throw Error("unexpected item"); },
+      isStopIteration: error => error === stop, isIndexError: () => false, typeName: () => "Guest"
+    };
+    state.globals.set("guest", guest); state.hooks.expressions = () => ({ warn() {}, iteration });
+    if (fail) expect(() => state.run()).toThrow(failure); else state.run();
+    const items = state.globals.get("items"); if (items?.kind !== "list") throw Error("expected list");
+    const expected = !fail ? [9] : mutation === "clear" ? [] : mutation === "append" ? [0,1,2,3,7] : [1,2,3];
+    expect(items.items.snapshot()).toEqual(expected.map(value => v.integer(value)));
+  });
   it.each(["success", "next-error", "hint-error"])("collects guest slice replacements with cursor hints (%s)", mode => {
     const state = fixture("items=[0,1,2]\nitems[1:]=guest\n"), v = state.values;
     const guest = v.cell({}), cursor = v.cell({}), events: string[] = [];

@@ -1334,6 +1334,23 @@ extension, integration, or validation requirement is missing or unverified.
   hashing/equality/identity, optimized hash reuse and mapping protocol work remain
   context-owned, with internal metering required. Guest object/frame execution,
   comprehensions, suspensions and complete allocation accounting remain pending.
+- Added iterator-driven assignment unpacking for exact-count and starred targets.
+  Exact-count unpacking probes only one excess value before failing; starred
+  unpacking collects leading values, a possibly empty middle list payload and
+  trailing values in order. Shortages use the exact/minimum-count diagnostics.
+  Errors preserve already-consumed iterator state without closing or restarting
+  the iterator. Required checkpoints precede every next call and starred remainder
+  preparation; invalid host target counts are rejected before input consumption.
+- Unpacking validation: missing-module red tests preceded implementation; all
+  1,844 tests in 89 files pass. CPython matched 2,184 exact/starred cases covering
+  target counts, input lengths, injected iterator failures, full consumption traces,
+  diagnostics and remaining iterator state. The adapter supplied the starred
+  path's second iter/length-hint preparation at the matching point. Scoped lint,
+  source typecheck and dependency build passed. Reference: Python assignment
+  target-list rules. This is the generic adapted-iterator path, not built-in
+  sequence fast paths. Actual target stores, recursive target traversal, guest
+  starred-list construction, initial iterator acquisition, concrete remainder
+  protocols and complete allocation accounting remain pending/context-owned.
 - Next:
   remaining scope/compiler audits, interpreter runtime,
   resource controls, runtime modules, and safe-fs integration. Parsing and static

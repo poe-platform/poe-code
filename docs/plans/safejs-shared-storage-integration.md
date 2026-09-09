@@ -79,3 +79,21 @@ The original package-run input hash still matches. This module is not yet
 connected to guest values, views, accounting, globals or snapshots. The new
 interp/shared-array-buffer.ts and interp/shared-array-buffer.test.ts must also
 be excluded when rechecking the running package gate's original input hash.
+
+## Shared storage snapshot codec
+
+snapshot/shared-array-buffer.ts now encodes one byte payload per block, with
+subsequent distinct wrappers represented by a block reference. Decoding a block
+reference clones the registered wrapper instead of returning it directly, keeping
+object identity distinct while preserving aliasing. Capacity is retained for
+growable storage. Ordinary/unregistered references, detachment flags, conflicting
+storage descriptions, invalid bytes and invalid capacity are rejected. Allocation
+and traversal use the existing budget checks.
+
+The codec and identity tests passed 32 cases together (session 92072), including
+sparse-byte and equal-independent-block regressions. The codec is not yet
+connected to serialize/restore dispatch or snapshot graph validation. Its module
+and test (snapshot/shared-array-buffer.ts and .test.ts) are new after package-gate
+discovery and must be excluded when verifying that run's original hash.
+ESLint and TypeScript checks passed (session 85256). No publication or complete
+guest-checkpoint support is claimed by this internal codec increment.

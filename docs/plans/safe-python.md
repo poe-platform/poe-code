@@ -2333,6 +2333,20 @@ extension, integration, or validation requirement is missing or unverified.
   detailed iterator/preparation/hint/next traces. Mapping/keys dispatch, keyword
   updates, complete guest dict wiring and full temporary-heap accounting remain
   unfinished.
+- Added generic dictionary source dispatch: optional keys lookup selects mapping
+  versus iterable-pair updates, followed by a fresh lookup/call in the mapping
+  branch. Arbitrary keys iterables materialize before any value fetch; exact
+  list keys remain live, repeated keys fetch again, and prior inserts persist
+  after retrieval failures. Initial noniterable-keys TypeError receives the
+  source/result type diagnostic; later protocol errors propagate unchanged.
+- Shared metered iterator collection between mapping-key and pair-row conversion
+  without changing their distinct preparation or error boundaries. Tests first
+  reproduced missing mapping dispatch. All 2,650 tests in 154 files pass; 240
+  CPython mapping-update outcomes/protocol traces matched, and all 600 prior
+  pair-update traces still match after the extraction. Source typecheck, scoped
+  lint and selected workspace build passed. Exact-dict optimized
+  merging, keyword updates and complete guest method/container wiring remain
+  unfinished.
 - Next:
   remaining scope/compiler audits, interpreter runtime,
   resource controls, runtime modules, and safe-fs integration. Parsing and static

@@ -1,5 +1,6 @@
 import type { ExecutionMeter } from "./execution-budget.js";
 import { PythonRuntimeError } from "./error.js";
+import { collectIterator } from "./iterator-collection.js";
 
 export interface PairUpdateContext<Value> {
   /** Exact list/tuple storage only; subclasses use the iterable path. */
@@ -37,17 +38,7 @@ export function updateDictionaryPairs<Value>(source: Iterator<Value>, context: P
       }
       meter.checkpoint();
       iterator = context.prepare(iterator);
-      meter.checkpoint(0, 32);
-      const items: Value[] = [];
-      while (true) {
-        meter.checkpoint();
-        const item = iterator.next();
-        meter.checkpoint();
-        if (item.done) break;
-        meter.checkpoint(0, 8);
-        items.push(item.value);
-      }
-      row = items;
+      row = collectIterator(iterator, meter);
     }
     meter.checkpoint();
     if (row.length !== 2) throw new PythonRuntimeError("ValueError", `dictionary update sequence element #${index} has length ${row.length}; 2 is required`);

@@ -2019,6 +2019,18 @@ extension, integration, or validation requirement is missing or unverified.
   subclass dispatch, bigint payload allocation and size-dependent CPU accounting
   remain unfinished; tagged-result allocations and operation checkpoints alone
   do not establish complete resource containment.
+- Added exact concrete numeric pair comparisons across bool, int, float and
+  complex values, reusing exact real ordering without integer-to-float coercion.
+  NaN bypasses no equality work even for identical objects; complex equality
+  checks both components. Complex ordering and nonnumeric pairs decline with
+  NotImplemented so callers retain reflected dispatch/error responsibilities.
+  This combined builtin-pair kernel is not an exposed individual type dunder.
+- Numeric-comparison validation: missing-module red tests preceded implementation.
+  All 2,453 tests in 132 files pass; CPython matched 62,424 numeric comparisons,
+  including integers beyond floating range, precision boundaries, signed zeros,
+  NaN, infinities and complex components. Typecheck, scoped lint and selected
+  workspace build passed. Individual guest type slots, subclass dispatch wiring,
+  nonnumeric comparisons and size-dependent bigint CPU accounting remain pending.
 - Next:
   remaining scope/compiler audits, interpreter runtime,
   resource controls, runtime modules, and safe-fs integration. Parsing and static

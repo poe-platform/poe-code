@@ -4483,6 +4483,17 @@ extension, integration, or validation requirement is missing or unverified.
   and selected workspace build pass. Remaining numeric/text
   methods, buffer protocols, native builtins, suspension, full accounting and
   SDK/safe-fs remain unfinished.
+- Connected int/bool/float/complex.conjugate. Exact int/float receivers retain
+  identity, including non-finite floats; bool returns int. Complex results are
+  fresh, preserve the real component and negate only the imaginary component,
+  including signed-zero behavior. Call errors preserve inherited int naming.
+- Four native tests first reproduced missing support. All 4,150 tests in 315
+  files pass, including signed-zero and non-finite component combinations. A
+  3,926-program compiled CPython audit matches values, receiver identity and
+  diagnostics, comparing finite floating/complex components by binary64 bits.
+  Scoped lint, source typecheck and selected workspace build pass.
+  Remaining numeric/text methods, buffer protocols, native builtins, suspension,
+  full accounting and SDK/safe-fs remain unfinished.
 - Next:
   remaining scope/compiler audits, interpreter runtime,
   resource controls, runtime modules, and safe-fs integration. Parsing and static

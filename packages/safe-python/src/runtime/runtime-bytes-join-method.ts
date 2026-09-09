@@ -2,12 +2,13 @@ import { PythonRuntimeError } from "./error.js";
 import type { ExecutionMeter } from "./execution-budget.js";
 import type { ImmutableBytes } from "./immutable-bytes.js";
 import { collectIterator } from "./iterator-collection.js";
-import { runtimeIterate } from "./runtime-iteration.js";
+import { runtimeSequenceIterator } from "./runtime-sequence-iterator.js";
+import type { ExpressionContext } from "./expression-evaluation.js";
 import type { BuiltinFunctionValue, RuntimeValue, RuntimeValues } from "./runtime-values.js";
 
 /** Consume generic iterables before member validation; an iterator failure
  * takes precedence over an invalid element already collected. */
-export function createRuntimeBytesJoinMethod(receiver: Extract<RuntimeValue, { kind: "bytes" }>, values: RuntimeValues, meter: ExecutionMeter): BuiltinFunctionValue {
+export function createRuntimeBytesJoinMethod(receiver: Extract<RuntimeValue, { kind: "bytes" }>, values: RuntimeValues, meter: ExecutionMeter, iterate?: ExpressionContext<RuntimeValue>["iterate"]): BuiltinFunctionValue {
   meter.checkpoint(1, 64);
   return values.builtinFunction({
     name: "join",
@@ -20,12 +21,7 @@ export function createRuntimeBytesJoinMethod(receiver: Extract<RuntimeValue, { k
       if (source.kind === "tuple") items = source.items;
       else if (source.kind === "list") items = source.items.snapshot();
       else {
-        let iterator: Iterator<RuntimeValue>;
-        try { iterator = runtimeIterate(source, values, meter); }
-        catch (error) {
-          if (error instanceof PythonRuntimeError && error.name === "TypeError") throw new PythonRuntimeError("TypeError", "can only join an iterable");
-          throw error;
-        }
+        const iterator = runtimeSequenceIterator(source, values, meter, "can only join an iterable", iterate);
         items = collectIterator(iterator, meter);
       }
       if (items.length === 0) return values.bytes(new Uint8Array());

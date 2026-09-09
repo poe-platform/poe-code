@@ -39,6 +39,30 @@ function fixture(source: string, maxSteps = 100000, signal?: AbortSignal) {
 }
 
 describe("assembled concrete runtime programs", () => {
+  it.each([["", false], ["", true], ["b", false], ["b", true]] as const)("joins guest iterables (%s, failure=%s)", (prefix, fail) => {
+    const state = fixture(`result=${prefix}','.join(guest)\nexpected=${prefix}'a,b'\n`), v = state.values;
+    const guest = v.cell({}), cursor = v.cell({}), events: string[] = []; let index = 0;
+    const stop = new PythonRuntimeError("StopIteration", "done"), failure = new PythonRuntimeError("ValueError", "join failed");
+    const parts = prefix === "b" ? [v.bytes(Uint8Array.of(97)), v.bytes(Uint8Array.of(98))] : [v.string("a"), v.string("b")];
+    const iteration: IterationContext<RuntimeValue> = {
+      lookupIter: value => () => { events.push(value === guest ? "source" : "cursor"); return cursor; },
+      hasNext: value => value === cursor,
+      next() { events.push("next"); if (index === 0 && fail) { index++; return v.none; } if (fail) throw failure; if (index < parts.length) return parts[index++]; throw stop; },
+      hasSequenceItem: () => false, getItem() { throw Error("unexpected item"); },
+      isStopIteration: error => error === stop, isIndexError: () => false, typeName: () => "Guest",
+      hints: {
+        length: value => { expect(value).toBe(cursor); return undefined; },
+        lookupHint: () => () => { events.push("hint"); return v.integer(0); },
+        integer: value => value.kind === "int" ? value.value : undefined,
+        isNotImplemented: () => false, isTypeError: () => false, typeName: () => "Guest"
+      }
+    };
+    state.globals.set("guest", guest); state.hooks.expressions = () => ({ warn() {}, iteration });
+    if (fail) expect(() => state.run()).toThrow(failure); else {
+      state.run(); expect(state.globals.get("result")).toEqual(state.globals.get("expected"));
+    }
+    expect(events).toEqual(fail ? ["source", "cursor", "hint", "next", "next"] : ["source", "cursor", "hint", "next", "next", "next"]);
+  });
   it.each(["negative", "oversized", "invalid", "raises"])("validates guest bytes needles (%s)", mode => {
     const state = fixture("result=b'abc'.find(needle)\n"), v = state.values;
     const failure = new PythonRuntimeError("TypeError", "guest failure");

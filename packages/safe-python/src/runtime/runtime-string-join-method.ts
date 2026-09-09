@@ -1,13 +1,14 @@
 import type { CodePointString } from "./code-point-string.js";
 import { PythonRuntimeError } from "./error.js";
 import type { ExecutionMeter } from "./execution-budget.js";
-import { runtimeIterate } from "./runtime-iteration.js";
+import { runtimeSequenceIterator } from "./runtime-sequence-iterator.js";
+import type { ExpressionContext } from "./expression-evaluation.js";
 import type { BuiltinFunctionValue, RuntimeValue, RuntimeValues } from "./runtime-values.js";
 
 /** Materialize generic input before validating members, as Python join does.
  * Iterator failures retain precedence over bad elements already collected.
- * Guest length hints and str subclasses remain separate protocol work. */
-export function createRuntimeStringJoinMethod(receiver: Extract<RuntimeValue, { kind: "str" }>, values: RuntimeValues, meter: ExecutionMeter): BuiltinFunctionValue {
+ * Guest cursors supply length hints; str subclasses remain separate work. */
+export function createRuntimeStringJoinMethod(receiver: Extract<RuntimeValue, { kind: "str" }>, values: RuntimeValues, meter: ExecutionMeter, iterate?: ExpressionContext<RuntimeValue>["iterate"]): BuiltinFunctionValue {
   meter.checkpoint(1, 64);
   return values.builtinFunction({
     name: "join",
@@ -20,12 +21,7 @@ export function createRuntimeStringJoinMethod(receiver: Extract<RuntimeValue, { 
       if (source.kind === "tuple") items = source.items;
       else if (source.kind === "list") items = source.items.snapshot();
       else {
-        let iterator: Iterator<RuntimeValue>;
-        try { iterator = runtimeIterate(source, values, meter); }
-        catch (error) {
-          if (error instanceof PythonRuntimeError && error.name === "TypeError") throw new PythonRuntimeError("TypeError", "can only join an iterable");
-          throw error;
-        }
+        const iterator = runtimeSequenceIterator(source, values, meter, "can only join an iterable", iterate);
         meter.checkpoint(1, 32);
         const collected: RuntimeValue[] = [];
         while (true) {

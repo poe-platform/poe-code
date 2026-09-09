@@ -1,14 +1,13 @@
 import { PythonRuntimeError } from "./error.js";
 import type { ExecutionMeter } from "./execution-budget.js";
 import { ListStorage } from "./list-storage.js";
-import { runtimeIterate } from "./runtime-iteration.js";
 import { runtimeSliceBounds } from "./runtime-slice-bounds.js";
 import type { RuntimeValue, RuntimeValues } from "./runtime-values.js";
 import { runtimeDictionaryAccess } from "./runtime-dictionary-access.js";
 import type { IntegerIndexContext } from "./index-protocol.js";
 import { runtimeSequenceIndex } from "./runtime-sequence-index.js";
 import type { ExpressionContext } from "./expression-evaluation.js";
-import { ProtocolIterator } from "./protocol-iterator.js";
+import { runtimeSequenceIterator } from "./runtime-sequence-iterator.js";
 
 export type ItemMutation = { readonly kind: "set"; readonly value: RuntimeValue } | { readonly kind: "delete" };
 
@@ -34,18 +33,7 @@ export function runtimeMutateItem(object: RuntimeValue, key: RuntimeValue, chang
     if (change.value.kind === "list") replacement = change.value.items;
     else if (change.value.kind === "tuple") replacement = new ListStorage(change.value.items, meter);
     else {
-      let iterator: Iterator<RuntimeValue>;
-      try { iterator = iterate === undefined ? runtimeIterate(change.value, values, meter) : iterate(change.value); }
-      catch (error) {
-        if (error instanceof PythonRuntimeError && error.name === "TypeError") throw new PythonRuntimeError("TypeError", "must assign iterable to extended slice");
-        throw error;
-      }
-      meter.checkpoint();
-      if (iterator instanceof ProtocolIterator) {
-        const source = iterator;
-        iterator = source.reacquire();
-        source.lengthHint(8n);
-      }
+      const iterator = runtimeSequenceIterator(change.value, values, meter, "must assign iterable to extended slice", iterate);
       replacement = new ListStorage<RuntimeValue>([], meter);
       replacement.extendIterator(iterator);
     }

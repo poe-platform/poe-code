@@ -6601,6 +6601,17 @@ extension, integration, or validation requirement is missing or unverified.
   and traces. Typecheck and selected workspace build pass. Remaining native
   protocols, buffer capabilities, automatic object/builtin assembly and broader
   interpreter/SDK/safe-fs integration remain unfinished.
+- Connected str.join/bytes.join to guest iteration, extracting shared sequence
+  materializer acquisition with slice assignment. Initial acquisition TypeErrors
+  receive consumer diagnostics; cursor reacquisition and original-cursor hints
+  remain outside that boundary. Joins still collect before validating members,
+  so later iterator errors take precedence over earlier invalid elements.
+- Four compiled regressions verify both joins and failure precedence. All 5,102
+  tests in 440 files pass; 32 CPython guest-join comparisons and 72 existing
+  slice callback-mutation comparisons match values/errors/traces. Typecheck,
+  scoped lint and selected workspace build pass. String subclasses, buffers,
+  remaining native protocols, automatic object/builtin assembly and broader
+  interpreter/SDK/safe-fs integration remain unfinished.
 - Next:
   remaining scope/compiler audits, interpreter runtime,
   resource controls, runtime modules, and safe-fs integration. Parsing and static

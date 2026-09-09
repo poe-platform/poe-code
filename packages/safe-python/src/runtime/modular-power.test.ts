@@ -3,15 +3,41 @@ import { integerModularPower } from "./modular-power.js";
 import { ExecutionBudget, ExecutionLimitError } from "./execution-budget.js";
 
 describe("integer modular power", () => {
+  it("charges bigint payloads in exponentiation and inversion", () => {
+    for (const exponent of [17n, -17n]) {
+      const meter = new ExecutionBudget({ maxSteps: 100000, maxAllocatedBytes: 0 });
+      expect(() => integerModularPower(38n, exponent, 97n, meter)).toThrow(expect.objectContaining({ reason: "allocation" }));
+    }
+  });
+  it("reserves loop intermediates beyond the cost of inspecting inputs", () => {
+    for (const exponent of [12345n, -12345n]) {
+      const meter = new ExecutionBudget({ maxSteps: 100000, maxAllocatedBytes: 250 });
+      expect(() => integerModularPower(38n, exponent, 97n, meter)).toThrow(expect.objectContaining({ reason: "allocation" }));
+    }
+  });
+  it("keeps metered results exact and charges larger payloads more", () => {
+    const usages: number[] = [];
+    for (const bits of [127n, 521n]) {
+      const meter = new ExecutionBudget({ maxSteps: 100000, maxAllocatedBytes: 1000000 });
+      const modulus = (1n << bits) - 1n;
+      expect(integerModularPower(38n, -17n, modulus, meter)).toBe(integerModularPower(38n, -17n, modulus));
+      usages.push(meter.usage.allocatedBytes);
+    }
+    expect(usages[0]).toBeGreaterThan(0);
+    expect(usages[1]).toBeGreaterThan(usages[0]);
+  });
   it("checks the meter before even validating a zero modulus", () => {
     const meter = new ExecutionBudget({ maxSteps: 0, maxAllocatedBytes: 0 });
     expect(() => integerModularPower(2n, 3n, 0n, meter)).toThrow(ExecutionLimitError);
   });
   it("interrupts exponentiation and modular inversion loops", () => {
     for (const [base, exponent, modulus] of [[2n, 1n << 100n, 7n], [55n, -1n, 89n]]) {
-      const meter = new ExecutionBudget({ maxSteps: 3, maxAllocatedBytes: 0 });
+      const complete = new ExecutionBudget({ maxSteps: 100000, maxAllocatedBytes: 100000 });
+      integerModularPower(base, exponent, modulus, complete);
+      const maxSteps = complete.usage.steps - 1;
+      const meter = new ExecutionBudget({ maxSteps, maxAllocatedBytes: 100000 });
       expect(() => integerModularPower(base, exponent, modulus, meter)).toThrow(ExecutionLimitError);
-      expect(meter.usage.steps).toBe(3);
+      expect(meter.usage.steps).toBe(maxSteps);
     }
   });
   it("honors cancellation even on modulus-one shortcuts", () => {

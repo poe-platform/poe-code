@@ -6365,6 +6365,20 @@ extension, integration, or validation requirement is missing or unverified.
   covered by unit tests. Another 16 compiled guest round call/result traces match
   CPython. Typecheck, scoped lint and selected workspace build pass. Automatic
   builtin/object assembly and broader interpreter/SDK/safe-fs work remain pending.
+- Auditing pow exposed uncharged bigint arithmetic in modular exponentiation
+  and inversion. Added input-width inspection and conservative pre-operation
+  charges for reductions, products, exponent shifts, signs and Euclidean
+  coefficients; removed temporary destructuring arrays in the inverse loop.
+  Modulus-one shortcuts still avoid size-dependent allocation. Host bigint
+  operations remain indivisible and size inspection retains the shared metric's
+  post-conversion string-accounting limitation.
+- Three new tests reproduced zero-allocation execution and now enforce payload
+  limits and size scaling. The step-limit test now derives its cutoff from a
+  successful execution so it still reaches arithmetic rather than stopping in
+  input inspection. All 4,975 tests in 435 files pass; 2,000 metered modular-power
+  result/error comparisons match CPython. Typecheck, scoped lint and selected
+  workspace build pass. The pow builtin, floating/complex power families and
+  full ternary guest dispatch remain unfinished, alongside broader runtime work.
 - Next:
   remaining scope/compiler audits, interpreter runtime,
   resource controls, runtime modules, and safe-fs integration. Parsing and static

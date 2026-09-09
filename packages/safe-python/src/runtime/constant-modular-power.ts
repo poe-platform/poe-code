@@ -5,7 +5,8 @@ import { integerModularPower } from "./modular-power.js";
 /** Three-argument power for exact bool/int operands. Other kinds decline so
  * the caller can perform ternary reflected dispatch and report type errors.
  * A None modulus belongs to two-argument power, not this modular kernel.
- * Loops and result records are metered; bigint payload accounting is pending.
+ * Loops, arithmetic payload bounds and result records are metered; individual
+ * host bigint operations cannot be interrupted internally.
  */
 export function constantModularPower(base: ConstantValue, exponent: ConstantValue, modulus: ConstantValue, values: ConstantValues, meter: ExecutionMeter): ConstantValue {
   meter.checkpoint();

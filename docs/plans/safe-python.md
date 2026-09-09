@@ -2802,6 +2802,18 @@ extension, integration, or validation requirement is missing or unverified.
   workspace build passed. Guest range/iterator registration, integer wrapping,
   constructor binding, iterator state restoration/pickling and full bigint
   CPU/allocation accounting remain open.
+- Connected expanded guest range calls to index conversion and existing exact
+  progression arithmetic. Keyword rejection precedes one-to-three argument
+  validation; explicit arguments convert left to right and stop at the first
+  failure. One-argument calls use zero/unit defaults without guest conversion;
+  zero step is rejected after conversion, including empty ranges. Direct integer
+  subclass inputs normalize to bigint payloads without invoking overrides.
+- The constructor suite first failed on its missing module; all 3,061 tests in
+  189 files pass. A 1,200-case CPython audit matched range attributes/cardinality,
+  diagnostics, index callback order and warning outcomes. Source typecheck,
+  scoped lint and selected workspace build passed. Concrete guest range/type
+  registration, protocol wrappers, hashing, state/pickling and full bigint
+  CPU/allocation accounting remain unfinished.
 - Next:
   remaining scope/compiler audits, interpreter runtime,
   resource controls, runtime modules, and safe-fs integration. Parsing and static

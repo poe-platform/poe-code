@@ -6205,6 +6205,15 @@ extension, integration, or validation requirement is missing or unverified.
   rich-comparison programs, including callback traces. Typecheck, scoped lint and selected
   workspace build pass. Remaining allocation audits and broad interpreter,
   object-model and SDK/safe-fs integration remain unfinished.
+- Deletion traversal now charges the root work array/frame and each nested
+  frame before allocation, while keeping O(nesting depth) live space and
+  left-to-right deletion semantics. Allocation failure does not undo earlier
+  deletions. Existing loop checkpoints already cover terminal callbacks.
+- Three tests first exposed missing root/nested charges and verify preservation
+  of earlier effects. All 4,901 tests in 426 files pass. The 10,000-level traversal
+  test retains its depth with an explicit budget covering its frames. Typecheck, scoped lint
+  and selected workspace build pass. Remaining continuation/temporary allocation
+  accounting and broad guest-object/interpreter/SDK/safe-fs integration are open.
 - Next:
   remaining scope/compiler audits, interpreter runtime,
   resource controls, runtime modules, and safe-fs integration. Parsing and static

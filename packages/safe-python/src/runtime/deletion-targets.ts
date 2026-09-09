@@ -12,11 +12,11 @@ export interface DeletionContext {
 
 /** Execute statically validated del targets, preserving earlier side effects
  * after a failure. Target lists describe deletions, not iterable unpacking.
- * Explicit frames use O(nesting depth) space; complete frame-heap accounting
- * remains runtime work. Guest reference operations have required checkpoints.
+ * Explicit frames use O(nesting depth) space and are charged cumulatively before
+ * allocation. Guest reference operations have required checkpoints.
  */
 export function deleteTargets(targets: readonly Expression[], context: DeletionContext, meter: ExecutionMeter): void {
-  meter.checkpoint();
+  meter.checkpoint(1, 72);
   const frames: { items: readonly CollectionItem[]; index: number }[] = [{ items: targets, index: 0 }];
   while (frames.length) {
     meter.checkpoint();
@@ -29,6 +29,7 @@ export function deleteTargets(targets: readonly Expression[], context: DeletionC
       meter.checkpoint();
       reference.remove();
     } else if (target.kind === "tuple" || target.kind === "list") {
+      meter.checkpoint(0, 40);
       frames.push({ items: target.items, index: 0 });
     } else throw new Error("deletion targets must be statically validated");
   }

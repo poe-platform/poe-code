@@ -88,6 +88,30 @@ Before changing code, reproduce these cases as failing source tests and
 include delegate throw/return, done results, Proxy results, replay and memory
 retention controls. This bug is validated but not fixed by this audit.
 
+### Specification and implementation follow-through
+
+The [ECMAScript 2024 yield-star evaluation rules](https://tc39.es/ecma262/2024/multipage/ecmascript-language-functions-and-classes.html#sec-generator-function-definitions-runtime-semantics-evaluation)
+confirm the native observations. For a non-completed synchronous delegate
+result, next, throw and return paths yield the object itself. Async paths
+instead obtain its value. Completed results obtain the value for completion.
+Thus forwarding is a language requirement, not a Node-specific optimization.
+
+Source inspection found two additional boundaries beyond the interpreter and
+channel already noted:
+
+- interp/iteration.ts generatorIterator derives generator state by reading
+  result.done. Forwarding a guest result through that code unchanged could
+  add an observable getter read; state must come from internal channel state.
+- interp/methods/generator.ts callGeneratorMethod reconstructs value/done
+  again. That must not erase a forwarded synchronous delegate result.
+
+The generatorYield callback also crosses interp/async.ts and replay/context
+types. Ordinary yields, delegated synchronous results, async suspension and
+completed results must remain distinguishable through those boundaries.
+Saved yield-delegate expression state currently retains only the yielded
+value; preserving a raw delegate result requires reviewing restored state,
+accounting and snapshot validation rather than changing only the last wrapper.
+
 ## Verification boundary
 
 These are built-SDK/native audit observations, not completed fixes or passing

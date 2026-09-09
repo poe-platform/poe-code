@@ -13,6 +13,15 @@ export interface ExpressionCall<Value> {
   invoke(): Value;
 }
 
+/** Concrete guest set operations own hashing/equality, optimized updates from
+ * existing sets or mappings, guest iteration, allocation and internal metering.
+ */
+export interface ExpressionSet<Value> {
+  add(value: Value): void;
+  update(iterable: Value): void;
+  finish(): Value;
+}
+
 /** Absent properties denote omitted bounds; a present guest value is never
  * interpreted as absence. Slice construction does not perform __index__ calls.
  */
@@ -42,6 +51,7 @@ export interface ExpressionContext<Value> {
   tuple(values: readonly Value[]): Value;
   /** Allocate a fresh guest list, preserving element references. */
   list(values: readonly Value[]): Value;
+  beginSet(initial: readonly Value[]): ExpressionSet<Value>;
   slice(parts: SliceValues<Value>): Value;
   getItem(object: Value, key: Value): Value;
   /** Adapt the guest iteration protocol to next/done. Internal guest calls and
@@ -97,6 +107,35 @@ export function evaluateExpression<Value>(expression: Expression, context: Expre
       case "assignment-expression":
         work.push(() => { context.store(node.target.name, value); knownTruth = undefined; }, { node: node.value, test: "value" });
         break;
+      case "set": {
+        // CPython's stack-use guideline changes observable hash-call timing:
+        // small initial runs are evaluated before BUILD_SET, large ones use adds.
+        let initialCount = 0;
+        if (node.items.length <= 30) {
+          while (initialCount < node.items.length && node.items[initialCount].kind !== "unpack") {
+            meter.checkpoint(); initialCount++;
+          }
+        }
+        const initial: Value[] = [];
+        let set: ExpressionSet<Value> | undefined, index = 0;
+        const nextItem = () => {
+          if (set === undefined && index === initialCount) {
+            set = context.beginSet(initial);
+            work.push(nextItem);
+            return;
+          }
+          const item = node.items[index++];
+          if (item === undefined) { value = set!.finish(); knownTruth = undefined; return; }
+          work.push(() => {
+            if (item.kind === "unpack") set!.update(value);
+            else if (set === undefined) initial.push(value);
+            else set.add(value);
+            work.push(nextItem);
+          }, { node: item.kind === "unpack" ? item.value : item, test: "value" });
+        };
+        work.push(nextItem);
+        break;
+      }
       case "tuple":
       case "list":
       case "subscript": {

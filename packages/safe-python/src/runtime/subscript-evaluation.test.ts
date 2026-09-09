@@ -12,6 +12,7 @@ function environment(initial: Record<string, unknown> = {}) {
     store: unused, unary: unused, binary: unused, compare: unused, truth: Boolean, boolean: value => value, attribute: unused, beginCall: unused,
     tuple: values => { events.push("tuple"); return { tuple: values }; },
     list: values => [...values],
+    beginSet: unused,
     slice: parts => { events.push("slice"); return { slice: [parts.lower ?? null, parts.upper ?? null, parts.step ?? null] }; },
     getItem: (_object, key) => { events.push("getitem"); return key; },
     iterate: value => {

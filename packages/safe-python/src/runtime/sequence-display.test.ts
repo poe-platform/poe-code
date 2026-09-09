@@ -13,6 +13,7 @@ function environment(initial: Record<string, unknown> = {}) {
     store: (name, value) => { events.push(`store:${name}`); names.set(name, value); },
     unary: unused, binary: unused, compare: unused, attribute: unused, slice: unused, beginCall: unused,
     truth: Boolean, boolean: value => value,
+    beginSet: unused,
     tuple: values => { events.push("tuple"); return { tuple: values }; },
     list: values => { events.push("list"); return [...values]; },
     getItem: (object, key) => (object as unknown[])[Number(key)],

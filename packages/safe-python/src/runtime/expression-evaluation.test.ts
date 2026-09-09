@@ -28,6 +28,7 @@ function environment(initial: ReadonlyMap<string, Value> = new Map()) {
     truth: value => { events.push("truth"); return Boolean(value); },
     boolean: value => value,
     beginCall: () => { throw new Error("fixture calls unsupported"); },
+    beginSet: () => { throw new Error("fixture sets unsupported"); },
     tuple: () => { throw new Error("fixture tuples unsupported"); },
     list: () => { throw new Error("fixture lists unsupported"); },
     slice: () => { throw new Error("fixture slices unsupported"); },

@@ -1296,6 +1296,26 @@ extension, integration, or validation requirement is missing or unverified.
   by the context; the evaluator's temporary buffers/continuation heap still need
   complete accounting. Set/dict displays, comprehensions, statements, suspensions
   and the full guest object/frame model remain pending.
+- Added set-display execution with guest set construction/add/update callbacks.
+  Small initial unstarred groups are evaluated before construction/hashing;
+  construction happens before evaluating the first starred operand. Subsequent
+  values are inserted individually and star updates complete before later values.
+  Displays above CPython's 30-item stack-use guideline use incremental insertion
+  from the beginning, preserving observable hash/error ordering. Empty starred
+  sets and fresh repeated displays are supported. Dispatch checkpoints precede
+  construction, insertion, updates and final result retrieval.
+- Set validation: eight tests failed on unsupported set nodes before implementation;
+  all 1,819 tests in 87 files now pass. CPython matched 2,200 generated display
+  results/traces with instrumented name loads, hash calls, iteration and hashing
+  failures, including displays on both sides of the 30/31-item boundary. Scoped
+  lint, source typecheck and dependency build passed. References: Python set-display
+  rules; CPython v3.14.0 Python/codegen.c starunpack_helper_impl and
+  Include/internal/pycore_compile.h _PY_STACK_USE_GUIDELINE.
+  Concrete guest set hashing/equality/storage and optimized update semantics
+  (including hash reuse for set/dict sources) remain context responsibilities,
+  along with internal iteration and allocation metering. This adds evaluation
+  scheduling, not a complete guest set object. Dictionary displays, comprehensions,
+  statement execution and complete interpreter/resource accounting remain pending.
 - Next:
   remaining scope/compiler audits, interpreter runtime,
   resource controls, runtime modules, and safe-fs integration. Parsing and static

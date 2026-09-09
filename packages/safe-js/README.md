@@ -452,6 +452,12 @@ For embedding, `runCli(argv, options?)` comes from `@poe-platform/safe-js/cli`. 
 
 ### Latest local changes — September 9, 2026
 
+`npm run typecheck:fs --workspace=@poe-code/safe-js` checks the filesystem option
+contract in NodeNext and Bundler modes, each with and without DOM types. Both
+package `npm test` and `npm run test:unit` run it automatically in their pretest
+steps, alongside Intl data generation. It reports 25 structural cases per mode
+separately from runtime unit-test totals; no compiler diagnostics are cached.
+
 These fixes are committed locally, not verified on remote main or released:
 
 - Public dumps preserve supported buffer subclass instances, custom prototypes

@@ -41,12 +41,13 @@
     "example:experiment": "tsx src/cli.ts examples/experiment.md",
     "example:pipeline": "tsx src/cli.ts examples/pipeline.md",
     "example:superintendent": "tsx src/cli.ts examples/superintendent.md",
-    "pretest": "node scripts/numberformat-data.mjs",
+    "pretest": "node scripts/numberformat-data.mjs && npm run typecheck:fs",
     "test": "cd ../.. && vitest run packages/safe-js/src packages/safe-js/test",
-    "pretest:unit": "node scripts/numberformat-data.mjs",
+    "pretest:unit": "node scripts/numberformat-data.mjs && npm run typecheck:fs",
     "test:unit": "cd ../.. && vitest run packages/safe-js/src packages/safe-js/test",
     "test:adversarial": "cd ../.. && vitest run packages/safe-js/test/adversarial",
-    "test:adversarial:slow": "cd ../.. && SAFEJS_ADVERSARIAL_SLOW=1 SAFEJS_PARSE_FUZZ=1 vitest run packages/safe-js/test/adversarial packages/safe-js/src/parse/fuzz.test.ts"
+    "test:adversarial:slow": "cd ../.. && SAFEJS_ADVERSARIAL_SLOW=1 SAFEJS_PARSE_FUZZ=1 vitest run packages/safe-js/test/adversarial packages/safe-js/src/parse/fuzz.test.ts",
+    "typecheck:fs": "node scripts/fs-type-contract.mjs"
   },
   "files": [
     "dist",

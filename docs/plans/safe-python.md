@@ -1115,6 +1115,23 @@ extension, integration, or validation requirement is missing or unverified.
   https://docs.python.org/3/howto/descriptor.html . These remain internal kernels:
   guest class construction, descriptor-type slot resolution, overrides, __getattr__,
   super lookup, guest heap accounting and interpreter execution are still pending.
+- Added bound-super attribute search through the current effective MRO after the
+  anchor by identity. Earlier/anchor namespaces are not consulted, the first owned
+  binding wins regardless of descriptor mutation slots, and getters receive the
+  effective owner plus the bound instance (None for class-bound access). Missing
+  anchors after MRO replacement produce a miss; searches do not cache namespaces.
+  Traversal and descriptor calls are metered without slicing/copying the MRO.
+- Super lookup validation: observed a missing-module red test, then all 1,724
+  tests in 77 files passed. CPython comparisons matched 2,048 diamond-inheritance
+  combinations of namespace absence/plain values/callable/non-callable getters,
+  four anchors and instance/class binding, including descriptor argument identity
+  and exception outcomes. A separate CPython check verified removed-anchor lookup
+  after __bases__ mutation. Scoped lint, typecheck and dependency build passed.
+  References: https://docs.python.org/3/library/functions.html#super and
+  https://bugs.python.org/issue46182 . This is the internal bound lookup kernel,
+  not the complete guest super type: argument/subtype validation, zero-argument
+  frame/cell resolution, unbound binding, proxy-owned attributes, generic fallback
+  and execution-engine integration remain pending.
 - Next:
   remaining scope/compiler audits, interpreter runtime,
   resource controls, runtime modules, and safe-fs integration. Parsing and static

@@ -4494,6 +4494,20 @@ extension, integration, or validation requirement is missing or unverified.
   Scoped lint, source typecheck and selected workspace build pass.
   Remaining numeric/text methods, buffer protocols, native builtins, suspension,
   full accounting and SDK/safe-fs remain unfinished.
+- Added numeric real/imag attributes and int/bool numerator/denominator through
+  a dedicated numeric lookup module. Exact int real/numerator and float real
+  retain receiver identity; bool components are ints. Float imaginary parts
+  are fresh positive zero; complex components are fresh floats preserving
+  signed zeros and non-finite values. Unsupported names still use normal errors.
+  General small-integer interning remains unfinished, including repeated zero/
+  one attribute identity; no attribute-specific cache was introduced.
+- Four tests first reproduced missing attributes; absent-name/cancellation
+  checks already passed. All 4,155 tests in 316 files pass. A 3,907-program
+  compiled CPython audit checks exact values, receiver/fresh-float identity and
+  diagnostics; the 3,926-program conjugation regression also passes. Scoped lint,
+  source typecheck and selected workspace build pass. Remaining
+  numeric/text methods, buffer protocols, native builtins/descriptors, suspension,
+  full accounting and SDK/safe-fs remain unfinished.
 - Next:
   remaining scope/compiler audits, interpreter runtime,
   resource controls, runtime modules, and safe-fs integration. Parsing and static

@@ -4786,6 +4786,21 @@ extension, integration, or validation requirement is missing or unverified.
   string-percent failure remains open. Full guest object wiring, native
   registration, suspended execution, complete accounting and SDK/safe-fs
   integration remain outstanding.
+- Added immutable string repr/ascii rendering. It selects Python's quote style,
+  uses short escapes only for tab/newline/carriage return, and writes fixed-width
+  lowercase hexadecimal escapes for other nonprintable code points. Pinned
+  Unicode printability controls repr; ascii mode also escapes printable non-ASCII
+  points. Separate surrogate code points remain separate. Two metered scans size
+  and fill one owned buffer without temporary character strings or UTF-16 storage.
+- Nine new tests first failed for the missing representation operation. All
+  4,300 tests in 337 files pass. CPython matches all 2,228,224 single-code-point
+  repr/ascii outputs across Unicode, all 131,072 Latin-1 two-point outputs and
+  8,232 repr/ascii percent-field outputs through native binding and field rendering.
+  Source typecheck, scoped lint and selected workspace build pass. Native repr
+  registration, other value representations, numeric conversion, production
+  formatting assembly and percent binary dispatch remain unfinished. The original
+  string-percent failure remains open; full guest object wiring, suspended
+  execution, complete accounting and SDK/safe-fs integration remain outstanding.
 - Next:
   remaining scope/compiler audits, interpreter runtime,
   resource controls, runtime modules, and safe-fs integration. Parsing and static

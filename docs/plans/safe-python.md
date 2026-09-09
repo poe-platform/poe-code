@@ -6379,6 +6379,22 @@ extension, integration, or validation requirement is missing or unverified.
   result/error comparisons match CPython. Typecheck, scoped lint and selected
   workspace build pass. The pow builtin, floating/complex power families and
   full ternary guest dispatch remain unfinished, alongside broader runtime work.
+- Added the floating real-pair power kernel and connected it to constant/runtime
+  binary dispatch, making mixed float/int/bool ** expressions executable. It
+  handles conversion precedence, signed zeros, infinities, NaNs, overflow and
+  principal complex results for negative fractional bases. Integer-only powers
+  retain their separate exact kernel. Edge-case ordering was checked against
+  CPython 3.14 Objects/floatobject.c and local execution.
+- Twenty-four new tests cover numeric/error branches, mixed conversion, decline
+  boundaries and execution limits; updated old unsupported-float assertions
+  while retaining unavailable complex-operand checks. All 4,999 tests in 436
+  files pass. Of 510 compiled CPython comparisons, 486 match bit-for-bit and 24
+  differ only in finite transcendental results by at most two ULPs. These are
+  recorded precision differences, not exact passes; type/sign/nonfinite/error
+  comparisons match. Typecheck, scoped lint and selected workspace build pass.
+  General complex-operand powers, the pow builtin, guest power dispatch and a
+  deterministic transcendental rounding policy remain unfinished, alongside
+  broader interpreter/object/SDK/safe-fs work.
 - Next:
   remaining scope/compiler audits, interpreter runtime,
   resource controls, runtime modules, and safe-fs integration. Parsing and static

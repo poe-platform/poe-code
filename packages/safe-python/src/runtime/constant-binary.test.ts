@@ -39,7 +39,7 @@ describe("constant binary dispatch", () => {
     const { meter, values: v } = fixture();
     expect(constantBinary("+", v.none, v.integer(1), v, meter)).toBe(v.notImplemented);
     expect(constantBinary("@", v.integer(1), v.integer(2), v, meter)).toBe(v.notImplemented);
-    expect(constantBinary("**", v.float(2), v.float(0.5), v, meter)).toBe(v.notImplemented);
+    expect(constantBinary("**", v.float(4), v.float(0.5), v, meter)).toEqual(v.float(2));
     expect(constantBinary("//", v.complex(1, 2), v.integer(1), v, meter)).toBe(v.notImplemented);
   });
   it("executes parsed operator precedence through the expression evaluator", () => {

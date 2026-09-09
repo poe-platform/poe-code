@@ -55,7 +55,7 @@ describe("runtime binary operations", () => {
     expect(runtimeBinary("*", list, v.float(2), v, meter)).toBe(v.notImplemented);
     expect(runtimeBinary("-", v.tuple([list]), v.integer(1), v, meter)).toBe(v.notImplemented);
     expect(runtimeBinary("*", v.range(createRange(0n, 3n)), v.integer(2), v, meter)).toBe(v.notImplemented);
-    expect(runtimeBinary("**", v.float(2), v.float(0.5), v, meter)).toBe(v.notImplemented);
+    expect(runtimeBinary("**", v.float(4), v.float(0.5), v, meter)).toEqual(v.float(2));
   });
   it("propagates overflow even for empty sequences and matched numeric failures", () => {
     const { meter, v } = fixture();

@@ -88,7 +88,8 @@ describe("concrete runtime expression context", () => {
   it("never publishes declined binary operations as successful values", () => {
     const { run } = fixture();
     expect(() => run("None + 1")).toThrow("unsupported operand type(s) for +: 'NoneType' and 'int'");
-    expect(() => run("2.0 ** 0.5")).toThrow(UnsupportedExpressionError);
+    expect(run("4.0 ** 0.5")).toEqual({ kind: "float", value: 2 });
+    expect(() => run("2j ** 0.5")).toThrow(UnsupportedExpressionError);
     expect(() => run("1 / 0")).toThrow("division by zero");
   });
   it("reports native sequence concatenation errors through ordinary addition", () => {

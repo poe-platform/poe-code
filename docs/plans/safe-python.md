@@ -4691,6 +4691,21 @@ extension, integration, or validation requirement is missing or unverified.
   tuple reuse remain separate work, alongside remaining combinator bindings,
   full guest object wiring, suspended execution, complete resource accounting
   and SDK/safe-fs integration.
+- Added the explicitly registerable map binding with strict-option validation
+  before positional arity checks and eager left-to-right input acquisition.
+  Mapper dispatch stays lazy: empty inputs and strict mismatches do not perform
+  callability checks before a complete row exists. The explicit call capability
+  supports guest/native functions; the existing kernel preserves mapper results,
+  callback exhaustion payloads and resumability. Optional guest iteration/truth
+  callbacks retain their context ownership.
+- Seven new tests first failed for the missing binding. All 4,249 tests in 330
+  files pass. A 3,549-program compiled CPython audit matches values and errors
+  for lambdas, defined guest functions, bound native methods, variadic/invalid
+  arity, strict lengths, keyword precedence and live input mutation. Source
+  typecheck, scoped lint and selected workspace build pass. Native map type
+  registration/subclass construction, filter binding, full guest object wiring,
+  suspended execution, complete resource accounting and SDK/safe-fs integration
+  remain unfinished.
 - Next:
   remaining scope/compiler audits, interpreter runtime,
   resource controls, runtime modules, and safe-fs integration. Parsing and static

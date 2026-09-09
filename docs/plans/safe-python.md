@@ -2398,6 +2398,18 @@ extension, integration, or validation requirement is missing or unverified.
   build passed. Same-size source mutations still follow live storage
   ordering rather than CPython table-compaction details; full guest dictionary
   wiring and complete host heap accounting remain unfinished.
+- Added insertion-order-independent ordered-map equality with an early size
+  check, compatible cached-hash reuse and destination hashing for foreign hash
+  policies. Values use identity before the supplied equality/truth operation,
+  with the left value captured before right-key lookup callbacks. Missing keys
+  remain distinct from stored undefined. No self-map shortcut suppresses
+  colliding key comparisons; CPython probing confirmed those can still raise.
+- Equality tests first reproduced missing support. All 2,687 tests in 159 files
+  pass. A 10,000-operation CPython audit including equality against reversed-order
+  copies matched results and ordered state under seeded hashes and forced
+  collisions. Source typecheck, scoped lint and selected workspace build passed.
+  Guest recursive-container comparison guards, comparison operator
+  dispatch and complete host heap accounting remain unfinished.
 - Next:
   remaining scope/compiler audits, interpreter runtime,
   resource controls, runtime modules, and safe-fs integration. Parsing and static

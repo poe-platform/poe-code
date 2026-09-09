@@ -112,6 +112,29 @@ export class OrderedKeyMap<Key, Value> {
     this.#last = undefined;
   }
 
+  /** Dictionary equality ignores insertion order. The caller owns reflected
+   * value equality/truth conversion and recursive-container comparison guards.
+   * Keep the left value alive across right-key lookup callbacks. No self-map
+   * shortcut: collisions can still invoke key equality even when maps coincide.
+   */
+  equals(other: OrderedKeyMap<Key, Value>, equalValue: (left: Value, right: Value) => boolean): boolean {
+    this.meter.checkpoint();
+    if (this.#entries.size !== other.#entries.size) return false;
+    for (const entry of this.#entries) {
+      this.meter.checkpoint();
+      const { key, value } = entry;
+      const hash = this.operations === other.operations ? entry.hash : other.operations.hash(key);
+      const found = other.#find(key, hash);
+      if (found === undefined) return false;
+      if (!Object.is(value, found.value)) {
+        const equal = equalValue(value, found.value);
+        this.meter.checkpoint();
+        if (!equal) return false;
+      }
+    }
+    return true;
+  }
+
   /** Direct storage merge. Cached source hashes are valid only in the same
    * hash-policy domain; foreign policies must hash with the destination policy.
    * Values are captured before destination callbacks. Like exact-dict update,

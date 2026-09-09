@@ -5915,6 +5915,18 @@ extension, integration, or validation requirement is missing or unverified.
   integers, values exceeding decimal conversion limits, identity and public
   argument errors. Typecheck, scoped lint and selected workspace build pass. Automatic
   namespace assembly and broader interpreter/SDK/safe-fs integration remain open.
+- Began abs coverage by auditing complex magnitude: host Math.hypot differed
+  from CPython in 3,189 of 10,000 same-scale finite pairs. Added an exact integer
+  floor-square-root kernel as a prerequisite for controlled binary64 magnitude
+  rounding and future math.isqrt. Bit-length-seeded integer Newton steps avoid
+  float conversion and decimal limits; operand-sized temporaries and conservative
+  word-quadratic division work are charged before host arithmetic.
+- Four tests first exposed the missing kernel. Initial test budgets were raised
+  to accommodate its conservative division charging, not by weakening the meter.
+  All 4,762 tests in 414 files pass. A 10,014-case CPython math.isqrt comparison
+  covers arbitrary-size squares/neighbors up to 40,001-bit inputs. Typecheck, scoped lint and
+  selected workspace build pass. Complex-magnitude rounding, the abs builtin,
+  public math.isqrt/module wiring and broader interpreter integration remain open.
 - Next:
   remaining scope/compiler audits, interpreter runtime,
   resource controls, runtime modules, and safe-fs integration. Parsing and static

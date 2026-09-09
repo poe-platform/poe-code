@@ -1,6 +1,7 @@
 import type { Budget } from "../budget.js";
 import { sandboxIsExtensible, sandboxPreventExtensions } from "../guest-proxy-extensibility.js";
 import { sandboxGetPrototypeOf, sandboxSetPrototypeOf } from "../guest-proxy-prototype.js";
+import { sandboxGetOwnPropertyDescriptor } from "../guest-proxy-descriptor.js";
 import { isSandboxModuleNamespace } from "../module-namespace.js";
 import { assertSandboxDataDepth } from "../../graph-depth.js";
 import { accessorClosure, readPropertyDescriptor } from "../accessors.js";
@@ -26,7 +27,7 @@ export function createReflectGlobal(budget: Budget): SandboxObject {
     getOwnPropertyDescriptor: { length: 2, call: async ([target, key], context) => {
       objectProperties(target);
       const property = await toPropertyKey(key, budget, context);
-      const descriptor = Object.getOwnPropertyDescriptor(objectProperties(target), property);
+      const descriptor = await sandboxGetOwnPropertyDescriptor(target, property, budget, context);
       return descriptor === undefined ? undefined : allocateProducedSandboxValue(exposePropertyDescriptor(descriptor, budget), budget);
     } },
     getPrototypeOf: { length: 1, call: ([target], context) => sandboxGetPrototypeOf(target, budget, context) },

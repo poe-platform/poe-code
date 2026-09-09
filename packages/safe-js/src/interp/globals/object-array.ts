@@ -2,6 +2,7 @@ import { isFatalSandboxError, type Budget, type CompileOwner } from "../budget.j
 import { guestProxyStates } from "../guest-proxy.js";
 import { sandboxIsExtensible, sandboxPreventExtensions } from "../guest-proxy-extensibility.js";
 import { sandboxGetPrototypeOf, sandboxSetPrototypeOf } from "../guest-proxy-prototype.js";
+import { sandboxGetOwnPropertyDescriptor } from "../guest-proxy-descriptor.js";
 import { getGeneratorProperties } from "../generator-properties.js";
 import { accessorAdapter, accessorClosure, readPropertyDescriptor, retainedAccessorClosures } from "../accessors.js";
 import { invokeBuiltinClosure } from "../builtin-call.js";
@@ -127,10 +128,11 @@ export function createObjectArrayGlobals(options: {
         getOwnPropertyDescriptor: createSandboxClosure({
           sandbox: true,
           call: async ([value, key], context) => {
-            const descriptor = Object.getOwnPropertyDescriptor(
-              reflectionProperties(value),
-              await toPropertyKey(key, options.budget, context)
-            );
+            const properties = reflectionProperties(value);
+            const property = await toPropertyKey(key, options.budget, context);
+            const descriptor = typeof value === "object" && value !== null && guestProxyStates.has(value)
+              ? await sandboxGetOwnPropertyDescriptor(value, property, options.budget, context)
+              : Object.getOwnPropertyDescriptor(properties, property);
             if (descriptor === undefined) return undefined;
             return allocateProducedSandboxValue(
               exposePropertyDescriptor(descriptor, options.budget),

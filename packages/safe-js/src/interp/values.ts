@@ -825,6 +825,23 @@ export function measureSandboxData(
         else for (const closure of retainedAccessorClosures(descriptor)) visit(closure, depth + 1);
       }
     }
+    if (isSandboxClosure(value)) {
+      const prototype = getSandboxPrototype(value);
+      if (prototype !== null) visit(prototype, depth + 1);
+      if (options.ignoreClosures) return;
+      if (value.properties !== undefined) {
+        if (isIntrinsicFunction(value)) {
+          for (const [key, descriptor] of intrinsicFunctionDataDescriptors(value.properties)) {
+            usage += key.length + 1;
+            if ("value" in descriptor) visit(descriptor.value, depth + 1);
+            else for (const closure of retainedAccessorClosures(descriptor)) visit(closure, depth + 1);
+          }
+        } else visit(value.properties, depth + 1);
+      }
+      if (!options.ignoreClosureCaptures)
+        for (const retained of value[sandboxRetainedValues]?.() ?? []) visit(retained, depth + 1);
+      return;
+    }
     if (isSandboxBox(value)) {
       const primitive = boxedValue(value);
       if (typeof primitive === "symbol") visit(primitive, depth + 1);
@@ -969,21 +986,6 @@ export function measureSandboxData(
     if (isSandboxSet(value)) {
       usage += value.values.size;
       for (const entry of value.values) visit(entry, depth + 1);
-      return;
-    }
-    if (isSandboxClosure(value)) {
-      if (options.ignoreClosures) return;
-      if (value.properties !== undefined) {
-        if (isIntrinsicFunction(value)) {
-          for (const [key, descriptor] of intrinsicFunctionDataDescriptors(value.properties)) {
-            usage += key.length + 1;
-            if ("value" in descriptor) visit(descriptor.value, depth + 1);
-            else for (const closure of retainedAccessorClosures(descriptor)) visit(closure, depth + 1);
-          }
-        } else visit(value.properties, depth + 1);
-      }
-      if (!options.ignoreClosureCaptures)
-        for (const retained of value[sandboxRetainedValues]?.() ?? []) visit(retained, depth + 1);
       return;
     }
     if (isSandboxGenerator(value)) {

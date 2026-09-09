@@ -5020,6 +5020,19 @@ extension, integration, or validation requirement is missing or unverified.
   rendering, default field dispatch, guest identity wrapping and binary percent
   integration remain unfinished. Full guest objects, suspended execution,
   complete accounting and SDK/safe-fs integration remain outstanding.
+- Added exact unsigned fixed-point binary64 digit rendering. It scales the exact
+  integer ratio and rounds once with ties to even, without host toFixed or
+  scientific-notation fallback. Arithmetic precision is capped at binary64's
+  1,074-place terminating fractional expansion; larger output precisions append
+  zeros. Requested output and bounded arithmetic temporaries are precharged.
+- Seven tests first failed for the missing renderer. All 4,411 tests in 351 files
+  pass. CPython matches 10,207 fixed-point outputs covering random binary64 bits,
+  subnormals, exact rounding ties, maximum finite values and precision through
+  5,000 places. Source typecheck, scoped lint and selected workspace build pass.
+  Sign/nonfinite rendering, scientific/general formats, field padding, default
+  dispatch and binary percent integration remain unfinished. Full guest objects,
+  suspended execution, complete accounting and SDK/safe-fs integration remain
+  outstanding.
 - Next:
   remaining scope/compiler audits, interpreter runtime,
   resource controls, runtime modules, and safe-fs integration. Parsing and static

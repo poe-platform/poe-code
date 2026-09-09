@@ -523,7 +523,8 @@ for the exact snapshot and scope.
 
 The restricted function-prototype accessor repair is independently committed
 locally, with 101 focused tests plus TypeScript and lint passing. The related
-strict-arguments descriptor bridge remains uncommitted; neither status implies
+strict-arguments descriptor bridge is also locally committed, with 237 focused
+tests plus TypeScript and lint passing; neither status implies
 remote delivery or complete function compatibility.
 
 These latest changes include uncommitted work. Pushes and releases are paused;

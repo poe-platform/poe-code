@@ -10,7 +10,7 @@ const separator = Uint32Array.of(44, 32), assignment = Uint32Array.of(58, 32), n
  * positional storage traversal, not a guest dict iterator or detached snapshot.
  * Pair payloads are captured before either repr call. Cursor acquisition and
  * results run no guest code; ownership/cleanup remains with the storage layer.
- * This renderer does not yet supply OrderedKeyMap's missing positional cursor.
+ * The runtime supplies cursor adaptation and native representation dispatch.
  */
 export function dictionaryRepresentation<Value>(owner: Value, entries: () => Iterator<readonly [Value, Value]>, context: RepresentationContext<Value>, stack: RepresentationStack<Value>, meter: ExecutionMeter): CodePointString {
   meter.checkpoint();

@@ -5342,6 +5342,26 @@ extension, integration, or validation requirement is missing or unverified.
   native dict/set representation, bytes percent operators, full guest objects,
   suspended execution, complete accounting and SDK/safe-fs integration remain
   incomplete.
+- Connected DictionaryEntrySlots to opt-in OrderedKeyMap dictionary storage via
+  trusted exact-string classification and constructor presizing options. Raw
+  numeric scans capture key/value pairs without hashing or guest iterator size
+  checks. Insert/delete/popitem/clear, copies, updates, derived key collections
+  and same-layout ownership transfers keep both indexes coherent. Set-backed
+  maps can retain the existing storage without dictionary-position overhead.
+  Bulk copy/update still use their existing construction policies, not every
+  CPython bulk-layout optimization; native dictionary construction/slots are not
+  yet wired to the new options and scan API.
+- Six tests first failed on missing positional integration; two further tests
+  cover derived collections and 100 checkpoint-failure boundaries across insert,
+  delete, popitem, clear and transfer. All 4,557 tests in 374 files pass. Actual
+  configured OrderedKeyMap storage matches CPython across 2,000 presized mixed-key
+  histories (439,000 operations). Its positional storage plus the production
+  dictionary renderer matches 2,000 recursive dictionary graphs (9,000 roots),
+  using audit-only context/cursor wiring rather than native runtime dispatch.
+  Source typecheck, scoped lint and selected workspace build pass. Bulk layout policies,
+  split/shared-key layouts, native dict/set representation, bytes percent
+  operators, full guest objects, suspended execution, complete accounting and
+  SDK/safe-fs integration remain incomplete.
 - Next:
   remaining scope/compiler audits, interpreter runtime,
   resource controls, runtime modules, and safe-fs integration. Parsing and static

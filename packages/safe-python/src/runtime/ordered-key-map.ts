@@ -2,6 +2,14 @@ import type { ExecutionMeter } from "./execution-budget.js";
 import { OrderedMapIterator } from "./ordered-map-iterator.js";
 import { OrderedMapReverseIterator } from "./ordered-map-reverse-iterator.js";
 import { PythonRuntimeError } from "./error.js";
+import { DictionaryEntrySlots } from "./dictionary-entry-slots.js";
+
+export interface DictionaryStorageOptions<Key> {
+  /** Pure trusted type inspection; must not run guest code or mutate storage. */
+  isExactString(key: Key): boolean;
+  readonly minimumEntries?: number;
+  readonly exactStrings?: boolean;
+}
 
 export interface KeyOperations<Key> {
   /** Equal keys must produce the same stable hash. The runtime owns __hash__,
@@ -33,15 +41,31 @@ export class OrderedKeyMap<Key, Value> {
   #last: Entry<Key, Value> | undefined;
   #sealed = false;
   #keySetHash: bigint | undefined;
+  #dictionaryEntries: DictionaryEntrySlots<Entry<Key, Value>> | undefined;
 
-  constructor(private readonly operations: KeyOperations<Key>, private readonly meter: ExecutionMeter) {
+  constructor(private readonly operations: KeyOperations<Key>, private readonly meter: ExecutionMeter, private readonly dictionaryOptions?: DictionaryStorageOptions<Key>) {
     meter.checkpoint(1, 64);
+    if (dictionaryOptions) this.#dictionaryEntries = new DictionaryEntrySlots(meter, dictionaryOptions.minimumEntries, dictionaryOptions.exactStrings);
     this.#buckets = new Map();
     this.#entries = new Set();
     Object.freeze(this);
   }
 
   get size(): number { this.meter.checkpoint(); return this.#entries.size; }
+
+  /** Raw mutation-tolerant scan, distinct from the size-checking guest iterator.
+   * Captures a pair before guest repr can mutate either entry or dictionary.
+   * Copy/update currently retain their existing construction policies, not all
+   * CPython bulk-layout optimizations. Set storage opts out of this extra index.
+   */
+  nextDictionaryEntry(position: number): Readonly<{ position: number; key: Key; value: Value }> | undefined {
+    this.meter.checkpoint();
+    if (!this.#dictionaryEntries) throw new Error("dictionary positional storage is not enabled");
+    const next = this.#dictionaryEntries.next(position);
+    if (next === undefined) return undefined;
+    this.meter.checkpoint(0, 40);
+    return Object.freeze({ position: next.position, key: next.entry.key, value: next.entry.value });
+  }
 
   /** Permanently close owned storage before publishing an immutable value. */
   seal(): void { this.meter.checkpoint(); this.#sealed = true; }
@@ -161,7 +185,7 @@ export class OrderedKeyMap<Key, Value> {
     this.meter.checkpoint(0, 48);
     const result = project ? project(entry.key, entry.value) : Object.freeze([entry.key, entry.value] as const);
     this.meter.checkpoint();
-    this.#remove(entry);
+    this.#remove(entry, true);
     return result;
   }
 
@@ -179,6 +203,7 @@ export class OrderedKeyMap<Key, Value> {
   clear(): void {
     this.meter.checkpoint(1 + this.#entries.size);
     this.#assertWritable();
+    this.#dictionaryEntries?.clear();
     this.#entries.clear();
     this.#buckets.clear();
     this.#last = undefined;
@@ -283,7 +308,7 @@ export class OrderedKeyMap<Key, Value> {
   /** Fresh empty storage in this execution's hash-policy and budget domain. */
   emptyCopy(): OrderedKeyMap<Key, Value> {
     this.meter.checkpoint();
-    return new OrderedKeyMap<Key, Value>(this.operations, this.meter);
+    return new OrderedKeyMap<Key, Value>(this.operations, this.meter, this.dictionaryOptions);
   }
 
   /** Copy live entries and their cached hashes without invoking guest methods.
@@ -292,7 +317,7 @@ export class OrderedKeyMap<Key, Value> {
    */
   copy(): OrderedKeyMap<Key, Value> {
     this.meter.checkpoint();
-    const result = new OrderedKeyMap<Key, Value>(this.operations, this.meter);
+    const result = new OrderedKeyMap<Key, Value>(this.operations, this.meter, this.dictionaryOptions);
     for (const entry of this.#entries) {
       this.meter.checkpoint();
       result.#insert(entry.key, entry.hash, entry.value);
@@ -342,7 +367,7 @@ export class OrderedKeyMap<Key, Value> {
    * return. Supplied payloads let set callers store their canonical None. */
   intersectKeysFrom(source: () => Iterator<Key>, value: Value): OrderedKeyMap<Key, Value> {
     this.meter.checkpoint(1, 32);
-    const result = new OrderedKeyMap<Key, Value>(this.operations, this.meter);
+    const result = new OrderedKeyMap<Key, Value>(this.operations, this.meter, this.dictionaryOptions);
     const iterator = source();
     this.meter.checkpoint();
     while (true) {
@@ -367,7 +392,7 @@ export class OrderedKeyMap<Key, Value> {
       result.subtractKeysInPlace(other);
       return result;
     }
-    const result = new OrderedKeyMap<Key, Value>(this.operations, this.meter);
+    const result = new OrderedKeyMap<Key, Value>(this.operations, this.meter, this.dictionaryOptions);
     for (const entry of this.#entries) {
       this.meter.checkpoint();
       const { key, value, hash } = entry;
@@ -438,7 +463,7 @@ export class OrderedKeyMap<Key, Value> {
   intersectKeys(other: OrderedKeyMap<Key, Value>): OrderedKeyMap<Key, Value> {
     this.meter.checkpoint();
     if (this === other) return this.copy();
-    const result = new OrderedKeyMap<Key, Value>(this.operations, this.meter);
+    const result = new OrderedKeyMap<Key, Value>(this.operations, this.meter, this.dictionaryOptions);
     const source = other.#entries.size > this.#entries.size ? this : other;
     const target = source === this ? other : this;
     for (const entry of source.#entries) {
@@ -477,9 +502,13 @@ export class OrderedKeyMap<Key, Value> {
     source.#assertWritable();
     if (source === this) return;
     if (this.operations !== source.operations || this.meter !== source.meter) throw new Error("cannot transfer keys across execution domains");
+    if (this.dictionaryOptions !== source.dictionaryOptions) throw new Error("cannot transfer keys across dictionary layouts");
+    const emptySourceEntries = source.#dictionaryEntries ? new DictionaryEntrySlots<Entry<Key, Value>>(this.meter) : undefined;
     this.meter.checkpoint(1 + this.#entries.size + source.#entries.size * 2, 32 * source.#entries.size);
     this.#assertWritable();
     source.#assertWritable();
+    this.#dictionaryEntries = source.#dictionaryEntries;
+    source.#dictionaryEntries = emptySourceEntries;
     this.#entries.clear();
     this.#buckets.clear();
     for (const entry of source.#entries) this.#entries.add(entry);
@@ -506,10 +535,13 @@ export class OrderedKeyMap<Key, Value> {
   }
 
   #insert(key: Key, hash: bigint, value: Value): void {
+    const exactString = this.dictionaryOptions?.isExactString(key) ?? false;
     let bucket = this.#buckets.get(hash);
     this.meter.checkpoint(0, 104 + (bucket === undefined ? 32 : 0));
     this.#assertWritable();
     const entry: Entry<Key, Value> = { key, hash, value, previous: this.#last, next: undefined };
+    // Every remaining hash/link mutation is callback-free and already charged.
+    this.#dictionaryEntries?.append(entry, exactString);
     if (bucket === undefined) { bucket = new Set(); this.#buckets.set(hash, bucket); }
     bucket.add(entry);
     this.#entries.add(entry);
@@ -517,8 +549,10 @@ export class OrderedKeyMap<Key, Value> {
     this.#last = entry;
   }
 
-  #remove(entry: Entry<Key, Value>): void {
+  #remove(entry: Entry<Key, Value>, truncate = false): void {
     this.#assertWritable();
+    if (truncate) this.#dictionaryEntries?.pop();
+    else this.#dictionaryEntries?.delete(entry);
     const bucket = this.#buckets.get(entry.hash)!;
     bucket.delete(entry);
     if (bucket.size === 0) this.#buckets.delete(entry.hash);

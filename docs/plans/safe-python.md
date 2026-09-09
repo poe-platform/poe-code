@@ -2583,6 +2583,19 @@ extension, integration, or validation requirement is missing or unverified.
   indexed sequence fallback. Source typecheck, scoped lint and selected workspace
   build passed. Guest method binding, type/descriptor slot implementations,
   further container consumer integration and complete heap accounting remain open.
+- Connected iterable materialization and list sorting into a sorted-source
+  pipeline. The source is fully consumed before sort-option preparation and
+  reverse truth conversion; key calls follow preparation and never occur for
+  empty inputs. Result slots are independent from source list slots while
+  retaining element identities. Iteration failures suppress later option/key
+  processing, and option failures still leave the source consumed.
+- The sorted pipeline suite first failed on its missing module; all 2,864 tests
+  in 173 files pass. A 1,200-case CPython audit matched consumption, option/reverse/
+  key ordering, failures and stable results after correcting the audit's mock
+  binder message for three keywords. Source typecheck, scoped lint and selected
+  workspace build passed. Guest positional/keyword binding, key and
+  reverse dispatch, result object wrapping, exact comparison scheduling and
+  complete native allocation accounting remain unfinished.
 - Next:
   remaining scope/compiler audits, interpreter runtime,
   resource controls, runtime modules, and safe-fs integration. Parsing and static

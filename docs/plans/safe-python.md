@@ -1151,6 +1151,25 @@ extension, integration, or validation requirement is missing or unverified.
   yet provide that guest lookup, built-in numeric/sequence slot adaptation,
   in-place or rich-comparison dispatch, final operand diagnostics, or evaluator
   integration. Callback-internal work and heap use remain caller-accounted.
+- Added rich-comparison negotiation separately from numeric binary ordering:
+  strict right subtypes have reflected priority even without an override, and
+  same-type/same-object comparisons can try both operand calls. Results remain
+  arbitrary values, never implicitly coerced to booleans. Declined reflected
+  calls are not retried and exceptions propagate. Added in-place negotiation
+  before fresh binary fallback, retaining mutations on decline/error and accepting
+  replacement results distinct from the original operand. All calls are metered.
+- Comparison/in-place validation: both missing-module red tests were observed
+  before implementation; all 1,747 tests in 80 files pass. CPython comparisons
+  matched 288 cases across six comparisons and three type relationships, plus
+  832 cases across thirteen in-place operators, including absent, declining,
+  successful and non-callable methods. Scoped lint, source typecheck and dependency
+  build passed. References: Python data model rich comparisons/augmented assignment
+  and CPython v3.14.0 Objects/object.c do_richcompare. Final identity equality or
+  unsupported-ordering fallback was normalized in the differential harness and
+  remains caller-owned, as do reflected operator mapping, object.__ne__ behavior,
+  guest slot lookup, callback execution/heap accounting, augmented-target storage,
+  and evaluator integration. These internal dispatch functions alone do not
+  execute guest expressions or augmented assignments.
 - Next:
   remaining scope/compiler audits, interpreter runtime,
   resource controls, runtime modules, and safe-fs integration. Parsing and static

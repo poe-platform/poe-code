@@ -15,8 +15,9 @@ import { createRuntimeFunctionDefinitions } from "./runtime-function-definition.
 import { invokeRuntimeFunction, type RuntimeFunctionContext } from "./runtime-function-call.js";
 import { createRuntimeStatementContext, type RuntimeStatementBindings } from "./runtime-statement-context.js";
 import type { DictionaryValue, RuntimeValue, RuntimeValues } from "./runtime-values.js";
+import { ClassFrame } from "./class-frame.js";
 
-export type RuntimeFrame = ModuleFrame<RuntimeValue> | LexicalFrame<RuntimeValue>;
+export type RuntimeFrame = ModuleFrame<RuntimeValue> | LexicalFrame<RuntimeValue> | ClassFrame<RuntimeValue>;
 
 /** Explicit extension points. Factories prepare hooks for an active frame; they
  * must not execute its body. Host objects/filesystem APIs are never discovered
@@ -30,12 +31,14 @@ export interface RuntimeProgramHooks extends Pick<RuntimeCallContext, "callable"
   invoke(callee: RuntimeValue, positional: readonly RuntimeValue[], keywords: DictionaryValue, frame: RuntimeFrame): RuntimeValue;
 }
 
-export interface RuntimeProgramContext extends ModuleNamespaces<RuntimeValue> {
+export interface RuntimeExecutionContext {
   readonly values: RuntimeValues;
   readonly keys: KeyOperations<RuntimeValue>;
   readonly calls: Pick<CallStack<RuntimeFrame>, "enter">;
   readonly hooks: RuntimeProgramHooks;
 }
+
+export interface RuntimeProgramContext extends ModuleNamespaces<RuntimeValue>, RuntimeExecutionContext {}
 
 /** Assemble the internal concrete execution path with shared values, key policy,
  * namespaces, depth policy and meter. Module/class scopes remain distinct; nested
@@ -43,7 +46,7 @@ export interface RuntimeProgramContext extends ModuleNamespaces<RuntimeValue> {
  * This is not a complete public interpreter: object/builtin/class/import hooks,
  * suspended execution, full resource accounting and safe-fs still need integration.
  */
-export function executeRuntimeProgram(program: CompiledProgram<RuntimeValue>, context: RuntimeProgramContext, meter: ExecutionMeter): void {
+export function createRuntimeFrameBody(program: CompiledProgram<RuntimeValue>, context: RuntimeExecutionContext, meter: ExecutionMeter) {
   meter.checkpoint(1, 192);
   const { values, keys, hooks, calls } = context;
   const body = (frame: RuntimeFrame, namespaces: LexicalNamespaces<RuntimeValue>) => {
@@ -71,7 +74,7 @@ export function executeRuntimeProgram(program: CompiledProgram<RuntimeValue>, co
     }, meter);
     const definitions = createRuntimeFunctionDefinitions(program, {
       globals: namespaces.globals, builtins: namespaces.builtins,
-      capture: frame instanceof LexicalFrame ? frame.capture.bind(frame) : undefined,
+      capture: frame instanceof LexicalFrame || frame instanceof ClassFrame ? frame.capture.bind(frame) : undefined,
       resolveBuiltins: hooks.resolveBuiltins?.bind(hooks),
       evaluate: expression => evaluateExpression(expression, expressions, meter),
       beginCall, store: frame.store.bind(frame)
@@ -92,8 +95,15 @@ export function executeRuntimeProgram(program: CompiledProgram<RuntimeValue>, co
       }
     }, values, meter);
   };
+  return body;
+}
+
+/** Execute the compiled module with the same frame assembly used for functions
+ * and prepared class suites. Ordinary module locals retain their own routing. */
+export function executeRuntimeProgram(program: CompiledProgram<RuntimeValue>, context: RuntimeProgramContext, meter: ExecutionMeter): void {
+  const body = createRuntimeFrameBody(program, context, meter);
   executeModule(program.module, {
-    globals: context.globals, builtins: context.builtins, locals: context.locals, calls,
+    globals: context.globals, builtins: context.builtins, locals: context.locals, calls: context.calls,
     body: frame => body(frame, context)
   }, meter);
 }

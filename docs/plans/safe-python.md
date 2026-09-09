@@ -3358,6 +3358,21 @@ extension, integration, or validation requirement is missing or unverified.
   layer publication/caching and exposed descriptor/constructor binding; this is
   not full class-suite or type/instance construction integration. Full accounting,
   suspension and public SDK/safe-fs integration remain unfinished.
+- Connected precompiled class suites to concrete runtime execution against a
+  prepared dictionary. Shared frame assembly now handles module, lexical and class
+  frames; class-defined methods/lambdas capture the proper cells while using their
+  defining globals/builtins. Suite metadata and guest __classcell__ publication use
+  the existing class-body lifecycle, with fresh cells per activation, live outer
+  captures, method defaults/decorators and exception-safe call-stack restoration.
+- The new class-suite suite first failed on its missing module. All 3,401 tests in
+  231 files pass. A 1,200-case CPython audit matched namespace metadata, method
+  results and partial writes after suite failures. Assembled-program (1,300) and
+  separate dictionary-local/builtin (1,200) differential regressions passed.
+  Source typecheck, scoped lint and selected workspace build passed. This executes
+  prepared class suites, not full class statements: builder lookup/body callable
+  representation, arbitrary prepared mappings, bases/metaclass/type construction,
+  and concrete instance dispatch still need integration. Suspension, complete
+  resource accounting and public SDK/safe-fs integration also remain unfinished.
 - Next:
   remaining scope/compiler audits, interpreter runtime,
   resource controls, runtime modules, and safe-fs integration. Parsing and static

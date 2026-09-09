@@ -5496,6 +5496,20 @@ extension, integration, or validation requirement is missing or unverified.
   formatting and existing native representation capabilities. Neither audit
   establishes native __format__ or format-mini-language implementation; those,
   template objects, suspended execution and SDK/safe-fs integration remain pending.
+- Added the internal object-formatting protocol: validate str/subclass specs,
+  bypass lookup for exact str/int with empty specs, supply omitted empty specs,
+  perform type-level __format__ lookup and preserve valid str/subclass result
+  identity. Missing methods differ from non-callable methods and lookup errors;
+  the slot owner, not the protocol, supplies inherited object formatting.
+  Internal invalid specs use SystemError (added to runtime fault typing), unlike
+  the public format() builtin's argument parser, which remains to be implemented.
+- Six tests cover fast paths, spec/result identity, bounded diagnostics, failures
+  and cancellation. All 4,614 tests in 384 files pass. A 90-case audit calls
+  CPython's internal PyObject_Format and compares results, identity and traces
+  for object/str/int subclasses, valid/invalid specs, result subclasses, disabled
+  methods and raising descriptors. Typecheck, scoped lint and selected workspace
+  build pass. Native __format__ slots, format-mini-language
+  parsing, default f-string wiring and the wider interpreter work remain pending.
 - Next:
   remaining scope/compiler audits, interpreter runtime,
   resource controls, runtime modules, and safe-fs integration. Parsing and static

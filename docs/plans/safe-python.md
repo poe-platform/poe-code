@@ -5468,6 +5468,18 @@ extension, integration, or validation requirement is missing or unverified.
   All 4,598 tests in 382 files pass. Typecheck, scoped production lint and selected workspace build pass.
   Raising __bytes__ descriptor parity, guest object/buffer adapters and the wider
   interpreter/SDK/safe-fs work remain incomplete.
+- Added callable repr/ascii builtin adapters with positional-only arity and
+  keyword-first validation. Both require an execution-owned representation
+  context, retaining guest hooks, default-object policy, result identity and
+  shared recursion guards across nested calls. Registration is explicit like
+  the other current builtin adapters; str remains separate type-constructor work.
+- Five tests cover native Unicode output, arguments, guest result validation,
+  nested repr/ascii guard sharing, failures and cancellation. A 2,000-program
+  CPython audit registers both builtins in the actual compiled execution's
+  namespace and verifies direct/aliased calls over mixed native containers and
+  dictionary views. All 4,603 tests in 383 files pass. Typecheck, scoped lint and selected workspace build pass. Full builtin
+  namespace assembly, remaining native representations, guest objects, suspended
+  execution and SDK/safe-fs integration remain unfinished.
 - Next:
   remaining scope/compiler audits, interpreter runtime,
   resource controls, runtime modules, and safe-fs integration. Parsing and static

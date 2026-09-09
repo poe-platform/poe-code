@@ -332,8 +332,19 @@ extension, integration, or validation requirement is missing or unverified.
   passed. Enclosing function/async checks, comprehension yield restrictions,
   generator/coroutine state machines, delegation, and await protocols remain pending.
   Grammar reference: https://docs.python.org/3/reference/grammar.html.
+- Added comprehension yield-context validation. Bodies, filters, targets, and later
+  iterables reject yield/yield-from; the first iterable retains the containing
+  scope. Nested lambda bodies establish their own scope, while defaults remain in
+  the surrounding context. The existing blanket assignment-expression restriction
+  for iterable subtrees is preserved independently of this scope distinction.
+- Comprehension suspension validation: 13 tests failed before implementation;
+  all 676 package tests pass. A 540-case CPython compilation comparison, wrapped
+  in a regular function, matched acceptance across collection forms, nested scopes,
+  lambda defaults/bodies, fields, targets, filters, and first/later iterables.
+  Scoped lint, source typecheck, and selected workspace build passed. Top-level/function/async
+  validation and runtime generator/coroutine behavior still require implementation.
 - Next:
-  suspension context validation and statement grammar
+  statement grammar and enclosing-scope validation
   normalization, the complete grammar/parser and evaluator, then runtime modules
   and safe-fs integration. Tokenization does not establish interpreter execution.
 - Workspace lockfile registration and packaging integration remain pending.

@@ -8,10 +8,14 @@ interface Context {
   readonly target: boolean;
   readonly assignments: Set<string> | null;
   readonly targetReferences?: Set<string>;
+  readonly comprehension?: boolean;
 }
 
 /** Validate expression-level scope constraints without executing any syntax. */
 export function validateExpression(node: Expression, filename = "<string>", context: Context = { iterations: new Set(), iterable: false, target: false, assignments: null }): void {
+  if ((node.kind === "yield" || node.kind === "yield-from") && context.comprehension) {
+    throw new PythonSyntaxError("yield is not allowed inside a comprehension scope", filename, node.start);
+  }
   if (node.kind === "name" && context.target && context.assignments?.has(node.name)) {
     throw new PythonSyntaxError(`comprehension inner loop cannot rebind assignment expression target '${node.name}'`, filename, node.start);
   }
@@ -36,9 +40,12 @@ export function validateExpression(node: Expression, filename = "<string>", cont
   if (node.kind === "comprehension" || node.kind === "dictionary-comprehension") {
     const iterations = new Set(context.iterations);
     for (const clause of node.clauses) collectBindings(clause.target, iterations);
-    const inner = { iterations, iterable: context.iterable, target: false, assignments: new Set<string>(), targetReferences: new Set<string>() };
-    for (const clause of node.clauses) {
-      validateExpression(clause.iterable, filename, { ...inner, iterable: true });
+    const inner = { iterations, iterable: context.iterable, target: false, assignments: new Set<string>(), targetReferences: new Set<string>(), comprehension: true };
+    for (let index = 0; index < node.clauses.length; index++) {
+      const clause = node.clauses[index];
+      // The first iterable is evaluated by the enclosing scope, not the
+      // comprehension's implicit function; later iterables run inside it.
+      validateExpression(clause.iterable, filename, { ...(index === 0 ? context : inner), iterable: true });
       validateExpression(clause.target, filename, { ...inner, target: true });
       for (const filter of clause.filters) validateExpression(filter, filename, inner);
     }

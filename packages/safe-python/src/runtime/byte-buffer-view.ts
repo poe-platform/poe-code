@@ -12,13 +12,15 @@ export class ByteBufferView {
   readonly #offset: number;
   readonly #stride: number;
   readonly #length: number;
+  readonly #readonly: boolean;
 
-  constructor(buffer: Uint8Array, exports: BufferExports, offset = 0, stride = 1, length = buffer.length) {
+  constructor(buffer: Uint8Array, exports: BufferExports, offset = 0, stride = 1, length = buffer.length, readonly = false) {
     this.#buffer = buffer;
     this.#exports = exports;
     this.#offset = offset;
     this.#stride = stride;
     this.#length = length;
+    this.#readonly = readonly;
     Object.freeze(this);
     exports.count++;
   }
@@ -28,9 +30,20 @@ export class ByteBufferView {
     return this.#length;
   }
 
+  get readonly(): boolean {
+    this.#checkActive();
+    return this.#readonly;
+  }
+
   #checkActive(): Uint8Array {
     if (this.#buffer === undefined) throw new PythonRuntimeError("ValueError", "operation forbidden on released memoryview object");
     return this.#buffer;
+  }
+
+  #checkWritable(): Uint8Array {
+    const buffer = this.#checkActive();
+    if (this.#readonly) throw new PythonRuntimeError("TypeError", "cannot modify read-only memory");
+    return buffer;
   }
 
   #index(index: bigint): number {
@@ -48,7 +61,7 @@ export class ByteBufferView {
 
   set(index: bigint, value: bigint, meter?: ExecutionMeter): void {
     meter?.checkpoint();
-    const buffer = this.#checkActive();
+    const buffer = this.#checkWritable();
     const offset = this.#index(index);
     if (value < 0n || value > 255n) throw new PythonRuntimeError("ValueError", "memoryview: invalid value for format 'B'");
     buffer[offset] = Number(value);
@@ -61,7 +74,30 @@ export class ByteBufferView {
     const length = Number(indices.length);
     const offset = length === 0 ? 0 : this.#offset + Number(indices.start) * this.#stride;
     const stride = length > 1 ? Number(indices.step) * this.#stride : 0;
-    return new ByteBufferView(buffer, this.#exports, offset, stride, length);
+    return new ByteBufferView(buffer, this.#exports, offset, stride, length, this.#readonly);
+  }
+
+  toreadonly(meter?: ExecutionMeter): ByteBufferView {
+    meter?.checkpoint();
+    const buffer = this.#checkActive();
+    return new ByteBufferView(buffer, this.#exports, this.#offset, this.#stride, this.#length, true);
+  }
+
+  /** Equal-structure B-format assignment, including overlapping/strided sources. */
+  assign(source: ByteBufferView | Uint8Array, meter?: ExecutionMeter): void {
+    meter?.checkpoint();
+    const buffer = this.#checkWritable();
+    if (source.length !== this.#length) throw new PythonRuntimeError("ValueError", "memoryview assignment: lvalue and rvalue have different structures");
+    let snapshot: Uint8Array;
+    if (source instanceof ByteBufferView) snapshot = source.snapshot(meter);
+    else {
+      meter?.checkpoint(source.length, source.byteLength);
+      snapshot = new Uint8Array(source);
+    }
+    // Snapshot the complete source and admit all writes before touching shared
+    // storage. This also makes budget failure atomic for aliased assignments.
+    meter?.checkpoint(this.#length);
+    for (let index = 0; index < this.#length; index++) buffer[this.#offset + index * this.#stride] = snapshot[index]!;
   }
 
   snapshot(meter?: ExecutionMeter): Uint8Array {

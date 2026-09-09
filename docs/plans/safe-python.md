@@ -967,6 +967,23 @@ extension, integration, or validation requirement is missing or unverified.
   casting, readonly views, bulk assignment, guest protocols and deterministic
   guest-heap finalization remain pending. View-object overhead is not metered;
   explicit snapshot buffers and operational checkpoints are metered.
+- Added read-only conversion and equal-structure bulk assignment to internal byte
+  views. Read-only views retain independent leases, preserve access restrictions
+  through slicing/conversion, and observe writes through other aliases. Mutation
+  rejects read-only destinations before validating indices or sources. Assignments
+  accept byte arrays and B-format views, including reversed/noncontiguous sources;
+  complete source snapshots prevent corruption on overlapping writes. Snapshot
+  allocation and all mutation work are admitted before destination changes.
+- Readonly/assignment validation: all ten new tests failed before implementation;
+  all 1,623 package tests pass, including 60 assignment budget boundaries. CPython
+  comparisons matched 12,000 overlapping/strided/readonly assignments and their
+  resulting shared data/errors. An additional sweep passed 720 budget cases plus
+  failed-readonly-acquisition cleanup. Scoped lint, source typecheck, and selected
+  workspace build passed. Reference:
+  https://docs.python.org/3/library/stdtypes.html#memoryview . These operations
+  remain restricted to internal one-dimensional unsigned-byte views; arbitrary
+  format/shape casting, guest buffer negotiation, and heap finalization remain
+  pending. Readonly access does not make the shared exporter immutable.
 - Next:
   remaining scope/compiler audits, interpreter runtime,
   resource controls, runtime modules, and safe-fs integration. Parsing and static

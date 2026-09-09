@@ -181,7 +181,8 @@ export function createObjectGlobal(methods: SandboxObject, budget: Budget): Sand
       guest: true, sandbox: true, name, length: define ? 2 : 1,
       call: async ([key, accessor], context) => {
         const target = construct([requireReceiver(context?.thisValue)]);
-        const release = retainValues(budget, () => [target, key, accessor]);
+        let current: SandboxValue = target;
+        const release = retainValues(budget, () => [target, key, accessor, current]);
         try {
           if (define && !isSandboxClosure(accessor)) throw new TypeError("Accessor must be callable.");
           const property = await toPropertyKey(key, budget, context);
@@ -193,14 +194,15 @@ export function createObjectGlobal(methods: SandboxObject, budget: Budget): Sand
             }, budget, context);
             return undefined;
           }
-          let current = target as SandboxObject;
           let depth = 0;
           while (current !== null) {
             budget.visitNode();
             assertSandboxDataDepth(depth++);
-            const descriptor = Object.getOwnPropertyDescriptor(objectProperties(current), property);
+            const own = sandboxGetOwnPropertyDescriptor(current, property, budget, context);
+            const descriptor = own instanceof Promise ? await own : own;
             if (descriptor !== undefined) return accessorClosure(descriptor[kind], budget);
-            current = getSandboxPrototype(current, budget) as SandboxObject;
+            const next = sandboxGetPrototypeOf(current, budget, context);
+            current = next instanceof Promise ? await next : next;
           }
           return undefined;
         } finally { release(); }

@@ -539,7 +539,7 @@ Internal Proxy work is locally committed, but there is no guest `Proxy`
 constructor or `Proxy.revocable` yet. Internal tests inject proxies to exercise
 property reads/writes, membership/deletion, own descriptors, key enumeration,
 prototype/extensibility operations, and their invariants. Object reflection,
-ownership predicates, `isPrototypeOf`, `Object.assign`, descriptor maps for `Object.create` and
+ownership predicates, `isPrototypeOf`, legacy accessor lookup, `Object.assign`, descriptor maps for `Object.create` and
 `Object.defineProperties`, and object spread/rest now dispatch those operations.
 Ordinary enumeration also handles existing string/symbol properties made
 enumerable by an earlier getter.

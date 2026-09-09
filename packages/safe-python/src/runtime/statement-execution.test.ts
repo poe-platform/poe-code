@@ -121,7 +121,7 @@ describe("statement control flow", () => {
     expect(state.events).toEqual([1]);
   });
 
-  it.each(["try:\n  pass\nfinally:\n  pass", "with cm:\n  pass", "async for x in items:\n  pass", "match x:\n  case _:\n    pass"])("rejects unimplemented compound statements without guest effects: %s", source => {
+  it.each(["try:\n  pass\nexcept:\n  pass", "with cm:\n  pass", "async for x in items:\n  pass", "match x:\n  case _:\n    pass"])("rejects unimplemented compound statements without guest effects: %s", source => {
     const state = fixture({ items: () => { throw new Error("must not evaluate"); } });
     expect(() => executeStatements(parseModule(source).body, state.context, budget())).toThrow("unsupported statement");
     expect(state.events).toEqual([]);

@@ -1415,6 +1415,25 @@ extension, integration, or validation requirement is missing or unverified.
   2,000 value-mode regression traces. Scoped lint, source typecheck and selected
   dependency build passed. Concrete guest values/frames, remaining statement and
   expression families, suspension and complete heap accounting remain pending.
+- Added explicit-frame try/finally unwinding for normal completion, break,
+  continue, return and classified guest exceptions. Cleanup can replace a pending
+  transfer or suppress a guest failure. Nested finalizers preserve inside-out
+  ordering without host recursion. Exception-triggered cleanup installs active
+  guest exception state through host-only enter/restore callbacks, enabling bare
+  raise and adapter-owned automatic chaining; nested exits restore prior state.
+  Unclassified host faults and execution-limit failures bypass guest finalizers.
+  Fatal exits still restore host exception bookkeeping, including failure during
+  cleanup; budget exceptions remain fatal even with an overbroad guest classifier.
+- Finally validation: all thirteen new tests failed on unsupported try nodes before
+  implementation. All 1,917 tests in 93 files pass, including 5,000 nested finalizers,
+  exception identity/context, transfer replacement and fatal-budget restoration.
+  CPython matched 2,000 generated nested control-flow/finalizer programs, comparing
+  emitted effects, stateful tests, iterator traces, returns and guest errors.
+  Scoped lint, source typecheck and selected dependency build passed. Reference:
+  Python 3.14 compound statements, finally-clause rules. Except/except* handlers
+  are still explicitly unsupported before try-body execution. Context managers,
+  suspension, concrete guest exception objects/frames and complete heap accounting
+  remain pending; this is not yet the complete interpreter.
 - Next:
   remaining scope/compiler audits, interpreter runtime,
   resource controls, runtime modules, and safe-fs integration. Parsing and static

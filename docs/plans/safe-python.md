@@ -5422,6 +5422,23 @@ extension, integration, or validation requirement is missing or unverified.
   workspace build pass. Full guest objects, set/frozenset representations,
   remaining dictionary layout policies, bytes percent operators, suspended
   execution, complete accounting and SDK/safe-fs integration remain unfinished.
+- Added the bytes percent b/s conversion kernel with explicit native bytes,
+  bytearray snapshot, bound __bytes__, and buffer-copy capabilities. Native
+  subclasses bypass overrides; slot results must be bytes, not bytearrays;
+  absent slots permit buffer extraction. Integer lengths and iterable indices
+  are rejected, unlike ordinary bytes construction. Guest call/buffer errors and
+  fatal limits propagate, with checks after each supplied capability.
+- Seven tests cover conversion ordering, result validation, bounded diagnostics,
+  failures and cancellation. All 4,584 tests in 379 files pass; typecheck, scoped lint and
+  selected workspace build pass. A 192-case CPython comparison verifies bytes/
+  bytearray subclasses, present/absent/non-callable slots, result types and
+  contiguous/strided/failing buffer hooks, including guest call traces.
+- Descriptor lookup failure parity remains unresolved: CPython 3.14.7 replaces
+  a raising __bytes__ descriptor's error with the b diagnostic for non-exporters,
+  or may leak pending-error state into buffer calls and produce SystemError.
+  This capability kernel currently propagates lookup exceptions. Full native
+  bytes percent field rendering/operator dispatch and guest buffer adapters are
+  still pending; this is not a completed bytes percent implementation.
 - Next:
   remaining scope/compiler audits, interpreter runtime,
   resource controls, runtime modules, and safe-fs integration. Parsing and static

@@ -14,11 +14,17 @@ export function createRuntimeScalarRepresentationMethod(receiver: Extract<Runtim
       meter.checkpoint();
       if (keywords.items.size !== 0) throw new PythonRuntimeError("TypeError", `wrapper ${name}() takes no keyword arguments`);
       if (positional.length !== 0) throw new PythonRuntimeError("TypeError", `expected 0 arguments, got ${positional.length}`);
-      if (receiver.kind === "int") return values.string(integerDigits(receiver.value, 10, meter));
-      if (receiver.kind === "bool") return values.string(receiver.value ? "True" : "False");
-      if (receiver.kind === "str" && name === "__str__") return receiver;
-      const text = receiver.kind === "str" ? receiver.value.repr(false, meter) : CodePointString.fromBytesRepr(receiver.value, meter);
-      return values.stringPoints(text);
+      return runtimeScalarRepresentation(receiver, name, values, meter);
     }
   });
+}
+
+/** Shared native slot operation, separate from explicit method argument checks. */
+export function runtimeScalarRepresentation(receiver: Extract<RuntimeValue, { kind: "str" | "bytes" | "int" | "bool" }>, name: "__str__" | "__repr__", values: RuntimeValues, meter: ExecutionMeter): RuntimeValue {
+  meter.checkpoint();
+  if (receiver.kind === "int") return values.string(integerDigits(receiver.value, 10, meter));
+  if (receiver.kind === "bool") return values.string(receiver.value ? "True" : "False");
+  if (receiver.kind === "str" && name === "__str__") return receiver;
+  const text = receiver.kind === "str" ? receiver.value.repr(false, meter) : CodePointString.fromBytesRepr(receiver.value, meter);
+  return values.stringPoints(text);
 }

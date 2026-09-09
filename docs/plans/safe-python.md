@@ -5099,6 +5099,20 @@ extension, integration, or validation requirement is missing or unverified.
   percent field dispatch, guest identity wrapping and binary percent integration
   remain unfinished. Full guest objects, suspended execution, complete accounting
   and SDK/safe-fs integration remain outstanding.
+- Connected representation protocol dispatch to RuntimeValues. Existing exact
+  str/bytes/int/bool slot operations are shared with explicit bound methods;
+  guest str payloads, str/repr slots, diagnostic type names and default repr
+  policy remain explicit capabilities. Native/container kinds without implemented
+  slots are not assigned invented representations. Escaped guest-subclass results
+  become exact native strings while unchanged results preserve identity.
+- Seven tests first failed for the missing runtime adapter. All 4,453 tests in
+  357 files pass. CPython matches 672 runtime representation cases; 3,208 compiled
+  text/bytes and 3,236 compiled integer/bool explicit-method regressions also pass
+  after extracting shared native operations. Source typecheck, scoped lint and
+  selected workspace build pass. Other native/container representation slots,
+  recursion guards, default percent field dispatch, guest identity wrapping and
+  binary percent integration remain unfinished. Full guest objects, suspended
+  execution, complete accounting and SDK/safe-fs integration remain outstanding.
 - Next:
   remaining scope/compiler audits, interpreter runtime,
   resource controls, runtime modules, and safe-fs integration. Parsing and static

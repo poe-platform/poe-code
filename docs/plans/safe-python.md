@@ -1858,6 +1858,22 @@ extension, integration, or validation requirement is missing or unverified.
   checked against CPython 3.14 Python/compile.c. Guest tuple materialization,
   function/class value metadata, full runtime wiring and allocation accounting
   remain unfinished.
+- Connected analyzed class metadata to reusable compiled class bodies. Compilation
+  validates exact scope metadata, materializes qualified-name/line/static-attribute
+  constants, cleans or strips leading docstrings, and copies the executable suite
+  without mutating the analyzed AST. Execution now consumes those constants and
+  statements directly; it no longer allocates name/line/docstring values or slices
+  the suite per activation. Static tuple identity is retained across activations,
+  while class cells are fresh and module-name lookup remains live.
+- Class-compilation validation: missing-module red suite preceded implementation.
+  All 2,326 tests in 120 files pass, including ten new compilation tests and a
+  repeated-activation identity check. Allocation-failure coverage moved to the
+  compilation boundary; mapping failures remain covered during execution. The
+  updated compile-and-execute path matched 72 CPython class-suite traces; 512
+  docstring comparisons also passed. Source typecheck, scoped lint, selected build
+  and generated declaration inspection passed. Whole-program compilation/caching,
+  concrete guest code/value objects, builtin builder dispatch, complete docstring
+  encoding validation and full allocation accounting remain unfinished.
 - Next:
   remaining scope/compiler audits, interpreter runtime,
   resource controls, runtime modules, and safe-fs integration. Parsing and static

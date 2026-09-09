@@ -4,6 +4,7 @@ import { sandboxIsExtensible, sandboxPreventExtensions } from "../guest-proxy-ex
 import { sandboxGetPrototypeOf, sandboxSetPrototypeOf } from "../guest-proxy-prototype.js";
 import { sandboxGetOwnPropertyDescriptor } from "../guest-proxy-descriptor.js";
 import { sandboxHasProperty } from "../guest-proxy-has.js";
+import { sandboxOwnKeys } from "../guest-proxy-own-keys.js";
 import { defineGuestProxyProperty } from "../guest-proxy-define.js";
 import { getGeneratorProperties } from "../generator-properties.js";
 import { accessorAdapter, accessorClosure, readPropertyDescriptor, retainedAccessorClosures } from "../accessors.js";
@@ -156,13 +157,22 @@ export function createObjectArrayGlobals(options: {
         }),
         getOwnPropertyNames: createSandboxClosure({
           sandbox: true,
-          call: ([value]) =>
-            budgetSandboxValue(Object.getOwnPropertyNames(reflectionProperties(value)), options.budget),
+          call: ([value], context) => {
+            if (typeof value === "object" && value !== null && guestProxyStates.has(value))
+              return Promise.resolve(sandboxOwnKeys(value, options.budget, context)).then(keys =>
+                budgetSandboxValue(keys.filter(key => typeof key === "string"), options.budget));
+            return budgetSandboxValue(Object.getOwnPropertyNames(reflectionProperties(value)), options.budget);
+          },
           name: "getOwnPropertyNames"
         }),
         getOwnPropertySymbols: createSandboxClosure({
           sandbox: true,
-          call: ([value]) => allocateProducedSandboxValue(ownSandboxSymbolKeys(value), options.budget),
+          call: ([value], context) => {
+            if (typeof value === "object" && value !== null && guestProxyStates.has(value))
+              return Promise.resolve(sandboxOwnKeys(value, options.budget, context)).then(keys =>
+                allocateProducedSandboxValue(keys.filter(key => typeof key === "symbol"), options.budget));
+            return allocateProducedSandboxValue(ownSandboxSymbolKeys(value), options.budget);
+          },
           name: "getOwnPropertySymbols"
         }),
         defineProperty: createSandboxClosure({

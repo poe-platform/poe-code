@@ -1,12 +1,12 @@
 import { isFatalSandboxError, type Budget } from "../budget.js";
-import { readPropertyDescriptor } from "../accessors.js";
+import { sandboxGetProperty } from "../guest-proxy-get.js";
 import { invokeBuiltinClosure } from "../builtin-call.js";
 import { createDataCheckpoint } from "../data-checkpoint.js";
 import { closeIterator, type SandboxIterator } from "../iteration.js";
 import { iteratorHelperStates, type IteratorHelperState } from "../iterator-helper.js";
 import type { IteratorWrapperState } from "../iterator-wrapper.js";
 import { registerBuiltinIdentities } from "../intrinsics.js";
-import { createIntrinsicObject, getSandboxPropertyDescriptor, registerIntrinsicObject, setSandboxPrototype } from "../object-model.js";
+import { createIntrinsicObject, registerIntrinsicObject, setSandboxPrototype } from "../object-model.js";
 import { retainValues } from "../resources.js";
 import { sandboxNumber } from "../string-coercion.js";
 import { createSandboxClosure, isSandboxClosure, type SandboxCallContext, type SandboxClosure, type SandboxObject, type SandboxValue } from "../values.js";
@@ -18,6 +18,7 @@ export function installLazyIteratorHelpers(common: SandboxObject,budget: Budget)
   for (const operation of ["next","return"] as const) {
     Object.defineProperty(prototype,operation,{writable:true,configurable:true,value:createSandboxClosure({
       guest:true,sandbox:true,name:operation,length:0,call:async (_args,context)=>{
+        context=callContext(context);
         const receiver=context?.thisValue;
         const state=receiver !== null && typeof receiver === "object" ? iteratorHelperStates.get(receiver) : undefined;
         if (state === undefined) throw new TypeError("Iterator helper method requires a branded receiver.");
@@ -62,7 +63,7 @@ export function installLazyIteratorHelpers(common: SandboxObject,budget: Budget)
                 mapped=await invokeBuiltinClosure(state.callback as SandboxClosure,[result.value,state.index++],budget,context,undefined);
                 if (state.method === "flatMap") {
                   if (mapped === null || typeof mapped !== "object") throw new TypeError("flatMap callback must return an object.");
-                  const method=await read(mapped,Symbol.iterator,context);
+                  const method=await context.getProperty!(mapped,Symbol.iterator);
                   let inner=mapped;
                   if (method !== undefined && method !== null) {
                     if (!isSandboxClosure(method)) throw new TypeError("Symbol.iterator must be callable.");
@@ -70,7 +71,7 @@ export function installLazyIteratorHelpers(common: SandboxObject,budget: Budget)
                     if (value === null || typeof value !== "object") throw new TypeError("Inner iterator must be an object.");
                     inner=value;
                   }
-                  state.inner={iterator:inner,next:await read(inner,"next",context)};
+                  state.inner={iterator:inner,next:await context.getProperty!(inner,"next")};
                 }
               } catch(error) {if (!isFatalSandboxError(error)) await closeIterator(adapter(outer,context),true);throw error}
               if (state.method === "map") {state.status="yield";return {value:mapped,done:false}}
@@ -84,6 +85,7 @@ export function installLazyIteratorHelpers(common: SandboxObject,budget: Budget)
   for (const method of ["map","filter","take","drop","flatMap"] as const) {
     Object.defineProperty(common,method,{writable:true,configurable:true,value:createSandboxClosure({
       guest:true,sandbox:true,name:method,length:1,call:async ([argument],context)=>{
+        context=callContext(context);
         const receiver=context?.thisValue;
         if (receiver === null || typeof receiver !== "object") throw new TypeError("Iterator helper requires an object.");
         const outer: IteratorWrapperState={iterator:receiver,next:undefined};
@@ -96,7 +98,7 @@ export function installLazyIteratorHelpers(common: SandboxObject,budget: Budget)
             if (remaining<0) throw new RangeError("Iterator limit must not be negative.");
           } else if (!isSandboxClosure(argument)) throw new TypeError("Iterator callback must be callable.");
         } catch(error) {if (!isFatalSandboxError(error)) await closeIterator(adapter(outer,context),true);throw error}
-        outer.next=await read(receiver,"next",context);
+        outer.next=await context.getProperty!(receiver,"next");
         const helper: SandboxObject=Object.create(null);
         iteratorHelperStates.set(helper,{method,status:"start",outer,callback:method === "take" || method === "drop" ? undefined : argument,remaining,index:0});
         setSandboxPrototype(helper,prototype,budget);
@@ -109,32 +111,39 @@ export function installLazyIteratorHelpers(common: SandboxObject,budget: Budget)
   registerIntrinsicObject(budget,prototype);
   registerIntrinsicObject(budget,common);
 
-  function adapter(record: IteratorWrapperState,context?: SandboxCallContext): SandboxIterator {
+  function adapter(record: IteratorWrapperState,context: SandboxCallContext): SandboxIterator {
     return {asynchronous:true,next:async ()=>{
       if (!isSandboxClosure(record.next)) throw new TypeError("Iterator next must be callable.");
       const result=await invokeBuiltinClosure(record.next,[],budget,context,record.iterator);
       if (result === null || typeof result !== "object") throw new TypeError("Iterator result must be an object.");
       return result as unknown as IteratorResult<SandboxValue>;
     },getOperation:async ()=>{
-      const method=await read(record.iterator,"return",context);
+      const method=await context.getProperty!(record.iterator,"return");
       if (method === undefined || method === null) return undefined;
       if (!isSandboxClosure(method)) throw new TypeError("Iterator return must be callable.");
       return async ()=>await invokeBuiltinClosure(method,[],budget,context,record.iterator) as unknown as IteratorResult<SandboxValue>;
     }};
   }
-  async function step(record: IteratorWrapperState,context?: SandboxCallContext,skipValue=false): Promise<{value:SandboxValue;done:boolean}> {
+  async function step(record: IteratorWrapperState,context: SandboxCallContext,skipValue=false): Promise<{value:SandboxValue;done:boolean}> {
     let result: SandboxValue;
     const release=retainValues(budget,()=>[result]);
     try {
       result=await adapter(record,context).next() as unknown as SandboxValue;
-      if (await read(result,"done",context)) return {value:undefined,done:true};
-      return {value:skipValue ? undefined : await read(result,"value",context),done:false};
+      if (await context.getProperty!(result,"done")) return {value:undefined,done:true};
+      return {value:skipValue ? undefined : await context.getProperty!(result,"value"),done:false};
     } finally {release()}
   }
-  async function read(value: SandboxValue,key: PropertyKey,context?: SandboxCallContext): Promise<SandboxValue> {
-    if (context?.getProperty !== undefined) return context.getProperty(value,key);
-    const descriptor=getSandboxPropertyDescriptor(value,key,budget);
-    return descriptor === undefined ? undefined : readPropertyDescriptor(descriptor,value,context);
+  function callContext(context?: SandboxCallContext): SandboxCallContext {
+    const caller: SandboxCallContext = {
+      ...context,stack:context?.stack??[],thisValue:context?.thisValue,
+      getProperty:context?.getProperty??((value,key)=>sandboxGetProperty(value,key,value,budget,bridge))
+    };
+    const bridge: SandboxCallContext = {
+      ...caller,
+      invokeClosure:context?.invokeClosure??((callee,args,receiver,construct,newTarget)=>
+        invokeBuiltinClosure(callee,args,budget,caller,receiver,construct,newTarget))
+    };
+    return bridge;
   }
 }
 

@@ -601,6 +601,9 @@ original receiver, including inherited accessors and revoked methods.
 SDK eager iterator consumers (`toArray`, `reduce`, `forEach`, `some`, `every`,
 and `find`) observe Proxy receivers, methods, result objects, and callbacks,
 including iterator closing on early return or callback failure.
+SDK lazy iterator helpers (`map`, `filter`, `take`, `drop`, and `flatMap`) also
+dispatch Proxy operations during creation, advancement, and closing. `flatMap`
+closes active inner and outer Proxy iterators in the tested native order.
 Public Proxy binding reads the prototype and own length descriptor through traps
 before reading length and name, including null prototypes and nested Proxies.
 Promise operations dispatch Proxy constructors, executors, reaction callbacks,

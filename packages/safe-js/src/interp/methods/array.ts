@@ -19,11 +19,12 @@ import { retainValues } from "../resources.js";
 import { getSandboxDataProperty, getSandboxPrototype } from "../object-model.js";
 import { joinSandboxArray, sandboxNumber, sandboxString } from "../string-coercion.js";
 import { invokeBuiltinClosure } from "../builtin-call.js";
-import { objectProperties } from "../globals/object-array.js";
+import { defineDataProperty, objectProperties } from "../globals/object-array.js";
 import { setSandboxProperty } from "../interpreter.js";
 import { readPropertyDescriptor } from "../accessors.js";
 import { getSandboxPropertyDescriptor } from "../object-model.js";
 import { sandboxIsArray } from "../guest-proxy-array.js";
+import { guestProxyStates } from "../guest-proxy.js";
 
 async function arraySpeciesCreate(value: ArrayLikeValue, length: number, options: ArrayMethodOptions): Promise<SandboxValue & object> {
   const receiver = arrayLikeSources.get(value) ?? value;
@@ -47,10 +48,16 @@ async function arraySpeciesCreate(value: ArrayLikeValue, length: number, options
   return new Array(length) as SandboxArray;
 }
 
-function defineArrayResult(result: SandboxValue & object, index: number, value: SandboxValue, options: ArrayMethodOptions): void {
+async function defineArrayResult(result: SandboxValue & object, index: number, value: SandboxValue, options: ArrayMethodOptions): Promise<void> {
   if (index >= Number.MAX_SAFE_INTEGER) throw new TypeError("Array result exceeds the safe integer limit.");
   if (Array.isArray(result)) options.budget.allocateArrayLength(index + 1);
-  defineOwnDataProperty(objectProperties(result, true), String(index), value);
+  if (guestProxyStates.has(result)) {
+    await defineDataProperty(result, String(index), {
+      value, writable: true, enumerable: true, configurable: true
+    }, options.budget, options.context);
+  } else {
+    defineOwnDataProperty(objectProperties(result, true), String(index), value);
+  }
 }
 
 type ArrayLikeValue =
@@ -477,7 +484,7 @@ async function callArrayMethodUnlocked(
         for (let index = 0; index < count; index += 1) {
           options.budget.visitNode();
           if (await hasArrayElement(value, first + index, options))
-            defineArrayResult(result, index, await readArrayElement(value, first + index, options), options);
+            await defineArrayResult(result, index, await readArrayElement(value, first + index, options), options);
         }
         await setSandboxProperty(result, "length", count, options.budget, true, options.context);
         return budgetProducedValue(result, options.budget);
@@ -500,7 +507,7 @@ async function callArrayMethodUnlocked(
             spread = flag === undefined ? Array.isArray(entry) : Boolean(flag);
           }
           if (!spread) {
-            defineArrayResult(result, targetIndex++, entry, options);
+            await defineArrayResult(result, targetIndex++, entry, options);
             continue;
           }
           const start = targetIndex;
@@ -512,7 +519,7 @@ async function callArrayMethodUnlocked(
           for (let index = 0; index < length; index++) {
             options.budget.visitNode();
             if (await hasArrayElement(source, index, options))
-              defineArrayResult(result, start + index, await readArrayElement(source, index, options), options);
+              await defineArrayResult(result, start + index, await readArrayElement(source, index, options), options);
           }
         }
         await setSandboxProperty(result, "length", targetIndex, options.budget, true, options.context);
@@ -552,7 +559,7 @@ async function callArrayMethodUnlocked(
         for (let index = 0; index < deleted; index++) {
           options.budget.visitNode();
           if (await hasArrayElement(value, first + index, options))
-            defineArrayResult(removed, index, await readArrayElement(value, first + index, options), options);
+            await defineArrayResult(removed, index, await readArrayElement(value, first + index, options), options);
         }
         await setSandboxProperty(removed, "length", deleted, options.budget, true, options.context);
         if (inserted < deleted) {
@@ -967,7 +974,7 @@ async function mapArray(
         continue;
       }
 
-      defineArrayResult(result, index, await callArrayCallback(
+      await defineArrayResult(result, index, await callArrayCallback(
         callback,
         await readArrayElement(value, index, options),
         index,
@@ -1005,7 +1012,7 @@ async function filterArray(
 
       const entry = await readArrayElement(value, index, options);
       if (await callArrayCallback(callback, entry, index, value, options, stack, thisValue)) {
-        defineArrayResult(result, targetIndex++, entry, options);
+        await defineArrayResult(result, targetIndex++, entry, options);
       }
     }
 
@@ -1360,13 +1367,13 @@ async function flatMapArray(
             continue;
           }
 
-          defineArrayResult(result, targetIndex++, await readArrayElement(mapped, mappedIndex, options), options);
+          await defineArrayResult(result, targetIndex++, await readArrayElement(mapped, mappedIndex, options), options);
         }
 
         continue;
       }
 
-      defineArrayResult(result, targetIndex++, mapped, options);
+      await defineArrayResult(result, targetIndex++, mapped, options);
     }
 
     return result;
@@ -1412,7 +1419,7 @@ async function appendFlattenedEntries(
       continue;
     }
 
-    defineArrayResult(result, targetIndex++, entry, options);
+    await defineArrayResult(result, targetIndex++, entry, options);
   }
   return targetIndex;
 }

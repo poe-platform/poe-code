@@ -33,6 +33,8 @@ full-package, snapshot, or JavaScript-conformance gate.
   see [verification and remaining array scope](safejs-proxy-array-methods.md).
 - Wrapped-array species selection, including nested Proxies and subclasses;
   see [verification](safejs-proxy-array-species.md).
+- Proxy-valued species result definitions, including rejected writes and partial
+  mutations; see [verification](safejs-proxy-array-results.md).
 - Object.assign sources and targets, descriptor-map enumeration, object
   spread/rest and rest exclusions.
 - Ordinary enumerability changes during values/entries, descriptor-map and
@@ -53,7 +55,7 @@ regressions, TypeScript and lint checks. Recent records include
   apply/construct traps and callable identity.
 - Proxy graph serialization/restoration, cycles, revocation state, validation,
   and host/structured-clone boundaries.
-- Proxy species result definitions, flattening/concat identity, remaining built-in/callable-Proxy instanceof cases and object
+- Flattening/concat identity, remaining built-in/callable-Proxy instanceof cases and object
   tags need consumer audits.
 - Other array-identity consumers and ordinary prototype-cycle checks need
   Proxy-aware validation.

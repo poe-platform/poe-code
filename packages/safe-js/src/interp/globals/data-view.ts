@@ -1,6 +1,7 @@
 import type { Budget } from "../budget.js";
 import { getFunctionRealmPrototype } from "../function-realm.js";
 import { arrayBufferDetached, arrayBufferLength, arrayBufferOptions, isSandboxArrayBuffer } from "../array-buffer.js";
+import { isSandboxSharedArrayBuffer } from "../shared-array-buffer.js";
 import { dataViewGetters, dataViewLayouts, dataViewPrototypes, isSandboxDataView } from "../data-view.js";
 import { accessorAdapter, readPropertyDescriptor } from "../accessors.js";
 import { createSandboxClosure, type SandboxCallContext, type SandboxClosure, type SandboxObject, type SandboxValue } from "../values.js";
@@ -44,7 +45,7 @@ export function createDataViewGlobal(budget: Budget): SandboxClosure {
     call: () => { throw new TypeError("DataView requires new."); },
     construct: async (args, context) => {
       const buffer = args[0];
-      if (!isSandboxArrayBuffer(buffer)) throw new TypeError("DataView requires an ArrayBuffer.");
+      if (!isSandboxArrayBuffer(buffer) && !isSandboxSharedArrayBuffer(buffer)) throw new TypeError("DataView requires supported backing storage.");
       let selected: SandboxValue;
       const release = retainValues(budget, () => [...args, selected]);
       try {

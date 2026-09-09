@@ -1,5 +1,6 @@
 import { dataViewLayout, restoreDataView } from "../interp/data-view.js";
 import { arrayBufferOptions, isSandboxArrayBuffer } from "../interp/array-buffer.js";
+import { isSandboxSharedArrayBuffer } from "../interp/shared-array-buffer.js";
 import { getSandboxPrototype, hasExplicitSandboxPrototype } from "../interp/object-model.js";
 import { serializePropertyDescriptors } from "./property-descriptors.js";
 import { capturePrivateElements, type GuestObjectState } from "./guest-heap.js";
@@ -30,10 +31,10 @@ export function validateDataViewStorage(value: Record<string, unknown>): void {
     throw new TypeError("Invalid DataView length-tracking layout.");
 }
 
-export function decodeDataViewStorage(value: Record<string, unknown>, resolve: (reference: unknown) => unknown, budget?: Budget): DataView<ArrayBuffer> {
+export function decodeDataViewStorage(value: Record<string, unknown>, resolve: (reference: unknown) => unknown, budget?: Budget): DataView<ArrayBufferLike> {
   validateDataViewStorage(value);
   const buffer = resolve(value.buffer);
-  if (!isSandboxArrayBuffer(buffer)) throw new TypeError("Invalid DataView backing reference.");
+  if (!isSandboxArrayBuffer(buffer) && !isSandboxSharedArrayBuffer(buffer)) throw new TypeError("Invalid DataView backing reference.");
   if (value.lengthTracking === true && arrayBufferOptions(buffer) === undefined)
     throw new TypeError("Length-tracking DataView requires resizable storage.");
   budget?.provisionDataUsage(1)();

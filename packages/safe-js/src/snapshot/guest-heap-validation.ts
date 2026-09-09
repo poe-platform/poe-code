@@ -236,7 +236,7 @@ export function validateGuestHeapNode(raw: unknown, heap: Record<string, unknown
     if (typeof node.callable !== "boolean" || typeof node.constructible !== "boolean" ||
         (node.constructible && !node.callable)) throw new TypeError("Invalid Proxy callable flags.");
     if ((node.target === null) !== (node.handler === null)) throw new TypeError("Invalid revoked Proxy state.");
-    const objectKinds = ["object", "array", "map", "set", "float32array", "typedarray", "arraybuffer", "dataview",
+    const objectKinds = ["object", "array", "map", "set", "float32array", "typedarray", "arraybuffer", "sharedarraybuffer", "dataview",
       "boxed", "date", "regex-object", "module-namespace", "raw-json", "guest-proxy", "guest-proxy-revoker",
       "module-function", "async-generator-handler", "async-function-handler", "async-cleanup-handler", "thenable-resolver",
       "aggregate-handler", "adoption-resolver", "capability-executor", "intrinsic", "bound-function", "promise-resolver",

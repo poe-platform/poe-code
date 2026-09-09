@@ -17,6 +17,7 @@ import { errorPrototypes } from "./error-prototypes.js";
 import { typedArrayProperties, typedArrayStorage, isNumericTypedArray, isTypedArrayIndex } from "./typed-array.js";
 import { typedArrayPrototypes } from "./typed-array-prototypes.js";
 import { arrayBufferPrototypes, isSandboxArrayBuffer } from "./array-buffer.js";
+import { isSandboxSharedArrayBuffer, sharedArrayBufferPrototypes } from "./shared-array-buffer.js";
 import { dataViewPrototypes, isSandboxDataView } from "./data-view.js";
 import { sandboxErrorTypes } from "../error/shape.js";
 import { boxedValue, isSandboxBox, type BoxedKind, type BoxedPrimitive } from "./boxed.js";
@@ -438,6 +439,7 @@ export function getSandboxPrototype(value: object, budget?: Budget): object | nu
   const explicit = prototypes.get(value);
   if (explicit !== undefined) return explicit;
   if (budget === undefined) return null;
+  if (isSandboxSharedArrayBuffer(value)) return sharedArrayBufferPrototypes.get(budget) ?? null;
   if (isSandboxArrayBuffer(value)) return budget === undefined ? null : arrayBufferPrototypes.get(budget) ?? null;
   if (isSandboxDataView(value)) return dataViewPrototypes.get(budget) ?? null;
   if (isNumericTypedArray(value)) return budget === undefined ? null : typedArrayPrototypes.get(budget)?.get(typedArrayStorage(value).Native) ?? null;
@@ -607,6 +609,7 @@ export function setSandboxPrototype(
 }
 
 function isPrototypeRecord(value: object): boolean {
+  if (isSandboxSharedArrayBuffer(value)) return true;
   if (isSandboxDataView(value)) return true;
   if (isSandboxArrayBuffer(value)) return true;
   if (isNumericTypedArray(value)) return true;

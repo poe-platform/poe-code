@@ -1,5 +1,6 @@
 import { expect, it } from "vitest";
 import { Budget } from "./budget.js";
+import { measureSandboxData } from "./values.js";
 import {
   cloneSharedArrayBufferStorage, createSharedArrayBufferStorage,
   isSandboxSharedArrayBuffer, sharedArrayBufferStorage
@@ -68,4 +69,26 @@ it("checks maximum allocation capacity before creating growable storage", () => 
 it("checks retained byte capacity before allocating shared storage", () => {
   expect(() => createSharedArrayBufferStorage(4,undefined,new Budget({dataSize:4})))
     .toThrow(expect.objectContaining({code:"budgetExceeded",budget:"dataSize"}));
+});
+
+it("charges shared bytes once and each wrapper separately", () => {
+  const original=createSharedArrayBufferStorage(4,undefined,new Budget());
+  const clone=cloneSharedArrayBufferStorage(original);
+  const independent=createSharedArrayBufferStorage(4,undefined,new Budget());
+  expect(measureSandboxData([original])).toBe(5);
+  expect(measureSandboxData([original,clone])).toBe(6);
+  expect(measureSandboxData([original,independent])).toBe(10);
+});
+
+it("accounts for growth through a different wrapper", () => {
+  const original=createSharedArrayBufferStorage(4,8,new Budget());
+  const clone=cloneSharedArrayBufferStorage(original);
+  Reflect.apply(Reflect.get(SharedArrayBuffer.prototype,"grow"),clone,[8]);
+  expect(measureSandboxData([original,clone])).toBe(10);
+});
+
+it("accounts for non-enumerable shared-wrapper properties", () => {
+  const original=createSharedArrayBufferStorage(4,undefined,new Budget());
+  Object.defineProperty(original,"secret",{value:"payload"});
+  expect(measureSandboxData([original])).toBe(19);
 });

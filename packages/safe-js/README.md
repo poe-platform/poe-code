@@ -842,13 +842,33 @@ treat that work as complete weak-collection support.
 ## Meaningful limitations
 
 The unreleased runtime supports `Atomics` integer operations on ordinary
-ArrayBuffer-backed typed arrays, including BigInt views. Focused tests cover
-guest coercion, buffer changes during coercion, namespace identity across replay,
-and foreign-realm errors. Shared memory is not implemented: `wait` and
-`waitAsync` reject non-shared storage, and `notify` returns zero for valid
-non-shared views. This does not provide cross-agent synchronization.
+ArrayBuffer-backed typed arrays, including BigInt views. Experimental,
+shared-memory work adds fixed/growable `SharedArrayBuffer`, typed
+array and DataView aliases, shared structured cloning, and `waitAsync`/`notify`.
+Focused tests cover direct shared-buffer snapshot and replay-data round-trips,
+including shared growth and distinct wrapper identities. Host-boundary transport
+and abandoned-wait cleanup remain under review. Focused async-wait tests cover
+timeouts, notification order, await cancellation, and pending source replay;
+they do not establish direct restoration of live waiter continuations or
+deterministic timeout replay;
+do not treat this as complete shared-memory support. Synchronous `Atomics.wait`
+cannot block the sandbox's host event-loop agent. Non-shared waits reject, and
+`notify` returns zero for valid non-shared views.
 
-- **Not a full JavaScript engine.** Complete `eval` conformance is unproven. `WeakRef`, `FinalizationRegistry`, and `SharedArrayBuffer` remain unavailable. Proxy runtime and tested checkpoint support are described above; host-boundary integration remains incomplete. There is no ambient DOM or general Node API, nor automatic multi-file/npm resolution. See the unreleased and experimental features above; lint success is not a runtime compatibility guarantee.
+Managed shared-buffer host round-trips are being integrated. Focused checks now
+cover isolated settlement-time bytes, replayed argument aliases, and host writes
+and growth even when no shared buffer is returned. Experimental journal-wide
+tracking now passes focused replay tests for later mutations through retained
+arguments and host-returned buffers, including growth and synchronous or
+asynchronous calls. Capture ordering prevents older buffer images from
+overwriting newer effects. Further concurrency, callback, and budget-failure
+audits remain; shared host-call history is not yet fully verified.
+Async replay separates invocation-time shared writes from final settlement
+effects. Focused tests cover two-stage growth, pending-call prefixes, and an
+intermediate write observed through another host checkpoint. Arbitrary
+intermediate async visibility is not yet fully verified.
+
+- **Not a full JavaScript engine.** Complete `eval` conformance is unproven. `WeakRef` and `FinalizationRegistry` remain unavailable. Shared-memory and Proxy support are incomplete as described above; host-boundary integration remains incomplete. There is no ambient DOM or general Node API, nor automatic multi-file/npm resolution. See the unreleased and experimental features above; lint success is not a runtime compatibility guarantee.
 - **Regular expressions are bounded.** The guest engine supports `d`, `g`, `i`, `m`, `s`, `u`, `v`, and `y`, including lookaround, backreferences, named groups, and Unicode property escapes. Compilation and matching still enforce limits; this is not an unbounded native-RegExp escape hatch or a claim of complete conformance.
 - **Budgets are not hard resource isolation.** Limits govern interpreter work, not arbitrary host functions or total process memory. Deadlines are checked cooperatively; cancellation cannot forcibly stop a blocking host call or undo its effects. Add host-operation timeouts and external isolation where required.
 - **Recovery is not exactly-once delivery.** Replay can repeat work and consumes budget again. Pending side effects need external reconciliation; opaque host handles and native iterator frames are not portable checkpoint state. Keep compatible source for ordinary restore or explicitly migrate. Checkpoints can contain input data and host results: store them as sensitive data.

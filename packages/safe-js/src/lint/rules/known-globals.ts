@@ -42,6 +42,7 @@ export const KNOWN_RUNTIME_GLOBALS = [
   "Reflect",
   "RegExp",
   "Set",
+  "SharedArrayBuffer",
   "String",
   "SuppressedError",
   "Symbol",

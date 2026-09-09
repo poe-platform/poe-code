@@ -1,4 +1,7 @@
 import { MAX_DATA_DEPTH } from "../graph-depth.js";
+import { Budget } from "../interp/budget.js";
+import { isSandboxSharedArrayBuffer } from "../interp/shared-array-buffer.js";
+import { decodeSharedArrayBufferStorage, encodeSharedArrayBufferStorage, type SharedArrayBufferData } from "./shared-array-buffer.js";
 import { moduleFunctionOrigins } from "../interp/module-function-origin.js";
 import { hostFunctionMetadata } from "../interp/host-function-metadata.js";
 import { createModuleNamespace, isSandboxModuleNamespace } from "../interp/module-namespace.js";
@@ -71,6 +74,7 @@ type DataNode =
   | { kind: "date"; time: number | null; properties?: Properties; symbolProperties?: Array<SerializedSymbolProperty<Atom>>; extensible?: boolean; nullPrototype?: true }
   | (TypedArrayData<Atom> & { properties: Properties; extensible: boolean })
   | (ArrayBufferData<Atom> & { properties: Properties; extensible: boolean; symbolEntries?: Array<SerializedSymbolProperty<Atom>> })
+  | (SharedArrayBufferData<Atom> & { properties: Properties; extensible: boolean; symbolEntries?: Array<SerializedSymbolProperty<Atom>> })
   | (DataViewData<Atom> & { properties: Properties; extensible: boolean; symbolEntries?: Array<SerializedSymbolProperty<Atom>> })
   | { kind: "capability"; id: string; properties: Atom }
   | {
@@ -97,6 +101,7 @@ export function createReplayEncodingContext() {
     seen: new WeakMap<object, number>(),
     symbols: new Map<symbol, number>(),
     float32Buffers: new WeakMap<ArrayBuffer, number>(),
+    sharedBlocks: new WeakMap<object, number>(),
     failed: false
   };
 }
@@ -114,7 +119,7 @@ export function encodeReplayData(
 ): ReplayData {
   const context = options.context ?? createReplayEncodingContext();
   if (context.failed) throw new TypeError("Cannot extend an incomplete graph.");
-  const { nodes, seen, symbols, float32Buffers } = context;
+  const { nodes, seen, symbols, float32Buffers, sharedBlocks } = context;
   const initialNodeCount = nodes.length;
   const encode = (entry: SandboxValue, depth: number, path: readonly ReplayPathSegment[], capabilityProperties = false): Atom => {
     if (depth > MAX_DATA_DEPTH) throw new TypeError("Replay data exceeds the nesting limit.");
@@ -200,8 +205,9 @@ export function encodeReplayData(
         ...(symbolProperties.length === 0 ? {} : { symbolProperties }),
         ...(Object.isExtensible(entry) ? {} : { extensible: false })
       };
-    } else if (isSandboxArrayBuffer(entry) || isSandboxDataView(entry)) {
+    } else if (isSandboxArrayBuffer(entry) || isSandboxSharedArrayBuffer(entry) || isSandboxDataView(entry)) {
       const storage = isSandboxDataView(entry) ? { ...encodeDataViewLayout(entry), buffer: child(dataViewBuffer(entry), "<buffer>") }
+        : isSandboxSharedArrayBuffer(entry) ? encodeSharedArrayBufferStorage(entry, id, sharedBlocks, id => ({ tag: "ref" as const, id }))
         : encodeArrayBufferStorage(entry, id, float32Buffers, id => ({ tag: "ref" as const, id }));
       const properties: Properties = Object.create(null);
       for (const [key, descriptor] of isSandboxDataView(entry) ? dataViewDataProperties(entry) : arrayBufferDataProperties(entry)) {
@@ -322,6 +328,7 @@ export function decodeReplayData(
   parent?: CompileScope
 ): SandboxValue {
   const compilation = new CompileScope(parent?.owner);
+  const sharedStorageBudget = compilation.owner?.budget ?? new Budget();
   try {
     validateSnapshotData(input);
     const graph = record(input);
@@ -491,9 +498,10 @@ export function decodeReplayData(
         if (node.extensible === false) Object.preventExtensions(result);
         return result;
       }
-      if (kind === "arraybuffer" || kind === "dataview") {
+      if (kind === "arraybuffer" || kind === "sharedarraybuffer" || kind === "dataview") {
         if (typeof node.extensible !== "boolean") throw new TypeError("Invalid ArrayBuffer extensibility.");
         const result = kind === "dataview" ? decodeDataViewStorage(node, child, compilation.owner?.budget)
+          : kind === "sharedarraybuffer" ? decodeSharedArrayBufferStorage(node, child, sharedStorageBudget)
           : decodeArrayBufferStorage(node, child, compilation.owner?.budget, detachBuffers);
         restored.set(id, result);
         initializeValues.push(() => {

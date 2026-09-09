@@ -7,6 +7,7 @@ import { hostFunctionMetadata } from "./host-function-metadata.js";
 import { NativeSuppressedError } from "../error/native-suppressed-error.js";
 import { isSandboxModuleNamespace } from "./module-namespace.js";
 import { arrayBufferDataProperties, arrayBufferLength, arrayBufferOptions, copyArrayBufferStorage, isSandboxArrayBuffer } from "./array-buffer.js";
+import { isSandboxSharedArrayBuffer, sharedArrayBufferStorage } from "./shared-array-buffer.js";
 import { copyDataViewStorage, dataViewBuffer, dataViewDataProperties, dataViewGetters, isSandboxDataView } from "./data-view.js";
 import { internalSymbols } from "./internal-symbols.js";
 import { getIntrinsicIdentity } from "./intrinsics.js";
@@ -98,7 +99,8 @@ export type SandboxValue =
   | Date
   | NumericTypedArray
   | ArrayBuffer
-  | DataView<ArrayBuffer>
+  | SharedArrayBuffer
+  | DataView<ArrayBufferLike>
   | SandboxObject
   | SandboxArray
   | SandboxClosure
@@ -229,7 +231,8 @@ type CopyFromSandboxOptions = {
 };
 
 type CopyState<TValue> = {
-  float32Buffers?: WeakMap<ArrayBuffer, ArrayBuffer>;
+  float32Buffers?: WeakMap<ArrayBufferLike, ArrayBufferLike>;
+  sharedBufferSnapshots?: WeakMap<object, SharedArrayBuffer>;
   seen: WeakMap<object, TValue>;
   initializeIterators?: Array<() => void>;
   compilation?: CompileScope;
@@ -379,13 +382,16 @@ export function createSandboxPromise(
     synchronousPrefix?: Promise<void>;
     hostCall?: import("./host-call.js").HostCallRecord;
     hostCallJournal?: import("./host-call.js").HostCallJournal;
+    replaySettlement?: (value:SandboxValue)=>SandboxValue;
     span?: SandboxCallContext["span"];
   } = {}
 ): SandboxPromise {
   const original =
     metadata.trackReplay === false
       ? promise
-      : (promiseReplayContext.getStore()?.track(promise) ?? promise);
+      : (promiseReplayContext.getStore()?.track(promise,metadata.replaySettlement) ??
+        (metadata.replaySettlement===undefined?promise:promise.then(metadata.replaySettlement,
+          reason=>{throw metadata.replaySettlement!(reason);} )));
   const sandboxPromise = {
     kind: "promise" as const,
     get promise() {
@@ -577,7 +583,7 @@ export function deepCopyToSandbox(value: unknown): SandboxValue {
   });
 }
 
-export function cloneSandboxValue(value: SandboxValue, options: { compilation?: CompileScope; resetRegexLastIndex?: boolean; structuredClone?: boolean; float32Buffers?: WeakMap<ArrayBuffer, ArrayBuffer> } = {}): SandboxValue {
+export function cloneSandboxValue(value: SandboxValue, options: { compilation?: CompileScope; resetRegexLastIndex?: boolean; structuredClone?: boolean; float32Buffers?: WeakMap<ArrayBufferLike, ArrayBufferLike>; sharedBufferSnapshots?: WeakMap<object, SharedArrayBuffer> } = {}): SandboxValue {
   const initializeIterators: Array<() => void> = [];
   const copy = copyToSandbox(
     value,
@@ -911,6 +917,13 @@ export function measureSandboxData(
     const prototype = getSandboxPrototype(value);
     if (prototype !== null) visit(prototype, depth + 1);
     if (isSandboxArrayBuffer(value)) usage += arrayBufferLength(value);
+    if (isSandboxSharedArrayBuffer(value)) {
+      const storage = sharedArrayBufferStorage(value);
+      if (!seen.has(storage.block)) {
+        seen.add(storage.block);
+        usage += storage.byteLength;
+      }
+    }
     if (isSandboxDataView(value)) visit(dataViewBuffer(value), depth + 1);
     if (isNumericTypedArray(value)) {
       const storage = typedArrayStorage(value);
@@ -1077,7 +1090,7 @@ export function measureSandboxData(
     // ordering, including managed-state changes during descriptor capture.
     const proxyKeys = nodeTypes.isProxy(value) ? Object.getOwnPropertyNames(value) : undefined;
     const proxyDescriptors = proxyKeys?.map(key => Object.getOwnPropertyDescriptor(value,key));
-    const includeNonEnumerable = isSandboxDate(value) || isSandboxArrayBuffer(value) || isSandboxDataView(value) || sandboxErrorTypes.has(value) || hasManagedDescriptors(value);
+    const includeNonEnumerable = isSandboxDate(value) || isSandboxArrayBuffer(value) || isSandboxSharedArrayBuffer(value) || isSandboxDataView(value) || sandboxErrorTypes.has(value) || hasManagedDescriptors(value);
     const keys = proxyKeys ?? (includeNonEnumerable ? Object.getOwnPropertyNames(value) : Object.keys(value));
     const metadata = hostFunctionMetadata.get(value);
     const retained: unknown[] = [];
@@ -1276,7 +1289,7 @@ function copyToSandbox(
   }
 
   if (typeof value === "object" && value !== null && hasGuestObjectState(value) &&
-      !(state.structuredClone && (isPlainObject(value) || isPlainArray(value) || isSandboxDate(value) || isSandboxArrayBuffer(value) || isSandboxDataView(value) || isNumericTypedArray(value)))) {
+      !(state.structuredClone && (isPlainObject(value) || isPlainArray(value) || isSandboxDate(value) || isSandboxArrayBuffer(value) || isSandboxSharedArrayBuffer(value) || isSandboxDataView(value) || isNumericTypedArray(value)))) {
     throw new TypeError("Guest prototype links and custom descriptors cannot be copied as data.");
   }
 
@@ -1345,7 +1358,7 @@ function copyToSandbox(
     return sandboxPromise;
   }
 
-  if (isSandboxArrayBuffer(value)) {
+  if (isSandboxArrayBuffer(value) || isSandboxSharedArrayBuffer(value)) {
     const existing = state.seen.get(value);
     if (existing !== undefined) return existing;
     const copy = copyArrayBufferStorage(value, state);
@@ -1663,7 +1676,7 @@ function copyFromSandbox(
     return copy;
   }
 
-  if (isSandboxArrayBuffer(value) || isSandboxDataView(value)) {
+  if (isSandboxArrayBuffer(value) || isSandboxSharedArrayBuffer(value) || isSandboxDataView(value)) {
     const existing = state.seen.get(value);
     if (existing !== undefined) return existing;
     const copy = isSandboxDataView(value) ? copyDataViewStorage(value, state) : copyArrayBufferStorage(value, state);
@@ -1866,6 +1879,16 @@ function isHostPromise(value: unknown): value is Promise<unknown> {
 }
 
 function allocateSandboxValue(value: SandboxValue, budget: Budget, seen: WeakSet<object>): void {
+  if (isSandboxSharedArrayBuffer(value)) {
+    if (seen.has(value)) return;
+    seen.add(value);
+    budget.allocateArrayLength(sharedArrayBufferStorage(value).maxByteLength);
+    for (const [key,descriptor] of arrayBufferDataProperties(value)) {
+      if (typeof key==="string") budget.allocateString(key);
+      allocateSandboxValue(descriptor.value,budget,seen);
+    }
+    return;
+  }
   if (typeof value === "string") {
     budget.allocateString(value);
     return;

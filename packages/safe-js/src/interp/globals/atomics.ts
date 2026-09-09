@@ -4,7 +4,9 @@ import { createIntrinsicObject, registerIntrinsicFunction, registerIntrinsicObje
 import { retainValues } from "../resources.js";
 import { sandboxNumber } from "../string-coercion.js";
 import { isNumericTypedArray, typedArrayStorage } from "../typed-array.js";
-import { createSandboxClosure, type SandboxObject } from "../values.js";
+import { allocateProducedSandboxValue, createSandboxClosure, type SandboxObject } from "../values.js";
+import { isSandboxSharedArrayBuffer } from "../shared-array-buffer.js";
+import { createPendingPromiseCapability } from "../promise.js";
 import { sandboxBigInt } from "./bigint.js";
 
 const atomicMethods = {
@@ -37,17 +39,28 @@ export function createAtomicsGlobal(budget: Budget): SandboxObject {
           const waitable = name === "wait" || name === "waitAsync" || name === "notify";
           if (waitable ? storage.Native !== Int32Array && storage.Native !== BigInt64Array : !integerArrayTypes.has(storage.Native))
             throw new TypeError("Invalid typed array for Atomics operation.");
-          // typedArrayStorage admits only non-shared buffers. DoWait rejects
-          // these before index/value/timeout coercion; it must never block here.
-          if (name === "wait" || name === "waitAsync") throw new TypeError("Atomics.wait requires shared storage.");
+          const shared=isSandboxSharedArrayBuffer(storage.buffer);
+          if ((name === "wait" || name === "waitAsync") && !shared) throw new TypeError("Atomics.wait requires shared storage.");
           const number = await sandboxNumber(requestedIndex, budget, context);
           const index = Number.isNaN(number) ? 0 : Math.trunc(number);
           if (index < 0 || !Number.isSafeInteger(index) || index >= storage.length)
             throw new RangeError("Invalid atomic access index.");
           if (name === "notify") {
-            if (args[2] !== undefined) await sandboxNumber(args[2], budget, context);
+            const count=args[2]===undefined?undefined:await sandboxNumber(args[2], budget, context);
             // Non-shared notify returns zero without revalidating after coercion.
-            return 0;
+            return shared?Reflect.apply(method,Atomics,[view,index,count]) as number:0;
+          }
+          if (name === "wait" || name === "waitAsync") {
+            const expected=storage.Native===BigInt64Array?await sandboxBigInt(args[2],budget,context):await sandboxNumber(args[2],budget,context);
+            const timeout=await sandboxNumber(args[3],budget,context);
+            // SafeJS runs on a host event-loop agent that cannot suspend.
+            if (name === "wait") throw new TypeError("The sandbox agent cannot block in Atomics.wait.");
+            const pending=Reflect.apply(method,Atomics,[view,index,expected,timeout]) as
+              {async:false;value:string}|{async:true;value:Promise<string>};
+            if (!pending.async) return allocateProducedSandboxValue({async:false,value:pending.value},budget);
+            const capability=createPendingPromiseCapability(budget,context);
+            void pending.value.then(value=>capability.resolve.call([value]));
+            return allocateProducedSandboxValue({async:true,value:capability.promise},budget);
           }
           for (let offset = 2; offset < method.length; offset++) {
             values.push(storage.Native === BigInt64Array || storage.Native === BigUint64Array

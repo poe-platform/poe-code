@@ -1,6 +1,7 @@
 import type { Budget } from "./budget.js";
 import { arrayBufferLength, arrayBufferOptions, copyArrayBufferStorage } from "./array-buffer.js";
 import { float16BackingViews, Float16Array } from "./float16-array.js";
+import { isSandboxSharedArrayBuffer } from "./shared-array-buffer.js";
 
 import { numericTypedArrayConstructors, type NumericTypedArrayConstructor, type NumericTypedArray } from "./typed-array-constructors.js";
 export { numericTypedArrayConstructors, type NumericTypedArrayConstructor, type NumericTypedArray } from "./typed-array-constructors.js";
@@ -11,25 +12,23 @@ const readOffset = Object.getOwnPropertyDescriptor(typedArrayPrototype, "byteOff
 const readBuffer = Object.getOwnPropertyDescriptor(typedArrayPrototype, "buffer")!.get!;
 const readTag = Object.getOwnPropertyDescriptor(typedArrayPrototype, Symbol.toStringTag)!.get!;
 const createValuesIterator = Object.getOwnPropertyDescriptor(typedArrayPrototype, "values")!.value;
-const bufferLength = Object.getOwnPropertyDescriptor(ArrayBuffer.prototype, "byteLength")!.get!;
-const bufferResizable = Object.getOwnPropertyDescriptor(ArrayBuffer.prototype, "resizable")?.get;
 export const typedArrayViewLayouts = new WeakMap<NumericTypedArray, { byteOffset: number; length?: number }>();
 const resizeBuffer = Object.getOwnPropertyDescriptor(ArrayBuffer.prototype, "resize")?.value as ((length: number) => void) | undefined;
 
-export function restoreTypedArrayView(buffer: ArrayBuffer, byteOffset: number, length?: number, budget?: Budget, Native: NumericTypedArrayConstructor = Float32Array): NumericTypedArray {
+export function restoreTypedArrayView(buffer: ArrayBufferLike, byteOffset: number, length?: number, budget?: Budget, Native: NumericTypedArrayConstructor = Float32Array): NumericTypedArray {
   const originalLength = arrayBufferLength(buffer);
   const required = byteOffset + (length ?? 0) * Native.BYTES_PER_ELEMENT;
   const options = arrayBufferOptions(buffer);
   const grow = required > originalLength;
   if (grow) {
-    if (resizeBuffer === undefined || options === undefined || required > options.maxByteLength)
+    if (isSandboxSharedArrayBuffer(buffer) || resizeBuffer === undefined || options === undefined || required > options.maxByteLength)
       throw new RangeError("Float32Array layout exceeds backing capacity.");
     budget?.allocateArrayLength(Math.ceil(required / Native.BYTES_PER_ELEMENT));
     budget?.provisionDataUsage(required - originalLength)();
     Reflect.apply(resizeBuffer, buffer, [required]);
   }
   try {
-    const view = new Native(buffer, byteOffset, length);
+    const view = Reflect.construct(Native,[buffer,byteOffset,length]) as NumericTypedArray;
     if (options !== undefined) typedArrayViewLayouts.set(view, { byteOffset, ...(length === undefined ? {} : { length }) });
     return view;
   } finally {
@@ -47,7 +46,7 @@ export function isNumericTypedArray(value: unknown): value is NumericTypedArray 
 }
 
 export function typedArrayStorage(value: NumericTypedArray, requireInBounds = false): {
-  buffer: ArrayBuffer;
+  buffer: ArrayBufferLike;
   byteOffset: number;
   length: number;
   byteLength: number;
@@ -57,9 +56,9 @@ export function typedArrayStorage(value: NumericTypedArray, requireInBounds = fa
   const backingView = float16BackingViews.get(value);
   const view = backingView ?? value;
   if (requireInBounds) Reflect.apply(createValuesIterator, view, []);
-  const buffer = Reflect.apply(readBuffer, view, []) as ArrayBuffer;
+  const buffer = Reflect.apply(readBuffer, view, []) as ArrayBufferLike;
   if (
-    Object.getPrototypeOf(buffer) !== ArrayBuffer.prototype
+    Object.getPrototypeOf(buffer) !== ArrayBuffer.prototype && !isSandboxSharedArrayBuffer(buffer)
   ) {
     throw new TypeError("Float32Array requires a non-shared ArrayBuffer.");
   }
@@ -72,7 +71,7 @@ export function typedArrayStorage(value: NumericTypedArray, requireInBounds = fa
     buffer,
     byteOffset: Reflect.apply(readOffset, view, []) as number,
     length: Reflect.apply(readLength, view, []) as number,
-    byteLength: Reflect.apply(bufferLength, buffer, []) as number
+    byteLength: arrayBufferLength(buffer)
   };
 }
 
@@ -125,17 +124,17 @@ export function copyTypedArrayStorage<TValue>(
   value: NumericTypedArray,
   state: {
     seen: WeakMap<object, TValue>;
-    float32Buffers?: WeakMap<ArrayBuffer, ArrayBuffer>;
+    float32Buffers?: WeakMap<ArrayBufferLike, ArrayBufferLike>;
   }
 ): NumericTypedArray {
   const storage = typedArrayStorage(value);
   const buffer = copyArrayBufferStorage(storage.buffer, state);
-  if (bufferResizable !== undefined && Reflect.apply(bufferResizable, storage.buffer, [])) {
+  if (arrayBufferOptions(storage.buffer) !== undefined) {
     const layout = typedArrayViewLayouts.get(value);
     if (layout === undefined) throw new TypeError("Resizable Float32Array copies require known view layout.");
     return restoreTypedArrayView(buffer, layout.byteOffset, layout.length, undefined, storage.Native);
   }
-  return new storage.Native(buffer, storage.byteOffset, storage.length);
+  return Reflect.construct(storage.Native,[buffer,storage.byteOffset,storage.length]) as NumericTypedArray;
 }
 
 export function requireUint8Array(value: unknown): Uint8Array<ArrayBuffer> {

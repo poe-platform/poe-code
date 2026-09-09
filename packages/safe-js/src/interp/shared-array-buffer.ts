@@ -1,4 +1,7 @@
-import type { Budget } from "./budget.js";
+import { Budget } from "./budget.js";
+import type { SandboxObject } from "./values.js";
+
+export const sharedArrayBufferPrototypes = new WeakMap<Budget,SandboxObject>();
 
 const readByteLength = Object.getOwnPropertyDescriptor(SharedArrayBuffer.prototype,"byteLength")!.get!;
 const readMaxByteLength = Object.getOwnPropertyDescriptor(SharedArrayBuffer.prototype,"maxByteLength")?.get;
@@ -42,5 +45,15 @@ export function cloneSharedArrayBufferStorage(value: SharedArrayBuffer): SharedA
   if (block === undefined) throw new TypeError("Shared storage is not owned by the sandbox.");
   const copy = cloneStorage(value);
   sharedBlocks.set(copy,block);
+  return copy;
+}
+
+export function snapshotSharedArrayBufferStorage(value: SharedArrayBuffer, copies: WeakMap<object, SharedArrayBuffer>): SharedArrayBuffer {
+  const storage=sharedArrayBufferStorage(value);
+  const existing=copies.get(storage.block);
+  if (existing !== undefined) return cloneSharedArrayBufferStorage(existing);
+  const copy=createSharedArrayBufferStorage(storage.byteLength,storage.growable?storage.maxByteLength:undefined,new Budget());
+  new Uint8Array(copy).set(new Uint8Array(value));
+  copies.set(storage.block,copy);
   return copy;
 }

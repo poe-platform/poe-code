@@ -13,3 +13,9 @@ it("warns about local Atomics shadowing", () => {
     expect.objectContaining({code:"AS-SHADOW-GLOBAL",severity:"warning"})
   ]);
 });
+
+it("accepts shared-buffer Atomics behavior in harness source", async () => {
+  const source="return Atomics.add(new Int32Array(new SharedArrayBuffer(4)),0,7)";
+  expect(await run(source)).toMatchObject({ok:true,returnValue:0});
+  expect(lint(source)).toEqual([]);
+});

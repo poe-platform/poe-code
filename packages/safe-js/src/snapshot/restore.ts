@@ -29,6 +29,7 @@ import { toPropertyKey } from "../interp/property-key.js";
 import { CompileScope } from "../interp/regex/compile-guard.js";
 import { decodeTypedArrayStorage, restoreTypedArrayProperties } from "./typed-array.js";
 import { decodeArrayBufferStorage } from "./array-buffer.js";
+import { decodeSharedArrayBufferStorage } from "./shared-array-buffer.js";
 import { decodeDataViewStorage } from "./data-view.js";
 import { restoreDateTime } from "../interp/date.js";
 import { createRawJson } from "../interp/raw-json.js";
@@ -877,7 +878,7 @@ function restoreHeapValue(id: number, state: RestoreState): RuntimeSnapshotValue
     restoreRegexProperties(value, serialized, entry => deserializeValue(entry, state));
     return value;
   }
-  if (serialized.kind === "arraybuffer" || serialized.kind === "dataview") {
+  if (serialized.kind === "arraybuffer" || serialized.kind === "sharedarraybuffer" || serialized.kind === "dataview") {
     initializeIntrinsicRealm(state);
     const resolve = (reference: unknown) => {
       if (state.resolvingStorage.has(id)) throw new TypeError("Cyclic backing storage reference.");
@@ -886,6 +887,7 @@ function restoreHeapValue(id: number, state: RestoreState): RuntimeSnapshotValue
       finally { state.resolvingStorage.delete(id); }
     };
     const value = serialized.kind === "dataview" ? decodeDataViewStorage(serialized, resolve, state.budget)
+      : serialized.kind === "sharedarraybuffer" ? decodeSharedArrayBufferStorage(serialized,resolve,state.budget!)
       : decodeArrayBufferStorage(serialized, resolve, state.budget, state.detachBuffers);
     state.heapValueById.set(id, value);
     state.initializeIterators.push(() => {

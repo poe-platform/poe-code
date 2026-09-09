@@ -1,6 +1,8 @@
 import { createHash, randomUUID } from "node:crypto";
 import { typedArrayDataProperties, typedArrayStorage, typedArrayViewLayouts, isNumericTypedArray } from "./typed-array.js";
 import { arrayBufferDataProperties, arrayBufferLength, arrayBufferOptions, isSandboxArrayBuffer } from "./array-buffer.js";
+import { isSandboxSharedArrayBuffer, sharedArrayBufferStorage, snapshotSharedArrayBufferStorage } from "./shared-array-buffer.js";
+import { restoreSharedHostValue } from "./shared-host-storage.js";
 import { dataViewBuffer, dataViewDataProperties, dataViewLayout, isSandboxDataView } from "./data-view.js";
 import { copyNativeDate, serializedDateTime } from "./date.js";
 import {
@@ -26,6 +28,9 @@ export type HostCallOutcome =
   | { status: "fulfilled"; value: SandboxValue }
   | { status: "rejected"; reason: SandboxValue };
 
+type EncodedHostOutcome = {status:"fulfilled"|"rejected";data:ReplayData;sharedArguments?:Array<[number,number]>;sharedState?:true};
+type HostCallbackRecord = { id: number; step: number; arguments: ReplayData; hasReceiver?: true; sharedState?: ReplayData; sharedOrder?: number };
+
 export type HostCallRecord = {
   id: string;
   runId: string;
@@ -37,7 +42,11 @@ export type HostCallRecord = {
   lifecycle: HostCallLifecycle;
   outcome?: HostCallOutcome;
   asynchronous?: boolean;
-  callbacks?: Array<{ id: number; step: number; arguments: ReplayData; hasReceiver?: true }>;
+  sharedPrefix?: ReplayData;
+  sharedRegistry?: true;
+  sharedPrefixOrder?: number;
+  sharedEffectOrder?: number;
+  callbacks?: HostCallbackRecord[];
   functions?: number[];
 };
 
@@ -46,7 +55,7 @@ export type HostCallReplay = {
   calls: Array<
     Omit<HostCallRecord, "outcome" | "asynchronous"> & {
       asynchronous: boolean;
-      outcome?: { status: "fulfilled" | "rejected"; data: ReplayData };
+      outcome?: EncodedHostOutcome;
     }
   >;
 };
@@ -119,6 +128,14 @@ export class HostCallJournal {
   private readonly records: HostCallRecord[];
   private readonly restored: HostCallRecord[];
   private readonly outcomes = new Map<string, HostCallOutcome>();
+  private readonly sharedArguments = new Map<string, readonly SharedArrayBuffer[]>();
+  private readonly exposedSharedStorage = new Map<object, SharedArrayBuffer>();
+  private readonly sharedAppliedOrder = new Map<object, number>();
+  private nextSharedOrder = 1;
+  private readonly sharedOutcomeArguments = new Map<string, WeakMap<object, number>>();
+  private readonly sharedEffects = new Map<string, readonly SharedArrayBuffer[]>();
+  private readonly deferredSharedOutcomes = new Map<string, ()=>SandboxValue>();
+  private readonly sharedPrefixSizes = new Map<string, number>();
   private readonly recordedReplay: boolean;
   private retainedSize = 0;
   private readonly outcomeSizes = new Map<string, number>();
@@ -129,7 +146,7 @@ export class HostCallJournal {
   private readonly hostSources = new WeakMap<SandboxClosure, object>();
   private readonly encodedOutcomes = new Map<
     string,
-    { status: "fulfilled" | "rejected"; data: ReplayData }
+    EncodedHostOutcome
   >();
   private readonly callbackSizes = new Map<string, number>();
   private readonly completedCallbackOwners = new Set<string>();
@@ -192,13 +209,24 @@ export class HostCallJournal {
         ...record,
         ...(record.functions === undefined ? {} : { functions: [...record.functions] }),
         ...(record.callbacks === undefined ? {} : { callbacks: structuredClone(record.callbacks) }),
+        ...(record.sharedPrefix === undefined ? {} : { sharedPrefix: structuredClone(record.sharedPrefix) }),
         ...(record.outcome === undefined ? {} : { outcome: copyOutcome(record.outcome) })
       }));
       validateRestoredRecords(this.records, this.runId, sourceHash);
+      for (const record of this.records) {
+        this.nextSharedOrder = Math.max(this.nextSharedOrder, (record.sharedEffectOrder ?? 0) + 1, (record.sharedPrefixOrder ?? 0) + 1);
+        for (const callback of record.callbacks ?? []) this.nextSharedOrder = Math.max(this.nextSharedOrder, (callback.sharedOrder ?? 0) + 1);
+      }
       this.retainedSize = this.records.length;
       try {
         this.budget?.setRetainedDataUsage(this, this.retainedSize);
         for (const record of this.records) {
+          if (record.sharedPrefix!==undefined) {
+            if (record.asynchronous!==true) throw new TypeError("Shared invocation prefixes require async host calls.");
+            const size=measureSandboxData([decodeSharedPrefix(record.sharedPrefix,compilation)]);
+            this.sharedPrefixSizes.set(record.id,size);
+            this.retainedSize+=size;
+          }
           if (record.outcome !== undefined) this.retainOutcome(record, record.outcome);
           for (const [index, callback] of (record.callbacks ?? []).entries()) {
             let size = this.callbackSizes.get(`${record.id}/callback/${index + 1}`);
@@ -206,6 +234,8 @@ export class HostCallJournal {
               const validation = new CompileScope(operation?.owner);
               try {
                 size = measureSandboxData([decodeReplayData(callback.arguments, {}, validation)]);
+                if (callback.sharedState !== undefined)
+                  size += measureSandboxData([decodeSharedCallback(callback.sharedState, this.resolveCapability, validation)]);
               } finally {
                 validation.dispose();
               }
@@ -219,7 +249,12 @@ export class HostCallJournal {
         throw error;
       }
       this.restored = [...this.records];
-      this.budget?.setRetainedValues(this, () => this.capabilities.values());
+      const capabilities = this.capabilities;
+      const sharedStorage = this.exposedSharedStorage;
+      this.budget?.setRetainedValues(this, function* () {
+        yield* capabilities.values();
+        yield* sharedStorage.values();
+      });
     } finally {
       compilation.dispose();
       operation?.release();
@@ -280,9 +315,62 @@ export class HostCallJournal {
     record.lifecycle = "running";
   }
 
+  registerSharedArguments(record:HostCallRecord, values:readonly SharedArrayBuffer[]):void {
+    for (const value of values) this.registerSharedStorage(value);
+    const tracked = !this.recordedReplay || record.sharedRegistry === true
+      ? [...this.exposedSharedStorage.values()] : [...values];
+    if (tracked.length > 0) {
+      this.sharedArguments.set(record.id, tracked);
+      if (!this.recordedReplay) record.sharedRegistry = true;
+    }
+  }
+
+  registerSharedStorage(value: SharedArrayBuffer): void {
+    const { block } = sharedArrayBufferStorage(value);
+    if (this.exposedSharedStorage.has(block)) return;
+    this.budget?.setRetainedDataUsage(this.exposedSharedStorage, this.exposedSharedStorage.size + 1);
+    this.exposedSharedStorage.set(block, value);
+  }
+
+  captureSharedPrefix(record:HostCallRecord):void {
+    const arguments_=this.sharedArguments.get(record.id);
+    if (arguments_===undefined) return;
+    const snapshots=new WeakMap<object,SharedArrayBuffer>();
+    const size=1+arguments_.reduce((total,value)=>total+sharedArrayBufferStorage(value).byteLength+1,0);
+    const retained=this.retainedSize+size-(this.sharedPrefixSizes.get(record.id)??0);
+    this.budget?.setRetainedDataUsage(this,retained);
+    try {
+      record.sharedPrefix=encodeReplayData(arguments_.map(value=>snapshotSharedArrayBufferStorage(value,snapshots)));
+    } catch (error) {
+      this.budget?.setRetainedDataUsage(this,this.retainedSize);
+      throw error;
+    }
+    this.retainedSize=retained;
+    this.sharedPrefixSizes.set(record.id,size);
+    record.sharedPrefixOrder = this.nextSharedOrder++;
+  }
+
+  replaySharedPrefix(record:HostCallRecord):void {
+    if (record.sharedPrefix===undefined) return;
+    const budget=this.compileOwner?.budget??this.budget;
+    const operation=budget?.acquireCompileOwner(false,this.compileOwner);
+    const compilation=new CompileScope(operation?.owner);
+    try {
+      const prefix=decodeSharedPrefix(record.sharedPrefix,compilation);
+      const arguments_=this.sharedArguments.get(record.id)??[];
+      if (record.asynchronous!==true||prefix.length!==arguments_.length)
+        throw new TypeError("Invalid shared invocation prefix.");
+      this.restoreSharedEffects(undefined,prefix.map((source,index)=>({source,target:arguments_[index]})),record.sharedPrefixOrder,budget);
+    } finally {
+      compilation.dispose();
+      operation?.release();
+    }
+  }
+
   settle(record: HostCallRecord, outcome: HostCallOutcome): void {
     if (record.lifecycle === "cancelled") return;
     this.retainOutcome(record, outcome);
+    if (record.sharedRegistry) record.sharedEffectOrder = this.nextSharedOrder++;
     record.lifecycle = "settled";
   }
 
@@ -383,6 +471,11 @@ export class HostCallJournal {
     this.budget?.setRetainedDataUsage(this, 0);
     this.budget?.setRetainedValues(this, undefined);
     this.capabilities.clear();
+    this.budget?.setRetainedDataUsage(this.exposedSharedStorage, 0);
+    this.exposedSharedStorage.clear();
+    this.sharedAppliedOrder.clear();
+    this.sharedArguments.clear();
+    this.deferredSharedOutcomes.clear();
     for (const [id, waiter] of this.capabilityWaiters)
       waiter.reject(new UnresolvedReplayCapabilityError(id));
     this.capabilityWaiters.clear();
@@ -468,19 +561,36 @@ export class HostCallJournal {
   }
 
   recordCallback(record: HostCallRecord, id: number, args: SandboxValue[], step: number, hasReceiver = false): string {
+    const sharedValues = this.exposedSharedStorage.size === 0 ? undefined : [args, ...this.exposedSharedStorage.values()];
     const retainedSize =
-      this.retainedSize + 1 + measureSandboxData([args], { ignoreClosures: true });
+      this.retainedSize + 1 + measureSandboxData([args], { ignoreClosures: true }) +
+      (sharedValues === undefined ? 0 : measureSandboxData([sharedValues], { ignoreClosures: true }));
     this.budget?.setRetainedDataUsage(this, retainedSize);
     let data: ReplayData;
+    let sharedState: ReplayData | undefined;
     try {
       data = encodeReplayData(args, { identifyCapability: this.identifyCapability });
+      if (sharedValues !== undefined) sharedState = encodeReplayData(sharedValues, { identifyCapability: this.identifyCapability });
     } catch (error) {
       this.budget?.setRetainedDataUsage(this, this.retainedSize);
       throw error;
     }
     this.retainedSize = retainedSize;
-    (record.callbacks ??= []).push({ id, step, arguments: data, ...(hasReceiver ? { hasReceiver: true as const } : {}) });
+    (record.callbacks ??= []).push({ id, step, arguments: data, ...(hasReceiver ? { hasReceiver: true as const } : {}),
+      ...(sharedState === undefined ? {} : { sharedState, sharedOrder: this.nextSharedOrder++ }) });
     return `${record.id}/callback/${record.callbacks.length}`;
+  }
+
+  replayCallbackArguments(callback: HostCallbackRecord, compilation: CompileScope): SandboxValue[] {
+    if (callback.sharedState === undefined)
+      return decodeReplayData(callback.arguments, { resolveCapability: this.resolveCapability }, compilation) as SandboxValue[];
+    const [args, ...buffers] = decodeSharedCallback(callback.sharedState, this.resolveCapability, compilation);
+    const targets = [...this.exposedSharedStorage.values()];
+    if (buffers.length < targets.length) throw new TypeError("Missing shared callback storage.");
+    const bindings = buffers.map((source, index) => ({ source, target: targets[index] ?? source }));
+    for (const { target } of bindings) this.registerSharedStorage(target);
+    const result = this.restoreSharedEffects(args, bindings, callback.sharedOrder, compilation.owner?.budget ?? this.budget);
+    return result as SandboxValue[];
   }
 
   callbackPositions(): ReadonlyMap<string, number> {
@@ -496,18 +606,24 @@ export class HostCallJournal {
   private retainOutcome(
     record: HostCallRecord,
     outcome: HostCallOutcome,
-    budget = this.budget
+    budget = this.budget,
+    recordedArguments?:readonly SharedArrayBuffer[]
   ): void {
     const included = new Set<CompileTicket>();
+    const arguments_=recordedArguments??this.sharedArguments.get(record.id)??[];
     const size = measureSandboxData(
-      [outcome.status === "fulfilled" ? outcome.value : outcome.reason],
+      [outcome.status === "fulfilled" ? outcome.value : outcome.reason,...arguments_],
       { ignoreClosures: true, compileTickets: included }
     );
     const retainedSize = this.retainedSize + size - (this.outcomeSizes.get(record.id) ?? 0);
     budget?.reconcileCompileData(retainedSize, included, included, this);
     let copied: HostCallOutcome;
+    let effects:SharedArrayBuffer[];
+    const snapshots=new WeakMap<object,SharedArrayBuffer>();
     try {
-      copied = copyOutcome(outcome);
+      copied = copyOutcome(outcome,snapshots);
+      effects=arguments_.map(argument=>snapshots.get(sharedArrayBufferStorage(argument).block)??
+        snapshotSharedArrayBufferStorage(argument,snapshots));
     } catch (error) {
       budget?.setRetainedDataUsage(this, this.retainedSize);
       throw error;
@@ -515,6 +631,14 @@ export class HostCallJournal {
     this.retainedSize = retainedSize;
     this.outcomeSizes.set(record.id, size);
     this.outcomes.set(record.id, copied);
+    this.sharedEffects.set(record.id,effects);
+    const associations=new WeakMap<object,number>();
+    for (const [index,argument] of arguments_.entries()) {
+      const snapshot=snapshots.get(sharedArrayBufferStorage(argument).block);
+      if (snapshot!==undefined) associations.set(sharedArrayBufferStorage(snapshot).block,index);
+    }
+    this.sharedOutcomeArguments.set(record.id,associations);
+    this.sharedArguments.delete(record.id);
     record.outcome = copied;
   }
 
@@ -527,17 +651,66 @@ export class HostCallJournal {
       const operation = budget?.acquireCompileOwner(false, this.compileOwner);
       const compilation = new CompileScope(operation?.owner);
       try {
-        const value = decodeReplayData(
+        const memo={nodes:encoded.data.nodes,values:new Map<number,SandboxValue>()};
+        let value = decodeReplayData(
           encoded.data,
-          { resolveCapability: this.resolveCapability },
+          { resolveCapability: this.resolveCapability, memo },
           compilation
         );
+        let recordedArguments:SharedArrayBuffer[]|undefined;
+        let applyPrefix:(()=>void)|undefined;
+        let applyShared:(()=>SandboxValue)|undefined;
+        if (encoded.sharedState===true) {
+          if (!Array.isArray(value)||value.length===0) throw new TypeError("Invalid shared host outcome state.");
+          recordedArguments=value.slice(1) as SharedArrayBuffer[];
+          value=value[0];
+        }
+        if (encoded.sharedArguments!==undefined) {
+          const arguments_=this.sharedArguments.get(record.id)??[];
+          const bindings=encoded.sharedArguments.map(([id,index])=>{
+            const source=memo.values.get(id);
+            const target=arguments_[index];
+            if (!isSandboxSharedArrayBuffer(source)||!isSandboxSharedArrayBuffer(target))
+              throw new TypeError("Invalid shared host argument reference.");
+            return {source,target};
+          });
+          if (record.sharedPrefix!==undefined) {
+            const prefix=decodeSharedPrefix(record.sharedPrefix,compilation);
+            if (!record.asynchronous||prefix.length!==arguments_.length)
+              throw new TypeError("Invalid shared invocation prefix.");
+            for (const [id,index] of encoded.sharedArguments) {
+              const final=sharedArrayBufferStorage(memo.values.get(id) as SharedArrayBuffer);
+              const initial=sharedArrayBufferStorage(prefix[index]);
+              if (final.growable!==initial.growable||final.maxByteLength!==initial.maxByteLength||final.byteLength<initial.byteLength)
+                throw new TypeError("Shared outcome contradicts invocation prefix.");
+            }
+            applyPrefix=()=>{this.restoreSharedEffects(undefined,prefix.map((source,index)=>({source,target:arguments_[index]})),record.sharedPrefixOrder,budget);};
+          }
+          const captured=value;
+          applyShared=()=>this.restoreSharedEffects(captured,bindings,record.sharedEffectOrder,budget);
+        }
         const outcome: HostCallOutcome =
           encoded.status === "fulfilled"
             ? { status: "fulfilled", value }
             : { status: "rejected", reason: value };
-        this.retainOutcome(record, outcome, budget);
-        return outcome;
+        this.retainOutcome(record, outcome, budget, recordedArguments);
+        applyPrefix?.();
+        if ([...memo.values.values()].some(isSandboxSharedArrayBuffer)) {
+          const restore = applyShared;
+          const captured = value;
+          applyShared = () => {
+            const result = restore === undefined ? captured : restore();
+            encodeReplayData(result, { identifyCapability: this.identifyCapability, onValueEncoded: (_id, entry) => {
+              if (isSandboxSharedArrayBuffer(entry)) this.registerSharedStorage(entry);
+            } });
+            return result;
+          };
+        }
+        if (applyShared!==undefined) {
+          if (record.asynchronous) this.deferredSharedOutcomes.set(record.id,applyShared);
+          else value=applyShared();
+        }
+        return encoded.status==="fulfilled"?{status:"fulfilled",value}:{status:"rejected",reason:value};
       } finally {
         compilation.dispose();
         operation?.release();
@@ -553,6 +726,22 @@ export class HostCallJournal {
       calls: this.records.map(({ outcome: ignoredOutcome, asynchronous, ...record }) => {
         void ignoredOutcome;
         const outcome = this.outcomes.get(record.id);
+        const sharedArguments:Array<[number,number]>=[];
+        const capturedBlocks=new Set<object>();
+        const associations=this.sharedOutcomeArguments.get(record.id);
+        const encoded=this.encodedOutcomes.get(record.id);
+        const effects=this.sharedEffects.get(record.id)??[];
+        const outcomeValue=outcome?.status==="fulfilled"?outcome.value:outcome?.reason;
+        const data=outcome===undefined?undefined:encoded?.data??encodeReplayData(
+          effects.length===0?outcomeValue:[outcomeValue,...effects],
+          {identifyCapability:this.identifyCapability,onValueEncoded:(id,value)=>{
+            if (!isSandboxSharedArrayBuffer(value)) return;
+            const block=sharedArrayBufferStorage(value).block;
+            const index=associations?.get(block);
+            if (index===undefined||capturedBlocks.has(block)) return;
+            capturedBlocks.add(block);
+            sharedArguments.push([id,index]);
+          }});
         return {
           ...record,
           asynchronous: asynchronous === true,
@@ -561,29 +750,78 @@ export class HostCallJournal {
             : {
                 outcome: {
                   status: outcome.status,
-                  data:
-                    this.encodedOutcomes.get(record.id)?.data ??
-                    encodeReplayData(
-                      outcome.status === "fulfilled" ? outcome.value : outcome.reason,
-                      { identifyCapability: this.identifyCapability }
-                    )
+                  data:data!,
+                  ...(encoded?.sharedState===true||encoded===undefined&&effects.length>0?{sharedState:true as const}:{}),
+                  ...((encoded?.sharedArguments??sharedArguments).length===0?{}:
+                    {sharedArguments:encoded?.sharedArguments??sharedArguments})
                 }
               })
         };
       })
     });
   }
+
+  private restoreSharedEffects(
+    value: SandboxValue,
+    bindings: ReadonlyArray<{source:SharedArrayBuffer;target:SharedArrayBuffer}>,
+    order: number | undefined,
+    budget?: Budget
+  ): SandboxValue {
+    const ordered = bindings.map(binding => ({ ...binding,
+      write: order === undefined || order > (this.sharedAppliedOrder.get(sharedArrayBufferStorage(binding.target).block) ?? 0)
+    }));
+    const result = restoreSharedHostValue(value, ordered, budget);
+    if (order !== undefined) {
+      for (const binding of ordered)
+        if (binding.write) this.sharedAppliedOrder.set(sharedArrayBufferStorage(binding.target).block, order);
+    }
+    return result;
+  }
+
+  replaySettlement(record:HostCallRecord, value:SandboxValue):SandboxValue {
+    const restore=this.deferredSharedOutcomes.get(record.id);
+    if (restore===undefined) return value;
+    this.deferredSharedOutcomes.delete(record.id);
+    return restore();
+  }
 }
 
-function copyOutcome(outcome: HostCallOutcome): HostCallOutcome {
+function copyOutcome(outcome: HostCallOutcome, sharedBufferSnapshots=new WeakMap<object,SharedArrayBuffer>()): HostCallOutcome {
   return outcome.status === "fulfilled"
-    ? { status: "fulfilled", value: cloneSandboxValue(outcome.value) }
-    : { status: "rejected", reason: cloneSandboxValue(outcome.reason) };
+    ? { status: "fulfilled", value: cloneSandboxValue(outcome.value, {sharedBufferSnapshots}) }
+    : { status: "rejected", reason: cloneSandboxValue(outcome.reason, {sharedBufferSnapshots}) };
+}
+
+function decodeSharedPrefix(data:ReplayData, compilation?:CompileScope):SharedArrayBuffer[] {
+  const values=decodeReplayData(data,{},compilation);
+  if (!Array.isArray(values)||values.length===0) throw new TypeError("Invalid shared invocation prefix.");
+  const blocks=new Set<object>();
+  return values.map(value=>{
+    if (!isSandboxSharedArrayBuffer(value)) throw new TypeError("Invalid shared invocation prefix storage.");
+    const block=sharedArrayBufferStorage(value).block;
+    if (blocks.has(block)) throw new TypeError("Duplicate shared invocation prefix storage.");
+    blocks.add(block);
+    return value;
+  });
+}
+
+function decodeSharedCallback(data: ReplayData, resolveCapability: (id: string) => SandboxClosure | undefined, compilation?: CompileScope): [SandboxValue[], ...SharedArrayBuffer[]] {
+  const values = decodeReplayData(data, { resolveCapability }, compilation);
+  if (!Array.isArray(values) || values.length < 2 || !Array.isArray(values[0]))
+    throw new TypeError("Invalid shared callback state.");
+  const blocks = new Set<object>();
+  for (const value of values.slice(1)) {
+    if (!isSandboxSharedArrayBuffer(value)) throw new TypeError("Invalid shared callback storage.");
+    const { block } = sharedArrayBufferStorage(value);
+    if (blocks.has(block)) throw new TypeError("Duplicate shared callback storage.");
+    blocks.add(block);
+  }
+  return values as [SandboxValue[], ...SharedArrayBuffer[]];
 }
 
 function restoreReplayCalls(
   input: unknown,
-  encodedOutcomes: Map<string, { status: "fulfilled" | "rejected"; data: ReplayData }>,
+  encodedOutcomes: Map<string, EncodedHostOutcome>,
   callbackSizes: Map<string, number>,
   requiredHostCapabilities = new Set<string>(),
   compilation?: CompileScope
@@ -680,7 +918,10 @@ function restoreReplayCalls(
           const args = decodeReplayData(callback.arguments, { resolveCapability }, validation);
           if (!Array.isArray(args) || (callback.hasReceiver && (args.length === 0 || args[0] === undefined)))
             throw new TypeError("Invalid replay callback.");
-          callbackSizes.set(`${entry.id}/callback/${index + 1}`, measureSandboxData([args]));
+          const shared = callback.sharedState === undefined ? undefined : decodeSharedCallback(callback.sharedState, resolveCapability, validation);
+          if (shared !== undefined && shared[0].length !== args.length)
+            throw new TypeError("Contradictory shared callback arguments.");
+          callbackSizes.set(`${entry.id}/callback/${index + 1}`, measureSandboxData([args]) + (shared === undefined ? 0 : measureSandboxData([shared])));
         } finally {
           validation.dispose();
         }
@@ -694,7 +935,33 @@ function restoreReplayCalls(
         !["fulfilled", "rejected"].includes(entry.outcome.status)
       )
         throw new TypeError("Invalid replay call outcome.");
-      const value = decodeReplayData(entry.outcome.data, { resolveCapability }, compilation);
+      const memo={nodes:entry.outcome.data.nodes,values:new Map<number,SandboxValue>()};
+      let value = decodeReplayData(entry.outcome.data, { resolveCapability, memo }, compilation);
+      const blocks=new Set<object>();
+      const indices=new Set<number>();
+      if (entry.outcome.sharedArguments!==undefined) {
+        if (!Array.isArray(entry.outcome.sharedArguments)) throw new TypeError("Invalid shared host argument associations.");
+        for (const pair of entry.outcome.sharedArguments) {
+          if (!Array.isArray(pair)||pair.length!==2||!Number.isSafeInteger(pair[0])||pair[0]<0||
+              !Number.isSafeInteger(pair[1])||pair[1]<0) throw new TypeError("Invalid shared host argument association.");
+          const source=memo.values.get(pair[0]);
+          if (!isSandboxSharedArrayBuffer(source)) throw new TypeError("Invalid shared host storage reference.");
+          const block=sharedArrayBufferStorage(source).block;
+          if (blocks.has(block)||indices.has(pair[1])) throw new TypeError("Duplicate shared host storage association.");
+          blocks.add(block);
+          indices.add(pair[1]);
+        }
+      }
+      if (entry.outcome.sharedState!==undefined) {
+        if (entry.outcome.sharedState!==true||!Array.isArray(value)||value.length<2||blocks.size!==value.length-1)
+          throw new TypeError("Invalid shared host outcome state.");
+        for (let index=1;index<value.length;index++) {
+          const buffer=value[index];
+          if (!isSandboxSharedArrayBuffer(buffer)||!blocks.has(sharedArrayBufferStorage(buffer).block)||!indices.has(index-1))
+            throw new TypeError("Invalid shared host outcome effects.");
+        }
+        value=value[0];
+      }
       encodedOutcomes.set(entry.id, structuredClone(entry.outcome));
       outcome =
         entry.outcome.status === "fulfilled"
@@ -713,8 +980,25 @@ function validateRestoredRecords(
   sourceHash: string
 ): void {
   const ids = new Set<string>();
+  const sharedOrders = new Set<number>();
   let previousOrdinal = 0;
   for (const record of records) {
+    if (record.sharedRegistry !== undefined && record.sharedRegistry !== true)
+      throw new TypeError("Invalid shared host registry marker.");
+    for (const order of [record.sharedPrefixOrder, record.sharedEffectOrder, ...(record.callbacks ?? []).map(callback => callback.sharedOrder)]) {
+      if (order === undefined) continue;
+      if (!Number.isSafeInteger(order) || order < 1 || order >= Number.MAX_SAFE_INTEGER || sharedOrders.has(order))
+        throw new TypeError("Invalid shared host event order.");
+      sharedOrders.add(order);
+    }
+    for (const callback of record.callbacks ?? []) {
+      if ((callback.sharedState === undefined) !== (callback.sharedOrder === undefined))
+        throw new TypeError("Missing shared callback event metadata.");
+    }
+    if ((record.sharedPrefixOrder !== undefined && record.sharedPrefix === undefined) ||
+        (record.sharedEffectOrder !== undefined && record.sharedRegistry !== true) ||
+        (record.sharedPrefixOrder !== undefined && record.sharedEffectOrder !== undefined && record.sharedEffectOrder <= record.sharedPrefixOrder))
+      throw new TypeError("Contradictory shared host event order.");
     if (record.runId !== runId || !record.id.startsWith(`${runId}:`)) {
       throw new HostCallResumabilityError(
         record,
@@ -778,8 +1062,8 @@ function callIdentityMatches(
   );
 }
 
-export function digestHostCallArguments(args: readonly unknown[]): string {
-  return createHash("sha256").update(stableStringify(args)).digest("hex");
+export function digestHostCallArguments(args: readonly unknown[], sharedArguments?:SharedArrayBuffer[]): string {
+  return createHash("sha256").update(stableStringify(args,sharedArguments)).digest("hex");
 }
 
 function validateProof(record: HostCallRecord, proof: HostCallResumeProof): void {
@@ -814,12 +1098,13 @@ function validateProof(record: HostCallRecord, proof: HostCallResumeProof): void
   }
 }
 
-function stableStringify(value: unknown): string {
+function stableStringify(value: unknown, sharedArguments?:SharedArrayBuffer[]): string {
   const seen = new WeakSet<object>();
-  return JSON.stringify(normalize(value, seen));
+  const blocks=new Map<object,number>();
+  return JSON.stringify(normalize(value, seen, blocks, sharedArguments));
 }
 
-function normalize(value: unknown, seen: WeakSet<object>): unknown {
+function normalize(value: unknown, seen: WeakSet<object>, sharedBlocks: Map<object, number>, sharedArguments?:SharedArrayBuffer[]): unknown {
   if (typeof value === "function") return undefined;
   if (typeof value === "bigint") throw new TypeError("Do not know how to serialize a BigInt");
   if (value === undefined) return Object.assign(Object.create(null), { $type: "undefined" });
@@ -836,12 +1121,12 @@ function normalize(value: unknown, seen: WeakSet<object>): unknown {
       const entries = dataViewDataProperties(value);
       if (entries.some(([key]) => typeof key !== "string")) throw new TypeError("DataView symbol properties require an explicit host-call identity.");
       for (const [key, descriptor] of entries.sort(([left], [right]) => String(left) < String(right) ? -1 : String(left) > String(right) ? 1 : 0))
-        defineOwnDataProperty(properties, String(key), normalize(descriptor.value, seen));
+        defineOwnDataProperty(properties, String(key), normalize(descriptor.value, seen, sharedBlocks, sharedArguments));
       const layout = dataViewLayout(value);
       return Object.assign(Object.create(null), { $type: "dataview", byteOffset: layout.byteOffset,
-        byteLength: layout.byteLength ?? null, buffer: normalize(dataViewBuffer(value), seen), properties });
+        byteLength: layout.byteLength ?? null, buffer: normalize(dataViewBuffer(value), seen, sharedBlocks, sharedArguments), properties });
     }
-    if (isSandboxArrayBuffer(value)) {
+    if (isSandboxArrayBuffer(value) || isSandboxSharedArrayBuffer(value)) {
       arrayBufferLength(value);
       const properties = Object.create(null) as Record<string, unknown>;
       const entries: Array<[string, PropertyDescriptor]> = [];
@@ -850,9 +1135,15 @@ function normalize(value: unknown, seen: WeakSet<object>): unknown {
         entries.push([key, descriptor]);
       }
       for (const [key, descriptor] of entries.sort(([left], [right]) => left < right ? -1 : left > right ? 1 : 0))
-        defineOwnDataProperty(properties, key, normalize(descriptor.value, seen));
-      return Object.assign(Object.create(null), { $type: "arraybuffer",
-        bytes: normalize(Array.from(new Uint8Array(value)), seen), ...arrayBufferOptions(value), properties });
+        defineOwnDataProperty(properties, key, normalize(descriptor.value, seen, sharedBlocks, sharedArguments));
+      const shared = isSandboxSharedArrayBuffer(value) ? sharedArrayBufferStorage(value) : undefined;
+      if (shared !== undefined && !sharedBlocks.has(shared.block)) {
+        sharedBlocks.set(shared.block, sharedBlocks.size);
+        sharedArguments?.push(value as SharedArrayBuffer);
+      }
+      return Object.assign(Object.create(null), { $type: shared === undefined ? "arraybuffer" : "sharedarraybuffer",
+        bytes: normalize(Array.from(new Uint8Array(value)), seen, sharedBlocks, sharedArguments), ...arrayBufferOptions(value), properties,
+        ...(shared === undefined ? {} : { block: sharedBlocks.get(shared.block) }) });
     }
     if (isNumericTypedArray(value)) {
       const storage = typedArrayStorage(value);
@@ -864,16 +1155,16 @@ function normalize(value: unknown, seen: WeakSet<object>): unknown {
       for (const [key, descriptor] of typedArrayDataProperties(value).sort(([left], [right]) =>
         left < right ? -1 : left > right ? 1 : 0
       )) {
-        defineOwnDataProperty(properties, key, normalize(descriptor.value, seen));
+        defineOwnDataProperty(properties, key, normalize(descriptor.value, seen, sharedBlocks, sharedArguments));
       }
       return Object.assign(Object.create(null), {
         $type: storage.Native === Float32Array ? "float32array" : storage.Native.name,
-        bytes: normalize(Array.from(new Uint8Array(storage.buffer)), seen),
+        bytes: normalize(Array.from(new Uint8Array(storage.buffer)), seen, sharedBlocks, sharedArguments),
         byteOffset: storage.byteOffset,
         length: storage.length,
         properties,
-        ...(resizable || Reflect.ownKeys(storage.buffer).length > 0
-          ? { buffer: normalize(storage.buffer, seen) } : {}),
+        ...(resizable || isSandboxSharedArrayBuffer(storage.buffer) || Reflect.ownKeys(storage.buffer).length > 0
+          ? { buffer: normalize(storage.buffer, seen, sharedBlocks, sharedArguments) } : {}),
         ...(layout === undefined ? {} : { viewLayout: {
           byteOffset: layout.byteOffset, length: layout.length ?? null
         } })
@@ -887,7 +1178,7 @@ function normalize(value: unknown, seen: WeakSet<object>): unknown {
         if (!("value" in descriptor)) {
           throw new TypeError("Host call arguments cannot contain accessor properties.");
         }
-        defineOwnDataProperty(normalized, key, normalize(descriptor.value, seen));
+        defineOwnDataProperty(normalized, key, normalize(descriptor.value, seen, sharedBlocks, sharedArguments));
       }
       return normalized;
     }
@@ -899,7 +1190,7 @@ function normalize(value: unknown, seen: WeakSet<object>): unknown {
       if (!("value" in descriptor)) {
         throw new TypeError("Host call arguments cannot contain accessor properties.");
       }
-      defineOwnDataProperty(normalized, key, normalize(descriptor.value, seen));
+      defineOwnDataProperty(normalized, key, normalize(descriptor.value, seen, sharedBlocks, sharedArguments));
     }
     return normalized;
   } finally {

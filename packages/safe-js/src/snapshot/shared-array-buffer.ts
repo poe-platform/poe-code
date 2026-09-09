@@ -16,29 +16,36 @@ export function encodeSharedArrayBufferStorage<TReference>(
     ...(storage.growable ? {maxByteLength:storage.maxByteLength} : {})};
 }
 
-export function decodeSharedArrayBufferStorage(
-  value: Record<string,unknown>, resolve:(reference:unknown)=>unknown, budget:Budget
-): SharedArrayBuffer {
+export function validateSharedArrayBufferStorage(value:Record<string,unknown>,budget?:Budget):void {
   const inline = Object.hasOwn(value,"bytes");
   if (value.kind !== "sharedarraybuffer" || inline === Object.hasOwn(value,"block") ||
       Object.hasOwn(value,"detached")) throw new TypeError("Invalid shared backing storage.");
   if (!inline) {
     if (Object.hasOwn(value,"maxByteLength")) throw new TypeError("Shared references cannot redefine capacity.");
-    const target = resolve(value.block);
-    if (!isSandboxSharedArrayBuffer(target)) throw new TypeError("Invalid shared backing reference.");
-    budget.provisionDataUsage(1)();
-    return cloneSharedArrayBufferStorage(target);
+    return;
   }
   if (!Array.isArray(value.bytes)) throw new TypeError("Invalid shared buffer bytes.");
   for (const byte of value.bytes) {
-    budget.visitNode();
+    budget?.visitNode();
     if (!Number.isInteger(byte) || byte < 0 || byte > 255) throw new TypeError("Invalid shared buffer byte.");
   }
   const maximum = Object.hasOwn(value,"maxByteLength") ? value.maxByteLength : undefined;
   if (Object.hasOwn(value,"maxByteLength") &&
       (!Number.isSafeInteger(maximum) || (maximum as number) < value.bytes.length))
     throw new TypeError("Invalid shared buffer maximum length.");
-  const buffer = createSharedArrayBufferStorage(value.bytes.length,maximum as number | undefined,budget);
-  new Uint8Array(buffer).set(value.bytes);
-  return buffer;
+}
+
+export function decodeSharedArrayBufferStorage(
+  value:Record<string,unknown>,resolve:(reference:unknown)=>unknown,budget:Budget
+):SharedArrayBuffer {
+  validateSharedArrayBufferStorage(value,budget);
+  if (Array.isArray(value.bytes)) {
+    const buffer=createSharedArrayBufferStorage(value.bytes.length,value.maxByteLength as number|undefined,budget);
+    new Uint8Array(buffer).set(value.bytes);
+    return buffer;
+  }
+  const target=resolve(value.block);
+  if (!isSandboxSharedArrayBuffer(target)) throw new TypeError("Invalid shared backing reference.");
+  budget.provisionDataUsage(1)();
+  return cloneSharedArrayBufferStorage(target);
 }

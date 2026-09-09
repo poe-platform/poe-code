@@ -24,6 +24,7 @@ import { acquireSandboxIterator, readIteratorResult, type SandboxIterator } from
 import { createDataCheckpoint } from "../data-checkpoint.js";
 import { createSandboxBox } from "../boxed.js";
 import { arrayBufferDetached, arrayBufferLength, arrayBufferOptions, isSandboxArrayBuffer } from "../array-buffer.js";
+import { isSandboxSharedArrayBuffer } from "../shared-array-buffer.js";
 import { installUint8Hex } from "./uint8-hex.js";
 import { installUint8Base64 } from "./uint8-base64.js";
 import { budgetedBigInt, sandboxBigInt } from "./bigint.js";
@@ -98,7 +99,7 @@ export function createNumericTypedArrayGlobal(budget: Budget, nativePrototype = 
           : getFunctionRealmPrototype(newTarget, Native.name, getSandboxDataProperty(constructor, "prototype", budget) as SandboxObject);
         const release = retainValues(budget, () => [prototype, ...args]);
         try {
-          if (isSandboxArrayBuffer(args[0])) {
+          if (isSandboxArrayBuffer(args[0]) || isSandboxSharedArrayBuffer(args[0])) {
             const buffer = args[0];
             const number = await sandboxNumber(args[1], budget, context);
             const offset = Number.isNaN(number) ? 0 : Math.trunc(number);
@@ -122,7 +123,7 @@ export function createNumericTypedArrayGlobal(budget: Budget, nativePrototype = 
                 throw new RangeError("Invalid Float32Array view length.");
             }
             budget.allocateArrayLength(length);
-            const result = new Native(buffer, offset, args[2] === undefined ? undefined : length);
+            const result = Reflect.construct(Native,[buffer,offset,args[2] === undefined ? undefined : length]) as NumericTypedArray;
             if (arrayBufferOptions(buffer) !== undefined)
               typedArrayViewLayouts.set(result, { byteOffset: offset, ...(args[2] === undefined ? {} : { length }) });
             setSandboxPrototype(result, prototype, budget);
@@ -805,7 +806,7 @@ export function getTypedArrayMember(
           }
           if (key === "subarray") {
             if (result === undefined) {
-              result = new storage.Native(storage.buffer, offset, tracking ? undefined : length);
+              result = Reflect.construct(storage.Native,[storage.buffer,offset,tracking ? undefined : length]) as NumericTypedArray;
               if (resultPrototype !== undefined) setSandboxPrototype(result, resultPrototype, budget);
               if (arrayBufferOptions(storage.buffer) !== undefined)
                 typedArrayViewLayouts.set(result, { byteOffset: offset, ...(tracking ? {} : { length }) });

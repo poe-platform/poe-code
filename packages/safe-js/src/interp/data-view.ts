@@ -2,6 +2,7 @@ import { types } from "node:util";
 import type { Budget } from "./budget.js";
 import type { SandboxObject } from "./values.js";
 import { arrayBufferDetached, arrayBufferLength, arrayBufferOptions, copyArrayBufferStorage, isSandboxArrayBuffer } from "./array-buffer.js";
+import { isSandboxSharedArrayBuffer } from "./shared-array-buffer.js";
 
 export const dataViewPrototypes = new WeakMap<Budget, SandboxObject>();
 export const dataViewLayouts = new WeakMap<DataView, { byteOffset: number; byteLength?: number }>();
@@ -9,13 +10,13 @@ export const dataViewGetters = Object.fromEntries(["buffer", "byteOffset", "byte
   [key, Object.getOwnPropertyDescriptor(DataView.prototype, key)!.get!])) as Record<"buffer" | "byteOffset" | "byteLength", (this: DataView) => unknown>;
 const resize = Object.getOwnPropertyDescriptor(ArrayBuffer.prototype, "resize")?.value;
 
-export function isSandboxDataView(value: unknown): value is DataView<ArrayBuffer> {
+export function isSandboxDataView(value: unknown): value is DataView<ArrayBufferLike> {
   return types.isDataView(value) && Object.getPrototypeOf(value) === DataView.prototype;
 }
 
-export function dataViewBuffer(value: DataView): ArrayBuffer {
+export function dataViewBuffer(value: DataView): ArrayBufferLike {
   const buffer = Reflect.apply(dataViewGetters.buffer, value, []);
-  if (!isSandboxArrayBuffer(buffer)) throw new TypeError("DataView requires a non-shared ArrayBuffer.");
+  if (!isSandboxArrayBuffer(buffer) && !isSandboxSharedArrayBuffer(buffer)) throw new TypeError("DataView requires supported backing storage.");
   return buffer;
 }
 
@@ -31,13 +32,13 @@ export function dataViewLayout(value: DataView): { byteOffset: number; byteLengt
     byteLength: Reflect.apply(dataViewGetters.byteLength, value, []) as number };
 }
 
-export function restoreDataView(buffer: ArrayBuffer, byteOffset: number, byteLength?: number, budget?: Budget): DataView<ArrayBuffer> {
+export function restoreDataView(buffer: ArrayBufferLike, byteOffset: number, byteLength?: number, budget?: Budget): DataView<ArrayBufferLike> {
   const originalLength = arrayBufferLength(buffer);
   const required = byteOffset + (byteLength ?? 0);
   const options = arrayBufferOptions(buffer);
   const grow = required > originalLength;
   if (grow) {
-    if (resize === undefined || options === undefined || required > options.maxByteLength)
+    if (isSandboxSharedArrayBuffer(buffer) || resize === undefined || options === undefined || required > options.maxByteLength)
       throw new RangeError("DataView layout exceeds backing capacity.");
     budget?.allocateArrayLength(required);
     budget?.provisionDataUsage(required - originalLength)();
@@ -50,7 +51,7 @@ export function restoreDataView(buffer: ArrayBuffer, byteOffset: number, byteLen
   } finally { if (grow) Reflect.apply(resize, buffer, [originalLength]); }
 }
 
-export function copyDataViewStorage(value: DataView, state: { float32Buffers?: WeakMap<ArrayBuffer, ArrayBuffer> }): DataView<ArrayBuffer> {
+export function copyDataViewStorage(value: DataView, state: { float32Buffers?: WeakMap<ArrayBufferLike, ArrayBufferLike> }): DataView<ArrayBufferLike> {
   const layout = dataViewLayout(value);
   return restoreDataView(copyArrayBufferStorage(dataViewBuffer(value), state), layout.byteOffset, layout.byteLength);
 }

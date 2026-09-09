@@ -4,6 +4,7 @@ import { restorePropertyDescriptors, serializePropertyDescriptors } from "./prop
 import { capturePrivateElements, type GuestObjectState } from "./guest-heap.js";
 import { privateElements } from "../interp/private-state.js";
 import { arrayBufferDetached, arrayBufferOptions, isSandboxArrayBuffer } from "../interp/array-buffer.js";
+import { isSandboxSharedArrayBuffer } from "../interp/shared-array-buffer.js";
 import type { Budget } from "../interp/budget.js";
 
 export function captureTypedArrayState<T>(value: NumericTypedArray, encode: (value: unknown) => T): GuestObjectState<T> {
@@ -47,7 +48,7 @@ export function encodeTypedArrayLayout(value: NumericTypedArray): TypedArrayIden
 export function encodeTypedArrayStorage<TReference>(
   value: NumericTypedArray,
   id: number,
-  buffers: WeakMap<ArrayBuffer, number>,
+  buffers: WeakMap<ArrayBufferLike, number>,
   reference: (id: number) => TReference
 ): TypedArrayData<TReference> {
   const storage = typedArrayStorage(value);
@@ -91,13 +92,13 @@ export function decodeTypedArrayStorage(
   budget?: Budget
 ): NumericTypedArray {
   validateTypedArrayStorage(value);
-  let buffer: ArrayBuffer;
+  let buffer: ArrayBufferLike;
   if (Array.isArray(value.bytes)) {
     buffer = new ArrayBuffer(value.bytes.length);
     new Uint8Array(buffer).set(value.bytes);
   } else {
     const referenced = resolve(value.buffer);
-    if (isSandboxArrayBuffer(referenced)) buffer = referenced;
+    if (isSandboxArrayBuffer(referenced) || isSandboxSharedArrayBuffer(referenced)) buffer = referenced;
     else if (isNumericTypedArray(referenced)) buffer = typedArrayStorage(referenced).buffer;
     else throw new TypeError("Invalid Float32Array backing reference.");
   }

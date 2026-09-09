@@ -99,7 +99,7 @@ export class PromiseReplay {
     this.waiting.clear();
   }
 
-  track<TValue>(promise: Promise<TValue>): Promise<TValue> {
+  track<TValue>(promise: Promise<TValue>, settlement?: (value:TValue)=>TValue): Promise<TValue> {
     if (this.failure !== undefined) {
       void promise.catch(() => undefined);
       return Promise.reject(this.failure.reason);
@@ -129,7 +129,7 @@ export class PromiseReplay {
           return;
         settled();
       });
-      return promise;
+      return settlement===undefined?promise:promise.then(settlement,reason=>{throw settlement(reason as TValue);});
     }
     const tracked = new Promise<TValue>((resolve, reject) => {
       this.rejectors.set(id, reject);
@@ -138,7 +138,8 @@ export class PromiseReplay {
           if (this.failure !== undefined) return;
           this.ready.set(id, () => {
             this.rejectors.delete(id);
-            resolve(value);
+            try {resolve(settlement===undefined?value:settlement(value));}
+            catch (error) {reject(error);}
           });
           this.drain();
         },
@@ -154,7 +155,8 @@ export class PromiseReplay {
           }
           this.ready.set(id, () => {
             this.rejectors.delete(id);
-            reject(reason);
+            try {reject(settlement===undefined?reason:settlement(reason as TValue));}
+            catch (error) {reject(error);}
           });
           this.drain();
         }

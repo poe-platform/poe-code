@@ -13,6 +13,7 @@ import { attachErrorSpan, replaceErrorStack, type ErrorSourceSpan } from "../err
 import { SandboxError, type Budget, type CompileOwner } from "./budget.js";
 import { CompileScope } from "./regex/compile-guard.js";
 import { arrayBufferDataProperties, arrayBufferLength, arrayBufferOptions, copyArrayBufferStorage, isSandboxArrayBuffer } from "./array-buffer.js";
+import { isSandboxSharedArrayBuffer } from "./shared-array-buffer.js";
 import { copyDataViewStorage, dataViewBuffer, dataViewDataProperties, isSandboxDataView } from "./data-view.js";
 import {
   checkTypedArrayAllocation,
@@ -55,7 +56,7 @@ import {
 import { enterRunningState } from "./running-state.js";
 import { promiseReplayContext } from "./promise-replay.js";
 import { hostErrorData, sandboxErrorTypes } from "../error/shape.js";
-import { decodeReplayData, encodeReplayData, type ReplayData } from "../snapshot/replay-data.js";
+import { encodeReplayData, type ReplayData } from "../snapshot/replay-data.js";
 import type { RunLifecycle } from "../snapshot/dump.js";
 
 const AsyncFunction = (async () => undefined).constructor;
@@ -244,12 +245,14 @@ function wrapCallerInjectedFunction(
           );
         }
 
+        const sharedArguments:SharedArrayBuffer[]=[];
         const issued = hostCalls.issue({
-          argumentDigest: digestHostCallArguments(hostArgs),
+          argumentDigest: digestHostCallArguments(hostArgs,sharedArguments),
           moduleId,
           operation,
           policy
         });
+        hostCalls.registerSharedArguments(issued.record,sharedArguments);
         callbacks.record = issued.record;
         for (const [id, closure] of callbacks.sourceFunctions) {
           hostCalls.registerCallbackFunction(
@@ -297,13 +300,7 @@ function wrapCallerInjectedFunction(
                     const callback = callbacks.entries.get(invocation.id);
                     if (callback === undefined)
                       throw new TypeError("Missing restored host callback.");
-                    const args = decodeReplayData(
-                      invocation.arguments,
-                      {
-                        resolveCapability: hostCalls.resolveCapability
-                      },
-                      callbackCompilation
-                    ) as SandboxValue[];
+                    const args = hostCalls.replayCallbackArguments(invocation, callbackCompilation);
                     void callback(invocation.hasReceiver ? args.slice(1) : args, token, invocation.hasReceiver ? args[0] : undefined)
                       .then(resolve, reject)
                       .finally(() => {
@@ -462,6 +459,7 @@ function executeHostCall(
     );
   }
   if (restored && record.policy === "read-side-effect" && record.lifecycle !== "created") {
+    hostCalls.replaySharedPrefix(record);
     let active = true;
     const context =
       callbacks === undefined
@@ -517,6 +515,7 @@ function executeHostCall(
   }
 
   record.asynchronous = true;
+  hostCalls.captureSharedPrefix(record);
   const outcome = wrapHostPromiseWithSignal(Promise.resolve(result), options.signal).then(
     (value): HostCallOutcome => {
       try {
@@ -581,7 +580,8 @@ function createReplayedHostCallResult(
       ? Promise.resolve(outcome.value)
       : Promise.reject(outcome.reason);
   promise.catch(() => undefined);
-  return createSandboxPromise(promise, { hostCall: record, hostCallJournal: hostCalls });
+  return createSandboxPromise(promise, { hostCall: record, hostCallJournal: hostCalls,
+    replaySettlement:value=>hostCalls.replaySettlement(record,value) });
 }
 
 function createHostCallPromise(
@@ -944,7 +944,7 @@ export function copyHostValueToSandbox(
   options: HostBridgeOptions & { errorData?: boolean },
   state: {
     seen: WeakMap<object, SandboxValue>;
-    float32Buffers?: WeakMap<ArrayBuffer, ArrayBuffer>;
+    float32Buffers?: WeakMap<ArrayBufferLike, ArrayBufferLike>;
   },
   path: string
 ): SandboxValue {
@@ -1067,7 +1067,7 @@ export function copyHostValueToSandbox(
     return copy;
   }
 
-  if (isSandboxArrayBuffer(value)) {
+  if (isSandboxArrayBuffer(value) || isSandboxSharedArrayBuffer(value)) {
     const existing = state.seen.get(value);
     if (existing !== undefined) return existing;
     const length = arrayBufferLength(value);
@@ -1075,6 +1075,7 @@ export function copyHostValueToSandbox(
     budget.provisionDataUsage(length + 1)();
     const copy = copyArrayBufferStorage(value, state);
     state.seen.set(value, copy);
+    if (isSandboxSharedArrayBuffer(copy)) options.hostCalls?.registerSharedStorage(copy);
     for (const [key, descriptor] of arrayBufferDataProperties(value)) {
       if (typeof key === "symbol") throw new TypeError("Host ArrayBuffer symbol properties require an explicit capability path.");
       Object.defineProperty(copy, key, { ...descriptor,

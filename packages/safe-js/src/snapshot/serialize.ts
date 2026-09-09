@@ -15,6 +15,8 @@ import { requiresArrayEntries, serializeArray, type SerializedArray } from "./ar
 import { typedArrayStorage, isNumericTypedArray, type NumericTypedArray } from "../interp/typed-array.js";
 import { captureTypedArrayState, encodeTypedArrayLayout, type TypedArrayData } from "./typed-array.js";
 import { isSandboxArrayBuffer } from "../interp/array-buffer.js";
+import { isSandboxSharedArrayBuffer } from "../interp/shared-array-buffer.js";
+import { encodeSharedArrayBufferStorage, type SharedArrayBufferData } from "./shared-array-buffer.js";
 import { dataViewBuffer, isSandboxDataView } from "../interp/data-view.js";
 import { captureDataViewState, encodeDataViewLayout, type DataViewData } from "./data-view.js";
 import { captureArrayBufferState, encodeArrayBufferStorage, type ArrayBufferData } from "./array-buffer.js";
@@ -86,6 +88,7 @@ export type SerializedReferenceValue = {
 };
 
 export type SerializedHeapValue =
+  | (SharedArrayBufferData<SerializedReferenceValue> & {state:GuestObjectState<SerializedSnapshotValue>})
   | (DataViewData<SerializedReferenceValue> & { state: GuestObjectState<SerializedSnapshotValue> })
   | (ArrayBufferData<SerializedReferenceValue> & { state: GuestObjectState<SerializedSnapshotValue> })
   | GuestHeapNode<SerializedSnapshotValue>
@@ -157,7 +160,8 @@ export type RuntimeSnapshotValue =
   | Date
   | NumericTypedArray
   | ArrayBuffer
-  | DataView<ArrayBuffer>
+  | SharedArrayBuffer
+  | DataView<ArrayBufferLike>
   | boolean
   | null
   | number
@@ -230,6 +234,7 @@ export type SerializedSnapshot = {
 
 type SerializationState = {
   float32Buffers: WeakMap<ArrayBuffer, number>;
+  sharedBlocks?:WeakMap<object,number>;
   ancestors: WeakMap<object, string>;
   heap: Record<string, SerializedHeapValue>;
   heapIds: Map<object | symbol, number>;
@@ -353,7 +358,7 @@ function serializeValue(
     return { kind: "ref", id };
   }
   if (isSandboxClosure(value) && !isGuestClosure(value)) throw new TypeError(`Cannot serialize host reference at ${path}.`);
-  if (typeof value === "object" && value !== null && hasGuestObjectState(value) && !isSandboxMap(value) && !isSandboxSet(value) && !isNumericTypedArray(value) && !isSandboxArrayBuffer(value) && !isSandboxDataView(value)) {
+  if (typeof value === "object" && value !== null && hasGuestObjectState(value) && !isSandboxMap(value) && !isSandboxSet(value) && !isNumericTypedArray(value) && !isSandboxArrayBuffer(value) && !isSandboxSharedArrayBuffer(value) && !isSandboxDataView(value)) {
     throw new TypeError("Guest function properties and prototype links cannot be serialized.");
   }
   if (value === null || typeof value === "string" || typeof value === "boolean") {
@@ -458,7 +463,7 @@ function serializeValue(
     return { kind: "regex", source: value.source, flags: value.flags, lastIndex: value.lastIndex };
   }
 
-  if (isSandboxDataView(value) || isSandboxArrayBuffer(value) || isSandboxBox(value) || isSandboxDate(value) || isSandboxMap(value) || isSandboxSet(value) || isSandboxRegExpIterator(value) || isSandboxCollectionIterator(value) || isNumericTypedArray(value)) {
+  if (isSandboxSharedArrayBuffer(value) || isSandboxDataView(value) || isSandboxArrayBuffer(value) || isSandboxBox(value) || isSandboxDate(value) || isSandboxMap(value) || isSandboxSet(value) || isSandboxRegExpIterator(value) || isSandboxCollectionIterator(value) || isNumericTypedArray(value)) {
     const reference = serializeHeapReference(value, path, state);
     if (reference === undefined) {
       throw new TypeError(`Cannot serialize collection without a heap reference at ${path}.`);
@@ -498,7 +503,7 @@ function serializeHeapReference(
     | SandboxRegExpIterator
     | Date
     | NumericTypedArray
-    | ArrayBuffer | DataView<ArrayBuffer>,
+    | ArrayBufferLike | DataView<ArrayBufferLike>,
   path: string,
   state: SerializationState
 ): SerializedReferenceValue | undefined {
@@ -541,6 +546,10 @@ function serializeHeapReference(
       state.heap[String(id)] = { ...encodeDataViewLayout(value),
         buffer: serializeHeapReference(dataViewBuffer(value), `${path}.buffer`, state)!,
         state: captureDataViewState(value, entry => serializeValue(entry as RuntimeSnapshotValue, `${path}.<view>`, state)) };
+    } else if (isSandboxSharedArrayBuffer(value)) {
+      state.sharedBlocks??=new WeakMap();
+      state.heap[String(id)]={...encodeSharedArrayBufferStorage(value,id,state.sharedBlocks,id=>({kind:"ref" as const,id})),
+        state:captureArrayBufferState(value,entry=>serializeValue(entry as RuntimeSnapshotValue,`${path}.<buffer>`,state))};
     } else if (isSandboxArrayBuffer(value)) {
       state.heap[String(id)] = { ...encodeArrayBufferStorage(value, id, state.float32Buffers, id => ({ kind: "ref" as const, id })),
         state: captureArrayBufferState(value, entry => serializeValue(entry as RuntimeSnapshotValue, `${path}.<buffer>`, state)) };
@@ -704,6 +713,7 @@ function indexHeapContainers(input: SerializeInput): Pick<SerializationState, "h
       isSandboxDate(value) ||
       isNumericTypedArray(value) ||
       isSandboxArrayBuffer(value) ||
+      isSandboxSharedArrayBuffer(value) ||
       isSandboxDataView(value) ||
       (Array.isArray(value) && requiresArrayEntries(value)) ||
       sandboxErrorTypes.has(value) ||
@@ -770,11 +780,11 @@ function collectContainerStats(
     ? { kind: "dataview", state: captureDataViewState(value, entry => { guestEntries.push(entry); return null; }) }
     : isNumericTypedArray(value)
     ? { kind: "float32array", state: captureTypedArrayState(value, entry => { guestEntries.push(entry); return null; }) }
-    : isSandboxArrayBuffer(value)
+    : isSandboxArrayBuffer(value) || isSandboxSharedArrayBuffer(value)
     ? { kind: "arraybuffer", state: captureArrayBufferState(value, entry => { guestEntries.push(entry); return null; }) }
     : captureGuestHeapNode(value, entry => { guestEntries.push(entry); return null; });
   if (guest !== undefined) {
-    if (!isNumericTypedArray(value) && !isSandboxArrayBuffer(value) && !isSandboxDataView(value)) guestValues.add(value);
+    if (!isNumericTypedArray(value) && !isSandboxArrayBuffer(value) && !isSandboxSharedArrayBuffer(value) && !isSandboxDataView(value)) guestValues.add(value);
     for (const entry of guestEntries) {
       collectContainerStats(entry, stats, ancestors, guestValues, depth + 1);
       if (entry !== null && typeof entry === "object") {

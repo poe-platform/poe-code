@@ -33,6 +33,12 @@ export interface DictionaryValue {
   readonly items: OrderedKeyMap<RuntimeValue, RuntimeValue>;
 }
 
+/** Mutable set keys; payload slots hold this execution's None singleton. */
+export interface SetValue {
+  readonly kind: "set";
+  readonly items: OrderedKeyMap<RuntimeValue, RuntimeValue>;
+}
+
 /** Live read-only guest view. Host storage is never exposed by guest attributes. */
 export interface MappingProxyValue {
   readonly kind: "mappingproxy";
@@ -121,6 +127,7 @@ export type RuntimeValue =
   | GetsetDescriptorValue
   | MappingProxyValue
   | DictionaryViewValue
+  | SetValue
   | DictionaryValue;
 
 /** Host-only records, never accessible through guest JavaScript properties.
@@ -208,5 +215,10 @@ export class RuntimeValues extends ConstantValues {
   dictionaryView(value: DictionaryValue, kind: DictionaryViewValue["kind"]): DictionaryViewValue {
     this.runtimeMeter.checkpoint(1, 32);
     return Object.freeze({ kind, value });
+  }
+
+  set(items: OrderedKeyMap<RuntimeValue, RuntimeValue>): SetValue {
+    this.runtimeMeter.checkpoint(1, 32);
+    return Object.freeze({ kind: "set", items });
   }
 }

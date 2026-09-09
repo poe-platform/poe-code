@@ -18,7 +18,7 @@ export function createLenBuiltin(values: RuntimeValues, meter: ExecutionMeter): 
       let length: number | bigint;
       switch (value.kind) {
         case "list": case "tuple": length = value.items.length; break;
-        case "dict": length = value.items.size; break;
+        case "dict": case "set": length = value.items.size; break;
         case "mappingproxy": case "dict_keys": case "dict_values": case "dict_items": length = value.value.items.size; break;
         case "str": case "bytes": length = value.value.length; break;
         case "range":

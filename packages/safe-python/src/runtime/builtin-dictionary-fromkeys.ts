@@ -15,7 +15,7 @@ export interface DictionaryFromKeysContext {
 
 /** Exact dict.fromkeys by default, or an explicitly supplied class binding.
  * Construction precedes iterator acquisition; one default object is shared by
- * all entries. Only exact dictionaries use cached-hash source merging. Generic
+ * all entries. Exact dictionaries/sets use cached-hash source merging. Generic
  * iteration calls subclass setitem even for duplicates and keeps partial effects
  * when a later iterator/hash/set callback fails. Descriptor installation remains
  * part of the object dispatcher, not this capability factory.
@@ -32,7 +32,7 @@ export function createDictionaryFromKeysBuiltin(values: RuntimeValues, keys: Key
       const source = positional[0], value = positional[1] ?? values.none;
       const result = context ? context.create() : values.dictionary(new OrderedKeyMap<RuntimeValue, RuntimeValue>(keys, meter));
       meter.checkpoint();
-      if (result.kind === "dict" && source.kind === "dict") {
+      if (result.kind === "dict" && (source.kind === "dict" || source.kind === "set")) {
         meter.checkpoint(0, 16);
         result.items.update(source.items, undefined, { value });
       } else {

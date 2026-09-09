@@ -15,6 +15,9 @@ import { iterateRuntimeDictionaryView } from "./runtime-dictionary-view.js";
 export function runtimeIterate(value: RuntimeValue, values: ConstantValues, meter: ExecutionMeter): Iterator<RuntimeValue> {
   meter.checkpoint();
   switch (value.kind) {
+    case "set":
+      meter.checkpoint(1, 32);
+      return value.items.iterate(key => key, "set");
     case "dict_keys": case "dict_values": case "dict_items": return iterateRuntimeDictionaryView(value, values, meter);
     case "getset_descriptor": throw new PythonRuntimeError("TypeError", "'getset_descriptor' object is not iterable");
     case "type": throw new PythonRuntimeError("TypeError", "'type' object is not iterable");

@@ -7,6 +7,7 @@ import { runtimeIterate } from "./runtime-iteration.js";
 import type { RuntimeValue } from "./runtime-values.js";
 import { runtimeDictionaryAccess } from "./runtime-dictionary-access.js";
 import { containsRuntimeDictionaryView } from "./runtime-dictionary-view.js";
+import { runtimeSetAccess } from "./runtime-set.js";
 
 /** Exact runtime membership. Integer/bool range searches use arithmetic; other
  * iterable searches consume only through the first identity/equality match.
@@ -17,7 +18,9 @@ export function runtimeMembership(operator: string, needle: RuntimeValue, contai
   meter.checkpoint();
   if (operator !== "in" && operator !== "not in") throw new Error(`unsupported constant membership operator: ${operator}`);
   let found = false;
-  if (container.kind === "dict_keys" || container.kind === "dict_values" || container.kind === "dict_items") {
+  if (container.kind === "set") {
+    found = runtimeSetAccess(container, needle, "contains", values, meter);
+  } else if (container.kind === "dict_keys" || container.kind === "dict_values" || container.kind === "dict_items") {
     const comparisons = containsRuntimeDictionaryView(container, needle, meter);
     let item = comparisons.next();
     while (!item.done) {

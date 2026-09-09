@@ -234,8 +234,23 @@ export class OrderedKeyMap<Key, Value> {
   }
 
   /** Capture iteration state now, not lazily on the first next call. */
-  iterate<Result>(project: (key: Key, value: Value) => Result): OrderedMapIterator<Key, Value, Result> {
-    return new OrderedMapIterator(this.#entries, project, this.meter);
+  iterate<Result>(project: (key: Key, value: Value) => Result, kind: "dictionary" | "set" = "dictionary"): OrderedMapIterator<Key, Value, Result> {
+    return new OrderedMapIterator(this.#entries, project, this.meter, kind);
+  }
+
+  /** Key-only containment for set comparisons, preserving cached hashes within
+   * the same policy domain. Payload values never participate in comparison. */
+  isKeySubsetOf(other: OrderedKeyMap<Key, Value>): boolean {
+    this.meter.checkpoint();
+    if (this === other) return true;
+    if (this.#entries.size > other.#entries.size) return false;
+    for (const entry of this.#entries) {
+      this.meter.checkpoint();
+      const hash = this.operations === other.operations ? entry.hash : other.operations.hash(entry.key);
+      if (other.#find(entry.key, hash) === undefined) return false;
+    }
+    this.meter.checkpoint();
+    return true;
   }
 
   reversed<Result>(project: (key: Key, value: Value) => Result): OrderedMapReverseIterator<Key, Value, Result> {

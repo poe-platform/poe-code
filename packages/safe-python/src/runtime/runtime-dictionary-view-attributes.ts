@@ -3,7 +3,7 @@ import type { ExecutionMeter } from "./execution-budget.js";
 import { iterateRuntimeDictionaryView } from "./runtime-dictionary-view.js";
 import { runtimeIterate } from "./runtime-iteration.js";
 import { runtimeMembership } from "./runtime-membership.js";
-import type { DictionaryViewValue, RuntimeValue, RuntimeValues } from "./runtime-values.js";
+import type { DictionaryViewValue, RuntimeValue, RuntimeValues, SetValue } from "./runtime-values.js";
 
 /** Exact view read attributes, using host names supplied by the dispatcher.
  * Only fixed ASCII names match; no host payload fields are discovered. Missing
@@ -27,8 +27,8 @@ export function readRuntimeDictionaryViewAttribute(view: DictionaryViewValue, na
       if (positional.length !== 1) throw new PythonRuntimeError("TypeError", `${view.kind}.isdisjoint() takes exactly one argument (${positional.length} given)`);
       const other = positional[0];
       if (other === view) return values.boolean(view.value.items.size === 0);
-      let source: RuntimeValue = other, target = view;
-      if ((other.kind === "dict_keys" || other.kind === "dict_items") && view.value.items.size < other.value.items.size) {
+      let source: RuntimeValue = other, target: DictionaryViewValue | SetValue = view;
+      if ((other.kind === "dict_keys" || other.kind === "dict_items" || other.kind === "set") && view.value.items.size < (other.kind === "set" ? other : other.value).items.size) {
         source = view; target = other;
       }
       const iterator = runtimeIterate(source, values, meter);

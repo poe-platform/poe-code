@@ -51,7 +51,16 @@ export function runtimeComparison(operator: string, left: RuntimeValue, right: R
     const task = work.pop()!;
     if (typeof task === "function") { task(); continue; }
     const { operator: op, left: a, right: b, depth } = task;
-    if ((a.kind === "dict_keys" || a.kind === "dict_items") && (b.kind === "dict_keys" || b.kind === "dict_items")) {
+    if (a.kind === "set" && b.kind === "set") {
+      const aSize = a.items.size, bSize = b.items.size;
+      if (op === "==" || op === "!=") {
+        const equal = aSize === bSize && a.items.isKeySubsetOf(b.items);
+        result = op === "==" ? equal : !equal;
+      } else if (op === "<" || op === "<=") result = (op === "<" ? aSize < bSize : aSize <= bSize) && a.items.isKeySubsetOf(b.items);
+      else result = (op === ">" ? aSize > bSize : aSize >= bSize) && b.items.isKeySubsetOf(a.items);
+      continue;
+    }
+    if ((a.kind === "dict_keys" || a.kind === "dict_items" || a.kind === "set") && (b.kind === "dict_keys" || b.kind === "dict_items" || b.kind === "set")) {
       if (depth >= maxDepth) throw new PythonRuntimeError("RecursionError", "maximum recursion depth exceeded in comparison");
       meter.checkpoint(0, 64);
       const comparisons = compareRuntimeDictionaryViews(op, a, b, values, meter);

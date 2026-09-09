@@ -3645,6 +3645,26 @@ extension, integration, or validation requirement is missing or unverified.
   Full bound-class descriptor installation, native method identity/introspection,
   sets and their fast paths, object construction, suspension, accounting and
   public SDK/safe-fs integration remain unfinished.
+- Added mutable set runtime values, concrete literal builders and exact set
+  construction/update. Shared hash-key storage deduplicates by Python equality,
+  retains members, uses cached hashes for exact set/dict sources and preserves
+  partial insertion on iterable failure. Sets now have live truth/length,
+  membership/error context, unhashability, set-specific iterator size errors and
+  cached-hash equality/subset/superset comparisons. Set iteration order is not
+  promised. Set-like dictionary views interoperate in comparisons/disjointness,
+  including reflected dispatch and unhashable-item errors; fromkeys reuses exact
+  set hashes. Literal execution is verified through explicit builder hooks.
+- Tests first failed on the missing runtime. Follow-up failing tests exposed
+  self-update equality work, missing view interoperability, redundant fromkeys
+  hashing and incorrectly ordered reflected view comparisons; these are fixed.
+  All 3,539 tests in 246 files pass; typecheck, scoped lint and selected workspace
+  build pass. CPython audits matched 1,800 mutable-set cases and 1,200 mixed
+  set/view cases, ignoring set iteration order. Regressions passed for views
+  (1,500), view attributes (1,600), dictionary mutations (1,800 / 43,200 operations)
+  and fromkeys (1,500 sources / 3,000 constructions). Frozen sets, mutable-set
+  lookup-key conversion, set algebra and bound set methods remain unfinished.
+  Automatic builtin registration, full object construction, suspension, complete
+  accounting and public SDK/safe-fs integration also remain unfinished.
 - Next:
   remaining scope/compiler audits, interpreter runtime,
   resource controls, runtime modules, and safe-fs integration. Parsing and static

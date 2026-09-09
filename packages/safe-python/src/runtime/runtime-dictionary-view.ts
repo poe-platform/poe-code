@@ -1,7 +1,8 @@
 import type { ConstantValues } from "./constant-values.js";
 import type { ExecutionMeter } from "./execution-budget.js";
 import { runtimeDictionaryAccess } from "./runtime-dictionary-access.js";
-import type { DictionaryViewValue, RuntimeValue } from "./runtime-values.js";
+import type { DictionaryViewValue, RuntimeValue, SetValue } from "./runtime-values.js";
+import { runtimeSetAccess } from "./runtime-set.js";
 
 /** Capture the cursor now, but construct item tuples and read values on next(). */
 export function iterateRuntimeDictionaryView(view: DictionaryViewValue, values: ConstantValues, meter: ExecutionMeter, reverse = false): Iterator<RuntimeValue> {
@@ -38,20 +39,27 @@ export function* containsRuntimeDictionaryView(view: DictionaryViewValue, needle
   return false;
 }
 
-/** Set-like view comparison. Values views and non-view sets are dispatched
- * separately. Membership permits unhashable item values and cross-kind views.
+/** Set-like view/set comparison. Values views are dispatched separately.
+ * Membership permits unhashable item values and cross-kind views.
  */
-export function* compareRuntimeDictionaryViews(operator: string, left: DictionaryViewValue, right: DictionaryViewValue, values: ConstantValues, meter: ExecutionMeter): Generator<readonly [RuntimeValue, RuntimeValue], boolean, boolean> {
+export function* compareRuntimeDictionaryViews(operator: string, left: DictionaryViewValue | SetValue, right: DictionaryViewValue | SetValue, values: ConstantValues, meter: ExecutionMeter): Generator<readonly [RuntimeValue, RuntimeValue], boolean, boolean> {
   meter.checkpoint(1, 64);
-  const aSize = left.value.items.size, bSize = right.value.items.size;
+  // A set declines non-set operands, so the view's reflected slot owns the
+  // operation. This affects which membership path can raise on item values.
+  if (left.kind === "set" && right.kind !== "set") {
+    const original = left; left = right; right = original;
+    operator = operator === "<" ? ">" : operator === ">" ? "<" : operator === "<=" ? ">=" : operator === ">=" ? "<=" : operator;
+  }
+  const aSize = (left.kind === "set" ? left : left.value).items.size, bSize = (right.kind === "set" ? right : right.value).items.size;
   if ((operator === "==" || operator === "!=") && aSize !== bSize) return operator === "!=";
   if ((operator === "<" && aSize >= bSize) || (operator === "<=" && aSize > bSize) ||
       (operator === ">" && aSize <= bSize) || (operator === ">=" && aSize < bSize)) return false;
   const reverse = operator === ">" || operator === ">=", source = reverse ? right : left, target = reverse ? left : right;
-  const iterator = iterateRuntimeDictionaryView(source, values, meter);
+  const iterator = source.kind === "set" ? source.items.iterate(key => key, "set") : iterateRuntimeDictionaryView(source, values, meter);
   for (let item = iterator.next(); !item.done; item = iterator.next()) {
     meter.checkpoint();
-    if (!(yield* containsRuntimeDictionaryView(target, item.value, meter))) return operator === "!=";
+    const found = target.kind === "set" ? runtimeSetAccess(target, item.value, "contains", values, meter) : (yield* containsRuntimeDictionaryView(target, item.value, meter));
+    if (!found) return operator === "!=";
   }
   return operator !== "!=";
 }

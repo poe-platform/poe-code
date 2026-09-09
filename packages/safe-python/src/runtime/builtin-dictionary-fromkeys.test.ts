@@ -42,6 +42,8 @@ describe("dictionary fromkeys construction", () => {
     expect(result.items.snapshot()).toEqual([[v.true, v.none], [v.false, v.none]]);
     expect(source.items.snapshot()).toEqual([[v.true, v.integer(9)], [v.false, v.integer(8)]]);
     builtin.value.invoke([v.mappingProxy(source)], kwargs, meter); expect(hashes).toBe(2);
+    const set = v.set(new OrderedKeyMap<RuntimeValue, RuntimeValue>(keys, meter)); set.items.set(v.true, v.none); hashes = 0;
+    builtin.value.invoke([set], kwargs, meter); expect(hashes).toBe(0);
   });
   it("stops at the first invalid key without consuming the iterator remainder", () => {
     const { meter, v, dictionary, builtin } = fixture(), iterator = v.iterator(runtimeIterate(v.list([v.true, v.list([]), v.false]), v, meter));

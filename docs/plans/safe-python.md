@@ -2031,6 +2031,20 @@ extension, integration, or validation requirement is missing or unverified.
   NaN, infinities and complex components. Typecheck, scoped lint and selected
   workspace build passed. Individual guest type slots, subclass dispatch wiring,
   nonnumeric comparisons and size-dependent bigint CPU accounting remain pending.
+- Added full comparison expressions for exact immutable builtin constants:
+  identity, numeric pairs, Unicode code-point strings, unsigned bytes, singleton
+  fallback and lexicographic tuples. Tuple members use identity before equality;
+  direct NaN comparison retains non-reflexive numeric semantics. Explicit work
+  frames avoid host recursion for nested tuples, with per-step budget checks.
+  Unsupported ordering reports the actual unequal operand/member type names.
+- Constant-comparison validation: missing-module red tests preceded implementation.
+  All 2,462 tests in 133 files pass, including 5,000-level tuple equality and
+  expression-engine chained comparisons. CPython matched 69,192 value/identity/
+  ordering/error outcomes over shared tuple graphs and mixed constant kinds.
+  Source typecheck, scoped lint and selected workspace build passed.
+  Guest subclass dispatch, mutable-container comparisons, membership, stack heap
+  accounting and size-dependent bigint CPU charges remain unfinished. Nested
+  ordering can repeat equality work, bounded by the execution step budget.
 - Next:
   remaining scope/compiler audits, interpreter runtime,
   resource controls, runtime modules, and safe-fs integration. Parsing and static

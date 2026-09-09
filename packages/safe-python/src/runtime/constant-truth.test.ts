@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import { ConstantValues, type ConstantValue } from "./constant-values.js";
 import { constantTruth } from "./constant-truth.js";
 import { constantUnary } from "./constant-unary.js";
+import { constantComparison } from "./constant-comparison.js";
 import { ExecutionBudget, ExecutionLimitError } from "./execution-budget.js";
 import { evaluateExpression, type ExpressionContext } from "./expression-evaluation.js";
 import { parseExpression } from "../expression.js";
@@ -51,13 +52,16 @@ describe("concrete constant truth", () => {
       literal: node => v.literal(node), boolean: value => v.boolean(value), truth: value => constantTruth(value, meter),
       load: name => { if (name === "NotImplemented") return v.notImplemented; return unexpected(); }, store: unexpected,
       unary: (operator, value) => constantUnary(operator, value, { values: v, warn: unexpected }, meter),
-      binary: unexpected, compare: unexpected, attribute: unexpected, beginCall: unexpected,
+      binary: unexpected, compare: (operator, left, right) => constantComparison(operator, left, right, v, meter), attribute: unexpected, beginCall: unexpected,
       tuple: values => v.tuple(values), list: unexpected, beginSet: unexpected, beginDictionary: unexpected,
       slice: unexpected, getItem: unexpected, iterate: unexpected
     };
     const run = (source: string) => evaluateExpression(parseExpression(source), context, meter);
     expect(run("not 0")).toBe(v.true);
     expect(run("not (None,)")).toBe(v.false);
+    expect(run("0 < 1 < 2")).toBe(v.true);
+    expect(run("(1, 2) < (1, 3)")).toBe(v.true);
+    expect(run("not (1 == 1.0)")).toBe(v.false);
     expect(run("False and NotImplemented")).toBe(v.false);
     expect(run("True or NotImplemented")).toBe(v.true);
     expect(run("False or NotImplemented")).toBe(v.notImplemented);

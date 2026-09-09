@@ -548,8 +548,9 @@ enumerable by an earlier getter.
 `Array.isArray` follows nested Proxy targets without invoking traps and rejects
 revoked proxies. Other internal array-identity consumers still need integration.
 Object.prototype.toString reads custom tags through non-callable Proxies and
-preserves wrapped-array identity. Callable tags and ordinary receivers with Proxy
-ancestors still need validation.
+preserves wrapped-array identity. Ordinary receivers also read inherited tags
+through Proxy ancestors with the original receiver. Callable Proxy tags remain
+part of the pending callable-carrier work.
 
 The later internal freeze/seal implementation now prevents target extension and
 updates properties through Proxy traps, with tested ordering and partial-failure

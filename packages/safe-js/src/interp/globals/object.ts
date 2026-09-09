@@ -111,9 +111,13 @@ export function createObjectGlobal(methods: SandboxObject, budget: Budget): Sand
           return Promise.resolve(sandboxGetProperty(object, Symbol.toStringTag, object, budget, context)).then(tag =>
             budget.allocateString(`[object ${typeof tag === "string" ? tag : fallback}]`));
         }
-        const descriptor = isGuestHostObject(object) ? undefined : getSandboxPropertyDescriptor(object, Symbol.toStringTag, budget);
+        let proxyBoundary: object | undefined;
+        const descriptor = isGuestHostObject(object) ? undefined : getSandboxPropertyDescriptor(
+          object, Symbol.toStringTag, budget, proxy => { proxyBoundary = proxy; });
         const fallback = typeTag(object, descriptor !== undefined || hasExplicitSandboxPrototype(object as object));
         const finish = (tag: SandboxValue) => budget.allocateString(`[object ${typeof tag === "string" ? tag : fallback}]`);
+        if (proxyBoundary !== undefined)
+          return Promise.resolve(sandboxGetProperty(proxyBoundary as SandboxValue, Symbol.toStringTag, object, budget, context)).then(finish);
         if (descriptor === undefined) return finish(undefined);
         const tag = readPropertyDescriptor(descriptor, object, context, true);
         return tag instanceof Promise ? tag.then(finish) : finish(tag);

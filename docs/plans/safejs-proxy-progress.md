@@ -23,6 +23,8 @@ full-package, snapshot, or JavaScript-conformance gate.
   [verification](safejs-proxy-array-identity.md).
 - Custom/array object tags for non-callable Proxy receivers; see
   [verification and remaining scope](safejs-proxy-object-tag.md).
+- Inherited Proxy tag reads for ordinary receivers; see
+  [verification](safejs-proxy-inherited-tag.md).
 - Object.assign sources and targets, descriptor-map enumeration, object
   spread/rest and rest exclusions.
 - Ordinary enumerability changes during values/entries, descriptor-map and

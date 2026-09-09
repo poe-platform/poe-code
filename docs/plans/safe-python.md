@@ -4578,6 +4578,21 @@ extension, integration, or validation requirement is missing or unverified.
   counted as passing. Prepared iterator conversion is covered by unit tests.
   Guest __bytes__, buffer and index protocols, class-level native registration,
   explicit iterator slots, full accounting and SDK/safe-fs remain unfinished.
+- Added explicit __iter__ bindings for exact builtin sequences, mappings, views,
+  sets and prepared iterators, plus iterator __next__. Containers acquire fresh
+  cursors; iterators return themselves without advancing. Pulls preserve source
+  exceptions, check cancellation before publishing results, and translate host
+  exhaustion into the internal StopIteration fault. Existing storage adapters
+  retain live mutation, sticky exhaustion and dictionary-size diagnostics.
+- Six tests first reproduced missing slots. All 4,194 tests in 323 files pass,
+  including mapping-proxy and frozen-set access, argument precedence, cursor
+  identity and post-pull cancellation. A 2,675-program compiled CPython audit
+  matches values, identity and errors. The expanded 4,875-program from_bytes
+  audit now includes the previously failing explicit list iterator case. Source
+  typecheck, scoped lint and selected workspace build pass. Full guest exception objects,
+  native method-wrapper types/introspection, iterator type registration,
+  __length_hint__, guest protocol dispatch and generator return values remain
+  unfinished, as do complete resource accounting and SDK/safe-fs integration.
 - Next:
   remaining scope/compiler audits, interpreter runtime,
   resource controls, runtime modules, and safe-fs integration. Parsing and static

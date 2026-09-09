@@ -87,6 +87,25 @@ function readAtom(cursor: TokenCursor): Expression {
   if (["(", "[", "{"].includes(token.text)) return readDisplay(cursor, readExpression);
   if (token.kind === "integer" || token.kind === "float" || token.kind === "imaginary" || token.kind === "string" || token.kind === "bytes") {
     cursor.take();
+    if (token.kind === "string" || token.kind === "bytes") {
+      const parts: Array<Uint32Array | Uint8Array> = [token.value];
+      let length = token.value.length;
+      let end = token.end;
+      while (cursor.peek().kind === "string" || cursor.peek().kind === "bytes") {
+        const next = cursor.peek();
+        if (next.kind !== token.kind) throw cursor.error("cannot mix bytes and nonbytes literals");
+        cursor.take();
+        parts.push(next.value);
+        length += next.value.length;
+        end = next.end;
+      }
+      if (parts.length > 1) {
+        const value = token.kind === "string" ? new Uint32Array(length) : new Uint8Array(length);
+        let offset = 0;
+        for (const part of parts) { value.set(part, offset); offset += part.length; }
+        return { kind: "literal", literalKind: token.kind, value, start: token.start, end };
+      }
+    }
     return { kind: "literal", literalKind: token.kind, value: token.value, start: token.start, end: token.end };
   }
   if (token.text === "True" || token.text === "False" || token.text === "None" || token.text === "...") {

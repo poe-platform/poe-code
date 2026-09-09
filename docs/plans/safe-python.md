@@ -177,6 +177,17 @@ extension, integration, or validation requirement is missing or unverified.
   Source typecheck, scoped ESLint, and selected workspace build passed. Collection
   construction, key equality/hashing, duplicate-key replacement, and unpacking
   protocols are still runtime work; this evidence proves syntax/tree behavior only.
+- Added adjacent ordinary string/bytes literal concatenation before primary
+  trailers. Text remains a sequence of Python code points, including distinct
+  escaped surrogates across literal boundaries. Mixed bytes/text concatenation
+  is rejected. Joined logical lines permit concatenation across comments and
+  explicit continuations; separate logical lines do not. Multiple segments are
+  collected and copied once into the final typed array, not repeatedly appended.
+- Concatenation validation: 416 package unit cases pass, including a 1,000-literal
+  sequence. All 363 CPython comparisons of prefix/quote/content combinations and
+  logical-line joins matched acceptance and decoded values. Source typecheck,
+  scoped lint, and selected workspace build passed. Mixing interpolated and
+  ordinary literals still depends on the pending interpolated-string AST parser.
 - Next:
   comprehensions, lambdas, interpolated-string ASTs, parser-level NFKC
   normalization, the complete grammar/parser and evaluator, then runtime modules

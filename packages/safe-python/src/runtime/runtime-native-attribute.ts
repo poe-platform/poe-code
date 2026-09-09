@@ -21,6 +21,7 @@ import { createRuntimeStringReplaceMethod } from "./runtime-string-replace-metho
 import { createRuntimeStringPadMethod } from "./runtime-string-pad-method.js";
 import { createRuntimeStringExpandtabsMethod } from "./runtime-string-expandtabs-method.js";
 import { createRuntimeStringCaseMethod } from "./runtime-string-case-method.js";
+import { createRuntimeBytesCaseMethod } from "./runtime-bytes-case-method.js";
 import { createRuntimeStringClassificationMethod } from "./runtime-string-classification-method.js";
 import type { ExpressionContext } from "./expression-evaluation.js";
 import { isRuntimeSet, type RuntimeValue, type RuntimeValues } from "./runtime-values.js";
@@ -32,6 +33,7 @@ import { isRuntimeSet, type RuntimeValue, type RuntimeValues } from "./runtime-v
  * separate from these instance-bound container capabilities. */
 export function runtimeNativeAttribute(receiver: RuntimeValue, name: string, values: RuntimeValues, meter: ExecutionMeter, beginCall?: ExpressionContext<RuntimeValue>["beginCall"]): RuntimeValue {
   meter.checkpoint();
+  if (receiver.kind === "bytes" && (name === "upper" || name === "lower" || name === "title" || name === "capitalize" || name === "swapcase")) return createRuntimeBytesCaseMethod(receiver, name, values, meter);
   if (receiver.kind === "str") {
     if (name === "upper" || name === "casefold" || name === "lower" || name === "title" || name === "capitalize" || name === "swapcase") return createRuntimeStringCaseMethod(receiver, name, values, meter);
     switch (name) {

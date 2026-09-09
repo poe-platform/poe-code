@@ -3,6 +3,8 @@ import { PythonRuntimeError } from "./error.js";
 import { normalizeSlice } from "./integer-sequence.js";
 import { searchSubstring } from "./substring-search.js";
 
+export type BytesCaseTransformation = "upper" | "lower" | "title" | "capitalize" | "swapcase";
+
 /** Internal immutable bytes payload, not a guest object or releasable memoryview.
  * Public input/output buffers are copied. Internally created slices transfer sole
  * buffer ownership without a second copy. Buffer allocation and operations are
@@ -66,6 +68,25 @@ export class ImmutableBytes implements Iterable<number> {
     meter.checkpoint(0, length);
     const bytes = new Uint8Array(length);
     for (let i = 0; i < length; i++) { meter.checkpoint(); bytes[i] = this.#bytes[i % this.length]; }
+    return new ImmutableBytes(bytes);
+  }
+
+  /** Bytes casing is ASCII-only and never expands its input. Non-ASCII bytes
+   * are preserved and break title words, regardless of the host locale. */
+  transformCase(mode: BytesCaseTransformation, meter: ExecutionMeter): ImmutableBytes {
+    meter.checkpoint();
+    if (this.length === 0) return this;
+    meter.checkpoint(0, this.length);
+    const bytes = new Uint8Array(this.length);
+    let previousCased = false;
+    for (let index = 0; index < this.length; index++) {
+      meter.checkpoint();
+      const byte = this.#bytes[index], upper = byte >= 65 && byte <= 90, lower = byte >= 97 && byte <= 122;
+      const toUpper = mode === "upper" || mode === "swapcase" && lower || mode === "title" && !previousCased || mode === "capitalize" && index === 0;
+      const toLower = mode === "lower" || mode === "swapcase" && upper || mode === "title" && previousCased || mode === "capitalize" && index !== 0;
+      bytes[index] = toUpper && lower ? byte - 32 : toLower && upper ? byte + 32 : byte;
+      previousCased = upper || lower;
+    }
     return new ImmutableBytes(bytes);
   }
 

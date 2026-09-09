@@ -4211,6 +4211,19 @@ extension, integration, or validation requirement is missing or unverified.
   selected workspace build pass. Remaining text/bytes/numeric methods, native
   builtins, subclasses/global interning, suspension, full accounting and
   SDK/safe-fs remain unfinished.
+- Connected bytes.upper/lower/title/capitalize/swapcase using ASCII-only
+  transformation of immutable byte storage. Output has exactly the input length,
+  is charged before its single allocation, and never changes non-ASCII bytes.
+  Nonletters (including bytes above 127) break title words; empty bytes retain
+  receiver identity while unchanged nonempty results are separate guest objects.
+- Native/storage tests reproduced the missing methods. Three new fixtures were
+  corrected to supply required explicit budgets. All 3,978 tests in 291 files
+  pass, including allocation refusal, per-byte execution limits and immutable
+  output exports. All 65,536 byte pairs match CPython across five methods
+  (327,680 transformations); 4,305 compiled calls match output, identity and
+  diagnostics. Scoped lint, source typecheck and selected workspace build pass.
+  Remaining bytes/text/numeric methods, native builtins, subclasses/global
+  interning, suspension, full accounting and SDK/safe-fs remain unfinished.
 - Next:
   remaining scope/compiler audits, interpreter runtime,
   resource controls, runtime modules, and safe-fs integration. Parsing and static

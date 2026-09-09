@@ -108,6 +108,38 @@ export class CodePointString implements Iterable<number> {
     return new CodePointString(points, meter, ownedPoints);
   }
 
+  /** Size the expanded text first, then fill one owned buffer. Only CR/LF reset
+   * columns; all other non-tab code points occupy one column. */
+  expandTabs(tabsize: number, meter: ExecutionMeter): CodePointString {
+    meter.checkpoint();
+    if (!Number.isSafeInteger(tabsize)) throw new RangeError("tab size must be a safe integer");
+    let length = 0, column = 0, changed = false;
+    for (const point of this.#points) {
+      meter.checkpoint();
+      if (point === 9) {
+        changed = true;
+        const spaces = tabsize > 0 ? tabsize - column % tabsize : 0;
+        length += spaces; column += spaces;
+      } else { length++; column = point === 10 || point === 13 ? 0 : column + 1; }
+      if (!Number.isSafeInteger(length) || length > 0xffffffff) exhaustAllocation(meter);
+    }
+    if (!changed) return this;
+    meter.checkpoint(0, length * Uint32Array.BYTES_PER_ELEMENT);
+    const points = new Uint32Array(length);
+    let offset = 0;
+    column = 0;
+    for (const point of this.#points) {
+      meter.checkpoint();
+      if (point === 9) {
+        const spaces = tabsize > 0 ? tabsize - column % tabsize : 0;
+        const end = offset + spaces;
+        while (offset < end) { meter.checkpoint(); points[offset++] = 32; }
+        column += spaces;
+      } else { points[offset++] = point; column = point === 10 || point === 13 ? 0 : column + 1; }
+    }
+    return new CodePointString(points, meter, ownedPoints);
+  }
+
   /** Fill a single final buffer. Width is code points, not UTF-16 units or
    * terminal columns. Sign alignment preserves an ASCII leading +/- prefix. */
   pad(width: bigint, alignment: "left" | "right" | "center" | "sign", fill: number, meter: ExecutionMeter): CodePointString {

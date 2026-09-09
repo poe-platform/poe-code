@@ -4111,6 +4111,21 @@ extension, integration, or validation requirement is missing or unverified.
   Scoped lint, source typecheck and selected workspace build pass. Guest index slots,
   subclasses/global interning, remaining native methods/builtins, suspension,
   complete accounting and SDK/safe-fs remain unfinished.
+- Connected str.expandtabs to native lookup with default/keyword tabsize,
+  signed 32-bit C-int validation, zero/negative removal and exact unchanged
+  receiver identity. Only CR/LF reset columns; every other non-tab code point
+  occupies one column regardless of display width. A sizing pass precedes one
+  output-buffer allocation, with checkpoints inside expanded space runs.
+- Extracted exact integer index conversion from signed-size narrowing so C-int
+  and signed-size callers share type diagnostics without sharing overflow rules.
+  Tab expansion began with eight failing tests. All 3,866 tests in 283 files
+  pass, including exact output allocation, linear-work, early allocation failure
+  and in-expansion step-limit tests. A 2,413-call compiled CPython audit matches
+  code points, receiver identity and diagnostics. The 2,460-call padding
+  regression, scoped lint, source typecheck and selected workspace build also pass.
+  Guest index slots, native
+  subclasses/global interning, remaining text methods/builtins, suspension,
+  full accounting and SDK/safe-fs remain pending.
 - Next:
   remaining scope/compiler audits, interpreter runtime,
   resource controls, runtime modules, and safe-fs integration. Parsing and static

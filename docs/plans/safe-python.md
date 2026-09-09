@@ -2498,6 +2498,19 @@ extension, integration, or validation requirement is missing or unverified.
   and selected workspace build passed. Guest operand/reflected
   dispatch, __index__ conversion, finalizers and complete native heap accounting
   remain unfinished.
+- Added a dedicated list rich-comparison module with all six operators. Initial
+  size mismatch shortcuts equality/inequality only; identity skips element
+  equality. Live lengths are rechecked after callbacks, and differing slots are
+  read again for ordering so mutation is visible. Rich ordering results are
+  returned unchanged, rather than coerced to booleans. Equal-prefix traversal is
+  metered, including callback-driven growth.
+- The comparison test suite first failed on its missing module; all 2,791 tests
+  in 167 files now pass. An 8,000-case CPython audit matched all six operators,
+  list mutations, callback order, exceptions and non-boolean rich results.
+  Source typecheck, scoped lint and selected workspace build passed.
+  Behavior was also checked against CPython 3.14 list_richcompare_impl. Guest
+  recursive-comparison limits, reflected/type dispatch, finalizers and complete
+  native allocation accounting remain unfinished.
 - Next:
   remaining scope/compiler audits, interpreter runtime,
   resource controls, runtime modules, and safe-fs integration. Parsing and static

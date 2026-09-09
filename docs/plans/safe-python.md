@@ -3763,6 +3763,25 @@ extension, integration, or validation requirement is missing or unverified.
   cases each. Remaining set algebra/relationship methods, frozen-set methods,
   dictionary-view algebra, automatic method/type registration, iterator parity,
   complete accounting, suspension and public SDK/safe-fs integration are pending.
+- Added explicitly bound set/frozen-set copy, isdisjoint, issubset and issuperset.
+  Mutable copies own fresh storage; exact frozen copies preserve identity.
+  Exact set operands use cached hashes and smaller-side disjointness checks.
+  Generic relationship inputs stream with method-specific short circuits;
+  subset testing builds only the matching keys and stops after covering the
+  receiver, while an empty receiver still consumes/hashes generic inputs.
+  Generic relationship probes do not perform mutable-set-to-frozen conversion.
+  Raw subset hashing errors and contextual superset/disjointness errors follow
+  their distinct native paths. Iterator acquisition follows result allocation,
+  and cancellation is checked before hashing pulled values.
+- Relationship verification: tests first reproduced the missing methods. All
+  3,640 tests in 257 files pass, with scoped lint, source typecheck and selected workspace
+  build. A 2,400-case CPython audit covers both receiver kinds, method results,
+  errors, copy identity and remaining iterator contents. The 1,800-case nested
+  frozen-set regression audit also passes. Storage tests cover
+  foreign hash domains, retained incoming member identity, allocation ordering
+  and cancellation. Algebra-producing methods and their multi-source mutation
+  forms, dictionary-view algebra, automatic descriptor/type installation,
+  iterator parity, full accounting, suspension and SDK/safe-fs work are pending.
 - Next:
   remaining scope/compiler audits, interpreter runtime,
   resource controls, runtime modules, and safe-fs integration. Parsing and static

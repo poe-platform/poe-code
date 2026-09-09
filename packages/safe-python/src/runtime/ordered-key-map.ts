@@ -289,6 +289,43 @@ export class OrderedKeyMap<Key, Value> {
     return true;
   }
 
+  /** Exact set disjointness traverses the smaller side, retaining cached hashes
+   * and choosing the right side on ties. Equal source/target needs no callbacks. */
+  isKeyDisjointFrom(other: OrderedKeyMap<Key, Value>): boolean {
+    this.meter.checkpoint();
+    if (this === other) return this.#entries.size === 0;
+    const source = this.#entries.size < other.#entries.size ? this : other;
+    const target = source === this ? other : this;
+    for (const entry of source.#entries) {
+      this.meter.checkpoint();
+      const hash = source.operations === target.operations ? entry.hash : target.operations.hash(entry.key);
+      if (target.#find(entry.key, hash) !== undefined) return false;
+    }
+    this.meter.checkpoint();
+    return true;
+  }
+
+  /** Generic set intersection hashes incoming keys once and stops only after a
+   * match fills the result. An empty receiver still consumes/hashes its input.
+   * Acquire the iterator after result allocation; never close it on an early
+   * return. Supplied payloads let set callers store their canonical None. */
+  intersectKeysFrom(source: () => Iterator<Key>, value: Value): OrderedKeyMap<Key, Value> {
+    this.meter.checkpoint(1, 32);
+    const result = new OrderedKeyMap<Key, Value>(this.operations, this.meter);
+    const iterator = source();
+    this.meter.checkpoint();
+    while (true) {
+      this.meter.checkpoint();
+      const item = iterator.next();
+      this.meter.checkpoint();
+      if (item.done) return result;
+      const key = item.value, hash = this.operations.hash(key);
+      if (this.#find(key, hash) === undefined) continue;
+      if (result.#find(key, hash) === undefined) result.#insert(key, hash, value);
+      if (result.#entries.size >= this.#entries.size) return result;
+    }
+  }
+
   /** Fresh left-only keys. CPython switches to copy-and-remove when the left
    * side is much larger; this also determines guest equality call direction.
    * Retained entries keep their left key/value identities and cached hashes. */

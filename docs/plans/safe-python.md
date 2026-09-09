@@ -386,8 +386,19 @@ extension, integration, or validation requirement is missing or unverified.
   used AST parsing to isolate syntax from pending nonlocal-resolution and declaration
   ordering checks. Scoped lint, source typecheck, and selected workspace build passed. Actual
   deletion, global/nonlocal binding, and enclosing-scope validation remain pending.
+- Added import and from-import syntax with dotted module components, normalized
+  aliases, relative levels, star imports, and parenthesized/multiline from-import
+  name lists. ASTs retain path components and alias spans without loading modules
+  or touching the filesystem. Forbidden-name checks apply to the actual bound name,
+  not unrelated components of an import path.
+- Import validation: five positive tests failed before implementation; all 780
+  package tests pass. A 560-case CPython compilation and AST comparison matched
+  acceptance, module paths, aliases, relative levels, and star imports. Scoped lint, source
+  typecheck and selected workspace build passed. Runtime module loading/caching,
+  capability-aware safe-fs resolution, future directives, and scope restrictions
+  on star imports remain pending.
 - Next:
-  import statements, compound statements, and enclosing-scope validation
+  compound statements, type aliases, and enclosing-scope validation
   normalization, the complete grammar/parser and evaluator, then runtime modules
   and safe-fs integration. Tokenization does not establish interpreter execution.
 - Workspace lockfile registration and packaging integration remain pending.

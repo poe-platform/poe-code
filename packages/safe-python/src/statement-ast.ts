@@ -1,6 +1,7 @@
 import type { Expression, SourceSpan } from "./ast.js";
 
 export type DeclaredName = SourceSpan & { readonly name: string; readonly spelling: string };
+export type ImportItem = SourceSpan & { readonly path: readonly DeclaredName[]; readonly alias: DeclaredName | null };
 
 export type Statement = SourceSpan & (
   | { readonly kind: "pass" | "break" | "continue" }
@@ -9,6 +10,8 @@ export type Statement = SourceSpan & (
   | { readonly kind: "assert"; readonly condition: Expression; readonly message: Expression | null }
   | { readonly kind: "global" | "nonlocal"; readonly names: readonly DeclaredName[] }
   | { readonly kind: "delete"; readonly targets: readonly Expression[] }
+  | { readonly kind: "import"; readonly imports: readonly ImportItem[] }
+  | { readonly kind: "import-from"; readonly module: readonly DeclaredName[]; readonly level: number; readonly imports: readonly ImportItem[] | "*" }
   | { readonly kind: "expression-statement"; readonly expression: Expression }
   | { readonly kind: "assignment"; readonly targets: readonly Expression[]; readonly value: Expression }
   | { readonly kind: "augmented-assignment"; readonly target: Expression; readonly operator: string; readonly value: Expression }

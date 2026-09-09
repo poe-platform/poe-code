@@ -4471,6 +4471,18 @@ extension, integration, or validation requirement is missing or unverified.
   source typecheck and selected workspace build pass. Remaining numeric/text
   methods, buffer protocols, native builtins, suspension, full accounting and
   SDK/safe-fs remain unfinished.
+- Connected int/bool/float.is_integer with canonical boolean results. Exact
+  ints/bools return true in constant work regardless of magnitude; binary64
+  floats require finite integral values, including both signed zeros. Call
+  diagnostics use int for bool inheritance and float for floating receivers.
+- Three native tests first reproduced missing support; a cancellation check
+  already passed at attribute lookup. All four now pass, with all 4,146 tests
+  in 314 files passing. A 2,726-program compiled CPython audit matches results,
+  canonical bool identity and diagnostics across large integers, arbitrary
+  finite float bit patterns and non-finite inputs. Scoped lint, source typecheck
+  and selected workspace build pass. Remaining numeric/text
+  methods, buffer protocols, native builtins, suspension, full accounting and
+  SDK/safe-fs remain unfinished.
 - Next:
   remaining scope/compiler audits, interpreter runtime,
   resource controls, runtime modules, and safe-fs integration. Parsing and static

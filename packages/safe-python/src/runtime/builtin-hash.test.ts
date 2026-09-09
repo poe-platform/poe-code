@@ -14,6 +14,17 @@ function fixture() {
 }
 
 describe("concrete hash builtin", () => {
+  it("uses guest hash dispatch for roots and nested immutable members", () => {
+    const { values: v, context, meter, call } = fixture(), guest = v.cell({});
+    let calls = 0;
+    context.guestHash = value => value !== guest ? undefined : {
+      lookupHash: () => () => { calls++; return v.integer(7); },
+      integer: result => result.kind === "int" ? result.value : undefined, typeName: () => "Guest"
+    };
+    expect(call(guest)).toBe(v.integer(7));
+    expect(call(v.tuple([guest, guest]))).toEqual(v.integer(runtimeHash(v.tuple([v.integer(7), v.integer(7)]), context, meter)));
+    expect(calls).toBe(3);
+  });
   it("uses the execution hash policy for primitive and composite values", () => {
     const { values: v, context, meter, call } = fixture();
     for (const value of [v.none, v.true, v.integer(-1), v.integer(1n << 100n), v.float(1.5), v.string("hello"), v.bytes(new Uint8Array([1, 2])), v.tuple([v.integer(3), v.string("x")])]) {

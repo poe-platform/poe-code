@@ -4,8 +4,8 @@ import { runtimeHash, type RuntimeHashContext } from "./runtime-hash.js";
 import type { BuiltinFunctionValue, RuntimeValues } from "./runtime-values.js";
 
 /** Register explicitly with the same execution-wide identity/payload hash policy
- * used by dictionaries and sets. Guest type-level hash slots remain outside the
- * exact-value hashing kernel. No process-global seed or host hash is introduced. */
+ * used by dictionaries and sets, including optional guest type-level hash slots.
+ * No process-global seed or host hash is introduced. */
 export function createHashBuiltin(values: RuntimeValues, meter: ExecutionMeter, context: RuntimeHashContext): BuiltinFunctionValue {
   meter.checkpoint(1, 64);
   return values.builtinFunction({

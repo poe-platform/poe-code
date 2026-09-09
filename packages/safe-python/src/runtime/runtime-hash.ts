@@ -5,6 +5,7 @@ import type { ExecutionMeter } from "./execution-budget.js";
 import { hashReal } from "./real-comparison.js";
 import { PythonRuntimeError } from "./error.js";
 import type { RangeValue, RuntimeValue } from "./runtime-values.js";
+import { protocolHash, type HashProtocolContext } from "./hash-protocol.js";
 
 /** Trusted runtime policies. Identity hashes must remain stable for each object;
  * payload hashes must use one execution-wide seed and respect value equality.
@@ -17,6 +18,10 @@ export interface ConstantHashContext {
 }
 
 export interface RuntimeHashContext extends ConstantHashContext {
+  /** Select guest type-slot dispatch for a value, including nested immutable
+   * members. Undefined retains the exact native path. Keep this policy stable
+   * for the lifetime of hashed dictionary/set keys. */
+  guestHash?(value: RuntimeValue): HashProtocolContext<RuntimeValue> | undefined;
   /** The execution's canonical None is needed for equality-normalized ranges. */
   readonly none: Extract<PrimitiveConstant, { kind: "none" }>;
   identity(value: RuntimeValue): bigint;
@@ -56,7 +61,7 @@ function normalized(hash: bigint): bigint {
  * temporary and host object overhead accounting is not yet implemented.
  * Range frames hash a virtual canonical tuple without expanding the progression.
  * Lists are unhashable even inside immutable keys; functions/iterators use the
- * trusted identity policy. Guest overridden __hash__ remains object-runtime work.
+ * trusted identity policy. An optional selector supplies guest __hash__ dispatch.
  */
 export function runtimeHash(value: ConstantValue, context: ConstantHashContext, meter: ExecutionMeter): bigint;
 export function runtimeHash(value: RuntimeValue, context: RuntimeHashContext, meter: ExecutionMeter): bigint;
@@ -67,7 +72,10 @@ export function runtimeHash(value: RuntimeValue, context: ConstantHashContext | 
   while (true) {
     meter.checkpoint();
     if (current !== undefined) {
-      if (current.kind === "tuple" || current.kind === "slice" || current.kind === "range") {
+      const guest = "none" in context ? context.guestHash?.(current) : undefined;
+      meter.checkpoint(0);
+      if (guest !== undefined) result = protocolHash(current, guest, meter);
+      else if (current.kind === "tuple" || current.kind === "slice" || current.kind === "range") {
         const length = current.kind === "tuple" ? current.items.length : 3;
         if (length !== 0) {
           meter.checkpoint(0, 48);

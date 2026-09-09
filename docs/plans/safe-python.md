@@ -6244,6 +6244,21 @@ extension, integration, or validation requirement is missing or unverified.
   errors. Typecheck, scoped lint and selected workspace build pass. Guest hash
   slot negotiation and automatic namespace assembly remain required, alongside
   the broader unfinished object/interpreter/SDK/safe-fs integration.
+- Added generic guest hash-slot conversion and optional per-value selection in
+  the shared runtime hash kernel. Root values and nested immutable members now
+  invoke guest __hash__, require integer payloads without index coercion, retain
+  signed-64-bit results, numerically hash larger integers and remap -1 to -2.
+  Disabled/missing slots and slot failures remain distinct from native fallback.
+- Thirteen tests cover conversion boundaries, missing/disabled/invalid slots,
+  guest failures and root/nested builtin dispatch. All 4,927 tests in 428 files
+  pass; typecheck, scoped lint and selected workspace build pass. All 1,014
+  native hash comparisons still match CPython. Of 153 compiled guest hash cases,
+  151 match exactly; two dictionary insertion cases (None/float hash results)
+  retain the plain hash TypeError instead of CPython's dictionary-key context.
+  Their values/callback traces agree. This is a verified outstanding diagnostic
+  gap: dictionary/set error adaptation needs guest root type information and
+  hash-failure provenance, without rewriting unrelated equality errors. The full
+  guest-hash differential is retained with these failures, not counted as passed.
 - Next:
   remaining scope/compiler audits, interpreter runtime,
   resource controls, runtime modules, and safe-fs integration. Parsing and static

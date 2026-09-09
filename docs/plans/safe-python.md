@@ -5085,6 +5085,20 @@ extension, integration, or validation requirement is missing or unverified.
   slot dispatch, default percent field dispatch, guest identity wrapping and
   binary percent integration remain unfinished. Full guest objects, suspended
   execution, complete accounting and SDK/safe-fs integration remain outstanding.
+- Added str/repr/ascii representation protocol dispatch over explicit type-level
+  slots and a runtime-owned default repr capability. Exact str conversion keeps
+  identity; returned str subclasses are accepted without warnings or recursive
+  conversion. ASCII results retain identity when no escaping is needed and use
+  exact str construction otherwise. Invalid repr results reached through str
+  receive the str return-type diagnostic; slot exceptions propagate unchanged.
+- Seven tests first failed for the missing dispatcher. All 4,446 tests in
+  356 files pass. CPython matches 672 slot/result/identity/error combinations,
+  including disabled slots, strict string subclasses and long Unicode type
+  names. Source typecheck, scoped lint and selected workspace build pass. Native
+  and container representation slots, recursion guards, runtime adapters, default
+  percent field dispatch, guest identity wrapping and binary percent integration
+  remain unfinished. Full guest objects, suspended execution, complete accounting
+  and SDK/safe-fs integration remain outstanding.
 - Next:
   remaining scope/compiler audits, interpreter runtime,
   resource controls, runtime modules, and safe-fs integration. Parsing and static

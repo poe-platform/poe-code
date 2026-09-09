@@ -26,6 +26,12 @@ describe("execution runtime values", () => {
     expect(tuple.items[0]).toBe(list); expect(list.items.get(0n)).toBe(list);
     list.items.append(values.true); expect(list.items.length).toBe(2);
   });
+  it("can adopt trusted owned list storage without copying its slots", () => {
+    const values = new RuntimeValues(budget()), original = values.list([values.true]);
+    const storage = original.items.slice(), adopted = values.list(storage);
+    expect(adopted.items).toBe(storage); expect(adopted.items).not.toBe(original.items);
+    adopted.items.clear(); expect(original.items.length).toBe(1);
+  });
   it("allows slice components to retain arbitrary runtime values without conversion", () => {
     const values = new RuntimeValues(budget()), list = values.list([]);
     const slice: RuntimeValue = values.slice<RuntimeValue>({ lower: list });

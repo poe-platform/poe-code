@@ -39,9 +39,10 @@ export class RuntimeValues extends ConstantValues {
     super(runtimeMeter);
   }
 
-  list(items: readonly RuntimeValue[]): ListValue {
+  /** Adopt trusted owned storage (for example, a slice) without a second copy. */
+  list(items: readonly RuntimeValue[] | ListStorage<RuntimeValue>): ListValue {
     this.runtimeMeter.checkpoint(1, 32);
-    return Object.freeze({ kind: "list", items: new ListStorage(items, this.runtimeMeter) });
+    return Object.freeze({ kind: "list", items: items instanceof ListStorage ? items : new ListStorage(items, this.runtimeMeter) });
   }
 
   range(value: IntegerProgression): RangeValue {

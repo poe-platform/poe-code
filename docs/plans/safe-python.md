@@ -2937,6 +2937,20 @@ extension, integration, or validation requirement is missing or unverified.
   passed. Guest iterator types/StopIteration translation, arbitrary user iteration,
   concrete execution contexts, full heap/CPU accounting and safe-fs integration
   remain open; prepared host iterators are trusted adapters, not guest objects.
+- Connected exact runtime subscription for mutable lists, arbitrary-precision
+  ranges, mutable-member tuples and immutable strings/bytes. Slice step validation
+  precedes bounds; full list slices own fresh slots while full immutable slices
+  may retain identity. The runtime factory can adopt trusted owned list storage
+  so slicing does not copy its result a second time. Range indexing/slicing stays
+  arithmetic and does not apply fixed-size sequence index limits.
+- The subscription suite first failed on its missing module, and the storage
+  adoption regression failed before implementation. All 3,181 tests in 200 files
+  pass, including parsed nested subscription/slice integration. A 3,000-case
+  CPython comparison matched values, raw range attributes and errors across five
+  sequence kinds. Source typecheck, scoped lint and selected workspace build
+  passed. Guest __index__/__getitem__ slots, mutable assignment/deletion wiring,
+  complete execution contexts, heap/CPU accounting and safe-fs integration remain
+  unfinished. Trusted adopted storage must belong to the same execution meter.
 - Next:
   remaining scope/compiler audits, interpreter runtime,
   resource controls, runtime modules, and safe-fs integration. Parsing and static

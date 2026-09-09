@@ -16,6 +16,9 @@ function fixture(source: string, name: string) {
 }
 
 it.each([
+  ["title", "ß ﬃ ǆ", "Ss Ffi ǅ"],
+  ["capitalize", "ß ﬃ ǆ", "Ss ﬃ ǆ"],
+  ["swapcase", "ß ﬃ ǆ ǅ", "SS FFI Ǆ ǅ"],
   ["lower", "İ ǅ ẞ 𐐀", "i\u0307 ǆ ß 𐐨"],
   ["upper", "Straße ﬃ µ 𐐨", "STRASSE FFI Μ 𐐀"],
   ["casefold", "Straße ẞ İ Σς ﬃ K", "strasse ss i\u0307 σσ ffi k"]
@@ -25,7 +28,7 @@ it.each([
   expect([...result.value]).toEqual([...expected].map(c => c.codePointAt(0)));
 });
 
-it.each(["upper", "casefold", "lower"])("preserves only empty receiver identity for %s", name => {
+it.each(["upper", "casefold", "lower", "title", "capitalize", "swapcase"])("preserves only empty receiver identity for %s", name => {
   const empty = fixture("", name); expect(empty.call()).toBe(empty.text);
   const unchanged = fixture("123变量\ud800", name), result = unchanged.call();
   expect(result === unchanged.text).toBe(false);
@@ -33,11 +36,26 @@ it.each(["upper", "casefold", "lower"])("preserves only empty receiver identity 
   expect([...result.value]).toEqual([...unchanged.text.value]);
 });
 
-it.each(["upper", "casefold", "lower"])("rejects arguments and keywords for %s", name => {
+it.each(["upper", "casefold", "lower", "title", "capitalize", "swapcase"])("rejects arguments and keywords for %s", name => {
   const { call, v, keywords } = fixture("", name);
   expect(() => call([v.true])).toThrow(`str.${name}() takes no arguments (1 given)`);
   keywords.items.set(v.string("x"), v.true);
   expect(() => call()).toThrow(`str.${name}() takes no keyword arguments`);
+});
+
+it.each([
+  ["title", "they're A\u0301BC", "They'Re A\u0301Bc"],
+  ["capitalize", "1ABC", "1abc"],
+  ["title", "ΟΣ ΟΣΑ", "Ος Οσα"],
+  ["capitalize", "ΟΣ ΟΣΑ", "Ος οσα"],
+  ["swapcase", "ΟΣ ΟΣΑ", "ος οσα"],
+  ["title", "\u0345Σ", "Ισ"],
+  ["capitalize", "\u0345Σ", "Ισ"],
+  ["swapcase", "İΣ", "i\u0307ς"]
+])("applies %s word and sigma rules to %s", (name, source, expected) => {
+  const result = fixture(source, name).call();
+  if (result.kind !== "str") throw new Error("expected string");
+  expect([...result.value]).toEqual([...expected].map(c => c.codePointAt(0)));
 });
 
 it("lowercases sigma according to surrounding original cased characters", () => {

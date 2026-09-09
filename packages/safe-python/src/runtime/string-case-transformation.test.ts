@@ -37,6 +37,15 @@ it("uses original context for final sigma and allocates expanded lowercase exact
   expect(meter.usage.allocatedBytes).toBe(12);
 });
 
+it.each(["title", "capitalize", "swapcase"] as const)("preflights exact expanded output for %s", mode => {
+  const source = new CodePointString(Uint32Array.of(0xdf, 0x3a3));
+  const meter = new ExecutionBudget({ maxSteps: 200, maxAllocatedBytes: 12 });
+  const result = source.transformCase(mode, meter);
+  expect([...result]).toEqual(mode === "swapcase" ? [83, 83, 0x3c2] : [83, 115, 0x3c2]);
+  expect(meter.usage.allocatedBytes).toBe(12);
+  expect(() => source.transformCase(mode, new ExecutionBudget({ maxSteps: 200, maxAllocatedBytes: 11 }))).toThrow(ExecutionLimitError);
+});
+
 it("keeps long sigma/ignorable runs linear and checks context-scan budgets", () => {
   const run = (count: number) => {
     const input = new Uint32Array(count * 21 + 1).fill(0x301); input[0] = 65;

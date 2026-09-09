@@ -22,6 +22,15 @@ it("combines simple lowercase with full unconditional expansion", () => {
   expect(data.lower[0x3a3]).toBeUndefined();
 });
 
+it("generates distinct title mappings with uppercase fallback and full overrides", () => {
+  const row = Array<string>(15).fill(""); row[0] = "01C6"; row[12] = "01C4"; row[14] = "01C5";
+  const fallback = Array<string>(15).fill(""); fallback[0] = "0061"; fallback[12] = "0041";
+  const data = compileCaseMappings([row.join(";"), fallback.join(";")].join("\n"), "00DF;00DF;0053 0073;0053 0053;", "");
+  expect(data.title[0x1c6]).toEqual([0x1c5]);
+  expect(data.title[0x61]).toEqual([0x41]);
+  expect(data.title[0xdf]).toEqual([0x53, 0x73]);
+});
+
 it("rejects malformed or out-of-range case mapping points", () => {
   for (const mapping of ["110000", "00XX", "-001"]) {
     expect(() => compileCaseMappings("", "", `0041;C;${mapping};`)).toThrow("invalid Unicode case code point");

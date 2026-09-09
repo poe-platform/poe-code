@@ -1,8 +1,9 @@
 import { PythonRuntimeError } from "./error.js";
+import type { StringCaseTransformation } from "./code-point-string.js";
 import type { ExecutionMeter } from "./execution-budget.js";
 import type { BuiltinFunctionValue, RuntimeValue, RuntimeValues } from "./runtime-values.js";
 
-export function createRuntimeStringCaseMethod(receiver: Extract<RuntimeValue, { kind: "str" }>, name: "upper" | "casefold" | "lower", values: RuntimeValues, meter: ExecutionMeter): BuiltinFunctionValue {
+export function createRuntimeStringCaseMethod(receiver: Extract<RuntimeValue, { kind: "str" }>, name: StringCaseTransformation, values: RuntimeValues, meter: ExecutionMeter): BuiltinFunctionValue {
   meter.checkpoint(1, 64);
   return values.builtinFunction({
     name,

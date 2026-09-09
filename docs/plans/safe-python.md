@@ -4196,6 +4196,21 @@ extension, integration, or validation requirement is missing or unverified.
   Title/capitalize/swapcase, remaining native
   methods/builtins, subclasses/global interning, suspension, full accounting
   and SDK/safe-fs remain unfinished.
+- Connected str.title/capitalize/swapcase with 1,479 full Unicode 16 title
+  mappings. Title follows original cased runs, capitalize titlecases only the
+  first code point, and swapcase distinguishes upper/lower from titlecase-only
+  characters. Both sizing and output passes share mapping selection; contextual
+  sigma still reads original storage and all output uses one exact-size buffer.
+- Eighteen method/generator tests and three storage tests first failed for
+  missing behavior. All 3,955 tests in 289 files pass, including expanded title
+  allocation, uncased boundaries and sigma cases. Each method matches CPython
+  for all 1,114,112 individual code points and four sigma contexts apiece
+  (13,369,344 contextual transformations total); 3,612 compiled calls match
+  output, receiver identity and errors. The 3,608-call upper/casefold and
+  3,604-call lowercase regressions pass. Scoped lint, source typecheck and the
+  selected workspace build pass. Remaining text/bytes/numeric methods, native
+  builtins, subclasses/global interning, suspension, full accounting and
+  SDK/safe-fs remain unfinished.
 - Next:
   remaining scope/compiler audits, interpreter runtime,
   resource controls, runtime modules, and safe-fs integration. Parsing and static

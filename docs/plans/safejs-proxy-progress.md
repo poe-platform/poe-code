@@ -21,6 +21,8 @@ full-package, snapshot, or JavaScript-conformance gate.
   [verification](safejs-proxy-legacy-proto.md).
 - Proxy-aware Array.isArray with iterative budget checks; see
   [verification](safejs-proxy-array-identity.md).
+- Custom/array object tags for non-callable Proxy receivers; see
+  [verification and remaining scope](safejs-proxy-object-tag.md).
 - Object.assign sources and targets, descriptor-map enumeration, object
   spread/rest and rest exclusions.
 - Ordinary enumerability changes during values/entries, descriptor-map and

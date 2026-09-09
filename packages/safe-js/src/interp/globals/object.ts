@@ -3,6 +3,8 @@ import { getGeneratorProperties } from "../generator-properties.js";
 import { guestProxyStates } from "../guest-proxy.js";
 import { sandboxGetOwnPropertyDescriptor } from "../guest-proxy-descriptor.js";
 import { sandboxGetPrototypeOf, sandboxSetPrototypeOf } from "../guest-proxy-prototype.js";
+import { sandboxIsArray } from "../guest-proxy-array.js";
+import { sandboxGetProperty } from "../guest-proxy-get.js";
 import { accessorAdapter, accessorClosure, readPropertyDescriptor } from "../accessors.js";
 import { isSandboxArguments } from "../arguments.js";
 import type { Budget } from "../budget.js";
@@ -104,6 +106,11 @@ export function createObjectGlobal(methods: SandboxObject, budget: Budget): Sand
         if (receiver === undefined || receiver === null)
           return budget.allocateString(`[object ${typeTag(receiver)}]`);
         const object = construct([receiver]);
+        if (typeof object === "object" && object !== null && guestProxyStates.has(object)) {
+          const fallback = sandboxIsArray(object, budget) ? "Array" : "Object";
+          return Promise.resolve(sandboxGetProperty(object, Symbol.toStringTag, object, budget, context)).then(tag =>
+            budget.allocateString(`[object ${typeof tag === "string" ? tag : fallback}]`));
+        }
         const descriptor = isGuestHostObject(object) ? undefined : getSandboxPropertyDescriptor(object, Symbol.toStringTag, budget);
         const fallback = typeTag(object, descriptor !== undefined || hasExplicitSandboxPrototype(object as object));
         const finish = (tag: SandboxValue) => budget.allocateString(`[object ${typeof tag === "string" ? tag : fallback}]`);

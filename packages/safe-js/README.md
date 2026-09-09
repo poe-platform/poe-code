@@ -591,6 +591,9 @@ created by exported closures after run cleanup. Their later prototype mutations
 remain visible to SDK iteration.
 Arrays created by `Array` or `new Array` also preserve their originating
 prototype when inspected through another realm's SDK methods.
+Dates retain their originating prototype after run cleanup, including Dates
+created later by exported closures. Pristine Dates remain copyable as data;
+modified prototype chains reject copying rather than losing guest behavior.
 Array member calls also accept guest-defined own and inherited methods; missing
 or non-callable members fail the normal callability check.
 Direct SDK `Iterator.from` accepts strings after run cleanup, using the

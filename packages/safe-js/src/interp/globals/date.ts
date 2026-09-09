@@ -73,8 +73,9 @@ export function createDateGlobal(
         : await readPropertyDescriptor(getSandboxPropertyDescriptor(newTarget, "prototype", options.budget) ?? { value: undefined }, newTarget, context);
       options.budget.chargeDataUsage(9);
       const value = createSandboxDate(time);
-      if (selectedPrototype !== prototype && typeof selectedPrototype === "object" && selectedPrototype !== null)
-        setSandboxPrototype(value, selectedPrototype, options.budget);
+      setSandboxPrototype(value,
+        typeof selectedPrototype === "object" && selectedPrototype !== null ? selectedPrototype : prototype,
+        options.budget);
       return value;
     }
   });

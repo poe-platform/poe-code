@@ -412,8 +412,7 @@ export function releaseObjectPrototype(budget: Budget): void {
   regexPrototypes.delete(budget);
   collectionPrototypes.delete(budget);
   promisePrototypes.delete(budget);
-  datePrototypes.delete(budget);
-  // Keep arrayPrototypes and generatorPrototypes for live SDK closures that
+  // Keep arrayPrototypes, datePrototypes and generatorPrototypes for live SDK closures that
   // create values in this realm. Weak budget keys bound their lifetimes;
   // accounting roots above are still released.
   functionPrototypes.delete(budget);

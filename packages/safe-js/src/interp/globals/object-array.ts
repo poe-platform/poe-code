@@ -1119,26 +1119,25 @@ function createArrayFromConstructorArgs(
   args: readonly SandboxValue[],
   budget: Budget
 ): SandboxArray {
-  if (args.length !== 1) {
-    return allocateProducedSandboxValue([...args], budget) as SandboxArray;
+  let value: SandboxArray;
+  if (args.length !== 1 || typeof args[0] !== "number") {
+    value = allocateProducedSandboxValue([...args], budget) as SandboxArray;
+  } else {
+    const lengthOrValue = args[0];
+    if (!Number.isInteger(lengthOrValue) || lengthOrValue < 0 || lengthOrValue > 0xffffffff) {
+      throw new RangeError("Invalid array length.");
+    }
+    budget.allocateArrayLength(lengthOrValue);
+    const release = budget.provisionDataUsage(lengthOrValue + 1);
+    try {
+      value = new Array(lengthOrValue) as SandboxArray;
+    } finally {
+      release();
+    }
   }
-
-  const [lengthOrValue] = args;
-  if (typeof lengthOrValue !== "number") {
-    return allocateProducedSandboxValue([lengthOrValue], budget) as SandboxArray;
-  }
-
-  if (!Number.isInteger(lengthOrValue) || lengthOrValue < 0 || lengthOrValue > 0xffffffff) {
-    throw new RangeError("Invalid array length.");
-  }
-
-  budget.allocateArrayLength(lengthOrValue);
-  const release = budget.provisionDataUsage(lengthOrValue + 1);
-  try {
-    return new Array(lengthOrValue) as SandboxArray;
-  } finally {
-    release();
-  }
+  const prototype = getSandboxPrototype(value, budget);
+  if (prototype !== null) setSandboxPrototype(value, prototype, budget);
+  return value;
 }
 
 async function getOwnEnumerableProperties(

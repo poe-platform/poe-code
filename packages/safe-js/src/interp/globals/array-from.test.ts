@@ -123,11 +123,22 @@ describe("Array.from construction", () => {
   });
 
   it("does not double-charge a retained string input", async () => {
-    // Keep the same payload/budget ratio while allowing the fixed cost of the
-    // exposed String Iterator prototype graph. A duplicate input still fails.
-    expect(await run("return Array.from('x'.repeat(1000)).length", {
-      budget: new Budget({ dataSize: 3750 })
-    })).toMatchObject({ ok: true, returnValue: 1000 });
+    // Include the originating array prototype while proving that an additional
+    // retained copy still exceeds the same cap, rather than only raising it.
+    for (const retained of [0, 1000]) {
+      const budget = new Budget({ dataSize: 4000 });
+      const owner = {};
+      try {
+        const execution = run("retain();return Array.from('x'.repeat(1000)).length", {
+          budget,
+          bindings: { retain: () => { budget.setRetainedValues(owner, () => ["x".repeat(retained)]); } }
+        });
+        if (retained === 0) await expect(execution).resolves.toMatchObject({ ok: true, returnValue: 1000 });
+        else await expect(execution).rejects.toMatchObject({ code: "budgetExceeded", budget: "dataSize", limit: 4000 });
+      } finally {
+        budget.setRetainedValues(owner, undefined);
+      }
+    }
   });
 
   it.each(["undefined", "null", "false", "0", "''"])("preserves a falsey mapper throw through failing cleanup: %s", async (reason) => {

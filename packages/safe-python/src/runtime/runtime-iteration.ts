@@ -4,6 +4,7 @@ import { RangeIterator } from "./range-iterator.js";
 import type { RuntimeValue } from "./runtime-values.js";
 import type { ConstantValues } from "./constant-values.js";
 import { PythonRuntimeError } from "./error.js";
+import { iterateRuntimeDictionaryView } from "./runtime-dictionary-view.js";
 
 /** Acquire host iteration for exact builtin runtime values. Prepared iterator
  * records preserve their cursor identity; lists use live storage, not snapshots.
@@ -14,6 +15,7 @@ import { PythonRuntimeError } from "./error.js";
 export function runtimeIterate(value: RuntimeValue, values: ConstantValues, meter: ExecutionMeter): Iterator<RuntimeValue> {
   meter.checkpoint();
   switch (value.kind) {
+    case "dict_keys": case "dict_values": case "dict_items": return iterateRuntimeDictionaryView(value, values, meter);
     case "getset_descriptor": throw new PythonRuntimeError("TypeError", "'getset_descriptor' object is not iterable");
     case "type": throw new PythonRuntimeError("TypeError", "'type' object is not iterable");
     case "cell": throw new PythonRuntimeError("TypeError", "'cell' object is not iterable");

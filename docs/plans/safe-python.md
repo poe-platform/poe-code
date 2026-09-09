@@ -3545,6 +3545,30 @@ extension, integration, or validation requirement is missing or unverified.
   Arbitrary guest mapping proxies, exposed proxy methods/dictionary views,
   additional intrinsic type metadata, type construction, instance dispatch,
   suspension, full accounting and public SDK/safe-fs integration remain unfinished.
+- Added live dictionary keys/values/items views, shared forward/reverse cursors,
+  live length/truth and kind-specific membership. Item membership hashes only
+  the key and permits unhashable values; value/item membership preserves member
+  identity shortcuts. Keys/items compare as sets against other set-like views,
+  yielding nested equality work into the existing depth-limited evaluator rather
+  than recursing through host calls. Values views retain identity equality/hash;
+  keys/items are unhashable. Subscription and item mutation reject all views.
+- Added explicit bound read-method capabilities for exact dictionaries and their
+  proxies: get, copy, keys, values, items and __reversed__. Argument validation
+  precedes reads/allocations, get preserves absent-versus-None and uses one lookup,
+  copies share members but not slots, and each view/cursor is newly published.
+  Tests first failed on missing implementations; the assembled-program test
+  exercises calls, loops, live views and copies through explicit attribute hooks.
+  All 3,493 tests in 241 files pass; typecheck, scoped lint and selected workspace
+  build pass. A 1,500-case CPython view/read-method audit matched membership,
+  iteration, all pairwise view comparisons and argument errors. Regressions passed
+  for mapping proxies (1,200), dictionary comparisons (2,400 / 14,400 outcomes),
+  dictionary item operations (1,500 / 30,000 operations) and membership (1,920).
+  Reference: https://docs.python.org/3/library/stdtypes.html#dictionary-view-objects.
+  Set-producing view operations, set interoperability, isdisjoint, automatic
+  method/mapping-descriptor discovery and guest builtin reversed registration
+  remain unfinished. Existing iterator compaction differences remain tracked.
+  Type construction, instance dispatch, suspension, full accounting and public
+  SDK/safe-fs integration also remain unfinished.
 - Next:
   remaining scope/compiler audits, interpreter runtime,
   resource controls, runtime modules, and safe-fs integration. Parsing and static

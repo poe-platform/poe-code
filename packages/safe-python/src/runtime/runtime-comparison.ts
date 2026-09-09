@@ -4,6 +4,7 @@ import { numericComparison } from "./numeric-comparison.js";
 import { PythonRuntimeError } from "./error.js";
 import { rangesEqual } from "./integer-sequence.js";
 import type { RuntimeValue } from "./runtime-values.js";
+import { compareRuntimeDictionaryViews } from "./runtime-dictionary-view.js";
 
 type Compound = Extract<RuntimeValue, { kind: "list" | "tuple" | "slice" }>;
 
@@ -50,6 +51,21 @@ export function runtimeComparison(operator: string, left: RuntimeValue, right: R
     const task = work.pop()!;
     if (typeof task === "function") { task(); continue; }
     const { operator: op, left: a, right: b, depth } = task;
+    if ((a.kind === "dict_keys" || a.kind === "dict_items") && (b.kind === "dict_keys" || b.kind === "dict_items")) {
+      if (depth >= maxDepth) throw new PythonRuntimeError("RecursionError", "maximum recursion depth exceeded in comparison");
+      meter.checkpoint(0, 64);
+      const comparisons = compareRuntimeDictionaryViews(op, a, b, values, meter);
+      let first = true;
+      const next = () => {
+        const pair = first ? comparisons.next() : comparisons.next(result);
+        first = false;
+        if (pair.done) { result = pair.value; return; }
+        meter.checkpoint(0, 64);
+        work.push(next, { operator: "==", left: pair.value[0], right: pair.value[1], depth: depth + 1 });
+      };
+      work.push(next);
+      continue;
+    }
     if (a.kind === "mappingproxy" || b.kind === "mappingproxy") {
       if (depth >= maxDepth) throw new PythonRuntimeError("RecursionError", "maximum recursion depth exceeded in comparison");
       meter.checkpoint(0, 64);

@@ -32,6 +32,7 @@ export function runtimeBinary(operator: string, left: RuntimeValue, right: Runti
     }
   }
   if (left.kind === "mappingproxy" || right.kind === "mappingproxy") return values.notImplemented;
+  if (left.kind === "dict_keys" || left.kind === "dict_items" || left.kind === "dict_values" || right.kind === "dict_keys" || right.kind === "dict_items" || right.kind === "dict_values") return values.notImplemented;
   if (left.kind === "cell" || right.kind === "cell" || left.kind === "type" || right.kind === "type") return values.notImplemented;
   if (left.kind === "getset_descriptor" || right.kind === "getset_descriptor") return values.notImplemented;
   if (left.kind === "list" || right.kind === "list") {

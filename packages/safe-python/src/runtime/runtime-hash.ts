@@ -24,7 +24,7 @@ export interface RuntimeHashContext extends ConstantHashContext {
 
 /** Identifies an exact built-in hash rejection without matching error text. */
 export class UnhashableRuntimeValueError extends PythonRuntimeError {
-  constructor(kind: "list" | "dict" | "cell") {
+  constructor(kind: "list" | "dict" | "cell" | "dict_keys" | "dict_items") {
     super("TypeError", `unhashable type: '${kind}'`);
   }
 }
@@ -86,8 +86,8 @@ export function runtimeHash(value: RuntimeValue, context: ConstantHashContext | 
             const instance = normalized(context.identity(current.value.instance));
             result = normalized(fn ^ instance); break;
           }
-          case "list": case "dict": case "cell": throw new UnhashableRuntimeValueError(current.kind);
-          case "function": case "iterator": case "builtin_function_or_method": case "type": case "getset_descriptor":
+          case "list": case "dict": case "cell": case "dict_keys": case "dict_items": throw new UnhashableRuntimeValueError(current.kind);
+          case "function": case "iterator": case "builtin_function_or_method": case "type": case "getset_descriptor": case "dict_values":
             if (!("none" in context)) throw new Error("runtime hash context is required for identity-based runtime values");
             result = normalized(context.identity(current)); break;
           case "bool": result = current.value ? 1n : 0n; break;

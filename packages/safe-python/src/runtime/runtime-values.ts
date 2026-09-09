@@ -39,6 +39,12 @@ export interface MappingProxyValue {
   readonly value: DictionaryValue;
 }
 
+export type DictionaryViewValue = { readonly value: DictionaryValue } & (
+  | { readonly kind: "dict_keys" }
+  | { readonly kind: "dict_values" }
+  | { readonly kind: "dict_items" }
+);
+
 /** Trusted host implementation, installed explicitly by the runtime owner.
  * No payload fields are exposed through guest JavaScript property access. The
  * synchronous implementation owns its internal work and resource checkpoints.
@@ -111,6 +117,7 @@ export type RuntimeValue =
   | TypeValue
   | GetsetDescriptorValue
   | MappingProxyValue
+  | DictionaryViewValue
   | DictionaryValue;
 
 /** Host-only records, never accessible through guest JavaScript properties.
@@ -193,5 +200,10 @@ export class RuntimeValues extends ConstantValues {
   mappingProxy(value: DictionaryValue): MappingProxyValue {
     this.runtimeMeter.checkpoint(1, 32);
     return Object.freeze({ kind: "mappingproxy", value });
+  }
+
+  dictionaryView(value: DictionaryValue, kind: DictionaryViewValue["kind"]): DictionaryViewValue {
+    this.runtimeMeter.checkpoint(1, 32);
+    return Object.freeze({ kind, value });
   }
 }

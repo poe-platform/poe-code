@@ -2134,6 +2134,19 @@ extension, integration, or validation requirement is missing or unverified.
   scoped lint and selected workspace build passed. Shifts, set slots,
   guest type dispatch, bigint payload allocation and size-dependent CPU metering
   remain unfinished.
+- Added concrete bool/int left and right shifts, connected to expression tests.
+  Negative counts fail before zero shortcuts; bool results become integers and
+  enormous right shifts retain signed floor behavior. Nonzero left shifts reserve
+  ceil(count/8) growth bytes before host execution. Unrepresentable growth exhausts
+  and latches even the largest supported budget; host bigint-size failures are
+  fatal resource exhaustion rather than guest RangeError. This bounds shift growth,
+  not original payload copies, temporary allocation or size-dependent CPU work.
+- Shift validation: missing-module red tests preceded implementation; CPython
+  matched 2,005 bounded/safe huge-count shift outcomes. Tests check growth charges,
+  rejection before host allocation and fatal latching at both small and maximum
+  budgets. All 2,529 tests in 141 files pass; source typecheck, scoped lint and
+  selected workspace build passed. Guest type dispatch and full bigint resource
+  accounting remain pending.
 - Next:
   remaining scope/compiler audits, interpreter runtime,
   resource controls, runtime modules, and safe-fs integration. Parsing and static

@@ -8,6 +8,7 @@ import { constantIndex } from "./constant-index.js";
 import { ConstantIterator } from "./constant-iterator.js";
 import { realBinary } from "./real-binary.js";
 import { integerBitwise } from "./integer-bitwise.js";
+import { integerShift } from "./integer-shift.js";
 import { ExecutionBudget, ExecutionLimitError } from "./execution-budget.js";
 import { evaluateExpression, type ExpressionContext } from "./expression-evaluation.js";
 import { parseExpression } from "../expression.js";
@@ -57,7 +58,7 @@ describe("concrete constant truth", () => {
       literal: node => v.literal(node), boolean: value => v.boolean(value), truth: value => constantTruth(value, meter),
       load: name => { if (name === "NotImplemented") return v.notImplemented; return unexpected(); }, store: unexpected,
       unary: (operator, value) => constantUnary(operator, value, { values: v, warn: unexpected }, meter),
-      binary: (operator, left, right) => operator === "&" || operator === "|" || operator === "^" ? integerBitwise(operator, left, right, v, meter) : realBinary(operator, left, right, v, meter), compare: (operator, left, right) => operator === "in" || operator === "not in" ? constantMembership(operator, left, right, v, meter) : constantComparison(operator, left, right, v, meter), attribute: unexpected, beginCall: unexpected,
+      binary: (operator, left, right) => operator === "<<" || operator === ">>" ? integerShift(operator, left, right, v, meter) : operator === "&" || operator === "|" || operator === "^" ? integerBitwise(operator, left, right, v, meter) : realBinary(operator, left, right, v, meter), compare: (operator, left, right) => operator === "in" || operator === "not in" ? constantMembership(operator, left, right, v, meter) : constantComparison(operator, left, right, v, meter), attribute: unexpected, beginCall: unexpected,
       tuple: values => v.tuple(values), list: unexpected, beginSet: unexpected, beginDictionary: unexpected,
       slice: parts => v.slice(parts), getItem: (object, key) => constantIndex(object, key, v, meter), iterate: value => new ConstantIterator(value, v, meter)
     };
@@ -83,6 +84,8 @@ describe("concrete constant truth", () => {
     expect(run("(True | False) is True")).toBe(v.true);
     expect(run("(True | 2) == 3 and (-5 ^ 3) == -8")).toBe(v.true);
     expect(run("(7 & 3) == 3")).toBe(v.true);
+    expect(run("(3 << 10) == 3072 and (-7 >> 1) == -4")).toBe(v.true);
+    expect(run("(True << True) == 2")).toBe(v.true);
     expect(run("False and NotImplemented")).toBe(v.false);
     expect(run("True or NotImplemented")).toBe(v.true);
     expect(run("False or NotImplemented")).toBe(v.notImplemented);

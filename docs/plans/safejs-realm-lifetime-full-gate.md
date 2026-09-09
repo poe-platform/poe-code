@@ -1,6 +1,38 @@
 # Realm lifetime full package gate
 
-## Latest reflection, iterator and RegExp matcher candidate
+## Latest generator candidate
+
+Runtime HEAD `52d8ad42b` includes generator result identity and realm fixes.
+The maintained package unit route ran its locale-generation pretest hook and
+finished with exit 1 after 615.13 seconds (session 1567, start 05:16:23).
+
+- Tests: 24,368 passed, three failed, 37 skipped; 24,408 total.
+- Files: 947 passed, two failed, one skipped; 950 total.
+- Two failures remain the native Promise string/symbol import-policy cases.
+- The third is retained-root-accounting.test.ts: an async-function evaluation
+  exceeds the 500-unit data limit at 917. It reproduces in the isolated file,
+  so it is not classified as a transient or environmental failure.
+
+The discovered source/test inputs retain SHA-256
+`c31f51cabe7178d2dbc7770911e0fd10410402bc04eb4c6101fae47956dac7d8`.
+Three regression files were added after discovery and run separately, not as
+part of this gate: globals/promise-any-descriptors.test.ts,
+globals/error-prototype-lifetime.test.ts and globals/promise-result-realm.test.ts.
+Excluding those exact paths reproduces the original hash after completion.
+The gate also includes the existing uncommitted weak-collection work and
+Promise policy tests; it is not an isolated committed-tree validation.
+
+The accounting follow-up restricts stored generator result prototypes to
+actual async-generator nodes. Internal async-function frames and synchronous
+generators do not consume that metadata. The unchanged accounting file plus
+generator realm/delegation regressions now pass all 33 tests, and TypeScript
+passes. Broader generator/snapshot/accounting validation passes 1,955 tests
+across 136 files in 78.63 seconds. Scoped ESLint, 23 maintained workspace
+builds and four fresh-process import checks pass. The built SDK accounting
+probe now peaks at 428 within its unchanged 500 limit. This follow-up is not
+covered by the full-gate result above.
+
+## Previous reflection, iterator and RegExp matcher candidate
 
 Runtime HEAD `c1b8b4eda` includes the reflection, descriptor, JSON, grouping,
 entry-pair, toArray, built-in iterator-result and RegExp matcher realm fixes.

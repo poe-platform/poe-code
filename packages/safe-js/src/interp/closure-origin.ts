@@ -37,7 +37,8 @@ export function getClosureOrigin(value: object): ClosureOrigin | undefined {
 
 export function registerGeneratorOrigin(generator: SandboxGenerator, node: ClosureOrigin["node"], scope: Scope, context: AsyncEvaluationContext): GeneratorOrigin {
   const origin = { node, scope, closureScope: context.scope, environment: context.functionEnvironment,
-    resultPrototype: getSandboxPrototype({}, context.budget) };
+    ...(node.type !== "ArrowFunctionExpression" && node.generator && node.async
+      ? {resultPrototype: getSandboxPrototype({}, context.budget)} : {}) };
   generatorOrigins.set(generator, origin);
   const source = dynamicNodeSources.get(node);
   if (source !== undefined) dynamicValueSources.set(generator, source);

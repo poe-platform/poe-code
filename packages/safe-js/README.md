@@ -745,17 +745,16 @@ remaining array species/identity consumers still need integration.
 See the [Proxy progress record](../../docs/plans/safejs-proxy-progress.md) for
 the tested scope and remaining work.
 
-The latest working-tree gate includes the reflection, descriptor, JSON,
-grouping, built-in iterator and RegExp matcher realm fixes. The maintained
-build passed 23 workspace builds and four import checks. The full SafeJS unit
-run passed 24,317 tests, failed two, and skipped 37 across 946 files. Source/test
-fingerprints matched before and after the run. Both failures concern native
-Promise own-property imports, whose admission policy remains unresolved.
-The previous checkpoint/camera timeouts did not recur; this does not establish
-a permanent timing fix. This is not a green package gate or an isolated
-committed-tree result, and predates the helper and wrapper-result fixes.
-Generator result realms and synchronous yield-star result forwarding remain
-validated gaps.
+The latest working-tree gate includes the generator result-realm and
+synchronous yield-star forwarding fixes. It passed 24,368 tests, failed three,
+and skipped 37 across 950 files. The discovered inputs retained their source/test
+fingerprint; three later regression files were checked separately.
+Two failures concern native Promise own-property imports, whose admission
+policy remains unresolved. The third exposed unnecessary result-prototype
+retention in internal async-function frames. Restricting that metadata to
+actual async generators passes 1,955 generator, snapshot and accounting tests,
+plus lint, TypeScript and build checks. This is not a green full-package
+gate or an isolated committed-tree result.
 See the [full gate record](../../docs/plans/safejs-realm-lifetime-full-gate.md).
 The public data-copy boundary now rejects guest Proxy values explicitly instead
 of silently producing empty objects. Use an owning realm's retained guest

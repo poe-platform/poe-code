@@ -73,6 +73,7 @@ export function installIteratorConsumers(prototype: SandboxObject,budget: Budget
             }
             value=await bridge.getProperty!(result as unknown as SandboxValue,"value");
             if (name === "toArray") {
+              budget.allocateArrayLength(values.length+1);
               values.push(value);
               checkpoint(values,0,true);
             } else if (!initialized) {

@@ -657,6 +657,8 @@ Array prototype of each new entry pair. Keys and values inside those pairs
 retain identity; values-only iteration does not re-prototype payload arrays.
 `Iterator.prototype.toArray` retains the method's originating Array prototype
 for empty and non-empty results, including SDK calls with foreign iterators.
+It checks the `arrayLength` budget before appending each collected value,
+including direct SDK calls.
 Collected values keep their identity and prototypes.
 Array, typed-array, Map, Set, and string iterator `next()` result objects
 retain the method's originating Object prototype, including exhausted results

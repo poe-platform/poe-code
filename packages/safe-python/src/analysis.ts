@@ -5,11 +5,14 @@ import { validateFutureImports } from "./future-imports.js";
 import { validateControlFlow } from "./control-flow-validation.js";
 import { collectSymbols } from "./symbol-collection.js";
 import { resolveSymbols, type ResolvedScope } from "./symbol-resolution.js";
+import type { FunctionExecutionKind, FunctionNode } from "./expression-context.js";
 
 export interface ModuleAnalysis {
   readonly module: Module;
   readonly futureFeatures: ReadonlySet<string>;
   readonly scopes: ResolvedScope;
+  /** Same AST identities as lexical scopes; includes unreachable yields. */
+  readonly functionKinds: ReadonlyMap<FunctionNode, FunctionExecutionKind>;
 }
 
 /** Parse and statically validate source without executing it or loading imports.
@@ -19,7 +22,7 @@ export interface ModuleAnalysis {
 export function analyzeModule(text: string, options: LexerOptions = {}): ModuleAnalysis {
   const module = parseModule(text, options);
   const futureFeatures = validateFutureImports(module, options.filename);
-  validateControlFlow(module, options.filename);
+  const functionKinds = validateControlFlow(module, options.filename);
   const scopes = resolveSymbols(collectSymbols(module), options.filename);
-  return { module, futureFeatures, scopes };
+  return { module, futureFeatures, scopes, functionKinds };
 }

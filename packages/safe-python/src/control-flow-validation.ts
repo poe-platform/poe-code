@@ -1,7 +1,7 @@
 import type { Module, Statement } from "./statement-ast.js";
 import { PythonSyntaxError } from "./source.js";
 import { statementExpressions } from "./statement-expressions.js";
-import { validateExpressionContext, type ExpressionScope } from "./expression-context.js";
+import { validateExpressionContext, type ExpressionScope, type FunctionNode, type FunctionExecutionKind } from "./expression-context.js";
 import { annotationTargetExpressions } from "./annotation-targets.js";
 
 type Scope = ExpressionScope & { valueReturn?: Statement };
@@ -13,12 +13,13 @@ type Context = {
 };
 
 /** Statement and expression placement checks, separate from parsing and symbol analysis. */
-export function validateControlFlow(module: Module, filename = "<string>"): void {
+export function validateControlFlow(module: Module, filename = "<string>"): ReadonlyMap<FunctionNode, FunctionExecutionKind> {
+  const functionKinds = new Map<FunctionNode, FunctionExecutionKind>();
   function visit(statements: readonly Statement[], context: Context): void {
     for (const statement of statements) {
       const expressions = statement.kind === "annotated-assignment" && statement.value === null
         ? annotationTargetExpressions(statement.target, filename) : statementExpressions(statement, false);
-      for (const expression of expressions) validateExpressionContext(expression, context.scope, filename);
+      for (const expression of expressions) validateExpressionContext(expression, context.scope, filename, functionKinds);
       const invalid = (message: string): PythonSyntaxError => new PythonSyntaxError(message, filename, statement.start);
       switch (statement.kind) {
         case "return":
@@ -34,6 +35,9 @@ export function validateControlFlow(module: Module, filename = "<string>"): void
           const scope: Scope = { kind: statement.async ? "async-function" : "function", generator: false };
           visit(statement.body, { scope, loops: 0, exceptStarLoop: null });
           if (statement.async && scope.generator && scope.valueReturn) throw new PythonSyntaxError("'return' with value in async generator", filename, scope.valueReturn.start);
+          functionKinds.set(statement, statement.async
+            ? scope.generator ? "async-generator" : "coroutine"
+            : scope.generator ? "generator" : "function");
           break;
         }
         case "class":
@@ -78,4 +82,5 @@ export function validateControlFlow(module: Module, filename = "<string>"): void
     }
   }
   visit(module.body, { scope: { kind: "module", generator: false }, loops: 0, exceptStarLoop: null });
+  return functionKinds;
 }

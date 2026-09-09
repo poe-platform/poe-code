@@ -1644,6 +1644,19 @@ extension, integration, or validation requirement is missing or unverified.
   exact binding diagnostics. Scoped lint, source typecheck and selected build
   passed. Function objects, full body invocation, suspension/recursion controls and
   complete activation allocation accounting remain pending.
+- Retained lexical function execution kinds from the existing control-flow and
+  expression validation pass. Module analysis now exposes AST-identity-keyed
+  function/lambda metadata for ordinary functions, generators, coroutines and
+  async generators. Unreachable yields count; nested bodies stay separate, while
+  defaults/decorators and comprehension outer iterables affect their owning scope.
+  Ignored type expressions contribute no runtime functions or yield flags.
+- Execution-kind validation: 25 new assertions failed before implementation;
+  the existing async-generator return check stayed green. All 2,122 tests in 106
+  files pass, with 26 classification tests and 96 CPython code-object flag/placement
+  comparisons across nested functions/classes/lambdas and compound suites. Scoped
+  lint, source typecheck, selected workspace build and final focused rerun passed.
+  The metadata enables correct call dispatch; ordinary body invocation and
+  suspended generator/coroutine execution still require implementation.
 - Next:
   remaining scope/compiler audits, interpreter runtime,
   resource controls, runtime modules, and safe-fs integration. Parsing and static

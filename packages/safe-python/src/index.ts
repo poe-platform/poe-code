@@ -6,6 +6,7 @@ export { parseExpression } from "./expression.js";
 export { parseModule } from "./module.js";
 export { analyzeModule } from "./analysis.js";
 export type { ModuleAnalysis } from "./analysis.js";
+export type { FunctionExecutionKind, FunctionNode } from "./expression-context.js";
 export type { SymbolEvent, SymbolScope } from "./symbol-collection.js";
 export type { ResolvedBinding, ResolvedScope } from "./symbol-resolution.js";
 export type { Pattern } from "./pattern-ast.js";

@@ -6029,6 +6029,20 @@ extension, integration, or validation requirement is missing or unverified.
   addition adapter; those 20 combinations were excluded, not counted as passes.
   Full guest addition/sequence fallback, automatic registration and broader
   object/SDK/safe-fs integration remain unfinished.
+- Closed the sum audit's native sequence-addition diagnostic gap with a runtime
+  ordinary-addition adapter. Optional prepared numeric dispatch runs before
+  native sequence fallback, preserving reflected-method priority. Native list,
+  tuple, str and bytes mismatches now report their own bounded diagnostics;
+  unsupported numeric pairs use the generic addition TypeError. No in-place
+  operation is used. Sum now defaults to this adapter while retaining an
+  optional execution-owned full-add override.
+- Six new tests cover native results, fallback ordering, successful reflection,
+  cancellation, type-name bounds and default sum integration. All 4,820 tests in
+  424 files pass. All 2,479 compiled sum cases now match CPython, including the
+  20 previously excluded invalid sequence combinations. Typecheck, scoped lint
+  and selected workspace build pass. General expression-context wiring, guest
+  sequence subclass storage/buffer exporters and broader interpreter/SDK/safe-fs
+  integration remain unfinished.
 - Next:
   remaining scope/compiler audits, interpreter runtime,
   resource controls, runtime modules, and safe-fs integration. Parsing and static

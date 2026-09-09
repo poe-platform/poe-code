@@ -42,3 +42,8 @@ it("returns arbitrary generic starts unchanged for empty iterables", () => {
   expect(call(v.list([]), start)).toBe(start);
   expect(call(v.list([]), v.true)).toBe(v.true);
 });
+it("uses complete native addition by default, including sequence diagnostics", () => {
+  const { v, meter, keywords } = fixture(), builtin = createSumBuiltin(v, meter);
+  expect(builtin.value.invoke([v.list([v.integer(1), v.integer(2)])], keywords, meter)).toBe(v.integer(3));
+  expect(() => builtin.value.invoke([v.list([v.integer(1)]), v.list([])], keywords, meter)).toThrow('can only concatenate list (not "int") to list');
+});

@@ -3,6 +3,7 @@ import type { ExecutionMeter } from "./execution-budget.js";
 import { suggestName } from "./name-suggestion.js";
 import type { IterationContext } from "./protocol-iterator.js";
 import { runtimeIterate } from "./runtime-iteration.js";
+import { runtimeAddition } from "./runtime-addition.js";
 import { sumIterator } from "./sum-iterator.js";
 import type { BuiltinFunctionValue, RuntimeValue, RuntimeValues } from "./runtime-values.js";
 
@@ -10,7 +11,7 @@ export interface SumContext {
   iteration?: IterationContext<RuntimeValue>;
   /** Full ordinary addition, including reflected slots and unsupported errors;
    * must not perform in-place addition or return a dispatch sentinel. */
-  add(left: RuntimeValue, right: RuntimeValue): RuntimeValue;
+  add?(left: RuntimeValue, right: RuntimeValue): RuntimeValue;
   /** Pure storage/type classification for str/bytes/bytearray subclasses. */
   stringStart?(value: RuntimeValue): "strings" | "bytes" | "bytearray" | undefined;
 }
@@ -18,7 +19,7 @@ export interface SumContext {
 /** Explicit sum(iterable, /, start=0) binding. Iterator acquisition precedes
  * start validation; no length hint is requested and failures do not close the
  * source. Numeric phase progression is owned by the streaming sum kernel. */
-export function createSumBuiltin(values: RuntimeValues, meter: ExecutionMeter, context: SumContext): BuiltinFunctionValue {
+export function createSumBuiltin(values: RuntimeValues, meter: ExecutionMeter, context: SumContext = {}): BuiltinFunctionValue {
   meter.checkpoint(1, 64);
   return values.builtinFunction({ name: "sum", invoke(positional, keywords, meter) {
     meter.checkpoint();
@@ -44,6 +45,6 @@ export function createSumBuiltin(values: RuntimeValues, meter: ExecutionMeter, c
       meter.checkpoint();
       if (kind !== undefined) throw new PythonRuntimeError("TypeError", `sum() can't sum ${kind} [use ${kind === "strings" ? "''" : "b''"}.join(seq) instead]`);
     }
-    return sumIterator(cursor, start, values, context.add.bind(context), meter);
+    return sumIterator(cursor, start, values, context.add?.bind(context) ?? ((a, b) => runtimeAddition(a, b, values, meter)), meter);
   } });
 }

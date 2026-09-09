@@ -4676,6 +4676,21 @@ extension, integration, or validation requirement is missing or unverified.
   type registration, subclass construction and tuple reuse remain separate
   work, alongside other combinator bindings, full guest object wiring, suspended
   execution, complete accounting and SDK/safe-fs integration.
+- Added the explicitly registerable zip binding, sharing the existing strict
+  option validator/suggestions and parallel traversal kernel. A metered adapter
+  validates native keyword counts before translating the sole keyword. Strict
+  truth conversion precedes eager left-to-right iterator acquisition, including
+  zero-input calls; traversal and guest tuple allocation remain lazy. Optional
+  guest iteration and truth capabilities preserve callback ownership. Existing
+  strict mismatch diagnostics and exhaustion payload rules remain intact.
+- Seven new tests first failed for the missing binding. All 4,242 tests in 329
+  files pass. A 3,486-program compiled CPython audit matches values and errors
+  across strict lengths, zero/many inputs, keyword spelling/precedence, prepared
+  cursors and live list mutation. Source typecheck, scoped lint and selected
+  workspace build pass. Native zip type registration, subclasses and
+  tuple reuse remain separate work, alongside remaining combinator bindings,
+  full guest object wiring, suspended execution, complete resource accounting
+  and SDK/safe-fs integration.
 - Next:
   remaining scope/compiler audits, interpreter runtime,
   resource controls, runtime modules, and safe-fs integration. Parsing and static

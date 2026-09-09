@@ -1234,7 +1234,9 @@ function isSelfResolution(result: SandboxValue, self: SandboxPromise | undefined
 }
 
 function hasCustomPromiseThen(value: SandboxValue, budget?: Budget): boolean {
-  const descriptor = getSandboxPropertyDescriptor(value, "then", budget);
+  let proxy = false;
+  const descriptor = getSandboxPropertyDescriptor(value, "then", budget, () => { proxy = true; });
+  if (proxy) return true;
   if (descriptor === undefined && isSandboxPromise(value) && hasExplicitSandboxPrototype(value)) return true;
   return descriptor !== undefined &&
     (!isSandboxClosure(descriptor.value) || !intrinsicPromiseThenMethods.has(descriptor.value));

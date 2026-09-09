@@ -1,10 +1,10 @@
 import { isFatalSandboxError, type Budget } from "../budget.js";
-import { readPropertyDescriptor } from "../accessors.js";
+import { sandboxGetProperty } from "../guest-proxy-get.js";
 import { invokeBuiltinClosure } from "../builtin-call.js";
 import { createDataCheckpoint } from "../data-checkpoint.js";
 import { closeIterator, type SandboxIterator } from "../iteration.js";
 import { registerBuiltinIdentities } from "../intrinsics.js";
-import { getSandboxPropertyDescriptor, registerIntrinsicObject } from "../object-model.js";
+import { registerIntrinsicObject } from "../object-model.js";
 import { retainValues } from "../resources.js";
 import { createSandboxClosure, isSandboxClosure, type SandboxCallContext, type SandboxClosure, type SandboxObject, type SandboxValue } from "../values.js";
 
@@ -15,6 +15,16 @@ export function installIteratorConsumers(prototype: SandboxObject,budget: Budget
       call:async (args,context)=>{
         const receiver=context?.thisValue;
         if (receiver === null || typeof receiver !== "object") throw new TypeError("Iterator consumer requires an object.");
+        const caller: SandboxCallContext = {
+          ...context, stack: context?.stack ?? [], thisValue: receiver,
+          getProperty: context?.getProperty ?? ((value,key)=>sandboxGetProperty(value,key,value,budget,bridge))
+        };
+        const bridge: SandboxCallContext = {
+          ...caller,
+          invokeClosure: context?.invokeClosure ?? ((callee,args,target,construct,newTarget)=>
+            invokeBuiltinClosure(callee,args,budget,caller,target,construct,newTarget))
+        };
+        context=bridge;
         const callback=args[0];
         let next: SandboxValue;
         let accumulator: SandboxValue=args[1];
@@ -32,7 +42,7 @@ export function installIteratorConsumers(prototype: SandboxObject,budget: Budget
             return result as unknown as IteratorResult<SandboxValue>;
           },
           getOperation:async ()=>{
-            const method=await read(receiver,"return",context);
+            const method=await bridge.getProperty!(receiver,"return");
             if (method === undefined || method === null) return undefined;
             if (!isSandboxClosure(method)) throw new TypeError("Iterator return must be callable.");
             return async ()=>await invokeBuiltinClosure(method,[],budget,context,receiver) as unknown as IteratorResult<SandboxValue>;
@@ -43,13 +53,13 @@ export function installIteratorConsumers(prototype: SandboxObject,budget: Budget
             await closeIterator(iterator,true);
             throw new TypeError("Iterator callback must be callable.");
           }
-          next=await read(receiver,"next",context);
+          next=await bridge.getProperty!(receiver,"next");
           let initialized=name !== "reduce" || args.length>1;
           let index=0;
           while (true) {
             budget.visitNode();
             const result=await iterator.next();
-            if (await read(result as unknown as SandboxValue,"done",context)) {
+            if (await bridge.getProperty!(result as unknown as SandboxValue,"done")) {
               if (!initialized) throw new TypeError("Cannot reduce an empty iterator without an initial value.");
               if (name === "toArray") return values;
               if (name === "reduce") return accumulator;
@@ -57,7 +67,7 @@ export function installIteratorConsumers(prototype: SandboxObject,budget: Budget
               if (name === "every") return true;
               return undefined;
             }
-            value=await read(result as unknown as SandboxValue,"value",context);
+            value=await bridge.getProperty!(result as unknown as SandboxValue,"value");
             if (name === "toArray") {
               values.push(value);
               checkpoint(values,0,true);
@@ -89,9 +99,4 @@ export function installIteratorConsumers(prototype: SandboxObject,budget: Budget
   registerBuiltinIdentities(budget,{"%IteratorPrototype%":prototype});
   registerIntrinsicObject(budget,prototype);
 
-  async function read(value: SandboxValue,key: PropertyKey,context?: SandboxCallContext): Promise<SandboxValue> {
-    if (context?.getProperty !== undefined) return context.getProperty(value,key);
-    const descriptor=getSandboxPropertyDescriptor(value,key,budget);
-    return descriptor === undefined ? undefined : readPropertyDescriptor(descriptor,value,context);
-  }
 }

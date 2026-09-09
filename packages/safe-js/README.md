@@ -598,6 +598,9 @@ SDK Iterator subclass construction observes Proxy `newTarget.prototype` reads,
 including nested/accessor-backed traps, and rejects revoked constructor targets.
 SDK iterator disposal observes Proxy `return` lookup and invocation with the
 original receiver, including inherited accessors and revoked methods.
+SDK eager iterator consumers (`toArray`, `reduce`, `forEach`, `some`, `every`,
+and `find`) observe Proxy receivers, methods, result objects, and callbacks,
+including iterator closing on early return or callback failure.
 Public Proxy binding reads the prototype and own length descriptor through traps
 before reading length and name, including null prototypes and nested Proxies.
 Promise operations dispatch Proxy constructors, executors, reaction callbacks,
